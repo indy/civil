@@ -19,6 +19,7 @@ use actix_web::{HttpResponse};
 use actix_web::web::{Json, Data};
 use deadpool_postgres::Pool;
 use rand::{thread_rng, RngCore};
+use tracing::info;
 
 mod web {
     #[derive(Debug, serde::Deserialize)]
@@ -101,6 +102,7 @@ pub async fn get_user(
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
+    info!("get_user");
     let user_id = session::user_id(&session)?;
 
     // db statement

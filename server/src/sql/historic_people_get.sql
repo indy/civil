@@ -1,3 +1,3 @@
 SELECT $table_fields
-FROM entries
+FROM historic_people
 WHERE id = $1 AND user_id = $2

@@ -13,7 +13,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::handle_entries;
+use crate::handle_historic_people;
+use crate::handle_dates;
+use crate::handle_locations;
 use crate::handle_users;
 use actix_files::NamedFile;
 use actix_web::dev;
@@ -34,14 +36,30 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("", post().to(handle_users::create_user))
                 .route("", get().to(handle_users::get_user)),
         )
-        // entries
+        // historic_people
         .service(
-            scope("/entries")
-                .route("", post().to(handle_entries::create_entry))
-                .route("", get().to(handle_entries::get_entries))
-                .route("/{id}", get().to(handle_entries::get_entry))
-                .route("/{id}", put().to(handle_entries::edit_entry))
-                .route("/{id}", delete().to(handle_entries::delete_entry)),
+            scope("/people")
+                .route("", post().to(handle_historic_people::create_person)) // todo
+                .route("", get().to(handle_historic_people::get_people)) // todo
+                .route("/{id}", get().to(handle_historic_people::get_person)) // todo
+                .route("/{id}", put().to(handle_historic_people::edit_person)) // todo
+                .route("/{id}", delete().to(handle_historic_people::delete_person)), // todo
+        )
+        // dates
+        .service(
+            scope("/dates")
+                .route("", post().to(handle_dates::create_date)) // todo
+                .route("/{id}", get().to(handle_dates::get_date)) // todo
+                .route("/{id}", put().to(handle_dates::edit_date)) // todo
+                .route("/{id}", delete().to(handle_dates::delete_date)), // todo
+        )
+        // locations
+        .service(
+            scope("/locations")
+                .route("", post().to(handle_locations::create_location)) // todo
+                .route("/{id}", get().to(handle_locations::get_location)) // todo
+                .route("/{id}", put().to(handle_locations::edit_location)) // todo
+                .route("/{id}", delete().to(handle_locations::delete_location)), // todo
         )
 }
 

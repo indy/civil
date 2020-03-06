@@ -15,11 +15,13 @@
 
 mod api;
 mod error;
-mod handle_entries;
+mod handle_locations;
+mod handle_dates;
+mod handle_historic_people;
 mod handle_users;
-mod models;
 mod pg;
 mod session;
+mod web_common;
 
 pub use crate::error::Result;
 

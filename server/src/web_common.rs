@@ -13,21 +13,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use serde::{Deserialize, Serialize};
-use tokio_pg_mapper_derive::PostgresMapper;
-
-#[derive(Deserialize, PostgresMapper, Serialize)]
-#[pg_mapper(table = "entries")]
-pub struct Entry {
-    pub user_id: i64,
-    pub content: String,
-}
-
-#[derive(Debug, Deserialize, PostgresMapper, Serialize)]
-#[pg_mapper(table = "things")]
-pub struct Thing {
-    pub user_id: i64,
-    pub textual: Option<String>,
-    //pub exact_date: Option<String>, // ???
-    pub longitude: Option<f32>,
+#[derive(serde::Deserialize)]
+pub struct IdParam {
+    pub id: i64,
 }
