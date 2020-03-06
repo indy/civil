@@ -3,6 +3,20 @@ import { Link } from 'react-router-dom';
 
 import Net from '../lib/Net';
 
+function yearFrom(dateString) {
+  let res = 0;
+  if (dateString[0] === '-') {
+    res = parseInt(dateString.slice(0, 5), 10);
+  } else {
+    res = parseInt(dateString.slice(0, 4), 10);
+  }
+  return res;
+}
+
+function addBirthYear(p) {
+  p.birth_year = yearFrom(p.birth_date.exact_date);
+}
+
 class People extends Component {
   constructor(props) {
     super(props);
@@ -13,6 +27,7 @@ class People extends Component {
     };
 
     Net.get('/api/people').then(people => {
+      people.forEach(addBirthYear);
       this.setState({people});
     });
   }
@@ -30,21 +45,21 @@ class People extends Component {
   render() {
     const { people } = this.state;
 
-    const ancientCutoff = 1850671;
-    const medievalCutoff = 2257000;
-    const modernCutoff = 2399075;
+    const ancientCutoff = 354;
+    const medievalCutoff = 1469;
+    const modernCutoff = 1856;
 
     const ancientPeopleList = people
-          .filter(person => person.birth_date.exact_date < ancientCutoff)
+          .filter(person => person.birth_year < ancientCutoff)
           .map(this.createPersonListing);
     const medievalPeopleList = people
-          .filter(person => person.birth_date.exact_date >= ancientCutoff && person.birth_date.exact_date < medievalCutoff)
+          .filter(person => person.birth_year >= ancientCutoff && person.birth_year < medievalCutoff)
           .map(this.createPersonListing);
     const modernPeopleList = people
-          .filter(person => person.birth_date.exact_date >= medievalCutoff && person.birth_date.exact_date < modernCutoff)
+          .filter(person => person.birth_year >= medievalCutoff && person.birth_year < modernCutoff)
           .map(this.createPersonListing);
     const contemporaryPeopleList = people
-          .filter(person => person.birth_date.exact_date > modernCutoff)
+          .filter(person => person.birth_year >= modernCutoff)
           .map(this.createPersonListing);
 
     return (
