@@ -22,10 +22,17 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 mod web {
+    use crate::handle_dates::web::Date;
+    use crate::handle_locations::web::Location;
+
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct Person {
         pub id: i64,
         pub name: String,
+        pub birth_date: Option<Date>,
+        pub birth_location: Option<Location>,
+        pub death_date: Option<Date>,
+        pub death_location: Option<Location>,
     }
 }
 
@@ -72,7 +79,6 @@ pub async fn get_person(
 
     // db statement
     let db_person: db::Person = db::get_person(&db_pool, params.id, user_id).await?;
-
     Ok(HttpResponse::Ok().json(web::Person::from(db_person)))
 }
 
@@ -109,12 +115,43 @@ mod db {
     use deadpool_postgres::Pool;
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
+    #[allow(unused_imports)]
+    use tracing::info;
+    use crate::handle_dates;
+    use crate::handle_locations;
 
-    #[derive(Deserialize, PostgresMapper, Serialize)]
+    #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
     #[pg_mapper(table = "historic_people")]
     pub struct Person {
         pub id: i64,
         pub name: String,
+        pub age: Option<String>,
+        // birth date
+        pub birth_date_id: Option<i64>,
+        pub bd_textual: Option<String>,
+        pub bd_exact_date: Option<chrono::NaiveDate>,
+        pub bd_lower_date: Option<chrono::NaiveDate>,
+        pub bd_upper_date: Option<chrono::NaiveDate>,
+        pub bd_fuzz: Option<f32>,
+        // birth location
+        pub birth_location_id: Option<i64>,
+        pub bl_textual: Option<String>,
+        pub bl_longitude: Option<f32>,
+        pub bl_latitude: Option<f32>,
+        pub bl_fuzz: Option<f32>,
+        // death date
+        pub death_date_id: Option<i64>,
+        pub dd_textual: Option<String>,
+        pub dd_exact_date: Option<chrono::NaiveDate>,
+        pub dd_lower_date: Option<chrono::NaiveDate>,
+        pub dd_upper_date: Option<chrono::NaiveDate>,
+        pub dd_fuzz: Option<f32>,
+        // death location
+        pub death_location_id: Option<i64>,
+        pub dl_textual: Option<String>,
+        pub dl_longitude: Option<f32>,
+        pub dl_latitude: Option<f32>,
+        pub dl_fuzz: Option<f32>,
     }
 
     impl From<Person> for web::Person {
@@ -122,6 +159,28 @@ mod db {
             web::Person {
                 id: e.id,
                 name: e.name,
+                birth_date: handle_dates::web::try_build(e.birth_date_id,
+                                                         e.bd_textual,
+                                                         e.bd_exact_date,
+                                                         e.bd_lower_date,
+                                                         e.bd_upper_date,
+                                                         e.bd_fuzz),
+                birth_location: handle_locations::web::try_build(e.birth_location_id,
+                                                                 e.bl_textual,
+                                                                 e.bl_longitude,
+                                                                 e.bl_latitude,
+                                                                 e.bl_fuzz),
+                death_date: handle_dates::web::try_build(e.death_date_id,
+                                                         e.dd_textual,
+                                                         e.dd_exact_date,
+                                                         e.dd_lower_date,
+                                                         e.dd_upper_date,
+                                                         e.dd_fuzz),
+                death_location: handle_locations::web::try_build(e.death_location_id,
+                                                                 e.dl_textual,
+                                                                 e.dl_longitude,
+                                                                 e.dl_latitude,
+                                                                 e.dl_fuzz),
             }
         }
     }
@@ -147,8 +206,8 @@ mod db {
             db_pool,
             include_str!("sql/historic_people_get.sql"),
             &[&person_id, &user_id],
-        )
-        .await?;
+        ).await?;
+
         Ok(res)
     }
 

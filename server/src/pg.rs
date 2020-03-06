@@ -50,14 +50,16 @@ where
     let _stmt = _stmt.replace("$table_fields", &T::sql_table_fields());
     let stmt = client.prepare(&_stmt).await?;
 
-    client
+    let res = client
         .query(&stmt, sql_params)
         .await?
         .iter()
         .map(|row| T::from_row_ref(row).unwrap())
         .collect::<Vec<T>>()
         .pop()
-        .ok_or(Error::NotFound) // more applicable for SELECTs
+        .ok_or(Error::NotFound); // more applicable for SELECTs
+
+    res
 }
 
 pub async fn many<T>(

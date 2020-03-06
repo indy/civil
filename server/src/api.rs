@@ -48,18 +48,18 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // dates
         .service(
             scope("/dates")
-                .route("", post().to(handle_dates::create_date)) // todo
-                .route("/{id}", get().to(handle_dates::get_date)) // todo
-                .route("/{id}", put().to(handle_dates::edit_date)) // todo
-                .route("/{id}", delete().to(handle_dates::delete_date)), // todo
+                .route("", post().to(handle_dates::create_date)) // check
+                .route("/{id}", get().to(handle_dates::get_date))
+                .route("/{id}", put().to(handle_dates::edit_date)) // check
+                .route("/{id}", delete().to(handle_dates::delete_date)), // check
         )
         // locations
         .service(
             scope("/locations")
-                .route("", post().to(handle_locations::create_location)) // todo
-                .route("/{id}", get().to(handle_locations::get_location)) // todo
-                .route("/{id}", put().to(handle_locations::edit_location)) // todo
-                .route("/{id}", delete().to(handle_locations::delete_location)), // todo
+                .route("", post().to(handle_locations::create_location)) // check
+                .route("/{id}", get().to(handle_locations::get_location))
+                .route("/{id}", put().to(handle_locations::edit_location)) // check
+                .route("/{id}", delete().to(handle_locations::delete_location)), // check
         )
 }
 

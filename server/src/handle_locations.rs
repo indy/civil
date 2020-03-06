@@ -22,7 +22,7 @@ use deadpool_postgres::Pool;
 #[allow(unused_imports)]
 use tracing::info;
 
-mod web {
+pub mod web {
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct Location {
         pub id: i64,
@@ -30,6 +30,24 @@ mod web {
         pub longitude: Option<f32>,
         pub latitude: Option<f32>,
         pub fuzz: f32,
+    }
+
+    pub fn try_build(id: Option<i64>,
+                     textual: Option<String>,
+                     longitude: Option<f32>,
+                     latitude: Option<f32>,
+                     fuzz: Option<f32>) -> Option<Location> {
+        if let Some(id) = id {
+            Some(Location {
+                id: id,
+                textual,
+                longitude,
+                latitude,
+                fuzz: fuzz.unwrap_or(0.0),
+            })
+        } else {
+            None
+        }
     }
 }
 

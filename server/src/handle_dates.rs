@@ -21,7 +21,7 @@ use deadpool_postgres::Pool;
 #[allow(unused_imports)]
 use tracing::info;
 
-mod web {
+pub mod web {
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct Date {
         pub id: i64,
@@ -30,6 +30,26 @@ mod web {
         pub lower_date: Option<chrono::NaiveDate>,
         pub upper_date: Option<chrono::NaiveDate>,
         pub fuzz: f32,
+    }
+
+    pub fn try_build(id: Option<i64>,
+                     textual: Option<String>,
+                     exact_date: Option<chrono::NaiveDate>,
+                     lower_date: Option<chrono::NaiveDate>,
+                     upper_date: Option<chrono::NaiveDate>,
+                     fuzz: Option<f32>) -> Option<Date> {
+        if let Some(id) = id {
+            Some(Date {
+                id: id,
+                textual,
+                exact_date,
+                lower_date,
+                upper_date,
+                fuzz: fuzz.unwrap_or(1.0),
+            })
+        } else {
+            None
+        }
     }
 }
 

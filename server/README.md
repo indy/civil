@@ -1,4 +1,4 @@
-# Curio
+# Civil-Server
 
 ## Usage
 
