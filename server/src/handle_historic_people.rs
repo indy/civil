@@ -39,6 +39,26 @@ mod web {
 
         pub notes: Option<Vec<Note>>,
         pub quotes: Option<Vec<Note>>,
+
+        pub people_referenced: Option<Vec<PersonReference>>,
+        // pub subjects_referenced: Option<Vec<Subject>>;
+    }
+
+    #[derive(Debug, serde::Deserialize, serde::Serialize)]
+    pub struct PersonReference {
+        pub note_id: i64,
+        pub person_id: i64,
+        pub person_name: String,
+    }
+
+    impl From<&super::db::PersonReference> for PersonReference {
+        fn from(pr: &super::db::PersonReference) -> PersonReference {
+            PersonReference {
+                note_id: pr.note_id,
+                person_id: pr.person_id,
+                person_name: pr.person_name.to_string(),
+            }
+        }
     }
 }
 
@@ -96,6 +116,10 @@ pub async fn get_person(
     let quotes = db_quotes.iter().map(|n| handle_notes::web::Note::from(n)).collect();
     person.quotes = Some(quotes);
 
+    let db_people_referenced = db::get_people_referenced(&db_pool, Model::HistoricPerson, person_id).await?;
+    let people_referenced = db_people_referenced.iter().map(|p| web::PersonReference::from(p)).collect();
+    person.people_referenced = Some(people_referenced);
+
     Ok(HttpResponse::Ok().json(person))
 }
 
@@ -136,6 +160,15 @@ mod db {
     use tracing::info;
     use crate::handle_dates;
     use crate::handle_locations;
+    use crate::crap_models::{self, Model, EdgeType};
+
+    #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
+    #[pg_mapper(table = "historic_people")]
+    pub struct PersonReference {
+        pub note_id: i64,
+        pub person_id: i64,
+        pub person_name: String,
+    }
 
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
     #[pg_mapper(table = "historic_people")]
@@ -200,6 +233,8 @@ mod db {
                                                                  e.dl_fuzz),
                 notes: None,
                 quotes: None,
+
+                people_referenced: None,
             }
         }
     }
@@ -253,5 +288,18 @@ mod db {
         )
         .await?;
         Ok(())
+    }
+
+    // --------------------------------------------------------------------------------
+
+    pub async fn get_people_referenced(db_pool: &Pool, model: Model, id: i64) -> Result<Vec<PersonReference>> {
+        let e1 = crap_models::edgetype_for_model_to_note(model)?;
+        let foreign_key = crap_models::model_to_foreign_key(model);
+
+        let stmt = include_str!("sql/historic_people_referenced.sql");
+        let stmt = stmt.replace("$foreign_key", foreign_key);
+
+        let res = pg::many::<PersonReference>(db_pool, &stmt, &[&id, &e1, &EdgeType::NoteToHistoricPerson]).await?;
+        Ok(res)
     }
 }

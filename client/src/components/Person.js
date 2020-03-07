@@ -75,7 +75,7 @@ class Person extends Component {
           return a;
         }, {}) : {};
 
-        const referencedPeopleHash = person.people_referenced ? person.people_referenced.reduce(function(a, b) {
+        const referencedPeopleHash = person.people_referenced.reduce(function(a, b) {
           const note_id = b.note_id;
           if (a[note_id]) {
             a[note_id].push(b);
@@ -83,7 +83,7 @@ class Person extends Component {
             a[note_id] = [b];
           }
           return a;
-        }, {}) : {};
+        }, {});
 
         this.setState({ person, referencedPeopleHash, referencedSubjectsHash });
       } else {
