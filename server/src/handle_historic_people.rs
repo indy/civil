@@ -21,12 +21,14 @@ use actix_web::web::{Json, Data, Path};
 use deadpool_postgres::Pool;
 use tracing::info;
 use crate::handle_notes;
+use crate::handle_subjects;
 use crate::crap_models::{Model, NoteType};
 
 mod web {
     use crate::handle_dates::web::Date;
     use crate::handle_locations::web::Location;
     use crate::handle_notes::web::Note;
+    use crate::handle_subjects::web::SubjectReference;
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct Person {
@@ -41,7 +43,7 @@ mod web {
         pub quotes: Option<Vec<Note>>,
 
         pub people_referenced: Option<Vec<PersonReference>>,
-        // pub subjects_referenced: Option<Vec<Subject>>;
+        pub subjects_referenced: Option<Vec<SubjectReference>>,
     }
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -119,6 +121,10 @@ pub async fn get_person(
     let db_people_referenced = db::get_people_referenced(&db_pool, Model::HistoricPerson, person_id).await?;
     let people_referenced = db_people_referenced.iter().map(|p| web::PersonReference::from(p)).collect();
     person.people_referenced = Some(people_referenced);
+
+    let db_subjects_referenced = handle_subjects::db::get_subjects_referenced(&db_pool, Model::HistoricPerson, person_id).await?;
+    let subjects_referenced = db_subjects_referenced.iter().map(|p| handle_subjects::web::SubjectReference::from(p)).collect();
+    person.subjects_referenced = Some(subjects_referenced);
 
     Ok(HttpResponse::Ok().json(person))
 }
@@ -235,6 +241,7 @@ mod db {
                 quotes: None,
 
                 people_referenced: None,
+                subjects_referenced: None,
             }
         }
     }
