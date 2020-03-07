@@ -13,10 +13,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::web_common;
 use crate::error::Result;
+use crate::web_common;
+use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
-use actix_web::web::{Json, Data, Path};
 use deadpool_postgres::Pool;
 
 #[allow(unused_imports)]
@@ -32,11 +32,13 @@ pub mod web {
         pub fuzz: f32,
     }
 
-    pub fn try_build(id: Option<i64>,
-                     textual: Option<String>,
-                     longitude: Option<f32>,
-                     latitude: Option<f32>,
-                     fuzz: Option<f32>) -> Option<Location> {
+    pub fn try_build(
+        id: Option<i64>,
+        textual: Option<String>,
+        longitude: Option<f32>,
+        latitude: Option<f32>,
+        fuzz: Option<f32>,
+    ) -> Option<Location> {
         if let Some(id) = id {
             Some(Location {
                 id: id,
@@ -131,7 +133,12 @@ mod db {
         let res = pg::one::<Location>(
             db_pool,
             include_str!("sql/locations_create.sql"),
-            &[&location.textual, &location.longitude, &location.latitude, &location.fuzz],
+            &[
+                &location.textual,
+                &location.longitude,
+                &location.latitude,
+                &location.fuzz,
+            ],
         )
         .await?;
         Ok(res)
@@ -142,7 +149,8 @@ mod db {
             db_pool,
             include_str!("sql/locations_get.sql"),
             &[&location_id],
-        ).await?;
+        )
+        .await?;
 
         Ok(res)
     }
@@ -155,7 +163,13 @@ mod db {
         let res = pg::one::<Location>(
             db_pool,
             include_str!("sql/locations_edit.sql"),
-            &[&location_id, &location.textual, &location.longitude, &location.latitude, &location.fuzz],
+            &[
+                &location_id,
+                &location.textual,
+                &location.longitude,
+                &location.latitude,
+                &location.fuzz,
+            ],
         )
         .await?;
         Ok(res)

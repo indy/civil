@@ -15,8 +15,8 @@
 
 use crate::error::{Error, Result};
 use crate::session;
-use actix_web::{HttpResponse};
-use actix_web::web::{Json, Data};
+use actix_web::web::{Data, Json};
+use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
 use rand::{thread_rng, RngCore};
 use tracing::info;
@@ -65,10 +65,7 @@ pub async fn login(
     }
 }
 
-pub async fn logout(
-    _db_pool: Data<Pool>,
-    session: actix_session::Session,
-) -> Result<HttpResponse> {
+pub async fn logout(_db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
     session.clear();
     // todo: what to return when logging out???
     Ok(HttpResponse::Ok().json(true))
@@ -152,10 +149,7 @@ mod db {
         }
     }
 
-    pub async fn login(
-        db_pool: &Pool,
-        login_credentials: &web::LoginCredentials,
-    ) -> Result<User> {
+    pub async fn login(db_pool: &Pool, login_credentials: &web::LoginCredentials) -> Result<User> {
         let res = pg::one::<User>(
             db_pool,
             include_str!("sql/users_login.sql"),

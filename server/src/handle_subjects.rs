@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 pub mod web {
     // #[derive(Debug, serde::Deserialize, serde::Serialize)]
     // pub struct Subject {
@@ -49,6 +48,7 @@ pub mod web {
 }
 
 pub mod db {
+    use crate::crap_models::{self, EdgeType, Model};
     use crate::error::Result;
     use crate::pg;
     use deadpool_postgres::Pool;
@@ -56,9 +56,6 @@ pub mod db {
     use tokio_pg_mapper_derive::PostgresMapper;
     #[allow(unused_imports)]
     use tracing::info;
-    use crate::crap_models::{self, Model, EdgeType};
-
-
 
     #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
     #[pg_mapper(table = "subjects")]
@@ -68,17 +65,22 @@ pub mod db {
         pub subject_name: String,
     }
 
-
     // --------------------------------------------------------------------------------
 
-    pub async fn get_subjects_referenced(db_pool: &Pool, model: Model, id: i64) -> Result<Vec<SubjectReference>> {
+    pub async fn get_subjects_referenced(
+        db_pool: &Pool,
+        model: Model,
+        id: i64,
+    ) -> Result<Vec<SubjectReference>> {
         let e1 = crap_models::edgetype_for_model_to_note(model)?;
         let foreign_key = crap_models::model_to_foreign_key(model);
 
         let stmt = include_str!("sql/subjects_referenced.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);
 
-        let res = pg::many::<SubjectReference>(db_pool, &stmt, &[&id, &e1, &EdgeType::NoteToSubject]).await?;
+        let res =
+            pg::many::<SubjectReference>(db_pool, &stmt, &[&id, &e1, &EdgeType::NoteToSubject])
+                .await?;
         Ok(res)
     }
 }

@@ -13,10 +13,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::web_common;
 use crate::error::Result;
+use crate::web_common;
+use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
-use actix_web::web::{Json, Data, Path};
 use deadpool_postgres::Pool;
 #[allow(unused_imports)]
 use tracing::info;
@@ -32,12 +32,14 @@ pub mod web {
         pub fuzz: f32,
     }
 
-    pub fn try_build(id: Option<i64>,
-                     textual: Option<String>,
-                     exact_date: Option<chrono::NaiveDate>,
-                     lower_date: Option<chrono::NaiveDate>,
-                     upper_date: Option<chrono::NaiveDate>,
-                     fuzz: Option<f32>) -> Option<Date> {
+    pub fn try_build(
+        id: Option<i64>,
+        textual: Option<String>,
+        exact_date: Option<chrono::NaiveDate>,
+        lower_date: Option<chrono::NaiveDate>,
+        upper_date: Option<chrono::NaiveDate>,
+        fuzz: Option<f32>,
+    ) -> Option<Date> {
         if let Some(id) = id {
             Some(Date {
                 id: id,
@@ -117,7 +119,6 @@ mod db {
 
         // this doens't work - timezone conversion issue???
         // pub created_at: chrono::NaiveDateTime,
-
         pub textual: Option<String>,
         pub exact_date: Option<chrono::NaiveDate>,
         pub lower_date: Option<chrono::NaiveDate>,
@@ -142,43 +143,43 @@ mod db {
         let res = pg::one::<Date>(
             db_pool,
             include_str!("sql/dates_create.sql"),
-            &[&date.textual, &date.exact_date, &date.lower_date, &date.upper_date, &date.fuzz],
+            &[
+                &date.textual,
+                &date.exact_date,
+                &date.lower_date,
+                &date.upper_date,
+                &date.fuzz,
+            ],
         )
         .await?;
         Ok(res)
     }
 
     pub async fn get_date(db_pool: &Pool, date_id: i64) -> Result<Date> {
-        let res = pg::one::<Date>(
-            db_pool,
-            include_str!("sql/dates_get.sql"),
-            &[&date_id],
-        ).await?;
+        let res = pg::one::<Date>(db_pool, include_str!("sql/dates_get.sql"), &[&date_id]).await?;
 
         Ok(res)
     }
 
-    pub async fn edit_date(
-        db_pool: &Pool,
-        date: &web::Date,
-        date_id: i64,
-    ) -> Result<Date> {
+    pub async fn edit_date(db_pool: &Pool, date: &web::Date, date_id: i64) -> Result<Date> {
         let res = pg::one::<Date>(
             db_pool,
             include_str!("sql/dates_edit.sql"),
-            &[&date_id, &date.textual, &date.exact_date, &date.lower_date, &date.upper_date, &date.fuzz],
+            &[
+                &date_id,
+                &date.textual,
+                &date.exact_date,
+                &date.lower_date,
+                &date.upper_date,
+                &date.fuzz,
+            ],
         )
         .await?;
         Ok(res)
     }
 
     pub async fn delete_date(db_pool: &Pool, date_id: i64) -> Result<()> {
-        pg::zero::<Date>(
-            db_pool,
-            include_str!("sql/dates_delete.sql"),
-            &[&date_id],
-        )
-        .await?;
+        pg::zero::<Date>(db_pool, include_str!("sql/dates_delete.sql"), &[&date_id]).await?;
         Ok(())
     }
 }

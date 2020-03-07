@@ -14,9 +14,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::{Error, Result};
-use tokio_postgres::types::{IsNull, ToSql, Type, to_sql_checked};
-use bytes::{BytesMut, BufMut};
+use bytes::{BufMut, BytesMut};
 use std::fmt;
+use tokio_postgres::types::{to_sql_checked, IsNull, ToSql, Type};
 
 #[derive(Clone, Copy, Debug)]
 pub enum Model {

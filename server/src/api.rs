@@ -13,8 +13,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::handle_historic_people;
 use crate::handle_dates;
+use crate::handle_historic_people;
 use crate::handle_locations;
 use crate::handle_users;
 use actix_files::NamedFile;

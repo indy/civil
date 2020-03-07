@@ -13,16 +13,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::web_common;
+use crate::crap_models::{Model, NoteType};
 use crate::error::Result;
-use crate::session;
-use actix_web::HttpResponse;
-use actix_web::web::{Json, Data, Path};
-use deadpool_postgres::Pool;
-use tracing::info;
 use crate::handle_notes;
 use crate::handle_subjects;
-use crate::crap_models::{Model, NoteType};
+use crate::session;
+use crate::web_common;
+use actix_web::web::{Data, Json, Path};
+use actix_web::HttpResponse;
+use deadpool_postgres::Pool;
+use tracing::info;
 
 mod web {
     use crate::handle_dates::web::Date;
@@ -110,20 +110,43 @@ pub async fn get_person(
     let db_person: db::Person = db::get_person(&db_pool, person_id, user_id).await?;
     let mut person = web::Person::from(db_person);
 
-    let db_notes = handle_notes::db::all_notes_for(&db_pool, Model::HistoricPerson, person_id, NoteType::Note).await?;
-    let notes = db_notes.iter().map(|n| handle_notes::web::Note::from(n)).collect();
+    let db_notes =
+        handle_notes::db::all_notes_for(&db_pool, Model::HistoricPerson, person_id, NoteType::Note)
+            .await?;
+    let notes = db_notes
+        .iter()
+        .map(|n| handle_notes::web::Note::from(n))
+        .collect();
     person.notes = Some(notes);
 
-    let db_quotes = handle_notes::db::all_notes_for(&db_pool, Model::HistoricPerson, person_id, NoteType::Quote).await?;
-    let quotes = db_quotes.iter().map(|n| handle_notes::web::Note::from(n)).collect();
+    let db_quotes = handle_notes::db::all_notes_for(
+        &db_pool,
+        Model::HistoricPerson,
+        person_id,
+        NoteType::Quote,
+    )
+    .await?;
+    let quotes = db_quotes
+        .iter()
+        .map(|n| handle_notes::web::Note::from(n))
+        .collect();
     person.quotes = Some(quotes);
 
-    let db_people_referenced = db::get_people_referenced(&db_pool, Model::HistoricPerson, person_id).await?;
-    let people_referenced = db_people_referenced.iter().map(|p| web::PersonReference::from(p)).collect();
+    let db_people_referenced =
+        db::get_people_referenced(&db_pool, Model::HistoricPerson, person_id).await?;
+    let people_referenced = db_people_referenced
+        .iter()
+        .map(|p| web::PersonReference::from(p))
+        .collect();
     person.people_referenced = Some(people_referenced);
 
-    let db_subjects_referenced = handle_subjects::db::get_subjects_referenced(&db_pool, Model::HistoricPerson, person_id).await?;
-    let subjects_referenced = db_subjects_referenced.iter().map(|p| handle_subjects::web::SubjectReference::from(p)).collect();
+    let db_subjects_referenced =
+        handle_subjects::db::get_subjects_referenced(&db_pool, Model::HistoricPerson, person_id)
+            .await?;
+    let subjects_referenced = db_subjects_referenced
+        .iter()
+        .map(|p| handle_subjects::web::SubjectReference::from(p))
+        .collect();
     person.subjects_referenced = Some(subjects_referenced);
 
     Ok(HttpResponse::Ok().json(person))
@@ -157,16 +180,16 @@ pub async fn delete_person(
 
 mod db {
     use super::web;
+    use crate::crap_models::{self, EdgeType, Model};
     use crate::error::Result;
+    use crate::handle_dates;
+    use crate::handle_locations;
     use crate::pg;
     use deadpool_postgres::Pool;
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
     #[allow(unused_imports)]
     use tracing::info;
-    use crate::handle_dates;
-    use crate::handle_locations;
-    use crate::crap_models::{self, Model, EdgeType};
 
     #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
     #[pg_mapper(table = "historic_people")]
@@ -215,28 +238,36 @@ mod db {
             web::Person {
                 id: e.id,
                 name: e.name,
-                birth_date: handle_dates::web::try_build(e.birth_date_id,
-                                                         e.bd_textual,
-                                                         e.bd_exact_date,
-                                                         e.bd_lower_date,
-                                                         e.bd_upper_date,
-                                                         e.bd_fuzz),
-                birth_location: handle_locations::web::try_build(e.birth_location_id,
-                                                                 e.bl_textual,
-                                                                 e.bl_longitude,
-                                                                 e.bl_latitude,
-                                                                 e.bl_fuzz),
-                death_date: handle_dates::web::try_build(e.death_date_id,
-                                                         e.dd_textual,
-                                                         e.dd_exact_date,
-                                                         e.dd_lower_date,
-                                                         e.dd_upper_date,
-                                                         e.dd_fuzz),
-                death_location: handle_locations::web::try_build(e.death_location_id,
-                                                                 e.dl_textual,
-                                                                 e.dl_longitude,
-                                                                 e.dl_latitude,
-                                                                 e.dl_fuzz),
+                birth_date: handle_dates::web::try_build(
+                    e.birth_date_id,
+                    e.bd_textual,
+                    e.bd_exact_date,
+                    e.bd_lower_date,
+                    e.bd_upper_date,
+                    e.bd_fuzz,
+                ),
+                birth_location: handle_locations::web::try_build(
+                    e.birth_location_id,
+                    e.bl_textual,
+                    e.bl_longitude,
+                    e.bl_latitude,
+                    e.bl_fuzz,
+                ),
+                death_date: handle_dates::web::try_build(
+                    e.death_date_id,
+                    e.dd_textual,
+                    e.dd_exact_date,
+                    e.dd_lower_date,
+                    e.dd_upper_date,
+                    e.dd_fuzz,
+                ),
+                death_location: handle_locations::web::try_build(
+                    e.death_location_id,
+                    e.dl_textual,
+                    e.dl_longitude,
+                    e.dl_latitude,
+                    e.dl_fuzz,
+                ),
                 notes: None,
                 quotes: None,
 
@@ -246,7 +277,11 @@ mod db {
         }
     }
 
-    pub async fn create_person(db_pool: &Pool, person: &web::Person, user_id: i64) -> Result<Person> {
+    pub async fn create_person(
+        db_pool: &Pool,
+        person: &web::Person,
+        user_id: i64,
+    ) -> Result<Person> {
         let res = pg::one::<Person>(
             db_pool,
             include_str!("sql/historic_people_create.sql"),
@@ -257,8 +292,12 @@ mod db {
     }
 
     pub async fn get_people(db_pool: &Pool, user_id: i64) -> Result<Vec<Person>> {
-        let res =
-            pg::many::<Person>(db_pool, include_str!("sql/historic_people_all.sql"), &[&user_id]).await?;
+        let res = pg::many::<Person>(
+            db_pool,
+            include_str!("sql/historic_people_all.sql"),
+            &[&user_id],
+        )
+        .await?;
         Ok(res)
     }
 
@@ -267,7 +306,8 @@ mod db {
             db_pool,
             include_str!("sql/historic_people_get.sql"),
             &[&person_id, &user_id],
-        ).await?;
+        )
+        .await?;
 
         Ok(person)
     }
@@ -299,14 +339,23 @@ mod db {
 
     // --------------------------------------------------------------------------------
 
-    pub async fn get_people_referenced(db_pool: &Pool, model: Model, id: i64) -> Result<Vec<PersonReference>> {
+    pub async fn get_people_referenced(
+        db_pool: &Pool,
+        model: Model,
+        id: i64,
+    ) -> Result<Vec<PersonReference>> {
         let e1 = crap_models::edgetype_for_model_to_note(model)?;
         let foreign_key = crap_models::model_to_foreign_key(model);
 
         let stmt = include_str!("sql/historic_people_referenced.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);
 
-        let res = pg::many::<PersonReference>(db_pool, &stmt, &[&id, &e1, &EdgeType::NoteToHistoricPerson]).await?;
+        let res = pg::many::<PersonReference>(
+            db_pool,
+            &stmt,
+            &[&id, &e1, &EdgeType::NoteToHistoricPerson],
+        )
+        .await?;
         Ok(res)
     }
 }

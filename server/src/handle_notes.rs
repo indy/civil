@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 pub mod web {
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct Note {
@@ -32,6 +31,7 @@ pub mod web {
 }
 
 pub mod db {
+    use crate::crap_models::{self, Model, NoteType};
     use crate::error::Result;
     use crate::pg;
     use deadpool_postgres::Pool;
@@ -39,8 +39,6 @@ pub mod db {
     use tokio_pg_mapper_derive::PostgresMapper;
     #[allow(unused_imports)]
     use tracing::info;
-    use crate::crap_models::{self, Model, NoteType};
-
 
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
     #[pg_mapper(table = "notes")]
@@ -49,7 +47,12 @@ pub mod db {
         pub content: String,
     }
 
-    pub async fn all_notes_for(db_pool: &Pool, model: Model, id: i64, note_type: NoteType) -> Result<Vec<Note>> {
+    pub async fn all_notes_for(
+        db_pool: &Pool,
+        model: Model,
+        id: i64,
+        note_type: NoteType,
+    ) -> Result<Vec<Note>> {
         let e1 = crap_models::edgetype_for_model_to_note(model)?;
         let foreign_key = crap_models::model_to_foreign_key(model);
 
@@ -58,7 +61,5 @@ pub mod db {
 
         let res = pg::many::<Note>(db_pool, &stmt, &[&id, &e1, &note_type]).await?;
         Ok(res)
-
     }
-
 }

@@ -13,15 +13,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-mod crap_models;
 mod api;
+mod crap_models;
 mod error;
-mod handle_locations;
 mod handle_dates;
 mod handle_historic_people;
-mod handle_users;
+mod handle_locations;
 mod handle_notes;
 mod handle_subjects;
+mod handle_users;
 mod pg;
 mod session;
 mod web_common;
