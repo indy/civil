@@ -26,3 +26,5 @@ tracing-subscriber = "0.2.1"
 # for salt + password hashing
 rand = "0.7.2"
 rust-argon2 = "0.6.1"
+# for implementing ToSql trait
+bytes = "0.5"

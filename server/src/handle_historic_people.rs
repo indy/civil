@@ -20,10 +20,13 @@ use actix_web::HttpResponse;
 use actix_web::web::{Json, Data, Path};
 use deadpool_postgres::Pool;
 use tracing::info;
+use crate::handle_notes;
+use crate::crap_models::{Model, NoteType};
 
 mod web {
     use crate::handle_dates::web::Date;
     use crate::handle_locations::web::Location;
+    use crate::handle_notes::web::Note;
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct Person {
@@ -33,6 +36,9 @@ mod web {
         pub birth_location: Option<Location>,
         pub death_date: Option<Date>,
         pub death_location: Option<Location>,
+
+        pub notes: Option<Vec<Note>>,
+        pub quotes: Option<Vec<Note>>,
     }
 }
 
@@ -77,9 +83,20 @@ pub async fn get_person(
     // let user_id = session::user_id(&session)?;
     let user_id: i64 = 1;
 
-    // db statement
-    let db_person: db::Person = db::get_person(&db_pool, params.id, user_id).await?;
-    Ok(HttpResponse::Ok().json(web::Person::from(db_person)))
+    // db statements
+    let person_id = params.id;
+    let db_person: db::Person = db::get_person(&db_pool, person_id, user_id).await?;
+    let mut person = web::Person::from(db_person);
+
+    let db_notes = handle_notes::db::all_notes_for(&db_pool, Model::HistoricPerson, person_id, NoteType::Note).await?;
+    let notes = db_notes.iter().map(|n| handle_notes::web::Note::from(n)).collect();
+    person.notes = Some(notes);
+
+    let db_quotes = handle_notes::db::all_notes_for(&db_pool, Model::HistoricPerson, person_id, NoteType::Quote).await?;
+    let quotes = db_quotes.iter().map(|n| handle_notes::web::Note::from(n)).collect();
+    person.quotes = Some(quotes);
+
+    Ok(HttpResponse::Ok().json(person))
 }
 
 pub async fn edit_person(
@@ -181,6 +198,8 @@ mod db {
                                                                  e.dl_longitude,
                                                                  e.dl_latitude,
                                                                  e.dl_fuzz),
+                notes: None,
+                quotes: None,
             }
         }
     }
@@ -202,13 +221,13 @@ mod db {
     }
 
     pub async fn get_person(db_pool: &Pool, person_id: i64, user_id: i64) -> Result<Person> {
-        let res = pg::one::<Person>(
+        let person = pg::one::<Person>(
             db_pool,
             include_str!("sql/historic_people_get.sql"),
             &[&person_id, &user_id],
         ).await?;
 
-        Ok(res)
+        Ok(person)
     }
 
     pub async fn edit_person(

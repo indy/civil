@@ -37,34 +37,35 @@ class Person extends Component {
     };
 
     this.fetchPerson();
-    this.fetchAutocompleteLists();
+    // this.fetchAutocompleteLists(); // isg pg
   }
 
-  fetchAutocompleteLists = () => {
-    Net.get("/api/autocomplete/people").then(people => {
-      if (people) {
-        let ac = this.state.ac;
-        ac.people = people;
-        this.setState({ ac });
-      }
-    });
+  // isg pg
+  // fetchAutocompleteLists = () => {
+  //   Net.get("/api/autocomplete/people").then(people => {
+  //     if (people) {
+  //       let ac = this.state.ac;
+  //       ac.people = people;
+  //       this.setState({ ac });
+  //     }
+  //   });
 
-    Net.get("/api/autocomplete/subjects").then(subjects => {
-      if (subjects) {
-        let ac = this.state.ac;
-        ac.subjects = subjects;
-        this.setState({ ac });
-      }
-    });
-  }
+  //   Net.get("/api/autocomplete/subjects").then(subjects => {
+  //     if (subjects) {
+  //       let ac = this.state.ac;
+  //       ac.subjects = subjects;
+  //       this.setState({ ac });
+  //     }
+  //   });
+  // }
 
   fetchPerson = () => {
     const id = this.state.person.id;
 
-    Net.get(`/api/person/${id}`).then(person => {
+    Net.get(`/api/people/${id}`).then(person => {
       if (person) {
 
-        const referencedSubjectsHash = person.subjects_referenced.reduce(function(a, b) {
+        const referencedSubjectsHash = person.subjects_referenced ? person.subjects_referenced.reduce(function(a, b) {
           const note_id = b.note_id;
           if (a[note_id]) {
             a[note_id].push(b);
@@ -72,9 +73,9 @@ class Person extends Component {
             a[note_id] = [b];
           }
           return a;
-        }, {});
+        }, {}) : {};
 
-        const referencedPeopleHash = person.people_referenced.reduce(function(a, b) {
+        const referencedPeopleHash = person.people_referenced ? person.people_referenced.reduce(function(a, b) {
           const note_id = b.note_id;
           if (a[note_id]) {
             a[note_id].push(b);
@@ -82,7 +83,7 @@ class Person extends Component {
             a[note_id] = [b];
           }
           return a;
-        }, {});
+        }, {}) : {};
 
         this.setState({ person, referencedPeopleHash, referencedSubjectsHash });
       } else {
@@ -286,9 +287,9 @@ class Person extends Component {
             { quotes }
           </div>
         </section>
-        <SectionMentionedByPeople mentionedBy={ person.mentioned_by_people }/>
-        <SectionMentionedInSubjects mentionedIn={ person.mentioned_in_subjects }/>
-        <SectionMentionedInArticles mentionedIn={ person.mentioned_in_articles }/>
+        {/* <SectionMentionedByPeople mentionedBy={ person.mentioned_by_people }/> */}
+        {/* <SectionMentionedInSubjects mentionedIn={ person.mentioned_in_subjects }/> */}
+        {/* <SectionMentionedInArticles mentionedIn={ person.mentioned_in_articles }/> */}
       </article>
     );
   }

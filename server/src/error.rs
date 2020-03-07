@@ -15,6 +15,7 @@
 
 use actix_web::{HttpResponse, ResponseError};
 use derive_more::{Display, From};
+use crate::crap_models::Model;
 
 pub type Result<T> = ::std::result::Result<T, Error>;
 
@@ -32,6 +33,7 @@ pub enum Error {
     Utf8(std::str::Utf8Error),
     ParseInt(std::num::ParseIntError),
     Authenticating,
+    InvalidModelType(Model),
     Other,
 }
 
