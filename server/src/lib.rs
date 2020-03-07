@@ -16,6 +16,7 @@
 mod api;
 mod crap_models;
 mod error;
+mod handle_autocomplete;
 mod handle_dates;
 mod handle_historic_people;
 mod handle_locations;

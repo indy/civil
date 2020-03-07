@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::handle_autocomplete;
 use crate::handle_dates;
 use crate::handle_historic_people;
 use crate::handle_locations;
@@ -60,6 +61,12 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", get().to(handle_locations::get_location))
                 .route("/{id}", put().to(handle_locations::edit_location)) // check
                 .route("/{id}", delete().to(handle_locations::delete_location)), // check
+        )
+        // autocomplete
+        .service(
+            scope("/autocomplete")
+                .route("/people", get().to(handle_autocomplete::get_people))
+                .route("/subjects", get().to(handle_autocomplete::get_subjects)),
         )
 }
 

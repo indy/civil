@@ -37,27 +37,26 @@ class Person extends Component {
     };
 
     this.fetchPerson();
-    // this.fetchAutocompleteLists(); // isg pg
+    this.fetchAutocompleteLists();
   }
 
-  // isg pg
-  // fetchAutocompleteLists = () => {
-  //   Net.get("/api/autocomplete/people").then(people => {
-  //     if (people) {
-  //       let ac = this.state.ac;
-  //       ac.people = people;
-  //       this.setState({ ac });
-  //     }
-  //   });
+  fetchAutocompleteLists = () => {
+    Net.get("/api/autocomplete/people").then(people => {
+      if (people) {
+        let ac = this.state.ac;
+        ac.people = people;
+        this.setState({ ac });
+      }
+    });
 
-  //   Net.get("/api/autocomplete/subjects").then(subjects => {
-  //     if (subjects) {
-  //       let ac = this.state.ac;
-  //       ac.subjects = subjects;
-  //       this.setState({ ac });
-  //     }
-  //   });
-  // }
+    Net.get("/api/autocomplete/subjects").then(subjects => {
+      if (subjects) {
+        let ac = this.state.ac;
+        ac.subjects = subjects;
+        this.setState({ ac });
+      }
+    });
+  }
 
   fetchPerson = () => {
     const id = this.state.person.id;
