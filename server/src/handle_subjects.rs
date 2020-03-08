@@ -13,25 +13,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::Key;
-use crate::model::Model;
-use crate::note_type::NoteType;
 use crate::error::Result;
-use crate::handle_notes;
 use crate::handle_articles;
 use crate::handle_historic_people;
+use crate::handle_notes;
+use crate::model::Model;
+use crate::note_type::NoteType;
+use crate::types::Key;
 //use crate::session;
 use crate::web_common;
-use actix_web::web::{Data, /*Json, */Path};
+use actix_web::web::{Data, /*Json, */ Path};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
 use tracing::info;
 
 pub mod web {
-    use crate::types::Key;
-    use crate::handle_notes::web::Note;
     use crate::handle_articles::web::ArticleMention;
-    use crate::handle_historic_people::web::{PersonReference, PersonMention};
+    use crate::handle_historic_people::web::{PersonMention, PersonReference};
+    use crate::handle_notes::web::Note;
+    use crate::types::Key;
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct Subject {
@@ -116,20 +116,16 @@ pub async fn get_subject(
 
     let db_notes =
         handle_notes::db::all_notes_for(&db_pool, Model::Subject, subject_id, NoteType::Note)
-        .await?;
+            .await?;
     let notes = db_notes
         .iter()
         .map(|n| handle_notes::web::Note::from(n))
         .collect();
     subject.notes = Some(notes);
 
-    let db_quotes = handle_notes::db::all_notes_for(
-        &db_pool,
-        Model::Subject,
-        subject_id,
-        NoteType::Quote,
-    )
-        .await?;
+    let db_quotes =
+        handle_notes::db::all_notes_for(&db_pool, Model::Subject, subject_id, NoteType::Quote)
+            .await?;
     let quotes = db_quotes
         .iter()
         .map(|n| handle_notes::web::Note::from(n))
@@ -137,7 +133,8 @@ pub async fn get_subject(
     subject.quotes = Some(quotes);
 
     let db_people_referenced =
-        handle_historic_people::db::get_people_referenced(&db_pool, Model::Subject, subject_id).await?;
+        handle_historic_people::db::get_people_referenced(&db_pool, Model::Subject, subject_id)
+            .await?;
     let people_referenced = db_people_referenced
         .iter()
         .map(|p| handle_historic_people::web::PersonReference::from(p))
@@ -145,24 +142,36 @@ pub async fn get_subject(
     subject.people_referenced = Some(people_referenced);
 
     let db_subjects_referenced =
-        db::get_subjects_referenced(&db_pool, Model::Subject, subject_id)
-        .await?;
+        db::get_subjects_referenced(&db_pool, Model::Subject, subject_id).await?;
     let subjects_referenced = db_subjects_referenced
         .iter()
         .map(|p| web::SubjectReference::from(p))
         .collect();
     subject.subjects_referenced = Some(subjects_referenced);
 
-    let db_mentioned_by_people = handle_historic_people::db::people_that_mention(&db_pool, Model::Subject, subject_id).await?;
-    let mentioned_by_people = db_mentioned_by_people.iter().map(|m| handle_historic_people::web::PersonMention::from(m)).collect();
+    let db_mentioned_by_people =
+        handle_historic_people::db::people_that_mention(&db_pool, Model::Subject, subject_id)
+            .await?;
+    let mentioned_by_people = db_mentioned_by_people
+        .iter()
+        .map(|m| handle_historic_people::web::PersonMention::from(m))
+        .collect();
     subject.mentioned_by_people = Some(mentioned_by_people);
 
-    let db_mentioned_in_subjects = db::subjects_that_mention(&db_pool, Model::Subject, subject_id).await?;
-    let mentioned_in_subjects = db_mentioned_in_subjects.iter().map(|s| web::SubjectMention::from(s)).collect();
+    let db_mentioned_in_subjects =
+        db::subjects_that_mention(&db_pool, Model::Subject, subject_id).await?;
+    let mentioned_in_subjects = db_mentioned_in_subjects
+        .iter()
+        .map(|s| web::SubjectMention::from(s))
+        .collect();
     subject.mentioned_in_subjects = Some(mentioned_in_subjects);
 
-    let db_mentioned_in_articles = handle_articles::db::articles_that_mention(&db_pool, Model::Subject, subject_id).await?;
-    let mentioned_in_articles = db_mentioned_in_articles.iter().map(|a| handle_articles::web::ArticleMention::from(a)).collect();
+    let db_mentioned_in_articles =
+        handle_articles::db::articles_that_mention(&db_pool, Model::Subject, subject_id).await?;
+    let mentioned_in_articles = db_mentioned_in_articles
+        .iter()
+        .map(|a| handle_articles::web::ArticleMention::from(a))
+        .collect();
     subject.mentioned_in_articles = Some(mentioned_in_articles);
 
     Ok(HttpResponse::Ok().json(subject))
@@ -170,11 +179,11 @@ pub async fn get_subject(
 
 pub mod db {
     use super::web;
-    use crate::types::Key;
     use crate::edge_type::{self, EdgeType};
-    use crate::model::{Model, model_to_foreign_key};
     use crate::error::Result;
+    use crate::model::{model_to_foreign_key, Model};
     use crate::pg;
+    use crate::types::Key;
     use deadpool_postgres::Pool;
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
@@ -224,22 +233,19 @@ pub mod db {
     }
 
     pub async fn get_subjects(db_pool: &Pool, user_id: Key) -> Result<Vec<Subject>> {
-        let res = pg::many::<Subject>(
-            db_pool,
-            include_str!("sql/subjects_all.sql"),
-            &[&user_id],
-        ).await?;
+        let res =
+            pg::many::<Subject>(db_pool, include_str!("sql/subjects_all.sql"), &[&user_id]).await?;
 
         Ok(res)
     }
-
 
     pub async fn get_subject(db_pool: &Pool, subject_id: Key, user_id: Key) -> Result<Subject> {
         let subject = pg::one::<Subject>(
             db_pool,
             include_str!("sql/subjects_get.sql"),
             &[&subject_id, &user_id],
-        ).await?;
+        )
+        .await?;
 
         Ok(subject)
     }
@@ -274,11 +280,8 @@ pub mod db {
         let stmt = include_str!("sql/subjects_that_mention.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);
 
-        let res = pg::many::<SubjectMention>(
-            db_pool,
-            &stmt,
-            &[&id, &e1, &EdgeType::SubjectToNote],
-        ).await?;
+        let res = pg::many::<SubjectMention>(db_pool, &stmt, &[&id, &e1, &EdgeType::SubjectToNote])
+            .await?;
 
         Ok(res)
     }

@@ -106,9 +106,9 @@ pub async fn delete_date(
 
 mod db {
     use super::web;
-    use crate::types::Key;
     use crate::error::Result;
     use crate::pg;
+    use crate::types::Key;
     use deadpool_postgres::Pool;
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;

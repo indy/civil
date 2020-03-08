@@ -13,14 +13,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::Key;
-use crate::model::Model;
-use crate::note_type::NoteType;
 use crate::error::Result;
+use crate::handle_articles;
 use crate::handle_notes;
 use crate::handle_subjects;
-use crate::handle_articles;
+use crate::model::Model;
+use crate::note_type::NoteType;
 use crate::session;
+use crate::types::Key;
 use crate::web_common;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
@@ -28,12 +28,12 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 pub mod web {
-    use crate::types::Key;
+    use crate::handle_articles::web::ArticleMention;
     use crate::handle_dates::web::Date;
     use crate::handle_locations::web::Location;
     use crate::handle_notes::web::Note;
-    use crate::handle_subjects::web::{SubjectReference, SubjectMention};
-    use crate::handle_articles::web::ArticleMention;
+    use crate::handle_subjects::web::{SubjectMention, SubjectReference};
+    use crate::types::Key;
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct Person {
@@ -81,7 +81,7 @@ pub mod web {
     impl From<&super::db::PersonMention> for PersonMention {
         fn from(pm: &super::db::PersonMention) -> PersonMention {
             PersonMention {
-//                mention_count: pm.mention_count,
+                //                mention_count: pm.mention_count,
                 person_id: pm.person_id,
                 person_name: pm.person_name.to_string(),
             }
@@ -174,16 +174,30 @@ pub async fn get_person(
         .collect();
     person.subjects_referenced = Some(subjects_referenced);
 
-    let db_mentioned_by_people = db::people_that_mention(&db_pool, Model::HistoricPerson, person_id).await?;
-    let mentioned_by_people = db_mentioned_by_people.iter().map(|m| web::PersonMention::from(m)).collect();
+    let db_mentioned_by_people =
+        db::people_that_mention(&db_pool, Model::HistoricPerson, person_id).await?;
+    let mentioned_by_people = db_mentioned_by_people
+        .iter()
+        .map(|m| web::PersonMention::from(m))
+        .collect();
     person.mentioned_by_people = Some(mentioned_by_people);
 
-    let db_mentioned_in_subjects = handle_subjects::db::subjects_that_mention(&db_pool, Model::HistoricPerson, person_id).await?;
-    let mentioned_in_subjects = db_mentioned_in_subjects.iter().map(|s| handle_subjects::web::SubjectMention::from(s)).collect();
+    let db_mentioned_in_subjects =
+        handle_subjects::db::subjects_that_mention(&db_pool, Model::HistoricPerson, person_id)
+            .await?;
+    let mentioned_in_subjects = db_mentioned_in_subjects
+        .iter()
+        .map(|s| handle_subjects::web::SubjectMention::from(s))
+        .collect();
     person.mentioned_in_subjects = Some(mentioned_in_subjects);
 
-    let db_mentioned_in_articles = handle_articles::db::articles_that_mention(&db_pool, Model::HistoricPerson, person_id).await?;
-    let mentioned_in_articles = db_mentioned_in_articles.iter().map(|a| handle_articles::web::ArticleMention::from(a)).collect();
+    let db_mentioned_in_articles =
+        handle_articles::db::articles_that_mention(&db_pool, Model::HistoricPerson, person_id)
+            .await?;
+    let mentioned_in_articles = db_mentioned_in_articles
+        .iter()
+        .map(|a| handle_articles::web::ArticleMention::from(a))
+        .collect();
     person.mentioned_in_articles = Some(mentioned_in_articles);
 
     Ok(HttpResponse::Ok().json(person))
@@ -217,13 +231,13 @@ pub async fn delete_person(
 
 pub mod db {
     use super::web;
-    use crate::types::Key;
     use crate::edge_type::{self, EdgeType};
-    use crate::model::{Model, model_to_foreign_key};
     use crate::error::Result;
     use crate::handle_dates;
     use crate::handle_locations;
+    use crate::model::{model_to_foreign_key, Model};
     use crate::pg;
+    use crate::types::Key;
     use deadpool_postgres::Pool;
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
@@ -241,7 +255,7 @@ pub mod db {
     #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
     #[pg_mapper(table = "historic_people")]
     pub struct PersonMention {
-//        pub mention_count: i32,
+        //        pub mention_count: i32,
         pub person_id: Key,
         pub person_name: String,
     }
@@ -337,7 +351,8 @@ pub mod db {
             db_pool,
             include_str!("sql/historic_people_create.sql"),
             &[&user_id, &person.name],
-        ).await?;
+        )
+        .await?;
 
         Ok(res)
     }
@@ -347,7 +362,8 @@ pub mod db {
             db_pool,
             include_str!("sql/historic_people_all.sql"),
             &[&user_id],
-        ).await?;
+        )
+        .await?;
 
         Ok(res)
     }
@@ -357,7 +373,8 @@ pub mod db {
             db_pool,
             include_str!("sql/historic_people_get.sql"),
             &[&person_id, &user_id],
-        ).await?;
+        )
+        .await?;
 
         Ok(person)
     }
@@ -372,7 +389,8 @@ pub mod db {
             db_pool,
             include_str!("sql/historic_people_edit.sql"),
             &[&person.name, &person_id, &user_id],
-        ).await?;
+        )
+        .await?;
 
         Ok(res)
     }
@@ -382,7 +400,8 @@ pub mod db {
             db_pool,
             include_str!("sql/historic_people_delete.sql"),
             &[&person_id, &user_id],
-        ).await?;
+        )
+        .await?;
 
         Ok(())
     }
@@ -402,7 +421,8 @@ pub mod db {
             db_pool,
             &stmt,
             &[&id, &e1, &EdgeType::NoteToHistoricPerson],
-        ).await?;
+        )
+        .await?;
 
         Ok(res)
     }
@@ -418,11 +438,9 @@ pub mod db {
         let stmt = include_str!("sql/historic_people_that_mention.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);
 
-        let res = pg::many::<PersonMention>(
-            db_pool,
-            &stmt,
-            &[&id, &e1, &EdgeType::HistoricPersonToNote],
-        ).await?;
+        let res =
+            pg::many::<PersonMention>(db_pool, &stmt, &[&id, &e1, &EdgeType::HistoricPersonToNote])
+                .await?;
 
         Ok(res)
     }

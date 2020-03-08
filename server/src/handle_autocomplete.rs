@@ -79,8 +79,8 @@ pub async fn get_subjects(
 
 pub mod db {
     use crate::error::Result;
-    use crate::types::Key;
     use crate::pg;
+    use crate::types::Key;
     use deadpool_postgres::Pool;
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;

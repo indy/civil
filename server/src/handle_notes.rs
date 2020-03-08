@@ -33,12 +33,12 @@ pub mod web {
 }
 
 pub mod db {
-    use crate::types::Key;
     use crate::edge_type;
-    use crate::model::{Model, model_to_foreign_key};
-    use crate::note_type::NoteType;
     use crate::error::Result;
+    use crate::model::{model_to_foreign_key, Model};
+    use crate::note_type::NoteType;
     use crate::pg;
+    use crate::types::Key;
     use deadpool_postgres::Pool;
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;

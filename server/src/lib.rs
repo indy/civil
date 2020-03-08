@@ -13,11 +13,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
 mod api;
-mod model;
 mod edge_type;
-mod note_type;
 mod error;
 mod handle_articles;
 mod handle_autocomplete;
@@ -27,8 +24,11 @@ mod handle_locations;
 mod handle_notes;
 mod handle_subjects;
 mod handle_users;
+mod model;
+mod note_type;
 mod pg;
 mod session;
+mod types;
 mod web_common;
 
 pub use crate::error::Result;

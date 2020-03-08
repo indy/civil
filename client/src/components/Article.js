@@ -50,10 +50,9 @@ class Article extends Component {
   }
 
   fetchArticle = () => {
-    console.log('yay');
     const id = this.state.article.id;
 
-    Net.get(`/api/article/${id}`).then(article => {
+    Net.get(`/api/articles/${id}`).then(article => {
       if (article) {
         const referencedSubjectsHash = article.subjects_referenced.reduce(function(a, b) {
           const note_id = b.note_id;

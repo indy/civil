@@ -13,8 +13,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::model::Model;
 use crate::error::{Error, Result};
+use crate::model::Model;
 use bytes::{BufMut, BytesMut};
 use tokio_postgres::types::{to_sql_checked, IsNull, ToSql, Type};
 
