@@ -14,13 +14,14 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::{Error, Result};
+use crate::types::Key;
 use std::str::FromStr;
 
 pub const AUTH: &str = "auth";
 
-pub fn user_id(session: &actix_session::Session) -> Result<i64> {
+pub fn user_id(session: &actix_session::Session) -> Result<Key> {
     if let Some(auth) = session.get::<String>(AUTH)? {
-        let user_id: i64 = i64::from_str(&auth)?;
+        let user_id: Key = Key::from_str(&auth)?;
         Ok(user_id)
     } else {
         Err(Error::Authenticating)

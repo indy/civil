@@ -23,9 +23,11 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 pub mod web {
+    use crate::types::Key;
+
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct Location {
-        pub id: i64,
+        pub id: Key,
         pub textual: Option<String>,
         pub longitude: Option<f32>,
         pub latitude: Option<f32>,
@@ -33,7 +35,7 @@ pub mod web {
     }
 
     pub fn try_build(
-        id: Option<i64>,
+        id: Option<Key>,
         textual: Option<String>,
         longitude: Option<f32>,
         latitude: Option<f32>,
@@ -100,6 +102,7 @@ pub async fn delete_location(
 
 mod db {
     use super::web;
+    use crate::types::Key;
     use crate::error::Result;
     use crate::pg;
     use deadpool_postgres::Pool;
@@ -109,7 +112,7 @@ mod db {
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
     #[pg_mapper(table = "locations")]
     pub struct Location {
-        pub id: i64,
+        pub id: Key,
 
         pub textual: Option<String>,
         pub longitude: Option<f32>,
@@ -144,7 +147,7 @@ mod db {
         Ok(res)
     }
 
-    pub async fn get_location(db_pool: &Pool, location_id: i64) -> Result<Location> {
+    pub async fn get_location(db_pool: &Pool, location_id: Key) -> Result<Location> {
         let res = pg::one::<Location>(
             db_pool,
             include_str!("sql/locations_get.sql"),
@@ -158,7 +161,7 @@ mod db {
     pub async fn edit_location(
         db_pool: &Pool,
         location: &web::Location,
-        location_id: i64,
+        location_id: Key,
     ) -> Result<Location> {
         let res = pg::one::<Location>(
             db_pool,
@@ -175,7 +178,7 @@ mod db {
         Ok(res)
     }
 
-    pub async fn delete_location(db_pool: &Pool, location_id: i64) -> Result<()> {
+    pub async fn delete_location(db_pool: &Pool, location_id: Key) -> Result<()> {
         pg::zero::<Location>(
             db_pool,
             include_str!("sql/locations_delete.sql"),

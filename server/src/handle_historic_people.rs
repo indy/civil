@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::types::Key;
 use crate::model::Model;
 use crate::note_type::NoteType;
 use crate::error::Result;
@@ -26,6 +27,7 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 mod web {
+    use crate::types::Key;
     use crate::handle_dates::web::Date;
     use crate::handle_locations::web::Location;
     use crate::handle_notes::web::Note;
@@ -33,7 +35,7 @@ mod web {
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct Person {
-        pub id: i64,
+        pub id: Key,
         pub name: String,
         pub birth_date: Option<Date>,
         pub birth_location: Option<Location>,
@@ -51,15 +53,15 @@ mod web {
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct PersonReference {
-        pub note_id: i64,
-        pub person_id: i64,
+        pub note_id: Key,
+        pub person_id: Key,
         pub person_name: String,
     }
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct PersonMention {
         // pub mention_count: i32,
-        pub person_id: i64,
+        pub person_id: Key,
         pub person_name: String,
     }
 
@@ -104,7 +106,7 @@ pub async fn get_people(
 ) -> Result<HttpResponse> {
     info!("get_people");
     // let user_id = session::user_id(&session)?;
-    let user_id: i64 = 1;
+    let user_id: Key = 1;
     // db statement
     let db_people: Vec<db::Person> = db::get_people(&db_pool, user_id).await?;
 
@@ -123,7 +125,7 @@ pub async fn get_person(
 ) -> Result<HttpResponse> {
     info!("get_person {:?}", params.id);
     // let user_id = session::user_id(&session)?;
-    let user_id: i64 = 1;
+    let user_id: Key = 1;
 
     // db statements
     let person_id = params.id;
@@ -204,6 +206,7 @@ pub async fn delete_person(
 
 mod db {
     use super::web;
+    use crate::types::Key;
     use crate::edge_type::{self, EdgeType};
     use crate::model::{Model, model_to_foreign_key};
     use crate::error::Result;
@@ -219,8 +222,8 @@ mod db {
     #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
     #[pg_mapper(table = "historic_people")]
     pub struct PersonReference {
-        pub note_id: i64,
-        pub person_id: i64,
+        pub note_id: Key,
+        pub person_id: Key,
         pub person_name: String,
     }
 
@@ -228,38 +231,38 @@ mod db {
     #[pg_mapper(table = "historic_people")]
     pub struct PersonMention {
 //        pub mention_count: i32,
-        pub person_id: i64,
+        pub person_id: Key,
         pub person_name: String,
     }
 
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
     #[pg_mapper(table = "historic_people")]
     pub struct Person {
-        pub id: i64,
+        pub id: Key,
         pub name: String,
         pub age: Option<String>,
         // birth date
-        pub birth_date_id: Option<i64>,
+        pub birth_date_id: Option<Key>,
         pub bd_textual: Option<String>,
         pub bd_exact_date: Option<chrono::NaiveDate>,
         pub bd_lower_date: Option<chrono::NaiveDate>,
         pub bd_upper_date: Option<chrono::NaiveDate>,
         pub bd_fuzz: Option<f32>,
         // birth location
-        pub birth_location_id: Option<i64>,
+        pub birth_location_id: Option<Key>,
         pub bl_textual: Option<String>,
         pub bl_longitude: Option<f32>,
         pub bl_latitude: Option<f32>,
         pub bl_fuzz: Option<f32>,
         // death date
-        pub death_date_id: Option<i64>,
+        pub death_date_id: Option<Key>,
         pub dd_textual: Option<String>,
         pub dd_exact_date: Option<chrono::NaiveDate>,
         pub dd_lower_date: Option<chrono::NaiveDate>,
         pub dd_upper_date: Option<chrono::NaiveDate>,
         pub dd_fuzz: Option<f32>,
         // death location
-        pub death_location_id: Option<i64>,
+        pub death_location_id: Option<Key>,
         pub dl_textual: Option<String>,
         pub dl_longitude: Option<f32>,
         pub dl_latitude: Option<f32>,
@@ -315,7 +318,7 @@ mod db {
     pub async fn create_person(
         db_pool: &Pool,
         person: &web::Person,
-        user_id: i64,
+        user_id: Key,
     ) -> Result<Person> {
         let res = pg::one::<Person>(
             db_pool,
@@ -326,7 +329,7 @@ mod db {
         Ok(res)
     }
 
-    pub async fn get_people(db_pool: &Pool, user_id: i64) -> Result<Vec<Person>> {
+    pub async fn get_people(db_pool: &Pool, user_id: Key) -> Result<Vec<Person>> {
         let res = pg::many::<Person>(
             db_pool,
             include_str!("sql/historic_people_all.sql"),
@@ -336,7 +339,7 @@ mod db {
         Ok(res)
     }
 
-    pub async fn get_person(db_pool: &Pool, person_id: i64, user_id: i64) -> Result<Person> {
+    pub async fn get_person(db_pool: &Pool, person_id: Key, user_id: Key) -> Result<Person> {
         let person = pg::one::<Person>(
             db_pool,
             include_str!("sql/historic_people_get.sql"),
@@ -349,8 +352,8 @@ mod db {
     pub async fn edit_person(
         db_pool: &Pool,
         person: &web::Person,
-        person_id: i64,
-        user_id: i64,
+        person_id: Key,
+        user_id: Key,
     ) -> Result<Person> {
         let res = pg::one::<Person>(
             db_pool,
@@ -361,7 +364,7 @@ mod db {
         Ok(res)
     }
 
-    pub async fn delete_person(db_pool: &Pool, person_id: i64, user_id: i64) -> Result<()> {
+    pub async fn delete_person(db_pool: &Pool, person_id: Key, user_id: Key) -> Result<()> {
         pg::zero::<Person>(
             db_pool,
             include_str!("sql/historic_people_delete.sql"),
@@ -374,7 +377,7 @@ mod db {
     pub async fn get_people_referenced(
         db_pool: &Pool,
         model: Model,
-        id: i64,
+        id: Key,
     ) -> Result<Vec<PersonReference>> {
         let e1 = edge_type::model_to_note(model)?;
         let foreign_key = model_to_foreign_key(model);
@@ -394,7 +397,7 @@ mod db {
     pub async fn people_that_mention(
         db_pool: &Pool,
         model: Model,
-        id: i64,
+        id: Key,
     ) -> Result<Vec<PersonMention>> {
         let e1 = edge_type::note_to_model(model)?;
         let foreign_key = model_to_foreign_key(model);

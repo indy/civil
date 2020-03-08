@@ -22,9 +22,11 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 pub mod web {
+    use crate::types::Key;
+
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct Date {
-        pub id: i64,
+        pub id: Key,
         pub textual: Option<String>,
         pub exact_date: Option<chrono::NaiveDate>,
         pub lower_date: Option<chrono::NaiveDate>,
@@ -33,7 +35,7 @@ pub mod web {
     }
 
     pub fn try_build(
-        id: Option<i64>,
+        id: Option<Key>,
         textual: Option<String>,
         exact_date: Option<chrono::NaiveDate>,
         lower_date: Option<chrono::NaiveDate>,
@@ -104,6 +106,7 @@ pub async fn delete_date(
 
 mod db {
     use super::web;
+    use crate::types::Key;
     use crate::error::Result;
     use crate::pg;
     use deadpool_postgres::Pool;
@@ -115,7 +118,7 @@ mod db {
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
     #[pg_mapper(table = "dates")]
     pub struct Date {
-        pub id: i64,
+        pub id: Key,
 
         // this doens't work - timezone conversion issue???
         // pub created_at: chrono::NaiveDateTime,
@@ -155,13 +158,13 @@ mod db {
         Ok(res)
     }
 
-    pub async fn get_date(db_pool: &Pool, date_id: i64) -> Result<Date> {
+    pub async fn get_date(db_pool: &Pool, date_id: Key) -> Result<Date> {
         let res = pg::one::<Date>(db_pool, include_str!("sql/dates_get.sql"), &[&date_id]).await?;
 
         Ok(res)
     }
 
-    pub async fn edit_date(db_pool: &Pool, date: &web::Date, date_id: i64) -> Result<Date> {
+    pub async fn edit_date(db_pool: &Pool, date: &web::Date, date_id: Key) -> Result<Date> {
         let res = pg::one::<Date>(
             db_pool,
             include_str!("sql/dates_edit.sql"),
@@ -178,7 +181,7 @@ mod db {
         Ok(res)
     }
 
-    pub async fn delete_date(db_pool: &Pool, date_id: i64) -> Result<()> {
+    pub async fn delete_date(db_pool: &Pool, date_id: Key) -> Result<()> {
         pg::zero::<Date>(db_pool, include_str!("sql/dates_delete.sql"), &[&date_id]).await?;
         Ok(())
     }

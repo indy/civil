@@ -14,9 +14,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 pub mod web {
+    use crate::types::Key;
+
     // #[derive(Debug, serde::Deserialize, serde::Serialize)]
     // pub struct Subject {
-    //     pub id: i64,
+    //     pub id: Key,
     //     pub name: String,
     // }
 
@@ -31,8 +33,8 @@ pub mod web {
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct SubjectReference {
-        pub note_id: i64,
-        pub subject_id: i64,
+        pub note_id: Key,
+        pub subject_id: Key,
         pub subject_name: String,
     }
 
@@ -48,6 +50,7 @@ pub mod web {
 }
 
 pub mod db {
+    use crate::types::Key;
     use crate::edge_type::{self, EdgeType};
     use crate::model::{Model, model_to_foreign_key};
     use crate::error::Result;
@@ -61,8 +64,8 @@ pub mod db {
     #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
     #[pg_mapper(table = "subjects")]
     pub struct SubjectReference {
-        pub note_id: i64,
-        pub subject_id: i64,
+        pub note_id: Key,
+        pub subject_id: Key,
         pub subject_name: String,
     }
 
@@ -71,7 +74,7 @@ pub mod db {
     pub async fn get_subjects_referenced(
         db_pool: &Pool,
         model: Model,
-        id: i64,
+        id: Key,
     ) -> Result<Vec<SubjectReference>> {
         let e1 = edge_type::model_to_note(model)?;
         let foreign_key = model_to_foreign_key(model);

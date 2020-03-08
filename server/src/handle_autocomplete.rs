@@ -20,9 +20,11 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 pub mod web {
+    use crate::types::Key;
+
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct Autocomplete {
-        pub id: i64,
+        pub id: Key,
         pub name: String,
     }
 
@@ -77,6 +79,7 @@ pub async fn get_subjects(
 
 pub mod db {
     use crate::error::Result;
+    use crate::types::Key;
     use crate::pg;
     use deadpool_postgres::Pool;
     use serde::{Deserialize, Serialize};
@@ -87,14 +90,14 @@ pub mod db {
     #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
     #[pg_mapper(table = "historic_people")]
     pub struct Person {
-        pub id: i64,
+        pub id: Key,
         pub name: String,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
     #[pg_mapper(table = "subjects")]
     pub struct Subject {
-        pub id: i64,
+        pub id: Key,
         pub name: String,
     }
 

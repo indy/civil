@@ -14,9 +14,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 pub mod web {
+    use crate::types::Key;
+
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct Note {
-        pub id: i64,
+        pub id: Key,
         pub content: String,
     }
 
@@ -31,6 +33,7 @@ pub mod web {
 }
 
 pub mod db {
+    use crate::types::Key;
     use crate::edge_type;
     use crate::model::{Model, model_to_foreign_key};
     use crate::note_type::NoteType;
@@ -45,14 +48,14 @@ pub mod db {
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
     #[pg_mapper(table = "notes")]
     pub struct Note {
-        pub id: i64,
+        pub id: Key,
         pub content: String,
     }
 
     pub async fn all_notes_for(
         db_pool: &Pool,
         model: Model,
-        id: i64,
+        id: Key,
         note_type: NoteType,
     ) -> Result<Vec<Note>> {
         let e1 = edge_type::model_to_note(model)?;

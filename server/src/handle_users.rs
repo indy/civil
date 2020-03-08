@@ -125,6 +125,7 @@ fn hash_password(password: &str) -> Result<String> {
 
 mod db {
     use super::web;
+    use crate::types::Key;
     use crate::error::Result;
     use crate::pg;
     use deadpool_postgres::Pool;
@@ -134,7 +135,7 @@ mod db {
     #[derive(Deserialize, PostgresMapper, Serialize)]
     #[pg_mapper(table = "users")]
     pub struct User {
-        pub id: i64,
+        pub id: Key,
         pub email: String,
         pub username: String,
         pub password: String,
@@ -173,7 +174,7 @@ mod db {
         Ok(res)
     }
 
-    pub async fn get_user(db_pool: &Pool, user_id: i64) -> Result<User> {
+    pub async fn get_user(db_pool: &Pool, user_id: Key) -> Result<User> {
         let res = pg::one::<User>(db_pool, include_str!("sql/users_get.sql"), &[&user_id]).await?;
         Ok(res)
     }
