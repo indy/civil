@@ -19,6 +19,7 @@ mod model;
 mod edge_type;
 mod note_type;
 mod error;
+mod handle_articles;
 mod handle_autocomplete;
 mod handle_dates;
 mod handle_historic_people;

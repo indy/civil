@@ -19,6 +19,7 @@ use crate::note_type::NoteType;
 use crate::error::Result;
 use crate::handle_notes;
 use crate::handle_subjects;
+use crate::handle_articles;
 use crate::session;
 use crate::web_common;
 use actix_web::web::{Data, Json, Path};
@@ -31,7 +32,8 @@ mod web {
     use crate::handle_dates::web::Date;
     use crate::handle_locations::web::Location;
     use crate::handle_notes::web::Note;
-    use crate::handle_subjects::web::SubjectReference;
+    use crate::handle_subjects::web::{SubjectReference, SubjectMention};
+    use crate::handle_articles::web::ArticleMention;
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct Person {
@@ -49,6 +51,8 @@ mod web {
         pub subjects_referenced: Option<Vec<SubjectReference>>,
 
         pub mentioned_by_people: Option<Vec<PersonMention>>,
+        pub mentioned_in_subjects: Option<Vec<SubjectMention>>,
+        pub mentioned_in_articles: Option<Vec<ArticleMention>>,
     }
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -60,7 +64,6 @@ mod web {
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct PersonMention {
-        // pub mention_count: i32,
         pub person_id: Key,
         pub person_name: String,
     }
@@ -174,6 +177,14 @@ pub async fn get_person(
     let db_mentioned_by_people = db::people_that_mention(&db_pool, Model::HistoricPerson, person_id).await?;
     let mentioned_by_people = db_mentioned_by_people.iter().map(|m| web::PersonMention::from(m)).collect();
     person.mentioned_by_people = Some(mentioned_by_people);
+
+    let db_mentioned_in_subjects = handle_subjects::db::subjects_that_mention(&db_pool, Model::HistoricPerson, person_id).await?;
+    let mentioned_in_subjects = db_mentioned_in_subjects.iter().map(|s| handle_subjects::web::SubjectMention::from(s)).collect();
+    person.mentioned_in_subjects = Some(mentioned_in_subjects);
+
+    let db_mentioned_in_articles = handle_articles::db::articles_that_mention(&db_pool, Model::HistoricPerson, person_id).await?;
+    let mentioned_in_articles = db_mentioned_in_articles.iter().map(|a| handle_articles::web::ArticleMention::from(a)).collect();
+    person.mentioned_in_articles = Some(mentioned_in_articles);
 
     Ok(HttpResponse::Ok().json(person))
 }
@@ -311,6 +322,8 @@ mod db {
                 subjects_referenced: None,
 
                 mentioned_by_people: None,
+                mentioned_in_subjects: None,
+                mentioned_in_articles: None,
             }
         }
     }

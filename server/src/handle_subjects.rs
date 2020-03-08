@@ -47,6 +47,21 @@ pub mod web {
             }
         }
     }
+
+    #[derive(Debug, serde::Deserialize, serde::Serialize)]
+    pub struct SubjectMention {
+        pub subject_id: Key,
+        pub subject_name: String,
+    }
+
+    impl From<&super::db::SubjectMention> for SubjectMention {
+        fn from(sm: &super::db::SubjectMention) -> SubjectMention {
+            SubjectMention {
+                subject_id: sm.subject_id,
+                subject_name: sm.subject_name.to_string(),
+            }
+        }
+    }
 }
 
 pub mod db {
@@ -69,6 +84,13 @@ pub mod db {
         pub subject_name: String,
     }
 
+    #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
+    #[pg_mapper(table = "subjects")]
+    pub struct SubjectMention {
+        pub subject_id: Key,
+        pub subject_name: String,
+    }
+
     // --------------------------------------------------------------------------------
 
     pub async fn get_subjects_referenced(
@@ -85,6 +107,26 @@ pub mod db {
         let res =
             pg::many::<SubjectReference>(db_pool, &stmt, &[&id, &e1, &EdgeType::NoteToSubject])
                 .await?;
+        Ok(res)
+    }
+
+    pub async fn subjects_that_mention(
+        db_pool: &Pool,
+        model: Model,
+        id: Key,
+    ) -> Result<Vec<SubjectMention>> {
+        let e1 = edge_type::note_to_model(model)?;
+        let foreign_key = model_to_foreign_key(model);
+
+        let stmt = include_str!("sql/subjects_that_mention.sql");
+        let stmt = stmt.replace("$foreign_key", foreign_key);
+
+        let res = pg::many::<SubjectMention>(
+            db_pool,
+            &stmt,
+            &[&id, &e1, &EdgeType::SubjectToNote],
+        ).await?;
+
         Ok(res)
     }
 }
