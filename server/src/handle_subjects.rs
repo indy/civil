@@ -13,23 +13,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::types::Key;
+use crate::model::Model;
+use crate::note_type::NoteType;
+use crate::error::Result;
+use crate::handle_notes;
+use crate::handle_articles;
+use crate::handle_historic_people;
+//use crate::session;
+use crate::web_common;
+use actix_web::web::{Data, /*Json, */Path};
+use actix_web::HttpResponse;
+use deadpool_postgres::Pool;
+use tracing::info;
+
 pub mod web {
     use crate::types::Key;
+    use crate::handle_notes::web::Note;
+    use crate::handle_articles::web::ArticleMention;
+    use crate::handle_historic_people::web::{PersonReference, PersonMention};
 
-    // #[derive(Debug, serde::Deserialize, serde::Serialize)]
-    // pub struct Subject {
-    //     pub id: Key,
-    //     pub name: String,
-    // }
+    #[derive(Debug, serde::Deserialize, serde::Serialize)]
+    pub struct Subject {
+        pub id: Key,
+        pub name: String,
 
-    // impl From<&super::db::Subject> for Subject {
-    //     fn from(db_subject: &super::db::Subject) -> Subject {
-    //         Subject {
-    //             id: db_subject.id,
-    //             name: db_subject.name.to_string(),
-    //         }
-    //     }
-    // }
+        pub notes: Option<Vec<Note>>,
+        pub quotes: Option<Vec<Note>>,
+
+        pub people_referenced: Option<Vec<PersonReference>>,
+        pub subjects_referenced: Option<Vec<SubjectReference>>,
+
+        pub mentioned_by_people: Option<Vec<PersonMention>>,
+        pub mentioned_in_subjects: Option<Vec<SubjectMention>>,
+        pub mentioned_in_articles: Option<Vec<ArticleMention>>,
+    }
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct SubjectReference {
@@ -64,7 +82,94 @@ pub mod web {
     }
 }
 
+pub async fn get_subjects(
+    db_pool: Data<Pool>,
+    _session: actix_session::Session,
+) -> Result<HttpResponse> {
+    info!("get_subjects");
+    // let user_id = session::user_id(&session)?;
+    let user_id: Key = 1;
+    // db statement
+    let db_subjects: Vec<db::Subject> = db::get_subjects(&db_pool, user_id).await?;
+
+    let subjects: Vec<web::Subject> = db_subjects
+        .into_iter()
+        .map(|db_subject| web::Subject::from(db_subject))
+        .collect();
+
+    Ok(HttpResponse::Ok().json(subjects))
+}
+
+pub async fn get_subject(
+    db_pool: Data<Pool>,
+    params: Path<web_common::IdParam>,
+    _session: actix_session::Session,
+) -> Result<HttpResponse> {
+    info!("get_subject {:?}", params.id);
+    // let user_id = session::user_id(&session)?;
+    let user_id: Key = 1;
+
+    // db statements
+    let subject_id = params.id;
+    let db_subject: db::Subject = db::get_subject(&db_pool, subject_id, user_id).await?;
+    let mut subject = web::Subject::from(db_subject);
+
+    let db_notes =
+        handle_notes::db::all_notes_for(&db_pool, Model::Subject, subject_id, NoteType::Note)
+        .await?;
+    let notes = db_notes
+        .iter()
+        .map(|n| handle_notes::web::Note::from(n))
+        .collect();
+    subject.notes = Some(notes);
+
+    let db_quotes = handle_notes::db::all_notes_for(
+        &db_pool,
+        Model::Subject,
+        subject_id,
+        NoteType::Quote,
+    )
+        .await?;
+    let quotes = db_quotes
+        .iter()
+        .map(|n| handle_notes::web::Note::from(n))
+        .collect();
+    subject.quotes = Some(quotes);
+
+    let db_people_referenced =
+        handle_historic_people::db::get_people_referenced(&db_pool, Model::Subject, subject_id).await?;
+    let people_referenced = db_people_referenced
+        .iter()
+        .map(|p| handle_historic_people::web::PersonReference::from(p))
+        .collect();
+    subject.people_referenced = Some(people_referenced);
+
+    let db_subjects_referenced =
+        db::get_subjects_referenced(&db_pool, Model::Subject, subject_id)
+        .await?;
+    let subjects_referenced = db_subjects_referenced
+        .iter()
+        .map(|p| web::SubjectReference::from(p))
+        .collect();
+    subject.subjects_referenced = Some(subjects_referenced);
+
+    let db_mentioned_by_people = handle_historic_people::db::people_that_mention(&db_pool, Model::Subject, subject_id).await?;
+    let mentioned_by_people = db_mentioned_by_people.iter().map(|m| handle_historic_people::web::PersonMention::from(m)).collect();
+    subject.mentioned_by_people = Some(mentioned_by_people);
+
+    let db_mentioned_in_subjects = db::subjects_that_mention(&db_pool, Model::Subject, subject_id).await?;
+    let mentioned_in_subjects = db_mentioned_in_subjects.iter().map(|s| web::SubjectMention::from(s)).collect();
+    subject.mentioned_in_subjects = Some(mentioned_in_subjects);
+
+    let db_mentioned_in_articles = handle_articles::db::articles_that_mention(&db_pool, Model::Subject, subject_id).await?;
+    let mentioned_in_articles = db_mentioned_in_articles.iter().map(|a| handle_articles::web::ArticleMention::from(a)).collect();
+    subject.mentioned_in_articles = Some(mentioned_in_articles);
+
+    Ok(HttpResponse::Ok().json(subject))
+}
+
 pub mod db {
+    use super::web;
     use crate::types::Key;
     use crate::edge_type::{self, EdgeType};
     use crate::model::{Model, model_to_foreign_key};
@@ -75,6 +180,13 @@ pub mod db {
     use tokio_pg_mapper_derive::PostgresMapper;
     #[allow(unused_imports)]
     use tracing::info;
+
+    #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
+    #[pg_mapper(table = "subjects")]
+    pub struct Subject {
+        pub id: Key,
+        pub name: String,
+    }
 
     #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
     #[pg_mapper(table = "subjects")]
@@ -89,6 +201,47 @@ pub mod db {
     pub struct SubjectMention {
         pub subject_id: Key,
         pub subject_name: String,
+    }
+
+    // todo: should this from impl be in web???
+    impl From<Subject> for web::Subject {
+        fn from(s: Subject) -> web::Subject {
+            web::Subject {
+                id: s.id,
+                name: s.name,
+
+                notes: None,
+                quotes: None,
+
+                people_referenced: None,
+                subjects_referenced: None,
+
+                mentioned_by_people: None,
+                mentioned_in_subjects: None,
+                mentioned_in_articles: None,
+            }
+        }
+    }
+
+    pub async fn get_subjects(db_pool: &Pool, user_id: Key) -> Result<Vec<Subject>> {
+        let res = pg::many::<Subject>(
+            db_pool,
+            include_str!("sql/subjects_all.sql"),
+            &[&user_id],
+        ).await?;
+
+        Ok(res)
+    }
+
+
+    pub async fn get_subject(db_pool: &Pool, subject_id: Key, user_id: Key) -> Result<Subject> {
+        let subject = pg::one::<Subject>(
+            db_pool,
+            include_str!("sql/subjects_get.sql"),
+            &[&subject_id, &user_id],
+        ).await?;
+
+        Ok(subject)
     }
 
     // --------------------------------------------------------------------------------

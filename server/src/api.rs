@@ -18,6 +18,7 @@ use crate::handle_dates;
 use crate::handle_historic_people;
 use crate::handle_locations;
 use crate::handle_users;
+use crate::handle_subjects;
 use actix_files::NamedFile;
 use actix_web::dev;
 use actix_web::middleware::errhandlers::ErrorHandlerResponse;
@@ -45,6 +46,15 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", get().to(handle_historic_people::get_person)) // todo
                 .route("/{id}", put().to(handle_historic_people::edit_person)) // todo
                 .route("/{id}", delete().to(handle_historic_people::delete_person)), // todo
+        )
+        // subjects
+        .service(
+            scope("/subjects")
+                // .route("", post().to(handle_subjects::create_subject)) // todo
+                .route("", get().to(handle_subjects::get_subjects)) // todo
+                .route("/{id}", get().to(handle_subjects::get_subject)) // todo
+                // .route("/{id}", put().to(handle_subjects::edit_subject)) // todo
+                // .route("/{id}", delete().to(handle_subjects::delete_subject)), // todo
         )
         // dates
         .service(

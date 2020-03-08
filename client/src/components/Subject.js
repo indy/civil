@@ -61,7 +61,7 @@ class Subject extends Component {
   fetchSubject = () => {
     const id = this.state.subject.id;
 
-    Net.get(`/api/subject/${id}`).then(subject => {
+    Net.get(`/api/subjects/${id}`).then(subject => {
       if (subject) {
 
         const referencedSubjectsHash = subject.subjects_referenced.reduce(function(a, b) {

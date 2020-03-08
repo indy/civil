@@ -19,6 +19,7 @@ use bytes::{BufMut, BytesMut};
 use tokio_postgres::types::{to_sql_checked, IsNull, ToSql, Type};
 
 #[derive(Debug, Clone, Copy)]
+#[allow(dead_code)]
 pub enum EdgeType {
     NoteToNote = 11,
     NoteToHistoricPerson = 12,

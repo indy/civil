@@ -56,6 +56,7 @@ pub fn model_to_foreign_key(model: Model) -> &'static str {
     }
 }
 
+#[allow(dead_code)]
 pub fn model_to_table_name(model: Model) -> &'static str {
     match model {
         Model::Note => "notes",

@@ -27,7 +27,7 @@ use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
 use tracing::info;
 
-mod web {
+pub mod web {
     use crate::types::Key;
     use crate::handle_dates::web::Date;
     use crate::handle_locations::web::Location;
@@ -215,7 +215,7 @@ pub async fn delete_person(
     Ok(HttpResponse::Ok().json(true))
 }
 
-mod db {
+pub mod db {
     use super::web;
     use crate::types::Key;
     use crate::edge_type::{self, EdgeType};

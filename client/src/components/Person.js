@@ -287,8 +287,8 @@ class Person extends Component {
           </div>
         </section>
         <SectionMentionedByPeople mentionedBy={ person.mentioned_by_people }/>
-        {/* <SectionMentionedInSubjects mentionedIn={ person.mentioned_in_subjects }/> */}
-        {/* <SectionMentionedInArticles mentionedIn={ person.mentioned_in_articles }/> */}
+        <SectionMentionedInSubjects mentionedIn={ person.mentioned_in_subjects }/>
+        <SectionMentionedInArticles mentionedIn={ person.mentioned_in_articles }/>
       </article>
     );
   }
