@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crap_models::Model;
+use crate::model::Model;
 use actix_web::{HttpResponse, ResponseError};
 use derive_more::{Display, From};
 

@@ -13,7 +13,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crap_models::{Model, NoteType};
+use crate::model::Model;
+use crate::note_type::NoteType;
 use crate::error::Result;
 use crate::handle_notes;
 use crate::handle_subjects;
@@ -44,11 +45,20 @@ mod web {
 
         pub people_referenced: Option<Vec<PersonReference>>,
         pub subjects_referenced: Option<Vec<SubjectReference>>,
+
+        pub mentioned_by_people: Option<Vec<PersonMention>>,
     }
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct PersonReference {
         pub note_id: i64,
+        pub person_id: i64,
+        pub person_name: String,
+    }
+
+    #[derive(Debug, serde::Deserialize, serde::Serialize)]
+    pub struct PersonMention {
+        // pub mention_count: i32,
         pub person_id: i64,
         pub person_name: String,
     }
@@ -59,6 +69,16 @@ mod web {
                 note_id: pr.note_id,
                 person_id: pr.person_id,
                 person_name: pr.person_name.to_string(),
+            }
+        }
+    }
+
+    impl From<&super::db::PersonMention> for PersonMention {
+        fn from(pm: &super::db::PersonMention) -> PersonMention {
+            PersonMention {
+//                mention_count: pm.mention_count,
+                person_id: pm.person_id,
+                person_name: pm.person_name.to_string(),
             }
         }
     }
@@ -149,6 +169,10 @@ pub async fn get_person(
         .collect();
     person.subjects_referenced = Some(subjects_referenced);
 
+    let db_mentioned_by_people = db::people_that_mention(&db_pool, Model::HistoricPerson, person_id).await?;
+    let mentioned_by_people = db_mentioned_by_people.iter().map(|m| web::PersonMention::from(m)).collect();
+    person.mentioned_by_people = Some(mentioned_by_people);
+
     Ok(HttpResponse::Ok().json(person))
 }
 
@@ -180,7 +204,8 @@ pub async fn delete_person(
 
 mod db {
     use super::web;
-    use crate::crap_models::{self, EdgeType, Model};
+    use crate::edge_type::{self, EdgeType};
+    use crate::model::{Model, model_to_foreign_key};
     use crate::error::Result;
     use crate::handle_dates;
     use crate::handle_locations;
@@ -195,6 +220,14 @@ mod db {
     #[pg_mapper(table = "historic_people")]
     pub struct PersonReference {
         pub note_id: i64,
+        pub person_id: i64,
+        pub person_name: String,
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
+    #[pg_mapper(table = "historic_people")]
+    pub struct PersonMention {
+//        pub mention_count: i32,
         pub person_id: i64,
         pub person_name: String,
     }
@@ -273,6 +306,8 @@ mod db {
 
                 people_referenced: None,
                 subjects_referenced: None,
+
+                mentioned_by_people: None,
             }
         }
     }
@@ -286,8 +321,8 @@ mod db {
             db_pool,
             include_str!("sql/historic_people_create.sql"),
             &[&user_id, &person.name],
-        )
-        .await?;
+        ).await?;
+
         Ok(res)
     }
 
@@ -296,8 +331,8 @@ mod db {
             db_pool,
             include_str!("sql/historic_people_all.sql"),
             &[&user_id],
-        )
-        .await?;
+        ).await?;
+
         Ok(res)
     }
 
@@ -306,8 +341,7 @@ mod db {
             db_pool,
             include_str!("sql/historic_people_get.sql"),
             &[&person_id, &user_id],
-        )
-        .await?;
+        ).await?;
 
         Ok(person)
     }
@@ -322,8 +356,8 @@ mod db {
             db_pool,
             include_str!("sql/historic_people_edit.sql"),
             &[&person.name, &person_id, &user_id],
-        )
-        .await?;
+        ).await?;
+
         Ok(res)
     }
 
@@ -332,20 +366,18 @@ mod db {
             db_pool,
             include_str!("sql/historic_people_delete.sql"),
             &[&person_id, &user_id],
-        )
-        .await?;
+        ).await?;
+
         Ok(())
     }
-
-    // --------------------------------------------------------------------------------
 
     pub async fn get_people_referenced(
         db_pool: &Pool,
         model: Model,
         id: i64,
     ) -> Result<Vec<PersonReference>> {
-        let e1 = crap_models::edgetype_for_model_to_note(model)?;
-        let foreign_key = crap_models::model_to_foreign_key(model);
+        let e1 = edge_type::model_to_note(model)?;
+        let foreign_key = model_to_foreign_key(model);
 
         let stmt = include_str!("sql/historic_people_referenced.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);
@@ -354,8 +386,28 @@ mod db {
             db_pool,
             &stmt,
             &[&id, &e1, &EdgeType::NoteToHistoricPerson],
-        )
-        .await?;
+        ).await?;
+
+        Ok(res)
+    }
+
+    pub async fn people_that_mention(
+        db_pool: &Pool,
+        model: Model,
+        id: i64,
+    ) -> Result<Vec<PersonMention>> {
+        let e1 = edge_type::note_to_model(model)?;
+        let foreign_key = model_to_foreign_key(model);
+
+        let stmt = include_str!("sql/historic_people_that_mention.sql");
+        let stmt = stmt.replace("$foreign_key", foreign_key);
+
+        let res = pg::many::<PersonMention>(
+            db_pool,
+            &stmt,
+            &[&id, &e1, &EdgeType::HistoricPersonToNote],
+        ).await?;
+
         Ok(res)
     }
 }

@@ -13,70 +13,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::model::Model;
 use crate::error::{Error, Result};
 use bytes::{BufMut, BytesMut};
-use std::fmt;
 use tokio_postgres::types::{to_sql_checked, IsNull, ToSql, Type};
-
-#[derive(Clone, Copy, Debug)]
-pub enum Model {
-    Note,
-    HistoricPerson,
-    Subject,
-    Article,
-    HistoricPoint,
-    Date,
-    Location,
-    Edge,
-}
-
-impl std::fmt::Display for Model {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Model::Note => write!(f, "Mode::Note"),
-            Model::HistoricPerson => write!(f, "Model::HistoricPerson"),
-            Model::Subject => write!(f, "Mode::Subject"),
-            Model::Article => write!(f, "Mode::Article"),
-            Model::HistoricPoint => write!(f, "Model::HistoricPoint"),
-            Model::Date => write!(f, "Mode::Date"),
-            Model::Location => write!(f, "Model::Location"),
-            Model::Edge => write!(f, "Model::Edge"),
-        }
-    }
-}
-
-pub fn model_to_foreign_key(model: Model) -> &'static str {
-    match model {
-        Model::Note => "note_id",
-        Model::HistoricPerson => "historic_person_id",
-        Model::Subject => "subject_id",
-        Model::Article => "article_id",
-        Model::HistoricPoint => "historic_point_id",
-        // these won't be used?
-        Model::Date => "date_id",
-        Model::Location => "location_id",
-        Model::Edge => "edge_id",
-    }
-}
-
-pub fn model_to_table_name(model: Model) -> &'static str {
-    match model {
-        Model::Note => "notes",
-        Model::HistoricPerson => "historic_people",
-        Model::Subject => "subjects",
-        Model::Article => "articles",
-        Model::HistoricPoint => "historic_points",
-        Model::Date => "dates",
-        Model::Location => "locations",
-        Model::Edge => "edges",
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum NoteType {
-    Note = 1,
-    Quote = 2,
-}
 
 #[derive(Debug, Clone, Copy)]
 pub enum EdgeType {
@@ -111,7 +51,7 @@ pub enum EdgeType {
     HistoricPointToHistoricPoint = 55,
 }
 
-pub fn edgetype_for_model_to_note(model: Model) -> Result<EdgeType> {
+pub fn model_to_note(model: Model) -> Result<EdgeType> {
     match model {
         Model::Note => Ok(EdgeType::NoteToNote),
         Model::HistoricPerson => Ok(EdgeType::HistoricPersonToNote),
@@ -122,7 +62,7 @@ pub fn edgetype_for_model_to_note(model: Model) -> Result<EdgeType> {
     }
 }
 
-pub fn edgetype_for_note_to_model(model: Model) -> Result<EdgeType> {
+pub fn note_to_model(model: Model) -> Result<EdgeType> {
     match model {
         Model::Note => Ok(EdgeType::NoteToNote),
         Model::HistoricPerson => Ok(EdgeType::NoteToHistoricPerson),
@@ -131,23 +71,6 @@ pub fn edgetype_for_note_to_model(model: Model) -> Result<EdgeType> {
         Model::HistoricPoint => Ok(EdgeType::NoteToHistoricPoint),
         _ => Err(Error::InvalidModelType(model)),
     }
-}
-
-impl ToSql for NoteType {
-    fn to_sql(
-        &self,
-        _ty: &Type,
-        out: &mut BytesMut,
-    ) -> ::std::result::Result<IsNull, Box<dyn ::std::error::Error + Sync + Send>> {
-        out.put_i32(*self as i32);
-        Ok(IsNull::No)
-    }
-
-    fn accepts(ty: &Type) -> bool {
-        <i32 as ToSql>::accepts(ty)
-    }
-
-    to_sql_checked!();
 }
 
 impl ToSql for EdgeType {

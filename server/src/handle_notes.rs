@@ -31,7 +31,9 @@ pub mod web {
 }
 
 pub mod db {
-    use crate::crap_models::{self, Model, NoteType};
+    use crate::edge_type;
+    use crate::model::{Model, model_to_foreign_key};
+    use crate::note_type::NoteType;
     use crate::error::Result;
     use crate::pg;
     use deadpool_postgres::Pool;
@@ -53,8 +55,8 @@ pub mod db {
         id: i64,
         note_type: NoteType,
     ) -> Result<Vec<Note>> {
-        let e1 = crap_models::edgetype_for_model_to_note(model)?;
-        let foreign_key = crap_models::model_to_foreign_key(model);
+        let e1 = edge_type::model_to_note(model)?;
+        let foreign_key = model_to_foreign_key(model);
 
         let stmt = include_str!("sql/notes_all_for.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);

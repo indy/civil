@@ -14,7 +14,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 mod api;
-mod crap_models;
+mod model;
+mod edge_type;
+mod note_type;
 mod error;
 mod handle_autocomplete;
 mod handle_dates;

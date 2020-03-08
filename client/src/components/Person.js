@@ -286,7 +286,7 @@ class Person extends Component {
             { quotes }
           </div>
         </section>
-        {/* <SectionMentionedByPeople mentionedBy={ person.mentioned_by_people }/> */}
+        <SectionMentionedByPeople mentionedBy={ person.mentioned_by_people }/>
         {/* <SectionMentionedInSubjects mentionedIn={ person.mentioned_in_subjects }/> */}
         {/* <SectionMentionedInArticles mentionedIn={ person.mentioned_in_articles }/> */}
       </article>
