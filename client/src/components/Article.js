@@ -31,7 +31,6 @@ class Article extends Component {
   }
 
   fetchAutocompleteLists = () => {
-
     Net.get("/api/autocomplete/people").then(people => {
       if (people) {
         let ac = this.state.ac;

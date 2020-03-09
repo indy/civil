@@ -25,6 +25,7 @@ use crate::web_common;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
+#[allow(unused_imports)]
 use tracing::info;
 
 pub mod web {

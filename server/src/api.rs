@@ -17,6 +17,7 @@ use crate::handle_articles;
 use crate::handle_autocomplete;
 use crate::handle_dates;
 use crate::handle_historic_people;
+use crate::handle_historic_points;
 use crate::handle_locations;
 use crate::handle_subjects;
 use crate::handle_users;
@@ -47,6 +48,15 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", get().to(handle_historic_people::get_person))
                 .route("/{id}", put().to(handle_historic_people::edit_person)) // todo
                 .route("/{id}", delete().to(handle_historic_people::delete_person)), // todo
+        )
+        // historic_points
+        .service(
+            scope("/points")
+                // .route("", post().to(handle_historic_points::create_point)) // todo
+                .route("", get().to(handle_historic_points::get_points)) // todo
+                .route("/{id}", get().to(handle_historic_points::get_point)), // todo
+                                                                              // .route("/{id}", put().to(handle_historic_points::edit_point)) // todo
+                                                                              // .route("/{id}", delete().to(handle_historic_points::delete_point)), // todo
         )
         // subjects
         .service(

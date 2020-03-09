@@ -52,7 +52,7 @@ class Point extends Component {
   fetchPoint = () => {
     const id = this.state.point.id;
 
-    Net.get(`/api/point/${id}`).then(point => {
+    Net.get(`/api/points/${id}`).then(point => {
       if (point) {
 
         const referencedSubjectsHash = point.subjects_referenced.reduce(function(a, b) {
