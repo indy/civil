@@ -74,8 +74,6 @@ pub async fn get_date(
     params: Path<web_common::IdParam>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    info!("get_date {:?}", params.id);
-
     let db_date: db::Date = db::get_date(&db_pool, params.id).await?;
 
     Ok(HttpResponse::Ok().json(web::Date::from(db_date)))
@@ -107,6 +105,7 @@ pub async fn delete_date(
 mod db {
     use super::web;
     use crate::error::Result;
+    use crate::model::Model;
     use crate::pg;
     use crate::types::Key;
     use deadpool_postgres::Pool;
@@ -155,6 +154,7 @@ mod db {
             ],
         )
         .await?;
+
         Ok(res)
     }
 
@@ -182,7 +182,7 @@ mod db {
     }
 
     pub async fn delete_date(db_pool: &Pool, date_id: Key) -> Result<()> {
-        pg::zero::<Date>(db_pool, include_str!("sql/dates_delete.sql"), &[&date_id]).await?;
+        pg::delete::<Date>(db_pool, date_id, Model::Date).await?;
         Ok(())
     }
 }

@@ -78,18 +78,18 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // dates
         .service(
             scope("/dates")
-                .route("", post().to(handle_dates::create_date)) // check
+                .route("", post().to(handle_dates::create_date))
                 .route("/{id}", get().to(handle_dates::get_date))
-                .route("/{id}", put().to(handle_dates::edit_date)) // check
-                .route("/{id}", delete().to(handle_dates::delete_date)), // check
+                .route("/{id}", put().to(handle_dates::edit_date))
+                .route("/{id}", delete().to(handle_dates::delete_date)),
         )
         // locations
         .service(
             scope("/locations")
-                .route("", post().to(handle_locations::create_location)) // check
+                .route("", post().to(handle_locations::create_location))
                 .route("/{id}", get().to(handle_locations::get_location))
-                .route("/{id}", put().to(handle_locations::edit_location)) // check
-                .route("/{id}", delete().to(handle_locations::delete_location)), // check
+                .route("/{id}", put().to(handle_locations::edit_location))
+                .route("/{id}", delete().to(handle_locations::delete_location)),
         )
         // autocomplete
         .service(

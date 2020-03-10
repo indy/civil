@@ -14,6 +14,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::{Error, Result};
+use crate::model::{model_to_table_name, Model};
+use crate::types::Key;
 use deadpool_postgres::{Client, Pool};
 use tokio_pg_mapper::FromTokioPostgresRow;
 
@@ -84,4 +86,15 @@ where
         .collect::<Vec<T>>();
 
     Ok(vec)
+}
+
+pub async fn delete<T>(db_pool: &Pool, id: Key, model: Model) -> Result<()>
+where
+    T: FromTokioPostgresRow,
+{
+    let stmt = include_str!("sql/delete.sql");
+    let stmt = stmt.replace("$table_name", model_to_table_name(model));
+
+    zero::<T>(db_pool, &stmt, &[&id]).await?;
+    Ok(())
 }

@@ -103,6 +103,7 @@ pub async fn delete_location(
 mod db {
     use super::web;
     use crate::error::Result;
+    use crate::model::Model;
     use crate::pg;
     use crate::types::Key;
     use deadpool_postgres::Pool;
@@ -179,12 +180,7 @@ mod db {
     }
 
     pub async fn delete_location(db_pool: &Pool, location_id: Key) -> Result<()> {
-        pg::zero::<Location>(
-            db_pool,
-            include_str!("sql/locations_delete.sql"),
-            &[&location_id],
-        )
-        .await?;
+        pg::delete::<Location>(db_pool, location_id, Model::Location).await?;
         Ok(())
     }
 }
