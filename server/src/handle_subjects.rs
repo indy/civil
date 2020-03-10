@@ -19,8 +19,8 @@ use crate::handle_historic_people;
 use crate::handle_notes;
 use crate::model::Model;
 use crate::note_type::NoteType;
+use crate::session;
 use crate::types::Key;
-//use crate::session;
 use crate::web_common;
 use actix_web::web::{Data, /*Json, */ Path};
 use actix_web::HttpResponse;
@@ -80,6 +80,14 @@ pub mod web {
             }
         }
     }
+}
+
+pub async fn create_subject(
+    _db_pool: Data<Pool>,
+    _params: Path<web_common::IdParam>,
+    _session: actix_session::Session,
+) -> Result<HttpResponse> {
+    unimplemented!();
 }
 
 pub async fn get_subjects(
@@ -177,10 +185,32 @@ pub async fn get_subject(
     Ok(HttpResponse::Ok().json(subject))
 }
 
+pub async fn edit_subject(
+    _db_pool: Data<Pool>,
+    _params: Path<web_common::IdParam>,
+    _session: actix_session::Session,
+) -> Result<HttpResponse> {
+    unimplemented!();
+}
+
+pub async fn delete_subject(
+    db_pool: Data<Pool>,
+    params: Path<web_common::IdParam>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    let user_id = session::user_id(&session)?;
+
+    db::delete_subject(&db_pool, params.id, user_id).await?;
+
+    Ok(HttpResponse::Ok().json(true))
+}
+
 pub mod db {
     use super::web;
     use crate::edge_type::{self, EdgeType};
     use crate::error::Result;
+    use crate::handle_edges;
+    use crate::handle_notes;
     use crate::model::{model_to_foreign_key, Model};
     use crate::pg;
     use crate::types::Key;
@@ -248,6 +278,17 @@ pub mod db {
         .await?;
 
         Ok(subject)
+    }
+
+    pub async fn delete_subject(db_pool: &Pool, subject_id: Key, user_id: Key) -> Result<()> {
+        // deleting notes require valid edge information, so delete notes before edges
+        //
+        handle_notes::db::delete_all_notes_for(&db_pool, Model::Subject, subject_id).await?;
+        handle_edges::db::delete_all_edges_for(&db_pool, Model::Subject, subject_id).await?;
+
+        pg::delete_owned::<Subject>(db_pool, subject_id, user_id, Model::Subject).await?;
+
+        Ok(())
     }
 
     // --------------------------------------------------------------------------------

@@ -19,8 +19,8 @@ use crate::handle_notes;
 use crate::handle_subjects;
 use crate::model::Model;
 use crate::note_type::NoteType;
+use crate::session;
 use crate::types::Key;
-//use crate::session;
 use crate::web_common;
 use actix_web::web::{Data, /*Json, */ Path};
 use actix_web::HttpResponse;
@@ -60,6 +60,14 @@ pub mod web {
             }
         }
     }
+}
+
+pub async fn create_article(
+    _db_pool: Data<Pool>,
+    _params: Path<web_common::IdParam>,
+    _session: actix_session::Session,
+) -> Result<HttpResponse> {
+    unimplemented!();
 }
 
 pub async fn get_articles(
@@ -132,10 +140,32 @@ pub async fn get_article(
     Ok(HttpResponse::Ok().json(article))
 }
 
+pub async fn edit_article(
+    _db_pool: Data<Pool>,
+    _params: Path<web_common::IdParam>,
+    _session: actix_session::Session,
+) -> Result<HttpResponse> {
+    unimplemented!();
+}
+
+pub async fn delete_article(
+    db_pool: Data<Pool>,
+    params: Path<web_common::IdParam>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    let user_id = session::user_id(&session)?;
+
+    db::delete_article(&db_pool, params.id, user_id).await?;
+
+    Ok(HttpResponse::Ok().json(true))
+}
+
 pub mod db {
     use super::web;
     use crate::edge_type::{self, EdgeType};
     use crate::error::Result;
+    use crate::handle_edges;
+    use crate::handle_notes;
     use crate::model::{model_to_foreign_key, Model};
     use crate::pg;
     use crate::types::Key;
@@ -193,6 +223,17 @@ pub mod db {
         .await?;
 
         Ok(article)
+    }
+
+    pub async fn delete_article(db_pool: &Pool, article_id: Key, user_id: Key) -> Result<()> {
+        // deleting notes require valid edge information, so delete notes before edges
+        //
+        handle_notes::db::delete_all_notes_for(&db_pool, Model::Article, article_id).await?;
+        handle_edges::db::delete_all_edges_for(&db_pool, Model::Article, article_id).await?;
+
+        pg::delete_owned::<Article>(db_pool, article_id, user_id, Model::Article).await?;
+
+        Ok(())
     }
 
     pub async fn articles_that_mention(

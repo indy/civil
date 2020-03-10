@@ -98,3 +98,14 @@ where
     zero::<T>(db_pool, &stmt, &[&id]).await?;
     Ok(())
 }
+
+pub async fn delete_owned<T>(db_pool: &Pool, id: Key, user_id: Key, model: Model) -> Result<()>
+where
+    T: FromTokioPostgresRow,
+{
+    let stmt = include_str!("sql/delete_owned.sql");
+    let stmt = stmt.replace("$table_name", model_to_table_name(model));
+
+    zero::<T>(db_pool, &stmt, &[&id, &user_id]).await?;
+    Ok(())
+}

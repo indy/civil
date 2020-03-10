@@ -401,6 +401,8 @@ pub mod db {
     pub async fn delete_person(db_pool: &Pool, person_id: Key, user_id: Key) -> Result<()> {
         let person = get_person(db_pool, person_id, user_id).await?;
 
+        // deleting notes require valid edge information, so delete notes before edges
+        //
         handle_notes::db::delete_all_notes_for(&db_pool, Model::HistoricPerson, person_id).await?;
         handle_edges::db::delete_all_edges_for(&db_pool, Model::HistoricPerson, person_id).await?;
 
@@ -417,12 +419,7 @@ pub mod db {
             handle_locations::db::delete_location(db_pool, id).await?;
         }
 
-        pg::zero::<Person>(
-            db_pool,
-            include_str!("sql/historic_people_delete.sql"),
-            &[&person_id, &user_id],
-        )
-        .await?;
+        pg::delete_owned::<Person>(db_pool, person_id, user_id, Model::HistoricPerson).await?;
 
         Ok(())
     }

@@ -52,28 +52,29 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // historic_points
         .service(
             scope("/points")
-                // .route("", post().to(handle_historic_points::create_point)) // todo
+                .route("", post().to(handle_historic_points::create_point)) // todo
                 .route("", get().to(handle_historic_points::get_points)) // todo
-                .route("/{id}", get().to(handle_historic_points::get_point)), // todo
-                                                                              // .route("/{id}", put().to(handle_historic_points::edit_point)) // todo
-                                                                              // .route("/{id}", delete().to(handle_historic_points::delete_point)), // todo
+                .route("/{id}", get().to(handle_historic_points::get_point)) // todo
+                .route("/{id}", put().to(handle_historic_points::edit_point)) // todo
+                .route("/{id}", delete().to(handle_historic_points::delete_point)), // check
         )
         // subjects
         .service(
             scope("/subjects")
-                // .route("", post().to(handle_subjects::create_subject)) // todo
+                .route("", post().to(handle_subjects::create_subject)) // todo
                 .route("", get().to(handle_subjects::get_subjects))
-                .route("/{id}", get().to(handle_subjects::get_subject)), // .route("/{id}", put().to(handle_subjects::edit_subject)) // todo
-                                                                         // .route("/{id}", delete().to(handle_subjects::delete_subject)), // todo
+                .route("/{id}", get().to(handle_subjects::get_subject))
+                .route("/{id}", put().to(handle_subjects::edit_subject)) // todo
+                .route("/{id}", delete().to(handle_subjects::delete_subject)), // check
         )
         // articles
         .service(
             scope("/articles")
-                // .route("", post().to(handle_subjects::create_subject)) // todo
-                .route("", get().to(handle_articles::get_articles)) // todo
-                .route("/{id}", get().to(handle_articles::get_article)), // todo
-                                                                         // .route("/{id}", put().to(handle_subjects::edit_subject)) // todo
-                                                                         // .route("/{id}", delete().to(handle_subjects::delete_subject)), // todo
+                .route("", post().to(handle_articles::create_article)) // todo
+                .route("", get().to(handle_articles::get_articles))
+                .route("/{id}", get().to(handle_articles::get_article))
+                .route("/{id}", put().to(handle_articles::edit_article)) // todo
+                .route("/{id}", delete().to(handle_articles::delete_article)), // check
         )
         // dates
         .service(

@@ -19,10 +19,10 @@ use crate::handle_notes;
 use crate::handle_subjects;
 use crate::model::Model;
 use crate::note_type::NoteType;
-//use crate::session;
+use crate::session;
 use crate::types::Key;
 use crate::web_common;
-use actix_web::web::{Data, Path};
+use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
 #[allow(unused_imports)]
@@ -48,6 +48,14 @@ mod web {
         pub people_referenced: Option<Vec<PersonReference>>,
         pub subjects_referenced: Option<Vec<SubjectReference>>,
     }
+}
+
+pub async fn create_point(
+    _point: Json<web::Point>,
+    _db_pool: Data<Pool>,
+    _session: actix_session::Session,
+) -> Result<HttpResponse> {
+    unimplemented!()
 }
 
 pub async fn get_points(
@@ -112,11 +120,35 @@ pub async fn get_point(
     Ok(HttpResponse::Ok().json(point))
 }
 
+pub async fn edit_point(
+    _point: Json<web::Point>,
+    _db_pool: Data<Pool>,
+    _params: Path<web_common::IdParam>,
+    _session: actix_session::Session,
+) -> Result<HttpResponse> {
+    unimplemented!();
+}
+
+pub async fn delete_point(
+    db_pool: Data<Pool>,
+    params: Path<web_common::IdParam>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    let user_id = session::user_id(&session)?;
+
+    db::delete_point(&db_pool, params.id, user_id).await?;
+
+    Ok(HttpResponse::Ok().json(true))
+}
+
 mod db {
     use super::web;
     use crate::error::Result;
     use crate::handle_dates;
+    use crate::handle_edges;
     use crate::handle_locations;
+    use crate::handle_notes;
+    use crate::model::Model;
     use crate::pg;
     use crate::types::Key;
     use deadpool_postgres::Pool;
@@ -198,5 +230,25 @@ mod db {
         .await?;
 
         Ok(point)
+    }
+
+    pub async fn delete_point(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<()> {
+        let point = get_point(db_pool, point_id, user_id).await?;
+
+        // deleting notes require valid edge information, so delete notes before edges
+        //
+        handle_notes::db::delete_all_notes_for(&db_pool, Model::HistoricPoint, point_id).await?;
+        handle_edges::db::delete_all_edges_for(&db_pool, Model::HistoricPoint, point_id).await?;
+
+        if let Some(id) = point.date_id {
+            handle_dates::db::delete_date(db_pool, id).await?;
+        }
+        if let Some(id) = point.location_id {
+            handle_locations::db::delete_location(db_pool, id).await?;
+        }
+
+        pg::delete_owned::<Point>(db_pool, point_id, user_id, Model::HistoricPoint).await?;
+
+        Ok(())
     }
 }
