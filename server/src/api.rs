@@ -47,7 +47,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("", get().to(handle_historic_people::get_people))
                 .route("/{id}", get().to(handle_historic_people::get_person))
                 .route("/{id}", put().to(handle_historic_people::edit_person)) // todo
-                .route("/{id}", delete().to(handle_historic_people::delete_person)), // todo
+                .route("/{id}", delete().to(handle_historic_people::delete_person)), // check
         )
         // historic_points
         .service(

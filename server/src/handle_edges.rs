@@ -13,30 +13,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod web {
-    use crate::types::Key;
-
-    #[derive(Debug, serde::Deserialize, serde::Serialize)]
-    pub struct Note {
-        pub id: Key,
-        pub content: String,
-    }
-
-    impl From<&super::db::Note> for Note {
-        fn from(dbn: &super::db::Note) -> Note {
-            Note {
-                id: dbn.id,
-                content: dbn.content.to_string(),
-            }
-        }
-    }
-}
-
 pub mod db {
-    use crate::edge_type;
     use crate::error::Result;
     use crate::model::{model_to_foreign_key, Model};
-    use crate::note_type::NoteType;
     use crate::pg;
     use crate::types::Key;
     use deadpool_postgres::Pool;
@@ -46,35 +25,19 @@ pub mod db {
     use tracing::info;
 
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
-    #[pg_mapper(table = "notes")]
-    pub struct Note {
+    #[pg_mapper(table = "edges")]
+    pub struct Edge {
         pub id: Key,
-        pub content: String,
+        pub annotation: String,
     }
 
-    pub async fn all_notes_for(
-        db_pool: &Pool,
-        model: Model,
-        id: Key,
-        note_type: NoteType,
-    ) -> Result<Vec<Note>> {
-        let e1 = edge_type::model_to_note(model)?;
+    pub async fn delete_all_edges_for(db_pool: &Pool, model: Model, id: Key) -> Result<()> {
         let foreign_key = model_to_foreign_key(model);
 
-        let stmt = include_str!("sql/notes_all_for.sql");
+        let stmt = include_str!("sql/edges_delete.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);
 
-        let res = pg::many::<Note>(db_pool, &stmt, &[&id, &e1, &note_type]).await?;
-        Ok(res)
-    }
-
-    pub async fn delete_all_notes_for(db_pool: &Pool, model: Model, id: Key) -> Result<()> {
-        let foreign_key = model_to_foreign_key(model);
-
-        let stmt = include_str!("sql/notes_delete.sql");
-        let stmt = stmt.replace("$foreign_key", foreign_key);
-
-        pg::zero::<Note>(db_pool, &stmt, &[&id]).await?;
+        pg::zero::<Edge>(db_pool, &stmt, &[&id]).await?;
         Ok(())
     }
 }

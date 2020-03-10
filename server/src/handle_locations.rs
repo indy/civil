@@ -100,7 +100,7 @@ pub async fn delete_location(
     Ok(HttpResponse::Ok().json(true))
 }
 
-mod db {
+pub mod db {
     use super::web;
     use crate::error::Result;
     use crate::model::Model;

@@ -19,6 +19,7 @@ mod error;
 mod handle_articles;
 mod handle_autocomplete;
 mod handle_dates;
+mod handle_edges;
 mod handle_historic_people;
 mod handle_historic_points;
 mod handle_locations;

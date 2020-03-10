@@ -235,7 +235,9 @@ pub mod db {
     use crate::edge_type::{self, EdgeType};
     use crate::error::Result;
     use crate::handle_dates;
+    use crate::handle_edges;
     use crate::handle_locations;
+    use crate::handle_notes;
     use crate::model::{model_to_foreign_key, Model};
     use crate::pg;
     use crate::types::Key;
@@ -397,6 +399,24 @@ pub mod db {
     }
 
     pub async fn delete_person(db_pool: &Pool, person_id: Key, user_id: Key) -> Result<()> {
+        let person = get_person(db_pool, person_id, user_id).await?;
+
+        handle_notes::db::delete_all_notes_for(&db_pool, Model::HistoricPerson, person_id).await?;
+        handle_edges::db::delete_all_edges_for(&db_pool, Model::HistoricPerson, person_id).await?;
+
+        if let Some(id) = person.birth_date_id {
+            handle_dates::db::delete_date(db_pool, id).await?;
+        }
+        if let Some(id) = person.birth_location_id {
+            handle_locations::db::delete_location(db_pool, id).await?;
+        }
+        if let Some(id) = person.death_date_id {
+            handle_dates::db::delete_date(db_pool, id).await?;
+        }
+        if let Some(id) = person.death_location_id {
+            handle_locations::db::delete_location(db_pool, id).await?;
+        }
+
         pg::zero::<Person>(
             db_pool,
             include_str!("sql/historic_people_delete.sql"),
