@@ -61,20 +61,20 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // subjects
         .service(
             scope("/subjects")
-                .route("", post().to(handle_subjects::create_subject)) // todo
+                .route("", post().to(handle_subjects::create_subject))
                 .route("", get().to(handle_subjects::get_subjects))
                 .route("/{id}", get().to(handle_subjects::get_subject))
-                .route("/{id}", put().to(handle_subjects::edit_subject)) // todo
-                .route("/{id}", delete().to(handle_subjects::delete_subject)), // check
+                .route("/{id}", put().to(handle_subjects::edit_subject))
+                .route("/{id}", delete().to(handle_subjects::delete_subject)),
         )
         // articles
         .service(
             scope("/articles")
-                .route("", post().to(handle_articles::create_article)) // todo
+                .route("", post().to(handle_articles::create_article))
                 .route("", get().to(handle_articles::get_articles))
                 .route("/{id}", get().to(handle_articles::get_article))
-                .route("/{id}", put().to(handle_articles::edit_article)) // todo
-                .route("/{id}", delete().to(handle_articles::delete_article)), // check
+                .route("/{id}", put().to(handle_articles::edit_article))
+                .route("/{id}", delete().to(handle_articles::delete_article)),
         )
         // dates
         .service(

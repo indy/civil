@@ -18,6 +18,7 @@ use crate::model::{model_to_table_name, Model};
 use crate::types::Key;
 use deadpool_postgres::{Client, Pool};
 use tokio_pg_mapper::FromTokioPostgresRow;
+use tracing::error;
 
 pub async fn zero<T>(
     db_pool: &Pool,
@@ -31,11 +32,22 @@ where
 
     let _stmt = sql_query;
     let _stmt = _stmt.replace("$table_fields", &T::sql_table_fields());
-    let stmt = client.prepare(&_stmt).await?;
+    let stmt = match client.prepare(&_stmt).await {
+        Ok(stmt) => stmt,
+        Err(e) => {
+            error!("{}", e);
+            return Err(Error::from(e));
+        }
+    };
 
-    client.query(&stmt, sql_params).await?;
-
-    Ok(())
+    let res = client.query(&stmt, sql_params).await;
+    match res {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            error!("{}", e);
+            Err(Error::from(e))
+        }
+    }
 }
 
 pub async fn one<T>(
@@ -50,7 +62,13 @@ where
 
     let _stmt = sql_query;
     let _stmt = _stmt.replace("$table_fields", &T::sql_table_fields());
-    let stmt = client.prepare(&_stmt).await?;
+    let stmt = match client.prepare(&_stmt).await {
+        Ok(stmt) => stmt,
+        Err(e) => {
+            error!("{}", e);
+            return Err(Error::from(e));
+        }
+    };
 
     let res = client
         .query(&stmt, sql_params)
@@ -61,7 +79,13 @@ where
         .pop()
         .ok_or(Error::NotFound); // more applicable for SELECTs
 
-    res
+    match res {
+        Ok(_) => res,
+        Err(e) => {
+            error!("{}", e);
+            Err(e)
+        }
+    }
 }
 
 pub async fn many<T>(
@@ -76,7 +100,13 @@ where
 
     let _stmt = sql_query;
     let _stmt = _stmt.replace("$table_fields", &T::sql_table_fields());
-    let stmt = client.prepare(&_stmt).await?;
+    let stmt = match client.prepare(&_stmt).await {
+        Ok(stmt) => stmt,
+        Err(e) => {
+            error!("{}", e);
+            return Err(Error::from(e));
+        }
+    };
 
     let vec = client
         .query(&stmt, sql_params)

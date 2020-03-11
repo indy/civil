@@ -19,10 +19,10 @@ use crate::handle_historic_people;
 use crate::handle_notes;
 use crate::model::Model;
 use crate::note_type::NoteType;
-use crate::session;
+// use crate::session;
 use crate::types::Key;
 use crate::web_common;
-use actix_web::web::{Data, /*Json, */ Path};
+use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
 use tracing::info;
@@ -83,11 +83,19 @@ pub mod web {
 }
 
 pub async fn create_subject(
-    _db_pool: Data<Pool>,
-    _params: Path<web_common::IdParam>,
+    subject: Json<web::Subject>,
+    db_pool: Data<Pool>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    unimplemented!();
+    info!("create_subject");
+
+    let subject = subject.into_inner();
+    // let user_id = session::user_id(&session)?;
+    let user_id: Key = 1;
+
+    let db_subject = db::create_subject(&db_pool, &subject, user_id).await?;
+
+    Ok(HttpResponse::Ok().json(web::Subject::from(db_subject)))
 }
 
 pub async fn get_subjects(
@@ -186,19 +194,27 @@ pub async fn get_subject(
 }
 
 pub async fn edit_subject(
-    _db_pool: Data<Pool>,
-    _params: Path<web_common::IdParam>,
+    subject: Json<web::Subject>,
+    db_pool: Data<Pool>,
+    params: Path<web_common::IdParam>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    unimplemented!();
+    let subject = subject.into_inner();
+    // let user_id = session::user_id(&session)?;
+    let user_id: Key = 1;
+
+    let db_subject = db::edit_subject(&db_pool, &subject, params.id, user_id).await?;
+
+    Ok(HttpResponse::Ok().json(web::Subject::from(db_subject)))
 }
 
 pub async fn delete_subject(
     db_pool: Data<Pool>,
     params: Path<web_common::IdParam>,
-    session: actix_session::Session,
+    _session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
+    // let user_id = session::user_id(&session)?;
+    let user_id: Key = 1;
 
     db::delete_subject(&db_pool, params.id, user_id).await?;
 
@@ -280,13 +296,49 @@ pub mod db {
         Ok(subject)
     }
 
+    pub async fn create_subject(
+        db_pool: &Pool,
+        subject: &web::Subject,
+        user_id: Key,
+    ) -> Result<Subject> {
+        let res = pg::one::<Subject>(
+            db_pool,
+            include_str!("sql/subjects_create.sql"),
+            &[&user_id, &subject.name],
+        )
+        .await?;
+
+        Ok(res)
+    }
+
+    pub async fn edit_subject(
+        db_pool: &Pool,
+        subject: &web::Subject,
+        subject_id: Key,
+        user_id: Key,
+    ) -> Result<Subject> {
+        let res = pg::one::<Subject>(
+            db_pool,
+            include_str!("sql/subjects_edit.sql"),
+            &[&subject_id, &user_id, &subject.name],
+        )
+        .await?;
+
+        Ok(res)
+    }
+
     pub async fn delete_subject(db_pool: &Pool, subject_id: Key, user_id: Key) -> Result<()> {
+        info!("a");
         // deleting notes require valid edge information, so delete notes before edges
         //
         handle_notes::db::delete_all_notes_for(&db_pool, Model::Subject, subject_id).await?;
+        info!("b");
+
         handle_edges::db::delete_all_edges_for(&db_pool, Model::Subject, subject_id).await?;
+        info!("c");
 
         pg::delete_owned::<Subject>(db_pool, subject_id, user_id, Model::Subject).await?;
+        info!("d");
 
         Ok(())
     }

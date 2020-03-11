@@ -19,10 +19,10 @@ use crate::handle_notes;
 use crate::handle_subjects;
 use crate::model::Model;
 use crate::note_type::NoteType;
-use crate::session;
+//use crate::session;
 use crate::types::Key;
 use crate::web_common;
-use actix_web::web::{Data, /*Json, */ Path};
+use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
 use tracing::info;
@@ -63,11 +63,19 @@ pub mod web {
 }
 
 pub async fn create_article(
-    _db_pool: Data<Pool>,
-    _params: Path<web_common::IdParam>,
+    article: Json<web::Article>,
+    db_pool: Data<Pool>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    unimplemented!();
+    info!("create_article");
+
+    let article = article.into_inner();
+    // let user_id = session::user_id(&session)?;
+    let user_id: Key = 1;
+
+    let db_article = db::create_article(&db_pool, &article, user_id).await?;
+
+    Ok(HttpResponse::Ok().json(web::Article::from(db_article)))
 }
 
 pub async fn get_articles(
@@ -141,19 +149,27 @@ pub async fn get_article(
 }
 
 pub async fn edit_article(
-    _db_pool: Data<Pool>,
-    _params: Path<web_common::IdParam>,
+    article: Json<web::Article>,
+    db_pool: Data<Pool>,
+    params: Path<web_common::IdParam>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    unimplemented!();
+    let article = article.into_inner();
+    // let user_id = session::user_id(&session)?;
+    let user_id: Key = 1;
+
+    let db_article = db::edit_article(&db_pool, &article, params.id, user_id).await?;
+
+    Ok(HttpResponse::Ok().json(web::Article::from(db_article)))
 }
 
 pub async fn delete_article(
     db_pool: Data<Pool>,
     params: Path<web_common::IdParam>,
-    session: actix_session::Session,
+    _session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
+    // let user_id = session::user_id(&session)?;
+    let user_id: Key = 1;
 
     db::delete_article(&db_pool, params.id, user_id).await?;
 
@@ -223,6 +239,37 @@ pub mod db {
         .await?;
 
         Ok(article)
+    }
+
+    pub async fn create_article(
+        db_pool: &Pool,
+        article: &web::Article,
+        user_id: Key,
+    ) -> Result<Article> {
+        let res = pg::one::<Article>(
+            db_pool,
+            include_str!("sql/articles_create.sql"),
+            &[&user_id, &article.title, &article.source],
+        )
+        .await?;
+
+        Ok(res)
+    }
+
+    pub async fn edit_article(
+        db_pool: &Pool,
+        article: &web::Article,
+        article_id: Key,
+        user_id: Key,
+    ) -> Result<Article> {
+        let res = pg::one::<Article>(
+            db_pool,
+            include_str!("sql/articles_edit.sql"),
+            &[&article_id, &user_id, &article.title, &article.source],
+        )
+        .await?;
+
+        Ok(res)
     }
 
     pub async fn delete_article(db_pool: &Pool, article_id: Key, user_id: Key) -> Result<()> {
