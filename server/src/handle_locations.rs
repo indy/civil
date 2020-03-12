@@ -34,6 +34,14 @@ pub mod web {
         pub fuzz: f32,
     }
 
+    #[derive(Debug, serde::Deserialize, serde::Serialize)]
+    pub struct CreateLocation {
+        pub textual: Option<String>,
+        pub longitude: Option<f32>,
+        pub latitude: Option<f32>,
+        pub fuzz: f32,
+    }
+
     pub fn try_build(
         id: Option<Key>,
         textual: Option<String>,
@@ -56,7 +64,7 @@ pub mod web {
 }
 
 pub async fn create_location(
-    location: Json<web::Location>,
+    location: Json<web::CreateLocation>,
     db_pool: Data<Pool>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -133,7 +141,10 @@ pub mod db {
         }
     }
 
-    pub async fn create_location(db_pool: &Pool, location: &web::Location) -> Result<Location> {
+    pub async fn create_location(
+        db_pool: &Pool,
+        location: &web::CreateLocation,
+    ) -> Result<Location> {
         let res = pg::one::<Location>(
             db_pool,
             include_str!("sql/locations_create.sql"),

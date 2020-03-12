@@ -30,8 +30,8 @@ use tracing::info;
 
 pub mod web {
     use crate::handle_articles::web::ArticleMention;
-    use crate::handle_dates::web::Date;
-    use crate::handle_locations::web::Location;
+    use crate::handle_dates::web::{CreateDate, Date};
+    use crate::handle_locations::web::{CreateLocation, Location};
     use crate::handle_notes::web::Note;
     use crate::handle_subjects::web::{SubjectMention, SubjectReference};
     use crate::types::Key;
@@ -40,7 +40,7 @@ pub mod web {
     pub struct Person {
         pub id: Key,
         pub name: String,
-        pub birth_date: Option<Date>,
+        pub birth_date: Option<Date>, // todo: birth date and location should not be options
         pub birth_location: Option<Location>,
         pub death_date: Option<Date>,
         pub death_location: Option<Location>,
@@ -54,6 +54,15 @@ pub mod web {
         pub mentioned_by_people: Option<Vec<PersonMention>>,
         pub mentioned_in_subjects: Option<Vec<SubjectMention>>,
         pub mentioned_in_articles: Option<Vec<ArticleMention>>,
+    }
+
+    #[derive(Debug, serde::Deserialize, serde::Serialize)]
+    pub struct CreatePerson {
+        pub name: String,
+        pub birth_date: CreateDate,
+        pub birth_location: CreateLocation,
+        pub death_date: Option<CreateDate>,
+        pub death_location: Option<CreateLocation>,
     }
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -91,17 +100,26 @@ pub mod web {
 }
 
 pub async fn create_person(
-    person: Json<web::Person>,
+    person: Json<web::CreatePerson>,
     db_pool: Data<Pool>,
-    session: actix_session::Session,
+    _session: actix_session::Session,
 ) -> Result<HttpResponse> {
+    info!("create_person");
     let person = person.into_inner();
-    let user_id = session::user_id(&session)?;
+    // let user_id = session::user_id(&session)?;
+    let user_id: Key = 1;
+
+    info!("{:?}", &person);
+
+    // todo: trying out returning a web::person from the db layer
+    //       otherwise constructing one later may require extra db queries
 
     // db statement
-    let db_person: db::Person = db::create_person(&db_pool, &person, user_id).await?;
+    let web_person: web::Person = db::create_person(&db_pool, &person, user_id).await?;
 
-    Ok(HttpResponse::Ok().json(web::Person::from(db_person)))
+    Ok(HttpResponse::Ok().json(web_person))
+    // Ok(HttpResponse::Ok().json(web::Person::from(db_person)))
+    // Ok(HttpResponse::Ok().json(true))
 }
 
 pub async fn get_people(
@@ -112,7 +130,7 @@ pub async fn get_people(
     // let user_id = session::user_id(&session)?;
     let user_id: Key = 1;
     // db statement
-    let db_people: Vec<db::Person> = db::get_people(&db_pool, user_id).await?;
+    let db_people: Vec<db::PersonDerived> = db::get_people(&db_pool, user_id).await?;
 
     let people: Vec<web::Person> = db_people
         .into_iter()
@@ -133,7 +151,7 @@ pub async fn get_person(
 
     // db statements
     let person_id = params.id;
-    let db_person: db::Person = db::get_person(&db_pool, person_id, user_id).await?;
+    let db_person: db::PersonDerived = db::get_person(&db_pool, person_id, user_id).await?;
     let mut person = web::Person::from(db_person);
 
     let db_notes =
@@ -245,7 +263,7 @@ pub mod db {
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
     #[allow(unused_imports)]
-    use tracing::info;
+    use tracing::{error, info};
 
     #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
     #[pg_mapper(table = "historic_people")]
@@ -263,9 +281,12 @@ pub mod db {
         pub person_name: String,
     }
 
+    // PersonDerived contains additional information from tables other than historic_people
+    // a web::Person can be created just from a db::PersonDerived
+    //
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
     #[pg_mapper(table = "historic_people")]
-    pub struct Person {
+    pub struct PersonDerived {
         pub id: Key,
         pub name: String,
         pub age: Option<String>,
@@ -297,8 +318,24 @@ pub mod db {
         pub dl_fuzz: Option<f32>,
     }
 
-    impl From<Person> for web::Person {
-        fn from(e: Person) -> web::Person {
+    // Person is a direct mapping from the historic_people schema in the db
+    // a web::Person can be created from a db::PersonDerived + extra date and location information
+    //
+    #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
+    #[pg_mapper(table = "historic_people")]
+    pub struct Person {
+        pub id: Key,
+        pub name: String,
+        pub age: Option<String>,
+
+        pub birth_date_id: Key,
+        pub birth_location_id: Key,
+        pub death_date_id: Option<Key>,
+        pub death_location_id: Option<Key>,
+    }
+
+    impl From<PersonDerived> for web::Person {
+        fn from(e: PersonDerived) -> web::Person {
             web::Person {
                 id: e.id,
                 name: e.name,
@@ -347,21 +384,79 @@ pub mod db {
 
     pub async fn create_person(
         db_pool: &Pool,
-        person: &web::Person,
+        person: &web::CreatePerson,
         user_id: Key,
-    ) -> Result<Person> {
-        let res = pg::one::<Person>(
+    ) -> Result<web::Person> {
+        // todo: all of these database operations should be in a transaction
+
+        let birth_date = handle_dates::db::create_date(&db_pool, &person.birth_date).await?;
+        let birth_date_id = birth_date.id;
+
+        let birth_location =
+            handle_locations::db::create_location(&db_pool, &person.birth_location).await?;
+        let birth_location_id = birth_location.id;
+
+        let death_date: Option<handle_dates::db::Date>;
+        let death_date_id: Option<Key>;
+        if let Some(date) = &person.death_date {
+            let res = handle_dates::db::create_date(&db_pool, &date).await?;
+            death_date_id = Some(res.id);
+            death_date = Some(res);
+        } else {
+            death_date = None;
+            death_date_id = None;
+        };
+
+        let death_location: Option<handle_locations::db::Location>;
+        let death_location_id: Option<Key>;
+        if let Some(location) = &person.death_location {
+            let res = handle_locations::db::create_location(&db_pool, &location).await?;
+            death_location_id = Some(res.id);
+            death_location = Some(res);
+        } else {
+            death_location = None;
+            death_location_id = None;
+        };
+
+        let age: Option<String> = None; // todo: calculate age
+
+        let db_person = pg::one::<Person>(
             db_pool,
             include_str!("sql/historic_people_create.sql"),
-            &[&user_id, &person.name],
+            &[
+                &user_id,
+                &person.name,
+                &age,
+                &birth_date_id,
+                &birth_location_id,
+                &death_date_id,
+                &death_location_id,
+            ],
         )
         .await?;
 
-        Ok(res)
+        Ok(web::Person {
+            id: db_person.id,
+            name: db_person.name,
+            birth_date: Some(handle_dates::web::Date::from(birth_date)), // todo: remove options from birth information
+            birth_location: Some(handle_locations::web::Location::from(birth_location)),
+            death_date: death_date.map(|d| handle_dates::web::Date::from(d)),
+            death_location: death_location.map(|l| handle_locations::web::Location::from(l)),
+
+            notes: None,
+            quotes: None,
+
+            people_referenced: None,
+            subjects_referenced: None,
+
+            mentioned_by_people: None,
+            mentioned_in_subjects: None,
+            mentioned_in_articles: None,
+        })
     }
 
-    pub async fn get_people(db_pool: &Pool, user_id: Key) -> Result<Vec<Person>> {
-        let res = pg::many::<Person>(
+    pub async fn get_people(db_pool: &Pool, user_id: Key) -> Result<Vec<PersonDerived>> {
+        let res = pg::many::<PersonDerived>(
             db_pool,
             include_str!("sql/historic_people_all.sql"),
             &[&user_id],
@@ -371,8 +466,8 @@ pub mod db {
         Ok(res)
     }
 
-    pub async fn get_person(db_pool: &Pool, person_id: Key, user_id: Key) -> Result<Person> {
-        let person = pg::one::<Person>(
+    pub async fn get_person(db_pool: &Pool, person_id: Key, user_id: Key) -> Result<PersonDerived> {
+        let person = pg::one::<PersonDerived>(
             db_pool,
             include_str!("sql/historic_people_get.sql"),
             &[&person_id, &user_id],
@@ -382,13 +477,14 @@ pub mod db {
         Ok(person)
     }
 
+    // ???
     pub async fn edit_person(
         db_pool: &Pool,
         person: &web::Person,
         person_id: Key,
         user_id: Key,
-    ) -> Result<Person> {
-        let res = pg::one::<Person>(
+    ) -> Result<PersonDerived> {
+        let res = pg::one::<PersonDerived>(
             db_pool,
             include_str!("sql/historic_people_edit.sql"),
             &[&person.name, &person_id, &user_id],
@@ -398,6 +494,7 @@ pub mod db {
         Ok(res)
     }
 
+    // todo: don't need to get a PersonDerived for delete, Person is enough
     pub async fn delete_person(db_pool: &Pool, person_id: Key, user_id: Key) -> Result<()> {
         let person = get_person(db_pool, person_id, user_id).await?;
 

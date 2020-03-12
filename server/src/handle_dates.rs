@@ -34,6 +34,15 @@ pub mod web {
         pub fuzz: f32,
     }
 
+    #[derive(Debug, serde::Deserialize, serde::Serialize)]
+    pub struct CreateDate {
+        pub textual: Option<String>,
+        pub exact_date: Option<chrono::NaiveDate>,
+        pub lower_date: Option<chrono::NaiveDate>,
+        pub upper_date: Option<chrono::NaiveDate>,
+        pub fuzz: f32,
+    }
+
     pub fn try_build(
         id: Option<Key>,
         textual: Option<String>,
@@ -58,7 +67,7 @@ pub mod web {
 }
 
 pub async fn create_date(
-    date: Json<web::Date>,
+    date: Json<web::CreateDate>,
     db_pool: Data<Pool>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -141,7 +150,7 @@ pub mod db {
         }
     }
 
-    pub async fn create_date(db_pool: &Pool, date: &web::Date) -> Result<Date> {
+    pub async fn create_date(db_pool: &Pool, date: &web::CreateDate) -> Result<Date> {
         let res = pg::one::<Date>(
             db_pool,
             include_str!("sql/dates_create.sql"),

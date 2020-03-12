@@ -50,7 +50,7 @@ class PersonCreateForm extends Component {
       console.error("a person requires both birth date and birth location information");
     } else {
       const data = JSON.stringify(cleanState);
-      Net.createThenRedirect(this, "person", data);
+      Net.createThenRedirect(this, "people", data);
     }
 
     event.preventDefault();

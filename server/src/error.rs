@@ -34,6 +34,7 @@ pub enum Error {
     ParseInt(std::num::ParseIntError),
     Authenticating,
     InvalidModelType(Model),
+    MissingField,
     Other,
 }
 

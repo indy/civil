@@ -1,7 +1,7 @@
 const Net = {
 
   createThenRedirect: (component, resourceName, data) => {
-    fetch(`/api/${resourceName}/add`, {
+    fetch(`/api/${resourceName}`, {
       method: "POST",
       body: data,
       headers: {
