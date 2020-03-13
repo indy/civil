@@ -20,7 +20,7 @@ use crate::handle_subjects;
 use crate::interop::{IdParam, Key};
 use crate::model::Model;
 use crate::note_type::NoteType;
-use crate::session;
+// use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
@@ -179,9 +179,10 @@ pub async fn edit_person(
 pub async fn delete_person(
     db_pool: Data<Pool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    _session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
+    // let user_id = session::user_id(&session)?;
+    let user_id: Key = 1;
 
     db::delete_person(&db_pool, params.id, user_id).await?;
 

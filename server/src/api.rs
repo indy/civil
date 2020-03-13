@@ -21,6 +21,7 @@ use crate::handle_historic_points;
 use crate::handle_locations;
 use crate::handle_subjects;
 use crate::handle_users;
+use crate::handle_notes;
 use actix_files::NamedFile;
 use actix_web::dev;
 use actix_web::middleware::errhandlers::ErrorHandlerResponse;
@@ -43,20 +44,20 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // historic_people
         .service(
             scope("/people")
-                .route("", post().to(handle_historic_people::create_person)) // todo
+                .route("", post().to(handle_historic_people::create_person))
                 .route("", get().to(handle_historic_people::get_people))
                 .route("/{id}", get().to(handle_historic_people::get_person))
-                .route("/{id}", put().to(handle_historic_people::edit_person)) // todo
-                .route("/{id}", delete().to(handle_historic_people::delete_person)), // check
+                .route("/{id}", put().to(handle_historic_people::edit_person)) // check
+                .route("/{id}", delete().to(handle_historic_people::delete_person)),
         )
         // historic_points
         .service(
             scope("/points")
-                .route("", post().to(handle_historic_points::create_point)) // todo
-                .route("", get().to(handle_historic_points::get_points)) // todo
-                .route("/{id}", get().to(handle_historic_points::get_point)) // todo
-                .route("/{id}", put().to(handle_historic_points::edit_point)) // todo
-                .route("/{id}", delete().to(handle_historic_points::delete_point)), // check
+                .route("", post().to(handle_historic_points::create_point))
+                .route("", get().to(handle_historic_points::get_points))
+                .route("/{id}", get().to(handle_historic_points::get_point))
+                .route("/{id}", put().to(handle_historic_points::edit_point)) // check
+                .route("/{id}", delete().to(handle_historic_points::delete_point)),
         )
         // subjects
         .service(
@@ -76,14 +77,22 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", put().to(handle_articles::edit_article))
                 .route("/{id}", delete().to(handle_articles::delete_article)),
         )
-        // .service(
-        //     scope("/notes")
-        //         .route("", post().to(handle_notes::create_note)) // todo
-        //         .route("", get().to(handle_notes::get_notes)) // todo
-        //         .route("/{id}", get().to(handle_notes::get_note)) // todo
-        //         .route("/{id}", put().to(handle_notes::edit_note)) // todo
-        //         .route("/{id}", delete().to(handle_notes::delete_note)), // check
-        // )
+        // notes
+        .service(
+            scope("/notes")
+                .route("", post().to(handle_notes::create_note))
+                .route("/{id}", get().to(handle_notes::get_note))
+                .route("/{id}", put().to(handle_notes::edit_note)) // check
+                .route("/{id}", delete().to(handle_notes::delete_note)),
+        )
+        // notes
+        .service(
+            scope("/quotes")
+                .route("", post().to(handle_notes::create_quote))
+                .route("/{id}", get().to(handle_notes::get_quote))
+                .route("/{id}", put().to(handle_notes::edit_quote)) // check
+                .route("/{id}", delete().to(handle_notes::delete_quote)),
+        )
         // dates
         .service(
             scope("/dates")
