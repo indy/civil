@@ -14,8 +14,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::{Error, Result};
+use crate::interop::Key;
 use crate::model::{model_to_table_name, Model};
-use crate::types::Key;
 use deadpool_postgres::{Client, Pool};
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tracing::error;
@@ -129,7 +129,12 @@ where
     Ok(())
 }
 
-pub async fn delete_owned<T>(db_pool: &Pool, id: Key, user_id: Key, model: Model) -> Result<()>
+pub async fn delete_owned_by_user<T>(
+    db_pool: &Pool,
+    id: Key,
+    user_id: Key,
+    model: Model,
+) -> Result<()>
 where
     T: FromTokioPostgresRow,
 {

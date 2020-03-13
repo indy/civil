@@ -28,7 +28,7 @@ class ArticleCreateForm extends Component {
   handleSubmit = (event) => {
     const cleaned_state = StateUtils.removeEmptyStrings(this.state, ["source"]);
     const data = JSON.stringify(cleaned_state);
-    Net.createThenRedirect(this, "article", data);
+    Net.createThenRedirect(this, "articles", data);
     event.preventDefault();
   }
 

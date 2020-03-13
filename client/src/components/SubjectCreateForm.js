@@ -24,7 +24,7 @@ class SubjectCreateForm extends Component {
 
   handleSubmit = (event) => {
     const data = JSON.stringify(this.state);
-    Net.createThenRedirect(this, "subject", data);
+    Net.createThenRedirect(this, "subjects", data);
     event.preventDefault();
   }
 

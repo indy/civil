@@ -14,7 +14,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
-use crate::web_common;
+use crate::interop::IdParam;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
@@ -22,8 +22,8 @@ use deadpool_postgres::Pool;
 #[allow(unused_imports)]
 use tracing::info;
 
-pub mod web {
-    use crate::types::Key;
+pub mod interop {
+    use crate::interop::Key;
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct Location {
@@ -64,43 +64,43 @@ pub mod web {
 }
 
 pub async fn create_location(
-    location: Json<web::CreateLocation>,
+    location: Json<interop::CreateLocation>,
     db_pool: Data<Pool>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
     let location = location.into_inner();
 
-    let db_location: db::Location = db::create_location(&db_pool, &location).await?;
+    let location = db::create_location(&db_pool, &location).await?;
 
-    Ok(HttpResponse::Ok().json(web::Location::from(db_location)))
+    Ok(HttpResponse::Ok().json(location))
 }
 
 pub async fn get_location(
     db_pool: Data<Pool>,
-    params: Path<web_common::IdParam>,
+    params: Path<IdParam>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    let db_location: db::Location = db::get_location(&db_pool, params.id).await?;
+    let location = db::get_location(&db_pool, params.id).await?;
 
-    Ok(HttpResponse::Ok().json(web::Location::from(db_location)))
+    Ok(HttpResponse::Ok().json(location))
 }
 
 pub async fn edit_location(
-    location: Json<web::Location>,
+    location: Json<interop::Location>,
     db_pool: Data<Pool>,
-    params: Path<web_common::IdParam>,
+    params: Path<IdParam>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
     let location = location.into_inner();
 
-    let db_location = db::edit_location(&db_pool, &location, params.id).await?;
+    let location = db::edit_location(&db_pool, &location, params.id).await?;
 
-    Ok(HttpResponse::Ok().json(web::Location::from(db_location)))
+    Ok(HttpResponse::Ok().json(location))
 }
 
 pub async fn delete_location(
     db_pool: Data<Pool>,
-    params: Path<web_common::IdParam>,
+    params: Path<IdParam>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
     db::delete_location(&db_pool, params.id).await?;
@@ -109,29 +109,29 @@ pub async fn delete_location(
 }
 
 pub mod db {
-    use super::web;
+    use super::interop;
     use crate::error::Result;
+    use crate::interop::Key;
     use crate::model::Model;
     use crate::pg;
-    use crate::types::Key;
     use deadpool_postgres::Pool;
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
 
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
     #[pg_mapper(table = "locations")]
-    pub struct Location {
-        pub id: Key,
+    struct Location {
+        id: Key,
 
-        pub textual: Option<String>,
-        pub longitude: Option<f32>,
-        pub latitude: Option<f32>,
-        pub fuzz: f32,
+        textual: Option<String>,
+        longitude: Option<f32>,
+        latitude: Option<f32>,
+        fuzz: f32,
     }
 
-    impl From<Location> for web::Location {
-        fn from(e: Location) -> web::Location {
-            web::Location {
+    impl From<Location> for interop::Location {
+        fn from(e: Location) -> interop::Location {
+            interop::Location {
                 id: e.id,
                 textual: e.textual,
                 longitude: e.longitude,
@@ -143,9 +143,9 @@ pub mod db {
 
     pub async fn create_location(
         db_pool: &Pool,
-        location: &web::CreateLocation,
-    ) -> Result<Location> {
-        let res = pg::one::<Location>(
+        location: &interop::CreateLocation,
+    ) -> Result<interop::Location> {
+        let db_location = pg::one::<Location>(
             db_pool,
             include_str!("sql/locations_create.sql"),
             &[
@@ -156,26 +156,29 @@ pub mod db {
             ],
         )
         .await?;
-        Ok(res)
+
+        let location = interop::Location::from(db_location);
+        Ok(location)
     }
 
-    pub async fn get_location(db_pool: &Pool, location_id: Key) -> Result<Location> {
-        let res = pg::one::<Location>(
+    pub async fn get_location(db_pool: &Pool, location_id: Key) -> Result<interop::Location> {
+        let db_location = pg::one::<Location>(
             db_pool,
             include_str!("sql/locations_get.sql"),
             &[&location_id],
         )
         .await?;
 
-        Ok(res)
+        let location = interop::Location::from(db_location);
+        Ok(location)
     }
 
     pub async fn edit_location(
         db_pool: &Pool,
-        location: &web::Location,
+        location: &interop::Location,
         location_id: Key,
-    ) -> Result<Location> {
-        let res = pg::one::<Location>(
+    ) -> Result<interop::Location> {
+        let db_location = pg::one::<Location>(
             db_pool,
             include_str!("sql/locations_edit.sql"),
             &[
@@ -187,7 +190,9 @@ pub mod db {
             ],
         )
         .await?;
-        Ok(res)
+
+        let location = interop::Location::from(db_location);
+        Ok(location)
     }
 
     pub async fn delete_location(db_pool: &Pool, location_id: Key) -> Result<()> {

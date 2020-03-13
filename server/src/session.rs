@@ -14,7 +14,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::{Error, Result};
-use crate::types::Key;
+use crate::interop::Key;
 use std::str::FromStr;
 
 pub const AUTH: &str = "auth";

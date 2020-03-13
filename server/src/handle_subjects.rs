@@ -20,18 +20,17 @@ use crate::handle_notes;
 use crate::model::Model;
 use crate::note_type::NoteType;
 // use crate::session;
-use crate::types::Key;
-use crate::web_common;
+use crate::interop::{IdParam, Key};
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
 use tracing::info;
 
-pub mod web {
-    use crate::handle_articles::web::ArticleMention;
-    use crate::handle_historic_people::web::{PersonMention, PersonReference};
-    use crate::handle_notes::web::Note;
-    use crate::types::Key;
+pub mod interop {
+    use crate::handle_articles::interop::ArticleMention;
+    use crate::handle_historic_people::interop::{PersonMention, PersonReference};
+    use crate::handle_notes::interop::Note;
+    use crate::interop::Key;
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct Subject {
@@ -50,20 +49,15 @@ pub mod web {
     }
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
+    pub struct CreateSubject {
+        pub name: String,
+    }
+
+    #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct SubjectReference {
         pub note_id: Key,
         pub subject_id: Key,
         pub subject_name: String,
-    }
-
-    impl From<&super::db::SubjectReference> for SubjectReference {
-        fn from(s: &super::db::SubjectReference) -> SubjectReference {
-            SubjectReference {
-                note_id: s.note_id,
-                subject_id: s.subject_id,
-                subject_name: s.subject_name.to_string(),
-            }
-        }
     }
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -71,19 +65,10 @@ pub mod web {
         pub subject_id: Key,
         pub subject_name: String,
     }
-
-    impl From<&super::db::SubjectMention> for SubjectMention {
-        fn from(sm: &super::db::SubjectMention) -> SubjectMention {
-            SubjectMention {
-                subject_id: sm.subject_id,
-                subject_name: sm.subject_name.to_string(),
-            }
-        }
-    }
 }
 
 pub async fn create_subject(
-    subject: Json<web::Subject>,
+    subject: Json<interop::CreateSubject>,
     db_pool: Data<Pool>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -93,9 +78,9 @@ pub async fn create_subject(
     // let user_id = session::user_id(&session)?;
     let user_id: Key = 1;
 
-    let db_subject = db::create_subject(&db_pool, &subject, user_id).await?;
+    let subject = db::create_subject(&db_pool, &subject, user_id).await?;
 
-    Ok(HttpResponse::Ok().json(web::Subject::from(db_subject)))
+    Ok(HttpResponse::Ok().json(subject))
 }
 
 pub async fn get_subjects(
@@ -106,19 +91,14 @@ pub async fn get_subjects(
     // let user_id = session::user_id(&session)?;
     let user_id: Key = 1;
     // db statement
-    let db_subjects: Vec<db::Subject> = db::get_subjects(&db_pool, user_id).await?;
-
-    let subjects: Vec<web::Subject> = db_subjects
-        .into_iter()
-        .map(|db_subject| web::Subject::from(db_subject))
-        .collect();
+    let subjects = db::get_subjects(&db_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(subjects))
 }
 
 pub async fn get_subject(
     db_pool: Data<Pool>,
-    params: Path<web_common::IdParam>,
+    params: Path<IdParam>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("get_subject {:?}", params.id);
@@ -127,90 +107,61 @@ pub async fn get_subject(
 
     // db statements
     let subject_id = params.id;
-    let db_subject: db::Subject = db::get_subject(&db_pool, subject_id, user_id).await?;
-    let mut subject = web::Subject::from(db_subject);
+    let mut subject = db::get_subject(&db_pool, subject_id, user_id).await?;
 
-    let db_notes =
+    let notes =
         handle_notes::db::all_notes_for(&db_pool, Model::Subject, subject_id, NoteType::Note)
             .await?;
-    let notes = db_notes
-        .iter()
-        .map(|n| handle_notes::web::Note::from(n))
-        .collect();
     subject.notes = Some(notes);
 
-    let db_quotes =
+    let quotes =
         handle_notes::db::all_notes_for(&db_pool, Model::Subject, subject_id, NoteType::Quote)
             .await?;
-    let quotes = db_quotes
-        .iter()
-        .map(|n| handle_notes::web::Note::from(n))
-        .collect();
     subject.quotes = Some(quotes);
 
-    let db_people_referenced =
+    let people_referenced =
         handle_historic_people::db::get_people_referenced(&db_pool, Model::Subject, subject_id)
             .await?;
-    let people_referenced = db_people_referenced
-        .iter()
-        .map(|p| handle_historic_people::web::PersonReference::from(p))
-        .collect();
     subject.people_referenced = Some(people_referenced);
 
-    let db_subjects_referenced =
+    let subjects_referenced =
         db::get_subjects_referenced(&db_pool, Model::Subject, subject_id).await?;
-    let subjects_referenced = db_subjects_referenced
-        .iter()
-        .map(|p| web::SubjectReference::from(p))
-        .collect();
     subject.subjects_referenced = Some(subjects_referenced);
 
-    let db_mentioned_by_people =
+    let mentioned_by_people =
         handle_historic_people::db::people_that_mention(&db_pool, Model::Subject, subject_id)
             .await?;
-    let mentioned_by_people = db_mentioned_by_people
-        .iter()
-        .map(|m| handle_historic_people::web::PersonMention::from(m))
-        .collect();
     subject.mentioned_by_people = Some(mentioned_by_people);
 
-    let db_mentioned_in_subjects =
+    let mentioned_in_subjects =
         db::subjects_that_mention(&db_pool, Model::Subject, subject_id).await?;
-    let mentioned_in_subjects = db_mentioned_in_subjects
-        .iter()
-        .map(|s| web::SubjectMention::from(s))
-        .collect();
     subject.mentioned_in_subjects = Some(mentioned_in_subjects);
 
-    let db_mentioned_in_articles =
+    let mentioned_in_articles =
         handle_articles::db::articles_that_mention(&db_pool, Model::Subject, subject_id).await?;
-    let mentioned_in_articles = db_mentioned_in_articles
-        .iter()
-        .map(|a| handle_articles::web::ArticleMention::from(a))
-        .collect();
     subject.mentioned_in_articles = Some(mentioned_in_articles);
 
     Ok(HttpResponse::Ok().json(subject))
 }
 
 pub async fn edit_subject(
-    subject: Json<web::Subject>,
+    subject: Json<interop::Subject>,
     db_pool: Data<Pool>,
-    params: Path<web_common::IdParam>,
+    params: Path<IdParam>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
     let subject = subject.into_inner();
     // let user_id = session::user_id(&session)?;
     let user_id: Key = 1;
 
-    let db_subject = db::edit_subject(&db_pool, &subject, params.id, user_id).await?;
+    let subject = db::edit_subject(&db_pool, &subject, params.id, user_id).await?;
 
-    Ok(HttpResponse::Ok().json(web::Subject::from(db_subject)))
+    Ok(HttpResponse::Ok().json(subject))
 }
 
 pub async fn delete_subject(
     db_pool: Data<Pool>,
-    params: Path<web_common::IdParam>,
+    params: Path<IdParam>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
     // let user_id = session::user_id(&session)?;
@@ -222,14 +173,14 @@ pub async fn delete_subject(
 }
 
 pub mod db {
-    use super::web;
+    use super::interop;
     use crate::edge_type::{self, EdgeType};
     use crate::error::Result;
     use crate::handle_edges;
     use crate::handle_notes;
+    use crate::interop::Key;
     use crate::model::{model_to_foreign_key, Model};
     use crate::pg;
-    use crate::types::Key;
     use deadpool_postgres::Pool;
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
@@ -238,30 +189,30 @@ pub mod db {
 
     #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
     #[pg_mapper(table = "subjects")]
-    pub struct Subject {
-        pub id: Key,
-        pub name: String,
+    struct Subject {
+        id: Key,
+        name: String,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
     #[pg_mapper(table = "subjects")]
-    pub struct SubjectReference {
-        pub note_id: Key,
-        pub subject_id: Key,
-        pub subject_name: String,
+    struct SubjectReference {
+        note_id: Key,
+        subject_id: Key,
+        subject_name: String,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
     #[pg_mapper(table = "subjects")]
-    pub struct SubjectMention {
-        pub subject_id: Key,
-        pub subject_name: String,
+    struct SubjectMention {
+        subject_id: Key,
+        subject_name: String,
     }
 
-    // todo: should this from impl be in web???
-    impl From<Subject> for web::Subject {
-        fn from(s: Subject) -> web::Subject {
-            web::Subject {
+    // todo: should this from impl be in interop???
+    impl From<Subject> for interop::Subject {
+        fn from(s: Subject) -> interop::Subject {
+            interop::Subject {
                 id: s.id,
                 name: s.name,
 
@@ -278,67 +229,95 @@ pub mod db {
         }
     }
 
-    pub async fn get_subjects(db_pool: &Pool, user_id: Key) -> Result<Vec<Subject>> {
-        let res =
-            pg::many::<Subject>(db_pool, include_str!("sql/subjects_all.sql"), &[&user_id]).await?;
-
-        Ok(res)
+    impl From<&SubjectReference> for interop::SubjectReference {
+        fn from(s: &SubjectReference) -> interop::SubjectReference {
+            interop::SubjectReference {
+                note_id: s.note_id,
+                subject_id: s.subject_id,
+                subject_name: s.subject_name.to_string(),
+            }
+        }
     }
 
-    pub async fn get_subject(db_pool: &Pool, subject_id: Key, user_id: Key) -> Result<Subject> {
-        let subject = pg::one::<Subject>(
+    impl From<&SubjectMention> for interop::SubjectMention {
+        fn from(sm: &SubjectMention) -> interop::SubjectMention {
+            interop::SubjectMention {
+                subject_id: sm.subject_id,
+                subject_name: sm.subject_name.to_string(),
+            }
+        }
+    }
+
+    pub async fn get_subjects(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Subject>> {
+        let db_subjects =
+            pg::many::<Subject>(db_pool, include_str!("sql/subjects_all.sql"), &[&user_id]).await?;
+
+        let subjects: Vec<interop::Subject> = db_subjects
+            .into_iter()
+            .map(|db_subject| interop::Subject::from(db_subject))
+            .collect();
+
+        Ok(subjects)
+    }
+
+    pub async fn get_subject(
+        db_pool: &Pool,
+        subject_id: Key,
+        user_id: Key,
+    ) -> Result<interop::Subject> {
+        let db_subject = pg::one::<Subject>(
             db_pool,
             include_str!("sql/subjects_get.sql"),
             &[&subject_id, &user_id],
         )
         .await?;
 
+        let subject = interop::Subject::from(db_subject);
+
         Ok(subject)
     }
 
     pub async fn create_subject(
         db_pool: &Pool,
-        subject: &web::Subject,
+        subject: &interop::CreateSubject,
         user_id: Key,
-    ) -> Result<Subject> {
-        let res = pg::one::<Subject>(
+    ) -> Result<interop::Subject> {
+        let db_subject = pg::one::<Subject>(
             db_pool,
             include_str!("sql/subjects_create.sql"),
             &[&user_id, &subject.name],
         )
         .await?;
 
-        Ok(res)
+        let subject = interop::Subject::from(db_subject);
+
+        Ok(subject)
     }
 
     pub async fn edit_subject(
         db_pool: &Pool,
-        subject: &web::Subject,
+        subject: &interop::Subject,
         subject_id: Key,
         user_id: Key,
-    ) -> Result<Subject> {
-        let res = pg::one::<Subject>(
+    ) -> Result<interop::Subject> {
+        let db_subject = pg::one::<Subject>(
             db_pool,
             include_str!("sql/subjects_edit.sql"),
             &[&subject_id, &user_id, &subject.name],
         )
         .await?;
 
-        Ok(res)
+        let subject = interop::Subject::from(db_subject);
+
+        Ok(subject)
     }
 
     pub async fn delete_subject(db_pool: &Pool, subject_id: Key, user_id: Key) -> Result<()> {
-        info!("a");
         // deleting notes require valid edge information, so delete notes before edges
         //
         handle_notes::db::delete_all_notes_for(&db_pool, Model::Subject, subject_id).await?;
-        info!("b");
-
         handle_edges::db::delete_all_edges_for(&db_pool, Model::Subject, subject_id).await?;
-        info!("c");
-
-        pg::delete_owned::<Subject>(db_pool, subject_id, user_id, Model::Subject).await?;
-        info!("d");
+        pg::delete_owned_by_user::<Subject>(db_pool, subject_id, user_id, Model::Subject).await?;
 
         Ok(())
     }
@@ -349,33 +328,45 @@ pub mod db {
         db_pool: &Pool,
         model: Model,
         id: Key,
-    ) -> Result<Vec<SubjectReference>> {
+    ) -> Result<Vec<interop::SubjectReference>> {
         let e1 = edge_type::model_to_note(model)?;
         let foreign_key = model_to_foreign_key(model);
 
         let stmt = include_str!("sql/subjects_referenced.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);
 
-        let res =
+        let db_subjects_referenced =
             pg::many::<SubjectReference>(db_pool, &stmt, &[&id, &e1, &EdgeType::NoteToSubject])
                 .await?;
-        Ok(res)
+
+        let subjects_referenced = db_subjects_referenced
+            .iter()
+            .map(|p| interop::SubjectReference::from(p))
+            .collect();
+
+        Ok(subjects_referenced)
     }
 
     pub async fn subjects_that_mention(
         db_pool: &Pool,
         model: Model,
         id: Key,
-    ) -> Result<Vec<SubjectMention>> {
+    ) -> Result<Vec<interop::SubjectMention>> {
         let e1 = edge_type::note_to_model(model)?;
         let foreign_key = model_to_foreign_key(model);
 
         let stmt = include_str!("sql/subjects_that_mention.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);
 
-        let res = pg::many::<SubjectMention>(db_pool, &stmt, &[&id, &e1, &EdgeType::SubjectToNote])
-            .await?;
+        let db_mentioned_in_subjects =
+            pg::many::<SubjectMention>(db_pool, &stmt, &[&id, &e1, &EdgeType::SubjectToNote])
+                .await?;
 
-        Ok(res)
+        let mentioned_in_subjects = db_mentioned_in_subjects
+            .iter()
+            .map(|s| interop::SubjectMention::from(s))
+            .collect();
+
+        Ok(mentioned_in_subjects)
     }
 }

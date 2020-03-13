@@ -17,24 +17,23 @@ use crate::error::Result;
 use crate::handle_historic_people;
 use crate::handle_notes;
 use crate::handle_subjects;
+use crate::interop::{IdParam, Key};
 use crate::model::Model;
 use crate::note_type::NoteType;
 use crate::session;
-use crate::types::Key;
-use crate::web_common;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
 #[allow(unused_imports)]
 use tracing::info;
 
-mod web {
-    use crate::handle_dates::web::Date;
-    use crate::handle_historic_people::web::PersonReference;
-    use crate::handle_locations::web::Location;
-    use crate::handle_notes::web::Note;
-    use crate::handle_subjects::web::SubjectReference;
-    use crate::types::Key;
+mod interop {
+    use crate::handle_dates::interop::{CreateDate, Date};
+    use crate::handle_historic_people::interop::PersonReference;
+    use crate::handle_locations::interop::{CreateLocation, Location};
+    use crate::handle_notes::interop::Note;
+    use crate::handle_subjects::interop::SubjectReference;
+    use crate::interop::Key;
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct Point {
@@ -48,10 +47,17 @@ mod web {
         pub people_referenced: Option<Vec<PersonReference>>,
         pub subjects_referenced: Option<Vec<SubjectReference>>,
     }
+
+    #[derive(Debug, serde::Deserialize, serde::Serialize)]
+    pub struct CreatePoint {
+        pub title: String,
+        pub date: Option<CreateDate>,
+        pub location: Option<CreateLocation>,
+    }
 }
 
 pub async fn create_point(
-    _point: Json<web::Point>,
+    _point: Json<interop::CreatePoint>,
     _db_pool: Data<Pool>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -66,19 +72,14 @@ pub async fn get_points(
     // let user_id = session::user_id(&session)?;
     let user_id: Key = 1;
     // db statement
-    let db_points: Vec<db::Point> = db::get_points(&db_pool, user_id).await?;
-
-    let points: Vec<web::Point> = db_points
-        .into_iter()
-        .map(|db_point| web::Point::from(db_point))
-        .collect();
+    let points = db::get_points(&db_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(points))
 }
 
 pub async fn get_point(
     db_pool: Data<Pool>,
-    params: Path<web_common::IdParam>,
+    params: Path<IdParam>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("get_point {:?}", params.id);
@@ -87,43 +88,34 @@ pub async fn get_point(
 
     // db statements
     let point_id = params.id;
-    let db_point: db::Point = db::get_point(&db_pool, point_id, user_id).await?;
-    let mut point = web::Point::from(db_point);
+    let mut point = db::get_point(&db_pool, point_id, user_id).await?;
 
-    let db_notes =
+    let notes =
         handle_notes::db::all_notes_for(&db_pool, Model::HistoricPoint, point_id, NoteType::Note)
             .await?;
-    let notes = db_notes
-        .iter()
-        .map(|n| handle_notes::web::Note::from(n))
-        .collect();
+    // let notes = db_notes
+    //     .iter()
+    //     .map(|n| handle_notes::interop::Note::from(n))
+    //     .collect();
     point.notes = Some(notes);
 
-    let db_people_referenced =
+    let people_referenced =
         handle_historic_people::db::get_people_referenced(&db_pool, Model::HistoricPoint, point_id)
             .await?;
-    let people_referenced = db_people_referenced
-        .iter()
-        .map(|p| handle_historic_people::web::PersonReference::from(p))
-        .collect();
     point.people_referenced = Some(people_referenced);
 
-    let db_subjects_referenced =
+    let subjects_referenced =
         handle_subjects::db::get_subjects_referenced(&db_pool, Model::HistoricPoint, point_id)
             .await?;
-    let subjects_referenced = db_subjects_referenced
-        .iter()
-        .map(|p| handle_subjects::web::SubjectReference::from(p))
-        .collect();
     point.subjects_referenced = Some(subjects_referenced);
 
     Ok(HttpResponse::Ok().json(point))
 }
 
 pub async fn edit_point(
-    _point: Json<web::Point>,
+    _point: Json<interop::Point>,
     _db_pool: Data<Pool>,
-    _params: Path<web_common::IdParam>,
+    _params: Path<IdParam>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
     unimplemented!();
@@ -131,7 +123,7 @@ pub async fn edit_point(
 
 pub async fn delete_point(
     db_pool: Data<Pool>,
-    params: Path<web_common::IdParam>,
+    params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
@@ -142,15 +134,15 @@ pub async fn delete_point(
 }
 
 mod db {
-    use super::web;
+    use super::interop;
     use crate::error::Result;
     use crate::handle_dates;
     use crate::handle_edges;
     use crate::handle_locations;
     use crate::handle_notes;
+    use crate::interop::Key;
     use crate::model::Model;
     use crate::pg;
-    use crate::types::Key;
     use deadpool_postgres::Pool;
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
@@ -159,27 +151,27 @@ mod db {
 
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
     #[pg_mapper(table = "historic_points")]
-    pub struct Point {
-        pub id: Key,
-        pub title: String,
+    struct Point {
+        id: Key,
+        title: String,
 
-        pub date_id: Option<Key>,
-        pub date_textual: Option<String>,
-        pub date_exact_date: Option<chrono::NaiveDate>,
-        pub date_lower_date: Option<chrono::NaiveDate>,
-        pub date_upper_date: Option<chrono::NaiveDate>,
-        pub date_fuzz: Option<f32>,
+        date_id: Option<Key>,
+        date_textual: Option<String>,
+        date_exact_date: Option<chrono::NaiveDate>,
+        date_lower_date: Option<chrono::NaiveDate>,
+        date_upper_date: Option<chrono::NaiveDate>,
+        date_fuzz: Option<f32>,
 
-        pub location_id: Option<Key>,
-        pub location_textual: Option<String>,
-        pub location_longitude: Option<f32>,
-        pub location_latitude: Option<f32>,
-        pub location_fuzz: Option<f32>,
+        location_id: Option<Key>,
+        location_textual: Option<String>,
+        location_longitude: Option<f32>,
+        location_latitude: Option<f32>,
+        location_fuzz: Option<f32>,
     }
 
-    impl From<Point> for web::Point {
-        fn from(e: Point) -> web::Point {
-            web::Point {
+    impl From<Point> for interop::Point {
+        fn from(e: Point) -> interop::Point {
+            interop::Point {
                 id: e.id,
                 title: e.title,
 
@@ -187,7 +179,7 @@ mod db {
                 // why does this code fail when we use an sql query that only returns date_id?
                 // the other values should be None and the try_build functions should work
                 //
-                date: handle_dates::web::try_build(
+                date: handle_dates::interop::try_build(
                     e.date_id,
                     e.date_textual,
                     e.date_exact_date,
@@ -195,7 +187,7 @@ mod db {
                     e.date_upper_date,
                     e.date_fuzz,
                 ),
-                location: handle_locations::web::try_build(
+                location: handle_locations::interop::try_build(
                     e.location_id,
                     e.location_textual,
                     e.location_longitude,
@@ -210,30 +202,31 @@ mod db {
         }
     }
 
-    pub async fn get_points(db_pool: &Pool, user_id: Key) -> Result<Vec<Point>> {
-        let res = pg::many::<Point>(
+    pub async fn get_points(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Point>> {
+        let db_points = pg::many::<Point>(
             db_pool,
             include_str!("sql/historic_points_all.sql"),
             &[&user_id],
         )
         .await?;
 
-        Ok(res)
+        let points: Vec<interop::Point> = db_points
+            .into_iter()
+            .map(|db_point| interop::Point::from(db_point))
+            .collect();
+
+        Ok(points)
     }
 
-    pub async fn get_point(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<Point> {
-        let point = pg::one::<Point>(
-            db_pool,
-            include_str!("sql/historic_points_get.sql"),
-            &[&point_id, &user_id],
-        )
-        .await?;
+    pub async fn get_point(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<interop::Point> {
+        let db_point = get_db_point(db_pool, point_id, user_id).await?;
+        let point = interop::Point::from(db_point);
 
         Ok(point)
     }
 
     pub async fn delete_point(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<()> {
-        let point = get_point(db_pool, point_id, user_id).await?;
+        let point = get_db_point(db_pool, point_id, user_id).await?;
 
         // deleting notes require valid edge information, so delete notes before edges
         //
@@ -247,8 +240,19 @@ mod db {
             handle_locations::db::delete_location(db_pool, id).await?;
         }
 
-        pg::delete_owned::<Point>(db_pool, point_id, user_id, Model::HistoricPoint).await?;
+        pg::delete_owned_by_user::<Point>(db_pool, point_id, user_id, Model::HistoricPoint).await?;
 
         Ok(())
+    }
+
+    async fn get_db_point(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<Point> {
+        let db_point = pg::one::<Point>(
+            db_pool,
+            include_str!("sql/historic_points_get.sql"),
+            &[&point_id, &user_id],
+        )
+        .await?;
+
+        Ok(db_point)
     }
 }

@@ -15,9 +15,9 @@
 
 pub mod db {
     use crate::error::Result;
+    use crate::interop::Key;
     use crate::model::{model_to_foreign_key, Model};
     use crate::pg;
-    use crate::types::Key;
     use deadpool_postgres::Pool;
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
@@ -26,9 +26,9 @@ pub mod db {
 
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
     #[pg_mapper(table = "edges")]
-    pub struct Edge {
-        pub id: Key,
-        pub annotation: String,
+    struct Edge {
+        id: Key,
+        annotation: String,
     }
 
     pub async fn delete_all_edges_for(db_pool: &Pool, model: Model, id: Key) -> Result<()> {

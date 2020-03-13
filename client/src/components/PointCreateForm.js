@@ -47,7 +47,7 @@ class PointCreateForm extends Component {
     const cleanState = StateUtils.removeEmptyObjects(this.state);
     const data = JSON.stringify(cleanState);
     // console.log(`sending: ${data}`);
-    Net.createThenRedirect(this, "point", data);
+    Net.createThenRedirect(this, "points", data);
     event.preventDefault();
   }
 

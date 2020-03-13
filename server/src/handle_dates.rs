@@ -14,15 +14,15 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
-use crate::web_common;
+use crate::interop::IdParam;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
 #[allow(unused_imports)]
 use tracing::info;
 
-pub mod web {
-    use crate::types::Key;
+pub mod interop {
+    use crate::interop::Key;
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct Date {
@@ -67,43 +67,43 @@ pub mod web {
 }
 
 pub async fn create_date(
-    date: Json<web::CreateDate>,
+    date: Json<interop::CreateDate>,
     db_pool: Data<Pool>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
     let date = date.into_inner();
 
-    let db_date: db::Date = db::create_date(&db_pool, &date).await?;
+    let date = db::create_date(&db_pool, &date).await?;
 
-    Ok(HttpResponse::Ok().json(web::Date::from(db_date)))
+    Ok(HttpResponse::Ok().json(date))
 }
 
 pub async fn get_date(
     db_pool: Data<Pool>,
-    params: Path<web_common::IdParam>,
+    params: Path<IdParam>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    let db_date: db::Date = db::get_date(&db_pool, params.id).await?;
+    let date = db::get_date(&db_pool, params.id).await?;
 
-    Ok(HttpResponse::Ok().json(web::Date::from(db_date)))
+    Ok(HttpResponse::Ok().json(date))
 }
 
 pub async fn edit_date(
-    date: Json<web::Date>,
+    date: Json<interop::Date>,
     db_pool: Data<Pool>,
-    params: Path<web_common::IdParam>,
+    params: Path<IdParam>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
     let date = date.into_inner();
 
-    let db_date = db::edit_date(&db_pool, &date, params.id).await?;
+    let date = db::edit_date(&db_pool, &date, params.id).await?;
 
-    Ok(HttpResponse::Ok().json(web::Date::from(db_date)))
+    Ok(HttpResponse::Ok().json(date))
 }
 
 pub async fn delete_date(
     db_pool: Data<Pool>,
-    params: Path<web_common::IdParam>,
+    params: Path<IdParam>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
     db::delete_date(&db_pool, params.id).await?;
@@ -112,11 +112,11 @@ pub async fn delete_date(
 }
 
 pub mod db {
-    use super::web;
+    use super::interop;
     use crate::error::Result;
+    use crate::interop::Key;
     use crate::model::Model;
     use crate::pg;
-    use crate::types::Key;
     use deadpool_postgres::Pool;
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
@@ -125,21 +125,21 @@ pub mod db {
 
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
     #[pg_mapper(table = "dates")]
-    pub struct Date {
-        pub id: Key,
+    struct Date {
+        id: Key,
 
         // this doens't work - timezone conversion issue???
-        // pub created_at: chrono::NaiveDateTime,
-        pub textual: Option<String>,
-        pub exact_date: Option<chrono::NaiveDate>,
-        pub lower_date: Option<chrono::NaiveDate>,
-        pub upper_date: Option<chrono::NaiveDate>,
-        pub fuzz: f32,
+        // created_at: chrono::NaiveDateTime,
+        textual: Option<String>,
+        exact_date: Option<chrono::NaiveDate>,
+        lower_date: Option<chrono::NaiveDate>,
+        upper_date: Option<chrono::NaiveDate>,
+        fuzz: f32,
     }
 
-    impl From<Date> for web::Date {
-        fn from(e: Date) -> web::Date {
-            web::Date {
+    impl From<Date> for interop::Date {
+        fn from(e: Date) -> interop::Date {
+            interop::Date {
                 id: e.id,
                 textual: e.textual,
                 exact_date: e.exact_date,
@@ -150,8 +150,8 @@ pub mod db {
         }
     }
 
-    pub async fn create_date(db_pool: &Pool, date: &web::CreateDate) -> Result<Date> {
-        let res = pg::one::<Date>(
+    pub async fn create_date(db_pool: &Pool, date: &interop::CreateDate) -> Result<interop::Date> {
+        let db_date = pg::one::<Date>(
             db_pool,
             include_str!("sql/dates_create.sql"),
             &[
@@ -164,17 +164,26 @@ pub mod db {
         )
         .await?;
 
-        Ok(res)
+        let date = interop::Date::from(db_date);
+
+        Ok(date)
     }
 
-    pub async fn get_date(db_pool: &Pool, date_id: Key) -> Result<Date> {
-        let res = pg::one::<Date>(db_pool, include_str!("sql/dates_get.sql"), &[&date_id]).await?;
+    pub async fn get_date(db_pool: &Pool, date_id: Key) -> Result<interop::Date> {
+        let db_date =
+            pg::one::<Date>(db_pool, include_str!("sql/dates_get.sql"), &[&date_id]).await?;
 
-        Ok(res)
+        let date = interop::Date::from(db_date);
+
+        Ok(date)
     }
 
-    pub async fn edit_date(db_pool: &Pool, date: &web::Date, date_id: Key) -> Result<Date> {
-        let res = pg::one::<Date>(
+    pub async fn edit_date(
+        db_pool: &Pool,
+        date: &interop::Date,
+        date_id: Key,
+    ) -> Result<interop::Date> {
+        let db_date = pg::one::<Date>(
             db_pool,
             include_str!("sql/dates_edit.sql"),
             &[
@@ -187,7 +196,10 @@ pub mod db {
             ],
         )
         .await?;
-        Ok(res)
+
+        let date = interop::Date::from(db_date);
+
+        Ok(date)
     }
 
     pub async fn delete_date(db_pool: &Pool, date_id: Key) -> Result<()> {

@@ -26,12 +26,11 @@ mod handle_locations;
 mod handle_notes;
 mod handle_subjects;
 mod handle_users;
+mod interop;
 mod model;
 mod note_type;
 mod pg;
 mod session;
-mod types;
-mod web_common;
 
 pub use crate::error::Result;
 

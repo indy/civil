@@ -13,32 +13,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod web {
-    use crate::types::Key;
+pub mod interop {
+    use crate::interop::Key;
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct Note {
         pub id: Key,
         pub content: String,
     }
-
-    impl From<&super::db::Note> for Note {
-        fn from(dbn: &super::db::Note) -> Note {
-            Note {
-                id: dbn.id,
-                content: dbn.content.to_string(),
-            }
-        }
-    }
 }
 
 pub mod db {
+    use super::interop;
     use crate::edge_type;
     use crate::error::Result;
+    use crate::interop::Key;
     use crate::model::{model_to_foreign_key, Model};
     use crate::note_type::NoteType;
     use crate::pg;
-    use crate::types::Key;
     use deadpool_postgres::Pool;
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
@@ -47,9 +39,18 @@ pub mod db {
 
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
     #[pg_mapper(table = "notes")]
-    pub struct Note {
-        pub id: Key,
-        pub content: String,
+    struct Note {
+        id: Key,
+        content: String,
+    }
+
+    impl From<&Note> for interop::Note {
+        fn from(dbn: &Note) -> interop::Note {
+            interop::Note {
+                id: dbn.id,
+                content: dbn.content.to_string(),
+            }
+        }
     }
 
     pub async fn all_notes_for(
@@ -57,15 +58,18 @@ pub mod db {
         model: Model,
         id: Key,
         note_type: NoteType,
-    ) -> Result<Vec<Note>> {
+    ) -> Result<Vec<interop::Note>> {
         let e1 = edge_type::model_to_note(model)?;
         let foreign_key = model_to_foreign_key(model);
 
         let stmt = include_str!("sql/notes_all_for.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);
 
-        let res = pg::many::<Note>(db_pool, &stmt, &[&id, &e1, &note_type]).await?;
-        Ok(res)
+        let db_notes = pg::many::<Note>(db_pool, &stmt, &[&id, &e1, &note_type]).await?;
+
+        let notes = db_notes.iter().map(|n| interop::Note::from(n)).collect();
+
+        Ok(notes)
     }
 
     pub async fn delete_all_notes_for(db_pool: &Pool, model: Model, id: Key) -> Result<()> {

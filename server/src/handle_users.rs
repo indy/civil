@@ -21,7 +21,7 @@ use deadpool_postgres::Pool;
 use rand::{thread_rng, RngCore};
 use tracing::info;
 
-mod web {
+mod interop {
     #[derive(Debug, serde::Deserialize)]
     pub struct LoginCredentials {
         pub email: String,
@@ -43,7 +43,7 @@ mod web {
 }
 
 pub async fn login(
-    login: Json<web::LoginCredentials>,
+    login: Json<interop::LoginCredentials>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -59,7 +59,7 @@ pub async fn login(
         session.set(session::AUTH, format!("{}", matched_user.id))?;
 
         // send response
-        Ok(HttpResponse::Ok().json(web::User::from(matched_user)))
+        Ok(HttpResponse::Ok().json(interop::User::from(matched_user)))
     } else {
         Err(Error::Authenticating.into())
     }
@@ -78,7 +78,7 @@ fn verify_encoded(encoded: &str, pwd: &[u8]) -> Result<bool> {
 }
 
 pub async fn create_user(
-    registration: Json<web::Registration>,
+    registration: Json<interop::Registration>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> ::std::result::Result<HttpResponse, actix_web::Error> {
@@ -92,7 +92,7 @@ pub async fn create_user(
     session.set(session::AUTH, format!("{}", user.id))?;
 
     // send response
-    Ok(HttpResponse::Ok().json(web::User::from(user)))
+    Ok(HttpResponse::Ok().json(interop::User::from(user)))
 }
 
 pub async fn get_user(
@@ -106,7 +106,7 @@ pub async fn get_user(
     let user: db::User = db::get_user(&db_pool, user_id).await?;
 
     // send response
-    Ok(HttpResponse::Ok().json(web::User::from(user)))
+    Ok(HttpResponse::Ok().json(interop::User::from(user)))
 }
 
 fn generate_random_salt() -> [u8; 16] {
@@ -124,10 +124,10 @@ fn hash_password(password: &str) -> Result<String> {
 }
 
 mod db {
-    use super::web;
+    use super::interop;
     use crate::error::Result;
+    use crate::interop::Key;
     use crate::pg;
-    use crate::types::Key;
     use deadpool_postgres::Pool;
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
@@ -141,16 +141,19 @@ mod db {
         pub password: String,
     }
 
-    impl From<User> for web::User {
-        fn from(user: User) -> web::User {
-            web::User {
+    impl From<User> for interop::User {
+        fn from(user: User) -> interop::User {
+            interop::User {
                 username: user.username,
                 email: user.email,
             }
         }
     }
 
-    pub async fn login(db_pool: &Pool, login_credentials: &web::LoginCredentials) -> Result<User> {
+    pub async fn login(
+        db_pool: &Pool,
+        login_credentials: &interop::LoginCredentials,
+    ) -> Result<User> {
         let res = pg::one::<User>(
             db_pool,
             include_str!("sql/users_login.sql"),
@@ -162,7 +165,7 @@ mod db {
 
     pub async fn create_user(
         db_pool: &Pool,
-        registration: &web::Registration,
+        registration: &interop::Registration,
         hash: &String,
     ) -> Result<User> {
         let res = pg::one::<User>(
