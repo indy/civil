@@ -88,17 +88,10 @@ pub async fn create_person(
     // let user_id = session::user_id(&session)?;
     let user_id: Key = 1;
 
-    info!("{:?}", &person);
-
-    // todo: trying out returning a interop::person from the db layer
-    //       otherwise constructing one later may require extra db queries
-
     // db statement
-    let interop_person: interop::Person = db::create_person(&db_pool, &person, user_id).await?;
+    let person = db::create_person(&db_pool, &person, user_id).await?;
 
-    Ok(HttpResponse::Ok().json(interop_person))
-    // Ok(HttpResponse::Ok().json(interop::Person::from(db_person)))
-    // Ok(HttpResponse::Ok().json(true))
+    Ok(HttpResponse::Ok().json(person))
 }
 
 pub async fn get_people(
@@ -172,10 +165,11 @@ pub async fn edit_person(
     person: Json<interop::Person>,
     db_pool: Data<Pool>,
     params: Path<IdParam>,
-    session: actix_session::Session,
+    _session: actix_session::Session,
 ) -> Result<HttpResponse> {
     let person = person.into_inner();
-    let user_id = session::user_id(&session)?;
+    // let user_id = session::user_id(&session)?;
+    let user_id: Key = 1;
 
     let person = db::edit_person(&db_pool, &person, params.id, user_id).await?;
 
@@ -464,7 +458,7 @@ pub mod db {
         let db_person = pg::one::<PersonDerived>(
             db_pool,
             include_str!("sql/historic_people_edit.sql"),
-            &[&person.name, &person_id, &user_id],
+            &[&user_id, &person_id, &person.name],
         )
         .await?;
 

@@ -76,6 +76,14 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", put().to(handle_articles::edit_article))
                 .route("/{id}", delete().to(handle_articles::delete_article)),
         )
+        // .service(
+        //     scope("/notes")
+        //         .route("", post().to(handle_notes::create_note)) // todo
+        //         .route("", get().to(handle_notes::get_notes)) // todo
+        //         .route("/{id}", get().to(handle_notes::get_note)) // todo
+        //         .route("/{id}", put().to(handle_notes::edit_note)) // todo
+        //         .route("/{id}", delete().to(handle_notes::delete_note)), // check
+        // )
         // dates
         .service(
             scope("/dates")

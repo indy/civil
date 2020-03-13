@@ -25,7 +25,7 @@ const NoteUtils = {
                  separator: form.separator.checked ? 1 : 0
                };
 
-    return Net.post("/api/note/add", data);
+    return Net.post("/api/notes", data);
   },
 
   addQuote: (form, extra) => {
@@ -40,7 +40,7 @@ const NoteUtils = {
                  source: form.source.value,
                  separator: 0
                };
-    return Net.post("/api/quote/add", data);
+    return Net.post("/api/quotes", data);
   },
 
   editNote: (id, data) => {
@@ -50,7 +50,7 @@ const NoteUtils = {
         ...data
     };
 
-    return Net.post("/api/note/" + id.toString() + "/edit", post);
+    return Net.put("/api/notes/" + id.toString(), post);
   },
 
   editQuote: (id, data) => {
@@ -61,15 +61,15 @@ const NoteUtils = {
         ...data
     };
 
-    return Net.post("/api/quote/" + id.toString() + "/edit", post);
+    return Net.put("/api/quotes/" + id.toString(), post);
   },
 
   deleteNote: (id) => {
-    return Net.post("/api/note/" + id.toString() + "/delete");
+    return Net.delete("/api/notes/" + id.toString());
   },
 
   deleteQuote: (id) => {
-    return Net.post("/api/quote/" + id.toString() + "/delete");
+    return Net.delete("/api/quotes/" + id.toString());
   }
 };
 

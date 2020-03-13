@@ -57,11 +57,19 @@ mod interop {
 }
 
 pub async fn create_point(
-    _point: Json<interop::CreatePoint>,
-    _db_pool: Data<Pool>,
+    point: Json<interop::CreatePoint>,
+    db_pool: Data<Pool>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    unimplemented!()
+    info!("create_point");
+    let point = point.into_inner();
+    // let user_id = session::user_id(&session)?;
+    let user_id: Key = 1;
+
+    // db statement
+    let point = db::create_point(&db_pool, &point, user_id).await?;
+
+    Ok(HttpResponse::Ok().json(point))
 }
 
 pub async fn get_points(
@@ -93,10 +101,6 @@ pub async fn get_point(
     let notes =
         handle_notes::db::all_notes_for(&db_pool, Model::HistoricPoint, point_id, NoteType::Note)
             .await?;
-    // let notes = db_notes
-    //     .iter()
-    //     .map(|n| handle_notes::interop::Note::from(n))
-    //     .collect();
     point.notes = Some(notes);
 
     let people_referenced =
@@ -113,12 +117,18 @@ pub async fn get_point(
 }
 
 pub async fn edit_point(
-    _point: Json<interop::Point>,
-    _db_pool: Data<Pool>,
-    _params: Path<IdParam>,
+    point: Json<interop::Point>,
+    db_pool: Data<Pool>,
+    params: Path<IdParam>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    unimplemented!();
+    let point = point.into_inner();
+    // let user_id = session::user_id(&session)?;
+    let user_id: Key = 1;
+
+    let point = db::edit_point(&db_pool, &point, params.id, user_id).await?;
+
+    Ok(HttpResponse::Ok().json(point))
 }
 
 pub async fn delete_point(
@@ -151,7 +161,7 @@ mod db {
 
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
     #[pg_mapper(table = "historic_points")]
-    struct Point {
+    struct PointDerived {
         id: Key,
         title: String,
 
@@ -169,8 +179,17 @@ mod db {
         location_fuzz: Option<f32>,
     }
 
-    impl From<Point> for interop::Point {
-        fn from(e: Point) -> interop::Point {
+    #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
+    #[pg_mapper(table = "historic_points")]
+    struct Point {
+        id: Key,
+        title: String,
+        date_id: Option<Key>,
+        location_id: Option<Key>,
+    }
+
+    impl From<PointDerived> for interop::Point {
+        fn from(e: PointDerived) -> interop::Point {
             interop::Point {
                 id: e.id,
                 title: e.title,
@@ -202,8 +221,58 @@ mod db {
         }
     }
 
+    pub async fn create_point(
+        db_pool: &Pool,
+        point: &interop::CreatePoint,
+        user_id: Key,
+    ) -> Result<interop::Point> {
+        // todo: all of these database operations should be in a transaction
+
+        let point_date: Option<handle_dates::interop::Date>;
+        let point_date_id: Option<Key>;
+        if let Some(date) = &point.date {
+            let res = handle_dates::db::create_date(&db_pool, &date).await?;
+            point_date_id = Some(res.id);
+            point_date = Some(res);
+        } else {
+            point_date = None;
+            point_date_id = None;
+        };
+
+        let point_location: Option<handle_locations::interop::Location>;
+        let point_location_id: Option<Key>;
+        if let Some(location) = &point.location {
+            let res = handle_locations::db::create_location(&db_pool, &location).await?;
+            point_location_id = Some(res.id);
+            point_location = Some(res);
+        } else {
+            point_location = None;
+            point_location_id = None;
+        };
+
+        let db_point = pg::one::<Point>(
+            db_pool,
+            include_str!("sql/historic_points_create.sql"),
+            &[&user_id, &point.title, &point_date_id, &point_location_id],
+        )
+        .await?;
+
+        Ok(interop::Point {
+            id: db_point.id,
+            title: db_point.title,
+
+            date: point_date.map(|d| handle_dates::interop::Date::from(d)),
+            location: point_location.map(|l| handle_locations::interop::Location::from(l)),
+
+            notes: None,
+
+            people_referenced: None,
+            subjects_referenced: None,
+        })
+    }
+
     pub async fn get_points(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Point>> {
-        let db_points = pg::many::<Point>(
+        let db_points = pg::many::<PointDerived>(
             db_pool,
             include_str!("sql/historic_points_all.sql"),
             &[&user_id],
@@ -220,6 +289,25 @@ mod db {
 
     pub async fn get_point(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<interop::Point> {
         let db_point = get_db_point(db_pool, point_id, user_id).await?;
+        let point = interop::Point::from(db_point);
+
+        Ok(point)
+    }
+
+    // ???
+    pub async fn edit_point(
+        db_pool: &Pool,
+        point: &interop::Point,
+        point_id: Key,
+        user_id: Key,
+    ) -> Result<interop::Point> {
+        let db_point = pg::one::<PointDerived>(
+            db_pool,
+            include_str!("sql/historic_points_edit.sql"),
+            &[&point_id, &user_id, &point.title],
+        )
+        .await?;
+
         let point = interop::Point::from(db_point);
 
         Ok(point)
@@ -245,10 +333,10 @@ mod db {
         Ok(())
     }
 
-    async fn get_db_point(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<Point> {
-        let db_point = pg::one::<Point>(
+    async fn get_db_point(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<PointDerived> {
+        let db_point = pg::one::<PointDerived>(
             db_pool,
-            include_str!("sql/historic_points_get.sql"),
+            include_str!("sql/historic_points_get_derived.sql"),
             &[&point_id, &user_id],
         )
         .await?;
