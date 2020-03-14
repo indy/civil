@@ -44,7 +44,7 @@ class Subjects extends Component {
 }
 
 const SubjectListing = props => {
-  const href = `/subject/${props.id}`;
+  const href = `/subjects/${props.id}`;
   return (<li><Link to={ href }>{ props.name }</Link></li>);
 };
 

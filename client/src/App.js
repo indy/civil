@@ -35,18 +35,18 @@ class App extends Component {
           </div>
           <hr/>
           <Route exact path="/" component={Home}/>
-          <Route path="/people" component={People}/>
-          <Route path="/subjects" component={Subjects}/>
-          <Route path="/articles" component={Articles}/>
-          <Route path="/points" component={Points}/>
+          <Route path={'/people/:personId'} component={Person}/>
+          <Route path={'/subjects/:subjectId'} component={Subject}/>
+          <Route path={'/articles/:articleId'} component={Article}/>
+          <Route path={'/points/:pointId'} component={Point}/>
+          <Route exact path="/people" component={People}/>
+          <Route exact path="/subjects" component={Subjects}/>
+          <Route exact path="/articles" component={Articles}/>
+          <Route exact path="/points" component={Points}/>
           <Route path={'/add-person'} component={PersonCreateForm}/>
           <Route path={'/add-subject'} component={SubjectCreateForm}/>
           <Route path={'/add-article'} component={ArticleCreateForm}/>
           <Route path={'/add-point'} component={PointCreateForm}/>
-          <Route path={'/person/:personId'} component={Person}/>
-          <Route path={'/subject/:subjectId'} component={Subject}/>
-          <Route path={'/article/:articleId'} component={Article}/>
-          <Route path={'/point/:pointId'} component={Point}/>
         </div>
       </Router>
     );

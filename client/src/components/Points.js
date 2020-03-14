@@ -44,7 +44,7 @@ class Points extends Component {
 }
 
 const PointListing = props => {
-  const href = `/point/${props.id}`;
+  const href = `/points/${props.id}`;
   return (<li><Link to={ href }>{ props.title }</Link></li>);
 };
 

@@ -35,8 +35,8 @@ class CivilLocation extends Component {
 
     return {
       textual: this.state.textual,
-      latitude: this.state.latitude,
-      longitude: this.state.longitude,
+      latitude: Number(this.state.latitude),
+      longitude: Number(this.state.longitude),
       fuzz: 0.0
     };
   }

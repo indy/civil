@@ -88,7 +88,7 @@ class People extends Component {
 }
 
 const PersonListing = props => {
-  const href = `/person/${props.id}`;
+  const href = `/people/${props.id}`;
   return (<li><Link to={ href }>{ props.name }</Link></li>);
 };
 

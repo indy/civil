@@ -44,7 +44,7 @@ class Articles extends Component {
 }
 
 const ArticleListing = props => {
-  const href = `/article/${props.id}`;
+  const href = `/articles/${props.id}`;
   return (<li><Link to={ href }>{ props.title }</Link></li>);
 };
 

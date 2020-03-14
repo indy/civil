@@ -9,8 +9,8 @@ const Net = {
       },
     }).then(res => {
       return res.json();
-    }).then(id => {
-      component.setState({ redirectUrl: `${resourceName}/${id}` });
+    }).then(obj => {
+      component.setState({ redirectUrl: `${resourceName}/${obj.id}` });
     });
   },
 
