@@ -22,7 +22,7 @@ const NoteUtils = {
     let data = { ...extra,
                  content: notes,
                  source: form.source.value,
-                 separator: form.separator.checked ? 1 : 0
+                 separator: form.separator.checked
                };
 
     return Net.post("/api/notes", data);
@@ -38,7 +38,7 @@ const NoteUtils = {
     let data = { ...extra,
                  content: notes,
                  source: form.source.value,
-                 separator: 0
+                 separator: false
                };
     return Net.post("/api/quotes", data);
   },
@@ -57,7 +57,7 @@ const NoteUtils = {
     const post = {
       id: id,
       note_type: 2, // a quote
-      separator: 0,
+      separator: false,
         ...data
     };
 

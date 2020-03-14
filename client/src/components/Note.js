@@ -45,7 +45,7 @@ class Note extends Component {
 
   onSeparatorToggle = (event) => {
     this.setState((prevState, props) => ({
-      separator: 1 - prevState.separator
+      separator: !prevState.separator
     }));
   }
 
@@ -273,7 +273,7 @@ class Note extends Component {
         <input id="separator"
                type="checkbox"
                name="separator"
-               value={ this.state.separator === 1 && "separator"}
+               value={ this.state.separator && "separator"}
                onChange={ this.onSeparatorToggle }/>
       </div>
     );
@@ -409,7 +409,7 @@ class Note extends Component {
   render() {
     return (
       <div className="note">
-        { this.state.separator === 1 && <hr/> }
+        { this.state.separator && <hr/> }
         { this.state.isEditing ? this.buildEditableContent() : this.buildNonEditableContent() }
         { this.state.showEditButtons && this.buildEditButtons() }
         { this.state.showMainButtons && this.buildMainButtons() }
