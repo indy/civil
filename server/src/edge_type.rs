@@ -62,10 +62,14 @@ impl EdgeType {
             EdgeType::NoteToHistoricPoint => (Model::Note, Model::HistoricPoint),
 
             EdgeType::HistoricPersonToNote => (Model::HistoricPerson, Model::Note),
-            EdgeType::HistoricPersonToHistoricPerson => (Model::HistoricPerson, Model::HistoricPerson),
+            EdgeType::HistoricPersonToHistoricPerson => {
+                (Model::HistoricPerson, Model::HistoricPerson)
+            }
             EdgeType::HistoricPersonToSubject => (Model::HistoricPerson, Model::Subject),
             EdgeType::HistoricPersonToArticle => (Model::HistoricPerson, Model::Article),
-            EdgeType::HistoricPersonToHistoricPoint => (Model::HistoricPerson, Model::HistoricPoint),
+            EdgeType::HistoricPersonToHistoricPoint => {
+                (Model::HistoricPerson, Model::HistoricPoint)
+            }
 
             EdgeType::SubjectToNote => (Model::Subject, Model::Note),
             EdgeType::SubjectToHistoricPerson => (Model::Subject, Model::HistoricPerson),
@@ -80,7 +84,9 @@ impl EdgeType {
             EdgeType::ArticleToHistoricPoint => (Model::Article, Model::HistoricPoint),
 
             EdgeType::HistoricPointToNote => (Model::HistoricPoint, Model::Note),
-            EdgeType::HistoricPointToHistoricPerson => (Model::HistoricPoint, Model::HistoricPerson),
+            EdgeType::HistoricPointToHistoricPerson => {
+                (Model::HistoricPoint, Model::HistoricPerson)
+            }
             EdgeType::HistoricPointToSubject => (Model::HistoricPoint, Model::Subject),
             EdgeType::HistoricPointToArticle => (Model::HistoricPoint, Model::Article),
             EdgeType::HistoricPointToHistoricPoint => (Model::HistoricPoint, Model::HistoricPoint),

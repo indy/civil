@@ -13,15 +13,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::error::Result;
-use crate::interop::IdParam;
-use actix_web::web::{Data, Json, Path};
-use actix_web::HttpResponse;
-use deadpool_postgres::Pool;
-
-#[allow(unused_imports)]
-use tracing::info;
-
 pub mod interop {
     use crate::interop::Key;
 
@@ -63,58 +54,13 @@ pub mod interop {
     }
 }
 
-pub async fn create_location(
-    location: Json<interop::CreateLocation>,
-    db_pool: Data<Pool>,
-    _session: actix_session::Session,
-) -> Result<HttpResponse> {
-    let location = location.into_inner();
-
-    let location = db::create_location(&db_pool, &location).await?;
-
-    Ok(HttpResponse::Ok().json(location))
-}
-
-pub async fn get_location(
-    db_pool: Data<Pool>,
-    params: Path<IdParam>,
-    _session: actix_session::Session,
-) -> Result<HttpResponse> {
-    let location = db::get_location(&db_pool, params.id).await?;
-
-    Ok(HttpResponse::Ok().json(location))
-}
-
-pub async fn edit_location(
-    location: Json<interop::Location>,
-    db_pool: Data<Pool>,
-    params: Path<IdParam>,
-    _session: actix_session::Session,
-) -> Result<HttpResponse> {
-    let location = location.into_inner();
-
-    let location = db::edit_location(&db_pool, &location, params.id).await?;
-
-    Ok(HttpResponse::Ok().json(location))
-}
-
-pub async fn delete_location(
-    db_pool: Data<Pool>,
-    params: Path<IdParam>,
-    _session: actix_session::Session,
-) -> Result<HttpResponse> {
-    db::delete_location(&db_pool, params.id).await?;
-
-    Ok(HttpResponse::Ok().json(true))
-}
-
 pub mod db {
     use super::interop;
     use crate::error::Result;
     use crate::interop::Key;
     use crate::model::Model;
     use crate::pg;
-    use deadpool_postgres::Pool;
+    use deadpool_postgres::Transaction;
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
 
@@ -141,12 +87,12 @@ pub mod db {
         }
     }
 
-    pub async fn create_location(
-        db_pool: &Pool,
+    pub async fn tx_create_location(
+        tx: &Transaction<'_>,
         location: &interop::CreateLocation,
     ) -> Result<interop::Location> {
-        let db_location = pg::one::<Location>(
-            db_pool,
+        let db_location = pg::tx_one::<Location>(
+            tx,
             include_str!("sql/locations_create.sql"),
             &[
                 &location.textual,
@@ -161,42 +107,42 @@ pub mod db {
         Ok(location)
     }
 
-    pub async fn get_location(db_pool: &Pool, location_id: Key) -> Result<interop::Location> {
-        let db_location = pg::one::<Location>(
-            db_pool,
-            include_str!("sql/locations_get.sql"),
-            &[&location_id],
-        )
-        .await?;
+    // pub async fn get_location(db_pool: &Pool, location_id: Key) -> Result<interop::Location> {
+    //     let db_location = pg::one::<Location>(
+    //         db_pool,
+    //         include_str!("sql/locations_get.sql"),
+    //         &[&location_id],
+    //     )
+    //     .await?;
 
-        let location = interop::Location::from(db_location);
-        Ok(location)
-    }
+    //     let location = interop::Location::from(db_location);
+    //     Ok(location)
+    // }
 
-    pub async fn edit_location(
-        db_pool: &Pool,
-        location: &interop::Location,
-        location_id: Key,
-    ) -> Result<interop::Location> {
-        let db_location = pg::one::<Location>(
-            db_pool,
-            include_str!("sql/locations_edit.sql"),
-            &[
-                &location_id,
-                &location.textual,
-                &location.longitude,
-                &location.latitude,
-                &location.fuzz,
-            ],
-        )
-        .await?;
+    // pub async fn edit_location(
+    //     db_pool: &Pool,
+    //     location: &interop::Location,
+    //     location_id: Key,
+    // ) -> Result<interop::Location> {
+    //     let db_location = pg::one::<Location>(
+    //         db_pool,
+    //         include_str!("sql/locations_edit.sql"),
+    //         &[
+    //             &location_id,
+    //             &location.textual,
+    //             &location.longitude,
+    //             &location.latitude,
+    //             &location.fuzz,
+    //         ],
+    //     )
+    //     .await?;
 
-        let location = interop::Location::from(db_location);
-        Ok(location)
-    }
+    //     let location = interop::Location::from(db_location);
+    //     Ok(location)
+    // }
 
-    pub async fn delete_location(db_pool: &Pool, location_id: Key) -> Result<()> {
-        pg::delete::<Location>(db_pool, location_id, Model::Location).await?;
+    pub async fn delete_location(tx: &Transaction<'_>, location_id: Key) -> Result<()> {
+        pg::tx_delete::<Location>(tx, location_id, Model::Location).await?;
         Ok(())
     }
 }

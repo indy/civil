@@ -15,13 +15,11 @@
 
 use crate::handle_articles;
 use crate::handle_autocomplete;
-use crate::handle_dates;
 use crate::handle_historic_people;
 use crate::handle_historic_points;
-use crate::handle_locations;
+use crate::handle_notes;
 use crate::handle_subjects;
 use crate::handle_users;
-use crate::handle_notes;
 use actix_files::NamedFile;
 use actix_web::dev;
 use actix_web::middleware::errhandlers::ErrorHandlerResponse;
@@ -92,22 +90,6 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", get().to(handle_notes::get_quote))
                 .route("/{id}", put().to(handle_notes::edit_quote)) // check
                 .route("/{id}", delete().to(handle_notes::delete_quote)),
-        )
-        // dates
-        .service(
-            scope("/dates")
-                .route("", post().to(handle_dates::create_date))
-                .route("/{id}", get().to(handle_dates::get_date))
-                .route("/{id}", put().to(handle_dates::edit_date))
-                .route("/{id}", delete().to(handle_dates::delete_date)),
-        )
-        // locations
-        .service(
-            scope("/locations")
-                .route("", post().to(handle_locations::create_location))
-                .route("/{id}", get().to(handle_locations::get_location))
-                .route("/{id}", put().to(handle_locations::edit_location))
-                .route("/{id}", delete().to(handle_locations::delete_location)),
         )
         // autocomplete
         .service(

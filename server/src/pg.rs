@@ -16,7 +16,7 @@
 use crate::error::{Error, Result};
 use crate::interop::Key;
 use crate::model::{model_to_table_name, Model};
-use deadpool_postgres::{Client, Pool};
+use deadpool_postgres::{Client, Pool, Transaction};
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tracing::error;
 
@@ -118,17 +118,6 @@ where
     Ok(vec)
 }
 
-pub async fn delete<T>(db_pool: &Pool, id: Key, model: Model) -> Result<()>
-where
-    T: FromTokioPostgresRow,
-{
-    let stmt = include_str!("sql/delete.sql");
-    let stmt = stmt.replace("$table_name", model_to_table_name(model));
-
-    zero::<T>(db_pool, &stmt, &[&id]).await?;
-    Ok(())
-}
-
 pub async fn delete_owned_by_user<T>(
     db_pool: &Pool,
     id: Key,
@@ -142,5 +131,104 @@ where
     let stmt = stmt.replace("$table_name", model_to_table_name(model));
 
     zero::<T>(db_pool, &stmt, &[&id, &user_id]).await?;
+    Ok(())
+}
+
+// --------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------
+
+pub async fn tx_zero<T>(
+    tx: &Transaction<'_>,
+    sql_query: &str,
+    sql_params: &[&(dyn tokio_postgres::types::ToSql + std::marker::Sync)],
+) -> Result<()>
+where
+    T: FromTokioPostgresRow,
+{
+    let _stmt = sql_query;
+    let _stmt = _stmt.replace("$table_fields", &T::sql_table_fields());
+    let stmt = match tx.prepare(&_stmt).await {
+        Ok(stmt) => stmt,
+        Err(e) => {
+            error!("{}", e);
+            return Err(Error::from(e));
+        }
+    };
+
+    let res = tx.query(&stmt, sql_params).await;
+    match res {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            error!("{}", e);
+            Err(Error::from(e))
+        }
+    }
+}
+
+pub async fn tx_one<T>(
+    tx: &Transaction<'_>,
+    sql_query: &str,
+    sql_params: &[&(dyn tokio_postgres::types::ToSql + std::marker::Sync)],
+) -> Result<T>
+where
+    T: FromTokioPostgresRow,
+{
+    let _stmt = sql_query;
+    let _stmt = _stmt.replace("$table_fields", &T::sql_table_fields());
+    let stmt = match tx.prepare(&_stmt).await {
+        Ok(stmt) => stmt,
+        Err(e) => {
+            error!("{}", e);
+            return Err(Error::from(e));
+        }
+    };
+
+    let res = tx
+        .query(&stmt, sql_params)
+        .await?
+        .iter()
+        .map(|row| T::from_row_ref(row).unwrap())
+        .collect::<Vec<T>>()
+        .pop()
+        .ok_or(Error::NotFound); // more applicable for SELECTs
+
+    match res {
+        Ok(_) => res,
+        Err(e) => {
+            error!("{}", e);
+            Err(e)
+        }
+    }
+}
+
+pub async fn tx_delete<T>(tx: &Transaction<'_>, id: Key, model: Model) -> Result<()>
+where
+    T: FromTokioPostgresRow,
+{
+    let stmt = include_str!("sql/delete.sql");
+    let stmt = stmt.replace("$table_name", model_to_table_name(model));
+
+    tx_zero::<T>(tx, &stmt, &[&id]).await?;
+    Ok(())
+}
+
+pub async fn tx_delete_owned_by_user<T>(
+    tx: &Transaction<'_>,
+    id: Key,
+    user_id: Key,
+    model: Model,
+) -> Result<()>
+where
+    T: FromTokioPostgresRow,
+{
+    let stmt = include_str!("sql/delete_owned.sql");
+    let stmt = stmt.replace("$table_name", model_to_table_name(model));
+
+    tx_zero::<T>(tx, &stmt, &[&id, &user_id]).await?;
     Ok(())
 }

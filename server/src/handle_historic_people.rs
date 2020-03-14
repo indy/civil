@@ -194,7 +194,7 @@ pub async fn delete_person(
 pub mod db {
     use super::interop;
     use crate::edge_type::{self, EdgeType};
-    use crate::error::Result;
+    use crate::error::{Error, Result};
     use crate::handle_dates;
     use crate::handle_edges;
     use crate::handle_locations;
@@ -202,7 +202,7 @@ pub mod db {
     use crate::interop::Key;
     use crate::model::{model_to_foreign_key, Model};
     use crate::pg;
-    use deadpool_postgres::Pool;
+    use deadpool_postgres::{Client, Pool};
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
     #[allow(unused_imports)]
@@ -350,19 +350,20 @@ pub mod db {
         person: &interop::CreatePerson,
         user_id: Key,
     ) -> Result<interop::Person> {
-        // todo: all of these database operations should be in a transaction
+        let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+        let tx = client.transaction().await?;
 
-        let birth_date = handle_dates::db::create_date(&db_pool, &person.birth_date).await?;
+        let birth_date = handle_dates::db::tx_create_date(&tx, &person.birth_date).await?;
         let birth_date_id = birth_date.id;
 
         let birth_location =
-            handle_locations::db::create_location(&db_pool, &person.birth_location).await?;
+            handle_locations::db::tx_create_location(&tx, &person.birth_location).await?;
         let birth_location_id = birth_location.id;
 
         let death_date: Option<handle_dates::interop::Date>;
         let death_date_id: Option<Key>;
         if let Some(date) = &person.death_date {
-            let res = handle_dates::db::create_date(&db_pool, &date).await?;
+            let res = handle_dates::db::tx_create_date(&tx, &date).await?;
             death_date_id = Some(res.id);
             death_date = Some(res);
         } else {
@@ -373,7 +374,7 @@ pub mod db {
         let death_location: Option<handle_locations::interop::Location>;
         let death_location_id: Option<Key>;
         if let Some(location) = &person.death_location {
-            let res = handle_locations::db::create_location(&db_pool, &location).await?;
+            let res = handle_locations::db::tx_create_location(&tx, &location).await?;
             death_location_id = Some(res.id);
             death_location = Some(res);
         } else {
@@ -383,8 +384,8 @@ pub mod db {
 
         let age: Option<String> = None; // todo: calculate age
 
-        let db_person = pg::one::<Person>(
-            db_pool,
+        let db_person = pg::tx_one::<Person>(
+            &tx,
             include_str!("sql/historic_people_create.sql"),
             &[
                 &user_id,
@@ -397,6 +398,8 @@ pub mod db {
             ],
         )
         .await?;
+
+        tx.commit().await?;
 
         Ok(interop::Person {
             id: db_person.id,
@@ -479,23 +482,28 @@ pub mod db {
         )
         .await?;
 
+        let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+        let tx = client.transaction().await?;
+
         // deleting notes require valid edge information, so delete notes before edges
         //
-        handle_notes::db::delete_all_notes_for(&db_pool, Model::HistoricPerson, person_id).await?;
-        handle_edges::db::delete_all_edges_for(&db_pool, Model::HistoricPerson, person_id).await?;
+        handle_notes::db::delete_all_notes_for(&tx, Model::HistoricPerson, person_id).await?;
+        handle_edges::db::delete_all_edges_for(&tx, Model::HistoricPerson, person_id).await?;
 
-        handle_dates::db::delete_date(db_pool, person.birth_date_id).await?;
-        handle_locations::db::delete_location(db_pool, person.birth_location_id).await?;
+        handle_dates::db::delete_date(&tx, person.birth_date_id).await?;
+        handle_locations::db::delete_location(&tx, person.birth_location_id).await?;
 
         if let Some(id) = person.death_date_id {
-            handle_dates::db::delete_date(db_pool, id).await?;
+            handle_dates::db::delete_date(&tx, id).await?;
         }
         if let Some(id) = person.death_location_id {
-            handle_locations::db::delete_location(db_pool, id).await?;
+            handle_locations::db::delete_location(&tx, id).await?;
         }
 
-        pg::delete_owned_by_user::<Person>(db_pool, person_id, user_id, Model::HistoricPerson)
+        pg::tx_delete_owned_by_user::<Person>(&tx, person_id, user_id, Model::HistoricPerson)
             .await?;
+
+        tx.commit().await?;
 
         Ok(())
     }

@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 use crate::error::Result;
 use crate::interop::{IdParam, Key};
 use actix_web::web::{Data, Json, Path};
@@ -105,7 +104,6 @@ pub async fn delete_note(
     Ok(HttpResponse::Ok().json(true))
 }
 
-
 pub async fn create_quote(
     note: Json<interop::CreateNote>,
     db_pool: Data<Pool>,
@@ -163,18 +161,17 @@ pub async fn delete_quote(
     Ok(HttpResponse::Ok().json(true))
 }
 
-
 pub mod db {
     use super::interop;
     use crate::edge_type;
-    use crate::error::Result;
+    use crate::edge_type::EdgeType;
+    use crate::error::{Error, Result};
+    use crate::handle_edges;
     use crate::interop::Key;
     use crate::model::{model_to_foreign_key, Model};
     use crate::note_type::NoteType;
-    use crate::edge_type::EdgeType;
-    use crate::handle_edges;
     use crate::pg;
-    use deadpool_postgres::Pool;
+    use deadpool_postgres::{Client, Pool, Transaction};
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
     #[allow(unused_imports)]
@@ -208,13 +205,25 @@ pub mod db {
         note: &interop::CreateNote,
         user_id: Key,
     ) -> Result<interop::Note> {
-        let res = create_common(db_pool, note, user_id, NoteType::Note, &note.content[0], note.separator).await?;
+        let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+        let tx = client.transaction().await?;
+
+        let res = create_common(
+            &tx,
+            note,
+            user_id,
+            NoteType::Note,
+            &note.content[0],
+            note.separator,
+        )
+        .await?;
 
         let iter = note.content.iter().skip(1);
         for content in iter {
-            let _res = create_common(db_pool, note, user_id, NoteType::Note, content, false).await?;
-
+            let _res = create_common(&tx, note, user_id, NoteType::Note, content, false).await?;
         }
+
+        tx.commit().await?;
 
         Ok(res)
     }
@@ -251,7 +260,21 @@ pub mod db {
         note: &interop::CreateNote,
         user_id: Key,
     ) -> Result<interop::Note> {
-        let res = create_common(db_pool, note, user_id, NoteType::Quote, &note.content[0], note.separator).await?;
+        let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+        let tx = client.transaction().await?;
+
+        let res = create_common(
+            &tx,
+            note,
+            user_id,
+            NoteType::Quote,
+            &note.content[0],
+            note.separator,
+        )
+        .await?;
+
+        tx.commit().await?;
+
         Ok(res)
     }
 
@@ -266,34 +289,44 @@ pub mod db {
     }
 
     pub async fn create_common(
-        db_pool: &Pool,
+        tx: &Transaction<'_>,
         note: &interop::CreateNote,
         user_id: Key,
         note_type: NoteType,
         content: &str,
         separator: bool,
     ) -> Result<interop::Note> {
-        info!("create_common a");
-        let db_note = pg::one::<Note>(
-            db_pool,
+        let db_note = pg::tx_one::<Note>(
+            tx,
             include_str!("sql/notes_create.sql"),
-            &[
-                &user_id,
-                &note_type,
-                &note.source,
-                &content,
-                &separator,
-            ],
-        ).await?;
+            &[&user_id, &note_type, &note.source, &content, &separator],
+        )
+        .await?;
 
         if let Some(person_id) = note.person_id {
-            let _ = handle_edges::db::create_edge(db_pool, person_id, db_note.id, EdgeType::HistoricPersonToNote).await?;
+            let _ = handle_edges::db::create_edge(
+                tx,
+                person_id,
+                db_note.id,
+                EdgeType::HistoricPersonToNote,
+            )
+            .await?;
         } else if let Some(subject_id) = note.subject_id {
-            let _ = handle_edges::db::create_edge(db_pool, subject_id, db_note.id, EdgeType::SubjectToNote).await?;
+            let _ =
+                handle_edges::db::create_edge(tx, subject_id, db_note.id, EdgeType::SubjectToNote)
+                    .await?;
         } else if let Some(article_id) = note.article_id {
-            let _ = handle_edges::db::create_edge(db_pool, article_id, db_note.id, EdgeType::ArticleToNote).await?;
+            let _ =
+                handle_edges::db::create_edge(tx, article_id, db_note.id, EdgeType::ArticleToNote)
+                    .await?;
         } else if let Some(point_id) = note.point_id {
-            let _ = handle_edges::db::create_edge(db_pool, point_id, db_note.id, EdgeType::HistoricPointToNote).await?;
+            let _ = handle_edges::db::create_edge(
+                tx,
+                point_id,
+                db_note.id,
+                EdgeType::HistoricPointToNote,
+            )
+            .await?;
         }
 
         let note = interop::Note::from(db_note);
@@ -326,8 +359,6 @@ pub mod db {
         Ok(note)
     }
 
-
-
     pub async fn all_notes_for(
         db_pool: &Pool,
         model: Model,
@@ -342,18 +373,21 @@ pub mod db {
 
         let db_notes = pg::many::<Note>(db_pool, &stmt, &[&id, &e1, &note_type]).await?;
 
-        let notes = db_notes.into_iter().map(|n| interop::Note::from(n)).collect();
+        let notes = db_notes
+            .into_iter()
+            .map(|n| interop::Note::from(n))
+            .collect();
 
         Ok(notes)
     }
 
-    pub async fn delete_all_notes_for(db_pool: &Pool, model: Model, id: Key) -> Result<()> {
+    pub async fn delete_all_notes_for(tx: &Transaction<'_>, model: Model, id: Key) -> Result<()> {
         let foreign_key = model_to_foreign_key(model);
 
         let stmt = include_str!("sql/notes_delete.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);
 
-        pg::zero::<Note>(db_pool, &stmt, &[&id]).await?;
+        pg::tx_zero::<Note>(&tx, &stmt, &[&id]).await?;
         Ok(())
     }
 }

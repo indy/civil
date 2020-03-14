@@ -145,7 +145,7 @@ pub async fn delete_point(
 
 mod db {
     use super::interop;
-    use crate::error::Result;
+    use crate::error::{Error, Result};
     use crate::handle_dates;
     use crate::handle_edges;
     use crate::handle_locations;
@@ -153,7 +153,7 @@ mod db {
     use crate::interop::Key;
     use crate::model::Model;
     use crate::pg;
-    use deadpool_postgres::Pool;
+    use deadpool_postgres::{Client, Pool};
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
     #[allow(unused_imports)]
@@ -226,12 +226,13 @@ mod db {
         point: &interop::CreatePoint,
         user_id: Key,
     ) -> Result<interop::Point> {
-        // todo: all of these database operations should be in a transaction
+        let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+        let tx = client.transaction().await?;
 
         let point_date: Option<handle_dates::interop::Date>;
         let point_date_id: Option<Key>;
         if let Some(date) = &point.date {
-            let res = handle_dates::db::create_date(&db_pool, &date).await?;
+            let res = handle_dates::db::tx_create_date(&tx, &date).await?;
             point_date_id = Some(res.id);
             point_date = Some(res);
         } else {
@@ -242,7 +243,7 @@ mod db {
         let point_location: Option<handle_locations::interop::Location>;
         let point_location_id: Option<Key>;
         if let Some(location) = &point.location {
-            let res = handle_locations::db::create_location(&db_pool, &location).await?;
+            let res = handle_locations::db::tx_create_location(&tx, &location).await?;
             point_location_id = Some(res.id);
             point_location = Some(res);
         } else {
@@ -250,12 +251,14 @@ mod db {
             point_location_id = None;
         };
 
-        let db_point = pg::one::<Point>(
-            db_pool,
+        let db_point = pg::tx_one::<Point>(
+            &tx,
             include_str!("sql/historic_points_create.sql"),
             &[&user_id, &point.title, &point_date_id, &point_location_id],
         )
         .await?;
+
+        tx.commit().await?;
 
         Ok(interop::Point {
             id: db_point.id,
@@ -316,19 +319,24 @@ mod db {
     pub async fn delete_point(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<()> {
         let point = get_db_point(db_pool, point_id, user_id).await?;
 
+        let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+        let tx = client.transaction().await?;
+
         // deleting notes require valid edge information, so delete notes before edges
         //
-        handle_notes::db::delete_all_notes_for(&db_pool, Model::HistoricPoint, point_id).await?;
-        handle_edges::db::delete_all_edges_for(&db_pool, Model::HistoricPoint, point_id).await?;
+        handle_notes::db::delete_all_notes_for(&tx, Model::HistoricPoint, point_id).await?;
+        handle_edges::db::delete_all_edges_for(&tx, Model::HistoricPoint, point_id).await?;
 
         if let Some(id) = point.date_id {
-            handle_dates::db::delete_date(db_pool, id).await?;
+            handle_dates::db::delete_date(&tx, id).await?;
         }
         if let Some(id) = point.location_id {
-            handle_locations::db::delete_location(db_pool, id).await?;
+            handle_locations::db::delete_location(&tx, id).await?;
         }
 
-        pg::delete_owned_by_user::<Point>(db_pool, point_id, user_id, Model::HistoricPoint).await?;
+        pg::tx_delete_owned_by_user::<Point>(&tx, point_id, user_id, Model::HistoricPoint).await?;
+
+        tx.commit().await?;
 
         Ok(())
     }
