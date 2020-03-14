@@ -52,6 +52,42 @@ pub enum EdgeType {
     HistoricPointToHistoricPoint = 55,
 }
 
+impl EdgeType {
+    pub fn models(&self) -> (Model, Model) {
+        match self {
+            EdgeType::NoteToNote => (Model::Note, Model::Note),
+            EdgeType::NoteToHistoricPerson => (Model::Note, Model::HistoricPerson),
+            EdgeType::NoteToSubject => (Model::Note, Model::Subject),
+            EdgeType::NoteToArticle => (Model::Note, Model::Article),
+            EdgeType::NoteToHistoricPoint => (Model::Note, Model::HistoricPoint),
+
+            EdgeType::HistoricPersonToNote => (Model::HistoricPerson, Model::Note),
+            EdgeType::HistoricPersonToHistoricPerson => (Model::HistoricPerson, Model::HistoricPerson),
+            EdgeType::HistoricPersonToSubject => (Model::HistoricPerson, Model::Subject),
+            EdgeType::HistoricPersonToArticle => (Model::HistoricPerson, Model::Article),
+            EdgeType::HistoricPersonToHistoricPoint => (Model::HistoricPerson, Model::HistoricPoint),
+
+            EdgeType::SubjectToNote => (Model::Subject, Model::Note),
+            EdgeType::SubjectToHistoricPerson => (Model::Subject, Model::HistoricPerson),
+            EdgeType::SubjectToSubject => (Model::Subject, Model::Subject),
+            EdgeType::SubjectToArticle => (Model::Subject, Model::Article),
+            EdgeType::SubjectToHistoricPoint => (Model::Subject, Model::HistoricPoint),
+
+            EdgeType::ArticleToNote => (Model::Article, Model::Note),
+            EdgeType::ArticleToHistoricPerson => (Model::Article, Model::HistoricPerson),
+            EdgeType::ArticleToSubject => (Model::Article, Model::Subject),
+            EdgeType::ArticleToArticle => (Model::Article, Model::Article),
+            EdgeType::ArticleToHistoricPoint => (Model::Article, Model::HistoricPoint),
+
+            EdgeType::HistoricPointToNote => (Model::HistoricPoint, Model::Note),
+            EdgeType::HistoricPointToHistoricPerson => (Model::HistoricPoint, Model::HistoricPerson),
+            EdgeType::HistoricPointToSubject => (Model::HistoricPoint, Model::Subject),
+            EdgeType::HistoricPointToArticle => (Model::HistoricPoint, Model::Article),
+            EdgeType::HistoricPointToHistoricPoint => (Model::HistoricPoint, Model::HistoricPoint),
+        }
+    }
+}
+
 pub fn model_to_note(model: Model) -> Result<EdgeType> {
     match model {
         Model::Note => Ok(EdgeType::NoteToNote),

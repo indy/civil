@@ -90,6 +90,7 @@ pub async fn create_person(
 
     // db statement
     let person = db::create_person(&db_pool, &person, user_id).await?;
+    info!("create_person b");
 
     Ok(HttpResponse::Ok().json(person))
 }
@@ -99,6 +100,7 @@ pub async fn get_people(
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("get_people");
+
     // let user_id = session::user_id(&session)?;
     let user_id: Key = 1;
 

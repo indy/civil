@@ -17,6 +17,7 @@ pub mod db {
     use crate::error::Result;
     use crate::interop::Key;
     use crate::model::{model_to_foreign_key, Model};
+    use crate::edge_type::EdgeType;
     use crate::pg;
     use deadpool_postgres::Pool;
     use serde::{Deserialize, Serialize};
@@ -28,8 +29,21 @@ pub mod db {
     #[pg_mapper(table = "edges")]
     struct Edge {
         id: Key,
-        annotation: String,
+        annotation: Option<String>,
     }
+
+    pub async fn create_edge(db_pool: &Pool, from_key: Key, to_key: Key, edgetype: EdgeType) -> Result<Key> {
+        let (from, to) = edgetype.models();
+
+        let stmt = include_str!("sql/edges_create.sql");
+        let stmt = stmt.replace("$from_column", model_to_foreign_key(from));
+        let stmt = stmt.replace("$to_column", model_to_foreign_key(to));
+
+        let edge = pg::one::<Edge>(db_pool, &stmt, &[&from_key, &to_key, &edgetype]).await?;
+
+        Ok(edge.id)
+    }
+
 
     pub async fn delete_all_edges_for(db_pool: &Pool, model: Model, id: Key) -> Result<()> {
         let foreign_key = model_to_foreign_key(model);

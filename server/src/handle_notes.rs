@@ -52,24 +52,16 @@ pub async fn create_note(
     db_pool: Data<Pool>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
-
-    let foo: interop::CreateNote = serde_json::from_str("{\"person_id\":72,\"content\":[\"dfsdlfksdfjlkj\"],\"source\":\"\",\"separator\":false}")?;
-    info!("foo is {:?}", foo);
-
-    let bar: interop::CreateNote = serde_json::from_str("{\"content\":[\"dfsdlfksdfjlkj\"],\"source\":\"\",\"separator\":false}")?;
-    info!("bar is {:?}", bar);
-
     let note = note.into_inner();
-
     info!("create_note {:?}", &note);
 
     // let user_id = session::user_id(&session)?;
-    // let user_id: Key = 1;
+    let user_id: Key = 1;
 
-    // let note = db::create_note(&db_pool, &note, user_id).await?;
+    let note = db::create_note(&db_pool, &note, user_id).await?;
 
-    // Ok(HttpResponse::Ok().json(note))
-    Ok(HttpResponse::Ok().json(true))
+    Ok(HttpResponse::Ok().json(note))
+    //Ok(HttpResponse::Ok().json(true))
 }
 
 pub async fn get_note(
@@ -179,6 +171,8 @@ pub mod db {
     use crate::interop::Key;
     use crate::model::{model_to_foreign_key, Model};
     use crate::note_type::NoteType;
+    use crate::edge_type::EdgeType;
+    use crate::handle_edges;
     use crate::pg;
     use deadpool_postgres::Pool;
     use serde::{Deserialize, Serialize};
@@ -214,7 +208,14 @@ pub mod db {
         note: &interop::CreateNote,
         user_id: Key,
     ) -> Result<interop::Note> {
-        let res = create_common(db_pool, note, user_id, NoteType::Note).await?;
+        let res = create_common(db_pool, note, user_id, NoteType::Note, &note.content[0], note.separator).await?;
+
+        let iter = note.content.iter().skip(1);
+        for content in iter {
+            let _res = create_common(db_pool, note, user_id, NoteType::Note, content, false).await?;
+
+        }
+
         Ok(res)
     }
 
@@ -250,7 +251,7 @@ pub mod db {
         note: &interop::CreateNote,
         user_id: Key,
     ) -> Result<interop::Note> {
-        let res = create_common(db_pool, note, user_id, NoteType::Quote).await?;
+        let res = create_common(db_pool, note, user_id, NoteType::Quote, &note.content[0], note.separator).await?;
         Ok(res)
     }
 
@@ -269,7 +270,10 @@ pub mod db {
         note: &interop::CreateNote,
         user_id: Key,
         note_type: NoteType,
+        content: &str,
+        separator: bool,
     ) -> Result<interop::Note> {
+        info!("create_common a");
         let db_note = pg::one::<Note>(
             db_pool,
             include_str!("sql/notes_create.sql"),
@@ -277,12 +281,20 @@ pub mod db {
                 &user_id,
                 &note_type,
                 &note.source,
-                // &note.content,
-                // &note.annotation,
-                // &note.separator,
+                &content,
+                &separator,
             ],
-        )
-        .await?;
+        ).await?;
+
+        if let Some(person_id) = note.person_id {
+            let _ = handle_edges::db::create_edge(db_pool, person_id, db_note.id, EdgeType::HistoricPersonToNote).await?;
+        } else if let Some(subject_id) = note.subject_id {
+            let _ = handle_edges::db::create_edge(db_pool, subject_id, db_note.id, EdgeType::SubjectToNote).await?;
+        } else if let Some(article_id) = note.article_id {
+            let _ = handle_edges::db::create_edge(db_pool, article_id, db_note.id, EdgeType::ArticleToNote).await?;
+        } else if let Some(point_id) = note.point_id {
+            let _ = handle_edges::db::create_edge(db_pool, point_id, db_note.id, EdgeType::HistoricPointToNote).await?;
+        }
 
         let note = interop::Note::from(db_note);
         Ok(note)
