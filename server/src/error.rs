@@ -32,6 +32,7 @@ pub enum Error {
     Argon2(argon2::Error),
     Utf8(std::str::Utf8Error),
     ParseInt(std::num::ParseIntError),
+    SerdeJson(serde_json::Error),
     Authenticating,
     InvalidModelType(Model),
     MissingField,

@@ -506,6 +506,7 @@ dependencies = [
  "rand 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "rust-argon2 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.104 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_json 1.0.48 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-pg-mapper 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-pg-mapper-derive 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-postgres 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",

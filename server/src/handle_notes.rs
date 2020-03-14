@@ -38,9 +38,12 @@ pub mod interop {
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct CreateNote {
         pub source: Option<String>,
-        pub content: String,
-        pub annotation: Option<String>,
+        pub content: Vec<String>,
         pub separator: bool,
+        pub person_id: Option<Key>,
+        pub subject_id: Option<Key>,
+        pub article_id: Option<Key>,
+        pub point_id: Option<Key>,
     }
 }
 
@@ -49,13 +52,24 @@ pub async fn create_note(
     db_pool: Data<Pool>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
+
+    let foo: interop::CreateNote = serde_json::from_str("{\"person_id\":72,\"content\":[\"dfsdlfksdfjlkj\"],\"source\":\"\",\"separator\":false}")?;
+    info!("foo is {:?}", foo);
+
+    let bar: interop::CreateNote = serde_json::from_str("{\"content\":[\"dfsdlfksdfjlkj\"],\"source\":\"\",\"separator\":false}")?;
+    info!("bar is {:?}", bar);
+
     let note = note.into_inner();
+
+    info!("create_note {:?}", &note);
+
     // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    // let user_id: Key = 1;
 
-    let note = db::create_note(&db_pool, &note, user_id).await?;
+    // let note = db::create_note(&db_pool, &note, user_id).await?;
 
-    Ok(HttpResponse::Ok().json(note))
+    // Ok(HttpResponse::Ok().json(note))
+    Ok(HttpResponse::Ok().json(true))
 }
 
 pub async fn get_note(
@@ -263,9 +277,9 @@ pub mod db {
                 &user_id,
                 &note_type,
                 &note.source,
-                &note.content,
-                &note.annotation,
-                &note.separator,
+                // &note.content,
+                // &note.annotation,
+                // &note.separator,
             ],
         )
         .await?;
@@ -289,9 +303,9 @@ pub mod db {
                 &note_id,
                 &note_type,
                 &note.source,
-                &note.content,
-                &note.annotation,
-                &note.separator,
+                // &note.content,
+                // &note.annotation,
+                // &note.separator,
             ],
         )
         .await?;
