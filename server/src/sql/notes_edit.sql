@@ -1,4 +1,4 @@
-UPDATE entries
-SET content= $1
-WHERE id = $2 and user_id = $3
+UPDATE notes
+SET note_type = $3, source = $4, content = $5, annotation = $6, separator = %7
+WHERE id = $2 and user_id = $1
 RETURNING $table_fields

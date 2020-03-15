@@ -356,9 +356,9 @@ pub mod db {
                 &note_id,
                 &note_type,
                 &note.source,
-                // &note.content,
-                // &note.annotation,
-                // &note.separator,
+                &note.content,
+                &note.annotation,
+                &note.separator,
             ],
         )
         .await?;
