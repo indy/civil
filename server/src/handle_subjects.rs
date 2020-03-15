@@ -251,8 +251,12 @@ pub mod db {
     }
 
     pub async fn get_subjects(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Subject>> {
-        let db_subjects =
-            pg::many::<Subject>(db_pool, include_str!("sql/subjects_all.sql"), &[&user_id]).await?;
+        let db_subjects = pg::many_non_transactional::<Subject>(
+            db_pool,
+            include_str!("sql/subjects_all.sql"),
+            &[&user_id],
+        )
+        .await?;
 
         let subjects: Vec<interop::Subject> = db_subjects
             .into_iter()
@@ -267,7 +271,7 @@ pub mod db {
         subject_id: Key,
         user_id: Key,
     ) -> Result<interop::Subject> {
-        let db_subject = pg::one::<Subject>(
+        let db_subject = pg::one_non_transactional::<Subject>(
             db_pool,
             include_str!("sql/subjects_get.sql"),
             &[&subject_id, &user_id],
@@ -284,7 +288,7 @@ pub mod db {
         subject: &interop::CreateSubject,
         user_id: Key,
     ) -> Result<interop::Subject> {
-        let db_subject = pg::one::<Subject>(
+        let db_subject = pg::one_non_transactional::<Subject>(
             db_pool,
             include_str!("sql/subjects_create.sql"),
             &[&user_id, &subject.name],
@@ -302,7 +306,7 @@ pub mod db {
         subject_id: Key,
         user_id: Key,
     ) -> Result<interop::Subject> {
-        let db_subject = pg::one::<Subject>(
+        let db_subject = pg::one_non_transactional::<Subject>(
             db_pool,
             include_str!("sql/subjects_edit.sql"),
             &[&subject_id, &user_id, &subject.name],
@@ -322,7 +326,7 @@ pub mod db {
         //
         handle_notes::db::delete_all_notes_for(&tx, Model::Subject, subject_id).await?;
         handle_edges::db::delete_all_edges_for(&tx, Model::Subject, subject_id).await?;
-        pg::tx_delete_owned_by_user::<Subject>(&tx, subject_id, user_id, Model::Subject).await?;
+        pg::delete_owned_by_user::<Subject>(&tx, subject_id, user_id, Model::Subject).await?;
 
         tx.commit().await?;
 
@@ -342,9 +346,12 @@ pub mod db {
         let stmt = include_str!("sql/subjects_referenced.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);
 
-        let db_subjects_referenced =
-            pg::many::<SubjectReference>(db_pool, &stmt, &[&id, &e1, &EdgeType::NoteToSubject])
-                .await?;
+        let db_subjects_referenced = pg::many_non_transactional::<SubjectReference>(
+            db_pool,
+            &stmt,
+            &[&id, &e1, &EdgeType::NoteToSubject],
+        )
+        .await?;
 
         let subjects_referenced = db_subjects_referenced
             .iter()
@@ -365,9 +372,12 @@ pub mod db {
         let stmt = include_str!("sql/subjects_that_mention.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);
 
-        let db_mentioned_in_subjects =
-            pg::many::<SubjectMention>(db_pool, &stmt, &[&id, &e1, &EdgeType::SubjectToNote])
-                .await?;
+        let db_mentioned_in_subjects = pg::many_non_transactional::<SubjectMention>(
+            db_pool,
+            &stmt,
+            &[&id, &e1, &EdgeType::SubjectToNote],
+        )
+        .await?;
 
         let mentioned_in_subjects = db_mentioned_in_subjects
             .iter()

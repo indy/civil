@@ -89,11 +89,11 @@ pub mod db {
         }
     }
 
-    pub async fn tx_create_location(
+    pub async fn create_location(
         tx: &Transaction<'_>,
         location: &interop::CreateLocation,
     ) -> Result<interop::Location> {
-        let db_location = pg::tx_one::<Location>(
+        let db_location = pg::one::<Location>(
             tx,
             include_str!("sql/locations_create.sql"),
             &[
@@ -144,7 +144,7 @@ pub mod db {
     // }
 
     pub async fn delete_location(tx: &Transaction<'_>, location_id: Key) -> Result<()> {
-        pg::tx_delete::<Location>(tx, location_id, Model::Location).await?;
+        pg::delete::<Location>(tx, location_id, Model::Location).await?;
         Ok(())
     }
 }

@@ -46,7 +46,7 @@ pub mod db {
         let stmt = stmt.replace("$from_column", model_to_foreign_key(from));
         let stmt = stmt.replace("$to_column", model_to_foreign_key(to));
 
-        let edge = pg::tx_one::<Edge>(tx, &stmt, &[&from_key, &to_key, &edgetype]).await?;
+        let edge = pg::one::<Edge>(tx, &stmt, &[&from_key, &to_key, &edgetype]).await?;
 
         Ok(edge.id)
     }
@@ -57,7 +57,7 @@ pub mod db {
         let stmt = include_str!("sql/edges_delete.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);
 
-        pg::tx_zero::<Edge>(tx, &stmt, &[&id]).await?;
+        pg::zero::<Edge>(tx, &stmt, &[&id]).await?;
         Ok(())
     }
 }

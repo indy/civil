@@ -234,7 +234,7 @@ mod db {
         let point_date: Option<handle_dates::interop::Date>;
         let point_date_id: Option<Key>;
         if let Some(date) = &point.date {
-            let res = handle_dates::db::tx_create_date(&tx, &date).await?;
+            let res = handle_dates::db::create_date(&tx, &date).await?;
             point_date_id = Some(res.id);
             point_date = Some(res);
         } else {
@@ -245,7 +245,7 @@ mod db {
         let point_location: Option<handle_locations::interop::Location>;
         let point_location_id: Option<Key>;
         if let Some(location) = &point.location {
-            let res = handle_locations::db::tx_create_location(&tx, &location).await?;
+            let res = handle_locations::db::create_location(&tx, &location).await?;
             point_location_id = Some(res.id);
             point_location = Some(res);
         } else {
@@ -253,7 +253,7 @@ mod db {
             point_location_id = None;
         };
 
-        let db_point = pg::tx_one::<Point>(
+        let db_point = pg::one::<Point>(
             &tx,
             include_str!("sql/historic_points_create.sql"),
             &[&user_id, &point.title, &point_date_id, &point_location_id],
@@ -277,7 +277,7 @@ mod db {
     }
 
     pub async fn get_points(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Point>> {
-        let db_points = pg::many::<PointDerived>(
+        let db_points = pg::many_non_transactional::<PointDerived>(
             db_pool,
             include_str!("sql/historic_points_all.sql"),
             &[&user_id],
@@ -306,7 +306,7 @@ mod db {
         point_id: Key,
         user_id: Key,
     ) -> Result<interop::Point> {
-        let db_point = pg::one::<PointDerived>(
+        let db_point = pg::one_non_transactional::<PointDerived>(
             db_pool,
             include_str!("sql/historic_points_edit.sql"),
             &[&point_id, &user_id, &point.title],
@@ -336,7 +336,7 @@ mod db {
             handle_locations::db::delete_location(&tx, id).await?;
         }
 
-        pg::tx_delete_owned_by_user::<Point>(&tx, point_id, user_id, Model::HistoricPoint).await?;
+        pg::delete_owned_by_user::<Point>(&tx, point_id, user_id, Model::HistoricPoint).await?;
 
         tx.commit().await?;
 
@@ -344,7 +344,7 @@ mod db {
     }
 
     async fn get_db_point(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<PointDerived> {
-        let db_point = pg::one::<PointDerived>(
+        let db_point = pg::one_non_transactional::<PointDerived>(
             db_pool,
             include_str!("sql/historic_points_get_derived.sql"),
             &[&point_id, &user_id],

@@ -209,8 +209,12 @@ pub mod db {
     }
 
     pub async fn get_articles(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Article>> {
-        let db_articles =
-            pg::many::<Article>(db_pool, include_str!("sql/articles_all.sql"), &[&user_id]).await?;
+        let db_articles = pg::many_non_transactional::<Article>(
+            db_pool,
+            include_str!("sql/articles_all.sql"),
+            &[&user_id],
+        )
+        .await?;
 
         let articles: Vec<interop::Article> = db_articles
             .into_iter()
@@ -225,7 +229,7 @@ pub mod db {
         article_id: Key,
         user_id: Key,
     ) -> Result<interop::Article> {
-        let db_article = pg::one::<Article>(
+        let db_article = pg::one_non_transactional::<Article>(
             db_pool,
             include_str!("sql/articles_get.sql"),
             &[&article_id, &user_id],
@@ -242,7 +246,7 @@ pub mod db {
         article: &interop::CreateArticle,
         user_id: Key,
     ) -> Result<interop::Article> {
-        let db_article = pg::one::<Article>(
+        let db_article = pg::one_non_transactional::<Article>(
             db_pool,
             include_str!("sql/articles_create.sql"),
             &[&user_id, &article.title, &article.source],
@@ -260,7 +264,7 @@ pub mod db {
         article_id: Key,
         user_id: Key,
     ) -> Result<interop::Article> {
-        let db_article = pg::one::<Article>(
+        let db_article = pg::one_non_transactional::<Article>(
             db_pool,
             include_str!("sql/articles_edit.sql"),
             &[&article_id, &user_id, &article.title, &article.source],
@@ -281,7 +285,7 @@ pub mod db {
         handle_notes::db::delete_all_notes_for(&tx, Model::Article, article_id).await?;
         handle_edges::db::delete_all_edges_for(&tx, Model::Article, article_id).await?;
 
-        pg::tx_delete_owned_by_user::<Article>(&tx, article_id, user_id, Model::Article).await?;
+        pg::delete_owned_by_user::<Article>(&tx, article_id, user_id, Model::Article).await?;
 
         tx.commit().await?;
 
@@ -299,9 +303,12 @@ pub mod db {
         let stmt = include_str!("sql/articles_that_mention.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);
 
-        let db_mentioned_in_articles =
-            pg::many::<ArticleMention>(db_pool, &stmt, &[&id, &e1, &EdgeType::ArticleToNote])
-                .await?;
+        let db_mentioned_in_articles = pg::many_non_transactional::<ArticleMention>(
+            db_pool,
+            &stmt,
+            &[&id, &e1, &EdgeType::ArticleToNote],
+        )
+        .await?;
 
         let mentioned_in_articles = db_mentioned_in_articles
             .iter()

@@ -156,7 +156,7 @@ mod db {
         db_pool: &Pool,
         login_credentials: &interop::LoginCredentials,
     ) -> Result<User> {
-        let res = pg::one::<User>(
+        let res = pg::one_non_transactional::<User>(
             db_pool,
             include_str!("sql/users_login.sql"),
             &[&login_credentials.email],
@@ -170,7 +170,7 @@ mod db {
         registration: &interop::Registration,
         hash: &String,
     ) -> Result<User> {
-        let res = pg::one::<User>(
+        let res = pg::one_non_transactional::<User>(
             db_pool,
             include_str!("sql/users_create.sql"),
             &[&registration.username, &registration.email, hash],
@@ -180,7 +180,12 @@ mod db {
     }
 
     pub async fn get_user(db_pool: &Pool, user_id: Key) -> Result<User> {
-        let res = pg::one::<User>(db_pool, include_str!("sql/users_get.sql"), &[&user_id]).await?;
+        let res = pg::one_non_transactional::<User>(
+            db_pool,
+            include_str!("sql/users_get.sql"),
+            &[&user_id],
+        )
+        .await?;
         Ok(res)
     }
 }

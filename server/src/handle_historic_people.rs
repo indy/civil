@@ -355,17 +355,17 @@ pub mod db {
         let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
         let tx = client.transaction().await?;
 
-        let birth_date = handle_dates::db::tx_create_date(&tx, &person.birth_date).await?;
+        let birth_date = handle_dates::db::create_date(&tx, &person.birth_date).await?;
         let birth_date_id = birth_date.id;
 
         let birth_location =
-            handle_locations::db::tx_create_location(&tx, &person.birth_location).await?;
+            handle_locations::db::create_location(&tx, &person.birth_location).await?;
         let birth_location_id = birth_location.id;
 
         let death_date: Option<handle_dates::interop::Date>;
         let death_date_id: Option<Key>;
         if let Some(date) = &person.death_date {
-            let res = handle_dates::db::tx_create_date(&tx, &date).await?;
+            let res = handle_dates::db::create_date(&tx, &date).await?;
             death_date_id = Some(res.id);
             death_date = Some(res);
         } else {
@@ -376,7 +376,7 @@ pub mod db {
         let death_location: Option<handle_locations::interop::Location>;
         let death_location_id: Option<Key>;
         if let Some(location) = &person.death_location {
-            let res = handle_locations::db::tx_create_location(&tx, &location).await?;
+            let res = handle_locations::db::create_location(&tx, &location).await?;
             death_location_id = Some(res.id);
             death_location = Some(res);
         } else {
@@ -386,7 +386,7 @@ pub mod db {
 
         let age: Option<String> = None; // todo: calculate age
 
-        let db_person = pg::tx_one::<Person>(
+        let db_person = pg::one::<Person>(
             &tx,
             include_str!("sql/historic_people_create.sql"),
             &[
@@ -424,7 +424,7 @@ pub mod db {
     }
 
     pub async fn get_people(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Person>> {
-        let db_people = pg::many::<PersonDerived>(
+        let db_people = pg::many_non_transactional::<PersonDerived>(
             db_pool,
             include_str!("sql/historic_people_all_derived.sql"),
             &[&user_id],
@@ -444,7 +444,7 @@ pub mod db {
         person_id: Key,
         user_id: Key,
     ) -> Result<interop::Person> {
-        let db_person = pg::one::<PersonDerived>(
+        let db_person = pg::one_non_transactional::<PersonDerived>(
             db_pool,
             include_str!("sql/historic_people_get_derived.sql"),
             &[&person_id, &user_id],
@@ -463,7 +463,7 @@ pub mod db {
         person_id: Key,
         user_id: Key,
     ) -> Result<interop::Person> {
-        let db_person = pg::one::<PersonDerived>(
+        let db_person = pg::one_non_transactional::<PersonDerived>(
             db_pool,
             include_str!("sql/historic_people_edit.sql"),
             &[&user_id, &person_id, &person.name],
@@ -475,9 +475,8 @@ pub mod db {
         Ok(person)
     }
 
-    // todo: don't need to get a PersonDerived for delete, Person is enough
     pub async fn delete_person(db_pool: &Pool, person_id: Key, user_id: Key) -> Result<()> {
-        let person = pg::one::<Person>(
+        let person = pg::one_non_transactional::<Person>(
             db_pool,
             include_str!("sql/historic_people_get.sql"),
             &[&person_id, &user_id],
@@ -502,8 +501,7 @@ pub mod db {
             handle_locations::db::delete_location(&tx, id).await?;
         }
 
-        pg::tx_delete_owned_by_user::<Person>(&tx, person_id, user_id, Model::HistoricPerson)
-            .await?;
+        pg::delete_owned_by_user::<Person>(&tx, person_id, user_id, Model::HistoricPerson).await?;
 
         tx.commit().await?;
 
@@ -521,7 +519,7 @@ pub mod db {
         let stmt = include_str!("sql/historic_people_referenced.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);
 
-        let db_people_referenced = pg::many::<PersonReference>(
+        let db_people_referenced = pg::many_non_transactional::<PersonReference>(
             db_pool,
             &stmt,
             &[&id, &e1, &EdgeType::NoteToHistoricPerson],
@@ -547,9 +545,12 @@ pub mod db {
         let stmt = include_str!("sql/historic_people_that_mention.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);
 
-        let db_mentioned_by_people =
-            pg::many::<PersonMention>(db_pool, &stmt, &[&id, &e1, &EdgeType::HistoricPersonToNote])
-                .await?;
+        let db_mentioned_by_people = pg::many_non_transactional::<PersonMention>(
+            db_pool,
+            &stmt,
+            &[&id, &e1, &EdgeType::HistoricPersonToNote],
+        )
+        .await?;
 
         let mentioned_by_people = db_mentioned_by_people
             .iter()

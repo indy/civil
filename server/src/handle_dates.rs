@@ -99,11 +99,11 @@ pub mod db {
         }
     }
 
-    pub async fn tx_create_date(
+    pub async fn create_date(
         tx: &Transaction<'_>,
         date: &interop::CreateDate,
     ) -> Result<interop::Date> {
-        let db_date = pg::tx_one::<Date>(
+        let db_date = pg::one::<Date>(
             tx,
             include_str!("sql/dates_create.sql"),
             &[
@@ -155,7 +155,7 @@ pub mod db {
     // }
 
     pub async fn delete_date(tx: &Transaction<'_>, date_id: Key) -> Result<()> {
-        pg::tx_delete::<Date>(tx, date_id, Model::Date).await?;
+        pg::delete::<Date>(tx, date_id, Model::Date).await?;
         Ok(())
     }
 }

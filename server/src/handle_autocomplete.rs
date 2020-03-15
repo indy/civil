@@ -100,7 +100,7 @@ pub mod db {
         let stmt = include_str!("sql/autocomplete.sql");
         let stmt = stmt.replace("$table_name", "historic_people");
 
-        let db_people = pg::many::<Person>(db_pool, &stmt, &[]).await?;
+        let db_people = pg::many_non_transactional::<Person>(db_pool, &stmt, &[]).await?;
 
         let autocomplete: Vec<interop::Autocomplete> = db_people
             .iter()
@@ -114,7 +114,7 @@ pub mod db {
         let stmt = include_str!("sql/autocomplete.sql");
         let stmt = stmt.replace("$table_name", "subjects");
 
-        let db_subjects = pg::many::<Subject>(db_pool, &stmt, &[]).await?;
+        let db_subjects = pg::many_non_transactional::<Subject>(db_pool, &stmt, &[]).await?;
 
         let autocomplete: Vec<interop::Autocomplete> = db_subjects
             .iter()

@@ -231,7 +231,7 @@ pub mod db {
     }
 
     pub async fn get_note(db_pool: &Pool, note_id: Key, user_id: Key) -> Result<interop::Note> {
-        let db_note = pg::one::<Note>(
+        let db_note = pg::one_non_transactional::<Note>(
             db_pool,
             include_str!("sql/notes_get.sql"),
             &[&note_id, &user_id],
@@ -253,7 +253,13 @@ pub mod db {
     }
 
     pub async fn delete_note(db_pool: &Pool, note_id: Key, user_id: Key) -> Result<()> {
-        pg::delete_owned_by_user::<Note>(db_pool, note_id, user_id, Model::Note).await?;
+        let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+        let tx = client.transaction().await?;
+
+        pg::delete_owned_by_user::<Note>(&tx, note_id, user_id, Model::Note).await?;
+
+        tx.commit().await?;
+
         Ok(())
     }
 
@@ -298,7 +304,7 @@ pub mod db {
         content: &str,
         separator: bool,
     ) -> Result<interop::Note> {
-        let db_note = pg::tx_one::<Note>(
+        let db_note = pg::one::<Note>(
             tx,
             include_str!("sql/notes_create.sql"),
             &[&user_id, &note_type, &note.source, &content, &separator],
@@ -342,7 +348,7 @@ pub mod db {
         user_id: Key,
         note_type: NoteType,
     ) -> Result<interop::Note> {
-        let db_note = pg::one::<Note>(
+        let db_note = pg::one_non_transactional::<Note>(
             db_pool,
             include_str!("sql/notes_edit.sql"),
             &[
@@ -373,7 +379,8 @@ pub mod db {
         let stmt = include_str!("sql/notes_all_for.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);
 
-        let db_notes = pg::many::<Note>(db_pool, &stmt, &[&id, &e1, &note_type]).await?;
+        let db_notes =
+            pg::many_non_transactional::<Note>(db_pool, &stmt, &[&id, &e1, &note_type]).await?;
 
         let notes = db_notes
             .into_iter()
@@ -389,7 +396,7 @@ pub mod db {
         let stmt = include_str!("sql/notes_delete.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);
 
-        pg::tx_zero::<Note>(&tx, &stmt, &[&id]).await?;
+        pg::zero::<Note>(&tx, &stmt, &[&id]).await?;
         Ok(())
     }
 }
