@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Redirect } from 'react-router-dom';
 
-import StateUtils from '../lib/StateUtils';
 import Net from '../lib/Net';
 
 class Login extends Component {
