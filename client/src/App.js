@@ -21,6 +21,9 @@ import Point from './components/Point';
 import Points from './components/Points';
 import PointCreateForm from './components/PointCreateForm';
 
+import Login from './components/Login';
+
+
 class App extends Component {
   render() {
     return (
@@ -32,6 +35,7 @@ class App extends Component {
             <Link className='top-bar-menuitem' to={'/subjects'}>Subjects</Link>
             <Link className='top-bar-menuitem' to={'/articles'}>Articles</Link>
             <Link className='top-bar-menuitem' to={'/points'}>Points</Link>
+            <Link className='top-bar-menuitem' to={'/login'}>Login</Link>
           </div>
           <hr/>
           <Route exact path="/" component={Home}/>
@@ -43,6 +47,7 @@ class App extends Component {
           <Route exact path="/subjects" component={Subjects}/>
           <Route exact path="/articles" component={Articles}/>
           <Route exact path="/points" component={Points}/>
+          <Route exact path="/login" component={Login}/>
           <Route path={'/add-person'} component={PersonCreateForm}/>
           <Route path={'/add-subject'} component={SubjectCreateForm}/>
           <Route path={'/add-article'} component={ArticleCreateForm}/>

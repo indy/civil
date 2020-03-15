@@ -19,7 +19,7 @@ use crate::error::Result;
 use crate::handle_historic_people;
 use crate::handle_notes;
 use crate::handle_subjects;
-use crate::interop::{IdParam, Key};
+use crate::interop::IdParam;
 use crate::model::Model;
 use crate::note_type::NoteType;
 use crate::session;
@@ -61,12 +61,11 @@ mod interop {
 pub async fn create_point(
     point: Json<interop::CreatePoint>,
     db_pool: Data<Pool>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("create_point");
     let point = point.into_inner();
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     // db statement
     let point = db::create_point(&db_pool, &point, user_id).await?;
@@ -76,11 +75,10 @@ pub async fn create_point(
 
 pub async fn get_points(
     db_pool: Data<Pool>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("get_points");
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
     // db statement
     let points = db::get_points(&db_pool, user_id).await?;
 
@@ -90,11 +88,10 @@ pub async fn get_points(
 pub async fn get_point(
     db_pool: Data<Pool>,
     params: Path<IdParam>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("get_point {:?}", params.id);
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     // db statements
     let point_id = params.id;
@@ -122,13 +119,12 @@ pub async fn edit_point(
     point: Json<interop::Point>,
     db_pool: Data<Pool>,
     params: Path<IdParam>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("edit_point");
 
     let point = point.into_inner();
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     let point = db::edit_point(&db_pool, &point, params.id, user_id).await?;
 

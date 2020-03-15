@@ -19,10 +19,10 @@ use crate::error::Result;
 use crate::handle_articles;
 use crate::handle_notes;
 use crate::handle_subjects;
-use crate::interop::{IdParam, Key};
+use crate::interop::IdParam;
 use crate::model::Model;
 use crate::note_type::NoteType;
-// use crate::session;
+use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
@@ -83,12 +83,11 @@ pub mod interop {
 pub async fn create_person(
     person: Json<interop::CreatePerson>,
     db_pool: Data<Pool>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("create_person");
     let person = person.into_inner();
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     // db statement
     let person = db::create_person(&db_pool, &person, user_id).await?;
@@ -99,12 +98,11 @@ pub async fn create_person(
 
 pub async fn get_people(
     db_pool: Data<Pool>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("get_people");
 
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     // db statement
     let people = db::get_people(&db_pool, user_id).await?;
@@ -115,11 +113,10 @@ pub async fn get_people(
 pub async fn get_person(
     db_pool: Data<Pool>,
     params: Path<IdParam>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("get_person {:?}", params.id);
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     // db statements
     let person_id = params.id;
@@ -169,13 +166,12 @@ pub async fn edit_person(
     person: Json<interop::Person>,
     db_pool: Data<Pool>,
     params: Path<IdParam>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("edit_person");
 
     let person = person.into_inner();
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     let person = db::edit_person(&db_pool, &person, params.id, user_id).await?;
 
@@ -185,10 +181,9 @@ pub async fn edit_person(
 pub async fn delete_person(
     db_pool: Data<Pool>,
     params: Path<IdParam>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     db::delete_person(&db_pool, params.id, user_id).await?;
 

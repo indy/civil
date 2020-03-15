@@ -16,7 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
-use crate::interop::{IdParam, Key};
+use crate::interop::IdParam;
+use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
@@ -51,13 +52,12 @@ pub mod interop {
 pub async fn create_note(
     note: Json<interop::CreateNote>,
     db_pool: Data<Pool>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
     let note = note.into_inner();
     info!("create_note {:?}", &note);
 
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     let note = db::create_note(&db_pool, &note, user_id).await?;
 
@@ -68,10 +68,9 @@ pub async fn create_note(
 pub async fn get_note(
     db_pool: Data<Pool>,
     params: Path<IdParam>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     let note = db::get_note(&db_pool, params.id, user_id).await?;
 
@@ -82,11 +81,10 @@ pub async fn edit_note(
     note: Json<interop::Note>,
     db_pool: Data<Pool>,
     params: Path<IdParam>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
     let note = note.into_inner();
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     let note = db::edit_note(&db_pool, &note, params.id, user_id).await?;
 
@@ -96,10 +94,9 @@ pub async fn edit_note(
 pub async fn delete_note(
     db_pool: Data<Pool>,
     params: Path<IdParam>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     db::delete_note(&db_pool, params.id, user_id).await?;
 
@@ -109,11 +106,10 @@ pub async fn delete_note(
 pub async fn create_quote(
     note: Json<interop::CreateNote>,
     db_pool: Data<Pool>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
     let note = note.into_inner();
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     let note = db::create_quote(&db_pool, &note, user_id).await?;
 
@@ -123,10 +119,9 @@ pub async fn create_quote(
 pub async fn get_quote(
     db_pool: Data<Pool>,
     params: Path<IdParam>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     // same implementation as note
     let note = db::get_note(&db_pool, params.id, user_id).await?;
@@ -138,11 +133,10 @@ pub async fn edit_quote(
     note: Json<interop::Note>,
     db_pool: Data<Pool>,
     params: Path<IdParam>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
     let note = note.into_inner();
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     let note = db::edit_quote(&db_pool, &note, params.id, user_id).await?;
 
@@ -152,10 +146,9 @@ pub async fn edit_quote(
 pub async fn delete_quote(
     db_pool: Data<Pool>,
     params: Path<IdParam>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     // same implementation as note
     db::delete_note(&db_pool, params.id, user_id).await?;

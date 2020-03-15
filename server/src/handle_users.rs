@@ -49,6 +49,7 @@ pub async fn login(
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
+    info!("login");
     let login = login.into_inner();
 
     // db statement
@@ -60,9 +61,12 @@ pub async fn login(
         // save id to the session
         session.set(session::AUTH, format!("{}", matched_user.id))?;
 
+        info!("login accepted!!");
         // send response
         Ok(HttpResponse::Ok().json(interop::User::from(matched_user)))
     } else {
+        info!("login denied");
+        session.clear();
         Err(Error::Authenticating.into())
     }
 }

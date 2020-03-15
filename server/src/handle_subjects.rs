@@ -19,10 +19,10 @@ use crate::error::Result;
 use crate::handle_articles;
 use crate::handle_historic_people;
 use crate::handle_notes;
+use crate::interop::IdParam;
 use crate::model::Model;
 use crate::note_type::NoteType;
-// use crate::session;
-use crate::interop::{IdParam, Key};
+use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
@@ -72,13 +72,12 @@ pub mod interop {
 pub async fn create_subject(
     subject: Json<interop::CreateSubject>,
     db_pool: Data<Pool>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("create_subject");
 
     let subject = subject.into_inner();
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     let subject = db::create_subject(&db_pool, &subject, user_id).await?;
 
@@ -87,11 +86,10 @@ pub async fn create_subject(
 
 pub async fn get_subjects(
     db_pool: Data<Pool>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("get_subjects");
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
     // db statement
     let subjects = db::get_subjects(&db_pool, user_id).await?;
 
@@ -101,11 +99,10 @@ pub async fn get_subjects(
 pub async fn get_subject(
     db_pool: Data<Pool>,
     params: Path<IdParam>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("get_subject {:?}", params.id);
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     // db statements
     let subject_id = params.id;
@@ -150,11 +147,10 @@ pub async fn edit_subject(
     subject: Json<interop::Subject>,
     db_pool: Data<Pool>,
     params: Path<IdParam>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
     let subject = subject.into_inner();
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     let subject = db::edit_subject(&db_pool, &subject, params.id, user_id).await?;
 
@@ -164,10 +160,9 @@ pub async fn edit_subject(
 pub async fn delete_subject(
     db_pool: Data<Pool>,
     params: Path<IdParam>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    // let user_id = session::user_id(&session)?;
-    let user_id: Key = 1;
+    let user_id = session::user_id(&session)?;
 
     db::delete_subject(&db_pool, params.id, user_id).await?;
 
