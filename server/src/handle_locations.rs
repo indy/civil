@@ -18,7 +18,7 @@
 pub mod interop {
     use crate::interop::Key;
 
-    #[derive(Debug, serde::Deserialize, serde::Serialize)]
+    #[derive(PartialEq, Debug, serde::Deserialize, serde::Serialize)]
     pub struct Location {
         pub id: Key,
         pub textual: Option<String>,
@@ -121,27 +121,27 @@ pub mod db {
     //     Ok(location)
     // }
 
-    // pub async fn edit_location(
-    //     db_pool: &Pool,
-    //     location: &interop::Location,
-    //     location_id: Key,
-    // ) -> Result<interop::Location> {
-    //     let db_location = pg::one::<Location>(
-    //         db_pool,
-    //         include_str!("sql/locations_edit.sql"),
-    //         &[
-    //             &location_id,
-    //             &location.textual,
-    //             &location.longitude,
-    //             &location.latitude,
-    //             &location.fuzz,
-    //         ],
-    //     )
-    //     .await?;
+    pub async fn edit_location(
+        tx: &Transaction<'_>,
+        location: &interop::Location,
+        location_id: Key,
+    ) -> Result<interop::Location> {
+        let db_location = pg::one::<Location>(
+            tx,
+            include_str!("sql/locations_edit.sql"),
+            &[
+                &location_id,
+                &location.textual,
+                &location.longitude,
+                &location.latitude,
+                &location.fuzz,
+            ],
+        )
+        .await?;
 
-    //     let location = interop::Location::from(db_location);
-    //     Ok(location)
-    // }
+        let location = interop::Location::from(db_location);
+        Ok(location)
+    }
 
     pub async fn delete_location(tx: &Transaction<'_>, location_id: Key) -> Result<()> {
         pg::delete::<Location>(tx, location_id, Model::Location).await?;

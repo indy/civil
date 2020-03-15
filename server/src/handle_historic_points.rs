@@ -124,6 +124,8 @@ pub async fn edit_point(
     params: Path<IdParam>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
+    info!("edit_point");
+
     let point = point.into_inner();
     // let user_id = session::user_id(&session)?;
     let user_id: Key = 1;
@@ -299,23 +301,45 @@ mod db {
         Ok(point)
     }
 
-    // ???
     pub async fn edit_point(
         db_pool: &Pool,
-        point: &interop::Point,
+        updated_point: &interop::Point,
         point_id: Key,
         user_id: Key,
     ) -> Result<interop::Point> {
-        let db_point = pg::one_non_transactional::<PointDerived>(
-            db_pool,
+        let existing_point = get_point(db_pool, point_id, user_id).await?;
+
+        let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+        let tx = client.transaction().await?;
+
+        if let Some(existing_date) = &existing_point.date {
+            if let Some(updated_date) = &updated_point.date {
+                if updated_date != existing_date {
+                    handle_dates::db::edit_date(&tx, &updated_date, existing_date.id).await?;
+                }
+            }
+        }
+
+        if let Some(existing_loc) = &existing_point.location {
+            if let Some(updated_loc) = &updated_point.location {
+                if updated_loc != existing_loc {
+                    handle_locations::db::edit_location(&tx, &updated_loc, existing_loc.id).await?;
+                }
+            }
+        }
+
+        let _db_point = pg::one::<Point>(
+            &tx,
             include_str!("sql/historic_points_edit.sql"),
-            &[&point_id, &user_id, &point.title],
+            &[&user_id, &point_id, &updated_point.title],
         )
         .await?;
 
-        let point = interop::Point::from(db_point);
+        tx.commit().await?;
 
-        Ok(point)
+        let altered_point = get_point(db_pool, point_id, user_id).await?;
+
+        Ok(altered_point)
     }
 
     pub async fn delete_point(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<()> {

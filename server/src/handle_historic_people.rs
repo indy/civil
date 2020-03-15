@@ -171,6 +171,8 @@ pub async fn edit_person(
     params: Path<IdParam>,
     _session: actix_session::Session,
 ) -> Result<HttpResponse> {
+    info!("edit_person");
+
     let person = person.into_inner();
     // let user_id = session::user_id(&session)?;
     let user_id: Key = 1;
@@ -456,23 +458,62 @@ pub mod db {
         Ok(person)
     }
 
-    // ???
     pub async fn edit_person(
         db_pool: &Pool,
-        person: &interop::Person,
+        updated_person: &interop::Person,
         person_id: Key,
         user_id: Key,
     ) -> Result<interop::Person> {
-        let db_person = pg::one_non_transactional::<PersonDerived>(
-            db_pool,
+        let existing_person = get_person(db_pool, person_id, user_id).await?;
+
+        let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+        let tx = client.transaction().await?;
+
+        if let Some(existing_date) = &existing_person.birth_date {
+            if let Some(updated_date) = &updated_person.birth_date {
+                if updated_date != existing_date {
+                    handle_dates::db::edit_date(&tx, &updated_date, existing_date.id).await?;
+                }
+            }
+        }
+        if let Some(existing_loc) = &existing_person.birth_location {
+            if let Some(updated_loc) = &updated_person.birth_location {
+                if updated_loc != existing_loc {
+                    handle_locations::db::edit_location(&tx, &updated_loc, existing_loc.id).await?;
+                }
+            }
+        }
+
+        // todo: how to create a new death_date/location when there was None before ????
+
+        if let Some(existing_date) = &existing_person.death_date {
+            if let Some(updated_date) = &updated_person.death_date {
+                if updated_date != existing_date {
+                    handle_dates::db::edit_date(&tx, &updated_date, existing_date.id).await?;
+                }
+            }
+        }
+
+        if let Some(existing_loc) = &existing_person.death_location {
+            if let Some(updated_loc) = &updated_person.death_location {
+                if updated_loc != existing_loc {
+                    handle_locations::db::edit_location(&tx, &updated_loc, existing_loc.id).await?;
+                }
+            }
+        }
+
+        let _db_person = pg::one::<Person>(
+            &tx,
             include_str!("sql/historic_people_edit.sql"),
-            &[&user_id, &person_id, &person.name],
+            &[&user_id, &person_id, &updated_person.name],
         )
         .await?;
 
-        let person = interop::Person::from(db_person);
+        tx.commit().await?;
 
-        Ok(person)
+        let altered_person = get_person(db_pool, person_id, user_id).await?;
+
+        Ok(altered_person)
     }
 
     pub async fn delete_person(db_pool: &Pool, person_id: Key, user_id: Key) -> Result<()> {

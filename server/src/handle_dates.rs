@@ -18,7 +18,7 @@
 pub mod interop {
     use crate::interop::Key;
 
-    #[derive(Debug, serde::Deserialize, serde::Serialize)]
+    #[derive(PartialEq, Debug, serde::Deserialize, serde::Serialize)]
     pub struct Date {
         pub id: Key,
         pub textual: Option<String>,
@@ -130,29 +130,29 @@ pub mod db {
     //     Ok(date)
     // }
 
-    // pub async fn edit_date(
-    //     db_pool: &Pool,
-    //     date: &interop::Date,
-    //     date_id: Key,
-    // ) -> Result<interop::Date> {
-    //     let db_date = pg::one::<Date>(
-    //         db_pool,
-    //         include_str!("sql/dates_edit.sql"),
-    //         &[
-    //             &date_id,
-    //             &date.textual,
-    //             &date.exact_date,
-    //             &date.lower_date,
-    //             &date.upper_date,
-    //             &date.fuzz,
-    //         ],
-    //     )
-    //     .await?;
+    pub async fn edit_date(
+        tx: &Transaction<'_>,
+        date: &interop::Date,
+        date_id: Key,
+    ) -> Result<interop::Date> {
+        let db_date = pg::one::<Date>(
+            tx,
+            include_str!("sql/dates_edit.sql"),
+            &[
+                &date_id,
+                &date.textual,
+                &date.exact_date,
+                &date.lower_date,
+                &date.upper_date,
+                &date.fuzz,
+            ],
+        )
+        .await?;
 
-    //     let date = interop::Date::from(db_date);
+        let date = interop::Date::from(db_date);
 
-    //     Ok(date)
-    // }
+        Ok(date)
+    }
 
     pub async fn delete_date(tx: &Transaction<'_>, date_id: Key) -> Result<()> {
         pg::delete::<Date>(tx, date_id, Model::Date).await?;
