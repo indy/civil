@@ -10,9 +10,12 @@ DROP TABLE IF EXISTS timespans;
 DROP TABLE IF EXISTS dates;
 DROP TABLE IF EXISTS locations;
 DROP TABLE IF EXISTS users;
-DROP TYPE IF EXISTS deck_type;
+-- DROP TYPE IF EXISTS deck_type;
+DROP TYPE IF EXISTS node_kind;
 
-CREATE TYPE deck_type AS ENUM ('historic_person', 'historic_point', 'subject', 'article', 'note');
+CREATE TYPE node_kind AS ENUM ('historic_person', 'historic_point', 'subject', 'article', 'note');
+
+-- CREATE TYPE deck_type AS ENUM ('historic_person', 'historic_point', 'subject', 'article', 'note');
 -- ALTER TYPE deck_type ADD VALUE 'note'; -- appends to list
 
 CREATE TABLE IF NOT EXISTS users (
@@ -119,7 +122,7 @@ CREATE TABLE IF NOT EXISTS decks (
 
     user_id BIGINT NOT NULL REFERENCES users,
 
-    type deck_type NOT NULL,
+    kind node_kind NOT NULL,
 
     name TEXT NOT NULL,         -- was title in articles and historic_points
     source TEXT,                -- from articles
@@ -151,8 +154,8 @@ CREATE TABLE IF NOT EXISTS edges2 (
 
     annotation TEXT,
 
-    from_type deck_type NOT NULL,
-    to_type deck_type NOT NULL,
+    from_kind node_kind NOT NULL,
+    to_kind node_kind NOT NULL,
 
     from_deck_id BIGINT REFERENCES decks,
     to_deck_id BIGINT REFERENCES decks,

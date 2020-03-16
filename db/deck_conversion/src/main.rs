@@ -154,7 +154,7 @@ async fn convert_articles(mapper: &mut Mapper, db_pool: &Pool) -> Result<()> {
         // create a deck corresponding to this article
         let article_deck = pg::one_non_transactional::<Deck>(
             db_pool,
-            "INSERT INTO decks(user_id, type, name, source) VALUES ($1, $2::TEXT::deck_type, $3, $4) RETURNING id",
+            "INSERT INTO decks(user_id, kind, name, source) VALUES ($1, $2::TEXT::node_kind, $3, $4) RETURNING id",
             &[&user_id, &"article", &article.title, &article.source],
         ).await?;
 
@@ -196,7 +196,7 @@ async fn convert_subjects(mapper: &mut Mapper, db_pool: &Pool) -> Result<()> {
         // create a deck corresponding to this subject
         let subject_deck = pg::one_non_transactional::<Deck>(
             db_pool,
-            "INSERT INTO decks(user_id, type, name) VALUES ($1, $2::TEXT::deck_type, $3) RETURNING id",
+            "INSERT INTO decks(user_id, kind, name) VALUES ($1, $2::TEXT::node_kind, $3) RETURNING id",
             &[&user_id, &"subject", &subject.name],
         ).await?;
 
@@ -243,7 +243,7 @@ async fn convert_points(mapper: &mut Mapper, db_pool: &Pool) -> Result<()> {
         // create a deck corresponding to this point
         let point_deck = pg::one_non_transactional::<Deck>(
             db_pool,
-            "INSERT INTO decks(user_id, type, name, date_id, location_id) VALUES ($1, $2::TEXT::deck_type, $3, $4, $5) RETURNING id",
+            "INSERT INTO decks(user_id, kind, name, date_id, location_id) VALUES ($1, $2::TEXT::node_kind, $3, $4, $5) RETURNING id",
             &[&user_id, &"historic_point", &point.title, &point.date_id, &point.location_id],
         ).await?;
 
@@ -298,7 +298,7 @@ async fn convert_people(mapper: &mut Mapper, db_pool: &Pool) -> Result<()> {
         // create a deck corresponding to this point
         let person_deck = pg::one_non_transactional::<Deck>(
             db_pool,
-            "INSERT INTO decks(user_id, type, name, timespan_id, location_id, location2_id) VALUES ($1, $2::TEXT::deck_type, $3, $4, $5, $6) RETURNING id",
+            "INSERT INTO decks(user_id, kind, name, timespan_id, location_id, location2_id) VALUES ($1, $2::TEXT::node_kind, $3, $4, $5, $6) RETURNING id",
             &[&user_id, &"historic_person", &person.name, &timespan.id, &person.birth_location_id, &person.death_location_id],
         ).await?;
 
@@ -357,7 +357,7 @@ async fn convert_edges(mapper: &mut Mapper, db_pool: &Pool) -> Result<()> {
             if let Some(subject_id) = mapper.subjects_old_to_new.get(&old_subject_id) {
                 let _ = pg::one_non_transactional::<Edge2>(
                     db_pool,
-                    "INSERT INTO edges2(from_type, to_type, from_deck_id, to_note_id) VALUES ($1::TEXT::deck_type, $2::TEXT::deck_type, $3, $4) RETURNING id",
+                    "INSERT INTO edges2(from_kind, to_kind, from_deck_id, to_note_id) VALUES ($1::TEXT::node_kind, $2::TEXT::node_kind, $3, $4) RETURNING id",
                     &[&"subject", &"note", &subject_id, &note_id],
                 ).await?;
             }
@@ -370,7 +370,7 @@ async fn convert_edges(mapper: &mut Mapper, db_pool: &Pool) -> Result<()> {
             if let Some(point_id) = mapper.points_old_to_new.get(&old_point_id) {
                 let _ = pg::one_non_transactional::<Edge2>(
                     db_pool,
-                    "INSERT INTO edges2(from_type, to_type, from_deck_id, to_note_id) VALUES ($1::TEXT::deck_type, $2::TEXT::deck_type, $3, $4) RETURNING id",
+                    "INSERT INTO edges2(from_kind, to_kind, from_deck_id, to_note_id) VALUES ($1::TEXT::node_kind, $2::TEXT::node_kind, $3, $4) RETURNING id",
                     &[&"historic_point", &"note", &point_id, &note_id],
                 ).await?;
             }
@@ -383,7 +383,7 @@ async fn convert_edges(mapper: &mut Mapper, db_pool: &Pool) -> Result<()> {
             if let Some(subject_id) = mapper.subjects_old_to_new.get(&old_subject_id) {
                 let _ = pg::one_non_transactional::<Edge2>(
                     db_pool,
-                    "INSERT INTO edges2(from_type, to_type, from_note_id, to_deck_id) VALUES ($1::TEXT::deck_type, $2::TEXT::deck_type, $3, $4) RETURNING id",
+                    "INSERT INTO edges2(from_kind, to_kind, from_note_id, to_deck_id) VALUES ($1::TEXT::node_kind, $2::TEXT::node_kind, $3, $4) RETURNING id",
                     &[&"note", &"subject", &note_id, &subject_id],
                 ).await?;
             }
@@ -396,7 +396,7 @@ async fn convert_edges(mapper: &mut Mapper, db_pool: &Pool) -> Result<()> {
             if let Some(article_id) = mapper.articles_old_to_new.get(&old_article_id) {
                 let _ = pg::one_non_transactional::<Edge2>(
                     db_pool,
-                    "INSERT INTO edges2(from_type, to_type, from_deck_id, to_note_id) VALUES ($1::TEXT::deck_type, $2::TEXT::deck_type, $3, $4) RETURNING id",
+                    "INSERT INTO edges2(from_kind, to_kind, from_deck_id, to_note_id) VALUES ($1::TEXT::node_kind, $2::TEXT::node_kind, $3, $4) RETURNING id",
                     &[&"article", &"note", &article_id, &note_id],
                 ).await?;
             }
@@ -409,7 +409,7 @@ async fn convert_edges(mapper: &mut Mapper, db_pool: &Pool) -> Result<()> {
             if let Some(person_id) = mapper.people_old_to_new.get(&old_person_id) {
                 let _ = pg::one_non_transactional::<Edge2>(
                     db_pool,
-                    "INSERT INTO edges2(from_type, to_type, from_deck_id, to_note_id) VALUES ($1::TEXT::deck_type, $2::TEXT::deck_type, $3, $4) RETURNING id",
+                    "INSERT INTO edges2(from_kind, to_kind, from_deck_id, to_note_id) VALUES ($1::TEXT::node_kind, $2::TEXT::node_kind, $3, $4) RETURNING id",
                     &[&"historic_person", &"note", &person_id, &note_id],
                 ).await?;
             }
@@ -422,7 +422,7 @@ async fn convert_edges(mapper: &mut Mapper, db_pool: &Pool) -> Result<()> {
             if let Some(person_id) = mapper.people_old_to_new.get(&old_person_id) {
                 let _ = pg::one_non_transactional::<Edge2>(
                     db_pool,
-                    "INSERT INTO edges2(from_type, to_type, from_note_id, to_deck_id) VALUES ($1::TEXT::deck_type, $2::TEXT::deck_type, $3, $4) RETURNING id",
+                    "INSERT INTO edges2(from_kind, to_kind, from_note_id, to_deck_id) VALUES ($1::TEXT::node_kind, $2::TEXT::node_kind, $3, $4) RETURNING id",
                     &[&"note", &"historic_person", &note_id, &person_id],
                 ).await?;
             }
