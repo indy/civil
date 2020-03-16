@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::{Error, Result};
-use deadpool_postgres::{Client, Pool/*, Transaction*/};
+use deadpool_postgres::{Client, Pool /*, Transaction*/};
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tracing::error;
 /*

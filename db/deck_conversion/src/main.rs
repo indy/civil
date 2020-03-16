@@ -19,18 +19,24 @@ mod error;
 mod pg;
 
 use crate::error::Result;
-use serde::{Deserialize, Serialize};
-use tokio_pg_mapper_derive::PostgresMapper;
+use deadpool_postgres::Pool;
 use dotenv;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::env;
+use tokio_pg_mapper_derive::PostgresMapper;
 use tokio_postgres::NoTls;
 use tracing::info;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
-use deadpool_postgres::Pool;
-use std::collections::HashMap;
 
 pub type Key = i64;
+
+#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
+#[pg_mapper(table = "edges2")]
+pub struct Edge2 {
+    pub id: Key,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
@@ -103,13 +109,14 @@ async fn main() -> Result<()> {
 
     let pool: Pool = cfg.create_pool(NoTls)?;
 
-
     let mut mapper = Mapper::new();
 
     convert_articles(&mut mapper, &pool).await?;
     convert_subjects(&mut mapper, &pool).await?;
     convert_points(&mut mapper, &pool).await?;
     convert_people(&mut mapper, &pool).await?;
+
+    convert_edges(&mut mapper, &pool).await?;
 
     Ok(())
 }
@@ -136,12 +143,12 @@ async fn convert_articles(mapper: &mut Mapper, db_pool: &Pool) -> Result<()> {
         db_pool,
         "SELECT id, title, source FROM articles",
         &[],
-    ).await?;
+    )
+    .await?;
 
     // convert each article
     info!("we have {} articles", db_articles.len());
     let user_id: Key = 1;
-
 
     for article in db_articles {
         // create a deck corresponding to this article
@@ -152,7 +159,9 @@ async fn convert_articles(mapper: &mut Mapper, db_pool: &Pool) -> Result<()> {
         ).await?;
 
         // update mapper
-        mapper.articles_old_to_new.insert(article.id, article_deck.id);
+        mapper
+            .articles_old_to_new
+            .insert(article.id, article_deck.id);
     }
 
     Ok(())
@@ -175,16 +184,13 @@ struct Subject {
 
 async fn convert_subjects(mapper: &mut Mapper, db_pool: &Pool) -> Result<()> {
     // get all subjects
-    let db_subjects = pg::many_non_transactional::<Subject>(
-        db_pool,
-        "SELECT id, name FROM subjects",
-        &[],
-    ).await?;
+    let db_subjects =
+        pg::many_non_transactional::<Subject>(db_pool, "SELECT id, name FROM subjects", &[])
+            .await?;
 
     // convert each subject
     info!("we have {} subjects", db_subjects.len());
     let user_id: Key = 1;
-
 
     for subject in db_subjects {
         // create a deck corresponding to this subject
@@ -195,7 +201,9 @@ async fn convert_subjects(mapper: &mut Mapper, db_pool: &Pool) -> Result<()> {
         ).await?;
 
         // update mapper
-        mapper.subjects_old_to_new.insert(subject.id, subject_deck.id);
+        mapper
+            .subjects_old_to_new
+            .insert(subject.id, subject_deck.id);
     }
 
     Ok(())
@@ -224,12 +232,12 @@ async fn convert_points(mapper: &mut Mapper, db_pool: &Pool) -> Result<()> {
         db_pool,
         "SELECT id, title, date_id, location_id FROM historic_points",
         &[],
-    ).await?;
+    )
+    .await?;
 
     // convert each point
     info!("we have {} points", db_points.len());
     let user_id: Key = 1;
-
 
     for point in db_points {
         // create a deck corresponding to this point
@@ -279,7 +287,6 @@ async fn convert_people(mapper: &mut Mapper, db_pool: &Pool) -> Result<()> {
     info!("we have {} people", db_people.len());
     let user_id: Key = 1;
 
-
     for person in db_people {
         // create a timespan for this person's life
         let timespan = pg::one_non_transactional::<Timespan>(
@@ -304,3 +311,123 @@ async fn convert_people(mapper: &mut Mapper, db_pool: &Pool) -> Result<()> {
 
 // --------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------
+//                         Edges
+// --------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------
+
+#[derive(Debug, Deserialize, PostgresMapper, Serialize)]
+#[pg_mapper(table = "edges")]
+struct Edge {
+    id: Key,
+    edge_type: i32,
+    historic_person_id: Option<Key>,
+    note_id: Option<Key>,
+    subject_id: Option<Key>,
+    article_id: Option<Key>,
+    historic_point_id: Option<Key>,
+}
+
+/*
+select edge_type, count(*) from edges group by edge_type;
+
+edge_type | count
+-----------+-------
+        31 |    26  Subject to Note
+        51 |    32  HistoricPoint to Note
+        13 |     6  Note to Subject
+        41 |   165  Article to Note
+        21 |   298  HistoricPerson to Note
+        12 |    94  Note to HistoricPerson
+(6 rows)
+*/
+
+async fn convert_edges(mapper: &mut Mapper, db_pool: &Pool) -> Result<()> {
+    let db_edges = pg::many_non_transactional::<Edge>(
+        db_pool,
+        "SELECT id, edge_type, historic_person_id, note_id, subject_id, article_id, historic_point_id from edges",
+        &[]).await?;
+
+    for edge in db_edges {
+        // subject to note
+        if edge.edge_type == 31 {
+            let note_id = edge.note_id.unwrap();
+            let old_subject_id = edge.subject_id.unwrap();
+            if let Some(subject_id) = mapper.subjects_old_to_new.get(&old_subject_id) {
+                let _ = pg::one_non_transactional::<Edge2>(
+                    db_pool,
+                    "INSERT INTO edges2(from_type, to_type, from_deck_id, to_note_id) VALUES ($1::TEXT::deck_type, $2::TEXT::deck_type, $3, $4) RETURNING id",
+                    &[&"subject", &"note", &subject_id, &note_id],
+                ).await?;
+            }
+        }
+
+        // historic point to note
+        if edge.edge_type == 51 {
+            let note_id = edge.note_id.unwrap();
+            let old_point_id = edge.historic_point_id.unwrap();
+            if let Some(point_id) = mapper.points_old_to_new.get(&old_point_id) {
+                let _ = pg::one_non_transactional::<Edge2>(
+                    db_pool,
+                    "INSERT INTO edges2(from_type, to_type, from_deck_id, to_note_id) VALUES ($1::TEXT::deck_type, $2::TEXT::deck_type, $3, $4) RETURNING id",
+                    &[&"historic_point", &"note", &point_id, &note_id],
+                ).await?;
+            }
+        }
+
+        // note to subject
+        if edge.edge_type == 13 {
+            let note_id = edge.note_id.unwrap();
+            let old_subject_id = edge.subject_id.unwrap();
+            if let Some(subject_id) = mapper.subjects_old_to_new.get(&old_subject_id) {
+                let _ = pg::one_non_transactional::<Edge2>(
+                    db_pool,
+                    "INSERT INTO edges2(from_type, to_type, from_note_id, to_deck_id) VALUES ($1::TEXT::deck_type, $2::TEXT::deck_type, $3, $4) RETURNING id",
+                    &[&"note", &"subject", &note_id, &subject_id],
+                ).await?;
+            }
+        }
+
+        // article to note
+        if edge.edge_type == 41 {
+            let note_id = edge.note_id.unwrap();
+            let old_article_id = edge.article_id.unwrap();
+            if let Some(article_id) = mapper.articles_old_to_new.get(&old_article_id) {
+                let _ = pg::one_non_transactional::<Edge2>(
+                    db_pool,
+                    "INSERT INTO edges2(from_type, to_type, from_deck_id, to_note_id) VALUES ($1::TEXT::deck_type, $2::TEXT::deck_type, $3, $4) RETURNING id",
+                    &[&"article", &"note", &article_id, &note_id],
+                ).await?;
+            }
+        }
+
+        // person to note
+        if edge.edge_type == 21 {
+            let note_id = edge.note_id.unwrap();
+            let old_person_id = edge.historic_person_id.unwrap();
+            if let Some(person_id) = mapper.people_old_to_new.get(&old_person_id) {
+                let _ = pg::one_non_transactional::<Edge2>(
+                    db_pool,
+                    "INSERT INTO edges2(from_type, to_type, from_deck_id, to_note_id) VALUES ($1::TEXT::deck_type, $2::TEXT::deck_type, $3, $4) RETURNING id",
+                    &[&"historic_person", &"note", &person_id, &note_id],
+                ).await?;
+            }
+        }
+
+        // note to historic person
+        if edge.edge_type == 12 {
+            let note_id = edge.note_id.unwrap();
+            let old_person_id = edge.historic_person_id.unwrap();
+            if let Some(person_id) = mapper.people_old_to_new.get(&old_person_id) {
+                let _ = pg::one_non_transactional::<Edge2>(
+                    db_pool,
+                    "INSERT INTO edges2(from_type, to_type, from_note_id, to_deck_id) VALUES ($1::TEXT::deck_type, $2::TEXT::deck_type, $3, $4) RETURNING id",
+                    &[&"note", &"historic_person", &note_id, &person_id],
+                ).await?;
+            }
+        }
+    }
+
+    Ok(())
+}
