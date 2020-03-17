@@ -37,7 +37,7 @@ class Subject extends Component {
     };
 
     this.fetchSubject();
-//    this.fetchAutocompleteLists();
+    this.fetchAutocompleteLists();
   }
 
   fetchAutocompleteLists = () => {
@@ -270,8 +270,8 @@ class Subject extends Component {
           </div>
         </section>
         <SectionMentionedByPeople mentionedBy={ subject.mentioned_by_people }/>
-        {/* <SectionMentionedInSubjects mentionedIn={ subject.mentioned_in_subjects }/> */}
-        {/* <SectionMentionedInArticles mentionedIn={ subject.mentioned_in_articles }/> */}
+        <SectionMentionedInSubjects mentionedIn={ subject.mentioned_in_subjects }/>
+        <SectionMentionedInArticles mentionedIn={ subject.mentioned_in_articles }/>
       </article>
     );
   }

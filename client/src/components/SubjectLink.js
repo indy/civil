@@ -1,7 +1,7 @@
 import React from 'react';
 
 const SubjectLink = props => {
-  const url = `/subject/${props.id}`;
+  const url = `/subjects/${props.id}`;
   return (
     <a href={ url }>
       { props.name }

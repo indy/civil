@@ -1,7 +1,7 @@
 import React from 'react';
 
 const PersonLink = props => {
-  const url = `/person/${props.id}`;
+  const url = `/people/${props.id}`;
   return (
     <a href={ url }>
       { props.name }
