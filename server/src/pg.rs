@@ -124,6 +124,78 @@ where
     }
 }
 
+// queries the db, storing results in S then converts that into a T
+//
+pub async fn one_from<S, T>(
+    db_pool: &Pool,
+    sql_query: &str,
+    sql_params: &[&(dyn tokio_postgres::types::ToSql + std::marker::Sync)],
+) -> Result<T>
+where
+    S: FromTokioPostgresRow,
+    T: From<S>,
+{
+    let client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+
+    let _stmt = sql_query;
+    let _stmt = _stmt.replace("$table_fields", &S::sql_table_fields());
+    let stmt = match client.prepare(&_stmt).await {
+        Ok(stmt) => stmt,
+        Err(e) => {
+            error!("{}", e);
+            return Err(Error::from(e));
+        }
+    };
+
+    let res = client
+        .query(&stmt, sql_params)
+        .await?
+        .iter()
+        .map(|row| T::from(S::from_row_ref(row).unwrap()))
+        .collect::<Vec<T>>()
+        .pop()
+        .ok_or(Error::NotFound); // more applicable for SELECTs
+
+    match res {
+        Ok(_) => res,
+        Err(e) => {
+            error!("{}", e);
+            Err(e)
+        }
+    }
+}
+
+pub async fn many_from<S, T>(
+    db_pool: &Pool,
+    sql_query: &str,
+    sql_params: &[&(dyn tokio_postgres::types::ToSql + std::marker::Sync)],
+) -> Result<Vec<T>>
+where
+    S: FromTokioPostgresRow,
+    T: From<S>,
+{
+    let client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+
+    let _stmt = sql_query;
+    let _stmt = _stmt.replace("$table_fields", &S::sql_table_fields());
+    let stmt = match client.prepare(&_stmt).await {
+        Ok(stmt) => stmt,
+        Err(e) => {
+            error!("{}", e);
+            return Err(Error::from(e));
+        }
+    };
+
+    let vec = client
+        .query(&stmt, sql_params)
+        .await?
+        .iter()
+        .map(|row| T::from(S::from_row_ref(row).unwrap()))
+        .collect::<Vec<T>>();
+
+    Ok(vec)
+}
+
 pub async fn many_non_transactional<T>(
     db_pool: &Pool,
     sql_query: &str,

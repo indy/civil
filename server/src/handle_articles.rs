@@ -16,9 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
-use crate::handle_historic_people;
+use crate::handle_decks;
 use crate::handle_notes;
-use crate::handle_subjects;
 use crate::interop::IdParam;
 use crate::model::Model;
 use crate::note_type::NoteType;
@@ -29,9 +28,8 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 pub mod interop {
-    use crate::handle_historic_people::interop::PersonReference;
+    use crate::handle_decks::interop::DeckReference;
     use crate::handle_notes::interop::Note;
-    use crate::handle_subjects::interop::SubjectReference;
     use crate::interop::Key;
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -43,20 +41,14 @@ pub mod interop {
         pub notes: Option<Vec<Note>>,
         pub quotes: Option<Vec<Note>>,
 
-        pub people_referenced: Option<Vec<PersonReference>>,
-        pub subjects_referenced: Option<Vec<SubjectReference>>,
+        pub people_referenced: Option<Vec<DeckReference>>,
+        pub subjects_referenced: Option<Vec<DeckReference>>,
     }
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct CreateArticle {
         pub title: String,
         pub source: Option<String>,
-    }
-
-    #[derive(Debug, serde::Deserialize, serde::Serialize)]
-    pub struct ArticleMention {
-        pub article_id: Key,
-        pub article_title: String,
     }
 }
 
@@ -100,22 +92,29 @@ pub async fn get_article(
     let mut article = db::get_article(&db_pool, article_id, user_id).await?;
 
     let notes =
-        handle_notes::db::all_notes_for(&db_pool, Model::Article, article_id, NoteType::Note)
-            .await?;
+        handle_notes::db::all_notes_for_decked(&db_pool, article_id, NoteType::Note).await?;
     article.notes = Some(notes);
 
     let quotes =
-        handle_notes::db::all_notes_for(&db_pool, Model::Article, article_id, NoteType::Quote)
-            .await?;
+        handle_notes::db::all_notes_for_decked(&db_pool, article_id, NoteType::Quote).await?;
     article.quotes = Some(quotes);
 
-    let people_referenced =
-        handle_historic_people::db::get_people_referenced(&db_pool, Model::Article, article_id)
-            .await?;
+    let people_referenced = handle_decks::db::decks_referenced_decked(
+        &db_pool,
+        Model::HistoricPerson,
+        Model::Article,
+        article_id,
+    )
+    .await?;
     article.people_referenced = Some(people_referenced);
 
-    let subjects_referenced =
-        handle_subjects::db::get_subjects_referenced(&db_pool, Model::Article, article_id).await?;
+    let subjects_referenced = handle_decks::db::decks_referenced_decked(
+        &db_pool,
+        Model::Subject,
+        Model::Article,
+        article_id,
+    )
+    .await?;
     article.subjects_referenced = Some(subjects_referenced);
 
     Ok(HttpResponse::Ok().json(article))
@@ -149,12 +148,11 @@ pub async fn delete_article(
 
 pub mod db {
     use super::interop;
-    use crate::edge_type::{self, EdgeType};
     use crate::error::{Error, Result};
     use crate::handle_edges;
     use crate::handle_notes;
     use crate::interop::Key;
-    use crate::model::{model_to_foreign_key, Model};
+    use crate::model::Model;
     use crate::pg;
     use deadpool_postgres::{Client, Pool};
     use serde::{Deserialize, Serialize};
@@ -163,18 +161,11 @@ pub mod db {
     use tracing::info;
 
     #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-    #[pg_mapper(table = "articles")]
+    #[pg_mapper(table = "decks")]
     struct Article {
         id: Key,
-        title: String,
+        name: String,
         source: Option<String>,
-    }
-
-    #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-    #[pg_mapper(table = "articles")]
-    struct ArticleMention {
-        article_id: Key,
-        article_title: String,
     }
 
     // todo: should this from impl be in interop???
@@ -182,7 +173,7 @@ pub mod db {
         fn from(a: Article) -> interop::Article {
             interop::Article {
                 id: a.id,
-                title: a.title,
+                title: a.name,
                 source: a.source,
 
                 notes: None,
@@ -194,29 +185,13 @@ pub mod db {
         }
     }
 
-    impl From<&ArticleMention> for interop::ArticleMention {
-        fn from(sm: &ArticleMention) -> interop::ArticleMention {
-            interop::ArticleMention {
-                article_id: sm.article_id,
-                article_title: sm.article_title.to_string(),
-            }
-        }
-    }
-
     pub async fn get_articles(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Article>> {
-        let db_articles = pg::many_non_transactional::<Article>(
+        pg::many_from::<Article, interop::Article>(
             db_pool,
-            include_str!("sql/articles_all.sql"),
+            include_str!("sql/articles_all_decked.sql"),
             &[&user_id],
         )
-        .await?;
-
-        let articles: Vec<interop::Article> = db_articles
-            .into_iter()
-            .map(|db_article| interop::Article::from(db_article))
-            .collect();
-
-        Ok(articles)
+        .await
     }
 
     pub async fn get_article(
@@ -224,16 +199,12 @@ pub mod db {
         article_id: Key,
         user_id: Key,
     ) -> Result<interop::Article> {
-        let db_article = pg::one_non_transactional::<Article>(
+        pg::one_from::<Article, interop::Article>(
             db_pool,
-            include_str!("sql/articles_get.sql"),
-            &[&article_id, &user_id],
+            include_str!("sql/articles_get_decked.sql"),
+            &[&user_id, &article_id],
         )
-        .await?;
-
-        let article = interop::Article::from(db_article);
-
-        Ok(article)
+        .await
     }
 
     pub async fn create_article(
@@ -241,16 +212,12 @@ pub mod db {
         article: &interop::CreateArticle,
         user_id: Key,
     ) -> Result<interop::Article> {
-        let db_article = pg::one_non_transactional::<Article>(
+        pg::one_from::<Article, interop::Article>(
             db_pool,
-            include_str!("sql/articles_create.sql"),
+            include_str!("sql/articles_create_decked.sql"),
             &[&user_id, &article.title, &article.source],
         )
-        .await?;
-
-        let article = interop::Article::from(db_article);
-
-        Ok(article)
+        .await
     }
 
     pub async fn edit_article(
@@ -259,16 +226,12 @@ pub mod db {
         article_id: Key,
         user_id: Key,
     ) -> Result<interop::Article> {
-        let db_article = pg::one_non_transactional::<Article>(
+        pg::one_from::<Article, interop::Article>(
             db_pool,
-            include_str!("sql/articles_edit.sql"),
-            &[&article_id, &user_id, &article.title, &article.source],
+            include_str!("sql/articles_edit_decked.sql"),
+            &[&user_id, &article_id, &article.title, &article.source],
         )
-        .await?;
-
-        let article = interop::Article::from(db_article);
-
-        Ok(article)
+        .await
     }
 
     pub async fn delete_article(db_pool: &Pool, article_id: Key, user_id: Key) -> Result<()> {
@@ -285,31 +248,5 @@ pub mod db {
         tx.commit().await?;
 
         Ok(())
-    }
-
-    pub async fn articles_that_mention(
-        db_pool: &Pool,
-        model: Model,
-        id: Key,
-    ) -> Result<Vec<interop::ArticleMention>> {
-        let e1 = edge_type::note_to_model(model)?;
-        let foreign_key = model_to_foreign_key(model);
-
-        let stmt = include_str!("sql/articles_that_mention.sql");
-        let stmt = stmt.replace("$foreign_key", foreign_key);
-
-        let db_mentioned_in_articles = pg::many_non_transactional::<ArticleMention>(
-            db_pool,
-            &stmt,
-            &[&id, &e1, &EdgeType::ArticleToNote],
-        )
-        .await?;
-
-        let mentioned_in_articles = db_mentioned_in_articles
-            .iter()
-            .map(|a| interop::ArticleMention::from(a))
-            .collect();
-
-        Ok(mentioned_in_articles)
     }
 }

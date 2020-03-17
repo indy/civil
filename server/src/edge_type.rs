@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::error::{Error, Result};
 use crate::model::Model;
 use bytes::{BufMut, BytesMut};
 use tokio_postgres::types::{to_sql_checked, IsNull, ToSql, Type};
@@ -91,28 +90,6 @@ impl EdgeType {
             EdgeType::HistoricPointToArticle => (Model::HistoricPoint, Model::Article),
             EdgeType::HistoricPointToHistoricPoint => (Model::HistoricPoint, Model::HistoricPoint),
         }
-    }
-}
-
-pub fn model_to_note(model: Model) -> Result<EdgeType> {
-    match model {
-        Model::Note => Ok(EdgeType::NoteToNote),
-        Model::HistoricPerson => Ok(EdgeType::HistoricPersonToNote),
-        Model::Subject => Ok(EdgeType::SubjectToNote),
-        Model::Article => Ok(EdgeType::ArticleToNote),
-        Model::HistoricPoint => Ok(EdgeType::HistoricPointToNote),
-        _ => Err(Error::InvalidModelType(model)),
-    }
-}
-
-pub fn note_to_model(model: Model) -> Result<EdgeType> {
-    match model {
-        Model::Note => Ok(EdgeType::NoteToNote),
-        Model::HistoricPerson => Ok(EdgeType::NoteToHistoricPerson),
-        Model::Subject => Ok(EdgeType::NoteToSubject),
-        Model::Article => Ok(EdgeType::NoteToArticle),
-        Model::HistoricPoint => Ok(EdgeType::NoteToHistoricPoint),
-        _ => Err(Error::InvalidModelType(model)),
     }
 }
 

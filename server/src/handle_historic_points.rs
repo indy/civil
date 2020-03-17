@@ -16,9 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
-use crate::handle_historic_people;
+use crate::handle_decks;
 use crate::handle_notes;
-use crate::handle_subjects;
 use crate::interop::IdParam;
 use crate::model::Model;
 use crate::note_type::NoteType;
@@ -31,10 +30,9 @@ use tracing::info;
 
 mod interop {
     use crate::handle_dates::interop::{CreateDate, Date};
-    use crate::handle_historic_people::interop::PersonReference;
+    use crate::handle_decks::interop::DeckReference;
     use crate::handle_locations::interop::{CreateLocation, Location};
     use crate::handle_notes::interop::Note;
-    use crate::handle_subjects::interop::SubjectReference;
     use crate::interop::Key;
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -46,8 +44,8 @@ mod interop {
 
         pub notes: Option<Vec<Note>>,
 
-        pub people_referenced: Option<Vec<PersonReference>>,
-        pub subjects_referenced: Option<Vec<SubjectReference>>,
+        pub people_referenced: Option<Vec<DeckReference>>,
+        pub subjects_referenced: Option<Vec<DeckReference>>,
     }
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -97,19 +95,25 @@ pub async fn get_point(
     let point_id = params.id;
     let mut point = db::get_point(&db_pool, point_id, user_id).await?;
 
-    let notes =
-        handle_notes::db::all_notes_for(&db_pool, Model::HistoricPoint, point_id, NoteType::Note)
-            .await?;
+    let notes = handle_notes::db::all_notes_for_decked(&db_pool, point_id, NoteType::Note).await?;
     point.notes = Some(notes);
 
-    let people_referenced =
-        handle_historic_people::db::get_people_referenced(&db_pool, Model::HistoricPoint, point_id)
-            .await?;
+    let people_referenced = handle_decks::db::decks_referenced_decked(
+        &db_pool,
+        Model::HistoricPerson,
+        Model::HistoricPoint,
+        point_id,
+    )
+    .await?;
     point.people_referenced = Some(people_referenced);
 
-    let subjects_referenced =
-        handle_subjects::db::get_subjects_referenced(&db_pool, Model::HistoricPoint, point_id)
-            .await?;
+    let subjects_referenced = handle_decks::db::decks_referenced_decked(
+        &db_pool,
+        Model::Subject,
+        Model::HistoricPoint,
+        point_id,
+    )
+    .await?;
     point.subjects_referenced = Some(subjects_referenced);
 
     Ok(HttpResponse::Ok().json(point))
@@ -275,26 +279,21 @@ mod db {
     }
 
     pub async fn get_points(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Point>> {
-        let db_points = pg::many_non_transactional::<PointDerived>(
+        pg::many_from::<PointDerived, interop::Point>(
             db_pool,
-            include_str!("sql/historic_points_all.sql"),
+            include_str!("sql/historic_points_all_decked.sql"),
             &[&user_id],
         )
-        .await?;
-
-        let points: Vec<interop::Point> = db_points
-            .into_iter()
-            .map(|db_point| interop::Point::from(db_point))
-            .collect();
-
-        Ok(points)
+        .await
     }
 
     pub async fn get_point(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<interop::Point> {
-        let db_point = get_db_point(db_pool, point_id, user_id).await?;
-        let point = interop::Point::from(db_point);
-
-        Ok(point)
+        pg::one_from::<PointDerived, interop::Point>(
+            db_pool,
+            include_str!("sql/historic_points_get_derived_decked.sql"),
+            &[&user_id, &point_id],
+        )
+        .await
     }
 
     pub async fn edit_point(
@@ -339,7 +338,12 @@ mod db {
     }
 
     pub async fn delete_point(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<()> {
-        let point = get_db_point(db_pool, point_id, user_id).await?;
+        let point = pg::one_non_transactional::<PointDerived>(
+            db_pool,
+            include_str!("sql/historic_points_get_derived_decked.sql"),
+            &[&user_id, &point_id],
+        )
+        .await?;
 
         let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
         let tx = client.transaction().await?;
@@ -361,16 +365,5 @@ mod db {
         tx.commit().await?;
 
         Ok(())
-    }
-
-    async fn get_db_point(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<PointDerived> {
-        let db_point = pg::one_non_transactional::<PointDerived>(
-            db_pool,
-            include_str!("sql/historic_points_get_derived.sql"),
-            &[&point_id, &user_id],
-        )
-        .await?;
-
-        Ok(db_point)
     }
 }

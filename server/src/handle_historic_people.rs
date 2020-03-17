@@ -16,9 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
-use crate::handle_articles;
+use crate::handle_decks;
 use crate::handle_notes;
-use crate::handle_subjects;
 use crate::interop::IdParam;
 use crate::model::Model;
 use crate::note_type::NoteType;
@@ -30,11 +29,10 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 pub mod interop {
-    use crate::handle_articles::interop::ArticleMention;
     use crate::handle_dates::interop::{CreateDate, Date};
+    use crate::handle_decks::interop::{DeckMention, DeckReference};
     use crate::handle_locations::interop::{CreateLocation, Location};
     use crate::handle_notes::interop::Note;
-    use crate::handle_subjects::interop::{SubjectMention, SubjectReference};
     use crate::interop::Key;
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -49,12 +47,12 @@ pub mod interop {
         pub notes: Option<Vec<Note>>,
         pub quotes: Option<Vec<Note>>,
 
-        pub people_referenced: Option<Vec<PersonReference>>,
-        pub subjects_referenced: Option<Vec<SubjectReference>>,
+        pub people_referenced: Option<Vec<DeckReference>>,
+        pub subjects_referenced: Option<Vec<DeckReference>>,
 
-        pub mentioned_by_people: Option<Vec<PersonMention>>,
-        pub mentioned_in_subjects: Option<Vec<SubjectMention>>,
-        pub mentioned_in_articles: Option<Vec<ArticleMention>>,
+        pub mentioned_by_people: Option<Vec<DeckMention>>,
+        pub mentioned_in_subjects: Option<Vec<DeckMention>>,
+        pub mentioned_in_articles: Option<Vec<DeckMention>>,
     }
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -64,19 +62,6 @@ pub mod interop {
         pub birth_location: CreateLocation,
         pub death_date: Option<CreateDate>,
         pub death_location: Option<CreateLocation>,
-    }
-
-    #[derive(Debug, serde::Deserialize, serde::Serialize)]
-    pub struct PersonReference {
-        pub note_id: Key,
-        pub person_id: Key,
-        pub person_name: String,
-    }
-
-    #[derive(Debug, serde::Deserialize, serde::Serialize)]
-    pub struct PersonMention {
-        pub person_id: Key,
-        pub person_name: String,
     }
 }
 
@@ -122,41 +107,59 @@ pub async fn get_person(
     let person_id = params.id;
     let mut person = db::get_person(&db_pool, person_id, user_id).await?;
 
-    let notes =
-        handle_notes::db::all_notes_for(&db_pool, Model::HistoricPerson, person_id, NoteType::Note)
-            .await?;
+    let notes = handle_notes::db::all_notes_for_decked(&db_pool, person_id, NoteType::Note).await?;
     person.notes = Some(notes);
 
-    let quotes = handle_notes::db::all_notes_for(
-        &db_pool,
-        Model::HistoricPerson,
-        person_id,
-        NoteType::Quote,
-    )
-    .await?;
+    let quotes =
+        handle_notes::db::all_notes_for_decked(&db_pool, person_id, NoteType::Quote).await?;
     person.quotes = Some(quotes);
 
-    let people_referenced =
-        db::get_people_referenced(&db_pool, Model::HistoricPerson, person_id).await?;
+    let people_referenced = handle_decks::db::decks_referenced_decked(
+        &db_pool,
+        Model::HistoricPerson,
+        Model::HistoricPerson,
+        person_id,
+    )
+    .await?;
     person.people_referenced = Some(people_referenced);
 
-    let subjects_referenced =
-        handle_subjects::db::get_subjects_referenced(&db_pool, Model::HistoricPerson, person_id)
-            .await?;
+    let subjects_referenced = handle_decks::db::decks_referenced_decked(
+        &db_pool,
+        Model::Subject,
+        Model::HistoricPerson,
+        person_id,
+    )
+    .await?;
     person.subjects_referenced = Some(subjects_referenced);
 
-    let mentioned_by_people =
-        db::people_that_mention(&db_pool, Model::HistoricPerson, person_id).await?;
+    // all the people that mention this subject
+    let mentioned_by_people = handle_decks::db::decks_that_mention_decked(
+        &db_pool,
+        Model::HistoricPerson,
+        Model::HistoricPerson,
+        person_id,
+    )
+    .await?;
     person.mentioned_by_people = Some(mentioned_by_people);
 
-    let mentioned_in_subjects =
-        handle_subjects::db::subjects_that_mention(&db_pool, Model::HistoricPerson, person_id)
-            .await?;
+    // all the subjects that mention this subject
+    let mentioned_in_subjects = handle_decks::db::decks_that_mention_decked(
+        &db_pool,
+        Model::Subject,
+        Model::HistoricPerson,
+        person_id,
+    )
+    .await?;
     person.mentioned_in_subjects = Some(mentioned_in_subjects);
 
-    let mentioned_in_articles =
-        handle_articles::db::articles_that_mention(&db_pool, Model::HistoricPerson, person_id)
-            .await?;
+    // all the articles that mention this subject
+    let mentioned_in_articles = handle_decks::db::decks_that_mention_decked(
+        &db_pool,
+        Model::Article,
+        Model::HistoricPerson,
+        person_id,
+    )
+    .await?;
     person.mentioned_in_articles = Some(mentioned_in_articles);
 
     Ok(HttpResponse::Ok().json(person))
@@ -192,36 +195,19 @@ pub async fn delete_person(
 
 pub mod db {
     use super::interop;
-    use crate::edge_type::{self, EdgeType};
     use crate::error::{Error, Result};
     use crate::handle_dates;
     use crate::handle_edges;
     use crate::handle_locations;
     use crate::handle_notes;
     use crate::interop::Key;
-    use crate::model::{model_to_foreign_key, Model};
+    use crate::model::Model;
     use crate::pg;
     use deadpool_postgres::{Client, Pool};
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
     #[allow(unused_imports)]
     use tracing::{error, info};
-
-    #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-    #[pg_mapper(table = "historic_people")]
-    struct PersonReference {
-        note_id: Key,
-        person_id: Key,
-        person_name: String,
-    }
-
-    #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-    #[pg_mapper(table = "historic_people")]
-    struct PersonMention {
-        //        mention_count: i32,
-        person_id: Key,
-        person_name: String,
-    }
 
     // PersonDerived contains additional information from tables other than historic_people
     // a interop::Person can be created just from a db::PersonDerived
@@ -274,26 +260,6 @@ pub mod db {
         birth_location_id: Key,
         death_date_id: Option<Key>,
         death_location_id: Option<Key>,
-    }
-
-    impl From<&PersonReference> for interop::PersonReference {
-        fn from(pr: &PersonReference) -> interop::PersonReference {
-            interop::PersonReference {
-                note_id: pr.note_id,
-                person_id: pr.person_id,
-                person_name: pr.person_name.to_string(),
-            }
-        }
-    }
-
-    impl From<&PersonMention> for interop::PersonMention {
-        fn from(pm: &PersonMention) -> interop::PersonMention {
-            interop::PersonMention {
-                //                mention_count: pm.mention_count,
-                person_id: pm.person_id,
-                person_name: pm.person_name.to_string(),
-            }
-        }
     }
 
     impl From<PersonDerived> for interop::Person {
@@ -421,19 +387,12 @@ pub mod db {
     }
 
     pub async fn get_people(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Person>> {
-        let db_people = pg::many_non_transactional::<PersonDerived>(
+        pg::many_from::<PersonDerived, interop::Person>(
             db_pool,
-            include_str!("sql/historic_people_all_derived.sql"),
+            include_str!("sql/historic_people_all_derived_decked.sql"),
             &[&user_id],
         )
-        .await?;
-
-        let people: Vec<interop::Person> = db_people
-            .into_iter()
-            .map(|db_person| interop::Person::from(db_person))
-            .collect();
-
-        Ok(people)
+        .await
     }
 
     pub async fn get_person(
@@ -441,16 +400,12 @@ pub mod db {
         person_id: Key,
         user_id: Key,
     ) -> Result<interop::Person> {
-        let db_person = pg::one_non_transactional::<PersonDerived>(
+        pg::one_from::<PersonDerived, interop::Person>(
             db_pool,
-            include_str!("sql/historic_people_get_derived.sql"),
-            &[&person_id, &user_id],
+            include_str!("sql/historic_people_get_derived_decked.sql"),
+            &[&user_id, &person_id],
         )
-        .await?;
-
-        let person = interop::Person::from(db_person);
-
-        Ok(person)
+        .await
     }
 
     pub async fn edit_person(
@@ -499,7 +454,7 @@ pub mod db {
 
         let _db_person = pg::one::<Person>(
             &tx,
-            include_str!("sql/historic_people_edit.sql"),
+            include_str!("sql/historic_people_edit_decked.sql"),
             &[&user_id, &person_id, &updated_person.name],
         )
         .await?;
@@ -542,57 +497,5 @@ pub mod db {
         tx.commit().await?;
 
         Ok(())
-    }
-
-    pub async fn get_people_referenced(
-        db_pool: &Pool,
-        model: Model,
-        id: Key,
-    ) -> Result<Vec<interop::PersonReference>> {
-        let e1 = edge_type::model_to_note(model)?;
-        let foreign_key = model_to_foreign_key(model);
-
-        let stmt = include_str!("sql/historic_people_referenced.sql");
-        let stmt = stmt.replace("$foreign_key", foreign_key);
-
-        let db_people_referenced = pg::many_non_transactional::<PersonReference>(
-            db_pool,
-            &stmt,
-            &[&id, &e1, &EdgeType::NoteToHistoricPerson],
-        )
-        .await?;
-
-        let people_referenced = db_people_referenced
-            .iter()
-            .map(|p| interop::PersonReference::from(p))
-            .collect();
-
-        Ok(people_referenced)
-    }
-
-    pub async fn people_that_mention(
-        db_pool: &Pool,
-        model: Model,
-        id: Key,
-    ) -> Result<Vec<interop::PersonMention>> {
-        let e1 = edge_type::note_to_model(model)?;
-        let foreign_key = model_to_foreign_key(model);
-
-        let stmt = include_str!("sql/historic_people_that_mention.sql");
-        let stmt = stmt.replace("$foreign_key", foreign_key);
-
-        let db_mentioned_by_people = pg::many_non_transactional::<PersonMention>(
-            db_pool,
-            &stmt,
-            &[&id, &e1, &EdgeType::HistoricPersonToNote],
-        )
-        .await?;
-
-        let mentioned_by_people = db_mentioned_by_people
-            .iter()
-            .map(|m| interop::PersonMention::from(m))
-            .collect();
-
-        Ok(mentioned_by_people)
     }
 }

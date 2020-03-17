@@ -16,8 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
-use crate::handle_articles;
-use crate::handle_historic_people;
+use crate::handle_decks;
 use crate::handle_notes;
 use crate::interop::IdParam;
 use crate::model::Model;
@@ -29,8 +28,8 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 pub mod interop {
-    use crate::handle_articles::interop::ArticleMention;
-    use crate::handle_historic_people::interop::{PersonMention, PersonReference};
+    use crate::handle_decks::interop::DeckMention;
+    use crate::handle_decks::interop::DeckReference;
     use crate::handle_notes::interop::Note;
     use crate::interop::Key;
 
@@ -42,30 +41,17 @@ pub mod interop {
         pub notes: Option<Vec<Note>>,
         pub quotes: Option<Vec<Note>>,
 
-        pub people_referenced: Option<Vec<PersonReference>>,
-        pub subjects_referenced: Option<Vec<SubjectReference>>,
+        pub people_referenced: Option<Vec<DeckReference>>,
+        pub subjects_referenced: Option<Vec<DeckReference>>,
 
-        pub mentioned_by_people: Option<Vec<PersonMention>>,
-        pub mentioned_in_subjects: Option<Vec<SubjectMention>>,
-        pub mentioned_in_articles: Option<Vec<ArticleMention>>,
+        pub mentioned_by_people: Option<Vec<DeckMention>>,
+        pub mentioned_in_subjects: Option<Vec<DeckMention>>,
+        pub mentioned_in_articles: Option<Vec<DeckMention>>,
     }
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct CreateSubject {
         pub name: String,
-    }
-
-    #[derive(Debug, serde::Deserialize, serde::Serialize)]
-    pub struct SubjectReference {
-        pub note_id: Key,
-        pub subject_id: Key,
-        pub subject_name: String,
-    }
-
-    #[derive(Debug, serde::Deserialize, serde::Serialize)]
-    pub struct SubjectMention {
-        pub subject_id: Key,
-        pub subject_name: String,
     }
 }
 
@@ -109,35 +95,59 @@ pub async fn get_subject(
     let mut subject = db::get_subject(&db_pool, subject_id, user_id).await?;
 
     let notes =
-        handle_notes::db::all_notes_for(&db_pool, Model::Subject, subject_id, NoteType::Note)
-            .await?;
+        handle_notes::db::all_notes_for_decked(&db_pool, subject_id, NoteType::Note).await?;
     subject.notes = Some(notes);
 
     let quotes =
-        handle_notes::db::all_notes_for(&db_pool, Model::Subject, subject_id, NoteType::Quote)
-            .await?;
+        handle_notes::db::all_notes_for_decked(&db_pool, subject_id, NoteType::Quote).await?;
     subject.quotes = Some(quotes);
 
-    let people_referenced =
-        handle_historic_people::db::get_people_referenced(&db_pool, Model::Subject, subject_id)
-            .await?;
+    let people_referenced = handle_decks::db::decks_referenced_decked(
+        &db_pool,
+        Model::HistoricPerson,
+        Model::Subject,
+        subject_id,
+    )
+    .await?;
     subject.people_referenced = Some(people_referenced);
 
-    let subjects_referenced =
-        db::get_subjects_referenced(&db_pool, Model::Subject, subject_id).await?;
+    let subjects_referenced = handle_decks::db::decks_referenced_decked(
+        &db_pool,
+        Model::Subject,
+        Model::Subject,
+        subject_id,
+    )
+    .await?;
     subject.subjects_referenced = Some(subjects_referenced);
 
-    let mentioned_by_people =
-        handle_historic_people::db::people_that_mention(&db_pool, Model::Subject, subject_id)
-            .await?;
+    // all the people that mention this subject
+    let mentioned_by_people = handle_decks::db::decks_that_mention_decked(
+        &db_pool,
+        Model::HistoricPerson,
+        Model::Subject,
+        subject_id,
+    )
+    .await?;
     subject.mentioned_by_people = Some(mentioned_by_people);
 
-    let mentioned_in_subjects =
-        db::subjects_that_mention(&db_pool, Model::Subject, subject_id).await?;
+    // all the subjects that mention this subject
+    let mentioned_in_subjects = handle_decks::db::decks_that_mention_decked(
+        &db_pool,
+        Model::Subject,
+        Model::Subject,
+        subject_id,
+    )
+    .await?;
     subject.mentioned_in_subjects = Some(mentioned_in_subjects);
 
-    let mentioned_in_articles =
-        handle_articles::db::articles_that_mention(&db_pool, Model::Subject, subject_id).await?;
+    // all the articles that mention this subject
+    let mentioned_in_articles = handle_decks::db::decks_that_mention_decked(
+        &db_pool,
+        Model::Article,
+        Model::Subject,
+        subject_id,
+    )
+    .await?;
     subject.mentioned_in_articles = Some(mentioned_in_articles);
 
     Ok(HttpResponse::Ok().json(subject))
@@ -171,12 +181,11 @@ pub async fn delete_subject(
 
 pub mod db {
     use super::interop;
-    use crate::edge_type::{self, EdgeType};
     use crate::error::{Error, Result};
     use crate::handle_edges;
     use crate::handle_notes;
     use crate::interop::Key;
-    use crate::model::{model_to_foreign_key, Model};
+    use crate::model::Model;
     use crate::pg;
     use deadpool_postgres::{Client, Pool};
     use serde::{Deserialize, Serialize};
@@ -185,28 +194,12 @@ pub mod db {
     use tracing::info;
 
     #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-    #[pg_mapper(table = "subjects")]
+    #[pg_mapper(table = "decks")]
     struct Subject {
         id: Key,
         name: String,
     }
 
-    #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-    #[pg_mapper(table = "subjects")]
-    struct SubjectReference {
-        note_id: Key,
-        subject_id: Key,
-        subject_name: String,
-    }
-
-    #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-    #[pg_mapper(table = "subjects")]
-    struct SubjectMention {
-        subject_id: Key,
-        subject_name: String,
-    }
-
-    // todo: should this from impl be in interop???
     impl From<Subject> for interop::Subject {
         fn from(s: Subject) -> interop::Subject {
             interop::Subject {
@@ -226,39 +219,13 @@ pub mod db {
         }
     }
 
-    impl From<&SubjectReference> for interop::SubjectReference {
-        fn from(s: &SubjectReference) -> interop::SubjectReference {
-            interop::SubjectReference {
-                note_id: s.note_id,
-                subject_id: s.subject_id,
-                subject_name: s.subject_name.to_string(),
-            }
-        }
-    }
-
-    impl From<&SubjectMention> for interop::SubjectMention {
-        fn from(sm: &SubjectMention) -> interop::SubjectMention {
-            interop::SubjectMention {
-                subject_id: sm.subject_id,
-                subject_name: sm.subject_name.to_string(),
-            }
-        }
-    }
-
     pub async fn get_subjects(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Subject>> {
-        let db_subjects = pg::many_non_transactional::<Subject>(
+        pg::many_from::<Subject, interop::Subject>(
             db_pool,
-            include_str!("sql/subjects_all.sql"),
+            include_str!("sql/subjects_all_decked.sql"),
             &[&user_id],
         )
-        .await?;
-
-        let subjects: Vec<interop::Subject> = db_subjects
-            .into_iter()
-            .map(|db_subject| interop::Subject::from(db_subject))
-            .collect();
-
-        Ok(subjects)
+        .await
     }
 
     pub async fn get_subject(
@@ -266,16 +233,12 @@ pub mod db {
         subject_id: Key,
         user_id: Key,
     ) -> Result<interop::Subject> {
-        let db_subject = pg::one_non_transactional::<Subject>(
+        pg::one_from::<Subject, interop::Subject>(
             db_pool,
-            include_str!("sql/subjects_get.sql"),
-            &[&subject_id, &user_id],
+            include_str!("sql/subjects_get_decked.sql"),
+            &[&user_id, &subject_id],
         )
-        .await?;
-
-        let subject = interop::Subject::from(db_subject);
-
-        Ok(subject)
+        .await
     }
 
     pub async fn create_subject(
@@ -283,16 +246,12 @@ pub mod db {
         subject: &interop::CreateSubject,
         user_id: Key,
     ) -> Result<interop::Subject> {
-        let db_subject = pg::one_non_transactional::<Subject>(
+        pg::one_from::<Subject, interop::Subject>(
             db_pool,
-            include_str!("sql/subjects_create.sql"),
+            include_str!("sql/subjects_create_decked.sql"),
             &[&user_id, &subject.name],
         )
-        .await?;
-
-        let subject = interop::Subject::from(db_subject);
-
-        Ok(subject)
+        .await
     }
 
     pub async fn edit_subject(
@@ -301,16 +260,12 @@ pub mod db {
         subject_id: Key,
         user_id: Key,
     ) -> Result<interop::Subject> {
-        let db_subject = pg::one_non_transactional::<Subject>(
+        pg::one_from::<Subject, interop::Subject>(
             db_pool,
-            include_str!("sql/subjects_edit.sql"),
-            &[&subject_id, &user_id, &subject.name],
+            include_str!("sql/subjects_edit_decked.sql"),
+            &[&user_id, &subject_id, &subject.name],
         )
-        .await?;
-
-        let subject = interop::Subject::from(db_subject);
-
-        Ok(subject)
+        .await
     }
 
     pub async fn delete_subject(db_pool: &Pool, subject_id: Key, user_id: Key) -> Result<()> {
@@ -326,59 +281,5 @@ pub mod db {
         tx.commit().await?;
 
         Ok(())
-    }
-
-    // --------------------------------------------------------------------------------
-
-    pub async fn get_subjects_referenced(
-        db_pool: &Pool,
-        model: Model,
-        id: Key,
-    ) -> Result<Vec<interop::SubjectReference>> {
-        let e1 = edge_type::model_to_note(model)?;
-        let foreign_key = model_to_foreign_key(model);
-
-        let stmt = include_str!("sql/subjects_referenced.sql");
-        let stmt = stmt.replace("$foreign_key", foreign_key);
-
-        let db_subjects_referenced = pg::many_non_transactional::<SubjectReference>(
-            db_pool,
-            &stmt,
-            &[&id, &e1, &EdgeType::NoteToSubject],
-        )
-        .await?;
-
-        let subjects_referenced = db_subjects_referenced
-            .iter()
-            .map(|p| interop::SubjectReference::from(p))
-            .collect();
-
-        Ok(subjects_referenced)
-    }
-
-    pub async fn subjects_that_mention(
-        db_pool: &Pool,
-        model: Model,
-        id: Key,
-    ) -> Result<Vec<interop::SubjectMention>> {
-        let e1 = edge_type::note_to_model(model)?;
-        let foreign_key = model_to_foreign_key(model);
-
-        let stmt = include_str!("sql/subjects_that_mention.sql");
-        let stmt = stmt.replace("$foreign_key", foreign_key);
-
-        let db_mentioned_in_subjects = pg::many_non_transactional::<SubjectMention>(
-            db_pool,
-            &stmt,
-            &[&id, &e1, &EdgeType::SubjectToNote],
-        )
-        .await?;
-
-        let mentioned_in_subjects = db_mentioned_in_subjects
-            .iter()
-            .map(|s| interop::SubjectMention::from(s))
-            .collect();
-
-        Ok(mentioned_in_subjects)
     }
 }

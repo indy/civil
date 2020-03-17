@@ -56,6 +56,20 @@ pub fn model_to_foreign_key(model: Model) -> &'static str {
     }
 }
 
+pub fn model_to_node_kind(model: Model) -> &'static str {
+    match model {
+        Model::Note => "note",
+        Model::HistoricPerson => "historic_person",
+        Model::Subject => "subject",
+        Model::Article => "article",
+        Model::HistoricPoint => "historic_point",
+        // these won't be used?
+        Model::Date => "model_to_node_kind_wtf!",
+        Model::Location => "model_to_node_kind_wtf!",
+        Model::Edge => "model_to_node_kind_wtf!",
+    }
+}
+
 pub fn model_to_table_name(model: Model) -> &'static str {
     match model {
         Model::Note => "notes",

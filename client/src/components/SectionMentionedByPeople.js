@@ -5,9 +5,9 @@ class SectionMentionedByPeople extends Component {
 
   buildMentionedByPerson = (mentionedBy) => {
     return (
-      <li key={ mentionedBy.person_id }>
-        <PersonLink id={ mentionedBy.person_id }
-                    name={ mentionedBy.person_name }/>
+      <li key={ mentionedBy.id }>
+        <PersonLink id={ mentionedBy.id }
+                    name={ mentionedBy.name }/>
       </li>
     );
   }

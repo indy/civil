@@ -5,9 +5,9 @@ class SectionMentionedInArticles extends Component {
 
   buildMentionedInArticle = (mentionedIn) => {
     return (
-      <li key={ mentionedIn.article_id }>
-        <ArticleLink id={ mentionedIn.article_id }
-                     title={ mentionedIn.article_title }/>
+      <li key={ mentionedIn.id }>
+        <ArticleLink id={ mentionedIn.id }
+                     title={ mentionedIn.name }/>
       </li>
     );
   }

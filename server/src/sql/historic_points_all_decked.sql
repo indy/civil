@@ -1,6 +1,6 @@
 SELECT d.exact_date as sort_date,
        p.id,
-       p.title,
+       p.name as title,
 
        p.date_id,
        d.textual as date_textual,
@@ -14,14 +14,14 @@ SELECT d.exact_date as sort_date,
        l.longitude as location_longitude,
        l.latitude as location_latitude,
        l.fuzz as location_fuzz
-FROM historic_points p
+FROM decks p
 LEFT OUTER JOIN dates d ON p.date_id = d.id
 LEFT OUTER JOIN locations l on p.location_id = l.id
-WHERE d.exact_date IS NOT NULL AND p.user_id = $1
+WHERE d.exact_date IS NOT NULL AND p.user_id = $1 and p.kind = 'historic_point'
 UNION ALL
 SELECT d.lower_date as sort_date,
        p.id,
-       p.title,
+       p.name as title,
 
        p.date_id,
        d.textual as date_textual,
@@ -35,8 +35,8 @@ SELECT d.lower_date as sort_date,
        l.longitude as location_longitude,
        l.latitude as location_latitude,
        l.fuzz as location_fuzz
-FROM historic_points p
+FROM decks p
 LEFT OUTER JOIN dates d ON p.date_id = d.id
 LEFT OUTER JOIN locations l on p.location_id = l.id
-WHERE d.lower_date IS NOT NULL AND p.user_id = $1
+WHERE d.lower_date IS NOT NULL AND p.user_id = $1 and p.kind = 'historic_point'
 ORDER BY 1;

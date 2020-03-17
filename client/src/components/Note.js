@@ -126,8 +126,8 @@ class Note extends Component {
   buildReferencedSubjects = () => {
     const referenced = this.props.referencedSubjects.map(s => {
       return (
-        <span className="marginnote" key={ s.subject_id }>
-          <SubjectLink id={ s.subject_id } name={ s.subject_name }/>
+        <span className="marginnote" key={ s.id }>
+          <SubjectLink id={ s.id } name={ s.name }/>
         </span>
       );
     });
@@ -138,8 +138,8 @@ class Note extends Component {
   buildReferencedPeople = () => {
     const referenced = this.props.referencedPeople.map(p => {
       return (
-        <span className="marginnote" key={ p.person_id }>
-          <PersonLink id={ p.person_id } name={ p.person_name }/>
+        <span className="marginnote" key={ p.id }>
+          <PersonLink id={ p.id } name={ p.name }/>
         </span>
       );
     });
