@@ -1,3 +1,4 @@
 SELECT id, name
-FROM $table_name
+FROM decks
+WHERE kind = '$node_kind'::node_kind
 ORDER BY name

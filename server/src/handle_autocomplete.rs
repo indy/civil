@@ -55,6 +55,7 @@ pub async fn get_subjects(
 
 pub mod db {
     use super::interop;
+    use crate::model::{model_to_node_kind, Model};
     use crate::error::Result;
     use crate::interop::Key;
     use crate::pg;
@@ -65,21 +66,14 @@ pub mod db {
     use tracing::info;
 
     #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-    #[pg_mapper(table = "historic_people")]
-    struct Person {
+    #[pg_mapper(table = "decks")]
+    struct Autocomplete {
         id: Key,
         name: String,
     }
 
-    #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-    #[pg_mapper(table = "subjects")]
-    struct Subject {
-        id: Key,
-        name: String,
-    }
-
-    impl From<&Person> for interop::Autocomplete {
-        fn from(p: &Person) -> interop::Autocomplete {
+    impl From<Autocomplete> for interop::Autocomplete {
+        fn from(p: Autocomplete) -> interop::Autocomplete {
             interop::Autocomplete {
                 id: p.id,
                 name: p.name.to_string(),
@@ -87,40 +81,18 @@ pub mod db {
         }
     }
 
-    impl From<&Subject> for interop::Autocomplete {
-        fn from(s: &Subject) -> interop::Autocomplete {
-            interop::Autocomplete {
-                id: s.id,
-                name: s.name.to_string(),
-            }
-        }
-    }
-
     pub async fn get_people(db_pool: &Pool) -> Result<Vec<interop::Autocomplete>> {
-        let stmt = include_str!("sql/autocomplete.sql");
-        let stmt = stmt.replace("$table_name", "historic_people");
-
-        let db_people = pg::many_non_transactional::<Person>(db_pool, &stmt, &[]).await?;
-
-        let autocomplete: Vec<interop::Autocomplete> = db_people
-            .iter()
-            .map(|p| interop::Autocomplete::from(p))
-            .collect();
-
-        Ok(autocomplete)
+        get_autocomplete(db_pool, Model::HistoricPerson).await
     }
 
     pub async fn get_subjects(db_pool: &Pool) -> Result<Vec<interop::Autocomplete>> {
+        get_autocomplete(db_pool, Model::Subject).await
+    }
+
+    async fn get_autocomplete(db_pool: &Pool, kind: Model) -> Result<Vec<interop::Autocomplete>> {
         let stmt = include_str!("sql/autocomplete.sql");
-        let stmt = stmt.replace("$table_name", "subjects");
+        let stmt = stmt.replace("$node_kind", model_to_node_kind(kind));
 
-        let db_subjects = pg::many_non_transactional::<Subject>(db_pool, &stmt, &[]).await?;
-
-        let autocomplete: Vec<interop::Autocomplete> = db_subjects
-            .iter()
-            .map(|p| interop::Autocomplete::from(p))
-            .collect();
-
-        Ok(autocomplete)
+        pg::many_from::<Autocomplete, interop::Autocomplete>(db_pool, &stmt, &[]).await
     }
 }
