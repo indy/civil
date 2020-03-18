@@ -1,6 +1,6 @@
 SELECT d.exact_date as sort_date,
        p.id,
-       p.name as title,
+       p.name,
 
        p.date_id,
        d.textual as date_textual,
@@ -21,7 +21,7 @@ WHERE d.exact_date IS NOT NULL AND p.user_id = $1 and p.kind = 'historic_point'
 UNION ALL
 SELECT d.lower_date as sort_date,
        p.id,
-       p.name as title,
+       p.name,
 
        p.date_id,
        d.textual as date_textual,

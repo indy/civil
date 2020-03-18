@@ -58,6 +58,7 @@ pub mod interop {
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
     pub struct CreatePerson {
         pub name: String,
+        // todo: there should be an age parameter here?
         pub birth_date: CreateDate,
         pub birth_location: CreateLocation,
         pub death_date: Option<CreateDate>,
@@ -200,6 +201,7 @@ pub mod db {
     use crate::handle_edges;
     use crate::handle_locations;
     use crate::handle_notes;
+    use crate::handle_timespans;
     use crate::interop::Key;
     use crate::model::Model;
     use crate::pg;
@@ -213,7 +215,7 @@ pub mod db {
     // a interop::Person can be created just from a db::PersonDerived
     //
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
-    #[pg_mapper(table = "historic_people")]
+    #[pg_mapper(table = "decks")]
     struct PersonDerived {
         id: Key,
         name: String,
@@ -250,16 +252,18 @@ pub mod db {
     // a interop::Person can be created from a db::PersonDerived + extra date and location information
     //
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
-    #[pg_mapper(table = "historic_people")]
+    #[pg_mapper(table = "decks")]
     struct Person {
         id: Key,
         name: String,
-        age: Option<String>,
-
-        birth_date_id: Key,
-        birth_location_id: Key,
-        death_date_id: Option<Key>,
-        death_location_id: Option<Key>,
+        // age: Option<String>,
+        timespan_id: Option<Key>,
+        location_id: Option<Key>,
+        location2_id: Option<Key>,
+        // birth_date_id: Key,
+        // birth_location_id: Key,
+        // death_date_id: Option<Key>,
+        // death_location_id: Option<Key>,
     }
 
     impl From<PersonDerived> for interop::Person {
@@ -315,6 +319,7 @@ pub mod db {
         person: &interop::CreatePerson,
         user_id: Key,
     ) -> Result<interop::Person> {
+        info!("db::create_person");
         let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
         let tx = client.transaction().await?;
 
@@ -336,6 +341,8 @@ pub mod db {
             death_date_id = None;
         };
 
+        info!("db::create_person 2");
+
         let death_location: Option<handle_locations::interop::Location>;
         let death_location_id: Option<Key>;
         if let Some(location) = &person.death_location {
@@ -348,23 +355,31 @@ pub mod db {
         };
 
         let age: Option<String> = None; // todo: calculate age
+        info!("db::create_person 3");
+
+        // create timespan
+        let timespan_id =
+            handle_timespans::db::create_timespan(&tx, Some(birth_date_id), death_date_id, age)
+                .await?;
+
+        info!("db::create_person 4");
 
         let db_person = pg::one::<Person>(
             &tx,
-            include_str!("sql/historic_people_create.sql"),
+            include_str!("sql/historic_people_create_decked.sql"),
             &[
                 &user_id,
                 &person.name,
-                &age,
-                &birth_date_id,
+                &timespan_id,
                 &birth_location_id,
-                &death_date_id,
-                &death_location_id,
+                &death_location_id, // saved in location2
             ],
         )
         .await?;
+        info!("db::create_person 5");
 
         tx.commit().await?;
+        info!("db::create_person 6");
 
         Ok(interop::Person {
             id: db_person.id,
@@ -480,15 +495,15 @@ pub mod db {
         // deleting notes require valid edge information, so delete notes before edges
         //
         handle_notes::db::delete_all_notes_for(&tx, Model::HistoricPerson, person_id).await?;
-        handle_edges::db::delete_all_edges_for(&tx, Model::HistoricPerson, person_id).await?;
+        handle_edges::db::delete_all_edges_for_deck(&tx, Model::HistoricPerson, person_id).await?;
 
-        handle_dates::db::delete_date(&tx, person.birth_date_id).await?;
-        handle_locations::db::delete_location(&tx, person.birth_location_id).await?;
-
-        if let Some(id) = person.death_date_id {
-            handle_dates::db::delete_date(&tx, id).await?;
+        if let Some(id) = person.timespan_id {
+            handle_timespans::db::delete_timespan(&tx, id).await?;
         }
-        if let Some(id) = person.death_location_id {
+        if let Some(id) = person.location_id {
+            handle_locations::db::delete_location(&tx, id).await?;
+        }
+        if let Some(id) = person.location2_id {
             handle_locations::db::delete_location(&tx, id).await?;
         }
 

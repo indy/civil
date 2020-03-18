@@ -55,9 +55,9 @@ pub async fn get_subjects(
 
 pub mod db {
     use super::interop;
-    use crate::model::{model_to_node_kind, Model};
     use crate::error::Result;
     use crate::interop::Key;
+    use crate::model::{model_to_node_kind, Model};
     use crate::pg;
     use deadpool_postgres::Pool;
     use serde::{Deserialize, Serialize};

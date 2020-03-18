@@ -158,7 +158,6 @@ pub async fn delete_quote(
 
 pub mod db {
     use super::interop;
-    use crate::edge_type::EdgeType;
     use crate::error::{Error, Result};
     use crate::handle_edges;
     use crate::interop::Key;
@@ -304,27 +303,27 @@ pub mod db {
         .await?;
 
         if let Some(person_id) = note.person_id {
-            let _ = handle_edges::db::create_edge(
+            let _ = handle_edges::db::create_edge_to_note(
                 tx,
+                Model::HistoricPerson,
                 person_id,
                 db_note.id,
-                EdgeType::HistoricPersonToNote,
             )
             .await?;
         } else if let Some(subject_id) = note.subject_id {
             let _ =
-                handle_edges::db::create_edge(tx, subject_id, db_note.id, EdgeType::SubjectToNote)
+                handle_edges::db::create_edge_to_note(tx, Model::Subject, subject_id, db_note.id)
                     .await?;
         } else if let Some(article_id) = note.article_id {
             let _ =
-                handle_edges::db::create_edge(tx, article_id, db_note.id, EdgeType::ArticleToNote)
+                handle_edges::db::create_edge_to_note(tx, Model::Article, article_id, db_note.id)
                     .await?;
         } else if let Some(point_id) = note.point_id {
-            let _ = handle_edges::db::create_edge(
+            let _ = handle_edges::db::create_edge_to_note(
                 tx,
+                Model::HistoricPoint,
                 point_id,
                 db_note.id,
-                EdgeType::HistoricPointToNote,
             )
             .await?;
         }

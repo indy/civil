@@ -16,10 +16,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 pub mod db {
-    use crate::edge_type::EdgeType;
     use crate::error::Result;
     use crate::interop::Key;
-    use crate::model::{model_to_foreign_key, Model};
+    use crate::model::{model_to_node_kind, Model};
     use crate::pg;
     use deadpool_postgres::Transaction;
     use serde::{Deserialize, Serialize};
@@ -28,34 +27,44 @@ pub mod db {
     use tracing::info;
 
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
-    #[pg_mapper(table = "edges")]
+    #[pg_mapper(table = "edges2")]
     struct Edge {
         id: Key,
         annotation: Option<String>,
     }
 
-    pub async fn create_edge(
+    pub async fn create_edge_to_note(
         tx: &Transaction<'_>,
+        from_model: Model,
         from_key: Key,
-        to_key: Key,
-        edgetype: EdgeType,
+        note_key: Key,
     ) -> Result<Key> {
-        let (from, to) = edgetype.models();
+        let from_kind = model_to_node_kind(from_model);
 
-        let stmt = include_str!("sql/edges_create.sql");
-        let stmt = stmt.replace("$from_column", model_to_foreign_key(from));
-        let stmt = stmt.replace("$to_column", model_to_foreign_key(to));
+        let stmt = include_str!("sql/edges_create_to_note_decked.sql");
+        let stmt = stmt.replace("$from_kind", from_kind);
 
-        let edge = pg::one::<Edge>(tx, &stmt, &[&from_key, &to_key, &edgetype]).await?;
+        let edge = pg::one::<Edge>(tx, &stmt, &[&from_key, &note_key]).await?;
 
         Ok(edge.id)
     }
 
-    pub async fn delete_all_edges_for(tx: &Transaction<'_>, model: Model, id: Key) -> Result<()> {
-        let foreign_key = model_to_foreign_key(model);
+    pub async fn delete_all_edges_for_deck(
+        tx: &Transaction<'_>,
+        model: Model,
+        id: Key,
+    ) -> Result<()> {
+        let kind = model_to_node_kind(model);
 
-        let stmt = include_str!("sql/edges_delete.sql");
-        let stmt = stmt.replace("$foreign_key", foreign_key);
+        let stmt = include_str!("sql/edges_delete_deck.sql");
+        let stmt = stmt.replace("$kind", kind);
+
+        pg::zero::<Edge>(tx, &stmt, &[&id]).await?;
+        Ok(())
+    }
+
+    pub async fn _delete_all_edges_for_note(tx: &Transaction<'_>, id: Key) -> Result<()> {
+        let stmt = include_str!("sql/edges_delete_note.sql");
 
         pg::zero::<Edge>(tx, &stmt, &[&id]).await?;
         Ok(())

@@ -275,7 +275,7 @@ pub mod db {
         // deleting notes require valid edge information, so delete notes before edges
         //
         handle_notes::db::delete_all_notes_for(&tx, Model::Subject, subject_id).await?;
-        handle_edges::db::delete_all_edges_for(&tx, Model::Subject, subject_id).await?;
+        handle_edges::db::delete_all_edges_for_deck(&tx, Model::Subject, subject_id).await?;
         pg::delete_owned_by_user::<Subject>(&tx, subject_id, user_id, Model::Subject).await?;
 
         tx.commit().await?;

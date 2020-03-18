@@ -25,6 +25,7 @@ pub enum Model {
     Date,
     Location,
     Edge,
+    Timespan,
 }
 
 impl std::fmt::Display for Model {
@@ -38,6 +39,7 @@ impl std::fmt::Display for Model {
             Model::Date => write!(f, "Mode::Date"),
             Model::Location => write!(f, "Model::Location"),
             Model::Edge => write!(f, "Model::Edge"),
+            Model::Timespan => write!(f, "Model::Timespan"),
         }
     }
 }
@@ -53,6 +55,7 @@ pub fn model_to_foreign_key(model: Model) -> &'static str {
         Model::Date => "date_id",
         Model::Location => "location_id",
         Model::Edge => "edge_id",
+        Model::Timespan => "timespan_id",
     }
 }
 
@@ -67,6 +70,7 @@ pub fn model_to_node_kind(model: Model) -> &'static str {
         Model::Date => "model_to_node_kind_wtf!",
         Model::Location => "model_to_node_kind_wtf!",
         Model::Edge => "model_to_node_kind_wtf!",
+        Model::Timespan => "model_to_node_kind_wtf!",
     }
 }
 
@@ -80,5 +84,6 @@ pub fn model_to_table_name(model: Model) -> &'static str {
         Model::Date => "dates",
         Model::Location => "locations",
         Model::Edge => "edges",
+        Model::Timespan => "timespans",
     }
 }

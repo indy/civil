@@ -16,7 +16,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 mod api;
-mod edge_type;
 mod error;
 mod handle_articles;
 mod handle_autocomplete;
@@ -28,6 +27,7 @@ mod handle_historic_points;
 mod handle_locations;
 mod handle_notes;
 mod handle_subjects;
+mod handle_timespans;
 mod handle_users;
 mod interop;
 mod model;

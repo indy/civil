@@ -164,10 +164,10 @@ mod db {
     use tracing::info;
 
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
-    #[pg_mapper(table = "historic_points")]
+    #[pg_mapper(table = "decks")]
     struct PointDerived {
         id: Key,
-        title: String,
+        name: String,
 
         date_id: Option<Key>,
         date_textual: Option<String>,
@@ -184,10 +184,10 @@ mod db {
     }
 
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
-    #[pg_mapper(table = "historic_points")]
+    #[pg_mapper(table = "decks")]
     struct Point {
         id: Key,
-        title: String,
+        name: String,
         date_id: Option<Key>,
         location_id: Option<Key>,
     }
@@ -196,7 +196,7 @@ mod db {
         fn from(e: PointDerived) -> interop::Point {
             interop::Point {
                 id: e.id,
-                title: e.title,
+                title: e.name,
 
                 // todo:
                 // why does this code fail when we use an sql query that only returns date_id?
@@ -257,7 +257,7 @@ mod db {
 
         let db_point = pg::one::<Point>(
             &tx,
-            include_str!("sql/historic_points_create.sql"),
+            include_str!("sql/historic_points_create_decked.sql"),
             &[&user_id, &point.title, &point_date_id, &point_location_id],
         )
         .await?;
@@ -266,7 +266,7 @@ mod db {
 
         Ok(interop::Point {
             id: db_point.id,
-            title: db_point.title,
+            title: db_point.name,
 
             date: point_date.map(|d| handle_dates::interop::Date::from(d)),
             location: point_location.map(|l| handle_locations::interop::Location::from(l)),
@@ -351,7 +351,7 @@ mod db {
         // deleting notes require valid edge information, so delete notes before edges
         //
         handle_notes::db::delete_all_notes_for(&tx, Model::HistoricPoint, point_id).await?;
-        handle_edges::db::delete_all_edges_for(&tx, Model::HistoricPoint, point_id).await?;
+        handle_edges::db::delete_all_edges_for_deck(&tx, Model::HistoricPoint, point_id).await?;
 
         if let Some(id) = point.date_id {
             handle_dates::db::delete_date(&tx, id).await?;

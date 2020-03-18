@@ -1,5 +1,5 @@
 SELECT p.id,
-       p.name as title,
+       p.name,
 
        p.date_id,
        d.textual as date_textual,
