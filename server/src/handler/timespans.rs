@@ -17,7 +17,7 @@
 
 pub mod db {
     use crate::error::Result;
-    use crate::handle_dates;
+    use crate::handler::dates;
     use crate::interop::Key;
     use crate::model::Model;
     use crate::pg;
@@ -36,7 +36,7 @@ pub mod db {
         date_end_id: Option<Key>,
     }
 
-    pub async fn create_timespan(
+    pub async fn create(
         tx: &Transaction<'_>,
         start_id: Option<Key>,
         end_id: Option<Key>,
@@ -49,7 +49,7 @@ pub mod db {
 
         let res = pg::one::<Timespan>(
             tx,
-            include_str!("sql/timespans_create.sql"),
+            include_str!("../sql/timespans_create.sql"),
             &[&textual, &start_id, &end_id],
         )
         .await;
@@ -66,15 +66,19 @@ pub mod db {
         }
     }
 
-    pub async fn delete_timespan(tx: &Transaction<'_>, timespan_id: Key) -> Result<()> {
-        let timespan =
-            pg::one::<Timespan>(tx, include_str!("sql/timespans_get.sql"), &[&timespan_id]).await?;
+    pub async fn delete(tx: &Transaction<'_>, timespan_id: Key) -> Result<()> {
+        let timespan = pg::one::<Timespan>(
+            tx,
+            include_str!("../sql/timespans_get.sql"),
+            &[&timespan_id],
+        )
+        .await?;
 
         if let Some(id) = timespan.date_start_id {
-            handle_dates::db::delete_date(&tx, id).await?;
+            dates::db::delete(&tx, id).await?;
         }
         if let Some(id) = timespan.date_end_id {
-            handle_dates::db::delete_date(&tx, id).await?;
+            dates::db::delete(&tx, id).await?;
         }
 
         pg::delete::<Timespan>(tx, timespan_id, Model::Timespan).await?;

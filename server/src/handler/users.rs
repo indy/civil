@@ -92,7 +92,7 @@ pub async fn create_user(
     let hash = hash_password(&registration.password)?;
 
     // db statement
-    let user: db::User = db::create_user(&db_pool, &registration, &hash).await?;
+    let user: db::User = db::create(&db_pool, &registration, &hash).await?;
 
     // save id to the session
     session.set(session::AUTH, format!("{}", user.id))?;
@@ -109,7 +109,7 @@ pub async fn get_user(
     let user_id = session::user_id(&session)?;
 
     // db statement
-    let user: db::User = db::get_user(&db_pool, user_id).await?;
+    let user: db::User = db::get(&db_pool, user_id).await?;
 
     // send response
     Ok(HttpResponse::Ok().json(interop::User::from(user)))
@@ -162,31 +162,31 @@ mod db {
     ) -> Result<User> {
         let res = pg::one_non_transactional::<User>(
             db_pool,
-            include_str!("sql/users_login.sql"),
+            include_str!("../sql/users_login.sql"),
             &[&login_credentials.email],
         )
         .await?;
         Ok(res)
     }
 
-    pub async fn create_user(
+    pub async fn create(
         db_pool: &Pool,
         registration: &interop::Registration,
         hash: &String,
     ) -> Result<User> {
         let res = pg::one_non_transactional::<User>(
             db_pool,
-            include_str!("sql/users_create.sql"),
+            include_str!("../sql/users_create.sql"),
             &[&registration.username, &registration.email, hash],
         )
         .await?;
         Ok(res)
     }
 
-    pub async fn get_user(db_pool: &Pool, user_id: Key) -> Result<User> {
+    pub async fn get(db_pool: &Pool, user_id: Key) -> Result<User> {
         let res = pg::one_non_transactional::<User>(
             db_pool,
-            include_str!("sql/users_get.sql"),
+            include_str!("../sql/users_get.sql"),
             &[&user_id],
         )
         .await?;

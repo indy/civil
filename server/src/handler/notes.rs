@@ -159,7 +159,7 @@ pub async fn delete_quote(
 pub mod db {
     use super::interop;
     use crate::error::{Error, Result};
-    use crate::handle_edges;
+    use crate::handler::edges;
     use crate::interop::Key;
     use crate::model::{model_to_foreign_key, Model};
     use crate::note_type::NoteType;
@@ -224,7 +224,7 @@ pub mod db {
     pub async fn get_note(db_pool: &Pool, note_id: Key, user_id: Key) -> Result<interop::Note> {
         let db_note = pg::one_non_transactional::<Note>(
             db_pool,
-            include_str!("sql/notes_get.sql"),
+            include_str!("../sql/notes_get.sql"),
             &[&note_id, &user_id],
         )
         .await?;
@@ -297,35 +297,24 @@ pub mod db {
     ) -> Result<interop::Note> {
         let db_note = pg::one::<Note>(
             tx,
-            include_str!("sql/notes_create.sql"),
+            include_str!("../sql/notes_create.sql"),
             &[&user_id, &note_type, &note.source, &content, &separator],
         )
         .await?;
 
         if let Some(person_id) = note.person_id {
-            let _ = handle_edges::db::create_edge_to_note(
-                tx,
-                Model::HistoricPerson,
-                person_id,
-                db_note.id,
-            )
-            .await?;
+            let _ =
+                edges::db::create_edge_to_note(tx, Model::HistoricPerson, person_id, db_note.id)
+                    .await?;
         } else if let Some(subject_id) = note.subject_id {
             let _ =
-                handle_edges::db::create_edge_to_note(tx, Model::Subject, subject_id, db_note.id)
-                    .await?;
+                edges::db::create_edge_to_note(tx, Model::Subject, subject_id, db_note.id).await?;
         } else if let Some(article_id) = note.article_id {
             let _ =
-                handle_edges::db::create_edge_to_note(tx, Model::Article, article_id, db_note.id)
-                    .await?;
+                edges::db::create_edge_to_note(tx, Model::Article, article_id, db_note.id).await?;
         } else if let Some(point_id) = note.point_id {
-            let _ = handle_edges::db::create_edge_to_note(
-                tx,
-                Model::HistoricPoint,
-                point_id,
-                db_note.id,
-            )
-            .await?;
+            let _ = edges::db::create_edge_to_note(tx, Model::HistoricPoint, point_id, db_note.id)
+                .await?;
         }
 
         let note = interop::Note::from(db_note);
@@ -341,7 +330,7 @@ pub mod db {
     ) -> Result<interop::Note> {
         let db_note = pg::one_non_transactional::<Note>(
             db_pool,
-            include_str!("sql/notes_edit.sql"),
+            include_str!("../sql/notes_edit.sql"),
             &[
                 &user_id,
                 &note_id,
@@ -358,14 +347,14 @@ pub mod db {
         Ok(note)
     }
 
-    pub async fn all_notes_for_decked(
+    pub async fn all_notes_for(
         db_pool: &Pool,
         deck_id: Key,
         note_type: NoteType,
     ) -> Result<Vec<interop::Note>> {
         pg::many_from::<Note, interop::Note>(
             db_pool,
-            include_str!("sql/notes_all_for_decked.sql"),
+            include_str!("../sql/notes_all_for.sql"),
             &[&deck_id, &note_type],
         )
         .await
@@ -374,7 +363,7 @@ pub mod db {
     pub async fn delete_all_notes_for(tx: &Transaction<'_>, model: Model, id: Key) -> Result<()> {
         let foreign_key = model_to_foreign_key(model);
 
-        let stmt = include_str!("sql/notes_delete.sql");
+        let stmt = include_str!("../sql/notes_delete.sql");
         let stmt = stmt.replace("$foreign_key", foreign_key);
 
         pg::zero::<Note>(&tx, &stmt, &[&id]).await?;

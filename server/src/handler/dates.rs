@@ -99,13 +99,10 @@ pub mod db {
         }
     }
 
-    pub async fn create_date(
-        tx: &Transaction<'_>,
-        date: &interop::CreateDate,
-    ) -> Result<interop::Date> {
+    pub async fn create(tx: &Transaction<'_>, date: &interop::CreateDate) -> Result<interop::Date> {
         let db_date = pg::one::<Date>(
             tx,
-            include_str!("sql/dates_create.sql"),
+            include_str!("../sql/dates_create.sql"),
             &[
                 &date.textual,
                 &date.exact_date,
@@ -121,23 +118,14 @@ pub mod db {
         Ok(date)
     }
 
-    // pub async fn get_date(db_pool: &Pool, date_id: Key) -> Result<interop::Date> {
-    //     let db_date =
-    //         pg::one::<Date>(db_pool, include_str!("sql/dates_get.sql"), &[&date_id]).await?;
-
-    //     let date = interop::Date::from(db_date);
-
-    //     Ok(date)
-    // }
-
-    pub async fn edit_date(
+    pub async fn edit(
         tx: &Transaction<'_>,
         date: &interop::Date,
         date_id: Key,
     ) -> Result<interop::Date> {
         let db_date = pg::one::<Date>(
             tx,
-            include_str!("sql/dates_edit.sql"),
+            include_str!("../sql/dates_edit.sql"),
             &[
                 &date_id,
                 &date.textual,
@@ -154,7 +142,7 @@ pub mod db {
         Ok(date)
     }
 
-    pub async fn delete_date(tx: &Transaction<'_>, date_id: Key) -> Result<()> {
+    pub async fn delete(tx: &Transaction<'_>, date_id: Key) -> Result<()> {
         pg::delete::<Date>(tx, date_id, Model::Date).await?;
         Ok(())
     }

@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::handle_articles;
-use crate::handle_autocomplete;
-use crate::handle_historic_people;
-use crate::handle_historic_points;
-use crate::handle_notes;
-use crate::handle_subjects;
-use crate::handle_users;
+use crate::handler::articles;
+use crate::handler::autocomplete;
+use crate::handler::historic_people;
+use crate::handler::historic_points;
+use crate::handler::notes;
+use crate::handler::subjects;
+use crate::handler::users;
 use actix_files::NamedFile;
 use actix_web::dev;
 use actix_web::middleware::errhandlers::ErrorHandlerResponse;
@@ -32,72 +32,72 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // login/logout
         .service(
             scope("/auth")
-                .route("", post().to(handle_users::login))
-                .route("", delete().to(handle_users::logout)),
+                .route("", post().to(users::login))
+                .route("", delete().to(users::logout)),
         )
         // registration
         .service(
             scope("/users")
-                .route("", post().to(handle_users::create_user))
-                .route("", get().to(handle_users::get_user)),
+                .route("", post().to(users::create_user))
+                .route("", get().to(users::get_user)),
         )
         // historic_people
         .service(
             scope("/people")
-                .route("", post().to(handle_historic_people::create_person))
-                .route("", get().to(handle_historic_people::get_people))
-                .route("/{id}", get().to(handle_historic_people::get_person))
-                .route("/{id}", put().to(handle_historic_people::edit_person)) // check
-                .route("/{id}", delete().to(handle_historic_people::delete_person)),
+                .route("", post().to(historic_people::create_person))
+                .route("", get().to(historic_people::get_people))
+                .route("/{id}", get().to(historic_people::get_person))
+                .route("/{id}", put().to(historic_people::edit_person)) // check
+                .route("/{id}", delete().to(historic_people::delete_person)),
         )
         // historic_points
         .service(
             scope("/points")
-                .route("", post().to(handle_historic_points::create_point))
-                .route("", get().to(handle_historic_points::get_points))
-                .route("/{id}", get().to(handle_historic_points::get_point))
-                .route("/{id}", put().to(handle_historic_points::edit_point)) // check
-                .route("/{id}", delete().to(handle_historic_points::delete_point)),
+                .route("", post().to(historic_points::create_point))
+                .route("", get().to(historic_points::get_points))
+                .route("/{id}", get().to(historic_points::get_point))
+                .route("/{id}", put().to(historic_points::edit_point)) // check
+                .route("/{id}", delete().to(historic_points::delete_point)),
         )
         // subjects
         .service(
             scope("/subjects")
-                .route("", post().to(handle_subjects::create_subject))
-                .route("", get().to(handle_subjects::get_subjects))
-                .route("/{id}", get().to(handle_subjects::get_subject))
-                .route("/{id}", put().to(handle_subjects::edit_subject))
-                .route("/{id}", delete().to(handle_subjects::delete_subject)),
+                .route("", post().to(subjects::create_subject))
+                .route("", get().to(subjects::get_subjects))
+                .route("/{id}", get().to(subjects::get_subject))
+                .route("/{id}", put().to(subjects::edit_subject))
+                .route("/{id}", delete().to(subjects::delete_subject)),
         )
         // articles
         .service(
             scope("/articles")
-                .route("", post().to(handle_articles::create_article))
-                .route("", get().to(handle_articles::get_articles))
-                .route("/{id}", get().to(handle_articles::get_article))
-                .route("/{id}", put().to(handle_articles::edit_article))
-                .route("/{id}", delete().to(handle_articles::delete_article)),
+                .route("", post().to(articles::create_article))
+                .route("", get().to(articles::get_articles))
+                .route("/{id}", get().to(articles::get_article))
+                .route("/{id}", put().to(articles::edit_article))
+                .route("/{id}", delete().to(articles::delete_article)),
         )
         // notes
         .service(
             scope("/notes")
-                .route("", post().to(handle_notes::create_note))
-                .route("/{id}", get().to(handle_notes::get_note))
-                .route("/{id}", put().to(handle_notes::edit_note)) // check
-                .route("/{id}", delete().to(handle_notes::delete_note)),
+                .route("", post().to(notes::create_note))
+                .route("/{id}", get().to(notes::get_note))
+                .route("/{id}", put().to(notes::edit_note)) // check
+                .route("/{id}", delete().to(notes::delete_note)),
         )
         // notes
         .service(
             scope("/quotes")
-                .route("", post().to(handle_notes::create_quote))
-                .route("/{id}", get().to(handle_notes::get_quote))
-                .route("/{id}", put().to(handle_notes::edit_quote)) // check
-                .route("/{id}", delete().to(handle_notes::delete_quote)),
+                .route("", post().to(notes::create_quote))
+                .route("/{id}", get().to(notes::get_quote))
+                .route("/{id}", put().to(notes::edit_quote)) // check
+                .route("/{id}", delete().to(notes::delete_quote)),
         )
         // autocomplete
         .service(
             scope("/autocomplete")
-                .route("/people", get().to(handle_autocomplete::get_people))
-                .route("/subjects", get().to(handle_autocomplete::get_subjects)),
+                .route("/people", get().to(autocomplete::get_people))
+                .route("/subjects", get().to(autocomplete::get_subjects)),
         )
 }
 

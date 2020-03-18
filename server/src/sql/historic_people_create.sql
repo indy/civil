@@ -1,3 +1,3 @@
-INSERT INTO historic_people(user_id, name, age, birth_date_id, birth_location_id, death_date_id, death_location_id)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO decks(kind, user_id, name, timespan_id, location_id, location2_id)
+VALUES ('historic_person'::node_kind, $1, $2, $3, $4, $5)
 RETURNING $table_fields

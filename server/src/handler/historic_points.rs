@@ -16,8 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
-use crate::handle_decks;
-use crate::handle_notes;
+use crate::handler::decks;
+use crate::handler::notes;
 use crate::interop::IdParam;
 use crate::model::Model;
 use crate::note_type::NoteType;
@@ -29,10 +29,10 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 mod interop {
-    use crate::handle_dates::interop::{CreateDate, Date};
-    use crate::handle_decks::interop::DeckReference;
-    use crate::handle_locations::interop::{CreateLocation, Location};
-    use crate::handle_notes::interop::Note;
+    use crate::handler::dates::interop::{CreateDate, Date};
+    use crate::handler::decks::interop::DeckReference;
+    use crate::handler::locations::interop::{CreateLocation, Location};
+    use crate::handler::notes::interop::Note;
     use crate::interop::Key;
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -66,7 +66,7 @@ pub async fn create_point(
     let user_id = session::user_id(&session)?;
 
     // db statement
-    let point = db::create_point(&db_pool, &point, user_id).await?;
+    let point = db::create(&db_pool, &point, user_id).await?;
 
     Ok(HttpResponse::Ok().json(point))
 }
@@ -78,7 +78,7 @@ pub async fn get_points(
     info!("get_points");
     let user_id = session::user_id(&session)?;
     // db statement
-    let points = db::get_points(&db_pool, user_id).await?;
+    let points = db::all(&db_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(points))
 }
@@ -93,27 +93,22 @@ pub async fn get_point(
 
     // db statements
     let point_id = params.id;
-    let mut point = db::get_point(&db_pool, point_id, user_id).await?;
+    let mut point = db::get(&db_pool, point_id, user_id).await?;
 
-    let notes = handle_notes::db::all_notes_for_decked(&db_pool, point_id, NoteType::Note).await?;
+    let notes = notes::db::all_notes_for(&db_pool, point_id, NoteType::Note).await?;
     point.notes = Some(notes);
 
-    let people_referenced = handle_decks::db::decks_referenced_decked(
+    let people_referenced = decks::db::referenced_in(
         &db_pool,
-        Model::HistoricPerson,
         Model::HistoricPoint,
         point_id,
+        Model::HistoricPerson,
     )
     .await?;
     point.people_referenced = Some(people_referenced);
 
-    let subjects_referenced = handle_decks::db::decks_referenced_decked(
-        &db_pool,
-        Model::Subject,
-        Model::HistoricPoint,
-        point_id,
-    )
-    .await?;
+    let subjects_referenced =
+        decks::db::referenced_in(&db_pool, Model::HistoricPoint, point_id, Model::Subject).await?;
     point.subjects_referenced = Some(subjects_referenced);
 
     Ok(HttpResponse::Ok().json(point))
@@ -130,7 +125,7 @@ pub async fn edit_point(
     let point = point.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let point = db::edit_point(&db_pool, &point, params.id, user_id).await?;
+    let point = db::edit(&db_pool, &point, params.id, user_id).await?;
 
     Ok(HttpResponse::Ok().json(point))
 }
@@ -142,7 +137,7 @@ pub async fn delete_point(
 ) -> Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    db::delete_point(&db_pool, params.id, user_id).await?;
+    db::delete(&db_pool, params.id, user_id).await?;
 
     Ok(HttpResponse::Ok().json(true))
 }
@@ -150,10 +145,10 @@ pub async fn delete_point(
 mod db {
     use super::interop;
     use crate::error::{Error, Result};
-    use crate::handle_dates;
-    use crate::handle_edges;
-    use crate::handle_locations;
-    use crate::handle_notes;
+    use crate::handler::dates;
+    use crate::handler::edges;
+    use crate::handler::locations;
+    use crate::handler::notes;
     use crate::interop::Key;
     use crate::model::Model;
     use crate::pg;
@@ -202,7 +197,7 @@ mod db {
                 // why does this code fail when we use an sql query that only returns date_id?
                 // the other values should be None and the try_build functions should work
                 //
-                date: handle_dates::interop::try_build(
+                date: dates::interop::try_build(
                     e.date_id,
                     e.date_textual,
                     e.date_exact_date,
@@ -210,7 +205,7 @@ mod db {
                     e.date_upper_date,
                     e.date_fuzz,
                 ),
-                location: handle_locations::interop::try_build(
+                location: locations::interop::try_build(
                     e.location_id,
                     e.location_textual,
                     e.location_longitude,
@@ -225,7 +220,7 @@ mod db {
         }
     }
 
-    pub async fn create_point(
+    pub async fn create(
         db_pool: &Pool,
         point: &interop::CreatePoint,
         user_id: Key,
@@ -233,10 +228,10 @@ mod db {
         let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
         let tx = client.transaction().await?;
 
-        let point_date: Option<handle_dates::interop::Date>;
+        let point_date: Option<dates::interop::Date>;
         let point_date_id: Option<Key>;
         if let Some(date) = &point.date {
-            let res = handle_dates::db::create_date(&tx, &date).await?;
+            let res = dates::db::create(&tx, &date).await?;
             point_date_id = Some(res.id);
             point_date = Some(res);
         } else {
@@ -244,10 +239,10 @@ mod db {
             point_date_id = None;
         };
 
-        let point_location: Option<handle_locations::interop::Location>;
+        let point_location: Option<locations::interop::Location>;
         let point_location_id: Option<Key>;
         if let Some(location) = &point.location {
-            let res = handle_locations::db::create_location(&tx, &location).await?;
+            let res = locations::db::create(&tx, &location).await?;
             point_location_id = Some(res.id);
             point_location = Some(res);
         } else {
@@ -257,7 +252,7 @@ mod db {
 
         let db_point = pg::one::<Point>(
             &tx,
-            include_str!("sql/historic_points_create_decked.sql"),
+            include_str!("../sql/historic_points_create.sql"),
             &[&user_id, &point.title, &point_date_id, &point_location_id],
         )
         .await?;
@@ -268,8 +263,8 @@ mod db {
             id: db_point.id,
             title: db_point.name,
 
-            date: point_date.map(|d| handle_dates::interop::Date::from(d)),
-            location: point_location.map(|l| handle_locations::interop::Location::from(l)),
+            date: point_date.map(|d| dates::interop::Date::from(d)),
+            location: point_location.map(|l| locations::interop::Location::from(l)),
 
             notes: None,
 
@@ -278,31 +273,31 @@ mod db {
         })
     }
 
-    pub async fn get_points(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Point>> {
+    pub async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Point>> {
         pg::many_from::<PointDerived, interop::Point>(
             db_pool,
-            include_str!("sql/historic_points_all_decked.sql"),
+            include_str!("../sql/historic_points_all.sql"),
             &[&user_id],
         )
         .await
     }
 
-    pub async fn get_point(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<interop::Point> {
+    pub async fn get(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<interop::Point> {
         pg::one_from::<PointDerived, interop::Point>(
             db_pool,
-            include_str!("sql/historic_points_get_derived_decked.sql"),
+            include_str!("../sql/historic_points_get_derived.sql"),
             &[&user_id, &point_id],
         )
         .await
     }
 
-    pub async fn edit_point(
+    pub async fn edit(
         db_pool: &Pool,
         updated_point: &interop::Point,
         point_id: Key,
         user_id: Key,
     ) -> Result<interop::Point> {
-        let existing_point = get_point(db_pool, point_id, user_id).await?;
+        let existing_point = get(db_pool, point_id, user_id).await?;
 
         let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
         let tx = client.transaction().await?;
@@ -310,7 +305,7 @@ mod db {
         if let Some(existing_date) = &existing_point.date {
             if let Some(updated_date) = &updated_point.date {
                 if updated_date != existing_date {
-                    handle_dates::db::edit_date(&tx, &updated_date, existing_date.id).await?;
+                    dates::db::edit(&tx, &updated_date, existing_date.id).await?;
                 }
             }
         }
@@ -318,29 +313,29 @@ mod db {
         if let Some(existing_loc) = &existing_point.location {
             if let Some(updated_loc) = &updated_point.location {
                 if updated_loc != existing_loc {
-                    handle_locations::db::edit_location(&tx, &updated_loc, existing_loc.id).await?;
+                    locations::db::edit(&tx, &updated_loc, existing_loc.id).await?;
                 }
             }
         }
 
         let _db_point = pg::one::<Point>(
             &tx,
-            include_str!("sql/historic_points_edit.sql"),
+            include_str!("../sql/historic_points_edit.sql"),
             &[&user_id, &point_id, &updated_point.title],
         )
         .await?;
 
         tx.commit().await?;
 
-        let altered_point = get_point(db_pool, point_id, user_id).await?;
+        let altered_point = get(db_pool, point_id, user_id).await?;
 
         Ok(altered_point)
     }
 
-    pub async fn delete_point(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<()> {
+    pub async fn delete(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<()> {
         let point = pg::one_non_transactional::<PointDerived>(
             db_pool,
-            include_str!("sql/historic_points_get_derived_decked.sql"),
+            include_str!("../sql/historic_points_get_derived.sql"),
             &[&user_id, &point_id],
         )
         .await?;
@@ -350,14 +345,14 @@ mod db {
 
         // deleting notes require valid edge information, so delete notes before edges
         //
-        handle_notes::db::delete_all_notes_for(&tx, Model::HistoricPoint, point_id).await?;
-        handle_edges::db::delete_all_edges_for_deck(&tx, Model::HistoricPoint, point_id).await?;
+        notes::db::delete_all_notes_for(&tx, Model::HistoricPoint, point_id).await?;
+        edges::db::delete_all_edges_for_deck(&tx, Model::HistoricPoint, point_id).await?;
 
         if let Some(id) = point.date_id {
-            handle_dates::db::delete_date(&tx, id).await?;
+            dates::db::delete(&tx, id).await?;
         }
         if let Some(id) = point.location_id {
-            handle_locations::db::delete_location(&tx, id).await?;
+            locations::db::delete(&tx, id).await?;
         }
 
         pg::delete_owned_by_user::<Point>(&tx, point_id, user_id, Model::HistoricPoint).await?;

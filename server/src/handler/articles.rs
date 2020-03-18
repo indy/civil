@@ -16,8 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
-use crate::handle_decks;
-use crate::handle_notes;
+use crate::handler::decks;
+use crate::handler::notes;
 use crate::interop::IdParam;
 use crate::model::Model;
 use crate::note_type::NoteType;
@@ -28,8 +28,8 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 pub mod interop {
-    use crate::handle_decks::interop::DeckReference;
-    use crate::handle_notes::interop::Note;
+    use crate::handler::decks::interop::DeckReference;
+    use crate::handler::notes::interop::Note;
     use crate::interop::Key;
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -62,7 +62,7 @@ pub async fn create_article(
     let article = article.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let article = db::create_article(&db_pool, &article, user_id).await?;
+    let article = db::create(&db_pool, &article, user_id).await?;
 
     Ok(HttpResponse::Ok().json(article))
 }
@@ -74,7 +74,7 @@ pub async fn get_articles(
     info!("get_articles");
     let user_id = session::user_id(&session)?;
     // db statement
-    let articles = db::get_articles(&db_pool, user_id).await?;
+    let articles = db::all(&db_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(articles))
 }
@@ -89,32 +89,21 @@ pub async fn get_article(
 
     // db statements
     let article_id = params.id;
-    let mut article = db::get_article(&db_pool, article_id, user_id).await?;
+    let mut article = db::get(&db_pool, article_id, user_id).await?;
 
-    let notes =
-        handle_notes::db::all_notes_for_decked(&db_pool, article_id, NoteType::Note).await?;
+    let notes = notes::db::all_notes_for(&db_pool, article_id, NoteType::Note).await?;
     article.notes = Some(notes);
 
-    let quotes =
-        handle_notes::db::all_notes_for_decked(&db_pool, article_id, NoteType::Quote).await?;
+    let quotes = notes::db::all_notes_for(&db_pool, article_id, NoteType::Quote).await?;
     article.quotes = Some(quotes);
 
-    let people_referenced = handle_decks::db::decks_referenced_decked(
-        &db_pool,
-        Model::HistoricPerson,
-        Model::Article,
-        article_id,
-    )
-    .await?;
+    let people_referenced =
+        decks::db::referenced_in(&db_pool, Model::Article, article_id, Model::HistoricPerson)
+            .await?;
     article.people_referenced = Some(people_referenced);
 
-    let subjects_referenced = handle_decks::db::decks_referenced_decked(
-        &db_pool,
-        Model::Subject,
-        Model::Article,
-        article_id,
-    )
-    .await?;
+    let subjects_referenced =
+        decks::db::referenced_in(&db_pool, Model::Article, article_id, Model::Subject).await?;
     article.subjects_referenced = Some(subjects_referenced);
 
     Ok(HttpResponse::Ok().json(article))
@@ -129,7 +118,7 @@ pub async fn edit_article(
     let article = article.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let article = db::edit_article(&db_pool, &article, params.id, user_id).await?;
+    let article = db::edit(&db_pool, &article, params.id, user_id).await?;
 
     Ok(HttpResponse::Ok().json(article))
 }
@@ -141,7 +130,7 @@ pub async fn delete_article(
 ) -> Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    db::delete_article(&db_pool, params.id, user_id).await?;
+    db::delete(&db_pool, params.id, user_id).await?;
 
     Ok(HttpResponse::Ok().json(true))
 }
@@ -149,8 +138,8 @@ pub async fn delete_article(
 pub mod db {
     use super::interop;
     use crate::error::{Error, Result};
-    use crate::handle_edges;
-    use crate::handle_notes;
+    use crate::handler::edges;
+    use crate::handler::notes;
     use crate::interop::Key;
     use crate::model::Model;
     use crate::pg;
@@ -168,7 +157,6 @@ pub mod db {
         source: Option<String>,
     }
 
-    // todo: should this from impl be in interop???
     impl From<Article> for interop::Article {
         fn from(a: Article) -> interop::Article {
             interop::Article {
@@ -185,42 +173,42 @@ pub mod db {
         }
     }
 
-    pub async fn get_articles(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Article>> {
+    pub(super) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Article>> {
         pg::many_from::<Article, interop::Article>(
             db_pool,
-            include_str!("sql/articles_all_decked.sql"),
+            include_str!("../sql/articles_all.sql"),
             &[&user_id],
         )
         .await
     }
 
-    pub async fn get_article(
+    pub(super) async fn get(
         db_pool: &Pool,
         article_id: Key,
         user_id: Key,
     ) -> Result<interop::Article> {
         pg::one_from::<Article, interop::Article>(
             db_pool,
-            include_str!("sql/articles_get_decked.sql"),
+            include_str!("../sql/articles_get.sql"),
             &[&user_id, &article_id],
         )
         .await
     }
 
-    pub async fn create_article(
+    pub(super) async fn create(
         db_pool: &Pool,
         article: &interop::CreateArticle,
         user_id: Key,
     ) -> Result<interop::Article> {
         pg::one_from::<Article, interop::Article>(
             db_pool,
-            include_str!("sql/articles_create_decked.sql"),
+            include_str!("../sql/articles_create.sql"),
             &[&user_id, &article.title, &article.source],
         )
         .await
     }
 
-    pub async fn edit_article(
+    pub(super) async fn edit(
         db_pool: &Pool,
         article: &interop::Article,
         article_id: Key,
@@ -228,20 +216,20 @@ pub mod db {
     ) -> Result<interop::Article> {
         pg::one_from::<Article, interop::Article>(
             db_pool,
-            include_str!("sql/articles_edit_decked.sql"),
+            include_str!("../sql/articles_edit.sql"),
             &[&user_id, &article_id, &article.title, &article.source],
         )
         .await
     }
 
-    pub async fn delete_article(db_pool: &Pool, article_id: Key, user_id: Key) -> Result<()> {
+    pub(super) async fn delete(db_pool: &Pool, article_id: Key, user_id: Key) -> Result<()> {
         let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
         let tx = client.transaction().await?;
 
         // deleting notes require valid edge information, so delete notes before edges
         //
-        handle_notes::db::delete_all_notes_for(&tx, Model::Article, article_id).await?;
-        handle_edges::db::delete_all_edges_for_deck(&tx, Model::Article, article_id).await?;
+        notes::db::delete_all_notes_for(&tx, Model::Article, article_id).await?;
+        edges::db::delete_all_edges_for_deck(&tx, Model::Article, article_id).await?;
 
         pg::delete_owned_by_user::<Article>(&tx, article_id, user_id, Model::Article).await?;
 

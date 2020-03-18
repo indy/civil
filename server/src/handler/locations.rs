@@ -89,13 +89,13 @@ pub mod db {
         }
     }
 
-    pub async fn create_location(
+    pub async fn create(
         tx: &Transaction<'_>,
         location: &interop::CreateLocation,
     ) -> Result<interop::Location> {
         let db_location = pg::one::<Location>(
             tx,
-            include_str!("sql/locations_create.sql"),
+            include_str!("../sql/locations_create.sql"),
             &[
                 &location.textual,
                 &location.longitude,
@@ -109,26 +109,14 @@ pub mod db {
         Ok(location)
     }
 
-    // pub async fn get_location(db_pool: &Pool, location_id: Key) -> Result<interop::Location> {
-    //     let db_location = pg::one::<Location>(
-    //         db_pool,
-    //         include_str!("sql/locations_get.sql"),
-    //         &[&location_id],
-    //     )
-    //     .await?;
-
-    //     let location = interop::Location::from(db_location);
-    //     Ok(location)
-    // }
-
-    pub async fn edit_location(
+    pub async fn edit(
         tx: &Transaction<'_>,
         location: &interop::Location,
         location_id: Key,
     ) -> Result<interop::Location> {
         let db_location = pg::one::<Location>(
             tx,
-            include_str!("sql/locations_edit.sql"),
+            include_str!("../sql/locations_edit.sql"),
             &[
                 &location_id,
                 &location.textual,
@@ -143,7 +131,7 @@ pub mod db {
         Ok(location)
     }
 
-    pub async fn delete_location(tx: &Transaction<'_>, location_id: Key) -> Result<()> {
+    pub async fn delete(tx: &Transaction<'_>, location_id: Key) -> Result<()> {
         pg::delete::<Location>(tx, location_id, Model::Location).await?;
         Ok(())
     }

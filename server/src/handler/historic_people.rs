@@ -16,8 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
-use crate::handle_decks;
-use crate::handle_notes;
+use crate::handler::decks;
+use crate::handler::notes;
 use crate::interop::IdParam;
 use crate::model::Model;
 use crate::note_type::NoteType;
@@ -29,10 +29,10 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 pub mod interop {
-    use crate::handle_dates::interop::{CreateDate, Date};
-    use crate::handle_decks::interop::{DeckMention, DeckReference};
-    use crate::handle_locations::interop::{CreateLocation, Location};
-    use crate::handle_notes::interop::Note;
+    use crate::handler::dates::interop::{CreateDate, Date};
+    use crate::handler::decks::interop::{DeckMention, DeckReference};
+    use crate::handler::locations::interop::{CreateLocation, Location};
+    use crate::handler::notes::interop::Note;
     use crate::interop::Key;
 
     #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -76,7 +76,7 @@ pub async fn create_person(
     let user_id = session::user_id(&session)?;
 
     // db statement
-    let person = db::create_person(&db_pool, &person, user_id).await?;
+    let person = db::create(&db_pool, &person, user_id).await?;
     info!("create_person b");
 
     Ok(HttpResponse::Ok().json(person))
@@ -91,7 +91,7 @@ pub async fn get_people(
     let user_id = session::user_id(&session)?;
 
     // db statement
-    let people = db::get_people(&db_pool, user_id).await?;
+    let people = db::all(&db_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(people))
 }
@@ -106,35 +106,30 @@ pub async fn get_person(
 
     // db statements
     let person_id = params.id;
-    let mut person = db::get_person(&db_pool, person_id, user_id).await?;
+    let mut person = db::get(&db_pool, person_id, user_id).await?;
 
-    let notes = handle_notes::db::all_notes_for_decked(&db_pool, person_id, NoteType::Note).await?;
+    let notes = notes::db::all_notes_for(&db_pool, person_id, NoteType::Note).await?;
     person.notes = Some(notes);
 
-    let quotes =
-        handle_notes::db::all_notes_for_decked(&db_pool, person_id, NoteType::Quote).await?;
+    let quotes = notes::db::all_notes_for(&db_pool, person_id, NoteType::Quote).await?;
     person.quotes = Some(quotes);
 
-    let people_referenced = handle_decks::db::decks_referenced_decked(
+    let people_referenced = decks::db::referenced_in(
         &db_pool,
         Model::HistoricPerson,
-        Model::HistoricPerson,
         person_id,
+        Model::HistoricPerson,
     )
     .await?;
     person.people_referenced = Some(people_referenced);
 
-    let subjects_referenced = handle_decks::db::decks_referenced_decked(
-        &db_pool,
-        Model::Subject,
-        Model::HistoricPerson,
-        person_id,
-    )
-    .await?;
+    let subjects_referenced =
+        decks::db::referenced_in(&db_pool, Model::HistoricPerson, person_id, Model::Subject)
+            .await?;
     person.subjects_referenced = Some(subjects_referenced);
 
-    // all the people that mention this subject
-    let mentioned_by_people = handle_decks::db::decks_that_mention_decked(
+    // all the people that mention this person
+    let mentioned_by_people = decks::db::that_mention(
         &db_pool,
         Model::HistoricPerson,
         Model::HistoricPerson,
@@ -143,24 +138,14 @@ pub async fn get_person(
     .await?;
     person.mentioned_by_people = Some(mentioned_by_people);
 
-    // all the subjects that mention this subject
-    let mentioned_in_subjects = handle_decks::db::decks_that_mention_decked(
-        &db_pool,
-        Model::Subject,
-        Model::HistoricPerson,
-        person_id,
-    )
-    .await?;
+    // all the subjects that mention this person
+    let mentioned_in_subjects =
+        decks::db::that_mention(&db_pool, Model::Subject, Model::HistoricPerson, person_id).await?;
     person.mentioned_in_subjects = Some(mentioned_in_subjects);
 
-    // all the articles that mention this subject
-    let mentioned_in_articles = handle_decks::db::decks_that_mention_decked(
-        &db_pool,
-        Model::Article,
-        Model::HistoricPerson,
-        person_id,
-    )
-    .await?;
+    // all the articles that mention this person
+    let mentioned_in_articles =
+        decks::db::that_mention(&db_pool, Model::Article, Model::HistoricPerson, person_id).await?;
     person.mentioned_in_articles = Some(mentioned_in_articles);
 
     Ok(HttpResponse::Ok().json(person))
@@ -177,7 +162,7 @@ pub async fn edit_person(
     let person = person.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let person = db::edit_person(&db_pool, &person, params.id, user_id).await?;
+    let person = db::edit(&db_pool, &person, params.id, user_id).await?;
 
     Ok(HttpResponse::Ok().json(person))
 }
@@ -189,7 +174,7 @@ pub async fn delete_person(
 ) -> Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    db::delete_person(&db_pool, params.id, user_id).await?;
+    db::delete(&db_pool, params.id, user_id).await?;
 
     Ok(HttpResponse::Ok().json(true))
 }
@@ -197,11 +182,11 @@ pub async fn delete_person(
 pub mod db {
     use super::interop;
     use crate::error::{Error, Result};
-    use crate::handle_dates;
-    use crate::handle_edges;
-    use crate::handle_locations;
-    use crate::handle_notes;
-    use crate::handle_timespans;
+    use crate::handler::dates;
+    use crate::handler::edges;
+    use crate::handler::locations;
+    use crate::handler::notes;
+    use crate::handler::timespans;
     use crate::interop::Key;
     use crate::model::Model;
     use crate::pg;
@@ -271,7 +256,7 @@ pub mod db {
             interop::Person {
                 id: e.id,
                 name: e.name,
-                birth_date: handle_dates::interop::try_build(
+                birth_date: dates::interop::try_build(
                     e.birth_date_id,
                     e.bd_textual,
                     e.bd_exact_date,
@@ -279,14 +264,14 @@ pub mod db {
                     e.bd_upper_date,
                     e.bd_fuzz,
                 ),
-                birth_location: handle_locations::interop::try_build(
+                birth_location: locations::interop::try_build(
                     e.birth_location_id,
                     e.bl_textual,
                     e.bl_longitude,
                     e.bl_latitude,
                     e.bl_fuzz,
                 ),
-                death_date: handle_dates::interop::try_build(
+                death_date: dates::interop::try_build(
                     e.death_date_id,
                     e.dd_textual,
                     e.dd_exact_date,
@@ -294,7 +279,7 @@ pub mod db {
                     e.dd_upper_date,
                     e.dd_fuzz,
                 ),
-                death_location: handle_locations::interop::try_build(
+                death_location: locations::interop::try_build(
                     e.death_location_id,
                     e.dl_textual,
                     e.dl_longitude,
@@ -314,7 +299,7 @@ pub mod db {
         }
     }
 
-    pub async fn create_person(
+    pub async fn create(
         db_pool: &Pool,
         person: &interop::CreatePerson,
         user_id: Key,
@@ -323,17 +308,16 @@ pub mod db {
         let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
         let tx = client.transaction().await?;
 
-        let birth_date = handle_dates::db::create_date(&tx, &person.birth_date).await?;
+        let birth_date = dates::db::create(&tx, &person.birth_date).await?;
         let birth_date_id = birth_date.id;
 
-        let birth_location =
-            handle_locations::db::create_location(&tx, &person.birth_location).await?;
+        let birth_location = locations::db::create(&tx, &person.birth_location).await?;
         let birth_location_id = birth_location.id;
 
-        let death_date: Option<handle_dates::interop::Date>;
+        let death_date: Option<dates::interop::Date>;
         let death_date_id: Option<Key>;
         if let Some(date) = &person.death_date {
-            let res = handle_dates::db::create_date(&tx, &date).await?;
+            let res = dates::db::create(&tx, &date).await?;
             death_date_id = Some(res.id);
             death_date = Some(res);
         } else {
@@ -341,12 +325,10 @@ pub mod db {
             death_date_id = None;
         };
 
-        info!("db::create_person 2");
-
-        let death_location: Option<handle_locations::interop::Location>;
+        let death_location: Option<locations::interop::Location>;
         let death_location_id: Option<Key>;
         if let Some(location) = &person.death_location {
-            let res = handle_locations::db::create_location(&tx, &location).await?;
+            let res = locations::db::create(&tx, &location).await?;
             death_location_id = Some(res.id);
             death_location = Some(res);
         } else {
@@ -355,18 +337,14 @@ pub mod db {
         };
 
         let age: Option<String> = None; // todo: calculate age
-        info!("db::create_person 3");
 
         // create timespan
         let timespan_id =
-            handle_timespans::db::create_timespan(&tx, Some(birth_date_id), death_date_id, age)
-                .await?;
-
-        info!("db::create_person 4");
+            timespans::db::create(&tx, Some(birth_date_id), death_date_id, age).await?;
 
         let db_person = pg::one::<Person>(
             &tx,
-            include_str!("sql/historic_people_create_decked.sql"),
+            include_str!("../sql/historic_people_create.sql"),
             &[
                 &user_id,
                 &person.name,
@@ -376,18 +354,16 @@ pub mod db {
             ],
         )
         .await?;
-        info!("db::create_person 5");
 
         tx.commit().await?;
-        info!("db::create_person 6");
 
         Ok(interop::Person {
             id: db_person.id,
             name: db_person.name,
-            birth_date: Some(handle_dates::interop::Date::from(birth_date)), // todo: remove options from birth information
-            birth_location: Some(handle_locations::interop::Location::from(birth_location)),
-            death_date: death_date.map(|d| handle_dates::interop::Date::from(d)),
-            death_location: death_location.map(|l| handle_locations::interop::Location::from(l)),
+            birth_date: Some(dates::interop::Date::from(birth_date)), // todo: remove options from birth information
+            birth_location: Some(locations::interop::Location::from(birth_location)),
+            death_date: death_date.map(|d| dates::interop::Date::from(d)),
+            death_location: death_location.map(|l| locations::interop::Location::from(l)),
 
             notes: None,
             quotes: None,
@@ -401,35 +377,31 @@ pub mod db {
         })
     }
 
-    pub async fn get_people(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Person>> {
+    pub async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Person>> {
         pg::many_from::<PersonDerived, interop::Person>(
             db_pool,
-            include_str!("sql/historic_people_all_derived_decked.sql"),
+            include_str!("../sql/historic_people_all_derived.sql"),
             &[&user_id],
         )
         .await
     }
 
-    pub async fn get_person(
-        db_pool: &Pool,
-        person_id: Key,
-        user_id: Key,
-    ) -> Result<interop::Person> {
+    pub async fn get(db_pool: &Pool, person_id: Key, user_id: Key) -> Result<interop::Person> {
         pg::one_from::<PersonDerived, interop::Person>(
             db_pool,
-            include_str!("sql/historic_people_get_derived_decked.sql"),
+            include_str!("../sql/historic_people_get_derived.sql"),
             &[&user_id, &person_id],
         )
         .await
     }
 
-    pub async fn edit_person(
+    pub async fn edit(
         db_pool: &Pool,
         updated_person: &interop::Person,
         person_id: Key,
         user_id: Key,
     ) -> Result<interop::Person> {
-        let existing_person = get_person(db_pool, person_id, user_id).await?;
+        let existing_person = get(db_pool, person_id, user_id).await?;
 
         let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
         let tx = client.transaction().await?;
@@ -437,14 +409,14 @@ pub mod db {
         if let Some(existing_date) = &existing_person.birth_date {
             if let Some(updated_date) = &updated_person.birth_date {
                 if updated_date != existing_date {
-                    handle_dates::db::edit_date(&tx, &updated_date, existing_date.id).await?;
+                    dates::db::edit(&tx, &updated_date, existing_date.id).await?;
                 }
             }
         }
         if let Some(existing_loc) = &existing_person.birth_location {
             if let Some(updated_loc) = &updated_person.birth_location {
                 if updated_loc != existing_loc {
-                    handle_locations::db::edit_location(&tx, &updated_loc, existing_loc.id).await?;
+                    locations::db::edit(&tx, &updated_loc, existing_loc.id).await?;
                 }
             }
         }
@@ -454,7 +426,7 @@ pub mod db {
         if let Some(existing_date) = &existing_person.death_date {
             if let Some(updated_date) = &updated_person.death_date {
                 if updated_date != existing_date {
-                    handle_dates::db::edit_date(&tx, &updated_date, existing_date.id).await?;
+                    dates::db::edit(&tx, &updated_date, existing_date.id).await?;
                 }
             }
         }
@@ -462,29 +434,30 @@ pub mod db {
         if let Some(existing_loc) = &existing_person.death_location {
             if let Some(updated_loc) = &updated_person.death_location {
                 if updated_loc != existing_loc {
-                    handle_locations::db::edit_location(&tx, &updated_loc, existing_loc.id).await?;
+                    locations::db::edit(&tx, &updated_loc, existing_loc.id).await?;
                 }
             }
         }
 
         let _db_person = pg::one::<Person>(
             &tx,
-            include_str!("sql/historic_people_edit_decked.sql"),
+            include_str!("../sql/historic_people_edit.sql"),
             &[&user_id, &person_id, &updated_person.name],
         )
         .await?;
 
         tx.commit().await?;
 
-        let altered_person = get_person(db_pool, person_id, user_id).await?;
+        let altered_person = get(db_pool, person_id, user_id).await?;
 
         Ok(altered_person)
     }
 
-    pub async fn delete_person(db_pool: &Pool, person_id: Key, user_id: Key) -> Result<()> {
+    pub async fn delete(db_pool: &Pool, person_id: Key, user_id: Key) -> Result<()> {
+        // todo: this is wrong, fix
         let person = pg::one_non_transactional::<Person>(
             db_pool,
-            include_str!("sql/historic_people_get.sql"),
+            include_str!("../sql/historic_people_get.sql"),
             &[&person_id, &user_id],
         )
         .await?;
@@ -494,17 +467,17 @@ pub mod db {
 
         // deleting notes require valid edge information, so delete notes before edges
         //
-        handle_notes::db::delete_all_notes_for(&tx, Model::HistoricPerson, person_id).await?;
-        handle_edges::db::delete_all_edges_for_deck(&tx, Model::HistoricPerson, person_id).await?;
+        notes::db::delete_all_notes_for(&tx, Model::HistoricPerson, person_id).await?;
+        edges::db::delete_all_edges_for_deck(&tx, Model::HistoricPerson, person_id).await?;
 
         if let Some(id) = person.timespan_id {
-            handle_timespans::db::delete_timespan(&tx, id).await?;
+            timespans::db::delete(&tx, id).await?;
         }
         if let Some(id) = person.location_id {
-            handle_locations::db::delete_location(&tx, id).await?;
+            locations::db::delete(&tx, id).await?;
         }
         if let Some(id) = person.location2_id {
-            handle_locations::db::delete_location(&tx, id).await?;
+            locations::db::delete(&tx, id).await?;
         }
 
         pg::delete_owned_by_user::<Person>(&tx, person_id, user_id, Model::HistoricPerson).await?;

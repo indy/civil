@@ -96,10 +96,10 @@ pub mod db {
     }
 
     // return all the decks of a certain kind that mention another particular deck.
-    // e.g. deck_that_mention_decked(db_pool, Model::HistoricPerson, Model::Subject, subject_id)
+    // e.g. deck_that_mention(db_pool, Model::HistoricPerson, Model::Subject, subject_id)
     // will return all the people who mention the given subject, ordered by number of references
     //
-    pub async fn decks_that_mention_decked(
+    pub async fn that_mention(
         db_pool: &Pool,
         source_model: Model,
         mentioned_model: Model,
@@ -108,7 +108,7 @@ pub mod db {
         let from_kind = model_to_node_kind(source_model);
         let to_kind = model_to_node_kind(mentioned_model);
 
-        let stmt = include_str!("sql/decks_that_mention_decked.sql");
+        let stmt = include_str!("../sql/decks_that_mention.sql");
         let stmt = stmt.replace("$from_kind", from_kind);
         let stmt = stmt.replace("$to_kind", to_kind);
 
@@ -119,21 +119,20 @@ pub mod db {
         Ok(mentioned)
     }
 
-    // todo: swap the model and id parameters
     // return all the referenced models in the given deck
-    // e.g. decks_referenced_decked(db_pool, Model::HistoricPerson, Model::Subject, subject_id)
+    // e.g. referenced_in(db_pool, Model::Subject, subject_id, Model::HistoricPerson)
     // will return all the people mentioned in the given subject
     //
-    pub async fn decks_referenced_decked(
+    pub async fn referenced_in(
         db_pool: &Pool,
-        referenced_model: Model,
         model: Model,
         id: Key,
+        referenced_model: Model,
     ) -> Result<Vec<interop::DeckReference>> {
         let to_kind = model_to_node_kind(referenced_model);
         let node_kind = model_to_node_kind(model);
 
-        let stmt = include_str!("sql/decks_referenced_decked.sql");
+        let stmt = include_str!("../sql/decks_referenced.sql");
         let stmt = stmt.replace("$from_kind", node_kind);
         let stmt = stmt.replace("$to_kind", to_kind);
 

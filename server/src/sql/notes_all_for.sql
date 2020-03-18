@@ -3,11 +3,9 @@ SELECT n.id,
        n.source,
        n.content,
        n.annotation,
-       n.separator,
-       e.edge_type
+       n.separator
 FROM   notes n,
-       edges e
-WHERE  e.$foreign_key = $1
-       AND e.edge_type = $2
-       AND n.id = e.note_id
-       AND n.note_type = $3
+       edges2 e
+WHERE  e.from_deck_id = $1
+       AND e.to_note_id = n.id
+       AND n.note_type = $2
