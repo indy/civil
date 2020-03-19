@@ -18,7 +18,7 @@
 pub mod db {
     use crate::error::Result;
     use crate::handler::dates;
-    use crate::interop::Key;
+    use crate::interop::{Key, Model};
     use crate::pg;
     use deadpool_postgres::Transaction;
     use serde::{Deserialize, Serialize};
@@ -73,6 +73,10 @@ pub mod db {
         )
         .await?;
 
+        let stmt = pg::delete_statement(Model::Timespan)?;
+
+        pg::zero::<Timespan>(tx, &stmt, &[&timespan_id]).await?;
+
         if let Some(id) = timespan.date_start_id {
             dates::db::delete(&tx, id).await?;
         }
@@ -80,10 +84,6 @@ pub mod db {
             dates::db::delete(&tx, id).await?;
         }
 
-        let stmt = include_str!("../sql/delete.sql");
-        let stmt = stmt.replace("$table_name", "timespans");
-
-        pg::zero::<Timespan>(tx, &stmt, &[&timespan_id]).await?;
         Ok(())
     }
 }

@@ -171,6 +171,8 @@ pub async fn delete_person(
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
+    info!("delete_person");
+
     let user_id = session::user_id(&session)?;
 
     db::delete(&db_pool, params.id, user_id).await?;

@@ -39,6 +39,7 @@ pub enum Error {
     InvalidModelType(Model),
     MissingField,
     ModelConversion,
+    ModelNonUniqueTableName,
     Other,
 }
 

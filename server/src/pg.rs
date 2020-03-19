@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::{Error, Result};
+use crate::interop::{model_to_table_name, Model};
 use deadpool_postgres::{Client, Pool, Transaction};
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tracing::error;
@@ -82,6 +83,34 @@ where
             Err(e)
         }
     }
+}
+
+pub async fn many<T>(
+    tx: &Transaction<'_>,
+    sql_query: &str,
+    sql_params: &[&(dyn tokio_postgres::types::ToSql + std::marker::Sync)],
+) -> Result<Vec<T>>
+where
+    T: FromTokioPostgresRow,
+{
+    let _stmt = sql_query;
+    let _stmt = _stmt.replace("$table_fields", &T::sql_table_fields());
+    let stmt = match tx.prepare(&_stmt).await {
+        Ok(stmt) => stmt,
+        Err(e) => {
+            error!("{}", e);
+            return Err(Error::from(e));
+        }
+    };
+
+    let vec = tx
+        .query(&stmt, sql_params)
+        .await?
+        .iter()
+        .map(|row| T::from_row_ref(row).unwrap())
+        .collect::<Vec<T>>();
+
+    Ok(vec)
 }
 
 pub async fn one_non_transactional<T>(
@@ -192,4 +221,11 @@ where
         .collect::<Vec<T>>();
 
     Ok(vec)
+}
+
+pub fn delete_statement(model: Model) -> Result<String> {
+    let stmt = include_str!("sql/delete.sql");
+    let stmt = stmt.replace("$table_name", model_to_table_name(model)?);
+
+    Ok(stmt)
 }

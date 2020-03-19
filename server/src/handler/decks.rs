@@ -110,10 +110,11 @@ pub mod db {
 
         let deck = get_owned(&tx, id, user_id).await?;
 
-        // deleting notes require valid edge information, so delete notes before edges
-        //
-        notes::db::delete_all_notes_connected_with_deck(&tx, id).await?;
+        notes::db::delete_all_notes_connected_with_deck(&tx, id, user_id).await?;
         edges::db::delete_all_edges_connected_with_deck(&tx, id).await?;
+
+        let stmt = include_str!("../sql/decks_delete.sql");
+        pg::zero::<Deck>(&tx, &stmt, &[&id, &user_id]).await?;
 
         if let Some(id) = deck.date_id {
             dates::db::delete(&tx, id).await?;
@@ -130,9 +131,6 @@ pub mod db {
         if let Some(id) = deck.location2_id {
             locations::db::delete(&tx, id).await?;
         }
-
-        let stmt = include_str!("../sql/decks_delete.sql");
-        pg::zero::<Deck>(&tx, &stmt, &[&id, &user_id]).await?;
 
         tx.commit().await?;
 

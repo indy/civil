@@ -64,3 +64,14 @@ pub fn model_to_node_kind(model: Model) -> Result<&'static str> {
         _ => Err(Error::ModelConversion),
     }
 }
+
+pub fn model_to_table_name(model: Model) -> Result<&'static str> {
+    match model {
+        Model::Note => Ok("notes"),
+        Model::Date => Ok("dates"),
+        Model::Location => Ok("locations"),
+        Model::Timespan => Ok("timespans"),
+        Model::Edge => Ok("edges2"),
+        _ => Err(Error::ModelNonUniqueTableName),
+    }
+}

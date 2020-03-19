@@ -98,7 +98,7 @@ pub async fn delete_note(
 ) -> Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    db::delete_note(&db_pool, params.id, user_id).await?;
+    db::delete_note_pool(&db_pool, params.id, user_id).await?;
 
     Ok(HttpResponse::Ok().json(true))
 }
@@ -151,7 +151,7 @@ pub async fn delete_quote(
     let user_id = session::user_id(&session)?;
 
     // same implementation as note
-    db::delete_note(&db_pool, params.id, user_id).await?;
+    db::delete_note_pool(&db_pool, params.id, user_id).await?;
 
     Ok(HttpResponse::Ok().json(true))
 }
@@ -203,6 +203,12 @@ pub mod db {
         content: String,
         annotation: Option<String>,
         separator: bool,
+    }
+
+    #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
+    #[pg_mapper(table = "notes")]
+    pub struct NoteId {
+        pub id: Key,
     }
 
     impl From<Note> for interop::Note {
@@ -267,7 +273,7 @@ pub mod db {
         Ok(res)
     }
 
-    pub async fn delete_note(db_pool: &Pool, note_id: Key, user_id: Key) -> Result<()> {
+    pub async fn delete_note_pool(db_pool: &Pool, note_id: Key, user_id: Key) -> Result<()> {
         let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
         let tx = client.transaction().await?;
 
@@ -277,6 +283,15 @@ pub mod db {
         pg::zero::<Note>(&tx, &stmt, &[&note_id, &user_id]).await?;
 
         tx.commit().await?;
+
+        Ok(())
+    }
+
+    pub async fn delete_note(tx: &Transaction<'_>, note_id: Key, user_id: Key) -> Result<()> {
+        edges::db::delete_all_edges_connected_with_note(&tx, note_id).await?;
+
+        let stmt = include_str!("../sql/notes_delete.sql");
+        pg::zero::<Note>(&tx, &stmt, &[&note_id, &user_id]).await?;
 
         Ok(())
     }
@@ -390,9 +405,19 @@ pub mod db {
     pub async fn delete_all_notes_connected_with_deck(
         tx: &Transaction<'_>,
         deck_id: Key,
+        user_id: Key,
     ) -> Result<()> {
-        let stmt = include_str!("../sql/notes_delete_deck.sql");
-        pg::zero::<Note>(&tx, &stmt, &[&deck_id]).await?;
+        let note_ids = pg::many::<NoteId>(
+            tx,
+            include_str!("../sql/notes_all_ids_for_deck.sql"),
+            &[&deck_id],
+        )
+        .await?;
+
+        for note_id in note_ids {
+            delete_note(tx, note_id.id, user_id).await?;
+        }
+
         Ok(())
     }
 }
