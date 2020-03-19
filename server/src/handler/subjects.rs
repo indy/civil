@@ -240,7 +240,7 @@ pub mod db {
     }
 
     pub async fn delete(db_pool: &Pool, subject_id: Key, user_id: Key) -> Result<()> {
-        let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+        let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
         let tx = client.transaction().await?;
 
         // deleting notes require valid edge information, so delete notes before edges

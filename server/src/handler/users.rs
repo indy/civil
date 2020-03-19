@@ -53,21 +53,21 @@ pub async fn login(
     let login = login.into_inner();
 
     // db statement
-    let matched_user: db::User = db::login(&db_pool, &login).await?;
+    let (id, password, user) = db::login(&db_pool, &login).await?;
 
     // compare hashed password of matched_user with the given LoginCredentials
-    let is_valid_password = verify_encoded(&matched_user.password, login.password.as_bytes())?;
+    let is_valid_password = verify_encoded(&password, login.password.as_bytes())?;
     if is_valid_password {
         // save id to the session
-        session.set(session::AUTH, format!("{}", matched_user.id))?;
+        session.set(session::AUTH, format!("{}", id))?;
 
         info!("login accepted!!");
         // send response
-        Ok(HttpResponse::Ok().json(interop::User::from(matched_user)))
+        Ok(HttpResponse::Ok().json(user))
     } else {
         info!("login denied");
         session.clear();
-        Err(Error::Authenticating.into())
+        Err(Error::Authenticating)
     }
 }
 
@@ -92,13 +92,13 @@ pub async fn create_user(
     let hash = hash_password(&registration.password)?;
 
     // db statement
-    let user: db::User = db::create(&db_pool, &registration, &hash).await?;
+    let (id, user) = db::create(&db_pool, &registration, &hash).await?;
 
     // save id to the session
-    session.set(session::AUTH, format!("{}", user.id))?;
+    session.set(session::AUTH, format!("{}", id))?;
 
     // send response
-    Ok(HttpResponse::Ok().json(interop::User::from(user)))
+    Ok(HttpResponse::Ok().json(user))
 }
 
 pub async fn get_user(
@@ -107,12 +107,9 @@ pub async fn get_user(
 ) -> Result<HttpResponse> {
     info!("get_user");
     let user_id = session::user_id(&session)?;
+    let user = db::get(&db_pool, user_id).await?;
 
-    // db statement
-    let user: db::User = db::get(&db_pool, user_id).await?;
-
-    // send response
-    Ok(HttpResponse::Ok().json(interop::User::from(user)))
+    Ok(HttpResponse::Ok().json(user))
 }
 
 fn generate_random_salt() -> [u8; 16] {
@@ -140,11 +137,11 @@ mod db {
 
     #[derive(Deserialize, PostgresMapper, Serialize)]
     #[pg_mapper(table = "users")]
-    pub struct User {
-        pub id: Key,
-        pub email: String,
-        pub username: String,
-        pub password: String,
+    struct User {
+        id: Key,
+        email: String,
+        username: String,
+        password: String,
     }
 
     impl From<User> for interop::User {
@@ -159,37 +156,40 @@ mod db {
     pub async fn login(
         db_pool: &Pool,
         login_credentials: &interop::LoginCredentials,
-    ) -> Result<User> {
-        let res = pg::one_non_transactional::<User>(
+    ) -> Result<(Key, String, interop::User)> {
+        let db_user = pg::one_non_transactional::<User>(
             db_pool,
             include_str!("../sql/users_login.sql"),
             &[&login_credentials.email],
         )
         .await?;
-        Ok(res)
+
+        let password = String::from(&db_user.password);
+
+        Ok((db_user.id, password, interop::User::from(db_user)))
     }
 
     pub async fn create(
         db_pool: &Pool,
         registration: &interop::Registration,
-        hash: &String,
-    ) -> Result<User> {
-        let res = pg::one_non_transactional::<User>(
+        hash: &str,
+    ) -> Result<(Key, interop::User)> {
+        let db_user = pg::one_non_transactional::<User>(
             db_pool,
             include_str!("../sql/users_create.sql"),
-            &[&registration.username, &registration.email, hash],
+            &[&registration.username, &registration.email, &hash],
         )
         .await?;
-        Ok(res)
+
+        Ok((db_user.id, interop::User::from(db_user)))
     }
 
-    pub async fn get(db_pool: &Pool, user_id: Key) -> Result<User> {
-        let res = pg::one_non_transactional::<User>(
+    pub async fn get(db_pool: &Pool, user_id: Key) -> Result<interop::User> {
+        pg::one_from::<User, interop::User>(
             db_pool,
             include_str!("../sql/users_get.sql"),
             &[&user_id],
         )
-        .await?;
-        Ok(res)
+        .await
     }
 }

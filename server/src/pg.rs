@@ -94,7 +94,7 @@ pub async fn one_non_transactional<T>(
 where
     T: FromTokioPostgresRow,
 {
-    let client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+    let client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
 
     let _stmt = sql_query;
     let _stmt = _stmt.replace("$table_fields", &T::sql_table_fields());
@@ -135,7 +135,7 @@ where
     S: FromTokioPostgresRow,
     T: From<S>,
 {
-    let client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+    let client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
 
     let _stmt = sql_query;
     let _stmt = _stmt.replace("$table_fields", &S::sql_table_fields());
@@ -174,7 +174,7 @@ where
     S: FromTokioPostgresRow,
     T: From<S>,
 {
-    let client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+    let client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
 
     let _stmt = sql_query;
     let _stmt = _stmt.replace("$table_fields", &S::sql_table_fields());

@@ -305,7 +305,7 @@ pub mod db {
         user_id: Key,
     ) -> Result<interop::Person> {
         info!("db::create_person");
-        let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+        let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
         let tx = client.transaction().await?;
 
         let birth_date = dates::db::create(&tx, &person.birth_date).await?;
@@ -360,10 +360,10 @@ pub mod db {
         Ok(interop::Person {
             id: db_person.id,
             name: db_person.name,
-            birth_date: Some(dates::interop::Date::from(birth_date)), // todo: remove options from birth information
-            birth_location: Some(locations::interop::Location::from(birth_location)),
-            death_date: death_date.map(|d| dates::interop::Date::from(d)),
-            death_location: death_location.map(|l| locations::interop::Location::from(l)),
+            birth_date: Some(birth_date), // todo: remove options from birth information
+            birth_location: Some(birth_location),
+            death_date,
+            death_location,
 
             notes: None,
             quotes: None,
@@ -403,7 +403,7 @@ pub mod db {
     ) -> Result<interop::Person> {
         let existing_person = get(db_pool, person_id, user_id).await?;
 
-        let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+        let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
         let tx = client.transaction().await?;
 
         if let Some(existing_date) = &existing_person.birth_date {
@@ -462,7 +462,7 @@ pub mod db {
         )
         .await?;
 
-        let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+        let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
         let tx = client.transaction().await?;
 
         // deleting notes require valid edge information, so delete notes before edges

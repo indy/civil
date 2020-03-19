@@ -80,7 +80,7 @@ pub mod db {
         fn from(d: DeckMention) -> interop::DeckMention {
             interop::DeckMention {
                 id: d.id,
-                name: d.name.to_string(),
+                name: d.name,
             }
         }
     }
@@ -90,7 +90,7 @@ pub mod db {
             interop::DeckReference {
                 note_id: d.note_id,
                 id: d.id,
-                name: d.name.to_string(),
+                name: d.name,
             }
         }
     }

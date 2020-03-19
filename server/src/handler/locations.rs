@@ -44,7 +44,7 @@ pub mod interop {
     ) -> Option<Location> {
         if let Some(id) = id {
             Some(Location {
-                id: id,
+                id,
                 textual,
                 longitude,
                 latitude,

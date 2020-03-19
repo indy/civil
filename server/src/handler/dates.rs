@@ -47,7 +47,7 @@ pub mod interop {
     ) -> Option<Date> {
         if let Some(id) = id {
             Some(Date {
-                id: id,
+                id,
                 textual,
                 exact_date,
                 lower_date,

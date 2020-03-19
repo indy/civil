@@ -76,7 +76,7 @@ pub mod db {
         fn from(p: Autocomplete) -> interop::Autocomplete {
             interop::Autocomplete {
                 id: p.id,
-                name: p.name.to_string(),
+                name: p.name,
             }
         }
     }

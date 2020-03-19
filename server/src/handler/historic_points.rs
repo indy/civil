@@ -225,7 +225,7 @@ mod db {
         point: &interop::CreatePoint,
         user_id: Key,
     ) -> Result<interop::Point> {
-        let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+        let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
         let tx = client.transaction().await?;
 
         let point_date: Option<dates::interop::Date>;
@@ -263,8 +263,8 @@ mod db {
             id: db_point.id,
             title: db_point.name,
 
-            date: point_date.map(|d| dates::interop::Date::from(d)),
-            location: point_location.map(|l| locations::interop::Location::from(l)),
+            date: point_date,
+            location: point_location,
 
             notes: None,
 
@@ -299,7 +299,7 @@ mod db {
     ) -> Result<interop::Point> {
         let existing_point = get(db_pool, point_id, user_id).await?;
 
-        let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+        let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
         let tx = client.transaction().await?;
 
         if let Some(existing_date) = &existing_point.date {
@@ -340,7 +340,7 @@ mod db {
         )
         .await?;
 
-        let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+        let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
         let tx = client.transaction().await?;
 
         // deleting notes require valid edge information, so delete notes before edges

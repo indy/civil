@@ -198,7 +198,7 @@ pub mod db {
         note: &interop::CreateNote,
         user_id: Key,
     ) -> Result<interop::Note> {
-        let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+        let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
         let tx = client.transaction().await?;
 
         let res = create_common(
@@ -244,7 +244,7 @@ pub mod db {
     }
 
     pub async fn delete_note(db_pool: &Pool, note_id: Key, user_id: Key) -> Result<()> {
-        let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+        let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
         let tx = client.transaction().await?;
 
         pg::delete_owned_by_user::<Note>(&tx, note_id, user_id, Model::Note).await?;
@@ -259,7 +259,7 @@ pub mod db {
         note: &interop::CreateNote,
         user_id: Key,
     ) -> Result<interop::Note> {
-        let mut client: Client = db_pool.get().await.map_err(|err| Error::DeadPool(err))?;
+        let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
         let tx = client.transaction().await?;
 
         let res = create_common(
