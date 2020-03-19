@@ -19,8 +19,6 @@ mod api;
 mod error;
 mod handler;
 mod interop;
-mod model;
-mod note_type;
 mod pg;
 mod session;
 

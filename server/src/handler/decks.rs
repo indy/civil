@@ -34,21 +34,19 @@ pub mod interop {
 
 pub mod db {
     use super::interop;
-    use crate::interop::Key;
-    use serde::{Deserialize, Serialize};
-    use tokio_pg_mapper_derive::PostgresMapper;
-    #[allow(unused_imports)]
-    use tracing::info;
-
     use crate::error::{Error, Result};
     use crate::handler::dates;
     use crate::handler::edges;
     use crate::handler::locations;
     use crate::handler::notes;
     use crate::handler::timespans;
-    use crate::model::{model_to_node_kind, Model};
+    use crate::interop::{model_to_node_kind, Key, Model};
     use crate::pg;
     use deadpool_postgres::{Client, Pool, Transaction};
+    use serde::{Deserialize, Serialize};
+    use tokio_pg_mapper_derive::PostgresMapper;
+    #[allow(unused_imports)]
+    use tracing::info;
 
     #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
     #[pg_mapper(table = "decks")]

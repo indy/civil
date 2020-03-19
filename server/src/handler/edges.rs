@@ -17,8 +17,7 @@
 
 pub mod db {
     use crate::error::Result;
-    use crate::interop::Key;
-    use crate::model::{model_to_node_kind, Model};
+    use crate::interop::{model_to_node_kind, Key, Model};
     use crate::pg;
     use deadpool_postgres::Transaction;
     use serde::{Deserialize, Serialize};

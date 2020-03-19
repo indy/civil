@@ -161,14 +161,38 @@ pub mod db {
     use crate::error::{Error, Result};
     use crate::handler::edges;
     use crate::interop::Key;
-    use crate::model::Model;
-    use crate::note_type::NoteType;
+    use crate::interop::Model;
     use crate::pg;
+    use bytes::{BufMut, BytesMut};
     use deadpool_postgres::{Client, Pool, Transaction};
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
+    use tokio_postgres::types::{to_sql_checked, IsNull, ToSql, Type};
     #[allow(unused_imports)]
     use tracing::info;
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub enum NoteType {
+        Note = 1,
+        Quote = 2,
+    }
+
+    impl ToSql for NoteType {
+        fn to_sql(
+            &self,
+            _ty: &Type,
+            out: &mut BytesMut,
+        ) -> ::std::result::Result<IsNull, Box<dyn ::std::error::Error + Sync + Send>> {
+            out.put_i32(*self as i32);
+            Ok(IsNull::No)
+        }
+
+        fn accepts(ty: &Type) -> bool {
+            <i32 as ToSql>::accepts(ty)
+        }
+
+        to_sql_checked!();
+    }
 
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
     #[pg_mapper(table = "notes")]

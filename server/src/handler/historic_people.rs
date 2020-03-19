@@ -19,8 +19,7 @@ use crate::error::Result;
 use crate::handler::decks;
 use crate::handler::notes;
 use crate::interop::IdParam;
-use crate::model::Model;
-use crate::note_type::NoteType;
+use crate::interop::Model;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
@@ -108,10 +107,10 @@ pub async fn get_person(
     let person_id = params.id;
     let mut person = db::get(&db_pool, person_id, user_id).await?;
 
-    let notes = notes::db::all_notes_for(&db_pool, person_id, NoteType::Note).await?;
+    let notes = notes::db::all_notes_for(&db_pool, person_id, notes::db::NoteType::Note).await?;
     person.notes = Some(notes);
 
-    let quotes = notes::db::all_notes_for(&db_pool, person_id, NoteType::Quote).await?;
+    let quotes = notes::db::all_notes_for(&db_pool, person_id, notes::db::NoteType::Quote).await?;
     person.quotes = Some(quotes);
 
     let people_referenced = decks::db::referenced_in(
