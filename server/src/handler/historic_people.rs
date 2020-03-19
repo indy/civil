@@ -183,12 +183,10 @@ pub mod db {
     use super::interop;
     use crate::error::{Error, Result};
     use crate::handler::dates;
-    use crate::handler::edges;
+    use crate::handler::decks;
     use crate::handler::locations;
-    use crate::handler::notes;
     use crate::handler::timespans;
     use crate::interop::Key;
-    use crate::model::Model;
     use crate::pg;
     use deadpool_postgres::{Client, Pool};
     use serde::{Deserialize, Serialize};
@@ -454,36 +452,6 @@ pub mod db {
     }
 
     pub async fn delete(db_pool: &Pool, person_id: Key, user_id: Key) -> Result<()> {
-        // todo: this is wrong, fix
-        let person = pg::one_non_transactional::<Person>(
-            db_pool,
-            include_str!("../sql/historic_people_get.sql"),
-            &[&person_id, &user_id],
-        )
-        .await?;
-
-        let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-        let tx = client.transaction().await?;
-
-        // deleting notes require valid edge information, so delete notes before edges
-        //
-        notes::db::delete_all_notes_for(&tx, Model::HistoricPerson, person_id).await?;
-        edges::db::delete_all_edges_for_deck(&tx, Model::HistoricPerson, person_id).await?;
-
-        if let Some(id) = person.timespan_id {
-            timespans::db::delete(&tx, id).await?;
-        }
-        if let Some(id) = person.location_id {
-            locations::db::delete(&tx, id).await?;
-        }
-        if let Some(id) = person.location2_id {
-            locations::db::delete(&tx, id).await?;
-        }
-
-        pg::delete_owned_by_user::<Person>(&tx, person_id, user_id, Model::HistoricPerson).await?;
-
-        tx.commit().await?;
-
-        Ok(())
+        decks::db::delete(db_pool, person_id, user_id).await
     }
 }

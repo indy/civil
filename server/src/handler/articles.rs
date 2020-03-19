@@ -137,13 +137,11 @@ pub async fn delete_article(
 
 pub mod db {
     use super::interop;
-    use crate::error::{Error, Result};
-    use crate::handler::edges;
-    use crate::handler::notes;
+    use crate::error::Result;
+    use crate::handler::decks;
     use crate::interop::Key;
-    use crate::model::Model;
     use crate::pg;
-    use deadpool_postgres::{Client, Pool};
+    use deadpool_postgres::Pool;
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
     #[allow(unused_imports)]
@@ -223,18 +221,6 @@ pub mod db {
     }
 
     pub(super) async fn delete(db_pool: &Pool, article_id: Key, user_id: Key) -> Result<()> {
-        let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-        let tx = client.transaction().await?;
-
-        // deleting notes require valid edge information, so delete notes before edges
-        //
-        notes::db::delete_all_notes_for(&tx, Model::Article, article_id).await?;
-        edges::db::delete_all_edges_for_deck(&tx, Model::Article, article_id).await?;
-
-        pg::delete_owned_by_user::<Article>(&tx, article_id, user_id, Model::Article).await?;
-
-        tx.commit().await?;
-
-        Ok(())
+        decks::db::delete(db_pool, article_id, user_id).await
     }
 }

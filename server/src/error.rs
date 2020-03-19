@@ -38,6 +38,7 @@ pub enum Error {
     Authenticating,
     InvalidModelType(Model),
     MissingField,
+    ModelConversion,
     Other,
 }
 

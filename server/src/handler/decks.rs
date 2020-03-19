@@ -40,10 +40,15 @@ pub mod db {
     #[allow(unused_imports)]
     use tracing::info;
 
-    use crate::error::Result;
+    use crate::error::{Error, Result};
+    use crate::handler::dates;
+    use crate::handler::edges;
+    use crate::handler::locations;
+    use crate::handler::notes;
+    use crate::handler::timespans;
     use crate::model::{model_to_node_kind, Model};
     use crate::pg;
-    use deadpool_postgres::Pool;
+    use deadpool_postgres::{Client, Pool, Transaction};
 
     #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
     #[pg_mapper(table = "decks")]
@@ -95,6 +100,47 @@ pub mod db {
         }
     }
 
+    async fn get_owned(tx: &Transaction<'_>, id: Key, user_id: Key) -> Result<Deck> {
+        pg::one::<Deck>(tx, include_str!("../sql/decks_get.sql"), &[&id, &user_id]).await
+    }
+
+    // delete anything that's represented as a deck (subject, article, historical_person, historical_point)
+    //
+    pub async fn delete(db_pool: &Pool, id: Key, user_id: Key) -> Result<()> {
+        let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
+        let tx = client.transaction().await?;
+
+        let deck = get_owned(&tx, id, user_id).await?;
+
+        // deleting notes require valid edge information, so delete notes before edges
+        //
+        notes::db::delete_all_notes_connected_with_deck(&tx, id).await?;
+        edges::db::delete_all_edges_connected_with_deck(&tx, id).await?;
+
+        if let Some(id) = deck.date_id {
+            dates::db::delete(&tx, id).await?;
+        }
+
+        if let Some(id) = deck.location_id {
+            locations::db::delete(&tx, id).await?;
+        }
+
+        if let Some(id) = deck.timespan_id {
+            timespans::db::delete(&tx, id).await?;
+        }
+
+        if let Some(id) = deck.location2_id {
+            locations::db::delete(&tx, id).await?;
+        }
+
+        let stmt = include_str!("../sql/decks_delete.sql");
+        pg::zero::<Deck>(&tx, &stmt, &[&id, &user_id]).await?;
+
+        tx.commit().await?;
+
+        Ok(())
+    }
+
     // return all the decks of a certain kind that mention another particular deck.
     // e.g. deck_that_mention(db_pool, Model::HistoricPerson, Model::Subject, subject_id)
     // will return all the people who mention the given subject, ordered by number of references
@@ -105,8 +151,8 @@ pub mod db {
         mentioned_model: Model,
         mentioned_id: Key,
     ) -> Result<Vec<interop::DeckMention>> {
-        let from_kind = model_to_node_kind(source_model);
-        let to_kind = model_to_node_kind(mentioned_model);
+        let from_kind = model_to_node_kind(source_model)?;
+        let to_kind = model_to_node_kind(mentioned_model)?;
 
         let stmt = include_str!("../sql/decks_that_mention.sql");
         let stmt = stmt.replace("$from_kind", from_kind);
@@ -129,8 +175,8 @@ pub mod db {
         id: Key,
         referenced_model: Model,
     ) -> Result<Vec<interop::DeckReference>> {
-        let to_kind = model_to_node_kind(referenced_model);
-        let node_kind = model_to_node_kind(model);
+        let to_kind = model_to_node_kind(referenced_model)?;
+        let node_kind = model_to_node_kind(model)?;
 
         let stmt = include_str!("../sql/decks_referenced.sql");
         let stmt = stmt.replace("$from_kind", node_kind);

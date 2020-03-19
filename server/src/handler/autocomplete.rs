@@ -91,7 +91,7 @@ pub mod db {
 
     async fn get_autocomplete(db_pool: &Pool, kind: Model) -> Result<Vec<interop::Autocomplete>> {
         let stmt = include_str!("../sql/autocomplete.sql");
-        let stmt = stmt.replace("$node_kind", model_to_node_kind(kind));
+        let stmt = stmt.replace("$node_kind", model_to_node_kind(kind)?);
 
         pg::many_from::<Autocomplete, interop::Autocomplete>(db_pool, &stmt, &[]).await
     }

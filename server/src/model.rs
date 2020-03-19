@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::error::{Error, Result};
 use std::fmt;
 
 #[derive(Clone, Copy, Debug)]
@@ -44,46 +45,13 @@ impl std::fmt::Display for Model {
     }
 }
 
-pub fn model_to_foreign_key(model: Model) -> &'static str {
+pub fn model_to_node_kind(model: Model) -> Result<&'static str> {
     match model {
-        Model::Note => "note_id",
-        Model::HistoricPerson => "historic_person_id",
-        Model::Subject => "subject_id",
-        Model::Article => "article_id",
-        Model::HistoricPoint => "historic_point_id",
-        // these won't be used?
-        Model::Date => "date_id",
-        Model::Location => "location_id",
-        Model::Edge => "edge_id",
-        Model::Timespan => "timespan_id",
-    }
-}
-
-pub fn model_to_node_kind(model: Model) -> &'static str {
-    match model {
-        Model::Note => "note",
-        Model::HistoricPerson => "historic_person",
-        Model::Subject => "subject",
-        Model::Article => "article",
-        Model::HistoricPoint => "historic_point",
-        // these won't be used?
-        Model::Date => "model_to_node_kind_wtf!",
-        Model::Location => "model_to_node_kind_wtf!",
-        Model::Edge => "model_to_node_kind_wtf!",
-        Model::Timespan => "model_to_node_kind_wtf!",
-    }
-}
-
-pub fn model_to_table_name(model: Model) -> &'static str {
-    match model {
-        Model::Note => "notes",
-        Model::HistoricPerson => "historic_people",
-        Model::Subject => "subjects",
-        Model::Article => "articles",
-        Model::HistoricPoint => "historic_points",
-        Model::Date => "dates",
-        Model::Location => "locations",
-        Model::Edge => "edges",
-        Model::Timespan => "timespans",
+        Model::Note => Ok("note"),
+        Model::HistoricPerson => Ok("historic_person"),
+        Model::Subject => Ok("subject"),
+        Model::Article => Ok("article"),
+        Model::HistoricPoint => Ok("historic_point"),
+        _ => Err(Error::ModelConversion),
     }
 }

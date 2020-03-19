@@ -161,7 +161,7 @@ pub mod db {
     use crate::error::{Error, Result};
     use crate::handler::edges;
     use crate::interop::Key;
-    use crate::model::{model_to_foreign_key, Model};
+    use crate::model::Model;
     use crate::note_type::NoteType;
     use crate::pg;
     use deadpool_postgres::{Client, Pool, Transaction};
@@ -247,7 +247,10 @@ pub mod db {
         let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
         let tx = client.transaction().await?;
 
-        pg::delete_owned_by_user::<Note>(&tx, note_id, user_id, Model::Note).await?;
+        edges::db::delete_all_edges_connected_with_note(&tx, note_id).await?;
+
+        let stmt = include_str!("../sql/notes_delete.sql");
+        pg::zero::<Note>(&tx, &stmt, &[&note_id, &user_id]).await?;
 
         tx.commit().await?;
 
@@ -360,13 +363,12 @@ pub mod db {
         .await
     }
 
-    pub async fn delete_all_notes_for(tx: &Transaction<'_>, model: Model, id: Key) -> Result<()> {
-        let foreign_key = model_to_foreign_key(model);
-
-        let stmt = include_str!("../sql/notes_delete.sql");
-        let stmt = stmt.replace("$foreign_key", foreign_key);
-
-        pg::zero::<Note>(&tx, &stmt, &[&id]).await?;
+    pub async fn delete_all_notes_connected_with_deck(
+        tx: &Transaction<'_>,
+        deck_id: Key,
+    ) -> Result<()> {
+        let stmt = include_str!("../sql/notes_delete_deck.sql");
+        pg::zero::<Note>(&tx, &stmt, &[&deck_id]).await?;
         Ok(())
     }
 }

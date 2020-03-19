@@ -39,7 +39,7 @@ pub mod db {
         from_key: Key,
         note_key: Key,
     ) -> Result<Key> {
-        let from_kind = model_to_node_kind(from_model);
+        let from_kind = model_to_node_kind(from_model)?;
 
         let stmt = include_str!("../sql/edges_create_to_note.sql");
         let stmt = stmt.replace("$from_kind", from_kind);
@@ -49,21 +49,17 @@ pub mod db {
         Ok(edge.id)
     }
 
-    pub async fn delete_all_edges_for_deck(
+    pub async fn delete_all_edges_connected_with_deck(
         tx: &Transaction<'_>,
-        model: Model,
-        id: Key,
+        deck_id: Key,
     ) -> Result<()> {
-        let kind = model_to_node_kind(model);
-
         let stmt = include_str!("../sql/edges_delete_deck.sql");
-        let stmt = stmt.replace("$kind", kind);
 
-        pg::zero::<Edge>(tx, &stmt, &[&id]).await?;
+        pg::zero::<Edge>(tx, &stmt, &[&deck_id]).await?;
         Ok(())
     }
 
-    pub async fn _delete_all_edges_for_note(tx: &Transaction<'_>, id: Key) -> Result<()> {
+    pub async fn delete_all_edges_connected_with_note(tx: &Transaction<'_>, id: Key) -> Result<()> {
         let stmt = include_str!("../sql/edges_delete_note.sql");
 
         pg::zero::<Edge>(tx, &stmt, &[&id]).await?;

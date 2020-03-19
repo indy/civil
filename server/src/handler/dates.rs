@@ -64,7 +64,6 @@ pub mod db {
     use super::interop;
     use crate::error::Result;
     use crate::interop::Key;
-    use crate::model::Model;
     use crate::pg;
     use deadpool_postgres::Transaction;
     use serde::{Deserialize, Serialize};
@@ -143,7 +142,10 @@ pub mod db {
     }
 
     pub async fn delete(tx: &Transaction<'_>, date_id: Key) -> Result<()> {
-        pg::delete::<Date>(tx, date_id, Model::Date).await?;
+        let stmt = include_str!("../sql/delete.sql");
+        let stmt = stmt.replace("$table_name", "dates");
+
+        pg::zero::<Date>(tx, &stmt, &[&date_id]).await?;
         Ok(())
     }
 }

@@ -60,7 +60,6 @@ pub mod db {
     use super::interop;
     use crate::error::Result;
     use crate::interop::Key;
-    use crate::model::Model;
     use crate::pg;
     use deadpool_postgres::Transaction;
     use serde::{Deserialize, Serialize};
@@ -132,7 +131,10 @@ pub mod db {
     }
 
     pub async fn delete(tx: &Transaction<'_>, location_id: Key) -> Result<()> {
-        pg::delete::<Location>(tx, location_id, Model::Location).await?;
+        let stmt = include_str!("../sql/delete.sql");
+        let stmt = stmt.replace("$table_name", "locations");
+
+        pg::zero::<Location>(tx, &stmt, &[&location_id]).await?;
         Ok(())
     }
 }
