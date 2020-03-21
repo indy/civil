@@ -17,6 +17,7 @@
 
 use crate::handler::articles;
 use crate::handler::autocomplete;
+use crate::handler::edges;
 use crate::handler::historic_people;
 use crate::handler::historic_points;
 use crate::handler::notes;
@@ -92,6 +93,12 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", get().to(notes::get_quote))
                 .route("/{id}", put().to(notes::edit_quote)) // check
                 .route("/{id}", delete().to(notes::delete_quote)),
+        )
+        // edges
+        .service(
+            scope("/edges")
+                .route("", post().to(edges::create_edge))
+                .route("/{id}", delete().to(edges::delete_edge)),
         )
         // autocomplete
         .service(

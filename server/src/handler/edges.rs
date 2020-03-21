@@ -15,11 +15,71 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::error::Result;
+use crate::interop::IdParam;
+use crate::session;
+use actix_web::web::{Data, Json, Path};
+use actix_web::HttpResponse;
+use deadpool_postgres::Pool;
+#[allow(unused_imports)]
+use tracing::info;
+
+mod interop {
+    use crate::interop::Key;
+
+    #[derive(Debug, serde::Deserialize, serde::Serialize)]
+    pub struct Edge {
+        pub id: Key,
+
+        pub from_deck_id: Option<Key>,
+        pub to_deck_id: Option<Key>,
+        pub from_note_id: Option<Key>,
+        pub to_note_id: Option<Key>,
+    }
+
+    // currently these are all from Note to a Deck based model
+    //
+    #[derive(Debug, serde::Deserialize, serde::Serialize)]
+    pub struct CreateEdge {
+        pub note_id: Option<Key>,
+        pub person_id: Option<Key>,
+        pub subject_id: Option<Key>,
+    }
+}
+
+pub async fn create_edge(
+    edge: Json<interop::CreateEdge>,
+    db_pool: Data<Pool>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    info!("create_edge");
+    let edge = edge.into_inner();
+    let user_id = session::user_id(&session)?;
+
+    // db statement
+    let edge = db::create(&db_pool, &edge, user_id).await?;
+
+    Ok(HttpResponse::Ok().json(edge))
+}
+
+pub async fn delete_edge(
+    db_pool: Data<Pool>,
+    params: Path<IdParam>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    let user_id = session::user_id(&session)?;
+
+    db::delete(&db_pool, params.id, user_id).await?;
+
+    Ok(HttpResponse::Ok().json(true))
+}
+
 pub mod db {
-    use crate::error::Result;
+    use super::interop;
+    use crate::error::{Error, Result};
     use crate::interop::{model_to_node_kind, Key, Model};
     use crate::pg;
-    use deadpool_postgres::Transaction;
+    use deadpool_postgres::{Client, Pool, Transaction};
     use serde::{Deserialize, Serialize};
     use tokio_pg_mapper_derive::PostgresMapper;
     #[allow(unused_imports)]
@@ -30,6 +90,64 @@ pub mod db {
     struct Edge {
         id: Key,
         annotation: Option<String>,
+    }
+
+    impl From<Edge> for interop::Edge {
+        fn from(e: Edge) -> interop::Edge {
+            interop::Edge {
+                id: e.id,
+                from_deck_id: None,
+                to_deck_id: None,
+                from_note_id: None,
+                to_note_id: None,
+            }
+        }
+    }
+
+    // currently this function only creates edges 'from' a note 'to' a deck derived struct
+    pub async fn create(
+        db_pool: &Pool,
+        edge: &interop::CreateEdge,
+        _user_id: Key,
+    ) -> Result<interop::Edge> {
+        let node_kind;
+        let to_id: Key;
+
+        // todo: make this code good
+        if let Some(id) = edge.person_id {
+            node_kind = model_to_node_kind(Model::HistoricPerson)?;
+            to_id = id;
+        } else if let Some(id) = edge.subject_id {
+            node_kind = model_to_node_kind(Model::Subject)?;
+            to_id = id;
+        } else {
+            return Err(Error::ModelConversion);
+        };
+
+        let note_id;
+        if let Some(id) = edge.note_id {
+            note_id = id;
+        } else {
+            return Err(Error::MissingField);
+        }
+
+        let stmt = include_str!("../sql/edges_create_from_note.sql");
+        let stmt = stmt.replace("$to_kind", node_kind);
+
+        pg::one_from::<Edge, interop::Edge>(db_pool, &stmt, &[&note_id, &to_id]).await
+    }
+
+    pub async fn delete(db_pool: &Pool, edge_id: Key, _user_id: Key) -> Result<()> {
+        let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
+        let tx = client.transaction().await?;
+
+        let stmt = pg::delete_statement(Model::Edge)?;
+
+        pg::zero::<Edge>(&tx, &stmt, &[&edge_id]).await?;
+
+        tx.commit().await?;
+
+        Ok(())
     }
 
     pub async fn create_edge_to_note(
