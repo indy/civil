@@ -1,14 +1,11 @@
 import React, { Component } from 'react';
-import SubjectLink from './SubjectLink';
+import ListingAnchor from './ListingAnchor';
 
 class SectionMentionedInSubjects extends Component {
 
   buildMentionedInSubject = (mentionedIn) => {
     return (
-      <li key={ mentionedIn.id }>
-        <SubjectLink id={ mentionedIn.id }
-                     name={ mentionedIn.name }/>
-      </li>
+      <ListingAnchor key={mentionedIn.id} id={ mentionedIn.id } name={ mentionedIn.name } resource='subjects'/>
     );
   }
 

@@ -1,14 +1,11 @@
 import React, { Component } from 'react';
-import PersonLink from './PersonLink';
+import ListingAnchor from './ListingAnchor';
 
 class SectionMentionedByPeople extends Component {
 
-  buildMentionedByPerson = (mentionedBy) => {
+  buildMentionedByPerson = (p) => {
     return (
-      <li key={ mentionedBy.id }>
-        <PersonLink id={ mentionedBy.id }
-                    name={ mentionedBy.name }/>
-      </li>
+      <ListingAnchor key={ p.id } id={ p.id } name={ p.name } resource='people'/>
     );
   }
 

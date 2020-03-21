@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import Autocomplete from 'react-autocomplete';
-import PersonLink from './PersonLink';
-import SubjectLink from './SubjectLink';
+import ResourceLink from './ResourceLink';
 
 import NoteUtils from '../lib/NoteUtils';
 import NoteCompiler from '../lib/NoteCompiler';
@@ -127,7 +126,7 @@ class Note extends Component {
     const referenced = this.props.referencedSubjects.map(s => {
       return (
         <span className="marginnote" key={ s.id }>
-          <SubjectLink id={ s.id } name={ s.name }/>
+          <ResourceLink id={ s.id } name={ s.name } resource='subjects'/>
         </span>
       );
     });
@@ -139,7 +138,7 @@ class Note extends Component {
     const referenced = this.props.referencedPeople.map(p => {
       return (
         <span className="marginnote" key={ p.id }>
-          <PersonLink id={ p.id } name={ p.name }/>
+          <ResourceLink id={ p.id } name={ p.name } resource='people'/>
         </span>
       );
     });
@@ -238,8 +237,8 @@ class Note extends Component {
     return aLower < bLower ? -1 : 1;
   }
 
-  postReference = (data) => {
-    Net.post("/api/reference/add", data).then(() => {
+  postEdgeCreate = (data) => {
+    Net.post("/api/edges", data).then(() => {
       // re-fetches the person/subject/article/point
       this.props.onAddReference();
     });
@@ -308,7 +307,7 @@ class Note extends Component {
       const person = this.props.people.find(p => p.name === name);
 
       if (person) {
-        this.postReference({
+        this.postEdgeCreate({
           note_id: this.props.note.id,
           person_id: person.id
         });
@@ -328,7 +327,7 @@ class Note extends Component {
       const subject = this.props.subjects.find(s => s.name === name);
 
       if (subject) {
-        this.postReference({
+        this.postEdgeCreate({
           note_id: this.props.note.id,
           subject_id: subject.id
         });

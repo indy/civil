@@ -1,51 +1,37 @@
-import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
-
+import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
+import { Link } from 'react-router-dom';
+import ListingLink from './ListingLink';
 
-class Subjects extends Component {
-  constructor(props) {
-    super(props);
+function Subjects() {
+  const [subjects, setSubjects] = useState([]);
+  let [showAddSubjectLink, setShowAddSubjectLink] = useState(false);
 
-    this.state = {
-      subjects: [],
-      showAddSubjectLink: false
-    };
+  useEffect(() => {
+      async function fetcher() {
+        const p = await Net.get('/api/subjects');
+        setSubjects(p);
+      }
+      fetcher();
+  }, []);
 
-    Net.get('/api/subjects').then(subjects => {
-      this.setState({ subjects });
-    });
-  }
+  const toggleShowAdd = () => {
+    setShowAddSubjectLink(!showAddSubjectLink);
+  };
 
-  createSubjectListing = (subject) => {
-    return <SubjectListing id={ subject.id } key={ subject.id } name={ subject.name }/>;
-  }
+  const subjectsList = subjects.map(
+    subject => <ListingLink id={ subject.id } key={ subject.id } name={ subject.name } resource='subjects'/>
+  );
 
-  toggleShowAdd = () => {
-    this.setState((prevState, props) => ({
-      showAddSubjectLink: !prevState.showAddSubjectLink
-    }));
-  }
-
-  render() {
-    const { subjects } = this.state;
-    const subjectsList = subjects.map(this.createSubjectListing);
-
-    return (
-      <div>
-        <h1 onClick={ this.toggleShowAdd }>Subjects</h1>
-        { this.state.showAddSubjectLink && <Link to='/add-subject'>Add Subject</Link> }
-        <ul>
-          { subjectsList }
-        </ul>
-      </div>
-    );
-  }
+  return (
+    <div>
+      <h1 onClick={ toggleShowAdd }>Subjects</h1>
+      { showAddSubjectLink && <Link to='/add-subject'>Add Subject</Link> }
+      <ul>
+        { subjectsList }
+      </ul>
+    </div>
+  );
 }
-
-const SubjectListing = props => {
-  const href = `/subjects/${props.id}`;
-  return (<li><Link to={ href }>{ props.name }</Link></li>);
-};
 
 export default Subjects;

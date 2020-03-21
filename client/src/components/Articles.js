@@ -1,51 +1,37 @@
-import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
-
+import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
+import { Link } from 'react-router-dom';
+import ListingLink from './ListingLink';
 
-class Articles extends Component {
-  constructor(props) {
-    super(props);
+function Articles() {
+  const [articles, setArticles] = useState([]);
+  let [showAddArticleLink, setShowAddArticleLink] = useState(false);
 
-    this.state = {
-      articles: [],
-      showAddArticleLink: false
-    };
+  useEffect(() => {
+      async function fetcher() {
+        const p = await Net.get('/api/articles');
+        setArticles(p);
+      }
+      fetcher();
+  }, []);
 
-    Net.get('/api/articles').then(articles => {
-      this.setState({ articles });
-    });
-  }
+  const toggleShowAdd = () => {
+    setShowAddArticleLink(!showAddArticleLink);
+  };
 
-  createArticleListing = (article) => {
-    return <ArticleListing id={ article.id } key={ article.id } title={ article.title }/>;
-  }
+  const articlesList = articles.map(
+    article => <ListingLink id={ article.id } key={ article.id } name={ article.title } resource='articles'/>
+  );
 
-  toggleShowAdd = () => {
-    this.setState((prevState, props) => ({
-      showAddArticleLink: !prevState.showAddArticleLink
-    }));
-  }
-
-  render() {
-    const { articles } = this.state;
-    const articlesList = articles.map(this.createArticleListing);
-
-    return (
-      <div>
-        <h1 onClick={ this.toggleShowAdd }>Articles</h1>
-        { this.state.showAddArticleLink && <Link to='/add-article'>Add Article</Link> }
-        <ul>
-          { articlesList }
-        </ul>
-      </div>
-    );
-  }
+  return (
+    <div>
+      <h1 onClick={ toggleShowAdd }>Articles</h1>
+      { showAddArticleLink && <Link to='/add-article'>Add Article</Link> }
+      <ul>
+        { articlesList }
+      </ul>
+    </div>
+  );
 }
-
-const ArticleListing = props => {
-  const href = `/articles/${props.id}`;
-  return (<li><Link to={ href }>{ props.title }</Link></li>);
-};
 
 export default Articles;

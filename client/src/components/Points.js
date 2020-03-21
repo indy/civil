@@ -1,51 +1,35 @@
-import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
-
+import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
+import { Link } from 'react-router-dom';
+import ListingLink from './ListingLink';
 
-class Points extends Component {
-  constructor(props) {
-    super(props);
+function Points() {
+  const [points, setPoints] = useState([]);
+  let [showAddPointLink, setShowAddPointLink] = useState(false);
 
-    this.state = {
-      points: [],
-      showAddPointLink: false
-    };
+  useEffect(() => {
+      async function fetcher() {
+        const p = await Net.get('/api/points');
+        setPoints(p);
+      }
+      fetcher();
+  }, []);
 
-    Net.get('/api/points').then(points => {
-      this.setState({ points });
-    });
-  }
+  const toggleShowAdd = () => {
+    setShowAddPointLink(!showAddPointLink);
+  };
 
-  createPointListing = (point) => {
-    return <PointListing id={ point.id } key={ point.id } title={ point.title }/>;
-  }
+  const pointsList = points.map(point => <ListingLink id={ point.id } key={ point.id } name={ point.title } resource='points'/>);
 
-  toggleShowAdd = () => {
-    this.setState((prevState, props) => ({
-      showAddPointLink: !prevState.showAddPointLink
-    }));
-  }
-
-  render() {
-    const { points } = this.state;
-    const pointsList = points.map(this.createPointListing);
-
-    return (
-      <div>
-        <h1 onClick={ this.toggleShowAdd }>Points</h1>
-        { this.state.showAddPointLink && <Link to='/add-point'>Add Point</Link> }
-        <ul>
-          { pointsList }
-        </ul>
-      </div>
-    );
-  }
+  return (
+    <div>
+      <h1 onClick={ toggleShowAdd }>Points</h1>
+      { showAddPointLink && <Link to='/add-point'>Add Point</Link> }
+      <ul>
+        { pointsList }
+      </ul>
+    </div>
+  );
 }
-
-const PointListing = props => {
-  const href = `/points/${props.id}`;
-  return (<li><Link to={ href }>{ props.title }</Link></li>);
-};
 
 export default Points;

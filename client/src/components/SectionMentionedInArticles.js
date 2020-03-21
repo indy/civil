@@ -1,14 +1,11 @@
 import React, { Component } from 'react';
-import ArticleLink from './ArticleLink';
+import ListingAnchor from './ListingAnchor';
 
 class SectionMentionedInArticles extends Component {
 
   buildMentionedInArticle = (mentionedIn) => {
     return (
-      <li key={ mentionedIn.id }>
-        <ArticleLink id={ mentionedIn.id }
-                     title={ mentionedIn.name }/>
-      </li>
+      <ListingAnchor key={mentionedIn.id} id={ mentionedIn.id } name={ mentionedIn.name } resource='articles'/>
     );
   }
 
