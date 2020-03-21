@@ -1,8 +1,8 @@
 SELECT COUNT(*) AS mention_count,
        p.id AS id,
        p.name AS name
-FROM edges2 e1,
-     edges2 e2,
+FROM edges e1,
+     edges e2,
      notes n,
      decks p
 WHERE e1.from_kind = '$from_kind'::node_kind

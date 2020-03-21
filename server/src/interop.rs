@@ -71,7 +71,7 @@ pub fn model_to_table_name(model: Model) -> Result<&'static str> {
         Model::Date => Ok("dates"),
         Model::Location => Ok("locations"),
         Model::Timespan => Ok("timespans"),
-        Model::Edge => Ok("edges2"),
+        Model::Edge => Ok("edges"),
         _ => Err(Error::ModelNonUniqueTableName),
     }
 }

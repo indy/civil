@@ -86,7 +86,7 @@ pub mod db {
     use tracing::info;
 
     #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
-    #[pg_mapper(table = "edges2")]
+    #[pg_mapper(table = "edges")]
     struct Edge {
         id: Key,
         annotation: Option<String>,

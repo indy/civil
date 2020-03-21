@@ -1,8 +1,8 @@
 SELECT n.id as note_id,
        d.id as id,
        d.name as name
-FROM   edges2 e1,
-       edges2 e2,
+FROM   edges e1,
+       edges e2,
        notes n,
        decks d
 WHERE  e1.from_kind = '$from_kind'::node_kind

@@ -5,7 +5,7 @@ SELECT n.id,
        n.annotation,
        n.separator
 FROM   notes n,
-       edges2 e
+       edges e
 WHERE  e.from_deck_id = $1
        AND e.to_note_id = n.id
        AND n.note_type = $2
