@@ -30,6 +30,11 @@
 /* Civil CSS styles - Based on Tufte CSS */
 html { font-size: 15px; }
 
+
+#login-menuitem {
+  float: right;
+}
+
 body { width: 87.5%;
        margin-left: auto;
        margin-right: auto;

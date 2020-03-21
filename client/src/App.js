@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import {
   BrowserRouter as Router,
   Route,
-  Link
+  Link,
+  Switch
 } from 'react-router-dom';
 
 import Person from './components/Person';
@@ -22,10 +23,46 @@ import Points from './components/Points';
 import PointCreateForm from './components/PointCreateForm';
 
 import Login from './components/Login';
+import Logout from './components/Logout';
+
+import Net from './lib/Net';
 
 
 class App extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      logged_in: false,
+      username: "",
+      email: ""
+    };
+
+    this.fetchLoggedInStatus();
+  }
+
+  fetchLoggedInStatus = () => {
+    Net.get("/api/users").then(user => {
+      this.setState({
+        logged_in: true,
+        username: user.username,
+        email: user.email
+      });
+    }, err => {
+      this.setState({
+        logged_in: false,
+        username: null,
+        email: null
+      });
+    });
+  };
+
+
   render() {
+
+    const logged_status = this.state.logged_in ? this.state.username : "Login";
+    const logged_link = this.state.logged_in ? '/logout' : '/login';
+
     return (
       <Router>
         <div>
@@ -35,23 +72,26 @@ class App extends Component {
             <Link className='top-bar-menuitem' to={'/subjects'}>Subjects</Link>
             <Link className='top-bar-menuitem' to={'/articles'}>Articles</Link>
             <Link className='top-bar-menuitem' to={'/points'}>Points</Link>
-            <Link className='top-bar-menuitem' to={'/login'}>Login</Link>
+            <Link className='top-bar-menuitem' to={ logged_link } id="login-menuitem">{ logged_status }</Link>
           </div>
           <hr/>
-          <Route exact path="/" component={Home}/>
-          <Route path={'/people/:personId'} component={Person}/>
-          <Route path={'/subjects/:subjectId'} component={Subject}/>
-          <Route path={'/articles/:articleId'} component={Article}/>
-          <Route path={'/points/:pointId'} component={Point}/>
-          <Route exact path="/people" component={People}/>
-          <Route exact path="/subjects" component={Subjects}/>
-          <Route exact path="/articles" component={Articles}/>
-          <Route exact path="/points" component={Points}/>
-          <Route exact path="/login" component={Login}/>
-          <Route path={'/add-person'} component={PersonCreateForm}/>
-          <Route path={'/add-subject'} component={SubjectCreateForm}/>
-          <Route path={'/add-article'} component={ArticleCreateForm}/>
-          <Route path={'/add-point'} component={PointCreateForm}/>
+          <Switch>
+            <Route exact path="/" component={Home}/>
+            <Route path={'/people/:personId'} component={Person}/>
+            <Route path={'/subjects/:subjectId'} component={Subject}/>
+            <Route path={'/articles/:articleId'} component={Article}/>
+            <Route path={'/points/:pointId'} component={Point}/>
+            <Route exact path="/people" component={People}/>
+            <Route exact path="/subjects" component={Subjects}/>
+            <Route exact path="/articles" component={Articles}/>
+            <Route exact path="/points" component={Points}/>
+            <Route exact path="/login" component={Login}/>
+            <Route exact path="/logout" component={Logout}/>
+            <Route path={'/add-person'} component={PersonCreateForm}/>
+            <Route path={'/add-subject'} component={SubjectCreateForm}/>
+            <Route path={'/add-article'} component={ArticleCreateForm}/>
+            <Route path={'/add-point'} component={PointCreateForm}/>
+          </Switch>
         </div>
       </Router>
     );

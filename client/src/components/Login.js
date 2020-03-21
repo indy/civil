@@ -31,15 +31,7 @@ class Login extends Component {
     };
 
     Net.post('api/auth', login_details).then(resp => {
-      console.log(resp);
-    });
-
-    event.preventDefault();
-  }
-
-  handleLogout = (event) => {
-    Net.delete('api/auth', {}).then(resp => {
-      console.log(resp);
+      this.setState({ redirectUrl: "/"});
     });
 
     event.preventDefault();
@@ -72,11 +64,6 @@ class Login extends Component {
                    onChange={ this.handleChangeEvent } />
             <input type="submit" value="Login"/>
           </form>
-
-          <form onSubmit={ this.handleLogout }>
-            <input type="submit" value="Logout"/>
-          </form>
-
         </section>
       </div>
     );
