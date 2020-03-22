@@ -75,6 +75,7 @@ pub async fn get_articles(
     // db statement
     let articles = db::all(&db_pool, user_id).await?;
 
+
     Ok(HttpResponse::Ok().json(articles))
 }
 

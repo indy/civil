@@ -1,52 +1,45 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 
-class QuoteCreateForm extends Component {
-  constructor (props) {
-    super(props);
+export default function QuoteCreateForm(props) {
+  const [content, setContent] = useState('');
+  const [source, setSource] = useState('');
 
-    this.state = {
-      content: "",
-      source: ""
-    };
-  }
-
-  handleChangeEvent = (event) => {
+  const handleChangeEvent = (event) => {
     const target = event.target;
-    // console.log(`setting ${target.name} to ${target.value}`);
-    this.setState({
-      [target.name]: target.value
-    });
-  }
+    const name = target.name;
 
-  handleSubmit = (event) => {
+    if (name === 'content') {
+      setContent(target.value);
+    }
+    if (name === 'source') {
+      setSource(target.value);
+    }
+  };
+
+  const handleSubmit = (event) => {
     event.preventDefault();
-    this.props.onSubmit(event);
-  }
+    props.onSubmit(event);
+  };
 
-  render() {
-    return (
-      <form onSubmit={ this.handleSubmit }>
+  return (
+    <form onSubmit={ handleSubmit }>
 
-        <label htmlFor="content">Quote:</label>
-        <textarea id="content"
-                  type="text"
-                  name="content"
-                  value={ this.state.content }
-                  onChange={ this.handleChangeEvent }
-                  />
+      <label htmlFor="content">Quote:</label>
+      <textarea id="content"
+                type="text"
+                name="content"
+                value={ content }
+                onChange={ handleChangeEvent }
+      />
 
-        <label htmlFor="source">Source:</label>
-        <input id="source"
-               type="text"
-               name="source"
-               value={ this.state.source }
-               onChange={ this.handleChangeEvent }
-               />
-
-        <input type="submit" value="Save quote"/>
-      </form>
-    );
-  }
+      <label htmlFor="source">Source:</label>
+      <input id="source"
+             type="text"
+             name="source"
+             value={ source }
+             onChange={ handleChangeEvent }
+      />
+      <input type="submit" value="Save quote"/>
+    </form>
+  );
 }
-
-export default QuoteCreateForm;

@@ -1,3 +1,6 @@
+
+// todo: function to generate object with headers...'application/json' etc
+
 const Net = {
 
   createThenRedirect: (component, resourceName, data) => {
@@ -11,6 +14,20 @@ const Net = {
       return res.json();
     }).then(obj => {
       component.setState({ redirectUrl: `${resourceName}/${obj.id}` });
+    });
+  },
+
+  createThenRedirectHook: (redirectHook, resourceName, data) => {
+    fetch(`/api/${resourceName}`, {
+      method: "POST",
+      body: data,
+      headers: {
+        'content-type': 'application/json'
+      },
+    }).then(res => {
+      return res.json();
+    }).then(obj => {
+      redirectHook(`${resourceName}/${obj.id}`);
     });
   },
 

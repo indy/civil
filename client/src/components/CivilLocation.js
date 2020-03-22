@@ -1,119 +1,102 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import GeoUtils from '../lib/GeoUtils';
 
-class CivilLocation extends Component {
-  constructor(props) {
-    super(props);
-
-    let location = {};
-    if (props.location) {
-      location = props.location;
-    } else {
-      location = {
-        textual: '',
-        latitude: 0.0,
-        longitude: 0.0,
-      };
-    }
-
-    this.state = {
-      textual: location.textual,
-      latitude: location.latitude,
-      longitude: location.longitude,
+export default function CivilLocation(props) {
+  let location = {};
+  if (props.location) {
+    location = props.location;
+  } else {
+    location = {
+      textual: '',
+      latitude: 0.0,
+      longitude: 0.0,
     };
   }
 
-  emptyLocationStructure = () => {
+  const [textual, setTextual] = useState(location.textual);
+  const [latitude, setLatitude] = useState(location.latitude);
+  const [longitude, setLongitude] = useState(location.longitude);
+
+  const emptyLocationStructure = () => {
       const empty = {};
       return empty;
-  }
+  };
 
-  buildLocationStruct = () => {
-    if (this.state.textual.trim().length === 0) {
-      return this.emptyLocationStructure();
+  const buildLocationStruct = () => {
+    if (textual.trim().length === 0) {
+      return emptyLocationStructure();
     }
 
     return {
-      textual: this.state.textual,
-      latitude: Number(this.state.latitude),
-      longitude: Number(this.state.longitude),
+      textual: textual,
+      latitude: Number(latitude),
+      longitude: Number(longitude),
       fuzz: 0.0
     };
-  }
+  };
 
-  updateLocation = (update) => {
-    this.setState((prevState, props) => update, () => {
-      this.props.onLocationChange(this.props.id, this.buildLocationStruct());
-    });
-  }
+  const updateLocation = () => {
+    props.onLocationChange(props.id, buildLocationStruct());
+  };
 
-  handleChangeEvent = (event) => {
+  const handleChangeEvent = (event) => {
     const target = event.target;
     const name = target.name;
     const value = target.value;
 
-    const update = {
-      [name]: value
-    };
+    if (name === "textual") {
+      setTextual(value);
+    } else if (name === "latitude") {
+      setLatitude(value);
+    } else if (name === "longitude") {
+      setLongitude(value);
+    }
 
-    this.updateLocation(update);
-  }
+    updateLocation();
+  };
 
-  onFindLocationClicked = async (event) => {
+  const onFindLocationClicked = async (event) => {
     event.preventDefault();
 
-    const loc = this.state.textual;
-    let geoResult = await GeoUtils.get(loc);
+    let geoResult = await GeoUtils.get(textual);
 
-    let [isOk, latitude, longitude] = GeoUtils.getLatitudeLongitude(geoResult);
+    let [isOk, latitudeNew, longitudeNew] = GeoUtils.getLatitudeLongitude(geoResult);
     if (isOk) {
-      this.updateLocation({latitude, longitude});
+      setLatitude(latitudeNew);
+      setLongitude(longitudeNew);
+      updateLocation();
     } else {
-      console.log(`geoResult failed for ${loc}`);
+      console.log(`geoResult failed for ${textual}`);
       console.log(geoResult);
     }
-  }
+  };
 
-  render() {
-    const {
-      textual,
-      latitude,
-      longitude,
-    } = this.state;
-
-    return (
-      <div className="civil-location">
-        <label htmlFor="textual">Location:</label>
-        <input id="textual"
-               type="text"
-               name="textual"
-               autoComplete="off"
-               value={ textual }
-               onChange={ this.handleChangeEvent } />
-        <button onClick={ (event) => { this.onFindLocationClicked(event);} }>Find location</button>
-
-        <br/>
-
-        <label htmlFor="latitude">Latitude:</label>
-        <input id="latitude"
-               type="number"
-               name="latitude"
-               value={ latitude }
-               size="12"
-               onChange={ this.handleChangeEvent } />
-
-        <label htmlFor="longitude">Longitude:</label>
-        <input id="longitude"
-               type="number"
-               name="longitude"
-               value={ longitude }
-               size="1"
-               onChange={ this.handleChangeEvent } />
-
-        <br/>
-      </div>
-    );
-  }
+  return (
+    <div className="civil-location">
+      <label htmlFor="textual">Location:</label>
+      <input id="textual"
+             type="text"
+             name="textual"
+             autoComplete="off"
+             value={ textual }
+             onChange={ handleChangeEvent } />
+      <button onClick={ (event) => { onFindLocationClicked(event);} }>Find location</button>
+      <br/>
+      <label htmlFor="latitude">Latitude:</label>
+      <input id="latitude"
+             type="number"
+             name="latitude"
+             value={ latitude }
+             size="12"
+             onChange={ handleChangeEvent } />
+      <label htmlFor="longitude">Longitude:</label>
+      <input id="longitude"
+             type="number"
+             name="longitude"
+             value={ longitude }
+             size="1"
+             onChange={ handleChangeEvent } />
+      <br/>
+    </div>
+  );
 }
-
-export default CivilLocation;

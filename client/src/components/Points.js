@@ -3,7 +3,7 @@ import Net from '../lib/Net';
 import { Link } from 'react-router-dom';
 import ListingLink from './ListingLink';
 
-function Points() {
+export default function Points() {
   const [points, setPoints] = useState([]);
   let [showAddPointLink, setShowAddPointLink] = useState(false);
 
@@ -31,5 +31,3 @@ function Points() {
     </div>
   );
 }
-
-export default Points;

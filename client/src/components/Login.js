@@ -1,67 +1,49 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
-
 import Net from '../lib/Net';
 
-class Login extends Component {
-  constructor(props) {
-    super(props);
+export default function Login(props) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [redirectUrl, setRedirectUrl] = useState(false);
 
-    this.state = {
-      email: '',
-      password: '',
-      redirectUrl: false
-    };
-  }
-
-  handleChangeEvent = (event) => {
+  const handleChangeEvent = (event) => {
     const target = event.target;
     const name = target.name;
     const value = target.value;
 
-    this.setState({
-      [name]: value
-    });
-  }
-
-  handleSubmit = (event) => {
-    const login_details = {
-      email: this.state.email,
-      password: this.state.password
-    };
-
-    Net.post('api/auth', login_details).then(resp => {
-      this.setState({ redirectUrl: "/"});
-    });
-
-    event.preventDefault();
-  }
-
-  render() {
-    const email = this.state.email;
-    const password = this.state.password;
-    const redirectUrl = this.state.redirectUrl;
-
-    if (redirectUrl) {
-      return <Redirect to={ redirectUrl } />;
+    if (name === 'email') {
+      setEmail(value);
     }
+    if (name === 'password') {
+      setPassword(value);
+    }
+  };
 
+  const handleSubmit = (event) => {
+    Net.post('api/auth', { email, password}).then(resp => setRedirectUrl("/"));
+    event.preventDefault();
+  };
+
+  if (redirectUrl) {
+    return <Redirect to={ redirectUrl } />;
+  } else {
     return (
       <div>
         <section>
-          <form onSubmit={ this.handleSubmit }>
+          <form onSubmit={ handleSubmit }>
             <label htmlFor="email">Email:</label>
             <input id="email"
                    type="text"
                    name="email"
                    value={ email }
-                   onChange={ this.handleChangeEvent } />
+                   onChange={ handleChangeEvent } />
             <label htmlFor="password">Password:</label>
             <input id="password"
                    type="password"
                    name="password"
                    value={ password }
-                   onChange={ this.handleChangeEvent } />
+                   onChange={ handleChangeEvent } />
             <input type="submit" value="Login"/>
           </form>
         </section>
@@ -69,5 +51,3 @@ class Login extends Component {
     );
   }
 }
-
-export default Login;

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import StateUtils from '../lib/StateUtils';
@@ -7,70 +7,71 @@ import Net from '../lib/Net';
 import CivilDate from './CivilDate';
 import CivilLocation from './CivilLocation';
 
-class PersonCreateForm extends Component {
-  constructor(props) {
-    super(props);
+export default function PersonCreateForm(props) {
+  const [name, setName] = useState('');
+  const [age, setAge] = useState('');
+  const [redirectUrl, setRedirectUrl] = useState(false);
+  const [birth_date, setBirthDate] = useState('');
+  const [birth_location, setBirthLocation] = useState('');
+  const [death_date, setDeathDate] = useState('');
+  const [death_location, setDeathLocation] = useState('');
 
-    this.state = {
-      name: '',
-      age: '',
-      redirectUrl: false
-    };
-  }
-
-  handleChangeEvent = (event) => {
+  const handleChangeEvent = (event) => {
     const target = event.target;
     const name = target.name;
     const value = target.value;
 
-    this.setState({
-      [name]: value
-    });
-  }
+    if (name === "name") {
+      setName(value);
+    } else if (name === "age") {
+      setAge(value);
+    }
+  };
 
-  handleCivilDateChange = (id, date) => {
-    const update = {
-      [id]: date
+  const handleCivilDateChange = (id, date) => {
+    if (id === "birth_date") {
+      setBirthDate(date);
+    } else if (id === "death_date") {
+      setDeathDate(date);
+    }
+  };
+
+  const handleCivilLocationChange = (id, location) => {
+    if (id === "birth_location") {
+      setBirthLocation(location);
+    } else if (id === "death_location") {
+      setDeathLocation(location);
+    }
+  };
+
+  const handleSubmit = (event) => {
+    let sendState = {
+      name,
+      age,
+      birth_date,
+      birth_location,
+      death_date,
+      death_location
     };
-    this.setState((prevState, props) => update);
-  }
-
-  handleCivilLocationChange = (id, location) => {
-    const update = {
-      [id]: location
-    };
-    this.setState((prevState, props) => update);
-  }
-
-  handleSubmit = (event) => {
-    let sendState = Object.assign({}, this.state);
     const cleanState = StateUtils.removeEmptyObjects(sendState);
 
     if (!cleanState.birth_date || !cleanState.birth_location) {
       console.error("a person requires both birth date and birth location information");
     } else {
       const data = JSON.stringify(cleanState);
-      Net.createThenRedirect(this, "people", data);
+      Net.createThenRedirectHook(setRedirectUrl, "people", data);
     }
 
     event.preventDefault();
-  }
+  };
 
-  render() {
-    const {
-      name,
-      age,
-      redirectUrl
-    } = this.state;
-
-    if (redirectUrl) {
-      return <Redirect to={ redirectUrl } />;
-    }
-
+  if (redirectUrl) {
+    return <Redirect to={ redirectUrl } />;
+  } else {
     return (
       <article>
         <section>
-          <form onSubmit={ this.handleSubmit }>
+          <form onSubmit={ handleSubmit }>
 
             <label htmlFor="name">Name:</label>
             <input id="name"
@@ -78,20 +79,20 @@ class PersonCreateForm extends Component {
                    name="name"
                    value={ name }
                    autoComplete="off"
-                   onChange={ this.handleChangeEvent } />
+                   onChange={ handleChangeEvent } />
 
             <fieldset>
               <legend>Born</legend>
-              <CivilDate id="birth_date" onDateChange={this.handleCivilDateChange}/>
+              <CivilDate id="birth_date" onDateChange={handleCivilDateChange}/>
               <br/>
-              <CivilLocation id="birth_location" onLocationChange={this.handleCivilLocationChange}/>
+              <CivilLocation id="birth_location" onLocationChange={handleCivilLocationChange}/>
             </fieldset>
 
             <fieldset>
               <legend>Died</legend>
-              <CivilDate id="death_date" onDateChange={this.handleCivilDateChange}/>
+              <CivilDate id="death_date" onDateChange={handleCivilDateChange}/>
               <br/>
-              <CivilLocation id="death_location" onLocationChange={this.handleCivilLocationChange}/>
+              <CivilLocation id="death_location" onLocationChange={handleCivilLocationChange}/>
             </fieldset>
 
             <label htmlFor="age">Age:</label>
@@ -99,7 +100,7 @@ class PersonCreateForm extends Component {
                    type="text"
                    name="age"
                    value={ age }
-                   onChange={ this.handleChangeEvent } />
+                   onChange={ handleChangeEvent } />
 
             <input type="submit" value="Save"/>
           </form>
@@ -108,5 +109,3 @@ class PersonCreateForm extends Component {
     );
   }
 }
-
-export default PersonCreateForm;

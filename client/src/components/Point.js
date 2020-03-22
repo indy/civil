@@ -1,61 +1,36 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import NoteCreateForm from './NoteCreateForm';
 import Note from './Note';
 
 import NoteUtils from '../lib/NoteUtils';
 import Net from '../lib/Net';
 
-class Point extends Component {
-  constructor (props) {
-    super(props);
+export default function Point(props) {
+  const [point, setPoint] = useState({
+    id: parseInt(props.match.params.pointId, 10),
+    notes: [],
+    people_referenced: [],
+    subjects_referenced: []
+  });
+  const [scratchNote, setScratchNote] = useState("");
+  const [showButtons, setShowButtons] = useState(false);
+  const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
+  const [ac, setAc] = useState({
+    people: [],
+    subjects: []
+  });
+  const [referencedSubjectsHash, setReferencedSubjectsHash] = useState({});
+  const [referencedPeopleHash, setReferencedPeopleHash] = useState({});
 
-    this.state = {
-      point: {
-        id: parseInt(props.match.params.pointId, 10),
-        notes: [],
-        people_referenced: [],
-        subjects_referenced: []
-      },
-      scratchNote: "",
-      showButtons: false,
-      showNoteCreateForm: false,
-      ac: {
-        people: [],
-        subjects: []
-      },
-      referencedSubjectsHash: {},
-      referencedPeopleHash: {}
-    };
+  useEffect(() => {
+    fetchPoint();
+    fetchAutocompleteLists();
+  }, []);
 
-    this.fetchPoint();
-    this.fetchAutocompleteLists();
-  }
-
-  fetchAutocompleteLists = () => {
-    Net.get("/api/autocomplete/people").then(people => {
-      if (people) {
-        let ac = this.state.ac;
-        ac.people = people;
-        this.setState({ ac });
-      }
-    });
-
-    Net.get("/api/autocomplete/subjects").then(subjects => {
-      if (subjects) {
-        let ac = this.state.ac;
-        ac.subjects = subjects;
-        this.setState({ ac });
-      }
-    });
-  }
-
-  fetchPoint = () => {
-    const id = this.state.point.id;
-
-    Net.get(`/api/points/${id}`).then(point => {
-      if (point) {
-
-        const referencedSubjectsHash = point.subjects_referenced.reduce(function(a, b) {
+  const fetchPoint = () => {
+    Net.get(`/api/points/${point.id}`).then(p => {
+      if (p) {
+        const referencedSubjectsHashNew = p.subjects_referenced.reduce(function(a, b) {
           const note_id = b.note_id;
           if (a[note_id]) {
             a[note_id].push(b);
@@ -65,7 +40,7 @@ class Point extends Component {
           return a;
         }, {});
 
-        const referencedPeopleHash = point.people_referenced.reduce(function(a, b) {
+        const referencedPeopleHashNew = p.people_referenced.reduce(function(a, b) {
           const note_id = b.note_id;
           if (a[note_id]) {
             a[note_id].push(b);
@@ -75,72 +50,77 @@ class Point extends Component {
           return a;
         }, {});
 
-        this.setState({ point, referencedPeopleHash, referencedSubjectsHash });
+        setPoint(p);
+        setReferencedPeopleHash(referencedPeopleHashNew);
+        setReferencedSubjectsHash(referencedSubjectsHashNew);
       } else {
         console.error('foooked Point constructor');
       }
     });
-  }
+  };
 
-  findNoteWithId = (id, modifyFn) => {
-    this.setState((prevState, props) => {
-      // client-side update the state with the new note content
-      //
-      const point = prevState.point;
-      const notes = point.notes;
-      const index = notes.findIndex(n => n.id === id);
-
-      if (index === -1) {
-        // assert - should never get here
-        console.log(`unable to find index of edited note: ${id}`);
-        return {};
+  const fetchAutocompleteLists = () => {
+    Net.get("/api/autocomplete/people").then(peopleNew => {
+      if (peopleNew) {
+        setAc({
+          people: peopleNew,
+          subjects: ac.subjects
+        });
       }
-
-      modifyFn(notes, index);
-
-      return {
-        point: point
-      };
     });
 
-  }
+    Net.get("/api/autocomplete/subjects").then(subjectsNew => {
+      if (subjectsNew) {
+        setAc({
+          people: ac.people,
+          subjects: subjectsNew
+        });
+      }
+    });
+  };
 
-  onEditedNote = (id, data) => {
-    this.findNoteWithId(id, (notes, index) => {
+  const findNoteWithId = (id, modifyFn) => {
+    const notes = point.notes;
+    const index = notes.findIndex(n => n.id === id);
+
+    modifyFn(notes, index);
+
+    point.notes = notes; //??
+    setPoint(point);
+  };
+
+  const onEditedNote = (id, data) => {
+    findNoteWithId(id, (notes, index) => {
       notes[index] = Object.assign(notes[index], data);
     });
-  }
+  };
 
-  onDeleteNote = (noteId) => {
-    this.findNoteWithId(noteId, (notes, index) => {
+  const onDeleteNote = (noteId) => {
+    findNoteWithId(noteId, (notes, index) => {
       notes.splice(index, 1);
     });
-  }
+  };
 
-  onAddReference = () => {
-    this.fetchPoint();
-  }
+  const onAddReference = () => fetchPoint();
 
-  buildNoteComponent = (note) => {
+  const buildNoteComponent = (note) => {
     return (
       <Note key={ note.id }
             note={ note }
-            people={ this.state.ac.people }
-            subjects={ this.state.ac.subjects }
-            onDelete={ this.onDeleteNote }
-            onEdited={ this.onEditedNote }
-            onAddReference={ this.onAddReference }
-            referencedPeople={ this.state.referencedPeopleHash[note.id] }
-            referencedSubjects={ this.state.referencedSubjectsHash[note.id] }
+            people={ ac.people }
+            subjects={ ac.subjects }
+            onDelete={ onDeleteNote }
+            onEdited={ onEditedNote }
+            onAddReference={ onAddReference }
+            referencedPeople={ referencedPeopleHash[note.id] }
+            referencedSubjects={ referencedSubjectsHash[note.id] }
             />
     );
-  }
+  };
 
-  buildButtons = () => {
+  const buildButtons = () => {
     let onAddNoteClicked = (event) => {
-      this.setState((prevState, props) => ({
-        showNoteCreateForm: !prevState.showNoteCreateForm
-      }));
+      setShowNoteCreateForm(!showNoteCreateForm);
       event.preventDefault();
     };
 
@@ -149,62 +129,54 @@ class Point extends Component {
         <button onClick={ onAddNoteClicked }>Add Note</button>
       </div>
     );
-  }
+  };
 
-  buildNoteCreateForm = () => {
+  const buildNoteCreateForm = () => {
     const onAddNote = (e) => {
       const noteForm = e.target;
-      NoteUtils.addNote(noteForm, { point_id: this.state.point.id })
+      NoteUtils.addNote(noteForm, { point_id: point.id })
         .then(() => {
-          this.fetchPoint();
-          this.setState({
-            scratchNote: "",
-            showNoteCreateForm: false
-          });
+          fetchPoint();
+          setScratchNote("");
+          setShowNoteCreateForm(false);
         });
     };
 
     const onChangeNote = (value) => {
-      this.setState({
-        scratchNote: value
-      });
+      setScratchNote(value);
     };
 
     return (
       <NoteCreateForm onSubmit={ onAddNote }
                 onChange={ onChangeNote }
-                content={ this.state.scratchNote }/>
+                content={ scratchNote }/>
     );
-  }
+  };
 
-  render () {
-    const point = this.state.point;
-    const primaryNotes = point.notes
-          .map(this.buildNoteComponent);
 
-    const onShowButtons = () => {
-      this.setState((prevState, props) => ({
-        showButtons: !prevState.showButtons
-      }));
-    };
 
-    return (
-      <article>
-        <h1 onClick={ onShowButtons }>{ this.state.point.title }</h1>
-        { this.state.showButtons   && this.buildButtons() }
-        { this.state.showNoteCreateForm  && this.buildNoteCreateForm() }
-        <PointTime point={ this.state.point }/>
-        <PointPlace point={ this.state.point }/>
+  const primaryNotes = point.notes.map(buildNoteComponent);
 
-        <section className="point-notes">
-          { primaryNotes }
-        </section>
-      </article>
-    );
-  }
+  const onShowButtons = () => {
+    setShowButtons(!showButtons);
+  };
+
+  return (
+    <article>
+      <h1 onClick={ onShowButtons }>{ point.title }</h1>
+      { showButtons   && buildButtons() }
+      { showNoteCreateForm  && buildNoteCreateForm() }
+      <PointTime point={ point }/>
+      <PointPlace point={ point }/>
+
+      <section className="point-notes">
+        { primaryNotes }
+      </section>
+    </article>
+  );
 }
 
-const PointTime = props => {
+function PointTime(props) {
   let timeToDisplay = '';
   if (props.point.date) {
     timeToDisplay = props.point.date.textual;
@@ -215,10 +187,9 @@ const PointTime = props => {
       Time: { timeToDisplay }
     </p>
   );
-};
+}
 
-const PointPlace = props => {
-
+function PointPlace(props) {
   let locationToDisplay = '';
   if (props.point.location) {
     locationToDisplay = props.point.location.textual;
@@ -229,6 +200,4 @@ const PointPlace = props => {
       Place: { locationToDisplay }
     </p>
   );
-};
-
-export default Point;
+}

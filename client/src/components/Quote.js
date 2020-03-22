@@ -1,27 +1,21 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import NoteUtils from '../lib/NoteUtils';
 
-class Quote extends Component {
-  constructor(props) {
-    super(props);
+export default function Quote(props) {
+  const [showMainButtons, setShowMainButtons] = useState(false);
+  let   [isEditing, setIsEditing] = useState(false);
+  const [content, setContent] = useState(props.note.content);
 
-    this.state = {
-      showMainButtons: false,
-      isEditing: false,
-      content: props.quote.content
-    };
-  }
-
-  handleTextAreaChangeEvent = (event) => {
+  const handleTextAreaChangeEvent = (event) => {
     const target = event.target;
     const value = target.value;
 
-    this.setState({ content: value });
-  }
+    setContent(value);
+  };
 
-  onDeleteClicked = (event) => {
-    const onDelete = this.props.onDelete;
-    const quote = this.props.quote;
+  const onDeleteClicked = (event) => {
+    const onDelete = props.onDelete;
+    const quote = props.quote;
     const id = quote.id;
 
     NoteUtils.deleteQuote(id);
@@ -29,104 +23,92 @@ class Quote extends Component {
     event.preventDefault();
 
     onDelete(id);
-  }
+  };
 
-  hasQuoteBeenModified = (state, props) => {
-    return state.content !== props.quote.content;
-  }
+  const hasQuoteBeenModified = () => {
+    return content !== props.quote.content;
+  };
 
-  onEditClicked = () => {
-    this.setState((prevState, props) => {
-      const isEditing = !prevState.isEditing;
-      const quote = props.quote;
-      const editedContent = prevState.content;
+  const onEditClicked = () => {
+    isEditing = !isEditing;
+    setIsEditing(isEditing);
 
-      let showMainButtons = prevState.showMainButtons;
+    const quote = props.quote;
+    const editedContent = content;
 
-      if (isEditing === true) {
-        // showEditButtons = true;
-      } else {
-        showMainButtons = false;
-        // showEditButtons = false;
-        if (this.hasQuoteBeenModified(prevState, props)) {
+    if (isEditing === true) {
+      // showEditButtons = true;
+    } else {
+      setShowMainButtons(false);
 
-          const id = quote.id;
-          const data = {
-            content: editedContent
-          };
+      // showEditButtons = false;
+      if (hasQuoteBeenModified()) {
 
-          // send updated content to server
-          //
-          NoteUtils.editQuote(id, data);
+        const id = quote.id;
+        const data = {
+          content: editedContent
+        };
 
-          // stopped editing and the editable content is different than
-          // the original note's text.
-          props.onEdited(quote.id, data);
-        }
+        // send updated content to server
+        //
+        NoteUtils.editQuote(id, data);
+
+        // stopped editing and the editable content is different than
+        // the original note's text.
+        props.onEdited(quote.id, data);
       }
+    }
+  };
 
-      return {
-        isEditing: isEditing,
-        showMainButtons: showMainButtons
-      };
-    });
-  }
+  const onShowButtonsClicked = () => {
+    setShowMainButtons(!showMainButtons);
+  };
 
-  onShowButtonsClicked = () => {
-    this.setState((prevState, props) => ({
-      showMainButtons: !prevState.showMainButtons
-    }));
-  }
-
-  buildNonEditableContent = () => {
+  const buildNonEditableContent = () => {
     return (
-      <div onClick={ this.onShowButtonsClicked }>
-        { this.state.content }
+      <div onClick={ onShowButtonsClicked }>
+        { content }
       </div>
     );
-  }
+  };
 
-  buildEditableContent = () => {
+  const buildEditableContent = () => {
     return (
       <textarea id="text"
                 type="text"
                 name="text"
-                value={ this.state.content }
-                onChange={ this.handleTextAreaChangeEvent }/>
+                value={ content }
+                onChange={ handleTextAreaChangeEvent }/>
     );
-  }
+  };
 
-  buildEditLabelText = () => {
-    if (this.state.isEditing === false) {
+  const buildEditLabelText = () => {
+    if (isEditing === false) {
       return "Edit...";
     }
 
-    if (this.hasQuoteBeenModified(this.state, this.props)) {
+    if (hasQuoteBeenModified()) {
       // editing and have made changes
       return "Save Edits";
     }
 
     // editing and haven't made any changes yet
     return "Stop Editing";
-  }
+  };
 
-  buildMainButtons = () => {
+  const buildMainButtons = () => {
     return (
       <div>
-        <button onClick={ (event) => { this.onDeleteClicked(event);} }>Delete</button>
-        <button onClick={ this.onEditClicked }>{ this.buildEditLabelText() }</button>
+        <button onClick={ (event) => { onDeleteClicked(event);} }>Delete</button>
+        <button onClick={ onEditClicked }>{ buildEditLabelText() }</button>
       </div>
     );
-  }
+  };
 
-  render() {
-    return (
-      <blockquote className="quote">
-        { this.state.isEditing ? this.buildEditableContent() : this.buildNonEditableContent() }
-        { this.state.showMainButtons && this.buildMainButtons() }
-      </blockquote>
-    );
-  }
+  return (
+    <blockquote className="quote">
+      { isEditing ? buildEditableContent() : buildNonEditableContent() }
+      { showMainButtons && buildMainButtons() }
+    </blockquote>
+  );
 }
-
-export default Quote;

@@ -1,32 +1,27 @@
-import React, { Component } from 'react';
+import React from 'react';
 import ListingAnchor from './ListingAnchor';
 
-class SectionMentionedByPeople extends Component {
+export default function SectionMentionedByPeople(props) {
+  const mentionedBy = props.mentionedBy.map(buildMentionedByPerson);
 
-  buildMentionedByPerson = (p) => {
+  if (mentionedBy.length === 0) {
     return (
-      <ListingAnchor key={ p.id } id={ p.id } name={ p.name } resource='people'/>
+      <div className="section-mentioned-by-people-is-empty"></div>
     );
-  }
+  };
 
-  render () {
-    const mentionedBy = this.props.mentionedBy.map(this.buildMentionedByPerson);
-
-    if (mentionedBy.length === 0) {
-      return (
-        <div className="section-mentioned-by-people-is-empty"></div>
-      );
-    };
-
-    return (
-      <section className="mentioned-by-people">
-        <h2>Mentioned by:</h2>
-        <ul>
-          { mentionedBy }
-        </ul>
-      </section>
-    );
-  }
+  return (
+    <section className="mentioned-by-people">
+      <h2>Mentioned by:</h2>
+      <ul>
+        { mentionedBy }
+      </ul>
+    </section>
+  );
 }
 
-export default SectionMentionedByPeople;
+function buildMentionedByPerson(p) {
+  return (
+    <ListingAnchor key={ p.id } id={ p.id } name={ p.name } resource='people'/>
+  );
+}

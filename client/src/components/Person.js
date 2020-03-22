@@ -1,4 +1,5 @@
-import React, { Component } from 'react';
+// import { useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import NoteCreateForm from './NoteCreateForm';
 import QuoteCreateForm from './QuoteCreateForm';
 import Note from './Note';
@@ -10,12 +11,11 @@ import SectionMentionedInArticles from './SectionMentionedInArticles';
 import NoteUtils from '../lib/NoteUtils';
 import Net from '../lib/Net';
 
-class Person extends Component {
-  constructor (props) {
-    super(props);
+export default function Person(props) {
 
-    this.state = {
-      person: {
+//  let {id} = useParams();
+
+  const [person, setPerson] = useState({
         id: parseInt(props.match.params.personId, 10),
         notes: [],
         quotes: [],
@@ -24,47 +24,26 @@ class Person extends Component {
         mentioned_by_people: [],
         mentioned_in_subjects: [],
         mentioned_in_articles: []
-      },
-      showButtons: false,
-      showNoteCreateForm: false,
-      showQuoteCreateForm: false,
-      ac: {
-        people: [],
-        subjects: []
-      },
-      referencedSubjectsHash: {},
-      referencedPeopleHash: {}
-    };
+  });
+  const [showButtons, setShowButtons] = useState(false);
+  const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
+  const [showQuoteCreateForm, setShowQuoteCreateForm] = useState(false);
+  const [ac, setAc] = useState({
+    people: [],
+    subjects: []
+  });
+  const [referencedSubjectsHash, setReferencedSubjectsHash] = useState({});
+  const [referencedPeopleHash, setReferencedPeopleHash] = useState({});
 
-    this.fetchPerson();
-    this.fetchAutocompleteLists();
-  }
+  useEffect(() => {
+    fetchPerson();
+    fetchAutocompleteLists();
+  }, []);
 
-  fetchAutocompleteLists = () => {
-    Net.get("/api/autocomplete/people").then(people => {
-      if (people) {
-        let ac = this.state.ac;
-        ac.people = people;
-        this.setState({ ac });
-      }
-    });
-
-    Net.get("/api/autocomplete/subjects").then(subjects => {
-      if (subjects) {
-        let ac = this.state.ac;
-        ac.subjects = subjects;
-        this.setState({ ac });
-      }
-    });
-  }
-
-  fetchPerson = () => {
-    const id = this.state.person.id;
-
-    Net.get(`/api/people/${id}`).then(person => {
-      if (person) {
-
-        const referencedSubjectsHash = person.subjects_referenced.reduce(function(a, b) {
+  const fetchPerson = () => {
+    Net.get(`/api/people/${person.id}`).then(p => {
+      if (p) {
+        const referencedSubjectsHashNew = p.subjects_referenced.reduce(function(a, b) {
           const note_id = b.note_id;
           if (a[note_id]) {
             a[note_id].push(b);
@@ -74,7 +53,7 @@ class Person extends Component {
           return a;
         }, {});
 
-        const referencedPeopleHash = person.people_referenced.reduce(function(a, b) {
+        const referencedPeopleHashNew = p.people_referenced.reduce(function(a, b) {
           const note_id = b.note_id;
           if (a[note_id]) {
             a[note_id].push(b);
@@ -84,122 +63,116 @@ class Person extends Component {
           return a;
         }, {});
 
-        this.setState({ person, referencedPeopleHash, referencedSubjectsHash });
+        setPerson(p);
+        setReferencedPeopleHash(referencedPeopleHashNew);
+        setReferencedSubjectsHash(referencedSubjectsHashNew);
       } else {
         console.error('foooked Person constructor');
       }
     });
-  }
+  };
 
-  findNoteWithId = (id, modifyFn) => {
-    this.setState((prevState, props) => {
-      // client-side update the state with the new note content
-      //
-      const person = prevState.person;
-      const notes = person.notes;
-      const index = notes.findIndex(n => n.id === id);
 
-      if (index === -1) {
-        // assert - should never get here
-        console.log(`unable to find index of edited note: ${id}`);
-        return {};
+  const fetchAutocompleteLists = () => {
+    Net.get("/api/autocomplete/people").then(peopleNew => {
+      if (peopleNew) {
+        setAc({
+          people: peopleNew,
+          subjects: ac.subjects
+        });
       }
-
-      modifyFn(notes, index);
-
-      return {
-        person: person
-      };
     });
-  }
 
-  findQuoteWithId = (id, modifyFn) => {
-    this.setState((prevState, props) => {
-      // client-side update the state with the new quote content
-      //
-      const person = prevState.person;
-      const quotes = person.quotes;
-      const index = quotes.findIndex(n => n.id === id);
-
-      if (index === -1) {
-        // assert - should never get here
-        console.log(`unable to find index of edited quote: ${id}`);
-        return {};
+    Net.get("/api/autocomplete/subjects").then(subjectsNew => {
+      if (subjectsNew) {
+        setAc({
+          people: ac.people,
+          subjects: subjectsNew
+        });
       }
-
-      modifyFn(quotes, index);
-
-      return {
-        person: person
-      };
     });
-  }
+  };
 
-  onEditedNote = (id, data) => {
-    this.findNoteWithId(id, (notes, index) => {
+
+  const findNoteWithId = (id, modifyFn) => {
+    const notes = person.notes;
+    const index = notes.findIndex(n => n.id === id);
+
+    modifyFn(notes, index);
+
+    person.notes = notes; //??
+    setPerson(person);
+  };
+
+  const onEditedNote = (id, data) => {
+    findNoteWithId(id, (notes, index) => {
       notes[index] = Object.assign(notes[index], data);
     });
-  }
+  };
 
-  onDeleteNote = (noteId) => {
-    this.findNoteWithId(noteId, (notes, index) => {
+  const onDeleteNote = (noteId) => {
+    findNoteWithId(noteId, (notes, index) => {
       notes.splice(index, 1);
     });
-  }
+  };
 
-  onAddReference = () => {
-    this.fetchPerson();
-  }
+  const findQuoteWithId = (id, modifyFn) => {
+    const quotes = person.quotes;
+    const index = quotes.findIndex(q => q.id === id);
 
-  buildNoteComponent = (note) => {
+    modifyFn(quotes, index);
+
+    person.quotes = quotes; //??
+    setPerson(person);
+  };
+
+  const onEditedQuote = (id, data) => {
+    findQuoteWithId(id, (quotes, index) => {
+      quotes[index] = Object.assign(quotes[index], data);
+    });
+  };
+
+  const onDeleteQuote = (noteId) => {
+    findQuoteWithId(noteId, (quotes, index) => {
+      quotes.splice(index, 1);
+    });
+  };
+
+  const onAddReference = () => fetchPerson();
+
+  const buildNoteComponent = (note) => {
     return (
       <Note key={ note.id }
             note={ note }
-            people={ this.state.ac.people }
-            subjects={ this.state.ac.subjects }
-            onDelete={ this.onDeleteNote }
-            onEdited={ this.onEditedNote }
-            onAddReference={ this.onAddReference }
-            referencedPeople={ this.state.referencedPeopleHash[note.id] }
-            referencedSubjects={ this.state.referencedSubjectsHash[note.id] }
+            people={ ac.people }
+            subjects={ ac.subjects }
+            onDelete={ onDeleteNote }
+            onEdited={ onEditedNote }
+            onAddReference={ onAddReference }
+            referencedPeople={ referencedPeopleHash[note.id] }
+            referencedSubjects={ referencedSubjectsHash[note.id] }
             />
     );
-  }
+  };
 
-  onEditedQuote = (id, data) => {
-    this.findQuoteWithId(id, (quotes, index) => {
-      quotes[index] = Object.assign(quotes[index], data);
-    });
-  }
-
-  onDeleteQuote = (noteId) => {
-    this.findQuoteWithId(noteId, (quotes, index) => {
-      quotes.splice(index, 1);
-    });
-  }
-
-  buildQuoteComponent = (quote) => {
+  const buildQuoteComponent = (quote) => {
     return (
       <Quote key={ quote.id }
              quote={ quote }
-             onDelete={ this.onDeleteQuote }
-             onEdited={ this.onEditedQuote }/>);
-  }
+             onDelete={ onDeleteQuote }
+             onEdited={ onEditedQuote }/>);
+  };
 
-  buildButtons = () => {
+  const buildButtons = () => {
     let onAddNoteClicked = (event) => {
-      this.setState((prevState, props) => ({
-        showNoteCreateForm: !prevState.showNoteCreateForm,
-        showQuoteCreateForm: false
-      }));
+      setShowNoteCreateForm(!showNoteCreateForm);
+      setShowQuoteCreateForm(false);
       event.preventDefault();
     };
 
     let onAddQuoteClicked = (event) => {
-      this.setState((prevState, props) => ({
-        showQuoteCreateForm: !prevState.showQuoteCreateForm,
-        showNoteCreateForm: false
-      }));
+      setShowQuoteCreateForm(!showQuoteCreateForm);
+      setShowNoteCreateForm(false);
       event.preventDefault();
     };
 
@@ -209,118 +182,108 @@ class Person extends Component {
         <button onClick={ onAddQuoteClicked }>Add Quote</button>
       </div>
     );
-  }
+  };
 
-  buildNoteCreateForm = () => {
+  const buildNoteCreateForm = () => {
     const onAddNote = (e) => {
       const noteForm = e.target;
-      NoteUtils.addNote(noteForm, { person_id: this.state.person.id })
+      NoteUtils.addNote(noteForm, { person_id: person.id })
         .then(() => {
-          this.fetchPerson();
-          this.setState({
-            showNoteCreateForm: false
-          });
+          fetchPerson();
+          setShowNoteCreateForm(false);
         });
     };
 
     return (
       <NoteCreateForm onSubmit={ onAddNote } />
     );
-  }
+  };
 
-  buildQuoteCreateForm = () => {
+  const buildQuoteCreateForm = () => {
     const onAddQuote = (e) => {
       const quoteForm = e.target;
-      NoteUtils.addQuote(quoteForm, { person_id: this.state.person.id })
+      NoteUtils.addQuote(quoteForm, { person_id: person.id })
         .then(() => {
-          this.fetchPerson();
-          this.setState({
-            showQuoteCreateForm: false
-          });
+          fetchPerson();
+          setShowQuoteCreateForm(false);
         });
     };
 
     return (
       <QuoteCreateForm onSubmit={ onAddQuote }/>
     );
-  }
+  };
 
-  isPersonDead = () => {
-    const person = this.state.person;
+  const isPersonDead = () => {
     return person.death_date !== null;
-  }
+  };
 
-  buildDeath = () => {
+  const buildDeath = () => {
     return (
-      <Death person={ this.state.person }/>
+      <Death person={ person }/>
     );
-  }
+  };
 
-  render () {
-    const person = this.state.person;
-    const notes = person.notes.map(this.buildNoteComponent);
-    const quotes = person.quotes.map(this.buildQuoteComponent);
+  const onShowButtons = () => {
+    setShowButtons(!showButtons);
+    setShowNoteCreateForm(false);
+    setShowQuoteCreateForm(false);
+  };
 
-    const onShowButtons = () => {
-      this.setState((prevState, props) => ({
-        showButtons: !prevState.showButtons,
-        showNoteCreateForm: false,
-        showQuoteCreateForm: false
-      }));
-    };
+  const notes = person.notes.map(buildNoteComponent);
+  const quotes = person.quotes.map(buildQuoteComponent);
 
-    return (
-      <article>
-        <h1 onClick={ onShowButtons }>{ this.state.person.name }</h1>
-        { this.state.showButtons && this.buildButtons() }
-        { this.state.showNoteCreateForm && this.buildNoteCreateForm() }
-        { this.state.showQuoteCreateForm && this.buildQuoteCreateForm() }
-        <Birth person={ this.state.person }/>
-        { this.isPersonDead() && this.buildDeath() }
-        <Age person={ this.state.person }/>
-        <section className="person-notes">
-          { notes }
-        </section>
-        <section className="person-quotes">
-          <div className="epigraph">
-            { quotes }
-          </div>
-        </section>
-        <SectionMentionedByPeople mentionedBy={ person.mentioned_by_people }/>
-        <SectionMentionedInSubjects mentionedIn={ person.mentioned_in_subjects }/>
-        <SectionMentionedInArticles mentionedIn={ person.mentioned_in_articles }/>
-      </article>
-    );
-  }
+  return (
+    <article>
+      <h1 onClick={ onShowButtons }>{ person.name }</h1>
+      { showButtons && buildButtons() }
+      { showNoteCreateForm && buildNoteCreateForm() }
+      { showQuoteCreateForm && buildQuoteCreateForm() }
+      <Birth person={ person }/>
+      { isPersonDead() && buildDeath() }
+      <Age person={ person }/>
+      <section className="person-notes">
+        { notes }
+      </section>
+      <section className="person-quotes">
+        <div className="epigraph">
+          { quotes }
+        </div>
+      </section>
+      <SectionMentionedByPeople mentionedBy={ person.mentioned_by_people }/>
+      <SectionMentionedInSubjects mentionedIn={ person.mentioned_in_subjects }/>
+      <SectionMentionedInArticles mentionedIn={ person.mentioned_in_articles }/>
+    </article>
+  );
 }
 
-const Birth = props => {
+function Birth(props) {
   const person = props.person;
 
   const birth_date = person.birth_date ? person.birth_date.textual : '';
-  const birth_place = person.birth_place ? person.birth_place.textual : '';
+  const birth_location = person.birth_location ? person.birth_location.textual : '';
 
   return (
     <p className="subtitle">
-      Born: { birth_date } { birth_place }
+      Born: { birth_date } { birth_location }
     </p>
   );
 };
 
-const Death = props => {
+function Death(props) {
   const person = props.person;
 
   const death_date = person.death_date ? person.death_date.textual : '';
-  const death_place = person.death_place ? person.death_place.textual : '';
+  const death_location = person.death_location ? person.death_location.textual : '';
 
   return (
     <p className="subtitle">
-      Died: { death_date } { death_place }
+      Died: { death_date } { death_location }
     </p>
   );
 };
 
-const Age = props => {
+function Age(props) {
   const person = props.person;
   const age = person.age !== "" ? person.age : Math.floor(person.age_calculated);
 
@@ -330,5 +293,3 @@ const Age = props => {
     </p>
   );
 };
-
-export default Person;

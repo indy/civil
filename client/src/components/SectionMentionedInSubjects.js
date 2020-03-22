@@ -1,32 +1,28 @@
-import React, { Component } from 'react';
+import React from 'react';
 import ListingAnchor from './ListingAnchor';
 
-class SectionMentionedInSubjects extends Component {
 
-  buildMentionedInSubject = (mentionedIn) => {
+export default function SectionMentionedInSubjects(props) {
+  const mentionedIn = props.mentionedIn.map(buildMentionedInSubject);
+
+  if (mentionedIn.length === 0) {
     return (
-      <ListingAnchor key={mentionedIn.id} id={ mentionedIn.id } name={ mentionedIn.name } resource='subjects'/>
+      <div className="section-mentioned-in-subjects-is-empty"></div>
     );
-  }
+  };
 
-  render () {
-    const mentionedIn = this.props.mentionedIn.map(this.buildMentionedInSubject);
-
-    if (mentionedIn.length === 0) {
-      return (
-        <div className="section-mentioned-in-subjects-is-empty"></div>
-      );
-    };
-
-    return (
-      <section className="mentioned-in-subjects">
-        <h2>Mentioned in Subjects:</h2>
-        <ul>
-          { mentionedIn }
-        </ul>
-      </section>
-    );
-  }
+  return (
+    <section className="mentioned-in-subjects">
+      <h2>Mentioned in Subjects:</h2>
+      <ul>
+        { mentionedIn }
+      </ul>
+    </section>
+  );
 }
 
-export default SectionMentionedInSubjects;
+function buildMentionedInSubject(mentionedIn) {
+  return (
+    <ListingAnchor key={mentionedIn.id} id={ mentionedIn.id } name={ mentionedIn.name } resource='subjects'/>
+  );
+}

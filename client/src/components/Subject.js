@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import NoteCreateForm from './NoteCreateForm';
 import QuoteCreateForm from './QuoteCreateForm';
 import Note from './Note';
@@ -10,61 +10,37 @@ import SectionMentionedInArticles from './SectionMentionedInArticles';
 import NoteUtils from '../lib/NoteUtils';
 import Net from '../lib/Net';
 
-class Subject extends Component {
-  constructor (props) {
-    super(props);
+export default function Subject(props) {
+  const [subject, setSubject] = useState({
+    id: parseInt(props.match.params.subjectId, 10),
+    notes: [],
+    quotes: [],
+    people_referenced: [],
+    subjects_referenced: [],
+    mentioned_by_people: [],
+    mentioned_in_subjects: [],
+    mentioned_in_articles: []
+  });
 
-    this.state = {
-      subject: {
-        id: parseInt(props.match.params.subjectId, 10),
-        notes: [],
-        quotes: [],
-        people_referenced: [],
-        subjects_referenced: [],
-        mentioned_by_people: [],
-        mentioned_in_subjects: [],
-        mentioned_in_articles: []
-      },
-      showButtons: false,
-      showNoteCreateForm: false,
-      showQuoteCreateForm: false,
-      ac: {
-        people: [],
-        subjects: []
-      },
-      referencedSubjectsHash: {},
-      referencedPeopleHash: {}
-    };
+  const [showButtons, setShowButtons] = useState(false);
+  const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
+  const [showQuoteCreateForm, setShowQuoteCreateForm] = useState(false);
+  const [ac, setAc] = useState({
+    people: [],
+    subjects: []
+  });
+  const [referencedSubjectsHash, setReferencedSubjectsHash] = useState({});
+  const [referencedPeopleHash, setReferencedPeopleHash] = useState({});
 
-    this.fetchSubject();
-    this.fetchAutocompleteLists();
-  }
+  useEffect(() => {
+    fetchSubject();
+    fetchAutocompleteLists();
+  }, []);
 
-  fetchAutocompleteLists = () => {
-    Net.get("/api/autocomplete/people").then(people => {
-      if (people) {
-        let ac = this.state.ac;
-        ac.people = people;
-        this.setState({ ac });
-      }
-    });
-
-    Net.get("/api/autocomplete/subjects").then(subjects => {
-      if (subjects) {
-        let ac = this.state.ac;
-        ac.subjects = subjects;
-        this.setState({ ac });
-      }
-    });
-  }
-
-  fetchSubject = () => {
-    const id = this.state.subject.id;
-
-    Net.get(`/api/subjects/${id}`).then(subject => {
-      if (subject) {
-
-        const referencedSubjectsHash = subject.subjects_referenced.reduce(function(a, b) {
+  const fetchSubject = () => {
+    Net.get(`/api/subjects/${subject.id}`).then(s => {
+      if (s) {
+        const referencedSubjectsHashNew = s.subjects_referenced.reduce(function(a, b) {
           const note_id = b.note_id;
           if (a[note_id]) {
             a[note_id].push(b);
@@ -74,7 +50,7 @@ class Subject extends Component {
           return a;
         }, {});
 
-        const referencedPeopleHash = subject.people_referenced.reduce(function(a, b) {
+        const referencedPeopleHashNew = s.people_referenced.reduce(function(a, b) {
           const note_id = b.note_id;
           if (a[note_id]) {
             a[note_id].push(b);
@@ -84,121 +60,115 @@ class Subject extends Component {
           return a;
         }, {});
 
-        this.setState({ subject, referencedPeopleHash, referencedSubjectsHash });
+        setSubject(s);
+        setReferencedPeopleHash(referencedPeopleHashNew);
+        setReferencedSubjectsHash(referencedSubjectsHashNew);
       } else {
         console.error('foooked Subject constructor');
       }
     });
-  }
+  };
 
-  findNoteWithId = (id, modifyFn) => {
-    this.setState((prevState, props) => {
-      // client-side update the state with the new note content
-      //
-      const subject = prevState.subject;
-      const notes = subject.notes;
-      const index = notes.findIndex(n => n.id === id);
-
-      if (index === -1) {
-        // assert - should never get here
-        console.log(`unable to find index of edited note: ${id}`);
-        return {};
+  const fetchAutocompleteLists = () => {
+    Net.get("/api/autocomplete/people").then(peopleNew => {
+      if (peopleNew) {
+        setAc({
+          people: peopleNew,
+          subjects: ac.subjects
+        });
       }
-
-      modifyFn(notes, index);
-
-      return {
-        subject: subject
-      };
     });
-  }
 
-  findQuoteWithId = (id, modifyFn) => {
-    this.setState((prevState, props) => {
-      // client-side update the state with the new quote content
-      //
-      const subject = prevState.subject;
-      const quotes = subject.quotes;
-      const index = quotes.findIndex(n => n.id === id);
-
-      if (index === -1) {
-        // assert - should never get here
-        console.log(`unable to find index of edited quote: ${id}`);
-        return {};
+    Net.get("/api/autocomplete/subjects").then(subjectsNew => {
+      if (subjectsNew) {
+        setAc({
+          people: ac.people,
+          subjects: subjectsNew
+        });
       }
-
-      modifyFn(quotes, index);
-
-      return {
-        subject: subject
-      };
     });
-  }
+  };
 
-  onEditedNote = (id, data) => {
-    this.findNoteWithId(id, (notes, index) => {
+
+  const findNoteWithId = (id, modifyFn) => {
+    const notes = subject.notes;
+    const index = notes.findIndex(n => n.id === id);
+
+    modifyFn(notes, index);
+
+    subject.notes = notes; //??
+    setSubject(subject);
+  };
+
+  const onEditedNote = (id, data) => {
+    findNoteWithId(id, (notes, index) => {
       notes[index] = Object.assign(notes[index], data);
     });
-  }
+  };
 
-  onDeleteNote = (noteId) => {
-    this.findNoteWithId(noteId, (notes, index) => {
+  const onDeleteNote = (noteId) => {
+    findNoteWithId(noteId, (notes, index) => {
       notes.splice(index, 1);
     });
-  }
+  };
 
-  onAddReference = () => {
-    this.fetchSubject();
-  }
+  const findQuoteWithId = (id, modifyFn) => {
+    const quotes = subject.quotes;
+    const index = quotes.findIndex(q => q.id === id);
 
-  buildNoteComponent = (note) => {
+    modifyFn(quotes, index);
+
+    subject.quotes = quotes; //??
+    setSubject(subject);
+  };
+
+  const onEditedQuote = (id, data) => {
+    findQuoteWithId(id, (quotes, index) => {
+      quotes[index] = Object.assign(quotes[index], data);
+    });
+  };
+
+  const onDeleteQuote = (noteId) => {
+    findQuoteWithId(noteId, (quotes, index) => {
+      quotes.splice(index, 1);
+    });
+  };
+
+  const onAddReference = () => fetchSubject();
+
+  const buildNoteComponent = (note) => {
     return (
       <Note key={ note.id }
             note={ note }
-            people={ this.state.ac.people }
-            subjects={ this.state.ac.subjects }
-            onDelete={ this.onDeleteNote }
-            onEdited={ this.onEditedNote }
-            onAddReference={ this.onAddReference }
-            referencedPeople={ this.state.referencedPeopleHash[note.id] }
-            referencedSubjects={ this.state.referencedSubjectsHash[note.id] }
+            people={ ac.people }
+            subjects={ ac.subjects }
+            onDelete={ onDeleteNote }
+            onEdited={ onEditedNote }
+            onAddReference={ onAddReference }
+            referencedPeople={ referencedPeopleHash[note.id] }
+            referencedSubjects={ referencedSubjectsHash[note.id] }
             />
     );
-  }
+  };
 
-  onEditedQuote = (id, data) => {
-    this.findQuoteWithId(id, (quotes, index) => {
-      quotes[index] = Object.assign(quotes[index], data);
-    });
-  }
-
-  onDeleteQuote = (noteId) => {
-    this.findQuoteWithId(noteId, (quotes, index) => {
-      quotes.splice(index, 1);
-    });
-  }
-
-  buildQuoteComponent = (quote) => {
+  const buildQuoteComponent = (quote) => {
     return (
       <Quote key={ quote.id }
              quote={ quote }
-             onDelete={ this.onDeleteQuote }
-             onEdited={ this.onEditedQuote }/>);
-  }
+             onDelete={ onDeleteQuote }
+             onEdited={ onEditedQuote }/>);
+  };
 
-
-  buildButtons = () => {
+  const buildButtons = () => {
     let onAddNoteClicked = (event) => {
-      this.setState((prevState, props) => ({
-        showNoteCreateForm: !prevState.showNoteCreateForm
-      }));
+      setShowNoteCreateForm(!showNoteCreateForm);
+      setShowQuoteCreateForm(false);
       event.preventDefault();
     };
 
     let onAddQuoteClicked = (event) => {
-      this.setState((prevState, props) => ({
-        showQuoteCreateForm: !prevState.showQuoteCreateForm
-      }));
+      setShowQuoteCreateForm(!showQuoteCreateForm);
+      setShowNoteCreateForm(false);
       event.preventDefault();
     };
 
@@ -208,73 +178,64 @@ class Subject extends Component {
         <button onClick={ onAddQuoteClicked }>Add Quote</button>
       </div>
     );
-  }
+  };
 
-  buildNoteCreateForm = () => {
+  const buildNoteCreateForm = () => {
     const onAddNote = (e) => {
       const noteForm = e.target;
-      NoteUtils.addNote(noteForm, { subject_id: this.state.subject.id })
+      NoteUtils.addNote(noteForm, { subject_id: subject.id })
         .then(() => {
-          this.fetchSubject();
-          this.setState({
-            showNoteCreateForm: false
-          });
+          fetchSubject();
+          setShowNoteCreateForm(false);
         });
     };
 
     return (
       <NoteCreateForm onSubmit={ onAddNote }/>
     );
-  }
+  };
 
-  buildQuoteCreateForm = () => {
+  const buildQuoteCreateForm = () => {
     const onAddQuote = (e) => {
       const quoteForm = e.target;
-      NoteUtils.addQuote(quoteForm, { subject_id: this.state.subject.id })
+      NoteUtils.addQuote(quoteForm, { subject_id: subject.id })
         .then(() => {
-          this.fetchSubject();
-          this.setState({
-            showQuoteCreateForm: false
-          });
+          fetchSubject();
+          setShowQuoteCreateForm(false);
         });
     };
 
     return (
       <QuoteCreateForm onSubmit={ onAddQuote }/>
     );
-  }
+  };
 
-  render () {
-    const subject = this.state.subject;
-    const notes = subject.notes.map(this.buildNoteComponent);
-    const quotes = subject.quotes.map(this.buildQuoteComponent);
+  const onShowButtons = () => {
+    setShowButtons(!showButtons);
+    setShowNoteCreateForm(false);
+    setShowQuoteCreateForm(false);
+  };
 
-    const onShowButtons = () => {
-      this.setState((prevState, props) => ({
-        showButtons: !prevState.showButtons
-      }));
-    };
+  const notes = subject.notes.map(buildNoteComponent);
+  const quotes = subject.quotes.map(buildQuoteComponent);
 
-    return (
-      <article>
-        <h1 onClick={ onShowButtons }>{ this.state.subject.name }</h1>
-        { this.state.showButtons   && this.buildButtons() }
-        { this.state.showNoteCreateForm  && this.buildNoteCreateForm() }
-        { this.state.showQuoteCreateForm && this.buildQuoteCreateForm() }
-        <section className="subject-notes">
-          { notes }
-        </section>
-        <section className="subject-quotes">
-          <div className="epigraph">
-            { quotes }
-          </div>
-        </section>
-        <SectionMentionedByPeople mentionedBy={ subject.mentioned_by_people }/>
-        <SectionMentionedInSubjects mentionedIn={ subject.mentioned_in_subjects }/>
-        <SectionMentionedInArticles mentionedIn={ subject.mentioned_in_articles }/>
-      </article>
-    );
-  }
+  return (
+    <article>
+      <h1 onClick={ onShowButtons }>{ subject.name }</h1>
+      { showButtons && buildButtons() }
+      { showNoteCreateForm && buildNoteCreateForm() }
+      { showQuoteCreateForm && buildQuoteCreateForm() }
+      <section className="subject-notes">
+        { notes }
+      </section>
+      <section className="subject-quotes">
+        <div className="epigraph">
+          { quotes }
+        </div>
+      </section>
+      <SectionMentionedByPeople mentionedBy={ subject.mentioned_by_people }/>
+      <SectionMentionedInSubjects mentionedIn={ subject.mentioned_in_subjects }/>
+      <SectionMentionedInArticles mentionedIn={ subject.mentioned_in_articles }/>
+    </article>
+  );
 }
-
-export default Subject;

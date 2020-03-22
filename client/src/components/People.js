@@ -3,25 +3,7 @@ import Net from '../lib/Net';
 import { Link } from 'react-router-dom';
 import ListingLink from './ListingLink';
 
-function yearFrom(dateString) {
-  let res = 0;
-  if (dateString[0] === '-') {
-    res = parseInt(dateString.slice(0, 5), 10);
-  } else {
-    res = parseInt(dateString.slice(0, 4), 10);
-  }
-  return res;
-}
-
-function addBirthYear(p) {
-  p.birth_year = yearFrom(p.birth_date.exact_date);
-}
-
-function createPersonListing(person) {
-  return <ListingLink id={ person.id } key={ person.id } name={ person.name } resource='people'/>;
-}
-
-function People() {
+export default function People() {
   const [people, setPeople] = useState([]);
   let [showAddPersonLink, setShowAddPersonLink] = useState(false);
 
@@ -79,4 +61,20 @@ function People() {
   );
 }
 
-export default People;
+function yearFrom(dateString) {
+  let res = 0;
+  if (dateString[0] === '-') {
+    res = parseInt(dateString.slice(0, 5), 10);
+  } else {
+    res = parseInt(dateString.slice(0, 4), 10);
+  }
+  return res;
+}
+
+function addBirthYear(p) {
+  p.birth_year = yearFrom(p.birth_date.exact_date);
+}
+
+function createPersonListing(person) {
+  return <ListingLink id={ person.id } key={ person.id } name={ person.name } resource='people'/>;
+}

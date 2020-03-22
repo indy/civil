@@ -1,45 +1,32 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import Net from '../lib/Net';
 
-class SubjectCreateForm extends Component {
-  constructor(props) {
-    super(props);
+export default function SubjectCreateForm() {
+  const [name, setName] = useState('');
+  const [redirectUrl, setRedirectUrl] = useState(false);
 
-    this.state = {
-      name: '',
-      redirectUrl: false
-    };
-  }
-
-  handleChangeEvent = (event) => {
+  const handleChangeEvent = (event) => {
     const target = event.target;
     const value = target.value;
 
-    this.setState({
-      name: value
-    });
-  }
+    setName(value);
+  };
 
-  handleSubmit = (event) => {
-    const data = JSON.stringify(this.state);
-    Net.createThenRedirect(this, "subjects", data);
+  const handleSubmit = (event) => {
+    const data = JSON.stringify({name});
+    Net.createThenRedirectHook(setRedirectUrl, "subjects", data);
     event.preventDefault();
-  }
+  };
 
-  render() {
-    const name = this.state.name;
-    const redirectUrl = this.state.redirectUrl;
-
-    if (redirectUrl) {
-      return <Redirect to={ redirectUrl } />;
-    }
-
+  if (redirectUrl) {
+    return <Redirect to={ redirectUrl } />;
+  } else {
     return (
       <article>
         <section>
-          <form onSubmit={ this.handleSubmit }>
+          <form onSubmit={ handleSubmit }>
 
             <label htmlFor="name">Name:</label>
             <input id="name"
@@ -47,7 +34,7 @@ class SubjectCreateForm extends Component {
                    name="name"
                    value={ name }
                    autoComplete="off"
-                   onChange={ this.handleChangeEvent } />
+                   onChange={ handleChangeEvent } />
             <input type="submit" value="Save"/>
           </form>
         </section>
@@ -55,5 +42,3 @@ class SubjectCreateForm extends Component {
     );
   }
 }
-
-export default SubjectCreateForm;

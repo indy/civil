@@ -1,8 +1,7 @@
 import React from 'react';
 
-const ResourceLink = props => {
+export default function ResourceLink(props) {
   const href = `/${props.resource}/${props.id}`;
-  return (<a href={ href }>{ props.name }</a>);
-};
 
-export default ResourceLink;
+  return (<a href={ href }>{ props.name }</a>);
+}

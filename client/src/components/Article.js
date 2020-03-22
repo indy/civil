@@ -1,59 +1,34 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import NoteCreateForm from './NoteCreateForm';
 import Note from './Note';
-
 import NoteUtils from '../lib/NoteUtils';
 import Net from '../lib/Net';
 
-class Article extends Component {
-  constructor (props) {
-    super(props);
+export default function Article(props) {
+  const [article, setArticle] = useState({
+    id: parseInt(props.match.params.articleId, 10),
+    notes: [],
+    people_referenced: [],
+    subjects_referenced: []
+  });
+  const [showButtons, setShowButtons] = useState(false);
+  const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
+  const [ac, setAc] = useState({
+    people: [],
+    subjects: []
+  });
+  const [referencedSubjectsHash, setReferencedSubjectsHash] = useState({});
+  const [referencedPeopleHash, setReferencedPeopleHash] = useState({});
 
-    this.state = {
-      article: {
-        id: parseInt(props.match.params.articleId, 10),
-        notes: [],
-        people_referenced: [],
-        subjects_referenced: []
-      },
-      showButtons: false,
-      showNoteCreateForm: false,
-      ac: {
-        people: [],
-        subjects: []
-      },
-      referencedSubjectsHash: {},
-      referencedPeopleHash: {}
-    };
+  useEffect(() => {
+    fetchArticle();
+    fetchAutocompleteLists();
+  }, []);
 
-    this.fetchArticle();
-    this.fetchAutocompleteLists();
-  }
-
-  fetchAutocompleteLists = () => {
-    Net.get("/api/autocomplete/people").then(people => {
-      if (people) {
-        let ac = this.state.ac;
-        ac.people = people;
-        this.setState({ ac });
-      }
-    });
-
-    Net.get("/api/autocomplete/subjects").then(subjects => {
-      if (subjects) {
-        let ac = this.state.ac;
-        ac.subjects = subjects;
-        this.setState({ ac });
-      }
-    });
-  }
-
-  fetchArticle = () => {
-    const id = this.state.article.id;
-
-    Net.get(`/api/articles/${id}`).then(article => {
-      if (article) {
-        const referencedSubjectsHash = article.subjects_referenced.reduce(function(a, b) {
+  const fetchArticle = () => {
+    Net.get(`/api/articles/${article.id}`).then(art => {
+      if (art) {
+        const referencedSubjectsHashNew = art.subjects_referenced.reduce(function(a, b) {
           const note_id = b.note_id;
           if (a[note_id]) {
             a[note_id].push(b);
@@ -63,7 +38,7 @@ class Article extends Component {
           return a;
         }, {});
 
-        const referencedPeopleHash = article.people_referenced.reduce(function(a, b) {
+        const referencedPeopleHashNew = art.people_referenced.reduce(function(a, b) {
           const note_id = b.note_id;
           if (a[note_id]) {
             a[note_id].push(b);
@@ -73,72 +48,79 @@ class Article extends Component {
           return a;
         }, {});
 
-        this.setState({ article, referencedPeopleHash, referencedSubjectsHash });
+        setArticle(art);
+        setReferencedPeopleHash(referencedPeopleHashNew);
+        setReferencedSubjectsHash(referencedSubjectsHashNew);
       } else {
         console.error('foooked Article constructor');
       }
     });
-  }
+  };
 
-  findNoteWithId = (id, modifyFn) => {
-    this.setState((prevState, props) => {
-      // client-side update the state with the new note content
-      //
-      const article = prevState.article;
-      const notes = article.notes;
-      const index = notes.findIndex(n => n.id === id);
-
-      if (index === -1) {
-        // assert - should never get here
-        console.log(`unable to find index of edited note: ${id}`);
-        return {};
+  const fetchAutocompleteLists = () => {
+    Net.get("/api/autocomplete/people").then(peopleNew => {
+      if (peopleNew) {
+        setAc({
+          people: peopleNew,
+          subjects: ac.subjects
+        });
       }
-
-      modifyFn(notes, index);
-
-      return {
-        article: article
-      };
     });
 
-  }
+    Net.get("/api/autocomplete/subjects").then(subjectsNew => {
+      if (subjectsNew) {
+        setAc({
+          people: ac.people,
+          subjects: subjectsNew
+        });
+      }
+    });
+  };
 
-  onEditedNote = (id, data) => {
-    this.findNoteWithId(id, (notes, index) => {
+
+
+  const findNoteWithId = (id, modifyFn) => {
+    const notes = article.notes;
+    const index = notes.findIndex(n => n.id === id);
+
+    modifyFn(notes, index);
+
+    article.notes = notes; //??
+    setArticle(article);
+  };
+
+  const onEditedNote = (id, data) => {
+    findNoteWithId(id, (notes, index) => {
       notes[index] = Object.assign(notes[index], data);
     });
-  }
+  };
 
-  onDeleteNote = (noteId) => {
-    this.findNoteWithId(noteId, (notes, index) => {
+  const onDeleteNote = (noteId) => {
+    findNoteWithId(noteId, (notes, index) => {
       notes.splice(index, 1);
     });
-  }
+  };
 
-  onAddReference = () => {
-    this.fetchArticle();
-  }
+  const onAddReference = () => fetchArticle();
 
-  buildNoteComponent = (note) => {
+  const buildNoteComponent = (note) => {
     return (
       <Note key={ note.id }
             note={ note }
-            people={ this.state.ac.people }
-            subjects={ this.state.ac.subjects }
-            onDelete={ this.onDeleteNote }
-            onEdited={ this.onEditedNote }
-            onAddReference={ this.onAddReference }
-            referencedPeople={ this.state.referencedPeopleHash[note.id] }
-            referencedSubjects={ this.state.referencedSubjectsHash[note.id] }
+            people={ ac.people }
+            subjects={ ac.subjects }
+            onDelete={ onDeleteNote }
+            onEdited={ onEditedNote }
+            onAddReference={ onAddReference }
+            referencedPeople={ referencedPeopleHash[note.id] }
+            referencedSubjects={ referencedSubjectsHash[note.id] }
             />
     );
-  }
+  };
 
-  buildButtons = () => {
+  const buildButtons = () => {
     let onAddNoteClicked = (event) => {
-      this.setState((prevState, props) => ({
-        showNoteCreateForm: !prevState.showNoteCreateForm
-      }));
+      setShowNoteCreateForm(!showNoteCreateForm);
       event.preventDefault();
     };
 
@@ -147,48 +129,40 @@ class Article extends Component {
         <button onClick={ onAddNoteClicked }>Add Note</button>
       </div>
     );
-  }
+  };
 
-  buildNoteCreateForm = () => {
+  const buildNoteCreateForm = () => {
     const onAddNote = (e) => {
       const noteForm = e.target;
-      NoteUtils.addNote(noteForm, { article_id: this.state.article.id })
+      NoteUtils.addNote(noteForm, { article_id: article.id })
         .then(() => {
-          this.fetchArticle();
-          this.setState({
-            showNoteCreateForm: false
-          });
+          fetchArticle();
+          setShowNoteCreateForm(false);
         });
     };
 
     return (
       <NoteCreateForm onSubmit={ onAddNote }/>
     );
-  }
+  };
 
-  render () {
-    const article = this.state.article;
-    const primaryNotes = article.notes
-          .map(this.buildNoteComponent);
+  const onShowButtons = () => {
+    setShowButtons(!showButtons);
+    setShowNoteCreateForm(false);
+  };
 
-    const onShowButtons = () => {
-      this.setState((prevState, props) => ({
-        showButtons: !prevState.showButtons
-      }));
-    };
+  const notes = article.notes.map(buildNoteComponent);
 
-    return (
-      <article>
-        <h1 onClick={ onShowButtons }>{ this.state.article.title }</h1>
-        { this.state.showButtons   && this.buildButtons() }
-        { this.state.showNoteCreateForm  && this.buildNoteCreateForm() }
-        <h2>Source: <a href={ this.state.article.source }>{ this.state.article.source }</a></h2>
-        <section className="article-notes">
-          { primaryNotes }
-        </section>
-      </article>
-    );
-  }
+  return (
+    <article>
+      <h1 onClick={ onShowButtons }>{ article.title }</h1>
+      { showButtons   && buildButtons() }
+      { showNoteCreateForm  && buildNoteCreateForm() }
+      <h2>Source: <a href={ article.source }>{ article.source }</a></h2>
+      <section className="article-notes">
+        { notes }
+      </section>
+    </article>
+  );
+
 }
-
-export default Article;

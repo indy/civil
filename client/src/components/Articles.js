@@ -3,7 +3,7 @@ import Net from '../lib/Net';
 import { Link } from 'react-router-dom';
 import ListingLink from './ListingLink';
 
-function Articles() {
+export default function Articles() {
   const [articles, setArticles] = useState([]);
   let [showAddArticleLink, setShowAddArticleLink] = useState(false);
 
@@ -33,5 +33,3 @@ function Articles() {
     </div>
   );
 }
-
-export default Articles;

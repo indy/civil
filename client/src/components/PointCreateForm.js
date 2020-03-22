@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import StateUtils from '../lib/StateUtils';
@@ -7,64 +7,42 @@ import Net from '../lib/Net';
 import CivilDate from './CivilDate';
 import CivilLocation from './CivilLocation';
 
-class PointCreateForm extends Component {
-  constructor(props) {
-    super(props);
+export default function PointCreateForm(props) {
+  const [title, setTitle] = useState('');
+  const [date, setDate] = useState('');
+  const [location, setLocation] = useState('');
+  const [redirectUrl, setRedirectUrl] = useState(false);
 
-    this.state = {
-      title: '',
-      redirectUrl: false,
-    };
-  }
-
-  handleChangeEvent = (event) => {
+  const handleChangeEvent = (event) => {
     const target = event.target;
-    const name = target.name;
     const value = target.value;
 
-    const update = {
-      [name]: value
-    };
+    setTitle(value);
+  };
 
-    this.setState((prevState, props) => update);
-  }
+  const handleCivilDateChange = (id, dateNew) => {
+    setDate(dateNew);
+  };
 
-  handleCivilDateChange = (id, date) => {
-    const update = {
-      date: date
-    };
-    this.setState((prevState, props) => update);
-  }
+  const handleCivilLocationChange = (id, locationNew) => {
+    setLocation(locationNew);
+  };
 
-  handleCivilLocationChange = (id, location) => {
-    const update = {
-      location: location
-    };
-    this.setState((prevState, props) => update);
-  }
-
-  handleSubmit = (event) => {
-    const cleanState = StateUtils.removeEmptyObjects(this.state);
+  const handleSubmit = (event) => {
+    const cleanState = StateUtils.removeEmptyObjects({title, date, location});
     const data = JSON.stringify(cleanState);
-    // console.log(`sending: ${data}`);
-    Net.createThenRedirect(this, "points", data);
+    console.log(`sending: ${data}`);
+    Net.createThenRedirectHook(setRedirectUrl, "points", data);
     event.preventDefault();
-  }
+  };
 
-  render() {
-    const {
-      title,
-      redirectUrl
-    } = this.state;
-
-    if (redirectUrl) {
-      return <Redirect to={ redirectUrl } />;
-    }
-
+  if (redirectUrl) {
+    return <Redirect to={ redirectUrl } />;
+  } else {
     return (
       <article>
         <section>
-          <form onSubmit={ this.handleSubmit }>
+          <form onSubmit={ handleSubmit }>
             <div>
               <label htmlFor="title">Title:</label>
               <input id="title"
@@ -72,12 +50,12 @@ class PointCreateForm extends Component {
                      name="title"
                      value={ title }
                      autoComplete="off"
-                     onChange={ this.handleChangeEvent } />
+                     onChange={ handleChangeEvent } />
             </div>
             <br/>
-            <CivilDate id="point-date" onDateChange={this.handleCivilDateChange}/>
+            <CivilDate id="point-date" onDateChange={handleCivilDateChange}/>
             <br/>
-            <CivilLocation id="point-location" onLocationChange={this.handleCivilLocationChange}/>
+            <CivilLocation id="point-location" onLocationChange={handleCivilLocationChange}/>
             <br/>
             <input type="submit" value="Save"/>
           </form>
@@ -86,5 +64,3 @@ class PointCreateForm extends Component {
     );
   }
 }
-
-export default PointCreateForm;

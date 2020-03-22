@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import Autocomplete from 'react-autocomplete';
 import ResourceLink from './ResourceLink';
 
@@ -6,51 +6,45 @@ import NoteUtils from '../lib/NoteUtils';
 import NoteCompiler from '../lib/NoteCompiler';
 import Net from '../lib/Net';
 
-class Note extends Component {
-  constructor(props) {
-    super(props);
+export default function Note(props) {
+  const [showMainButtons, setShowMainButtons] = useState(false);
+  const [showEditButtons, setShowEditButtons] = useState(false);
+  const [showAddPersonReferenceUI, setShowAddPersonReferenceUI] = useState(false);
+  const [showAddSubjectReferenceUI, setShowAddSubjectReferenceUI] = useState(false);
+  let   [isEditing, setIsEditing] = useState(false);
+  const [currentPersonReference, setCurrentPersonReference] = useState('');
+  const [currentSubjectReference, setCurrentSubjectReference] = useState('');
+  const [content, setContent] = useState(props.note.content);
+  const [source, setSource] = useState(props.note.source || '');
+  const [annotation, setAnnotation] = useState(props.note.annotation || '');
+  const [separator, setSeparator] = useState(props.note.separator);
 
-    this.state = {
-      showMainButtons: false,
-      showEditButtons: false,
-      showAddPersonReferenceUI: false,
-      showAddSubjectReferenceUI: false,
-      isEditing: false,
-      currentPersonReference: "",
-      currentSubjectReference: "",
-      content: props.note.content,
-      source: props.note.source || "",
-      annotation: props.note.annotation || "",
-      separator: props.note.separator
-    };
-  }
-
-  handleChangeEvent = (event) => {
+  const handleChangeEvent = (event) => {
     const target = event.target;
     const name = target.name;
     const value = target.value;
 
-    this.setState({
-      [name]: value
-    });
-  }
+    if (name === "annotation") {
+      setAnnotation(value);
+    } else if (name === "source") {
+      setSource(value);
+    }
+  };
 
-  handleTextAreaChangeEvent = (event) => {
+  const handleTextAreaChangeEvent = (event) => {
     const target = event.target;
     const value = target.value;
 
-    this.setState({ content: value });
-  }
+    setContent(value);
+  };
 
-  onSeparatorToggle = (event) => {
-    this.setState((prevState, props) => ({
-      separator: !prevState.separator
-    }));
-  }
+  const onSeparatorToggle = (event) => {
+    setSeparator(!separator);
+  };
 
-  onDeleteClicked = (event) => {
-    const onDelete = this.props.onDelete;
-    const note = this.props.note;
+  const onDeleteClicked = (event) => {
+    const onDelete = props.onDelete;
+    const note = props.note;
     const id = note.id;
 
     NoteUtils.deleteNote(id);
@@ -58,72 +52,61 @@ class Note extends Component {
     event.preventDefault();
 
     onDelete(id);
-  }
+  };
 
-  onEditClicked = () => {
-    this.setState((prevState, props) => {
-      const isEditing = !prevState.isEditing;
+  const onEditClicked = () => {
+    isEditing = !isEditing;
+    setIsEditing(isEditing);
+
+    if (isEditing === true) {
+      setShowEditButtons(true);
+    } else {
+      setShowMainButtons(false);
+      setShowEditButtons(false);
+
       const note = props.note;
-      const editedContent = prevState.content;
+      const editedContent = content;
 
-      let showMainButtons = prevState.showMainButtons;
-      let showEditButtons = prevState.showEditButtons;
+      if (hasNoteBeenModified()) {
+        const id = note.id;
+        const data = {
+          content: editedContent,
+          source,
+          annotation,
+          separator
+        };
 
-      if (isEditing === true) {
-        showEditButtons = true;
-      } else {
-        showMainButtons = false;
-        showEditButtons = false;
-        if (this.hasNoteBeenModified(prevState, props)) {
+        // send updated content to server
+        //
+        NoteUtils.editNote(id, data);
 
-          const id = note.id;
-          const data = {
-            content: editedContent,
-            source: prevState.source,
-            annotation: prevState.annotation,
-            separator: prevState.separator
-          };
-
-          // send updated content to server
-          //
-          NoteUtils.editNote(id, data);
-
-          // stopped editing and the editable content is different than
-          // the original note's text.
-          props.onEdited(note.id, data);
-        }
+        // stopped editing and the editable content is different than
+        // the original note's text.
+        props.onEdited(note.id, data);
       }
+    }
+  };
 
-      return {
-        isEditing: isEditing,
-        showEditButtons: showEditButtons,
-        showMainButtons: showMainButtons
-      };
-    });
-  }
+  const onShowButtonsClicked = () => {
+    setShowMainButtons(!showMainButtons);
+  };
 
-  onShowButtonsClicked = () => {
-    this.setState((prevState, props) => ({
-      showMainButtons: !prevState.showMainButtons
-    }));
-  }
-
-  buildSource = () => {
+  const buildSource = () => {
     return (
       <span className="marginnote">
-          src: <a href={ this.state.source }>{ this.state.source }</a>
+          src: <a href={ source }>{ source }</a>
       </span>
     );
-  }
+  };
 
-  buildAnnotation = () => {
+  const buildAnnotation = () => {
     return (
-      <span className="marginnote">{ this.state.annotation }</span>
+      <span className="marginnote">{ annotation }</span>
     );
-  }
+  };
 
-  buildReferencedSubjects = () => {
-    const referenced = this.props.referencedSubjects.map(s => {
+  const buildReferencedSubjects = () => {
+    const referenced = props.referencedSubjects.map(s => {
       return (
         <span className="marginnote" key={ s.id }>
           <ResourceLink id={ s.id } name={ s.name } resource='subjects'/>
@@ -132,10 +115,10 @@ class Note extends Component {
     });
 
     return referenced;
-  }
+  };
 
-  buildReferencedPeople = () => {
-    const referenced = this.props.referencedPeople.map(p => {
+  const buildReferencedPeople = () => {
+    const referenced = props.referencedPeople.map(p => {
       return (
         <span className="marginnote" key={ p.id }>
           <ResourceLink id={ p.id } name={ p.name } resource='people'/>
@@ -144,10 +127,9 @@ class Note extends Component {
     });
 
     return referenced;
-  }
+  };
 
-  parseContent = (text) => {
-
+  const parseContent = (text) => {
     const tokensRes = NoteCompiler.tokenise(text);
     if (tokensRes.tokens === undefined) {
       console.log(`Error tokenising: "${text}"`);
@@ -164,67 +146,62 @@ class Note extends Component {
     const ast = parserRes.nodes;
     const dom = NoteCompiler.compile(ast);
     return dom;
-  }
+  };
 
-  buildNonEditableContent = () => {
+  const buildNonEditableContent = () => {
     return (
-      <div onClick={ this.onShowButtonsClicked }>
-        { this.state.annotation && this.buildAnnotation() }
-        { this.state.source && this.buildSource() }
-        { this.props.referencedSubjects && this.buildReferencedSubjects() }
-        { this.props.referencedPeople && this.buildReferencedPeople() }
-        { this.parseContent(this.state.content) }
+      <div onClick={ onShowButtonsClicked }>
+        { annotation && buildAnnotation() }
+        { source && buildSource() }
+        { props.referencedSubjects && buildReferencedSubjects() }
+        { props.referencedPeople && buildReferencedPeople() }
+        { parseContent(content) }
       </div>
     );
-  }
+  };
 
-  buildEditableContent = () => {
+  const buildEditableContent = () => {
     return (
       <textarea id="text"
                 type="text"
                 name="text"
-                value={ this.state.content }
-                onChange={ this.handleTextAreaChangeEvent }/>
+                value={ content }
+                onChange={ handleTextAreaChangeEvent }/>
     );
-  }
+  };
 
-  hasNoteBeenModified = (state, props) => {
-    function hasChanged(name) {
-      if (props.note[name] === undefined || props.note[name] === null) {
-        return !!state[name];
-      };
-      return state[name] !== props.note[name];
-    }
+  const hasNoteBeenModified = () => {
+    let contentChanged = content !== props.note.content;
+    let sourceChanged = source !== (props.note.source || '');
+    let annotationChanged = annotation !== (props.note.annotation || '');
+    let separatorChanged = separator !== props.note.separator;
 
-    return state.content !== props.note.content ||
-      hasChanged("source") ||
-      hasChanged("annotation") ||
-      state.separator !== props.note.separator;
-  }
+    return contentChanged || sourceChanged || annotationChanged || separatorChanged;
+  };
 
 
-  buildEditLabelText = () => {
-    if (this.state.isEditing === false) {
+  const buildEditLabelText = () => {
+    if (!isEditing) {
       return "Edit...";
     }
 
-    if (this.hasNoteBeenModified(this.state, this.props)) {
+    if (hasNoteBeenModified()) {
       // editing and have made changes
       return "Save Edits";
     }
 
     // editing and haven't made any changes yet
     return "Stop Editing";
-  }
+  };
 
 
-  matchNameToTerm = (state, value) =>  {
+  const matchNameToTerm = (state, value) =>  {
     return (
       state.name.toLowerCase().indexOf(value.toLowerCase()) !== -1
     );
-  }
+  };
 
-  sortNames = (a, b, value) => {
+  const sortNames = (a, b, value) => {
     const aLower = a.name.toLowerCase();
     const bLower = b.name.toLowerCase();
     const valueLower = value.toLowerCase();
@@ -235,50 +212,45 @@ class Note extends Component {
       return queryPosA - queryPosB;
     }
     return aLower < bLower ? -1 : 1;
-  }
+  };
 
-  postEdgeCreate = (data) => {
+  const postEdgeCreate = (data) => {
     Net.post("/api/edges", data).then(() => {
       // re-fetches the person/subject/article/point
-      this.props.onAddReference();
+      props.onAddReference();
     });
-  }
+  };
 
-  buildEditButtons = () => {
-    const {
-      source,
-      annotation
-    } = this.state;
-
+  const buildEditButtons = () => {
     return (
       <div>
-        <button onClick={ (event) => { this.onDeleteClicked(event);} }>Delete</button>
+        <button onClick={ (event) => { onDeleteClicked(event);} }>Delete</button>
         <br/>
         <label htmlFor="annotation">Annotation:</label>
         <input id="annotation"
                type="text"
                name="annotation"
                value={ annotation }
-               onChange={ this.handleChangeEvent } />
+               onChange={ handleChangeEvent } />
         <br/>
         <label htmlFor="source">Source:</label>
         <input id="source"
                type="text"
                name="source"
                value={ source }
-               onChange={ this.handleChangeEvent } />
+               onChange={ handleChangeEvent } />
         <br/>
         <label htmlFor="separator">Separator</label>
         <input id="separator"
                type="checkbox"
                name="separator"
-               value={ this.state.separator && "separator"}
-               onChange={ this.onSeparatorToggle }/>
+               value={ separator && "separator"}
+               onChange={ onSeparatorToggle }/>
       </div>
     );
-  }
+  };
 
-  buildMainButtons = () => {
+  const buildMainButtons = () => {
     const renderMenu = (children) => (
       <div className="menu">{ children }</div>
     );
@@ -291,74 +263,64 @@ class Note extends Component {
     );
 
     const toggleAddPersonReferenceUI = () => {
-      this.setState((prevState, props) => ({
-        showAddPersonReferenceUI: !prevState.showAddPersonReferenceUI
-      }));
+      setShowAddPersonReferenceUI(!showAddPersonReferenceUI);
     };
 
     const toggleAddSubjectReferenceUI = () => {
-      this.setState((prevState, props) => ({
-        showAddSubjectReferenceUI: !prevState.showAddSubjectReferenceUI
-      }));
+      setShowAddSubjectReferenceUI(!showAddSubjectReferenceUI);
     };
 
     const addPersonReference = () => {
-      const name = this.state.currentPersonReference;
-      const person = this.props.people.find(p => p.name === name);
+      const person = props.people.find(p => p.name === currentPersonReference);
 
       if (person) {
-        this.postEdgeCreate({
-          note_id: this.props.note.id,
+        postEdgeCreate({
+          note_id: props.note.id,
           person_id: person.id
         });
       } else {
         console.log('no such person found in people');
       }
 
-      this.setState({
-        showMainButtons: false,
-        showAddPersonReferenceUI: false,
-        currentPersonReference: ""
-      });
+      setShowMainButtons(false);
+      setShowAddPersonReferenceUI(false);
+      setCurrentPersonReference("");
     };
 
     const addSubjectReference = () => {
-      const name = this.state.currentSubjectReference;
-      const subject = this.props.subjects.find(s => s.name === name);
+      const subject = this.props.subjects.find(s => s.name === currentSubjectReference);
 
       if (subject) {
         this.postEdgeCreate({
-          note_id: this.props.note.id,
+          note_id: props.note.id,
           subject_id: subject.id
         });
       } else {
         console.log('no such subject found in subjects');
       }
 
-      this.setState({
-        showMainButtons: false,
-        showAddSubjectReferenceUI: false,
-        currentSubjectReference: ""
-      });
+      setShowMainButtons(false);
+      setShowAddSubjectReferenceUI(false);
+      setCurrentSubjectReference("");
     };
 
-    if (this.state.showAddPersonReferenceUI) {
+    if (showAddPersonReferenceUI) {
       return (
         <div>
           <label>Add Person:</label>
           <Autocomplete
             getItemValue={(item) => item.name}
-            items={ this.props.people }
-            value={ this.state.currentPersonReference }
+            items={ props.people }
+            value={ currentPersonReference }
             wrapperStyle={{ position: 'relative', display: 'inline-block' }}
-            shouldItemRender={ this.matchNameToTerm }
-            sortItems={ this.sortNames }
-            onChange={(event, value) => this.setState({
-              currentPersonReference: value
-            })}
-            onSelect={(value) => this.setState({
-              currentPersonReference: value
-            })}
+            shouldItemRender={ matchNameToTerm }
+            sortItems={ sortNames }
+            onChange={(event, value) => {
+              setCurrentPersonReference(value);
+            }}
+            onSelect={(value) => {
+              setCurrentPersonReference(value);
+            }}
             renderMenu={ renderMenu }
             renderItem={ renderItem }
             />
@@ -366,23 +328,23 @@ class Note extends Component {
             <button onClick={ addPersonReference }>Add</button>
         </div>
       );
-    } else if (this.state.showAddSubjectReferenceUI) {
+    } else if (showAddSubjectReferenceUI) {
       return (
         <div>
           <label>Add Subject:</label>
           <Autocomplete
             getItemValue={(item) => item.name}
-            items={ this.props.subjects }
-            value={ this.state.currentSubjectReference }
+            items={ props.subjects }
+            value={ currentSubjectReference }
             wrapperStyle={{ position: 'relative', display: 'inline-block' }}
-            shouldItemRender={ this.matchNameToTerm }
-            sortItems={ this.sortNames }
-            onChange={(event, value) => this.setState({
-              currentSubjectReference: value
-            })}
-            onSelect={(value) => this.setState({
-              currentSubjectReference: value
-            })}
+            shouldItemRender={ matchNameToTerm }
+            sortItems={ sortNames }
+            onChange={(event, value) => {
+              setCurrentSubjectReference(value);
+            }}
+            onSelect={(value) => {
+              setCurrentSubjectReference(value);
+            }}
             renderMenu={ renderMenu }
             renderItem={ renderItem }
             />
@@ -391,30 +353,25 @@ class Note extends Component {
         </div>
       );
     } else {
-
       const addPerson = <button onClick={ toggleAddPersonReferenceUI }>Add Person...</button>;
       const addSubject = <button onClick={ toggleAddSubjectReferenceUI }>Add Subject...</button>;
 
       return (
         <div>
-          <button onClick={ this.onEditClicked }>{ this.buildEditLabelText() }</button>
-          { !this.state.showEditButtons && addPerson }
-          { !this.state.showEditButtons && addSubject }
+          <button onClick={ onEditClicked }>{ buildEditLabelText() }</button>
+          { !showEditButtons && addPerson }
+          { !showEditButtons && addSubject }
         </div>
       );
     }
-  }
+  };
 
-  render() {
-    return (
-      <div className="note">
-        { this.state.separator && <hr/> }
-        { this.state.isEditing ? this.buildEditableContent() : this.buildNonEditableContent() }
-        { this.state.showEditButtons && this.buildEditButtons() }
-        { this.state.showMainButtons && this.buildMainButtons() }
-      </div>
-    );
-  }
+  return (
+    <div className="note">
+      { separator && <hr/> }
+      { isEditing ? buildEditableContent() : buildNonEditableContent() }
+      { showEditButtons && buildEditButtons() }
+      { showMainButtons && buildMainButtons() }
+    </div>
+  );
 }
-
-export default Note;

@@ -1,63 +1,54 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import StateUtils from '../lib/StateUtils';
 import Net from '../lib/Net';
 
-class ArticleCreateForm extends Component {
-  constructor(props) {
-    super(props);
+export default function ArticleCreateForm() {
+  const [title, setTitle] = useState('');
+  const [source, setSource] = useState('');
+  const [redirectUrl, setRedirectUrl] = useState(false);
 
-    this.state = {
-      title: '',
-      source: '',
-      redirectUrl: false
-    };
-  }
-
-  handleChangeEvent = (event) => {
+  const handleChangeEvent = (event) => {
     const target = event.target;
     const name = target.name;
     const value = target.value;
 
-    this.setState({
-      [name]: value
-    });
-  }
-
-  handleSubmit = (event) => {
-    const cleaned_state = StateUtils.removeEmptyStrings(this.state, ["source"]);
-    const data = JSON.stringify(cleaned_state);
-    Net.createThenRedirect(this, "articles", data);
-    event.preventDefault();
-  }
-
-  render() {
-    const title = this.state.title;
-    const source = this.state.source;
-    const redirectUrl = this.state.redirectUrl;
-
-    if (redirectUrl) {
-      return <Redirect to={ redirectUrl } />;
+    if (name === "title") {
+      setTitle(value);
     }
+    if (name === "source") {
+      setSource(value);
+    }
+  };
 
+  const handleSubmit = (event) => {
+    const cleaned_state = StateUtils.removeEmptyStrings({title, source}, ["source"]);
+    const data = JSON.stringify(cleaned_state);
+    Net.createThenRedirectHook(setRedirectUrl, "articles", data);
+    event.preventDefault();
+  };
+
+  if (redirectUrl) {
+    return <Redirect to={ redirectUrl } />;
+  } else {
     return (
       <article>
         <section>
-          <form onSubmit={ this.handleSubmit }>
+          <form onSubmit={ handleSubmit }>
 
             <label htmlFor="title">Title:</label>
             <input id="title"
                    type="text"
                    name="title"
                    value={ title }
-                   onChange={ this.handleChangeEvent } />
+                   onChange={ handleChangeEvent } />
             <label htmlFor="source">Source:</label>
             <input id="source"
                    type="text"
                    name="source"
                    value={ source }
-                   onChange={ this.handleChangeEvent } />
+                   onChange={ handleChangeEvent } />
             <input type="submit" value="Save"/>
           </form>
         </section>
@@ -65,5 +56,3 @@ class ArticleCreateForm extends Component {
     );
   }
 }
-
-export default ArticleCreateForm;
