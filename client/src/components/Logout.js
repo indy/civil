@@ -1,27 +1,26 @@
-import React, { useState } from 'react';
-import { Redirect } from 'react-router-dom';
+import React from 'react';
+import { useHistory } from 'react-router-dom';
 
 import Net from '../lib/Net';
 
 export default function Logout(props) {
-  const [redirectUrl, setRedirectUtl] = useState(false);
+  let history = useHistory();
 
   const handleLogout = (event) => {
-    Net.delete('api/auth', {}).then(() => setRedirectUtl("/"));
+    Net.delete('api/auth', {}).then(() => {
+      props.logoutCallback();
+      history.push("/");
+    });
     event.preventDefault();
   };
 
-  if (redirectUrl) {
-    return <Redirect to={ redirectUrl } />;
-  } else {
-    return (
-      <div>
-        <section>
-          <form onSubmit={ handleLogout }>
-            <input type="submit" value="Logout"/>
-          </form>
-        </section>
-      </div>
-    );
-  }
+  return (
+    <div>
+      <section>
+        <form onSubmit={ handleLogout }>
+          <input type="submit" value="Logout"/>
+        </form>
+      </section>
+    </div>
+  );
 }

@@ -3,8 +3,12 @@ import {
   BrowserRouter as Router,
   Route,
   Link,
-  Switch
+  Switch,
+  Redirect
 } from 'react-router-dom';
+
+import Login from './components/Login';
+import Logout from './components/Logout';
 
 import Person from './components/Person';
 import People from './components/People';
@@ -22,38 +26,37 @@ import Point from './components/Point';
 import Points from './components/Points';
 import PointCreateForm from './components/PointCreateForm';
 
-import Login from './components/Login';
-import Logout from './components/Logout';
-
-import Net from './lib/Net';
-
+const CivilAuthGlobal = {
+  isAuthenticated: false
+};
 
 export default function App(props) {
-  const [logged_in, setLogged_in] = useState(false);
-  const [username, setUsername] = useState('');
-  // const [email, setEmail] = useState('');
+  const [username, setUsername] = useState(props.user);
+  const [isAuthenticated, setIsAuthenticated] = useState(props.user !== '');
+
+  CivilAuthGlobal.isAuthenticated = isAuthenticated;
 
   useEffect(() => {
-    async function fetcher() {
-      await fetchLoggedInStatus();
-    }
-    fetcher();
-  }, []);
+    CivilAuthGlobal.isAuthenticated = isAuthenticated;
+  });
 
-  const fetchLoggedInStatus = () => {
-    Net.get("/api/users").then(user => {
-      setLogged_in(true);
-      setUsername(user.username);
-      // setEmail(user.email);
-    }, err => {
-      setLogged_in(false);
-      setUsername(null);
-      // setEmail(null);
-    });
-  };
+  function loggedStatus() {
+    console.log('rendering loggedStatus');
+    return isAuthenticated ? username : 'Login';
+  }
 
-  const logged_status = logged_in ? username : "Login";
-  const logged_link = logged_in ? '/logout' : '/login';
+  function loggedLink() {
+    return isAuthenticated ? "/logout" : "/login";
+  }
+
+  function loginHandler(user) {
+    setUsername(user.username);
+    setIsAuthenticated(true);
+  }
+
+  function logoutHandler() {
+    setIsAuthenticated(false);
+  }
 
   return (
     <Router>
@@ -64,25 +67,55 @@ export default function App(props) {
           <Link className='top-bar-menuitem' to={'/subjects'}>Subjects</Link>
           <Link className='top-bar-menuitem' to={'/articles'}>Articles</Link>
           <Link className='top-bar-menuitem' to={'/points'}>Points</Link>
-          <Link className='top-bar-menuitem' to={ logged_link } id="login-menuitem">{ logged_status }</Link>
+          <Link className='top-bar-menuitem' to={ loggedLink() } id="login-menuitem">{ loggedStatus() }</Link>
         </div>
         <hr/>
         <Switch>
-          <Route exact path="/" component={Home}/>
-          <Route path={'/people/:personId'} component={Person}/>
-          <Route path={'/subjects/:subjectId'} component={Subject}/>
-          <Route path={'/articles/:articleId'} component={Article}/>
-          <Route path={'/points/:pointId'} component={Point}/>
-          <Route exact path="/people" component={People}/>
-          <Route exact path="/subjects" component={Subjects}/>
-          <Route exact path="/articles" component={Articles}/>
-          <Route exact path="/points" component={Points}/>
-          <Route exact path="/login" component={Login}/>
-          <Route exact path="/logout" component={Logout}/>
-          <Route path={'/add-person'} component={PersonCreateForm}/>
-          <Route path={'/add-subject'} component={SubjectCreateForm}/>
-          <Route path={'/add-article'} component={ArticleCreateForm}/>
-          <Route path={'/add-point'} component={PointCreateForm}/>
+          <Route exact path="/">
+            <Home/>
+          </Route>
+          <Route exact path="/login">
+            <Login loginCallback = { loginHandler }/>
+          </Route>
+          <PrivateRoute exact path="/logout">
+            <Logout logoutCallback = { logoutHandler }/>
+          </PrivateRoute>
+          <PrivateRoute path={'/people/:id'}>
+            <Person/>
+          </PrivateRoute>
+          <PrivateRoute path={'/subjects/:id'}>
+            <Subject/>
+          </PrivateRoute>
+          <PrivateRoute path={'/articles/:id'}>
+            <Article/>
+          </PrivateRoute>
+          <PrivateRoute path={'/points/:id'}>
+            <Point/>
+          </PrivateRoute>
+          <PrivateRoute exact path="/people">
+            <People/>
+          </PrivateRoute>
+          <PrivateRoute exact path="/subjects">
+            <Subjects/>
+          </PrivateRoute>
+          <PrivateRoute exact path="/articles">
+            <Articles/>
+          </PrivateRoute>
+          <PrivateRoute exact path="/points">
+            <Points/>
+          </PrivateRoute>
+          <PrivateRoute path={'/add-person'}>
+            <PersonCreateForm/>
+          </PrivateRoute>
+          <PrivateRoute path={'/add-subject'}>
+            <SubjectCreateForm/>
+          </PrivateRoute>
+          <PrivateRoute path={'/add-article'}>
+            <ArticleCreateForm/>
+          </PrivateRoute>
+          <PrivateRoute path={'/add-point'}>
+            <PointCreateForm/>
+          </PrivateRoute>
         </Switch>
       </div>
     </Router>
@@ -96,5 +129,25 @@ export default function App(props) {
 const Home = () => {
   return (
     <img src="/img/BertrandRussell-Illustration-1024x1022.png" alt="Bertrand Russell"/>
-  )
+  );
 };
+
+function PrivateRoute({ children, ...rest }) {
+  return (
+    <Route
+      {...rest}
+      render={({ location }) =>
+        CivilAuthGlobal.isAuthenticated ? (
+          children
+        ) : (
+          <Redirect
+            to={{
+              pathname: "/login",
+              state: { from: location }
+            }}
+          />
+        )
+      }
+    />
+  );
+}

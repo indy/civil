@@ -1,4 +1,4 @@
-// import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import NoteCreateForm from './NoteCreateForm';
 import QuoteCreateForm from './QuoteCreateForm';
@@ -13,10 +13,10 @@ import Net from '../lib/Net';
 
 export default function Person(props) {
 
-//  let {id} = useParams();
+  let {id} = useParams();
 
   const [person, setPerson] = useState({
-        id: parseInt(props.match.params.personId, 10),
+        id: parseInt(id, 10),
         notes: [],
         quotes: [],
         people_referenced: [],

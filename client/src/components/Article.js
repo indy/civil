@@ -1,3 +1,4 @@
+import { useParams } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import NoteCreateForm from './NoteCreateForm';
 import Note from './Note';
@@ -5,8 +6,9 @@ import NoteUtils from '../lib/NoteUtils';
 import Net from '../lib/Net';
 
 export default function Article(props) {
+  let {id} = useParams();
   const [article, setArticle] = useState({
-    id: parseInt(props.match.params.articleId, 10),
+    id: parseInt(id, 10),
     notes: [],
     people_referenced: [],
     subjects_referenced: []
