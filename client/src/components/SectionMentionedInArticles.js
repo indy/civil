@@ -1,5 +1,5 @@
 import React from 'react';
-import ListingAnchor from './ListingAnchor';
+import ListingLink from './ListingLink';
 
 export default function SectionMentionedInArticles(props) {
   const mentionedIn = props.mentionedIn.map(buildMentionedInArticle);
@@ -22,6 +22,6 @@ export default function SectionMentionedInArticles(props) {
 
 function buildMentionedInArticle(mentionedIn) {
   return (
-    <ListingAnchor key={mentionedIn.id} id={ mentionedIn.id } name={ mentionedIn.name } resource='articles'/>
+    <ListingLink key={mentionedIn.id} id={ mentionedIn.id } name={ mentionedIn.name } resource='articles'/>
   );
 }

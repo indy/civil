@@ -1,5 +1,5 @@
 import React from 'react';
-import ListingAnchor from './ListingAnchor';
+import ListingLink from './ListingLink';
 
 export default function SectionMentionedByPeople(props) {
   const mentionedBy = props.mentionedBy.map(buildMentionedByPerson);
@@ -20,8 +20,9 @@ export default function SectionMentionedByPeople(props) {
   );
 }
 
+
 function buildMentionedByPerson(p) {
   return (
-    <ListingAnchor key={ p.id } id={ p.id } name={ p.name } resource='people'/>
+    <ListingLink key={ p.id } id={ p.id } name={ p.name } resource='people'/>
   );
 }

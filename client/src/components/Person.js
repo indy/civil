@@ -7,16 +7,15 @@ import Quote from './Quote';
 import SectionMentionedByPeople from './SectionMentionedByPeople';
 import SectionMentionedInSubjects from './SectionMentionedInSubjects';
 import SectionMentionedInArticles from './SectionMentionedInArticles';
-
 import NoteUtils from '../lib/NoteUtils';
 import Net from '../lib/Net';
 
 export default function Person(props) {
-
   let {id} = useParams();
+  const person_id = parseInt(id, 10);
 
   const [person, setPerson] = useState({
-        id: parseInt(id, 10),
+        id: person_id,
         notes: [],
         quotes: [],
         people_referenced: [],
@@ -35,13 +34,21 @@ export default function Person(props) {
   const [referencedSubjectsHash, setReferencedSubjectsHash] = useState({});
   const [referencedPeopleHash, setReferencedPeopleHash] = useState({});
 
+  const [currentPersonId, setCurrentPersonId] = useState(false);
+
   useEffect(() => {
-    fetchPerson();
     fetchAutocompleteLists();
   }, []);
 
-  const fetchPerson = () => {
-    Net.get(`/api/people/${person.id}`).then(p => {
+  if (person_id !== currentPersonId) {
+    // get here on first load and when we're already on a /people/:id page and follow a Link to another /people/:id
+    //
+    fetchPerson();
+  }
+
+  function fetchPerson() {
+    setCurrentPersonId(person_id);
+    Net.get(`/api/people/${person_id}`).then(p => {
       if (p) {
         const referencedSubjectsHashNew = p.subjects_referenced.reduce(function(a, b) {
           const note_id = b.note_id;
@@ -67,11 +74,10 @@ export default function Person(props) {
         setReferencedPeopleHash(referencedPeopleHashNew);
         setReferencedSubjectsHash(referencedSubjectsHashNew);
       } else {
-        console.error('foooked Person constructor');
+        console.error('fetchPerson');
       }
     });
   };
-
 
   const fetchAutocompleteLists = () => {
     Net.get("/api/autocomplete/people").then(peopleNew => {
@@ -187,7 +193,7 @@ export default function Person(props) {
   const buildNoteCreateForm = () => {
     const onAddNote = (e) => {
       const noteForm = e.target;
-      NoteUtils.addNote(noteForm, { person_id: person.id })
+      NoteUtils.addNote(noteForm, { person_id })
         .then(() => {
           fetchPerson();
           setShowNoteCreateForm(false);
@@ -202,7 +208,7 @@ export default function Person(props) {
   const buildQuoteCreateForm = () => {
     const onAddQuote = (e) => {
       const quoteForm = e.target;
-      NoteUtils.addQuote(quoteForm, { person_id: person.id })
+      NoteUtils.addQuote(quoteForm, { person_id })
         .then(() => {
           fetchPerson();
           setShowQuoteCreateForm(false);
@@ -242,6 +248,7 @@ export default function Person(props) {
       <Birth person={ person }/>
       { isPersonDead() && buildDeath() }
       <Age person={ person }/>
+
       <section className="person-notes">
         { notes }
       </section>

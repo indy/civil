@@ -4,7 +4,7 @@ import NoteUtils from '../lib/NoteUtils';
 export default function Quote(props) {
   const [showMainButtons, setShowMainButtons] = useState(false);
   let   [isEditing, setIsEditing] = useState(false);
-  const [content, setContent] = useState(props.note.content);
+  const [content, setContent] = useState(props.quote.content);
 
   const handleTextAreaChangeEvent = (event) => {
     const target = event.target;

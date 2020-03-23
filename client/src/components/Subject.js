@@ -13,8 +13,10 @@ import Net from '../lib/Net';
 
 export default function Subject(props) {
   let {id} = useParams();
+  const subject_id = parseInt(id, 10);
+
   const [subject, setSubject] = useState({
-    id: parseInt(id, 10),
+    id: subject_id,
     notes: [],
     quotes: [],
     people_referenced: [],
@@ -23,7 +25,6 @@ export default function Subject(props) {
     mentioned_in_subjects: [],
     mentioned_in_articles: []
   });
-
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
   const [showQuoteCreateForm, setShowQuoteCreateForm] = useState(false);
@@ -34,12 +35,20 @@ export default function Subject(props) {
   const [referencedSubjectsHash, setReferencedSubjectsHash] = useState({});
   const [referencedPeopleHash, setReferencedPeopleHash] = useState({});
 
+  const [currentSubjectId, setCurrentSubjectId] = useState(false);
+
   useEffect(() => {
-    fetchSubject();
     fetchAutocompleteLists();
   }, []);
 
-  const fetchSubject = () => {
+  if (subject_id !== currentSubjectId) {
+    // get here on first load and when we're already on a /subjects/:id page and follow a Link to another /subjects/:id
+    //
+    fetchSubject();
+  }
+
+  function fetchSubject() {
+    setCurrentSubjectId(subject_id);
     Net.get(`/api/subjects/${subject.id}`).then(s => {
       if (s) {
         const referencedSubjectsHashNew = s.subjects_referenced.reduce(function(a, b) {
@@ -66,7 +75,7 @@ export default function Subject(props) {
         setReferencedPeopleHash(referencedPeopleHashNew);
         setReferencedSubjectsHash(referencedSubjectsHashNew);
       } else {
-        console.error('foooked Subject constructor');
+        console.error('fetchSubject');
       }
     });
   };
@@ -185,7 +194,7 @@ export default function Subject(props) {
   const buildNoteCreateForm = () => {
     const onAddNote = (e) => {
       const noteForm = e.target;
-      NoteUtils.addNote(noteForm, { subject_id: subject.id })
+      NoteUtils.addNote(noteForm, { subject_id })
         .then(() => {
           fetchSubject();
           setShowNoteCreateForm(false);
@@ -200,7 +209,7 @@ export default function Subject(props) {
   const buildQuoteCreateForm = () => {
     const onAddQuote = (e) => {
       const quoteForm = e.target;
-      NoteUtils.addQuote(quoteForm, { subject_id: subject.id })
+      NoteUtils.addQuote(quoteForm, { subject_id })
         .then(() => {
           fetchSubject();
           setShowQuoteCreateForm(false);

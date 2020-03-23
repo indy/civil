@@ -8,6 +8,8 @@ import Net from '../lib/Net';
 
 export default function Point(props) {
   let {id} = useParams();
+  const point_id = parseInt(id, 10);
+
   const [point, setPoint] = useState({
     id: parseInt(id, 10),
     notes: [],
@@ -24,12 +26,20 @@ export default function Point(props) {
   const [referencedSubjectsHash, setReferencedSubjectsHash] = useState({});
   const [referencedPeopleHash, setReferencedPeopleHash] = useState({});
 
+  const [currentPointId, setCurrentPointId] = useState(false);
+
   useEffect(() => {
-    fetchPoint();
     fetchAutocompleteLists();
   }, []);
 
-  const fetchPoint = () => {
+  if (point_id !== currentPointId) {
+    // get here on first load and when we're already on a /points/:id page and follow a Link to another /points/:id
+    //
+    fetchPoint();
+  }
+
+  function fetchPoint() {
+    setCurrentPointId(point_id);
     Net.get(`/api/points/${point.id}`).then(p => {
       if (p) {
         const referencedSubjectsHashNew = p.subjects_referenced.reduce(function(a, b) {
@@ -136,7 +146,7 @@ export default function Point(props) {
   const buildNoteCreateForm = () => {
     const onAddNote = (e) => {
       const noteForm = e.target;
-      NoteUtils.addNote(noteForm, { point_id: point.id })
+      NoteUtils.addNote(noteForm, { point_id })
         .then(() => {
           fetchPoint();
           setScratchNote("");

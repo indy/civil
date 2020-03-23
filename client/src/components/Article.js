@@ -7,8 +7,10 @@ import Net from '../lib/Net';
 
 export default function Article(props) {
   let {id} = useParams();
+  const article_id = parseInt(id, 10);
+
   const [article, setArticle] = useState({
-    id: parseInt(id, 10),
+    id: article_id,
     notes: [],
     people_referenced: [],
     subjects_referenced: []
@@ -22,12 +24,20 @@ export default function Article(props) {
   const [referencedSubjectsHash, setReferencedSubjectsHash] = useState({});
   const [referencedPeopleHash, setReferencedPeopleHash] = useState({});
 
+  const [currentArticleId, setCurrentArticleId] = useState(false);
+
   useEffect(() => {
-    fetchArticle();
     fetchAutocompleteLists();
   }, []);
 
-  const fetchArticle = () => {
+  if (article_id !== currentArticleId) {
+    // get here on first load and when we're already on a /articles/:id page and follow a Link to another /articles/:id
+    //
+    fetchArticle();
+  }
+
+  function fetchArticle() {
+    setCurrentArticleId(article_id);
     Net.get(`/api/articles/${article.id}`).then(art => {
       if (art) {
         const referencedSubjectsHashNew = art.subjects_referenced.reduce(function(a, b) {
@@ -54,7 +64,7 @@ export default function Article(props) {
         setReferencedPeopleHash(referencedPeopleHashNew);
         setReferencedSubjectsHash(referencedSubjectsHashNew);
       } else {
-        console.error('foooked Article constructor');
+        console.error('fetchArticle');
       }
     });
   };
@@ -136,7 +146,7 @@ export default function Article(props) {
   const buildNoteCreateForm = () => {
     const onAddNote = (e) => {
       const noteForm = e.target;
-      NoteUtils.addNote(noteForm, { article_id: article.id })
+      NoteUtils.addNote(noteForm, { article_id })
         .then(() => {
           fetchArticle();
           setShowNoteCreateForm(false);
