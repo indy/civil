@@ -31,8 +31,8 @@ const CivilAuthGlobal = {
 };
 
 export default function App(props) {
-  const [username, setUsername] = useState(props.user);
-  const [isAuthenticated, setIsAuthenticated] = useState(props.user !== '');
+  const [username, setUsername] = useState(props.user.username);
+  const [isAuthenticated, setIsAuthenticated] = useState(props.user.username !== '');
 
   CivilAuthGlobal.isAuthenticated = isAuthenticated;
 
@@ -121,10 +121,6 @@ export default function App(props) {
     </Router>
   );
 }
-
-// when trying to pass in props via routes:
-// replace component={Person} with:
-// render={(props) => <Person people={ people } subjects={ subjects } {...props}/>}
 
 const Home = () => {
   return (
