@@ -64,13 +64,16 @@ export default function App(props) {
         <div id='top-bar-menu'>
           <Link className='top-bar-menuitem' to={'/'}>Home</Link>
           <Link className='top-bar-menuitem' to={'/people'}>People</Link>
-          <Link className='top-bar-menuitem' to={'/subjects'}>Subjects</Link>
-          <Link className='top-bar-menuitem' to={'/articles'}>Articles</Link>
           <Link className='top-bar-menuitem' to={'/points'}>Points</Link>
+          <Link className='top-bar-menuitem' to={'/subjects'}>Subjects</Link>
+          <Link className='top-bar-menuitem' to={'/articles'}>Books</Link>
+          <Link className='top-bar-menuitem' to={'/articles'}>Articles</Link>
+          <Link className='top-bar-menuitem' to={'/articles'}>Tags</Link>
           <Link className='top-bar-menuitem' to={ loggedLink() } id="login-menuitem">{ loggedStatus() }</Link>
         </div>
         <hr/>
         <Switch>
+
           <Route exact path="/">
             <Home/>
           </Route>
@@ -80,42 +83,49 @@ export default function App(props) {
           <PrivateRoute exact path="/logout">
             <Logout logoutCallback = { logoutHandler }/>
           </PrivateRoute>
+
           <PrivateRoute path={'/people/:id'}>
             <Person/>
-          </PrivateRoute>
-          <PrivateRoute path={'/subjects/:id'}>
-            <Subject/>
-          </PrivateRoute>
-          <PrivateRoute path={'/articles/:id'}>
-            <Article/>
-          </PrivateRoute>
-          <PrivateRoute path={'/points/:id'}>
-            <Point/>
           </PrivateRoute>
           <PrivateRoute exact path="/people">
             <People/>
           </PrivateRoute>
-          <PrivateRoute exact path="/subjects">
-            <Subjects/>
+          <PrivateRoute path={'/add-person'}>
+            <PersonCreateForm/>
           </PrivateRoute>
-          <PrivateRoute exact path="/articles">
-            <Articles/>
+
+          <PrivateRoute path={'/points/:id'}>
+            <Point/>
           </PrivateRoute>
           <PrivateRoute exact path="/points">
             <Points/>
           </PrivateRoute>
-          <PrivateRoute path={'/add-person'}>
-            <PersonCreateForm/>
+          <PrivateRoute path={'/add-point'}>
+            <PointCreateForm/>
+          </PrivateRoute>
+
+
+          <PrivateRoute path={'/subjects/:id'}>
+            <Subject/>
+          </PrivateRoute>
+          <PrivateRoute exact path="/subjects">
+            <Subjects/>
           </PrivateRoute>
           <PrivateRoute path={'/add-subject'}>
             <SubjectCreateForm/>
           </PrivateRoute>
+
+
+          <PrivateRoute path={'/articles/:id'}>
+            <Article/>
+          </PrivateRoute>
+          <PrivateRoute exact path="/articles">
+            <Articles/>
+          </PrivateRoute>
           <PrivateRoute path={'/add-article'}>
             <ArticleCreateForm/>
           </PrivateRoute>
-          <PrivateRoute path={'/add-point'}>
-            <PointCreateForm/>
-          </PrivateRoute>
+
         </Switch>
       </div>
     </Router>

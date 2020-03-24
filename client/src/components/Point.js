@@ -9,7 +9,7 @@ import Net from '../lib/Net';
 import AutocompleteCandidates from '../lib/AutocompleteCandidates';
 
 export default function Point(props) {
-  let {id} = useParams();
+  const {id} = useParams();
   const point_id = parseInt(id, 10);
 
   const [point, setPoint] = useState({

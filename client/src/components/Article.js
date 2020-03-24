@@ -8,7 +8,7 @@ import Net from '../lib/Net';
 import AutocompleteCandidates from '../lib/AutocompleteCandidates';
 
 export default function Article(props) {
-  let {id} = useParams();
+  const {id} = useParams();
   const article_id = parseInt(id, 10);
 
   const [article, setArticle] = useState({

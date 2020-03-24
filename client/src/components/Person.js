@@ -13,7 +13,7 @@ import Net from '../lib/Net';
 import AutocompleteCandidates from '../lib/AutocompleteCandidates';
 
 export default function Person(props) {
-  let {id} = useParams();
+  const {id} = useParams();
   const person_id = parseInt(id, 10);
 
   const [person, setPerson] = useState({

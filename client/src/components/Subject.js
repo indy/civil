@@ -14,7 +14,7 @@ import Net from '../lib/Net';
 import AutocompleteCandidates from '../lib/AutocompleteCandidates';
 
 export default function Subject(props) {
-  let {id} = useParams();
+  const {id} = useParams();
   const subject_id = parseInt(id, 10);
 
   const [subject, setSubject] = useState({

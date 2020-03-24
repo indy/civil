@@ -11,7 +11,7 @@ export default function Note(props) {
   const [showEditButtons, setShowEditButtons] = useState(false);
   const [showAddPersonReferenceUI, setShowAddPersonReferenceUI] = useState(false);
   const [showAddSubjectReferenceUI, setShowAddSubjectReferenceUI] = useState(false);
-  let   [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [currentPersonReference, setCurrentPersonReference] = useState('');
   const [currentSubjectReference, setCurrentSubjectReference] = useState('');
   const [content, setContent] = useState(props.note.content);
@@ -55,10 +55,10 @@ export default function Note(props) {
   };
 
   const onEditClicked = () => {
-    isEditing = !isEditing;
-    setIsEditing(isEditing);
+    const isEditingNew = !isEditing;
+    setIsEditing(isEditingNew);
 
-    if (isEditing === true) {
+    if (isEditingNew === true) {
       setShowEditButtons(true);
     } else {
       setShowMainButtons(false);
