@@ -19,7 +19,7 @@ mod api;
 mod error;
 mod handler;
 mod interop;
-mod pg;
+mod persist;
 mod session;
 
 pub use crate::error::Result;

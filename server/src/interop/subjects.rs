@@ -15,11 +15,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod articles;
-pub mod autocomplete;
-pub mod edges;
-pub mod historic_people;
-pub mod historic_points;
-pub mod notes;
-pub mod subjects;
-pub mod users;
+use crate::interop::decks::DeckMention;
+use crate::interop::decks::DeckReference;
+use crate::interop::notes::Note;
+use crate::interop::Key;
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct Subject {
+    pub id: Key,
+    pub name: String,
+
+    pub notes: Option<Vec<Note>>,
+    pub quotes: Option<Vec<Note>>,
+
+    pub people_referenced: Option<Vec<DeckReference>>,
+    pub subjects_referenced: Option<Vec<DeckReference>>,
+
+    pub mentioned_by_people: Option<Vec<DeckMention>>,
+    pub mentioned_in_subjects: Option<Vec<DeckMention>>,
+    pub mentioned_in_articles: Option<Vec<DeckMention>>,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct CreateSubject {
+    pub name: String,
+}

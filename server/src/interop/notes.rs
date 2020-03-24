@@ -15,11 +15,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod articles;
-pub mod autocomplete;
-pub mod edges;
-pub mod historic_people;
-pub mod historic_points;
-pub mod notes;
-pub mod subjects;
-pub mod users;
+use crate::interop::Key;
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct Note {
+    pub id: Key,
+    pub source: Option<String>,
+    pub content: String,
+    pub annotation: Option<String>,
+    pub separator: bool,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct CreateNote {
+    pub source: Option<String>,
+    pub content: Vec<String>,
+    pub separator: bool,
+    pub person_id: Option<Key>,
+    pub subject_id: Option<Key>,
+    pub article_id: Option<Key>,
+    pub point_id: Option<Key>,
+}

@@ -17,9 +17,14 @@
 
 pub mod articles;
 pub mod autocomplete;
+pub mod dates;
+pub mod decks;
 pub mod edges;
 pub mod historic_people;
 pub mod historic_points;
+pub mod locations;
 pub mod notes;
+mod pg;
 pub mod subjects;
+pub mod timespans;
 pub mod users;

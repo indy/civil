@@ -15,11 +15,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod articles;
-pub mod autocomplete;
-pub mod edges;
-pub mod historic_people;
-pub mod historic_points;
-pub mod notes;
-pub mod subjects;
-pub mod users;
+use crate::interop::Key;
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct DeckMention {
+    pub id: Key,
+    pub name: String,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct DeckReference {
+    pub note_id: Key,
+    pub id: Key,
+    pub name: String,
+}

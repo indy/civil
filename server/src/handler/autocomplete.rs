@@ -16,9 +16,12 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
+use crate::persist::autocomplete as db;
 use actix_web::web::Data;
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
+
+#[allow(unused_imports)]
 use tracing::info;
 
 pub mod interop {
@@ -51,47 +54,4 @@ pub async fn get_subjects(
     let autocomplete = db::get_subjects(&db_pool).await?;
 
     Ok(HttpResponse::Ok().json(autocomplete))
-}
-
-pub mod db {
-    use super::interop;
-    use crate::error::Result;
-    use crate::interop::{model_to_node_kind, Key, Model};
-    use crate::pg;
-    use deadpool_postgres::Pool;
-    use serde::{Deserialize, Serialize};
-    use tokio_pg_mapper_derive::PostgresMapper;
-    #[allow(unused_imports)]
-    use tracing::info;
-
-    #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-    #[pg_mapper(table = "decks")]
-    struct Autocomplete {
-        id: Key,
-        name: String,
-    }
-
-    impl From<Autocomplete> for interop::Autocomplete {
-        fn from(p: Autocomplete) -> interop::Autocomplete {
-            interop::Autocomplete {
-                id: p.id,
-                name: p.name,
-            }
-        }
-    }
-
-    pub(super) async fn get_people(db_pool: &Pool) -> Result<Vec<interop::Autocomplete>> {
-        get_autocomplete(db_pool, Model::HistoricPerson).await
-    }
-
-    pub(super) async fn get_subjects(db_pool: &Pool) -> Result<Vec<interop::Autocomplete>> {
-        get_autocomplete(db_pool, Model::Subject).await
-    }
-
-    async fn get_autocomplete(db_pool: &Pool, kind: Model) -> Result<Vec<interop::Autocomplete>> {
-        let stmt = include_str!("../sql/autocomplete.sql");
-        let stmt = stmt.replace("$node_kind", model_to_node_kind(kind)?);
-
-        pg::many_from::<Autocomplete, interop::Autocomplete>(db_pool, &stmt, &[]).await
-    }
 }

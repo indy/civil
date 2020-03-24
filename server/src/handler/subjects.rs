@@ -16,43 +16,19 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
-use crate::handler::decks;
-use crate::handler::notes;
+use crate::interop::subjects as interop;
 use crate::interop::IdParam;
 use crate::interop::Model;
+use crate::persist::decks as decks_db;
+use crate::persist::notes as notes_db;
+use crate::persist::subjects as db;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
+
+#[allow(unused_imports)]
 use tracing::info;
-
-pub mod interop {
-    use crate::handler::decks::interop::DeckMention;
-    use crate::handler::decks::interop::DeckReference;
-    use crate::handler::notes::interop::Note;
-    use crate::interop::Key;
-
-    #[derive(Debug, serde::Deserialize, serde::Serialize)]
-    pub struct Subject {
-        pub id: Key,
-        pub name: String,
-
-        pub notes: Option<Vec<Note>>,
-        pub quotes: Option<Vec<Note>>,
-
-        pub people_referenced: Option<Vec<DeckReference>>,
-        pub subjects_referenced: Option<Vec<DeckReference>>,
-
-        pub mentioned_by_people: Option<Vec<DeckMention>>,
-        pub mentioned_in_subjects: Option<Vec<DeckMention>>,
-        pub mentioned_in_articles: Option<Vec<DeckMention>>,
-    }
-
-    #[derive(Debug, serde::Deserialize, serde::Serialize)]
-    pub struct CreateSubject {
-        pub name: String,
-    }
-}
 
 pub async fn create_subject(
     subject: Json<interop::CreateSubject>,
@@ -93,35 +69,34 @@ pub async fn get_subject(
     let subject_id = params.id;
     let mut subject = db::get(&db_pool, subject_id, user_id).await?;
 
-    let notes = notes::db::all_notes_for(&db_pool, subject_id, notes::db::NoteType::Note).await?;
+    let notes = notes_db::all_notes_for(&db_pool, subject_id, notes_db::NoteType::Note).await?;
     subject.notes = Some(notes);
 
-    let quotes = notes::db::all_notes_for(&db_pool, subject_id, notes::db::NoteType::Quote).await?;
+    let quotes = notes_db::all_notes_for(&db_pool, subject_id, notes_db::NoteType::Quote).await?;
     subject.quotes = Some(quotes);
 
     let people_referenced =
-        decks::db::referenced_in(&db_pool, Model::Subject, subject_id, Model::HistoricPerson)
+        decks_db::referenced_in(&db_pool, Model::Subject, subject_id, Model::HistoricPerson)
             .await?;
     subject.people_referenced = Some(people_referenced);
 
     let subjects_referenced =
-        decks::db::referenced_in(&db_pool, Model::Subject, subject_id, Model::Subject).await?;
+        decks_db::referenced_in(&db_pool, Model::Subject, subject_id, Model::Subject).await?;
     subject.subjects_referenced = Some(subjects_referenced);
 
     // all the people that mention this subject
     let mentioned_by_people =
-        decks::db::that_mention(&db_pool, Model::HistoricPerson, Model::Subject, subject_id)
-            .await?;
+        decks_db::that_mention(&db_pool, Model::HistoricPerson, Model::Subject, subject_id).await?;
     subject.mentioned_by_people = Some(mentioned_by_people);
 
     // all the subjects that mention this subject
     let mentioned_in_subjects =
-        decks::db::that_mention(&db_pool, Model::Subject, Model::Subject, subject_id).await?;
+        decks_db::that_mention(&db_pool, Model::Subject, Model::Subject, subject_id).await?;
     subject.mentioned_in_subjects = Some(mentioned_in_subjects);
 
     // all the articles that mention this subject
     let mentioned_in_articles =
-        decks::db::that_mention(&db_pool, Model::Article, Model::Subject, subject_id).await?;
+        decks_db::that_mention(&db_pool, Model::Article, Model::Subject, subject_id).await?;
     subject.mentioned_in_articles = Some(mentioned_in_articles);
 
     Ok(HttpResponse::Ok().json(subject))
@@ -151,92 +126,4 @@ pub async fn delete_subject(
     db::delete(&db_pool, params.id, user_id).await?;
 
     Ok(HttpResponse::Ok().json(true))
-}
-
-pub mod db {
-    use super::interop;
-    use crate::error::Result;
-    use crate::handler::decks;
-    use crate::interop::Key;
-    use crate::pg;
-    use deadpool_postgres::Pool;
-    use serde::{Deserialize, Serialize};
-    use tokio_pg_mapper_derive::PostgresMapper;
-    #[allow(unused_imports)]
-    use tracing::info;
-
-    #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-    #[pg_mapper(table = "decks")]
-    struct Subject {
-        id: Key,
-        name: String,
-    }
-
-    impl From<Subject> for interop::Subject {
-        fn from(s: Subject) -> interop::Subject {
-            interop::Subject {
-                id: s.id,
-                name: s.name,
-
-                notes: None,
-                quotes: None,
-
-                people_referenced: None,
-                subjects_referenced: None,
-
-                mentioned_by_people: None,
-                mentioned_in_subjects: None,
-                mentioned_in_articles: None,
-            }
-        }
-    }
-
-    pub async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Subject>> {
-        pg::many_from::<Subject, interop::Subject>(
-            db_pool,
-            include_str!("../sql/subjects_all.sql"),
-            &[&user_id],
-        )
-        .await
-    }
-
-    pub async fn get(db_pool: &Pool, subject_id: Key, user_id: Key) -> Result<interop::Subject> {
-        pg::one_from::<Subject, interop::Subject>(
-            db_pool,
-            include_str!("../sql/subjects_get.sql"),
-            &[&user_id, &subject_id],
-        )
-        .await
-    }
-
-    pub async fn create(
-        db_pool: &Pool,
-        subject: &interop::CreateSubject,
-        user_id: Key,
-    ) -> Result<interop::Subject> {
-        pg::one_from::<Subject, interop::Subject>(
-            db_pool,
-            include_str!("../sql/subjects_create.sql"),
-            &[&user_id, &subject.name],
-        )
-        .await
-    }
-
-    pub async fn edit(
-        db_pool: &Pool,
-        subject: &interop::Subject,
-        subject_id: Key,
-        user_id: Key,
-    ) -> Result<interop::Subject> {
-        pg::one_from::<Subject, interop::Subject>(
-            db_pool,
-            include_str!("../sql/subjects_edit.sql"),
-            &[&user_id, &subject_id, &subject.name],
-        )
-        .await
-    }
-
-    pub async fn delete(db_pool: &Pool, subject_id: Key, user_id: Key) -> Result<()> {
-        decks::db::delete(db_pool, subject_id, user_id).await
-    }
 }

@@ -15,11 +15,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod articles;
-pub mod autocomplete;
-pub mod edges;
-pub mod historic_people;
-pub mod historic_points;
-pub mod notes;
-pub mod subjects;
-pub mod users;
+use crate::interop::dates::{CreateDate, Date};
+use crate::interop::decks::DeckReference;
+use crate::interop::locations::{CreateLocation, Location};
+use crate::interop::notes::Note;
+use crate::interop::Key;
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct Point {
+    pub id: Key,
+    pub title: String,
+    pub date: Option<Date>,
+    pub location: Option<Location>,
+
+    pub notes: Option<Vec<Note>>,
+
+    pub people_referenced: Option<Vec<DeckReference>>,
+    pub subjects_referenced: Option<Vec<DeckReference>>,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct CreatePoint {
+    pub title: String,
+    pub date: Option<CreateDate>,
+    pub location: Option<CreateLocation>,
+}

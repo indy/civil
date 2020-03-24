@@ -15,11 +15,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod articles;
-pub mod autocomplete;
-pub mod edges;
-pub mod historic_people;
-pub mod historic_points;
-pub mod notes;
-pub mod subjects;
-pub mod users;
+#[derive(Debug, serde::Deserialize)]
+pub struct LoginCredentials {
+    pub email: String,
+    pub password: String,
+}
+
+#[derive(serde::Deserialize)]
+pub struct Registration {
+    pub username: String,
+    pub email: String,
+    pub password: String,
+}
+
+#[derive(serde::Serialize)]
+pub struct User {
+    pub username: String,
+    pub email: String,
+}
