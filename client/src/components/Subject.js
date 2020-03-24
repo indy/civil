@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import NoteCreateForm from './NoteCreateForm';
 import QuoteCreateForm from './QuoteCreateForm';
 import Note from './Note';
@@ -10,6 +10,8 @@ import SectionMentionedInArticles from './SectionMentionedInArticles';
 
 import NoteUtils from '../lib/NoteUtils';
 import Net from '../lib/Net';
+
+import AutocompleteCandidates from '../lib/AutocompleteCandidates';
 
 export default function Subject(props) {
   let {id} = useParams();
@@ -28,18 +30,12 @@ export default function Subject(props) {
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
   const [showQuoteCreateForm, setShowQuoteCreateForm] = useState(false);
-  const [ac, setAc] = useState({
-    people: [],
-    subjects: []
-  });
   const [referencedSubjectsHash, setReferencedSubjectsHash] = useState({});
   const [referencedPeopleHash, setReferencedPeopleHash] = useState({});
 
   const [currentSubjectId, setCurrentSubjectId] = useState(false);
 
-  useEffect(() => {
-    fetchAutocompleteLists();
-  }, []);
+  const ac = AutocompleteCandidates();
 
   if (subject_id !== currentSubjectId) {
     // get here on first load and when we're already on a /subjects/:id page and follow a Link to another /subjects/:id
@@ -74,32 +70,12 @@ export default function Subject(props) {
         setSubject(s);
         setReferencedPeopleHash(referencedPeopleHashNew);
         setReferencedSubjectsHash(referencedSubjectsHashNew);
+        window.scrollTo(0, 0);
       } else {
         console.error('fetchSubject');
       }
     });
   };
-
-  const fetchAutocompleteLists = () => {
-    Net.get("/api/autocomplete/people").then(peopleNew => {
-      if (peopleNew) {
-        setAc({
-          people: peopleNew,
-          subjects: ac.subjects
-        });
-      }
-    });
-
-    Net.get("/api/autocomplete/subjects").then(subjectsNew => {
-      if (subjectsNew) {
-        setAc({
-          people: ac.people,
-          subjects: subjectsNew
-        });
-      }
-    });
-  };
-
 
   const findNoteWithId = (id, modifyFn) => {
     const notes = subject.notes;

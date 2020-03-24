@@ -1,10 +1,12 @@
 import { useParams } from 'react-router-dom';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import NoteCreateForm from './NoteCreateForm';
 import Note from './Note';
 
 import NoteUtils from '../lib/NoteUtils';
 import Net from '../lib/Net';
+
+import AutocompleteCandidates from '../lib/AutocompleteCandidates';
 
 export default function Point(props) {
   let {id} = useParams();
@@ -19,18 +21,12 @@ export default function Point(props) {
   const [scratchNote, setScratchNote] = useState("");
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
-  const [ac, setAc] = useState({
-    people: [],
-    subjects: []
-  });
   const [referencedSubjectsHash, setReferencedSubjectsHash] = useState({});
   const [referencedPeopleHash, setReferencedPeopleHash] = useState({});
 
   const [currentPointId, setCurrentPointId] = useState(false);
 
-  useEffect(() => {
-    fetchAutocompleteLists();
-  }, []);
+  const ac = AutocompleteCandidates();
 
   if (point_id !== currentPointId) {
     // get here on first load and when we're already on a /points/:id page and follow a Link to another /points/:id
@@ -65,28 +61,9 @@ export default function Point(props) {
         setPoint(p);
         setReferencedPeopleHash(referencedPeopleHashNew);
         setReferencedSubjectsHash(referencedSubjectsHashNew);
+        window.scrollTo(0, 0);
       } else {
         console.error('foooked Point constructor');
-      }
-    });
-  };
-
-  const fetchAutocompleteLists = () => {
-    Net.get("/api/autocomplete/people").then(peopleNew => {
-      if (peopleNew) {
-        setAc({
-          people: peopleNew,
-          subjects: ac.subjects
-        });
-      }
-    });
-
-    Net.get("/api/autocomplete/subjects").then(subjectsNew => {
-      if (subjectsNew) {
-        setAc({
-          people: ac.people,
-          subjects: subjectsNew
-        });
       }
     });
   };

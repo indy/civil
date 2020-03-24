@@ -1,9 +1,11 @@
 import { useParams } from 'react-router-dom';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import NoteCreateForm from './NoteCreateForm';
 import Note from './Note';
 import NoteUtils from '../lib/NoteUtils';
 import Net from '../lib/Net';
+
+import AutocompleteCandidates from '../lib/AutocompleteCandidates';
 
 export default function Article(props) {
   let {id} = useParams();
@@ -17,18 +19,12 @@ export default function Article(props) {
   });
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
-  const [ac, setAc] = useState({
-    people: [],
-    subjects: []
-  });
   const [referencedSubjectsHash, setReferencedSubjectsHash] = useState({});
   const [referencedPeopleHash, setReferencedPeopleHash] = useState({});
 
   const [currentArticleId, setCurrentArticleId] = useState(false);
 
-  useEffect(() => {
-    fetchAutocompleteLists();
-  }, []);
+  const ac = AutocompleteCandidates();
 
   if (article_id !== currentArticleId) {
     // get here on first load and when we're already on a /articles/:id page and follow a Link to another /articles/:id
@@ -63,33 +59,12 @@ export default function Article(props) {
         setArticle(art);
         setReferencedPeopleHash(referencedPeopleHashNew);
         setReferencedSubjectsHash(referencedSubjectsHashNew);
+        window.scrollTo(0, 0);
       } else {
         console.error('fetchArticle');
       }
     });
   };
-
-  const fetchAutocompleteLists = () => {
-    Net.get("/api/autocomplete/people").then(peopleNew => {
-      if (peopleNew) {
-        setAc({
-          people: peopleNew,
-          subjects: ac.subjects
-        });
-      }
-    });
-
-    Net.get("/api/autocomplete/subjects").then(subjectsNew => {
-      if (subjectsNew) {
-        setAc({
-          people: ac.people,
-          subjects: subjectsNew
-        });
-      }
-    });
-  };
-
-
 
   const findNoteWithId = (id, modifyFn) => {
     const notes = article.notes;
