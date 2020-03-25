@@ -26,15 +26,19 @@ export default function People() {
 
   const ancientPeopleList = people
         .filter(person => person.birth_year < ancientCutoff)
+        .sort((a, b) => a.birth_year > b.birth_year)
         .map(createPersonListing);
   const medievalPeopleList = people
         .filter(person => person.birth_year >= ancientCutoff && person.birth_year < medievalCutoff)
+        .sort((a, b) => a.birth_year > b.birth_year)
         .map(createPersonListing);
   const modernPeopleList = people
         .filter(person => person.birth_year >= medievalCutoff && person.birth_year < modernCutoff)
+        .sort((a, b) => a.birth_year > b.birth_year)
         .map(createPersonListing);
   const contemporaryPeopleList = people
         .filter(person => person.birth_year >= modernCutoff)
+        .sort((a, b) => a.birth_year > b.birth_year)
         .map(createPersonListing);
 
   return (
