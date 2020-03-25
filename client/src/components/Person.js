@@ -9,6 +9,7 @@ import SectionMentionedInSubjects from './SectionMentionedInSubjects';
 import SectionMentionedInArticles from './SectionMentionedInArticles';
 import NoteUtils from '../lib/NoteUtils';
 import Net from '../lib/Net';
+import DateUtils from '../lib/DateUtils';
 
 import AutocompleteCandidates from '../lib/AutocompleteCandidates';
 
@@ -268,7 +269,7 @@ function Death(props) {
 
 function Age(props) {
   const person = props.person;
-  const age = person.age !== "" ? person.age : Math.floor(person.age_calculated);
+  const age = person.age || DateUtils.calculateAge(person.birth_date, person.death_date);
 
   return (
     <p className="subtitle">

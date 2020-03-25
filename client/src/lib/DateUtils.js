@@ -135,7 +135,93 @@ const DateUtils = {
 
 
     return res;
+  },
+
+  calculateAge : (birth, death) => {
+    if (!birth) {
+      return "";
+    }
+
+    let earlier = ymd_from_object(birth);
+    let later = death ? ymd_from_object(death) : ymd_from_now();
+
+    let a_ymd = earlier.ymd;
+    let b_ymd = later.ymd;
+
+    let years = b_ymd[0] - a_ymd[0];
+    if (b_ymd[1] < a_ymd[1]) {
+      years -= 1;
+    } else if ((b_ymd[1] === a_ymd[1]) && (b_ymd[2] < a_ymd[2])) {
+        years -= 1;
+    };
+
+    let res = (!earlier.isExact || !later.isExact) ? "Approx " : "";
+    res += `${years}`;
+
+    return res;
   }
 };
+
+// ymd == Year, Month, Day
+
+function ymd_from_now() {
+  const d = new Date();
+  return {
+    ymd: [d.getFullYear(), d.getMonth() + 1, d.getDate()],
+    isExact: true
+  };
+}
+
+function ymd_from_object(date) {
+  if (date.exact_date) {
+    // happy days
+    return {
+      ymd: parse_ymd_from_string(date.exact_date),
+      isExact: true
+    };
+  }
+
+  if (date.lower_date && date.upper_date) {
+    // get a year roughly inbetween the lower and upper bounds
+    let lower = parse_ymd_from_string(date.lower_date);
+    let upper = parse_ymd_from_string(date.upper_date);
+
+    return {
+      ymd: [Math.floor((lower[0] + upper[0]) / 2), lower[1], lower[2]],
+      isExact: false
+    };
+  }
+
+  if (date.lower_date) {
+    return {
+      ymd: parse_ymd_from_string(date.lower_date),
+      isExact: false
+    };
+  }
+
+  if (date.upper_date) {
+    return {
+      ymd: parse_ymd_from_string(date.upper_date),
+      isExact: false
+    };
+  }
+
+  console.error(`can't determine year/month/day from ${date}`);
+  return undefined;
+}
+
+function parse_ymd_from_string(s) {
+  let res = [];
+  let parts = s.split("-");
+  if (parts.length === 4) {
+    res = [-parseInt(parts[1], 10), parseInt(parts[2], 10), parseInt(parts[3], 10)];
+  } else if (parts.length === 3) {
+    res = [parseInt(parts[0], 10), parseInt(parts[1], 10), parseInt(parts[2], 10)];
+  } else {
+    console.error(`invalid date string given to parse_ymd_from_string: ${s}`);
+  }
+
+  return res;
+}
 
 export default DateUtils;
