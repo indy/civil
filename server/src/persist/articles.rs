@@ -17,7 +17,7 @@
 
 use super::pg;
 use crate::error::Result;
-use crate::handler::articles::interop;
+use crate::interop::articles as interop;
 use crate::interop::Key;
 use crate::persist::decks;
 use deadpool_postgres::Pool;

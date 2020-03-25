@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::interop::articles as interop;
 use crate::error::Result;
 use crate::interop::IdParam;
 use crate::interop::Model;
@@ -28,31 +29,6 @@ use deadpool_postgres::Pool;
 
 #[allow(unused_imports)]
 use tracing::info;
-
-pub mod interop {
-    use crate::interop::decks::DeckReference;
-    use crate::interop::notes::Note;
-    use crate::interop::Key;
-
-    #[derive(Debug, serde::Deserialize, serde::Serialize)]
-    pub struct Article {
-        pub id: Key,
-        pub title: String,
-        pub source: Option<String>,
-
-        pub notes: Option<Vec<Note>>,
-        pub quotes: Option<Vec<Note>>,
-
-        pub people_referenced: Option<Vec<DeckReference>>,
-        pub subjects_referenced: Option<Vec<DeckReference>>,
-    }
-
-    #[derive(Debug, serde::Deserialize, serde::Serialize)]
-    pub struct CreateArticle {
-        pub title: String,
-        pub source: Option<String>,
-    }
-}
 
 pub async fn create_article(
     article: Json<interop::CreateArticle>,
