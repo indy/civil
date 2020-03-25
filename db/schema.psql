@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS notes (
     note_type INT NOT NULL,
     source TEXT,
     content TEXT NOT NULL,
-    annotation TEXT,
+    title TEXT,
     separator BOOL NOT NULL DEFAULT false
 );
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 export default function NoteCreateForm(props) {
   const [content, setContent] = useState('');
+  const [title, setTitle] = useState('');
   const [source, setSource] = useState('');
   const [separator, setSeparator] = useState('separator');
 
@@ -12,6 +13,8 @@ export default function NoteCreateForm(props) {
 
     if (name === 'content') {
       setContent(value);
+    } else if (name === 'title') {
+      setTitle(value);
     } else if (name === 'source') {
       setSource(value);
     } else if (name === 'separator') {
@@ -26,6 +29,14 @@ export default function NoteCreateForm(props) {
 
   return (
     <form onSubmit={ handleSubmit }>
+
+      <label htmlFor="title">Title:</label>
+      <input id="title"
+             type="text"
+             name="title"
+             value={ title }
+             onChange={ handleChangeEvent }
+      />
 
       <label htmlFor="content">Content:</label>
       <textarea id="content"

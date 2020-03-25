@@ -22,12 +22,13 @@ pub struct Note {
     pub id: Key,
     pub source: Option<String>,
     pub content: String,
-    pub annotation: Option<String>,
+    pub title: Option<String>,
     pub separator: bool,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct CreateNote {
+    pub title: Option<String>,
     pub source: Option<String>,
     pub content: Vec<String>,
     pub separator: bool,

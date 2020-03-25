@@ -16,7 +16,7 @@ export default function Note(props) {
   const [currentSubjectReference, setCurrentSubjectReference] = useState('');
   const [content, setContent] = useState(props.note.content);
   const [source, setSource] = useState(props.note.source || '');
-  const [annotation, setAnnotation] = useState(props.note.annotation || '');
+  const [title, setTitle] = useState(props.note.title || '');
   const [separator, setSeparator] = useState(props.note.separator);
 
   const handleChangeEvent = (event) => {
@@ -24,8 +24,8 @@ export default function Note(props) {
     const name = target.name;
     const value = target.value;
 
-    if (name === "annotation") {
-      setAnnotation(value);
+    if (name === "title") {
+      setTitle(value);
     } else if (name === "source") {
       setSource(value);
     }
@@ -72,7 +72,7 @@ export default function Note(props) {
         const data = {
           content: editedContent,
           source,
-          annotation,
+          title,
           separator
         };
 
@@ -99,9 +99,9 @@ export default function Note(props) {
     );
   };
 
-  const buildAnnotation = () => {
+  const buildTitle = () => {
     return (
-      <span className="marginnote">{ annotation }</span>
+      <h2>{ title }</h2>
     );
   };
 
@@ -151,7 +151,7 @@ export default function Note(props) {
   const buildNonEditableContent = () => {
     return (
       <div onClick={ onShowButtonsClicked }>
-        { annotation && buildAnnotation() }
+        { title && buildTitle() }
         { source && buildSource() }
         { props.referencedSubjects && buildReferencedSubjects() }
         { props.referencedPeople && buildReferencedPeople() }
@@ -173,10 +173,10 @@ export default function Note(props) {
   const hasNoteBeenModified = () => {
     let contentChanged = content !== props.note.content;
     let sourceChanged = source !== (props.note.source || '');
-    let annotationChanged = annotation !== (props.note.annotation || '');
+    let titleChanged = title !== (props.note.title || '');
     let separatorChanged = separator !== props.note.separator;
 
-    return contentChanged || sourceChanged || annotationChanged || separatorChanged;
+    return contentChanged || sourceChanged || titleChanged || separatorChanged;
   };
 
 
@@ -226,11 +226,11 @@ export default function Note(props) {
       <div>
         <button onClick={ (event) => { onDeleteClicked(event);} }>Delete</button>
         <br/>
-        <label htmlFor="annotation">Annotation:</label>
-        <input id="annotation"
+        <label htmlFor="title">Title:</label>
+        <input id="title"
                type="text"
-               name="annotation"
-               value={ annotation }
+               name="title"
+               value={ title }
                onChange={ handleChangeEvent } />
         <br/>
         <label htmlFor="source">Source:</label>

@@ -21,6 +21,7 @@ const NoteUtils = {
     }
     let data = { ...extra,
                  content: notes,
+                 title: form.title.value,
                  source: form.source.value,
                  separator: form.separator.checked
                };

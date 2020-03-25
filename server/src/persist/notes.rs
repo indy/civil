@@ -60,7 +60,7 @@ struct Note {
 
     source: Option<String>,
     content: String,
-    annotation: Option<String>,
+    title: Option<String>,
     separator: bool,
 }
 
@@ -76,7 +76,7 @@ impl From<Note> for interop::Note {
             id: n.id,
             source: n.source,
             content: n.content,
-            annotation: n.annotation,
+            title: n.title,
             separator: n.separator,
         }
     }
@@ -95,6 +95,7 @@ pub(crate) async fn create_note(
         note,
         user_id,
         NoteType::Note,
+        note.title.as_ref(),
         &note.content[0],
         note.separator,
     )
@@ -102,7 +103,7 @@ pub(crate) async fn create_note(
 
     let iter = note.content.iter().skip(1);
     for content in iter {
-        let _res = create_common(&tx, note, user_id, NoteType::Note, content, false).await?;
+        let _res = create_common(&tx, note, user_id, NoteType::Note, None, content, false).await?;
     }
 
     tx.commit().await?;
@@ -168,6 +169,7 @@ pub(crate) async fn create_quote(
         note,
         user_id,
         NoteType::Quote,
+        None,
         &note.content[0],
         note.separator,
     )
@@ -193,13 +195,14 @@ pub(crate) async fn create_common(
     note: &interop::CreateNote,
     user_id: Key,
     note_type: NoteType,
+    title: Option<&String>,
     content: &str,
     separator: bool,
 ) -> Result<interop::Note> {
     let db_note = pg::one::<Note>(
         tx,
         include_str!("sql/notes_create.sql"),
-        &[&user_id, &note_type, &note.source, &content, &separator],
+        &[&user_id, &note_type, &title, &note.source, &content, &separator],
     )
     .await?;
 
@@ -234,7 +237,7 @@ pub(crate) async fn edit_common(
             &note_type,
             &note.source,
             &note.content,
-            &note.annotation,
+            &note.title,
             &note.separator,
         ],
     )

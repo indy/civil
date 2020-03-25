@@ -40,7 +40,6 @@ pub async fn create_note(
     let note = db::create_note(&db_pool, &note, user_id).await?;
 
     Ok(HttpResponse::Ok().json(note))
-    //Ok(HttpResponse::Ok().json(true))
 }
 
 pub async fn get_note(

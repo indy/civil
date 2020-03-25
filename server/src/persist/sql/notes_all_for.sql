@@ -2,7 +2,7 @@ SELECT n.id,
        n.note_type,
        n.source,
        n.content,
-       n.annotation,
+       n.title,
        n.separator
 FROM   notes n,
        edges e
