@@ -30,7 +30,6 @@ use tracing::info;
 #[pg_mapper(table = "edges")]
 struct Edge {
     id: Key,
-    annotation: Option<String>,
 }
 
 impl From<Edge> for interop::Edge {
