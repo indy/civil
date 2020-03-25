@@ -28,3 +28,4 @@ mod pg;
 pub mod subjects;
 pub mod timespans;
 pub mod users;
+pub mod books;

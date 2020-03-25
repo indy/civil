@@ -7,7 +7,7 @@ DROP TABLE IF EXISTS locations;
 DROP TABLE IF EXISTS users;
 DROP TYPE IF EXISTS node_kind;
 
-CREATE TYPE node_kind AS ENUM ('historic_person', 'historic_point', 'subject', 'article', 'note');
+CREATE TYPE node_kind AS ENUM ('historic_person', 'historic_point', 'subject', 'article', 'note', 'book');
 -- ALTER TYPE node_kind ADD VALUE 'note'; -- appends value to enum
 
 CREATE TABLE IF NOT EXISTS users (
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS decks (
     kind node_kind NOT NULL,
 
     name TEXT NOT NULL,         -- was title in articles and historic_points
-    source TEXT,                -- from articles
+    source TEXT,                -- for articles
 
     date_id BIGINT REFERENCES dates, -- historic_points
     location_id BIGINT REFERENCES locations, --historic_points

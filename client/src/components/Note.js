@@ -288,10 +288,10 @@ export default function Note(props) {
     };
 
     const addSubjectReference = () => {
-      const subject = this.props.subjects.find(s => s.name === currentSubjectReference);
+      const subject = props.subjects.find(s => s.name === currentSubjectReference);
 
       if (subject) {
-        this.postEdgeCreate({
+        postEdgeCreate({
           note_id: props.note.id,
           subject_id: subject.id
         });

@@ -23,6 +23,8 @@ pub mod locations;
 pub mod notes;
 pub mod subjects;
 pub mod users;
+pub mod articles;
+pub mod books;
 
 use crate::error::{Error, Result};
 use std::fmt;
@@ -40,6 +42,7 @@ pub enum Model {
     HistoricPerson,
     Subject,
     Article,
+    Book,
     HistoricPoint,
     Date,
     Location,
@@ -54,6 +57,7 @@ impl std::fmt::Display for Model {
             Model::HistoricPerson => write!(f, "Model::HistoricPerson"),
             Model::Subject => write!(f, "Mode::Subject"),
             Model::Article => write!(f, "Mode::Article"),
+            Model::Book => write!(f, "Model::Book"),
             Model::HistoricPoint => write!(f, "Model::HistoricPoint"),
             Model::Date => write!(f, "Mode::Date"),
             Model::Location => write!(f, "Model::Location"),
@@ -69,6 +73,7 @@ pub(crate) fn model_to_node_kind(model: Model) -> Result<&'static str> {
         Model::HistoricPerson => Ok("historic_person"),
         Model::Subject => Ok("subject"),
         Model::Article => Ok("article"),
+        Model::Book => Ok("book"),
         Model::HistoricPoint => Ok("historic_point"),
         _ => Err(Error::ModelConversion),
     }

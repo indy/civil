@@ -22,6 +22,10 @@ import Article from './components/Article';
 import Articles from './components/Articles';
 import ArticleCreateForm from './components/ArticleCreateForm';
 
+import Book from './components/Book';
+import Books from './components/Books';
+import BookCreateForm from './components/BookCreateForm';
+
 import Point from './components/Point';
 import Points from './components/Points';
 import PointCreateForm from './components/PointCreateForm';
@@ -66,7 +70,7 @@ export default function App(props) {
           <Link className='top-bar-menuitem' to={'/people'}>People</Link>
           <Link className='top-bar-menuitem' to={'/points'}>Points</Link>
           <Link className='top-bar-menuitem' to={'/subjects'}>Subjects</Link>
-          <Link className='top-bar-menuitem' to={'/articles'}>Books</Link>
+          <Link className='top-bar-menuitem' to={'/books'}>Books</Link>
           <Link className='top-bar-menuitem' to={'/articles'}>Articles</Link>
           <Link className='top-bar-menuitem' to={'/articles'}>Tags</Link>
           <Link className='top-bar-menuitem' to={ loggedLink() } id="login-menuitem">{ loggedStatus() }</Link>
@@ -124,6 +128,16 @@ export default function App(props) {
           </PrivateRoute>
           <PrivateRoute path={'/add-article'}>
             <ArticleCreateForm/>
+          </PrivateRoute>
+
+          <PrivateRoute path={'/books/:id'}>
+            <Book/>
+          </PrivateRoute>
+          <PrivateRoute exact path="/books">
+            <Books/>
+          </PrivateRoute>
+          <PrivateRoute path={'/add-book'}>
+            <BookCreateForm/>
           </PrivateRoute>
 
         </Switch>

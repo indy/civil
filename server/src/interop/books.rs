@@ -15,26 +15,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::interop::decks::DeckReference;
+use crate::interop::notes::Note;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct Note {
+pub struct Book {
     pub id: Key,
-    pub source: Option<String>,
-    pub content: String,
-    pub title: Option<String>,
-    pub separator: bool,
+    pub title: String,
+    pub author: Option<String>,
+
+    pub notes: Option<Vec<Note>>,
+    pub quotes: Option<Vec<Note>>,
+
+    pub people_referenced: Option<Vec<DeckReference>>,
+    pub subjects_referenced: Option<Vec<DeckReference>>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct CreateNote {
-    pub title: Option<String>,
-    pub source: Option<String>,
-    pub content: Vec<String>,
-    pub separator: bool,
-    pub person_id: Option<Key>,
-    pub subject_id: Option<Key>,
-    pub article_id: Option<Key>,
-    pub point_id: Option<Key>,
-    pub book_id: Option<Key>,
+pub struct CreateBook {
+    pub title: String,
+    pub author: Option<String>,
 }
