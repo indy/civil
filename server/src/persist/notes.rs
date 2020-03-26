@@ -206,7 +206,7 @@ pub(crate) async fn create_common(
     )
     .await?;
 
-    let _ = if let Some(person_id) = note.person_id {
+    if let Some(person_id) = note.person_id {
         edges::create_edge_to_note(tx, Model::HistoricPerson, person_id, db_note.id).await?;
     } else if let Some(subject_id) = note.subject_id {
         edges::create_edge_to_note(tx, Model::Subject, subject_id, db_note.id).await?;

@@ -27,6 +27,10 @@
              font-weight: normal;
              font-style: normal; }
 
+.underlined {
+  text-decoration: underline;
+}
+
 /* Civil CSS styles - Based on Tufte CSS */
 html { font-size: 15px; }
 

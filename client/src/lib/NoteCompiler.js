@@ -15,18 +15,15 @@ const TokenType = {
   DIGITS: Symbol('DIGITS'),
   PERIOD: Symbol('PERIOD'),
   HYPHEN: Symbol('HYPHEN'),
+  UNDERSCORE: Symbol('UNDERSCORE'),
+  ASTERISK: Symbol('ASTERISK'),
   NEWLINE: Symbol('NEWLINE'),
   WHITESPACE: Symbol('WHITESPACE')
 };
 
-function characterSet(characters) {
-  const s = new Set();
-
-  // todo: is there a better way than iterating over the string?
-  for (let i = 0; i < characters.length; i++) {
-    s.add(characters[i]);
-  }
-  return s;
+function characterSet(string) {
+  // returns the set of characters in the given string
+  return string.split('').reduce((a, b) => a.add(b), new Set());
 }
 
 const sWhitespaceSet = characterSet(' \t\r');
@@ -60,6 +57,14 @@ function isHyphen(character) {
   return character === '-';
 }
 
+function isUnderscore(character) {
+  return character === '_';
+}
+
+function isAsterisk(character) {
+  return character === '*';
+}
+
 function isDoubleQuote(character) {
   return character === '"';
 }
@@ -70,6 +75,8 @@ function consumeText(s) {
     if (isNewline(s[i])
         || isBracketStart(s[i])
         || isBracketEnd(s[i])
+        || isUnderscore(s[i])
+        || isAsterisk(s[i])
         || isDoubleQuote(s[i])) {
       break;
     }
@@ -127,6 +134,14 @@ function consumeHyphen(s) {
   return [new Token(TokenType.HYPHEN, '-'), s.substring(1)];
 }
 
+function consumeUnderscore(s) {
+  return [new Token(TokenType.UNDERSCORE, '_'), s.substring(1)];
+}
+
+function consumeAsterisk(s) {
+  return [new Token(TokenType.ASTERISK, '*'), s.substring(1)];
+}
+
 function consumeDoubleQuote(s) {
   return [new Token(TokenType.DOUBLEQUOTE, '"'), s.substring(1)];
 }
@@ -152,6 +167,14 @@ function nextTokenType(s) {
 
   if (isHyphen(c)) {
     return TokenType.HYPHEN;
+  }
+
+  if (isUnderscore(c)) {
+    return TokenType.UNDERSCORE;
+  }
+
+  if (isAsterisk(c)) {
+    return TokenType.ASTERISK;
   }
 
   if (isDoubleQuote(c)) {
@@ -201,6 +224,12 @@ function tokenise(input) {
     case TokenType.HYPHEN :
       p = consumeHyphen(s);
       break;
+    case TokenType.UNDERSCORE :
+      p = consumeUnderscore(s);
+      break;
+    case TokenType.ASTERISK :
+      p = consumeAsterisk(s);
+      break;
     case TokenType.DOUBLEQUOTE :
       p = consumeDoubleQuote(s);
       break;
@@ -233,7 +262,9 @@ const NodeType = {
   LIST_ITEM: Symbol('LIST_ITEM'),
   TEXT: Symbol('TEXT'),
   LINK: Symbol('LINK'),
-  QUOTATION: Symbol('QUOTATION')
+  QUOTATION: Symbol('QUOTATION'),
+  UNDERLINED: Symbol('UNDERLINED'),
+  STRONG: Symbol('STRONG')
 };
 
 class Node {
@@ -303,15 +334,15 @@ function eatWhitespace(tokens) {
   return boxNode(NodeType.TEXT, value);
 }
 
-function eatQuotation(tokens) {
-  const container = new NodeList(NodeType.QUOTATION);
+function eatListofTypeUntil(tokens, listType, tokenType) {
+  const container = new NodeList(listType);
 
-  tokens.shift();               // eat the opening quote
+  tokens.shift();
 
-  while(tokens.length > 0 && tokens[0].type !== TokenType.DOUBLEQUOTE) {
+  while(tokens.length > 0 && tokens[0].type !== tokenType) {
     const content = eatItem(tokens);
     if (content.node === undefined) {
-      console.log('error with eatQuotation eatItem');
+      console.log('error with eatListofTypeUntil eatItem');
       return content;
     }
 
@@ -319,13 +350,25 @@ function eatQuotation(tokens) {
   }
 
   if (tokens.length === 0) {
-    console.log('eatQuotation error');
-    return { error: 'expecting a closing double quote'};
+    console.log('eatListofTypeUntil error');
+    return { error: `expecting a token of ${tokenType}`};
   }
 
-  tokens.shift();               // eat closing quote
+  tokens.shift();
 
   return { node: container };
+}
+
+function eatStrong(tokens) {
+  return eatListofTypeUntil(tokens, NodeType.STRONG, TokenType.ASTERISK);
+}
+
+function eatUnderline(tokens) {
+  return eatListofTypeUntil(tokens, NodeType.UNDERLINED, TokenType.UNDERSCORE);
+}
+
+function eatQuotation(tokens) {
+  return eatListofTypeUntil(tokens, NodeType.QUOTATION, TokenType.DOUBLEQUOTE);
 }
 
 function eatNewlines(tokens) {
@@ -430,6 +473,10 @@ function eatItem(tokens) {
     return boxNode(NodeType.TEXT, ']');
   } else if (tokenType === TokenType.DOUBLEQUOTE) {
     return eatQuotation(tokens);
+  } else if (tokenType === TokenType.UNDERSCORE) {
+    return eatUnderline(tokens);
+  } else if (tokenType === TokenType.ASTERISK) {
+    return eatStrong(tokens);
   } else if (tokenType === TokenType.WHITESPACE) {
     return eatWhitespace(tokens);
   }
@@ -534,6 +581,18 @@ function compile(node, i) {
   } else if (node.type === NodeType.LINK) {
     return (
       <a key={i} href={ node.value }>{ node.displayText }</a>
+    );
+  } else if (node.type === NodeType.STRONG) {
+    return (
+      <strong key={i}>
+        { compileChildren(node) }
+      </strong>
+    );
+  } else if (node.type === NodeType.UNDERLINED) {
+    return (
+      <span className="underlined" key={i}>
+        { compileChildren(node) }
+      </span>
     );
   } else if (node.type === NodeType.QUOTATION) {
     return (
