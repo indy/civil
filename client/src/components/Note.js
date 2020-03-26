@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Autocomplete from 'react-autocomplete';
+import Select from 'react-select';
 import ResourceLink from './ResourceLink';
 
 import NoteUtils from '../lib/NoteUtils';
@@ -12,12 +12,16 @@ export default function Note(props) {
   const [showAddPersonReferenceUI, setShowAddPersonReferenceUI] = useState(false);
   const [showAddSubjectReferenceUI, setShowAddSubjectReferenceUI] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [currentPersonReference, setCurrentPersonReference] = useState('');
-  const [currentSubjectReference, setCurrentSubjectReference] = useState('');
   const [content, setContent] = useState(props.note.content);
   const [source, setSource] = useState(props.note.source || '');
   const [title, setTitle] = useState(props.note.title || '');
   const [separator, setSeparator] = useState(props.note.separator);
+  const [currentPersonReference, setCurrentPersonReference] = useState(null);
+  const [currentSubjectReference, setCurrentSubjectReference] = useState(null);
+
+  const getOptionLabel = (option) => {
+    return option.name;
+  };
 
   const handleChangeEvent = (event) => {
     const target = event.target;
@@ -194,26 +198,6 @@ export default function Note(props) {
     return "Stop Editing";
   };
 
-
-  const matchNameToTerm = (state, value) =>  {
-    return (
-      state.name.toLowerCase().indexOf(value.toLowerCase()) !== -1
-    );
-  };
-
-  const sortNames = (a, b, value) => {
-    const aLower = a.name.toLowerCase();
-    const bLower = b.name.toLowerCase();
-    const valueLower = value.toLowerCase();
-    const queryPosA = aLower.indexOf(valueLower);
-    const queryPosB = bLower.indexOf(valueLower);
-
-    if (queryPosA !== queryPosB) {
-      return queryPosA - queryPosB;
-    }
-    return aLower < bLower ? -1 : 1;
-  };
-
   const postEdgeCreate = (data) => {
     Net.post("/api/edges", data).then(() => {
       // re-fetches the person/subject/article/point
@@ -251,17 +235,6 @@ export default function Note(props) {
   };
 
   const buildMainButtons = () => {
-    const renderMenu = (children) => (
-      <div className="menu">{ children }</div>
-    );
-
-    const renderItem = (item, isHighlighted) => (
-      <div style={{ background: isHighlighted ? 'lightgray' : 'white' }}
-           key={ item.id }>
-        { item.name }
-      </div>
-    );
-
     const toggleAddPersonReferenceUI = () => {
       setShowAddPersonReferenceUI(!showAddPersonReferenceUI);
     };
@@ -271,7 +244,8 @@ export default function Note(props) {
     };
 
     const addPersonReference = () => {
-      const person = props.people.find(p => p.name === currentPersonReference);
+      // const person = props.people.find(p => p.name === currentPersonReference);
+      const person = currentPersonReference;
 
       if (person) {
         postEdgeCreate({
@@ -284,11 +258,12 @@ export default function Note(props) {
 
       setShowMainButtons(false);
       setShowAddPersonReferenceUI(false);
-      setCurrentPersonReference("");
+      setCurrentPersonReference(null);
     };
 
     const addSubjectReference = () => {
-      const subject = props.subjects.find(s => s.name === currentSubjectReference);
+      // const subject = props.subjects.find(s => s.name === currentSubjectReference);
+      const subject = currentSubjectReference;
 
       if (subject) {
         postEdgeCreate({
@@ -301,55 +276,36 @@ export default function Note(props) {
 
       setShowMainButtons(false);
       setShowAddSubjectReferenceUI(false);
-      setCurrentSubjectReference("");
+      setCurrentSubjectReference(null);
     };
 
     if (showAddPersonReferenceUI) {
       return (
         <div>
           <label>Add Person:</label>
-          <Autocomplete
-            getItemValue={(item) => item.name}
-            items={ props.people }
-            value={ currentPersonReference }
-            wrapperStyle={{ position: 'relative', display: 'inline-block' }}
-            shouldItemRender={ matchNameToTerm }
-            sortItems={ sortNames }
-            onChange={(event, value) => {
-              setCurrentPersonReference(value);
-            }}
-            onSelect={(value) => {
-              setCurrentPersonReference(value);
-            }}
-            renderMenu={ renderMenu }
-            renderItem={ renderItem }
-            />
-            <button onClick={ toggleAddPersonReferenceUI }>Cancel</button>
-            <button onClick={ addPersonReference }>Add</button>
+          <Select
+            value={currentPersonReference}
+            onChange={setCurrentPersonReference}
+            options={props.people}
+            getOptionLabel={getOptionLabel}
+          />
+          <button onClick={ toggleAddPersonReferenceUI }>Cancel</button>
+          <button onClick={ addPersonReference }>Add</button>
         </div>
       );
     } else if (showAddSubjectReferenceUI) {
       return (
         <div>
           <label>Add Subject:</label>
-          <Autocomplete
-            getItemValue={(item) => item.name}
-            items={ props.subjects }
-            value={ currentSubjectReference }
-            wrapperStyle={{ position: 'relative', display: 'inline-block' }}
-            shouldItemRender={ matchNameToTerm }
-            sortItems={ sortNames }
-            onChange={(event, value) => {
-              setCurrentSubjectReference(value);
-            }}
-            onSelect={(value) => {
-              setCurrentSubjectReference(value);
-            }}
-            renderMenu={ renderMenu }
-            renderItem={ renderItem }
-            />
-            <button onClick={ toggleAddSubjectReferenceUI }>Cancel</button>
-            <button onClick={ addSubjectReference }>Add</button>
+
+          <Select
+            value={currentSubjectReference}
+            onChange={setCurrentSubjectReference}
+            options={props.subjects}
+            getOptionLabel={getOptionLabel}
+          />
+          <button onClick={ toggleAddSubjectReferenceUI }>Cancel</button>
+          <button onClick={ addSubjectReference }>Add</button>
         </div>
       );
     } else {
