@@ -52,12 +52,8 @@ impl From<Book> for interop::Book {
 }
 
 pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Book>> {
-    pg::many_from::<Book, interop::Book>(
-        db_pool,
-        include_str!("sql/books_all.sql"),
-        &[&user_id],
-    )
-    .await
+    pg::many_from::<Book, interop::Book>(db_pool, include_str!("sql/books_all.sql"), &[&user_id])
+        .await
 }
 
 pub(crate) async fn get(db_pool: &Pool, book_id: Key, user_id: Key) -> Result<interop::Book> {

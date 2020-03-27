@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::articles as interop;
 use crate::error::Result;
+use crate::interop::articles as interop;
 use crate::interop::IdParam;
 use crate::interop::Model;
 use crate::persist::articles as db;
@@ -76,12 +76,10 @@ pub async fn get_article(
     article.quotes = Some(quotes);
 
     let people_referenced =
-        decks_db::referenced_in(&db_pool, Model::Article, article_id, Model::HistoricPerson)
-            .await?;
+        decks_db::referenced_in(&db_pool, article_id, Model::HistoricPerson).await?;
     article.people_referenced = Some(people_referenced);
 
-    let subjects_referenced =
-        decks_db::referenced_in(&db_pool, Model::Article, article_id, Model::Subject).await?;
+    let subjects_referenced = decks_db::referenced_in(&db_pool, article_id, Model::Subject).await?;
     article.subjects_referenced = Some(subjects_referenced);
 
     Ok(HttpResponse::Ok().json(article))

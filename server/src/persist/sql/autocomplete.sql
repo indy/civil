@@ -1,4 +1,4 @@
 SELECT id, name
 FROM decks
-WHERE kind = '$node_kind'::node_kind
+WHERE kind = '$deck_kind'::deck_kind
 ORDER BY name

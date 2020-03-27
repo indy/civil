@@ -17,6 +17,7 @@
 
 pub mod articles;
 pub mod autocomplete;
+pub mod books;
 pub mod dates;
 pub mod decks;
 pub mod edges;
@@ -28,4 +29,3 @@ mod pg;
 pub mod subjects;
 pub mod timespans;
 pub mod users;
-pub mod books;

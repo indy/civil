@@ -5,8 +5,8 @@ SELECT n.id,
        n.title,
        n.separator
 FROM   notes n,
-       edges e
-WHERE  e.from_deck_id = $1
-       AND e.to_note_id = n.id
+       decks_notes dn
+WHERE  dn.deck_id = $1
+       AND dn.note_id = n.id
        AND n.note_type = $2
 ORDER BY n.id;

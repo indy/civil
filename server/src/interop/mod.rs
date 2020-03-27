@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+pub mod articles;
+pub mod books;
 pub mod dates;
 pub mod decks;
 pub mod historic_people;
@@ -23,8 +25,6 @@ pub mod locations;
 pub mod notes;
 pub mod subjects;
 pub mod users;
-pub mod articles;
-pub mod books;
 
 use crate::error::{Error, Result};
 use std::fmt;
@@ -67,7 +67,7 @@ impl std::fmt::Display for Model {
     }
 }
 
-pub(crate) fn model_to_node_kind(model: Model) -> Result<&'static str> {
+pub(crate) fn model_to_deck_kind(model: Model) -> Result<&'static str> {
     match model {
         Model::Note => Ok("note"),
         Model::HistoricPerson => Ok("historic_person"),

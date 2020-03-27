@@ -19,7 +19,6 @@ use super::pg;
 use crate::error::{Error, Result};
 use crate::interop::notes as interop;
 use crate::interop::Key;
-use crate::interop::Model;
 use crate::persist::edges;
 use bytes::{BufMut, BytesMut};
 use deadpool_postgres::{Client, Pool, Transaction};
@@ -202,21 +201,32 @@ pub(crate) async fn create_common(
     let db_note = pg::one::<Note>(
         tx,
         include_str!("sql/notes_create.sql"),
-        &[&user_id, &note_type, &title, &note.source, &content, &separator],
+        &[
+            &user_id,
+            &note_type,
+            &title,
+            &note.source,
+            &content,
+            &separator,
+        ],
     )
     .await?;
 
-    if let Some(person_id) = note.person_id {
-        edges::create_edge_to_note(tx, Model::HistoricPerson, person_id, db_note.id).await?;
+    let deck_id = if let Some(person_id) = note.person_id {
+        person_id
     } else if let Some(subject_id) = note.subject_id {
-        edges::create_edge_to_note(tx, Model::Subject, subject_id, db_note.id).await?;
+        subject_id
     } else if let Some(article_id) = note.article_id {
-        edges::create_edge_to_note(tx, Model::Article, article_id, db_note.id).await?;
+        article_id
     } else if let Some(point_id) = note.point_id {
-        edges::create_edge_to_note(tx, Model::HistoricPoint, point_id, db_note.id).await?;
+        point_id
     } else if let Some(book_id) = note.book_id {
-        edges::create_edge_to_note(tx, Model::Book, book_id, db_note.id).await?;
+        book_id
+    } else {
+        return Err(Error::Other);
     };
+
+    edges::create_edge_to_note(tx, deck_id, db_note.id).await?;
 
     let note = interop::Note::from(db_note);
     Ok(note)

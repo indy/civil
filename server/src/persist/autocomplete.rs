@@ -18,7 +18,7 @@
 use super::pg;
 use crate::error::Result;
 use crate::handler::autocomplete::interop;
-use crate::interop::{model_to_node_kind, Key, Model};
+use crate::interop::{model_to_deck_kind, Key, Model};
 use deadpool_postgres::Pool;
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
@@ -52,7 +52,7 @@ pub(crate) async fn get_subjects(db_pool: &Pool) -> Result<Vec<interop::Autocomp
 
 async fn get_autocomplete(db_pool: &Pool, kind: Model) -> Result<Vec<interop::Autocomplete>> {
     let stmt = include_str!("sql/autocomplete.sql");
-    let stmt = stmt.replace("$node_kind", model_to_node_kind(kind)?);
+    let stmt = stmt.replace("$deck_kind", model_to_deck_kind(kind)?);
 
     pg::many_from::<Autocomplete, interop::Autocomplete>(db_pool, &stmt, &[]).await
 }

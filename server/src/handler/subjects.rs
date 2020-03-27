@@ -76,12 +76,10 @@ pub async fn get_subject(
     subject.quotes = Some(quotes);
 
     let people_referenced =
-        decks_db::referenced_in(&db_pool, Model::Subject, subject_id, Model::HistoricPerson)
-            .await?;
+        decks_db::referenced_in(&db_pool, subject_id, Model::HistoricPerson).await?;
     subject.people_referenced = Some(people_referenced);
 
-    let subjects_referenced =
-        decks_db::referenced_in(&db_pool, Model::Subject, subject_id, Model::Subject).await?;
+    let subjects_referenced = decks_db::referenced_in(&db_pool, subject_id, Model::Subject).await?;
     subject.subjects_referenced = Some(subjects_referenced);
 
     // all the people that mention this subject

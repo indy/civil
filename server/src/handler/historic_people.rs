@@ -78,17 +78,11 @@ pub async fn get_person(
     let quotes = notes_db::all_notes_for(&db_pool, person_id, notes_db::NoteType::Quote).await?;
     person.quotes = Some(quotes);
 
-    let people_referenced = decks_db::referenced_in(
-        &db_pool,
-        Model::HistoricPerson,
-        person_id,
-        Model::HistoricPerson,
-    )
-    .await?;
+    let people_referenced =
+        decks_db::referenced_in(&db_pool, person_id, Model::HistoricPerson).await?;
     person.people_referenced = Some(people_referenced);
 
-    let subjects_referenced =
-        decks_db::referenced_in(&db_pool, Model::HistoricPerson, person_id, Model::Subject).await?;
+    let subjects_referenced = decks_db::referenced_in(&db_pool, person_id, Model::Subject).await?;
     person.subjects_referenced = Some(subjects_referenced);
 
     // all the people that mention this person

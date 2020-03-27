@@ -17,8 +17,8 @@
 
 use crate::handler::articles;
 use crate::handler::autocomplete;
-use crate::handler::edges;
 use crate::handler::books;
+use crate::handler::edges;
 use crate::handler::historic_people;
 use crate::handler::historic_points;
 use crate::handler::notes;

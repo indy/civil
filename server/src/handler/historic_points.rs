@@ -72,17 +72,11 @@ pub async fn get_point(
     let notes = notes_db::all_notes_for(&db_pool, point_id, notes_db::NoteType::Note).await?;
     point.notes = Some(notes);
 
-    let people_referenced = decks_db::referenced_in(
-        &db_pool,
-        Model::HistoricPoint,
-        point_id,
-        Model::HistoricPerson,
-    )
-    .await?;
+    let people_referenced =
+        decks_db::referenced_in(&db_pool, point_id, Model::HistoricPerson).await?;
     point.people_referenced = Some(people_referenced);
 
-    let subjects_referenced =
-        decks_db::referenced_in(&db_pool, Model::HistoricPoint, point_id, Model::Subject).await?;
+    let subjects_referenced = decks_db::referenced_in(&db_pool, point_id, Model::Subject).await?;
     point.subjects_referenced = Some(subjects_referenced);
 
     Ok(HttpResponse::Ok().json(point))

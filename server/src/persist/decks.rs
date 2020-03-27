@@ -18,7 +18,7 @@
 use super::pg;
 use crate::error::{Error, Result};
 use crate::interop::decks as interop;
-use crate::interop::{model_to_node_kind, Key, Model};
+use crate::interop::{model_to_deck_kind, Key, Model};
 use crate::persist::dates;
 use crate::persist::edges;
 use crate::persist::locations;
@@ -127,15 +127,13 @@ pub(crate) async fn delete(db_pool: &Pool, id: Key, user_id: Key) -> Result<()> 
 pub(crate) async fn that_mention(
     db_pool: &Pool,
     source_model: Model,
-    mentioned_model: Model,
+    _mentioned_model: Model,
     mentioned_id: Key,
 ) -> Result<Vec<interop::DeckMention>> {
-    let from_kind = model_to_node_kind(source_model)?;
-    let to_kind = model_to_node_kind(mentioned_model)?;
+    let from_kind = model_to_deck_kind(source_model)?;
 
     let stmt = include_str!("sql/decks_that_mention.sql");
     let stmt = stmt.replace("$from_kind", from_kind);
-    let stmt = stmt.replace("$to_kind", to_kind);
 
     let mentioned =
         pg::many_from::<DeckMention, interop::DeckMention>(db_pool, &stmt, &[&mentioned_id])
@@ -150,15 +148,14 @@ pub(crate) async fn that_mention(
 //
 pub(crate) async fn referenced_in(
     db_pool: &Pool,
-    model: Model,
     id: Key,
     referenced_model: Model,
 ) -> Result<Vec<interop::DeckReference>> {
-    let to_kind = model_to_node_kind(referenced_model)?;
-    let node_kind = model_to_node_kind(model)?;
+    let to_kind = model_to_deck_kind(referenced_model)?;
+    // let deck_kind = model_to_deck_kind(model)?;
 
     let stmt = include_str!("sql/decks_referenced.sql");
-    let stmt = stmt.replace("$from_kind", node_kind);
+    // let stmt = stmt.replace("$from_kind", deck_kind);
     let stmt = stmt.replace("$to_kind", to_kind);
 
     let referenced =

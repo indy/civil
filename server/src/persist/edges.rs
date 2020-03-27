@@ -18,7 +18,7 @@
 use super::pg;
 use crate::error::{Error, Result};
 use crate::handler::edges::interop;
-use crate::interop::{model_to_node_kind, Key, Model};
+use crate::interop::{Key, Model};
 use deadpool_postgres::{Client, Pool, Transaction};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
@@ -27,7 +27,7 @@ use tokio_pg_mapper_derive::PostgresMapper;
 use tracing::info;
 
 #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
-#[pg_mapper(table = "edges")]
+#[pg_mapper(table = "decks_notes")]
 struct Edge {
     id: Key,
 }
@@ -50,15 +50,12 @@ pub(crate) async fn create(
     edge: &interop::CreateEdge,
     _user_id: Key,
 ) -> Result<interop::Edge> {
-    let node_kind;
     let to_id: Key;
 
     // todo: make this code good
     if let Some(id) = edge.person_id {
-        node_kind = model_to_node_kind(Model::HistoricPerson)?;
         to_id = id;
     } else if let Some(id) = edge.subject_id {
-        node_kind = model_to_node_kind(Model::Subject)?;
         to_id = id;
     } else {
         return Err(Error::ModelConversion);
@@ -71,8 +68,7 @@ pub(crate) async fn create(
         return Err(Error::MissingField);
     }
 
-    let stmt = include_str!("sql/edges_create_from_note.sql");
-    let stmt = stmt.replace("$to_kind", node_kind);
+    let stmt = include_str!("sql/edges_create_from_note_to_deck.sql");
 
     pg::one_from::<Edge, interop::Edge>(db_pool, &stmt, &[&note_id, &to_id]).await
 }
@@ -92,14 +88,13 @@ pub(crate) async fn delete(db_pool: &Pool, edge_id: Key, _user_id: Key) -> Resul
 
 pub(crate) async fn create_edge_to_note(
     tx: &Transaction<'_>,
-    from_model: Model,
     from_key: Key,
     note_key: Key,
 ) -> Result<Key> {
-    let from_kind = model_to_node_kind(from_model)?;
+    // let from_kind = model_to_deck_kind(from_model)?;
 
-    let stmt = include_str!("sql/edges_create_to_note.sql");
-    let stmt = stmt.replace("$from_kind", from_kind);
+    let stmt = include_str!("sql/edges_create_from_deck_to_note.sql");
+    // let stmt = stmt.replace("$from_kind", from_kind);
 
     let edge = pg::one::<Edge>(tx, &stmt, &[&from_key, &note_key]).await?;
 
