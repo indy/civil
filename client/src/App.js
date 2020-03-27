@@ -67,12 +67,13 @@ export default function App(props) {
       <div>
         <div id='top-bar-menu'>
           <Link className='top-bar-menuitem' to={'/'}>Home</Link>
+          <Link className='top-bar-menuitem' to={'/ideas'}>Ideas</Link>
+          <Link className='top-bar-menuitem' to={'/books'}>Books</Link>
+          <Link className='top-bar-menuitem' to={'/subjects'}>Subjects</Link>
+          <Link className='top-bar-menuitem' to={'/articles'}>Articles</Link>
           <Link className='top-bar-menuitem' to={'/people'}>People</Link>
           <Link className='top-bar-menuitem' to={'/points'}>Points</Link>
-          <Link className='top-bar-menuitem' to={'/subjects'}>Subjects</Link>
-          <Link className='top-bar-menuitem' to={'/books'}>Books</Link>
-          <Link className='top-bar-menuitem' to={'/articles'}>Articles</Link>
-          <Link className='top-bar-menuitem' to={'/articles'}>Tags</Link>
+          <Link className='top-bar-menuitem' to={'/tags'}>Tags</Link>
           <Link className='top-bar-menuitem' to={ loggedLink() } id="login-menuitem">{ loggedStatus() }</Link>
         </div>
         <hr/>
