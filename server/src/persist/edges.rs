@@ -44,8 +44,7 @@ impl From<NoteDeckEdge> for interop::Edge {
     }
 }
 
-// currently this function only creates edges 'from' a note 'to' a deck derived struct
-pub(crate) async fn create(
+pub(crate) async fn create_from_note_to_deck(
     db_pool: &Pool,
     edge: &interop::CreateEdge,
     _user_id: Key,
@@ -86,7 +85,7 @@ pub(crate) async fn delete(db_pool: &Pool, edge_id: Key, _user_id: Key) -> Resul
     Ok(())
 }
 
-pub(crate) async fn create_deck_to_note_edge(
+pub(crate) async fn create_from_deck_to_note(
     tx: &Transaction<'_>,
     deck_id: Key,
     note_id: Key,

@@ -26,7 +26,7 @@ use deadpool_postgres::Pool;
 #[allow(unused_imports)]
 use tracing::info;
 
-pub async fn create_edge(
+pub async fn create_from_note_to_deck(
     edge: Json<interop::CreateEdge>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
@@ -36,7 +36,7 @@ pub async fn create_edge(
     let user_id = session::user_id(&session)?;
 
     // db statement
-    let edge = db::create(&db_pool, &edge, user_id).await?;
+    let edge = db::create_from_note_to_deck(&db_pool, &edge, user_id).await?;
 
     Ok(HttpResponse::Ok().json(edge))
 }

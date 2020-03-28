@@ -107,7 +107,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // edges
         .service(
             scope("/edges")
-                .route("", post().to(edges::create_edge))
+                .route("/notes_decks", post().to(edges::create_from_note_to_deck))
                 .route("/{id}", delete().to(edges::delete_edge)),
         )
         // autocomplete

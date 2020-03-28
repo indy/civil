@@ -226,7 +226,7 @@ pub(crate) async fn create_common(
         return Err(Error::Other);
     };
 
-    edges::create_deck_to_note_edge(tx, deck_id, db_note.id).await?;
+    edges::create_from_deck_to_note(tx, deck_id, db_note.id).await?;
 
     let note = interop::Note::from(db_note);
     Ok(note)

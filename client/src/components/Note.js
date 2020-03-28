@@ -214,7 +214,7 @@ export default function Note(props) {
   };
 
   const postEdgeCreate = (data) => {
-    Net.post("/api/edges", data).then(() => {
+    Net.post("/api/edges/notes_decks", data).then(() => {
       // re-fetches the person/subject/article/point
       props.onAddReference();
     });
