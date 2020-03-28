@@ -149,7 +149,17 @@ export default function App(props) {
 
 const Home = () => {
   return (
-    <img src="/img/BertrandRussell-Illustration-1024x1022.png" alt="Bertrand Russell"/>
+    <div>
+      <ol>
+        <li>Keep private</li>
+        <li>Always honest</li>
+        <li>Never delete</li>
+        <li>Don't copy</li>
+        <li>Single ideas</li>
+        <li>Have references</li>
+      </ol>
+      <img src="/img/BertrandRussell-Illustration-1024x1022.png" alt="Bertrand Russell"/>
+    </div>
   );
 };
 
