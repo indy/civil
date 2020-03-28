@@ -91,6 +91,6 @@ pub(crate) async fn edit(
 pub(crate) async fn delete(tx: &Transaction<'_>, location_id: Key) -> Result<()> {
     let stmt = pg::delete_statement(Model::Location)?;
 
-    pg::zero::<Location>(tx, &stmt, &[&location_id]).await?;
+    pg::zero(tx, &stmt, &[&location_id]).await?;
     Ok(())
 }

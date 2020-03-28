@@ -97,7 +97,7 @@ pub(crate) async fn delete(db_pool: &Pool, id: Key, user_id: Key) -> Result<()> 
     edges::delete_all_edges_connected_with_deck(&tx, id).await?;
 
     let stmt = include_str!("sql/decks_delete.sql");
-    pg::zero::<Deck>(&tx, &stmt, &[&id, &user_id]).await?;
+    pg::zero(&tx, &stmt, &[&id, &user_id]).await?;
 
     if let Some(id) = deck.date_id {
         dates::delete(&tx, id).await?;

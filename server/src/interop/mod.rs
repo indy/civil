@@ -19,6 +19,7 @@ pub mod articles;
 pub mod books;
 pub mod dates;
 pub mod decks;
+pub mod edges;
 pub mod historic_people;
 pub mod historic_points;
 pub mod locations;

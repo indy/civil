@@ -71,7 +71,7 @@ pub(crate) async fn delete(tx: &Transaction<'_>, timespan_id: Key) -> Result<()>
 
     let stmt = pg::delete_statement(Model::Timespan)?;
 
-    pg::zero::<Timespan>(tx, &stmt, &[&timespan_id]).await?;
+    pg::zero(tx, &stmt, &[&timespan_id]).await?;
 
     if let Some(id) = timespan.date_start_id {
         dates::delete(&tx, id).await?;

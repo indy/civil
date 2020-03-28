@@ -17,7 +17,7 @@
 
 use super::pg;
 use crate::error::{Error, Result};
-use crate::handler::edges::interop;
+use crate::interop::edges as interop;
 use crate::interop::{Key, Model};
 use deadpool_postgres::{Client, Pool, Transaction};
 use serde::{Deserialize, Serialize};
@@ -27,18 +27,18 @@ use tokio_pg_mapper_derive::PostgresMapper;
 use tracing::info;
 
 #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
-#[pg_mapper(table = "decks_notes")]
-struct Edge {
-    id: Key,
+#[pg_mapper(table = "notes_decks")]
+struct NoteDeckEdge {
+    note_id: Key,
+    deck_id: Key,
 }
 
-impl From<Edge> for interop::Edge {
-    fn from(e: Edge) -> interop::Edge {
+impl From<NoteDeckEdge> for interop::Edge {
+    fn from(e: NoteDeckEdge) -> interop::Edge {
         interop::Edge {
-            id: e.id,
             from_deck_id: None,
-            to_deck_id: None,
-            from_note_id: None,
+            to_deck_id: Some(e.deck_id),
+            from_note_id: Some(e.note_id),
             to_note_id: None,
         }
     }
@@ -70,7 +70,7 @@ pub(crate) async fn create(
 
     let stmt = include_str!("sql/edges_create_from_note_to_deck.sql");
 
-    pg::one_from::<Edge, interop::Edge>(db_pool, &stmt, &[&note_id, &to_id]).await
+    pg::one_from::<NoteDeckEdge, interop::Edge>(db_pool, &stmt, &[&note_id, &to_id]).await
 }
 
 pub(crate) async fn delete(db_pool: &Pool, edge_id: Key, _user_id: Key) -> Result<()> {
@@ -79,26 +79,26 @@ pub(crate) async fn delete(db_pool: &Pool, edge_id: Key, _user_id: Key) -> Resul
 
     let stmt = pg::delete_statement(Model::Edge)?;
 
-    pg::zero::<Edge>(&tx, &stmt, &[&edge_id]).await?;
+    pg::zero(&tx, &stmt, &[&edge_id]).await?;
 
     tx.commit().await?;
 
     Ok(())
 }
 
-pub(crate) async fn create_edge_to_note(
+pub(crate) async fn create_deck_to_note_edge(
     tx: &Transaction<'_>,
-    from_key: Key,
-    note_key: Key,
-) -> Result<Key> {
-    // let from_kind = model_to_deck_kind(from_model)?;
-
+    deck_id: Key,
+    note_id: Key,
+) -> Result<()> {
     let stmt = include_str!("sql/edges_create_from_deck_to_note.sql");
-    // let stmt = stmt.replace("$from_kind", from_kind);
 
-    let edge = pg::one::<Edge>(tx, &stmt, &[&from_key, &note_key]).await?;
+    // normally a pg::one for create, but we're not going
+    // to return anything when creating an edge
+    //
+    pg::zero(tx, &stmt, &[&deck_id, &note_id]).await?;
 
-    Ok(edge.id)
+    Ok(())
 }
 
 pub(crate) async fn delete_all_edges_connected_with_deck(
@@ -107,7 +107,7 @@ pub(crate) async fn delete_all_edges_connected_with_deck(
 ) -> Result<()> {
     let stmt = include_str!("sql/edges_delete_deck.sql");
 
-    pg::zero::<Edge>(tx, &stmt, &[&deck_id]).await?;
+    pg::zero(tx, &stmt, &[&deck_id]).await?;
     Ok(())
 }
 
@@ -117,6 +117,6 @@ pub(crate) async fn delete_all_edges_connected_with_note(
 ) -> Result<()> {
     let stmt = include_str!("sql/edges_delete_note.sql");
 
-    pg::zero::<Edge>(tx, &stmt, &[&id]).await?;
+    pg::zero(tx, &stmt, &[&id]).await?;
     Ok(())
 }

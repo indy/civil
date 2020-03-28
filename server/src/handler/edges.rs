@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
+use crate::interop::edges as interop;
 use crate::interop::IdParam;
 use crate::persist::edges as db;
 use crate::session;
@@ -24,29 +25,6 @@ use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
 #[allow(unused_imports)]
 use tracing::info;
-
-pub mod interop {
-    use crate::interop::Key;
-
-    #[derive(Debug, serde::Deserialize, serde::Serialize)]
-    pub struct Edge {
-        pub id: Key,
-
-        pub from_deck_id: Option<Key>,
-        pub to_deck_id: Option<Key>,
-        pub from_note_id: Option<Key>,
-        pub to_note_id: Option<Key>,
-    }
-
-    // currently these are all from Note to a Deck based model
-    //
-    #[derive(Debug, serde::Deserialize, serde::Serialize)]
-    pub struct CreateEdge {
-        pub note_id: Option<Key>,
-        pub person_id: Option<Key>,
-        pub subject_id: Option<Key>,
-    }
-}
 
 pub async fn create_edge(
     edge: Json<interop::CreateEdge>,

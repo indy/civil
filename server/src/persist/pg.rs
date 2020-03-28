@@ -21,17 +21,12 @@ use deadpool_postgres::{Client, Pool, Transaction};
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tracing::error;
 
-pub async fn zero<T>(
+pub async fn zero(
     tx: &Transaction<'_>,
     sql_query: &str,
     sql_params: &[&(dyn tokio_postgres::types::ToSql + std::marker::Sync)],
-) -> Result<()>
-where
-    T: FromTokioPostgresRow,
-{
-    let _stmt = sql_query;
-    let _stmt = _stmt.replace("$table_fields", &T::sql_table_fields());
-    let stmt = match tx.prepare(&_stmt).await {
+) -> Result<()> {
+    let stmt = match tx.prepare(&sql_query).await {
         Ok(stmt) => stmt,
         Err(e) => {
             error!("{}", e);

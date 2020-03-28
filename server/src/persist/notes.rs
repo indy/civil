@@ -139,7 +139,7 @@ pub(crate) async fn delete_note_pool(db_pool: &Pool, note_id: Key, user_id: Key)
     edges::delete_all_edges_connected_with_note(&tx, note_id).await?;
 
     let stmt = include_str!("sql/notes_delete.sql");
-    pg::zero::<Note>(&tx, &stmt, &[&note_id, &user_id]).await?;
+    pg::zero(&tx, &stmt, &[&note_id, &user_id]).await?;
 
     tx.commit().await?;
 
@@ -150,7 +150,7 @@ pub(crate) async fn delete_note(tx: &Transaction<'_>, note_id: Key, user_id: Key
     edges::delete_all_edges_connected_with_note(&tx, note_id).await?;
 
     let stmt = include_str!("sql/notes_delete.sql");
-    pg::zero::<Note>(&tx, &stmt, &[&note_id, &user_id]).await?;
+    pg::zero(&tx, &stmt, &[&note_id, &user_id]).await?;
 
     Ok(())
 }
@@ -226,7 +226,7 @@ pub(crate) async fn create_common(
         return Err(Error::Other);
     };
 
-    edges::create_edge_to_note(tx, deck_id, db_note.id).await?;
+    edges::create_deck_to_note_edge(tx, deck_id, db_note.id).await?;
 
     let note = interop::Note::from(db_note);
     Ok(note)
