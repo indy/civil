@@ -30,6 +30,10 @@ import Point from './components/Point';
 import Points from './components/Points';
 import PointCreateForm from './components/PointCreateForm';
 
+import Tag from './components/Tag';
+import Tags from './components/Tags';
+import TagCreateForm from './components/TagCreateForm';
+
 const CivilAuthGlobal = {
   isAuthenticated: false
 };
@@ -140,6 +144,17 @@ export default function App(props) {
           <PrivateRoute path={'/add-book'}>
             <BookCreateForm/>
           </PrivateRoute>
+
+          <PrivateRoute path={'/tags/:id'}>
+            <Tag/>
+          </PrivateRoute>
+          <PrivateRoute exact path="/tags">
+            <Tags/>
+          </PrivateRoute>
+          <PrivateRoute path={'/add-tag'}>
+            <TagCreateForm/>
+          </PrivateRoute>
+
 
         </Switch>
       </div>
