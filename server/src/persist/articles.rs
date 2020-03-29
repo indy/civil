@@ -60,7 +60,7 @@ pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Art
     .await
 }
 
-pub(crate) async fn get(db_pool: &Pool, article_id: Key, user_id: Key) -> Result<interop::Article> {
+pub(crate) async fn get(db_pool: &Pool, user_id: Key, article_id: Key) -> Result<interop::Article> {
     pg::one_from::<Article, interop::Article>(
         db_pool,
         include_str!("sql/articles_get.sql"),
@@ -71,8 +71,8 @@ pub(crate) async fn get(db_pool: &Pool, article_id: Key, user_id: Key) -> Result
 
 pub(crate) async fn create(
     db_pool: &Pool,
-    article: &interop::CreateArticle,
     user_id: Key,
+    article: &interop::CreateArticle,
 ) -> Result<interop::Article> {
     pg::one_from::<Article, interop::Article>(
         db_pool,
@@ -84,9 +84,9 @@ pub(crate) async fn create(
 
 pub(crate) async fn edit(
     db_pool: &Pool,
+    user_id: Key,
     article: &interop::Article,
     article_id: Key,
-    user_id: Key,
 ) -> Result<interop::Article> {
     pg::one_from::<Article, interop::Article>(
         db_pool,
@@ -96,6 +96,6 @@ pub(crate) async fn edit(
     .await
 }
 
-pub(crate) async fn delete(db_pool: &Pool, article_id: Key, user_id: Key) -> Result<()> {
+pub(crate) async fn delete(db_pool: &Pool, user_id: Key, article_id: Key) -> Result<()> {
     decks::delete(db_pool, article_id, user_id).await
 }

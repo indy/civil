@@ -37,7 +37,7 @@ pub async fn create_note(
 
     let user_id = session::user_id(&session)?;
 
-    let note = db::create_note(&db_pool, &note, user_id).await?;
+    let note = db::create_note(&db_pool, user_id, &note).await?;
 
     Ok(HttpResponse::Ok().json(note))
 }
@@ -49,7 +49,7 @@ pub async fn get_note(
 ) -> Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    let note = db::get_note(&db_pool, params.id, user_id).await?;
+    let note = db::get_note(&db_pool, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(note))
 }
@@ -63,7 +63,7 @@ pub async fn edit_note(
     let note = note.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let note = db::edit_note(&db_pool, &note, params.id, user_id).await?;
+    let note = db::edit_note(&db_pool, user_id, &note, params.id).await?;
 
     Ok(HttpResponse::Ok().json(note))
 }
@@ -75,7 +75,7 @@ pub async fn delete_note(
 ) -> Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    db::delete_note_pool(&db_pool, params.id, user_id).await?;
+    db::delete_note_pool(&db_pool, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(true))
 }
@@ -88,7 +88,7 @@ pub async fn create_quote(
     let note = note.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let note = db::create_quote(&db_pool, &note, user_id).await?;
+    let note = db::create_quote(&db_pool, user_id, &note).await?;
 
     Ok(HttpResponse::Ok().json(note))
 }
@@ -101,7 +101,7 @@ pub async fn get_quote(
     let user_id = session::user_id(&session)?;
 
     // same implementation as note
-    let note = db::get_note(&db_pool, params.id, user_id).await?;
+    let note = db::get_note(&db_pool, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(note))
 }
@@ -115,7 +115,7 @@ pub async fn edit_quote(
     let note = note.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let note = db::edit_quote(&db_pool, &note, params.id, user_id).await?;
+    let note = db::edit_quote(&db_pool, user_id, &note, params.id).await?;
 
     Ok(HttpResponse::Ok().json(note))
 }
@@ -128,7 +128,7 @@ pub async fn delete_quote(
     let user_id = session::user_id(&session)?;
 
     // same implementation as note
-    db::delete_note_pool(&db_pool, params.id, user_id).await?;
+    db::delete_note_pool(&db_pool, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(true))
 }

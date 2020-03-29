@@ -27,5 +27,6 @@ pub mod locations;
 pub mod notes;
 mod pg;
 pub mod subjects;
+pub mod tags;
 pub mod timespans;
 pub mod users;

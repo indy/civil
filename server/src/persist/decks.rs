@@ -93,7 +93,7 @@ pub(crate) async fn delete(db_pool: &Pool, id: Key, user_id: Key) -> Result<()> 
 
     let deck = get_owned(&tx, id, user_id).await?;
 
-    notes::delete_all_notes_connected_with_deck(&tx, id, user_id).await?;
+    notes::delete_all_notes_connected_with_deck(&tx, user_id, id).await?;
     edges::delete_all_edges_connected_with_deck(&tx, id).await?;
 
     let stmt = include_str!("sql/decks_delete.sql");

@@ -83,16 +83,16 @@ impl From<Note> for interop::Note {
 
 pub(crate) async fn create_note(
     db_pool: &Pool,
-    note: &interop::CreateNote,
     user_id: Key,
+    note: &interop::CreateNote,
 ) -> Result<interop::Note> {
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
     let res = create_common(
         &tx,
-        note,
         user_id,
+        note,
         NoteType::Note,
         note.title.as_ref(),
         &note.content[0],
@@ -102,7 +102,7 @@ pub(crate) async fn create_note(
 
     let iter = note.content.iter().skip(1);
     for content in iter {
-        let _res = create_common(&tx, note, user_id, NoteType::Note, None, content, false).await?;
+        let _res = create_common(&tx, user_id, note, NoteType::Note, None, content, false).await?;
     }
 
     tx.commit().await?;
@@ -110,7 +110,7 @@ pub(crate) async fn create_note(
     Ok(res)
 }
 
-pub(crate) async fn get_note(db_pool: &Pool, note_id: Key, user_id: Key) -> Result<interop::Note> {
+pub(crate) async fn get_note(db_pool: &Pool, user_id: Key, note_id: Key) -> Result<interop::Note> {
     let db_note = pg::one_non_transactional::<Note>(
         db_pool,
         include_str!("sql/notes_get.sql"),
@@ -124,15 +124,15 @@ pub(crate) async fn get_note(db_pool: &Pool, note_id: Key, user_id: Key) -> Resu
 
 pub(crate) async fn edit_note(
     db_pool: &Pool,
+    user_id: Key,
     note: &interop::Note,
     note_id: Key,
-    user_id: Key,
 ) -> Result<interop::Note> {
-    let res = edit_common(db_pool, note, note_id, user_id, NoteType::Note).await?;
+    let res = edit_common(db_pool, user_id, note, note_id, NoteType::Note).await?;
     Ok(res)
 }
 
-pub(crate) async fn delete_note_pool(db_pool: &Pool, note_id: Key, user_id: Key) -> Result<()> {
+pub(crate) async fn delete_note_pool(db_pool: &Pool, user_id: Key, note_id: Key) -> Result<()> {
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
@@ -146,7 +146,7 @@ pub(crate) async fn delete_note_pool(db_pool: &Pool, note_id: Key, user_id: Key)
     Ok(())
 }
 
-pub(crate) async fn delete_note(tx: &Transaction<'_>, note_id: Key, user_id: Key) -> Result<()> {
+pub(crate) async fn delete_note(tx: &Transaction<'_>, user_id: Key, note_id: Key) -> Result<()> {
     edges::delete_all_edges_connected_with_note(&tx, note_id).await?;
 
     let stmt = include_str!("sql/notes_delete.sql");
@@ -157,16 +157,16 @@ pub(crate) async fn delete_note(tx: &Transaction<'_>, note_id: Key, user_id: Key
 
 pub(crate) async fn create_quote(
     db_pool: &Pool,
-    note: &interop::CreateNote,
     user_id: Key,
+    note: &interop::CreateNote,
 ) -> Result<interop::Note> {
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
     let res = create_common(
         &tx,
-        note,
         user_id,
+        note,
         NoteType::Quote,
         None,
         &note.content[0],
@@ -181,18 +181,18 @@ pub(crate) async fn create_quote(
 
 pub(crate) async fn edit_quote(
     db_pool: &Pool,
+    user_id: Key,
     note: &interop::Note,
     note_id: Key,
-    user_id: Key,
 ) -> Result<interop::Note> {
-    let res = edit_common(db_pool, note, note_id, user_id, NoteType::Quote).await?;
+    let res = edit_common(db_pool, user_id, note, note_id, NoteType::Quote).await?;
     Ok(res)
 }
 
 pub(crate) async fn create_common(
     tx: &Transaction<'_>,
-    note: &interop::CreateNote,
     user_id: Key,
+    note: &interop::CreateNote,
     note_type: NoteType,
     title: Option<&String>,
     content: &str,
@@ -234,9 +234,9 @@ pub(crate) async fn create_common(
 
 pub(crate) async fn edit_common(
     db_pool: &Pool,
+    user_id: Key,
     note: &interop::Note,
     note_id: Key,
-    user_id: Key,
     note_type: NoteType,
 ) -> Result<interop::Note> {
     let db_note = pg::one_non_transactional::<Note>(
@@ -273,8 +273,8 @@ pub(crate) async fn all_notes_for(
 
 pub(crate) async fn delete_all_notes_connected_with_deck(
     tx: &Transaction<'_>,
-    deck_id: Key,
     user_id: Key,
+    deck_id: Key,
 ) -> Result<()> {
     let note_ids = pg::many::<NoteId>(
         tx,
@@ -284,7 +284,7 @@ pub(crate) async fn delete_all_notes_connected_with_deck(
     .await?;
 
     for note_id in note_ids {
-        delete_note(tx, note_id.id, user_id).await?;
+        delete_note(tx, user_id, note_id.id).await?;
     }
 
     Ok(())

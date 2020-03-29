@@ -30,44 +30,45 @@ use deadpool_postgres::Pool;
 #[allow(unused_imports)]
 use tracing::info;
 
-pub async fn create_point(
+pub async fn create(
     point: Json<interop::CreatePoint>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    info!("create_point");
+    info!("create");
+
     let point = point.into_inner();
     let user_id = session::user_id(&session)?;
 
     // db statement
-    let point = db::create(&db_pool, &point, user_id).await?;
+    let point = db::create(&db_pool, user_id, &point).await?;
 
     Ok(HttpResponse::Ok().json(point))
 }
 
-pub async fn get_points(
-    db_pool: Data<Pool>,
-    session: actix_session::Session,
-) -> Result<HttpResponse> {
-    info!("get_points");
+pub async fn get_all(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
+    info!("get_all");
+
     let user_id = session::user_id(&session)?;
+
     // db statement
     let points = db::all(&db_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(points))
 }
 
-pub async fn get_point(
+pub async fn get(
     db_pool: Data<Pool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    info!("get_point {:?}", params.id);
+    info!("get {:?}", params.id);
+
     let user_id = session::user_id(&session)?;
 
     // db statements
     let point_id = params.id;
-    let mut point = db::get(&db_pool, point_id, user_id).await?;
+    let mut point = db::get(&db_pool, user_id, point_id).await?;
 
     let notes = notes_db::all_notes_for(&db_pool, point_id, notes_db::NoteType::Note).await?;
     point.notes = Some(notes);
@@ -82,30 +83,32 @@ pub async fn get_point(
     Ok(HttpResponse::Ok().json(point))
 }
 
-pub async fn edit_point(
+pub async fn edit(
     point: Json<interop::Point>,
     db_pool: Data<Pool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    info!("edit_point");
+    info!("edit");
 
     let point = point.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let point = db::edit(&db_pool, &point, params.id, user_id).await?;
+    let point = db::edit(&db_pool, user_id, &point, params.id).await?;
 
     Ok(HttpResponse::Ok().json(point))
 }
 
-pub async fn delete_point(
+pub async fn delete(
     db_pool: Data<Pool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
+    info!("delete");
+
     let user_id = session::user_id(&session)?;
 
-    db::delete(&db_pool, params.id, user_id).await?;
+    db::delete(&db_pool, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(true))
 }

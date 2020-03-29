@@ -16,12 +16,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
-use crate::interop::books as interop;
+use crate::interop::tags as interop;
 use crate::interop::IdParam;
-use crate::interop::Model;
-use crate::persist::books as db;
-use crate::persist::decks as decks_db;
-use crate::persist::notes as notes_db;
+use crate::persist::tags as db;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
@@ -31,18 +28,18 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 pub async fn create(
-    book: Json<interop::CreateBook>,
+    tag: Json<interop::CreateTag>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("create");
 
-    let book = book.into_inner();
+    let tag = tag.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let book = db::create(&db_pool, user_id, &book).await?;
+    let tag = db::create(&db_pool, user_id, &tag).await?;
 
-    Ok(HttpResponse::Ok().json(book))
+    Ok(HttpResponse::Ok().json(tag))
 }
 
 pub async fn get_all(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
@@ -50,9 +47,9 @@ pub async fn get_all(db_pool: Data<Pool>, session: actix_session::Session) -> Re
 
     let user_id = session::user_id(&session)?;
     // db statement
-    let books = db::all(&db_pool, user_id).await?;
+    let tags = db::all(&db_pool, user_id).await?;
 
-    Ok(HttpResponse::Ok().json(books))
+    Ok(HttpResponse::Ok().json(tags))
 }
 
 pub async fn get(
@@ -65,39 +62,26 @@ pub async fn get(
     let user_id = session::user_id(&session)?;
 
     // db statements
-    let book_id = params.id;
-    let mut book = db::get(&db_pool, user_id, book_id).await?;
+    let tag_id = params.id;
+    let tag = db::get(&db_pool, user_id, tag_id).await?;
 
-    let notes = notes_db::all_notes_for(&db_pool, book_id, notes_db::NoteType::Note).await?;
-    book.notes = Some(notes);
-
-    let quotes = notes_db::all_notes_for(&db_pool, book_id, notes_db::NoteType::Quote).await?;
-    book.quotes = Some(quotes);
-
-    let people_referenced =
-        decks_db::referenced_in(&db_pool, book_id, Model::HistoricPerson).await?;
-    book.people_referenced = Some(people_referenced);
-
-    let subjects_referenced = decks_db::referenced_in(&db_pool, book_id, Model::Subject).await?;
-    book.subjects_referenced = Some(subjects_referenced);
-
-    Ok(HttpResponse::Ok().json(book))
+    Ok(HttpResponse::Ok().json(tag))
 }
 
 pub async fn edit(
-    book: Json<interop::Book>,
+    tag: Json<interop::Tag>,
     db_pool: Data<Pool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("edit");
 
-    let book = book.into_inner();
+    let tag = tag.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let book = db::edit(&db_pool, user_id, &book, params.id).await?;
+    let tag = db::edit(&db_pool, user_id, &tag, params.id).await?;
 
-    Ok(HttpResponse::Ok().json(book))
+    Ok(HttpResponse::Ok().json(tag))
 }
 
 pub async fn delete(

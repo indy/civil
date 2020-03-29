@@ -30,44 +30,44 @@ use deadpool_postgres::Pool;
 #[allow(unused_imports)]
 use tracing::info;
 
-pub async fn create_subject(
+pub async fn create(
     subject: Json<interop::CreateSubject>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    info!("create_subject");
+    info!("create");
 
     let subject = subject.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let subject = db::create(&db_pool, &subject, user_id).await?;
+    let subject = db::create(&db_pool, user_id, &subject).await?;
 
     Ok(HttpResponse::Ok().json(subject))
 }
 
-pub async fn get_subjects(
-    db_pool: Data<Pool>,
-    session: actix_session::Session,
-) -> Result<HttpResponse> {
-    info!("get_subjects");
+pub async fn get_all(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
+    info!("get_all");
+
     let user_id = session::user_id(&session)?;
+
     // db statement
     let subjects = db::all(&db_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(subjects))
 }
 
-pub async fn get_subject(
+pub async fn get(
     db_pool: Data<Pool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    info!("get_subject {:?}", params.id);
+    info!("get {:?}", params.id);
+
     let user_id = session::user_id(&session)?;
 
     // db statements
     let subject_id = params.id;
-    let mut subject = db::get(&db_pool, subject_id, user_id).await?;
+    let mut subject = db::get(&db_pool, user_id, subject_id).await?;
 
     let notes = notes_db::all_notes_for(&db_pool, subject_id, notes_db::NoteType::Note).await?;
     subject.notes = Some(notes);
@@ -100,28 +100,32 @@ pub async fn get_subject(
     Ok(HttpResponse::Ok().json(subject))
 }
 
-pub async fn edit_subject(
+pub async fn edit(
     subject: Json<interop::Subject>,
     db_pool: Data<Pool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
+    info!("edit");
+
     let subject = subject.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let subject = db::edit(&db_pool, &subject, params.id, user_id).await?;
+    let subject = db::edit(&db_pool, user_id, &subject, params.id).await?;
 
     Ok(HttpResponse::Ok().json(subject))
 }
 
-pub async fn delete_subject(
+pub async fn delete(
     db_pool: Data<Pool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
+    info!("delete");
+
     let user_id = session::user_id(&session)?;
 
-    db::delete(&db_pool, params.id, user_id).await?;
+    db::delete(&db_pool, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(true))
 }

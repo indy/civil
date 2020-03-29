@@ -95,8 +95,8 @@ impl From<PointDerived> for interop::Point {
 
 pub(crate) async fn create(
     db_pool: &Pool,
-    point: &interop::CreatePoint,
     user_id: Key,
+    point: &interop::CreatePoint,
 ) -> Result<interop::Point> {
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
@@ -155,7 +155,7 @@ pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Poi
     .await
 }
 
-pub(crate) async fn get(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<interop::Point> {
+pub(crate) async fn get(db_pool: &Pool, user_id: Key, point_id: Key) -> Result<interop::Point> {
     pg::one_from::<PointDerived, interop::Point>(
         db_pool,
         include_str!("sql/historic_points_get_derived.sql"),
@@ -166,9 +166,9 @@ pub(crate) async fn get(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<i
 
 pub(crate) async fn edit(
     db_pool: &Pool,
+    user_id: Key,
     updated_point: &interop::Point,
     point_id: Key,
-    user_id: Key,
 ) -> Result<interop::Point> {
     let existing_point = get(db_pool, point_id, user_id).await?;
 
@@ -205,6 +205,6 @@ pub(crate) async fn edit(
     Ok(altered_point)
 }
 
-pub(crate) async fn delete(db_pool: &Pool, point_id: Key, user_id: Key) -> Result<()> {
+pub(crate) async fn delete(db_pool: &Pool, user_id: Key, point_id: Key) -> Result<()> {
     decks::delete(db_pool, point_id, user_id).await
 }

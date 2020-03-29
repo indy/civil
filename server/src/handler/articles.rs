@@ -30,26 +30,24 @@ use deadpool_postgres::Pool;
 #[allow(unused_imports)]
 use tracing::info;
 
-pub async fn create_article(
+pub async fn create(
     article: Json<interop::CreateArticle>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    info!("create_article");
+    info!("create");
 
     let article = article.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let article = db::create(&db_pool, &article, user_id).await?;
+    let article = db::create(&db_pool, user_id, &article).await?;
 
     Ok(HttpResponse::Ok().json(article))
 }
 
-pub async fn get_articles(
-    db_pool: Data<Pool>,
-    session: actix_session::Session,
-) -> Result<HttpResponse> {
-    info!("get_articles");
+pub async fn get_all(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
+    info!("get_all");
+
     let user_id = session::user_id(&session)?;
     // db statement
     let articles = db::all(&db_pool, user_id).await?;
@@ -57,17 +55,18 @@ pub async fn get_articles(
     Ok(HttpResponse::Ok().json(articles))
 }
 
-pub async fn get_article(
+pub async fn get(
     db_pool: Data<Pool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    info!("get_article {:?}", params.id);
+    info!("get {:?}", params.id);
+
     let user_id = session::user_id(&session)?;
 
     // db statements
     let article_id = params.id;
-    let mut article = db::get(&db_pool, article_id, user_id).await?;
+    let mut article = db::get(&db_pool, user_id, article_id).await?;
 
     let notes = notes_db::all_notes_for(&db_pool, article_id, notes_db::NoteType::Note).await?;
     article.notes = Some(notes);
@@ -85,28 +84,32 @@ pub async fn get_article(
     Ok(HttpResponse::Ok().json(article))
 }
 
-pub async fn edit_article(
+pub async fn edit(
     article: Json<interop::Article>,
     db_pool: Data<Pool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
+    info!("edit");
+
     let article = article.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let article = db::edit(&db_pool, &article, params.id, user_id).await?;
+    let article = db::edit(&db_pool, user_id, &article, params.id).await?;
 
     Ok(HttpResponse::Ok().json(article))
 }
 
-pub async fn delete_article(
+pub async fn delete(
     db_pool: Data<Pool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
+    info!("delete");
+
     let user_id = session::user_id(&session)?;
 
-    db::delete(&db_pool, params.id, user_id).await?;
+    db::delete(&db_pool, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(true))
 }

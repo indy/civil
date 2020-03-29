@@ -25,6 +25,7 @@ pub mod historic_points;
 pub mod locations;
 pub mod notes;
 pub mod subjects;
+pub mod tags;
 pub mod users;
 
 use crate::error::{Error, Result};

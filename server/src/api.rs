@@ -23,6 +23,7 @@ use crate::handler::historic_people;
 use crate::handler::historic_points;
 use crate::handler::notes;
 use crate::handler::subjects;
+use crate::handler::tags;
 use crate::handler::users;
 use actix_files::NamedFile;
 use actix_web::dev;
@@ -46,47 +47,47 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // historic_people
         .service(
             scope("/people")
-                .route("", post().to(historic_people::create_person))
-                .route("", get().to(historic_people::get_people))
-                .route("/{id}", get().to(historic_people::get_person))
-                .route("/{id}", put().to(historic_people::edit_person)) // check
-                .route("/{id}", delete().to(historic_people::delete_person)),
+                .route("", post().to(historic_people::create))
+                .route("", get().to(historic_people::get_all))
+                .route("/{id}", get().to(historic_people::get))
+                .route("/{id}", put().to(historic_people::edit)) // check
+                .route("/{id}", delete().to(historic_people::delete)),
         )
         // historic_points
         .service(
             scope("/points")
-                .route("", post().to(historic_points::create_point))
-                .route("", get().to(historic_points::get_points))
-                .route("/{id}", get().to(historic_points::get_point))
-                .route("/{id}", put().to(historic_points::edit_point)) // check
-                .route("/{id}", delete().to(historic_points::delete_point)),
+                .route("", post().to(historic_points::create))
+                .route("", get().to(historic_points::get_all))
+                .route("/{id}", get().to(historic_points::get))
+                .route("/{id}", put().to(historic_points::edit)) // check
+                .route("/{id}", delete().to(historic_points::delete)),
         )
         // subjects
         .service(
             scope("/subjects")
-                .route("", post().to(subjects::create_subject))
-                .route("", get().to(subjects::get_subjects))
-                .route("/{id}", get().to(subjects::get_subject))
-                .route("/{id}", put().to(subjects::edit_subject))
-                .route("/{id}", delete().to(subjects::delete_subject)),
+                .route("", post().to(subjects::create))
+                .route("", get().to(subjects::get_all))
+                .route("/{id}", get().to(subjects::get))
+                .route("/{id}", put().to(subjects::edit))
+                .route("/{id}", delete().to(subjects::delete)),
         )
         // articles
         .service(
             scope("/articles")
-                .route("", post().to(articles::create_article))
-                .route("", get().to(articles::get_articles))
-                .route("/{id}", get().to(articles::get_article))
-                .route("/{id}", put().to(articles::edit_article))
-                .route("/{id}", delete().to(articles::delete_article)),
+                .route("", post().to(articles::create))
+                .route("", get().to(articles::get_all))
+                .route("/{id}", get().to(articles::get))
+                .route("/{id}", put().to(articles::edit))
+                .route("/{id}", delete().to(articles::delete)),
         )
         // books
         .service(
             scope("/books")
-                .route("", post().to(books::create_book))
-                .route("", get().to(books::get_books))
-                .route("/{id}", get().to(books::get_book))
-                .route("/{id}", put().to(books::edit_book))
-                .route("/{id}", delete().to(books::delete_book)),
+                .route("", post().to(books::create))
+                .route("", get().to(books::get_all))
+                .route("/{id}", get().to(books::get))
+                .route("/{id}", put().to(books::edit))
+                .route("/{id}", delete().to(books::delete)),
         )
         // notes
         .service(
@@ -96,13 +97,22 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", put().to(notes::edit_note)) // check
                 .route("/{id}", delete().to(notes::delete_note)),
         )
-        // notes
+        // quotes
         .service(
             scope("/quotes")
                 .route("", post().to(notes::create_quote))
                 .route("/{id}", get().to(notes::get_quote))
                 .route("/{id}", put().to(notes::edit_quote)) // check
                 .route("/{id}", delete().to(notes::delete_quote)),
+        )
+        // tags
+        .service(
+            scope("/tags")
+                .route("", post().to(tags::create))
+                .route("", get().to(tags::get_all))
+                .route("/{id}", get().to(tags::get))
+                .route("/{id}", put().to(tags::edit))
+                .route("/{id}", delete().to(tags::delete)),
         )
         // edges
         .service(

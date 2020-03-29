@@ -62,7 +62,7 @@ pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Sub
     .await
 }
 
-pub(crate) async fn get(db_pool: &Pool, subject_id: Key, user_id: Key) -> Result<interop::Subject> {
+pub(crate) async fn get(db_pool: &Pool, user_id: Key, subject_id: Key) -> Result<interop::Subject> {
     pg::one_from::<Subject, interop::Subject>(
         db_pool,
         include_str!("sql/subjects_get.sql"),
@@ -73,8 +73,8 @@ pub(crate) async fn get(db_pool: &Pool, subject_id: Key, user_id: Key) -> Result
 
 pub(crate) async fn create(
     db_pool: &Pool,
-    subject: &interop::CreateSubject,
     user_id: Key,
+    subject: &interop::CreateSubject,
 ) -> Result<interop::Subject> {
     pg::one_from::<Subject, interop::Subject>(
         db_pool,
@@ -86,9 +86,9 @@ pub(crate) async fn create(
 
 pub(crate) async fn edit(
     db_pool: &Pool,
+    user_id: Key,
     subject: &interop::Subject,
     subject_id: Key,
-    user_id: Key,
 ) -> Result<interop::Subject> {
     pg::one_from::<Subject, interop::Subject>(
         db_pool,
@@ -98,6 +98,6 @@ pub(crate) async fn edit(
     .await
 }
 
-pub(crate) async fn delete(db_pool: &Pool, subject_id: Key, user_id: Key) -> Result<()> {
+pub(crate) async fn delete(db_pool: &Pool, user_id: Key, subject_id: Key) -> Result<()> {
     decks::delete(db_pool, subject_id, user_id).await
 }

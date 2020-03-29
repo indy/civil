@@ -137,8 +137,8 @@ impl From<PersonDerived> for interop::Person {
 
 pub(crate) async fn create(
     db_pool: &Pool,
-    person: &interop::CreatePerson,
     user_id: Key,
+    person: &interop::CreatePerson,
 ) -> Result<interop::Person> {
     info!("db::create_person");
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
@@ -221,7 +221,7 @@ pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Per
     .await
 }
 
-pub(crate) async fn get(db_pool: &Pool, person_id: Key, user_id: Key) -> Result<interop::Person> {
+pub(crate) async fn get(db_pool: &Pool, user_id: Key, person_id: Key) -> Result<interop::Person> {
     pg::one_from::<PersonDerived, interop::Person>(
         db_pool,
         include_str!("sql/historic_people_get_derived.sql"),
@@ -232,9 +232,9 @@ pub(crate) async fn get(db_pool: &Pool, person_id: Key, user_id: Key) -> Result<
 
 pub(crate) async fn edit(
     db_pool: &Pool,
+    user_id: Key,
     updated_person: &interop::Person,
     person_id: Key,
-    user_id: Key,
 ) -> Result<interop::Person> {
     let existing_person = get(db_pool, person_id, user_id).await?;
 
@@ -288,6 +288,6 @@ pub(crate) async fn edit(
     Ok(altered_person)
 }
 
-pub(crate) async fn delete(db_pool: &Pool, person_id: Key, user_id: Key) -> Result<()> {
+pub(crate) async fn delete(db_pool: &Pool, user_id: Key, person_id: Key) -> Result<()> {
     decks::delete(db_pool, person_id, user_id).await
 }
