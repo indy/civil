@@ -104,18 +104,20 @@ pub(crate) async fn delete_all_edges_connected_with_deck(
     tx: &Transaction<'_>,
     deck_id: Key,
 ) -> Result<()> {
-    let stmt = include_str!("sql/edges_delete_deck.sql");
+    pg::zero(tx, &include_str!("sql/edges_delete_decks_notes_with_deck_id.sql"), &[&deck_id]).await?;
+    pg::zero(tx, &include_str!("sql/edges_delete_notes_decks_with_deck_id.sql"), &[&deck_id]).await?;
 
-    pg::zero(tx, &stmt, &[&deck_id]).await?;
     Ok(())
 }
 
 pub(crate) async fn delete_all_edges_connected_with_note(
     tx: &Transaction<'_>,
-    id: Key,
+    note_id: Key,
 ) -> Result<()> {
-    let stmt = include_str!("sql/edges_delete_note.sql");
+    pg::zero(tx, &include_str!("sql/edges_delete_notes_tags_with_note_id.sql"), &[&note_id]).await?;
+    pg::zero(tx, &include_str!("sql/edges_delete_decks_notes_with_note_id.sql"), &[&note_id]).await?;
+    pg::zero(tx, &include_str!("sql/edges_delete_notes_decks_with_note_id.sql"), &[&note_id]).await?;
+    pg::zero(tx, &include_str!("sql/edges_delete_ideas_notes_with_note_id.sql"), &[&note_id]).await?;
 
-    pg::zero(tx, &stmt, &[&id]).await?;
     Ok(())
 }
