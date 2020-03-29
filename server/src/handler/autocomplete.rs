@@ -20,6 +20,7 @@ use crate::persist::autocomplete as db;
 use actix_web::web::Data;
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
+use crate::session;
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -36,22 +37,24 @@ pub mod interop {
 
 pub async fn get_people(
     db_pool: Data<Pool>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("get_people");
 
-    let autocomplete = db::get_people(&db_pool).await?;
+    let user_id = session::user_id(&session)?;
+    let autocomplete = db::get_people(&db_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(autocomplete))
 }
 
 pub async fn get_subjects(
     db_pool: Data<Pool>,
-    _session: actix_session::Session,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("get_subjects");
 
-    let autocomplete = db::get_subjects(&db_pool).await?;
+    let user_id = session::user_id(&session)?;
+    let autocomplete = db::get_subjects(&db_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(autocomplete))
 }

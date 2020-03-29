@@ -42,17 +42,17 @@ impl From<Autocomplete> for interop::Autocomplete {
     }
 }
 
-pub(crate) async fn get_people(db_pool: &Pool) -> Result<Vec<interop::Autocomplete>> {
-    get_autocomplete(db_pool, Model::HistoricPerson).await
+pub(crate) async fn get_people(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Autocomplete>> {
+    get_autocomplete(db_pool, user_id, Model::HistoricPerson).await
 }
 
-pub(crate) async fn get_subjects(db_pool: &Pool) -> Result<Vec<interop::Autocomplete>> {
-    get_autocomplete(db_pool, Model::Subject).await
+pub(crate) async fn get_subjects(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Autocomplete>> {
+    get_autocomplete(db_pool, user_id, Model::Subject).await
 }
 
-async fn get_autocomplete(db_pool: &Pool, kind: Model) -> Result<Vec<interop::Autocomplete>> {
-    let stmt = include_str!("sql/autocomplete.sql");
+async fn get_autocomplete(db_pool: &Pool, user_id: Key, kind: Model) -> Result<Vec<interop::Autocomplete>> {
+    let stmt = include_str!("sql/autocomplete_decks.sql");
     let stmt = stmt.replace("$deck_kind", model_to_deck_kind(kind)?);
 
-    pg::many_from::<Autocomplete, interop::Autocomplete>(db_pool, &stmt, &[]).await
+    pg::many_from::<Autocomplete, interop::Autocomplete>(db_pool, &stmt, &[&user_id]).await
 }
