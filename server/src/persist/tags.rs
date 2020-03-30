@@ -19,7 +19,7 @@ use super::pg;
 use crate::error::{Error, Result};
 use crate::interop::tags as interop;
 use crate::interop::Key;
-use deadpool_postgres::{Client, Pool};
+use deadpool_postgres::{Client, Pool, Transaction};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
@@ -97,4 +97,18 @@ pub(crate) async fn delete(db_pool: &Pool, user_id: Key, tag_id: Key) -> Result<
     tx.commit().await?;
 
     Ok(())
+}
+
+pub(crate) async fn create_tx(
+    tx: &Transaction<'_>,
+    user_id: Key,
+    tag_name: &str,
+) -> Result<interop::Tag> {
+    let res = pg::one::<Tag>(
+        tx,
+        include_str!("sql/tags_create.sql"),
+        &[&user_id, &tag_name],
+    ).await?;
+
+    Ok(res.into())
 }

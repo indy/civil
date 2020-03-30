@@ -19,6 +19,7 @@ use super::pg;
 use crate::error::{Error, Result};
 use crate::interop::edges as interop;
 use crate::interop::{Key, Model};
+use crate::persist::tags as tags_persist;
 use deadpool_postgres::{Client, Pool, Transaction};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
@@ -42,6 +43,36 @@ impl From<NoteDeckEdge> for interop::Edge {
             to_note_id: None,
         }
     }
+}
+
+pub(crate) async fn create_from_note_to_tags(
+    db_pool: &Pool,
+    edge: &interop::CreateEdgeFromNoteToTags,
+    user_id: Key,
+) -> Result<()> {
+    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
+    let tx = client.transaction().await?;
+
+
+    let note_id = edge.note_id;
+    let stmt = include_str!("sql/edges_create_from_note_to_tag.sql");
+
+    // create the new tags and create edges from the note to them
+    //
+    for new_tag_name in &edge.new_tag_names {
+        // todo(<2020-03-30 Mon>): additional check to make sure that this tag doesn't already exist
+        let tag = tags_persist::create_tx(&tx, user_id, &new_tag_name).await?;
+        pg::zero(&tx, &stmt, &[&note_id, &tag.id]).await?;
+    }
+
+    // create edges to existing tags
+    for existing_tag_id in &edge.existing_tag_ids {
+        pg::zero(&tx, &stmt, &[&note_id, &existing_tag_id]).await?;
+    }
+
+    tx.commit().await?;
+
+    Ok(())
 }
 
 pub(crate) async fn create_from_note_to_deck(

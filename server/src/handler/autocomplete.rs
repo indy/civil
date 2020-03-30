@@ -25,14 +25,16 @@ use crate::session;
 #[allow(unused_imports)]
 use tracing::info;
 
-pub mod interop {
-    use crate::interop::Key;
+pub async fn get_tags(
+    db_pool: Data<Pool>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    info!("get_tags");
 
-    #[derive(Debug, serde::Deserialize, serde::Serialize)]
-    pub struct Autocomplete {
-        pub id: Key,
-        pub name: String,
-    }
+    let user_id = session::user_id(&session)?;
+    let autocomplete = db::get_tags(&db_pool, user_id).await?;
+
+    Ok(HttpResponse::Ok().json(autocomplete))
 }
 
 pub async fn get_people(

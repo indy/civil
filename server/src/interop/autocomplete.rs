@@ -18,28 +18,14 @@
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct Edge {
-    pub from_deck_id: Option<Key>,
-    pub to_deck_id: Option<Key>,
-    pub from_note_id: Option<Key>,
-    pub to_note_id: Option<Key>,
+pub struct AutocompleteDeck {
+    pub id: Key,
+    pub name: String,
 }
 
-// currently these are all from Note to a Deck based model
-//
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct CreateEdge {
-    pub note_id: Option<Key>,
-    pub person_id: Option<Key>,
-    pub subject_id: Option<Key>,
-}
-
-
-// currently these are all from Note to a Deck based model
-//
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct CreateEdgeFromNoteToTags {
-    pub note_id: Key,
-    pub existing_tag_ids: Vec<Key>,
-    pub new_tag_names: Vec<String>,
+pub struct AutocompleteTag {
+    pub id: Key,
+    pub value: String,
+    pub label: String,
 }

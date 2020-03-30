@@ -6,24 +6,10 @@ import NoteUtils from '../lib/NoteUtils';
 import NoteCompiler from '../lib/NoteCompiler';
 import Net from '../lib/Net';
 
-
-// see https://react-select.com/creatable
-const colourOptions = [
-  { value: 'ocean', label: 'Ocean', color: '#00B8D9', isFixed: true },
-  { value: 'blue', label: 'Blue', color: '#0052CC', isDisabled: true },
-  { value: 'purple', label: 'Purple', color: '#5243AA' },
-  { value: 'red', label: 'Red', color: '#FF5630', isFixed: true },
-  { value: 'orange', label: 'Orange', color: '#FF8B00' },
-  { value: 'yellow', label: 'Yellow', color: '#FFC400' },
-  { value: 'green', label: 'Green', color: '#36B37E' },
-  { value: 'forest', label: 'Forest', color: '#00875A' },
-  { value: 'slate', label: 'Slate', color: '#253858' },
-  { value: 'silver', label: 'Silver', color: '#666666' },
-];
-
 export default function Note(props) {
   const [showMainButtons, setShowMainButtons] = useState(false);
   const [showEditButtons, setShowEditButtons] = useState(false);
+  const [showAddTagsUI, setShowAddTagsUI] = useState(false);
   const [showAddPersonReferenceUI, setShowAddPersonReferenceUI] = useState(false);
   const [showAddSubjectReferenceUI, setShowAddSubjectReferenceUI] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -31,14 +17,16 @@ export default function Note(props) {
   const [source, setSource] = useState(props.note.source || '');
   const [title, setTitle] = useState(props.note.title || '');
   const [separator, setSeparator] = useState(props.note.separator);
+  const [initialTags, setInitialTags] = useState(props.note.tags || null);
+  const [tags, setTags] = useState(props.note.tags || null);
   const [currentPersonReference, setCurrentPersonReference] = useState(null);
   const [currentSubjectReference, setCurrentSubjectReference] = useState(null);
 
-  const getOptionLabel = (option) => {
+  function getOptionLabel(option) {
     return option.name;
   };
 
-  const handleChangeEvent = (event) => {
+  function handleChangeEvent(event) {
     const target = event.target;
     const name = target.name;
     const value = target.value;
@@ -50,18 +38,18 @@ export default function Note(props) {
     }
   };
 
-  const handleTextAreaChangeEvent = (event) => {
+  function handleTextAreaChangeEvent(event) {
     const target = event.target;
     const value = target.value;
 
     setContent(value);
   };
 
-  const onSeparatorToggle = (event) => {
+  function onSeparatorToggle(event) {
     setSeparator(!separator);
   };
 
-  const onDeleteClicked = (event) => {
+  function onDeleteClicked(event) {
     const onDelete = props.onDelete;
     const note = props.note;
     const id = note.id;
@@ -73,7 +61,7 @@ export default function Note(props) {
     onDelete(id);
   };
 
-  const onEditClicked = () => {
+  function onEditClicked() {
     const isEditingNew = !isEditing;
     setIsEditing(isEditingNew);
 
@@ -106,11 +94,11 @@ export default function Note(props) {
     }
   };
 
-  const onShowButtonsClicked = () => {
+  function onShowButtonsClicked() {
     setShowMainButtons(!showMainButtons);
   };
 
-  const buildSource = () => {
+  function buildSource() {
     return (
       <span className="marginnote">
           src: <a href={ source }>{ source }</a>
@@ -118,13 +106,13 @@ export default function Note(props) {
     );
   };
 
-  const buildTitle = () => {
+  function buildTitle() {
     return (
       <h2>{ title }</h2>
     );
   };
 
-  const buildReferencedSubjects = () => {
+  function buildReferencedSubjects() {
     const referenced = props.referencedSubjects.map(s => {
       return (
         <span className="marginnote" key={ s.id }>
@@ -136,7 +124,7 @@ export default function Note(props) {
     return referenced;
   };
 
-  const buildReferencedPeople = () => {
+  function buildReferencedPeople() {
     const referenced = props.referencedPeople.map(p => {
       return (
         <span className="marginnote" key={ p.id }>
@@ -148,7 +136,7 @@ export default function Note(props) {
     return referenced;
   };
 
-  const parseContent = (text) => {
+  function parseContent(text) {
     const tokensRes = NoteCompiler.tokenise(text);
     if (tokensRes.tokens === undefined) {
       console.log(`Error tokenising: "${text}"`);
@@ -167,7 +155,7 @@ export default function Note(props) {
     return dom;
   };
 
-  const buildNonEditableContent = () => {
+  function buildNonEditableContent() {
     return (
       <div onClick={ onShowButtonsClicked }>
         { title && buildTitle() }
@@ -179,7 +167,7 @@ export default function Note(props) {
     );
   };
 
-  const buildEditableContent = () => {
+  function buildEditableContent() {
     return (
       <textarea id="text"
                 type="text"
@@ -189,7 +177,7 @@ export default function Note(props) {
     );
   };
 
-  const hasNoteBeenModified = () => {
+  function hasNoteBeenModified() {
     let contentChanged = content !== props.note.content;
     let sourceChanged = source !== (props.note.source || '');
     let titleChanged = title !== (props.note.title || '');
@@ -199,7 +187,7 @@ export default function Note(props) {
   };
 
 
-  const buildEditLabelText = () => {
+  function buildEditLabelText() {
     if (!isEditing) {
       return "Edit...";
     }
@@ -213,14 +201,14 @@ export default function Note(props) {
     return "Stop Editing";
   };
 
-  const postEdgeCreate = (data) => {
+  function postEdgeCreate(data) {
     Net.post("/api/edges/notes_decks", data).then(() => {
       // re-fetches the person/subject/article/point
       props.onAddReference();
     });
   };
 
-  const buildEditButtons = () => {
+  function buildEditButtons() {
     return (
       <div>
         <button onClick={ (event) => { onDeleteClicked(event);} }>Delete</button>
@@ -249,17 +237,76 @@ export default function Note(props) {
     );
   };
 
-  const buildMainButtons = () => {
-    const toggleAddPersonReferenceUI = () => {
+  function buildMainButtons() {
+    function toggleAddTagsUI() {
+      setShowAddTagsUI(!showAddTagsUI);
+    };
+
+    function toggleAddPersonReferenceUI() {
       setShowAddPersonReferenceUI(!showAddPersonReferenceUI);
     };
 
-    const toggleAddSubjectReferenceUI = () => {
+    function toggleAddSubjectReferenceUI() {
       setShowAddSubjectReferenceUI(!showAddSubjectReferenceUI);
     };
 
-    const addPersonReference = () => {
-      // const person = props.people.find(p => p.name === currentPersonReference);
+    function tagsHandleChange(newValue, actionMeta) {
+      setTags(newValue);
+      console.group('Value Changed');
+      console.log(newValue);
+      console.log(`action: ${actionMeta.action}`);
+      console.groupEnd();
+    };
+
+    function cancelAddTags() {
+      // todo: what if someone:
+      // 1. clicks on edit note
+      // 2. adds tags
+      // 3. clicks ok (these tags should now be associated with the note)
+      // 4. clicks on edit note
+      // 5. adds more tags
+      // 6. clicks cancel
+      // expected: only the changes from step 5 should be undone
+
+      console.log(`pressed cancel setting tags to:`);
+      console.log(props.note.tags || null);
+      setTags(initialTags);
+
+      setShowAddTagsUI(false);
+    };
+
+    function commitAddTags() {
+      const data = tags.reduce((acc, tag) => {
+        if (tag.__isNew__) {
+          acc.new_tag_names.push(tag.value);
+        } else if (tag.id) {
+          acc.existing_tag_ids.push(tag.id);
+        } else {
+          // should never get here
+          console.error(`tag ${tag.value} has neither __isNew__ nor an id ???`);
+          console.log(tag);
+        }
+        return acc;
+      }, {
+        note_id: props.note.id,
+        existing_tag_ids: [],
+        new_tag_names: []
+      });
+
+      Net.post("/api/edges/notes_tags", data).then(() => {
+        // return the new tags? or all tags?
+        // add them to the autocomplete list
+        // or
+        // just have the autcomplete list refresh
+      });
+
+      setInitialTags(tags);
+
+      setShowMainButtons(false);
+      setShowAddTagsUI(false);
+    };
+
+    function addPersonReference() {
       const person = currentPersonReference;
 
       if (person) {
@@ -276,15 +323,7 @@ export default function Note(props) {
       setCurrentPersonReference(null);
     };
 
-    function fookHandleChange(newValue, actionMeta) {
-      console.group('Value Changed');
-      console.log(newValue);
-      console.log(`action: ${actionMeta.action}`);
-      console.groupEnd();
-    };
-
-    const addSubjectReference = () => {
-      // const subject = props.subjects.find(s => s.name === currentSubjectReference);
+    function addSubjectReference() {
       const subject = currentSubjectReference;
 
       if (subject) {
@@ -301,14 +340,31 @@ export default function Note(props) {
       setCurrentSubjectReference(null);
     };
 
-    if (showAddPersonReferenceUI) {
+    if (showAddTagsUI) {
+      return (
+        <div>
+          <label>Add Tags:</label>
+          <CreatableSelect
+            isMulti
+            name="tags"
+            value={tags}
+            onChange={tagsHandleChange}
+            options={props.ac.tags}
+            className="basic-multi-select"
+            classNamePrefix="select"
+          />
+          <button onClick={ cancelAddTags }>Cancel</button>
+          <button onClick={ commitAddTags }>Add</button>
+        </div>
+      );
+    } else if (showAddPersonReferenceUI) {
       return (
         <div>
           <label>Add Person:</label>
           <Select
             value={currentPersonReference}
             onChange={setCurrentPersonReference}
-            options={props.people}
+            options={props.ac.people}
             getOptionLabel={getOptionLabel}
           />
           <button onClick={ toggleAddPersonReferenceUI }>Cancel</button>
@@ -323,7 +379,7 @@ export default function Note(props) {
           <Select
             value={currentSubjectReference}
             onChange={setCurrentSubjectReference}
-            options={props.subjects}
+            options={props.ac.subjects}
             getOptionLabel={getOptionLabel}
           />
           <button onClick={ toggleAddSubjectReferenceUI }>Cancel</button>
@@ -331,24 +387,16 @@ export default function Note(props) {
         </div>
       );
     } else {
-      const addPerson = <button onClick={ toggleAddPersonReferenceUI }>Add Person...</button>;
-      const addSubject = <button onClick={ toggleAddSubjectReferenceUI }>Add Subject...</button>;
+      const addTagsButton = <button onClick={ toggleAddTagsUI }>Add Tags...</button>;
+      const addPersonButton = <button onClick={ toggleAddPersonReferenceUI }>Add Person...</button>;
+      const addSubjectButton = <button onClick={ toggleAddSubjectReferenceUI }>Add Subject...</button>;
 
       return (
         <div>
           <button onClick={ onEditClicked }>{ buildEditLabelText() }</button>
-
-          <CreatableSelect
-            isMulti
-            name="colors"
-            onChange={fookHandleChange}
-            options={colourOptions}
-            className="basic-multi-select"
-            classNamePrefix="select"
-          />
-
-          { !showEditButtons && addPerson }
-          { !showEditButtons && addSubject }
+          { !showEditButtons && addTagsButton }
+          { !showEditButtons && addPersonButton }
+          { !showEditButtons && addSubjectButton }
         </div>
       );
     }

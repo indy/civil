@@ -118,11 +118,13 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         .service(
             scope("/edges")
                 .route("/notes_decks", post().to(edges::create_from_note_to_deck))
+                .route("/notes_tags", post().to(edges::create_from_note_to_tags))
                 .route("/{id}", delete().to(edges::delete_edge)),
         )
         // autocomplete
         .service(
             scope("/autocomplete")
+                .route("/tags", get().to(autocomplete::get_tags))
                 .route("/people", get().to(autocomplete::get_people))
                 .route("/subjects", get().to(autocomplete::get_subjects)),
         )

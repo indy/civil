@@ -17,7 +17,7 @@
 
 use super::pg;
 use crate::error::Result;
-use crate::handler::autocomplete::interop;
+use crate::interop::autocomplete as interop;
 use crate::interop::{model_to_deck_kind, Key, Model};
 use deadpool_postgres::Pool;
 use serde::{Deserialize, Serialize};
@@ -28,31 +28,53 @@ use tracing::info;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
-struct Autocomplete {
+struct AutocompleteDeck {
     id: Key,
     name: String,
 }
 
-impl From<Autocomplete> for interop::Autocomplete {
-    fn from(p: Autocomplete) -> interop::Autocomplete {
-        interop::Autocomplete {
+impl From<AutocompleteDeck> for interop::AutocompleteDeck {
+    fn from(p: AutocompleteDeck) -> interop::AutocompleteDeck {
+        interop::AutocompleteDeck {
             id: p.id,
             name: p.name,
         }
     }
 }
 
-pub(crate) async fn get_people(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Autocomplete>> {
-    get_autocomplete(db_pool, user_id, Model::HistoricPerson).await
+#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
+#[pg_mapper(table = "tags")]
+struct AutocompleteTag {
+    id: Key,
+    name: String,
 }
 
-pub(crate) async fn get_subjects(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Autocomplete>> {
-    get_autocomplete(db_pool, user_id, Model::Subject).await
+impl From<AutocompleteTag> for interop::AutocompleteTag {
+    fn from(p: AutocompleteTag) -> interop::AutocompleteTag {
+        interop::AutocompleteTag {
+            id: p.id,
+            value: String::from(&p.name),
+            label: p.name,
+        }
+    }
 }
 
-async fn get_autocomplete(db_pool: &Pool, user_id: Key, kind: Model) -> Result<Vec<interop::Autocomplete>> {
+pub(crate) async fn get_tags(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::AutocompleteTag>> {
+    let stmt = include_str!("sql/autocomplete_tags.sql");
+    pg::many_from::<AutocompleteTag, interop::AutocompleteTag>(db_pool, &stmt, &[&user_id]).await
+}
+
+pub(crate) async fn get_people(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::AutocompleteDeck>> {
+    get_autocomplete_deck(db_pool, user_id, Model::HistoricPerson).await
+}
+
+pub(crate) async fn get_subjects(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::AutocompleteDeck>> {
+    get_autocomplete_deck(db_pool, user_id, Model::Subject).await
+}
+
+async fn get_autocomplete_deck(db_pool: &Pool, user_id: Key, kind: Model) -> Result<Vec<interop::AutocompleteDeck>> {
     let stmt = include_str!("sql/autocomplete_decks.sql");
     let stmt = stmt.replace("$deck_kind", model_to_deck_kind(kind)?);
 
-    pg::many_from::<Autocomplete, interop::Autocomplete>(db_pool, &stmt, &[&user_id]).await
+    pg::many_from::<AutocompleteDeck, interop::AutocompleteDeck>(db_pool, &stmt, &[&user_id]).await
 }

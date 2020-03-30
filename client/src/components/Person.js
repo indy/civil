@@ -127,8 +127,7 @@ export default function Person(props) {
     return (
       <Note key={ note.id }
             note={ note }
-            people={ ac.people }
-            subjects={ ac.subjects }
+            ac = { ac }
             onDelete={ onDeleteNote }
             onEdited={ onEditedNote }
             onAddReference={ onAddReference }
