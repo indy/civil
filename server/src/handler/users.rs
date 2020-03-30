@@ -35,7 +35,6 @@ pub async fn login(
     info!("login");
     let login = login.into_inner();
 
-    // db statement
     let (id, password, user) = db::login(&db_pool, &login).await?;
 
     // compare hashed password of matched_user with the given LoginCredentials
@@ -74,7 +73,6 @@ pub async fn create_user(
     let registration = registration.into_inner();
     let hash = hash_password(&registration.password)?;
 
-    // db statement
     let (id, user) = db::create(&db_pool, &registration, &hash).await?;
 
     // save id to the session

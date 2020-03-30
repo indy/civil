@@ -46,7 +46,7 @@ pub async fn get_all(db_pool: Data<Pool>, session: actix_session::Session) -> Re
     info!("get_all");
 
     let user_id = session::user_id(&session)?;
-    // db statement
+
     let tags = db::all(&db_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(tags))
@@ -61,7 +61,6 @@ pub async fn get(
 
     let user_id = session::user_id(&session)?;
 
-    // db statements
     let tag_id = params.id;
     let tag = db::get(&db_pool, user_id, tag_id).await?;
 

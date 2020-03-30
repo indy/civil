@@ -40,7 +40,6 @@ pub async fn create(
     let person = person.into_inner();
     let user_id = session::user_id(&session)?;
 
-    // db statement
     let person = db::create(&db_pool, user_id, &person).await?;
 
     Ok(HttpResponse::Ok().json(person))
@@ -51,7 +50,6 @@ pub async fn get_all(db_pool: Data<Pool>, session: actix_session::Session) -> Re
 
     let user_id = session::user_id(&session)?;
 
-    // db statement
     let people = db::all(&db_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(people))
@@ -66,7 +64,6 @@ pub async fn get(
 
     let user_id = session::user_id(&session)?;
 
-    // db statements
     let person_id = params.id;
     let mut person = db::get(&db_pool, user_id, person_id).await?;
 
