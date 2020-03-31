@@ -14,13 +14,16 @@ export default function Article(props) {
   const [article, setArticle] = useState({
     id: article_id,
     notes: [],
-    people_referenced: [],
-    subjects_referenced: []
+    tags_in_notes: [],
+    people_in_notes: [],
+    subjects_in_notes: []
   });
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
-  const [referencedSubjectsHash, setReferencedSubjectsHash] = useState({});
-  const [referencedPeopleHash, setReferencedPeopleHash] = useState({});
+
+  const [tagsInNotes, setTagsInNotes] = useState({});
+  const [subjectsInNotes, setSubjectsInNotes] = useState({});
+  const [peopleInNotes, setPeopleInNotes] = useState({});
 
   const [currentArticleId, setCurrentArticleId] = useState(false);
 
@@ -36,29 +39,14 @@ export default function Article(props) {
     setCurrentArticleId(article_id);
     Net.get(`/api/articles/${article.id}`).then(art => {
       if (art) {
-        const referencedSubjectsHashNew = art.subjects_referenced.reduce(function(a, b) {
-          const note_id = b.note_id;
-          if (a[note_id]) {
-            a[note_id].push(b);
-          } else {
-            a[note_id] = [b];
-          }
-          return a;
-        }, {});
-
-        const referencedPeopleHashNew = art.people_referenced.reduce(function(a, b) {
-          const note_id = b.note_id;
-          if (a[note_id]) {
-            a[note_id].push(b);
-          } else {
-            a[note_id] = [b];
-          }
-          return a;
-        }, {});
+        const tagsInNotes = NoteUtils.hashByNoteIds(art.tags_in_notes);
+        const peopleInNotes = NoteUtils.hashByNoteIds(art.people_in_notes);
+        const subjectsInNotes = NoteUtils.hashByNoteIds(art.subjects_in_notes);
 
         setArticle(art);
-        setReferencedPeopleHash(referencedPeopleHashNew);
-        setReferencedSubjectsHash(referencedSubjectsHashNew);
+        setTagsInNotes(tagsInNotes);
+        setPeopleInNotes(peopleInNotes);
+        setSubjectsInNotes(subjectsInNotes);
         window.scrollTo(0, 0);
       } else {
         console.error('fetchArticle');
@@ -98,8 +86,9 @@ export default function Article(props) {
             onDelete={ onDeleteNote }
             onEdited={ onEditedNote }
             onAddReference={ onAddReference }
-            referencedPeople={ referencedPeopleHash[note.id] }
-            referencedSubjects={ referencedSubjectsHash[note.id] }
+            tagsInNote={ tagsInNotes[note.id] }
+            peopleInNote={ peopleInNotes[note.id] }
+            subjectsInNote={ subjectsInNotes[note.id] }
             />
     );
   };

@@ -19,6 +19,7 @@ use crate::interop::dates::{CreateDate, Date};
 use crate::interop::decks::DeckReference;
 use crate::interop::locations::{CreateLocation, Location};
 use crate::interop::notes::Note;
+use crate::interop::tags::TagReference;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -30,8 +31,9 @@ pub struct Point {
 
     pub notes: Option<Vec<Note>>,
 
-    pub people_referenced: Option<Vec<DeckReference>>,
-    pub subjects_referenced: Option<Vec<DeckReference>>,
+    pub tags_in_notes: Option<Vec<TagReference>>,
+    pub people_in_notes: Option<Vec<DeckReference>>,
+    pub subjects_in_notes: Option<Vec<DeckReference>>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

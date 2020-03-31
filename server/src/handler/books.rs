@@ -20,7 +20,7 @@ use crate::interop::books as interop;
 use crate::interop::IdParam;
 use crate::interop::Model;
 use crate::persist::books as db;
-use crate::persist::decks as decks_db;
+use crate::persist::edges as edges_db;
 use crate::persist::notes as notes_db;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
@@ -73,12 +73,16 @@ pub async fn get(
     let quotes = notes_db::all_notes_for(&db_pool, book_id, notes_db::NoteType::Quote).await?;
     book.quotes = Some(quotes);
 
-    let people_referenced =
-        decks_db::referenced_in(&db_pool, book_id, Model::HistoricPerson).await?;
-    book.people_referenced = Some(people_referenced);
+    let tags_in_notes = edges_db::from_deck_id_via_notes_to_tags(&db_pool, book_id).await?;
+    book.tags_in_notes = Some(tags_in_notes);
 
-    let subjects_referenced = decks_db::referenced_in(&db_pool, book_id, Model::Subject).await?;
-    book.subjects_referenced = Some(subjects_referenced);
+    let people_in_notes =
+        edges_db::from_deck_id_via_notes_to_decks(&db_pool, book_id, Model::HistoricPerson).await?;
+    book.people_in_notes = Some(people_in_notes);
+
+    let subjects_in_notes =
+        edges_db::from_deck_id_via_notes_to_decks(&db_pool, book_id, Model::Subject).await?;
+    book.subjects_in_notes = Some(subjects_in_notes);
 
     Ok(HttpResponse::Ok().json(book))
 }

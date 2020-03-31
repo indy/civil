@@ -18,20 +18,23 @@ export default function Person(props) {
   const person_id = parseInt(id, 10);
 
   const [person, setPerson] = useState({
-        id: person_id,
-        notes: [],
-        quotes: [],
-        people_referenced: [],
-        subjects_referenced: [],
-        mentioned_by_people: [],
-        mentioned_in_subjects: [],
-        mentioned_in_articles: []
+    id: person_id,
+    notes: [],
+    quotes: [],
+    tags_in_notes: [],
+    people_in_notes: [],
+    subjects_in_notes: [],
+    mentioned_by_people: [],
+    mentioned_in_subjects: [],
+    mentioned_in_articles: []
   });
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
   const [showQuoteCreateForm, setShowQuoteCreateForm] = useState(false);
-  const [referencedSubjectsHash, setReferencedSubjectsHash] = useState({});
-  const [referencedPeopleHash, setReferencedPeopleHash] = useState({});
+
+  const [tagsInNotes, setTagsInNotes] = useState({});
+  const [subjectsInNote, setSubjectsInNote] = useState({});
+  const [peopleInNotes, setPeopleInNotes] = useState({});
 
   const [currentPersonId, setCurrentPersonId] = useState(false);
 
@@ -47,29 +50,14 @@ export default function Person(props) {
     setCurrentPersonId(person_id);
     Net.get(`/api/people/${person_id}`).then(p => {
       if (p) {
-        const referencedSubjectsHashNew = p.subjects_referenced.reduce(function(a, b) {
-          const note_id = b.note_id;
-          if (a[note_id]) {
-            a[note_id].push(b);
-          } else {
-            a[note_id] = [b];
-          }
-          return a;
-        }, {});
-
-        const referencedPeopleHashNew = p.people_referenced.reduce(function(a, b) {
-          const note_id = b.note_id;
-          if (a[note_id]) {
-            a[note_id].push(b);
-          } else {
-            a[note_id] = [b];
-          }
-          return a;
-        }, {});
+        const tagsInNotes = NoteUtils.hashByNoteIds(p.tags_in_notes);
+        const peopleInNotes = NoteUtils.hashByNoteIds(p.people_in_notes);
+        const subjectsInNotes = NoteUtils.hashByNoteIds(p.subjects_in_notes);
 
         setPerson(p);
-        setReferencedPeopleHash(referencedPeopleHashNew);
-        setReferencedSubjectsHash(referencedSubjectsHashNew);
+        setTagsInNotes(tagsInNotes);
+        setPeopleInNotes(peopleInNotes);
+        setSubjectsInNote(subjectsInNotes);
         window.scrollTo(0, 0);
       } else {
         console.error('fetchPerson');
@@ -131,8 +119,9 @@ export default function Person(props) {
             onDelete={ onDeleteNote }
             onEdited={ onEditedNote }
             onAddReference={ onAddReference }
-            referencedPeople={ referencedPeopleHash[note.id] }
-            referencedSubjects={ referencedSubjectsHash[note.id] }
+            tagsInNote={ tagsInNotes[note.id] }
+            peopleInNote={ peopleInNotes[note.id] }
+            subjectsInNote={ subjectsInNote[note.id] }
             />
     );
   };

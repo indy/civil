@@ -21,8 +21,9 @@ export default function Subject(props) {
     id: subject_id,
     notes: [],
     quotes: [],
-    people_referenced: [],
-    subjects_referenced: [],
+    tags_in_notes: [],
+    people_in_notes: [],
+    subjects_in_notes: [],
     mentioned_by_people: [],
     mentioned_in_subjects: [],
     mentioned_in_articles: []
@@ -30,8 +31,10 @@ export default function Subject(props) {
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
   const [showQuoteCreateForm, setShowQuoteCreateForm] = useState(false);
-  const [referencedSubjectsHash, setReferencedSubjectsHash] = useState({});
-  const [referencedPeopleHash, setReferencedPeopleHash] = useState({});
+
+  const [tagsInNotes, setTagsInNotes] = useState({});
+  const [subjectsInNote, setSubjectsInNote] = useState({});
+  const [peopleInNotes, setPeopleInNotes] = useState({});
 
   const [currentSubjectId, setCurrentSubjectId] = useState(false);
 
@@ -47,29 +50,14 @@ export default function Subject(props) {
     setCurrentSubjectId(subject_id);
     Net.get(`/api/subjects/${subject.id}`).then(s => {
       if (s) {
-        const referencedSubjectsHashNew = s.subjects_referenced.reduce(function(a, b) {
-          const note_id = b.note_id;
-          if (a[note_id]) {
-            a[note_id].push(b);
-          } else {
-            a[note_id] = [b];
-          }
-          return a;
-        }, {});
-
-        const referencedPeopleHashNew = s.people_referenced.reduce(function(a, b) {
-          const note_id = b.note_id;
-          if (a[note_id]) {
-            a[note_id].push(b);
-          } else {
-            a[note_id] = [b];
-          }
-          return a;
-        }, {});
+        const tagsInNotes = NoteUtils.hashByNoteIds(s.tags_in_notes);
+        const peopleInNotes = NoteUtils.hashByNoteIds(s.people_in_notes);
+        const subjectsInNotes = NoteUtils.hashByNoteIds(s.subjects_in_notes);
 
         setSubject(s);
-        setReferencedPeopleHash(referencedPeopleHashNew);
-        setReferencedSubjectsHash(referencedSubjectsHashNew);
+        setTagsInNotes(tagsInNotes);
+        setPeopleInNotes(peopleInNotes);
+        setSubjectsInNote(subjectsInNotes);
         window.scrollTo(0, 0);
       } else {
         console.error('fetchSubject');
@@ -131,8 +119,9 @@ export default function Subject(props) {
             onDelete={ onDeleteNote }
             onEdited={ onEditedNote }
             onAddReference={ onAddReference }
-            referencedPeople={ referencedPeopleHash[note.id] }
-            referencedSubjects={ referencedSubjectsHash[note.id] }
+            tagsInNote={ tagsInNotes[note.id] }
+            peopleInNote={ peopleInNotes[note.id] }
+            subjectsInNote={ subjectsInNote[note.id] }
             />
     );
   };

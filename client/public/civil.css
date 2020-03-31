@@ -180,6 +180,20 @@ a:link::-moz-selection { text-shadow: 0.03em 0 #b4d5fe, -0.03em 0 #b4d5fe, 0 0.0
 /* Sidenotes, margin notes, figures, captions */
 img { max-width: 100%; }
 
+.tag {
+  float: left;
+  clear: left;
+  margin-left: -20%;
+  width: 20%;
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 1.1rem;
+  line-height: 1.3;
+  vertical-align: baseline;
+  position: relative;
+  color: #666;
+}
+
 .sidenote, .marginnote { float: right;
                          clear: right;
                          margin-right: -60%;

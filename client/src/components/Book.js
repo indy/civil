@@ -14,13 +14,16 @@ export default function Book(props) {
   const [book, setBook] = useState({
     id: book_id,
     notes: [],
-    people_referenced: [],
-    subjects_referenced: []
+    tags_in_notes: [],
+    people_in_notes: [],
+    subjects_in_notes: []
   });
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
-  const [referencedSubjectsHash, setReferencedSubjectsHash] = useState({});
-  const [referencedPeopleHash, setReferencedPeopleHash] = useState({});
+
+  const [tagsInNotes, setTagsInNotes] = useState({});
+  const [subjectsInNote, setSubjectsInNote] = useState({});
+  const [peopleInNotes, setPeopleInNotes] = useState({});
 
   const [currentBookId, setCurrentBookId] = useState(false);
 
@@ -36,29 +39,14 @@ export default function Book(props) {
     setCurrentBookId(book_id);
     Net.get(`/api/books/${book.id}`).then(bk => {
       if (bk) {
-        const referencedSubjectsHashNew = bk.subjects_referenced.reduce(function(a, b) {
-          const note_id = b.note_id;
-          if (a[note_id]) {
-            a[note_id].push(b);
-          } else {
-            a[note_id] = [b];
-          }
-          return a;
-        }, {});
-
-        const referencedPeopleHashNew = bk.people_referenced.reduce(function(a, b) {
-          const note_id = b.note_id;
-          if (a[note_id]) {
-            a[note_id].push(b);
-          } else {
-            a[note_id] = [b];
-          }
-          return a;
-        }, {});
+        const tagsInNotes = NoteUtils.hashByNoteIds(bk.tags_in_notes);
+        const peopleInNotes = NoteUtils.hashByNoteIds(bk.people_in_notes);
+        const subjectsInNotes = NoteUtils.hashByNoteIds(bk.subjects_in_notes);
 
         setBook(bk);
-        setReferencedPeopleHash(referencedPeopleHashNew);
-        setReferencedSubjectsHash(referencedSubjectsHashNew);
+        setTagsInNotes(tagsInNotes);
+        setPeopleInNotes(peopleInNotes);
+        setSubjectsInNote(subjectsInNotes);
         window.scrollTo(0, 0);
       } else {
         console.error('fetchBook');
@@ -98,8 +86,9 @@ export default function Book(props) {
             onDelete={ onDeleteNote }
             onEdited={ onEditedNote }
             onAddReference={ onAddReference }
-            referencedPeople={ referencedPeopleHash[note.id] }
-            referencedSubjects={ referencedSubjectsHash[note.id] }
+            tagsInNote={ tagsInNotes[note.id] }
+            peopleInNote={ peopleInNotes[note.id] }
+            subjectsInNote={ subjectsInNote[note.id] }
             />
     );
   };

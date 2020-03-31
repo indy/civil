@@ -71,6 +71,18 @@ const NoteUtils = {
 
   deleteQuote: (id) => {
     return Net.delete("/api/quotes/" + id.toString());
+  },
+
+  hashByNoteIds: (s) => {
+    return s.reduce(function(a, b) {
+      const note_id = b.note_id;
+      if (a[note_id]) {
+        a[note_id].push(b);
+      } else {
+        a[note_id] = [b];
+      }
+      return a;
+    }, {});
   }
 };
 

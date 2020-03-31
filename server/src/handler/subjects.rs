@@ -19,7 +19,7 @@ use crate::error::Result;
 use crate::interop::subjects as interop;
 use crate::interop::IdParam;
 use crate::interop::Model;
-use crate::persist::decks as decks_db;
+use crate::persist::edges as edges_db;
 use crate::persist::notes as notes_db;
 use crate::persist::subjects as db;
 use crate::session;
@@ -73,26 +73,32 @@ pub async fn get(
     let quotes = notes_db::all_notes_for(&db_pool, subject_id, notes_db::NoteType::Quote).await?;
     subject.quotes = Some(quotes);
 
-    let people_referenced =
-        decks_db::referenced_in(&db_pool, subject_id, Model::HistoricPerson).await?;
-    subject.people_referenced = Some(people_referenced);
+    let tags_in_notes = edges_db::from_deck_id_via_notes_to_tags(&db_pool, subject_id).await?;
+    subject.tags_in_notes = Some(tags_in_notes);
 
-    let subjects_referenced = decks_db::referenced_in(&db_pool, subject_id, Model::Subject).await?;
-    subject.subjects_referenced = Some(subjects_referenced);
+    let people_in_notes =
+        edges_db::from_deck_id_via_notes_to_decks(&db_pool, subject_id, Model::HistoricPerson)
+            .await?;
+    subject.people_in_notes = Some(people_in_notes);
+
+    let subjects_in_notes =
+        edges_db::from_deck_id_via_notes_to_decks(&db_pool, subject_id, Model::Subject).await?;
+    subject.subjects_in_notes = Some(subjects_in_notes);
 
     // all the people that mention this subject
     let mentioned_by_people =
-        decks_db::that_mention(&db_pool, Model::HistoricPerson, Model::Subject, subject_id).await?;
+        edges_db::from_decks_via_notes_to_deck_id(&db_pool, Model::HistoricPerson, subject_id)
+            .await?;
     subject.mentioned_by_people = Some(mentioned_by_people);
 
     // all the subjects that mention this subject
     let mentioned_in_subjects =
-        decks_db::that_mention(&db_pool, Model::Subject, Model::Subject, subject_id).await?;
+        edges_db::from_decks_via_notes_to_deck_id(&db_pool, Model::Subject, subject_id).await?;
     subject.mentioned_in_subjects = Some(mentioned_in_subjects);
 
     // all the articles that mention this subject
     let mentioned_in_articles =
-        decks_db::that_mention(&db_pool, Model::Article, Model::Subject, subject_id).await?;
+        edges_db::from_decks_via_notes_to_deck_id(&db_pool, Model::Article, subject_id).await?;
     subject.mentioned_in_articles = Some(mentioned_in_articles);
 
     Ok(HttpResponse::Ok().json(subject))

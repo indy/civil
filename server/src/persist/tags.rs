@@ -108,7 +108,8 @@ pub(crate) async fn create_tx(
         tx,
         include_str!("sql/tags_create.sql"),
         &[&user_id, &tag_name],
-    ).await?;
+    )
+    .await?;
 
     Ok(res.into())
 }

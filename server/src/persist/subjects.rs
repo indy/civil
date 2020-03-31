@@ -43,8 +43,9 @@ impl From<Subject> for interop::Subject {
             notes: None,
             quotes: None,
 
-            people_referenced: None,
-            subjects_referenced: None,
+            tags_in_notes: None,
+            people_in_notes: None,
+            subjects_in_notes: None,
 
             mentioned_by_people: None,
             mentioned_in_subjects: None,

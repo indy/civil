@@ -15,14 +15,17 @@ export default function Point(props) {
   const [point, setPoint] = useState({
     id: parseInt(id, 10),
     notes: [],
-    people_referenced: [],
-    subjects_referenced: []
+    tags_in_notes: [],
+    people_in_notes: [],
+    subjects_in_notes: []
   });
   const [scratchNote, setScratchNote] = useState("");
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
-  const [referencedSubjectsHash, setReferencedSubjectsHash] = useState({});
-  const [referencedPeopleHash, setReferencedPeopleHash] = useState({});
+
+  const [tagsInNotes, setTagsInNotes] = useState({});
+  const [subjectsInNote, setSubjectsInNote] = useState({});
+  const [peopleInNotes, setPeopleInNotes] = useState({});
 
   const [currentPointId, setCurrentPointId] = useState(false);
 
@@ -38,29 +41,14 @@ export default function Point(props) {
     setCurrentPointId(point_id);
     Net.get(`/api/points/${point.id}`).then(p => {
       if (p) {
-        const referencedSubjectsHashNew = p.subjects_referenced.reduce(function(a, b) {
-          const note_id = b.note_id;
-          if (a[note_id]) {
-            a[note_id].push(b);
-          } else {
-            a[note_id] = [b];
-          }
-          return a;
-        }, {});
-
-        const referencedPeopleHashNew = p.people_referenced.reduce(function(a, b) {
-          const note_id = b.note_id;
-          if (a[note_id]) {
-            a[note_id].push(b);
-          } else {
-            a[note_id] = [b];
-          }
-          return a;
-        }, {});
+        const tagsInNotes = NoteUtils.hashByNoteIds(p.tags_in_notes);
+        const peopleInNotes = NoteUtils.hashByNoteIds(p.people_in_notes);
+        const subjectsInNotes = NoteUtils.hashByNoteIds(p.subjects_in_notes);
 
         setPoint(p);
-        setReferencedPeopleHash(referencedPeopleHashNew);
-        setReferencedSubjectsHash(referencedSubjectsHashNew);
+        setTagsInNotes(tagsInNotes);
+        setPeopleInNotes(peopleInNotes);
+        setSubjectsInNote(subjectsInNotes);
         window.scrollTo(0, 0);
       } else {
         console.error('foooked Point constructor');
@@ -100,8 +88,9 @@ export default function Point(props) {
             onDelete={ onDeleteNote }
             onEdited={ onEditedNote }
             onAddReference={ onAddReference }
-            referencedPeople={ referencedPeopleHash[note.id] }
-            referencedSubjects={ referencedSubjectsHash[note.id] }
+            tagsInNote={ tagsInNotes[note.id] }
+            peopleInNote={ peopleInNotes[note.id] }
+            subjectsInNote={ subjectsInNote[note.id] }
             />
     );
   };

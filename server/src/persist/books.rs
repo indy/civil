@@ -45,8 +45,9 @@ impl From<Book> for interop::Book {
             notes: None,
             quotes: None,
 
-            people_referenced: None,
-            subjects_referenced: None,
+            tags_in_notes: None,
+            people_in_notes: None,
+            subjects_in_notes: None,
         }
     }
 }

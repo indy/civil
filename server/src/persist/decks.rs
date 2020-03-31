@@ -17,8 +17,7 @@
 
 use super::pg;
 use crate::error::{Error, Result};
-use crate::interop::decks as interop;
-use crate::interop::{model_to_deck_kind, Key, Model};
+use crate::interop::Key;
 use crate::persist::dates;
 use crate::persist::edges;
 use crate::persist::locations;
@@ -45,40 +44,6 @@ pub struct Deck {
 
     pub timespan_id: Option<Key>,
     pub location2_id: Option<Key>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
-struct DeckMention {
-    id: Key,
-    name: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
-struct DeckReference {
-    note_id: Key,
-    id: Key,
-    name: String,
-}
-
-impl From<DeckMention> for interop::DeckMention {
-    fn from(d: DeckMention) -> interop::DeckMention {
-        interop::DeckMention {
-            id: d.id,
-            name: d.name,
-        }
-    }
-}
-
-impl From<DeckReference> for interop::DeckReference {
-    fn from(d: DeckReference) -> interop::DeckReference {
-        interop::DeckReference {
-            note_id: d.note_id,
-            id: d.id,
-            name: d.name,
-        }
-    }
 }
 
 async fn get_owned(tx: &Transaction<'_>, id: Key, user_id: Key) -> Result<Deck> {
@@ -118,48 +83,4 @@ pub(crate) async fn delete(db_pool: &Pool, id: Key, user_id: Key) -> Result<()> 
     tx.commit().await?;
 
     Ok(())
-}
-
-// return all the decks of a certain kind that mention another particular deck.
-// e.g. deck_that_mention(db_pool, Model::HistoricPerson, Model::Subject, subject_id)
-// will return all the people who mention the given subject, ordered by number of references
-//
-pub(crate) async fn that_mention(
-    db_pool: &Pool,
-    source_model: Model,
-    _mentioned_model: Model,
-    mentioned_id: Key,
-) -> Result<Vec<interop::DeckMention>> {
-    let from_kind = model_to_deck_kind(source_model)?;
-
-    let stmt = include_str!("sql/decks_that_mention.sql");
-    let stmt = stmt.replace("$from_kind", from_kind);
-
-    let mentioned =
-        pg::many_from::<DeckMention, interop::DeckMention>(db_pool, &stmt, &[&mentioned_id])
-            .await?;
-
-    Ok(mentioned)
-}
-
-// return all the referenced models in the given deck
-// e.g. referenced_in(db_pool, Model::Subject, subject_id, Model::HistoricPerson)
-// will return all the people mentioned in the given subject
-//
-pub(crate) async fn referenced_in(
-    db_pool: &Pool,
-    id: Key,
-    referenced_model: Model,
-) -> Result<Vec<interop::DeckReference>> {
-    let to_kind = model_to_deck_kind(referenced_model)?;
-    // let deck_kind = model_to_deck_kind(model)?;
-
-    let stmt = include_str!("sql/decks_referenced.sql");
-    // let stmt = stmt.replace("$from_kind", deck_kind);
-    let stmt = stmt.replace("$to_kind", to_kind);
-
-    let referenced =
-        pg::many_from::<DeckReference, interop::DeckReference>(db_pool, &stmt, &[&id]).await?;
-
-    Ok(referenced)
 }

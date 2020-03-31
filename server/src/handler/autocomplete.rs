@@ -17,10 +17,10 @@
 
 use crate::error::Result;
 use crate::persist::autocomplete as db;
+use crate::session;
 use actix_web::web::Data;
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
-use crate::session;
 
 #[allow(unused_imports)]
 use tracing::info;

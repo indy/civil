@@ -34,7 +34,6 @@ pub struct CreateEdge {
     pub subject_id: Option<Key>,
 }
 
-
 // currently these are all from Note to a Deck based model
 //
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

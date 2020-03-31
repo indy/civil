@@ -327,6 +327,34 @@ function eatText(tokens) {
   return boxNode(NodeType.TEXT, value);
 }
 
+function eatTextIncluding(tokens, tokenType) {
+  let token = tokens[0];
+  let value = "";
+  let foundOne = false;
+
+  while (token.type === TokenType.TEXT
+         || token.type === TokenType.DIGITS
+         || token.type === TokenType.WHITESPACE
+         || token.type === TokenType.PERIOD
+         || token.type === TokenType.HYPHEN
+         || (token.type === tokenType && !foundOne)) {
+
+    value += token.value;
+
+    tokens.shift();
+    if (tokens.length === 0) {
+      break;
+    }
+    token = tokens[0];
+
+    if (token.type === tokenType) {
+      foundOne = true;
+    }
+  }
+
+  return boxNode(NodeType.TEXT, value);
+}
+
 function eatWhitespace(tokens) {
   let token = tokens[0];
   let value = token.value;
@@ -454,6 +482,20 @@ function eatLink(tokens) {
   return { node };
 }
 
+function remainingTokensContain(tokens, tokenType) {
+  if (tokens.length === 1) {
+    return false;
+  }
+
+  for (let i = 1;i < tokens.length; i++) {
+    if (tokens[i].type === tokenType) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function eatItem(tokens) {
   const token = tokens[0];
 
@@ -472,11 +514,23 @@ function eatItem(tokens) {
     tokens.shift();
     return boxNode(NodeType.TEXT, ']');
   } else if (tokenType === TokenType.DOUBLEQUOTE) {
-    return eatQuotation(tokens);
+    if (remainingTokensContain(tokens, TokenType.DOUBLEQUOTE)) {
+      return eatQuotation(tokens);
+    } else {
+      return eatTextIncluding(tokens, TokenType.DOUBLEQUOTE);
+    }
   } else if (tokenType === TokenType.UNDERSCORE) {
-    return eatUnderline(tokens);
+    if (remainingTokensContain(tokens, TokenType.UNDERSCORE)) {
+      return eatUnderline(tokens);
+    } else {
+      return eatTextIncluding(tokens, TokenType.UNDERSCORE);
+    }
   } else if (tokenType === TokenType.ASTERISK) {
-    return eatStrong(tokens);
+    if (remainingTokensContain(tokens, TokenType.ASTERISK)) {
+      return eatStrong(tokens);
+    } else {
+      return eatTextIncluding(tokens, TokenType.ASTERISK);
+    }
   } else if (tokenType === TokenType.WHITESPACE) {
     return eatWhitespace(tokens);
   }
