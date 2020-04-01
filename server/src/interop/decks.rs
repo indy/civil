@@ -28,4 +28,5 @@ pub struct DeckReference {
     pub note_id: Key,
     pub id: Key,
     pub name: String,
+    pub resource: String,
 }

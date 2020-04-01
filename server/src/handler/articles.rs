@@ -18,7 +18,6 @@
 use crate::error::Result;
 use crate::interop::articles as interop;
 use crate::interop::IdParam;
-use crate::interop::Model;
 use crate::persist::articles as db;
 use crate::persist::edges as edges_db;
 use crate::persist::notes as notes_db;
@@ -76,14 +75,8 @@ pub async fn get(
     let tags_in_notes = edges_db::from_deck_id_via_notes_to_tags(&db_pool, article_id).await?;
     article.tags_in_notes = Some(tags_in_notes);
 
-    let people_in_notes =
-        edges_db::from_deck_id_via_notes_to_decks(&db_pool, article_id, Model::HistoricPerson)
-            .await?;
-    article.people_in_notes = Some(people_in_notes);
-
-    let subjects_in_notes =
-        edges_db::from_deck_id_via_notes_to_decks(&db_pool, article_id, Model::Subject).await?;
-    article.subjects_in_notes = Some(subjects_in_notes);
+    let decks_in_notes = edges_db::from_deck_id_via_notes_to_decks(&db_pool, article_id).await?;
+    article.decks_in_notes = Some(decks_in_notes);
 
     Ok(HttpResponse::Ok().json(article))
 }

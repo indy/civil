@@ -88,8 +88,7 @@ impl From<PointDerived> for interop::Point {
             notes: None,
 
             tags_in_notes: None,
-            people_in_notes: None,
-            subjects_in_notes: None,
+            decks_in_notes: None,
         }
     }
 }
@@ -143,8 +142,7 @@ pub(crate) async fn create(
         notes: None,
 
         tags_in_notes: None,
-        people_in_notes: None,
-        subjects_in_notes: None,
+        decks_in_notes: None,
     })
 }
 

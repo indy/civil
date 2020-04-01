@@ -46,8 +46,7 @@ impl From<Article> for interop::Article {
             quotes: None,
 
             tags_in_notes: None,
-            people_in_notes: None,
-            subjects_in_notes: None,
+            decks_in_notes: None,
         }
     }
 }

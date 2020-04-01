@@ -18,7 +18,6 @@
 use crate::error::Result;
 use crate::interop::historic_points as interop;
 use crate::interop::IdParam;
-use crate::interop::Model;
 use crate::persist::edges as edges_db;
 use crate::persist::historic_points as db;
 use crate::persist::notes as notes_db;
@@ -73,14 +72,8 @@ pub async fn get(
     let tags_in_notes = edges_db::from_deck_id_via_notes_to_tags(&db_pool, point_id).await?;
     point.tags_in_notes = Some(tags_in_notes);
 
-    let people_in_notes =
-        edges_db::from_deck_id_via_notes_to_decks(&db_pool, point_id, Model::HistoricPerson)
-            .await?;
-    point.people_in_notes = Some(people_in_notes);
-
-    let subjects_in_notes =
-        edges_db::from_deck_id_via_notes_to_decks(&db_pool, point_id, Model::Subject).await?;
-    point.subjects_in_notes = Some(subjects_in_notes);
+    let decks_in_notes = edges_db::from_deck_id_via_notes_to_decks(&db_pool, point_id).await?;
+    point.decks_in_notes = Some(decks_in_notes);
 
     Ok(HttpResponse::Ok().json(point))
 }

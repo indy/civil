@@ -22,8 +22,7 @@ export default function Subject(props) {
     notes: [],
     quotes: [],
     tags_in_notes: [],
-    people_in_notes: [],
-    subjects_in_notes: [],
+    decks_in_notes: [],
     mentioned_by_people: [],
     mentioned_in_subjects: [],
     mentioned_in_articles: []
@@ -33,8 +32,7 @@ export default function Subject(props) {
   const [showQuoteCreateForm, setShowQuoteCreateForm] = useState(false);
 
   const [tagsInNotes, setTagsInNotes] = useState({});
-  const [subjectsInNote, setSubjectsInNote] = useState({});
-  const [peopleInNotes, setPeopleInNotes] = useState({});
+  const [decksInNotes, setDecksInNotes] = useState({});
 
   const [currentSubjectId, setCurrentSubjectId] = useState(false);
 
@@ -51,13 +49,11 @@ export default function Subject(props) {
     Net.get(`/api/subjects/${subject.id}`).then(s => {
       if (s) {
         const tagsInNotes = NoteUtils.hashByNoteIds(s.tags_in_notes);
-        const peopleInNotes = NoteUtils.hashByNoteIds(s.people_in_notes);
-        const subjectsInNotes = NoteUtils.hashByNoteIds(s.subjects_in_notes);
+        const decksInNotes = NoteUtils.hashByNoteIds(s.decks_in_notes);
 
         setSubject(s);
         setTagsInNotes(tagsInNotes);
-        setPeopleInNotes(peopleInNotes);
-        setSubjectsInNote(subjectsInNotes);
+        setDecksInNotes(decksInNotes);
         window.scrollTo(0, 0);
       } else {
         console.error('fetchSubject');
@@ -120,8 +116,7 @@ export default function Subject(props) {
             onEdited={ onEditedNote }
             onAddReference={ onAddReference }
             tagsInNote={ tagsInNotes[note.id] }
-            peopleInNote={ peopleInNotes[note.id] }
-            subjectsInNote={ subjectsInNote[note.id] }
+            decksInNote={ decksInNotes[note.id] }
             />
     );
   };

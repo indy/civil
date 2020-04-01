@@ -21,9 +21,10 @@ export default function Person(props) {
     id: person_id,
     notes: [],
     quotes: [],
+
     tags_in_notes: [],
-    people_in_notes: [],
-    subjects_in_notes: [],
+    decks_in_notes: [],
+
     mentioned_by_people: [],
     mentioned_in_subjects: [],
     mentioned_in_articles: []
@@ -33,8 +34,7 @@ export default function Person(props) {
   const [showQuoteCreateForm, setShowQuoteCreateForm] = useState(false);
 
   const [tagsInNotes, setTagsInNotes] = useState({});
-  const [subjectsInNote, setSubjectsInNote] = useState({});
-  const [peopleInNotes, setPeopleInNotes] = useState({});
+  const [decksInNotes, setDecksInNotes] = useState({});
 
   const [currentPersonId, setCurrentPersonId] = useState(false);
 
@@ -51,13 +51,11 @@ export default function Person(props) {
     Net.get(`/api/people/${person_id}`).then(p => {
       if (p) {
         const tagsInNotes = NoteUtils.hashByNoteIds(p.tags_in_notes);
-        const peopleInNotes = NoteUtils.hashByNoteIds(p.people_in_notes);
-        const subjectsInNotes = NoteUtils.hashByNoteIds(p.subjects_in_notes);
+        const decksInNotes = NoteUtils.hashByNoteIds(p.decks_in_notes);
 
         setPerson(p);
         setTagsInNotes(tagsInNotes);
-        setPeopleInNotes(peopleInNotes);
-        setSubjectsInNote(subjectsInNotes);
+        setDecksInNotes(decksInNotes);
         window.scrollTo(0, 0);
       } else {
         console.error('fetchPerson');
@@ -120,8 +118,7 @@ export default function Person(props) {
             onEdited={ onEditedNote }
             onAddReference={ onAddReference }
             tagsInNote={ tagsInNotes[note.id] }
-            peopleInNote={ peopleInNotes[note.id] }
-            subjectsInNote={ subjectsInNote[note.id] }
+            decksInNote={ decksInNotes[note.id] }
             />
     );
   };

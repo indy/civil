@@ -76,14 +76,8 @@ pub async fn get(
     let tags_in_notes = edges_db::from_deck_id_via_notes_to_tags(&db_pool, subject_id).await?;
     subject.tags_in_notes = Some(tags_in_notes);
 
-    let people_in_notes =
-        edges_db::from_deck_id_via_notes_to_decks(&db_pool, subject_id, Model::HistoricPerson)
-            .await?;
-    subject.people_in_notes = Some(people_in_notes);
-
-    let subjects_in_notes =
-        edges_db::from_deck_id_via_notes_to_decks(&db_pool, subject_id, Model::Subject).await?;
-    subject.subjects_in_notes = Some(subjects_in_notes);
+    let decks_in_notes = edges_db::from_deck_id_via_notes_to_decks(&db_pool, subject_id).await?;
+    subject.decks_in_notes = Some(decks_in_notes);
 
     // all the people that mention this subject
     let mentioned_by_people =

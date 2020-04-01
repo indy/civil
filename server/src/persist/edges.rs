@@ -71,14 +71,24 @@ struct DeckReference {
     note_id: Key,
     id: Key,
     name: String,
+    kind: String,
 }
 
 impl From<DeckReference> for decks_interop::DeckReference {
     fn from(d: DeckReference) -> decks_interop::DeckReference {
+        let resource = match d.kind.as_ref() {
+            "historic_person" => "people",
+            "historic_point" => "points",
+            "subject" => "subjects",
+            "article" => "articles",
+            "book" => "books",
+            _ => "unknown",
+        };
         decks_interop::DeckReference {
             note_id: d.note_id,
             id: d.id,
             name: d.name,
+            resource: resource.to_string(),
         }
     }
 }
@@ -253,19 +263,15 @@ pub(crate) async fn from_deck_id_via_notes_to_tags(
     Ok(referenced)
 }
 
-// return all the referenced models in the given deck
-// e.g. from_deck_id_via_notes_to_decks(db_pool, subject_id, Model::HistoricPerson)
-// will return all the people mentioned in the given subject
+// return all the referenced decks in the given deck
+// e.g. from_deck_id_via_notes_to_decks(db_pool, subject_id)
+// will return all the people, books, articles, subjects etc mentioned in the given subject
 //
 pub(crate) async fn from_deck_id_via_notes_to_decks(
     db_pool: &Pool,
     deck_id: Key,
-    referenced_model: Model,
 ) -> Result<Vec<decks_interop::DeckReference>> {
-    let to_kind = model_to_deck_kind(referenced_model)?;
-
     let stmt = include_str!("sql/from_deck_id_via_notes_to_decks.sql");
-    let stmt = stmt.replace("$to_kind", to_kind);
 
     let referenced =
         pg::many_from::<DeckReference, decks_interop::DeckReference>(db_pool, &stmt, &[&deck_id])

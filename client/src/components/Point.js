@@ -16,16 +16,14 @@ export default function Point(props) {
     id: parseInt(id, 10),
     notes: [],
     tags_in_notes: [],
-    people_in_notes: [],
-    subjects_in_notes: []
+    decks_in_notes: []
   });
   const [scratchNote, setScratchNote] = useState("");
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
 
   const [tagsInNotes, setTagsInNotes] = useState({});
-  const [subjectsInNote, setSubjectsInNote] = useState({});
-  const [peopleInNotes, setPeopleInNotes] = useState({});
+  const [decksInNotes, setDecksInNotes] = useState({});
 
   const [currentPointId, setCurrentPointId] = useState(false);
 
@@ -42,13 +40,11 @@ export default function Point(props) {
     Net.get(`/api/points/${point.id}`).then(p => {
       if (p) {
         const tagsInNotes = NoteUtils.hashByNoteIds(p.tags_in_notes);
-        const peopleInNotes = NoteUtils.hashByNoteIds(p.people_in_notes);
-        const subjectsInNotes = NoteUtils.hashByNoteIds(p.subjects_in_notes);
+        const decksInNotes = NoteUtils.hashByNoteIds(p.decks_in_notes);
 
         setPoint(p);
         setTagsInNotes(tagsInNotes);
-        setPeopleInNotes(peopleInNotes);
-        setSubjectsInNote(subjectsInNotes);
+        setDecksInNotes(decksInNotes);
         window.scrollTo(0, 0);
       } else {
         console.error('foooked Point constructor');
@@ -89,8 +85,7 @@ export default function Point(props) {
             onEdited={ onEditedNote }
             onAddReference={ onAddReference }
             tagsInNote={ tagsInNotes[note.id] }
-            peopleInNote={ peopleInNotes[note.id] }
-            subjectsInNote={ subjectsInNote[note.id] }
+            decksInNote={ decksInNotes[note.id] }
             />
     );
   };

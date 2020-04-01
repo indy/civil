@@ -15,15 +15,13 @@ export default function Article(props) {
     id: article_id,
     notes: [],
     tags_in_notes: [],
-    people_in_notes: [],
-    subjects_in_notes: []
+    decks_in_notes: []
   });
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
 
   const [tagsInNotes, setTagsInNotes] = useState({});
-  const [subjectsInNotes, setSubjectsInNotes] = useState({});
-  const [peopleInNotes, setPeopleInNotes] = useState({});
+  const [decksInNotes, setDecksInNotes] = useState({});
 
   const [currentArticleId, setCurrentArticleId] = useState(false);
 
@@ -40,13 +38,11 @@ export default function Article(props) {
     Net.get(`/api/articles/${article.id}`).then(art => {
       if (art) {
         const tagsInNotes = NoteUtils.hashByNoteIds(art.tags_in_notes);
-        const peopleInNotes = NoteUtils.hashByNoteIds(art.people_in_notes);
-        const subjectsInNotes = NoteUtils.hashByNoteIds(art.subjects_in_notes);
+        const decksInNotes = NoteUtils.hashByNoteIds(art.decks_in_notes);
 
         setArticle(art);
         setTagsInNotes(tagsInNotes);
-        setPeopleInNotes(peopleInNotes);
-        setSubjectsInNotes(subjectsInNotes);
+        setDecksInNotes(decksInNotes);
         window.scrollTo(0, 0);
       } else {
         console.error('fetchArticle');
@@ -87,8 +83,7 @@ export default function Article(props) {
             onEdited={ onEditedNote }
             onAddReference={ onAddReference }
             tagsInNote={ tagsInNotes[note.id] }
-            peopleInNote={ peopleInNotes[note.id] }
-            subjectsInNote={ subjectsInNotes[note.id] }
+            decksInNote={ decksInNotes[note.id] }
             />
     );
   };

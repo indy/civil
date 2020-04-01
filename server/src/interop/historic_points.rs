@@ -32,8 +32,7 @@ pub struct Point {
     pub notes: Option<Vec<Note>>,
 
     pub tags_in_notes: Option<Vec<TagReference>>,
-    pub people_in_notes: Option<Vec<DeckReference>>,
-    pub subjects_in_notes: Option<Vec<DeckReference>>,
+    pub decks_in_notes: Option<Vec<DeckReference>>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

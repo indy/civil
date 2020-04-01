@@ -159,28 +159,12 @@ figure.fullwidth figcaption { margin-right: 24%; }
 /* Links: replicate underline that clears descenders */
 a:link, a:visited { color: inherit; }
 
-a:link { text-decoration: none;
-         background: -webkit-linear-gradient(#f1edeb, #f1edeb), -webkit-linear-gradient(#f1edeb, #f1edeb), -webkit-linear-gradient(#333, #333);
-         background: linear-gradient(#f1edeb, #f1edeb), linear-gradient(#f1edeb, #f1edeb), linear-gradient(#333, #333);
-         -webkit-background-size: 0.05em 1px, 0.05em 1px, 1px 1px;
-         -moz-background-size: 0.05em 1px, 0.05em 1px, 1px 1px;
-         background-size: 0.05em 1px, 0.05em 1px, 1px 1px;
-         background-repeat: no-repeat, no-repeat, repeat-x;
-         text-shadow: 0.03em 0 #f1edeb, -0.03em 0 #f1edeb, 0 0.03em #f1edeb, 0 -0.03em #f1edeb, 0.06em 0 #f1edeb, -0.06em 0 #f1edeb, 0.09em 0 #f1edeb, -0.09em 0 #f1edeb, 0.12em 0 #f1edeb, -0.12em 0 #f1edeb, 0.15em 0 #f1edeb, -0.15em 0 #f1edeb;
-         background-position: 0% 93%, 100% 93%, 0% 93%; }
-
-@media screen and (-webkit-min-device-pixel-ratio: 0) { a:link { background-position-y: 87%, 87%, 87%; } }
-
-a:link::selection { text-shadow: 0.03em 0 #b4d5fe, -0.03em 0 #b4d5fe, 0 0.03em #b4d5fe, 0 -0.03em #b4d5fe, 0.06em 0 #b4d5fe, -0.06em 0 #b4d5fe, 0.09em 0 #b4d5fe, -0.09em 0 #b4d5fe, 0.12em 0 #b4d5fe, -0.12em 0 #b4d5fe, 0.15em 0 #b4d5fe, -0.15em 0 #b4d5fe;
-                    background: #b4d5fe; }
-
-a:link::-moz-selection { text-shadow: 0.03em 0 #b4d5fe, -0.03em 0 #b4d5fe, 0 0.03em #b4d5fe, 0 -0.03em #b4d5fe, 0.06em 0 #b4d5fe, -0.06em 0 #b4d5fe, 0.09em 0 #b4d5fe, -0.09em 0 #b4d5fe, 0.12em 0 #b4d5fe, -0.12em 0 #b4d5fe, 0.15em 0 #b4d5fe, -0.15em 0 #b4d5fe;
-                         background: #b4d5fe; }
-
 /* Sidenotes, margin notes, figures, captions */
 img { max-width: 100%; }
 
 .tag {
+  text-decoration: none;
+
   float: left;
   clear: left;
   margin-left: -20%;
@@ -192,6 +176,10 @@ img { max-width: 100%; }
   vertical-align: baseline;
   position: relative;
   color: #666;
+}
+
+.tag a {
+  text-decoration: none;
 }
 
 .sidenote, .marginnote { float: right;
@@ -206,6 +194,10 @@ img { max-width: 100%; }
                          position: relative;
                          color: #666;
                        }
+
+.marginnote a {
+  text-decoration: none;
+}
 
 .sidenote-number { counter-increment: sidenote-counter; }
 

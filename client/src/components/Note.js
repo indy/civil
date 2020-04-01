@@ -124,23 +124,11 @@ export default function Note(props) {
     return referenced;
   };
 
-  function buildReferencedSubjects() {
-    const referenced = props.subjectsInNote.map(s => {
+  function buildDecksInNote() {
+    const referenced = props.decksInNote.map(s => {
       return (
         <span className="marginnote" key={ s.id }>
-          <ResourceLink id={ s.id } name={ s.name } resource='subjects'/>
-        </span>
-      );
-    });
-
-    return referenced;
-  };
-
-  function buildReferencedPeople() {
-    const referenced = props.peopleInNote.map(p => {
-      return (
-        <span className="marginnote" key={ p.id }>
-          <ResourceLink id={ p.id } name={ p.name } resource='people'/>
+          <ResourceLink id={ s.id } name={ s.name } resource={ s.resource }/>
         </span>
       );
     });
@@ -173,8 +161,7 @@ export default function Note(props) {
         { title && buildTitle() }
         { source && buildSource() }
         { props.tagsInNote && buildTagsInNote() }
-        { props.subjectsInNote && buildReferencedSubjects() }
-        { props.peopleInNote && buildReferencedPeople() }
+        { props.decksInNote && buildDecksInNote() }
         { parseContent(content) }
       </div>
     );
