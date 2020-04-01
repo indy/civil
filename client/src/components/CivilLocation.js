@@ -62,8 +62,8 @@ export default function CivilLocation(props) {
 
     let [isOk, latitudeNew, longitudeNew] = GeoUtils.getLatitudeLongitude(geoResult);
     if (isOk) {
-      setLatitude(latitudeNew);
-      setLongitude(longitudeNew);
+      setLatitude(latitudeNew.toFixed(2));
+      setLongitude(longitudeNew.toFixed(2));
       updateLocation();
     } else {
       console.log(`geoResult failed for ${textual}`);
@@ -86,15 +86,15 @@ export default function CivilLocation(props) {
       <input id="latitude"
              type="number"
              name="latitude"
+             step="0"
              value={ latitude }
-             size="12"
              onChange={ handleChangeEvent } />
       <label htmlFor="longitude">Longitude:</label>
       <input id="longitude"
              type="number"
              name="longitude"
+             step="0"
              value={ longitude }
-             size="1"
              onChange={ handleChangeEvent } />
       <br/>
     </div>
