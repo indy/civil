@@ -34,14 +34,11 @@ pub async fn create_from_note_to_tags(
     info!("create_from_note_to_tags");
 
     let edge = edge.into_inner();
-
-    dbg!(&edge);
-
     let user_id = session::user_id(&session)?;
 
-    db::create_from_note_to_tags(&db_pool, &edge, user_id).await?;
+    let all_tags_for_note = db::create_from_note_to_tags(&db_pool, &edge, user_id).await?;
 
-    Ok(HttpResponse::Ok().json(true))
+    Ok(HttpResponse::Ok().json(all_tags_for_note))
 }
 
 pub async fn create_from_note_to_deck(

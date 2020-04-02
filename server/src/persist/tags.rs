@@ -28,9 +28,9 @@ use tracing::info;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "tags")]
-struct Tag {
-    id: Key,
-    name: String,
+pub struct Tag {
+    pub id: Key,
+    pub name: String,
 }
 
 impl From<Tag> for interop::Tag {

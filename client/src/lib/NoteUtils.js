@@ -74,17 +74,33 @@ const NoteUtils = {
   },
 
   hashByNoteIds: (s) => {
-    return s.reduce(function(a, b) {
-      const note_id = b.note_id;
-      if (a[note_id]) {
-        a[note_id].push(b);
-      } else {
-        a[note_id] = [b];
-      }
-      return a;
-    }, {});
+    return hashByNoteIds_(s);
+  },
+
+  applyTagsAndDecksToNotes: (obj) => {
+    const tagsInNotes = hashByNoteIds_(obj.tags_in_notes);
+    const decksInNotes = hashByNoteIds_(obj.decks_in_notes);
+
+    for(let i = 0;i<obj.notes.length;i++) {
+      let n = obj.notes[i];
+      n.tags = tagsInNotes[n.id];
+      n.decks = decksInNotes[n.id];
+    }
+
+    return obj;
   }
 };
 
+function hashByNoteIds_(s) {
+  return s.reduce(function(a, b) {
+    const note_id = b.note_id;
+    if (a[note_id]) {
+      a[note_id].push(b);
+    } else {
+      a[note_id] = [b];
+    }
+    return a;
+  }, {});
+}
 
 export default NoteUtils;

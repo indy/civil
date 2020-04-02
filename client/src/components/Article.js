@@ -13,19 +13,13 @@ export default function Article(props) {
 
   const [article, setArticle] = useState({
     id: article_id,
-    notes: [],
-    tags_in_notes: [],
-    decks_in_notes: []
+    notes: []
   });
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
-
-  const [tagsInNotes, setTagsInNotes] = useState({});
-  const [decksInNotes, setDecksInNotes] = useState({});
-
   const [currentArticleId, setCurrentArticleId] = useState(false);
 
-  const ac = AutocompleteCandidates();
+  const [ac, addNewTagsToAutocomplete] = AutocompleteCandidates();
 
   if (article_id !== currentArticleId) {
     // get here on first load and when we're already on a /articles/:id page and follow a Link to another /articles/:id
@@ -37,13 +31,7 @@ export default function Article(props) {
     setCurrentArticleId(article_id);
     Net.get(`/api/articles/${article.id}`).then(art => {
       if (art) {
-        const tagsInNotes = NoteUtils.hashByNoteIds(art.tags_in_notes);
-        const decksInNotes = NoteUtils.hashByNoteIds(art.decks_in_notes);
-
-        setArticle(art);
-        setTagsInNotes(tagsInNotes);
-        setDecksInNotes(decksInNotes);
-        window.scrollTo(0, 0);
+        setArticle(NoteUtils.applyTagsAndDecksToNotes(art));
       } else {
         console.error('fetchArticle');
       }
@@ -56,16 +44,17 @@ export default function Article(props) {
 
     modifyFn(notes, index);
 
-    article.notes = notes; //??
-    setArticle(article);
+    setArticle({...article, notes});
   };
 
+  // todo: check that these are actually updating the ui
   const onEditedNote = (id, data) => {
     findNoteWithId(id, (notes, index) => {
       notes[index] = Object.assign(notes[index], data);
     });
   };
 
+  // todo: check that these are actually updating the ui
   const onDeleteNote = (noteId) => {
     findNoteWithId(noteId, (notes, index) => {
       notes.splice(index, 1);
@@ -73,6 +62,20 @@ export default function Article(props) {
   };
 
   const onAddReference = () => fetchArticle();
+
+  // can't just modify article and then call setArticle(article)
+  // React is unable to detect changes this way.
+  // have to setArticle with a new object: setArticle({...article, title: 'a new title'});
+  function onTagsChanged(note, newTagsCreated) {
+    findNoteWithId(note.id, (notes, index) => {
+      notes[index] = note;
+    });
+
+    // add any newly created tags to the autocomplete list
+    if(newTagsCreated) {
+      addNewTagsToAutocomplete(note.tags);
+    }
+  }
 
   const buildNoteComponent = (note) => {
     return (
@@ -82,8 +85,7 @@ export default function Article(props) {
             onDelete={ onDeleteNote }
             onEdited={ onEditedNote }
             onAddReference={ onAddReference }
-            tagsInNote={ tagsInNotes[note.id] }
-            decksInNote={ decksInNotes[note.id] }
+            onTagsChanged={ onTagsChanged }
             />
     );
   };
@@ -121,16 +123,14 @@ export default function Article(props) {
     setShowNoteCreateForm(false);
   };
 
-  const notes = article.notes.map(buildNoteComponent);
-
   return (
     <article>
       <h1 onClick={ onShowButtons }>{ article.title }</h1>
-      { showButtons   && buildButtons() }
-      { showNoteCreateForm  && buildNoteCreateForm() }
+      { showButtons && buildButtons() }
+      { showNoteCreateForm && buildNoteCreateForm() }
       <h2>Source: <a href={ article.source }>{ article.source }</a></h2>
       <section className="article-notes">
-        { notes }
+        { article.notes.map(buildNoteComponent) }
       </section>
     </article>
   );

@@ -109,33 +109,74 @@ impl From<DeckMention> for decks_interop::DeckMention {
     }
 }
 
+fn is_tag_associated_with_note(new_tag_id: Key, existing_tags: &Vec<tags_db::Tag>) -> bool {
+    for existing in existing_tags {
+        if existing.id == new_tag_id {
+            return true;
+        }
+    }
+    false
+}
+
+fn is_tag_in_keys(tag_id: Key, keys: &Vec<Key>) -> bool {
+    for key in keys {
+        if tag_id == *key {
+            return true;
+        }
+    }
+    false
+}
+
 pub(crate) async fn create_from_note_to_tags(
     db_pool: &Pool,
     edge: &interop::CreateEdgeFromNoteToTags,
     user_id: Key,
-) -> Result<()> {
+) -> Result<Vec<tags_interop::Tag>> {
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
     let note_id = edge.note_id;
-    let stmt = include_str!("sql/edges_create_from_note_to_tag.sql");
+    let stmt_all_tags = include_str!("sql/tags_all_for_note.sql");
 
-    // create the new tags and create edges from the note to them
+    // get the list of existing tags associated with this note
+    let associated_tags: Vec<tags_db::Tag> =
+        pg::many::<tags_db::Tag>(&tx, &stmt_all_tags, &[&note_id]).await?;
+
+    // remove tags that are in associated_tags but not in edge.existing_tag_ids
+    let stmt_delete_tag = include_str!("sql/edges_delete_notes_tags.sql");
+    for associated_tag in &associated_tags {
+        if !is_tag_in_keys(associated_tag.id, &edge.existing_tag_ids) {
+            // this tag has been removed from the note by the user
+            pg::zero(&tx, &stmt_delete_tag, &[&note_id, &associated_tag.id]).await?;
+        }
+    }
+
+    let stmt_attach_tag = include_str!("sql/edges_create_from_note_to_tag.sql");
+
+    // create any new edges from the note to already existing tags
+    for existing_tag_id in &edge.existing_tag_ids {
+        if !is_tag_associated_with_note(*existing_tag_id, &associated_tags) {
+            pg::zero(&tx, &stmt_attach_tag, &[&note_id, &existing_tag_id]).await?;
+        }
+    }
+
+    // create new tags and create edges from the note to them
     //
     for new_tag_name in &edge.new_tag_names {
         // todo(<2020-03-30 Mon>): additional check to make sure that this tag doesn't already exist
+        // it's a stupid thing that could happen if:
+        // 1. a user has the same deck open in two windows
+        // 2. adds a new tag to a note in one window
+        // 3. adds the same new tag in the other window
+        //
         let tag = tags_db::create_tx(&tx, user_id, &new_tag_name).await?;
-        pg::zero(&tx, &stmt, &[&note_id, &tag.id]).await?;
-    }
-
-    // create edges to existing tags
-    for existing_tag_id in &edge.existing_tag_ids {
-        pg::zero(&tx, &stmt, &[&note_id, &existing_tag_id]).await?;
+        pg::zero(&tx, &stmt_attach_tag, &[&note_id, &tag.id]).await?;
     }
 
     tx.commit().await?;
 
-    Ok(())
+    // return a list of [tag_id, name] containing the complete set of tags associated with this note.
+    pg::many_from::<tags_db::Tag, tags_interop::Tag>(db_pool, &stmt_all_tags, &[&note_id]).await
 }
 
 pub(crate) async fn create_from_note_to_deck(

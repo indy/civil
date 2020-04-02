@@ -32,13 +32,9 @@ export default function Person(props) {
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
   const [showQuoteCreateForm, setShowQuoteCreateForm] = useState(false);
-
-  const [tagsInNotes, setTagsInNotes] = useState({});
-  const [decksInNotes, setDecksInNotes] = useState({});
-
   const [currentPersonId, setCurrentPersonId] = useState(false);
 
-  const ac = AutocompleteCandidates();
+  const [ac, addNewTagsToAutocomplete] = AutocompleteCandidates();
 
   if (person_id !== currentPersonId) {
     // get here on first load and when we're already on a /people/:id page and follow a Link to another /people/:id
@@ -50,13 +46,7 @@ export default function Person(props) {
     setCurrentPersonId(person_id);
     Net.get(`/api/people/${person_id}`).then(p => {
       if (p) {
-        const tagsInNotes = NoteUtils.hashByNoteIds(p.tags_in_notes);
-        const decksInNotes = NoteUtils.hashByNoteIds(p.decks_in_notes);
-
-        setPerson(p);
-        setTagsInNotes(tagsInNotes);
-        setDecksInNotes(decksInNotes);
-        window.scrollTo(0, 0);
+        setPerson(NoteUtils.applyTagsAndDecksToNotes(p));
       } else {
         console.error('fetchPerson');
       }
@@ -69,8 +59,7 @@ export default function Person(props) {
 
     modifyFn(notes, index);
 
-    person.notes = notes; //??
-    setPerson(person);
+    setPerson({...person, notes});
   };
 
   const onEditedNote = (id, data) => {
@@ -91,8 +80,7 @@ export default function Person(props) {
 
     modifyFn(quotes, index);
 
-    person.quotes = quotes; //??
-    setPerson(person);
+    setPerson({...person, quotes});
   };
 
   const onEditedQuote = (id, data) => {
@@ -109,6 +97,17 @@ export default function Person(props) {
 
   const onAddReference = () => fetchPerson();
 
+  function onTagsChanged(note, newTagsCreated) {
+    findNoteWithId(note.id, (notes, index) => {
+      notes[index] = note;
+    });
+
+    // add any newly created tags to the autocomplete list
+    if(newTagsCreated) {
+      addNewTagsToAutocomplete(note.tags);
+    }
+  }
+
   const buildNoteComponent = (note) => {
     return (
       <Note key={ note.id }
@@ -117,8 +116,7 @@ export default function Person(props) {
             onDelete={ onDeleteNote }
             onEdited={ onEditedNote }
             onAddReference={ onAddReference }
-            tagsInNote={ tagsInNotes[note.id] }
-            decksInNote={ decksInNotes[note.id] }
+            onTagsChanged={ onTagsChanged }
             />
     );
   };

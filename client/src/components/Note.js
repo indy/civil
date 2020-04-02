@@ -17,14 +17,29 @@ export default function Note(props) {
   const [source, setSource] = useState(props.note.source || '');
   const [title, setTitle] = useState(props.note.title || '');
   const [separator, setSeparator] = useState(props.note.separator);
-  const [initialTags, setInitialTags] = useState(props.note.tags || null);
-  const [tags, setTags] = useState(props.note.tags || null);
+
+  const [tags, setTags] = useState(buildCurrentTags(props.note.tags));
+
   const [currentPersonReference, setCurrentPersonReference] = useState(null);
   const [currentSubjectReference, setCurrentSubjectReference] = useState(null);
 
-  function getOptionLabel(option) {
-    return option.name;
-  };
+  function buildCurrentTags(tagsInNote) {
+    let res = [];
+
+    if(!tagsInNote) {
+      return null;
+    }
+
+    tagsInNote.forEach((tag) => {
+      res.push({
+        id: tag.id,
+        value: tag.name,
+        label: tag.name
+      });
+    });
+
+    return res;
+  }
 
   function handleChangeEvent(event) {
     const target = event.target;
@@ -98,70 +113,13 @@ export default function Note(props) {
     setShowMainButtons(!showMainButtons);
   };
 
-  function buildSource() {
-    return (
-      <span className="marginnote">
-          src: <a href={ source }>{ source }</a>
-      </span>
-    );
-  };
-
-  function buildTitle() {
-    return (
-      <h2>{ title }</h2>
-    );
-  };
-
-  function buildTagsInNote() {
-    const referenced = props.tagsInNote.map(s => {
-      return (
-        <span className="tag" key={ s.id }>
-          <ResourceLink id={ s.id } name={ s.name } resource='tags'/>
-        </span>
-      );
-    });
-
-    return referenced;
-  };
-
-  function buildDecksInNote() {
-    const referenced = props.decksInNote.map(s => {
-      return (
-        <span className="marginnote" key={ s.id }>
-          <ResourceLink id={ s.id } name={ s.name } resource={ s.resource }/>
-        </span>
-      );
-    });
-
-    return referenced;
-  };
-
-  function parseContent(text) {
-    const tokensRes = NoteCompiler.tokenise(text);
-    if (tokensRes.tokens === undefined) {
-      console.log(`Error tokenising: "${text}"`);
-      return null;
-    }
-    const tokens = tokensRes.tokens;
-
-    const parserRes = NoteCompiler.parse(tokens);
-    if (parserRes.nodes === undefined) {
-      console.log(`Error parsing: "${tokens}"`);
-      return null;
-    }
-
-    const ast = parserRes.nodes;
-    const dom = NoteCompiler.compile(ast);
-    return dom;
-  };
-
   function buildNonEditableContent() {
     return (
       <div onClick={ onShowButtonsClicked }>
-        { title && buildTitle() }
-        { source && buildSource() }
-        { props.tagsInNote && buildTagsInNote() }
-        { props.decksInNote && buildDecksInNote() }
+        { title && buildTitle(title) }
+        { source && buildSource(source) }
+        { props.note.tags && buildTagsInNote(props.note.tags) }
+        { props.note.decks && buildDecksInNote(props.note.decks) }
         { parseContent(content) }
       </div>
     );
@@ -199,13 +157,6 @@ export default function Note(props) {
 
     // editing and haven't made any changes yet
     return "Stop Editing";
-  };
-
-  function postEdgeCreate(data) {
-    Net.post("/api/edges/notes_decks", data).then(() => {
-      // re-fetches the person/subject/article/point
-      props.onAddReference();
-    });
   };
 
   function buildEditButtons() {
@@ -252,10 +203,6 @@ export default function Note(props) {
 
     function tagsHandleChange(newValue, actionMeta) {
       setTags(newValue);
-      console.group('Value Changed');
-      console.log(newValue);
-      console.log(`action: ${actionMeta.action}`);
-      console.groupEnd();
     };
 
     function cancelAddTags() {
@@ -268,39 +215,42 @@ export default function Note(props) {
       // 6. clicks cancel
       // expected: only the changes from step 5 should be undone
 
-      console.log(`pressed cancel setting tags to:`);
-      console.log(props.note.tags || null);
-      setTags(initialTags);
+      setTags(buildCurrentTags(props.note.tags));
 
       setShowAddTagsUI(false);
     };
 
     function commitAddTags() {
-      const data = tags.reduce((acc, tag) => {
-        if (tag.__isNew__) {
-          acc.new_tag_names.push(tag.value);
-        } else if (tag.id) {
-          acc.existing_tag_ids.push(tag.id);
-        } else {
-          // should never get here
-          console.error(`tag ${tag.value} has neither __isNew__ nor an id ???`);
-          console.log(tag);
-        }
-        return acc;
-      }, {
+      let data = {
         note_id: props.note.id,
         existing_tag_ids: [],
         new_tag_names: []
-      });
+      };
 
-      Net.post("/api/edges/notes_tags", data).then(() => {
-        // return the new tags? or all tags?
-        // add them to the autocomplete list
-        // or
-        // just have the autcomplete list refresh
-      });
+      // tags would be null if we've removed all tags from a note
+      if (tags) {
+        data = tags.reduce((acc, tag) => {
+          if (tag.__isNew__) {
+            acc.new_tag_names.push(tag.value);
+          } else if (tag.id) {
+            acc.existing_tag_ids.push(tag.id);
+          } else {
+            // should never get here
+            console.error(`tag ${tag.value} has neither __isNew__ nor an id ???`);
+            console.log(tag);
+          }
+          return acc;
+        }, data);
+      }
 
-      setInitialTags(tags);
+      Net.post("/api/edges/notes_tags", data).then((all_tags_for_note) => {
+        const n = {...props.note};
+        n.tags = all_tags_for_note.reduce((acc, tag) => {
+          acc.push({note_id: n.id, id: tag.id, name: tag.name});
+          return acc;
+        }, []);
+        props.onTagsChanged(n, data.new_tag_names.length > 0);
+      });
 
       setShowMainButtons(false);
       setShowAddTagsUI(false);
@@ -313,7 +263,7 @@ export default function Note(props) {
         postEdgeCreate({
           note_id: props.note.id,
           person_id: person.id
-        });
+        }, props.onAddReference);
       } else {
         console.log('no such person found in people');
       }
@@ -330,7 +280,7 @@ export default function Note(props) {
         postEdgeCreate({
           note_id: props.note.id,
           subject_id: subject.id
-        });
+        }, props.onAddReference);
       } else {
         console.log('no such subject found in subjects');
       }
@@ -343,7 +293,7 @@ export default function Note(props) {
     if (showAddTagsUI) {
       return (
         <div>
-          <label>Add Tags:</label>
+          <label>Tags:</label>
           <CreatableSelect
             isMulti
             name="tags"
@@ -354,7 +304,7 @@ export default function Note(props) {
             classNamePrefix="select"
           />
           <button onClick={ cancelAddTags }>Cancel</button>
-          <button onClick={ commitAddTags }>Add</button>
+          <button onClick={ commitAddTags }>Save</button>
         </div>
       );
     } else if (showAddPersonReferenceUI) {
@@ -387,7 +337,7 @@ export default function Note(props) {
         </div>
       );
     } else {
-      const addTagsButton = <button onClick={ toggleAddTagsUI }>Add Tags...</button>;
+      const addTagsButton = <button onClick={ toggleAddTagsUI }>Tags...</button>;
       const addPersonButton = <button onClick={ toggleAddPersonReferenceUI }>Add Person...</button>;
       const addSubjectButton = <button onClick={ toggleAddSubjectReferenceUI }>Add Subject...</button>;
 
@@ -411,3 +361,70 @@ export default function Note(props) {
     </div>
   );
 }
+
+function getOptionLabel(option) {
+  return option.name;
+};
+
+function buildTitle(title) {
+  return (
+    <h2>{ title }</h2>
+  );
+};
+
+function buildSource(source) {
+  return (
+    <span className="marginnote">
+      <a href={ source }>{ source }</a>
+    </span>
+  );
+};
+
+function buildTagsInNote(tagsInNote) {
+  const referenced = tagsInNote.map(s => {
+    return (
+      <span className="tag" key={ s.id }>
+        <ResourceLink id={ s.id } name={ s.name } resource='tags'/>
+      </span>
+    );
+  });
+
+  return referenced;
+};
+
+function buildDecksInNote(decksInNote) {
+  const referenced = decksInNote.map(s => {
+    return (
+      <span className="marginnote" key={ s.id }>
+        <ResourceLink id={ s.id } name={ s.name } resource={ s.resource }/>
+      </span>
+    );
+  });
+
+  return referenced;
+};
+
+function parseContent(text) {
+  const tokensRes = NoteCompiler.tokenise(text);
+  if (tokensRes.tokens === undefined) {
+    console.log(`Error tokenising: "${text}"`);
+    return null;
+  }
+  const tokens = tokensRes.tokens;
+
+  const parserRes = NoteCompiler.parse(tokens);
+  if (parserRes.nodes === undefined) {
+    console.log(`Error parsing: "${tokens}"`);
+    return null;
+  }
+
+  const ast = parserRes.nodes;
+  const dom = NoteCompiler.compile(ast);
+  return dom;
+};
+
+function postEdgeCreate(data, callback) {
+  Net.post("/api/edges/notes_decks", data).then(() => {
+    callback();
+  });
+};

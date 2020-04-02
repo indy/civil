@@ -21,13 +21,9 @@ export default function Point(props) {
   const [scratchNote, setScratchNote] = useState("");
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
-
-  const [tagsInNotes, setTagsInNotes] = useState({});
-  const [decksInNotes, setDecksInNotes] = useState({});
-
   const [currentPointId, setCurrentPointId] = useState(false);
 
-  const ac = AutocompleteCandidates();
+  const [ac, addNewTagsToAutocomplete] = AutocompleteCandidates();
 
   if (point_id !== currentPointId) {
     // get here on first load and when we're already on a /points/:id page and follow a Link to another /points/:id
@@ -39,13 +35,7 @@ export default function Point(props) {
     setCurrentPointId(point_id);
     Net.get(`/api/points/${point.id}`).then(p => {
       if (p) {
-        const tagsInNotes = NoteUtils.hashByNoteIds(p.tags_in_notes);
-        const decksInNotes = NoteUtils.hashByNoteIds(p.decks_in_notes);
-
-        setPoint(p);
-        setTagsInNotes(tagsInNotes);
-        setDecksInNotes(decksInNotes);
-        window.scrollTo(0, 0);
+        setPoint(NoteUtils.applyTagsAndDecksToNotes(p));
       } else {
         console.error('foooked Point constructor');
       }
@@ -58,8 +48,7 @@ export default function Point(props) {
 
     modifyFn(notes, index);
 
-    point.notes = notes; //??
-    setPoint(point);
+    setPoint({...point, notes});
   };
 
   const onEditedNote = (id, data) => {
@@ -76,6 +65,17 @@ export default function Point(props) {
 
   const onAddReference = () => fetchPoint();
 
+  function onTagsChanged(note, newTagsCreated) {
+    findNoteWithId(note.id, (notes, index) => {
+      notes[index] = note;
+    });
+
+    // add any newly created tags to the autocomplete list
+    if(newTagsCreated) {
+      addNewTagsToAutocomplete(note.tags);
+    }
+  }
+
   const buildNoteComponent = (note) => {
     return (
       <Note key={ note.id }
@@ -84,8 +84,7 @@ export default function Point(props) {
             onDelete={ onDeleteNote }
             onEdited={ onEditedNote }
             onAddReference={ onAddReference }
-            tagsInNote={ tagsInNotes[note.id] }
-            decksInNote={ decksInNotes[note.id] }
+            onTagsChanged={ onTagsChanged }
             />
     );
   };

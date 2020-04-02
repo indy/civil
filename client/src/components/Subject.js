@@ -30,13 +30,9 @@ export default function Subject(props) {
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
   const [showQuoteCreateForm, setShowQuoteCreateForm] = useState(false);
-
-  const [tagsInNotes, setTagsInNotes] = useState({});
-  const [decksInNotes, setDecksInNotes] = useState({});
-
   const [currentSubjectId, setCurrentSubjectId] = useState(false);
 
-  const ac = AutocompleteCandidates();
+  const [ac, addNewTagsToAutocomplete] = AutocompleteCandidates();
 
   if (subject_id !== currentSubjectId) {
     // get here on first load and when we're already on a /subjects/:id page and follow a Link to another /subjects/:id
@@ -48,13 +44,7 @@ export default function Subject(props) {
     setCurrentSubjectId(subject_id);
     Net.get(`/api/subjects/${subject.id}`).then(s => {
       if (s) {
-        const tagsInNotes = NoteUtils.hashByNoteIds(s.tags_in_notes);
-        const decksInNotes = NoteUtils.hashByNoteIds(s.decks_in_notes);
-
-        setSubject(s);
-        setTagsInNotes(tagsInNotes);
-        setDecksInNotes(decksInNotes);
-        window.scrollTo(0, 0);
+        setSubject(NoteUtils.applyTagsAndDecksToNotes(s));
       } else {
         console.error('fetchSubject');
       }
@@ -67,8 +57,7 @@ export default function Subject(props) {
 
     modifyFn(notes, index);
 
-    subject.notes = notes; //??
-    setSubject(subject);
+    setSubject({...subject, notes});
   };
 
   const onEditedNote = (id, data) => {
@@ -89,8 +78,7 @@ export default function Subject(props) {
 
     modifyFn(quotes, index);
 
-    subject.quotes = quotes; //??
-    setSubject(subject);
+    setSubject({...subject, quotes});
   };
 
   const onEditedQuote = (id, data) => {
@@ -107,6 +95,17 @@ export default function Subject(props) {
 
   const onAddReference = () => fetchSubject();
 
+  function onTagsChanged(note, newTagsCreated) {
+    findNoteWithId(note.id, (notes, index) => {
+      notes[index] = note;
+    });
+
+    // add any newly created tags to the autocomplete list
+    if(newTagsCreated) {
+      addNewTagsToAutocomplete(note.tags);
+    }
+  }
+
   const buildNoteComponent = (note) => {
     return (
       <Note key={ note.id }
@@ -115,8 +114,7 @@ export default function Subject(props) {
             onDelete={ onDeleteNote }
             onEdited={ onEditedNote }
             onAddReference={ onAddReference }
-            tagsInNote={ tagsInNotes[note.id] }
-            decksInNote={ decksInNotes[note.id] }
+            onTagsChanged={ onTagsChanged }
             />
     );
   };

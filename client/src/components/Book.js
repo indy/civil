@@ -19,13 +19,9 @@ export default function Book(props) {
   });
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
-
-  const [tagsInNotes, setTagsInNotes] = useState({});
-  const [decksInNotes, setDecksInNotes] = useState({});
-
   const [currentBookId, setCurrentBookId] = useState(false);
 
-  const ac = AutocompleteCandidates();
+  const [ac, addNewTagsToAutocomplete] = AutocompleteCandidates();
 
   if (book_id !== currentBookId) {
     // get here on first load and when we're already on a /books/:id page and follow a Link to another /books/:id
@@ -37,13 +33,7 @@ export default function Book(props) {
     setCurrentBookId(book_id);
     Net.get(`/api/books/${book.id}`).then(bk => {
       if (bk) {
-        const tagsInNotes = NoteUtils.hashByNoteIds(bk.tags_in_notes);
-        const decksInNotes = NoteUtils.hashByNoteIds(bk.decks_in_notes);
-
-        setBook(bk);
-        setTagsInNotes(tagsInNotes);
-        setDecksInNotes(decksInNotes);
-        window.scrollTo(0, 0);
+        setBook(NoteUtils.applyTagsAndDecksToNotes(bk));
       } else {
         console.error('fetchBook');
       }
@@ -56,8 +46,7 @@ export default function Book(props) {
 
     modifyFn(notes, index);
 
-    book.notes = notes; //??
-    setBook(book);
+    setBook({...book, notes});
   };
 
   const onEditedNote = (id, data) => {
@@ -74,6 +63,17 @@ export default function Book(props) {
 
   const onAddReference = () => fetchBook();
 
+  function onTagsChanged(note, newTagsCreated) {
+    findNoteWithId(note.id, (notes, index) => {
+      notes[index] = note;
+    });
+
+    // add any newly created tags to the autocomplete list
+    if(newTagsCreated) {
+      addNewTagsToAutocomplete(note.tags);
+    }
+  }
+
   const buildNoteComponent = (note) => {
     return (
       <Note key={ note.id }
@@ -82,8 +82,7 @@ export default function Book(props) {
             onDelete={ onDeleteNote }
             onEdited={ onEditedNote }
             onAddReference={ onAddReference }
-            tagsInNote={ tagsInNotes[note.id] }
-            decksInNote={ decksInNotes[note.id] }
+            onTagsChanged={ onTagsChanged }
             />
     );
   };

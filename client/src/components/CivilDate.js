@@ -27,7 +27,6 @@ export default function CivilDate(props) {
 
   const buildDateStruct = (textualLatest, d1, d2) => {
     if (textualLatest.trim().length === 0) {
-      console.log("buildDateStruct early return");
       return emptyDateStructure();
     }
 
@@ -38,14 +37,10 @@ export default function CivilDate(props) {
 
     let haveADate = false;
     if ((!d2 || d2.length === 0) && d1.trim().length > 0) {
-      console.log("buildDateStruct exact_date");
-
       haveADate = true;
       dateStruct.exact_date = d1;
       dateStruct.fuzz = 0.5;    // half a day
     } else if (d1.trim().length > 0 && d2.trim().length > 0) {
-      console.log("buildDateStruct date range");
-
       haveADate = true;
       dateStruct.lower_date = d1;
       dateStruct.upper_date = d2;
@@ -53,7 +48,6 @@ export default function CivilDate(props) {
     }
 
     if (haveADate === false) {
-      console.log("buildDateStruct haveADate is false");
       return emptyDateStructure();
     }
 
