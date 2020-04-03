@@ -41,19 +41,19 @@ pub async fn create_from_note_to_tags(
     Ok(HttpResponse::Ok().json(all_tags_for_note))
 }
 
-pub async fn create_from_note_to_deck(
-    edge: Json<interop::CreateEdge>,
+pub async fn create_from_note_to_decks(
+    edge: Json<interop::CreateEdgeFromNoteToDecks>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    info!("create_from_note_to_deck");
+    info!("create_from_note_to_decks");
 
     let edge = edge.into_inner();
-    let user_id = session::user_id(&session)?;
+    let _user_id = session::user_id(&session)?;
 
-    let edge = db::create_from_note_to_deck(&db_pool, &edge, user_id).await?;
+    let all_decks_for_note = db::create_from_note_to_decks(&db_pool, &edge).await?;
 
-    Ok(HttpResponse::Ok().json(edge))
+    Ok(HttpResponse::Ok().json(all_decks_for_note))
 }
 
 pub async fn delete_edge(

@@ -92,7 +92,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // notes
         .service(
             scope("/notes")
-                .route("", post().to(notes::create_note))
+                .route("", post().to(notes::create_notes))
                 .route("/{id}", get().to(notes::get_note))
                 .route("/{id}", put().to(notes::edit_note)) // check
                 .route("/{id}", delete().to(notes::delete_note)),
@@ -117,7 +117,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // edges
         .service(
             scope("/edges")
-                .route("/notes_decks", post().to(edges::create_from_note_to_deck))
+                .route("/notes_decks", post().to(edges::create_from_note_to_decks))
                 .route("/notes_tags", post().to(edges::create_from_note_to_tags))
                 .route("/{id}", delete().to(edges::delete_edge)),
         )
@@ -125,8 +125,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         .service(
             scope("/autocomplete")
                 .route("/tags", get().to(autocomplete::get_tags))
-                .route("/people", get().to(autocomplete::get_people))
-                .route("/subjects", get().to(autocomplete::get_subjects)),
+                .route("/decks", get().to(autocomplete::get_decks)),
         )
 }
 

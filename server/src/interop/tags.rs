@@ -27,10 +27,3 @@ pub struct Tag {
 pub struct CreateTag {
     pub name: String,
 }
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct TagReference {
-    pub note_id: Key,
-    pub id: Key,
-    pub name: String,
-}

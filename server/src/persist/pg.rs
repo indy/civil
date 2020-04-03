@@ -30,6 +30,7 @@ pub async fn zero(
         Ok(stmt) => stmt,
         Err(e) => {
             error!("{}", e);
+            error!("QUERY: {}", &sql_query);
             return Err(Error::from(e));
         }
     };
@@ -39,6 +40,7 @@ pub async fn zero(
         Ok(_) => Ok(()),
         Err(e) => {
             error!("{}", e);
+            error!("QUERY: {}", &sql_query);
             Err(Error::from(e))
         }
     }
@@ -58,6 +60,7 @@ where
         Ok(stmt) => stmt,
         Err(e) => {
             error!("{}", e);
+            error!("QUERY: {}", &sql_query);
             return Err(Error::from(e));
         }
     };
@@ -75,6 +78,7 @@ where
         Ok(_) => res,
         Err(e) => {
             error!("{}", e);
+            error!("QUERY: {}", &sql_query);
             Err(e)
         }
     }
@@ -94,6 +98,7 @@ where
         Ok(stmt) => stmt,
         Err(e) => {
             error!("{}", e);
+            error!("QUERY: {}", &sql_query);
             return Err(Error::from(e));
         }
     };
@@ -141,6 +146,7 @@ where
         Ok(_) => res,
         Err(e) => {
             error!("{}", e);
+            error!("QUERY: {}", &sql_query);
             Err(e)
         }
     }
@@ -182,6 +188,7 @@ where
         Ok(_) => res,
         Err(e) => {
             error!("{}", e);
+            error!("QUERY: {}", &sql_query);
             Err(e)
         }
     }
@@ -204,6 +211,7 @@ where
         Ok(stmt) => stmt,
         Err(e) => {
             error!("{}", e);
+            error!("QUERY: {}", &sql_query);
             return Err(Error::from(e));
         }
     };

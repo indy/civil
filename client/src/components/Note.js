@@ -10,8 +10,7 @@ export default function Note(props) {
   const [showMainButtons, setShowMainButtons] = useState(false);
   const [showEditButtons, setShowEditButtons] = useState(false);
   const [showAddTagsUI, setShowAddTagsUI] = useState(false);
-  const [showAddPersonReferenceUI, setShowAddPersonReferenceUI] = useState(false);
-  const [showAddSubjectReferenceUI, setShowAddSubjectReferenceUI] = useState(false);
+  const [showAddDecksUI, setShowAddDecksUI] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [content, setContent] = useState(props.note.content);
   const [source, setSource] = useState(props.note.source || '');
@@ -19,9 +18,7 @@ export default function Note(props) {
   const [separator, setSeparator] = useState(props.note.separator);
 
   const [tags, setTags] = useState(buildCurrentTags(props.note.tags));
-
-  const [currentPersonReference, setCurrentPersonReference] = useState(null);
-  const [currentSubjectReference, setCurrentSubjectReference] = useState(null);
+  const [decks, setDecks] = useState(buildCurrentDecks(props.note.decks)); // fix later
 
   function buildCurrentTags(tagsInNote) {
     let res = [];
@@ -35,6 +32,25 @@ export default function Note(props) {
         id: tag.id,
         value: tag.name,
         label: tag.name
+      });
+    });
+
+    return res;
+  }
+
+  function buildCurrentDecks(decksInNote) {
+    let res = [];
+
+    if(!decksInNote) {
+      return null;
+    }
+
+    decksInNote.forEach((deck) => {
+      res.push({
+        id: deck.id,
+        value: deck.name,
+        label: deck.name,
+        resource: deck.resource
       });
     });
 
@@ -115,12 +131,14 @@ export default function Note(props) {
 
   function buildNonEditableContent() {
     return (
-      <div onClick={ onShowButtonsClicked }>
-        { title && buildTitle(title) }
-        { source && buildSource(source) }
-        { props.note.tags && buildTagsInNote(props.note.tags) }
-        { props.note.decks && buildDecksInNote(props.note.decks) }
-        { parseContent(content) }
+      <div>
+        <div onClick={ onShowButtonsClicked }>
+          { title && buildTitle(title) }
+          { source && buildSource(source) }
+          { parseContent(content) }
+        </div>
+        { props.note.tags && buildMarginConnections(props.note.tags, "tag") }
+        { props.note.decks && buildMarginConnections(props.note.decks, "marginnote") }
       </div>
     );
   };
@@ -193,16 +211,16 @@ export default function Note(props) {
       setShowAddTagsUI(!showAddTagsUI);
     };
 
-    function toggleAddPersonReferenceUI() {
-      setShowAddPersonReferenceUI(!showAddPersonReferenceUI);
-    };
-
-    function toggleAddSubjectReferenceUI() {
-      setShowAddSubjectReferenceUI(!showAddSubjectReferenceUI);
+    function toggleAddDecksUI() {
+      setShowAddDecksUI(!showAddDecksUI);
     };
 
     function tagsHandleChange(newValue, actionMeta) {
       setTags(newValue);
+    };
+
+    function decksHandleChange(newValue, actionMeta) {
+      setDecks(newValue);
     };
 
     function cancelAddTags() {
@@ -256,38 +274,42 @@ export default function Note(props) {
       setShowAddTagsUI(false);
     };
 
-    function addPersonReference() {
-      const person = currentPersonReference;
-
-      if (person) {
-        postEdgeCreate({
-          note_id: props.note.id,
-          person_id: person.id
-        }, props.onAddReference);
-      } else {
-        console.log('no such person found in people');
-      }
-
-      setShowMainButtons(false);
-      setShowAddPersonReferenceUI(false);
-      setCurrentPersonReference(null);
+    function cancelAddDecks() {
+      setDecks(buildCurrentDecks(props.note.decks));
+      setShowAddDecksUI(false);
     };
 
-    function addSubjectReference() {
-      const subject = currentSubjectReference;
+    function commitAddDecks() {
+      let data = {
+        note_id: props.note.id,
+        deck_ids: []
+      };
 
-      if (subject) {
-        postEdgeCreate({
-          note_id: props.note.id,
-          subject_id: subject.id
-        }, props.onAddReference);
-      } else {
-        console.log('no such subject found in subjects');
+      // decks would be null if we've removed all deck references from a note
+      if (decks) {
+        data = decks.reduce((acc, deck) => {
+          if (deck.id) {
+            acc.deck_ids.push(deck.id);
+          } else {
+            // should never get here
+            console.error(`deck ${deck.value} has no id ???`);
+            console.log(deck);
+          }
+          return acc;
+        }, data);
       }
 
+      Net.post("/api/edges/notes_decks", data).then((all_decks_for_note) => {
+        const n = {...props.note};
+        n.decks = all_decks_for_note.reduce((acc, deck) => {
+          acc.push({note_id: n.id, id: deck.id, name: deck.name, resource: deck.resource});
+          return acc;
+        }, []);
+        props.onDecksChanged(n);
+      });
+
       setShowMainButtons(false);
-      setShowAddSubjectReferenceUI(false);
-      setCurrentSubjectReference(null);
+      setShowAddDecksUI(false);
     };
 
     if (showAddTagsUI) {
@@ -307,46 +329,32 @@ export default function Note(props) {
           <button onClick={ commitAddTags }>Save</button>
         </div>
       );
-    } else if (showAddPersonReferenceUI) {
+    } else if (showAddDecksUI) {
       return (
         <div>
-          <label>Add Person:</label>
+          <label>Decks:</label>
           <Select
-            value={currentPersonReference}
-            onChange={setCurrentPersonReference}
-            options={props.ac.people}
-            getOptionLabel={getOptionLabel}
+            isMulti
+            name="decks"
+            value={decks}
+            onChange={decksHandleChange}
+            options={props.ac.decks}
+            className="basic-multi-select"
+            classNamePrefix="select"
           />
-          <button onClick={ toggleAddPersonReferenceUI }>Cancel</button>
-          <button onClick={ addPersonReference }>Add</button>
+          <button onClick={ cancelAddDecks }>Cancel</button>
+          <button onClick={ commitAddDecks }>Save</button>
         </div>
       );
-    } else if (showAddSubjectReferenceUI) {
-      return (
-        <div>
-          <label>Add Subject:</label>
-
-          <Select
-            value={currentSubjectReference}
-            onChange={setCurrentSubjectReference}
-            options={props.ac.subjects}
-            getOptionLabel={getOptionLabel}
-          />
-          <button onClick={ toggleAddSubjectReferenceUI }>Cancel</button>
-          <button onClick={ addSubjectReference }>Add</button>
-        </div>
-      );
-    } else {
+    }  else {
       const addTagsButton = <button onClick={ toggleAddTagsUI }>Tags...</button>;
-      const addPersonButton = <button onClick={ toggleAddPersonReferenceUI }>Add Person...</button>;
-      const addSubjectButton = <button onClick={ toggleAddSubjectReferenceUI }>Add Subject...</button>;
+      const addDecksButton = <button onClick={ toggleAddDecksUI }>References...</button>;
 
       return (
         <div>
           <button onClick={ onEditClicked }>{ buildEditLabelText() }</button>
           { !showEditButtons && addTagsButton }
-          { !showEditButtons && addPersonButton }
-          { !showEditButtons && addSubjectButton }
+          { !showEditButtons && addDecksButton }
         </div>
       );
     }
@@ -362,10 +370,6 @@ export default function Note(props) {
   );
 }
 
-function getOptionLabel(option) {
-  return option.name;
-};
-
 function buildTitle(title) {
   return (
     <h2>{ title }</h2>
@@ -380,22 +384,10 @@ function buildSource(source) {
   );
 };
 
-function buildTagsInNote(tagsInNote) {
-  const referenced = tagsInNote.map(s => {
+function buildMarginConnections(marginConnections, className) {
+  const referenced = marginConnections.map(s => {
     return (
-      <span className="tag" key={ s.id }>
-        <ResourceLink id={ s.id } name={ s.name } resource='tags'/>
-      </span>
-    );
-  });
-
-  return referenced;
-};
-
-function buildDecksInNote(decksInNote) {
-  const referenced = decksInNote.map(s => {
-    return (
-      <span className="marginnote" key={ s.id }>
+      <span className={ className } key={ s.id }>
         <ResourceLink id={ s.id } name={ s.name } resource={ s.resource }/>
       </span>
     );
@@ -421,10 +413,4 @@ function parseContent(text) {
   const ast = parserRes.nodes;
   const dom = NoteCompiler.compile(ast);
   return dom;
-};
-
-function postEdgeCreate(data, callback) {
-  Net.post("/api/edges/notes_decks", data).then(() => {
-    callback();
-  });
 };

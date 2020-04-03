@@ -31,7 +31,7 @@ export default function Book(props) {
 
   function fetchBook() {
     setCurrentBookId(book_id);
-    Net.get(`/api/books/${book.id}`).then(bk => {
+    Net.get(`/api/books/${book_id}`).then(bk => {
       if (bk) {
         setBook(NoteUtils.applyTagsAndDecksToNotes(bk));
       } else {
@@ -61,8 +61,6 @@ export default function Book(props) {
     });
   };
 
-  const onAddReference = () => fetchBook();
-
   function onTagsChanged(note, newTagsCreated) {
     findNoteWithId(note.id, (notes, index) => {
       notes[index] = note;
@@ -74,6 +72,12 @@ export default function Book(props) {
     }
   }
 
+  function onDecksChanged(note) {
+    findNoteWithId(note.id, (notes, index) => {
+      notes[index] = note;
+    });
+  }
+
   const buildNoteComponent = (note) => {
     return (
       <Note key={ note.id }
@@ -81,8 +85,8 @@ export default function Book(props) {
             ac = { ac }
             onDelete={ onDeleteNote }
             onEdited={ onEditedNote }
-            onAddReference={ onAddReference }
             onTagsChanged={ onTagsChanged }
+            onDecksChanged={ onDecksChanged }
             />
     );
   };
@@ -104,8 +108,8 @@ export default function Book(props) {
     const onAddNote = (e) => {
       const noteForm = e.target;
       NoteUtils.addNote(noteForm, { book_id })
-        .then(() => {
-          fetchBook();
+        .then(newNotes => {
+          NoteUtils.appendWithNewNotes(book, setBook, newNotes);
           setShowNoteCreateForm(false);
         });
     };

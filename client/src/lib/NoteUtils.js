@@ -88,6 +88,14 @@ const NoteUtils = {
     }
 
     return obj;
+  },
+
+  appendWithNewNotes: (obj, setObjFn, newNotes) => {
+    const notes = obj.notes;
+    newNotes.forEach(n => {
+      notes.push(n);
+    });
+    setObjFn({...obj, notes});
   }
 };
 

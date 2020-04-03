@@ -25,13 +25,10 @@ pub struct Edge {
     pub to_note_id: Option<Key>,
 }
 
-// currently these are all from Note to a Deck based model
-//
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct CreateEdge {
-    pub note_id: Option<Key>,
-    pub person_id: Option<Key>,
-    pub subject_id: Option<Key>,
+pub struct CreateEdgeFromNoteToDecks {
+    pub note_id: Key,
+    pub deck_ids: Vec<Key>,
 }
 
 // currently these are all from Note to a Deck based model
@@ -41,4 +38,14 @@ pub struct CreateEdgeFromNoteToTags {
     pub note_id: Key,
     pub existing_tag_ids: Vec<Key>,
     pub new_tag_names: Vec<String>,
+}
+
+// links to decks/tags on the side of notes
+//
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct MarginConnection {
+    pub note_id: Key,
+    pub id: Key,
+    pub name: String,
+    pub resource: String,
 }

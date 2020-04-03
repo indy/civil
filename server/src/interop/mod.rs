@@ -92,3 +92,14 @@ pub(crate) fn model_to_table_name(model: Model) -> Result<&'static str> {
         _ => Err(Error::ModelNonUniqueTableName),
     }
 }
+
+pub(crate) fn kind_to_resource(kind: &str) -> Result<&'static str> {
+    match kind {
+        "historic_person" => Ok("people"),
+        "historic_point" => Ok("points"),
+        "subject" => Ok("subjects"),
+        "article" => Ok("articles"),
+        "book" => Ok("books"),
+        _ => Err(Error::InvalidKind),
+    }
+}

@@ -27,7 +27,7 @@ use deadpool_postgres::Pool;
 #[allow(unused_imports)]
 use tracing::info;
 
-pub async fn create_note(
+pub async fn create_notes(
     note: Json<interop::CreateNote>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
@@ -37,7 +37,7 @@ pub async fn create_note(
 
     let user_id = session::user_id(&session)?;
 
-    let note = db::create_note(&db_pool, user_id, &note).await?;
+    let note = db::create_notes(&db_pool, user_id, &note).await?;
 
     Ok(HttpResponse::Ok().json(note))
 }

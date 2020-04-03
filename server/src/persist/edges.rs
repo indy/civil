@@ -20,7 +20,7 @@ use crate::error::{Error, Result};
 use crate::interop::decks as decks_interop;
 use crate::interop::edges as interop;
 use crate::interop::tags as tags_interop;
-use crate::interop::{model_to_deck_kind, Key, Model};
+use crate::interop::{kind_to_resource, model_to_deck_kind, Key, Model};
 use crate::persist::tags as tags_db;
 use deadpool_postgres::{Client, Pool, Transaction};
 use serde::{Deserialize, Serialize};
@@ -28,6 +28,27 @@ use tokio_pg_mapper_derive::PostgresMapper;
 
 #[allow(unused_imports)]
 use tracing::info;
+
+#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
+#[pg_mapper(table = "decks")]
+pub struct MarginConnectionToDeck {
+    pub note_id: Key,
+    pub id: Key,
+    pub name: String,
+    pub kind: String,
+}
+
+impl From<MarginConnectionToDeck> for interop::MarginConnection {
+    fn from(e: MarginConnectionToDeck) -> interop::MarginConnection {
+        let resource = kind_to_resource(e.kind.as_ref()).unwrap();
+        interop::MarginConnection {
+            note_id: e.note_id,
+            id: e.id,
+            name: e.name,
+            resource: resource.to_string(),
+        }
+    }
+}
 
 #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
 #[pg_mapper(table = "notes_decks")]
@@ -55,12 +76,13 @@ struct TagReference {
     name: String,
 }
 
-impl From<TagReference> for tags_interop::TagReference {
-    fn from(t: TagReference) -> tags_interop::TagReference {
-        tags_interop::TagReference {
+impl From<TagReference> for interop::MarginConnection {
+    fn from(t: TagReference) -> interop::MarginConnection {
+        interop::MarginConnection {
             note_id: t.note_id,
             id: t.id,
             name: t.name,
+            resource: String::from("tags"),
         }
     }
 }
@@ -74,17 +96,10 @@ struct DeckReference {
     kind: String,
 }
 
-impl From<DeckReference> for decks_interop::DeckReference {
-    fn from(d: DeckReference) -> decks_interop::DeckReference {
-        let resource = match d.kind.as_ref() {
-            "historic_person" => "people",
-            "historic_point" => "points",
-            "subject" => "subjects",
-            "article" => "articles",
-            "book" => "books",
-            _ => "unknown",
-        };
-        decks_interop::DeckReference {
+impl From<DeckReference> for interop::MarginConnection {
+    fn from(d: DeckReference) -> interop::MarginConnection {
+        let resource = kind_to_resource(d.kind.as_ref()).unwrap();
+        interop::MarginConnection {
             note_id: d.note_id,
             id: d.id,
             name: d.name,
@@ -118,9 +133,21 @@ fn is_tag_associated_with_note(new_tag_id: Key, existing_tags: &Vec<tags_db::Tag
     false
 }
 
-fn is_tag_in_keys(tag_id: Key, keys: &Vec<Key>) -> bool {
+fn is_deck_associated_with_note(
+    new_deck_id: Key,
+    existing_decks: &Vec<MarginConnectionToDeck>,
+) -> bool {
+    for existing in existing_decks {
+        if existing.id == new_deck_id {
+            return true;
+        }
+    }
+    false
+}
+
+fn is_key_in_keys(k: Key, keys: &Vec<Key>) -> bool {
     for key in keys {
-        if tag_id == *key {
+        if k == *key {
             return true;
         }
     }
@@ -145,7 +172,7 @@ pub(crate) async fn create_from_note_to_tags(
     // remove tags that are in associated_tags but not in edge.existing_tag_ids
     let stmt_delete_tag = include_str!("sql/edges_delete_notes_tags.sql");
     for associated_tag in &associated_tags {
-        if !is_tag_in_keys(associated_tag.id, &edge.existing_tag_ids) {
+        if !is_key_in_keys(associated_tag.id, &edge.existing_tag_ids) {
             // this tag has been removed from the note by the user
             pg::zero(&tx, &stmt_delete_tag, &[&note_id, &associated_tag.id]).await?;
         }
@@ -179,32 +206,49 @@ pub(crate) async fn create_from_note_to_tags(
     pg::many_from::<tags_db::Tag, tags_interop::Tag>(db_pool, &stmt_all_tags, &[&note_id]).await
 }
 
-pub(crate) async fn create_from_note_to_deck(
+pub(crate) async fn create_from_note_to_decks(
     db_pool: &Pool,
-    edge: &interop::CreateEdge,
-    _user_id: Key,
-) -> Result<interop::Edge> {
-    let to_id: Key;
+    edge: &interop::CreateEdgeFromNoteToDecks,
+) -> Result<Vec<interop::MarginConnection>> {
+    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
+    let tx = client.transaction().await?;
 
-    // todo: make this code good
-    if let Some(id) = edge.person_id {
-        to_id = id;
-    } else if let Some(id) = edge.subject_id {
-        to_id = id;
-    } else {
-        return Err(Error::ModelConversion);
-    };
+    let note_id = edge.note_id;
+    let stmt_all_decks = include_str!("sql/decks_all_for_note.sql");
 
-    let note_id;
-    if let Some(id) = edge.note_id {
-        note_id = id;
-    } else {
-        return Err(Error::MissingField);
+    // get the list of existing tags associated with this note
+    let associated_decks: Vec<MarginConnectionToDeck> = // todo: just need the id?
+        pg::many::<MarginConnectionToDeck>(&tx, &stmt_all_decks, &[&note_id]).await?;
+
+    // remove decks that are in associated_decks but not in edge.deck_ids
+    let stmt_delete_deck = include_str!("sql/edges_delete_notes_decks.sql");
+    for associated_deck in &associated_decks {
+        if !is_key_in_keys(associated_deck.id, &edge.deck_ids) {
+            // this deck has been removed from the note by the user
+            info!("deleting {}, {}", &note_id, &associated_deck.id);
+            pg::zero(&tx, &stmt_delete_deck, &[&note_id, &associated_deck.id]).await?;
+        }
     }
 
-    let stmt = include_str!("sql/edges_create_from_note_to_deck.sql");
+    let stmt_attach_deck = include_str!("sql/edges_create_from_note_to_deck.sql");
 
-    pg::one_from::<NoteDeckEdge, interop::Edge>(db_pool, &stmt, &[&note_id, &to_id]).await
+    // create any new edges from the note to already existing tags
+    for deck_id in &edge.deck_ids {
+        if !is_deck_associated_with_note(*deck_id, &associated_decks) {
+            info!("creating {}, {}", &note_id, &deck_id);
+            pg::zero(&tx, &stmt_attach_deck, &[&note_id, &deck_id]).await?;
+        }
+    }
+
+    tx.commit().await?;
+
+    // return a list of [tag_id, name, resource] containing the complete set of tags associated with this note.
+    pg::many_from::<MarginConnectionToDeck, interop::MarginConnection>(
+        db_pool,
+        &stmt_all_decks,
+        &[&note_id],
+    )
+    .await
 }
 
 pub(crate) async fn delete(db_pool: &Pool, edge_id: Key, _user_id: Key) -> Result<()> {
@@ -294,11 +338,11 @@ pub(crate) async fn delete_all_edges_connected_with_note(
 pub(crate) async fn from_deck_id_via_notes_to_tags(
     db_pool: &Pool,
     deck_id: Key,
-) -> Result<Vec<tags_interop::TagReference>> {
+) -> Result<Vec<interop::MarginConnection>> {
     let stmt = include_str!("sql/from_deck_id_via_notes_to_tags.sql");
 
     let referenced =
-        pg::many_from::<TagReference, tags_interop::TagReference>(db_pool, &stmt, &[&deck_id])
+        pg::many_from::<TagReference, interop::MarginConnection>(db_pool, &stmt, &[&deck_id])
             .await?;
 
     Ok(referenced)
@@ -311,11 +355,11 @@ pub(crate) async fn from_deck_id_via_notes_to_tags(
 pub(crate) async fn from_deck_id_via_notes_to_decks(
     db_pool: &Pool,
     deck_id: Key,
-) -> Result<Vec<decks_interop::DeckReference>> {
+) -> Result<Vec<interop::MarginConnection>> {
     let stmt = include_str!("sql/from_deck_id_via_notes_to_decks.sql");
 
     let referenced =
-        pg::many_from::<DeckReference, decks_interop::DeckReference>(db_pool, &stmt, &[&deck_id])
+        pg::many_from::<DeckReference, interop::MarginConnection>(db_pool, &stmt, &[&deck_id])
             .await?;
 
     Ok(referenced)

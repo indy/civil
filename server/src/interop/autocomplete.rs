@@ -24,8 +24,9 @@ pub struct AutocompleteDeck {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct AutocompleteTag {
+pub struct Autocomplete {
     pub id: Key,
     pub value: String,
     pub label: String,
+    pub resource: String,
 }

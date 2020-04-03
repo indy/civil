@@ -42,7 +42,7 @@ export default function Subject(props) {
 
   function fetchSubject() {
     setCurrentSubjectId(subject_id);
-    Net.get(`/api/subjects/${subject.id}`).then(s => {
+    Net.get(`/api/subjects/${subject_id}`).then(s => {
       if (s) {
         setSubject(NoteUtils.applyTagsAndDecksToNotes(s));
       } else {
@@ -93,8 +93,6 @@ export default function Subject(props) {
     });
   };
 
-  const onAddReference = () => fetchSubject();
-
   function onTagsChanged(note, newTagsCreated) {
     findNoteWithId(note.id, (notes, index) => {
       notes[index] = note;
@@ -106,6 +104,12 @@ export default function Subject(props) {
     }
   }
 
+  function onDecksChanged(note) {
+    findNoteWithId(note.id, (notes, index) => {
+      notes[index] = note;
+    });
+  }
+
   const buildNoteComponent = (note) => {
     return (
       <Note key={ note.id }
@@ -113,9 +117,9 @@ export default function Subject(props) {
             ac = { ac }
             onDelete={ onDeleteNote }
             onEdited={ onEditedNote }
-            onAddReference={ onAddReference }
             onTagsChanged={ onTagsChanged }
-            />
+            onDecksChanged={ onDecksChanged }
+          />
     );
   };
 
@@ -152,8 +156,8 @@ export default function Subject(props) {
     const onAddNote = (e) => {
       const noteForm = e.target;
       NoteUtils.addNote(noteForm, { subject_id })
-        .then(() => {
-          fetchSubject();
+        .then(newNotes => {
+          NoteUtils.appendWithNewNotes(subject, setSubject, newNotes);
           setShowNoteCreateForm(false);
         });
     };
@@ -167,8 +171,8 @@ export default function Subject(props) {
     const onAddQuote = (e) => {
       const quoteForm = e.target;
       NoteUtils.addQuote(quoteForm, { subject_id })
-        .then(() => {
-          fetchSubject();
+        .then(newNotes => {
+          NoteUtils.appendWithNewNotes(subject, setSubject, newNotes);
           setShowQuoteCreateForm(false);
         });
     };

@@ -4,18 +4,16 @@ import Net from './Net';
 export default function AutocompleteCandidates() {
   const [ac, setAc] = useState({
     tags: [],
-    people: [],
-    subjects: []
+    decks: []
   });
   useEffect(() => {
     async function fetchAutocompleteLists() {
       const tagsNew = await Net.get("/api/autocomplete/tags");
-      const peopleNew = await Net.get("/api/autocomplete/people");
-      const subjectsNew = await Net.get("/api/autocomplete/subjects");
+      const decksNew = await Net.get("/api/autocomplete/decks");
+
       setAc({
         tags: tagsNew,
-        people: peopleNew,
-        subjects: subjectsNew
+        decks: decksNew,
       });
     };
     fetchAutocompleteLists();

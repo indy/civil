@@ -29,7 +29,7 @@ export default function Article(props) {
 
   function fetchArticle() {
     setCurrentArticleId(article_id);
-    Net.get(`/api/articles/${article.id}`).then(art => {
+    Net.get(`/api/articles/${article_id}`).then(art => {
       if (art) {
         setArticle(NoteUtils.applyTagsAndDecksToNotes(art));
       } else {
@@ -61,8 +61,6 @@ export default function Article(props) {
     });
   };
 
-  const onAddReference = () => fetchArticle();
-
   // can't just modify article and then call setArticle(article)
   // React is unable to detect changes this way.
   // have to setArticle with a new object: setArticle({...article, title: 'a new title'});
@@ -77,6 +75,12 @@ export default function Article(props) {
     }
   }
 
+  function onDecksChanged(note) {
+    findNoteWithId(note.id, (notes, index) => {
+      notes[index] = note;
+    });
+  }
+
   const buildNoteComponent = (note) => {
     return (
       <Note key={ note.id }
@@ -84,8 +88,8 @@ export default function Article(props) {
             ac = { ac }
             onDelete={ onDeleteNote }
             onEdited={ onEditedNote }
-            onAddReference={ onAddReference }
             onTagsChanged={ onTagsChanged }
+            onDecksChanged={ onDecksChanged }
             />
     );
   };
@@ -107,8 +111,8 @@ export default function Article(props) {
     const onAddNote = (e) => {
       const noteForm = e.target;
       NoteUtils.addNote(noteForm, { article_id })
-        .then(() => {
-          fetchArticle();
+        .then(newNotes => {
+          NoteUtils.appendWithNewNotes(article, setArticle, newNotes);
           setShowNoteCreateForm(false);
         });
     };

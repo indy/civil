@@ -95,8 +95,6 @@ export default function Person(props) {
     });
   };
 
-  const onAddReference = () => fetchPerson();
-
   function onTagsChanged(note, newTagsCreated) {
     findNoteWithId(note.id, (notes, index) => {
       notes[index] = note;
@@ -108,6 +106,12 @@ export default function Person(props) {
     }
   }
 
+  function onDecksChanged(note) {
+    findNoteWithId(note.id, (notes, index) => {
+      notes[index] = note;
+    });
+  }
+
   const buildNoteComponent = (note) => {
     return (
       <Note key={ note.id }
@@ -115,8 +119,8 @@ export default function Person(props) {
             ac = { ac }
             onDelete={ onDeleteNote }
             onEdited={ onEditedNote }
-            onAddReference={ onAddReference }
             onTagsChanged={ onTagsChanged }
+            onDecksChanged={ onDecksChanged }
             />
     );
   };
@@ -154,8 +158,8 @@ export default function Person(props) {
     const onAddNote = (e) => {
       const noteForm = e.target;
       NoteUtils.addNote(noteForm, { person_id })
-        .then(() => {
-          fetchPerson();
+        .then(newNotes => {
+          NoteUtils.appendWithNewNotes(person, setPerson, newNotes);
           setShowNoteCreateForm(false);
         });
     };
@@ -169,8 +173,8 @@ export default function Person(props) {
     const onAddQuote = (e) => {
       const quoteForm = e.target;
       NoteUtils.addQuote(quoteForm, { person_id })
-        .then(() => {
-          fetchPerson();
+        .then(newNotes => {
+          NoteUtils.appendWithNewNotes(person, setPerson, newNotes);
           setShowQuoteCreateForm(false);
         });
     };

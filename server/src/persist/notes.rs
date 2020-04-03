@@ -81,13 +81,16 @@ impl From<Note> for interop::Note {
     }
 }
 
-pub(crate) async fn create_note(
+pub(crate) async fn create_notes(
     db_pool: &Pool,
     user_id: Key,
     note: &interop::CreateNote,
-) -> Result<interop::Note> {
+) -> Result<Vec<interop::Note>> {
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
+
+    let mut notes: Vec<interop::Note> = Vec::new();
+
 
     let res = create_common(
         &tx,
@@ -97,17 +100,19 @@ pub(crate) async fn create_note(
         note.title.as_ref(),
         &note.content[0],
         note.separator,
-    )
-    .await?;
+    ).await?;
+
+    notes.push(res);
 
     let iter = note.content.iter().skip(1);
     for content in iter {
-        let _res = create_common(&tx, user_id, note, NoteType::Note, None, content, false).await?;
+        let res = create_common(&tx, user_id, note, NoteType::Note, None, content, false).await?;
+        notes.push(res);
     }
 
     tx.commit().await?;
 
-    Ok(res)
+    Ok(notes)
 }
 
 pub(crate) async fn get_note(db_pool: &Pool, user_id: Key, note_id: Key) -> Result<interop::Note> {

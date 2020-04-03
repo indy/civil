@@ -37,26 +37,14 @@ pub async fn get_tags(
     Ok(HttpResponse::Ok().json(autocomplete))
 }
 
-pub async fn get_people(
+pub async fn get_decks(
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    info!("get_people");
+    info!("get_decks");
 
     let user_id = session::user_id(&session)?;
-    let autocomplete = db::get_people(&db_pool, user_id).await?;
-
-    Ok(HttpResponse::Ok().json(autocomplete))
-}
-
-pub async fn get_subjects(
-    db_pool: Data<Pool>,
-    session: actix_session::Session,
-) -> Result<HttpResponse> {
-    info!("get_subjects");
-
-    let user_id = session::user_id(&session)?;
-    let autocomplete = db::get_subjects(&db_pool, user_id).await?;
+    let autocomplete = db::get_decks(&db_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(autocomplete))
 }

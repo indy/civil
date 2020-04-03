@@ -40,6 +40,7 @@ pub enum Error {
     MissingField,
     ModelConversion,
     ModelNonUniqueTableName,
+    InvalidKind,
     Other,
 }
 

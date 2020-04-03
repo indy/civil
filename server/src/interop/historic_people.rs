@@ -16,10 +16,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::interop::dates::{CreateDate, Date};
-use crate::interop::decks::{DeckMention, DeckReference};
+use crate::interop::decks::DeckMention;
+use crate::interop::edges::MarginConnection;
 use crate::interop::locations::{CreateLocation, Location};
 use crate::interop::notes::Note;
-use crate::interop::tags::TagReference;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -34,8 +34,8 @@ pub struct Person {
     pub notes: Option<Vec<Note>>,
     pub quotes: Option<Vec<Note>>,
 
-    pub tags_in_notes: Option<Vec<TagReference>>,
-    pub decks_in_notes: Option<Vec<DeckReference>>,
+    pub tags_in_notes: Option<Vec<MarginConnection>>,
+    pub decks_in_notes: Option<Vec<MarginConnection>>,
 
     pub mentioned_by_people: Option<Vec<DeckMention>>,
     pub mentioned_in_subjects: Option<Vec<DeckMention>>,

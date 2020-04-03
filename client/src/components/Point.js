@@ -33,7 +33,7 @@ export default function Point(props) {
 
   function fetchPoint() {
     setCurrentPointId(point_id);
-    Net.get(`/api/points/${point.id}`).then(p => {
+    Net.get(`/api/points/${point_id}`).then(p => {
       if (p) {
         setPoint(NoteUtils.applyTagsAndDecksToNotes(p));
       } else {
@@ -63,8 +63,6 @@ export default function Point(props) {
     });
   };
 
-  const onAddReference = () => fetchPoint();
-
   function onTagsChanged(note, newTagsCreated) {
     findNoteWithId(note.id, (notes, index) => {
       notes[index] = note;
@@ -76,6 +74,12 @@ export default function Point(props) {
     }
   }
 
+  function onDecksChanged(note) {
+    findNoteWithId(note.id, (notes, index) => {
+      notes[index] = note;
+    });
+  }
+
   const buildNoteComponent = (note) => {
     return (
       <Note key={ note.id }
@@ -83,8 +87,8 @@ export default function Point(props) {
             ac = { ac }
             onDelete={ onDeleteNote }
             onEdited={ onEditedNote }
-            onAddReference={ onAddReference }
             onTagsChanged={ onTagsChanged }
+            onDecksChanged={ onDecksChanged }
             />
     );
   };
@@ -106,8 +110,8 @@ export default function Point(props) {
     const onAddNote = (e) => {
       const noteForm = e.target;
       NoteUtils.addNote(noteForm, { point_id })
-        .then(() => {
-          fetchPoint();
+        .then(newNotes => {
+          NoteUtils.appendWithNewNotes(point, setPoint, newNotes);
           setScratchNote("");
           setShowNoteCreateForm(false);
         });
@@ -119,8 +123,8 @@ export default function Point(props) {
 
     return (
       <NoteCreateForm onSubmit={ onAddNote }
-                onChange={ onChangeNote }
-                content={ scratchNote }/>
+                      onChange={ onChangeNote }
+                      content={ scratchNote }/>
     );
   };
 
