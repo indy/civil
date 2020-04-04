@@ -21,10 +21,10 @@ pub mod books;
 pub mod dates;
 pub mod decks;
 pub mod edges;
-pub mod historic_people;
-pub mod historic_points;
 pub mod locations;
 pub mod notes;
+pub mod people;
+pub mod points;
 pub mod tags;
 pub mod users;
 
@@ -41,10 +41,10 @@ pub struct IdParam {
 #[derive(Clone, Copy, Debug)]
 pub enum Model {
     Note,
-    HistoricPerson,
+    Person,
     Article,
     Book,
-    HistoricPoint,
+    Point,
     Date,
     Location,
     Edge,
@@ -55,10 +55,10 @@ impl std::fmt::Display for Model {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Model::Note => write!(f, "Mode::Note"),
-            Model::HistoricPerson => write!(f, "Model::HistoricPerson"),
+            Model::Person => write!(f, "Model::Person"),
             Model::Article => write!(f, "Mode::Article"),
             Model::Book => write!(f, "Model::Book"),
-            Model::HistoricPoint => write!(f, "Model::HistoricPoint"),
+            Model::Point => write!(f, "Model::Point"),
             Model::Date => write!(f, "Mode::Date"),
             Model::Location => write!(f, "Model::Location"),
             Model::Edge => write!(f, "Model::Edge"),
@@ -70,10 +70,10 @@ impl std::fmt::Display for Model {
 pub(crate) fn model_to_deck_kind(model: Model) -> Result<&'static str> {
     match model {
         Model::Note => Ok("note"),
-        Model::HistoricPerson => Ok("historic_person"),
+        Model::Person => Ok("person"),
         Model::Article => Ok("article"),
         Model::Book => Ok("book"),
-        Model::HistoricPoint => Ok("historic_point"),
+        Model::Point => Ok("point"),
         _ => Err(Error::ModelConversion),
     }
 }
@@ -91,8 +91,8 @@ pub(crate) fn model_to_table_name(model: Model) -> Result<&'static str> {
 
 pub(crate) fn kind_to_resource(kind: &str) -> Result<&'static str> {
     match kind {
-        "historic_person" => Ok("people"),
-        "historic_point" => Ok("points"),
+        "person" => Ok("people"),
+        "point" => Ok("points"),
         "article" => Ok("articles"),
         "book" => Ok("books"),
         _ => Err(Error::InvalidKind),

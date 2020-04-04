@@ -18,8 +18,8 @@
 use super::pg;
 use crate::error::{Error, Result};
 use crate::interop::dates as dates_interop;
-use crate::interop::historic_people as interop;
 use crate::interop::locations as locations_interop;
+use crate::interop::people as interop;
 use crate::interop::Key;
 use crate::persist::dates;
 use crate::persist::decks;
@@ -32,7 +32,7 @@ use tokio_pg_mapper_derive::PostgresMapper;
 #[allow(unused_imports)]
 use tracing::{error, info};
 
-// PersonDerived contains additional information from tables other than historic_people
+// PersonDerived contains additional information from tables other than people
 // a interop::Person can be created just from a db::PersonDerived
 //
 #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
@@ -69,7 +69,7 @@ struct PersonDerived {
     dl_fuzz: Option<f32>,
 }
 
-// Person is a direct mapping from the historic_people schema in the db
+// Person is a direct mapping from the people schema in the db
 // a interop::Person can be created from a db::PersonDerived + extra date and location information
 //
 #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
@@ -177,7 +177,7 @@ pub(crate) async fn create(
 
     let db_person = pg::one::<Person>(
         &tx,
-        include_str!("sql/historic_people_create.sql"),
+        include_str!("sql/people_create.sql"),
         &[
             &user_id,
             &person.name,
@@ -211,7 +211,7 @@ pub(crate) async fn create(
 pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Person>> {
     pg::many_from::<PersonDerived, interop::Person>(
         db_pool,
-        include_str!("sql/historic_people_all_derived.sql"),
+        include_str!("sql/people_all.sql"),
         &[&user_id],
     )
     .await
@@ -220,7 +220,7 @@ pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Per
 pub(crate) async fn get(db_pool: &Pool, user_id: Key, person_id: Key) -> Result<interop::Person> {
     pg::one_from::<PersonDerived, interop::Person>(
         db_pool,
-        include_str!("sql/historic_people_get_derived.sql"),
+        include_str!("sql/people_get.sql"),
         &[&user_id, &person_id],
     )
     .await
@@ -272,7 +272,7 @@ pub(crate) async fn edit(
 
     let _person = pg::one::<Person>(
         &tx,
-        include_str!("sql/historic_people_edit.sql"),
+        include_str!("sql/people_edit.sql"),
         &[&user_id, &person_id, &updated_person.name],
     )
     .await?;

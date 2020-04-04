@@ -16,11 +16,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::pg;
-use crate::persist::edges;
-use crate::persist::notes;
 use crate::error::{Error, Result};
 use crate::interop::tags as interop;
 use crate::interop::Key;
+use crate::persist::edges;
+use crate::persist::notes;
 use deadpool_postgres::{Client, Pool, Transaction};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;

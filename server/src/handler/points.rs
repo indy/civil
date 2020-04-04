@@ -16,11 +16,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
-use crate::interop::historic_points as interop;
+use crate::interop::points as interop;
 use crate::interop::IdParam;
 use crate::persist::edges as edges_db;
-use crate::persist::historic_points as db;
 use crate::persist::notes as notes_db;
+use crate::persist::points as db;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;

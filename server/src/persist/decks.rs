@@ -50,7 +50,7 @@ async fn get_owned(tx: &Transaction<'_>, id: Key, user_id: Key) -> Result<Deck> 
     pg::one::<Deck>(tx, include_str!("sql/decks_get.sql"), &[&id, &user_id]).await
 }
 
-// delete anything that's represented as a deck (article, book, historical_person, historical_point)
+// delete anything that's represented as a deck (article, book, person, point)
 //
 pub(crate) async fn delete(db_pool: &Pool, id: Key, user_id: Key) -> Result<()> {
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;

@@ -18,8 +18,8 @@
 use super::pg;
 use crate::error::{Error, Result};
 use crate::interop::dates as dates_interop;
-use crate::interop::historic_points as interop;
 use crate::interop::locations as locations_interop;
+use crate::interop::points as interop;
 use crate::interop::Key;
 use crate::persist::dates;
 use crate::persist::decks;
@@ -125,7 +125,7 @@ pub(crate) async fn create(
 
     let db_point = pg::one::<Point>(
         &tx,
-        include_str!("sql/historic_points_create.sql"),
+        include_str!("sql/points_create.sql"),
         &[&user_id, &point.title, &point_date_id, &point_location_id],
     )
     .await?;
@@ -149,7 +149,7 @@ pub(crate) async fn create(
 pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Point>> {
     pg::many_from::<PointDerived, interop::Point>(
         db_pool,
-        include_str!("sql/historic_points_all.sql"),
+        include_str!("sql/points_all.sql"),
         &[&user_id],
     )
     .await
@@ -158,7 +158,7 @@ pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Poi
 pub(crate) async fn get(db_pool: &Pool, user_id: Key, point_id: Key) -> Result<interop::Point> {
     pg::one_from::<PointDerived, interop::Point>(
         db_pool,
-        include_str!("sql/historic_points_get_derived.sql"),
+        include_str!("sql/points_get.sql"),
         &[&user_id, &point_id],
     )
     .await
@@ -193,7 +193,7 @@ pub(crate) async fn edit(
 
     let _point = pg::one::<Point>(
         &tx,
-        include_str!("sql/historic_points_edit.sql"),
+        include_str!("sql/points_edit.sql"),
         &[&user_id, &point_id, &updated_point.title],
     )
     .await?;

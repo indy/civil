@@ -16,4 +16,4 @@ SELECT p.id,
 FROM decks p
 LEFT OUTER JOIN dates d ON p.date_id = d.id
 LEFT OUTER JOIN locations l on p.location_id = l.id
-WHERE p.user_id = $1 AND p.id = $2 AND p.kind = 'historic_point'
+WHERE p.user_id = $1 AND p.id = $2 AND p.kind = 'point'

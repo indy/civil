@@ -16,12 +16,12 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
-use crate::interop::historic_people as interop;
+use crate::interop::people as interop;
 use crate::interop::IdParam;
 use crate::interop::Model;
 use crate::persist::edges as edges_db;
-use crate::persist::historic_people as db;
 use crate::persist::notes as notes_db;
+use crate::persist::people as db;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
@@ -78,8 +78,7 @@ pub async fn get(
 
     // all the people that mention this person
     let mentioned_by_people =
-        edges_db::from_decks_via_notes_to_deck_id(&db_pool, Model::HistoricPerson, person_id)
-            .await?;
+        edges_db::from_decks_via_notes_to_deck_id(&db_pool, Model::Person, person_id).await?;
     person.mentioned_by_people = Some(mentioned_by_people);
 
     // all the articles that mention this person

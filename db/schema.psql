@@ -16,7 +16,7 @@ DROP TABLE IF EXISTS locations;
 DROP TABLE IF EXISTS users;
 DROP TYPE IF EXISTS deck_kind;
 
-CREATE TYPE deck_kind AS ENUM ('historic_person', 'historic_point', 'subject', 'article', 'book');
+CREATE TYPE deck_kind AS ENUM ('article', 'book', 'person', 'point');
 -- ALTER TYPE deck_kind ADD VALUE 'something'; -- appends value to enum
 
 CREATE TABLE IF NOT EXISTS users (
@@ -84,14 +84,14 @@ CREATE TABLE IF NOT EXISTS decks (
 
     kind deck_kind NOT NULL,
 
-    name TEXT NOT NULL,         -- was title in articles and historic_points
+    name TEXT NOT NULL,         -- was title in articles and points
     source TEXT,                -- for articles
 
-    date_id BIGINT REFERENCES dates, -- historic_points
-    location_id BIGINT REFERENCES locations, --historic_points
+    date_id BIGINT REFERENCES dates, -- points
+    location_id BIGINT REFERENCES locations, --points
 
-    timespan_id BIGINT REFERENCES timespans, -- historic_people
-    location2_id BIGINT REFERENCES locations -- historic_people (death_location)
+    timespan_id BIGINT REFERENCES timespans, -- people
+    location2_id BIGINT REFERENCES locations -- people (death_location)
 );
 
 CREATE TABLE IF NOT EXISTS ideas (

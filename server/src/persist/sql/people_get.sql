@@ -33,5 +33,5 @@ FROM decks p LEFT OUTER JOIN locations bl ON p.location_id = bl.id
                  LEFT OUTER JOIN dates dd ON t.date_end_id = dd.id
 WHERE p.user_id = $1
       AND p.id = $2
-      AND p.kind = 'historic_person'
+      AND p.kind = 'person'
       AND t.id = p.timespan_id

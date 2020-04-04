@@ -19,9 +19,9 @@ use crate::handler::articles;
 use crate::handler::autocomplete;
 use crate::handler::books;
 use crate::handler::edges;
-use crate::handler::historic_people;
-use crate::handler::historic_points;
 use crate::handler::notes;
+use crate::handler::people;
+use crate::handler::points;
 use crate::handler::tags;
 use crate::handler::users;
 use actix_files::NamedFile;
@@ -43,23 +43,23 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("", post().to(users::create_user))
                 .route("", get().to(users::get_user)),
         )
-        // historic_people
+        // people
         .service(
             scope("/people")
-                .route("", post().to(historic_people::create))
-                .route("", get().to(historic_people::get_all))
-                .route("/{id}", get().to(historic_people::get))
-                .route("/{id}", put().to(historic_people::edit)) // check
-                .route("/{id}", delete().to(historic_people::delete)),
+                .route("", post().to(people::create))
+                .route("", get().to(people::get_all))
+                .route("/{id}", get().to(people::get))
+                .route("/{id}", put().to(people::edit)) // check
+                .route("/{id}", delete().to(people::delete)),
         )
-        // historic_points
+        // points
         .service(
             scope("/points")
-                .route("", post().to(historic_points::create))
-                .route("", get().to(historic_points::get_all))
-                .route("/{id}", get().to(historic_points::get))
-                .route("/{id}", put().to(historic_points::edit)) // check
-                .route("/{id}", delete().to(historic_points::delete)),
+                .route("", post().to(points::create))
+                .route("", get().to(points::get_all))
+                .route("/{id}", get().to(points::get))
+                .route("/{id}", put().to(points::edit)) // check
+                .route("/{id}", delete().to(points::delete)),
         )
         // articles
         .service(

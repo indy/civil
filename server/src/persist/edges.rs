@@ -427,7 +427,7 @@ pub(crate) async fn from_deck_id_via_notes_to_decks(
 }
 
 // return all the decks of a certain kind that mention another particular deck.
-// e.g. from_decks_via_notes_to_deck_id(db_pool, Model::HistoricPerson, article_id)
+// e.g. from_decks_via_notes_to_deck_id(db_pool, Model::Person, article_id)
 // will return all the people who mention the given article, ordered by number of references
 //
 pub(crate) async fn from_decks_via_notes_to_deck_id(

@@ -31,4 +31,4 @@ from decks p left outer join locations bl on p.location_id = bl.id
              left outer join locations dl on p.location2_id = dl.id,
      timespans t left outer join dates bd on t.date_start_id = bd.id
                  left outer join dates dd on t.date_end_id = dd.id
-where p.user_id = $1 and p.kind = 'historic_person' and t.id = p.timespan_id;
+where p.user_id = $1 and p.kind = 'person' and t.id = p.timespan_id;
