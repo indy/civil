@@ -196,29 +196,42 @@ pub(crate) async fn create_common(
     )
     .await?;
 
-    let deck_id = if let Some(person_id) = note.person_id {
-        person_id
+    if let Some(person_id) = note.person_id {
+        edges::create_from_deck_to_note(tx, person_id, db_note.id).await?;
     } else if let Some(subject_id) = note.subject_id {
-        subject_id
+        edges::create_from_deck_to_note(tx, subject_id, db_note.id).await?;
     } else if let Some(article_id) = note.article_id {
-        article_id
+        edges::create_from_deck_to_note(tx, article_id, db_note.id).await?;
     } else if let Some(point_id) = note.point_id {
-        point_id
+        edges::create_from_deck_to_note(tx, point_id, db_note.id).await?;
     } else if let Some(book_id) = note.book_id {
-        book_id
+        edges::create_from_deck_to_note(tx, book_id, db_note.id).await?;
+    } else if let Some(tag_id) = note.tag_id {
+        edges::create_from_tag_to_note(tx, tag_id, db_note.id).await?;
     } else {
         return Err(Error::Other);
     };
-
-    edges::create_from_deck_to_note(tx, deck_id, db_note.id).await?;
 
     let note = interop::Note::from(db_note);
     Ok(note)
 }
 
-pub(crate) async fn all(db_pool: &Pool, deck_id: Key) -> Result<Vec<interop::Note>> {
-    pg::many_from::<Note, interop::Note>(db_pool, include_str!("sql/notes_all.sql"), &[&deck_id])
-        .await
+pub(crate) async fn all_from_deck(db_pool: &Pool, deck_id: Key) -> Result<Vec<interop::Note>> {
+    pg::many_from::<Note, interop::Note>(
+        db_pool,
+        include_str!("sql/notes_all_from_deck.sql"),
+        &[&deck_id],
+    )
+    .await
+}
+
+pub(crate) async fn all_from_tag(db_pool: &Pool, tag_id: Key) -> Result<Vec<interop::Note>> {
+    pg::many_from::<Note, interop::Note>(
+        db_pool,
+        include_str!("sql/notes_all_from_tag.sql"),
+        &[&tag_id],
+    )
+    .await
 }
 
 pub(crate) async fn delete_all_notes_connected_with_deck(

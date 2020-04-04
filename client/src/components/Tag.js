@@ -1,7 +1,9 @@
 import { useParams } from 'react-router-dom';
 import React, { useState } from 'react';
 
-import Net from '../lib/Net';
+import NoteCreator from './NoteCreator';
+import NoteHolder from './NoteHolder';
+import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
 
 export default function Tag(props) {
   const {id} = useParams();
@@ -9,31 +11,22 @@ export default function Tag(props) {
 
   const [tag, setTag] = useState({
     id: tag_id,
+    notes: [],
+    tags_in_notes: [],
+    decks_in_notes: []
   });
 
-  const [currentTagId, setCurrentTagId] = useState(false);
+  ensureCorrectDeck(tag_id, setTag, "tags");
 
-  if (tag_id !== currentTagId) {
-    // get here on first load and when we're already on a /tags/:id page and follow a Link to another /tags/:id
-    //
-    fetchTag();
-  }
-
-  function fetchTag() {
-    setCurrentTagId(tag_id);
-    Net.get(`/api/tags/${tag.id}`).then(s => {
-      if (s) {
-        setTag(s);
-        window.scrollTo(0, 0);
-      } else {
-        console.error('fetchTag');
-      }
-    });
-  };
+  const creator = NoteCreator(tag, setTag, { tag_id }, tag.name);
+  const notes = NoteHolder(tag, setTag);
 
   return (
     <article>
-      <h1>{ tag.name }</h1>
+      { creator }
+      <section className="tag-notes">
+        { notes }
+      </section>
     </article>
   );
 }

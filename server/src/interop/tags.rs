@@ -15,12 +15,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::interop::edges::MarginConnection;
+use crate::interop::notes::Note;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Tag {
     pub id: Key,
     pub name: String,
+
+    pub notes: Option<Vec<Note>>,
+
+    pub tags_in_notes: Option<Vec<MarginConnection>>,
+    pub decks_in_notes: Option<Vec<MarginConnection>>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

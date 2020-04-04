@@ -66,7 +66,7 @@ pub async fn get(
     let book_id = params.id;
     let mut book = db::get(&db_pool, user_id, book_id).await?;
 
-    let notes = notes_db::all(&db_pool, book_id).await?;
+    let notes = notes_db::all_from_deck(&db_pool, book_id).await?;
     book.notes = Some(notes);
 
     let tags_in_notes = edges_db::from_deck_id_via_notes_to_tags(&db_pool, book_id).await?;

@@ -264,6 +264,21 @@ pub(crate) async fn delete(db_pool: &Pool, edge_id: Key, _user_id: Key) -> Resul
     Ok(())
 }
 
+pub(crate) async fn create_from_tag_to_note(
+    tx: &Transaction<'_>,
+    tag_id: Key,
+    note_id: Key,
+) -> Result<()> {
+    let stmt = include_str!("sql/edges_create_from_tag_to_note.sql");
+
+    // normally a pg::one for create, but we're not going
+    // to return anything when creating an edge
+    //
+    pg::zero(tx, &stmt, &[&tag_id, &note_id]).await?;
+
+    Ok(())
+}
+
 pub(crate) async fn create_from_deck_to_note(
     tx: &Transaction<'_>,
     deck_id: Key,
@@ -329,6 +344,32 @@ pub(crate) async fn delete_all_edges_connected_with_note(
     .await?;
 
     Ok(())
+}
+
+pub(crate) async fn from_tag_id_via_notes_to_tags(
+    db_pool: &Pool,
+    tag_id: Key,
+) -> Result<Vec<interop::MarginConnection>> {
+    let stmt = include_str!("sql/from_tag_id_via_notes_to_tags.sql");
+
+    let referenced =
+        pg::many_from::<TagReference, interop::MarginConnection>(db_pool, &stmt, &[&tag_id])
+            .await?;
+
+    Ok(referenced)
+}
+
+pub(crate) async fn from_tag_id_via_notes_to_decks(
+    db_pool: &Pool,
+    tag_id: Key,
+) -> Result<Vec<interop::MarginConnection>> {
+    let stmt = include_str!("sql/from_tag_id_via_notes_to_decks.sql");
+
+    let referenced =
+        pg::many_from::<DeckReference, interop::MarginConnection>(db_pool, &stmt, &[&tag_id])
+            .await?;
+
+    Ok(referenced)
 }
 
 // return all the tags attached to the given deck's notes

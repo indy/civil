@@ -18,6 +18,8 @@
 use crate::error::Result;
 use crate::interop::tags as interop;
 use crate::interop::IdParam;
+use crate::persist::edges as edges_db;
+use crate::persist::notes as notes_db;
 use crate::persist::tags as db;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
@@ -62,7 +64,16 @@ pub async fn get(
     let user_id = session::user_id(&session)?;
 
     let tag_id = params.id;
-    let tag = db::get(&db_pool, user_id, tag_id).await?;
+    let mut tag = db::get(&db_pool, user_id, tag_id).await?;
+
+    let notes = notes_db::all_from_tag(&db_pool, tag_id).await?;
+    tag.notes = Some(notes);
+
+    let tags_in_notes = edges_db::from_tag_id_via_notes_to_tags(&db_pool, tag_id).await?;
+    tag.tags_in_notes = Some(tags_in_notes);
+
+    let decks_in_notes = edges_db::from_tag_id_via_notes_to_decks(&db_pool, tag_id).await?;
+    tag.decks_in_notes = Some(decks_in_notes);
 
     Ok(HttpResponse::Ok().json(tag))
 }

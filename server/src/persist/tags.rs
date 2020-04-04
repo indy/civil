@@ -38,6 +38,11 @@ impl From<Tag> for interop::Tag {
         interop::Tag {
             id: s.id,
             name: s.name,
+
+            notes: None,
+
+            tags_in_notes: None,
+            decks_in_notes: None,
         }
     }
 }

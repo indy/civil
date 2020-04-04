@@ -37,4 +37,5 @@ pub struct CreateNote {
     pub article_id: Option<Key>,
     pub point_id: Option<Key>,
     pub book_id: Option<Key>,
+    pub tag_id: Option<Key>,
 }

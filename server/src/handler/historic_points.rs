@@ -66,7 +66,7 @@ pub async fn get(
     let point_id = params.id;
     let mut point = db::get(&db_pool, user_id, point_id).await?;
 
-    let notes = notes_db::all(&db_pool, point_id).await?;
+    let notes = notes_db::all_from_deck(&db_pool, point_id).await?;
     point.notes = Some(notes);
 
     let tags_in_notes = edges_db::from_deck_id_via_notes_to_tags(&db_pool, point_id).await?;
