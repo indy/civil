@@ -16,6 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::pg;
+use crate::persist::edges;
+use crate::persist::notes;
 use crate::error::{Error, Result};
 use crate::interop::tags as interop;
 use crate::interop::Key;
@@ -91,10 +93,8 @@ pub(crate) async fn delete(db_pool: &Pool, user_id: Key, tag_id: Key) -> Result<
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    // todo: delete all edges connected with this tag
-
-    // notes::delete_all_notes_connected_with_deck(&tx, id, user_id).await?;
-    // edges::delete_all_edges_connected_with_deck(&tx, id).await?;
+    notes::delete_all_notes_connected_with_tag(&tx, tag_id, user_id).await?;
+    edges::delete_all_edges_connected_with_tag(&tx, tag_id).await?;
 
     let stmt = include_str!("sql/tags_delete.sql");
     pg::zero(&tx, &stmt, &[&tag_id, &user_id]).await?;

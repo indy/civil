@@ -244,3 +244,22 @@ pub(crate) async fn delete_all_notes_connected_with_deck(
 
     Ok(())
 }
+
+pub(crate) async fn delete_all_notes_connected_with_tag(
+    tx: &Transaction<'_>,
+    user_id: Key,
+    tag_id: Key,
+) -> Result<()> {
+    let note_ids = pg::many::<NoteId>(
+        tx,
+        include_str!("sql/notes_all_ids_for_tag.sql"),
+        &[&tag_id],
+    )
+    .await?;
+
+    for note_id in note_ids {
+        delete_note(tx, user_id, note_id.id).await?;
+    }
+
+    Ok(())
+}

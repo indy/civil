@@ -314,6 +314,26 @@ pub(crate) async fn delete_all_edges_connected_with_deck(
     Ok(())
 }
 
+pub(crate) async fn delete_all_edges_connected_with_tag(
+    tx: &Transaction<'_>,
+    tag_id: Key,
+) -> Result<()> {
+    pg::zero(
+        tx,
+        &include_str!("sql/edges_delete_tags_notes_with_tag_id.sql"),
+        &[&tag_id],
+    )
+    .await?;
+    pg::zero(
+        tx,
+        &include_str!("sql/edges_delete_notes_tags_with_tag_id.sql"),
+        &[&tag_id],
+    )
+    .await?;
+
+    Ok(())
+}
+
 pub(crate) async fn delete_all_edges_connected_with_note(
     tx: &Transaction<'_>,
     note_id: Key,
