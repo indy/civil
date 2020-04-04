@@ -28,9 +28,22 @@ pub struct Tag {
 
     pub tags_in_notes: Option<Vec<MarginConnection>>,
     pub decks_in_notes: Option<Vec<MarginConnection>>,
+
+    pub linkbacks_to_decks: Option<Vec<LinkBack>>,
+    pub linkbacks_to_ideas: Option<Vec<LinkBack>>,
+    pub linkbacks_to_tags: Option<Vec<LinkBack>>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct CreateTag {
     pub name: String,
+}
+
+// on a tag page these will represent links back to decks, ideas and other tags
+//
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct LinkBack {
+    pub id: Key,
+    pub name: String,
+    pub resource: String,
 }

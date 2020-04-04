@@ -31,30 +31,34 @@ export default function NoteCreateForm(props) {
     <form onSubmit={ handleSubmit }>
 
       <label htmlFor="title">Title:</label>
+      <br/>
       <input id="title"
              type="text"
              name="title"
              value={ title }
              onChange={ handleChangeEvent }
       />
-
+      <br/>
       <label htmlFor="content">Content:</label>
+      <br/>
       <textarea id="content"
                 type="text"
                 name="content"
                 value={ content }
                 onChange={ handleChangeEvent }
       />
-
+      <br/>
       <label htmlFor="source">Source:</label>
+      <br/>
       <input id="source"
              type="text"
              name="source"
              value={ source }
              onChange={ handleChangeEvent }
       />
-
+      <br/>
       <label htmlFor="separator">Has Separator:</label>
+      <br/>
       <input id="separator"
              type="checkbox"
              name="separator"

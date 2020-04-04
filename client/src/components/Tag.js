@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import NoteCreator from './NoteCreator';
 import NoteHolder from './NoteHolder';
 import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
+import SectionLinkBack from './SectionLinkBack';
 
 export default function Tag(props) {
   const {id} = useParams();
@@ -27,6 +28,9 @@ export default function Tag(props) {
       <section className="tag-notes">
         { notes }
       </section>
+      <SectionLinkBack title="Decks" linkbacks={ tag.linkbacks_to_decks }/>
+      <SectionLinkBack title="Tags" linkbacks={ tag.linkbacks_to_tags }/>
+      <SectionLinkBack title="Ideas" linkbacks={ tag.linkbacks_to_ideas }/>
     </article>
   );
 }

@@ -45,6 +45,10 @@ impl From<Tag> for interop::Tag {
 
             tags_in_notes: None,
             decks_in_notes: None,
+
+            linkbacks_to_decks: None,
+            linkbacks_to_ideas: None,
+            linkbacks_to_tags: None,
         }
     }
 }
