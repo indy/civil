@@ -165,13 +165,11 @@ export default function App(props) {
 const Home = () => {
   return (
     <div>
+      <h1>Civil &times; Zettelkasten &times; Samizdat</h1>
       <ol>
         <li>Keep private</li>
-        <li>Always honest</li>
+        <li>Remain honest</li>
         <li>Never delete</li>
-        <li>Don't copy</li>
-        <li>Single ideas</li>
-        <li>Have references</li>
       </ol>
       <img src="/img/BertrandRussell-Illustration-1024x1022.png" alt="Bertrand Russell"/>
     </div>

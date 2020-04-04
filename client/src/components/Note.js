@@ -85,11 +85,12 @@ export default function Note(props) {
     const note = props.note;
     const id = note.id;
 
-    NoteUtils.deleteNote(id);
+    NoteUtils.deleteNote(id).then(() => {
+      console.log("in delete");
+      onDelete(id);
+    });
 
     event.preventDefault();
-
-    onDelete(id);
   };
 
   function onEditClicked() {
@@ -129,16 +130,27 @@ export default function Note(props) {
     setShowMainButtons(!showMainButtons);
   };
 
+
+  function buildTitle(title) {
+    return (
+      <div onClick={ onShowButtonsClicked }>
+        <h2>{ title }</h2>
+      </div>
+    );
+  };
+
   function buildNonEditableContent() {
     return (
       <div>
-        <div onClick={ onShowButtonsClicked }>
-          { title && buildTitle(title) }
+        { title && buildTitle(title) }
+        <div>
           { source && buildSource(source) }
-          { parseContent(content) }
+          { props.note.tags && buildMarginConnections(props.note.tags, "tag-container", "tag") }
+          { props.note.decks && buildMarginConnections(props.note.decks, "marginnote-container", "marginnote") }
+          <div onClick={ onShowButtonsClicked }>
+            { parseContent(content) }
+          </div>
         </div>
-        { props.note.tags && buildMarginConnections(props.note.tags, "tag") }
-        { props.note.decks && buildMarginConnections(props.note.decks, "marginnote") }
       </div>
     );
   };
@@ -370,30 +382,28 @@ export default function Note(props) {
   );
 }
 
-function buildTitle(title) {
-  return (
-    <h2>{ title }</h2>
-  );
-};
-
 function buildSource(source) {
   return (
-    <span className="marginnote">
+    <span className="marginnote-container">
       <a href={ source }>{ source }</a>
     </span>
   );
 };
 
-function buildMarginConnections(marginConnections, className) {
+function buildMarginConnections(marginConnections, containerName, itemName) {
   const referenced = marginConnections.map(s => {
     return (
-      <span className={ className } key={ s.id }>
+      <div className={ itemName } key={ s.id }>
         <ResourceLink id={ s.id } name={ s.name } resource={ s.resource }/>
-      </span>
+      </div>
     );
   });
 
-  return referenced;
+  return (
+    <div className={ containerName }>
+      { referenced }
+    </div>
+  );
 };
 
 function parseContent(text) {

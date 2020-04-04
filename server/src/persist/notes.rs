@@ -141,10 +141,7 @@ pub(crate) async fn delete_note_pool(db_pool: &Pool, user_id: Key, note_id: Key)
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    edges::delete_all_edges_connected_with_note(&tx, note_id).await?;
-
-    let stmt = include_str!("sql/notes_delete.sql");
-    pg::zero(&tx, &stmt, &[&note_id, &user_id]).await?;
+    delete_note(&tx, user_id, note_id).await?;
 
     tx.commit().await?;
 

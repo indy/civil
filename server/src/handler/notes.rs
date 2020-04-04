@@ -33,7 +33,7 @@ pub async fn create_notes(
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     let note = note.into_inner();
-    info!("create_note {:?}", &note);
+    info!("create_notes {:?}", &note);
 
     let user_id = session::user_id(&session)?;
 
@@ -47,6 +47,8 @@ pub async fn get_note(
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
+    info!("get_note");
+
     let user_id = session::user_id(&session)?;
 
     let note = db::get_note(&db_pool, user_id, params.id).await?;
@@ -60,6 +62,8 @@ pub async fn edit_note(
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
+    info!("edit_note");
+
     let note = note.into_inner();
     let user_id = session::user_id(&session)?;
 
@@ -73,6 +77,8 @@ pub async fn delete_note(
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
+    info!("delete_note {}", params.id);
+
     let user_id = session::user_id(&session)?;
 
     db::delete_note_pool(&db_pool, user_id, params.id).await?;
@@ -85,6 +91,8 @@ pub async fn create_quote(
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
+    info!("create_quote");
+
     let note = note.into_inner();
     let user_id = session::user_id(&session)?;
 
@@ -98,6 +106,8 @@ pub async fn get_quote(
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
+    info!("get_quote");
+
     let user_id = session::user_id(&session)?;
 
     // same implementation as note
@@ -112,6 +122,8 @@ pub async fn edit_quote(
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
+    info!("edit_quote");
+
     let note = note.into_inner();
     let user_id = session::user_id(&session)?;
 
@@ -125,6 +137,8 @@ pub async fn delete_quote(
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
+    info!("delete_quote");
+
     let user_id = session::user_id(&session)?;
 
     // same implementation as note

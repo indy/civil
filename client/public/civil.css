@@ -162,7 +162,9 @@ a:link, a:visited { color: inherit; }
 /* Sidenotes, margin notes, figures, captions */
 img { max-width: 100%; }
 
-.tag {
+.tag-container {
+  padding-top: 0.5em;
+
   text-decoration: none;
 
   float: left;
@@ -182,20 +184,22 @@ img { max-width: 100%; }
   text-decoration: none;
 }
 
-.sidenote, .marginnote { float: right;
-                         clear: right;
-                         margin-right: -60%;
-                         width: 50%;
-                         margin-top: 0;
-                         margin-bottom: 0;
-                         font-size: 1.1rem;
-                         line-height: 1.3;
-                         vertical-align: baseline;
-                         position: relative;
-                         color: #666;
-                       }
+.sidenote, .marginnote-container {
+    padding-top: 0.5em;
+    float: right;
+    clear: right;
+    margin-right: -60%;
+    width: 50%;
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 1.1rem;
+    line-height: 1.3;
+    vertical-align: baseline;
+    position: relative;
+    color: #666;
+}
 
-.marginnote a {
+.marginnote-container a {
   text-decoration: none;
 }
 
@@ -213,7 +217,7 @@ img { max-width: 100%; }
 .sidenote:before { content: counter(sidenote-counter) " ";
                    top: -0.5rem; }
 
-blockquote .sidenote, blockquote .marginnote { margin-right: -82%;
+blockquote .sidenote, blockquote .marginnote-container { margin-right: -82%;
                                                min-width: 59%;
                                                text-align: left; }
 
@@ -233,7 +237,7 @@ code { font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
 
 h1 > code, h2 > code, h3 > code { font-size: 0.80em; }
 
-.marginnote > code, .sidenote > code { font-size: 1rem; }
+.marginnote-container > code, .sidenote > code { font-size: 1rem; }
 
 pre.code { font-size: 0.9rem;
            width: 52.5%;
@@ -279,9 +283,9 @@ label.margin-toggle:not(.sidenote-number) { display: none; }
                                          margin-right: 0em; }
                             blockquote p, blockquote footer { width: 100%; }
                             label.margin-toggle:not(.sidenote-number) { display: inline; }
-                            .sidenote, .marginnote { display: none; }
+                            .sidenote, .marginnote-container { display: none; }
                             .margin-toggle:checked + .sidenote,
-                            .margin-toggle:checked + .marginnote { display: block;
+                            .margin-toggle:checked + .marginnote-container { display: block;
                                                                    float: left;
                                                                    left: 1rem;
                                                                    clear: both;
