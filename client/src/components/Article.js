@@ -16,7 +16,7 @@ export default function Article(props) {
 
   ensureCorrectDeck(article_id, setArticle, "articles");
 
-  const creator = NoteCreator(article, setArticle, { article_id }, article.title);
+  const creator = NoteCreator(article, setArticle, { deck_id: article_id }, article.title);
   const notes = NoteHolder(article, setArticle);
 
   return (

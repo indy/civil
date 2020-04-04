@@ -24,7 +24,7 @@ export default function Subject(props) {
 
   ensureCorrectDeck(subject_id, setSubject, "subjects");
 
-  const creator = NoteCreator(subject, setSubject, { subject_id }, subject.name);
+  const creator = NoteCreator(subject, setSubject, { deck_id: subject_id }, subject.name);
   const notes = NoteHolder(subject, setSubject);
 
   return (

@@ -18,7 +18,7 @@ export default function Book(props) {
 
   ensureCorrectDeck(book_id, setBook, "books");
 
-  const creator = NoteCreator(book, setBook, { book_id }, book.title);
+  const creator = NoteCreator(book, setBook, { deck_id: book_id }, book.title);
   const notes = NoteHolder(book, setBook);
 
   return (

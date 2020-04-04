@@ -18,7 +18,7 @@ export default function Point(props) {
 
   ensureCorrectDeck(point_id, setPoint, "points");
 
-  const creator = NoteCreator(point, setPoint, { point_id }, point.title);
+  const creator = NoteCreator(point, setPoint, { deck_id: point_id }, point.title);
   const notes = NoteHolder(point, setPoint);
 
   return (

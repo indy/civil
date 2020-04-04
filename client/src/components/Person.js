@@ -37,7 +37,7 @@ export default function Person(props) {
 
   ensureCorrectDeck(person_id, setPerson, "people");
 
-  const creator = NoteCreator(person, setPerson, { person_id }, person.name);
+  const creator = NoteCreator(person, setPerson, { deck_id: person_id }, person.name);
   const notes = NoteHolder(person, setPerson);
 
   return (

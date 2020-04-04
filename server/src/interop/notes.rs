@@ -32,10 +32,7 @@ pub struct CreateNote {
     pub source: Option<String>,
     pub content: Vec<String>,
     pub separator: bool,
-    pub person_id: Option<Key>,
-    pub subject_id: Option<Key>,
-    pub article_id: Option<Key>,
-    pub point_id: Option<Key>,
-    pub book_id: Option<Key>,
+
+    pub deck_id: Option<Key>,
     pub tag_id: Option<Key>,
 }

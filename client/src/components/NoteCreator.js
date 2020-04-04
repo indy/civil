@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import NoteUtils from '../lib/NoteUtils';
 import NoteCreateForm from './NoteCreateForm';
 
+// ident is an object containing either a deck_id or a tag_id
 export default function NoteCreator(deck, setDeck, ident, title) {
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteCreateForm, setShowNoteCreateForm] = useState(false);
