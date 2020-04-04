@@ -26,7 +26,6 @@ pub struct Subject {
     pub name: String,
 
     pub notes: Option<Vec<Note>>,
-    pub quotes: Option<Vec<Note>>,
 
     pub tags_in_notes: Option<Vec<MarginConnection>>,
     pub decks_in_notes: Option<Vec<MarginConnection>>,

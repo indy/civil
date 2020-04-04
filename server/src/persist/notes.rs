@@ -32,7 +32,7 @@ use tracing::info;
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum NoteType {
     Note = 1,
-    Quote = 2,
+    //    Quote = 2,
 }
 
 impl ToSql for NoteType {
@@ -91,7 +91,6 @@ pub(crate) async fn create_notes(
 
     let mut notes: Vec<interop::Note> = Vec::new();
 
-
     let res = create_common(
         &tx,
         user_id,
@@ -100,7 +99,8 @@ pub(crate) async fn create_notes(
         note.title.as_ref(),
         &note.content[0],
         note.separator,
-    ).await?;
+    )
+    .await?;
 
     notes.push(res);
 
@@ -133,8 +133,24 @@ pub(crate) async fn edit_note(
     note: &interop::Note,
     note_id: Key,
 ) -> Result<interop::Note> {
-    let res = edit_common(db_pool, user_id, note, note_id, NoteType::Note).await?;
-    Ok(res)
+    let note_type = NoteType::Note;
+    let db_note = pg::one_non_transactional::<Note>(
+        db_pool,
+        include_str!("sql/notes_edit.sql"),
+        &[
+            &user_id,
+            &note_id,
+            &note_type,
+            &note.source,
+            &note.content,
+            &note.title,
+            &note.separator,
+        ],
+    )
+    .await?;
+
+    let note = interop::Note::from(db_note);
+    Ok(note)
 }
 
 pub(crate) async fn delete_note_pool(db_pool: &Pool, user_id: Key, note_id: Key) -> Result<()> {
@@ -155,40 +171,6 @@ pub(crate) async fn delete_note(tx: &Transaction<'_>, user_id: Key, note_id: Key
     pg::zero(&tx, &stmt, &[&note_id, &user_id]).await?;
 
     Ok(())
-}
-
-pub(crate) async fn create_quote(
-    db_pool: &Pool,
-    user_id: Key,
-    note: &interop::CreateNote,
-) -> Result<interop::Note> {
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
-
-    let res = create_common(
-        &tx,
-        user_id,
-        note,
-        NoteType::Quote,
-        None,
-        &note.content[0],
-        note.separator,
-    )
-    .await?;
-
-    tx.commit().await?;
-
-    Ok(res)
-}
-
-pub(crate) async fn edit_quote(
-    db_pool: &Pool,
-    user_id: Key,
-    note: &interop::Note,
-    note_id: Key,
-) -> Result<interop::Note> {
-    let res = edit_common(db_pool, user_id, note, note_id, NoteType::Quote).await?;
-    Ok(res)
 }
 
 pub(crate) async fn create_common(
@@ -234,43 +216,9 @@ pub(crate) async fn create_common(
     Ok(note)
 }
 
-pub(crate) async fn edit_common(
-    db_pool: &Pool,
-    user_id: Key,
-    note: &interop::Note,
-    note_id: Key,
-    note_type: NoteType,
-) -> Result<interop::Note> {
-    let db_note = pg::one_non_transactional::<Note>(
-        db_pool,
-        include_str!("sql/notes_edit.sql"),
-        &[
-            &user_id,
-            &note_id,
-            &note_type,
-            &note.source,
-            &note.content,
-            &note.title,
-            &note.separator,
-        ],
-    )
-    .await?;
-
-    let note = interop::Note::from(db_note);
-    Ok(note)
-}
-
-pub(crate) async fn all_notes_for(
-    db_pool: &Pool,
-    deck_id: Key,
-    note_type: NoteType,
-) -> Result<Vec<interop::Note>> {
-    pg::many_from::<Note, interop::Note>(
-        db_pool,
-        include_str!("sql/notes_all_for.sql"),
-        &[&deck_id, &note_type],
-    )
-    .await
+pub(crate) async fn all(db_pool: &Pool, deck_id: Key) -> Result<Vec<interop::Note>> {
+    pg::many_from::<Note, interop::Note>(db_pool, include_str!("sql/notes_all.sql"), &[&deck_id])
+        .await
 }
 
 pub(crate) async fn delete_all_notes_connected_with_deck(

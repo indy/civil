@@ -123,7 +123,6 @@ impl From<PersonDerived> for interop::Person {
                 e.dl_fuzz,
             ),
             notes: None,
-            quotes: None,
 
             tags_in_notes: None,
             decks_in_notes: None,
@@ -201,7 +200,6 @@ pub(crate) async fn create(
         death_location,
 
         notes: None,
-        quotes: None,
 
         tags_in_notes: None,
         decks_in_notes: None,

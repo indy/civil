@@ -97,14 +97,6 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", put().to(notes::edit_note)) // check
                 .route("/{id}", delete().to(notes::delete_note)),
         )
-        // quotes
-        .service(
-            scope("/quotes")
-                .route("", post().to(notes::create_quote))
-                .route("/{id}", get().to(notes::get_quote))
-                .route("/{id}", put().to(notes::edit_quote)) // check
-                .route("/{id}", delete().to(notes::delete_quote)),
-        )
         // tags
         .service(
             scope("/tags")

@@ -43,7 +43,6 @@ impl From<Book> for interop::Book {
             author: a.source,
 
             notes: None,
-            quotes: None,
 
             tags_in_notes: None,
             decks_in_notes: None,

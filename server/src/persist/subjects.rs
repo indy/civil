@@ -41,7 +41,6 @@ impl From<Subject> for interop::Subject {
             name: s.name,
 
             notes: None,
-            quotes: None,
 
             tags_in_notes: None,
             decks_in_notes: None,

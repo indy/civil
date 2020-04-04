@@ -67,11 +67,8 @@ pub async fn get(
     let subject_id = params.id;
     let mut subject = db::get(&db_pool, user_id, subject_id).await?;
 
-    let notes = notes_db::all_notes_for(&db_pool, subject_id, notes_db::NoteType::Note).await?;
+    let notes = notes_db::all(&db_pool, subject_id).await?;
     subject.notes = Some(notes);
-
-    let quotes = notes_db::all_notes_for(&db_pool, subject_id, notes_db::NoteType::Quote).await?;
-    subject.quotes = Some(quotes);
 
     let tags_in_notes = edges_db::from_deck_id_via_notes_to_tags(&db_pool, subject_id).await?;
     subject.tags_in_notes = Some(tags_in_notes);
