@@ -276,7 +276,7 @@ export default function Note(props) {
       Net.post("/api/edges/notes_tags", data).then((all_tags_for_note) => {
         const n = {...props.note};
         n.tags = all_tags_for_note.reduce((acc, tag) => {
-          acc.push({note_id: n.id, id: tag.id, name: tag.name});
+          acc.push({note_id: n.id, id: tag.id, name: tag.name, resource: "tags"});
           return acc;
         }, []);
         props.onTagsChanged(n, data.new_tag_names.length > 0);
