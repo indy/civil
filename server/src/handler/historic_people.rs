@@ -82,11 +82,6 @@ pub async fn get(
             .await?;
     person.mentioned_by_people = Some(mentioned_by_people);
 
-    // all the subjects that mention this person
-    let mentioned_in_subjects =
-        edges_db::from_decks_via_notes_to_deck_id(&db_pool, Model::Subject, person_id).await?;
-    person.mentioned_in_subjects = Some(mentioned_in_subjects);
-
     // all the articles that mention this person
     let mentioned_in_articles =
         edges_db::from_decks_via_notes_to_deck_id(&db_pool, Model::Article, person_id).await?;

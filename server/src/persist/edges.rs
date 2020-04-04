@@ -393,8 +393,8 @@ pub(crate) async fn from_tag_id_via_notes_to_decks(
 }
 
 // return all the tags attached to the given deck's notes
-// e.g. from_deck_id_via_notes_to_tags(db_pool, subject_id)
-// will return all the tags from the notes in the given subject
+// e.g. from_deck_id_via_notes_to_tags(db_pool, article_id)
+// will return all the tags from the notes in the given article
 //
 pub(crate) async fn from_deck_id_via_notes_to_tags(
     db_pool: &Pool,
@@ -410,8 +410,8 @@ pub(crate) async fn from_deck_id_via_notes_to_tags(
 }
 
 // return all the referenced decks in the given deck
-// e.g. from_deck_id_via_notes_to_decks(db_pool, subject_id)
-// will return all the people, books, articles, subjects etc mentioned in the given subject
+// e.g. from_deck_id_via_notes_to_decks(db_pool, article_id)
+// will return all the people, points, books, articles etc mentioned in the given article
 //
 pub(crate) async fn from_deck_id_via_notes_to_decks(
     db_pool: &Pool,
@@ -427,8 +427,8 @@ pub(crate) async fn from_deck_id_via_notes_to_decks(
 }
 
 // return all the decks of a certain kind that mention another particular deck.
-// e.g. from_decks_via_notes_to_deck_id(db_pool, Model::HistoricPerson, subject_id)
-// will return all the people who mention the given subject, ordered by number of references
+// e.g. from_decks_via_notes_to_deck_id(db_pool, Model::HistoricPerson, article_id)
+// will return all the people who mention the given article, ordered by number of references
 //
 pub(crate) async fn from_decks_via_notes_to_deck_id(
     db_pool: &Pool,

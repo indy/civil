@@ -37,7 +37,6 @@ pub struct Person {
     pub decks_in_notes: Option<Vec<MarginConnection>>,
 
     pub mentioned_by_people: Option<Vec<DeckMention>>,
-    pub mentioned_in_subjects: Option<Vec<DeckMention>>,
     pub mentioned_in_articles: Option<Vec<DeckMention>>,
 }
 

@@ -25,7 +25,6 @@ pub mod historic_people;
 pub mod historic_points;
 pub mod locations;
 pub mod notes;
-pub mod subjects;
 pub mod tags;
 pub mod users;
 
@@ -43,7 +42,6 @@ pub struct IdParam {
 pub enum Model {
     Note,
     HistoricPerson,
-    Subject,
     Article,
     Book,
     HistoricPoint,
@@ -58,7 +56,6 @@ impl std::fmt::Display for Model {
         match self {
             Model::Note => write!(f, "Mode::Note"),
             Model::HistoricPerson => write!(f, "Model::HistoricPerson"),
-            Model::Subject => write!(f, "Mode::Subject"),
             Model::Article => write!(f, "Mode::Article"),
             Model::Book => write!(f, "Model::Book"),
             Model::HistoricPoint => write!(f, "Model::HistoricPoint"),
@@ -74,7 +71,6 @@ pub(crate) fn model_to_deck_kind(model: Model) -> Result<&'static str> {
     match model {
         Model::Note => Ok("note"),
         Model::HistoricPerson => Ok("historic_person"),
-        Model::Subject => Ok("subject"),
         Model::Article => Ok("article"),
         Model::Book => Ok("book"),
         Model::HistoricPoint => Ok("historic_point"),
@@ -97,7 +93,6 @@ pub(crate) fn kind_to_resource(kind: &str) -> Result<&'static str> {
     match kind {
         "historic_person" => Ok("people"),
         "historic_point" => Ok("points"),
-        "subject" => Ok("subjects"),
         "article" => Ok("articles"),
         "book" => Ok("books"),
         _ => Err(Error::InvalidKind),

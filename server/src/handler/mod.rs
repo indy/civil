@@ -22,6 +22,5 @@ pub mod edges;
 pub mod historic_people;
 pub mod historic_points;
 pub mod notes;
-pub mod subjects;
 pub mod tags;
 pub mod users;

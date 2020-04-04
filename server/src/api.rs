@@ -22,7 +22,6 @@ use crate::handler::edges;
 use crate::handler::historic_people;
 use crate::handler::historic_points;
 use crate::handler::notes;
-use crate::handler::subjects;
 use crate::handler::tags;
 use crate::handler::users;
 use actix_files::NamedFile;
@@ -61,15 +60,6 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", get().to(historic_points::get))
                 .route("/{id}", put().to(historic_points::edit)) // check
                 .route("/{id}", delete().to(historic_points::delete)),
-        )
-        // subjects
-        .service(
-            scope("/subjects")
-                .route("", post().to(subjects::create))
-                .route("", get().to(subjects::get_all))
-                .route("/{id}", get().to(subjects::get))
-                .route("/{id}", put().to(subjects::edit))
-                .route("/{id}", delete().to(subjects::delete)),
         )
         // articles
         .service(

@@ -128,7 +128,6 @@ impl From<PersonDerived> for interop::Person {
             decks_in_notes: None,
 
             mentioned_by_people: None,
-            mentioned_in_subjects: None,
             mentioned_in_articles: None,
         }
     }
@@ -205,7 +204,6 @@ pub(crate) async fn create(
         decks_in_notes: None,
 
         mentioned_by_people: None,
-        mentioned_in_subjects: None,
         mentioned_in_articles: None,
     })
 }

@@ -14,10 +14,6 @@ import Person from './components/Person';
 import People from './components/People';
 import PersonCreateForm from './components/PersonCreateForm';
 
-import Subject from './components/Subject';
-import Subjects from './components/Subjects';
-import SubjectCreateForm from './components/SubjectCreateForm';
-
 import Article from './components/Article';
 import Articles from './components/Articles';
 import ArticleCreateForm from './components/ArticleCreateForm';
@@ -72,12 +68,11 @@ export default function App(props) {
         <div id='top-bar-menu'>
           <Link className='top-bar-menuitem' to={'/'}>Home</Link>
           <Link className='top-bar-menuitem' to={'/ideas'}>Ideas</Link>
+          <Link className='top-bar-menuitem' to={'/tags'}>Tags</Link>
           <Link className='top-bar-menuitem' to={'/books'}>Books</Link>
-          <Link className='top-bar-menuitem' to={'/subjects'}>Subjects</Link>
           <Link className='top-bar-menuitem' to={'/articles'}>Articles</Link>
           <Link className='top-bar-menuitem' to={'/people'}>People</Link>
           <Link className='top-bar-menuitem' to={'/points'}>Points</Link>
-          <Link className='top-bar-menuitem' to={'/tags'}>Tags</Link>
           <Link className='top-bar-menuitem' to={ loggedLink() } id="login-menuitem">{ loggedStatus() }</Link>
         </div>
         <hr/>
@@ -112,18 +107,6 @@ export default function App(props) {
           <PrivateRoute path={'/add-point'}>
             <PointCreateForm/>
           </PrivateRoute>
-
-
-          <PrivateRoute path={'/subjects/:id'}>
-            <Subject/>
-          </PrivateRoute>
-          <PrivateRoute exact path="/subjects">
-            <Subjects/>
-          </PrivateRoute>
-          <PrivateRoute path={'/add-subject'}>
-            <SubjectCreateForm/>
-          </PrivateRoute>
-
 
           <PrivateRoute path={'/articles/:id'}>
             <Article/>

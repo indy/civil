@@ -7,7 +7,8 @@ export default function ensureCorrectDeck(id, setDeck, resource) {
   const [currentId, setCurrentId] = useState(false);
 
   if (id !== currentId) {
-    // get here on first load and when we're already on a /subjects/:id page and follow a Link to another /subjects/:id
+    // get here on first load and when we're already on a /$DECK/:id page and follow a Link to another /$DECK/:id
+    // (where $DECK is the same deck type)
     //
     fetchDeck();
   }

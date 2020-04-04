@@ -6,7 +6,6 @@ import NoteCreator from './NoteCreator';
 import NoteHolder from './NoteHolder';
 import SectionMentionedByPeople from './SectionMentionedByPeople';
 import SectionMentionedInArticles from './SectionMentionedInArticles';
-import SectionMentionedInSubjects from './SectionMentionedInSubjects';
 import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
 
 export default function Person(props) {
@@ -21,7 +20,6 @@ export default function Person(props) {
     decks_in_notes: [],
 
     mentioned_by_people: [],
-    mentioned_in_subjects: [],
     mentioned_in_articles: []
   });
 
@@ -51,7 +49,6 @@ export default function Person(props) {
         { notes }
       </section>
       <SectionMentionedByPeople mentionedBy={ person.mentioned_by_people }/>
-      <SectionMentionedInSubjects mentionedIn={ person.mentioned_in_subjects }/>
       <SectionMentionedInArticles mentionedIn={ person.mentioned_in_articles }/>
     </article>
   );
