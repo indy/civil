@@ -48,7 +48,6 @@ impl From<Article> for interop::Article {
             decks_in_notes: None,
 
             linkbacks_to_decks: None,
-            linkbacks_to_ideas: None,
             linkbacks_to_tags: None,
         }
     }

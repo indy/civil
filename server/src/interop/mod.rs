@@ -44,6 +44,7 @@ pub enum Model {
     Person,
     Article,
     Book,
+    Idea,
     Point,
     Date,
     Location,
@@ -58,6 +59,7 @@ impl std::fmt::Display for Model {
             Model::Person => write!(f, "Model::Person"),
             Model::Article => write!(f, "Mode::Article"),
             Model::Book => write!(f, "Model::Book"),
+            Model::Idea => write!(f, "Model::Idea"),
             Model::Point => write!(f, "Model::Point"),
             Model::Date => write!(f, "Mode::Date"),
             Model::Location => write!(f, "Model::Location"),
@@ -84,6 +86,7 @@ pub(crate) fn kind_to_resource(kind: &str) -> Result<&'static str> {
         "point" => Ok("points"),
         "article" => Ok("articles"),
         "book" => Ok("books"),
+        "idea" => Ok("ideas"),
         _ => Err(Error::InvalidKind),
     }
 }

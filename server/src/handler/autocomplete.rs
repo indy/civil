@@ -44,6 +44,7 @@ pub async fn get_decks(
     info!("get_decks");
 
     let user_id = session::user_id(&session)?;
+
     let autocomplete = db::get_decks(&db_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(autocomplete))

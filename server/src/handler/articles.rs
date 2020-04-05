@@ -82,10 +82,6 @@ pub async fn get(
     let linkbacks_to_tags = edges_db::from_tags_via_notes_to_deck_id(&db_pool, article_id).await?;
     article.linkbacks_to_tags = Some(linkbacks_to_tags);
 
-    let linkbacks_to_ideas =
-        edges_db::from_ideas_via_notes_to_deck_id(&db_pool, article_id).await?;
-    article.linkbacks_to_ideas = Some(linkbacks_to_ideas);
-
     Ok(HttpResponse::Ok().json(article))
 }
 

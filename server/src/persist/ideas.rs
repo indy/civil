@@ -16,13 +16,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::pg;
-
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::interop::ideas as interop;
 use crate::interop::Key;
-use crate::persist::edges;
-use crate::persist::notes;
-use deadpool_postgres::{Client, Pool};
+use crate::persist::decks;
+use deadpool_postgres::Pool;
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
@@ -30,22 +28,25 @@ use tokio_pg_mapper_derive::PostgresMapper;
 use tracing::info;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "ideas")]
+#[pg_mapper(table = "decks")]
 struct Idea {
     id: Key,
-    title: String,
+    name: String,
 }
 
 impl From<Idea> for interop::Idea {
     fn from(a: Idea) -> interop::Idea {
         interop::Idea {
             id: a.id,
-            title: a.title,
+            title: a.name,
 
             notes: None,
 
             tags_in_notes: None,
             decks_in_notes: None,
+
+            linkbacks_to_decks: None,
+            linkbacks_to_tags: None,
         }
     }
 }
@@ -92,18 +93,5 @@ pub(crate) async fn edit(
 }
 
 pub(crate) async fn delete(db_pool: &Pool, user_id: Key, idea_id: Key) -> Result<()> {
-    let id = idea_id;
-
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
-
-    notes::delete_all_notes_connected_with_idea(&tx, user_id, id).await?;
-    edges::delete_all_edges_connected_with_idea(&tx, id).await?;
-
-    let stmt = include_str!("sql/ideas_delete.sql");
-    pg::zero(&tx, &stmt, &[&id, &user_id]).await?;
-
-    tx.commit().await?;
-
-    Ok(())
+    decks::delete(db_pool, idea_id, user_id).await
 }

@@ -14,7 +14,7 @@ export default function Idea(props) {
 
   ensureCorrectDeck(idea_id, setIdea, "ideas");
 
-  const creator = NoteCreator(idea, setIdea, { idea_id }, idea.title);
+  const creator = NoteCreator(idea, setIdea, { deck_id: idea_id }, idea.title);
   const notes = NoteHolder(idea, setIdea);
 
   return (

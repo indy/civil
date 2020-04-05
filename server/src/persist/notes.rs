@@ -200,8 +200,6 @@ pub(crate) async fn create_common(
         edges::create_from_deck_to_note(tx, deck_id, db_note.id).await?;
     } else if let Some(tag_id) = note.tag_id {
         edges::create_from_tag_to_note(tx, tag_id, db_note.id).await?;
-    } else if let Some(idea_id) = note.idea_id {
-        edges::create_from_idea_to_note(tx, idea_id, db_note.id).await?;
     } else {
         return Err(Error::Other);
     };
@@ -256,25 +254,6 @@ pub(crate) async fn delete_all_notes_connected_with_tag(
         tx,
         include_str!("sql/notes_all_ids_for_tag.sql"),
         &[&tag_id],
-    )
-    .await?;
-
-    for note_id in note_ids {
-        delete_note(tx, user_id, note_id.id).await?;
-    }
-
-    Ok(())
-}
-
-pub(crate) async fn delete_all_notes_connected_with_idea(
-    tx: &Transaction<'_>,
-    user_id: Key,
-    idea_id: Key,
-) -> Result<()> {
-    let note_ids = pg::many::<NoteId>(
-        tx,
-        include_str!("sql/notes_all_ids_for_idea.sql"),
-        &[&idea_id],
     )
     .await?;
 

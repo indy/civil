@@ -330,21 +330,6 @@ pub(crate) async fn create_from_tag_to_note(
     Ok(())
 }
 
-pub(crate) async fn create_from_idea_to_note(
-    tx: &Transaction<'_>,
-    idea_id: Key,
-    note_id: Key,
-) -> Result<()> {
-    let stmt = include_str!("sql/edges_create_from_idea_to_note.sql");
-
-    // normally a pg::one for create, but we're not going
-    // to return anything when creating an edge
-    //
-    pg::zero(tx, &stmt, &[&idea_id, &note_id]).await?;
-
-    Ok(())
-}
-
 pub(crate) async fn delete_all_edges_connected_with_deck(
     tx: &Transaction<'_>,
     deck_id: Key,
@@ -385,19 +370,6 @@ pub(crate) async fn delete_all_edges_connected_with_tag(
     Ok(())
 }
 
-pub(crate) async fn delete_all_edges_connected_with_idea(
-    tx: &Transaction<'_>,
-    idea_id: Key,
-) -> Result<()> {
-    pg::zero(
-        tx,
-        &include_str!("sql/edges_delete_ideas_notes_with_idea_id.sql"),
-        &[&idea_id],
-    )
-    .await?;
-    Ok(())
-}
-
 pub(crate) async fn delete_all_edges_connected_with_note(
     tx: &Transaction<'_>,
     note_id: Key,
@@ -417,12 +389,6 @@ pub(crate) async fn delete_all_edges_connected_with_note(
     pg::zero(
         tx,
         &include_str!("sql/edges_delete_notes_decks_with_note_id.sql"),
-        &[&note_id],
-    )
-    .await?;
-    pg::zero(
-        tx,
-        &include_str!("sql/edges_delete_ideas_notes_with_note_id.sql"),
         &[&note_id],
     )
     .await?;
@@ -514,18 +480,6 @@ pub(crate) async fn from_tags_via_notes_to_deck_id(
     .await
 }
 
-pub(crate) async fn from_ideas_via_notes_to_deck_id(
-    db_pool: &Pool,
-    deck_id: Key,
-) -> Result<Vec<interop::LinkBack>> {
-    linkbacks::<LinkBackToIdea>(
-        db_pool,
-        include_str!("sql/from_ideas_via_notes_to_deck_id.sql"),
-        deck_id,
-    )
-    .await
-}
-
 pub(crate) async fn from_decks_via_notes_to_tag_id(
     db_pool: &Pool,
     tag_id: Key,
@@ -545,18 +499,6 @@ pub(crate) async fn from_tags_via_notes_to_tag_id(
     linkbacks::<LinkBackToTag>(
         db_pool,
         include_str!("sql/from_tags_via_notes_to_tag_id.sql"),
-        tag_id,
-    )
-    .await
-}
-
-pub(crate) async fn from_ideas_via_notes_to_tag_id(
-    db_pool: &Pool,
-    tag_id: Key,
-) -> Result<Vec<interop::LinkBack>> {
-    linkbacks::<LinkBackToIdea>(
-        db_pool,
-        include_str!("sql/from_ideas_via_notes_to_tag_id.sql"),
         tag_id,
     )
     .await
