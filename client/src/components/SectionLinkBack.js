@@ -2,22 +2,50 @@ import React from 'react';
 import ListingLink from './ListingLink';
 
 export default function SectionLinkBack(props) {
-  const linkbacks = props.linkbacks ? props.linkbacks.map(buildLinkback): [];
+  const linkbacks = props.linkbacks || [];
+  const sections = [];
+  const groupedLinkbacks = groupByResource(linkbacks);
 
-  if (linkbacks.length) {
-    return (
-      <section className="linkback">
-        <h2>{ props.title }</h2>
-        <ul>
-          { linkbacks }
-        </ul>
-      </section>
-    );
-  } else {
-    return (
-      <div></div>
-    );
+  Object.keys(groupedLinkbacks).forEach(key => {
+    let section = listingLinks(groupedLinkbacks[key]);
+    sections.push(section);
+  });
+
+  return (
+    <div>
+      { sections }
+    </div>
+  );
+}
+
+function groupByResource(linkbacks) {
+  // key == resource, value == array of ListingLink components
+  let res = {};
+  linkbacks.forEach(lb => {
+    res[lb.resource] = res[lb.resource] || [];
+    res[lb.resource].push(lb);
+  });
+
+  return res;
+}
+
+function listingLinks(linkbacks) {
+  if (linkbacks.length === 0) {
+    return (<div></div>);
   }
+
+  let list = linkbacks.map(buildLinkback);
+  let groupedHeading = linkbacks[0].resource;
+  let sectionId = linkbacks[0].id;
+
+  return (
+    <section key={ sectionId }>
+      <h2>{ groupedHeading }</h2>
+      <ul>
+        { list }
+      </ul>
+    </section>
+  );
 }
 
 function buildLinkback(lb) {
