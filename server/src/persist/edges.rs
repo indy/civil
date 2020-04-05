@@ -17,7 +17,6 @@
 
 use super::pg;
 use crate::error::{Error, Result};
-use crate::interop::decks as decks_interop;
 use crate::interop::edges as interop;
 use crate::interop::tags as tags_interop;
 use crate::interop::{kind_to_resource, Key, Model};
@@ -157,22 +156,6 @@ impl From<LinkBackToIdea> for interop::LinkBack {
             id: d.id,
             name: d.title,
             resource: String::from("ideas"),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
-struct DeckMention {
-    id: Key,
-    name: String,
-}
-
-impl From<DeckMention> for decks_interop::DeckMention {
-    fn from(d: DeckMention) -> decks_interop::DeckMention {
-        decks_interop::DeckMention {
-            id: d.id,
-            name: d.name,
         }
     }
 }
@@ -317,6 +300,21 @@ pub(crate) async fn delete(db_pool: &Pool, edge_id: Key, _user_id: Key) -> Resul
     Ok(())
 }
 
+pub(crate) async fn create_from_deck_to_note(
+    tx: &Transaction<'_>,
+    deck_id: Key,
+    note_id: Key,
+) -> Result<()> {
+    let stmt = include_str!("sql/edges_create_from_deck_to_note.sql");
+
+    // normally a pg::one for create, but we're not going
+    // to return anything when creating an edge
+    //
+    pg::zero(tx, &stmt, &[&deck_id, &note_id]).await?;
+
+    Ok(())
+}
+
 pub(crate) async fn create_from_tag_to_note(
     tx: &Transaction<'_>,
     tag_id: Key,
@@ -332,17 +330,17 @@ pub(crate) async fn create_from_tag_to_note(
     Ok(())
 }
 
-pub(crate) async fn create_from_deck_to_note(
+pub(crate) async fn create_from_idea_to_note(
     tx: &Transaction<'_>,
-    deck_id: Key,
+    idea_id: Key,
     note_id: Key,
 ) -> Result<()> {
-    let stmt = include_str!("sql/edges_create_from_deck_to_note.sql");
+    let stmt = include_str!("sql/edges_create_from_idea_to_note.sql");
 
     // normally a pg::one for create, but we're not going
     // to return anything when creating an edge
     //
-    pg::zero(tx, &stmt, &[&deck_id, &note_id]).await?;
+    pg::zero(tx, &stmt, &[&idea_id, &note_id]).await?;
 
     Ok(())
 }
@@ -387,6 +385,19 @@ pub(crate) async fn delete_all_edges_connected_with_tag(
     Ok(())
 }
 
+pub(crate) async fn delete_all_edges_connected_with_idea(
+    tx: &Transaction<'_>,
+    idea_id: Key,
+) -> Result<()> {
+    pg::zero(
+        tx,
+        &include_str!("sql/edges_delete_ideas_notes_with_idea_id.sql"),
+        &[&idea_id],
+    )
+    .await?;
+    Ok(())
+}
+
 pub(crate) async fn delete_all_edges_connected_with_note(
     tx: &Transaction<'_>,
     note_id: Key,
@@ -423,26 +434,24 @@ pub(crate) async fn from_tag_id_via_notes_to_tags(
     db_pool: &Pool,
     tag_id: Key,
 ) -> Result<Vec<interop::MarginConnection>> {
-    let stmt = include_str!("sql/from_tag_id_via_notes_to_tags.sql");
-
-    let referenced =
-        pg::many_from::<TagReference, interop::MarginConnection>(db_pool, &stmt, &[&tag_id])
-            .await?;
-
-    Ok(referenced)
+    margin_connections::<TagReference>(
+        db_pool,
+        include_str!("sql/from_tag_id_via_notes_to_tags.sql"),
+        tag_id,
+    )
+    .await
 }
 
 pub(crate) async fn from_tag_id_via_notes_to_decks(
     db_pool: &Pool,
     tag_id: Key,
 ) -> Result<Vec<interop::MarginConnection>> {
-    let stmt = include_str!("sql/from_tag_id_via_notes_to_decks.sql");
-
-    let referenced =
-        pg::many_from::<DeckReference, interop::MarginConnection>(db_pool, &stmt, &[&tag_id])
-            .await?;
-
-    Ok(referenced)
+    margin_connections::<DeckReference>(
+        db_pool,
+        include_str!("sql/from_tag_id_via_notes_to_decks.sql"),
+        tag_id,
+    )
+    .await
 }
 
 // return all the tags attached to the given deck's notes
@@ -453,13 +462,12 @@ pub(crate) async fn from_deck_id_via_notes_to_tags(
     db_pool: &Pool,
     deck_id: Key,
 ) -> Result<Vec<interop::MarginConnection>> {
-    let stmt = include_str!("sql/from_deck_id_via_notes_to_tags.sql");
-
-    let referenced =
-        pg::many_from::<TagReference, interop::MarginConnection>(db_pool, &stmt, &[&deck_id])
-            .await?;
-
-    Ok(referenced)
+    margin_connections::<TagReference>(
+        db_pool,
+        include_str!("sql/from_deck_id_via_notes_to_tags.sql"),
+        deck_id,
+    )
+    .await
 }
 
 // return all the referenced decks in the given deck
@@ -470,13 +478,12 @@ pub(crate) async fn from_deck_id_via_notes_to_decks(
     db_pool: &Pool,
     deck_id: Key,
 ) -> Result<Vec<interop::MarginConnection>> {
-    let stmt = include_str!("sql/from_deck_id_via_notes_to_decks.sql");
-
-    let referenced =
-        pg::many_from::<DeckReference, interop::MarginConnection>(db_pool, &stmt, &[&deck_id])
-            .await?;
-
-    Ok(referenced)
+    margin_connections::<DeckReference>(
+        db_pool,
+        include_str!("sql/from_deck_id_via_notes_to_decks.sql"),
+        deck_id,
+    )
+    .await
 }
 
 // return all the decks of a certain kind that mention another particular deck.
@@ -487,70 +494,90 @@ pub(crate) async fn from_decks_via_notes_to_deck_id(
     db_pool: &Pool,
     deck_id: Key,
 ) -> Result<Vec<interop::LinkBack>> {
-    let stmt = include_str!("sql/from_decks_via_notes_to_deck_id.sql");
+    linkbacks::<LinkBackToDeck>(
+        db_pool,
+        include_str!("sql/from_decks_via_notes_to_deck_id.sql"),
+        deck_id,
+    )
+    .await
+}
 
-    let deck_linkbacks_from_deck =
-        pg::many_from::<LinkBackToDeck, interop::LinkBack>(db_pool, &stmt, &[&deck_id]).await?;
+pub(crate) async fn from_tags_via_notes_to_deck_id(
+    db_pool: &Pool,
+    deck_id: Key,
+) -> Result<Vec<interop::LinkBack>> {
+    linkbacks::<LinkBackToTag>(
+        db_pool,
+        include_str!("sql/from_tags_via_notes_to_deck_id.sql"),
+        deck_id,
+    )
+    .await
+}
 
-    Ok(deck_linkbacks_from_deck)
+pub(crate) async fn from_ideas_via_notes_to_deck_id(
+    db_pool: &Pool,
+    deck_id: Key,
+) -> Result<Vec<interop::LinkBack>> {
+    linkbacks::<LinkBackToIdea>(
+        db_pool,
+        include_str!("sql/from_ideas_via_notes_to_deck_id.sql"),
+        deck_id,
+    )
+    .await
 }
 
 pub(crate) async fn from_decks_via_notes_to_tag_id(
     db_pool: &Pool,
     tag_id: Key,
 ) -> Result<Vec<interop::LinkBack>> {
-    let stmt = include_str!("sql/from_decks_via_notes_to_tag_id.sql");
-
-    let deck_linkbacks_from_tag =
-        pg::many_from::<LinkBackToDeck, interop::LinkBack>(db_pool, &stmt, &[&tag_id]).await?;
-
-    Ok(deck_linkbacks_from_tag)
+    linkbacks::<LinkBackToDeck>(
+        db_pool,
+        include_str!("sql/from_decks_via_notes_to_tag_id.sql"),
+        tag_id,
+    )
+    .await
 }
 
 pub(crate) async fn from_tags_via_notes_to_tag_id(
     db_pool: &Pool,
     tag_id: Key,
 ) -> Result<Vec<interop::LinkBack>> {
-    let stmt = include_str!("sql/from_tags_via_notes_to_tag_id.sql");
-
-    let tag_linkbacks_from_tag =
-        pg::many_from::<LinkBackToTag, interop::LinkBack>(db_pool, &stmt, &[&tag_id]).await?;
-
-    Ok(tag_linkbacks_from_tag)
+    linkbacks::<LinkBackToTag>(
+        db_pool,
+        include_str!("sql/from_tags_via_notes_to_tag_id.sql"),
+        tag_id,
+    )
+    .await
 }
 
 pub(crate) async fn from_ideas_via_notes_to_tag_id(
     db_pool: &Pool,
     tag_id: Key,
 ) -> Result<Vec<interop::LinkBack>> {
-    let stmt = include_str!("sql/from_ideas_via_notes_to_tag_id.sql");
-
-    let idea_linkbacks_from_tag =
-        pg::many_from::<LinkBackToIdea, interop::LinkBack>(db_pool, &stmt, &[&tag_id]).await?;
-
-    Ok(idea_linkbacks_from_tag)
+    linkbacks::<LinkBackToIdea>(
+        db_pool,
+        include_str!("sql/from_ideas_via_notes_to_tag_id.sql"),
+        tag_id,
+    )
+    .await
 }
 
-pub(crate) async fn from_tags_via_notes_to_deck_id(
+async fn margin_connections<T>(
     db_pool: &Pool,
-    tag_id: Key,
-) -> Result<Vec<interop::LinkBack>> {
-    let stmt = include_str!("sql/from_tags_via_notes_to_deck_id.sql");
-
-    let tag_linkbacks_from_deck =
-        pg::many_from::<LinkBackToTag, interop::LinkBack>(db_pool, &stmt, &[&tag_id]).await?;
-
-    Ok(tag_linkbacks_from_deck)
+    stmt: &str,
+    id: Key,
+) -> Result<Vec<interop::MarginConnection>>
+where
+    interop::MarginConnection: std::convert::From<T>,
+    T: tokio_pg_mapper::FromTokioPostgresRow,
+{
+    pg::many_from::<T, interop::MarginConnection>(db_pool, stmt, &[&id]).await
 }
 
-pub(crate) async fn from_ideas_via_notes_to_deck_id(
-    db_pool: &Pool,
-    tag_id: Key,
-) -> Result<Vec<interop::LinkBack>> {
-    let stmt = include_str!("sql/from_ideas_via_notes_to_deck_id.sql");
-
-    let idea_linkbacks_from_deck =
-        pg::many_from::<LinkBackToIdea, interop::LinkBack>(db_pool, &stmt, &[&tag_id]).await?;
-
-    Ok(idea_linkbacks_from_deck)
+async fn linkbacks<T>(db_pool: &Pool, stmt: &str, id: Key) -> Result<Vec<interop::LinkBack>>
+where
+    interop::LinkBack: std::convert::From<T>,
+    T: tokio_pg_mapper::FromTokioPostgresRow,
+{
+    pg::many_from::<T, interop::LinkBack>(db_pool, stmt, &[&id]).await
 }

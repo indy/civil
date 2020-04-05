@@ -21,6 +21,7 @@ pub mod books;
 pub mod dates;
 pub mod decks;
 pub mod edges;
+pub mod ideas;
 pub mod locations;
 pub mod notes;
 pub mod people;

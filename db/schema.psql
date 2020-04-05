@@ -100,7 +100,6 @@ CREATE TABLE IF NOT EXISTS ideas (
 
     user_id BIGINT NOT NULL REFERENCES users,
 
-    address TEXT NOT NULL,      -- unique address created from date + daily iteration
     title TEXT NOT NULL
 );
 

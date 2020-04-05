@@ -19,6 +19,7 @@ pub mod articles;
 pub mod autocomplete;
 pub mod books;
 pub mod edges;
+pub mod ideas;
 pub mod notes;
 pub mod people;
 pub mod points;

@@ -16,7 +16,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::interop::dates::{CreateDate, Date};
-// use crate::interop::decks::DeckMention;
 use crate::interop::edges::{LinkBack, MarginConnection};
 use crate::interop::locations::{CreateLocation, Location};
 use crate::interop::notes::Note;

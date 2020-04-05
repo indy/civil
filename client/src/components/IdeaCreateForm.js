@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
-import StateUtils from '../lib/StateUtils';
 import Net from '../lib/Net';
 
-export default function BookCreateForm() {
+export default function IdeaCreateForm() {
   const [title, setTitle] = useState('');
-  const [author, setAuthor] = useState('');
   const [redirectUrl, setRedirectUrl] = useState(false);
 
   const handleChangeEvent = (event) => {
@@ -17,15 +15,12 @@ export default function BookCreateForm() {
     if (name === "title") {
       setTitle(value);
     }
-    if (name === "author") {
-      setAuthor(value);
-    }
   };
 
   const handleSubmit = (event) => {
-    const cleaned_state = StateUtils.removeEmptyStrings({title, author}, ["author"]);
+    const cleaned_state = { title: title };
     const data = JSON.stringify(cleaned_state);
-    Net.createThenRedirectHook(setRedirectUrl, "books", data);
+    Net.createThenRedirectHook(setRedirectUrl, "ideas", data);
     event.preventDefault();
   };
 
@@ -42,12 +37,6 @@ export default function BookCreateForm() {
                    type="text"
                    name="title"
                    value={ title }
-                   onChange={ handleChangeEvent } />
-            <label htmlFor="author">Author:</label>
-            <input id="author"
-                   type="text"
-                   name="author"
-                   value={ author }
                    onChange={ handleChangeEvent } />
             <input type="submit" value="Save"/>
           </form>

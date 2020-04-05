@@ -35,4 +35,5 @@ pub struct CreateNote {
 
     pub deck_id: Option<Key>,
     pub tag_id: Option<Key>,
+    pub idea_id: Option<Key>,
 }

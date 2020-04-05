@@ -22,6 +22,10 @@ import Book from './components/Book';
 import Books from './components/Books';
 import BookCreateForm from './components/BookCreateForm';
 
+import Idea from './components/Idea';
+import Ideas from './components/Ideas';
+import IdeaCreateForm from './components/IdeaCreateForm';
+
 import Point from './components/Point';
 import Points from './components/Points';
 import PointCreateForm from './components/PointCreateForm';
@@ -86,6 +90,16 @@ export default function App(props) {
           </Route>
           <PrivateRoute exact path="/logout">
             <Logout logoutCallback = { logoutHandler }/>
+          </PrivateRoute>
+
+          <PrivateRoute path={'/ideas/:id'}>
+            <Idea/>
+          </PrivateRoute>
+          <PrivateRoute exact path="/ideas">
+            <Ideas/>
+          </PrivateRoute>
+          <PrivateRoute path={'/add-idea'}>
+            <IdeaCreateForm/>
           </PrivateRoute>
 
           <PrivateRoute path={'/people/:id'}>

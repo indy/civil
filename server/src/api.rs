@@ -19,6 +19,7 @@ use crate::handler::articles;
 use crate::handler::autocomplete;
 use crate::handler::books;
 use crate::handler::edges;
+use crate::handler::ideas;
 use crate::handler::notes;
 use crate::handler::people;
 use crate::handler::points;
@@ -42,6 +43,15 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
             scope("/users")
                 .route("", post().to(users::create_user))
                 .route("", get().to(users::get_user)),
+        )
+        // ideas
+        .service(
+            scope("/ideas")
+                .route("", post().to(ideas::create))
+                .route("", get().to(ideas::get_all))
+                .route("/{id}", get().to(ideas::get))
+                .route("/{id}", put().to(ideas::edit))
+                .route("/{id}", delete().to(ideas::delete)),
         )
         // people
         .service(
