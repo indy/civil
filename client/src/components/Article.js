@@ -20,7 +20,8 @@ export default function Article(props) {
   return (
     <article>
       { creator }
-      <h2>Source: <a href={ article.source }>{ article.source }</a></h2>
+      <h2>{ article.author }</h2>
+      <h3>Source: <a href={ article.source }>{ article.source }</a></h3>
       <section className="article-notes">
         { notes }
       </section>

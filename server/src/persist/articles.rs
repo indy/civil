@@ -33,6 +33,7 @@ struct Article {
     id: Key,
     name: String,
     source: Option<String>,
+    author: Option<String>,
 }
 
 impl From<Article> for interop::Article {
@@ -41,6 +42,7 @@ impl From<Article> for interop::Article {
             id: a.id,
             title: a.name,
             source: a.source,
+            author: a.author,
 
             notes: None,
 
@@ -79,7 +81,7 @@ pub(crate) async fn create(
     pg::one_from::<Article, interop::Article>(
         db_pool,
         include_str!("sql/articles_create.sql"),
-        &[&user_id, &article.title, &article.source],
+        &[&user_id, &article.title, &article.source, &article.author],
     )
     .await
 }
@@ -93,7 +95,7 @@ pub(crate) async fn edit(
     pg::one_from::<Article, interop::Article>(
         db_pool,
         include_str!("sql/articles_edit.sql"),
-        &[&user_id, &article_id, &article.title, &article.source],
+        &[&user_id, &article_id, &article.title, &article.source, &article.author],
     )
     .await
 }

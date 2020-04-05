@@ -32,7 +32,7 @@ use tracing::info;
 struct Book {
     id: Key,
     name: String,
-    source: Option<String>,
+    author: Option<String>,
 }
 
 impl From<Book> for interop::Book {
@@ -40,7 +40,7 @@ impl From<Book> for interop::Book {
         interop::Book {
             id: a.id,
             title: a.name,
-            author: a.source,
+            author: a.author,
 
             notes: None,
 

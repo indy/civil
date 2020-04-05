@@ -24,6 +24,7 @@ pub struct Article {
     pub id: Key,
     pub title: String,
     pub source: Option<String>,
+    pub author: Option<String>,
 
     pub notes: Option<Vec<Note>>,
 
@@ -38,4 +39,5 @@ pub struct Article {
 pub struct CreateArticle {
     pub title: String,
     pub source: Option<String>,
+    pub author: Option<String>,
 }
