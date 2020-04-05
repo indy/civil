@@ -3,19 +3,14 @@ import React, { useState } from 'react';
 
 import NoteCreator from './NoteCreator';
 import NoteHolder from './NoteHolder';
+import SectionLinkBacks from './SectionLinkBacks';
 import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
-import SectionLinkBack from './SectionLinkBack';
 
 export default function Tag(props) {
   const {id} = useParams();
   const tag_id = parseInt(id, 10);
 
-  const [tag, setTag] = useState({
-    id: tag_id,
-    notes: [],
-    tags_in_notes: [],
-    decks_in_notes: []
-  });
+  const [tag, setTag] = useState({ id: tag_id });
 
   ensureCorrectDeck(tag_id, setTag, "tags");
 
@@ -28,9 +23,7 @@ export default function Tag(props) {
       <section className="tag-notes">
         { notes }
       </section>
-      <SectionLinkBack linkbacks={ tag.linkbacks_to_decks }/>
-      <SectionLinkBack linkbacks={ tag.linkbacks_to_tags }/>
-      <SectionLinkBack linkbacks={ tag.linkbacks_to_ideas }/>
+      <SectionLinkBacks linkingTo={ tag }/>
     </article>
   );
 }

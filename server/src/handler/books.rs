@@ -75,6 +75,15 @@ pub async fn get(
     let decks_in_notes = edges_db::from_deck_id_via_notes_to_decks(&db_pool, book_id).await?;
     book.decks_in_notes = Some(decks_in_notes);
 
+    let linkbacks_to_decks = edges_db::from_decks_via_notes_to_deck_id(&db_pool, book_id).await?;
+    book.linkbacks_to_decks = Some(linkbacks_to_decks);
+
+    let linkbacks_to_tags = edges_db::from_tags_via_notes_to_deck_id(&db_pool, book_id).await?;
+    book.linkbacks_to_tags = Some(linkbacks_to_tags);
+
+    let linkbacks_to_ideas = edges_db::from_ideas_via_notes_to_deck_id(&db_pool, book_id).await?;
+    book.linkbacks_to_ideas = Some(linkbacks_to_ideas);
+
     Ok(HttpResponse::Ok().json(book))
 }
 

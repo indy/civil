@@ -3,18 +3,14 @@ import React, { useState } from 'react';
 
 import NoteCreator from './NoteCreator';
 import NoteHolder from './NoteHolder';
+import SectionLinkBacks from './SectionLinkBacks';
 import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
 
 export default function Book(props) {
   const {id} = useParams();
   const book_id = parseInt(id, 10);
 
-  const [book, setBook] = useState({
-    id: book_id,
-    notes: [],
-    tags_in_notes: [],
-    decks_in_notes: []
-  });
+  const [book, setBook] = useState({ id: book_id });
 
   ensureCorrectDeck(book_id, setBook, "books");
 
@@ -28,6 +24,7 @@ export default function Book(props) {
       <section className="book-notes">
         { notes }
       </section>
+      <SectionLinkBacks linkingTo={ book }/>
     </article>
   );
 }

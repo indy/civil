@@ -57,7 +57,7 @@ export default function NoteHolder(deck, setDeck) {
     );
   }
 
-  const notes = deck.notes.map(buildNoteComponent);
+  const notes = deck.notes ? deck.notes.map(buildNoteComponent) : [];
 
   return notes;
 };

@@ -3,16 +3,14 @@ import React, { useState } from 'react';
 
 import NoteCreator from './NoteCreator';
 import NoteHolder from './NoteHolder';
+import SectionLinkBacks from './SectionLinkBacks';
 import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
 
 export default function Article(props) {
   const {id} = useParams();
   const article_id = parseInt(id, 10);
 
-  const [article, setArticle] = useState({
-    id: article_id,
-    notes: []
-  });
+  const [article, setArticle] = useState({ id: article_id });
 
   ensureCorrectDeck(article_id, setArticle, "articles");
 
@@ -26,6 +24,7 @@ export default function Article(props) {
       <section className="article-notes">
         { notes }
       </section>
+      <SectionLinkBacks linkingTo={ article }/>
     </article>
   );
 }

@@ -89,6 +89,10 @@ impl From<PointDerived> for interop::Point {
 
             tags_in_notes: None,
             decks_in_notes: None,
+
+            linkbacks_to_decks: None,
+            linkbacks_to_ideas: None,
+            linkbacks_to_tags: None,
         }
     }
 }
@@ -143,6 +147,10 @@ pub(crate) async fn create(
 
         tags_in_notes: None,
         decks_in_notes: None,
+
+        linkbacks_to_decks: None,
+        linkbacks_to_ideas: None,
+        linkbacks_to_tags: None,
     })
 }
 

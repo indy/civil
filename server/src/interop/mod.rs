@@ -67,17 +67,6 @@ impl std::fmt::Display for Model {
     }
 }
 
-pub(crate) fn model_to_deck_kind(model: Model) -> Result<&'static str> {
-    match model {
-        Model::Note => Ok("note"),
-        Model::Person => Ok("person"),
-        Model::Article => Ok("article"),
-        Model::Book => Ok("book"),
-        Model::Point => Ok("point"),
-        _ => Err(Error::ModelConversion),
-    }
-}
-
 pub(crate) fn model_to_table_name(model: Model) -> Result<&'static str> {
     match model {
         Model::Note => Ok("notes"),

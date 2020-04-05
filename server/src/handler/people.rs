@@ -18,7 +18,6 @@
 use crate::error::Result;
 use crate::interop::people as interop;
 use crate::interop::IdParam;
-use crate::interop::Model;
 use crate::persist::edges as edges_db;
 use crate::persist::notes as notes_db;
 use crate::persist::people as db;
@@ -76,15 +75,14 @@ pub async fn get(
     let decks_in_notes = edges_db::from_deck_id_via_notes_to_decks(&db_pool, person_id).await?;
     person.decks_in_notes = Some(decks_in_notes);
 
-    // all the people that mention this person
-    let mentioned_by_people =
-        edges_db::from_decks_via_notes_to_deck_id(&db_pool, Model::Person, person_id).await?;
-    person.mentioned_by_people = Some(mentioned_by_people);
+    let linkbacks_to_decks = edges_db::from_decks_via_notes_to_deck_id(&db_pool, person_id).await?;
+    person.linkbacks_to_decks = Some(linkbacks_to_decks);
 
-    // all the articles that mention this person
-    let mentioned_in_articles =
-        edges_db::from_decks_via_notes_to_deck_id(&db_pool, Model::Article, person_id).await?;
-    person.mentioned_in_articles = Some(mentioned_in_articles);
+    let linkbacks_to_tags = edges_db::from_tags_via_notes_to_deck_id(&db_pool, person_id).await?;
+    person.linkbacks_to_tags = Some(linkbacks_to_tags);
+
+    let linkbacks_to_ideas = edges_db::from_ideas_via_notes_to_deck_id(&db_pool, person_id).await?;
+    person.linkbacks_to_ideas = Some(linkbacks_to_ideas);
 
     Ok(HttpResponse::Ok().json(person))
 }

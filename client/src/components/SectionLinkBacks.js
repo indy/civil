@@ -1,7 +1,17 @@
 import React from 'react';
 import ListingLink from './ListingLink';
 
-export default function SectionLinkBack(props) {
+export default function SectionLinkBacks(props) {
+  return (
+    <div>
+      <SectionLinkBack linkbacks={ props.linkingTo.linkbacks_to_ideas }/>
+      <SectionLinkBack linkbacks={ props.linkingTo.linkbacks_to_tags }/>
+      <SectionLinkBack linkbacks={ props.linkingTo.linkbacks_to_decks }/>
+    </div>
+  );
+}
+
+function SectionLinkBack(props) {
   const linkbacks = props.linkbacks || [];
   const sections = [];
   const groupedLinkbacks = groupByResource(linkbacks);

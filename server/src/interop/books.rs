@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::edges::MarginConnection;
+use crate::interop::edges::{LinkBack, MarginConnection};
 use crate::interop::notes::Note;
 use crate::interop::Key;
 
@@ -29,6 +29,10 @@ pub struct Book {
 
     pub tags_in_notes: Option<Vec<MarginConnection>>,
     pub decks_in_notes: Option<Vec<MarginConnection>>,
+
+    pub linkbacks_to_decks: Option<Vec<LinkBack>>,
+    pub linkbacks_to_ideas: Option<Vec<LinkBack>>,
+    pub linkbacks_to_tags: Option<Vec<LinkBack>>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

@@ -127,8 +127,9 @@ impl From<PersonDerived> for interop::Person {
             tags_in_notes: None,
             decks_in_notes: None,
 
-            mentioned_by_people: None,
-            mentioned_in_articles: None,
+            linkbacks_to_decks: None,
+            linkbacks_to_ideas: None,
+            linkbacks_to_tags: None,
         }
     }
 }
@@ -203,8 +204,9 @@ pub(crate) async fn create(
         tags_in_notes: None,
         decks_in_notes: None,
 
-        mentioned_by_people: None,
-        mentioned_in_articles: None,
+        linkbacks_to_decks: None,
+        linkbacks_to_ideas: None,
+        linkbacks_to_tags: None,
     })
 }
 

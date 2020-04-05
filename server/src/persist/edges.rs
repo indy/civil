@@ -20,7 +20,7 @@ use crate::error::{Error, Result};
 use crate::interop::decks as decks_interop;
 use crate::interop::edges as interop;
 use crate::interop::tags as tags_interop;
-use crate::interop::{kind_to_resource, model_to_deck_kind, Key, Model};
+use crate::interop::{kind_to_resource, Key, Model};
 use crate::persist::tags as tags_db;
 use deadpool_postgres::{Client, Pool, Transaction};
 use serde::{Deserialize, Serialize};
@@ -116,10 +116,10 @@ struct LinkBackToDeck {
     kind: String,
 }
 
-impl From<LinkBackToDeck> for tags_interop::LinkBack {
-    fn from(d: LinkBackToDeck) -> tags_interop::LinkBack {
+impl From<LinkBackToDeck> for interop::LinkBack {
+    fn from(d: LinkBackToDeck) -> interop::LinkBack {
         let resource = kind_to_resource(d.kind.as_ref()).unwrap();
-        tags_interop::LinkBack {
+        interop::LinkBack {
             id: d.id,
             name: d.name,
             resource: resource.to_string(),
@@ -134,9 +134,9 @@ struct LinkBackToTag {
     name: String,
 }
 
-impl From<LinkBackToTag> for tags_interop::LinkBack {
-    fn from(d: LinkBackToTag) -> tags_interop::LinkBack {
-        tags_interop::LinkBack {
+impl From<LinkBackToTag> for interop::LinkBack {
+    fn from(d: LinkBackToTag) -> interop::LinkBack {
+        interop::LinkBack {
             id: d.id,
             name: d.name,
             resource: String::from("tags"),
@@ -151,9 +151,9 @@ struct LinkBackToIdea {
     title: String,
 }
 
-impl From<LinkBackToIdea> for tags_interop::LinkBack {
-    fn from(d: LinkBackToIdea) -> tags_interop::LinkBack {
-        tags_interop::LinkBack {
+impl From<LinkBackToIdea> for interop::LinkBack {
+    fn from(d: LinkBackToIdea) -> interop::LinkBack {
+        interop::LinkBack {
             id: d.id,
             name: d.title,
             resource: String::from("ideas"),
@@ -485,29 +485,24 @@ pub(crate) async fn from_deck_id_via_notes_to_decks(
 //
 pub(crate) async fn from_decks_via_notes_to_deck_id(
     db_pool: &Pool,
-    source_model: Model,
-    mentioned_id: Key,
-) -> Result<Vec<decks_interop::DeckMention>> {
-    let from_kind = model_to_deck_kind(source_model)?;
-
+    deck_id: Key,
+) -> Result<Vec<interop::LinkBack>> {
     let stmt = include_str!("sql/from_decks_via_notes_to_deck_id.sql");
-    let stmt = stmt.replace("$from_kind", from_kind);
 
-    let mentioned =
-        pg::many_from::<DeckMention, decks_interop::DeckMention>(db_pool, &stmt, &[&mentioned_id])
-            .await?;
+    let deck_linkbacks_from_deck =
+        pg::many_from::<LinkBackToDeck, interop::LinkBack>(db_pool, &stmt, &[&deck_id]).await?;
 
-    Ok(mentioned)
+    Ok(deck_linkbacks_from_deck)
 }
 
 pub(crate) async fn from_decks_via_notes_to_tag_id(
     db_pool: &Pool,
     tag_id: Key,
-) -> Result<Vec<tags_interop::LinkBack>> {
+) -> Result<Vec<interop::LinkBack>> {
     let stmt = include_str!("sql/from_decks_via_notes_to_tag_id.sql");
 
     let deck_linkbacks_from_tag =
-        pg::many_from::<LinkBackToDeck, tags_interop::LinkBack>(db_pool, &stmt, &[&tag_id]).await?;
+        pg::many_from::<LinkBackToDeck, interop::LinkBack>(db_pool, &stmt, &[&tag_id]).await?;
 
     Ok(deck_linkbacks_from_tag)
 }
@@ -515,11 +510,11 @@ pub(crate) async fn from_decks_via_notes_to_tag_id(
 pub(crate) async fn from_tags_via_notes_to_tag_id(
     db_pool: &Pool,
     tag_id: Key,
-) -> Result<Vec<tags_interop::LinkBack>> {
+) -> Result<Vec<interop::LinkBack>> {
     let stmt = include_str!("sql/from_tags_via_notes_to_tag_id.sql");
 
     let tag_linkbacks_from_tag =
-        pg::many_from::<LinkBackToTag, tags_interop::LinkBack>(db_pool, &stmt, &[&tag_id]).await?;
+        pg::many_from::<LinkBackToTag, interop::LinkBack>(db_pool, &stmt, &[&tag_id]).await?;
 
     Ok(tag_linkbacks_from_tag)
 }
@@ -527,11 +522,35 @@ pub(crate) async fn from_tags_via_notes_to_tag_id(
 pub(crate) async fn from_ideas_via_notes_to_tag_id(
     db_pool: &Pool,
     tag_id: Key,
-) -> Result<Vec<tags_interop::LinkBack>> {
+) -> Result<Vec<interop::LinkBack>> {
     let stmt = include_str!("sql/from_ideas_via_notes_to_tag_id.sql");
 
     let idea_linkbacks_from_tag =
-        pg::many_from::<LinkBackToIdea, tags_interop::LinkBack>(db_pool, &stmt, &[&tag_id]).await?;
+        pg::many_from::<LinkBackToIdea, interop::LinkBack>(db_pool, &stmt, &[&tag_id]).await?;
 
     Ok(idea_linkbacks_from_tag)
+}
+
+pub(crate) async fn from_tags_via_notes_to_deck_id(
+    db_pool: &Pool,
+    tag_id: Key,
+) -> Result<Vec<interop::LinkBack>> {
+    let stmt = include_str!("sql/from_tags_via_notes_to_deck_id.sql");
+
+    let tag_linkbacks_from_deck =
+        pg::many_from::<LinkBackToTag, interop::LinkBack>(db_pool, &stmt, &[&tag_id]).await?;
+
+    Ok(tag_linkbacks_from_deck)
+}
+
+pub(crate) async fn from_ideas_via_notes_to_deck_id(
+    db_pool: &Pool,
+    tag_id: Key,
+) -> Result<Vec<interop::LinkBack>> {
+    let stmt = include_str!("sql/from_ideas_via_notes_to_deck_id.sql");
+
+    let idea_linkbacks_from_deck =
+        pg::many_from::<LinkBackToIdea, interop::LinkBack>(db_pool, &stmt, &[&tag_id]).await?;
+
+    Ok(idea_linkbacks_from_deck)
 }

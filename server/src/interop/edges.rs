@@ -49,3 +49,12 @@ pub struct MarginConnection {
     pub name: String,
     pub resource: String,
 }
+
+// on a tag page these will represent links back to decks, ideas and other tags
+//
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct LinkBack {
+    pub id: Key,
+    pub name: String,
+    pub resource: String,
+}

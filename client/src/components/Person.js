@@ -4,24 +4,19 @@ import React, { useState } from 'react';
 import DateUtils from '../lib/DateUtils';
 import NoteCreator from './NoteCreator';
 import NoteHolder from './NoteHolder';
-import SectionMentionedByPeople from './SectionMentionedByPeople';
-import SectionMentionedInArticles from './SectionMentionedInArticles';
+import SectionLinkBacks from './SectionLinkBacks';
 import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
 
 export default function Person(props) {
   const {id} = useParams();
   const person_id = parseInt(id, 10);
 
-  const [person, setPerson] = useState({
-    id: person_id,
-    notes: [],
+  const [person, setPerson] = useState({ id: person_id });
 
-    tags_in_notes: [],
-    decks_in_notes: [],
+  ensureCorrectDeck(person_id, setPerson, "people");
 
-    mentioned_by_people: [],
-    mentioned_in_articles: []
-  });
+  const creator = NoteCreator(person, setPerson, { deck_id: person_id }, person.name);
+  const notes = NoteHolder(person, setPerson);
 
   const isPersonDead = () => {
     return person.death_date !== null;
@@ -33,11 +28,6 @@ export default function Person(props) {
     );
   };
 
-  ensureCorrectDeck(person_id, setPerson, "people");
-
-  const creator = NoteCreator(person, setPerson, { deck_id: person_id }, person.name);
-  const notes = NoteHolder(person, setPerson);
-
   return (
     <article>
       { creator }
@@ -48,8 +38,7 @@ export default function Person(props) {
       <section className="person-notes">
         { notes }
       </section>
-      <SectionMentionedByPeople mentionedBy={ person.mentioned_by_people }/>
-      <SectionMentionedInArticles mentionedIn={ person.mentioned_in_articles }/>
+      <SectionLinkBacks linkingTo={ person }/>
     </article>
   );
 }

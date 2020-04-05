@@ -3,18 +3,14 @@ import React, { useState } from 'react';
 
 import NoteCreator from './NoteCreator';
 import NoteHolder from './NoteHolder';
+import SectionLinkBacks from './SectionLinkBacks';
 import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
 
 export default function Point(props) {
   const {id} = useParams();
   const point_id = parseInt(id, 10);
 
-  const [point, setPoint] = useState({
-    id: parseInt(id, 10),
-    notes: [],
-    tags_in_notes: [],
-    decks_in_notes: []
-  });
+  const [point, setPoint] = useState({ id: point_id });
 
   ensureCorrectDeck(point_id, setPoint, "points");
 
@@ -29,6 +25,7 @@ export default function Point(props) {
       <section className="point-notes">
         { notes }
       </section>
+      <SectionLinkBacks linkingTo={ point }/>
     </article>
   );
 }
