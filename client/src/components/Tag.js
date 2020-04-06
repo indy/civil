@@ -13,7 +13,8 @@ export default function Tag(props) {
 
   const [tag, setTag] = useState({ id: tag_id });
 
-  ensureCorrectDeck(tag_id, setTag, "tags");
+  const resource = "tags";
+  ensureCorrectDeck(tag_id, setTag, resource);
 
   const notes = NoteHolder(tag, setTag);
   const tagForm = <TagForm id={ tag_id }
@@ -21,9 +22,10 @@ export default function Tag(props) {
                            update={ setTag }
                   />;
   const formHandler = FormHandler({
+    resource,
+    id: tag_id,
     noteContainer: tag,
     setNoteContainer: setTag,
-    ident: { tag_id },
     title: tag.name,
     form: tagForm
   });

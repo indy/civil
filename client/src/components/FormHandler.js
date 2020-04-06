@@ -2,8 +2,12 @@ import React, { useState } from 'react';
 import NoteUtils from '../lib/NoteUtils';
 import NoteForm from './NoteForm';
 
-// ident is an object containing either a noteContainer_id or a tag_id
-export default function FormHandler({noteContainer, setNoteContainer, ident, title, form}) {
+// import Net from '../lib/Net';
+// import { useHistory } from 'react-router-dom';
+
+export default function FormHandler({resource, id, noteContainer, setNoteContainer, title, form}) {
+  // let history = useHistory();
+
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteForm, setShowNoteForm] = useState(false);
   const [showParentForm, setShowParentForm] = useState(false);
@@ -19,11 +23,19 @@ export default function FormHandler({noteContainer, setNoteContainer, ident, tit
       event.preventDefault();
     };
 
+    let onDeleteParentClicked = (event) => {
+      // Net.delete(`/api/${resource}/${id}`).then(() => {
+      //   history.push(`/${resource}`);
+      // });
+      alert("delete logic has been commented out of FormHandler.js, re-enable if that's what you _REALLY_ want to do");
+      event.preventDefault();
+    };
+
     return (
       <div>
         <button onClick={ onAddNoteClicked }>Add Note...</button>
         <button onClick={ onEditParentClicked }>Edit...</button>
-        <button >Delete...</button>
+        <button onClick={ onDeleteParentClicked }>Delete...</button>
       </div>
     );
   };
@@ -31,10 +43,12 @@ export default function FormHandler({noteContainer, setNoteContainer, ident, tit
   const buildNoteForm = () => {
     const onAddNote = (e) => {
       const noteForm = e.target;
+      const ident = resource === "tags" ? { tag_id: id } : { deck_id: id };
       NoteUtils.addNote(noteForm, ident)
         .then(newNotes => {
           NoteUtils.appendWithNewNotes(noteContainer, setNoteContainer, newNotes);
           setShowNoteForm(false);
+          setShowParentForm(false);
         });
     };
 
@@ -46,6 +60,7 @@ export default function FormHandler({noteContainer, setNoteContainer, ident, tit
   const onShowButtons = () => {
     setShowButtons(!showButtons);
     setShowNoteForm(false);
+    setShowParentForm(false);
   };
 
   const showParent = () => {

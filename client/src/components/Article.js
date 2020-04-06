@@ -13,7 +13,8 @@ export default function Article(props) {
 
   const [article, setArticle] = useState({ id: article_id });
 
-  ensureCorrectDeck(article_id, setArticle, "articles");
+  const resource = "articles";
+  ensureCorrectDeck(article_id, setArticle, resource);
 
   const notes = NoteHolder(article, setArticle);
   const articleForm = <ArticleForm id={ article_id }
@@ -23,9 +24,10 @@ export default function Article(props) {
                                    update={ setArticle }
                       />;
   const formHandler = FormHandler({
+    resource,
+    id: article_id,
     noteContainer: article,
     setNoteContainer: setArticle,
-    ident: { deck_id: article_id },
     title: article.title,
     form: articleForm
   });

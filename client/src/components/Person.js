@@ -14,7 +14,8 @@ export default function Person(props) {
 
   const [person, setPerson] = useState({ id: person_id });
 
-  ensureCorrectDeck(person_id, setPerson, "people");
+  const resource = "people";
+  ensureCorrectDeck(person_id, setPerson, resource);
 
   const notes = NoteHolder(person, setPerson);
   const personForm = <PersonForm id={ person_id }
@@ -27,9 +28,10 @@ export default function Person(props) {
                                  update={ setPerson }
                      />;
   const formHandler = FormHandler({
+    resource,
+    id: person_id,
     noteContainer: person,
     setNoteContainer: setPerson,
-    ident: { deck_id: person_id },
     title: person.name,
     form: personForm
   });

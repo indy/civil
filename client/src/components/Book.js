@@ -13,7 +13,8 @@ export default function Book(props) {
 
   const [book, setBook] = useState({ id: book_id });
 
-  ensureCorrectDeck(book_id, setBook, "books");
+  const resource = "books";
+  ensureCorrectDeck(book_id, setBook, resource);
 
   const notes = NoteHolder(book, setBook);
   const bookForm = <BookForm id={ book_id }
@@ -22,9 +23,10 @@ export default function Book(props) {
                              update={ setBook }
                    />;
   const formHandler = FormHandler({
+    resource,
+    id: book_id,
     noteContainer: book,
     setNoteContainer: setBook,
-    ident: { deck_id: book_id },
     title: book.title,
     form: bookForm
   });
@@ -33,7 +35,7 @@ export default function Book(props) {
     <article>
       { formHandler }
       <h2>{ book.author }</h2>
-      <section className="book-notes">
+      <section>
         { notes }
       </section>
       <SectionLinkBacks linkingTo={ book }/>

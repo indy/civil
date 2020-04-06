@@ -13,7 +13,8 @@ export default function Point(props) {
 
   const [point, setPoint] = useState({ id: point_id });
 
-  ensureCorrectDeck(point_id, setPoint, "points");
+  const resource = "points";
+  ensureCorrectDeck(point_id, setPoint, resource);
 
   const notes = NoteHolder(point, setPoint);
   const pointForm = <PointForm id={ point_id }
@@ -23,9 +24,10 @@ export default function Point(props) {
                                update={ setPoint }
                     />;
   const formHandler = FormHandler({
+    resource,
+    id: point_id,
     noteContainer: point,
     setNoteContainer: setPoint,
-    ident: { deck_id: point_id },
     title: point.title,
     form: pointForm
   });

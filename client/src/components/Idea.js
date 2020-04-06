@@ -13,7 +13,8 @@ export default function Idea(props) {
 
   const [idea, setIdea] = useState({ id: idea_id });
 
-  ensureCorrectDeck(idea_id, setIdea, "ideas");
+  const resource = "ideas";
+  ensureCorrectDeck(idea_id, setIdea, resource);
 
   const notes = NoteHolder(idea, setIdea);
   const ideaForm = <IdeaForm id={ idea_id }
@@ -21,9 +22,10 @@ export default function Idea(props) {
                              update={ setIdea }
                    />;
   const formHandler = FormHandler({
+    resource,
+    id: idea_id,
     noteContainer: idea,
     setNoteContainer: setIdea,
-    ident: { deck_id: idea_id },
     title: idea.title,
     form: ideaForm
   });
