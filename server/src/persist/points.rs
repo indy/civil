@@ -99,7 +99,7 @@ impl From<PointDerived> for interop::Point {
 pub(crate) async fn create(
     db_pool: &Pool,
     user_id: Key,
-    point: &interop::CreatePoint,
+    point: &interop::ProtoPoint,
 ) -> Result<interop::Point> {
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
@@ -173,7 +173,7 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key, point_id: Key) -> Result<i
 pub(crate) async fn edit(
     db_pool: &Pool,
     user_id: Key,
-    updated_point: &interop::Point,
+    updated_point: &interop::ProtoPoint,
     point_id: Key,
 ) -> Result<interop::Point> {
     let existing_point = get(db_pool, point_id, user_id).await?;

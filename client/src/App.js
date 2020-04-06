@@ -12,27 +12,27 @@ import Logout from './components/Logout';
 
 import Person from './components/Person';
 import People from './components/People';
-import PersonCreateForm from './components/PersonCreateForm';
+import PersonForm from './components/PersonForm';
 
 import Article from './components/Article';
 import Articles from './components/Articles';
-import ArticleCreateForm from './components/ArticleCreateForm';
+import ArticleForm from './components/ArticleForm';
 
 import Book from './components/Book';
 import Books from './components/Books';
-import BookCreateForm from './components/BookCreateForm';
+import BookForm from './components/BookForm';
 
 import Idea from './components/Idea';
 import Ideas from './components/Ideas';
-import IdeaCreateForm from './components/IdeaCreateForm';
+import IdeaForm from './components/IdeaForm';
 
 import Point from './components/Point';
 import Points from './components/Points';
-import PointCreateForm from './components/PointCreateForm';
+import PointForm from './components/PointForm';
 
 import Tag from './components/Tag';
 import Tags from './components/Tags';
-import TagCreateForm from './components/TagCreateForm';
+import TagForm from './components/TagForm';
 
 const CivilAuthGlobal = {
   isAuthenticated: false
@@ -99,7 +99,7 @@ export default function App(props) {
             <Ideas/>
           </PrivateRoute>
           <PrivateRoute path={'/add-idea'}>
-            <IdeaCreateForm/>
+            <IdeaForm/>
           </PrivateRoute>
 
           <PrivateRoute path={'/people/:id'}>
@@ -109,7 +109,7 @@ export default function App(props) {
             <People/>
           </PrivateRoute>
           <PrivateRoute path={'/add-person'}>
-            <PersonCreateForm/>
+            <PersonForm/>
           </PrivateRoute>
 
           <PrivateRoute path={'/points/:id'}>
@@ -119,7 +119,7 @@ export default function App(props) {
             <Points/>
           </PrivateRoute>
           <PrivateRoute path={'/add-point'}>
-            <PointCreateForm/>
+            <PointForm/>
           </PrivateRoute>
 
           <PrivateRoute path={'/articles/:id'}>
@@ -129,7 +129,7 @@ export default function App(props) {
             <Articles/>
           </PrivateRoute>
           <PrivateRoute path={'/add-article'}>
-            <ArticleCreateForm/>
+            <ArticleForm/>
           </PrivateRoute>
 
           <PrivateRoute path={'/books/:id'}>
@@ -139,7 +139,7 @@ export default function App(props) {
             <Books/>
           </PrivateRoute>
           <PrivateRoute path={'/add-book'}>
-            <BookCreateForm/>
+            <BookForm/>
           </PrivateRoute>
 
           <PrivateRoute path={'/tags/:id'}>
@@ -149,9 +149,8 @@ export default function App(props) {
             <Tags/>
           </PrivateRoute>
           <PrivateRoute path={'/add-tag'}>
-            <TagCreateForm/>
+            <TagForm/>
           </PrivateRoute>
-
 
         </Switch>
       </div>

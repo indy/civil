@@ -55,7 +55,7 @@ impl From<Date> for interop::Date {
 
 pub(crate) async fn create(
     tx: &Transaction<'_>,
-    date: &interop::CreateDate,
+    date: &interop::ProtoDate,
 ) -> Result<interop::Date> {
     let db_date = pg::one::<Date>(
         tx,
@@ -77,7 +77,7 @@ pub(crate) async fn create(
 
 pub(crate) async fn edit(
     tx: &Transaction<'_>,
-    date: &interop::Date,
+    date: &interop::ProtoDate,
     date_id: Key,
 ) -> Result<interop::Date> {
     let db_date = pg::one::<Date>(

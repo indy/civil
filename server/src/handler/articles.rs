@@ -17,7 +17,7 @@
 
 use crate::error::Result;
 use crate::interop::articles as interop;
-use crate::interop::IdParam;
+use crate::interop::{IdParam, Key};
 use crate::persist::articles as db;
 use crate::persist::edges as edges_db;
 use crate::persist::notes as notes_db;
@@ -30,14 +30,14 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 pub async fn create(
-    article: Json<interop::CreateArticle>,
+    article: Json<interop::ProtoArticle>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("create");
 
-    let article = article.into_inner();
     let user_id = session::user_id(&session)?;
+    let article = article.into_inner();
 
     let article = db::create(&db_pool, user_id, &article).await?;
 
@@ -62,41 +62,28 @@ pub async fn get(
     info!("get {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
-
     let article_id = params.id;
+
     let mut article = db::get(&db_pool, user_id, article_id).await?;
-
-    let notes = notes_db::all_from_deck(&db_pool, article_id).await?;
-    article.notes = Some(notes);
-
-    let tags_in_notes = edges_db::from_deck_id_via_notes_to_tags(&db_pool, article_id).await?;
-    article.tags_in_notes = Some(tags_in_notes);
-
-    let decks_in_notes = edges_db::from_deck_id_via_notes_to_decks(&db_pool, article_id).await?;
-    article.decks_in_notes = Some(decks_in_notes);
-
-    let linkbacks_to_decks =
-        edges_db::from_decks_via_notes_to_deck_id(&db_pool, article_id).await?;
-    article.linkbacks_to_decks = Some(linkbacks_to_decks);
-
-    let linkbacks_to_tags = edges_db::from_tags_via_notes_to_deck_id(&db_pool, article_id).await?;
-    article.linkbacks_to_tags = Some(linkbacks_to_tags);
+    augment(&db_pool, &mut article, article_id).await?;
 
     Ok(HttpResponse::Ok().json(article))
 }
 
 pub async fn edit(
-    article: Json<interop::Article>,
+    article: Json<interop::ProtoArticle>,
     db_pool: Data<Pool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("edit");
 
-    let article = article.into_inner();
     let user_id = session::user_id(&session)?;
+    let article_id = params.id;
+    let article = article.into_inner();
 
-    let article = db::edit(&db_pool, user_id, &article, params.id).await?;
+    let mut article = db::edit(&db_pool, user_id, &article, article_id).await?;
+    augment(&db_pool, &mut article, article_id).await?;
 
     Ok(HttpResponse::Ok().json(article))
 }
@@ -113,4 +100,28 @@ pub async fn delete(
     db::delete(&db_pool, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(true))
+}
+
+async fn augment(
+    db_pool: &Data<Pool>,
+    article: &mut interop::Article,
+    article_id: Key,
+) -> Result<()> {
+    let notes = notes_db::all_from_deck(&db_pool, article_id).await?;
+    article.notes = Some(notes);
+
+    let tags_in_notes = edges_db::from_deck_id_via_notes_to_tags(&db_pool, article_id).await?;
+    article.tags_in_notes = Some(tags_in_notes);
+
+    let decks_in_notes = edges_db::from_deck_id_via_notes_to_decks(&db_pool, article_id).await?;
+    article.decks_in_notes = Some(decks_in_notes);
+
+    let linkbacks_to_decks =
+        edges_db::from_decks_via_notes_to_deck_id(&db_pool, article_id).await?;
+    article.linkbacks_to_decks = Some(linkbacks_to_decks);
+
+    let linkbacks_to_tags = edges_db::from_tags_via_notes_to_deck_id(&db_pool, article_id).await?;
+    article.linkbacks_to_tags = Some(linkbacks_to_tags);
+
+    Ok(())
 }

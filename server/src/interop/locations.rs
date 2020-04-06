@@ -27,11 +27,34 @@ pub struct Location {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct CreateLocation {
+pub struct ProtoLocation {
     pub textual: Option<String>,
     pub longitude: Option<f32>,
     pub latitude: Option<f32>,
     pub fuzz: f32,
+}
+
+// probably a better way of doing this
+//
+fn eq_f32(a: Option<f32>, b: Option<f32>) -> bool {
+    if let Some(ad) = a {
+        if let Some(bd) = b {
+            ad == bd
+        } else {
+            false
+        }
+    } else {
+        false
+    }
+}
+
+impl PartialEq<Location> for ProtoLocation {
+    fn eq(&self, other: &Location) -> bool {
+        self.textual.as_deref() == other.textual.as_deref()
+            && eq_f32(self.longitude, other.longitude)
+            && eq_f32(self.latitude, other.latitude)
+            && self.fuzz == other.fuzz
+    }
 }
 
 pub(crate) fn try_build(

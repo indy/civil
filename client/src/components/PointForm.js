@@ -1,17 +1,26 @@
 import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
-import StateUtils from '../lib/StateUtils';
 import Net from '../lib/Net';
 
 import CivilDate from './CivilDate';
 import CivilLocation from './CivilLocation';
 
-export default function PointCreateForm(props) {
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState('');
-  const [location, setLocation] = useState('');
+export default function PointForm(props) {
+  const [title, setTitle] = useState(props.title || '');
+  const [date, setDate] = useState(props.date);
+  const [location, setLocation] = useState(props.location);
   const [redirectUrl, setRedirectUrl] = useState(false);
+
+  if (props.title && props.title !== '' && title === '') {
+    setTitle(props.title);
+  }
+  if (props.date && props.date.textual !== '' && !date) {
+    setDate(props.date);
+  }
+  if (props.location && props.location !== '' && !location) {
+    setLocation(props.location);
+  }
 
   const handleChangeEvent = (event) => {
     const target = event.target;
@@ -29,10 +38,18 @@ export default function PointCreateForm(props) {
   };
 
   const handleSubmit = (event) => {
-    const cleanState = StateUtils.removeEmptyObjects({title, date, location});
-    const data = JSON.stringify(cleanState);
-    console.log(`sending: ${data}`);
-    Net.createThenRedirectHook(setRedirectUrl, "points", data);
+    const data = {title, date, location};
+
+    if(props.update) {
+      // edit an existing point
+      Net.put(`/api/points/${props.id}`, data).then(props.update);
+    } else {
+      // create a new point
+      Net.post('/api/points', data).then(point => {
+        setRedirectUrl(`points/${point.id}`);
+      });
+    }
+
     event.preventDefault();
   };
 
@@ -53,9 +70,9 @@ export default function PointCreateForm(props) {
                      onChange={ handleChangeEvent } />
             </div>
             <br/>
-            <CivilDate id="point-date" onDateChange={handleCivilDateChange}/>
+            <CivilDate id="point-date" onDateChange={handleCivilDateChange} date={date}/>
             <br/>
-            <CivilLocation id="point-location" onLocationChange={handleCivilLocationChange}/>
+            <CivilLocation id="point-location" onLocationChange={handleCivilLocationChange} location={location}/>
             <br/>
             <input type="submit" value="Save"/>
           </form>

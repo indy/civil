@@ -76,7 +76,7 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key, article_id: Key) -> Result
 pub(crate) async fn create(
     db_pool: &Pool,
     user_id: Key,
-    article: &interop::CreateArticle,
+    article: &interop::ProtoArticle,
 ) -> Result<interop::Article> {
     pg::one_from::<Article, interop::Article>(
         db_pool,
@@ -89,13 +89,19 @@ pub(crate) async fn create(
 pub(crate) async fn edit(
     db_pool: &Pool,
     user_id: Key,
-    article: &interop::Article,
+    article: &interop::ProtoArticle,
     article_id: Key,
 ) -> Result<interop::Article> {
     pg::one_from::<Article, interop::Article>(
         db_pool,
         include_str!("sql/articles_edit.sql"),
-        &[&user_id, &article_id, &article.title, &article.source, &article.author],
+        &[
+            &user_id,
+            &article_id,
+            &article.title,
+            &article.source,
+            &article.author,
+        ],
     )
     .await
 }

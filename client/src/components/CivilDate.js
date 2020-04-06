@@ -20,6 +20,21 @@ export default function CivilDate(props) {
   const [is_approx, setIs_approx] = useState(false);
   const [round_to_year, setRound_to_year] = useState(false);
 
+  if (props.date) {
+    if (props.date.textual && textual === '') {
+      setTextual(props.date.textual);
+    }
+    if (props.date.exact_date && exact_date === '') {
+      setExact_date(props.date.exact_date);
+    }
+    if (props.date.lower_date && lower_date === '') {
+      setLower_date(props.date.lower_date);
+    }
+    if (props.date.upper_date && upper_date === '') {
+      setUpper_date(props.date.upper_date);
+    }
+  }
+
   const emptyDateStructure = () => {
       const empty = {};
       return empty;

@@ -17,7 +17,7 @@
 
 use crate::error::Result;
 use crate::interop::points as interop;
-use crate::interop::IdParam;
+use crate::interop::{IdParam, Key};
 use crate::persist::edges as edges_db;
 use crate::persist::notes as notes_db;
 use crate::persist::points as db;
@@ -30,7 +30,7 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 pub async fn create(
-    point: Json<interop::CreatePoint>,
+    point: Json<interop::ProtoPoint>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -62,40 +62,28 @@ pub async fn get(
     info!("get {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
-
     let point_id = params.id;
+
     let mut point = db::get(&db_pool, user_id, point_id).await?;
-
-    let notes = notes_db::all_from_deck(&db_pool, point_id).await?;
-    point.notes = Some(notes);
-
-    let tags_in_notes = edges_db::from_deck_id_via_notes_to_tags(&db_pool, point_id).await?;
-    point.tags_in_notes = Some(tags_in_notes);
-
-    let decks_in_notes = edges_db::from_deck_id_via_notes_to_decks(&db_pool, point_id).await?;
-    point.decks_in_notes = Some(decks_in_notes);
-
-    let linkbacks_to_decks = edges_db::from_decks_via_notes_to_deck_id(&db_pool, point_id).await?;
-    point.linkbacks_to_decks = Some(linkbacks_to_decks);
-
-    let linkbacks_to_tags = edges_db::from_tags_via_notes_to_deck_id(&db_pool, point_id).await?;
-    point.linkbacks_to_tags = Some(linkbacks_to_tags);
+    augment(&db_pool, &mut point, point_id).await?;
 
     Ok(HttpResponse::Ok().json(point))
 }
 
 pub async fn edit(
-    point: Json<interop::Point>,
+    point: Json<interop::ProtoPoint>,
     db_pool: Data<Pool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("edit");
 
-    let point = point.into_inner();
     let user_id = session::user_id(&session)?;
+    let point_id = params.id;
+    let point = point.into_inner();
 
-    let point = db::edit(&db_pool, user_id, &point, params.id).await?;
+    let mut point = db::edit(&db_pool, user_id, &point, point_id).await?;
+    augment(&db_pool, &mut point, point_id).await?;
 
     Ok(HttpResponse::Ok().json(point))
 }
@@ -112,4 +100,23 @@ pub async fn delete(
     db::delete(&db_pool, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(true))
+}
+
+async fn augment(db_pool: &Data<Pool>, point: &mut interop::Point, point_id: Key) -> Result<()> {
+    let notes = notes_db::all_from_deck(&db_pool, point_id).await?;
+    point.notes = Some(notes);
+
+    let tags_in_notes = edges_db::from_deck_id_via_notes_to_tags(&db_pool, point_id).await?;
+    point.tags_in_notes = Some(tags_in_notes);
+
+    let decks_in_notes = edges_db::from_deck_id_via_notes_to_decks(&db_pool, point_id).await?;
+    point.decks_in_notes = Some(decks_in_notes);
+
+    let linkbacks_to_decks = edges_db::from_decks_via_notes_to_deck_id(&db_pool, point_id).await?;
+    point.linkbacks_to_decks = Some(linkbacks_to_decks);
+
+    let linkbacks_to_tags = edges_db::from_tags_via_notes_to_deck_id(&db_pool, point_id).await?;
+    point.linkbacks_to_tags = Some(linkbacks_to_tags);
+
+    Ok(())
 }

@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::dates::{CreateDate, Date};
+use crate::interop::dates::{Date, ProtoDate};
 use crate::interop::edges::{LinkBack, MarginConnection};
-use crate::interop::locations::{CreateLocation, Location};
+use crate::interop::locations::{Location, ProtoLocation};
 use crate::interop::notes::Note;
 use crate::interop::Key;
 
@@ -38,8 +38,8 @@ pub struct Point {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct CreatePoint {
+pub struct ProtoPoint {
     pub title: String,
-    pub date: Option<CreateDate>,
-    pub location: Option<CreateLocation>,
+    pub date: Option<ProtoDate>,
+    pub location: Option<ProtoLocation>,
 }

@@ -1,7 +1,8 @@
 import { useParams } from 'react-router-dom';
 import React, { useState } from 'react';
 
-import NoteCreator from './NoteCreator';
+import BookForm from './BookForm';
+import FormHandler from './FormHandler';
 import NoteHolder from './NoteHolder';
 import SectionLinkBacks from './SectionLinkBacks';
 import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
@@ -14,12 +15,23 @@ export default function Book(props) {
 
   ensureCorrectDeck(book_id, setBook, "books");
 
-  const creator = NoteCreator(book, setBook, { deck_id: book_id }, book.title);
   const notes = NoteHolder(book, setBook);
+  const bookForm = <BookForm id={ book_id }
+                             title={ book.title }
+                             author={ book.author }
+                             update={ setBook }
+                   />;
+  const formHandler = FormHandler({
+    noteContainer: book,
+    setNoteContainer: setBook,
+    ident: { deck_id: book_id },
+    title: book.title,
+    form: bookForm
+  });
 
   return (
     <article>
-      { creator }
+      { formHandler }
       <h2>{ book.author }</h2>
       <section className="book-notes">
         { notes }

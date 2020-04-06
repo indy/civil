@@ -7,14 +7,33 @@ import Net from '../lib/Net';
 import CivilDate from './CivilDate';
 import CivilLocation from './CivilLocation';
 
-export default function PersonCreateForm(props) {
-  const [name, setName] = useState('');
-  const [age, setAge] = useState('');
+export default function PersonForm(props) {
+  const [name, setName] = useState(props.name || '');
+  const [age, setAge] = useState(props.age || '');
+  const [birth_date, setBirthDate] = useState(props.birth_date);
+  const [birth_location, setBirthLocation] = useState(props.birth_location);
+  const [death_date, setDeathDate] = useState(props.death_date);
+  const [death_location, setDeathLocation] = useState(props.death_location);
   const [redirectUrl, setRedirectUrl] = useState(false);
-  const [birth_date, setBirthDate] = useState('');
-  const [birth_location, setBirthLocation] = useState('');
-  const [death_date, setDeathDate] = useState('');
-  const [death_location, setDeathLocation] = useState('');
+
+  if (props.name && props.name !== '' && name === '') {
+    setName(props.name);
+  }
+  if (props.age && props.age !== '' && age === '') {
+    setAge(age.name);
+  }
+  if (props.birth_date && props.birth_date.textual !== '' && !birth_date) {
+    setBirthDate(props.birth_date);
+  }
+  if (props.birth_location && props.birth_location !== '' && !birth_location) {
+    setBirthLocation(props.birth_location);
+  }
+  if (props.death_date && props.death_date.textual !== '' && !death_date) {
+    setDeathDate(props.death_date);
+  }
+  if (props.death_location && props.death_location !== '' && !death_location) {
+    setDeathLocation(props.death_location);
+  }
 
   const handleChangeEvent = (event) => {
     const target = event.target;
@@ -53,13 +72,20 @@ export default function PersonCreateForm(props) {
       death_date,
       death_location
     };
-    const cleanState = StateUtils.removeEmptyObjects(sendState);
+    const data = StateUtils.removeEmptyObjects(sendState);
 
-    if (!cleanState.birth_date || !cleanState.birth_location) {
+    if (!data.birth_date || !data.birth_location) {
       console.error("a person requires both birth date and birth location information");
     } else {
-      const data = JSON.stringify(cleanState);
-      Net.createThenRedirectHook(setRedirectUrl, "people", data);
+      if(props.update) {
+        // edit an existing point
+        Net.put(`/api/people/${props.id}`, data).then(props.update);
+      } else {
+        // create a new point
+        Net.post('/api/people', data).then(person => {
+          setRedirectUrl(`people/${person.id}`);
+        });
+      }
     }
 
     event.preventDefault();
@@ -83,16 +109,16 @@ export default function PersonCreateForm(props) {
 
             <fieldset>
               <legend>Born</legend>
-              <CivilDate id="birth_date" onDateChange={handleCivilDateChange}/>
+              <CivilDate id="birth_date" onDateChange={handleCivilDateChange} date={birth_date}/>
               <br/>
-              <CivilLocation id="birth_location" onLocationChange={handleCivilLocationChange}/>
+              <CivilLocation id="birth_location" onLocationChange={handleCivilLocationChange} location={birth_location}/>
             </fieldset>
 
             <fieldset>
               <legend>Died</legend>
-              <CivilDate id="death_date" onDateChange={handleCivilDateChange}/>
+              <CivilDate id="death_date" onDateChange={handleCivilDateChange} date={death_date}/>
               <br/>
-              <CivilLocation id="death_location" onLocationChange={handleCivilLocationChange}/>
+              <CivilLocation id="death_location" onLocationChange={handleCivilLocationChange} location={death_location}/>
             </fieldset>
 
             <label htmlFor="age">Age:</label>

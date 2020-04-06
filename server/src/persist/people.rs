@@ -136,7 +136,7 @@ impl From<PersonDerived> for interop::Person {
 pub(crate) async fn create(
     db_pool: &Pool,
     user_id: Key,
-    person: &interop::CreatePerson,
+    person: &interop::ProtoPerson,
 ) -> Result<interop::Person> {
     info!("db::create_person");
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
@@ -229,7 +229,7 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key, person_id: Key) -> Result<
 pub(crate) async fn edit(
     db_pool: &Pool,
     user_id: Key,
-    updated_person: &interop::Person,
+    updated_person: &interop::ProtoPerson,
     person_id: Key,
 ) -> Result<interop::Person> {
     let existing_person = get(db_pool, person_id, user_id).await?;
@@ -238,17 +238,15 @@ pub(crate) async fn edit(
     let tx = client.transaction().await?;
 
     if let Some(existing_date) = &existing_person.birth_date {
-        if let Some(updated_date) = &updated_person.birth_date {
-            if updated_date != existing_date {
-                dates::edit(&tx, &updated_date, existing_date.id).await?;
-            }
+        let updated_date = &updated_person.birth_date;
+        if updated_date != existing_date {
+            dates::edit(&tx, &updated_date, existing_date.id).await?;
         }
     }
     if let Some(existing_loc) = &existing_person.birth_location {
-        if let Some(updated_loc) = &updated_person.birth_location {
-            if updated_loc != existing_loc {
-                locations::edit(&tx, &updated_loc, existing_loc.id).await?;
-            }
+        let updated_loc = &updated_person.birth_location;
+        if updated_loc != existing_loc {
+            locations::edit(&tx, &updated_loc, existing_loc.id).await?;
         }
     }
 

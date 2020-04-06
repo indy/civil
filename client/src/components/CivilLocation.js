@@ -17,6 +17,18 @@ export default function CivilLocation(props) {
   const [latitude, setLatitude] = useState(location.latitude);
   const [longitude, setLongitude] = useState(location.longitude);
 
+  if (props.location) {
+    if (props.location.textual && textual === '') {
+      setTextual(props.location.textual);
+    }
+    if (props.location.latitude && latitude === 0) {
+      setLatitude(props.location.latitude);
+    }
+    if (props.location.longitude && longitude === 0) {
+      setLongitude(props.location.longitude);
+    }
+  }
+
   const emptyLocationStructure = () => {
       const empty = {};
       return empty;
@@ -86,14 +98,14 @@ export default function CivilLocation(props) {
       <input id="latitude"
              type="number"
              name="latitude"
-             step="0"
+             step="any"
              value={ latitude }
              onChange={ handleChangeEvent } />
       <label htmlFor="longitude">Longitude:</label>
       <input id="longitude"
              type="number"
              name="longitude"
-             step="0"
+             step="any"
              value={ longitude }
              onChange={ handleChangeEvent } />
       <br/>

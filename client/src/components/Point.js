@@ -1,7 +1,8 @@
 import { useParams } from 'react-router-dom';
 import React, { useState } from 'react';
 
-import NoteCreator from './NoteCreator';
+import PointForm from './PointForm';
+import FormHandler from './FormHandler';
 import NoteHolder from './NoteHolder';
 import SectionLinkBacks from './SectionLinkBacks';
 import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
@@ -14,12 +15,24 @@ export default function Point(props) {
 
   ensureCorrectDeck(point_id, setPoint, "points");
 
-  const creator = NoteCreator(point, setPoint, { deck_id: point_id }, point.title);
   const notes = NoteHolder(point, setPoint);
+  const pointForm = <PointForm id={ point_id }
+                               title={ point.title }
+                               date = { point.date}
+                               location={ point.location }
+                               update={ setPoint }
+                    />;
+  const formHandler = FormHandler({
+    noteContainer: point,
+    setNoteContainer: setPoint,
+    ident: { deck_id: point_id },
+    title: point.title,
+    form: pointForm
+  });
 
   return (
     <article>
-      { creator }
+      { formHandler }
       <PointTime point={ point }/>
       <PointPlace point={ point }/>
       <section className="point-notes">

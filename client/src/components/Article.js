@@ -1,7 +1,8 @@
 import { useParams } from 'react-router-dom';
 import React, { useState } from 'react';
 
-import NoteCreator from './NoteCreator';
+import ArticleForm from './ArticleForm';
+import FormHandler from './FormHandler';
 import NoteHolder from './NoteHolder';
 import SectionLinkBacks from './SectionLinkBacks';
 import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
@@ -14,12 +15,24 @@ export default function Article(props) {
 
   ensureCorrectDeck(article_id, setArticle, "articles");
 
-  const creator = NoteCreator(article, setArticle, { deck_id: article_id }, article.title);
   const notes = NoteHolder(article, setArticle);
+  const articleForm = <ArticleForm id={ article_id }
+                                   title={ article.title }
+                                   source={ article.source }
+                                   author={ article.author }
+                                   update={ setArticle }
+                      />;
+  const formHandler = FormHandler({
+    noteContainer: article,
+    setNoteContainer: setArticle,
+    ident: { deck_id: article_id },
+    title: article.title,
+    form: articleForm
+  });
 
   return (
     <article>
-      { creator }
+      { formHandler }
       <h2>{ article.author }</h2>
       <h3>Source: <a href={ article.source }>{ article.source }</a></h3>
       <section className="article-notes">

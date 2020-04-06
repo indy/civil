@@ -1,7 +1,8 @@
 import { useParams } from 'react-router-dom';
 import React, { useState } from 'react';
 
-import NoteCreator from './NoteCreator';
+import IdeaForm from './IdeaForm';
+import FormHandler from './FormHandler';
 import NoteHolder from './NoteHolder';
 import SectionLinkBacks from './SectionLinkBacks';
 import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
@@ -14,12 +15,22 @@ export default function Idea(props) {
 
   ensureCorrectDeck(idea_id, setIdea, "ideas");
 
-  const creator = NoteCreator(idea, setIdea, { deck_id: idea_id }, idea.title);
   const notes = NoteHolder(idea, setIdea);
+  const ideaForm = <IdeaForm id={ idea_id }
+                             title={ idea.title }
+                             update={ setIdea }
+                   />;
+  const formHandler = FormHandler({
+    noteContainer: idea,
+    setNoteContainer: setIdea,
+    ident: { deck_id: idea_id },
+    title: idea.title,
+    form: ideaForm
+  });
 
   return (
     <article>
-      { creator }
+      { formHandler }
       <section className="idea-notes">
         { notes }
       </section>

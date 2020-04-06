@@ -48,7 +48,7 @@ impl From<Location> for interop::Location {
 
 pub(crate) async fn create(
     tx: &Transaction<'_>,
-    location: &interop::CreateLocation,
+    location: &interop::ProtoLocation,
 ) -> Result<interop::Location> {
     let db_location = pg::one::<Location>(
         tx,
@@ -68,7 +68,7 @@ pub(crate) async fn create(
 
 pub(crate) async fn edit(
     tx: &Transaction<'_>,
-    location: &interop::Location,
+    location: &interop::ProtoLocation,
     location_id: Key,
 ) -> Result<interop::Location> {
     let db_location = pg::one::<Location>(

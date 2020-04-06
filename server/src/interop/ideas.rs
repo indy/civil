@@ -34,6 +34,6 @@ pub struct Idea {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct CreateIdea {
+pub struct ProtoIdea {
     pub title: String,
 }

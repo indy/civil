@@ -68,7 +68,7 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key, idea_id: Key) -> Result<in
 pub(crate) async fn create(
     db_pool: &Pool,
     user_id: Key,
-    idea: &interop::CreateIdea,
+    idea: &interop::ProtoIdea,
 ) -> Result<interop::Idea> {
     pg::one_from::<Idea, interop::Idea>(
         db_pool,
@@ -81,7 +81,7 @@ pub(crate) async fn create(
 pub(crate) async fn edit(
     db_pool: &Pool,
     user_id: Key,
-    idea: &interop::Idea,
+    idea: &interop::ProtoIdea,
     idea_id: Key,
 ) -> Result<interop::Idea> {
     pg::one_from::<Idea, interop::Idea>(

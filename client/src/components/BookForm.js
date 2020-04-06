@@ -4,10 +4,17 @@ import { Redirect } from 'react-router-dom';
 import StateUtils from '../lib/StateUtils';
 import Net from '../lib/Net';
 
-export default function BookCreateForm() {
-  const [title, setTitle] = useState('');
-  const [author, setAuthor] = useState('');
+export default function BookForm(props) {
+  const [title, setTitle] = useState(props.title || '');
+  const [author, setAuthor] = useState(props.author || '');
   const [redirectUrl, setRedirectUrl] = useState(false);
+
+  if (props.title && props.title !== '' && title === '') {
+    setTitle(props.title);
+  }
+  if (props.author && props.author !== '' && author === '') {
+    setAuthor(props.author);
+  }
 
   const handleChangeEvent = (event) => {
     const target = event.target;
@@ -23,9 +30,18 @@ export default function BookCreateForm() {
   };
 
   const handleSubmit = (event) => {
-    const cleaned_state = StateUtils.removeEmptyStrings({title, author}, ["author"]);
-    const data = JSON.stringify(cleaned_state);
-    Net.createThenRedirectHook(setRedirectUrl, "books", data);
+    const data = StateUtils.removeEmptyStrings({title, author}, ["author"]);
+
+    if(props.update) {
+      // edit an existing book
+      Net.put(`/api/books/${props.id}`, data).then(props.update);
+    } else {
+      // create a new book
+      Net.post('/api/books', data).then(book => {
+        setRedirectUrl(`books/${book.id}`);
+      });
+    }
+
     event.preventDefault();
   };
 
@@ -36,7 +52,6 @@ export default function BookCreateForm() {
       <article>
         <section>
           <form onSubmit={ handleSubmit }>
-
             <label htmlFor="title">Title:</label>
             <input id="title"
                    type="text"

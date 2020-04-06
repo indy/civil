@@ -69,7 +69,7 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key, tag_id: Key) -> Result<int
 pub(crate) async fn create(
     db_pool: &Pool,
     user_id: Key,
-    tag: &interop::CreateTag,
+    tag: &interop::ProtoTag,
 ) -> Result<interop::Tag> {
     pg::one_from::<Tag, interop::Tag>(
         db_pool,
@@ -82,7 +82,7 @@ pub(crate) async fn create(
 pub(crate) async fn edit(
     db_pool: &Pool,
     user_id: Key,
-    tag: &interop::Tag,
+    tag: &interop::ProtoTag,
     tag_id: Key,
 ) -> Result<interop::Tag> {
     pg::one_from::<Tag, interop::Tag>(

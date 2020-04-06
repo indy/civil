@@ -28,12 +28,34 @@ pub struct Date {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct CreateDate {
+pub struct ProtoDate {
     pub textual: Option<String>,
     pub exact_date: Option<chrono::NaiveDate>,
     pub lower_date: Option<chrono::NaiveDate>,
     pub upper_date: Option<chrono::NaiveDate>,
     pub fuzz: f32,
+}
+
+fn eq_naive_dates(a: Option<chrono::NaiveDate>, b: Option<chrono::NaiveDate>) -> bool {
+    if let Some(ad) = a {
+        if let Some(bd) = b {
+            ad == bd
+        } else {
+            false
+        }
+    } else {
+        false
+    }
+}
+
+impl PartialEq<Date> for ProtoDate {
+    fn eq(&self, other: &Date) -> bool {
+        self.textual.as_deref() == other.textual.as_deref()
+            && eq_naive_dates(self.exact_date, other.exact_date)
+            && eq_naive_dates(self.lower_date, other.lower_date)
+            && eq_naive_dates(self.upper_date, other.upper_date)
+            && self.fuzz == other.fuzz
+    }
 }
 
 pub(crate) fn try_build(

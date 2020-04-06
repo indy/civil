@@ -35,6 +35,6 @@ pub struct Tag {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct CreateTag {
+pub struct ProtoTag {
     pub name: String,
 }

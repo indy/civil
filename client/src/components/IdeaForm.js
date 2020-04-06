@@ -3,9 +3,13 @@ import { Redirect } from 'react-router-dom';
 
 import Net from '../lib/Net';
 
-export default function IdeaCreateForm() {
-  const [title, setTitle] = useState('');
+export default function IdeaForm(props) {
+  const [title, setTitle] = useState(props.title || '');
   const [redirectUrl, setRedirectUrl] = useState(false);
+
+  if (props.title && props.title !== '' && title === '') {
+    setTitle(props.title);
+  }
 
   const handleChangeEvent = (event) => {
     const target = event.target;
@@ -18,9 +22,18 @@ export default function IdeaCreateForm() {
   };
 
   const handleSubmit = (event) => {
-    const cleaned_state = { title: title };
-    const data = JSON.stringify(cleaned_state);
-    Net.createThenRedirectHook(setRedirectUrl, "ideas", data);
+    const data = { title: title };
+
+    if(props.update) {
+      // edit an existing idea
+      Net.put(`/api/ideas/${props.id}`, data).then(props.update);
+    } else {
+      // create a new book
+      Net.post('/api/ideas', data).then(idea => {
+        setRedirectUrl(`ideas/${idea.id}`);
+      });
+    }
+
     event.preventDefault();
   };
 
@@ -31,7 +44,6 @@ export default function IdeaCreateForm() {
       <article>
         <section>
           <form onSubmit={ handleSubmit }>
-
             <label htmlFor="title">Title:</label>
             <input id="title"
                    type="text"

@@ -3,8 +3,8 @@ import { Redirect } from 'react-router-dom';
 
 import Net from '../lib/Net';
 
-export default function TagCreateForm() {
-  const [name, setName] = useState('');
+export default function TagForm(props) {
+  const [name, setName] = useState(props.name || '');
   const [redirectUrl, setRedirectUrl] = useState(false);
 
   const handleChangeEvent = (event) => {
@@ -15,8 +15,18 @@ export default function TagCreateForm() {
   };
 
   const handleSubmit = (event) => {
-    const data = JSON.stringify({name});
-    Net.createThenRedirectHook(setRedirectUrl, "tags", data);
+    const data = { name };
+
+    if(props.update) {
+      // edit an existing tag
+      Net.put(`/api/tags/${props.id}`, data).then(props.update);
+    } else {
+      // create a new tag
+      Net.post('/api/tags', data).then(tag => {
+        setRedirectUrl(`tags/${tag.id}`);
+      });
+    }
+
     event.preventDefault();
   };
 

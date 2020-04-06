@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::dates::{CreateDate, Date};
+use crate::interop::dates::{Date, ProtoDate};
 use crate::interop::edges::{LinkBack, MarginConnection};
-use crate::interop::locations::{CreateLocation, Location};
+use crate::interop::locations::{Location, ProtoLocation};
 use crate::interop::notes::Note;
 use crate::interop::Key;
 
@@ -40,11 +40,11 @@ pub struct Person {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct CreatePerson {
+pub struct ProtoPerson {
     pub name: String,
     // todo: there should be an age parameter here?
-    pub birth_date: CreateDate,
-    pub birth_location: CreateLocation,
-    pub death_date: Option<CreateDate>,
-    pub death_location: Option<CreateLocation>,
+    pub birth_date: ProtoDate,
+    pub birth_location: ProtoLocation,
+    pub death_date: Option<ProtoDate>,
+    pub death_location: Option<ProtoLocation>,
 }

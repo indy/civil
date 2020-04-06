@@ -36,7 +36,7 @@ pub struct Article {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct CreateArticle {
+pub struct ProtoArticle {
     pub title: String,
     pub source: Option<String>,
     pub author: Option<String>,

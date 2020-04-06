@@ -1,8 +1,9 @@
 import { useParams } from 'react-router-dom';
 import React, { useState } from 'react';
 
+import PersonForm from './PersonForm';
 import DateUtils from '../lib/DateUtils';
-import NoteCreator from './NoteCreator';
+import FormHandler from './FormHandler';
 import NoteHolder from './NoteHolder';
 import SectionLinkBacks from './SectionLinkBacks';
 import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
@@ -15,8 +16,23 @@ export default function Person(props) {
 
   ensureCorrectDeck(person_id, setPerson, "people");
 
-  const creator = NoteCreator(person, setPerson, { deck_id: person_id }, person.name);
   const notes = NoteHolder(person, setPerson);
+  const personForm = <PersonForm id={ person_id }
+                                 name={ person.name }
+                                 age={ person.age }
+                                 birth_date = { person.birth_date }
+                                 birth_location={ person.birth_location }
+                                 death_date = { person.death_date }
+                                 death_location={ person.death_location }
+                                 update={ setPerson }
+                     />;
+  const formHandler = FormHandler({
+    noteContainer: person,
+    setNoteContainer: setPerson,
+    ident: { deck_id: person_id },
+    title: person.name,
+    form: personForm
+  });
 
   const isPersonDead = () => {
     return person.death_date !== null;
@@ -30,11 +46,10 @@ export default function Person(props) {
 
   return (
     <article>
-      { creator }
+      { formHandler }
       <Birth person={ person }/>
       { isPersonDead() && buildDeath() }
       <Age person={ person }/>
-
       <section className="person-notes">
         { notes }
       </section>
