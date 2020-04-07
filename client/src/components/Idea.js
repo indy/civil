@@ -1,19 +1,15 @@
-import { useParams } from 'react-router-dom';
 import React from 'react';
 
 import IdeaForm from './IdeaForm';
 import FormHandler from './FormHandler';
 import NoteHolder from './NoteHolder';
 import SectionLinkBacks from './SectionLinkBacks';
-import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
+import {ensureCorrectDeck, idParam} from '../lib/appUtils';
 import { useStateValue } from '../state';
 
 export default function Idea(props) {
   const [state, dispatch] = useStateValue();
-
-  const {id} = useParams();
-  const idea_id = parseInt(id, 10);
-
+  const idea_id = idParam();
   const resource = "ideas";
 
   function setIdea(newIdea) {

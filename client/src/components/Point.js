@@ -1,19 +1,15 @@
-import { useParams } from 'react-router-dom';
 import React from 'react';
 
 import PointForm from './PointForm';
 import FormHandler from './FormHandler';
 import NoteHolder from './NoteHolder';
 import SectionLinkBacks from './SectionLinkBacks';
-import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
+import {ensureCorrectDeck, idParam} from '../lib/appUtils';
 import { useStateValue } from '../state';
 
 export default function Point(props) {
   const [state, dispatch] = useStateValue();
-
-  const {id} = useParams();
-  const point_id = parseInt(id, 10);
-
+  const point_id = idParam();
   const resource = "points";
 
   function setPoint(newPoint) {

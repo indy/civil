@@ -1,9 +1,10 @@
+import { useParams } from 'react-router-dom';
 import { useState } from 'react';
 
 import Net from './Net';
 import NoteUtils from '../lib/NoteUtils';
 
-export default function ensureCorrectDeck(resource, id, isLoaded, setDeck) {
+export const ensureCorrectDeck = (resource, id, isLoaded, setDeck) => {
   const [currentId, setCurrentId] = useState(false);
 
   if (id !== currentId) {
@@ -24,4 +25,9 @@ export default function ensureCorrectDeck(resource, id, isLoaded, setDeck) {
       });
     }
   }
-}
+};
+
+export const idParam = () => {
+  const { id } = useParams();
+  return parseInt(id, 10);
+};

@@ -1,19 +1,15 @@
-import { useParams } from 'react-router-dom';
 import React from 'react';
 
 import ArticleForm from './ArticleForm';
 import FormHandler from './FormHandler';
 import NoteHolder from './NoteHolder';
 import SectionLinkBacks from './SectionLinkBacks';
-import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
+import {ensureCorrectDeck, idParam} from '../lib/appUtils';
 import { useStateValue } from '../state';
 
 export default function Article(props) {
   const [state, dispatch] = useStateValue();
-
-  const {id} = useParams();
-  const article_id = parseInt(id, 10);
-
+  const article_id = idParam();
   const resource = "articles";
 
   function setArticle(newArticle) {
