@@ -109,10 +109,10 @@ impl From<DeckReference> for interop::MarginConnection {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
-struct LinkBackToDeck {
-    id: Key,
-    name: String,
-    kind: String,
+pub struct LinkBackToDeck {
+    pub id: Key,
+    pub name: String,
+    pub kind: String,
 }
 
 impl From<LinkBackToDeck> for interop::LinkBack {
@@ -128,9 +128,9 @@ impl From<LinkBackToDeck> for interop::LinkBack {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "tags")]
-struct LinkBackToTag {
-    id: Key,
-    name: String,
+pub struct LinkBackToTag {
+    pub id: Key,
+    pub name: String,
 }
 
 impl From<LinkBackToTag> for interop::LinkBack {

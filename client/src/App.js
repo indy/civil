@@ -10,6 +10,8 @@ import {
 import Login from './components/Login';
 import Logout from './components/Logout';
 
+import Dashboard from './components/Dashboard';
+
 import Person from './components/Person';
 import People from './components/People';
 import PersonForm from './components/PersonForm';
@@ -71,6 +73,7 @@ export default function App(props) {
       <div>
         <div id='top-bar-menu'>
           <Link className='top-bar-menuitem' to={'/'}>Home</Link>
+          <Link className='top-bar-menuitem' to={'/dashboard'}>Dashboard</Link>
           <Link className='top-bar-menuitem' to={'/ideas'}>Ideas</Link>
           <Link className='top-bar-menuitem' to={'/tags'}>Tags</Link>
           <Link className='top-bar-menuitem' to={'/books'}>Books</Link>
@@ -90,6 +93,10 @@ export default function App(props) {
           </Route>
           <PrivateRoute exact path="/logout">
             <Logout logoutCallback = { logoutHandler }/>
+          </PrivateRoute>
+
+          <PrivateRoute path={'/dashboard'}>
+            <Dashboard/>
           </PrivateRoute>
 
           <PrivateRoute path={'/ideas/:id'}>

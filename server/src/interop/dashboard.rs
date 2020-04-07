@@ -15,14 +15,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod articles;
-pub mod autocomplete;
-pub mod books;
-pub mod dashboard;
-pub mod edges;
-pub mod ideas;
-pub mod notes;
-pub mod people;
-pub mod points;
-pub mod tags;
-pub mod users;
+use crate::interop::edges::LinkBack;
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct Dashboard {
+    pub tags: Vec<LinkBack>,
+    pub articles: Vec<LinkBack>,
+    pub books: Vec<LinkBack>,
+    pub people: Vec<LinkBack>,
+    pub points: Vec<LinkBack>,
+    pub ideas: Vec<LinkBack>,
+}

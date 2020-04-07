@@ -18,6 +18,7 @@
 pub mod articles;
 pub mod autocomplete;
 pub mod books;
+pub mod dashboard;
 pub mod dates;
 pub mod edges;
 pub mod ideas;

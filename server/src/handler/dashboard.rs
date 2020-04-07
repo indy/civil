@@ -15,14 +15,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod articles;
-pub mod autocomplete;
-pub mod books;
-pub mod dashboard;
-pub mod edges;
-pub mod ideas;
-pub mod notes;
-pub mod people;
-pub mod points;
-pub mod tags;
-pub mod users;
+use crate::error::Result;
+use crate::persist::dashboard as db;
+use crate::session;
+use actix_web::web::Data;
+use actix_web::HttpResponse;
+use deadpool_postgres::Pool;
+
+#[allow(unused_imports)]
+use tracing::info;
+
+pub async fn get(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
+    info!("get");
+
+    let user_id = session::user_id(&session)?;
+
+    let dashboard = db::get(&db_pool, user_id).await?;
+    Ok(HttpResponse::Ok().json(dashboard))
+}
