@@ -27,7 +27,7 @@ export default function Article(props) {
   ensureCorrectDeck(resource, article_id, isLoaded, setArticle);
 
   const article = state.article[article_id] || { id: article_id };
-  const notes = NoteHolder(article, setArticle);
+  const notes = NoteHolder(article, setArticle, state, dispatch);
 
   const articleForm = <ArticleForm id={ article_id }
                                    title={ article.title }

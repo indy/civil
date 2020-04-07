@@ -27,7 +27,7 @@ export default function Idea(props) {
   ensureCorrectDeck(resource, idea_id, isLoaded, setIdea);
 
   const idea = state.idea[idea_id] || { id: idea_id };
-  const notes = NoteHolder(idea, setIdea);
+  const notes = NoteHolder(idea, setIdea, state, dispatch);
 
   const ideaForm = <IdeaForm id={ idea_id }
                              title={ idea.title }

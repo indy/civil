@@ -27,7 +27,7 @@ export default function Tag(props) {
   ensureCorrectDeck(resource, tag_id, isLoaded, setTag);
 
   const tag = state.tag[tag_id] || { id: tag_id };
-  const notes = NoteHolder(tag, setTag);
+  const notes = NoteHolder(tag, setTag, state, dispatch);
 
   const tagForm = <TagForm id={ tag_id }
                            name={ tag.name }

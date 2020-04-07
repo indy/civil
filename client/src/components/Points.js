@@ -3,10 +3,12 @@ import Net from '../lib/Net';
 import { Link } from 'react-router-dom';
 import ListingLink from './ListingLink';
 import { useStateValue } from '../state';
+import {ensureAC} from '../lib/appUtils';
 
 export default function Points() {
   const [state, dispatch] = useStateValue();
   let [showAddPointLink, setShowAddPointLink] = useState(false);
+  ensureAC(state, dispatch);
 
   useEffect(() => {
     async function fetcher() {

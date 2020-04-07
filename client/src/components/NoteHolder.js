@@ -1,10 +1,39 @@
 import React from 'react';
 import Note from './Note';
 
-import AutocompleteCandidates from '../lib/AutocompleteCandidates';
+import {ensureAC} from '../lib/appUtils';
 
-export default function NoteHolder(deck, setDeckFn) {
-  const [ac, addNewTagsToAutocomplete] = AutocompleteCandidates();
+export default function NoteHolder(deck, setDeckFn, state, dispatch) {
+  ensureAC(state, dispatch);
+
+  const ac = state.ac;
+
+  const addNewTagsToAutocomplete = (someTags) => {
+    let acNew = {...state.ac};
+
+    someTags.forEach(t => {
+      let preExisting = ac.tags.some(a => {
+        return a.value === t.name;
+      });
+
+      if (!preExisting) {
+        // this tag was recently created, so add it to the autocomplete list
+        acNew.tags.push({
+          id: t.id,
+          value: t.name,
+          label: t.name
+        });
+      }
+    });
+
+    acNew.tags.sort((a, b) => a.value > b.value);
+
+    dispatch({
+      type: 'loadAutocomplete',
+      tags: acNew.tags,
+      decks: acNew.decks
+    });
+  };
 
   function findNoteWithId(id, modifyFn) {
     const notes = deck.notes;

@@ -27,7 +27,7 @@ export default function Point(props) {
   ensureCorrectDeck(resource, point_id, isLoaded, setPoint);
 
   const point = state.point[point_id] || { id: point_id };
-  const notes = NoteHolder(point, setPoint);
+  const notes = NoteHolder(point, setPoint, state, dispatch);
 
   const pointForm = <PointForm id={ point_id }
                                title={ point.title }

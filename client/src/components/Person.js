@@ -28,7 +28,7 @@ export default function Person(props) {
   ensureCorrectDeck(resource, person_id, isLoaded, setPerson);
 
   const person = state.person[person_id] || { id: person_id };
-  const notes = NoteHolder(person, setPerson);
+  const notes = NoteHolder(person, setPerson, state, dispatch);
 
   const personForm = <PersonForm id={ person_id }
                                  name={ person.name }

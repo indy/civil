@@ -38,6 +38,11 @@ import Tag from './components/Tag';
 import Tags from './components/Tags';
 import TagForm from './components/TagForm';
 
+
+import { useStateValue } from './state';
+import {ensureAC} from './lib/appUtils';
+
+
 const CivilAuthGlobal = {
   isAuthenticated: false
 };
@@ -79,6 +84,12 @@ function updateListOfNames(arr, obj) {
 export default function App(props) {
 
   const initialState = {
+    acLoaded: false,
+    ac: {
+      tags: [],
+      decks: []
+    },
+
     ideasLoaded: false,
     ideas: [],                  // when listing ideas on /ideas page
     idea: {},                   // an object where keys are the idea ids, values are the ideas
@@ -106,6 +117,16 @@ export default function App(props) {
 
   const reducer = (state, action) => {
     switch (action.type) {
+    case 'loadAutocomplete':
+      console.log(action.tags);
+      return {
+        ...state,
+        acLoaded: true,
+        ac: {
+          tags: action.tags,
+          decks: action.decks
+        }
+      };
     case 'setIdeas':
       return {
         ...state,
@@ -316,6 +337,9 @@ export default function App(props) {
 }
 
 const Home = () => {
+  const [state, dispatch] = useStateValue();
+  ensureAC(state, dispatch);
+
   return (
     <div>
       <h1>Civil &times; Zettelkasten &times; Samizdat</h1>

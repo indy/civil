@@ -27,7 +27,7 @@ export default function Book(props) {
   ensureCorrectDeck(resource, book_id, isLoaded, setBook);
 
   const book = state.book[book_id] || { id: book_id };
-  const notes = NoteHolder(book, setBook);
+  const notes = NoteHolder(book, setBook, state, dispatch);
 
   const bookForm = <BookForm id={ book_id }
                              title={ book.title }
