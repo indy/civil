@@ -2,24 +2,32 @@ import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
 import { Link } from 'react-router-dom';
 import ListingLink from './ListingLink';
+import { useStateValue } from '../state';
 
 export default function Tags() {
-  const [tags, setTags] = useState([]);
+  const [state, dispatch] = useStateValue();
   let [showAddTagLink, setShowAddTagLink] = useState(false);
 
   useEffect(() => {
-      async function fetcher() {
-        const p = await Net.get('/api/tags');
-        setTags(p);
-      }
+    async function fetcher() {
+      const tags = await Net.get('/api/tags');
+
+      dispatch({
+        type: 'setTags',
+        tags
+      });
+    }
+
+    if(!state.tagsLoaded) {
       fetcher();
+    }
   }, []);
 
   const toggleShowAdd = () => {
     setShowAddTagLink(!showAddTagLink);
   };
 
-  const tagsList = tags.map(
+  const tagsList = state.tags.map(
     tag => <ListingLink id={ tag.id } key={ tag.id } name={ tag.name } resource='tags'/>
   );
 

@@ -1,22 +1,38 @@
 import { useParams } from 'react-router-dom';
-import React, { useState } from 'react';
+import React from 'react';
 
 import BookForm from './BookForm';
 import FormHandler from './FormHandler';
 import NoteHolder from './NoteHolder';
 import SectionLinkBacks from './SectionLinkBacks';
 import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
+import { useStateValue } from '../state';
 
 export default function Book(props) {
+  const [state, dispatch] = useStateValue();
+
   const {id} = useParams();
   const book_id = parseInt(id, 10);
 
-  const [book, setBook] = useState({ id: book_id });
-
   const resource = "books";
-  ensureCorrectDeck(book_id, setBook, resource);
 
+  function setBook(newBook) {
+    dispatch({
+      type: 'setBook',
+      id: book_id,
+      book: newBook
+    });
+  }
+
+  function isLoaded(id) {
+    return state.book[id];
+  }
+
+  ensureCorrectDeck(resource, book_id, isLoaded, setBook);
+
+  const book = state.book[book_id] || { id: book_id };
   const notes = NoteHolder(book, setBook);
+
   const bookForm = <BookForm id={ book_id }
                              title={ book.title }
                              author={ book.author }

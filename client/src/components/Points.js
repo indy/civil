@@ -2,24 +2,33 @@ import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
 import { Link } from 'react-router-dom';
 import ListingLink from './ListingLink';
+import { useStateValue } from '../state';
 
 export default function Points() {
-  const [points, setPoints] = useState([]);
+  const [state, dispatch] = useStateValue();
   let [showAddPointLink, setShowAddPointLink] = useState(false);
 
   useEffect(() => {
-      async function fetcher() {
-        const p = await Net.get('/api/points');
-        setPoints(p);
-      }
+    async function fetcher() {
+      const points = await Net.get('/api/points');
+
+      dispatch({
+        type: 'setPoints',
+        points
+      });
+    }
+    if(!state.pointsLoaded) {
       fetcher();
+    }
   }, []);
 
   const toggleShowAdd = () => {
     setShowAddPointLink(!showAddPointLink);
   };
 
-  const pointsList = points.map(point => <ListingLink id={ point.id } key={ point.id } name={ point.title } resource='points'/>);
+  const pointsList = state.points.map(
+    point => <ListingLink id={ point.id } key={ point.id } name={ point.title } resource='points'/>
+  );
 
   return (
     <div>

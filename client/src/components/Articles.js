@@ -2,24 +2,31 @@ import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
 import { Link } from 'react-router-dom';
 import ListingLink from './ListingLink';
+import { useStateValue } from '../state';
 
 export default function Articles() {
-  const [articles, setArticles] = useState([]);
+  const [state, dispatch] = useStateValue();
   let [showAddArticleLink, setShowAddArticleLink] = useState(false);
 
   useEffect(() => {
-      async function fetcher() {
-        const p = await Net.get('/api/articles');
-        setArticles(p);
-      }
+    async function fetcher() {
+      const articles = await Net.get('/api/articles');
+
+      dispatch({
+        type: 'setArticles',
+        articles
+      });
+    }
+    if(!state.articlesLoaded) {
       fetcher();
+    }
   }, []);
 
   const toggleShowAdd = () => {
     setShowAddArticleLink(!showAddArticleLink);
   };
 
-  const articlesList = articles.map(
+  const articlesList = state.articles.map(
     article => <ListingLink id={ article.id } key={ article.id } name={ article.title } resource='articles'/>
   );
 

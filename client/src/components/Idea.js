@@ -1,26 +1,43 @@
 import { useParams } from 'react-router-dom';
-import React, { useState } from 'react';
+import React from 'react';
 
 import IdeaForm from './IdeaForm';
 import FormHandler from './FormHandler';
 import NoteHolder from './NoteHolder';
 import SectionLinkBacks from './SectionLinkBacks';
 import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
+import { useStateValue } from '../state';
 
 export default function Idea(props) {
+  const [state, dispatch] = useStateValue();
+
   const {id} = useParams();
   const idea_id = parseInt(id, 10);
 
-  const [idea, setIdea] = useState({ id: idea_id });
-
   const resource = "ideas";
-  ensureCorrectDeck(idea_id, setIdea, resource);
 
+  function setIdea(newIdea) {
+    dispatch({
+      type: 'setIdea',
+      id: idea_id,
+      idea: newIdea
+    });
+  }
+
+  function isLoaded(id) {
+    return state.idea[id];
+  }
+
+  ensureCorrectDeck(resource, idea_id, isLoaded, setIdea);
+
+  const idea = state.idea[idea_id] || { id: idea_id };
   const notes = NoteHolder(idea, setIdea);
+
   const ideaForm = <IdeaForm id={ idea_id }
                              title={ idea.title }
                              update={ setIdea }
                    />;
+
   const formHandler = FormHandler({
     resource,
     id: idea_id,
@@ -33,7 +50,7 @@ export default function Idea(props) {
   return (
     <article>
       { formHandler }
-      <section className="idea-notes">
+      <section>
         { notes }
       </section>
       <SectionLinkBacks linkingTo={ idea }/>

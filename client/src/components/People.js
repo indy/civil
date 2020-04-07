@@ -2,18 +2,27 @@ import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
 import { Link } from 'react-router-dom';
 import ListingLink from './ListingLink';
+import { useStateValue } from '../state';
 
 export default function People() {
-  const [people, setPeople] = useState([]);
+  const [state, dispatch] = useStateValue();
   let [showAddPersonLink, setShowAddPersonLink] = useState(false);
 
   useEffect(() => {
     async function fetcher() {
-      const p = await Net.get('/api/people');
-      p.forEach(addBirthYear);
-      setPeople(p);
+      const people = await Net.get('/api/people');
+      people.forEach(addBirthYear);
+
+      dispatch({
+        type: 'setPeople',
+        people
+      });
+
     }
-    fetcher();
+
+    if(!state.peopleLoaded) {
+      fetcher();
+    }
   }, []);
 
   const toggleShowAdd = () => {
@@ -24,19 +33,19 @@ export default function People() {
   const medievalCutoff = 1469;
   const modernCutoff = 1856;
 
-  const ancientPeopleList = people
+  const ancientPeopleList = state.people
         .filter(person => person.birth_year < ancientCutoff)
         .sort((a, b) => a.birth_year > b.birth_year)
         .map(createPersonListing);
-  const medievalPeopleList = people
+  const medievalPeopleList = state.people
         .filter(person => person.birth_year >= ancientCutoff && person.birth_year < medievalCutoff)
         .sort((a, b) => a.birth_year > b.birth_year)
         .map(createPersonListing);
-  const modernPeopleList = people
+  const modernPeopleList = state.people
         .filter(person => person.birth_year >= medievalCutoff && person.birth_year < modernCutoff)
         .sort((a, b) => a.birth_year > b.birth_year)
         .map(createPersonListing);
-  const contemporaryPeopleList = people
+  const contemporaryPeopleList = state.people
         .filter(person => person.birth_year >= modernCutoff)
         .sort((a, b) => a.birth_year > b.birth_year)
         .map(createPersonListing);

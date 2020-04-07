@@ -1,22 +1,38 @@
 import { useParams } from 'react-router-dom';
-import React, { useState } from 'react';
+import React from 'react';
 
 import ArticleForm from './ArticleForm';
 import FormHandler from './FormHandler';
 import NoteHolder from './NoteHolder';
 import SectionLinkBacks from './SectionLinkBacks';
 import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
+import { useStateValue } from '../state';
 
 export default function Article(props) {
+  const [state, dispatch] = useStateValue();
+
   const {id} = useParams();
   const article_id = parseInt(id, 10);
 
-  const [article, setArticle] = useState({ id: article_id });
-
   const resource = "articles";
-  ensureCorrectDeck(article_id, setArticle, resource);
 
+  function setArticle(newArticle) {
+    dispatch({
+      type: 'setArticle',
+      id: article_id,
+      article: newArticle
+    });
+  }
+
+  function isLoaded(id) {
+    return state.article[id];
+  }
+
+  ensureCorrectDeck(resource, article_id, isLoaded, setArticle);
+
+  const article = state.article[article_id] || { id: article_id };
   const notes = NoteHolder(article, setArticle);
+
   const articleForm = <ArticleForm id={ article_id }
                                    title={ article.title }
                                    source={ article.source }

@@ -2,24 +2,32 @@ import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
 import { Link } from 'react-router-dom';
 import ListingLink from './ListingLink';
+import { useStateValue } from '../state';
 
 export default function Ideas() {
-  const [ideas, setIdeas] = useState([]);
+  const [state, dispatch] = useStateValue();
   let [showAddIdeaLink, setShowAddIdeaLink] = useState(false);
 
   useEffect(() => {
-      async function fetcher() {
-        const p = await Net.get('/api/ideas');
-        setIdeas(p);
-      }
+    async function fetcher() {
+      const ideas = await Net.get('/api/ideas');
+
+      dispatch({
+        type: 'setIdeas',
+        ideas
+      });
+    }
+
+    if(!state.ideasLoaded) {
       fetcher();
+    }
   }, []);
 
   const toggleShowAdd = () => {
     setShowAddIdeaLink(!showAddIdeaLink);
   };
 
-  const ideasList = ideas.map(
+  const ideasList = state.ideas.map(
     idea => <ListingLink id={ idea.id } key={ idea.id } name={ idea.title } resource='ideas'/>
   );
 

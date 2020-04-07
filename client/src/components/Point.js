@@ -1,22 +1,38 @@
 import { useParams } from 'react-router-dom';
-import React, { useState } from 'react';
+import React from 'react';
 
 import PointForm from './PointForm';
 import FormHandler from './FormHandler';
 import NoteHolder from './NoteHolder';
 import SectionLinkBacks from './SectionLinkBacks';
 import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
+import { useStateValue } from '../state';
 
 export default function Point(props) {
+  const [state, dispatch] = useStateValue();
+
   const {id} = useParams();
   const point_id = parseInt(id, 10);
 
-  const [point, setPoint] = useState({ id: point_id });
-
   const resource = "points";
-  ensureCorrectDeck(point_id, setPoint, resource);
 
+  function setPoint(newPoint) {
+    dispatch({
+      type: 'setPoint',
+      id: point_id,
+      point: newPoint
+    });
+  }
+
+  function isLoaded(id) {
+    return state.point[id];
+  }
+
+  ensureCorrectDeck(resource, point_id, isLoaded, setPoint);
+
+  const point = state.point[point_id] || { id: point_id };
   const notes = NoteHolder(point, setPoint);
+
   const pointForm = <PointForm id={ point_id }
                                title={ point.title }
                                date = { point.date}

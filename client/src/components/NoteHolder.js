@@ -3,7 +3,7 @@ import Note from './Note';
 
 import AutocompleteCandidates from '../lib/AutocompleteCandidates';
 
-export default function NoteHolder(deck, setDeck) {
+export default function NoteHolder(deck, setDeckFn) {
   const [ac, addNewTagsToAutocomplete] = AutocompleteCandidates();
 
   function findNoteWithId(id, modifyFn) {
@@ -12,7 +12,7 @@ export default function NoteHolder(deck, setDeck) {
 
     modifyFn(notes, index);
 
-    setDeck({...deck, notes});
+    setDeckFn({...deck, notes});
   };
 
   function onEditedNote(id, data) {

@@ -14,12 +14,9 @@ export default function Dashboard(props) {
 
   useEffect(() => {
     function fetchDashboard() {
-      console.log("fetchdashboard function");
-
       const url = `/api/dashboard`;
       Net.get(url).then(db => {
         if (db) {
-          console.log(db);
           setDashboard(db);
         } else {
           console.error("Dashboard error");

@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import React, { useState } from 'react';
+import React from 'react';
 
 import PersonForm from './PersonForm';
 import DateUtils from '../lib/DateUtils';
@@ -7,17 +7,33 @@ import FormHandler from './FormHandler';
 import NoteHolder from './NoteHolder';
 import SectionLinkBacks from './SectionLinkBacks';
 import ensureCorrectDeck from '../lib/EnsureCorrectDeck';
+import { useStateValue } from '../state';
 
 export default function Person(props) {
+  const [state, dispatch] = useStateValue();
+
   const {id} = useParams();
   const person_id = parseInt(id, 10);
 
-  const [person, setPerson] = useState({ id: person_id });
-
   const resource = "people";
-  ensureCorrectDeck(person_id, setPerson, resource);
 
+  function setPerson(newPerson) {
+    dispatch({
+      type: 'setPerson',
+      id: person_id,
+      person: newPerson
+    });
+  }
+
+  function isLoaded(id) {
+    return state.person[id];
+  }
+
+  ensureCorrectDeck(resource, person_id, isLoaded, setPerson);
+
+  const person = state.person[person_id] || { id: person_id };
   const notes = NoteHolder(person, setPerson);
+
   const personForm = <PersonForm id={ person_id }
                                  name={ person.name }
                                  age={ person.age }
