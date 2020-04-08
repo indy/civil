@@ -1,17 +1,17 @@
 import React from 'react';
 
 import PersonForm from './PersonForm';
-import FormHandler from './FormHandler';
-import NoteHolder from './NoteHolder';
-import SectionLinkBacks from './SectionLinkBacks';
-import {ensureCorrectDeck, idParam} from '../lib/appUtils';
+import {idParam} from '../lib/appUtils';
 import { useStateValue } from '../lib/state';
+
+import NoteHolder from './NoteHolder';
 
 export default function Person(props) {
   const [state, dispatch] = useStateValue();
   const person_id = idParam();
-  const resource = "people";
 
+
+  const person = state.person[person_id] || { id: person_id };
   function setPerson(newPerson) {
     dispatch({
       type: 'setPerson',
@@ -19,15 +19,6 @@ export default function Person(props) {
       person: newPerson
     });
   }
-
-  function isLoaded(id) {
-    return state.person[id];
-  }
-
-  ensureCorrectDeck(resource, person_id, isLoaded, setPerson);
-
-  const person = state.person[person_id] || { id: person_id };
-  const notes = NoteHolder(person, setPerson, state, dispatch);
 
   const personForm = <PersonForm id={ person_id }
                                  name={ person.name }
@@ -38,14 +29,6 @@ export default function Person(props) {
                                  death_location={ person.death_location }
                                  update={ setPerson }
                      />;
-  const formHandler = FormHandler({
-    resource,
-    id: person_id,
-    noteContainer: person,
-    setNoteContainer: setPerson,
-    title: person.name,
-    form: personForm
-  });
 
   const isPersonDead = () => {
     return person.death_date !== null;
@@ -58,16 +41,17 @@ export default function Person(props) {
   };
 
   return (
-    <article>
-      { formHandler }
+    <NoteHolder
+      holder={ person }
+      setHolder={ setPerson }
+      title={ person.name }
+      resource="people"
+      isLoaded={ id => state.person[id] }
+      updateForm={personForm}>
       <Birth person={ person }/>
       { isPersonDead() && buildDeath() }
       <Age person={ person }/>
-      <section className="person-notes">
-        { notes }
-      </section>
-      <SectionLinkBacks linkingTo={ person }/>
-    </article>
+    </NoteHolder>
   );
 }
 
