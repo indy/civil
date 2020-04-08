@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
 import { Link } from 'react-router-dom';
 import ListingLink from './ListingLink';
-import { useStateValue } from '../state';
+import { useStateValue } from '../lib/state';
 import {ensureAC} from '../lib/appUtils';
 
 export default function Books() {

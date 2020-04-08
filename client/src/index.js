@@ -8,7 +8,7 @@ import Net from './lib/Net';
 Net.get("/api/users").then(user => {
   ReactDOM.render(<App user={ user }/>, document.getElementById('root'));
 }, err => {
-  ReactDOM.render(<App user=''/>, document.getElementById('root'));
+  ReactDOM.render(<App/>, document.getElementById('root'));
 });
 
 registerServiceWorker();

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import GeoUtils from '../lib/GeoUtils';
+import Net from '../lib/Net';
 
 export default function CivilLocation(props) {
   let location = {};
@@ -70,9 +70,9 @@ export default function CivilLocation(props) {
   const onFindLocationClicked = async (event) => {
     event.preventDefault();
 
-    let geoResult = await GeoUtils.get(textual);
+    let geoResult = await geoGet(textual);
 
-    let [isOk, latitudeNew, longitudeNew] = GeoUtils.getLatitudeLongitude(geoResult);
+    let [isOk, latitudeNew, longitudeNew] = getLatitudeLongitude(geoResult);
     if (isOk) {
       setLatitude(latitudeNew.toFixed(2));
       setLongitude(longitudeNew.toFixed(2));
@@ -111,4 +111,28 @@ export default function CivilLocation(props) {
       <br/>
     </div>
   );
+}
+
+async function geoGet(location) {
+  let geoResult = await Net.get(`https://geocode.xyz/${location}?json=1`);
+  return geoResult;
+}
+
+function getLatitudeLongitude(geoResult) {
+  if (geoResult.error) {
+    return [false];
+  };
+
+  let latt = parseFloat(geoResult.latt);
+  let longt = parseFloat(geoResult.longt);
+
+  if (isNaN(latt) || isNaN(longt)) {
+    return [false];
+  }
+
+  if (latt === 0.0 && longt === 0.0) {
+    return [false];
+  }
+
+  return [true, latt, longt];
 }

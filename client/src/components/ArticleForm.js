@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
-import StateUtils from '../lib/StateUtils';
+import { removeEmptyStrings } from '../lib/JsUtils';
+
 import Net from '../lib/Net';
 
 export default function ArticleForm(props) {
@@ -37,7 +38,7 @@ export default function ArticleForm(props) {
   };
 
   const handleSubmit = (event) => {
-    const data = StateUtils.removeEmptyStrings({title, author, source}, ["source"]);
+    const data = removeEmptyStrings({title, author, source}, ["source"]);
 
     if(props.update) {
       // edit an existing article

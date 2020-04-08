@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
-import StateUtils from '../lib/StateUtils';
+import { removeEmptyObjects } from '../lib/JsUtils';
 import Net from '../lib/Net';
 
 import CivilDate from './CivilDate';
@@ -72,7 +72,7 @@ export default function PersonForm(props) {
       death_date,
       death_location
     };
-    const data = StateUtils.removeEmptyObjects(sendState);
+    const data = removeEmptyObjects(sendState);
 
     if (!data.birth_date || !data.birth_location) {
       console.error("a person requires both birth date and birth location information");

@@ -5,7 +5,7 @@ import FormHandler from './FormHandler';
 import NoteHolder from './NoteHolder';
 import SectionLinkBacks from './SectionLinkBacks';
 import {ensureCorrectDeck, idParam} from '../lib/appUtils';
-import { useStateValue } from '../state';
+import { useStateValue } from '../lib/state';
 
 export default function Idea(props) {
   const [state, dispatch] = useStateValue();
