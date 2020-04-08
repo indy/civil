@@ -42,15 +42,15 @@ import Tags from './components/Tags';
 import TagForm from './components/TagForm';
 
 
-export default function App(props) {
+export default function App({ user }) {
   let state = initialState;
 
   // update initial state with user
   //
-  if (props.user) {
-    state = reducer(initialState, {
+  if (user) {
+    state = reducer(state, {
       type: 'setUser',
-      user: props.user
+      user
     });
   }
 
@@ -65,7 +65,19 @@ function AppUI() {
   const [state, dispatch] = useStateValue();
 
   function loggedStatus() {
-    return state.user ? state.user.username : 'Login';
+    let status = '';
+
+    let user = state.user;
+    if (user) {
+      status += user.username;
+      if (user.admin) {
+        status += ` (${user.admin.db_name})`;
+      }
+    } else {
+      status = 'Login';
+    }
+
+    return status;
   }
 
   function loggedLink() {

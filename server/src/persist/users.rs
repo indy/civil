@@ -37,6 +37,7 @@ impl From<User> for interop::User {
         interop::User {
             username: user.username,
             email: user.email,
+            admin: None,
         }
     }
 }

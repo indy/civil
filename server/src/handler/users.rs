@@ -23,6 +23,7 @@ use actix_web::web::{Data, Json};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
 use rand::{thread_rng, RngCore};
+use std::env;
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -88,7 +89,13 @@ pub async fn get_user(
 ) -> Result<HttpResponse> {
     info!("get_user");
     let user_id = session::user_id(&session)?;
-    let user = db::get(&db_pool, user_id).await?;
+    let mut user = db::get(&db_pool, user_id).await?;
+
+    if user_id == 1 {
+        user.admin = Some(interop::Admin {
+            db_name: env::var("POSTGRES_DB")?,
+        })
+    }
 
     Ok(HttpResponse::Ok().json(user))
 }

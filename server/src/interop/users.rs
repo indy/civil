@@ -32,4 +32,10 @@ pub struct Registration {
 pub struct User {
     pub username: String,
     pub email: String,
+    pub admin: Option<Admin>,
+}
+
+#[derive(serde::Serialize)]
+pub struct Admin {
+    pub db_name: String,
 }
