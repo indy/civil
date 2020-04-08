@@ -3,11 +3,12 @@ import { Redirect } from 'react-router-dom';
 
 import { removeEmptyObjects } from '../lib/JsUtils';
 import Net from '../lib/Net';
-
+import { useStateValue } from '../lib/state';
 import CivilDate from './CivilDate';
 import CivilLocation from './CivilLocation';
 
 export default function PersonForm(props) {
+  const [state, dispatch] = useStateValue();
   const [name, setName] = useState(props.name || '');
   const [age, setAge] = useState(props.age || '');
   const [birth_date, setBirthDate] = useState(props.birth_date);
@@ -33,6 +34,9 @@ export default function PersonForm(props) {
   }
   if (props.death_location && props.death_location !== '' && !death_location) {
     setDeathLocation(props.death_location);
+  }
+  if (state.dummy) {
+    // just to stop the build tool from complaining about unused state
   }
 
   const handleChangeEvent = (event) => {
@@ -83,6 +87,14 @@ export default function PersonForm(props) {
       } else {
         // create a new point
         Net.post('/api/people', data).then(person => {
+
+          dispatch({
+            type: 'addAutocompleteDeck',
+            id: person.id,
+            value: person.name,
+            label: person.name
+          });
+
           setRedirectUrl(`people/${person.id}`);
         });
       }

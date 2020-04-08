@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import { removeEmptyStrings } from '../lib/JsUtils';
-
 import Net from '../lib/Net';
+import { useStateValue } from '../lib/state';
 
 export default function BookForm(props) {
+  const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(props.title || '');
   const [author, setAuthor] = useState(props.author || '');
   const [redirectUrl, setRedirectUrl] = useState(false);
@@ -15,6 +16,10 @@ export default function BookForm(props) {
   }
   if (props.author && props.author !== '' && author === '') {
     setAuthor(props.author);
+  }
+
+  if (state.dummy) {
+    // just to stop the build tool from complaining about unused state
   }
 
   const handleChangeEvent = (event) => {
@@ -39,6 +44,14 @@ export default function BookForm(props) {
     } else {
       // create a new book
       Net.post('/api/books', data).then(book => {
+
+        dispatch({
+          type: 'addAutocompleteDeck',
+          id: book.id,
+          value: book.title,
+          label: book.title
+        });
+
         setRedirectUrl(`books/${book.id}`);
       });
     }

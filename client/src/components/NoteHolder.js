@@ -9,7 +9,7 @@ export default function NoteHolder(deck, setDeckFn, state, dispatch) {
   const ac = state.ac;
 
   const addNewTagsToAutocomplete = (someTags) => {
-    let acNew = {...state.ac};
+    let newTags = [];
 
     someTags.forEach(t => {
       let preExisting = ac.tags.some(a => {
@@ -18,7 +18,7 @@ export default function NoteHolder(deck, setDeckFn, state, dispatch) {
 
       if (!preExisting) {
         // this tag was recently created, so add it to the autocomplete list
-        acNew.tags.push({
+        newTags.push({
           id: t.id,
           value: t.name,
           label: t.name
@@ -26,12 +26,9 @@ export default function NoteHolder(deck, setDeckFn, state, dispatch) {
       }
     });
 
-    acNew.tags.sort((a, b) => a.value > b.value);
-
     dispatch({
-      type: 'loadAutocomplete',
-      tags: acNew.tags,
-      decks: acNew.decks
+      type: 'addAutocompleteTags',
+      tags: newTags
     });
   };
 

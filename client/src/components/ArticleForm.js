@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import { removeEmptyStrings } from '../lib/JsUtils';
-
 import Net from '../lib/Net';
+import { useStateValue } from '../lib/state';
 
 export default function ArticleForm(props) {
+  const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(props.title || '');
   const [author, setAuthor] = useState(props.author || '');
   const [source, setSource] = useState(props.source || '');
@@ -19,6 +20,9 @@ export default function ArticleForm(props) {
   }
   if (props.author && props.author !== '' && author === '') {
     setAuthor(props.author);
+  }
+  if (state.dummy) {
+    // just to stop the build tool from complaining about unused state
   }
 
   const handleChangeEvent = (event) => {
@@ -46,6 +50,14 @@ export default function ArticleForm(props) {
     } else {
       // create a new article
       Net.post('/api/articles', data).then(article => {
+
+        dispatch({
+          type: 'addAutocompleteDeck',
+          id: article.id,
+          value: article.title,
+          label: article.title
+        });
+
         setRedirectUrl(`articles/${article.id}`);
       });
     }

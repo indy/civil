@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import Net from '../lib/Net';
-
+import { useStateValue } from '../lib/state';
 import CivilDate from './CivilDate';
 import CivilLocation from './CivilLocation';
 
 export default function PointForm(props) {
+  const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(props.title || '');
   const [date, setDate] = useState(props.date);
   const [location, setLocation] = useState(props.location);
@@ -20,6 +21,9 @@ export default function PointForm(props) {
   }
   if (props.location && props.location !== '' && !location) {
     setLocation(props.location);
+  }
+  if (state.dummy) {
+    // just to stop the build tool from complaining about unused state
   }
 
   const handleChangeEvent = (event) => {
@@ -46,6 +50,14 @@ export default function PointForm(props) {
     } else {
       // create a new point
       Net.post('/api/points', data).then(point => {
+
+        dispatch({
+          type: 'addAutocompleteDeck',
+          id: point.id,
+          value: point.title,
+          label: point.title
+        });
+
         setRedirectUrl(`points/${point.id}`);
       });
     }

@@ -2,13 +2,19 @@ import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import Net from '../lib/Net';
+import { useStateValue } from '../lib/state';
 
 export default function IdeaForm(props) {
+  const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(props.title || '');
   const [redirectUrl, setRedirectUrl] = useState(false);
 
   if (props.title && props.title !== '' && title === '') {
     setTitle(props.title);
+  }
+
+  if (state.dummy) {
+    // just to stop the build tool from complaining about unused state
   }
 
   const handleChangeEvent = (event) => {
@@ -28,8 +34,16 @@ export default function IdeaForm(props) {
       // edit an existing idea
       Net.put(`/api/ideas/${props.id}`, data).then(props.update);
     } else {
-      // create a new book
+      // create a new idea
       Net.post('/api/ideas', data).then(idea => {
+
+        dispatch({
+          type: 'addAutocompleteDeck',
+          id: idea.id,
+          value: idea.title,
+          label: idea.title
+        });
+
         setRedirectUrl(`ideas/${idea.id}`);
       });
     }

@@ -53,6 +53,34 @@ export const reducer = (state, action) => {
         decks: action.decks
       }
     };
+  case 'addAutocompleteDeck':
+    let decks = state.ac.decks;
+    decks.push({
+      id: action.id,
+      value: action.value,
+      label: action.label
+    });
+    decks.sort((a, b) => a.value > b.value);
+    return {
+      ...state,
+      ac: {
+        tags: state.ac.tags,
+        decks: decks
+      }
+    };
+  case 'addAutocompleteTags':
+    let tags = state.ac.tags;
+    action.tags.forEach(tag => {
+      tags.push(tag);
+    });
+    tags.sort((a, b) => a.value > b.value);
+    return {
+      ...state,
+      ac: {
+        tags: tags,
+        decks: state.ac.decks
+      }
+    };
   case 'setIdeas':
     return {
       ...state,
