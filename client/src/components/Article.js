@@ -1,9 +1,9 @@
 import React from 'react';
 
 import ArticleForm from './ArticleForm';
-import {idParam} from '../lib/appUtils';
-import { useStateValue } from '../lib/state';
 import NoteHolder from './NoteHolder';
+import { useStateValue } from '../lib/state';
+import { idParam } from '../lib/utils';
 
 export default function Article(props) {
   const [state, dispatch] = useStateValue();

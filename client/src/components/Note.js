@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import CreatableSelect from 'react-select/creatable';
 import Select from 'react-select';
 import ResourceLink from './ResourceLink';
-import NoteUtils from '../lib/NoteUtils';
 import NoteCompiler from '../lib/NoteCompiler';
 import Net from '../lib/Net';
 
@@ -19,43 +18,6 @@ export default function Note(props) {
 
   const [tags, setTags] = useState(buildCurrentTags(props.note.tags));
   const [decks, setDecks] = useState(buildCurrentDecks(props.note.decks)); // fix later
-
-  function buildCurrentTags(tagsInNote) {
-    let res = [];
-
-    if(!tagsInNote) {
-      return null;
-    }
-
-    tagsInNote.forEach((tag) => {
-      res.push({
-        id: tag.id,
-        value: tag.name,
-        label: tag.name
-      });
-    });
-
-    return res;
-  }
-
-  function buildCurrentDecks(decksInNote) {
-    let res = [];
-
-    if(!decksInNote) {
-      return null;
-    }
-
-    decksInNote.forEach((deck) => {
-      res.push({
-        id: deck.id,
-        value: deck.name,
-        label: deck.name,
-        resource: deck.resource
-      });
-    });
-
-    return res;
-  }
 
   function handleChangeEvent(event) {
     const target = event.target;
@@ -85,7 +47,7 @@ export default function Note(props) {
     const note = props.note;
     const id = note.id;
 
-    NoteUtils.deleteNote(id).then(() => {
+    deleteNote(id).then(() => {
       console.log("in delete");
       onDelete(id);
     });
@@ -117,7 +79,7 @@ export default function Note(props) {
 
         // send updated content to server
         //
-        NoteUtils.editNote(id, data);
+        editNote(id, data);
 
         // stopped editing and the editable content is different than
         // the original note's text.
@@ -424,3 +386,54 @@ function parseContent(text) {
   const dom = NoteCompiler.compile(ast);
   return dom;
 };
+
+function editNote(id, data) {
+  const post = {
+    id: id,
+    note_type: 1, // a note
+    ...data
+  };
+
+  return Net.put("/api/notes/" + id.toString(), post);
+}
+
+function deleteNote(id) {
+  return Net.delete("/api/notes/" + id.toString());
+}
+
+function buildCurrentTags(tagsInNote) {
+  let res = [];
+
+  if(!tagsInNote) {
+    return null;
+  }
+
+  tagsInNote.forEach((tag) => {
+    res.push({
+      id: tag.id,
+      value: tag.name,
+      label: tag.name
+    });
+  });
+
+  return res;
+}
+
+function buildCurrentDecks(decksInNote) {
+  let res = [];
+
+  if(!decksInNote) {
+    return null;
+  }
+
+  decksInNote.forEach((deck) => {
+    res.push({
+      id: deck.id,
+      value: deck.name,
+      label: deck.name,
+      resource: deck.resource
+    });
+  });
+
+  return res;
+}

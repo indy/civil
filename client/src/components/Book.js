@@ -1,9 +1,9 @@
 import React from 'react';
 
 import BookForm from './BookForm';
-import {idParam} from '../lib/appUtils';
-import { useStateValue } from '../lib/state';
 import NoteHolder from './NoteHolder';
+import { idParam } from '../lib/utils';
+import { useStateValue } from '../lib/state';
 
 export default function Book(props) {
   const [state, dispatch] = useStateValue();

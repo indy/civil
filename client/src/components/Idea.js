@@ -1,9 +1,9 @@
 import React from 'react';
 
 import IdeaForm from './IdeaForm';
-import {idParam} from '../lib/appUtils';
-import { useStateValue } from '../lib/state';
 import NoteHolder from './NoteHolder';
+import { idParam } from '../lib/utils';
+import { useStateValue } from '../lib/state';
 
 export default function Idea(props) {
   const [state, dispatch] = useStateValue();

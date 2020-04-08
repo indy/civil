@@ -1,5 +1,5 @@
 import React from 'react';
-import {ensureAC} from '../lib/appUtils';
+import {ensureAC} from '../lib/utils';
 
 import { useStateValue } from '../lib/state';
 

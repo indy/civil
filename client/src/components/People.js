@@ -3,7 +3,7 @@ import Net from '../lib/Net';
 import { Link } from 'react-router-dom';
 import ListingLink from './ListingLink';
 import { useStateValue } from '../lib/state';
-import {ensureAC} from '../lib/appUtils';
+import {ensureAC} from '../lib/utils';
 
 export default function People() {
   const [state, dispatch] = useStateValue();

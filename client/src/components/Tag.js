@@ -1,9 +1,9 @@
 import React from 'react';
 
-import TagForm from './TagForm';
-import {idParam} from '../lib/appUtils';
-import { useStateValue } from '../lib/state';
 import NoteHolder from './NoteHolder';
+import TagForm from './TagForm';
+import { idParam } from '../lib/utils';
+import { useStateValue } from '../lib/state';
 
 export default function Tag(props) {
   const [state, dispatch] = useStateValue();

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
-import { removeEmptyObjects } from '../lib/JsUtils';
+import { removeEmptyObjects } from '../lib/utils';
 import Net from '../lib/Net';
 import { useStateValue } from '../lib/state';
 import CivilDate from './CivilDate';

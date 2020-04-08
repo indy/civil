@@ -1,7 +1,7 @@
 import React from 'react';
 
 import PersonForm from './PersonForm';
-import {idParam} from '../lib/appUtils';
+import { idParam } from '../lib/utils';
 import { useStateValue } from '../lib/state';
 
 import NoteHolder from './NoteHolder';

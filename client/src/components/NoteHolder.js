@@ -3,10 +3,11 @@ import React, { useState } from 'react';
 import Net from '../lib/Net';
 import Note from './Note';
 import NoteForm from './NoteForm';
-import NoteUtils from '../lib/NoteUtils';
+import NoteCompiler from '../lib/NoteCompiler';
+
 import SectionLinkBacks from './SectionLinkBacks';
 import { useStateValue } from '../lib/state';
-import { ensureAC } from '../lib/appUtils';
+import { ensureAC } from '../lib/utils';
 
 export default function NoteHolder({holder, setHolder, title, resource, isLoaded, updateForm, children}) {
   const id = holder.id;
@@ -49,9 +50,13 @@ export default function NoteHolder({holder, setHolder, title, resource, isLoaded
     const onAddNote = (e) => {
       const noteForm = e.target;
       const ident = resource === "tags" ? { tag_id: id } : { deck_id: id };
-      NoteUtils.addNote(noteForm, ident)
+      addNote(noteForm, ident)
         .then(newNotes => {
-          NoteUtils.appendWithNewNotes(holder, setHolder, newNotes);
+          const notes = holder.notes;
+          newNotes.forEach(n => {
+            notes.push(n);
+          });
+          setHolder({...holder, notes});
           setShowNoteForm(false);
           setShowUpdateForm(false);
         });
@@ -106,7 +111,7 @@ function ensureCorrectDeck(resource, id, isLoaded, setDeck) {
       const url = `/api/${resource}/${id}`;
       Net.get(url).then(s => {
         if (s) {
-          setDeck(NoteUtils.applyTagsAndDecksToNotes(s));
+          setDeck(applyTagsAndDecksToNotes(s));
         } else {
           console.error(`error: fetchDeck for ${url}`);
         }
@@ -200,4 +205,55 @@ function NoteManager(deck, setDeckFn) {
   const notes = deck.notes ? deck.notes.map(buildNoteComponent) : [];
 
   return notes;
-};
+}
+
+
+function splitIntoNotes(content) {
+  const res = NoteCompiler.splitContent(content);
+  if (res === null) {
+    console.error(`splitIntoNotes error for ${content}`);
+  }
+  return res;
+}
+
+function addNote(form, extra) {
+    const notes = splitIntoNotes(form.content.value);
+    if (notes === null) {
+      console.error("addNote: splitIntoNotes failed");
+      console.error(form.content.value);
+      return undefined;
+    }
+    let data = { ...extra,
+                 content: notes,
+                 title: form.title.value,
+                 source: form.source.value,
+                 separator: form.separator.checked
+               };
+
+    return Net.post("/api/notes", data);
+}
+
+function applyTagsAndDecksToNotes(obj) {
+  const tagsInNotes = hashByNoteIds(obj.tags_in_notes);
+  const decksInNotes = hashByNoteIds(obj.decks_in_notes);
+
+  for(let i = 0;i<obj.notes.length;i++) {
+    let n = obj.notes[i];
+    n.tags = tagsInNotes[n.id];
+    n.decks = decksInNotes[n.id];
+  }
+
+  return obj;
+}
+
+function hashByNoteIds(s) {
+  return s.reduce(function(a, b) {
+    const note_id = b.note_id;
+    if (a[note_id]) {
+      a[note_id].push(b);
+    } else {
+      a[note_id] = [b];
+    }
+    return a;
+  }, {});
+}
