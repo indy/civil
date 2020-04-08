@@ -6,33 +6,19 @@ import { idParam } from '../lib/utils';
 import { useStateValue } from '../lib/state';
 
 export default function Point(props) {
-  const [state, dispatch] = useStateValue();
-  const point_id = idParam();
-
-  const point = state.point[point_id] || { id: point_id };
-  function setPoint(newPoint) {
-    dispatch({
-      type: 'setPoint',
-      id: point_id,
-      point: newPoint
-    });
-  }
-
-  const pointForm = <PointForm id={ point_id }
-                               title={ point.title }
-                               date = { point.date}
-                               location={ point.location }
-                               update={ setPoint }
-                    />;
+  const [state] = useStateValue();
+  const pointId = idParam();
+  const point = state.point[pointId] || { id: pointId };
+  const pointForm = <PointForm point={ point } setMsg="setPoint" />;
 
   return (
     <NoteHolder
       holder={ point }
-      setHolder={setPoint}
-      title={point.title}
+      setMsg="setPoint"
+      title={ point.title }
       resource="points"
       isLoaded={ id => state.point[id] }
-      updateForm={pointForm}>
+      updateForm={ pointForm }>
       <PointTime point={ point }/>
       <PointPlace point={ point }/>
     </NoteHolder>

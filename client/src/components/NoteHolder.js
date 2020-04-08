@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 
+// UNCOMMENT to enable deleting
+// import { useHistory } from 'react-router-dom';
+
 import Net from '../lib/Net';
 import Note from './Note';
 import NoteForm from './NoteForm';
@@ -9,10 +12,18 @@ import SectionLinkBacks from './SectionLinkBacks';
 import { useStateValue } from '../lib/state';
 import { ensureAC } from '../lib/utils';
 
-export default function NoteHolder({holder, setHolder, title, resource, isLoaded, updateForm, children}) {
+export default function NoteHolder({holder, setMsg, title, resource, isLoaded, updateForm, children}) {
+  // UNCOMMENT to enable deleting
+  // let history = useHistory();
+
+  const [state, dispatch] = useStateValue();
+  if (state.dummy) {
+    // just to stop the build tool from complaining about unused state
+  }
+
   const id = holder.id;
 
-  ensureCorrectDeck(resource, id, isLoaded, setHolder);
+  ensureCorrectNoteHolder(resource, id, isLoaded, setMsg, dispatch);
 
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteForm, setShowNoteForm] = useState(false);
@@ -30,10 +41,13 @@ export default function NoteHolder({holder, setHolder, title, resource, isLoaded
     };
 
     let onDeleteParentClicked = (event) => {
+      // UNCOMMENT to enable deleting
       // Net.delete(`/api/${resource}/${id}`).then(() => {
       //   history.push(`/${resource}`);
       // });
-      alert("delete logic has been commented out of FormHandler.js, re-enable if that's what you _REALLY_ want to do");
+
+      alert("delete logic has been commented out of NoteHolder.js, re-enable if that's what you _REALLY_ want to do");
+
       event.preventDefault();
     };
 
@@ -56,7 +70,13 @@ export default function NoteHolder({holder, setHolder, title, resource, isLoaded
           newNotes.forEach(n => {
             notes.push(n);
           });
-          setHolder({...holder, notes});
+
+          dispatch({
+            type: setMsg,
+            id: holder.id,
+            newItem: {...holder, notes}
+          });
+
           setShowNoteForm(false);
           setShowUpdateForm(false);
         });
@@ -77,7 +97,7 @@ export default function NoteHolder({holder, setHolder, title, resource, isLoaded
     return updateForm;
   };
 
-  const notes = NoteManager(holder, setHolder);
+  const notes = NoteManager(holder, setMsg);
 
   return (
     <article>
@@ -96,7 +116,7 @@ export default function NoteHolder({holder, setHolder, title, resource, isLoaded
   );
 }
 
-function ensureCorrectDeck(resource, id, isLoaded, setDeck) {
+function ensureCorrectNoteHolder(resource, id, isLoaded, setMsg, dispatch) {
   const [currentId, setCurrentId] = useState(false);
 
   if (id !== currentId) {
@@ -107,11 +127,15 @@ function ensureCorrectDeck(resource, id, isLoaded, setDeck) {
     setCurrentId(id);
 
     if(!isLoaded(id)) {
-      // fetch idea from the server
+      // fetch resource from the server
       const url = `/api/${resource}/${id}`;
       Net.get(url).then(s => {
         if (s) {
-          setDeck(applyTagsAndDecksToNotes(s));
+          dispatch({
+            type: setMsg,
+            id: s.id,
+            newItem: applyTagsAndDecksToNotes(s)
+          });
         } else {
           console.error(`error: fetchDeck for ${url}`);
         }
@@ -120,7 +144,7 @@ function ensureCorrectDeck(resource, id, isLoaded, setDeck) {
   }
 };
 
-function NoteManager(deck, setDeckFn) {
+function NoteManager(holder, setMsg) {
   const [state, dispatch] = useStateValue();
 
   ensureAC(state, dispatch);
@@ -152,12 +176,16 @@ function NoteManager(deck, setDeckFn) {
   };
 
   function findNoteWithId(id, modifyFn) {
-    const notes = deck.notes;
+    const notes = holder.notes;
     const index = notes.findIndex(n => n.id === id);
 
     modifyFn(notes, index);
 
-    setDeckFn({...deck, notes});
+    dispatch({
+      type: setMsg,
+      id: holder.id,
+      newItem: {...holder, notes}
+    });
   };
 
   function onEditedNote(id, data) {
@@ -202,7 +230,7 @@ function NoteManager(deck, setDeckFn) {
     );
   }
 
-  const notes = deck.notes ? deck.notes.map(buildNoteComponent) : [];
+  const notes = holder.notes ? holder.notes.map(buildNoteComponent) : [];
 
   return notes;
 }

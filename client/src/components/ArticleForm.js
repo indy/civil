@@ -5,21 +5,21 @@ import { removeEmptyStrings } from '../lib/utils';
 import Net from '../lib/Net';
 import { useStateValue } from '../lib/state';
 
-export default function ArticleForm(props) {
+export default function ArticleForm({ article, setMsg }) {
   const [state, dispatch] = useStateValue();
-  const [title, setTitle] = useState(props.title || '');
-  const [author, setAuthor] = useState(props.author || '');
-  const [source, setSource] = useState(props.source || '');
+  const [title, setTitle] = useState(article.title || '');
+  const [author, setAuthor] = useState(article.author || '');
+  const [source, setSource] = useState(article.source || '');
   const [redirectUrl, setRedirectUrl] = useState(false);
 
-  if (props.title && props.title !== '' && title === '') {
-    setTitle(props.title);
+  if (article.title && article.title !== '' && title === '') {
+    setTitle(article.title);
   }
-  if (props.source && props.source !== '' && source === '') {
-    setSource(props.source);
+  if (article.source && article.source !== '' && source === '') {
+    setSource(article.source);
   }
-  if (props.author && props.author !== '' && author === '') {
-    setAuthor(props.author);
+  if (article.author && article.author !== '' && author === '') {
+    setAuthor(article.author);
   }
   if (state.dummy) {
     // just to stop the build tool from complaining about unused state
@@ -44,9 +44,15 @@ export default function ArticleForm(props) {
   const handleSubmit = (event) => {
     const data = removeEmptyStrings({title, author, source}, ["source"]);
 
-    if(props.update) {
+    if(setMsg) {
       // edit an existing article
-      Net.put(`/api/articles/${props.id}`, data).then(props.update);
+      Net.put(`/api/articles/${article.id}`, data).then(newItem => {
+        dispatch({
+          type: setMsg,
+          id: article.id,
+          newItem
+        });
+      });
     } else {
       // create a new article
       Net.post('/api/articles', data).then(article => {

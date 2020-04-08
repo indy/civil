@@ -4,9 +4,9 @@ import { Redirect } from 'react-router-dom';
 import Net from '../lib/Net';
 import { useStateValue } from '../lib/state';
 
-export default function TagForm(props) {
+export default function TagForm({ tag, setMsg }) {
   const [state, dispatch] = useStateValue();
-  const [name, setName] = useState(props.name || '');
+  const [name, setName] = useState(tag.name || '');
   const [redirectUrl, setRedirectUrl] = useState(false);
 
   if (state.dummy) {
@@ -23,9 +23,15 @@ export default function TagForm(props) {
   const handleSubmit = (event) => {
     const data = { name };
 
-    if(props.update) {
+    if(setMsg) {
       // edit an existing tag
-      Net.put(`/api/tags/${props.id}`, data).then(props.update);
+      Net.put(`/api/tags/${tag.id}`, data).then(newItem => {
+        dispatch({
+          type: setMsg,
+          id: tag.id,
+          newItem
+        });
+      });
     } else {
       // create a new tag
       Net.post('/api/tags', data).then(tag => {

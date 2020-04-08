@@ -4,13 +4,13 @@ import { Redirect } from 'react-router-dom';
 import Net from '../lib/Net';
 import { useStateValue } from '../lib/state';
 
-export default function IdeaForm(props) {
+export default function IdeaForm({ idea, setMsg }) {
   const [state, dispatch] = useStateValue();
-  const [title, setTitle] = useState(props.title || '');
+  const [title, setTitle] = useState(idea.title || '');
   const [redirectUrl, setRedirectUrl] = useState(false);
 
-  if (props.title && props.title !== '' && title === '') {
-    setTitle(props.title);
+  if (idea.title && idea.title !== '' && title === '') {
+    setTitle(idea.title);
   }
 
   if (state.dummy) {
@@ -30,9 +30,15 @@ export default function IdeaForm(props) {
   const handleSubmit = (event) => {
     const data = { title: title };
 
-    if(props.update) {
+    if(setMsg) {
       // edit an existing idea
-      Net.put(`/api/ideas/${props.id}`, data).then(props.update);
+      Net.put(`/api/ideas/${idea.id}`, data).then(newItem => {
+        dispatch({
+          type: setMsg,
+          id: idea.id,
+          newItem
+        });
+      });
     } else {
       // create a new idea
       Net.post('/api/ideas', data).then(idea => {

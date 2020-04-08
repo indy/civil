@@ -7,33 +7,33 @@ import { useStateValue } from '../lib/state';
 import CivilDate from './CivilDate';
 import CivilLocation from './CivilLocation';
 
-export default function PersonForm(props) {
+export default function PersonForm({ person, setMsg }) {
   const [state, dispatch] = useStateValue();
-  const [name, setName] = useState(props.name || '');
-  const [age, setAge] = useState(props.age || '');
-  const [birth_date, setBirthDate] = useState(props.birth_date);
-  const [birth_location, setBirthLocation] = useState(props.birth_location);
-  const [death_date, setDeathDate] = useState(props.death_date);
-  const [death_location, setDeathLocation] = useState(props.death_location);
+  const [name, setName] = useState(person.name || '');
+  const [age, setAge] = useState(person.age || '');
+  const [birth_date, setBirthDate] = useState(person.birth_date);
+  const [birth_location, setBirthLocation] = useState(person.birth_location);
+  const [death_date, setDeathDate] = useState(person.death_date);
+  const [death_location, setDeathLocation] = useState(person.death_location);
   const [redirectUrl, setRedirectUrl] = useState(false);
 
-  if (props.name && props.name !== '' && name === '') {
-    setName(props.name);
+  if (person.name && person.name !== '' && name === '') {
+    setName(person.name);
   }
-  if (props.age && props.age !== '' && age === '') {
+  if (person.age && person.age !== '' && age === '') {
     setAge(age.name);
   }
-  if (props.birth_date && props.birth_date.textual !== '' && !birth_date) {
-    setBirthDate(props.birth_date);
+  if (person.birth_date && person.birth_date.textual !== '' && !birth_date) {
+    setBirthDate(person.birth_date);
   }
-  if (props.birth_location && props.birth_location !== '' && !birth_location) {
-    setBirthLocation(props.birth_location);
+  if (person.birth_location && person.birth_location !== '' && !birth_location) {
+    setBirthLocation(person.birth_location);
   }
-  if (props.death_date && props.death_date.textual !== '' && !death_date) {
-    setDeathDate(props.death_date);
+  if (person.death_date && person.death_date.textual !== '' && !death_date) {
+    setDeathDate(person.death_date);
   }
-  if (props.death_location && props.death_location !== '' && !death_location) {
-    setDeathLocation(props.death_location);
+  if (person.death_location && person.death_location !== '' && !death_location) {
+    setDeathLocation(person.death_location);
   }
   if (state.dummy) {
     // just to stop the build tool from complaining about unused state
@@ -81,9 +81,15 @@ export default function PersonForm(props) {
     if (!data.birth_date || !data.birth_location) {
       console.error("a person requires both birth date and birth location information");
     } else {
-      if(props.update) {
+      if(setMsg) {
         // edit an existing point
-        Net.put(`/api/people/${props.id}`, data).then(props.update);
+        Net.put(`/api/people/${person.id}`, data).then(newItem => {
+          dispatch({
+            type: setMsg,
+            id: person.id,
+            newItem
+          });
+        });
       } else {
         // create a new point
         Net.post('/api/people', data).then(person => {

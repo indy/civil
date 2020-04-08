@@ -6,21 +6,21 @@ import { useStateValue } from '../lib/state';
 import CivilDate from './CivilDate';
 import CivilLocation from './CivilLocation';
 
-export default function PointForm(props) {
+export default function PointForm({point, setMsg}) {
   const [state, dispatch] = useStateValue();
-  const [title, setTitle] = useState(props.title || '');
-  const [date, setDate] = useState(props.date);
-  const [location, setLocation] = useState(props.location);
+  const [title, setTitle] = useState(point.title || '');
+  const [date, setDate] = useState(point.date);
+  const [location, setLocation] = useState(point.location);
   const [redirectUrl, setRedirectUrl] = useState(false);
 
-  if (props.title && props.title !== '' && title === '') {
-    setTitle(props.title);
+  if (point.title && point.title !== '' && title === '') {
+    setTitle(point.title);
   }
-  if (props.date && props.date.textual !== '' && !date) {
-    setDate(props.date);
+  if (point.date && point.date.textual !== '' && !date) {
+    setDate(point.date);
   }
-  if (props.location && props.location !== '' && !location) {
-    setLocation(props.location);
+  if (point.location && point.location !== '' && !location) {
+    setLocation(point.location);
   }
   if (state.dummy) {
     // just to stop the build tool from complaining about unused state
@@ -44,9 +44,15 @@ export default function PointForm(props) {
   const handleSubmit = (event) => {
     const data = {title, date, location};
 
-    if(props.update) {
+    if(setMsg) {
       // edit an existing point
-      Net.put(`/api/points/${props.id}`, data).then(props.update);
+      Net.put(`/api/points/${point.id}`, data).then(newItem => {
+        dispatch({
+          type: setMsg,
+          id: point.id,
+          newItem
+        });
+      });
     } else {
       // create a new point
       Net.post('/api/points', data).then(point => {

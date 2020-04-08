@@ -90,8 +90,8 @@ export const reducer = (state, action) => {
   case 'setIdea':
     {
       let newState = { ...state };
-      updateListOfTitles(newState.ideas, action.idea);
-      newState.idea[action.id] = action.idea;
+      updateListOfTitles(newState.ideas, action.newItem);
+      newState.idea[action.id] = action.newItem;
       return newState;
     }
   case 'setBooks':
@@ -103,8 +103,8 @@ export const reducer = (state, action) => {
   case 'setBook':
     {
       let newState = { ...state };
-      updateListOfTitles(newState.books, action.book);
-      newState.book[action.id] = action.book;
+      updateListOfTitles(newState.books, action.newItem);
+      newState.book[action.id] = action.newItem;
       return newState;
     }
   case 'setArticles':
@@ -116,8 +116,8 @@ export const reducer = (state, action) => {
   case 'setArticle':
     {
       let newState = { ...state };
-      updateListOfTitles(newState.articles, action.article);
-      newState.article[action.id] = action.article;
+      updateListOfTitles(newState.articles, action.newItem);
+      newState.article[action.id] = action.newItem;
       return newState;
     }
   case 'setPeople':
@@ -129,8 +129,8 @@ export const reducer = (state, action) => {
   case 'setPerson':
     {
       let newState = { ...state };
-      updateListOfNames(newState.people, action.person);
-      newState.person[action.id] = action.person;
+      updateListOfNames(newState.people, action.newItem);
+      newState.person[action.id] = action.newItem;
       return newState;
     }
   case 'setPoints':
@@ -142,8 +142,8 @@ export const reducer = (state, action) => {
   case 'setPoint':
     {
       let newState = { ...state };
-      updateListOfTitles(newState.points, action.point);
-      newState.point[action.id] = action.point;
+      updateListOfTitles(newState.points, action.newItem);
+      newState.point[action.id] = action.newItem;
       return newState;
     }
   case 'setTags':
@@ -155,8 +155,8 @@ export const reducer = (state, action) => {
   case 'setTag':
     {
       let newState = { ...state };
-      updateListOfNames(newState.tags, action.tag);
-      newState.tag[action.id] = action.tag;
+      updateListOfNames(newState.tags, action.newItem);
+      newState.tag[action.id] = action.newItem;
       return newState;
     }
 

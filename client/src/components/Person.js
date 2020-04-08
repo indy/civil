@@ -7,28 +7,10 @@ import { useStateValue } from '../lib/state';
 import NoteHolder from './NoteHolder';
 
 export default function Person(props) {
-  const [state, dispatch] = useStateValue();
+  const [state] = useStateValue();
   const person_id = idParam();
-
-
   const person = state.person[person_id] || { id: person_id };
-  function setPerson(newPerson) {
-    dispatch({
-      type: 'setPerson',
-      id: person_id,
-      person: newPerson
-    });
-  }
-
-  const personForm = <PersonForm id={ person_id }
-                                 name={ person.name }
-                                 age={ person.age }
-                                 birth_date = { person.birth_date }
-                                 birth_location={ person.birth_location }
-                                 death_date = { person.death_date }
-                                 death_location={ person.death_location }
-                                 update={ setPerson }
-                     />;
+  const personForm = <PersonForm person={person} setMsg="setPerson" />;
 
   const isPersonDead = () => {
     return person.death_date !== null;
@@ -43,11 +25,11 @@ export default function Person(props) {
   return (
     <NoteHolder
       holder={ person }
-      setHolder={ setPerson }
+      setMsg="setPerson"
       title={ person.name }
       resource="people"
       isLoaded={ id => state.person[id] }
-      updateForm={personForm}>
+      updateForm={ personForm }>
       <Birth person={ person }/>
       { isPersonDead() && buildDeath() }
       <Age person={ person }/>

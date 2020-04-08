@@ -5,17 +5,17 @@ import { removeEmptyStrings } from '../lib/utils';
 import Net from '../lib/Net';
 import { useStateValue } from '../lib/state';
 
-export default function BookForm(props) {
+export default function BookForm({book, setMsg}) {
   const [state, dispatch] = useStateValue();
-  const [title, setTitle] = useState(props.title || '');
-  const [author, setAuthor] = useState(props.author || '');
+  const [title, setTitle] = useState(book.title || '');
+  const [author, setAuthor] = useState(book.author || '');
   const [redirectUrl, setRedirectUrl] = useState(false);
 
-  if (props.title && props.title !== '' && title === '') {
-    setTitle(props.title);
+  if (book.title && book.title !== '' && title === '') {
+    setTitle(book.title);
   }
-  if (props.author && props.author !== '' && author === '') {
-    setAuthor(props.author);
+  if (book.author && book.author !== '' && author === '') {
+    setAuthor(book.author);
   }
 
   if (state.dummy) {
@@ -38,9 +38,15 @@ export default function BookForm(props) {
   const handleSubmit = (event) => {
     const data = removeEmptyStrings({title, author}, ["author"]);
 
-    if(props.update) {
+    if(setMsg) {
       // edit an existing book
-      Net.put(`/api/books/${props.id}`, data).then(props.update);
+      Net.put(`/api/books/${book.id}`, data).then(newItem => {
+        dispatch({
+          type: setMsg,
+          id: book.id,
+          newItem
+        });
+      });
     } else {
       // create a new book
       Net.post('/api/books', data).then(book => {
