@@ -26,7 +26,7 @@ use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
 #[allow(unused_imports)]
-use tracing::info;
+use tracing::{error, info};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "tags")]
@@ -66,17 +66,42 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key, tag_id: Key) -> Result<int
     .await
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
+#[pg_mapper(table = "tags")]
+pub struct TagCount {
+    pub count: i32,
+}
+
 pub(crate) async fn create(
     db_pool: &Pool,
     user_id: Key,
     tag: &interop::ProtoTag,
 ) -> Result<interop::Tag> {
-    pg::one_from::<Tag, interop::Tag>(
+    let count: TagCount = pg::one_non_transactional::<TagCount>(
         db_pool,
-        include_str!("sql/tags_create.sql"),
+        include_str!("sql/tags_get_count_by_name.sql"),
         &[&user_id, &tag.name],
     )
-    .await
+    .await?;
+
+    if count.count != 0 {
+        error!("tag: {} already exists", tag.name);
+        // figure out the bug that causes this and then get rid of these extra checks and db calls
+
+        pg::one_from::<Tag, interop::Tag>(
+            db_pool,
+            include_str!("sql/tags_get_by_name.sql"),
+            &[&user_id, &tag.name],
+        )
+        .await
+    } else {
+        pg::one_from::<Tag, interop::Tag>(
+            db_pool,
+            include_str!("sql/tags_create.sql"),
+            &[&user_id, &tag.name],
+        )
+        .await
+    }
 }
 
 pub(crate) async fn edit(
