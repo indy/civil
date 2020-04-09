@@ -5,6 +5,7 @@ import Net from '../lib/Net';
 import { useStateValue } from '../lib/state';
 
 export default function IdeaForm({ idea, setMsg }) {
+  idea = idea || {};
   const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(idea.title || '');
   const [redirectUrl, setRedirectUrl] = useState(false);

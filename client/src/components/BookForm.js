@@ -6,6 +6,7 @@ import Net from '../lib/Net';
 import { useStateValue } from '../lib/state';
 
 export default function BookForm({book, setMsg}) {
+  book = book || {};
   const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(book.title || '');
   const [author, setAuthor] = useState(book.author || '');

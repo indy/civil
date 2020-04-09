@@ -8,6 +8,7 @@ import CivilDate from './CivilDate';
 import CivilLocation from './CivilLocation';
 
 export default function PersonForm({ person, setMsg }) {
+  person = person || {};
   const [state, dispatch] = useStateValue();
   const [name, setName] = useState(person.name || '');
   const [age, setAge] = useState(person.age || '');

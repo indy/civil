@@ -7,6 +7,7 @@ import CivilDate from './CivilDate';
 import CivilLocation from './CivilLocation';
 
 export default function PointForm({point, setMsg}) {
+  point = point || {};
   const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(point.title || '');
   const [date, setDate] = useState(point.date);

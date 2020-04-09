@@ -6,6 +6,7 @@ import Net from '../lib/Net';
 import { useStateValue } from '../lib/state';
 
 export default function ArticleForm({ article, setMsg }) {
+  article = article || {};
   const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(article.title || '');
   const [author, setAuthor] = useState(article.author || '');

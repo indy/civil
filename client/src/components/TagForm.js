@@ -5,6 +5,7 @@ import Net from '../lib/Net';
 import { useStateValue } from '../lib/state';
 
 export default function TagForm({ tag, setMsg }) {
+  tag = tag || {};
   const [state, dispatch] = useStateValue();
   const [name, setName] = useState(tag.name || '');
   const [redirectUrl, setRedirectUrl] = useState(false);
