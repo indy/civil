@@ -39,15 +39,15 @@ html { font-size: 15px; }
   float: right;
 }
 
-body { width: 87.5%;
+body { width: 50%;
        margin-left: auto;
        margin-right: auto;
-       padding-left: 12.5%;
        font-family: et-book, Palatino, "Palatino Linotype", "Palatino LT STD", "Book Antiqua", Georgia, serif;
        background-color: #f1edeb;
        color: #111;
        max-width: 1400px;
-       counter-reset: sidenote-counter; }
+       counter-reset: sidenote-counter;
+     }
 
 h1 { font-weight: 400;
      margin-top: 4rem;
@@ -71,7 +71,7 @@ h3 { font-style: italic;
 
 hr { display: block;
      height: 1px;
-     width: 55%;
+     width: 100%;
      border: 0;
      border-top: 1px solid #ccc;
      margin: 1em 0;
@@ -126,7 +126,7 @@ blockquote footer { width: 55%;
 
 section > p, section > footer, section > table, section > form { width: 55%; }
 
-section > div.note { width: 55%; }
+section > div.note { width: 85%; }
 
 /* 50 + 5 == 55, to be the same width as paragraph */
 section > ol, section > ul { width: 50%;
@@ -169,8 +169,8 @@ img { max-width: 100%; }
 
   float: left;
   clear: left;
-  margin-left: -20%;
-  width: 20%;
+  margin-left: -25%;
+  width: 25%;
   margin-top: 0;
   margin-bottom: 0;
   font-size: 1.1rem;
