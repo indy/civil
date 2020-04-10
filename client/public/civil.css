@@ -27,6 +27,13 @@
              font-weight: normal;
              font-style: normal; }
 
+#civil-app {
+}
+
+.console-container {
+  height: 90vh;
+}
+
 .underlined {
   text-decoration: underline;
 }

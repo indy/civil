@@ -235,7 +235,6 @@ function NoteManager(holder, setMsg) {
   return notes;
 }
 
-
 function splitIntoNotes(content) {
   const res = NoteCompiler.splitContent(content);
   if (res === null) {

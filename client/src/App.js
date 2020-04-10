@@ -15,6 +15,7 @@ import PrivateRoute from './components/PrivateRoute';
 import Login from './components/Login';
 import Logout from './components/Logout';
 
+import Shell from './components/Shell';
 import Dashboard from './components/Dashboard';
 
 import Person from './components/Person';
@@ -100,9 +101,10 @@ function AppUI() {
 
   return (
     <Router>
-      <div>
+      <div id='civil-app'>
         <div id='top-bar-menu'>
           <Link className='top-bar-menuitem' to={'/'}>Home</Link>
+          <Link className='top-bar-menuitem' to={'/shell'}>Shell</Link>
           <Link className='top-bar-menuitem' to={'/dashboard'}>Dashboard</Link>
           <Link className='top-bar-menuitem' to={'/ideas'}>Ideas</Link>
           <Link className='top-bar-menuitem' to={'/tags'}>Tags</Link>
@@ -123,6 +125,10 @@ function AppUI() {
           </Route>
           <PrivateRoute exact path="/logout">
             <Logout logoutCallback = { logoutHandler }/>
+          </PrivateRoute>
+
+          <PrivateRoute path={'/shell'}>
+            <Shell/>
           </PrivateRoute>
 
           <PrivateRoute path={'/dashboard'}>

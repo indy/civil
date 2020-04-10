@@ -18,6 +18,7 @@
 use crate::handler::articles;
 use crate::handler::autocomplete;
 use crate::handler::books;
+use crate::handler::search;
 use crate::handler::dashboard;
 use crate::handler::edges;
 use crate::handler::ideas;
@@ -39,6 +40,8 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("", post().to(users::login))
                 .route("", delete().to(users::logout)),
         )
+        // search
+        .service(scope("/search").route("", get().to(search::get)))
         // dashboard
         .service(scope("/dashboard").route("", get().to(dashboard::get)))
         // registration

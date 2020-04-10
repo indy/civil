@@ -15,20 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod search;
-pub mod articles;
-pub mod autocomplete;
-pub mod books;
-pub mod dashboard;
-pub mod dates;
-pub mod decks;
-pub mod edges;
-pub mod ideas;
-pub mod locations;
-pub mod notes;
-pub mod people;
-mod pg;
-pub mod points;
-pub mod tags;
-pub mod timespans;
-pub mod users;
+use crate::interop::edges::LinkBack;
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct Search {
+    pub results: Vec<LinkBack>,
+}

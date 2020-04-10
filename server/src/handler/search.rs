@@ -15,20 +15,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod search;
-pub mod articles;
-pub mod autocomplete;
-pub mod books;
-pub mod dashboard;
-pub mod dates;
-pub mod decks;
-pub mod edges;
-pub mod ideas;
-pub mod locations;
-pub mod notes;
-pub mod people;
-mod pg;
-pub mod points;
-pub mod tags;
-pub mod timespans;
-pub mod users;
+use crate::error::Result;
+use crate::persist::search as db;
+use crate::session;
+use actix_web::web::{self, Data};
+use actix_web::HttpResponse;
+use deadpool_postgres::Pool;
+use serde::Deserialize;
+
+#[allow(unused_imports)]
+use tracing::info;
+
+#[derive(Deserialize)]
+pub struct SearchQuery {
+   q: String,
+}
+
+pub async fn get(db_pool: Data<Pool>, session: actix_session::Session, web::Query(query) : web::Query<SearchQuery>) -> Result<HttpResponse> {
+    info!("get {}", &query.q);
+
+    let user_id = session::user_id(&session)?;
+
+    let search = db::get(&db_pool, user_id, &query.q).await?;
+    Ok(HttpResponse::Ok().json(search))
+}

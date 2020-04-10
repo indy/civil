@@ -59,7 +59,7 @@ pub async fn get(
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    info!("get {:?}", params.id);
+    info!("get idea {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
     let idea_id = params.id;

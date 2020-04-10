@@ -6,6 +6,15 @@ export const initialState = {
   //   email: ...
   // },
 
+  console: {
+    stdout: [],
+    history: [],
+    historyPosition: null,
+    previousHistoryPosition: null,
+    processing: false,
+    promptLabel: '->'
+  },
+
   acLoaded: false,
   ac: {
     tags: [],
@@ -44,6 +53,71 @@ export const reducer = (state, action) => {
       ...state,
       user: action.user
     };
+  case 'pushStdout':
+    {
+      let c = { ...state.console };
+      c.stdout.push(action.message);
+
+      if (action.rawInput) {
+        // Only supplied if history is enabled
+        c.history.push(action.rawInput);
+        c.historyPosition = null;
+      }
+
+      return {
+        ...state,
+        console: c
+      };
+    }
+  case 'clearStdout':
+    {
+      let c = {
+        ...state.console,
+        stdout: [],
+        historyPosition: null
+      };
+
+      return {
+        ...state,
+        console: c
+      };
+    }
+  case 'clearInput':
+    {
+      let c = {
+        ...state.console,
+        historyPosition: null
+      };
+
+      return {
+        ...state,
+        console: c
+      };
+    }
+  case 'setPromptLabel':
+    {
+      let c = {
+        ...state.console,
+        promptLabel: action.promptLabel
+      };
+      return {
+        ...state,
+        console: c
+      };
+    }
+  case 'scrollHistory':
+    {
+      let c = {
+        ...state.console,
+        historyPosition: action.historyPosition,
+        previousHistoryPosition: action.previousHistoryPosition
+      };
+
+      return {
+        ...state,
+        console: c
+      };
+    }
   case 'loadAutocomplete':
     return {
       ...state,
