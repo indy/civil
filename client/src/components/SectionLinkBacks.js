@@ -1,5 +1,6 @@
 import React from 'react';
 import ListingLink from './ListingLink';
+import { capitalise } from '../lib/utils';
 
 export default function SectionLinkBacks(props) {
   return (
@@ -7,8 +8,14 @@ export default function SectionLinkBacks(props) {
       <SectionLinkBack linkbacks={ props.linkingTo.linkbacks_to_ideas }/>
       <SectionLinkBack linkbacks={ props.linkingTo.linkbacks_to_tags }/>
       <SectionLinkBack linkbacks={ props.linkingTo.linkbacks_to_decks }/>
+      <SectionSearchResultsLinkBack linkbacks={ props.linkingTo.search_results }/>
     </div>
   );
+}
+
+function SectionSearchResultsLinkBack(props) {
+  const linkbacks = props.linkbacks || [];
+  return listingLinks(linkbacks, "Search Results");
 }
 
 function SectionLinkBack(props) {
@@ -39,18 +46,18 @@ function groupByResource(linkbacks) {
   return res;
 }
 
-function listingLinks(linkbacks) {
+function listingLinks(linkbacks, heading) {
   if (linkbacks.length === 0) {
     return (<div></div>);
   }
 
   let list = linkbacks.map(buildLinkback);
-  let groupedHeading = linkbacks[0].resource;
+  let sectionHeading = capitalise(heading || linkbacks[0].resource);
   let sectionId = linkbacks[0].id;
 
   return (
     <section key={ sectionId }>
-      <h2>{ groupedHeading }</h2>
+      <h2>{ sectionHeading }</h2>
       <ul>
         { list }
       </ul>

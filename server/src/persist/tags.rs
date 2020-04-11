@@ -49,6 +49,8 @@ impl From<Tag> for interop::Tag {
             linkbacks_to_decks: None,
             linkbacks_to_ideas: None,
             linkbacks_to_tags: None,
+
+            search_results: None,
         }
     }
 }

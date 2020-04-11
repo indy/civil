@@ -32,6 +32,8 @@ pub struct Tag {
     pub linkbacks_to_decks: Option<Vec<LinkBack>>,
     pub linkbacks_to_ideas: Option<Vec<LinkBack>>,
     pub linkbacks_to_tags: Option<Vec<LinkBack>>,
+
+    pub search_results: Option<Vec<LinkBack>>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

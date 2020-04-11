@@ -21,6 +21,7 @@ use crate::interop::{IdParam, Key};
 use crate::persist::edges as edges_db;
 use crate::persist::notes as notes_db;
 use crate::persist::tags as db;
+use crate::persist::search as search_db;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
@@ -65,7 +66,7 @@ pub async fn get(
     let tag_id = params.id;
 
     let mut tag = db::get(&db_pool, user_id, tag_id).await?;
-    augment(&db_pool, &mut tag, tag_id).await?;
+    augment(&db_pool, user_id, &mut tag, tag_id).await?;
 
     Ok(HttpResponse::Ok().json(tag))
 }
@@ -83,7 +84,7 @@ pub async fn edit(
     let tag = tag.into_inner();
 
     let mut tag = db::edit(&db_pool, user_id, &tag, tag_id).await?;
-    augment(&db_pool, &mut tag, tag_id).await?;
+    augment(&db_pool, user_id, &mut tag, tag_id).await?;
 
     Ok(HttpResponse::Ok().json(tag))
 }
@@ -102,7 +103,7 @@ pub async fn delete(
     Ok(HttpResponse::Ok().json(true))
 }
 
-async fn augment(db_pool: &Data<Pool>, tag: &mut interop::Tag, tag_id: Key) -> Result<()> {
+async fn augment(db_pool: &Data<Pool>, user_id: Key, tag: &mut interop::Tag, tag_id: Key) -> Result<()> {
     let notes = notes_db::all_from_tag(&db_pool, tag_id).await?;
     tag.notes = Some(notes);
 
@@ -117,6 +118,11 @@ async fn augment(db_pool: &Data<Pool>, tag: &mut interop::Tag, tag_id: Key) -> R
 
     let linkbacks_to_tags = edges_db::from_tags_via_notes_to_tag_id(&db_pool, tag_id).await?;
     tag.linkbacks_to_tags = Some(linkbacks_to_tags);
+
+    // todo: replace hyphens with spaces
+    // todo: dedupe against any of the above linkbacks
+    let search = search_db::get(&db_pool, user_id, &tag.name).await?;
+    tag.search_results = Some(search.results);
 
     Ok(())
 }

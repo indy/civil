@@ -1,3 +1,5 @@
+// The code in this file is based on react-console-emulator, here is their license:
+
 // MIT License
 
 // Copyright (c) 2018 Linus Willner and Curtis Fowler
