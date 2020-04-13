@@ -16,201 +16,142 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::pg;
-use crate::error::{Error, Result};
-use crate::interop::dates as dates_interop;
-use crate::interop::locations as locations_interop;
+use crate::error::Result;
 use crate::interop::points as interop;
 use crate::interop::Key;
-use crate::persist::dates;
-use crate::persist::decks;
-use crate::persist::locations;
-use deadpool_postgres::{Client, Pool};
+use deadpool_postgres::{Pool, Transaction};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
-#[allow(unused_imports)]
-use tracing::info;
-
 #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
-#[pg_mapper(table = "decks")]
-struct PointDerived {
-    id: Key,
-    name: String,
-
-    date_id: Option<Key>,
-    date_textual: Option<String>,
-    date_exact_date: Option<chrono::NaiveDate>,
-    date_lower_date: Option<chrono::NaiveDate>,
-    date_upper_date: Option<chrono::NaiveDate>,
-    date_fuzz: Option<f32>,
-
-    location_id: Option<Key>,
-    location_textual: Option<String>,
-    location_longitude: Option<f32>,
-    location_latitude: Option<f32>,
-    location_fuzz: Option<f32>,
-}
-
-#[derive(Debug, Deserialize, PostgresMapper, Serialize)]
-#[pg_mapper(table = "decks")]
+#[pg_mapper(table = "points")]
 struct Point {
     id: Key,
-    name: String,
-    date_id: Option<Key>,
-    location_id: Option<Key>,
+
+    title: Option<String>,
+
+    location_textual: Option<String>,
+    longitude: Option<f32>,
+    latitude: Option<f32>,
+    location_fuzz: f32,
+
+    date_textual: Option<String>,
+    exact_date: Option<chrono::NaiveDate>,
+    lower_date: Option<chrono::NaiveDate>,
+    upper_date: Option<chrono::NaiveDate>,
+    date_fuzz: f32,
 }
 
-impl From<PointDerived> for interop::Point {
-    fn from(e: PointDerived) -> interop::Point {
+impl From<Point> for interop::Point {
+    fn from(e: Point) -> interop::Point {
         interop::Point {
             id: e.id,
-            title: e.name,
+            title: e.title,
 
-            // todo:
-            // why does this code fail when we use an sql query that only returns date_id?
-            // the other values should be None and the try_build functions should work
-            //
-            date: dates_interop::try_build(
-                e.date_id,
-                e.date_textual,
-                e.date_exact_date,
-                e.date_lower_date,
-                e.date_upper_date,
-                e.date_fuzz,
-            ),
-            location: locations_interop::try_build(
-                e.location_id,
-                e.location_textual,
-                e.location_longitude,
-                e.location_latitude,
-                e.location_fuzz,
-            ),
-            notes: None,
+            location_textual: e.location_textual,
+            longitude: e.longitude,
+            latitude: e.latitude,
+            location_fuzz: e.location_fuzz,
 
-            tags_in_notes: None,
-            decks_in_notes: None,
-
-            linkbacks_to_decks: None,
-            linkbacks_to_tags: None,
+            date_textual: e.date_textual,
+            exact_date: e.exact_date,
+            lower_date: e.lower_date,
+            upper_date: e.upper_date,
+            date_fuzz: e.date_fuzz,
         }
     }
+}
+
+pub(crate) async fn all(db_pool: &Pool, user_id: Key, deck_id: Key) -> Result<Vec<interop::Point>> {
+    pg::many_from::<Point, interop::Point>(
+        db_pool,
+        include_str!("sql/points_all.sql"),
+        &[&user_id, &deck_id],
+    )
+    .await
 }
 
 pub(crate) async fn create(
-    db_pool: &Pool,
-    user_id: Key,
+    tx: &Transaction<'_>,
     point: &interop::ProtoPoint,
 ) -> Result<interop::Point> {
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
-
-    let point_date: Option<dates_interop::Date>;
-    let point_date_id: Option<Key>;
-    if let Some(date) = &point.date {
-        let res = dates::create(&tx, &date).await?;
-        point_date_id = Some(res.id);
-        point_date = Some(res);
-    } else {
-        point_date = None;
-        point_date_id = None;
-    };
-
-    let point_location: Option<locations_interop::Location>;
-    let point_location_id: Option<Key>;
-    if let Some(location) = &point.location {
-        let res = locations::create(&tx, &location).await?;
-        point_location_id = Some(res.id);
-        point_location = Some(res);
-    } else {
-        point_location = None;
-        point_location_id = None;
-    };
-
     let db_point = pg::one::<Point>(
-        &tx,
+        tx,
         include_str!("sql/points_create.sql"),
-        &[&user_id, &point.title, &point_date_id, &point_location_id],
+        &[
+            &point.title,
+            &point.location_textual,
+            &point.longitude,
+            &point.latitude,
+            &point.location_fuzz,
+            &point.date_textual,
+            &point.exact_date,
+            &point.lower_date,
+            &point.upper_date,
+            &point.date_fuzz,
+        ],
     )
     .await?;
 
-    tx.commit().await?;
-
-    Ok(interop::Point {
-        id: db_point.id,
-        title: db_point.name,
-
-        date: point_date,
-        location: point_location,
-
-        notes: None,
-
-        tags_in_notes: None,
-        decks_in_notes: None,
-
-        linkbacks_to_decks: None,
-        linkbacks_to_tags: None,
-    })
+    let point = interop::Point::from(db_point);
+    Ok(point)
 }
 
-pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Point>> {
-    pg::many_from::<PointDerived, interop::Point>(
-        db_pool,
-        include_str!("sql/points_all.sql"),
-        &[&user_id],
-    )
-    .await
-}
-
-pub(crate) async fn get(db_pool: &Pool, user_id: Key, point_id: Key) -> Result<interop::Point> {
-    pg::one_from::<PointDerived, interop::Point>(
-        db_pool,
-        include_str!("sql/points_get.sql"),
-        &[&user_id, &point_id],
-    )
-    .await
-}
-
+/*
 pub(crate) async fn edit(
-    db_pool: &Pool,
-    user_id: Key,
-    updated_point: &interop::ProtoPoint,
+    tx: &Transaction<'_>,
+    point: &interop::ProtoPoint,
     point_id: Key,
 ) -> Result<interop::Point> {
-    let existing_point = get(db_pool, point_id, user_id).await?;
-
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
-
-    if let Some(existing_date) = &existing_point.date {
-        if let Some(updated_date) = &updated_point.date {
-            if updated_date != existing_date {
-                dates::edit(&tx, &updated_date, existing_date.id).await?;
-            }
-        }
-    }
-
-    if let Some(existing_loc) = &existing_point.location {
-        if let Some(updated_loc) = &updated_point.location {
-            if updated_loc != existing_loc {
-                locations::edit(&tx, &updated_loc, existing_loc.id).await?;
-            }
-        }
-    }
-
-    let _point = pg::one::<Point>(
-        &tx,
+    let db_point = pg::one::<Point>(
+        tx,
         include_str!("sql/points_edit.sql"),
-        &[&user_id, &point_id, &updated_point.title],
+        &[
+            &point_id,
+            &point.title,
+            &point.location_textual,
+            &point.longitude,
+            &point.latitude,
+            &point.location_fuzz,
+            &point.date_textual,
+            &point.exact_date,
+            &point.lower_date,
+            &point.upper_date,
+            &point.date_fuzz,
+        ],
     )
     .await?;
 
-    tx.commit().await?;
+    let point = interop::Point::from(db_point);
+    Ok(point)
+}
+*/
 
-    let altered_point = get(db_pool, point_id, user_id).await?;
+pub(crate) async fn delete_all_points_connected_with_deck(
+    tx: &Transaction<'_>,
+    deck_id: Key,
+) -> Result<()> {
+    pg::zero(
+        tx,
+        &include_str!("sql/points_delete_all_connected_with_deck.sql"),
+        &[&deck_id],
+    )
+    .await?;
+    pg::zero(
+        tx,
+        &include_str!("sql/points_delete_all_decks_points_connected_with_deck.sql"),
+        &[&deck_id],
+    )
+    .await?;
 
-    Ok(altered_point)
+    Ok(())
 }
 
-pub(crate) async fn delete(db_pool: &Pool, user_id: Key, point_id: Key) -> Result<()> {
-    decks::delete(db_pool, point_id, user_id).await
+/*
+pub(crate) async fn delete(tx: &Transaction<'_>, point_id: Key) -> Result<()> {
+    let stmt = pg::delete_statement(Model::Point)?;
+
+    pg::zero(tx, &stmt, &[&point_id]).await?;
+    Ok(())
 }
+ */

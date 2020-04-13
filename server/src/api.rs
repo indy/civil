@@ -18,13 +18,13 @@
 use crate::handler::articles;
 use crate::handler::autocomplete;
 use crate::handler::books;
-use crate::handler::search;
 use crate::handler::dashboard;
 use crate::handler::edges;
+use crate::handler::events;
 use crate::handler::ideas;
 use crate::handler::notes;
 use crate::handler::people;
-use crate::handler::points;
+use crate::handler::search;
 use crate::handler::tags;
 use crate::handler::users;
 use actix_files::NamedFile;
@@ -68,14 +68,14 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", put().to(people::edit)) // check
                 .route("/{id}", delete().to(people::delete)),
         )
-        // points
+        // events
         .service(
-            scope("/points")
-                .route("", post().to(points::create))
-                .route("", get().to(points::get_all))
-                .route("/{id}", get().to(points::get))
-                .route("/{id}", put().to(points::edit)) // check
-                .route("/{id}", delete().to(points::delete)),
+            scope("/events")
+                .route("", post().to(events::create))
+                .route("", get().to(events::get_all))
+                .route("/{id}", get().to(events::get))
+                .route("/{id}", put().to(events::edit)) // check
+                .route("/{id}", delete().to(events::delete)),
         )
         // articles
         .service(

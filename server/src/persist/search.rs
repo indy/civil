@@ -17,12 +17,12 @@
 
 use super::pg;
 use crate::error::Result;
+use crate::interop::edges as edges_interop;
 use crate::interop::search as interop;
 use crate::interop::{kind_to_resource, Key};
 use deadpool_postgres::Pool;
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
-use crate::interop::edges as edges_interop;
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -49,9 +49,7 @@ impl From<SearchResultDeck> for edges_interop::LinkBack {
 pub(crate) async fn get(db_pool: &Pool, user_id: Key, query: &str) -> Result<interop::Search> {
     let results = get_decks(db_pool, user_id, query).await?;
 
-    Ok(interop::Search {
-        results,
-    })
+    Ok(interop::Search { results })
 }
 
 async fn get_decks(
@@ -61,10 +59,6 @@ async fn get_decks(
 ) -> Result<Vec<edges_interop::LinkBack>> {
     let stmt = include_str!("sql/search_decks.sql");
 
-    pg::many_from::<SearchResultDeck, edges_interop::LinkBack>(
-        db_pool,
-        &stmt,
-        &[&user_id, &query],
-    )
-    .await
+    pg::many_from::<SearchResultDeck, edges_interop::LinkBack>(db_pool, &stmt, &[&user_id, &query])
+        .await
 }

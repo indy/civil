@@ -438,7 +438,7 @@ pub(crate) async fn from_deck_id_via_notes_to_tags(
 
 // return all the referenced decks in the given deck
 // e.g. from_deck_id_via_notes_to_decks(db_pool, article_id)
-// will return all the people, points, books, articles etc mentioned in the given article
+// will return all the people, events, books, articles etc mentioned in the given article
 //
 pub(crate) async fn from_deck_id_via_notes_to_decks(
     db_pool: &Pool,

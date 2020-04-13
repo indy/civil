@@ -1,7 +1,7 @@
 import React from 'react';
 
 import PersonForm from './PersonForm';
-import { idParam } from '../lib/utils';
+import { idParam, findPoint } from '../lib/utils';
 import { useStateValue } from '../lib/state';
 
 import NoteHolder from './NoteHolder';
@@ -13,14 +13,20 @@ export default function Person(props) {
   const personForm = <PersonForm person={person} setMsg="setPerson" />;
 
   const isPersonDead = () => {
-    return person.death_date !== null;
+    if (person.points) {
+      return !!findPoint(person.points, 'Death');
+    }
+    return false;
   };
 
   const buildDeath = () => {
+    let point = findPoint(person.points, 'Death');
     return (
-      <Death person={ person }/>
+      <Death point={ point }/>
     );
   };
+
+  let birthPoint = person.points ? findPoint(person.points, 'Birth') : {};
 
   return (
     <NoteHolder
@@ -30,18 +36,16 @@ export default function Person(props) {
       resource="people"
       isLoaded={ id => state.person[id] }
       updateForm={ personForm }>
-      <Birth person={ person }/>
+      <Birth point={ birthPoint }/>
       { isPersonDead() && buildDeath() }
-      <Age person={ person }/>
+      {/* <Age person={ person }/> */}
     </NoteHolder>
   );
 }
 
-function Birth(props) {
-  const person = props.person;
-
-  const birth_date = person.birth_date ? person.birth_date.textual : '';
-  const birth_location = person.birth_location ? person.birth_location.textual : '';
+function Birth({ point }) {
+  const birth_date = point.date_textual;
+  const birth_location = point.location_textual;
 
   return (
     <p className="subtitle">
@@ -50,11 +54,9 @@ function Birth(props) {
   );
 };
 
-function Death(props) {
-  const person = props.person;
-
-  const death_date = person.death_date ? person.death_date.textual : '';
-  const death_location = person.death_location ? person.death_location.textual : '';
+function Death({ point }) {
+  const death_date = point.date_textual;
+  const death_location = point.location_textual;
 
   return (
     <p className="subtitle">
@@ -62,7 +64,7 @@ function Death(props) {
     </p>
   );
 };
-
+/*
 function Age(props) {
   const person = props.person;
   const age = person.age || calculateAge(person.birth_date, person.death_date);
@@ -160,3 +162,4 @@ function parseYmdFromString(s) {
 
   return res;
 }
+*/

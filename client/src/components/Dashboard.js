@@ -8,7 +8,7 @@ export default function Dashboard(props) {
     articles: [],
     books: [],
     people: [],
-    points: [],
+    events: [],
     ideas: []
   });
 
@@ -61,9 +61,9 @@ export default function Dashboard(props) {
         </ol>
       </section>
       <section>
-        <h2>Recent Points</h2>
+        <h2>Recent Events</h2>
         <ol>
-          { buildLinkBacks(dashboard.points) }
+          { buildLinkBacks(dashboard.events) }
         </ol>
       </section>
     </article>

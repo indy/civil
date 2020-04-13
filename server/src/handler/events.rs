@@ -16,11 +16,12 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
-use crate::interop::points as interop;
+use crate::interop::events as interop;
 use crate::interop::{IdParam, Key};
 use crate::persist::edges as edges_db;
+use crate::persist::events as db;
 use crate::persist::notes as notes_db;
-use crate::persist::points as db;
+use crate::persist::points as points_db;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
@@ -30,18 +31,18 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 pub async fn create(
-    point: Json<interop::ProtoPoint>,
+    event: Json<interop::ProtoEvent>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("create");
 
-    let point = point.into_inner();
+    let event = event.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let point = db::create(&db_pool, user_id, &point).await?;
+    let event = db::create(&db_pool, user_id, &event).await?;
 
-    Ok(HttpResponse::Ok().json(point))
+    Ok(HttpResponse::Ok().json(event))
 }
 
 pub async fn get_all(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
@@ -49,9 +50,9 @@ pub async fn get_all(db_pool: Data<Pool>, session: actix_session::Session) -> Re
 
     let user_id = session::user_id(&session)?;
 
-    let points = db::all(&db_pool, user_id).await?;
+    let events = db::all(&db_pool, user_id).await?;
 
-    Ok(HttpResponse::Ok().json(points))
+    Ok(HttpResponse::Ok().json(events))
 }
 
 pub async fn get(
@@ -62,16 +63,16 @@ pub async fn get(
     info!("get {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
-    let point_id = params.id;
+    let event_id = params.id;
 
-    let mut point = db::get(&db_pool, user_id, point_id).await?;
-    augment(&db_pool, &mut point, point_id).await?;
+    let mut event = db::get(&db_pool, user_id, event_id).await?;
+    augment(&db_pool, &mut event, event_id, user_id).await?;
 
-    Ok(HttpResponse::Ok().json(point))
+    Ok(HttpResponse::Ok().json(event))
 }
 
 pub async fn edit(
-    point: Json<interop::ProtoPoint>,
+    event: Json<interop::ProtoEvent>,
     db_pool: Data<Pool>,
     params: Path<IdParam>,
     session: actix_session::Session,
@@ -79,13 +80,13 @@ pub async fn edit(
     info!("edit");
 
     let user_id = session::user_id(&session)?;
-    let point_id = params.id;
-    let point = point.into_inner();
+    let event_id = params.id;
+    let event = event.into_inner();
 
-    let mut point = db::edit(&db_pool, user_id, &point, point_id).await?;
-    augment(&db_pool, &mut point, point_id).await?;
+    let mut event = db::edit(&db_pool, user_id, &event, event_id).await?;
+    augment(&db_pool, &mut event, event_id, user_id).await?;
 
-    Ok(HttpResponse::Ok().json(point))
+    Ok(HttpResponse::Ok().json(event))
 }
 
 pub async fn delete(
@@ -102,21 +103,31 @@ pub async fn delete(
     Ok(HttpResponse::Ok().json(true))
 }
 
-async fn augment(db_pool: &Data<Pool>, point: &mut interop::Point, point_id: Key) -> Result<()> {
-    let notes = notes_db::all_from_deck(&db_pool, point_id).await?;
-    point.notes = Some(notes);
+async fn augment(
+    db_pool: &Data<Pool>,
+    event: &mut interop::Event,
+    event_id: Key,
+    user_id: Key,
+) -> Result<()> {
+    info!("augment event_id: {}, user_id: {}", event_id, user_id);
 
-    let tags_in_notes = edges_db::from_deck_id_via_notes_to_tags(&db_pool, point_id).await?;
-    point.tags_in_notes = Some(tags_in_notes);
+    let points = points_db::all(&db_pool, user_id, event_id).await?;
+    event.points = Some(points);
 
-    let decks_in_notes = edges_db::from_deck_id_via_notes_to_decks(&db_pool, point_id).await?;
-    point.decks_in_notes = Some(decks_in_notes);
+    let notes = notes_db::all_from_deck(&db_pool, event_id).await?;
+    event.notes = Some(notes);
 
-    let linkbacks_to_decks = edges_db::from_decks_via_notes_to_deck_id(&db_pool, point_id).await?;
-    point.linkbacks_to_decks = Some(linkbacks_to_decks);
+    let tags_in_notes = edges_db::from_deck_id_via_notes_to_tags(&db_pool, event_id).await?;
+    event.tags_in_notes = Some(tags_in_notes);
 
-    let linkbacks_to_tags = edges_db::from_tags_via_notes_to_deck_id(&db_pool, point_id).await?;
-    point.linkbacks_to_tags = Some(linkbacks_to_tags);
+    let decks_in_notes = edges_db::from_deck_id_via_notes_to_decks(&db_pool, event_id).await?;
+    event.decks_in_notes = Some(decks_in_notes);
+
+    let linkbacks_to_decks = edges_db::from_decks_via_notes_to_deck_id(&db_pool, event_id).await?;
+    event.linkbacks_to_decks = Some(linkbacks_to_decks);
+
+    let linkbacks_to_tags = edges_db::from_tags_via_notes_to_deck_id(&db_pool, event_id).await?;
+    event.linkbacks_to_tags = Some(linkbacks_to_tags);
 
     Ok(())
 }

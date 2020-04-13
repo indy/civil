@@ -37,9 +37,9 @@ export const initialState = {
   people: [],
   person: {},
 
-  pointsLoaded: false,
-  points: [],
-  point: {},
+  eventsLoaded: false,
+  events: [],
+  event: {},
 
   tagsLoaded: false,
   tags: [],
@@ -207,17 +207,17 @@ export const reducer = (state, action) => {
       newState.person[action.id] = action.newItem;
       return newState;
     }
-  case 'setPoints':
+  case 'setEvents':
     return {
       ...state,
-      pointsLoaded: true,
-      points: action.points
+      eventsLoaded: true,
+      events: action.events
     };
-  case 'setPoint':
+  case 'setEvent':
     {
       let newState = { ...state };
-      updateListOfTitles(newState.points, action.newItem);
-      newState.point[action.id] = action.newItem;
+      updateListOfTitles(newState.events, action.newItem);
+      newState.event[action.id] = action.newItem;
       return newState;
     }
   case 'setTags':

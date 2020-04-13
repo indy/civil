@@ -15,15 +15,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod articles;
-pub mod autocomplete;
-pub mod books;
-pub mod dashboard;
-pub mod edges;
-pub mod events;
-pub mod ideas;
-pub mod notes;
-pub mod people;
-pub mod search;
-pub mod tags;
-pub mod users;
+use crate::interop::edges::{LinkBack, MarginConnection};
+use crate::interop::notes::Note;
+use crate::interop::points::{Point, ProtoPoint};
+use crate::interop::Key;
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct Event {
+    pub id: Key,
+    pub title: String,
+
+    pub points: Option<Vec<Point>>,
+
+    pub notes: Option<Vec<Note>>,
+
+    pub tags_in_notes: Option<Vec<MarginConnection>>,
+    pub decks_in_notes: Option<Vec<MarginConnection>>,
+
+    pub linkbacks_to_decks: Option<Vec<LinkBack>>,
+    pub linkbacks_to_tags: Option<Vec<LinkBack>>,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct ProtoEvent {
+    pub title: String,
+    pub point: ProtoPoint,
+}

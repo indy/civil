@@ -34,9 +34,9 @@ import Idea from './components/Idea';
 import Ideas from './components/Ideas';
 import IdeaForm from './components/IdeaForm';
 
-import Point from './components/Point';
-import Points from './components/Points';
-import PointForm from './components/PointForm';
+import Event from './components/Event';
+import Events from './components/Events';
+import EventForm from './components/EventForm';
 
 import Tag from './components/Tag';
 import Tags from './components/Tags';
@@ -111,7 +111,7 @@ function AppUI() {
           <Link className='top-bar-menuitem' to={'/books'}>Books</Link>
           <Link className='top-bar-menuitem' to={'/articles'}>Articles</Link>
           <Link className='top-bar-menuitem' to={'/people'}>People</Link>
-          <Link className='top-bar-menuitem' to={'/points'}>Points</Link>
+          <Link className='top-bar-menuitem' to={'/events'}>Events</Link>
           <Link className='top-bar-menuitem' to={ loggedLink() } id="login-menuitem">{ loggedStatus() }</Link>
         </div>
         <hr/>
@@ -155,14 +155,14 @@ function AppUI() {
             <PersonForm/>
           </PrivateRoute>
 
-          <PrivateRoute path={'/points/:id'}>
-            <Point/>
+          <PrivateRoute path={'/events/:id'}>
+            <Event/>
           </PrivateRoute>
-          <PrivateRoute exact path="/points">
-            <Points/>
+          <PrivateRoute exact path="/events">
+            <Events/>
           </PrivateRoute>
-          <PrivateRoute path={'/add-point'}>
-            <PointForm/>
+          <PrivateRoute path={'/add-event'}>
+            <EventForm/>
           </PrivateRoute>
 
           <PrivateRoute path={'/articles/:id'}>

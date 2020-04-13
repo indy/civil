@@ -87,7 +87,7 @@ function yearFrom(dateString) {
 }
 
 function addBirthYear(p) {
-  p.birth_year = yearFrom(p.birth_date.exact_date);
+  p.birth_year = yearFrom(p.sort_date);
 }
 
 function createPersonListing(person) {

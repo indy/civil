@@ -5,39 +5,39 @@ import ListingLink from './ListingLink';
 import { useStateValue } from '../lib/state';
 import {ensureAC} from '../lib/utils';
 
-export default function Points() {
+export default function Events() {
   const [state, dispatch] = useStateValue();
-  let [showAddPointLink, setShowAddPointLink] = useState(false);
+  let [showAddEventLink, setShowAddEventLink] = useState(false);
   ensureAC(state, dispatch);
 
   useEffect(() => {
     async function fetcher() {
-      const points = await Net.get('/api/points');
+      const events = await Net.get('/api/events');
 
       dispatch({
-        type: 'setPoints',
-        points
+        type: 'setEvents',
+        events
       });
     }
-    if(!state.pointsLoaded) {
+    if(!state.eventsLoaded) {
       fetcher();
     }
   }, []);
 
   const toggleShowAdd = () => {
-    setShowAddPointLink(!showAddPointLink);
+    setShowAddEventLink(!showAddEventLink);
   };
 
-  const pointsList = state.points.map(
-    point => <ListingLink id={ point.id } key={ point.id } name={ point.title } resource='points'/>
+  const eventsList = state.events.map(
+    event => <ListingLink id={ event.id } key={ event.id } name={ event.title } resource='events'/>
   );
 
   return (
     <div>
-      <h1 onClick={ toggleShowAdd }>Points</h1>
-      { showAddPointLink && <Link to='/add-point'>Add Point</Link> }
+      <h1 onClick={ toggleShowAdd }>Events</h1>
+      { showAddEventLink && <Link to='/add-event'>Add Event</Link> }
       <ul>
-        { pointsList }
+        { eventsList }
       </ul>
     </div>
   );

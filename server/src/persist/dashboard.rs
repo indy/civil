@@ -31,7 +31,7 @@ enum DeckKind {
     Article,
     Book,
     Person,
-    Point,
+    Event,
     Idea,
 }
 
@@ -41,7 +41,7 @@ impl DeckKind {
             DeckKind::Article => "article",
             DeckKind::Book => "book",
             DeckKind::Person => "person",
-            DeckKind::Point => "point",
+            DeckKind::Event => "event",
             DeckKind::Idea => "idea",
         }
     }
@@ -52,7 +52,7 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key) -> Result<interop::Dashboa
     let articles = get_decks(db_pool, user_id, DeckKind::Article, 10).await?;
     let books = get_decks(db_pool, user_id, DeckKind::Book, 10).await?;
     let people = get_decks(db_pool, user_id, DeckKind::Person, 10).await?;
-    let points = get_decks(db_pool, user_id, DeckKind::Point, 10).await?;
+    let events = get_decks(db_pool, user_id, DeckKind::Event, 10).await?;
     let ideas = get_decks(db_pool, user_id, DeckKind::Idea, 10).await?;
 
     Ok(interop::Dashboard {
@@ -60,7 +60,7 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key) -> Result<interop::Dashboa
         articles,
         books,
         people,
-        points,
+        events,
         ideas,
     })
 }

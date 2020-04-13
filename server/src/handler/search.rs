@@ -28,10 +28,14 @@ use tracing::info;
 
 #[derive(Deserialize)]
 pub struct SearchQuery {
-   q: String,
+    q: String,
 }
 
-pub async fn get(db_pool: Data<Pool>, session: actix_session::Session, web::Query(query) : web::Query<SearchQuery>) -> Result<HttpResponse> {
+pub async fn get(
+    db_pool: Data<Pool>,
+    session: actix_session::Session,
+    web::Query(query): web::Query<SearchQuery>,
+) -> Result<HttpResponse> {
     info!("get {}", &query.q);
 
     let user_id = session::user_id(&session)?;

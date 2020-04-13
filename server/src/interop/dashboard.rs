@@ -23,6 +23,6 @@ pub struct Dashboard {
     pub articles: Vec<LinkBack>,
     pub books: Vec<LinkBack>,
     pub people: Vec<LinkBack>,
-    pub points: Vec<LinkBack>,
+    pub events: Vec<LinkBack>,
     pub ideas: Vec<LinkBack>,
 }

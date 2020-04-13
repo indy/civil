@@ -15,18 +15,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod search;
 pub mod articles;
 pub mod autocomplete;
 pub mod books;
 pub mod dashboard;
-pub mod dates;
 pub mod edges;
+pub mod events;
 pub mod ideas;
-pub mod locations;
 pub mod notes;
 pub mod people;
 pub mod points;
+pub mod search;
 pub mod tags;
 pub mod users;
 
@@ -47,11 +46,9 @@ pub enum Model {
     Article,
     Book,
     Idea,
+    Event,
     Point,
-    Date,
-    Location,
     Edge,
-    Timespan,
 }
 
 impl std::fmt::Display for Model {
@@ -62,11 +59,9 @@ impl std::fmt::Display for Model {
             Model::Article => write!(f, "Mode::Article"),
             Model::Book => write!(f, "Model::Book"),
             Model::Idea => write!(f, "Model::Idea"),
-            Model::Point => write!(f, "Model::Point"),
-            Model::Date => write!(f, "Mode::Date"),
-            Model::Location => write!(f, "Model::Location"),
+            Model::Event => write!(f, "Model::Event"),
+            Model::Point => write!(f, "Mode::Point"),
             Model::Edge => write!(f, "Model::Edge"),
-            Model::Timespan => write!(f, "Model::Timespan"),
         }
     }
 }
@@ -74,9 +69,7 @@ impl std::fmt::Display for Model {
 pub(crate) fn model_to_table_name(model: Model) -> Result<&'static str> {
     match model {
         Model::Note => Ok("notes"),
-        Model::Date => Ok("dates"),
-        Model::Location => Ok("locations"),
-        Model::Timespan => Ok("timespans"),
+        Model::Point => Ok("points"),
         Model::Edge => Ok("edges"),
         _ => Err(Error::ModelNonUniqueTableName),
     }
@@ -85,7 +78,7 @@ pub(crate) fn model_to_table_name(model: Model) -> Result<&'static str> {
 pub(crate) fn kind_to_resource(kind: &str) -> Result<&'static str> {
     match kind {
         "person" => Ok("people"),
-        "point" => Ok("points"),
+        "event" => Ok("events"),
         "article" => Ok("articles"),
         "book" => Ok("books"),
         "idea" => Ok("ideas"),

@@ -21,6 +21,7 @@ use crate::interop::{IdParam, Key};
 use crate::persist::edges as edges_db;
 use crate::persist::notes as notes_db;
 use crate::persist::people as db;
+use crate::persist::points as points_db;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
@@ -65,7 +66,7 @@ pub async fn get(
     let person_id = params.id;
 
     let mut person = db::get(&db_pool, user_id, person_id).await?;
-    augment(&db_pool, &mut person, person_id).await?;
+    augment(&db_pool, &mut person, person_id, user_id).await?;
 
     Ok(HttpResponse::Ok().json(person))
 }
@@ -83,7 +84,7 @@ pub async fn edit(
     let person = person.into_inner();
 
     let mut person = db::edit(&db_pool, user_id, &person, person_id).await?;
-    augment(&db_pool, &mut person, person_id).await?;
+    augment(&db_pool, &mut person, person_id, user_id).await?;
 
     Ok(HttpResponse::Ok().json(person))
 }
@@ -102,7 +103,15 @@ pub async fn delete(
     Ok(HttpResponse::Ok().json(true))
 }
 
-async fn augment(db_pool: &Data<Pool>, person: &mut interop::Person, person_id: Key) -> Result<()> {
+async fn augment(
+    db_pool: &Data<Pool>,
+    person: &mut interop::Person,
+    person_id: Key,
+    user_id: Key,
+) -> Result<()> {
+    let points = points_db::all(&db_pool, user_id, person_id).await?;
+    person.points = Some(points);
+
     let notes = notes_db::all_from_deck(&db_pool, person_id).await?;
     person.notes = Some(notes);
 

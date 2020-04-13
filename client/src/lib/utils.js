@@ -2,6 +2,14 @@ import { useParams } from 'react-router-dom';
 
 import Net from './Net';
 
+export function findPoint(points, title) {
+  let p = points.find(p => p.title === title);
+  if (p === undefined) {
+    p = {};
+  }
+  return p;
+}
+
 export const ensureAC = (state, dispatch) => {
   if (!state.acLoaded) {
     Net.get('/api/autocomplete/tags').then(tags => {

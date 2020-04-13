@@ -15,20 +15,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod search;
 pub mod articles;
 pub mod autocomplete;
 pub mod books;
 pub mod dashboard;
-pub mod dates;
 pub mod decks;
 pub mod edges;
+pub mod events;
 pub mod ideas;
-pub mod locations;
 pub mod notes;
 pub mod people;
 mod pg;
 pub mod points;
+pub mod search;
 pub mod tags;
-pub mod timespans;
 pub mod users;

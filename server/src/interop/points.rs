@@ -15,31 +15,118 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::dates::{Date, ProtoDate};
-use crate::interop::edges::{LinkBack, MarginConnection};
-use crate::interop::locations::{Location, ProtoLocation};
-use crate::interop::notes::Note;
 use crate::interop::Key;
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[derive(PartialEq, Debug, serde::Deserialize, serde::Serialize)]
 pub struct Point {
     pub id: Key,
-    pub title: String,
-    pub date: Option<Date>,
-    pub location: Option<Location>,
 
-    pub notes: Option<Vec<Note>>,
+    pub title: Option<String>,
 
-    pub tags_in_notes: Option<Vec<MarginConnection>>,
-    pub decks_in_notes: Option<Vec<MarginConnection>>,
+    pub location_textual: Option<String>,
+    pub longitude: Option<f32>,
+    pub latitude: Option<f32>,
+    pub location_fuzz: f32,
 
-    pub linkbacks_to_decks: Option<Vec<LinkBack>>,
-    pub linkbacks_to_tags: Option<Vec<LinkBack>>,
+    pub date_textual: Option<String>,
+    pub exact_date: Option<chrono::NaiveDate>,
+    pub lower_date: Option<chrono::NaiveDate>,
+    pub upper_date: Option<chrono::NaiveDate>,
+    pub date_fuzz: f32,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct ProtoPoint {
-    pub title: String,
-    pub date: Option<ProtoDate>,
-    pub location: Option<ProtoLocation>,
+    pub title: Option<String>,
+
+    pub location_textual: Option<String>,
+    pub longitude: Option<f32>,
+    pub latitude: Option<f32>,
+    pub location_fuzz: f32,
+
+    pub date_textual: Option<String>,
+    pub exact_date: Option<chrono::NaiveDate>,
+    pub lower_date: Option<chrono::NaiveDate>,
+    pub upper_date: Option<chrono::NaiveDate>,
+    pub date_fuzz: f32,
 }
+
+fn eq_naive_dates(a: Option<chrono::NaiveDate>, b: Option<chrono::NaiveDate>) -> bool {
+    if let Some(ad) = a {
+        if let Some(bd) = b {
+            ad == bd
+        } else {
+            false
+        }
+    } else {
+        false
+    }
+}
+
+// probably a better way of doing this
+//
+fn eq_f32(a: Option<f32>, b: Option<f32>) -> bool {
+    if let Some(ad) = a {
+        if let Some(bd) = b {
+            ad == bd
+        } else {
+            false
+        }
+    } else {
+        false
+    }
+}
+
+impl PartialEq<Point> for ProtoPoint {
+    fn eq(&self, other: &Point) -> bool {
+        self.title == other.title
+            && self.location_textual.as_deref() == other.location_textual.as_deref()
+            && eq_f32(self.longitude, other.longitude)
+            && eq_f32(self.latitude, other.latitude)
+            && self.location_fuzz == other.location_fuzz
+            && self.date_textual.as_deref() == other.date_textual.as_deref()
+            && eq_naive_dates(self.exact_date, other.exact_date)
+            && eq_naive_dates(self.lower_date, other.lower_date)
+            && eq_naive_dates(self.upper_date, other.upper_date)
+            && self.date_fuzz == other.date_fuzz
+    }
+}
+/*
+pub(crate) fn try_build(
+    id: Option<Key>,
+
+    title: Option<String>,
+
+    location_textual: Option<String>,
+    longitude: Option<f32>,
+    latitude: Option<f32>,
+    location_fuzz: Option<f32>,
+
+    date_textual: Option<String>,
+    exact_date: Option<chrono::NaiveDate>,
+    lower_date: Option<chrono::NaiveDate>,
+    upper_date: Option<chrono::NaiveDate>,
+    date_fuzz: Option<f32>,
+) -> Option<Point> {
+    if let Some(id) = id {
+        Some(Point {
+            id,
+
+            title,
+
+            location_textual,
+            longitude,
+            latitude,
+            location_fuzz: location_fuzz.unwrap_or(0.0),
+
+            date_textual,
+            exact_date,
+            lower_date,
+            upper_date,
+            date_fuzz: date_fuzz.unwrap_or(1.0),
+        })
+    } else {
+        None
+    }
+}
+*/

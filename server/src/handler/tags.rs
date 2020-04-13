@@ -20,8 +20,8 @@ use crate::interop::tags as interop;
 use crate::interop::{IdParam, Key};
 use crate::persist::edges as edges_db;
 use crate::persist::notes as notes_db;
-use crate::persist::tags as db;
 use crate::persist::search as search_db;
+use crate::persist::tags as db;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
@@ -103,7 +103,12 @@ pub async fn delete(
     Ok(HttpResponse::Ok().json(true))
 }
 
-async fn augment(db_pool: &Data<Pool>, user_id: Key, tag: &mut interop::Tag, tag_id: Key) -> Result<()> {
+async fn augment(
+    db_pool: &Data<Pool>,
+    user_id: Key,
+    tag: &mut interop::Tag,
+    tag_id: Key,
+) -> Result<()> {
     let notes = notes_db::all_from_tag(&db_pool, tag_id).await?;
     tag.notes = Some(notes);
 

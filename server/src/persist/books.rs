@@ -95,5 +95,5 @@ pub(crate) async fn edit(
 }
 
 pub(crate) async fn delete(db_pool: &Pool, user_id: Key, book_id: Key) -> Result<()> {
-    decks::delete(db_pool, book_id, user_id).await
+    decks::delete(db_pool, user_id, book_id).await
 }

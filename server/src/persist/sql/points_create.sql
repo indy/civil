@@ -1,3 +1,3 @@
-INSERT INTO decks(kind, user_id, name, date_id, location_id)
-VALUES ('point'::deck_kind, $1, $2, $3, $4)
+INSERT INTO points(title, location_textual, longitude, latitude, location_fuzz, date_textual, exact_date, lower_date, upper_date, date_fuzz)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 RETURNING $table_fields
