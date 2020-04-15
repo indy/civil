@@ -109,20 +109,14 @@ async fn augment(
     tag: &mut interop::Tag,
     tag_id: Key,
 ) -> Result<()> {
-    let notes = notes_db::all_from_tag(&db_pool, tag_id).await?;
+    let notes = notes_db::all_from_deck(&db_pool, tag_id).await?;
     tag.notes = Some(notes);
 
-    let tags_in_notes = edges_db::from_tag_id_via_notes_to_tags(&db_pool, tag_id).await?;
-    tag.tags_in_notes = Some(tags_in_notes);
-
-    let decks_in_notes = edges_db::from_tag_id_via_notes_to_decks(&db_pool, tag_id).await?;
+    let decks_in_notes = edges_db::from_deck_id_via_notes_to_decks(&db_pool, tag_id).await?;
     tag.decks_in_notes = Some(decks_in_notes);
 
-    let linkbacks_to_decks = edges_db::from_decks_via_notes_to_tag_id(&db_pool, tag_id).await?;
+    let linkbacks_to_decks = edges_db::from_decks_via_notes_to_deck_id(&db_pool, tag_id).await?;
     tag.linkbacks_to_decks = Some(linkbacks_to_decks);
-
-    let linkbacks_to_tags = edges_db::from_tags_via_notes_to_tag_id(&db_pool, tag_id).await?;
-    tag.linkbacks_to_tags = Some(linkbacks_to_tags);
 
     // todo: replace hyphens with spaces
     // todo: dedupe against any of the above linkbacks

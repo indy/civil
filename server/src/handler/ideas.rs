@@ -106,17 +106,11 @@ async fn augment(db_pool: &Data<Pool>, idea: &mut interop::Idea, idea_id: Key) -
     let notes = notes_db::all_from_deck(&db_pool, idea_id).await?;
     idea.notes = Some(notes);
 
-    let tags_in_notes = edges_db::from_deck_id_via_notes_to_tags(&db_pool, idea_id).await?;
-    idea.tags_in_notes = Some(tags_in_notes);
-
     let decks_in_notes = edges_db::from_deck_id_via_notes_to_decks(&db_pool, idea_id).await?;
     idea.decks_in_notes = Some(decks_in_notes);
 
     let linkbacks_to_decks = edges_db::from_decks_via_notes_to_deck_id(&db_pool, idea_id).await?;
     idea.linkbacks_to_decks = Some(linkbacks_to_decks);
-
-    let linkbacks_to_tags = edges_db::from_tags_via_notes_to_deck_id(&db_pool, idea_id).await?;
-    idea.linkbacks_to_tags = Some(linkbacks_to_tags);
 
     Ok(())
 }

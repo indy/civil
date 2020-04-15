@@ -51,11 +51,8 @@ impl From<EventDerived> for interop::Event {
             points: None,
             notes: None,
 
-            tags_in_notes: None,
             decks_in_notes: None,
-
             linkbacks_to_decks: None,
-            linkbacks_to_tags: None,
         }
     }
 }
@@ -73,15 +70,9 @@ pub(crate) async fn create(
         include_str!("sql/events_create.sql"),
         &[&user_id, &event.title],
     )
-        .await?;
+    .await?;
 
-    let point = points::create(&tx, &event.point).await?;
-    pg::zero(
-        &tx,
-        include_str!("sql/decks_points_create.sql"),
-        &[&db_event.id, &point.id],
-    )
-        .await?;
+    let _point = points::create(&tx, &event.point, db_event.id).await?;
 
     tx.commit().await?;
 
@@ -92,12 +83,8 @@ pub(crate) async fn create(
         points: None,
 
         notes: None,
-
-        tags_in_notes: None,
         decks_in_notes: None,
-
         linkbacks_to_decks: None,
-        linkbacks_to_tags: None,
     })
 }
 

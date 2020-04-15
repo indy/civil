@@ -116,15 +116,10 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         .service(
             scope("/edges")
                 .route("/notes_decks", post().to(edges::create_from_note_to_decks))
-                .route("/notes_tags", post().to(edges::create_from_note_to_tags))
-                .route("/{id}", delete().to(edges::delete_edge)),
+                .route("/notes_tags", post().to(edges::create_from_note_to_tags)),
         )
         // autocomplete
-        .service(
-            scope("/autocomplete")
-                .route("/tags", get().to(autocomplete::get_tags))
-                .route("/decks", get().to(autocomplete::get_decks)),
-        )
+        .service(scope("/autocomplete").route("/decks", get().to(autocomplete::get_decks)))
 }
 
 pub fn bad_request<B>(res: dev::ServiceResponse<B>) -> actix_web::Result<ErrorHandlerResponse<B>> {

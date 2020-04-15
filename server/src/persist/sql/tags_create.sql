@@ -1,3 +1,3 @@
-INSERT INTO tags(user_id, name)
-VALUES ($1, $2)
+INSERT INTO decks(user_id, name, kind)
+VALUES ($1, $2, 'tag'::deck_kind)
 RETURNING $table_fields

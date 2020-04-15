@@ -33,6 +33,7 @@ enum DeckKind {
     Person,
     Event,
     Idea,
+    Tag,
 }
 
 impl DeckKind {
@@ -43,12 +44,13 @@ impl DeckKind {
             DeckKind::Person => "person",
             DeckKind::Event => "event",
             DeckKind::Idea => "idea",
+            DeckKind::Tag => "tag",
         }
     }
 }
 
 pub(crate) async fn get(db_pool: &Pool, user_id: Key) -> Result<interop::Dashboard> {
-    let tags = get_tags(db_pool, user_id, 10).await?;
+    let tags = get_decks(db_pool, user_id, DeckKind::Tag, 10).await?;
     let articles = get_decks(db_pool, user_id, DeckKind::Article, 10).await?;
     let books = get_decks(db_pool, user_id, DeckKind::Book, 10).await?;
     let people = get_decks(db_pool, user_id, DeckKind::Person, 10).await?;
@@ -63,22 +65,6 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key) -> Result<interop::Dashboa
         events,
         ideas,
     })
-}
-
-async fn get_tags(
-    db_pool: &Pool,
-    user_id: Key,
-    limit: usize,
-) -> Result<Vec<edges_interop::LinkBack>> {
-    let stmt = include_str!("sql/dashboard_tags.sql");
-    let stmt = stmt.replace("$limit", &limit.to_string());
-
-    pg::many_from::<edges_persist::LinkBackToTag, edges_interop::LinkBack>(
-        db_pool,
-        &stmt,
-        &[&user_id],
-    )
-    .await
 }
 
 async fn get_decks(

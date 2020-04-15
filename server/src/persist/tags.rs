@@ -16,12 +16,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::pg;
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::interop::tags as interop;
 use crate::interop::Key;
-use crate::persist::edges;
-use crate::persist::notes;
-use deadpool_postgres::{Client, Pool, Transaction};
+use crate::persist::decks;
+use deadpool_postgres::{Pool, Transaction};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
@@ -29,7 +28,7 @@ use tokio_pg_mapper_derive::PostgresMapper;
 use tracing::{error, info};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "tags")]
+#[pg_mapper(table = "decks")]
 pub struct Tag {
     pub id: Key,
     pub name: String,
@@ -43,12 +42,8 @@ impl From<Tag> for interop::Tag {
 
             notes: None,
 
-            tags_in_notes: None,
             decks_in_notes: None,
-
             linkbacks_to_decks: None,
-            linkbacks_to_ideas: None,
-            linkbacks_to_tags: None,
 
             search_results: None,
         }
@@ -69,7 +64,7 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key, tag_id: Key) -> Result<int
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "tags")]
+#[pg_mapper(table = "decks")]
 pub struct TagCount {
     pub count: i32,
 }
@@ -121,18 +116,7 @@ pub(crate) async fn edit(
 }
 
 pub(crate) async fn delete(db_pool: &Pool, user_id: Key, tag_id: Key) -> Result<()> {
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
-
-    notes::delete_all_notes_connected_with_tag(&tx, tag_id, user_id).await?;
-    edges::delete_all_edges_connected_with_tag(&tx, tag_id).await?;
-
-    let stmt = include_str!("sql/tags_delete.sql");
-    pg::zero(&tx, &stmt, &[&tag_id, &user_id]).await?;
-
-    tx.commit().await?;
-
-    Ok(())
+    decks::delete(db_pool, user_id, tag_id).await
 }
 
 pub(crate) async fn create_tx(

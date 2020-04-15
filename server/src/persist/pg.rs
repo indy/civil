@@ -16,7 +16,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::{Error, Result};
-use crate::interop::{model_to_table_name, Model};
 use deadpool_postgres::{Client, Pool, Transaction};
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tracing::error;
@@ -224,11 +223,4 @@ where
         .collect::<Vec<T>>();
 
     Ok(vec)
-}
-
-pub fn delete_statement(model: Model) -> Result<String> {
-    let stmt = include_str!("sql/delete.sql");
-    let stmt = stmt.replace("$table_name", model_to_table_name(model)?);
-
-    Ok(stmt)
 }

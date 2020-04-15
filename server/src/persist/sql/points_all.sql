@@ -10,9 +10,7 @@ select p.id,
        p.upper_date,
        p.date_fuzz
 from   decks d,
-       points p,
-       decks_points dp
+       points p
 where  d.user_id = $1
        and d.id = $2
-       and dp.deck_id = d.id
-       and dp.point_id = p.id
+       and p.deck_id = d.id

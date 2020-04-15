@@ -10,17 +10,24 @@ export function findPoint(points, title) {
   return p;
 }
 
-export const ensureAC = (state, dispatch) => {
+export function separateIntoTagsAndDecks(r) {
+  let tags = r.filter(d => d.resource === 'tags');
+  let decks = r.filter(d => d.resource !== 'tags');
+  return [tags, decks];
+}
+
+export function ensureAC(state, dispatch) {
   if (!state.acLoaded) {
-    Net.get('/api/autocomplete/tags').then(tags => {
-      Net.get('/api/autocomplete/decks').then(decks => {
-        dispatch({
-          type: 'loadAutocomplete',
-          tags,
-          decks
-        });
+
+    Net.get('/api/autocomplete/decks').then(ac => {
+      let [tags, decks] = separateIntoTagsAndDecks(ac);
+      dispatch({
+        type: 'loadAutocomplete',
+        tags,
+        decks
       });
     });
+
   }
 };
 

@@ -3,10 +3,10 @@ SELECT COUNT(*) AS mention_count,
        d.name AS name,
        d.kind::TEXT as kind
 FROM decks d,
-     decks_notes dn,
+     notes n,
      notes_decks nd
-WHERE dn.deck_id = d.id
-      AND dn.note_id = nd.note_id
+WHERE n.deck_id = d.id
+      AND nd.note_id = n.id
       AND nd.deck_id = $1
 GROUP BY d.id
 ORDER BY mention_count DESC, d.name

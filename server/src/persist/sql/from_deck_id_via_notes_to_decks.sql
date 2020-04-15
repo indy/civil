@@ -2,11 +2,9 @@ SELECT n.id as note_id,
        d.id as id,
        d.name as name,
        d.kind::TEXT as kind
-FROM   decks_notes e1,
-       notes_decks e2,
-       notes n,
+FROM   notes n,
+       notes_decks nd,
        decks d
-WHERE  e1.deck_id = $1
-       AND e1.note_id = n.id
-       AND e2.note_id = n.id
-       AND e2.deck_id = d.id;
+WHERE  n.deck_id = $1
+       AND nd.note_id = n.id
+       AND nd.deck_id = d.id;

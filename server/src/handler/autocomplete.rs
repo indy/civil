@@ -25,18 +25,6 @@ use deadpool_postgres::Pool;
 #[allow(unused_imports)]
 use tracing::info;
 
-pub async fn get_tags(
-    db_pool: Data<Pool>,
-    session: actix_session::Session,
-) -> Result<HttpResponse> {
-    info!("get_tags");
-
-    let user_id = session::user_id(&session)?;
-    let autocomplete = db::get_tags(&db_pool, user_id).await?;
-
-    Ok(HttpResponse::Ok().json(autocomplete))
-}
-
 pub async fn get_decks(
     db_pool: Data<Pool>,
     session: actix_session::Session,

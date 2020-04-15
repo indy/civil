@@ -1,3 +1,3 @@
 SELECT id, name
-FROM tags
-WHERE user_id = $1 and name = $2
+FROM decks
+WHERE user_id = $1 and name = $2 and kind = 'tag'

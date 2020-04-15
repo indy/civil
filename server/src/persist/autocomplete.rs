@@ -31,27 +31,11 @@ use tracing::info;
 struct AutocompleteDeck {
     id: Key,
     name: String,
-}
-
-impl From<AutocompleteDeck> for interop::AutocompleteDeck {
-    fn from(p: AutocompleteDeck) -> interop::AutocompleteDeck {
-        interop::AutocompleteDeck {
-            id: p.id,
-            name: p.name,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
-struct AutocompleteDeck2 {
-    id: Key,
-    name: String,
     kind: String,
 }
 
-impl From<AutocompleteDeck2> for interop::Autocomplete {
-    fn from(p: AutocompleteDeck2) -> interop::Autocomplete {
+impl From<AutocompleteDeck> for interop::Autocomplete {
+    fn from(p: AutocompleteDeck) -> interop::Autocomplete {
         let resource = kind_to_resource(p.kind.as_ref()).unwrap();
         interop::Autocomplete {
             id: p.id,
@@ -62,30 +46,7 @@ impl From<AutocompleteDeck2> for interop::Autocomplete {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "tags")]
-struct AutocompleteTag {
-    id: Key,
-    name: String,
-}
-
-impl From<AutocompleteTag> for interop::Autocomplete {
-    fn from(p: AutocompleteTag) -> interop::Autocomplete {
-        interop::Autocomplete {
-            id: p.id,
-            value: String::from(&p.name),
-            label: p.name,
-            resource: String::from("tags"),
-        }
-    }
-}
-
-pub(crate) async fn get_tags(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Autocomplete>> {
-    let stmt = include_str!("sql/autocomplete_tags.sql");
-    pg::many_from::<AutocompleteTag, interop::Autocomplete>(db_pool, &stmt, &[&user_id]).await
-}
-
 pub(crate) async fn get_decks(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Autocomplete>> {
     let stmt = include_str!("sql/autocomplete_decks.sql");
-    pg::many_from::<AutocompleteDeck2, interop::Autocomplete>(db_pool, &stmt, &[&user_id]).await
+    pg::many_from::<AutocompleteDeck, interop::Autocomplete>(db_pool, &stmt, &[&user_id]).await
 }

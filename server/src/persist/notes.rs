@@ -90,24 +90,36 @@ pub(crate) async fn create_notes(
     let tx = client.transaction().await?;
 
     let mut notes: Vec<interop::Note> = Vec::new();
+    if let Some(deck_id) = note.deck_id {
+        let res = create_common(
+            &tx,
+            user_id,
+            deck_id,
+            note,
+            NoteType::Note,
+            note.title.as_ref(),
+            &note.content[0],
+            note.separator,
+        )
+        .await?;
 
-    let res = create_common(
-        &tx,
-        user_id,
-        note,
-        NoteType::Note,
-        note.title.as_ref(),
-        &note.content[0],
-        note.separator,
-    )
-    .await?;
-
-    notes.push(res);
-
-    let iter = note.content.iter().skip(1);
-    for content in iter {
-        let res = create_common(&tx, user_id, note, NoteType::Note, None, content, false).await?;
         notes.push(res);
+
+        let iter = note.content.iter().skip(1);
+        for content in iter {
+            let res = create_common(
+                &tx,
+                user_id,
+                deck_id,
+                note,
+                NoteType::Note,
+                None,
+                content,
+                false,
+            )
+            .await?;
+            notes.push(res);
+        }
     }
 
     tx.commit().await?;
@@ -176,6 +188,7 @@ pub(crate) async fn delete_note(tx: &Transaction<'_>, user_id: Key, note_id: Key
 pub(crate) async fn create_common(
     tx: &Transaction<'_>,
     user_id: Key,
+    deck_id: Key,
     note: &interop::CreateNote,
     note_type: NoteType,
     title: Option<&String>,
@@ -187,6 +200,7 @@ pub(crate) async fn create_common(
         include_str!("sql/notes_create.sql"),
         &[
             &user_id,
+            &deck_id,
             &note_type,
             &title,
             &note.source,
@@ -195,14 +209,6 @@ pub(crate) async fn create_common(
         ],
     )
     .await?;
-
-    if let Some(deck_id) = note.deck_id {
-        edges::create_from_deck_to_note(tx, deck_id, db_note.id).await?;
-    } else if let Some(tag_id) = note.tag_id {
-        edges::create_from_tag_to_note(tx, tag_id, db_note.id).await?;
-    } else {
-        return Err(Error::Other);
-    };
 
     let note = interop::Note::from(db_note);
     Ok(note)
@@ -217,15 +223,6 @@ pub(crate) async fn all_from_deck(db_pool: &Pool, deck_id: Key) -> Result<Vec<in
     .await
 }
 
-pub(crate) async fn all_from_tag(db_pool: &Pool, tag_id: Key) -> Result<Vec<interop::Note>> {
-    pg::many_from::<Note, interop::Note>(
-        db_pool,
-        include_str!("sql/notes_all_from_tag.sql"),
-        &[&tag_id],
-    )
-    .await
-}
-
 pub(crate) async fn delete_all_notes_connected_with_deck(
     tx: &Transaction<'_>,
     user_id: Key,
@@ -235,25 +232,6 @@ pub(crate) async fn delete_all_notes_connected_with_deck(
         tx,
         include_str!("sql/notes_all_ids_for_deck.sql"),
         &[&deck_id],
-    )
-    .await?;
-
-    for note_id in note_ids {
-        delete_note(tx, user_id, note_id.id).await?;
-    }
-
-    Ok(())
-}
-
-pub(crate) async fn delete_all_notes_connected_with_tag(
-    tx: &Transaction<'_>,
-    user_id: Key,
-    tag_id: Key,
-) -> Result<()> {
-    let note_ids = pg::many::<NoteId>(
-        tx,
-        include_str!("sql/notes_all_ids_for_tag.sql"),
-        &[&tag_id],
     )
     .await?;
 

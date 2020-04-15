@@ -44,11 +44,8 @@ impl From<Book> for interop::Book {
 
             notes: None,
 
-            tags_in_notes: None,
             decks_in_notes: None,
-
             linkbacks_to_decks: None,
-            linkbacks_to_tags: None,
         }
     }
 }

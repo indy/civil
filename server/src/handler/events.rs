@@ -117,17 +117,11 @@ async fn augment(
     let notes = notes_db::all_from_deck(&db_pool, event_id).await?;
     event.notes = Some(notes);
 
-    let tags_in_notes = edges_db::from_deck_id_via_notes_to_tags(&db_pool, event_id).await?;
-    event.tags_in_notes = Some(tags_in_notes);
-
     let decks_in_notes = edges_db::from_deck_id_via_notes_to_decks(&db_pool, event_id).await?;
     event.decks_in_notes = Some(decks_in_notes);
 
     let linkbacks_to_decks = edges_db::from_decks_via_notes_to_deck_id(&db_pool, event_id).await?;
     event.linkbacks_to_decks = Some(linkbacks_to_decks);
-
-    let linkbacks_to_tags = edges_db::from_tags_via_notes_to_deck_id(&db_pool, event_id).await?;
-    event.linkbacks_to_tags = Some(linkbacks_to_tags);
 
     Ok(())
 }

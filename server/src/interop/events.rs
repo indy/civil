@@ -29,11 +29,8 @@ pub struct Event {
 
     pub notes: Option<Vec<Note>>,
 
-    pub tags_in_notes: Option<Vec<MarginConnection>>,
     pub decks_in_notes: Option<Vec<MarginConnection>>,
-
     pub linkbacks_to_decks: Option<Vec<LinkBack>>,
-    pub linkbacks_to_tags: Option<Vec<LinkBack>>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

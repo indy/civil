@@ -1,4 +1,4 @@
 SELECT id, name
-FROM tags
-WHERE user_id = $1
+FROM decks
+WHERE user_id = $1 and kind = 'tag'
 ORDER BY name

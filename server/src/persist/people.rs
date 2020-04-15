@@ -61,11 +61,8 @@ impl From<PersonDerived> for interop::Person {
             points: None,
             notes: None,
 
-            tags_in_notes: None,
             decks_in_notes: None,
-
             linkbacks_to_decks: None,
-            linkbacks_to_tags: None,
         }
     }
 }
@@ -88,23 +85,11 @@ pub(crate) async fn create(
     .await?;
 
     if let Some(point) = &person.birth_point {
-        let birth_point = points::create(&tx, &point).await?;
-        pg::zero(
-            &tx,
-            include_str!("sql/decks_points_create.sql"),
-            &[&db_person.id, &birth_point.id],
-        )
-            .await?;
+        let _birth_point = points::create(&tx, &point, db_person.id).await?;
     }
 
     if let Some(point) = &person.death_point {
-        let death_point = points::create(&tx, &point).await?;
-        pg::zero(
-            &tx,
-            include_str!("sql/decks_points_create.sql"),
-            &[&db_person.id, &death_point.id],
-        )
-        .await?;
+        let _death_point = points::create(&tx, &point, db_person.id).await?;
     };
 
     tx.commit().await?;
@@ -117,12 +102,8 @@ pub(crate) async fn create(
         points: None,
 
         notes: None,
-
-        tags_in_notes: None,
         decks_in_notes: None,
-
         linkbacks_to_decks: None,
-        linkbacks_to_tags: None,
     })
 }
 

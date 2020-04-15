@@ -1,5 +1,5 @@
-SELECT tg.id AS id, tg.name AS name
-FROM notes_tags nt,
-     tags tg
-WHERE nt.note_id = $1
-      AND tg.id = nt.tag_id
+select d.id as id, d.name as name
+from decks d, notes_decks nd
+where nd.note_id = $1
+      and nd.deck_id = d.id
+      and d.kind = 'tag'

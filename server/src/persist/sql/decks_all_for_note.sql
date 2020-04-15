@@ -3,3 +3,4 @@ FROM notes_decks nd,
      decks d
 WHERE nd.note_id = $1
       AND d.id = nd.deck_id
+      AND d.kind <> 'tag'

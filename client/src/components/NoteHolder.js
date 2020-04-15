@@ -10,7 +10,7 @@ import NoteCompiler from '../lib/NoteCompiler';
 
 import SectionLinkBacks from './SectionLinkBacks';
 import { useStateValue } from '../lib/state';
-import { ensureAC } from '../lib/utils';
+import { ensureAC, separateIntoTagsAndDecks } from '../lib/utils';
 
 export default function NoteHolder({holder, setMsg, title, resource, isLoaded, updateForm, children}) {
   // UNCOMMENT to enable deleting
@@ -261,8 +261,10 @@ function addNote(form, extra) {
 }
 
 function applyTagsAndDecksToNotes(obj) {
-  const tagsInNotes = hashByNoteIds(obj.tags_in_notes);
-  const decksInNotes = hashByNoteIds(obj.decks_in_notes);
+  let [tags, decks] = separateIntoTagsAndDecks(obj.decks_in_notes);
+
+  const tagsInNotes = hashByNoteIds(tags);
+  const decksInNotes = hashByNoteIds(decks);
 
   for(let i = 0;i<obj.notes.length;i++) {
     let n = obj.notes[i];
@@ -274,6 +276,7 @@ function applyTagsAndDecksToNotes(obj) {
 }
 
 function hashByNoteIds(s) {
+  s = s || [];
   return s.reduce(function(a, b) {
     const note_id = b.note_id;
     if (a[note_id]) {

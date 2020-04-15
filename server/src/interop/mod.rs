@@ -48,7 +48,6 @@ pub enum Model {
     Idea,
     Event,
     Point,
-    Edge,
 }
 
 impl std::fmt::Display for Model {
@@ -61,17 +60,7 @@ impl std::fmt::Display for Model {
             Model::Idea => write!(f, "Model::Idea"),
             Model::Event => write!(f, "Model::Event"),
             Model::Point => write!(f, "Mode::Point"),
-            Model::Edge => write!(f, "Model::Edge"),
         }
-    }
-}
-
-pub(crate) fn model_to_table_name(model: Model) -> Result<&'static str> {
-    match model {
-        Model::Note => Ok("notes"),
-        Model::Point => Ok("points"),
-        Model::Edge => Ok("edges"),
-        _ => Err(Error::ModelNonUniqueTableName),
     }
 }
 
@@ -82,6 +71,7 @@ pub(crate) fn kind_to_resource(kind: &str) -> Result<&'static str> {
         "article" => Ok("articles"),
         "book" => Ok("books"),
         "idea" => Ok("ideas"),
+        "tag" => Ok("tags"),
         _ => Err(Error::InvalidKind),
     }
 }

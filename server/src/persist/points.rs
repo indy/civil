@@ -74,11 +74,13 @@ pub(crate) async fn all(db_pool: &Pool, user_id: Key, deck_id: Key) -> Result<Ve
 pub(crate) async fn create(
     tx: &Transaction<'_>,
     point: &interop::ProtoPoint,
+    deck_id: Key,
 ) -> Result<interop::Point> {
     let db_point = pg::one::<Point>(
         tx,
         include_str!("sql/points_create.sql"),
         &[
+            &deck_id,
             &point.title,
             &point.location_textual,
             &point.longitude,
@@ -134,12 +136,6 @@ pub(crate) async fn delete_all_points_connected_with_deck(
     pg::zero(
         tx,
         &include_str!("sql/points_delete_all_connected_with_deck.sql"),
-        &[&deck_id],
-    )
-    .await?;
-    pg::zero(
-        tx,
-        &include_str!("sql/points_delete_all_decks_points_connected_with_deck.sql"),
         &[&deck_id],
     )
     .await?;

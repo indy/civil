@@ -5,8 +5,6 @@ import { capitalise } from '../lib/utils';
 export default function SectionLinkBacks(props) {
   return (
     <div>
-      <SectionLinkBack linkbacks={ props.linkingTo.linkbacks_to_ideas }/>
-      <SectionLinkBack linkbacks={ props.linkingTo.linkbacks_to_tags }/>
       <SectionLinkBack linkbacks={ props.linkingTo.linkbacks_to_decks }/>
       <SectionSearchResultsLinkBack linkbacks={ props.linkingTo.search_results }/>
     </div>

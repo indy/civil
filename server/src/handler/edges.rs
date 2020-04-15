@@ -17,10 +17,9 @@
 
 use crate::error::Result;
 use crate::interop::edges as interop;
-use crate::interop::IdParam;
 use crate::persist::edges as db;
 use crate::session;
-use actix_web::web::{Data, Json, Path};
+use actix_web::web::{Data, Json};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
 #[allow(unused_imports)]
@@ -54,16 +53,4 @@ pub async fn create_from_note_to_decks(
     let all_decks_for_note = db::create_from_note_to_decks(&db_pool, &edge).await?;
 
     Ok(HttpResponse::Ok().json(all_decks_for_note))
-}
-
-pub async fn delete_edge(
-    db_pool: Data<Pool>,
-    params: Path<IdParam>,
-    session: actix_session::Session,
-) -> Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
-
-    db::delete(&db_pool, params.id, user_id).await?;
-
-    Ok(HttpResponse::Ok().json(true))
 }
