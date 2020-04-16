@@ -17,7 +17,7 @@
 
 use crate::interop::edges::{LinkBack, MarginConnection};
 use crate::interop::notes::Note;
-use crate::interop::points::{Point, ProtoPoint};
+use crate::interop::points::Point;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -38,7 +38,4 @@ pub struct Person {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct ProtoPerson {
     pub name: String,
-
-    pub birth_point: Option<ProtoPoint>,
-    pub death_point: Option<ProtoPoint>,
 }

@@ -17,13 +17,15 @@
 
 use crate::interop::edges::{LinkBack, MarginConnection};
 use crate::interop::notes::Note;
-use crate::interop::points::{Point, ProtoPoint};
+use crate::interop::points::Point;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Event {
     pub id: Key,
     pub title: String,
+
+    pub sort_date: Option<chrono::NaiveDate>,
 
     pub points: Option<Vec<Point>>,
 
@@ -36,5 +38,4 @@ pub struct Event {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct ProtoEvent {
     pub title: String,
-    pub point: ProtoPoint,
 }

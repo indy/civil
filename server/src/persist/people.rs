@@ -20,7 +20,6 @@ use crate::error::{Error, Result};
 use crate::interop::people as interop;
 use crate::interop::Key;
 use crate::persist::decks;
-use crate::persist::points;
 
 use deadpool_postgres::{Client, Pool};
 use serde::{Deserialize, Serialize};
@@ -40,16 +39,6 @@ struct PersonDerived {
     birth_date: Option<chrono::NaiveDate>,
 }
 
-// Person is a direct mapping from the people schema in the db
-// a interop::Person can be created from a db::PersonDerived + extra date and location information
-//
-#[derive(Debug, Deserialize, PostgresMapper, Serialize)]
-#[pg_mapper(table = "decks")]
-struct Person {
-    id: Key,
-    name: String,
-}
-
 impl From<PersonDerived> for interop::Person {
     fn from(e: PersonDerived) -> interop::Person {
         interop::Person {
@@ -67,6 +56,33 @@ impl From<PersonDerived> for interop::Person {
     }
 }
 
+// Person is a direct mapping from the people schema in the db
+// a interop::Person can be created from a db::PersonDerived + extra date and location information
+//
+#[derive(Debug, Deserialize, PostgresMapper, Serialize)]
+#[pg_mapper(table = "decks")]
+struct Person {
+    id: Key,
+    name: String,
+}
+
+impl From<Person> for interop::Person {
+    fn from(e: Person) -> interop::Person {
+        interop::Person {
+            id: e.id,
+            name: e.name,
+
+            sort_date: None,
+
+            points: None,
+            notes: None,
+
+            decks_in_notes: None,
+            linkbacks_to_decks: None,
+        }
+    }
+}
+
 pub(crate) async fn create(
     db_pool: &Pool,
     user_id: Key,
@@ -74,25 +90,13 @@ pub(crate) async fn create(
 ) -> Result<interop::Person> {
     info!("db::create_person");
     // info!("{:?}", person);
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
 
-    let db_person = pg::one::<Person>(
-        &tx,
+    let db_person = pg::one_non_transactional::<Person>(
+        &db_pool,
         include_str!("sql/people_create.sql"),
         &[&user_id, &person.name],
     )
     .await?;
-
-    if let Some(point) = &person.birth_point {
-        let _birth_point = points::create(&tx, &point, db_person.id).await?;
-    }
-
-    if let Some(point) = &person.death_point {
-        let _death_point = points::create(&tx, &point, db_person.id).await?;
-    };
-
-    tx.commit().await?;
 
     Ok(interop::Person {
         id: db_person.id,
@@ -117,7 +121,7 @@ pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Per
 }
 
 pub(crate) async fn get(db_pool: &Pool, user_id: Key, person_id: Key) -> Result<interop::Person> {
-    pg::one_from::<PersonDerived, interop::Person>(
+    pg::one_from::<Person, interop::Person>(
         db_pool,
         include_str!("sql/people_get.sql"),
         &[&user_id, &person_id],

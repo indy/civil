@@ -1,19 +1,16 @@
 import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
-import { removeEmptyObjects, findPoint } from '../lib/utils';
+import { removeEmptyObjects } from '../lib/JsUtils';
 import Net from '../lib/Net';
 import { useStateValue } from '../lib/state';
-import CivilPoint from './CivilPoint';
 
 export default function PersonForm({ person, setMsg }) {
   person = person || {};
   const [state, dispatch] = useStateValue();
 
   const [localState, setLocalState] = useState({
-    name: person.name || '',
-    birth_point: person.points ? findPoint(person.points, 'Birth') : {},
-    death_point: person.points ? findPoint(person.points, 'Death') : {}
+    name: person.name || ''
   });
 
   const [redirectUrl, setRedirectUrl] = useState(false);
@@ -42,29 +39,8 @@ export default function PersonForm({ person, setMsg }) {
     }
   };
 
-  const handleCivilPointChange = (id, point) => {
-    if (id === 'birth_point') {
-      setLocalState({
-        ...localState,
-        birth_point: point
-      });
-    } else if (id === 'death_point') {
-      setLocalState({
-        ...localState,
-        death_point: point
-      });
-    }
-  };
-
   const handleSubmit = (e) => {
     const data = removeEmptyObjects(localState);
-
-    if (data.birth_point) {
-      data.birth_point.title = 'Birth';
-    }
-    if (data.death_point) {
-      data.death_point.title = 'Death';
-    }
 
     // if (true) {
     //   console.log(data);
@@ -81,14 +57,19 @@ export default function PersonForm({ person, setMsg }) {
     } else {
       // create a new person
       Net.post('/api/people', data).then(person => {
-
-        dispatch({
-          type: 'addAutocompleteDeck',
-          id: person.id,
-          value: person.name,
-          label: person.name
+        // get the updated list of people
+        Net.get('/api/people').then(people => {
+          dispatch({
+            type: 'setPeople',
+            people
+          });
+          dispatch({
+            type: 'addAutocompleteDeck',
+            id: person.id,
+            value: person.name,
+            label: person.name
+          });
         });
-
         setRedirectUrl(`people/${person.id}`);
       });
     }
@@ -112,16 +93,6 @@ export default function PersonForm({ person, setMsg }) {
                    value={ localState.name }
                    autoComplete="off"
                    onChange={ handleChangeEvent } />
-
-            <fieldset>
-              <legend>Born</legend>
-              <CivilPoint id="birth_point" onPointChange={ handleCivilPointChange } point = { localState.birth_point } />
-            </fieldset>
-
-            <fieldset>
-              <legend>Died</legend>
-              <CivilPoint id="death_point" onPointChange={ handleCivilPointChange } point = { localState.death_point } />
-            </fieldset>
 
             <input type="submit" value="Save"/>
           </form>

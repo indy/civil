@@ -66,7 +66,8 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("", get().to(people::get_all))
                 .route("/{id}", get().to(people::get))
                 .route("/{id}", put().to(people::edit)) // check
-                .route("/{id}", delete().to(people::delete)),
+                .route("/{id}", delete().to(people::delete))
+                .route("/{id}/points", post().to(people::add_point)),
         )
         // events
         .service(
@@ -75,7 +76,8 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("", get().to(events::get_all))
                 .route("/{id}", get().to(events::get))
                 .route("/{id}", put().to(events::edit)) // check
-                .route("/{id}", delete().to(events::delete)),
+                .route("/{id}", delete().to(events::delete))
+                .route("/{id}/points", post().to(events::add_point)),
         )
         // articles
         .service(
@@ -119,7 +121,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/notes_tags", post().to(edges::create_from_note_to_tags)),
         )
         // autocomplete
-        .service(scope("/autocomplete").route("/decks", get().to(autocomplete::get_decks)))
+        .service(scope("/autocomplete").route("", get().to(autocomplete::get)))
 }
 
 pub fn bad_request<B>(res: dev::ServiceResponse<B>) -> actix_web::Result<ErrorHandlerResponse<B>> {

@@ -1,6 +1,6 @@
 import React from 'react';
 import ListingLink from './ListingLink';
-import { capitalise } from '../lib/utils';
+import { capitalise } from '../lib/JsUtils';
 
 export default function SectionLinkBacks(props) {
   return (

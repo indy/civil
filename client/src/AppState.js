@@ -1,3 +1,5 @@
+import { addSortYear } from './lib/eras';
+
 export const initialState = {
   user: undefined,
   // when a user is logged in:
@@ -195,6 +197,7 @@ export const reducer = (state, action) => {
       return newState;
     }
   case 'setPeople':
+    action.people.forEach(addSortYear);
     return {
       ...state,
       peopleLoaded: true,
@@ -208,6 +211,7 @@ export const reducer = (state, action) => {
       return newState;
     }
   case 'setEvents':
+    action.events.forEach(addSortYear);
     return {
       ...state,
       eventsLoaded: true,

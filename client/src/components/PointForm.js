@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import Net from '../lib/Net';
 
-export default function CivilPoint(props) {
-  let point = {
+export default function PointForm({ point, onSubmit, submitMessage }) {
+  let initialPoint = {
+    title: '',
+
     location_textual: '',
     latitude: 0.0,
     longitude: 0.0,
@@ -15,27 +17,27 @@ export default function CivilPoint(props) {
     date_fuzz: 0.5
   };
 
-  if (props.point) {
-    for (let [k, v] of Object.entries(props.point)) {
+  if (point) {
+    for (let [k, v] of Object.entries(point)) {
       if (v !== null) {
-        console.log(k, v);
-        point[k] = v;
+        initialPoint[k] = v;
       }
     }
   }
 
-  console.log(point);
+  // console.log(initialPoint);
 
   const [state, setState] = useState({
-    location_textual: point.location_textual,
-    latitude: point.latitude,
-    longitude: point.longitude,
-    location_fuzz: point.location_fuzz,
-    date_textual: point.date_textual,
-    exact_date: point.exact_date,
-    lower_date: point.lower_date,
-    upper_date: point.upper_date,
-    date_fuzz: point.date_fuzz,
+    title: initialPoint.title,
+    location_textual: initialPoint.location_textual,
+    latitude: initialPoint.latitude,
+    longitude: initialPoint.longitude,
+    location_fuzz: initialPoint.location_fuzz,
+    date_textual: initialPoint.date_textual,
+    exact_date: initialPoint.exact_date,
+    lower_date: initialPoint.lower_date,
+    upper_date: initialPoint.upper_date,
+    date_fuzz: initialPoint.date_fuzz,
     date_textual_derived_from: '',
     is_approx: false,
     round_to_year: false
@@ -85,44 +87,6 @@ export default function CivilPoint(props) {
     return s;
   };
 
-  // extract relevent point data
-  function passPointIfValid(newState) {
-    let s =  {
-      location_fuzz: 0,
-      date_fuzz: 0
-    };
-    let canSend = false;
-
-    if (newState.location_textual !== '') {
-      s.location_textual = newState.location_textual;
-      canSend = true;
-    }
-
-    if (newState.latitude !== 0 && newState.longitude !== 0) {
-      s.latitude = newState.latitude;
-      s.longitude = newState.longitude;
-      s.location_fuzz = newState.location_fuzz;
-      canSend = true;
-    }
-
-    if (newState.date_textual_derived_from === 'exact') {
-      s.date_textual = newState.date_textual;
-      s.exact_date = newState.exact_date;
-      s.date_fuzz = newState.date_fuzz;
-      canSend = true;
-    } else if (newState.date_textual_derived_from === 'range') {
-      s.date_textual = newState.date_textual;
-      s.lower_date = newState.lower_date;
-      s.upper_date = newState.upper_date;
-      s.date_fuzz = newState.date_fuzz;
-      canSend = true;
-    }
-
-    if (canSend) {
-      props.onPointChange(props.id, s);
-    }
-  }
-
   const handleChangeEvent = (event) => {
     const target = event.target;
     const name = target.name;
@@ -130,7 +94,9 @@ export default function CivilPoint(props) {
 
     let newState = {...state};
 
-    if (name === "location_textual") {
+    if (name === "title") {
+      newState.title = value;
+    } else if (name === "location_textual") {
       newState.location_textual = value;
     } else if (name === "latitude") {
       newState.latitude = parseFloat(value, 10);
@@ -153,7 +119,7 @@ export default function CivilPoint(props) {
       newState = buildReadableDateFromLast(newState);
     }
 
-    passPointIfValid(newState);
+    // passPointIfValid(newState);
     setState(newState);
   };
 
@@ -169,7 +135,7 @@ export default function CivilPoint(props) {
         latitude: latitudeNew.toFixed(2),
         longitude: longitudeNew.toFixed(2)
       };
-      props.onPointChange(props.id, newState);
+      // props.onPointChange(props.id, newState);
       setState(newState);
     } else {
       console.log(`geoResult failed for ${state.location_textual}`);
@@ -177,8 +143,57 @@ export default function CivilPoint(props) {
     }
   };
 
+  const handleSubmit = (e) => {
+    let s =  {
+      title: state.title,
+      location_fuzz: 0,
+      date_fuzz: 0
+    };
+    let canSend = false;
+
+    if (state.location_textual !== '') {
+      s.location_textual = state.location_textual;
+      canSend = true;
+    }
+
+    if (state.latitude !== 0 && state.longitude !== 0) {
+      s.latitude = state.latitude;
+      s.longitude = state.longitude;
+      s.location_fuzz = state.location_fuzz;
+      canSend = true;
+    }
+
+    if (state.date_textual_derived_from === 'exact') {
+      s.date_textual = state.date_textual;
+      s.exact_date = state.exact_date;
+      s.date_fuzz = state.date_fuzz;
+      canSend = true;
+    } else if (state.date_textual_derived_from === 'range') {
+      s.date_textual = state.date_textual;
+      s.lower_date = state.lower_date;
+      s.upper_date = state.upper_date;
+      s.date_fuzz = state.date_fuzz;
+      canSend = true;
+    }
+
+    if (canSend) {
+      onSubmit(s);
+    }
+
+    e.preventDefault();
+  };
+
   return (
-    <div>
+    <form onSubmit={ handleSubmit }>
+      <label htmlFor="title">Title:</label>
+      <input id="title"
+             type="text"
+             name="title"
+             value={ state.title }
+             autoComplete="off"
+             size="11"
+             onChange={ handleChangeEvent } />
+
       <label htmlFor="exact-date">Exact Date:</label>
       <input id="exact-date"
              type="text"
@@ -251,7 +266,8 @@ export default function CivilPoint(props) {
              step="any"
              value={ state.longitude }
              onChange={ handleChangeEvent } />
-    </div>
+      <input type="submit" value={ submitMessage }/>
+    </form>
   );
 }
 

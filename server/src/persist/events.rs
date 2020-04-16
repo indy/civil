@@ -20,7 +20,6 @@ use crate::error::{Error, Result};
 use crate::interop::events as interop;
 use crate::interop::Key;
 use crate::persist::decks;
-use crate::persist::points;
 use deadpool_postgres::{Client, Pool};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
@@ -33,6 +32,25 @@ use tracing::info;
 struct EventDerived {
     id: Key,
     name: String,
+    prime_date: Option<chrono::NaiveDate>,
+}
+
+
+impl From<EventDerived> for interop::Event {
+    fn from(e: EventDerived) -> interop::Event {
+        interop::Event {
+            id: e.id,
+            title: e.name,
+
+            sort_date: e.prime_date,
+
+            points: None,
+            notes: None,
+
+            decks_in_notes: None,
+            linkbacks_to_decks: None,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
@@ -42,11 +60,13 @@ struct Event {
     name: String,
 }
 
-impl From<EventDerived> for interop::Event {
-    fn from(e: EventDerived) -> interop::Event {
+impl From<Event> for interop::Event {
+    fn from(e: Event) -> interop::Event {
         interop::Event {
             id: e.id,
             title: e.name,
+
+            sort_date: None,
 
             points: None,
             notes: None,
@@ -72,14 +92,13 @@ pub(crate) async fn create(
     )
     .await?;
 
-    let _point = points::create(&tx, &event.point, db_event.id).await?;
-
     tx.commit().await?;
 
     Ok(interop::Event {
         id: db_event.id,
         title: db_event.name,
 
+        sort_date: None,
         points: None,
 
         notes: None,
@@ -98,7 +117,7 @@ pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Eve
 }
 
 pub(crate) async fn get(db_pool: &Pool, user_id: Key, event_id: Key) -> Result<interop::Event> {
-    pg::one_from::<EventDerived, interop::Event>(
+    pg::one_from::<Event, interop::Event>(
         db_pool,
         include_str!("sql/events_get.sql"),
         &[&user_id, &event_id],

@@ -16,10 +16,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::pg;
-use crate::error::Result;
+use crate::error::{Error, Result};
 use crate::interop::points as interop;
 use crate::interop::Key;
-use deadpool_postgres::{Pool, Transaction};
+use deadpool_postgres::{Client, Pool, Transaction};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
@@ -71,7 +71,7 @@ pub(crate) async fn all(db_pool: &Pool, user_id: Key, deck_id: Key) -> Result<Ve
     .await
 }
 
-pub(crate) async fn create(
+pub(crate) async fn create_tx(
     tx: &Transaction<'_>,
     point: &interop::ProtoPoint,
     deck_id: Key,
@@ -97,6 +97,22 @@ pub(crate) async fn create(
 
     let point = interop::Point::from(db_point);
     Ok(point)
+}
+
+pub(crate) async fn create(
+    db_pool: &Pool,
+    _user_id: Key,
+    point: &interop::ProtoPoint,
+    deck_id: Key,
+) -> Result<interop::Point> {
+    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
+    let tx = client.transaction().await?;
+
+    let interop_point = create_tx(&tx, point, deck_id).await?;
+
+    tx.commit().await?;
+
+    Ok(interop_point)
 }
 
 /*

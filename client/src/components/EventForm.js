@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
-import { removeEmptyObjects, findPoint } from '../lib/utils';
+import { removeEmptyObjects } from '../lib/JsUtils';
 import Net from '../lib/Net';
 import { useStateValue } from '../lib/state';
-import CivilPoint from './CivilPoint';
 
 export default function EventForm({event, setMsg}) {
   event = event || {};
   const [state, dispatch] = useStateValue();
 
   const [localState, setLocalState] = useState({
-    title: event.title || '',
-    point: event.points ? findPoint(event.points, 'Event') : {}
+    title: event.title || ''
   });
 
   const [redirectUrl, setRedirectUrl] = useState(false);
@@ -41,19 +39,9 @@ export default function EventForm({event, setMsg}) {
     }
   };
 
-  const handleCivilPointChange = (id, point) => {
-      setLocalState({
-        ...localState,
-        point: point
-      });
-  };
 
   const handleSubmit = (e) => {
     const data = removeEmptyObjects(localState);
-
-    if (data.point) {
-      data.point.title = 'Event';
-    }
 
     if(setMsg) {
       // edit an existing event
@@ -67,12 +55,19 @@ export default function EventForm({event, setMsg}) {
     } else {
       // create a new event
       Net.post('/api/events', data).then(event => {
+        // get the updated list of events
+        Net.get('/api/events').then(events => {
+          dispatch({
+            type: 'setEvents',
+            events
+          });
 
-        dispatch({
-          type: 'addAutocompleteDeck',
-          id: event.id,
-          value: event.title,
-          label: event.title
+          dispatch({
+            type: 'addAutocompleteDeck',
+            id: event.id,
+            value: event.title,
+            label: event.title
+          });
         });
 
         setRedirectUrl(`events/${event.id}`);
@@ -89,7 +84,6 @@ export default function EventForm({event, setMsg}) {
       <article>
         <section>
           <form onSubmit={ handleSubmit }>
-            <div>
               <label htmlFor="title">Title:</label>
               <input id="title"
                      type="text"
@@ -97,10 +91,6 @@ export default function EventForm({event, setMsg}) {
                      value={ localState.title }
                      autoComplete="off"
                      onChange={ handleChangeEvent } />
-            </div>
-            <br/>
-            <CivilPoint id="point" onPointChange={ handleCivilPointChange } point = { localState.point } />
-            <br/>
             <input type="submit" value="Save"/>
           </form>
         </section>

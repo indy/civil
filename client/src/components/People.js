@@ -3,7 +3,8 @@ import Net from '../lib/Net';
 import { Link } from 'react-router-dom';
 import ListingLink from './ListingLink';
 import { useStateValue } from '../lib/state';
-import {ensureAC} from '../lib/utils';
+import { ensureAC } from '../lib/utils';
+import { era, filterBefore, filterAfter, filterBetween } from '../lib/eras';
 
 export default function People() {
   const [state, dispatch] = useStateValue();
@@ -13,15 +14,11 @@ export default function People() {
   useEffect(() => {
     async function fetcher() {
       const people = await Net.get('/api/people');
-      people.forEach(addBirthYear);
-
       dispatch({
         type: 'setPeople',
         people
       });
-
     }
-
     if(!state.peopleLoaded) {
       fetcher();
     }
@@ -31,63 +28,32 @@ export default function People() {
     setShowAddPersonLink(!showAddPersonLink);
   };
 
-  const ancientCutoff = 354;
-  const medievalCutoff = 1469;
-  const modernCutoff = 1856;
-
-  const ancientPeopleList = state.people
-        .filter(person => person.birth_year < ancientCutoff)
-        .sort((a, b) => a.birth_year > b.birth_year)
-        .map(createPersonListing);
-  const medievalPeopleList = state.people
-        .filter(person => person.birth_year >= ancientCutoff && person.birth_year < medievalCutoff)
-        .sort((a, b) => a.birth_year > b.birth_year)
-        .map(createPersonListing);
-  const modernPeopleList = state.people
-        .filter(person => person.birth_year >= medievalCutoff && person.birth_year < modernCutoff)
-        .sort((a, b) => a.birth_year > b.birth_year)
-        .map(createPersonListing);
-  const contemporaryPeopleList = state.people
-        .filter(person => person.birth_year >= modernCutoff)
-        .sort((a, b) => a.birth_year > b.birth_year)
-        .map(createPersonListing);
+  const uncategorisedPeopleList = filterAfter(state.people, era.uncategorisedYear).map(createPersonListing);
+  const ancientPeopleList = filterBefore(state.people, era.ancientCutoff).map(createPersonListing);
+  const medievalPeopleList = filterBetween(state.people, era.ancientCutoff, era.medievalCutoff).map(createPersonListing);
+  const modernPeopleList = filterBetween(state.people, era.medievalCutoff, era.modernCutoff).map(createPersonListing);
+  const contemporaryPeopleList = filterBetween(state.people, era.modernCutoff, era.uncategorisedYear).map(createPersonListing);
 
   return (
     <div>
       <h1 onClick={ toggleShowAdd }>People</h1>
       {showAddPersonLink && <Link to='/add-person'>Add Person</Link>}
-      <h2>Ancient</h2>
-      <ul className="people-list">
-        { ancientPeopleList }
-      </ul>
-      <h2>Medieval</h2>
-      <ul className="people-list">
-        { medievalPeopleList }
-      </ul>
-      <h2>Modern</h2>
-      <ul className="people-list">
-        { modernPeopleList }
-      </ul>
-      <h2>Contemporary</h2>
-      <ul className="people-list">
-        { contemporaryPeopleList }
-      </ul>
+      { peopleList(uncategorisedPeopleList, "Uncategorised")}
+      { peopleList(ancientPeopleList, "Ancient")}
+      { peopleList(medievalPeopleList, "Medieval")}
+      { peopleList(modernPeopleList, "Modern")}
+      { peopleList(contemporaryPeopleList, "Contemporary")}
     </div>
   );
 }
 
-function yearFrom(dateString) {
-  let res = 0;
-  if (dateString[0] === '-') {
-    res = parseInt(dateString.slice(0, 5), 10);
-  } else {
-    res = parseInt(dateString.slice(0, 4), 10);
-  }
-  return res;
-}
-
-function addBirthYear(p) {
-  p.birth_year = yearFrom(p.sort_date);
+function peopleList(list, heading) {
+  return (<div>
+            { !!list.length && <h2>{ heading }</h2> }
+            <ul className="people-list">
+              { list }
+            </ul>
+          </div>);
 }
 
 function createPersonListing(person) {

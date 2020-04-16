@@ -17,6 +17,7 @@
 
 use crate::error::Result;
 use crate::interop::people as interop;
+use crate::interop::points as points_interop;
 use crate::interop::{IdParam, Key};
 use crate::persist::edges as edges_db;
 use crate::persist::notes as notes_db;
@@ -101,6 +102,26 @@ pub async fn delete(
     db::delete(&db_pool, user_id, params.id).await?;
 
     Ok(HttpResponse::Ok().json(true))
+}
+
+pub async fn add_point(
+    point: Json<points_interop::ProtoPoint>,
+    db_pool: Data<Pool>,
+    params: Path<IdParam>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    info!("add_point");
+
+    let person_id = params.id;
+    let point = point.into_inner();
+    let user_id = session::user_id(&session)?;
+
+    let _point = points_db::create(&db_pool, user_id, &point, person_id).await?;
+
+    let mut person = db::get(&db_pool, user_id, person_id).await?;
+    augment(&db_pool, &mut person, person_id, user_id).await?;
+
+    Ok(HttpResponse::Ok().json(person))
 }
 
 async fn augment(

@@ -1,32 +1,54 @@
-import React from 'react';
+import React, { useState } from 'react';
 
+import Net from '../lib/Net';
+import NoteHolder from './NoteHolder';
 import PersonForm from './PersonForm';
-import { idParam, findPoint } from '../lib/utils';
+import PointForm from './PointForm';
+import { idParam } from '../lib/utils';
 import { useStateValue } from '../lib/state';
 
-import NoteHolder from './NoteHolder';
-
 export default function Person(props) {
-  const [state] = useStateValue();
+  const [state, dispatch] = useStateValue();
+  const [showBirthForm, setShowBirthForm] = useState(false);
+
   const person_id = idParam();
   const person = state.person[person_id] || { id: person_id };
   const personForm = <PersonForm person={person} setMsg="setPerson" />;
 
-  const isPersonDead = () => {
-    if (person.points) {
-      return !!findPoint(person.points, 'Death');
-    }
-    return false;
-  };
+  function onShowBirthForm() {
+    setShowBirthForm(!showBirthForm);
+  }
 
-  const buildDeath = () => {
-    let point = findPoint(person.points, 'Death');
-    return (
-      <Death point={ point }/>
-    );
-  };
+  function showAddBirthPointMessage() {
+    return (<p className="fakelink" onClick={ onShowBirthForm }>You should add a birth point for this person</p>);
+  }
 
-  let birthPoint = person.points ? findPoint(person.points, 'Birth') : {};
+  function onAddBirthPoint(point) {
+    // post to /api/people/{id}/points
+    Net.post(`/api/people/${person_id}/points`, point).then(person => {
+      setShowBirthForm(false);
+      dispatch({
+        type: 'setPerson',
+        id: person.id,
+        newItem: person
+      });
+
+      // also update the people list now that this person is no longer uncategorised
+      Net.get('/api/people').then(people => {
+        dispatch({
+          type: 'setPeople',
+          people
+        });
+      });
+    });
+  }
+
+  function birthForm() {
+    let point = {
+      title: 'Born'
+    };
+    return (<PointForm point={ point } onSubmit={ onAddBirthPoint } submitMessage="Create Point"/>);
+  }
 
   return (
     <NoteHolder
@@ -36,130 +58,19 @@ export default function Person(props) {
       resource="people"
       isLoaded={ id => state.person[id] }
       updateForm={ personForm }>
-      <Birth point={ birthPoint }/>
-      { isPersonDead() && buildDeath() }
-      {/* <Age person={ person }/> */}
+      { hasNoBirthPoint(person) && showAddBirthPointMessage() }
+      { showBirthForm && birthForm() }
     </NoteHolder>
   );
 }
 
-function Birth({ point }) {
-  const birth_date = point.date_textual;
-  const birth_location = point.location_textual;
-
-  return (
-    <p className="subtitle">
-      Born: { birth_date } { birth_location }
-    </p>
-  );
-};
-
-function Death({ point }) {
-  const death_date = point.date_textual;
-  const death_location = point.location_textual;
-
-  return (
-    <p className="subtitle">
-      Died: { death_date } { death_location }
-    </p>
-  );
-};
-/*
-function Age(props) {
-  const person = props.person;
-  const age = person.age || calculateAge(person.birth_date, person.death_date);
-
-  return (
-    <p className="subtitle">
-      Age: { age }
-    </p>
-  );
-};
-
-
-function calculateAge(birth, death) {
-    if (!birth) {
-      return "";
-    }
-
-    let earlier = ymdFromObject(birth);
-    let later = death ? ymdFromObject(death) : ymdFromNow();
-
-    let ymdA = earlier.ymd;
-    let ymdB = later.ymd;
-
-    let years = ymdB[0] - ymdA[0];
-    if (ymdB[1] < ymdA[1]) {
-      years -= 1;
-    } else if ((ymdB[1] === ymdA[1]) && (ymdB[2] < ymdA[2])) {
-        years -= 1;
-    };
-
-    let res = (!earlier.isExact || !later.isExact) ? "Approx " : "";
-    res += `${years}`;
-
-    return res;
+function hasNoBirthPoint(person) {
+  function hasBirthPoint(point) {
+    return point.title === "Born";
   }
 
-// ymd == Year, Month, Day
-
-function ymdFromNow() {
-  const d = new Date();
-  return {
-    ymd: [d.getFullYear(), d.getMonth() + 1, d.getDate()],
-    isExact: true
+  if (person.points) {
+    return !person.points.find(hasBirthPoint);
   };
+  return false;
 }
-
-function ymdFromObject(date) {
-  if (date.exact_date) {
-    // happy days
-    return {
-      ymd: parseYmdFromString(date.exact_date),
-      isExact: true
-    };
-  }
-
-  if (date.lower_date && date.upper_date) {
-    // get a year roughly inbetween the lower and upper bounds
-    let lower = parseYmdFromString(date.lower_date);
-    let upper = parseYmdFromString(date.upper_date);
-
-    return {
-      ymd: [Math.floor((lower[0] + upper[0]) / 2), lower[1], lower[2]],
-      isExact: false
-    };
-  }
-
-  if (date.lower_date) {
-    return {
-      ymd: parseYmdFromString(date.lower_date),
-      isExact: false
-    };
-  }
-
-  if (date.upper_date) {
-    return {
-      ymd: parseYmdFromString(date.upper_date),
-      isExact: false
-    };
-  }
-
-  console.error(`can't determine year/month/day from ${date}`);
-  return undefined;
-}
-
-function parseYmdFromString(s) {
-  let res = [];
-  let parts = s.split("-");
-  if (parts.length === 4) {
-    res = [-parseInt(parts[1], 10), parseInt(parts[2], 10), parseInt(parts[3], 10)];
-  } else if (parts.length === 3) {
-    res = [parseInt(parts[0], 10), parseInt(parts[1], 10), parseInt(parts[2], 10)];
-  } else {
-    console.error(`invalid date string given to parseYmdFromString: ${s}`);
-  }
-
-  return res;
-}
-*/

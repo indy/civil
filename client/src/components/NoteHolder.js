@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 // UNCOMMENT to enable deleting
 // import { useHistory } from 'react-router-dom';
 
+import Point from './Point';
+import PointForm from './PointForm';
 import Net from '../lib/Net';
 import Note from './Note';
 import NoteForm from './NoteForm';
@@ -27,20 +29,26 @@ export default function NoteHolder({holder, setMsg, title, resource, isLoaded, u
 
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteForm, setShowNoteForm] = useState(false);
+  const [showPointForm, setShowPointForm] = useState(false);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
 
-  const buildButtons = () => {
-    let onAddNoteClicked = (event) => {
+  function buildButtons() {
+    function onAddNoteClicked(e) {
       setShowNoteForm(!showNoteForm);
-      event.preventDefault();
+      e.preventDefault();
     };
 
-    let onEditParentClicked = (event) => {
+    function onAddPointClicked(e) {
+      setShowPointForm(!showPointForm);
+      e.preventDefault();
+    };
+
+    function onEditParentClicked(e) {
       setShowUpdateForm(!showUpdateForm);
-      event.preventDefault();
+      e.preventDefault();
     };
 
-    let onDeleteParentClicked = (event) => {
+    function onDeleteParentClicked(e) {
       // UNCOMMENT to enable deleting
       // Net.delete(`/api/${resource}/${id}`).then(() => {
       //   history.push(`/${resource}`);
@@ -48,20 +56,21 @@ export default function NoteHolder({holder, setMsg, title, resource, isLoaded, u
 
       alert("delete logic has been commented out of NoteHolder.js, re-enable if that's what you _REALLY_ want to do");
 
-      event.preventDefault();
+      e.preventDefault();
     };
 
     return (
       <div>
         <button onClick={ onAddNoteClicked }>Add Note...</button>
+        { holder.points && <button onClick={ onAddPointClicked }>Add Point...</button> }
         <button onClick={ onEditParentClicked }>Edit...</button>
         <button onClick={ onDeleteParentClicked }>Delete...</button>
       </div>
     );
   };
 
-  const buildNoteForm = () => {
-    const onAddNote = (e) => {
+  function buildNoteForm() {
+    function onAddNote(e) {
       const noteForm = e.target;
       const ident = resource === "tags" ? { tag_id: id } : { deck_id: id };
       addNote(noteForm, ident)
@@ -87,13 +96,24 @@ export default function NoteHolder({holder, setMsg, title, resource, isLoaded, u
     );
   };
 
-  const onShowButtons = () => {
+  function buildPointForm() {
+    function onAddPoint(point) {
+      console.log('NoteHolder::buildPointForm::onAddPoint');
+      console.log(point);
+    };
+
+    return (
+      <PointForm onSubmit={ onAddPoint } submitMessage="Create Point"/>
+    );
+  };
+
+  function onShowButtons() {
     setShowButtons(!showButtons);
     setShowNoteForm(false);
     setShowUpdateForm(false);
   };
 
-  const showUpdate = () => {
+  function showUpdate() {
     return updateForm;
   };
 
@@ -105,9 +125,11 @@ export default function NoteHolder({holder, setMsg, title, resource, isLoaded, u
         <h1 onClick={ onShowButtons }>{ title }</h1>
         { showButtons && buildButtons() }
         { showNoteForm && buildNoteForm() }
+        { showPointForm && buildPointForm() }
         { showUpdateForm && showUpdate() }
       </div>
       { children }
+      { holder.points && showPoints(holder.points, resource) }
       <section>
         { notes }
       </section>
@@ -115,6 +137,15 @@ export default function NoteHolder({holder, setMsg, title, resource, isLoaded, u
     </article>
   );
 }
+
+
+function showPoints(points, resource) {
+  function buildPoint(point) {
+    return (<Point key={ point.id} point={ point } parentResource={ resource }/>);
+  };
+  return (<span>{ points.map(buildPoint) }</span>);
+}
+
 
 function ensureCorrectNoteHolder(resource, id, isLoaded, setMsg, dispatch) {
   const [currentId, setCurrentId] = useState(false);
@@ -151,7 +182,7 @@ function NoteManager(holder, setMsg) {
 
   const ac = state.ac;
 
-  const addNewTagsToAutocomplete = (someTags) => {
+  function addNewTagsToAutocomplete(someTags) {
     let newTags = [];
 
     someTags.forEach(t => {

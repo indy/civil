@@ -25,11 +25,8 @@ use deadpool_postgres::Pool;
 #[allow(unused_imports)]
 use tracing::info;
 
-pub async fn get_decks(
-    db_pool: Data<Pool>,
-    session: actix_session::Session,
-) -> Result<HttpResponse> {
-    info!("get_decks");
+pub async fn get(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
+    info!("get");
 
     let user_id = session::user_id(&session)?;
 

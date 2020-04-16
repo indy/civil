@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
-import { removeEmptyStrings } from '../lib/utils';
+import { removeEmptyStrings } from '../lib/JsUtils';
 import Net from '../lib/Net';
 import { useStateValue } from '../lib/state';
 
