@@ -15,8 +15,6 @@ import PrivateRoute from './components/PrivateRoute';
 import Login from './components/Login';
 import Logout from './components/Logout';
 
-import Shell from './components/Shell';
-
 import Person from './components/Person';
 import People from './components/People';
 import PersonForm from './components/PersonForm';
@@ -53,6 +51,22 @@ export default function App({ user }) {
       user
     });
   }
+
+  // display a welcome message on the console
+  //
+  state = reducer(state, {
+    type: 'pushStdout',
+    message: (
+        <div>
+          <h1>Civil &times; Zettelkasten &times; Samizdat</h1>
+          <ol>
+            <li>Keep private</li>
+            <li>Remain honest</li>
+            <li>Never delete</li>
+          </ol>
+        </div>
+      )
+  });
 
   return (
     <StateProvider initialState={state} reducer={reducer}>
@@ -103,7 +117,6 @@ function AppUI() {
       <div id='civil-app'>
         <div id='top-bar-menu'>
           <Link className='top-bar-menuitem' to={'/'}>Home</Link>
-          <Link className='top-bar-menuitem' to={'/shell'}>Shell</Link>
           <Link className='top-bar-menuitem' to={'/ideas'}>Ideas</Link>
           <Link className='top-bar-menuitem' to={'/tags'}>Tags</Link>
           <Link className='top-bar-menuitem' to={'/books'}>Books</Link>
@@ -123,10 +136,6 @@ function AppUI() {
           </Route>
           <PrivateRoute exact path="/logout">
             <Logout logoutCallback = { logoutHandler }/>
-          </PrivateRoute>
-
-          <PrivateRoute path={'/shell'}>
-            <Shell/>
           </PrivateRoute>
 
           <PrivateRoute path={'/ideas/:id'}>
