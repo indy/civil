@@ -27,6 +27,7 @@ use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
+use std::time::Instant;
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -62,12 +63,15 @@ pub async fn get(
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("get {:?}", params.id);
+    let now = Instant::now();
 
     let user_id = session::user_id(&session)?;
     let person_id = params.id;
 
     let mut person = db::get(&db_pool, user_id, person_id).await?;
     augment(&db_pool, &mut person, person_id, user_id).await?;
+
+    info!("get {:?} took {}ms", params.id, now.elapsed().as_millis());
 
     Ok(HttpResponse::Ok().json(person))
 }
@@ -130,16 +134,16 @@ async fn augment(
     person_id: Key,
     user_id: Key,
 ) -> Result<()> {
-    let points = points_db::all(&db_pool, user_id, person_id).await?;
+    let (points, notes, decks_in_notes, linkbacks_to_decks) = tokio::try_join!(
+        points_db::all(&db_pool, user_id, person_id),
+        notes_db::all_from_deck(&db_pool, person_id),
+        decks_db::from_deck_id_via_notes_to_decks(&db_pool, person_id),
+        decks_db::from_decks_via_notes_to_deck_id(&db_pool, person_id),
+    )?;
+
     person.points = Some(points);
-
-    let notes = notes_db::all_from_deck(&db_pool, person_id).await?;
     person.notes = Some(notes);
-
-    let decks_in_notes = decks_db::from_deck_id_via_notes_to_decks(&db_pool, person_id).await?;
     person.decks_in_notes = Some(decks_in_notes);
-
-    let linkbacks_to_decks = decks_db::from_decks_via_notes_to_deck_id(&db_pool, person_id).await?;
     person.linkbacks_to_decks = Some(linkbacks_to_decks);
 
     Ok(())

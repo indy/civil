@@ -108,13 +108,14 @@ async fn augment(
     tag: &mut interop::Tag,
     tag_id: Key,
 ) -> Result<()> {
-    let notes = notes_db::all_from_deck(&db_pool, tag_id).await?;
+    let (notes, decks_in_notes, linkbacks_to_decks) = tokio::try_join!(
+        notes_db::all_from_deck(&db_pool, tag_id),
+        decks_db::from_deck_id_via_notes_to_decks(&db_pool, tag_id),
+        decks_db::from_decks_via_notes_to_deck_id(&db_pool, tag_id),
+    )?;
+
     tag.notes = Some(notes);
-
-    let decks_in_notes = decks_db::from_deck_id_via_notes_to_decks(&db_pool, tag_id).await?;
     tag.decks_in_notes = Some(decks_in_notes);
-
-    let linkbacks_to_decks = decks_db::from_decks_via_notes_to_deck_id(&db_pool, tag_id).await?;
     tag.linkbacks_to_decks = Some(linkbacks_to_decks);
 
     // todo: replace hyphens with spaces
