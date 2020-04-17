@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
-import { Link } from 'react-router-dom';
 import ListingLink from './ListingLink';
 import { useStateValue } from '../lib/state';
 import { ensureAC } from '../lib/utils';
 import { era, filterBefore, filterAfter, filterBetween } from '../lib/eras';
+import PersonForm from './PersonForm';
 
 export default function People() {
   const [state, dispatch] = useStateValue();
-  let [showAddPersonLink, setShowAddPersonLink] = useState(false);
+  let [showAddPersonForm, setShowAddPersonForm] = useState(false);
   ensureAC(state, dispatch);
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function People() {
   }, []);
 
   const toggleShowAdd = () => {
-    setShowAddPersonLink(!showAddPersonLink);
+    setShowAddPersonForm(!showAddPersonForm);
   };
 
   const uncategorisedPeopleList = filterAfter(state.people, era.uncategorisedYear).map(createPersonListing);
@@ -36,8 +36,8 @@ export default function People() {
 
   return (
     <div>
-      <h1 onClick={ toggleShowAdd }>People</h1>
-      {showAddPersonLink && <Link to='/add-person'>Add Person</Link>}
+      <h1 onClick={ toggleShowAdd }>{ showAddPersonForm ? "Add Person" : "People" }</h1>
+      { showAddPersonForm && <PersonForm/>}
       { peopleList(uncategorisedPeopleList, "Uncategorised")}
       { peopleList(ancientPeopleList, "Ancient")}
       { peopleList(medievalPeopleList, "Medieval")}

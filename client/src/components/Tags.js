@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
-import { Link } from 'react-router-dom';
 import ListingLink from './ListingLink';
 import { useStateValue } from '../lib/state';
-import {ensureAC} from '../lib/utils';
+import { ensureAC } from '../lib/utils';
+import TagForm from './TagForm';
 
 export default function Tags() {
   const [state, dispatch] = useStateValue();
-  let [showAddTagLink, setShowAddTagLink] = useState(false);
+  let [showAddTagForm, setShowAddTagForm] = useState(false);
   ensureAC(state, dispatch);
 
   useEffect(() => {
@@ -26,7 +26,7 @@ export default function Tags() {
   }, []);
 
   const toggleShowAdd = () => {
-    setShowAddTagLink(!showAddTagLink);
+    setShowAddTagForm(!showAddTagForm);
   };
 
   const tagsList = state.tags.map(
@@ -35,8 +35,8 @@ export default function Tags() {
 
   return (
     <div>
-      <h1 onClick={ toggleShowAdd }>Tags</h1>
-      { showAddTagLink && <Link to='/add-tag'>Add Tag</Link> }
+      <h1 onClick={ toggleShowAdd }>{ showAddTagForm ? "Add Tag" : "Tags" }</h1>
+      { showAddTagForm && <TagForm/> }
       <ul>
         { tagsList }
       </ul>

@@ -66,7 +66,6 @@ export default function Home(props) {
   );
 }
 
-
 async function cmdRecent(deck) {
   const d = deck.toLowerCase();
   const whiteList = ['articles', 'books', 'people', 'events', 'ideas', 'tags'];
@@ -79,10 +78,6 @@ async function cmdRecent(deck) {
 
   const results = recentResults.results.map(buildRecentResultEntry);
   return (<div>{ results }</div>);
-
-
-
-
 
 }
 

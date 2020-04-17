@@ -47,7 +47,7 @@ export default function Person(props) {
     let point = {
       title: 'Born'
     };
-    return (<PointForm point={ point } onSubmit={ onAddBirthPoint } submitMessage="Create Point"/>);
+    return (<PointForm readOnlyTitle point={ point } onSubmit={ onAddBirthPoint } submitMessage="Create Birth Point"/>);
   }
 
   return (

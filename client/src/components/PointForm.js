@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Net from '../lib/Net';
 
-export default function PointForm({ point, onSubmit, submitMessage }) {
+export default function PointForm({ point, onSubmit, submitMessage, readOnlyTitle }) {
   let initialPoint = {
     title: '',
 
@@ -184,88 +184,101 @@ export default function PointForm({ point, onSubmit, submitMessage }) {
   };
 
   return (
-    <form onSubmit={ handleSubmit }>
-      <label htmlFor="title">Title:</label>
-      <input id="title"
-             type="text"
-             name="title"
-             value={ state.title }
-             autoComplete="off"
-             size="11"
-             onChange={ handleChangeEvent } />
-
-      <label htmlFor="exact-date">Exact Date:</label>
-      <input id="exact-date"
-             type="text"
-             name="exact_date"
-             value={ state.exact_date }
-             autoComplete="off"
-             size="11"
-             onChange={ handleChangeEvent } />
-      <span className="civil-date-hint"> Format: YYYY-MM-DD</span>
+    <form className="civil-form" onSubmit={ handleSubmit }>
+      <div className = { !!readOnlyTitle ? 'invisible' : 'point-title'}>
+        <fieldset>
+          <legend>Title</legend>
+          <input id="title"
+                 type="text"
+                 name="title"
+                 value={ state.title }
+                 autoComplete="off"
+                 size="11"
+                 readOnly={ !!readOnlyTitle }
+                 onChange={ handleChangeEvent }/>
+        </fieldset>
+      </div>
+      <fieldset>
+        <legend>Time</legend>
+        <label htmlFor="exact-date">Exact Date:</label>
+        <input id="exact-date"
+               type="text"
+               name="exact_date"
+               value={ state.exact_date }
+               autoComplete="off"
+               size="11"
+               onChange={ handleChangeEvent } />
+        <span className="civil-date-hint"> Format: YYYY-MM-DD</span>
+        <div className="civil-date-hint-after"/>
+        <br/>
+        <label htmlFor="lower-date">Lower Date:</label>
+        <input id="lower-date"
+               type="text"
+               name="lower_date"
+               value={ state.lower_date }
+               autoComplete="off"
+               size="11"
+               onChange={ handleChangeEvent } />
+        <label htmlFor="upper-date">Upper Date:</label>
+        <input id="upper-date"
+               type="text"
+               name="upper_date"
+               value={ state.upper_date }
+               autoComplete="off"
+               size="11"
+               onChange={ handleChangeEvent } />
+        <br/>
+        <p></p>
+        <label htmlFor="is-approx">Is Approx:</label>
+        <input id="is-approx"
+               type="checkbox"
+               name="is_approx"
+               checked={ state.is_approx }
+               onChange={ handleChangeEvent } />
+        <label htmlFor="round-to-year">Round to Year:</label>
+        <input id="round-to-year"
+               type="checkbox"
+               name="round_to_year"
+               checked={ state.round_to_year }
+               onChange={ handleChangeEvent } />
+        <br/>
+        <p></p>
+        <label htmlFor="date_textual">Displayed Date:</label>
+        <input id="date_textual"
+               type="text"
+               name="date_textual"
+               value={ state.date_textual }
+               size="40"
+               autoComplete="off"
+               readOnly="readOnly" />
+      </fieldset>
       <br/>
-      <label htmlFor="lower-date">Lower Date:</label>
-      <input id="lower-date"
-             type="text"
-             name="lower_date"
-             value={ state.lower_date }
-             autoComplete="off"
-             size="11"
-             onChange={ handleChangeEvent } />
-      <label htmlFor="upper-date">Upper Date:</label>
-      <input id="upper-date"
-             type="text"
-             name="upper_date"
-             value={ state.upper_date }
-             autoComplete="off"
-             size="11"
-             onChange={ handleChangeEvent } />
-      <br/>
-      <label htmlFor="is-approx">Is Approx:</label>
-      <input id="is-approx"
-             type="checkbox"
-             name="is_approx"
-             checked={ state.is_approx }
-             onChange={ handleChangeEvent } />
-      <label htmlFor="round-to-year">Round to Year:</label>
-      <input id="round-to-year"
-             type="checkbox"
-             name="round_to_year"
-             checked={ state.round_to_year }
-             onChange={ handleChangeEvent } />
-      <br/>
-      <label htmlFor="date_textual">Displayed Date:</label>
-      <input id="date_textual"
-             type="text"
-             name="date_textual"
-             value={ state.date_textual }
-             size="40"
-             autoComplete="off"
-             readOnly="readOnly" />
-      <br/>
-      <label htmlFor="textual">Location:</label>
-      <input id="location_textual"
-             type="text"
-             name="location_textual"
-             autoComplete="off"
-             value={ state.location_textual }
-             onChange={ handleChangeEvent } />
-      <button onClick={ (event) => { onFindLocationClicked(event);} }>Find location</button>
-      <br/>
-      <label htmlFor="latitude">Latitude:</label>
-      <input id="latitude"
-             type="number"
-             name="latitude"
-             step="any"
-             value={ state.latitude }
-             onChange={ handleChangeEvent } />
-      <label htmlFor="longitude">Longitude:</label>
-      <input id="longitude"
-             type="number"
-             name="longitude"
-             step="any"
-             value={ state.longitude }
-             onChange={ handleChangeEvent } />
+      <fieldset>
+        <legend>Location</legend>
+        <input id="location_textual"
+               type="text"
+               name="location_textual"
+               autoComplete="off"
+               value={ state.location_textual }
+               onChange={ handleChangeEvent } />
+        <p></p>
+        <button onClick={ (event) => { onFindLocationClicked(event);} }>Find location</button>
+        <br/>
+        <label htmlFor="latitude">Latitude:</label>
+        <input id="latitude"
+               type="number"
+               name="latitude"
+               step="any"
+               value={ state.latitude }
+               onChange={ handleChangeEvent } />
+        <label htmlFor="longitude">Longitude:</label>
+        <input id="longitude"
+               type="number"
+               name="longitude"
+               step="any"
+               value={ state.longitude }
+               onChange={ handleChangeEvent } />
+      </fieldset>
       <input type="submit" value={ submitMessage }/>
     </form>
   );

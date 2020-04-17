@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
-import { Link } from 'react-router-dom';
 import ListingLink from './ListingLink';
 import { useStateValue } from '../lib/state';
-import {ensureAC} from '../lib/utils';
+import { ensureAC } from '../lib/utils';
+import BookForm from './BookForm';
 
 export default function Books() {
   const [state, dispatch] = useStateValue();
-  let [showAddBookLink, setShowAddBookLink] = useState(false);
+  let [showAddBookForm, setShowAddBookForm] = useState(false);
   ensureAC(state, dispatch);
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function Books() {
   }, []);
 
   const toggleShowAdd = () => {
-    setShowAddBookLink(!showAddBookLink);
+    setShowAddBookForm(!showAddBookForm);
   };
 
   const booksList = state.books.map(
@@ -34,8 +34,8 @@ export default function Books() {
 
   return (
     <div>
-      <h1 onClick={ toggleShowAdd }>Books</h1>
-      { showAddBookLink && <Link to='/add-book'>Add Book</Link> }
+    <h1 onClick={ toggleShowAdd }>{ showAddBookForm ? "Add Book" : "Books" }</h1>
+      { showAddBookForm && <BookForm/> }
       <ul>
         { booksList }
       </ul>

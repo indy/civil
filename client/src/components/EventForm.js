@@ -81,20 +81,18 @@ export default function EventForm({event, setMsg}) {
     return <Redirect to={ redirectUrl } />;
   } else {
     return (
-      <article>
-        <section>
-          <form onSubmit={ handleSubmit }>
-              <label htmlFor="title">Title:</label>
-              <input id="title"
-                     type="text"
-                     name="title"
-                     value={ localState.title }
-                     autoComplete="off"
-                     onChange={ handleChangeEvent } />
-            <input type="submit" value="Save"/>
-          </form>
-        </section>
-      </article>
+      <form className="civil-form" onSubmit={ handleSubmit }>
+        <label htmlFor="title">Title:</label>
+        <br/>
+        <input id="title"
+               type="text"
+               name="title"
+               value={ localState.title }
+               autoComplete="off"
+               onChange={ handleChangeEvent } />
+        <br/>
+        <input type="submit" value={ setMsg ? "Update Event" : "Create Event"}/>
+      </form>
     );
   }
 }

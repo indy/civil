@@ -17,28 +17,21 @@ import Logout from './components/Logout';
 
 import Person from './components/Person';
 import People from './components/People';
-import PersonForm from './components/PersonForm';
 
 import Article from './components/Article';
 import Articles from './components/Articles';
-import ArticleForm from './components/ArticleForm';
 
 import Book from './components/Book';
 import Books from './components/Books';
-import BookForm from './components/BookForm';
 
 import Idea from './components/Idea';
 import Ideas from './components/Ideas';
-import IdeaForm from './components/IdeaForm';
 
 import Event from './components/Event';
 import Events from './components/Events';
-import EventForm from './components/EventForm';
 
 import Tag from './components/Tag';
 import Tags from './components/Tags';
-import TagForm from './components/TagForm';
-
 
 export default function App({ user }) {
   let state = initialState;
@@ -127,7 +120,6 @@ function AppUI() {
         </div>
         <hr/>
         <Switch>
-
           <Route exact path="/">
             <Home/>
           </Route>
@@ -137,67 +129,42 @@ function AppUI() {
           <PrivateRoute exact path="/logout">
             <Logout logoutCallback = { logoutHandler }/>
           </PrivateRoute>
-
           <PrivateRoute path={'/ideas/:id'}>
             <Idea/>
           </PrivateRoute>
           <PrivateRoute exact path="/ideas">
             <Ideas/>
           </PrivateRoute>
-          <PrivateRoute path={'/add-idea'}>
-            <IdeaForm/>
-          </PrivateRoute>
-
           <PrivateRoute path={'/people/:id'}>
             <Person/>
           </PrivateRoute>
           <PrivateRoute exact path="/people">
             <People/>
           </PrivateRoute>
-          <PrivateRoute path={'/add-person'}>
-            <PersonForm/>
-          </PrivateRoute>
-
           <PrivateRoute path={'/events/:id'}>
             <Event/>
           </PrivateRoute>
           <PrivateRoute exact path="/events">
             <Events/>
           </PrivateRoute>
-          <PrivateRoute path={'/add-event'}>
-            <EventForm/>
-          </PrivateRoute>
-
           <PrivateRoute path={'/articles/:id'}>
             <Article/>
           </PrivateRoute>
           <PrivateRoute exact path="/articles">
             <Articles/>
           </PrivateRoute>
-          <PrivateRoute path={'/add-article'}>
-            <ArticleForm/>
-          </PrivateRoute>
-
           <PrivateRoute path={'/books/:id'}>
             <Book/>
           </PrivateRoute>
           <PrivateRoute exact path="/books">
             <Books/>
           </PrivateRoute>
-          <PrivateRoute path={'/add-book'}>
-            <BookForm/>
-          </PrivateRoute>
-
           <PrivateRoute path={'/tags/:id'}>
             <Tag/>
           </PrivateRoute>
           <PrivateRoute exact path="/tags">
             <Tags/>
           </PrivateRoute>
-          <PrivateRoute path={'/add-tag'}>
-            <TagForm/>
-          </PrivateRoute>
-
         </Switch>
       </div>
     </Router>

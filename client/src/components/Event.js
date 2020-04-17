@@ -46,7 +46,7 @@ export default function Event(props) {
     let point = {
       title: 'Prime'
     };
-    return (<PointForm point={ point } onSubmit={ onAddPrimePoint } submitMessage="Create Point"/>);
+    return (<PointForm readOnlyTitle point={ point } onSubmit={ onAddPrimePoint } submitMessage="Create Point"/>);
   }
 
   return (

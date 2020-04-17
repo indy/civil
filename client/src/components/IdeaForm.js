@@ -66,19 +66,17 @@ export default function IdeaForm({ idea, setMsg }) {
     return <Redirect to={ redirectUrl } />;
   } else {
     return (
-      <article>
-        <section>
-          <form onSubmit={ handleSubmit }>
-            <label htmlFor="title">Title:</label>
-            <input id="title"
-                   type="text"
-                   name="title"
-                   value={ title }
-                   onChange={ handleChangeEvent } />
-            <input type="submit" value="Save"/>
-          </form>
-        </section>
-      </article>
+      <form className="civil-form" onSubmit={ handleSubmit }>
+        <label htmlFor="title">Title:</label>
+        <br/>
+        <input id="title"
+               type="text"
+               name="title"
+               value={ title }
+               onChange={ handleChangeEvent } />
+        <br/>
+        <input type="submit" value={ setMsg ? "Update Idea" : "Create Idea"}/>
+      </form>
     );
   }
 }

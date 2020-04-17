@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
-import { Link } from 'react-router-dom';
 import ListingLink from './ListingLink';
 import { useStateValue } from '../lib/state';
 import { ensureAC } from '../lib/utils';
 import { era, filterBefore, filterAfter, filterBetween } from '../lib/eras';
+import EventForm from './EventForm';
 
 export default function Events() {
   const [state, dispatch] = useStateValue();
-  let [showAddEventLink, setShowAddEventLink] = useState(false);
+  let [showAddEventForm, setShowAddEventForm] = useState(false);
   ensureAC(state, dispatch);
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function Events() {
   }, []);
 
   const toggleShowAdd = () => {
-    setShowAddEventLink(!showAddEventLink);
+    setShowAddEventForm(!showAddEventForm);
   };
 
   const uncategorisedEventsList = filterAfter(state.events, era.uncategorisedYear).map(createEventListing);
@@ -36,8 +36,8 @@ export default function Events() {
 
   return (
     <div>
-      <h1 onClick={ toggleShowAdd }>Events</h1>
-      { showAddEventLink && <Link to='/add-event'>Add Event</Link> }
+      <h1 onClick={ toggleShowAdd }>{ showAddEventForm ? "Add Event" : "Events" }</h1>
+      { showAddEventForm && <EventForm/> }
 
       { eventsList(uncategorisedEventsList, "Uncategorised")}
       { eventsList(ancientEventsList, "Ancient")}

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
-import { Link } from 'react-router-dom';
 import ListingLink from './ListingLink';
 import { useStateValue } from '../lib/state';
-import {ensureAC} from '../lib/utils';
+import { ensureAC } from '../lib/utils';
+import ArticleForm from './ArticleForm';
 
 export default function Articles() {
   const [state, dispatch] = useStateValue();
-  let [showAddArticleLink, setShowAddArticleLink] = useState(false);
+  let [showAddArticleForm, setShowAddArticleForm] = useState(false);
   ensureAC(state, dispatch);
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function Articles() {
   }, []);
 
   const toggleShowAdd = () => {
-    setShowAddArticleLink(!showAddArticleLink);
+    setShowAddArticleForm(!showAddArticleForm);
   };
 
   const articlesList = state.articles.map(
@@ -34,8 +34,8 @@ export default function Articles() {
 
   return (
     <div>
-      <h1 onClick={ toggleShowAdd }>Articles</h1>
-      { showAddArticleLink && <Link to='/add-article'>Add Article</Link> }
+      <h1 onClick={ toggleShowAdd }>{ showAddArticleForm ? "Add Article" : "Articles" }</h1>
+      { showAddArticleForm && <ArticleForm/> }
       <ul>
         { articlesList }
       </ul>

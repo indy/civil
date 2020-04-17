@@ -74,25 +74,25 @@ export default function BookForm({book, setMsg}) {
     return <Redirect to={ redirectUrl } />;
   } else {
     return (
-      <article>
-        <section>
-          <form onSubmit={ handleSubmit }>
-            <label htmlFor="title">Title:</label>
-            <input id="title"
-                   type="text"
-                   name="title"
-                   value={ title }
-                   onChange={ handleChangeEvent } />
-            <label htmlFor="author">Author:</label>
-            <input id="author"
-                   type="text"
-                   name="author"
-                   value={ author }
-                   onChange={ handleChangeEvent } />
-            <input type="submit" value="Save"/>
-          </form>
-        </section>
-      </article>
+      <form className="civil-form" onSubmit={ handleSubmit }>
+        <label htmlFor="title">Title:</label>
+        <br/>
+        <input id="title"
+               type="text"
+               name="title"
+               value={ title }
+               onChange={ handleChangeEvent } />
+        <br/>
+        <label htmlFor="author">Author:</label>
+        <br/>
+        <input id="author"
+               type="text"
+               name="author"
+               value={ author }
+               onChange={ handleChangeEvent } />
+        <br/>
+        <input type="submit" value={ setMsg ? "Update Book" : "Create Book"}/>
+      </form>
     );
   }
 }

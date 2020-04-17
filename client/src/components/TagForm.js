@@ -70,21 +70,18 @@ export default function TagForm({ tag, setMsg }) {
     return <Redirect to={ redirectUrl } />;
   } else {
     return (
-      <article>
-        <section>
-          <form onSubmit={ handleSubmit }>
-
-            <label htmlFor="name">Name:</label>
-            <input id="name"
-                   type="text"
-                   name="name"
-                   value={ name }
-                   autoComplete="off"
-                   onChange={ handleChangeEvent } />
-            <input type="submit" value="Save"/>
-          </form>
-        </section>
-      </article>
+      <form className="civil-form" onSubmit={ handleSubmit }>
+        <label htmlFor="name">Name:</label>
+        <br/>
+        <input id="name"
+               type="text"
+               name="name"
+               value={ name }
+               autoComplete="off"
+               onChange={ handleChangeEvent } />
+        <br/>
+        <input type="submit" value={ setMsg ? "Update Tag" : "Create Tag"}/>
+      </form>
     );
   }
 }

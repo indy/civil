@@ -28,8 +28,7 @@ export default function NoteForm(props) {
   };
 
   return (
-    <form onSubmit={ handleSubmit }>
-
+    <form className="civil-form" onSubmit={ handleSubmit }>
       <label htmlFor="title">Title:</label>
       <br/>
       <input id="title"
@@ -56,15 +55,15 @@ export default function NoteForm(props) {
              value={ source }
              onChange={ handleChangeEvent }
       />
-      <br/>
+      <p></p>
       <label htmlFor="separator">Has Separator:</label>
-      <br/>
       <input id="separator"
              type="checkbox"
              name="separator"
              value={ separator }
              onChange={ handleChangeEvent }
       />
+      <br/>
       <input type="submit" value="Save note"/>
     </form>
   );

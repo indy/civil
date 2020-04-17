@@ -30,6 +30,8 @@
 #civil-app {
 }
 
+.invisible { display: none; }
+
 .console-container {
   height: 90vh;
 }
@@ -328,9 +330,23 @@ a.top-bar-menuitem {
  * 2. Remove the margin in Firefox and Safari.
  */
 
-label {
-  padding-right: 2em;
-  margin-left: 1em;
+form {
+  width: 20em;
+}
+form label {
+  margin-left: 0.5em;
+}
+input {
+  width: 90%;
+}
+textarea {
+  width: 90%;
+}
+
+[type="submit"] {
+  margin-top: 1em;
+  margin-bottom: 3em;
+  width: 40%;
 }
 
 button,
@@ -506,9 +522,34 @@ div.note > textarea {
   display: inline-block;
 }
 
+.civil-form {
+  padding-top: 2em;
+}
 
 .civil-date-hint {
   color: #606060;
+  float:right;
+  padding-right: 1em;
+}
+
+.civil-date-hint-after {
+  clear: both;
+}
+
+#is-approx {
+  width: 10%;
+}
+
+#round-to-year {
+  width: 10%;
+}
+
+#separator {
+  width: 10%;
+}
+
+.point-title {
+  padding-bottom: 1em;
 }
 
 .civil-location input[type=number]{

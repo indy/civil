@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
-import { Link } from 'react-router-dom';
 import ListingLink from './ListingLink';
 import { useStateValue } from '../lib/state';
 import {ensureAC} from '../lib/utils';
+import IdeaForm from './IdeaForm';
 
 export default function Ideas() {
   const [state, dispatch] = useStateValue();
-  let [showAddIdeaLink, setShowAddIdeaLink] = useState(false);
+  let [showAddIdeaForm, setShowAddIdeaForm] = useState(false);
   ensureAC(state, dispatch);
 
   useEffect(() => {
@@ -26,7 +26,7 @@ export default function Ideas() {
   }, []);
 
   const toggleShowAdd = () => {
-    setShowAddIdeaLink(!showAddIdeaLink);
+    setShowAddIdeaForm(!showAddIdeaForm);
   };
 
   const ideasList = state.ideas.map(
@@ -35,8 +35,8 @@ export default function Ideas() {
 
   return (
     <div>
-      <h1 onClick={ toggleShowAdd }>Ideas</h1>
-      { showAddIdeaLink && <Link to='/add-idea'>Add Idea</Link> }
+      <h1 onClick={ toggleShowAdd }>{ showAddIdeaForm ? "Add Idea" : "Ideas" }</h1>
+      { showAddIdeaForm && <IdeaForm/> }
       <ul>
         { ideasList }
       </ul>
