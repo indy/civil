@@ -36,22 +36,27 @@ export default function TagForm({ tag, setMsg }) {
     } else {
       // create a new tag
       Net.post('/api/tags', data).then(tag => {
-
-        // update the app's autocomplete with this explicitly created tag
-        //
-        // (normally tags are implicitly created on first use and
-        // NoteHolder::addNewTagsToAutocomplete updates the state's
-        // autocomplete array).
-        //
-        // Here we're just adding an array of one
-        //
-        dispatch({
-          type: 'addAutocompleteTags',
-          tags: [{
-            id: tag.id,
-            value: tag.name,
-            label: tag.name
-          }]
+        Net.get('/api/tags').then(tags => {
+          dispatch({
+            type: 'setTags',
+            tags
+          });
+          // update the app's autocomplete with this explicitly created tag
+          //
+          // (normally tags are implicitly created on first use and
+          // NoteHolder::addNewTagsToAutocomplete updates the state's
+          // autocomplete array).
+          //
+          // Here we're just adding an array of one
+          //
+          dispatch({
+            type: 'addAutocompleteTags',
+            tags: [{
+              id: tag.id,
+              value: tag.name,
+              label: tag.name
+            }]
+          });
         });
 
         setRedirectUrl(`tags/${tag.id}`);

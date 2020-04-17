@@ -51,14 +51,18 @@ export default function BookForm({book, setMsg}) {
     } else {
       // create a new book
       Net.post('/api/books', data).then(book => {
-
-        dispatch({
-          type: 'addAutocompleteDeck',
-          id: book.id,
-          value: book.title,
-          label: book.title
+        Net.get('/api/books').then(books => {
+          dispatch({
+            type: 'setBooks',
+            books
+          });
+          dispatch({
+            type: 'addAutocompleteDeck',
+            id: book.id,
+            value: book.title,
+            label: book.title
+          });
         });
-
         setRedirectUrl(`books/${book.id}`);
       });
     }

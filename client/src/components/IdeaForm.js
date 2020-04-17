@@ -43,14 +43,18 @@ export default function IdeaForm({ idea, setMsg }) {
     } else {
       // create a new idea
       Net.post('/api/ideas', data).then(idea => {
-
-        dispatch({
-          type: 'addAutocompleteDeck',
-          id: idea.id,
-          value: idea.title,
-          label: idea.title
+        Net.get('/api/ideas').then(ideas => {
+          dispatch({
+            type: 'setIdeas',
+            ideas
+          });
+          dispatch({
+            type: 'addAutocompleteDeck',
+            id: idea.id,
+            value: idea.title,
+            label: idea.title
+          });
         });
-
         setRedirectUrl(`ideas/${idea.id}`);
       });
     }

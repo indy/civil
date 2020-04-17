@@ -14,7 +14,6 @@ export default function Events() {
   useEffect(() => {
     async function fetcher() {
       const events = await Net.get('/api/events');
-      console.log(events);
       dispatch({
         type: 'setEvents',
         events
