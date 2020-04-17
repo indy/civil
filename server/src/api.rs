@@ -18,12 +18,12 @@
 use crate::handler::articles;
 use crate::handler::autocomplete;
 use crate::handler::books;
-use crate::handler::dashboard;
 use crate::handler::edges;
 use crate::handler::events;
 use crate::handler::ideas;
 use crate::handler::notes;
 use crate::handler::people;
+use crate::handler::recent;
 use crate::handler::search;
 use crate::handler::tags;
 use crate::handler::users;
@@ -42,8 +42,8 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         )
         // search
         .service(scope("/search").route("", get().to(search::get)))
-        // dashboard
-        .service(scope("/dashboard").route("", get().to(dashboard::get)))
+        // recent
+        .service(scope("/recent").route("", get().to(recent::get)))
         // registration
         .service(
             scope("/users")

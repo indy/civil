@@ -35,7 +35,6 @@ struct EventDerived {
     prime_date: Option<chrono::NaiveDate>,
 }
 
-
 impl From<EventDerived> for interop::Event {
     fn from(e: EventDerived) -> interop::Event {
         interop::Event {

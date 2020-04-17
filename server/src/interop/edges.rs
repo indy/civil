@@ -18,14 +18,6 @@
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct Edge {
-    pub from_deck_id: Option<Key>,
-    pub to_deck_id: Option<Key>,
-    pub from_note_id: Option<Key>,
-    pub to_note_id: Option<Key>,
-}
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct CreateEdgeFromNoteToDecks {
     pub note_id: Key,
     pub deck_ids: Vec<Key>,
@@ -38,23 +30,4 @@ pub struct CreateEdgeFromNoteToTags {
     pub note_id: Key,
     pub existing_tag_ids: Vec<Key>,
     pub new_tag_names: Vec<String>,
-}
-
-// links to decks/tags on the side of notes
-//
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct MarginConnection {
-    pub note_id: Key,
-    pub id: Key,
-    pub name: String,
-    pub resource: String,
-}
-
-// on a tag page these will represent links back to decks, ideas and other tags
-//
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct LinkBack {
-    pub id: Key,
-    pub name: String,
-    pub resource: String,
 }

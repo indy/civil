@@ -18,7 +18,6 @@
 pub mod articles;
 pub mod autocomplete;
 pub mod books;
-pub mod dashboard;
 pub mod decks;
 pub mod edges;
 pub mod events;
@@ -27,6 +26,5 @@ pub mod notes;
 pub mod people;
 mod pg;
 pub mod points;
-pub mod search;
 pub mod tags;
 pub mod users;

@@ -16,20 +16,30 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
-use crate::persist::dashboard as db;
+use crate::persist::decks as db;
 use crate::session;
-use actix_web::web::Data;
+use actix_web::web::{self, Data};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
+use serde::Deserialize;
 
 #[allow(unused_imports)]
 use tracing::info;
 
-pub async fn get(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
-    info!("get");
+#[derive(Deserialize)]
+pub struct RecentQuery {
+    resource: String,
+}
+
+pub async fn get(
+    db_pool: Data<Pool>,
+    session: actix_session::Session,
+    web::Query(query): web::Query<RecentQuery>,
+) -> Result<HttpResponse> {
+    info!("get {}", &query.resource);
 
     let user_id = session::user_id(&session)?;
 
-    let dashboard = db::get(&db_pool, user_id).await?;
-    Ok(HttpResponse::Ok().json(dashboard))
+    let search = db::recent(&db_pool, user_id, &query.resource).await?;
+    Ok(HttpResponse::Ok().json(search))
 }

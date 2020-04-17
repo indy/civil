@@ -15,14 +15,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::edges::LinkBack;
+use crate::interop::Key;
+
+// links to decks/tags on the side of notes
+//
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct MarginConnection {
+    pub note_id: Key,
+    pub id: Key,
+    pub name: String,
+    pub resource: String,
+}
+
+// on a tag page these will represent links back to decks, ideas and other tags
+//
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct LinkBack {
+    pub id: Key,
+    pub name: String,
+    pub resource: String,
+}
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct Dashboard {
-    pub tags: Vec<LinkBack>,
-    pub articles: Vec<LinkBack>,
-    pub books: Vec<LinkBack>,
-    pub people: Vec<LinkBack>,
-    pub events: Vec<LinkBack>,
-    pub ideas: Vec<LinkBack>,
+pub struct Search {
+    pub results: Vec<LinkBack>,
 }

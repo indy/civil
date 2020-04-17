@@ -18,14 +18,13 @@
 pub mod articles;
 pub mod autocomplete;
 pub mod books;
-pub mod dashboard;
+pub mod decks;
 pub mod edges;
 pub mod events;
 pub mod ideas;
 pub mod notes;
 pub mod people;
 pub mod points;
-pub mod search;
 pub mod tags;
 pub mod users;
 
@@ -61,6 +60,18 @@ impl std::fmt::Display for Model {
             Model::Event => write!(f, "Model::Event"),
             Model::Point => write!(f, "Mode::Point"),
         }
+    }
+}
+
+pub(crate) fn resource_to_kind(resource: &str) -> Result<&'static str> {
+    match resource {
+        "people" => Ok("person"),
+        "events" => Ok("event"),
+        "articles" => Ok("article"),
+        "books" => Ok("book"),
+        "ideas" => Ok("idea"),
+        "tags" => Ok("tag"),
+        _ => Err(Error::InvalidResource),
     }
 }
 

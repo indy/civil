@@ -19,7 +19,6 @@ use super::pg;
 use crate::error::{Error, Result};
 use crate::interop::notes as interop;
 use crate::interop::Key;
-use crate::persist::edges;
 use bytes::{BufMut, BytesMut};
 use deadpool_postgres::{Client, Pool, Transaction};
 use serde::{Deserialize, Serialize};
@@ -177,7 +176,12 @@ pub(crate) async fn delete_note_pool(db_pool: &Pool, user_id: Key, note_id: Key)
 }
 
 pub(crate) async fn delete_note(tx: &Transaction<'_>, user_id: Key, note_id: Key) -> Result<()> {
-    edges::delete_all_edges_connected_with_note(&tx, note_id).await?;
+    pg::zero(
+        tx,
+        &include_str!("sql/edges_delete_notes_decks_with_note_id.sql"),
+        &[&note_id],
+    )
+    .await?;
 
     let stmt = include_str!("sql/notes_delete.sql");
     pg::zero(&tx, &stmt, &[&note_id, &user_id]).await?;

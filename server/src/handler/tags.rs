@@ -18,9 +18,8 @@
 use crate::error::Result;
 use crate::interop::tags as interop;
 use crate::interop::{IdParam, Key};
-use crate::persist::edges as edges_db;
+use crate::persist::decks as decks_db;
 use crate::persist::notes as notes_db;
-use crate::persist::search as search_db;
 use crate::persist::tags as db;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
@@ -112,15 +111,15 @@ async fn augment(
     let notes = notes_db::all_from_deck(&db_pool, tag_id).await?;
     tag.notes = Some(notes);
 
-    let decks_in_notes = edges_db::from_deck_id_via_notes_to_decks(&db_pool, tag_id).await?;
+    let decks_in_notes = decks_db::from_deck_id_via_notes_to_decks(&db_pool, tag_id).await?;
     tag.decks_in_notes = Some(decks_in_notes);
 
-    let linkbacks_to_decks = edges_db::from_decks_via_notes_to_deck_id(&db_pool, tag_id).await?;
+    let linkbacks_to_decks = decks_db::from_decks_via_notes_to_deck_id(&db_pool, tag_id).await?;
     tag.linkbacks_to_decks = Some(linkbacks_to_decks);
 
     // todo: replace hyphens with spaces
     // todo: dedupe against any of the above linkbacks
-    let search = search_db::get(&db_pool, user_id, &tag.name).await?;
+    let search = decks_db::search(&db_pool, user_id, &tag.name).await?;
     tag.search_results = Some(search.results);
 
     Ok(())

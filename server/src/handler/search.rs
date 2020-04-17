@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
-use crate::persist::search as db;
+use crate::persist::decks as db;
 use crate::session;
 use actix_web::web::{self, Data};
 use actix_web::HttpResponse;
@@ -40,6 +40,6 @@ pub async fn get(
 
     let user_id = session::user_id(&session)?;
 
-    let search = db::get(&db_pool, user_id, &query.q).await?;
+    let search = db::search(&db_pool, user_id, &query.q).await?;
     Ok(HttpResponse::Ok().json(search))
 }

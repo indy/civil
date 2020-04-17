@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::edges::{LinkBack, MarginConnection};
+use crate::interop::decks::{LinkBack, MarginConnection};
 use crate::interop::notes::Note;
 use crate::interop::points::Point;
 use crate::interop::Key;

@@ -17,11 +17,12 @@
 
 use super::pg;
 use crate::error::{Error, Result};
+use crate::interop::decks as decks_interop;
 use crate::interop::edges as interop;
 use crate::interop::tags as tags_interop;
 use crate::interop::{kind_to_resource, Key};
 use crate::persist::tags as tags_db;
-use deadpool_postgres::{Client, Pool, Transaction};
+use deadpool_postgres::{Client, Pool};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
@@ -37,125 +38,14 @@ pub struct MarginConnectionToDeck {
     pub kind: String,
 }
 
-impl From<MarginConnectionToDeck> for interop::MarginConnection {
-    fn from(e: MarginConnectionToDeck) -> interop::MarginConnection {
+impl From<MarginConnectionToDeck> for decks_interop::MarginConnection {
+    fn from(e: MarginConnectionToDeck) -> decks_interop::MarginConnection {
         let resource = kind_to_resource(e.kind.as_ref()).unwrap();
-        interop::MarginConnection {
+        decks_interop::MarginConnection {
             note_id: e.note_id,
             id: e.id,
             name: e.name,
             resource: resource.to_string(),
-        }
-    }
-}
-
-#[derive(Debug, Deserialize, PostgresMapper, Serialize)]
-#[pg_mapper(table = "notes_decks")]
-struct NoteDeckEdge {
-    note_id: Key,
-    deck_id: Key,
-}
-
-impl From<NoteDeckEdge> for interop::Edge {
-    fn from(e: NoteDeckEdge) -> interop::Edge {
-        interop::Edge {
-            from_deck_id: None,
-            to_deck_id: Some(e.deck_id),
-            from_note_id: Some(e.note_id),
-            to_note_id: None,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "tags")]
-struct TagReference {
-    note_id: Key,
-    id: Key,
-    name: String,
-}
-
-impl From<TagReference> for interop::MarginConnection {
-    fn from(t: TagReference) -> interop::MarginConnection {
-        interop::MarginConnection {
-            note_id: t.note_id,
-            id: t.id,
-            name: t.name,
-            resource: String::from("tags"),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
-struct DeckReference {
-    note_id: Key,
-    id: Key,
-    name: String,
-    kind: String,
-}
-
-impl From<DeckReference> for interop::MarginConnection {
-    fn from(d: DeckReference) -> interop::MarginConnection {
-        let resource = kind_to_resource(d.kind.as_ref()).unwrap();
-        interop::MarginConnection {
-            note_id: d.note_id,
-            id: d.id,
-            name: d.name,
-            resource: resource.to_string(),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
-pub struct LinkBackToDeck {
-    pub id: Key,
-    pub name: String,
-    pub kind: String,
-}
-
-impl From<LinkBackToDeck> for interop::LinkBack {
-    fn from(d: LinkBackToDeck) -> interop::LinkBack {
-        let resource = kind_to_resource(d.kind.as_ref()).unwrap();
-        interop::LinkBack {
-            id: d.id,
-            name: d.name,
-            resource: resource.to_string(),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "tags")]
-pub struct LinkBackToTag {
-    pub id: Key,
-    pub name: String,
-}
-
-impl From<LinkBackToTag> for interop::LinkBack {
-    fn from(d: LinkBackToTag) -> interop::LinkBack {
-        interop::LinkBack {
-            id: d.id,
-            name: d.name,
-            resource: String::from("tags"),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "ideas")]
-struct LinkBackToIdea {
-    id: Key,
-    title: String,
-}
-
-impl From<LinkBackToIdea> for interop::LinkBack {
-    fn from(d: LinkBackToIdea) -> interop::LinkBack {
-        interop::LinkBack {
-            id: d.id,
-            name: d.title,
-            resource: String::from("ideas"),
         }
     }
 }
@@ -246,7 +136,7 @@ pub(crate) async fn create_from_note_to_tags(
 pub(crate) async fn create_from_note_to_decks(
     db_pool: &Pool,
     edge: &interop::CreateEdgeFromNoteToDecks,
-) -> Result<Vec<interop::MarginConnection>> {
+) -> Result<Vec<decks_interop::MarginConnection>> {
     info!("create_from_note_to_decks");
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
@@ -281,90 +171,10 @@ pub(crate) async fn create_from_note_to_decks(
     tx.commit().await?;
 
     // return a list of [tag_id, name, resource] containing the complete set of tags associated with this note.
-    pg::many_from::<MarginConnectionToDeck, interop::MarginConnection>(
+    pg::many_from::<MarginConnectionToDeck, decks_interop::MarginConnection>(
         db_pool,
         &stmt_all_decks,
         &[&note_id],
     )
     .await
-}
-
-pub(crate) async fn delete_all_edges_connected_with_deck(
-    tx: &Transaction<'_>,
-    deck_id: Key,
-) -> Result<()> {
-    pg::zero(
-        tx,
-        &include_str!("sql/edges_delete_notes_decks_with_deck_id.sql"),
-        &[&deck_id],
-    )
-    .await?;
-
-    Ok(())
-}
-
-pub(crate) async fn delete_all_edges_connected_with_note(
-    tx: &Transaction<'_>,
-    note_id: Key,
-) -> Result<()> {
-    pg::zero(
-        tx,
-        &include_str!("sql/edges_delete_notes_decks_with_note_id.sql"),
-        &[&note_id],
-    )
-    .await?;
-
-    Ok(())
-}
-
-// return all the referenced decks in the given deck
-// e.g. from_deck_id_via_notes_to_decks(db_pool, article_id)
-// will return all the people, events, books, articles etc mentioned in the given article
-//
-pub(crate) async fn from_deck_id_via_notes_to_decks(
-    db_pool: &Pool,
-    deck_id: Key,
-) -> Result<Vec<interop::MarginConnection>> {
-    margin_connections::<DeckReference>(
-        db_pool,
-        include_str!("sql/from_deck_id_via_notes_to_decks.sql"),
-        deck_id,
-    )
-    .await
-}
-
-// return all the decks of a certain kind that mention another particular deck.
-// e.g. from_decks_via_notes_to_deck_id(db_pool, Model::Person, article_id)
-// will return all the people who mention the given article, ordered by number of references
-//
-pub(crate) async fn from_decks_via_notes_to_deck_id(
-    db_pool: &Pool,
-    deck_id: Key,
-) -> Result<Vec<interop::LinkBack>> {
-    linkbacks::<LinkBackToDeck>(
-        db_pool,
-        include_str!("sql/from_decks_via_notes_to_deck_id.sql"),
-        deck_id,
-    )
-    .await
-}
-
-async fn margin_connections<T>(
-    db_pool: &Pool,
-    stmt: &str,
-    id: Key,
-) -> Result<Vec<interop::MarginConnection>>
-where
-    interop::MarginConnection: std::convert::From<T>,
-    T: tokio_pg_mapper::FromTokioPostgresRow,
-{
-    pg::many_from::<T, interop::MarginConnection>(db_pool, stmt, &[&id]).await
-}
-
-async fn linkbacks<T>(db_pool: &Pool, stmt: &str, id: Key) -> Result<Vec<interop::LinkBack>>
-where
-    interop::LinkBack: std::convert::From<T>,
-    T: tokio_pg_mapper::FromTokioPostgresRow,
-{
-    pg::many_from::<T, interop::LinkBack>(db_pool, stmt, &[&id]).await
 }

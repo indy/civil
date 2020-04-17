@@ -19,7 +19,7 @@ use crate::error::Result;
 use crate::interop::books as interop;
 use crate::interop::{IdParam, Key};
 use crate::persist::books as db;
-use crate::persist::edges as edges_db;
+use crate::persist::decks as decks_db;
 use crate::persist::notes as notes_db;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
@@ -106,10 +106,10 @@ async fn augment(db_pool: &Data<Pool>, book: &mut interop::Book, book_id: Key) -
     let notes = notes_db::all_from_deck(&db_pool, book_id).await?;
     book.notes = Some(notes);
 
-    let decks_in_notes = edges_db::from_deck_id_via_notes_to_decks(&db_pool, book_id).await?;
+    let decks_in_notes = decks_db::from_deck_id_via_notes_to_decks(&db_pool, book_id).await?;
     book.decks_in_notes = Some(decks_in_notes);
 
-    let linkbacks_to_decks = edges_db::from_decks_via_notes_to_deck_id(&db_pool, book_id).await?;
+    let linkbacks_to_decks = decks_db::from_decks_via_notes_to_deck_id(&db_pool, book_id).await?;
     book.linkbacks_to_decks = Some(linkbacks_to_decks);
 
     Ok(())

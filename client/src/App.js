@@ -16,7 +16,6 @@ import Login from './components/Login';
 import Logout from './components/Logout';
 
 import Shell from './components/Shell';
-import Dashboard from './components/Dashboard';
 
 import Person from './components/Person';
 import People from './components/People';
@@ -105,7 +104,6 @@ function AppUI() {
         <div id='top-bar-menu'>
           <Link className='top-bar-menuitem' to={'/'}>Home</Link>
           <Link className='top-bar-menuitem' to={'/shell'}>Shell</Link>
-          <Link className='top-bar-menuitem' to={'/dashboard'}>Dashboard</Link>
           <Link className='top-bar-menuitem' to={'/ideas'}>Ideas</Link>
           <Link className='top-bar-menuitem' to={'/tags'}>Tags</Link>
           <Link className='top-bar-menuitem' to={'/books'}>Books</Link>
@@ -129,10 +127,6 @@ function AppUI() {
 
           <PrivateRoute path={'/shell'}>
             <Shell/>
-          </PrivateRoute>
-
-          <PrivateRoute path={'/dashboard'}>
-            <Dashboard/>
           </PrivateRoute>
 
           <PrivateRoute path={'/ideas/:id'}>

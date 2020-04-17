@@ -41,6 +41,7 @@ pub enum Error {
     ModelConversion,
     ModelNonUniqueTableName,
     InvalidKind,
+    InvalidResource,
     Other,
 }
 

@@ -19,7 +19,7 @@ use crate::error::Result;
 use crate::interop::people as interop;
 use crate::interop::points as points_interop;
 use crate::interop::{IdParam, Key};
-use crate::persist::edges as edges_db;
+use crate::persist::decks as decks_db;
 use crate::persist::notes as notes_db;
 use crate::persist::people as db;
 use crate::persist::points as points_db;
@@ -136,10 +136,10 @@ async fn augment(
     let notes = notes_db::all_from_deck(&db_pool, person_id).await?;
     person.notes = Some(notes);
 
-    let decks_in_notes = edges_db::from_deck_id_via_notes_to_decks(&db_pool, person_id).await?;
+    let decks_in_notes = decks_db::from_deck_id_via_notes_to_decks(&db_pool, person_id).await?;
     person.decks_in_notes = Some(decks_in_notes);
 
-    let linkbacks_to_decks = edges_db::from_decks_via_notes_to_deck_id(&db_pool, person_id).await?;
+    let linkbacks_to_decks = decks_db::from_decks_via_notes_to_deck_id(&db_pool, person_id).await?;
     person.linkbacks_to_decks = Some(linkbacks_to_decks);
 
     Ok(())
