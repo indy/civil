@@ -26,7 +26,7 @@ export default function Point({ point, parentResource }) {
 
   return (
     <div onClick={ onShowForm }>
-      <p className="subtitle">{ title } { date } { location }</p>
+      <p className="subtitle">&mdash;{ title } { date } { location }</p>
       { showForm && buildShowForm () }
     </div>
   );

@@ -13,6 +13,7 @@ import NoteCompiler from '../lib/NoteCompiler';
 import SectionLinkBacks from './SectionLinkBacks';
 import { useStateValue } from '../lib/state';
 import { ensureAC, separateIntoTagsAndDecks } from '../lib/utils';
+import { addChronologicalSortYear } from '../lib/eras';
 
 export default function NoteHolder({holder, setMsg, title, resource, isLoaded, updateForm, children}) {
   // UNCOMMENT to enable deleting
@@ -80,12 +81,7 @@ export default function NoteHolder({holder, setMsg, title, resource, isLoaded, u
             notes.push(n);
           });
 
-          dispatch({
-            type: setMsg,
-            id: holder.id,
-            newItem: {...holder, notes}
-          });
-
+          setHolder(dispatch, {...holder, notes}, setMsg);
           setShowNoteForm(false);
           setShowUpdateForm(false);
         });
@@ -98,8 +94,12 @@ export default function NoteHolder({holder, setMsg, title, resource, isLoaded, u
 
   function buildPointForm() {
     function onAddPoint(point) {
-      console.log('NoteHolder::buildPointForm::onAddPoint');
-      console.log(point);
+      const url = `/api/${resource}/${holder.id}/points`;
+      Net.post(url, point).then(updatedHolder => {
+        sortPoints(updatedHolder);
+        setHolder(dispatch, updatedHolder, setMsg);
+        setShowPointForm(false);
+      });
     };
 
     return (
@@ -138,6 +138,21 @@ export default function NoteHolder({holder, setMsg, title, resource, isLoaded, u
   );
 }
 
+function sortPoints(holder) {
+  if (holder.points) {
+    holder.points = holder.points
+        .map(addChronologicalSortYear)
+        .sort((a, b) => a.sort_year > b.sort_year);
+  }
+}
+
+function setHolder(dispatch, holder, setMsg) {
+  dispatch({
+    type: setMsg,
+    id: holder.id,
+    newItem: holder
+  });
+}
 
 function showPoints(points, resource) {
   function buildPoint(point) {
@@ -162,11 +177,9 @@ function ensureCorrectNoteHolder(resource, id, isLoaded, setMsg, dispatch) {
       const url = `/api/${resource}/${id}`;
       Net.get(url).then(s => {
         if (s) {
-          dispatch({
-            type: setMsg,
-            id: s.id,
-            newItem: applyTagsAndDecksToNotes(s)
-          });
+          let updatedHolder = applyTagsAndDecksToNotes(s);
+          sortPoints(updatedHolder);
+          setHolder(dispatch, updatedHolder, setMsg);
         } else {
           console.error(`error: fetchDeck for ${url}`);
         }
@@ -211,12 +224,7 @@ function NoteManager(holder, setMsg) {
     const index = notes.findIndex(n => n.id === id);
 
     modifyFn(notes, index);
-
-    dispatch({
-      type: setMsg,
-      id: holder.id,
-      newItem: {...holder, notes}
-    });
+    setHolder(dispatch, {...holder, notes}, setMsg);
   };
 
   function onEditedNote(id, data) {

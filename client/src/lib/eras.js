@@ -32,6 +32,17 @@ export function addSortYear(p) {
   }
 }
 
+export function addChronologicalSortYear(p) {
+  if (p.exact_date) {
+    p.sort_year = yearFrom(p.exact_date);
+  } else if (p.lower_date) {
+    p.sort_year = yearFrom(p.lower_date);
+  } else {
+    p.sort_year = era.uncategorisedYear;
+  }
+  return p;
+}
+
 function yearFrom(dateString) {
   let res = 0;
   if (dateString[0] === '-') {
