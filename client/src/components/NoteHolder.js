@@ -73,8 +73,7 @@ export default function NoteHolder({holder, setMsg, title, resource, isLoaded, u
   function buildNoteForm() {
     function onAddNote(e) {
       const noteForm = e.target;
-      const ident = resource === "tags" ? { tag_id: id } : { deck_id: id };
-      addNote(noteForm, ident)
+      addNote(noteForm, { deck_id: id })
         .then(newNotes => {
           const notes = holder.notes;
           newNotes.forEach(n => {

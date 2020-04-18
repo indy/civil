@@ -13,7 +13,6 @@ export default function Tags() {
   useEffect(() => {
     async function fetcher() {
       const tags = await Net.get('/api/tags');
-
       dispatch({
         type: 'setTags',
         tags

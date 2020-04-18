@@ -94,11 +94,11 @@ pub(crate) async fn create_notes(
             &tx,
             user_id,
             deck_id,
-            note,
             NoteType::Note,
             note.title.as_ref(),
             &note.content[0],
             note.separator,
+            &note.source,
         )
         .await?;
 
@@ -110,11 +110,11 @@ pub(crate) async fn create_notes(
                 &tx,
                 user_id,
                 deck_id,
-                note,
                 NoteType::Note,
                 None,
                 content,
                 false,
+                &None,
             )
             .await?;
             notes.push(res);
@@ -193,11 +193,11 @@ pub(crate) async fn create_common(
     tx: &Transaction<'_>,
     user_id: Key,
     deck_id: Key,
-    note: &interop::CreateNote,
     note_type: NoteType,
     title: Option<&String>,
     content: &str,
     separator: bool,
+    source: &Option<String>,
 ) -> Result<interop::Note> {
     let db_note = pg::one::<Note>(
         tx,
@@ -207,7 +207,7 @@ pub(crate) async fn create_common(
             &deck_id,
             &note_type,
             &title,
-            &note.source,
+            source,
             &content,
             &separator,
         ],
