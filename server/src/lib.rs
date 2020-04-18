@@ -16,10 +16,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 mod api;
+mod db;
 mod error;
 mod handler;
 mod interop;
-mod persist;
 mod session;
 
 pub use crate::error::Result;

@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::decks as db;
 use crate::error::Result;
-use crate::persist::decks as db;
 use crate::session;
 use actix_web::web::{self, Data};
 use actix_web::HttpResponse;

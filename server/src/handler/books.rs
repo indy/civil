@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::books as db;
+use crate::db::decks as decks_db;
+use crate::db::notes as notes_db;
 use crate::error::Result;
 use crate::interop::books as interop;
 use crate::interop::{IdParam, Key};
-use crate::persist::books as db;
-use crate::persist::decks as decks_db;
-use crate::persist::notes as notes_db;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;

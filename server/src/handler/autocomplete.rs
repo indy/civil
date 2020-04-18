@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::autocomplete as db;
 use crate::error::Result;
-use crate::persist::autocomplete as db;
 use crate::session;
 use actix_web::web::Data;
 use actix_web::HttpResponse;

@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::edges as db;
 use crate::error::Result;
 use crate::interop::edges as interop;
-use crate::persist::edges as db;
 use crate::session;
 use actix_web::web::{Data, Json};
 use actix_web::HttpResponse;

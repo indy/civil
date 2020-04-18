@@ -15,10 +15,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::notes as db;
 use crate::error::Result;
 use crate::interop::notes as interop;
 use crate::interop::IdParam;
-use crate::persist::notes as db;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;

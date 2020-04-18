@@ -15,14 +15,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::decks as decks_db;
+use crate::db::notes as notes_db;
+use crate::db::people as db;
+use crate::db::points as points_db;
 use crate::error::Result;
 use crate::interop::people as interop;
 use crate::interop::points as points_interop;
 use crate::interop::{IdParam, Key};
-use crate::persist::decks as decks_db;
-use crate::persist::notes as notes_db;
-use crate::persist::people as db;
-use crate::persist::points as points_db;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;

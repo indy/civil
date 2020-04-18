@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::users as db;
 use crate::error::{Error, Result};
 use crate::interop::users as interop;
-use crate::persist::users as db;
 use crate::session;
 use actix_web::web::{Data, Json};
 use actix_web::HttpResponse;
