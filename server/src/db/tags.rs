@@ -50,6 +50,22 @@ impl From<Tag> for interop::Tag {
     }
 }
 
+impl From<&Tag> for interop::Tag {
+    fn from(s: &Tag) -> interop::Tag {
+        interop::Tag {
+            id: s.id,
+            name: String::from(&s.name),
+
+            notes: None,
+
+            decks_in_notes: None,
+            linkbacks_to_decks: None,
+
+            search_results: None,
+        }
+    }
+}
+
 pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Tag>> {
     pg::many_from::<Tag, interop::Tag>(db_pool, include_str!("sql/tags_all.sql"), &[&user_id]).await
 }
@@ -63,34 +79,21 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key, tag_id: Key) -> Result<int
     .await
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
-pub struct TagCount {
-    pub count: i32,
-}
-
 pub(crate) async fn create(
     db_pool: &Pool,
     user_id: Key,
     tag: &interop::ProtoTag,
 ) -> Result<interop::Tag> {
-    let count: TagCount = pg::one_non_transactional::<TagCount>(
+    let found: Vec<Tag> = pg::many_non_transactional::<Tag>(
         db_pool,
-        include_str!("sql/tags_get_count_by_name.sql"),
+        include_str!("sql/tags_get_by_name.sql"),
         &[&user_id, &tag.name],
     )
     .await?;
 
-    if count.count != 0 {
+    if found.len() > 0 {
         error!("tag: {} already exists", tag.name);
-        // figure out the bug that causes this and then get rid of these extra checks and db calls
-
-        pg::one_from::<Tag, interop::Tag>(
-            db_pool,
-            include_str!("sql/tags_get_by_name.sql"),
-            &[&user_id, &tag.name],
-        )
-        .await
+        Ok(interop::Tag::from(&found[0]))
     } else {
         pg::one_from::<Tag, interop::Tag>(
             db_pool,

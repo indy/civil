@@ -151,6 +151,36 @@ where
     }
 }
 
+pub async fn many_non_transactional<T>(
+    db_pool: &Pool,
+    sql_query: &str,
+    sql_params: &[&(dyn tokio_postgres::types::ToSql + std::marker::Sync)],
+) -> Result<Vec<T>>
+where
+    T: FromTokioPostgresRow,
+{
+    let client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
+
+    let _stmt = sql_query;
+    let _stmt = _stmt.replace("$table_fields", &T::sql_table_fields());
+    let stmt = match client.prepare(&_stmt).await {
+        Ok(stmt) => stmt,
+        Err(e) => {
+            error!("{}", e);
+            return Err(Error::from(e));
+        }
+    };
+
+    let vec = client
+        .query(&stmt, sql_params)
+        .await?
+        .iter()
+        .map(|row| T::from_row_ref(row).unwrap())
+        .collect::<Vec<T>>();
+
+    Ok(vec)
+}
+
 // queries the db, storing results in S then converts that into a T
 //
 pub async fn one_from<S, T>(
