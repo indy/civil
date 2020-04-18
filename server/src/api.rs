@@ -31,6 +31,7 @@ use actix_files::NamedFile;
 use actix_web::dev;
 use actix_web::middleware::errhandlers::ErrorHandlerResponse;
 use actix_web::web::{delete, get, post, put, scope};
+use tracing::warn;
 
 pub fn public_api(mount_point: &str) -> actix_web::Scope {
     scope(mount_point)
@@ -128,6 +129,7 @@ pub fn bad_request<B>(res: dev::ServiceResponse<B>) -> actix_web::Result<ErrorHa
     let new_resp = NamedFile::open("errors/400.html")?
         .set_status_code(res.status())
         .into_response(res.request())?;
+    warn!("bad request: {:?} {:?}", &res.status(), &res.request());
     Ok(ErrorHandlerResponse::Response(
         res.into_response(new_resp.into_body()),
     ))
@@ -137,6 +139,7 @@ pub fn not_found<B>(res: dev::ServiceResponse<B>) -> actix_web::Result<ErrorHand
     let new_resp = NamedFile::open("errors/404.html")?
         .set_status_code(res.status())
         .into_response(res.request())?;
+    warn!("not found: {:?} {:?}", &res.status(), &res.request());
     Ok(ErrorHandlerResponse::Response(
         res.into_response(new_resp.into_body()),
     ))
@@ -148,6 +151,7 @@ pub fn internal_server_error<B>(
     let new_resp = NamedFile::open("errors/500.html")?
         .set_status_code(res.status())
         .into_response(res.request())?;
+    warn!("internal server error: {:?} {:?}", &res.status(), &res.request());
     Ok(ErrorHandlerResponse::Response(
         res.into_response(new_resp.into_body()),
     ))
