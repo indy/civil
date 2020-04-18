@@ -2,7 +2,7 @@ import React from 'react';
 
 import BookForm from './BookForm';
 import NoteHolder from './NoteHolder';
-import { idParam } from '../lib/utils';
+import { idParam } from '../lib/reactUtils';
 import { useStateValue } from '../lib/state';
 
 export default function Book(props) {

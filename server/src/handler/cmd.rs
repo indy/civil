@@ -31,15 +31,33 @@ pub struct SearchQuery {
     q: String,
 }
 
-pub async fn get(
+pub async fn search(
     db_pool: Data<Pool>,
     session: actix_session::Session,
     web::Query(query): web::Query<SearchQuery>,
 ) -> Result<HttpResponse> {
-    info!("get {}", &query.q);
+    info!("search '{}'", &query.q);
 
     let user_id = session::user_id(&session)?;
 
     let search = db::search(&db_pool, user_id, &query.q).await?;
+    Ok(HttpResponse::Ok().json(search))
+}
+
+#[derive(Deserialize)]
+pub struct RecentQuery {
+    resource: String,
+}
+
+pub async fn recent(
+    db_pool: Data<Pool>,
+    session: actix_session::Session,
+    web::Query(query): web::Query<RecentQuery>,
+) -> Result<HttpResponse> {
+    info!("recent {}", &query.resource);
+
+    let user_id = session::user_id(&session)?;
+
+    let search = db::recent(&db_pool, user_id, &query.resource).await?;
     Ok(HttpResponse::Ok().json(search))
 }

@@ -25,6 +25,7 @@
 import React, { useState, useEffect } from 'react';
 import html from 'react-inner-html';
 import { useStateValue } from '../lib/state';
+import { asShellBlock } from '../lib/reactUtils';
 
 export default function Console(props) {
   const [state, dispatch] = useStateValue();
@@ -62,12 +63,17 @@ export default function Console(props) {
   }
 
   function showHelp() {
+
+    let lines = [];
+
     for (const c in props.commands) {
       const cmdObj = props.commands[c];
       const usage = cmdObj.usage ? ` - ${cmdObj.usage}` : '';
 
-      pushToStdout(`${c} - ${cmdObj.description}${usage}`);
+      lines.push(`${c} - ${cmdObj.description}${usage}`);
     }
+
+    pushToStdout(asShellBlock(lines));
   }
 
   function pushToStdout(message, rawInput) {

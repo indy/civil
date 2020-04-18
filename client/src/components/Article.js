@@ -3,7 +3,7 @@ import React from 'react';
 import ArticleForm from './ArticleForm';
 import NoteHolder from './NoteHolder';
 import { useStateValue } from '../lib/state';
-import { idParam } from '../lib/utils';
+import { idParam } from '../lib/reactUtils';
 
 export default function Article(props) {
   const [state] = useStateValue();

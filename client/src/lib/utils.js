@@ -1,5 +1,3 @@
-import { useParams } from 'react-router-dom';
-
 import Net from './Net';
 
 export function findPoint(points, title) {
@@ -29,9 +27,4 @@ export function ensureAC(state, dispatch) {
     });
 
   }
-};
-
-export const idParam = () => {
-  const { id } = useParams();
-  return parseInt(id, 10);
 };

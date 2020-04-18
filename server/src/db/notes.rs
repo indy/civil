@@ -203,13 +203,7 @@ pub(crate) async fn create_common(
         tx,
         include_str!("sql/notes_create.sql"),
         &[
-            &user_id,
-            &deck_id,
-            &note_type,
-            &title,
-            source,
-            &content,
-            &separator,
+            &user_id, &deck_id, &note_type, &title, source, &content, &separator,
         ],
     )
     .await?;

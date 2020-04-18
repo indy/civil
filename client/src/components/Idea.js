@@ -2,7 +2,7 @@ import React from 'react';
 
 import IdeaForm from './IdeaForm';
 import NoteHolder from './NoteHolder';
-import { idParam } from '../lib/utils';
+import { idParam } from '../lib/reactUtils';
 import { useStateValue } from '../lib/state';
 
 export default function Idea(props) {

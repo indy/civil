@@ -18,12 +18,11 @@
 pub mod articles;
 pub mod autocomplete;
 pub mod books;
+pub mod cmd;
 pub mod edges;
 pub mod events;
 pub mod ideas;
 pub mod notes;
 pub mod people;
-pub mod recent;
-pub mod search;
 pub mod tags;
 pub mod users;

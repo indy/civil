@@ -2,7 +2,7 @@ import React from 'react';
 
 import NoteHolder from './NoteHolder';
 import TagForm from './TagForm';
-import { idParam } from '../lib/utils';
+import { idParam } from '../lib/reactUtils';
 import { useStateValue } from '../lib/state';
 
 export default function Tag(props) {

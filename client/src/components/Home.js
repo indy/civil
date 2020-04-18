@@ -3,6 +3,7 @@ import Console from './Console';
 import { useStateValue } from '../lib/state';
 import { Link } from 'react-router-dom';
 import { ensureAC } from '../lib/utils';
+import { asShellBlock } from '../lib/reactUtils';
 
 import Net from '../lib/Net';
 
@@ -70,36 +71,33 @@ async function cmdRecent(deck) {
   const d = deck.toLowerCase();
   const whiteList = ['articles', 'books', 'people', 'events', 'ideas', 'tags'];
   if (!whiteList.includes(d)) {
-    return (<div>unknown deck specifier: { deck }</div>);
+    return (<div className="shell-block">unknown deck specifier: { deck }</div>);
   }
 
-  const url = `/api/recent?resource=${deck}`;
+  const url = `/api/cmd/recent?resource=${deck}`;
   const recentResults = await Net.get(url);
-
   const results = recentResults.results.map(buildRecentResultEntry);
-  return (<div>{ results }</div>);
 
+  return asShellBlock(results);
 }
 
 async function cmdSearch(query) {
-  const url = `/api/search?q=${encodeURI(query)}`;
-  const searchResults = await Net.get(url);
+  // do this client side for the moment, really should be done in server-side db
+  let validQuery = query.replace(/(\s+)/g, ' & ');
 
+  const url = `/api/cmd/search?q=${encodeURI(validQuery)}`;
+  const searchResults = await Net.get(url);
   const results = searchResults.results.map(buildSearchResultEntry);
 
-  return (<div>{ results }</div>);
+  return asShellBlock(results);
 }
 
 function buildRecentResultEntry(entry) {
-  let url = `/${entry.resource}/${entry.id}`;
-  let key = `${entry.id}`;
-  return (<div key={ key }><Link to={ url }>{ entry.name }</Link></div>);
+  return (<Link to={ `/${entry.resource}/${entry.id}` }>{ entry.name }</Link>);
 }
 
 function buildSearchResultEntry(entry) {
-  let url = `/${entry.resource}/${entry.id}`;
-  let key = `${entry.id}`;
-  return (<div key={ key }><Link to={ url }>{ entry.name }</Link></div>);
+  return (<Link to={ `/${entry.resource}/${entry.id}` }>{ entry.name }</Link>);
 }
 
 function buildPrompt(user) {

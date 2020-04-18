@@ -18,13 +18,12 @@
 use crate::handler::articles;
 use crate::handler::autocomplete;
 use crate::handler::books;
+use crate::handler::cmd;
 use crate::handler::edges;
 use crate::handler::events;
 use crate::handler::ideas;
 use crate::handler::notes;
 use crate::handler::people;
-use crate::handler::recent;
-use crate::handler::search;
 use crate::handler::tags;
 use crate::handler::users;
 use actix_files::NamedFile;
@@ -41,10 +40,12 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("", post().to(users::login))
                 .route("", delete().to(users::logout)),
         )
-        // search
-        .service(scope("/search").route("", get().to(search::get)))
-        // recent
-        .service(scope("/recent").route("", get().to(recent::get)))
+        // console commands
+        .service(
+            scope("/cmd")
+                .route("/search", get().to(cmd::search))
+                .route("/recent", get().to(cmd::recent)),
+        )
         // registration
         .service(
             scope("/users")
@@ -151,7 +152,11 @@ pub fn internal_server_error<B>(
     let new_resp = NamedFile::open("errors/500.html")?
         .set_status_code(res.status())
         .into_response(res.request())?;
-    warn!("internal server error: {:?} {:?}", &res.status(), &res.request());
+    warn!(
+        "internal server error: {:?} {:?}",
+        &res.status(),
+        &res.request()
+    );
     Ok(ErrorHandlerResponse::Response(
         res.into_response(new_resp.into_body()),
     ))
