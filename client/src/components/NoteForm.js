@@ -29,6 +29,14 @@ export default function NoteForm(props) {
 
   return (
     <form className="civil-form" onSubmit={ handleSubmit }>
+      <label htmlFor="separator">Top Separator:</label>
+      <input id="separator"
+             type="checkbox"
+             name="separator"
+             value={ separator }
+             onChange={ handleChangeEvent }
+      />
+      <p></p>
       <label htmlFor="title">Title:</label>
       <br/>
       <input id="title"
@@ -53,14 +61,6 @@ export default function NoteForm(props) {
              type="text"
              name="source"
              value={ source }
-             onChange={ handleChangeEvent }
-      />
-      <p></p>
-      <label htmlFor="separator">Has Separator:</label>
-      <input id="separator"
-             type="checkbox"
-             name="separator"
-             value={ separator }
              onChange={ handleChangeEvent }
       />
       <br/>
