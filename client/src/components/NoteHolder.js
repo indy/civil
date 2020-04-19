@@ -73,7 +73,7 @@ export default function NoteHolder({holder, setMsg, title, resource, isLoaded, u
   function buildNoteForm() {
     function onAddNote(e) {
       const noteForm = e.target;
-      addNote(noteForm, { deck_id: id })
+      addNote(noteForm, id)
         .then(newNotes => {
           const notes = holder.notes;
           newNotes.forEach(n => {
@@ -281,21 +281,21 @@ function splitIntoNotes(content) {
   return res;
 }
 
-function addNote(form, extra) {
-    const notes = splitIntoNotes(form.content.value);
-    if (notes === null) {
-      console.error("addNote: splitIntoNotes failed");
-      console.error(form.content.value);
-      return undefined;
-    }
-    let data = { ...extra,
-                 content: notes,
-                 title: form.title.value,
-                 source: form.source.value,
-                 separator: form.separator.checked
-               };
+function addNote(form, deck_id) {
+  const notes = splitIntoNotes(form.content.value);
+  if (notes === null) {
+    console.error("addNote: splitIntoNotes failed");
+    console.error(form.content.value);
+    return undefined;
+  }
+  let data = { deck_id,
+               content: notes,
+               title: form.title.value,
+               source: form.source.value,
+               separator: form.separator.checked
+             };
 
-    return Net.post("/api/notes", data);
+  return Net.post("/api/notes", data);
 }
 
 function applyTagsAndDecksToNotes(obj) {

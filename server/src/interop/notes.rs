@@ -33,6 +33,5 @@ pub struct CreateNote {
     pub content: Vec<String>,
     pub separator: bool,
 
-    pub deck_id: Option<Key>,
-    pub tag_id: Option<Key>,
+    pub deck_id: Key,
 }

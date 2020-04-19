@@ -89,36 +89,33 @@ pub(crate) async fn create_notes(
     let tx = client.transaction().await?;
 
     let mut notes: Vec<interop::Note> = Vec::new();
-    if let Some(deck_id) = note.deck_id {
+
+    let res = create_common(
+        &tx,
+        user_id,
+        note.deck_id,
+        note.title.as_ref(),
+        &note.content[0],
+        note.separator,
+        &note.source,
+    )
+        .await?;
+
+    notes.push(res);
+
+    let iter = note.content.iter().skip(1);
+    for content in iter {
         let res = create_common(
             &tx,
             user_id,
-            deck_id,
-            NoteType::Note,
-            note.title.as_ref(),
-            &note.content[0],
-            note.separator,
-            &note.source,
+            note.deck_id,
+            None,
+            content,
+            false,
+            &None,
         )
-        .await?;
-
-        notes.push(res);
-
-        let iter = note.content.iter().skip(1);
-        for content in iter {
-            let res = create_common(
-                &tx,
-                user_id,
-                deck_id,
-                NoteType::Note,
-                None,
-                content,
-                false,
-                &None,
-            )
             .await?;
-            notes.push(res);
-        }
+        notes.push(res);
     }
 
     tx.commit().await?;
