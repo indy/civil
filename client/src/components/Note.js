@@ -390,7 +390,6 @@ function parseContent(text) {
 function editNote(id, data) {
   const post = {
     id: id,
-    note_type: 1, // a note
     ...data
   };
 

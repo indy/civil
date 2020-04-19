@@ -61,7 +61,6 @@ CREATE TABLE IF NOT EXISTS notes (
     user_id BIGINT NOT NULL REFERENCES users,
     deck_id BIGINT NOT NULL REFERENCES decks,
 
-    note_type INT NOT NULL,
     source TEXT,
     content TEXT NOT NULL,
     title TEXT,

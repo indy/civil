@@ -1,5 +1,4 @@
 SELECT n.id,
-       n.note_type,
        n.source,
        n.content,
        n.title,

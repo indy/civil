@@ -19,37 +19,12 @@ use super::pg;
 use crate::error::{Error, Result};
 use crate::interop::notes as interop;
 use crate::interop::Key;
-use bytes::{BufMut, BytesMut};
 use deadpool_postgres::{Client, Pool, Transaction};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
-use tokio_postgres::types::{to_sql_checked, IsNull, ToSql, Type};
 
 #[allow(unused_imports)]
 use tracing::info;
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum NoteType {
-    Note = 1,
-    //    Quote = 2,
-}
-
-impl ToSql for NoteType {
-    fn to_sql(
-        &self,
-        _ty: &Type,
-        out: &mut BytesMut,
-    ) -> ::std::result::Result<IsNull, Box<dyn ::std::error::Error + Sync + Send>> {
-        out.put_i32(*self as i32);
-        Ok(IsNull::No)
-    }
-
-    fn accepts(ty: &Type) -> bool {
-        <i32 as ToSql>::accepts(ty)
-    }
-
-    to_sql_checked!();
-}
 
 #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
 #[pg_mapper(table = "notes")]
@@ -141,14 +116,12 @@ pub(crate) async fn edit_note(
     note: &interop::Note,
     note_id: Key,
 ) -> Result<interop::Note> {
-    let note_type = NoteType::Note;
     let db_note = pg::one_non_transactional::<Note>(
         db_pool,
         include_str!("sql/notes_edit.sql"),
         &[
             &user_id,
             &note_id,
-            &note_type,
             &note.source,
             &note.content,
             &note.title,
@@ -190,7 +163,6 @@ pub(crate) async fn create_common(
     tx: &Transaction<'_>,
     user_id: Key,
     deck_id: Key,
-    note_type: NoteType,
     title: Option<&String>,
     content: &str,
     separator: bool,
@@ -200,7 +172,7 @@ pub(crate) async fn create_common(
         tx,
         include_str!("sql/notes_create.sql"),
         &[
-            &user_id, &deck_id, &note_type, &title, source, &content, &separator,
+            &user_id, &deck_id, &title, source, &content, &separator,
         ],
     )
     .await?;
