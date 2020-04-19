@@ -79,12 +79,58 @@ pub struct Deck {
 }
 
 pub(crate) async fn search(db_pool: &Pool, user_id: Key, query: &str) -> Result<interop::Search> {
-    let stmt = include_str!("sql/decks_search.sql");
-    let results =
-        pg::many_from::<LinkBackToDeck, interop::LinkBack>(db_pool, &stmt, &[&user_id, &query])
-            .await?;
+    let (mut results, results_via_notes, results_via_points) = tokio::try_join!(
+        query_search(
+            db_pool,
+            include_str!("sql/decks_search.sql"),
+            user_id,
+            query
+        ),
+        query_search(
+            db_pool,
+            include_str!("sql/decks_search_notes.sql"),
+            user_id,
+            query
+        ),
+        query_search(
+            db_pool,
+            include_str!("sql/decks_search_points.sql"),
+            user_id,
+            query
+        ),
+    )?;
+
+    for r in results_via_notes {
+        if !contains(&results, r.id) {
+            results.push(r);
+        }
+    }
+
+    for r in results_via_points {
+        if !contains(&results, r.id) {
+            results.push(r);
+        }
+    }
 
     Ok(interop::Search { results })
+}
+
+async fn query_search(
+    db_pool: &Pool,
+    stmt: &str,
+    user_id: Key,
+    query: &str,
+) -> Result<Vec<interop::LinkBack>> {
+    pg::many_from::<LinkBackToDeck, interop::LinkBack>(db_pool, &stmt, &[&user_id, &query]).await
+}
+
+fn contains(linkbacks: &Vec<interop::LinkBack>, id: Key) -> bool {
+    for l in linkbacks {
+        if l.id == id {
+            return true;
+        }
+    }
+    false
 }
 
 pub(crate) async fn recent(
