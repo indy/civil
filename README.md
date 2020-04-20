@@ -32,11 +32,5 @@ The build is minified and the filenames include the hashes.<br>
 
 ## Deploying
 
-### Client
-$ npm run build
-
-this will build the client-side assets into server/www
-
-### Server
-
-modify .env so that WWW_PATH points to www
+$ cd prod
+$ ./build-deploy.sh
