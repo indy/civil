@@ -5,7 +5,7 @@ npm run build
 
 cd ../server
 cargo build --release
-cp target/release/server ../prod/dist/.
+cp target/release/civil_server ../prod/dist/.
 cp .env.example ../prod/dist/.
 cp -r errors ../prod/dist/.
 
