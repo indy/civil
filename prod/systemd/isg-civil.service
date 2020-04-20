@@ -1,0 +1,9 @@
+[Unit]
+Description=Start civil.indy.io
+
+[Service]
+Type=simple
+ExecStart=/bin/bash /home/indy/work/civil/systemd/isg-start-civil.sh
+
+[Install]
+WantedBy=multi-user.target
