@@ -4,12 +4,13 @@ import {
   Route,
   Link,
   Switch
+  // useLocation
 } from 'react-router-dom';
 
 import { initialState, reducer } from './AppState';
 import { useStateValue, StateProvider } from './lib/state';
 
-import Home from './components/Home';
+import Shell from './components/Shell';
 import PrivateRoute from './components/PrivateRoute';
 
 import Login from './components/Login';
@@ -68,8 +69,10 @@ export default function App({ user }) {
   );
 }
 
-function AppUI() {
-  const [state, dispatch] = useStateValue();
+
+function TopBarMenu(props) {
+  // let location = useLocation();
+  const [state] = useStateValue();
 
   function loggedStatus() {
     let status = '';
@@ -91,6 +94,31 @@ function AppUI() {
     return state.user ? "/logout" : "/login";
   }
 
+
+  return (
+    <div id='top-bar-menu'>
+      <Link className='top-bar-menuitem' to={'/'}>Home</Link>
+      <Link className='top-bar-menuitem' to={'/ideas'}>Ideas</Link>
+      <Link className='top-bar-menuitem' to={'/tags'}>Tags</Link>
+      <Link className='top-bar-menuitem' to={'/books'}>Books</Link>
+      <Link className='top-bar-menuitem' to={'/articles'}>Articles</Link>
+      <Link className='top-bar-menuitem' to={'/people'}>People</Link>
+      <Link className='top-bar-menuitem' to={'/events'}>Events</Link>
+      <Link className='top-bar-menuitem' to={ loggedLink() } id="login-menuitem">{ loggedStatus() }</Link>
+    </div>);
+}
+
+/*
+    <div id='top-bar-menu'>
+      { location.pathname === '/' ? <span className="camouflage">.</span> : <Link className='top-bar-menuitem' to={'/'}>Shell</Link>}
+      <Link className='top-bar-menuitem' to={ loggedLink() } id="login-menuitem">{ loggedStatus() }</Link>
+    </div>
+*/
+
+function AppUI(props) {
+  const [state, dispatch] = useStateValue();
+  if (state.dummy) {}
+
   function loginHandler(user) {
     dispatch({
       type: 'setUser',
@@ -108,20 +136,10 @@ function AppUI() {
   return (
     <Router>
       <div id='civil-app'>
-        <div id='top-bar-menu'>
-          <Link className='top-bar-menuitem' to={'/'}>Home</Link>
-          <Link className='top-bar-menuitem' to={'/ideas'}>Ideas</Link>
-          <Link className='top-bar-menuitem' to={'/tags'}>Tags</Link>
-          <Link className='top-bar-menuitem' to={'/books'}>Books</Link>
-          <Link className='top-bar-menuitem' to={'/articles'}>Articles</Link>
-          <Link className='top-bar-menuitem' to={'/people'}>People</Link>
-          <Link className='top-bar-menuitem' to={'/events'}>Events</Link>
-          <Link className='top-bar-menuitem' to={ loggedLink() } id="login-menuitem">{ loggedStatus() }</Link>
-        </div>
-        <hr/>
+        <TopBarMenu/>
         <Switch>
           <Route exact path="/">
-            <Home/>
+            <Shell/>
           </Route>
           <Route exact path="/login">
             <Login loginCallback = { loginHandler }/>

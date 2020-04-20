@@ -78,7 +78,11 @@ pub struct Deck {
     pub source: Option<String>,
 }
 
-pub(crate) async fn search(db_pool: &Pool, user_id: Key, query: &str) -> Result<interop::Search> {
+pub(crate) async fn search(
+    db_pool: &Pool,
+    user_id: Key,
+    query: &str,
+) -> Result<Vec<interop::LinkBack>> {
     let (mut results, results_via_notes, results_via_points) = tokio::try_join!(
         query_search(
             db_pool,
@@ -112,7 +116,7 @@ pub(crate) async fn search(db_pool: &Pool, user_id: Key, query: &str) -> Result<
         }
     }
 
-    Ok(interop::Search { results })
+    Ok(results)
 }
 
 async fn query_search(
@@ -137,7 +141,7 @@ pub(crate) async fn recent(
     db_pool: &Pool,
     user_id: Key,
     resource: &str,
-) -> Result<interop::Search> {
+) -> Result<Vec<interop::LinkBack>> {
     let deck_kind = resource_to_kind(resource)?;
     let limit: i32 = 10;
 
@@ -145,10 +149,7 @@ pub(crate) async fn recent(
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
     let stmt = stmt.replace("$limit", &limit.to_string());
 
-    let results =
-        pg::many_from::<LinkBackToDeck, interop::LinkBack>(db_pool, &stmt, &[&user_id]).await?;
-
-    Ok(interop::Search { results })
+    pg::many_from::<LinkBackToDeck, interop::LinkBack>(db_pool, &stmt, &[&user_id]).await
 }
 
 // delete anything that's represented as a deck (article, book, person, event)

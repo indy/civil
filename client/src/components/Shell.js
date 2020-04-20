@@ -1,42 +1,33 @@
 import React from 'react';
 import Console from './Console';
 import { useStateValue } from '../lib/state';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import { ensureAC } from '../lib/utils';
 import { asShellBlock } from '../lib/reactUtils';
 
 import Net from '../lib/Net';
 
-export default function Home(props) {
+export default function Shell(props) {
+  let history = useHistory();
+
   const [state, dispatch] = useStateValue();
   ensureAC(state, dispatch);
 
   const commands = {
-    echo: {
-      description: 'Echo a passed string.',
-      usage: 'echo <string>',
-      fn: function () {
-        let words = `${Array.from(arguments).join(' ')}`;
-        let res = (<div><Link to="/articles/172">{ words }</Link></div>) ;
-
-        return res;
-      }
-    },
-    delayed: {
-      description: 'Delayed',
-      usage: 'delayed <string>',
-      fn: function () {
-        return new Promise(resolve => {
-          setTimeout(() => {
-            resolve('hello world');
-          }, 1000);
-        });
+    goto: {
+      description: 'Goto a listing page',
+      usage: 'goto [ideas | books | articles | people | places | tags]',
+      fn: function (deck) {
+        return `goto ${deck}`;
+      },
+      afterEffectFn: function(deck) {
+        history.push(`/${deck}`);
       }
     },
 
     recent: {
-      description: 'Recent',
-      usage: 'recent <deck>',
+      description: 'Display recently added items',
+      usage: 'recent [ideas | books | articles | people | places | tags]',
       fn: async function (deck) {
         const res = await cmdRecent(deck);
         return res;

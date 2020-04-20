@@ -35,8 +35,3 @@ pub struct LinkBack {
     pub name: String,
     pub resource: String,
 }
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct Search {
-    pub results: Vec<LinkBack>,
-}

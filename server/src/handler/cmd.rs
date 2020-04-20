@@ -17,11 +17,17 @@
 
 use crate::db::decks as db;
 use crate::error::Result;
+use crate::interop::decks::LinkBack;
 use crate::session;
 use actix_web::web::{self, Data};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
 use serde::Deserialize;
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct ResultList {
+    pub results: Vec<LinkBack>,
+}
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -40,8 +46,10 @@ pub async fn search(
 
     let user_id = session::user_id(&session)?;
 
-    let search = db::search(&db_pool, user_id, &query.q).await?;
-    Ok(HttpResponse::Ok().json(search))
+    let results = db::search(&db_pool, user_id, &query.q).await?;
+
+    let res = ResultList { results };
+    Ok(HttpResponse::Ok().json(res))
 }
 
 #[derive(Deserialize)]
@@ -58,6 +66,8 @@ pub async fn recent(
 
     let user_id = session::user_id(&session)?;
 
-    let search = db::recent(&db_pool, user_id, &query.resource).await?;
-    Ok(HttpResponse::Ok().json(search))
+    let results = db::recent(&db_pool, user_id, &query.resource).await?;
+
+    let res = ResultList { results };
+    Ok(HttpResponse::Ok().json(res))
 }

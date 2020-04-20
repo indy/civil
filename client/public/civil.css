@@ -54,6 +54,7 @@ html { font-size: 15px; }
 
 #login-menuitem {
   float: right;
+  clear:both;
 }
 
 body { width: 50%;
@@ -321,7 +322,15 @@ label.margin-toggle:not(.sidenote-number) { display: none; }
 
 
 #top-bar-menu {
+  padding-bottom: 0.5em;
+  border-bottom-width: 0.1em;
+  border-bottom-style: solid;
+  border-color: #ccc;
 
+}
+
+.camouflage {
+  color: #f1edeb;
 }
 
 a.top-bar-menuitem {

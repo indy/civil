@@ -13,7 +13,7 @@ export default function SectionLinkBacks(props) {
 
 function SectionSearchResultsLinkBack(props) {
   const linkbacks = props.linkbacks || [];
-  return listingLinks(linkbacks, "Search Results");
+  return listingLinks(linkbacks, "Additional Search Results");
 }
 
 function SectionLinkBack(props) {

@@ -119,11 +119,12 @@ export default function Console(props) {
       }
     }
 
-    if (rawInput) {
-      const input = rawInput.split(' ');
-      const command = input.splice(0, 1)[0]; // Removed portion is returned...
-      const args = input; // ...and the rest can be used
+    const input = rawInput.split(' ');
+    const command = input.splice(0, 1)[0]; // Removed portion is returned...
+    const args = input; // ...and the rest can be used
+    const cmdObj = props.commands[command];
 
+    if (rawInput) {
       commandResult.rawInput = rawInput;
       commandResult.command = command;
       commandResult.args = args;
@@ -134,8 +135,6 @@ export default function Console(props) {
         clearStdout();
         return;
       } else {
-        const cmdObj = props.commands[command];
-
         if (!cmdObj) {
           pushToStdout(props.errorText ?
                        props.errorText.replace(/\[command\]/gi, command) :
@@ -152,7 +151,6 @@ export default function Console(props) {
 
           pushToStdout(res);
           commandResult.result = res;
-
         }
       }
     }
@@ -163,6 +161,9 @@ export default function Console(props) {
     }
     if (props.commandCallback) {
       props.commandCallback(commandResult);
+    }
+    if (cmdObj && cmdObj.afterEffectFn) {
+      cmdObj.afterEffectFn(...args);
     }
   }
 

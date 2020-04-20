@@ -19,6 +19,7 @@ use crate::db::decks as decks_db;
 use crate::db::notes as notes_db;
 use crate::db::tags as db;
 use crate::error::Result;
+use crate::interop::decks::LinkBack;
 use crate::interop::tags as interop;
 use crate::interop::{IdParam, Key};
 use crate::session;
@@ -114,14 +115,25 @@ async fn augment(
         decks_db::from_decks_via_notes_to_deck_id(&db_pool, tag_id),
     )?;
 
+    let mut search_term = tag.name.to_string();
+    // replace hyphens with spaces
+    search_term = search_term.replace("-", " ");
+    let search_results = decks_db::search(&db_pool, user_id, &search_term).await?;
+
+    // dedupe search results against the linkbacks to decks
+    let additional_search_results = search_results
+        .into_iter()
+        .filter(|lb| lb.id != tag.id && !contains(lb, &linkbacks_to_decks))
+        .collect();
+
     tag.notes = Some(notes);
     tag.decks_in_notes = Some(decks_in_notes);
     tag.linkbacks_to_decks = Some(linkbacks_to_decks);
-
-    // todo: replace hyphens with spaces
-    // todo: dedupe against any of the above linkbacks
-    let search = decks_db::search(&db_pool, user_id, &tag.name).await?;
-    tag.search_results = Some(search.results);
+    tag.search_results = Some(additional_search_results);
 
     Ok(())
+}
+
+fn contains(linkback: &LinkBack, linkbacks: &Vec<LinkBack>) -> bool {
+    linkbacks.iter().any(|l| l.id == linkback.id)
 }
