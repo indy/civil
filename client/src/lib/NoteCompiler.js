@@ -14,6 +14,7 @@ const TokenType = {
   DOUBLEQUOTE: Symbol('DOUBLEQUOTE'),
   DIGITS: Symbol('DIGITS'),
   PERIOD: Symbol('PERIOD'),
+  CARET: Symbol('CARET'),
   HYPHEN: Symbol('HYPHEN'),
   UNDERSCORE: Symbol('UNDERSCORE'),
   ASTERISK: Symbol('ASTERISK'),
@@ -53,6 +54,10 @@ function isNewline(character) {
   return character === '\n';
 }
 
+function isCaret(character) {
+  return character === '^';
+}
+
 function isHyphen(character) {
   return character === '-';
 }
@@ -77,6 +82,7 @@ function consumeText(s) {
         || isBracketEnd(s[i])
         || isUnderscore(s[i])
         || isAsterisk(s[i])
+        || isCaret(s[i])
         || isDoubleQuote(s[i])) {
       break;
     }
@@ -130,6 +136,10 @@ function consumeBracketEnd(s) {
   return [new Token(TokenType.BRACKET_END, ']'), s.substring(1)];
 }
 
+function consumeCaret(s) {
+  return [new Token(TokenType.CARET, '^'), s.substring(1)];
+}
+
 function consumeHyphen(s) {
   return [new Token(TokenType.HYPHEN, '-'), s.substring(1)];
 }
@@ -163,6 +173,10 @@ function nextTokenType(s) {
 
   if (isNewline(c)) {
     return TokenType.NEWLINE;
+  }
+
+  if (isCaret(c)) {
+    return TokenType.CARET;
   }
 
   if (isHyphen(c)) {
@@ -221,6 +235,9 @@ function tokenise(input) {
     case TokenType.BRACKET_END :
       p = consumeBracketEnd(s);
       break;
+    case TokenType.CARET :
+      p = consumeCaret(s);
+      break;
     case TokenType.HYPHEN :
       p = consumeHyphen(s);
       break;
@@ -264,7 +281,8 @@ const NodeType = {
   LINK: Symbol('LINK'),
   QUOTATION: Symbol('QUOTATION'),
   UNDERLINED: Symbol('UNDERLINED'),
-  STRONG: Symbol('STRONG')
+  STRONG: Symbol('STRONG'),
+  HIGHLIGHT: Symbol('HIGHLIGHT')
 };
 
 class Node {
@@ -385,6 +403,10 @@ function eatListofTypeUntil(tokens, listType, tokenType) {
   tokens.shift();
 
   return { node: container };
+}
+
+function eatHighlight(tokens) {
+  return eatListofTypeUntil(tokens, NodeType.HIGHLIGHT, TokenType.CARET);
 }
 
 function eatStrong(tokens) {
@@ -531,6 +553,12 @@ function eatItem(tokens) {
     } else {
       return eatTextIncluding(tokens, TokenType.ASTERISK);
     }
+  } else if (tokenType === TokenType.CARET) {
+    if (remainingTokensContain(tokens, TokenType.CARET)) {
+      return eatHighlight(tokens);
+    } else {
+      return eatTextIncluding(tokens, TokenType.ASTERISK);
+    }
   } else if (tokenType === TokenType.WHITESPACE) {
     return eatWhitespace(tokens);
   }
@@ -641,6 +669,12 @@ function compile(node, i) {
       <strong key={i}>
         { compileChildren(node) }
       </strong>
+    );
+  } else if (node.type === NodeType.HIGHLIGHT) {
+    return (
+      <mark key={i}>
+        { compileChildren(node) }
+      </mark>
     );
   } else if (node.type === NodeType.UNDERLINED) {
     return (

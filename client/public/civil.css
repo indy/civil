@@ -333,6 +333,10 @@ label.margin-toggle:not(.sidenote-number) { display: none; }
   color: #f1edeb;
 }
 
+mark {
+  background: #fcf172;
+}
+
 a.top-bar-menuitem {
   margin-left: 1em;
   margin-right: 1em;

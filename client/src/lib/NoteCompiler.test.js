@@ -117,6 +117,27 @@ it('strongs', () => {
   expect(c[3].value).toEqual('then he fell over');
 });
 
+it('highlights', () => {
+  let input = 'bob said ^shabba^ then he fell over';
+
+  let tokens = tokenise(input);
+  expect(tokens.length).toEqual(6);
+
+  let nodes = parse(tokens);
+  expect(nodes.length).toEqual(1);
+  expect(nodes[0].type).toEqual(NoteCompiler.NodeType.PARAGRAPH);
+
+  const c = nodes[0].children;
+  expect(c.length).toEqual(4);
+  expect(c[0].value).toEqual('bob said ');
+  expect(c[1].type).toEqual(NoteCompiler.NodeType.HIGHLIGHT);
+  expect(c[1].children.length).toEqual(1);
+  expect(c[1].children[0].type).toEqual(NoteCompiler.NodeType.TEXT);
+  expect(c[1].children[0].value).toEqual('shabba');
+  expect(c[2].value).toEqual(' ');
+  expect(c[3].value).toEqual('then he fell over');
+});
+
 it('underlines', () => {
   let input = 'bob said _shabba_ then he fell over';
 

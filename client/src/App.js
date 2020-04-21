@@ -4,7 +4,6 @@ import {
   Route,
   Link,
   Switch
-  // useLocation
 } from 'react-router-dom';
 
 import { initialState, reducer } from './AppState';
@@ -71,7 +70,6 @@ export default function App({ user }) {
 
 
 function TopBarMenu(props) {
-  // let location = useLocation();
   const [state] = useStateValue();
 
   function loggedStatus() {
@@ -107,13 +105,6 @@ function TopBarMenu(props) {
       <Link className='top-bar-menuitem' to={ loggedLink() } id="login-menuitem">{ loggedStatus() }</Link>
     </div>);
 }
-
-/*
-    <div id='top-bar-menu'>
-      { location.pathname === '/' ? <span className="camouflage">.</span> : <Link className='top-bar-menuitem' to={'/'}>Shell</Link>}
-      <Link className='top-bar-menuitem' to={ loggedLink() } id="login-menuitem">{ loggedStatus() }</Link>
-    </div>
-*/
 
 function AppUI(props) {
   const [state, dispatch] = useStateValue();
