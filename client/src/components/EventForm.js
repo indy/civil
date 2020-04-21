@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
-import { removeEmptyObjects } from '../lib/JsUtils';
 import Net from '../lib/Net';
 import { useStateValue } from '../lib/state';
 
@@ -41,7 +40,9 @@ export default function EventForm({event, setMsg}) {
 
 
   const handleSubmit = (e) => {
-    const data = removeEmptyObjects(localState);
+    const data = {
+      title: localState.title.trim()
+    };
 
     if(setMsg) {
       // edit an existing event

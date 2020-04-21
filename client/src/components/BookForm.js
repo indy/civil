@@ -37,7 +37,10 @@ export default function BookForm({book, setMsg}) {
   };
 
   const handleSubmit = (event) => {
-    const data = removeEmptyStrings({title, author}, ["author"]);
+    const data = removeEmptyStrings({
+      title: title.trim(),
+      author: author.trim()
+    }, ["author"]);
 
     if(setMsg) {
       // edit an existing book

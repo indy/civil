@@ -145,7 +145,7 @@ export default function PointForm({ point, onSubmit, submitMessage, readOnlyTitl
 
   const handleSubmit = (e) => {
     let s =  {
-      title: state.title,
+      title: state.title.trim(),
       location_fuzz: 0,
       date_fuzz: 0
     };

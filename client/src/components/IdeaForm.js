@@ -29,7 +29,9 @@ export default function IdeaForm({ idea, setMsg }) {
   };
 
   const handleSubmit = (event) => {
-    const data = { title: title };
+    const data = {
+      title: title.trim()
+    };
 
     if(setMsg) {
       // edit an existing idea

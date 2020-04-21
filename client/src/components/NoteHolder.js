@@ -290,8 +290,8 @@ function addNote(form, deck_id) {
   }
   let data = { deck_id,
                content: notes,
-               title: form.title.value,
-               source: form.source.value,
+               title: form.title.value.trim(),
+               source: form.source.value.trim(),
                separator: form.separator.checked
              };
 

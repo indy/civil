@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
-import { removeEmptyObjects } from '../lib/JsUtils';
 import Net from '../lib/Net';
 import { useStateValue } from '../lib/state';
 
@@ -40,7 +39,9 @@ export default function PersonForm({ person, setMsg }) {
   };
 
   const handleSubmit = (e) => {
-    const data = removeEmptyObjects(localState);
+    const data = {
+      name: localState.name.trim()
+    };
 
     // if (true) {
     //   console.log(data);

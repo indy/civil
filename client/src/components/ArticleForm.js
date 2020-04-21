@@ -43,7 +43,11 @@ export default function ArticleForm({ article, setMsg }) {
   };
 
   const handleSubmit = (event) => {
-    const data = removeEmptyStrings({title, author, source}, ["source"]);
+    const data = removeEmptyStrings({
+      title: title.trim(),
+      author: author.trim(),
+      source: source.trim()
+    }, ["source"]);
 
     if(setMsg) {
       // edit an existing article

@@ -22,7 +22,9 @@ export default function TagForm({ tag, setMsg }) {
   };
 
   const handleSubmit = (event) => {
-    const data = { name };
+    const data = {
+      name: name.trim()
+    };
 
     if(setMsg) {
       // edit an existing tag
