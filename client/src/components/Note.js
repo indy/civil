@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CreatableSelect from 'react-select/creatable';
 import Select from 'react-select';
 import ResourceLink from './ResourceLink';
@@ -18,6 +18,19 @@ export default function Note(props) {
 
   const [tags, setTags] = useState(buildCurrentTags(props.note.tags));
   const [decks, setDecks] = useState(buildCurrentDecks(props.note.decks)); // fix later
+
+  const [tagsSelectRef] = useState(React.createRef());
+  const [decksSelectRef] = useState(React.createRef());
+
+
+  useEffect(() => {
+    if(showAddTagsUI && tagsSelectRef.current) {
+      tagsSelectRef.current.focus();
+    }
+    if(showAddDecksUI && decksSelectRef.current) {
+      decksSelectRef.current.focus();
+    }
+  });
 
   function handleChangeEvent(event) {
     const target = event.target;
@@ -291,6 +304,7 @@ export default function Note(props) {
         <div>
           <label>Tags:</label>
           <CreatableSelect
+            ref={tagsSelectRef}
             isMulti
             name="tags"
             value={tags}
@@ -308,6 +322,7 @@ export default function Note(props) {
         <div>
           <label>Decks:</label>
           <Select
+            ref={decksSelectRef}
             isMulti
             name="decks"
             value={decks}
