@@ -42,7 +42,7 @@ pub async fn login(
     let is_valid_password = verify_encoded(&password, login.password.as_bytes())?;
     if is_valid_password {
         // save id to the session
-        session.set(session::AUTH, format!("{}", id))?;
+        session::save_user_id(&session, id)?;
 
         info!("login accepted!!");
         // send response
@@ -77,7 +77,7 @@ pub async fn create_user(
     let (id, user) = db::create(&db_pool, &registration, &hash).await?;
 
     // save id to the session
-    session.set(session::AUTH, format!("{}", id))?;
+    session::save_user_id(&session, id)?;
 
     // send response
     Ok(HttpResponse::Ok().json(user))

@@ -31,11 +31,9 @@ use actix_web::{http, App, HttpServer};
 use dotenv;
 use std::env;
 use tokio_postgres::NoTls;
-use tracing::info;
 use tracing::Level;
+use tracing::{error, info};
 use tracing_subscriber::FmtSubscriber;
-
-static SESSION_SIGNING_KEY: &[u8] = &[0; 32];
 
 pub async fn start_server() -> Result<()> {
     dotenv::dotenv().ok();
@@ -54,6 +52,7 @@ pub async fn start_server() -> Result<()> {
     let postgres_host = env::var("POSTGRES_HOST")?;
     let postgres_user = env::var("POSTGRES_USER")?;
     let postgres_password = env::var("POSTGRES_PASSWORD")?;
+    let cookie_secure: bool = env::var("COOKIE_OVER_HTTPS_ONLY")? == "true";
 
     let cfg = deadpool_postgres::Config {
         user: Some(String::from(&postgres_user)),
@@ -63,10 +62,16 @@ pub async fn start_server() -> Result<()> {
         ..Default::default()
     };
 
+    let session_signing_key = env::var("SESSION_SIGNING_KEY")?;
+
     let pool: deadpool_postgres::Pool = cfg.create_pool(NoTls)?;
 
     let server = HttpServer::new(move || {
-        let session_store = CookieSession::signed(SESSION_SIGNING_KEY).secure(false);
+        let mut signing_key: &mut [u8] = &mut [0; 32];
+        read_signing_key(&mut signing_key, &session_signing_key);
+        // info!("signing key: {:?}", signing_key);
+
+        let session_store = CookieSession::private(signing_key).secure(cookie_secure);
         let error_handlers = ErrorHandlers::new()
             .handler(
                 http::StatusCode::INTERNAL_SERVER_ERROR,
@@ -90,4 +95,47 @@ pub async fn start_server() -> Result<()> {
     server.await?;
 
     Ok(())
+}
+
+fn read_signing_key(signing_key: &mut [u8], session_signing_key: &String) {
+    if session_signing_key.len() != 64 {
+        error!(
+            "SESSION_SIGNING_KEY in .env has to be 32 bytes (currently: {})",
+            session_signing_key.len()
+        );
+    }
+
+    let mut b = session_signing_key.bytes();
+
+    for i in 0..32 {
+        let ascii_hex_0 = b.next().unwrap();
+        let ascii_hex_1 = b.next().unwrap();
+
+        let d0 = ascii_hex_digit_to_dec(ascii_hex_0);
+        let d1 = ascii_hex_digit_to_dec(ascii_hex_1);
+
+        signing_key[i] = (d0 * 16) + d1;
+    }
+}
+
+fn ascii_hex_digit_to_dec(ascii_hex: u8) -> u8 {
+    match ascii_hex {
+        48 => 0,   // asci 0
+        49 => 1,   // asci 1
+        50 => 2,   // asci 2
+        51 => 3,   // asci 3
+        52 => 4,   // asci 4
+        53 => 5,   // asci 5
+        54 => 6,   // asci 6
+        55 => 7,   // asci 7
+        56 => 8,   // asci 8
+        57 => 9,   // asci 9
+        97 => 10,  // ascii a
+        98 => 11,  // ascii b
+        99 => 12,  // ascii c
+        100 => 13, // ascii d
+        101 => 14, // ascii e
+        102 => 15, // ascii f
+        _ => 0,
+    }
 }

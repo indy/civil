@@ -19,7 +19,7 @@ use crate::error::{Error, Result};
 use crate::interop::Key;
 use std::str::FromStr;
 
-pub const AUTH: &str = "auth";
+const AUTH: &str = "auth";
 
 pub fn user_id(session: &actix_session::Session) -> Result<Key> {
     if let Some(auth) = session.get::<String>(AUTH)? {
@@ -28,4 +28,10 @@ pub fn user_id(session: &actix_session::Session) -> Result<Key> {
     } else {
         Err(Error::Authenticating)
     }
+}
+
+pub fn save_user_id(session: &actix_session::Session, id: Key) -> Result<()> {
+    session.set(AUTH, format!("{}", id))?;
+
+    Ok(())
 }
