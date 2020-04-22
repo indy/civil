@@ -35,6 +35,8 @@ use tracing::Level;
 use tracing::{error, info};
 use tracing_subscriber::FmtSubscriber;
 
+const SIGNING_KEY_SIZE: usize = 32;
+
 pub async fn start_server() -> Result<()> {
     dotenv::dotenv().ok();
 
@@ -67,7 +69,7 @@ pub async fn start_server() -> Result<()> {
     let pool: deadpool_postgres::Pool = cfg.create_pool(NoTls)?;
 
     let server = HttpServer::new(move || {
-        let mut signing_key: &mut [u8] = &mut [0; 32];
+        let mut signing_key: &mut [u8] = &mut [0; SIGNING_KEY_SIZE];
         read_signing_key(&mut signing_key, &session_signing_key);
         // info!("signing key: {:?}", signing_key);
 
@@ -97,8 +99,11 @@ pub async fn start_server() -> Result<()> {
     Ok(())
 }
 
-fn read_signing_key(signing_key: &mut [u8], session_signing_key: &String) {
-    if session_signing_key.len() != 64 {
+fn read_signing_key(signing_key: &mut [u8], session_signing_key: &str) {
+    // check string against twice the SIGNING_KEY_SIZE since we
+    // need 2 characters to represent all byte values (00 -> ff)
+    //
+    if session_signing_key.len() != (SIGNING_KEY_SIZE * 2) {
         error!(
             "SESSION_SIGNING_KEY in .env has to be 32 bytes (currently: {})",
             session_signing_key.len()
@@ -107,14 +112,14 @@ fn read_signing_key(signing_key: &mut [u8], session_signing_key: &String) {
 
     let mut b = session_signing_key.bytes();
 
-    for i in 0..32 {
+    for elem in signing_key.iter_mut().take(SIGNING_KEY_SIZE) {
         let ascii_hex_0 = b.next().unwrap();
         let ascii_hex_1 = b.next().unwrap();
 
         let d0 = ascii_hex_digit_to_dec(ascii_hex_0);
         let d1 = ascii_hex_digit_to_dec(ascii_hex_1);
 
-        signing_key[i] = (d0 * 16) + d1;
+        *elem = (d0 * 16) + d1;
     }
 }
 
