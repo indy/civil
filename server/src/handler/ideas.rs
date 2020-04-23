@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::interop::decks::LinkBack;
 use crate::db::decks as decks_db;
 use crate::db::ideas as db;
 use crate::db::notes as notes_db;
@@ -65,7 +66,7 @@ pub async fn get(
     let idea_id = params.id;
 
     let mut idea = db::get(&db_pool, user_id, idea_id).await?;
-    augment(&db_pool, &mut idea, idea_id).await?;
+    augment(&db_pool, user_id, &mut idea, idea_id).await?;
 
     Ok(HttpResponse::Ok().json(idea))
 }
@@ -83,7 +84,7 @@ pub async fn edit(
     let idea = idea.into_inner();
 
     let mut idea = db::edit(&db_pool, user_id, &idea, idea_id).await?;
-    augment(&db_pool, &mut idea, idea_id).await?;
+    augment(&db_pool, user_id, &mut idea, idea_id).await?;
 
     Ok(HttpResponse::Ok().json(idea))
 }
@@ -102,16 +103,30 @@ pub async fn delete(
     Ok(HttpResponse::Ok().json(true))
 }
 
-async fn augment(db_pool: &Data<Pool>, idea: &mut interop::Idea, idea_id: Key) -> Result<()> {
+async fn augment(db_pool: &Data<Pool>, user_id: Key, idea: &mut interop::Idea, idea_id: Key) -> Result<()> {
     let (notes, decks_in_notes, linkbacks_to_decks) = tokio::try_join!(
         notes_db::all_from_deck(&db_pool, idea_id),
         decks_db::from_deck_id_via_notes_to_decks(&db_pool, idea_id),
         decks_db::from_decks_via_notes_to_deck_id(&db_pool, idea_id),
     )?;
 
+    let search_term = idea.title.to_string();
+    let search_results = decks_db::search(&db_pool, user_id, &search_term).await?;
+
+    // dedupe search results against the linkbacks to decks
+    let additional_search_results = search_results
+        .into_iter()
+        .filter(|lb| lb.id != idea.id && !contains(lb, &linkbacks_to_decks))
+        .collect();
+
     idea.notes = Some(notes);
     idea.decks_in_notes = Some(decks_in_notes);
     idea.linkbacks_to_decks = Some(linkbacks_to_decks);
+    idea.search_results = Some(additional_search_results);
 
     Ok(())
+}
+
+fn contains(linkback: &LinkBack, linkbacks: &[LinkBack]) -> bool {
+    linkbacks.iter().any(|l| l.id == linkback.id)
 }

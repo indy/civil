@@ -25,7 +25,6 @@ pub mod ideas;
 pub mod notes;
 pub mod people;
 pub mod points;
-pub mod tags;
 pub mod users;
 
 use crate::error::{Error, Result};
@@ -70,7 +69,6 @@ pub(crate) fn resource_to_kind(resource: &str) -> Result<&'static str> {
         "articles" => Ok("article"),
         "books" => Ok("book"),
         "ideas" => Ok("idea"),
-        "tags" => Ok("tag"),
         _ => Err(Error::InvalidResource),
     }
 }
@@ -82,7 +80,6 @@ pub(crate) fn kind_to_resource(kind: &str) -> Result<&'static str> {
         "article" => Ok("articles"),
         "book" => Ok("books"),
         "idea" => Ok("ideas"),
-        "tag" => Ok("tags"),
         _ => Err(Error::InvalidKind),
     }
 }

@@ -30,9 +30,6 @@ import Ideas from './components/Ideas';
 import Event from './components/Event';
 import Events from './components/Events';
 
-import Tag from './components/Tag';
-import Tags from './components/Tags';
-
 export default function App({ user }) {
   let state = initialState;
 
@@ -97,7 +94,6 @@ function TopBarMenu(props) {
     <div id='top-bar-menu'>
       <Link className='top-bar-menuitem' to={'/'}>Home</Link>
       <Link className='top-bar-menuitem' to={'/ideas'}>Ideas</Link>
-      <Link className='top-bar-menuitem' to={'/tags'}>Tags</Link>
       <Link className='top-bar-menuitem' to={'/books'}>Books</Link>
       <Link className='top-bar-menuitem' to={'/articles'}>Articles</Link>
       <Link className='top-bar-menuitem' to={'/people'}>People</Link>
@@ -167,12 +163,6 @@ function AppUI(props) {
           </PrivateRoute>
           <PrivateRoute exact path="/books">
             <Books/>
-          </PrivateRoute>
-          <PrivateRoute path={'/tags/:id'}>
-            <Tag/>
-          </PrivateRoute>
-          <PrivateRoute exact path="/tags">
-            <Tags/>
           </PrivateRoute>
         </Switch>
       </div>

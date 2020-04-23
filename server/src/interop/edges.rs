@@ -22,12 +22,3 @@ pub struct CreateEdgeFromNoteToDecks {
     pub note_id: Key,
     pub deck_ids: Vec<Key>,
 }
-
-// currently these are all from Note to a Deck based model
-//
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct CreateEdgeFromNoteToTags {
-    pub note_id: Key,
-    pub existing_tag_ids: Vec<Key>,
-    pub new_tag_names: Vec<String>,
-}

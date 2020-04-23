@@ -19,7 +19,6 @@ export const initialState = {
 
   acLoaded: false,
   ac: {
-    tags: [],
     decks: []
   },
 
@@ -41,11 +40,7 @@ export const initialState = {
 
   eventsLoaded: false,
   events: [],
-  event: {},
-
-  tagsLoaded: false,
-  tags: [],
-  tag: {}
+  event: {}
 };
 
 export const reducer = (state, action) => {
@@ -125,7 +120,6 @@ export const reducer = (state, action) => {
       ...state,
       acLoaded: true,
       ac: {
-        tags: action.tags,
         decks: action.decks
       }
     };
@@ -140,21 +134,7 @@ export const reducer = (state, action) => {
     return {
       ...state,
       ac: {
-        tags: state.ac.tags,
         decks: decks
-      }
-    };
-  case 'addAutocompleteTags':
-    let tags = state.ac.tags;
-    action.tags.forEach(tag => {
-      tags.push(tag);
-    });
-    tags.sort((a, b) => a.value > b.value);
-    return {
-      ...state,
-      ac: {
-        tags: tags,
-        decks: state.ac.decks
       }
     };
   case 'setIdeas':
@@ -224,20 +204,6 @@ export const reducer = (state, action) => {
       newState.event[action.id] = action.newItem;
       return newState;
     }
-  case 'setTags':
-    return {
-      ...state,
-      tagsLoaded: true,
-      tags: action.tags
-    };
-  case 'setTag':
-    {
-      let newState = { ...state };
-      updateListOfNames(newState.tags, action.newItem);
-      newState.tag[action.id] = action.newItem;
-      return newState;
-    }
-
   default:
     return state;
   }

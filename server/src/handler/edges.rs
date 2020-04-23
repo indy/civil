@@ -25,21 +25,6 @@ use deadpool_postgres::Pool;
 #[allow(unused_imports)]
 use tracing::info;
 
-pub async fn create_from_note_to_tags(
-    edge: Json<interop::CreateEdgeFromNoteToTags>,
-    db_pool: Data<Pool>,
-    session: actix_session::Session,
-) -> Result<HttpResponse> {
-    info!("create_from_note_to_tags");
-
-    let edge = edge.into_inner();
-    let user_id = session::user_id(&session)?;
-
-    let all_tags_for_note = db::create_from_note_to_tags(&db_pool, &edge, user_id).await?;
-
-    Ok(HttpResponse::Ok().json(all_tags_for_note))
-}
-
 pub async fn create_from_note_to_decks(
     edge: Json<interop::CreateEdgeFromNoteToDecks>,
     db_pool: Data<Pool>,

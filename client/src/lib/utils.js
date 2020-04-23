@@ -8,10 +8,6 @@ export function findPoint(points, title) {
   return p;
 }
 
-export function separateIntoTagsAndDecks(r) {
-  return separateFromDecks(r, 'tags');
-}
-
 export function separateIntoIdeasAndDecks(r) {
   return separateFromDecks(r, 'ideas');
 }
@@ -19,11 +15,9 @@ export function separateIntoIdeasAndDecks(r) {
 export function ensureAC(state, dispatch) {
   if (!state.acLoaded) {
 
-    Net.get('/api/autocomplete').then(ac => {
-      let [tags, decks] = separateIntoTagsAndDecks(ac);
+    Net.get('/api/autocomplete').then(decks => {
       dispatch({
         type: 'loadAutocomplete',
-        tags,
         decks
       });
     });

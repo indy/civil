@@ -150,7 +150,7 @@ where
         }
     }
 }
-
+/*
 pub async fn many_non_transactional<T>(
     db_pool: &Pool,
     sql_query: &str,
@@ -180,7 +180,7 @@ where
 
     Ok(vec)
 }
-
+*/
 // queries the db, storing results in S then converts that into a T
 //
 pub async fn one_from<S, T>(

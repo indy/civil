@@ -12,7 +12,7 @@ import NoteCompiler from '../lib/NoteCompiler';
 
 import SectionLinkBacks from './SectionLinkBacks';
 import { useStateValue } from '../lib/state';
-import { ensureAC, separateIntoTagsAndDecks, separateIntoIdeasAndDecks } from '../lib/utils';
+import { ensureAC, separateIntoIdeasAndDecks } from '../lib/utils';
 import { addChronologicalSortYear } from '../lib/eras';
 
 export default function NoteHolder({holder, setMsg, title, resource, isLoaded, updateForm, children}) {
@@ -176,7 +176,7 @@ function ensureCorrectNoteHolder(resource, id, isLoaded, setMsg, dispatch) {
       const url = `/api/${resource}/${id}`;
       Net.get(url).then(s => {
         if (s) {
-          let updatedHolder = applyTagsAndDecksToNotes(s);
+          let updatedHolder = applyDecksToNotes(s);
           sortPoints(updatedHolder);
           setHolder(dispatch, updatedHolder, setMsg);
         } else {
@@ -193,30 +193,6 @@ function NoteManager(holder, setMsg) {
   ensureAC(state, dispatch);
 
   const ac = state.ac;
-
-  function addNewTagsToAutocomplete(someTags) {
-    let newTags = [];
-
-    someTags.forEach(t => {
-      let preExisting = ac.tags.some(a => {
-        return a.value === t.name;
-      });
-
-      if (!preExisting) {
-        // this tag was recently created, so add it to the autocomplete list
-        newTags.push({
-          id: t.id,
-          value: t.name,
-          label: t.name
-        });
-      }
-    });
-
-    dispatch({
-      type: 'addAutocompleteTags',
-      tags: newTags
-    });
-  };
 
   function findNoteWithId(id, modifyFn) {
     const notes = holder.notes;
@@ -238,17 +214,6 @@ function NoteManager(holder, setMsg) {
     });
   };
 
-  function onTagsChanged(note, newTagsCreated) {
-    findNoteWithId(note.id, (notes, index) => {
-      notes[index] = note;
-    });
-
-    // add any newly created tags to the autocomplete list
-    if(newTagsCreated) {
-      addNewTagsToAutocomplete(note.tags);
-    }
-  };
-
   function onDecksChanged(note) {
     findNoteWithId(note.id, (notes, index) => {
       notes[index] = note;
@@ -262,7 +227,6 @@ function NoteManager(holder, setMsg) {
             ac = { ac }
             onDelete={ onDeleteNote }
             onEdited={ onEditedNote }
-            onTagsChanged={ onTagsChanged }
             onDecksChanged={ onDecksChanged }
       />
     );
@@ -298,17 +262,13 @@ function addNote(form, deck_id) {
   return Net.post("/api/notes", data);
 }
 
-function applyTagsAndDecksToNotes(obj) {
-  let [ideas, rest] = separateIntoIdeasAndDecks(obj.decks_in_notes);
+function applyDecksToNotes(obj) {
+  let [ideas, decks] = separateIntoIdeasAndDecks(obj.decks_in_notes);
   const ideasInNotes = hashByNoteIds(ideas);
-
-  let [tags, decks] = separateIntoTagsAndDecks(rest);
-  const tagsInNotes = hashByNoteIds(tags);
   const decksInNotes = hashByNoteIds(decks);
 
   for(let i = 0;i<obj.notes.length;i++) {
     let n = obj.notes[i];
-    n.tags = tagsInNotes[n.id];
     n.ideas = ideasInNotes[n.id];
     n.decks = decksInNotes[n.id];
   }

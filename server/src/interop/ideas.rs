@@ -28,6 +28,8 @@ pub struct Idea {
 
     pub decks_in_notes: Option<Vec<MarginConnection>>,
     pub linkbacks_to_decks: Option<Vec<LinkBack>>,
+
+    pub search_results: Option<Vec<LinkBack>>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

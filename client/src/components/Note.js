@@ -10,7 +10,6 @@ import { separateIntoIdeasAndDecks } from '../lib/utils';
 export default function Note(props) {
   const [showMainButtons, setShowMainButtons] = useState(false);
   const [showEditButtons, setShowEditButtons] = useState(false);
-  const [showAddTagsUI, setShowAddTagsUI] = useState(false);
   const [showAddDecksUI, setShowAddDecksUI] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [content, setContent] = useState(props.note.content);
@@ -18,17 +17,12 @@ export default function Note(props) {
   const [title, setTitle] = useState(props.note.title || '');
   const [separator, setSeparator] = useState(props.note.separator);
 
-  const [tags, setTags] = useState(buildCurrentTags(props.note.tags));
   const [decks, setDecks] = useState(buildCurrentDecksAndIdeas(props.note));
 
-  const [tagsSelectRef] = useState(React.createRef());
   const [decksSelectRef] = useState(React.createRef());
 
 
   useEffect(() => {
-    if(showAddTagsUI && tagsSelectRef.current) {
-      tagsSelectRef.current.focus();
-    }
     if(showAddDecksUI && decksSelectRef.current) {
       decksSelectRef.current.focus();
     }
@@ -121,7 +115,6 @@ export default function Note(props) {
       <div>
         { title && buildTitle(title) }
         { source && buildSource(source) }
-        { props.note.tags && buildMarginConnections(props.note.tags, "leftmargin-container", "leftmargin-entry") }
         { props.note.decks && buildMarginConnections(props.note.decks, "leftmargin-container", "leftmargin-entry") }
         { props.note.ideas && buildMarginConnections(props.note.ideas, "rightmargin-container", "rightmargin-entry") }
         <div onClick={ onShowButtonsClicked }>
@@ -195,72 +188,14 @@ export default function Note(props) {
   };
 
   function buildMainButtons() {
-    function toggleAddTagsUI() {
-      setShowAddTagsUI(!showAddTagsUI);
-    };
-
     function toggleAddDecksUI() {
       setShowAddDecksUI(!showAddDecksUI);
-    };
-
-    function tagsHandleChange(newValue, actionMeta) {
-      setTags(newValue);
     };
 
     function decksHandleChange(newValue, actionMeta) {
       setDecks(newValue);
     };
 
-    function cancelAddTags() {
-      // todo: what if someone:
-      // 1. clicks on edit note
-      // 2. adds tags
-      // 3. clicks ok (these tags should now be associated with the note)
-      // 4. clicks on edit note
-      // 5. adds more tags
-      // 6. clicks cancel
-      // expected: only the changes from step 5 should be undone
-
-      setTags(buildCurrentTags(props.note.tags));
-
-      setShowAddTagsUI(false);
-    };
-
-    function commitAddTags() {
-      let data = {
-        note_id: props.note.id,
-        existing_tag_ids: [],
-        new_tag_names: []
-      };
-
-      // tags would be null if we've removed all tags from a note
-      if (tags) {
-        data = tags.reduce((acc, tag) => {
-          if (tag.__isNew__) {
-            acc.new_tag_names.push(tag.value);
-          } else if (tag.id) {
-            acc.existing_tag_ids.push(tag.id);
-          } else {
-            // should never get here
-            console.error(`tag ${tag.value} has neither __isNew__ nor an id ???`);
-            console.log(tag);
-          }
-          return acc;
-        }, data);
-      }
-
-      Net.post("/api/edges/notes_tags", data).then((all_tags_for_note) => {
-        const n = {...props.note};
-        n.tags = all_tags_for_note.reduce((acc, tag) => {
-          acc.push({note_id: n.id, id: tag.id, name: tag.name, resource: "tags"});
-          return acc;
-        }, []);
-        props.onTagsChanged(n, data.new_tag_names.length > 0);
-      });
-
-      setShowMainButtons(false);
-      setShowAddTagsUI(false);
-    };
 
     function cancelAddDecks() {
       setDecks(buildCurrentDecksAndIdeas(props.note));
@@ -302,25 +237,7 @@ export default function Note(props) {
       setShowAddDecksUI(false);
     };
 
-    if (showAddTagsUI) {
-      return (
-        <div>
-          <label>Tags:</label>
-          <CreatableSelect
-            ref={tagsSelectRef}
-            isMulti
-            name="tags"
-            value={tags}
-            onChange={tagsHandleChange}
-            options={props.ac.tags}
-            className="basic-multi-select"
-            classNamePrefix="select"
-          />
-          <button onClick={ cancelAddTags }>Cancel</button>
-          <button onClick={ commitAddTags }>Save</button>
-        </div>
-      );
-    } else if (showAddDecksUI) {
+    if (showAddDecksUI) {
       return (
         <div>
           <label>Decks:</label>
@@ -339,13 +256,11 @@ export default function Note(props) {
         </div>
       );
     }  else {
-      const addTagsButton = <button onClick={ toggleAddTagsUI }>Tags...</button>;
       const addDecksButton = <button onClick={ toggleAddDecksUI }>References...</button>;
 
       return (
         <div>
           <button onClick={ onEditClicked }>{ buildEditLabelText() }</button>
-          { !showEditButtons && addTagsButton }
           { !showEditButtons && addDecksButton }
         </div>
       );
@@ -416,24 +331,6 @@ function editNote(id, data) {
 
 function deleteNote(id) {
   return Net.delete("/api/notes/" + id.toString());
-}
-
-function buildCurrentTags(tagsInNote) {
-  let res = [];
-
-  if(!tagsInNote) {
-    return null;
-  }
-
-  tagsInNote.forEach((tag) => {
-    res.push({
-      id: tag.id,
-      value: tag.name,
-      label: tag.name
-    });
-  });
-
-  return res;
 }
 
 function buildCurrentDecksAndIdeas(note) {

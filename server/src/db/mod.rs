@@ -26,5 +26,4 @@ pub mod notes;
 pub mod people;
 mod pg;
 pub mod points;
-pub mod tags;
 pub mod users;

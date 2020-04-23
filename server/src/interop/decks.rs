@@ -17,7 +17,7 @@
 
 use crate::interop::Key;
 
-// links to decks/tags on the side of notes
+// links to decks on the side of notes
 //
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct MarginConnection {
@@ -27,7 +27,7 @@ pub struct MarginConnection {
     pub resource: String,
 }
 
-// on a tag page these will represent links back to decks, ideas and other tags
+// on a decks page, these link back to other decks
 //
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct LinkBack {

@@ -44,6 +44,8 @@ impl From<Idea> for interop::Idea {
 
             decks_in_notes: None,
             linkbacks_to_decks: None,
+
+            search_results: None,
         }
     }
 }

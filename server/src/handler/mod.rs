@@ -24,5 +24,4 @@ pub mod events;
 pub mod ideas;
 pub mod notes;
 pub mod people;
-pub mod tags;
 pub mod users;

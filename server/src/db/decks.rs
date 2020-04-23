@@ -167,7 +167,6 @@ pub(crate) async fn delete(db_pool: &Pool, user_id: Key, id: Key) -> Result<()> 
     )
     .await?;
 
-    // todo: <2020-04-14 Tue> once tags are decks, just have a deck_id on point
     points::delete_all_points_connected_with_deck(&tx, id).await?;
 
     let stmt = include_str!("sql/decks_delete.sql");

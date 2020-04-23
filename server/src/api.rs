@@ -24,7 +24,6 @@ use crate::handler::events;
 use crate::handler::ideas;
 use crate::handler::notes;
 use crate::handler::people;
-use crate::handler::tags;
 use crate::handler::users;
 use actix_files::NamedFile;
 use actix_web::dev;
@@ -107,20 +106,10 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", put().to(notes::edit_note))
                 .route("/{id}", delete().to(notes::delete_note)),
         )
-        // tags
-        .service(
-            scope("/tags")
-                .route("", post().to(tags::create))
-                .route("", get().to(tags::get_all))
-                .route("/{id}", get().to(tags::get))
-                .route("/{id}", put().to(tags::edit))
-                .route("/{id}", delete().to(tags::delete)),
-        )
         // edges
         .service(
             scope("/edges")
                 .route("/notes_decks", post().to(edges::create_from_note_to_decks))
-                .route("/notes_tags", post().to(edges::create_from_note_to_tags)),
         )
         // autocomplete
         .service(scope("/autocomplete").route("", get().to(autocomplete::get)))
