@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::handler::articles;
 use crate::handler::autocomplete;
 use crate::handler::cmd;
 use crate::handler::edges;
@@ -23,6 +22,7 @@ use crate::handler::events;
 use crate::handler::ideas;
 use crate::handler::notes;
 use crate::handler::people;
+use crate::handler::publications;
 use crate::handler::users;
 use actix_files::NamedFile;
 use actix_web::dev;
@@ -79,14 +79,14 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", delete().to(events::delete))
                 .route("/{id}/points", post().to(events::add_point)),
         )
-        // articles
+        // publications
         .service(
-            scope("/articles")
-                .route("", post().to(articles::create))
-                .route("", get().to(articles::get_all))
-                .route("/{id}", get().to(articles::get))
-                .route("/{id}", put().to(articles::edit))
-                .route("/{id}", delete().to(articles::delete)),
+            scope("/publications")
+                .route("", post().to(publications::create))
+                .route("", get().to(publications::get_all))
+                .route("/{id}", get().to(publications::get))
+                .route("/{id}", put().to(publications::edit))
+                .route("/{id}", delete().to(publications::delete)),
         )
         // notes
         .service(
@@ -97,10 +97,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", delete().to(notes::delete_note)),
         )
         // edges
-        .service(
-            scope("/edges")
-                .route("/notes_decks", post().to(edges::create_from_note_to_decks))
-        )
+        .service(scope("/edges").route("/notes_decks", post().to(edges::create_from_note_to_decks)))
         // autocomplete
         .service(scope("/autocomplete").route("", get().to(autocomplete::get)))
 }

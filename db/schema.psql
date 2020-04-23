@@ -5,7 +5,7 @@ DROP TABLE IF EXISTS decks;
 DROP TABLE IF EXISTS users;
 DROP TYPE IF EXISTS deck_kind;
 
-CREATE TYPE deck_kind AS ENUM ('article', 'person', 'event', 'idea');
+CREATE TYPE deck_kind AS ENUM ('publication', 'person', 'event', 'idea');
 -- these were enums but have now been renamed to show that they're obsolete:
 -- OBSOLETE__tag, OBSOLETE__book
 
@@ -28,9 +28,9 @@ CREATE TABLE IF NOT EXISTS decks (
 
     kind deck_kind NOT NULL,
 
-    name TEXT NOT NULL,         -- was title in articles and points
-    source TEXT,                -- for articles
-    author TEXT                 -- for articles and books
+    name TEXT NOT NULL,
+    source TEXT,
+    author TEXT
 );
 
 CREATE TABLE IF NOT EXISTS points (

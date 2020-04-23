@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod articles;
 pub mod autocomplete;
 pub mod decks;
 pub mod edges;
@@ -24,6 +23,7 @@ pub mod ideas;
 pub mod notes;
 pub mod people;
 pub mod points;
+pub mod publications;
 pub mod users;
 
 use crate::error::{Error, Result};
@@ -38,43 +38,43 @@ pub struct IdParam {
 
 #[derive(Clone, Copy, Debug)]
 pub enum Model {
+    Event,
+    Idea,
     Note,
     Person,
-    Article,
-    Idea,
-    Event,
     Point,
+    Publication,
 }
 
 impl std::fmt::Display for Model {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            Model::Event => write!(f, "Model::Event"),
+            Model::Idea => write!(f, "Model::Idea"),
             Model::Note => write!(f, "Mode::Note"),
             Model::Person => write!(f, "Model::Person"),
-            Model::Article => write!(f, "Mode::Article"),
-            Model::Idea => write!(f, "Model::Idea"),
-            Model::Event => write!(f, "Model::Event"),
             Model::Point => write!(f, "Mode::Point"),
+            Model::Publication => write!(f, "Mode::Publication"),
         }
     }
 }
 
 pub(crate) fn resource_to_kind(resource: &str) -> Result<&'static str> {
     match resource {
-        "people" => Ok("person"),
         "events" => Ok("event"),
-        "articles" => Ok("article"),
         "ideas" => Ok("idea"),
+        "people" => Ok("person"),
+        "publications" => Ok("publication"),
         _ => Err(Error::InvalidResource),
     }
 }
 
 pub(crate) fn kind_to_resource(kind: &str) -> Result<&'static str> {
     match kind {
-        "person" => Ok("people"),
         "event" => Ok("events"),
-        "article" => Ok("articles"),
         "idea" => Ok("ideas"),
+        "person" => Ok("people"),
+        "publication" => Ok("publications"),
         _ => Err(Error::InvalidKind),
     }
 }

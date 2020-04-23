@@ -18,7 +18,7 @@
 use super::pg;
 use crate::db::decks;
 use crate::error::Result;
-use crate::interop::articles as interop;
+use crate::interop::publications as interop;
 use crate::interop::Key;
 use deadpool_postgres::Pool;
 use serde::{Deserialize, Serialize};
@@ -29,16 +29,16 @@ use tracing::info;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
-struct Article {
+struct Publication {
     id: Key,
     name: String,
     source: Option<String>,
     author: Option<String>,
 }
 
-impl From<Article> for interop::Article {
-    fn from(a: Article) -> interop::Article {
-        interop::Article {
+impl From<Publication> for interop::Publication {
+    fn from(a: Publication) -> interop::Publication {
+        interop::Publication {
             id: a.id,
             title: a.name,
             source: a.source,
@@ -52,20 +52,24 @@ impl From<Article> for interop::Article {
     }
 }
 
-pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Article>> {
-    pg::many_from::<Article, interop::Article>(
+pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Publication>> {
+    pg::many_from::<Publication, interop::Publication>(
         db_pool,
-        include_str!("sql/articles_all.sql"),
+        include_str!("sql/publications_all.sql"),
         &[&user_id],
     )
     .await
 }
 
-pub(crate) async fn get(db_pool: &Pool, user_id: Key, article_id: Key) -> Result<interop::Article> {
-    pg::one_from::<Article, interop::Article>(
+pub(crate) async fn get(
+    db_pool: &Pool,
+    user_id: Key,
+    publication_id: Key,
+) -> Result<interop::Publication> {
+    pg::one_from::<Publication, interop::Publication>(
         db_pool,
-        include_str!("sql/articles_get.sql"),
-        &[&user_id, &article_id],
+        include_str!("sql/publications_get.sql"),
+        &[&user_id, &publication_id],
     )
     .await
 }
@@ -73,12 +77,17 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key, article_id: Key) -> Result
 pub(crate) async fn create(
     db_pool: &Pool,
     user_id: Key,
-    article: &interop::ProtoArticle,
-) -> Result<interop::Article> {
-    pg::one_from::<Article, interop::Article>(
+    publication: &interop::ProtoPublication,
+) -> Result<interop::Publication> {
+    pg::one_from::<Publication, interop::Publication>(
         db_pool,
-        include_str!("sql/articles_create.sql"),
-        &[&user_id, &article.title, &article.source, &article.author],
+        include_str!("sql/publications_create.sql"),
+        &[
+            &user_id,
+            &publication.title,
+            &publication.source,
+            &publication.author,
+        ],
     )
     .await
 }
@@ -86,23 +95,23 @@ pub(crate) async fn create(
 pub(crate) async fn edit(
     db_pool: &Pool,
     user_id: Key,
-    article: &interop::ProtoArticle,
-    article_id: Key,
-) -> Result<interop::Article> {
-    pg::one_from::<Article, interop::Article>(
+    publication: &interop::ProtoPublication,
+    publication_id: Key,
+) -> Result<interop::Publication> {
+    pg::one_from::<Publication, interop::Publication>(
         db_pool,
-        include_str!("sql/articles_edit.sql"),
+        include_str!("sql/publications_edit.sql"),
         &[
             &user_id,
-            &article_id,
-            &article.title,
-            &article.source,
-            &article.author,
+            &publication_id,
+            &publication.title,
+            &publication.source,
+            &publication.author,
         ],
     )
     .await
 }
 
-pub(crate) async fn delete(db_pool: &Pool, user_id: Key, article_id: Key) -> Result<()> {
-    decks::delete(db_pool, user_id, article_id).await
+pub(crate) async fn delete(db_pool: &Pool, user_id: Key, publication_id: Key) -> Result<()> {
+    decks::delete(db_pool, user_id, publication_id).await
 }

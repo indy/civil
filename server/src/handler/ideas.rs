@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::LinkBack;
 use crate::db::decks as decks_db;
 use crate::db::ideas as db;
 use crate::db::notes as notes_db;
 use crate::error::Result;
+use crate::interop::decks::LinkBack;
 use crate::interop::ideas as interop;
 use crate::interop::{IdParam, Key};
 use crate::session;
@@ -103,7 +103,12 @@ pub async fn delete(
     Ok(HttpResponse::Ok().json(true))
 }
 
-async fn augment(db_pool: &Data<Pool>, user_id: Key, idea: &mut interop::Idea, idea_id: Key) -> Result<()> {
+async fn augment(
+    db_pool: &Data<Pool>,
+    user_id: Key,
+    idea: &mut interop::Idea,
+    idea_id: Key,
+) -> Result<()> {
     let (notes, decks_in_notes, linkbacks_to_decks) = tokio::try_join!(
         notes_db::all_from_deck(&db_pool, idea_id),
         decks_db::from_deck_id_via_notes_to_decks(&db_pool, idea_id),

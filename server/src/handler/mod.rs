@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod articles;
 pub mod autocomplete;
 pub mod cmd;
 pub mod edges;
@@ -23,4 +22,5 @@ pub mod events;
 pub mod ideas;
 pub mod notes;
 pub mod people;
+pub mod publications;
 pub mod users;

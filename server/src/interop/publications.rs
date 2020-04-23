@@ -20,7 +20,7 @@ use crate::interop::notes::Note;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct Article {
+pub struct Publication {
     pub id: Key,
     pub title: String,
     pub source: Option<String>,
@@ -33,7 +33,7 @@ pub struct Article {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct ProtoArticle {
+pub struct ProtoPublication {
     pub title: String,
     pub source: Option<String>,
     pub author: Option<String>,

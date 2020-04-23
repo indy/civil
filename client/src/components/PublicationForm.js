@@ -5,22 +5,22 @@ import { removeEmptyStrings } from '../lib/JsUtils';
 import Net from '../lib/Net';
 import { useStateValue } from '../lib/state';
 
-export default function ArticleForm({ article, setMsg }) {
-  article = article || {};
+export default function PublicationForm({ publication, setMsg }) {
+  publication = publication || {};
   const [state, dispatch] = useStateValue();
-  const [title, setTitle] = useState(article.title || '');
-  const [author, setAuthor] = useState(article.author || '');
-  const [source, setSource] = useState(article.source || '');
+  const [title, setTitle] = useState(publication.title || '');
+  const [author, setAuthor] = useState(publication.author || '');
+  const [source, setSource] = useState(publication.source || '');
   const [redirectUrl, setRedirectUrl] = useState(false);
 
-  if (article.title && article.title !== '' && title === '') {
-    setTitle(article.title);
+  if (publication.title && publication.title !== '' && title === '') {
+    setTitle(publication.title);
   }
-  if (article.source && article.source !== '' && source === '') {
-    setSource(article.source);
+  if (publication.source && publication.source !== '' && source === '') {
+    setSource(publication.source);
   }
-  if (article.author && article.author !== '' && author === '') {
-    setAuthor(article.author);
+  if (publication.author && publication.author !== '' && author === '') {
+    setAuthor(publication.author);
   }
   if (state.dummy) {
     // just to stop the build tool from complaining about unused state
@@ -50,26 +50,26 @@ export default function ArticleForm({ article, setMsg }) {
     }, ["source"]);
 
     if(setMsg) {
-      // edit an existing article
-      Net.put(`/api/articles/${article.id}`, data).then(newItem => {
+      // edit an existing publication
+      Net.put(`/api/publications/${publication.id}`, data).then(newItem => {
         dispatch({
           type: setMsg,
-          id: article.id,
+          id: publication.id,
           newItem
         });
       });
     } else {
-      // create a new article
-      Net.post('/api/articles', data).then(article => {
+      // create a new publication
+      Net.post('/api/publications', data).then(publication => {
 
         dispatch({
           type: 'addAutocompleteDeck',
-          id: article.id,
-          value: article.title,
-          label: article.title
+          id: publication.id,
+          value: publication.title,
+          label: publication.title
         });
 
-        setRedirectUrl(`articles/${article.id}`);
+        setRedirectUrl(`publications/${publication.id}`);
       });
     }
 
@@ -105,7 +105,7 @@ export default function ArticleForm({ article, setMsg }) {
                value={ author }
                onChange={ handleChangeEvent } />
         <br/>
-        <input type="submit" value={ setMsg ? "Update Article" : "Create Article"}/>
+        <input type="submit" value={ setMsg ? "Update Publication" : "Create Publication"}/>
       </form>
     );
   }

@@ -16,7 +16,7 @@ export default function Shell(props) {
   const commands = {
     goto: {
       description: 'Goto a listing page',
-      usage: 'goto [ideas | articles | people | places]',
+      usage: 'goto [ideas | publications | people | places]',
       fn: function (deck) {
         return `goto ${deck}`;
       },
@@ -27,7 +27,7 @@ export default function Shell(props) {
 
     recent: {
       description: 'Display recently added items',
-      usage: 'recent [ideas | articles | people | places]',
+      usage: 'recent [ideas | publications | people | places]',
       fn: async function (deck) {
         const res = await cmdRecent(deck);
         return res;
@@ -60,7 +60,7 @@ export default function Shell(props) {
 
 async function cmdRecent(deck) {
   const d = deck.toLowerCase();
-  const whiteList = ['articles', 'people', 'events', 'ideas'];
+  const whiteList = ['publications', 'people', 'events', 'ideas'];
   if (!whiteList.includes(d)) {
     return (<div className="shell-block">unknown deck specifier: { deck }</div>);
   }

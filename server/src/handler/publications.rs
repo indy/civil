@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::articles as db;
 use crate::db::decks as decks_db;
 use crate::db::notes as notes_db;
+use crate::db::publications as db;
 use crate::error::Result;
-use crate::interop::articles as interop;
+use crate::interop::publications as interop;
 use crate::interop::{IdParam, Key};
 use crate::session;
 use actix_web::web::{Data, Json, Path};
@@ -30,18 +30,18 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 pub async fn create(
-    article: Json<interop::ProtoArticle>,
+    publication: Json<interop::ProtoPublication>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("create");
 
     let user_id = session::user_id(&session)?;
-    let article = article.into_inner();
+    let publication = publication.into_inner();
 
-    let article = db::create(&db_pool, user_id, &article).await?;
+    let publication = db::create(&db_pool, user_id, &publication).await?;
 
-    Ok(HttpResponse::Ok().json(article))
+    Ok(HttpResponse::Ok().json(publication))
 }
 
 pub async fn get_all(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
@@ -49,9 +49,9 @@ pub async fn get_all(db_pool: Data<Pool>, session: actix_session::Session) -> Re
 
     let user_id = session::user_id(&session)?;
 
-    let articles = db::all(&db_pool, user_id).await?;
+    let publications = db::all(&db_pool, user_id).await?;
 
-    Ok(HttpResponse::Ok().json(articles))
+    Ok(HttpResponse::Ok().json(publications))
 }
 
 pub async fn get(
@@ -62,16 +62,16 @@ pub async fn get(
     info!("get {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
-    let article_id = params.id;
+    let publication_id = params.id;
 
-    let mut article = db::get(&db_pool, user_id, article_id).await?;
-    augment(&db_pool, &mut article, article_id).await?;
+    let mut publication = db::get(&db_pool, user_id, publication_id).await?;
+    augment(&db_pool, &mut publication, publication_id).await?;
 
-    Ok(HttpResponse::Ok().json(article))
+    Ok(HttpResponse::Ok().json(publication))
 }
 
 pub async fn edit(
-    article: Json<interop::ProtoArticle>,
+    publication: Json<interop::ProtoPublication>,
     db_pool: Data<Pool>,
     params: Path<IdParam>,
     session: actix_session::Session,
@@ -79,13 +79,13 @@ pub async fn edit(
     info!("edit");
 
     let user_id = session::user_id(&session)?;
-    let article_id = params.id;
-    let article = article.into_inner();
+    let publication_id = params.id;
+    let publication = publication.into_inner();
 
-    let mut article = db::edit(&db_pool, user_id, &article, article_id).await?;
-    augment(&db_pool, &mut article, article_id).await?;
+    let mut publication = db::edit(&db_pool, user_id, &publication, publication_id).await?;
+    augment(&db_pool, &mut publication, publication_id).await?;
 
-    Ok(HttpResponse::Ok().json(article))
+    Ok(HttpResponse::Ok().json(publication))
 }
 
 pub async fn delete(
@@ -104,18 +104,18 @@ pub async fn delete(
 
 async fn augment(
     db_pool: &Data<Pool>,
-    article: &mut interop::Article,
-    article_id: Key,
+    publication: &mut interop::Publication,
+    publication_id: Key,
 ) -> Result<()> {
     let (notes, decks_in_notes, linkbacks_to_decks) = tokio::try_join!(
-        notes_db::all_from_deck(&db_pool, article_id),
-        decks_db::from_deck_id_via_notes_to_decks(&db_pool, article_id),
-        decks_db::from_decks_via_notes_to_deck_id(&db_pool, article_id),
+        notes_db::all_from_deck(&db_pool, publication_id),
+        decks_db::from_deck_id_via_notes_to_decks(&db_pool, publication_id),
+        decks_db::from_decks_via_notes_to_deck_id(&db_pool, publication_id),
     )?;
 
-    article.notes = Some(notes);
-    article.decks_in_notes = Some(decks_in_notes);
-    article.linkbacks_to_decks = Some(linkbacks_to_decks);
+    publication.notes = Some(notes);
+    publication.decks_in_notes = Some(decks_in_notes);
+    publication.linkbacks_to_decks = Some(linkbacks_to_decks);
 
     Ok(())
 }

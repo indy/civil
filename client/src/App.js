@@ -18,8 +18,8 @@ import Logout from './components/Logout';
 import Person from './components/Person';
 import People from './components/People';
 
-import Article from './components/Article';
-import Articles from './components/Articles';
+import Publication from './components/Publication';
+import Publications from './components/Publications';
 
 import Idea from './components/Idea';
 import Ideas from './components/Ideas';
@@ -91,7 +91,7 @@ function TopBarMenu(props) {
     <div id='top-bar-menu'>
       <Link className='top-bar-menuitem' to={'/'}>Home</Link>
       <Link className='top-bar-menuitem' to={'/ideas'}>Ideas</Link>
-      <Link className='top-bar-menuitem' to={'/articles'}>Articles</Link>
+      <Link className='top-bar-menuitem' to={'/publications'}>Publications</Link>
       <Link className='top-bar-menuitem' to={'/people'}>People</Link>
       <Link className='top-bar-menuitem' to={'/events'}>Events</Link>
       <Link className='top-bar-menuitem' to={ loggedLink() } id="login-menuitem">{ loggedStatus() }</Link>
@@ -148,11 +148,11 @@ function AppUI(props) {
           <PrivateRoute exact path="/events">
             <Events/>
           </PrivateRoute>
-          <PrivateRoute path={'/articles/:id'}>
-            <Article/>
+          <PrivateRoute path={'/publications/:id'}>
+            <Publication/>
           </PrivateRoute>
-          <PrivateRoute exact path="/articles">
-            <Articles/>
+          <PrivateRoute exact path="/publications">
+            <Publications/>
           </PrivateRoute>
         </Switch>
       </div>
