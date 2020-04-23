@@ -33,9 +33,9 @@ pub async fn create_from_note_to_decks(
     info!("create_from_note_to_decks");
 
     let edge = edge.into_inner();
-    let _user_id = session::user_id(&session)?;
+    let user_id = session::user_id(&session)?;
 
-    let all_decks_for_note = db::create_from_note_to_decks(&db_pool, &edge).await?;
+    let all_decks_for_note = db::create_from_note_to_decks(&db_pool, &edge, user_id).await?;
 
     Ok(HttpResponse::Ok().json(all_decks_for_note))
 }

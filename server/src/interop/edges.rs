@@ -20,5 +20,6 @@ use crate::interop::Key;
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct CreateEdgeFromNoteToDecks {
     pub note_id: Key,
-    pub deck_ids: Vec<Key>,
+    pub existing_deck_ids: Vec<Key>,
+    pub new_deck_names: Vec<String>,
 }

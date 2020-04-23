@@ -20,7 +20,7 @@ use crate::db::decks;
 use crate::error::Result;
 use crate::interop::ideas as interop;
 use crate::interop::Key;
-use deadpool_postgres::Pool;
+use deadpool_postgres::{Pool, Transaction};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
@@ -48,6 +48,21 @@ impl From<Idea> for interop::Idea {
             search_results: None,
         }
     }
+}
+
+pub(crate) async fn create_idea_tx(
+    tx: &Transaction<'_>,
+    user_id: Key,
+    deck_name: &str,
+) -> Result<interop::Idea> {
+    let res = pg::one::<Idea>(
+        tx,
+        include_str!("sql/ideas_create.sql"),
+        &[&user_id, &deck_name],
+    )
+    .await?;
+
+    Ok(res.into())
 }
 
 pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Idea>> {

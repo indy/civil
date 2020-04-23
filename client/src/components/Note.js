@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import CreatableSelect from 'react-select/creatable';
-import Select from 'react-select';
 import ResourceLink from './ResourceLink';
 import NoteCompiler from '../lib/NoteCompiler';
 import Net from '../lib/Net';
@@ -198,6 +197,15 @@ export default function Note(props) {
 
 
     function cancelAddDecks() {
+      // todo: what if someone:
+      // 1. clicks on edit note
+      // 2. adds decks
+      // 3. clicks ok (these decks should now be associated with the note)
+      // 4. clicks on edit note
+      // 5. adds more decks
+      // 6. clicks cancel
+      // expected: only the changes from step 5 should be undone
+
       setDecks(buildCurrentDecksAndIdeas(props.note));
       setShowAddDecksUI(false);
     };
@@ -205,17 +213,20 @@ export default function Note(props) {
     function commitAddDecks() {
       let data = {
         note_id: props.note.id,
-        deck_ids: []
+        existing_deck_ids: [],
+        new_deck_names: []
       };
 
-      // decks would be null if we've removed all deck references from a note
+      // decks would be null if we've removed all decks from a note
       if (decks) {
         data = decks.reduce((acc, deck) => {
-          if (deck.id) {
-            acc.deck_ids.push(deck.id);
+          if (deck.__isNew__) {
+            acc.new_deck_names.push(deck.value);
+          } else if (deck.id) {
+            acc.existing_deck_ids.push(deck.id);
           } else {
             // should never get here
-            console.error(`deck ${deck.value} has no id ???`);
+            console.error(`deck ${deck.value} has neither __isNew__ nor an id ???`);
             console.log(deck);
           }
           return acc;
@@ -241,7 +252,7 @@ export default function Note(props) {
       return (
         <div>
           <label>Decks:</label>
-          <Select
+          <CreatableSelect
             ref={decksSelectRef}
             isMulti
             name="decks"

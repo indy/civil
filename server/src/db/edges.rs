@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::pg;
+use crate::db::ideas as ideas_db;
 use crate::error::{Error, Result};
 use crate::interop::decks as decks_interop;
 use crate::interop::edges as interop;
@@ -72,36 +73,49 @@ fn is_key_in_keys(k: Key, keys: &[Key]) -> bool {
 pub(crate) async fn create_from_note_to_decks(
     db_pool: &Pool,
     edge: &interop::CreateEdgeFromNoteToDecks,
+    user_id: Key,
 ) -> Result<Vec<decks_interop::MarginConnection>> {
     info!("create_from_note_to_decks");
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
     let note_id = edge.note_id;
-    let stmt_all_decks = include_str!("sql/decks_all_for_note.sql");
 
     // get the list of existing decks associated with this note
-    let associated_decks: Vec<MarginConnectionToDeck> = // todo: just need the id?
+    let stmt_all_decks = include_str!("sql/decks_all_for_note.sql");
+    let associated_decks: Vec<MarginConnectionToDeck> =
         pg::many::<MarginConnectionToDeck>(&tx, &stmt_all_decks, &[&note_id]).await?;
 
     // remove decks that are in associated_decks but not in edge.deck_ids
     let stmt_delete_deck = include_str!("sql/edges_delete_notes_decks.sql");
     for associated_deck in &associated_decks {
-        if !is_key_in_keys(associated_deck.id, &edge.deck_ids) {
+        if !is_key_in_keys(associated_deck.id, &edge.existing_deck_ids) {
             // this deck has been removed from the note by the user
             info!("deleting {}, {}", &note_id, &associated_deck.id);
             pg::zero(&tx, &stmt_delete_deck, &[&note_id, &associated_deck.id]).await?;
         }
     }
 
-    let stmt_attach_deck = include_str!("sql/edges_create_from_note_to_deck.sql");
-
     // create any new edges from the note to already existing decks
-    for deck_id in &edge.deck_ids {
+    let stmt_attach_deck = include_str!("sql/edges_create_from_note_to_deck.sql");
+    for deck_id in &edge.existing_deck_ids {
         if !is_deck_associated_with_note(*deck_id, &associated_decks) {
             info!("creating {}, {}", &note_id, &deck_id);
             pg::zero(&tx, &stmt_attach_deck, &[&note_id, &deck_id]).await?;
         }
+    }
+
+    // create new tags and create edges from the note to them
+    //
+    for new_deck_name in &edge.new_deck_names {
+        // todo(<2020-03-30 Mon>): additional check to make sure that this tag doesn't already exist
+        // it's a stupid thing that could happen if:
+        // 1. a user has the same deck open in two windows
+        // 2. adds a new tag to a note in one window
+        // 3. adds the same new tag in the other window
+        //
+        let deck = ideas_db::create_idea_tx(&tx, user_id, &new_deck_name).await?;
+        pg::zero(&tx, &stmt_attach_deck, &[&note_id, &deck.id]).await?;
     }
 
     tx.commit().await?;
