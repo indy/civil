@@ -21,9 +21,6 @@ import People from './components/People';
 import Article from './components/Article';
 import Articles from './components/Articles';
 
-import Book from './components/Book';
-import Books from './components/Books';
-
 import Idea from './components/Idea';
 import Ideas from './components/Ideas';
 
@@ -94,7 +91,6 @@ function TopBarMenu(props) {
     <div id='top-bar-menu'>
       <Link className='top-bar-menuitem' to={'/'}>Home</Link>
       <Link className='top-bar-menuitem' to={'/ideas'}>Ideas</Link>
-      <Link className='top-bar-menuitem' to={'/books'}>Books</Link>
       <Link className='top-bar-menuitem' to={'/articles'}>Articles</Link>
       <Link className='top-bar-menuitem' to={'/people'}>People</Link>
       <Link className='top-bar-menuitem' to={'/events'}>Events</Link>
@@ -157,12 +153,6 @@ function AppUI(props) {
           </PrivateRoute>
           <PrivateRoute exact path="/articles">
             <Articles/>
-          </PrivateRoute>
-          <PrivateRoute path={'/books/:id'}>
-            <Book/>
-          </PrivateRoute>
-          <PrivateRoute exact path="/books">
-            <Books/>
           </PrivateRoute>
         </Switch>
       </div>

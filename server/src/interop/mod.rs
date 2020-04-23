@@ -17,7 +17,6 @@
 
 pub mod articles;
 pub mod autocomplete;
-pub mod books;
 pub mod decks;
 pub mod edges;
 pub mod events;
@@ -42,7 +41,6 @@ pub enum Model {
     Note,
     Person,
     Article,
-    Book,
     Idea,
     Event,
     Point,
@@ -54,7 +52,6 @@ impl std::fmt::Display for Model {
             Model::Note => write!(f, "Mode::Note"),
             Model::Person => write!(f, "Model::Person"),
             Model::Article => write!(f, "Mode::Article"),
-            Model::Book => write!(f, "Model::Book"),
             Model::Idea => write!(f, "Model::Idea"),
             Model::Event => write!(f, "Model::Event"),
             Model::Point => write!(f, "Mode::Point"),
@@ -67,7 +64,6 @@ pub(crate) fn resource_to_kind(resource: &str) -> Result<&'static str> {
         "people" => Ok("person"),
         "events" => Ok("event"),
         "articles" => Ok("article"),
-        "books" => Ok("book"),
         "ideas" => Ok("idea"),
         _ => Err(Error::InvalidResource),
     }
@@ -78,7 +74,6 @@ pub(crate) fn kind_to_resource(kind: &str) -> Result<&'static str> {
         "person" => Ok("people"),
         "event" => Ok("events"),
         "article" => Ok("articles"),
-        "book" => Ok("books"),
         "idea" => Ok("ideas"),
         _ => Err(Error::InvalidKind),
     }

@@ -17,7 +17,6 @@
 
 pub mod articles;
 pub mod autocomplete;
-pub mod books;
 pub mod cmd;
 pub mod edges;
 pub mod events;

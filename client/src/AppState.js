@@ -26,10 +26,6 @@ export const initialState = {
   ideas: [],                  // when listing ideas on /ideas page
   idea: {},                   // an object where keys are the idea ids, values are the ideas
 
-  booksLoaded: false,
-  books: [],
-  book: {},
-
   articlesLoaded: false,
   articles: [],
   article: {},
@@ -148,19 +144,6 @@ export const reducer = (state, action) => {
       let newState = { ...state };
       updateListOfTitles(newState.ideas, action.newItem);
       newState.idea[action.id] = action.newItem;
-      return newState;
-    }
-  case 'setBooks':
-    return {
-      ...state,
-      booksLoaded: true,
-      books: action.books
-    };
-  case 'setBook':
-    {
-      let newState = { ...state };
-      updateListOfTitles(newState.books, action.newItem);
-      newState.book[action.id] = action.newItem;
       return newState;
     }
   case 'setArticles':

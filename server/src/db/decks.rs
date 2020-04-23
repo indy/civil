@@ -152,7 +152,7 @@ pub(crate) async fn recent(
     pg::many_from::<LinkBackToDeck, interop::LinkBack>(db_pool, &stmt, &[&user_id]).await
 }
 
-// delete anything that's represented as a deck (article, book, person, event)
+// delete anything that's represented as a deck (article, person, event)
 //
 pub(crate) async fn delete(db_pool: &Pool, user_id: Key, id: Key) -> Result<()> {
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
@@ -195,7 +195,7 @@ pub(crate) async fn from_decks_via_notes_to_deck_id(
 
 // return all the referenced decks in the given deck
 // e.g. from_deck_id_via_notes_to_decks(db_pool, article_id)
-// will return all the people, events, books, articles etc mentioned in the given article
+// will return all the people, events, articles etc mentioned in the given article
 //
 pub(crate) async fn from_deck_id_via_notes_to_decks(
     db_pool: &Pool,

@@ -17,7 +17,6 @@
 
 use crate::handler::articles;
 use crate::handler::autocomplete;
-use crate::handler::books;
 use crate::handler::cmd;
 use crate::handler::edges;
 use crate::handler::events;
@@ -88,15 +87,6 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", get().to(articles::get))
                 .route("/{id}", put().to(articles::edit))
                 .route("/{id}", delete().to(articles::delete)),
-        )
-        // books
-        .service(
-            scope("/books")
-                .route("", post().to(books::create))
-                .route("", get().to(books::get_all))
-                .route("/{id}", get().to(books::get))
-                .route("/{id}", put().to(books::edit))
-                .route("/{id}", delete().to(books::delete)),
         )
         // notes
         .service(
