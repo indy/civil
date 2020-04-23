@@ -50,7 +50,7 @@ impl From<MarginConnectionToDeck> for decks_interop::MarginConnection {
     }
 }
 
-fn is_tag_associated_with_note(new_tag_id: Key, existing_tags: &Vec<tags_db::Tag>) -> bool {
+fn is_tag_associated_with_note(new_tag_id: Key, existing_tags: &[tags_db::Tag]) -> bool {
     for existing in existing_tags {
         if existing.id == new_tag_id {
             return true;
@@ -61,7 +61,7 @@ fn is_tag_associated_with_note(new_tag_id: Key, existing_tags: &Vec<tags_db::Tag
 
 fn is_deck_associated_with_note(
     new_deck_id: Key,
-    existing_decks: &Vec<MarginConnectionToDeck>,
+    existing_decks: &[MarginConnectionToDeck],
 ) -> bool {
     for existing in existing_decks {
         if existing.id == new_deck_id {
@@ -71,7 +71,7 @@ fn is_deck_associated_with_note(
     false
 }
 
-fn is_key_in_keys(k: Key, keys: &Vec<Key>) -> bool {
+fn is_key_in_keys(k: Key, keys: &[Key]) -> bool {
     for key in keys {
         if k == *key {
             return true;

@@ -9,9 +9,11 @@ export function findPoint(points, title) {
 }
 
 export function separateIntoTagsAndDecks(r) {
-  let tags = r.filter(d => d.resource === 'tags');
-  let decks = r.filter(d => d.resource !== 'tags');
-  return [tags, decks];
+  return separateFromDecks(r, 'tags');
+}
+
+export function separateIntoIdeasAndDecks(r) {
+  return separateFromDecks(r, 'ideas');
 }
 
 export function ensureAC(state, dispatch) {
@@ -28,3 +30,11 @@ export function ensureAC(state, dispatch) {
 
   }
 };
+
+// given an array of decks, separate out all decks of a particular resource, returning 2 arrays
+function separateFromDecks(decks, resource) {
+  return decks.reduce((acc, deck) => {
+    acc[(deck.resource === resource) ? 0 : 1].push(deck);
+    return acc;
+  }, [[],[]]);
+}

@@ -185,7 +185,7 @@ a:link, a:visited { color: inherit; }
 /* Sidenotes, margin notes, figures, captions */
 img { max-width: 100%; }
 
-.tag-container {
+.leftmargin-container {
   padding-top: 0.5em;
 
   text-decoration: none;
@@ -203,11 +203,11 @@ img { max-width: 100%; }
   color: #666;
 }
 
-.tag a {
+.leftmargin-entry a {
   text-decoration: none;
 }
 
-.sidenote, .marginnote-container {
+.sidenote, .rightmargin-container {
     padding-top: 0.5em;
     float: right;
     clear: right;
@@ -222,7 +222,7 @@ img { max-width: 100%; }
     color: #666;
 }
 
-.marginnote-container a {
+.rightmargin-container a {
   text-decoration: none;
 }
 
@@ -240,7 +240,7 @@ img { max-width: 100%; }
 .sidenote:before { content: counter(sidenote-counter) " ";
                    top: -0.5rem; }
 
-blockquote .sidenote, blockquote .marginnote-container { margin-right: -82%;
+blockquote .sidenote, blockquote .rightmargin-container { margin-right: -82%;
                                                min-width: 59%;
                                                text-align: left; }
 
@@ -260,7 +260,7 @@ code { font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
 
 h1 > code, h2 > code, h3 > code { font-size: 0.80em; }
 
-.marginnote-container > code, .sidenote > code { font-size: 1rem; }
+.rightmargin-container > code, .sidenote > code { font-size: 1rem; }
 
 pre.code { font-size: 0.9rem;
            width: 52.5%;
@@ -306,9 +306,9 @@ label.margin-toggle:not(.sidenote-number) { display: none; }
                                          margin-right: 0em; }
                             blockquote p, blockquote footer { width: 100%; }
                             label.margin-toggle:not(.sidenote-number) { display: inline; }
-                            .sidenote, .marginnote-container { display: none; }
+                            .sidenote, .rightmargin-container { display: none; }
                             .margin-toggle:checked + .sidenote,
-                            .margin-toggle:checked + .marginnote-container { display: block;
+                            .margin-toggle:checked + .rightmargin-container { display: block;
                                                                    float: left;
                                                                    left: 1rem;
                                                                    clear: both;

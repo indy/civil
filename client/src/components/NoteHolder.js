@@ -12,7 +12,7 @@ import NoteCompiler from '../lib/NoteCompiler';
 
 import SectionLinkBacks from './SectionLinkBacks';
 import { useStateValue } from '../lib/state';
-import { ensureAC, separateIntoTagsAndDecks } from '../lib/utils';
+import { ensureAC, separateIntoTagsAndDecks, separateIntoIdeasAndDecks } from '../lib/utils';
 import { addChronologicalSortYear } from '../lib/eras';
 
 export default function NoteHolder({holder, setMsg, title, resource, isLoaded, updateForm, children}) {
@@ -299,14 +299,17 @@ function addNote(form, deck_id) {
 }
 
 function applyTagsAndDecksToNotes(obj) {
-  let [tags, decks] = separateIntoTagsAndDecks(obj.decks_in_notes);
+  let [ideas, rest] = separateIntoIdeasAndDecks(obj.decks_in_notes);
+  const ideasInNotes = hashByNoteIds(ideas);
 
+  let [tags, decks] = separateIntoTagsAndDecks(rest);
   const tagsInNotes = hashByNoteIds(tags);
   const decksInNotes = hashByNoteIds(decks);
 
   for(let i = 0;i<obj.notes.length;i++) {
     let n = obj.notes[i];
     n.tags = tagsInNotes[n.id];
+    n.ideas = ideasInNotes[n.id];
     n.decks = decksInNotes[n.id];
   }
 

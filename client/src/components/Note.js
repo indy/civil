@@ -4,6 +4,8 @@ import Select from 'react-select';
 import ResourceLink from './ResourceLink';
 import NoteCompiler from '../lib/NoteCompiler';
 import Net from '../lib/Net';
+import { separateIntoIdeasAndDecks } from '../lib/utils';
+
 
 export default function Note(props) {
   const [showMainButtons, setShowMainButtons] = useState(false);
@@ -17,7 +19,7 @@ export default function Note(props) {
   const [separator, setSeparator] = useState(props.note.separator);
 
   const [tags, setTags] = useState(buildCurrentTags(props.note.tags));
-  const [decks, setDecks] = useState(buildCurrentDecks(props.note.decks)); // fix later
+  const [decks, setDecks] = useState(buildCurrentDecksAndIdeas(props.note));
 
   const [tagsSelectRef] = useState(React.createRef());
   const [decksSelectRef] = useState(React.createRef());
@@ -118,13 +120,12 @@ export default function Note(props) {
     return (
       <div>
         { title && buildTitle(title) }
-        <div>
-          { source && buildSource(source) }
-          { props.note.tags && buildMarginConnections(props.note.tags, "tag-container", "tag") }
-          { props.note.decks && buildMarginConnections(props.note.decks, "marginnote-container", "marginnote") }
-          <div onClick={ onShowButtonsClicked }>
-            { parseContent(content) }
-          </div>
+        { source && buildSource(source) }
+        { props.note.tags && buildMarginConnections(props.note.tags, "leftmargin-container", "leftmargin-entry") }
+        { props.note.decks && buildMarginConnections(props.note.decks, "leftmargin-container", "leftmargin-entry") }
+        { props.note.ideas && buildMarginConnections(props.note.ideas, "rightmargin-container", "rightmargin-entry") }
+        <div onClick={ onShowButtonsClicked }>
+          { parseContent(content) }
         </div>
       </div>
     );
@@ -262,7 +263,7 @@ export default function Note(props) {
     };
 
     function cancelAddDecks() {
-      setDecks(buildCurrentDecks(props.note.decks));
+      setDecks(buildCurrentDecksAndIdeas(props.note));
       setShowAddDecksUI(false);
     };
 
@@ -287,11 +288,13 @@ export default function Note(props) {
       }
 
       Net.post("/api/edges/notes_decks", data).then((all_decks_for_note) => {
-        const n = {...props.note};
-        n.decks = all_decks_for_note.reduce((acc, deck) => {
-          acc.push({note_id: n.id, id: deck.id, name: deck.name, resource: deck.resource});
-          return acc;
-        }, []);
+        let [ideas, decks] = separateIntoIdeasAndDecks(all_decks_for_note);
+        const n = {
+          ...props.note,
+          ideas,
+          decks
+        };
+
         props.onDecksChanged(n);
       });
 
@@ -433,21 +436,34 @@ function buildCurrentTags(tagsInNote) {
   return res;
 }
 
-function buildCurrentDecks(decksInNote) {
+function buildCurrentDecksAndIdeas(note) {
   let res = [];
 
-  if(!decksInNote) {
+  if(!note) {
     return null;
   }
 
-  decksInNote.forEach((deck) => {
-    res.push({
-      id: deck.id,
-      value: deck.name,
-      label: deck.name,
-      resource: deck.resource
+  if (note.decks) {
+    note.decks.forEach((deck) => {
+      res.push({
+        id: deck.id,
+        value: deck.name,
+        label: deck.name,
+        resource: deck.resource
+      });
     });
-  });
+  }
+
+  if (note.ideas) {
+    note.ideas.forEach((deck) => {
+      res.push({
+        id: deck.id,
+        value: deck.name,
+        label: deck.name,
+        resource: deck.resource
+      });
+    });
+  }
 
   return res;
 }
