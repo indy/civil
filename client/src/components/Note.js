@@ -290,7 +290,7 @@ export default function Note(props) {
 
 function buildSource(source) {
   return (
-    <span className="marginnote-container">
+    <span className="rightmargin-container">
       <a href={ source }>{ source }</a>
     </span>
   );
