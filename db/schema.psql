@@ -61,10 +61,11 @@ CREATE TABLE IF NOT EXISTS notes (
     user_id BIGINT NOT NULL REFERENCES users,
     deck_id BIGINT NOT NULL REFERENCES decks,
 
-    source TEXT,
-    content TEXT NOT NULL,
+    separator BOOL NOT NULL DEFAULT false,
     title TEXT,
-    separator BOOL NOT NULL DEFAULT false
+    content TEXT NOT NULL,
+    source TEXT,
+    sidenote TEXT
 );
 
 CREATE TABLE IF NOT EXISTS notes_decks (
@@ -74,13 +75,4 @@ CREATE TABLE IF NOT EXISTS notes_decks (
     deck_id BIGINT NOT NULL REFERENCES decks,
 
     PRIMARY KEY(note_id, deck_id)
-);
-
-CREATE TABLE IF NOT EXISTS sidenotes (
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-
-    note_id BIGINT NOT NULL REFERENCES notes,
-    sidenote_id BIGINT NOT NULL REFERENCES notes,
-
-    PRIMARY KEY(note_id, sidenote_id)
 );

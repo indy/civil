@@ -256,7 +256,8 @@ function addNote(form, deck_id) {
                content: notes,
                title: form.title.value.trim(),
                source: form.source.value.trim(),
-               separator: form.separator.checked
+               separator: form.separator.checked,
+               sidenote: form.sidenote.value.trim()
              };
 
   return Net.post("/api/notes", data);

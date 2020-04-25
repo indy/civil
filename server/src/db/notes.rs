@@ -34,6 +34,7 @@ struct Note {
     source: Option<String>,
     content: String,
     title: Option<String>,
+    sidenote: Option<String>,
     separator: bool,
 }
 
@@ -50,6 +51,7 @@ impl From<Note> for interop::Note {
             source: n.source,
             content: n.content,
             title: n.title,
+            sidenote: n.sidenote,
             separator: n.separator,
         }
     }
@@ -73,6 +75,7 @@ pub(crate) async fn create_notes(
         &note.content[0],
         note.separator,
         &note.source,
+        &note.sidenote,
     )
     .await?;
 
@@ -80,7 +83,7 @@ pub(crate) async fn create_notes(
 
     let iter = note.content.iter().skip(1);
     for content in iter {
-        let res = create_common(&tx, user_id, note.deck_id, None, content, false, &None).await?;
+        let res = create_common(&tx, user_id, note.deck_id, None, content, false, &None, &None).await?;
         notes.push(res);
     }
 
@@ -117,6 +120,7 @@ pub(crate) async fn edit_note(
             &note.content,
             &note.title,
             &note.separator,
+            &note.sidenote,
         ],
     )
     .await?;
@@ -158,11 +162,12 @@ pub(crate) async fn create_common(
     content: &str,
     separator: bool,
     source: &Option<String>,
+    sidenote: &Option<String>,
 ) -> Result<interop::Note> {
     let db_note = pg::one::<Note>(
         tx,
         include_str!("sql/notes_create.sql"),
-        &[&user_id, &deck_id, &title, source, &content, &separator],
+        &[&user_id, &deck_id, &title, source, &content, &separator, &sidenote],
     )
     .await?;
 

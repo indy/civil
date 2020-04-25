@@ -2,7 +2,6 @@
 
 /* Import ET Book styles
    adapted from https://github.com/edwardtufte/et-book/blob/gh-pages/et-book.css */
-
 @font-face { font-family: "et-book";
              src: url("et-book/et-book-roman-line-figures/et-book-roman-line-figures.eot");
              src: url("et-book/et-book-roman-line-figures/et-book-roman-line-figures.eot?#iefix") format("embedded-opentype"), url("et-book/et-book-roman-line-figures/et-book-roman-line-figures.woff") format("woff"), url("et-book/et-book-roman-line-figures/et-book-roman-line-figures.ttf") format("truetype"), url("et-book/et-book-roman-line-figures/et-book-roman-line-figures.svg#etbookromanosf") format("svg");
@@ -27,7 +26,21 @@
              font-weight: normal;
              font-style: normal; }
 
+
+@font-face { font-family: "Nothing You Could Do";
+             src: url("NothingYouCouldDo/NothingYouCouldDo-Regular.ttf") format("truetype");
+             font-weight: normal;
+             font-style: normal; }
+
 #civil-app {
+}
+
+.civil-sidenote {
+  margin: 0;
+  font-family: 'Nothing You Could Do', cursive;
+  color: blue;
+  font-size: 1.7em;
+  /* transform: rotate(9deg); */
 }
 
 .shell-block {
@@ -362,6 +375,7 @@ input {
 }
 textarea {
   width: 90%;
+  height: 10em;
 }
 
 [type="submit"] {

@@ -5,21 +5,21 @@ import NoteCompiler from '../lib/NoteCompiler';
 import Net from '../lib/Net';
 import { separateIntoIdeasAndDecks } from '../lib/utils';
 
-
 export default function Note(props) {
-  const [showMainButtons, setShowMainButtons] = useState(false);
-  const [showEditButtons, setShowEditButtons] = useState(false);
+  const [showModButtons, setShowModButtons] = useState(false);
   const [showAddDecksUI, setShowAddDecksUI] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [content, setContent] = useState(props.note.content);
-  const [source, setSource] = useState(props.note.source || '');
-  const [title, setTitle] = useState(props.note.title || '');
-  const [separator, setSeparator] = useState(props.note.separator);
+
+  const [note, setNote] = useState({
+    content: props.note.content,
+    source: props.note.source || '',
+    title: props.note.title || '',
+    separator: props.note.separator,
+    sidenote: props.note.sidenote || ''
+  });
 
   const [decks, setDecks] = useState(buildCurrentDecksAndIdeas(props.note));
-
   const [decksSelectRef] = useState(React.createRef());
-
 
   useEffect(() => {
     if(showAddDecksUI && decksSelectRef.current) {
@@ -32,170 +32,86 @@ export default function Note(props) {
     const name = target.name;
     const value = target.value;
 
-    if (name === "title") {
-      setTitle(value);
-    } else if (name === "source") {
-      setSource(value);
-    }
-  };
+    let newNote = {...note};
+    newNote[name] = value;
 
-  function handleTextAreaChangeEvent(event) {
-    const target = event.target;
-    const value = target.value;
-
-    setContent(value);
+    setNote(newNote);
   };
 
   function onSeparatorToggle(event) {
-    setSeparator(!separator);
-  };
-
-  function onDeleteClicked(event) {
-    const onDelete = props.onDelete;
-    const note = props.note;
-    const id = note.id;
-
-    deleteNote(id).then(() => {
-      console.log("in delete");
-      onDelete(id);
+    setNote({
+      ...note,
+      separator: !note.separator
     });
-
-    event.preventDefault();
   };
 
   function onEditClicked() {
     const isEditingNew = !isEditing;
     setIsEditing(isEditingNew);
 
-    if (isEditingNew === true) {
-      setShowEditButtons(true);
-    } else {
-      setShowMainButtons(false);
-      setShowEditButtons(false);
+    if (isEditingNew === false) {
+      setShowModButtons(false);
 
-      const note = props.note;
-      const editedContent = content;
-
-      if (hasNoteBeenModified()) {
-        const id = note.id;
-        const data = {
-          content: editedContent,
-          source,
-          title,
-          separator
-        };
+      if (hasNoteBeenModified(note, props.note)) {
+        const id = props.note.id;
 
         // send updated content to server
         //
-        editNote(id, data);
+        editNote(id, note);
 
         // stopped editing and the editable content is different than
         // the original note's text.
-        props.onEdited(note.id, data);
+        props.onEdited(id, note);
       }
     }
   };
 
   function onShowButtonsClicked() {
-    setShowMainButtons(!showMainButtons);
-  };
-
-
-  function buildTitle(title) {
-    return (
-      <div onClick={ onShowButtonsClicked }>
-        <h2>{ title }</h2>
-      </div>
-    );
-  };
-
-  function buildNonEditableContent() {
-    return (
-      <div>
-        { title && buildTitle(title) }
-        { source && buildSource(source) }
-        { props.note.decks && buildMarginConnections(props.note.decks, "leftmargin-container", "leftmargin-entry") }
-        { props.note.ideas && buildMarginConnections(props.note.ideas, "rightmargin-container", "rightmargin-entry") }
-        <div onClick={ onShowButtonsClicked }>
-          { parseContent(content) }
-        </div>
-      </div>
-    );
+    setShowModButtons(!showModButtons);
   };
 
   function buildEditableContent() {
     return (
-      <textarea id="text"
-                type="text"
-                name="text"
-                value={ content }
-                onChange={ handleTextAreaChangeEvent }/>
-    );
-  };
-
-  function hasNoteBeenModified() {
-    let contentChanged = content !== props.note.content;
-    let sourceChanged = source !== (props.note.source || '');
-    let titleChanged = title !== (props.note.title || '');
-    let separatorChanged = separator !== props.note.separator;
-
-    return contentChanged || sourceChanged || titleChanged || separatorChanged;
-  };
-
-
-  function buildEditLabelText() {
-    if (!isEditing) {
-      return "Edit...";
-    }
-
-    if (hasNoteBeenModified()) {
-      // editing and have made changes
-      return "Save Edits";
-    }
-
-    // editing and haven't made any changes yet
-    return "Stop Editing";
-  };
-
-  function buildEditButtons() {
-    return (
       <div>
-        <button onClick={ (event) => { onDeleteClicked(event);} }>Delete</button>
-        <br/>
+        <div className="rightmargin-container">
+          <label htmlFor="sidenote">Sidenote:</label>
+          <textarea id="sidenote"
+                    type="text"
+                    name="sidenote"
+                    value={ note.sidenote }
+                    onChange={ handleChangeEvent } />
+        </div>
+        <label htmlFor="separator">Separator</label>
+        <input id="separator"
+               type="checkbox"
+               name="separator"
+               value={ note.separator && "separator"}
+               onChange={ onSeparatorToggle }/>
+        <br />
         <label htmlFor="title">Title:</label>
         <input id="title"
                type="text"
                name="title"
-               value={ title }
+               value={ note.title }
                onChange={ handleChangeEvent } />
         <br/>
         <label htmlFor="source">Source:</label>
         <input id="source"
                type="text"
                name="source"
-               value={ source }
+               value={ note.source }
                onChange={ handleChangeEvent } />
         <br/>
-        <label htmlFor="separator">Separator</label>
-        <input id="separator"
-               type="checkbox"
-               name="separator"
-               value={ separator && "separator"}
-               onChange={ onSeparatorToggle }/>
+        <textarea id="content"
+                  type="text"
+                  name="content"
+                  value={ note.content }
+                  onChange={ handleChangeEvent }/>
       </div>
     );
   };
 
-  function buildMainButtons() {
-    function toggleAddDecksUI() {
-      setShowAddDecksUI(!showAddDecksUI);
-    };
-
-    function decksHandleChange(newValue, actionMeta) {
-      setDecks(newValue);
-    };
-
-
+  function buildAddDecksUI() {
     function cancelAddDecks() {
       // todo: what if someone:
       // 1. clicks on edit note
@@ -211,82 +127,68 @@ export default function Note(props) {
     };
 
     function commitAddDecks() {
-      let data = {
-        note_id: props.note.id,
-        existing_deck_ids: [],
-        new_deck_names: []
-      };
+      addDecks(props.note, decks, props.onDecksChanged);
 
-      // decks would be null if we've removed all decks from a note
-      if (decks) {
-        data = decks.reduce((acc, deck) => {
-          if (deck.__isNew__) {
-            acc.new_deck_names.push(deck.value);
-          } else if (deck.id) {
-            acc.existing_deck_ids.push(deck.id);
-          } else {
-            // should never get here
-            console.error(`deck ${deck.value} has neither __isNew__ nor an id ???`);
-            console.log(deck);
-          }
-          return acc;
-        }, data);
-      }
-
-      Net.post("/api/edges/notes_decks", data).then((all_decks_for_note) => {
-        let [ideas, decks] = separateIntoIdeasAndDecks(all_decks_for_note);
-        const n = {
-          ...props.note,
-          ideas,
-          decks
-        };
-
-        props.onDecksChanged(n);
-      });
-
-      setShowMainButtons(false);
+      setShowModButtons(false);
       setShowAddDecksUI(false);
     };
 
-    if (showAddDecksUI) {
-      return (
-        <div>
-          <label>Decks:</label>
-          <CreatableSelect
-            ref={decksSelectRef}
-            isMulti
-            name="decks"
-            value={decks}
-            onChange={decksHandleChange}
-            options={props.ac.decks}
-            className="basic-multi-select"
-            classNamePrefix="select"
-          />
-          <button onClick={ cancelAddDecks }>Cancel</button>
-          <button onClick={ commitAddDecks }>Save</button>
-        </div>
-      );
-    }  else {
-      const addDecksButton = <button onClick={ toggleAddDecksUI }>References...</button>;
-
-      return (
-        <div>
-          <button onClick={ onEditClicked }>{ buildEditLabelText() }</button>
-          { !showEditButtons && addDecksButton }
-        </div>
-      );
-    }
+    return (
+      <div>
+        <label>Decks:</label>
+        <CreatableSelect
+          ref={ decksSelectRef }
+          isMulti
+          name="decks"
+          value={ decks }
+          onChange={ setDecks }
+          options={ props.ac.decks }
+          className="basic-multi-select"
+          classNamePrefix="select"
+        />
+        <button onClick={ cancelAddDecks }>Cancel</button>
+        <button onClick={ commitAddDecks }>Save</button>
+      </div>
+    );
   };
+
+  function buildMainButtons() {
+    let editLabelText;
+    if (!isEditing) {
+      editLabelText = "Edit...";
+    } else if (hasNoteBeenModified(note, props.note)) {
+      // editing and have made changes
+      editLabelText = "Save Edits";
+    } else {
+      editLabelText = "Stop Editing";
+    }
+
+    return (
+      <div>
+        <button onClick={ onEditClicked }>{ editLabelText }</button>
+        { isEditing && <button onClick={ (e) => { onDeleteClicked(e, props.note.id, props.onDelete);} }>Delete</button> }
+        { !isEditing && <button onClick={ () => { setShowAddDecksUI(!showAddDecksUI); } }>References...</button> }
+      </div>
+    );
+  }
 
   return (
     <div className="note">
-      { separator && <hr/> }
-      { isEditing ? buildEditableContent() : buildNonEditableContent() }
-      { showEditButtons && buildEditButtons() }
-      { showMainButtons && buildMainButtons() }
+      { note.separator && <hr/> }
+      { isEditing ? buildEditableContent() : buildReadingContent(note, onShowButtonsClicked, props.note.decks, props.note.ideas) }
+      { showModButtons && showAddDecksUI && buildAddDecksUI() }
+      { showModButtons && !showAddDecksUI && buildMainButtons() }
     </div>
   );
 }
+
+function buildTitle(title, onShowButtonsClicked) {
+  return (
+    <div onClick={ onShowButtonsClicked }>
+      <h2>{ title }</h2>
+    </div>
+  );
+};
 
 function buildSource(source) {
   return (
@@ -295,6 +197,14 @@ function buildSource(source) {
     </span>
   );
 };
+
+function buildSidenote(sidenote) {
+  return (
+    <div className="rightmargin-container">
+      <p className="civil-sidenote">{ sidenote }</p>
+    </div>
+  );
+}
 
 function buildMarginConnections(marginConnections, containerName, itemName) {
   const referenced = marginConnections.map(s => {
@@ -340,9 +250,13 @@ function editNote(id, data) {
   return Net.put("/api/notes/" + id.toString(), post);
 }
 
-function deleteNote(id) {
-  return Net.delete("/api/notes/" + id.toString());
-}
+function onDeleteClicked(event, id, onDelete) {
+  Net.delete("/api/notes/" + id.toString()).then(() => {
+    onDelete(id);
+  });
+  event.preventDefault();
+};
+
 
 function buildCurrentDecksAndIdeas(note) {
   let res = [];
@@ -375,3 +289,64 @@ function buildCurrentDecksAndIdeas(note) {
 
   return res;
 }
+
+function buildReadingContent(note, onShowButtonsClicked, decks, ideas) {
+  return (
+    <div>
+      { note.title && buildTitle(note.title, onShowButtonsClicked) }
+      { note.source && buildSource(note.source) }
+      { decks && buildMarginConnections(decks, "leftmargin-container", "leftmargin-entry") }
+      { ideas && buildMarginConnections(ideas, "rightmargin-container", "rightmargin-entry") }
+      { note.sidenote && buildSidenote(note.sidenote) }
+      <div onClick={ onShowButtonsClicked }>
+        { parseContent(note.content) }
+      </div>
+    </div>
+  );
+};
+
+
+function addDecks(propsNote, decks, onDecksChanged) {
+  let data = {
+    note_id: propsNote.id,
+    existing_deck_ids: [],
+    new_deck_names: []
+  };
+
+  // decks would be null if we've removed all decks from a note
+  if (decks) {
+    data = decks.reduce((acc, deck) => {
+      if (deck.__isNew__) {
+        acc.new_deck_names.push(deck.value);
+      } else if (deck.id) {
+        acc.existing_deck_ids.push(deck.id);
+      } else {
+        // should never get here
+        console.error(`deck ${deck.value} has neither __isNew__ nor an id ???`);
+        console.log(deck);
+      }
+      return acc;
+    }, data);
+  }
+
+  Net.post("/api/edges/notes_decks", data).then((all_decks_for_note) => {
+    let [ideas, decks] = separateIntoIdeasAndDecks(all_decks_for_note);
+    const n = {
+      ...propsNote,
+      ideas,
+      decks
+    };
+
+    onDecksChanged(n);
+  });
+}
+
+function hasNoteBeenModified(note, propsNote) {
+  let contentChanged = note.content !== propsNote.content;
+  let sourceChanged = note.source !== (propsNote.source || '');
+  let titleChanged = note.title !== (propsNote.title || '');
+  let separatorChanged = note.separator !== propsNote.separator;
+  let sidenoteChanged = note.sidenote !== (propsNote.sidenote || '');
+
+  return contentChanged || sourceChanged || titleChanged || separatorChanged || sidenoteChanged;
+};

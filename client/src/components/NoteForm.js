@@ -5,6 +5,7 @@ export default function NoteForm(props) {
   const [title, setTitle] = useState('');
   const [source, setSource] = useState('');
   const [separator, setSeparator] = useState('separator');
+  const [sidenote, setSidenote] = useState('');
 
   const handleChangeEvent = (event) => {
     const target = event.target;
@@ -19,6 +20,8 @@ export default function NoteForm(props) {
       setSource(value);
     } else if (name === 'separator') {
       setSeparator(value);
+    } else if (name === 'sidenote') {
+      setSidenote(value);
     }
   };
 
@@ -62,6 +65,15 @@ export default function NoteForm(props) {
              name="source"
              value={ source }
              onChange={ handleChangeEvent }
+      />
+      <br/>
+      <label htmlFor="sidenote">Sidenote:</label>
+      <br/>
+      <textarea id="sidenote"
+                type="text"
+                name="sidenote"
+                value={ sidenote }
+                onChange={ handleChangeEvent }
       />
       <br/>
       <input type="submit" value="Save note"/>

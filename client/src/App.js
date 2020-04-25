@@ -39,20 +39,33 @@ export default function App({ user }) {
     });
   }
 
+
+  let welcomes = ["Civilised Noteboxes",
+                  "Zivilisiert Zettelkästen",
+                  "πολιτισμένο σημειωματάριο",
+                  "nota civilis arca archa",
+                  "ਸਭਿਆਚਾਰਕ ਨੋਟਬਾਕਸ",
+                  "문명화 된 메모 상자",
+                  "文明ノートボックス",
+                  "cuadro civilizado",
+                  "цивилизованный блокнот",
+                  "цивилизирана кутија за белешки"];
+  let welcome = welcomes[Math.floor(Math.random() * welcomes.length)];
+
   // display a welcome message on the console
   //
   state = reducer(state, {
     type: 'pushStdout',
     message: (
-        <div>
-          <h1>Civil &times; Zettelkasten &times; Samizdat</h1>
-          <ol>
-            <li>Keep private</li>
-            <li>Remain honest</li>
-            <li>Never delete</li>
-          </ol>
-        </div>
-      )
+      <div>
+        <h1>{ welcome }</h1>
+        <ol>
+          <li>Remain Honest</li>
+          <li>Keep Private</li>
+          <li>Never Delete</li>
+        </ol>
+      </div>
+    )
   });
 
   return (

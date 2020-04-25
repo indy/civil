@@ -24,6 +24,7 @@ pub struct Note {
     pub content: String,
     pub title: Option<String>,
     pub separator: bool,
+    pub sidenote: Option<String>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -32,6 +33,7 @@ pub struct CreateNote {
     pub source: Option<String>,
     pub content: Vec<String>,
     pub separator: bool,
+    pub sidenote: Option<String>,
 
     pub deck_id: Key,
 }
