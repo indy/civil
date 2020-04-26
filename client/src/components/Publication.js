@@ -11,8 +11,8 @@ export default function Publication(props) {
   const publication = state.publication[publication_id] || { id: publication_id };
   const publicationForm = <PublicationForm publication={publication} setMsg="setPublication" />;
 
-  let authorHeading = <h2>{ publication.author }</h2>;
-  let sourceHeading = <h3>Source: <a href={ publication.source }>{ publication.source }</a></h3>;
+  let authorHeading = <p className="subtitle">{ publication.author }</p>;
+  let sourceHeading = <p className="subtitle">Source: <a href={ publication.source }>{ publication.source }</a></p>;
 
   return (
     <NoteHolder

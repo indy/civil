@@ -39,7 +39,6 @@ export default function App({ user }) {
     });
   }
 
-
   let welcomes = ["Civilised Noteboxes",
                   "Zivilisiert Zettelkästen",
                   "πολιτισμένο σημειωματάριο",

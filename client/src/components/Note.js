@@ -73,14 +73,6 @@ export default function Note(props) {
   function buildEditableContent() {
     return (
       <div>
-        <div className="rightmargin-container">
-          <label htmlFor="sidenote">Sidenote:</label>
-          <textarea id="sidenote"
-                    type="text"
-                    name="sidenote"
-                    value={ note.sidenote }
-                    onChange={ handleChangeEvent } />
-        </div>
         <label htmlFor="separator">Separator</label>
         <input id="separator"
                type="checkbox"
@@ -102,11 +94,19 @@ export default function Note(props) {
                value={ note.source }
                onChange={ handleChangeEvent } />
         <br/>
+        <label htmlFor="content">Content:</label>
         <textarea id="content"
                   type="text"
                   name="content"
                   value={ note.content }
                   onChange={ handleChangeEvent }/>
+        <br/>
+        <label htmlFor="sidenote">Sidenote:</label>
+        <textarea id="sidenote"
+                  type="text"
+                  name="sidenote"
+                  value={ note.sidenote }
+                  onChange={ handleChangeEvent } />
       </div>
     );
   };
@@ -184,33 +184,38 @@ export default function Note(props) {
 
 function buildTitle(title, onShowButtonsClicked) {
   return (
-    <div onClick={ onShowButtonsClicked }>
-      <h2>{ title }</h2>
-    </div>
+    <h2 onClick={ onShowButtonsClicked }>{ title }</h2>
   );
 };
 
 function buildSource(source) {
+  // source will be replaced soon by urls in markup
   return (
-    <span className="rightmargin-container">
+    <span className="sidenote sidenote-nonum" key={ 1 }>
       <a href={ source }>{ source }</a>
     </span>
   );
 };
 
 function buildSidenote(sidenote) {
+  // only ever going to be one sidenote per paragraph so it's ok to hard code a key value here.
   return (
-    <div className="rightmargin-container">
-      <p className="civil-sidenote">{ sidenote }</p>
-    </div>
+    <span className="sidenote sidenote-nonum civil-sidenote" key={ 0 }>
+      { sidenote }
+    </span>
   );
 }
 
-function buildMarginConnections(marginConnections, containerName, itemName) {
+function buildLeftMarginConnections(marginConnections) {
+  const containerName = "leftmargin-container";
+  const itemName = "leftmargin-entry";
+  const spacer = "leftmargin-spacer";
+
   const referenced = marginConnections.map(s => {
     return (
       <div className={ itemName } key={ s.id }>
         <ResourceLink id={ s.id } name={ s.name } resource={ s.resource }/>
+        {spacer && <span className={ spacer }/>}
       </div>
     );
   });
@@ -222,7 +227,19 @@ function buildMarginConnections(marginConnections, containerName, itemName) {
   );
 };
 
-function parseContent(text) {
+function buildRightMarginConnections(marginConnections) {
+  const referenced = marginConnections.map(s => {
+    return (
+      <span className="sidenote sidenote-nonum" key={ s.id }>
+        <ResourceLink id={ s.id } name={ s.name } resource={ s.resource }/>
+      </span>
+    );
+  });
+
+  return referenced;
+};
+
+function constructNoteContent(text, source, marginalContent, handwrittenSidenote) {
   const tokensRes = NoteCompiler.tokenise(text);
   if (tokensRes.tokens === undefined) {
     console.log(`Error tokenising: "${text}"`);
@@ -238,6 +255,25 @@ function parseContent(text) {
 
   const ast = parserRes.nodes;
   const dom = NoteCompiler.compile(ast);
+
+
+  // HACK: assuming that the marginalContent is only applicable to the first p tag
+  //
+  if (dom[0].type === "p") {
+    let kids = dom[0].props.children;
+
+    if (handwrittenSidenote) {
+      kids.unshift(handwrittenSidenote);
+    }
+    if (marginalContent) {
+      // add the marginal notes before the text contents of the p tag
+      marginalContent.reverse().forEach(mc => { kids.unshift(mc);});
+    }
+    if (source) {
+      kids.unshift(source);
+    }
+  }
+
   return dom;
 };
 
@@ -291,15 +327,16 @@ function buildCurrentDecksAndIdeas(note) {
 }
 
 function buildReadingContent(note, onShowButtonsClicked, decks, ideas) {
+  let source = note.source ? buildSource(note.source) : undefined;
+  let marginalContent = ideas ? buildRightMarginConnections(ideas) : undefined;
+  let handwrittenSidenote = note.sidenote ? buildSidenote(note.sidenote) : undefined;
+
   return (
     <div>
       { note.title && buildTitle(note.title, onShowButtonsClicked) }
-      { note.source && buildSource(note.source) }
-      { decks && buildMarginConnections(decks, "leftmargin-container", "leftmargin-entry") }
-      { ideas && buildMarginConnections(ideas, "rightmargin-container", "rightmargin-entry") }
-      { note.sidenote && buildSidenote(note.sidenote) }
+      { decks && buildLeftMarginConnections(decks) }
       <div onClick={ onShowButtonsClicked }>
-        { parseContent(note.content) }
+        { constructNoteContent(note.content, source, marginalContent, handwrittenSidenote) }
       </div>
     </div>
   );

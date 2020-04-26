@@ -121,13 +121,11 @@ export default function NoteHolder({holder, setMsg, title, resource, isLoaded, u
 
   return (
     <article>
-      <div>
-        <h1 onClick={ onShowButtons }>{ title }</h1>
-        { showButtons && buildButtons() }
-        { showNoteForm && buildNoteForm() }
-        { showPointForm && buildPointForm() }
-        { showUpdateForm && showUpdate() }
-      </div>
+      <h1 onClick={ onShowButtons }>{ title }</h1>
+      { showButtons && buildButtons() }
+      { showNoteForm && buildNoteForm() }
+      { showPointForm && buildPointForm() }
+      { showUpdateForm && showUpdate() }
       { children }
       { holder.points && showPoints(holder.points, resource) }
       <section>
@@ -155,10 +153,7 @@ function setHolder(dispatch, holder, setMsg) {
 }
 
 function showPoints(points, resource) {
-  function buildPoint(point) {
-    return (<Point key={ point.id} point={ point } parentResource={ resource }/>);
-  };
-  return (<span>{ points.map(buildPoint) }</span>);
+  return points.map(p => <Point key={ p.id} point={ p } parentResource={ resource }/>);
 }
 
 

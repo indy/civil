@@ -633,7 +633,6 @@ function parse(tokens) {
   skipLeadingWhitespace(tokens);
 
   while (tokens.length !== 0) {
-
     if (isNumberedListItem(tokens)) {
       container = eatOrderedList(tokens).node;
     } else if (isUnorderedListItem(tokens)) {
@@ -722,9 +721,7 @@ function compileTopLevel(ast) {
 }
 
 function compileMain(ast) {
-  return (
-    <div>{ compileTopLevel(ast) }</div>
-  );
+  return compileTopLevel(ast);
 }
 
 // COMPILER ENDS HERE

@@ -26,6 +26,7 @@ use tokio_pg_mapper_derive::PostgresMapper;
 #[allow(unused_imports)]
 use tracing::info;
 
+
 #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
 #[pg_mapper(table = "notes")]
 struct Note {
