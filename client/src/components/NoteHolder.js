@@ -14,6 +14,7 @@ import SectionLinkBacks from './SectionLinkBacks';
 import { useStateValue } from '../lib/state';
 import { ensureAC, separateIntoIdeasAndDecks } from '../lib/utils';
 import { addChronologicalSortYear } from '../lib/eras';
+import { removeEmptyStrings } from '../lib/JsUtils';
 
 export default function NoteHolder({holder, setMsg, title, resource, isLoaded, updateForm, children}) {
   // UNCOMMENT to enable deleting
@@ -252,13 +253,14 @@ function addNote(form, deck_id) {
     console.error(form.content.value);
     return undefined;
   }
-  let data = { deck_id,
-               content: notes,
-               title: form.title.value.trim(),
-               source: form.source.value.trim(),
-               separator: form.separator.checked,
-               sidenote: form.sidenote.value.trim()
-             };
+    let data = removeEmptyStrings({
+        deck_id,
+        content: notes,
+        title: form.title.value.trim(),
+        source: form.source.value.trim(),
+        separator: form.separator.checked,
+        sidenote: form.sidenote.value.trim()
+    }, ["title", "source", "sidenote"]);
 
   return Net.post("/api/notes", data);
 }
