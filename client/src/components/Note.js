@@ -191,16 +191,16 @@ function buildTitle(title, onShowButtonsClicked) {
 function buildSource(source) {
   // source will be replaced soon by urls in markup
   return (
-    <span className="sidenote sidenote-nonum" key={ 1 }>
+    <span className="marginnote" key={ 1 }>
       <a href={ source }>{ source }</a>
     </span>
   );
 };
 
-function buildSidenote(sidenote) {
+function buildHandwrittenMargin(sidenote) {
   // only ever going to be one sidenote per paragraph so it's ok to hard code a key value here.
   return (
-    <span className="sidenote sidenote-nonum civil-sidenote" key={ 0 }>
+    <span className="marginnote civil-sidenote" key={ 0 }>
       { sidenote }
     </span>
   );
@@ -230,7 +230,7 @@ function buildLeftMarginConnections(marginConnections) {
 function buildRightMarginConnections(marginConnections) {
   const referenced = marginConnections.map(s => {
     return (
-      <span className="sidenote sidenote-nonum" key={ s.id }>
+      <span className="marginnote" key={ s.id }>
         <ResourceLink id={ s.id } name={ s.name } resource={ s.resource }/>
       </span>
     );
@@ -239,7 +239,7 @@ function buildRightMarginConnections(marginConnections) {
   return referenced;
 };
 
-function constructNoteContent(text, source, marginalContent, handwrittenSidenote) {
+function constructNoteContent(text, source, marginalContent, handwrittenMargin) {
   const tokensRes = NoteCompiler.tokenise(text);
   if (tokensRes.tokens === undefined) {
     console.log(`Error tokenising: "${text}"`);
@@ -262,8 +262,8 @@ function constructNoteContent(text, source, marginalContent, handwrittenSidenote
   if (dom[0].type === "p") {
     let kids = dom[0].props.children;
 
-    if (handwrittenSidenote) {
-      kids.unshift(handwrittenSidenote);
+    if (handwrittenMargin) {
+      kids.unshift(handwrittenMargin);
     }
     if (marginalContent) {
       // add the marginal notes before the text contents of the p tag
@@ -329,14 +329,14 @@ function buildCurrentDecksAndIdeas(note) {
 function buildReadingContent(note, onShowButtonsClicked, decks, ideas) {
   let source = note.source ? buildSource(note.source) : undefined;
   let marginalContent = ideas ? buildRightMarginConnections(ideas) : undefined;
-  let handwrittenSidenote = note.sidenote ? buildSidenote(note.sidenote) : undefined;
+  let handwrittenMargin = note.sidenote ? buildHandwrittenMargin(note.sidenote) : undefined;
 
   return (
     <div>
       { note.title && buildTitle(note.title, onShowButtonsClicked) }
       { decks && buildLeftMarginConnections(decks) }
       <div onClick={ onShowButtonsClicked }>
-        { constructNoteContent(note.content, source, marginalContent, handwrittenSidenote) }
+        { constructNoteContent(note.content, source, marginalContent, handwrittenMargin) }
       </div>
     </div>
   );

@@ -1,5 +1,7 @@
 import React from 'react';
 
+let sidenoteCounter = 0;
+
 class Token {
   constructor(type, value = undefined) {
     this.type = type;
@@ -12,6 +14,7 @@ const TokenType = {
   BRACKET_START: Symbol('BRACKET_START'),
   BRACKET_END: Symbol('BRACKET_END'),
   DOUBLEQUOTE: Symbol('DOUBLEQUOTE'),
+  PIPE: Symbol('PIPE'),
   DIGITS: Symbol('DIGITS'),
   PERIOD: Symbol('PERIOD'),
   CARET: Symbol('CARET'),
@@ -74,6 +77,10 @@ function isDoubleQuote(character) {
   return character === '"';
 }
 
+function isPipe(character) {
+  return character === '|';
+}
+
 function consumeText(s) {
   let i = 0;
   for (i = 0; i < s.length; i++) {
@@ -83,7 +90,8 @@ function consumeText(s) {
         || isUnderscore(s[i])
         || isAsterisk(s[i])
         || isCaret(s[i])
-        || isDoubleQuote(s[i])) {
+        || isDoubleQuote(s[i])
+        || isPipe(s[i])) {
       break;
     }
   }
@@ -156,6 +164,10 @@ function consumeDoubleQuote(s) {
   return [new Token(TokenType.DOUBLEQUOTE, '"'), s.substring(1)];
 }
 
+function consumePipe(s) {
+  return [new Token(TokenType.PIPE, '|'), s.substring(1)];
+}
+
 function nextTokenType(s) {
   const c = s[0];
 
@@ -193,6 +205,10 @@ function nextTokenType(s) {
 
   if (isDoubleQuote(c)) {
     return TokenType.DOUBLEQUOTE;
+  }
+
+  if (isPipe(c)) {
+    return TokenType.PIPE;
   }
 
   if (isBracketStart(c)) {
@@ -250,9 +266,14 @@ function tokenise(input) {
     case TokenType.DOUBLEQUOTE :
       p = consumeDoubleQuote(s);
       break;
+    case TokenType.PIPE :
+      p = consumePipe(s);
+      break;
     default:
       // read the unknown token and return it
       console.log("unknown token");
+      console.log(s);
+      console.log(nextTokenType(s));
       // const tok = consumeUnknown(s)[0];
       // return {error: `unknown token: ${tok.value}`,
       //         tokens: [tok]};
@@ -280,6 +301,7 @@ const NodeType = {
   TEXT: Symbol('TEXT'),
   LINK: Symbol('LINK'),
   QUOTATION: Symbol('QUOTATION'),
+  SIDENOTE: Symbol('SIDENOTE'),
   UNDERLINED: Symbol('UNDERLINED'),
   STRONG: Symbol('STRONG'),
   HIGHLIGHT: Symbol('HIGHLIGHT')
@@ -421,6 +443,10 @@ function eatQuotation(tokens) {
   return eatListofTypeUntil(tokens, NodeType.QUOTATION, TokenType.DOUBLEQUOTE);
 }
 
+function eatHyperlink(tokens) {
+  return eatListofTypeUntil(tokens, NodeType.SIDENOTE, TokenType.PIPE);
+}
+
 function eatNewlines(tokens) {
   while(tokens.length > 0 && tokens[0].type === TokenType.NEWLINE) {
     tokens.shift();
@@ -524,7 +550,7 @@ function eatItem(tokens) {
   const tokenType = token.type;
 
   if (tokenType === TokenType.BRACKET_START) {
-    if (tokens[1].type === TokenType.BRACKET_START) {
+    if (tokens[1] && (tokens[1].type === TokenType.BRACKET_START)) {
       return eatLink(tokens);
     } else {
       // just some text that has a '[' in it
@@ -558,6 +584,15 @@ function eatItem(tokens) {
       return eatHighlight(tokens);
     } else {
       return eatTextIncluding(tokens, TokenType.ASTERISK);
+    }
+  } else if (tokenType === TokenType.PIPE) {
+    if (tokens[1] && tokens[1].type === TokenType.PIPE) {
+      // two pipes, treat this as text (e.g. could be part of code snippet)
+      return eatTextIncluding(tokens, TokenType.PIPE);
+    } else if (remainingTokensContain(tokens, TokenType.PIPE)) {
+      return eatHyperlink(tokens);
+    } else {
+      return eatTextIncluding(tokens, TokenType.PIPE);
     }
   } else if (tokenType === TokenType.WHITESPACE) {
     return eatWhitespace(tokens);
@@ -652,64 +687,76 @@ function parse(tokens) {
 // COMPILER BEGINS HERE
 
 function compileChildren(node) {
-  return node.children.map((e, i) => { return compile(e, i);});
+  return node.children.flatMap((e, i) => { return compile(e, i);});
 }
 
 function compile(node, i) {
 
   if (node.type === NodeType.TEXT) {
-    return node.value;
+    return node.value;//.trimRight();
   } else if (node.type === NodeType.LINK) {
     return (
-      <a key={i} href={ node.value }>{ node.displayText }</a>
+      [<a key={i} href={ node.value }>{ node.displayText }</a>]
     );
   } else if (node.type === NodeType.STRONG) {
     return (
-      <strong key={i}>
+      [<strong key={i}>
         { compileChildren(node) }
-      </strong>
+      </strong>]
     );
   } else if (node.type === NodeType.HIGHLIGHT) {
     return (
-      <mark key={i}>
+      [<mark key={i}>
         { compileChildren(node) }
-      </mark>
+      </mark>]
     );
   } else if (node.type === NodeType.UNDERLINED) {
     return (
-      <span className="underlined" key={i}>
+      [<span className="underlined" key={i}>
         { compileChildren(node) }
-      </span>
+      </span>]
     );
   } else if (node.type === NodeType.QUOTATION) {
     return (
-      <em key={i}>
+      [<em key={i}>
         { compileChildren(node) }
-      </em>
+      </em>]
     );
   } else if (node.type === NodeType.PARAGRAPH) {
     return (
-      <p key={i}>
+      [<p key={i}>
         { compileChildren(node) }
-      </p>
+      </p>]
     );
   } else if (node.type === NodeType.ORDERED_LIST) {
     return (
-      <ol key={i}>
+      [<ol key={i}>
         { compileChildren(node) }
-      </ol>
+      </ol>]
     );
   } else if (node.type === NodeType.UNORDERED_LIST) {
     return (
-      <ul key={i}>
+      [<ul key={i}>
         { compileChildren(node) }
-      </ul>
+      </ul>]
     );
   } else if (node.type === NodeType.LIST_ITEM) {
     return (
-      <li key={i}>
+      [<li key={i}>
         { compileChildren(node) }
-      </li>
+      </li>]
+    );
+  } else if (node.type === NodeType.SIDENOTE) {
+    let c = sidenoteCounter;
+    let id = `sn-${c}`;
+
+    sidenoteCounter += 3;
+    return (
+      [
+        <label key={ c } className="margin-toggle sidenote-number" htmlFor={ id }></label>,
+        <input key={ c + 1 }type="checkbox" id={ id } className="margin-toggle"/>,
+        <span key={ c + 2} className="sidenote">{ compileChildren(node) }</span>
+      ]
     );
   }
 
@@ -717,7 +764,7 @@ function compile(node, i) {
 }
 
 function compileTopLevel(ast) {
-  return ast.map((e, i) => { return compile(e, i);});
+  return ast.flatMap((e, i) => { return compile(e, i);});
 }
 
 function compileMain(ast) {

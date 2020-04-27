@@ -37,11 +37,6 @@
   clear:both;
 }
 
-/* don't add the number superscript on these sidenotes */
-.sidenote-nonum:before {
-  content: "" !important;
-}
-
 p.fakelink {
   cursor: pointer;
   text-decoration: underline;

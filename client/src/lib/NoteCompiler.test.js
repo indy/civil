@@ -180,6 +180,9 @@ it('emphasise quotes', () => {
   expect(c[3].value).toEqual('then he fell over');
 });
 
+//  error on 'bob said | example.com ranks| cannot have space after the 1st pipe';
+//  let input = 'bob said |https://example.com ^ranks^| then he fell over';
+
 it('full stop after quotes', () => {
   let input = 'bob said "shabba ranks".';
 
