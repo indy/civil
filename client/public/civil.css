@@ -5,13 +5,17 @@
              font-weight: normal;
              font-style: normal; }
 
-#civil-app {
+p {
+  text-align: justify;
 }
-
+.sidenote {
+  text-align: left;
+}
 .civil-sidenote {
   font-family: 'Nothing You Could Do', cursive;
   color: blue;
   font-size: 1.5em;
+  text-align: left;
 }
 
 .shell-block {
