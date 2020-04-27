@@ -32,7 +32,6 @@ use tracing::info;
 struct Note {
     id: Key,
 
-    source: Option<String>,
     content: String,
     title: Option<String>,
     sidenote: Option<String>,
@@ -49,7 +48,6 @@ impl From<Note> for interop::Note {
     fn from(n: Note) -> interop::Note {
         interop::Note {
             id: n.id,
-            source: n.source,
             content: n.content,
             title: n.title,
             sidenote: n.sidenote,
@@ -75,7 +73,6 @@ pub(crate) async fn create_notes(
         note.title.as_ref(),
         &note.content[0],
         note.separator,
-        &note.source,
         &note.sidenote,
     )
     .await?;
@@ -84,7 +81,7 @@ pub(crate) async fn create_notes(
 
     let iter = note.content.iter().skip(1);
     for content in iter {
-        let res = create_common(&tx, user_id, note.deck_id, None, content, false, &None, &None).await?;
+        let res = create_common(&tx, user_id, note.deck_id, None, content, false, &None).await?;
         notes.push(res);
     }
 
@@ -117,7 +114,6 @@ pub(crate) async fn edit_note(
         &[
             &user_id,
             &note_id,
-            &note.source,
             &note.content,
             &note.title,
             &note.separator,
@@ -162,13 +158,12 @@ pub(crate) async fn create_common(
     title: Option<&String>,
     content: &str,
     separator: bool,
-    source: &Option<String>,
     sidenote: &Option<String>,
 ) -> Result<interop::Note> {
     let db_note = pg::one::<Note>(
         tx,
         include_str!("sql/notes_create.sql"),
-        &[&user_id, &deck_id, &title, source, &content, &separator, &sidenote],
+        &[&user_id, &deck_id, &title, &content, &separator, &sidenote],
     )
     .await?;
 

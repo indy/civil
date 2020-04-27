@@ -64,7 +64,6 @@ CREATE TABLE IF NOT EXISTS notes (
     separator BOOL NOT NULL DEFAULT false,
     title TEXT,
     content TEXT NOT NULL,
-    source TEXT,
     sidenote TEXT
 );
 

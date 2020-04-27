@@ -20,7 +20,6 @@ use crate::interop::Key;
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Note {
     pub id: Key,
-    pub source: Option<String>,
     pub content: String,
     pub title: Option<String>,
     pub separator: bool,
@@ -30,7 +29,6 @@ pub struct Note {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct CreateNote {
     pub title: Option<String>,
-    pub source: Option<String>,
     pub content: Vec<String>,
     pub separator: bool,
     pub sidenote: Option<String>,

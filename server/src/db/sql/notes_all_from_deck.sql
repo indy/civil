@@ -1,5 +1,4 @@
 SELECT n.id,
-       n.source,
        n.content,
        n.title,
        n.separator,

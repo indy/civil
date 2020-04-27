@@ -12,7 +12,6 @@ export default function Note(props) {
 
   const [note, setNote] = useState({
     content: props.note.content,
-    source: props.note.source || '',
     title: props.note.title || '',
     separator: props.note.separator,
     sidenote: props.note.sidenote || ''
@@ -85,13 +84,6 @@ export default function Note(props) {
                type="text"
                name="title"
                value={ note.title }
-               onChange={ handleChangeEvent } />
-        <br/>
-        <label htmlFor="source">Source:</label>
-        <input id="source"
-               type="text"
-               name="source"
-               value={ note.source }
                onChange={ handleChangeEvent } />
         <br/>
         <label htmlFor="content">Content:</label>
@@ -188,15 +180,6 @@ function buildTitle(title, onShowButtonsClicked) {
   );
 };
 
-function buildSource(source) {
-  // source will be replaced soon by urls in markup
-  return (
-    <span className="marginnote" key={ 1 }>
-      <a href={ source }>{ source }</a>
-    </span>
-  );
-};
-
 function buildHandwrittenMargin(sidenote) {
   // only ever going to be one sidenote per paragraph so it's ok to hard code a key value here.
   return (
@@ -239,7 +222,7 @@ function buildRightMarginConnections(marginConnections) {
   return referenced;
 };
 
-function constructNoteContent(text, source, marginalContent, handwrittenMargin) {
+function constructNoteContent(text, marginalContent, handwrittenMargin) {
   const tokensRes = NoteCompiler.tokenise(text);
   if (tokensRes.tokens === undefined) {
     console.log(`Error tokenising: "${text}"`);
@@ -256,7 +239,6 @@ function constructNoteContent(text, source, marginalContent, handwrittenMargin) 
   const ast = parserRes.nodes;
   const dom = NoteCompiler.compile(ast);
 
-
   // HACK: assuming that the marginalContent is only applicable to the first p tag
   //
   if (dom[0].type === "p") {
@@ -268,9 +250,6 @@ function constructNoteContent(text, source, marginalContent, handwrittenMargin) 
     if (marginalContent) {
       // add the marginal notes before the text contents of the p tag
       marginalContent.reverse().forEach(mc => { kids.unshift(mc);});
-    }
-    if (source) {
-      kids.unshift(source);
     }
   }
 
@@ -327,7 +306,6 @@ function buildCurrentDecksAndIdeas(note) {
 }
 
 function buildReadingContent(note, onShowButtonsClicked, decks, ideas) {
-  let source = note.source ? buildSource(note.source) : undefined;
   let marginalContent = ideas ? buildRightMarginConnections(ideas) : undefined;
   let handwrittenMargin = note.sidenote ? buildHandwrittenMargin(note.sidenote) : undefined;
 
@@ -336,7 +314,7 @@ function buildReadingContent(note, onShowButtonsClicked, decks, ideas) {
       { note.title && buildTitle(note.title, onShowButtonsClicked) }
       { decks && buildLeftMarginConnections(decks) }
       <div onClick={ onShowButtonsClicked }>
-        { constructNoteContent(note.content, source, marginalContent, handwrittenMargin) }
+        { constructNoteContent(note.content, marginalContent, handwrittenMargin) }
       </div>
     </div>
   );
@@ -380,10 +358,9 @@ function addDecks(propsNote, decks, onDecksChanged) {
 
 function hasNoteBeenModified(note, propsNote) {
   let contentChanged = note.content !== propsNote.content;
-  let sourceChanged = note.source !== (propsNote.source || '');
   let titleChanged = note.title !== (propsNote.title || '');
   let separatorChanged = note.separator !== propsNote.separator;
   let sidenoteChanged = note.sidenote !== (propsNote.sidenote || '');
 
-  return contentChanged || sourceChanged || titleChanged || separatorChanged || sidenoteChanged;
+  return contentChanged || titleChanged || separatorChanged || sidenoteChanged;
 };

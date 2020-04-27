@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 export default function NoteForm(props) {
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
-  const [source, setSource] = useState('');
   const [separator, setSeparator] = useState('separator');
   const [sidenote, setSidenote] = useState('');
 
@@ -16,8 +15,6 @@ export default function NoteForm(props) {
       setContent(value);
     } else if (name === 'title') {
       setTitle(value);
-    } else if (name === 'source') {
-      setSource(value);
     } else if (name === 'separator') {
       setSeparator(value);
     } else if (name === 'sidenote') {
@@ -56,15 +53,6 @@ export default function NoteForm(props) {
                 name="content"
                 value={ content }
                 onChange={ handleChangeEvent }
-      />
-      <br/>
-      <label htmlFor="source">Source:</label>
-      <br/>
-      <input id="source"
-             type="text"
-             name="source"
-             value={ source }
-             onChange={ handleChangeEvent }
       />
       <br/>
       <label htmlFor="sidenote">Sidenote:</label>

@@ -367,6 +367,24 @@ function eatText(tokens) {
   return boxNode(NodeType.TEXT, value);
 }
 
+function eatTextUntil(tokens, tokenType) {
+  let token = tokens[0];
+  let value = "";
+
+  while (token.type !== tokenType) {
+
+    value += token.value;
+
+    tokens.shift();
+    if (tokens.length === 0) {
+      break;
+    }
+    token = tokens[0];
+  }
+
+  return boxNode(NodeType.TEXT, value);
+}
+
 function eatTextIncluding(tokens, tokenType) {
   let token = tokens[0];
   let value = "";
@@ -495,7 +513,7 @@ function eatLink(tokens) {
   tokens.shift();               // first [
   tokens.shift();               // second [
 
-  const url = eatItem(tokens).node;
+  const url = eatTextUntil(tokens, TokenType.BRACKET_END).node;
   let display = url;
 
   // this should be a closing bracket
@@ -904,6 +922,5 @@ const NoteCompiler = {
     return dom;
   }
 };
-
 
 export default NoteCompiler;

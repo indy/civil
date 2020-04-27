@@ -60,6 +60,25 @@ function expectOl(node, values) {
   expectListContainer(NoteCompiler.NodeType.ORDERED_LIST, node, values);
 }
 
+it('link bug', () => {
+  // underscore screwed up parsing
+  let input = '[[https://en.wikipedia.org/wiki/Karl_Marx]]';
+
+  let tokens = tokenise(input);
+  expect(tokens.length).toEqual(7);
+
+  let nodes = parse(tokens);
+  expect(nodes.length).toEqual(1);
+  expect(nodes[0].type).toEqual(NoteCompiler.NodeType.PARAGRAPH);
+
+  const c = nodes[0].children;
+  expect(c.length).toEqual(1);
+  expect(c[0].type).toEqual(NoteCompiler.NodeType.LINK);
+  expect(c[0].value).toEqual('https://en.wikipedia.org/wiki/Karl_Marx');
+  expect(c[0].displayText).toEqual('https://en.wikipedia.org/wiki/Karl_Marx');
+});
+
+
 it('simple strings', () => {
   let input = "shabba";
 
