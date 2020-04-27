@@ -167,7 +167,7 @@ export default function Note(props) {
   return (
     <div className="note">
       { note.separator && <hr/> }
-      { isEditing ? buildEditableContent() : buildReadingContent(note, onShowButtonsClicked, props.note.decks, props.note.ideas) }
+      { isEditing ? buildEditableContent() : buildReadingContent(note, props.note.id, onShowButtonsClicked, props.note.decks, props.note.ideas) }
       { showModButtons && showAddDecksUI && buildAddDecksUI() }
       { showModButtons && !showAddDecksUI && buildMainButtons() }
     </div>
@@ -222,7 +222,9 @@ function buildRightMarginConnections(marginConnections) {
   return referenced;
 };
 
-function constructNoteContent(text, marginalContent, handwrittenMargin) {
+function constructNoteContent(noteId, text, marginalContent, handwrittenMargin) {
+  NoteCompiler.setSidenoteCounter(noteId);
+
   const tokensRes = NoteCompiler.tokenise(text);
   if (tokensRes.tokens === undefined) {
     console.log(`Error tokenising: "${text}"`);
@@ -305,7 +307,7 @@ function buildCurrentDecksAndIdeas(note) {
   return res;
 }
 
-function buildReadingContent(note, onShowButtonsClicked, decks, ideas) {
+function buildReadingContent(note, noteId, onShowButtonsClicked, decks, ideas) {
   let marginalContent = ideas ? buildRightMarginConnections(ideas) : undefined;
   let handwrittenMargin = note.sidenote ? buildHandwrittenMargin(note.sidenote) : undefined;
 
@@ -314,7 +316,7 @@ function buildReadingContent(note, onShowButtonsClicked, decks, ideas) {
       { note.title && buildTitle(note.title, onShowButtonsClicked) }
       { decks && buildLeftMarginConnections(decks) }
       <div onClick={ onShowButtonsClicked }>
-        { constructNoteContent(note.content, marginalContent, handwrittenMargin) }
+        { constructNoteContent(noteId, note.content, marginalContent, handwrittenMargin) }
       </div>
     </div>
   );

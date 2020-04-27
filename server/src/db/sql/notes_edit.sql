@@ -1,4 +1,4 @@
 UPDATE notes
-SET content = $4, title = $5, separator = $6, sidenote = $7
+SET content = $3, title = $4, separator = $5, sidenote = $6
 WHERE id = $2 and user_id = $1
 RETURNING $table_fields

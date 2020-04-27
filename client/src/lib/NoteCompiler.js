@@ -895,6 +895,9 @@ const NoteCompiler = {
   tokenise: content => {
     return tokenise(content);
   },
+  setSidenoteCounter: value => {
+    sidenoteCounter = value;
+  },
   parse: tokens => {
     const ast = parse(tokens);
     return ast;
