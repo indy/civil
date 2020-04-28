@@ -60,25 +60,6 @@ function expectOl(node, values) {
   expectListContainer(NoteCompiler.NodeType.ORDERED_LIST, node, values);
 }
 
-it('link bug', () => {
-  // underscore screwed up parsing
-  let input = '[[https://en.wikipedia.org/wiki/Karl_Marx]]';
-
-  let tokens = tokenise(input);
-  expect(tokens.length).toEqual(7);
-
-  let nodes = parse(tokens);
-  expect(nodes.length).toEqual(1);
-  expect(nodes[0].type).toEqual(NoteCompiler.NodeType.PARAGRAPH);
-
-  const c = nodes[0].children;
-  expect(c.length).toEqual(1);
-  expect(c[0].type).toEqual(NoteCompiler.NodeType.LINK);
-  expect(c[0].value).toEqual('https://en.wikipedia.org/wiki/Karl_Marx');
-  expect(c[0].displayText).toEqual('https://en.wikipedia.org/wiki/Karl_Marx');
-});
-
-
 it('simple strings', () => {
   let input = "shabba";
 
@@ -494,4 +475,45 @@ world`);
   expect(split[2]).toEqual("2nd paragraph");
   expect(split[3]).toEqual(`1. an ordered item
 2. another ordered item`);
+});
+
+it('hash bug', () => {
+  let input = '*Difference #3:*  Unlike past societies';
+
+  let tokens = tokenise(input);
+  expect(tokens.length).toEqual(8);
+
+  let nodes = parse(tokens);
+  expect(nodes.length).toEqual(1);
+  expect(nodes[0].type).toEqual(NoteCompiler.NodeType.PARAGRAPH);
+
+  const c = nodes[0].children;
+  expect(c.length).toEqual(3);
+
+  expect(c[0].type).toEqual(NoteCompiler.NodeType.STRONG);
+  {
+    expect(c[0].children.length).toEqual(2);
+    expectText(c[0].children[0], "Difference ");
+    expectText(c[0].children[1], "#3:");
+  }
+  expectText(c[1], "  ");
+  expectText(c[2], "Unlike past societies");
+});
+
+it('link bug', () => {
+  // underscore screwed up parsing
+  let input = '[[https://en.wikipedia.org/wiki/Karl_Marx]]';
+
+  let tokens = tokenise(input);
+  expect(tokens.length).toEqual(7);
+
+  let nodes = parse(tokens);
+  expect(nodes.length).toEqual(1);
+  expect(nodes[0].type).toEqual(NoteCompiler.NodeType.PARAGRAPH);
+
+  const c = nodes[0].children;
+  expect(c.length).toEqual(1);
+  expect(c[0].type).toEqual(NoteCompiler.NodeType.LINK);
+  expect(c[0].value).toEqual('https://en.wikipedia.org/wiki/Karl_Marx');
+  expect(c[0].displayText).toEqual('https://en.wikipedia.org/wiki/Karl_Marx');
 });

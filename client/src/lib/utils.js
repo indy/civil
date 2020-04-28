@@ -14,14 +14,12 @@ export function separateIntoIdeasAndDecks(r) {
 
 export function ensureAC(state, dispatch) {
   if (!state.acLoaded) {
-
     Net.get('/api/autocomplete').then(decks => {
       dispatch({
         type: 'loadAutocomplete',
         decks
       });
     });
-
   }
 };
 

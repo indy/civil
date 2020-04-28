@@ -15,6 +15,7 @@ const TokenType = {
   BRACKET_END: Symbol('BRACKET_END'),
   DOUBLEQUOTE: Symbol('DOUBLEQUOTE'),
   PIPE: Symbol('PIPE'),
+  HASH: Symbol('HASH'),
   DIGITS: Symbol('DIGITS'),
   PERIOD: Symbol('PERIOD'),
   CARET: Symbol('CARET'),
@@ -81,6 +82,10 @@ function isPipe(character) {
   return character === '|';
 }
 
+function isHash(character) {
+  return character === '#';
+}
+
 function consumeText(s) {
   let i = 0;
   for (i = 0; i < s.length; i++) {
@@ -91,7 +96,8 @@ function consumeText(s) {
         || isAsterisk(s[i])
         || isCaret(s[i])
         || isDoubleQuote(s[i])
-        || isPipe(s[i])) {
+        || isPipe(s[i])
+        || isHash(s[i])) {
       break;
     }
   }
@@ -168,6 +174,10 @@ function consumePipe(s) {
   return [new Token(TokenType.PIPE, '|'), s.substring(1)];
 }
 
+function consumeHash(s) {
+  return [new Token(TokenType.HASH, '#'), s.substring(1)];
+}
+
 function nextTokenType(s) {
   const c = s[0];
 
@@ -209,6 +219,10 @@ function nextTokenType(s) {
 
   if (isPipe(c)) {
     return TokenType.PIPE;
+  }
+
+  if (isHash(c)) {
+    return TokenType.HASH;
   }
 
   if (isBracketStart(c)) {
@@ -269,6 +283,9 @@ function tokenise(input) {
     case TokenType.PIPE :
       p = consumePipe(s);
       break;
+    case TokenType.HASH :
+      p = consumeHash(s);
+      break;
     default:
       // read the unknown token and return it
       console.log("unknown token");
@@ -302,6 +319,7 @@ const NodeType = {
   LINK: Symbol('LINK'),
   QUOTATION: Symbol('QUOTATION'),
   SIDENOTE: Symbol('SIDENOTE'),
+  MARGINNOTE: Symbol('MARGINNOTE'),
   UNDERLINED: Symbol('UNDERLINED'),
   STRONG: Symbol('STRONG'),
   HIGHLIGHT: Symbol('HIGHLIGHT')
@@ -461,7 +479,13 @@ function eatQuotation(tokens) {
   return eatListofTypeUntil(tokens, NodeType.QUOTATION, TokenType.DOUBLEQUOTE);
 }
 
-function eatHyperlink(tokens) {
+function eatMarginnote(tokens) {
+  tokens.shift();               // eat the opening PIPE,
+                                // eatListofTypeUntil will then eat the HASH
+  return eatListofTypeUntil(tokens, NodeType.MARGINNOTE, TokenType.PIPE);
+}
+
+function eatSidenote(tokens) {
   return eatListofTypeUntil(tokens, NodeType.SIDENOTE, TokenType.PIPE);
 }
 
@@ -603,12 +627,21 @@ function eatItem(tokens) {
     } else {
       return eatTextIncluding(tokens, TokenType.ASTERISK);
     }
+  } else if (tokenType === TokenType.HASH) {
+    // just encountered a hash token, treat it as part of the text
+    // (hash is only semantically meaningful as the first
+    // character after an opening pipe)
+    return eatTextIncluding(tokens, TokenType.HASH);
   } else if (tokenType === TokenType.PIPE) {
     if (tokens[1] && tokens[1].type === TokenType.PIPE) {
       // two pipes, treat this as text (e.g. could be part of code snippet)
       return eatTextIncluding(tokens, TokenType.PIPE);
     } else if (remainingTokensContain(tokens, TokenType.PIPE)) {
-      return eatHyperlink(tokens);
+      if (tokens[1] && tokens[1].type === TokenType.HASH) {
+        return eatMarginnote(tokens);
+      } else {
+        return eatSidenote(tokens);
+      }
     } else {
       return eatTextIncluding(tokens, TokenType.PIPE);
     }
@@ -774,6 +807,18 @@ function compile(node, i) {
         <label key={ c } className="margin-toggle sidenote-number" htmlFor={ id }></label>,
         <input key={ c + 1 }type="checkbox" id={ id } className="margin-toggle"/>,
         <span key={ c + 2} className="sidenote">{ compileChildren(node) }</span>
+      ]
+    );
+  } else if (node.type === NodeType.MARGINNOTE) {
+    let c = sidenoteCounter;
+    let id = `mn-${c}`;
+
+    sidenoteCounter += 3;
+    return (
+      [
+        <label key={ c } className="margin-toggle" htmlFor={ id }>&#8855;</label>,
+        <input key={ c + 1 }type="checkbox" id={ id } className="margin-toggle"/>,
+        <span key={ c + 2} className="marginnote">{ compileChildren(node) }</span>
       ]
     );
   }

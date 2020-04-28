@@ -11,12 +11,18 @@ p {
 .sidenote {
   text-align: left;
 }
-.civil-sidenote {
+
+.marginnote {
   font-family: 'Nothing You Could Do', cursive;
   color: blue;
   font-size: 1.5em;
   text-align: left;
 }
+label.margin-toggle {
+  color: blue;
+}
+
+
 
 .shell-block {
   padding: 2em 0 2em 2em;
