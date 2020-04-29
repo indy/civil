@@ -1,21 +1,34 @@
-# Make doesn't come with a recursive wildcard function so we have to use this
-# complicated thing which was copy/pasted from StackOverflow.
-# Fucking hell, why isn't there a built-in function to recursively traverse
-# a directory and select files that match a wildcard?
-#
-# https://stackoverflow.com/questions/2483182/recursive-wildcards-in-gnu-make/18258352#18258352
+# Make doesn't come with a recursive wildcard function so we have to use this:
 #
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
+.PHONY: client server
 
-# make : updates local prod/dist folder with distributable version of civil
+########################################
 #
-# make upload : upload civil to linode
+# 	During dev:
+#
+# 	$ make server
+# 	$ make client
+#
+########################################
 
-# all: client server systemd
-# .PHONY: all
+server:
+	cd server && cargo run
+
+client:
+	cd client && npm run start
+
+########################################
+#
+# 	Upload release builds to server:
+#
+# 	$ make upload
+#
+########################################
 
 prod: client-dist server-dist systemd-dist
+
 upload: prod
 	rsync -avzhe ssh dist/. indy@indy.io:/home/indy/work/civil
 
