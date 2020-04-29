@@ -32,5 +32,5 @@ The build is minified and the filenames include the hashes.<br>
 
 ## Deploying
 
-$ cd prod
-$ ./build-deploy.sh
+$ make prod
+$ make upload

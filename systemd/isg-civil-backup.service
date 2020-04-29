@@ -1,0 +1,7 @@
+[Unit]
+Description=Backup the civil database used by civil.indy.io
+
+[Service]
+User=indy
+Type=simple
+ExecStart=/bin/bash /home/indy/work/civil/systemd/isg-civil-backup.sh
