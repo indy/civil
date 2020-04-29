@@ -1,7 +1,7 @@
 @charset "UTF-8";
 
 @font-face { font-family: "Nothing You Could Do";
-             src: url("NothingYouCouldDo/NothingYouCouldDo-Regular.ttf") format("truetype");
+             src: url("fonts/NothingYouCouldDo-Regular.ttf") format("truetype");
              font-weight: normal;
              font-style: normal; }
 
