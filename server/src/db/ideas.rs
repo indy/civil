@@ -70,6 +70,34 @@ pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Ide
         .await
 }
 
+pub(crate) async fn listings(db_pool: &Pool, user_id: Key) -> Result<interop::IdeasListings> {
+    async fn many_from(db_pool: &Pool, user_id: Key, query: &str) -> Result<Vec<interop::Idea>> {
+        pg::many_from::<Idea, interop::Idea>(db_pool, query, &[&user_id]).await
+    }
+
+    let (recent, single_references, zero_references, all) = tokio::try_join!(
+        many_from(
+            db_pool,
+            user_id,
+            include_str!("sql/ideas_listing_recent.sql")
+        ),
+        many_from(
+            db_pool,
+            user_id,
+            include_str!("sql/ideas_listing_single.sql")
+        ),
+        many_from(db_pool, user_id, include_str!("sql/ideas_listing_zero.sql")),
+        many_from(db_pool, user_id, include_str!("sql/ideas_all.sql")),
+    )?;
+
+    Ok(interop::IdeasListings {
+        recent,
+        single_references,
+        zero_references,
+        all,
+    })
+}
+
 pub(crate) async fn get(db_pool: &Pool, user_id: Key, idea_id: Key) -> Result<interop::Idea> {
     pg::one_from::<Idea, interop::Idea>(
         db_pool,

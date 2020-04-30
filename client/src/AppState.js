@@ -142,7 +142,7 @@ export const reducer = (state, action) => {
   case 'setIdea':
     {
       let newState = { ...state };
-      updateListOfTitles(newState.ideas, action.newItem);
+      //      updateListOfTitles(newState.ideas, action.newItem);
       newState.idea[action.id] = action.newItem;
       return newState;
     }

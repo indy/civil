@@ -55,6 +55,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
             scope("/ideas")
                 .route("", post().to(ideas::create))
                 .route("", get().to(ideas::get_all))
+                .route("/listings", get().to(ideas::get_listings))
                 .route("/{id}", get().to(ideas::get))
                 .route("/{id}", put().to(ideas::edit))
                 .route("/{id}", delete().to(ideas::delete)),
