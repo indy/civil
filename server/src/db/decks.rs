@@ -128,7 +128,7 @@ async fn query_search(
     pg::many_from::<LinkBackToDeck, interop::LinkBack>(db_pool, &stmt, &[&user_id, &query]).await
 }
 
-fn contains(linkbacks: &Vec<interop::LinkBack>, id: Key) -> bool {
+fn contains(linkbacks: &[interop::LinkBack], id: Key) -> bool {
     for l in linkbacks {
         if l.id == id {
             return true;
