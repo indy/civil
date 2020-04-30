@@ -2,23 +2,6 @@
 #
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
-.PHONY: client server
-
-########################################
-#
-# 	During dev:
-#
-# 	$ make server
-# 	$ make client
-#
-########################################
-
-server:
-	cd server && cargo run
-
-client:
-	cd client && npm run start
-
 ########################################
 #
 # 	Upload release builds to server:

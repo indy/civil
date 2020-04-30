@@ -4,11 +4,11 @@
 
 rename server/.env.example to server/.env and update it for your environment
 
-$ make server
+$ cd server && cargo run
 
 ## Client
 
-$ make client
+$ cd client && npm start
 
 ## Deploying
 
