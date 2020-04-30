@@ -48,6 +48,8 @@ impl From<PersonDerived> for interop::Person {
             sort_date: e.birth_date,
 
             points: None,
+            all_points_during_life: None,
+
             notes: None,
 
             decks_in_notes: None,
@@ -75,6 +77,8 @@ impl From<Person> for interop::Person {
             sort_date: None,
 
             points: None,
+            all_points_during_life: None,
+
             notes: None,
 
             decks_in_notes: None,
@@ -104,6 +108,7 @@ pub(crate) async fn create(
 
         sort_date: None,
         points: None,
+        all_points_during_life: None,
 
         notes: None,
         decks_in_notes: None,

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 // UNCOMMENT to enable deleting
 // import { useHistory } from 'react-router-dom';
 
+import DeckPoint from './DeckPoint';
 import Point from './Point';
 import PointForm from './PointForm';
 import Net from '../lib/Net';
@@ -132,6 +133,7 @@ export default function NoteHolder({holder, setMsg, title, resource, isLoaded, u
         { notes }
       </section>
       <SectionLinkBacks linkingTo={ holder }/>
+      { holder.all_points_during_life && showPointsDuringLife(holder.all_points_during_life, holder.id, holder.name) }
     </article>
   );
 }
@@ -154,6 +156,18 @@ function setHolder(dispatch, holder, setMsg) {
 
 function showPoints(points, resource) {
   return points.map(p => <Point key={ p.id} point={ p } parentResource={ resource }/>);
+}
+
+function showPointsDuringLife(deckPoints, holderId, holderName) {
+  let dps = deckPoints.map(dp => <DeckPoint key={ dp.point_id} holderId={ holderId } deckPoint={ dp }/>);
+
+  return (
+    <section>
+      <h2>Events during the life of { holderName }</h2>
+      <ul>
+        { dps }
+      </ul>
+    </section>);
 }
 
 

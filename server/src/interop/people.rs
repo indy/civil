@@ -17,7 +17,7 @@
 
 use crate::interop::decks::{LinkBack, MarginConnection};
 use crate::interop::notes::Note;
-use crate::interop::points::Point;
+use crate::interop::points::{Point, DeckPoint};
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -28,6 +28,12 @@ pub struct Person {
     pub sort_date: Option<chrono::NaiveDate>,
 
     pub points: Option<Vec<Point>>,
+
+    // all the points that happened during a person's life. These may not be
+    // directly connected to the person's life, but it's interesting to see
+    // what was happening during their lifetime
+    //
+    pub all_points_during_life: Option<Vec<DeckPoint>>,
 
     pub notes: Option<Vec<Note>>,
 

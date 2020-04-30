@@ -134,14 +134,16 @@ async fn augment(
     person_id: Key,
     user_id: Key,
 ) -> Result<()> {
-    let (points, notes, decks_in_notes, linkbacks_to_decks) = tokio::try_join!(
+    let (points, all_points_during_life, notes, decks_in_notes, linkbacks_to_decks) = tokio::try_join!(
         points_db::all(&db_pool, user_id, person_id),
+        points_db::all_points_during_life(&db_pool, user_id, person_id),
         notes_db::all_from_deck(&db_pool, person_id),
         decks_db::from_deck_id_via_notes_to_decks(&db_pool, person_id),
         decks_db::from_decks_via_notes_to_deck_id(&db_pool, person_id),
     )?;
 
     person.points = Some(points);
+    person.all_points_during_life = Some(all_points_during_life);
     person.notes = Some(notes);
     person.decks_in_notes = Some(decks_in_notes);
     person.linkbacks_to_decks = Some(linkbacks_to_decks);

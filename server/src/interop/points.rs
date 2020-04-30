@@ -51,6 +51,19 @@ pub struct ProtoPoint {
     pub date_fuzz: f32,
 }
 
+// used when returning all the points that happened during a person's life
+#[derive(PartialEq, Debug, serde::Deserialize, serde::Serialize)]
+pub struct DeckPoint {
+    pub deck_id: Key,
+    pub deck_name: String,
+    pub deck_resource: String,
+
+    pub point_id: Key,
+    pub point_title: Option<String>,
+    pub point_date_textual: Option<String>,
+    pub point_date: Option<chrono::NaiveDate>,
+}
+
 fn eq_naive_dates(a: Option<chrono::NaiveDate>, b: Option<chrono::NaiveDate>) -> bool {
     if let Some(ad) = a {
         if let Some(bd) = b {
