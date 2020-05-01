@@ -2,21 +2,7 @@ import React from 'react';
 import ListingLink from './ListingLink';
 import { capitalise } from '../lib/JsUtils';
 
-export default function SectionLinkBacks(props) {
-  return (
-    <div>
-      <SectionLinkBack linkbacks={ props.linkingTo.linkbacks_to_decks }/>
-      <SectionSearchResultsLinkBack linkbacks={ props.linkingTo.search_results }/>
-    </div>
-  );
-}
-
-function SectionSearchResultsLinkBack(props) {
-  const linkbacks = props.linkbacks || [];
-  return listingLinks(linkbacks, "Additional Search Results");
-}
-
-function SectionLinkBack(props) {
+export default function SectionLinkBack(props) {
   const linkbacks = props.linkbacks || [];
   const sections = [];
   const groupedLinkbacks = groupByResource(linkbacks);

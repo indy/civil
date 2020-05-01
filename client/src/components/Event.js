@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 
+import DeckControls from './DeckControls';
 import EventForm from './EventForm';
 import Net from '../lib/Net';
-import NoteHolder from './NoteHolder';
+import NoteManager from './NoteManager';
+import Point from './Point';
 import PointForm from './PointForm';
+import SectionLinkBack from './SectionLinkBack';
 import { idParam } from '../lib/reactUtils';
 import { useStateValue } from '../lib/state';
+import { ensureCorrectDeck } from './EnsureCorrectDeck';
 
 export default function Event(props) {
   const [state, dispatch] = useStateValue();
@@ -49,18 +53,39 @@ export default function Event(props) {
     return (<PointForm readOnlyTitle point={ point } onSubmit={ onAddPrimePoint } submitMessage="Create Point"/>);
   }
 
+  const resource = "events";
+  const setMsg = "setEvent";
+
+  ensureCorrectDeck(resource, event.id, id => state.event[id], setMsg);
+  const deckControls = DeckControls({
+    holder: event,
+    setMsg,
+    title: event.title,
+    resource,
+    updateForm: eventForm
+  });
+
+  const notes = NoteManager(event, setMsg);
+
+
   return (
-    <NoteHolder
-      holder={ event }
-      setMsg="setEvent"
-      title={ event.title }
-      resource="events"
-      isLoaded={ id => state.event[id] }
-      updateForm={ eventForm }>
+    <article>
+      { deckControls.title }
+      { deckControls.buttons }
+      { deckControls.noteForm }
+      { deckControls.pointForm }
+      { deckControls.updateForm }
       { hasNoPrimePoint(event) && showAddPrimePointMessage() }
       { showPrimeForm && primeForm() }
-    </NoteHolder>
+      { event.points && showPoints(event.points, resource) }
+      { notes }
+      <SectionLinkBack linkbacks={ event.linkbacks_to_decks }/>
+    </article>
   );
+}
+
+function showPoints(points, resource) {
+  return points.map(p => <Point key={ p.id} point={ p } parentResource={ resource }/>);
 }
 
 function hasNoPrimePoint(event) {

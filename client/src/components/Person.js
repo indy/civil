@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
 
 import Net from '../lib/Net';
-import NoteHolder from './NoteHolder';
+
+import SectionLinkBack from './SectionLinkBack';
 import PersonForm from './PersonForm';
 import PointForm from './PointForm';
 import { idParam } from '../lib/reactUtils';
 import { useStateValue } from '../lib/state';
+import NoteManager from './NoteManager';
+import DeckControls from './DeckControls';
+import DeckPoint from './DeckPoint';
+import Point from './Point';
+import { ensureCorrectDeck } from './EnsureCorrectDeck';
 
 export default function Person(props) {
   const [state, dispatch] = useStateValue();
@@ -50,19 +56,56 @@ export default function Person(props) {
     return (<PointForm readOnlyTitle point={ point } onSubmit={ onAddBirthPoint } submitMessage="Create Birth Point"/>);
   }
 
+  const resource = "people";
+  const setMsg = "setPerson";
+
+  ensureCorrectDeck(resource, person.id, id => state.person[id], setMsg);
+  const deckControls = DeckControls({
+    holder: person,
+    setMsg,
+    title: person.name,
+    resource,
+    updateForm: personForm
+  });
+
+  const notes = NoteManager(person, setMsg);
+
   return (
-    <NoteHolder
-      holder={ person }
-      setMsg="setPerson"
-      title={ person.name }
-      resource="people"
-      isLoaded={ id => state.person[id] }
-      updateForm={ personForm }>
+    <article>
+      { deckControls.title }
+      { deckControls.buttons }
+      { deckControls.noteForm }
+      { deckControls.pointForm }
+      { deckControls.updateForm }
+
       { hasNoBirthPoint(person) && showAddBirthPointMessage() }
       { showBirthForm && birthForm() }
-    </NoteHolder>
+
+      { person.points && showPoints(person.points, resource) }
+      { notes }
+      <SectionLinkBack linkbacks={ person.linkbacks_to_decks }/>
+      { person.all_points_during_life && showPointsDuringLife(person.all_points_during_life, person.id, person.name) }
+    </article>
   );
 }
+
+function showPoints(points, resource) {
+  return points.map(p => <Point key={ p.id} point={ p } parentResource={ resource }/>);
+}
+
+function showPointsDuringLife(deckPoints, holderId, holderName) {
+  let dps = deckPoints.map(dp => <DeckPoint key={ dp.point_id} holderId={ holderId } deckPoint={ dp }/>);
+
+  return (
+    <section>
+      <h2>Events during the life of { holderName }</h2>
+      <ul>
+        { dps }
+      </ul>
+    </section>);
+}
+
+
 
 function hasNoBirthPoint(person) {
   function hasBirthPoint(point) {
