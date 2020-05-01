@@ -9,9 +9,8 @@ import { idParam } from '../lib/reactUtils';
 import { useStateValue } from '../lib/state';
 import NoteManager from './NoteManager';
 import DeckControls from './DeckControls';
-import DeckPoint from './DeckPoint';
-import Point from './Point';
 import { ensureCorrectDeck } from './EnsureCorrectDeck';
+import ListDeckPoints from './ListDeckPoints';
 
 export default function Person(props) {
   const [state, dispatch] = useStateValue();
@@ -81,31 +80,19 @@ export default function Person(props) {
       { hasNoBirthPoint(person) && showAddBirthPointMessage() }
       { showBirthForm && birthForm() }
 
-      { person.points && showPoints(person.points, resource) }
       { notes }
       <SectionLinkBack linkbacks={ person.linkbacks_to_decks }/>
-      { person.all_points_during_life && showPointsDuringLife(person.all_points_during_life, person.id, person.name) }
+      <ListDeckPoints deckPoints={ person.all_points_during_life }
+                      holderId={ person.id }
+                      holderName={ person.name }/>
     </article>
   );
 }
+//       { person.points && showPoints(person.points, resource) }
 
-function showPoints(points, resource) {
-  return points.map(p => <Point key={ p.id} point={ p } parentResource={ resource }/>);
-}
-
-function showPointsDuringLife(deckPoints, holderId, holderName) {
-  let dps = deckPoints.map(dp => <DeckPoint key={ dp.point_id} holderId={ holderId } deckPoint={ dp }/>);
-
-  return (
-    <section>
-      <h2>Events during the life of { holderName }</h2>
-      <ul>
-        { dps }
-      </ul>
-    </section>);
-}
-
-
+// function showPoints(points, resource) {
+//   return points.map(p => <Point key={ p.id} point={ p } parentResource={ resource }/>);
+// }
 
 function hasNoBirthPoint(person) {
   function hasBirthPoint(point) {
