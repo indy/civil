@@ -7,13 +7,13 @@ import DeckPoint from './DeckPoint';
 import Point from './Point';
 import PointForm from './PointForm';
 import Net from '../lib/Net';
-import Note from './Note';
 import NoteForm from './NoteForm';
 import NoteCompiler from '../lib/NoteCompiler';
+import NoteManager from './NoteManager';
 
 import SectionLinkBacks from './SectionLinkBacks';
 import { useStateValue } from '../lib/state';
-import { ensureAC, separateIntoIdeasAndDecks } from '../lib/utils';
+import { separateIntoIdeasAndDecks } from '../lib/utils';
 import { addChronologicalSortYear } from '../lib/eras';
 import { removeEmptyStrings } from '../lib/JsUtils';
 
@@ -111,6 +111,7 @@ export default function NoteHolder({holder, setMsg, title, resource, isLoaded, u
   function onShowButtons() {
     setShowButtons(!showButtons);
     setShowNoteForm(false);
+    setShowPointForm(false);
     setShowUpdateForm(false);
   };
 
@@ -129,9 +130,7 @@ export default function NoteHolder({holder, setMsg, title, resource, isLoaded, u
       { showUpdateForm && showUpdate() }
       { children }
       { holder.points && showPoints(holder.points, resource) }
-      <section>
-        { notes }
-      </section>
+      { notes }
       <SectionLinkBacks linkingTo={ holder }/>
       { holder.all_points_during_life && showPointsDuringLife(holder.all_points_during_life, holder.id, holder.name) }
     </article>
@@ -197,55 +196,7 @@ function ensureCorrectNoteHolder(resource, id, isLoaded, setMsg, dispatch) {
   }
 };
 
-function NoteManager(holder, setMsg) {
-  const [state, dispatch] = useStateValue();
 
-  ensureAC(state, dispatch);
-
-  const ac = state.ac;
-
-  function findNoteWithId(id, modifyFn) {
-    const notes = holder.notes;
-    const index = notes.findIndex(n => n.id === id);
-
-    modifyFn(notes, index);
-    setHolder(dispatch, {...holder, notes}, setMsg);
-  };
-
-  function onEditedNote(id, data) {
-    findNoteWithId(id, (notes, index) => {
-      notes[index] = Object.assign(notes[index], data);
-    });
-  };
-
-  function onDeleteNote(noteId) {
-    findNoteWithId(noteId, (notes, index) => {
-      notes.splice(index, 1);
-    });
-  };
-
-  function onDecksChanged(note) {
-    findNoteWithId(note.id, (notes, index) => {
-      notes[index] = note;
-    });
-  };
-
-  function buildNoteComponent(note) {
-    return (
-      <Note key={ note.id }
-            note={ note }
-            ac = { ac }
-            onDelete={ onDeleteNote }
-            onEdited={ onEditedNote }
-            onDecksChanged={ onDecksChanged }
-      />
-    );
-  }
-
-  const notes = holder.notes ? holder.notes.map(buildNoteComponent) : [];
-
-  return notes;
-}
 
 function splitIntoNotes(content) {
   const res = NoteCompiler.splitContent(content);
