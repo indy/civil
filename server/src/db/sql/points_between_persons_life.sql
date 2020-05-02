@@ -16,4 +16,4 @@ where coalesce(p.exact_date, p.upper_date) >= (select coalesce(point_born.exact_
                                                                    and point_died.title = 'Died'), CURRENT_DATE)
       and p.deck_id = d.id
       and d.user_id = $1
-order by p.exact_date
+order by coalesce(p.exact_date, p.lower_date)
