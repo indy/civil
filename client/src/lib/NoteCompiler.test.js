@@ -517,3 +517,20 @@ it('link bug', () => {
   expect(c[0].value).toEqual('https://en.wikipedia.org/wiki/Karl_Marx');
   expect(c[0].displayText).toEqual('https://en.wikipedia.org/wiki/Karl_Marx');
 });
+
+it('one caret bug', () => {
+  let input = 'number 8 is 2^3 pronounced two to the power three';
+
+  let tokens = tokenise(input);
+  expect(tokens.length).toEqual(5); // TEXT, CARET, DIGITS, WHITESPACE, TEXT
+
+  let nodes = parse(tokens);
+  expect(nodes.length).toEqual(1);
+  expect(nodes[0].type).toEqual(NoteCompiler.NodeType.PARAGRAPH);
+
+  const c = nodes[0].children;
+  expect(c.length).toEqual(2);
+
+  expectText(c[0], "number 8 is 2");
+  expectText(c[1], "^3 pronounced two to the power three");
+});

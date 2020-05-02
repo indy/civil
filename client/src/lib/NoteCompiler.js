@@ -334,43 +334,13 @@ function eatListofTypeUntil(tokens, listType, tokenType) {
   return { node: container };
 }
 
-function eatHighlight(tokens) {
-  return eatListofTypeUntil(tokens, NodeType.HIGHLIGHT, TokenType.CARET);
-}
-
-function eatStrong(tokens) {
-  return eatListofTypeUntil(tokens, NodeType.STRONG, TokenType.ASTERISK);
-}
-
-function eatUnderline(tokens) {
-  return eatListofTypeUntil(tokens, NodeType.UNDERLINED, TokenType.UNDERSCORE);
-}
-
-function eatQuotation(tokens) {
-  return eatListofTypeUntil(tokens, NodeType.QUOTATION, TokenType.DOUBLEQUOTE);
-}
-
-function eatMarginnote(tokens) {
-  tokens.shift();               // eat the opening PIPE,
-                                // eatListofTypeUntil will then eat the HASH
-  return eatListofTypeUntil(tokens, NodeType.MARGINNOTE, TokenType.PIPE);
-}
-
-function eatSidenote(tokens) {
-  return eatListofTypeUntil(tokens, NodeType.SIDENOTE, TokenType.PIPE);
-}
-
-function eatNewlines(tokens) {
-  while(tokens.length > 0 && tokens[0].type === TokenType.NEWLINE) {
-    tokens.shift();
-  }
-}
-
 function eatToNewline(tokens, container) {
   while (tokens.length !== 0) {
 
     if (tokens[0].type === TokenType.NEWLINE) {
-      eatNewlines(tokens);
+      while(tokens.length > 0 && tokens[0].type === TokenType.NEWLINE) {
+        tokens.shift();
+      }
       return { node: container };
     }
 
@@ -457,12 +427,33 @@ function remainingTokensContain(tokens, tokenType) {
   return false;
 }
 
-function eatItem(tokens) {
-  const token = tokens[0];
+function eatMatchingPair(tokens, tokenType, nodeType) {
+    if (remainingTokensContain(tokens, tokenType)) {
+      return eatListofTypeUntil(tokens, nodeType, tokenType);
+    } else {
+      return eatTextIncluding(tokens, tokenType);
+    }
+}
 
-  const tokenType = token.type;
+function eatPipe(tokens) {
+    if (tokens[1] && tokens[1].type === TokenType.PIPE) {
+      // two pipes, treat this as text (e.g. could be part of code snippet)
+      return eatTextIncluding(tokens, TokenType.PIPE);
+    } else if (remainingTokensContain(tokens, TokenType.PIPE)) {
+      if (tokens[1] && tokens[1].type === TokenType.HASH) {
+        tokens.shift();               // eat the opening PIPE,
+                                      // eatListofTypeUntil will then eat the HASH
+        return eatListofTypeUntil(tokens, NodeType.MARGINNOTE, TokenType.PIPE);
 
-  if (tokenType === TokenType.BRACKET_START) {
+      } else {
+        return eatListofTypeUntil(tokens, NodeType.SIDENOTE, TokenType.PIPE);
+      }
+    } else {
+      return eatTextIncluding(tokens, TokenType.PIPE);
+    }
+}
+
+function eatBracketStart(tokens) {
     if (tokens[1] && (tokens[1].type === TokenType.BRACKET_START)) {
       return eatLink(tokens);
     } else {
@@ -470,57 +461,28 @@ function eatItem(tokens) {
       tokens.shift();
       return boxNode(NodeType.TEXT, '[');
     }
-  } else if (tokenType === TokenType.BRACKET_END) {
+}
+
+function eatBracketEndAsText(tokens) {
     // just some text that has a ']' in it
     tokens.shift();
     return boxNode(NodeType.TEXT, ']');
-  } else if (tokenType === TokenType.DOUBLEQUOTE) {
-    if (remainingTokensContain(tokens, TokenType.DOUBLEQUOTE)) {
-      return eatQuotation(tokens);
-    } else {
-      return eatTextIncluding(tokens, TokenType.DOUBLEQUOTE);
-    }
-  } else if (tokenType === TokenType.UNDERSCORE) {
-    if (remainingTokensContain(tokens, TokenType.UNDERSCORE)) {
-      return eatUnderline(tokens);
-    } else {
-      return eatTextIncluding(tokens, TokenType.UNDERSCORE);
-    }
-  } else if (tokenType === TokenType.ASTERISK) {
-    if (remainingTokensContain(tokens, TokenType.ASTERISK)) {
-      return eatStrong(tokens);
-    } else {
-      return eatTextIncluding(tokens, TokenType.ASTERISK);
-    }
-  } else if (tokenType === TokenType.CARET) {
-    if (remainingTokensContain(tokens, TokenType.CARET)) {
-      return eatHighlight(tokens);
-    } else {
-      return eatTextIncluding(tokens, TokenType.ASTERISK);
-    }
-  } else if (tokenType === TokenType.HASH) {
-    // just encountered a hash token, treat it as part of the text
-    // (hash is only semantically meaningful as the first
-    // character after an opening pipe)
-    return eatTextIncluding(tokens, TokenType.HASH);
-  } else if (tokenType === TokenType.PIPE) {
-    if (tokens[1] && tokens[1].type === TokenType.PIPE) {
-      // two pipes, treat this as text (e.g. could be part of code snippet)
-      return eatTextIncluding(tokens, TokenType.PIPE);
-    } else if (remainingTokensContain(tokens, TokenType.PIPE)) {
-      if (tokens[1] && tokens[1].type === TokenType.HASH) {
-        return eatMarginnote(tokens);
-      } else {
-        return eatSidenote(tokens);
-      }
-    } else {
-      return eatTextIncluding(tokens, TokenType.PIPE);
-    }
-  } else if (tokenType === TokenType.WHITESPACE) {
-    return eatWhitespace(tokens);
-  }
 
-  return eatText(tokens);
+}
+
+function eatItem(tokens) {
+  switch(tokens[0].type) {
+  case TokenType.BRACKET_START: return eatBracketStart(tokens);
+  case TokenType.BRACKET_END:   return eatBracketEndAsText(tokens);
+  case TokenType.DOUBLEQUOTE:   return eatMatchingPair(tokens, TokenType.DOUBLEQUOTE, NodeType.QUOTATION);
+  case TokenType.UNDERSCORE:    return eatMatchingPair(tokens, TokenType.UNDERSCORE, NodeType.UNDERLINED);
+  case TokenType.ASTERISK:      return eatMatchingPair(tokens, TokenType.ASTERISK, NodeType.STRONG);
+  case TokenType.CARET:         return eatMatchingPair(tokens, TokenType.CARET, NodeType.HIGHLIGHT);
+  case TokenType.HASH:          return eatTextIncluding(tokens, TokenType.HASH);
+  case TokenType.PIPE:          return eatPipe(tokens);
+  case TokenType.WHITESPACE:    return eatWhitespace(tokens);
+  default:                      return eatText(tokens);
+  }
 }
 
 function eatParagraph(tokens) {
