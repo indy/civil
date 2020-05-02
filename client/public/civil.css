@@ -167,11 +167,11 @@ input:required {
   box-shadow: none;
 }
 
-
-.relevent-deckpoint {
-  font-weight: bold;
+.deckpoint {
+  color: #666;
 }
 
-.deckpoint {
-  color: #555;
+.deckpoint a {
+  /* same as the background colour, this is how to hide the underline effect used in tufte.css */
+  background: #fffffa;
 }
