@@ -5,8 +5,6 @@
              font-weight: normal;
              font-style: normal; }
 
-
-
 .deckpoint-block label { display: inline-block; width: 12em; text-align: right; }
 .deckpoint-block input { width: 2em; }
 
@@ -19,15 +17,13 @@ p {
 
 .marginnote {
   font-family: 'Nothing You Could Do', cursive;
-  color: blue;
+  color: var(--scribble);
   font-size: 1.5em;
   text-align: left;
 }
 label.margin-toggle {
-  color: blue;
+  color: var(--scribble);
 }
-
-
 
 .shell-block {
   padding: 2em 0 2em 2em;
@@ -57,27 +53,40 @@ p.fakelink {
   text-decoration: underline;
 }
 
-section > form { width: 55%; }
+section > form { width: var(--block-width); }
 
 /* civil: so that the p in civil behaves like the section > p in tufte */
 .note p {
-  width: 55%;
+  width: var(--block-width);
 }
 
-.leftmargin-container {
+.noteref-container {
   padding-top: 0.5em;
   float: left;
   margin-left: -25%;
   width: 25%;
   font-size: 1.1rem;
-  color: #666;
+  color: var(--fg1);
   text-align: right;
 }
 
-.leftmargin-entry a {
+@media (max-width: 1200px) {
+  .noteref-container {
+    float: right;
+    text-align: left;
+  }
+}
+
+@media (max-width: 800px) {
+  .noteref-container {
+    display: none;
+  }
+}
+
+.noteref-entry a {
   text-decoration: none;
 }
-.leftmargin-entry .leftmargin-spacer {
+.noteref-entry .noteref-spacer {
   padding-left: 2em;
 }
 
@@ -85,16 +94,12 @@ section > form { width: 55%; }
   padding-bottom: 0.5em;
   border-bottom-width: 0.1em;
   border-bottom-style: solid;
-  border-color: #ccc;
+  border-color: var(--divider);
 
-}
-
-.camouflage {
-  color: #f1edeb;
 }
 
 mark {
-  background: #fcf172;
+  background: var(--highlight);
 }
 
 a.top-bar-menuitem {
@@ -104,7 +109,7 @@ a.top-bar-menuitem {
 }
 
 blockquote.quote > textarea {
-  width: 55%;
+  width: var(--block-width);
   height: 10em;
 }
 
@@ -116,9 +121,9 @@ div.note > textarea {
 .note > hr {
   display: block;
   height: 1em;
-  width: 55%;
+  width: var(--block-width);
   border: 0;
-  border-top: 2px solid #ccc;
+  border-top: 2px solid var(--divider);
   margin: 1em 0;
   padding: 0;
 }
@@ -133,7 +138,7 @@ div.note > textarea {
 }
 
 .civil-date-hint {
-  color: #606060;
+  color: var(--fg1);
   float:right;
   padding-right: 1em;
 }
@@ -162,16 +167,15 @@ div.note > textarea {
   width: 5em;
 }
 
-
 input:required {
   box-shadow: none;
 }
 
 .deckpoint {
-  color: #666;
+  color: var(--fg1);
 }
 
 .deckpoint a {
   /* same as the background colour, this is how to hide the underline effect used in tufte.css */
-  background: #fffffa;
+  background: var(--bg);
 }

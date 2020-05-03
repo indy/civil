@@ -243,13 +243,13 @@ function buildCurrentDecksAndIdeas(note) {
   return res;
 }
 
-function buildLeftMargin(marginConnections) {
+function buildNoteReference(marginConnections) {
   if (!marginConnections) {
     return [];
   }
 
-  const itemName = "leftmargin-entry";
-  const spacer = "leftmargin-spacer";
+  const itemName = "noteref-entry";
+  const spacer = "noteref-spacer";
 
   return marginConnections.map(s => {
     return (
@@ -262,13 +262,13 @@ function buildLeftMargin(marginConnections) {
 };
 
 function buildReadingContent(note, noteId, onShowButtonsClicked, decks, ideas) {
-  let leftmarginContents = buildLeftMargin(ideas).concat(buildLeftMargin(decks));
+  let noteRefContents = buildNoteReference(ideas).concat(buildNoteReference(decks));
 
   return (
     <div>
       { note.title && buildTitle(note.title, onShowButtonsClicked) }
-      <div className="leftmargin-container">
-        { leftmarginContents }
+      <div className="noteref-container">
+        { noteRefContents }
       </div>
       <div onClick={ onShowButtonsClicked }>
         { constructNoteContent(noteId, note.content) }

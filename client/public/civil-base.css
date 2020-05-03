@@ -1,0 +1,39 @@
+:root {
+  --bg: #fffff8;
+  --fg: #111;
+
+  --fg1: #666; /* linked decks (i.e. tags) */
+
+  --body-width: 80%;
+  --block-width: 55%;
+
+  --selection: #b4d5fe;
+  --scribble: blue; /* handwritten note  */
+  --highlight: #fcf172;
+  --divider: #ccc;
+}
+
+@media (max-width: 1200px) {
+  :root {
+    --body-width: 93.5%;
+    --block-width: 70%;
+
+    /* --bg: #00fff8; */
+  }
+}
+
+@media (max-width: 800px) {
+  :root {
+    --body-width: 97.5%;
+    --block-width: 90%;
+
+    /* --bg: #ff00f8; */
+  }
+}
+
+/* @media (prefers-color-scheme: dark) { */
+/*   :root { */
+/*     --bg: #fffff8; */
+/*     --fg: #111; */
+/*   } */
+/* } */
