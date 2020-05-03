@@ -10,20 +10,20 @@ class Token {
 }
 
 const TokenType = {
-  TEXT: Symbol('TEXT'),
+  TEXT:          Symbol('TEXT'),
   BRACKET_START: Symbol('BRACKET_START'),
-  BRACKET_END: Symbol('BRACKET_END'),
-  DOUBLEQUOTE: Symbol('DOUBLEQUOTE'),
-  PIPE: Symbol('PIPE'),
-  HASH: Symbol('HASH'),
-  DIGITS: Symbol('DIGITS'),
-  PERIOD: Symbol('PERIOD'),
-  CARET: Symbol('CARET'),
-  HYPHEN: Symbol('HYPHEN'),
-  UNDERSCORE: Symbol('UNDERSCORE'),
-  ASTERISK: Symbol('ASTERISK'),
-  NEWLINE: Symbol('NEWLINE'),
-  WHITESPACE: Symbol('WHITESPACE')
+  BRACKET_END:   Symbol('BRACKET_END'),
+  DOUBLEQUOTE:   Symbol('DOUBLEQUOTE'),
+  PIPE:          Symbol('PIPE'),
+  HASH:          Symbol('HASH'),
+  DIGITS:        Symbol('DIGITS'),
+  PERIOD:        Symbol('PERIOD'),
+  CARET:         Symbol('CARET'),
+  HYPHEN:        Symbol('HYPHEN'),
+  UNDERSCORE:    Symbol('UNDERSCORE'),
+  ASTERISK:      Symbol('ASTERISK'),
+  NEWLINE:       Symbol('NEWLINE'),
+  WHITESPACE:    Symbol('WHITESPACE')
 };
 
 function characterSet(string) {
@@ -34,19 +34,19 @@ function characterSet(string) {
 const sWhitespaceSet = characterSet(' \t\r');
 const sDigitSet = characterSet('0123456789');
 
-const isWhitespace = c => sWhitespaceSet.has(c);
-const isDigit = c => sDigitSet.has(c);
-const isPeriod = c => c === '.';
+const isWhitespace   = c => sWhitespaceSet.has(c);
+const isDigit        = c => sDigitSet.has(c);
+const isPeriod       = c => c === '.';
 const isBracketStart = c => c === '[';
-const isBracketEnd = c => c === ']';
-const isNewline = c => c === '\n';
-const isCaret = c => c === '^';
-const isHyphen = c => c === '-';
-const isUnderscore = c => c === '_';
-const isAsterisk = c => c === '*';
-const isDoubleQuote = c => c === '"';
-const isPipe = c => c === '|';
-const isHash = c => c === '#';
+const isBracketEnd   = c => c === ']';
+const isNewline      = c => c === '\n';
+const isCaret        = c => c === '^';
+const isHyphen       = c => c === '-';
+const isUnderscore   = c => c === '_';
+const isAsterisk     = c => c === '*';
+const isDoubleQuote  = c => c === '"';
+const isPipe         = c => c === '|';
+const isHash         = c => c === '#';
 
 function consumeText(s) {
   let i = 0;
@@ -104,33 +104,33 @@ function consumeCharacter(s, c, tokenType) {
   return [new Token(tokenType, c), s.substring(1)];
 }
 
-const consumePeriod = s => consumeCharacter(s, '.', TokenType.PERIOD);
+const consumePeriod       = s => consumeCharacter(s, '.', TokenType.PERIOD);
 const consumeBracketStart = s => consumeCharacter(s, '[', TokenType.BRACKET_START);
-const consumeBracketEnd = s => consumeCharacter(s, ']', TokenType.BRACKET_END);
-const consumeCaret = s => consumeCharacter(s, '^', TokenType.CARET);
-const consumeHyphen = s => consumeCharacter(s, '-', TokenType.HYPHEN);
-const consumeUnderscore = s => consumeCharacter(s, '_', TokenType.UNDERSCORE);
-const consumeAsterisk = s => consumeCharacter(s, '*', TokenType.ASTERISK);
-const consumeDoubleQuote = s => consumeCharacter(s, '"', TokenType.DOUBLEQUOTE);
-const consumePipe = s => consumeCharacter(s, '|', TokenType.PIPE);
-const consumeHash = s => consumeCharacter(s, '#', TokenType.HASH);
+const consumeBracketEnd   = s => consumeCharacter(s, ']', TokenType.BRACKET_END);
+const consumeCaret        = s => consumeCharacter(s, '^', TokenType.CARET);
+const consumeHyphen       = s => consumeCharacter(s, '-', TokenType.HYPHEN);
+const consumeUnderscore   = s => consumeCharacter(s, '_', TokenType.UNDERSCORE);
+const consumeAsterisk     = s => consumeCharacter(s, '*', TokenType.ASTERISK);
+const consumeDoubleQuote  = s => consumeCharacter(s, '"', TokenType.DOUBLEQUOTE);
+const consumePipe         = s => consumeCharacter(s, '|', TokenType.PIPE);
+const consumeHash         = s => consumeCharacter(s, '#', TokenType.HASH);
 
 function nextTokenType(s) {
   const c = s[0];
 
-  if (isWhitespace(c)) return TokenType.WHITESPACE;
-  if (isDigit(c)) return TokenType.DIGITS;
-  if (isPeriod(c)) return TokenType.PERIOD;
-  if (isNewline(c)) return TokenType.NEWLINE;
-  if (isCaret(c)) return TokenType.CARET;
-  if (isHyphen(c)) return TokenType.HYPHEN;
-  if (isUnderscore(c)) return TokenType.UNDERSCORE;
-  if (isAsterisk(c)) return TokenType.ASTERISK;
-  if (isDoubleQuote(c)) return TokenType.DOUBLEQUOTE;
-  if (isPipe(c)) return TokenType.PIPE;
-  if (isHash(c)) return TokenType.HASH;
+  if (isWhitespace(c))   return TokenType.WHITESPACE;
+  if (isDigit(c))        return TokenType.DIGITS;
+  if (isPeriod(c))       return TokenType.PERIOD;
+  if (isNewline(c))      return TokenType.NEWLINE;
+  if (isCaret(c))        return TokenType.CARET;
+  if (isHyphen(c))       return TokenType.HYPHEN;
+  if (isUnderscore(c))   return TokenType.UNDERSCORE;
+  if (isAsterisk(c))     return TokenType.ASTERISK;
+  if (isDoubleQuote(c))  return TokenType.DOUBLEQUOTE;
+  if (isPipe(c))         return TokenType.PIPE;
+  if (isHash(c))         return TokenType.HASH;
   if (isBracketStart(c)) return TokenType.BRACKET_START;
-  if (isBracketEnd(c)) return TokenType.BRACKET_END;
+  if (isBracketEnd(c))   return TokenType.BRACKET_END;
 
   return TokenType.TEXT;
 }
@@ -182,18 +182,18 @@ function tokenise(input) {
 // PARSER BEGINS
 
 const NodeType = {
-  PARAGRAPH: Symbol('PARAGRAPH'),
-  ORDERED_LIST: Symbol('ORDERED_LIST'),
+  PARAGRAPH:      Symbol('PARAGRAPH'),
+  ORDERED_LIST:   Symbol('ORDERED_LIST'),
   UNORDERED_LIST: Symbol('UNORDERED_LIST'),
-  LIST_ITEM: Symbol('LIST_ITEM'),
-  TEXT: Symbol('TEXT'),
-  LINK: Symbol('LINK'),
-  QUOTATION: Symbol('QUOTATION'),
-  SIDENOTE: Symbol('SIDENOTE'),
-  MARGINNOTE: Symbol('MARGINNOTE'),
-  UNDERLINED: Symbol('UNDERLINED'),
-  STRONG: Symbol('STRONG'),
-  HIGHLIGHT: Symbol('HIGHLIGHT')
+  LIST_ITEM:      Symbol('LIST_ITEM'),
+  TEXT:           Symbol('TEXT'),
+  LINK:           Symbol('LINK'),
+  QUOTATION:      Symbol('QUOTATION'),
+  SIDENOTE:       Symbol('SIDENOTE'),
+  MARGINNOTE:     Symbol('MARGINNOTE'),
+  UNDERLINED:     Symbol('UNDERLINED'),
+  STRONG:         Symbol('STRONG'),
+  HIGHLIGHT:      Symbol('HIGHLIGHT')
 };
 
 class Node {
