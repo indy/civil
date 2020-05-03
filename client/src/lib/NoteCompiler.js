@@ -574,75 +574,21 @@ function compileChildren(node) {
   return node.children.flatMap((e, i) => { return compile(e, i);});
 }
 
-function compile(node, i) {
+function compileSidenote(node) {
+  let c = sidenoteCounter;
+  let id = `sn-${c}`;
 
-  if (node.type === NodeType.TEXT) {
-    return node.value;//.trimRight();
-  } else if (node.type === NodeType.LINK) {
-    return (
-      [<a key={i} href={ node.value }>{ node.displayText }</a>]
-    );
-  } else if (node.type === NodeType.STRONG) {
-    return (
-      [<strong key={i}>
-        { compileChildren(node) }
-      </strong>]
-    );
-  } else if (node.type === NodeType.HIGHLIGHT) {
-    return (
-      [<mark key={i}>
-        { compileChildren(node) }
-      </mark>]
-    );
-  } else if (node.type === NodeType.UNDERLINED) {
-    return (
-      [<span className="underlined" key={i}>
-        { compileChildren(node) }
-      </span>]
-    );
-  } else if (node.type === NodeType.QUOTATION) {
-    return (
-      [<em key={i}>
-        { compileChildren(node) }
-      </em>]
-    );
-  } else if (node.type === NodeType.PARAGRAPH) {
-    return (
-      [<p key={i}>
-        { compileChildren(node) }
-      </p>]
-    );
-  } else if (node.type === NodeType.ORDERED_LIST) {
-    return (
-      [<ol key={i}>
-        { compileChildren(node) }
-      </ol>]
-    );
-  } else if (node.type === NodeType.UNORDERED_LIST) {
-    return (
-      [<ul key={i}>
-        { compileChildren(node) }
-      </ul>]
-    );
-  } else if (node.type === NodeType.LIST_ITEM) {
-    return (
-      [<li key={i}>
-        { compileChildren(node) }
-      </li>]
-    );
-  } else if (node.type === NodeType.SIDENOTE) {
-    let c = sidenoteCounter;
-    let id = `sn-${c}`;
+  sidenoteCounter += 3;
+  return (
+    [
+      <label key={ c } className="margin-toggle sidenote-number" htmlFor={ id }></label>,
+      <input key={ c + 1 }type="checkbox" id={ id } className="margin-toggle"/>,
+      <span key={ c + 2} className="sidenote">{ compileChildren(node) }</span>
+    ]
+  );
+}
 
-    sidenoteCounter += 3;
-    return (
-      [
-        <label key={ c } className="margin-toggle sidenote-number" htmlFor={ id }></label>,
-        <input key={ c + 1 }type="checkbox" id={ id } className="margin-toggle"/>,
-        <span key={ c + 2} className="sidenote">{ compileChildren(node) }</span>
-      ]
-    );
-  } else if (node.type === NodeType.MARGINNOTE) {
+function compileMarginnote(node) {
     let c = sidenoteCounter;
     let id = `mn-${c}`;
 
@@ -654,17 +600,28 @@ function compile(node, i) {
         <span key={ c + 2} className="marginnote">{ compileChildren(node) }</span>
       ]
     );
-  }
+}
 
-  return null;
+function compile(node, i) {
+  switch(node.type) {
+  case NodeType.TEXT:           return node.value;
+  case NodeType.LINK:           return [<a key={i} href={ node.value }>{ node.displayText }</a>];
+  case NodeType.STRONG:         return [<strong key={i}> { compileChildren(node) } </strong>];
+  case NodeType.HIGHLIGHT:      return [<mark key={i}> { compileChildren(node) } </mark>];
+  case NodeType.UNDERLINED:     return [<span className="underlined" key={i}> { compileChildren(node) } </span>];
+  case NodeType.QUOTATION:      return [<em key={i}> { compileChildren(node) } </em>];
+  case NodeType.PARAGRAPH:      return [<p key={i}> { compileChildren(node) } </p>];
+  case NodeType.ORDERED_LIST:   return [<ol key={i}> { compileChildren(node) } </ol>];
+  case NodeType.UNORDERED_LIST: return [<ul key={i}> { compileChildren(node) } </ul>];
+  case NodeType.LIST_ITEM:      return [<li key={i}> { compileChildren(node) } </li>];
+  case NodeType.SIDENOTE:       return compileSidenote(node);
+  case NodeType.MARGINNOTE:     return compileMarginnote(node);
+  default:                      return null;
+  }
 }
 
 function compileTopLevel(ast) {
-  return ast.flatMap((e, i) => { return compile(e, i);});
-}
-
-function compileMain(ast) {
-  return compileTopLevel(ast);
+  return ast.flatMap((e, i) => compile(e, i));
 }
 
 // COMPILER ENDS HERE
@@ -781,7 +738,7 @@ const NoteCompiler = {
     return ast;
   },
   compile: ast => {
-    return compileMain(ast);
+    return compileTopLevel(ast);
   },
   make: content => {
     const tokensRes = tokenise(content);
@@ -798,7 +755,7 @@ const NoteCompiler = {
     }
 
     const ast = parserRes.nodes;
-    const dom = compileMain(ast);
+    const dom = compileTopLevel(ast);
 
     return dom;
   }
