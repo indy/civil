@@ -615,6 +615,7 @@ function compileMarginnote(node) {
 function compile(node, i) {
   switch(node.type) {
   case NodeType.TEXT:           return node.value;
+  case NodeType.CODEBLOCK:      return [<pre><code className={ node.language }>{ node.code }</code></pre>];
   case NodeType.LINK:           return [<a key={i} href={ node.value }>{ node.displayText }</a>];
   case NodeType.STRONG:         return [<strong key={i}> { compileChildren(node) } </strong>];
   case NodeType.HIGHLIGHT:      return [<mark key={i}> { compileChildren(node) } </mark>];
@@ -682,6 +683,14 @@ function joinOrderedList(tokens) {
   return s;
 }
 
+function joinCodeblock(tokens) {
+  let s = "";
+  while(tokens.length !== 0) {
+    s = moveHeadOntoString(s, tokens);
+  }
+  return s;
+}
+
 function joinUnorderedList(tokens) {
   let s = "";
   while(tokens.length !== 0) {
@@ -722,6 +731,8 @@ function splitContent(content) {
       container = joinOrderedList(tokens);
     } else if (isUnorderedListItem(tokens)) {
       container = joinUnorderedList(tokens);
+    } else if (isCodeblock(tokens)) {
+      container = joinCodeblock(tokens);
     } else {
       container = joinParagraph(tokens);
     }
