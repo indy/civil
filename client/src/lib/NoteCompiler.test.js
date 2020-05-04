@@ -534,3 +534,75 @@ it('one caret bug', () => {
   expectText(c[0], "number 8 is 2");
   expectText(c[1], "^3 pronounced two to the power three");
 });
+
+it('backticks', () => {
+  let input = `\`\`\`
+this is unspecified code
+\`\`\``;
+
+  let tokens = tokenise(input);
+  expect(tokens.length).toEqual(9);
+
+  let nodes = parse(tokens);
+  expect(nodes.length).toEqual(1);
+  let codeblock = nodes[0];
+  expect(codeblock.language).toEqual('unspecified-language');
+  expect(codeblock.code).toEqual('this is unspecified code');
+
+  // --------------------------------------------------------------------------------
+
+  input = `\`\`\`rust
+impl From<MarginConnectionToDeck> for decks_interop::MarginConnection {
+    fn from(e: MarginConnectionToDeck) -> decks_interop::MarginConnection {
+        let resource = kind_to_resource(e.kind.as_ref()).unwrap();
+        decks_interop::MarginConnection {
+            note_id: e.note_id,
+            id: e.id,
+            name: e.name,
+            resource: resource.to_string(),
+        }
+    }
+}
+
+fn is_deck_associated_with_note(
+    new_deck_id: Key,
+    existing_decks: &[MarginConnectionToDeck],
+) -> bool {
+    for existing in existing_decks {
+        if existing.id == new_deck_id {
+            return true;
+        }
+    }
+    false
+}
+\`\`\``;
+
+  tokens = tokenise(input);
+  nodes = parse(tokens);
+  expect(nodes.length).toEqual(1);
+  codeblock = nodes[0];
+  expect(codeblock.language).toEqual('rust');
+  expect(codeblock.code).toEqual(`impl From<MarginConnectionToDeck> for decks_interop::MarginConnection {
+    fn from(e: MarginConnectionToDeck) -> decks_interop::MarginConnection {
+        let resource = kind_to_resource(e.kind.as_ref()).unwrap();
+        decks_interop::MarginConnection {
+            note_id: e.note_id,
+            id: e.id,
+            name: e.name,
+            resource: resource.to_string(),
+        }
+    }
+}
+
+fn is_deck_associated_with_note(
+    new_deck_id: Key,
+    existing_decks: &[MarginConnectionToDeck],
+) -> bool {
+    for existing in existing_decks {
+        if existing.id == new_deck_id {
+            return true;
+        }
+    }
+    false
+}`);
+});

@@ -96,7 +96,6 @@ function tokenise(input) {
     if (isWhitespace(c))        { p = consumeCharacterSeq(s, isWhitespace, TokenType.WHITESPACE); }
     else if (isDigit(c))        { p = consumeCharacterSeq(s, isDigit,      TokenType.DIGITS); }
     else if (isNewline(c))      { p = consumeCharacterSeq(s, isNewline,    TokenType.NEWLINE); }
-    else if (isPeriod(c))       { p = consumeCharacter(s, '.', TokenType.PERIOD); }
     else if (isAsterisk(c))     { p = consumeCharacter(s, '*', TokenType.ASTERISK); }
     else if (isBacktick(c))     { p = consumeCharacter(s, '`', TokenType.BACKTICK); }
     else if (isBracketEnd(c))   { p = consumeCharacter(s, ']', TokenType.BRACKET_END); }
@@ -105,6 +104,7 @@ function tokenise(input) {
     else if (isDoubleQuote(c))  { p = consumeCharacter(s, '"', TokenType.DOUBLEQUOTE); }
     else if (isHash(c))         { p = consumeCharacter(s, '#', TokenType.HASH); }
     else if (isHyphen(c))       { p = consumeCharacter(s, '-', TokenType.HYPHEN); }
+    else if (isPeriod(c))       { p = consumeCharacter(s, '.', TokenType.PERIOD); }
     else if (isPipe(c))         { p = consumeCharacter(s, '|', TokenType.PIPE); }
     else if (isUnderscore(c))   { p = consumeCharacter(s, '_', TokenType.UNDERSCORE); }
     else                        { p = consumeText(s); }
@@ -123,18 +123,19 @@ function tokenise(input) {
 // PARSER BEGINS
 
 const NodeType = {
-  PARAGRAPH:      Symbol('PARAGRAPH'),
-  ORDERED_LIST:   Symbol('ORDERED_LIST'),
-  UNORDERED_LIST: Symbol('UNORDERED_LIST'),
-  LIST_ITEM:      Symbol('LIST_ITEM'),
-  TEXT:           Symbol('TEXT'),
+  CODEBLOCK:      Symbol('CODEBLOCK'),
+  HIGHLIGHT:      Symbol('HIGHLIGHT'),
   LINK:           Symbol('LINK'),
+  LIST_ITEM:      Symbol('LIST_ITEM'),
+  MARGINNOTE:     Symbol('MARGINNOTE'),
+  ORDERED_LIST:   Symbol('ORDERED_LIST'),
+  PARAGRAPH:      Symbol('PARAGRAPH'),
   QUOTATION:      Symbol('QUOTATION'),
   SIDENOTE:       Symbol('SIDENOTE'),
-  MARGINNOTE:     Symbol('MARGINNOTE'),
-  UNDERLINED:     Symbol('UNDERLINED'),
   STRONG:         Symbol('STRONG'),
-  HIGHLIGHT:      Symbol('HIGHLIGHT')
+  TEXT:           Symbol('TEXT'),
+  UNDERLINED:     Symbol('UNDERLINED'),
+  UNORDERED_LIST: Symbol('UNORDERED_LIST')
 };
 
 class Node {
@@ -168,6 +169,15 @@ class NodeList extends Node {
 
   size() {
     return this.children.length;
+  }
+}
+
+class NodeCodeblock extends Node {
+  constructor() {
+    super(NodeType.CODEBLOCK);
+
+    this.language = 'unspecified-language';
+    this.code = '';
   }
 }
 
@@ -301,6 +311,17 @@ function eatToNewline(tokens, container) {
   return { node: container };
 }
 
+function isCodeblock(tokens) {
+  let tokLength = tokens.length;
+  return tokLength > 5
+    && tokens[0].type === TokenType.BACKTICK
+    && tokens[1].type === TokenType.BACKTICK
+    && tokens[2].type === TokenType.BACKTICK
+    && tokens[tokLength - 1].type === TokenType.BACKTICK
+    && tokens[tokLength - 2].type === TokenType.BACKTICK
+    && tokens[tokLength - 3].type === TokenType.BACKTICK;
+}
+
 function isNumberedListItem(tokens) {
   return tokens.length > 2
     && tokens[0].type === TokenType.DIGITS
@@ -376,6 +397,51 @@ function eatMatchingPair(tokens, tokenType, nodeType) {
     }
 }
 
+function eatCodeblock(tokens) {
+  let tokLength = tokens.length;
+
+  if (tokLength < 6 || (tokens[1].type !== TokenType.BACKTICK || tokens[2].type !== TokenType.BACKTICK)) {
+    // expecting triple backticks to start and end the codeblock
+    return eatTextIncluding(tokens, TokenType.BACKTICK);
+  }
+
+  const container = new NodeCodeblock();
+
+  tokens.shift(); tokens.shift(); tokens.shift();  // opening backticks
+
+  // if theres a word on the same line as the opening backticks, treat it as the descriptor for the code language
+  while(tokens[0].type === TokenType.WHITESPACE) {
+    tokens.shift();
+  }
+  if (tokens[0].type !== TokenType.NEWLINE) {
+    // treat this as the language specifier
+    let language = eatText(tokens).node;
+    container.language = language.value;
+  }
+
+  let code = '';
+  while(tokens.length > 0 && tokens[0].type !== TokenType.BACKTICK) {
+    code += tokens[0].value;
+    tokens.shift();
+  }
+
+  container.code = code.trim();
+
+  if (tokens.length < 3) {
+    console.log('eatCodeblock error');
+    return { error: `eatCodeblock`};
+  }
+
+  if (tokens[0].type !== TokenType.BACKTICK || tokens[1].type !== TokenType.BACKTICK || tokens[2].type !== TokenType.BACKTICK) {
+    console.log('eatCodeblock error: expected closing triple of backticks');
+    return { error: 'eatCodeblock error: expected closing triple of backticks'};
+  }
+
+  tokens.shift(); tokens.shift(); tokens.shift();  // closing backticks
+
+  return { node: container };
+}
+
 function eatPipe(tokens) {
     if (tokens[1] && tokens[1].type === TokenType.PIPE) {
       // two pipes, treat this as text (e.g. could be part of code snippet)
@@ -413,14 +479,15 @@ function eatBracketEndAsText(tokens) {
 
 function eatItem(tokens) {
   switch(tokens[0].type) {
-  case TokenType.BRACKET_START: return eatBracketStart(tokens);
-  case TokenType.BRACKET_END:   return eatBracketEndAsText(tokens);
-  case TokenType.DOUBLEQUOTE:   return eatMatchingPair(tokens, TokenType.DOUBLEQUOTE, NodeType.QUOTATION);
-  case TokenType.UNDERSCORE:    return eatMatchingPair(tokens, TokenType.UNDERSCORE, NodeType.UNDERLINED);
   case TokenType.ASTERISK:      return eatMatchingPair(tokens, TokenType.ASTERISK, NodeType.STRONG);
+  case TokenType.BACKTICK:      return eatCodeblock(tokens);
+  case TokenType.BRACKET_END:   return eatBracketEndAsText(tokens);
+  case TokenType.BRACKET_START: return eatBracketStart(tokens);
   case TokenType.CARET:         return eatMatchingPair(tokens, TokenType.CARET, NodeType.HIGHLIGHT);
+  case TokenType.DOUBLEQUOTE:   return eatMatchingPair(tokens, TokenType.DOUBLEQUOTE, NodeType.QUOTATION);
   case TokenType.HASH:          return eatTextIncluding(tokens, TokenType.HASH);
   case TokenType.PIPE:          return eatPipe(tokens);
+  case TokenType.UNDERSCORE:    return eatMatchingPair(tokens, TokenType.UNDERSCORE, NodeType.UNDERLINED);
   case TokenType.WHITESPACE:    return eatWhitespace(tokens);
   default:                      return eatText(tokens);
   }
@@ -497,6 +564,8 @@ function parse(tokens) {
       container = eatOrderedList(tokens).node;
     } else if (isUnorderedListItem(tokens)) {
       container = eatUnorderedList(tokens).node;
+    } else if (isCodeblock(tokens)) {
+      container = eatCodeblock(tokens).node;
     } else {
       container = eatParagraph(tokens).node;
     }
