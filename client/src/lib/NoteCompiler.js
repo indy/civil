@@ -322,6 +322,14 @@ function isCodeblock(tokens) {
     && tokens[tokLength - 3].type === TokenType.BACKTICK;
 }
 
+function isCodeblockStart(tokens) {
+  let tokLength = tokens.length;
+  return tokLength > 3
+    && tokens[0].type === TokenType.BACKTICK
+    && tokens[1].type === TokenType.BACKTICK
+    && tokens[2].type === TokenType.BACKTICK;
+}
+
 function isNumberedListItem(tokens) {
   return tokens.length > 2
     && tokens[0].type === TokenType.DIGITS
@@ -731,7 +739,7 @@ function splitContent(content) {
       container = joinOrderedList(tokens);
     } else if (isUnorderedListItem(tokens)) {
       container = joinUnorderedList(tokens);
-    } else if (isCodeblock(tokens)) {
+    } else if (isCodeblockStart(tokens)) {
       container = joinCodeblock(tokens);
     } else {
       container = joinParagraph(tokens);

@@ -17,7 +17,7 @@ upload: prod
 
 CLIENT_FILES = $(call rwildcard,client/public,*) $(call rwildcard,client/src,*)
 SERVER_FILES = $(call rwildcard,server/src,*) $(wildcard server/errors/*.html) server/Cargo.toml
-SYSTEMD_FILES = $(wildcard systemd/*)
+SYSTEMD_FILES = $(wildcard misc/systemd/*)
 
 client-dist: dist/www/index.html
 server-dist: dist/civil_server
@@ -33,4 +33,4 @@ dist/civil_server: $(SERVER_FILES)
 	cp -r server/errors dist/.
 
 dist/systemd/isg-civil.sh: $(SYSTEMD_FILES)
-	cp -r systemd dist/.
+	cp -r misc/systemd dist/.
