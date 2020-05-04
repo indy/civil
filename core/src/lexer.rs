@@ -34,69 +34,40 @@ pub enum Token<'a> {
     Text(&'a str),
     Underscore,
     Whitespace(&'a str),
-    End,
 }
 
 pub fn tokenize(s: &str) -> Result<Vec<Token>> {
-    let mut lex = Lexer::new(s);
-    let mut res = Vec::new();
+    let mut input = s;
+    let mut tokens = Vec::new();
 
-    loop {
-        match lex.eat_token()? {
-            Token::End => break,
-            tok => res.push(tok),
-        }
-    }
-
-    Ok(res)
-}
-
-struct Lexer<'a> {
-    input: &'a str,
-}
-
-impl<'a> Lexer<'a> {
-    pub fn new(input: &str) -> Lexer {
-        Lexer { input }
-    }
-
-    pub fn eat_token(&mut self) -> Result<Token<'a>> {
-        if self.input.is_empty() {
-            self.input = &self.input[..0];
-            return Ok(Token::End);
-        }
-
-        if let Some(ch) = self.input.chars().nth(0) {
-            let res = match ch {
-                '*' => Ok((Token::Asterisk, 1)),
-                '`' => Ok((Token::BackTick, 1)),
-                '[' => Ok((Token::BracketStart, 1)),
-                ']' => Ok((Token::BracketEnd, 1)),
-                '^' => Ok((Token::Caret, 1)),
-                '"' => Ok((Token::DoubleQuote, 1)),
-                '#' => Ok((Token::Hash, 1)),
-                '-' => Ok((Token::Hyphen, 1)),
-                '\n' => Ok((Token::Newline, 1)),
-                '.' => Ok((Token::Period, 1)),
-                '|' => Ok((Token::Pipe, 1)),
-                '_' => Ok((Token::Underscore, 1)),
-                '0'..='9' => eat_digits(&self.input),
-                ch if ch.is_whitespace() => eat_whitespace(&self.input),
-                _ => eat_text(&self.input)
+    while !input.is_empty() {
+        if let Some(ch) = input.chars().nth(0) {
+            let (tok, size) = match ch {
+                '*' => (Token::Asterisk, 1),
+                '`' => (Token::BackTick, 1),
+                '[' => (Token::BracketStart, 1),
+                ']' => (Token::BracketEnd, 1),
+                '^' => (Token::Caret, 1),
+                '"' => (Token::DoubleQuote, 1),
+                '#' => (Token::Hash, 1),
+                '-' => (Token::Hyphen, 1),
+                '\n' => (Token::Newline, 1),
+                '.' => (Token::Period, 1),
+                '|' => (Token::Pipe, 1),
+                '_' => (Token::Underscore, 1),
+                '0'..='9' => eat_digits(&input)?,
+                ch if ch.is_whitespace() => eat_whitespace(&input)?,
+                _ => eat_text(&input)?
             };
 
-            let (tok, size) = match res {
-                Ok(v) => v,
-                Err(kind) => return Err(kind),
-            };
-
-            self.input = &self.input[size..];
-
-            Ok(tok)
+            input = &input[size..];
+            tokens.push(tok)
         } else {
-            Err(Error::Lexer)
+            return Err(Error::Lexer)
         }
     }
+
+    Ok(tokens)
 }
 
 fn eat_digits(input: &str) -> Result<(Token, usize)> {
