@@ -107,14 +107,13 @@ it('strongs', () => {
   expect(nodes[0].type).toEqual(NoteCompiler.NodeType.PARAGRAPH);
 
   const c = nodes[0].children;
-  expect(c.length).toEqual(4);
+  expect(c.length).toEqual(3);
   expect(c[0].value).toEqual('bob said ');
   expect(c[1].type).toEqual(NoteCompiler.NodeType.STRONG);
   expect(c[1].children.length).toEqual(1);
   expect(c[1].children[0].type).toEqual(NoteCompiler.NodeType.TEXT);
   expect(c[1].children[0].value).toEqual('shabba');
-  expect(c[2].value).toEqual(' ');
-  expect(c[3].value).toEqual('then he fell over');
+  expect(c[2].value).toEqual(' then he fell over');
 });
 
 it('highlights', () => {
@@ -128,14 +127,13 @@ it('highlights', () => {
   expect(nodes[0].type).toEqual(NoteCompiler.NodeType.PARAGRAPH);
 
   const c = nodes[0].children;
-  expect(c.length).toEqual(4);
+  expect(c.length).toEqual(3);
   expect(c[0].value).toEqual('bob said ');
   expect(c[1].type).toEqual(NoteCompiler.NodeType.HIGHLIGHT);
   expect(c[1].children.length).toEqual(1);
   expect(c[1].children[0].type).toEqual(NoteCompiler.NodeType.TEXT);
   expect(c[1].children[0].value).toEqual('shabba');
-  expect(c[2].value).toEqual(' ');
-  expect(c[3].value).toEqual('then he fell over');
+  expect(c[2].value).toEqual(' then he fell over');
 });
 
 it('underlines', () => {
@@ -149,14 +147,13 @@ it('underlines', () => {
   expect(nodes[0].type).toEqual(NoteCompiler.NodeType.PARAGRAPH);
 
   const c = nodes[0].children;
-  expect(c.length).toEqual(4);
+  expect(c.length).toEqual(3);
   expect(c[0].value).toEqual('bob said ');
   expect(c[1].type).toEqual(NoteCompiler.NodeType.UNDERLINED);
   expect(c[1].children.length).toEqual(1);
   expect(c[1].children[0].type).toEqual(NoteCompiler.NodeType.TEXT);
   expect(c[1].children[0].value).toEqual('shabba');
-  expect(c[2].value).toEqual(' ');
-  expect(c[3].value).toEqual('then he fell over');
+  expect(c[2].value).toEqual(' then he fell over');
 });
 
 it('emphasise quotes', () => {
@@ -170,14 +167,13 @@ it('emphasise quotes', () => {
   expect(nodes[0].type).toEqual(NoteCompiler.NodeType.PARAGRAPH);
 
   const c = nodes[0].children;
-  expect(c.length).toEqual(4);
+  expect(c.length).toEqual(3);
   expect(c[0].value).toEqual('bob said ');
   expect(c[1].type).toEqual(NoteCompiler.NodeType.QUOTATION);
   expect(c[1].children.length).toEqual(1);
   expect(c[1].children[0].type).toEqual(NoteCompiler.NodeType.TEXT);
   expect(c[1].children[0].value).toEqual('shabba');
-  expect(c[2].value).toEqual(' ');
-  expect(c[3].value).toEqual('then he fell over');
+  expect(c[2].value).toEqual(' then he fell over');
 });
 
 //  error on 'bob said | example.com ranks| cannot have space after the 1st pipe';
@@ -220,16 +216,14 @@ it('text and link in quotes', () => {
   expect(c[0].value).toEqual('charlie said ');
 
   expect(c[1].type).toEqual(NoteCompiler.NodeType.QUOTATION);
-  expect(c[1].children.length).toEqual(4);
+  expect(c[1].children.length).toEqual(3);
   expect(c[1].children[0].type).toEqual(NoteCompiler.NodeType.TEXT);
   expect(c[1].children[0].value).toEqual('what is ');
   expect(c[1].children[1].type).toEqual(NoteCompiler.NodeType.LINK);
   expect(c[1].children[1].value).toEqual('https://google.com');
   expect(c[1].children[1].displayText).toEqual('a search engine');
   expect(c[1].children[2].type).toEqual(NoteCompiler.NodeType.TEXT);
-  expect(c[1].children[2].value).toEqual(' ');
-  expect(c[1].children[3].type).toEqual(NoteCompiler.NodeType.TEXT);
-  expect(c[1].children[3].value).toEqual('?');
+  expect(c[1].children[2].value).toEqual(' ?');
 
   expect(c[2].type).toEqual(NoteCompiler.NodeType.TEXT);
   expect(c[2].value).toEqual('.');
@@ -421,15 +415,14 @@ it('hyphen after emphasis', () => {
   let p = nodes[0];
 
   expect(p.type).toEqual(NoteCompiler.NodeType.PARAGRAPH);
-  expect(p.children.length).toEqual(4);
+  expect(p.children.length).toEqual(3);
 
   expect(p.children[0].value).toEqual('Though Aristotle wrote many elegant treatises and dialogues - Cicero described his literary style as ');
   expect(p.children[1].type).toEqual(NoteCompiler.NodeType.QUOTATION);
   expect(p.children[1].children.length).toEqual(1);
   expect(p.children[1].children[0].type).toEqual(NoteCompiler.NodeType.TEXT);
   expect(p.children[1].children[0].value).toEqual('a river of gold');
-  expect(p.children[2].value).toEqual(' ');
-  expect(p.children[3].value).toEqual('- it is thought that only around a third of his original output has survived.');
+  expect(p.children[2].value).toEqual(' - it is thought that only around a third of his original output has survived.');
 
 });
 
@@ -442,7 +435,7 @@ it('bug: square brackets in normal text', () => {
 
   const nodes = parse(tokens);
   expect(nodes.length).toEqual(1);
-  expect(nodes[0].children.length).toEqual(6);
+  expect(nodes[0].children.length).toEqual(5);
 });
 
 
@@ -488,7 +481,7 @@ it('hash bug', () => {
   expect(nodes[0].type).toEqual(NoteCompiler.NodeType.PARAGRAPH);
 
   const c = nodes[0].children;
-  expect(c.length).toEqual(3);
+  expect(c.length).toEqual(2);
 
   expect(c[0].type).toEqual(NoteCompiler.NodeType.STRONG);
   {
@@ -496,8 +489,7 @@ it('hash bug', () => {
     expectText(c[0].children[0], "Difference ");
     expectText(c[0].children[1], "#3:");
   }
-  expectText(c[1], "  ");
-  expectText(c[2], "Unlike past societies");
+  expectText(c[1], "  Unlike past societies");
 });
 
 it('link bug', () => {

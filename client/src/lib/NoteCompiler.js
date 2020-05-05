@@ -496,7 +496,6 @@ function eatItem(tokens) {
   case TokenType.HASH:          return eatTextIncluding(tokens, TokenType.HASH);
   case TokenType.PIPE:          return eatPipe(tokens);
   case TokenType.UNDERSCORE:    return eatMatchingPair(tokens, TokenType.UNDERSCORE, NodeType.UNDERLINED);
-  case TokenType.WHITESPACE:    return eatWhitespace(tokens);
   default:                      return eatText(tokens);
   }
 }
