@@ -173,8 +173,6 @@ function buildTitle(title, onShowButtonsClicked) {
 };
 
 function constructNoteContent(noteId, text) {
-  NoteCompiler.setSidenoteCounter(noteId);
-
   const tokensRes = NoteCompiler.tokenise(text);
   if (tokensRes.tokens === undefined) {
     console.log(`Error tokenising: "${text}"`);

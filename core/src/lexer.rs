@@ -16,8 +16,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::{Error, Result};
+use strum_macros::EnumDiscriminants;
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, EnumDiscriminants)]
+#[strum_discriminants(name(TokenIdent))]
 pub enum Token<'a> {
     Asterisk,
     BackTick,
@@ -36,13 +38,37 @@ pub enum Token<'a> {
     Whitespace(&'a str),
 }
 
+pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
+    match token {
+        Token::Asterisk => "*",
+        Token::BackTick => "`",
+        Token::BracketEnd => "]",
+        Token::BracketStart => "[",
+        Token::Caret => "^",
+        Token::Digits(s) => s,
+        Token::DoubleQuote => "\"",
+        Token::Hash => "#",
+        Token::Hyphen => "-",
+        Token::Newline => "\n",
+        Token::Period => ".",
+        Token::Pipe => "|",
+        Token::Text(s) => s,
+        Token::Underscore => "_",
+        Token::Whitespace(s) => s,
+    }
+}
+
+pub(crate) fn is_match(token: &Token, token_ident: TokenIdent) -> bool {
+    Into::<TokenIdent>::into(token) == token_ident
+}
+
 pub fn tokenize(s: &str) -> Result<Vec<Token>> {
     let mut input = s;
     let mut tokens = Vec::new();
 
     while !input.is_empty() {
         if let Some(ch) = input.chars().nth(0) {
-            let (tok, size) = match ch {
+            let (token, size) = match ch {
                 '*' => (Token::Asterisk, 1),
                 '`' => (Token::BackTick, 1),
                 '[' => (Token::BracketStart, 1),
@@ -57,13 +83,13 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
                 '_' => (Token::Underscore, 1),
                 '0'..='9' => eat_digits(&input)?,
                 ch if ch.is_whitespace() => eat_whitespace(&input)?,
-                _ => eat_text(&input)?
+                _ => eat_text(&input)?,
             };
 
             input = &input[size..];
-            tokens.push(tok)
+            tokens.push(token)
         } else {
-            return Err(Error::Lexer)
+            return Err(Error::Lexer);
         }
     }
 
@@ -73,7 +99,7 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
 fn eat_digits(input: &str) -> Result<(Token, usize)> {
     for (ind, ch) in input.char_indices() {
         if !ch.is_digit(10) {
-            return Ok((Token::Digits(&input[..ind]), ind))
+            return Ok((Token::Digits(&input[..ind]), ind));
         }
     }
 
@@ -103,9 +129,7 @@ fn eat_text(input: &str) -> Result<(Token, usize)> {
 
 fn is_text(ch: char) -> bool {
     match ch {
-        '\n' | '[' | ']' | '_' | '*' | '`' | '^' | '"' | '|' | '#' => {
-            false
-        }
+        '\n' | '[' | ']' | '_' | '*' | '`' | '^' | '"' | '|' | '#' => false,
         _ => true,
     }
 }
@@ -126,11 +150,16 @@ mod tests {
 
         tok("5", &[Token::Digits("5")]);
 
-        tok("foo *bar* 456789", &[Token::Text("foo "),
-                                  Token::Asterisk,
-                                  Token::Text("bar"),
-                                  Token::Asterisk,
-                                  Token::Whitespace(" "),
-                                  Token::Digits("456789")]);
+        tok(
+            "foo *bar* 456789",
+            &[
+                Token::Text("foo "),
+                Token::Asterisk,
+                Token::Text("bar"),
+                Token::Asterisk,
+                Token::Whitespace(" "),
+                Token::Digits("456789"),
+            ],
+        );
     }
 }

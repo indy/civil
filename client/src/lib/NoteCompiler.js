@@ -1,7 +1,5 @@
 import React from 'react';
 
-let sidenoteCounter = 0;
-
 class Token {
   constructor(type, value = undefined) {
     this.type = type;
@@ -591,11 +589,9 @@ function compileChildren(node) {
   return node.children.flatMap((e, i) => { return compile(e, i);});
 }
 
-function compileSidenote(node) {
-  let c = sidenoteCounter;
+function compileSidenote(node, c) {
   let id = `sn-${c}`;
 
-  sidenoteCounter += 3;
   return (
     [
       <label key={ c } className="margin-toggle sidenote-number" htmlFor={ id }></label>,
@@ -605,11 +601,9 @@ function compileSidenote(node) {
   );
 }
 
-function compileMarginnote(node) {
-    let c = sidenoteCounter;
+function compileMarginnote(node, c) {
     let id = `mn-${c}`;
 
-    sidenoteCounter += 3;
     return (
       [
         <label key={ c } className="margin-toggle" htmlFor={ id }>&#8855;</label>,
@@ -632,8 +626,8 @@ function compile(node, i) {
   case NodeType.ORDERED_LIST:   return [<ol key={i}> { compileChildren(node) } </ol>];
   case NodeType.UNORDERED_LIST: return [<ul key={i}> { compileChildren(node) } </ul>];
   case NodeType.LIST_ITEM:      return [<li key={i}> { compileChildren(node) } </li>];
-  case NodeType.SIDENOTE:       return compileSidenote(node);
-  case NodeType.MARGINNOTE:     return compileMarginnote(node);
+  case NodeType.SIDENOTE:       return compileSidenote(node, i);
+  case NodeType.MARGINNOTE:     return compileMarginnote(node, i);
   default:                      return null;
   }
 }
@@ -757,9 +751,6 @@ const NoteCompiler = {
   },
   tokenise: content => {
     return tokenise(content);
-  },
-  setSidenoteCounter: value => {
-    sidenoteCounter = value;
   },
   parse: tokens => {
     const ast = parse(tokens);

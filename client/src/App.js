@@ -39,7 +39,8 @@ export default function App({ user }) {
     });
   }
 
-  let welcomes = ["Civilised Noteboxes",
+  let welcomes = ["Civil",
+                  "Civilised Noteboxes",
                   "Zivilisiert Zettelkästen",
                   "πολιτισμένο σημειωματάριο",
                   "nota civilis arca archa",
@@ -48,7 +49,8 @@ export default function App({ user }) {
                   "文明ノートボックス",
                   "cuadro civilizado",
                   "цивилизованный блокнот",
-                  "цивилизирана кутија за белешки"];
+                  "цивилизирана кутија за белешки",
+                  "Ersatz Verstand"]; // replacement mind where replacement is not as good
   let welcome = welcomes[Math.floor(Math.random() * welcomes.length)];
 
   // display a welcome message on the console

@@ -22,9 +22,16 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
-    // Compiler,
+    Compiler,
     Lexer,
-    // Parser,
+    Parser,
+    FmtError(std::fmt::Error),
+}
+
+impl From<std::fmt::Error> for Error {
+    fn from(e: std::fmt::Error) -> Error {
+        Error::FmtError(e)
+    }
 }
 
 // don't need to implement any of the trait's methods
@@ -33,9 +40,10 @@ impl error::Error for Error {}
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            //Error::Compiler => write!(f, "civil core: Compiler"),
+            Error::Compiler => write!(f, "civil core: Compiler"),
             Error::Lexer => write!(f, "civil core: Lexer"),
-            //Error::Parser => write!(f, "civil core: Parser"),
+            Error::Parser => write!(f, "civil core: Parser"),
+            Error::FmtError(_) => write!(f, "civil core: Fmt error"),
         }
     }
 }
