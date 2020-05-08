@@ -67,7 +67,7 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
     let mut tokens = Vec::new();
 
     while !input.is_empty() {
-        if let Some(ch) = input.chars().nth(0) {
+        if let Some(ch) = input.chars().next() {
             let (token, size) = match ch {
                 '*' => (Token::Asterisk, 1),
                 '`' => (Token::BackTick, 1),

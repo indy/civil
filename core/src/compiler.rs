@@ -16,11 +16,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
-use crate::parser::Node;
+use crate::parser::{CodeblockLanguage, Node};
 
 use std::fmt::Write;
 
-pub fn compile(nodes: &Vec<Node>) -> Result<String> {
+pub fn compile(nodes: &[Node]) -> Result<String> {
     let mut res: String = "".to_string();
 
     for (i, n) in nodes.iter().enumerate() {
@@ -34,8 +34,15 @@ fn compile_node(node: &Node, key: usize) -> Result<String> {
     let mut s = String::new();
 
     let res = match node {
-        Node::Codeblock(_lang, code) => {
-            write!(&mut s, "<pre key={}><code className={}>{}</code></pre>", key, "", code)?;
+        Node::Codeblock(lang, code) => {
+            let lang = if let Some(lang) = lang {
+                match lang {
+                    CodeblockLanguage::Rust => "rust",
+                }
+            } else {
+                "unspecified"
+            };
+            write!(&mut s, "<pre key={}><code className={}>{}</code></pre>", key, lang, code)?;
             s
         }
         Node::Highlight(ns) => {
@@ -84,10 +91,10 @@ fn compile_node(node: &Node, key: usize) -> Result<String> {
         }
     };
 
-    Ok(res.to_string())
+    Ok(res)
 }
 
-fn compile_sidenote(nodes: &Vec<Node>, key: usize) -> Result<String> {
+fn compile_sidenote(nodes: &[Node], key: usize) -> Result<String> {
     let mut id = String::new();
     write!(&mut id, "sn-{}", key)?;
 
@@ -117,7 +124,7 @@ fn compile_sidenote(nodes: &Vec<Node>, key: usize) -> Result<String> {
     Ok(label + &input + &span)
 }
 
-fn compile_marginnote(nodes: &Vec<Node>, key: usize) -> Result<String> {
+fn compile_marginnote(nodes: &[Node], key: usize) -> Result<String> {
     let mut id = String::new();
     write!(&mut id, "mn-{}", key)?;
 
@@ -156,8 +163,7 @@ mod tests {
     fn build(s: &'static str) -> String {
         let toks = tokenize(s).unwrap();
         let nodes = parse(toks).unwrap();
-        let c = compile(&nodes).unwrap();
-        c
+        compile(&nodes).unwrap()
     }
 
     #[test]

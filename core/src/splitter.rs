@@ -46,7 +46,7 @@ fn join_past_newline<'a>(tokens: &'a [Token<'a>], s: &str) -> ParserResult<'a, S
 fn join_ordered_list<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<'a, String> {
     let mut res = "".to_string();
 
-    while tokens.len() > 0 {
+    while !tokens.is_empty() {
         let t = tokens;
         let s = res;
 
@@ -72,7 +72,7 @@ fn join_ordered_list<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<'a, String
 fn join_unordered_list<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<'a, String> {
     let mut res = "".to_string();
 
-    while tokens.len() > 0 {
+    while !tokens.is_empty() {
         let t = tokens;
         let s = res;
 
@@ -99,7 +99,7 @@ fn join_unordered_list<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<'a, Stri
 fn join_codeblock<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<'a, String> {
     let mut res = "".to_string();
 
-    while tokens.len() > 0 {
+    while !tokens.is_empty() {
         let (t, s) = move_head_onto_string(tokens, &res)?;
         res = s;
         tokens = t;
@@ -117,7 +117,7 @@ pub fn split(markup: &str) -> Result<Vec<String>> {
     let mut res: Vec<String> = vec![];
 
     tokens = skip_leading_whitespace_and_newlines(tokens)?;
-    while tokens.len() > 0 {
+    while !tokens.is_empty() {
         let (rem, node) = if is_numbered_list_item(tokens) {
             join_ordered_list(tokens)?
         } else if is_unordered_list_item(tokens) {
