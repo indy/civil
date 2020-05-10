@@ -70,7 +70,7 @@ export default function Note(props) {
 
   function buildEditableContent() {
     return (
-      <div>
+      <div className="civil-form">
         <label htmlFor="separator">Separator</label>
         <input id="separator"
                type="checkbox"

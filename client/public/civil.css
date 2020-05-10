@@ -134,6 +134,7 @@ div.note > textarea {
 }
 
 .civil-form {
+  font-family: monospace;
   padding-top: 2em;
 }
 
