@@ -8,6 +8,21 @@
 .deckpoint-block label { display: inline-block; width: 12em; text-align: right; }
 .deckpoint-block input { width: 2em; }
 
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 25em;
+  text-align: left;
+}
+.sticky {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  right: 1rem
+}
+
 p {
   text-align: justify;
 }
