@@ -1,7 +1,7 @@
 select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
 from (select d.id, d.kind::TEXT as kind, d.name, ts_rank_cd(textsearch, query) AS rank
       from decks d left join notes n on n.deck_id = d.id,
-           phraseto_tsquery($2) query,
+           plainto_tsquery($2) query,
            to_tsvector(coalesce(n.content, '') || ' ' || coalesce(n.title, '')) textsearch
       where textsearch @@ query
             and d.user_id = $1
