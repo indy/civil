@@ -16,7 +16,7 @@ export default function Shell(props) {
   const commands = {
     goto: {
       description: 'Goto a listing page',
-      usage: 'goto [ideas | publications | people | places]',
+      usage: '!goto [ideas | publications | people | places]',
       fn: function (deck) {
         return `goto ${deck}`;
       },
@@ -27,19 +27,9 @@ export default function Shell(props) {
 
     recent: {
       description: 'Display recently added items',
-      usage: 'recent [ideas | publications | people | places]',
+      usage: '!recent [ideas | publications | people | places]',
       fn: async function (deck) {
         const res = await cmdRecent(deck);
-        return res;
-      }
-    },
-
-    search: {
-      description: 'Search',
-      usage: 'search <string>',
-      fn: async function () {
-        const query = `${Array.from(arguments).join(' ')}`;
-        const res = await cmdSearch(query);
         return res;
       }
     }
@@ -50,7 +40,8 @@ export default function Shell(props) {
   return (
     <div className="console-container">
       <Console
-        commands={commands}
+        searchCommand={ cmdSearch }
+        commands={ commands }
         promptLabel= { promptLabel }
         autoFocus
       />
@@ -72,9 +63,9 @@ async function cmdRecent(deck) {
   return asShellBlock(results);
 }
 
-async function cmdSearch(query) {
+async function cmdSearch(rawInput) {
   // do this client side for the moment, really should be done in server-side db
-  let validQuery = query.replace(/(\s+)/g, ' & ');
+  let validQuery = rawInput.replace(/(\s+)/g, ' & ');
 
   const url = `/api/cmd/search?q=${encodeURI(validQuery)}`;
   const searchResults = await Net.get(url);

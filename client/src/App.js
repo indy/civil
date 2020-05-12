@@ -68,6 +68,7 @@ export default function App({ user }) {
           <li>Keep Private</li>
           <li>Never Delete</li>
         </ol>
+        <p>type !help</p>
       </div>
     )
   });

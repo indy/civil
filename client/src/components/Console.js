@@ -65,12 +65,15 @@ export default function Console(props) {
   function showHelp() {
 
     let lines = [];
-
+    lines.push("type in the search term at the console, additional commands can be invoked by starting a line with an exclamation point");
+    lines.push("");
+    lines.push(`!help - Show this message`);
+    lines.push(`!clear - Clear the console`);
     for (const c in props.commands) {
       const cmdObj = props.commands[c];
       const usage = cmdObj.usage ? ` - ${cmdObj.usage}` : '';
 
-      lines.push(`${c} - ${cmdObj.description}${usage}`);
+      lines.push(`!${c} - ${cmdObj.description}${usage}`);
     }
 
     pushToStdout(asShellBlock(lines));
@@ -108,7 +111,6 @@ export default function Console(props) {
   }
 
   async function processCommand() {
-    const commandResult = { command: null, args: [], rawInput: null, result: null };
     const rawInput = consoleInput.current.value;
 
     if (!props.noAutomaticStdout) {
@@ -120,16 +122,27 @@ export default function Console(props) {
     }
 
     const input = rawInput.split(' ');
-    const command = input.splice(0, 1)[0]; // Removed portion is returned...
+    let commandGiven = false;
+    let command = input.splice(0, 1)[0]; // Removed portion is returned...
+    if (command[0] === '!') {
+      command = command.slice(1);
+      commandGiven = true;
+    }
+
     const args = input; // ...and the rest can be used
     const cmdObj = props.commands[command];
 
     if (rawInput) {
-      commandResult.rawInput = rawInput;
-      commandResult.command = command;
-      commandResult.args = args;
-
-      if (command === 'help') {
+      if (commandGiven === false) {
+        // use rawInput as input for a search
+        let res;
+        try {
+          res = await props.searchCommand(rawInput);
+        } catch(e) {
+          res = e.toString();
+        }
+        pushToStdout(res);
+      } else if (command === 'help') {
         showHelp();
       } else if (command === 'clear') {
         clearStdout();
@@ -141,7 +154,6 @@ export default function Console(props) {
                        `Command '${command}' not found!`);
         }
         else {
-
           let res;
           try {
             res = await cmdObj.fn(...args);
@@ -150,7 +162,6 @@ export default function Console(props) {
           }
 
           pushToStdout(res);
-          commandResult.result = res;
         }
       }
     }
@@ -158,9 +169,6 @@ export default function Console(props) {
     clearInput();
     if (!props.noAutoScroll) {
       scrollToBottom();
-    }
-    if (props.commandCallback) {
-      props.commandCallback(commandResult);
     }
     if (cmdObj && cmdObj.afterEffectFn) {
       cmdObj.afterEffectFn(...args);
