@@ -263,7 +263,7 @@ const styles = {
     borderRadius: '5px',
     overflow: 'auto',
     cursor: 'text',
-    background: 'rgb(237, 101, 1, 0.06)',
+    background: 'rgb(255, 255, 248, 0.9)',
     backgroundSize: 'cover'
   },
   content: {

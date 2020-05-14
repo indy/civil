@@ -5,6 +5,12 @@
              font-weight: normal;
              font-style: normal; }
 
+@font-face { font-family: "Bitter";
+             src: url("fonts/Bitter/Bitter-Regular.ttf") format("truetype");
+             font-weight: normal;
+             font-style: normal; }
+
+
 .deckpoint-block label { display: inline-block; width: 12em; text-align: right; }
 .deckpoint-block input { width: 2em; }
 
@@ -13,14 +19,32 @@
   top: 0;
   left: 0;
   bottom: 0;
-  width: 25em;
   text-align: left;
 }
-.sticky {
+
+.sticky-bl {
   position: absolute;
   left: 1rem;
   bottom: 1rem;
   right: 1rem
+}
+
+.sticky-tl {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  right: 1rem
+}
+
+.console {
+  height: 92vh;
+}
+.console-visible {
+  z-index: 100;
+}
+.console-invisible {
+  display: none;
+  z-index: -1;
 }
 
 p {
@@ -49,10 +73,6 @@ label.margin-toggle {
 }
 
 .invisible { display: none; }
-
-.console-container {
-  height: 90vh;
-}
 
 .underlined {
   text-decoration: underline;

@@ -19,7 +19,6 @@ export default function Ideas() {
   useEffect(() => {
     async function fetcher() {
       const ideas = await Net.get('/api/ideas/listings');
-      console.log(ideas);
       dispatch({
         type: 'setIdeas',
         ideas
@@ -56,7 +55,7 @@ function buildListSection(show, setShow, label, list, pkey) {
   if(show) {
     return [
       <p key={ pkey } className="subtitle" onClick={ toggleShow }>
-        <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-minus" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-minus" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
           <path stroke="none" d="M0 0h24v24H0z"/>
           <line x1="5" y1="15" x2="19" y2="15" />
         </svg>
@@ -66,7 +65,7 @@ function buildListSection(show, setShow, label, list, pkey) {
     ];
   } else {
     return <p className="subtitle" onClick={ toggleShow }>
-             <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-plus" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+             <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-plus" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
                <path stroke="none" d="M0 0h24v24H0z"/>
                <line x1="12" y1="8" x2="12" y2="22" />
                <line x1="5" y1="15" x2="19" y2="15" />
