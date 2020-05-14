@@ -26,31 +26,76 @@ import React, { useState, useEffect } from 'react';
 import html from 'react-inner-html';
 import { useStateValue } from '../lib/state';
 import { asShellBlock } from '../lib/reactUtils';
+import { Link, useHistory } from 'react-router-dom';
+import { ensureAC } from '../lib/utils';
+import Net from '../lib/Net';
+
 
 export default function Console(props) {
+  let history = useHistory();
+
   const [state, dispatch] = useStateValue();
 
   const [consoleRoot] = useState(React.createRef());
   const [consoleInput] = useState(React.createRef());
+  const [showConsole, setShowConsole] = useState(false);
+
+  ensureAC(state, dispatch);
+
+  const commands = {
+    goto: {
+      description: 'Goto a listing page',
+      usage: '!goto [ideas | publications | people | places]',
+      fn: function (deck) {
+        return `goto ${deck}`;
+      },
+      afterEffectFn: function(deck) {
+        history.push(`/${deck}`);
+      }
+    },
+
+    recent: {
+      description: 'Display recently added items',
+      usage: '!recent [ideas | publications | people | places]',
+      fn: async function (deck) {
+        const res = await cmdRecent(deck);
+        return res;
+      }
+    }
+  };
+
+  let promptLabel = buildPrompt(state.user);
+
+  function onIconClicked(event) {
+    setShowConsole(!showConsole);
+    if (!showConsole) {
+      console.log('focusConsole called');
+      focusConsole();
+    }
+  }
+
+  let consoleClasses = showConsole ? 'console console-visible' : 'console console-invisible';
+  let autoFocus = true;
 
   useEffect(() => {
-    if (props.promptLabel) {
+    if (promptLabel !== state.console.promptLabel) {
       dispatch({
         type: 'setPromptLabel',
-        promptLabel: props.promptLabel
+        promptLabel
       });
     }
 
-    if (props.autoFocus) {
+    if (autoFocus) {
       focusConsole();
     }
     scrollToBottom();
-  }, []);
+  });
 
   function focusConsole() {
     // Only focus the console if text isn't being copied
     const isTextSelected = window.getSelection().type === 'Range';
     if (!isTextSelected) {
+      // console.log(consoleInput.current);
       consoleInput.current.focus();
     }
   }
@@ -69,8 +114,8 @@ export default function Console(props) {
     lines.push("");
     lines.push(`!help - Show this message`);
     lines.push(`!clear - Clear the console`);
-    for (const c in props.commands) {
-      const cmdObj = props.commands[c];
+    for (const c in commands) {
+      const cmdObj = commands[c];
       const usage = cmdObj.usage ? ` - ${cmdObj.usage}` : '';
 
       lines.push(`!${c} - ${cmdObj.description}${usage}`);
@@ -130,14 +175,14 @@ export default function Console(props) {
     }
 
     const args = input; // ...and the rest can be used
-    const cmdObj = props.commands[command];
+    const cmdObj = commands[command];
 
     if (rawInput) {
       if (commandGiven === false) {
         // use rawInput as input for a search
         let res;
         try {
-          res = await props.searchCommand(rawInput);
+          res = await cmdSearch(rawInput);
         } catch(e) {
           res = e.toString();
         }
@@ -204,49 +249,60 @@ export default function Console(props) {
   }
 
   return (
-    <div
-      ref={consoleRoot}
-      name={'react-console-emulator'}
-      className={props.className}
-      style={styles.container}
-      onClick={focusConsole}
-    >
-      {/* Content */}
+    <div className="sidebar">
       <div
-        name={'react-console-emulator__content'}
-        className={props.contentClassName}
-        style={styles.content}
+        ref={consoleRoot}
+        name={'react-console-emulator'}
+        className={ consoleClasses }
+        style={styles.container}
+        onClick={focusConsole}
       >
-        {/* Stdout */}
-        {getStdout()}
-        {/* Input area */}
+        {/* Content */}
         <div
-          name={'react-console-emulator__inputArea'}
-          className={props.inputAreaClassName}
-          style={styles.inputArea}
+          name={'react-console-emulator__content'}
+          className={props.contentClassName}
+          style={styles.content}
         >
-          {/* Prompt label */}
-          <span
-            name={'react-console-emulator__promptLabel'}
-            className={state.console.promptLabelClassName}
-            style={styles.promptLabel}
+          {/* Stdout */}
+          {getStdout()}
+          {/* Input area */}
+          <div
+            name={'react-console-emulator__inputArea'}
+            className={props.inputAreaClassName}
+            style={styles.inputArea}
           >
-            {state.console.promptLabel || '$'}
-          </span>
-          {/* Input */}
-          <input
-            ref={consoleInput}
-            name={'react-console-emulator__input'}
-            className={props.inputClassName}
-            style={styles.input}
-            onKeyDown={handleInput}
-            type={'text'}
-            autoComplete={'off'}
-            disabled={
-              props.disableOnProcess && state.console.processing
-            }
-          />
+            {/* Prompt label */}
+            <span
+              name={'react-console-emulator__promptLabel'}
+              className={state.console.promptLabelClassName}
+              style={styles.promptLabel}
+            >
+              {state.console.promptLabel || '$'}
+            </span>
+            {/* Input */}
+            <input
+              ref={consoleInput}
+              name={'react-console-emulator__input'}
+              className={props.inputClassName}
+              style={styles.input}
+              onKeyDown={handleInput}
+              type={'text'}
+              autoComplete={'off'}
+              disabled={
+                props.disableOnProcess && state.console.processing
+              }
+            />
+          </div>
         </div>
+      </div>
+      <div className="sticky-bl">
+        <svg onClick={ onIconClicked } xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="#666" fill="none" strokeLinecap="round" strokeLinejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z"/>
+          <circle cx="12" cy="12" r="9" />
+          <line x1="9" y1="10" x2="9.01" y2="10" />
+          <line x1="15" y1="10" x2="15.01" y2="10" />
+          <path d="M9.5 15a3.5 3.5 0 0 0 5 0" />
+        </svg>
       </div>
     </div>
   );
@@ -362,4 +418,49 @@ function ConsoleMessage({ content, dangerMode }) {
          ? <div style={message} {...html(content)}/>
          : <div style={message}>{content}</div>;
 
+}
+
+async function cmdRecent(deck) {
+  const d = deck.toLowerCase();
+  const whiteList = ['publications', 'people', 'events', 'ideas'];
+  if (!whiteList.includes(d)) {
+    return (<div className="shell-block">unknown deck specifier: { deck }</div>);
+  }
+
+  const url = `/api/cmd/recent?resource=${deck}`;
+  const recentResults = await Net.get(url);
+  const results = recentResults.results.map(buildRecentResultEntry);
+
+  return asShellBlock(results);
+}
+
+async function cmdSearch(rawInput) {
+  const url = `/api/cmd/search?q=${encodeURI(rawInput)}`;
+  const searchResults = await Net.get(url);
+  const results = searchResults.results.map(buildSearchResultEntry);
+
+  return asShellBlock(results);
+}
+
+function buildRecentResultEntry(entry) {
+  return (<Link to={ `/${entry.resource}/${entry.id}` }>{ entry.name }</Link>);
+}
+
+function buildSearchResultEntry(entry) {
+  return (<Link to={ `/${entry.resource}/${entry.id}` }>{ entry.name }</Link>);
+}
+
+function buildPrompt(user) {
+  let prompt = '';
+
+  if (user && user.username) {
+    prompt += `${user.username}`;
+    if (user.admin) {
+      let admin = user.admin;
+      prompt += `@${admin.db_name}`;
+    }
+  }
+  prompt += '->';
+
+  return prompt;
 }

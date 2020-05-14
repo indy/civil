@@ -10,7 +10,7 @@ import { initialState, reducer } from './AppState';
 import { useStateValue, StateProvider } from './lib/state';
 
 import Search from './components/Search';
-import Shell from './components/Shell';
+import Console from './components/Console';
 import PrivateRoute from './components/PrivateRoute';
 
 import Login from './components/Login';
@@ -175,7 +175,7 @@ function AppUI(props) {
           </PrivateRoute>
         </Switch>
       </div>
-      <Shell/>
+      <Console/>
     </Router>
   );
 }
