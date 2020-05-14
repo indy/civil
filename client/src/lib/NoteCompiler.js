@@ -251,12 +251,12 @@ function eatTextIncluding(tokens, tokenType) {
   return boxNode(NodeType.TEXT, value);
 }
 
-function eatWhitespace(tokens) {
-  let token = tokens[0];
-  let value = token.value;
-  tokens.shift();
-  return boxNode(NodeType.TEXT, value);
-}
+// function eatWhitespace(tokens) {
+//   let token = tokens[0];
+//   let value = token.value;
+//   tokens.shift();
+//   return boxNode(NodeType.TEXT, value);
+// }
 
 function eatListofTypeUntil(tokens, listType, tokenType) {
   const container = new NodeList(listType);
