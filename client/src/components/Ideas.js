@@ -5,6 +5,8 @@ import { useStateValue } from '../lib/state';
 import {ensureAC} from '../lib/utils';
 import IdeaForm from './IdeaForm';
 
+let gKeyCounter = 0;
+
 export default function Ideas() {
   const [state, dispatch] = useStateValue();
   let [showAddIdeaForm, setShowAddIdeaForm] = useState(false);
@@ -34,34 +36,40 @@ export default function Ideas() {
     setShowAddIdeaForm(!showAddIdeaForm);
   };
 
-  // https://github.com/leungwensen/svg-icon
+  // buildListSection might return an array, each element therefore requires a unique key value
+  gKeyCounter = 0;
+
   return (
     <div>
       <h1 onClick={ toggleShowAdd }>{ showAddIdeaForm ? "Add Idea" : "Ideas" }</h1>
       { showAddIdeaForm && <IdeaForm/> }
-      { buildListSection(showRecent, setShowRecent, "Recent", state.ideas.recent, 1) }
-      { buildListSection(showAll, setShowAll, "All", state.ideas.all, 7) }
-      { buildListSection(showSingleRef, setShowSingleRef, "Single References", state.ideas.single_references, 3) }
-      { buildListSection(showZeroRef, setShowZeroRef, "Zero References", state.ideas.zero_references, 5) }
+      { buildListSection(showRecent, setShowRecent, "Recent", state.ideas.recent) }
+      { buildListSection(showAll, setShowAll, "All", state.ideas.all) }
+      { buildListSection(showSingleRef, setShowSingleRef, "Single References", state.ideas.single_references) }
+      { buildListSection(showZeroRef, setShowZeroRef, "Zero References", state.ideas.zero_references) }
     </div>
   );
 }
 
-function buildListSection(show, setShow, label, list, pkey) {
+function buildListSection(show, setShow, label, list) {
   function toggleShow() {
     setShow(!show);
   }
 
+  // svg icons are from https://github.com/tabler/tabler-icons
   if(show) {
     return [
-      <p key={ pkey } className="subtitle" onClick={ toggleShow }>
+      <p key={ gKeyCounter++ } className="subtitle" onClick={ toggleShow }>
         <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-minus" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
           <path stroke="none" d="M0 0h24v24H0z"/>
           <line x1="5" y1="15" x2="19" y2="15" />
         </svg>
         { label }
       </p>,
-      buildListing(list, pkey + 1)
+      <ul key = { gKeyCounter++ } >
+        { buildListing(list) }
+      </ul>
+
     ];
   } else {
     return <p className="subtitle" onClick={ toggleShow }>
@@ -75,12 +83,8 @@ function buildListSection(show, setShow, label, list, pkey) {
   }
 }
 
-function buildListing(list, ulKey) {
-  let listing = list ? list.map(
+function buildListing(list) {
+  return list ? list.map(
     idea => <ListingLink id={ idea.id } key={ idea.id } name={ idea.title } resource='ideas'/>
   ) : [];
-
-  return (<ul key={ ulKey }>
-            { listing }
-          </ul>);
 }

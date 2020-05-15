@@ -617,7 +617,7 @@ function compile(node, i) {
   switch(node.type) {
   case NodeType.TEXT:           return node.value;
   case NodeType.CODEBLOCK:      return [<pre><code className={ node.language }>{ node.code }</code></pre>];
-  case NodeType.LINK:           return [<a key={i} href={ node.value }>{ node.displayText }</a>];
+  case NodeType.LINK:           return [<a className="note-inline-link" key={i} href={ node.value }>{ node.displayText }</a>];
   case NodeType.STRONG:         return [<strong key={i}> { compileChildren(node) } </strong>];
   case NodeType.HIGHLIGHT:      return [<mark key={i}> { compileChildren(node) } </mark>];
   case NodeType.UNDERLINED:     return [<span className="underlined" key={i}> { compileChildren(node) } </span>];

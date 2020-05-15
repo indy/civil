@@ -10,16 +10,18 @@
              font-weight: normal;
              font-style: normal; }
 
+.pointform-block label { }
+.pointform-block input { width: 2em; margin-top: 0.3em; }
+.pointform-space-top { margin-top: 1em; }
+.pointform-space-bottom { margin-bottom: 1em; }
 
-.deckpoint-block label { display: inline-block; width: 12em; text-align: right; }
-.deckpoint-block input { width: 2em; }
+a:link {
+  text-decoration: none;
+}
 
-.sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  text-align: left;
+a:link.note-inline-link {
+  color: var(--hyperlink);
+  text-decoration: underline;
 }
 
 .sticky-bl {
@@ -36,15 +38,74 @@
   right: 1rem
 }
 
+.z-high {
+  z-index: 100;
+}
+
+.z-low {
+  z-index: -1;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  text-align: left;
+
+  /*
+     this is a hack that ends up looking quite nice
+     the real reason for this animation is to hide the console-slide-out
+     animation that a console-invisible class plays
+ */
+  animation-duration: 0.5s;
+  animation-name: sidebar-show;
+}
+
+@keyframes sidebar-show {
+  from {
+    margin-left: -100%;
+  }
+
+  to {
+    margin-left: 0%;
+  }
+}
+
 .console {
   height: 92vh;
 }
+
 .console-visible {
-  z-index: 100;
+  animation-duration: 0.2s;
+  animation-name: console-slide-in;
+  margin-left: 0%;
 }
+
 .console-invisible {
-  display: none;
-  z-index: -1;
+  animation-duration: 0.2s;
+  animation-name: console-slide-out;
+  margin-left: -100%;
+}
+
+@keyframes console-slide-in {
+  from {
+    margin-left: -100%;
+  }
+
+  to {
+    margin-left: 0%;
+  }
+}
+
+@keyframes console-slide-out {
+  from {
+    margin-left: 0%;
+  }
+
+  to {
+    margin-left: -100%;
+  }
 }
 
 p {
@@ -61,7 +122,7 @@ p {
   text-align: left;
 }
 label.margin-toggle {
-  color: var(--scribble);
+  color: var(--hyperlink);
 }
 
 .shell-block {
@@ -100,9 +161,10 @@ section > form { width: var(--block-width); }
   float: left;
   margin-left: -25%;
   width: 25%;
-  font-size: 1.1rem;
   color: var(--fg1);
   text-align: right;
+
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
 }
 
 @media (max-width: 1200px) {
@@ -131,6 +193,7 @@ section > form { width: var(--block-width); }
   border-bottom-style: solid;
   border-color: var(--divider);
 
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
 }
 
 mark {
@@ -206,6 +269,12 @@ div.note > textarea {
 input:required {
   box-shadow: none;
 }
+
+.deckpoint-block label {}
+.deckpoint-block input { width: 2em; margin-top: 0.3em; margin-left: 2em;}
+
+/* .deckpoint-block label { display: inline-block; width: 12em; text-align: right; } */
+/* .deckpoint-block input { width: 2em; } */
 
 .deckpoint {
   color: var(--fg1);

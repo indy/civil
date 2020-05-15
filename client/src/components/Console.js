@@ -74,6 +74,7 @@ export default function Console(props) {
     }
   }
 
+  let sidebarClasses = showConsole ? "sidebar z-high" : "sidebar z-low";
   let consoleClasses = showConsole ? 'console console-visible' : 'console console-invisible';
   let autoFocus = true;
 
@@ -249,7 +250,7 @@ export default function Console(props) {
   }
 
   return (
-    <div className="sidebar">
+    <div className={ sidebarClasses }>
       <div
         ref={consoleRoot}
         name={'react-console-emulator'}
@@ -295,20 +296,41 @@ export default function Console(props) {
           </div>
         </div>
       </div>
-      <div className="sticky-bl">
-        <svg onClick={ onIconClicked } xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="#666" fill="none" strokeLinecap="round" strokeLinejoin="round">
-          <path stroke="none" d="M0 0h24v24H0z"/>
-          <circle cx="12" cy="12" r="9" />
-          <line x1="9" y1="10" x2="9.01" y2="10" />
-          <line x1="15" y1="10" x2="15.01" y2="10" />
-          <path d="M9.5 15a3.5 3.5 0 0 0 5 0" />
-        </svg>
-      </div>
+      { showConsole ? retractIcon(onIconClicked) : expandIcon(onIconClicked) }
     </div>
   );
 
 }
 
+// svg icons are from https://github.com/tabler/tabler-icons
+function expandIcon(onIconClicked) {
+  return (
+    <div className="sticky-bl">
+      <svg onClick={ onIconClicked } xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="#666" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z"/>
+        <line x1="20" y1="12" x2="10" y2="12" />
+        <line x1="20" y1="12" x2="16" y2="16" />
+        <line x1="20" y1="12" x2="16" y2="8" />
+        <line x1="4" y1="4" x2="4" y2="20" />
+      </svg>
+    </div>
+  )
+}
+
+// svg icons are from https://github.com/tabler/tabler-icons
+function retractIcon(onIconClicked) {
+  return (
+    <div className="sticky-bl">
+      <svg onClick={ onIconClicked } xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="#666" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z"/>
+        <line x1="4" y1="12" x2="14" y2="12" />
+        <line x1="4" y1="12" x2="8" y2="16" />
+        <line x1="4" y1="12" x2="8" y2="8" />
+        <line x1="20" y1="4" x2="20" y2="20" />
+      </svg>
+    </div>
+  );
+}
 
 const styles = {
   container: {

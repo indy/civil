@@ -50,7 +50,7 @@ fn compile_node(node: &Node, key: usize) -> Result<String> {
             s
         }
         Node::Link(url, ns) => {
-            write!(&mut s, "<a key={} href=\"{}\">{}</a>", key, url, compile(ns)?)?;
+            write!(&mut s, "<a key={} className={} href=\"{}\">{}</a>", key, "note-inline-link", url, compile(ns)?)?;
             s
         }
         Node::ListItem(ns) => {

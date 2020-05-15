@@ -227,22 +227,22 @@ export default function PointForm({ point, onSubmit, submitMessage, readOnlyTitl
                autoComplete="off"
                size="11"
                onChange={ handleChangeEvent } />
-        <br/>
-        <p></p>
-        <label htmlFor="is-approx">Is Approx:</label>
-        <input id="is-approx"
-               type="checkbox"
-               name="is_approx"
-               checked={ state.is_approx }
-               onChange={ handleChangeEvent } />
-        <label htmlFor="round-to-year">Round to Year:</label>
-        <input id="round-to-year"
-               type="checkbox"
-               name="round_to_year"
-               checked={ state.round_to_year }
-               onChange={ handleChangeEvent } />
-        <br/>
-        <p></p>
+        <div className="pointform-block pointform-space-top">
+          <input id="round-to-year"
+                 type="checkbox"
+                 name="round_to_year"
+                 checked={ state.round_to_year }
+                 onChange={ handleChangeEvent } />
+          <label htmlFor="round-to-year">Round to Year</label>
+        </div>
+        <div className="pointform-block pointform-space-bottom">
+          <input id="is-approx"
+                 type="checkbox"
+                 name="is_approx"
+                 checked={ state.is_approx }
+                 onChange={ handleChangeEvent } />
+          <label htmlFor="is-approx">Is Approx</label>
+        </div>
         <label htmlFor="date_textual">Displayed Date:</label>
         <input id="date_textual"
                type="text"
