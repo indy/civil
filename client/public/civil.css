@@ -226,11 +226,6 @@ div.note > textarea {
   padding: 0;
 }
 
-.people-list > li{
-  padding-right: 0.5em;
-  display: inline-block;
-}
-
 .civil-form {
   font-family: monospace;
   padding-top: 2em;
@@ -283,4 +278,43 @@ input:required {
 .deckpoint a {
   /* same as the background colour, this is how to hide the underline effect used in tufte.css */
   background: var(--bg);
+}
+
+.ideas-list {
+  padding-left: 1.5em;
+}
+
+.ideas-list > li {
+  list-style-type: none;
+}
+
+.publications-list {
+  padding-left: 1em;
+}
+
+.publications-list > li {
+  list-style-type: none;
+}
+
+.people-list {
+  padding-left: 1em;
+}
+
+.people-list > li{
+  padding-right: 0.5em;
+  display: inline-block;
+}
+
+.events-list {
+  padding-left: 1em;
+}
+
+.events-list > li {
+  list-style-type: none;
+}
+
+.event-date {
+  display: inline-block;
+  width: 4em;
+  text-align: right;
 }

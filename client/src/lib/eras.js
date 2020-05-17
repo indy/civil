@@ -43,7 +43,7 @@ export function addChronologicalSortYear(p) {
   return p;
 }
 
-function yearFrom(dateString) {
+export function yearFrom(dateString) {
   let res = 0;
   if (dateString[0] === '-') {
     res = parseInt(dateString.slice(0, 5), 10);

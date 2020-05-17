@@ -36,7 +36,7 @@ export default function Publications() {
     <div>
       <h1 onClick={ toggleShowAdd }>{ showAddPublicationForm ? "Add Publication" : "Publications" }</h1>
       { showAddPublicationForm && <PublicationForm/> }
-      <ul>
+      <ul className="publications-list">
         { publicationsList }
       </ul>
     </div>

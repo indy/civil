@@ -66,7 +66,7 @@ function buildListSection(show, setShow, label, list) {
         </svg>
         { label }
       </p>,
-      <ul key = { gKeyCounter++ } >
+      <ul className="ideas-list" key = { gKeyCounter++ } >
         { buildListing(list) }
       </ul>
 
