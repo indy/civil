@@ -285,7 +285,9 @@ input:required {
 }
 
 .ideas-list > li {
-  list-style-type: none;
+  padding-right: 0.5em;
+  display: inline-block;
+
 }
 
 .publications-list {

@@ -84,7 +84,14 @@ function buildListSection(show, setShow, label, list) {
 }
 
 function buildListing(list) {
-  return list ? list.map(
-    idea => <ListingLink id={ idea.id } key={ idea.id } name={ idea.title } resource='ideas'/>
-  ) : [];
+  if (!list) {
+    return [];
+  }
+  return list.map(
+    (idea, i) => <ListingLink
+                   id={ idea.id }
+                   key={ idea.id }
+                   name={ i === (list.length - 1) ? idea.title : idea.title + ',' }
+                   resource='ideas'/>
+  );
 }
