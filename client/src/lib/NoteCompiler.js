@@ -13,6 +13,7 @@ const TokenType = {
   BRACKET_END:   Symbol('BRACKET_END'),
   BRACKET_START: Symbol('BRACKET_START'),
   CARET:         Symbol('CARET'),
+  TILDE:         Symbol('TILDE'),
   DIGITS:        Symbol('DIGITS'),
   DOUBLEQUOTE:   Symbol('DOUBLEQUOTE'),
   HASH:          Symbol('HASH'),
@@ -38,6 +39,7 @@ const isBacktick     = c => c === '`';
 const isBracketEnd   = c => c === ']';
 const isBracketStart = c => c === '[';
 const isCaret        = c => c === '^';
+const isTilde        = c => c === '~';
 const isDigit        = c => sDigitSet.has(c);
 const isDoubleQuote  = c => c === '"';
 const isHash         = c => c === '#';
@@ -58,6 +60,7 @@ function consumeText(s) {
         || isAsterisk(s[i])
         || isBacktick(s[i])
         || isCaret(s[i])
+        || isTilde(s[i])
         || isDoubleQuote(s[i])
         || isPipe(s[i])
         || isHash(s[i])) {
@@ -99,6 +102,7 @@ function tokenise(input) {
     else if (isBracketEnd(c))   { p = consumeCharacter(s, ']', TokenType.BRACKET_END); }
     else if (isBracketStart(c)) { p = consumeCharacter(s, '[', TokenType.BRACKET_START); }
     else if (isCaret(c))        { p = consumeCharacter(s, '^', TokenType.CARET); }
+    else if (isTilde(c))        { p = consumeCharacter(s, '~', TokenType.TILDE); }
     else if (isDoubleQuote(c))  { p = consumeCharacter(s, '"', TokenType.DOUBLEQUOTE); }
     else if (isHash(c))         { p = consumeCharacter(s, '#', TokenType.HASH); }
     else if (isHyphen(c))       { p = consumeCharacter(s, '-', TokenType.HYPHEN); }
@@ -123,6 +127,7 @@ function tokenise(input) {
 const NodeType = {
   CODEBLOCK:      Symbol('CODEBLOCK'),
   HIGHLIGHT:      Symbol('HIGHLIGHT'),
+  SCRIBBLED_OUT:  Symbol('SCRIBBLED_OUT'),
   LINK:           Symbol('LINK'),
   LIST_ITEM:      Symbol('LIST_ITEM'),
   MARGINNOTE:     Symbol('MARGINNOTE'),
@@ -490,6 +495,7 @@ function eatItem(tokens) {
   case TokenType.BRACKET_END:   return eatBracketEndAsText(tokens);
   case TokenType.BRACKET_START: return eatBracketStart(tokens);
   case TokenType.CARET:         return eatMatchingPair(tokens, TokenType.CARET, NodeType.HIGHLIGHT);
+  case TokenType.TILDE:         return eatMatchingPair(tokens, TokenType.TILDE, NodeType.SCRIBBLED_OUT);
   case TokenType.DOUBLEQUOTE:   return eatMatchingPair(tokens, TokenType.DOUBLEQUOTE, NodeType.QUOTATION);
   case TokenType.HASH:          return eatTextIncluding(tokens, TokenType.HASH);
   case TokenType.PIPE:          return eatPipe(tokens);
@@ -618,14 +624,15 @@ function compile(node, i) {
   case NodeType.TEXT:           return node.value;
   case NodeType.CODEBLOCK:      return [<pre><code className={ node.language }>{ node.code }</code></pre>];
   case NodeType.LINK:           return [<a className="note-inline-link" key={i} href={ node.value }>{ node.displayText }</a>];
-  case NodeType.STRONG:         return [<strong key={i}> { compileChildren(node) } </strong>];
-  case NodeType.HIGHLIGHT:      return [<mark key={i}> { compileChildren(node) } </mark>];
-  case NodeType.UNDERLINED:     return [<span className="underlined" key={i}> { compileChildren(node) } </span>];
-  case NodeType.QUOTATION:      return [<em key={i}> { compileChildren(node) } </em>];
-  case NodeType.PARAGRAPH:      return [<p key={i}> { compileChildren(node) } </p>];
-  case NodeType.ORDERED_LIST:   return [<ol key={i}> { compileChildren(node) } </ol>];
-  case NodeType.UNORDERED_LIST: return [<ul key={i}> { compileChildren(node) } </ul>];
-  case NodeType.LIST_ITEM:      return [<li key={i}> { compileChildren(node) } </li>];
+  case NodeType.STRONG:         return [<strong key={i}>{ compileChildren(node) }</strong>];
+  case NodeType.HIGHLIGHT:      return [<mark className="highlight" key={i}>{ compileChildren(node) }</mark>];
+  case NodeType.SCRIBBLED_OUT:  return [<mark className="scribbled-out" key={i}>{ compileChildren(node) }</mark>];
+  case NodeType.UNDERLINED:     return [<span className="underlined" key={i}>{ compileChildren(node) }</span>];
+  case NodeType.QUOTATION:      return [<em key={i}>{ compileChildren(node) }</em>];
+  case NodeType.PARAGRAPH:      return [<p key={i}>{ compileChildren(node) }</p>];
+  case NodeType.ORDERED_LIST:   return [<ol key={i}>{ compileChildren(node) }</ol>];
+  case NodeType.UNORDERED_LIST: return [<ul key={i}>{ compileChildren(node) }</ul>];
+  case NodeType.LIST_ITEM:      return [<li key={i}>{ compileChildren(node) }</li>];
   case NodeType.SIDENOTE:       return compileSidenote(node, i);
   case NodeType.MARGINNOTE:     return compileMarginnote(node, i);
   default:                      return null;

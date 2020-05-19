@@ -196,9 +196,17 @@ section > form { width: var(--block-width); }
   font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
 }
 
-mark {
+mark.highlight {
   background: var(--highlight);
 }
+
+mark.scribbled-out {
+  background: url(/img/scribble-short.png);
+  background-repeat: repeat-x;
+  background-size: 100% 95%;
+  padding: 8px 0;
+}
+
 
 a.top-bar-menuitem {
   margin-left: 1em;
