@@ -14,27 +14,13 @@ function compile(n) {
   return n.name === "text" ? n.text : React.createElement(n.name, attrs(n), ...n.children.map(compile));
 }
 
-function attrs(node) {
-  let res = {};
-
-  if (node.key !== null) {
-    res.key = node.key;
+function attrs(n) {
+  return {
+    key: n.key,
+    className: n.class_name,
+    htmlFor: n.html_for,
+    href: n.href,
+    type: n.html_type,
+    id: n.id
   }
-  if (node.class_name !== null) {
-    res.className = node.class_name;
-  }
-  if (node.html_for !== null) {
-    res.htmlFor = node.html_for;
-  }
-  if (node.href !== null) {
-    res.href = node.href;
-  }
-  if (node.html_type !== null) {
-    res.type = node.html_type;
-  }
-  if (node.id !== null) {
-    res.id = node.id;
-  }
-
-  return res;
 }

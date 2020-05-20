@@ -86,8 +86,8 @@ fn compile_marginnote_to_struct(ns: &[Node], key: usize) -> Result<Vec<Element>>
 
     // the margin-toggle character is 'circled times': https://www.htmlsymbols.xyz/unicode/U+2297
     res.append(&mut element_key_class_for("label", key, "margin-toggle", &id, &"⊗")?);
-    res.append(&mut element_key_class_type("input", key + 1, "margin-toggle", &id, "checkbox")?);
-    res.append(&mut element_key_class("span", key + 2, "marginnote", ns)?);
+    res.append(&mut element_key_class_type("input", key + 100, "margin-toggle", &id, "checkbox")?);
+    res.append(&mut element_key_class("span", key + 200, "marginnote", ns)?);
 
     Ok(res)
 }
@@ -99,8 +99,8 @@ fn compile_sidenote_to_struct(ns: &[Node], key: usize) -> Result<Vec<Element>> {
     write!(&mut id, "sn-{}", key)?;
 
     res.append(&mut element_key_class_for("label", key, "margin-toggle sidenote-number", &id, &"")?);
-    res.append(&mut element_key_class_type("input", key + 1, "margin-toggle", &id, "checkbox")?);
-    res.append(&mut element_key_class("span", key + 2, "sidenote", ns)?);
+    res.append(&mut element_key_class_type("input", key + 100, "margin-toggle", &id, "checkbox")?);
+    res.append(&mut element_key_class("span", key + 200, "sidenote", ns)?);
 
     Ok(res)
 }
