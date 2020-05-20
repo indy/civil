@@ -16,21 +16,163 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Result;
+use crate::element::Element;
 use crate::parser::{CodeblockLanguage, Node};
 
 use std::fmt::Write;
 
-pub fn compile(nodes: &[Node]) -> Result<String> {
-    let mut res: String = "".to_string();
+pub fn compile_to_struct(nodes: &[Node]) -> Result<Vec<Element>> {
+    let mut res: Vec<Element> = Vec::new();
 
     for (i, n) in nodes.iter().enumerate() {
-        res += &compile_node(n, i)?;
+        res.append(&mut compile_node_to_struct(n, i)?);
     }
 
     Ok(res)
 }
 
-fn compile_node(node: &Node, key: usize) -> Result<String> {
+pub fn compile_to_string(nodes: &[Node]) -> Result<String> {
+    let mut res: String = "".to_string();
+
+    for (i, n) in nodes.iter().enumerate() {
+        res += &compile_node_to_string(n, i)?;
+    }
+
+    Ok(res)
+}
+
+fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
+    let res = match node {
+        Node::Codeblock(lang, code) => {
+            let lang = if let Some(lang) = lang {
+                match lang {
+                    CodeblockLanguage::Rust => "rust",
+                }
+            } else {
+                "unspecified"
+            };
+
+            vec![Element {
+                name: String::from("pre"),
+                key: Some(key),
+                children: vec![Element {
+                    name: String::from("code"),
+                    class_name: Some(String::from(lang)),
+                    text: Some(String::from(code)),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            }]
+        }
+        Node::Highlight(ns) => element_key_class("mark", key, "highlight", ns)?,
+        Node::ScribbledOut(ns) => element_key_class("mark", key, "scribbled-out", ns)?,
+        Node::Link(url, ns) => element_key_class_href("a", key, "note-inline-link", url, ns)?,
+        Node::ListItem(ns) => element_key("li", key, ns)?,
+        Node::Marginnote(ns) => compile_marginnote_to_struct(ns, key)?,
+        Node::OrderedList(ns) => element_key("ol", key, ns)?,
+        Node::Paragraph(ns) => element_key("p", key, ns)?,
+        Node::Quotation(ns) => element_key("em", key, ns)?,
+        Node::Sidenote(ns) => compile_sidenote_to_struct(ns, key)?,
+        Node::Strong(ns) => element_key("strong", key, ns)?,
+        Node::Text(text) => {
+            vec![Element {
+                name: String::from("text"),
+                text: Some(String::from(text)),
+                ..Default::default()
+            }]
+        },
+        Node::Underlined(ns) => element_key_class("span", key, "underlined", ns)?,
+        Node::UnorderedList(ns) => element_key("ul", key, ns)?,
+    };
+
+    Ok(res)
+}
+
+fn compile_marginnote_to_struct(ns: &[Node], key: usize) -> Result<Vec<Element>> {
+    let mut res:Vec<Element> = vec![];
+
+    let mut id = String::new();
+    write!(&mut id, "mn-{}", key)?;
+
+    // the margin-toggle character is 'circled times': https://www.htmlsymbols.xyz/unicode/U+2297
+    res.append(&mut element_key_class_for("label", key, "margin-toggle", &id, &"⊗")?);
+    res.append(&mut element_key_class_type("input", key + 1, "margin-toggle", &id, "checkbox")?);
+    res.append(&mut element_key_class("span", key + 2, "marginnote", ns)?);
+
+    Ok(res)
+}
+
+fn compile_sidenote_to_struct(ns: &[Node], key: usize) -> Result<Vec<Element>> {
+    let mut res:Vec<Element> = vec![];
+
+    let mut id = String::new();
+    write!(&mut id, "sn-{}", key)?;
+
+    res.append(&mut element_key_class_for("label", key, "margin-toggle sidenote-number", &id, &"")?);
+    res.append(&mut element_key_class_type("input", key + 1, "margin-toggle", &id, "checkbox")?);
+    res.append(&mut element_key_class("span", key + 2, "sidenote", ns)?);
+
+    Ok(res)
+}
+
+fn element_key(name: &str, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
+    let e = element_base(name, key, ns)?;
+
+    Ok(vec![e])
+}
+
+fn element_key_class(name: &str, key: usize, class_name: &str, ns: &[Node]) -> Result<Vec<Element>> {
+    let mut e = element_base(name, key, ns)?;
+
+    e.class_name = Some(String::from(class_name));
+
+    Ok(vec![e])
+}
+
+fn element_key_class_href(name: &str, key: usize, class_name: &str, url: &str, ns: &[Node]) -> Result<Vec<Element>> {
+    let mut e = element_base(name, key, ns)?;
+
+    e.class_name = Some(String::from(class_name));
+    e.href = Some(String::from(url));
+
+    Ok(vec![e])
+}
+
+fn element_key_class_for(name: &str, key: usize, class_name: &str, html_for: &str, text: &str) -> Result<Vec<Element>> {
+    let mut e = element_base(name, key, &[])?;
+
+    e.class_name = Some(String::from(class_name));
+    e.html_for = Some(String::from(html_for));
+    // e.text = Some(String::from(text));
+    e.children = vec![Element {
+        name: String::from("text"),
+        text: Some(String::from(text)),
+        ..Default::default()
+    }];
+
+    Ok(vec![e])
+}
+
+fn element_key_class_type(name: &str, key: usize, class_name: &str, id: &str, html_type: &str) -> Result<Vec<Element>> {
+    let mut e = element_base(name, key, &[])?;
+
+    e.class_name = Some(String::from(class_name));
+    e.id = Some(String::from(id));
+    e.html_type = Some(String::from(html_type));
+
+    Ok(vec![e])
+}
+
+fn element_base(name: &str, key: usize, ns: &[Node]) -> Result<Element> {
+    Ok(Element {
+        name: String::from(name),
+        key: Some(key),
+        children: if ns.is_empty() { vec![] } else { compile_to_struct(ns)? },
+        ..Default::default()
+    })
+}
+
+fn compile_node_to_string(node: &Node, key: usize) -> Result<String> {
     let mut s = String::new();
 
     let res = match node {
@@ -46,37 +188,37 @@ fn compile_node(node: &Node, key: usize) -> Result<String> {
             s
         }
         Node::Highlight(ns) => {
-            write!(&mut s, "<mark key={} class={}>{}</mark>", key, "highlight", compile(ns)?)?;
+            write!(&mut s, "<mark key={} class={}>{}</mark>", key, "highlight", compile_to_string(ns)?)?;
             s
         }
         Node::ScribbledOut(ns) => {
-            write!(&mut s, "<mark key={} class={}>{}</mark>", key, "scribbled-out", compile(ns)?)?;
+            write!(&mut s, "<mark key={} class={}>{}</mark>", key, "scribbled-out", compile_to_string(ns)?)?;
             s
         }
         Node::Link(url, ns) => {
-            write!(&mut s, "<a key={} class={} href=\"{}\">{}</a>", key, "note-inline-link", url, compile(ns)?)?;
+            write!(&mut s, "<a key={} class={} href=\"{}\">{}</a>", key, "note-inline-link", url, compile_to_string(ns)?)?;
             s
         }
         Node::ListItem(ns) => {
-            write!(&mut s, "<li key={}>{}</li>", key, compile(ns)?)?;
+            write!(&mut s, "<li key={}>{}</li>", key, compile_to_string(ns)?)?;
             s
         }
-        Node::Marginnote(ns) => compile_marginnote(ns, key)?,
+        Node::Marginnote(ns) => compile_marginnote_to_string(ns, key)?,
         Node::OrderedList(ns) => {
-            write!(&mut s, "<ol key={}>{}</ol>", key, compile(ns)?)?;
+            write!(&mut s, "<ol key={}>{}</ol>", key, compile_to_string(ns)?)?;
             s
         }
         Node::Paragraph(ns) => {
-            write!(&mut s, "<p key={}>{}</p>", key, compile(ns)?)?;
+            write!(&mut s, "<p key={}>{}</p>", key, compile_to_string(ns)?)?;
             s
         }
         Node::Quotation(ns) => {
-            write!(&mut s, "<em key={}>{}</em>", key, compile(ns)?)?;
+            write!(&mut s, "<em key={}>{}</em>", key, compile_to_string(ns)?)?;
             s
         }
-        Node::Sidenote(ns) => compile_sidenote(ns, key)?,
+        Node::Sidenote(ns) => compile_sidenote_to_string(ns, key)?,
         Node::Strong(ns) => {
-            write!(&mut s, "<strong key={}>{}</strong>", key, compile(ns)?)?;
+            write!(&mut s, "<strong key={}>{}</strong>", key, compile_to_string(ns)?)?;
             s
         }
         Node::Text(text) => text.to_string(),
@@ -85,12 +227,12 @@ fn compile_node(node: &Node, key: usize) -> Result<String> {
                 &mut s,
                 "<span class=\"underlined\" key={}>{}</span>",
                 key,
-                compile(ns)?
+                compile_to_string(ns)?
             )?;
             s
         }
         Node::UnorderedList(ns) => {
-            write!(&mut s, "<ul key={}>{}</ul>", key, compile(ns)?)?;
+            write!(&mut s, "<ul key={}>{}</ul>", key, compile_to_string(ns)?)?;
             s
         }
     };
@@ -98,7 +240,7 @@ fn compile_node(node: &Node, key: usize) -> Result<String> {
     Ok(res)
 }
 
-fn compile_sidenote(nodes: &[Node], key: usize) -> Result<String> {
+fn compile_sidenote_to_string(nodes: &[Node], key: usize) -> Result<String> {
     let mut id = String::new();
     write!(&mut id, "sn-{}", key)?;
 
@@ -122,13 +264,13 @@ fn compile_sidenote(nodes: &[Node], key: usize) -> Result<String> {
         &mut span,
         "<span key={} class=\"sidenote\">{}</span>",
         key + 2,
-        compile(nodes)?
+        compile_to_string(nodes)?
     )?;
 
     Ok(label + &input + &span)
 }
 
-fn compile_marginnote(nodes: &[Node], key: usize) -> Result<String> {
+fn compile_marginnote_to_string(nodes: &[Node], key: usize) -> Result<String> {
     let mut id = String::new();
     write!(&mut id, "mn-{}", key)?;
 
@@ -152,7 +294,7 @@ fn compile_marginnote(nodes: &[Node], key: usize) -> Result<String> {
         &mut span,
         "<span key={} class=\"marginnote\">{}</span>",
         key + 2,
-        compile(nodes)?
+        compile_to_string(nodes)?
     )?;
 
     Ok(label + &input + &span)
@@ -167,7 +309,7 @@ mod tests {
     fn build(s: &'static str) -> String {
         let toks = tokenize(s).unwrap();
         let nodes = parse(toks).unwrap();
-        compile(&nodes).unwrap()
+        compile_to_string(&nodes).unwrap()
     }
 
     #[test]

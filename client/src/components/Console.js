@@ -24,7 +24,7 @@
 
 import React, { useState, useEffect } from 'react';
 import html from 'react-inner-html';
-import { useStateValue } from '../lib/state';
+import { useStateValue } from '../lib/StateProvider';
 import { asShellBlock } from '../lib/reactUtils';
 import { Link, useHistory } from 'react-router-dom';
 import { ensureAC } from '../lib/utils';

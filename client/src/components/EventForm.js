@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import Net from '../lib/Net';
-import { useStateValue } from '../lib/state';
+import { useStateValue } from '../lib/StateProvider';
 
 export default function EventForm({event, setMsg}) {
   event = event || {};

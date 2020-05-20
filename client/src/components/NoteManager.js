@@ -1,5 +1,5 @@
 import React from 'react';
-import { useStateValue } from '../lib/state';
+import { useStateValue } from '../lib/StateProvider';
 import { ensureAC } from '../lib/utils';
 import Note from './Note';
 

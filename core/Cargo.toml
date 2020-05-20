@@ -10,3 +10,5 @@ edition = "2018"
 [dependencies]
 strum = "0.18.0"
 strum_macros = "0.18.0"
+serde = "^1.0.59"
+serde_derive = "^1.0.59"

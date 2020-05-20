@@ -2,7 +2,7 @@ import React from 'react';
 
 import IdeaForm from './IdeaForm';
 import { idParam } from '../lib/reactUtils';
-import { useStateValue } from '../lib/state';
+import { useStateValue } from '../lib/StateProvider';
 import SectionLinkBack from './SectionLinkBack';
 import SectionSearchResultsLinkBack from './SectionSearchResultsLinkBack';
 import NoteManager from './NoteManager';

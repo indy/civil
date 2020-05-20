@@ -8,8 +8,8 @@ import Net from '../lib/Net';
 import NoteForm from './NoteForm';
 import { removeEmptyStrings } from '../lib/JsUtils';
 import { addChronologicalSortYear } from '../lib/eras';
-import { useStateValue } from '../lib/state';
-import { useMarkup } from '../lib/markup';
+import { useStateValue } from '../lib/StateProvider';
+import { useMarkupValue } from '../lib/MarkupProvider';
 
 export default function DeckControls({ holder, setMsg, title, resource, updateForm }) {
   // UNCOMMENT to enable deleting
@@ -140,7 +140,7 @@ function sortPoints(holder) {
 
 function addNote(form, deck_id) {
 
-  const markup = useMarkup();
+  const markup = useMarkupValue();
   const notes = markup.splitter(form.content.value);
 
 

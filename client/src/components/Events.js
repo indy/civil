@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
-import { useStateValue } from '../lib/state';
+import { useStateValue } from '../lib/StateProvider';
 import { ensureAC } from '../lib/utils';
 import { era, filterBefore, filterAfter, filterBetween, yearFrom } from '../lib/eras';
 import EventForm from './EventForm';

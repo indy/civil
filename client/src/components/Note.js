@@ -3,7 +3,9 @@ import CreatableSelect from 'react-select/creatable';
 import ResourceLink from './ResourceLink';
 import Net from '../lib/Net';
 import { separateIntoIdeasAndDecks } from '../lib/utils';
-import { useMarkup } from '../lib/markup';
+
+import { buildMarkup } from '../lib/MarkupBuilder';
+// import { useMarkupValue } from '../lib/MarkupProvider';
 
 export default function Note(props) {
   const [showModButtons, setShowModButtons] = useState(false);
@@ -241,8 +243,7 @@ function buildNoteReference(marginConnections) {
 
 function buildReadingContent(note, noteId, onShowButtonsClicked, decks, ideas) {
   const noteRefContents = buildNoteReference(ideas).concat(buildNoteReference(decks));
-  const markup = useMarkup();
-  const htmlContent = { __html: markup.compiler(note.content) };
+  const contentMarkup = buildMarkup(note.content);
 
   return (
     <div>
@@ -250,7 +251,9 @@ function buildReadingContent(note, noteId, onShowButtonsClicked, decks, ideas) {
       <div className="noteref-container">
         { noteRefContents }
       </div>
-      <div onClick={ onShowButtonsClicked } dangerouslySetInnerHTML={htmlContent}/>
+        <div onClick={ onShowButtonsClicked }>
+        { contentMarkup }
+      </div>
     </div>
   );
 };

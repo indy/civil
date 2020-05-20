@@ -8,7 +8,7 @@ import Point from './Point';
 import PointForm from './PointForm';
 import SectionLinkBack from './SectionLinkBack';
 import { idParam } from '../lib/reactUtils';
-import { useStateValue } from '../lib/state';
+import { useStateValue } from '../lib/StateProvider';
 import { ensureCorrectDeck } from './EnsureCorrectDeck';
 
 export default function Event(props) {

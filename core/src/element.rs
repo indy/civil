@@ -15,37 +15,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-mod compiler;
-mod error;
-mod lexer;
-mod parser;
-mod element;
-mod splitter;
+use serde_derive::Serialize;
 
-use compiler::{compile_to_string, compile_to_struct};
-use lexer::tokenize;
-use parser::parse;
-use splitter::split;
+#[derive(Default, Serialize)]
+pub struct Element {
+    pub name: String,
+    pub key: Option<usize>,
+    pub class_name: Option<String>,
 
-pub use element::Element;
-pub use error::Result;
+    pub html_for: Option<String>,
+    pub href: Option<String>,
+    pub html_type: Option<String>,
+    pub id: Option<String>,
 
-pub fn markup_as_string(markup: &str) -> Result<String> {
-    let tokens = tokenize(markup)?;
-    let nodes = parse(tokens)?;
-    let html = compile_to_string(&nodes)?;
-
-    Ok(html)
-}
-
-pub fn markup_as_struct(markup: &str) -> Result<Vec<Element>> {
-    let tokens = tokenize(markup)?;
-    let nodes = parse(tokens)?;
-    let html = compile_to_struct(&nodes)?;
-
-    Ok(html)
-}
-
-pub fn split_markup(markup: &str) -> Result<Vec<String>> {
-    split(markup)
+    pub children: Vec<Element>,
+    pub text: Option<String>
 }

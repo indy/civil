@@ -46,8 +46,8 @@ cfg_if! {
 }
 
 #[wasm_bindgen]
-pub fn markup_compiler(markup: &str) -> String {
-    match core::build(markup) {
+pub fn markup_as_string(markup: &str) -> String {
+    match core::markup_as_string(markup) {
         Ok(res) => {
             res
         },
@@ -58,6 +58,18 @@ pub fn markup_compiler(markup: &str) -> String {
     }
 }
 
+#[wasm_bindgen]
+pub fn markup_as_struct(markup: &str) -> JsValue {
+    match core::markup_as_struct(markup) {
+        Ok(res) => {
+            JsValue::from_serde(&res).unwrap()
+        },
+        Err(_) => {
+            error!("markup_compiler failed");
+            JsValue::from_serde(&"error").unwrap()
+        }
+    }
+}
 
 #[derive(Serialize)]
 pub struct Example {

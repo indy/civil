@@ -8,4 +8,4 @@ export const MarkupProvider = ({markup, children}) =>(
   </MarkupContext.Provider>
 );
 
-export const useMarkup = () => useContext(MarkupContext);
+export const useMarkupValue = () => useContext(MarkupContext);

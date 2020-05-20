@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Net from '../lib/Net';
 import { applyDecksToNotes } from '../lib/utils';
 import { addChronologicalSortYear } from '../lib/eras';
-import { useStateValue } from '../lib/state';
+import { useStateValue } from '../lib/StateProvider';
 
 export function ensureCorrectDeck(resource, id, isLoaded, setMsg) {
   const [state, dispatch] = useStateValue();

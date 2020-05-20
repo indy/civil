@@ -6,7 +6,7 @@ import SectionLinkBack from './SectionLinkBack';
 import PersonForm from './PersonForm';
 import PointForm from './PointForm';
 import { idParam } from '../lib/reactUtils';
-import { useStateValue } from '../lib/state';
+import { useStateValue } from '../lib/StateProvider';
 import NoteManager from './NoteManager';
 import DeckControls from './DeckControls';
 import { ensureCorrectDeck } from './EnsureCorrectDeck';

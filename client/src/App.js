@@ -7,8 +7,8 @@ import {
 } from 'react-router-dom';
 
 import { initialState, reducer } from './AppState';
-import { useStateValue, StateProvider } from './lib/state';
-import { MarkupProvider } from './lib/markup';
+import { useStateValue, StateProvider } from './lib/StateProvider';
+import { MarkupProvider } from './lib/MarkupProvider';
 
 import Search from './components/Search';
 import Console from './components/Console';

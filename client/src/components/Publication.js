@@ -1,13 +1,12 @@
 import React from 'react';
 
 import PublicationForm from './PublicationForm';
-import { useStateValue } from '../lib/state';
+import { useStateValue } from '../lib/StateProvider';
 import { idParam } from '../lib/reactUtils';
 import SectionLinkBack from './SectionLinkBack';
 import NoteManager from './NoteManager';
 import DeckControls from './DeckControls';
 import { ensureCorrectDeck } from './EnsureCorrectDeck';
-
 
 export default function Publication(props) {
   const [state] = useStateValue();

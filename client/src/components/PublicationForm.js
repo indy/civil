@@ -3,7 +3,7 @@ import { Redirect } from 'react-router-dom';
 
 import { removeEmptyStrings } from '../lib/JsUtils';
 import Net from '../lib/Net';
-import { useStateValue } from '../lib/state';
+import { useStateValue } from '../lib/StateProvider';
 
 export default function PublicationForm({ publication, setMsg }) {
   publication = publication || {};
