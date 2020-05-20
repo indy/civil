@@ -10,7 +10,10 @@ import Net from './lib/Net';
 wasm_bindgen('/wasm_bg.wasm')
   .then(wasm_bg => {
 
-    const { markup_as_struct, markup_splitter } = wasm_bindgen;
+    const { init_wasm, markup_as_struct, markup_splitter } = wasm_bindgen;
+
+    init_wasm();
+
     const markup = {
       asHtmlAst: markup_as_struct,
       splitter: markup_splitter

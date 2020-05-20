@@ -3,9 +3,7 @@ import CreatableSelect from 'react-select/creatable';
 import ResourceLink from './ResourceLink';
 import Net from '../lib/Net';
 import { separateIntoIdeasAndDecks } from '../lib/utils';
-
 import { buildMarkup } from '../lib/MarkupBuilder';
-// import { useMarkupValue } from '../lib/MarkupProvider';
 
 export default function Note(props) {
   const [showModButtons, setShowModButtons] = useState(false);

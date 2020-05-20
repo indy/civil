@@ -6,8 +6,6 @@ use wasm_bindgen::prelude::*;
 use core;
 use log::error;
 
-use serde_derive::Serialize;
-
 cfg_if! {
     // When the `console_error_panic_hook` feature is enabled, we can call the
     // `set_panic_hook` function at least once during initialization, and then
@@ -46,6 +44,11 @@ cfg_if! {
 }
 
 #[wasm_bindgen]
+pub fn init_wasm() {
+    init_log();
+}
+
+#[wasm_bindgen]
 pub fn markup_as_struct(markup: &str) -> JsValue {
     match core::markup_as_struct(markup) {
         Ok(res) => {
@@ -58,28 +61,15 @@ pub fn markup_as_struct(markup: &str) -> JsValue {
     }
 }
 
-#[derive(Serialize)]
-pub struct Example {
-    pub words: Vec<String>,
-}
-
-impl Example {
-    pub fn new() -> Self {
-        Self {
-            words: vec![],
+#[wasm_bindgen]
+pub fn markup_splitter(markup: &str) -> JsValue {
+    match core::split_markup(markup) {
+        Ok(res) => {
+            JsValue::from_serde(&res).unwrap()
+        },
+        Err(_) => {
+            error!("markup_splitter failed");
+            JsValue::from_serde(&"error").unwrap()
         }
     }
-
-    pub fn push(&mut self) {
-        self.words.push("hiya".to_string())
-    }
-}
-
-#[wasm_bindgen]
-pub fn markup_splitter(_markup: &str) -> JsValue {
-    let mut e = Example::new();
-    e.push();
-    //core::split_markup(markup).unwrap()
-
-    JsValue::from_serde(&e).unwrap()
 }

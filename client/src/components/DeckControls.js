@@ -25,6 +25,8 @@ export default function DeckControls({ holder, setMsg, title, resource, updateFo
   const [showPointForm, setShowPointForm] = useState(false);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
 
+  const markup = useMarkupValue();
+
   function buildButtons() {
     function onAddNoteClicked(e) {
       setShowNoteForm(!showNoteForm);
@@ -62,10 +64,10 @@ export default function DeckControls({ holder, setMsg, title, resource, updateFo
     );
   };
 
-  function buildNoteForm() {
+  function buildNoteForm(markup) {
     function onAddNote(e) {
       const noteForm = e.target;
-      addNote(noteForm, holder.id)
+      addNote(noteForm, holder.id, markup)
         .then(newNotes => {
           const notes = holder.notes;
           newNotes.forEach(n => {
@@ -115,8 +117,9 @@ export default function DeckControls({ holder, setMsg, title, resource, updateFo
   if (showButtons) {
     res.buttons = buildButtons();
   }
+
   if (showNoteForm) {
-    res.noteForm = buildNoteForm();
+    res.noteForm = buildNoteForm(markup);
   }
 
   if (showPointForm) {
@@ -138,11 +141,8 @@ function sortPoints(holder) {
   }
 }
 
-function addNote(form, deck_id) {
-
-  const markup = useMarkupValue();
+function addNote(form, deck_id, markup) {
   const notes = markup.splitter(form.content.value);
-
 
   // const notes = splitIntoNotes(form.content.value);
   if (notes === null) {
