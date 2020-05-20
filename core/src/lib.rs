@@ -22,21 +22,13 @@ mod parser;
 mod element;
 mod splitter;
 
-use compiler::{compile_to_string, compile_to_struct};
+use compiler::compile_to_struct;
 use lexer::tokenize;
 use parser::parse;
 use splitter::split;
 
 pub use element::Element;
 pub use error::Result;
-
-pub fn markup_as_string(markup: &str) -> Result<String> {
-    let tokens = tokenize(markup)?;
-    let nodes = parse(tokens)?;
-    let html = compile_to_string(&nodes)?;
-
-    Ok(html)
-}
 
 pub fn markup_as_struct(markup: &str) -> Result<Vec<Element>> {
     let tokens = tokenize(markup)?;

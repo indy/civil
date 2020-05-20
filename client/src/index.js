@@ -7,14 +7,11 @@ import App from './App';
 import registerServiceWorker from './registerServiceWorker';
 import Net from './lib/Net';
 
-// https://rustwasm.github.io/wasm-bindgen/reference/arbitrary-data-with-serde.html
-
 wasm_bindgen('/wasm_bg.wasm')
   .then(wasm_bg => {
 
-    const { markup_as_string, markup_as_struct, markup_splitter } = wasm_bindgen;
+    const { markup_as_struct, markup_splitter } = wasm_bindgen;
     const markup = {
-      asHtmlString: markup_as_string,
       asHtmlAst: markup_as_struct,
       splitter: markup_splitter
     };

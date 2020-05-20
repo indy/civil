@@ -11,10 +11,10 @@ export function buildMarkup(content) {
 }
 
 function compile(n) {
-  return n.name === "text" ? n.text : React.createElement(n.name, buildProps(n), ...n.children.map(compile));
+  return n.name === "text" ? n.text : React.createElement(n.name, attrs(n), ...n.children.map(compile));
 }
 
-function buildProps(node) {
+function attrs(node) {
   let res = {};
 
   if (node.key !== null) {

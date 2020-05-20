@@ -46,19 +46,6 @@ cfg_if! {
 }
 
 #[wasm_bindgen]
-pub fn markup_as_string(markup: &str) -> String {
-    match core::markup_as_string(markup) {
-        Ok(res) => {
-            res
-        },
-        Err(_) => {
-            error!("markup_compiler failed");
-            "error".to_string()
-        }
-    }
-}
-
-#[wasm_bindgen]
 pub fn markup_as_struct(markup: &str) -> JsValue {
     match core::markup_as_struct(markup) {
         Ok(res) => {
