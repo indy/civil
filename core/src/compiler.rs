@@ -135,7 +135,7 @@ fn compile_marginnote(nodes: &[Node], key: usize) -> Result<String> {
     let mut label = String::new();
     write!(
         &mut label,
-        "<label key={} class=\"margin-toggle sidenote-number\" htmlFor=\"{}\">&#8855;</label>",
+        "<label key={} class=\"margin-toggle\" htmlFor=\"{}\">&#8855;</label>",
         key, id
     )?;
 
