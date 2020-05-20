@@ -9,9 +9,6 @@ export default function Search() {
   });
 
   async function search(searchTerm) {
-    // do this client side for the moment, really should be done in server-side db
-    // let validQuery = rawInput.replace(/(\s+)/g, ' & ');
-
     const url = `/api/cmd/search?q=${encodeURI(searchTerm)}`;
     const searchResponse = await Net.get(url);
     console.log(searchResponse);
@@ -19,7 +16,7 @@ export default function Search() {
     if (searchResponse.results) {
       setState({
         ...state,
-        shownSearchTerm: state.searchTerm,
+        shownSearchTerm: searchTerm,
         searchResults: searchResponse.results
       });
     }

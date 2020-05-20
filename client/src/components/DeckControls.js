@@ -5,12 +5,11 @@ import React, { useState } from 'react';
 
 import PointForm from './PointForm';
 import Net from '../lib/Net';
-import NoteCompiler from '../lib/NoteCompiler';
 import NoteForm from './NoteForm';
 import { removeEmptyStrings } from '../lib/JsUtils';
 import { addChronologicalSortYear } from '../lib/eras';
 import { useStateValue } from '../lib/state';
-
+import { useMarkup } from '../lib/markup';
 
 export default function DeckControls({ holder, setMsg, title, resource, updateForm }) {
   // UNCOMMENT to enable deleting
@@ -140,7 +139,12 @@ function sortPoints(holder) {
 }
 
 function addNote(form, deck_id) {
-  const notes = splitIntoNotes(form.content.value);
+
+  const markup = useMarkup();
+  const notes = markup.splitter(form.content.value);
+
+
+  // const notes = splitIntoNotes(form.content.value);
   if (notes === null) {
     console.error("addNote: splitIntoNotes failed");
     console.error(form.content.value);
@@ -154,14 +158,6 @@ function addNote(form, deck_id) {
     }, ["title"]);
 
   return Net.post("/api/notes", data);
-}
-
-function splitIntoNotes(content) {
-  const res = NoteCompiler.splitContent(content);
-  if (res === null) {
-    console.error(`splitIntoNotes error for ${content}`);
-  }
-  return res;
 }
 
 function setHolder(dispatch, holder, setMsg) {

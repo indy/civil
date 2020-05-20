@@ -1,0 +1,57 @@
+[package]
+name = "wasm"
+version = "0.1.0"
+authors = ["Inderjit Gill <email@indy.io>"]
+edition = "2018"
+license = "AGPL-3.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+
+[lib]
+crate-type = ["cdylib"]
+
+[features]
+default = ["console_log", "console_error_panic_hook"]
+
+[dependencies]
+serde = "^1.0.59"
+serde_derive = "^1.0.59"
+cfg-if = "0.1.2"
+core = { path = "../core" }
+log = "0.4"
+console_log = { version = "0.1", optional = true }
+
+# The `console_error_panic_hook` crate provides better debugging of panics by
+# logging them with `console.error`. This is great for development, but requires
+# all the `std::fmt` and `std::panicking` infrastructure, so isn't great for
+# code size when deploying.
+console_error_panic_hook = { version = "0.1.1", optional = true }
+
+# `wee_alloc` is a tiny allocator for wasm that is only ~1K in code size
+# compared to the default allocator's ~10K. It is slower than the default
+# allocator, however.
+#
+# Unfortunately, `wee_alloc` requires nightly Rust when targeting wasm for now.
+wee_alloc = { version = "0.4.2", optional = true }
+
+[dependencies.wasm-bindgen]
+version = "^0.2"
+features = ["serde-serialize"]
+
+
+[dev-dependencies]
+wasm-bindgen-test = "0.2"
+
+[profile.release]
+# Include function names in the `.wasm` for better debugging and
+# profiling. Comment this out if you're trying to create the smallest `.wasm`
+# binaries you can.
+debug = false
+
+# # Uncomment these lines to create smaller `.wasm` binaries, at the cost of
+# # longer compile times.
+codegen-units = 1
+incremental = false
+lto = true
+opt-level = "z"

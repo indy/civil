@@ -32,6 +32,7 @@ pub enum CodeblockLanguage {
 pub enum Node {
     Codeblock(Option<CodeblockLanguage>, String),
     Highlight(Vec<Node>),
+    ScribbledOut(Vec<Node>),
     Link(String, Vec<Node>),
     ListItem(Vec<Node>),
     Marginnote(Vec<Node>),
@@ -166,6 +167,7 @@ fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
         Token::BracketEnd => eat_text_including(tokens),
         Token::BracketStart => eat_bracket_start(tokens),
         Token::Caret => eat_matching_pair(tokens, TokenIdent::Caret, NodeIdent::Highlight),
+        Token::Tilde => eat_matching_pair(tokens, TokenIdent::Tilde, NodeIdent::ScribbledOut),
         Token::DoubleQuote => eat_matching_pair(tokens, TokenIdent::DoubleQuote, NodeIdent::Quotation),
         Token::Hash => eat_text_including(tokens),
         Token::Pipe => eat_pipe(tokens),
@@ -245,6 +247,7 @@ fn eat_matching_pair<'a>(
         let node = match node_ident {
             NodeIdent::Strong => Node::Strong(children),
             NodeIdent::Highlight => Node::Highlight(children),
+            NodeIdent::ScribbledOut => Node::ScribbledOut(children),
             NodeIdent::Quotation => Node::Quotation(children),
             NodeIdent::Underlined => Node::Underlined(children),
             _ => return Err(Error::Parser),
@@ -486,6 +489,16 @@ mod tests {
         Err(Error::Parser)
     }
 
+    fn scribbled_children<'a>(node: &'a Node) -> Result<&'a Vec<Node>> {
+        match node {
+            Node::ScribbledOut(children) => {
+                return Ok(children);
+            }
+            _ => assert_eq!(false, true),
+        };
+        Err(Error::Parser)
+    }
+
     fn assert_list_item_text(node: &Node, expected: &'static str) {
         match node {
             Node::ListItem(children) => {
@@ -718,6 +731,20 @@ mod tests {
         assert_text(&highlighted[1], " with ");
         assert_strong1(&highlighted[2], "strong");
         assert_text(&children[1], " test");
+    }
+
+    #[test]
+    fn test_scribbled_out() {
+        let nodes = build("I have information which will lead to the arrest of ~Hillary Clinton~");
+
+        assert_eq!(1, nodes.len());
+        let children = paragraph_children(&nodes[0]).unwrap();
+        dbg!(&children);
+        assert_eq!(children.len(), 2);
+
+        let scribbled = scribbled_children(&children[1]).unwrap();
+        assert_eq!(scribbled.len(), 1);
+        assert_text(&scribbled[0], "Hillary Clinton");
     }
 
     #[test]

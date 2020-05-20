@@ -8,6 +8,7 @@ import {
 
 import { initialState, reducer } from './AppState';
 import { useStateValue, StateProvider } from './lib/state';
+import { MarkupProvider } from './lib/markup';
 
 import Search from './components/Search';
 import Console from './components/Console';
@@ -28,7 +29,7 @@ import Ideas from './components/Ideas';
 import Event from './components/Event';
 import Events from './components/Events';
 
-export default function App({ user }) {
+export default function App({ user, markup }) {
   let state = initialState;
 
   // update initial state with user
@@ -75,9 +76,11 @@ export default function App({ user }) {
   });
 
   return (
-    <StateProvider initialState={state} reducer={reducer}>
-      <AppUI/>
-    </StateProvider>
+    <MarkupProvider markup={ markup }>
+      <StateProvider initialState={state} reducer={reducer}>
+        <AppUI/>
+      </StateProvider>
+    </MarkupProvider>
   );
 }
 

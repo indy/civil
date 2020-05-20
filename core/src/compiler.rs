@@ -42,15 +42,19 @@ fn compile_node(node: &Node, key: usize) -> Result<String> {
             } else {
                 "unspecified"
             };
-            write!(&mut s, "<pre key={}><code className={}>{}</code></pre>", key, lang, code)?;
+            write!(&mut s, "<pre key={}><code class={}>{}</code></pre>", key, lang, code)?;
             s
         }
         Node::Highlight(ns) => {
-            write!(&mut s, "<mark key={}>{}</mark>", key, compile(ns)?)?;
+            write!(&mut s, "<mark key={} class={}>{}</mark>", key, "highlight", compile(ns)?)?;
+            s
+        }
+        Node::ScribbledOut(ns) => {
+            write!(&mut s, "<mark key={} class={}>{}</mark>", key, "scribbled-out", compile(ns)?)?;
             s
         }
         Node::Link(url, ns) => {
-            write!(&mut s, "<a key={} className={} href=\"{}\">{}</a>", key, "note-inline-link", url, compile(ns)?)?;
+            write!(&mut s, "<a key={} class={} href=\"{}\">{}</a>", key, "note-inline-link", url, compile(ns)?)?;
             s
         }
         Node::ListItem(ns) => {
@@ -79,7 +83,7 @@ fn compile_node(node: &Node, key: usize) -> Result<String> {
         Node::Underlined(ns) => {
             write!(
                 &mut s,
-                "<span className=\"underlined\" key={}>{}</span>",
+                "<span class=\"underlined\" key={}>{}</span>",
                 key,
                 compile(ns)?
             )?;
@@ -101,14 +105,14 @@ fn compile_sidenote(nodes: &[Node], key: usize) -> Result<String> {
     let mut label = String::new();
     write!(
         &mut label,
-        "<label key={} className=\"margin-toggle sidenote-number\" htmlFor=\"{}\"></label>",
+        "<label key={} class=\"margin-toggle sidenote-number\" htmlFor=\"{}\"></label>",
         key, id
     )?;
 
     let mut input = String::new();
     write!(
         &mut input,
-        "<input key={} type=\"checkbox\" id={} className=\"margin-toggle\"/>",
+        "<input key={} type=\"checkbox\" id={} class=\"margin-toggle\"/>",
         key + 1,
         id
     )?;
@@ -116,7 +120,7 @@ fn compile_sidenote(nodes: &[Node], key: usize) -> Result<String> {
     let mut span = String::new();
     write!(
         &mut span,
-        "<span key={} className=\"sidenote\">{}</span>",
+        "<span key={} class=\"sidenote\">{}</span>",
         key + 2,
         compile(nodes)?
     )?;
@@ -131,14 +135,14 @@ fn compile_marginnote(nodes: &[Node], key: usize) -> Result<String> {
     let mut label = String::new();
     write!(
         &mut label,
-        "<label key={} className=\"margin-toggle sidenote-number\" htmlFor=\"{}\">&#8855;</label>",
+        "<label key={} class=\"margin-toggle sidenote-number\" htmlFor=\"{}\">&#8855;</label>",
         key, id
     )?;
 
     let mut input = String::new();
     write!(
         &mut input,
-        "<input key={} type=\"checkbox\" id={} className=\"margin-toggle\"/>",
+        "<input key={} type=\"checkbox\" id={} class=\"margin-toggle\"/>",
         key + 1,
         id
     )?;
@@ -146,7 +150,7 @@ fn compile_marginnote(nodes: &[Node], key: usize) -> Result<String> {
     let mut span = String::new();
     write!(
         &mut span,
-        "<span key={} className=\"marginnote\">{}</span>",
+        "<span key={} class=\"marginnote\">{}</span>",
         key + 2,
         compile(nodes)?
     )?;

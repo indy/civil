@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import CreatableSelect from 'react-select/creatable';
 import ResourceLink from './ResourceLink';
-import NoteCompiler from '../lib/NoteCompiler';
 import Net from '../lib/Net';
 import { separateIntoIdeasAndDecks } from '../lib/utils';
+import { useMarkup } from '../lib/markup';
 
 export default function Note(props) {
   const [showModButtons, setShowModButtons] = useState(false);
@@ -172,26 +172,6 @@ function buildTitle(title, onShowButtonsClicked) {
   );
 };
 
-function constructNoteContent(noteId, text) {
-  const tokensRes = NoteCompiler.tokenise(text);
-  if (tokensRes.tokens === undefined) {
-    console.log(`Error tokenising: "${text}"`);
-    return null;
-  }
-  const tokens = tokensRes.tokens;
-
-  const parserRes = NoteCompiler.parse(tokens);
-  if (parserRes.nodes === undefined) {
-    console.log(`Error parsing: "${tokens}"`);
-    return null;
-  }
-
-  const ast = parserRes.nodes;
-  const dom = NoteCompiler.compile(ast);
-
-  return dom;
-};
-
 function editNote(id, data) {
   const post = {
     id: id,
@@ -260,7 +240,9 @@ function buildNoteReference(marginConnections) {
 };
 
 function buildReadingContent(note, noteId, onShowButtonsClicked, decks, ideas) {
-  let noteRefContents = buildNoteReference(ideas).concat(buildNoteReference(decks));
+  const noteRefContents = buildNoteReference(ideas).concat(buildNoteReference(decks));
+  const markup = useMarkup();
+  const htmlContent = { __html: markup.compiler(note.content) };
 
   return (
     <div>
@@ -268,9 +250,7 @@ function buildReadingContent(note, noteId, onShowButtonsClicked, decks, ideas) {
       <div className="noteref-container">
         { noteRefContents }
       </div>
-      <div onClick={ onShowButtonsClicked }>
-        { constructNoteContent(noteId, note.content) }
-      </div>
+      <div onClick={ onShowButtonsClicked } dangerouslySetInnerHTML={htmlContent}/>
     </div>
   );
 };

@@ -28,7 +28,7 @@ use splitter::split;
 
 pub use error::Result;
 
-pub fn build(markup: &String) -> Result<String> {
+pub fn build(markup: &str) -> Result<String> {
     let tokens = tokenize(markup)?;
     let nodes = parse(tokens)?;
     let html = compile(&nodes)?;
@@ -36,6 +36,6 @@ pub fn build(markup: &String) -> Result<String> {
     Ok(html)
 }
 
-pub fn split_markup(markup: &String) -> Result<Vec<String>> {
+pub fn split_markup(markup: &str) -> Result<Vec<String>> {
     split(markup)
 }

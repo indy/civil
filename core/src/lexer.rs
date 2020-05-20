@@ -26,6 +26,7 @@ pub enum Token<'a> {
     BracketEnd,
     BracketStart,
     Caret,
+    Tilde,
     Digits(&'a str),
     DoubleQuote,
     Hash,
@@ -45,6 +46,7 @@ pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
         Token::BracketEnd => "]",
         Token::BracketStart => "[",
         Token::Caret => "^",
+        Token::Tilde => "~",
         Token::Digits(s) => s,
         Token::DoubleQuote => "\"",
         Token::Hash => "#",
@@ -74,6 +76,7 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
                 '[' => (Token::BracketStart, 1),
                 ']' => (Token::BracketEnd, 1),
                 '^' => (Token::Caret, 1),
+                '~' => (Token::Tilde, 1),
                 '"' => (Token::DoubleQuote, 1),
                 '#' => (Token::Hash, 1),
                 '-' => (Token::Hyphen, 1),
@@ -129,7 +132,7 @@ fn eat_text(input: &str) -> Result<(Token, usize)> {
 
 fn is_text(ch: char) -> bool {
     match ch {
-        '\n' | '[' | ']' | '_' | '*' | '`' | '^' | '"' | '|' | '#' => false,
+        '\n' | '[' | ']' | '_' | '*' | '`' | '^' | '~' | '"' | '|' | '#' => false,
         _ => true,
     }
 }

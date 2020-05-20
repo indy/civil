@@ -8,9 +8,9 @@ $ cd server && cargo run
 
 ## Client
 
+$ make wasm
 $ cd client && npm start
 
 ## Deploying
 
-$ make prod
 $ make upload

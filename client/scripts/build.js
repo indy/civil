@@ -143,8 +143,9 @@ function build(previousFileSizes) {
 }
 
 function copyPublicFolder() {
+  // isg: don't copy wasm file as a release version will be built separately
   fs.copySync(paths.appPublic, paths.appBuild, {
     dereference: true,
-    filter: file => file !== paths.appHtml,
+    filter: file => (file !== paths.appHtml) && (!file.endsWith("wasm")),
   });
 }
