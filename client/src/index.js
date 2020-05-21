@@ -20,9 +20,12 @@ wasm_bindgen('/wasm_bg.wasm')
     };
 
     Net.get("/api/users").then(user => {
-      ReactDOM.render(<App markup={ markup }
-                           user={ user }/>,
-                      document.getElementById('root'));
+      Net.get("/api/autocomplete").then(autocompleteDecks => {
+        ReactDOM.render(<App markup={ markup }
+                             autocompleteDecks={ autocompleteDecks }
+                             user={ user }/>,
+                        document.getElementById('root'));
+      });
     }, err => {
       ReactDOM.render(<App markup={ markup }/>,
                       document.getElementById('root'));

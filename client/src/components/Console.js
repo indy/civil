@@ -27,7 +27,6 @@ import html from 'react-inner-html';
 import { useStateValue } from '../lib/StateProvider';
 import { asShellBlock } from '../lib/reactUtils';
 import { Link, useHistory } from 'react-router-dom';
-import { ensureAC } from '../lib/utils';
 import Net from '../lib/Net';
 
 
@@ -39,8 +38,6 @@ export default function Console(props) {
   const [consoleRoot] = useState(React.createRef());
   const [consoleInput] = useState(React.createRef());
   const [showConsole, setShowConsole] = useState(false);
-
-  ensureAC(state, dispatch);
 
   const commands = {
     goto: {

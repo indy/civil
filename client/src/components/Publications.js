@@ -2,13 +2,11 @@ import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
 import ListingLink from './ListingLink';
 import { useStateValue } from '../lib/StateProvider';
-import { ensureAC } from '../lib/utils';
 import PublicationForm from './PublicationForm';
 
 export default function Publications() {
   const [state, dispatch] = useStateValue();
   let [showAddPublicationForm, setShowAddPublicationForm] = useState(false);
-  ensureAC(state, dispatch);
 
   useEffect(() => {
     async function fetcher() {

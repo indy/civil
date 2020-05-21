@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
 import ListingLink from './ListingLink';
 import { useStateValue } from '../lib/StateProvider';
-import {ensureAC} from '../lib/utils';
 import IdeaForm from './IdeaForm';
 
 let gKeyCounter = 0;
@@ -15,8 +14,6 @@ export default function Ideas() {
   let [showSingleRef, setShowSingleRef] = useState(false);
   let [showZeroRef, setShowZeroRef] = useState(false);
   let [showAll, setShowAll] = useState(false);
-
-  ensureAC(state, dispatch);
 
   useEffect(() => {
     async function fetcher() {

@@ -6,6 +6,8 @@ import {
   Switch
 } from 'react-router-dom';
 
+import Net from './lib/Net';
+
 import { initialState, reducer } from './AppState';
 import { useStateValue, StateProvider } from './lib/StateProvider';
 import { MarkupProvider } from './lib/MarkupProvider';
@@ -29,7 +31,7 @@ import Ideas from './components/Ideas';
 import Event from './components/Event';
 import Events from './components/Events';
 
-export default function App({ user, markup }) {
+export default function App({ user, markup, autocompleteDecks }) {
   let state = initialState;
 
   // update initial state with user
@@ -39,6 +41,14 @@ export default function App({ user, markup }) {
       type: 'setUser',
       user
     });
+
+    if (autocompleteDecks) {
+      console.log('populating autocomplete at startup');
+      state = reducer(state, {
+        type: 'loadAutocomplete',
+        decks: autocompleteDecks
+      });
+    }
   }
 
   let welcomes = ["Civil",
@@ -129,6 +139,14 @@ function AppUI(props) {
       type: 'setUser',
       user
     });
+
+    Net.get('/api/autocomplete').then(decks => {
+      dispatch({
+        type: 'loadAutocomplete',
+        decks
+      });
+    });
+
   }
 
   function logoutHandler() {

@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
 import ListingLink from './ListingLink';
 import { useStateValue } from '../lib/StateProvider';
-import { ensureAC } from '../lib/utils';
 import { era, filterBefore, filterAfter, filterBetween } from '../lib/eras';
 import PersonForm from './PersonForm';
 
 export default function People() {
   const [state, dispatch] = useStateValue();
   let [showAddPersonForm, setShowAddPersonForm] = useState(false);
-  ensureAC(state, dispatch);
 
   useEffect(() => {
     async function fetcher() {

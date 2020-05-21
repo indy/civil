@@ -1,5 +1,3 @@
-import Net from './Net';
-
 export function findPoint(points, title) {
   let p = points.find(p => p.title === title);
   if (p === undefined) {
@@ -25,17 +23,6 @@ export function applyDecksToNotes(obj) {
 
   return obj;
 }
-
-export function ensureAC(state, dispatch) {
-  if (!state.acLoaded) {
-    Net.get('/api/autocomplete').then(decks => {
-      dispatch({
-        type: 'loadAutocomplete',
-        decks
-      });
-    });
-  }
-};
 
 // given an array of decks, separate out all decks of a particular resource, returning 2 arrays
 function separateFromDecks(decks, resource) {

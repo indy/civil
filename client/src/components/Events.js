@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Net from '../lib/Net';
 import { useStateValue } from '../lib/StateProvider';
-import { ensureAC } from '../lib/utils';
 import { era, filterBefore, filterAfter, filterBetween, yearFrom } from '../lib/eras';
 import EventForm from './EventForm';
 import { Link } from 'react-router-dom';
@@ -9,7 +8,6 @@ import { Link } from 'react-router-dom';
 export default function Events() {
   const [state, dispatch] = useStateValue();
   let [showAddEventForm, setShowAddEventForm] = useState(false);
-  ensureAC(state, dispatch);
 
   useEffect(() => {
     async function fetcher() {
