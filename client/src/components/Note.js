@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useStateValue } from '../lib/StateProvider';
 import CreatableSelect from 'react-select/creatable';
 import ResourceLink from './ResourceLink';
 import Net from '../lib/Net';
@@ -9,6 +10,8 @@ export default function Note(props) {
   const [showModButtons, setShowModButtons] = useState(false);
   const [showAddDecksUI, setShowAddDecksUI] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+
+  const [state, dispatch] = useStateValue();
 
   const [note, setNote] = useState({
     content: props.note.content,
@@ -111,7 +114,7 @@ export default function Note(props) {
     };
 
     function commitAddDecks() {
-      addDecks(props.note, decks, props.onDecksChanged);
+      addDecks(props.note, decks, props.onDecksChanged, dispatch);
 
       setShowModButtons(false);
       setShowAddDecksUI(false);
@@ -126,7 +129,7 @@ export default function Note(props) {
           name="decks"
           value={ decks }
           onChange={ setDecks }
-          options={ props.ac.decks }
+          options={ state.ac.decks }
           className="basic-multi-select"
           classNamePrefix="select"
         />
@@ -256,8 +259,7 @@ function buildReadingContent(note, noteId, onShowButtonsClicked, decks, ideas) {
   );
 };
 
-
-function addDecks(propsNote, decks, onDecksChanged) {
+function addDecks(propsNote, decks, onDecksChanged, dispatch) {
   let data = {
     note_id: propsNote.id,
     existing_deck_ids: [],
@@ -281,6 +283,9 @@ function addDecks(propsNote, decks, onDecksChanged) {
   }
 
   Net.post("/api/edges/notes_decks", data).then((all_decks_for_note) => {
+    updateAutocompleteWithNewDecks(dispatch, data.new_deck_names, all_decks_for_note);
+
+    // todo: is this still required?
     let [ideas, decks] = separateIntoIdeasAndDecks(all_decks_for_note);
     const n = {
       ...propsNote,
@@ -291,6 +296,35 @@ function addDecks(propsNote, decks, onDecksChanged) {
     onDecksChanged(n);
   });
 }
+
+function updateAutocompleteWithNewDecks(dispatch, newDeckNames, allDecksForNote) {
+  let newDecks = [];
+
+  newDeckNames.forEach(name => {
+    // find the newly created deck in allDecksForNote
+    let deck = allDecksForNote.find(d => d.name === name);
+
+    // this deck has just been created, so it isn't in the state's autocomplete list
+    if (deck) {
+      newDecks.push({
+        id: deck.id,
+        resource: deck.resource,
+        label: deck.name,
+        value: deck.name,
+      });
+    } else {
+      console.error(`Expected a new deck called '${name}' to have been created by the server`);
+    }
+  });
+
+  if (newDecks.length > 0) {
+    dispatch({
+      type: 'addAutocompleteDecks',
+      newDecks
+    });
+  }
+}
+
 
 function hasNoteBeenModified(note, propsNote) {
   let contentChanged = note.content !== propsNote.content;

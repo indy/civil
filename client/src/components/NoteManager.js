@@ -8,8 +8,6 @@ export default function NoteManager(holder, setMsg) {
 
   ensureAC(state, dispatch);
 
-  const ac = state.ac;
-
   function findNoteWithId(id, modifyFn) {
     const notes = holder.notes;
     const index = notes.findIndex(n => n.id === id);
@@ -40,7 +38,6 @@ export default function NoteManager(holder, setMsg) {
     return (
       <Note key={ note.id }
             note={ note }
-            ac = { ac }
             onDelete={ onDeleteNote }
             onEdited={ onEditedNote }
             onDecksChanged={ onDecksChanged }

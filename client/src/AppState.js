@@ -120,19 +120,33 @@ export const reducer = (state, action) => {
       }
     };
   case 'addAutocompleteDeck':
-    let decks = state.ac.decks;
-    decks.push({
-      id: action.id,
-      value: action.value,
-      label: action.label
-    });
-    decks.sort((a, b) => a.value > b.value);
-    return {
-      ...state,
-      ac: {
-        decks: decks
-      }
-    };
+    {
+      let decks = state.ac.decks;
+      decks.push({
+        id: action.id,
+        value: action.value,
+        label: action.label
+      });
+      decks.sort((a, b) => a.value > b.value);
+      return {
+        ...state,
+        ac: {
+          decks: decks
+        }
+      };
+    }
+  case 'addAutocompleteDecks':
+    {
+      let decks = state.ac.decks;
+      action.newDecks.forEach(newDeck => decks.push(newDeck));
+      decks.sort((a, b) => a.value > b.value);
+      return {
+        ...state,
+        ac: {
+          decks: decks
+        }
+      };
+    }
   case 'setIdeas':
     return {
       ...state,
