@@ -17,7 +17,7 @@
 
 use crate::db::decks as db;
 use crate::error::Result;
-use crate::interop::decks::LinkBack;
+use crate::interop::decks::{LinkBack, Vertex};
 use crate::session;
 use actix_web::web::{self, Data};
 use actix_web::HttpResponse;
@@ -27,6 +27,12 @@ use serde::Deserialize;
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct ResultList {
     pub results: Vec<LinkBack>,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct GraphList {
+    // triplet of from_id, to_id, strength
+    pub results: Vec<i32>,
 }
 
 #[allow(unused_imports)]
@@ -69,5 +75,28 @@ pub async fn recent(
     let results = db::recent(&db_pool, user_id, &query.resource).await?;
 
     let res = ResultList { results };
+    Ok(HttpResponse::Ok().json(res))
+}
+
+pub async fn graph(
+    db_pool: Data<Pool>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    info!("graph");
+
+    let user_id = session::user_id(&session)?;
+
+    let results = db::graph(&db_pool, user_id).await?;
+
+    // it's silly to send over a json structure with a bunch of "from_id", "to_id" and "strength" string identifiers
+    // save some bandwidth and just send over the triples
+    let mut vs: Vec<i32> = vec![];
+    for r in results {
+        vs.push(r.from_id as i32);
+        vs.push(r.to_id as i32);
+        vs.push(r.strength as i32);
+    }
+
+    let res = GraphList { results: vs };
     Ok(HttpResponse::Ok().json(res))
 }

@@ -70,6 +70,24 @@ impl From<LinkBackToDeck> for interop::LinkBack {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
+pub struct Vertex {
+    pub from_id: Key,
+    pub to_id: Key,
+    pub strength: i32,
+}
+
+impl From<Vertex> for interop::Vertex {
+    fn from(v: Vertex) -> interop::Vertex {
+        interop::Vertex {
+            from_id: v.from_id,
+            to_id: v.to_id,
+            strength: v.strength as usize,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
+#[pg_mapper(table = "decks")]
 pub struct Deck {
     pub id: Key,
     pub kind: String,
@@ -150,6 +168,14 @@ pub(crate) async fn recent(
     let stmt = stmt.replace("$limit", &limit.to_string());
 
     pg::many_from::<LinkBackToDeck, interop::LinkBack>(db_pool, &stmt, &[&user_id]).await
+}
+
+pub(crate) async fn graph(
+    db_pool: &Pool,
+    user_id: Key,
+) -> Result<Vec<interop::Vertex>> {
+    let stmt = include_str!("sql/graph.sql");
+    pg::many_from::<Vertex, interop::Vertex>(db_pool, &stmt, &[&user_id]).await
 }
 
 // delete anything that's represented as a deck (publication, person, event)

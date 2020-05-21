@@ -35,3 +35,10 @@ pub struct LinkBack {
     pub name: String,
     pub resource: String,
 }
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct Vertex {
+    pub from_id: Key,
+    pub to_id: Key,
+    pub strength: usize,
+}
