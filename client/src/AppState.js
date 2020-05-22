@@ -19,9 +19,18 @@ export const initialState = {
 
   acLoaded: false,
   ac: {
+    // an array of { id, name, label } objects (having both name and label is redundent)
     decks: []
   },
+  // an array based on ac.decks which is indexed by id
+  deckLabels: [],
 
+  fullGraphLoaded: false,
+  fullGraph: [],
+
+
+  // caching (redo this)
+  //
   ideasLoaded: false,
   ideas: [],                  // when listing ideas on /ideas page
   idea: {},                   // an object where keys are the idea ids, values are the ideas
@@ -117,7 +126,8 @@ export const reducer = (state, action) => {
       acLoaded: true,
       ac: {
         decks: action.decks
-      }
+      },
+      deckLabels: buildDeckLabels(action.decks)
     };
   case 'addAutocompleteDeck':
     {
@@ -147,6 +157,12 @@ export const reducer = (state, action) => {
         }
       };
     }
+  case 'loadFullGraph':
+    return {
+      ...state,
+      fullGraphLoaded: true,
+      fullGraph: buildFullGraph(action.graphConnections)
+    };
   case 'setIdeas':
     return {
       ...state,
@@ -238,4 +254,31 @@ function updateListOfNames(arr, obj) {
     // this is a new entry, place it at the start of the list
     arr.unshift({id: obj.id, name: obj.name});
   }
+}
+
+function buildFullGraph(graphConnections) {
+  let res = {};
+
+  for (let i = 0; i < graphConnections.length; i += 3) {
+    let fromDeck = graphConnections[i + 0];
+    let toDeck = graphConnections[i + 1];
+    let strength = graphConnections[i + 2];
+
+    if (!res[fromDeck]) {
+      res[fromDeck] = [];
+    }
+    res[fromDeck].push([toDeck, strength]);
+  }
+
+  return res;
+}
+
+function buildDeckLabels(decks) {
+  let res = [];
+
+  decks.forEach(d => {
+    res[d.id] = d.label;
+  });
+
+  return res;
 }

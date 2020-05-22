@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Net from '../lib/Net';
-import { applyDecksToNotes } from '../lib/utils';
+import { applyDecksToNotes, buildConnectivity } from '../lib/utils';
 import { addChronologicalSortYear } from '../lib/eras';
 import { useStateValue } from '../lib/StateProvider';
 
@@ -18,6 +18,14 @@ export function ensureCorrectDeck(resource, id, isLoaded, setMsg) {
     // (where $NOTE_HOLDER is the same type)
     //
     setCurrentId(id);
+
+    let connectionSet = buildConnectivity(state.fullGraph, id, 3);
+    let connectionCount = 0;
+    for (let [from, to] of connectionSet) {
+      console.log(`(${from}) ${state.deckLabels[from]} -> (${to}) ${state.deckLabels[to]}`);
+      connectionCount++;
+    }
+    console.log(`${connectionCount} connections`);
 
     if(!isLoaded(id)) {
       // fetch resource from the server

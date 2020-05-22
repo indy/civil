@@ -15,16 +15,6 @@ export default function Search() {
     const url = `/api/cmd/search?q=${encodeURI(searchTerm)}`;
     const searchResponse = await Net.get(url);
 
-    const graphResponse = await Net.get('/api/cmd/graph');
-    console.log(graphResponse);
-
-    // let res1 = "";
-    // let res2 = "";
-    // state.ac.decks.forEach(ac => res1 += `{ id: ${ac.id}, label: "${ac.label}" }, `);
-    // graphResponse.results.forEach(g => res2 += `{ from: ${g.from_id}, to: ${g.to_id} }, `);
-    // console.log(res1);
-    // console.log(res2);
-
     if (searchResponse.results) {
       setLocalState({
         ...localState,

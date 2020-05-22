@@ -31,7 +31,7 @@ import Ideas from './components/Ideas';
 import Event from './components/Event';
 import Events from './components/Events';
 
-export default function App({ user, markup, autocompleteDecks }) {
+export default function App({ user, markup, autocompleteDecks, graphConnections }) {
   let state = initialState;
 
   // update initial state with user
@@ -47,6 +47,13 @@ export default function App({ user, markup, autocompleteDecks }) {
       state = reducer(state, {
         type: 'loadAutocomplete',
         decks: autocompleteDecks
+      });
+    }
+
+    if (graphConnections) {
+      state = reducer(state, {
+        type: 'loadFullGraph',
+        graphConnections
       });
     }
   }
@@ -144,6 +151,13 @@ function AppUI(props) {
       dispatch({
         type: 'loadAutocomplete',
         decks
+      });
+    });
+
+    Net.get('/api/cmd/graph').then(graphResponse => {
+      dispatch({
+        type: 'loadConnectivity',
+        connectivity: graphResponse.results
       });
     });
 

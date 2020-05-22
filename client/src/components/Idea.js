@@ -10,15 +10,15 @@ import DeckControls from './DeckControls';
 import { ensureCorrectDeck } from './EnsureCorrectDeck';
 
 export default function Idea(props) {
+  const resource = "ideas";
+  const setMsg = "setIdea";
+
   const [state] = useStateValue();
   const ideaId = idParam();
   const idea = state.idea[ideaId] || { id: ideaId };
   const ideaForm = <IdeaForm idea={ idea } setMsg="setIdea"/>;
 
-  const resource = "ideas";
-  const setMsg = "setIdea";
-
-  ensureCorrectDeck(resource, idea.id, id => state.idea[id], setMsg);
+  ensureCorrectDeck(resource, idea.id, id => state.idea[id], setMsg);   // 2 redraws here
   const deckControls = DeckControls({
     holder: idea,
     setMsg,

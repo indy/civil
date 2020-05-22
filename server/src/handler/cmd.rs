@@ -17,7 +17,7 @@
 
 use crate::db::decks as db;
 use crate::error::Result;
-use crate::interop::decks::{LinkBack, Vertex};
+use crate::interop::decks::LinkBack;
 use crate::session;
 use actix_web::web::{self, Data};
 use actix_web::HttpResponse;
