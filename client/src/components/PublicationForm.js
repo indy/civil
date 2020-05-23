@@ -5,7 +5,7 @@ import { removeEmptyStrings } from '../lib/JsUtils';
 import Net from '../lib/Net';
 import { useStateValue } from '../lib/StateProvider';
 
-export default function PublicationForm({ publication, setMsg }) {
+export default function PublicationForm({ publication, editing }) {
   publication = publication || {};
   const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(publication.title || '');
@@ -49,11 +49,11 @@ export default function PublicationForm({ publication, setMsg }) {
       source: source.trim()
     }, ["source"]);
 
-    if(setMsg) {
+    if (editing) {
       // edit an existing publication
       Net.put(`/api/publications/${publication.id}`, data).then(newItem => {
         dispatch({
-          type: setMsg,
+          type: 'cacheDeck',
           id: publication.id,
           newItem
         });
@@ -105,7 +105,7 @@ export default function PublicationForm({ publication, setMsg }) {
                value={ author }
                onChange={ handleChangeEvent } />
         <br/>
-        <input type="submit" value={ setMsg ? "Update Publication" : "Create Publication"}/>
+        <input type="submit" value={ editing ? "Update Publication" : "Create Publication"}/>
       </form>
     );
   }

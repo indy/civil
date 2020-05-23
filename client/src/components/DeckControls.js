@@ -11,7 +11,7 @@ import { addChronologicalSortYear } from '../lib/eras';
 import { useStateValue } from '../lib/StateProvider';
 import { useMarkupValue } from '../lib/MarkupProvider';
 
-export default function DeckControls({ holder, setMsg, title, resource, updateForm }) {
+export default function DeckControls({ holder, title, resource, updateForm }) {
   // UNCOMMENT to enable deleting
   // let history = useHistory();
 
@@ -74,7 +74,7 @@ export default function DeckControls({ holder, setMsg, title, resource, updateFo
             notes.push(n);
           });
 
-          setHolder(dispatch, {...holder, notes}, setMsg);
+          setHolder(dispatch, {...holder, notes});
           setShowNoteForm(false);
           setShowUpdateForm(false);
         });
@@ -90,7 +90,7 @@ export default function DeckControls({ holder, setMsg, title, resource, updateFo
       const url = `/api/${resource}/${holder.id}/points`;
       Net.post(url, point).then(updatedHolder => {
         sortPoints(updatedHolder);
-        setHolder(dispatch, updatedHolder, setMsg);
+        setHolder(dispatch, updatedHolder);
         setShowPointForm(false);
       });
     };
@@ -160,9 +160,9 @@ function addNote(form, deck_id, markup) {
   return Net.post("/api/notes", data);
 }
 
-function setHolder(dispatch, holder, setMsg) {
+function setHolder(dispatch, holder) {
   dispatch({
-    type: setMsg,
+    type: 'cacheDeck',
     id: holder.id,
     newItem: holder
   });

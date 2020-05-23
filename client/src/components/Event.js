@@ -12,12 +12,13 @@ import { useStateValue } from '../lib/StateProvider';
 import { ensureCorrectDeck } from './EnsureCorrectDeck';
 
 export default function Event(props) {
+  const resource = "events";
   const [state, dispatch] = useStateValue();
   const [showPrimeForm, setShowPrimeForm] = useState(false);
 
   const eventId = idParam();
-  const event = state.event[eventId] || { id: eventId };
-  const eventForm = <EventForm event={ event } setMsg="setEvent" />;
+  const event = state.cache.deck[eventId] || { id: eventId };
+  const eventForm = <EventForm event={ event } editing />;
 
   function onShowPrimeForm() {
     setShowPrimeForm(!showPrimeForm);
@@ -53,19 +54,16 @@ export default function Event(props) {
     return (<PointForm readOnlyTitle point={ point } onSubmit={ onAddPrimePoint } submitMessage="Create Point"/>);
   }
 
-  const resource = "events";
-  const setMsg = "setEvent";
+  ensureCorrectDeck(resource, event.id);
 
-  ensureCorrectDeck(resource, event.id, id => state.event[id], setMsg);
   const deckControls = DeckControls({
     holder: event,
-    setMsg,
     title: event.title,
     resource,
     updateForm: eventForm
   });
 
-  const notes = NoteManager(event, setMsg);
+  const notes = NoteManager(event);
 
 
   return (

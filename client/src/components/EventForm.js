@@ -4,7 +4,7 @@ import { Redirect } from 'react-router-dom';
 import Net from '../lib/Net';
 import { useStateValue } from '../lib/StateProvider';
 
-export default function EventForm({event, setMsg}) {
+export default function EventForm({event, editing}) {
   event = event || {};
   const [state, dispatch] = useStateValue();
 
@@ -44,11 +44,11 @@ export default function EventForm({event, setMsg}) {
       title: localState.title.trim()
     };
 
-    if(setMsg) {
+    if (editing) {
       // edit an existing event
       Net.put(`/api/events/${event.id}`, data).then(newItem => {
         dispatch({
-          type: setMsg,
+          type: 'cacheDeck',
           id: event.id,
           newItem
         });
@@ -92,7 +92,7 @@ export default function EventForm({event, setMsg}) {
                autoComplete="off"
                onChange={ handleChangeEvent } />
         <br/>
-        <input type="submit" value={ setMsg ? "Update Event" : "Create Event"}/>
+        <input type="submit" value={ editing ? "Update Event" : "Create Event"}/>
       </form>
     );
   }

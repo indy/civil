@@ -13,12 +13,13 @@ import { ensureCorrectDeck } from './EnsureCorrectDeck';
 import ListDeckPoints from './ListDeckPoints';
 
 export default function Person(props) {
+  const resource = "people";
   const [state, dispatch] = useStateValue();
   const [showBirthForm, setShowBirthForm] = useState(false);
 
   const person_id = idParam();
-  const person = state.person[person_id] || { id: person_id };
-  const personForm = <PersonForm person={person} setMsg="setPerson" />;
+  const person = state.cache.deck[person_id] || { id: person_id };
+  const personForm = <PersonForm person={person} editing />;
 
   function onShowBirthForm() {
     setShowBirthForm(!showBirthForm);
@@ -55,19 +56,17 @@ export default function Person(props) {
     return (<PointForm readOnlyTitle point={ point } onSubmit={ onAddBirthPoint } submitMessage="Create Birth Point"/>);
   }
 
-  const resource = "people";
-  const setMsg = "setPerson";
 
-  ensureCorrectDeck(resource, person.id, id => state.person[id], setMsg);
+  ensureCorrectDeck(resource, person.id);
+
   const deckControls = DeckControls({
     holder: person,
-    setMsg,
     title: person.name,
     resource,
     updateForm: personForm
   });
 
-  const notes = NoteManager(person, setMsg);
+  const notes = NoteManager(person);
 
   return (
     <article>

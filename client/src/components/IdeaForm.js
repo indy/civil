@@ -4,7 +4,7 @@ import { Redirect } from 'react-router-dom';
 import Net from '../lib/Net';
 import { useStateValue } from '../lib/StateProvider';
 
-export default function IdeaForm({ idea, setMsg }) {
+export default function IdeaForm({ idea, editing }) {
   idea = idea || {};
   const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(idea.title || '');
@@ -33,11 +33,11 @@ export default function IdeaForm({ idea, setMsg }) {
       title: title.trim()
     };
 
-    if(setMsg) {
+    if (editing) {
       // edit an existing idea
       Net.put(`/api/ideas/${idea.id}`, data).then(newItem => {
         dispatch({
-          type: setMsg,
+          type: "cacheDeck",
           id: idea.id,
           newItem
         });
@@ -77,7 +77,7 @@ export default function IdeaForm({ idea, setMsg }) {
                value={ title }
                onChange={ handleChangeEvent } />
         <br/>
-        <input type="submit" value={ setMsg ? "Update Idea" : "Create Idea"}/>
+        <input type="submit" value={ editing ? "Update Idea" : "Create Idea"}/>
       </form>
     );
   }

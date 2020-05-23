@@ -28,24 +28,20 @@ export const initialState = {
   fullGraphLoaded: false,
   fullGraph: [],
 
+  cache: {
+    deck: {}
+  },
 
   // caching (redo this)
   //
   ideasLoaded: false,
   ideas: [],                  // when listing ideas on /ideas page
-  idea: {},                   // an object where keys are the idea ids, values are the ideas
-
   publicationsLoaded: false,
   publications: [],
-  publication: {},
-
   peopleLoaded: false,
   people: [],
-  person: {},
-
   eventsLoaded: false,
   events: [],
-  event: {}
 };
 
 export const reducer = (state, action) => {
@@ -165,6 +161,17 @@ export const reducer = (state, action) => {
         fullGraph: buildFullGraph(action.graphConnections)
       };
     }
+
+  case 'setCurrentDeckId': {
+    return state;
+  }
+  case 'cacheDeck':
+    {
+      let newState = { ...state };
+      //      updateListOfTitles(newState.ideas, action.newItem);
+      newState.cache.deck[action.id] = action.newItem;
+      return newState;
+    }
   case 'setIdeas':
     return {
       ...state,
@@ -278,31 +285,6 @@ function buildFullGraph(graphConnections) {
   }
 
   return res;
-}
-
-
-function buildFullGraphold(graphConnections) {
-  let outgoingRes = {};
-  let incomingRes = {};
-
-  for (let i = 0; i < graphConnections.length; i += 3) {
-    let fromDeck = graphConnections[i + 0];
-    let toDeck = graphConnections[i + 1];
-    let strength = graphConnections[i + 2];
-
-    if (!outgoingRes[fromDeck]) {
-      outgoingRes[fromDeck] = [];
-    }
-    outgoingRes[fromDeck].push([toDeck, strength]);
-
-    if (!incomingRes[toDeck]) {
-      incomingRes[toDeck] = [];
-    }
-    incomingRes[toDeck].push([fromDeck, strength]);
-
-  }
-
-  return [outgoingRes, incomingRes];
 }
 
 function buildDeckLabels(decks) {

@@ -2,7 +2,7 @@ import React from 'react';
 import { useStateValue } from '../lib/StateProvider';
 import Note from './Note';
 
-export default function NoteManager(holder, setMsg) {
+export default function NoteManager(holder) {
   const [state, dispatch] = useStateValue();
 
   if (state) {}                 // use state somehow just to avoid a jslint warning
@@ -12,7 +12,7 @@ export default function NoteManager(holder, setMsg) {
     const index = notes.findIndex(n => n.id === id);
 
     modifyFn(notes, index);
-    setHolder(dispatch, {...holder, notes}, setMsg);
+    setHolder(dispatch, {...holder, notes});
   };
 
   function onEditedNote(id, data) {
@@ -53,9 +53,9 @@ export default function NoteManager(holder, setMsg) {
   );
 }
 
-function setHolder(dispatch, holder, setMsg) {
+function setHolder(dispatch, holder) {
   dispatch({
-    type: setMsg,
+    type: 'cacheDeck',
     id: holder.id,
     newItem: holder
   });

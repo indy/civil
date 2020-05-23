@@ -4,7 +4,7 @@ import { Redirect } from 'react-router-dom';
 import Net from '../lib/Net';
 import { useStateValue } from '../lib/StateProvider';
 
-export default function PersonForm({ person, setMsg }) {
+export default function PersonForm({ person, editing }) {
   person = person || {};
   const [state, dispatch] = useStateValue();
 
@@ -46,11 +46,11 @@ export default function PersonForm({ person, setMsg }) {
     // if (true) {
     //   console.log(data);
     // } else
-    if(setMsg) {
+    if (editing) {
       // edit an existing person
       Net.put(`/api/people/${person.id}`, data).then(newItem => {
         dispatch({
-          type: setMsg,
+          type: 'cacheDeck',
           id: person.id,
           newItem
         });
@@ -93,7 +93,7 @@ export default function PersonForm({ person, setMsg }) {
                autoComplete="off"
                onChange={ handleChangeEvent } />
         <br/>
-        <input type="submit" value={ setMsg ? "Update Person" : "Create Person"}/>
+        <input type="submit" value={ editing ? "Update Person" : "Create Person"}/>
       </form>
     );
   }

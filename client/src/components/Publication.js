@@ -9,28 +9,26 @@ import DeckControls from './DeckControls';
 import { ensureCorrectDeck } from './EnsureCorrectDeck';
 
 export default function Publication(props) {
+  const resource = "publications";
   const [state] = useStateValue();
+
   const publicationId = idParam();
-  const publication = state.publication[publicationId] || { id: publicationId };
-  const publicationForm = <PublicationForm publication={publication} setMsg="setPublication" />;
+  const publication = state.cache.deck[publicationId] || { id: publicationId };
+  const publicationForm = <PublicationForm publication={publication} editing />;
 
   let authorHeading = <p className="subtitle">{ publication.author }</p>;
   let sourceHeading = <p className="subtitle">Source: <a href={ publication.source }>{ publication.source }</a></p>;
 
-  const resource = "publications";
-  const setMsg = "setPublication";
-
-  ensureCorrectDeck(resource, publication.id, id => state.publication[id], setMsg);
+  ensureCorrectDeck(resource, publication.id);
 
   const deckControls = DeckControls({
     holder: publication,
-    setMsg,
     title: publication.title,
     resource,
     updateForm: publicationForm
   });
 
-  const notes = NoteManager(publication, setMsg);
+  const notes = NoteManager(publication);
 
   return (
     <article>

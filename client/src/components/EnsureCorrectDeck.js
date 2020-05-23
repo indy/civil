@@ -4,12 +4,8 @@ import { applyDecksToNotes, buildConnectivity } from '../lib/utils';
 import { addChronologicalSortYear } from '../lib/eras';
 import { useStateValue } from '../lib/StateProvider';
 
-export function ensureCorrectDeck(resource, id, isLoaded, setMsg) {
+export function ensureCorrectDeck(resource, id) {
   const [state, dispatch] = useStateValue();
-  if (state.dummy) {
-    // just to stop the build tool from complaining about unused state
-  }
-
   const [currentId, setCurrentId] = useState(false);
 
   if (id !== currentId) {
@@ -17,8 +13,10 @@ export function ensureCorrectDeck(resource, id, isLoaded, setMsg) {
     // and follow a Link to another /$NOTE_HOLDER/:id
     // (where $NOTE_HOLDER is the same type)
     //
-    setCurrentId(id);
 
+    console.log('setCurrentId');
+    setCurrentId(id);
+/*
     let resEdges = "";
     let usedSet = new Set();
     let connectionSet = buildConnectivity(state.fullGraph, id, 2);
@@ -43,15 +41,16 @@ export function ensureCorrectDeck(resource, id, isLoaded, setMsg) {
 
     // console.log(resLabels);
     // console.log(resEdges);
-
-    if(!isLoaded(id)) {
+*/
+    if(!state.cache.deck[id]) {
       // fetch resource from the server
       const url = `/api/${resource}/${id}`;
       Net.get(url).then(s => {
         if (s) {
           let updatedHolder = applyDecksToNotes(s);
           sortPoints(updatedHolder);
-          setHolder(dispatch, updatedHolder, setMsg);
+          console.log('setHolder');
+          setHolder(dispatch, updatedHolder);
         } else {
           console.error(`error: fetchDeck for ${url}`);
         }
@@ -60,14 +59,13 @@ export function ensureCorrectDeck(resource, id, isLoaded, setMsg) {
   }
 };
 
-function setHolder(dispatch, holder, setMsg) {
+function setHolder(dispatch, holder) {
   dispatch({
-    type: setMsg,
+    type: 'cacheDeck',
     id: holder.id,
     newItem: holder
   });
 }
-
 
 function sortPoints(holder) {
   if (holder.points) {

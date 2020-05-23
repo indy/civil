@@ -11,23 +11,24 @@ import { ensureCorrectDeck } from './EnsureCorrectDeck';
 
 export default function Idea(props) {
   const resource = "ideas";
-  const setMsg = "setIdea";
-
   const [state] = useStateValue();
-  const ideaId = idParam();
-  const idea = state.idea[ideaId] || { id: ideaId };
-  const ideaForm = <IdeaForm idea={ idea } setMsg="setIdea"/>;
 
-  ensureCorrectDeck(resource, idea.id, id => state.idea[id], setMsg);   // 2 redraws here
+  const id = idParam();
+  const idea = state.cache.deck[id] || { id: id };
+  const ideaForm = <IdeaForm idea={ idea } editing />;
+
+  ensureCorrectDeck(resource, idea.id);   // 2 redraws here
+
   const deckControls = DeckControls({
     holder: idea,
-    setMsg,
     title: idea.title,
     resource,
     updateForm: ideaForm
   });
 
-  const notes = NoteManager(idea, setMsg);
+  const notes = NoteManager(idea);
+
+  console.log(`${Math.random()}`);
 
   return (
     <article>
