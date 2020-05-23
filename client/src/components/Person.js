@@ -7,26 +7,30 @@ import PersonForm from './PersonForm';
 import PointForm from './PointForm';
 import { idParam } from '../lib/reactUtils';
 import { useStateValue } from '../lib/StateProvider';
-import NoteManager from './NoteManager';
-import DeckControls from './DeckControls';
-import { ensureCorrectDeck } from './EnsureCorrectDeck';
+import DeckManager from './DeckManager';
 import ListDeckPoints from './ListDeckPoints';
 
 export default function Person(props) {
-  const resource = "people";
   const [state, dispatch] = useStateValue();
   const [showBirthForm, setShowBirthForm] = useState(false);
 
   const person_id = idParam();
   const person = state.cache.deck[person_id] || { id: person_id };
-  const personForm = <PersonForm person={person} editing />;
+
+  const deckManager = DeckManager({
+    deck: person,
+    title: person.name,
+    resource: "people",
+    updateForm: <PersonForm person={person} editing />
+  });
 
   function onShowBirthForm() {
     setShowBirthForm(!showBirthForm);
   }
 
   function showAddBirthPointMessage() {
-    return (<p className="fakelink" onClick={ onShowBirthForm }>You should add a birth point for this person</p>);
+    return (<p className="fakelink"
+               onClick={ onShowBirthForm }>You should add a birth point for this person</p>);
   }
 
   function onAddBirthPoint(point) {
@@ -53,33 +57,23 @@ export default function Person(props) {
     let point = {
       title: 'Born'
     };
-    return (<PointForm readOnlyTitle point={ point } onSubmit={ onAddBirthPoint } submitMessage="Create Birth Point"/>);
+    return (<PointForm readOnlyTitle point={ point }
+                       onSubmit={ onAddBirthPoint }
+                       submitMessage="Create Birth Point"/>);
   }
-
-
-  ensureCorrectDeck(resource, person.id);
-
-  const deckControls = DeckControls({
-    holder: person,
-    title: person.name,
-    resource,
-    updateForm: personForm
-  });
-
-  const notes = NoteManager(person);
 
   return (
     <article>
-      { deckControls.title }
-      { deckControls.buttons }
-      { deckControls.noteForm }
-      { deckControls.pointForm }
-      { deckControls.updateForm }
+      { deckManager.title }
+      { deckManager.buttons }
+      { deckManager.noteForm }
+      { deckManager.pointForm }
+      { deckManager.updateForm }
 
       { hasNoBirthPoint(person) && showAddBirthPointMessage() }
       { showBirthForm && birthForm() }
 
-      { notes }
+      { deckManager.notes }
       <SectionLinkBack linkbacks={ person.linkbacks_to_decks }/>
       <ListDeckPoints deckPoints={ person.all_points_during_life }
                       holderId={ person.id }
@@ -87,11 +81,6 @@ export default function Person(props) {
     </article>
   );
 }
-//       { person.points && showPoints(person.points, resource) }
-
-// function showPoints(points, resource) {
-//   return points.map(p => <Point key={ p.id} point={ p } parentResource={ resource }/>);
-// }
 
 function hasNoBirthPoint(person) {
   function hasBirthPoint(point) {

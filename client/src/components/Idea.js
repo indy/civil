@@ -5,38 +5,30 @@ import { idParam } from '../lib/reactUtils';
 import { useStateValue } from '../lib/StateProvider';
 import SectionLinkBack from './SectionLinkBack';
 import SectionSearchResultsLinkBack from './SectionSearchResultsLinkBack';
-import NoteManager from './NoteManager';
-import DeckControls from './DeckControls';
-import { ensureCorrectDeck } from './EnsureCorrectDeck';
+import DeckManager from './DeckManager';
 
 export default function Idea(props) {
-  const resource = "ideas";
   const [state] = useStateValue();
 
   const id = idParam();
   const idea = state.cache.deck[id] || { id: id };
-  const ideaForm = <IdeaForm idea={ idea } editing />;
 
-  ensureCorrectDeck(resource, idea.id);   // 2 redraws here
-
-  const deckControls = DeckControls({
-    holder: idea,
+  const deckManager = DeckManager({
+    deck: idea,
     title: idea.title,
-    resource,
-    updateForm: ideaForm
+    resource: "ideas",
+    updateForm: <IdeaForm idea={ idea } editing />
   });
-
-  const notes = NoteManager(idea);
 
   console.log(`${Math.random()}`);
 
   return (
     <article>
-      { deckControls.title }
-      { deckControls.buttons }
-      { deckControls.noteForm }
-      { deckControls.updateForm }
-      { notes }
+      { deckManager.title }
+      { deckManager.buttons }
+      { deckManager.noteForm }
+      { deckManager.updateForm }
+      { deckManager.notes }
       <SectionLinkBack linkbacks={ idea.linkbacks_to_decks }/>
       <SectionSearchResultsLinkBack linkbacks={ idea.search_results }/>
     </article>

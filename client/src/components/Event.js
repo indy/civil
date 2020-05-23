@@ -1,24 +1,27 @@
 import React, { useState } from 'react';
 
-import DeckControls from './DeckControls';
+import DeckManager from './DeckManager';
 import EventForm from './EventForm';
 import Net from '../lib/Net';
-import NoteManager from './NoteManager';
 import Point from './Point';
 import PointForm from './PointForm';
 import SectionLinkBack from './SectionLinkBack';
 import { idParam } from '../lib/reactUtils';
 import { useStateValue } from '../lib/StateProvider';
-import { ensureCorrectDeck } from './EnsureCorrectDeck';
 
 export default function Event(props) {
-  const resource = "events";
   const [state, dispatch] = useStateValue();
   const [showPrimeForm, setShowPrimeForm] = useState(false);
 
   const eventId = idParam();
   const event = state.cache.deck[eventId] || { id: eventId };
-  const eventForm = <EventForm event={ event } editing />;
+
+  const deckManager = DeckManager({
+    deck: event,
+    title: event.title,
+    resource: "events",
+    updateForm: <EventForm event={ event } editing />
+  });
 
   function onShowPrimeForm() {
     setShowPrimeForm(!showPrimeForm);
@@ -54,36 +57,24 @@ export default function Event(props) {
     return (<PointForm readOnlyTitle point={ point } onSubmit={ onAddPrimePoint } submitMessage="Create Point"/>);
   }
 
-  ensureCorrectDeck(resource, event.id);
-
-  const deckControls = DeckControls({
-    holder: event,
-    title: event.title,
-    resource,
-    updateForm: eventForm
-  });
-
-  const notes = NoteManager(event);
-
-
   return (
     <article>
-      { deckControls.title }
-      { deckControls.buttons }
-      { deckControls.noteForm }
-      { deckControls.pointForm }
-      { deckControls.updateForm }
+      { deckManager.title }
+      { deckManager.buttons }
+      { deckManager.noteForm }
+      { deckManager.pointForm }
+      { deckManager.updateForm }
       { hasNoPrimePoint(event) && showAddPrimePointMessage() }
       { showPrimeForm && primeForm() }
-      { event.points && showPoints(event.points, resource) }
-      { notes }
+      { event.points && showPoints(event.points) }
+      { deckManager.notes }
       <SectionLinkBack linkbacks={ event.linkbacks_to_decks }/>
     </article>
   );
 }
 
-function showPoints(points, resource) {
-  return points.map(p => <Point key={ p.id} point={ p } parentResource={ resource }/>);
+function showPoints(points) {
+  return points.map(p => <Point key={ p.id} point={ p } parentResource="events"/>);
 }
 
 function hasNoPrimePoint(event) {

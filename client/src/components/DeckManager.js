@@ -11,8 +11,10 @@ import { removeEmptyStrings } from '../lib/JsUtils';
 import { addChronologicalSortYear } from '../lib/eras';
 import { useStateValue } from '../lib/StateProvider';
 import { useMarkupValue } from '../lib/MarkupProvider';
+import NoteManager from './NoteManager';
+import { ensureCorrectDeck } from './EnsureCorrectDeck';
 
-export default function DeckControls({ holder, title, resource, updateForm }) {
+export default function DeckManager({ deck, title, resource, updateForm }) {
   // UNCOMMENT to enable deleting
   // let history = useHistory();
 
@@ -20,6 +22,8 @@ export default function DeckControls({ holder, title, resource, updateForm }) {
   if (state.dummy) {
     // just to stop the build tool from complaining about unused state
   }
+
+  ensureCorrectDeck(resource, deck.id);   // 2 redraws here
 
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteForm, setShowNoteForm] = useState(false);
@@ -50,7 +54,7 @@ export default function DeckControls({ holder, title, resource, updateForm }) {
       //   history.push(`/${resource}`);
       // });
 
-      alert("delete logic has been commented out of DeckControls.js, re-enable if that's what you _REALLY_ want to do");
+      alert("delete logic has been commented out of DeckManager.js, re-enable if that's what you _REALLY_ want to do");
 
       e.preventDefault();
     };
@@ -58,24 +62,29 @@ export default function DeckControls({ holder, title, resource, updateForm }) {
     return (
       <div>
         <button onClick={ onAddNoteClicked }>Add Note...</button>
-        { holder.points && <button onClick={ onAddPointClicked }>Add Point...</button> }
+        { deck.points && <button onClick={ onAddPointClicked }>Add Point...</button> }
         <button onClick={ onEditParentClicked }>Edit...</button>
         <button onClick={ onDeleteParentClicked }>Delete...</button>
       </div>
     );
   };
 
+  // helper fn that can be passed into the NoteManager without exposing cacheDeck or dispatch
+  function cacheDeckFn(deck) {
+    cacheDeck(dispatch, deck);
+  }
+
   function buildNoteForm(markup) {
     function onAddNote(e) {
       const noteForm = e.target;
-      addNote(noteForm, holder.id, markup)
+      addNote(noteForm, deck.id, markup)
         .then(newNotes => {
-          const notes = holder.notes;
+          const notes = deck.notes;
           newNotes.forEach(n => {
             notes.push(n);
           });
 
-          cacheDeck(dispatch, {...holder, notes});
+          cacheDeckFn({...deck, notes});
           setShowNoteForm(false);
           setShowUpdateForm(false);
         });
@@ -88,10 +97,10 @@ export default function DeckControls({ holder, title, resource, updateForm }) {
 
   function buildPointForm() {
     function onAddPoint(point) {
-      const url = `/api/${resource}/${holder.id}/points`;
+      const url = `/api/${resource}/${deck.id}/points`;
       Net.post(url, point).then(updatedDeck => {
         sortPoints(updatedDeck);
-        cacheDeck(dispatch, updatedDeck);
+        cacheDeckFn(updatedDeck);
         setShowPointForm(false);
       });
     };
@@ -131,12 +140,14 @@ export default function DeckControls({ holder, title, resource, updateForm }) {
     res.updateForm = showUpdate();
   }
 
+  res.notes = NoteManager(deck, cacheDeckFn);
+
   return res;
 }
 
-function sortPoints(holder) {
-  if (holder.points) {
-    holder.points = holder.points
+function sortPoints(deck) {
+  if (deck.points) {
+    deck.points = deck.points
         .map(addChronologicalSortYear)
         .sort((a, b) => a.sort_year > b.sort_year);
   }

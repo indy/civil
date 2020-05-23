@@ -1,19 +1,13 @@
 import React from 'react';
-import { useStateValue } from '../lib/StateProvider';
-import { cacheDeck } from '../lib/utils';
 import Note from './Note';
 
-export default function NoteManager(holder) {
-  const [state, dispatch] = useStateValue();
-
-  if (state) {}                 // use state somehow just to avoid a jslint warning
-
+export default function NoteManager(holder, cacheDeckFn) {
   function findNoteWithId(id, modifyFn) {
     const notes = holder.notes;
     const index = notes.findIndex(n => n.id === id);
 
     modifyFn(notes, index);
-    cacheDeck(dispatch, {...holder, notes});
+    cacheDeckFn({...holder, notes});
   };
 
   function onEditedNote(id, data) {
