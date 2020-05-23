@@ -158,11 +158,13 @@ export const reducer = (state, action) => {
       };
     }
   case 'loadFullGraph':
-    return {
-      ...state,
-      fullGraphLoaded: true,
-      fullGraph: buildFullGraph(action.graphConnections)
-    };
+    {
+      return {
+        ...state,
+        fullGraphLoaded: true,
+        fullGraph: buildFullGraph(action.graphConnections)
+      };
+    }
   case 'setIdeas':
     return {
       ...state,
@@ -262,15 +264,45 @@ function buildFullGraph(graphConnections) {
   for (let i = 0; i < graphConnections.length; i += 3) {
     let fromDeck = graphConnections[i + 0];
     let toDeck = graphConnections[i + 1];
-    let strength = graphConnections[i + 2];
+    // let strength = graphConnections[i + 2];
 
     if (!res[fromDeck]) {
-      res[fromDeck] = [];
+      res[fromDeck] = new Set();
     }
-    res[fromDeck].push([toDeck, strength]);
+    res[fromDeck].add(toDeck);
+
+    if (!res[toDeck]) {
+      res[toDeck] = new Set();
+    }
+    res[toDeck].add(fromDeck);
   }
 
   return res;
+}
+
+
+function buildFullGraphold(graphConnections) {
+  let outgoingRes = {};
+  let incomingRes = {};
+
+  for (let i = 0; i < graphConnections.length; i += 3) {
+    let fromDeck = graphConnections[i + 0];
+    let toDeck = graphConnections[i + 1];
+    let strength = graphConnections[i + 2];
+
+    if (!outgoingRes[fromDeck]) {
+      outgoingRes[fromDeck] = [];
+    }
+    outgoingRes[fromDeck].push([toDeck, strength]);
+
+    if (!incomingRes[toDeck]) {
+      incomingRes[toDeck] = [];
+    }
+    incomingRes[toDeck].push([fromDeck, strength]);
+
+  }
+
+  return [outgoingRes, incomingRes];
 }
 
 function buildDeckLabels(decks) {

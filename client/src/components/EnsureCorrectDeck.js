@@ -19,13 +19,30 @@ export function ensureCorrectDeck(resource, id, isLoaded, setMsg) {
     //
     setCurrentId(id);
 
-    let connectionSet = buildConnectivity(state.fullGraph, id, 3);
+    let resEdges = "";
+    let usedSet = new Set();
+    let connectionSet = buildConnectivity(state.fullGraph, id, 2);
     let connectionCount = 0;
     for (let [from, to] of connectionSet) {
-      console.log(`(${from}) ${state.deckLabels[from]} -> (${to}) ${state.deckLabels[to]}`);
+      usedSet.add(from);
+      usedSet.add(to);
+
+      resEdges += `{from: ${from}, to: ${to}}, `;
+      // console.log(`(${from}) ${state.deckLabels[from]} -> (${to}) ${state.deckLabels[to]}`);
       connectionCount++;
     }
-    console.log(`${connectionCount} connections`);
+    // console.log(`${connectionCount} connections`);
+
+    let resLabels = "";
+    for (let u of usedSet) {
+      resLabels += `{id: ${u}, label: '${state.deckLabels[u]}'}, `;
+    }
+
+    resLabels = resLabels.slice(0, -2);
+    resEdges = resEdges.slice(0, -2);
+
+    // console.log(resLabels);
+    // console.log(resEdges);
 
     if(!isLoaded(id)) {
       // fetch resource from the server

@@ -1,42 +1,42 @@
 // builds outward connectivity graph (eventually this will work for inward links as well)
 //
 export function buildConnectivity(fullGraph, deckId, depth) {
-  let resultSet = new Set();
+  // console.log(fullGraphOutgoing[deckId]);
+  // console.log(fullGraphIncoming[deckId]);
 
-  if (!fullGraph[deckId]) {
-    // there are no outward links for this
-    return resultSet;
-  }
+  let resultSet = new Set();
 
   let futureSet = new Set();    // nodes to visit
   let activeSet = new Set();    // nodes being visited in the current pass
   let visitedSet = new Set();   // nodes already processed
 
-  // start with this 'root' node
-  futureSet.add(deckId);
+  if (fullGraph[deckId]) {
+    // start with this 'root' node
+    futureSet.add(deckId);
 
-  for (let i = 0; i < depth; i++) {
-    // populate the active set
-    activeSet.clear();
-    for (let f of futureSet) {
-      if (!visitedSet.has(f)) {
-        // haven't processed this node so add it to activeSet
-        activeSet.add(f);
+    for (let i = 0; i < depth; i++) {
+      // populate the active set
+      activeSet.clear();
+      for (let f of futureSet) {
+        if (!visitedSet.has(f)) {
+          // haven't processed this node so add it to activeSet
+          activeSet.add(f);
+        }
       }
-    }
 
-    for (let a of activeSet) {
-      let conn = fullGraph[a];
-      if (conn) {
-        conn.forEach(([id, strength]) => {
-          // add a link between a and id
-          resultSet.add([a, id]);
-          if (!visitedSet.has(id)) {
-            futureSet.add(id);
-          }
-        });
+      for (let a of activeSet) {
+        let conn = fullGraph[a];
+        if (conn) {
+          conn.forEach((id) => {
+            // add a link between a and id
+            resultSet.add([a, id]);
+            if (!visitedSet.has(id)) {
+              futureSet.add(id);
+            }
+          });
+        }
+        visitedSet.add(a);
       }
-      visitedSet.add(a);
     }
   }
 
