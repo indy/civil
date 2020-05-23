@@ -1,5 +1,6 @@
 import React from 'react';
 import { useStateValue } from '../lib/StateProvider';
+import { cacheDeck } from '../lib/utils';
 import Note from './Note';
 
 export default function NoteManager(holder) {
@@ -12,7 +13,7 @@ export default function NoteManager(holder) {
     const index = notes.findIndex(n => n.id === id);
 
     modifyFn(notes, index);
-    setHolder(dispatch, {...holder, notes});
+    cacheDeck(dispatch, {...holder, notes});
   };
 
   function onEditedNote(id, data) {
@@ -51,12 +52,4 @@ export default function NoteManager(holder) {
       { notes }
     </section>
   );
-}
-
-function setHolder(dispatch, holder) {
-  dispatch({
-    type: 'cacheDeck',
-    id: holder.id,
-    newItem: holder
-  });
 }

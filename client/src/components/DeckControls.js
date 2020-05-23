@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import PointForm from './PointForm';
 import Net from '../lib/Net';
 import NoteForm from './NoteForm';
+import { cacheDeck } from '../lib/utils';
 import { removeEmptyStrings } from '../lib/JsUtils';
 import { addChronologicalSortYear } from '../lib/eras';
 import { useStateValue } from '../lib/StateProvider';
@@ -74,7 +75,7 @@ export default function DeckControls({ holder, title, resource, updateForm }) {
             notes.push(n);
           });
 
-          setHolder(dispatch, {...holder, notes});
+          cacheDeck(dispatch, {...holder, notes});
           setShowNoteForm(false);
           setShowUpdateForm(false);
         });
@@ -88,9 +89,9 @@ export default function DeckControls({ holder, title, resource, updateForm }) {
   function buildPointForm() {
     function onAddPoint(point) {
       const url = `/api/${resource}/${holder.id}/points`;
-      Net.post(url, point).then(updatedHolder => {
-        sortPoints(updatedHolder);
-        setHolder(dispatch, updatedHolder);
+      Net.post(url, point).then(updatedDeck => {
+        sortPoints(updatedDeck);
+        cacheDeck(dispatch, updatedDeck);
         setShowPointForm(false);
       });
     };
@@ -158,12 +159,4 @@ function addNote(form, deck_id, markup) {
     }, ["title"]);
 
   return Net.post("/api/notes", data);
-}
-
-function setHolder(dispatch, holder) {
-  dispatch({
-    type: 'cacheDeck',
-    id: holder.id,
-    newItem: holder
-  });
 }

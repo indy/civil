@@ -1,3 +1,11 @@
+export function cacheDeck(dispatch, holder) {
+  dispatch({
+    type: 'cacheDeck',
+    id: holder.id,
+    newItem: holder
+  });
+}
+
 // builds outward connectivity graph (eventually this will work for inward links as well)
 //
 export function buildConnectivity(fullGraph, deckId, depth) {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Net from '../lib/Net';
-import { applyDecksToNotes, buildConnectivity } from '../lib/utils';
+import { cacheDeck, applyDecksToNotes, buildConnectivity } from '../lib/utils';
 import { addChronologicalSortYear } from '../lib/eras';
 import { useStateValue } from '../lib/StateProvider';
 
@@ -47,10 +47,9 @@ export function ensureCorrectDeck(resource, id) {
       const url = `/api/${resource}/${id}`;
       Net.get(url).then(s => {
         if (s) {
-          let updatedHolder = applyDecksToNotes(s);
-          sortPoints(updatedHolder);
-          console.log('setHolder');
-          setHolder(dispatch, updatedHolder);
+          let updatedDeck = applyDecksToNotes(s);
+          sortPoints(updatedDeck);
+          cacheDeck(dispatch, updatedDeck);
         } else {
           console.error(`error: fetchDeck for ${url}`);
         }
@@ -58,14 +57,6 @@ export function ensureCorrectDeck(resource, id) {
     }
   }
 };
-
-function setHolder(dispatch, holder) {
-  dispatch({
-    type: 'cacheDeck',
-    id: holder.id,
-    newItem: holder
-  });
-}
 
 function sortPoints(holder) {
   if (holder.points) {
