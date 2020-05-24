@@ -52,21 +52,20 @@ export default function Search() {
       heading = (<h2>Random Ideas</h2>);
     }
 
-    return (<div>
+    return (<React.Fragment>
               { heading }
               <ol>
                 { localState.searchResults.map(buildSearchResultEntry) }
               </ol>
-            </div>);
+            </React.Fragment>);
   }
 
   return (
-    <div>
+    <React.Fragment>
       <h1>Search</h1>
       <SearchBox onSearch = { onSearch } onRandom = { onRandom }/>
       { localState.searchResults.length > 0 && buildSearchResults() }
-    </div>
-
+    </React.Fragment>
   )
 }
 

@@ -60,12 +60,12 @@ export default function DeckManager({ deck, title, resource, updateForm }) {
     };
 
     return (
-      <div>
+      <React.Fragment>
         <button onClick={ onAddNoteClicked }>Add Note...</button>
         { deck.points && <button onClick={ onAddPointClicked }>Add Point...</button> }
         <button onClick={ onEditParentClicked }>Edit...</button>
         <button onClick={ onDeleteParentClicked }>Delete...</button>
-      </div>
+      </React.Fragment>
     );
   };
 

@@ -33,7 +33,7 @@ export default function People() {
   const contemporaryPeopleList = filterBetween(state.people, era.modernCutoff, era.uncategorisedYear).map(createPersonListing);
 
   return (
-    <div>
+    <React.Fragment>
       <h1 onClick={ toggleShowAdd }>{ showAddPersonForm ? "Add Person" : "People" }</h1>
       { showAddPersonForm && <PersonForm/>}
       { peopleList(uncategorisedPeopleList, "Uncategorised")}
@@ -41,17 +41,19 @@ export default function People() {
       { peopleList(medievalPeopleList, "Medieval")}
       { peopleList(modernPeopleList, "Modern")}
       { peopleList(contemporaryPeopleList, "Contemporary")}
-    </div>
+    </React.Fragment>
   );
 }
 
 function peopleList(list, heading) {
-  return (<div>
-            { !!list.length && <h2>{ heading }</h2> }
-            <ul className="people-list">
-              { list }
-            </ul>
-          </div>);
+  return (
+    <React.Fragment>
+      { !!list.length && <h2>{ heading }</h2> }
+      <ul className="people-list">
+        { list }
+      </ul>
+    </React.Fragment>
+  );
 }
 
 function createPersonListing(person) {

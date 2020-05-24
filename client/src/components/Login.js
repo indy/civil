@@ -34,24 +34,22 @@ export default function Login(props) {
   };
 
   return (
-    <div>
-      <section>
-        <form onSubmit={ handleSubmit }>
-          <label htmlFor="email">Email:</label>
-          <input id="email"
-                 type="text"
-                 name="email"
-                 value={ email }
-                 onChange={ handleChangeEvent } />
-          <label htmlFor="password">Password:</label>
-          <input id="password"
-                 type="password"
-                 name="password"
-                 value={ password }
-                 onChange={ handleChangeEvent } />
-          <input type="submit" value="Login"/>
-        </form>
-      </section>
-    </div>
+    <section>
+      <form onSubmit={ handleSubmit }>
+        <label htmlFor="email">Email:</label>
+        <input id="email"
+               type="text"
+               name="email"
+               value={ email }
+               onChange={ handleChangeEvent } />
+        <label htmlFor="password">Password:</label>
+        <input id="password"
+               type="password"
+               name="password"
+               value={ password }
+               onChange={ handleChangeEvent } />
+        <input type="submit" value="Login"/>
+      </form>
+    </section>
   );
 }

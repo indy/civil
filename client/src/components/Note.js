@@ -121,7 +121,7 @@ export default function Note(props) {
     };
 
     return (
-      <div>
+      <React.Fragment>
         <label>Decks:</label>
         <CreatableSelect
           ref={ decksSelectRef }
@@ -135,7 +135,7 @@ export default function Note(props) {
         />
         <button onClick={ cancelAddDecks }>Cancel</button>
         <button onClick={ commitAddDecks }>Save</button>
-      </div>
+      </React.Fragment>
     );
   };
 
@@ -151,11 +151,11 @@ export default function Note(props) {
     }
 
     return (
-      <div>
+      <React.Fragment>
         <button onClick={ onEditClicked }>{ editLabelText }</button>
         { isEditing && <button onClick={ (e) => { onDeleteClicked(e, props.note.id, props.onDelete);} }>Delete</button> }
         { !isEditing && <button onClick={ () => { setShowAddDecksUI(!showAddDecksUI); } }>References...</button> }
-      </div>
+      </React.Fragment>
     );
   }
 
@@ -247,15 +247,15 @@ function buildReadingContent(note, noteId, onShowButtonsClicked, decks, ideas) {
   const contentMarkup = buildMarkup(note.content);
 
   return (
-    <div>
+    <React.Fragment>
       { note.title && buildTitle(note.title, onShowButtonsClicked) }
       <div className="noteref-container">
         { noteRefContents }
       </div>
-        <div onClick={ onShowButtonsClicked }>
+      <div onClick={ onShowButtonsClicked }>
         { contentMarkup }
       </div>
-    </div>
+    </React.Fragment>
   );
 };
 

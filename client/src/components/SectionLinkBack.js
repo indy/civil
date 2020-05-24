@@ -13,9 +13,9 @@ export default function SectionLinkBack(props) {
   });
 
   return (
-    <div>
+    <React.Fragment>
       { sections }
-    </div>
+    </React.Fragment>
   );
 }
 

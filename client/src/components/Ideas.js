@@ -37,14 +37,14 @@ export default function Ideas() {
   gKeyCounter = 0;
 
   return (
-    <div>
+    <React.Fragment>
       <h1 onClick={ toggleShowAdd }>{ showAddIdeaForm ? "Add Idea" : "Ideas" }</h1>
       { showAddIdeaForm && <IdeaForm/> }
       { buildListSection(showRecent, setShowRecent, "Recent", state.ideas.recent) }
       { buildListSection(showAll, setShowAll, "All", state.ideas.all) }
       { buildListSection(showSingleRef, setShowSingleRef, "Single References", state.ideas.single_references) }
       { buildListSection(showZeroRef, setShowZeroRef, "Zero References", state.ideas.zero_references) }
-    </div>
+    </React.Fragment>
   );
 }
 
@@ -55,28 +55,31 @@ function buildListSection(show, setShow, label, list) {
 
   // svg icons are from https://github.com/tabler/tabler-icons
   if(show) {
-    return [
-      <p key={ gKeyCounter++ } className="subtitle" onClick={ toggleShow }>
-        <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-minus" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+    return (
+      <React.Fragment>
+        <p key={ gKeyCounter++ } className="subtitle" onClick={ toggleShow }>
+          <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-minus" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z"/>
+            <line x1="5" y1="15" x2="19" y2="15" />
+          </svg>
+          { label }
+        </p>
+        <ul className="ideas-list" key = { gKeyCounter++ } >
+          { buildListing(list) }
+        </ul>
+      </React.Fragment>
+    );
+  } else {
+    return (
+      <p className="subtitle" onClick={ toggleShow }>
+        <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-plus" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
           <path stroke="none" d="M0 0h24v24H0z"/>
+          <line x1="12" y1="8" x2="12" y2="22" />
           <line x1="5" y1="15" x2="19" y2="15" />
         </svg>
         { label }
-      </p>,
-      <ul className="ideas-list" key = { gKeyCounter++ } >
-        { buildListing(list) }
-      </ul>
-
-    ];
-  } else {
-    return <p className="subtitle" onClick={ toggleShow }>
-             <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-plus" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
-               <path stroke="none" d="M0 0h24v24H0z"/>
-               <line x1="12" y1="8" x2="12" y2="22" />
-               <line x1="5" y1="15" x2="19" y2="15" />
-             </svg>
-             { label }
-           </p>;
+      </p>
+    );
   }
 }
 

@@ -33,27 +33,27 @@ export default function Events() {
   const contemporaryEventsList = filterBetween(state.events, era.modernCutoff, era.uncategorisedYear).map(createEventListing);
 
   return (
-    <div>
+    <React.Fragment>
       <h1 onClick={ toggleShowAdd }>{ showAddEventForm ? "Add Event" : "Events" }</h1>
       { showAddEventForm && <EventForm/> }
-
       { eventsList(uncategorisedEventsList, "Uncategorised")}
       { eventsList(ancientEventsList, "Ancient")}
       { eventsList(medievalEventsList, "Medieval")}
       { eventsList(modernEventsList, "Modern")}
       { eventsList(contemporaryEventsList, "Contemporary")}
-
-    </div>
+    </React.Fragment>
   );
 }
 
 function eventsList(list, heading) {
-  return (<div>
-            { !!list.length && <h2>{ heading }</h2> }
-            <ul className="events-list">
-              { list }
-            </ul>
-          </div>);
+  return (
+    <React.Fragment>
+      { !!list.length && <h2>{ heading }</h2> }
+      <ul className="events-list">
+        { list }
+      </ul>
+    </React.Fragment>
+  );
 }
 
 function createEventListingAD(ev) {
@@ -66,11 +66,14 @@ function createEventListing(ev) {
 
 function buildEventListing(id, dateText, title) {
   const href = `/events/${id}`;
-  return (<li key = { id }>
-            <Link to={ href }>
-              <span className="event-date">{ dateText }</span> { title }
-            </Link>
-          </li>);
+
+  return (
+    <li key = { id }>
+      <Link to={ href }>
+        <span className="event-date">{ dateText }</span> { title }
+      </Link>
+    </li>
+  );
 }
 
 function yearText(dateString, adPostfix) {

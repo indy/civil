@@ -31,12 +31,12 @@ export default function Publications() {
   );
 
   return (
-    <div>
+    <React.Fragment>
       <h1 onClick={ toggleShowAdd }>{ showAddPublicationForm ? "Add Publication" : "Publications" }</h1>
       { showAddPublicationForm && <PublicationForm/> }
       <ul className="publications-list">
         { publicationsList }
       </ul>
-    </div>
+    </React.Fragment>
   );
 }

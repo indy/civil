@@ -15,12 +15,10 @@ export default function Logout(props) {
   };
 
   return (
-    <div>
-      <section>
-        <form onSubmit={ handleLogout }>
-          <input type="submit" value="Logout"/>
-        </form>
-      </section>
-    </div>
+    <section>
+      <form onSubmit={ handleLogout }>
+        <input type="submit" value="Logout"/>
+      </form>
+    </section>
   );
 }

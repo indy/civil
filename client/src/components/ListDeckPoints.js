@@ -26,24 +26,26 @@ export default function ListDeckPoints({ deckPoints, holderId, holderName }) {
   };
 
   function buildButtons() {
-    return (<div>
-              <div className="deckpoint-block">
-                <input id="only-this-person"
-                       type="checkbox"
-                       name="only_this_person"
-                       checked={ onlyThisPerson }
-                       onChange={ handleChangeEvent } />
-                <label htmlFor="only-this-person">Only This Person</label>
-              </div>
-              <div className="deckpoint-block">
-                <input id="hide-birth-deaths"
-                       type="checkbox"
-                       name="hide_birth_deaths"
-                       checked={ hideBirthsDeaths }
-                       onChange={ handleChangeEvent } />
-                <label htmlFor="hide-birth-deaths">Hide Other Birth/Deaths</label>
-              </div>
-            </div>);
+    return (
+      <React.Fragment>
+        <div className="deckpoint-block">
+          <input id="only-this-person"
+                 type="checkbox"
+                 name="only_this_person"
+                 checked={ onlyThisPerson }
+                 onChange={ handleChangeEvent } />
+          <label htmlFor="only-this-person">Only This Person</label>
+        </div>
+        <div className="deckpoint-block">
+          <input id="hide-birth-deaths"
+                 type="checkbox"
+                 name="hide_birth_deaths"
+                 checked={ hideBirthsDeaths }
+                 onChange={ handleChangeEvent } />
+          <label htmlFor="hide-birth-deaths">Hide Other Birth/Deaths</label>
+        </div>
+      </React.Fragment>
+    );
   }
 
   let arr = deckPoints || [];
