@@ -6,6 +6,8 @@ import { idParam } from '../lib/reactUtils';
 import SectionLinkBack from './SectionLinkBack';
 import DeckManager from './DeckManager';
 
+import Vis from './Vis';
+
 export default function Publication(props) {
   const [state] = useStateValue();
 
@@ -34,6 +36,7 @@ export default function Publication(props) {
 
       { deckManager.notes }
       <SectionLinkBack linkbacks={ publication.linkbacks_to_decks }/>
+      <Vis id = { publicationId }/>
     </article>
   );
 }

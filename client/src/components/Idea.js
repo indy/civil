@@ -7,6 +7,8 @@ import SectionLinkBack from './SectionLinkBack';
 import SectionSearchResultsLinkBack from './SectionSearchResultsLinkBack';
 import DeckManager from './DeckManager';
 
+import Vis from './Vis';
+
 export default function Idea(props) {
   const [state] = useStateValue();
 
@@ -31,6 +33,7 @@ export default function Idea(props) {
       { deckManager.notes }
       <SectionLinkBack linkbacks={ idea.linkbacks_to_decks }/>
       <SectionSearchResultsLinkBack linkbacks={ idea.search_results }/>
+      <Vis id = { id }/>
     </article>
   );
 }

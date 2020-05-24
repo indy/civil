@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Net from '../lib/Net';
-import { cacheDeck, applyDecksToNotes, buildConnectivity } from '../lib/utils';
+import { cacheDeck, applyDecksToNotes/*, buildConnectivity*/ } from '../lib/utils';
 import { addChronologicalSortYear } from '../lib/eras';
 import { useStateValue } from '../lib/StateProvider';
 

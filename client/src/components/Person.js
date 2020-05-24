@@ -10,12 +10,14 @@ import { useStateValue } from '../lib/StateProvider';
 import DeckManager from './DeckManager';
 import ListDeckPoints from './ListDeckPoints';
 
+import Vis from './Vis';
+
 export default function Person(props) {
   const [state, dispatch] = useStateValue();
   const [showBirthForm, setShowBirthForm] = useState(false);
 
-  const person_id = idParam();
-  const person = state.cache.deck[person_id] || { id: person_id };
+  const personId = idParam();
+  const person = state.cache.deck[personId] || { id: personId };
 
   const deckManager = DeckManager({
     deck: person,
@@ -35,7 +37,7 @@ export default function Person(props) {
 
   function onAddBirthPoint(point) {
     // post to /api/people/{id}/points
-    Net.post(`/api/people/${person_id}/points`, point).then(person => {
+    Net.post(`/api/people/${personId}/points`, point).then(person => {
       setShowBirthForm(false);
       dispatch({
         type: 'setPerson',
@@ -80,6 +82,7 @@ export default function Person(props) {
       <ListDeckPoints deckPoints={ person.all_points_during_life }
                       holderId={ person.id }
                       holderName={ person.name }/>
+      <Vis id = { personId }/>
     </article>
   );
 }

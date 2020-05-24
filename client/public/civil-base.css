@@ -3,6 +3,7 @@
   --fg: #111;
 
   --fg1: #666; /* linked decks (i.e. tags) */
+  --fg2: #ddddd0; /* edges in graphs */
 
   --body-width: 80%;
   --block-width: 55%;
