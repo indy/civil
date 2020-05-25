@@ -41,7 +41,7 @@ export default function Publication(props) {
 
       { deckManager.notes }
       <SectionLinkBack linkbacks={ publication.linkbacks_to_decks }/>
-      { okToShowVis && <Vis id = { publicationId }/> }
+      { okToShowVis && <Vis id = { publicationId } depth={ 2 }/> }
     </article>
   );
 }

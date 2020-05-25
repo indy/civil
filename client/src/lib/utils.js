@@ -6,7 +6,7 @@ export function cacheDeck(dispatch, holder) {
   });
 }
 
-export function buildConnectivity(fullGraph, deckId, depth) {
+export function buildConnectivity(fullGraph, deckId, depth, isNodeUsed) {
   let resultSet = new Set();
   let futureSet = new Set();    // nodes to visit
   let activeSet = new Set();    // nodes being visited in the current pass
@@ -14,7 +14,9 @@ export function buildConnectivity(fullGraph, deckId, depth) {
 
   if (fullGraph[deckId]) {
     // start with this 'root' node
-    futureSet.add(deckId);
+    if (isNodeUsed(deckId)) {
+      futureSet.add(deckId);
+    }
 
     for (let i = 0; i < depth; i++) {
       // populate the active set
@@ -30,10 +32,12 @@ export function buildConnectivity(fullGraph, deckId, depth) {
         let conn = fullGraph[a];
         if (conn) {
           conn.forEach(([id, strength]) => {
-            // add a link between a and id
-            resultSet.add([a, id, strength]);
-            if (!visitedSet.has(id)) {
-              futureSet.add(id);
+            if (isNodeUsed(id)) {
+              // add a link between a and id
+              resultSet.add([a, id, strength]);
+              if (!visitedSet.has(id)) {
+                futureSet.add(id);
+              }
             }
           });
         }

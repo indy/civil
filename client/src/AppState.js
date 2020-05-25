@@ -19,11 +19,11 @@ export const initialState = {
 
   acLoaded: false,
   ac: {
-    // an array of { id, name, label } objects (having both name and label is redundent)
+    // an array of { id, name, resource }
     decks: []
   },
-  // an array based on ac.decks which is indexed by id
-  deckLabels: [],
+  // an array which is indexed by deck_id, returns the offset into state.ac.decks
+  deckIndexFromId: [],
 
   fullGraphLoaded: false,
   fullGraph: [],
@@ -123,6 +123,7 @@ export const reducer = (state, action) => {
       ac: {
         decks: action.decks
       },
+      deckIndexFromId: buildDeckIndex(action.decks),
       deckLabels: buildDeckLabels(action.decks)
     };
   case 'addAutocompleteDeck':
@@ -283,6 +284,16 @@ function buildFullGraph(graphConnections) {
     }
     res[toDeck].add([fromDeck, -strength]);
   }
+
+  return res;
+}
+
+function buildDeckIndex(decks) {
+  let res = [];
+
+  decks.forEach((d, i) => {
+    res[d.id] = i;
+  });
 
   return res;
 }

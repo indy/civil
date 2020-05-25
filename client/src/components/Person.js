@@ -87,7 +87,7 @@ export default function Person(props) {
       <ListDeckPoints deckPoints={ person.all_points_during_life }
                       holderId={ person.id }
                       holderName={ person.name }/>
-      { okToShowVis && <Vis id = { personId }/> }
+      { okToShowVis && <Vis id = { personId } depth={ 2 } /> }
     </article>
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Net from '../lib/Net';
-import { cacheDeck, applyDecksToNotes/*, buildConnectivity*/ } from '../lib/utils';
+import { cacheDeck, applyDecksToNotes } from '../lib/utils';
 import { addChronologicalSortYear } from '../lib/eras';
 import { useStateValue } from '../lib/StateProvider';
 
@@ -13,35 +13,8 @@ export function ensureCorrectDeck(resource, id) {
     // and follow a Link to another /$NOTE_HOLDER/:id
     // (where $NOTE_HOLDER is the same type)
     //
-
-    console.log('setCurrentId');
     setCurrentId(id);
-/*
-    let resEdges = "";
-    let usedSet = new Set();
-    let connectionSet = buildConnectivity(state.fullGraph, id, 2);
-    let connectionCount = 0;
-    for (let [from, to] of connectionSet) {
-      usedSet.add(from);
-      usedSet.add(to);
 
-      resEdges += `{from: ${from}, to: ${to}}, `;
-      // console.log(`(${from}) ${state.deckLabels[from]} -> (${to}) ${state.deckLabels[to]}`);
-      connectionCount++;
-    }
-    // console.log(`${connectionCount} connections`);
-
-    let resLabels = "";
-    for (let u of usedSet) {
-      resLabels += `{id: ${u}, label: '${state.deckLabels[u]}'}, `;
-    }
-
-    resLabels = resLabels.slice(0, -2);
-    resEdges = resEdges.slice(0, -2);
-
-    // console.log(resLabels);
-    // console.log(resEdges);
-*/
     if(!state.cache.deck[id]) {
       // fetch resource from the server
       const url = `/api/${resource}/${id}`;

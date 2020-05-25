@@ -14,9 +14,17 @@ import {
 } from 'd3';
 
 
-function buildGraph(state, id) {
+function buildGraph(state, id, depth, onlyIdeas) {
+
+  function allowIdeas(id) {
+    return state.ac.decks[state.deckIndexFromId[id]].resource === "ideas";
+  }
+  function allowAll(id) {
+    return true;
+  }
+
   let usedSet = new Set();
-  let connectionArr = buildConnectivity(state.fullGraph, id, 2);
+  let connectionArr = buildConnectivity(state.fullGraph, id, depth, onlyIdeas ? allowIdeas : allowAll);
 
   let resEdges = [];
   for (let [source, target, strength] of connectionArr) {
@@ -37,7 +45,7 @@ function buildGraph(state, id) {
   };
 }
 
-export default function Vis({ id }) {
+export default function Vis({ id, depth, onlyIdeas }) {
   const [state] = useStateValue();
 
   const [data] = useState([]);
@@ -48,7 +56,7 @@ export default function Vis({ id }) {
     const svg = select(svgRef.current);
 
     let types = ["suit"];
-    let data = buildGraph(state, id);
+    let data = buildGraph(state, id, depth, onlyIdeas);
 
     {
       const links = data.links.map(d => Object.create(d));
@@ -118,7 +126,7 @@ export default function Vis({ id }) {
         .attr("fill", "var(--fg)")
         .attr("x", 8)
         .attr("y", "0.31em")
-        .text(d => state.deckLabels[d.id])
+        .text(d => state.ac.decks[state.deckIndexFromId[d.id]].name)
         .clone(true).lower()
         .attr("fill", "none")
         .attr("stroke", "var(--bg)") // thick 'glow' around text
