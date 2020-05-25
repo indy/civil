@@ -271,17 +271,17 @@ function buildFullGraph(graphConnections) {
   for (let i = 0; i < graphConnections.length; i += 3) {
     let fromDeck = graphConnections[i + 0];
     let toDeck = graphConnections[i + 1];
-    // let strength = graphConnections[i + 2];
+    let strength = graphConnections[i + 2];
 
     if (!res[fromDeck]) {
       res[fromDeck] = new Set();
     }
-    res[fromDeck].add(toDeck);
+    res[fromDeck].add([toDeck, strength]);
 
     if (!res[toDeck]) {
       res[toDeck] = new Set();
     }
-    res[toDeck].add(fromDeck);
+    res[toDeck].add([fromDeck, -strength]);
   }
 
   return res;

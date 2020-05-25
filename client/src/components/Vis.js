@@ -14,17 +14,16 @@ import {
 } from 'd3';
 
 
-function fook(state, id) {
-  console.log("hi");
+function buildGraph(state, id) {
   let usedSet = new Set();
-  let connectionSet = buildConnectivity(state.fullGraph, id, 2);
+  let connectionArr = buildConnectivity(state.fullGraph, id, 2);
 
   let resEdges = [];
-  for (let [source, target] of connectionSet) {
+  for (let [source, target, strength] of connectionArr) {
     usedSet.add(source);
     usedSet.add(target);
 
-    resEdges.push({source, target, type: "suit"});
+    resEdges.push({source, target, strength});
   }
 
   let resNodes = [];
@@ -49,10 +48,17 @@ export default function Vis({ id }) {
     const svg = select(svgRef.current);
 
     let types = ["suit"];
-    let data = fook(state, id || 88);
+    let data = buildGraph(state, id);
 
     {
       const links = data.links.map(d => Object.create(d));
+      // console.log(links);
+      //
+      // between the creation of links and the console.log on the following line,
+      // some values are mysteriously added to the elements of links?
+      // FUCKING JAVASCRIPT SHIT
+      // nothing is predictable
+
       const nodes = data.nodes.map(d => Object.create(d));
 
       // forceCollide for rectangles:
@@ -71,7 +77,6 @@ export default function Vis({ id }) {
         .attr("viewBox", [-300, -300, 900, 900]) // [-width / 2, -height / 2, width, height]
         .style("font", "12px sans-serif");
 
-      // Per-type markers, as they don't inherit styles.
       svg.append("defs").selectAll("marker")
         .data(types)
         .join("marker")
@@ -88,12 +93,12 @@ export default function Vis({ id }) {
 
       const link = svg.append("g")
             .attr("fill", "none")
-            .attr("stroke-width", 1.5)
             .selectAll("path")
             .data(links)
             .join("path")
+            .attr("stroke-width", d => 1.0 + (d.strength * 0.5))
             .attr("stroke", d => "var(--fg2)")
-            .attr("marker-end", d => `url(${new URL(`#arrow-${d.type}`, window.location)})`);
+            .attr("marker-end", d => `url(${new URL(`#arrow-suit`, window.location)})`);
 
       const node = svg.append("g")
             .attr("fill", "var(--fg1)")
@@ -125,8 +130,6 @@ export default function Vis({ id }) {
       });
 
     }
-
-
   }, [data]);
 
   return (
