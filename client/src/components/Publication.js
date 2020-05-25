@@ -24,6 +24,11 @@ export default function Publication(props) {
   let authorHeading = <p className="subtitle">{ publication.author }</p>;
   let sourceHeading = <p className="subtitle">Source: <a href={ publication.source }>{ publication.source }</a></p>;
 
+  // this is only for presentational purposes
+  // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
+  // this check prevents the vis from rendering until after we have all the note and links ready
+  const okToShowVis = deckManager.hasNotes;
+
   return (
     <article>
       { deckManager.title }
@@ -36,7 +41,7 @@ export default function Publication(props) {
 
       { deckManager.notes }
       <SectionLinkBack linkbacks={ publication.linkbacks_to_decks }/>
-      <Vis id = { publicationId }/>
+      { okToShowVis && <Vis id = { publicationId }/> }
     </article>
   );
 }

@@ -41,9 +41,5 @@ export default function NoteManager(holder, cacheDeckFn) {
 
   const notes = holder.notes ? holder.notes.map(buildNoteComponent) : [];
 
-  return (
-    <section>
-      { notes }
-    </section>
-  );
+  return notes;
 }

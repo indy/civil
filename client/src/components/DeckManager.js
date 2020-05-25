@@ -140,7 +140,10 @@ export default function DeckManager({ deck, title, resource, updateForm }) {
     res.updateForm = showUpdate();
   }
 
-  res.notes = NoteManager(deck, cacheDeckFn);
+  const notes = NoteManager(deck, cacheDeckFn);
+
+  res.notes = (<section>{ notes }</section>);
+  res.hasNotes = notes.length > 0;
 
   return res;
 }

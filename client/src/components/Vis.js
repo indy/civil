@@ -130,7 +130,9 @@ export default function Vis({ id }) {
   }, [data]);
 
   return (
-    <svg ref={svgRef}></svg>
+    <div className="vis-container">
+      <svg ref={svgRef}></svg>
+    </div>
   );
 }
 

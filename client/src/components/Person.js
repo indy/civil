@@ -66,6 +66,11 @@ export default function Person(props) {
     );
   }
 
+  // this is only for presentational purposes
+  // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
+  // this check prevents the vis from rendering until after we have all the note and links ready
+  const okToShowVis = deckManager.hasNotes || person.linkbacks_to_decks;
+
   return (
     <article>
       { deckManager.title }
@@ -82,7 +87,7 @@ export default function Person(props) {
       <ListDeckPoints deckPoints={ person.all_points_during_life }
                       holderId={ person.id }
                       holderName={ person.name }/>
-      <Vis id = { personId }/>
+      { okToShowVis && <Vis id = { personId }/> }
     </article>
   );
 }
