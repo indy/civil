@@ -7,11 +7,7 @@ export function cacheDeck(dispatch, holder) {
 }
 
 export function buildConnectivity(fullGraph, deckId, depth) {
-  // console.log(fullGraphOutgoing[deckId]);
-  // console.log(fullGraphIncoming[deckId]);
-
   let resultSet = new Set();
-
   let futureSet = new Set();    // nodes to visit
   let activeSet = new Set();    // nodes being visited in the current pass
   let visitedSet = new Set();   // nodes already processed
@@ -88,30 +84,15 @@ export function findPoint(points, title) {
   return p;
 }
 
-export function separateIntoIdeasAndDecks(r) {
-  return separateFromDecks(r, 'ideas');
-}
-
 export function applyDecksToNotes(obj) {
-  let [ideas, decks] = separateIntoIdeasAndDecks(obj.decks_in_notes);
-  const ideasInNotes = hashByNoteIds(ideas);
-  const decksInNotes = hashByNoteIds(decks);
+  const decksInNotes = hashByNoteIds(obj.decks_in_notes);
 
   for(let i = 0;i<obj.notes.length;i++) {
     let n = obj.notes[i];
-    n.ideas = ideasInNotes[n.id];
     n.decks = decksInNotes[n.id];
   }
 
   return obj;
-}
-
-// given an array of decks, separate out all decks of a particular resource, returning 2 arrays
-function separateFromDecks(decks, resource) {
-  return decks.reduce((acc, deck) => {
-    acc[(deck.resource === resource) ? 0 : 1].push(deck);
-    return acc;
-  }, [[],[]]);
 }
 
 function hashByNoteIds(s) {

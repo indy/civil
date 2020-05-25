@@ -18,15 +18,8 @@
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct AutocompleteDeck {
-    pub id: Key,
-    pub name: String,
-}
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Autocomplete {
     pub id: Key,
-    pub value: String,
-    pub label: String,
+    pub name: String,
     pub resource: String,
 }

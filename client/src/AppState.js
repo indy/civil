@@ -291,7 +291,7 @@ function buildDeckLabels(decks) {
   let res = [];
 
   decks.forEach(d => {
-    res[d.id] = d.label;
+    res[d.id] = d.name;
   });
 
   return res;

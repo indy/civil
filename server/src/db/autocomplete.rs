@@ -39,8 +39,7 @@ impl From<AutocompleteDeck> for interop::Autocomplete {
         let resource = kind_to_resource(p.kind.as_ref()).unwrap();
         interop::Autocomplete {
             id: p.id,
-            value: String::from(&p.name),
-            label: p.name,
+            name: String::from(&p.name),
             resource: resource.to_string(),
         }
     }

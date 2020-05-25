@@ -3,7 +3,6 @@ import { useStateValue } from '../lib/StateProvider';
 import CreatableSelect from 'react-select/creatable';
 import ResourceLink from './ResourceLink';
 import Net from '../lib/Net';
-import { separateIntoIdeasAndDecks } from '../lib/utils';
 import { buildMarkup } from '../lib/MarkupBuilder';
 
 export default function Note(props) {
@@ -19,7 +18,8 @@ export default function Note(props) {
     separator: props.note.separator
   });
 
-  const [decks, setDecks] = useState(buildCurrentDecksAndIdeas(props.note));
+  // decks is in whatever structure is most convenient for the CreatableSelect component
+  const [decks, setDecks] = useState(buildCurrentDecks(props.note));
   const [decksSelectRef] = useState(React.createRef());
 
   useEffect(() => {
@@ -109,7 +109,7 @@ export default function Note(props) {
       // 6. clicks cancel
       // expected: only the changes from step 5 should be undone
 
-      setDecks(buildCurrentDecksAndIdeas(props.note));
+      setDecks(buildCurrentDecks(props.note));
       setShowAddDecksUI(false);
     };
 
@@ -120,6 +120,15 @@ export default function Note(props) {
       setShowAddDecksUI(false);
     };
 
+    function buildOptionForcreatableSelect(d) {
+      return {
+        id: d.id,
+        resource: d.resource,
+        value: d.name,
+        label: d.name
+      }
+    }
+
     return (
       <React.Fragment>
         <label>Decks:</label>
@@ -129,7 +138,7 @@ export default function Note(props) {
           name="decks"
           value={ decks }
           onChange={ setDecks }
-          options={ state.ac.decks }
+          options={ state.ac.decks.map(buildOptionForcreatableSelect) }
           className="basic-multi-select"
           classNamePrefix="select"
         />
@@ -162,7 +171,7 @@ export default function Note(props) {
   return (
     <div className="note">
       { note.separator && <hr/> }
-      { isEditing ? buildEditableContent() : buildReadingContent(note, props.note.id, onShowButtonsClicked, props.note.decks, props.note.ideas) }
+      { isEditing ? buildEditableContent() : buildReadingContent(note, props.note.id, onShowButtonsClicked, props.note.decks) }
       { showModButtons && showAddDecksUI && buildAddDecksUI() }
       { showModButtons && !showAddDecksUI && buildMainButtons() }
     </div>
@@ -192,7 +201,7 @@ function onDeleteClicked(event, id, onDelete) {
 };
 
 
-function buildCurrentDecksAndIdeas(note) {
+function buildCurrentDecks(note) {
   let res = [];
 
   if(!note) {
@@ -201,17 +210,6 @@ function buildCurrentDecksAndIdeas(note) {
 
   if (note.decks) {
     note.decks.forEach((deck) => {
-      res.push({
-        id: deck.id,
-        value: deck.name,
-        label: deck.name,
-        resource: deck.resource
-      });
-    });
-  }
-
-  if (note.ideas) {
-    note.ideas.forEach((deck) => {
       res.push({
         id: deck.id,
         value: deck.name,
@@ -242,8 +240,8 @@ function buildNoteReference(marginConnections) {
   });
 };
 
-function buildReadingContent(note, noteId, onShowButtonsClicked, decks, ideas) {
-  const noteRefContents = buildNoteReference(ideas).concat(buildNoteReference(decks));
+function buildReadingContent(note, noteId, onShowButtonsClicked, decks) {
+  const noteRefContents = buildNoteReference(decks);
   const contentMarkup = buildMarkup(note.content);
 
   return (
@@ -285,12 +283,9 @@ function addDecks(propsNote, decks, onDecksChanged, dispatch) {
   Net.post("/api/edges/notes_decks", data).then((all_decks_for_note) => {
     updateAutocompleteWithNewDecks(dispatch, data.new_deck_names, all_decks_for_note);
 
-    // todo: is this still required?
-    let [ideas, decks] = separateIntoIdeasAndDecks(all_decks_for_note);
     const n = {
       ...propsNote,
-      ideas,
-      decks
+      decks: all_decks_for_note
     };
 
     onDecksChanged(n);
