@@ -91,7 +91,7 @@ function buildListing(list) {
     (idea, i) => <ListingLink
                    id={ idea.id }
                    key={ idea.id }
-                   name={ i === (list.length - 1) ? idea.title : idea.title + ',' }
+                   name={ idea.title }
                    resource='ideas'/>
   );
 }
