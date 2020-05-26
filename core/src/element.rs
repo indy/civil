@@ -29,5 +29,5 @@ pub struct Element {
     pub id: Option<String>,
 
     pub children: Vec<Element>,
-    pub text: Option<String>
+    pub text: Option<String>,
 }

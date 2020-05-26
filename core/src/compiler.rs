@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::error::Result;
 use crate::element::Element;
+use crate::error::Result;
 use crate::parser::{CodeblockLanguage, Node};
 
 use std::fmt::Write;
@@ -64,13 +64,11 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
         Node::Quotation(ns) => element_key("em", key, ns)?,
         Node::Sidenote(ns) => compile_sidenote_to_struct(ns, key)?,
         Node::Strong(ns) => element_key("strong", key, ns)?,
-        Node::Text(text) => {
-            vec![Element {
-                name: String::from("text"),
-                text: Some(String::from(text)),
-                ..Default::default()
-            }]
-        },
+        Node::Text(text) => vec![Element {
+            name: String::from("text"),
+            text: Some(String::from(text)),
+            ..Default::default()
+        }],
         Node::Underlined(ns) => element_key_class("span", key, "underlined", ns)?,
         Node::UnorderedList(ns) => element_key("ul", key, ns)?,
     };
@@ -79,27 +77,45 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
 }
 
 fn compile_marginnote_to_struct(ns: &[Node], key: usize) -> Result<Vec<Element>> {
-    let mut res:Vec<Element> = vec![];
+    let mut res: Vec<Element> = vec![];
 
     let mut id = String::new();
     write!(&mut id, "mn-{}", key)?;
 
     // the margin-toggle character is 'circled times': https://www.htmlsymbols.xyz/unicode/U+2297
     res.append(&mut element_key_class_for("label", key, "margin-toggle", &id, &"⊗")?);
-    res.append(&mut element_key_class_type("input", key + 100, "margin-toggle", &id, "checkbox")?);
+    res.append(&mut element_key_class_type(
+        "input",
+        key + 100,
+        "margin-toggle",
+        &id,
+        "checkbox",
+    )?);
     res.append(&mut element_key_class("span", key + 200, "marginnote", ns)?);
 
     Ok(res)
 }
 
 fn compile_sidenote_to_struct(ns: &[Node], key: usize) -> Result<Vec<Element>> {
-    let mut res:Vec<Element> = vec![];
+    let mut res: Vec<Element> = vec![];
 
     let mut id = String::new();
     write!(&mut id, "sn-{}", key)?;
 
-    res.append(&mut element_key_class_for("label", key, "margin-toggle sidenote-number", &id, &"")?);
-    res.append(&mut element_key_class_type("input", key + 100, "margin-toggle", &id, "checkbox")?);
+    res.append(&mut element_key_class_for(
+        "label",
+        key,
+        "margin-toggle sidenote-number",
+        &id,
+        &"",
+    )?);
+    res.append(&mut element_key_class_type(
+        "input",
+        key + 100,
+        "margin-toggle",
+        &id,
+        "checkbox",
+    )?);
     res.append(&mut element_key_class("span", key + 200, "sidenote", ns)?);
 
     Ok(res)

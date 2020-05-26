@@ -73,15 +73,16 @@ pub(crate) fn is_codeblock_start(tokens: &'_ [Token]) -> bool {
 }
 
 pub fn parse(tokens: Vec<Token>) -> Result<Vec<Node>> {
+    let halt_at = TokenIdent::EOS;
     let mut tokens: &[Token] = &tokens;
     let mut res = Vec::new();
 
     tokens = skip_leading_whitespace_and_newlines(&tokens)?;
-    while tokens.len() > 0 {
+    while !tokens.is_empty() && !is_head(tokens, halt_at) {
         let (rem, node) = if is_numbered_list_item(tokens) {
-            eat_ordered_list(tokens)?
+            eat_ordered_list(tokens, halt_at)?
         } else if is_unordered_list_item(tokens) {
-            eat_unordered_list(tokens)?
+            eat_unordered_list(tokens, halt_at)?
         } else if is_codeblock(tokens) {
             eat_codeblock(tokens)?
         } else {
@@ -95,13 +96,13 @@ pub fn parse(tokens: Vec<Token>) -> Result<Vec<Node>> {
     Ok(res)
 }
 
-fn eat_ordered_list<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_ordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: TokenIdent) -> ParserResult<Node> {
     let mut children: Vec<Node> = vec![];
 
-    while !tokens.is_empty() {
+    while !tokens.is_empty() && !is_head(tokens, halt_at) {
         tokens = &tokens[3..]; // digits, period, whitespace
 
-        let (remaining, list_item_children) = eat_to_newline(tokens)?;
+        let (remaining, list_item_children) = eat_to_newline(tokens, halt_at)?;
         tokens = remaining;
 
         if !list_item_children.is_empty() {
@@ -117,13 +118,13 @@ fn eat_ordered_list<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     Ok((tokens, Node::OrderedList(children)))
 }
 
-fn eat_unordered_list<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_unordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: TokenIdent) -> ParserResult<Node> {
     let mut children: Vec<Node> = vec![];
 
-    while !tokens.is_empty() {
+    while !tokens.is_empty() && !is_head(tokens, halt_at) {
         tokens = &tokens[2..]; // hyphen, whitespace
 
-        let (remaining, list_item_children) = eat_to_newline(tokens)?;
+        let (remaining, list_item_children) = eat_to_newline(tokens, halt_at)?;
         tokens = remaining;
 
         if !list_item_children.is_empty() {
@@ -140,14 +141,14 @@ fn eat_unordered_list<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
 }
 
 fn eat_paragraph<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
-    let (remaining, children) = eat_to_newline(tokens)?;
+    let (remaining, children) = eat_to_newline(tokens, TokenIdent::EOS)?;
     Ok((remaining, Node::Paragraph(children)))
 }
 
-fn eat_to_newline<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
+fn eat_to_newline<'a>(mut tokens: &'a [Token<'a>], halt_at: TokenIdent) -> ParserResult<Vec<Node>> {
     let mut nodes: Vec<Node> = vec![];
 
-    while !tokens.is_empty() {
+    while !tokens.is_empty() && !is_head(tokens, halt_at) {
         if is_head(tokens, TokenIdent::Newline) {
             let rest = skip_leading_newlines(tokens)?;
             return Ok((rest, nodes));
@@ -158,6 +159,18 @@ fn eat_to_newline<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
     }
 
     Ok((tokens, nodes))
+}
+
+fn eat_item_until<'a>(tokens: &'a [Token], halt_at: TokenIdent) -> ParserResult<'a, Node> {
+    if is_numbered_list_item(tokens) {
+        eat_ordered_list(tokens, halt_at)
+    } else if is_unordered_list_item(tokens) {
+        eat_unordered_list(tokens, halt_at)
+    } else if is_codeblock(tokens) {
+        eat_codeblock(tokens)
+    } else {
+        eat_item(tokens)
+    }
 }
 
 fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
@@ -202,7 +215,7 @@ fn eat_codeblock<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
         None
     };
 
-    let (toks, code) = eat_string_until(tokens, TokenIdent::BackTick)?;
+    let (toks, code) = eat_string(tokens, TokenIdent::BackTick)?;
     // todo: trim the string
 
     tokens = toks;
@@ -225,10 +238,10 @@ fn eat_pipe<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     } else if remaining_tokens_contain(tokens, TokenIdent::Pipe) {
         if is_token_at_index(tokens, 1, TokenIdent::Hash) {
             tokens = &tokens[1..]; // eat the opening PIPE,
-            let (toks, children) = eat_list_until(tokens, TokenIdent::Pipe)?;
+            let (toks, children) = eat_list(tokens, TokenIdent::Pipe)?;
             Ok((toks, Node::Marginnote(children)))
         } else {
-            let (toks, children) = eat_list_until(tokens, TokenIdent::Pipe)?;
+            let (toks, children) = eat_list(tokens, TokenIdent::Pipe)?;
             Ok((toks, Node::Sidenote(children)))
         }
     } else {
@@ -236,13 +249,9 @@ fn eat_pipe<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     }
 }
 
-fn eat_matching_pair<'a>(
-    tokens: &'a [Token<'a>],
-    token_ident: TokenIdent,
-    node_ident: NodeIdent,
-) -> ParserResult<Node> {
-    if remaining_tokens_contain(tokens, token_ident) {
-        let (toks, children) = eat_list_until(tokens, token_ident)?;
+fn eat_matching_pair<'a>(tokens: &'a [Token<'a>], halt_at: TokenIdent, node_ident: NodeIdent) -> ParserResult<Node> {
+    if remaining_tokens_contain(tokens, halt_at) {
+        let (toks, children) = eat_list(tokens, halt_at)?;
 
         let node = match node_ident {
             NodeIdent::Strong => Node::Strong(children),
@@ -269,7 +278,7 @@ fn eat_bracket_start<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
 
 fn eat_link<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     tokens = &tokens[2..];
-    let (mut tokens, url) = eat_string_until(tokens, TokenIdent::BracketEnd)?;
+    let (mut tokens, url) = eat_string(tokens, TokenIdent::BracketEnd)?;
 
     if tokens.len() > 1 {
         // at a a closing bracket, move past it
@@ -326,13 +335,13 @@ fn remaining_tokens_contain<'a>(tokens: &'a [Token<'a>], token_ident: TokenIdent
     false
 }
 
-fn eat_list_until<'a>(mut tokens: &'a [Token<'a>], token_ident: TokenIdent) -> ParserResult<Vec<Node>> {
+fn eat_list<'a>(mut tokens: &'a [Token<'a>], halt_at: TokenIdent) -> ParserResult<Vec<Node>> {
     let mut res: Vec<Node> = vec![];
 
     tokens = &tokens[1..]; // shift opening token
 
-    while !tokens.is_empty() && !is_head(tokens, token_ident) {
-        let (toks, content) = eat_item(tokens)?;
+    while !tokens.is_empty() && !is_head(tokens, halt_at) {
+        let (toks, content) = eat_item_until(tokens, halt_at)?;
         res.push(content);
         tokens = toks;
     }
@@ -345,10 +354,10 @@ fn eat_list_until<'a>(mut tokens: &'a [Token<'a>], token_ident: TokenIdent) -> P
 }
 
 // treat every token as Text until we get to a token of the given type
-fn eat_string_until<'a>(mut tokens: &'a [Token<'a>], token_ident: TokenIdent) -> ParserResult<String> {
+fn eat_string<'a>(mut tokens: &'a [Token<'a>], halt_at: TokenIdent) -> ParserResult<String> {
     let mut value = "".to_string();
 
-    while !tokens.is_empty() && !is_head(tokens, token_ident) {
+    while !tokens.is_empty() && !is_head(tokens, halt_at) {
         let (toks, s) = eat_token_as_str(tokens)?;
         tokens = toks;
         value += s;
@@ -936,6 +945,66 @@ here is the closing paragraph",
     }
 
     #[test]
+    fn test_unordered_list_in_sidenote_bug() {
+        let nodes = build(
+            "para one|- hello
+- foo| more text afterwards",
+        );
+        assert_eq!(1, nodes.len());
+
+        let children = paragraph_children(&nodes[0]).unwrap();
+        assert_eq!(children.len(), 3);
+        assert_text(&children[0], "para one");
+
+        match &children[1] {
+            Node::Sidenote(vs) => {
+                assert_eq!(vs.len(), 1);
+                match &vs[0] {
+                    Node::UnorderedList(us) => {
+                        assert_eq!(us.len(), 2);
+                        assert_list_item_text(&us[0], "hello");
+                        assert_list_item_text(&us[1], "foo");
+                    }
+                    _ => assert_eq!(false, true),
+                }
+            }
+            _ => assert_eq!(false, true),
+        };
+
+        assert_text(&children[2], " more text afterwards");
+    }
+
+    #[test]
+    fn test_ordered_list_in_sidenote_bug() {
+        let nodes = build(
+            "para two|1. item-a
+2. item-b| more text afterwards",
+        );
+        assert_eq!(1, nodes.len());
+
+        let children = paragraph_children(&nodes[0]).unwrap();
+        assert_eq!(children.len(), 3);
+        assert_text(&children[0], "para two");
+
+        match &children[1] {
+            Node::Sidenote(vs) => {
+                assert_eq!(vs.len(), 1);
+                match &vs[0] {
+                    Node::OrderedList(os) => {
+                        assert_eq!(os.len(), 2);
+                        assert_list_item_text(&os[0], "item-a");
+                        assert_list_item_text(&os[1], "item-b");
+                    }
+                    _ => assert_eq!(false, true),
+                }
+            }
+            _ => assert_eq!(false, true),
+        };
+
+        assert_text(&children[2], " more text afterwards");
+    }
+
+    #[test]
     fn test_square_bracket_in_normal_text() {
         let nodes = build("on account of the certitude and evidence of [its] reasoning");
 
@@ -974,10 +1043,10 @@ here is the closing paragraph",
     fn test_skip_leading_whitespace_and_newlines() {
         let mut toks = tokenize("foo [bar]").unwrap();
         let mut res = skip_leading_whitespace_and_newlines(&toks).unwrap();
-        assert_eq!(4, res.len());
+        assert_eq!(5, res.len());
 
         toks = tokenize("    foo [bar]").unwrap();
         res = skip_leading_whitespace_and_newlines(&toks).unwrap();
-        assert_eq!(4, res.len());
+        assert_eq!(5, res.len());
     }
 }

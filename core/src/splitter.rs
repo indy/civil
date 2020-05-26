@@ -149,8 +149,11 @@ mod tests {
 
     #[test]
     fn test_split_2() {
-        let res = split("hello world
-another line").unwrap();
+        let res = split(
+            "hello world
+another line",
+        )
+        .unwrap();
 
         assert_eq!(res.len(), 2);
         assert_eq!(res[0], "hello world");

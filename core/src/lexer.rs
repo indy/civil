@@ -37,6 +37,7 @@ pub enum Token<'a> {
     Text(&'a str),
     Underscore,
     Whitespace(&'a str),
+    EOS, // end of stream
 }
 
 pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
@@ -57,6 +58,7 @@ pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
         Token::Text(s) => s,
         Token::Underscore => "_",
         Token::Whitespace(s) => s,
+        Token::EOS => "",
     }
 }
 
@@ -95,6 +97,8 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
             return Err(Error::Lexer);
         }
     }
+
+    tokens.push(Token::EOS);
 
     Ok(tokens)
 }
@@ -147,11 +151,11 @@ mod tests {
 
     #[test]
     fn test_lexer() {
-        tok("[]", &[Token::BracketStart, Token::BracketEnd]);
+        tok("[]", &[Token::BracketStart, Token::BracketEnd, Token::EOS]);
 
-        tok("here are some words", &[Token::Text("here are some words")]);
+        tok("here are some words", &[Token::Text("here are some words"), Token::EOS]);
 
-        tok("5", &[Token::Digits("5")]);
+        tok("5", &[Token::Digits("5"), Token::EOS]);
 
         tok(
             "foo *bar* 456789",
@@ -162,6 +166,7 @@ mod tests {
                 Token::Asterisk,
                 Token::Whitespace(" "),
                 Token::Digits("456789"),
+                Token::EOS,
             ],
         );
     }

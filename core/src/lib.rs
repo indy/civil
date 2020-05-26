@@ -16,10 +16,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 mod compiler;
+mod element;
 mod error;
 mod lexer;
 mod parser;
-mod element;
 mod splitter;
 
 use compiler::compile_to_struct;
