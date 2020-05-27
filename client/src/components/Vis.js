@@ -109,7 +109,7 @@ export default function Vis({ id, depth, onlyIdeas }) {
             .attr("marker-end", d => `url(${new URL(`#arrow-suit`, window.location)})`);
 
       const node = svg.append("g")
-            .attr("fill", "var(--fg1)")
+            .attr("fill", "var(--fg2)")
             .attr("stroke-linecap", "round")
             .attr("stroke-linejoin", "round")
             .selectAll("g")
@@ -118,7 +118,7 @@ export default function Vis({ id, depth, onlyIdeas }) {
             .call(mydrag(simulation));
 
       node.append("circle")
-        .attr("stroke", "white")
+        .attr("stroke", "var(--fg2)")
         .attr("stroke-width", 1.5)
         .attr("r", 4);
 
