@@ -31,6 +31,8 @@ import Ideas from './components/Ideas';
 import Event from './components/Event';
 import Events from './components/Events';
 
+import Graph from './components/Graph';
+
 export default function App({ user, markup, autocompleteDecks, graphConnections }) {
   let state = initialState;
 
@@ -133,6 +135,7 @@ function TopBarMenu(props) {
       <Link className='top-bar-menuitem' to={'/publications'}>Publications</Link>
       <Link className='top-bar-menuitem' to={'/people'}>People</Link>
       <Link className='top-bar-menuitem' to={'/events'}>Events</Link>
+      <Link className='top-bar-menuitem' to={'/graph'}>Graph</Link>
       <Link className='top-bar-menuitem' to={ loggedLink() } id="login-menuitem">{ loggedStatus() }</Link>
     </div>);
 }
@@ -207,6 +210,9 @@ function AppUI(props) {
           </PrivateRoute>
           <PrivateRoute exact path="/publications">
             <Publications/>
+          </PrivateRoute>
+          <PrivateRoute exact path="/graph">
+            <Graph id = { 503 } onlyIdeas depth={ 4 }/>
           </PrivateRoute>
         </Switch>
       </div>

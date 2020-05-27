@@ -8,6 +8,7 @@ import SectionSearchResultsLinkBack from './SectionSearchResultsLinkBack';
 import DeckManager from './DeckManager';
 
 import Vis from './Vis';
+import Graph from './Graph';
 
 export default function Idea(props) {
   const [state] = useStateValue();
@@ -39,6 +40,7 @@ export default function Idea(props) {
       <SectionLinkBack linkbacks={ idea.linkbacks_to_decks }/>
       <SectionSearchResultsLinkBack linkbacks={ idea.search_results }/>
       { okToShowVis && <Vis id = { id } onlyIdeas depth={ 4 } /> }
+      { okToShowVis && <Graph id = { id } onlyIdeas depth={ 4 } /> }
     </article>
   );
 }

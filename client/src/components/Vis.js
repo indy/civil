@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStateValue } from '../lib/StateProvider';
-import { buildConnectivity } from '../lib/utils';
+import { buildGraph } from '../lib/graphUtils';
 import {
   event,
   drag,
@@ -12,38 +12,6 @@ import {
   forceX,
   forceY
 } from 'd3';
-
-
-function buildGraph(state, id, depth, onlyIdeas) {
-
-  function allowIdeas(id) {
-    return state.ac.decks[state.deckIndexFromId[id]].resource === "ideas";
-  }
-  function allowAll(id) {
-    return true;
-  }
-
-  let usedSet = new Set();
-  let connectionArr = buildConnectivity(state.fullGraph, id, depth, onlyIdeas ? allowIdeas : allowAll);
-
-  let resEdges = [];
-  for (let [source, target, strength] of connectionArr) {
-    usedSet.add(source);
-    usedSet.add(target);
-
-    resEdges.push({source, target, strength});
-  }
-
-  let resNodes = [];
-  for (let u of usedSet) {
-    resNodes.push({id: u});
-  }
-
-  return {
-    nodes: resNodes,
-    links: resEdges
-  };
-}
 
 export default function Vis({ id, depth, onlyIdeas }) {
   const [state] = useStateValue();
@@ -71,7 +39,6 @@ export default function Vis({ id, depth, onlyIdeas }) {
 
       // forceCollide for rectangles:
       // https://bl.ocks.org/cmgiven/547658968d365bcc324f3e62e175709b
-
       const simulation = forceSimulation(nodes)
             .force("link", forceLink(links).id(d => d.id))
             .force("charge", forceManyBody().strength(-900))
