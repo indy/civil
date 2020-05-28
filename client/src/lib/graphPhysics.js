@@ -82,6 +82,12 @@ export default function(graphState) {
       }
     }
 
+    for (j = 0; j < n; j++) {
+      for (i = j + 1; i < n; i++) {
+        forceCollideBox(nodes[i], nodes[j]);
+      }
+    }
+
     for (i = 0; i < n; i++) {
       node = nodes[i];
       forceX(node, alpha);
@@ -119,7 +125,6 @@ export default function(graphState) {
 
     for (i = 0; i < n; ++i) {
       node = graphState.nodes[i];
-      node.index = i;
       if (node.fx != null) node.x = node.fx;
       if (node.fy != null) node.y = node.fy;
       if (isNaN(node.x) || isNaN(node.y)) {
@@ -208,11 +213,50 @@ function forceManyBody(nodeA, nodeB, alpha) {
 
 }
 
-function forceCollide(nodeA, nodeB) {
-  const muhRadii = 40;            //  forceCollide
+function forceCollideBox(nodeA, nodeB) {
+  let xa = nodeA.x;
+  let ya = nodeA.y;
 
-  let ri = muhRadii;
+  let xb = nodeB.x;
+  let yb = nodeB.y;
+
+  // if there's an overlap then move boxes up/down
+  let overlappingX = false;
+  let overlappingY = false;
+
+  if ((xa < xb) && (xa + nodeA.textWidth > xb)) {
+    overlappingX = true;        // left overlap
+  } else if ((xa >= xb) && (xa + nodeA.textWidth < xb + nodeB.textWidth)) {
+    overlappingX = true;        // completely enclosed
+  } else if ((xb < xa) && (xb + nodeB.textWidth > xa)) {
+    overlappingX = true;
+  } else if ((xb >= xa) && (xb + nodeB.textWidth < xa + nodeA.textWidth)) {
+    overlappingX = true;        // completely enclosed
+  };
+
+  if ((ya < yb) && (ya + nodeA.textHeight > yb)) {
+    overlappingY = true;
+  } else if ((yb < ya) && (yb + nodeB.textHeight > ya)) {
+    overlappingY = true;
+  };
+
+  if (overlappingX && overlappingY) {
+    if (ya === yb) {
+      nodeA.vy -= jiggle();
+      nodeB.vy += jiggle();
+    } else {
+      // move a and b apart
+      nodeA.vy -= (yb - ya) / 32;
+      nodeB.vy += (yb - ya) / 32;
+    }
+  }
+
+}
+
+function forceCollide(nodeA, nodeB) {
+  let ri = 40;
   let ri2 = ri * ri;
+
   let xi = nodeA.x + nodeA.vx;
   let yi = nodeA.y + nodeA.vy;
 
@@ -220,7 +264,7 @@ function forceCollide(nodeA, nodeB) {
   let y = yi - (nodeB.y - nodeB.vy);
   let l = (x * x) + (y * y);
   let rj = ri;
-  let r = muhRadii + muhRadii;
+  let r = ri+ri;
   if (l < (r * r)) {
     if (x === 0) {
       x = jiggle();
@@ -248,7 +292,7 @@ function forceX(node, alpha) {
 }
 
 function forceY(node, alpha) {
-  let isgYStrength = 0.2;
+  let isgYStrength = 0.12;
   let isgYZ = 0.0;              // the value of y to goto
 
   node.vy += (isgYZ - node.y) * isgYStrength * alpha;

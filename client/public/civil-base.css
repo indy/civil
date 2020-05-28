@@ -5,6 +5,9 @@
   --fg1: #666; /* linked decks (i.e. tags) */
   --fg2: #ddddd0; /* edges in graphs */
 
+
+  --bg1: #eeeee8;
+
   --body-width: 80%;
   --block-width: 55%;
 

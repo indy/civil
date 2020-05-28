@@ -3,7 +3,8 @@ import { useStateValue } from '../lib/StateProvider';
 import { buildGraphState } from '../lib/graphUtils';
 import graphPhysics from "../lib/graphPhysics";
 
-let gSvg = undefined;
+let gContainerSvg = undefined;
+let gSvg;
 let gSvgEdges = undefined;
 let gSvgNodes = undefined;
 
@@ -11,26 +12,34 @@ export default function Graph({ id, depth, onlyIdeas }) {
   const [state] = useStateValue();
 
   const [data] = useState([]);
-  const svgRef = useRef();
+  const svgContainerRef = useRef();
 
   useEffect(() => {
     console.log('useEffect [data]');
 
     let graphState = buildGraphState(state, id, depth, onlyIdeas);
-    buildSvgGraph(svgRef.current, graphState);
+    buildSvgGraph(svgContainerRef.current, graphState);
     startSimulation(graphState);
 
   }, [data]);
 
-  return (<svg ref={ svgRef }
-               viewBox="-300, -300, 900, 900">
-          </svg>);
+  return (<div className="svg-container" ref={ svgContainerRef }>
+            <svg viewBox="-300, -300, 900, 900"></svg>
+          </div>);
 }
 
 function buildSvgGraph(ref, graphState) {
-  gSvg = ref;
+  gContainerSvg = ref;
 
-  while(gSvg.firstChild) { gSvg.firstChild.remove();};
+  while(gContainerSvg.firstChild) { gContainerSvg.firstChild.remove();};
+
+  let svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
+  svg.setAttribute("viewBox", "-300, -300, 900, 900");
+  // svg.setAttribute("viewBox", "-150, -150, 90, 150");
+  // svg.setAttribute("viewBox", "-200, -200, 600, 600");
+
+  gSvg = svg;
+  gContainerSvg.appendChild(gSvg);
 
   // defs for marker ends
   //
@@ -50,25 +59,25 @@ function buildSvgGraph(ref, graphState) {
 
   marker.appendChild(path);
   defs.appendChild(marker);
-  gSvg.appendChild(defs);
-
+  svg.appendChild(defs);
+/*
   // g of origin marker
   //
   let origin = document.createElementNS("http://www.w3.org/2000/svg", 'g');
   let origin_x = document.createElementNS("http://www.w3.org/2000/svg", 'path');
   origin_x.setAttribute("fill", "none");
   origin_x.setAttribute("stroke-width", `3`);
-  origin_x.setAttribute("stroke", 'var(--fg)');
+  origin_x.setAttribute("stroke", 'var(--bg1)');
   origin_x.setAttribute("d", "M-100,0L100,0");
   origin.appendChild(origin_x);
   let origin_y = document.createElementNS("http://www.w3.org/2000/svg", 'path');
   origin_y.setAttribute("fill", "none");
   origin_y.setAttribute("stroke-width", `3`);
-  origin_y.setAttribute("stroke", 'var(--fg)');
+  origin_y.setAttribute("stroke", 'var(--bg1)');
   origin_y.setAttribute("d", "M0,-100L0,100");
   origin.appendChild(origin_y);
-  gSvg.appendChild(origin);
-
+  svg.appendChild(origin);
+*/
   // g of edges
   //
   gSvgEdges = document.createElementNS("http://www.w3.org/2000/svg", 'g');
@@ -83,7 +92,7 @@ function buildSvgGraph(ref, graphState) {
     gSvgEdges.appendChild(createSvgEdge(sourceNode, targetNode, strength));
   });
 
-  gSvg.appendChild(gSvgEdges);
+  svg.appendChild(gSvgEdges);
 
   // g of nodes
   //
@@ -92,12 +101,16 @@ function buildSvgGraph(ref, graphState) {
   gSvgNodes.setAttribute("stroke-linecap", "round");
   gSvgNodes.setAttribute("stroke-linejoin", "round");
 
+  svg.appendChild(gSvgNodes);
+
   graphState.nodes.forEach(n => {
-    gSvgNodes.appendChild(createSvgNode(n.label, -3.2103189179278937,-9.947329432729548));
+    let [g, textNode] = createSvgNode(n.label, -3.2103189179278937,-9.947329432729548);
+    gSvgNodes.appendChild(g);
+
+    let textBoundingBox = textNode.getBBox();
+    n.textWidth = textBoundingBox.width;
+    n.textHeight = textBoundingBox.height;
   });
-
-  gSvg.appendChild(gSvgNodes);
-
 }
 
 function startSimulation(graphState) {
@@ -120,6 +133,34 @@ function updateGraph(graphState) {
     // todo: replace x,y with node
     translateNode(svgNode, nodes[i].x, nodes[i].y);
   });
+
+  let [xmin, ymin, xmax, ymax] = getBoundingBox(graphState.nodes);
+  console.log(xmin, ymin, xmax, ymax);
+  xmin -= 30;
+  ymin -= 30;
+  let width = (xmax - xmin) > 700 ? (xmax - xmin) * 1.2 : 800;
+  let height = (ymax - ymin) > 700 ? (ymax - ymin) * 1.2 : 800;
+  gSvg.setAttribute("viewBox", `${xmin} ${ymin} ${width} ${height}`);
+
+}
+
+function getBoundingBox(nodes) {
+  let xmin = Infinity;
+  let ymin = Infinity;
+  let xmax = -Infinity;
+  let ymax = -Infinity;
+
+  nodes.forEach(n => {
+    if (n.x < xmin) { xmin = n.x; }
+    if (n.y < ymin) { ymin = n.y; }
+    if (n.x + n.textWidth > xmin) { xmax = n.x + n.textWidth; }
+    if (n.y + n.textHeight > ymin) { ymax = n.y + n.textHeight; }
+  });
+
+  // let xmid = (xmin + xmax) / 2;
+  // let ymid = (ymin + ymax) / 2;
+
+  return [xmin, ymin, xmax, ymax];
 }
 
 function createSvgEdge(sourceNode, targetNode, strength) {
@@ -140,10 +181,16 @@ function createSvgNode(label, x, y) {
   let g = document.createElementNS("http://www.w3.org/2000/svg", 'g');
   translateNode(g, x, y);
 
+  // let circle2 = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
+  // circle2.setAttribute("stroke", "var(--fg2)");
+  // circle2.setAttribute("stroke-width", "0.5");
+  // circle2.setAttribute("r", "40");
+  // g.appendChild(circle2);
+
   let text1 = document.createElementNS("http://www.w3.org/2000/svg", 'text');
   text1.setAttribute("fill", "none");
-  text1.setAttribute("x", "8");
-  text1.setAttribute("y", "0.31em");
+  text1.setAttribute("x", "10");
+  text1.setAttribute("y", "0");
   text1.setAttribute("stroke", "var(--bg)");
   text1.setAttribute("stroke-width", "3");
   text1.textContent = label;
@@ -155,14 +202,15 @@ function createSvgNode(label, x, y) {
   circle.setAttribute("r", "4");
   g.appendChild(circle);
 
+
   let text2 = document.createElementNS("http://www.w3.org/2000/svg", 'text');
   text2.setAttribute("fill", "var(--fg)");
-  text2.setAttribute("x", "8");
-  text2.setAttribute("y", "0.31em");
+  text2.setAttribute("x", "10");
+  text2.setAttribute("y", "0");
   text2.textContent = label;
   g.appendChild(text2);
 
-  return g;
+  return [g, text2];
 }
 
 function translateEdge(svgNode, source, target) {

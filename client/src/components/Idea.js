@@ -39,8 +39,8 @@ export default function Idea(props) {
       { deckManager.notes }
       <SectionLinkBack linkbacks={ idea.linkbacks_to_decks }/>
       <SectionSearchResultsLinkBack linkbacks={ idea.search_results }/>
-      { okToShowVis && <Vis id = { id } onlyIdeas depth={ 4 } /> }
       { okToShowVis && <Graph id = { id } onlyIdeas depth={ 4 } /> }
+      { okToShowVis && <Vis id = { id } onlyIdeas depth={ 4 } /> }
     </article>
   );
 }

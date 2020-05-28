@@ -6,7 +6,6 @@ import { idParam } from '../lib/reactUtils';
 import SectionLinkBack from './SectionLinkBack';
 import DeckManager from './DeckManager';
 
-import Vis from './Vis';
 import Graph from './Graph';
 
 export default function Publication(props) {
@@ -28,7 +27,7 @@ export default function Publication(props) {
   // this is only for presentational purposes
   // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
   // this check prevents the vis from rendering until after we have all the note and links ready
-  const okToShowVis = deckManager.hasNotes;
+  const okToShowGraph = deckManager.hasNotes;
 
   return (
     <article>
@@ -42,8 +41,7 @@ export default function Publication(props) {
 
       { deckManager.notes }
       <SectionLinkBack linkbacks={ publication.linkbacks_to_decks }/>
-      { okToShowVis && <Vis id = { publicationId } depth={ 2 }/> }
-      { okToShowVis && <Graph id = { publicationId } depth={ 2 }/> }
+      { okToShowGraph && <Graph id = { publicationId } depth={ 2 }/> }
     </article>
   );
 }

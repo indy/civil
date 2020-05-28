@@ -15,6 +15,9 @@
 .pointform-space-top { margin-top: 1em; }
 .pointform-space-bottom { margin-bottom: 1em; }
 
+.svg-container {
+  width: 80%;
+}
 a:link {
   text-decoration: none;
 }
