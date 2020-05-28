@@ -1,13 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStateValue } from '../lib/StateProvider';
 import { buildGraphState } from '../lib/graphUtils';
-
-import forceLink from '../physics/forceLink';
-import forceX from "../physics/forceX";
-import forceY from "../physics/forceY";
-import forceCollide from "../physics/forceCollide";
-import forceManyBody from "../physics/forceManyBody";
-import forceSimulation from "../physics/simulation";
+import graphPhysics from "../lib/graphPhysics";
 
 let gSvg = undefined;
 let gSvgEdges = undefined;
@@ -107,19 +101,10 @@ function buildSvgGraph(ref, graphState) {
 }
 
 function startSimulation(graphState) {
-  const simulation = forceSimulation(graphState)
-        .force("link", forceLink(graphState.edges))
-        .force("charge", forceManyBody())
-        .force('collision', forceCollide())
-        .force("x", forceX())
-        .force("y", forceY());
-  ;
-
+  const simulation = graphPhysics(graphState);
   simulation.launch(updateGraph);
-
   return simulation;
 }
-
 
 function updateGraph(graphState) {
   let edges = graphState.edges;

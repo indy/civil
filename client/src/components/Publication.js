@@ -7,6 +7,7 @@ import SectionLinkBack from './SectionLinkBack';
 import DeckManager from './DeckManager';
 
 import Vis from './Vis';
+import Graph from './Graph';
 
 export default function Publication(props) {
   const [state] = useStateValue();
@@ -42,6 +43,7 @@ export default function Publication(props) {
       { deckManager.notes }
       <SectionLinkBack linkbacks={ publication.linkbacks_to_decks }/>
       { okToShowVis && <Vis id = { publicationId } depth={ 2 }/> }
+      { okToShowVis && <Graph id = { publicationId } depth={ 2 }/> }
     </article>
   );
 }
