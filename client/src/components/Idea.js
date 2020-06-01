@@ -7,7 +7,6 @@ import SectionLinkBack from './SectionLinkBack';
 import SectionSearchResultsLinkBack from './SectionSearchResultsLinkBack';
 import DeckManager from './DeckManager';
 
-import Vis from './Vis';
 import Graph from './Graph';
 
 export default function Idea(props) {
@@ -28,7 +27,7 @@ export default function Idea(props) {
   // this is only for presentational purposes
   // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
   // this check prevents the vis from rendering until after we have all the note and links ready
-  const okToShowVis = deckManager.hasNotes || idea.linkbacks_to_decks;
+  const okToShowGraph = deckManager.hasNotes || idea.linkbacks_to_decks;
 
   return (
     <article>
@@ -39,8 +38,7 @@ export default function Idea(props) {
       { deckManager.notes }
       <SectionLinkBack linkbacks={ idea.linkbacks_to_decks }/>
       <SectionSearchResultsLinkBack linkbacks={ idea.search_results }/>
-      { okToShowVis && <Graph id = { id } onlyIdeas depth={ 4 } /> }
-      { okToShowVis && <Vis id = { id } onlyIdeas depth={ 4 } /> }
+      { okToShowGraph && <Graph id = { id } onlyIdeas depth={ 4 } /> }
     </article>
   );
 }

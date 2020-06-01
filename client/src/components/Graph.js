@@ -135,7 +135,6 @@ function updateGraph(graphState) {
   });
 
   let [xmin, ymin, xmax, ymax] = getBoundingBox(graphState.nodes);
-  console.log(xmin, ymin, xmax, ymax);
   xmin -= 30;
   ymin -= 30;
   let width = (xmax - xmin) > 700 ? (xmax - xmin) * 1.2 : 800;
