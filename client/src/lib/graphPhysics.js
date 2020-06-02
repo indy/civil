@@ -1,59 +1,37 @@
 var initialRadius = 10,
     initialAngle = Math.PI * (3 - Math.sqrt(5));
 
-export default function(graphState) {
-  var strengths,
-      count,
-      bias;
-
-  var simulation,
-      alpha = 1,
-      alphaMin = 0.001,
-      alphaDecay = 1 - Math.pow(alphaMin, 1 / 300),
-      alphaTarget = 0,
-      velocityDecay = 0.6;
-
-  var tickCallback = undefined;
-
-  if (graphState.nodes == null) graphState.nodes = [];
-  if (graphState.simStats == null) graphState.simStats = { stepCount: 0 };
-
-  function forceLink() {
-    var i;
-    let nodes = graphState.nodes;
-    let links = graphState.edges;
-    let m = links.length;
-
-    let distance = 30;
-    var link, source, target, x, y, l, b;
-    for (i = 0; i < m; ++i) {
-      link = links[i];
-      source = nodes[link[0]];
-      target = nodes[link[1]];
-      x = target.x + target.vx - source.x - source.vx || jiggle();
-      y = target.y + target.vy - source.y - source.vy || jiggle();
-      l = Math.sqrt(x * x + y * y);
-      l = (l - distance) / l * alpha * strengths[i];
-      x *= l;
-      y *= l;
-      target.vx -= x * (b = bias[i]);
-      target.vy -= y * b;
-      source.vx += x * (b = 1 - b);
-      source.vy += y * b;
-    }
+export default function(graphState, tickCallbackFn) {
+  if (graphState.nodes == null || graphState.nodes.length === 0) {
+    // console.log('graph physics given no nodes - nothing to simulate');
+    return;
   }
 
-  function step() {
-    graphState.simStats.stepCount++;
+  var alpha = 1,
+      alphaMin = 0.001,
+      alphaDecay = 1 - Math.pow(alphaMin, 1 / 300),
+      velocityDecay = 0.6;
 
+  if (graphState.simStats == null) graphState.simStats = { tickCount: 0 };
+
+  let { bias, strengths } = initializeGraph(graphState);
+
+  function step() {
     // set this to 300 for guaranteed one step
     let tickIterations = 300;    // number of ticks to process per step
 
+    // let before = performance.now();
     let continueSimulating = tick(tickIterations);
+    // if (!continueSimulating) {
+    //   let after = performance.now();
+    //   console.log(`physics step took ${after - before}ms (tickCount: ${graphState.simStats.tickCount})`);
+    // } else {
+    //   console.log('physics requires another step - ignore the timing info thats about to be shown');
+    // }
 
     // event.call("tick", simulation);
-    if (tickCallback) {
-      tickCallback(graphState);
+    if (tickCallbackFn) {
+      tickCallbackFn(graphState);
     }
 
     if (continueSimulating) {
@@ -61,44 +39,21 @@ export default function(graphState) {
     }
   }
 
-  function gatherSimStats() {
-    let nodes = graphState.nodes;
-
-    let maxx = 0.0;
-    let maxy = 0.0;
-
-    nodes.forEach(n => {
-      let absx = Math.abs(n.vx);
-      let absy = Math.abs(n.vy);
-
-      if (absx > maxx) {
-        maxx = absx;
-      }
-      if (absy > maxy) {
-        maxy = absy;
-      }
-    });
-
-    graphState.simStats.maxVelocities = [maxx, maxy];
-  }
-
-  function clearPerTickSimStats() {
-    graphState.simStats.maxVelocities = [0.0, 0.0];
-  }
-
   function tick(iterations) {
     iterations = iterations || 1;
 
     for (let iter = 0; iter < iterations; iter++) {
-      clearPerTickSimStats();
+      graphState.simStats.tickCount++;
+
+      clearPerTickSimStats(graphState);
 
       let i, j, node;
       let nodes = graphState.nodes;
       let n = nodes.length;
 
-      alpha += (alphaTarget - alpha) * alphaDecay;
+      alpha -= alpha * alphaDecay;
 
-      forceLink();
+      forceLink(graphState, strengths, bias, alpha);
 
       for (j = 0; j < n; j++) {
         for (i = 0; i < n; i++) {
@@ -127,7 +82,7 @@ export default function(graphState) {
         forceY(node, alpha);
       }
 
-      gatherSimStats();
+      gatherSimStats(graphState);
 
       for (i = 0; i < n; ++i) {
         node = nodes[i];
@@ -150,7 +105,7 @@ export default function(graphState) {
       // m is the lowest axis-aligned velocity that we should regard as important enough to continue the simulation
       let m = 0.6;
 
-      if ((alpha < alphaMin) || (s.stepCount > 5 && s.maxVelocities[0] < m && s.maxVelocities[1] < m)) {
+      if ((alpha < alphaMin) || (s.tickCount > 5 && s.maxVelocities[0] < m && s.maxVelocities[1] < m)) {
         // stop the simulation
         return false;
       }
@@ -160,73 +115,108 @@ export default function(graphState) {
     return true;
   }
 
-  function initializeGraph() {
-    let nodes = graphState.nodes;
-    let links = graphState.edges;
-    var i,
-        n = nodes.length,
-        m = links.length,
-        link,
-        node;
+  // start the simulation function
+  //
+  window.requestAnimationFrame(step);
+}
 
-    for (i = 0; i < n; ++i) {
-      node = graphState.nodes[i];
-      if (node.fx != null) node.x = node.fx;
-      if (node.fy != null) node.y = node.fy;
-      if (isNaN(node.x) || isNaN(node.y)) {
-        var radius = initialRadius * Math.sqrt(0.5 + i), angle = i * initialAngle;
-        node.x = radius * Math.cos(angle);
-        node.y = radius * Math.sin(angle);
-      }
-      if (isNaN(node.vx) || isNaN(node.vy)) {
-        node.vx = node.vy = 0;
-      }
-    }
+function forceLink(graphState, strengths, bias, alpha) {
+  var i;
+  let nodes = graphState.nodes;
+  let links = graphState.edges;
+  let m = links.length;
 
-    count = new Array(n);
-    for (i = 0; i < m; ++i) {
-      link = links[i];
-      count[link[0]] = (count[link[0]] || 0) + 1;
-      count[link[1]] = (count[link[1]] || 0) + 1;
-    }
+  let distance = 30;
+  var link, source, target, x, y, l, b;
+  for (i = 0; i < m; ++i) {
+    link = links[i];
+    source = nodes[link[0]];
+    target = nodes[link[1]];
+    x = target.x + target.vx - source.x - source.vx || jiggle();
+    y = target.y + target.vy - source.y - source.vy || jiggle();
+    l = Math.sqrt(x * x + y * y);
+    l = (l - distance) / l * alpha * strengths[i];
+    x *= l;
+    y *= l;
+    target.vx -= x * (b = bias[i]);
+    target.vy -= y * b;
+    source.vx += x * (b = 1 - b);
+    source.vy += y * b;
+  }
+}
 
-    bias = new Array(m);
-    for (i = 0; i < m; ++i) {
-      link = links[i];
-      bias[i] = count[link[0]] / (count[link[0]] + count[link[1]]);
-    }
+function gatherSimStats(graphState) {
+  let nodes = graphState.nodes;
 
-    strengths = new Array(m);
-    for (i = 0; i < m; ++i) {
-      strengths[i] = defaultStrength(links[i]);
+  let maxx = 0.0;
+  let maxy = 0.0;
+
+  nodes.forEach(n => {
+    let absx = Math.abs(n.vx);
+    let absy = Math.abs(n.vy);
+
+    if (absx > maxx) {
+      maxx = absx;
     }
+    if (absy > maxy) {
+      maxy = absy;
+    }
+  });
+
+  graphState.simStats.maxVelocities = [maxx, maxy];
+}
+
+function clearPerTickSimStats(graphState) {
+  graphState.simStats.maxVelocities = [0.0, 0.0];
+}
+
+
+function initializeGraph(graphState) {
+  let nodes = graphState.nodes;
+  let links = graphState.edges;
+  var i,
+      n = nodes.length,
+      m = links.length,
+      link,
+      node;
+
+  for (i = 0; i < n; ++i) {
+    node = graphState.nodes[i];
+    if (node.fx != null) node.x = node.fx;
+    if (node.fy != null) node.y = node.fy;
+    if (isNaN(node.x) || isNaN(node.y)) {
+      var radius = initialRadius * Math.sqrt(0.5 + i), angle = i * initialAngle;
+      node.x = radius * Math.cos(angle);
+      node.y = radius * Math.sin(angle);
+    }
+    if (isNaN(node.vx) || isNaN(node.vy)) {
+      node.vx = node.vy = 0;
+    }
+  }
+
+  let count = new Array(n);
+  for (i = 0; i < m; ++i) {
+    link = links[i];
+    count[link[0]] = (count[link[0]] || 0) + 1;
+    count[link[1]] = (count[link[1]] || 0) + 1;
+  }
+
+  let bias = new Array(m);
+  for (i = 0; i < m; ++i) {
+    link = links[i];
+    bias[i] = count[link[0]] / (count[link[0]] + count[link[1]]);
   }
 
   function defaultStrength(link) {
     return 1 / Math.min(count[link[0]], count[link[1]]);
   }
 
-  initializeGraph();
+  let strengths = new Array(m);
+  for (i = 0; i < m; ++i) {
+    strengths[i] = defaultStrength(links[i]);
+  }
 
-  return simulation = {
-    tick: tick,
-
-    launch: function(tickCallbackFn) {
-      tickCallback = tickCallbackFn;
-      window.requestAnimationFrame(step);
-    },
-
-    restart: function() {
-      console.log('restart');
-      // return stepper.restart(step), simulation;
-      return simulation;
-    },
-
-    alphaTarget: function(_) {
-      console.log('alphaTarget');
-      return arguments.length ? (alphaTarget = +_, simulation) : alphaTarget;
-    }
-  };
+  return { bias, strengths };
 }
 
 function jiggle() {

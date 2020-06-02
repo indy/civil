@@ -168,14 +168,12 @@ function startSimulation(graphState, svg) {
 
 
     // let dbg = svg.debug.children[0];
-    // dbg.textContent = `${graphState.simStats.stepCount} ${graphState.simStats.maxVelocities[0]} ${graphState.simStats.maxVelocities[1]}`;
+    // dbg.textContent = `${graphState.simStats.tickCount} ${graphState.simStats.maxVelocities[0]} ${graphState.simStats.maxVelocities[1]}`;
     // dbg.setAttribute("x", xmin + 20);
     // dbg.setAttribute("y", ymin + 20);
   }
 
-  const simulation = graphPhysics(graphState);
-  simulation.launch(updateGraphCallback);
-  return simulation;
+  graphPhysics(graphState, updateGraphCallback);
 }
 
 
