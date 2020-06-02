@@ -16,6 +16,7 @@ export default function(graphState) {
   var tickCallback = undefined;
 
   if (graphState.nodes == null) graphState.nodes = [];
+  if (graphState.simStats == null) graphState.simStats = { stepCount: 0 };
 
   function forceLink() {
     var i;
@@ -43,75 +44,120 @@ export default function(graphState) {
   }
 
   function step() {
-    tick();
+    graphState.simStats.stepCount++;
+
+    // set this to 300 for guaranteed one step
+    let tickIterations = 300;    // number of ticks to process per step
+
+    let continueSimulating = tick(tickIterations);
+
     // event.call("tick", simulation);
     if (tickCallback) {
       tickCallback(graphState);
     }
 
-    if (alpha < alphaMin) {
-      console.log('stopping requestAnimationFrame');
-      // stepper.stop();
-      // event.call("end", simulation);
-    } else {
+    if (continueSimulating) {
       window.requestAnimationFrame(step);
     }
   }
 
-  function tick(iterations) {
-    let i, j, node;
+  function gatherSimStats() {
     let nodes = graphState.nodes;
-    let n = nodes.length;
 
-    alpha += (alphaTarget - alpha) * alphaDecay;
+    let maxx = 0.0;
+    let maxy = 0.0;
 
-    forceLink();
+    nodes.forEach(n => {
+      let absx = Math.abs(n.vx);
+      let absy = Math.abs(n.vy);
 
-    for (j = 0; j < n; j++) {
-      for (i = 0; i < n; i++) {
-        if (i === j) {
-          continue;
+      if (absx > maxx) {
+        maxx = absx;
+      }
+      if (absy > maxy) {
+        maxy = absy;
+      }
+    });
+
+    graphState.simStats.maxVelocities = [maxx, maxy];
+  }
+
+  function clearPerTickSimStats() {
+    graphState.simStats.maxVelocities = [0.0, 0.0];
+  }
+
+  function tick(iterations) {
+    iterations = iterations || 1;
+
+    for (let iter = 0; iter < iterations; iter++) {
+      clearPerTickSimStats();
+
+      let i, j, node;
+      let nodes = graphState.nodes;
+      let n = nodes.length;
+
+      alpha += (alphaTarget - alpha) * alphaDecay;
+
+      forceLink();
+
+      for (j = 0; j < n; j++) {
+        for (i = 0; i < n; i++) {
+          if (i === j) {
+            continue;
+          }
+          forceManyBody(nodes[j], nodes[i], alpha);
         }
-        forceManyBody(nodes[j], nodes[i], alpha);
+      }
+
+      for (j = 0; j < n; j++) {
+        for (i = j + 1; i < n; i++) {
+          forceCollide(nodes[i], nodes[j]);
+        }
+      }
+
+      for (j = 0; j < n; j++) {
+        for (i = j + 1; i < n; i++) {
+          forceCollideBox(nodes[i], nodes[j]);
+        }
+      }
+
+      for (i = 0; i < n; i++) {
+        node = nodes[i];
+        forceX(node, alpha);
+        forceY(node, alpha);
+      }
+
+      gatherSimStats();
+
+      for (i = 0; i < n; ++i) {
+        node = nodes[i];
+        if (node.fx == null) {
+          node.x += node.vx *= velocityDecay;
+        } else {
+          node.x = node.fx;
+          node.vx = 0;
+        }
+
+        if (node.fy == null) {
+          node.y += node.vy *= velocityDecay;
+        } else {
+          node.y = node.fy;
+          node.vy = 0;
+        }
+      }
+
+      let s = graphState.simStats;
+      // m is the lowest axis-aligned velocity that we should regard as important enough to continue the simulation
+      let m = 0.6;
+
+      if ((alpha < alphaMin) || (s.stepCount > 5 && s.maxVelocities[0] < m && s.maxVelocities[1] < m)) {
+        // stop the simulation
+        return false;
       }
     }
 
-    for (j = 0; j < n; j++) {
-      for (i = j + 1; i < n; i++) {
-        forceCollide(nodes[i], nodes[j]);
-      }
-    }
-
-    for (j = 0; j < n; j++) {
-      for (i = j + 1; i < n; i++) {
-        forceCollideBox(nodes[i], nodes[j]);
-      }
-    }
-
-    for (i = 0; i < n; i++) {
-      node = nodes[i];
-      forceX(node, alpha);
-      forceY(node, alpha);
-    }
-
-    for (i = 0; i < n; ++i) {
-      node = nodes[i];
-      if (node.fx == null) {
-        node.x += node.vx *= velocityDecay;
-      } else {
-        node.x = node.fx;
-        node.vx = 0;
-      }
-
-      if (node.fy == null) {
-        node.y += node.vy *= velocityDecay;
-      } else {
-        node.y = node.fy;
-        node.vy = 0;
-      }
-    }
-
-    return simulation;
+    // continue simulating
+    return true;
   }
 
   function initializeGraph() {

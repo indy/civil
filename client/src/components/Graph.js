@@ -7,6 +7,7 @@ let gContainerSvg = undefined;
 let gSvg;
 let gSvgEdges = undefined;
 let gSvgNodes = undefined;
+//let gSvgDebug = undefined;
 
 export default function Graph({ id, depth, onlyIdeas }) {
   const [state] = useStateValue();
@@ -60,8 +61,23 @@ function buildSvgGraph(ref, graphState) {
   marker.appendChild(path);
   defs.appendChild(marker);
   svg.appendChild(defs);
+
+  /*
+  // g of debug
+  gSvgDebug = document.createElementNS("http://www.w3.org/2000/svg", 'g');
+  let text1 = document.createElementNS("http://www.w3.org/2000/svg", 'text');
+  text1.setAttribute("fill", "none");
+  text1.setAttribute("x", "10");
+  text1.setAttribute("y", "0");
+  text1.setAttribute("stroke", "var(--fg)");
+  text1.setAttribute("stroke-width", "1");
+  text1.textContent = "shabba";
+  gSvgDebug.appendChild(text1);
+  svg.appendChild(gSvgDebug);
+  */
+
 /*
-  // g of origin marker
+  // g of axis rendering
   //
   let origin = document.createElementNS("http://www.w3.org/2000/svg", 'g');
   let origin_x = document.createElementNS("http://www.w3.org/2000/svg", 'path');
@@ -141,6 +157,11 @@ function updateGraph(graphState) {
   let height = (ymax - ymin) > 700 ? (ymax - ymin) * 1.2 : 800;
   gSvg.setAttribute("viewBox", `${xmin} ${ymin} ${width} ${height}`);
 
+
+  // let dbg = gSvgDebug.children[0];
+  // dbg.textContent = `${graphState.simStats.stepCount} ${graphState.simStats.maxVelocities[0]} ${graphState.simStats.maxVelocities[1]}`;
+  // dbg.setAttribute("x", xmin + 20);
+  // dbg.setAttribute("y", ymin + 20);
 }
 
 function getBoundingBox(nodes) {
