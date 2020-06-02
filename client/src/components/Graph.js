@@ -3,12 +3,6 @@ import { useStateValue } from '../lib/StateProvider';
 import { buildGraphState } from '../lib/graphUtils';
 import graphPhysics from "../lib/graphPhysics";
 
-let gContainerSvg = undefined;
-let gSvg;
-let gSvgEdges = undefined;
-let gSvgNodes = undefined;
-//let gSvgDebug = undefined;
-
 export default function Graph({ id, depth, onlyIdeas }) {
   const [state] = useStateValue();
 
@@ -19,8 +13,8 @@ export default function Graph({ id, depth, onlyIdeas }) {
     console.log('useEffect [data]');
 
     let graphState = buildGraphState(state, id, depth, onlyIdeas);
-    buildSvgGraph(svgContainerRef.current, graphState);
-    startSimulation(graphState);
+    let svg = buildSvg(svgContainerRef.current, graphState);
+    startSimulation(graphState, svg);
 
   }, [data]);
 
@@ -29,18 +23,26 @@ export default function Graph({ id, depth, onlyIdeas }) {
           </div>);
 }
 
-function buildSvgGraph(ref, graphState) {
-  gContainerSvg = ref;
+function buildSvg(ref, graphState) {
+  let svg = {
+    container: undefined,
+    element: undefined,
+    edges: undefined,
+    nodes: undefined,
+    debug: undefined
+  };
 
-  while(gContainerSvg.firstChild) { gContainerSvg.firstChild.remove();};
+  svg.container = ref;
 
-  let svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
-  svg.setAttribute("viewBox", "-300, -300, 900, 900");
+  while(svg.container.firstChild) { svg.container.firstChild.remove();};
+
+  let element = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
+  element.setAttribute("viewBox", "-300, -300, 900, 900");
   // svg.setAttribute("viewBox", "-150, -150, 90, 150");
   // svg.setAttribute("viewBox", "-200, -200, 600, 600");
 
-  gSvg = svg;
-  gContainerSvg.appendChild(gSvg);
+  svg.element = element;
+  svg.container.appendChild(svg.element);
 
   // defs for marker ends
   //
@@ -60,11 +62,11 @@ function buildSvgGraph(ref, graphState) {
 
   marker.appendChild(path);
   defs.appendChild(marker);
-  svg.appendChild(defs);
+  element.appendChild(defs);
 
   /*
   // g of debug
-  gSvgDebug = document.createElementNS("http://www.w3.org/2000/svg", 'g');
+  svg.debug = document.createElementNS("http://www.w3.org/2000/svg", 'g');
   let text1 = document.createElementNS("http://www.w3.org/2000/svg", 'text');
   text1.setAttribute("fill", "none");
   text1.setAttribute("x", "10");
@@ -72,8 +74,8 @@ function buildSvgGraph(ref, graphState) {
   text1.setAttribute("stroke", "var(--fg)");
   text1.setAttribute("stroke-width", "1");
   text1.textContent = "shabba";
-  gSvgDebug.appendChild(text1);
-  svg.appendChild(gSvgDebug);
+  svg.debug.appendChild(text1);
+  svg.appendChild(svg.debug);
   */
 
 /*
@@ -96,8 +98,8 @@ function buildSvgGraph(ref, graphState) {
 */
   // g of edges
   //
-  gSvgEdges = document.createElementNS("http://www.w3.org/2000/svg", 'g');
-  gSvgEdges.setAttribute("fill", "none");
+  svg.edges = document.createElementNS("http://www.w3.org/2000/svg", 'g');
+  svg.edges.setAttribute("fill", "none");
 
   // build the edges
   let nodes = graphState.nodes;
@@ -105,64 +107,68 @@ function buildSvgGraph(ref, graphState) {
     let sourceNode = nodes[e[0]];
     let targetNode = nodes[e[1]];
     let strength = e[2];
-    gSvgEdges.appendChild(createSvgEdge(sourceNode, targetNode, strength));
+    svg.edges.appendChild(createSvgEdge(sourceNode, targetNode, strength));
   });
 
-  svg.appendChild(gSvgEdges);
+  element.appendChild(svg.edges);
 
   // g of nodes
   //
-  gSvgNodes = document.createElementNS("http://www.w3.org/2000/svg", 'g');
-  gSvgNodes.setAttribute("fill", "var(--fg2)");
-  gSvgNodes.setAttribute("stroke-linecap", "round");
-  gSvgNodes.setAttribute("stroke-linejoin", "round");
+  svg.nodes = document.createElementNS("http://www.w3.org/2000/svg", 'g');
+  svg.nodes.setAttribute("fill", "var(--fg2)");
+  svg.nodes.setAttribute("stroke-linecap", "round");
+  svg.nodes.setAttribute("stroke-linejoin", "round");
 
-  svg.appendChild(gSvgNodes);
+  element.appendChild(svg.nodes);
 
   graphState.nodes.forEach(n => {
     let [g, textNode] = createSvgNode(n.label, -3.2103189179278937,-9.947329432729548);
-    gSvgNodes.appendChild(g);
+    svg.nodes.appendChild(g);
 
     let textBoundingBox = textNode.getBBox();
     n.textWidth = textBoundingBox.width;
     n.textHeight = textBoundingBox.height;
   });
+
+  return svg;
 }
 
-function startSimulation(graphState) {
+function startSimulation(graphState, svg) {
+  function updateGraphCallback() {
+    let edges = graphState.edges;
+    let nodes = graphState.nodes;
+
+    Array.from(svg.edges.children).forEach((svgEdge, i) => {
+      let source = nodes[edges[i][0]];
+      let target = nodes[edges[i][1]];
+      translateEdge(svgEdge, source, target);
+    });
+
+    Array.from(svg.nodes.children).forEach((svgNode, i) => {
+      // todo: replace x,y with node
+      translateNode(svgNode, nodes[i].x, nodes[i].y);
+    });
+
+    let [xmin, ymin, xmax, ymax] = getBoundingBox(graphState.nodes);
+    xmin -= 30;
+    ymin -= 30;
+    let width = (xmax - xmin) > 700 ? (xmax - xmin) * 1.2 : 800;
+    let height = (ymax - ymin) > 700 ? (ymax - ymin) * 1.2 : 800;
+    svg.element.setAttribute("viewBox", `${xmin} ${ymin} ${width} ${height}`);
+
+
+    // let dbg = svg.debug.children[0];
+    // dbg.textContent = `${graphState.simStats.stepCount} ${graphState.simStats.maxVelocities[0]} ${graphState.simStats.maxVelocities[1]}`;
+    // dbg.setAttribute("x", xmin + 20);
+    // dbg.setAttribute("y", ymin + 20);
+  }
+
   const simulation = graphPhysics(graphState);
-  simulation.launch(updateGraph);
+  simulation.launch(updateGraphCallback);
   return simulation;
 }
 
-function updateGraph(graphState) {
-  let edges = graphState.edges;
-  let nodes = graphState.nodes;
 
-  Array.from(gSvgEdges.children).forEach((svgEdge, i) => {
-    let source = nodes[edges[i][0]];
-    let target = nodes[edges[i][1]];
-    translateEdge(svgEdge, source, target);
-  });
-
-  Array.from(gSvgNodes.children).forEach((svgNode, i) => {
-    // todo: replace x,y with node
-    translateNode(svgNode, nodes[i].x, nodes[i].y);
-  });
-
-  let [xmin, ymin, xmax, ymax] = getBoundingBox(graphState.nodes);
-  xmin -= 30;
-  ymin -= 30;
-  let width = (xmax - xmin) > 700 ? (xmax - xmin) * 1.2 : 800;
-  let height = (ymax - ymin) > 700 ? (ymax - ymin) * 1.2 : 800;
-  gSvg.setAttribute("viewBox", `${xmin} ${ymin} ${width} ${height}`);
-
-
-  // let dbg = gSvgDebug.children[0];
-  // dbg.textContent = `${graphState.simStats.stepCount} ${graphState.simStats.maxVelocities[0]} ${graphState.simStats.maxVelocities[1]}`;
-  // dbg.setAttribute("x", xmin + 20);
-  // dbg.setAttribute("y", ymin + 20);
-}
 
 function getBoundingBox(nodes) {
   let xmin = Infinity;
