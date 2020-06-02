@@ -74,8 +74,8 @@ export default function App({ user, markup, autocompleteDecks, graphConnections 
                   "Ersatz Verstand"]; // replacement mind where replacement is not as good
   let welcome = welcomes[Math.floor(Math.random() * welcomes.length)];
 
-  let msgs = ["We organise our worlds by first organising ourselves - Jean Piaget"];
-  console.log(msgs[0]);
+  // let msgs = ["We organise our worlds by first organising ourselves - Jean Piaget"];
+  // console.log(msgs[0]);
 
   // display a welcome message on the console
   //

@@ -18,6 +18,11 @@
 .svg-container {
   width: 80%;
 }
+
+.svg-pseudo-link:hover {
+  cursor: pointer;
+}
+
 a:link {
   text-decoration: none;
 }

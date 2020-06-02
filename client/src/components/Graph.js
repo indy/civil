@@ -2,26 +2,36 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useStateValue } from '../lib/StateProvider';
 import { buildGraphState } from '../lib/graphUtils';
 import graphPhysics from "../lib/graphPhysics";
+import { useHistory } from 'react-router-dom';
 
 export default function Graph({ id, depth, onlyIdeas }) {
+  let history = useHistory();
   const [state] = useStateValue();
 
   const [data] = useState([]);
   const svgContainerRef = useRef();
 
   useEffect(() => {
-    console.log('useEffect [data]');
-
     let graphState = buildGraphState(state, id, depth, onlyIdeas);
     let svg = buildSvg(svgContainerRef.current, graphState);
     startSimulation(graphState, svg);
 
   }, [data]);
 
-  return (<div className="svg-container" ref={ svgContainerRef }>
+  function onclick(event) {
+    const target = event.target;
+
+    if (target.id.length > 0 && target.id[0] === '/') {
+      // the id looks like a url, that's good enough for us, lets go there
+      history.push(target.id);
+    }
+  }
+
+  return (<div className="svg-container" ref={ svgContainerRef } onClick={ onclick }>
             <svg viewBox="-300, -300, 900, 900"></svg>
           </div>);
 }
+
 
 function buildSvg(ref, graphState) {
   let svg = {
@@ -122,7 +132,7 @@ function buildSvg(ref, graphState) {
   element.appendChild(svg.nodes);
 
   graphState.nodes.forEach(n => {
-    let [g, textNode] = createSvgNode(n.label, -3.2103189179278937,-9.947329432729548);
+    let [g, textNode] = createSvgNode(n, -3.2103189179278937,-9.947329432729548);
     svg.nodes.appendChild(g);
 
     let textBoundingBox = textNode.getBBox();
@@ -176,6 +186,10 @@ function getBoundingBox(nodes) {
   let xmax = -Infinity;
   let ymax = -Infinity;
 
+  if (nodes.length === 0) {
+    return [0, 0, 1, 1];
+  }
+
   nodes.forEach(n => {
     if (n.x < xmin) { xmin = n.x; }
     if (n.y < ymin) { ymin = n.y; }
@@ -203,7 +217,9 @@ function createSvgEdge(sourceNode, targetNode, strength) {
 }
 
 // todo: replace params with a single node param
-function createSvgNode(label, x, y) {
+function createSvgNode(n, x, y) {
+  const label = n.label;
+
   let g = document.createElementNS("http://www.w3.org/2000/svg", 'g');
   translateNode(g, x, y);
 
@@ -234,6 +250,8 @@ function createSvgNode(label, x, y) {
   text2.setAttribute("x", "10");
   text2.setAttribute("y", "0");
   text2.textContent = label;
+  text2.id = `/${n.resource}/${n.id}`;
+  text2.classList.add("svg-pseudo-link");
   g.appendChild(text2);
 
   return [g, text2];

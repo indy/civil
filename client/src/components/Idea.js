@@ -22,8 +22,6 @@ export default function Idea(props) {
     updateForm: <IdeaForm idea={ idea } editing />
   });
 
-  console.log(`${Math.random()}`);
-
   // this is only for presentational purposes
   // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
   // this check prevents the vis from rendering until after we have all the note and links ready

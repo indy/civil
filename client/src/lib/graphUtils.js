@@ -61,6 +61,7 @@ export function buildGraphState(state, id, depth, onlyIdeas) {
     idToIndex[n.id] = i;
     return {
       id: n.id,
+      resource: state.ac.decks[state.deckIndexFromId[n.id]].resource,
       label: state.ac.decks[state.deckIndexFromId[n.id]].name,
       x: 0,
       y: 0,
