@@ -10,7 +10,7 @@ import Net from './lib/Net';
 
 import { initialState, reducer } from './AppState';
 import { useStateValue, StateProvider } from './lib/StateProvider';
-import { MarkupProvider } from './lib/MarkupProvider';
+import { WasmInterfaceProvider } from './lib/WasmInterfaceProvider';
 
 import Search from './components/Search';
 import Console from './components/Console';
@@ -33,7 +33,7 @@ import Events from './components/Events';
 
 import Graph from './components/Graph';
 
-export default function App({ user, markup, autocompleteDecks, graphConnections }) {
+export default function App({ user, wasmInterface, autocompleteDecks, graphConnections }) {
   let state = initialState;
 
   // update initial state with user
@@ -95,11 +95,11 @@ export default function App({ user, markup, autocompleteDecks, graphConnections 
   });
 
   return (
-    <MarkupProvider markup={ markup }>
+    <WasmInterfaceProvider wasmInterface={ wasmInterface }>
       <StateProvider initialState={state} reducer={reducer}>
         <AppUI/>
       </StateProvider>
-    </MarkupProvider>
+    </WasmInterfaceProvider>
   );
 }
 

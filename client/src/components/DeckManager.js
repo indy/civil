@@ -10,7 +10,7 @@ import { cacheDeck } from '../lib/utils';
 import { removeEmptyStrings } from '../lib/JsUtils';
 import { addChronologicalSortYear } from '../lib/eras';
 import { useStateValue } from '../lib/StateProvider';
-import { useMarkupValue } from '../lib/MarkupProvider';
+import { useWasmInterface } from '../lib/WasmInterfaceProvider';
 import NoteManager from './NoteManager';
 import { ensureCorrectDeck } from './EnsureCorrectDeck';
 
@@ -30,7 +30,7 @@ export default function DeckManager({ deck, title, resource, updateForm }) {
   const [showPointForm, setShowPointForm] = useState(false);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
 
-  const markup = useMarkupValue();
+  const wasmInterface = useWasmInterface();
 
   function buildButtons() {
     function onAddNoteClicked(e) {
@@ -74,10 +74,10 @@ export default function DeckManager({ deck, title, resource, updateForm }) {
     cacheDeck(dispatch, deck);
   }
 
-  function buildNoteForm(markup) {
+  function buildNoteForm() {
     function onAddNote(e) {
       const noteForm = e.target;
-      addNote(noteForm, deck.id, markup)
+      addNote(noteForm, deck.id, wasmInterface)
         .then(newNotes => {
           const notes = deck.notes;
           newNotes.forEach(n => {
@@ -129,7 +129,7 @@ export default function DeckManager({ deck, title, resource, updateForm }) {
   }
 
   if (showNoteForm) {
-    res.noteForm = buildNoteForm(markup);
+    res.noteForm = buildNoteForm();
   }
 
   if (showPointForm) {
@@ -156,8 +156,8 @@ function sortPoints(deck) {
   }
 }
 
-function addNote(form, deck_id, markup) {
-  const notes = markup.splitter(form.content.value);
+function addNote(form, deck_id, wasmInterface) {
+  const notes = wasmInterface.splitter(form.content.value);
 
   // const notes = splitIntoNotes(form.content.value);
   if (notes === null) {
