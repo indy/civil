@@ -127,6 +127,14 @@ fn element_key(name: &str, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
     Ok(vec![e])
 }
 
+fn text_element(text: &str) -> Element {
+    Element {
+        name: String::from("text"),
+        text: Some(String::from(text)),
+        ..Default::default()
+    }
+}
+
 fn element_key_class(name: &str, key: usize, class_name: &str, ns: &[Node]) -> Result<Vec<Element>> {
     let mut e = element_base(name, key, ns)?;
 
@@ -150,11 +158,7 @@ fn element_key_class_for(name: &str, key: usize, class_name: &str, html_for: &st
     e.class_name = Some(String::from(class_name));
     e.html_for = Some(String::from(html_for));
     // e.text = Some(String::from(text));
-    e.children = vec![Element {
-        name: String::from("text"),
-        text: Some(String::from(text)),
-        ..Default::default()
-    }];
+    e.children = vec![text_element(text)];
 
     Ok(vec![e])
 }

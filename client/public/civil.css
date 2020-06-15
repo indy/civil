@@ -15,6 +15,13 @@
 .pointform-space-top { margin-top: 1em; }
 .pointform-space-bottom { margin-bottom: 1em; }
 
+em:before {
+  content: "\00201C";           /* opening double quote: &#8220; converted to hex*/
+}
+em:after {
+  content: "\00201D";           /* closing double quote: &#8221; converted to hex*/
+}
+
 .svg-container {
   width: 80%;
 }
