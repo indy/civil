@@ -61,6 +61,11 @@ export default function PublicationForm({ publication, editing }) {
     } else {
       // create a new publication
       Net.post('/api/publications', data).then(publication => {
+        dispatch({
+          type: 'setPublication',
+          id: publication.id,
+          newItem: publication
+        });
 
         dispatch({
           type: 'addAutocompleteDeck',

@@ -45,7 +45,7 @@ export default function IdeaForm({ idea, editing }) {
     } else {
       // create a new idea
       Net.post('/api/ideas', data).then(idea => {
-        Net.get('/api/ideas').then(ideas => {
+        Net.get('/api/ideas/listings').then(ideas => {
           dispatch({
             type: 'setIdeas',
             ideas

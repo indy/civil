@@ -174,18 +174,12 @@ export const reducer = (state, action) => {
       return newState;
     }
   case 'setIdeas':
-    return {
+    let newState = {
       ...state,
       ideasLoaded: true,
       ideas: action.ideas
     };
-  case 'setIdea':
-    {
-      let newState = { ...state };
-      //      updateListOfTitles(newState.ideas, action.newItem);
-      newState.idea[action.id] = action.newItem;
-      return newState;
-    }
+    return newState;
   case 'setPublications':
     return {
       ...state,
@@ -196,7 +190,6 @@ export const reducer = (state, action) => {
     {
       let newState = { ...state };
       updateListOfTitles(newState.publications, action.newItem);
-      newState.publication[action.id] = action.newItem;
       return newState;
     }
   case 'setPeople':
@@ -210,7 +203,6 @@ export const reducer = (state, action) => {
     {
       let newState = { ...state };
       updateListOfNames(newState.people, action.newItem);
-      newState.person[action.id] = action.newItem;
       return newState;
     }
   case 'setEvents':
@@ -224,7 +216,6 @@ export const reducer = (state, action) => {
     {
       let newState = { ...state };
       updateListOfTitles(newState.events, action.newItem);
-      newState.event[action.id] = action.newItem;
       return newState;
     }
   default:
