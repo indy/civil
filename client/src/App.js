@@ -176,6 +176,7 @@ function AppUI(props) {
         <TopBarMenu/>
         <Switch>
           <Route exact path="/">
+            // shouldn't this be a PrivateRoute???
             <Search/>
           </Route>
           <Route exact path="/login">
