@@ -5,6 +5,7 @@ import { useEffect, useState } from '/js/ext/hooks.module.js';
 
 import { useStateValue } from '/js/lib/StateProvider.js';
 import Net from '/js/lib/Net.js';
+import { capitalise } from '/js/lib/JsUtils.js';
 
 import ListingLink from '/js/components/ListingLink.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';

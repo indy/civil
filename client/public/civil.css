@@ -10,6 +10,33 @@
              font-weight: normal;
              font-style: normal; }
 
+.civsel-form {
+  width: 100%;
+}
+.civsel-main-box {
+  background: #ffffff;
+}
+.civsel-candidate {
+  background: #ffff00;
+  border: 1px solid red;
+  padding: 0.4em;
+  margin: 0.2em;
+  width: max-content;
+  cursor: cell;
+}
+
+.civsel-selected-value {
+  background: #ffff00;
+  border: 1px solid red;
+  padding: 0.4em;
+  margin: 0.2em;
+  width: max-content;
+}
+
+.civsel-delete-selected {
+  cursor: pointer;
+}
+
 .pointform-block label { }
 .pointform-block input { width: 2em; margin-top: 0.3em; }
 .pointform-space-top { margin-top: 1em; }

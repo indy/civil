@@ -4,9 +4,10 @@ import { Link } from '/js/ext/preact-router.js';
 import { useState, useEffect } from '/js/ext/hooks.module.js';
 
 import { useStateValue } from '/js/lib/StateProvider.js';
-// import CreatableSelect from 'react-select/creatable';
 import Net from '/js/lib/Net.js';
 import { buildMarkup } from '/js/lib/MarkupBuilder.js';
+
+import CivilSelect from '/js/components/CivilSelect.js';
 
 export default function Note(props) {
   const html = htm.bind(h);
@@ -125,29 +126,23 @@ export default function Note(props) {
       setShowAddDecksUI(false);
     };
 
-    function buildOptionForcreatableSelect(d) {
+    function buildOptionsForCivilSelect(d) {
       return {
         id: d.id,
         resource: d.resource,
         value: d.name,
-        label: d.name
+        compValue: d.name.toLowerCase()
       }
     }
 
-        // <CreatableSelect
-        //   ref={ decksSelectRef }
-        //   isMulti
-        //   name="decks"
-        //   value={ decks }
-        //   onChange={ setDecks }
-        //   options={ state.ac.decks.map(buildOptionForcreatableSelect) }
-        //   className="basic-multi-select"
-        //   classNamePrefix="select"
-        // />
-
     return html`
       <div>
-        <label>Decks:</label>
+        <label>Connections:</label>
+        <${CivilSelect}
+          values=${ decks }
+          onChange=${ setDecks }
+          options=${ state.ac.decks.map(buildOptionsForCivilSelect) }
+        />
         <button onClick=${ cancelAddDecks }>Cancel</button>
         <button onClick=${ commitAddDecks }>Save</button>
       </div>
@@ -212,13 +207,11 @@ function buildCurrentDecks(note) {
   if(!note) {
     return null;
   }
-
   if (note.decks) {
     note.decks.forEach((deck) => {
       res.push({
         id: deck.id,
         value: deck.name,
-        label: deck.name,
         resource: deck.resource
       });
     });
