@@ -89,11 +89,7 @@ function selectRandomIdeas(allDecks, num) {
   let realNum = num < len ? num : len;
   for (let i = 0; i < realNum; i++) {
     let index = parseInt(Math.random() * (len - i), 10);
-    res.push({
-      id: ideas[index].id,
-      name: ideas[index].label,
-      resource: 'ideas',
-    })
+    res.push(ideas[index]);
     // now remove ideas[index] from the array
     ideas.splice(index, 1);
   };
