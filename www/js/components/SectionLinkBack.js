@@ -1,5 +1,5 @@
 import { h } from '/js/ext/preact.module.js';
-import htm from '/js/ext/htm.module.js';
+import htm from '/js/ext/htm.js';
 
 import ListingLink from '/js/components/ListingLink.js';
 import { capitalise } from '/js/lib/JsUtils.js';

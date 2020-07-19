@@ -1,6 +1,6 @@
 import { h, createContext } from '/js/ext/preact.module.js';
 import { useContext } from '/js/ext/hooks.module.js';
-import htm from '/js/ext/htm.module.js';
+import htm from '/js/ext/htm.js';
 
 export const WasmInterfaceContext = createContext();
 

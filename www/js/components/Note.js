@@ -1,5 +1,5 @@
 import { h } from '/js/ext/preact.module.js';
-import htm from '/js/ext/htm.module.js';
+import htm from '/js/ext/htm.js';
 import { Link } from '/js/ext/preact-router.js';
 import { useState, useEffect } from '/js/ext/hooks.module.js';
 

@@ -23,7 +23,7 @@
 // SOFTWARE.
 
 import { h, createRef }        from '/js/ext/preact.module.js';
-import htm                     from '/js/ext/htm.module.js';
+import htm                     from '/js/ext/htm.js';
 import { Link, route }         from '/js/ext/preact-router.js';
 import { useEffect, useState } from '/js/ext/hooks.module.js';
 
