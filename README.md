@@ -1,5 +1,7 @@
 # Civil
 
+A knowledge management system for the next 30 years
+
 ## Server
 
 rename server/.env.example to server/.env and update it for your environment
@@ -9,12 +11,10 @@ $ cd server && cargo run
 ## Client
 
 $ make wasm
-$ cd client && npm start
 
 ## Deploying
 
 $ make upload
-
 
 ## (Dev) loading a test database
 
