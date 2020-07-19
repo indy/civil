@@ -1,8 +1,6 @@
 import { initialState, reducer } from '/js/AppState.js';
 
-import { h }                          from '/js/ext/preact.module.js';
-import htm                            from '/js/ext/htm.js';
-import { Router, Route, Link, route } from '/js/ext/preact-router.js';
+import { html, Router, Route, Link, route } from '/js/ext/library.js';
 
 import Net                              from '/js/lib/Net.js';
 import { WasmInterfaceProvider }        from '/js/lib/WasmInterfaceProvider.js';
@@ -17,8 +15,6 @@ import { Person, People }            from '/js/components/People.js';
 import { Publication, Publications } from '/js/components/Publications.js';
 
 export default function App({ user, wasmInterface, autocompleteDecks, graphConnections }) {
-  const html = htm.bind(h);
-
   let state = initialState;
 
   // update initial state with user
@@ -84,8 +80,6 @@ export default function App({ user, wasmInterface, autocompleteDecks, graphConne
 };
 
 function TopBarMenu(props) {
-  const html = htm.bind(h);
-
   const [state] = useStateValue();
 
   function loggedStatus() {
@@ -121,8 +115,6 @@ function TopBarMenu(props) {
 }
 
 function AppUI(props) {
-  const html = htm.bind(h);
-
   const [state, dispatch] = useStateValue();
   if (state.dummy) {}
 

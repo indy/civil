@@ -24,3 +24,19 @@ $ make upload
 - update the .env variables
 
 - restart the server, login, may need an additional refresh to display the db name
+
+## (Dev) generating the library js files
+
+preact.js:
+package.json script in preact project:
+"isg": "microbundle -i src/index.js -o dist/isg-bundle.js --no-pkg-main --no-compress -f es",
+then rename dist/isg-bundle.module.js to preact.js
+
+hooks.js:
+go into the preact project's hooks/src directory, copy index.js to hooks.js updating the import declaration.
+
+htm:
+manually copied build.mjs from the project and made changes
+
+preact-router:
+manually copied over and made changes

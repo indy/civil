@@ -1,4 +1,4 @@
-import { Component, cloneElement, createElement, toChildArray } from '/js/ext/preact.module.js';
+import { Component, cloneElement, createElement, toChildArray } from '/js/ext/preact.js';
 
 var EMPTY$1 = {};
 

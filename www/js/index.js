@@ -1,4 +1,4 @@
-import { render } from '/js/ext/preact.module.js';
+import { render } from '/js/ext/library.js';
 import Net from '/js/lib/Net.js';
 import App from '/js/App.js';
 

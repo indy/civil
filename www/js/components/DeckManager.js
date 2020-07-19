@@ -3,7 +3,7 @@ import { html, useState } from '/js/ext/library.js';
 // UNCOMMENT to enable deleting
 // import { useHistory } from 'react-router-dom';
 
-import Net from '/js//lib/Net.js';
+import Net from '/js/lib/Net.js';
 import { addChronologicalSortYear } from '/js/lib/eras.js';
 import { removeEmptyStrings } from '/js/lib/JsUtils.js';
 import { useStateValue } from '/js/lib/StateProvider.js';
