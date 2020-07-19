@@ -1,10 +1,6 @@
-import { h } from '/js/ext/preact.module.js';
-import htm from '/js/ext/htm.js';
-import { Link } from '/js/ext/preact-router.js';
+import { html, Link } from '/js/ext/library.js';
 
 export default function ListingLink({ resource, id, name }) {
-  const html = htm.bind(h);
-
   const href = `/${resource}/${id}`;
 
   let res = html`

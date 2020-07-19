@@ -1,7 +1,4 @@
-import { h } from '/js/ext/preact.module.js';
-import htm from '/js/ext/htm.js';
-import { Link } from '/js/ext/preact-router.js';
-import { useState, useEffect } from '/js/ext/hooks.module.js';
+import { h, html, Link, useState, useEffect } from '/js/ext/library.js';
 
 import { useStateValue } from '/js/lib/StateProvider.js';
 import Net from '/js/lib/Net.js';
@@ -10,8 +7,6 @@ import { useWasmInterface } from '/js/lib/WasmInterfaceProvider.js';
 import CivilSelect from '/js/components/CivilSelect.js';
 
 export default function Note(props) {
-  const html = htm.bind(h);
-
   const [showModButtons, setShowModButtons] = useState(false);
   const [showAddDecksUI, setShowAddDecksUI] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -180,7 +175,6 @@ export default function Note(props) {
 }
 
 function buildTitle(title, onShowButtonsClicked) {
-  const html = htm.bind(h);
   return html`<h2 onClick=${ onShowButtonsClicked }>${ title }</h2>`;
 };
 
@@ -221,8 +215,6 @@ function buildCurrentDecks(note) {
 }
 
 function buildNoteReference(marginConnections) {
-  const html = htm.bind(h);
-
   if (!marginConnections) {
     return [];
   }
@@ -240,8 +232,6 @@ function buildNoteReference(marginConnections) {
 };
 
 function buildReadingContent(note, noteId, onShowButtonsClicked, decks) {
-  const html = htm.bind(h);
-
   const noteRefContents = buildNoteReference(decks);
   const contentMarkup = buildMarkup(note.content);
 
@@ -354,8 +344,6 @@ function hasNoteBeenModified(note, propsNote) {
 };
 
 function ResourceLink({ resource, id, name }) {
-  const html = htm.bind(h);
-
   const href = `/${resource}/${id}`;
 
   let res = html`

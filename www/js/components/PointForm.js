@@ -1,12 +1,8 @@
-import { h } from '/js/ext/preact.module.js';
-import htm from '/js/ext/htm.js';
-import { useState } from '/js/ext/hooks.module.js';
+import { html, useState } from '/js/ext/library.js';
 
 import Net from '/js/lib/Net.js';
 
 export default function PointForm({ point, onSubmit, submitMessage, readOnlyTitle }) {
-  const html = htm.bind(h);
-
   let initialPoint = {
     title: '',
 

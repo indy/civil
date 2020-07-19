@@ -1,11 +1,6 @@
-import { h } from '/js/ext/preact.module.js';
-import htm from '/js/ext/htm.js';
-import { Link } from '/js/ext/preact-router.js';
-import { useState, useEffect } from '/js/ext/hooks.module.js';
+import { html, Link, useState, useEffect } from '/js/ext/library.js';
 
 export default function CivilSelect({ values, onChange, options }) {
-  const html = htm.bind(h);
-
   const [currentValues, setCurrentValues] = useState(values);
 
   useEffect(() => {
@@ -30,8 +25,6 @@ export default function CivilSelect({ values, onChange, options }) {
 }
 
 function SelectedValue({ selected, onSelectedRemove }) {
-  const html = htm.bind(h);
-
   function onClick(e) {
     e.preventDefault();
     onSelectedRemove(selected);
@@ -43,8 +36,6 @@ function SelectedValue({ selected, onSelectedRemove }) {
 }
 
 function SelectInput({ options, onSelectedAdd }) {
-  const html = htm.bind(h);
-
   let [text, setText] = useState('');
   let [candidates, setCandidates] = useState([]);
 
@@ -104,8 +95,6 @@ function SelectInput({ options, onSelectedAdd }) {
 }
 
 function CandidateItem({ candidate, onSelectedCandidate }) {
-  const html = htm.bind(h);
-
   function selectedThisCandidate(e) {
     onSelectedCandidate(candidate);
     e.preventDefault();

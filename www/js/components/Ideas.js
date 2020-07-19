@@ -1,7 +1,4 @@
-import { h } from '/js/ext/preact.module.js';
-import htm from '/js/ext/htm.js';
-import { Link, route } from '/js/ext/preact-router.js';
-import { useEffect, useState } from '/js/ext/hooks.module.js';
+import { html, route, Link, useState, useEffect } from '/js/ext/library.js';
 
 import { useStateValue } from '/js/lib/StateProvider.js';
 import Net from '/js/lib/Net.js';
@@ -15,8 +12,6 @@ import Graph from '/js/components/Graph.js';
 let gKeyCounter = 0;
 
 function Ideas() {
-  const html = htm.bind(h);
-
   const [state, dispatch] = useStateValue();
   let [showAddIdeaForm, setShowAddIdeaForm] = useState(false);
 
@@ -44,7 +39,6 @@ function Ideas() {
   };
 
   function buildListSection(show, setShow, label, list) {
-    const html = htm.bind(h);
 
     function toggleShow() {
       setShow(!show);
@@ -79,7 +73,6 @@ function Ideas() {
   }
 
   function buildListing(list) {
-    const html = htm.bind(h);
 
     if (!list) {
       return [];
@@ -108,8 +101,6 @@ function Ideas() {
 }
 
 function Idea(props) {
-  const html = htm.bind(h);
-
   const [state] = useStateValue();
 
   const ideaId = parseInt(props.id, 10);
@@ -141,8 +132,6 @@ function Idea(props) {
 }
 
 function IdeaForm({ idea, editing }) {
-  const html = htm.bind(h);
-
   idea = idea || {};
   const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(idea.title || '');
@@ -224,8 +213,6 @@ function IdeaForm({ idea, editing }) {
 
 function SectionSearchResultsLinkBack(props) {
   function listingLinks(linkbacks, heading) {
-    const html = htm.bind(h);
-
     function buildLinkback(lb) {
       return (
         html`<${ListingLink} id=${ lb.id } name=${ lb.name } resource=${ lb.resource }/>`

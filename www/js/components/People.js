@@ -1,8 +1,4 @@
-import { h } from '/js/ext/preact.module.js';
-import htm from '/js/ext/htm.js';
-import { useEffect, useState } from '/js/ext/hooks.module.js';
-import { Link, route } from '/js/ext/preact-router.js';
-
+import { html, route, Link, useState, useEffect } from '/js/ext/library.js';
 
 import Net from '/js/lib/Net.js';
 import { useStateValue } from '/js/lib/StateProvider.js';
@@ -15,8 +11,6 @@ import DeckManager     from '/js/components/DeckManager.js';
 import Graph from '/js/components/Graph.js';
 
 function Person(props) {
-  const html = htm.bind(h);
-
   const [state, dispatch] = useStateValue();
   const [showBirthForm, setShowBirthForm] = useState(false);
 
@@ -110,8 +104,6 @@ function Person(props) {
 }
 
 function People() {
-  const html = htm.bind(h);
-
   const [state, dispatch] = useStateValue();
   let [showAddPersonForm, setShowAddPersonForm] = useState(false);
 
@@ -165,8 +157,6 @@ function People() {
 }
 
 function PersonForm({ person, editing }) {
-  const html = htm.bind(h);
-
   person = person || {};
   const [state, dispatch] = useStateValue();
 
@@ -262,8 +252,6 @@ function PersonForm({ person, editing }) {
 }
 
 function DeckPoint({ deckPoint, holderId }) {
-  const html = htm.bind(h);
-
   let pointTitle = deckPoint.point_title === "Prime" && deckPoint.deck_resource === "events" ? "" : deckPoint.point_title;
 
   let item;
@@ -284,8 +272,6 @@ function DeckPoint({ deckPoint, holderId }) {
 }
 
 function ListDeckPoints({ deckPoints, holderId, holderName }) {
-  const html = htm.bind(h);
-
   let [showButtons, setShowButtons] = useState(false);
   let [onlyThisPerson, setOnlyThisPerson] = useState(false);
   let [hideBirthsDeaths, setHideBirthsDeaths] = useState(false);

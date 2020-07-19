@@ -1,15 +1,11 @@
-import { h, createRef } from '/js/ext/preact.module.js';
-import htm from '/js/ext/htm.js';
-import { Link, route } from '/js/ext/preact-router.js';
-import { useEffect, useState } from '/js/ext/hooks.module.js';
+import { createRef, html, route, Link, useState, useEffect } from '/js/ext/library.js';
+
 import { useStateValue } from '/js/lib/StateProvider.js';
 
 import graphPhysics from "/js/lib/graphPhysics.js";
 // import { useHistory } from 'react-router-dom';
 
 export default function Graph({ id, depth, onlyIdeas }) {
-  const html = htm.bind(h);
-
   // let history = useHistory();
   const [state] = useStateValue();
 

@@ -22,10 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { h, createRef }        from '/js/ext/preact.module.js';
-import htm                     from '/js/ext/htm.js';
-import { Link, route }         from '/js/ext/preact-router.js';
-import { useEffect, useState } from '/js/ext/hooks.module.js';
+import { createRef, html, route, Link, useState, useEffect } from '/js/ext/library.js';
 
 // import html from 'react-inner-html';  ??????????????
 import { useStateValue } from '/js/lib/StateProvider.js';
@@ -33,8 +30,6 @@ import { useStateValue } from '/js/lib/StateProvider.js';
 import Net from '/js/lib/Net.js';
 
 export default function Console(props) {
-  const html = htm.bind(h);
-
   const [state, dispatch] = useStateValue();
 
   const [consoleRoot] = useState(createRef());
@@ -293,7 +288,6 @@ export default function Console(props) {
 }
 
 function asShellBlock(ns) {
-  const html = htm.bind(h);
 
   let shellLines = ns.map((n, key) => {
     return html`<div class="shell-line" key=${ key }>${ n }</div>`;
@@ -303,8 +297,7 @@ function asShellBlock(ns) {
 
 // svg icons are from https://github.com/tabler/tabler-icons
 function expandIcon(onIconClicked) {
-  const html = htm.bind(h);
-  return html`
+    return html`
     <div class="sticky-bl">
       <svg onClick=${ onIconClicked } xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="#666" fill="none" strokeLinecap="round" strokeLinejoin="round">
         <path stroke="none" d="M0 0h24v24H0z"/>
@@ -319,8 +312,7 @@ function expandIcon(onIconClicked) {
 
 // svg icons are from https://github.com/tabler/tabler-icons
 function retractIcon(onIconClicked) {
-  const html = htm.bind(h);
-  return html`
+    return html`
     <div class="sticky-bl">
       <svg onClick=${ onIconClicked } xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="#666" fill="none" strokeLinecap="round" strokeLinejoin="round">
         <path stroke="none" d="M0 0h24v24H0z"/>
@@ -433,8 +425,6 @@ function cleanArray (dirtyArray) {
 }
 
 function ConsoleMessage({ content, dangerMode }) {
-  const html = htm.bind(h);
-
     const message = {
       lineHeight: '21px'
     };
@@ -443,8 +433,6 @@ function ConsoleMessage({ content, dangerMode }) {
 }
 
 async function cmdRecent(deck) {
-  const html = htm.bind(h);
-
   const d = deck.toLowerCase();
   const whiteList = ['publications', 'people', 'events', 'ideas'];
   if (!whiteList.includes(d)) {
@@ -467,13 +455,11 @@ async function cmdSearch(rawInput) {
 }
 
 function buildRecentResultEntry(entry) {
-  const html = htm.bind(h);
-  return html`<${Link} activeClassName="active" href='/${entry.resource}/${entry.id}'>${ entry.name }</${Link}>`;
+    return html`<${Link} activeClassName="active" href='/${entry.resource}/${entry.id}'>${ entry.name }</${Link}>`;
 }
 
 function buildSearchResultEntry(entry) {
-  const html = htm.bind(h);
-  return html`<${Link} activeClassName="active" href='/${entry.resource}/${entry.id}'>${ entry.name }</${Link}>`;
+    return html`<${Link} activeClassName="active" href='/${entry.resource}/${entry.id}'>${ entry.name }</${Link}>`;
 }
 
 function buildPrompt(user) {

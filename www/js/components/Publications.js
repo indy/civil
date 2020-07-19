@@ -1,7 +1,4 @@
-import { h } from '/js/ext/preact.module.js';
-import htm from '/js/ext/htm.js';
-import { Link, route } from '/js/ext/preact-router.js';
-import { useEffect, useState } from '/js/ext/hooks.module.js';
+import { html, route, Link, useState, useEffect } from '/js/ext/library.js';
 
 import { removeEmptyStrings } from '/js/lib/JsUtils.js';
 import { useStateValue } from '/js/lib/StateProvider.js';
@@ -13,8 +10,6 @@ import DeckManager     from '/js/components/DeckManager.js';
 import Graph           from '/js/components/Graph.js';
 
 function Publications() {
-  const html = htm.bind(h);
-
   const [state, dispatch] = useStateValue();
   let [showAddPublicationForm, setShowAddPublicationForm] = useState(false);
 
@@ -51,8 +46,6 @@ function Publications() {
 }
 
 function Publication(props) {
-  const html = htm.bind(h);
-
   const [state] = useStateValue();
 
   const publicationId = parseInt(props.id, 10);
@@ -89,10 +82,7 @@ function Publication(props) {
     </article>`;
 }
 
-
 function PublicationForm({ publication, editing }) {
-  const html = htm.bind(h);
-
   publication = publication || {};
   const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(publication.title || '');

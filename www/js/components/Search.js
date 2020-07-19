@@ -1,17 +1,10 @@
-import { h } from '/js/ext/preact.module.js';
-import htm from '/js/ext/htm.js';
-import { useState } from '/js/ext/hooks.module.js';
-import { Link } from '/js/ext/preact-router.js';
+import { html, Link, useState } from '/js/ext/library.js';
 
 import { useStateValue } from '/js/lib/StateProvider.js';
 
 import Net from '/js/lib/Net.js';
 
-
-
 export default function Search() {
-  const html = htm.bind(h);
-
   const [state] = useStateValue();
 
   let [localState, setLocalState] = useState({
@@ -98,8 +91,6 @@ function selectRandomIdeas(allDecks, num) {
 }
 
 function SearchBox(props) {
-  const html = htm.bind(h);
-
   let [searchTerm, setSearchTerm] = useState('');
   let [buttonLabel, setButtonLabel] = useState('Random');
 

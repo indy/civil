@@ -1,11 +1,8 @@
-import { h } from '/js/ext/preact.module.js';
-import htm from '/js/ext/htm.js';
-import { useState } from '/js/ext/hooks.module.js';
+import { html, useState } from '/js/ext/library.js';
 
 import Net from '/js/lib/Net.js';
 
 function Login({ loginCallback }) {
-  const html = htm.bind(h);
   //let history = useHistory();
   //let location = useLocation();
 
@@ -57,7 +54,6 @@ function Login({ loginCallback }) {
 }
 
 function Logout({ logoutCallback }) {
-  const html = htm.bind(h);
   //let history = useHistory();
 
   const handleLogout = (event) => {

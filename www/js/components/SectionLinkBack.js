@@ -1,12 +1,9 @@
-import { h } from '/js/ext/preact.module.js';
-import htm from '/js/ext/htm.js';
+import { html } from '/js/ext/library.js';
 
 import ListingLink from '/js/components/ListingLink.js';
 import { capitalise } from '/js/lib/JsUtils.js';
 
 export default function SectionLinkBack(props) {
-  const html = htm.bind(h);
-
   const linkbacks = props.linkbacks || [];
   const sections = [];
   const groupedLinkbacks = groupByResource(linkbacks);
@@ -34,8 +31,6 @@ function groupByResource(linkbacks) {
 }
 
 function listingLinks(linkbacks, heading) {
-  const html = htm.bind(h);
-
   if (linkbacks.length === 0) {
     return html`<div></div>`;
   }
@@ -54,6 +49,5 @@ function listingLinks(linkbacks, heading) {
 }
 
 function buildLinkback(lb) {
-  const html = htm.bind(h);
   return html`<${ListingLink} id=${ lb.id } name=${ lb.name } resource=${ lb.resource }/>`;
 }

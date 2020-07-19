@@ -1,6 +1,4 @@
-import { h } from '/js/ext/preact.module.js';
-import htm from '/js/ext/htm.js';
-import { useState } from '/js/ext/hooks.module.js';
+import { html, useState } from '/js/ext/library.js';
 
 // UNCOMMENT to enable deleting
 // import { useHistory } from 'react-router-dom';
@@ -15,8 +13,6 @@ import Note from '/js/components/Note.js';
 import PointForm from '/js/components/PointForm.js';
 
 export default function DeckManager({ deck, title, resource, updateForm }) {
-  const html = htm.bind(h);
-
   // UNCOMMENT to enable deleting
   // let history = useHistory();
 
@@ -146,8 +142,6 @@ export default function DeckManager({ deck, title, resource, updateForm }) {
 }
 
 function NoteForm(props) {
-  const html = htm.bind(h);
-
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
   const [separator, setSeparator] = useState('separator');
@@ -258,8 +252,6 @@ function addNote(form, deck_id, wasmInterface) {
 }
 
 function NoteManager(holder, cacheDeckFn) {
-  const html = htm.bind(h);
-
   function findNoteWithId(id, modifyFn) {
     const notes = holder.notes;
     const index = notes.findIndex(n => n.id === id);

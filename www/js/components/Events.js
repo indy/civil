@@ -1,7 +1,4 @@
-import { h } from '/js/ext/preact.module.js';
-import htm from '/js/ext/htm.js';
-import { Link, route } from '/js/ext/preact-router.js';
-import { useEffect, useState } from '/js/ext/hooks.module.js';
+import { html, route, Link, useState, useEffect } from '/js/ext/library.js';
 
 import { useStateValue } from '/js/lib/StateProvider.js';
 import Net from '/js/lib/Net.js';
@@ -12,8 +9,6 @@ import SectionLinkBack from '/js/components/SectionLinkBack.js';
 import DeckManager     from '/js/components/DeckManager.js';
 
 function Events() {
-  const html = htm.bind(h);
-
   const [state, dispatch] = useStateValue();
   let [showAddEventForm, setShowAddEventForm] = useState(false);
 
@@ -43,8 +38,7 @@ function Events() {
   }
 
   function buildEventListing(id, dateText, title) {
-    const html = htm.bind(h);
-    const href = `/events/${id}`;
+        const href = `/events/${id}`;
 
     return html`
     <li key=${ id }>
@@ -65,8 +59,7 @@ function Events() {
   }
 
   function eventsList(list, heading) {
-    const html = htm.bind(h);
-    return html`
+        return html`
     <div>
       ${ !!list.length && html`<h2>${ heading }</h2>` }
       <ul class="events-list">
@@ -96,8 +89,6 @@ function Events() {
 }
 
 function Event(props) {
-  const html = htm.bind(h);
-
   const [state, dispatch] = useStateValue();
   const [showPrimeForm, setShowPrimeForm] = useState(false);
 
@@ -148,7 +139,6 @@ function Event(props) {
   }
 
   function showPoints(points) {
-    const html = htm.bind(h);
 
     return points.map(p => html`<${Point} key=${ p.id} point=${ p } parentResource="events"/>`);
   }
@@ -181,8 +171,6 @@ function Event(props) {
 }
 
 function EventForm({ event, editing }) {
-  const html = htm.bind(h);
-
   event = event || {};
   const [state, dispatch] = useStateValue();
 
@@ -277,8 +265,6 @@ function EventForm({ event, editing }) {
 }
 
 function Point({ point, parentResource }) {
-  const html = htm.bind(h);
-
   const [showForm, setShowForm] = useState(false);
 
   function onShowForm() {
