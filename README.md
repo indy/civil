@@ -29,6 +29,8 @@ $ make upload
 
 preact.js:
 package.json script in preact project:
+rename all mangle.json files to _mangle.json
+
 "isg": "microbundle -i src/index.js -o dist/isg-bundle.js --no-pkg-main --no-compress -f es",
 then rename dist/isg-bundle.module.js to preact.js
 
