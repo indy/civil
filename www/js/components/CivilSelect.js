@@ -1,11 +1,52 @@
 import { html, Link, useState, useEffect } from '/js/ext/library.js';
 
-export default function CivilSelect({ values, onChange, options }) {
+export default function CivilSelect({ values, onChange, options, onCancelAddDecks, onCommitAddDecks }) {
   const [currentValues, setCurrentValues] = useState(values);
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [candidates, setCandidates] = useState([]);
+
+  const onKeyDown = e => {
+    if (e.key === "Escape") {
+      setCandidates([]);
+    }
+    if (e.ctrlKey) {
+      setShowKeyboardShortcuts(true);
+      if (e.keyCode >= 49 && e.keyCode <= 57) {
+        // Ctrl + digit
+        const digit = e.keyCode - 48;
+
+        if (digit - 1 < currentValues.length) {
+          // delete from current values
+          setCurrentValues(currentValues.filter((cv, i) => i !== digit - 1));
+        } else {
+          const indexToAdd = digit - currentValues.length - 1;
+
+          if (candidates.length > indexToAdd) {
+            onSelectedAdd(candidates[indexToAdd]);
+          }
+        }
+      } else if (e.key === "Enter") {
+        // Ctrl+Enter == save
+        onCommitAddDecks();
+      }
+    }
+  };
+
+  const onKeyUp = e => {
+    if (e.key === "Control") {
+      setShowKeyboardShortcuts(false);
+    }
+  };
 
   useEffect(() => {
     onChange(currentValues);
-  }, [currentValues]);
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("keyup", onKeyUp);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("keyup", onKeyUp);
+    };
+  }, [currentValues, candidates]);
 
   function onSelectedRemove(e) {
     setCurrentValues(currentValues.filter(cv => { return cv.value !== e.value;}));
@@ -16,40 +57,55 @@ export default function CivilSelect({ values, onChange, options }) {
   }
 
   return html`<div class='civsel-main-box'>
-                ${ currentValues.map(value => html`<${SelectedValue}
-                                                     selected=${value}
-                                                     onSelectedRemove=${onSelectedRemove}
-                                                  />`) }
-                <${SelectInput} options=${options} onSelectedAdd=${onSelectedAdd}/>
+                ${ currentValues.map((value, i) => html`<${SelectedValue}
+                                                        selected=${value}
+                                                        onSelectedRemove=${onSelectedRemove}
+                                                        keyIndex=${ i + 1 }
+                                                        showKeyboardShortcuts=${ showKeyboardShortcuts } />`) }
+                <${SelectInput} options=${options}
+                                candidates=${candidates}
+                                setCandidates=${setCandidates}
+                                onSelectedAdd=${onSelectedAdd}
+                                currentValues=${ currentValues }
+                                showKeyboardShortcuts=${ showKeyboardShortcuts }/>
+               <button onClick=${ onCancelAddDecks }>Cancel</button>
+               <button onClick=${ onCommitAddDecks }>${ showKeyboardShortcuts && html`Ctrl-Enter`} Save</button>
               </div>`;
 }
 
-function SelectedValue({ selected, onSelectedRemove }) {
+function SelectedValue({ selected, onSelectedRemove, keyIndex, showKeyboardShortcuts }) {
   function onClick(e) {
     e.preventDefault();
     onSelectedRemove(selected);
   }
 
   return html`<div class='civsel-selected-value'>
+                ${ showKeyboardShortcuts && html`<span class='civsel-keyboard-shortcut'>Ctrl-${ keyIndex }</span>`}
                 <span class='civsel-delete-selected' onClick=${onClick}>[X] </span>${selected.value}
               </div>`;
 }
 
-function SelectInput({ options, onSelectedAdd }) {
+function SelectInput({ options, onSelectedAdd, candidates, setCandidates, currentValues, showKeyboardShortcuts }) {
   let [text, setText] = useState('');
-  let [candidates, setCandidates] = useState([]);
 
   useEffect(() => {
-    if (text.length > 1) {
+    if (text.length > 2) {
       refineCandidates();
+    } else {
+      setCandidates([]);
     }
   }, [text]);
+
+  function alreadySelected(compValue) {
+    return currentValues.some(cv => { return cv.value.toLowerCase() === compValue;});
+  }
 
   function refineCandidates() {
     let lowerText = text.toLowerCase();
 
     setCandidates(options
                   .filter(op => { return op.compValue.includes(lowerText); })
+                  .filter(op => { return !alreadySelected(op.compValue); })
                   .sort((a, b) => { return a.compValue.length - b.compValue.length; }));
   }
 
@@ -78,8 +134,12 @@ function SelectInput({ options, onSelectedAdd }) {
     setCandidates([]);
   }
 
-  let cl = candidates.map(c => {
-    return html`<${CandidateItem} candidate=${c} onSelectedCandidate=${ onSelectedCandidate }/>`;
+  let cl = candidates.map((c, i) => {
+    return html`<${CandidateItem} candidate=${c}
+                                  onSelectedCandidate=${ onSelectedCandidate }
+                                  showKeyboardShortcuts=${ showKeyboardShortcuts }
+                                  keyIndex=${ currentValues.length + 1 + i }
+                />`;
   });
 
   return html`
@@ -94,11 +154,16 @@ function SelectInput({ options, onSelectedAdd }) {
     </form>`;
 }
 
-function CandidateItem({ candidate, onSelectedCandidate }) {
+function CandidateItem({ candidate, onSelectedCandidate, showKeyboardShortcuts, keyIndex }) {
   function selectedThisCandidate(e) {
     onSelectedCandidate(candidate);
     e.preventDefault();
   }
 
-  return html`<div class="civsel-candidate" onClick=${selectedThisCandidate}>${candidate.value}</div>`;
+  const canShowKeyboardShortcut = showKeyboardShortcuts && keyIndex < 10;
+
+  return html`<div class="civsel-candidate" onClick=${selectedThisCandidate}>
+                ${ canShowKeyboardShortcut && html`<span class='civsel-keyboard-shortcut'>Ctrl-${ keyIndex }</span>`}
+                ${candidate.value}
+              </div>`;
 }

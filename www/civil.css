@@ -14,11 +14,10 @@
   width: 100%;
 }
 .civsel-main-box {
-  background: #ffffff;
+  /* background: #ffffff; */
 }
 .civsel-candidate {
-  background: #ffff00;
-  border: 1px solid red;
+  background: #ecd2a2;
   padding: 0.4em;
   margin: 0.2em;
   width: max-content;
@@ -26,8 +25,7 @@
 }
 
 .civsel-selected-value {
-  background: #ffff00;
-  border: 1px solid red;
+  background: #ecd2a2;
   padding: 0.4em;
   margin: 0.2em;
   width: max-content;

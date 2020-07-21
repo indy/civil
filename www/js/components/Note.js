@@ -136,12 +136,11 @@ export default function Note(props) {
         <${CivilSelect}
           values=${ decks }
           onChange=${ setDecks }
+          onCancelAddDecks=${ cancelAddDecks }
+          onCommitAddDecks=${ commitAddDecks }
           options=${ state.ac.decks.map(buildOptionsForCivilSelect) }
         />
-        <button onClick=${ cancelAddDecks }>Cancel</button>
-        <button onClick=${ commitAddDecks }>Save</button>
-      </div>
-`;
+      </div>`;
   };
 
   function buildMainButtons() {
