@@ -245,7 +245,6 @@ function EventForm({ event, editing }) {
   };
 
   if (redirectUrl) {
-    // todo: test
     route(redirectUrl, true);
   } else {
     return html`

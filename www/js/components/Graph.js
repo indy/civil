@@ -157,7 +157,6 @@ function startSimulation(graphState, svg) {
     });
 
     Array.from(svg.nodes.children).forEach((svgNode, i) => {
-      // todo: replace x,y with node
       translateNode(svgNode, nodes[i].x, nodes[i].y);
     });
 
@@ -216,7 +215,6 @@ function createSvgEdge(sourceNode, targetNode, strength) {
   return path;
 }
 
-// todo: replace params with a single node param
 function createSvgNode(n, x, y) {
   const label = n.label;
 

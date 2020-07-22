@@ -1234,4 +1234,3 @@ function createContext(defaultValue) {
 }
 
 export { render, hydrate, createElement, createElement as h, Fragment, createRef, isValidElement, Component, cloneElement, createContext, toChildArray, unmount as __u, options };
-//# sourceMappingURL=isg-bundle.module.js.map

@@ -23,8 +23,6 @@
 // SOFTWARE.
 
 import { createRef, html, route, Link, useState, useEffect } from '/js/ext/library.js';
-
-// import html from 'react-inner-html';  ??????????????
 import { useStateValue } from '/js/lib/StateProvider.js';
 
 import Net from '/js/lib/Net.js';
@@ -39,7 +37,7 @@ export default function Console(props) {
   const commands = {
     goto: {
       description: 'Goto a listing page',
-      usage: '!goto [ideas | publications | people | places]',
+      usage: '!goto [ideas | publications | people | events]',
       fn: function (deck) {
         return `goto ${deck}`;
       },
@@ -50,7 +48,7 @@ export default function Console(props) {
 
     recent: {
       description: 'Display recently added items',
-      usage: '!recent [ideas | publications | people | places]',
+      usage: '!recent [ideas | publications | people | events]',
       fn: async function (deck) {
         const res = await cmdRecent(deck);
         return res;

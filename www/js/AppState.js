@@ -8,9 +8,6 @@ export const initialState = {
   //   email: ...
   // },
 
-  // todo: remove this
-  counter: 0,
-
   console: {
     stdout: [],
     history: [],
@@ -49,12 +46,6 @@ export const initialState = {
 
 export const reducer = (state, action) => {
   switch (action.type) {
-    // todo: remove this
-  case 'setCounter':
-    return {
-      ...state,
-      counter: action.counter
-    };
   case 'setUser':
     return {
       ...state,

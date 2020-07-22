@@ -159,7 +159,6 @@ function PublicationForm({ publication, editing }) {
   };
 
   if (redirectUrl) {
-    // todo: test
     route(redirectUrl, true);
   } else {
     let res = html`

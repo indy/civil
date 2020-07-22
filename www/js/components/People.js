@@ -232,7 +232,6 @@ function PersonForm({ person, editing }) {
   };
 
   if (redirectUrl) {
-    // todo: test
     route(redirectUrl, true);
   } else {
     return html`

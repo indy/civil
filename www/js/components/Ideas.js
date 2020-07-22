@@ -192,9 +192,7 @@ function IdeaForm({ idea, editing }) {
   };
 
   if (redirectUrl) {
-    // todo: test
     route(redirectUrl, true);
-    // return <Redirect to={ redirectUrl } />;
   } else {
     return html`
       <form class="civil-form" onSubmit=${ handleSubmit }>
