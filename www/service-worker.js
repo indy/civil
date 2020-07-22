@@ -15,95 +15,198 @@
  *
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 
-const PRECACHE = 'precache-v3';
-const RUNTIME = 'runtime';
+"use strict";
 
-// NOTE: when releasing set DONT_CACHE_SOME_URLS to false and increment the PRECACHE
-const DONT_CACHE_SOME_URLS = true;
-const NO_CACHE_URLS = [
-  // '/client.js',
-  // '/client_bg.wasm',
-  // '/index.js',
-  // '/worker.js',
-  // '/api/gallery',
-  // '/shader/main-vert.glsl',
-  // '/shader/main-frag.glsl',
-  // '/shader/blit-vert.glsl',
-  // '/shader/blit-frag.glsl',
+var CACHE_NAME = "civil-precache-v3";
+
+var precacheConfig = [
+  "/index.html",
+  "/js/index.js",
+  "/wasm.js",
+  "/wasm_bg.wasm",
+  "/civil-base.css",
+  "/tufte.css",
+  "/civil-form.css",
+  "/civil.css",
+  "/apple-touch-icon.png",
+  "/favicon-16x16.png",
+  "/favicon-32x32.png",
+  "/fonts/et-book-display-italic-old-style-figures/et-book-display-italic-old-style-figures.woff",
+  "/fonts/et-book-roman-line-figures/et-book-roman-line-figures.woff",
+  "/fonts/NothingYouCouldDo-Regular.ttf",
+  "/fonts/Bitter/Bitter-Regular.ttf"
 ];
 
-// A list of local resources we always want to be cached.
-const PRECACHE_URLS = [
-  // '/lib/codemirror/codemirror.js',
-  // '/lib/codemirror/closebrackets.js',
-  // '/lib/codemirror/matchbrackets.js',
-  // '/favicon.ico'
-];
+var urlsToCache = new Set();
+precacheConfig.forEach(asset => {
+  var url = new URL(asset, self.location);
+  urlsToCache.add(url.toString());
+});
 
-// The install handler takes care of precaching the resources we always need.
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(PRECACHE)
-      .then(cache => cache.addAll(PRECACHE_URLS))
-      .then(self.skipWaiting())
+var ignoreUrlParametersMatching = [/^utm_/];
+
+function cleanResponse(t) {
+  return t.redirected
+    ? ("body" in t ? Promise.resolve(t.body) : t.blob()).then(function (e) {
+      return new Response(e, { headers: t.headers, status: t.status, statusText: t.statusText });
+    })
+  : Promise.resolve(t);
+}
+
+function stripIgnoredUrlParameters(e, n) {
+  var t = new URL(e);
+  return (
+    (t.hash = ""),
+    (t.search = t.search
+     .slice(1)
+     .split("&")
+     .map(function (e) {
+       return e.split("=");
+     })
+     .filter(function (t) {
+       return n.every(function (e) {
+         return !e.test(t[0]);
+       });
+     })
+     .map(function (e) {
+       return e.join("=");
+     })
+     .join("&")),
+    t.toString()
+  );
+}
+
+function setOfCachedUrls(e) {
+  return e
+    .keys()
+    .then(function (e) {
+      return e.map(function (e) {
+        return e.url;
+      });
+    })
+    .then(function (e) {
+      return new Set(e);
+    });
+}
+
+self.addEventListener("install", function (e) {
+  console.log("service-worker install");
+  e.waitUntil(
+    caches
+      .open(CACHE_NAME)
+      .then(function (r) {
+        return setOfCachedUrls(r).then(function (n) {
+          return Promise.all(
+            Array.from(urlsToCache).map(function (t) {
+              if (!n.has(t)) {
+                var e = new Request(t, { credentials: "same-origin" });
+                return fetch(e).then(function (e) {
+                  if (!e.ok) throw new Error("Request for " + t + " returned a response with status " + e.status);
+                  return cleanResponse(e).then(function (e) {
+                    console.log(`install: caching ${t}`);
+                    return r.put(t, e);
+                  });
+                });
+              } else {
+                console.log(`install: already cached ${t}`);
+              }
+            })
+          );
+        });
+      })
+      .then(function () {
+        return self.skipWaiting();
+      })
   );
 });
 
-// The activate handler takes care of cleaning up old caches.
-self.addEventListener('activate', event => {
-  const currentCaches = [PRECACHE, RUNTIME];
-  event.waitUntil(
+self.addEventListener("activate", function (e) {
+  console.log("service-worker activate");
+
+  e.waitUntil(
     caches.keys().then(cacheNames => {
-      return cacheNames.filter(cacheName => !currentCaches.includes(cacheName));
+      return cacheNames.filter(cacheName => cacheName !== CACHE_NAME);
     }).then(cachesToDelete => {
       return Promise.all(cachesToDelete.map(cacheToDelete => {
         return caches.delete(cacheToDelete);
       }));
     }).then(() => self.clients.claim())
   );
-});
 
-// The fetch handler serves responses for same-origin resources from a cache.
-// If no response is found, it populates the runtime cache with the response
-// from the network before returning it to the page.
-self.addEventListener('fetch', event => {
-  // Skip cross-origin requests, like those for Google Analytics.
-  if (event.request.url.startsWith(self.location.origin)) {
-    console.log(event);
-    // during development don't cache files that are constantly changing
-    // currently this includes any files in the NO_CACHE_URLS array and
-    // every piece script (a url beginning with api/gallery/{id})
-    //
-    if(DONT_CACHE_SOME_URLS) {
-      const relative = event.request.url.substr(self.location.origin.length);
-      if(NO_CACHE_URLS.includes(relative)) {
-        // console.log(`fetching but not caching ${relative}`);
-        return fetch(event.request).then(response => {
-          return response;
-        });
-      }
-    }
-
-    // cache everything
-    event.respondWith(
-      caches.match(event.request).then(cachedResponse => {
-        if (cachedResponse) {
-          // console.log(`in cache: ${event.request.url}`);
-          return cachedResponse;
-        }
-
-        return caches.open(RUNTIME).then(cache => {
-          return fetch(event.request).then(response => {
-            // Put a copy of the response in the runtime cache.
-            return cache.put(event.request, response.clone()).then(() => {
-              // console.log(`added to cache: ${event.request.url}`);
-              return response;
-            });
-          });
+  e.waitUntil(
+    caches
+      .open(CACHE_NAME)
+      .then(function (t) {
+        return t.keys().then(function (e) {
+          return Promise.all(
+            e.map(function (e) {
+              if (!urlsToCache.has(e.url)) return t.delete(e);
+            })
+          );
         });
       })
-    );
+      .then(function () {
+        return self.clients.claim();
+      })
+  );
+});
+
+self.addEventListener("fetch", function (event) {
+  if ("GET" === event.request.method || "HEAD" === event.request.method) {
+    var url = stripIgnoredUrlParameters(event.request.url, ignoreUrlParametersMatching);
+
+    // hackishly remove fuckery with urls
+    //
+    // when refreshing from a page such as /ideas/568 the /index.html page will be loaded from
+    // cache. Even though that page contains a href path such as "/civil.css" for some fucking
+    // reason this will be requested as "/ideas/civil.css". Therefore we now need this hacky
+    // function to remove the fucking /ideas/ part of the url when making requests for resources
+    // specified in the index.html file, even though those fucking resources are fucking
+    // specified with absolute paths.
+    //
+    url = hackRemoveDeckPaths(url);
+
+    var isCached = urlsToCache.has(url);
+
+    if (!isCached && "navigate" === event.request.mode) {
+      url = new URL("/index.html", self.location).toString();
+      isCached = urlsToCache.has(url);
+    }
+
+    if (isCached) {
+      event.respondWith(
+        caches
+          .open(CACHE_NAME)
+          .then(function (cache) {
+            if (urlsToCache.has(url)) {
+              return cache.match(url).then(function (response) {
+                if (response) return response;
+                throw Error("The cached response that was expected is missing.");
+              });
+            }
+          })
+          .catch(function (err) {
+            console.warn('Couldn\'t serve response for "%s" from cache: %O', event.request.url, err);
+            return fetch(event.request);
+          })
+      );
+    }
   }
 });
+
+function hackRemoveDeckPaths(dpath) {
+  if (dpath.endsWith("css") ||
+      dpath.endsWith("js") ||
+      dpath.endsWith("png") ||
+      dpath.endsWith("wasm") ||
+      dpath.endsWith("ttf") ||
+      dpath.endsWith("woff")) {
+    dpath = dpath.replace(/ideas\//, '');
+    dpath = dpath.replace(/publications\//, '');
+    dpath = dpath.replace(/people\//, '');
+    dpath = dpath.replace(/events\//, '');
+  }
+  return dpath;
+}
