@@ -42,3 +42,15 @@ manually copied build.mjs from the project and made changes
 
 preact-router:
 manually copied over and made changes
+
+
+# Requirements
+    A modern (for c.2020) web-browser
+    PostgreSQL
+    Rust
+    Make
+    (Optional) Minify (https://github.com/tdewolff/minify)
+
+install minify:
+$ sudo apt install minify
+if the minify binary is not installed on the build system then the unminified assets will be used

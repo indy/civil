@@ -2,6 +2,9 @@
 #
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
+# check if minify is installed
+MINIFY := $(shell command -v minify 2> /dev/null)
+
 ########################################
 #
 # 	Build debug build of wasm file
@@ -22,7 +25,7 @@ release: client-dist server-dist systemd-dist wasm-dist
 upload: release
 	rsync -avzhe ssh dist/. indy@indy.io:/home/indy/work/civil
 
-CLIENT_FILES = $(call rwildcard,www,*) $(call rwildcard,www,*)
+CLIENT_FILES = $(call rwildcard,www,*)
 SERVER_FILES = $(call rwildcard,server/src,*) $(wildcard server/errors/*.html) server/Cargo.toml
 SYSTEMD_FILES = $(wildcard misc/systemd/*)
 
@@ -44,6 +47,10 @@ dist/www/wasm_bg.wasm: $(WASM_FILES) $(CORE_FILES)
 
 dist/www/index.html: $(CLIENT_FILES)
 	cp -r www dist/.
+ifdef MINIFY
+	minify -o dist/www/ --match=\.css www
+	minify -r -o dist/www/js --match=\.js www/js
+endif
 
 dist/civil_server: $(SERVER_FILES)
 	cd server && cargo build --release
