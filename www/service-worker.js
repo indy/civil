@@ -19,7 +19,10 @@
 
 "use strict";
 
-var CACHE_NAME = "civil-precache-v3";
+// set this to true when deploying, false when developing js
+var useCache = true;
+
+var CACHE_NAME = "civil-20200725";
 
 var precacheConfig = [
   "/index.html",
