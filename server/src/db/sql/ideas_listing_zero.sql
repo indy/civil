@@ -1,4 +1,4 @@
-select id, name
+select id, name, created_at
 from decks
 where id not in (select deck_id
                  from notes_decks

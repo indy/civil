@@ -34,6 +34,7 @@ struct Publication {
     name: String,
     source: Option<String>,
     author: Option<String>,
+    created_at: chrono::DateTime<chrono::Utc>,
 }
 
 impl From<Publication> for interop::Publication {
@@ -41,6 +42,9 @@ impl From<Publication> for interop::Publication {
         interop::Publication {
             id: a.id,
             title: a.name,
+
+            created_at: a.created_at,
+
             source: a.source,
             author: a.author,
 

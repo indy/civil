@@ -23,6 +23,9 @@ use crate::interop::Key;
 pub struct Publication {
     pub id: Key,
     pub title: String,
+
+    pub created_at: chrono::DateTime<chrono::Utc>,
+
     pub source: Option<String>,
     pub author: Option<String>,
 

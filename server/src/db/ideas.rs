@@ -32,6 +32,7 @@ use tracing::info;
 struct Idea {
     id: Key,
     name: String,
+    created_at: chrono::DateTime<chrono::Utc>,
 }
 
 impl From<Idea> for interop::Idea {
@@ -39,6 +40,8 @@ impl From<Idea> for interop::Idea {
         interop::Idea {
             id: a.id,
             title: a.name,
+
+            created_at: a.created_at,
 
             notes: None,
 

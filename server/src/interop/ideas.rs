@@ -24,6 +24,8 @@ pub struct Idea {
     pub id: Key,
     pub title: String,
 
+    pub created_at: chrono::DateTime<chrono::Utc>,
+
     pub notes: Option<Vec<Note>>,
 
     pub decks_in_notes: Option<Vec<MarginConnection>>,

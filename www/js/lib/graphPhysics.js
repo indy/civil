@@ -6,6 +6,13 @@ export default function(graphState, tickCallbackFn) {
     // console.log('graph physics given no nodes - nothing to simulate');
     return;
   }
+  // increase size of nodes to help avoid overlaps
+  //
+//  graphState.nodes.forEach(n => {
+//    n.textHeight += 5;
+//    n.textWidth += 30;
+//  });
+
 
   var alpha = 1,
       alphaMin = 0.001,

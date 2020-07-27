@@ -140,6 +140,13 @@ function buildSvg(ref, graphState) {
     let textBoundingBox = textNode.getBBox();
     n.textWidth = textBoundingBox.width;
     n.textHeight = textBoundingBox.height;
+//    console.log(g);
+//    console.log(g.children[0]);
+//    let h = -textBoundingBox.height;
+//    g.children[0].setAttribute("width", "" + textBoundingBox.width);
+//    g.children[0].setAttribute("height", "" + textBoundingBox.height);
+//    g.children[0].setAttribute("y", "" + h);
+
   });
 
   return svg;
@@ -226,7 +233,15 @@ function createSvgNode(n, x, y) {
   // circle2.setAttribute("stroke-width", "0.5");
   // circle2.setAttribute("r", "40");
   // g.appendChild(circle2);
-
+/*
+  let debugbox = document.createElementNS("http://www.w3.org/2000/svg", 'rect');
+  debugbox.setAttribute("fill", "#ffaaff");
+  debugbox.setAttribute("x", "10");
+  debugbox.setAttribute("y", "0");
+  debugbox.setAttribute("width", "" + 10);
+  debugbox.setAttribute("height", "" + 10);
+  g.appendChild(debugbox);
+*/
   let text1 = document.createElementNS("http://www.w3.org/2000/svg", 'text');
   text1.setAttribute("fill", "none");
   text1.setAttribute("x", "10");

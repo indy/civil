@@ -2,7 +2,7 @@ import { html, route, Link, useState, useEffect } from '/js/ext/library.js';
 
 import { useStateValue } from '/js/lib/StateProvider.js';
 import Net from '/js/lib/Net.js';
-import { capitalise } from '/js/lib/JsUtils.js';
+import { capitalise, formattedDate } from '/js/lib/JsUtils.js';
 
 import ListingLink from '/js/components/ListingLink.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
@@ -117,10 +117,12 @@ function Idea(props) {
   // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
   // this check prevents the vis from rendering until after we have all the note and links ready
   const okToShowGraph = deckManager.hasNotes || idea.linkbacks_to_decks;;
+  const created_at_textual = formattedDate(idea.created_at);
 
   return html`
     <article>
       ${ deckManager.title }
+      ${ created_at_textual }
       ${ deckManager.buttons }
       ${ deckManager.noteForm }
       ${ deckManager.updateForm }

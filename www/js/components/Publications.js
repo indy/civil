@@ -1,6 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/js/ext/library.js';
 
-import { removeEmptyStrings } from '/js/lib/JsUtils.js';
+import { removeEmptyStrings, formattedDate } from '/js/lib/JsUtils.js';
 import { useStateValue } from '/js/lib/StateProvider.js';
 import Net from '/js/lib/Net.js';
 
@@ -66,9 +66,16 @@ function Publication(props) {
   // this check prevents the vis from rendering until after we have all the note and links ready
   const okToShowGraph = deckManager.hasNotes;
 
+//  const created_at_options = { year: 'numeric', month: 'long', day: 'numeric' };
+//  const created_at = new Date(publication.created_at);
+//  const created_at_textual = created_at.toLocaleDateString("en-GB", created_at_options);
+
+  const created_at_textual = formattedDate(publication.created_at);
+
   return html`
     <article>
       ${ deckManager.title }
+      ${ created_at_textual }
       ${ deckManager.buttons }
       ${ deckManager.noteForm }
       ${ deckManager.updateForm }

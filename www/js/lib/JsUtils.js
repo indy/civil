@@ -13,3 +13,11 @@ export function capitalise(text) {
   const capitaliseWord = word => word.slice(0, 1).toUpperCase() + word.slice(1);
   return text.split(' ').map(capitaliseWord).join(' ');
 }
+
+export function formattedDate(timestamp) {
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  const d = new Date(timestamp);
+  const textual = d.toLocaleDateString("en-GB", options);
+
+  return textual;
+}
