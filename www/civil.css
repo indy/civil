@@ -78,6 +78,10 @@ a:link.note-inline-link {
   right: 1rem
 }
 
+.console-toggle-icon {
+  cursor: pointer;
+}
+
 .z-high {
   z-index: 100;
 }
