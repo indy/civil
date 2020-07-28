@@ -116,8 +116,8 @@ function Idea(props) {
   // this is only for presentational purposes
   // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
   // this check prevents the vis from rendering until after we have all the note and links ready
-  const okToShowGraph = deckManager.hasNotes || idea.linkbacks_to_decks;;
-  const created_at_textual = formattedDate(idea.created_at);
+  const okToShowGraph = deckManager.hasNotes || idea.linkbacks_to_decks;
+  const created_at_textual = idea.created_at ? formattedDate(idea.created_at) : '';
 
   return html`
     <article>

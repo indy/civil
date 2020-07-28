@@ -65,12 +65,7 @@ function Publication(props) {
   // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
   // this check prevents the vis from rendering until after we have all the note and links ready
   const okToShowGraph = deckManager.hasNotes;
-
-//  const created_at_options = { year: 'numeric', month: 'long', day: 'numeric' };
-//  const created_at = new Date(publication.created_at);
-//  const created_at_textual = created_at.toLocaleDateString("en-GB", created_at_options);
-
-  const created_at_textual = formattedDate(publication.created_at);
+  const created_at_textual = publication.created_at ? formattedDate(publication.created_at) : '';
 
   return html`
     <article>
