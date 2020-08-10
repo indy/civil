@@ -128,6 +128,7 @@ function SelectInput({ parentDeckId, options, onSelectedAdd, candidates, setCand
       // treat this text as a new idea that needs to be created
       onSelectedAdd({ value: text, __isNew__: true});
     }
+    setText('');
   }
 
   function onSelectedCandidate(c) {
