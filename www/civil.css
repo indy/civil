@@ -199,6 +199,15 @@ section > form { width: var(--block-width); }
 .note p {
   width: var(--block-width);
 }
+.note ol {
+  width: var(--block-width);
+}
+.note ul {
+  width: var(--block-width);
+}
+.note li {
+  width: 96%;
+}
 
 .noteref-container {
   padding-top: 0.5em;
