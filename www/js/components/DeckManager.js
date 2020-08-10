@@ -282,6 +282,7 @@ function NoteManager(holder, cacheDeckFn) {
     return html`
       <${Note} key=${ note.id }
                note=${ note }
+               parentDeckId=${ holder.id }
                onDelete=${ onDeleteNote }
                onEdited=${ onEditedNote }
                onDecksChanged=${ onDecksChanged }

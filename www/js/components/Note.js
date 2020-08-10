@@ -133,7 +133,8 @@ export default function Note(props) {
     return html`
       <div>
         <label>Connections:</label>
-        <${CivilSelect}
+        <${ CivilSelect }
+          parentDeckId=${ props.parentDeckId }
           values=${ decks }
           onChange=${ setDecks }
           onCancelAddDecks=${ cancelAddDecks }

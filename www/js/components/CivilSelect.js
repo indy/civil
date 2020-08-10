@@ -1,6 +1,6 @@
 import { html, Link, useState, useEffect } from '/js/ext/library.js';
 
-export default function CivilSelect({ values, onChange, options, onCancelAddDecks, onCommitAddDecks }) {
+export default function CivilSelect({ parentDeckId, values, onChange, options, onCancelAddDecks, onCommitAddDecks }) {
   const [currentValues, setCurrentValues] = useState(values);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [candidates, setCandidates] = useState([]);
@@ -62,10 +62,11 @@ export default function CivilSelect({ values, onChange, options, onCancelAddDeck
                                                         onSelectedRemove=${onSelectedRemove}
                                                         keyIndex=${ i + 1 }
                                                         showKeyboardShortcuts=${ showKeyboardShortcuts } />`) }
-                <${SelectInput} options=${options}
-                                candidates=${candidates}
-                                setCandidates=${setCandidates}
-                                onSelectedAdd=${onSelectedAdd}
+                <${SelectInput} options=${ options }
+                                parentDeckId=${ parentDeckId }
+                                candidates=${ candidates }
+                                setCandidates=${ setCandidates }
+                                onSelectedAdd=${ onSelectedAdd }
                                 currentValues=${ currentValues }
                                 showKeyboardShortcuts=${ showKeyboardShortcuts }/>
                <button onClick=${ onCancelAddDecks }>Cancel</button>
@@ -85,7 +86,7 @@ function SelectedValue({ selected, onSelectedRemove, keyIndex, showKeyboardShort
               </div>`;
 }
 
-function SelectInput({ options, onSelectedAdd, candidates, setCandidates, currentValues, showKeyboardShortcuts }) {
+function SelectInput({ parentDeckId, options, onSelectedAdd, candidates, setCandidates, currentValues, showKeyboardShortcuts }) {
   let [text, setText] = useState('');
 
   useEffect(() => {
@@ -104,8 +105,9 @@ function SelectInput({ options, onSelectedAdd, candidates, setCandidates, curren
     let lowerText = text.toLowerCase();
 
     setCandidates(options
-                  .filter(op => { return op.compValue.includes(lowerText); })
-                  .filter(op => { return !alreadySelected(op.compValue); })
+                  .filter(op => { return (op.id !== parentDeckId)
+                                  && (op.compValue.includes(lowerText))
+                                  && !alreadySelected(op.compValue);  })
                   .sort((a, b) => { return a.compValue.length - b.compValue.length; }));
   }
 
