@@ -134,7 +134,6 @@ export const reducer = (state, action) => {
         name: action.name,
         resource: action.resource
       });
-      decks.sort((a, b) => a.name > b.name);
       return {
         ...state,
         ac: {
@@ -150,7 +149,6 @@ export const reducer = (state, action) => {
         name: newDeck.name,
         resource: newDeck.resource
       }));
-      decks.sort((a, b) => a.name > b.name);
       return {
         ...state,
         ac: {
