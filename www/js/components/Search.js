@@ -46,11 +46,16 @@ export default function Search() {
   }
 
   function buildSearchResults() {
-    let heading;
+    let heading = "";
     if (localState.shownSearchTerm.length > 0) {
+      if (localState.searchResults.length === 0) {
+        return html`<div><h2>No search results found for: ${localState.shownSearchTerm}</h2></div>`;
+      }
       heading = html`<h2>Results for: ${ localState.shownSearchTerm }</h2>`;
     } else {
-      heading = html`<h2>Random Ideas</h2>`;
+      if (localState.searchResults.length > 0) {
+        heading = html`<h2>Random Ideas</h2>`;
+      }
     }
 
     return html`
@@ -67,7 +72,7 @@ export default function Search() {
     <div>
       <h1>Search</h1>
       <${SearchBox} onSearch=${ onSearch } onRandom=${ onRandom }/>
-      ${ localState.searchResults.length > 0 && buildSearchResults() }
+      ${ buildSearchResults() }
     </div>
 `;
 }
