@@ -73,14 +73,29 @@ export default function Note(props) {
   };
 
   function buildEditableContent() {
-    let res = html`
-      <div class="civil-form">
-        <label for="separator">Separator</label>
-        <input id="separator"
+    // note: this if/else is the only way I could get the checked attribute to work
+    // having a single markup with: ${note.separator && 'checked'} doesn't work
+    //
+    let separatorCheckbox = "";
+    if (note.separator) {
+      separatorCheckbox = html`<input id="separator"
                type="checkbox"
                name="separator"
                value=${ note.separator && "separator"}
-               onInput=${ onSeparatorToggle }/>
+               onInput=${ onSeparatorToggle }
+               checked/>`;
+    } else {
+      separatorCheckbox = html`<input id="separator"
+               type="checkbox"
+               name="separator"
+               value=${ note.separator && "separator"}
+               onInput=${ onSeparatorToggle }/>`;
+    }
+
+    let res = html`
+      <div class="civil-form">
+        <label for="separator">Separator</label>
+        ${separatorCheckbox}
         <br />
         <label for="title">Title:</label>
         <input id="title"
