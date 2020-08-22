@@ -219,8 +219,8 @@ function PersonForm({ person, editing }) {
           dispatch({
             type: 'addAutocompleteDeck',
             id: person.id,
-            value: person.name,
-            label: person.name
+            name: person.name,
+            resource: "people"
           });
         });
         setRedirectUrl(`people/${person.id}`);

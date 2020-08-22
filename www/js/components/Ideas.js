@@ -182,8 +182,8 @@ function IdeaForm({ idea, editing }) {
           dispatch({
             type: 'addAutocompleteDeck',
             id: idea.id,
-            value: idea.title,
-            label: idea.title
+            name: idea.title,
+            resource: "ideas"
           });
         });
         setRedirectUrl(`ideas/${idea.id}`);

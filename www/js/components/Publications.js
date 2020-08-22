@@ -149,8 +149,8 @@ function PublicationForm({ publication, editing }) {
         dispatch({
           type: 'addAutocompleteDeck',
           id: publication.id,
-          value: publication.title,
-          label: publication.title
+          name: publication.title,
+          resource: "publications"
         });
 
         setRedirectUrl(`publications/${publication.id}`);

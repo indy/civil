@@ -131,10 +131,10 @@ export const reducer = (state, action) => {
       let decks = state.ac.decks;
       decks.push({
         id: action.id,
-        value: action.value,
-        label: action.label
+        name: action.name,
+        resource: action.resource
       });
-      decks.sort((a, b) => a.value > b.value);
+      decks.sort((a, b) => a.name > b.name);
       return {
         ...state,
         ac: {
@@ -145,8 +145,12 @@ export const reducer = (state, action) => {
   case 'addAutocompleteDecks':
     {
       let decks = state.ac.decks;
-      action.newDecks.forEach(newDeck => decks.push(newDeck));
-      decks.sort((a, b) => a.value > b.value);
+      action.newDecks.forEach(newDeck => decks.push({
+        id: newDeck.id,
+        name: newDeck.name,
+        resource: newDeck.resource
+      }));
+      decks.sort((a, b) => a.name > b.name);
       return {
         ...state,
         ac: {

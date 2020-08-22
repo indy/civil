@@ -332,9 +332,8 @@ function updateAutocompleteWithNewDecks(dispatch, newDeckNames, allDecksForNote)
     if (deck) {
       newDecks.push({
         id: deck.id,
-        resource: deck.resource,
-        label: deck.name,
-        value: deck.name,
+        name: deck.name,
+        resource: deck.resource
       });
     } else {
       console.error(`Expected a new deck called '${name}' to have been created by the server`);

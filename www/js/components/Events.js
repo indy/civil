@@ -232,8 +232,8 @@ function EventForm({ event, editing }) {
           dispatch({
             type: 'addAutocompleteDeck',
             id: event.id,
-            value: event.title,
-            label: event.title
+            name: event.title,
+            resource: "events"
           });
         });
 
