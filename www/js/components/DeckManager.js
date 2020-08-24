@@ -17,9 +17,6 @@ export default function DeckManager({ deck, title, resource, updateForm }) {
   // let history = useHistory();
 
   const [state, dispatch] = useStateValue();
-  if (state.dummy) {
-    // just to stop the build tool from complaining about unused state
-  }
 
   ensureCorrectDeck(resource, deck.id);   // 2 redraws here
 
