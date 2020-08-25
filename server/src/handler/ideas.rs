@@ -40,6 +40,8 @@ pub async fn create(
     let user_id = session::user_id(&session)?;
     let idea = idea.into_inner();
 
+    info!("{:?}", &idea);
+
     let idea = db::create(&db_pool, user_id, &idea).await?;
 
     Ok(HttpResponse::Ok().json(idea))

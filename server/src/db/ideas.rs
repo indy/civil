@@ -27,12 +27,49 @@ use tokio_pg_mapper_derive::PostgresMapper;
 #[allow(unused_imports)]
 use tracing::info;
 
+use postgres_types::{ToSql, FromSql};
+
+// this is the postgres specific enum of IdeaKind that will need to be
+// converted into interop::IdeaKind when creating interop::Idea
+//
+#[derive(Clone, Debug, ToSql, FromSql, Serialize, Deserialize)]
+#[postgres(name = "idea_kind")]
+pub enum IdeaKind {
+    #[postgres(name = "idea_na")]
+    NA,
+    #[postgres(name = "idea_verbatim")]
+    Verbatim,
+    #[postgres(name = "idea_insight")]
+    Insight,
+}
+
+impl From<IdeaKind> for interop::IdeaKind {
+    fn from(a: IdeaKind) -> interop::IdeaKind {
+        match a {
+            IdeaKind::NA => interop::IdeaKind::NA,
+            IdeaKind::Verbatim => interop::IdeaKind::Verbatim,
+            IdeaKind::Insight => interop::IdeaKind::Insight,
+        }
+    }
+}
+
+impl From<interop::IdeaKind> for IdeaKind {
+    fn from(a: interop::IdeaKind) -> IdeaKind {
+        match a {
+            interop::IdeaKind::NA => IdeaKind::NA,
+            interop::IdeaKind::Verbatim => IdeaKind::Verbatim,
+            interop::IdeaKind::Insight => IdeaKind::Insight,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
 struct Idea {
     id: Key,
     name: String,
     created_at: chrono::DateTime<chrono::Utc>,
+    idea: IdeaKind,
 }
 
 impl From<Idea> for interop::Idea {
@@ -115,10 +152,11 @@ pub(crate) async fn create(
     user_id: Key,
     idea: &interop::ProtoIdea,
 ) -> Result<interop::Idea> {
+    let idea_kind: IdeaKind = IdeaKind::from(idea.idea_kind);
     pg::one_from::<Idea, interop::Idea>(
         db_pool,
         include_str!("sql/ideas_create.sql"),
-        &[&user_id, &idea.title],
+        &[&user_id, &idea.title, &idea_kind],
     )
     .await
 }

@@ -138,13 +138,10 @@ function IdeaForm({ idea, editing }) {
   const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(idea.title || '');
   const [redirectUrl, setRedirectUrl] = useState(false);
+  const [verbatimIdea, setVerbatimIdea] = useState(idea.idea_kind && idea.idea_kind === 'verbatim');
 
   if (idea.title && idea.title !== '' && title === '') {
     setTitle(idea.title);
-  }
-
-  if (state.dummy) {
-    // just to stop the build tool from complaining about unused state
   }
 
   const handleChangeEvent = (event) => {
@@ -159,7 +156,8 @@ function IdeaForm({ idea, editing }) {
 
   const handleSubmit = (event) => {
     const data = {
-      title: title.trim()
+      title: title.trim(),
+      idea_kind: verbatimIdea ? 'Verbatim' : 'Insight'
     };
 
     if (editing) {
@@ -193,6 +191,10 @@ function IdeaForm({ idea, editing }) {
     event.preventDefault();
   };
 
+  const handleRadioButtons = (event) => {
+    setVerbatimIdea(event.target.id === "verbatim");
+  }
+
   if (redirectUrl) {
     route(redirectUrl, true);
   } else {
@@ -205,6 +207,17 @@ function IdeaForm({ idea, editing }) {
                name="title"
                value=${ title }
                onInput=${ handleChangeEvent } />
+        <br/>
+        <label for="verbatim">Verbatim</label>
+        <input type="radio"
+               id="verbatim" name="ideakind" value="verbatim"
+               onInput=${ handleRadioButtons }
+               checked=${ verbatimIdea } />
+        <label for="insight">Insight</label>
+        <input type="radio"
+               id="insight" name="ideakind" value="insight"
+               onInput=${ handleRadioButtons }
+               checked=${ !verbatimIdea } />
         <br/>
         <input type="submit" value=${ editing ? "Update Idea" : "Create Idea"}/>
       </form>`;

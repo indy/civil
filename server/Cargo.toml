@@ -19,6 +19,9 @@ tokio = { version = "0.2", features = ["macros"] }
 tokio-pg-mapper = "0.1.5"
 tokio-pg-mapper-derive = "0.1.5"
 tokio-postgres = { version = "0.5.1", features = ["with-chrono-0_4"] }
+
+postgres-types = {version = "0.1.2", features = ["derive"]}
+
 # for date representation
 chrono = { version = "0.4", features = ["serde"] }
 # tracing
