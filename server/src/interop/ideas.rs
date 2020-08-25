@@ -19,6 +19,13 @@ use crate::interop::decks::{LinkBack, MarginConnection};
 use crate::interop::notes::Note;
 use crate::interop::Key;
 
+#[derive(Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
+pub enum IdeaKind {
+    NA,
+    Verbatim,
+    Insight,
+}
+
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Idea {
     pub id: Key,
@@ -37,6 +44,7 @@ pub struct Idea {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct ProtoIdea {
     pub title: String,
+    pub idea_kind: IdeaKind,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

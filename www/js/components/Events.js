@@ -187,10 +187,6 @@ function EventForm({ event, editing }) {
     });
   }
 
-  if (state.dummy) {
-    // just to stop the build tool from complaining about unused state
-  }
-
   const handleChangeEvent = (e) => {
     const target = e.target;
     const name = target.name;

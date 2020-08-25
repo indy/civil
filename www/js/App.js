@@ -116,7 +116,6 @@ function TopBarMenu(props) {
 
 function AppUI(props) {
   const [state, dispatch] = useStateValue();
-  if (state.dummy) {}
 
   function loginHandler(user) {
     dispatch({

@@ -1,4 +1,4 @@
-select id, name, created_at
+select id, name, created_at, idea
 from decks
 where user_id = $1 and kind = 'idea'
 order by created_at desc

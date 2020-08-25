@@ -101,9 +101,6 @@ function PublicationForm({ publication, editing }) {
   if (publication.author && publication.author !== '' && author === '') {
     setAuthor(publication.author);
   }
-  if (state.dummy) {
-    // just to stop the build tool from complaining about unused state
-  }
 
   const handleChangeEvent = (event) => {
     const target = event.target;
