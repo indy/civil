@@ -17,7 +17,7 @@ export default function(graphState, tickCallbackFn) {
   var alpha = 1,
       alphaMin = 0.001,
       alphaDecay = 1 - Math.pow(alphaMin, 1 / 300),
-      velocityDecay = 0.6;
+      velocityDecay = 0.03;
 
   if (graphState.simStats == null) graphState.simStats = { tickCount: 0 };
 
@@ -25,7 +25,7 @@ export default function(graphState, tickCallbackFn) {
 
   function step() {
     // set this to 300 for guaranteed one step
-    let tickIterations = 300;    // number of ticks to process per step
+    let tickIterations = 1;    // number of ticks to process per step
 
     let before = performance.now();
     let continueSimulating = tick(tickIterations);
@@ -33,7 +33,7 @@ export default function(graphState, tickCallbackFn) {
       let after = performance.now();
       console.log(`physics step took ${after - before}ms (tickCount: ${graphState.simStats.tickCount})`);
     } else {
-      console.log('physics requires another step - ignore the timing info thats about to be shown');
+      // console.log('physics requires another step - ignore the timing info thats about to be shown');
     }
 
     // event.call("tick", simulation);
