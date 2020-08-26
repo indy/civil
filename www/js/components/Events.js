@@ -42,7 +42,7 @@ function Events() {
 
     return html`
     <li key=${ id }>
-      <${Link} activeClassName="active" href=${ href }>
+      <${Link} href=${ href }>
         <span class="event-date">${ dateText }</span> ${ title }
       </${Link}>
     </li>`;

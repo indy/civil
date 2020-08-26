@@ -5,7 +5,7 @@ export default function ListingLink({ resource, id, name }) {
 
   let res = html`
     <li>
-      <${Link} activeClassName="active" href=${ href }>${ name }</${Link}>
+      <${Link} href=${ href }>${ name }</${Link}>
     </li>`;
 
   return res;

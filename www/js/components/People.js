@@ -257,7 +257,7 @@ function DeckPoint({ deckPoint, holderId }) {
 
   } else {
     item = html`<li class='deckpoint'>
-                  <${Link} activeClassName="active" href='/${deckPoint.deck_resource}/${deckPoint.deck_id}' >
+                  <${Link} href='/${deckPoint.deck_resource}/${deckPoint.deck_id}' >
                     ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.point_date_textual }
                   </${Link}>
                 </li>`;

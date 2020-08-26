@@ -348,7 +348,7 @@ function ResourceLink({ resource, id, name, kind }) {
   const href = `/${resource}/${id}`;
 
   let res = html`
-      <${Link} activeClassName="active" href=${ href }>${ kind } ${ name }</${Link}>
+      <${Link} href=${ href }>${ kind } ${ name }</${Link}>
   `;
 
   return res;

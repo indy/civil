@@ -104,12 +104,12 @@ function TopBarMenu(props) {
 
   return html`
     <div id='top-bar-menu'>
-      <${Link} activeClassName="active" class='top-bar-menuitem' href=${'/'}>Search</${Link}>
-      <${Link} activeClassName="active" class='top-bar-menuitem' href=${'/ideas'}>Ideas</${Link}>
-      <${Link} activeClassName="active" class='top-bar-menuitem' href=${'/publications'}>Publications</${Link}>
-      <${Link} activeClassName="active" class='top-bar-menuitem' href=${'/people'}>People</${Link}>
-      <${Link} activeClassName="active" class='top-bar-menuitem' href=${'/events'}>Events</${Link}>
-      <${Link} activeClassName="active" class='top-bar-menuitem' href=${ loggedLink() } id="login-menuitem">${ loggedStatus() }</${Link}>
+      <${Link} class='top-bar-menuitem' href=${'/'}>Search</${Link}>
+      <${Link} class='top-bar-menuitem' href=${'/ideas'}>Ideas</${Link}>
+      <${Link} class='top-bar-menuitem' href=${'/publications'}>Publications</${Link}>
+      <${Link} class='top-bar-menuitem' href=${'/people'}>People</${Link}>
+      <${Link} class='top-bar-menuitem' href=${'/events'}>Events</${Link}>
+      <${Link} class='top-bar-menuitem' href=${ loggedLink() } id="login-menuitem">${ loggedStatus() }</${Link}>
     </div>
 `;
 }

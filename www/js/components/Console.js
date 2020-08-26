@@ -453,11 +453,11 @@ async function cmdSearch(rawInput) {
 }
 
 function buildRecentResultEntry(entry) {
-    return html`<${Link} activeClassName="active" href='/${entry.resource}/${entry.id}'>${ entry.name }</${Link}>`;
+    return html`<${Link} href='/${entry.resource}/${entry.id}'>${ entry.name }</${Link}>`;
 }
 
 function buildSearchResultEntry(entry) {
-    return html`<${Link} activeClassName="active" href='/${entry.resource}/${entry.id}'>${ entry.name }</${Link}>`;
+    return html`<${Link} href='/${entry.resource}/${entry.id}'>${ entry.name }</${Link}>`;
 }
 
 function buildPrompt(user) {

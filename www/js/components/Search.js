@@ -40,7 +40,7 @@ export default function Search() {
   function buildSearchResultEntry(entry, i) {
     return html`
       <li key=${ i }>
-        <${Link} activeClassName="active" href='/${entry.resource}/${entry.id}'>${ entry.name }</${Link}>
+        <${Link} href='/${entry.resource}/${entry.id}'>${ entry.name }</${Link}>
       </li>
 `;
   }
