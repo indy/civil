@@ -31,6 +31,8 @@ pub struct Idea {
     pub id: Key,
     pub title: String,
 
+    pub idea_category: IdeaKind,
+
     pub created_at: chrono::DateTime<chrono::Utc>,
 
     pub notes: Option<Vec<Note>>,
@@ -44,7 +46,7 @@ pub struct Idea {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct ProtoIdea {
     pub title: String,
-    pub idea_kind: IdeaKind,
+    pub idea_category: IdeaKind,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

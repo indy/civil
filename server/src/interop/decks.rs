@@ -17,6 +17,14 @@
 
 use crate::interop::Key;
 
+#[derive(Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
+pub enum RefKind {
+    Ref,
+    RefToParent,
+    RefToChild,
+    RefInContrast,
+}
+
 // links to decks on the side of notes
 //
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -25,6 +33,7 @@ pub struct MarginConnection {
     pub id: Key,
     pub name: String,
     pub resource: String,
+    pub kind: RefKind,
 }
 
 // on a decks page, these link back to other decks

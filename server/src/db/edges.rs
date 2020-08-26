@@ -17,10 +17,11 @@
 
 use super::pg;
 use crate::db::ideas as ideas_db;
+use crate::db::ref_kind::RefKind;
 use crate::error::{Error, Result};
 use crate::interop::decks as decks_interop;
 use crate::interop::edges as interop;
-use crate::interop::{kind_to_resource, Key};
+use crate::interop::{deck_kind_to_resource, Key};
 use deadpool_postgres::{Client, Pool};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
@@ -34,17 +35,19 @@ pub struct MarginConnectionToDeck {
     pub note_id: Key,
     pub id: Key,
     pub name: String,
-    pub kind: String,
+    pub deck_kind: String,
+    pub ref_kind: RefKind,
 }
 
 impl From<MarginConnectionToDeck> for decks_interop::MarginConnection {
     fn from(e: MarginConnectionToDeck) -> decks_interop::MarginConnection {
-        let resource = kind_to_resource(e.kind.as_ref()).unwrap();
+        let resource = deck_kind_to_resource(e.deck_kind.as_ref()).unwrap();
         decks_interop::MarginConnection {
             note_id: e.note_id,
             id: e.id,
             name: e.name,
             resource: resource.to_string(),
+            kind: decks_interop::RefKind::from(e.ref_kind),
         }
     }
 }

@@ -138,7 +138,7 @@ function IdeaForm({ idea, editing }) {
   const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(idea.title || '');
   const [redirectUrl, setRedirectUrl] = useState(false);
-  const [verbatimIdea, setVerbatimIdea] = useState(idea.idea_kind && idea.idea_kind === 'verbatim');
+  const [verbatimIdea, setVerbatimIdea] = useState(idea.idea_category === 'Verbatim');
 
   if (idea.title && idea.title !== '' && title === '') {
     setTitle(idea.title);
@@ -157,7 +157,7 @@ function IdeaForm({ idea, editing }) {
   const handleSubmit = (event) => {
     const data = {
       title: title.trim(),
-      idea_kind: verbatimIdea ? 'Verbatim' : 'Insight'
+      idea_category: verbatimIdea ? 'Verbatim' : 'Insight'
     };
 
     if (editing) {

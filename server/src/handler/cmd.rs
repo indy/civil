@@ -78,10 +78,7 @@ pub async fn recent(
     Ok(HttpResponse::Ok().json(res))
 }
 
-pub async fn graph(
-    db_pool: Data<Pool>,
-    session: actix_session::Session,
-) -> Result<HttpResponse> {
+pub async fn graph(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
     info!("graph");
 
     let user_id = session::user_id(&session)?;

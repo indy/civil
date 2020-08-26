@@ -12,7 +12,7 @@ CREATE TYPE deck_kind AS ENUM ('publication', 'person', 'event', 'idea');
 CREATE TYPE idea_kind AS ENUM ('idea_na', 'idea_verbatim', 'idea_insight');
 -- idea_na == idea not applicable, use this for publications, people and events
 
-CREATE TYPE ref_kind AS ENUM ('ref_to_parent', 'ref_to_child', 'ref_in_contrast');
+CREATE TYPE ref_kind AS ENUM ('ref', 'ref_to_parent', 'ref_to_child', 'ref_in_contrast');
 
 
 CREATE TABLE IF NOT EXISTS users (
@@ -34,8 +34,12 @@ CREATE TABLE IF NOT EXISTS decks (
 
     kind deck_kind NOT NULL,
 
-    idea idea_kind NOT NULL DEFAULT 'idea_na'::idea_kind;
+    -- specific to kind == 'idea'
+    --
+    idea_category idea_kind NOT NULL DEFAULT 'idea_na'::idea_kind;
 
+    -- shared amongst the different deck kinds
+    --
     name TEXT NOT NULL,
     source TEXT,
     author TEXT
@@ -77,7 +81,7 @@ CREATE TABLE IF NOT EXISTS notes (
 CREATE TABLE IF NOT EXISTS notes_decks (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
-    kind ref_kind NOT NULL DEFAULT 'ref_to_parent'::ref_kind;
+    kind ref_kind NOT NULL DEFAULT 'ref'::ref_kind;
 
     note_id BIGINT NOT NULL REFERENCES notes,
     deck_id BIGINT NOT NULL REFERENCES decks,

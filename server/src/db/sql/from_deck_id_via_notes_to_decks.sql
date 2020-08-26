@@ -1,7 +1,8 @@
 SELECT n.id as note_id,
        d.id as id,
        d.name as name,
-       d.kind::TEXT as kind
+       d.kind::TEXT as deck_kind,
+       nd.kind as ref_kind
 FROM   notes n,
        notes_decks nd,
        decks d

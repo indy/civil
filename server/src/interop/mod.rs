@@ -59,7 +59,7 @@ impl std::fmt::Display for Model {
     }
 }
 
-pub(crate) fn resource_to_kind(resource: &str) -> Result<&'static str> {
+pub(crate) fn resource_to_deck_kind(resource: &str) -> Result<&'static str> {
     match resource {
         "events" => Ok("event"),
         "ideas" => Ok("idea"),
@@ -69,7 +69,7 @@ pub(crate) fn resource_to_kind(resource: &str) -> Result<&'static str> {
     }
 }
 
-pub(crate) fn kind_to_resource(kind: &str) -> Result<&'static str> {
+pub(crate) fn deck_kind_to_resource(kind: &str) -> Result<&'static str> {
     match kind {
         "event" => Ok("events"),
         "idea" => Ok("ideas"),

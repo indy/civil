@@ -17,7 +17,7 @@
 
 use crate::interop::decks::{LinkBack, MarginConnection};
 use crate::interop::notes::Note;
-use crate::interop::points::{Point, DeckPoint};
+use crate::interop::points::{DeckPoint, Point};
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

@@ -18,9 +18,10 @@
 use super::pg;
 use crate::db::notes;
 use crate::db::points;
+use crate::db::ref_kind::RefKind;
 use crate::error::{Error, Result};
 use crate::interop::decks as interop;
-use crate::interop::{kind_to_resource, resource_to_kind, Key};
+use crate::interop::{deck_kind_to_resource, resource_to_deck_kind, Key};
 use deadpool_postgres::{Client, Pool};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
@@ -34,17 +35,19 @@ struct DeckReference {
     note_id: Key,
     id: Key,
     name: String,
-    kind: String,
+    deck_kind: String,
+    ref_kind: RefKind,
 }
 
 impl From<DeckReference> for interop::MarginConnection {
     fn from(d: DeckReference) -> interop::MarginConnection {
-        let resource = kind_to_resource(d.kind.as_ref()).unwrap();
+        let resource = deck_kind_to_resource(d.deck_kind.as_ref()).unwrap();
         interop::MarginConnection {
             note_id: d.note_id,
             id: d.id,
             name: d.name,
             resource: resource.to_string(),
+            kind: interop::RefKind::from(d.ref_kind),
         }
     }
 }
@@ -59,7 +62,7 @@ pub struct LinkBackToDeck {
 
 impl From<LinkBackToDeck> for interop::LinkBack {
     fn from(d: LinkBackToDeck) -> interop::LinkBack {
-        let resource = kind_to_resource(d.kind.as_ref()).unwrap();
+        let resource = deck_kind_to_resource(d.kind.as_ref()).unwrap();
         interop::LinkBack {
             id: d.id,
             name: d.name,
@@ -160,7 +163,7 @@ pub(crate) async fn recent(
     user_id: Key,
     resource: &str,
 ) -> Result<Vec<interop::LinkBack>> {
-    let deck_kind = resource_to_kind(resource)?;
+    let deck_kind = resource_to_deck_kind(resource)?;
     let limit: i32 = 10;
 
     let stmt = include_str!("sql/decks_recent.sql");
@@ -170,10 +173,7 @@ pub(crate) async fn recent(
     pg::many_from::<LinkBackToDeck, interop::LinkBack>(db_pool, &stmt, &[&user_id]).await
 }
 
-pub(crate) async fn graph(
-    db_pool: &Pool,
-    user_id: Key,
-) -> Result<Vec<interop::Vertex>> {
+pub(crate) async fn graph(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Vertex>> {
     let stmt = include_str!("sql/graph.sql");
     pg::many_from::<Vertex, interop::Vertex>(db_pool, &stmt, &[&user_id]).await
 }

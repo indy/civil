@@ -26,9 +26,9 @@ pub use crate::error::Result;
 
 use actix_files as fs;
 use actix_session::CookieSession;
+use actix_web::cookie::SameSite;
 use actix_web::middleware::errhandlers::ErrorHandlers;
 use actix_web::{http, App, HttpServer};
-use actix_web::cookie::SameSite;
 use dotenv;
 use std::env;
 use tokio_postgres::NoTls;
@@ -74,7 +74,9 @@ pub async fn start_server() -> Result<()> {
         read_signing_key(&mut signing_key, &session_signing_key);
         // info!("signing key: {:?}", signing_key);
 
-        let session_store = CookieSession::private(signing_key).secure(cookie_secure).same_site(SameSite::Strict);
+        let session_store = CookieSession::private(signing_key)
+            .secure(cookie_secure)
+            .same_site(SameSite::Strict);
         let error_handlers = ErrorHandlers::new()
             .handler(
                 http::StatusCode::INTERNAL_SERVER_ERROR,

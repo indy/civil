@@ -18,7 +18,7 @@
 use super::pg;
 use crate::error::{Error, Result};
 use crate::interop::points as interop;
-use crate::interop::{kind_to_resource, Key};
+use crate::interop::{deck_kind_to_resource, Key};
 use deadpool_postgres::{Client, Pool, Transaction};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
@@ -62,7 +62,6 @@ impl From<Point> for interop::Point {
     }
 }
 
-
 #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
 #[pg_mapper(table = "points")]
 struct DeckPoint {
@@ -78,7 +77,7 @@ struct DeckPoint {
 
 impl From<DeckPoint> for interop::DeckPoint {
     fn from(e: DeckPoint) -> interop::DeckPoint {
-        let resource = kind_to_resource(e.deck_kind.as_ref()).unwrap();
+        let resource = deck_kind_to_resource(e.deck_kind.as_ref()).unwrap();
         interop::DeckPoint {
             deck_id: e.deck_id,
             deck_name: e.deck_name,
@@ -101,7 +100,11 @@ pub(crate) async fn all(db_pool: &Pool, user_id: Key, deck_id: Key) -> Result<Ve
     .await
 }
 
-pub(crate) async fn all_points_during_life(db_pool: &Pool, user_id: Key, deck_id: Key) -> Result<Vec<interop::DeckPoint>> {
+pub(crate) async fn all_points_during_life(
+    db_pool: &Pool,
+    user_id: Key,
+    deck_id: Key,
+) -> Result<Vec<interop::DeckPoint>> {
     pg::many_from::<DeckPoint, interop::DeckPoint>(
         db_pool,
         include_str!("sql/points_between_persons_life.sql"),

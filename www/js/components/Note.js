@@ -227,7 +227,7 @@ function buildNoteReference(marginConnections) {
   return marginConnections.map(s => {
     return html`
       <div class=${ itemName } key=${ s.id }>
-        <${ResourceLink} id=${ s.id } name=${ s.name } resource=${ s.resource }/>
+        <${ResourceLink} id=${ s.id } name=${ s.name } resource=${ s.resource } kind=${ s.kind }/>
         ${spacer && html`<span class=${ spacer }/>`}
       </div>`;
   });
@@ -344,11 +344,11 @@ function hasNoteBeenModified(note, propsNote) {
   return contentChanged || titleChanged || separatorChanged;
 };
 
-function ResourceLink({ resource, id, name }) {
+function ResourceLink({ resource, id, name, kind }) {
   const href = `/${resource}/${id}`;
 
   let res = html`
-      <${Link} activeClassName="active" href=${ href }>${ name }</${Link}>
+      <${Link} activeClassName="active" href=${ href }>${ kind } ${ name }</${Link}>
   `;
 
   return res;

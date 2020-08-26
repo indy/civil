@@ -18,7 +18,7 @@
 use super::pg;
 use crate::error::Result;
 use crate::interop::autocomplete as interop;
-use crate::interop::{kind_to_resource, Key};
+use crate::interop::{deck_kind_to_resource, Key};
 use deadpool_postgres::Pool;
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
@@ -36,7 +36,7 @@ struct AutocompleteDeck {
 
 impl From<AutocompleteDeck> for interop::Autocomplete {
     fn from(p: AutocompleteDeck) -> interop::Autocomplete {
-        let resource = kind_to_resource(p.kind.as_ref()).unwrap();
+        let resource = deck_kind_to_resource(p.kind.as_ref()).unwrap();
         interop::Autocomplete {
             id: p.id,
             name: String::from(&p.name),
