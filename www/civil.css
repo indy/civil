@@ -24,7 +24,7 @@
   cursor: cell;
 }
 
-.civsel-selected-value {
+.civsel-reference {
   background: #ecd2a2;
   padding: 0.4em;
   margin: 0.2em;
@@ -207,6 +207,11 @@ section > form { width: var(--block-width); }
 }
 .note li {
   width: 96%;
+}
+
+.noteref-kind {
+  font-size: 75%;
+  color: var(--fg2);
 }
 
 .noteref-container {

@@ -52,21 +52,18 @@ impl From<MarginConnectionToDeck> for decks_interop::MarginConnection {
     }
 }
 
-fn is_deck_associated_with_note(
-    new_deck_id: Key,
-    existing_decks: &[MarginConnectionToDeck],
-) -> bool {
+fn is_deck_associated_with_note(deck_id: Key, existing_decks: &[MarginConnectionToDeck]) -> bool {
     for existing in existing_decks {
-        if existing.id == new_deck_id {
+        if existing.id == deck_id {
             return true;
         }
     }
     false
 }
 
-fn is_key_in_keys(k: Key, keys: &[Key]) -> bool {
+fn is_key_in_existing_deck_references(k: Key, keys: &[interop::ExistingDeckReference]) -> bool {
     for key in keys {
-        if k == *key {
+        if k == key.id {
             return true;
         }
     }
@@ -75,50 +72,57 @@ fn is_key_in_keys(k: Key, keys: &[Key]) -> bool {
 
 pub(crate) async fn create_from_note_to_decks(
     db_pool: &Pool,
-    edge: &interop::CreateEdgeFromNoteToDecks,
+    edge_connectivity: &interop::CreateEdgeFromNoteToDecks,
     user_id: Key,
 ) -> Result<Vec<decks_interop::MarginConnection>> {
     info!("create_from_note_to_decks");
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    let note_id = edge.note_id;
+    let note_id = edge_connectivity.note_id;
 
     // get the list of existing decks associated with this note
     let stmt_all_decks = include_str!("sql/decks_all_for_note.sql");
     let associated_decks: Vec<MarginConnectionToDeck> =
         pg::many::<MarginConnectionToDeck>(&tx, &stmt_all_decks, &[&note_id]).await?;
 
-    // remove decks that are in associated_decks but not in edge.deck_ids
+    // remove decks that are in associated_decks but not in edge_connectivity.deck_ids
     let stmt_delete_deck = include_str!("sql/edges_delete_notes_decks.sql");
     for associated_deck in &associated_decks {
-        if !is_key_in_keys(associated_deck.id, &edge.existing_deck_ids) {
+        if !is_key_in_existing_deck_references(
+            associated_deck.id,
+            &edge_connectivity.existing_deck_references,
+        ) {
             // this deck has been removed from the note by the user
             info!("deleting {}, {}", &note_id, &associated_deck.id);
             pg::zero(&tx, &stmt_delete_deck, &[&note_id, &associated_deck.id]).await?;
         }
     }
 
+    // todo: check existing deck references to see if the 'kind' has changed
+
     // create any new edges from the note to already existing decks
     let stmt_attach_deck = include_str!("sql/edges_create_from_note_to_deck.sql");
-    for deck_id in &edge.existing_deck_ids {
-        if !is_deck_associated_with_note(*deck_id, &associated_decks) {
-            info!("creating {}, {}", &note_id, &deck_id);
-            pg::zero(&tx, &stmt_attach_deck, &[&note_id, &deck_id]).await?;
+    for deck_reference in &edge_connectivity.existing_deck_references {
+        if !is_deck_associated_with_note(deck_reference.id, &associated_decks) {
+            info!("creating {}, {}", &note_id, &deck_reference.id);
+            let r = RefKind::from(deck_reference.kind);
+            pg::zero(&tx, &stmt_attach_deck, &[&note_id, &deck_reference.id, &r]).await?;
         }
     }
 
     // create new tags and create edges from the note to them
     //
-    for new_deck_name in &edge.new_deck_names {
+    for new_deck_reference in &edge_connectivity.new_deck_references {
         // todo(<2020-03-30 Mon>): additional check to make sure that this tag doesn't already exist
         // it's a stupid thing that could happen if:
         // 1. a user has the same deck open in two windows
         // 2. adds a new tag to a note in one window
         // 3. adds the same new tag in the other window
         //
-        let deck = ideas_db::create_idea_tx(&tx, user_id, &new_deck_name).await?;
-        pg::zero(&tx, &stmt_attach_deck, &[&note_id, &deck.id]).await?;
+        let deck = ideas_db::create_idea_tx(&tx, user_id, &new_deck_reference.name).await?;
+        let r = RefKind::from(new_deck_reference.kind);
+        pg::zero(&tx, &stmt_attach_deck, &[&note_id, &deck.id, &r]).await?;
     }
 
     tx.commit().await?;

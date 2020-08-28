@@ -208,7 +208,8 @@ function buildCurrentDecks(note) {
       res.push({
         id: deck.id,
         value: deck.name,
-        resource: deck.resource
+        resource: deck.resource,
+        kind: deck.kind
       });
     });
   }
@@ -224,10 +225,10 @@ function buildNoteReference(marginConnections) {
   const itemName = "noteref-entry";
   const spacer = "noteref-spacer";
 
-  return marginConnections.map(s => {
+  return marginConnections.map(ref => {
     return html`
-      <div class=${ itemName } key=${ s.id }>
-        <${ResourceLink} id=${ s.id } name=${ s.name } resource=${ s.resource } kind=${ s.kind }/>
+      <div class=${ itemName } key=${ ref.id }>
+        <${ResourceLink} id=${ ref.id } name=${ ref.name } resource=${ ref.resource } kind=${ ref.kind }/>
         ${spacer && html`<span class=${ spacer }/>`}
       </div>`;
   });
@@ -276,17 +277,17 @@ function attrs(n) {
 function addDecks(propsNote, decks, onDecksChanged, dispatch) {
   let data = {
     note_id: propsNote.id,
-    existing_deck_ids: [],
-    new_deck_names: []
+    existing_deck_references: [],
+    new_deck_references: []
   };
 
   // decks would be null if we've removed all decks from a note
   if (decks) {
     data = decks.reduce((acc, deck) => {
       if (deck.__isNew__) {
-        acc.new_deck_names.push(deck.value);
+        acc.new_deck_references.push({name: deck.value, kind: deck.kind });
       } else if (deck.id) {
-        acc.existing_deck_ids.push(deck.id);
+        acc.existing_deck_references.push({id: deck.id, kind: deck.kind });
       } else {
         // should never get here
         console.error(`deck ${deck.value} has neither __isNew__ nor an id ???`);
@@ -296,8 +297,13 @@ function addDecks(propsNote, decks, onDecksChanged, dispatch) {
     }, data);
   }
 
+  console.log('sending to server:');
+  console.log(decks);
+  console.log(data);
+
   Net.post("/api/edges/notes_decks", data).then((all_decks_for_note) => {
-    updateAutocompleteWithNewDecks(dispatch, data.new_deck_names, all_decks_for_note);
+    let new_deck_names = data.new_deck_references.map(d => d.name);
+    updateAutocompleteWithNewDecks(dispatch, new_deck_names, all_decks_for_note);
 
     const n = {
       ...propsNote,
@@ -348,7 +354,7 @@ function ResourceLink({ resource, id, name, kind }) {
   const href = `/${resource}/${id}`;
 
   let res = html`
-      <${Link} href=${ href }>${ kind } ${ name }</${Link}>
+      <${Link} href=${ href }><span class="noteref-kind">(${ kind })</span> ${ name }</${Link}>
   `;
 
   return res;

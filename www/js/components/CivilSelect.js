@@ -39,7 +39,8 @@ export default function CivilSelect({ parentDeckId, values, onChange, options, o
   };
 
   useEffect(() => {
-    onChange(currentValues);
+    console.log(currentValues);
+    onChange(currentValues); // <- this is how changes to the selection are passed up to the parent note
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
     return () => {
@@ -48,8 +49,25 @@ export default function CivilSelect({ parentDeckId, values, onChange, options, o
     };
   }, [currentValues, candidates]);
 
-  function onSelectedRemove(e) {
+  function onReferenceRemove(e) {
     setCurrentValues(currentValues.filter(cv => { return cv.value !== e.value;}));
+  }
+
+  function onReferenceChangeKind(reference, newKind) {
+    // console.log(`onChangeKind`);
+    // console.log(reference);
+    // console.log(newKind);
+    // console.log(currentValues);
+    // console.log("end of onChangeKind");
+
+    let newValues = currentValues.map(cv => {
+      if (cv.id === reference.id) {
+        cv.kind = newKind;
+      }
+      return cv;
+    });
+
+    setCurrentValues(newValues);
   }
 
   function onSelectedAdd(candidate) {
@@ -57,36 +75,48 @@ export default function CivilSelect({ parentDeckId, values, onChange, options, o
   }
 
   return html`<div class='civsel-main-box'>
-                ${ currentValues.map((value, i) => html`<${SelectedValue}
-                                                        selected=${value}
-                                                        onSelectedRemove=${onSelectedRemove}
+                ${ currentValues.map((value, i) => html`<${SelectedReference}
+                                                        reference=${value}
+                                                        onRemove=${onReferenceRemove}
+                                                        onChangeKind=${onReferenceChangeKind}
                                                         keyIndex=${ i + 1 }
                                                         showKeyboardShortcuts=${ showKeyboardShortcuts } />`) }
-                <${SelectInput} options=${ options }
-                                parentDeckId=${ parentDeckId }
-                                candidates=${ candidates }
-                                setCandidates=${ setCandidates }
-                                onSelectedAdd=${ onSelectedAdd }
-                                currentValues=${ currentValues }
-                                showKeyboardShortcuts=${ showKeyboardShortcuts }/>
+                <${Input} options=${ options }
+                          parentDeckId=${ parentDeckId }
+                          candidates=${ candidates }
+                          setCandidates=${ setCandidates }
+                          onAdd=${ onSelectedAdd }
+                          currentValues=${ currentValues }
+                          showKeyboardShortcuts=${ showKeyboardShortcuts }/>
                <button onClick=${ onCancelAddDecks }>Cancel</button>
                <button onClick=${ onCommitAddDecks }>${ showKeyboardShortcuts && html`Ctrl-Enter`} Save</button>
               </div>`;
 }
 
-function SelectedValue({ selected, onSelectedRemove, keyIndex, showKeyboardShortcuts }) {
+function SelectedReference({ reference, onRemove, onChangeKind, keyIndex, showKeyboardShortcuts }) {
   function onClick(e) {
     e.preventDefault();
-    onSelectedRemove(selected);
+    onRemove(reference);
   }
 
-  return html`<div class='civsel-selected-value'>
+  function onKindDropDownSelect(e) {
+    onChangeKind(reference, e.target.value);
+  }
+
+  return html`<div class='civsel-reference'>
                 ${ showKeyboardShortcuts && html`<span class='civsel-keyboard-shortcut'>Ctrl-${ keyIndex }</span>`}
-                <span class='civsel-delete-selected' onClick=${onClick}>[X] </span>${selected.value}
+                <span class='civsel-delete-selected' onClick=${onClick}>[X]</span>
+                <select onChange=${onKindDropDownSelect} name="choice">
+                  <option value="Ref" selected=${reference.kind == "Ref"}>Generic Reference</option>
+                  <option value="RefToParent" selected=${reference.kind == "RefToParent"}>Reference to Parent</option>
+                  <option value="RefToChild" selected=${reference.kind == "RefToChild"}>Reference to Child</option>
+                  <option value="RefInContrast" selected=${reference.kind == "RefInContrast"}>Contrasting Reference</option>
+                </select>
+                ${reference.value}
               </div>`;
 }
 
-function SelectInput({ parentDeckId, options, onSelectedAdd, candidates, setCandidates, currentValues, showKeyboardShortcuts }) {
+function Input({ parentDeckId, options, onAdd, candidates, setCandidates, currentValues, showKeyboardShortcuts }) {
   let [text, setText] = useState('');
 
   useEffect(() => {
@@ -123,16 +153,16 @@ function SelectInput({ parentDeckId, options, onSelectedAdd, candidates, setCand
     let existingOption = options.find(option => { return option.compValue === lowerText;});
     if (existingOption) {
       // pre-existing deck
-      onSelectedAdd(existingOption);
+      onAdd(existingOption);
     } else {
       // treat this text as a new idea that needs to be created
-      onSelectedAdd({ value: text, __isNew__: true});
+      onAdd({ value: text, kind: "Ref", __isNew__: true});
     }
     setText('');
   }
 
   function onSelectedCandidate(c) {
-    onSelectedAdd(c);
+    onAdd(c);
     setText('');
     setCandidates([]);
   }
