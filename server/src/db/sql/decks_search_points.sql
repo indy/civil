@@ -1,5 +1,5 @@
 select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-from (select d.id, d.kind::TEXT as kind, d.name, ts_rank_cd(textsearch, query) AS rank
+from (select d.id, d.kind, d.name, ts_rank_cd(textsearch, query) AS rank
       from decks d left join points p on p.deck_id = d.id,
            plainto_tsquery($2) query,
            to_tsvector(coalesce(p.title, '') || ' ' || coalesce(p.location_textual, '') || ' ' || coalesce(p.date_textual, '')) textsearch

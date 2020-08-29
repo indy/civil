@@ -1,4 +1,4 @@
-select d.id, d.kind::TEXT as kind, d.name, ts_rank_cd(textsearch, query) AS rank_sum, 1 as rank_count
+select d.id, d.kind, d.name, ts_rank_cd(textsearch, query) AS rank_sum, 1 as rank_count
 from decks d,
      plainto_tsquery($2) query,
      to_tsvector(coalesce(d.name, '') || ' ' || coalesce(d.source, '') || ' ' || coalesce(d.author, '')) textsearch

@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 pub mod autocomplete;
+pub mod deck_kind;
 pub mod decks;
 pub mod edges;
 pub mod events;

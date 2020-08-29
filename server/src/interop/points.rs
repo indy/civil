@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::interop::decks::DeckResource;
 use crate::interop::Key;
 
 #[derive(PartialEq, Debug, serde::Deserialize, serde::Serialize)]
@@ -56,7 +57,7 @@ pub struct ProtoPoint {
 pub struct DeckPoint {
     pub deck_id: Key,
     pub deck_name: String,
-    pub deck_resource: String,
+    pub deck_resource: DeckResource,
 
     pub point_id: Key,
     pub point_title: Option<String>,

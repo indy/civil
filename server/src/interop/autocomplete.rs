@@ -15,11 +15,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::interop::decks::DeckResource;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Autocomplete {
     pub id: Key,
     pub name: String,
-    pub resource: String,
+    pub resource: DeckResource,
 }

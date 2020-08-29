@@ -1,7 +1,7 @@
 SELECT COUNT(*) AS mention_count,
        d.id AS id,
        d.name AS name,
-       d.kind::TEXT as kind
+       d.kind
 FROM decks d,
      notes n,
      notes_decks nd

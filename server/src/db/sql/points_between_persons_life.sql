@@ -1,7 +1,7 @@
 ( -- all events in the person's life (may also included relevent events that happened posthumously)
 select d.id as deck_id,
        d.name as deck_name,
-       d.kind::TEXT as deck_kind,
+       d.kind as deck_kind,
        p.id as point_id,
        p.title as point_title,
        p.date_textual as point_date_textual,
@@ -15,7 +15,7 @@ union
 ( -- other events that occurred during the person's life
 select d.id as deck_id,
        d.name as deck_name,
-       d.kind::TEXT as deck_kind,
+       d.kind as deck_kind,
        p.id as point_id,
        p.title as point_title,
        p.date_textual as point_date_textual,

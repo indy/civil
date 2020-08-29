@@ -1,0 +1,62 @@
+// Copyright (C) 2020 Inderjit Gill <email@indy.io>
+
+// This file is part of Civil
+
+// Civil is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Civil is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+use crate::interop::decks as interop;
+use postgres_types::{FromSql, ToSql};
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, ToSql, FromSql, Deserialize, Serialize, PartialEq)]
+#[postgres(name = "deck_kind")]
+pub enum DeckKind {
+    #[postgres(name = "publication")]
+    Publication,
+    #[postgres(name = "person")]
+    Person,
+    #[postgres(name = "event")]
+    Event,
+    #[postgres(name = "idea")]
+    Idea,
+    #[postgres(name = "OBSOLETE__book")]
+    ObsoleteBook,
+    #[postgres(name = "OBSOLETE__tag")]
+    ObsoleteTag,
+}
+
+impl From<DeckKind> for interop::DeckResource {
+    fn from(a: DeckKind) -> interop::DeckResource {
+        match a {
+            DeckKind::Publication => interop::DeckResource::Publication,
+            DeckKind::Person => interop::DeckResource::Person,
+            DeckKind::Event => interop::DeckResource::Event,
+            DeckKind::Idea => interop::DeckResource::Idea,
+            // note: these will never be used
+            DeckKind::ObsoleteBook => interop::DeckResource::Publication,
+            DeckKind::ObsoleteTag => interop::DeckResource::Idea,
+        }
+    }
+}
+
+impl From<interop::DeckResource> for DeckKind {
+    fn from(a: interop::DeckResource) -> DeckKind {
+        match a {
+            interop::DeckResource::Publication => DeckKind::Publication,
+            interop::DeckResource::Person => DeckKind::Person,
+            interop::DeckResource::Event => DeckKind::Event,
+            interop::DeckResource::Idea => DeckKind::Idea,
+        }
+    }
+}

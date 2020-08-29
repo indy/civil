@@ -16,12 +16,13 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::pg;
+use crate::db::deck_kind::DeckKind;
 use crate::db::ideas as ideas_db;
 use crate::db::ref_kind::RefKind;
 use crate::error::{Error, Result};
-use crate::interop::decks as decks_interop;
+use crate::interop::decks as interop_decks;
 use crate::interop::edges as interop;
-use crate::interop::{deck_kind_to_resource, Key};
+use crate::interop::Key;
 use deadpool_postgres::{Client, Pool};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
@@ -35,19 +36,18 @@ pub struct MarginConnectionToDeck {
     pub note_id: Key,
     pub id: Key,
     pub name: String,
-    pub deck_kind: String,
+    pub deck_kind: DeckKind,
     pub ref_kind: RefKind,
 }
 
-impl From<MarginConnectionToDeck> for decks_interop::MarginConnection {
-    fn from(e: MarginConnectionToDeck) -> decks_interop::MarginConnection {
-        let resource = deck_kind_to_resource(e.deck_kind.as_ref()).unwrap();
-        decks_interop::MarginConnection {
+impl From<MarginConnectionToDeck> for interop_decks::MarginConnection {
+    fn from(e: MarginConnectionToDeck) -> interop_decks::MarginConnection {
+        interop_decks::MarginConnection {
             note_id: e.note_id,
             id: e.id,
             name: e.name,
-            resource: resource.to_string(),
-            kind: decks_interop::RefKind::from(e.ref_kind),
+            resource: interop_decks::DeckResource::from(e.deck_kind),
+            kind: interop_decks::RefKind::from(e.ref_kind),
         }
     }
 }
@@ -74,7 +74,7 @@ pub(crate) async fn create_from_note_to_decks(
     db_pool: &Pool,
     edge_connectivity: &interop::CreateEdgeFromNoteToDecks,
     user_id: Key,
-) -> Result<Vec<decks_interop::MarginConnection>> {
+) -> Result<Vec<interop_decks::MarginConnection>> {
     info!("create_from_note_to_decks");
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
@@ -144,7 +144,7 @@ pub(crate) async fn create_from_note_to_decks(
     tx.commit().await?;
 
     // return a list of [id, name, resource] containing the complete set of decks associated with this note.
-    pg::many_from::<MarginConnectionToDeck, decks_interop::MarginConnection>(
+    pg::many_from::<MarginConnectionToDeck, interop_decks::MarginConnection>(
         db_pool,
         &stmt_all_decks,
         &[&note_id],

@@ -16,12 +16,13 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::pg;
+use crate::db::deck_kind::DeckKind;
 use crate::db::notes;
 use crate::db::points;
 use crate::db::ref_kind::RefKind;
 use crate::error::{Error, Result};
 use crate::interop::decks as interop;
-use crate::interop::{deck_kind_to_resource, resource_to_deck_kind, Key};
+use crate::interop::Key;
 use deadpool_postgres::{Client, Pool};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
@@ -35,18 +36,17 @@ struct DeckReference {
     note_id: Key,
     id: Key,
     name: String,
-    deck_kind: String,
+    deck_kind: DeckKind,
     ref_kind: RefKind,
 }
 
 impl From<DeckReference> for interop::MarginConnection {
     fn from(d: DeckReference) -> interop::MarginConnection {
-        let resource = deck_kind_to_resource(d.deck_kind.as_ref()).unwrap();
         interop::MarginConnection {
             note_id: d.note_id,
             id: d.id,
             name: d.name,
-            resource: resource.to_string(),
+            resource: interop::DeckResource::from(d.deck_kind),
             kind: interop::RefKind::from(d.ref_kind),
         }
     }
@@ -57,16 +57,15 @@ impl From<DeckReference> for interop::MarginConnection {
 pub struct LinkBackToDeck {
     pub id: Key,
     pub name: String,
-    pub kind: String,
+    pub kind: DeckKind,
 }
 
 impl From<LinkBackToDeck> for interop::LinkBack {
     fn from(d: LinkBackToDeck) -> interop::LinkBack {
-        let resource = deck_kind_to_resource(d.kind.as_ref()).unwrap();
         interop::LinkBack {
             id: d.id,
             name: d.name,
-            resource: resource.to_string(),
+            resource: interop::DeckResource::from(d.kind),
         }
     }
 }
@@ -93,7 +92,7 @@ impl From<Vertex> for interop::Vertex {
 #[pg_mapper(table = "decks")]
 pub struct Deck {
     pub id: Key,
-    pub kind: String,
+    pub kind: DeckKind,
 
     pub name: String,
     pub source: Option<String>,
@@ -158,12 +157,22 @@ fn contains(linkbacks: &[interop::LinkBack], id: Key) -> bool {
     false
 }
 
+fn resource_string_to_deck_kind_string(resource: &str) -> Result<&'static str> {
+    match resource {
+        "events" => Ok("event"),
+        "ideas" => Ok("idea"),
+        "people" => Ok("person"),
+        "publications" => Ok("publication"),
+        _ => Err(Error::InvalidResource),
+    }
+}
+
 pub(crate) async fn recent(
     db_pool: &Pool,
     user_id: Key,
     resource: &str,
 ) -> Result<Vec<interop::LinkBack>> {
-    let deck_kind = resource_to_deck_kind(resource)?;
+    let deck_kind = resource_string_to_deck_kind_string(resource)?;
     let limit: i32 = 10;
 
     let stmt = include_str!("sql/decks_recent.sql");

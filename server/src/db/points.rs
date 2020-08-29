@@ -16,9 +16,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::pg;
+use crate::db::deck_kind::DeckKind;
 use crate::error::{Error, Result};
+use crate::interop::decks as interop_decks;
 use crate::interop::points as interop;
-use crate::interop::{deck_kind_to_resource, Key};
+use crate::interop::Key;
 use deadpool_postgres::{Client, Pool, Transaction};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
@@ -67,7 +69,7 @@ impl From<Point> for interop::Point {
 struct DeckPoint {
     deck_id: Key,
     deck_name: String,
-    deck_kind: String,
+    deck_kind: DeckKind,
 
     point_id: Key,
     point_title: Option<String>,
@@ -77,11 +79,10 @@ struct DeckPoint {
 
 impl From<DeckPoint> for interop::DeckPoint {
     fn from(e: DeckPoint) -> interop::DeckPoint {
-        let resource = deck_kind_to_resource(e.deck_kind.as_ref()).unwrap();
         interop::DeckPoint {
             deck_id: e.deck_id,
             deck_name: e.deck_name,
-            deck_resource: resource.to_string(),
+            deck_resource: interop_decks::DeckResource::from(e.deck_kind),
 
             point_id: e.point_id,
             point_title: e.point_title,

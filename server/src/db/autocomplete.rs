@@ -16,9 +16,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::pg;
+use crate::db::deck_kind::DeckKind;
 use crate::error::Result;
 use crate::interop::autocomplete as interop;
-use crate::interop::{deck_kind_to_resource, Key};
+use crate::interop::decks as interop_decks;
+use crate::interop::Key;
 use deadpool_postgres::Pool;
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
@@ -31,16 +33,15 @@ use tracing::info;
 struct AutocompleteDeck {
     id: Key,
     name: String,
-    kind: String,
+    kind: DeckKind,
 }
 
 impl From<AutocompleteDeck> for interop::Autocomplete {
     fn from(p: AutocompleteDeck) -> interop::Autocomplete {
-        let resource = deck_kind_to_resource(p.kind.as_ref()).unwrap();
         interop::Autocomplete {
             id: p.id,
             name: String::from(&p.name),
-            resource: resource.to_string(),
+            resource: interop_decks::DeckResource::from(p.kind),
         }
     }
 }

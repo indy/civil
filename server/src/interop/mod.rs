@@ -26,7 +26,6 @@ pub mod points;
 pub mod publications;
 pub mod users;
 
-use crate::error::{Error, Result};
 use std::fmt;
 
 pub type Key = i64;
@@ -56,25 +55,5 @@ impl std::fmt::Display for Model {
             Model::Point => write!(f, "Mode::Point"),
             Model::Publication => write!(f, "Mode::Publication"),
         }
-    }
-}
-
-pub(crate) fn resource_to_deck_kind(resource: &str) -> Result<&'static str> {
-    match resource {
-        "events" => Ok("event"),
-        "ideas" => Ok("idea"),
-        "people" => Ok("person"),
-        "publications" => Ok("publication"),
-        _ => Err(Error::InvalidResource),
-    }
-}
-
-pub(crate) fn deck_kind_to_resource(kind: &str) -> Result<&'static str> {
-    match kind {
-        "event" => Ok("events"),
-        "idea" => Ok("ideas"),
-        "person" => Ok("people"),
-        "publication" => Ok("publications"),
-        _ => Err(Error::InvalidKind),
     }
 }

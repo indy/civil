@@ -17,6 +17,18 @@
 
 use crate::interop::Key;
 
+#[derive(PartialEq, Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
+pub enum DeckResource {
+    #[serde(rename = "publications")]
+    Publication,
+    #[serde(rename = "people")]
+    Person,
+    #[serde(rename = "events")]
+    Event,
+    #[serde(rename = "ideas")]
+    Idea,
+}
+
 #[derive(Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
 pub enum RefKind {
     Ref,
@@ -32,7 +44,7 @@ pub struct MarginConnection {
     pub note_id: Key,
     pub id: Key,
     pub name: String,
-    pub resource: String,
+    pub resource: DeckResource,
     pub kind: RefKind,
 }
 
@@ -42,7 +54,7 @@ pub struct MarginConnection {
 pub struct LinkBack {
     pub id: Key,
     pub name: String,
-    pub resource: String,
+    pub resource: DeckResource,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
