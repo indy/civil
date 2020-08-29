@@ -99,7 +99,23 @@ pub(crate) async fn create_from_note_to_decks(
         }
     }
 
-    // todo: check existing deck references to see if the 'kind' has changed
+    // check existing deck references to see if the 'kind' has changed
+    let stmt_update_ref_kind = include_str!("sql/edges_update_notes_decks.sql");
+    for deck_reference in &edge_connectivity.existing_deck_references {
+        for existing in &associated_decks {
+            if existing.id == deck_reference.id {
+                let r = RefKind::from(deck_reference.kind);
+                if existing.ref_kind != r {
+                    pg::zero(
+                        &tx,
+                        &stmt_update_ref_kind,
+                        &[&existing.id, &existing.note_id, &r],
+                    )
+                    .await?;
+                }
+            }
+        }
+    }
 
     // create any new edges from the note to already existing decks
     let stmt_attach_deck = include_str!("sql/edges_create_from_note_to_deck.sql");
