@@ -1,4 +1,5 @@
 import { addSortYear } from '/js/lib/eras.js';
+import { opposingKind } from '/js/lib/JsUtils.js';
 
 export const initialState = {
   user: undefined,
@@ -259,23 +260,40 @@ function updateListOfNames(arr, obj) {
   }
 }
 
+
+function packedToKind(packed) {
+  switch(packed) {
+  case 0: return 'ref';
+  case -1: return 'ref_to_parent';
+  case 1: return 'ref_to_child';
+  case 42: return 'ref_in_contrast';
+  default: {
+    console.log(`packed_to_kind invalid value: ${packed}`);
+    return 'packed_to_kind ERROR';
+  }
+  }
+}
+
 function buildFullGraph(graphConnections) {
   let res = {};
 
-  for (let i = 0; i < graphConnections.length; i += 3) {
+  for (let i = 0; i < graphConnections.length; i += 4) {
     let fromDeck = graphConnections[i + 0];
     let toDeck = graphConnections[i + 1];
-    let strength = graphConnections[i + 2];
+    let packedKind = graphConnections[i + 2];
+    let strength = graphConnections[i + 3];
+
+    let kind = packedToKind(packedKind);
 
     if (!res[fromDeck]) {
       res[fromDeck] = new Set();
     }
-    res[fromDeck].add([toDeck, strength]);
+    res[fromDeck].add([toDeck, kind, strength]);
 
     if (!res[toDeck]) {
       res[toDeck] = new Set();
     }
-    res[toDeck].add([fromDeck, -strength]);
+    res[toDeck].add([fromDeck, opposingKind(kind), -strength]);
   }
 
   return res;

@@ -75,6 +75,7 @@ impl From<LinkBackToDeck> for interop::LinkBack {
 pub struct Vertex {
     pub from_id: Key,
     pub to_id: Key,
+    pub kind: RefKind,
     pub strength: i32,
 }
 
@@ -83,6 +84,7 @@ impl From<Vertex> for interop::Vertex {
         interop::Vertex {
             from_id: v.from_id,
             to_id: v.to_id,
+            kind: interop::RefKind::from(v.kind),
             strength: v.strength as usize,
         }
     }

@@ -1,5 +1,5 @@
 import { createRef, html, route, Link, useState, useEffect } from '/js/ext/library.js';
-
+import { opposingKind } from '/js/lib/JsUtils.js';
 import { useStateValue } from '/js/lib/StateProvider.js';
 
 import graphPhysics from "/js/lib/graphPhysics.js";
@@ -9,7 +9,6 @@ export default function Graph({ id, depth, onlyIdeas }) {
   // let history = useHistory();
   const [state] = useStateValue();
 
-  const [data] = useState([]);
   const svgContainerRef = createRef();
 
   useEffect(() => {
@@ -17,7 +16,7 @@ export default function Graph({ id, depth, onlyIdeas }) {
     let svg = buildSvg(svgContainerRef.current, graphState);
     startSimulation(graphState, svg);
 
-  }, [data]);
+  }, []);
 
   function onclick(event) {
     const target = event.target;
@@ -50,8 +49,6 @@ function buildSvg(ref, graphState) {
 
   let element = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
   element.setAttribute("viewBox", "-300, -300, 900, 900");
-  // svg.setAttribute("viewBox", "-150, -150, 90, 150");
-  // svg.setAttribute("viewBox", "-200, -200, 600, 600");
 
   svg.element = element;
   svg.container.appendChild(svg.element);
@@ -115,11 +112,15 @@ function buildSvg(ref, graphState) {
 
   // build the edges
   let nodes = graphState.nodes;
+
+  console.log(graphState);
+
   graphState.edges.forEach(e => {
     let sourceNode = nodes[e[0]];
     let targetNode = nodes[e[1]];
     let strength = e[2];
-    svg.edges.appendChild(createSvgEdge(sourceNode, targetNode, strength));
+    let kind = e[3];
+    svg.edges.appendChild(createSvgEdge(sourceNode, targetNode, strength, kind));
   });
 
   element.appendChild(svg.edges);
@@ -160,7 +161,13 @@ function startSimulation(graphState, svg) {
     Array.from(svg.edges.children).forEach((svgEdge, i) => {
       let source = nodes[edges[i][0]];
       let target = nodes[edges[i][1]];
-      translateEdge(svgEdge, source, target);
+      let kind = edges[i][3];
+
+      if (kind === "ref_to_parent") {
+        translateEdge(svgEdge, target, source);
+      } else {
+        translateEdge(svgEdge, source, target);
+      }
     });
 
     Array.from(svg.nodes.children).forEach((svgNode, i) => {
@@ -209,15 +216,27 @@ function getBoundingBox(nodes) {
   return [xmin, ymin, xmax, ymax];
 }
 
-function createSvgEdge(sourceNode, targetNode, strength) {
+function createSvgEdge(sourceNode, targetNode, strength, kind) {
   let path = document.createElementNS("http://www.w3.org/2000/svg", 'path');
 
   let width = 1.0 + (strength * 0.5);
   path.setAttribute("stroke-width", `${width}`);
-  path.setAttribute("stroke", 'var(--fg2)');
-  path.setAttribute("marker-end", `url(${window.location}#arrow-head)`);
 
-  translateEdge(path, sourceNode, targetNode);
+  if (kind === "ref") {
+    path.setAttribute("stroke", 'var(--fg2)');
+    translateEdge(path, sourceNode, targetNode);
+  } else if (kind === "ref_to_parent") {
+    path.setAttribute("stroke", 'var(--fg2)');
+    path.setAttribute("marker-end", `url(${window.location}#arrow-head)`);
+    translateEdge(path, targetNode, sourceNode);
+  } else if (kind === "ref_to_child") {
+    path.setAttribute("stroke", 'var(--fg2)');
+    path.setAttribute("marker-end", `url(${window.location}#arrow-head)`);
+    translateEdge(path, sourceNode, targetNode);
+  } else if (kind === "ref_in_contrast") {
+    path.setAttribute("stroke", 'var(--graph-edge-in-contrast)');
+    translateEdge(path, sourceNode, targetNode);
+  }
 
   return path;
 }
@@ -293,11 +312,11 @@ function buildGraphState(state, id, depth, onlyIdeas) {
   let connectionArr = buildConnectivity(state.fullGraph, id, depth, onlyIdeas ? allowIdeas : allowAll);
 
   let resEdges = [];
-  for (let [source, target, strength] of connectionArr) {
+  for (let [source, target, strength, kind] of connectionArr) {
     usedSet.add(source);
     usedSet.add(target);
 
-    resEdges.push({source, target, strength});
+    resEdges.push({source, target, strength, kind});
   }
 
   let resNodes = [];
@@ -322,7 +341,7 @@ function buildGraphState(state, id, depth, onlyIdeas) {
   });
 
   graphState.edges = resEdges.map(n => {
-    return [idToIndex[n.source], idToIndex[n.target], n.strength];
+    return [idToIndex[n.source], idToIndex[n.target], n.strength, n.kind];
   });
 
   return graphState;
@@ -353,10 +372,10 @@ function buildConnectivity(fullGraph, deckId, depth, isNodeUsed) {
       for (let a of activeSet) {
         let conn = fullGraph[a];
         if (conn) {
-          conn.forEach(([id, strength]) => {
+          conn.forEach(([id, kind, strength]) => {
             if (isNodeUsed(id)) {
               // add a link between a and id
-              resultSet.add([a, id, strength]);
+              resultSet.add([a, id, kind, strength]);
               if (!visitedSet.has(id)) {
                 futureSet.add(id);
               }
@@ -369,7 +388,7 @@ function buildConnectivity(fullGraph, deckId, depth, isNodeUsed) {
   }
 
   // set will now contain some redundent connections
-  // e.g. [123, 142, 1] as well as [142, 123, -1]
+  // e.g. [123, 142, 'ref', 1] as well as [142, 123, 'ref', -1]
   // remove these negative strength dupes, however there may still be some
   // negative strength entries which represent incoming only connections,
   // these need to be retained (but with their from,to swapped around and
@@ -378,9 +397,9 @@ function buildConnectivity(fullGraph, deckId, depth, isNodeUsed) {
 
   let checkSet = {};
   let res = [];
-  for (let [from, to, strength] of resultSet) {
+  for (let [from, to, kind, strength] of resultSet) {
     if (strength > 0) {
-      res.push([from, to, strength]);
+      res.push([from, to, strength, kind]);
 
       if (!checkSet[from]) {
         checkSet[from] = new Set();
@@ -389,11 +408,11 @@ function buildConnectivity(fullGraph, deckId, depth, isNodeUsed) {
     }
   }
 
-  for (let [from, to, strength] of resultSet) {
+  for (let [from, to, kind, strength] of resultSet) {
     if (strength < 0) {
       if (!(checkSet[to] && checkSet[to].has(from))) {
         // an incoming connection
-        res.push([to, from, -strength]);
+        res.push([to, from, -strength, opposingKind(kind)]);
         // no need to add [to, from] to checkSet, as there won't be another similar entry
       }
     }

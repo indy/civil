@@ -61,5 +61,6 @@ pub struct LinkBack {
 pub struct Vertex {
     pub from_id: Key,
     pub to_id: Key,
+    pub kind: RefKind,
     pub strength: usize,
 }

@@ -20,10 +20,10 @@ wasm_bindgen('/wasm_bg.wasm')
       // this is not good - 3 trips to the server before a logged in user's page begins rendering
       Net.get("/api/autocomplete").then(autocompleteDecks => {
         Net.get("/api/cmd/graph").then(graphResponse => {
+          const graphConnections = graphResponse.results;
           render(App({ wasmInterface,
                        autocompleteDecks,
-                       graphConnections:
-                       graphResponse.results,
+                       graphConnections,
                        user}),
                  document.getElementById('root'));
         });

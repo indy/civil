@@ -5,6 +5,7 @@
   --fg1: #666; /* linked decks (i.e. tags) */
   --fg2: #ddddd0; /* edges in graphs */
 
+  --graph-edge-in-contrast: #ee0d00; /* edges in graphs */
 
   --bg1: #eeeee8;
 

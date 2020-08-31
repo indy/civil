@@ -17,7 +17,7 @@
 
 use crate::db::decks as db;
 use crate::error::Result;
-use crate::interop::decks::LinkBack;
+use crate::interop::decks::{LinkBack, RefKind};
 use crate::session;
 use actix_web::web::{self, Data};
 use actix_web::HttpResponse;
@@ -78,6 +78,15 @@ pub async fn recent(
     Ok(HttpResponse::Ok().json(res))
 }
 
+fn packed_kind(kind: RefKind) -> i32 {
+    match kind {
+        RefKind::Ref => 0,
+        RefKind::RefToParent => -1,
+        RefKind::RefToChild => 1,
+        RefKind::RefInContrast => 42,
+    }
+}
+
 pub async fn graph(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
     info!("graph");
 
@@ -85,12 +94,12 @@ pub async fn graph(db_pool: Data<Pool>, session: actix_session::Session) -> Resu
 
     let results = db::graph(&db_pool, user_id).await?;
 
-    // it's silly to send over a json structure with a bunch of "from_id", "to_id" and "strength" string identifiers
-    // save some bandwidth and just send over the triples
+    // pack the graph information as integer quadruples
     let mut vs: Vec<i32> = vec![];
     for r in results {
         vs.push(r.from_id as i32);
         vs.push(r.to_id as i32);
+        vs.push(packed_kind(r.kind));
         vs.push(r.strength as i32);
     }
 
