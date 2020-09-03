@@ -134,10 +134,11 @@ pub(crate) async fn edit(
     idea: &interop::ProtoIdea,
     idea_id: Key,
 ) -> Result<interop::Idea> {
+    let idea_category: IdeaKind = IdeaKind::from(idea.idea_category);
     pg::one_from::<Idea, interop::Idea>(
         db_pool,
         include_str!("sql/ideas_edit.sql"),
-        &[&user_id, &idea_id, &idea.title],
+        &[&user_id, &idea_id, &idea.title, &idea_category],
     )
     .await
 }
