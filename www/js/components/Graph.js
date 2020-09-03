@@ -113,7 +113,7 @@ function buildSvg(ref, graphState) {
   // build the edges
   let nodes = graphState.nodes;
 
-  console.log(graphState);
+  // console.log(graphState);
 
   graphState.edges.forEach(e => {
     let sourceNode = nodes[e[0]];
