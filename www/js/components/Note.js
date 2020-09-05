@@ -222,14 +222,10 @@ function buildNoteReference(marginConnections) {
     return [];
   }
 
-  const itemName = "noteref-entry";
-  const spacer = "noteref-spacer";
-
   return marginConnections.map(ref => {
     return html`
-      <div class=${ itemName } key=${ ref.id }>
+      <div class="noteref-entry" key=${ ref.id }>
         <${ResourceLink} id=${ ref.id } name=${ ref.name } resource=${ ref.resource } kind=${ ref.kind }/>
-        ${spacer && html`<span class=${ spacer }/>`}
       </div>`;
   });
 };

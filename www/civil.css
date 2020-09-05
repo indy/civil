@@ -161,8 +161,8 @@ section > form { width: var(--block-width); }
 .noteref-container {
   padding-top: 0.5em;
   float: left;
-  margin-left: -25%;
-  width: 25%;
+  margin-left: -40%;
+  width: 40%;
   color: var(--fg1);
   text-align: right;
 
@@ -182,11 +182,12 @@ section > form { width: var(--block-width); }
   }
 }
 
+.noteref-entry {
+  padding-right: 3em;
+}
+
 .noteref-entry a {
   text-decoration: none;
-}
-.noteref-entry .noteref-spacer {
-  padding-left: 2em;
 }
 
 #top-bar-menu {
