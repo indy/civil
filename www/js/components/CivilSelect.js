@@ -39,8 +39,17 @@ export default function CivilSelect({ parentDeckId, values, onChange, options, o
   };
 
   useEffect(() => {
-    console.log(currentValues);
-    onChange(currentValues); // <- this is how changes to the selection are passed up to the parent note
+    // no 'kind' value is populated if the the default is used, so we have to manually add it
+    // (fuck the web, the entire thing needs to be burnt to the ground)
+    //
+    let cv = currentValues.map(c => {
+      if (!c.kind) {
+        c.kind = "Ref";
+      }
+      return c;
+    });
+
+    onChange(cv); // <- this is how changes to the selection are passed up to the parent note
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
     return () => {
@@ -54,12 +63,6 @@ export default function CivilSelect({ parentDeckId, values, onChange, options, o
   }
 
   function onReferenceChangeKind(reference, newKind) {
-    // console.log(`onChangeKind`);
-    // console.log(reference);
-    // console.log(newKind);
-    // console.log(currentValues);
-    // console.log("end of onChangeKind");
-
     let newValues = currentValues.map(cv => {
       if (cv.id === reference.id) {
         cv.kind = newKind;

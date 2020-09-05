@@ -4,6 +4,7 @@ import { removeEmptyStrings, formattedDate } from '/js/lib/JsUtils.js';
 import { useStateValue } from '/js/lib/StateProvider.js';
 import Net from '/js/lib/Net.js';
 
+import QuickFind from '/js/components/QuickFind.js';
 import ListingLink     from '/js/components/ListingLink.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
 import DeckManager     from '/js/components/DeckManager.js';
@@ -39,6 +40,7 @@ function Publications() {
     <div>
       <h1 onClick=${ toggleShowAdd }>${ showAddPublicationForm ? "Add Publication" : "Publications" }</h1>
       ${ showAddPublicationForm && html`<${PublicationForm}/>` }
+      ${ !showAddPublicationForm && html`<${QuickFind} autocompletes=${state.ac.decks} resource='publications' />` }
       <ul class="publications-list">
         ${ publicationsList }
       </ul>

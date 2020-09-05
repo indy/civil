@@ -10,6 +10,8 @@
              font-weight: normal;
              font-style: normal; }
 
+/* -------------------------------------------------------------------------------- */
+
 .civsel-form {
   width: 100%;
 }
@@ -34,6 +36,22 @@
 .civsel-delete-selected {
   cursor: pointer;
 }
+
+/* -------------------------------------------------------------------------------- */
+
+.quickfind-form {
+  width: 100%;
+}
+
+.quickfind-candidate {
+  background: #ecd2a2;
+  padding: 0.4em;
+  margin: 0.2em;
+  width: max-content;
+  cursor: pointer;
+}
+
+/* -------------------------------------------------------------------------------- */
 
 .pointform-block label { }
 .pointform-block input { width: 2em; margin-top: 0.3em; }

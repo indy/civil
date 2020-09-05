@@ -4,6 +4,7 @@ import Net from '/js/lib/Net.js';
 import { useStateValue } from '/js/lib/StateProvider.js';
 import { era, filterBefore, filterAfter, filterBetween } from '/js/lib/eras.js';
 
+import QuickFind from '/js/components/QuickFind.js';
 import ListingLink from '/js/components/ListingLink.js';
 import PointForm from '/js/components/PointForm.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
@@ -148,6 +149,7 @@ function People() {
     <div>
       <h1 onClick=${ toggleShowAdd }>${ showAddPersonForm ? "Add Person" : "People" }</h1>
       ${ showAddPersonForm && html`<${PersonForm}/>`}
+      ${ !showAddPersonForm && html`<${QuickFind} autocompletes=${state.ac.decks} resource='people' />` }
       ${ peopleList(uncategorisedPeopleList, "Uncategorised")}
       ${ peopleList(ancientPeopleList, "Ancient")}
       ${ peopleList(medievalPeopleList, "Medieval")}

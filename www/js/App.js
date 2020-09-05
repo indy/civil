@@ -26,7 +26,6 @@ export default function App({ user, wasmInterface, autocompleteDecks, graphConne
     });
 
     if (autocompleteDecks) {
-      console.log('populating autocomplete at startup');
       state = reducer(state, {
         type: 'loadAutocomplete',
         decks: autocompleteDecks

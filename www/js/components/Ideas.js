@@ -4,6 +4,7 @@ import { useStateValue } from '/js/lib/StateProvider.js';
 import Net from '/js/lib/Net.js';
 import { capitalise, formattedDate } from '/js/lib/JsUtils.js';
 
+import QuickFind from '/js/components/QuickFind.js';
 import ListingLink from '/js/components/ListingLink.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
 import DeckManager     from '/js/components/DeckManager.js';
@@ -93,6 +94,7 @@ function Ideas() {
     <div>
       <h1 onClick=${ toggleShowAdd }>${ showAddIdeaForm ? "Add Idea" : "Ideas" }</h1>
       ${ showAddIdeaForm && html`<${IdeaForm}/>` }
+      ${ !showAddIdeaForm && html`<${QuickFind} autocompletes=${state.ac.decks} resource='ideas' />` }
       ${ buildListSection(showRecent, setShowRecent, "Recent", state.ideas.recent) }
       ${ buildListSection(showAll, setShowAll, "All", state.ideas.all) }
       ${ buildListSection(showSingleRef, setShowSingleRef, "Single References", state.ideas.single_references) }

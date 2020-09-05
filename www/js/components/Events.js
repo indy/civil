@@ -4,6 +4,7 @@ import { useStateValue } from '/js/lib/StateProvider.js';
 import Net from '/js/lib/Net.js';
 import { era, filterBefore, filterAfter, filterBetween, yearFrom } from '/js/lib/eras.js';
 
+import QuickFind from '/js/components/QuickFind.js';
 import PointForm from '/js/components/PointForm.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
 import DeckManager     from '/js/components/DeckManager.js';
@@ -80,6 +81,7 @@ function Events() {
     <div>
       <h1 onClick=${ toggleShowAdd }>${ showAddEventForm ? "Add Event" : "Events" }</h1>
       ${ showAddEventForm && html`<${EventForm}/>` }
+      ${ !showAddEventForm && html`<${QuickFind} autocompletes=${state.ac.decks} resource='events' />` }
       ${ eventsList(uncategorisedEventsList, "Uncategorised")}
       ${ eventsList(ancientEventsList, "Ancient")}
       ${ eventsList(medievalEventsList, "Medieval")}
