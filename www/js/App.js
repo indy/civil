@@ -6,7 +6,6 @@ import Net                              from '/js/lib/Net.js';
 import { WasmInterfaceProvider }        from '/js/lib/WasmInterfaceProvider.js';
 import { useStateValue, StateProvider } from '/js/lib/StateProvider.js';
 
-import Console                       from '/js/components/Console.js';
 import Search                        from '/js/components/Search.js';
 import { Event, Events }             from '/js/components/Events.js';
 import { Idea, Ideas }               from '/js/components/Ideas.js';
@@ -39,35 +38,6 @@ export default function App({ user, wasmInterface, autocompleteDecks, graphConne
       });
     }
   }
-
-  let welcomes = ["Civil",
-                  "Civilised Noteboxes",
-                  "Zivilisiert Zettelkästen",
-                  "πολιτισμένο σημειωματάριο",
-                  "nota civilis arca archa",
-                  "ਸਭਿਆਚਾਰਕ ਨੋਟਬਾਕਸ",
-                  "문명화 된 메모 상자",
-                  "文明ノートボックス",
-                  "cuadro civilizado",
-                  "цивилизованный блокнот",
-                  "цивилизирана кутија за белешки",
-                  "Ersatz Verstand"]; // replacement mind where replacement is not as good
-  let welcome = welcomes[Math.floor(Math.random() * welcomes.length)];
-
-  // display a welcome message on the console
-  state = reducer(state, {
-    type: 'pushStdout',
-    message: html`
-     <div>
-        <h1>${ welcome }</h1>
-        <ol>
-          <li>Remain Honest</li>
-          <li>Keep Private</li>
-          <li>Never Delete</li>
-        </ol>
-        <p>type !help</p>
-      </div>`
-  });
 
   return html`
     <${WasmInterfaceProvider} wasmInterface=${wasmInterface}>
@@ -170,6 +140,5 @@ function AppUI(props) {
         <${Events} path="/events"/>
         <${Event} path="/events/:id"/>
       </${Router}>
-      <${Console}/>
     </div>`;
 }
