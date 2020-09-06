@@ -22,7 +22,7 @@ function Person(props) {
     deck: person,
     title: person.name,
     resource: "people",
-    updateForm: html`<${PersonForm} person=${person} editing />`
+    updateForm: html`<${UpdatePersonForm} person=${person} />`
   });
 
   function onShowBirthForm() {
@@ -106,7 +106,6 @@ function Person(props) {
 
 function People() {
   const [state, dispatch] = useStateValue();
-  let [showAddPersonForm, setShowAddPersonForm] = useState(false);
 
   useEffect(() => {
     async function fetcher() {
@@ -120,10 +119,6 @@ function People() {
       fetcher();
     }
   }, []);
-
-  const toggleShowAdd = () => {
-    setShowAddPersonForm(!showAddPersonForm);
-  };
 
   function peopleList(list, heading) {
     return html`
@@ -171,11 +166,8 @@ function People() {
 
   return html`
     <div>
-      <h1 onClick=${ toggleShowAdd }>${ showAddPersonForm ? "Add Person" : "People" }</h1>
-      ${ showAddPersonForm && html`<${PersonForm}/>`}
-      ${ !showAddPersonForm && html`<${QuickFind} autocompletes=${state.ac.decks}
-                                                  resource='people'
-                                                  save=${saveNewPerson}/>` }
+      <h1>People</h1>
+      <${QuickFind} autocompletes=${state.ac.decks} resource='people' save=${saveNewPerson}/>
       ${ peopleList(uncategorisedPeopleList, "Uncategorised")}
       ${ peopleList(ancientPeopleList, "Ancient")}
       ${ peopleList(medievalPeopleList, "Medieval")}
@@ -184,7 +176,7 @@ function People() {
     </div>`;
 }
 
-function PersonForm({ person, editing }) {
+function UpdatePersonForm({ person }) {
   person = person || {};
   const [state, dispatch] = useStateValue();
 
@@ -217,38 +209,14 @@ function PersonForm({ person, editing }) {
       name: localState.name.trim()
     };
 
-    // if (true) {
-    //   console.log(data);
-    // } else
-    if (editing) {
-      // edit an existing person
-      Net.put(`/api/people/${person.id}`, data).then(newItem => {
-        dispatch({
-          type: 'cacheDeck',
-          id: person.id,
-          newItem
-        });
+    // edit an existing person
+    Net.put(`/api/people/${person.id}`, data).then(newItem => {
+      dispatch({
+        type: 'cacheDeck',
+        id: person.id,
+        newItem
       });
-    } else {
-      // create a new person
-      Net.post('/api/people', data).then(person => {
-        // get the updated list of people
-        Net.get('/api/people').then(people => {
-          dispatch({
-            type: 'setPeople',
-            people
-          });
-          dispatch({
-            type: 'addAutocompleteDeck',
-            id: person.id,
-            name: person.name,
-            resource: "people"
-          });
-        });
-        route(`/people/${person.id}`);
-      });
-    }
-
+    });
 
     e.preventDefault();
   };
@@ -264,7 +232,7 @@ function PersonForm({ person, editing }) {
              autoComplete="off"
              onInput=${ handleChangeEvent } />
       <br/>
-      <input type="submit" value=${ editing ? "Update Person" : "Create Person"}/>
+      <input type="submit" value="Update Person"/>
     </form>`;
 }
 

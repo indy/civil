@@ -12,7 +12,6 @@ import Graph           from '/js/components/Graph.js';
 
 function Publications() {
   const [state, dispatch] = useStateValue();
-  let [showAddPublicationForm, setShowAddPublicationForm] = useState(false);
 
   useEffect(() => {
     async function fetcher() {
@@ -27,10 +26,6 @@ function Publications() {
       fetcher();
     }
   }, []);
-
-  const toggleShowAdd = () => {
-    setShowAddPublicationForm(!showAddPublicationForm);
-  };
 
   function saveNewPublication({title}) {
     const data = {
@@ -59,18 +54,14 @@ function Publications() {
     });
   }
 
-
   const publicationsList = state.publications.map(
     publication => html`<${ListingLink} id=${ publication.id }  name=${ publication.title } resource='publications'/>    `
   );
 
   return html`
     <div>
-      <h1 onClick=${ toggleShowAdd }>${ showAddPublicationForm ? "Add Publication" : "Publications" }</h1>
-      ${ showAddPublicationForm && html`<${PublicationForm}/>` }
-      ${ !showAddPublicationForm && html`<${QuickFind} autocompletes=${state.ac.decks}
-                                                       resource='publications'
-                                                       save=${saveNewPublication} />` }
+      <h1>Publications</h1>
+      <${QuickFind} autocompletes=${state.ac.decks} resource='publications' save=${saveNewPublication} />
       <ul class="publications-list">
         ${ publicationsList }
       </ul>
@@ -87,7 +78,7 @@ function Publication(props) {
     deck: publication,
     title: publication.title,
     resource: "publications",
-    updateForm: html`<${PublicationForm} publication=${publication} editing />`
+    updateForm: html`<${UpdatePublicationForm} publication=${publication} />`
   });
 
   let authorHeading = html`<p class="subtitle">${ publication.author }</p>`;
@@ -116,13 +107,12 @@ function Publication(props) {
     </article>`;
 }
 
-function PublicationForm({ publication, editing }) {
+function UpdatePublicationForm({ publication }) {
   publication = publication || {};
   const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(publication.title || '');
   const [author, setAuthor] = useState(publication.author || '');
   const [source, setSource] = useState(publication.source || '');
-  // const [redirectUrl, setRedirectUrl] = useState(false);
 
   if (publication.title && publication.title !== '' && title === '') {
     setTitle(publication.title);
@@ -157,33 +147,13 @@ function PublicationForm({ publication, editing }) {
       source: source.trim()
     }, ["source"]);
 
-    if (editing) {
-      // edit an existing publication
-      Net.put(`/api/publications/${publication.id}`, data).then(newItem => {
-        dispatch({
-          type: 'cacheDeck',
-          id: publication.id,
-          newItem
-        });
+    Net.put(`/api/publications/${publication.id}`, data).then(newItem => {
+      dispatch({
+        type: 'cacheDeck',
+        id: publication.id,
+        newItem
       });
-    } else {
-      // create a new publication
-      Net.post('/api/publications', data).then(publication => {
-        dispatch({
-          type: 'setPublication',
-          id: publication.id,
-          newItem: publication
-        });
-
-        dispatch({
-          type: 'addAutocompleteDeck',
-          id: publication.id,
-          name: publication.title,
-          resource: "publications"
-        });
-        route(`/publications/${publication.id}`);
-      });
-    }
+    });
 
     event.preventDefault();
   };
@@ -214,7 +184,7 @@ function PublicationForm({ publication, editing }) {
              value=${ author }
              onInput=${ handleChangeEvent } />
       <br/>
-      <input type="submit" value=${ editing ? "Update Publication" : "Create Publication"}/>
+      <input type="submit" value="Update Publication"/>
     </form>`;
 }
 

@@ -11,7 +11,6 @@ import DeckManager     from '/js/components/DeckManager.js';
 
 function Events() {
   const [state, dispatch] = useStateValue();
-  let [showAddEventForm, setShowAddEventForm] = useState(false);
 
   useEffect(() => {
     async function fetcher() {
@@ -25,10 +24,6 @@ function Events() {
       fetcher();
     }
   }, []);
-
-  const toggleShowAdd = () => {
-    setShowAddEventForm(!showAddEventForm);
-  };
 
   function createEventListingAD(ev) {
     return buildEventListing(ev.id, yearText(ev.sort_date, "AD"), ev.title);
@@ -102,11 +97,8 @@ function Events() {
 
   return html`
     <div>
-      <h1 onClick=${ toggleShowAdd }>${ showAddEventForm ? "Add Event" : "Events" }</h1>
-      ${ showAddEventForm && html`<${EventForm}/>` }
-      ${ !showAddEventForm && html`<${QuickFind} autocompletes=${state.ac.decks}
-                                                 resource='events'
-                                                 save=${saveNewEvent} />` }
+      <h1>Events</h1>
+      <${QuickFind} autocompletes=${state.ac.decks} resource='events' save=${saveNewEvent} />
       ${ eventsList(uncategorisedEventsList, "Uncategorised")}
       ${ eventsList(ancientEventsList, "Ancient")}
       ${ eventsList(medievalEventsList, "Medieval")}
@@ -126,7 +118,7 @@ function Event(props) {
     deck: event,
     title: event.title,
     resource: "events",
-    updateForm: html`<${EventForm} event=${ event } editing />`
+    updateForm: html`<${UpdateEventForm} event=${ event } />`
   });
 
   function onShowPrimeForm() {
@@ -197,7 +189,7 @@ function Event(props) {
     </article>`;
 }
 
-function EventForm({ event, editing }) {
+function UpdateEventForm({ event }) {
   event = event || {};
   const [state, dispatch] = useStateValue();
 
@@ -225,42 +217,18 @@ function EventForm({ event, editing }) {
     }
   };
 
-
   const handleSubmit = (e) => {
     const data = {
       title: localState.title.trim()
     };
 
-    if (editing) {
-      // edit an existing event
-      Net.put(`/api/events/${event.id}`, data).then(newItem => {
-        dispatch({
-          type: 'cacheDeck',
-          id: event.id,
-          newItem
-        });
+    Net.put(`/api/events/${event.id}`, data).then(newItem => {
+      dispatch({
+        type: 'cacheDeck',
+        id: event.id,
+        newItem
       });
-    } else {
-      // create a new event
-      Net.post('/api/events', data).then(event => {
-        // get the updated list of events
-        Net.get('/api/events').then(events => {
-          dispatch({
-            type: 'setEvents',
-            events
-          });
-
-          dispatch({
-            type: 'addAutocompleteDeck',
-            id: event.id,
-            name: event.title,
-            resource: "events"
-          });
-        });
-
-        route(`/events/${event.id}`);
-      });
-    }
+    });
 
     e.preventDefault();
   };
@@ -276,7 +244,7 @@ function EventForm({ event, editing }) {
              autoComplete="off"
              onInput=${ handleChangeEvent } />
       <br/>
-      <input type="submit" value=${ editing ? "Update Event" : "Create Event"}/>
+      <input type="submit" value="Update Event"/>
     </form>`;
 }
 

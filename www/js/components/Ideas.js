@@ -14,7 +14,6 @@ let gKeyCounter = 0;
 
 function Ideas() {
   const [state, dispatch] = useStateValue();
-  let [showAddIdeaForm, setShowAddIdeaForm] = useState(false);
 
   let [showRecent, setShowRecent] = useState(true);
   let [showSingleRef, setShowSingleRef] = useState(false);
@@ -34,10 +33,6 @@ function Ideas() {
       fetcher();
     }
   }, []);
-
-  const toggleShowAdd = () => {
-    setShowAddIdeaForm(!showAddIdeaForm);
-  };
 
   function buildListSection(show, setShow, label, list) {
 
@@ -116,11 +111,8 @@ function Ideas() {
 
   return html`
     <div>
-      <h1 onClick=${ toggleShowAdd }>${ showAddIdeaForm ? "Add Idea" : "Ideas" }</h1>
-      ${ showAddIdeaForm && html`<${IdeaForm}/>` }
-      ${ !showAddIdeaForm && html`<${QuickFind} autocompletes=${state.ac.decks}
-                                                resource='ideas'
-                                                save=${saveNewIdea}/>` }
+      <h1>Ideas</h1>
+      <${QuickFind} autocompletes=${state.ac.decks} resource='ideas' save=${saveNewIdea}/>
       ${ buildListSection(showRecent, setShowRecent, "Recent", state.ideas.recent) }
       ${ buildListSection(showAll, setShowAll, "All", state.ideas.all) }
       ${ buildListSection(showSingleRef, setShowSingleRef, "Single References", state.ideas.single_references) }
@@ -138,7 +130,7 @@ function Idea(props) {
     deck: idea,
     title: idea.title,
     resource: "ideas",
-    updateForm: html`<${IdeaForm} idea=${idea} editing />`
+    updateForm: html`<${UpdateIdeaForm} idea=${idea} />`
   });
 
   // this is only for presentational purposes
@@ -161,7 +153,7 @@ function Idea(props) {
     </article>`;
 }
 
-function IdeaForm({ idea, editing }) {
+function UpdateIdeaForm({ idea }) {
   idea = idea || {};
   const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(idea.title || '');
@@ -187,33 +179,13 @@ function IdeaForm({ idea, editing }) {
       idea_category: verbatimIdea ? 'Verbatim' : 'Insight'
     };
 
-    if (editing) {
-      // edit an existing idea
-      Net.put(`/api/ideas/${idea.id}`, data).then(newItem => {
-        dispatch({
-          type: "cacheDeck",
-          id: idea.id,
-          newItem
-        });
+    Net.put(`/api/ideas/${idea.id}`, data).then(newItem => {
+      dispatch({
+        type: "cacheDeck",
+        id: idea.id,
+        newItem
       });
-    } else {
-      // create a new idea
-      Net.post('/api/ideas', data).then(idea => {
-        Net.get('/api/ideas/listings').then(ideas => {
-          dispatch({
-            type: 'setIdeas',
-            ideas
-          });
-          dispatch({
-            type: 'addAutocompleteDeck',
-            id: idea.id,
-            name: idea.title,
-            resource: "ideas"
-          });
-        });
-        route(`/ideas/${idea.id}`);
-      });
-    }
+    });
 
     event.preventDefault();
   };
@@ -243,7 +215,7 @@ function IdeaForm({ idea, editing }) {
              onInput=${ handleRadioButtons }
              checked=${ !verbatimIdea } />
       <br/>
-      <input type="submit" value=${ editing ? "Update Idea" : "Create Idea"}/>
+      <input type="submit" value="Update Idea"/>
     </form>`;
 }
 
