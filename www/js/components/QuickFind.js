@@ -1,6 +1,6 @@
-import { html, Link, useState } from '/js/ext/library.js';
+import { html, Link, useState, route } from '/js/ext/library.js';
 
-export default function QuickFind({ autocompletes, resource}) {
+export default function QuickFind({ autocompletes, resource, save }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [candidates, setCandidates] = useState([]);
 
@@ -22,7 +22,17 @@ export default function QuickFind({ autocompletes, resource}) {
 
   function onSubmit(event){
     event.preventDefault();
-    console.log("QuickFind onSubmit");
+
+    // if the user has typed in the name of an existing resource, redirect to that page
+    for (let candidate of candidates) {
+      const { id, name } = candidate;
+      if (name.toLowerCase().trim() === searchTerm.toLowerCase().trim()) {
+        route(`/${resource}/${id}`);
+        return;
+      }
+    }
+
+    save({ title: searchTerm.trim() });
   }
 
   function refineCandidates() {

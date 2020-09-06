@@ -45,7 +45,9 @@ export function addChronologicalSortYear(p) {
 
 export function yearFrom(dateString) {
   let res = 0;
-  if (dateString[0] === '-') {
+  if (!dateString) {
+    res = 9999;                 // if an event has been created via quickForm and has only title information
+  } else if (dateString[0] === '-') {
     res = parseInt(dateString.slice(0, 5), 10);
   } else {
     res = parseInt(dateString.slice(0, 4), 10);

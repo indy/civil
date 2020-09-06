@@ -32,6 +32,34 @@ function Publications() {
     setShowAddPublicationForm(!showAddPublicationForm);
   };
 
+  function saveNewPublication({title}) {
+    const data = {
+      title: title,
+      author: "",
+      source: ""
+    };
+    const resource = "publications";
+
+    // create a new resource named 'searchTerm'
+    Net.post(`/api/${resource}`, data).then(publication => {
+      dispatch({
+        type: 'setPublication',
+        id: publication.id,
+        newItem: publication
+      });
+
+      dispatch({
+        type: 'addAutocompleteDeck',
+        id: publication.id,
+        name: publication.title,
+        resource: "publications"
+      });
+
+      route(`/${resource}/${publication.id}`);
+    });
+  }
+
+
   const publicationsList = state.publications.map(
     publication => html`<${ListingLink} id=${ publication.id }  name=${ publication.title } resource='publications'/>    `
   );
@@ -40,7 +68,9 @@ function Publications() {
     <div>
       <h1 onClick=${ toggleShowAdd }>${ showAddPublicationForm ? "Add Publication" : "Publications" }</h1>
       ${ showAddPublicationForm && html`<${PublicationForm}/>` }
-      ${ !showAddPublicationForm && html`<${QuickFind} autocompletes=${state.ac.decks} resource='publications' />` }
+      ${ !showAddPublicationForm && html`<${QuickFind} autocompletes=${state.ac.decks}
+                                                       resource='publications'
+                                                       save=${saveNewPublication} />` }
       <ul class="publications-list">
         ${ publicationsList }
       </ul>
@@ -92,7 +122,7 @@ function PublicationForm({ publication, editing }) {
   const [title, setTitle] = useState(publication.title || '');
   const [author, setAuthor] = useState(publication.author || '');
   const [source, setSource] = useState(publication.source || '');
-  const [redirectUrl, setRedirectUrl] = useState(false);
+  // const [redirectUrl, setRedirectUrl] = useState(false);
 
   if (publication.title && publication.title !== '' && title === '') {
     setTitle(publication.title);
@@ -151,48 +181,41 @@ function PublicationForm({ publication, editing }) {
           name: publication.title,
           resource: "publications"
         });
-
-        setRedirectUrl(`publications/${publication.id}`);
+        route(`/publications/${publication.id}`);
       });
     }
 
     event.preventDefault();
   };
 
-  if (redirectUrl) {
-    route(redirectUrl, true);
-  } else {
-    let res = html`
-      <form class="civil-form" onSubmit=${ handleSubmit }>
-        <label for="title">Title:</label>
-        <br/>
-        <input id="title"
-               type="text"
-               name="title"
-               value=${ title }
-               onInput=${ handleChangeEvent } />
-        <br/>
-        <label for="source">Source:</label>
-        <br/>
-        <input id="source"
-               type="text"
-               name="source"
-               value=${ source }
-               onInput=${ handleChangeEvent } />
-        <br/>
-        <label for="author">Author:</label>
-        <br/>
-        <input id="author"
-               type="text"
-               name="author"
-               value=${ author }
-               onInput=${ handleChangeEvent } />
-        <br/>
-        <input type="submit" value=${ editing ? "Update Publication" : "Create Publication"}/>
-      </form>
-`;
-    return res;
-  }
+  return html`
+    <form class="civil-form" onSubmit=${ handleSubmit }>
+      <label for="title">Title:</label>
+      <br/>
+      <input id="title"
+             type="text"
+             name="title"
+             value=${ title }
+             onInput=${ handleChangeEvent } />
+      <br/>
+      <label for="source">Source:</label>
+      <br/>
+      <input id="source"
+             type="text"
+             name="source"
+             value=${ source }
+             onInput=${ handleChangeEvent } />
+      <br/>
+      <label for="author">Author:</label>
+      <br/>
+      <input id="author"
+             type="text"
+             name="author"
+             value=${ author }
+             onInput=${ handleChangeEvent } />
+      <br/>
+      <input type="submit" value=${ editing ? "Update Publication" : "Create Publication"}/>
+    </form>`;
 }
 
 export { Publication, Publications };

@@ -74,7 +74,6 @@ function Ideas() {
   }
 
   function buildListing(list) {
-
     if (!list) {
       return [];
     }
@@ -87,6 +86,31 @@ function Ideas() {
   }
 
 
+  function saveNewIdea({title, idea_category}) {
+    const data = {
+      title: title,
+      idea_category: idea_category || 'Verbatim'
+    };
+    const resource = "ideas";
+
+    // create a new resource named 'searchTerm'
+    Net.post(`/api/${resource}`, data).then(idea => {
+      Net.get(`/api/${resource}/listings`).then(ideas => {
+        dispatch({
+          type: 'setIdeas',
+          ideas
+        });
+        dispatch({
+          type: 'addAutocompleteDeck',
+          id: idea.id,
+          name: idea.title,
+          resource: resource
+        });
+      });
+      route(`/${resource}/${idea.id}`);
+    });
+  }
+
   // buildListSection might return an array, each element therefore requires a unique key value
   gKeyCounter = 0;
 
@@ -94,7 +118,9 @@ function Ideas() {
     <div>
       <h1 onClick=${ toggleShowAdd }>${ showAddIdeaForm ? "Add Idea" : "Ideas" }</h1>
       ${ showAddIdeaForm && html`<${IdeaForm}/>` }
-      ${ !showAddIdeaForm && html`<${QuickFind} autocompletes=${state.ac.decks} resource='ideas' />` }
+      ${ !showAddIdeaForm && html`<${QuickFind} autocompletes=${state.ac.decks}
+                                                resource='ideas'
+                                                save=${saveNewIdea}/>` }
       ${ buildListSection(showRecent, setShowRecent, "Recent", state.ideas.recent) }
       ${ buildListSection(showAll, setShowAll, "All", state.ideas.all) }
       ${ buildListSection(showSingleRef, setShowSingleRef, "Single References", state.ideas.single_references) }
@@ -139,7 +165,6 @@ function IdeaForm({ idea, editing }) {
   idea = idea || {};
   const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(idea.title || '');
-  const [redirectUrl, setRedirectUrl] = useState(false);
   const [verbatimIdea, setVerbatimIdea] = useState(idea.idea_category === 'Verbatim');
 
   if (idea.title && idea.title !== '' && title === '') {
@@ -186,7 +211,7 @@ function IdeaForm({ idea, editing }) {
             resource: "ideas"
           });
         });
-        setRedirectUrl(`ideas/${idea.id}`);
+        route(`/ideas/${idea.id}`);
       });
     }
 
@@ -197,33 +222,29 @@ function IdeaForm({ idea, editing }) {
     setVerbatimIdea(event.target.id === "verbatim");
   }
 
-  if (redirectUrl) {
-    route(redirectUrl, true);
-  } else {
-    return html`
-      <form class="civil-form" onSubmit=${ handleSubmit }>
-        <label for="title">Title:</label>
-        <br/>
-        <input id="title"
-               type="text"
-               name="title"
-               value=${ title }
-               onInput=${ handleChangeEvent } />
-        <br/>
-        <label for="verbatim">Verbatim</label>
-        <input type="radio"
-               id="verbatim" name="ideakind" value="verbatim"
-               onInput=${ handleRadioButtons }
-               checked=${ verbatimIdea } />
-        <label for="insight">Insight</label>
-        <input type="radio"
-               id="insight" name="ideakind" value="insight"
-               onInput=${ handleRadioButtons }
-               checked=${ !verbatimIdea } />
-        <br/>
-        <input type="submit" value=${ editing ? "Update Idea" : "Create Idea"}/>
-      </form>`;
-  }
+  return html`
+    <form class="civil-form" onSubmit=${ handleSubmit }>
+      <label for="title">Title:</label>
+      <br/>
+      <input id="title"
+             type="text"
+             name="title"
+             value=${ title }
+             onInput=${ handleChangeEvent } />
+      <br/>
+      <label for="verbatim">Verbatim</label>
+      <input type="radio"
+             id="verbatim" name="ideakind" value="verbatim"
+             onInput=${ handleRadioButtons }
+             checked=${ verbatimIdea } />
+      <label for="insight">Insight</label>
+      <input type="radio"
+             id="insight" name="ideakind" value="insight"
+             onInput=${ handleRadioButtons }
+             checked=${ !verbatimIdea } />
+      <br/>
+      <input type="submit" value=${ editing ? "Update Idea" : "Create Idea"}/>
+    </form>`;
 }
 
 function SectionSearchResultsLinkBack(props) {

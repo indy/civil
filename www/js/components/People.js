@@ -135,6 +135,30 @@ function People() {
     </div>`;
   }
 
+  function saveNewPerson({title}) {
+    const data = {
+      name: title
+    };
+    const resource = "people";
+
+    // create a new resource named 'searchTerm'
+    Net.post(`/api/${resource}`, data).then(person => {
+      Net.get(`/api/${resource}`).then(people => {
+        dispatch({
+          type: 'setPeople',
+          people
+        });
+        dispatch({
+          type: 'addAutocompleteDeck',
+          id: person.id,
+          name: person.title,
+          resource: resource
+        });
+      });
+      route(`/${resource}/${person.id}`);
+    });
+  }
+
   function createPersonListing(person) {
     return html`<${ListingLink} id=${ person.id } name=${ person.name } resource='people'/>`;
   }
@@ -149,7 +173,9 @@ function People() {
     <div>
       <h1 onClick=${ toggleShowAdd }>${ showAddPersonForm ? "Add Person" : "People" }</h1>
       ${ showAddPersonForm && html`<${PersonForm}/>`}
-      ${ !showAddPersonForm && html`<${QuickFind} autocompletes=${state.ac.decks} resource='people' />` }
+      ${ !showAddPersonForm && html`<${QuickFind} autocompletes=${state.ac.decks}
+                                                  resource='people'
+                                                  save=${saveNewPerson}/>` }
       ${ peopleList(uncategorisedPeopleList, "Uncategorised")}
       ${ peopleList(ancientPeopleList, "Ancient")}
       ${ peopleList(medievalPeopleList, "Medieval")}
@@ -165,8 +191,6 @@ function PersonForm({ person, editing }) {
   const [localState, setLocalState] = useState({
     name: person.name || ''
   });
-
-  const [redirectUrl, setRedirectUrl] = useState(false);
 
   if (person.name && person.name !== '' && localState.name === '') {
     setLocalState({
@@ -221,7 +245,7 @@ function PersonForm({ person, editing }) {
             resource: "people"
           });
         });
-        setRedirectUrl(`people/${person.id}`);
+        route(`/people/${person.id}`);
       });
     }
 
@@ -229,23 +253,19 @@ function PersonForm({ person, editing }) {
     e.preventDefault();
   };
 
-  if (redirectUrl) {
-    route(redirectUrl, true);
-  } else {
-    return html`
-      <form class="civil-form" onSubmit=${ handleSubmit }>
-        <label for="name">Name:</label>
-        <br/>
-        <input id="name"
-               type="text"
-               name="name"
-               value=${ localState.name }
-               autoComplete="off"
-               onInput=${ handleChangeEvent } />
-        <br/>
-        <input type="submit" value=${ editing ? "Update Person" : "Create Person"}/>
-      </form>`;
-  }
+  return html`
+    <form class="civil-form" onSubmit=${ handleSubmit }>
+      <label for="name">Name:</label>
+      <br/>
+      <input id="name"
+             type="text"
+             name="name"
+             value=${ localState.name }
+             autoComplete="off"
+             onInput=${ handleChangeEvent } />
+      <br/>
+      <input type="submit" value=${ editing ? "Update Person" : "Create Person"}/>
+    </form>`;
 }
 
 function DeckPoint({ deckPoint, holderId }) {

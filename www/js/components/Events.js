@@ -69,6 +69,29 @@ function Events() {
     </div>`;
   }
 
+  function saveNewEvent({title, idea_category}) {
+    const data = {
+      title: title
+    };
+    const resource = "events";
+
+    // create a new resource named 'searchTerm'
+    Net.post(`/api/${resource}`, data).then(event => {
+      Net.get(`/api/${resource}`).then(events => {
+        dispatch({
+          type: 'setEvents',
+          events
+        });
+        dispatch({
+          type: 'addAutocompleteDeck',
+          id: event.id,
+          name: event.title,
+          resource: resource
+        });
+      });
+      route(`/${resource}/${event.id}`);
+    });
+  }
 
 
   const uncategorisedEventsList = filterAfter(state.events, era.uncategorisedYear).map(createEventListing);
@@ -81,7 +104,9 @@ function Events() {
     <div>
       <h1 onClick=${ toggleShowAdd }>${ showAddEventForm ? "Add Event" : "Events" }</h1>
       ${ showAddEventForm && html`<${EventForm}/>` }
-      ${ !showAddEventForm && html`<${QuickFind} autocompletes=${state.ac.decks} resource='events' />` }
+      ${ !showAddEventForm && html`<${QuickFind} autocompletes=${state.ac.decks}
+                                                 resource='events'
+                                                 save=${saveNewEvent} />` }
       ${ eventsList(uncategorisedEventsList, "Uncategorised")}
       ${ eventsList(ancientEventsList, "Ancient")}
       ${ eventsList(medievalEventsList, "Medieval")}
@@ -180,8 +205,6 @@ function EventForm({ event, editing }) {
     title: event.title || ''
   });
 
-  const [redirectUrl, setRedirectUrl] = useState(false);
-
   if (event.title && event.title !== '' && localState.title === '') {
     setLocalState({
       ...localState,
@@ -235,30 +258,26 @@ function EventForm({ event, editing }) {
           });
         });
 
-        setRedirectUrl(`events/${event.id}`);
+        route(`/events/${event.id}`);
       });
     }
 
     e.preventDefault();
   };
 
-  if (redirectUrl) {
-    route(redirectUrl, true);
-  } else {
-    return html`
-      <form class="civil-form" onSubmit=${ handleSubmit }>
-        <label for="title">Title:</label>
-        <br/>
-        <input id="title"
-               type="text"
-               name="title"
-               value=${ localState.title }
-               autoComplete="off"
-               onInput=${ handleChangeEvent } />
-        <br/>
-        <input type="submit" value=${ editing ? "Update Event" : "Create Event"}/>
-      </form>`;
-  }
+  return html`
+    <form class="civil-form" onSubmit=${ handleSubmit }>
+      <label for="title">Title:</label>
+      <br/>
+      <input id="title"
+             type="text"
+             name="title"
+             value=${ localState.title }
+             autoComplete="off"
+             onInput=${ handleChangeEvent } />
+      <br/>
+      <input type="submit" value=${ editing ? "Update Event" : "Create Event"}/>
+    </form>`;
 }
 
 function Point({ point, parentResource }) {
