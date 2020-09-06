@@ -173,6 +173,7 @@ section > form { width: var(--block-width); }
   .noteref-container {
     float: right;
     text-align: left;
+    width: 28%;
   }
 }
 
