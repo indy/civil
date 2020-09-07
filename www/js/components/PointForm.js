@@ -5,6 +5,7 @@ import Net from '/js/lib/Net.js';
 export default function PointForm({ point, onSubmit, submitMessage, readOnlyTitle }) {
   let initialPoint = {
     title: '',
+    title_backup: '',           // store the latest user inputted title value (in case title is replaced with a preset like 'Born' or 'Died' and then the user presses the 'Custom' radio tab, this will allow the previous user defined title to be restored)
 
     location_textual: '',
     latitude: 0.0,
@@ -30,6 +31,7 @@ export default function PointForm({ point, onSubmit, submitMessage, readOnlyTitl
 
   const [state, setState] = useState({
     title: initialPoint.title,
+    title_backup: initialPoint.title_backup,
     location_textual: initialPoint.location_textual,
     latitude: initialPoint.latitude,
     longitude: initialPoint.longitude,
@@ -97,6 +99,13 @@ export default function PointForm({ point, onSubmit, submitMessage, readOnlyTitl
 
     if (name === "title") {
       newState.title = value;
+      newState.title_backup = value;
+    } else if (name === "pointkind") {
+      if (event.target.value === "Custom") {
+        newState.title = newState.title_backup;
+      } else {
+        newState.title = event.target.value; // either Born or Died
+      }
     } else if (name === "location_textual") {
       newState.location_textual = value;
     } else if (name === "latitude") {
@@ -197,6 +206,12 @@ export default function PointForm({ point, onSubmit, submitMessage, readOnlyTitl
                  size="11"
                  readOnly=${ !!readOnlyTitle }
                  onInput=${ handleChangeEvent }/>
+                 <input type="radio" id="pointkind-custom" name="pointkind" value="Custom" onInput=${ handleChangeEvent }/>
+                 <label for="pointkind-custom">Custom</label>
+                 <input type="radio" id="pointkind-born" name="pointkind" value="Born" onInput=${ handleChangeEvent }/>
+                 <label for="pointkind-born">Born</label>
+                 <input type="radio" id="pointkind-died" name="pointkind" value="Died" onInput=${ handleChangeEvent }/>
+                 <label for="pointkind-died">Died</label>
         </fieldset>
       </div>
       <fieldset>
