@@ -24,6 +24,9 @@ export const initialState = {
     deck: {}
   },
 
+  recentImages: [],
+  imageDirectory: '',
+
   // caching (redo this)
   //
   ideasLoaded: false,
@@ -38,6 +41,16 @@ export const initialState = {
 
 export const reducer = (state, action) => {
   switch (action.type) {
+  case 'setRecentImages':
+    return {
+      ...state,
+      recentImages: action.recentImages
+    };
+  case 'setImageDirectory':
+    return {
+      ...state,
+      imageDirectory: action.imageDirectory
+    };
   case 'setUser':
     return {
       ...state,

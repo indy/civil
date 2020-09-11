@@ -17,17 +17,24 @@ wasm_bindgen('/wasm_bg.wasm')
     };
 
     Net.get("/api/users").then(user => {
-      // this is not good - 3 trips to the server before a logged in user's page begins rendering
-      Net.get("/api/autocomplete").then(autocompleteDecks => {
-        Net.get("/api/cmd/graph").then(graphResponse => {
-          const graphConnections = graphResponse.results;
-          render(App({ wasmInterface,
-                       autocompleteDecks,
-                       graphConnections,
-                       user}),
-                 document.getElementById('root'));
+      // this is _really_ not good - 5 trips to the server before a logged in user's page begins rendering
+      Net.get("/api/upload/directory").then(imageDirectory => {
+        Net.get("/api/upload").then(recentImages => {
+          Net.get("/api/autocomplete").then(autocompleteDecks => {
+            Net.get("/api/cmd/graph").then(graphResponse => {
+              const graphConnections = graphResponse.results;
+              render(App({ wasmInterface,
+                           autocompleteDecks,
+                           graphConnections,
+                           imageDirectory,
+                           recentImages,
+                           user}),
+                     document.getElementById('root'));
+            });
+          });
         });
       });
+
     }, err => {
       render(App({ wasmInterface }), document.getElementById("root"));
     });

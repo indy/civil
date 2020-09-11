@@ -23,4 +23,5 @@ pub mod ideas;
 pub mod notes;
 pub mod people;
 pub mod publications;
+pub mod uploader;
 pub mod users;

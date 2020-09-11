@@ -15,18 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod autocomplete;
-pub mod deck_kind;
-pub mod decks;
-pub mod edges;
-pub mod events;
-pub mod idea_kind;
-pub mod ideas;
-pub mod notes;
-pub mod people;
-mod pg;
-pub mod points;
-pub mod publications;
-pub mod ref_kind;
-pub mod users;
-pub mod uploader;
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct UserUploadedImage {
+    pub filename: String,
+}

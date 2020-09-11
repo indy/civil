@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT UNIQUE NOT NULL,
     username TEXT NOT NULL,
 
+    image_count INT NOT NULL DEFAULT 0,
+
     password TEXT NOT NULL
 );
 
@@ -95,8 +97,7 @@ CREATE TABLE IF NOT EXISTS images (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     user_id BIGINT NOT NULL REFERENCES users,
 
-    path TEXT NOT NULL,
-    name TEXT NOT NULL
+    filename TEXT NOT NULL
 );
 
 -- name will be a 4 character id

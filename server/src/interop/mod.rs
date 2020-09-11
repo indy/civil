@@ -25,6 +25,7 @@ pub mod people;
 pub mod points;
 pub mod publications;
 pub mod users;
+pub mod uploader;
 
 use std::fmt;
 

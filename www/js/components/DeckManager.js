@@ -11,6 +11,7 @@ import { useWasmInterface } from '/js/lib/WasmInterfaceProvider.js';
 
 import Note from '/js/components/Note.js';
 import PointForm from '/js/components/PointForm.js';
+import ImageWidget from '/js/components/ImageWidget.js';
 
 export default function DeckManager({ deck, title, resource, updateForm }) {
   // UNCOMMENT to enable deleting
@@ -163,6 +164,7 @@ function NoteForm(props) {
   };
 
   return html`
+  <div>
     <form class="civil-form" onSubmit=${ handleSubmit }>
       <label for="separator">Top Separator:</label>
       <input id="separator"
@@ -191,7 +193,9 @@ function NoteForm(props) {
       />
       <br/>
       <input type="submit" value="Save note"/>
-    </form>`;
+    </form>
+    <${ImageWidget}/>
+  </div>`;
 }
 
 function sortPoints(holder) {

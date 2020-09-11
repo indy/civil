@@ -13,7 +13,7 @@ import { Login, Logout }             from '/js/components/Login.js';
 import { Person, People }            from '/js/components/People.js';
 import { Publication, Publications } from '/js/components/Publications.js';
 
-export default function App({ user, wasmInterface, autocompleteDecks, graphConnections }) {
+export default function App({ user, wasmInterface, autocompleteDecks, graphConnections, imageDirectory, recentImages }) {
   let state = initialState;
 
   // update initial state with user
@@ -23,6 +23,20 @@ export default function App({ user, wasmInterface, autocompleteDecks, graphConne
       type: 'setUser',
       user
     });
+
+    if (imageDirectory) {
+      state = reducer(state, {
+        type: 'setImageDirectory',
+        imageDirectory
+      });
+    }
+
+    if (recentImages) {
+      state = reducer(state, {
+        type: 'setRecentImages',
+        recentImages
+      });
+    }
 
     if (autocompleteDecks) {
       state = reducer(state, {

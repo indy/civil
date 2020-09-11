@@ -23,6 +23,7 @@ use crate::handler::ideas;
 use crate::handler::notes;
 use crate::handler::people;
 use crate::handler::publications;
+use crate::handler::uploader;
 use crate::handler::users;
 use actix_files::NamedFile;
 use actix_web::dev;
@@ -102,6 +103,14 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         .service(scope("/edges").route("/notes_decks", post().to(edges::create_from_note_to_decks)))
         // autocomplete
         .service(scope("/autocomplete").route("", get().to(autocomplete::get)))
+        // upload
+        .service(
+            scope("/upload")
+                .route("", post().to(uploader::create)) // upload images
+                .route("", get().to(uploader::get)) // get this user's most recent uploads
+                .route("directory", get().to(uploader::get_directory)) // this user's upload directory
+        )
+
 }
 
 pub fn bad_request<B>(res: dev::ServiceResponse<B>) -> actix_web::Result<ErrorHandlerResponse<B>> {
