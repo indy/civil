@@ -25,6 +25,7 @@ pub struct Element {
 
     pub html_for: Option<String>,
     pub href: Option<String>,
+    pub src: Option<String>,
     pub html_type: Option<String>,
     pub id: Option<String>,
 

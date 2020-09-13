@@ -99,15 +99,3 @@ CREATE TABLE IF NOT EXISTS images (
 
     filename TEXT NOT NULL
 );
-
--- name will be a 4 character id
--- path will be ${name}.${fileextension}
--- url will be img/${user_id}/${path}
--- location on disk will be img/${user_id}/${path}
-
--- id in markup will be: @img-${name} e.g. this is bioleninism: @img-0001
-
--- how are img display parameters specified in the markup?
--- this is bioleninism: @img-0001{width=100,caption="what the fuck"}
-
--- this is bioleninism: @ref-673{RefToParent}

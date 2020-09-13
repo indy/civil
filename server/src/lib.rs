@@ -51,6 +51,8 @@ pub async fn start_server() -> Result<()> {
     let port = env::var("PORT")?;
     let www_path = env::var("WWW_PATH")?;
 
+    let user_content_path = String::from("../user-content");
+
     let postgres_db = env::var("POSTGRES_DB")?;
     let postgres_host = env::var("POSTGRES_HOST")?;
     let postgres_user = env::var("POSTGRES_USER")?;
@@ -90,6 +92,7 @@ pub async fn start_server() -> Result<()> {
             .wrap(session_store)
             .wrap(error_handlers)
             .service(api::public_api("/api"))
+            .service(fs::Files::new("/u", String::from(&user_content_path)))
             .service(fs::Files::new("/", String::from(&www_path)).index_file("index.html"))
     })
     .bind(format!("127.0.0.1:{}", port))?

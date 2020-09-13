@@ -108,9 +108,8 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
             scope("/upload")
                 .route("", post().to(uploader::create)) // upload images
                 .route("", get().to(uploader::get)) // get this user's most recent uploads
-                .route("directory", get().to(uploader::get_directory)) // this user's upload directory
+                .route("directory", get().to(uploader::get_directory)), // this user's upload directory
         )
-
 }
 
 pub fn bad_request<B>(res: dev::ServiceResponse<B>) -> actix_web::Result<ErrorHandlerResponse<B>> {

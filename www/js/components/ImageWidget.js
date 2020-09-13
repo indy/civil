@@ -177,7 +177,7 @@ function drop(e) {
 function ImageWidgetItem({ filename, imageDirectory }) {
   return html`
 <div class="image-widget-item">
-  <img class="image-widget-img" src="/img/u/${imageDirectory}/${filename}"/>
+  <img class="image-widget-img" src="/u/${imageDirectory}/${filename}"/>
   <div class="image-widget-title">${filename}</div>
 </div>`;
 }

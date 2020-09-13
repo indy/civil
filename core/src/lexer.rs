@@ -22,6 +22,7 @@ use strum_macros::EnumDiscriminants;
 #[strum_discriminants(name(TokenIdent))]
 pub enum Token<'a> {
     Asterisk,
+    At,
     BackTick,
     BracketEnd,
     BracketStart,
@@ -32,6 +33,8 @@ pub enum Token<'a> {
     Hash,
     Hyphen,
     Newline,
+    ParenEnd,
+    ParenStart,
     Period,
     Pipe,
     Text(&'a str),
@@ -43,6 +46,7 @@ pub enum Token<'a> {
 pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
     match token {
         Token::Asterisk => "*",
+        Token::At => "@",
         Token::BackTick => "`",
         Token::BracketEnd => "]",
         Token::BracketStart => "[",
@@ -53,6 +57,8 @@ pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
         Token::Hash => "#",
         Token::Hyphen => "-",
         Token::Newline => "\n",
+        Token::ParenEnd => ")",
+        Token::ParenStart => "(",
         Token::Period => ".",
         Token::Pipe => "|",
         Token::Text(s) => s,
@@ -74,6 +80,7 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
         if let Some(ch) = input.chars().next() {
             let (token, size) = match ch {
                 '*' => (Token::Asterisk, 1),
+                '@' => (Token::At, 1),
                 '`' => (Token::BackTick, 1),
                 '[' => (Token::BracketStart, 1),
                 ']' => (Token::BracketEnd, 1),
@@ -83,6 +90,8 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
                 '#' => (Token::Hash, 1),
                 '-' => (Token::Hyphen, 1),
                 '\n' => (Token::Newline, 1),
+                '(' => (Token::ParenStart, 1),
+                ')' => (Token::ParenEnd, 1),
                 '.' => (Token::Period, 1),
                 '|' => (Token::Pipe, 1),
                 '_' => (Token::Underscore, 1),
@@ -136,7 +145,7 @@ fn eat_text(input: &str) -> Result<(Token, usize)> {
 
 fn is_text(ch: char) -> bool {
     match ch {
-        '\n' | '[' | ']' | '_' | '*' | '`' | '^' | '~' | '"' | '|' | '#' => false,
+        '\n' | '[' | ']' | '(' | ')' | '@' | '_' | '*' | '`' | '^' | '~' | '"' | '|' | '#' => false,
         _ => true,
     }
 }
@@ -158,14 +167,76 @@ mod tests {
         tok("5", &[Token::Digits("5"), Token::EOS]);
 
         tok(
-            "foo *bar* 456789",
+            "foo *bar* @ 456789",
             &[
                 Token::Text("foo "),
                 Token::Asterisk,
                 Token::Text("bar"),
                 Token::Asterisk,
                 Token::Whitespace(" "),
+                Token::At,
+                Token::Whitespace(" "),
                 Token::Digits("456789"),
+                Token::EOS,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_lexer_image_syntax() {
+        // the three kinds of lexed streams for representing fourc codes:
+
+        // fourc starts with digit, ends in letter
+        tok(
+            "@img(00a.jpg)",
+            &[
+                Token::At,
+                Token::Text("img"),
+                Token::ParenStart,
+                Token::Digits("00"),
+                Token::Text("a.jpg"),
+                Token::ParenEnd,
+                Token::EOS,
+            ],
+        );
+
+        // fourc starts with digit, ends in digit
+        tok(
+            "@img(000.jpg)",
+            &[
+                Token::At,
+                Token::Text("img"),
+                Token::ParenStart,
+                Token::Digits("000"),
+                Token::Period,
+                Token::Text("jpg"),
+                Token::ParenEnd,
+                Token::EOS,
+            ],
+        );
+
+        // fourc starts with letter, ends in digit
+        tok(
+            "@img(a00.jpg)",
+            &[
+                Token::At,
+                Token::Text("img"),
+                Token::ParenStart,
+                Token::Text("a00.jpg"),
+                Token::ParenEnd,
+                Token::EOS,
+            ],
+        );
+
+        // fourc starts with letter, ends in letter
+        tok(
+            "@img(abc.jpg)",
+            &[
+                Token::At,
+                Token::Text("img"),
+                Token::ParenStart,
+                Token::Text("abc.jpg"),
+                Token::ParenEnd,
                 Token::EOS,
             ],
         );

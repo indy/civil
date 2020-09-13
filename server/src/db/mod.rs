@@ -28,5 +28,5 @@ mod pg;
 pub mod points;
 pub mod publications;
 pub mod ref_kind;
-pub mod users;
 pub mod uploader;
+pub mod users;

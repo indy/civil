@@ -44,6 +44,7 @@ pub enum Node {
     Text(String),
     Underlined(Vec<Node>),
     UnorderedList(Vec<Node>),
+    Image(String),
 }
 
 pub(crate) fn is_numbered_list_item(tokens: &'_ [Token]) -> bool {
@@ -175,6 +176,7 @@ fn eat_item_until<'a>(tokens: &'a [Token], halt_at: TokenIdent) -> ParserResult<
 
 fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
     match tokens[0] {
+        Token::At => eat_at(tokens),
         Token::Asterisk => eat_matching_pair(tokens, TokenIdent::Asterisk, NodeIdent::Strong),
         Token::BackTick => eat_codeblock(tokens),
         Token::BracketEnd => eat_text_including(tokens),
@@ -247,6 +249,56 @@ fn eat_pipe<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     } else {
         eat_text_including(tokens)
     }
+}
+
+fn is_at_specifier<'a>(tokens: &'a [Token<'a>]) -> bool {
+    is_token_at_index(tokens, 0, TokenIdent::At)
+        && is_token_at_index(tokens, 1, TokenIdent::Text)
+        && is_token_at_index(tokens, 2, TokenIdent::ParenStart)
+}
+
+fn is_at_img_specifier<'a>(tokens: &'a [Token<'a>]) -> bool {
+    if is_token_at_index(tokens, 1, TokenIdent::Text) && is_token_at_index(tokens, 2, TokenIdent::ParenStart) {
+        if is_token_at_index(tokens, 3, TokenIdent::Text) && is_token_at_index(tokens, 4, TokenIdent::ParenEnd) {
+            // e.g. @img(abc.jpg)
+            true
+        } else if is_token_at_index(tokens, 3, TokenIdent::Digits)
+            && is_token_at_index(tokens, 4, TokenIdent::Text)
+            && is_token_at_index(tokens, 5, TokenIdent::ParenEnd)
+        {
+            // e.g. @img(00a.jpg)
+            true
+        } else if is_token_at_index(tokens, 3, TokenIdent::Digits)
+            && is_token_at_index(tokens, 4, TokenIdent::Period)
+            && is_token_at_index(tokens, 5, TokenIdent::Text)
+            && is_token_at_index(tokens, 6, TokenIdent::ParenEnd)
+        {
+            // e.g. @img(000.jpg)
+            true
+        } else {
+            false
+        }
+    } else {
+        false
+    }
+}
+
+fn eat_at<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    if is_at_specifier(tokens) {
+        match tokens[1] {
+            Token::Text("img") => {
+                if is_at_img_specifier(tokens) {
+                    tokens = &tokens[3..]; // eat the '@img('
+                    let (mut tokens, image_name) = eat_string(tokens, TokenIdent::ParenEnd)?;
+                    tokens = &tokens[1..]; // eat the ')'
+                    return Ok((tokens, Node::Image(image_name.to_string())));
+                }
+            }
+            _ => (),
+        }
+    }
+
+    eat_text_including(tokens)
 }
 
 fn eat_matching_pair<'a>(tokens: &'a [Token<'a>], halt_at: TokenIdent, node_ident: NodeIdent) -> ParserResult<Node> {
@@ -412,6 +464,9 @@ fn eat_text_as_string<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<String> {
             Token::Whitespace(s) => value += s,
             Token::Period => value += ".",
             Token::Hyphen => value += "-",
+            //            Token::At => value += "@",
+            Token::ParenStart => value += "(",
+            Token::ParenEnd => value += ")",
             _ => return Ok((tokens, value)),
         }
         tokens = &tokens[1..];
@@ -521,6 +576,13 @@ mod tests {
     fn assert_text(node: &Node, expected: &'static str) {
         match node {
             Node::Text(s) => assert_eq!(s, expected),
+            _ => assert_eq!(false, true),
+        };
+    }
+
+    fn assert_image(node: &Node, expected: &'static str) {
+        match node {
+            Node::Image(s) => assert_eq!(s, expected),
             _ => assert_eq!(false, true),
         };
     }
@@ -1048,5 +1110,49 @@ here is the closing paragraph",
         toks = tokenize("    foo [bar]").unwrap();
         res = skip_leading_whitespace_and_newlines(&toks).unwrap();
         assert_eq!(5, res.len());
+    }
+
+    #[test]
+    fn test_at_image() {
+        {
+            let nodes = build("@img(abc.jpg)");
+            assert_eq!(1, nodes.len());
+
+            let children = paragraph_children(&nodes[0]).unwrap();
+
+            assert_eq!(children.len(), 1);
+
+            assert_image(&children[0], "abc.jpg");
+        }
+        {
+            let nodes = build("@img(a00.jpg)");
+            assert_eq!(1, nodes.len());
+
+            let children = paragraph_children(&nodes[0]).unwrap();
+
+            assert_eq!(children.len(), 1);
+
+            assert_image(&children[0], "a00.jpg");
+        }
+        {
+            let nodes = build("@img(00a.jpg)");
+            assert_eq!(1, nodes.len());
+
+            let children = paragraph_children(&nodes[0]).unwrap();
+
+            assert_eq!(children.len(), 1);
+
+            assert_image(&children[0], "00a.jpg");
+        }
+        {
+            let nodes = build("@img(000.jpg)");
+            assert_eq!(1, nodes.len());
+
+            let children = paragraph_children(&nodes[0]).unwrap();
+
+            assert_eq!(children.len(), 1);
+
+            assert_image(&children[0], "000.jpg");
+        }
     }
 }

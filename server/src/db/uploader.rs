@@ -41,7 +41,6 @@ impl From<UserImageCount> for i32 {
     }
 }
 
-
 #[derive(Deserialize, PostgresMapper, Serialize)]
 #[pg_mapper(table = "images")]
 struct UserUploadedImage {
@@ -51,14 +50,21 @@ struct UserUploadedImage {
 impl From<UserUploadedImage> for interop::UserUploadedImage {
     fn from(e: UserUploadedImage) -> interop::UserUploadedImage {
         interop::UserUploadedImage {
-            filename: e.filename
+            filename: e.filename,
         }
     }
 }
 
-pub(crate) async fn get_recent(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::UserUploadedImage>> {
-    pg::many_from::<UserUploadedImage, interop::UserUploadedImage>(db_pool, include_str!("sql/uploader_recent.sql"), &[&user_id])
-        .await
+pub(crate) async fn get_recent(
+    db_pool: &Pool,
+    user_id: Key,
+) -> Result<Vec<interop::UserUploadedImage>> {
+    pg::many_from::<UserUploadedImage, interop::UserUploadedImage>(
+        db_pool,
+        include_str!("sql/uploader_recent.sql"),
+        &[&user_id],
+    )
+    .await
 }
 
 pub(crate) async fn get_image_count(db_pool: &Pool, user_id: Key) -> Result<i32> {
@@ -69,7 +75,6 @@ pub(crate) async fn get_image_count(db_pool: &Pool, user_id: Key) -> Result<i32>
     )
     .await
 }
-
 
 pub(crate) async fn set_image_count(db_pool: &Pool, user_id: Key, new_count: i32) -> Result<()> {
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;

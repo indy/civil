@@ -24,8 +24,8 @@ pub mod notes;
 pub mod people;
 pub mod points;
 pub mod publications;
-pub mod users;
 pub mod uploader;
+pub mod users;
 
 use std::fmt;
 

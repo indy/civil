@@ -69,6 +69,11 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
             text: Some(String::from(text)),
             ..Default::default()
         }],
+        Node::Image(src) => vec![Element {
+            name: String::from("img"),
+            src: Some(String::from(src)),
+            ..Default::default()
+        }],
         Node::Underlined(ns) => element_key_class("span", key, "underlined", ns)?,
         Node::UnorderedList(ns) => element_key("ul", key, ns)?,
     };

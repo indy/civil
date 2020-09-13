@@ -15,22 +15,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
-
 use crate::error::{Error, Result};
 use crate::session;
 
 use crate::db::uploader as db;
 
-use std::path::Path;
 use std::ffi::OsStr;
+use std::path::Path;
 
-use std::io::Write;
 use actix_multipart::Multipart;
-use actix_web::{web, HttpResponse};
-use futures::{StreamExt, TryStreamExt};
 use actix_web::web::Data;
+use actix_web::{web, HttpResponse};
 use deadpool_postgres::Pool;
+use futures::{StreamExt, TryStreamExt};
+use std::io::Write;
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -58,15 +56,15 @@ pub async fn create(
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
-
     let user_id = session::user_id(&session)?;
 
     // create the user specific directory
-    let user_directory = format!("../www/img/u/{}", user_id);
-    std::fs::DirBuilder::new().recursive(true).create(&user_directory)?;
+    let user_directory = format!("../user-content/{}", user_id);
+    std::fs::DirBuilder::new()
+        .recursive(true)
+        .create(&user_directory)?;
 
     let mut user_image_count = db::get_image_count(&db_pool, user_id).await?;
-
 
     // iterate over multipart stream
     while let Ok(Some(mut field)) = payload.try_next().await {
@@ -83,7 +81,6 @@ pub async fn create(
         user_image_count += 1;
         db::set_image_count(&db_pool, user_id, user_image_count).await?;
 
-
         let mut f = web::block(|| std::fs::File::create(filepath))
             .await
             .unwrap();
@@ -97,22 +94,18 @@ pub async fn create(
         // save the entry in the images table
 
         db::add_image_entry(&db_pool, user_id, &derived_filename).await?;
-
     }
     Ok(HttpResponse::Ok().into())
 }
 
 fn get_extension(filename: &str) -> Option<&str> {
-    Path::new(filename)
-        .extension()
-        .and_then(OsStr::to_str)
+    Path::new(filename).extension().and_then(OsStr::to_str)
 }
 
 fn number_as_fourc(n: i32) -> Result<String> {
-    let res = format!("{:0>4}", format_radix(n as u32, 36)?);
+    let res = format!("{:0>3}", format_radix(n as u32, 36)?);
     Ok(res)
 }
-
 
 fn format_radix(mut x: u32, radix: u32) -> Result<String> {
     let mut result = vec![];
@@ -137,7 +130,7 @@ mod tests {
 
     #[test]
     fn test_fourc_generation() {
-        assert_eq!(number_as_fourc(0).unwrap().to_string(), "0000");
-        assert_eq!(number_as_fourc(1234).unwrap().to_string(), "00ya");
+        assert_eq!(number_as_fourc(0).unwrap().to_string(), "000");
+        assert_eq!(number_as_fourc(1234).unwrap().to_string(), "0ya");
     }
 }
