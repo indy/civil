@@ -38,6 +38,11 @@ use tracing_subscriber::FmtSubscriber;
 
 const SIGNING_KEY_SIZE: usize = 32;
 
+
+pub struct UserContentPath {
+    pub path: String,
+}
+
 pub async fn start_server() -> Result<()> {
     dotenv::dotenv().ok();
 
@@ -50,9 +55,7 @@ pub async fn start_server() -> Result<()> {
 
     let port = env::var("PORT")?;
     let www_path = env::var("WWW_PATH")?;
-
-    let user_content_path = String::from("../user-content");
-
+    let user_content_path = env::var("USER_CONTENT_PATH")?;
     let postgres_db = env::var("POSTGRES_DB")?;
     let postgres_host = env::var("POSTGRES_HOST")?;
     let postgres_user = env::var("POSTGRES_USER")?;
@@ -89,11 +92,12 @@ pub async fn start_server() -> Result<()> {
 
         App::new()
             .data(pool.clone())
+            .data(UserContentPath { path: user_content_path.clone()})
             .wrap(session_store)
             .wrap(error_handlers)
             .service(api::public_api("/api"))
-            .service(fs::Files::new("/u", String::from(&user_content_path)))
-            .service(fs::Files::new("/", String::from(&www_path)).index_file("index.html"))
+            .service(fs::Files::new("/u", &user_content_path))
+            .service(fs::Files::new("/", &www_path).index_file("index.html"))
     })
     .bind(format!("127.0.0.1:{}", port))?
     .run();

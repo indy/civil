@@ -17,6 +17,7 @@
 
 use crate::error::{Error, Result};
 use crate::session;
+use crate::UserContentPath;
 
 use crate::db::uploader as db;
 
@@ -53,16 +54,17 @@ pub async fn get(db_pool: Data<Pool>, session: actix_session::Session) -> Result
 
 pub async fn create(
     mut payload: Multipart,
+    user_content_path: Data<UserContentPath>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    // create the user specific directory
-    let user_directory = format!("../user-content/{}", user_id);
+    let user_directory = format!("{}/{}", user_content_path.path, user_id);
     std::fs::DirBuilder::new()
         .recursive(true)
         .create(&user_directory)?;
+    // info!("user_directory = {}", &user_directory);
 
     let mut user_image_count = db::get_image_count(&db_pool, user_id).await?;
 
