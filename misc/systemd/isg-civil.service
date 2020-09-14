@@ -3,6 +3,8 @@ Description=Start civil.indy.io
 
 [Service]
 Type=simple
+User=indy
+Group=indy
 ExecStart=/bin/bash /home/indy/work/civil/systemd/isg-civil.sh
 
 [Install]
