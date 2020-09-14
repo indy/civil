@@ -5,6 +5,7 @@ import Net from '/js/lib/Net.js';
 import { useWasmInterface } from '/js/lib/WasmInterfaceProvider.js';
 
 import CivilSelect from '/js/components/CivilSelect.js';
+import ImageWidget from '/js/components/ImageWidget.js';
 
 export default function Note(props) {
   const [showModButtons, setShowModButtons] = useState(false);
@@ -97,6 +98,7 @@ export default function Note(props) {
                   name="content"
                   value=${ note.content }
                   onInput=${ handleChangeEvent }/>
+        <${ImageWidget}/>
       </div>`;
     return res;
   };

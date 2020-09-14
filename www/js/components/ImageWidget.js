@@ -83,6 +83,7 @@ export default function ImageWidget(props) {
   const recent = state.recentImages.map(ri => html`<${ImageWidgetItem} imageDirectory=${imageDirectory} filename=${ri.filename}/>`);
   return html`
            <div>
+<hr/>
              ${ retractIcon(onIconClicked) }
              <div class="image-widget-container">
                ${recent}
@@ -91,6 +92,7 @@ export default function ImageWidget(props) {
                <input type="file" multiple name="file"/>
                <button onClick=${submitHandler}>Upload Images</button>
              </form>
+<hr/>
            </div>`;
   }
 }
@@ -178,7 +180,7 @@ function ImageWidgetItem({ filename, imageDirectory }) {
   return html`
 <div class="image-widget-item">
   <img class="image-widget-img" src="/u/${imageDirectory}/${filename}"/>
-  <div class="image-widget-title">${filename}</div>
+  <div class="image-widget-title">@img(${filename})</div>
 </div>`;
 }
 
