@@ -32,19 +32,19 @@ export default function ImageWidget(props) {
   });
 
   function handleFiles(files) {
-    let hasImageFiles = false;
+    let counter = 0;
     let formData = new FormData();
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
 
       if (file.type.startsWith('image/')) {
-        hasImageFiles = true;
-        formData.append("file", file);
+        formData.append("file" + counter, file);
+        counter += 1;
       }
     }
 
-    if (hasImageFiles) {
+    if (counter > 0) {
       let options = {
         method: "POST",
         body: formData

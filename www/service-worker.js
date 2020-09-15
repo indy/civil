@@ -22,7 +22,7 @@
 // set this to true when deploying, false when developing js
 var useCache = true;
 
-var CACHE_NAME = "civil-20200914";
+var CACHE_NAME = "civil-20200915b";
 
 var precacheConfig = [
   "/index.html",
