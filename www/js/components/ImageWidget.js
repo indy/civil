@@ -7,174 +7,125 @@ export default function ImageWidget(props) {
   const [state, dispatch] = useStateValue();
   const [minimised, setMinimised] = useState(true);
 
-  const uploadForm = useRef(null);
+  const [hovering, setHovering] = useState(false);
+
+  const dragArea = useRef(null);
 
   const imageDirectory = state.imageDirectory;
-  /*
-  const dragArea = useRef(null);
 
   useEffect(() => {
     if (dragArea && dragArea.current) {
       const dragAreaElement = dragArea.current;
       // console.log('adding event listeners');
       dragAreaElement.addEventListener("dragenter", dragEnter, false);
+      dragAreaElement.addEventListener("dragleave", dragLeave, false);
       dragAreaElement.addEventListener("dragover", dragOver, false);
       dragAreaElement.addEventListener("drop", drop, false);
       return () => {
         // console.log('removing event listeners');
         dragAreaElement.removeEventListener("dragenter", dragEnter);
+        dragAreaElement.removeEventListener("dragleave", dragLeave);
         dragAreaElement.removeEventListener("dragover", dragOver);
         dragAreaElement.removeEventListener("drop", drop);
       }
     }
   });
-  */
 
+  function handleFiles(files) {
+    let hasImageFiles = false;
+    let formData = new FormData();
 
-  function go(url, data) {
-    let options = {
-      method: "POST",
-      body: data
-    };
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
 
-    return fetch(url, options);
+      if (file.type.startsWith('image/')) {
+        hasImageFiles = true;
+        formData.append("file", file);
+      }
+    }
+
+    if (hasImageFiles) {
+      let options = {
+        method: "POST",
+        body: formData
+      };
+      // post the image data
+      fetch("/api/upload", options).then(resp => {
+        // fetch the most recent uploads
+        Net.get("/api/upload").then(recentImages => {
+          dispatch({
+            type: 'setRecentImages',
+            recentImages
+          });
+        });
+      });
+    }
   }
 
+  function dragEnter(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    setHovering(true);
+  }
+
+  function dragLeave(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    setHovering(false);
+  }
+
+  function dragOver(e) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
+
+  function drop(e) {
+    e.stopPropagation();
+    e.preventDefault();
+
+    const dt = e.dataTransfer;
+    const files = dt.files;
+
+    handleFiles(files);
+
+    setHovering(false);
+  }
 
   function onIconClicked() {
     setMinimised(!minimised);
   }
 
-  function submitHandler(e) {
-    e.preventDefault();
-
-    if (uploadForm && uploadForm.current) {
-      let formData = new FormData(uploadForm.current);
-
-      if (formData.has("file") && formData.get("file") !== "") {
-
-        let options = {
-          method: "POST",
-          body: formData
-        };
-        // post the image data
-        fetch("/api/upload", options).then(resp => {
-          // fetch the most recent uploads
-          Net.get("/api/upload").then(recentImages => {
-            dispatch({
-              type: 'setRecentImages',
-              recentImages
-            });
-          });
-        });
-      } else {
-        // console.log("no file given, just the 'upload images' button was clicked");
-      }
-    }
-  }
-
   if (minimised) {
-  return html`
-           <div>
-             ${ expandIcon(onIconClicked) }
-           </div>
+    return html`
+             <div>
+               ${ expandIcon(onIconClicked) }
+             </div>
 `;
   } else {
-  const recent = state.recentImages.map(ri => html`<${ImageWidgetItem} imageDirectory=${imageDirectory} filename=${ri.filename}/>`);
-  return html`
-           <div>
-<hr/>
-             ${ retractIcon(onIconClicked) }
-             <div class="image-widget-container">
-               ${recent}
-             </div>
-             <form ref=${uploadForm}>
-               <input type="file" multiple name="file"/>
-               <button onClick=${submitHandler}>Upload Images</button>
-             </form>
-<hr/>
-           </div>`;
+
+    const recent = state.recentImages.map(ri => html`<${ImageWidgetItem}
+                                                       imageDirectory=${imageDirectory}
+                                                       filename=${ri.filename}/>`);
+
+    let containerClass = "";
+    if (hovering) {
+      containerClass += " image-widget-hovering";
+    }
+    containerClass += " image-widget-container";
+
+    const dragdropMessage = html`<div class="image-widget-hover-message">Drop Images Here</div>`;
+
+    return html`
+             <div>
+               ${ retractIcon(onIconClicked) }
+               <hr/>
+               <div class="${containerClass}" ref=${dragArea}>
+                 ${ hovering ? dragdropMessage : recent }
+               </div>
+               <hr/>
+             </div>`;
   }
 }
-
-function FileUpload(/*img, */file) {
-
-  console.log("FileUpload invoked");
-
-  const reader = new FileReader();
-  // this.ctrl = createThrobber(img);
-  const xhr = new XMLHttpRequest();
-  this.xhr = xhr;
-
-  // const self = this;
-  // this.xhr.upload.addEventListener("progress", function(e) {
-  //       if (e.lengthComputable) {
-  //         const percentage = Math.round((e.loaded * 100) / e.total);
-  //         self.ctrl.update(percentage);
-  //       }
-  //     }, false);
-
-  // xhr.upload.addEventListener("load", function(e){
-  //         self.ctrl.update(100);
-  //         const canvas = self.ctrl.ctx.canvas;
-  //         canvas.parentNode.removeChild(canvas);
-  //     }, false);
-
-  xhr.open("POST", "http://localhost:3002/api/upload");
-  xhr.overrideMimeType('text/plain; charset=x-user-defined-binary');
-  reader.onload = function(evt) {
-    console.log("FileUpload reader.onload");
-    xhr.send(evt.target.result);
-  };
-  reader.readAsBinaryString(file);
-}
-
-function handleFiles(files) {
-  console.log(files);
-
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-
-    console.log(file);
-    // File { name: "WsOQuk.png", lastModified: 1593370115000, webkitRelativePath: "", size: 7757, type: "image/png" }
-
-
-    if (!file.type.startsWith('image/')){ continue; }
-
-    new FileUpload(file);
-    /*
-    const img = document.createElement("img");
-    img.classList.add("obj");
-    img.file = file;
-    preview.appendChild(img); // Assuming that "preview" is the div output where the content will be displayed.
-
-    const reader = new FileReader();
-    reader.onload = (function(aImg) { return function(e) { aImg.src = e.target.result; }; })(img);
-    reader.readAsDataURL(file);
-    */
-  }
-}
-
-function dragEnter(e) {
-  e.stopPropagation();
-  e.preventDefault();
-}
-
-function dragOver(e) {
-  e.stopPropagation();
-  e.preventDefault();
-}
-
-function drop(e) {
-  e.stopPropagation();
-  e.preventDefault();
-
-  const dt = e.dataTransfer;
-  const files = dt.files;
-
-  handleFiles(files);
-}
-
 
 function ImageWidgetItem({ filename, imageDirectory }) {
   return html`

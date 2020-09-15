@@ -13,6 +13,18 @@
 
 /* -------------------------------------------------------------------------------- */
 
+.image-widget-hover-message {
+  font-size: 4em;
+  z-index: -1;                  /* beneath the transparent widget container which used for drag and drop */
+  margin: auto;
+}
+
+.image-widget-hovering {
+  background: rgba(255, 128, 64, 0.2) !important; /* transparent hover region */
+  height:150px;
+  padding: 1em 0 2.5em 0;
+}
+
 .image-widget-container {
   background: var(--bg2);
   display: flex;
