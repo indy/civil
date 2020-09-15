@@ -62,10 +62,11 @@ pub(crate) async fn create_idea_tx(
     user_id: Key,
     deck_name: &str,
 ) -> Result<interop::Idea> {
+    let idea_category = IdeaKind::Insight;
     let res = pg::one::<Idea>(
         tx,
         include_str!("sql/ideas_create.sql"),
-        &[&user_id, &deck_name],
+        &[&user_id, &deck_name, &idea_category],
     )
     .await?;
 
