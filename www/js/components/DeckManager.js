@@ -82,7 +82,8 @@ export default function DeckManager({ deck, title, resource, updateForm }) {
           cacheDeckFn({...deck, notes});
           setShowNoteForm(false);
           setShowUpdateForm(false);
-        });
+        })
+        .catch(error => console.error(error.message));
     };
 
     return html`<${NoteForm} onSubmit=${ onAddNote }/>`;
@@ -238,18 +239,28 @@ function addNote(form, deck_id, wasmInterface) {
 
   // const notes = splitIntoNotes(form.content.value);
   if (notes === null) {
-    console.error("addNote: splitIntoNotes failed");
     console.error(form.content.value);
-    return undefined;
+    return new Promise((resolve, reject) => { reject(new Error("addNote: splitIntoNotes failed")); });
   }
-    let data = removeEmptyStrings({
-        deck_id,
-        content: notes,
-        title: form.title.value.trim(),
-        separator: form.separator.checked
-    }, ["title"]);
 
-  return Net.post("/api/notes", data);
+  let data = removeEmptyStrings({
+    deck_id,
+    content: notes,
+    title: form.title.value.trim(),
+    separator: form.separator.checked
+  }, ["title"]);
+
+  function isEmptyNote(n) {
+    return n.separator === false &&
+      (!n.title || n.title.length === 0) &&
+      n.content.every(n => { return n.length === 0;});
+  }
+
+  if (isEmptyNote(data)) {
+    return new Promise((resolve, reject) => { reject(new Error("Parsed as empty note")); });
+  } else {
+    return Net.post("/api/notes", data);
+  }
 }
 
 function NoteManager(holder, cacheDeckFn) {
