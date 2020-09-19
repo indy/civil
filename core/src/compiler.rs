@@ -56,7 +56,7 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
         }
         Node::Highlight(ns) => element_key_class("mark", key, "highlight", ns)?,
         Node::ScribbledOut(ns) => element_key_class("mark", key, "scribbled-out", ns)?,
-        Node::Link(url, ns) => element_key_class_href("a", key, "note-inline-link", url, ns)?,
+        Node::ObsoleteLink(url, ns) => element_key_class_href("a", key, "note-inline-link", url, ns)?,
         Node::ListItem(ns) => element_key("li", key, ns)?,
         Node::Marginnote(ns) => compile_marginnote_to_struct(ns, key)?,
         Node::OrderedList(ns) => element_key("ol", key, ns)?,
@@ -76,6 +76,8 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
         }],
         Node::Underlined(ns) => element_key_class("span", key, "underlined", ns)?,
         Node::UnorderedList(ns) => element_key("ul", key, ns)?,
+        Node::Url(url, ns) => element_key_class_href("a", key, "note-inline-link", url, ns)?,
+
     };
 
     Ok(res)

@@ -33,7 +33,7 @@ pub enum Node {
     Codeblock(Option<CodeblockLanguage>, String),
     Highlight(Vec<Node>),
     ScribbledOut(Vec<Node>),
-    Link(String, Vec<Node>),
+    ObsoleteLink(String, Vec<Node>),
     ListItem(Vec<Node>),
     Marginnote(Vec<Node>),
     OrderedList(Vec<Node>),
@@ -45,6 +45,7 @@ pub enum Node {
     Underlined(Vec<Node>),
     UnorderedList(Vec<Node>),
     Image(String),
+    Url(String, Vec<Node>),
 }
 
 pub(crate) fn is_numbered_list_item(tokens: &'_ [Token]) -> bool {
@@ -258,28 +259,95 @@ fn is_at_specifier<'a>(tokens: &'a [Token<'a>]) -> bool {
 }
 
 fn is_at_img_specifier<'a>(tokens: &'a [Token<'a>]) -> bool {
-    if is_token_at_index(tokens, 1, TokenIdent::Text) && is_token_at_index(tokens, 2, TokenIdent::ParenStart) {
-        if is_token_at_index(tokens, 3, TokenIdent::Text) && is_token_at_index(tokens, 4, TokenIdent::ParenEnd) {
-            // e.g. @img(abc.jpg)
-            true
-        } else if is_token_at_index(tokens, 3, TokenIdent::Digits)
-            && is_token_at_index(tokens, 4, TokenIdent::Text)
-            && is_token_at_index(tokens, 5, TokenIdent::ParenEnd)
-        {
-            // e.g. @img(00a.jpg)
-            true
-        } else if is_token_at_index(tokens, 3, TokenIdent::Digits)
-            && is_token_at_index(tokens, 4, TokenIdent::Period)
-            && is_token_at_index(tokens, 5, TokenIdent::Text)
-            && is_token_at_index(tokens, 6, TokenIdent::ParenEnd)
-        {
-            // e.g. @img(000.jpg)
-            true
-        } else {
-            false
-        }
+    if is_token_at_index(tokens, 3, TokenIdent::Text) && is_token_at_index(tokens, 4, TokenIdent::ParenEnd) {
+        // @img(abc.jpg)
+        true
+    } else if is_token_at_index(tokens, 3, TokenIdent::Digits)
+        && is_token_at_index(tokens, 4, TokenIdent::Text)
+        && is_token_at_index(tokens, 5, TokenIdent::ParenEnd)
+    {
+        // @img(00a.jpg)
+        true
+    } else if is_token_at_index(tokens, 3, TokenIdent::Digits)
+        && is_token_at_index(tokens, 4, TokenIdent::Period)
+        && is_token_at_index(tokens, 5, TokenIdent::Text)
+        && is_token_at_index(tokens, 6, TokenIdent::ParenEnd)
+    {
+        // @img(000.jpg)
+        true
     } else {
         false
+    }
+}
+
+fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> Result<Vec<Token<'a>>> {
+    match text_token {
+        Token::Text(s) => {
+            let tokens = s.split_whitespace().map(|chars| Token::Text(chars)).collect();
+            Ok(tokens)
+        },
+        _ => Err(Error::Parser)
+    }
+}
+
+// treat every token as Text until we get to a token of the given type
+fn eat_as_resource_description_pair_until_balanced_paren_end<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<(String, Vec<Node>)> {
+
+    let mut inner_tokens: Vec<Token> = vec![];
+    let mut counter = 1;
+    let mut encountered_first_text_token = false;
+
+    let ws = " ".to_string();
+
+    while !tokens.is_empty() {
+        if is_head(tokens, TokenIdent::ParenStart) {
+            counter += 1;
+            tokens = &tokens[1..];
+            inner_tokens.push(Token::ParenStart);
+        } else if is_head(tokens, TokenIdent::ParenEnd) {
+            counter -= 1;
+            tokens = &tokens[1..];
+
+            if counter == 0 {
+                // reached the closing paren
+                break;
+            }
+
+            inner_tokens.push(Token::ParenEnd);
+        } else if is_head(tokens, TokenIdent::Text) && !encountered_first_text_token {
+            encountered_first_text_token = true;
+
+            let text_tokens = split_text_token_at_whitespace(tokens[0])?;
+            for t in text_tokens {
+                inner_tokens.push(t);
+                inner_tokens.push(Token::Whitespace(&ws))
+            }
+
+            tokens = &tokens[1..];
+
+            if is_head(tokens, TokenIdent::ParenEnd) && counter == 1 {
+                // if this text is the only text within the parens
+                let len = inner_tokens.len();
+                if len > 1 {
+                    // remove the final whitespace that was added in the for loop above
+                    inner_tokens.truncate(len - 1);
+                }
+            }
+
+        } else {
+            inner_tokens.push(tokens[0]);
+            tokens = &tokens[1..];
+        }
+    }
+
+    match inner_tokens[0] {
+        Token::Text(s) => {
+            dbg!(&inner_tokens);
+            // eat_to_newline parses tokens without wrapping them up in a paragraph node
+            let (_remaining, children) = eat_to_newline(&inner_tokens[1..].to_vec(), TokenIdent::EOS)?;
+            Ok((tokens, (s.to_string(), children)))
+        },
+        _ => Err(Error::Parser)
     }
 }
 
@@ -293,6 +361,11 @@ fn eat_at<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
                     tokens = &tokens[1..]; // eat the ')'
                     return Ok((tokens, Node::Image(image_name.to_string())));
                 }
+            }
+            Token::Text("url") => {
+                tokens = &tokens[3..]; // eat the '@url('
+                let (tokens, (url, desc)) = eat_as_resource_description_pair_until_balanced_paren_end(tokens)?;
+                return Ok((tokens, Node::Url(url.to_string(), desc)));
             }
             _ => (),
         }
@@ -322,13 +395,15 @@ fn eat_matching_pair<'a>(tokens: &'a [Token<'a>], halt_at: TokenIdent, node_iden
 
 fn eat_bracket_start<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     if is_token_at_index(tokens, 1, TokenIdent::BracketStart) {
-        eat_link(tokens)
+        eat_link_old_syntax(tokens)
     } else {
         eat_text_including(tokens)
     }
 }
 
-fn eat_link<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+// the old syntax for links was: [[https://google.com][search engine]], or: [[https://google.com]]
+//
+fn eat_link_old_syntax<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     tokens = &tokens[2..];
     let (mut tokens, url) = eat_string(tokens, TokenIdent::BracketEnd)?;
 
@@ -342,7 +417,7 @@ fn eat_link<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
 
             tokens = &tokens[1..]; // move past the second closing bracket
 
-            return Ok((tokens, Node::Link(url, children)));
+            return Ok((tokens, Node::ObsoleteLink(url, children)));
         } else if is_head(tokens, TokenIdent::BracketStart) {
             // move past the second opening bracket
             tokens = &tokens[1..];
@@ -353,7 +428,7 @@ fn eat_link<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
             tokens = drop_token(tokens, TokenIdent::BracketEnd);
             tokens = drop_token(tokens, TokenIdent::BracketEnd);
 
-            return Ok((tokens, Node::Link(url, children)));
+            return Ok((tokens, Node::ObsoleteLink(url, children)));
         }
     }
 
@@ -587,6 +662,13 @@ mod tests {
         };
     }
 
+    // fn assert_url(node: &Node, expected_url: &'static str) {
+    //     match node {
+    //         Node::Url(url, _desc) => assert_eq!(url, expected_url),
+    //         _ => assert_eq!(false, true),
+    //     };
+    // }
+
     fn assert_strong1(node: &Node, expected: &'static str) {
         match node {
             Node::Strong(ns) => {
@@ -599,7 +681,7 @@ mod tests {
 
     fn assert_link(node: &Node, expected_url: &'static str, expected_text: &'static str) {
         match node {
-            Node::Link(url, ns) => {
+            Node::ObsoleteLink(url, ns) => {
                 assert_eq!(url, expected_url);
                 assert_eq!(ns.len(), 1);
                 assert_text(&ns[0], expected_text);
@@ -866,7 +948,7 @@ mod tests {
             assert_eq!(children.len(), 2);
             assert_text(&children[0], "here is ");
             match &children[1] {
-                Node::Link(url, ns) => {
+                Node::ObsoleteLink(url, ns) => {
                     assert_eq!(url, "https://indy.io");
                     assert_eq!(ns.len(), 3);
                     assert_text(&ns[0], "to a ");
@@ -1153,6 +1235,60 @@ here is the closing paragraph",
             assert_eq!(children.len(), 1);
 
             assert_image(&children[0], "000.jpg");
+        }
+    }
+
+    #[test]
+    fn test_at_url() {
+        {
+            let nodes = build("@url(https://google.com a few (descriptive *bold*) words)");
+            assert_eq!(1, nodes.len());
+
+            let children = paragraph_children(&nodes[0]).unwrap();
+            assert_eq!(children.len(), 1);
+
+            let node = &children[0];
+            match node {
+                Node::Url(url, ns) => {
+                    assert_eq!(url, "https://google.com");
+
+                    assert_eq!(3, ns.len());
+                    assert_text(&ns[0], " a few (descriptive ");
+                    assert_strong1(&ns[1], "bold");
+                    assert_text(&ns[2], ") words");
+
+                },
+                _ => assert_eq!(false, true),
+            };
+        }
+        {
+            let nodes = build("@url(https://google.com a few words)");
+            assert_eq!(1, nodes.len());
+
+            let children = paragraph_children(&nodes[0]).unwrap();
+            assert_eq!(children.len(), 1);
+
+            let node = &children[0];
+            match node {
+                Node::Url(url, ns) => {
+                    assert_eq!(url, "https://google.com");
+
+                    assert_eq!(1, ns.len());
+                    assert_text(&ns[0], " a few words");
+                },
+                _ => assert_eq!(false, true),
+            };
+        }
+    }
+
+    #[test]
+    fn test_split() {
+        {
+            let t = Token::Text(&"hello world");
+            let ts = split_text_token_at_whitespace(t).unwrap();
+            assert_eq!(ts[0], Token::Text(&"hello"));
+            assert_eq!(ts[1], Token::Text(&"world"));
+
         }
     }
 }
