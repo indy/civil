@@ -365,7 +365,14 @@ fn eat_at<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
             Token::Text("url") => {
                 tokens = &tokens[3..]; // eat the '@url('
                 let (tokens, (url, desc)) = eat_as_resource_description_pair_until_balanced_paren_end(tokens)?;
-                return Ok((tokens, Node::Url(url.to_string(), desc)));
+
+                let url_text: Vec<Node> = if desc.len() == 0 {
+                    vec![Node::Text(url.to_string())]
+                } else {
+                    desc
+                };
+
+                return Ok((tokens, Node::Url(url.to_string(), url_text)));
             }
             _ => (),
         }
@@ -1241,7 +1248,7 @@ here is the closing paragraph",
     #[test]
     fn test_at_url() {
         {
-            let nodes = build("@url(https://google.com a few (descriptive *bold*) words)");
+            let nodes = build("@url(https://google.com)");
             assert_eq!(1, nodes.len());
 
             let children = paragraph_children(&nodes[0]).unwrap();
@@ -1252,11 +1259,8 @@ here is the closing paragraph",
                 Node::Url(url, ns) => {
                     assert_eq!(url, "https://google.com");
 
-                    assert_eq!(3, ns.len());
-                    assert_text(&ns[0], " a few (descriptive ");
-                    assert_strong1(&ns[1], "bold");
-                    assert_text(&ns[2], ") words");
-
+                    assert_eq!(1, ns.len());
+                    assert_text(&ns[0], "https://google.com");
                 },
                 _ => assert_eq!(false, true),
             };
@@ -1275,6 +1279,27 @@ here is the closing paragraph",
 
                     assert_eq!(1, ns.len());
                     assert_text(&ns[0], " a few words");
+                },
+                _ => assert_eq!(false, true),
+            };
+        }
+        {
+            let nodes = build("@url(https://google.com a few (descriptive *bold*) words)");
+            assert_eq!(1, nodes.len());
+
+            let children = paragraph_children(&nodes[0]).unwrap();
+            assert_eq!(children.len(), 1);
+
+            let node = &children[0];
+            match node {
+                Node::Url(url, ns) => {
+                    assert_eq!(url, "https://google.com");
+
+                    assert_eq!(3, ns.len());
+                    assert_text(&ns[0], " a few (descriptive ");
+                    assert_strong1(&ns[1], "bold");
+                    assert_text(&ns[2], ") words");
+
                 },
                 _ => assert_eq!(false, true),
             };
