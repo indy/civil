@@ -74,6 +74,9 @@ pub async fn start_server() -> Result<()> {
 
     let pool: deadpool_postgres::Pool = cfg.create_pool(NoTls)?;
 
+    // crash on startup if no database connection can be established
+    let _ = pool.get().await?;
+
     let server = HttpServer::new(move || {
         let mut signing_key: &mut [u8] = &mut [0; SIGNING_KEY_SIZE];
         read_signing_key(&mut signing_key, &session_signing_key);
