@@ -77,7 +77,8 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
         Node::Underlined(ns) => element_key_class("span", key, "underlined", ns)?,
         Node::UnorderedList(ns) => element_key("ul", key, ns)?,
         Node::Url(url, ns) => element_key_class_href("a", key, "note-inline-link", url, ns)?,
-
+        Node::HR => element_key("hr", key, &vec![])?,
+        Node::Header(ns) => element_key("h2", key, ns)?,
     };
 
     Ok(res)

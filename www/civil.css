@@ -260,7 +260,7 @@ div.note > textarea {
   height: 10em;
 }
 
-.note > hr {
+hr {
   display: block;
   height: 1em;
   width: var(--block-width);

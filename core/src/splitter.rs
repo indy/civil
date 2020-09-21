@@ -18,7 +18,7 @@
 use crate::error::Result;
 use crate::lexer::{get_token_value, is_match, tokenize, Token, TokenIdent};
 use crate::parser::{
-    is_codeblock_start, is_numbered_list_item, is_unordered_list_item, skip_leading_newlines,
+    is_codeblock_start, is_hr, is_numbered_list_item, is_unordered_list_item, skip_leading_newlines,
     skip_leading_whitespace_and_newlines, ParserResult,
 };
 
@@ -124,6 +124,8 @@ pub fn split(markup: &str) -> Result<Vec<String>> {
             join_unordered_list(tokens)?
         } else if is_codeblock_start(tokens) {
             join_codeblock(tokens)?
+        } else if is_hr(tokens) {
+            join_paragraph(tokens)?
         } else {
             join_paragraph(tokens)?
         };

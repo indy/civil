@@ -31,20 +31,22 @@ pub enum CodeblockLanguage {
 #[strum_discriminants(name(NodeIdent))]
 pub enum Node {
     Codeblock(Option<CodeblockLanguage>, String),
+    HR,
+    Header(Vec<Node>),
     Highlight(Vec<Node>),
-    ScribbledOut(Vec<Node>),
-    ObsoleteLink(String, Vec<Node>),
+    Image(String),
     ListItem(Vec<Node>),
     Marginnote(Vec<Node>),
+    ObsoleteLink(String, Vec<Node>),
     OrderedList(Vec<Node>),
     Paragraph(Vec<Node>),
     Quotation(Vec<Node>),
+    ScribbledOut(Vec<Node>),
     Sidenote(Vec<Node>),
     Strong(Vec<Node>),
     Text(String),
     Underlined(Vec<Node>),
     UnorderedList(Vec<Node>),
-    Image(String),
     Url(String, Vec<Node>),
 }
 
@@ -74,6 +76,12 @@ pub(crate) fn is_codeblock_start(tokens: &'_ [Token]) -> bool {
         && is_token_at_index(tokens, 2, TokenIdent::BackTick)
 }
 
+pub(crate) fn is_hr(tokens: &'_ [Token]) -> bool {
+    is_token_at_index(tokens, 0, TokenIdent::Hash)
+        && is_token_at_index(tokens, 1, TokenIdent::Hyphen)
+        && (is_token_at_index(tokens, 2, TokenIdent::EOS) || is_token_at_index(tokens, 2, TokenIdent::Whitespace))
+}
+
 pub fn parse(tokens: Vec<Token>) -> Result<Vec<Node>> {
     let halt_at = TokenIdent::EOS;
     let mut tokens: &[Token] = &tokens;
@@ -87,7 +95,10 @@ pub fn parse(tokens: Vec<Token>) -> Result<Vec<Node>> {
             eat_unordered_list(tokens, halt_at)?
         } else if is_codeblock(tokens) {
             eat_codeblock(tokens)?
+        } else if is_hr(tokens) {
+            eat_hash(tokens)?
         } else {
+            // by default a lot of stuff will get wrapped in a paragraph
             eat_paragraph(tokens)?
         };
 
@@ -170,6 +181,8 @@ fn eat_item_until<'a>(tokens: &'a [Token], halt_at: TokenIdent) -> ParserResult<
         eat_unordered_list(tokens, halt_at)
     } else if is_codeblock(tokens) {
         eat_codeblock(tokens)
+    } else if is_hr(tokens) {
+        eat_hash(tokens)
     } else {
         eat_item(tokens)
     }
@@ -185,10 +198,44 @@ fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
         Token::Caret => eat_matching_pair(tokens, TokenIdent::Caret, NodeIdent::Highlight),
         Token::Tilde => eat_matching_pair(tokens, TokenIdent::Tilde, NodeIdent::ScribbledOut),
         Token::DoubleQuote => eat_matching_pair(tokens, TokenIdent::DoubleQuote, NodeIdent::Quotation),
-        Token::Hash => eat_text_including(tokens),
+        Token::Hash => eat_hash(tokens),
         Token::Pipe => eat_pipe(tokens),
         Token::Underscore => eat_matching_pair(tokens, TokenIdent::Underscore, NodeIdent::Underlined),
         _ => eat_text(tokens),
+    }
+}
+
+fn eat_hash<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    // Hash, Hyphen, Whitespace, Text, EOS
+    // "#- this is a heading"
+
+    // Hash, Text("h this is a heading"), EOS
+    // "#h this is a heading"
+
+    if is_token_at_index(tokens, 1, TokenIdent::Hyphen)
+        && (is_token_at_index(tokens, 2, TokenIdent::EOS) || is_token_at_index(tokens, 2, TokenIdent::Whitespace))
+    {
+        tokens = &tokens[3..];
+        Ok((tokens, Node::HR))
+    } else if is_token_at_index(tokens, 1, TokenIdent::Text) {
+        match tokens[1] {
+            Token::Text(s) => {
+                if let Some(h) = s.strip_prefix("h ") {
+                    let first_child = Node::Text(h.to_string());
+
+                    tokens = &tokens[2..];
+                    let (remaining, mut children) = eat_to_newline(tokens, TokenIdent::EOS)?;
+                    children.insert(0, first_child);
+
+                    Ok((remaining, Node::Header(children)))
+                } else {
+                    eat_text_including(tokens)
+                }
+            }
+            _ => Err(Error::Parser),
+        }
+    } else {
+        eat_text_including(tokens)
     }
 }
 
@@ -285,14 +332,15 @@ fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> Result<Vec<Token
         Token::Text(s) => {
             let tokens = s.split_whitespace().map(|chars| Token::Text(chars)).collect();
             Ok(tokens)
-        },
-        _ => Err(Error::Parser)
+        }
+        _ => Err(Error::Parser),
     }
 }
 
 // treat every token as Text until we get to a token of the given type
-fn eat_as_resource_description_pair_until_balanced_paren_end<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<(String, Vec<Node>)> {
-
+fn eat_as_resource_description_pair_until_balanced_paren_end<'a>(
+    mut tokens: &'a [Token<'a>],
+) -> ParserResult<(String, Vec<Node>)> {
     let mut inner_tokens: Vec<Token> = vec![];
     let mut counter = 1;
     let mut encountered_first_text_token = false;
@@ -333,7 +381,6 @@ fn eat_as_resource_description_pair_until_balanced_paren_end<'a>(mut tokens: &'a
                     inner_tokens.truncate(len - 1);
                 }
             }
-
         } else {
             inner_tokens.push(tokens[0]);
             tokens = &tokens[1..];
@@ -346,8 +393,8 @@ fn eat_as_resource_description_pair_until_balanced_paren_end<'a>(mut tokens: &'a
             // eat_to_newline parses tokens without wrapping them up in a paragraph node
             let (_remaining, children) = eat_to_newline(&inner_tokens[1..].to_vec(), TokenIdent::EOS)?;
             Ok((tokens, (s.to_string(), children)))
-        },
-        _ => Err(Error::Parser)
+        }
+        _ => Err(Error::Parser),
     }
 }
 
@@ -1261,7 +1308,7 @@ here is the closing paragraph",
 
                     assert_eq!(1, ns.len());
                     assert_text(&ns[0], "https://google.com");
-                },
+                }
                 _ => assert_eq!(false, true),
             };
         }
@@ -1279,7 +1326,7 @@ here is the closing paragraph",
 
                     assert_eq!(1, ns.len());
                     assert_text(&ns[0], " a few words");
-                },
+                }
                 _ => assert_eq!(false, true),
             };
         }
@@ -1299,8 +1346,7 @@ here is the closing paragraph",
                     assert_text(&ns[0], " a few (descriptive ");
                     assert_strong1(&ns[1], "bold");
                     assert_text(&ns[2], ") words");
-
-                },
+                }
                 _ => assert_eq!(false, true),
             };
         }
@@ -1313,7 +1359,19 @@ here is the closing paragraph",
             let ts = split_text_token_at_whitespace(t).unwrap();
             assert_eq!(ts[0], Token::Text(&"hello"));
             assert_eq!(ts[1], Token::Text(&"world"));
+        }
+    }
 
+    #[test]
+    fn test_hash() {
+        {
+            let nodes = build("#-");
+            assert_eq!(1, nodes.len());
+
+            match &nodes[0] {
+                Node::HR => assert!(true),
+                _ => assert!(false),
+            };
         }
     }
 }
