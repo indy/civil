@@ -30,10 +30,7 @@ use tracing::info;
 #[pg_mapper(table = "notes")]
 struct Note {
     id: Key,
-
     content: String,
-    title: Option<String>,
-    separator: bool,
 }
 
 #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
@@ -47,8 +44,6 @@ impl From<Note> for interop::Note {
         interop::Note {
             id: n.id,
             content: n.content,
-            title: n.title,
-            separator: n.separator,
         }
     }
 }
@@ -67,9 +62,7 @@ pub(crate) async fn create_notes(
         &tx,
         user_id,
         note.deck_id,
-        note.title.as_ref(),
         &note.content[0],
-        note.separator,
     )
     .await?;
 
@@ -77,7 +70,7 @@ pub(crate) async fn create_notes(
 
     let iter = note.content.iter().skip(1);
     for content in iter {
-        let res = create_common(&tx, user_id, note.deck_id, None, content, false).await?;
+        let res = create_common(&tx, user_id, note.deck_id, content).await?;
         notes.push(res);
     }
 
@@ -111,8 +104,6 @@ pub(crate) async fn edit_note(
             &user_id,
             &note_id,
             &note.content,
-            &note.title,
-            &note.separator,
         ],
     )
     .await?;
@@ -150,14 +141,12 @@ pub(crate) async fn create_common(
     tx: &Transaction<'_>,
     user_id: Key,
     deck_id: Key,
-    title: Option<&String>,
     content: &str,
-    separator: bool,
 ) -> Result<interop::Note> {
     let db_note = pg::one::<Note>(
         tx,
         include_str!("sql/notes_create.sql"),
-        &[&user_id, &deck_id, &title, &content, &separator],
+        &[&user_id, &deck_id, &content],
     )
     .await?;
 

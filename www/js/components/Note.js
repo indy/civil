@@ -15,9 +15,7 @@ export default function Note(props) {
   const [state, dispatch] = useStateValue();
 
   const [note, setNote] = useState({
-    content: props.note.content,
-    title: props.note.title || '',
-    separator: props.note.separator
+    content: props.note.content
   });
 
   // decks is in whatever structure is most convenient for the CreatableSelect component
@@ -39,13 +37,6 @@ export default function Note(props) {
     newNote[name] = value;
 
     setNote(newNote);
-  };
-
-  function onSeparatorToggle(event) {
-    setNote({
-      ...note,
-      separator: !note.separator
-    });
   };
 
   function onEditClicked() {
@@ -76,23 +67,6 @@ export default function Note(props) {
   function buildEditableContent() {
     let res = html`
       <div class="civil-form">
-        <label for="separator">Separator</label>
-
-        <input id="separator"
-               type="checkbox"
-               name="separator"
-               value=${ note.separator && "separator"}
-               onInput=${ onSeparatorToggle }
-               checked=${ note.separator }/>
-        <br />
-        <label for="title">Title:</label>
-        <input id="title"
-               type="text"
-               name="title"
-               value=${ note.title }
-               onInput=${ handleChangeEvent } />
-        <br/>
-        <label for="content">Content:</label>
         <textarea id="content"
                   type="text"
                   name="content"
@@ -170,17 +144,12 @@ export default function Note(props) {
 
   return html`
     <div class="note">
-      ${ note.separator && html`<hr/>` }
       ${ isEditing ? buildEditableContent() : buildReadingContent(note, props.note.id, onShowButtonsClicked, props.note.decks, state.imageDirectory) }
       ${ showModButtons && showAddDecksUI && buildAddDecksUI() }
       ${ showModButtons && !showAddDecksUI && buildMainButtons() }
     </div>
 `;
 }
-
-function buildTitle(title, onShowButtonsClicked) {
-  return html`<h2 onClick=${ onShowButtonsClicked }>${ title }</h2>`;
-};
 
 function editNote(id, data) {
   const post = {
@@ -238,7 +207,6 @@ function buildReadingContent(note, noteId, onShowButtonsClicked, decks, imageDir
 
   return html`
     <div>
-      ${ note.title && buildTitle(note.title, onShowButtonsClicked) }
       <div class="noteref-container">
         ${ noteRefContents }
       </div>
@@ -348,11 +316,7 @@ function updateAutocompleteWithNewDecks(dispatch, newDeckNames, allDecksForNote)
 
 
 function hasNoteBeenModified(note, propsNote) {
-  let contentChanged = note.content !== propsNote.content;
-  let titleChanged = note.title !== (propsNote.title || '');
-  let separatorChanged = note.separator !== propsNote.separator;
-
-  return contentChanged || titleChanged || separatorChanged;
+  return note.content !== propsNote.content;
 };
 
 function ResourceLink({ resource, id, name, kind }) {

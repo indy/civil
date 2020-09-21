@@ -75,8 +75,6 @@ CREATE TABLE IF NOT EXISTS notes (
     user_id BIGINT NOT NULL REFERENCES users,
     deck_id BIGINT NOT NULL REFERENCES decks,
 
-    separator BOOL NOT NULL DEFAULT false,
-    title TEXT,
     content TEXT NOT NULL
 );
 

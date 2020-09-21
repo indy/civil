@@ -21,15 +21,10 @@ use crate::interop::Key;
 pub struct Note {
     pub id: Key,
     pub content: String,
-    pub title: Option<String>,
-    pub separator: bool,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct CreateNote {
-    pub title: Option<String>,
     pub content: Vec<String>,
-    pub separator: bool,
-
     pub deck_id: Key,
 }

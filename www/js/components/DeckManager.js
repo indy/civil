@@ -142,8 +142,6 @@ export default function DeckManager({ deck, title, resource, updateForm }) {
 
 function NoteForm(props) {
   const [content, setContent] = useState('');
-  const [title, setTitle] = useState('');
-  const [separator, setSeparator] = useState('separator');
 
   const handleChangeEvent = (event) => {
     const target = event.target;
@@ -152,10 +150,6 @@ function NoteForm(props) {
 
     if (name === 'content') {
       setContent(value);
-    } else if (name === 'title') {
-      setTitle(value);
-    } else if (name === 'separator') {
-      setSeparator(value);
     }
   };
 
@@ -167,23 +161,6 @@ function NoteForm(props) {
   return html`
   <div>
     <form class="civil-form" onSubmit=${ handleSubmit }>
-      <label for="separator">Top Separator:</label>
-      <input id="separator"
-             type="checkbox"
-             name="separator"
-             value=${ separator }
-             onInput=${ handleChangeEvent }
-      />
-      <p></p>
-      <label for="title">Title:</label>
-      <br/>
-      <input id="title"
-             type="text"
-             name="title"
-             value=${ title }
-             onInput=${ handleChangeEvent }
-      />
-      <br/>
       <label for="content">Content:</label>
       <br/>
       <textarea id="content"
@@ -245,15 +222,11 @@ function addNote(form, deck_id, wasmInterface) {
 
   let data = removeEmptyStrings({
     deck_id,
-    content: notes,
-    title: form.title.value.trim(),
-    separator: form.separator.checked
-  }, ["title"]);
+    content: notes
+  }, []);
 
   function isEmptyNote(n) {
-    return n.separator === false &&
-      (!n.title || n.title.length === 0) &&
-      n.content.every(n => { return n.length === 0;});
+    return n.content.every(n => { return n.length === 0;});
   }
 
   if (isEmptyNote(data)) {
