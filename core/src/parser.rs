@@ -327,11 +327,25 @@ fn is_at_img_specifier<'a>(tokens: &'a [Token<'a>]) -> bool {
     }
 }
 
-fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> Result<Vec<Token<'a>>> {
+fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> Result<(Token<'a>, Option<Token<'a>>)> {
     match text_token {
         Token::Text(s) => {
-            let tokens = s.split_whitespace().map(|chars| Token::Text(chars)).collect();
-            Ok(tokens)
+            let tokens: Vec<Token<'a>> = s.split_whitespace().map(|chars| Token::Text(chars)).collect();
+            let t = &tokens[0];
+            match t {
+                Token::Text(u) => {
+                    if let Some(remaining_text) = s.strip_prefix(u) {
+                        if remaining_text.len() > 0 {
+                            Ok((*t, Some(Token::Text(remaining_text.trim_start()))))
+                        } else {
+                            Ok((*t, None))
+                        }
+                    } else {
+                        Ok((*t, None))
+                    }
+                }
+                _ => Err(Error::Parser),
+            }
         }
         _ => Err(Error::Parser),
     }
@@ -342,59 +356,65 @@ fn eat_as_resource_description_pair_until_balanced_paren_end<'a>(
     mut tokens: &'a [Token<'a>],
 ) -> ParserResult<(String, Vec<Node>)> {
     let mut inner_tokens: Vec<Token> = vec![];
-    let mut counter = 1;
-    let mut encountered_first_text_token = false;
+    let mut paren_balancer = 1;
 
-    let ws = " ".to_string();
+    let mut encountered_first_whitespace = false;
+    let mut whitespace_index: usize = 0;
+
+    let ws = "".to_string();
 
     while !tokens.is_empty() {
         if is_head(tokens, TokenIdent::ParenStart) {
-            counter += 1;
+            paren_balancer += 1;
             tokens = &tokens[1..];
             inner_tokens.push(Token::ParenStart);
         } else if is_head(tokens, TokenIdent::ParenEnd) {
-            counter -= 1;
+            paren_balancer -= 1;
             tokens = &tokens[1..];
 
-            if counter == 0 {
+            if paren_balancer == 0 {
                 // reached the closing paren
                 break;
             }
 
             inner_tokens.push(Token::ParenEnd);
-        } else if is_head(tokens, TokenIdent::Text) && !encountered_first_text_token {
-            encountered_first_text_token = true;
+        } else if is_head(tokens, TokenIdent::Text) && !encountered_first_whitespace {
+            let (first_text_token, other_tokens) = split_text_token_at_whitespace(tokens[0])?;
 
-            let text_tokens = split_text_token_at_whitespace(tokens[0])?;
-            for t in text_tokens {
+            inner_tokens.push(first_text_token);
+            if let Some(t) = other_tokens {
+                encountered_first_whitespace = true;
+                inner_tokens.push(Token::Whitespace(&ws));
+                whitespace_index = inner_tokens.len();
                 inner_tokens.push(t);
-                inner_tokens.push(Token::Whitespace(&ws))
             }
-
             tokens = &tokens[1..];
-
-            if is_head(tokens, TokenIdent::ParenEnd) && counter == 1 {
-                // if this text is the only text within the parens
-                let len = inner_tokens.len();
-                if len > 1 {
-                    // remove the final whitespace that was added in the for loop above
-                    inner_tokens.truncate(len - 1);
-                }
-            }
         } else {
             inner_tokens.push(tokens[0]);
             tokens = &tokens[1..];
         }
     }
 
-    match inner_tokens[0] {
-        Token::Text(s) => {
-            dbg!(&inner_tokens);
-            // eat_to_newline parses tokens without wrapping them up in a paragraph node
-            let (_remaining, children) = eat_to_newline(&inner_tokens[1..].to_vec(), TokenIdent::EOS)?;
-            Ok((tokens, (s.to_string(), children)))
+    if encountered_first_whitespace {
+        // all of the inner_tokens until the Token::Whitespace are part of the url
+        // everything after the Token::Whitespace is the description
+        let (left, right) = inner_tokens.split_at(whitespace_index);
+
+        let mut res = String::from("");
+        for t in left {
+            res.push_str(get_token_value(t));
         }
-        _ => Err(Error::Parser),
+        let (_remaining, children) = eat_to_newline(&right, TokenIdent::EOS)?;
+
+        Ok((tokens, (res, children)))
+    } else {
+        match inner_tokens[0] {
+            Token::Text(s) => {
+                let (_remaining, children) = eat_to_newline(&inner_tokens[1..].to_vec(), TokenIdent::EOS)?;
+                Ok((tokens, (s.to_string(), children)))
+            }
+            _ => Err(Error::Parser),
+        }
     }
 }
 
@@ -1325,7 +1345,7 @@ here is the closing paragraph",
                     assert_eq!(url, "https://google.com");
 
                     assert_eq!(1, ns.len());
-                    assert_text(&ns[0], " a few words");
+                    assert_text(&ns[0], "a few words");
                 }
                 _ => assert_eq!(false, true),
             };
@@ -1343,7 +1363,7 @@ here is the closing paragraph",
                     assert_eq!(url, "https://google.com");
 
                     assert_eq!(3, ns.len());
-                    assert_text(&ns[0], " a few (descriptive ");
+                    assert_text(&ns[0], "a few (descriptive ");
                     assert_strong1(&ns[1], "bold");
                     assert_text(&ns[2], ") words");
                 }
@@ -1353,12 +1373,24 @@ here is the closing paragraph",
     }
 
     #[test]
-    fn test_split() {
+    fn test_split2() {
         {
-            let t = Token::Text(&"hello world");
-            let ts = split_text_token_at_whitespace(t).unwrap();
-            assert_eq!(ts[0], Token::Text(&"hello"));
-            assert_eq!(ts[1], Token::Text(&"world"));
+            let text = Token::Text(&"hello world");
+            let (t, remaining) = split_text_token_at_whitespace(text).unwrap();
+            assert_eq!(t, Token::Text(&"hello"));
+            assert_eq!(remaining, Some(Token::Text(&"world")));
+        }
+        {
+            let text = Token::Text(&"once upon a time");
+            let (t, remaining) = split_text_token_at_whitespace(text).unwrap();
+            assert_eq!(t, Token::Text(&"once"));
+            assert_eq!(remaining, Some(Token::Text(&"upon a time")));
+        }
+        {
+            let text = Token::Text(&"one");
+            let (t, remaining) = split_text_token_at_whitespace(text).unwrap();
+            assert_eq!(t, Token::Text(&"one"));
+            assert_eq!(remaining, None);
         }
     }
 
@@ -1371,6 +1403,28 @@ here is the closing paragraph",
             match &nodes[0] {
                 Node::HR => assert!(true),
                 _ => assert!(false),
+            };
+        }
+    }
+
+    #[test]
+    fn test_url_bug() {
+        {
+            let nodes = build("@url(http://www.example.com/page.pdf#page=3 A document)");
+            assert_eq!(1, nodes.len());
+
+            let children = paragraph_children(&nodes[0]).unwrap();
+            assert_eq!(children.len(), 1);
+
+            let node = &children[0];
+            match node {
+                Node::Url(url, ns) => {
+                    assert_eq!(url, "http://www.example.com/page.pdf#page=3");
+
+                    assert_eq!(1, ns.len());
+                    assert_text(&ns[0], "A document");
+                }
+                _ => assert_eq!(false, true),
             };
         }
     }
