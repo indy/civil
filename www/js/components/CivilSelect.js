@@ -123,7 +123,7 @@ function Input({ parentDeckId, options, onAdd, candidates, setCandidates, curren
   let [text, setText] = useState('');
 
   useEffect(() => {
-    if (text.length > 2) {
+    if (text.length >= 2) {
       refineCandidates();
     } else {
       setCandidates([]);
