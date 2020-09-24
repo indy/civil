@@ -72,8 +72,8 @@ export default function Note(props) {
                   name="content"
                   value=${ note.content }
                   onInput=${ handleChangeEvent }/>
-        <${ImageWidget}/>
       </div>`;
+
     return res;
   };
 
@@ -137,6 +137,7 @@ export default function Note(props) {
       <div>
         <button onClick=${ onEditClicked }>${ editLabelText }</button>
         ${ isEditing && html`<button onClick=${ (e) => { onDeleteClicked(e, props.note.id, props.onDelete);} }>Delete</button>` }
+        ${ isEditing && html`<${ImageWidget}/>` }
         ${ !isEditing && html`<button onClick=${ () => { setShowAddDecksUI(!showAddDecksUI); } }>References...</button>` }
       </div>
 `;
@@ -195,7 +196,7 @@ function buildNoteReference(marginConnections) {
 
   return marginConnections.map(ref => {
     return html`
-      <div class="noteref-entry" key=${ ref.id }>
+      <div class="spanne-entry" key=${ ref.id }>
         <${ResourceLink} id=${ ref.id } name=${ ref.name } resource=${ ref.resource } kind=${ ref.kind }/>
       </div>`;
   });
@@ -207,7 +208,7 @@ function buildReadingContent(note, noteId, onShowButtonsClicked, decks, imageDir
 
   return html`
     <div>
-      <div class="noteref-container">
+      <div class="spanne">
         ${ noteRefContents }
       </div>
       <div onClick=${ onShowButtonsClicked }>

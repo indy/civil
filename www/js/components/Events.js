@@ -178,13 +178,13 @@ function Event(props) {
     <article>
       ${ deckManager.title }
       ${ deckManager.buttons }
-      ${ deckManager.noteForm }
       ${ deckManager.pointForm }
       ${ deckManager.updateForm }
       ${ hasNoPrimePoint(event) && showAddPrimePointMessage() }
       ${ showPrimeForm && primeForm() }
       ${ event.points && showPoints(event.points) }
       ${ deckManager.notes }
+      ${ deckManager.addNote }
       <${SectionLinkBack} linkbacks=${ event.linkbacks_to_decks }/>
     </article>`;
 }

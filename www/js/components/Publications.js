@@ -95,13 +95,13 @@ function Publication(props) {
       ${ deckManager.title }
       ${ created_at_textual }
       ${ deckManager.buttons }
-      ${ deckManager.noteForm }
       ${ deckManager.updateForm }
 
       ${ publication.author && authorHeading }
       ${ publication.source && sourceHeading }
 
       ${ deckManager.notes }
+      ${ deckManager.addNote }
       <${SectionLinkBack} linkbacks=${ publication.linkbacks_to_decks }/>
       ${ okToShowGraph && html`<${Graph} id=${ publicationId } depth=${ 2 }/>` }
     </article>`;

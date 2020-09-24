@@ -29,11 +29,6 @@ export default function DeckManager({ deck, title, resource, updateForm }) {
   const wasmInterface = useWasmInterface();
 
   function buildButtons() {
-    function onAddNoteClicked(e) {
-      setShowNoteForm(!showNoteForm);
-      e.preventDefault();
-    };
-
     function onAddPointClicked(e) {
       setShowPointForm(!showPointForm);
       e.preventDefault();
@@ -57,7 +52,6 @@ export default function DeckManager({ deck, title, resource, updateForm }) {
 
     return html`
       <div>
-        <button onClick=${ onAddNoteClicked }>Add Note...</button>
         ${ deck.points && html`<button onClick=${ onAddPointClicked }>Add Point...</button>` }
         <button onClick=${ onEditParentClicked }>Edit...</button>
         <button onClick=${ onDeleteParentClicked }>Delete...</button>
@@ -68,26 +62,6 @@ export default function DeckManager({ deck, title, resource, updateForm }) {
   function cacheDeckFn(deck) {
     cacheDeck(dispatch, deck);
   }
-
-  function buildNoteForm() {
-    function onAddNote(e) {
-      const noteForm = e.target;
-      addNote(noteForm, deck.id, wasmInterface)
-        .then(newNotes => {
-          const notes = deck.notes;
-          newNotes.forEach(n => {
-            notes.push(n);
-          });
-
-          cacheDeckFn({...deck, notes});
-          setShowNoteForm(false);
-          setShowUpdateForm(false);
-        })
-        .catch(error => console.error(error.message));
-    };
-
-    return html`<${NoteForm} onSubmit=${ onAddNote }/>`;
-  };
 
   function buildPointForm() {
     function onAddPoint(point) {
@@ -104,7 +78,6 @@ export default function DeckManager({ deck, title, resource, updateForm }) {
 
   function onShowButtons() {
     setShowButtons(!showButtons);
-    setShowNoteForm(false);
     setShowPointForm(false);
     setShowUpdateForm(false);
   };
@@ -120,10 +93,6 @@ export default function DeckManager({ deck, title, resource, updateForm }) {
     res.buttons = buildButtons();
   }
 
-  if (showNoteForm) {
-    res.noteForm = buildNoteForm();
-  }
-
   if (showPointForm) {
     res.pointForm = buildPointForm();
   }
@@ -137,10 +106,57 @@ export default function DeckManager({ deck, title, resource, updateForm }) {
   res.notes = html`<section>${ notes }</section>`;
   res.hasNotes = notes.length > 0;
 
+  function buildNoteForm() {
+    function onCancelAddNote(e) {
+      setShowNoteForm(false);
+      e.preventDefault();
+    };
+
+    function onAddNote(e) {
+      e.preventDefault();
+      const noteForm = e.target;
+      addNote(noteForm, deck.id, wasmInterface)
+        .then(newNotes => {
+          const notes = deck.notes;
+          newNotes.forEach(n => {
+            notes.push(n);
+          });
+
+          cacheDeckFn({...deck, notes});
+          setShowNoteForm(false);
+          setShowUpdateForm(false);
+        })
+        .catch(error => console.error(error.message));
+    };
+
+    return html`<${NoteForm} onSubmit=${ onAddNote } onCancel=${ onCancelAddNote } />`;
+  };
+
+  function buildNoteFormIcon() {
+    function onAddNoteClicked(e) {
+      setShowNoteForm(true);
+      e.preventDefault();
+    };
+
+    return html`
+<div class="append-note">
+  <div class="spanne">
+    <div class="spanne-entry">
+<svg onClick=${ onAddNoteClicked } xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" height="24" width="24">
+<path xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd" d="M16.2929 3.29289C16.6834 2.90237 17.3166 2.90237 17.7071 3.29289L20.7071 6.29289C21.0976 6.68342 21.0976 7.31658 20.7071 7.70711L11.7071 16.7071C11.5196 16.8946 11.2652 17 11 17H8C7.44772 17 7 16.5523 7 16V13C7 12.7348 7.10536 12.4804 7.29289 12.2929L16.2929 3.29289ZM9 13.4142V15H10.5858L18.5858 7L17 5.41421L9 13.4142ZM3 7C3 5.89543 3.89543 5 5 5H10C10.5523 5 11 5.44772 11 6C11 6.55228 10.5523 7 10 7H5V19H17V14C17 13.4477 17.4477 13 18 13C18.5523 13 19 13.4477 19 14V19C19 20.1046 18.1046 21 17 21H5C3.89543 21 3 20.1046 3 19V7Z" fill="#666"></path>
+</svg>
+    </div>
+  </div>
+</div>
+`;
+  }
+
+  res.addNote = showNoteForm ? buildNoteForm() : buildNoteFormIcon();
+
   return res;
 }
 
-function NoteForm(props) {
+function NoteForm({ onSubmit, onCancel }) {
   const [content, setContent] = useState('');
 
   const handleChangeEvent = (event) => {
@@ -153,15 +169,17 @@ function NoteForm(props) {
     }
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    props.onSubmit(event);
-  };
-
   return html`
-  <div>
-    <form class="civil-form" onSubmit=${ handleSubmit }>
-      <label for="content">Content:</label>
+  <div class="append-note">
+  <div class="spanne">
+    <div class="spanne-entry">
+<svg onClick=${ onCancel } xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" height="24" width="24">
+<path xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd" d="M5.29289 5.29289C5.68342 4.90237 6.31658 4.90237 6.70711 5.29289L12 10.5858L17.2929 5.29289C17.6834 4.90237 18.3166 4.90237 18.7071 5.29289C19.0976 5.68342 19.0976 6.31658 18.7071 6.70711L13.4142 12L18.7071 17.2929C19.0976 17.6834 19.0976 18.3166 18.7071 18.7071C18.3166 19.0976 17.6834 19.0976 17.2929 18.7071L12 13.4142L6.70711 18.7071C6.31658 19.0976 5.68342 19.0976 5.29289 18.7071C4.90237 18.3166 4.90237 17.6834 5.29289 17.2929L10.5858 12L5.29289 6.70711C4.90237 6.31658 4.90237 5.68342 5.29289 5.29289Z" fill="#666"></path>
+</svg>
+    </div>
+  </div>
+    <form class="civil-add-note-form" onSubmit=${ onSubmit }>
+      <label for="content">Append New Note:</label>
       <br/>
       <textarea id="content"
                 type="text"
@@ -170,8 +188,9 @@ function NoteForm(props) {
                 onInput=${ handleChangeEvent }
       />
       <br/>
-      <input type="submit" value="Save note"/>
+      <input type="submit" value="Save"/>
     </form>
+
     <${ImageWidget}/>
   </div>`;
 }

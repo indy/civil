@@ -144,9 +144,9 @@ function Idea(props) {
       ${ deckManager.title }
       ${ created_at_textual }
       ${ deckManager.buttons }
-      ${ deckManager.noteForm }
       ${ deckManager.updateForm }
       ${ deckManager.notes }
+      ${ deckManager.addNote }
       <${SectionLinkBack} linkbacks=${ idea.linkbacks_to_decks }/>
       <${SectionSearchResultsLinkBack} linkbacks=${ idea.search_results }/>
       ${ okToShowGraph && html`<${Graph} id=${ ideaId } onlyIdeas depth=${ 4 } />` }

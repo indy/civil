@@ -88,7 +88,6 @@ function Person(props) {
     <article>
       ${ deckManager.title }
       ${ deckManager.buttons }
-      ${ deckManager.noteForm }
       ${ deckManager.pointForm }
       ${ deckManager.updateForm }
 
@@ -96,6 +95,7 @@ function Person(props) {
       ${ showBirthForm && birthForm() }
 
       ${ deckManager.notes }
+      ${ deckManager.addNote }
       <${SectionLinkBack} linkbacks=${ person.linkbacks_to_decks }/>
       <${ListDeckPoints} deckPoints=${ person.all_points_during_life }
                          holderId=${ person.id }

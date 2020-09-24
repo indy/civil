@@ -30,6 +30,7 @@
   display: flex;
   flex-wrap: nowrap;
   overflow-x: auto;
+  padding-bottom: 1em;
 }
 
 .image-widget-item {
@@ -190,7 +191,8 @@ section > form { width: var(--block-width); }
   color: var(--fg2);
 }
 
-.noteref-container {
+/* the left-hand spanne that contains noterefs, 'add note icons' etc*/
+.spanne {
   padding-top: 0.5em;
   float: left;
   margin-left: -40%;
@@ -202,7 +204,7 @@ section > form { width: var(--block-width); }
 }
 
 @media (max-width: 1200px) {
-  .noteref-container {
+  .spanne {
     float: right;
     text-align: left;
     width: 28%;
@@ -210,17 +212,21 @@ section > form { width: var(--block-width); }
 }
 
 @media (max-width: 800px) {
-  .noteref-container {
+  .spanne {
     display: none;
   }
 }
 
-.noteref-entry {
+.spanne-entry {
   padding-right: 3em;
 }
 
-.noteref-entry a {
+.spanne-entry a {
   text-decoration: none;
+}
+
+.append-note {
+  margin-bottom: 4em;
 }
 
 #top-bar-menu {
@@ -273,6 +279,10 @@ hr {
 .civil-form {
   font-family: monospace;
   padding-top: 2em;
+}
+
+.civil-add-note-form {
+  font-family: monospace;
 }
 
 .civil-date-hint {
