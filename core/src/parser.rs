@@ -305,28 +305,6 @@ fn is_at_specifier<'a>(tokens: &'a [Token<'a>]) -> bool {
         && is_token_at_index(tokens, 2, TokenIdent::ParenStart)
 }
 
-fn is_at_img_specifier<'a>(tokens: &'a [Token<'a>]) -> bool {
-    if is_token_at_index(tokens, 3, TokenIdent::Text) && is_token_at_index(tokens, 4, TokenIdent::ParenEnd) {
-        // @img(abc.jpg)
-        true
-    } else if is_token_at_index(tokens, 3, TokenIdent::Digits)
-        && is_token_at_index(tokens, 4, TokenIdent::Text)
-        && is_token_at_index(tokens, 5, TokenIdent::ParenEnd)
-    {
-        // @img(00a.jpg)
-        true
-    } else if is_token_at_index(tokens, 3, TokenIdent::Digits)
-        && is_token_at_index(tokens, 4, TokenIdent::Period)
-        && is_token_at_index(tokens, 5, TokenIdent::Text)
-        && is_token_at_index(tokens, 6, TokenIdent::ParenEnd)
-    {
-        // @img(000.jpg)
-        true
-    } else {
-        false
-    }
-}
-
 fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> Result<(Token<'a>, Option<Token<'a>>)> {
     match text_token {
         Token::Text(s) => {
@@ -352,7 +330,7 @@ fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> Result<(Token<'a
 }
 
 // treat every token as Text until we get to a token of the given type
-fn eat_as_resource_description_pair_until_balanced_paren_end<'a>(
+fn eat_as_resource_description_pair<'a>(
     mut tokens: &'a [Token<'a>],
 ) -> ParserResult<(String, Vec<Node>)> {
     let mut inner_tokens: Vec<Token> = vec![];
@@ -362,6 +340,9 @@ fn eat_as_resource_description_pair_until_balanced_paren_end<'a>(
     let mut whitespace_index: usize = 0;
 
     let ws = "".to_string();
+
+
+    tokens = &tokens[3..]; // eat the '@img(' or '@url('
 
     while !tokens.is_empty() {
         if is_head(tokens, TokenIdent::ParenStart) {
@@ -396,50 +377,35 @@ fn eat_as_resource_description_pair_until_balanced_paren_end<'a>(
     }
 
     if encountered_first_whitespace {
-        // all of the inner_tokens until the Token::Whitespace are part of the url
-        // everything after the Token::Whitespace is the description
+        // all of the inner_tokens until the Token::Whitespace are part of the
+        // resource address (e.g. url) everything after the Token::Whitespace
+        // is the description
         let (left, right) = inner_tokens.split_at(whitespace_index);
 
         let mut res = String::from("");
         for t in left {
             res.push_str(get_token_value(t));
         }
-        let (_remaining, children) = eat_to_newline(&right, TokenIdent::EOS)?;
+        let (_, children) = eat_to_newline(&right, TokenIdent::EOS)?;
 
         Ok((tokens, (res, children)))
     } else {
-        match inner_tokens[0] {
-            Token::Text(s) => {
-                let (_remaining, children) = eat_to_newline(&inner_tokens[1..].to_vec(), TokenIdent::EOS)?;
-                Ok((tokens, (s.to_string(), children)))
-            }
-            _ => Err(Error::Parser),
-        }
+        let (_, url_as_string) = eat_string(&inner_tokens, TokenIdent::EOS)?;
+
+        Ok((tokens, (url_as_string.clone(), vec![Node::Text(url_as_string)])))
     }
 }
 
-fn eat_at<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_at<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     if is_at_specifier(tokens) {
         match tokens[1] {
             Token::Text("img") => {
-                if is_at_img_specifier(tokens) {
-                    tokens = &tokens[3..]; // eat the '@img('
-                    let (mut tokens, image_name) = eat_string(tokens, TokenIdent::ParenEnd)?;
-                    tokens = &tokens[1..]; // eat the ')'
-                    return Ok((tokens, Node::Image(image_name.to_string())));
-                }
+                let (tokens, (image_name, _description)) = eat_as_resource_description_pair(tokens)?;
+                return Ok((tokens, Node::Image(image_name.to_string())));
             }
             Token::Text("url") => {
-                tokens = &tokens[3..]; // eat the '@url('
-                let (tokens, (url, desc)) = eat_as_resource_description_pair_until_balanced_paren_end(tokens)?;
-
-                let url_text: Vec<Node> = if desc.len() == 0 {
-                    vec![Node::Text(url.to_string())]
-                } else {
-                    desc
-                };
-
-                return Ok((tokens, Node::Url(url.to_string(), url_text)));
+                let (tokens, (url, description)) = eat_as_resource_description_pair(tokens)?;
+                return Ok((tokens, Node::Url(url.to_string(), description)));
             }
             _ => (),
         }
@@ -1423,6 +1389,28 @@ here is the closing paragraph",
 
                     assert_eq!(1, ns.len());
                     assert_text(&ns[0], "A document");
+                }
+                _ => assert_eq!(false, true),
+            };
+        }
+    }
+
+    #[test]
+    fn test_url_bug_2() {
+        {
+            let nodes = build("@url(https://en.wikipedia.org/wiki/Karl_Marx)");
+            assert_eq!(1, nodes.len());
+
+            let children = paragraph_children(&nodes[0]).unwrap();
+            assert_eq!(children.len(), 1);
+
+            let node = &children[0];
+            match node {
+                Node::Url(url, ns) => {
+                    assert_eq!(url, "https://en.wikipedia.org/wiki/Karl_Marx");
+
+                    assert_eq!(1, ns.len());
+                    assert_text(&ns[0], "https://en.wikipedia.org/wiki/Karl_Marx");
                 }
                 _ => assert_eq!(false, true),
             };
