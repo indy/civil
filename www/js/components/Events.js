@@ -2,7 +2,7 @@ import { html, route, Link, useState, useEffect } from '/js/ext/library.js';
 
 import { useStateValue } from '/js/lib/StateProvider.js';
 import Net from '/js/lib/Net.js';
-import { era, filterBefore, filterAfter, filterBetween, yearFrom } from '/js/lib/eras.js';
+import { addChronologicalSortYear, era, filterBefore, filterAfter, filterBetween, yearFrom } from '/js/lib/eras.js';
 
 import QuickFind from '/js/components/QuickFind.js';
 import PointForm from '/js/components/PointForm.js';
@@ -107,6 +107,16 @@ function Events() {
     </div>`;
 }
 
+// called once after the event has been fetched from the server
+function afterLoaded(event) {
+  if (event.points) {
+    event.points = event.points
+      .map(addChronologicalSortYear)
+      .sort((a, b) => a.sort_year > b.sort_year);
+  }
+  return event;
+}
+
 function Event(props) {
   const [state, dispatch] = useStateValue();
   const [showPrimeForm, setShowPrimeForm] = useState(false);
@@ -118,6 +128,7 @@ function Event(props) {
     deck: event,
     title: event.title,
     resource: "events",
+    afterLoadedFn: afterLoaded,
     updateForm: html`<${UpdateEventForm} event=${ event } />`
   });
 

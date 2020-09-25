@@ -4,7 +4,6 @@ import { html, useState } from '/js/ext/library.js';
 // import { useHistory } from 'react-router-dom';
 
 import Net from '/js/lib/Net.js';
-import { addChronologicalSortYear } from '/js/lib/eras.js';
 import { removeEmptyStrings } from '/js/lib/JsUtils.js';
 import { useStateValue } from '/js/lib/StateProvider.js';
 import { useWasmInterface } from '/js/lib/WasmInterfaceProvider.js';
@@ -13,13 +12,13 @@ import Note from '/js/components/Note.js';
 import PointForm from '/js/components/PointForm.js';
 import ImageWidget from '/js/components/ImageWidget.js';
 
-export default function DeckManager({ deck, title, resource, updateForm }) {
+export default function DeckManager({ deck, title, resource, updateForm, afterLoadedFn }) {
   // UNCOMMENT to enable deleting
   // let history = useHistory();
 
   const [state, dispatch] = useStateValue();
 
-  ensureCorrectDeck(resource, deck.id);   // 2 redraws here
+  ensureCorrectDeck(resource, deck.id, afterLoadedFn);   // 2 redraws here
 
   const [showButtons, setShowButtons] = useState(false);
   const [showNoteForm, setShowNoteForm] = useState(false);
@@ -195,15 +194,7 @@ function NoteForm({ onSubmit, onCancel }) {
   </div>`;
 }
 
-function sortPoints(holder) {
-  if (holder.points) {
-    holder.points = holder.points
-      .map(addChronologicalSortYear)
-      .sort((a, b) => a.sort_year > b.sort_year);
-  }
-}
-
-function ensureCorrectDeck(resource, id) {
+function ensureCorrectDeck(resource, id, afterLoadedFn) {
   const [state, dispatch] = useStateValue();
   const [currentId, setCurrentId] = useState(false);
 
@@ -220,7 +211,10 @@ function ensureCorrectDeck(resource, id) {
       Net.get(url).then(s => {
         if (s) {
           let updatedDeck = applyDecksToNotes(s);
-          sortPoints(updatedDeck);
+          if (afterLoadedFn) {
+            updatedDeck = afterLoadedFn(updatedDeck);
+          }
+          // sortPoints(updatedDeck);
           cacheDeck(dispatch, updatedDeck);
         } else {
           console.error(`error: fetchDeck for ${url}`);

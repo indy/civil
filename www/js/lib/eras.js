@@ -5,6 +5,16 @@ export const era = {
   modernCutoff: 1856
 };
 
+export function dateStringAsTriple(dateString) {
+  let triple = dateString.split('-').map(d => parseInt(d, 10));
+  if (dateString[0] == '-') {
+    // triple will contain 4 elements, 1st is a NaN
+    triple = triple.slice(1);
+    triple[0] = -triple[0];
+  }
+  return triple;                // triple is [year, month, day]
+}
+
 export function filterBefore(objs, year) {
   return objs
     .filter(o => o.sort_year < year)

@@ -334,6 +334,12 @@ input:required {
   background: var(--bg);
 }
 
+.deckpoint-age {
+  display: inline-block;
+  width: 1.5em;
+}
+
+
 .ideas-list {
   padding-left: 1.5em;
 }
