@@ -3,6 +3,7 @@ import { html, route, Link, useState, useEffect } from '/js/ext/library.js';
 import Net from '/js/lib/Net.js';
 import { useStateValue } from '/js/lib/StateProvider.js';
 import { addChronologicalSortYear,
+         calcAgeInYears,
          dateStringAsTriple,
          era,
          filterBefore,
@@ -15,51 +16,36 @@ import SectionLinkBack from '/js/components/SectionLinkBack.js';
 import DeckManager     from '/js/components/DeckManager.js';
 import Graph from '/js/components/Graph.js';
 
-
-
-function getExactDateFromPoints(points, title) {
-  const p = points.find(p => p.title === title);
-  if (!p || !p.exact_date) {
-    return null;
-  }
-
-  let triple = dateStringAsTriple(p.exact_date);
-  return triple;
-}
-
-
-function calcAgeInYears(to, from) {
-  let years = to[0] - from[0];
-  if (to[1] < from[1]) {
-    years -= 1;
-  } else if (to[1] === from[1]) {
-    if (to[2] < from[2]) {
-      years -= 1;
-    }
-  }
-  return years;
-}
-
-// point is an element in all_points_during_life
-function addAge(point, born) {
-  if (!point.point_date) {
-    return point;
-  }
-
-  let eventTriple = dateStringAsTriple(point.point_date);
-  let years = calcAgeInYears(eventTriple, born);
-
-  point.age = years;
-
-  return point;
-}
-
 // called once after the person has been fetched from the server
 function afterLoaded(person) {
   if (person.points) {
     person.points = person.points
       .map(addChronologicalSortYear)
       .sort((a, b) => a.sort_year > b.sort_year);
+  }
+
+  function getExactDateFromPoints(points, title) {
+    const p = points.find(p => p.title === title);
+    if (!p || !p.exact_date) {
+      return null;
+    }
+
+    let triple = dateStringAsTriple(p.exact_date);
+    return triple;
+  }
+
+  // point is an element in all_points_during_life
+  function addAge(point, born) {
+    if (!point.point_date) {
+      return point;
+    }
+
+    let eventTriple = dateStringAsTriple(point.point_date);
+    let years = calcAgeInYears(eventTriple, born);
+
+    point.age = years;
+
+    return point;
   }
 
   let born = getExactDateFromPoints(person.points, "Born");
@@ -71,8 +57,6 @@ function afterLoaded(person) {
   console.log(person);
   return person;
 }
-
-
 
 function Person(props) {
   const [state, dispatch] = useStateValue();

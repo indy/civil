@@ -217,12 +217,21 @@ section > form { width: var(--block-width); }
   }
 }
 
+.spanne-clickable {
+  cursor: pointer;
+}
+
 .spanne-entry {
   padding-right: 3em;
 }
 
 .spanne-entry a {
   text-decoration: none;
+}
+
+.spanne-icon-label {
+  vertical-align: super;
+  margin-right: 0.5em;
 }
 
 .append-note {

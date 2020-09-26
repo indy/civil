@@ -3,6 +3,7 @@ import { html, route, Link, useState, useEffect } from '/js/ext/library.js';
 import { useStateValue } from '/js/lib/StateProvider.js';
 import Net from '/js/lib/Net.js';
 import { capitalise, formattedDate } from '/js/lib/JsUtils.js';
+import { svgExpand, svgMinimise } from '/js/lib/svgIcons.js';
 
 import QuickFind from '/js/components/QuickFind.js';
 import ListingLink from '/js/components/ListingLink.js';
@@ -40,16 +41,11 @@ function Ideas() {
       setShow(!show);
     }
 
-    // svg icons are from https://github.com/tabler/tabler-icons
     if(show) {
       return html`
       <div>
         <p key=${ gKeyCounter++ } class="subtitle" onClick=${ toggleShow }>
-          <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-minus" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
-            <path stroke="none" d="M0 0h24v24H0z"/>
-            <line x1="5" y1="15" x2="19" y2="15" />
-          </svg>
-          ${ label }
+          ${ svgMinimise() } ${ label }
         </p>
         <ul class="ideas-list" key=${ gKeyCounter++ } >
           ${ buildListing(list) }
@@ -58,12 +54,7 @@ function Ideas() {
     } else {
       return html`
       <p class="subtitle" onClick=${ toggleShow }>
-        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-plus" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
-          <path stroke="none" d="M0 0h24v24H0z"/>
-          <line x1="12" y1="8" x2="12" y2="22" />
-          <line x1="5" y1="15" x2="19" y2="15" />
-        </svg>
-        ${ label }
+        ${ svgExpand() } ${ label }
       </p>`;
     }
   }

@@ -5,6 +5,18 @@ export const era = {
   modernCutoff: 1856
 };
 
+export function calcAgeInYears(to_triple, from_triple) {
+  let years = to_triple[0] - from_triple[0];
+  if (to_triple[1] < from_triple[1]) {
+    years -= 1;
+  } else if (to_triple[1] === from_triple[1]) {
+    if (to_triple[2] < from_triple[2]) {
+      years -= 1;
+    }
+  }
+  return years;
+}
+
 export function dateStringAsTriple(dateString) {
   let triple = dateString.split('-').map(d => parseInt(d, 10));
   if (dateString[0] == '-') {
