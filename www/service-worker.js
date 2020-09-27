@@ -20,9 +20,9 @@
 "use strict";
 
 // set this to true when deploying, false when developing js
-var useCache = true;
+var useCache = false;
 
-var CACHE_NAME = "civil-20200921b";
+var CACHE_NAME = "civil-20200925";
 
 var precacheConfig = [
   "/index.html",
@@ -157,7 +157,13 @@ self.addEventListener("activate", function (e) {
 });
 
 self.addEventListener("fetch", function (event) {
-  if ("GET" === event.request.method || "HEAD" === event.request.method) {
+
+  // console.log(window.location.hostname);
+  // if (window.location.hostname === "localhost" && useCache) {
+  //   console.error("set useCache = false; during dev");
+  // }
+
+  if (useCache && ("GET" === event.request.method || "HEAD" === event.request.method)) {
     var url = stripIgnoredUrlParameters(event.request.url, ignoreUrlParametersMatching);
 
     // hackishly remove fuckery with urls
