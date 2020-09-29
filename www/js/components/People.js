@@ -15,6 +15,7 @@ import PointForm from '/js/components/PointForm.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
 import DeckManager     from '/js/components/DeckManager.js';
 import Graph from '/js/components/Graph.js';
+import { svgTickedCheckBox, svgUntickedCheckBox } from '/js/lib/svgIcons.js';
 
 // called once after the person has been fetched from the server
 function afterLoaded(person) {
@@ -307,62 +308,40 @@ function DeckPoint({ deckPoint, holderId }) {
 }
 
 function ListDeckPoints({ deckPoints, holderId, holderName }) {
-  let [showButtons, setShowButtons] = useState(false);
   let [onlyThisPerson, setOnlyThisPerson] = useState(false);
-  let [hideBirthsDeaths, setHideBirthsDeaths] = useState(false);
+  let [showBirthsDeaths, setShowBirthsDeaths] = useState(false);
 
-  function toggleShowButtons() {
-    setShowButtons(!showButtons);
+  function onOnlyThisPersonClicked(e) {
+    e.preventDefault();
+    setOnlyThisPerson(!onlyThisPerson);
   }
-
-  const handleChangeEvent = (event) => {
-    const target = event.target;
-    const name = target.name;
-    const value = target.type === 'checkbox' ? target.checked : target.value;
-
-    if (name === "only_this_person") {
-      setOnlyThisPerson(value);
-    }
-    if (name === "hide_birth_deaths") {
-      setHideBirthsDeaths(value);
-    }
-  };
-
-  function buildButtons() {
-    return html`
-      <div>
-        <div class="deckpoint-block">
-          <input id="only-this-person"
-                 type="checkbox"
-                 name="only_this_person"
-                 checked=${ onlyThisPerson }
-                 onInput=${ handleChangeEvent } />
-          <label for="only-this-person">Only This Person</label>
-        </div>
-        <div class="deckpoint-block">
-          <input id="hide-birth-deaths"
-                 type="checkbox"
-                 name="hide_birth_deaths"
-                 checked=${ hideBirthsDeaths }
-                 onInput=${ handleChangeEvent } />
-          <label for="hide-birth-deaths">Hide Other Birth/Deaths</label>
-        </div>
-      </div>`;
+  function onShowOtherClicked(e) {
+    e.preventDefault();
+    setShowBirthsDeaths(!showBirthsDeaths);
   }
 
   let arr = deckPoints || [];
   if (onlyThisPerson) {
     arr = arr.filter(e => e.deck_id === holderId);
   }
-  if (hideBirthsDeaths) {
+  if (!showBirthsDeaths) {
     arr = arr.filter(e => e.deck_id === holderId || !(e.point_title === "Born" || e.point_title === "Died"));
   }
   let dps = arr.map(dp => html`<${DeckPoint} key=${ dp.point_id} holderId=${ holderId } deckPoint=${ dp }/>`);
 
   return html`
     <section>
-      <h2 onClick=${ toggleShowButtons }>Events during the life of ${ holderName }</h2>
-      ${ showButtons && buildButtons() }
+      <h2>Events during the life of ${ holderName }</h2>
+      <div class="spanne">
+        <div class="spanne-entry spanne-clickable" onClick=${ onOnlyThisPersonClicked }>
+          <span class="spanne-icon-label">Only ${ holderName }</span>
+          ${ onlyThisPerson ? svgTickedCheckBox() : svgUntickedCheckBox() }
+        </div>
+        ${ !onlyThisPerson && html`<div class="spanne-entry spanne-clickable" onClick=${ onShowOtherClicked }>
+                                     <span class="spanne-icon-label">Show Other Birth/Deaths</span>
+                                     ${ showBirthsDeaths ? svgTickedCheckBox() : svgUntickedCheckBox() }
+                                   </div>`}
+      </div>
       <ul>
         ${ dps }
       </ul>
