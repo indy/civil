@@ -1,24 +1,27 @@
 import { createRef, html, route, Link, useState, useEffect } from '/js/ext/library.js';
 import { opposingKind } from '/js/lib/JsUtils.js';
 import { useStateValue } from '/js/lib/StateProvider.js';
+import { svgTickedCheckBox, svgUntickedCheckBox, svgChevronLeft, svgChevronRight } from '/js/lib/svgIcons.js';
 
 import graphPhysics from "/js/lib/graphPhysics.js";
 // import { useHistory } from 'react-router-dom';
 
-export default function Graph({ id, depth, onlyIdeas }) {
+export default function Graph({ id, depth, isIdea }) {
   // let history = useHistory();
   const [state] = useStateValue();
+  const [onlyParentChild, setOnlyParentChild] = useState(false);
+  const [onlyIdea, setOnlyIdea] = useState(!!isIdea);
+  const [graphDepth, setGraphDepth] = useState(depth);
 
   const svgContainerRef = createRef();
 
   useEffect(() => {
-    let graphState = buildGraphState(state, id, depth, onlyIdeas);
+    let graphState = buildGraphState(state, id, graphDepth, onlyIdea, onlyParentChild);
     let svg = buildSvg(svgContainerRef.current, graphState);
     startSimulation(graphState, svg);
+  }, [onlyParentChild, onlyIdea, graphDepth]);
 
-  }, []);
-
-  function onclick(event) {
+  function onGraphClicked(event) {
     const target = event.target;
 
     if (target.id.length > 0 && target.id[0] === '/') {
@@ -28,9 +31,48 @@ export default function Graph({ id, depth, onlyIdeas }) {
     }
   }
 
-  return html`<div class="svg-container" ref=${ svgContainerRef } onClick=${ onclick }>
-                <svg viewBox="-300, -300, 900, 900"></svg>
-              </div>`;
+  function onOnlyParentChildClicked(e) {
+    e.preventDefault();
+    setOnlyParentChild(!onlyParentChild);
+  }
+
+  function onOnlyIdeaClicked(e) {
+    e.preventDefault();
+    setOnlyIdea(!onlyIdea);
+  }
+
+  function onLeftClicked(e) {
+    e.preventDefault();
+    setGraphDepth(Math.max(1, graphDepth - 1));
+  }
+
+  function onRightClicked(e) {
+    e.preventDefault();
+    setGraphDepth(Math.min(10, graphDepth + 1));
+  }
+
+  return html`
+<div>
+  <div class="spanne">
+    <div class="spanne-entry spanne-clickable" onClick=${ onOnlyIdeaClicked }>
+      <span class="spanne-icon-label">Only Ideas</span>
+      ${ onlyIdea ? svgTickedCheckBox() : svgUntickedCheckBox() }
+    </div>
+    <div class="spanne-entry spanne-clickable" onClick=${ onOnlyParentChildClicked }>
+      <span class="spanne-icon-label">Only Parent/Child References</span>
+      ${ onlyParentChild ? svgTickedCheckBox() : svgUntickedCheckBox() }
+    </div>
+    <div class="spanne-entry">
+      <span class="spanne-icon-label">Depth</span>
+      <span class="spanne-clickable" onClick=${ onLeftClicked }>${ svgChevronLeft() }</span>
+      <span class="spanne-icon-label">${ graphDepth }</span>
+      <span class="spanne-clickable" onClick=${ onRightClicked }>${ svgChevronRight() }</span>
+    </div>
+  </div>
+  <div class="svg-container" ref=${ svgContainerRef } onClick=${ onGraphClicked }>
+    <svg viewBox="-300, -300, 900, 900"></svg>
+  </div>
+</div>`;
 }
 
 
@@ -297,7 +339,7 @@ function translateNode(svgNode, x, y) {
   svgNode.setAttribute("transform", `translate(${x},${y})`);
 }
 
-function buildGraphState(state, id, depth, onlyIdeas) {
+function buildGraphState(state, id, depth, onlyIdea, onlyParentChild) {
 
   function allowIdeas(id) {
     return state.ac.decks[state.deckIndexFromId[id]].resource === "ideas";
@@ -307,7 +349,7 @@ function buildGraphState(state, id, depth, onlyIdeas) {
   }
 
   let usedSet = new Set();
-  let connectionArr = buildConnectivity(state.fullGraph, id, depth, onlyIdeas ? allowIdeas : allowAll);
+  let connectionArr = buildConnectivity(state.fullGraph, id, depth, onlyIdea ? allowIdeas : allowAll, onlyParentChild);
 
   let resEdges = [];
   for (let [source, target, strength, kind] of connectionArr) {
@@ -345,7 +387,7 @@ function buildGraphState(state, id, depth, onlyIdeas) {
   return graphState;
 }
 
-function buildConnectivity(fullGraph, deckId, depth, isNodeUsed) {
+function buildConnectivity(fullGraph, deckId, depth, isNodeUsed, onlyParentChild) {
   let resultSet = new Set();
   let futureSet = new Set();    // nodes to visit
   let activeSet = new Set();    // nodes being visited in the current pass
@@ -371,7 +413,9 @@ function buildConnectivity(fullGraph, deckId, depth, isNodeUsed) {
         let conn = fullGraph[a];
         if (conn) {
           conn.forEach(([id, kind, strength]) => {
-            if (isNodeUsed(id)) {
+            if (isNodeUsed(id) &&
+                ((onlyParentChild && (kind === 'ref_to_parent' || kind === 'ref_to_child'))
+                 || !onlyParentChild)) {
               // add a link between a and id
               resultSet.add([a, id, kind, strength]);
               if (!visitedSet.has(id)) {

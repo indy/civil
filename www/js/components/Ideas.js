@@ -140,7 +140,7 @@ function Idea(props) {
       ${ deckManager.addNote }
       <${SectionLinkBack} linkbacks=${ idea.linkbacks_to_decks }/>
       <${SectionSearchResultsLinkBack} linkbacks=${ idea.search_results }/>
-      ${ okToShowGraph && html`<${Graph} id=${ ideaId } onlyIdeas depth=${ 4 } />` }
+      ${ okToShowGraph && html`<${Graph} id=${ ideaId } isIdea depth=${ 4 } />` }
     </article>`;
 }
 
