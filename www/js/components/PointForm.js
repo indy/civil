@@ -57,7 +57,7 @@ export default function PointForm({ point, onSubmit, submitMessage, readOnlyTitl
   };
 
   const buildReadableDateFromExact = (s, checkOther) => {
-    const parsedDate = parseString(s.exact_date);
+    const parsedDate = parseDateStringAsTriple(s.exact_date);
     if (parsedDate) {
       s.date_textual = asHumanReadableDate(parsedDate, s.is_approx, s.round_to_year);
       s.date_textual_derived_from = 'exact';
@@ -65,16 +65,24 @@ export default function PointForm({ point, onSubmit, submitMessage, readOnlyTitl
     } else if(checkOther) {
       buildReadableDateFromRange(s, false);
     } else {
-      s.date_textual = '';
-      s.date_textual_derived_from = '';
+      let year = parseDateStringAsYearOnly(s.exact_date);
+      if (year) {
+        s.date_textual = `${year}`;
+        s.date_textual_derived_from = 'exact'; // ???
+        s.round_to_year = true;
+      } else {
+        s.date_textual = '';
+        s.date_textual_derived_from = '';
+        s.round_to_year = false;
+      }
     }
     return s;
   };
 
   const buildReadableDateFromRange = (s, checkOther) => {
     // lower and upper
-    const parsedLowerDate = parseString(s.lower_date);
-    const parsedUpperDate = parseString(s.upper_date);
+    const parsedLowerDate = parseDateStringAsTriple(s.lower_date);
+    const parsedUpperDate = parseDateStringAsTriple(s.upper_date);
 
     if (parsedLowerDate && parsedUpperDate) {
       s.date_textual = asHumanReadableDateRange(parsedLowerDate, parsedUpperDate, s.is_approx, s.round_to_year);
@@ -84,8 +92,16 @@ export default function PointForm({ point, onSubmit, submitMessage, readOnlyTitl
       // at least one of the date ranges is invalid, so check if the exact date is correct
       return buildReadableDateFromExact(s, false);
     } else {
-      s.date_textual = '';
-      s.date_textual_derived_from = '';
+      let year = parseDateStringAsYearOnly(s.exact_date);
+      if (year) {
+        s.date_textual = `${year}`;
+        s.date_textual_derived_from = 'exact'; // ???
+        s.round_to_year = true;
+      } else {
+        s.date_textual = '';
+        s.date_textual_derived_from = '';
+        s.round_to_year = false;
+      }
     }
     return s;
   };
@@ -177,6 +193,13 @@ export default function PointForm({ point, onSubmit, submitMessage, readOnlyTitl
       s.date_textual = state.date_textual;
       s.exact_date = state.exact_date;
       s.date_fuzz = state.date_fuzz;
+
+      // hack: need more robust date parsing
+      if (s.exact_date.length === 4 || (s.exact_date.length === 5 && s.exact_date[0] === '-')) {
+        s.exact_date += '-01-01';
+        console.log(`rounding exact date to be: ${s.exact_date}`);
+      }
+
       canSend = true;
     } else if (state.date_textual_derived_from === 'range') {
       s.date_textual = state.date_textual;
@@ -300,7 +323,22 @@ export default function PointForm({ point, onSubmit, submitMessage, readOnlyTitl
 `;
 }
 
-function parseString(value) {
+function parseDateStringAsYearOnly(value) {
+  const re = /^(-?)(\d{4})$/;
+  const match = re.exec(value);
+
+  if (!match) {
+    // console.log("input doesn't match the required format of [-]YYYY");
+    return null;
+  }
+
+  const isNegative = match[1] === "-";
+  const year = isNegative ? parseInt(match[2], 10) * -1 : parseInt(match[2], 10);
+
+  return year;
+}
+
+function parseDateStringAsTriple(value) {
   const re = /^(-?)(\d{4})-(\d{2})-(\d{2})$/;
   const match = re.exec(value);
 
