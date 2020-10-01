@@ -36,13 +36,13 @@ function Login({ loginCallback }) {
   return html`
     <section>
       <form onSubmit=${ handleSubmit }>
-        <label htmlFor="email">Email:</label>
+        <label for="email">Email:</label>
         <input id="email"
                type="text"
                name="email"
                value=${ email }
                onInput=${ handleChangeEvent } />
-        <label htmlFor="password">Password:</label>
+        <label for="password">Password:</label>
         <input id="password"
                type="password"
                name="password"
