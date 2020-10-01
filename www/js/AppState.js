@@ -144,6 +144,7 @@ export const reducer = (state, action) => {
   case 'setPerson':
     {
       let newState = { ...state };
+      newState.cache.deck[action.newItem.id] = action.newItem;
       updateListOfNames(newState.people, action.newItem);
       return newState;
     }

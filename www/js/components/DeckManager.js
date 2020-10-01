@@ -68,7 +68,6 @@ export default function DeckManager({ deck, title, resource, updateForm, afterLo
     function onAddPoint(point) {
       const url = `/api/${resource}/${deck.id}/points`;
       Net.post(url, point).then(updatedDeck => {
-        sortPoints(updatedDeck);
         cacheDeckFn(updatedDeck);
         setShowPointForm(false);
       });
@@ -213,7 +212,6 @@ function ensureCorrectDeck(resource, id, afterLoadedFn) {
           if (afterLoadedFn) {
             updatedDeck = afterLoadedFn(updatedDeck);
           }
-          // sortPoints(updatedDeck);
           cacheDeck(dispatch, updatedDeck);
         } else {
           console.error(`error: fetchDeck for ${url}`);

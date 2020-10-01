@@ -55,7 +55,6 @@ function afterLoaded(person) {
     person.all_points_during_life.forEach(p => addAge(p, born));
   }
 
-  console.log(person);
   return person;
 }
 
@@ -75,12 +74,10 @@ function Person(props) {
   });
 
   function onShowBirthForm() {
-    console.log('onShowBirthForm');
     setShowBirthForm(!showBirthForm);
   }
 
   function showAddBirthPointMessage() {
-    console.log('showAddBirthPointMessage');
     return html`<p class="fakelink" onClick=${ onShowBirthForm }>
                   You should add a birth point for this person
                 </p>`;
@@ -107,7 +104,6 @@ function Person(props) {
   }
 
   function birthForm() {
-    console.log('hi');
     let point = {
       title: 'Born'
     };
@@ -117,13 +113,13 @@ function Person(props) {
                     submitMessage="Create Birth Point"/>`;
   }
 
-  function hasNoBirthPoint(person) {
-    function hasBirthPoint(point) {
+  function hasBirthPoint(person) {
+    function hasBirth(point) {
       return point.title === "Born";
     }
 
     if (person.points) {
-      return !person.points.find(hasBirthPoint);
+      return person.points.find(hasBirth);
     };
     return false;
   }
@@ -131,7 +127,8 @@ function Person(props) {
   // this is only for presentational purposes
   // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
   // this check prevents the vis from rendering until after we have all the note and links ready
-  const okToShowGraph = deckManager.hasNotes || person.linkbacks_to_decks;
+  const okToShowGraph = !!(deckManager.hasNotes || (person.linkbacks_to_decks && person.linkbacks_to_decks.length > 0));
+  const hasBirth = hasBirthPoint(person);
 
   return html`
     <article>
@@ -140,15 +137,15 @@ function Person(props) {
       ${ deckManager.pointForm }
       ${ deckManager.updateForm }
 
-      ${ hasNoBirthPoint(person) && showAddBirthPointMessage() }
+      ${ !hasBirth && showAddBirthPointMessage() }
       ${ showBirthForm && birthForm() }
 
       ${ deckManager.notes }
       ${ deckManager.addNote }
       <${SectionLinkBack} linkbacks=${ person.linkbacks_to_decks }/>
-      <${ListDeckPoints} deckPoints=${ person.all_points_during_life }
-                         holderId=${ person.id }
-                         holderName=${ person.name }/>
+      ${ hasBirth && html`<${ListDeckPoints} deckPoints=${ person.all_points_during_life }
+                                             holderId=${ person.id }
+                                             holderName=${ person.name }/>`}
       ${ okToShowGraph && html`<${Graph} id=${ personId } depth=${ 2 } />` }
     </article>`;
 }
