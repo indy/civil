@@ -48,7 +48,11 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
                 children: vec![Element {
                     name: String::from("code"),
                     class_name: Some(String::from(lang)),
-                    text: Some(String::from(code)),
+                    children: vec![Element {
+                        name: String::from("text"),
+                        text: Some(String::from(code)),
+                        ..Default::default()
+                   }],
                     ..Default::default()
                 }],
                 ..Default::default()
