@@ -241,7 +241,7 @@ function buildMarkup(content, imageDirectory) {
   }
 
   function compile(n) {
-    return n.name === "text" ? n.text : h(n.name, attrs(n), ...n.children.map(compile));
+    return (n.name === "text" || n.name === "code") ? n.text : h(n.name, attrs(n), ...n.children.map(compile));
   }
 
   return astArray.map(compile);

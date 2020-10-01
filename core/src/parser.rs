@@ -22,7 +22,7 @@ use strum_macros::EnumDiscriminants;
 // a result type that returns a tuple of the remaining tokens as well as the given return value
 pub type ParserResult<'a, T> = Result<(&'a [Token<'a>], T)>;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum CodeblockLanguage {
     Rust,
 }
@@ -695,6 +695,16 @@ mod tests {
         };
     }
 
+    fn assert_code(node: &Node, expected_lang: Option<CodeblockLanguage>, expected: &'static str) {
+        match node {
+            Node::Codeblock(lang, s) => {
+                assert_eq!(lang, &expected_lang);
+                assert_eq!(s, expected);
+            },
+            _ => assert_eq!(false, true),
+        };
+    }
+
     fn assert_image(node: &Node, expected: &'static str) {
         match node {
             Node::Image(s) => assert_eq!(s, expected),
@@ -1107,6 +1117,34 @@ here is the closing paragraph",
         children = paragraph_children(&nodes[2]).unwrap();
         assert_eq!(children.len(), 1);
         assert_text(&children[0], "here is the closing paragraph");
+    }
+
+    #[test]
+    fn test_code() {
+        {
+            let nodes = build("```
+This is code
+```");
+
+            assert_eq!(1, nodes.len());
+            let children = paragraph_children(&nodes[0]).unwrap();
+            dbg!(&children);
+            assert_eq!(children.len(), 1);
+
+            assert_code(&children[0], None, "\nThis is code\n");
+        }
+
+        {
+            let nodes = build("```rust
+This is code```");
+
+            assert_eq!(1, nodes.len());
+            let children = paragraph_children(&nodes[0]).unwrap();
+            dbg!(&children);
+            assert_eq!(children.len(), 1);
+
+            assert_code(&children[0], Some(CodeblockLanguage::Rust), "\nThis is code");
+        }
     }
 
     #[test]
