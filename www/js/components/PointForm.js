@@ -2,7 +2,8 @@ import { html, useState } from '/js/ext/library.js';
 
 import Net from '/js/lib/Net.js';
 
-export default function PointForm({ point, onSubmit, submitMessage, readOnlyTitle }) {
+export default function PointForm({ point, onSubmit, submitMessage, pointKind }) {
+
   let initialPoint = {
     title: '',
     title_backup: '',           // store the latest user inputted title value (in case title is replaced with a preset like 'Born' or 'Died' and then the user presses the 'Custom' radio tab, this will allow the previous user defined title to be restored)
@@ -43,7 +44,9 @@ export default function PointForm({ point, onSubmit, submitMessage, readOnlyTitl
     date_fuzz: initialPoint.date_fuzz,
     date_textual_derived_from: '',
     is_approx: false,
-    round_to_year: false
+    round_to_year: false,
+    has_typed_title: false,
+    kind: pointKind || 'point'
   });
 
   // build a date_textual from whatever was the last user input date
@@ -116,11 +119,28 @@ export default function PointForm({ point, onSubmit, submitMessage, readOnlyTitl
     if (name === "title") {
       newState.title = value;
       newState.title_backup = value;
+      if (newState.title.length === 0) {
+        // re-enable the functionality to autofill title to 'Born'
+        // or 'Died' if the title is ever completely deleted
+        newState.has_typed_title = false;
+      } else {
+        newState.has_typed_title = true;
+      }
     } else if (name === "pointkind") {
       if (event.target.value === "Custom") {
         newState.title = newState.title_backup;
+        newState.kind = 'point';
       } else {
-        newState.title = event.target.value; // either Born or Died
+        if (event.target.value === 'Born') {
+          console.log('setting kind to point_begin');
+          newState.kind = 'point_begin';
+        } else if (event.target.value === 'Died') {
+          console.log('setting kind to point_end');
+          newState.kind = 'point_end';
+        }
+        if (!newState.has_typed_title || newState.title.length === 0) {
+          newState.title = event.target.value; // either Born or Died
+        }
       }
     } else if (name === "location_textual") {
       newState.location_textual = value;
@@ -169,9 +189,24 @@ export default function PointForm({ point, onSubmit, submitMessage, readOnlyTitl
     }
   };
 
+
+  function kindToSend(k) {
+    if (k === 'point_prime') {
+      return 'PointPrime';
+    }
+    if (k === 'point_begin') {
+      return 'PointBegin';
+    }
+    if (k === 'point_end') {
+      return 'PointEnd';
+    }
+    return 'Point';
+  }
+
   const handleSubmit = (e) => {
     let s =  {
       title: state.title.trim(),
+      kind: kindToSend(state.kind),
       location_fuzz: 0,
       date_fuzz: 0
     };
@@ -218,7 +253,7 @@ export default function PointForm({ point, onSubmit, submitMessage, readOnlyTitl
 
   return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>
-      <div class=${ !!readOnlyTitle ? 'invisible' : 'point-title'}>
+      <div class=${ !!pointKind ? 'invisible' : 'point-title'}>
         <fieldset>
           <legend>Title</legend>
           <input id="title"
@@ -227,14 +262,19 @@ export default function PointForm({ point, onSubmit, submitMessage, readOnlyTitl
                  value=${ state.title }
                  autoComplete="off"
                  size="11"
-                 readOnly=${ !!readOnlyTitle }
+                 readOnly=${ !!pointKind }
                  onInput=${ handleChangeEvent }/>
-                 <input type="radio" id="pointkind-custom" name="pointkind" value="Custom" onInput=${ handleChangeEvent }/>
-                 <label for="pointkind-custom">Custom</label>
-                 <input type="radio" id="pointkind-born" name="pointkind" value="Born" onInput=${ handleChangeEvent }/>
-                 <label for="pointkind-born">Born</label>
-                 <input type="radio" id="pointkind-died" name="pointkind" value="Died" onInput=${ handleChangeEvent }/>
-                 <label for="pointkind-died">Died</label>
+        </fieldset>
+      </div>
+      <div class=${ !!pointKind ? 'invisible' : 'point-title'}>
+        <fieldset>
+          <legend>Point Type</legend>
+          <input type="radio" id="pointkind-custom" name="pointkind" value="Custom" onInput=${ handleChangeEvent }/>
+          <label for="pointkind-custom">Custom</label>
+          <input type="radio" id="pointkind-born" name="pointkind" value="Born" onInput=${ handleChangeEvent }/>
+          <label for="pointkind-born">Born</label>
+          <input type="radio" id="pointkind-died" name="pointkind" value="Died" onInput=${ handleChangeEvent }/>
+          <label for="pointkind-died">Died</label>
         </fieldset>
       </div>
       <fieldset>

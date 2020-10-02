@@ -18,10 +18,18 @@
 use crate::interop::decks::DeckResource;
 use crate::interop::Key;
 
+#[derive(Copy, Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+pub enum PointKind {
+    Point,
+    PointPrime,
+    PointBegin,
+    PointEnd,
+}
+
 #[derive(PartialEq, Debug, serde::Deserialize, serde::Serialize)]
 pub struct Point {
     pub id: Key,
-
+    pub kind: PointKind,
     pub title: Option<String>,
 
     pub location_textual: Option<String>,
@@ -39,6 +47,7 @@ pub struct Point {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct ProtoPoint {
     pub title: Option<String>,
+    pub kind: PointKind,
 
     pub location_textual: Option<String>,
     pub longitude: Option<f32>,
@@ -60,6 +69,7 @@ pub struct DeckPoint {
     pub deck_resource: DeckResource,
 
     pub point_id: Key,
+    pub point_kind: PointKind,
     pub point_title: Option<String>,
     pub point_date_textual: Option<String>,
     pub point_date: Option<chrono::NaiveDate>,

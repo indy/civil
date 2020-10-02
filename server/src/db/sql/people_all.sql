@@ -5,7 +5,7 @@ from decks d, points p
 where d.user_id = $1
       and d.kind = 'person'
       and p.deck_id = d.id
-      and p.title = 'Born'
+      and p.kind = 'point_begin'::point_kind
 union
 select d.id as id,
        d.name as name,

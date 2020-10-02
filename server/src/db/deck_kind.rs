@@ -30,10 +30,6 @@ pub enum DeckKind {
     Event,
     #[postgres(name = "idea")]
     Idea,
-    #[postgres(name = "OBSOLETE__book")]
-    ObsoleteBook,
-    #[postgres(name = "OBSOLETE__tag")]
-    ObsoleteTag,
 }
 
 impl From<DeckKind> for interop::DeckResource {
@@ -43,9 +39,6 @@ impl From<DeckKind> for interop::DeckResource {
             DeckKind::Person => interop::DeckResource::Person,
             DeckKind::Event => interop::DeckResource::Event,
             DeckKind::Idea => interop::DeckResource::Idea,
-            // note: these will never be used
-            DeckKind::ObsoleteBook => interop::DeckResource::Publication,
-            DeckKind::ObsoleteTag => interop::DeckResource::Idea,
         }
     }
 }

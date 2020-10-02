@@ -1,4 +1,4 @@
 UPDATE points
-SET title = $2, location_textual = $3, longitude = $4, latitude = $5, location_fuzz = $6, date_textual = $7, exact_date = $8, lower_date = $9, upper_date = $10, date_fuzz = $11
+SET title = $2, kind = $3, location_textual = $4, longitude = $5, latitude = $6, location_fuzz = $7, date_textual = $8, exact_date = $9, lower_date = $10, upper_date = $11, date_fuzz = $12
 WHERE id = $1
 RETURNING $table_fields

@@ -17,6 +17,7 @@
 
 use super::pg;
 use crate::db::deck_kind::DeckKind;
+use crate::db::point_kind::PointKind;
 use crate::error::{Error, Result};
 use crate::interop::decks as interop_decks;
 use crate::interop::points as interop;
@@ -29,7 +30,7 @@ use tokio_pg_mapper_derive::PostgresMapper;
 #[pg_mapper(table = "points")]
 struct Point {
     id: Key,
-
+    kind: PointKind,
     title: Option<String>,
 
     location_textual: Option<String>,
@@ -48,6 +49,7 @@ impl From<Point> for interop::Point {
     fn from(e: Point) -> interop::Point {
         interop::Point {
             id: e.id,
+            kind: interop::PointKind::from(e.kind),
             title: e.title,
 
             location_textual: e.location_textual,
@@ -72,6 +74,7 @@ struct DeckPoint {
     deck_kind: DeckKind,
 
     point_id: Key,
+    point_kind: PointKind,
     point_title: Option<String>,
     point_date_textual: Option<String>,
     point_date: Option<chrono::NaiveDate>,
@@ -85,6 +88,7 @@ impl From<DeckPoint> for interop::DeckPoint {
             deck_resource: interop_decks::DeckResource::from(e.deck_kind),
 
             point_id: e.point_id,
+            point_kind: interop::PointKind::from(e.point_kind),
             point_title: e.point_title,
             point_date_textual: e.point_date_textual,
             point_date: e.point_date,
@@ -125,6 +129,7 @@ pub(crate) async fn create_tx(
         &[
             &deck_id,
             &point.title,
+            &PointKind::from(point.kind),
             &point.location_textual,
             &point.longitude,
             &point.latitude,
@@ -170,6 +175,7 @@ pub(crate) async fn edit(
         &[
             &point_id,
             &point.title,
+            &point.kind,
             &point.location_textual,
             &point.longitude,
             &point.latitude,

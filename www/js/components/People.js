@@ -108,7 +108,8 @@ function Person(props) {
       title: 'Born'
     };
     return html`
-      <${PointForm} readOnlyTitle point=${ point }
+      <${PointForm} pointKind="point_begin"
+                    point=${ point }
                     onSubmit=${ onAddBirthPoint }
                     submitMessage="Create Birth Point"/>`;
   }

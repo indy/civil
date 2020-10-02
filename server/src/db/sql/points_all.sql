@@ -1,5 +1,6 @@
 select p.id,
        p.title,
+       p.kind,
        p.location_textual,
        p.longitude,
        p.latitude,

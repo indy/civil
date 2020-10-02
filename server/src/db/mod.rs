@@ -25,6 +25,7 @@ pub mod ideas;
 pub mod notes;
 pub mod people;
 mod pg;
+pub mod point_kind;
 pub mod points;
 pub mod publications;
 pub mod ref_kind;

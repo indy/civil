@@ -165,7 +165,7 @@ function Event(props) {
     let point = {
       title: 'Prime'
     };
-    return html`<${PointForm} readOnlyTitle point=${ point } onSubmit=${ onAddPrimePoint } submitMessage="Create Point"/>`;
+    return html`<${PointForm} pointKind="point_prime" point=${ point } onSubmit=${ onAddPrimePoint } submitMessage="Create Point"/>`;
   }
 
   function showPoints(points) {

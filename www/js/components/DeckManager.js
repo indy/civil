@@ -53,7 +53,7 @@ export default function DeckManager({ deck, title, resource, updateForm, afterLo
 
     return html`
       <div>
-        ${ deck.points && html`<button onClick=${ onAddPointClicked }>Add Point...</button>` }
+        ${ deck.points && html`<button onClick=${ onAddPointClicked }>Add Notable Point...</button>` }
         <button onClick=${ onEditParentClicked }>Edit...</button>
         <button onClick=${ onDeleteParentClicked }>Delete...</button>
       </div>`;
