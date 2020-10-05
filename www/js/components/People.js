@@ -10,12 +10,16 @@ import { addChronologicalSortYear,
          filterAfter,
          filterBetween } from '/js/lib/eras.js';
 import QuickFind from '/js/components/QuickFind.js';
+import RollableSection from '/js/components/RollableSection.js';
 import ListingLink from '/js/components/ListingLink.js';
 import PointForm from '/js/components/PointForm.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
 import DeckManager     from '/js/components/DeckManager.js';
-import Graph from '/js/components/Graph.js';
-import { svgTickedCheckBox, svgUntickedCheckBox } from '/js/lib/svgIcons.js';
+import GraphSection from '/js/components/GraphSection.js';
+import { svgPointAdd,
+         svgTickedCheckBox,
+         svgUntickedCheckBox } from '/js/lib/svgIcons.js';
+
 
 // called once after the person has been fetched from the server
 function afterLoaded(person) {
@@ -147,7 +151,7 @@ function Person(props) {
       ${ hasBirth && html`<${ListDeckPoints} deckPoints=${ person.all_points_during_life }
                                              holderId=${ person.id }
                                              holderName=${ person.name }/>`}
-      ${ okToShowGraph && html`<${Graph} id=${ personId } depth=${ 2 } />` }
+      <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${personId} depth=${2}/>
     </article>`;
 }
 
@@ -328,9 +332,11 @@ function ListDeckPoints({ deckPoints, holderId, holderName }) {
   let dps = arr.map(dp => html`<${DeckPoint} key=${ dp.point_id} holderId=${ holderId } deckPoint=${ dp }/>`);
 
   return html`
-    <section>
-      <h2>Events during the life of ${ holderName }</h2>
+    <${RollableSection} heading='Events during the life of ${ holderName }'>
       <div class="spanne">
+        <div class="spanne-entry spanne-clickable">
+          <span class="spanne-icon-label">Add Point for ${ holderName }</span> ${ svgPointAdd() }
+        </div>
         <div class="spanne-entry spanne-clickable" onClick=${ onOnlyThisPersonClicked }>
           <span class="spanne-icon-label">Only ${ holderName }</span>
           ${ onlyThisPerson ? svgTickedCheckBox() : svgUntickedCheckBox() }
@@ -343,7 +349,7 @@ function ListDeckPoints({ deckPoints, holderId, holderName }) {
       <ul>
         ${ dps }
       </ul>
-    </section>`;
+    </${RollableSection}>`;
 }
 
 export { Person, People };

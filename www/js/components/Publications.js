@@ -8,7 +8,7 @@ import QuickFind from '/js/components/QuickFind.js';
 import ListingLink     from '/js/components/ListingLink.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
 import DeckManager     from '/js/components/DeckManager.js';
-import Graph           from '/js/components/Graph.js';
+import GraphSection    from '/js/components/GraphSection.js';
 
 function Publications() {
   const [state, dispatch] = useStateValue();
@@ -103,7 +103,7 @@ function Publication(props) {
       ${ deckManager.notes }
       ${ deckManager.addNote }
       <${SectionLinkBack} linkbacks=${ publication.linkbacks_to_decks }/>
-      ${ okToShowGraph && html`<${Graph} id=${ publicationId } depth=${ 2 }/>` }
+      <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${ publicationId } depth=${ 2 }/>
     </article>`;
 }
 
