@@ -194,7 +194,9 @@ function Event(props) {
       ${ hasNoPrimePoint(event) && showAddPrimePointMessage() }
       ${ showPrimeForm && primeForm() }
       ${ event.points && showPoints(event.points) }
-      ${ deckManager.notes }
+      <section>
+        ${ deckManager.notesForMain() }
+      </section>
       ${ deckManager.addNote }
       <${SectionLinkBack} linkbacks=${ event.linkbacks_to_decks }/>
     </article>`;

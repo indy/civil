@@ -9,12 +9,15 @@ export default function RollableSection({ heading, children }) {
     setIsRolledDown(!isRolledDown);
   }
 
+  let classState = isRolledDown ? "rolled-down" : "rolled-up";
+  let icon = isRolledDown ? svgChevronDoubleDown() : svgChevronDoubleUp();
+
   return html`
-    <section>
+    <section class=${classState}>
       <div>
         <div class="spanne">
           <div class="spanne-entry spanne-clickable" onClick=${ onRollClicked }>
-            ${ isRolledDown ? svgChevronDoubleDown() : svgChevronDoubleUp() }
+            ${ icon }
           </div>
         </div>
         <h2>${ heading }</h2>

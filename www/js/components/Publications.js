@@ -100,7 +100,9 @@ function Publication(props) {
       ${ publication.author && authorHeading }
       ${ publication.source && sourceHeading }
 
-      ${ deckManager.notes }
+      <section>
+        ${ deckManager.notesForMain() }
+      </section>
       ${ deckManager.addNote }
       <${SectionLinkBack} linkbacks=${ publication.linkbacks_to_decks }/>
       <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${ publicationId } depth=${ 2 }/>

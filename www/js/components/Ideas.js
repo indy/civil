@@ -136,11 +136,13 @@ function Idea(props) {
       ${ created_at_textual }
       ${ deckManager.buttons }
       ${ deckManager.updateForm }
-      ${ deckManager.notes }
+      <section>
+        ${ deckManager.notesForMain() }
+      </section>
       ${ deckManager.addNote }
       <${SectionLinkBack} linkbacks=${ idea.linkbacks_to_decks }/>
       <${SectionSearchResultsLinkBack} linkbacks=${ idea.search_results }/>
-      <${GraphSection} heading='Ideas Graph' okToShowGraph=${okToShowGraph} id=${ ideaId } isIdea depth=${ 4 } />
+      <${GraphSection} heading='Ideas Graph' okToShowGraph=${okToShowGraph} id=${ ideaId } isIdea depth=${ 2 } />
     </article>`;
 }
 
