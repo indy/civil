@@ -327,19 +327,15 @@ hr {
 
 /* --------------------------------------------------------------------------------
 a bunch of hacks so that notes within points look correct
-(fucking css is so shit and flaky)
 */
 /* set .point-notes to match tufte.css:44 */
 .point-notes {
   font-size: 15px;
 }
 
-div.point-notes > div.note > div {
-  margin-left: 4em;
-}
-
-div.point-notes > div.note > div > div.spanne {
-  margin-left: -52%;
+div.point-notes > div.note > div > div > p {
+  margin-left: 3em;
+  width: var(--block-width-indented);
 }
 /* -------------------------------------------------------------------------------- */
 
@@ -357,6 +353,8 @@ input:required {
 
 .deckpoint-list {
   list-style: none;
+  padding-left: 0;
+  margin-left: 0;
 }
 
 .deckpoint-block label {}
