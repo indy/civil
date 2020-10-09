@@ -10,12 +10,19 @@ import { addChronologicalSortYear,
          filterAfter,
          filterBetween } from '/js/lib/eras.js';
 import QuickFind from '/js/components/QuickFind.js';
+import RollableSection from '/js/components/RollableSection.js';
 import ListingLink from '/js/components/ListingLink.js';
 import PointForm from '/js/components/PointForm.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
 import DeckManager     from '/js/components/DeckManager.js';
-import Graph from '/js/components/Graph.js';
-import { svgTickedCheckBox, svgUntickedCheckBox } from '/js/lib/svgIcons.js';
+import GraphSection from '/js/components/GraphSection.js';
+import { svgPointAdd,
+         svgCaretDown,
+         svgCaretUp,
+         svgBlank,
+         svgTickedCheckBox,
+         svgUntickedCheckBox } from '/js/lib/svgIcons.js';
+
 
 // called once after the person has been fetched from the server
 function afterLoaded(person) {
@@ -141,13 +148,16 @@ function Person(props) {
       ${ !hasBirth && showAddBirthPointMessage() }
       ${ showBirthForm && birthForm() }
 
-      ${ deckManager.notes }
+      <section>
+        ${ deckManager.notesForMain() }
+      </section>
       ${ deckManager.addNote }
       <${SectionLinkBack} linkbacks=${ person.linkbacks_to_decks }/>
       ${ hasBirth && html`<${ListDeckPoints} deckPoints=${ person.all_points_during_life }
+                                             noteFn=${ deckManager.notesForPoint }
                                              holderId=${ person.id }
                                              holderName=${ person.name }/>`}
-      ${ okToShowGraph && html`<${Graph} id=${ personId } depth=${ 2 } />` }
+      <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${personId} depth=${2}/>
     </article>`;
 }
 
@@ -283,7 +293,32 @@ function UpdatePersonForm({ person }) {
     </form>`;
 }
 
-function DeckPoint({ deckPoint, holderId }) {
+/*
+    if (expanded) {
+      item = html`<li class='relevent-deckpoint'>
+                  <span class="deckpoint-age">${ ageText }</span>
+                  <span onClick=${onClicked}>${ svgCaretDown() }</span>
+                  ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.point_date_textual }
+                  <div class="point-notes">
+                    ${ noteFn(deckPoint.point_id) }
+                  </div>
+                </li>`;
+    } else {
+      item = html`<li class='relevent-deckpoint'>
+                  <span class="deckpoint-age">${ ageText }</span>
+                  <span onClick=${onClicked}>${ svgCaretUp() }</span>
+                  ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.point_date_textual }
+                </li>`;
+    }
+*/
+function DeckPoint({ deckPoint, noteFn, holderId }) {
+  let [expanded, setExpanded] = useState(true);
+
+  function onClicked(e) {
+    e.preventDefault();
+    setExpanded(!expanded);
+  }
+
   let pointTitle = deckPoint.point_title === "Prime" && deckPoint.deck_resource === "events" ? "" : deckPoint.point_title;
 
   let item;
@@ -291,13 +326,19 @@ function DeckPoint({ deckPoint, holderId }) {
 
   if (deckPoint.deck_id === holderId) {
     item = html`<li class='relevent-deckpoint'>
-                  <span class="deckpoint-age">${ ageText }</span> ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.point_date_textual }
+                  <span class="deckpoint-age">${ ageText }</span>
+                  <span onClick=${onClicked}>${ expanded ? svgCaretDown() : svgCaretUp() }</span>
+                  ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.point_date_textual }
+                  ${ expanded && html`<div class="point-notes">
+                                        ${ noteFn(deckPoint.point_id) }
+                                      </div>`}
                 </li>`;
-
   } else {
     item = html`<li class='deckpoint'>
                   <${Link} href='/${deckPoint.deck_resource}/${deckPoint.deck_id}' >
-                    <span class="deckpoint-age">${ ageText }</span> ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.point_date_textual }
+                    <span class="deckpoint-age">${ ageText }</span>
+                    ${ svgBlank() }
+                    ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.point_date_textual }
                   </${Link}>
                 </li>`;
   }
@@ -305,7 +346,7 @@ function DeckPoint({ deckPoint, holderId }) {
   return item;
 }
 
-function ListDeckPoints({ deckPoints, holderId, holderName }) {
+function ListDeckPoints({ deckPoints, noteFn, holderId, holderName }) {
   let [onlyThisPerson, setOnlyThisPerson] = useState(false);
   let [showBirthsDeaths, setShowBirthsDeaths] = useState(false);
 
@@ -325,11 +366,14 @@ function ListDeckPoints({ deckPoints, holderId, holderName }) {
   if (!showBirthsDeaths) {
     arr = arr.filter(e => e.deck_id === holderId || !(e.point_title === "Born" || e.point_title === "Died"));
   }
-  let dps = arr.map(dp => html`<${DeckPoint} key=${ dp.point_id} holderId=${ holderId } deckPoint=${ dp }/>`);
+  let dps = arr.map(dp => html`<${DeckPoint}
+                                 key=${ dp.point_id}
+                                 noteFn=${ noteFn }
+                                 holderId=${ holderId }
+                                 deckPoint=${ dp }/>`);
 
   return html`
-    <section>
-      <h2>Events during the life of ${ holderName }</h2>
+    <${RollableSection} heading='Points during the life of ${ holderName }'>
       <div class="spanne">
         <div class="spanne-entry spanne-clickable" onClick=${ onOnlyThisPersonClicked }>
           <span class="spanne-icon-label">Only ${ holderName }</span>
@@ -340,10 +384,15 @@ function ListDeckPoints({ deckPoints, holderId, holderName }) {
                                      ${ showBirthsDeaths ? svgTickedCheckBox() : svgUntickedCheckBox() }
                                    </div>`}
       </div>
-      <ul>
+      <ul class="deckpoint-list">
         ${ dps }
       </ul>
-    </section>`;
+      <div class="spanne">
+        <div class="spanne-entry spanne-clickable">
+          <span class="spanne-icon-label">Add Point for ${ holderName }</span> ${ svgPointAdd() }
+        </div>
+      </div>
+    </${RollableSection}>`;
 }
 
 export { Person, People };

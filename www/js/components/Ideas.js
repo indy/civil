@@ -9,7 +9,7 @@ import QuickFind from '/js/components/QuickFind.js';
 import ListingLink from '/js/components/ListingLink.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
 import DeckManager     from '/js/components/DeckManager.js';
-import Graph from '/js/components/Graph.js';
+import GraphSection from '/js/components/GraphSection.js';
 
 let gKeyCounter = 0;
 
@@ -136,11 +136,13 @@ function Idea(props) {
       ${ created_at_textual }
       ${ deckManager.buttons }
       ${ deckManager.updateForm }
-      ${ deckManager.notes }
+      <section>
+        ${ deckManager.notesForMain() }
+      </section>
       ${ deckManager.addNote }
       <${SectionLinkBack} linkbacks=${ idea.linkbacks_to_decks }/>
       <${SectionSearchResultsLinkBack} linkbacks=${ idea.search_results }/>
-      ${ okToShowGraph && html`<${Graph} id=${ ideaId } isIdea depth=${ 4 } />` }
+      <${GraphSection} heading='Ideas Graph' okToShowGraph=${okToShowGraph} id=${ ideaId } isIdea depth=${ 2 } />
     </article>`;
 }
 

@@ -21,6 +21,7 @@ use crate::interop::Key;
 pub struct Note {
     pub id: Key,
     pub content: String,
+    pub point_id: Option<Key>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

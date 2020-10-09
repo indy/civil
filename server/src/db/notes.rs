@@ -31,6 +31,7 @@ use tracing::info;
 struct Note {
     id: Key,
     content: String,
+    point_id: Option<Key>,
 }
 
 #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
@@ -44,6 +45,7 @@ impl From<Note> for interop::Note {
         interop::Note {
             id: n.id,
             content: n.content,
+            point_id: n.point_id,
         }
     }
 }

@@ -5,6 +5,8 @@
   --fg1: #666; /* linked decks (i.e. tags) */
   --fg2: #ddddd0; /* edges in graphs */
 
+  --fg-inactive: #999;
+
   --graph-edge-in-contrast: #ee0d00; /* edges in graphs */
 
   --bg1: #eeeee8;
@@ -12,6 +14,7 @@
 
   --body-width: 80%;
   --block-width: 55%;
+  --block-width-indented: 50%;
 
   --selection: #db6e42;
   --scribble: blue; /* handwritten note  */
@@ -39,6 +42,9 @@
     --bg: #2b2b2b;
     --fg: #a6a8aa;
     --fg1: #999; /* linked decks (i.e. tags) */
+
+    --fg-inactive: var(--fg1);
+
 
     --selection: #b15935;
     --scribble: #bbbbff; /* handwritten note  */

@@ -73,6 +73,10 @@ CREATE TABLE IF NOT EXISTS notes (
     user_id BIGINT NOT NULL REFERENCES users,
     deck_id BIGINT NOT NULL REFERENCES decks,
 
+    -- for notes that are specific to a point
+    -- will be NULL for most notes
+    point_id BIGINT REFERENCES points,
+
     content TEXT NOT NULL
 );
 

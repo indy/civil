@@ -72,6 +72,15 @@
 
 /* -------------------------------------------------------------------------------- */
 
+section.rolled-down {
+}
+
+section.rolled-up {
+  color: var(--fg-inactive);
+}
+
+/* -------------------------------------------------------------------------------- */
+
 .quickfind-form {
   width: 100%;
 }
@@ -316,6 +325,20 @@ hr {
   width: 10%;
 }
 
+/* --------------------------------------------------------------------------------
+a bunch of hacks so that notes within points look correct
+*/
+/* set .point-notes to match tufte.css:44 */
+.point-notes {
+  font-size: 15px;
+}
+
+div.point-notes > div.note > div > div > p {
+  margin-left: 3em;
+  width: var(--block-width-indented);
+}
+/* -------------------------------------------------------------------------------- */
+
 .point-title {
   padding-bottom: 1em;
 }
@@ -326,6 +349,12 @@ hr {
 
 input:required {
   box-shadow: none;
+}
+
+.deckpoint-list {
+  list-style: none;
+  padding-left: 0;
+  margin-left: 0;
 }
 
 .deckpoint-block label {}

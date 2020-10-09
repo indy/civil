@@ -101,10 +101,14 @@ export default function DeckManager({ deck, title, resource, updateForm, afterLo
     res.updateForm = showUpdate();
   }
 
-  const notes = NoteManager(deck, cacheDeckFn);
+  res.notesForMain = function() {
+    return NoteManager(deck, cacheDeckFn, n => true);
+  }
+  res.notesForPoint = function(point_id) {
+    return NoteManager(deck, cacheDeckFn, n => n.point_id === point_id);
+  }
 
-  res.notes = html`<section>${ notes }</section>`;
-  res.hasNotes = notes.length > 0;
+  res.hasNotes = deck.notes && deck.notes.length > 0;
 
   function buildNoteForm() {
     function onCancelAddNote(e) {
@@ -246,7 +250,7 @@ function addNote(form, deck_id, wasmInterface) {
   }
 }
 
-function NoteManager(holder, cacheDeckFn) {
+function NoteManager(holder, cacheDeckFn, filterFn) {
   function findNoteWithId(id, modifyFn) {
     const notes = holder.notes;
     const index = notes.findIndex(n => n.id === id);
@@ -284,7 +288,7 @@ function NoteManager(holder, cacheDeckFn) {
       />`;
   }
 
-  const notes = holder.notes ? holder.notes.map(buildNoteComponent) : [];
+  const notes = holder.notes ? holder.notes.filter(filterFn).map(buildNoteComponent) : [];
 
   return notes;
 }
