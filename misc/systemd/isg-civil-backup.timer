@@ -1,8 +1,8 @@
 [Unit]
-Description=Run Civil Database backup daily
+Description=Run Civil Database backup weekly
 
 [Timer]
-OnCalendar=daily
+OnCalendar=weekly
 Persistent=true
 
 [Install]
