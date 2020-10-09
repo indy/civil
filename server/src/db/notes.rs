@@ -55,25 +55,13 @@ pub(crate) async fn create_notes(
     user_id: Key,
     note: &interop::CreateNote,
 ) -> Result<Vec<interop::Note>> {
+    let mut notes: Vec<interop::Note> = Vec::new();
+
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    let mut notes: Vec<interop::Note> = Vec::new();
-
-    let res = create_common(
-        &tx,
-        user_id,
-        note.deck_id,
-        &note.content[0],
-    )
-    .await?;
-
-    notes.push(res);
-
-    let iter = note.content.iter().skip(1);
-    for content in iter {
-        let res = create_common(&tx, user_id, note.deck_id, content).await?;
-        notes.push(res);
+    for content in note.content.iter() {
+        notes.push(create_common(&tx, user_id, note.deck_id, note.point_id, content).await?);
     }
 
     tx.commit().await?;
@@ -102,11 +90,7 @@ pub(crate) async fn edit_note(
     let db_note = pg::one_non_transactional::<Note>(
         db_pool,
         include_str!("sql/notes_edit.sql"),
-        &[
-            &user_id,
-            &note_id,
-            &note.content,
-        ],
+        &[&user_id, &note_id, &note.content],
     )
     .await?;
 
@@ -143,12 +127,13 @@ pub(crate) async fn create_common(
     tx: &Transaction<'_>,
     user_id: Key,
     deck_id: Key,
+    point_id: Option<Key>,
     content: &str,
 ) -> Result<interop::Note> {
     let db_note = pg::one::<Note>(
         tx,
         include_str!("sql/notes_create.sql"),
-        &[&user_id, &deck_id, &content],
+        &[&user_id, &deck_id, &point_id, &content],
     )
     .await?;
 

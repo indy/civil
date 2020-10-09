@@ -28,4 +28,5 @@ pub struct Note {
 pub struct CreateNote {
     pub content: Vec<String>,
     pub deck_id: Key,
+    pub point_id: Option<Key>,
 }

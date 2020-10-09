@@ -38,7 +38,6 @@ use tracing_subscriber::FmtSubscriber;
 
 const SIGNING_KEY_SIZE: usize = 32;
 
-
 pub struct UserContentPath {
     pub path: String,
 }
@@ -95,7 +94,9 @@ pub async fn start_server() -> Result<()> {
 
         App::new()
             .data(pool.clone())
-            .data(UserContentPath { path: user_content_path.clone()})
+            .data(UserContentPath {
+                path: user_content_path.clone(),
+            })
             .wrap(session_store)
             .wrap(error_handlers)
             .service(api::public_api("/api"))

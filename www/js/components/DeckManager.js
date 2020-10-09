@@ -23,11 +23,8 @@ export default function DeckManager({ deck, title, resource, updateForm, afterLo
   ensureCorrectDeck(resource, deck.id, afterLoadedFn);   // 2 redraws here
 
   const [showButtons, setShowButtons] = useState(false);
-  const [showNoteForm, setShowNoteForm] = useState(false);
   const [showPointForm, setShowPointForm] = useState(false);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
-
-  const wasmInterface = useWasmInterface();
 
   function buildButtons() {
     function onAddPointClicked(e) {
@@ -101,60 +98,11 @@ export default function DeckManager({ deck, title, resource, updateForm, afterLo
     res.updateForm = showUpdate();
   }
 
-  res.notesForMain = function() {
-    return NoteManager(deck, cacheDeckFn, n => true);
-  }
-  res.notesForPoint = function(point_id) {
-    return NoteManager(deck, cacheDeckFn, n => n.point_id === point_id);
+  res.noteManager = function(optional_point_id) {
+    return NoteManager(deck, cacheDeckFn, optional_point_id);
   }
 
   res.hasNotes = deck.notes && deck.notes.length > 0;
-
-  function buildNoteForm() {
-    function onCancelAddNote(e) {
-      setShowNoteForm(false);
-      e.preventDefault();
-    };
-
-    function onAddNote(e) {
-      e.preventDefault();
-      const noteForm = e.target;
-      addNote(noteForm, deck.id, wasmInterface)
-        .then(newNotes => {
-          const notes = deck.notes;
-          newNotes.forEach(n => {
-            notes.push(n);
-          });
-
-          cacheDeckFn({...deck, notes});
-          setShowNoteForm(false);
-          setShowUpdateForm(false);
-        })
-        .catch(error => console.error(error.message));
-    };
-
-    return html`<${NoteForm} onSubmit=${ onAddNote } onCancel=${ onCancelAddNote } />`;
-  };
-
-  function buildNoteFormIcon() {
-    function onAddNoteClicked(e) {
-      setShowNoteForm(true);
-      e.preventDefault();
-    };
-
-    return html`
-<div class="append-note">
-  <div class="spanne">
-    <div class="spanne-entry spanne-clickable"  onClick=${ onAddNoteClicked }>
-      <span class="spanne-icon-label">Append Note</span>
-      ${ svgAppendNote() }
-    </div>
-  </div>
-</div>
-`;
-  }
-
-  res.addNote = showNoteForm ? buildNoteForm() : buildNoteFormIcon();
 
   return res;
 }
@@ -225,12 +173,12 @@ function ensureCorrectDeck(resource, id, afterLoadedFn) {
   }
 }
 
-function addNote(form, deck_id, wasmInterface) {
-  const notes = wasmInterface.splitter(form.content.value);
+function addNote(markup, deck_id, optional_point_id) {
+  const wasmInterface = useWasmInterface();
+  const notes = wasmInterface.splitter(markup);
 
-  // const notes = splitIntoNotes(form.content.value);
   if (notes === null) {
-    console.error(form.content.value);
+    console.error(markup);
     return new Promise((resolve, reject) => { reject(new Error("addNote: splitIntoNotes failed")); });
   }
 
@@ -238,6 +186,10 @@ function addNote(form, deck_id, wasmInterface) {
     deck_id,
     content: notes
   }, []);
+
+  if (optional_point_id) {
+    data.point_id = optional_point_id;
+  }
 
   function isEmptyNote(n) {
     return n.content.every(n => { return n.length === 0;});
@@ -250,13 +202,26 @@ function addNote(form, deck_id, wasmInterface) {
   }
 }
 
-function NoteManager(holder, cacheDeckFn, filterFn) {
+function NoteManager(deck, cacheDeckFn, optional_deck_point) {
+  var filterFn;
+  if (optional_deck_point) {
+    // a notemanager for notes associated with the given point_id
+    filterFn = n => n.point_id === optional_deck_point.point_id;
+  } else {
+    // a notemanager for a deck's top-level notes
+    // uses notes which don't have a point_id
+    filterFn = n => !n.point_id;
+  }
+
+
+  const [showNoteForm, setShowNoteForm] = useState(false);
+
   function findNoteWithId(id, modifyFn) {
-    const notes = holder.notes;
+    const notes = deck.notes;
     const index = notes.findIndex(n => n.id === id);
 
     modifyFn(notes, index);
-    cacheDeckFn({...holder, notes});
+    cacheDeckFn({...deck, notes});
   };
 
   function onEditedNote(id, data) {
@@ -281,23 +246,77 @@ function NoteManager(holder, cacheDeckFn, filterFn) {
     return html`
       <${Note} key=${ note.id }
                note=${ note }
-               parentDeckId=${ holder.id }
+               parentDeckId=${ deck.id }
                onDelete=${ onDeleteNote }
                onEdited=${ onEditedNote }
                onDecksChanged=${ onDecksChanged }
       />`;
   }
 
-  const notes = holder.notes ? holder.notes.filter(filterFn).map(buildNoteComponent) : [];
+  function buildNoteForm() {
+    function onCancelAddNote(e) {
+      setShowNoteForm(false);
+      e.preventDefault();
+    };
 
-  return notes;
+    function onAddNote(e) {
+      e.preventDefault();
+      const noteForm = e.target;
+      const markup = noteForm.content.value;
+      addNote(markup, deck.id, optional_deck_point.point_id)
+        .then(newNotes => {
+          const notes = deck.notes;
+          newNotes.forEach(n => {
+            notes.push(n);
+          });
+
+          cacheDeckFn({...deck, notes});
+          setShowNoteForm(false);
+          // setShowUpdateForm(false);
+        })
+        .catch(error => console.error(error.message));
+    };
+
+    return html`<${NoteForm} onSubmit=${ onAddNote } onCancel=${ onCancelAddNote } />`;
+  };
+
+  function buildNoteFormIcon() {
+    function onAddNoteClicked(e) {
+      setShowNoteForm(true);
+      e.preventDefault();
+    };
+
+    let appendMessage = 'Append Note';
+    if (optional_deck_point) {
+      // provide more context when adding notes to points
+      appendMessage += ` to ${optional_deck_point.point_title}`;
+    }
+
+    return html`
+<div class="append-note">
+  <div class="spanne">
+    <div class="spanne-entry spanne-clickable"  onClick=${ onAddNoteClicked }>
+      <span class="spanne-icon-label">${ appendMessage }</span>
+      ${ svgAppendNote() }
+    </div>
+  </div>
+</div>
+`;
+  }
+  const notes = deck.notes ? deck.notes.filter(filterFn).map(buildNoteComponent) : [];
+
+  return html`
+      <section>
+        ${ notes }
+        ${ showNoteForm ? buildNoteForm() : buildNoteFormIcon() }
+      </section>`;
 }
 
-function cacheDeck(dispatch, holder) {
+function cacheDeck(dispatch, deck) {
   dispatch({
     type: 'cacheDeck',
-    id: holder.id,
-    newItem: holder
+    id: deck.id,
+    newItem: deck
   });
 }
 

@@ -148,13 +148,11 @@ function Person(props) {
       ${ !hasBirth && showAddBirthPointMessage() }
       ${ showBirthForm && birthForm() }
 
-      <section>
-        ${ deckManager.notesForMain() }
-      </section>
-      ${ deckManager.addNote }
+      ${ deckManager.noteManager() }
+
       <${SectionLinkBack} linkbacks=${ person.linkbacks_to_decks }/>
       ${ hasBirth && html`<${ListDeckPoints} deckPoints=${ person.all_points_during_life }
-                                             noteFn=${ deckManager.notesForPoint }
+                                             noteManager=${ deckManager.noteManager }
                                              holderId=${ person.id }
                                              holderName=${ person.name }/>`}
       <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${personId} depth=${2}/>
@@ -311,7 +309,7 @@ function UpdatePersonForm({ person }) {
                 </li>`;
     }
 */
-function DeckPoint({ deckPoint, noteFn, holderId }) {
+function DeckPoint({ deckPoint, noteManager, holderId }) {
   let [expanded, setExpanded] = useState(true);
 
   function onClicked(e) {
@@ -330,7 +328,7 @@ function DeckPoint({ deckPoint, noteFn, holderId }) {
                   <span onClick=${onClicked}>${ expanded ? svgCaretDown() : svgCaretUp() }</span>
                   ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.point_date_textual }
                   ${ expanded && html`<div class="point-notes">
-                                        ${ noteFn(deckPoint.point_id) }
+                                        ${ noteManager(deckPoint) }
                                       </div>`}
                 </li>`;
   } else {
@@ -346,7 +344,7 @@ function DeckPoint({ deckPoint, noteFn, holderId }) {
   return item;
 }
 
-function ListDeckPoints({ deckPoints, noteFn, holderId, holderName }) {
+function ListDeckPoints({ deckPoints, noteManager, holderId, holderName }) {
   let [onlyThisPerson, setOnlyThisPerson] = useState(false);
   let [showBirthsDeaths, setShowBirthsDeaths] = useState(false);
 
@@ -368,7 +366,7 @@ function ListDeckPoints({ deckPoints, noteFn, holderId, holderName }) {
   }
   let dps = arr.map(dp => html`<${DeckPoint}
                                  key=${ dp.point_id}
-                                 noteFn=${ noteFn }
+                                 noteManager=${ noteManager }
                                  holderId=${ holderId }
                                  deckPoint=${ dp }/>`);
 
