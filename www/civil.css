@@ -212,6 +212,12 @@ section > form { width: var(--block-width); }
   font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
 }
 
+/* like spanne but inline for adding notes to points */
+.inline-spanne {
+  color: var(--fg1);
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+
 @media (max-width: 1200px) {
   .spanne {
     float: right;
@@ -222,6 +228,9 @@ section > form { width: var(--block-width); }
 
 @media (max-width: 800px) {
   .spanne {
+    display: none;
+  }
+  .inline-spanne {
     display: none;
   }
 }

@@ -23,15 +23,9 @@ export default function DeckManager({ deck, title, resource, updateForm, afterLo
   ensureCorrectDeck(resource, deck.id, afterLoadedFn);   // 2 redraws here
 
   const [showButtons, setShowButtons] = useState(false);
-  const [showPointForm, setShowPointForm] = useState(false);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
 
   function buildButtons() {
-    function onAddPointClicked(e) {
-      setShowPointForm(!showPointForm);
-      e.preventDefault();
-    };
-
     function onEditParentClicked(e) {
       setShowUpdateForm(!showUpdateForm);
       e.preventDefault();
@@ -50,7 +44,6 @@ export default function DeckManager({ deck, title, resource, updateForm, afterLo
 
     return html`
       <div>
-        ${ deck.points && html`<button onClick=${ onAddPointClicked }>Add Notable Point...</button>` }
         <button onClick=${ onEditParentClicked }>Edit...</button>
         <button onClick=${ onDeleteParentClicked }>Delete...</button>
       </div>`;
@@ -61,21 +54,8 @@ export default function DeckManager({ deck, title, resource, updateForm, afterLo
     cacheDeck(dispatch, deck);
   }
 
-  function buildPointForm() {
-    function onAddPoint(point) {
-      const url = `/api/${resource}/${deck.id}/points`;
-      Net.post(url, point).then(updatedDeck => {
-        cacheDeckFn(updatedDeck);
-        setShowPointForm(false);
-      });
-    };
-
-    return html`<${PointForm} onSubmit=${ onAddPoint } submitMessage="Create Point"/>`;
-  };
-
   function onShowButtons() {
     setShowButtons(!showButtons);
-    setShowPointForm(false);
     setShowUpdateForm(false);
   };
 
@@ -90,9 +70,17 @@ export default function DeckManager({ deck, title, resource, updateForm, afterLo
     res.buttons = buildButtons();
   }
 
-  if (showPointForm) {
-    res.pointForm = buildPointForm();
-  }
+  res.buildPointForm = function(onSuccessCallback) {
+    function onAddPoint(point) {
+      const url = `/api/${resource}/${deck.id}/points`;
+      Net.post(url, point).then(updatedDeck => {
+        cacheDeckFn(updatedDeck);
+        onSuccessCallback();
+      });
+    };
+
+    return html`<${PointForm} onSubmit=${ onAddPoint } submitMessage="Create Point"/>`;
+  };
 
   if (showUpdateForm) {
     res.updateForm = showUpdate();
@@ -263,7 +251,7 @@ function NoteManager(deck, cacheDeckFn, optional_deck_point) {
       e.preventDefault();
       const noteForm = e.target;
       const markup = noteForm.content.value;
-      addNote(markup, deck.id, optional_deck_point.point_id)
+      addNote(markup, deck.id, optional_deck_point && optional_deck_point.point_id)
         .then(newNotes => {
           const notes = deck.notes;
           newNotes.forEach(n => {
@@ -286,22 +274,30 @@ function NoteManager(deck, cacheDeckFn, optional_deck_point) {
       e.preventDefault();
     };
 
-    let appendMessage = 'Append Note';
     if (optional_deck_point) {
-      // provide more context when adding notes to points
-      appendMessage += ` to ${optional_deck_point.point_title}`;
-    }
-
-    return html`
+      return html`
+<div class="inline-append-note">
+  <div class="inline-spanne">
+    <div class="spanne-entry spanne-clickable"  onClick=${ onAddNoteClicked }>
+      ${ svgAppendNote() }
+      <span class="spanne-icon-label">Append Note to ${ optional_deck_point.point_title }</span>
+    </div>
+  </div>
+</div>
+`;
+    } else {
+      return html`
 <div class="append-note">
   <div class="spanne">
     <div class="spanne-entry spanne-clickable"  onClick=${ onAddNoteClicked }>
-      <span class="spanne-icon-label">${ appendMessage }</span>
+      <span class="spanne-icon-label">Append Note</span>
       ${ svgAppendNote() }
     </div>
   </div>
 </div>
 `;
+    }
+
   }
   const notes = deck.notes ? deck.notes.filter(filterFn).map(buildNoteComponent) : [];
 

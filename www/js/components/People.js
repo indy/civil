@@ -17,6 +17,7 @@ import SectionLinkBack from '/js/components/SectionLinkBack.js';
 import DeckManager     from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
 import { svgPointAdd,
+         svgCancel,
          svgCaretDown,
          svgCaretUp,
          svgBlank,
@@ -142,7 +143,6 @@ function Person(props) {
     <article>
       ${ deckManager.title }
       ${ deckManager.buttons }
-      ${ deckManager.pointForm }
       ${ deckManager.updateForm }
 
       ${ !hasBirth && showAddBirthPointMessage() }
@@ -152,7 +152,7 @@ function Person(props) {
 
       <${SectionLinkBack} linkbacks=${ person.linkbacks_to_decks }/>
       ${ hasBirth && html`<${ListDeckPoints} deckPoints=${ person.all_points_during_life }
-                                             noteManager=${ deckManager.noteManager }
+                                             deckManager=${ deckManager }
                                              holderId=${ person.id }
                                              holderName=${ person.name }/>`}
       <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${personId} depth=${2}/>
@@ -344,9 +344,10 @@ function DeckPoint({ deckPoint, noteManager, holderId }) {
   return item;
 }
 
-function ListDeckPoints({ deckPoints, noteManager, holderId, holderName }) {
-  let [onlyThisPerson, setOnlyThisPerson] = useState(false);
-  let [showBirthsDeaths, setShowBirthsDeaths] = useState(false);
+function ListDeckPoints({ deckPoints, deckManager, holderId, holderName }) {
+  const [onlyThisPerson, setOnlyThisPerson] = useState(false);
+  const [showBirthsDeaths, setShowBirthsDeaths] = useState(false);
+  const [showPointForm, setShowPointForm] = useState(false);
 
   function onOnlyThisPersonClicked(e) {
     e.preventDefault();
@@ -355,6 +356,15 @@ function ListDeckPoints({ deckPoints, noteManager, holderId, holderName }) {
   function onShowOtherClicked(e) {
     e.preventDefault();
     setShowBirthsDeaths(!showBirthsDeaths);
+  }
+  function onAddPointClicked(e) {
+    e.preventDefault();
+    setShowPointForm(!showPointForm);
+  }
+
+  // called by DeckManager once a point has been successfully created
+  function onPointCreated() {
+    setShowPointForm(false);
   }
 
   let arr = deckPoints || [];
@@ -366,9 +376,11 @@ function ListDeckPoints({ deckPoints, noteManager, holderId, holderName }) {
   }
   let dps = arr.map(dp => html`<${DeckPoint}
                                  key=${ dp.point_id}
-                                 noteManager=${ noteManager }
+                                 noteManager=${ deckManager.noteManager }
                                  holderId=${ holderId }
                                  deckPoint=${ dp }/>`);
+
+  let formSidebarText = showPointForm ? "Hide Form" : `Add Point for ${ holderName }`;
 
   return html`
     <${RollableSection} heading='Points during the life of ${ holderName }'>
@@ -386,10 +398,12 @@ function ListDeckPoints({ deckPoints, noteManager, holderId, holderName }) {
         ${ dps }
       </ul>
       <div class="spanne">
-        <div class="spanne-entry spanne-clickable">
-          <span class="spanne-icon-label">Add Point for ${ holderName }</span> ${ svgPointAdd() }
+        <div class="spanne-entry spanne-clickable" onClick=${ onAddPointClicked }>
+          <span class="spanne-icon-label">${ formSidebarText }</span>
+          ${ showPointForm ? svgCancel() : svgPointAdd() }
         </div>
       </div>
+      ${ showPointForm && deckManager.buildPointForm(onPointCreated) }
     </${RollableSection}>`;
 }
 
