@@ -18,7 +18,7 @@
 use super::pg;
 use crate::db::decks;
 use crate::error::{Error, Result};
-use crate::interop::events as interop;
+use crate::interop::timelines as interop;
 use crate::interop::Key;
 use deadpool_postgres::{Client, Pool};
 use serde::{Deserialize, Serialize};
@@ -29,15 +29,15 @@ use tracing::info;
 
 #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
 #[pg_mapper(table = "decks")]
-struct EventDerived {
+struct TimelineDerived {
     id: Key,
     name: String,
     prime_date: Option<chrono::NaiveDate>,
 }
 
-impl From<EventDerived> for interop::Event {
-    fn from(e: EventDerived) -> interop::Event {
-        interop::Event {
+impl From<TimelineDerived> for interop::Timeline {
+    fn from(e: TimelineDerived) -> interop::Timeline {
+        interop::Timeline {
             id: e.id,
             title: e.name,
 
@@ -54,14 +54,14 @@ impl From<EventDerived> for interop::Event {
 
 #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
 #[pg_mapper(table = "decks")]
-struct Event {
+struct Timeline {
     id: Key,
     name: String,
 }
 
-impl From<Event> for interop::Event {
-    fn from(e: Event) -> interop::Event {
-        interop::Event {
+impl From<Timeline> for interop::Timeline {
+    fn from(e: Timeline) -> interop::Timeline {
+        interop::Timeline {
             id: e.id,
             title: e.name,
 
@@ -79,23 +79,23 @@ impl From<Event> for interop::Event {
 pub(crate) async fn create(
     db_pool: &Pool,
     user_id: Key,
-    event: &interop::ProtoEvent,
-) -> Result<interop::Event> {
+    timeline: &interop::ProtoTimeline,
+) -> Result<interop::Timeline> {
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    let db_event = pg::one::<Event>(
+    let db_timeline = pg::one::<Timeline>(
         &tx,
-        include_str!("sql/events_create.sql"),
-        &[&user_id, &event.title],
+        include_str!("sql/timelines_create.sql"),
+        &[&user_id, &timeline.title],
     )
     .await?;
 
     tx.commit().await?;
 
-    Ok(interop::Event {
-        id: db_event.id,
-        title: db_event.name,
+    Ok(interop::Timeline {
+        id: db_timeline.id,
+        title: db_timeline.name,
 
         sort_date: None,
         points: None,
@@ -106,20 +106,20 @@ pub(crate) async fn create(
     })
 }
 
-pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Event>> {
-    pg::many_from::<EventDerived, interop::Event>(
+pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Timeline>> {
+    pg::many_from::<TimelineDerived, interop::Timeline>(
         db_pool,
-        include_str!("sql/events_all.sql"),
+        include_str!("sql/timelines_all.sql"),
         &[&user_id],
     )
     .await
 }
 
-pub(crate) async fn get(db_pool: &Pool, user_id: Key, event_id: Key) -> Result<interop::Event> {
-    pg::one_from::<Event, interop::Event>(
+pub(crate) async fn get(db_pool: &Pool, user_id: Key, timeline_id: Key) -> Result<interop::Timeline> {
+    pg::one_from::<Timeline, interop::Timeline>(
         db_pool,
-        include_str!("sql/events_get.sql"),
-        &[&user_id, &event_id],
+        include_str!("sql/timelines_get.sql"),
+        &[&user_id, &timeline_id],
     )
     .await
 }
@@ -127,26 +127,26 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key, event_id: Key) -> Result<i
 pub(crate) async fn edit(
     db_pool: &Pool,
     user_id: Key,
-    updated_event: &interop::ProtoEvent,
-    event_id: Key,
-) -> Result<interop::Event> {
+    updated_timeline: &interop::ProtoTimeline,
+    timeline_id: Key,
+) -> Result<interop::Timeline> {
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
     pg::zero(
         &tx,
-        include_str!("sql/events_edit.sql"),
-        &[&user_id, &event_id, &updated_event.title],
+        include_str!("sql/timelines_edit.sql"),
+        &[&user_id, &timeline_id, &updated_timeline.title],
     )
     .await?;
 
     tx.commit().await?;
 
-    let altered_event = get(db_pool, user_id, event_id).await?;
+    let altered_timeline = get(db_pool, user_id, timeline_id).await?;
 
-    Ok(altered_event)
+    Ok(altered_timeline)
 }
 
-pub(crate) async fn delete(db_pool: &Pool, user_id: Key, event_id: Key) -> Result<()> {
-    decks::delete(db_pool, user_id, event_id).await
+pub(crate) async fn delete(db_pool: &Pool, user_id: Key, timeline_id: Key) -> Result<()> {
+    decks::delete(db_pool, user_id, timeline_id).await
 }

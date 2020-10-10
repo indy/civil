@@ -21,7 +21,7 @@ use crate::interop::points::Point;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct Event {
+pub struct Timeline {
     pub id: Key,
     pub title: String,
 
@@ -36,6 +36,6 @@ pub struct Event {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct ProtoEvent {
+pub struct ProtoTimeline {
     pub title: String,
 }

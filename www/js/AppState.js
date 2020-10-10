@@ -37,6 +37,8 @@ export const initialState = {
   people: [],
   eventsLoaded: false,
   events: [],
+  timelinesLoaded: false,
+  timelines: [],
 };
 
 export const reducer = (state, action) => {
@@ -159,6 +161,19 @@ export const reducer = (state, action) => {
     {
       let newState = { ...state };
       updateListOfTitles(newState.events, action.newItem);
+      return newState;
+    }
+  case 'setTimelines':
+    action.timelines.forEach(addSortYear); // ???
+    return {
+      ...state,
+      timelinesLoaded: true,
+      timelines: action.timelines
+    };
+  case 'setTimeline':
+    {
+      let newState = { ...state };
+      updateListOfTitles(newState.timelines, action.newItem);
       return newState;
     }
   default:

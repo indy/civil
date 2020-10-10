@@ -18,7 +18,7 @@
 use crate::handler::autocomplete;
 use crate::handler::cmd;
 use crate::handler::edges;
-use crate::handler::events;
+use crate::handler::timelines;
 use crate::handler::ideas;
 use crate::handler::notes;
 use crate::handler::people;
@@ -72,15 +72,15 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", delete().to(people::delete))
                 .route("/{id}/points", post().to(people::add_point)),
         )
-        // events
+        // timelines
         .service(
-            scope("/events")
-                .route("", post().to(events::create))
-                .route("", get().to(events::get_all))
-                .route("/{id}", get().to(events::get))
-                .route("/{id}", put().to(events::edit)) // check
-                .route("/{id}", delete().to(events::delete))
-                .route("/{id}/points", post().to(events::add_point)),
+            scope("/timelines")
+                .route("", post().to(timelines::create))
+                .route("", get().to(timelines::get_all))
+                .route("/{id}", get().to(timelines::get))
+                .route("/{id}", put().to(timelines::edit)) // check
+                .route("/{id}", delete().to(timelines::delete))
+                .route("/{id}/points", post().to(timelines::add_point)),
         )
         // publications
         .service(

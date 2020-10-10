@@ -18,7 +18,7 @@
 pub mod autocomplete;
 pub mod cmd;
 pub mod edges;
-pub mod events;
+pub mod timelines;
 pub mod ideas;
 pub mod notes;
 pub mod people;

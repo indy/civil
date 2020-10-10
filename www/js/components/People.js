@@ -317,7 +317,8 @@ function DeckPoint({ deckPoint, noteManager, holderId }) {
     setExpanded(!expanded);
   }
 
-  let pointTitle = deckPoint.point_title === "Prime" && deckPoint.deck_resource === "events" ? "" : deckPoint.point_title;
+  // let pointTitle = deckPoint.point_title === "Prime" && deckPoint.deck_resource === "events" ? "" : deckPoint.point_title;
+  let pointTitle = deckPoint.point_title;
 
   let item;
   let ageText = deckPoint.age > 0 ? `${deckPoint.age}` : "";

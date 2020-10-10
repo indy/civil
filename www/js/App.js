@@ -7,11 +7,11 @@ import { WasmInterfaceProvider }        from '/js/lib/WasmInterfaceProvider.js';
 import { useStateValue, StateProvider } from '/js/lib/StateProvider.js';
 
 import Search                        from '/js/components/Search.js';
-import { Event, Events }             from '/js/components/Events.js';
 import { Idea, Ideas }               from '/js/components/Ideas.js';
 import { Login, Logout }             from '/js/components/Login.js';
 import { Person, People }            from '/js/components/People.js';
 import { Publication, Publications } from '/js/components/Publications.js';
+import { Timeline, Timelines }       from '/js/components/Timelines.js';
 
 export default function App({ user, wasmInterface, autocompleteDecks, graphConnections, imageDirectory, recentImages }) {
   let state = initialState;
@@ -91,7 +91,7 @@ function TopBarMenu(props) {
       <${Link} class='top-bar-menuitem' href=${'/ideas'}>Ideas</${Link}>
       <${Link} class='top-bar-menuitem' href=${'/publications'}>Publications</${Link}>
       <${Link} class='top-bar-menuitem' href=${'/people'}>People</${Link}>
-      <${Link} class='top-bar-menuitem' href=${'/events'}>Events</${Link}>
+      <${Link} class='top-bar-menuitem' href=${'/timelines'}>Timelines</${Link}>
       <${Link} class='top-bar-menuitem' href=${ loggedLink() } id="login-menuitem">${ loggedStatus() }</${Link}>
     </div>
 `;
@@ -151,8 +151,8 @@ function AppUI(props) {
         <${Publication} path="/publications/:id"/>
         <${People} path="/people"/>
         <${Person} path="/people/:id"/>
-        <${Events} path="/events"/>
-        <${Event} path="/events/:id"/>
+        <${Timelines} path="/timelines"/>
+        <${Timeline} path="/timelines/:id"/>
       </${Router}>
     </div>`;
 }
