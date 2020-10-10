@@ -30,6 +30,8 @@ pub enum DeckKind {
     Event,
     #[postgres(name = "idea")]
     Idea,
+    #[postgres(name = "timeline")]
+    Timeline,
 }
 
 impl From<DeckKind> for interop::DeckResource {
@@ -39,6 +41,7 @@ impl From<DeckKind> for interop::DeckResource {
             DeckKind::Person => interop::DeckResource::Person,
             DeckKind::Event => interop::DeckResource::Event,
             DeckKind::Idea => interop::DeckResource::Idea,
+            DeckKind::Timeline => interop::DeckResource::Timeline,
         }
     }
 }
@@ -50,6 +53,7 @@ impl From<interop::DeckResource> for DeckKind {
             interop::DeckResource::Person => DeckKind::Person,
             interop::DeckResource::Event => DeckKind::Event,
             interop::DeckResource::Idea => DeckKind::Idea,
+            interop::DeckResource::Timeline => DeckKind::Timeline,
         }
     }
 }

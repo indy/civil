@@ -5,7 +5,7 @@ DROP TABLE IF EXISTS decks;
 DROP TABLE IF EXISTS users;
 DROP TYPE IF EXISTS deck_kind;
 
-CREATE TYPE deck_kind AS ENUM ('publication', 'person', 'event', 'idea');
+CREATE TYPE deck_kind AS ENUM ('publication', 'person', 'event', 'idea', 'timeline');
 
 CREATE TYPE idea_kind AS ENUM ('idea_na', 'idea_verbatim', 'idea_insight');
 -- idea_na == idea not applicable, use this for publications, people and events
