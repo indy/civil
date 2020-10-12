@@ -191,9 +191,6 @@ export default function PointForm({ point, onSubmit, submitMessage, pointKind })
 
 
   function kindToSend(k) {
-    if (k === 'point_prime') {
-      return 'PointPrime';
-    }
     if (k === 'point_begin') {
       return 'PointBegin';
     }

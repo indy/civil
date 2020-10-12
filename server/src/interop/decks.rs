@@ -23,8 +23,6 @@ pub enum DeckResource {
     Publication,
     #[serde(rename = "people")]
     Person,
-    #[serde(rename = "events")]
-    Event,
     #[serde(rename = "ideas")]
     Idea,
     #[serde(rename = "timelines")]
@@ -37,6 +35,7 @@ pub enum RefKind {
     RefToParent,
     RefToChild,
     RefInContrast,
+    RefCritical,
 }
 
 // links to decks on the side of notes

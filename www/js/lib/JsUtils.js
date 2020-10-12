@@ -28,6 +28,7 @@ export function opposingKind(kind) {
   case 'ref_to_parent': return 'ref_to_child';
   case 'ref_to_child': return 'ref_to_parent';
   case 'ref_in_contrast': return 'ref_in_contrast';
+  case 'ref_critical': return 'ref_critical';
   default: {
     console.log(`opposing_kind error: ${kind}`);
     return 'opposing_kind ERROR';

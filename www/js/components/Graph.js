@@ -276,6 +276,11 @@ function createSvgEdge(sourceNode, targetNode, strength, kind) {
   } else if (kind === "ref_in_contrast") {
     path.setAttribute("stroke", 'var(--graph-edge-in-contrast)');
     translateEdge(path, sourceNode, targetNode);
+  } else if (kind === "ref_critical") {
+    path.setAttribute("stroke", 'var(--graph-edge-critical)');
+    translateEdge(path, sourceNode, targetNode);
+  } else {
+    console.log(kind);
   }
 
   return path;

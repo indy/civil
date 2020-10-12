@@ -114,6 +114,7 @@ function SelectedReference({ reference, onRemove, onChangeKind, keyIndex, showKe
                   <option value="RefToParent" selected=${reference.kind == "RefToParent"}>Reference to Parent</option>
                   <option value="RefToChild" selected=${reference.kind == "RefToChild"}>Reference to Child</option>
                   <option value="RefInContrast" selected=${reference.kind == "RefInContrast"}>Contrasting Reference</option>
+                  <option value="RefCritical" selected=${reference.kind == "RefCritical"}>Critical Reference</option>
                 </select>
                 ${reference.value}
               </div>`;

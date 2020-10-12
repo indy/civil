@@ -32,7 +32,6 @@ use tracing::info;
 struct TimelineDerived {
     id: Key,
     name: String,
-    prime_date: Option<chrono::NaiveDate>,
 }
 
 impl From<TimelineDerived> for interop::Timeline {
@@ -40,8 +39,6 @@ impl From<TimelineDerived> for interop::Timeline {
         interop::Timeline {
             id: e.id,
             title: e.name,
-
-            sort_date: e.prime_date,
 
             points: None,
             notes: None,
@@ -64,8 +61,6 @@ impl From<Timeline> for interop::Timeline {
         interop::Timeline {
             id: e.id,
             title: e.name,
-
-            sort_date: None,
 
             points: None,
             notes: None,
@@ -97,7 +92,6 @@ pub(crate) async fn create(
         id: db_timeline.id,
         title: db_timeline.name,
 
-        sort_date: None,
         points: None,
 
         notes: None,

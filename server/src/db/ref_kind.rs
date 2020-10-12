@@ -30,6 +30,8 @@ pub enum RefKind {
     RefToChild,
     #[postgres(name = "ref_in_contrast")]
     RefInContrast,
+    #[postgres(name = "ref_critical")]
+    RefCritical,
 }
 
 impl From<RefKind> for interop::RefKind {
@@ -39,6 +41,7 @@ impl From<RefKind> for interop::RefKind {
             RefKind::RefToParent => interop::RefKind::RefToParent,
             RefKind::RefToChild => interop::RefKind::RefToChild,
             RefKind::RefInContrast => interop::RefKind::RefInContrast,
+            RefKind::RefCritical => interop::RefKind::RefCritical,
         }
     }
 }
@@ -50,6 +53,7 @@ impl From<interop::RefKind> for RefKind {
             interop::RefKind::RefToParent => RefKind::RefToParent,
             interop::RefKind::RefToChild => RefKind::RefToChild,
             interop::RefKind::RefInContrast => RefKind::RefInContrast,
+            interop::RefKind::RefCritical => RefKind::RefCritical,
         }
     }
 }

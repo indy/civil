@@ -1,5 +1,5 @@
 import { html, useState } from '/js/ext/library.js';
-import { svgChevronDoubleDown, svgChevronDoubleUp} from '/js/lib/svgIcons.js';
+import { svgChevronDoubleDown, svgChevronDoubleRight} from '/js/lib/svgIcons.js';
 
 export default function RollableSection({ heading, children }) {
   let [isRolledDown, setIsRolledDown] = useState(true);
@@ -10,7 +10,7 @@ export default function RollableSection({ heading, children }) {
   }
 
   let classState = isRolledDown ? "rolled-down" : "rolled-up";
-  let icon = isRolledDown ? svgChevronDoubleDown() : svgChevronDoubleUp();
+  let icon = isRolledDown ? svgChevronDoubleDown() : svgChevronDoubleRight();
 
   return html`
     <section class=${classState}>

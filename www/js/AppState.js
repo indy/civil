@@ -164,7 +164,6 @@ export const reducer = (state, action) => {
       return newState;
     }
   case 'setTimelines':
-    action.timelines.forEach(addSortYear); // ???
     return {
       ...state,
       timelinesLoaded: true,
@@ -222,6 +221,7 @@ function packedToKind(packed) {
   case -1: return 'ref_to_parent';
   case 1: return 'ref_to_child';
   case 42: return 'ref_in_contrast';
+  case 99: return 'ref_critical';
   default: {
     console.log(`packed_to_kind invalid value: ${packed}`);
     return 'packed_to_kind ERROR';

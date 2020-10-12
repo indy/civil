@@ -1,13 +1,76 @@
 import { html, route, Link, useState, useEffect } from '/js/ext/library.js';
 
-import { useStateValue } from '/js/lib/StateProvider.js';
 import Net from '/js/lib/Net.js';
-import { addChronologicalSortYear, era, filterBefore, filterAfter, filterBetween, yearFrom } from '/js/lib/eras.js';
-
+import { useStateValue } from '/js/lib/StateProvider.js';
+import { addChronologicalSortYear } from '/js/lib/eras.js';
 import QuickFind from '/js/components/QuickFind.js';
+import RollableSection from '/js/components/RollableSection.js';
+import ListingLink from '/js/components/ListingLink.js';
 import PointForm from '/js/components/PointForm.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
 import DeckManager     from '/js/components/DeckManager.js';
+import GraphSection from '/js/components/GraphSection.js';
+import { svgPointAdd,
+         svgCancel,
+         svgCaretRight,
+         svgCaretDown,
+         svgBlank,
+         svgTickedCheckBox,
+         svgUntickedCheckBox } from '/js/lib/svgIcons.js';
+
+function hackMakeCompatibleWithNoteManager(p) {
+  p.point_id = p.id;
+  p.point_title = p.title;
+  return p;
+}
+// called once after the timeline has been fetched from the server
+function afterLoaded(timeline) {
+  if (timeline.points) {
+    timeline.points = timeline.points
+      .map(addChronologicalSortYear)
+      .map(hackMakeCompatibleWithNoteManager)
+      .sort((a, b) => a.sort_year > b.sort_year);
+  }
+
+  return timeline;
+}
+
+function Timeline(props) {
+  const [state, dispatch] = useStateValue();
+
+  const timelineId = parseInt(props.id, 10);
+  const timeline = state.cache.deck[timelineId] || { id: timelineId };
+
+  const deckManager = DeckManager({
+    deck: timeline,
+    title: timeline.title,
+    resource: "timelines",
+    afterLoadedFn: afterLoaded,
+    updateForm: html`<${UpdateTimelineForm} timeline=${timeline} />`
+  });
+
+  // this is only for presentational purposes
+  // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
+  // this check prevents the vis from rendering until after we have all the note and links ready
+  const okToShowGraph = !!(deckManager.hasNotes || (timeline.linkbacks_to_decks && timeline.linkbacks_to_decks.length > 0));
+
+  console.log(timeline);
+  return html`
+    <article>
+      ${ deckManager.title }
+      ${ deckManager.buttons }
+      ${ deckManager.updateForm }
+
+      ${ deckManager.noteManager() }
+
+      <${SectionLinkBack} linkbacks=${ timeline.linkbacks_to_decks }/>
+      <${ListPoints} points=${ timeline.points }
+                     deckManager=${ deckManager }
+                     holderId=${ timeline.id }
+                     holderName=${ timeline.title }/>
+      <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${timelineId} depth=${2}/>
+    </article>`;
+}
 
 function Timelines() {
   const [state, dispatch] = useStateValue();
@@ -25,46 +88,7 @@ function Timelines() {
     }
   }, []);
 
-  function createTimelineListingAD(ev) {
-    return buildTimelineListing(ev.id, yearText(ev.sort_date, "AD"), ev.title);
-  }
-
-  function createTimelineListing(ev) {
-    return buildTimelineListing(ev.id, yearText(ev.sort_date, ""), ev.title);
-  }
-
-  function buildTimelineListing(id, dateText, title) {
-        const href = `/timelines/${id}`;
-
-    return html`
-    <li key=${ id }>
-      <${Link} href=${ href }>
-        <span class="event-date">${ dateText }</span> ${ title }
-      </${Link}>
-    </li>`;
-  }
-
-  function yearText(dateString, adPostfix) {
-    const year = yearFrom(dateString);
-
-    if (year < 0) {
-      return `${year * -1} BC`;
-    } else {
-      return `${year} ${adPostfix}`;
-    }
-  }
-
-  function timelinesList(list, heading) {
-        return html`
-    <div>
-      ${ !!list.length && html`<h2>${ heading }</h2>` }
-      <ul class="timelines-list">
-        ${ list }
-      </ul>
-    </div>`;
-  }
-
-  function saveNewTimeline({title, idea_category}) {
+  function saveNewTimeline({title}) {
     const data = {
       title: title
     };
@@ -88,115 +112,21 @@ function Timelines() {
     });
   }
 
-
-  const uncategorisedTimelinesList = filterAfter(state.timelines, era.uncategorisedYear).map(createTimelineListing);
-  const ancientTimelinesList = filterBefore(state.timelines, era.ancientCutoff).map(createTimelineListingAD);
-  const medievalTimelinesList = filterBetween(state.timelines, era.ancientCutoff, era.medievalCutoff).map(createTimelineListing);
-  const modernTimelinesList = filterBetween(state.timelines, era.medievalCutoff, era.modernCutoff).map(createTimelineListing);
-  const contemporaryTimelinesList = filterBetween(state.timelines, era.modernCutoff, era.uncategorisedYear).map(createTimelineListing);
+  function createTimelineListing(timeline) {
+    return html`<${ListingLink} id=${ timeline.id } name=${ timeline.title } resource='timelines'/>`;
+  }
+  const tl = state.timelines.map(createTimelineListing);
 
   return html`
     <div>
       <h1>Timelines</h1>
-      <${QuickFind} autocompletes=${state.ac.decks} resource='timelines' save=${saveNewTimeline} />
-      ${ timelinesList(uncategorisedTimelinesList, "Uncategorised")}
-      ${ timelinesList(ancientTimelinesList, "Ancient")}
-      ${ timelinesList(medievalTimelinesList, "Medieval")}
-      ${ timelinesList(modernTimelinesList, "Modern")}
-      ${ timelinesList(contemporaryTimelinesList, "Contemporary")}
+      <${QuickFind} autocompletes=${state.ac.decks} resource='timelines' save=${saveNewTimeline}/>
+      <div>
+        <ul class="timelines-list">
+          ${ tl }
+        </ul>
+      </div>
     </div>`;
-}
-
-// called once after the timeline has been fetched from the server
-function afterLoaded(timeline) {
-  if (timeline.points) {
-    timeline.points = timeline.points
-      .map(addChronologicalSortYear)
-      .sort((a, b) => a.sort_year > b.sort_year);
-  }
-  return timeline;
-}
-
-function Timeline(props) {
-  const [state, dispatch] = useStateValue();
-  const [showPrimeForm, setShowPrimeForm] = useState(false);
-
-  const timelineId = parseInt(props.id, 10);
-  const timeline = state.cache.deck[timelineId] || { id: timelineId };
-
-  const deckManager = DeckManager({
-    deck: timeline,
-    title: timeline.title,
-    resource: "timelines",
-    afterLoadedFn: afterLoaded,
-    updateForm: html`<${UpdateTimelineForm} timeline=${ timeline } />`
-  });
-
-  function onShowPrimeForm() {
-    setShowPrimeForm(!showPrimeForm);
-  }
-
-  function showAddPrimePointMessage() {
-    return html`<p class="fakelink" onClick=${ onShowPrimeForm }>
-                  You should add a point for this timeline
-                </p>`;
-  }
-
-  function onAddPrimePoint(point) {
-    Net.post(`/api/timelines/${timelineId}/points`, point).then(timeline => {
-      setShowPrimeForm(false);
-      dispatch({
-        type: 'setTimeline',
-        id: timeline.id,
-        newItem: timeline
-      });
-
-      // also update the people list now that this person is no longer uncategorised
-      Net.get('/api/timelines').then(timelines => {
-        dispatch({
-          type: 'setTimelines',
-          timelines
-        });
-      });
-    });
-  }
-
-  function primeForm() {
-    let point = {
-      title: 'Prime'
-    };
-    return html`<${PointForm} pointKind="point_prime" point=${ point } onSubmit=${ onAddPrimePoint } submitMessage="Create Point"/>`;
-  }
-
-  function showPoints(points) {
-
-    return points.map(p => html`<${Point} key=${ p.id} point=${ p } parentResource="timelines"/>`);
-  }
-
-  function hasNoPrimePoint(timeline) {
-    function hasPrimePoint(point) {
-      return point.title === "Prime";
-    }
-
-    if (timeline.points) {
-      return !timeline.points.find(hasPrimePoint);
-    };
-    return false;
-  }
-
-
-  return html`
-    <article>
-      ${ deckManager.title }
-      ${ deckManager.buttons }
-      ${ deckManager.pointForm }
-      ${ deckManager.updateForm }
-      ${ hasNoPrimePoint(timeline) && showAddPrimePointMessage() }
-      ${ showPrimeForm && primeForm() }
-      ${ timeline.points && showPoints(timeline.points) }
-      ${ deckManager.noteManager() }
-      <${SectionLinkBack} linkbacks=${ timeline.linkbacks_to_decks }/>
-    </article>`;
 }
 
 function UpdateTimelineForm({ timeline }) {
@@ -232,6 +162,7 @@ function UpdateTimelineForm({ timeline }) {
       title: localState.title.trim()
     };
 
+    // edit an existing timeline
     Net.put(`/api/timelines/${timeline.id}`, data).then(newItem => {
       dispatch({
         type: 'cacheDeck',
@@ -258,53 +189,59 @@ function UpdateTimelineForm({ timeline }) {
     </form>`;
 }
 
-function Point({ point, parentResource }) {
-  const [showForm, setShowForm] = useState(false);
+function DeckPoint({ deckPoint, noteManager, holderId }) {
+  let [expanded, setExpanded] = useState(false);
 
-  function onShowForm() {
-    setShowForm(!showForm);
+  function onClicked(e) {
+    e.preventDefault();
+    setExpanded(!expanded);
   }
 
-  function buildShowForm() {
-    function handlePointFormSubmit(p) {
-      console.log(p);
-    }
-
-    return html`<${PointForm}
-                  point=${ point }
-                  onSubmit=${ handlePointFormSubmit }
-                  submitMessage="Update Point">
-                 </${PointForm}>`;
-  }
-
-  let dom;
-  const date = point.date_textual;
-  const location = point.location_textual;
-
-  if (parentResource === "timelines" && point.title === "Prime") {
-    dom = html`<p class="subtitle">${ date } ${ location }</p>`;
-  } else {
-    let text;
-    if (location && location.length > 0) {
-      if (point.title === "Born" || point.title === "Died") {
-        text = `${date} ${point.title} in ${location}`;
-      } else {
-        // choosing not to display location, even though one is available
-        // might change this later, or even use location to show a map
-        text = `${date} ${point.title}`;
-      }
-    } else {
-        text = `${date} ${point.title}`;
-    }
-
-    dom = html`<p class="subtitle">-${ text }</p>`;
-  }
-
-  return html`
-    <div onClick=${ onShowForm }>
-      ${ dom }
-      ${ showForm && buildShowForm() }
-    </div>`;
+  let item = html`<li class='relevent-deckpoint'>
+                    <span onClick=${onClicked}>${ expanded ? svgCaretDown() : svgCaretRight() }</span>
+                    ${ deckPoint.title } ${ deckPoint.date_textual }
+                    ${ expanded && html`<div class="point-notes">
+                                          ${ noteManager(deckPoint) }
+                                        </div>`}
+                  </li>`;
+  return item;
 }
 
-export { Timelines, Timeline };
+function ListPoints({ points, deckManager, holderId, holderName }) {
+  const [showPointForm, setShowPointForm] = useState(false);
+
+  function onAddPointClicked(e) {
+    e.preventDefault();
+    setShowPointForm(!showPointForm);
+  }
+
+  // called by DeckManager once a point has been successfully created
+  function onPointCreated() {
+    setShowPointForm(false);
+  }
+
+  let arr = points || [];
+  let dps = arr.map(dp => html`<${DeckPoint}
+                                 key=${ dp.point_id}
+                                 noteManager=${ deckManager.noteManager }
+                                 holderId=${ holderId }
+                                 deckPoint=${ dp }/>`);
+
+  let formSidebarText = showPointForm ? "Hide Form" : `Add Point for ${ holderName }`;
+
+  return html`
+    <${RollableSection} heading='Timeline'>
+      <ul class="deckpoint-list">
+        ${ dps }
+      </ul>
+      <div class="spanne">
+        <div class="spanne-entry spanne-clickable" onClick=${ onAddPointClicked }>
+          <span class="spanne-icon-label">${ formSidebarText }</span>
+          ${ showPointForm ? svgCancel() : svgPointAdd() }
+        </div>
+      </div>
+      ${ showPointForm && deckManager.buildPointForm(onPointCreated) }
+    </${RollableSection}>`;
+}
+
+export { Timeline, Timelines };

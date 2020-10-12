@@ -24,8 +24,6 @@ use serde::{Deserialize, Serialize};
 pub enum PointKind {
     #[postgres(name = "point")]
     Point,
-    #[postgres(name = "point_prime")]
-    PointPrime,
     #[postgres(name = "point_begin")]
     PointBegin,
     #[postgres(name = "point_end")]
@@ -36,7 +34,6 @@ impl From<PointKind> for interop::PointKind {
     fn from(a: PointKind) -> interop::PointKind {
         match a {
             PointKind::Point => interop::PointKind::Point,
-            PointKind::PointPrime => interop::PointKind::PointPrime,
             PointKind::PointBegin => interop::PointKind::PointBegin,
             PointKind::PointEnd => interop::PointKind::PointEnd,
         }
@@ -47,7 +44,6 @@ impl From<interop::PointKind> for PointKind {
     fn from(a: interop::PointKind) -> PointKind {
         match a {
             interop::PointKind::Point => PointKind::Point,
-            interop::PointKind::PointPrime => PointKind::PointPrime,
             interop::PointKind::PointBegin => PointKind::PointBegin,
             interop::PointKind::PointEnd => PointKind::PointEnd,
         }

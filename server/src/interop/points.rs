@@ -21,7 +21,6 @@ use crate::interop::Key;
 #[derive(Copy, Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum PointKind {
     Point,
-    PointPrime,
     PointBegin,
     PointEnd,
 }

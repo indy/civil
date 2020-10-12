@@ -7,7 +7,8 @@
 
   --fg-inactive: #999;
 
-  --graph-edge-in-contrast: #ee0d00; /* edges in graphs */
+  --graph-edge-in-contrast: #000dee; /* edges in graphs */
+  --graph-edge-critical: #ee0d00; /* edges in graphs */
 
   --bg1: #eeeee8;
   --bg2: #ede7e3;

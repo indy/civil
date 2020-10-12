@@ -25,8 +25,6 @@ pub struct Timeline {
     pub id: Key,
     pub title: String,
 
-    pub sort_date: Option<chrono::NaiveDate>,
-
     pub points: Option<Vec<Point>>,
 
     pub notes: Option<Vec<Note>>,

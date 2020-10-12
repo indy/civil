@@ -19,7 +19,7 @@ import GraphSection from '/js/components/GraphSection.js';
 import { svgPointAdd,
          svgCancel,
          svgCaretDown,
-         svgCaretUp,
+         svgCaretRight,
          svgBlank,
          svgTickedCheckBox,
          svgUntickedCheckBox } from '/js/lib/svgIcons.js';
@@ -33,8 +33,8 @@ function afterLoaded(person) {
       .sort((a, b) => a.sort_year > b.sort_year);
   }
 
-  function getExactDateFromPoints(points, title) {
-    const p = points.find(p => p.title === title);
+  function getExactDateFromPoints(points, kind) {
+    const p = points.find(p => p.kind === kind);
     if (!p || !p.exact_date) {
       return null;
     }
@@ -57,7 +57,7 @@ function afterLoaded(person) {
     return point;
   }
 
-  let born = getExactDateFromPoints(person.points, "Born");
+  let born = getExactDateFromPoints(person.points, "PointBegin");
   if (born) {
     // we have a birth year so we can add the age of the person to each of the all_points_during_life elements
     person.all_points_during_life.forEach(p => addAge(p, born));
@@ -317,7 +317,6 @@ function DeckPoint({ deckPoint, noteManager, holderId }) {
     setExpanded(!expanded);
   }
 
-  // let pointTitle = deckPoint.point_title === "Prime" && deckPoint.deck_resource === "events" ? "" : deckPoint.point_title;
   let pointTitle = deckPoint.point_title;
 
   let item;
@@ -326,7 +325,7 @@ function DeckPoint({ deckPoint, noteManager, holderId }) {
   if (deckPoint.deck_id === holderId) {
     item = html`<li class='relevent-deckpoint'>
                   <span class="deckpoint-age">${ ageText }</span>
-                  <span onClick=${onClicked}>${ expanded ? svgCaretDown() : svgCaretUp() }</span>
+                  <span onClick=${onClicked}>${ expanded ? svgCaretDown() : svgCaretRight() }</span>
                   ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.point_date_textual }
                   ${ expanded && html`<div class="point-notes">
                                         ${ noteManager(deckPoint) }

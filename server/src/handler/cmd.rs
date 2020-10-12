@@ -84,6 +84,7 @@ fn packed_kind(kind: RefKind) -> i32 {
         RefKind::RefToParent => -1,
         RefKind::RefToChild => 1,
         RefKind::RefInContrast => 42,
+        RefKind::RefCritical => 99,
     }
 }
 
