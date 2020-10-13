@@ -45,11 +45,11 @@ function afterLoaded(person) {
 
   // point is an element in all_points_during_life
   function addAge(point, born) {
-    if (!point.point_date) {
+    if (!point.date) {
       return point;
     }
 
-    let eventTriple = dateStringAsTriple(point.point_date);
+    let eventTriple = dateStringAsTriple(point.date);
     let years = calcAgeInYears(eventTriple, born);
 
     point.age = years;
@@ -317,7 +317,7 @@ function DeckPoint({ deckPoint, noteManager, holderId }) {
     setExpanded(!expanded);
   }
 
-  let pointTitle = deckPoint.point_title;
+  let pointTitle = deckPoint.title;
 
   let item;
   let ageText = deckPoint.age > 0 ? `${deckPoint.age}` : "";
@@ -326,7 +326,7 @@ function DeckPoint({ deckPoint, noteManager, holderId }) {
     item = html`<li class='relevent-deckpoint'>
                   <span class="deckpoint-age">${ ageText }</span>
                   <span onClick=${onClicked}>${ expanded ? svgCaretDown() : svgCaretRight() }</span>
-                  ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.point_date_textual }
+                  ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.date_textual }
                   ${ expanded && html`<div class="point-notes">
                                         ${ noteManager(deckPoint) }
                                       </div>`}
@@ -336,7 +336,7 @@ function DeckPoint({ deckPoint, noteManager, holderId }) {
                   <${Link} href='/${deckPoint.deck_resource}/${deckPoint.deck_id}' >
                     <span class="deckpoint-age">${ ageText }</span>
                     ${ svgBlank() }
-                    ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.point_date_textual }
+                    ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.date_textual }
                   </${Link}>
                 </li>`;
   }
@@ -372,10 +372,10 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName }) {
     arr = arr.filter(e => e.deck_id === holderId);
   }
   if (!showBirthsDeaths) {
-    arr = arr.filter(e => e.deck_id === holderId || !(e.point_title === "Born" || e.point_title === "Died"));
+    arr = arr.filter(e => e.deck_id === holderId || !(e.title === "Born" || e.title === "Died"));
   }
   let dps = arr.map(dp => html`<${DeckPoint}
-                                 key=${ dp.point_id}
+                                 key=${ dp.id}
                                  noteManager=${ deckManager.noteManager }
                                  holderId=${ holderId }
                                  deckPoint=${ dp }/>`);

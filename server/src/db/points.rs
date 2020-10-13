@@ -69,29 +69,29 @@ impl From<Point> for interop::Point {
 #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
 #[pg_mapper(table = "points")]
 struct DeckPoint {
+    id: Key,
+    kind: PointKind,
+    title: Option<String>,
+    date_textual: Option<String>,
+    date: Option<chrono::NaiveDate>,
+
     deck_id: Key,
     deck_name: String,
     deck_kind: DeckKind,
-
-    point_id: Key,
-    point_kind: PointKind,
-    point_title: Option<String>,
-    point_date_textual: Option<String>,
-    point_date: Option<chrono::NaiveDate>,
 }
 
 impl From<DeckPoint> for interop::DeckPoint {
     fn from(e: DeckPoint) -> interop::DeckPoint {
         interop::DeckPoint {
+            id: e.id,
+            kind: interop::PointKind::from(e.kind),
+            title: e.title,
+            date_textual: e.date_textual,
+            date: e.date,
+
             deck_id: e.deck_id,
             deck_name: e.deck_name,
             deck_resource: interop_decks::DeckResource::from(e.deck_kind),
-
-            point_id: e.point_id,
-            point_kind: interop::PointKind::from(e.point_kind),
-            point_title: e.point_title,
-            point_date_textual: e.point_date_textual,
-            point_date: e.point_date,
         }
     }
 }

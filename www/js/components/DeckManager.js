@@ -194,7 +194,7 @@ function NoteManager(deck, cacheDeckFn, optional_deck_point) {
   var filterFn;
   if (optional_deck_point) {
     // a notemanager for notes associated with the given point_id
-    filterFn = n => n.point_id === optional_deck_point.point_id;
+    filterFn = n => n.point_id === optional_deck_point.id;
   } else {
     // a notemanager for a deck's top-level notes
     // uses notes which don't have a point_id
@@ -251,7 +251,7 @@ function NoteManager(deck, cacheDeckFn, optional_deck_point) {
       e.preventDefault();
       const noteForm = e.target;
       const markup = noteForm.content.value;
-      addNote(markup, deck.id, optional_deck_point && optional_deck_point.point_id)
+      addNote(markup, deck.id, optional_deck_point && optional_deck_point.id)
         .then(newNotes => {
           const notes = deck.notes;
           newNotes.forEach(n => {
@@ -280,7 +280,7 @@ function NoteManager(deck, cacheDeckFn, optional_deck_point) {
   <div class="inline-spanne">
     <div class="spanne-entry spanne-clickable"  onClick=${ onAddNoteClicked }>
       ${ svgAppendNote() }
-      <span class="spanne-icon-label">Append Note to ${ optional_deck_point.point_title }</span>
+      <span class="spanne-icon-label">Append Note to ${ optional_deck_point.title }</span>
     </div>
   </div>
 </div>

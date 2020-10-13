@@ -2,11 +2,11 @@
 select d.id as deck_id,
        d.name as deck_name,
        d.kind as deck_kind,
-       p.id as point_id,
-       p.kind as point_kind,
-       p.title as point_title,
-       p.date_textual as point_date_textual,
-       coalesce(p.exact_date, p.lower_date) as point_date
+       p.id as id,
+       p.kind as kind,
+       p.title as title,
+       p.date_textual as date_textual,
+       coalesce(p.exact_date, p.lower_date) as date
 from   points p, decks d
 where  d.id = $2
        and d.user_id = $1
@@ -17,11 +17,11 @@ union
 select d.id as deck_id,
        d.name as deck_name,
        d.kind as deck_kind,
-       p.id as point_id,
-       p.kind as point_kind,
-       p.title as point_title,
-       p.date_textual as point_date_textual,
-       coalesce(p.exact_date, p.lower_date) as point_date
+       p.id as id,
+       p.kind as kind,
+       p.title as title,
+       p.date_textual as date_textual,
+       coalesce(p.exact_date, p.lower_date) as date
 from   points p, decks d
 where  coalesce(p.exact_date, p.upper_date) >= (select coalesce(point_born.exact_date, point_born.lower_date) as born
                                                 from   points point_born
@@ -35,4 +35,4 @@ where  coalesce(p.exact_date, p.upper_date) >= (select coalesce(point_born.exact
        and d.id <> $2
        and d.user_id = $1
 )
-order by point_date;
+order by date;

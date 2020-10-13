@@ -18,17 +18,11 @@ import { svgPointAdd,
          svgTickedCheckBox,
          svgUntickedCheckBox } from '/js/lib/svgIcons.js';
 
-function hackMakeCompatibleWithNoteManager(p) {
-  p.point_id = p.id;
-  p.point_title = p.title;
-  return p;
-}
 // called once after the timeline has been fetched from the server
 function afterLoaded(timeline) {
   if (timeline.points) {
     timeline.points = timeline.points
       .map(addChronologicalSortYear)
-      .map(hackMakeCompatibleWithNoteManager)
       .sort((a, b) => a.sort_year > b.sort_year);
   }
 
@@ -197,14 +191,13 @@ function DeckPoint({ deckPoint, noteManager, holderId }) {
     setExpanded(!expanded);
   }
 
-  let item = html`<li class='relevent-deckpoint'>
-                    <span onClick=${onClicked}>${ expanded ? svgCaretDown() : svgCaretRight() }</span>
-                    ${ deckPoint.title } ${ deckPoint.date_textual }
-                    ${ expanded && html`<div class="point-notes">
-                                          ${ noteManager(deckPoint) }
-                                        </div>`}
-                  </li>`;
-  return item;
+  return html`<li class='relevent-deckpoint'>
+                <span onClick=${onClicked}>${ expanded ? svgCaretDown() : svgCaretRight() }</span>
+                ${ deckPoint.title } ${ deckPoint.date_textual }
+                ${ expanded && html`<div class="point-notes">
+                                      ${ noteManager(deckPoint) }
+                                    </div>`}
+              </li>`;
 }
 
 function ListPoints({ points, deckManager, holderId, holderName }) {
@@ -222,7 +215,7 @@ function ListPoints({ points, deckManager, holderId, holderName }) {
 
   let arr = points || [];
   let dps = arr.map(dp => html`<${DeckPoint}
-                                 key=${ dp.point_id}
+                                 key=${ dp.id}
                                  noteManager=${ deckManager.noteManager }
                                  holderId=${ holderId }
                                  deckPoint=${ dp }/>`);
