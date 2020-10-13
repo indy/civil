@@ -1,9 +1,9 @@
-import { html, route, Link, useState, useEffect } from '/js/ext/library.js';
+import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { useStateValue } from '/js/lib/StateProvider.js';
-import Net from '/js/lib/Net.js';
-import { capitalise, formattedDate } from '/js/lib/JsUtils.js';
-import { svgExpand, svgMinimise } from '/js/lib/svgIcons.js';
+import { useStateValue } from '/js/StateProvider.js';
+import Net from '/js/Net.js';
+import { capitalise, formattedDate } from '/js/JsUtils.js';
+import { svgExpand, svgMinimise } from '/js/svgIcons.js';
 
 import QuickFind from '/js/components/QuickFind.js';
 import ListingLink from '/js/components/ListingLink.js';

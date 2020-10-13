@@ -1,4 +1,4 @@
-import { html, Link, useState, route } from '/js/ext/library.js';
+import { html, Link, useState, route } from '/lib/preact/mod.js';
 
 export default function QuickFind({ autocompletes, resource, save }) {
   const [searchTerm, setSearchTerm] = useState('');

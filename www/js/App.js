@@ -1,10 +1,10 @@
 import { initialState, reducer } from '/js/AppState.js';
 
-import { html, Router, Route, Link, route } from '/js/ext/library.js';
+import { html, Router, Route, Link, route } from '/lib/preact/mod.js';
 
-import Net                              from '/js/lib/Net.js';
-import { WasmInterfaceProvider }        from '/js/lib/WasmInterfaceProvider.js';
-import { useStateValue, StateProvider } from '/js/lib/StateProvider.js';
+import Net                              from '/js/Net.js';
+import { WasmInterfaceProvider }        from '/js/WasmInterfaceProvider.js';
+import { useStateValue, StateProvider } from '/js/StateProvider.js';
 
 import Search                        from '/js/components/Search.js';
 import { Idea, Ideas }               from '/js/components/Ideas.js';

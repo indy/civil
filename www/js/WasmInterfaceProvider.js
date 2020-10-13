@@ -1,4 +1,4 @@
-import { html, createContext, useContext } from '/js/ext/library.js';
+import { html, createContext, useContext } from '/lib/preact/mod.js';
 
 export const WasmInterfaceContext = createContext();
 

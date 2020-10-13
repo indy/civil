@@ -1,7 +1,7 @@
 // svg icons are from https://icons.mono.company
 // old ones were from https://github.com/tabler/tabler-icons
 
-import { html } from '/js/ext/library.js';
+import { html } from '/lib/preact/mod.js';
 
 export function svgBlank() {
   return html`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" height="24" width="24"></svg>`;

@@ -1,8 +1,8 @@
-import { html, useState, useEffect, useRef } from '/js/ext/library.js';
-import { useStateValue } from '/js/lib/StateProvider.js';
-import { svgCancel, svgImage } from '/js/lib/svgIcons.js';
+import { html, useState, useEffect, useRef } from '/lib/preact/mod.js';
+import { useStateValue } from '/js/StateProvider.js';
+import { svgCancel, svgImage } from '/js/svgIcons.js';
 
-import Net from '/js/lib/Net.js';
+import Net from '/js/Net.js';
 
 export default function ImageWidget(props) {
   const [state, dispatch] = useStateValue();

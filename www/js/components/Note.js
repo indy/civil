@@ -1,8 +1,8 @@
-import { h, html, Link, useState, useEffect } from '/js/ext/library.js';
+import { h, html, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { useStateValue } from '/js/lib/StateProvider.js';
-import Net from '/js/lib/Net.js';
-import { useWasmInterface } from '/js/lib/WasmInterfaceProvider.js';
+import { useStateValue } from '/js/StateProvider.js';
+import Net from '/js/Net.js';
+import { useWasmInterface } from '/js/WasmInterfaceProvider.js';
 
 import CivilSelect from '/js/components/CivilSelect.js';
 import ImageWidget from '/js/components/ImageWidget.js';

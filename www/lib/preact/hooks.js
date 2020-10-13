@@ -1,4 +1,4 @@
-import { options } from '/js/ext/preact.js';
+import { options } from '/lib/preact/preact.js';
 
 /** @type {number} */
 let currentIndex;

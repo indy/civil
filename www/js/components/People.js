@@ -1,14 +1,14 @@
-import { html, route, Link, useState, useEffect } from '/js/ext/library.js';
+import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import Net from '/js/lib/Net.js';
-import { useStateValue } from '/js/lib/StateProvider.js';
+import Net from '/js/Net.js';
+import { useStateValue } from '/js/StateProvider.js';
 import { addChronologicalSortYear,
          calcAgeInYears,
          dateStringAsTriple,
          era,
          filterBefore,
          filterAfter,
-         filterBetween } from '/js/lib/eras.js';
+         filterBetween } from '/js/eras.js';
 import QuickFind from '/js/components/QuickFind.js';
 import RollableSection from '/js/components/RollableSection.js';
 import ListingLink from '/js/components/ListingLink.js';
@@ -22,7 +22,7 @@ import { svgPointAdd,
          svgCaretRight,
          svgBlank,
          svgTickedCheckBox,
-         svgUntickedCheckBox } from '/js/lib/svgIcons.js';
+         svgUntickedCheckBox } from '/js/svgIcons.js';
 
 
 // called once after the person has been fetched from the server

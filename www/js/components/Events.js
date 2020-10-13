@@ -1,8 +1,8 @@
-import { html, route, Link, useState, useEffect } from '/js/ext/library.js';
+import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { useStateValue } from '/js/lib/StateProvider.js';
-import Net from '/js/lib/Net.js';
-import { addChronologicalSortYear, era, filterBefore, filterAfter, filterBetween, yearFrom } from '/js/lib/eras.js';
+import { useStateValue } from '/js/StateProvider.js';
+import Net from '/js/Net.js';
+import { addChronologicalSortYear, era, filterBefore, filterAfter, filterBetween, yearFrom } from '/js/eras.js';
 
 import QuickFind from '/js/components/QuickFind.js';
 import PointForm from '/js/components/PointForm.js';

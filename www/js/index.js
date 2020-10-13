@@ -1,5 +1,5 @@
-import { render } from '/js/ext/library.js';
-import Net from '/js/lib/Net.js';
+import { render } from '/lib/preact/mod.js';
+import Net from '/js/Net.js';
 import App from '/js/App.js';
 
 

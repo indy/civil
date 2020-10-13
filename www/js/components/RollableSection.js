@@ -1,5 +1,5 @@
-import { html, useState } from '/js/ext/library.js';
-import { svgChevronDoubleDown, svgChevronDoubleRight} from '/js/lib/svgIcons.js';
+import { html, useState } from '/lib/preact/mod.js';
+import { svgChevronDoubleDown, svgChevronDoubleRight} from '/js/svgIcons.js';
 
 export default function RollableSection({ heading, children }) {
   let [isRolledDown, setIsRolledDown] = useState(true);

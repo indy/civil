@@ -1,9 +1,9 @@
-import { createRef, html, route, Link, useState, useEffect } from '/js/ext/library.js';
-import { opposingKind } from '/js/lib/JsUtils.js';
-import { useStateValue } from '/js/lib/StateProvider.js';
-import { svgTickedCheckBox, svgUntickedCheckBox, svgChevronLeft, svgChevronRight } from '/js/lib/svgIcons.js';
+import { createRef, html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
+import { opposingKind } from '/js/JsUtils.js';
+import { useStateValue } from '/js/StateProvider.js';
+import { svgTickedCheckBox, svgUntickedCheckBox, svgChevronLeft, svgChevronRight } from '/js/svgIcons.js';
 
-import graphPhysics from "/js/lib/graphPhysics.js";
+import graphPhysics from "/js/graphPhysics.js";
 // import { useHistory } from 'react-router-dom';
 
 export default function Graph({ id, depth, isIdea }) {

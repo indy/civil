@@ -1,6 +1,6 @@
-import { html, useState } from '/js/ext/library.js';
+import { html, useState } from '/lib/preact/mod.js';
 
-import Net from '/js/lib/Net.js';
+import Net from '/js/Net.js';
 
 export default function PointForm({ point, onSubmit, submitMessage, pointKind }) {
 

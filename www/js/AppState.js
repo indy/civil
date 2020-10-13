@@ -1,5 +1,5 @@
-import { addSortYear } from '/js/lib/eras.js';
-import { opposingKind } from '/js/lib/JsUtils.js';
+import { addSortYear } from '/js/eras.js';
+import { opposingKind } from '/js/JsUtils.js';
 
 export const initialState = {
   user: undefined,

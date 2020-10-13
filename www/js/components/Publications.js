@@ -1,8 +1,8 @@
-import { html, route, Link, useState, useEffect } from '/js/ext/library.js';
+import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { removeEmptyStrings, formattedDate } from '/js/lib/JsUtils.js';
-import { useStateValue } from '/js/lib/StateProvider.js';
-import Net from '/js/lib/Net.js';
+import { removeEmptyStrings, formattedDate } from '/js/JsUtils.js';
+import { useStateValue } from '/js/StateProvider.js';
+import Net from '/js/Net.js';
 
 import QuickFind from '/js/components/QuickFind.js';
 import ListingLink     from '/js/components/ListingLink.js';

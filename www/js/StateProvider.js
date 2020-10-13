@@ -1,4 +1,4 @@
-import { html, createContext, useContext, useReducer } from '/js/ext/library.js';
+import { html, createContext, useContext, useReducer } from '/lib/preact/mod.js';
 
 export const StateContext = createContext();
 

@@ -1,14 +1,14 @@
-import { html, useState } from '/js/ext/library.js';
+import { html, useState } from '/lib/preact/mod.js';
 
 // UNCOMMENT to enable deleting
 // import { useHistory } from 'react-router-dom';
 
-import Net from '/js/lib/Net.js';
-import { removeEmptyStrings } from '/js/lib/JsUtils.js';
-import { useStateValue } from '/js/lib/StateProvider.js';
-import { useWasmInterface } from '/js/lib/WasmInterfaceProvider.js';
+import Net from '/js/Net.js';
+import { removeEmptyStrings } from '/js/JsUtils.js';
+import { useStateValue } from '/js/StateProvider.js';
+import { useWasmInterface } from '/js/WasmInterfaceProvider.js';
 
-import { svgAppendNote, svgCancel, svgTickedCheckBox, svgUntickedCheckBox } from '/js/lib/svgIcons.js';
+import { svgAppendNote, svgCancel, svgTickedCheckBox, svgUntickedCheckBox } from '/js/svgIcons.js';
 
 import Note from '/js/components/Note.js';
 import PointForm from '/js/components/PointForm.js';

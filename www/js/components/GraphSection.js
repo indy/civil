@@ -1,4 +1,4 @@
-import { html } from '/js/ext/library.js';
+import { html } from '/lib/preact/mod.js';
 import Graph from '/js/components/Graph.js';
 import RollableSection from '/js/components/RollableSection.js';
 

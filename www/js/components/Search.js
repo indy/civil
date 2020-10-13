@@ -1,8 +1,8 @@
-import { html, Link, useState } from '/js/ext/library.js';
+import { html, Link, useState } from '/lib/preact/mod.js';
 
-import { useStateValue } from '/js/lib/StateProvider.js';
+import { useStateValue } from '/js/StateProvider.js';
 
-import Net from '/js/lib/Net.js';
+import Net from '/js/Net.js';
 
 export default function Search() {
   const [state] = useStateValue();

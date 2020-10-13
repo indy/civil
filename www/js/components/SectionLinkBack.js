@@ -1,7 +1,7 @@
-import { html } from '/js/ext/library.js';
+import { html } from '/lib/preact/mod.js';
 
 import ListingLink from '/js/components/ListingLink.js';
-import { capitalise } from '/js/lib/JsUtils.js';
+import { capitalise } from '/js/JsUtils.js';
 
 export default function SectionLinkBack(props) {
   const linkbacks = props.linkbacks || [];

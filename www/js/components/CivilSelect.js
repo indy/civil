@@ -1,4 +1,4 @@
-import { html, Link, useState, useEffect } from '/js/ext/library.js';
+import { html, Link, useState, useEffect } from '/lib/preact/mod.js';
 
 export default function CivilSelect({ parentDeckId, values, onChange, options, onCancelAddDecks, onCommitAddDecks }) {
   const [currentValues, setCurrentValues] = useState(values);

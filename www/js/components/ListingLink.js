@@ -1,4 +1,4 @@
-import { html, Link } from '/js/ext/library.js';
+import { html, Link } from '/lib/preact/mod.js';
 
 export default function ListingLink({ resource, id, name }) {
   const href = `/${resource}/${id}`;
