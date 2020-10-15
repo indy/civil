@@ -154,6 +154,7 @@ function Person(props) {
       <${SectionLinkBack} linkbacks=${ person.linkbacks_to_decks }/>
       ${ hasBirth && html`<${ListDeckPoints} deckPoints=${ person.all_points_during_life }
                                              deckManager=${ deckManager }
+                                             dispatch=${ dispatch }
                                              holderId=${ person.id }
                                              holderName=${ person.name }/>`}
       <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${personId} depth=${2}/>
@@ -311,7 +312,7 @@ function UpdatePersonForm({ person }) {
     }
 */
 function DeckPoint({ deckPoint, noteManager, holderId }) {
-  let [expanded, setExpanded] = useState(true);
+  let [expanded, setExpanded] = useState(false);
 
   function onClicked(e) {
     e.preventDefault();
@@ -345,10 +346,11 @@ function DeckPoint({ deckPoint, noteManager, holderId }) {
   return item;
 }
 
-function ListDeckPoints({ deckPoints, deckManager, holderId, holderName }) {
+function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, dispatch }) {
   const [onlyThisPerson, setOnlyThisPerson] = useState(false);
   const [showBirthsDeaths, setShowBirthsDeaths] = useState(false);
   const [showPointForm, setShowPointForm] = useState(false);
+  const [showDeathForm, setShowDeathForm] = useState(false);
 
   function onOnlyThisPersonClicked(e) {
     e.preventDefault();
@@ -362,11 +364,46 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName }) {
     e.preventDefault();
     setShowPointForm(!showPointForm);
   }
+  function onShowDeathFormClicked(e) {
+    e.preventDefault();
+    setShowDeathForm(!showDeathForm);
+  }
 
   // called by DeckManager once a point has been successfully created
   function onPointCreated() {
     setShowPointForm(false);
   }
+
+  function onAddDeathPoint(point) {
+    Net.post(`/api/people/${holderId}/points`, point).then(person => {
+      setShowDeathForm(false);
+      dispatch({
+        type: 'setPerson',
+        id: person.id,
+        newItem: person
+      });
+
+      // also update the people list now that this person is no longer uncategorised
+      Net.get('/api/people').then(people => {
+        dispatch({
+          type: 'setPeople',
+          people
+        });
+      });
+    });
+  }
+
+  function deathForm() {
+    let point = {
+      title: 'Died'
+    };
+    return html`
+      <${PointForm} pointKind="point_end"
+                    point=${ point }
+                    onSubmit=${ onAddDeathPoint }
+                    submitMessage="Create Death Point"/>`;
+  }
+
 
   let arr = deckPoints || [];
   if (onlyThisPerson) {
@@ -375,17 +412,22 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName }) {
   if (!showBirthsDeaths) {
     arr = arr.filter(e => e.deck_id === holderId || !(e.title === "Born" || e.title === "Died"));
   }
-  let dps = arr.map(dp => html`<${DeckPoint}
+  const dps = arr.map(dp => html`<${DeckPoint}
                                  key=${ dp.id}
                                  noteManager=${ deckManager.noteManager }
                                  holderId=${ holderId }
                                  deckPoint=${ dp }/>`);
 
-  let formSidebarText = showPointForm ? "Hide Form" : `Add Point for ${ holderName }`;
+  const formSidebarText = showPointForm ? "Hide Form" : `Add Point for ${ holderName }`;
+  const hasDied = deckPoints.some(dp => dp.deck_id === holderId && dp.kind === 'PointEnd');
 
   return html`
     <${RollableSection} heading='Points during the life of ${ holderName }'>
       <div class="spanne">
+        ${ !hasDied && html`<div class="spanne-entry spanne-clickable" onClick=${ onShowDeathFormClicked }>
+                              <span class="spanne-icon-label">Add Died Point</span>
+                              ${ svgPointAdd() }
+                            </div>`}
         <div class="spanne-entry spanne-clickable" onClick=${ onOnlyThisPersonClicked }>
           <span class="spanne-icon-label">Only ${ holderName }</span>
           ${ onlyThisPerson ? svgTickedCheckBox() : svgUntickedCheckBox() }
@@ -395,6 +437,8 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName }) {
                                      ${ showBirthsDeaths ? svgTickedCheckBox() : svgUntickedCheckBox() }
                                    </div>`}
       </div>
+
+      ${ showDeathForm && deathForm() }
       <ul class="deckpoint-list">
         ${ dps }
       </ul>
