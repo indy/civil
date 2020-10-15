@@ -25,8 +25,8 @@ import { svgPointAdd,
          svgUntickedCheckBox } from '/js/svgIcons.js';
 
 
-// called once after the person has been fetched from the server
-function afterLoaded(person) {
+// called before this deck is cached by the AppState (ie after every modification)
+function preCacheFn(person) {
   if (person.points) {
     person.points = person.points
       .map(addChronologicalSortYear)
@@ -46,6 +46,7 @@ function afterLoaded(person) {
   // point is an element in all_points_during_life
   function addAge(point, born) {
     if (!point.date) {
+      console.log("no date???");
       return point;
     }
 
@@ -77,7 +78,7 @@ function Person(props) {
     deck: person,
     title: person.name,
     resource: "people",
-    afterLoadedFn: afterLoaded,
+    preCacheFn: preCacheFn,
     updateForm: html`<${UpdatePersonForm} person=${person} />`
   });
 

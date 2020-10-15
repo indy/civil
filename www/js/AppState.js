@@ -113,7 +113,6 @@ export const reducer = (state, action) => {
   case 'cacheDeck':
     {
       let newState = { ...state };
-      //      updateListOfTitles(newState.ideas, action.newItem);
       newState.cache.deck[action.id] = action.newItem;
       return newState;
     }

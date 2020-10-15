@@ -18,8 +18,8 @@ import { svgPointAdd,
          svgTickedCheckBox,
          svgUntickedCheckBox } from '/js/svgIcons.js';
 
-// called once after the timeline has been fetched from the server
-function afterLoaded(timeline) {
+// called before this deck is cached by the AppState (ie after every modification)
+function preCacheFn(timeline) {
   if (timeline.points) {
     timeline.points = timeline.points
       .map(addChronologicalSortYear)
@@ -39,7 +39,7 @@ function Timeline(props) {
     deck: timeline,
     title: timeline.title,
     resource: "timelines",
-    afterLoadedFn: afterLoaded,
+    preCacheFn: preCacheFn,
     updateForm: html`<${UpdateTimelineForm} timeline=${timeline} />`
   });
 

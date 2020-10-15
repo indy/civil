@@ -14,13 +14,13 @@ import Note from '/js/components/Note.js';
 import PointForm from '/js/components/PointForm.js';
 import ImageWidget from '/js/components/ImageWidget.js';
 
-export default function DeckManager({ deck, title, resource, updateForm, afterLoadedFn }) {
+// preCacheFn performs any one-off calculations before caching the Deck
+export default function DeckManager({ deck, title, resource, updateForm, preCacheFn }) {
   // UNCOMMENT to enable deleting
   // let history = useHistory();
 
-  const [state, dispatch] = useStateValue();
-
-  ensureCorrectDeck(resource, deck.id, afterLoadedFn);   // 2 redraws here
+  // returns helper fn that applies preCacheFn and stores deck in AppState
+  const cacheDeck = setupCacheDeckFn(deck, resource, preCacheFn);
 
   const [showButtons, setShowButtons] = useState(false);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
@@ -49,11 +49,6 @@ export default function DeckManager({ deck, title, resource, updateForm, afterLo
       </div>`;
   };
 
-  // helper fn that can be passed into the NoteManager without exposing cacheDeck or dispatch
-  function cacheDeckFn(deck) {
-    cacheDeck(dispatch, deck);
-  }
-
   function onShowButtons() {
     setShowButtons(!showButtons);
     setShowUpdateForm(false);
@@ -74,7 +69,7 @@ export default function DeckManager({ deck, title, resource, updateForm, afterLo
     function onAddPoint(point) {
       const url = `/api/${resource}/${deck.id}/points`;
       Net.post(url, point).then(updatedDeck => {
-        cacheDeckFn(updatedDeck);
+        cacheDeck(updatedDeck);
         onSuccessCallback();
       });
     };
@@ -87,7 +82,7 @@ export default function DeckManager({ deck, title, resource, updateForm, afterLo
   }
 
   res.noteManager = function(optional_point_id) {
-    return NoteManager(deck, cacheDeckFn, optional_point_id);
+    return NoteManager(deck, cacheDeck, optional_point_id);
   }
 
   res.hasNotes = deck.notes && deck.notes.length > 0;
@@ -132,35 +127,6 @@ function NoteForm({ onSubmit, onCancel }) {
   </div>`;
 }
 
-function ensureCorrectDeck(resource, id, afterLoadedFn) {
-  const [state, dispatch] = useStateValue();
-  const [currentId, setCurrentId] = useState(false);
-
-  if (id !== currentId) {
-    // get here on first load and when we're already on a /$NOTE_HOLDER/:id page
-    // and follow a Link to another /$NOTE_HOLDER/:id
-    // (where $NOTE_HOLDER is the same type)
-    //
-    setCurrentId(id);
-
-    if(!state.cache.deck[id]) {
-      // fetch resource from the server
-      const url = `/api/${resource}/${id}`;
-      Net.get(url).then(s => {
-        if (s) {
-          let updatedDeck = applyDecksToNotes(s);
-          if (afterLoadedFn) {
-            updatedDeck = afterLoadedFn(updatedDeck);
-          }
-          cacheDeck(dispatch, updatedDeck);
-        } else {
-          console.error(`error: fetchDeck for ${url}`);
-        }
-      });
-    }
-  }
-}
-
 function addNote(markup, deck_id, optional_point_id) {
   const wasmInterface = useWasmInterface();
   const notes = wasmInterface.splitter(markup);
@@ -190,7 +156,7 @@ function addNote(markup, deck_id, optional_point_id) {
   }
 }
 
-function NoteManager(deck, cacheDeckFn, optional_deck_point) {
+function NoteManager(deck, cacheDeck, optional_deck_point) {
   var filterFn;
   if (optional_deck_point) {
     // a notemanager for notes associated with the given point_id
@@ -209,7 +175,7 @@ function NoteManager(deck, cacheDeckFn, optional_deck_point) {
     const index = notes.findIndex(n => n.id === id);
 
     modifyFn(notes, index);
-    cacheDeckFn({...deck, notes});
+    cacheDeck({...deck, notes});
   };
 
   function onEditedNote(id, data) {
@@ -258,7 +224,7 @@ function NoteManager(deck, cacheDeckFn, optional_deck_point) {
             notes.push(n);
           });
 
-          cacheDeckFn({...deck, notes});
+          cacheDeck({...deck, notes});
           setShowNoteForm(false);
           // setShowUpdateForm(false);
         })
@@ -308,12 +274,49 @@ function NoteManager(deck, cacheDeckFn, optional_deck_point) {
       </section>`;
 }
 
-function cacheDeck(dispatch, deck) {
-  dispatch({
-    type: 'cacheDeck',
-    id: deck.id,
-    newItem: deck
-  });
+function setupCacheDeckFn(deck, resource, preCacheFn) {
+  const [state, dispatch] = useStateValue();
+
+  function cacheDeck(deck) {
+    if (preCacheFn) {
+      deck = preCacheFn(deck);
+    }
+    dispatch({
+      type: 'cacheDeck',
+      id: deck.id,
+      newItem: deck
+    });
+  }
+
+  // fetches resource from server if not already in cache
+  ensureCorrectDeck(state, resource, deck.id, cacheDeck);   // 2 redraws here
+
+  return cacheDeck;
+}
+
+function ensureCorrectDeck(state, resource, id, cacheDeck) {
+  const [currentId, setCurrentId] = useState(false);
+
+  if (id !== currentId) {
+    // get here on first load and when we're already on a /$NOTE_HOLDER/:id page
+    // and follow a Link to another /$NOTE_HOLDER/:id
+    // (where $NOTE_HOLDER is the same type)
+    //
+    setCurrentId(id);
+
+    if(!state.cache.deck[id]) {
+      // fetch resource from the server
+      const url = `/api/${resource}/${id}`;
+      Net.get(url).then(s => {
+        if (s) {
+          let updatedDeck = applyDecksToNotes(s);
+          cacheDeck(updatedDeck);
+        } else {
+          console.error(`error: fetchDeck for ${url}`);
+        }
+      });
+    }
+  }
 }
 
 function applyDecksToNotes(obj) {
