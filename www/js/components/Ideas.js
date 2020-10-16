@@ -2,7 +2,7 @@ import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
-import { capitalise, formattedDate } from '/js/JsUtils.js';
+import { capitalise, formattedDate, plural } from '/js/JsUtils.js';
 import { svgExpand, svgMinimise } from '/js/svgIcons.js';
 
 import QuickFind from '/js/components/QuickFind.js';
@@ -10,6 +10,7 @@ import ListingLink from '/js/components/ListingLink.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
 import DeckManager     from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
+import RollableSection from '/js/components/RollableSection.js';
 
 let gKeyCounter = 0;
 
@@ -129,6 +130,7 @@ function Idea(props) {
   // this check prevents the vis from rendering until after we have all the note and links ready
   const okToShowGraph = deckManager.hasNotes || idea.linkbacks_to_decks;
   const created_at_textual = idea.created_at ? formattedDate(idea.created_at) : '';
+  const graphTitle = idea.title ? `${idea.title} Connectivity Graph` : '';
 
   return html`
     <article>
@@ -139,7 +141,7 @@ function Idea(props) {
       ${ deckManager.noteManager() }
       <${SectionLinkBack} linkbacks=${ idea.linkbacks_to_decks }/>
       <${SectionSearchResultsLinkBack} linkbacks=${ idea.search_results }/>
-      <${GraphSection} heading='Ideas Graph' okToShowGraph=${okToShowGraph} id=${ ideaId } isIdea depth=${ 2 } />
+      <${GraphSection} heading=${ graphTitle } okToShowGraph=${okToShowGraph} id=${ ideaId } isIdea depth=${ 2 } />
     </article>`;
 }
 
@@ -209,33 +211,27 @@ function UpdateIdeaForm({ idea }) {
     </form>`;
 }
 
-function SectionSearchResultsLinkBack(props) {
-  function listingLinks(linkbacks, heading) {
-    function buildLinkback(lb) {
-      return (
-        html`<${ListingLink} id=${ lb.id } name=${ lb.name } resource=${ lb.resource }/>`
-      );
-    }
+function SectionSearchResultsLinkBack({ linkbacks }) {
+  linkbacks = linkbacks || [];
 
-    if (linkbacks.length === 0) {
-      return html`<div></div>`;
-    }
-
-    let list = linkbacks.map(buildLinkback);
-    let sectionHeading = capitalise(heading || linkbacks[0].resource);
-    let sectionId = linkbacks[0].id;
-
-    return html`
-    <section key=${ sectionId }>
-      <h2>${ sectionHeading }</h2>
-      <ul>
-        ${ list }
-      </ul>
-    </section>`;
+  function buildLinkback(lb) {
+    return (
+      html`<${ListingLink} id=${ lb.id } name=${ lb.name } resource=${ lb.resource }/>`
+    );
   }
 
-  const linkbacks = props.linkbacks || [];
-  return listingLinks(linkbacks, "Additional Search Results");
+  if (linkbacks.length === 0) {
+    return html`<div></div>`;
+  }
+
+  const heading = plural(linkbacks.length, 'Additional Search Result', 's');
+
+  return html`<${RollableSection} heading=${ heading } initiallyRolledUp>
+                <ul>
+                  ${ linkbacks.map(buildLinkback) }
+                </ul>
+              </${RollableSection}>
+`;
 }
 
 export { Ideas, Idea };

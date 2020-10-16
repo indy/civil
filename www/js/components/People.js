@@ -424,15 +424,15 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, dispatc
   return html`
     <${RollableSection} heading='Points during the life of ${ holderName }'>
       <div class="spanne">
-        ${ !hasDied && html`<div class="spanne-entry spanne-clickable" onClick=${ onShowDeathFormClicked }>
+        ${ !hasDied && html`<div class="spanne-entry clickable" onClick=${ onShowDeathFormClicked }>
                               <span class="spanne-icon-label">Add Died Point</span>
                               ${ svgPointAdd() }
                             </div>`}
-        <div class="spanne-entry spanne-clickable" onClick=${ onOnlyThisPersonClicked }>
+        <div class="spanne-entry clickable" onClick=${ onOnlyThisPersonClicked }>
           <span class="spanne-icon-label">Only ${ holderName }</span>
           ${ onlyThisPerson ? svgTickedCheckBox() : svgUntickedCheckBox() }
         </div>
-        ${ !onlyThisPerson && html`<div class="spanne-entry spanne-clickable" onClick=${ onShowOtherClicked }>
+        ${ !onlyThisPerson && html`<div class="spanne-entry clickable" onClick=${ onShowOtherClicked }>
                                      <span class="spanne-icon-label">Show Other Birth/Deaths</span>
                                      ${ showBirthsDeaths ? svgTickedCheckBox() : svgUntickedCheckBox() }
                                    </div>`}
@@ -443,7 +443,7 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, dispatc
         ${ dps }
       </ul>
       <div class="spanne">
-        <div class="spanne-entry spanne-clickable" onClick=${ onAddPointClicked }>
+        <div class="spanne-entry clickable" onClick=${ onAddPointClicked }>
           <span class="spanne-icon-label">${ formSidebarText }</span>
           ${ showPointForm ? svgCancel() : svgPointAdd() }
         </div>

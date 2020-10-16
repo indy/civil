@@ -54,19 +54,19 @@ export default function Graph({ id, depth, isIdea }) {
   return html`
 <div>
   <div class="spanne">
-    <div class="spanne-entry spanne-clickable" onClick=${ onOnlyIdeaClicked }>
+    <div class="spanne-entry clickable" onClick=${ onOnlyIdeaClicked }>
       <span class="spanne-icon-label">Only Ideas</span>
       ${ onlyIdea ? svgTickedCheckBox() : svgUntickedCheckBox() }
     </div>
-    <div class="spanne-entry spanne-clickable" onClick=${ onOnlyParentChildClicked }>
+    <div class="spanne-entry clickable" onClick=${ onOnlyParentChildClicked }>
       <span class="spanne-icon-label">Only Parent/Child References</span>
       ${ onlyParentChild ? svgTickedCheckBox() : svgUntickedCheckBox() }
     </div>
     <div class="spanne-entry">
       <span class="spanne-icon-label">Depth</span>
-      <span class="spanne-clickable" onClick=${ onLeftClicked }>${ svgChevronLeft() }</span>
+      <span class="clickable" onClick=${ onLeftClicked }>${ svgChevronLeft() }</span>
       <span class="spanne-icon-label">${ graphDepth }</span>
-      <span class="spanne-clickable" onClick=${ onRightClicked }>${ svgChevronRight() }</span>
+      <span class="clickable" onClick=${ onRightClicked }>${ svgChevronRight() }</span>
     </div>
   </div>
   <div class="svg-container" ref=${ svgContainerRef } onClick=${ onGraphClicked }>

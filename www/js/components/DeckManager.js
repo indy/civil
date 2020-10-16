@@ -106,7 +106,7 @@ function NoteForm({ onSubmit, onCancel }) {
   return html`
   <div class="append-note">
     <div class="spanne">
-      <div class="spanne-entry spanne-clickable" onClick=${ onCancel }>
+      <div class="spanne-entry clickable" onClick=${ onCancel }>
         <span class="spanne-icon-label">Cancel</span>
         ${ svgCancel() }
       </div>
@@ -244,7 +244,7 @@ function NoteManager(deck, cacheDeck, optional_deck_point) {
       return html`
 <div class="inline-append-note">
   <div class="inline-spanne">
-    <div class="spanne-entry spanne-clickable"  onClick=${ onAddNoteClicked }>
+    <div class="spanne-entry clickable"  onClick=${ onAddNoteClicked }>
       ${ svgAppendNote() }
       <span class="spanne-icon-label">Append Note to ${ optional_deck_point.title }</span>
     </div>
@@ -255,7 +255,7 @@ function NoteManager(deck, cacheDeck, optional_deck_point) {
       return html`
 <div class="append-note">
   <div class="spanne">
-    <div class="spanne-entry spanne-clickable"  onClick=${ onAddNoteClicked }>
+    <div class="spanne-entry clickable"  onClick=${ onAddNoteClicked }>
       <span class="spanne-icon-label">Append Note</span>
       ${ svgAppendNote() }
     </div>

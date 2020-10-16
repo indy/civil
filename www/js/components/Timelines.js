@@ -228,7 +228,7 @@ function ListPoints({ points, deckManager, holderId, holderName }) {
         ${ dps }
       </ul>
       <div class="spanne">
-        <div class="spanne-entry spanne-clickable" onClick=${ onAddPointClicked }>
+        <div class="spanne-entry clickable" onClick=${ onAddPointClicked }>
           <span class="spanne-icon-label">${ formSidebarText }</span>
           ${ showPointForm ? svgCancel() : svgPointAdd() }
         </div>

@@ -14,6 +14,10 @@ export function capitalise(text) {
   return text.split(' ').map(capitaliseWord).join(' ');
 }
 
+export function plural(num, phrase, suffix) {
+  return (num === 1) ? `${num} ${phrase}` : `${num} ${phrase}${suffix}`;
+}
+
 export function formattedDate(timestamp) {
   const options = { year: 'numeric', month: 'long', day: 'numeric' };
   const d = new Date(timestamp);

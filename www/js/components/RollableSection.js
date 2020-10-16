@@ -1,27 +1,27 @@
 import { html, useState } from '/lib/preact/mod.js';
 import { svgChevronDoubleDown, svgChevronDoubleRight} from '/js/svgIcons.js';
 
-export default function RollableSection({ heading, children }) {
-  let [isRolledDown, setIsRolledDown] = useState(true);
+export default function RollableSection({ heading, children, initiallyRolledUp }) {
+  let [isRolledUp, setIsRolledUp] = useState(!!initiallyRolledUp);
 
   function onRollClicked(e) {
     e.preventDefault();
-    setIsRolledDown(!isRolledDown);
+    setIsRolledUp(!isRolledUp);
   }
 
-  let classState = isRolledDown ? "rolled-down" : "rolled-up";
-  let icon = isRolledDown ? svgChevronDoubleDown() : svgChevronDoubleRight();
+  let classState = isRolledUp ? "rolled-up" : "rolled-down";
+  let icon = isRolledUp ? svgChevronDoubleRight() : svgChevronDoubleDown();
 
   return html`
     <section class=${classState}>
       <div>
         <div class="spanne">
-          <div class="spanne-entry spanne-clickable" onClick=${ onRollClicked }>
+          <div class="spanne-entry clickable" onClick=${ onRollClicked }>
             ${ icon }
           </div>
         </div>
-        <h2>${ heading }</h2>
-        ${ isRolledDown && children }
+        <h2 class="clickable" onClick=${ onRollClicked }>${ heading }</h2>
+        ${ !isRolledUp && children }
       </div>
     </section>`;
 }

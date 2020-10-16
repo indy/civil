@@ -11,6 +11,12 @@
              font-style: normal; }
 
 
+
+#root {
+  border-left: 0.1em solid var(--bg2);
+  padding: 1em;
+}
+
 /* -------------------------------------------------------------------------------- */
 
 .image-widget-hover-message {
@@ -235,7 +241,7 @@ section > form { width: var(--block-width); }
   }
 }
 
-.spanne-clickable {
+.clickable {
   cursor: pointer;
 }
 
