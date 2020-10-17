@@ -19,21 +19,54 @@
 
 "use strict";
 
-// set this to true when deploying, false when developing js
-var useCache = false;
+// set this to false when deploying, true when developing js
+var devMode = false;
 
-var CACHE_NAME = "civil-20201012";
+var CACHE_NAME = "civil-20201017q";
 
 var precacheConfig = [
-  "/index.html",
-  "/js/index.js",
-  "/wasm.js",
-  "/wasm_bg.wasm",
+  "/apple-touch-icon.png",
   "/civil-base.css",
-  "/tufte.css",
   "/civil-form.css",
   "/civil.css",
-  "/apple-touch-icon.png",
+  "/index.html",
+
+  "/js/App.js",
+  "/js/AppState.js",
+  "/js/eras.js",
+  "/js/graphPhysics.js",
+  "/js/index.js",
+  "/js/JsUtils.js",
+  "/js/Net.js",
+  "/js/StateProvider.js",
+  "/js/svgIcons.js",
+  "/js/WasmInterfaceProvider.js",
+  "/js/components/CivilSelect.js",
+  "/js/components/DeckManager.js",
+  "/js/components/Graph.js",
+  "/js/components/GraphSection.js",
+  "/js/components/Ideas.js",
+  "/js/components/ImageWidget.js",
+  "/js/components/ListingLink.js",
+  "/js/components/Login.js",
+  "/js/components/Note.js",
+  "/js/components/People.js",
+  "/js/components/PointForm.js",
+  "/js/components/Publications.js",
+  "/js/components/QuickFind.js",
+  "/js/components/RollableSection.js",
+  "/js/components/Search.js",
+  "/js/components/SectionLinkBack.js",
+  "/js/components/Timelines.js",
+
+  "/tufte.css",
+  "/wasm.js",
+  "/wasm_bg.wasm",
+  "/lib/preact/hooks.js",
+  "/lib/preact/htm.js",
+  "/lib/preact/mod.js",
+  "/lib/preact/preact.js",
+  "/lib/preact/preact-router.js",
   "/favicon-16x16.png",
   "/favicon-32x32.png",
   "/fonts/et-book-display-italic-old-style-figures/et-book-display-italic-old-style-figures.woff",
@@ -43,6 +76,7 @@ var precacheConfig = [
 ];
 
 var urlsToCache = new Set();
+
 precacheConfig.forEach(asset => {
   var url = new URL(asset, self.location);
   urlsToCache.add(url.toString());
@@ -157,27 +191,13 @@ self.addEventListener("activate", function (e) {
 });
 
 self.addEventListener("fetch", function (event) {
-
-  // console.log(window.location.hostname);
-  // if (window.location.hostname === "localhost" && useCache) {
-  //   console.error("set useCache = false; during dev");
-  // }
-
-  if (useCache && ("GET" === event.request.method || "HEAD" === event.request.method)) {
+  if ("GET" === event.request.method || "HEAD" === event.request.method) {
     var url = stripIgnoredUrlParameters(event.request.url, ignoreUrlParametersMatching);
 
-    // hackishly remove fuckery with urls
-    //
-    // when refreshing from a page such as /ideas/568 the /index.html page will be loaded from
-    // cache. Even though that page contains a href path such as "/civil.css" for some fucking
-    // reason this will be requested as "/ideas/civil.css". Therefore we now need this hacky
-    // function to remove the fucking /ideas/ part of the url when making requests for resources
-    // specified in the index.html file, even though those fucking resources are fucking
-    // specified with absolute paths.
-    //
-    url = hackRemoveDeckPaths(url);
-
     var isCached = urlsToCache.has(url);
+
+    if (devMode && isCached)
+      return;
 
     if (!isCached && "navigate" === event.request.mode) {
       url = new URL("/index.html", self.location).toString();
@@ -204,18 +224,3 @@ self.addEventListener("fetch", function (event) {
     }
   }
 });
-
-function hackRemoveDeckPaths(dpath) {
-  if (dpath.endsWith("css") ||
-      dpath.endsWith("js") ||
-      dpath.endsWith("png") ||
-      dpath.endsWith("wasm") ||
-      dpath.endsWith("ttf") ||
-      dpath.endsWith("woff")) {
-    dpath = dpath.replace(/ideas\//, '');
-    dpath = dpath.replace(/publications\//, '');
-    dpath = dpath.replace(/people\//, '');
-    dpath = dpath.replace(/events\//, '');
-  }
-  return dpath;
-}
