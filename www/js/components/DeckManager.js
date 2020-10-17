@@ -8,7 +8,7 @@ import { removeEmptyStrings } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { useWasmInterface } from '/js/WasmInterfaceProvider.js';
 
-import { svgAppendNote, svgCancel, svgTickedCheckBox, svgUntickedCheckBox } from '/js/svgIcons.js';
+import { svgEdit, svgCancel, svgTickedCheckBox, svgUntickedCheckBox } from '/js/svgIcons.js';
 
 import Note from '/js/components/Note.js';
 import PointForm from '/js/components/PointForm.js';
@@ -245,7 +245,7 @@ function NoteManager(deck, cacheDeck, optional_deck_point) {
 <div class="inline-append-note">
   <div class="inline-spanne">
     <div class="spanne-entry clickable"  onClick=${ onAddNoteClicked }>
-      ${ svgAppendNote() }
+      ${ svgEdit() }
       <span class="spanne-icon-label">Append Note to ${ optional_deck_point.title }</span>
     </div>
   </div>
@@ -257,7 +257,7 @@ function NoteManager(deck, cacheDeck, optional_deck_point) {
   <div class="spanne">
     <div class="spanne-entry clickable"  onClick=${ onAddNoteClicked }>
       <span class="spanne-icon-label">Append Note</span>
-      ${ svgAppendNote() }
+      ${ svgEdit() }
     </div>
   </div>
 </div>
