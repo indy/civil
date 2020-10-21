@@ -1,5 +1,5 @@
 SELECT n.id
-FROM   notes n,
+FROM   notes n
 WHERE  n.deck_id = $1
 UNION
 SELECT n.id

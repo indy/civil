@@ -35,8 +35,6 @@ export const initialState = {
   publications: [],
   peopleLoaded: false,
   people: [],
-  eventsLoaded: false,
-  events: [],
   timelinesLoaded: false,
   timelines: [],
 };
@@ -116,6 +114,23 @@ export const reducer = (state, action) => {
       newState.cache.deck[action.id] = action.newItem;
       return newState;
     }
+  case 'deleteDeck':
+    {
+      let filterFn = d => d.id !== action.id;
+      let newState = { ...state,
+                       ac: {
+                         decks: state.ac.decks.filter(filterFn)
+                       },
+                       ideas: state.ideas.filter(filterFn),
+                       publications: state.publications.filter(filterFn),
+                       people: state.people.filter(filterFn),
+                       timelines: state.timelines.filter(filterFn),
+                     };
+      delete newState.fullGraph[action.id];
+      // todo: delete all the other references in fullGraph to action.id
+      delete newState.cache.deck[action.id];
+      return newState;
+    }
   case 'setIdeas':
     let newState = {
       ...state,
@@ -147,19 +162,6 @@ export const reducer = (state, action) => {
       let newState = { ...state };
       newState.cache.deck[action.newItem.id] = action.newItem;
       updateListOfNames(newState.people, action.newItem);
-      return newState;
-    }
-  case 'setEvents':
-    action.events.forEach(addSortYear);
-    return {
-      ...state,
-      eventsLoaded: true,
-      events: action.events
-    };
-  case 'setEvent':
-    {
-      let newState = { ...state };
-      updateListOfTitles(newState.events, action.newItem);
       return newState;
     }
   case 'setTimelines':

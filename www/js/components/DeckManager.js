@@ -1,7 +1,4 @@
-import { html, useState } from '/lib/preact/mod.js';
-
-// UNCOMMENT to enable deleting
-// import { useHistory } from 'react-router-dom';
+import { html, useState, route } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { removeEmptyStrings } from '/js/JsUtils.js';
@@ -16,14 +13,14 @@ import ImageWidget from '/js/components/ImageWidget.js';
 
 // preCacheFn performs any one-off calculations before caching the Deck
 export default function DeckManager({ deck, title, resource, updateForm, preCacheFn }) {
-  // UNCOMMENT to enable deleting
-  // let history = useHistory();
-
   // returns helper fn that applies preCacheFn and stores deck in AppState
-  const cacheDeck = setupCacheDeckFn(deck, resource, preCacheFn);
+
+  const [state, dispatch] = useStateValue();
+  const cacheDeck = setupCacheDeckFn(state, dispatch, deck, resource, preCacheFn);
 
   const [showButtons, setShowButtons] = useState(false);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
   function buildButtons() {
     function onEditParentClicked(e) {
@@ -31,21 +28,39 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
       e.preventDefault();
     };
 
-    function onDeleteParentClicked(e) {
-      // UNCOMMENT to enable deleting
-      // Net.delete(`/api/${resource}/${id}`).then(() => {
-      //   history.push(`/${resource}`);
-      // });
-
-      alert("delete logic has been commented out of DeckManager.js, re-enable if that's what you _REALLY_ want to do");
-
+    function eventRegardingDeleteConfirmation(e, newVal) {
       e.preventDefault();
+      setShowDeleteConfirmation(newVal);
+    }
+
+    function onDeleteParentClicked(e) {
+      eventRegardingDeleteConfirmation(e, true);
     };
+
+    function cancelDeleteClicked(e) {
+      eventRegardingDeleteConfirmation(e, false);
+    }
+
+    function confirmDeleteClicked(e) {
+      Net.delete(`/api/${resource}/${deck.id}`).then(() => {
+        // remove the resource from the app state
+        dispatch({
+          type: 'deleteDeck',
+          id: deck.id
+        });
+        route(`/${resource}`, true);
+      });
+      eventRegardingDeleteConfirmation(e, false);
+    }
 
     return html`
       <div>
-        <button onClick=${ onEditParentClicked }>Edit...</button>
-        <button onClick=${ onDeleteParentClicked }>Delete...</button>
+        ${ !showDeleteConfirmation && html`<button onClick=${ onEditParentClicked }>Edit...</button>`}
+        ${ !showDeleteConfirmation && html`<button onClick=${ onDeleteParentClicked }>Delete...</button>`}
+        ${ showDeleteConfirmation && html`
+                                      <span class="delete-confirmation">Really Delete?</span>
+                                      <button onClick=${ cancelDeleteClicked }>Cancel</button>
+                                      <button onClick=${ confirmDeleteClicked }>Yes Delete</button>`}
       </div>`;
   };
 
@@ -274,9 +289,7 @@ function NoteManager(deck, cacheDeck, optional_deck_point) {
       </section>`;
 }
 
-function setupCacheDeckFn(deck, resource, preCacheFn) {
-  const [state, dispatch] = useStateValue();
-
+function setupCacheDeckFn(state, dispatch, deck, resource, preCacheFn) {
   function cacheDeck(deck) {
     if (preCacheFn) {
       deck = preCacheFn(deck);

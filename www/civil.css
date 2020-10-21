@@ -17,6 +17,12 @@
   padding: 1em;
 }
 
+.delete-confirmation {
+  padding-left: 3em;
+  padding-right: 1em;
+  font-size: 1.3em;
+}
+
 /* -------------------------------------------------------------------------------- */
 
 .image-widget-hover-message {

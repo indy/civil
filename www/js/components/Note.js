@@ -12,6 +12,8 @@ export default function Note(props) {
   const [showAddDecksUI, setShowAddDecksUI] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+
   const [state, dispatch] = useStateValue();
 
   const [note, setNote] = useState({
@@ -133,10 +135,30 @@ export default function Note(props) {
       editLabelText = "Stop Editing";
     }
 
+    function eventRegardingDeleteConfirmation(e, newVal) {
+      e.preventDefault();
+      setShowDeleteConfirmation(newVal);
+    }
+
+    function deleteClicked(e) {
+      eventRegardingDeleteConfirmation(e, true);
+    }
+    function confirmDeleteClicked(e) {
+      onReallyDelete(props.note.id, props.onDelete);
+      eventRegardingDeleteConfirmation(e, false);
+    }
+    function cancelDeleteClicked(e) {
+      eventRegardingDeleteConfirmation(e, false);
+    }
+
     return html`
       <div>
-        <button onClick=${ onEditClicked }>${ editLabelText }</button>
-        ${ isEditing && html`<button onClick=${ (e) => { onDeleteClicked(e, props.note.id, props.onDelete);} }>Delete</button>` }
+        ${ !showDeleteConfirmation && html`<button onClick=${ onEditClicked }>${ editLabelText }</button>`}
+        ${ isEditing && !showDeleteConfirmation && html`<button onClick=${ deleteClicked }>Delete</button>` }
+        ${ isEditing && showDeleteConfirmation && html`
+                                                    <span class="delete-confirmation">Really Delete?</span>
+                                                    <button onClick=${ cancelDeleteClicked }>Cancel</button>
+                                                    <button onClick=${ confirmDeleteClicked }>Yes Delete</button>`}
         ${ isEditing && html`<${ImageWidget}/>` }
         ${ !isEditing && html`<button onClick=${ () => { setShowAddDecksUI(!showAddDecksUI); } }>References...</button>` }
       </div>
@@ -161,11 +183,10 @@ function editNote(id, data) {
   return Net.put("/api/notes/" + id.toString(), post);
 }
 
-function onDeleteClicked(event, id, onDelete) {
+function onReallyDelete(id, onDelete) {
   Net.delete("/api/notes/" + id.toString()).then(() => {
     onDelete(id);
   });
-  event.preventDefault();
 };
 
 
