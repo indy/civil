@@ -1,5 +1,6 @@
 import { html, useState } from '/lib/preact/mod.js';
 
+import { capitalise } from '/js/JsUtils.js';
 import Net from '/js/Net.js';
 
 export default function PointForm({ point, onSubmit, submitMessage, pointKind }) {
@@ -44,6 +45,7 @@ export default function PointForm({ point, onSubmit, submitMessage, pointKind })
     date_fuzz: initialPoint.date_fuzz,
     date_textual_derived_from: '',
     is_approx: false,
+    present_as_duration: false,
     round_to_year: false,
     has_typed_title: false,
     kind: pointKind || 'point'
@@ -88,7 +90,7 @@ export default function PointForm({ point, onSubmit, submitMessage, pointKind })
     const parsedUpperDate = parseDateStringAsTriple(s.upper_date);
 
     if (parsedLowerDate && parsedUpperDate) {
-      s.date_textual = asHumanReadableDateRange(parsedLowerDate, parsedUpperDate, s.is_approx, s.round_to_year);
+      s.date_textual = asHumanReadableDateRange(parsedLowerDate, parsedUpperDate, s.is_approx, s.round_to_year, s.present_as_duration);
       s.date_textual_derived_from = 'range';
       s.date_fuzz = 0.0;
     } else if (checkOther) {
@@ -159,6 +161,9 @@ export default function PointForm({ point, onSubmit, submitMessage, pointKind })
       newState = buildReadableDateFromRange(newState, true);
     } else if (name === "is_approx") {
       newState.is_approx = value;
+      newState = buildReadableDateFromLast(newState);
+    } else if (name === "present_as_duration") {
+      newState.present_as_duration = value;
       newState = buildReadableDateFromLast(newState);
     } else if (name === "round_to_year") {
       newState.round_to_year = value;
@@ -305,28 +310,41 @@ export default function PointForm({ point, onSubmit, submitMessage, pointKind })
                onInput=${ handleChangeEvent } />
         <div class="pointform-block pointform-space-top">
           <input id="round-to-year"
+                 class="pointform-checkbox"
                  type="checkbox"
                  name="round_to_year"
                  checked=${ state.round_to_year }
                  onInput=${ handleChangeEvent } />
           <label for="round-to-year">Round to Year</label>
         </div>
-        <div class="pointform-block pointform-space-bottom">
+        <div class="pointform-block">
           <input id="is-approx"
+                 class="pointform-checkbox"
                  type="checkbox"
                  name="is_approx"
                  checked=${ state.is_approx }
                  onInput=${ handleChangeEvent } />
           <label for="is-approx">Is Approx</label>
         </div>
-        <label for="date_textual">Displayed Date:</label>
-        <input id="date_textual"
-               type="text"
-               name="date_textual"
-               value=${ state.date_textual }
-               size="40"
-               autoComplete="off"
-               readOnly="readOnly" />
+        <div class="pointform-block">
+          <input id="present-as-duration"
+                 class="pointform-checkbox"
+                 type="checkbox"
+                 name="present_as_duration"
+                 checked=${ state.present_as_duration }
+                 onInput=${ handleChangeEvent } />
+          <label for="present-as-duration">Present as Duration</label>
+        </div>
+        <div class="pointform-space-top">
+          <label for="date_textual">Displayed Date:</label>
+          <input id="date_textual"
+                 type="text"
+                 name="date_textual"
+                 value=${ state.date_textual }
+                 size="40"
+                 autoComplete="off"
+                 readOnly="readOnly" />
+        </div>
       </fieldset>
       <br/>
       <fieldset>
@@ -428,19 +446,19 @@ function asHumanReadableDate(parsedDate, isApprox, roundToYear) {
   return res;
 }
 
-function asHumanReadableDateRange(lowerDate, upperDate, isApprox, roundToYear) {
+function asHumanReadableDateRange(lowerDate, upperDate, isApprox, roundToYear, presentAsDuration) {
   // parsedDate is in the form: [year, month, day]
 
   let res = "";
 
+  let firstWord = presentAsDuration ? "from" : 'between';
   if (isApprox) {
-    res += "Approx. between ";
+    res += `Approx. ${firstWord} `;
   } else {
     if (!roundToYear) {
-      res += "Between ";
+      res += `${capitalise(firstWord)} `;
     }
   }
-
 
   if (lowerDate) {
     const [year, month, day] = lowerDate;
@@ -459,7 +477,7 @@ function asHumanReadableDateRange(lowerDate, upperDate, isApprox, roundToYear) {
     res += " some date";
   }
 
-  res += " and ";
+  res += presentAsDuration ? " to " : " and ";
 
   if (upperDate) {
     const [upperYear, upperMonth, upperDay] = upperDate;

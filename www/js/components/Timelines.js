@@ -48,7 +48,6 @@ function Timeline(props) {
   // this check prevents the vis from rendering until after we have all the note and links ready
   const okToShowGraph = !!(deckManager.hasNotes || (timeline.linkbacks_to_decks && timeline.linkbacks_to_decks.length > 0));
 
-  console.log(timeline);
   return html`
     <article>
       ${ deckManager.title }

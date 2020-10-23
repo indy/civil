@@ -110,7 +110,6 @@ section.rolled-up {
 .pointform-block label { }
 .pointform-block input { width: 2em; margin-top: 0.3em; }
 .pointform-space-top { margin-top: 1em; }
-.pointform-space-bottom { margin-bottom: 1em; }
 
 em:before {
   content: "\00201C";           /* opening double quote: &#8220; converted to hex*/
@@ -335,11 +334,7 @@ hr {
   clear: both;
 }
 
-#is-approx {
-  width: 10%;
-}
-
-#round-to-year {
+.pointform-checkbox {
   width: 10%;
 }
 
