@@ -13,46 +13,50 @@ import { Person, People }            from '/js/components/People.js';
 import { Publication, Publications } from '/js/components/Publications.js';
 import { Timeline, Timelines }       from '/js/components/Timelines.js';
 
-export default function App({ user, wasmInterface, autocompleteDecks, graphConnections, imageDirectory, recentImages }) {
-  let state = initialState;
+export async function buildInitialState() {
+  try {
+    // logged in
+    let user = await Net.get("/api/users");
 
-  // update initial state with user
-  //
-  if (user) {
-    state = reducer(state, {
+    // update initial state with user
+    //
+    let state = reducer(initialState, {
       type: 'setUser',
       user
     });
 
-    if (imageDirectory) {
-      state = reducer(state, {
-        type: 'setImageDirectory',
-        imageDirectory
-      });
-    }
+    let struct = await getInitialStateForLoggedInUser();
+    state = reducer(state, {
+      type: 'uberSetup',
+      ...struct
+    });
 
-    if (recentImages) {
-      state = reducer(state, {
-        type: 'setRecentImages',
-        recentImages
-      });
-    }
+    console.log('user is logged in');
+    return state;
 
-    if (autocompleteDecks) {
-      state = reducer(state, {
-        type: 'loadAutocomplete',
-        decks: autocompleteDecks
-      });
-    }
-
-    if (graphConnections) {
-      state = reducer(state, {
-        type: 'loadFullGraph',
-        graphConnections
-      });
-    }
+  } catch(err) {
+    console.log('no user is logged in');
+    return initialState;
   }
+}
 
+async function getInitialStateForLoggedInUser() {
+  // this is _really_ not good - 5 trips to the server before a logged in user's page begins rendering
+  let imageDirectory = await Net.get("/api/upload/directory");
+  let recentImages = await Net.get("/api/upload");
+  let autocompleteDecks = await Net.get("/api/autocomplete");
+  let graphResponse = await Net.get("/api/cmd/graph");
+  let graphConnections = graphResponse.results;
+
+  return {
+    imageDirectory,
+    recentImages,
+    autocompleteDecks,
+    graphConnections
+  };
+}
+
+export function App(state, wasmInterface) {
   return html`
     <${WasmInterfaceProvider} wasmInterface=${wasmInterface}>
       <${StateProvider} initialState=${state} reducer=${reducer}>
@@ -60,7 +64,7 @@ export default function App({ user, wasmInterface, autocompleteDecks, graphConne
       </${StateProvider}>
     </${WasmInterfaceProvider}>
   `;
-};
+}
 
 function TopBarMenu(props) {
   const [state] = useStateValue();
@@ -100,25 +104,20 @@ function TopBarMenu(props) {
 function AppUI(props) {
   const [state, dispatch] = useStateValue();
 
-  function loginHandler(user) {
+  async function loginHandler(user) {
+    console.log(user);
+
     dispatch({
       type: 'setUser',
       user
     });
 
-    Net.get('/api/autocomplete').then(decks => {
-      dispatch({
-        type: 'loadAutocomplete',
-        decks
-      });
+    let struct = await getInitialStateForLoggedInUser();
+    dispatch({
+      type: 'uberSetup',
+      ...struct,
     });
-
-    Net.get('/api/cmd/graph').then(graphResponse => {
-      dispatch({
-        type: 'loadConnectivity',
-        connectivity: graphResponse.results
-      });
-    });
+    route('/', true);
 
   }
 
@@ -127,6 +126,7 @@ function AppUI(props) {
       type: 'setUser',
       user: undefined
     });
+    route('/login', true);
   }
 
   function handleRoute(e) {

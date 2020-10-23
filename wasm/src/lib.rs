@@ -5,6 +5,7 @@ use wasm_bindgen::prelude::*;
 use core;
 use log::error;
 
+
 cfg_if! {
     // When the `console_error_panic_hook` feature is enabled, we can call the
     // `set_panic_hook` function at least once during initialization, and then

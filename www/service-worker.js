@@ -19,10 +19,12 @@
 
 "use strict";
 
-// set this to false when deploying, true when developing js
-var devMode = false;
+console.log("hi from sw");
 
-var CACHE_NAME = "civil-20201017q";
+// set this to false when deploying, true when developing js
+var devMode = true;
+
+var CACHE_NAME = "civil-20201023f";
 
 var precacheConfig = [
   "/apple-touch-icon.png",

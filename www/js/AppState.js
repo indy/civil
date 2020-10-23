@@ -41,6 +41,26 @@ export const initialState = {
 
 export const reducer = (state, action) => {
   switch (action.type) {
+  case 'uberSetup':
+
+    console.log(action);
+
+    let res = {
+      ...state,
+      imageDirectory: action.imageDirectory,
+      recentImages: action.recentImages,
+      acLoaded: true,
+      ac: {
+        decks: action.autocompleteDecks
+      },
+      deckIndexFromId: buildDeckIndex(action.autocompleteDecks),
+      deckLabels: buildDeckLabels(action.autocompleteDecks),
+      fullGraphLoaded: true,
+      fullGraph: buildFullGraph(action.graphConnections)
+    };
+
+    console.log(res);
+    return res;
   case 'setRecentImages':
     return {
       ...state,

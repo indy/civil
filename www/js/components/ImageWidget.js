@@ -114,7 +114,6 @@ export default function ImageWidget(props) {
                   </div>
                 </div>`;
   } else {
-
     const recent = state.recentImages.map(ri => html`<${ImageWidgetItem}
                                                        imageDirectory=${imageDirectory}
                                                        filename=${ri.filename}/>`);

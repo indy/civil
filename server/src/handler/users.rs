@@ -36,13 +36,19 @@ pub async fn login(
     info!("login");
     let login = login.into_inner();
 
-    let (id, password, user) = db::login(&db_pool, &login).await?;
+    let (id, password, mut user) = db::login(&db_pool, &login).await?;
 
     // compare hashed password of matched_user with the given LoginCredentials
     let is_valid_password = verify_encoded(&password, login.password.as_bytes())?;
     if is_valid_password {
         // save id to the session
         session::save_user_id(&session, id)?;
+
+        if id == 1 {
+            user.admin = Some(interop::Admin {
+                db_name: env::var("POSTGRES_DB")?,
+            })
+        }
 
         info!("login accepted!!");
         // send response
@@ -88,16 +94,20 @@ pub async fn get_user(
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("get_user");
-    let user_id = session::user_id(&session)?;
-    let mut user = db::get(&db_pool, user_id).await?;
 
-    if user_id == 1 {
-        user.admin = Some(interop::Admin {
-            db_name: env::var("POSTGRES_DB")?,
-        })
+    if let Ok(user_id) = session::user_id(&session) {
+        let mut user = db::get(&db_pool, user_id).await?;
+
+        if user_id == 1 {
+            user.admin = Some(interop::Admin {
+                db_name: env::var("POSTGRES_DB")?,
+            })
+        }
+
+        Ok(HttpResponse::Ok().json(user))
+    } else {
+        Ok(HttpResponse::Ok().json(()))
     }
-
-    Ok(HttpResponse::Ok().json(user))
 }
 
 fn generate_random_salt() -> [u8; 16] {

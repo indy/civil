@@ -3,11 +3,6 @@ import { html, useState } from '/lib/preact/mod.js';
 import Net from '/js/Net.js';
 
 function Login({ loginCallback }) {
-  //let history = useHistory();
-  //let location = useLocation();
-
-  // let { from } = location.state || { from: { pathname: "/" } };
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -27,7 +22,6 @@ function Login({ loginCallback }) {
   const handleSubmit = (event) => {
     Net.post('api/auth', { email, password }).then(user => {
       loginCallback(user);
-      // history.replace(from);
     });
 
     event.preventDefault();
@@ -54,12 +48,9 @@ function Login({ loginCallback }) {
 }
 
 function Logout({ logoutCallback }) {
-  //let history = useHistory();
-
   const handleLogout = (event) => {
     Net.delete('api/auth', {}).then(() => {
       logoutCallback();
-      // history.push("/");
     });
     event.preventDefault();
   };
