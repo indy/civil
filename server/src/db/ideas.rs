@@ -83,7 +83,7 @@ pub(crate) async fn listings(db_pool: &Pool, user_id: Key) -> Result<interop::Id
         pg::many_from::<Idea, interop::Idea>(db_pool, query, &[&user_id]).await
     }
 
-    let (recent, single_references, zero_references, all) = tokio::try_join!(
+    let (recent, orphans, all) = tokio::try_join!(
         many_from(
             db_pool,
             user_id,
@@ -92,16 +92,14 @@ pub(crate) async fn listings(db_pool: &Pool, user_id: Key) -> Result<interop::Id
         many_from(
             db_pool,
             user_id,
-            include_str!("sql/ideas_listing_single.sql")
+            include_str!("sql/ideas_listing_orphans.sql")
         ),
-        many_from(db_pool, user_id, include_str!("sql/ideas_listing_zero.sql")),
         many_from(db_pool, user_id, include_str!("sql/ideas_all.sql")),
     )?;
 
     Ok(interop::IdeasListings {
         recent,
-        single_references,
-        zero_references,
+        orphans,
         all,
     })
 }

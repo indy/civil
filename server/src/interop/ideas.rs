@@ -52,7 +52,6 @@ pub struct ProtoIdea {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct IdeasListings {
     pub recent: Vec<Idea>,
-    pub single_references: Vec<Idea>,
-    pub zero_references: Vec<Idea>,
+    pub orphans: Vec<Idea>,
     pub all: Vec<Idea>,
 }

@@ -18,8 +18,7 @@ function Ideas() {
   const [state, dispatch] = useStateValue();
 
   let [showRecent, setShowRecent] = useState(true);
-  let [showSingleRef, setShowSingleRef] = useState(false);
-  let [showZeroRef, setShowZeroRef] = useState(false);
+  let [showOrphansRef, setShowOrphansRef] = useState(false);
   let [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
@@ -107,8 +106,7 @@ function Ideas() {
       <${QuickFind} autocompletes=${state.ac.decks} resource='ideas' save=${saveNewIdea}/>
       ${ buildListSection(showRecent, setShowRecent, "Recent", state.ideas.recent) }
       ${ buildListSection(showAll, setShowAll, "All", state.ideas.all) }
-      ${ buildListSection(showSingleRef, setShowSingleRef, "Single References", state.ideas.single_references) }
-      ${ buildListSection(showZeroRef, setShowZeroRef, "Zero References", state.ideas.zero_references) }
+      ${ buildListSection(showOrphansRef, setShowOrphansRef, "Orphans", state.ideas.orphans) }
     </div>`;
 }
 
