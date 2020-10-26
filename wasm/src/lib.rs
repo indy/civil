@@ -60,7 +60,7 @@ pub fn markup_as_struct(markup: &str) -> JsValue {
 }
 
 #[wasm_bindgen]
-pub fn markup_splitter(markup: &str) -> JsValue {
+pub fn split_markup(markup: &str) -> JsValue {
     match core::split_markup(markup) {
         Ok(res) => JsValue::from_serde(&res).unwrap(),
         Err(_) => {

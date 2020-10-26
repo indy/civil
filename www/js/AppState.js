@@ -42,10 +42,7 @@ export const initialState = {
 export const reducer = (state, action) => {
   switch (action.type) {
   case 'uberSetup':
-
-    console.log(action);
-
-    let res = {
+    return {
       ...state,
       imageDirectory: action.imageDirectory,
       recentImages: action.recentImages,
@@ -58,9 +55,6 @@ export const reducer = (state, action) => {
       fullGraphLoaded: true,
       fullGraph: buildFullGraph(action.graphConnections)
     };
-
-    console.log(res);
-    return res;
   case 'setRecentImages':
     return {
       ...state,
