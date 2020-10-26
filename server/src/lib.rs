@@ -83,7 +83,8 @@ pub async fn start_server() -> Result<()> {
 
         let session_store = CookieSession::private(signing_key)
             .secure(cookie_secure)
-            .same_site(SameSite::Strict);
+            .same_site(SameSite::Strict)
+            .max_age(60 * 60 * 24 * 30); // 30 days
         let error_handlers = ErrorHandlers::new()
             .handler(
                 http::StatusCode::INTERNAL_SERVER_ERROR,
