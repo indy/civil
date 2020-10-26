@@ -18,11 +18,11 @@
 use crate::handler::autocomplete;
 use crate::handler::cmd;
 use crate::handler::edges;
-use crate::handler::timelines;
 use crate::handler::ideas;
 use crate::handler::notes;
 use crate::handler::people;
 use crate::handler::publications;
+use crate::handler::timelines;
 use crate::handler::uploader;
 use crate::handler::users;
 use actix_files::NamedFile;

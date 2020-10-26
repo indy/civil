@@ -109,7 +109,11 @@ pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Tim
     .await
 }
 
-pub(crate) async fn get(db_pool: &Pool, user_id: Key, timeline_id: Key) -> Result<interop::Timeline> {
+pub(crate) async fn get(
+    db_pool: &Pool,
+    user_id: Key,
+    timeline_id: Key,
+) -> Result<interop::Timeline> {
     pg::one_from::<Timeline, interop::Timeline>(
         db_pool,
         include_str!("sql/timelines_get.sql"),
