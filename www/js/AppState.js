@@ -135,7 +135,11 @@ export const reducer = (state, action) => {
                        ac: {
                          decks: state.ac.decks.filter(filterFn)
                        },
-                       ideas: state.ideas.filter(filterFn),
+                       ideas: {
+                         all: state.ideas.all.filter(filterFn),
+                         orphans: state.ideas.orphans.filter(filterFn),
+                         recent: state.ideas.recent.filter(filterFn),
+                       },
                        publications: state.publications.filter(filterFn),
                        people: state.people.filter(filterFn),
                        timelines: state.timelines.filter(filterFn),
@@ -144,6 +148,7 @@ export const reducer = (state, action) => {
       // todo: delete all the other references in fullGraph to action.id
       delete newState.cache.deck[action.id];
       return newState;
+
     }
   case 'setIdeas':
     let newState = {

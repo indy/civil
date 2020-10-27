@@ -21,7 +21,6 @@ use crate::interop::Key;
 
 #[derive(Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
 pub enum IdeaKind {
-    NA,
     Verbatim,
     Insight,
 }

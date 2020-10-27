@@ -1,3 +1,3 @@
-INSERT INTO decks(user_id, name, kind, idea_category)
-VALUES ($1, $2, 'idea'::deck_kind, $3)
+INSERT INTO decks(user_id, name, kind)
+VALUES ($1, $2, 'idea'::deck_kind)
 RETURNING $table_fields

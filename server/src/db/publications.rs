@@ -126,7 +126,6 @@ pub(crate) async fn create(
         linkbacks_to_decks: None,
     };
 
-    dbg!("{:?}", publication);
     if publication.source.is_some() || publication.author.is_some() {
         let publication_extras = pg::one::<PublicationExtra>(
             &tx,

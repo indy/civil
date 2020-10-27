@@ -199,6 +199,20 @@ pub(crate) async fn delete(db_pool: &Pool, user_id: Key, id: Key) -> Result<()> 
 
     pg::zero(
         &tx,
+        &include_str!("sql/publication_extras_delete.sql"),
+        &[&id],
+    )
+    .await?;
+
+    pg::zero(
+        &tx,
+        &include_str!("sql/idea_extras_delete.sql"),
+        &[&id],
+    )
+    .await?;
+
+    pg::zero(
+        &tx,
         &include_str!("sql/edges_delete_notes_decks_with_deck_id.sql"),
         &[&id],
     )

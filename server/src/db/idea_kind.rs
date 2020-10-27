@@ -25,8 +25,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, ToSql, FromSql, Serialize, Deserialize)]
 #[postgres(name = "idea_kind")]
 pub enum IdeaKind {
-    #[postgres(name = "idea_na")]
-    NA,
     #[postgres(name = "idea_verbatim")]
     Verbatim,
     #[postgres(name = "idea_insight")]
@@ -36,7 +34,6 @@ pub enum IdeaKind {
 impl From<IdeaKind> for interop::IdeaKind {
     fn from(a: IdeaKind) -> interop::IdeaKind {
         match a {
-            IdeaKind::NA => interop::IdeaKind::NA,
             IdeaKind::Verbatim => interop::IdeaKind::Verbatim,
             IdeaKind::Insight => interop::IdeaKind::Insight,
         }
@@ -46,7 +43,6 @@ impl From<IdeaKind> for interop::IdeaKind {
 impl From<interop::IdeaKind> for IdeaKind {
     fn from(a: interop::IdeaKind) -> IdeaKind {
         match a {
-            interop::IdeaKind::NA => IdeaKind::NA,
             interop::IdeaKind::Verbatim => IdeaKind::Verbatim,
             interop::IdeaKind::Insight => IdeaKind::Insight,
         }
