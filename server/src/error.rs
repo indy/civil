@@ -24,6 +24,7 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 #[derive(Display, From, Debug)]
 pub enum Error {
     NotFound,
+    TooManyFound,
     ThreadpoolBlocking(actix_threadpool::BlockingError<std::io::Error>),
     TokioPostgres(tokio_postgres::error::Error),
     TokioPostgresMapper(tokio_pg_mapper::Error),

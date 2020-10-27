@@ -35,13 +35,9 @@ CREATE TABLE IF NOT EXISTS decks (
 
     -- specific to kind == 'idea'
     --
-    idea_category idea_kind NOT NULL DEFAULT 'idea_na'::idea_kind;
+    idea_category idea_kind NOT NULL DEFAULT 'idea_na'::idea_kind; -- only for idea
 
-    -- shared amongst the different deck kinds
-    --
-    name TEXT NOT NULL,
-    source TEXT,
-    author TEXT
+    name TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS points (
@@ -88,6 +84,13 @@ CREATE TABLE IF NOT EXISTS notes_decks (
     deck_id BIGINT NOT NULL REFERENCES decks,
 
     PRIMARY KEY(note_id, deck_id)
+);
+
+CREATE TABLE IF NOT EXISTS publication_extras (
+    deck_id BIGINT NOT NULL REFERENCES decks,
+    source TEXT,
+    author TEXT,
+    PRIMARY KEY(deck_id)
 );
 
 CREATE TABLE IF NOT EXISTS images (
