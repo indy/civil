@@ -113,7 +113,7 @@ function Timelines() {
   return html`
     <div>
       <h1>Timelines</h1>
-      <${QuickFind} autocompletes=${state.ac.decks} resource='timelines' save=${saveNewTimeline}/>
+      <${QuickFind} autocompletes=${state.ac.decks} resource='timelines' save=${saveNewTimeline} minSearchLength=2/>
       <div>
         <ul class="timelines-list">
           ${ tl }

@@ -1,8 +1,10 @@
 import { html, Link, useState, route } from '/lib/preact/mod.js';
 
-export default function QuickFind({ autocompletes, resource, save }) {
+export default function QuickFind({ autocompletes, resource, save, minSearchLength }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [candidates, setCandidates] = useState([]);
+
+  minSearchLength = minSearchLength || 3;
 
   // autocompletes contain the entire set of decks
   // so filter autocompletes by the resource
@@ -12,8 +14,8 @@ export default function QuickFind({ autocompletes, resource, save }) {
 
     setSearchTerm(newSearchTerm);
 
-    if (searchTerm.length > 2) {
-      refineCandidates();
+    if (newSearchTerm.length >= minSearchLength) {
+      refineCandidates(newSearchTerm);
     } else {
       setCandidates([]);
     }
@@ -35,8 +37,8 @@ export default function QuickFind({ autocompletes, resource, save }) {
     save({ title: searchTerm.trim() });
   }
 
-  function refineCandidates() {
-    let lowerText = searchTerm.toLowerCase();
+  function refineCandidates(newSearchTerm) {
+    let lowerText = newSearchTerm.toLowerCase();
 
     // todo: store the lowercase representation in autocomplete
     setCandidates(autocompletes

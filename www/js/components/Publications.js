@@ -61,7 +61,7 @@ function Publications() {
   return html`
     <div>
       <h1>Publications</h1>
-      <${QuickFind} autocompletes=${state.ac.decks} resource='publications' save=${saveNewPublication} />
+      <${QuickFind} autocompletes=${state.ac.decks} resource='publications' save=${saveNewPublication} minSearchLength=3/>
       <ul class="publications-list">
         ${ publicationsList }
       </ul>

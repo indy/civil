@@ -224,7 +224,7 @@ function People() {
   return html`
     <div>
       <h1>People</h1>
-      <${QuickFind} autocompletes=${state.ac.decks} resource='people' save=${saveNewPerson}/>
+      <${QuickFind} autocompletes=${state.ac.decks} resource='people' save=${saveNewPerson} minSearchLength=2/>
       ${ peopleList(uncategorisedPeopleList, "Uncategorised")}
       ${ peopleList(ancientPeopleList, "Ancient")}
       ${ peopleList(medievalPeopleList, "Medieval")}
