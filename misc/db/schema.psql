@@ -101,8 +101,10 @@ CREATE TABLE IF NOT EXISTS idea_extras (
 
 CREATE TABLE IF NOT EXISTS publication_extras (
     deck_id BIGINT NOT NULL REFERENCES decks,
+
     source TEXT,
     author TEXT,
+
     PRIMARY KEY(deck_id)
 );
 

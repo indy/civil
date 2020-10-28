@@ -121,7 +121,7 @@ function NoteForm({ onSubmit, onCancel }) {
   return html`
   <div class="append-note">
     <div class="spanne">
-      <div class="spanne-entry clickable" onClick=${ onCancel }>
+      <div class="spanne-entry clickable cancel-offset" onClick=${ onCancel }>
         <span class="spanne-icon-label">Cancel</span>
         ${ svgCancel() }
       </div>
@@ -131,6 +131,7 @@ function NoteForm({ onSubmit, onCancel }) {
       <br/>
       <textarea id="content"
                 type="text"
+                class="new-note-textarea"
                 name="content"
                 value=${ content }
                 onInput=${ handleChangeEvent }

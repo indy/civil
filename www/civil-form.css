@@ -16,9 +16,16 @@ form label {
 input {
   width: 90%;
 }
+
 textarea {
-  width: 90%;
-  height: 10em;
+  width: var(--block-width);
+  height: 15em;
+}
+
+textarea.new-note-textarea {
+  width: 100%;
+  height: 25em;
+  margin-top: 1em;
 }
 
 input[type="radio"] {
@@ -29,7 +36,7 @@ input[type="radio"] {
 [type="submit"] {
   margin-top: 1em;
   margin-bottom: 3em;
-  width: 65%;
+  width: 10em;
 }
 
 button,

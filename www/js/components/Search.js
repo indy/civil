@@ -70,7 +70,7 @@ export default function Search() {
 
   return html`
     <div>
-      <h1>Search</h1>
+      <h1>Full Text Search</h1>
       <${SearchBox} onSearch=${ onSearch } onRandom=${ onRandom }/>
       ${ buildSearchResults() }
     </div>

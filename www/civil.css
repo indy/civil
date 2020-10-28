@@ -247,6 +247,10 @@ section > form { width: var(--block-width); }
   }
 }
 
+.cancel-offset {
+  margin-top: 2em;
+}
+
 .clickable {
   cursor: pointer;
 }
@@ -265,6 +269,7 @@ section > form { width: var(--block-width); }
 }
 
 .append-note {
+  margin-top: 2em;
   margin-bottom: 4em;
 }
 
@@ -318,10 +323,12 @@ hr {
 .civil-form {
   font-family: monospace;
   padding-top: 2em;
+  padding-bottom: 1em;
 }
 
 .civil-add-note-form {
   font-family: monospace;
+  width: var(--block-width);
 }
 
 .civil-date-hint {
