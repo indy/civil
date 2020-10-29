@@ -98,6 +98,7 @@ export default function(graphState, tickCallbackFn) {
         } else {
           node.x = node.fx;
           node.vx = 0;
+          alpha = 1.0;
         }
 
         if (node.fy == null) {
@@ -105,6 +106,7 @@ export default function(graphState, tickCallbackFn) {
         } else {
           node.y = node.fy;
           node.vy = 0;
+          alpha = 1.0;
         }
       }
 
@@ -114,6 +116,7 @@ export default function(graphState, tickCallbackFn) {
 
       if ((alpha < alphaMin) || (s.tickCount > 5 && s.maxVelocities[0] < m && s.maxVelocities[1] < m)) {
         // stop the simulation
+        console.log('stopping the simulation');
         return false;
       }
     }
@@ -189,6 +192,7 @@ function initializeGraph(graphState) {
 
   for (i = 0; i < n; ++i) {
     node = graphState.nodes[i];
+
     if (node.fx != null) node.x = node.fx;
     if (node.fy != null) node.y = node.fy;
     if (isNaN(node.x) || isNaN(node.y)) {

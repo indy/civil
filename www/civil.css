@@ -126,6 +126,13 @@ em:after {
   cursor: pointer;
 }
 
+.unselectable-text {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
 a:link {
   text-decoration: none;
 }

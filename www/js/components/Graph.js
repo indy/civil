@@ -4,16 +4,40 @@ import { useStateValue } from '/js/StateProvider.js';
 import { svgTickedCheckBox, svgUntickedCheckBox, svgChevronLeft, svgChevronRight } from '/js/svgIcons.js';
 
 import graphPhysics from "/js/graphPhysics.js";
-// import { useHistory } from 'react-router-dom';
+
+function mouseInSvg(mouseX, mouseY, svgContainer) {
+  const svgElement = svgContainer.firstChild;
+
+  const innerViewport = svgElement.viewBox.baseVal;
+
+  const relToSvgElementX = mouseX - svgContainer.offsetLeft;
+  const relToSvgElementY = mouseY - svgContainer.offsetTop;
+
+  const outerViewportWidth = svgElement.clientWidth;
+  const outerViewportHeight = svgElement.clientHeight;
+
+  const tx = relToSvgElementX / outerViewportWidth;
+  let ansx = innerViewport.width * tx;
+  ansx += innerViewport.x;
+
+  const ty = relToSvgElementY / outerViewportHeight;
+  let ansy = innerViewport.height * ty;
+  ansy += innerViewport.y;
+
+  return [ansx, ansy];
+}
 
 export default function Graph({ id, depth, isIdea }) {
-  // let history = useHistory();
   const [state] = useStateValue();
   const [onlyParentChild, setOnlyParentChild] = useState(false);
   const [onlyIdea, setOnlyIdea] = useState(!!isIdea);
   const [graphDepth, setGraphDepth] = useState(depth);
 
+  const [isDragging, setIsDragging] = useState(false);
+
   const svgContainerRef = createRef();
+
+  const oldBehaviour = false;
 
   useEffect(() => {
     let graphState = buildGraphState(state, id, graphDepth, onlyIdea, onlyParentChild);
@@ -21,13 +45,58 @@ export default function Graph({ id, depth, isIdea }) {
     startSimulation(graphState, svg);
   }, [onlyParentChild, onlyIdea, graphDepth]);
 
+  function onMouseDown(event) {
+    if (oldBehaviour) {
+      return;
+    }
+
+    const target = event.target;
+    let g = target.parentElement;
+    if (g.nodeName === "g") {
+      svgContainerRef.current.elementBeingDragged = g;
+      setIsDragging(true);
+    }
+  }
+
+  function onMouseUp(event) {
+    if (oldBehaviour) {
+      return;
+    }
+
+    if (isDragging) {
+      const g = svgContainerRef.current.elementBeingDragged;
+      g.associatedNode.fx = null;
+      g.associatedNode.fy = null;
+      svgContainerRef.current.elementBeingDragged = undefined;
+      setIsDragging(false);
+    }
+  }
+
+  function onMouseMove(event) {
+    if (oldBehaviour) {
+      return;
+    }
+    if (!isDragging) {
+      return;
+    }
+
+    const g = svgContainerRef.current.elementBeingDragged;
+
+    // identify this node's corressponding entry in graphstate and set it's fx,fy values
+    const [ansx, ansy] = mouseInSvg(event.layerX, event.layerY, svgContainerRef.current);
+
+    g.associatedNode.fx = ansx;
+    g.associatedNode.fy = ansy;
+  }
+
   function onGraphClicked(event) {
     const target = event.target;
 
-    if (target.id.length > 0 && target.id[0] === '/') {
-      // the id looks like a url, that's good enough for us, lets go there
-      // history.push(target.id);
-      route(target.id, true);
+    if (oldBehaviour) {
+      if (target.id.length > 0 && target.id[0] === '/') {
+        // the id looks like a url, that's good enough for us, lets go there
+        route(target.id, true);
+      }
     }
   }
 
@@ -69,7 +138,11 @@ export default function Graph({ id, depth, isIdea }) {
       <span class="clickable" onClick=${ onRightClicked }>${ svgChevronRight() }</span>
     </div>
   </div>
-  <div class="svg-container" ref=${ svgContainerRef } onClick=${ onGraphClicked }>
+  <div class="svg-container" ref=${ svgContainerRef }
+       onClick=${ onGraphClicked }
+       onMouseDown=${onMouseDown}
+       onMouseUp=${onMouseUp}
+       onMouseMove=${onMouseMove}>
     <svg viewBox="-300, -300, 900, 900"></svg>
   </div>
 </div>`;
@@ -290,6 +363,8 @@ function createSvgNode(n, x, y) {
   const label = n.label;
 
   let g = document.createElementNS("http://www.w3.org/2000/svg", 'g');
+  g.associatedNode = n;
+
   translateNode(g, x, y);
 
   // let circle2 = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
@@ -313,6 +388,7 @@ function createSvgNode(n, x, y) {
   text1.setAttribute("stroke", "var(--bg)");
   text1.setAttribute("stroke-width", "3");
   text1.textContent = label;
+  text1.classList.add("unselectable-text");
   g.appendChild(text1);
 
   let circle = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
@@ -329,6 +405,7 @@ function createSvgNode(n, x, y) {
   text2.textContent = label;
   text2.id = `/${n.resource}/${n.id}`;
   text2.classList.add("svg-pseudo-link");
+  text2.classList.add("unselectable-text"); // don't highlight the text as it's being dragged
   g.appendChild(text2);
 
   return [g, text2];
