@@ -156,12 +156,13 @@ p {
   text-align: left;
 }
 
-.marginnote {
+.scribblenote {
   font-family: 'Nothing You Could Do', cursive;
   color: var(--scribble);
   font-size: 1.5em;
   text-align: left;
 }
+
 label.margin-toggle {
   color: var(--hyperlink);
 }

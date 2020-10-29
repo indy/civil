@@ -60,13 +60,13 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
         }
         Node::Highlight(ns) => element_key_class("mark", key, "highlight", ns)?,
         Node::ScribbledOut(ns) => element_key_class("mark", key, "scribbled-out", ns)?,
-        Node::ObsoleteLink(url, ns) => element_key_class_href("a", key, "note-inline-link", url, ns)?,
         Node::ListItem(ns) => element_key("li", key, ns)?,
-        Node::Marginnote(ns) => compile_marginnote_to_struct(ns, key)?,
+        Node::Scribblenote(ns) => compile_sidenote(ns, key, "scribblenote")?,
+        Node::Marginnote(ns) => compile_sidenote(ns, key, "marginnote")?,
         Node::OrderedList(ns) => element_key("ol", key, ns)?,
         Node::Paragraph(ns) => element_key("p", key, ns)?,
         Node::Quotation(ns) => element_key("em", key, ns)?,
-        Node::Sidenote(ns) => compile_sidenote_to_struct(ns, key)?,
+        Node::NumberedSidenote(ns) => compile_numbered_sidenote(ns, key)?,
         Node::Strong(ns) => element_key("strong", key, ns)?,
         Node::Text(text) => vec![Element {
             name: String::from("text"),
@@ -88,7 +88,7 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
     Ok(res)
 }
 
-fn compile_marginnote_to_struct(ns: &[Node], key: usize) -> Result<Vec<Element>> {
+fn compile_sidenote(ns: &[Node], key: usize, class_name: &str) -> Result<Vec<Element>> {
     let mut res: Vec<Element> = vec![];
 
     let mut id = String::new();
@@ -103,12 +103,13 @@ fn compile_marginnote_to_struct(ns: &[Node], key: usize) -> Result<Vec<Element>>
         &id,
         "checkbox",
     )?);
-    res.append(&mut element_key_class("span", key + 200, "marginnote", ns)?);
+    res.append(&mut element_key_class("span", key + 200, class_name, ns)?);
 
     Ok(res)
 }
 
-fn compile_sidenote_to_struct(ns: &[Node], key: usize) -> Result<Vec<Element>> {
+
+fn compile_numbered_sidenote(ns: &[Node], key: usize) -> Result<Vec<Element>> {
     let mut res: Vec<Element> = vec![];
 
     let mut id = String::new();

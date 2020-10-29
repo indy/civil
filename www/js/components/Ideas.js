@@ -12,8 +12,6 @@ import DeckManager     from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
 import RollableSection from '/js/components/RollableSection.js';
 
-let gKeyCounter = 0;
-
 function Ideas() {
   const [state, dispatch] = useStateValue();
 
@@ -35,80 +33,78 @@ function Ideas() {
     }
   }, []);
 
-  function buildListSection(show, setShow, label, list) {
-
-    function toggleShow() {
-      setShow(!show);
-    }
-
-    if(show) {
-      return html`
-      <div>
-        <p key=${ gKeyCounter++ } class="subtitle" onClick=${ toggleShow }>
-          ${ svgMinimise() } ${ label }
-        </p>
-        <ul class="ideas-list" key=${ gKeyCounter++ } >
-          ${ buildListing(list) }
-        </ul>
-      </div>`;
-    } else {
-      return html`
-      <p class="subtitle" onClick=${ toggleShow }>
-        ${ svgExpand() } ${ label }
-      </p>`;
-    }
-  }
-
-  function buildListing(list) {
-    if (!list) {
-      return [];
-    }
-    return list.map(
-      (idea, i) => html`<${ListingLink}
-                        id=${ idea.id }
-                        name=${ idea.title }
-                        resource='ideas'/>`
-    );
-  }
-
-
-  function saveNewIdea({title, idea_category}) {
-    const data = {
-      title: title,
-      idea_category: idea_category || 'Verbatim'
-    };
-    const resource = "ideas";
-
-    // create a new resource named 'searchTerm'
-    Net.post(`/api/${resource}`, data).then(idea => {
-      Net.get(`/api/${resource}/listings`).then(ideas => {
-        dispatch({
-          type: 'setIdeas',
-          ideas
-        });
-        dispatch({
-          type: 'addAutocompleteDeck',
-          id: idea.id,
-          name: idea.title,
-          resource: resource
-        });
-      });
-      route(`/${resource}/${idea.id}`);
-    });
-  }
-
-  // buildListSection might return an array, each element therefore requires a unique key value
-  gKeyCounter = 0;
-
   return html`
     <div>
       <h1>Ideas</h1>
-      <${QuickFind} autocompletes=${state.ac.decks} resource='ideas' save=${saveNewIdea}/>
+      <${QuickFind} autocompletes=${state.ac.decks}
+                    resource='ideas'
+                    save=${(params) => saveNewIdea(params, dispatch)}/>
       ${ buildListSection(showRecent, setShowRecent, "Recent", state.ideas.recent) }
-      ${ buildListSection(showAll, setShowAll, "All", state.ideas.all) }
       ${ buildListSection(showOrphansRef, setShowOrphansRef, "Orphans", state.ideas.orphans) }
+      ${ buildListSection(showAll, setShowAll, "All", state.ideas.all) }
     </div>`;
 }
+
+function saveNewIdea({title, idea_category}, dispatch) {
+  const data = {
+    title: title,
+    idea_category: idea_category || 'Verbatim'
+  };
+  const resource = "ideas";
+
+  // create a new resource named 'searchTerm'
+  Net.post(`/api/${resource}`, data).then(idea => {
+    Net.get(`/api/${resource}/listings`).then(ideas => {
+      dispatch({
+        type: 'setIdeas',
+        ideas
+      });
+      dispatch({
+        type: 'addAutocompleteDeck',
+        id: idea.id,
+        name: idea.title,
+        resource: resource
+      });
+    });
+    route(`/${resource}/${idea.id}`);
+  });
+}
+
+function buildListSection(show, setShow, label, list) {
+  function toggleShow() {
+    setShow(!show);
+  }
+
+  if(show) {
+    return html`
+      <div>
+        <p class="subtitle" onClick=${ toggleShow }>
+          ${ svgMinimise() } ${ label }
+        </p>
+        <ul class="ideas-list" >
+          ${ buildListing(list) }
+        </ul>
+      </div>`;
+  } else {
+    return html`
+      <p class="subtitle" onClick=${ toggleShow }>
+        ${ svgExpand() } ${ label }
+      </p>`;
+  }
+}
+
+function buildListing(list) {
+  if (!list) {
+    return [];
+  }
+  return list.map(
+    (idea, i) => html`<${ListingLink}
+                        id=${ idea.id }
+                        name=${ idea.title }
+                        resource='ideas'/>`
+  );
+}
+
 
 function Idea(props) {
   const [state] = useStateValue();

@@ -36,13 +36,13 @@ pub enum Node {
     Highlight(Vec<Node>),
     Image(String),
     ListItem(Vec<Node>),
+    Scribblenote(Vec<Node>),
     Marginnote(Vec<Node>),
-    ObsoleteLink(String, Vec<Node>),
     OrderedList(Vec<Node>),
     Paragraph(Vec<Node>),
     Quotation(Vec<Node>),
     ScribbledOut(Vec<Node>),
-    Sidenote(Vec<Node>),
+    NumberedSidenote(Vec<Node>),
     Strong(Vec<Node>),
     Text(String),
     Underlined(Vec<Node>),
@@ -194,7 +194,7 @@ fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
         Token::Asterisk => eat_matching_pair(tokens, TokenIdent::Asterisk, NodeIdent::Strong),
         Token::BackTick => eat_codeblock(tokens),
         Token::BracketEnd => eat_text_including(tokens),
-        Token::BracketStart => eat_bracket_start(tokens),
+        Token::BracketStart => eat_text_including(tokens),
         Token::Caret => eat_matching_pair(tokens, TokenIdent::Caret, NodeIdent::Highlight),
         Token::Tilde => eat_matching_pair(tokens, TokenIdent::Tilde, NodeIdent::ScribbledOut),
         Token::DoubleQuote => eat_matching_pair(tokens, TokenIdent::DoubleQuote, NodeIdent::Quotation),
@@ -289,10 +289,14 @@ fn eat_pipe<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
         if is_token_at_index(tokens, 1, TokenIdent::Hash) {
             tokens = &tokens[1..]; // eat the opening PIPE,
             let (toks, children) = eat_list(tokens, TokenIdent::Pipe)?;
+            Ok((toks, Node::Scribblenote(children)))
+        } else if is_token_at_index(tokens, 1, TokenIdent::Tilde) {
+            tokens = &tokens[1..]; // eat the opening PIPE,
+            let (toks, children) = eat_list(tokens, TokenIdent::Pipe)?;
             Ok((toks, Node::Marginnote(children)))
         } else {
             let (toks, children) = eat_list(tokens, TokenIdent::Pipe)?;
-            Ok((toks, Node::Sidenote(children)))
+            Ok((toks, Node::NumberedSidenote(children)))
         }
     } else {
         eat_text_including(tokens)
@@ -433,63 +437,6 @@ fn eat_matching_pair<'a>(tokens: &'a [Token<'a>], halt_at: TokenIdent, node_iden
     }
 }
 
-fn eat_bracket_start<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
-    if is_token_at_index(tokens, 1, TokenIdent::BracketStart) {
-        eat_link_old_syntax(tokens)
-    } else {
-        eat_text_including(tokens)
-    }
-}
-
-// the old syntax for links was: [[https://google.com][search engine]], or: [[https://google.com]]
-//
-fn eat_link_old_syntax<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
-    tokens = &tokens[2..];
-    let (mut tokens, url) = eat_string(tokens, TokenIdent::BracketEnd)?;
-
-    if tokens.len() > 1 {
-        // at a a closing bracket, move past it
-        tokens = &tokens[1..];
-
-        if is_head(tokens, TokenIdent::BracketEnd) {
-            // the url is also the display name
-            let children = vec![Node::Text(url.to_string())];
-
-            tokens = &tokens[1..]; // move past the second closing bracket
-
-            return Ok((tokens, Node::ObsoleteLink(url, children)));
-        } else if is_head(tokens, TokenIdent::BracketStart) {
-            // move past the second opening bracket
-            tokens = &tokens[1..];
-
-            let (toks, children) = eat_to_bracket_end(tokens)?;
-
-            tokens = toks;
-            tokens = drop_token(tokens, TokenIdent::BracketEnd);
-            tokens = drop_token(tokens, TokenIdent::BracketEnd);
-
-            return Ok((tokens, Node::ObsoleteLink(url, children)));
-        }
-    }
-
-    Err(Error::Parser)
-}
-
-fn eat_to_bracket_end<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
-    let mut nodes: Vec<Node> = vec![];
-
-    while !tokens.is_empty() {
-        if is_head(tokens, TokenIdent::BracketEnd) {
-            return Ok((tokens, nodes));
-        }
-        let (rest, tok) = eat_item(tokens)?;
-        tokens = rest;
-        nodes.push(tok);
-    }
-
-    Ok((tokens, nodes))
-}
-
 fn remaining_tokens_contain<'a>(tokens: &'a [Token<'a>], token_ident: TokenIdent) -> bool {
     if tokens.len() > 1 {
         let ts = &tokens[1..];
@@ -598,14 +545,6 @@ fn skip_leading<'a>(tokens: &'a [Token], token_ident: TokenIdent) -> Result<&'a 
     }
 
     Ok(&[])
-}
-
-fn drop_token<'a>(tokens: &'a [Token<'a>], token_ident: TokenIdent) -> &'a [Token<'a>] {
-    if is_head(tokens, token_ident) {
-        &tokens[1..]
-    } else {
-        tokens
-    }
 }
 
 fn is_head<'a>(tokens: &'a [Token<'a>], token_ident: TokenIdent) -> bool {
@@ -729,16 +668,16 @@ mod tests {
         };
     }
 
-    fn assert_link(node: &Node, expected_url: &'static str, expected_text: &'static str) {
-        match node {
-            Node::ObsoleteLink(url, ns) => {
-                assert_eq!(url, expected_url);
-                assert_eq!(ns.len(), 1);
-                assert_text(&ns[0], expected_text);
-            }
-            _ => assert_eq!(false, true),
-        };
-    }
+    // fn assert_link(node: &Node, expected_url: &'static str, expected_text: &'static str) {
+    //     match node {
+    //         Node::Url(url, ns) => {
+    //             assert_eq!(url, expected_url);
+    //             assert_eq!(ns.len(), 1);
+    //             assert_text(&ns[0], expected_text);
+    //         }
+    //         _ => assert_eq!(false, true),
+    //     };
+    // }
 
     fn assert_underline1(node: &Node, expected: &'static str) {
         match node {
@@ -951,66 +890,6 @@ mod tests {
     }
 
     #[test]
-    fn test_links() {
-        {
-            let nodes = build("here is [[a link]] foo");
-
-            assert_eq!(1, nodes.len());
-            let children = paragraph_children(&nodes[0]).unwrap();
-            assert_eq!(children.len(), 3);
-            assert_text(&children[0], "here is ");
-            assert_link(&children[1], "a link", "a link");
-            assert_text(&children[2], " foo");
-        }
-        {
-            let nodes = build("here is [[a link]]");
-
-            assert_eq!(1, nodes.len());
-            let children = paragraph_children(&nodes[0]).unwrap();
-            assert_eq!(children.len(), 2);
-            assert_text(&children[0], "here is ");
-            assert_link(&children[1], "a link", "a link");
-        }
-        {
-            let nodes = build("here is [[https://indy.io][a link]] foo");
-
-            assert_eq!(1, nodes.len());
-            let children = paragraph_children(&nodes[0]).unwrap();
-            assert_eq!(children.len(), 3);
-            assert_text(&children[0], "here is ");
-            assert_link(&children[1], "https://indy.io", "a link");
-            assert_text(&children[2], " foo");
-        }
-        {
-            let nodes = build("here is [[https://indy.io][a link]]");
-
-            assert_eq!(1, nodes.len());
-            let children = paragraph_children(&nodes[0]).unwrap();
-            assert_eq!(children.len(), 2);
-            assert_text(&children[0], "here is ");
-            assert_link(&children[1], "https://indy.io", "a link");
-        }
-        {
-            let nodes = build("here is [[https://indy.io][to a *bold* link]]");
-
-            assert_eq!(1, nodes.len());
-            let children = paragraph_children(&nodes[0]).unwrap();
-            assert_eq!(children.len(), 2);
-            assert_text(&children[0], "here is ");
-            match &children[1] {
-                Node::ObsoleteLink(url, ns) => {
-                    assert_eq!(url, "https://indy.io");
-                    assert_eq!(ns.len(), 3);
-                    assert_text(&ns[0], "to a ");
-                    assert_strong1(&ns[1], "bold");
-                    assert_text(&ns[2], " link");
-                }
-                _ => assert_eq!(false, true),
-            };
-        }
-    }
-
-    #[test]
     fn test_multiline() {
         let nodes = build(
             "this
@@ -1179,7 +1058,7 @@ This is code```");
         assert_text(&children[0], "para one");
 
         match &children[1] {
-            Node::Sidenote(vs) => {
+            Node::NumberedSidenote(vs) => {
                 assert_eq!(vs.len(), 1);
                 match &vs[0] {
                     Node::UnorderedList(us) => {
@@ -1209,7 +1088,7 @@ This is code```");
         assert_text(&children[0], "para two");
 
         match &children[1] {
-            Node::Sidenote(vs) => {
+            Node::NumberedSidenote(vs) => {
                 assert_eq!(vs.len(), 1);
                 match &vs[0] {
                     Node::OrderedList(os) => {
