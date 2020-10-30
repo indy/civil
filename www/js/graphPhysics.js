@@ -1,7 +1,7 @@
 var initialRadius = 10,
     initialAngle = Math.PI * (3 - Math.sqrt(5));
 
-export default function(graphState, tickCallbackFn) {
+export default function(graphState, tickCallbackFn, setSimIsRunningFn) {
   if (graphState.nodes == null || graphState.nodes.length === 0) {
     // console.log('graph physics given no nodes - nothing to simulate');
     return;
@@ -43,6 +43,8 @@ export default function(graphState, tickCallbackFn) {
 
     if (continueSimulating) {
       window.requestAnimationFrame(step);
+    } else {
+      setSimIsRunningFn(false);
     }
   }
 
@@ -127,6 +129,7 @@ export default function(graphState, tickCallbackFn) {
 
   // start the simulation function
   //
+  setSimIsRunningFn(true);
   window.requestAnimationFrame(step);
 }
 

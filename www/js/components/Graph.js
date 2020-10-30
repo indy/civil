@@ -5,6 +5,8 @@ import { svgTickedCheckBox, svgUntickedCheckBox, svgChevronLeft, svgChevronRight
 
 import graphPhysics from "/js/graphPhysics.js";
 
+const gOldBehaviour = false;
+
 function mouseInSvg(mouseX, mouseY, svgContainer) {
   const svgElement = svgContainer.firstChild;
 
@@ -27,6 +29,9 @@ function mouseInSvg(mouseX, mouseY, svgContainer) {
   return [ansx, ansy];
 }
 
+let gUpdateGraphCallback = undefined;
+let gGraphState = undefined;
+
 export default function Graph({ id, depth, isIdea }) {
   const [state] = useStateValue();
   const [onlyParentChild, setOnlyParentChild] = useState(false);
@@ -34,19 +39,26 @@ export default function Graph({ id, depth, isIdea }) {
   const [graphDepth, setGraphDepth] = useState(depth);
 
   const [isDragging, setIsDragging] = useState(false);
+  const [simIsRunning, setSimIsRunning] = useState(false);
 
   const svgContainerRef = createRef();
 
-  const oldBehaviour = false;
+  const gOldBehaviour = false;
+
+  console.log('shabba');
 
   useEffect(() => {
-    let graphState = buildGraphState(state, id, graphDepth, onlyIdea, onlyParentChild);
-    let svg = buildSvg(svgContainerRef.current, graphState);
-    startSimulation(graphState, svg);
+    gGraphState = buildGraphState(state, id, graphDepth, onlyIdea, onlyParentChild);
+    let svg = buildSvg(svgContainerRef.current, gGraphState);
+
+    console.log("useEffect");
+    gUpdateGraphCallback = buildUpdateGraphCallback(svg);
+    graphPhysics(gGraphState, gUpdateGraphCallback, setSimIsRunning);
+
   }, [onlyParentChild, onlyIdea, graphDepth]);
 
   function onMouseDown(event) {
-    if (oldBehaviour) {
+    if (gOldBehaviour) {
       return;
     }
 
@@ -56,10 +68,16 @@ export default function Graph({ id, depth, isIdea }) {
       svgContainerRef.current.elementBeingDragged = g;
       setIsDragging(true);
     }
+
+    if (!simIsRunning) {
+      // restart the simulation if it's stopped and the user starts dragging a node
+      graphPhysics(gGraphState, gUpdateGraphCallback, setSimIsRunning);
+      setSimIsRunning(true);
+    }
   }
 
   function onMouseUp(event) {
-    if (oldBehaviour) {
+    if (gOldBehaviour) {
       return;
     }
 
@@ -73,7 +91,7 @@ export default function Graph({ id, depth, isIdea }) {
   }
 
   function onMouseMove(event) {
-    if (oldBehaviour) {
+    if (gOldBehaviour) {
       return;
     }
     if (!isDragging) {
@@ -92,7 +110,7 @@ export default function Graph({ id, depth, isIdea }) {
   function onGraphClicked(event) {
     const target = event.target;
 
-    if (oldBehaviour) {
+    if (gOldBehaviour) {
       if (target.id.length > 0 && target.id[0] === '/') {
         // the id looks like a url, that's good enough for us, lets go there
         route(target.id, true);
@@ -266,8 +284,9 @@ function buildSvg(ref, graphState) {
   return svg;
 }
 
-function startSimulation(graphState, svg) {
-  function updateGraphCallback() {
+function buildUpdateGraphCallback(svg) {
+
+  function updateGraphCallback(graphState) {
     let edges = graphState.edges;
     let nodes = graphState.nodes;
 
@@ -287,13 +306,14 @@ function startSimulation(graphState, svg) {
       translateNode(svgNode, nodes[i].x, nodes[i].y);
     });
 
-    let [xmin, ymin, xmax, ymax] = getBoundingBox(graphState.nodes);
-    xmin -= 30;
-    ymin -= 30;
-    let width = (xmax - xmin) > 700 ? (xmax - xmin) * 1.2 : 800;
-    let height = (ymax - ymin) > 700 ? (ymax - ymin) * 1.2 : 800;
-    svg.element.setAttribute("viewBox", `${xmin} ${ymin} ${width} ${height}`);
-
+    if (gOldBehaviour) {
+      let [xmin, ymin, xmax, ymax] = getBoundingBox(graphState.nodes);
+      xmin -= 30;
+      ymin -= 30;
+      let width = (xmax - xmin) > 700 ? (xmax - xmin) * 1.2 : 800;
+      let height = (ymax - ymin) > 700 ? (ymax - ymin) * 1.2 : 800;
+      svg.element.setAttribute("viewBox", `${xmin} ${ymin} ${width} ${height}`);
+    }
 
     // let dbg = svg.debug.children[0];
     // dbg.textContent = `${graphState.simStats.tickCount} ${graphState.simStats.maxVelocities[0]} ${graphState.simStats.maxVelocities[1]}`;
@@ -301,7 +321,7 @@ function startSimulation(graphState, svg) {
     // dbg.setAttribute("y", ymin + 20);
   }
 
-  graphPhysics(graphState, updateGraphCallback);
+  return updateGraphCallback;
 }
 
 
