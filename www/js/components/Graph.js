@@ -5,8 +5,6 @@ import { svgTickedCheckBox, svgUntickedCheckBox, svgChevronLeft, svgChevronRight
 
 import graphPhysics from "/js/graphPhysics.js";
 
-const gOldBehaviour = false;
-
 function mouseInSvg(mouseX, mouseY, svgContainer) {
   const svgElement = svgContainer.firstChild;
 
@@ -34,6 +32,8 @@ let gGraphState = undefined;
 
 export default function Graph({ id, depth, isIdea }) {
   const [state] = useStateValue();
+
+  const [activeHyperlinks, setActiveHyperlinks] = useState(false);
   const [onlyParentChild, setOnlyParentChild] = useState(false);
   const [onlyIdea, setOnlyIdea] = useState(!!isIdea);
   const [graphDepth, setGraphDepth] = useState(depth);
@@ -43,25 +43,16 @@ export default function Graph({ id, depth, isIdea }) {
 
   const svgContainerRef = createRef();
 
-  const gOldBehaviour = false;
-
-  console.log('shabba');
-
   useEffect(() => {
     gGraphState = buildGraphState(state, id, graphDepth, onlyIdea, onlyParentChild);
     let svg = buildSvg(svgContainerRef.current, gGraphState);
 
-    console.log("useEffect");
     gUpdateGraphCallback = buildUpdateGraphCallback(svg);
     graphPhysics(gGraphState, gUpdateGraphCallback, setSimIsRunning);
 
   }, [onlyParentChild, onlyIdea, graphDepth]);
 
   function onMouseDown(event) {
-    if (gOldBehaviour) {
-      return;
-    }
-
     const target = event.target;
     let g = target.parentElement;
     if (g.nodeName === "g") {
@@ -77,10 +68,6 @@ export default function Graph({ id, depth, isIdea }) {
   }
 
   function onMouseUp(event) {
-    if (gOldBehaviour) {
-      return;
-    }
-
     if (isDragging) {
       const g = svgContainerRef.current.elementBeingDragged;
       g.associatedNode.fx = null;
@@ -91,9 +78,6 @@ export default function Graph({ id, depth, isIdea }) {
   }
 
   function onMouseMove(event) {
-    if (gOldBehaviour) {
-      return;
-    }
     if (!isDragging) {
       return;
     }
@@ -110,12 +94,17 @@ export default function Graph({ id, depth, isIdea }) {
   function onGraphClicked(event) {
     const target = event.target;
 
-    if (gOldBehaviour) {
+    if (activeHyperlinks) {
       if (target.id.length > 0 && target.id[0] === '/') {
         // the id looks like a url, that's good enough for us, lets go there
         route(target.id, true);
       }
     }
+  }
+
+  function onActivHyperlinksClicked(e) {
+    e.preventDefault();
+    setActiveHyperlinks(!activeHyperlinks);
   }
 
   function onOnlyParentChildClicked(e) {
@@ -141,6 +130,10 @@ export default function Graph({ id, depth, isIdea }) {
   return html`
 <div>
   <div class="spanne">
+    <div class="spanne-entry clickable" onClick=${ onActivHyperlinksClicked }>
+      <span class="spanne-icon-label">Active Hyperlinks</span>
+      ${ activeHyperlinks ? svgTickedCheckBox() : svgUntickedCheckBox() }
+    </div>
     <div class="spanne-entry clickable" onClick=${ onOnlyIdeaClicked }>
       <span class="spanne-icon-label">Only Ideas</span>
       ${ onlyIdea ? svgTickedCheckBox() : svgUntickedCheckBox() }
@@ -306,15 +299,6 @@ function buildUpdateGraphCallback(svg) {
       translateNode(svgNode, nodes[i].x, nodes[i].y);
     });
 
-    if (gOldBehaviour) {
-      let [xmin, ymin, xmax, ymax] = getBoundingBox(graphState.nodes);
-      xmin -= 30;
-      ymin -= 30;
-      let width = (xmax - xmin) > 700 ? (xmax - xmin) * 1.2 : 800;
-      let height = (ymax - ymin) > 700 ? (ymax - ymin) * 1.2 : 800;
-      svg.element.setAttribute("viewBox", `${xmin} ${ymin} ${width} ${height}`);
-    }
-
     // let dbg = svg.debug.children[0];
     // dbg.textContent = `${graphState.simStats.tickCount} ${graphState.simStats.maxVelocities[0]} ${graphState.simStats.maxVelocities[1]}`;
     // dbg.setAttribute("x", xmin + 20);
@@ -322,31 +306,6 @@ function buildUpdateGraphCallback(svg) {
   }
 
   return updateGraphCallback;
-}
-
-
-
-function getBoundingBox(nodes) {
-  let xmin = Infinity;
-  let ymin = Infinity;
-  let xmax = -Infinity;
-  let ymax = -Infinity;
-
-  if (nodes.length === 0) {
-    return [0, 0, 1, 1];
-  }
-
-  nodes.forEach(n => {
-    if (n.x < xmin) { xmin = n.x; }
-    if (n.y < ymin) { ymin = n.y; }
-    if (n.x + n.textWidth > xmin) { xmax = n.x + n.textWidth; }
-    if (n.y + n.textHeight > ymin) { ymax = n.y + n.textHeight; }
-  });
-
-  // let xmid = (xmin + xmax) / 2;
-  // let ymid = (ymin + ymax) / 2;
-
-  return [xmin, ymin, xmax, ymax];
 }
 
 function createSvgEdge(sourceNode, targetNode, strength, kind) {

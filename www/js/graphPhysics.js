@@ -30,13 +30,12 @@ export default function(graphState, tickCallbackFn, setSimIsRunningFn) {
     let before = performance.now();
     let continueSimulating = tick(tickIterations);
     if (!continueSimulating) {
-      let after = performance.now();
-      console.log(`physics step took ${after - before}ms (tickCount: ${graphState.simStats.tickCount})`);
+      // let after = performance.now();
+      // console.log(`physics step took ${after - before}ms (tickCount: ${graphState.simStats.tickCount})`);
     } else {
       // console.log('physics requires another step - ignore the timing info thats about to be shown');
     }
 
-    // event.call("tick", simulation);
     if (tickCallbackFn) {
       tickCallbackFn(graphState);
     }
@@ -118,7 +117,6 @@ export default function(graphState, tickCallbackFn, setSimIsRunningFn) {
 
       if ((alpha < alphaMin) || (s.tickCount > 5 && s.maxVelocities[0] < m && s.maxVelocities[1] < m)) {
         // stop the simulation
-        console.log('stopping the simulation');
         return false;
       }
     }
