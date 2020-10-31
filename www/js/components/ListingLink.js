@@ -5,7 +5,7 @@ export default function ListingLink({ resource, id, name }) {
 
   let res = html`
     <li>
-      <${Link} href=${ href }>${ name }</${Link}>
+      <${Link} class="pigment-fg-${resource}" href=${ href }>${ name }</${Link}>
     </li>`;
 
   return res;

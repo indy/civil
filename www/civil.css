@@ -10,12 +10,25 @@
              font-weight: normal;
              font-style: normal; }
 
-
-
 #root {
   border-left: 0.1em solid var(--bg2);
   padding: 1em;
 }
+
+a:link.pigment-inherit,
+a:visited.pigment-inherit {
+  color: inherit;
+}
+
+.pigment-ideas { color: var(--fg-ideas); background: var(--bg-ideas); }
+.pigment-publications { color: var(--fg-publications); background: var(--bg-publications); }
+.pigment-people { color: var(--fg-people); background: var(--bg-people); }
+.pigment-timelines { color: var(--fg-timelines); background: var(--bg-timelines); }
+
+.pigment-fg-ideas { color: var(--fg-ideas); }
+.pigment-fg-publications { color: var(--fg-publications); }
+.pigment-fg-people { color: var(--fg-people); }
+.pigment-fg-timelines { color: var(--fg-timelines); }
 
 .delete-confirmation {
   padding-left: 3em;
@@ -214,11 +227,6 @@ section > form { width: var(--block-width); }
   width: 96%;
 }
 
-.noteref-kind {
-  font-size: 75%;
-  color: var(--fg2);
-}
-
 /* the left-hand spanne that contains noterefs, 'add note icons' etc*/
 .spanne {
   padding-top: 0.5em;
@@ -301,11 +309,22 @@ mark.scribbled-out {
   padding: 8px 0;
 }
 
-
 a.top-bar-menuitem {
   margin-left: 1em;
   margin-right: 1em;
-  background: inherit;
+  padding: 0.4em 1em 0.2em 1em;
+  border-radius: var(--coloured-deck-border-radius);
+}
+
+.noteref-kind {
+  font-size: 75%;
+  color: var(--fg1);
+  padding-right: 1em;
+}
+
+.noteref {
+  padding: 0.1em 0.5em 0.1em 0.5em;
+  border-radius: var(--coloured-deck-border-radius);
 }
 
 blockquote.quote > textarea {

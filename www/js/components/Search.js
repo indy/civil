@@ -40,7 +40,7 @@ export default function Search() {
   function buildSearchResultEntry(entry, i) {
     return html`
       <li key=${ i }>
-        <${Link} href='/${entry.resource}/${entry.id}'>${ entry.name }</${Link}>
+        <${Link} class="pigment-fg-${entry.resource}" href='/${entry.resource}/${entry.id}'>${ entry.name }</${Link}>
       </li>
 `;
   }

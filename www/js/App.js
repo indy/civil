@@ -91,12 +91,12 @@ function TopBarMenu(props) {
 
   return html`
     <div id='top-bar-menu'>
-      <${Link} class='top-bar-menuitem' href=${'/'}>Search</${Link}>
-      <${Link} class='top-bar-menuitem' href=${'/ideas'}>Ideas</${Link}>
-      <${Link} class='top-bar-menuitem' href=${'/publications'}>Publications</${Link}>
-      <${Link} class='top-bar-menuitem' href=${'/people'}>People</${Link}>
-      <${Link} class='top-bar-menuitem' href=${'/timelines'}>Timelines</${Link}>
-      <${Link} class='top-bar-menuitem' href=${ loggedLink() } id="login-menuitem">${ loggedStatus() }</${Link}>
+      <${Link} class='top-bar-menuitem pigment-inherit' href=${'/'}>Search</${Link}>
+      <${Link} class='top-bar-menuitem pigment-ideas' href=${'/ideas'}>Ideas</${Link}>
+      <${Link} class='top-bar-menuitem pigment-publications' href=${'/publications'}>Publications</${Link}>
+      <${Link} class='top-bar-menuitem pigment-people' href=${'/people'}>People</${Link}>
+      <${Link} class='top-bar-menuitem pigment-timelines' href=${'/timelines'}>Timelines</${Link}>
+      <${Link} href=${ loggedLink() } id="login-menuitem" class="pigment-inherit">${ loggedStatus() }</${Link}>
     </div>
 `;
 }

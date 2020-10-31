@@ -217,11 +217,15 @@ figure.fullwidth figcaption {
 }
 
 /* Links: replicate underline that clears descenders */
+/*
+isg: removed because this interfered with the pigment colours in the top bar
+there is a separate class: pigment-inherit which should be added to links
+
 a:link,
 a:visited {
   color: inherit;
 }
-
+ */
 .no-tufte-underline:link {
   background: unset;
   text-shadow: unset;

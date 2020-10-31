@@ -344,9 +344,9 @@ function hasNoteBeenModified(note, propsNote) {
 function ResourceLink({ resource, id, name, kind }) {
   const href = `/${resource}/${id}`;
 
-  let res = html`
-      <${Link} href=${ href }><span class="noteref-kind">(${ kind })</span> ${ name }</${Link}>
-  `;
-
-  return res;
+  return html`
+<div>
+  <span class="noteref-kind">(${ kind })</span>
+  <${Link} class="noteref pigment-${resource}" href=${ href }>${ name }</${Link}>
+</div>`;
 };

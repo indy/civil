@@ -192,7 +192,7 @@ function buildSvg(ref, graphState) {
   marker.setAttribute("orient", "auto");
 
   let path = document.createElementNS("http://www.w3.org/2000/svg", 'path');
-  path.setAttribute("fill", "var(--fg2)");
+  path.setAttribute("fill", "var(--graph-edge)");
   path.setAttribute("d", "M0,-5L10,0L0,5");
 
   marker.appendChild(path);
@@ -252,7 +252,7 @@ function buildSvg(ref, graphState) {
   // g of nodes
   //
   svg.nodes = document.createElementNS("http://www.w3.org/2000/svg", 'g');
-  svg.nodes.setAttribute("fill", "var(--fg2)");
+  svg.nodes.setAttribute("fill", "var(--graph-edge)");
   svg.nodes.setAttribute("stroke-linecap", "round");
   svg.nodes.setAttribute("stroke-linejoin", "round");
 
@@ -315,14 +315,14 @@ function createSvgEdge(sourceNode, targetNode, strength, kind) {
   path.setAttribute("stroke-width", `${width}`);
 
   if (kind === "ref") {
-    path.setAttribute("stroke", 'var(--fg2)');
+    path.setAttribute("stroke", 'var(--graph-edge)');
     translateEdge(path, sourceNode, targetNode);
   } else if (kind === "ref_to_parent") {
-    path.setAttribute("stroke", 'var(--fg2)');
+    path.setAttribute("stroke", 'var(--graph-edge)');
     path.setAttribute("marker-end", `url(${window.location}#arrow-head)`);
     translateEdge(path, targetNode, sourceNode);
   } else if (kind === "ref_to_child") {
-    path.setAttribute("stroke", 'var(--fg2)');
+    path.setAttribute("stroke", 'var(--graph-edge)');
     path.setAttribute("marker-end", `url(${window.location}#arrow-head)`);
     translateEdge(path, sourceNode, targetNode);
   } else if (kind === "ref_in_contrast") {
@@ -340,14 +340,13 @@ function createSvgEdge(sourceNode, targetNode, strength, kind) {
 
 function createSvgNode(n, x, y) {
   const label = n.label;
-
   let g = document.createElementNS("http://www.w3.org/2000/svg", 'g');
   g.associatedNode = n;
 
   translateNode(g, x, y);
 
   // let circle2 = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
-  // circle2.setAttribute("stroke", "var(--fg2)");
+  // circle2.setAttribute("stroke", "var(--graph-edge)");
   // circle2.setAttribute("stroke-width", "0.5");
   // circle2.setAttribute("r", "40");
   // g.appendChild(circle2);
@@ -371,14 +370,14 @@ function createSvgNode(n, x, y) {
   g.appendChild(text1);
 
   let circle = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
-  circle.setAttribute("stroke", "var(--fg2)");
+  circle.setAttribute("stroke", "var(--graph-edge)");
   circle.setAttribute("stroke-width", "1.5");
   circle.setAttribute("r", "4");
   g.appendChild(circle);
 
 
   let text2 = document.createElementNS("http://www.w3.org/2000/svg", 'text');
-  text2.setAttribute("fill", "var(--fg)");
+  text2.setAttribute("fill", "var(--fg-" + n.resource + ")");
   text2.setAttribute("x", "10");
   text2.setAttribute("y", "0");
   text2.textContent = label;
