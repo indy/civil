@@ -31,15 +31,8 @@ pub struct NewDeckReference {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct CreateEdgeFromNoteToDecks {
+pub struct ProtoEdgeFromNoteToDecks {
     pub note_id: Key,
     pub existing_deck_references: Vec<ExistingDeckReference>,
     pub new_deck_references: Vec<NewDeckReference>,
 }
-
-// #[derive(Debug, serde::Deserialize, serde::Serialize)]
-// pub struct CreateEdgeFromNoteToDecks {
-//     pub note_id: Key,
-//     pub existing_deck_ids: Vec<Key>,
-//     pub new_deck_names: Vec<String>,
-// }

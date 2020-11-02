@@ -53,7 +53,7 @@ impl From<Note> for interop::Note {
 pub(crate) async fn create_notes(
     db_pool: &Pool,
     user_id: Key,
-    note: &interop::CreateNote,
+    note: &interop::ProtoNote,
 ) -> Result<Vec<interop::Note>> {
     let mut notes: Vec<interop::Note> = Vec::new();
 

@@ -28,7 +28,7 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 pub async fn create_notes(
-    note: Json<interop::CreateNote>,
+    note: Json<interop::ProtoNote>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {

@@ -26,7 +26,7 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 pub async fn create_from_note_to_decks(
-    edge: Json<interop::CreateEdgeFromNoteToDecks>,
+    edge: Json<interop::ProtoEdgeFromNoteToDecks>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {

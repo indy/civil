@@ -72,7 +72,7 @@ fn is_key_in_existing_deck_references(k: Key, keys: &[interop::ExistingDeckRefer
 
 pub(crate) async fn create_from_note_to_decks(
     db_pool: &Pool,
-    edge_connectivity: &interop::CreateEdgeFromNoteToDecks,
+    edge_connectivity: &interop::ProtoEdgeFromNoteToDecks,
     user_id: Key,
 ) -> Result<Vec<interop_decks::MarginConnection>> {
     info!("create_from_note_to_decks");

@@ -25,7 +25,7 @@ pub struct Note {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct CreateNote {
+pub struct ProtoNote {
     pub content: Vec<String>,
     pub deck_id: Key,
     pub point_id: Option<Key>,
