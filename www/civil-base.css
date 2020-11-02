@@ -5,22 +5,19 @@
   --fg1: #666; /* linked decks (i.e. tags) */
   --fg-inactive: #999;
 
-  --graph-edge: #ddddd0; /* edges in graphs */
-  --graph-edge-in-contrast: #000dee; /* edges in graphs */
-  --graph-edge-critical: #ee0d00; /* edges in graphs */
+  --graph-edge: #ababab;             /* sat: 0,  light:70 */
+  --graph-edge-in-contrast: #73b4c8; /* sat:60.2,light:70 clock05 */
+  --graph-edge-critical: #e2969d;    /* sat:60.2,light:70 clock10 */
 
   --bg1: #eeeee8;
   --bg2: #ede7e3;
 
-  --body-width: 80%;
-  --block-width: 55%;
-  --block-width-indented: 50%;
-
-  --selection: #db6e42;
-  --scribble: blue; /* handwritten note  */
-  --hyperlink: #0000aa;
-  --highlight: #fcf172;
   --divider: #ccc;
+
+  /* saturation: 60.2 lightness: 50 */
+  --scribble: #8764c6;          /* clock07  */
+  --hyperlink: #5279a8;         /* clock06 */
+  --highlight: #fdfd6f;         /* hue: 85.9 sat:80 light:97.1*/
 
   /* saturation: 60.2 lightness: 90 */
   --bg-ideas: #d9e3f3;             /* clock06 */
@@ -33,6 +30,10 @@
   --fg-publications: #867548;      /* clock12 */
   --fg-people: #bc508e;            /* clock09 */
   --fg-timelines: #4b816d;         /* clock03 */
+
+  --body-width: 80%;
+  --block-width: 55%;
+  --block-width-indented: 50%;
 
   --coloured-deck-border-radius: 0.3em;
 }
@@ -55,15 +56,33 @@
   :root {
     --bg: #2b2b2b;
     --fg: #a6a8aa;
-    --fg1: #999; /* linked decks (i.e. tags) */
 
+    --fg1: #999; /* linked decks (i.e. tags) */
     --fg-inactive: var(--fg1);
 
+    --graph-edge: #5e5e5e;             /* sat: 0,  light:40 */
+    --graph-edge-in-contrast: #3d636f; /* sat:60.2,light:40 clock05 */
+    --graph-edge-critical: #a23a47;    /* sat:60.2,light:40 clock10 */
 
-    --selection: #b15935;
-    --scribble: #bbbbff; /* handwritten note  */
-    --hyperlink: #bbbbff;
-    --highlight: #9c9102;
+    --bg1: #171717;
+    --bg2: #12181C;
+
     --divider: #444;
+
+    --scribble: #8764c6; /* handwritten note  */
+    --hyperlink: #5279a8;
+    --highlight: #fdfd6f;
+
+    /* saturation: 60.2 lightness: 50 */
+    --bg-ideas: #5279a8;             /* clock06 */
+    --bg-publications: #867548;      /* clock12 */
+    --bg-people: #bc508e;            /* clock09 */
+    --bg-timelines: #4b816d;         /* clock03 */
+
+    /* saturation: 60.2 lightness: 90 */
+    --fg-ideas: #d9e3f3;             /* clock06 */
+    --fg-publications: #f4e0b2;      /* clock12 */
+    --fg-people: #f4dce7;            /* clock09 */
+    --fg-timelines: #98f4d1;         /* clock03 */
   }
 }
