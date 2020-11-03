@@ -4,6 +4,7 @@ export default function CivilSelect({ parentDeckId, values, onChange, options, o
   const [currentValues, setCurrentValues] = useState(values);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [candidates, setCandidates] = useState([]);
+  const [canSave, setCanSave] = useState(false);
 
   const onKeyDown = e => {
     if (e.key === "Escape") {
@@ -59,10 +60,12 @@ export default function CivilSelect({ parentDeckId, values, onChange, options, o
   }, [currentValues, candidates]);
 
   function onReferenceRemove(e) {
+    setCanSave(true);
     setCurrentValues(currentValues.filter(cv => { return cv.value !== e.value;}));
   }
 
   function onReferenceChangeKind(reference, newKind) {
+    setCanSave(true);
     let newValues = currentValues.map(cv => {
       if (cv.id === reference.id) {
         cv.kind = newKind;
@@ -74,6 +77,7 @@ export default function CivilSelect({ parentDeckId, values, onChange, options, o
   }
 
   function onSelectedAdd(candidate) {
+    setCanSave(true);
     setCurrentValues(currentValues.concat([candidate]));
   }
 
@@ -92,7 +96,7 @@ export default function CivilSelect({ parentDeckId, values, onChange, options, o
                           currentValues=${ currentValues }
                           showKeyboardShortcuts=${ showKeyboardShortcuts }/>
                <button onClick=${ onCancelAddDecks }>Cancel</button>
-               <button onClick=${ onCommitAddDecks }>${ showKeyboardShortcuts && html`Ctrl-Enter`} Save</button>
+               <button onClick=${ onCommitAddDecks } disabled=${ !canSave }>${ showKeyboardShortcuts && html`Ctrl-Enter`} Save Changes</button>
               </div>`;
 }
 
@@ -152,17 +156,19 @@ function Input({ parentDeckId, options, onAdd, candidates, setCandidates, curren
   function onSubmit(e) {
     e.preventDefault();
 
-    // search for text in options
-    let lowerText = text.toLowerCase();
-    let existingOption = options.find(option => { return option.compValue === lowerText;});
-    if (existingOption) {
-      // pre-existing deck
-      onAdd(existingOption);
-    } else {
-      // treat this text as a new idea that needs to be created
-      onAdd({ value: text, kind: "Ref", __isNew__: true});
+    if (text.length > 0) {
+      // search for text in options
+      let lowerText = text.toLowerCase();
+      let existingOption = options.find(option => { return option.compValue === lowerText;});
+      if (existingOption) {
+        // pre-existing deck
+        onAdd(existingOption);
+      } else {
+        // treat this text as a new idea that needs to be created
+        onAdd({ value: text, kind: "Ref", __isNew__: true});
+      }
+      setText('');
     }
-    setText('');
   }
 
   function onSelectedCandidate(c) {

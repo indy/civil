@@ -22,13 +22,6 @@ export default function Note(props) {
 
   // decks is in whatever structure is most convenient for the CreatableSelect component
   const [decks, setDecks] = useState(buildCurrentDecks(props.note));
-  // const [decksSelectRef] = useState(React.createRef());
-
-  useEffect(() => {
-    // if(showAddDecksUI && decksSelectRef.current) {
-    //   decksSelectRef.current.focus();
-    // }
-  });
 
   function handleChangeEvent(event) {
     const target = event.target;
