@@ -26,6 +26,7 @@ pub struct Registration {
     pub username: String,
     pub email: String,
     pub password: String,
+    pub magic_word: String,
 }
 
 #[derive(serde::Serialize)]

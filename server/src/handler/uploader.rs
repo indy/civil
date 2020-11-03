@@ -17,7 +17,7 @@
 
 use crate::error::{Error, Result};
 use crate::session;
-use crate::UserContentPath;
+use crate::ServerConfig;
 
 use crate::db::uploader as db;
 
@@ -54,13 +54,13 @@ pub async fn get(db_pool: Data<Pool>, session: actix_session::Session) -> Result
 
 pub async fn create(
     mut payload: Multipart,
-    user_content_path: Data<UserContentPath>,
+    server_config: Data<ServerConfig>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    let user_directory = format!("{}/{}", user_content_path.path, user_id);
+    let user_directory = format!("{}/{}", server_config.user_content_path, user_id);
     std::fs::DirBuilder::new()
         .recursive(true)
         .create(&user_directory)?;

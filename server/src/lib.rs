@@ -38,8 +38,9 @@ use tracing_subscriber::FmtSubscriber;
 
 const SIGNING_KEY_SIZE: usize = 32;
 
-pub struct UserContentPath {
-    pub path: String,
+pub struct ServerConfig {
+    pub user_content_path: String,
+    pub registration_magic_word: String,
 }
 
 pub async fn start_server() -> Result<()> {
@@ -55,6 +56,7 @@ pub async fn start_server() -> Result<()> {
     let port = env::var("PORT")?;
     let www_path = env::var("WWW_PATH")?;
     let user_content_path = env::var("USER_CONTENT_PATH")?;
+    let registration_magic_word = env::var("REGISTRATION_MAGIC_WORD")?;
     let postgres_db = env::var("POSTGRES_DB")?;
     let postgres_host = env::var("POSTGRES_HOST")?;
     let postgres_user = env::var("POSTGRES_USER")?;
@@ -95,8 +97,9 @@ pub async fn start_server() -> Result<()> {
 
         App::new()
             .data(pool.clone())
-            .data(UserContentPath {
-                path: user_content_path.clone(),
+            .data(ServerConfig {
+                user_content_path: user_content_path.clone(),
+                registration_magic_word: registration_magic_word.clone(),
             })
             .wrap(session_store)
             .wrap(error_handlers)

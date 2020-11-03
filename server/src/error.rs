@@ -37,6 +37,7 @@ pub enum Error {
     Utf8(std::str::Utf8Error),
     ParseInt(std::num::ParseIntError),
     SerdeJson(serde_json::Error),
+    Registration,
     Authenticating,
     InvalidModelType(Model),
     MissingField,

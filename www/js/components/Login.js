@@ -3,51 +3,56 @@ import { html, useState } from '/lib/preact/mod.js';
 import Net from '/js/Net.js';
 
 function Login({ loginCallback }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
-  const [registerEmail, setRegisterEmail] = useState('');
-  const [registerPassword, setRegisterPassword] = useState('');
-  const [registerPassword2, setRegisterPassword2] = useState('');
+  const [state, setState] = useState({
+    'login-email': '',
+    'login-password': '',
+    'register-username': '',
+    'register-magic-word': '',
+    'register-email': '',
+    'register-password': '',
+    'register-password2': ''
+  });
 
   const handleChangeEvent = (event) => {
     const target = event.target;
     const name = target.name;
     const value = target.value;
 
-    console.log(`${target} ${name} ${value}`);
-
-    if (name === 'email') {
-      setEmail(value);
-    }
-    if (name === 'password') {
-      setPassword(value);
-    }
-
-    if (name === 'registeremail') {
-      setRegisterEmail(value);
-    }
-    if (name === 'registerpassword') {
-      setRegisterPassword(value);
-    }
-
-    if (name === 'registerpassword2') {
-      setRegisterPassword2(value);
-    }
+    const newState = { ...state };
+    newState[name] = value;
+    setState(newState);
   };
 
-  const handleLoginSubmit = (event) => {
-    Net.post('api/auth', { email, password }).then(user => {
+  function handleLoginSubmit(event) {
+    Net.post('api/auth', {
+      email: state['login-email'],
+      password: state['login-password']
+    }).then(user => {
       loginCallback(user);
     });
 
     event.preventDefault();
   };
 
-  const handleRegisterSubmit = (event) => {
-    Net.post('api/auth', { email, password }).then(user => {
-      loginCallback(user);
-    });
+  function okToSendRegistration() {
+    return state['register-username'].length > 0 &&
+      state['register-email'].length > 0 &&
+      state['register-magic-word'].length > 0 &&
+      state['register-password'].length > 0 &&
+      state['register-password'] === state['register-password-2'];
+  }
+
+  function handleRegisterSubmit(event) {
+    if (okToSendRegistration()) {
+      Net.post('api/users', {
+        username: state['register-username'],
+        email: state['register-email'],
+        password: state['register-password'],
+        magic_word: state['register-magic-word']
+      }).then(user => {
+        loginCallback(user);
+      });
+    }
 
     event.preventDefault();
   };
@@ -56,41 +61,53 @@ function Login({ loginCallback }) {
     <section>
       <h1>Login</h1>
       <form onSubmit=${ handleLoginSubmit }>
-        <label for="email">Email:</label>
-        <input id="email"
+        <label for="login-email">Email:</label>
+        <input id="login-email"
                type="text"
-               name="email"
-               value=${ email }
+               name="login-email"
+               value=${ state['login-email'] }
                onInput=${ handleChangeEvent } />
-        <label for="password">Password:</label>
-        <input id="password"
+        <label for="login-password">Password:</label>
+        <input id="login-password"
                type="password"
-               name="password"
-               value=${ password }
+               name="login-password"
+               value=${ state['login-password'] }
                onInput=${ handleChangeEvent } />
         <input type="submit" value="Login"/>
       </form>
       <h1>Register New User</h1>
       <form onSubmit=${ handleRegisterSubmit }>
-        <label for="registeremail">Email:</label>
-        <input id="registeremail"
+        <label for="register-magic-word">Magic word that was given to you by Indy:</label>
+        <input id="register-magic-word"
                type="text"
-               name="registeremail"
-               value=${ registerEmail }
+               name="register-magic-word"
+               value=${ state['register-magic-word'] }
                onInput=${ handleChangeEvent } />
-        <label for="registerpassword">Password:</label>
-        <input id="registerpassword"
+        <label for="register-username">Username:</label>
+        <input id="register-username"
+               type="text"
+               name="register-username"
+               value=${ state['register-username'] }
+               onInput=${ handleChangeEvent } />
+        <label for="register-email">Email:</label>
+        <input id="register-email"
+               type="text"
+               name="register-email"
+               value=${ state['register-email'] }
+               onInput=${ handleChangeEvent } />
+        <label for="register-password">Password:</label>
+        <input id="register-password"
                type="password"
-               name="registerpassword"
-               value=${ registerPassword }
+               name="register-password"
+               value=${ state['register-password'] }
                onInput=${ handleChangeEvent } />
-        <label for="registerpassword2">Confirm Password:</label>
-        <input id="registerpassword2"
+        <label for="register-password-2">Confirm Password:</label>
+        <input id="register-password-2"
                type="password"
-               name="registerpassword2"
-               value=${ registerPassword2 }
+               name="register-password-2"
+               value=${ state['register-password-2'] }
                onInput=${ handleChangeEvent } />
-        <input type="submit" value="Login"/>
+        <input type="submit" value="Register" disabled=${!okToSendRegistration()}/>
       </form>
     </section>`;
 }

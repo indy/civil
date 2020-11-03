@@ -24,6 +24,7 @@ use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
 use rand::{thread_rng, RngCore};
 use std::env;
+use crate::ServerConfig;
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -74,19 +75,27 @@ fn verify_encoded(encoded: &str, pwd: &[u8]) -> Result<bool> {
 
 pub async fn create_user(
     registration: Json<interop::Registration>,
+    server_config: Data<ServerConfig>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
-) -> ::std::result::Result<HttpResponse, actix_web::Error> {
-    let registration = registration.into_inner();
-    let hash = hash_password(&registration.password)?;
+) -> Result<HttpResponse> {
+    info!("create_user");
 
-    let (id, user) = db::create(&db_pool, &registration, &hash).await?;
+    if server_config.registration_magic_word == registration.magic_word {
 
-    // save id to the session
-    session::save_user_id(&session, id)?;
+        let registration = registration.into_inner();
+        let hash = hash_password(&registration.password)?;
 
-    // send response
-    Ok(HttpResponse::Ok().json(user))
+        let (id, user) = db::create(&db_pool, &registration, &hash).await?;
+
+        // save id to the session
+        session::save_user_id(&session, id)?;
+
+        // send response
+        Ok(HttpResponse::Ok().json(user))
+    } else {
+        Err(Error::Registration)
+    }
 }
 
 pub async fn get_user(
