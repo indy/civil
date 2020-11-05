@@ -22,7 +22,7 @@ mod handler;
 mod interop;
 mod session;
 
-pub use crate::error::Result;
+pub use crate::error::{Error, Result};
 
 use actix_files as fs;
 use actix_session::CookieSession;
@@ -43,6 +43,20 @@ pub struct ServerConfig {
     pub registration_magic_word: String,
 }
 
+fn env_var_string(key: &str) -> Result<String> {
+    match env::var(key) {
+        Ok(r) => Ok(r),
+        Err(e) => {
+            error!("Error unable to get environment variable: {}", key);
+            Err(Error::Var(e))
+        }
+    }
+}
+
+fn env_var_bool(key: &str) -> Result<bool> {
+    Ok(env_var_string(key)? == "true")
+}
+
 pub async fn start_server() -> Result<()> {
     dotenv::dotenv().ok();
 
@@ -53,15 +67,15 @@ pub async fn start_server() -> Result<()> {
 
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
-    let port = env::var("PORT")?;
-    let www_path = env::var("WWW_PATH")?;
-    let user_content_path = env::var("USER_CONTENT_PATH")?;
-    let registration_magic_word = env::var("REGISTRATION_MAGIC_WORD")?;
-    let postgres_db = env::var("POSTGRES_DB")?;
-    let postgres_host = env::var("POSTGRES_HOST")?;
-    let postgres_user = env::var("POSTGRES_USER")?;
-    let postgres_password = env::var("POSTGRES_PASSWORD")?;
-    let cookie_secure: bool = env::var("COOKIE_OVER_HTTPS_ONLY")? == "true";
+    let port = env_var_string("PORT")?;
+    let www_path = env_var_string("WWW_PATH")?;
+    let user_content_path = env_var_string("USER_CONTENT_PATH")?;
+    let registration_magic_word = env_var_string("REGISTRATION_MAGIC_WORD")?;
+    let postgres_db = env_var_string("POSTGRES_DB")?;
+    let postgres_host = env_var_string("POSTGRES_HOST")?;
+    let postgres_user = env_var_string("POSTGRES_USER")?;
+    let postgres_password = env_var_string("POSTGRES_PASSWORD")?;
+    let cookie_secure = env_var_bool("COOKIE_OVER_HTTPS_ONLY")?;
 
     let cfg = deadpool_postgres::Config {
         user: Some(String::from(&postgres_user)),
