@@ -321,38 +321,13 @@ function ensureCorrectDeck(state, resource, id, cacheDeck) {
     if(!state.cache.deck[id]) {
       // fetch resource from the server
       const url = `/api/${resource}/${id}`;
-      Net.get(url).then(s => {
-        if (s) {
-          let updatedDeck = applyDecksToNotes(s);
-          cacheDeck(updatedDeck);
+      Net.get(url).then(deck => {
+        if (deck) {
+          cacheDeck(deck);
         } else {
           console.error(`error: fetchDeck for ${url}`);
         }
       });
     }
   }
-}
-
-function applyDecksToNotes(obj) {
-  const decksInNotes = hashByNoteIds(obj.decks_in_notes);
-
-  for(let i = 0;i<obj.notes.length;i++) {
-    let n = obj.notes[i];
-    n.decks = decksInNotes[n.id];
-  }
-
-  return obj;
-}
-
-function hashByNoteIds(s) {
-  s = s || [];
-  return s.reduce(function(a, b) {
-    const note_id = b.note_id;
-    if (a[note_id]) {
-      a[note_id].push(b);
-    } else {
-      a[note_id] = [b];
-    }
-    return a;
-  }, {});
 }
