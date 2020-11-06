@@ -7,16 +7,29 @@ MINIFY := $(shell command -v minify 2> /dev/null)
 
 ########################################
 #
+#   BUILDING
+#
 # 	Build debug build of wasm file
 # 	$ make wasm
 #
 # 	Build release builds of everything
 # 	$ make release
 #
+#   DEPLOYING
+#
 # 	Upload release builds to server:
 # 	$ make upload
 #
+#   HELP DURING DEVELOPMENT
+#
+# 	Download images from the server:
+# 	$ make download-images
+#
 ########################################
+
+.PHONY: download-images
+download-images:
+	rsync -avzhe ssh indy@indy.io:/home/indy/work/civil/user-content .
 
 wasm: www/wasm_bg.wasm
 
