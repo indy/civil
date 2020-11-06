@@ -48,7 +48,6 @@ pub async fn get_all(db_pool: Data<Pool>, session: actix_session::Session) -> Re
     info!("get_all");
 
     let user_id = session::user_id(&session)?;
-
     let publications = db::all(&db_pool, user_id).await?;
 
     Ok(HttpResponse::Ok().json(publications))

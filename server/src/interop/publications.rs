@@ -28,6 +28,9 @@ pub struct Publication {
 
     pub source: Option<String>,
     pub author: Option<String>,
+    pub short_description: Option<String>,
+
+    pub rating: i32,
 
     pub notes: Option<Vec<Note>>,
 
@@ -40,4 +43,6 @@ pub struct ProtoPublication {
     pub title: String,
     pub source: Option<String>,
     pub author: Option<String>,
+    pub short_description: Option<String>,
+    pub rating: i32,
 }

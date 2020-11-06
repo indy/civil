@@ -238,6 +238,10 @@ section > form { width: var(--block-width); }
 
   font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
 }
+.spanne-in-listing {
+  /* don't want the padding as each li is only a single line */
+  padding-top: 0.0em;
+}
 
 /* like spanne but inline for adding notes to points */
 .inline-spanne {
@@ -453,6 +457,12 @@ input:required {
 
 .publications-list > li {
   list-style-type: none;
+}
+
+.publications-list li .short-description {
+  color: var(--fg1);
+  margin-left: 1em;
+  font-size: 80%;
 }
 
 .people-list {

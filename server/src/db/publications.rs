@@ -34,6 +34,8 @@ struct Publication {
     name: String,
     source: Option<String>,
     author: Option<String>,
+    short_description: Option<String>,
+    rating: i32,
     created_at: chrono::DateTime<chrono::Utc>,
 }
 
@@ -47,6 +49,9 @@ impl From<Publication> for interop::Publication {
 
             source: a.source,
             author: a.author,
+            short_description: a.short_description,
+
+            rating: a.rating,
 
             notes: None,
 
@@ -72,6 +77,31 @@ struct PublicationExtra {
     deck_id: Key,
     source: Option<String>,
     author: Option<String>,
+    short_description: Option<String>,
+    rating: i32,
+}
+
+impl From<(PublicationDeck, PublicationExtra)> for interop::Publication {
+    fn from(a: (PublicationDeck, PublicationExtra)) -> interop::Publication {
+        let (deck, extra) = a;
+        interop::Publication {
+            id: deck.id,
+            title: deck.name,
+
+            created_at: deck.created_at,
+
+            source: extra.source,
+            author: extra.author,
+            short_description: extra.short_description,
+
+            rating: extra.rating,
+
+            notes: None,
+
+            decks_in_notes: None,
+            linkbacks_to_decks: None,
+        }
+    }
 }
 
 pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Publication>> {
@@ -111,36 +141,16 @@ pub(crate) async fn create(
     )
     .await?;
 
-    let mut created_publication = interop::Publication {
-        id: deck.id,
-        title: deck.name,
-
-        created_at: deck.created_at,
-
-        source: None,
-        author: None,
-
-        notes: None,
-
-        decks_in_notes: None,
-        linkbacks_to_decks: None,
-    };
-
-    if publication.source.is_some() || publication.author.is_some() {
-        let publication_extras = pg::one::<PublicationExtra>(
-            &tx,
-            include_str!("sql/publications_create_extra.sql"),
-            &[&deck.id, &publication.source, &publication.author],
-        )
+    let publication_extras = pg::one::<PublicationExtra>(
+        &tx,
+        include_str!("sql/publications_create_extra.sql"),
+        &[&deck.id, &publication.source, &publication.author, &publication.short_description, &publication.rating],
+    )
         .await?;
-
-        created_publication.source = publication_extras.source;
-        created_publication.author = publication_extras.author;
-    }
 
     tx.commit().await?;
 
-    Ok(created_publication)
+    Ok((deck, publication_extras).into())
 }
 
 pub(crate) async fn edit(
@@ -158,21 +168,6 @@ pub(crate) async fn edit(
         &[&user_id, &publication_id, &publication.title],
     )
     .await?;
-
-    let mut edited_publication = interop::Publication {
-        id: edited_deck.id,
-        title: edited_deck.name,
-
-        created_at: edited_deck.created_at,
-
-        source: None,
-        author: None,
-
-        notes: None,
-
-        decks_in_notes: None,
-        linkbacks_to_decks: None,
-    };
 
     let publication_extras_exists = pg::many::<PublicationExtra>(
         &tx,
@@ -198,16 +193,13 @@ pub(crate) async fn edit(
     let publication_extras = pg::one::<PublicationExtra>(
         &tx,
         sql_query,
-        &[&publication_id, &publication.source, &publication.author],
+        &[&publication_id, &publication.source, &publication.author, &publication.short_description, &publication.rating],
     )
     .await?;
 
-    edited_publication.source = publication_extras.source;
-    edited_publication.author = publication_extras.author;
-
     tx.commit().await?;
 
-    Ok(edited_publication)
+    Ok((edited_deck, publication_extras).into())
 }
 
 pub(crate) async fn delete(db_pool: &Pool, user_id: Key, publication_id: Key) -> Result<()> {
