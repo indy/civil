@@ -2,11 +2,12 @@ import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
+
+import { ensureListingLoaded, setDeckListing, addAutocompleteDeck } from '/js/CivilUtils.js';
 import { capitalise, formattedDate, plural } from '/js/JsUtils.js';
-import { svgExpand, svgMinimise } from '/js/svgIcons.js';
 
 import { CompactedListSection } from '/js/components/ListSections.js';
-import DeckManager     from '/js/components/DeckManager.js';
+import DeckManager from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
 import ListingLink from '/js/components/ListingLink.js';
 import QuickFind from '/js/components/QuickFind.js';
@@ -17,19 +18,9 @@ function Ideas() {
   const [state, dispatch] = useStateValue();
   const resource = 'ideas';
 
-  useEffect(() => {
-    async function fetcher() {
-      const ideas = await Net.get('/api/ideas/listings');
-      dispatch({
-        type: 'setIdeas',
-        ideas
-      });
-    }
+  ensureListingLoaded(resource, '/api/ideas/listings');
 
-    if(!state.ideasLoaded) {
-      fetcher();
-    }
-  }, []);
+  const ideas = state.deckkindsListing.ideas;
 
   return html`
     <div>
@@ -37,9 +28,9 @@ function Ideas() {
       <${QuickFind} autocompletes=${state.ac.decks}
                     resource=${resource}
                     save=${(params) => saveNewIdea(params, dispatch)}/>
-      <${CompactedListSection} label='Recent' list=${state.ideas.recent} resource=${resource} expanded/>
-      <${CompactedListSection} label='Orphans' list=${state.ideas.orphans} resource=${resource}/>
-      <${CompactedListSection} label='All' list=${state.ideas.all} resource=${resource}/>
+      <${CompactedListSection} label='Recent' list=${ideas.recent} resource=${resource} expanded/>
+      <${CompactedListSection} label='Orphans' list=${ideas.orphans} resource=${resource} hideEmpty/>
+      <${CompactedListSection} label='All' list=${ideas.all} resource=${resource}/>
     </div>`;
 }
 
@@ -52,17 +43,9 @@ function saveNewIdea({title, idea_category}, dispatch) {
 
   // create a new resource named 'searchTerm'
   Net.post(`/api/${resource}`, data).then(idea => {
-    Net.get(`/api/${resource}/listings`).then(ideas => {
-      dispatch({
-        type: 'setIdeas',
-        ideas
-      });
-      dispatch({
-        type: 'addAutocompleteDeck',
-        id: idea.id,
-        name: idea.title,
-        resource: resource
-      });
+    Net.get(`/api/${resource}/listings`).then(listing => {
+      setDeckListing(dispatch, resource, listing);
+      addAutocompleteDeck(dispatch, idea.id, idea.title, resource);
     });
     route(`/${resource}/${idea.id}`);
   });

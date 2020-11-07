@@ -27,16 +27,20 @@ export const initialState = {
   recentImages: [],
   imageDirectory: '',
 
-  // caching (redo this)
-  //
-  ideasLoaded: false,
-  ideas: [],                  // when listing ideas on /ideas page
-  publicationsLoaded: false,
-  publications: [],
-  peopleLoaded: false,
-  people: [],
-  timelinesLoaded: false,
-  timelines: [],
+
+  // key == resource name of decks
+  deckkindsLoaded: {
+    ideas: false,
+    publications: false,
+    people: false,
+    timelines: false
+  },
+  deckkindsListing: {
+    ideas: [],           // when listing ideas on /ideas page
+    publications: [],
+    people: [],
+    timelines: []
+  }
 };
 
 export const reducer = (state, action) => {
@@ -140,19 +144,21 @@ export const reducer = (state, action) => {
                        ac: {
                          decks: state.ac.decks.filter(filterFn)
                        },
-                       ideas: {
-                         all: state.ideas.all.filter(filterFn),
-                         orphans: state.ideas.orphans.filter(filterFn),
-                         recent: state.ideas.recent.filter(filterFn),
-                       },
-                       publications: {
-                         all: state.ideas.all.filter(filterFn),
-                         orphans: state.ideas.orphans.filter(filterFn),
-                         recent: state.ideas.recent.filter(filterFn),
-                         rated: state.ideas.rated.filter(filterFn),
-                       },
-                       people: state.people.filter(filterFn),
-                       timelines: state.timelines.filter(filterFn),
+                       deckkindsListing: {
+                         ideas: {
+                           all: state.deckkindsListing.ideas.all.filter(filterFn),
+                           orphans: state.deckkindsListing.ideas.orphans.filter(filterFn),
+                           recent: state.deckkindsListing.ideas.recent.filter(filterFn),
+                         },
+                         publications: {
+                           all: state.deckkindsListing.publications.all.filter(filterFn),
+                           orphans: state.deckkindsListing.publications.orphans.filter(filterFn),
+                           recent: state.deckkindsListing.publications.recent.filter(filterFn),
+                           rated: state.deckkindsListing.publications.rated.filter(filterFn),
+                         },
+                         people: state.deckkindsListing.people.filter(filterFn),
+                         timelines: state.deckkindsListing.timelines.filter(filterFn)
+                       }
                      };
       delete newState.fullGraph[action.id];
       // todo: delete all the other references in fullGraph to action.id
@@ -160,43 +166,38 @@ export const reducer = (state, action) => {
       return newState;
 
     }
-  case 'setIdeas':
-    let newState = {
-      ...state,
-      ideasLoaded: true,
-      ideas: action.ideas
-    };
-    return newState;
-  case 'setPublications':
-    return {
-      ...state,
-      publicationsLoaded: true,
-      publications: action.publications
-    };
-  case 'setPeople':
-    action.people.forEach(addSortYear);
-    return {
-      ...state,
-      peopleLoaded: true,
-      people: action.people
-    };
+    // sets the listing values for a particular deck kind
+  case 'setDeckListing':
+    {
+      let loaded = { ...state.deckkindsLoaded };
+      loaded[action.resource] = true;
+
+      let listing = {...state.deckkindsListing };
+      listing[action.resource] = action.listing;
+
+      if (action.resource === 'people') {
+        listing[action.resource].forEach(addSortYear);
+      }
+
+      let newState = {
+        ...state,
+        deckkindsLoaded: loaded,
+        deckkindsListing: listing
+      };
+
+      return newState;
+    }
   case 'setPerson':
     {
       let newState = { ...state };
       newState.cache.deck[action.newItem.id] = action.newItem;
-      updateListOfNames(newState.people, action.newItem);
+      updateListOfNames(newState.deckkindsListing.people, action.newItem);
       return newState;
     }
-  case 'setTimelines':
-    return {
-      ...state,
-      timelinesLoaded: true,
-      timelines: action.timelines
-    };
   case 'setTimeline':
     {
       let newState = { ...state };
-      updateListOfTitles(newState.timelines, action.newItem);
+      updateListOfTitles(newState.deckkindsListing.timelines, action.newItem);
       return newState;
     }
   default:

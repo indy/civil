@@ -19,7 +19,7 @@ function CompactedListSection({label, list, resource, expanded, hideEmpty }) {
     setShow(!show);
   }
 
-  if(hideEmpty && list.length === 0) {
+  if(hideEmpty && list && list.length === 0) {
     return html``;
   } else if(show) {
     return html`

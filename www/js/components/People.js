@@ -1,5 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
+import { ensureListingLoaded, setDeckListing, addAutocompleteDeck } from '/js/CivilUtils.js';
 import { capitalise } from '/js/JsUtils.js';
 import Net from '/js/Net.js';
 import { useStateValue } from '/js/StateProvider.js';
@@ -30,24 +31,14 @@ function People() {
   const [state, dispatch] = useStateValue();
   const resource = 'people';
 
-  useEffect(() => {
-    async function fetcher() {
-      const people = await Net.get('/api/people');
-      dispatch({
-        type: 'setPeople',
-        people
-      });
-    }
-    if(!state.peopleLoaded) {
-      fetcher();
-    }
-  }, []);
+  ensureListingLoaded(resource);
 
-  const uncategorised = filterAfter(state.people, era.uncategorisedYear);
-  const ancient = filterBefore(state.people, era.ancientCutoff);
-  const medieval = filterBetween(state.people, era.ancientCutoff, era.medievalCutoff);
-  const modern = filterBetween(state.people, era.medievalCutoff, era.modernCutoff);
-  const contemporary = filterBetween(state.people, era.modernCutoff, era.uncategorisedYear);
+  const people = state.deckkindsListing.people;
+  const uncategorised = filterAfter(people, era.uncategorisedYear);
+  const ancient = filterBefore(people, era.ancientCutoff);
+  const medieval = filterBetween(people, era.ancientCutoff, era.medievalCutoff);
+  const modern = filterBetween(people, era.medievalCutoff, era.modernCutoff);
+  const contemporary = filterBetween(people, era.modernCutoff, era.uncategorisedYear);
 
   return html`
     <div>
@@ -100,11 +91,8 @@ function Person(props) {
       });
 
       // also update the people list now that this person is no longer uncategorised
-      Net.get('/api/people').then(people => {
-        dispatch({
-          type: 'setPeople',
-          people
-        });
+      Net.get('/api/people').then(listing => {
+        setDeckListing(dispatch, 'people', people);
       });
     });
   }
@@ -209,16 +197,8 @@ function saveNewPerson({title}, dispatch) {
   // create a new resource named 'searchTerm'
   Net.post(`/api/${resource}`, data).then(person => {
     Net.get(`/api/${resource}`).then(people => {
-      dispatch({
-        type: 'setPeople',
-        people
-      });
-      dispatch({
-        type: 'addAutocompleteDeck',
-        id: person.id,
-        name: person.title,
-        resource: resource
-      });
+      setDeckListing(dispatch, resource, people);
+      addAutocompleteDeck(dispatch, person.id, person.title, resource);
     });
     route(`/${resource}/${person.id}`);
   });
@@ -376,10 +356,7 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, dispatc
 
       // also update the people list now that this person is no longer uncategorised
       Net.get('/api/people').then(people => {
-        dispatch({
-          type: 'setPeople',
-          people
-        });
+        setDeckListing(dispatch, 'people', people);
       });
     });
   }

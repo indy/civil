@@ -1,34 +1,35 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { capitalise } from '/js/JsUtils.js';
+import { ensureListingLoaded, setDeckListing, addAutocompleteDeck } from '/js/CivilUtils.js';
 import Net from '/js/Net.js';
-import { useStateValue } from '/js/StateProvider.js';
 import { addChronologicalSortYear } from '/js/eras.js';
+import { capitalise } from '/js/JsUtils.js';
+import { useStateValue } from '/js/StateProvider.js';
+
+import DeckManager from '/js/components/DeckManager.js';
+import GraphSection from '/js/components/GraphSection.js';
+import PointForm from '/js/components/PointForm.js';
 import QuickFind from '/js/components/QuickFind.js';
 import RollableSection from '/js/components/RollableSection.js';
-import PointForm from '/js/components/PointForm.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
-import DeckManager     from '/js/components/DeckManager.js';
-import GraphSection from '/js/components/GraphSection.js';
-import { svgPointAdd,
-         svgCancel,
-         svgCaretRight,
-         svgCaretDown,
-         svgBlank,
-         svgTickedCheckBox,
-         svgUntickedCheckBox } from '/js/svgIcons.js';
-
 import { BasicListSection } from '/js/components/ListSections.js';
+import { svgPointAdd, svgCancel, svgCaretRight, svgCaretDown } from '/js/svgIcons.js';
 
-// called before this deck is cached by the AppState (ie after every modification)
-function preCacheFn(timeline) {
-  if (timeline.points) {
-    timeline.points = timeline.points
-      .map(addChronologicalSortYear)
-      .sort((a, b) => a.sort_year > b.sort_year);
-  }
+function Timelines() {
+  const [state, dispatch] = useStateValue();
+  const resource = 'timelines';
 
-  return timeline;
+  ensureListingLoaded(resource);
+
+  return html`
+    <div>
+      <h1>${capitalise(resource)}</h1>
+      <${QuickFind} autocompletes=${state.ac.decks}
+                    resource='timelines'
+                    save=${(params) => saveNewTimeline(params, dispatch)}
+                    minSearchLength=2/>
+      <${BasicListSection} list=${state.deckkindsListing.timelines} resource=${resource}/>
+    </div>`;
 }
 
 function Timeline(props) {
@@ -67,32 +68,15 @@ function Timeline(props) {
     </article>`;
 }
 
-function Timelines() {
-  const [state, dispatch] = useStateValue();
-  const resource = 'timelines';
+// called before this deck is cached by the AppState (ie after every modification)
+function preCacheFn(timeline) {
+  if (timeline.points) {
+    timeline.points = timeline.points
+      .map(addChronologicalSortYear)
+      .sort((a, b) => a.sort_year > b.sort_year);
+  }
 
-  useEffect(() => {
-    async function fetcher() {
-      const timelines = await Net.get('/api/timelines');
-      dispatch({
-        type: 'setTimelines',
-        timelines
-      });
-    }
-    if(!state.timelinesLoaded) {
-      fetcher();
-    }
-  }, []);
-
-  return html`
-    <div>
-      <h1>${capitalise(resource)}</h1>
-      <${QuickFind} autocompletes=${state.ac.decks}
-                    resource='timelines'
-                    save=${(params) => saveNewTimeline(params, dispatch)}
-                    minSearchLength=2/>
-      <${BasicListSection} list=${state.timelines} resource=${resource}/>
-    </div>`;
+  return timeline;
 }
 
 function saveNewTimeline({title}, dispatch) {
@@ -104,16 +88,8 @@ function saveNewTimeline({title}, dispatch) {
   // create a new resource named 'searchTerm'
   Net.post(`/api/${resource}`, data).then(timeline => {
     Net.get(`/api/${resource}`).then(timelines => {
-      dispatch({
-        type: 'setTimelines',
-        timelines
-      });
-      dispatch({
-        type: 'addAutocompleteDeck',
-        id: timeline.id,
-        name: timeline.title,
-        resource: resource
-      });
+      setDeckListing(dispatch, resource, timelines);
+      addAutocompleteDeck(dispatch, timeline.id, timeline.title, resource);
     });
     route(`/${resource}/${timeline.id}`);
   });

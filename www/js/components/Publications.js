@@ -1,8 +1,8 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
+import { ensureListingLoaded, setDeckListing, addAutocompleteDeck } from '/js/CivilUtils.js';
 import { capitalise, removeEmptyStrings, formattedDate } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
-import { svgExpand, svgMinimise, svgRatingStar } from '/js/svgIcons.js';
 import Net from '/js/Net.js';
 
 import { RatedListSection, CompactedListSection } from '/js/components/ListSections.js';
@@ -16,19 +16,9 @@ function Publications() {
   const [state, dispatch] = useStateValue();
   const resource = 'publications';
 
-  useEffect(() => {
-    async function fetcher() {
-      const publications = await Net.get('/api/publications/listings');
+  ensureListingLoaded(resource, '/api/publications/listings');
 
-      dispatch({
-        type: 'setPublications',
-        publications
-      });
-    }
-    if(!state.publicationsLoaded) {
-      fetcher();
-    }
-  }, []);
+  const publications = state.deckkindsListing.publications;
 
   return html`
     <div>
@@ -37,11 +27,10 @@ function Publications() {
                     resource='publications'
                     save=${(params) => saveNewPublication(params, dispatch)}
                     minSearchLength=3/>
-
-      <${RatedListSection} label='Recent' list=${state.publications.recent} resource=${resource} expanded/>
-      <${RatedListSection} label='Rated' list=${state.publications.rated} resource=${resource}/>
-      <${CompactedListSection} label='Orphans' list=${state.publications.orphans} resource=${resource}/>
-      <${CompactedListSection} label='All' list=${state.publications.all} resource=${resource}/>
+      <${RatedListSection} label='Recent' list=${publications.recent} resource=${resource} expanded/>
+      <${RatedListSection} label='Rated' list=${publications.rated} resource=${resource}/>
+      <${CompactedListSection} label='Orphans' list=${publications.orphans} resource=${resource} hideEmpty/>
+      <${CompactedListSection} label='All' list=${publications.all} resource=${resource}/>
     </div>`;
 }
 
@@ -57,16 +46,8 @@ function saveNewPublication({title}, dispatch) {
 
     Net.post(`/api/${resource}`, data).then(publication => {
       Net.get(`/api/${resource}/listings`).then(publications => {
-        dispatch({
-          type: 'setPublications',
-          publications
-        });
-        dispatch({
-          type: 'addAutocompleteDeck',
-          id: publication.id,
-          name: publication.title,
-          resource
-        });
+        setDeckListing(dispatch, 'people', publications);
+        addAutocompleteDeck(dispatch, publication.id, publication.title, resource);
       });
 
       route(`/${resource}/${publication.id}`);
