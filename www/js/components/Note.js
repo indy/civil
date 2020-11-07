@@ -286,9 +286,6 @@ function addDecks(propsNote, decks, onDecksChanged, dispatch) {
     }, data);
   }
 
-  // console.log('sending to server:');
-  // console.log(data);
-
   Net.post("/api/edges/notes_decks", data).then((all_decks_for_note) => {
     let new_deck_names = data.new_deck_references.map(d => d.name);
     updateAutocompleteWithNewDecks(dispatch, new_deck_names, all_decks_for_note);

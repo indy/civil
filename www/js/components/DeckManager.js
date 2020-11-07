@@ -207,6 +207,16 @@ function NoteManager(deck, cacheDeck, optional_deck_point) {
   };
 
   function onDecksChanged(note) {
+    // have to set deck.decks_in_notes to be the canonical version
+    // 'cacheDeck' will use that to populate each note's decks array
+
+    // remove all deck.decks_in_notes that relate to this note
+    deck.decks_in_notes = deck.decks_in_notes.filter(din => {
+      return din.note_id !== note.id;
+    });
+    // add every note.decks entry to deck.decks_in_notes
+    note.decks.forEach(d => { deck.decks_in_notes.push(d); });
+
     findNoteWithId(note.id, (notes, index) => {
       notes[index] = note;
     });
@@ -291,14 +301,15 @@ function NoteManager(deck, cacheDeck, optional_deck_point) {
 }
 
 function setupCacheDeckFn(state, dispatch, deck, resource, preCacheFn) {
-  function cacheDeck(deck) {
+  function cacheDeck(newdeck) {
     if (preCacheFn) {
-      deck = preCacheFn(deck);
+      newdeck = preCacheFn(newdeck);
     }
+
     dispatch({
       type: 'cacheDeck',
-      id: deck.id,
-      newItem: deck
+      id: newdeck.id,
+      newItem: newdeck
     });
   }
 

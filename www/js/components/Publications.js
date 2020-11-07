@@ -46,7 +46,7 @@ function saveNewPublication({title}, dispatch) {
 
     Net.post(`/api/${resource}`, data).then(publication => {
       Net.get(`/api/${resource}/listings`).then(publications => {
-        setDeckListing(dispatch, 'people', publications);
+        setDeckListing(dispatch, 'publications', publications);
         addAutocompleteDeck(dispatch, publication.id, publication.title, resource);
       });
 
@@ -75,8 +75,6 @@ function Publication(props) {
   // this check prevents the vis from rendering until after we have all the note and links ready
   const okToShowGraph = deckManager.hasNotes;
   const created_at_textual = publication.created_at ? formattedDate(publication.created_at) : '';
-
-  console.log(publication);
 
   return html`
     <article>
