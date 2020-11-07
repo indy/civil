@@ -61,7 +61,7 @@ pub async fn get_listings(
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    info!("get_all");
+    info!("get_listings");
 
     let user_id = session::user_id(&session)?;
 

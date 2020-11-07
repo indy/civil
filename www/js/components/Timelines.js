@@ -1,11 +1,11 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
+import { capitalise } from '/js/JsUtils.js';
 import Net from '/js/Net.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { addChronologicalSortYear } from '/js/eras.js';
 import QuickFind from '/js/components/QuickFind.js';
 import RollableSection from '/js/components/RollableSection.js';
-import ListingLink from '/js/components/ListingLink.js';
 import PointForm from '/js/components/PointForm.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
 import DeckManager     from '/js/components/DeckManager.js';
@@ -17,6 +17,8 @@ import { svgPointAdd,
          svgBlank,
          svgTickedCheckBox,
          svgUntickedCheckBox } from '/js/svgIcons.js';
+
+import { BasicListSection } from '/js/components/ListSections.js';
 
 // called before this deck is cached by the AppState (ie after every modification)
 function preCacheFn(timeline) {
@@ -67,6 +69,7 @@ function Timeline(props) {
 
 function Timelines() {
   const [state, dispatch] = useStateValue();
+  const resource = 'timelines';
 
   useEffect(() => {
     async function fetcher() {
@@ -81,45 +84,39 @@ function Timelines() {
     }
   }, []);
 
-  function saveNewTimeline({title}) {
-    const data = {
-      title: title
-    };
-    const resource = "timelines";
-
-    // create a new resource named 'searchTerm'
-    Net.post(`/api/${resource}`, data).then(timeline => {
-      Net.get(`/api/${resource}`).then(timelines => {
-        dispatch({
-          type: 'setTimelines',
-          timelines
-        });
-        dispatch({
-          type: 'addAutocompleteDeck',
-          id: timeline.id,
-          name: timeline.title,
-          resource: resource
-        });
-      });
-      route(`/${resource}/${timeline.id}`);
-    });
-  }
-
-  function createTimelineListing(timeline) {
-    return html`<${ListingLink} id=${ timeline.id } name=${ timeline.title } resource='timelines'/>`;
-  }
-  const tl = state.timelines.map(createTimelineListing);
-
   return html`
     <div>
-      <h1>Timelines</h1>
-      <${QuickFind} autocompletes=${state.ac.decks} resource='timelines' save=${saveNewTimeline} minSearchLength=2/>
-      <div>
-        <ul class="timelines-list">
-          ${ tl }
-        </ul>
-      </div>
+      <h1>${capitalise(resource)}</h1>
+      <${QuickFind} autocompletes=${state.ac.decks}
+                    resource='timelines'
+                    save=${(params) => saveNewTimeline(params, dispatch)}
+                    minSearchLength=2/>
+      <${BasicListSection} list=${state.timelines} resource=${resource}/>
     </div>`;
+}
+
+function saveNewTimeline({title}, dispatch) {
+  const data = {
+    title: title
+  };
+  const resource = "timelines";
+
+  // create a new resource named 'searchTerm'
+  Net.post(`/api/${resource}`, data).then(timeline => {
+    Net.get(`/api/${resource}`).then(timelines => {
+      dispatch({
+        type: 'setTimelines',
+        timelines
+      });
+      dispatch({
+        type: 'addAutocompleteDeck',
+        id: timeline.id,
+        name: timeline.title,
+        resource: resource
+      });
+    });
+    route(`/${resource}/${timeline.id}`);
+  });
 }
 
 function UpdateTimelineForm({ timeline }) {

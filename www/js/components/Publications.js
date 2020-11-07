@@ -1,21 +1,24 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { removeEmptyStrings, formattedDate } from '/js/JsUtils.js';
+import { capitalise, removeEmptyStrings, formattedDate } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
-import { svgRatingStar } from '/js/svgIcons.js';
+import { svgExpand, svgMinimise, svgRatingStar } from '/js/svgIcons.js';
 import Net from '/js/Net.js';
 
+import { RatedListSection, CompactedListSection } from '/js/components/ListSections.js';
+import DeckManager from '/js/components/DeckManager.js';
+import GraphSection from '/js/components/GraphSection.js';
 import QuickFind from '/js/components/QuickFind.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
-import DeckManager     from '/js/components/DeckManager.js';
-import GraphSection    from '/js/components/GraphSection.js';
+import SpanneStarRating from '/js/components/SpanneStarRating.js';
 
 function Publications() {
   const [state, dispatch] = useStateValue();
+  const resource = 'publications';
 
   useEffect(() => {
     async function fetcher() {
-      const publications = await Net.get('/api/publications');
+      const publications = await Net.get('/api/publications/listings');
 
       dispatch({
         type: 'setPublications',
@@ -27,7 +30,22 @@ function Publications() {
     }
   }, []);
 
-  function saveNewPublication({title}) {
+  return html`
+    <div>
+      <h1>${capitalise(resource)}</h1>
+      <${QuickFind} autocompletes=${state.ac.decks}
+                    resource='publications'
+                    save=${(params) => saveNewPublication(params, dispatch)}
+                    minSearchLength=3/>
+
+      <${RatedListSection} label='Recent' list=${state.publications.recent} resource=${resource} expanded/>
+      <${RatedListSection} label='Rated' list=${state.publications.rated} resource=${resource}/>
+      <${CompactedListSection} label='Orphans' list=${state.publications.orphans} resource=${resource}/>
+      <${CompactedListSection} label='All' list=${state.publications.all} resource=${resource}/>
+    </div>`;
+}
+
+function saveNewPublication({title}, dispatch) {
     const data = {
       title: title,
       author: "",
@@ -37,42 +55,22 @@ function Publications() {
     };
     const resource = "publications";
 
-    // create a new resource named 'searchTerm'
     Net.post(`/api/${resource}`, data).then(publication => {
-      dispatch({
-        type: 'setPublication',
-        id: publication.id,
-        newItem: publication
-      });
-
-      dispatch({
-        type: 'addAutocompleteDeck',
-        id: publication.id,
-        name: publication.title,
-        resource: "publications"
+      Net.get(`/api/${resource}/listings`).then(publications => {
+        dispatch({
+          type: 'setPublications',
+          publications
+        });
+        dispatch({
+          type: 'addAutocompleteDeck',
+          id: publication.id,
+          name: publication.title,
+          resource
+        });
       });
 
       route(`/${resource}/${publication.id}`);
     });
-  }
-
-  const publicationsList = state.publications.map(
-    publication => html`<${RatedListingLink}
-                           id=${ publication.id }
-                           name=${ publication.title }
-                           rating=${ publication.rating }
-                           description=${ publication.short_description }
-                           resource='publications'/>    `
-  );
-
-  return html`
-    <div>
-      <h1>Publications</h1>
-      <${QuickFind} autocompletes=${state.ac.decks} resource='publications' save=${saveNewPublication} minSearchLength=3/>
-      <ul class="publications-list">
-        ${ publicationsList }
-      </ul>
-    </div>`;
 }
 
 function Publication(props) {
@@ -102,7 +100,7 @@ function Publication(props) {
   return html`
     <article>
       <div>
-        ${ publication.rating && html`<${SpanneStarRating} rating=${publication.rating}/>` }
+        <${SpanneStarRating} rating=${publication.rating}/>
         ${ deckManager.title }
       </div>
       ${ created_at_textual }
@@ -227,33 +225,6 @@ function UpdatePublicationForm({ publication }) {
       <br/>
       <input type="submit" value="Update Publication"/>
     </form>`;
-}
-
-function SpanneStarRating({ rating }) {
-  let ratings = [];
-  for (let i = 0; i < rating; i++) {
-    ratings.push(svgRatingStar());
-  }
-  return html`<div class="spanne spanne-in-listing">
-                <div class="spanne-entry">
-                  ${ratings}
-                </div>
-              </div>`;
-}
-
-// based off ListingLink but displays a star rating in the left hand margin
-//
-function RatedListingLink({ resource, id, name, rating, description }) {
-  const href = `/${resource}/${id}`;
-
-  let res = html`
-    <li>
-      ${ !!rating && html`<${SpanneStarRating} rating=${rating}/>` }
-      <${Link} class="pigment-fg-${resource}" href=${ href }>${ name }</${Link}>
-      <span class="short-description">${description}</span>
-    </li>`;
-
-  return res;
 }
 
 export { Publication, Publications };

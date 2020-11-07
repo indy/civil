@@ -113,6 +113,38 @@ pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Pub
     .await
 }
 
+pub(crate) async fn listings(db_pool: &Pool, user_id: Key) -> Result<interop::PublicationListings> {
+    async fn many_from(db_pool: &Pool, user_id: Key, query: &str) -> Result<Vec<interop::Publication>> {
+        pg::many_from::<Publication, interop::Publication>(db_pool, query, &[&user_id]).await
+    }
+
+    let (recent, rated, orphans, all) = tokio::try_join!(
+        many_from(
+            db_pool,
+            user_id,
+            include_str!("sql/publications_listing_recent.sql")
+        ),
+        many_from(
+            db_pool,
+            user_id,
+            include_str!("sql/publications_listing_rated.sql")
+        ),
+        many_from(
+            db_pool,
+            user_id,
+            include_str!("sql/publications_listing_orphans.sql")
+        ),
+        many_from(db_pool, user_id, include_str!("sql/publications_all.sql")),
+    )?;
+
+    Ok(interop::PublicationListings {
+        recent,
+        rated,
+        orphans,
+        all,
+    })
+}
+
 pub(crate) async fn get(
     db_pool: &Pool,
     user_id: Key,

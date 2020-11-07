@@ -14,10 +14,9 @@
 
   --divider: #ccc;
 
-  /* saturation: 60.2 lightness: 50 */
-  --scribble: #8764c6;          /* clock07  */
-  --hyperlink: #5279a8;         /* clock06 */
-  --highlight: #fdfd6f;         /* hue: 85.9 sat:80 light:97.1*/
+  --scribble: #007bc7;          /* clock06 saturation: 100.0 lightness: 50 */
+  --hyperlink: #5279a8;         /* clock06 saturation: 60.2 lightness: 50 */
+  --highlight: #ebe900;         /* hue: 85 sat:100 light:90*/
 
   /* saturation: 60.2 lightness: 90 */
   --bg-ideas: #d9e3f3;             /* clock06 */
@@ -69,9 +68,9 @@
 
     --divider: #444;
 
-    --scribble: #8764c6; /* handwritten note  */
-    --hyperlink: #5279a8;
-    --highlight: #fdfd6f;
+    --scribble: #007bc7;          /* clock06 saturation: 100.0 lightness: 50 */
+    --hyperlink: #5279a8;         /* clock06 saturation: 60.2 lightness: 50 */
+    --highlight: #ebe900;         /* hue: 85 sat:100 light:90*/
 
     /* saturation: 60.2 lightness: 50 */
     --bg-ideas: #5279a8;             /* clock06 */

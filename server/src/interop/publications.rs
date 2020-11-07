@@ -46,3 +46,11 @@ pub struct ProtoPublication {
     pub short_description: Option<String>,
     pub rating: i32,
 }
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct PublicationListings {
+    pub recent: Vec<Publication>,
+    pub rated: Vec<Publication>,
+    pub orphans: Vec<Publication>,
+    pub all: Vec<Publication>,
+}

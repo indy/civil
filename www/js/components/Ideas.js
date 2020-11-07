@@ -5,19 +5,17 @@ import Net from '/js/Net.js';
 import { capitalise, formattedDate, plural } from '/js/JsUtils.js';
 import { svgExpand, svgMinimise } from '/js/svgIcons.js';
 
-import QuickFind from '/js/components/QuickFind.js';
-import ListingLink from '/js/components/ListingLink.js';
-import SectionLinkBack from '/js/components/SectionLinkBack.js';
+import { CompactedListSection } from '/js/components/ListSections.js';
 import DeckManager     from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
+import ListingLink from '/js/components/ListingLink.js';
+import QuickFind from '/js/components/QuickFind.js';
 import RollableSection from '/js/components/RollableSection.js';
+import SectionLinkBack from '/js/components/SectionLinkBack.js';
 
 function Ideas() {
   const [state, dispatch] = useStateValue();
-
-  let [showRecent, setShowRecent] = useState(true);
-  let [showOrphansRef, setShowOrphansRef] = useState(false);
-  let [showAll, setShowAll] = useState(false);
+  const resource = 'ideas';
 
   useEffect(() => {
     async function fetcher() {
@@ -35,13 +33,13 @@ function Ideas() {
 
   return html`
     <div>
-      <h1>Ideas</h1>
+      <h1>${capitalise(resource)}</h1>
       <${QuickFind} autocompletes=${state.ac.decks}
-                    resource='ideas'
+                    resource=${resource}
                     save=${(params) => saveNewIdea(params, dispatch)}/>
-      ${ buildListSection(showRecent, setShowRecent, "Recent", state.ideas.recent) }
-      ${ buildListSection(showOrphansRef, setShowOrphansRef, "Orphans", state.ideas.orphans) }
-      ${ buildListSection(showAll, setShowAll, "All", state.ideas.all) }
+      <${CompactedListSection} label='Recent' list=${state.ideas.recent} resource=${resource} expanded/>
+      <${CompactedListSection} label='Orphans' list=${state.ideas.orphans} resource=${resource}/>
+      <${CompactedListSection} label='All' list=${state.ideas.all} resource=${resource}/>
     </div>`;
 }
 
@@ -69,42 +67,6 @@ function saveNewIdea({title, idea_category}, dispatch) {
     route(`/${resource}/${idea.id}`);
   });
 }
-
-function buildListSection(show, setShow, label, list) {
-  function toggleShow() {
-    setShow(!show);
-  }
-
-  if(show) {
-    return html`
-      <div>
-        <p class="subtitle" onClick=${ toggleShow }>
-          ${ svgMinimise() } ${ label }
-        </p>
-        <ul class="ideas-list" >
-          ${ buildListing(list) }
-        </ul>
-      </div>`;
-  } else {
-    return html`
-      <p class="subtitle" onClick=${ toggleShow }>
-        ${ svgExpand() } ${ label }
-      </p>`;
-  }
-}
-
-function buildListing(list) {
-  if (!list) {
-    return [];
-  }
-  return list.map(
-    (idea, i) => html`<${ListingLink}
-                        id=${ idea.id }
-                        name=${ idea.title }
-                        resource='ideas'/>`
-  );
-}
-
 
 function Idea(props) {
   const [state] = useStateValue();

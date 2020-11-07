@@ -53,6 +53,18 @@ pub async fn get_all(db_pool: Data<Pool>, session: actix_session::Session) -> Re
     Ok(HttpResponse::Ok().json(publications))
 }
 
+pub async fn get_listings(
+    db_pool: Data<Pool>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    info!("get_listings");
+
+    let user_id = session::user_id(&session)?;
+    let publications = db::listings(&db_pool, user_id).await?;
+
+    Ok(HttpResponse::Ok().json(publications))
+}
+
 pub async fn get(
     db_pool: Data<Pool>,
     params: Path<IdParam>,

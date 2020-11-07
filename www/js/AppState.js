@@ -145,7 +145,12 @@ export const reducer = (state, action) => {
                          orphans: state.ideas.orphans.filter(filterFn),
                          recent: state.ideas.recent.filter(filterFn),
                        },
-                       publications: state.publications.filter(filterFn),
+                       publications: {
+                         all: state.ideas.all.filter(filterFn),
+                         orphans: state.ideas.orphans.filter(filterFn),
+                         recent: state.ideas.recent.filter(filterFn),
+                         rated: state.ideas.rated.filter(filterFn),
+                       },
                        people: state.people.filter(filterFn),
                        timelines: state.timelines.filter(filterFn),
                      };
@@ -168,12 +173,6 @@ export const reducer = (state, action) => {
       publicationsLoaded: true,
       publications: action.publications
     };
-  case 'setPublication':
-    {
-      let newState = { ...state };
-      updateListOfTitles(newState.publications, action.newItem);
-      return newState;
-    }
   case 'setPeople':
     action.people.forEach(addSortYear);
     return {

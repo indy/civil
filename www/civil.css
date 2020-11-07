@@ -432,66 +432,39 @@ input:required {
   width: 1.5em;
 }
 
+/* compacted list: squish the elements together as comma separated items */
 
-.ideas-list {
+.compacted-list {
   padding-left: 1.5em;
 }
 
-.ideas-list > li {
+.compacted-list > li {
   padding-right: 0.5em;
   display: inline-block;
 
 }
 
-.ideas-list li:after {
+.compacted-list li:after {
   content: ", ";
 }
 
-.ideas-list li:last-child:after {
+.compacted-list li:last-child:after {
     content: "";
 }
 
-.publications-list {
+/* standard list: every element is on a separate line */
+
+.standard-list {
   padding-left: 1em;
 }
 
-.publications-list > li {
+.standard-list > li {
   list-style-type: none;
 }
 
-.publications-list li .short-description {
-  color: var(--fg1);
+.standard-list li .short-description {
+  font-family: 'Nothing You Could Do', cursive;
+  color: var(--scribble);
   margin-left: 1em;
-  font-size: 80%;
-}
-
-.people-list {
-  padding-left: 1em;
-}
-
-.people-list > li{
-  padding-right: 0.5em;
-  display: inline-block;
-}
-
-.people-list li:after {
-  content: ", ";
-}
-
-.people-list li:last-child:after {
-    content: "";
-}
-
-.events-list {
-  padding-left: 1em;
-}
-
-.events-list > li {
-  list-style-type: none;
-}
-
-.event-date {
-  display: inline-block;
-  width: 4em;
-  text-align: right;
+  font-size: 90%;
 }

@@ -1,5 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
+import { capitalise } from '/js/JsUtils.js';
 import Net from '/js/Net.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { addChronologicalSortYear,
@@ -9,13 +10,6 @@ import { addChronologicalSortYear,
          filterBefore,
          filterAfter,
          filterBetween } from '/js/eras.js';
-import QuickFind from '/js/components/QuickFind.js';
-import RollableSection from '/js/components/RollableSection.js';
-import ListingLink from '/js/components/ListingLink.js';
-import PointForm from '/js/components/PointForm.js';
-import SectionLinkBack from '/js/components/SectionLinkBack.js';
-import DeckManager     from '/js/components/DeckManager.js';
-import GraphSection from '/js/components/GraphSection.js';
 import { svgPointAdd,
          svgCancel,
          svgCaretDown,
@@ -24,47 +18,50 @@ import { svgPointAdd,
          svgTickedCheckBox,
          svgUntickedCheckBox } from '/js/svgIcons.js';
 
+import { CompactedListSection } from '/js/components/ListSections.js';
+import DeckManager from '/js/components/DeckManager.js';
+import GraphSection from '/js/components/GraphSection.js';
+import PointForm from '/js/components/PointForm.js';
+import QuickFind from '/js/components/QuickFind.js';
+import RollableSection from '/js/components/RollableSection.js';
+import SectionLinkBack from '/js/components/SectionLinkBack.js';
 
-// called before this deck is cached by the AppState (ie after every modification)
-function preCacheFn(person) {
-  if (person.points) {
-    person.points = person.points
-      .map(addChronologicalSortYear)
-      .sort((a, b) => a.sort_year > b.sort_year);
-  }
+function People() {
+  const [state, dispatch] = useStateValue();
+  const resource = 'people';
 
-  function getExactDateFromPoints(points, kind) {
-    const p = points.find(p => p.kind === kind);
-    if (!p || !p.exact_date) {
-      return null;
+  useEffect(() => {
+    async function fetcher() {
+      const people = await Net.get('/api/people');
+      dispatch({
+        type: 'setPeople',
+        people
+      });
     }
-
-    let triple = dateStringAsTriple(p.exact_date);
-    return triple;
-  }
-
-  // point is an element in all_points_during_life
-  function addAge(point, born) {
-    if (!point.date) {
-      console.log("no date???");
-      return point;
+    if(!state.peopleLoaded) {
+      fetcher();
     }
+  }, []);
 
-    let eventTriple = dateStringAsTriple(point.date);
-    let years = calcAgeInYears(eventTriple, born);
+  const uncategorised = filterAfter(state.people, era.uncategorisedYear);
+  const ancient = filterBefore(state.people, era.ancientCutoff);
+  const medieval = filterBetween(state.people, era.ancientCutoff, era.medievalCutoff);
+  const modern = filterBetween(state.people, era.medievalCutoff, era.modernCutoff);
+  const contemporary = filterBetween(state.people, era.modernCutoff, era.uncategorisedYear);
 
-    point.age = years;
-
-    return point;
-  }
-
-  let born = getExactDateFromPoints(person.points, "PointBegin");
-  if (born) {
-    // we have a birth year so we can add the age of the person to each of the all_points_during_life elements
-    person.all_points_during_life.forEach(p => addAge(p, born));
-  }
-
-  return person;
+  return html`
+    <div>
+      <h1>${capitalise(resource)}</h1>
+      <${QuickFind} autocompletes=${state.ac.decks}
+                    resource=${resource}
+                    save=${(params) => saveNewPerson(params, dispatch)}
+                    minSearchLength=2/>
+      <${CompactedListSection} label='Uncategorised' list=${uncategorised} resource=${resource} expanded hideEmpty/>
+      <${CompactedListSection} label='Ancient' list=${ancient} resource=${resource} expanded/>
+      <${CompactedListSection} label='Medieval' list=${medieval} resource=${resource} expanded/>
+      <${CompactedListSection} label='Modern' list=${modern} resource=${resource} expanded/>
+      <${CompactedListSection} label='Contemporary' list=${contemporary} resource=${resource} expanded/>
+    </div>`;
 }
 
 function Person(props) {
@@ -161,76 +158,70 @@ function Person(props) {
     </article>`;
 }
 
-function People() {
-  const [state, dispatch] = useStateValue();
+// called before this deck is cached by the AppState (ie after every modification)
+function preCacheFn(person) {
+  if (person.points) {
+    person.points = person.points
+      .map(addChronologicalSortYear)
+      .sort((a, b) => a.sort_year > b.sort_year);
+  }
 
-  useEffect(() => {
-    async function fetcher() {
-      const people = await Net.get('/api/people');
+  function getExactDateFromPoints(points, kind) {
+    const p = points.find(p => p.kind === kind);
+    if (!p || !p.exact_date) {
+      return null;
+    }
+
+    let triple = dateStringAsTriple(p.exact_date);
+    return triple;
+  }
+
+  // point is an element in all_points_during_life
+  function addAge(point, born) {
+    if (!point.date) {
+      console.log("no date???");
+      return point;
+    }
+
+    let eventTriple = dateStringAsTriple(point.date);
+    let years = calcAgeInYears(eventTriple, born);
+
+    point.age = years;
+
+    return point;
+  }
+
+  let born = getExactDateFromPoints(person.points, "PointBegin");
+  if (born) {
+    // we have a birth year so we can add the age of the person to each of the all_points_during_life elements
+    person.all_points_during_life.forEach(p => addAge(p, born));
+  }
+
+  return person;
+}
+
+function saveNewPerson({title}, dispatch) {
+  const data = {
+    name: title
+  };
+  const resource = "people";
+
+  // create a new resource named 'searchTerm'
+  Net.post(`/api/${resource}`, data).then(person => {
+    Net.get(`/api/${resource}`).then(people => {
       dispatch({
         type: 'setPeople',
         people
       });
-    }
-    if(!state.peopleLoaded) {
-      fetcher();
-    }
-  }, []);
-
-  function peopleList(list, heading) {
-    return html`
-    <div>
-      ${ !!list.length && html`<h2>${ heading }</h2>` }
-      <ul class="people-list">
-        ${ list }
-      </ul>
-    </div>`;
-  }
-
-  function saveNewPerson({title}) {
-    const data = {
-      name: title
-    };
-    const resource = "people";
-
-    // create a new resource named 'searchTerm'
-    Net.post(`/api/${resource}`, data).then(person => {
-      Net.get(`/api/${resource}`).then(people => {
-        dispatch({
-          type: 'setPeople',
-          people
-        });
-        dispatch({
-          type: 'addAutocompleteDeck',
-          id: person.id,
-          name: person.title,
-          resource: resource
-        });
+      dispatch({
+        type: 'addAutocompleteDeck',
+        id: person.id,
+        name: person.title,
+        resource: resource
       });
-      route(`/${resource}/${person.id}`);
     });
-  }
-
-  function createPersonListing(person) {
-    return html`<${ListingLink} id=${ person.id } name=${ person.name } resource='people'/>`;
-  }
-
-  const uncategorisedPeopleList = filterAfter(state.people, era.uncategorisedYear).map(createPersonListing);
-  const ancientPeopleList = filterBefore(state.people, era.ancientCutoff).map(createPersonListing);
-  const medievalPeopleList = filterBetween(state.people, era.ancientCutoff, era.medievalCutoff).map(createPersonListing);
-  const modernPeopleList = filterBetween(state.people, era.medievalCutoff, era.modernCutoff).map(createPersonListing);
-  const contemporaryPeopleList = filterBetween(state.people, era.modernCutoff, era.uncategorisedYear).map(createPersonListing);
-
-  return html`
-    <div>
-      <h1>People</h1>
-      <${QuickFind} autocompletes=${state.ac.decks} resource='people' save=${saveNewPerson} minSearchLength=2/>
-      ${ peopleList(uncategorisedPeopleList, "Uncategorised")}
-      ${ peopleList(ancientPeopleList, "Ancient")}
-      ${ peopleList(medievalPeopleList, "Medieval")}
-      ${ peopleList(modernPeopleList, "Modern")}
-      ${ peopleList(contemporaryPeopleList, "Contemporary")}
-    </div>`;
+    route(`/${resource}/${person.id}`);
+  });
 }
 
 function UpdatePersonForm({ person }) {
