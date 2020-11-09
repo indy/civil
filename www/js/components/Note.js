@@ -261,11 +261,9 @@ function buildMarkup(content, imageDirectory) {
   return astArray.map(compile);
 }
 
-
-
-function addDecks(propsNote, decks, onDecksChanged, dispatch) {
+function addDecks(note, decks, onDecksChanged, dispatch) {
   let data = {
-    note_id: propsNote.id,
+    note_id: note.id,
     existing_deck_references: [],
     new_deck_references: []
   };
@@ -287,22 +285,16 @@ function addDecks(propsNote, decks, onDecksChanged, dispatch) {
   }
 
   Net.post("/api/edges/notes_decks", data).then((all_decks_for_note) => {
-    let new_deck_names = data.new_deck_references.map(d => d.name);
-    updateAutocompleteWithNewDecks(dispatch, new_deck_names, all_decks_for_note);
-
-    const n = {
-      ...propsNote,
-      decks: all_decks_for_note
-    };
-
-    onDecksChanged(n);
+    updateAutocompleteWithNewDecks(dispatch, data.new_deck_references, all_decks_for_note);
+    onDecksChanged(note, all_decks_for_note);
   });
 }
 
-function updateAutocompleteWithNewDecks(dispatch, newDeckNames, allDecksForNote) {
+function updateAutocompleteWithNewDecks(dispatch, newDeckReferences, allDecksForNote) {
   let newDecks = [];
 
-  newDeckNames.forEach(name => {
+  newDeckReferences.forEach(d => {
+    const name = d.name;
     // find the newly created deck in allDecksForNote
     let deck = allDecksForNote.find(d => d.name === name);
 

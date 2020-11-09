@@ -24,7 +24,7 @@ console.log("hi from sw");
 // set this to false when deploying, true when developing js
 var devMode = true;
 
-var CACHE_NAME = "civil-20201107";
+var CACHE_NAME = "civil-20201107c";
 
 var precacheConfig = [
   "/apple-touch-icon.png",
@@ -35,11 +35,12 @@ var precacheConfig = [
 
   "/js/App.js",
   "/js/AppState.js",
+  "/js/CivilUtils.js",
+  "/js/JsUtils.js",
+  "/js/Net.js",
   "/js/eras.js",
   "/js/graphPhysics.js",
   "/js/index.js",
-  "/js/JsUtils.js",
-  "/js/Net.js",
   "/js/StateProvider.js",
   "/js/svgIcons.js",
   "/js/WasmInterfaceProvider.js",

@@ -8,6 +8,15 @@ strong:    this is a *strong* word
 --------------------------------------------------------------------------------
 
 hyperlinks: @url(https://indy.io everything after the space is descriptive text)
+images:     @img(a21.png Golden Retriever)
+
+--------------------------------------------------------------------------------
+
+lines starting with # apply an effect on the rest of the line
+
+#h this is a heading
+
+#- this line is a <hr/> tag, the rest of the line is ignored
 
 --------------------------------------------------------------------------------
 
@@ -39,34 +48,10 @@ once upon|~ this is text on the right-hand margin| a time
 
 ----------
 
-'scribbled' margin notes have a hash after the first pipe:
+'hand-written' margin notes have a hash after the first pipe:
 
 once upon|# this is handwritten text on the right-hand margin| a time
 
 ----------
 
 links, highlights, underlines etc can be included within margin notes. Although note that there is a syntax conflict between margin notes without numbering and scribbled out text, they both begin with tildes. Therefore convince yourself that you don't need to start a note in the right hand margin with scribbled out text. Problem solved.
-
---------------------------------------------------------------------------------
-
-
-images are specified with:
-
-@img(001.jpg Golden Retriever)
-
-_ALL_ images will have 3 character long filenames followed by an extension
-
-
-<img class="some-class" src="/u/1/001.jpg" alt="Golden Retriever">
-
-
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This is an image @img(001.png) it refers to @ref(527) which also has more info at @url(google.com this search engine)
-
-lines starting with # apply an effect on the rest of the line
-
-#h this is a heading
-
-#- this line is a <br/> tag, the rest of the line is ignored
