@@ -38,9 +38,8 @@ CREATE TABLE IF NOT EXISTS decks (
     user_id BIGINT NOT NULL REFERENCES users,
     kind deck_kind NOT NULL,
 
-    -- specific to kind == 'idea'
-    --
-    idea_category idea_kind NOT NULL DEFAULT 'idea_na'::idea_kind; -- only for idea
+    -- for 'collection' ideas like 'book' whose children shouldn't be rendered in the graph
+    graph_terminator BOOLEAN NOT NULL DEFAULT false,
 
     name TEXT NOT NULL
 );
@@ -84,7 +83,7 @@ CREATE TABLE IF NOT EXISTS notes (
 CREATE TABLE IF NOT EXISTS notes_decks (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
-    kind ref_kind NOT NULL DEFAULT 'ref'::ref_kind;
+    kind ref_kind NOT NULL DEFAULT 'ref'::ref_kind,
     note_id BIGINT NOT NULL REFERENCES notes,
     deck_id BIGINT NOT NULL REFERENCES decks,
 
@@ -94,7 +93,7 @@ CREATE TABLE IF NOT EXISTS notes_decks (
 CREATE TABLE IF NOT EXISTS idea_extras (
     deck_id BIGINT NOT NULL REFERENCES decks,
 
-    idea_category idea_kind NOT NULL DEFAULT 'idea_verbatim'::idea_kind;
+    idea_category idea_kind NOT NULL DEFAULT 'idea_verbatim'::idea_kind,
 
     PRIMARY KEY(deck_id)
 );

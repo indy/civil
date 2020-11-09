@@ -31,6 +31,7 @@ pub struct Idea {
     pub title: String,
 
     pub idea_category: IdeaKind,
+    pub graph_terminator: bool,
 
     pub created_at: chrono::DateTime<chrono::Utc>,
 
@@ -46,6 +47,7 @@ pub struct Idea {
 pub struct ProtoIdea {
     pub title: String,
     pub idea_category: IdeaKind,
+    pub graph_terminator: bool,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

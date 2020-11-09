@@ -1,4 +1,4 @@
-select d.id, d.name, d.created_at, ie.idea_category
+select d.id, d.name, d.created_at, d.graph_terminator, ie.idea_category
 from decks d left join idea_extras ie on ie.deck_id=d.id
 where d.id not in (select deck_id
                    from notes_decks

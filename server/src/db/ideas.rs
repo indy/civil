@@ -34,6 +34,7 @@ struct Idea {
     id: Key,
     name: String,
     idea_category: IdeaKind,
+    graph_terminator: bool,
     created_at: chrono::DateTime<chrono::Utc>,
 }
 
@@ -44,6 +45,7 @@ impl From<Idea> for interop::Idea {
             title: a.name,
 
             idea_category: a.idea_category.into(),
+            graph_terminator: a.graph_terminator,
 
             created_at: a.created_at,
 
@@ -59,21 +61,31 @@ impl From<Idea> for interop::Idea {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
-struct IdeaWithoutCategory {
+struct IdeaDeck {
     id: Key,
     name: String,
     created_at: chrono::DateTime<chrono::Utc>,
+    graph_terminator: bool,
 }
 
-impl From<IdeaWithoutCategory> for interop::Idea {
-    fn from(a: IdeaWithoutCategory) -> interop::Idea {
+#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
+#[pg_mapper(table = "idea_extras")]
+struct IdeaExtra {
+    deck_id: Key,
+    idea_category: IdeaKind,
+}
+
+impl From<(IdeaDeck, IdeaExtra)> for interop::Idea {
+    fn from(a: (IdeaDeck, IdeaExtra)) -> interop::Idea {
+        let (deck, extra) = a;
         interop::Idea {
-            id: a.id,
-            title: a.name,
+            id: deck.id,
+            title: deck.name,
 
-            idea_category: interop::IdeaKind::Verbatim,
+            idea_category: extra.idea_category.into(),
+            graph_terminator: deck.graph_terminator,
 
-            created_at: a.created_at,
+            created_at: deck.created_at,
 
             notes: None,
 
@@ -85,36 +97,25 @@ impl From<IdeaWithoutCategory> for interop::Idea {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "idea_extras")]
-struct IdeaExtra {
-    deck_id: Key,
-    idea_category: IdeaKind,
-}
-
 pub(crate) async fn create_idea_tx(
     tx: &Transaction<'_>,
     user_id: Key,
     deck_name: &str,
 ) -> Result<interop::Idea> {
-    let deck = pg::one::<IdeaWithoutCategory>(
+    let deck = pg::one::<IdeaDeck>(
         tx,
         include_str!("sql/ideas_create.sql"),
         &[&user_id, &deck_name],
     ).await?;
 
-    let mut created_idea: interop::Idea = deck.into();
-
     let idea_category = IdeaKind::Insight;
-    let idea_extras = pg::one::<IdeaExtra>(
+    let idea_extra = pg::one::<IdeaExtra>(
         tx,
         include_str!("sql/ideas_create_extra.sql"),
-        &[&created_idea.id, &idea_category],
+        &[&deck.id, &idea_category],
     ).await?;
 
-    created_idea.idea_category = interop::IdeaKind::from(idea_extras.idea_category);
-
-    Ok(created_idea)
+    Ok((deck, idea_extra).into())
 }
 
 pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Idea>> {
@@ -165,27 +166,23 @@ pub(crate) async fn create(
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    let deck = pg::one::<IdeaWithoutCategory>(
+    let deck = pg::one::<IdeaDeck>(
         &tx,
         include_str!("sql/ideas_create.sql"),
-        &[&user_id, &idea.title],
+        &[&user_id, &idea.title, &idea.graph_terminator],
     ).await?;
-
-    let mut created_idea: interop::Idea = deck.into();
 
     let idea_category: IdeaKind = IdeaKind::from(idea.idea_category);
 
-    let idea_extras = pg::one::<IdeaExtra>(
+    let idea_extra = pg::one::<IdeaExtra>(
         &tx,
         include_str!("sql/ideas_create_extra.sql"),
-        &[&created_idea.id, &idea_category],
+        &[&deck.id, &idea_category],
     ).await?;
-
-    created_idea.idea_category = interop::IdeaKind::from(idea_extras.idea_category);
 
     tx.commit().await?;
 
-    Ok(created_idea)
+    Ok((deck, idea_extra).into())
 }
 
 pub(crate) async fn edit(
@@ -197,35 +194,24 @@ pub(crate) async fn edit(
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    let edited_deck = pg::one::<IdeaWithoutCategory>(
+    let edited_deck = pg::one::<IdeaDeck>(
         &tx,
         include_str!("sql/ideas_edit.sql"),
-        &[&user_id, &idea_id, &idea.title],
+        &[&user_id, &idea_id, &idea.title, &idea.graph_terminator],
     )
     .await?;
 
-    let mut edited_idea: interop::Idea = edited_deck.into();
-
     let idea_category: IdeaKind = idea.idea_category.into();
-
-    let idea_extras = pg::one::<IdeaExtra>(
+    let idea_extra = pg::one::<IdeaExtra>(
         &tx,
         include_str!("sql/ideas_edit_extra.sql"),
         &[&idea_id, &idea_category],
     )
     .await?;
 
-    info!("{:?}", &idea_extras);
-
-    edited_idea.idea_category = idea_extras.idea_category.into();
-
-
-
     tx.commit().await?;
 
-    info!("{:?}", &edited_idea);
-
-    Ok(edited_idea)
+    Ok((edited_deck, idea_extra).into())
 }
 
 pub(crate) async fn delete(db_pool: &Pool, user_id: Key, idea_id: Key) -> Result<()> {

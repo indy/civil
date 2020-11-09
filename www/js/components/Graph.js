@@ -401,6 +401,10 @@ function translateNode(svgNode, x, y) {
 
 function buildGraphState(state, id, depth, onlyIdea, onlyParentChild) {
 
+  function isTerminator(id) {
+    return state.ac.decks[state.deckIndexFromId[id]].graph_terminator;
+  }
+
   function allowIdeas(id) {
     return state.ac.decks[state.deckIndexFromId[id]].resource === "ideas";
   }
@@ -409,7 +413,7 @@ function buildGraphState(state, id, depth, onlyIdea, onlyParentChild) {
   }
 
   let usedSet = new Set();
-  let connectionArr = buildConnectivity(state.fullGraph, id, depth, onlyIdea ? allowIdeas : allowAll, onlyParentChild);
+  let connectionArr = buildConnectivity(state.fullGraph, id, depth, onlyIdea ? allowIdeas : allowAll, onlyParentChild, isTerminator);
 
   let resEdges = [];
   for (let [source, target, strength, kind] of connectionArr) {
@@ -447,7 +451,7 @@ function buildGraphState(state, id, depth, onlyIdea, onlyParentChild) {
   return graphState;
 }
 
-function buildConnectivity(fullGraph, deckId, depth, isNodeUsed, onlyParentChild) {
+function buildConnectivity(fullGraph, deckId, depth, isNodeUsed, onlyParentChild, isTerminator) {
   let resultSet = new Set();
   let futureSet = new Set();    // nodes to visit
   let activeSet = new Set();    // nodes being visited in the current pass
@@ -463,7 +467,7 @@ function buildConnectivity(fullGraph, deckId, depth, isNodeUsed, onlyParentChild
       // populate the active set
       activeSet.clear();
       for (let f of futureSet) {
-        if (!visitedSet.has(f)) {
+        if (!visitedSet.has(f) && !isTerminator(f)) {
           // haven't processed this node so add it to activeSet
           activeSet.add(f);
         }

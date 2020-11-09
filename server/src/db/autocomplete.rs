@@ -19,7 +19,6 @@ use super::pg;
 use crate::db::deck_kind::DeckKind;
 use crate::error::Result;
 use crate::interop::autocomplete as interop;
-use crate::interop::decks as interop_decks;
 use crate::interop::Key;
 use deadpool_postgres::Pool;
 use serde::{Deserialize, Serialize};
@@ -34,6 +33,7 @@ struct AutocompleteDeck {
     id: Key,
     name: String,
     kind: DeckKind,
+    graph_terminator: bool,
 }
 
 impl From<AutocompleteDeck> for interop::Autocomplete {
@@ -41,7 +41,8 @@ impl From<AutocompleteDeck> for interop::Autocomplete {
         interop::Autocomplete {
             id: p.id,
             name: String::from(&p.name),
-            resource: interop_decks::DeckResource::from(p.kind),
+            resource: p.kind.into(),
+            graph_terminator: p.graph_terminator,
         }
     }
 }

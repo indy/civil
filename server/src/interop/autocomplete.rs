@@ -23,4 +23,5 @@ pub struct Autocomplete {
     pub id: Key,
     pub name: String,
     pub resource: DeckResource,
+    pub graph_terminator: bool,
 }

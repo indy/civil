@@ -89,6 +89,7 @@ function UpdateIdeaForm({ idea }) {
   const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(idea.title || '');
   const [verbatimIdea, setVerbatimIdea] = useState(idea.idea_category === 'Verbatim');
+  const [graphTerminator, setGraphTerminator] = useState(idea.graph_terminator);
 
   if (idea.title && idea.title !== '' && title === '') {
     setTitle(idea.title);
@@ -107,7 +108,8 @@ function UpdateIdeaForm({ idea }) {
   const handleSubmit = (event) => {
     const data = {
       title: title.trim(),
-      idea_category: verbatimIdea ? 'Verbatim' : 'Insight'
+      idea_category: verbatimIdea ? 'Verbatim' : 'Insight',
+      graph_terminator: graphTerminator
     };
 
     Net.put(`/api/ideas/${idea.id}`, data).then(newItem => {
@@ -123,6 +125,12 @@ function UpdateIdeaForm({ idea }) {
 
   const handleRadioButtons = (event) => {
     setVerbatimIdea(event.target.id === "verbatim");
+  }
+
+  const handleCheckbox = (event) => {
+    if (event.target.id === 'graph-terminator') {
+      setGraphTerminator(!graphTerminator);
+    }
   }
 
   return html`
@@ -145,6 +153,13 @@ function UpdateIdeaForm({ idea }) {
              id="insight" name="ideakind" value="insight"
              onInput=${ handleRadioButtons }
              checked=${ !verbatimIdea } />
+      <br/>
+      <label for="graph-terminator">Graph Terminator</label>
+      <input type="checkbox"
+             id="graph-terminator"
+             name="graph-terminator"
+             onInput=${ handleCheckbox }
+             checked=${graphTerminator}/>
       <br/>
       <input type="submit" value="Update Idea"/>
     </form>`;
