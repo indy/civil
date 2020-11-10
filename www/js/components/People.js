@@ -1,6 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { ensureListingLoaded, setDeckListing, addAutocompleteDeck } from '/js/CivilUtils.js';
+import { ensureListingLoaded, setDeckListing } from '/js/CivilUtils.js';
 import { capitalise } from '/js/JsUtils.js';
 import Net from '/js/Net.js';
 import { useStateValue } from '/js/StateProvider.js';
@@ -43,10 +43,7 @@ function People() {
   return html`
     <div>
       <h1>${capitalise(resource)}</h1>
-      <${QuickFind} autocompletes=${state.ac.decks}
-                    resource=${resource}
-                    save=${(params) => saveNewPerson(params, dispatch)}
-                    minSearchLength=2/>
+      <${QuickFind} autocompletes=${state.ac.decks} resource=${resource} minSearchLength=2/>
       <${CompactedListSection} label='Uncategorised' list=${uncategorised} resource=${resource} expanded hideEmpty/>
       <${CompactedListSection} label='Ancient' list=${ancient} resource=${resource} expanded/>
       <${CompactedListSection} label='Medieval' list=${medieval} resource=${resource} expanded/>
@@ -186,22 +183,6 @@ function preCacheFn(person) {
   }
 
   return person;
-}
-
-function saveNewPerson({title}, dispatch) {
-  const data = {
-    name: title
-  };
-  const resource = "people";
-
-  // create a new resource named 'searchTerm'
-  Net.post(`/api/${resource}`, data).then(person => {
-    Net.get(`/api/${resource}`).then(people => {
-      setDeckListing(dispatch, resource, people);
-      addAutocompleteDeck(dispatch, person.id, person.title, resource);
-    });
-    route(`/${resource}/${person.id}`);
-  });
 }
 
 function UpdatePersonForm({ person }) {

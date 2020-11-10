@@ -19,12 +19,12 @@ use crate::db::users as db;
 use crate::error::{Error, Result};
 use crate::interop::users as interop;
 use crate::session;
+use crate::ServerConfig;
 use actix_web::web::{Data, Json};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
 use rand::{thread_rng, RngCore};
 use std::env;
-use crate::ServerConfig;
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -82,7 +82,6 @@ pub async fn create_user(
     info!("create_user");
 
     if server_config.registration_magic_word == registration.magic_word {
-
         let registration = registration.into_inner();
         let hash = hash_password(&registration.password)?;
 

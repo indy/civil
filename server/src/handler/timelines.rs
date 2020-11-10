@@ -22,7 +22,7 @@ use crate::db::timelines as db;
 use crate::error::Result;
 use crate::interop::points as points_interop;
 use crate::interop::timelines as interop;
-use crate::interop::{IdParam, Key};
+use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
@@ -32,16 +32,16 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 pub async fn create(
-    timeline: Json<interop::ProtoTimeline>,
+    proto_deck: Json<ProtoDeck>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("create");
 
-    let timeline = timeline.into_inner();
     let user_id = session::user_id(&session)?;
+    let proto_deck = proto_deck.into_inner();
 
-    let timeline = db::create(&db_pool, user_id, &timeline).await?;
+    let timeline = db::create(&db_pool, user_id, &proto_deck.title).await?;
 
     Ok(HttpResponse::Ok().json(timeline))
 }

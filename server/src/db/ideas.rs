@@ -16,8 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::pg;
-use crate::db::decks;
 use crate::db::deck_kind::DeckKind;
+use crate::db::decks;
 use crate::db::idea_kind::IdeaKind;
 use crate::error::{Error, Result};
 use crate::interop::ideas as interop;
@@ -94,15 +94,15 @@ pub(crate) async fn create_idea_tx(
     user_id: Key,
     deck_name: &str,
 ) -> Result<interop::Idea> {
-    let graph_terminator = false;
-    let deck = decks::deckbase_create(&tx, user_id, DeckKind::Idea, deck_name, graph_terminator).await?;
+    let deck = decks::deckbase_create(&tx, user_id, DeckKind::Idea, deck_name).await?;
 
     let idea_category = IdeaKind::Insight;
     let idea_extra = pg::one::<IdeaExtra>(
         tx,
         include_str!("sql/ideas_create_extra.sql"),
         &[&deck.id, &idea_category],
-    ).await?;
+    )
+    .await?;
 
     Ok((deck, idea_extra).into())
 }
@@ -147,23 +147,18 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key, idea_id: Key) -> Result<in
     .await
 }
 
-pub(crate) async fn create(
-    db_pool: &Pool,
-    user_id: Key,
-    idea: &interop::ProtoIdea,
-) -> Result<interop::Idea> {
+pub(crate) async fn create(db_pool: &Pool, user_id: Key, title: &str) -> Result<interop::Idea> {
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    let deck = decks::deckbase_create(&tx, user_id, DeckKind::Idea, &idea.title, idea.graph_terminator).await?;
-
-    let idea_category: IdeaKind = IdeaKind::from(idea.idea_category);
+    let deck = decks::deckbase_create(&tx, user_id, DeckKind::Idea, &title).await?;
 
     let idea_extra = pg::one::<IdeaExtra>(
         &tx,
         include_str!("sql/ideas_create_extra.sql"),
-        &[&deck.id, &idea_category],
-    ).await?;
+        &[&deck.id, &IdeaKind::Verbatim],
+    )
+    .await?;
 
     tx.commit().await?;
 
@@ -179,7 +174,15 @@ pub(crate) async fn edit(
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    let deck = decks::deckbase_edit(&tx, user_id, idea_id, DeckKind::Idea, &idea.title, idea.graph_terminator).await?;
+    let deck = decks::deckbase_edit(
+        &tx,
+        user_id,
+        idea_id,
+        DeckKind::Idea,
+        &idea.title,
+        idea.graph_terminator,
+    )
+    .await?;
 
     let idea_category: IdeaKind = idea.idea_category.into();
     let idea_extra = pg::one::<IdeaExtra>(

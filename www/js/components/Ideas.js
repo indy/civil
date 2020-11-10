@@ -3,7 +3,7 @@ import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
-import { ensureListingLoaded, setDeckListing, addAutocompleteDeck } from '/js/CivilUtils.js';
+import { ensureListingLoaded } from '/js/CivilUtils.js';
 import { capitalise, formattedDate, plural } from '/js/JsUtils.js';
 
 import { CompactedListSection } from '/js/components/ListSections.js';
@@ -25,31 +25,11 @@ function Ideas() {
   return html`
     <div>
       <h1>${capitalise(resource)}</h1>
-      <${QuickFind} autocompletes=${state.ac.decks}
-                    resource=${resource}
-                    save=${(params) => saveNewIdea(params, dispatch)}/>
+      <${QuickFind} autocompletes=${state.ac.decks} resource=${resource} />
       <${CompactedListSection} label='Recent' list=${ideas.recent} resource=${resource} expanded/>
       <${CompactedListSection} label='Orphans' list=${ideas.orphans} resource=${resource} hideEmpty/>
       <${CompactedListSection} label='All' list=${ideas.all} resource=${resource}/>
     </div>`;
-}
-
-function saveNewIdea({ title }, dispatch) {
-  const data = {
-    title: title,
-    idea_category: 'Verbatim',
-    graph_terminator: false
-  };
-  const resource = "ideas";
-
-  // create a new resource named 'searchTerm'
-  Net.post(`/api/${resource}`, data).then(deck => {
-    Net.get(`/api/${resource}/listings`).then(listing => {
-      setDeckListing(dispatch, resource, listing);
-      addAutocompleteDeck(dispatch, deck.id, deck.title, resource);
-    });
-    route(`/${resource}/${deck.id}`);
-  });
 }
 
 function Idea(props) {

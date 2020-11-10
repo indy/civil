@@ -1,6 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { ensureListingLoaded, setDeckListing, addAutocompleteDeck } from '/js/CivilUtils.js';
+import { ensureListingLoaded } from '/js/CivilUtils.js';
 import Net from '/js/Net.js';
 import { addChronologicalSortYear } from '/js/eras.js';
 import { capitalise } from '/js/JsUtils.js';
@@ -24,10 +24,7 @@ function Timelines() {
   return html`
     <div>
       <h1>${capitalise(resource)}</h1>
-      <${QuickFind} autocompletes=${state.ac.decks}
-                    resource='timelines'
-                    save=${(params) => saveNewTimeline(params, dispatch)}
-                    minSearchLength=2/>
+      <${QuickFind} autocompletes=${state.ac.decks} resource='timelines' minSearchLength=2/>
       <${BasicListSection} list=${state.deckkindsListing.timelines} resource=${resource}/>
     </div>`;
 }
@@ -77,22 +74,6 @@ function preCacheFn(timeline) {
   }
 
   return timeline;
-}
-
-function saveNewTimeline({title}, dispatch) {
-  const data = {
-    title: title
-  };
-  const resource = "timelines";
-
-  // create a new resource named 'searchTerm'
-  Net.post(`/api/${resource}`, data).then(timeline => {
-    Net.get(`/api/${resource}`).then(timelines => {
-      setDeckListing(dispatch, resource, timelines);
-      addAutocompleteDeck(dispatch, timeline.id, timeline.title, resource);
-    });
-    route(`/${resource}/${timeline.id}`);
-  });
 }
 
 function UpdateTimelineForm({ timeline }) {

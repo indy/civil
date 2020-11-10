@@ -67,6 +67,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
             scope("/people")
                 .route("", post().to(people::create))
                 .route("", get().to(people::get_all))
+                .route("/listings", get().to(people::get_all))
                 .route("/{id}", get().to(people::get))
                 .route("/{id}", put().to(people::edit)) // check
                 .route("/{id}", delete().to(people::delete))
@@ -77,6 +78,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
             scope("/timelines")
                 .route("", post().to(timelines::create))
                 .route("", get().to(timelines::get_all))
+                .route("/listings", get().to(timelines::get_all))
                 .route("/{id}", get().to(timelines::get))
                 .route("/{id}", put().to(timelines::edit)) // check
                 .route("/{id}", delete().to(timelines::delete))

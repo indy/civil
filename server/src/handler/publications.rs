@@ -20,7 +20,7 @@ use crate::db::notes as notes_db;
 use crate::db::publications as db;
 use crate::error::Result;
 use crate::interop::publications as interop;
-use crate::interop::{IdParam, Key};
+use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
@@ -30,16 +30,16 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 pub async fn create(
-    publication: Json<interop::ProtoPublication>,
+    proto_deck: Json<ProtoDeck>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("create");
 
     let user_id = session::user_id(&session)?;
-    let publication = publication.into_inner();
+    let proto_deck = proto_deck.into_inner();
 
-    let publication = db::create(&db_pool, user_id, &publication).await?;
+    let publication = db::create(&db_pool, user_id, &proto_deck.title).await?;
 
     Ok(HttpResponse::Ok().json(publication))
 }

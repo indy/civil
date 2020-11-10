@@ -43,7 +43,6 @@ pub struct DeckBase {
     pub graph_terminator: bool,
 }
 
-
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
 struct DeckReference {
@@ -183,7 +182,12 @@ fn resource_string_to_deck_kind_string(resource: &str) -> Result<&'static str> {
     }
 }
 
-pub(crate) async fn deckbase_get(tx: &Transaction<'_>, user_id: Key, deck_id: Key, kind: DeckKind) -> Result<DeckBase> {
+pub(crate) async fn deckbase_get(
+    tx: &Transaction<'_>,
+    user_id: Key,
+    deck_id: Key,
+    kind: DeckKind,
+) -> Result<DeckBase> {
     pg::one::<DeckBase>(
         &tx,
         include_str!("sql/deckbase_get.sql"),
@@ -192,7 +196,13 @@ pub(crate) async fn deckbase_get(tx: &Transaction<'_>, user_id: Key, deck_id: Ke
     .await
 }
 
-pub(crate) async fn deckbase_create(tx: &Transaction<'_>, user_id: Key, kind: DeckKind, name: &str, graph_terminator: bool) -> Result<DeckBase> {
+pub(crate) async fn deckbase_create(
+    tx: &Transaction<'_>,
+    user_id: Key,
+    kind: DeckKind,
+    name: &str,
+) -> Result<DeckBase> {
+    let graph_terminator = false;
     pg::one::<DeckBase>(
         &tx,
         include_str!("sql/deckbase_create.sql"),
@@ -201,7 +211,14 @@ pub(crate) async fn deckbase_create(tx: &Transaction<'_>, user_id: Key, kind: De
     .await
 }
 
-pub(crate) async fn deckbase_edit(tx: &Transaction<'_>, user_id: Key, deck_id: Key, kind: DeckKind, name: &str, graph_terminator: bool) -> Result<DeckBase> {
+pub(crate) async fn deckbase_edit(
+    tx: &Transaction<'_>,
+    user_id: Key,
+    deck_id: Key,
+    kind: DeckKind,
+    name: &str,
+    graph_terminator: bool,
+) -> Result<DeckBase> {
     pg::one::<DeckBase>(
         &tx,
         include_str!("sql/deckbase_edit.sql"),
@@ -245,12 +262,7 @@ pub(crate) async fn delete(db_pool: &Pool, user_id: Key, id: Key) -> Result<()> 
     )
     .await?;
 
-    pg::zero(
-        &tx,
-        &include_str!("sql/idea_extras_delete.sql"),
-        &[&id],
-    )
-    .await?;
+    pg::zero(&tx, &include_str!("sql/idea_extras_delete.sql"), &[&id]).await?;
 
     pg::zero(
         &tx,

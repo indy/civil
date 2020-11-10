@@ -105,7 +105,11 @@ pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Pub
 }
 
 pub(crate) async fn listings(db_pool: &Pool, user_id: Key) -> Result<interop::PublicationListings> {
-    async fn many_from(db_pool: &Pool, user_id: Key, query: &str) -> Result<Vec<interop::Publication>> {
+    async fn many_from(
+        db_pool: &Pool,
+        user_id: Key,
+        query: &str,
+    ) -> Result<Vec<interop::Publication>> {
         pg::many_from::<Publication, interop::Publication>(db_pool, query, &[&user_id]).await
     }
 
@@ -152,20 +156,24 @@ pub(crate) async fn get(
 pub(crate) async fn create(
     db_pool: &Pool,
     user_id: Key,
-    publication: &interop::ProtoPublication,
+    title: &str,
+    // publication: &interop::ProtoPublication,
 ) -> Result<interop::Publication> {
+    let source = "";
+    let author = "";
+    let short_description = "";
+    let rating = 0;
+
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    let graph_terminator = false;
-    let deck = decks::deckbase_create(&tx, user_id, DeckKind::Publication, &publication.title, graph_terminator).await?;
-
+    let deck = decks::deckbase_create(&tx, user_id, DeckKind::Publication, &title).await?;
     let publication_extras = pg::one::<PublicationExtra>(
         &tx,
         include_str!("sql/publications_create_extra.sql"),
-        &[&deck.id, &publication.source, &publication.author, &publication.short_description, &publication.rating],
+        &[&deck.id, &source, &author, &short_description, &rating],
     )
-        .await?;
+    .await?;
 
     tx.commit().await?;
 
@@ -182,7 +190,15 @@ pub(crate) async fn edit(
     let tx = client.transaction().await?;
 
     let graph_terminator = false;
-    let edited_deck = decks::deckbase_edit(&tx, user_id, publication_id, DeckKind::Publication, &publication.title, graph_terminator).await?;
+    let edited_deck = decks::deckbase_edit(
+        &tx,
+        user_id,
+        publication_id,
+        DeckKind::Publication,
+        &publication.title,
+        graph_terminator,
+    )
+    .await?;
 
     let publication_extras_exists = pg::many::<PublicationExtra>(
         &tx,
@@ -208,7 +224,13 @@ pub(crate) async fn edit(
     let publication_extras = pg::one::<PublicationExtra>(
         &tx,
         sql_query,
-        &[&publication_id, &publication.source, &publication.author, &publication.short_description, &publication.rating],
+        &[
+            &publication_id,
+            &publication.source,
+            &publication.author,
+            &publication.short_description,
+            &publication.rating,
+        ],
     )
     .await?;
 

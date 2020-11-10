@@ -21,7 +21,7 @@ use crate::db::notes as notes_db;
 use crate::error::Result;
 use crate::interop::decks::LinkBack;
 use crate::interop::ideas as interop;
-use crate::interop::{IdParam, Key};
+use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
@@ -31,18 +31,16 @@ use deadpool_postgres::Pool;
 use tracing::info;
 
 pub async fn create(
-    idea: Json<interop::ProtoIdea>,
+    proto_deck: Json<ProtoDeck>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("create");
 
     let user_id = session::user_id(&session)?;
-    let idea = idea.into_inner();
+    let proto_deck = proto_deck.into_inner();
 
-    info!("{:?}", &idea);
-
-    let idea = db::create(&db_pool, user_id, &idea).await?;
+    let idea = db::create(&db_pool, user_id, &proto_deck.title).await?;
 
     Ok(HttpResponse::Ok().json(idea))
 }

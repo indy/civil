@@ -1,10 +1,31 @@
 import { html, Link, useState, route } from '/lib/preact/mod.js';
 
-export default function QuickFind({ autocompletes, resource, save, minSearchLength }) {
+import Net from '/js/Net.js';
+import { useStateValue } from '/js/StateProvider.js';
+import { setDeckListing, addAutocompleteDeck } from '/js/CivilUtils.js';
+
+export default function QuickFind({ autocompletes, resource, minSearchLength }) {
+  const [state, dispatch] = useStateValue();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [candidates, setCandidates] = useState([]);
 
   minSearchLength = minSearchLength || 3;
+
+  function save(title) {
+    // creates a new deck
+    const data = {
+      title: title
+    };
+
+    Net.post(`/api/${resource}`, data).then(deck => {
+      Net.get(`/api/${resource}/listings`).then(listing => {
+        setDeckListing(dispatch, resource, listing);
+        addAutocompleteDeck(dispatch, deck.id, deck.title || deck.name, resource);
+      });
+      route(`/${resource}/${deck.id}`);
+    });
+  }
 
   // autocompletes contain the entire set of decks
   // so filter autocompletes by the resource
@@ -34,7 +55,7 @@ export default function QuickFind({ autocompletes, resource, save, minSearchLeng
       }
     }
 
-    save({ title: searchTerm.trim() });
+    save(searchTerm.trim());
   }
 
   function refineCandidates(newSearchTerm) {

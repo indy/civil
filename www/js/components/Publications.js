@@ -1,6 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { ensureListingLoaded, setDeckListing, addAutocompleteDeck } from '/js/CivilUtils.js';
+import { ensureListingLoaded } from '/js/CivilUtils.js';
 import { capitalise, removeEmptyStrings, formattedDate } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
@@ -23,36 +23,12 @@ function Publications() {
   return html`
     <div>
       <h1>${capitalise(resource)}</h1>
-      <${QuickFind} autocompletes=${state.ac.decks}
-                    resource='publications'
-                    save=${(params) => saveNewPublication(params, dispatch)}
-                    minSearchLength=3/>
+      <${QuickFind} autocompletes=${state.ac.decks} resource='publications' minSearchLength=3/>
       <${RatedListSection} label='Recent' list=${publications.recent} resource=${resource} expanded/>
       <${RatedListSection} label='Rated' list=${publications.rated} resource=${resource}/>
       <${CompactedListSection} label='Orphans' list=${publications.orphans} resource=${resource} hideEmpty/>
       <${CompactedListSection} label='All' list=${publications.all} resource=${resource}/>
     </div>`;
-}
-
-function saveNewPublication({ title }, dispatch) {
-    const data = {
-      title: title,
-      author: "",
-      source: "",
-      short_description: "",
-      rating: 0,
-      graph_terminator: false
-    };
-    const resource = "publications";
-
-    Net.post(`/api/${resource}`, data).then(deck => {
-      Net.get(`/api/${resource}/listings`).then(listing => {
-        setDeckListing(dispatch, resource, listing);
-        addAutocompleteDeck(dispatch, deck.id, deck.title, resource);
-      });
-
-      route(`/${resource}/${deck.id}`);
-    });
 }
 
 function Publication(props) {

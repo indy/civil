@@ -78,18 +78,13 @@ impl From<decks::DeckBase> for interop::Person {
     }
 }
 
-pub(crate) async fn create(
-    db_pool: &Pool,
-    user_id: Key,
-    person: &interop::ProtoPerson,
-) -> Result<interop::Person> {
+pub(crate) async fn create(db_pool: &Pool, user_id: Key, title: &str) -> Result<interop::Person> {
     info!("db::create_person");
 
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    let graph_terminator = false;
-    let deck = decks::deckbase_create(&tx, user_id, DeckKind::Person, &person.name, graph_terminator).await?;
+    let deck = decks::deckbase_create(&tx, user_id, DeckKind::Person, &title).await?;
 
     tx.commit().await?;
 
@@ -126,7 +121,15 @@ pub(crate) async fn edit(
     let tx = client.transaction().await?;
 
     let graph_terminator = false;
-    let deck = decks::deckbase_edit(&tx, user_id, person_id, DeckKind::Person, &person.name, graph_terminator).await?;
+    let deck = decks::deckbase_edit(
+        &tx,
+        user_id,
+        person_id,
+        DeckKind::Person,
+        &person.name,
+        graph_terminator,
+    )
+    .await?;
 
     tx.commit().await?;
 

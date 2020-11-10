@@ -65,16 +65,11 @@ impl From<decks::DeckBase> for interop::Timeline {
     }
 }
 
-pub(crate) async fn create(
-    db_pool: &Pool,
-    user_id: Key,
-    timeline: &interop::ProtoTimeline,
-) -> Result<interop::Timeline> {
+pub(crate) async fn create(db_pool: &Pool, user_id: Key, title: &str) -> Result<interop::Timeline> {
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    let graph_terminator = false;
-    let deck = decks::deckbase_create(&tx, user_id, DeckKind::Timeline, &timeline.title, graph_terminator).await?;
+    let deck = decks::deckbase_create(&tx, user_id, DeckKind::Timeline, &title).await?;
 
     tx.commit().await?;
 
@@ -115,7 +110,15 @@ pub(crate) async fn edit(
     let tx = client.transaction().await?;
 
     let graph_terminator = false;
-    let deck = decks::deckbase_edit(&tx, user_id, timeline_id, DeckKind::Timeline, &timeline.title, graph_terminator).await?;
+    let deck = decks::deckbase_edit(
+        &tx,
+        user_id,
+        timeline_id,
+        DeckKind::Timeline,
+        &timeline.title,
+        graph_terminator,
+    )
+    .await?;
 
     tx.commit().await?;
 

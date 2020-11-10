@@ -22,7 +22,7 @@ use crate::db::points as points_db;
 use crate::error::Result;
 use crate::interop::people as interop;
 use crate::interop::points as points_interop;
-use crate::interop::{IdParam, Key};
+use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
@@ -33,16 +33,16 @@ use std::time::Instant;
 use tracing::info;
 
 pub async fn create(
-    person: Json<interop::ProtoPerson>,
+    proto_deck: Json<ProtoDeck>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("create");
 
-    let person = person.into_inner();
     let user_id = session::user_id(&session)?;
+    let proto_deck = proto_deck.into_inner();
 
-    let person = db::create(&db_pool, user_id, &person).await?;
+    let person = db::create(&db_pool, user_id, &proto_deck.title).await?;
 
     Ok(HttpResponse::Ok().json(person))
 }

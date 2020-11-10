@@ -31,6 +31,11 @@ use std::fmt;
 
 pub type Key = i64;
 
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct ProtoDeck {
+    pub title: String,
+}
+
 #[derive(serde::Deserialize)]
 pub struct IdParam {
     pub id: Key,
