@@ -12,7 +12,7 @@ export default function QuickFind({ autocompletes, resource, minSearchLength }) 
 
   minSearchLength = minSearchLength || 3;
 
-  function save(title) {
+  function createDeck(title) {
     // creates a new deck
     const data = {
       title: title
@@ -55,7 +55,7 @@ export default function QuickFind({ autocompletes, resource, minSearchLength }) 
       }
     }
 
-    save(searchTerm.trim());
+    createDeck(searchTerm.trim());
   }
 
   function refineCandidates(newSearchTerm) {
