@@ -4,7 +4,7 @@ import Net from '/js/Net.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { setDeckListing, addAutocompleteDeck } from '/js/CivilUtils.js';
 
-export default function QuickFind({ autocompletes, resource, minSearchLength }) {
+export default function QuickFindOrCreate({ autocompletes, resource, minSearchLength }) {
   const [state, dispatch] = useStateValue();
 
   const [searchTerm, setSearchTerm] = useState('');

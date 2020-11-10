@@ -23,7 +23,7 @@ import { CompactedListSection } from '/js/components/ListSections.js';
 import DeckManager from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
 import PointForm from '/js/components/PointForm.js';
-import QuickFind from '/js/components/QuickFind.js';
+import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
 
@@ -43,7 +43,7 @@ function People() {
   return html`
     <div>
       <h1>${capitalise(resource)}</h1>
-      <${QuickFind} autocompletes=${state.ac.decks} resource=${resource} minSearchLength=2/>
+      <${QuickFindOrCreate} autocompletes=${state.ac.decks} resource=${resource} minSearchLength=2/>
       <${CompactedListSection} label='Uncategorised' list=${uncategorised} resource=${resource} expanded hideEmpty/>
       <${CompactedListSection} label='Ancient' list=${ancient} resource=${resource} expanded/>
       <${CompactedListSection} label='Medieval' list=${medieval} resource=${resource} expanded/>

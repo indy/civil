@@ -19,12 +19,10 @@
 
 "use strict";
 
-console.log("hi from sw");
-
 // set this to false when deploying, true when developing js
 var devMode = true;
 
-var CACHE_NAME = "civil-20201107c";
+var CACHE_NAME = "civil-20201110";
 
 var precacheConfig = [
   "/apple-touch-icon.png",
@@ -57,7 +55,7 @@ var precacheConfig = [
   "/js/components/People.js",
   "/js/components/PointForm.js",
   "/js/components/Publications.js",
-  "/js/components/QuickFind.js",
+  "/js/components/QuickFindOrCreate.js",
   "/js/components/RollableSection.js",
   "/js/components/Search.js",
   "/js/components/SectionLinkBack.js",
