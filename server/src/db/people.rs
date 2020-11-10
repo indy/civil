@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::pg;
+use crate::db::deck_kind::DeckKind;
 use crate::db::decks;
 use crate::error::{Error, Result};
 use crate::interop::people as interop;
@@ -58,18 +59,8 @@ impl From<PersonDerived> for interop::Person {
     }
 }
 
-// Person is a direct mapping from the people schema in the db
-// a interop::Person can be created from a db::PersonDerived + extra date and location information
-//
-#[derive(Debug, Deserialize, PostgresMapper, Serialize)]
-#[pg_mapper(table = "decks")]
-struct Person {
-    id: Key,
-    name: String,
-}
-
-impl From<Person> for interop::Person {
-    fn from(e: Person) -> interop::Person {
+impl From<decks::DeckBase> for interop::Person {
+    fn from(e: decks::DeckBase) -> interop::Person {
         interop::Person {
             id: e.id,
             name: e.name,
@@ -93,27 +84,16 @@ pub(crate) async fn create(
     person: &interop::ProtoPerson,
 ) -> Result<interop::Person> {
     info!("db::create_person");
-    // info!("{:?}", person);
 
-    let db_person = pg::one_non_transactional::<Person>(
-        &db_pool,
-        include_str!("sql/people_create.sql"),
-        &[&user_id, &person.name],
-    )
-    .await?;
+    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
+    let tx = client.transaction().await?;
 
-    Ok(interop::Person {
-        id: db_person.id,
-        name: db_person.name,
+    let graph_terminator = false;
+    let deck = decks::deckbase_create(&tx, user_id, DeckKind::Person, &person.name, graph_terminator).await?;
 
-        sort_date: None,
-        points: None,
-        all_points_during_life: None,
+    tx.commit().await?;
 
-        notes: None,
-        decks_in_notes: None,
-        linkbacks_to_decks: None,
-    })
+    Ok(deck.into())
 }
 
 pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Person>> {
@@ -126,35 +106,31 @@ pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Per
 }
 
 pub(crate) async fn get(db_pool: &Pool, user_id: Key, person_id: Key) -> Result<interop::Person> {
-    pg::one_from::<Person, interop::Person>(
-        db_pool,
-        include_str!("sql/people_get.sql"),
-        &[&user_id, &person_id],
-    )
-    .await
+    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
+    let tx = client.transaction().await?;
+
+    let deck = decks::deckbase_get(&tx, user_id, person_id, DeckKind::Person).await?;
+
+    tx.commit().await?;
+
+    Ok(deck.into())
 }
 
 pub(crate) async fn edit(
     db_pool: &Pool,
     user_id: Key,
-    updated_person: &interop::ProtoPerson,
+    person: &interop::ProtoPerson,
     person_id: Key,
 ) -> Result<interop::Person> {
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    pg::zero(
-        &tx,
-        include_str!("sql/people_edit.sql"),
-        &[&user_id, &person_id, &updated_person.name],
-    )
-    .await?;
+    let graph_terminator = false;
+    let deck = decks::deckbase_edit(&tx, user_id, person_id, DeckKind::Person, &person.name, graph_terminator).await?;
 
     tx.commit().await?;
 
-    let altered_person = get(db_pool, user_id, person_id).await?;
-
-    Ok(altered_person)
+    Ok(deck.into())
 }
 
 pub(crate) async fn delete(db_pool: &Pool, user_id: Key, person_id: Key) -> Result<()> {

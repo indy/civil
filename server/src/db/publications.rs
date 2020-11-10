@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::pg;
+use crate::db::deck_kind::DeckKind;
 use crate::db::decks;
 use crate::error::{Error, Result};
 use crate::interop::publications as interop;
@@ -61,16 +62,6 @@ impl From<Publication> for interop::Publication {
     }
 }
 
-// part of a publication, using only values from the decks table
-//
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
-struct PublicationDeck {
-    id: Key,
-    name: String,
-    created_at: chrono::DateTime<chrono::Utc>,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "publication_extras")]
 struct PublicationExtra {
@@ -81,8 +72,8 @@ struct PublicationExtra {
     rating: i32,
 }
 
-impl From<(PublicationDeck, PublicationExtra)> for interop::Publication {
-    fn from(a: (PublicationDeck, PublicationExtra)) -> interop::Publication {
+impl From<(decks::DeckBase, PublicationExtra)> for interop::Publication {
+    fn from(a: (decks::DeckBase, PublicationExtra)) -> interop::Publication {
         let (deck, extra) = a;
         interop::Publication {
             id: deck.id,
@@ -166,12 +157,8 @@ pub(crate) async fn create(
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    let deck = pg::one::<PublicationDeck>(
-        &tx,
-        include_str!("sql/publications_create.sql"),
-        &[&user_id, &publication.title],
-    )
-    .await?;
+    let graph_terminator = false;
+    let deck = decks::deckbase_create(&tx, user_id, DeckKind::Publication, &publication.title, graph_terminator).await?;
 
     let publication_extras = pg::one::<PublicationExtra>(
         &tx,
@@ -194,12 +181,8 @@ pub(crate) async fn edit(
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    let edited_deck = pg::one::<PublicationDeck>(
-        &tx,
-        include_str!("sql/publications_edit.sql"),
-        &[&user_id, &publication_id, &publication.title],
-    )
-    .await?;
+    let graph_terminator = false;
+    let edited_deck = decks::deckbase_edit(&tx, user_id, publication_id, DeckKind::Publication, &publication.title, graph_terminator).await?;
 
     let publication_extras_exists = pg::many::<PublicationExtra>(
         &tx,

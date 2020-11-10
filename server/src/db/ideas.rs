@@ -17,6 +17,7 @@
 
 use super::pg;
 use crate::db::decks;
+use crate::db::deck_kind::DeckKind;
 use crate::db::idea_kind::IdeaKind;
 use crate::error::{Error, Result};
 use crate::interop::ideas as interop;
@@ -60,23 +61,14 @@ impl From<Idea> for interop::Idea {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
-struct IdeaDeck {
-    id: Key,
-    name: String,
-    created_at: chrono::DateTime<chrono::Utc>,
-    graph_terminator: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "idea_extras")]
 struct IdeaExtra {
     deck_id: Key,
     idea_category: IdeaKind,
 }
 
-impl From<(IdeaDeck, IdeaExtra)> for interop::Idea {
-    fn from(a: (IdeaDeck, IdeaExtra)) -> interop::Idea {
+impl From<(decks::DeckBase, IdeaExtra)> for interop::Idea {
+    fn from(a: (decks::DeckBase, IdeaExtra)) -> interop::Idea {
         let (deck, extra) = a;
         interop::Idea {
             id: deck.id,
@@ -102,11 +94,8 @@ pub(crate) async fn create_idea_tx(
     user_id: Key,
     deck_name: &str,
 ) -> Result<interop::Idea> {
-    let deck = pg::one::<IdeaDeck>(
-        tx,
-        include_str!("sql/ideas_create.sql"),
-        &[&user_id, &deck_name],
-    ).await?;
+    let graph_terminator = false;
+    let deck = decks::deckbase_create(&tx, user_id, DeckKind::Idea, deck_name, graph_terminator).await?;
 
     let idea_category = IdeaKind::Insight;
     let idea_extra = pg::one::<IdeaExtra>(
@@ -166,11 +155,7 @@ pub(crate) async fn create(
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    let deck = pg::one::<IdeaDeck>(
-        &tx,
-        include_str!("sql/ideas_create.sql"),
-        &[&user_id, &idea.title, &idea.graph_terminator],
-    ).await?;
+    let deck = decks::deckbase_create(&tx, user_id, DeckKind::Idea, &idea.title, idea.graph_terminator).await?;
 
     let idea_category: IdeaKind = IdeaKind::from(idea.idea_category);
 
@@ -194,12 +179,7 @@ pub(crate) async fn edit(
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    let edited_deck = pg::one::<IdeaDeck>(
-        &tx,
-        include_str!("sql/ideas_edit.sql"),
-        &[&user_id, &idea_id, &idea.title, &idea.graph_terminator],
-    )
-    .await?;
+    let deck = decks::deckbase_edit(&tx, user_id, idea_id, DeckKind::Idea, &idea.title, idea.graph_terminator).await?;
 
     let idea_category: IdeaKind = idea.idea_category.into();
     let idea_extra = pg::one::<IdeaExtra>(
@@ -211,7 +191,7 @@ pub(crate) async fn edit(
 
     tx.commit().await?;
 
-    Ok((edited_deck, idea_extra).into())
+    Ok((deck, idea_extra).into())
 }
 
 pub(crate) async fn delete(db_pool: &Pool, user_id: Key, idea_id: Key) -> Result<()> {

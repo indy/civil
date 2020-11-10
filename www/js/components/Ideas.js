@@ -34,20 +34,21 @@ function Ideas() {
     </div>`;
 }
 
-function saveNewIdea({title, idea_category}, dispatch) {
+function saveNewIdea({ title }, dispatch) {
   const data = {
     title: title,
-    idea_category: idea_category || 'Verbatim'
+    idea_category: 'Verbatim',
+    graph_terminator: false
   };
   const resource = "ideas";
 
   // create a new resource named 'searchTerm'
-  Net.post(`/api/${resource}`, data).then(idea => {
+  Net.post(`/api/${resource}`, data).then(deck => {
     Net.get(`/api/${resource}/listings`).then(listing => {
       setDeckListing(dispatch, resource, listing);
-      addAutocompleteDeck(dispatch, idea.id, idea.title, resource);
+      addAutocompleteDeck(dispatch, deck.id, deck.title, resource);
     });
-    route(`/${resource}/${idea.id}`);
+    route(`/${resource}/${deck.id}`);
   });
 }
 

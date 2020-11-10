@@ -92,7 +92,7 @@ function Person(props) {
 
       // also update the people list now that this person is no longer uncategorised
       Net.get('/api/people').then(listing => {
-        setDeckListing(dispatch, 'people', people);
+        setDeckListing(dispatch, 'people', listing);
       });
     });
   }

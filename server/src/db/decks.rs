@@ -23,12 +23,26 @@ use crate::db::ref_kind::RefKind;
 use crate::error::{Error, Result};
 use crate::interop::decks as interop;
 use crate::interop::Key;
-use deadpool_postgres::{Client, Pool};
+use deadpool_postgres::{Client, Pool, Transaction};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
 #[allow(unused_imports)]
 use tracing::info;
+
+// used when constructing a type derived from deck (Idea, Publication etc)
+// gets the basic information from the decks table for use with additional data to construct the final struct
+// e.g. DeckBase + IdeaExtra to create an interop::Idea
+//
+#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
+#[pg_mapper(table = "decks")]
+pub struct DeckBase {
+    pub id: Key,
+    pub name: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub graph_terminator: bool,
+}
+
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
@@ -167,6 +181,33 @@ fn resource_string_to_deck_kind_string(resource: &str) -> Result<&'static str> {
         "publications" => Ok("publication"),
         _ => Err(Error::InvalidResource),
     }
+}
+
+pub(crate) async fn deckbase_get(tx: &Transaction<'_>, user_id: Key, deck_id: Key, kind: DeckKind) -> Result<DeckBase> {
+    pg::one::<DeckBase>(
+        &tx,
+        include_str!("sql/deckbase_get.sql"),
+        &[&user_id, &deck_id, &kind],
+    )
+    .await
+}
+
+pub(crate) async fn deckbase_create(tx: &Transaction<'_>, user_id: Key, kind: DeckKind, name: &str, graph_terminator: bool) -> Result<DeckBase> {
+    pg::one::<DeckBase>(
+        &tx,
+        include_str!("sql/deckbase_create.sql"),
+        &[&user_id, &kind, &name, &graph_terminator],
+    )
+    .await
+}
+
+pub(crate) async fn deckbase_edit(tx: &Transaction<'_>, user_id: Key, deck_id: Key, kind: DeckKind, name: &str, graph_terminator: bool) -> Result<DeckBase> {
+    pg::one::<DeckBase>(
+        &tx,
+        include_str!("sql/deckbase_edit.sql"),
+        &[&user_id, &deck_id, &kind, &name, &graph_terminator],
+    )
+    .await
 }
 
 pub(crate) async fn recent(

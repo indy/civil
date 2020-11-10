@@ -45,6 +45,7 @@ pub struct ProtoPublication {
     pub author: Option<String>,
     pub short_description: Option<String>,
     pub rating: i32,
+    pub graph_terminator: bool,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

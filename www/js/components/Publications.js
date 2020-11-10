@@ -34,23 +34,24 @@ function Publications() {
     </div>`;
 }
 
-function saveNewPublication({title}, dispatch) {
+function saveNewPublication({ title }, dispatch) {
     const data = {
       title: title,
       author: "",
       source: "",
       short_description: "",
-      rating: 0
+      rating: 0,
+      graph_terminator: false
     };
     const resource = "publications";
 
-    Net.post(`/api/${resource}`, data).then(publication => {
-      Net.get(`/api/${resource}/listings`).then(publications => {
-        setDeckListing(dispatch, 'publications', publications);
-        addAutocompleteDeck(dispatch, publication.id, publication.title, resource);
+    Net.post(`/api/${resource}`, data).then(deck => {
+      Net.get(`/api/${resource}/listings`).then(listing => {
+        setDeckListing(dispatch, resource, listing);
+        addAutocompleteDeck(dispatch, deck.id, deck.title, resource);
       });
 
-      route(`/${resource}/${publication.id}`);
+      route(`/${resource}/${deck.id}`);
     });
 }
 
@@ -144,7 +145,8 @@ function UpdatePublicationForm({ publication }) {
       author: author.trim(),
       source: source.trim(),
       short_description: shortDescription.trim(),
-      rating: rating
+      rating: rating,
+      graph_terminator: false
     }, ["source"]);
 
     Net.put(`/api/publications/${publication.id}`, data).then(newItem => {
