@@ -2,10 +2,10 @@
 select d.id as deck_id,
        d.name as deck_name,
        d.kind as deck_kind,
-       p.id as id,
-       p.kind as kind,
-       p.title as title,
-       p.date_textual as date_textual,
+       p.id,
+       p.kind,
+       p.title,
+       p.date_textual,
        coalesce(p.exact_date, p.lower_date) as date
 from   points p, decks d
 where  d.id = $2
@@ -17,10 +17,10 @@ union
 select d.id as deck_id,
        d.name as deck_name,
        d.kind as deck_kind,
-       p.id as id,
-       p.kind as kind,
-       p.title as title,
-       p.date_textual as date_textual,
+       p.id,
+       p.kind,
+       p.title,
+       p.date_textual,
        coalesce(p.exact_date, p.lower_date) as date
 from   points p, decks d
 where  coalesce(p.exact_date, p.upper_date) >= (select coalesce(point_born.exact_date, point_born.lower_date) as born

@@ -1,5 +1,5 @@
-select d.id as id,
-       d.name as name,
+select d.id,
+       d.name,
        coalesce(p.exact_date, p.lower_date) as birth_date
 from decks d, points p
 where d.user_id = $1
@@ -7,8 +7,8 @@ where d.user_id = $1
       and p.deck_id = d.id
       and p.kind = 'point_begin'::point_kind
 union
-select d.id as id,
-       d.name as name,
+select d.id,
+       d.name,
        null as birth_date
 from decks d
      left join points p on p.deck_id = d.id
