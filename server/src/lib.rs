@@ -28,7 +28,7 @@ use actix_files as fs;
 use actix_session::CookieSession;
 use actix_web::cookie::SameSite;
 use actix_web::middleware::errhandlers::ErrorHandlers;
-use actix_web::{http, App, HttpServer};
+use actix_web::{http, App, HttpServer, web};
 use dotenv;
 use std::env;
 use tokio_postgres::NoTls;
@@ -115,6 +115,7 @@ pub async fn start_server() -> Result<()> {
                 user_content_path: user_content_path.clone(),
                 registration_magic_word: registration_magic_word.clone(),
             })
+            .data(web::JsonConfig::default().limit(1024 * 1024))
             .wrap(session_store)
             .wrap(error_handlers)
             .service(api::public_api("/api"))
