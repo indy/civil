@@ -10,7 +10,7 @@ import { CompactedListSection } from '/js/components/ListSections.js';
 import DeckManager from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
 import ListingLink from '/js/components/ListingLink.js';
-import QuickFind from '/js/components/QuickFind.js';
+import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
 
@@ -25,7 +25,7 @@ function Ideas() {
   return html`
     <div>
       <h1>${capitalise(resource)}</h1>
-      <${QuickFind} autocompletes=${state.ac.decks} resource=${resource} />
+      <${QuickFindOrCreate} autocompletes=${state.ac.decks} resource=${resource} />
       <${CompactedListSection} label='Recent' list=${ideas.recent} resource=${resource} expanded/>
       <${CompactedListSection} label='Orphans' list=${ideas.orphans} resource=${resource} hideEmpty/>
       <${CompactedListSection} label='All' list=${ideas.all} resource=${resource}/>

@@ -8,7 +8,7 @@ import Net from '/js/Net.js';
 import { RatedListSection, CompactedListSection } from '/js/components/ListSections.js';
 import DeckManager from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
-import QuickFind from '/js/components/QuickFind.js';
+import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
 import SpanneStarRating from '/js/components/SpanneStarRating.js';
 
@@ -23,7 +23,7 @@ function Publications() {
   return html`
     <div>
       <h1>${capitalise(resource)}</h1>
-      <${QuickFind} autocompletes=${state.ac.decks} resource='publications' minSearchLength=3/>
+      <${QuickFindOrCreate} autocompletes=${state.ac.decks} resource='publications' minSearchLength=3/>
       <${RatedListSection} label='Recent' list=${publications.recent} resource=${resource} expanded/>
       <${RatedListSection} label='Rated' list=${publications.rated} resource=${resource}/>
       <${CompactedListSection} label='Orphans' list=${publications.orphans} resource=${resource} hideEmpty/>

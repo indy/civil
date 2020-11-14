@@ -4,7 +4,7 @@ import Net from '/js/Net.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { setDeckListing, addAutocompleteDeck } from '/js/CivilUtils.js';
 
-export default function QuickFind({ autocompletes, resource, minSearchLength }) {
+export default function QuickFindOrCreate({ autocompletes, resource, minSearchLength }) {
   const [state, dispatch] = useStateValue();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -12,7 +12,7 @@ export default function QuickFind({ autocompletes, resource, minSearchLength }) 
 
   minSearchLength = minSearchLength || 3;
 
-  function save(title) {
+  function createDeck(title) {
     // creates a new deck
     const data = {
       title: title
@@ -55,7 +55,7 @@ export default function QuickFind({ autocompletes, resource, minSearchLength }) 
       }
     }
 
-    save(searchTerm.trim());
+    createDeck(searchTerm.trim());
   }
 
   function refineCandidates(newSearchTerm) {

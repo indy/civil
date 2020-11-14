@@ -45,7 +45,7 @@ export default function Graph({ id, depth, isIdea }) {
 
   useEffect(() => {
     gGraphState = buildGraphState(state, id, graphDepth, onlyIdea, onlyParentChild);
-    let svg = buildSvg(svgContainerRef.current, gGraphState);
+    let svg = buildSvg(svgContainerRef.current, gGraphState, id);
 
     gUpdateGraphCallback = buildUpdateGraphCallback(svg);
     graphPhysics(gGraphState, gUpdateGraphCallback, setSimIsRunning);
@@ -97,7 +97,7 @@ export default function Graph({ id, depth, isIdea }) {
     if (activeHyperlinks) {
       if (target.id.length > 0 && target.id[0] === '/') {
         // the id looks like a url, that's good enough for us, lets go there
-        route(target.id, true);
+        route(target.id);
       }
     }
   }
@@ -160,7 +160,7 @@ export default function Graph({ id, depth, isIdea }) {
 }
 
 
-function buildSvg(ref, graphState) {
+function buildSvg(ref, graphState, root_id) {
   let svg = {
     container: undefined,
     element: undefined,
@@ -259,7 +259,7 @@ function buildSvg(ref, graphState) {
   element.appendChild(svg.nodes);
 
   graphState.nodes.forEach(n => {
-    let [g, textNode] = createSvgNode(n, -3.2103189179278937,-9.947329432729548);
+    let [g, textNode] = createSvgNode(n, root_id);
     svg.nodes.appendChild(g);
 
     let textBoundingBox = textNode.getBBox();
@@ -338,18 +338,13 @@ function createSvgEdge(sourceNode, targetNode, strength, kind) {
   return path;
 }
 
-function createSvgNode(n, x, y) {
-  const label = n.label;
+function createSvgNode(n, root_id) {
   let g = document.createElementNS("http://www.w3.org/2000/svg", 'g');
   g.associatedNode = n;
 
-  translateNode(g, x, y);
+  translateNode(g, 0.0, 0.0);
 
-  // let circle2 = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
-  // circle2.setAttribute("stroke", "var(--graph-edge)");
-  // circle2.setAttribute("stroke-width", "0.5");
-  // circle2.setAttribute("r", "40");
-  // g.appendChild(circle2);
+  const label = n.label;
 /*
   let debugbox = document.createElementNS("http://www.w3.org/2000/svg", 'rect');
   debugbox.setAttribute("fill", "#ffaaff");
@@ -369,12 +364,22 @@ function createSvgNode(n, x, y) {
   text1.classList.add("unselectable-text");
   g.appendChild(text1);
 
+  if (n.id === root_id) {
+    let circle2 = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
+    circle2.setAttribute("fill", "var(--graph-edge)");
+    circle2.setAttribute("r", "8");
+    g.appendChild(circle2);
+
+    circle2 = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
+    circle2.setAttribute("fill", "var(--bg)");
+    circle2.setAttribute("r", "6");
+    g.appendChild(circle2);
+  }
+
   let circle = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
-  circle.setAttribute("stroke", "var(--graph-edge)");
-  circle.setAttribute("stroke-width", "1.5");
+  circle.setAttribute("fill", "var(--graph-edge)");
   circle.setAttribute("r", "4");
   g.appendChild(circle);
-
 
   let text2 = document.createElementNS("http://www.w3.org/2000/svg", 'text');
   text2.setAttribute("fill", "var(--fg-" + n.resource + ")");
@@ -451,7 +456,7 @@ function buildGraphState(state, id, depth, onlyIdea, onlyParentChild) {
   return graphState;
 }
 
-function buildConnectivity(fullGraph, deckId, depth, isNodeUsed, onlyParentChild, isTerminator) {
+function buildConnectivity(fullGraph, deckId, depth, isNodeUsedFn, onlyParentChild, isTerminatorFn) {
   let resultSet = new Set();
   let futureSet = new Set();    // nodes to visit
   let activeSet = new Set();    // nodes being visited in the current pass
@@ -459,7 +464,7 @@ function buildConnectivity(fullGraph, deckId, depth, isNodeUsed, onlyParentChild
 
   if (fullGraph[deckId]) {
     // start with this 'root' node
-    if (isNodeUsed(deckId)) {
+    if (isNodeUsedFn(deckId)) {
       futureSet.add(deckId);
     }
 
@@ -467,7 +472,7 @@ function buildConnectivity(fullGraph, deckId, depth, isNodeUsed, onlyParentChild
       // populate the active set
       activeSet.clear();
       for (let f of futureSet) {
-        if (!visitedSet.has(f) && !isTerminator(f)) {
+        if (!visitedSet.has(f) && !isTerminatorFn(f)) {
           // haven't processed this node so add it to activeSet
           activeSet.add(f);
         }
@@ -477,7 +482,7 @@ function buildConnectivity(fullGraph, deckId, depth, isNodeUsed, onlyParentChild
         let conn = fullGraph[a];
         if (conn) {
           conn.forEach(([id, kind, strength]) => {
-            if (isNodeUsed(id) &&
+            if (isNodeUsedFn(id) &&
                 ((onlyParentChild && (kind === 'ref_to_parent' || kind === 'ref_to_child'))
                  || !onlyParentChild)) {
               // add a link between a and id
