@@ -52,7 +52,7 @@ export const reducer = (state, action) => {
       recentImages: action.recentImages,
       acLoaded: true,
       ac: {
-        decks: action.autocompleteDecks
+        decks: action.autocompleteDecks.map(autocompleteTransform)
       },
       deckIndexFromId: buildDeckIndex(action.autocompleteDecks),
       deckLabels: buildDeckLabels(action.autocompleteDecks),
@@ -79,7 +79,7 @@ export const reducer = (state, action) => {
       ...state,
       acLoaded: true,
       ac: {
-        decks: action.decks
+        decks: action.decks.map(autocompleteTransform)
       },
       deckIndexFromId: buildDeckIndex(action.decks),
       deckLabels: buildDeckLabels(action.decks)
@@ -87,11 +87,11 @@ export const reducer = (state, action) => {
   case 'addAutocompleteDeck':
     {
       let decks = state.ac.decks;
-      decks.push({
+      decks.push(autocompleteTransform({
         id: action.id,
         name: action.name,
         resource: action.resource
-      });
+      }));
       return {
         ...state,
         ac: {
@@ -102,11 +102,11 @@ export const reducer = (state, action) => {
   case 'addAutocompleteDecks':
     {
       let decks = state.ac.decks;
-      action.newDecks.forEach(newDeck => decks.push({
+      action.newDecks.forEach(newDeck => decks.push(autocompleteTransform({
         id: newDeck.id,
         name: newDeck.name,
         resource: newDeck.resource
-      }));
+      })));
       return {
         ...state,
         ac: {
@@ -321,4 +321,10 @@ function hashByNoteIds(s) {
     }
     return a;
   }, {});
+}
+
+
+function autocompleteTransform(deck) {
+  deck.comparisonName = deck.name.toLowerCase();
+  return deck;
 }

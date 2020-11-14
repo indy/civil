@@ -8,20 +8,14 @@ import CivilSelect from '/js/components/CivilSelect.js';
 import ImageWidget from '/js/components/ImageWidget.js';
 
 export default function Note(props) {
+  const [state, dispatch] = useStateValue();
+
   const [showModButtons, setShowModButtons] = useState(false);
   const [showAddDecksUI, setShowAddDecksUI] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-
-  const [state, dispatch] = useStateValue();
-
-  const [note, setNote] = useState({
-    content: props.note.content
-  });
-
-  // decks is in whatever structure is most convenient for the CreatableSelect component
-  const [decks, setDecks] = useState(buildCurrentDecks(props.note));
+  const [note, setNote] = useState({ content: props.note.content });
+  const [decks, setDecks] = useState(props.note && props.note.decks);
 
   function handleChangeEvent(event) {
     const target = event.target;
@@ -83,7 +77,7 @@ export default function Note(props) {
       // 6. clicks cancel
       // expected: only the changes from step 5 should be undone
 
-      setDecks(buildCurrentDecks(props.note));
+      setDecks(props.note && props.note.decks);
       setShowAddDecksUI(false);
     };
 
@@ -94,25 +88,16 @@ export default function Note(props) {
       setShowAddDecksUI(false);
     };
 
-    function buildOptionsForCivilSelect(d) {
-      return {
-        id: d.id,
-        resource: d.resource,
-        value: d.name,
-        compValue: d.name.toLowerCase()
-      }
-    }
-
     return html`
       <div>
         <label>Connections:</label>
         <${ CivilSelect }
           parentDeckId=${ props.parentDeckId }
-          values=${ decks }
+          chosen=${ decks }
+          available=${ state.ac.decks }
           onChange=${ setDecks }
           onCancelAddDecks=${ cancelAddDecks }
           onCommitAddDecks=${ commitAddDecks }
-          options=${ state.ac.decks.map(buildOptionsForCivilSelect) }
         />
       </div>`;
   };
@@ -181,31 +166,6 @@ function onReallyDelete(id, onDelete) {
     onDelete(id);
   });
 };
-
-
-function buildCurrentDecks(note) {
-  let res = [];
-
-  if(!note) {
-    return null;
-  }
-  if (note.decks) {
-    note.decks.forEach((deck) => {
-      const d = {
-        id: deck.id,
-        value: deck.name,
-        resource: deck.resource,
-        kind: deck.kind
-      };
-      if (hasAnnotation(deck)) {
-        d.annotation = deck.annotation;
-      }
-      res.push(d);
-    });
-  }
-
-  return res;
-}
 
 function buildNoteReference(marginConnections) {
   if (!marginConnections) {
@@ -282,21 +242,12 @@ function addDecks(note, decks, onDecksChanged, dispatch) {
   if (decks) {
     data = decks.reduce((acc, deck) => {
       if (deck.__isNew__) {
-        const newDeck = { name: deck.value, kind: deck.kind };
-        if (hasAnnotation(deck)) {
-          newDeck.annotation = deck.annotation;
-        }
-        acc.new_deck_references.push(newDeck);
+        acc.new_deck_references.push(deck);
       } else if (deck.id) {
-        const existingDeck = { id: deck.id, kind: deck.kind };
-        if (hasAnnotation(deck)) {
-          existingDeck.annotation = deck.annotation;
-        }
-        acc.existing_deck_references.push(existingDeck);
+        acc.existing_deck_references.push(deck);
       } else {
-        // should never get here
-        console.error(`deck ${deck.value} has neither __isNew__ nor an id ???`);
-        console.log(deck);
+        console.error(`deck ${deck.name} has neither __isNew__ nor an id ???`);
+        console.error(deck);
       }
       return acc;
     }, data);
@@ -339,7 +290,3 @@ function updateAutocompleteWithNewDecks(dispatch, newDeckReferences, allDecksFor
 function hasNoteBeenModified(note, propsNote) {
   return note.content !== propsNote.content;
 };
-
-function hasAnnotation(deck) {
-  return deck.annotation && deck.annotation.trim().length > 0;
-}

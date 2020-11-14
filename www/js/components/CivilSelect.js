@@ -1,7 +1,7 @@
 import { html, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-export default function CivilSelect({ parentDeckId, values, onChange, options, onCancelAddDecks, onCommitAddDecks }) {
-  const [currentValues, setCurrentValues] = useState(values);
+export default function CivilSelect({ parentDeckId, chosen, available, onChange, onCancelAddDecks, onCommitAddDecks }) {
+  const [currentlyChosen, setCurrentlyChosen] = useState(chosen || []);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [candidates, setCandidates] = useState([]);
   const [canSave, setCanSave] = useState(false);
@@ -16,11 +16,11 @@ export default function CivilSelect({ parentDeckId, values, onChange, options, o
         // Ctrl + digit
         const digit = e.keyCode - 48;
 
-        if (digit - 1 < currentValues.length) {
-          // delete from current values
-          setCurrentValues(currentValues.filter((cv, i) => i !== digit - 1));
+        if (digit - 1 < currentlyChosen.length) {
+          // delete from currently chosen
+          setCurrentlyChosen(currentlyChosen.filter((cv, i) => i !== digit - 1));
         } else {
-          const indexToAdd = digit - currentValues.length - 1;
+          const indexToAdd = digit - currentlyChosen.length - 1;
 
           if (candidates.length > indexToAdd) {
             onSelectedAdd(candidates[indexToAdd]);
@@ -43,7 +43,7 @@ export default function CivilSelect({ parentDeckId, values, onChange, options, o
     // no 'kind' value is populated if the the default is used, so we have to manually add it
     // (fuck the web, the entire thing needs to be burnt to the ground)
     //
-    let cv = currentValues.map(c => {
+    let cv = currentlyChosen.map(c => {
       if (!c.kind) {
         c.kind = "Ref";
       }
@@ -57,56 +57,56 @@ export default function CivilSelect({ parentDeckId, values, onChange, options, o
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("keyup", onKeyUp);
     };
-  }, [currentValues, candidates]);
+  }, [currentlyChosen, candidates]);
 
   function onReferenceRemove(e) {
     setCanSave(true);
-    setCurrentValues(currentValues.filter(cv => { return cv.value !== e.value;}));
+    setCurrentlyChosen(currentlyChosen.filter(cv => { return cv.name !== e.name;}));
   }
 
   function onReferenceChangeKind(reference, newKind) {
     setCanSave(true);
-    let newValues = currentValues.map(cv => {
+    let newChosen = currentlyChosen.map(cv => {
       if (cv.id === reference.id) {
         cv.kind = newKind;
       }
       return cv;
     });
 
-    setCurrentValues(newValues);
+    setCurrentlyChosen(newChosen);
   }
 
   function onReferenceChangeAnnotation(reference, annotation) {
     setCanSave(true);
-    let newValues = currentValues.map(cv => {
+    let newChosen = currentlyChosen.map(cv => {
       if (cv.id === reference.id) {
         cv.annotation = annotation;
       }
       return cv;
     });
 
-    setCurrentValues(newValues);
+    setCurrentlyChosen(newChosen);
   }
 
   function onSelectedAdd(candidate) {
     setCanSave(true);
-    setCurrentValues(currentValues.concat([candidate]));
+    setCurrentlyChosen(currentlyChosen.concat([candidate]));
   }
 
   return html`<div class='civsel-main-box'>
-                ${ currentValues.map((value, i) => html`<${SelectedReference}
+                ${ currentlyChosen.map((value, i) => html`<${SelectedReference}
                                                         reference=${value}
                                                         onRemove=${onReferenceRemove}
                                                         onChangeKind=${onReferenceChangeKind}
                                                         onChangeAnnotation=${onReferenceChangeAnnotation}
                                                         keyIndex=${ i + 1 }
                                                         showKeyboardShortcuts=${ showKeyboardShortcuts } />`) }
-                <${Input} options=${ options }
+                <${Input} available=${ available }
                           parentDeckId=${ parentDeckId }
                           candidates=${ candidates }
                           setCandidates=${ setCandidates }
                           onAdd=${ onSelectedAdd }
-                          currentValues=${ currentValues }
+                          currentlyChosen=${ currentlyChosen }
                           showKeyboardShortcuts=${ showKeyboardShortcuts }/>
                <button onClick=${ onCancelAddDecks }>Cancel</button>
                <button onClick=${ onCommitAddDecks } disabled=${ !canSave }>${ showKeyboardShortcuts && html`Ctrl-Enter`} Save Changes</button>
@@ -143,7 +143,7 @@ function SelectedReference({ reference, onRemove, onChangeKind, keyIndex, showKe
                   <option value="RefInContrast" selected=${reference.kind == "RefInContrast"}>Contrasting Reference</option>
                   <option value="RefCritical" selected=${reference.kind == "RefCritical"}>Critical Reference</option>
                 </select>
-                ${reference.value}
+                ${reference.name}
                 <input class="civsel-annotation"
                   type="text"
                   name="annotation"
@@ -152,7 +152,7 @@ function SelectedReference({ reference, onRemove, onChangeKind, keyIndex, showKe
               </div>`;
 }
 
-function Input({ parentDeckId, options, onAdd, candidates, setCandidates, currentValues, showKeyboardShortcuts }) {
+function Input({ parentDeckId, available, onAdd, candidates, setCandidates, currentlyChosen, showKeyboardShortcuts }) {
   let [text, setText] = useState('');
 
   useEffect(() => {
@@ -163,18 +163,18 @@ function Input({ parentDeckId, options, onAdd, candidates, setCandidates, curren
     }
   }, [text]);
 
-  function alreadySelected(compValue) {
-    return currentValues.some(cv => { return cv.value.toLowerCase() === compValue;});
+  function alreadySelected(comparisonName) {
+    return currentlyChosen.some(cv => { return cv.name.toLowerCase() === comparisonName;});
   }
 
   function refineCandidates() {
     let lowerText = text.toLowerCase();
 
-    setCandidates(options
+    setCandidates(available
                   .filter(op => { return (op.id !== parentDeckId)
-                                  && (op.compValue.includes(lowerText))
-                                  && !alreadySelected(op.compValue);  })
-                  .sort((a, b) => { return a.compValue.length - b.compValue.length; }));
+                                  && (op.comparisonName.includes(lowerText))
+                                  && !alreadySelected(op.comparisonName);  })
+                  .sort((a, b) => { return a.comparisonName.length - b.comparisonName.length; }));
   }
 
   function onInput(e) {
@@ -185,15 +185,15 @@ function Input({ parentDeckId, options, onAdd, candidates, setCandidates, curren
     e.preventDefault();
 
     if (text.length > 0) {
-      // search for text in options
+      // search for text in available
       let lowerText = text.toLowerCase();
-      let existingOption = options.find(option => { return option.compValue === lowerText;});
+      let existingOption = available.find(option => { return option.comparisonName === lowerText;});
       if (existingOption) {
         // pre-existing deck
         onAdd(existingOption);
       } else {
         // treat this text as a new idea that needs to be created
-        onAdd({ value: text, kind: "Ref", __isNew__: true});
+        onAdd({ name: text, kind: "Ref", __isNew__: true});
       }
       setText('');
     }
@@ -209,7 +209,7 @@ function Input({ parentDeckId, options, onAdd, candidates, setCandidates, curren
     return html`<${CandidateItem} candidate=${c}
                                   onSelectedCandidate=${ onSelectedCandidate }
                                   showKeyboardShortcuts=${ showKeyboardShortcuts }
-                                  keyIndex=${ currentValues.length + 1 + i }
+                                  keyIndex=${ currentlyChosen.length + 1 + i }
                 />`;
   });
 
@@ -235,6 +235,6 @@ function CandidateItem({ candidate, onSelectedCandidate, showKeyboardShortcuts, 
 
   return html`<div class="civsel-candidate" onClick=${selectedThisCandidate}>
                 ${ canShowKeyboardShortcut && html`<span class='civsel-keyboard-shortcut'>Ctrl-${ keyIndex }</span>`}
-                ${candidate.value}
+                ${ candidate.name }
               </div>`;
 }
