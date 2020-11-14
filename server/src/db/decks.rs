@@ -51,6 +51,7 @@ struct DeckReference {
     name: String,
     deck_kind: DeckKind,
     ref_kind: RefKind,
+    annotation: Option<String>,
 }
 
 impl From<DeckReference> for interop::MarginConnection {
@@ -61,6 +62,7 @@ impl From<DeckReference> for interop::MarginConnection {
             name: d.name,
             resource: interop::DeckResource::from(d.deck_kind),
             kind: interop::RefKind::from(d.ref_kind),
+            annotation: d.annotation,
         }
     }
 }

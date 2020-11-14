@@ -87,6 +87,8 @@ CREATE TABLE IF NOT EXISTS notes_decks (
     note_id BIGINT NOT NULL REFERENCES notes,
     deck_id BIGINT NOT NULL REFERENCES decks,
 
+    annotation TEXT,
+
     PRIMARY KEY(note_id, deck_id)
 );
 

@@ -47,6 +47,7 @@ pub struct MarginConnection {
     pub name: String,
     pub resource: DeckResource,
     pub kind: RefKind,
+    pub annotation: Option<String>,
 }
 
 // on a decks page, these link back to other decks

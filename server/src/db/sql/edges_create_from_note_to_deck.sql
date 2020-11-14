@@ -1,2 +1,2 @@
-INSERT INTO notes_decks(note_id, deck_id, kind)
-VALUES ($1, $2, $3)
+INSERT INTO notes_decks(note_id, deck_id, kind, annotation)
+VALUES ($1, $2, $3, $4)

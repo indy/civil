@@ -191,12 +191,16 @@ function buildCurrentDecks(note) {
   }
   if (note.decks) {
     note.decks.forEach((deck) => {
-      res.push({
+      const d = {
         id: deck.id,
         value: deck.name,
         resource: deck.resource,
         kind: deck.kind
-      });
+      };
+      if (hasAnnotation(deck)) {
+        d.annotation = deck.annotation;
+      }
+      res.push(d);
     });
   }
 
@@ -209,9 +213,15 @@ function buildNoteReference(marginConnections) {
   }
 
   return marginConnections.map(ref => {
+    const { id, resource, kind, name, annotation } = ref;
+    const href = `/${resource}/${id}`;
     return html`
-      <div class="spanne-entry" key=${ ref.id }>
-        <${ResourceLink} id=${ ref.id } name=${ ref.name } resource=${ ref.resource } kind=${ ref.kind }/>
+      <div class="spanne-entry" key=${ id }>
+        <span class="noteref-kind">(${ kind })</span>
+        <${Link} class="noteref pigment-${ resource }" href=${ href }>${ name }</${Link}>
+        ${annotation && html`<div class="noteref-clearer"/>
+                             <div class="noteref-annotation pigment-fg-${ resource }">${ annotation }</div>
+                             <div class="noteref-clearer"/>`}
       </div>`;
   });
 };
@@ -272,9 +282,17 @@ function addDecks(note, decks, onDecksChanged, dispatch) {
   if (decks) {
     data = decks.reduce((acc, deck) => {
       if (deck.__isNew__) {
-        acc.new_deck_references.push({name: deck.value, kind: deck.kind });
+        const newDeck = { name: deck.value, kind: deck.kind };
+        if (hasAnnotation(deck)) {
+          newDeck.annotation = deck.annotation;
+        }
+        acc.new_deck_references.push(newDeck);
       } else if (deck.id) {
-        acc.existing_deck_references.push({id: deck.id, kind: deck.kind });
+        const existingDeck = { id: deck.id, kind: deck.kind };
+        if (hasAnnotation(deck)) {
+          existingDeck.annotation = deck.annotation;
+        }
+        acc.existing_deck_references.push(existingDeck);
       } else {
         // should never get here
         console.error(`deck ${deck.value} has neither __isNew__ nor an id ???`);
@@ -318,17 +336,10 @@ function updateAutocompleteWithNewDecks(dispatch, newDeckReferences, allDecksFor
   }
 }
 
-
 function hasNoteBeenModified(note, propsNote) {
   return note.content !== propsNote.content;
 };
 
-function ResourceLink({ resource, id, name, kind }) {
-  const href = `/${resource}/${id}`;
-
-  return html`
-<div>
-  <span class="noteref-kind">(${ kind })</span>
-  <${Link} class="noteref pigment-${resource}" href=${ href }>${ name }</${Link}>
-</div>`;
-};
+function hasAnnotation(deck) {
+  return deck.annotation && deck.annotation.trim().length > 0;
+}

@@ -95,6 +95,11 @@ a:visited.pigment-inherit {
   cursor: pointer;
 }
 
+.civsel-annotation {
+  width: 30em;
+  margin-left: 1em;
+}
+
 /* -------------------------------------------------------------------------------- */
 
 section.rolled-down {
@@ -329,6 +334,17 @@ a.top-bar-menuitem {
 .noteref {
   padding: 0.1em 0.5em 0.1em 0.5em;
   border-radius: var(--coloured-deck-border-radius);
+}
+
+.noteref-annotation {
+  font-family: 'Nothing You Could Do', cursive;
+  padding-bottom: 0.3em;
+  width: 20em;
+  float: right;
+}
+
+.noteref-clearer {
+  clear: both;
 }
 
 blockquote.quote > textarea {

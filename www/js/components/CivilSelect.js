@@ -76,6 +76,18 @@ export default function CivilSelect({ parentDeckId, values, onChange, options, o
     setCurrentValues(newValues);
   }
 
+  function onReferenceChangeAnnotation(reference, annotation) {
+    setCanSave(true);
+    let newValues = currentValues.map(cv => {
+      if (cv.id === reference.id) {
+        cv.annotation = annotation;
+      }
+      return cv;
+    });
+
+    setCurrentValues(newValues);
+  }
+
   function onSelectedAdd(candidate) {
     setCanSave(true);
     setCurrentValues(currentValues.concat([candidate]));
@@ -86,6 +98,7 @@ export default function CivilSelect({ parentDeckId, values, onChange, options, o
                                                         reference=${value}
                                                         onRemove=${onReferenceRemove}
                                                         onChangeKind=${onReferenceChangeKind}
+                                                        onChangeAnnotation=${onReferenceChangeAnnotation}
                                                         keyIndex=${ i + 1 }
                                                         showKeyboardShortcuts=${ showKeyboardShortcuts } />`) }
                 <${Input} options=${ options }
@@ -100,7 +113,7 @@ export default function CivilSelect({ parentDeckId, values, onChange, options, o
               </div>`;
 }
 
-function SelectedReference({ reference, onRemove, onChangeKind, keyIndex, showKeyboardShortcuts }) {
+function SelectedReference({ reference, onRemove, onChangeKind, keyIndex, showKeyboardShortcuts, onChangeAnnotation }) {
   function onClick(e) {
     e.preventDefault();
     onRemove(reference);
@@ -109,6 +122,16 @@ function SelectedReference({ reference, onRemove, onChangeKind, keyIndex, showKe
   function onKindDropDownSelect(e) {
     onChangeKind(reference, e.target.value);
   }
+
+  const handleChangeEvent = (event) => {
+    const target = event.target;
+    const name = target.name;
+    const value = target.value;
+
+    if (name === "annotation") {
+      onChangeAnnotation(reference, value);
+    }
+  };
 
   return html`<div class='civsel-reference'>
                 ${ showKeyboardShortcuts && html`<span class='civsel-keyboard-shortcut'>Ctrl-${ keyIndex }</span>`}
@@ -121,6 +144,11 @@ function SelectedReference({ reference, onRemove, onChangeKind, keyIndex, showKe
                   <option value="RefCritical" selected=${reference.kind == "RefCritical"}>Critical Reference</option>
                 </select>
                 ${reference.value}
+                <input class="civsel-annotation"
+                  type="text"
+                  name="annotation"
+                  value=${ reference.annotation }
+                  onInput=${ handleChangeEvent } />
               </div>`;
 }
 

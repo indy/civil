@@ -28,7 +28,7 @@ use actix_files as fs;
 use actix_session::CookieSession;
 use actix_web::cookie::SameSite;
 use actix_web::middleware::errhandlers::ErrorHandlers;
-use actix_web::{http, App, HttpServer, web};
+use actix_web::{http, web, App, HttpServer};
 use dotenv;
 use std::env;
 use tokio_postgres::NoTls;

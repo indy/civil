@@ -38,6 +38,7 @@ pub struct MarginConnectionToDeck {
     pub name: String,
     pub deck_kind: DeckKind,
     pub ref_kind: RefKind,
+    pub annotation: Option<String>,
 }
 
 impl From<MarginConnectionToDeck> for interop_decks::MarginConnection {
@@ -48,6 +49,7 @@ impl From<MarginConnectionToDeck> for interop_decks::MarginConnection {
             name: e.name,
             resource: interop_decks::DeckResource::from(e.deck_kind),
             kind: interop_decks::RefKind::from(e.ref_kind),
+            annotation: e.annotation,
         }
     }
 }
@@ -99,17 +101,22 @@ pub(crate) async fn create_from_note_to_decks(
         }
     }
 
-    // check existing deck references to see if the 'kind' has changed
+    // check existing deck references to see if the 'kind' or annotation has changed
     let stmt_update_ref_kind = include_str!("sql/edges_update_notes_decks.sql");
     for deck_reference in &edge_connectivity.existing_deck_references {
         for existing in &associated_decks {
             if existing.id == deck_reference.id {
                 let r = RefKind::from(deck_reference.kind);
-                if existing.ref_kind != r {
+                if existing.ref_kind != r || existing.annotation != deck_reference.annotation {
                     pg::zero(
                         &tx,
                         &stmt_update_ref_kind,
-                        &[&existing.id, &existing.note_id, &r],
+                        &[
+                            &existing.id,
+                            &existing.note_id,
+                            &r,
+                            &deck_reference.annotation,
+                        ],
                     )
                     .await?;
                 }
@@ -123,7 +130,12 @@ pub(crate) async fn create_from_note_to_decks(
         if !is_deck_associated_with_note(deck_reference.id, &associated_decks) {
             info!("creating {}, {}", &note_id, &deck_reference.id);
             let r = RefKind::from(deck_reference.kind);
-            pg::zero(&tx, &stmt_attach_deck, &[&note_id, &deck_reference.id, &r]).await?;
+            pg::zero(
+                &tx,
+                &stmt_attach_deck,
+                &[&note_id, &deck_reference.id, &r, &deck_reference.annotation],
+            )
+            .await?;
         }
     }
 
@@ -137,13 +149,19 @@ pub(crate) async fn create_from_note_to_decks(
         // 3. adds the same new tag in the other window
         //
         let deck = ideas_db::create_idea_tx(&tx, user_id, &new_deck_reference.name).await?;
+        let no_annotation: Option<String> = None;
         let r = RefKind::from(new_deck_reference.kind);
-        pg::zero(&tx, &stmt_attach_deck, &[&note_id, &deck.id, &r]).await?;
+        pg::zero(
+            &tx,
+            &stmt_attach_deck,
+            &[&note_id, &deck.id, &r, &no_annotation],
+        )
+        .await?;
     }
 
     tx.commit().await?;
 
-    // return a list of [id, name, resource] containing the complete set of decks associated with this note.
+    // return a list of [id, name, resource, kind, annotation] containing the complete set of decks associated with this note.
     pg::many_from::<MarginConnectionToDeck, interop_decks::MarginConnection>(
         db_pool,
         &stmt_all_decks,
