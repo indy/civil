@@ -6,6 +6,7 @@
 import { html } from '/lib/preact/mod.js';
 
 const svgColour = "#666";
+const svgColourAlt = "#ccc";
 
 export function svgBlank() {
   return html`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" height="24" width="24"></svg>`;
@@ -122,4 +123,9 @@ export function svgCaretUp() {
 export function svgCaretRight() {
   return html`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" height="24" width="24">
 <path xmlns="http://www.w3.org/2000/svg" d="M10 14L16 19L10 24L10 14Z" fill="${svgColour}"></path></svg>`;
+}
+
+export function svgCaretRightEmpty() {
+  return html`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" height="24" width="24">
+<path xmlns="http://www.w3.org/2000/svg" d="M10 14L16 19L10 24L10 14Z" fill="${svgColourAlt}"></path></svg>`;
 }

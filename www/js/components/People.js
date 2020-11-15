@@ -15,6 +15,7 @@ import { svgPointAdd,
          svgCancel,
          svgCaretDown,
          svgCaretRight,
+         svgCaretRightEmpty,
          svgBlank,
          svgTickedCheckBox,
          svgUntickedCheckBox } from '/js/svgIcons.js';
@@ -245,25 +246,7 @@ function UpdatePersonForm({ person }) {
     </form>`;
 }
 
-/*
-    if (expanded) {
-      item = html`<li class='relevent-deckpoint'>
-                  <span class="deckpoint-age">${ ageText }</span>
-                  <span onClick=${onClicked}>${ svgCaretDown() }</span>
-                  ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.point_date_textual }
-                  <div class="point-notes">
-                    ${ noteFn(deckPoint.point_id) }
-                  </div>
-                </li>`;
-    } else {
-      item = html`<li class='relevent-deckpoint'>
-                  <span class="deckpoint-age">${ ageText }</span>
-                  <span onClick=${onClicked}>${ svgCaretUp() }</span>
-                  ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.point_date_textual }
-                </li>`;
-    }
-*/
-function DeckPoint({ deckPoint, noteManager, holderId }) {
+function PersonDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
   let [expanded, setExpanded] = useState(false);
 
   function onClicked(e) {
@@ -279,7 +262,7 @@ function DeckPoint({ deckPoint, noteManager, holderId }) {
   if (deckPoint.deck_id === holderId) {
     item = html`<li class='relevent-deckpoint'>
                   <span class="deckpoint-age">${ ageText }</span>
-                  <span onClick=${onClicked}>${ expanded ? svgCaretDown() : svgCaretRight() }</span>
+                  <span onClick=${onClicked}>${ expanded ? svgCaretDown() : hasNotes ? svgCaretRight() : svgCaretRightEmpty() }</span>
                   ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.date_textual }
                   ${ expanded && html`<div class="point-notes">
                                         ${ noteManager(deckPoint) }
@@ -361,9 +344,10 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, dispatc
   if (!showBirthsDeaths) {
     arr = arr.filter(e => e.deck_id === holderId || !(e.title === "Born" || e.title === "Died"));
   }
-  const dps = arr.map(dp => html`<${DeckPoint}
+  const dps = arr.map(dp => html`<${PersonDeckPoint}
                                  key=${ dp.id}
                                  noteManager=${ deckManager.noteManager }
+                                 hasNotes=${ deckManager.pointHasNotes(dp) }
                                  holderId=${ holderId }
                                  deckPoint=${ dp }/>`);
 

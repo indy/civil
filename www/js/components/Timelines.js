@@ -13,7 +13,7 @@ import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
 import { BasicListSection } from '/js/components/ListSections.js';
-import { svgPointAdd, svgCancel, svgCaretRight, svgCaretDown } from '/js/svgIcons.js';
+import { svgPointAdd, svgCancel, svgCaretRight, svgCaretRightEmpty, svgCaretDown } from '/js/svgIcons.js';
 
 function Timelines() {
   const [state, dispatch] = useStateValue();
@@ -136,7 +136,7 @@ function UpdateTimelineForm({ timeline }) {
     </form>`;
 }
 
-function DeckPoint({ deckPoint, noteManager, holderId }) {
+function TimelineDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
   let [expanded, setExpanded] = useState(false);
 
   function onClicked(e) {
@@ -145,7 +145,7 @@ function DeckPoint({ deckPoint, noteManager, holderId }) {
   }
 
   return html`<li class='relevent-deckpoint'>
-                <span onClick=${onClicked}>${ expanded ? svgCaretDown() : svgCaretRight() }</span>
+                <span onClick=${onClicked}>${ expanded ? svgCaretDown() : hasNotes ? svgCaretRight() : svgCaretRightEmpty() }</span>
                 ${ deckPoint.title } ${ deckPoint.date_textual }
                 ${ expanded && html`<div class="point-notes">
                                       ${ noteManager(deckPoint) }
@@ -167,9 +167,10 @@ function ListPoints({ points, deckManager, holderId, holderName }) {
   }
 
   let arr = points || [];
-  let dps = arr.map(dp => html`<${DeckPoint}
+  let dps = arr.map(dp => html`<${TimelineDeckPoint}
                                  key=${ dp.id}
                                  noteManager=${ deckManager.noteManager }
+                                 hasNotes=${ deckManager.pointHasNotes(dp) }
                                  holderId=${ holderId }
                                  deckPoint=${ dp }/>`);
 

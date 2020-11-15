@@ -96,8 +96,11 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
     res.updateForm = showUpdate();
   }
 
-  res.noteManager = function(optional_point_id) {
-    return NoteManager(deck, cacheDeck, optional_point_id);
+  res.noteManager = function(optional_point) {
+    return NoteManager(deck, cacheDeck, optional_point);
+  }
+  res.pointHasNotes = function(point) {
+    return deck.notes.some(n => n.point_id === point.id);
   }
 
   res.hasNotes = deck.notes && deck.notes.length > 0;
