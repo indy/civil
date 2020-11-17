@@ -1,6 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { ensureListingLoaded } from '/js/CivilUtils.js';
+import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import { capitalise, removeEmptyStrings, formattedDate } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
@@ -125,13 +125,18 @@ function UpdatePublicationForm({ publication }) {
       graph_terminator: false
     }, ["source"]);
 
-    Net.put(`/api/publications/${publication.id}`, data).then(newItem => {
-      console.log(newItem);
+    const resource = 'publications';
+
+    Net.put(`/api/${ resource }/${ publication.id }`, data).then(newItem => {
       dispatch({
         type: 'cacheDeck',
         id: publication.id,
         newItem
       });
+
+      // fetch the listing incase editing the publication has changed it's star rating or annotation
+      //
+      fetchDeckListing(dispatch, resource, '/api/publications/listings');
     });
 
     event.preventDefault();

@@ -1,6 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { ensureListingLoaded, setDeckListing } from '/js/CivilUtils.js';
+import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import { capitalise } from '/js/JsUtils.js';
 import Net from '/js/Net.js';
 import { useStateValue } from '/js/StateProvider.js';
@@ -89,9 +89,7 @@ function Person(props) {
       });
 
       // also update the people list now that this person is no longer uncategorised
-      Net.get('/api/people').then(listing => {
-        setDeckListing(dispatch, 'people', listing);
-      });
+      fetchDeckListing(dispatch, 'people');
     });
   }
 
@@ -319,9 +317,7 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, dispatc
       });
 
       // also update the people list now that this person is no longer uncategorised
-      Net.get('/api/people').then(people => {
-        setDeckListing(dispatch, 'people', people);
-      });
+      fetchDeckListing(dispatch, 'people');
     });
   }
 

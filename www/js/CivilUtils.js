@@ -7,19 +7,15 @@ export function ensureListingLoaded(resource, url) {
   const [state, dispatch] = useStateValue();
 
   useEffect(() => {
-    async function fetcher() {
-      const listing = await Net.get(url || `/api/${resource}`);
-      dispatch({
-        type: 'setDeckListing',
-        resource,
-        listing
-      });
-    }
-
     if(!state.deckkindsLoaded[resource]) {
-      fetcher();
+      fetchDeckListing(dispatch, resource, url);
     }
   }, []);
+}
+
+export async function fetchDeckListing(dispatch, resource, url) {
+  const listing = await Net.get(url || `/api/${resource}`);
+  setDeckListing(dispatch, resource, listing);
 }
 
 export function setDeckListing(dispatch, resource, listing) {
