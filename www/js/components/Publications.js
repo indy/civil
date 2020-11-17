@@ -10,7 +10,7 @@ import DeckManager from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
 import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
-import SpanneStarRating from '/js/components/SpanneStarRating.js';
+import { SpanneStarRatingPartial } from '/js/components/SpanneStarRating.js';
 
 function Publications() {
   const [state, dispatch] = useStateValue();
@@ -56,7 +56,12 @@ function Publication(props) {
   return html`
     <article>
       <div>
-        <${SpanneStarRating} rating=${publication.rating}/>
+        <div class="spanne spanne-in-listing">
+          <${SpanneStarRatingPartial} rating=${publication.rating}/>
+          <div class="spanne-entry">
+            <div class="short-description">${ publication.short_description }</div>
+          </div>
+        </div>
         ${ deckManager.title }
       </div>
       ${ created_at_textual }

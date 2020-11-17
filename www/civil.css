@@ -478,9 +478,9 @@ input:required {
   list-style-type: none;
 }
 
-.standard-list li .short-description {
+.short-description {
   font-family: 'Nothing You Could Do', cursive;
   color: var(--scribble);
   margin-left: 1em;
-  font-size: 90%;
+  font-size: 1em;
 }

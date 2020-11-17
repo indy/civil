@@ -1,7 +1,7 @@
 import { html, useState, Link } from '/lib/preact/mod.js';
 import { svgExpand, svgMinimise } from '/js/svgIcons.js';
 import ListingLink from '/js/components/ListingLink.js';
-import SpanneStarRating from '/js/components/SpanneStarRating.js';
+import { SpanneStarRating } from '/js/components/SpanneStarRating.js';
 
 function BasicListSection({list, resource}) {
   return html`
