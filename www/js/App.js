@@ -18,22 +18,26 @@ export async function buildInitialState() {
     // logged in
     let user = await Net.get("/api/users");
 
-    // update initial state with user
-    //
-    let state = reducer(initialState, {
-      type: 'setUser',
-      user
-    });
+    if (user) {
+      // update initial state with user
+      //
+      let state = reducer(initialState, {
+        type: 'setUser',
+        user
+      });
 
-    let struct = await getInitialStateForLoggedInUser();
-    state = reducer(state, {
-      type: 'uberSetup',
-      ...struct
-    });
+      let struct = await getInitialStateForLoggedInUser();
+      state = reducer(state, {
+        type: 'uberSetup',
+        ...struct
+      });
 
-    console.log('user is logged in');
-    return state;
-
+      console.log('user is logged in');
+      return state;
+    } else {
+      console.log('no user is logged in');
+      return initialState;
+    }
   } catch(err) {
     console.log('no user is logged in');
     return initialState;

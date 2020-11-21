@@ -85,10 +85,16 @@ pub async fn create_user(
         let registration = registration.into_inner();
         let hash = hash_password(&registration.password)?;
 
-        let (id, user) = db::create(&db_pool, &registration, &hash).await?;
+        let (id, mut user) = db::create(&db_pool, &registration, &hash).await?;
 
         // save id to the session
         session::save_user_id(&session, id)?;
+
+        if id == 1 {
+            user.admin = Some(interop::Admin {
+                db_name: env::var("POSTGRES_DB")?,
+            })
+        }
 
         // send response
         Ok(HttpResponse::Ok().json(user))
