@@ -7,7 +7,7 @@ export function ensureListingLoaded(resource, url) {
   const [state, dispatch] = useStateValue();
 
   useEffect(() => {
-    if(!state.deckkindsLoaded[resource]) {
+    if(!state.listing[resource]) {
       fetchDeckListing(dispatch, resource, url);
     }
   }, []);

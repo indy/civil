@@ -34,7 +34,8 @@ function People() {
 
   ensureListingLoaded(resource);
 
-  const people = state.deckkindsListing.people;
+  const people = state.listing.people || [];
+
   const uncategorised = filterAfter(people, era.uncategorisedYear);
   const ancient = filterBefore(people, era.ancientCutoff);
   const medieval = filterBetween(people, era.ancientCutoff, era.medievalCutoff);

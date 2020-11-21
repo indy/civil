@@ -20,7 +20,7 @@ function Ideas() {
 
   ensureListingLoaded(resource, '/api/ideas/listings');
 
-  const ideas = state.deckkindsListing.ideas;
+  const ideas = state.listing.ideas || {};
 
   return html`
     <div>

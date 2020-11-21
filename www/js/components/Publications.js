@@ -18,7 +18,7 @@ function Publications() {
 
   ensureListingLoaded(resource, '/api/publications/listings');
 
-  const publications = state.deckkindsListing.publications;
+  const publications = state.listing.publications || {};
 
   return html`
     <div>

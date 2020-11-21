@@ -9,7 +9,6 @@ export const initialState = {
   //   email: ...
   // },
 
-  acLoaded: false,
   ac: {
     // an array of { id, name, resource }
     decks: []
@@ -27,19 +26,12 @@ export const initialState = {
   recentImages: [],
   imageDirectory: '',
 
-
   // key == resource name of decks
-  deckkindsLoaded: {
-    ideas: false,
-    publications: false,
-    people: false,
-    timelines: false
-  },
-  deckkindsListing: {
-    ideas: [],           // when listing ideas on /ideas page
-    publications: [],
-    people: [],
-    timelines: []
+  listing: {
+    ideas: undefined,           // when listing ideas on /ideas page
+    publications: undefined,
+    people: undefined,
+    timelines: undefined
   }
 };
 
@@ -50,7 +42,6 @@ export const reducer = (state, action) => {
       ...state,
       imageDirectory: action.imageDirectory,
       recentImages: action.recentImages,
-      acLoaded: true,
       ac: {
         decks: action.autocompleteDecks.map(autocompleteTransform)
       },
@@ -77,7 +68,6 @@ export const reducer = (state, action) => {
   case 'loadAutocomplete':
     return {
       ...state,
-      acLoaded: true,
       ac: {
         decks: action.decks.map(autocompleteTransform)
       },
@@ -144,20 +134,20 @@ export const reducer = (state, action) => {
                        ac: {
                          decks: state.ac.decks.filter(filterFn)
                        },
-                       deckkindsListing: {
+                       listing: {
                          ideas: {
-                           all: state.deckkindsListing.ideas.all.filter(filterFn),
-                           orphans: state.deckkindsListing.ideas.orphans.filter(filterFn),
-                           recent: state.deckkindsListing.ideas.recent.filter(filterFn),
+                           all: state.listing.ideas.all.filter(filterFn),
+                           orphans: state.listing.ideas.orphans.filter(filterFn),
+                           recent: state.listing.ideas.recent.filter(filterFn),
                          },
                          publications: {
-                           all: state.deckkindsListing.publications.all.filter(filterFn),
-                           orphans: state.deckkindsListing.publications.orphans.filter(filterFn),
-                           recent: state.deckkindsListing.publications.recent.filter(filterFn),
-                           rated: state.deckkindsListing.publications.rated.filter(filterFn),
+                           all: state.listing.publications.all.filter(filterFn),
+                           orphans: state.listing.publications.orphans.filter(filterFn),
+                           recent: state.listing.publications.recent.filter(filterFn),
+                           rated: state.listing.publications.rated.filter(filterFn),
                          },
-                         people: state.deckkindsListing.people.filter(filterFn),
-                         timelines: state.deckkindsListing.timelines.filter(filterFn)
+                         people: state.listing.people.filter(filterFn),
+                         timelines: state.listing.timelines.filter(filterFn)
                        }
                      };
       delete newState.fullGraph[action.id];
@@ -169,10 +159,7 @@ export const reducer = (state, action) => {
     // sets the listing values for a particular deck kind
   case 'setDeckListing':
     {
-      let loaded = { ...state.deckkindsLoaded };
-      loaded[action.resource] = true;
-
-      let listing = {...state.deckkindsListing };
+      let listing = {...state.listing };
       listing[action.resource] = action.listing;
 
       if (action.resource === 'people') {
@@ -181,8 +168,7 @@ export const reducer = (state, action) => {
 
       let newState = {
         ...state,
-        deckkindsLoaded: loaded,
-        deckkindsListing: listing
+        listing: listing
       };
 
       return newState;
@@ -191,13 +177,13 @@ export const reducer = (state, action) => {
     {
       let newState = { ...state };
       newState.cache.deck[action.newItem.id] = action.newItem;
-      updateListOfNames(newState.deckkindsListing.people, action.newItem);
+      updateListOfNames(newState.listing.people, action.newItem);
       return newState;
     }
   case 'setTimeline':
     {
       let newState = { ...state };
-      updateListOfTitles(newState.deckkindsListing.timelines, action.newItem);
+      updateListOfTitles(newState.listing.timelines, action.newItem);
       return newState;
     }
   default:

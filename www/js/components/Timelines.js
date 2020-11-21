@@ -25,7 +25,7 @@ function Timelines() {
     <div>
       <h1>${capitalise(resource)}</h1>
       <${QuickFindOrCreate} autocompletes=${state.ac.decks} resource='timelines' minSearchLength=2/>
-      <${BasicListSection} list=${state.deckkindsListing.timelines} resource=${resource}/>
+      <${BasicListSection} list=${state.listing.timelines} resource=${resource}/>
     </div>`;
 }
 
