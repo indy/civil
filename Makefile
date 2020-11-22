@@ -5,6 +5,10 @@ rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(su
 # check if minify is installed
 MINIFY := $(shell command -v minify 2> /dev/null)
 
+# note: usage of mkdir -p $(@D)
+# $(@D), means "the directory the current target resides in"
+# using it to make sure that a dist directory is created
+
 ########################################
 #
 #   BUILDING
@@ -55,10 +59,12 @@ www/wasm_bg.wasm: $(WASM_FILES) $(CORE_FILES)
 	wasm-bindgen wasm/target/wasm32-unknown-unknown/debug/wasm.wasm --out-dir www --no-typescript --no-modules
 
 dist/www/wasm_bg.wasm: $(WASM_FILES) $(CORE_FILES)
+	mkdir -p $(@D)
 	cargo build --manifest-path wasm/Cargo.toml --release --target wasm32-unknown-unknown
 	wasm-bindgen wasm/target/wasm32-unknown-unknown/release/wasm.wasm --out-dir dist/www --no-typescript --no-modules
 
 dist/www/index.html: $(CLIENT_FILES)
+	mkdir -p $(@D)
 	cp -r www dist/.
 ifdef MINIFY
 	minify -o dist/www/ --match=\.css www
@@ -66,10 +72,12 @@ ifdef MINIFY
 endif
 
 dist/civil_server: $(SERVER_FILES)
+	mkdir -p $(@D)
 	cd server && cargo build --release
 	cp server/target/release/civil_server dist/.
 	cp server/.env.example dist/.
 	cp -r server/errors dist/.
 
 dist/systemd/isg-civil.sh: $(SYSTEMD_FILES)
+	mkdir -p $(@D)
 	cp -r misc/systemd dist/.
