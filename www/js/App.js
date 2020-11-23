@@ -125,14 +125,6 @@ function AppUI(props) {
 
   }
 
-  function logoutHandler() {
-    dispatch({
-      type: 'setUser',
-      user: undefined
-    });
-    route('/login', true);
-  }
-
   function handleRoute(e) {
     if (e.url !== '/login') {
       // all other pages require the user to be logged in
@@ -147,7 +139,7 @@ function AppUI(props) {
       <${TopBarMenu}/>
       <${Router} onChange=${ handleRoute }>
         <${Login} path="/login" loginCallback=${ loginHandler }/>
-        <${Logout} path="/logout" logoutCallback=${ logoutHandler }/>
+        <${Logout} path="/logout"/>
         <${Search} path="/"/>
         <${Ideas} path="/ideas"/>
         <${Idea} path="/ideas/:id"/>
