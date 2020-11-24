@@ -31,13 +31,17 @@ MINIFY := $(shell command -v minify 2> /dev/null)
 #
 ########################################
 
-.PHONY: download-images
+.PHONY: download-images clean-dist
+
 download-images:
 	rsync -avzhe ssh indy@indy.io:/home/indy/work/civil/user-content .
 
+clean-dist:
+	rm -rf dist
+
 wasm: www/wasm_bg.wasm
 
-release: client-dist server-dist systemd-dist wasm-dist
+release: clean-dist client-dist server-dist systemd-dist wasm-dist
 
 upload: release
 	rsync -avzhe ssh dist/. indy@indy.io:/home/indy/work/civil
