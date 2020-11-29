@@ -9,7 +9,9 @@ edition = "2018"
 actix-files = "0.3.0"
 actix-multipart = "0.3.0"
 actix-rt = "1.1.1"
-actix-session = "0.4.0"
+# replace actix-session with official version once https://github.com/actix/actix-extras/issues/87 is merged in
+# this is required for logout to actually work and remove the session cookie
+actix-session = { git = "https://github.com/qkniep/actix-extras" }
 actix-threadpool = "0.3.3"
 actix-web = "3.0.1"
 chrono = { version = "0.4", features = ["serde"] }

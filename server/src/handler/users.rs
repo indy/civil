@@ -62,7 +62,7 @@ pub async fn login(
 }
 
 pub async fn logout(_db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
-    session.clear();
+    session.purge();
     // todo: what to return when logging out???
     Ok(HttpResponse::Ok().json(true))
 }
