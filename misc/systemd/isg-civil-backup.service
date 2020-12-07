@@ -3,5 +3,5 @@ Description=Backup the civil database used by civil.indy.io
 
 [Service]
 User=indy
-Type=simple
+Type=oneshot
 ExecStart=/bin/bash /home/indy/work/civil/systemd/isg-civil-backup.sh

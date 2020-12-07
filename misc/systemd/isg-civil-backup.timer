@@ -2,8 +2,8 @@
 Description=Run Civil Database backup weekly
 
 [Timer]
+Unit=isg-civil-backup.service
 OnCalendar=weekly
-Persistent=true
 
 [Install]
 WantedBy=timers.target
