@@ -81,12 +81,14 @@ ifdef MINIFY
 	minify -o dist/www/ --match=\.css www
 	minify -r -o dist/www/js --match=\.js www/js
 endif
+	sed -i 's/^var devMode.*/\/\/ START OF CODE MODIFIED BY MAKEFILE\nvar devMode = false;/g' dist/www/service-worker.js
+	sed -i "s/^var CACHE_NAME.*/var CACHE_NAME = 'civil-$$(date '+%Y%m%d-%H%M')';\n\/\/ END OF CODE MODIFIED BY MAKEFILE/g" dist/www/service-worker.js
 
 dist/civil_server: $(SERVER_FILES)
 	mkdir -p $(@D)
 	cd server && cargo build --release
 	cp server/target/release/civil_server dist/.
-	cp server/.env.example dist/.
+	cp .env.example dist/.
 	cp -r server/errors dist/.
 
 dist/systemd/isg-civil.sh: $(SYSTEMD_FILES)

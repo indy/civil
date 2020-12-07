@@ -19,10 +19,9 @@
 
 "use strict";
 
-// set this to false when deploying, true when developing js
+// NOTE: Makefile will alter these variables when building a release build
 var devMode = true;
-
-var CACHE_NAME = "civil-20201110";
+var CACHE_NAME = "civil-20201207";
 
 var precacheConfig = [
   "/apple-touch-icon.png",
