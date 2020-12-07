@@ -195,11 +195,10 @@ dependencies = [
 [[package]]
 name = "actix-session"
 version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+source = "git+https://github.com/qkniep/actix-extras#4bba7b657974b5417a9d91fee8270cf3d108af6b"
 dependencies = [
  "actix-service 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "actix-web 3.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "bytes 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "derive_more 0.99.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures-util 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.104 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -627,7 +626,7 @@ dependencies = [
  "actix-files 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "actix-multipart 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "actix-rt 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "actix-session 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "actix-session 0.4.0 (git+https://github.com/qkniep/actix-extras)",
  "actix-threadpool 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "actix-web 3.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2391,7 +2390,7 @@ dependencies = [
 "checksum actix-rt 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "143fcc2912e0d1de2bcf4e2f720d2a60c28652ab4179685a1ee159e0fb3db227"
 "checksum actix-server 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "582a7173c281a4f46b5aa168a11e7f37183dcb71177a39312cc2264da7a632c9"
 "checksum actix-service 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)" = "0052435d581b5be835d11f4eb3bce417c8af18d87ddf8ace99f8e67e595882bb"
-"checksum actix-session 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "cfe0c795741b7a1a6f8eb46680c5a0f6f53484d054226a7af9a86195dfc2c14d"
+"checksum actix-session 0.4.0 (git+https://github.com/qkniep/actix-extras)" = "<none>"
 "checksum actix-testing 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "48494745b72d0ea8ff0cf874aaf9b622a3ee03d7081ee0c04edea4f26d32c911"
 "checksum actix-threadpool 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "d209f04d002854b9afd3743032a27b066158817965bf5d036824d19ac2cc0e30"
 "checksum actix-tls 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "24789b7d7361cf5503a504ebe1c10806896f61e96eca9a7350e23001aca715fb"

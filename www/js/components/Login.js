@@ -1,4 +1,4 @@
-import { html, useState } from '/lib/preact/mod.js';
+import { html, route, useState } from '/lib/preact/mod.js';
 import { useStateValue } from '/js/StateProvider.js';
 
 import Net from '/js/Net.js';

@@ -13,6 +13,9 @@ MINIFY := $(shell command -v minify 2> /dev/null)
 #
 #   BUILDING
 #
+# 	Build debug server and run
+# 	$ make run
+#
 # 	Build debug build of wasm file
 # 	$ make wasm
 #
@@ -31,7 +34,7 @@ MINIFY := $(shell command -v minify 2> /dev/null)
 #
 ########################################
 
-.PHONY: download-images clean-dist
+.PHONY: run download-images clean-dist
 
 download-images:
 	rsync -avzhe ssh indy@indy.io:/home/indy/work/civil/user-content .
@@ -52,6 +55,10 @@ SYSTEMD_FILES = $(wildcard misc/systemd/*)
 
 WASM_FILES = $(wildcard wasm/src/*) wasm/Cargo.toml
 CORE_FILES = $(wildcard core/src/*) core/Cargo.toml
+
+# run the server
+run:
+	cargo run --manifest-path server/Cargo.toml
 
 wasm-dist: dist/www/wasm_bg.wasm
 client-dist: dist/www/index.html
