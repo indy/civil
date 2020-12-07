@@ -19,7 +19,7 @@ use crate::db::decks as decks_db;
 use crate::db::ideas as db;
 use crate::db::notes as notes_db;
 use crate::error::Result;
-use crate::interop::decks::LinkBack;
+use crate::interop::decks::{DetailedLinkBack, LinkBack};
 use crate::interop::ideas as interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
@@ -145,6 +145,6 @@ async fn augment(
     Ok(())
 }
 
-fn contains(linkback: &LinkBack, linkbacks: &[LinkBack]) -> bool {
+fn contains(linkback: &LinkBack, linkbacks: &[DetailedLinkBack]) -> bool {
     linkbacks.iter().any(|l| l.id == linkback.id)
 }

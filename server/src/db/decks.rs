@@ -87,6 +87,28 @@ impl From<LinkBackToDeck> for interop::LinkBack {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
+pub struct DetailedLinkBackToDeck {
+    pub id: Key,
+    pub name: String,
+    pub kind: DeckKind,
+    pub note_id: Key,
+    pub content: String,
+}
+
+impl From<DetailedLinkBackToDeck> for interop::DetailedLinkBack {
+    fn from(d: DetailedLinkBackToDeck) -> interop::DetailedLinkBack {
+        interop::DetailedLinkBack {
+            id: d.id,
+            name: d.name,
+            resource: interop::DeckResource::from(d.kind),
+            note_id: d.note_id,
+            content: d.content,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
+#[pg_mapper(table = "decks")]
 pub struct Vertex {
     pub from_id: Key,
     pub to_id: Key,
@@ -290,11 +312,11 @@ pub(crate) async fn delete(db_pool: &Pool, user_id: Key, id: Key) -> Result<()> 
 pub(crate) async fn from_decks_via_notes_to_deck_id(
     db_pool: &Pool,
     deck_id: Key,
-) -> Result<Vec<interop::LinkBack>> {
-    linkbacks::<LinkBackToDeck>(
+) -> Result<Vec<interop::DetailedLinkBack>> {
+    pg::many_from::<DetailedLinkBackToDeck, interop::DetailedLinkBack>(
         db_pool,
         include_str!("sql/from_decks_via_notes_to_deck_id.sql"),
-        deck_id,
+        &[&deck_id],
     )
     .await
 }
@@ -325,12 +347,4 @@ where
     T: tokio_pg_mapper::FromTokioPostgresRow,
 {
     pg::many_from::<T, interop::MarginConnection>(db_pool, stmt, &[&id]).await
-}
-
-async fn linkbacks<T>(db_pool: &Pool, stmt: &str, id: Key) -> Result<Vec<interop::LinkBack>>
-where
-    interop::LinkBack: std::convert::From<T>,
-    T: tokio_pg_mapper::FromTokioPostgresRow,
-{
-    pg::many_from::<T, interop::LinkBack>(db_pool, stmt, &[&id]).await
 }

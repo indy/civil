@@ -59,6 +59,18 @@ pub struct LinkBack {
     pub resource: DeckResource,
 }
 
+// on a decks page, these link back to other decks
+// and contain additional information about the link
+//
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct DetailedLinkBack {
+    pub id: Key,
+    pub name: String,
+    pub resource: DeckResource,
+    pub note_id: Key,
+    pub content: String,
+}
+
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Vertex {
     pub from_id: Key,

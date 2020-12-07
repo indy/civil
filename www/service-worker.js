@@ -41,6 +41,7 @@ var precacheConfig = [
   "/js/StateProvider.js",
   "/js/svgIcons.js",
   "/js/WasmInterfaceProvider.js",
+  "/js/components/BuildMarkup.js",
   "/js/components/CivilSelect.js",
   "/js/components/DeckManager.js",
   "/js/components/Graph.js",

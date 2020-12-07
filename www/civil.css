@@ -234,7 +234,7 @@ section > form { width: var(--block-width); }
 
 /* the left-hand spanne that contains noterefs, 'add note icons' etc*/
 .spanne {
-  padding-top: 0.5em;
+  padding-top: 0.2em;
   float: left;
   margin-left: -40%;
   width: 40%;
@@ -492,4 +492,9 @@ input:required {
   #login-menuitem {
     margin-bottom: 1em;
   }
+}
+
+.listing-link p {
+  color: var(--fg1);
+  font-style: oblique;
 }

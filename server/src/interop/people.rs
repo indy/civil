@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::{LinkBack, MarginConnection};
+use crate::interop::decks::{DetailedLinkBack, MarginConnection};
 use crate::interop::notes::Note;
 use crate::interop::points::{DeckPoint, Point};
 use crate::interop::Key;
@@ -38,7 +38,7 @@ pub struct Person {
     pub notes: Option<Vec<Note>>,
 
     pub decks_in_notes: Option<Vec<MarginConnection>>,
-    pub linkbacks_to_decks: Option<Vec<LinkBack>>,
+    pub linkbacks_to_decks: Option<Vec<DetailedLinkBack>>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
