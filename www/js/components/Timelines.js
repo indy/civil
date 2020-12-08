@@ -178,7 +178,7 @@ function ListPoints({ points, deckManager, holderId, holderName }) {
 
   return html`
     <${RollableSection} heading='Timeline'>
-      <ul class="deckpoint-list">
+      <ul class="unstyled-list hug-left">
         ${ dps }
       </ul>
       <div class="spanne">

@@ -369,7 +369,7 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, dispatc
       </div>
 
       ${ showDeathForm && deathForm() }
-      <ul class="deckpoint-list">
+      <ul class="unstyled-list hug-left">
         ${ dps }
       </ul>
       <div class="spanne">

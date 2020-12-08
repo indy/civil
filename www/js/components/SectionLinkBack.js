@@ -1,8 +1,10 @@
 import { html, useState } from '/lib/preact/mod.js';
-import { svgChevronDoubleDown, svgChevronDoubleRight} from '/js/svgIcons.js';
+import { svgCaretDown, svgCaretRight} from '/js/svgIcons.js';
 
-import ListingLink from '/js/components/ListingLink.js';
+import { ExpandableListingLink } from '/js/components/ListingLink.js';
 import { capitalise } from '/js/JsUtils.js';
+
+import RollableSection from '/js/components/RollableSection.js';
 
 export default function SectionLinkBack(props) {
   const linkbacks = props.linkbacks || [];
@@ -16,9 +18,9 @@ export default function SectionLinkBack(props) {
   });
 
   return html`
-    <div>
+    <${RollableSection} heading='Linkbacks'>
       ${ sections }
-    </div>`;
+    </${RollableSection}>`;
 }
 
 function groupLinkbacksById(linkbacks) {
@@ -47,7 +49,7 @@ function groupLinkbacksById(linkbacks) {
 }
 
 function groupByResource(linkbacks) {
-  // key == resource, value == array of ListingLink components
+  // key == resource, value == array of ExpandableListingLink components
   let res = {};
   linkbacks.forEach(lb => {
     res[lb.resource] = res[lb.resource] || [];
@@ -59,7 +61,7 @@ function groupByResource(linkbacks) {
 
 function SectionLinks(linkbacks, heading) {
   const [showExpanded, setShowExpanded] = useState(true);
-  let icon = showExpanded ? svgChevronDoubleDown() : svgChevronDoubleRight();
+  let icon = showExpanded ? svgCaretDown() : svgCaretRight();
 
   function onClickToggle(e) {
     e.preventDefault();
@@ -71,11 +73,12 @@ function SectionLinks(linkbacks, heading) {
   }
 
   let list = linkbacks.map(lb => {
-    return html`<${ListingLink}
+    return html`<${ExpandableListingLink}
                   id=${ lb.id }
                   name=${ lb.name }
                   resource=${ lb.resource }
-                  passages=${ showExpanded && lb.passages }/>`;
+                  parentExpanded=${showExpanded}
+                  passages=${ lb.passages }/>`;
   });
 
   let sectionHeading = capitalise(heading || linkbacks[0].resource);
@@ -83,17 +86,9 @@ function SectionLinks(linkbacks, heading) {
 
   return html`
     <section key=${ sectionId }>
-<div>
-      <div class="spanne">
-        <div class="spanne-entry clickable" onClick=${ onClickToggle }>
-          ${ icon }
-        </div>
-      </div>
-      <h2 onClick=${ onClickToggle }>${ sectionHeading }</h2>
-</div>
-      <ul>
+      <h3 onClick=${ onClickToggle }>${ icon } ${ sectionHeading }</h3>
+      <ul class="unstyled-list">
         ${ list }
       </ul>
-
     </section>`;
 }

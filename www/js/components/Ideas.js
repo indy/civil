@@ -6,13 +6,13 @@ import Net from '/js/Net.js';
 import { ensureListingLoaded } from '/js/CivilUtils.js';
 import { capitalise, formattedDate, plural } from '/js/JsUtils.js';
 
-import { CompactedListSection } from '/js/components/ListSections.js';
 import DeckManager from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
-import ListingLink from '/js/components/ListingLink.js';
 import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionLinkBack from '/js/components/SectionLinkBack.js';
+import { CompactedListSection } from '/js/components/ListSections.js';
+import { ListingLink } from '/js/components/ListingLink.js';
 
 function Ideas() {
   const [state, dispatch] = useStateValue();

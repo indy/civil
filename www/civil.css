@@ -234,7 +234,7 @@ section > form { width: var(--block-width); }
 
 /* the left-hand spanne that contains noterefs, 'add note icons' etc*/
 .spanne {
-  padding-top: 0.2em;
+  padding-top: 0.5em;
   float: left;
   margin-left: -40%;
   width: 40%;
@@ -422,10 +422,13 @@ input:required {
   box-shadow: none;
 }
 
-.deckpoint-list {
-  list-style: none;
+.hug-left {
   padding-left: 0;
   margin-left: 0;
+}
+
+.unstyled-list {
+  list-style: none;
 }
 
 .deckpoint-block label {}
