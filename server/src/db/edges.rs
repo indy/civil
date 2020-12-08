@@ -84,12 +84,14 @@ pub(crate) async fn create_from_note_to_decks(
     let note_id = edge_connectivity.note_id;
 
     // get the list of existing decks associated with this note
-    let stmt_all_decks = include_str!("sql/decks_all_for_note.sql");
+    let stmt_all_decks = "SELECT nd.note_id, d.id, d.name, d.kind as deck_kind, nd.kind as ref_kind, nd.annotation
+                          FROM notes_decks nd, decks d
+                          WHERE nd.note_id = $1 AND d.id = nd.deck_id";
     let associated_decks: Vec<MarginConnectionToDeck> =
         pg::many::<MarginConnectionToDeck>(&tx, &stmt_all_decks, &[&note_id]).await?;
 
     // remove decks that are in associated_decks but not in edge_connectivity.deck_ids
-    let stmt_delete_deck = include_str!("sql/edges_delete_notes_decks.sql");
+    let stmt_delete_deck = "DELETE FROM notes_decks WHERE note_id = $1 AND deck_id = $2";
     for associated_deck in &associated_decks {
         if !is_key_in_existing_deck_references(
             associated_deck.id,
@@ -102,7 +104,9 @@ pub(crate) async fn create_from_note_to_decks(
     }
 
     // check existing deck references to see if the 'kind' or annotation has changed
-    let stmt_update_ref_kind = include_str!("sql/edges_update_notes_decks.sql");
+    let stmt_update_ref_kind = "UPDATE notes_decks
+                                SET  kind = $3, annotation = $4
+                                WHERE note_id = $2 and deck_id = $1";
     for deck_reference in &edge_connectivity.existing_deck_references {
         for existing in &associated_decks {
             if existing.id == deck_reference.id {
@@ -125,7 +129,8 @@ pub(crate) async fn create_from_note_to_decks(
     }
 
     // create any new edges from the note to already existing decks
-    let stmt_attach_deck = include_str!("sql/edges_create_from_note_to_deck.sql");
+    let stmt_attach_deck = "INSERT INTO notes_decks(note_id, deck_id, kind, annotation)
+                            VALUES ($1, $2, $3, $4)";
     for deck_reference in &edge_connectivity.existing_deck_references {
         if !is_deck_associated_with_note(deck_reference.id, &associated_decks) {
             info!("creating {}, {}", &note_id, &deck_reference.id);

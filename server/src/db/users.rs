@@ -48,7 +48,9 @@ pub(crate) async fn login(
 ) -> Result<(Key, String, interop::User)> {
     let db_user = pg::one_non_transactional::<User>(
         db_pool,
-        include_str!("sql/users_login.sql"),
+        "SELECT $table_fields
+         FROM users
+         WHERE email = $1",
         &[&login_credentials.email],
     )
     .await?;
@@ -65,7 +67,9 @@ pub(crate) async fn create(
 ) -> Result<(Key, interop::User)> {
     let db_user = pg::one_non_transactional::<User>(
         db_pool,
-        include_str!("sql/users_create.sql"),
+        "INSERT INTO users ( username, email, password )
+         VALUES ( $1, $2, $3 )
+         RETURNING $table_fields",
         &[&registration.username, &registration.email, &hash],
     )
     .await?;
@@ -74,6 +78,12 @@ pub(crate) async fn create(
 }
 
 pub(crate) async fn get(db_pool: &Pool, user_id: Key) -> Result<interop::User> {
-    pg::one_from::<User, interop::User>(db_pool, include_str!("sql/users_get.sql"), &[&user_id])
-        .await
+    pg::one_from::<User, interop::User>(
+        db_pool,
+        "SELECT $table_fields
+         FROM users
+         WHERE id = $1",
+        &[&user_id]
+    )
+    .await
 }

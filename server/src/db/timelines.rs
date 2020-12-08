@@ -79,7 +79,10 @@ pub(crate) async fn create(db_pool: &Pool, user_id: Key, title: &str) -> Result<
 pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Timeline>> {
     pg::many_from::<TimelineDerived, interop::Timeline>(
         db_pool,
-        include_str!("sql/timelines_all.sql"),
+        "select id, name
+         from decks
+         where user_id = $1 and kind = 'timeline'::deck_kind
+         order by created_at desc",
         &[&user_id],
     )
     .await

@@ -48,6 +48,13 @@ impl From<AutocompleteDeck> for interop::Autocomplete {
 }
 
 pub(crate) async fn get_decks(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Autocomplete>> {
-    let stmt = include_str!("sql/autocomplete_decks.sql");
-    pg::many_from::<AutocompleteDeck, interop::Autocomplete>(db_pool, &stmt, &[&user_id]).await
+    pg::many_from::<AutocompleteDeck, interop::Autocomplete>(
+        db_pool,
+        "SELECT id, name, kind, graph_terminator
+         FROM decks
+         WHERE user_id = $1
+         ORDER BY name",
+        &[&user_id]
+    )
+    .await
 }

@@ -1,10 +1,10 @@
 import { html, useState } from '/lib/preact/mod.js';
+
+import { capitalise } from '/js/JsUtils.js';
 import { svgCaretDown, svgCaretRight} from '/js/svgIcons.js';
 
-import { ExpandableListingLink } from '/js/components/ListingLink.js';
-import { capitalise } from '/js/JsUtils.js';
-
 import RollableSection from '/js/components/RollableSection.js';
+import { ExpandableListingLink } from '/js/components/ListingLink.js';
 
 export default function SectionLinkBack(props) {
   const linkbacks = props.linkbacks || [];

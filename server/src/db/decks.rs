@@ -145,19 +145,50 @@ pub(crate) async fn search(
     let (mut results, results_via_notes, results_via_points) = tokio::try_join!(
         query_search(
             db_pool,
-            include_str!("sql/decks_search.sql"),
+            "select d.id, d.kind, d.name, ts_rank_cd(textsearch, query) AS rank_sum, 1 as rank_count
+             from decks d
+                  left join publication_extras pe on pe.deck_id = d.id,
+                  plainto_tsquery($2) query,
+                  to_tsvector(coalesce(d.name, '') || ' ' || coalesce(pe.source, '') || ' ' || coalesce(pe.author, '') || ' ' || coalesce(pe.short_description, '')) textsearch
+             where textsearch @@ query
+                   and d.user_id = $1
+             group by d.id, textsearch, query
+             order by rank_sum desc
+             limit 10",
             user_id,
             query
         ),
         query_search(
             db_pool,
-            include_str!("sql/decks_search_notes.sql"),
+            "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+             from (select d.id, d.kind, d.name, ts_rank_cd(textsearch, query) AS rank
+                   from decks d left join notes n on n.deck_id = d.id,
+                        plainto_tsquery($2) query,
+                        to_tsvector(coalesce(n.content, '')) textsearch
+                   where textsearch @@ query
+                         and d.user_id = $1
+                         group by d.id, textsearch, query
+                         order by rank desc) res
+             group by res.id, res.kind, res.name
+             order by sum(res.rank) desc
+             limit 10",
             user_id,
             query
         ),
         query_search(
             db_pool,
-            include_str!("sql/decks_search_points.sql"),
+            "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+             from (select d.id, d.kind, d.name, ts_rank_cd(textsearch, query) AS rank
+                   from decks d left join points p on p.deck_id = d.id,
+                        plainto_tsquery($2) query,
+                        to_tsvector(coalesce(p.title, '') || ' ' || coalesce(p.location_textual, '') || ' ' || coalesce(p.date_textual, '')) textsearch
+                   where textsearch @@ query
+                         and d.user_id = $1
+                         group by d.id, textsearch, query
+                         order by rank desc) res
+             group by res.id, res.kind, res.name
+             order by sum(res.rank) desc
+             limit 10",
             user_id,
             query
         ),
@@ -214,7 +245,9 @@ pub(crate) async fn deckbase_get(
 ) -> Result<DeckBase> {
     pg::one::<DeckBase>(
         &tx,
-        include_str!("sql/deckbase_get.sql"),
+        "select id, name, created_at, graph_terminator
+         from decks
+         where user_id = $1 and id = $2 and kind = $3",
         &[&user_id, &deck_id, &kind],
     )
     .await
@@ -229,7 +262,9 @@ pub(crate) async fn deckbase_create(
     let graph_terminator = false;
     pg::one::<DeckBase>(
         &tx,
-        include_str!("sql/deckbase_create.sql"),
+        "INSERT INTO decks(user_id, kind, name, graph_terminator)
+         VALUES ($1, $2, $3, $4)
+         RETURNING $table_fields",
         &[&user_id, &kind, &name, &graph_terminator],
     )
     .await
@@ -245,7 +280,10 @@ pub(crate) async fn deckbase_edit(
 ) -> Result<DeckBase> {
     pg::one::<DeckBase>(
         &tx,
-        include_str!("sql/deckbase_edit.sql"),
+        "UPDATE decks
+         SET name = $4, graph_terminator = $5
+         WHERE user_id = $1 and id = $2 and kind = $3
+         RETURNING $table_fields",
         &[&user_id, &deck_id, &kind, &name, &graph_terminator],
     )
     .await
@@ -259,7 +297,11 @@ pub(crate) async fn recent(
     let deck_kind = resource_string_to_deck_kind_string(resource)?;
     let limit: i32 = 10;
 
-    let stmt = include_str!("sql/decks_recent.sql");
+    let stmt = "SELECT id, name, kind
+                FROM decks
+                WHERE user_id = $1 AND kind = '$deck_kind'::deck_kind
+                ORDER BY created_at DESC
+                LIMIT $limit";
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
     let stmt = stmt.replace("$limit", &limit.to_string());
 
@@ -267,8 +309,18 @@ pub(crate) async fn recent(
 }
 
 pub(crate) async fn graph(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Vertex>> {
-    let stmt = include_str!("sql/graph.sql");
-    pg::many_from::<Vertex, interop::Vertex>(db_pool, &stmt, &[&user_id]).await
+    pg::many_from::<Vertex, interop::Vertex>(
+        db_pool,
+        "select d.id as from_id, nd.deck_id as to_id, nd.kind, count(*)::integer as strength
+         from notes_decks nd, decks d, notes n
+         where nd.note_id = n.id
+               and n.deck_id = d.id
+               and d.user_id = $1
+         group by from_id, to_id, nd.kind
+         order by from_id",
+        &[&user_id]
+    )
+    .await
 }
 
 // delete anything that's represented as a deck (publication, person, event)
@@ -281,24 +333,23 @@ pub(crate) async fn delete(db_pool: &Pool, user_id: Key, id: Key) -> Result<()> 
 
     pg::zero(
         &tx,
-        &include_str!("sql/publication_extras_delete.sql"),
+        "DELETE FROM publication_extras WHERE deck_id = $1",
         &[&id],
     )
     .await?;
 
-    pg::zero(&tx, &include_str!("sql/idea_extras_delete.sql"), &[&id]).await?;
+    pg::zero(&tx, "DELETE FROM idea_extras WHERE deck_id = $1", &[&id]).await?;
 
     pg::zero(
         &tx,
-        &include_str!("sql/edges_delete_notes_decks_with_deck_id.sql"),
+        "DELETE FROM notes_decks WHERE deck_id = $1",
         &[&id],
     )
     .await?;
 
     points::delete_all_points_connected_with_deck(&tx, id).await?;
 
-    let stmt = include_str!("sql/decks_delete.sql");
-    pg::zero(&tx, &stmt, &[&user_id, &id]).await?;
+    pg::zero(&tx, "DELETE FROM decks WHERE id = $2 AND user_id = $1", &[&user_id, &id]).await?;
 
     tx.commit().await?;
 
@@ -315,7 +366,17 @@ pub(crate) async fn from_decks_via_notes_to_deck_id(
 ) -> Result<Vec<interop::DetailedLinkBack>> {
     pg::many_from::<DetailedLinkBackToDeck, interop::DetailedLinkBack>(
         db_pool,
-        include_str!("sql/from_decks_via_notes_to_deck_id.sql"),
+        "SELECT d.id AS id,
+                d.name AS name,
+                d.kind,
+                n.content,
+                n.id as note_id
+         FROM decks d,
+              notes n,
+              notes_decks nd
+         WHERE n.deck_id = d.id
+               AND nd.note_id = n.id
+               AND nd.deck_id = $1",
         &[&deck_id],
     )
     .await
@@ -329,22 +390,21 @@ pub(crate) async fn from_deck_id_via_notes_to_decks(
     db_pool: &Pool,
     deck_id: Key,
 ) -> Result<Vec<interop::MarginConnection>> {
-    margin_connections::<DeckReference>(
+    pg::many_from::<DeckReference, interop::MarginConnection>(
         db_pool,
-        include_str!("sql/from_deck_id_via_notes_to_decks.sql"),
-        deck_id,
+        "SELECT n.id as note_id,
+                d.id,
+                d.name,
+                d.kind as deck_kind,
+                nd.kind as ref_kind,
+                nd.annotation
+         FROM   notes n,
+                notes_decks nd,
+                decks d
+         WHERE  n.deck_id = $1
+                AND nd.note_id = n.id
+                AND nd.deck_id = d.id",
+        &[&deck_id],
     )
     .await
-}
-
-async fn margin_connections<T>(
-    db_pool: &Pool,
-    stmt: &str,
-    id: Key,
-) -> Result<Vec<interop::MarginConnection>>
-where
-    interop::MarginConnection: std::convert::From<T>,
-    T: tokio_pg_mapper::FromTokioPostgresRow,
-{
-    pg::many_from::<T, interop::MarginConnection>(db_pool, stmt, &[&id]).await
 }

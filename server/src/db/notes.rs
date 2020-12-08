@@ -72,7 +72,10 @@ pub(crate) async fn create_notes(
 pub(crate) async fn get_note(db_pool: &Pool, user_id: Key, note_id: Key) -> Result<interop::Note> {
     let db_note = pg::one_non_transactional::<Note>(
         db_pool,
-        include_str!("sql/notes_get.sql"),
+        "SELECT n.id,
+                n.content
+         FROM notes n
+         WHERE n.id = $1 AND n.user_id = $2",
         &[&note_id, &user_id],
     )
     .await?;
@@ -89,7 +92,10 @@ pub(crate) async fn edit_note(
 ) -> Result<interop::Note> {
     let db_note = pg::one_non_transactional::<Note>(
         db_pool,
-        include_str!("sql/notes_edit.sql"),
+        "UPDATE notes
+         SET content = $3
+         WHERE id = $2 and user_id = $1
+         RETURNING $table_fields",
         &[&user_id, &note_id, &note.content],
     )
     .await?;
@@ -112,13 +118,16 @@ pub(crate) async fn delete_note_pool(db_pool: &Pool, user_id: Key, note_id: Key)
 pub(crate) async fn delete_note(tx: &Transaction<'_>, user_id: Key, note_id: Key) -> Result<()> {
     pg::zero(
         tx,
-        &include_str!("sql/edges_delete_notes_decks_with_note_id.sql"),
+        "DELETE FROM notes_decks
+         WHERE   note_id = $1",
         &[&note_id],
     )
     .await?;
 
-    let stmt = include_str!("sql/notes_delete.sql");
-    pg::zero(&tx, &stmt, &[&note_id, &user_id]).await?;
+    pg::zero(&tx,
+             "DELETE FROM notes
+              WHERE id = $1 AND user_id = $2",
+             &[&note_id, &user_id]).await?;
 
     Ok(())
 }
@@ -132,7 +141,9 @@ pub(crate) async fn create_common(
 ) -> Result<interop::Note> {
     let db_note = pg::one::<Note>(
         tx,
-        include_str!("sql/notes_create.sql"),
+        "INSERT INTO notes(user_id, deck_id, point_id, content)
+         VALUES ($1, $2, $3, $4)
+         RETURNING $table_fields",
         &[&user_id, &deck_id, &point_id, &content],
     )
     .await?;
@@ -144,7 +155,12 @@ pub(crate) async fn create_common(
 pub(crate) async fn all_from_deck(db_pool: &Pool, deck_id: Key) -> Result<Vec<interop::Note>> {
     pg::many_from::<Note, interop::Note>(
         db_pool,
-        include_str!("sql/notes_all_from_deck.sql"),
+        "SELECT n.id,
+                n.content,
+                n.point_id
+         FROM   notes n
+         WHERE  n.deck_id = $1
+         ORDER BY n.id",
         &[&deck_id],
     )
     .await
@@ -157,7 +173,14 @@ pub(crate) async fn delete_all_notes_connected_with_deck(
 ) -> Result<()> {
     let note_ids = pg::many::<NoteId>(
         tx,
-        include_str!("sql/notes_all_ids_for_deck.sql"),
+        "SELECT n.id
+         FROM   notes n
+         WHERE  n.deck_id = $1
+         UNION
+         SELECT n.id
+         FROM   notes n,
+                notes_decks nd
+         WHERE  nd.deck_id = $1 AND n.id = nd.note_id",
         &[&deck_id],
     )
     .await?;

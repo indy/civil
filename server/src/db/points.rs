@@ -99,7 +99,23 @@ impl From<DeckPoint> for interop::DeckPoint {
 pub(crate) async fn all(db_pool: &Pool, user_id: Key, deck_id: Key) -> Result<Vec<interop::Point>> {
     pg::many_from::<Point, interop::Point>(
         db_pool,
-        include_str!("sql/points_all.sql"),
+        "select p.id,
+                p.title,
+                p.kind,
+                p.location_textual,
+                p.longitude,
+                p.latitude,
+                p.location_fuzz,
+                p.date_textual,
+                p.exact_date,
+                p.lower_date,
+                p.upper_date,
+                p.date_fuzz
+         from   decks d,
+                points p
+         where  d.user_id = $1
+                and d.id = $2
+                and p.deck_id = d.id",
         &[&user_id, &deck_id],
     )
     .await
@@ -112,7 +128,44 @@ pub(crate) async fn all_points_during_life(
 ) -> Result<Vec<interop::DeckPoint>> {
     pg::many_from::<DeckPoint, interop::DeckPoint>(
         db_pool,
-        include_str!("sql/points_between_persons_life.sql"),
+        "( -- all events in the person's life (may also included relevent events that happened posthumously)
+         select d.id as deck_id,
+                d.name as deck_name,
+                d.kind as deck_kind,
+                p.id,
+                p.kind,
+                p.title,
+                p.date_textual,
+                coalesce(p.exact_date, p.lower_date) as date
+         from   points p, decks d
+         where  d.id = $2
+                and d.user_id = $1
+                and p.deck_id = d.id
+         )
+         union
+         ( -- other events that occurred during the person's life
+         select d.id as deck_id,
+                d.name as deck_name,
+                d.kind as deck_kind,
+                p.id,
+                p.kind,
+                p.title,
+                p.date_textual,
+                coalesce(p.exact_date, p.lower_date) as date
+         from   points p, decks d
+         where  coalesce(p.exact_date, p.upper_date) >= (select coalesce(point_born.exact_date, point_born.lower_date) as born
+                                                         from   points point_born
+                                                         where  point_born.deck_id = $2
+                                                                and point_born.kind = 'point_begin'::point_kind)
+                and coalesce(p.exact_date, p.lower_date) <= coalesce((select coalesce(point_died.exact_date, point_died.upper_date) as died
+                                                                      from   points point_died
+                                                                      where  point_died.deck_id = $2
+                                                                             and point_died.kind = 'point_end'::point_kind), CURRENT_DATE)
+                and p.deck_id = d.id
+                and d.id <> $2
+                and d.user_id = $1
+         )
+         order by date",
         &[&user_id, &deck_id],
     )
     .await
@@ -125,7 +178,10 @@ pub(crate) async fn create_tx(
 ) -> Result<interop::Point> {
     let db_point = pg::one::<Point>(
         tx,
-        include_str!("sql/points_create.sql"),
+        "INSERT INTO points(deck_id, title, kind, location_textual, longitude, latitude, location_fuzz,
+                            date_textual, exact_date, lower_date, upper_date, date_fuzz)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         RETURNING $table_fields",
         &[
             &deck_id,
             &point.title,
@@ -171,7 +227,10 @@ pub(crate) async fn edit(
 ) -> Result<interop::Point> {
     let db_point = pg::one::<Point>(
         tx,
-        include_str!("sql/points_edit.sql"),
+        "UPDATE points
+         SET title = $2, kind = $3, location_textual = $4, longitude = $5, latitude = $6, location_fuzz = $7, date_textual = $8, exact_date = $9, lower_date = $10, upper_date = $11, date_fuzz = $12
+         WHERE id = $1
+         RETURNING $table_fields",
         &[
             &point_id,
             &point.title,
@@ -200,7 +259,8 @@ pub(crate) async fn delete_all_points_connected_with_deck(
 ) -> Result<()> {
     pg::zero(
         tx,
-        &include_str!("sql/points_delete_all_connected_with_deck.sql"),
+        "DELETE FROM points
+         WHERE deck_id = $1",
         &[&deck_id],
     )
     .await?;

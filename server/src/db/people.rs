@@ -94,7 +94,24 @@ pub(crate) async fn create(db_pool: &Pool, user_id: Key, title: &str) -> Result<
 pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Person>> {
     pg::many_from::<PersonDerived, interop::Person>(
         db_pool,
-        include_str!("sql/people_all.sql"),
+        "select d.id,
+                d.name,
+                coalesce(p.exact_date, p.lower_date) as birth_date
+         from decks d, points p
+         where d.user_id = $1
+               and d.kind = 'person'
+               and p.deck_id = d.id
+               and p.kind = 'point_begin'::point_kind
+         union
+         select d.id,
+                d.name,
+                null as birth_date
+         from decks d
+              left join points p on p.deck_id = d.id
+         where d.user_id = $1
+               and d.kind = 'person'
+               and p.deck_id is null
+         order by birth_date",
         &[&user_id],
     )
     .await

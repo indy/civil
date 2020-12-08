@@ -61,7 +61,11 @@ pub(crate) async fn get_recent(
 ) -> Result<Vec<interop::UserUploadedImage>> {
     pg::many_from::<UserUploadedImage, interop::UserUploadedImage>(
         db_pool,
-        include_str!("sql/uploader_recent.sql"),
+        "SELECT filename
+         FROM images
+         WHERE user_id = $1
+         ORDER BY created_at DESC
+         LIMIT 5",
         &[&user_id],
     )
     .await
@@ -70,7 +74,10 @@ pub(crate) async fn get_recent(
 pub(crate) async fn get_image_count(db_pool: &Pool, user_id: Key) -> Result<i32> {
     pg::one_from::<UserImageCount, i32>(
         db_pool,
-        include_str!("sql/uploader_get_count.sql"),
+        "SELECT u.id,
+                u.image_count
+         FROM users u
+         WHERE u.id = $1",
         &[&user_id],
     )
     .await
@@ -82,7 +89,9 @@ pub(crate) async fn set_image_count(db_pool: &Pool, user_id: Key, new_count: i32
 
     pg::zero(
         &tx,
-        include_str!("sql/uploader_set_count.sql"),
+        "UPDATE users
+         SET image_count = $2
+         WHERE id = $1",
         &[&user_id, &new_count],
     )
     .await?;
@@ -98,7 +107,8 @@ pub(crate) async fn add_image_entry(db_pool: &Pool, user_id: Key, filename: &str
 
     pg::zero(
         &tx,
-        include_str!("sql/uploader_add_image.sql"),
+        "INSERT INTO images(user_id, filename)
+         VALUES ($1, $2)",
         &[&user_id, &filename],
     )
     .await?;

@@ -98,7 +98,10 @@ impl From<(decks::DeckBase, PublicationExtra)> for interop::Publication {
 pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Publication>> {
     pg::many_from::<Publication, interop::Publication>(
         db_pool,
-        include_str!("sql/publications_all.sql"),
+        "SELECT decks.id, decks.name, publication_extras.source, publication_extras.author, publication_extras.short_description, coalesce(publication_extras.rating, 0) as rating, decks.created_at
+         FROM decks left join publication_extras on publication_extras.deck_id = decks.id
+         WHERE user_id = $1 and kind = 'publication'
+         ORDER BY created_at desc",
         &[&user_id],
     )
     .await
@@ -117,19 +120,42 @@ pub(crate) async fn listings(db_pool: &Pool, user_id: Key) -> Result<interop::Pu
         many_from(
             db_pool,
             user_id,
-            include_str!("sql/publications_listing_recent.sql")
+            "SELECT decks.id, decks.name, publication_extras.source, publication_extras.author, publication_extras.short_description, coalesce(publication_extras.rating, 0) as rating, decks.created_at
+             FROM decks left join publication_extras on publication_extras.deck_id = decks.id
+             WHERE user_id = $1 and kind = 'publication'
+             ORDER BY created_at desc
+             LIMIT 10",
         ),
         many_from(
             db_pool,
             user_id,
-            include_str!("sql/publications_listing_rated.sql")
+            "SELECT decks.id, decks.name, publication_extras.source, publication_extras.author, publication_extras.short_description, coalesce(publication_extras.rating, 0) as rating, decks.created_at
+             FROM decks left join publication_extras on publication_extras.deck_id = decks.id
+             WHERE user_id = $1 and kind = 'publication' and publication_extras.rating > 0
+             ORDER BY publication_extras.rating desc",
         ),
         many_from(
             db_pool,
             user_id,
-            include_str!("sql/publications_listing_orphans.sql")
+            "SELECT d.id, d.name, pe.source, pe.author, pe.short_description, coalesce(pe.rating, 0) as rating, d.created_at
+             FROM decks d left join publication_extras pe on pe.deck_id=d.id
+             WHERE d.id not in (SELECT deck_id
+                                FROM notes_decks
+                                GROUP BY deck_id)
+             AND d.id not in (SELECT n.deck_id
+                              FROM notes n inner join notes_decks nd on n.id = nd.note_id
+                              GROUP by n.deck_id)
+             AND d.kind = 'publication'
+             AND d.user_id = $1
+             ORDER BY d.created_at desc",
         ),
-        many_from(db_pool, user_id, include_str!("sql/publications_all.sql")),
+        many_from(db_pool,
+                  user_id,
+                  "SELECT decks.id, decks.name, publication_extras.source, publication_extras.author, publication_extras.short_description, coalesce(publication_extras.rating, 0) as rating, decks.created_at
+                   FROM decks left join publication_extras on publication_extras.deck_id = decks.id
+                   WHERE user_id = $1 and kind = 'publication'
+                   ORDER BY created_at desc"
+        ),
     )?;
 
     Ok(interop::PublicationListings {
@@ -147,7 +173,9 @@ pub(crate) async fn get(
 ) -> Result<interop::Publication> {
     pg::one_from::<Publication, interop::Publication>(
         db_pool,
-        include_str!("sql/publications_get.sql"),
+        "SELECT decks.id, decks.name, publication_extras.source, publication_extras.author, publication_extras.short_description, coalesce(publication_extras.rating, 0) as rating, decks.created_at
+         FROM decks left join publication_extras on publication_extras.deck_id = decks.id
+         WHERE user_id = $1 and id = $2 and kind = 'publication'",
         &[&user_id, &publication_id],
     )
     .await
@@ -170,7 +198,9 @@ pub(crate) async fn create(
     let deck = decks::deckbase_create(&tx, user_id, DeckKind::Publication, &title).await?;
     let publication_extras = pg::one::<PublicationExtra>(
         &tx,
-        include_str!("sql/publications_create_extra.sql"),
+        "INSERT INTO publication_extras(deck_id, source, author, short_description, rating)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING $table_fields",
         &[&deck.id, &source, &author, &short_description, &rating],
     )
     .await?;
@@ -202,14 +232,21 @@ pub(crate) async fn edit(
 
     let publication_extras_exists = pg::many::<PublicationExtra>(
         &tx,
-        include_str!("sql/publication_extras_exists.sql"),
+        "select deck_id, source, author, short_description, rating
+         from publication_extras
+         where deck_id=$1",
         &[&publication_id],
     )
     .await?;
 
     let sql_query: &str = match publication_extras_exists.len() {
-        0 => include_str!("sql/publications_create_extra.sql"),
-        1 => include_str!("sql/publications_edit_extra.sql"),
+        0 => "INSERT INTO publication_extras(deck_id, source, author, short_description, rating)
+              VALUES ($1, $2, $3, $4, $5)
+              RETURNING $table_fields",
+        1 => "UPDATE publication_extras
+              SET source = $2, author = $3, short_description = $4, rating = $5
+              WHERE deck_id = $1
+              RETURNING $table_fields",
         _ => {
             // should be impossible to get here since deck_id
             // is a primary key in the publication_extras table
