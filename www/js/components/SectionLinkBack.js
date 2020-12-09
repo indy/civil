@@ -60,24 +60,38 @@ function groupByResource(linkbacks) {
 }
 
 function SectionLinks(linkbacks, heading) {
-  const [showExpanded, setShowExpanded] = useState(true);
-  let icon = showExpanded ? svgCaretDown() : svgCaretRight();
+  const [localState, setLocalState] = useState({
+    showExpanded: true,
+    childrenExpanded: linkbacks.map(lb => true)
+  });
+
+  let icon = localState.showExpanded ? svgCaretDown() : svgCaretRight();
 
   function onClickToggle(e) {
     e.preventDefault();
-    setShowExpanded(!showExpanded);
+
+    setLocalState({
+      ...localState,
+      showExpanded: !localState.showExpanded,
+      childrenExpanded: localState.childrenExpanded.map(ce => !localState.showExpanded)
+    });
   }
 
-  if (!linkbacks || linkbacks.length === 0) {
-    return html`<div></div>`;
+  function onChildClicked(key) {
+    setLocalState({
+      ...localState,
+      childrenExpanded: localState.childrenExpanded.map((c, i) => i === key ? !c : c)
+    });
   }
 
-  let list = linkbacks.map(lb => {
+  let list = linkbacks.map((lb, i) => {
     return html`<${ExpandableListingLink}
+                  index=${i}
+                  onExpandClick=${onChildClicked}
+                  expanded=${ localState.childrenExpanded[i] }
                   id=${ lb.id }
                   name=${ lb.name }
                   resource=${ lb.resource }
-                  parentExpanded=${showExpanded}
                   passages=${ lb.passages }/>`;
   });
 
