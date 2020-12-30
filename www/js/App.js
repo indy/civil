@@ -13,6 +13,8 @@ import { Person, People }            from '/js/components/People.js';
 import { Publication, Publications } from '/js/components/Publications.js';
 import { Timeline, Timelines }       from '/js/components/Timelines.js';
 
+import SpacedRepetition from '/js/components/SpacedRepetition.js';
+
 export async function buildInitialState() {
   try {
     // logged in
@@ -140,6 +142,7 @@ function AppUI(props) {
       <${Router} onChange=${ handleRoute }>
         <${Login} path="/login" loginCallback=${ loginHandler }/>
         <${Logout} path="/logout"/>
+        <${SpacedRepetition} path="/sr"/>
         <${Search} path="/"/>
         <${Ideas} path="/ideas"/>
         <${Idea} path="/ideas/:id"/>

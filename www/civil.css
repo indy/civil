@@ -219,6 +219,9 @@ p.fakelink {
 section > form { width: var(--block-width); }
 
 /* civil: so that the p in civil behaves like the section > p in tufte */
+.block-width {
+  width: var(--block-width);
+}
 .note p {
   width: var(--block-width);
 }
@@ -500,4 +503,8 @@ input:required {
 .listing-link p {
   color: var(--fg1);
   font-style: oblique;
+}
+
+.add-flash-card {
+  float: right;
 }

@@ -12,6 +12,7 @@ export default function Note(props) {
 
   const [showModButtons, setShowModButtons] = useState(false);
   const [showAddDecksUI, setShowAddDecksUI] = useState(false);
+  const [showAddFlashCardUI, setShowAddFlashCardUI] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [note, setNote] = useState({ content: props.note.content });
@@ -50,6 +51,15 @@ export default function Note(props) {
   };
 
   function onShowButtonsClicked() {
+    if (showModButtons) {
+      // about to hide the mod buttons, so reset the state of the 'add references' and 'add flash card' ui
+      if (showAddDecksUI) {
+        setShowAddDecksUI(false);
+      }
+      if (showAddFlashCardUI) {
+        setShowAddFlashCardUI(false);
+      }
+    }
     setShowModButtons(!showModButtons);
   };
 
@@ -65,6 +75,25 @@ export default function Note(props) {
 
     return res;
   };
+
+  function buildAddFlashCardUI() {
+    // function cancelAddDecks() {
+    //   setShowAddFlashCardUI(false);
+    // };
+
+    // function commitAddDecks() {
+    //   addDecks(props.note, decks, props.onDecksChanged, dispatch);
+
+    //   setShowModButtons(false);
+    //   setShowAddFlashCardUI(false);
+    // };
+
+    return html`
+      <div class="block-width">
+        <label>Add Flash Card Question</label>
+        <textarea type="text"/>
+      </div>`;
+  }
 
   function buildAddDecksUI() {
     function cancelAddDecks() {
@@ -89,7 +118,7 @@ export default function Note(props) {
     };
 
     return html`
-      <div>
+      <div class="block-width">
         <label>Connections:</label>
         <${ CivilSelect }
           parentDeckId=${ props.parentDeckId }
@@ -130,7 +159,7 @@ export default function Note(props) {
     }
 
     return html`
-      <div>
+      <div class="block-width">
         ${ !showDeleteConfirmation && html`<button onClick=${ onEditClicked }>${ editLabelText }</button>`}
         ${ isEditing && !showDeleteConfirmation && html`<button onClick=${ deleteClicked }>Delete</button>` }
         ${ isEditing && showDeleteConfirmation && html`
@@ -139,6 +168,7 @@ export default function Note(props) {
                                                     <button onClick=${ confirmDeleteClicked }>Yes Delete</button>`}
         ${ isEditing && html`<${ImageWidget}/>` }
         ${ !isEditing && html`<button onClick=${ () => { setShowAddDecksUI(!showAddDecksUI); } }>References...</button>` }
+        ${ !isEditing && html`<button class="add-flash-card" onClick=${ () => { setShowAddFlashCardUI(!showAddFlashCardUI); } }>Add Flash Card...</button>` }
       </div>
 `;
   }
@@ -147,7 +177,8 @@ export default function Note(props) {
     <div class="note">
       ${ isEditing ? buildEditableContent() : buildReadingContent(note, props.note.id, onShowButtonsClicked, props.note.decks, state.imageDirectory) }
       ${ showModButtons && showAddDecksUI && buildAddDecksUI() }
-      ${ showModButtons && !showAddDecksUI && buildMainButtons() }
+      ${ showModButtons && showAddFlashCardUI && buildAddFlashCardUI() }
+      ${ showModButtons && !showAddDecksUI && !showAddFlashCardUI && buildMainButtons() }
     </div>
 `;
 }

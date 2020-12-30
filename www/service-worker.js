@@ -59,6 +59,7 @@ var precacheConfig = [
   "/js/components/RollableSection.js",
   "/js/components/Search.js",
   "/js/components/SectionLinkBack.js",
+  "/js/components/SpacedRepetition.js",
   "/js/components/Timelines.js",
 
   "/tufte.css",
