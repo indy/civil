@@ -15,14 +15,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod autocomplete;
-pub mod cmd;
-pub mod edges;
-pub mod ideas;
-pub mod notes;
-pub mod people;
-pub mod publications;
-pub mod sr;
-pub mod timelines;
-pub mod uploader;
-pub mod users;
+use crate::interop::decks::LinkBack;
+use crate::interop::Key;
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct Card {
+    pub id: Key,
+    pub note_id: Key,
+    pub deck_info: LinkBack,
+
+    pub prompt: String,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct ProtoCard {
+    pub note_id: Key,
+    pub prompt: String,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct ProtoRating {
+    pub rating: i16,
+}

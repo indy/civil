@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::notes as db;
+use crate::db::sr as db;
 use crate::error::Result;
-use crate::interop::notes as interop;
+use crate::interop::sr::{ProtoCard, ProtoRating};
 use crate::interop::IdParam;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
@@ -27,60 +27,45 @@ use deadpool_postgres::Pool;
 #[allow(unused_imports)]
 use tracing::info;
 
-pub async fn create_notes(
-    note: Json<interop::ProtoNote>,
+pub async fn create_card(
+    card: Json<ProtoCard>,
     db_pool: Data<Pool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    let note = note.into_inner();
-    info!("create_notes {:?}", &note);
+    info!("create card");
 
     let user_id = session::user_id(&session)?;
+    let card = card.into_inner();
 
-    let note = db::create_notes(&db_pool, user_id, &note).await?;
+    let db_card = db::create_card(&db_pool, &card, user_id).await?;
 
-    Ok(HttpResponse::Ok().json(note))
+    Ok(HttpResponse::Ok().json(db_card))
 }
 
-pub async fn get_note(
+pub async fn card_rated(
+    rating: Json<ProtoRating>,
     db_pool: Data<Pool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    info!("get_note {}", params.id);
+    info!("card_rated id:{:?}", params.id);
 
-    let user_id = session::user_id(&session)?;
-    let note = db::get_note(&db_pool, user_id, params.id).await?;
+    // need to be in a session, even though we're not using the information
+    // card_evaluations are linked to a user via the card_id
+    let _user_id = session::user_id(&session)?;
+    let rating = rating.into_inner();
 
-    Ok(HttpResponse::Ok().json(note))
+    let db_eval = db::card_rating(&db_pool, params.id, &rating).await?;
+
+    Ok(HttpResponse::Ok().json(db_eval))
 }
 
-pub async fn edit_note(
-    note: Json<interop::Note>,
+pub async fn get_cards(
     db_pool: Data<Pool>,
-    params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    info!("edit_note");
-
-    let note = note.into_inner();
     let user_id = session::user_id(&session)?;
+    let db_cards = db::get_cards(&db_pool, user_id).await?;
 
-    let note = db::edit_note(&db_pool, user_id, &note, params.id).await?;
-
-    Ok(HttpResponse::Ok().json(note))
-}
-
-pub async fn delete_note(
-    db_pool: Data<Pool>,
-    params: Path<IdParam>,
-    session: actix_session::Session,
-) -> Result<HttpResponse> {
-    info!("delete_note {}", params.id);
-
-    let user_id = session::user_id(&session)?;
-
-    db::delete_note_pool(&db_pool, user_id, params.id).await?;
-
-    Ok(HttpResponse::Ok().json(true))
+    Ok(HttpResponse::Ok().json(db_cards))
 }

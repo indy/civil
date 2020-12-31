@@ -69,8 +69,27 @@ pub(crate) async fn create_notes(
     Ok(notes)
 }
 
+// NoteBasic is a note where the point_id is assumed to be None
+// only used by get_note
+#[derive(Debug, Deserialize, PostgresMapper, Serialize)]
+#[pg_mapper(table = "notes")]
+struct NoteBasic {
+    id: Key,
+    content: String,
+}
+
+impl From<NoteBasic> for interop::Note {
+    fn from(n: NoteBasic) -> interop::Note {
+        interop::Note {
+            id: n.id,
+            content: n.content,
+            point_id: None,
+        }
+    }
+}
+
 pub(crate) async fn get_note(db_pool: &Pool, user_id: Key, note_id: Key) -> Result<interop::Note> {
-    let db_note = pg::one_non_transactional::<Note>(
+    let db_note = pg::one_non_transactional::<NoteBasic>(
         db_pool,
         "SELECT n.id,
                 n.content
@@ -80,8 +99,7 @@ pub(crate) async fn get_note(db_pool: &Pool, user_id: Key, note_id: Key) -> Resu
     )
     .await?;
 
-    let note = interop::Note::from(db_note);
-    Ok(note)
+    Ok(db_note.into())
 }
 
 pub(crate) async fn edit_note(
@@ -124,10 +142,13 @@ pub(crate) async fn delete_note(tx: &Transaction<'_>, user_id: Key, note_id: Key
     )
     .await?;
 
-    pg::zero(&tx,
-             "DELETE FROM notes
+    pg::zero(
+        &tx,
+        "DELETE FROM notes
               WHERE id = $1 AND user_id = $2",
-             &[&note_id, &user_id]).await?;
+        &[&note_id, &user_id],
+    )
+    .await?;
 
     Ok(())
 }

@@ -7,13 +7,13 @@ import { WasmInterfaceProvider }        from '/js/WasmInterfaceProvider.js';
 import { useStateValue, StateProvider } from '/js/StateProvider.js';
 
 import Search                        from '/js/components/Search.js';
+import SpacedRepetition              from '/js/components/SpacedRepetition.js';
 import { Idea, Ideas }               from '/js/components/Ideas.js';
 import { Login, Logout }             from '/js/components/Login.js';
 import { Person, People }            from '/js/components/People.js';
 import { Publication, Publications } from '/js/components/Publications.js';
 import { Timeline, Timelines }       from '/js/components/Timelines.js';
 
-import SpacedRepetition from '/js/components/SpacedRepetition.js';
 
 export async function buildInitialState() {
   try {
@@ -98,11 +98,12 @@ function TopBarMenu(props) {
   return html`
     <div id='top-bar-menu'>
       <${Link} href=${ loggedLink() } id="login-menuitem" class="pigment-inherit">${ loggedStatus() }</${Link}>
-      <${Link} class='top-bar-menuitem pigment-inherit' href=${'/'}>Search</${Link}>
-      <${Link} class='top-bar-menuitem pigment-ideas' href=${'/ideas'}>Ideas</${Link}>
-      <${Link} class='top-bar-menuitem pigment-publications' href=${'/publications'}>Publications</${Link}>
-      <${Link} class='top-bar-menuitem pigment-people' href=${'/people'}>People</${Link}>
-      <${Link} class='top-bar-menuitem pigment-timelines' href=${'/timelines'}>Timelines</${Link}>
+      <${Link} class='top-bar-menuitem pigment-inherit' href='/'>Search</${Link}>
+      <${Link} class='top-bar-menuitem pigment-ideas' href='/ideas'>Ideas</${Link}>
+      <${Link} class='top-bar-menuitem pigment-publications' href='/publications'>Publications</${Link}>
+      <${Link} class='top-bar-menuitem pigment-people' href='/people'>People</${Link}>
+      <${Link} class='top-bar-menuitem pigment-timelines' href='/timelines'>Timelines</${Link}>
+      <${Link} class='top-bar-menuitem' href='/sr'>SR</${Link}>
     </div>
 `;
 }

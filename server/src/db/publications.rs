@@ -240,13 +240,17 @@ pub(crate) async fn edit(
     .await?;
 
     let sql_query: &str = match publication_extras_exists.len() {
-        0 => "INSERT INTO publication_extras(deck_id, source, author, short_description, rating)
+        0 => {
+            "INSERT INTO publication_extras(deck_id, source, author, short_description, rating)
               VALUES ($1, $2, $3, $4, $5)
-              RETURNING $table_fields",
-        1 => "UPDATE publication_extras
+              RETURNING $table_fields"
+        }
+        1 => {
+            "UPDATE publication_extras
               SET source = $2, author = $3, short_description = $4, rating = $5
               WHERE deck_id = $1
-              RETURNING $table_fields",
+              RETURNING $table_fields"
+        }
         _ => {
             // should be impossible to get here since deck_id
             // is a primary key in the publication_extras table

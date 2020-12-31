@@ -28,6 +28,7 @@ pub mod point_kind;
 pub mod points;
 pub mod publications;
 pub mod ref_kind;
+pub mod sr;
 pub mod timelines;
 pub mod uploader;
 pub mod users;

@@ -77,21 +77,43 @@ export default function Note(props) {
   };
 
   function buildAddFlashCardUI() {
-    // function cancelAddDecks() {
-    //   setShowAddFlashCardUI(false);
-    // };
+    let [flashCardPrompt, setFlashCardPrompt] = useState('');
 
-    // function commitAddDecks() {
-    //   addDecks(props.note, decks, props.onDecksChanged, dispatch);
+    function onCancel(e) {
+      e.preventDefault();
+      setShowAddFlashCardUI(false);
+    }
 
-    //   setShowModButtons(false);
-    //   setShowAddFlashCardUI(false);
-    // };
+    function onSave(e) {
+      e.preventDefault();
+
+      let data = {
+        note_id: props.note.id,
+        prompt: flashCardPrompt
+      };
+
+      Net.post("/api/sr", data).then(res => {
+        console.log(res);
+        setShowModButtons(false);
+        setShowAddFlashCardUI(false);
+      });
+    }
+
+    function onInput(e) {
+      e.preventDefault();
+      setFlashCardPrompt(e.target.value);
+    }
 
     return html`
       <div class="block-width">
-        <label>Add Flash Card Question</label>
-        <textarea type="text"/>
+        <label>Flash Card Prompt</label>
+        <div>
+          <textarea type="text"
+                    value=${ flashCardPrompt }
+                    onInput=${ onInput }/>
+        </div>
+        <button onClick=${ onCancel }>Cancel</button>
+        <button onClick=${ onSave }>Save Flash Card Prompt</button>
       </div>`;
   }
 

@@ -22,6 +22,7 @@ use crate::handler::ideas;
 use crate::handler::notes;
 use crate::handler::people;
 use crate::handler::publications;
+use crate::handler::sr;
 use crate::handler::timelines;
 use crate::handler::uploader;
 use crate::handler::users;
@@ -101,6 +102,13 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", get().to(notes::get_note))
                 .route("/{id}", put().to(notes::edit_note))
                 .route("/{id}", delete().to(notes::delete_note)),
+        )
+        // spaced repetition
+        .service(
+            scope("/sr")
+                .route("", post().to(sr::create_card))
+                .route("", get().to(sr::get_cards))
+                .route("/{id}/rated", post().to(sr::card_rated)),
         )
         // edges
         .service(scope("/edges").route("/notes_decks", post().to(edges::create_from_note_to_decks)))

@@ -54,7 +54,7 @@ pub(crate) async fn get_decks(db_pool: &Pool, user_id: Key) -> Result<Vec<intero
          FROM decks
          WHERE user_id = $1
          ORDER BY name",
-        &[&user_id]
+        &[&user_id],
     )
     .await
 }

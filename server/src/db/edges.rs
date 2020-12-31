@@ -84,7 +84,8 @@ pub(crate) async fn create_from_note_to_decks(
     let note_id = edge_connectivity.note_id;
 
     // get the list of existing decks associated with this note
-    let stmt_all_decks = "SELECT nd.note_id, d.id, d.name, d.kind as deck_kind, nd.kind as ref_kind, nd.annotation
+    let stmt_all_decks =
+        "SELECT nd.note_id, d.id, d.name, d.kind as deck_kind, nd.kind as ref_kind, nd.annotation
                           FROM notes_decks nd, decks d
                           WHERE nd.note_id = $1 AND d.id = nd.deck_id";
     let associated_decks: Vec<MarginConnectionToDeck> =

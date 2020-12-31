@@ -83,7 +83,7 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key) -> Result<interop::User> {
         "SELECT $table_fields
          FROM users
          WHERE id = $1",
-        &[&user_id]
+        &[&user_id],
     )
     .await
 }

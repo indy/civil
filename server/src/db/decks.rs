@@ -318,7 +318,7 @@ pub(crate) async fn graph(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::V
                and d.user_id = $1
          group by from_id, to_id, nd.kind
          order by from_id",
-        &[&user_id]
+        &[&user_id],
     )
     .await
 }
@@ -340,16 +340,16 @@ pub(crate) async fn delete(db_pool: &Pool, user_id: Key, id: Key) -> Result<()> 
 
     pg::zero(&tx, "DELETE FROM idea_extras WHERE deck_id = $1", &[&id]).await?;
 
-    pg::zero(
-        &tx,
-        "DELETE FROM notes_decks WHERE deck_id = $1",
-        &[&id],
-    )
-    .await?;
+    pg::zero(&tx, "DELETE FROM notes_decks WHERE deck_id = $1", &[&id]).await?;
 
     points::delete_all_points_connected_with_deck(&tx, id).await?;
 
-    pg::zero(&tx, "DELETE FROM decks WHERE id = $2 AND user_id = $1", &[&user_id, &id]).await?;
+    pg::zero(
+        &tx,
+        "DELETE FROM decks WHERE id = $2 AND user_id = $1",
+        &[&user_id, &id],
+    )
+    .await?;
 
     tx.commit().await?;
 
