@@ -37,3 +37,16 @@ pub struct ProtoCard {
 pub struct ProtoRating {
     pub rating: i16,
 }
+
+// only used between the handler and db, not passed out to the client
+#[derive(Debug)]
+pub struct CardInternal {
+    pub id: Key,
+
+    pub note_id: Key,
+    pub prompt: String,
+    pub next_test_date: chrono::DateTime<chrono::Utc>,
+
+    pub easiness_factor: f32,
+    pub inter_repetition_interval: i32,
+}

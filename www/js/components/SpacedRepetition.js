@@ -33,16 +33,34 @@ const reducer = (state, action) => {
   };
   case CARD_COMPLETED: {
     let { cards, mode, cardIndex } = state;
-    if ((cardIndex + 1) >= cards.length) {
-      // reaced the end of the cards to test for
-      cardIndex = 0;
-      mode = MODE_POST_TEST;
+
+    // some of the logic for the SM2 algorithm is here:
+    // step 7 from the algorithm at https://www.supermemo.com/en/archives1990-2015/english/ol/sm2
+    // "After each repetition session of a given day repeat again all items that scored below four in the quality assessment. Continue the repetitions until all of these items score at least four."
+
+    if (action.rating < 4) {
+      // retain this card to test again
+      if ((cardIndex + 1) >= cards.length) {
+        // reached the end of the cards to test for
+        cardIndex = 0;
+      } else {
+        cardIndex += 1;
+      }
     } else {
-      cardIndex += 1;
+      // this can be removed from the test
+      cards.splice(cardIndex, 1);
+      if (cards.length <= cardIndex) {
+        cardIndex = 0;
+      }
+      if (cards.length === 0) {
+        mode = MODE_POST_TEST;
+      }
     }
+
     return {
       ...state,
       mode,
+      cards,
       cardIndex
     }
   }
@@ -74,7 +92,7 @@ export default function SpacedRepetition(props) {
     }).then(success => {
       // todo: return a success value from the server, check it here
     });
-    localDispatch(CARD_COMPLETED);
+    localDispatch(CARD_COMPLETED, { rating });
   }
 
   const canTest = local.cards.length > 0;
@@ -175,13 +193,24 @@ function CardRating({ card, onRatedCard }) {
   }
 
   return html`<div>
-                <div class="sr-section">Rating</div>
+                <div class="sr-section">
+                Rating
+                <ul class="marginnote sr-rating-descriptions">
+                  <li>5 - perfect response</li>
+                  <li>4 - correct response after a hesitation</li>
+                  <li>3 - correct response recalled with serious difficulty</li>
+                  <li>2 - incorrect response; where the correct one seemed easy to recall</li>
+                  <li>1 - incorrect response; the correct one remembered</li>
+                  <li>0 - complete blackout.</li>
+                </ul>
+                </div>
                 <div class="rating-values" onClick=${ onRated }>
                   <button class="rating-value">0</button>
                   <button class="rating-value">1</button>
                   <button class="rating-value">2</button>
                   <button class="rating-value">3</button>
                   <button class="rating-value">4</button>
+                  <button class="rating-value">5</button>
                 </div>
               </div>`;
 }

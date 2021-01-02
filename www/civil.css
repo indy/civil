@@ -529,3 +529,9 @@ input:required {
   font-size: xx-large;
   cursor: pointer;
 }
+
+.sr-rating-descriptions {
+  list-style: none;
+  color: var(--fg1);
+  margin-top: 3em;
+}

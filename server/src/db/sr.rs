@@ -39,9 +39,8 @@ pub struct CardInternal {
     pub prompt: String,
     pub next_test_date: chrono::DateTime<chrono::Utc>,
 
-    pub repetition_number: f32,
     pub easiness_factor: f32,
-    pub inter_repetition_interval: f32,
+    pub inter_repetition_interval: i32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
@@ -80,6 +79,19 @@ impl From<CardFullFat> for interop::Card {
     }
 }
 
+impl From<CardInternal> for interop::CardInternal {
+    fn from(e: CardInternal) -> interop::CardInternal {
+        interop::CardInternal {
+            id: e.id,
+            note_id: e.note_id,
+            prompt: e.prompt,
+            next_test_date: e.next_test_date,
+            easiness_factor: e.easiness_factor,
+            inter_repetition_interval: e.inter_repetition_interval,
+        }
+    }
+}
+
 impl From<(Card, LinkBackToDeck)> for interop::Card {
     fn from(e: (Card, LinkBackToDeck)) -> interop::Card {
         let (c, lb) = e;
@@ -106,24 +118,23 @@ pub(crate) async fn create_card(
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    let repetition_number: f32 = 1.0;
-    let easiness_factor: f32 = 2.0;
-    let inter_repetition_interval: f32 = 3.0;
+    let easiness_factor: f32 = 2.5;
+    let inter_repetition_interval: i32 = 1;
 
     let db_card = pg::one::<Card>(
         &tx,
-        "INSERT INTO cards(user_id, note_id, prompt, repetition_number, easiness_factor, inter_repetition_interval)
-         VALUES ($1, $2, $3, $4, $5, $6)
+        "INSERT INTO cards(user_id, note_id, prompt, easiness_factor, inter_repetition_interval)
+         VALUES ($1, $2, $3, $4, $5)
          RETURNING $table_fields",
         &[
             &user_id,
             &card.note_id,
             &card.prompt,
-            &repetition_number,
             &easiness_factor,
             &inter_repetition_interval,
         ],
-    ).await?;
+    )
+    .await?;
 
     let db_linkback = pg::one::<LinkBackToDeck>(
         &tx,
@@ -139,22 +150,69 @@ pub(crate) async fn create_card(
     Ok((db_card, db_linkback).into())
 }
 
-pub(crate) async fn get_cards(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Card>> {
-    info!("get_evaluation_cards");
+pub(crate) async fn get_card_internal(
+    db_pool: &Pool,
+    user_id: Key,
+    card_id: Key,
+) -> Result<interop::CardInternal> {
+    info!("get_card_internal");
+
+    pg::one_from::<CardInternal, interop::CardInternal>(
+        db_pool,
+        "SELECT id, note_id, prompt, next_test_date, easiness_factor, inter_repetition_interval
+         FROM cards
+         WHERE user_id=$1 and id=$2",
+        &[&user_id, &card_id],
+    )
+    .await
+}
+
+pub(crate) async fn update_card_internal(
+    db_pool: &Pool,
+    card: interop::CardInternal,
+) -> Result<()> {
+    info!("update_card_internal");
+
+    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
+    let tx = client.transaction().await?;
+    pg::zero(
+        &tx,
+        "UPDATE cards
+         SET next_test_date = $2, easiness_factor = $3, inter_repetition_interval = $4
+         WHERE id = $1",
+        &[
+            &card.id,
+            &card.next_test_date,
+            &card.easiness_factor,
+            &card.inter_repetition_interval,
+        ],
+    )
+    .await?;
+    tx.commit().await?;
+
+    Ok(())
+}
+
+pub(crate) async fn get_cards(
+    db_pool: &Pool,
+    user_id: Key,
+    due: chrono::DateTime<chrono::Utc>,
+) -> Result<Vec<interop::Card>> {
+    info!("get_cards");
 
     pg::many_from::<CardFullFat, interop::Card>(
         db_pool,
         "SELECT c.id, c.note_id, c.prompt, d.id as deck_id, d.name AS deck_name, d.kind AS deck_kind
          FROM cards c, decks d, notes n
-         WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = $1",
-        &[&user_id]
+         WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = $1 and c.next_test_date < $2",
+        &[&user_id, &due]
     )
     .await
 }
 
 // #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-// #[pg_mapper(table = "card_evaluations")]
-// pub struct CardEvaluations {
+// #[pg_mapper(table = "card_ratings")]
+// pub struct CardRatings {
 //     pub card_id: Key,
 //     pub rating: i16,
 // }
@@ -163,19 +221,19 @@ pub(crate) async fn card_rating(
     db_pool: &Pool,
     card_id: Key,
     rating: &interop::ProtoRating,
-) -> Result<()> {
-    info!("create_card_evaluation");
+) -> Result<bool> {
+    info!("card_rating");
 
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
     pg::zero(
         &tx,
-        "INSERT INTO card_evaluations(card_id, rating)
+        "INSERT INTO card_ratings(card_id, rating)
          VALUES ($1, $2)",
         &[&card_id, &rating.rating],
     )
     .await?;
     tx.commit().await?;
 
-    Ok(())
+    Ok(true)
 }
