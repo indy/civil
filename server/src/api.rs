@@ -24,6 +24,7 @@ use crate::handler::people;
 use crate::handler::publications;
 use crate::handler::sr;
 use crate::handler::timelines;
+use crate::handler::ubersetup;
 use crate::handler::uploader;
 use crate::handler::users;
 use actix_files::NamedFile;
@@ -110,6 +111,8 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("", get().to(sr::get_cards))
                 .route("/{id}/rated", post().to(sr::card_rated)),
         )
+        // setup
+        .service(scope("/ubersetup").route("", get().to(ubersetup::setup)))
         // edges
         .service(scope("/edges").route("/notes_decks", post().to(edges::create_from_note_to_decks)))
         // autocomplete

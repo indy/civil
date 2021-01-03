@@ -78,7 +78,7 @@ pub async fn recent(
     Ok(HttpResponse::Ok().json(res))
 }
 
-fn packed_kind(kind: RefKind) -> i32 {
+pub fn packed_kind(kind: RefKind) -> i32 {
     match kind {
         RefKind::Ref => 0,
         RefKind::RefToParent => -1,

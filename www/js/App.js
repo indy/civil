@@ -47,18 +47,17 @@ export async function buildInitialState() {
 }
 
 async function getInitialStateForLoggedInUser() {
-  // this is _really_ not good - 5 trips to the server before a logged in user's page begins rendering
-  let imageDirectory = await Net.get("/api/upload/directory");
-  let recentImages = await Net.get("/api/upload");
-  let autocompleteDecks = await Net.get("/api/autocomplete");
-  let graphResponse = await Net.get("/api/cmd/graph");
-  let graphConnections = graphResponse.results;
+  // let start = performance.now();
+  let uber = await Net.get("/api/ubersetup");
+
+  // let finish = performance.now();
+  // console.log(`time new: ${ finish - start}`);
 
   return {
-    imageDirectory,
-    recentImages,
-    autocompleteDecks,
-    graphConnections
+    imageDirectory: uber.directory,
+    recentImages: uber.recent_images,
+    autocompleteDecks: uber.autocomplete,
+    graphConnections: uber.graph_list
   };
 }
 
