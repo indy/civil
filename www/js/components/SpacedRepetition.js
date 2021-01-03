@@ -154,6 +154,29 @@ function CardTest({ card, onRatedCard }) {
     }
   }
 
+  function onRated(card, rating) {
+    // when a card has been rated and the next card is about to be shown
+    // the useEffect will reset the state of CardTest to SHOW_PROMPT
+    //
+    // however this fails if there's only one card to test and it's been
+    // rated at 3 or below, at which point it needs to be shown again.
+    // Because it's the same card, the useEffect isn't triggered and so
+    // this CardTest remains in the SHOW_ANSWER state
+    //
+    // therefore we have to intercept the onRatedCard callback and manually
+    // set the state to SHOW_PROMPT just in case we're in the '1 card only,
+    // rated at 3 or below' situation.
+    //
+    // Bugger
+    //
+    setLocalState({
+      ...localState,
+      showState: SHOW_PROMPT
+    });
+
+    onRatedCard(card, rating);
+  }
+
   const show = localState.showState;
 
   return html`<div>
@@ -162,7 +185,7 @@ function CardTest({ card, onRatedCard }) {
                 ${ show === SHOW_PROMPT && html`<button onClick=${ onShowAnswer }>Show Answer</button>`}
                 ${ show === SHOW_ANSWER && buildAnswer(card, localState.answerMarkup)}
                 ${ show === SHOW_ANSWER && html`<${CardRating} card=${card}
-                                                               onRatedCard=${onRatedCard}/>`}
+                                                               onRatedCard=${onRated}/>`}
               </div>`;
 
 }

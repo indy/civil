@@ -167,32 +167,6 @@ pub(crate) async fn get_card_internal(
     .await
 }
 
-pub(crate) async fn update_card_internal(
-    db_pool: &Pool,
-    card: interop::CardInternal,
-) -> Result<()> {
-    info!("update_card_internal");
-
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
-    pg::zero(
-        &tx,
-        "UPDATE cards
-         SET next_test_date = $2, easiness_factor = $3, inter_repetition_interval = $4
-         WHERE id = $1",
-        &[
-            &card.id,
-            &card.next_test_date,
-            &card.easiness_factor,
-            &card.inter_repetition_interval,
-        ],
-    )
-    .await?;
-    tx.commit().await?;
-
-    Ok(())
-}
-
 pub(crate) async fn get_cards(
     db_pool: &Pool,
     user_id: Key,
@@ -210,30 +184,40 @@ pub(crate) async fn get_cards(
     .await
 }
 
-// #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-// #[pg_mapper(table = "card_ratings")]
-// pub struct CardRatings {
-//     pub card_id: Key,
-//     pub rating: i16,
-// }
-
-pub(crate) async fn card_rating(
+pub(crate) async fn card_rated(
     db_pool: &Pool,
-    card_id: Key,
-    rating: &interop::ProtoRating,
-) -> Result<bool> {
-    info!("card_rating");
+    card: interop::CardInternal,
+    rating: i16,
+) -> Result<()> {
+    info!("card_rated");
 
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
+
+    pg::zero(
+        &tx,
+        "UPDATE cards
+         SET next_test_date = $2, easiness_factor = $3, inter_repetition_interval = $4
+         WHERE id = $1",
+        &[
+            &card.id,
+            &card.next_test_date,
+            &card.easiness_factor,
+            &card.inter_repetition_interval,
+        ],
+    )
+        .await?;
+
     pg::zero(
         &tx,
         "INSERT INTO card_ratings(card_id, rating)
          VALUES ($1, $2)",
-        &[&card_id, &rating.rating],
+        &[&card.id, &rating],
     )
     .await?;
+
+
     tx.commit().await?;
 
-    Ok(true)
+    Ok(())
 }

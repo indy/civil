@@ -55,16 +55,15 @@ pub async fn card_rated(
     // card_ratings are linked to a user via the card_id
     let user_id = session::user_id(&session)?;
     let card_id = params.id;
-    let rating = rating.into_inner();
+    let rating = rating.into_inner().rating;
 
-    if rating.rating >= 0 && rating.rating <= 5 {
-        let db_saved = db::card_rating(&db_pool, card_id, &rating).await?;
-
+    if rating >= 0 && rating <= 5 {
         let mut card = db::get_card_internal(&db_pool, user_id, card_id).await?;
-        card = update_easiness_factor(card, rating.rating)?;
-        db::update_card_internal(&db_pool, card).await?;
+        card = update_easiness_factor(card, rating)?;
 
-        Ok(HttpResponse::Ok().json(db_saved))
+        db::card_rated(&db_pool, card, rating).await?;
+
+        Ok(HttpResponse::Ok().json(true))
     } else {
         Ok(HttpResponse::Ok().json(false))
     }
