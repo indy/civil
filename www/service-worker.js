@@ -21,12 +21,10 @@
 
 // NOTE: Makefile will alter these variables when building a release build
 var devMode = true;
-var CACHE_NAME = "civil-20201207";
+var CACHE_NAME = "civil-20210104d";
 
 var precacheConfig = [
   "/apple-touch-icon.png",
-  "/civil-base.css",
-  "/civil-form.css",
   "/civil.css",
   "/index.html",
 
@@ -62,7 +60,6 @@ var precacheConfig = [
   "/js/components/SpacedRepetition.js",
   "/js/components/Timelines.js",
 
-  "/tufte.css",
   "/wasm.js",
   "/wasm_bg.wasm",
   "/lib/preact/hooks.js",
