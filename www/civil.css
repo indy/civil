@@ -181,7 +181,7 @@ p {
   text-align: left;
 }
 
-.scribblenote {
+.margin-scribble {
   font-family: 'Nothing You Could Do', cursive;
   color: var(--scribble);
   font-size: 1.5em;

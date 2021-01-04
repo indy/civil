@@ -60,7 +60,7 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
         }
         Node::Highlight(ns) => element_key("mark", key, ns)?,
         Node::ListItem(ns) => element_key("li", key, ns)?,
-        Node::Scribblenote(ns) => compile_sidenote(ns, key, "scribblenote")?,
+        Node::MarginScribble(ns) => compile_sidenote(ns, key, "margin-scribble")?,
         Node::MarginText(ns) => compile_sidenote(ns, key, "margin-text")?,
         Node::OrderedList(ns) => element_key("ol", key, ns)?,
         Node::Paragraph(ns) => element_key("p", key, ns)?,
