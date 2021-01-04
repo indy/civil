@@ -1,4 +1,4 @@
-import { html, useState, route } from '/lib/preact/mod.js';
+import { html, useState, useEffect, route } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { removeEmptyStrings } from '/js/JsUtils.js';
@@ -16,7 +16,32 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
   // returns helper fn that applies preCacheFn and stores deck in AppState
 
   const [state, dispatch] = useStateValue();
-  const cacheDeck = setupCacheDeckFn(state, dispatch, deck, resource, preCacheFn);
+
+  function cacheDeck(newdeck) {
+    if (preCacheFn) {
+      newdeck = preCacheFn(newdeck);
+    }
+
+    dispatch({
+      type: 'cacheDeck',
+      id: newdeck.id,
+      newItem: newdeck
+    });
+  }
+
+  useEffect(() => {
+    if(!state.cache.deck[deck.id]) {
+      // fetch resource from the server
+      const url = `/api/${resource}/${deck.id}`;
+      Net.get(url).then(deck => {
+        if (deck) {
+          cacheDeck(deck);
+        } else {
+          console.error(`error: fetchDeck for ${url}`);
+        }
+      });
+    }
+  }, [deck]);
 
   const [showButtons, setShowButtons] = useState(false);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
@@ -301,47 +326,4 @@ function NoteManager(deck, cacheDeck, optional_deck_point) {
         ${ notes }
         ${ showNoteForm ? buildNoteForm() : buildNoteFormIcon() }
       </section>`;
-}
-
-function setupCacheDeckFn(state, dispatch, deck, resource, preCacheFn) {
-  function cacheDeck(newdeck) {
-    if (preCacheFn) {
-      newdeck = preCacheFn(newdeck);
-    }
-
-    dispatch({
-      type: 'cacheDeck',
-      id: newdeck.id,
-      newItem: newdeck
-    });
-  }
-
-  // fetches resource from server if not already in cache
-  ensureCorrectDeck(state, resource, deck.id, cacheDeck);   // 2 redraws here
-
-  return cacheDeck;
-}
-
-function ensureCorrectDeck(state, resource, id, cacheDeck) {
-  const [currentId, setCurrentId] = useState(false);
-
-  if (id !== currentId) {
-    // get here on first load and when we're already on a /$NOTE_HOLDER/:id page
-    // and follow a Link to another /$NOTE_HOLDER/:id
-    // (where $NOTE_HOLDER is the same type)
-    //
-    setCurrentId(id);
-
-    if(!state.cache.deck[id]) {
-      // fetch resource from the server
-      const url = `/api/${resource}/${id}`;
-      Net.get(url).then(deck => {
-        if (deck) {
-          cacheDeck(deck);
-        } else {
-          console.error(`error: fetchDeck for ${url}`);
-        }
-      });
-    }
-  }
 }
