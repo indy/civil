@@ -37,7 +37,7 @@ pub enum Node {
     Image(String),
     ListItem(Vec<Node>),
     Scribblenote(Vec<Node>),
-    Marginnote(Vec<Node>),
+    MarginText(Vec<Node>),
     OrderedList(Vec<Node>),
     Paragraph(Vec<Node>),
     Quotation(Vec<Node>),
@@ -291,7 +291,7 @@ fn eat_pipe<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
         } else if is_token_at_index(tokens, 1, TokenIdent::Tilde) {
             tokens = &tokens[1..]; // eat the opening PIPE,
             let (toks, children) = eat_list(tokens, TokenIdent::Pipe)?;
-            Ok((toks, Node::Marginnote(children)))
+            Ok((toks, Node::MarginText(children)))
         } else {
             let (toks, children) = eat_list(tokens, TokenIdent::Pipe)?;
             Ok((toks, Node::NumberedSidenote(children)))

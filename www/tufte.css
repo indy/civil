@@ -241,7 +241,7 @@ img {
 }
 
 .sidenote,
-.marginnote,
+.margin-text,
 .scribblenote {
   float: right;
   clear: right;
@@ -280,7 +280,7 @@ img {
 }
 
 blockquote .sidenote,
-blockquote .marginnote,
+blockquote .margin-text,
 blockquote .scribblenote {
   margin-right: -82%;
   min-width: 59%;
@@ -320,7 +320,7 @@ h3 > code {
 }
 
 .scribblenote > code,
-.marginnote > code,
+.margin-text > code,
 .sidenote > code {
   font-size: 1rem;
 }
@@ -425,13 +425,13 @@ label.margin-toggle:not(.sidenote-number) {
   }
 
   .sidenote,
-  .marginnote,
+  .margin-text,
   .scribblenote {
     display: none;
   }
 
   .margin-toggle:checked + .sidenote,
-  .margin-toggle:checked + .marginnote,
+  .margin-toggle:checked + .margin-text,
   .margin-toggle:checked + .scribblenote{
     display: block;
     float: left;

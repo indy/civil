@@ -218,7 +218,7 @@ function CardRating({ card, onRatedCard }) {
   return html`<div>
                 <div class="sr-section">
                 Rating
-                <ul class="marginnote sr-rating-descriptions">
+                <ul class="margin-text sr-rating-descriptions">
                   <li>5 - perfect response</li>
                   <li>4 - correct response after a hesitation</li>
                   <li>3 - correct response recalled with serious difficulty</li>
