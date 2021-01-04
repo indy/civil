@@ -1,7 +1,6 @@
 
 codeblock: ` codeblocks are surrounded by backticks `
 highlight: certain words ^can be highlighted^ in a sentence
-scribbled: some words can be ~crossed~ scribbled out
 underline: this is an _important_ word
 strong:    this is a *strong* word
 
@@ -54,4 +53,4 @@ once upon|# this is handwritten text on the right-hand margin| a time
 
 ----------
 
-links, highlights, underlines etc can be included within margin notes. Although note that there is a syntax conflict between margin notes without numbering and scribbled out text, they both begin with tildes. Therefore convince yourself that you don't need to start a note in the right hand margin with scribbled out text. Problem solved.
+links, highlights, underlines etc can be included within margin notes

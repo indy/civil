@@ -41,7 +41,6 @@ pub enum Node {
     OrderedList(Vec<Node>),
     Paragraph(Vec<Node>),
     Quotation(Vec<Node>),
-    ScribbledOut(Vec<Node>),
     NumberedSidenote(Vec<Node>),
     Strong(Vec<Node>),
     Text(String),
@@ -196,7 +195,6 @@ fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
         Token::BracketEnd => eat_text_including(tokens),
         Token::BracketStart => eat_text_including(tokens),
         Token::Caret => eat_matching_pair(tokens, TokenIdent::Caret, NodeIdent::Highlight),
-        Token::Tilde => eat_matching_pair(tokens, TokenIdent::Tilde, NodeIdent::ScribbledOut),
         Token::DoubleQuote => eat_matching_pair(tokens, TokenIdent::DoubleQuote, NodeIdent::Quotation),
         Token::Hash => eat_hash(tokens),
         Token::Pipe => eat_pipe(tokens),
@@ -425,7 +423,6 @@ fn eat_matching_pair<'a>(tokens: &'a [Token<'a>], halt_at: TokenIdent, node_iden
         let node = match node_ident {
             NodeIdent::Strong => Node::Strong(children),
             NodeIdent::Highlight => Node::Highlight(children),
-            NodeIdent::ScribbledOut => Node::ScribbledOut(children),
             NodeIdent::Quotation => Node::Quotation(children),
             NodeIdent::Underlined => Node::Underlined(children),
             _ => return Err(Error::Parser),
@@ -600,16 +597,6 @@ mod tests {
     fn highlight_children<'a>(node: &'a Node) -> Result<&'a Vec<Node>> {
         match node {
             Node::Highlight(children) => {
-                return Ok(children);
-            }
-            _ => assert_eq!(false, true),
-        };
-        Err(Error::Parser)
-    }
-
-    fn scribbled_children<'a>(node: &'a Node) -> Result<&'a Vec<Node>> {
-        match node {
-            Node::ScribbledOut(children) => {
                 return Ok(children);
             }
             _ => assert_eq!(false, true),
@@ -873,20 +860,6 @@ mod tests {
         assert_text(&highlighted[1], " with ");
         assert_strong1(&highlighted[2], "strong");
         assert_text(&children[1], " test");
-    }
-
-    #[test]
-    fn test_scribbled_out() {
-        let nodes = build("I have information which will lead to the arrest of ~Hillary Clinton~");
-
-        assert_eq!(1, nodes.len());
-        let children = paragraph_children(&nodes[0]).unwrap();
-        dbg!(&children);
-        assert_eq!(children.len(), 2);
-
-        let scribbled = scribbled_children(&children[1]).unwrap();
-        assert_eq!(scribbled.len(), 1);
-        assert_text(&scribbled[0], "Hillary Clinton");
     }
 
     #[test]

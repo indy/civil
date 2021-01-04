@@ -58,8 +58,7 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
                 ..Default::default()
             }]
         }
-        Node::Highlight(ns) => element_key_class("mark", key, "highlight", ns)?,
-        Node::ScribbledOut(ns) => element_key_class("mark", key, "scribbled-out", ns)?,
+        Node::Highlight(ns) => element_key("mark", key, ns)?,
         Node::ListItem(ns) => element_key("li", key, ns)?,
         Node::Scribblenote(ns) => compile_sidenote(ns, key, "scribblenote")?,
         Node::Marginnote(ns) => compile_sidenote(ns, key, "marginnote")?,
