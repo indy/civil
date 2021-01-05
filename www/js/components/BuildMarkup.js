@@ -8,18 +8,13 @@ export default function buildMarkup(content, imageDirectory) {
   const astArray = wasmInterface.asHtmlAst(content);
 
   function attrs(n) {
-    let res = {
-      key: n.key,
-      class: n.class_name,
-      for: n.html_for,
-      href: n.href,
-      type: n.html_type,
-      id: n.id
-    }
-
-    if (n.src) {
-      res.src = `/u/${imageDirectory}/${n.src}`;
-    }
+    const res = { key: n.key };
+    if (n.class_name) { res.class = n.class_name; }
+    if (n.id)         { res.id = n.id; }
+    if (n.html_for)   { res.for = n.html_for; }
+    if (n.href)       { res.href = n.href; }
+    if (n.html_type)  { res.type = html_type; }
+    if (n.src)        { res.src = `/u/${imageDirectory}/${n.src}`; }
 
     return res;
   }
