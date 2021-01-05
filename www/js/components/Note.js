@@ -1,4 +1,4 @@
-import { h, html, Link, useState, useEffect } from '/lib/preact/mod.js';
+import { h, html, Link, useState, useEffect, useReducer } from '/lib/preact/mod.js';
 
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
@@ -7,60 +7,134 @@ import CivilSelect from '/js/components/CivilSelect.js';
 import ImageWidget from '/js/components/ImageWidget.js';
 import buildMarkup from '/js/components/BuildMarkup.js';
 
+const NOTE_SET_PROPERTY = 'note-set-property';
+const ADD_DECK_REFERENCES_UI_SHOW = 'add-deck-references-ui-show';
+const ADD_FLASH_CARD_UI_SHOW = 'add-flashcard-ui-show';
+const DELETE_CONFIRMATION_SHOW = 'delete-confirmation-show';
+const DECKS_SET = "decks-set";
+const ADD_DECKS_COMMIT = 'add-decks-commit';
+const ADD_DECKS_CANCEL = 'add-decks-cancel';
+const FLASH_CARD_SAVED = 'flash-card-saved';
+const MOD_BUTTONS_TOGGLE = 'mod-buttons-toggle';
+const IS_EDITING_TOGGLE = 'is-editing-toggle';
+
+const reducer = (state, action) => {
+  switch(action.type) {
+  case NOTE_SET_PROPERTY: {
+    const newNote = { ...state.note };
+    newNote[action.name] = action.value;
+    return {
+      ...state,
+      note: newNote
+    }
+  };
+  case ADD_DECK_REFERENCES_UI_SHOW:
+    return {
+      ...state,
+      addDeckReferencesUI: action.value
+    }
+  case ADD_FLASH_CARD_UI_SHOW:
+    return {
+      ...state,
+      addFlashCardUI: action.value
+    }
+  case DELETE_CONFIRMATION_SHOW:
+    return {
+      ...state,
+      showDeleteConfirmation: action.value
+    }
+  case DECKS_SET:
+    return {
+      ...state,
+      decks: action.value
+    }
+  case ADD_DECKS_COMMIT:
+    return {
+      ...state,
+      showModButtons: false,
+      addDeckReferencesUI: false
+    }
+  case ADD_DECKS_CANCEL:
+    return {
+      ...state,
+      decks: action.value,
+      addDeckReferencesUI: false
+    }
+  case FLASH_CARD_SAVED:
+    return {
+      ...state,
+      showModButtons: false,
+      addFlashCardUI: false,
+    }
+  case MOD_BUTTONS_TOGGLE: {
+    const newState = { ...state };
+
+    newState.showModButtons = !newState.showModButtons;
+    if (!newState.showModButtons) {
+      // reset the state of the 'add references' and 'add flash card' ui
+      newState.addDeckReferencesUI = false;
+      newState.addFlashCardUI = false;
+    }
+
+    return newState;
+  }
+  case IS_EDITING_TOGGLE: {
+    const newState = { ...state };
+    newState.isEditing = !newState.isEditing;
+    if (!newState.isEditing) {
+      newState.showModButtons = false;
+    }
+
+    return newState;
+  }
+  default: throw new Error(`unknown action: ${action}`);
+  }
+};
+
 export default function Note(props) {
   const [state, dispatch] = useStateValue();
 
-  const [showModButtons, setShowModButtons] = useState(false);
-  const [showAddDecksUI, setShowAddDecksUI] = useState(false);
-  const [showAddFlashCardUI, setShowAddFlashCardUI] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-  const [note, setNote] = useState({ content: props.note.content });
-  const [decks, setDecks] = useState(props.note && props.note.decks);
+  const initialState = {
+    showModButtons: false,
+    addDeckReferencesUI: false,
+    addFlashCardUI: false,
+    isEditing: false,
+    showDeleteConfirmation: false,
+    note: { content: props.note.content },
+    decks: (props.note && props.note.decks)
+  };
+  const [local, localDispatch_] = useReducer(reducer, initialState);
+  function localDispatch(type, data) {
+    data = data || {};
+    localDispatch_({ ...data, type });
+  }
 
   function handleChangeEvent(event) {
     const target = event.target;
-    const name = target.name;
-    const value = target.value;
-
-    let newNote = {...note};
-    newNote[name] = value;
-
-    setNote(newNote);
+    localDispatch(NOTE_SET_PROPERTY, { name: target.name, value: target.value });
   };
 
   function onEditClicked() {
-    const isEditingNew = !isEditing;
-    setIsEditing(isEditingNew);
+    const isEditingNew = !local.isEditing; // isEditingNew is the state after the IS_EDITING_TOGGLE dispatch
+    localDispatch(IS_EDITING_TOGGLE);
 
     if (isEditingNew === false) {
-      setShowModButtons(false);
-
-      if (hasNoteBeenModified(note, props.note)) {
+      if (hasNoteBeenModified(local.note, props.note)) {
         const id = props.note.id;
 
         // send updated content to server
         //
-        editNote(id, note);
+        editNote(id, local.note);
 
         // stopped editing and the editable content is different than
         // the original note's text.
-        props.onEdited(id, note);
+        props.onEdited(id, local.note);
       }
     }
   };
 
   function onShowButtonsClicked() {
-    if (showModButtons) {
-      // about to hide the mod buttons, so reset the state of the 'add references' and 'add flash card' ui
-      if (showAddDecksUI) {
-        setShowAddDecksUI(false);
-      }
-      if (showAddFlashCardUI) {
-        setShowAddFlashCardUI(false);
-      }
-    }
-    setShowModButtons(!showModButtons);
+    localDispatch(MOD_BUTTONS_TOGGLE);
   };
 
   function buildEditableContent() {
@@ -69,7 +143,7 @@ export default function Note(props) {
         <textarea id="content"
                   type="text"
                   name="content"
-                  value=${ note.content }
+                  value=${ local.note.content }
                   onInput=${ handleChangeEvent }/>
       </div>`;
 
@@ -81,7 +155,7 @@ export default function Note(props) {
 
     function onCancel(e) {
       e.preventDefault();
-      setShowAddFlashCardUI(false);
+      localDispatch(ADD_FLASH_CARD_UI_SHOW, { value: false });
     }
 
     function onSave(e) {
@@ -93,9 +167,7 @@ export default function Note(props) {
       };
 
       Net.post("/api/sr", data).then(res => {
-        console.log(res);
-        setShowModButtons(false);
-        setShowAddFlashCardUI(false);
+        localDispatch(FLASH_CARD_SAVED);
       });
     }
 
@@ -128,15 +200,14 @@ export default function Note(props) {
       // 6. clicks cancel
       // expected: only the changes from step 5 should be undone
 
-      setDecks(props.note && props.note.decks);
-      setShowAddDecksUI(false);
+      // note: it's weird that the ADD_DECKS_CANCEL takes a value, but the ADD_DECKS_COMMIT doesn't
+      localDispatch(ADD_DECKS_CANCEL, { value: props.note && props.note.decks});
     };
 
     function commitAddDecks() {
-      addDecks(props.note, decks, props.onDecksChanged, dispatch);
+      addDecks(props.note, local.decks, props.onDecksChanged, dispatch);
 
-      setShowModButtons(false);
-      setShowAddDecksUI(false);
+      localDispatch(ADD_DECKS_COMMIT);
     };
 
     return html`
@@ -144,9 +215,9 @@ export default function Note(props) {
         <label>Connections:</label>
         <${ CivilSelect }
           parentDeckId=${ props.parentDeckId }
-          chosen=${ decks }
+          chosen=${ local.decks }
           available=${ state.ac.decks }
-          onChange=${ setDecks }
+          onChange=${ (d) => { localDispatch(DECKS_SET, { value: d });} }
           onCancelAddDecks=${ cancelAddDecks }
           onCommitAddDecks=${ commitAddDecks }
         />
@@ -155,9 +226,9 @@ export default function Note(props) {
 
   function buildMainButtons() {
     let editLabelText;
-    if (!isEditing) {
+    if (!local.isEditing) {
       editLabelText = "Edit...";
-    } else if (hasNoteBeenModified(note, props.note)) {
+    } else if (hasNoteBeenModified(local.note, props.note)) {
       // editing and have made changes
       editLabelText = "Save Edits";
     } else {
@@ -166,7 +237,7 @@ export default function Note(props) {
 
     function eventRegardingDeleteConfirmation(e, newVal) {
       e.preventDefault();
-      setShowDeleteConfirmation(newVal);
+      localDispatch(DELETE_CONFIRMATION_SHOW, { value: newVal });
     }
 
     function deleteClicked(e) {
@@ -180,27 +251,36 @@ export default function Note(props) {
       eventRegardingDeleteConfirmation(e, false);
     }
 
+
+    function toggleAddDeckReferencesUI() {
+      localDispatch(ADD_DECK_REFERENCES_UI_SHOW, { value: !local.addDeckReferencesUI });
+    }
+
+    function toggleAddFlashCardUI() {
+      localDispatch(ADD_FLASH_CARD_UI_SHOW, { value: !local.addFlashCardUI });
+    }
+
     return html`
       <div class="block-width">
-        ${ !showDeleteConfirmation && html`<button onClick=${ onEditClicked }>${ editLabelText }</button>`}
-        ${ isEditing && !showDeleteConfirmation && html`<button onClick=${ deleteClicked }>Delete</button>` }
-        ${ isEditing && showDeleteConfirmation && html`
+        ${ !local.showDeleteConfirmation && html`<button onClick=${ onEditClicked }>${ editLabelText }</button>`}
+        ${ local.isEditing && !local.showDeleteConfirmation && html`<button onClick=${ deleteClicked }>Delete</button>` }
+        ${ local.isEditing && local.showDeleteConfirmation && html`
                                                     <span class="delete-confirmation">Really Delete?</span>
                                                     <button onClick=${ cancelDeleteClicked }>Cancel</button>
                                                     <button onClick=${ confirmDeleteClicked }>Yes Delete</button>`}
-        ${ isEditing && html`<${ImageWidget}/>` }
-        ${ !isEditing && html`<button onClick=${ () => { setShowAddDecksUI(!showAddDecksUI); } }>References...</button>` }
-        ${ !isEditing && html`<button class="add-flash-card" onClick=${ () => { setShowAddFlashCardUI(!showAddFlashCardUI); } }>Add Flash Card...</button>` }
+        ${ local.isEditing && html`<${ImageWidget}/>` }
+        ${ !local.isEditing && html`<button onClick=${ toggleAddDeckReferencesUI }>References...</button>` }
+        ${ !local.isEditing && html`<button class="add-flash-card" onClick=${ toggleAddFlashCardUI }>Add Flash Card...</button>` }
       </div>
 `;
   }
 
   return html`
     <div class="note">
-      ${ isEditing ? buildEditableContent() : buildReadingContent(note, props.note.id, onShowButtonsClicked, props.note.decks, state.imageDirectory) }
-      ${ showModButtons && showAddDecksUI && buildAddDecksUI() }
-      ${ showModButtons && showAddFlashCardUI && buildAddFlashCardUI() }
-      ${ showModButtons && !showAddDecksUI && !showAddFlashCardUI && buildMainButtons() }
+      ${ local.isEditing ? buildEditableContent() : buildReadingContent(local.note, props.note.id, onShowButtonsClicked, props.note.decks, state.imageDirectory) }
+      ${ local.showModButtons && local.addDeckReferencesUI && buildAddDecksUI() }
+      ${ local.showModButtons && local.addFlashCardUI && buildAddFlashCardUI() }
+      ${ local.showModButtons && !local.addDeckReferencesUI && !local.addFlashCardUI && buildMainButtons() }
     </div>
 `;
 }
