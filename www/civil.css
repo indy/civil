@@ -185,11 +185,11 @@ h3 {
 
 hr {
   display: block;
-  height: 1em;
+  height: 1rem;
   width: var(--block-width);
   border: 0;
-  border-top: 2px solid var(--divider);
-  margin: 1em 0;
+  border-top: 0.15rem solid var(--divider);
+  margin: 1rem 0;
   padding: 0;
 }
 
@@ -517,10 +517,10 @@ label.margin-toggle:not(.sidenote-number) {
  */
 
 form {
-  width: 20em;
+  width: 20rem;
 }
 form label {
-  margin-left: 0.5em;
+  margin-left: 0.5rem;
 }
 input {
   width: 90%;
@@ -528,24 +528,24 @@ input {
 
 textarea {
   width: var(--block-width);
-  height: 15em;
+  height: 15rem;
 }
 
 textarea.new-note-textarea {
   width: 100%;
-  height: 25em;
-  margin-top: 1em;
+  height: 25rem;
+  margin-top: 1rem;
 }
 
 input[type="radio"] {
   width: 10%;
-  margin-top: 1em;
+  margin-top: 1rem;
 }
 
 [type="submit"] {
-  margin-top: 1em;
-  margin-bottom: 3em;
-  width: 10em;
+  margin-top: 1rem;
+  margin-bottom: 3rem;
+  width: 10rem;
 }
 
 button,
@@ -614,7 +614,7 @@ button:-moz-focusring,
 }
 
 fieldset {
-  padding: 0.35em 0.75em 0.625em;
+  padding: 0.35rem 0.75rem 0.625rem;
 }
 
 legend {
@@ -701,8 +701,8 @@ textarea {
 /* -------------------------------------------------------------------------------- */
 
 #root {
-  border-left: 0.1em solid var(--bg2);
-  padding: 1em;
+  border-left: 0.1rem solid var(--bg2);
+  padding: 1rem;
 }
 
 a:link.pigment-inherit,
@@ -721,23 +721,23 @@ a:visited.pigment-inherit {
 .pigment-fg-timelines { color: var(--fg-timelines); }
 
 .delete-confirmation {
-  padding-left: 3em;
-  padding-right: 1em;
-  font-size: 1.3em;
+  padding-left: 3rem;
+  padding-right: 1rem;
+  font-size: 1.3rem;
 }
 
 /* -------------------------------------------------------------------------------- */
 
 .image-widget-hover-message {
-  font-size: 4em;
+  font-size: 4rem;
   z-index: -1;                  /* beneath the transparent widget container which used for drag and drop */
   margin: auto;
 }
 
 .image-widget-hovering {
   background: rgba(255, 128, 64, 0.2) !important; /* transparent hover region */
-  height:150px;
-  padding: 1em 0 2.5em 0;
+  height:15rem;
+  padding: 1rem 0 2.5rem 0;
 }
 
 .image-widget-container {
@@ -745,17 +745,17 @@ a:visited.pigment-inherit {
   display: flex;
   flex-wrap: nowrap;
   overflow-x: auto;
-  padding-bottom: 1em;
+  padding-bottom: 1rem;
 }
 
 .image-widget-item {
   /* flex: 0 0 auto; */
-  padding: 1em 0 1em 1em;
+  padding: 1rem 0 1rem 1rem;
 }
 
 .image-widget-img {
   height:100%;
-  max-height:150px;
+  max-height:15rem;
 }
 
 /* -------------------------------------------------------------------------------- */
@@ -768,16 +768,16 @@ a:visited.pigment-inherit {
 }
 .civsel-candidate {
   background: #ecd2a2;
-  padding: 0.4em;
-  margin: 0.2em;
+  padding: 0.4rem;
+  margin: 0.2rem;
   width: max-content;
   cursor: cell;
 }
 
 .civsel-reference {
   background: #ecd2a2;
-  padding: 0.4em;
-  margin: 0.2em;
+  padding: 0.4rem;
+  margin: 0.2rem;
   width: max-content;
 }
 
@@ -786,8 +786,8 @@ a:visited.pigment-inherit {
 }
 
 .civsel-annotation {
-  width: 30em;
-  margin-left: 1em;
+  width: 30rem;
+  margin-left: 1rem;
 }
 
 /* -------------------------------------------------------------------------------- */
@@ -807,8 +807,8 @@ section.rolled-up {
 
 .quickfind-candidate {
   background: #ecd2a2;
-  padding: 0.4em;
-  margin: 0.2em;
+  padding: 0.4rem;
+  margin: 0.2rem;
   width: max-content;
   cursor: pointer;
 }
@@ -816,8 +816,8 @@ section.rolled-up {
 /* -------------------------------------------------------------------------------- */
 
 .pointform-block label { }
-.pointform-block input { width: 2em; margin-top: 0.3em; }
-.pointform-space-top { margin-top: 1em; }
+.pointform-block input { width: 2rem; margin-top: 0.3rem; }
+.pointform-space-top { margin-top: 1rem; }
 
 em:before {
   content: "\00201C";           /* opening double quote: &#8220; converted to hex*/
@@ -871,7 +871,7 @@ a:link.note-inline-link {
 .margin-scribble {
   font-family: 'Nothing You Could Do', cursive;
   color: var(--scribble);
-  font-size: 1.5em;
+  font-size: 1.5rem;
   text-align: left;
 }
 
@@ -880,11 +880,11 @@ label.margin-toggle {
 }
 
 .shell-block {
-  padding: 2em 0 2em 2em;
+  padding: 2rem 0 2rem 2rem;
 }
 
 .shell-line {
-  padding: 0.2em 0 0.2em 0;
+  padding: 0.2rem 0 0.2rem 0;
 }
 
 .invisible { display: none; }
@@ -924,7 +924,7 @@ section > form { width: var(--block-width); }
 
 /* the left-hand spanne that contains noterefs, 'add note icons' etc*/
 .spanne {
-  padding-top: 0.5em;
+  padding-top: 0.5rem;
   float: left;
   margin-left: -40%;
   width: 40%;
@@ -935,14 +935,14 @@ section > form { width: var(--block-width); }
 }
 .spanne-in-listing {
   /* don't want the padding as each li is only a single line */
-  padding-top: 0.0em;
+  padding-top: 0.0rem;
 }
 
 /* like spanne but inline for adding notes to points */
 .inline-spanne {
   color: var(--fg1);
   font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
-  margin-left: 4em;
+  margin-left: 4rem;
 }
 
 @media (max-width: 1200px) {
@@ -963,7 +963,7 @@ section > form { width: var(--block-width); }
 }
 
 .cancel-offset {
-  margin-top: 2em;
+  margin-top: 2rem;
 }
 
 .clickable {
@@ -971,7 +971,7 @@ section > form { width: var(--block-width); }
 }
 
 .spanne-entry {
-  padding-right: 3em;
+  padding-right: 3rem;
 }
 
 .spanne-entry a {
@@ -980,17 +980,17 @@ section > form { width: var(--block-width); }
 
 .spanne-icon-label {
   vertical-align: super;
-  margin-right: 0.5em;
+  margin-right: 0.5rem;
 }
 
 .append-note {
-  margin-top: 2em;
-  margin-bottom: 4em;
+  margin-top: 2rem;
+  margin-bottom: 4rem;
 }
 
 #top-bar-menu {
-  padding-bottom: 0.5em;
-  border-bottom-width: 0.1em;
+  padding-bottom: 0.5rem;
+  border-bottom-width: 0.1rem;
   border-bottom-style: solid;
   border-color: var(--divider);
 
@@ -1002,27 +1002,27 @@ mark {
 }
 
 a.top-bar-menuitem {
-  margin-left: 1em;
-  margin-right: 1em;
-  padding: 0.4em 1em 0.2em 1em;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  padding: 0.4rem 1rem 0.2rem 1rem;
   border-radius: var(--coloured-deck-border-radius);
 }
 
 .noteref-kind {
   font-size: 75%;
   color: var(--fg1);
-  padding-right: 1em;
+  padding-right: 1rem;
 }
 
 .noteref {
-  padding: 0.1em 0.5em 0.1em 0.5em;
+  padding: 0.1rem 0.5rem 0.1rem 0.5rem;
   border-radius: var(--coloured-deck-border-radius);
 }
 
 .noteref-annotation {
   font-family: 'Nothing You Could Do', cursive;
-  padding-bottom: 0.3em;
-  width: 20em;
+  padding-bottom: 0.3rem;
+  width: 20rem;
   float: right;
 }
 
@@ -1032,18 +1032,18 @@ a.top-bar-menuitem {
 
 blockquote.quote > textarea {
   width: var(--block-width);
-  height: 10em;
+  height: 10rem;
 }
 
 div.note > textarea {
   width: 100%;
-  height: 10em;
+  height: 10rem;
 }
 
 .civil-form {
   font-family: monospace;
-  padding-top: 2em;
-  padding-bottom: 1em;
+  padding-top: 2rem;
+  padding-bottom: 1rem;
 }
 
 .civil-add-note-form {
@@ -1054,7 +1054,7 @@ div.note > textarea {
 .civil-date-hint {
   color: var(--fg1);
   float:right;
-  padding-right: 1em;
+  padding-right: 1rem;
 }
 
 .civil-date-hint-after {
@@ -1074,21 +1074,21 @@ a bunch of hacks so that notes within points look correct
 */
 /* set .point-notes to match tufte.css:44 */
 .point-notes {
-  font-size: 15px;
+  font-size: 1rem;
 }
 
 div.point-notes > div.note > div > div > p {
-  margin-left: 3em;
+  margin-left: 3rem;
   width: var(--block-width-indented);
 }
 /* -------------------------------------------------------------------------------- */
 
 .point-title {
-  padding-bottom: 1em;
+  padding-bottom: 1rem;
 }
 
 .civil-location input[type=number]{
-  width: 5em;
+  width: 5rem;
 }
 
 input:required {
@@ -1105,10 +1105,10 @@ input:required {
 }
 
 .deckpoint-block label {}
-.deckpoint-block input { width: 2em; margin-top: 0.3em; margin-left: 2em;}
+.deckpoint-block input { width: 2rem; margin-top: 0.3rem; margin-left: 2rem;}
 
-/* .deckpoint-block label { display: inline-block; width: 12em; text-align: right; } */
-/* .deckpoint-block input { width: 2em; } */
+/* .deckpoint-block label { display: inline-block; width: 12rem; text-align: right; } */
+/* .deckpoint-block input { width: 2rem; } */
 
 .deckpoint {
   color: var(--fg1);
@@ -1121,17 +1121,17 @@ input:required {
 
 .deckpoint-age {
   display: inline-block;
-  width: 1.5em;
+  width: 1.5rem;
 }
 
 /* compacted list: squish the elements together as comma separated items */
 
 .compacted-list {
-  padding-left: 1.5em;
+  padding-left: 1.5rem;
 }
 
 .compacted-list > li {
-  padding-right: 0.5em;
+  padding-right: 0.5rem;
   display: inline-block;
 
 }
@@ -1147,7 +1147,7 @@ input:required {
 /* standard list: every element is on a separate line */
 
 .standard-list {
-  padding-left: 1em;
+  padding-left: 1rem;
 }
 
 .standard-list > li {
@@ -1157,8 +1157,8 @@ input:required {
 .short-description {
   font-family: 'Nothing You Could Do', cursive;
   color: var(--scribble);
-  margin-left: 1em;
-  font-size: 1em;
+  margin-left: 1rem;
+  font-size: 1rem;
 }
 
 @media (max-width: 700px) {
@@ -1166,7 +1166,7 @@ input:required {
     margin-left: 0;
   }
   #login-menuitem {
-    margin-bottom: 1em;
+    margin-bottom: 1rem;
   }
 }
 
@@ -1182,20 +1182,20 @@ input:required {
 
 .sr-section {
   font-size: x-large;
-  margin-top: 1em;
-  border-top: 0.1em solid var(--bg2);
-  padding-top: 1em;
+  margin-top: 1rem;
+  border-top: 0.1rem solid var(--bg2);
+  padding-top: 1rem;
   width: var(--block-width);
   text-decoration: underline;
 }
 
 .rating-values {
-  margin-top: 1em;
+  margin-top: 1rem;
 
 }
 
 .rating-value {
-  margin: 0 1em;
+  margin: 0 1rem;
   font-size: xx-large;
   cursor: pointer;
 }
@@ -1203,5 +1203,5 @@ input:required {
 .sr-rating-descriptions {
   list-style: none;
   color: var(--fg1);
-  margin-top: 3em;
+  margin-top: 3rem;
 }
