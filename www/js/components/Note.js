@@ -1,5 +1,6 @@
-import { h, html, Link, useState, useEffect, useReducer } from '/lib/preact/mod.js';
+import { h, html, Link, useState, useEffect } from '/lib/preact/mod.js';
 
+import { useLocalReducer } from '/js/PreactUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
@@ -22,7 +23,7 @@ const reducer = (state, action) => {
   switch(action.type) {
   case NOTE_SET_PROPERTY: {
     const newNote = { ...state.note };
-    newNote[action.name] = action.value;
+    newNote[action.data.name] = action.data.value;
     return {
       ...state,
       note: newNote
@@ -31,22 +32,22 @@ const reducer = (state, action) => {
   case ADD_DECK_REFERENCES_UI_SHOW:
     return {
       ...state,
-      addDeckReferencesUI: action.value
+      addDeckReferencesUI: action.data
     }
   case ADD_FLASH_CARD_UI_SHOW:
     return {
       ...state,
-      addFlashCardUI: action.value
+      addFlashCardUI: action.data
     }
   case DELETE_CONFIRMATION_SHOW:
     return {
       ...state,
-      showDeleteConfirmation: action.value
+      showDeleteConfirmation: action.data
     }
   case DECKS_SET:
     return {
       ...state,
-      decks: action.value
+      decks: action.data
     }
   case ADD_DECKS_COMMIT:
     return {
@@ -57,7 +58,7 @@ const reducer = (state, action) => {
   case ADD_DECKS_CANCEL:
     return {
       ...state,
-      decks: action.value,
+      decks: action.data,
       addDeckReferencesUI: false
     }
   case FLASH_CARD_SAVED:
@@ -103,11 +104,7 @@ export default function Note(props) {
     note: { content: props.note.content },
     decks: (props.note && props.note.decks)
   };
-  const [local, localDispatch_] = useReducer(reducer, initialState);
-  function localDispatch(type, data) {
-    data = data || {};
-    localDispatch_({ ...data, type });
-  }
+  const [local, localDispatch] = useLocalReducer(reducer, initialState);
 
   function handleChangeEvent(event) {
     const target = event.target;
@@ -155,7 +152,7 @@ export default function Note(props) {
 
     function onCancel(e) {
       e.preventDefault();
-      localDispatch(ADD_FLASH_CARD_UI_SHOW, { value: false });
+      localDispatch(ADD_FLASH_CARD_UI_SHOW, false);
     }
 
     function onSave(e) {
@@ -201,7 +198,7 @@ export default function Note(props) {
       // expected: only the changes from step 5 should be undone
 
       // note: it's weird that the ADD_DECKS_CANCEL takes a value, but the ADD_DECKS_COMMIT doesn't
-      localDispatch(ADD_DECKS_CANCEL, { value: props.note && props.note.decks});
+      localDispatch(ADD_DECKS_CANCEL, props.note && props.note.decks);
     };
 
     function commitAddDecks() {
@@ -217,7 +214,7 @@ export default function Note(props) {
           parentDeckId=${ props.parentDeckId }
           chosen=${ local.decks }
           available=${ state.ac.decks }
-          onChange=${ (d) => { localDispatch(DECKS_SET, { value: d });} }
+          onChange=${ (d) => { localDispatch(DECKS_SET, d);} }
           onCancelAddDecks=${ cancelAddDecks }
           onCommitAddDecks=${ commitAddDecks }
         />
@@ -237,7 +234,7 @@ export default function Note(props) {
 
     function eventRegardingDeleteConfirmation(e, newVal) {
       e.preventDefault();
-      localDispatch(DELETE_CONFIRMATION_SHOW, { value: newVal });
+      localDispatch(DELETE_CONFIRMATION_SHOW, newVal);
     }
 
     function deleteClicked(e) {
@@ -253,11 +250,11 @@ export default function Note(props) {
 
 
     function toggleAddDeckReferencesUI() {
-      localDispatch(ADD_DECK_REFERENCES_UI_SHOW, { value: !local.addDeckReferencesUI });
+      localDispatch(ADD_DECK_REFERENCES_UI_SHOW, !local.addDeckReferencesUI);
     }
 
     function toggleAddFlashCardUI() {
-      localDispatch(ADD_FLASH_CARD_UI_SHOW, { value: !local.addFlashCardUI });
+      localDispatch(ADD_FLASH_CARD_UI_SHOW, !local.addFlashCardUI);
     }
 
     return html`

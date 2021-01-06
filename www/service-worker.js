@@ -21,7 +21,7 @@
 
 // NOTE: Makefile will alter these variables when building a release build
 var devMode = true;
-var CACHE_NAME = "civil-20210104d";
+var CACHE_NAME = "civil-20210104e";
 
 var precacheConfig = [
   "/apple-touch-icon.png",
@@ -33,6 +33,7 @@ var precacheConfig = [
   "/js/CivilUtils.js",
   "/js/JsUtils.js",
   "/js/Net.js",
+  "/js/PreactUtils.js",
   "/js/eras.js",
   "/js/graphPhysics.js",
   "/js/index.js",

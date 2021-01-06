@@ -1,7 +1,8 @@
-import { html, useState, useEffect, useReducer, Link } from '/lib/preact/mod.js';
+import { html, useState, useEffect, Link } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { plural } from '/js/JsUtils.js';
+import { useLocalReducer } from '/js/PreactUtils.js';
 
 import { useStateValue } from '/js/StateProvider.js';
 import buildMarkup from '/js/components/BuildMarkup.js';
@@ -24,7 +25,7 @@ const reducer = (state, action) => {
   switch(action.type) {
   case CARDS_SET: return {
     ...state,
-    cards: action.cards
+    cards: action.data
   };
   case TEST_START: return {
     ...state,
@@ -38,7 +39,8 @@ const reducer = (state, action) => {
     // step 7 from the algorithm at https://www.supermemo.com/en/archives1990-2015/english/ol/sm2
     // "After each repetition session of a given day repeat again all items that scored below four in the quality assessment. Continue the repetitions until all of these items score at least four."
 
-    if (action.rating < 4) {
+    const rating = action.data;
+    if (rating < 4) {
       // retain this card to test again
       if ((cardIndex + 1) >= cards.length) {
         // reached the end of the cards to test for
@@ -69,15 +71,11 @@ const reducer = (state, action) => {
 };
 
 export default function SpacedRepetition(props) {
-  let [local, localDispatch_] = useReducer(reducer, initialState);
-  function localDispatch(type, data) {
-    data = data || {};
-    localDispatch_({ ...data, type });
-  }
+  let [local, localDispatch] = useLocalReducer(reducer, initialState);
 
   useEffect(() => {
     Net.get('/api/sr').then(cards => {
-      localDispatch(CARDS_SET, { cards });
+      localDispatch(CARDS_SET, cards);
     });
   }, []);
 
@@ -92,7 +90,7 @@ export default function SpacedRepetition(props) {
     }).then(success => {
       // todo: return a success value from the server, check it here
     });
-    localDispatch(CARD_COMPLETED, { rating });
+    localDispatch(CARD_COMPLETED, rating);
   }
 
   const canTest = local.cards.length > 0;
