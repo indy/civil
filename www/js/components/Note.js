@@ -19,7 +19,7 @@ const FLASH_CARD_SAVED = 'flash-card-saved';
 const MOD_BUTTONS_TOGGLE = 'mod-buttons-toggle';
 const IS_EDITING_TOGGLE = 'is-editing-toggle';
 
-const reducer = (state, action) => {
+function reducer(state, action) {
   switch(action.type) {
   case NOTE_SET_PROPERTY: {
     const newNote = { ...state.note };

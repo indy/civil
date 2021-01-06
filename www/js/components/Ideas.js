@@ -72,9 +72,11 @@ function UpdateIdeaForm({ idea }) {
   const [verbatimIdea, setVerbatimIdea] = useState(idea.idea_category === 'Verbatim');
   const [graphTerminator, setGraphTerminator] = useState(idea.graph_terminator);
 
-  if (idea.title && idea.title !== '' && title === '') {
-    setTitle(idea.title);
-  }
+  useEffect(() => {
+    if (idea.title && idea.title !== '' && title === '') {
+      setTitle(idea.title);
+    }
+  }, [idea]);
 
   const handleChangeEvent = (event) => {
     const target = event.target;

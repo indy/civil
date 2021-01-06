@@ -1,32 +1,106 @@
-import { html, Link, useState, useEffect } from '/lib/preact/mod.js';
+import { html, useState, useEffect } from '/lib/preact/mod.js';
+import { useLocalReducer } from '/js/PreactUtils.js';
+
+const ESC_KEY_DOWN = 'esc-key-down';
+const CTRL_KEY_DOWN = 'ctrl-key-down';
+const CTRL_KEY_UP = 'ctrl-key-up';
+const REFERENCE_REMOVE = 'reference-remove';
+const REFERENCE_CHANGE_KIND = 'reference-change-kind';
+const REFERENCE_CHANGE_ANNOTATION = 'reference-change-annotation';
+const CANDIDATES_SET = 'candidate-set';
+const SELECT_ADD = 'select-add';
+
+function reducer(state, action) {
+  switch(action.type) {
+  case ESC_KEY_DOWN: return {
+    ...state,
+    candidates: []
+  };
+  case CTRL_KEY_DOWN: {
+    const e = action.data;
+
+    const newState = {
+      ...state,
+      showKeyboardShortcuts: true
+    };
+
+    if (e.keyCode >= 49 && e.keyCode <= 57) {
+      // Ctrl + digit
+      const digit = e.keyCode - 48;
+
+      if (digit - 1 < newState.currentlyChosen.length) {
+        // delete from currently chosen
+        newState.currentlyChosen = newState.currentlyChosen.filter((cv, i) => i !== digit - 1);
+      } else {
+        const indexToAdd = digit - newState.currentlyChosen.length - 1;
+
+        if (newState.candidates.length > indexToAdd) {
+          newState.canSave = true;
+          newState.currentlyChosen = newState.currentlyChosen.concat([newState.candidates[indexToAdd]]);
+        }
+      }
+    }
+
+    return newState;
+  }
+  case CTRL_KEY_UP: return {
+    ...state,
+    showKeyboardShortcuts: false
+  };
+  case REFERENCE_REMOVE: return {
+    ...state,
+    canSave: true,
+    currentlyChosen: state.currentlyChosen.filter(cv => { return cv.name !== action.data;})
+  }
+  case REFERENCE_CHANGE_KIND: return {
+      ...state,
+      canSave: true,
+      currentlyChosen: state.currentlyChosen.map(cv => {
+        if (cv.id === action.data.reference.id) {
+          cv.kind = action.data.newKind;
+        }
+        return cv;
+      })
+  }
+  case REFERENCE_CHANGE_ANNOTATION: return {
+    ...state,
+    canSave: true,
+    currentlyChosen: state.currentlyChosen.map(cv => {
+      if (cv.id === action.data.reference.id) {
+        cv.annotation = action.data.annotation;
+      }
+      return cv;
+    })
+  };
+  case SELECT_ADD: return {
+    ...state,
+    canSave: true,
+    currentlyChosen: state.currentlyChosen.concat([action.data])
+  }
+  case CANDIDATES_SET: return {
+    ...state,
+    candidates: action.data
+  }
+  default: throw new Error(`unknown action: ${action}`);
+  }
+
+}
 
 export default function CivilSelect({ parentDeckId, chosen, available, onChange, onCancelAddDecks, onCommitAddDecks }) {
-  const [currentlyChosen, setCurrentlyChosen] = useState(chosen || []);
-  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
-  const [candidates, setCandidates] = useState([]);
-  const [canSave, setCanSave] = useState(false);
+  const [local, localDispatch] = useLocalReducer(reducer, {
+    currentlyChosen: chosen || [],
+    showKeyboardShortcuts: false,
+    candidates: [],
+    canSave: false
+  });
 
   const onKeyDown = e => {
     if (e.key === "Escape") {
-      setCandidates([]);
+      localDispatch(ESC_KEY_DOWN);
     }
     if (e.ctrlKey) {
-      setShowKeyboardShortcuts(true);
-      if (e.keyCode >= 49 && e.keyCode <= 57) {
-        // Ctrl + digit
-        const digit = e.keyCode - 48;
-
-        if (digit - 1 < currentlyChosen.length) {
-          // delete from currently chosen
-          setCurrentlyChosen(currentlyChosen.filter((cv, i) => i !== digit - 1));
-        } else {
-          const indexToAdd = digit - currentlyChosen.length - 1;
-
-          if (candidates.length > indexToAdd) {
-            onSelectedAdd(candidates[indexToAdd]);
-          }
-        }
-      } else if (e.key === "Enter") {
+      localDispatch(CTRL_KEY_DOWN, e);
+      if (e.key === "Enter") {
         // Ctrl+Enter == save
         onCommitAddDecks();
       }
@@ -35,7 +109,7 @@ export default function CivilSelect({ parentDeckId, chosen, available, onChange,
 
   const onKeyUp = e => {
     if (e.key === "Control") {
-      setShowKeyboardShortcuts(false);
+      localDispatch(CTRL_KEY_UP);
     }
   };
 
@@ -43,7 +117,7 @@ export default function CivilSelect({ parentDeckId, chosen, available, onChange,
     // no 'kind' value is populated if the the default is used, so we have to manually add it
     // (fuck the web, the entire thing needs to be burnt to the ground)
     //
-    let cv = currentlyChosen.map(c => {
+    let cv = local.currentlyChosen.map(c => {
       if (!c.kind) {
         c.kind = "Ref";
       }
@@ -57,59 +131,29 @@ export default function CivilSelect({ parentDeckId, chosen, available, onChange,
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("keyup", onKeyUp);
     };
-  }, [currentlyChosen, candidates]);
+  }, [local]);
 
-  function onReferenceRemove(e) {
-    setCanSave(true);
-    setCurrentlyChosen(currentlyChosen.filter(cv => { return cv.name !== e.name;}));
-  }
-
-  function onReferenceChangeKind(reference, newKind) {
-    setCanSave(true);
-    let newChosen = currentlyChosen.map(cv => {
-      if (cv.id === reference.id) {
-        cv.kind = newKind;
-      }
-      return cv;
-    });
-
-    setCurrentlyChosen(newChosen);
-  }
-
-  function onReferenceChangeAnnotation(reference, annotation) {
-    setCanSave(true);
-    let newChosen = currentlyChosen.map(cv => {
-      if (cv.id === reference.id) {
-        cv.annotation = annotation;
-      }
-      return cv;
-    });
-
-    setCurrentlyChosen(newChosen);
-  }
-
-  function onSelectedAdd(candidate) {
-    setCanSave(true);
-    setCurrentlyChosen(currentlyChosen.concat([candidate]));
+  function buildSelectedReference(value, i) {
+    return html`<${SelectedReference}
+                  reference=${value}
+                  onRemove=${ (e) => localDispatch(REFERENCE_REMOVE, e.name) }
+                  onChangeKind=${ (reference, newKind) => localDispatch(REFERENCE_CHANGE_KIND, { reference, newKind })}
+                  onChangeAnnotation=${ (reference, annotation) => localDispatch(REFERENCE_CHANGE_ANNOTATION, { reference, annotation})}
+                  keyIndex=${ i + 1 }
+                  showKeyboardShortcuts=${ local.showKeyboardShortcuts } />`;
   }
 
   return html`<div class='civsel-main-box'>
-                ${ currentlyChosen.map((value, i) => html`<${SelectedReference}
-                                                        reference=${value}
-                                                        onRemove=${onReferenceRemove}
-                                                        onChangeKind=${onReferenceChangeKind}
-                                                        onChangeAnnotation=${onReferenceChangeAnnotation}
-                                                        keyIndex=${ i + 1 }
-                                                        showKeyboardShortcuts=${ showKeyboardShortcuts } />`) }
+                ${ local.currentlyChosen.map((value, i) => buildSelectedReference(value, i)) }
                 <${Input} available=${ available }
                           parentDeckId=${ parentDeckId }
-                          candidates=${ candidates }
-                          setCandidates=${ setCandidates }
-                          onAdd=${ onSelectedAdd }
-                          currentlyChosen=${ currentlyChosen }
-                          showKeyboardShortcuts=${ showKeyboardShortcuts }/>
+                          candidates=${ local.candidates }
+                          setCandidates=${ (candidates) => localDispatch(CANDIDATES_SET, candidates) }
+                          onAdd=${ (candidate) => localDispatch(SELECT_ADD, candidate) }
+                          currentlyChosen=${ local.currentlyChosen }
+                          showKeyboardShortcuts=${ local.showKeyboardShortcuts }/>
                <button onClick=${ onCancelAddDecks }>Cancel</button>
-               <button onClick=${ onCommitAddDecks } disabled=${ !canSave }>${ showKeyboardShortcuts && html`Ctrl-Enter`} Save Changes</button>
+               <button onClick=${ onCommitAddDecks } disabled=${ !local.canSave }>${ local.showKeyboardShortcuts && html`Ctrl-Enter`} Save Changes</button>
               </div>`;
 }
 

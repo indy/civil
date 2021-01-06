@@ -5,28 +5,6 @@ import { svgTickedCheckBox, svgUntickedCheckBox, svgChevronLeft, svgChevronRight
 
 import graphPhysics from "/js/graphPhysics.js";
 
-function mouseInSvg(mouseX, mouseY, svgContainer) {
-  const svgElement = svgContainer.firstChild;
-
-  const innerViewport = svgElement.viewBox.baseVal;
-
-  const relToSvgElementX = mouseX - svgContainer.offsetLeft;
-  const relToSvgElementY = mouseY - svgContainer.offsetTop;
-
-  const outerViewportWidth = svgElement.clientWidth;
-  const outerViewportHeight = svgElement.clientHeight;
-
-  const tx = relToSvgElementX / outerViewportWidth;
-  let ansx = innerViewport.width * tx;
-  ansx += innerViewport.x;
-
-  const ty = relToSvgElementY / outerViewportHeight;
-  let ansy = innerViewport.height * ty;
-  ansy += innerViewport.y;
-
-  return [ansx, ansy];
-}
-
 let gUpdateGraphCallback = undefined;
 let gGraphState = undefined;
 
@@ -159,6 +137,27 @@ export default function Graph({ id, depth, isIdea }) {
 </div>`;
 }
 
+function mouseInSvg(mouseX, mouseY, svgContainer) {
+  const svgElement = svgContainer.firstChild;
+
+  const innerViewport = svgElement.viewBox.baseVal;
+
+  const relToSvgElementX = mouseX - svgContainer.offsetLeft;
+  const relToSvgElementY = mouseY - svgContainer.offsetTop;
+
+  const outerViewportWidth = svgElement.clientWidth;
+  const outerViewportHeight = svgElement.clientHeight;
+
+  const tx = relToSvgElementX / outerViewportWidth;
+  let ansx = innerViewport.width * tx;
+  ansx += innerViewport.x;
+
+  const ty = relToSvgElementY / outerViewportHeight;
+  let ansy = innerViewport.height * ty;
+  ansy += innerViewport.y;
+
+  return [ansx, ansy];
+}
 
 function buildSvg(ref, graphState, root_id) {
   let svg = {

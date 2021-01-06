@@ -21,7 +21,7 @@ const CARDS_SET = 'cards-set';
 const TEST_START = 'test-start';
 const CARD_COMPLETED = 'card-completed';
 
-const reducer = (state, action) => {
+function reducer(state, action) {
   switch(action.type) {
   case CARDS_SET: return {
     ...state,

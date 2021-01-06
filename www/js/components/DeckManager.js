@@ -2,6 +2,7 @@ import { html, useState, useEffect, route } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { removeEmptyStrings } from '/js/JsUtils.js';
+import { useLocalReducer } from '/js/PreactUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { useWasmInterface } from '/js/WasmInterfaceProvider.js';
 
@@ -10,6 +11,40 @@ import { svgEdit, svgCancel, svgTickedCheckBox, svgUntickedCheckBox } from '/js/
 import Note from '/js/components/Note.js';
 import PointForm from '/js/components/PointForm.js';
 import ImageWidget from '/js/components/ImageWidget.js';
+
+
+
+const BUTTONS_TOGGLE = 'buttons-toggle';
+const UPDATE_FORM_TOGGLE = 'update-form-toggle';
+const DELETE_CONFIRMATION_SHOW = 'delete-confirmation-show';
+const DELETE_CONFIRMATION_HIDE = 'delete-confirmation-hide';
+
+function reducer(state, action) {
+  switch(action.type) {
+  case BUTTONS_TOGGLE:
+    return {
+      ...state,
+      showButtons: !state.showButtons,
+      showUpdateForm: false
+    }
+  case UPDATE_FORM_TOGGLE:
+    return {
+      ...state,
+      showUpdateForm: !state.showUpdateForm
+    }
+  case DELETE_CONFIRMATION_SHOW:
+    return {
+      ...state,
+      showDeleteConfirmation: true
+    }
+  case DELETE_CONFIRMATION_HIDE:
+    return {
+      ...state,
+      showDeleteConfirmation: false
+    }
+  default: throw new Error(`unknown action: ${action}`);
+  }
+}
 
 // preCacheFn performs any one-off calculations before caching the Deck
 export default function DeckManager({ deck, title, resource, updateForm, preCacheFn }) {
@@ -43,30 +78,30 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
     }
   }, [deck]);
 
-  const [showButtons, setShowButtons] = useState(false);
-  const [showUpdateForm, setShowUpdateForm] = useState(false);
-  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [local, localDispatch] = useLocalReducer(reducer, {
+    showButtons: false,
+    showUpdateForm: false,
+    showDeleteConfirmation: false
+  });
 
   function buildButtons() {
     function onEditParentClicked(e) {
-      setShowUpdateForm(!showUpdateForm);
       e.preventDefault();
+      localDispatch(UPDATE_FORM_TOGGLE);
     };
 
-    function eventRegardingDeleteConfirmation(e, newVal) {
-      e.preventDefault();
-      setShowDeleteConfirmation(newVal);
-    }
-
     function onDeleteParentClicked(e) {
-      eventRegardingDeleteConfirmation(e, true);
+      e.preventDefault();
+      localDispatch(DELETE_CONFIRMATION_SHOW);
     };
 
     function cancelDeleteClicked(e) {
-      eventRegardingDeleteConfirmation(e, false);
+      e.preventDefault();
+      localDispatch(DELETE_CONFIRMATION_HIDE);
     }
 
     function confirmDeleteClicked(e) {
+      e.preventDefault();
       Net.delete(`/api/${resource}/${deck.id}`).then(() => {
         // remove the resource from the app state
         dispatch({
@@ -75,33 +110,29 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
         });
         route(`/${resource}`, true);
       });
-      eventRegardingDeleteConfirmation(e, false);
+      localDispatch(DELETE_CONFIRMATION_HIDE);
     }
 
     return html`
       <div>
-        ${ !showDeleteConfirmation && html`<button onClick=${ onEditParentClicked }>Edit...</button>`}
-        ${ !showDeleteConfirmation && html`<button onClick=${ onDeleteParentClicked }>Delete...</button>`}
-        ${ showDeleteConfirmation && html`
+        ${ !local.showDeleteConfirmation && html`<button onClick=${ onEditParentClicked }>Edit...</button>`}
+        ${ !local.showDeleteConfirmation && html`<button onClick=${ onDeleteParentClicked }>Delete...</button>`}
+        ${ local.showDeleteConfirmation && html`
                                       <span class="delete-confirmation">Really Delete?</span>
                                       <button onClick=${ cancelDeleteClicked }>Cancel</button>
                                       <button onClick=${ confirmDeleteClicked }>Yes Delete</button>`}
       </div>`;
   };
 
-  function onShowButtons() {
-    setShowButtons(!showButtons);
-    setShowUpdateForm(false);
-  };
-
-  function showUpdate() {
-    return updateForm;
+  function onShowButtons(e) {
+    e.preventDefault();
+    localDispatch(BUTTONS_TOGGLE);
   };
 
   let res = {};
 
   res.title = html`<h1 onClick=${ onShowButtons }>${ title }</h1>`;
-  if (showButtons) {
+  if (local.showButtons) {
     res.buttons = buildButtons();
   }
 
@@ -117,8 +148,8 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
     return html`<${PointForm} onSubmit=${ onAddPoint } submitMessage="Create Point"/>`;
   };
 
-  if (showUpdateForm) {
-    res.updateForm = showUpdate();
+  if (local.showUpdateForm) {
+    res.updateForm = updateForm;
   }
 
   res.noteManager = function(optional_point) {

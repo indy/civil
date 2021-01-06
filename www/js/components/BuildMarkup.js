@@ -13,7 +13,7 @@ export default function buildMarkup(content, imageDirectory) {
     if (n.id)         { res.id = n.id; }
     if (n.html_for)   { res.for = n.html_for; }
     if (n.href)       { res.href = n.href; }
-    if (n.html_type)  { res.type = html_type; }
+    if (n.html_type)  { res.type = n.html_type; }
     if (n.src)        { res.src = `/u/${imageDirectory}/${n.src}`; }
 
     return res;
