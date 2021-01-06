@@ -11,6 +11,8 @@ actix-multipart = "0.3.0"
 actix-rt = "1.1.1"
 # replace actix-session with official version once https://github.com/actix/actix-extras/issues/87 is merged in
 # this is required for logout to actually work and remove the session cookie
+# pull request: https://github.com/actix/actix-extras/pull/129
+# merged in december 2020, not yet released updated version (current actix-session version: 0.4.0)
 actix-session = { git = "https://github.com/qkniep/actix-extras" }
 actix-threadpool = "0.3.3"
 actix-web = "3.0.1"
