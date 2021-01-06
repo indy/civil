@@ -306,6 +306,27 @@ img {
   max-width: 100%;
 }
 
+nav {
+  padding-bottom: 0.5rem;
+  border-bottom-width: 0.1rem;
+  border-bottom-style: solid;
+  border-color: var(--divider);
+
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+
+nav a {
+  display: inline-block;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  padding: 0.4rem 1rem 0.2rem 1rem;
+  border-radius: var(--coloured-deck-border-radius);
+}
+
+mark {
+  background: var(--highlight);
+}
+
 .sidenote,
 .margin-text,
 .margin-scribble {
@@ -500,6 +521,10 @@ label.margin-toggle:not(.sidenote-number) {
 
   img {
     width: 100%;
+  }
+
+  nav a {
+    margin-left: 0;
   }
 }
 
@@ -898,6 +923,12 @@ label.margin-toggle {
   clear:both;
 }
 
+@media (max-width: 700px) {
+  #login-menuitem {
+    margin-bottom: 1rem;
+  }
+}
+
 p.fakelink {
   cursor: pointer;
   text-decoration: underline;
@@ -986,26 +1017,6 @@ section > form { width: var(--block-width); }
 .append-note {
   margin-top: 2rem;
   margin-bottom: 4rem;
-}
-
-#top-bar-menu {
-  padding-bottom: 0.5rem;
-  border-bottom-width: 0.1rem;
-  border-bottom-style: solid;
-  border-color: var(--divider);
-
-  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
-}
-
-mark {
-  background: var(--highlight);
-}
-
-a.top-bar-menuitem {
-  margin-left: 1rem;
-  margin-right: 1rem;
-  padding: 0.4rem 1rem 0.2rem 1rem;
-  border-radius: var(--coloured-deck-border-radius);
 }
 
 .noteref-kind {
@@ -1159,15 +1170,6 @@ input:required {
   color: var(--scribble);
   margin-left: 1rem;
   font-size: 1rem;
-}
-
-@media (max-width: 700px) {
-  a.top-bar-menuitem {
-    margin-left: 0;
-  }
-  #login-menuitem {
-    margin-bottom: 1rem;
-  }
 }
 
 .listing-link p {

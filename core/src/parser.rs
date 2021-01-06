@@ -696,6 +696,13 @@ mod tests {
         };
     }
 
+    fn assert_hr(node: &Node) {
+        match node {
+            Node::HR => assert!(true),
+            _ => assert!(false),
+        };
+    }
+
     #[test]
     fn test_only_text() {
         {
@@ -1256,10 +1263,16 @@ This is code```");
             let nodes = build("#-");
             assert_eq!(1, nodes.len());
 
-            match &nodes[0] {
-                Node::HR => assert!(true),
-                _ => assert!(false),
-            };
+            assert_hr(&nodes[0]);
+        }
+        {
+            let nodes = build("#- Some words");
+            assert_eq!(2, nodes.len());
+
+            assert_hr(&nodes[0]);
+
+            let children = paragraph_children(&nodes[1]).unwrap();
+            assert_text(&children[0], "Some words");
         }
     }
 

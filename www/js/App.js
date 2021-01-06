@@ -95,15 +95,15 @@ function TopBarMenu(props) {
   }
 
   return html`
-    <div id='top-bar-menu'>
-      <${Link} href=${ loggedLink() } id="login-menuitem" class="pigment-inherit">${ loggedStatus() }</${Link}>
-      <${Link} class='top-bar-menuitem pigment-inherit' href='/'>Search</${Link}>
-      <${Link} class='top-bar-menuitem pigment-ideas' href='/ideas'>Ideas</${Link}>
-      <${Link} class='top-bar-menuitem pigment-publications' href='/publications'>Publications</${Link}>
-      <${Link} class='top-bar-menuitem pigment-people' href='/people'>People</${Link}>
-      <${Link} class='top-bar-menuitem pigment-timelines' href='/timelines'>Timelines</${Link}>
-      <${Link} class='top-bar-menuitem' href='/sr'>SR</${Link}>
-    </div>
+    <nav>
+      <${Link} class='pigment-inherit' href=${ loggedLink() } id="login-menuitem" >${ loggedStatus() }</${Link}>
+      <${Link} class='pigment-inherit' href='/'>Search</${Link}>
+      <${Link} class='pigment-ideas' href='/ideas'>Ideas</${Link}>
+      <${Link} class='pigment-publications' href='/publications'>Publications</${Link}>
+      <${Link} class='pigment-people' href='/people'>People</${Link}>
+      <${Link} class='pigment-timelines' href='/timelines'>Timelines</${Link}>
+      <${Link} class='pigment-inherit' href='/sr'>SR</${Link}>
+    </nav>
 `;
 }
 
