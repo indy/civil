@@ -740,6 +740,12 @@ a:visited.pigment-inherit {
 .pigment-people { color: var(--fg-people); background: var(--bg-people); }
 .pigment-timelines { color: var(--fg-timelines); background: var(--bg-timelines); }
 
+/* above colours don't work on hyperlinks, have to explicitly specify them  */
+.pigment-ideas a { color: var(--fg-ideas); }
+.pigment-publications a { color: var(--fg-publications); }
+.pigment-people a { color: var(--fg-people); }
+.pigment-timelines a { color: var(--fg-timelines); }
+
 .pigment-fg-ideas { color: var(--fg-ideas); }
 .pigment-fg-publications { color: var(--fg-publications); }
 .pigment-fg-people { color: var(--fg-people); }
@@ -831,7 +837,6 @@ section.rolled-up {
 }
 
 .quickfind-candidate {
-  background: #ecd2a2;
   padding: 0.4rem;
   margin: 0.2rem;
   width: max-content;

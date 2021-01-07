@@ -105,7 +105,7 @@ function CandidateItem({ candidate, keyIndex, resource }) {
   const { id, name } = candidate;
   const href = `/${resource}/${id}`;
 
-  return html`<div class="quickfind-candidate">
+  return html`<div class="quickfind-candidate pigment-${resource}">
                 <${Link} href=${ href }>${ name }</${Link}>
               </div>`;
 }
