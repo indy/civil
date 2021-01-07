@@ -81,6 +81,10 @@ pub(crate) fn is_hr(tokens: &'_ [Token]) -> bool {
         && (is_token_at_index(tokens, 2, TokenIdent::EOS) || is_token_at_index(tokens, 2, TokenIdent::Whitespace))
 }
 
+fn is_img(tokens: &'_ [Token]) -> bool {
+    is_at_specifier(tokens) && is_text_at_index(tokens, 1, "img")
+}
+
 pub fn parse(tokens: Vec<Token>) -> Result<Vec<Node>> {
     let halt_at = TokenIdent::EOS;
     let mut tokens: &[Token] = &tokens;
@@ -96,6 +100,8 @@ pub fn parse(tokens: Vec<Token>) -> Result<Vec<Node>> {
             eat_codeblock(tokens)?
         } else if is_hr(tokens) {
             eat_hash(tokens)?
+        } else if is_img(tokens) {
+            eat_img(tokens)?
         } else {
             // by default a lot of stuff will get wrapped in a paragraph
             eat_paragraph(tokens)?
@@ -201,6 +207,16 @@ fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
         Token::Underscore => eat_matching_pair(tokens, TokenIdent::Underscore, NodeIdent::Underlined),
         _ => eat_text(tokens),
     }
+}
+
+fn eat_img<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (image_name, _description)) = eat_as_resource_description_pair(tokens)?;
+    return Ok((tokens, Node::Image(image_name.to_string())));
+}
+
+fn eat_url<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (url, description)) = eat_as_resource_description_pair(tokens)?;
+    return Ok((tokens, Node::Url(url.to_string(), description)));
 }
 
 fn eat_hash<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
@@ -401,14 +417,8 @@ fn eat_as_resource_description_pair<'a>(
 fn eat_at<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     if is_at_specifier(tokens) {
         match tokens[1] {
-            Token::Text("img") => {
-                let (tokens, (image_name, _description)) = eat_as_resource_description_pair(tokens)?;
-                return Ok((tokens, Node::Image(image_name.to_string())));
-            }
-            Token::Text("url") => {
-                let (tokens, (url, description)) = eat_as_resource_description_pair(tokens)?;
-                return Ok((tokens, Node::Url(url.to_string(), description)));
-            }
+            Token::Text("img") => { return eat_img(tokens) }
+            Token::Text("url") => { return eat_url(tokens) }
             _ => (),
         }
     }
@@ -552,6 +562,15 @@ fn is_token_at_index<'a>(tokens: &'a [Token<'a>], idx: usize, token_ident: Token
     tokens.len() > idx && Into::<TokenIdent>::into(&tokens[idx]) == token_ident
 }
 
+fn is_text_at_index<'a>(tokens: &'a [Token<'a>], idx: usize, text: &str) -> bool {
+    if is_token_at_index(tokens, idx, TokenIdent::Text) {
+        if let Token::Text(s) = tokens[idx] {
+            return s == text
+        }
+    }
+    false
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -562,6 +581,33 @@ mod tests {
     fn build(s: &'static str) -> Vec<Node> {
         let toks = tokenize(s).unwrap();
         parse(toks).unwrap()
+    }
+
+
+    #[test]
+    fn test_is_hr() {
+        {
+            let toks = tokenize("#- ").unwrap();
+            assert_eq!(is_hr(&toks), true);
+        }
+        {
+            let toks = tokenize("#-").unwrap();
+            assert_eq!(is_hr(&toks), true);
+        }
+    }
+
+    #[test]
+    fn test_is_img() {
+        {
+            let toks = tokenize("@img(foo.jpeg)").unwrap();
+            dbg!(&toks);
+            assert_eq!(is_img(&toks), true);
+        }
+        {
+            let toks = tokenize("@img").unwrap();
+            dbg!(&toks);
+            assert_eq!(is_img(&toks), false);
+        }
     }
 
     fn ordered_list_children<'a>(node: &'a Node) -> Result<&'a Vec<Node>> {
@@ -631,8 +677,11 @@ mod tests {
         };
     }
 
-    fn assert_image(node: &Node, expected: &'static str) {
-        match node {
+    fn assert_image(src: &'static str, expected: &'static str) {
+        let nodes = build(src);
+        assert_eq!(1, nodes.len());
+
+        match &nodes[0] {
             Node::Image(s) => assert_eq!(s, expected),
             _ => assert_eq!(false, true),
         };
@@ -1133,46 +1182,10 @@ This is code```");
 
     #[test]
     fn test_at_image() {
-        {
-            let nodes = build("@img(abc.jpg)");
-            assert_eq!(1, nodes.len());
-
-            let children = paragraph_children(&nodes[0]).unwrap();
-
-            assert_eq!(children.len(), 1);
-
-            assert_image(&children[0], "abc.jpg");
-        }
-        {
-            let nodes = build("@img(a00.jpg)");
-            assert_eq!(1, nodes.len());
-
-            let children = paragraph_children(&nodes[0]).unwrap();
-
-            assert_eq!(children.len(), 1);
-
-            assert_image(&children[0], "a00.jpg");
-        }
-        {
-            let nodes = build("@img(00a.jpg)");
-            assert_eq!(1, nodes.len());
-
-            let children = paragraph_children(&nodes[0]).unwrap();
-
-            assert_eq!(children.len(), 1);
-
-            assert_image(&children[0], "00a.jpg");
-        }
-        {
-            let nodes = build("@img(000.jpg)");
-            assert_eq!(1, nodes.len());
-
-            let children = paragraph_children(&nodes[0]).unwrap();
-
-            assert_eq!(children.len(), 1);
-
-            assert_image(&children[0], "000.jpg");
-        }
+        assert_image("@img(abc.jpg)", "abc.jpg");
+        assert_image("@img(a00.jpg)", "a00.jpg");
+        assert_image("@img(00a.jpg)", "00a.jpg");
+        assert_image("@img(000.jpg)", "000.jpg");
     }
 
     #[test]

@@ -948,6 +948,10 @@ section > form { width: var(--block-width); }
 .note p {
   width: var(--block-width);
 }
+/* only apply to img that is a direct descendent of .note  */
+.note > img {
+  width: var(--block-width);
+}
 .note ol {
   width: var(--block-width);
 }
