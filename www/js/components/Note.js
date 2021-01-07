@@ -22,6 +22,7 @@ const IS_EDITING_TOGGLE = 'is-editing-toggle';
 function reducer(state, action) {
   switch(action.type) {
   case NOTE_SET_PROPERTY: {
+    // console.log("NOTE_SET_PROPERTY");
     const newNote = { ...state.note };
     newNote[action.data.name] = action.data.value;
     return {
@@ -30,61 +31,68 @@ function reducer(state, action) {
     }
   };
   case ADD_DECK_REFERENCES_UI_SHOW:
+    // console.log("ADD_DECK_REFERENCES_UI_SHOW");
     return {
       ...state,
       addDeckReferencesUI: action.data
     }
   case ADD_FLASH_CARD_UI_SHOW:
+    // console.log("ADD_FLASH_CARD_UI_SHOW");
     return {
       ...state,
       addFlashCardUI: action.data
     }
   case DELETE_CONFIRMATION_SHOW:
+    // console.log("DELETE_CONFIRMATION_SHOW");
     return {
       ...state,
       showDeleteConfirmation: action.data
     }
   case DECKS_SET:
+    // console.log("DECKS_SET");
     return {
       ...state,
       decks: action.data
     }
   case ADD_DECKS_COMMIT:
+    // console.log("ADD_DECKS_COMMIT");
     return {
       ...state,
       showModButtons: false,
       addDeckReferencesUI: false
     }
   case ADD_DECKS_CANCEL:
+    // console.log("ADD_DECKS_CANCEL");
     return {
       ...state,
       decks: action.data,
       addDeckReferencesUI: false
     }
   case FLASH_CARD_SAVED:
+    // console.log("FLASH_CARD_SAVED");
     return {
       ...state,
       showModButtons: false,
       addFlashCardUI: false,
     }
   case MOD_BUTTONS_TOGGLE: {
+    // console.log("MOD_BUTTONS_TOGGLE");
     const newState = { ...state };
 
-    newState.showModButtons = !newState.showModButtons;
-    if (!newState.showModButtons) {
-      // reset the state of the 'add references' and 'add flash card' ui
-      newState.addDeckReferencesUI = false;
-      newState.addFlashCardUI = false;
+    if (!newState.isEditing) {
+      newState.showModButtons = !newState.showModButtons;
+      if (!newState.showModButtons) {
+        // reset the state of the 'add references' and 'add flash card' ui
+        newState.addDeckReferencesUI = false;
+        newState.addFlashCardUI = false;
+      }
     }
-
     return newState;
   }
   case IS_EDITING_TOGGLE: {
+    // console.log("IS_EDITING_TOGGLE");
     const newState = { ...state };
     newState.isEditing = !newState.isEditing;
-    if (!newState.isEditing) {
-      newState.showModButtons = false;
-    }
 
     return newState;
   }
@@ -111,7 +119,8 @@ export default function Note(props) {
     localDispatch(NOTE_SET_PROPERTY, { name: target.name, value: target.value });
   };
 
-  function onEditClicked() {
+  function onEditClicked(e) {
+    e.preventDefault();
     const isEditingNew = !local.isEditing; // isEditingNew is the state after the IS_EDITING_TOGGLE dispatch
     localDispatch(IS_EDITING_TOGGLE);
 
@@ -130,7 +139,8 @@ export default function Note(props) {
     }
   };
 
-  function onShowButtonsClicked() {
+  function onShowButtonsClicked(e) {
+    e.preventDefault();
     localDispatch(MOD_BUTTONS_TOGGLE);
   };
 
@@ -273,8 +283,12 @@ export default function Note(props) {
   }
 
   return html`
-    <div class="note">
-      ${ local.isEditing ? buildEditableContent() : buildReadingContent(local.note, props.note.id, onShowButtonsClicked, props.note.decks, state.imageDirectory) }
+    <div class="note" onClick=${onShowButtonsClicked}>
+      ${ local.isEditing && buildEditableContent() }
+
+      ${ !local.isEditing && props.note.decks && buildNoteReferences(props.note.decks)}
+      ${ !local.isEditing && buildMarkup(local.note.content, state.imageDirectory)}
+
       ${ local.showModButtons && local.addDeckReferencesUI && buildAddDecksUI() }
       ${ local.showModButtons && local.addFlashCardUI && buildAddFlashCardUI() }
       ${ local.showModButtons && !local.addDeckReferencesUI && !local.addFlashCardUI && buildMainButtons() }
@@ -297,12 +311,8 @@ function onReallyDelete(id, onDelete) {
   });
 };
 
-function buildNoteReference(marginConnections) {
-  if (!marginConnections) {
-    return [];
-  }
-
-  return marginConnections.map(ref => {
+function buildNoteReferences(decks) {
+  const entries = decks.map(ref => {
     const { id, resource, kind, name, annotation } = ref;
     const href = `/${resource}/${id}`;
     return html`
@@ -314,21 +324,8 @@ function buildNoteReference(marginConnections) {
                              <div class="noteref-clearer"/>`}
       </div>`;
   });
-};
 
-function buildReadingContent(note, noteId, onShowButtonsClicked, decks, imageDirectory) {
-  const noteRefContents = buildNoteReference(decks);
-  const contentMarkup = buildMarkup(note.content, imageDirectory);
-
-  return html`
-    <div>
-      <div class="spanne">
-        ${ noteRefContents }
-      </div>
-      <div onClick=${ onShowButtonsClicked }>
-        ${ contentMarkup }
-      </div>
-    </div>`;
+  return html`<div class="spanne">${entries}</div>`;
 };
 
 function addDecks(note, decks, onDecksChanged, dispatch) {
