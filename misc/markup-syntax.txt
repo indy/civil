@@ -30,6 +30,19 @@ or
 - second
 - third
 
+
+--------------------------------------------------------------------------------
+
+blockquotes start with 3 greater-thans and end with 3 less-thans:
+
+>>>
+
+this is inside a blockquote
+
+<<<
+
+this is now outside a blockquote
+
 --------------------------------------------------------------------------------
 
 content in the right hand margin is marked by surrounding it in pipe (|) characters:
