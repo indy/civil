@@ -44,8 +44,9 @@ cfg_if! {
 }
 
 #[wasm_bindgen]
-pub fn init_wasm() {
+pub fn init_wasm() -> JsValue {
     init_log();
+    JsValue::from_str("wasm: v.20210108d")
 }
 
 #[wasm_bindgen]

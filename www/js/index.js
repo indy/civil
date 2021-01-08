@@ -7,7 +7,8 @@ wasm_bindgen('/wasm_bg.wasm')
 
     const { init_wasm, markup_as_struct, split_markup, graph_physics } = wasm_bindgen;
 
-    init_wasm();
+    const version = init_wasm();
+    // console.log(version);
 
     const wasmInterface = {
       asHtmlAst: markup_as_struct,

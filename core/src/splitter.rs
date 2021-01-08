@@ -18,8 +18,8 @@
 use crate::error::Result;
 use crate::lexer::{get_token_value, is_match, tokenize, Token, TokenIdent};
 use crate::parser::{
-    is_codeblock_start, is_hr, is_numbered_list_item, is_unordered_list_item, skip_leading_newlines,
-    skip_leading_whitespace_and_newlines, ParserResult,
+    is_blockquote_start, is_codeblock_start, is_eos, is_hr, is_img, is_numbered_list_item, is_unordered_list_item,
+    skip_leading_newlines, skip_leading_whitespace_and_newlines, ParserResult,
 };
 
 fn move_head_onto_string<'a>(tokens: &'a [Token<'a>], s: &str) -> ParserResult<'a, String> {
@@ -112,12 +112,30 @@ fn join_paragraph<'a>(tokens: &'a [Token]) -> ParserResult<'a, String> {
     join_past_newline(tokens, "")
 }
 
+fn join_img<'a>(tokens: &'a [Token]) -> ParserResult<'a, String> {
+    join_past_newline(tokens, "") // this needs to be fixed?
+}
+
+fn join_blockquote<'a>(tokens: &'a [Token]) -> ParserResult<'a, String> {
+    let mut res = "".to_string();
+    for (i, tok) in tokens.iter().enumerate() {
+        res += get_token_value(tok);
+        if is_match(&tok, TokenIdent::BlockquoteEnd) {
+            // reached a blockquote end, skip past these and return our result
+            return Ok((skip_leading_newlines(&tokens[(i + 1)..])?, res));
+        }
+    }
+
+    Ok((&[], res))
+}
+
 pub fn split(markup: &str) -> Result<Vec<String>> {
     let mut tokens: &[Token] = &tokenize(markup)?;
     let mut res: Vec<String> = vec![];
 
-    tokens = skip_leading_whitespace_and_newlines(tokens)?;
-    while !tokens.is_empty() {
+    while !tokens.is_empty() && !is_eos(tokens) {
+        tokens = skip_leading_whitespace_and_newlines(tokens)?;
+
         let (rem, node) = if is_numbered_list_item(tokens) {
             join_ordered_list(tokens)?
         } else if is_unordered_list_item(tokens) {
@@ -125,7 +143,11 @@ pub fn split(markup: &str) -> Result<Vec<String>> {
         } else if is_codeblock_start(tokens) {
             join_codeblock(tokens)?
         } else if is_hr(tokens) {
-            join_paragraph(tokens)?
+            join_paragraph(tokens)? // ????
+        } else if is_img(tokens) {
+            join_img(tokens)?
+        } else if is_blockquote_start(tokens) {
+            join_blockquote(tokens)?
         } else {
             join_paragraph(tokens)?
         };

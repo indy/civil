@@ -32,7 +32,7 @@ pub use error::Result;
 
 pub fn markup_as_struct(markup: &str) -> Result<Vec<Element>> {
     let tokens = tokenize(markup)?;
-    let nodes = parse(tokens)?;
+    let (_, nodes) = parse(&tokens)?;
     let html = compile_to_struct(&nodes)?;
 
     Ok(html)

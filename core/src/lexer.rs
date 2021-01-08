@@ -24,8 +24,10 @@ pub enum Token<'a> {
     Asterisk,
     At,
     BackTick,
+    BlockquoteBegin,
+    BlockquoteEnd,
+    BracketBegin,
     BracketEnd,
-    BracketStart,
     Caret,
     Tilde,
     Digits(&'a str),
@@ -34,7 +36,7 @@ pub enum Token<'a> {
     Hyphen,
     Newline,
     ParenEnd,
-    ParenStart,
+    ParenBegin,
     Period,
     Pipe,
     Text(&'a str),
@@ -48,20 +50,22 @@ pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
         Token::Asterisk => "*",
         Token::At => "@",
         Token::BackTick => "`",
+        Token::BlockquoteBegin => ">>>",
+        Token::BlockquoteEnd => "<<<",
         Token::BracketEnd => "]",
-        Token::BracketStart => "[",
+        Token::BracketBegin => "[",
         Token::Caret => "^",
-        Token::Tilde => "~",
         Token::Digits(s) => s,
         Token::DoubleQuote => "\"",
         Token::Hash => "#",
         Token::Hyphen => "-",
         Token::Newline => "\n",
         Token::ParenEnd => ")",
-        Token::ParenStart => "(",
+        Token::ParenBegin => "(",
         Token::Period => ".",
         Token::Pipe => "|",
         Token::Text(s) => s,
+        Token::Tilde => "~",
         Token::Underscore => "_",
         Token::Whitespace(s) => s,
         Token::EOS => "",
@@ -82,19 +86,21 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
                 '*' => (Token::Asterisk, 1),
                 '@' => (Token::At, 1),
                 '`' => (Token::BackTick, 1),
-                '[' => (Token::BracketStart, 1),
+                '[' => (Token::BracketBegin, 1),
                 ']' => (Token::BracketEnd, 1),
                 '^' => (Token::Caret, 1),
-                '~' => (Token::Tilde, 1),
                 '"' => (Token::DoubleQuote, 1),
                 '#' => (Token::Hash, 1),
                 '-' => (Token::Hyphen, 1),
                 '\n' => (Token::Newline, 1),
-                '(' => (Token::ParenStart, 1),
+                '(' => (Token::ParenBegin, 1),
                 ')' => (Token::ParenEnd, 1),
                 '.' => (Token::Period, 1),
                 '|' => (Token::Pipe, 1),
+                '~' => (Token::Tilde, 1),
                 '_' => (Token::Underscore, 1),
+                '>' => eat_blockquote_begin_or_greater_than_character(&input)?,
+                '<' => eat_blockquote_end_or_less_than_character(&input)?,
                 '0'..='9' => eat_digits(&input)?,
                 ch if ch.is_whitespace() => eat_whitespace(&input)?,
                 _ => eat_text(&input)?,
@@ -110,6 +116,28 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
     tokens.push(Token::EOS);
 
     Ok(tokens)
+}
+
+fn eat_blockquote_begin_or_greater_than_character(input: &str) -> Result<(Token, usize)> {
+    // check if the next three characters are '>'
+    let mut chars = input.chars();
+    if input.len() >= 3 && chars.next() == Some('>') && chars.next() == Some('>') && chars.next() == Some('>') {
+        Ok((Token::BlockquoteBegin, 3))
+    } else {
+        // we know that the first character is definitely a >
+        Ok((Token::Text(&input[..1]), 1))
+    }
+}
+
+fn eat_blockquote_end_or_less_than_character(input: &str) -> Result<(Token, usize)> {
+    // check if the next three characters are '<'
+    let mut chars = input.chars();
+    if input.len() >= 3 && chars.next() == Some('<') && chars.next() == Some('<') && chars.next() == Some('<') {
+        Ok((Token::BlockquoteEnd, 3))
+    } else {
+        // we know that the first character is definitely a <
+        Ok((Token::Text(&input[..1]), 1))
+    }
 }
 
 fn eat_digits(input: &str) -> Result<(Token, usize)> {
@@ -145,7 +173,7 @@ fn eat_text(input: &str) -> Result<(Token, usize)> {
 
 fn is_text(ch: char) -> bool {
     match ch {
-        '\n' | '[' | ']' | '(' | ')' | '@' | '_' | '*' | '`' | '^' | '~' | '"' | '|' | '#' => false,
+        '\n' | '[' | ']' | '(' | ')' | '@' | '_' | '*' | '`' | '^' | '~' | '"' | '|' | '#' | '>' | '<' => false,
         _ => true,
     }
 }
@@ -160,7 +188,7 @@ mod tests {
 
     #[test]
     fn test_lexer() {
-        tok("[]", &[Token::BracketStart, Token::BracketEnd, Token::EOS]);
+        tok("[]", &[Token::BracketBegin, Token::BracketEnd, Token::EOS]);
 
         tok("here are some words", &[Token::Text("here are some words"), Token::EOS]);
 
@@ -183,6 +211,50 @@ mod tests {
     }
 
     #[test]
+    fn test_lexer_blockquote() {
+        {
+            tok(
+                ">>> only a blockquote <<<",
+                &[
+                    Token::BlockquoteBegin,
+                    Token::Whitespace(" "),
+                    Token::Text("only a blockquote "),
+                    Token::BlockquoteEnd,
+                    Token::EOS,
+                ],
+            );
+        }
+        {
+            // not a blockquote
+            tok(
+                ">> not quite a blockquote",
+                &[
+                    Token::Text(">"),
+                    Token::Text(">"),
+                    Token::Whitespace(" "),
+                    Token::Text("not quite a blockquote"),
+                    Token::EOS,
+                ],
+            );
+        }
+        {
+            tok(
+                "prefix words >>> blockquote <<< suffix words",
+                &[
+                    Token::Text("prefix words "),
+                    Token::BlockquoteBegin,
+                    Token::Whitespace(" "),
+                    Token::Text("blockquote "),
+                    Token::BlockquoteEnd,
+                    Token::Whitespace(" "),
+                    Token::Text("suffix words"),
+                    Token::EOS,
+                ],
+            );
+        }
+    }
+
+    #[test]
     fn test_lexer_image_syntax() {
         // the three kinds of lexed streams for representing fourc codes:
 
@@ -192,7 +264,7 @@ mod tests {
             &[
                 Token::At,
                 Token::Text("img"),
-                Token::ParenStart,
+                Token::ParenBegin,
                 Token::Digits("00"),
                 Token::Text("a.jpg"),
                 Token::ParenEnd,
@@ -206,7 +278,7 @@ mod tests {
             &[
                 Token::At,
                 Token::Text("img"),
-                Token::ParenStart,
+                Token::ParenBegin,
                 Token::Digits("000"),
                 Token::Period,
                 Token::Text("jpg"),
@@ -221,7 +293,7 @@ mod tests {
             &[
                 Token::At,
                 Token::Text("img"),
-                Token::ParenStart,
+                Token::ParenBegin,
                 Token::Text("a00.jpg"),
                 Token::ParenEnd,
                 Token::EOS,
@@ -234,7 +306,7 @@ mod tests {
             &[
                 Token::At,
                 Token::Text("img"),
-                Token::ParenStart,
+                Token::ParenBegin,
                 Token::Text("abc.jpg"),
                 Token::ParenEnd,
                 Token::EOS,

@@ -1,7 +1,6 @@
 import { html, useState, useEffect, route } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
-import { removeEmptyStrings } from '/js/JsUtils.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { useWasmInterface } from '/js/WasmInterfaceProvider.js';
@@ -211,10 +210,10 @@ function addNote(markup, deck_id, optional_point_id) {
     return new Promise((resolve, reject) => { reject(new Error("addNote: splitIntoNotes failed")); });
   }
 
-  let data = removeEmptyStrings({
+  let data = {
     deck_id,
     content: notes
-  }, []);
+  };
 
   if (optional_point_id) {
     data.point_id = optional_point_id;

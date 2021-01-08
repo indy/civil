@@ -52,12 +52,13 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
                         name: String::from("text"),
                         text: Some(String::from(code)),
                         ..Default::default()
-                   }],
+                    }],
                     ..Default::default()
                 }],
                 ..Default::default()
             }]
         }
+        Node::BlockQuote(ns) => element_key("blockquote", key, ns)?,
         Node::Highlight(ns) => element_key("mark", key, ns)?,
         Node::ListItem(ns) => element_key("li", key, ns)?,
         Node::MarginScribble(ns) => compile_sidenote(ns, key, "margin-scribble")?,
@@ -106,7 +107,6 @@ fn compile_sidenote(ns: &[Node], key: usize, class_name: &str) -> Result<Vec<Ele
 
     Ok(res)
 }
-
 
 fn compile_numbered_sidenote(ns: &[Node], key: usize) -> Result<Vec<Element>> {
     let mut res: Vec<Element> = vec![];

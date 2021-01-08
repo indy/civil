@@ -31,6 +31,7 @@ pub enum CodeblockLanguage {
 #[strum_discriminants(name(NodeIdent))]
 pub enum Node {
     Codeblock(Option<CodeblockLanguage>, String),
+    BlockQuote(Vec<Node>),
     HR,
     Header(Vec<Node>),
     Highlight(Vec<Node>),
@@ -81,27 +82,38 @@ pub(crate) fn is_hr(tokens: &'_ [Token]) -> bool {
         && (is_token_at_index(tokens, 2, TokenIdent::EOS) || is_token_at_index(tokens, 2, TokenIdent::Whitespace))
 }
 
-fn is_img(tokens: &'_ [Token]) -> bool {
+pub(crate) fn is_img(tokens: &'_ [Token]) -> bool {
     is_at_specifier(tokens) && is_text_at_index(tokens, 1, "img")
 }
 
-pub fn parse(tokens: Vec<Token>) -> Result<Vec<Node>> {
-    let halt_at = TokenIdent::EOS;
+pub(crate) fn is_eos(tokens: &'_ [Token]) -> bool {
+    is_token_at_index(tokens, 0, TokenIdent::EOS)
+}
+
+pub(crate) fn is_blockquote_start<'a>(tokens: &'a [Token<'a>]) -> bool {
+    is_token_at_index(tokens, 0, TokenIdent::BlockquoteBegin)
+}
+
+// need: parse until a terminator token (EOS, BlockquoteEnd) is reached
+//
+pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
     let mut tokens: &[Token] = &tokens;
     let mut res = Vec::new();
 
     tokens = skip_leading_whitespace_and_newlines(&tokens)?;
-    while !tokens.is_empty() && !is_head(tokens, halt_at) {
+    while !tokens.is_empty() && !is_terminator(tokens) {
         let (rem, node) = if is_numbered_list_item(tokens) {
-            eat_ordered_list(tokens, halt_at)?
+            eat_ordered_list(tokens, None)?
         } else if is_unordered_list_item(tokens) {
-            eat_unordered_list(tokens, halt_at)?
+            eat_unordered_list(tokens, None)?
         } else if is_codeblock(tokens) {
             eat_codeblock(tokens)?
         } else if is_hr(tokens) {
             eat_hash(tokens)?
         } else if is_img(tokens) {
             eat_img(tokens)?
+        } else if is_blockquote_start(tokens) {
+            eat_blockquote(tokens)?
         } else {
             // by default a lot of stuff will get wrapped in a paragraph
             eat_paragraph(tokens)?
@@ -111,13 +123,13 @@ pub fn parse(tokens: Vec<Token>) -> Result<Vec<Node>> {
         tokens = rem;
     }
 
-    Ok(res)
+    Ok((tokens, res))
 }
 
-fn eat_ordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: TokenIdent) -> ParserResult<Node> {
+fn eat_ordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>) -> ParserResult<Node> {
     let mut children: Vec<Node> = vec![];
 
-    while !tokens.is_empty() && !is_head(tokens, halt_at) {
+    while !tokens.is_empty() && !is_head_option(tokens, halt_at) {
         tokens = &tokens[3..]; // digits, period, whitespace
 
         let (remaining, list_item_children) = eat_to_newline(tokens, halt_at)?;
@@ -136,10 +148,10 @@ fn eat_ordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: TokenIdent) -> Par
     Ok((tokens, Node::OrderedList(children)))
 }
 
-fn eat_unordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: TokenIdent) -> ParserResult<Node> {
+fn eat_unordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>) -> ParserResult<Node> {
     let mut children: Vec<Node> = vec![];
 
-    while !tokens.is_empty() && !is_head(tokens, halt_at) {
+    while !tokens.is_empty() && !is_head_option(tokens, halt_at) {
         tokens = &tokens[2..]; // hyphen, whitespace
 
         let (remaining, list_item_children) = eat_to_newline(tokens, halt_at)?;
@@ -159,14 +171,14 @@ fn eat_unordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: TokenIdent) -> P
 }
 
 fn eat_paragraph<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
-    let (remaining, children) = eat_to_newline(tokens, TokenIdent::EOS)?;
+    let (remaining, children) = eat_to_newline(tokens, None)?;
     Ok((remaining, Node::Paragraph(children)))
 }
 
-fn eat_to_newline<'a>(mut tokens: &'a [Token<'a>], halt_at: TokenIdent) -> ParserResult<Vec<Node>> {
+fn eat_to_newline<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>) -> ParserResult<Vec<Node>> {
     let mut nodes: Vec<Node> = vec![];
 
-    while !tokens.is_empty() && !is_head(tokens, halt_at) {
+    while !tokens.is_empty() && !is_head_option(tokens, halt_at) && !is_terminator(tokens) {
         if is_head(tokens, TokenIdent::Newline) {
             let rest = skip_leading_newlines(tokens)?;
             return Ok((rest, nodes));
@@ -181,9 +193,9 @@ fn eat_to_newline<'a>(mut tokens: &'a [Token<'a>], halt_at: TokenIdent) -> Parse
 
 fn eat_item_until<'a>(tokens: &'a [Token], halt_at: TokenIdent) -> ParserResult<'a, Node> {
     if is_numbered_list_item(tokens) {
-        eat_ordered_list(tokens, halt_at)
+        eat_ordered_list(tokens, Some(halt_at))
     } else if is_unordered_list_item(tokens) {
-        eat_unordered_list(tokens, halt_at)
+        eat_unordered_list(tokens, Some(halt_at))
     } else if is_codeblock(tokens) {
         eat_codeblock(tokens)
     } else if is_hr(tokens) {
@@ -198,8 +210,8 @@ fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
         Token::At => eat_at(tokens),
         Token::Asterisk => eat_matching_pair(tokens, TokenIdent::Asterisk, NodeIdent::Strong),
         Token::BackTick => eat_codeblock(tokens),
+        Token::BracketBegin => eat_text_including(tokens),
         Token::BracketEnd => eat_text_including(tokens),
-        Token::BracketStart => eat_text_including(tokens),
         Token::Caret => eat_matching_pair(tokens, TokenIdent::Caret, NodeIdent::Highlight),
         Token::DoubleQuote => eat_matching_pair(tokens, TokenIdent::DoubleQuote, NodeIdent::Quotation),
         Token::Hash => eat_hash(tokens),
@@ -238,7 +250,7 @@ fn eat_hash<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
                     let first_child = Node::Text(h.to_string());
 
                     tokens = &tokens[2..];
-                    let (remaining, mut children) = eat_to_newline(tokens, TokenIdent::EOS)?;
+                    let (remaining, mut children) = eat_to_newline(tokens, None)?;
                     children.insert(0, first_child);
 
                     Ok((remaining, Node::Header(children)))
@@ -320,7 +332,7 @@ fn eat_pipe<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
 fn is_at_specifier<'a>(tokens: &'a [Token<'a>]) -> bool {
     is_token_at_index(tokens, 0, TokenIdent::At)
         && is_token_at_index(tokens, 1, TokenIdent::Text)
-        && is_token_at_index(tokens, 2, TokenIdent::ParenStart)
+        && is_token_at_index(tokens, 2, TokenIdent::ParenBegin)
 }
 
 fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> Result<(Token<'a>, Option<Token<'a>>)> {
@@ -348,9 +360,7 @@ fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> Result<(Token<'a
 }
 
 // treat every token as Text until we get to a token of the given type
-fn eat_as_resource_description_pair<'a>(
-    mut tokens: &'a [Token<'a>],
-) -> ParserResult<(String, Vec<Node>)> {
+fn eat_as_resource_description_pair<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<(String, Vec<Node>)> {
     let mut inner_tokens: Vec<Token> = vec![];
     let mut paren_balancer = 1;
 
@@ -359,14 +369,13 @@ fn eat_as_resource_description_pair<'a>(
 
     let ws = "".to_string();
 
-
     tokens = &tokens[3..]; // eat the '@img(' or '@url('
 
     while !tokens.is_empty() {
-        if is_head(tokens, TokenIdent::ParenStart) {
+        if is_head(tokens, TokenIdent::ParenBegin) {
             paren_balancer += 1;
             tokens = &tokens[1..];
-            inner_tokens.push(Token::ParenStart);
+            inner_tokens.push(Token::ParenBegin);
         } else if is_head(tokens, TokenIdent::ParenEnd) {
             paren_balancer -= 1;
             tokens = &tokens[1..];
@@ -404,7 +413,7 @@ fn eat_as_resource_description_pair<'a>(
         for t in left {
             res.push_str(get_token_value(t));
         }
-        let (_, children) = eat_to_newline(&right, TokenIdent::EOS)?;
+        let (_, children) = eat_to_newline(&right, None)?;
 
         Ok((tokens, (res, children)))
     } else {
@@ -414,11 +423,23 @@ fn eat_as_resource_description_pair<'a>(
     }
 }
 
+fn eat_blockquote<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    tokens = &tokens[1..]; // skip past the BlockquoteBegin token
+
+    let (remaining, nodes) = parse(tokens)?;
+
+    let remaining = &remaining[1..]; // skip past the BlockquoteEnd token
+
+    let rem = skip_leading_whitespace_and_newlines(&remaining)?;
+
+    Ok((&rem, Node::BlockQuote(nodes)))
+}
+
 fn eat_at<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     if is_at_specifier(tokens) {
         match tokens[1] {
-            Token::Text("img") => { return eat_img(tokens) }
-            Token::Text("url") => { return eat_url(tokens) }
+            Token::Text("img") => return eat_img(tokens),
+            Token::Text("url") => return eat_url(tokens),
             _ => (),
         }
     }
@@ -531,10 +552,12 @@ fn eat_text_as_string<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<String> {
             Token::Text(s) => value += s,
             Token::Digits(s) => value += s,
             Token::Whitespace(s) => value += s,
+            // Token::GreaterThan => value += ">",
+            // Token::LessThan => value += "<",
             Token::Period => value += ".",
             Token::Hyphen => value += "-",
             //            Token::At => value += "@",
-            Token::ParenStart => value += "(",
+            Token::ParenBegin => value += "(",
             Token::ParenEnd => value += ")",
             _ => return Ok((tokens, value)),
         }
@@ -554,8 +577,20 @@ fn skip_leading<'a>(tokens: &'a [Token], token_ident: TokenIdent) -> Result<&'a 
     Ok(&[])
 }
 
+fn is_terminator<'a>(tokens: &'a [Token<'a>]) -> bool {
+    is_token_at_index(tokens, 0, TokenIdent::EOS) || is_token_at_index(tokens, 0, TokenIdent::BlockquoteEnd)
+}
+
 fn is_head<'a>(tokens: &'a [Token<'a>], token_ident: TokenIdent) -> bool {
     is_token_at_index(tokens, 0, token_ident)
+}
+
+fn is_head_option<'a>(tokens: &'a [Token<'a>], token_ident: Option<TokenIdent>) -> bool {
+    if let Some(ident) = token_ident {
+        is_token_at_index(tokens, 0, ident)
+    } else {
+        false
+    }
 }
 
 fn is_token_at_index<'a>(tokens: &'a [Token<'a>], idx: usize, token_ident: TokenIdent) -> bool {
@@ -565,7 +600,7 @@ fn is_token_at_index<'a>(tokens: &'a [Token<'a>], idx: usize, token_ident: Token
 fn is_text_at_index<'a>(tokens: &'a [Token<'a>], idx: usize, text: &str) -> bool {
     if is_token_at_index(tokens, idx, TokenIdent::Text) {
         if let Token::Text(s) = tokens[idx] {
-            return s == text
+            return s == text;
         }
     }
     false
@@ -580,9 +615,9 @@ mod tests {
 
     fn build(s: &'static str) -> Vec<Node> {
         let toks = tokenize(s).unwrap();
-        parse(toks).unwrap()
+        let (_, res) = parse(&toks).unwrap();
+        res
     }
-
 
     #[test]
     fn test_is_hr() {
@@ -640,6 +675,16 @@ mod tests {
         Err(Error::Parser)
     }
 
+    fn blockquote_children<'a>(node: &'a Node) -> Result<&'a Vec<Node>> {
+        match node {
+            Node::BlockQuote(children) => {
+                return Ok(children);
+            }
+            _ => assert_eq!(false, true),
+        };
+        Err(Error::Parser)
+    }
+
     fn highlight_children<'a>(node: &'a Node) -> Result<&'a Vec<Node>> {
         match node {
             Node::Highlight(children) => {
@@ -672,7 +717,7 @@ mod tests {
             Node::Codeblock(lang, s) => {
                 assert_eq!(lang, &expected_lang);
                 assert_eq!(s, expected);
-            },
+            }
             _ => assert_eq!(false, true),
         };
     }
@@ -748,6 +793,20 @@ mod tests {
     fn assert_hr(node: &Node) {
         match node {
             Node::HR => assert!(true),
+            _ => assert!(false),
+        };
+    }
+
+    fn assert_paragraph(node: &Node) {
+        match node {
+            Node::Paragraph(_) => assert!(true),
+            _ => assert!(false),
+        };
+    }
+
+    fn assert_blockquote(node: &Node) {
+        match node {
+            Node::BlockQuote(_) => assert!(true),
             _ => assert!(false),
         };
     }
@@ -1030,9 +1089,11 @@ here is the closing paragraph",
     #[test]
     fn test_code() {
         {
-            let nodes = build("```
+            let nodes = build(
+                "```
 This is code
-```");
+```",
+            );
 
             assert_eq!(1, nodes.len());
             let children = paragraph_children(&nodes[0]).unwrap();
@@ -1043,8 +1104,10 @@ This is code
         }
 
         {
-            let nodes = build("```rust
-This is code```");
+            let nodes = build(
+                "```rust
+This is code```",
+            );
 
             assert_eq!(1, nodes.len());
             let children = paragraph_children(&nodes[0]).unwrap();
@@ -1330,6 +1393,75 @@ This is code```");
                 }
                 _ => assert_eq!(false, true),
             };
+        }
+    }
+
+    // test that the given Node is a blockquote, with the expected number of children
+    // return the children
+    fn blockquote_with_children<'a>(blockquote: &'a Node, expected: usize) -> &'a Vec<Node> {
+        assert_blockquote(blockquote);
+
+        let children = blockquote_children(blockquote).unwrap();
+        assert_eq!(children.len(), expected);
+
+        children
+    }
+
+    // test that the Node is a paragraph with the expected text
+    //
+    fn paragraph_with_single_text(paragraph: &Node, expected: &'static str) {
+        assert_paragraph(paragraph);
+
+        let children = paragraph_children(paragraph).unwrap();
+        assert_eq!(children.len(), 1);
+
+        assert_text(&children[0], expected);
+    }
+
+    #[test]
+    fn test_parsing_blockquote() {
+        {
+            let nodes = build(">>> hello world <<<");
+            assert_eq!(1, nodes.len());
+
+            let children = blockquote_with_children(&nodes[0], 1);
+            paragraph_with_single_text(&children[0], "hello world ");
+        }
+
+        {
+            let nodes = build(
+                ">>>
+hello world
+
+another paragraph
+
+third paragraph
+<<<",
+            );
+            assert_eq!(1, nodes.len());
+
+            let children = blockquote_with_children(&nodes[0], 3);
+            paragraph_with_single_text(&children[0], "hello world");
+            paragraph_with_single_text(&children[1], "another paragraph");
+            paragraph_with_single_text(&children[2], "third paragraph");
+        }
+        {
+            let nodes = build(
+                "opening paragraph
+>>>
+quoted paragraph 1
+quoted paragraph 2
+<<<
+closing paragraph",
+            );
+
+            assert_eq!(3, nodes.len());
+
+            paragraph_with_single_text(&nodes[0], "opening paragraph");
+            let children = blockquote_with_children(&nodes[1], 2);
+            paragraph_with_single_text(&children[0], "quoted paragraph 1");
+            paragraph_with_single_text(&children[1], "quoted paragraph 2");
+            paragraph_with_single_text(&nodes[2], "closing paragraph");
         }
     }
 }
