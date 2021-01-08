@@ -1,56 +1,43 @@
 # Civil
 
-A knowledge management system for the next 30 years
+A knowledge management system for the next 30 years. Developed at git.indy.io for my own use and mirrored on Github in case anyone wants to use it.
 
 ## Server
 
-rename server/.env.example to server/.env and update it for your environment
+rename .env.example to .env and update it for your environment. The database tables can be created by running the misc/schema.psql file into a Postgres database.
 
-$ cd server && cargo run
+```sh
+$ make run
+```
 
 ## Client
-
+```sh
 $ make wasm
+```
 
-## Deploying
+## Release build
 
+```sh
+$ make release
+```
+The dist directory will contain the release build
+
+## Deploying (to indy.io)
+
+```sh
 $ make upload
-
-## (Dev) loading a test database
-
-- copy a backup from the server (e.g. civil_20201116.psql)
-- create a local database: $ createdb civil_20201116
-- load in the backup: psql civil_20201116 < civil_20201116.psql
-- update the .env variables
-
-- restart the server, login, may need an additional refresh to display the db name
-
-## (Dev) generating the library js files
-
-preact.js:
-package.json script in preact project:
-rename all mangle.json files to _mangle.json
-
-"isg": "microbundle -i src/index.js -o dist/isg-bundle.js --no-pkg-main --no-compress -f es",
-then rename dist/isg-bundle.module.js to preact.js
-
-hooks.js:
-go into the preact project's hooks/src directory, copy index.js to hooks.js updating the import declaration.
-
-htm:
-manually copied build.mjs from the project and made changes
-
-preact-router:
-manually copied over and made changes
-
+```
 
 # Requirements
-    A modern (for c.2020) web-browser
-    PostgreSQL
-    Rust
-    Make
-    (Optional) Minify (https://github.com/tdewolff/minify)
+- A modern (for c.2020) web-browser
+- PostgreSQL
+- Rust
+- Make
+- (Optional) Minify (https://github.com/tdewolff/minify)
 
 install minify:
+```sh
 $ sudo apt install minify
+```
+
 if the minify binary is not installed on the build system then the unminified assets will be used
