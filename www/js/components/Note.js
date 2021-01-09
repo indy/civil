@@ -17,12 +17,13 @@ const ADD_DECKS_COMMIT = 'add-decks-commit';
 const ADD_DECKS_CANCEL = 'add-decks-cancel';
 const FLASH_CARD_SAVED = 'flash-card-saved';
 const MOD_BUTTONS_TOGGLE = 'mod-buttons-toggle';
-const IS_EDITING_TOGGLE = 'is-editing-toggle';
+const IS_EDITING_MARKUP_TOGGLE = 'is-editing-markup-toggle';
 
 function reducer(state, action) {
+  // console.log(action.type);
+  // console.log(state);
   switch(action.type) {
   case NOTE_SET_PROPERTY: {
-    // console.log("NOTE_SET_PROPERTY");
     const newNote = { ...state.note };
     newNote[action.data.name] = action.data.value;
     return {
@@ -31,55 +32,51 @@ function reducer(state, action) {
     }
   };
   case ADD_DECK_REFERENCES_UI_SHOW:
-    // console.log("ADD_DECK_REFERENCES_UI_SHOW");
     return {
       ...state,
       addDeckReferencesUI: action.data
     }
-  case ADD_FLASH_CARD_UI_SHOW:
-    // console.log("ADD_FLASH_CARD_UI_SHOW");
+  case ADD_FLASH_CARD_UI_SHOW: {
+    const showUI = action.data;
     return {
       ...state,
-      addFlashCardUI: action.data
+      addFlashCardUI: showUI,
+      showModButtons: showUI ? state.showModButtons : false
     }
+  }
   case DELETE_CONFIRMATION_SHOW:
-    // console.log("DELETE_CONFIRMATION_SHOW");
     return {
       ...state,
       showDeleteConfirmation: action.data
     }
   case DECKS_SET:
-    // console.log("DECKS_SET");
     return {
       ...state,
       decks: action.data
     }
   case ADD_DECKS_COMMIT:
-    // console.log("ADD_DECKS_COMMIT");
     return {
       ...state,
       showModButtons: false,
       addDeckReferencesUI: false
     }
   case ADD_DECKS_CANCEL:
-    // console.log("ADD_DECKS_CANCEL");
     return {
       ...state,
       decks: action.data,
+      showModButtons: false,
       addDeckReferencesUI: false
     }
   case FLASH_CARD_SAVED:
-    // console.log("FLASH_CARD_SAVED");
     return {
       ...state,
       showModButtons: false,
       addFlashCardUI: false,
     }
   case MOD_BUTTONS_TOGGLE: {
-    // console.log("MOD_BUTTONS_TOGGLE");
     const newState = { ...state };
 
-    if (!newState.isEditing) {
+    if (!newState.isEditingMarkup) {
       newState.showModButtons = !newState.showModButtons;
       if (!newState.showModButtons) {
         // reset the state of the 'add references' and 'add flash card' ui
@@ -89,10 +86,12 @@ function reducer(state, action) {
     }
     return newState;
   }
-  case IS_EDITING_TOGGLE: {
-    // console.log("IS_EDITING_TOGGLE");
+  case IS_EDITING_MARKUP_TOGGLE: {
     const newState = { ...state };
-    newState.isEditing = !newState.isEditing;
+    newState.isEditingMarkup = !newState.isEditingMarkup;
+    if (newState.isEditingMarkup === false) {
+      newState.showModButtons = false;
+    }
 
     return newState;
   }
@@ -107,7 +106,7 @@ export default function Note(props) {
     showModButtons: false,
     addDeckReferencesUI: false,
     addFlashCardUI: false,
-    isEditing: false,
+    isEditingMarkup: false,
     showDeleteConfirmation: false,
     note: { content: props.note.content },
     decks: (props.note && props.note.decks)
@@ -121,10 +120,10 @@ export default function Note(props) {
 
   function onEditClicked(e) {
     e.preventDefault();
-    const isEditingNew = !local.isEditing; // isEditingNew is the state after the IS_EDITING_TOGGLE dispatch
-    localDispatch(IS_EDITING_TOGGLE);
+    const isEditingMarkupNew = !local.isEditingMarkup; // isEditingMarkupNew is the state after the IS_EDITING_MARKUP_TOGGLE dispatch
+    localDispatch(IS_EDITING_MARKUP_TOGGLE);
 
-    if (isEditingNew === false) {
+    if (isEditingMarkupNew === false) {
       if (hasNoteBeenModified(local.note, props.note)) {
         const id = props.note.id;
 
@@ -233,7 +232,7 @@ export default function Note(props) {
 
   function buildMainButtons() {
     let editLabelText;
-    if (!local.isEditing) {
+    if (!local.isEditingMarkup) {
       editLabelText = "Edit...";
     } else if (hasNoteBeenModified(local.note, props.note)) {
       // editing and have made changes
@@ -270,25 +269,25 @@ export default function Note(props) {
     return html`
       <div class="block-width">
         ${ !local.showDeleteConfirmation && html`<button onClick=${ onEditClicked }>${ editLabelText }</button>`}
-        ${ local.isEditing && !local.showDeleteConfirmation && html`<button onClick=${ deleteClicked }>Delete</button>` }
-        ${ local.isEditing && local.showDeleteConfirmation && html`
+        ${ local.isEditingMarkup && !local.showDeleteConfirmation && html`<button onClick=${ deleteClicked }>Delete</button>` }
+        ${ local.isEditingMarkup && local.showDeleteConfirmation && html`
                                                     <span class="delete-confirmation">Really Delete?</span>
                                                     <button onClick=${ cancelDeleteClicked }>Cancel</button>
                                                     <button onClick=${ confirmDeleteClicked }>Yes Delete</button>`}
-        ${ local.isEditing && html`<${ImageWidget}/>` }
-        ${ !local.isEditing && html`<button onClick=${ toggleAddDeckReferencesUI }>References...</button>` }
-        ${ !local.isEditing && html`<button class="add-flash-card" onClick=${ toggleAddFlashCardUI }>Add Flash Card...</button>` }
+        ${ local.isEditingMarkup && html`<${ImageWidget}/>` }
+        ${ !local.isEditingMarkup && html`<button onClick=${ toggleAddDeckReferencesUI }>References...</button>` }
+        ${ !local.isEditingMarkup && html`<button class="add-flash-card" onClick=${ toggleAddFlashCardUI }>Add Flash Card...</button>` }
       </div>
 `;
   }
 
   return html`
-    <div class="note" onClick=${onShowButtonsClicked}>
-      ${ local.isEditing && buildEditableContent() }
-
-      ${ !local.isEditing && props.note.decks && buildNoteReferences(props.note.decks)}
-      ${ !local.isEditing && buildMarkup(local.note.content, state.imageDirectory)}
-
+    <div class="note">
+      ${ local.isEditingMarkup && buildEditableContent() }
+      ${ !local.isEditingMarkup && props.note.decks && buildNoteReferences(props.note.decks)}
+      ${ !local.isEditingMarkup && html`<div onClick=${onShowButtonsClicked}>
+                                          ${ buildMarkup(local.note.content, state.imageDirectory) }
+                                        </div>`}
       ${ local.showModButtons && local.addDeckReferencesUI && buildAddDecksUI() }
       ${ local.showModButtons && local.addFlashCardUI && buildAddFlashCardUI() }
       ${ local.showModButtons && !local.addDeckReferencesUI && !local.addFlashCardUI && buildMainButtons() }
