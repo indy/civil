@@ -38,6 +38,7 @@ pub enum Node {
     Image(String),
     ListItem(Vec<Node>),
     MarginScribble(Vec<Node>),
+    MarginDisagree(Vec<Node>),
     MarginText(Vec<Node>),
     OrderedList(Vec<Node>),
     Paragraph(Vec<Node>),
@@ -313,9 +314,15 @@ fn eat_pipe<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
         eat_text_including(tokens)
     } else if remaining_tokens_contain(tokens, TokenIdent::Pipe) {
         if is_token_at_index(tokens, 1, TokenIdent::Hash) {
-            tokens = &tokens[1..]; // eat the opening PIPE,
-            let (toks, children) = eat_list(tokens, TokenIdent::Pipe)?;
-            Ok((toks, Node::MarginScribble(children)))
+            if is_token_at_index(tokens, 2, TokenIdent::Hash) {
+                tokens = &tokens[2..]; // eat the opening PIPE and 1st HASH,
+                let (toks, children) = eat_list(tokens, TokenIdent::Pipe)?;
+                Ok((toks, Node::MarginDisagree(children)))
+            } else {
+                tokens = &tokens[1..]; // eat the opening PIPE,
+                let (toks, children) = eat_list(tokens, TokenIdent::Pipe)?;
+                Ok((toks, Node::MarginScribble(children)))
+            }
         } else if is_token_at_index(tokens, 1, TokenIdent::Tilde) {
             tokens = &tokens[1..]; // eat the opening PIPE,
             let (toks, children) = eat_list(tokens, TokenIdent::Pipe)?;

@@ -60,9 +60,12 @@ once upon|~ this is text on the right-hand margin| a time
 
 ----------
 
-'hand-written' margin notes have a hash after the first pipe:
+scribbled margin notes have a hash after the first pipe:
 
-once upon|# this is handwritten text on the right-hand margin| a time
+once upon|# this is my opinion/summary on the right-hand margin| a time
+
+if you want a scribbled disagreement/criticism then use two hashes:
+once upon|## this is my objection/criticism on the right-hand margin| a time
 
 ----------
 

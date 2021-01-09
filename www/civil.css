@@ -16,7 +16,8 @@
 
   --divider: #ccc;
 
-  --scribble: #007bc7;          /* clock06 saturation: 100.0 lightness: 50 */
+  --scribble-neutral: #007bc7;          /* clock06 saturation: 100.0 lightness: 50 */
+  --scribble-disagree: #ed0043;          /* clock10 saturation: 100.0 lightness: 50 */
   --hyperlink: #5279a8;         /* clock06 saturation: 60.2 lightness: 50 */
   --highlight: #ebe900;         /* hue: 85 sat:100 light:90*/
 
@@ -70,7 +71,8 @@
 
     --divider: #444;
 
-    --scribble: #007bc7;          /* clock06 saturation: 100.0 lightness: 50 */
+    --scribble-neutral: #007bc7;          /* clock06 saturation: 100.0 lightness: 50 */
+    --scribble-disagree: #ed0043;          /* clock10 saturation: 100.0 lightness: 50 */
     --hyperlink: #5279a8;         /* clock06 saturation: 60.2 lightness: 50 */
     --highlight: #ebe900;         /* hue: 85 sat:100 light:90*/
 
@@ -903,9 +905,16 @@ a:link.note-inline-link {
 
 .margin-scribble {
   font-family: 'Nothing You Could Do', cursive;
-  color: var(--scribble);
   font-size: 1.5rem;
   text-align: left;
+}
+
+.opinion-neutral {
+  color: var(--scribble-neutral);
+}
+
+.opinion-disagree {
+  color: var(--scribble-disagree);
 }
 
 label.margin-toggle {
@@ -969,8 +978,8 @@ section > form { width: var(--block-width); }
 .spanne {
   padding-top: 0.5rem;
   float: left;
-  margin-left: -40%;
-  width: 40%;
+  margin-left: -30%;
+  width: 30%;
   color: var(--fg1);
   text-align: right;
 
@@ -1179,7 +1188,7 @@ input:required {
 
 .short-description {
   font-family: 'Nothing You Could Do', cursive;
-  color: var(--scribble);
+  color: var(--scribble-neutral);
   margin-left: 1rem;
   font-size: 1rem;
 }
