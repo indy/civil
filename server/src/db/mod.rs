@@ -19,7 +19,6 @@ pub mod autocomplete;
 pub mod deck_kind;
 pub mod decks;
 pub mod edges;
-pub mod idea_kind;
 pub mod ideas;
 pub mod notes;
 pub mod people;

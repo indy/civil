@@ -69,7 +69,6 @@ function UpdateIdeaForm({ idea }) {
   idea = idea || {};
   const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(idea.title || '');
-  const [verbatimIdea, setVerbatimIdea] = useState(idea.idea_category === 'Verbatim');
   const [graphTerminator, setGraphTerminator] = useState(idea.graph_terminator);
 
   useEffect(() => {
@@ -91,7 +90,6 @@ function UpdateIdeaForm({ idea }) {
   const handleSubmit = (event) => {
     const data = {
       title: title.trim(),
-      idea_category: verbatimIdea ? 'Verbatim' : 'Insight',
       graph_terminator: graphTerminator
     };
 
@@ -105,10 +103,6 @@ function UpdateIdeaForm({ idea }) {
 
     event.preventDefault();
   };
-
-  const handleRadioButtons = (event) => {
-    setVerbatimIdea(event.target.id === "verbatim");
-  }
 
   const handleCheckbox = (event) => {
     if (event.target.id === 'graph-terminator') {
@@ -125,17 +119,6 @@ function UpdateIdeaForm({ idea }) {
              name="title"
              value=${ title }
              onInput=${ handleChangeEvent } />
-      <br/>
-      <label for="verbatim">Verbatim</label>
-      <input type="radio"
-             id="verbatim" name="ideakind" value="verbatim"
-             onInput=${ handleRadioButtons }
-             checked=${ verbatimIdea } />
-      <label for="insight">Insight</label>
-      <input type="radio"
-             id="insight" name="ideakind" value="insight"
-             onInput=${ handleRadioButtons }
-             checked=${ !verbatimIdea } />
       <br/>
       <label for="graph-terminator">Graph Terminator</label>
       <input type="checkbox"
