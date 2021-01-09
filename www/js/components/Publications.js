@@ -190,7 +190,7 @@ function UpdatePublicationForm({ publication }) {
              max="5"
              onInput=${ handleChangeEvent } />
       <br/>
-      <input type="submit" value="Update Publication"/>
+      <input id="publication-submit" type="submit" value="Update Publication"/>
     </form>`;
 }
 

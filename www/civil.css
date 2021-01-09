@@ -546,6 +546,8 @@ form {
 }
 form label {
   margin-left: 0.5rem;
+  margin-top: 1rem;
+  display: inline-block;
 }
 input {
   width: 90%;
@@ -679,7 +681,8 @@ textarea {
 [type="checkbox"],
 [type="radio"] {
   box-sizing: border-box; /* 1 */
-  padding: 0; /* 2 */
+  width: 1rem;
+  margin: 1rem;
 }
 
 /**
@@ -1215,4 +1218,8 @@ input:required {
   list-style: none;
   color: var(--fg1);
   margin-top: 3rem;
+}
+
+#publication-submit {
+  width: 14rem;
 }

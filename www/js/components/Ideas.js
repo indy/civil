@@ -120,7 +120,7 @@ function UpdateIdeaForm({ idea }) {
              value=${ title }
              onInput=${ handleChangeEvent } />
       <br/>
-      <label for="graph-terminator">Graph Terminator</label>
+      <label for="graph-terminator">Graph Terminator:</label>
       <input type="checkbox"
              id="graph-terminator"
              name="graph-terminator"
