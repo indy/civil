@@ -181,7 +181,7 @@ function SelectedReference({ reference, onRemove, onChangeKind, keyIndex, showKe
     }
   };
 
-  return html`<div class='civsel-reference'>
+  return html`<div class='civsel-reference pigment-${reference.resource}'>
                 ${ showKeyboardShortcuts && html`<span class='civsel-keyboard-shortcut'>Ctrl-${ keyIndex }</span>`}
                 <span class='civsel-delete-selected' onClick=${onClick}>${svgCloseShifted()}</span>
                 <select onChange=${onKindDropDownSelect} name="choice">
@@ -281,7 +281,7 @@ function CandidateItem({ candidate, onSelectedCandidate, showKeyboardShortcuts, 
 
   const canShowKeyboardShortcut = showKeyboardShortcuts && keyIndex < 10;
 
-  return html`<div class="civsel-candidate" onClick=${selectedThisCandidate}>
+  return html`<div class="civsel-candidate pigment-${candidate.resource}" onClick=${selectedThisCandidate}>
                 ${ canShowKeyboardShortcut && html`<span class='civsel-keyboard-shortcut'>Ctrl-${ keyIndex }</span>`}
                 ${ candidate.name }
               </div>`;
