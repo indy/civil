@@ -814,15 +814,24 @@ a:visited.pigment-inherit {
   background: #ecd2a2;
   padding: 0.4rem;
   margin: 0.2rem;
-  width: max-content;
+  display: flex;
+  align-items: baseline;
+}
+
+.civsel-reference select {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
 }
 
 .civsel-delete-selected {
   cursor: pointer;
 }
 
+.civsel-name {
+  width: 100%;
+}
 .civsel-annotation {
-  width: 30rem;
+  flex-grow: 100;
   margin-left: 1rem;
 }
 
@@ -1235,4 +1244,9 @@ input:required {
 
 #publication-submit {
   width: 14rem;
+}
+
+
+.delete-hack {
+  margin-bottom: -8px;
 }

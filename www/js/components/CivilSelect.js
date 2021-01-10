@@ -1,5 +1,6 @@
 import { html, useState, useEffect } from '/lib/preact/mod.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
+import { svgCloseShifted } from '/js/svgIcons.js';
 
 const ESC_KEY_DOWN = 'esc-key-down';
 const CTRL_KEY_DOWN = 'ctrl-key-down';
@@ -182,7 +183,7 @@ function SelectedReference({ reference, onRemove, onChangeKind, keyIndex, showKe
 
   return html`<div class='civsel-reference'>
                 ${ showKeyboardShortcuts && html`<span class='civsel-keyboard-shortcut'>Ctrl-${ keyIndex }</span>`}
-                <span class='civsel-delete-selected' onClick=${onClick}>[X]</span>
+                <span class='civsel-delete-selected' onClick=${onClick}>${svgCloseShifted()}</span>
                 <select onChange=${onKindDropDownSelect} name="choice">
                   <option value="Ref" selected=${reference.kind == "Ref"}>Generic Reference</option>
                   <option value="RefToParent" selected=${reference.kind == "RefToParent"}>Reference to Parent</option>
@@ -190,7 +191,7 @@ function SelectedReference({ reference, onRemove, onChangeKind, keyIndex, showKe
                   <option value="RefInContrast" selected=${reference.kind == "RefInContrast"}>Contrasting Reference</option>
                   <option value="RefCritical" selected=${reference.kind == "RefCritical"}>Critical Reference</option>
                 </select>
-                ${reference.name}
+                <span class="civsel-name">${reference.name}</span>
                 <input class="civsel-annotation"
                   type="text"
                   name="annotation"
