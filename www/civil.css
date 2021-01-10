@@ -848,6 +848,10 @@ section.rolled-up {
   cursor: pointer;
 }
 
+.quickfind-shortcut {
+  font-weight: bold;
+}
+
 /* -------------------------------------------------------------------------------- */
 
 .pointform-block label { }

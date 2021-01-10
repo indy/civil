@@ -125,13 +125,16 @@ export default function CivilSelect({ parentDeckId, chosen, available, onChange,
     });
 
     onChange(cv); // <- this is how changes to the selection are passed up to the parent note
+  }, [local]);
+
+  useEffect(() => {
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("keyup", onKeyUp);
     };
-  }, [local]);
+  }, [])
 
   function buildSelectedReference(value, i) {
     return html`<${SelectedReference}
