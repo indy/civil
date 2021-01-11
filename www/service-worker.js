@@ -21,7 +21,7 @@
 
 // NOTE: Makefile will alter these variables when building a release build
 var devMode = true;
-var CACHE_NAME = "civil-20210104e";
+var CACHE_NAME = "civil-20210104j";
 
 var precacheConfig = [
   "/apple-touch-icon.png",
@@ -197,8 +197,18 @@ self.addEventListener("fetch", function (event) {
 
     var isCached = urlsToCache.has(url);
 
-    if (devMode && isCached)
-      return;
+    if (devMode && isCached) {
+      var headers = new Headers();
+      headers.append('pragma', 'no-cache');
+      headers.append('cache-control', 'no-cache');
+
+      var init = {
+        method: event.request.method,
+        headers
+      };
+
+      return fetch(event.request, init);
+    }
 
     if (!isCached && "navigate" === event.request.mode) {
       url = new URL("/index.html", self.location).toString();
