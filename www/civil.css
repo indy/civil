@@ -244,18 +244,18 @@ p {
 }
 
 blockquote {
-  font-size: 1.4rem;
+  border-left:0.5rem solid var(--bg2);
+  margin-left: 0;
+  padding-left: 1rem;
+  font-style: italic;           /* is this really needed? */
 }
 
-blockquote p {
-  width: var(--block-width);
-  margin-right: 40px;
-}
-
-blockquote footer {
-  width: var(--block-width);
-  font-size: 1.1rem;
-  text-align: right;
+blockquote .sidenote,
+blockquote .margin-text,
+blockquote .margin-scribble {
+  margin-right: -70%;
+  min-width: 59%;
+  text-align: left;
 }
 
 section > p,
@@ -303,10 +303,12 @@ figure.fullwidth figcaption {
   margin-right: 24%;
 }
 
-/* Sidenotes, margin notes, figures, captions */
-img {
-  max-width: 100%;
+div.note > div > img {
+  /* top-level images */
+  max-width: var(--block-width);
 }
+
+/* Sidenotes, margin notes, figures, captions */
 
 nav {
   padding-bottom: 0.5rem;
@@ -366,14 +368,6 @@ mark {
   content: counter(sidenote-counter) " ";
   font-size: 1rem;
   top: -0.5rem;
-}
-
-blockquote .sidenote,
-blockquote .margin-text,
-blockquote .margin-scribble {
-  margin-right: -82%;
-  min-width: 59%;
-  text-align: left;
 }
 
 div.fullwidth,
@@ -1080,11 +1074,6 @@ section > form { width: var(--block-width); }
 
 .noteref-clearer {
   clear: both;
-}
-
-blockquote.quote > textarea {
-  width: var(--block-width);
-  height: 10rem;
 }
 
 div.note > textarea {
