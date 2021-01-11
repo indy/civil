@@ -11,8 +11,6 @@ import Note from '/js/components/Note.js';
 import PointForm from '/js/components/PointForm.js';
 import ImageWidget from '/js/components/ImageWidget.js';
 
-
-
 const BUTTONS_TOGGLE = 'buttons-toggle';
 const UPDATE_FORM_TOGGLE = 'update-form-toggle';
 const DELETE_CONFIRMATION_SHOW = 'delete-confirmation-show';

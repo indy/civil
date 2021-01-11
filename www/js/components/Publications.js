@@ -1,7 +1,7 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
-import { capitalise, removeEmptyStrings, formattedDate } from '/js/JsUtils.js';
+import { canShowGraph, ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
+import { capitalise, removeEmptyStrings, nonEmptyArray, formattedDate } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
@@ -71,8 +71,8 @@ function Publication(props) {
       ${ publication.author && authorHeading }
       ${ publication.source && sourceHeading }
       ${ deckManager.noteManager() }
-      <${SectionLinkBack} linkbacks=${ publication.linkbacks_to_decks }/>
-      <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${ publicationId } depth=${ 2 }/>
+      ${ nonEmptyArray(publication.linkbacks_to_decks) && html`<${SectionLinkBack} linkbacks=${ publication.linkbacks_to_decks }/>`}
+      ${ canShowGraph(state, publicationId) && html`<${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${ publicationId } depth=${ 2 }/>`}
     </article>`;
 }
 

@@ -3,8 +3,8 @@ import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
-import { ensureListingLoaded } from '/js/CivilUtils.js';
-import { capitalise, formattedDate, plural } from '/js/JsUtils.js';
+import { canShowGraph, ensureListingLoaded } from '/js/CivilUtils.js';
+import { capitalise, formattedDate, nonEmptyArray, plural } from '/js/JsUtils.js';
 
 import DeckManager from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
@@ -59,9 +59,9 @@ function Idea(props) {
       ${ deckManager.buttons }
       ${ deckManager.updateForm }
       ${ deckManager.noteManager() }
-      <${SectionLinkBack} linkbacks=${ idea.linkbacks_to_decks }/>
-      <${SectionSearchResultsLinkBack} linkbacks=${ idea.search_results }/>
-      <${GraphSection} heading=${ graphTitle } okToShowGraph=${okToShowGraph} id=${ ideaId } isIdea depth=${ 2 } />
+      ${ nonEmptyArray(idea.linkbacks_to_decks) && html`<${SectionLinkBack} linkbacks=${ idea.linkbacks_to_decks }/>`}
+      ${ nonEmptyArray(idea.search_results) && html`<${SectionSearchResultsLinkBack} linkbacks=${ idea.search_results }/>`}
+      ${ canShowGraph(state, ideaId) && html`<${GraphSection} heading=${ graphTitle } okToShowGraph=${okToShowGraph} id=${ ideaId } isIdea depth=${ 2 } />`}
     </article>`;
 }
 
@@ -132,16 +132,10 @@ function UpdateIdeaForm({ idea }) {
 }
 
 function SectionSearchResultsLinkBack({ linkbacks }) {
-  linkbacks = linkbacks || [];
-
   function buildLinkback(lb) {
     return (
       html`<${ListingLink} id=${ lb.id } name=${ lb.name } resource=${ lb.resource }/>`
     );
-  }
-
-  if (linkbacks.length === 0) {
-    return html`<div></div>`;
   }
 
   const heading = plural(linkbacks.length, 'Additional Search Result', 's');

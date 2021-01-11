@@ -1,7 +1,7 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
-import { capitalise } from '/js/JsUtils.js';
+import { canShowGraph, ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
+import { capitalise, nonEmptyArray } from '/js/JsUtils.js';
 import Net from '/js/Net.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { addChronologicalSortYear,
@@ -133,13 +133,14 @@ function Person(props) {
 
       ${ deckManager.noteManager() }
 
-      <${SectionLinkBack} linkbacks=${ person.linkbacks_to_decks }/>
+      ${ nonEmptyArray(person.linkbacks_to_decks) && html`<${SectionLinkBack} linkbacks=${ person.linkbacks_to_decks }/>`}
       ${ hasBirth && html`<${ListDeckPoints} deckPoints=${ person.all_points_during_life }
                                              deckManager=${ deckManager }
                                              dispatch=${ dispatch }
                                              holderId=${ person.id }
                                              holderName=${ person.name }/>`}
-      <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${personId} depth=${2}/>
+      ${ canShowGraph(state, personId) && html`<${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${personId} depth=${2}/>`}
+
     </article>`;
 }
 

@@ -6,8 +6,7 @@ import { svgCaretDown, svgCaretRight} from '/js/svgIcons.js';
 import RollableSection from '/js/components/RollableSection.js';
 import { ExpandableListingLink } from '/js/components/ListingLink.js';
 
-export default function SectionLinkBack(props) {
-  const linkbacks = props.linkbacks || [];
+export default function SectionLinkBack({ linkbacks }) {
   const sections = [];
 
   const groupedLinkbacksByResource = groupByResource(linkbacks);

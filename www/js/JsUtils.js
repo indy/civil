@@ -9,6 +9,10 @@ export function removeEmptyStrings(obj, keys) {
   return obj;
 }
 
+export function nonEmptyArray(arr) {
+  return arr && arr.length > 0;
+}
+
 export function capitalise(text) {
   const capitaliseWord = word => word.slice(0, 1).toUpperCase() + word.slice(1);
   return text.split(' ').map(capitaliseWord).join(' ');
