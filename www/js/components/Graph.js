@@ -63,7 +63,7 @@ export default function Graph({ id, depth, isIdea }) {
     const g = svgContainerRef.current.elementBeingDragged;
 
     // identify this node's corressponding entry in graphstate and set it's fx,fy values
-    const [ansx, ansy] = mouseInSvg(event.layerX, event.layerY, svgContainerRef.current);
+    const [ansx, ansy] = mouseInSvg(event.pageX, event.pageY, svgContainerRef.current);
 
     g.associatedNode.fx = ansx;
     g.associatedNode.fy = ansy;
