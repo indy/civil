@@ -212,6 +212,10 @@ p.subtitle > a {
   color: var(--fg);
 }
 
+img {
+  width: 100%;
+}
+
 .numeral {
   font-family: et-book-roman-old-style;
 }
@@ -515,10 +519,6 @@ label.margin-toggle:not(.sidenote-number) {
     width: 85%;
   }
 
-  img {
-    width: 100%;
-  }
-
   nav a {
     margin-left: 0;
   }
@@ -540,11 +540,13 @@ label.margin-toggle:not(.sidenote-number) {
 form {
   width: 20rem;
 }
+
 form label {
   margin-left: 0.5rem;
   margin-top: 1rem;
   display: inline-block;
 }
+
 input {
   width: 90%;
 }
@@ -579,7 +581,11 @@ textarea {
   font-family: inherit; /* 1 */
   font-size: 100%; /* 1 */
   line-height: 1.15; /* 1 */
-  margin: 0; /* 2 */
+  margin: 0.2rem;
+  padding-top:0.3rem;
+  padding-bottom:0.1rem;
+  padding-left:0.5rem;
+  padding-right:0.5rem;
 }
 
 /**
