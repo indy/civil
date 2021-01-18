@@ -28,6 +28,7 @@ function Ideas() {
       <${QuickFindOrCreate} autocompletes=${state.ac.decks} resource=${resource} />
       <${CompactedListSection} label='Recent' list=${ideas.recent} resource=${resource} expanded/>
       <${CompactedListSection} label='Orphans' list=${ideas.orphans} resource=${resource} hideEmpty/>
+      <${CompactedListSection} label='Unnoted' list=${ideas.unnoted} resource=${resource} hideEmpty/>
       <${CompactedListSection} label='All' list=${ideas.all} resource=${resource}/>
     </div>`;
 }

@@ -46,5 +46,6 @@ pub struct ProtoIdea {
 pub struct IdeasListings {
     pub recent: Vec<Idea>,
     pub orphans: Vec<Idea>,
+    pub unnoted: Vec<Idea>,
     pub all: Vec<Idea>,
 }
