@@ -138,9 +138,14 @@ export default function Note(props) {
     }
   };
 
-  function onShowButtonsClicked(e) {
-    e.preventDefault();
-    localDispatch(MOD_BUTTONS_TOGGLE);
+  function onNoteClicked(e) {
+    if (e.target.classList.contains("note-inline-link")) {
+      // let the browser handle clicked links normally
+    } else {
+      // only intercept the clicks to non-link elements
+      e.preventDefault();
+      localDispatch(MOD_BUTTONS_TOGGLE);
+    }
   };
 
   function buildEditableContent() {
@@ -285,7 +290,7 @@ export default function Note(props) {
     <div class="note">
       ${ local.isEditingMarkup && buildEditableContent() }
       ${ !local.isEditingMarkup && props.note.decks && buildNoteReferences(props.note.decks)}
-      ${ !local.isEditingMarkup && html`<div onClick=${onShowButtonsClicked}>
+      ${ !local.isEditingMarkup && html`<div onClick=${onNoteClicked}>
                                           ${ buildMarkup(local.note.content, state.imageDirectory) }
                                         </div>`}
       ${ local.showModButtons && local.addDeckReferencesUI && buildAddDecksUI() }
