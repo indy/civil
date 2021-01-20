@@ -32,8 +32,11 @@ pub struct Idea {
 
     pub decks_in_notes: Option<Vec<MarginConnection>>,
     pub linkbacks_to_decks: Option<Vec<DetailedLinkBack>>,
+}
 
-    pub search_results: Option<Vec<LinkBack>>,
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct SearchResults {
+    pub results: Option<Vec<LinkBack>>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

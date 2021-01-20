@@ -79,7 +79,7 @@ pub async fn get(
     let idea_id = params.id;
 
     let mut idea = db::get(&db_pool, user_id, idea_id).await?;
-    augment(&db_pool, user_id, &mut idea, idea_id).await?;
+    augment(&db_pool, &mut idea, idea_id).await?;
 
     Ok(HttpResponse::Ok().json(idea))
 }
@@ -97,7 +97,7 @@ pub async fn edit(
     let idea = idea.into_inner();
 
     let mut idea = db::edit(&db_pool, user_id, &idea, idea_id).await?;
-    augment(&db_pool, user_id, &mut idea, idea_id).await?;
+    augment(&db_pool, &mut idea, idea_id).await?;
 
     Ok(HttpResponse::Ok().json(idea))
 }
@@ -118,7 +118,6 @@ pub async fn delete(
 
 async fn augment(
     db_pool: &Data<Pool>,
-    user_id: Key,
     idea: &mut interop::Idea,
     idea_id: Key,
 ) -> Result<()> {
@@ -128,23 +127,42 @@ async fn augment(
         decks_db::from_decks_via_notes_to_deck_id(&db_pool, idea_id),
     )?;
 
-    let search_term = idea.title.to_string();
-    let search_results = decks_db::search(&db_pool, user_id, &search_term).await?;
-
-    // dedupe search results against the linkbacks to decks
-    let additional_search_results = search_results
-        .into_iter()
-        .filter(|lb| lb.id != idea.id && !contains(lb, &linkbacks_to_decks))
-        .collect();
-
     idea.notes = Some(notes);
     idea.decks_in_notes = Some(decks_in_notes);
     idea.linkbacks_to_decks = Some(linkbacks_to_decks);
-    idea.search_results = Some(additional_search_results);
 
     Ok(())
 }
 
 fn contains(linkback: &LinkBack, linkbacks: &[DetailedLinkBack]) -> bool {
     linkbacks.iter().any(|l| l.id == linkback.id)
+}
+
+
+pub async fn additional_search(
+    db_pool: Data<Pool>,
+    params: Path<IdParam>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    info!("additional_search {:?}", params.id);
+
+    let user_id = session::user_id(&session)?;
+    let idea_id = params.id;
+
+    let (linkbacks_to_decks, search_results) = tokio::try_join!(
+        decks_db::from_decks_via_notes_to_deck_id(&db_pool, idea_id),
+        decks_db::search_using_deck_id(&db_pool, user_id, idea_id)    // this is slow
+    )?;
+
+    // dedupe search results against the linkbacks to decks
+    let additional_search_results: Vec<LinkBack> = search_results
+        .into_iter()
+        .filter(|lb| lb.id != idea_id && !contains(lb, &linkbacks_to_decks))
+        .collect();
+
+    let res = interop::SearchResults {
+        results: Some(additional_search_results)
+    };
+
+    Ok(HttpResponse::Ok().json(res))
 }

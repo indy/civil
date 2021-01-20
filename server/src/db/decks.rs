@@ -137,6 +137,81 @@ pub struct Deck {
     pub source: Option<String>,
 }
 
+pub(crate) async fn search_using_deck_id(
+    db_pool: &Pool,
+    user_id: Key,
+    deck_id: Key,
+) -> Result<Vec<interop::LinkBack>> {
+    let (mut results, results_via_notes, results_via_points) = tokio::try_join!(
+        query_search_id(
+            db_pool,
+            "select d.id, d.kind, d.name, ts_rank_cd(textsearch, query) AS rank_sum, 1 as rank_count
+             from decks deckname, decks d
+                  left join publication_extras pe on pe.deck_id = d.id,
+                  plainto_tsquery(deckname.name) query,
+                  to_tsvector(coalesce(d.name, '') || ' ' || coalesce(pe.source, '') || ' ' || coalesce(pe.author, '') || ' ' || coalesce(pe.short_description, '')) textsearch
+             where textsearch @@ query
+                   and d.user_id = $1
+                   and deckname.id = $2
+             group by d.id, textsearch, query
+             order by rank_sum desc
+             limit 10",
+            user_id,
+            deck_id
+        ),
+        query_search_id(
+            db_pool,
+            "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+             from (select d.id, d.kind, d.name, ts_rank_cd(textsearch, query) AS rank
+                   from decks deckname, decks d left join notes n on n.deck_id = d.id,
+                        plainto_tsquery(deckname.name) query,
+                        to_tsvector(coalesce(n.content, '')) textsearch
+                   where textsearch @@ query
+                         and d.user_id = $1
+                         and deckname.id = $2
+                         group by d.id, textsearch, query
+                         order by rank desc) res
+             group by res.id, res.kind, res.name
+             order by sum(res.rank) desc
+             limit 10",
+            user_id,
+            deck_id
+        ),
+        query_search_id(
+            db_pool,
+            "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+             from (select d.id, d.kind, d.name, ts_rank_cd(textsearch, query) AS rank
+                   from decks deckname, decks d left join points p on p.deck_id = d.id,
+                        plainto_tsquery(deckname.name) query,
+                        to_tsvector(coalesce(p.title, '') || ' ' || coalesce(p.location_textual, '') || ' ' || coalesce(p.date_textual, '')) textsearch
+                   where textsearch @@ query
+                         and d.user_id = $1
+                         and deckname.id = $2
+                         group by d.id, textsearch, query
+                         order by rank desc) res
+             group by res.id, res.kind, res.name
+             order by sum(res.rank) desc
+             limit 10",
+            user_id,
+            deck_id
+        ),
+    )?;
+
+    for r in results_via_notes {
+        if !contains(&results, r.id) {
+            results.push(r);
+        }
+    }
+
+    for r in results_via_points {
+        if !contains(&results, r.id) {
+            results.push(r);
+        }
+    }
+
+    Ok(results)
+}
+
 pub(crate) async fn search(
     db_pool: &Pool,
     user_id: Key,
@@ -216,6 +291,15 @@ async fn query_search(
     query: &str,
 ) -> Result<Vec<interop::LinkBack>> {
     pg::many_from::<LinkBackToDeck, interop::LinkBack>(db_pool, &stmt, &[&user_id, &query]).await
+}
+
+async fn query_search_id(
+    db_pool: &Pool,
+    stmt: &str,
+    user_id: Key,
+    deck_id: Key,
+) -> Result<Vec<interop::LinkBack>> {
+    pg::many_from::<LinkBackToDeck, interop::LinkBack>(db_pool, &stmt, &[&user_id, &deck_id]).await
 }
 
 fn contains(linkbacks: &[interop::LinkBack], id: Key) -> bool {

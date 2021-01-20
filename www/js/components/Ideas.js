@@ -36,8 +36,26 @@ function Ideas() {
 function Idea(props) {
   const [state] = useStateValue();
 
+  const [searchResults, setSearchResults] = useState([]); // an array of linkbacks
+
   const ideaId = parseInt(props.id, 10);
   const idea = state.cache.deck[ideaId] || { id: ideaId };
+
+  useEffect(() => {
+    if (idea.title) {
+      // This  additional search query is slow, so it has to be a separate
+      // async call rather than part of the idea's GET response.
+      //
+      // todo: change this to accept a search parameter, this will normally default to the idea.title
+      // but would also allow differently worded but equivalent text
+      //
+      // todo: should the response be cached in state.cache.deck[ideaId] ???
+      //
+      Net.get(`/api/ideas/${idea.id}/additional_search`).then(search_results => {
+        setSearchResults(search_results.results);
+      });
+    }
+  }, [idea]);
 
   const deckManager = DeckManager({
     deck: idea,
@@ -61,7 +79,7 @@ function Idea(props) {
       ${ deckManager.updateForm }
       ${ deckManager.noteManager() }
       ${ nonEmptyArray(idea.linkbacks_to_decks) && html`<${SectionLinkBack} linkbacks=${ idea.linkbacks_to_decks }/>`}
-      ${ nonEmptyArray(idea.search_results) && html`<${SectionSearchResultsLinkBack} linkbacks=${ idea.search_results }/>`}
+      ${ nonEmptyArray(searchResults) && html`<${SectionSearchResultsLinkBack} linkbacks=${ searchResults }/>`}
       ${ canShowGraph(state, ideaId) && html`<${GraphSection} heading=${ graphTitle } okToShowGraph=${okToShowGraph} id=${ ideaId } isIdea depth=${ 2 } />`}
     </article>`;
 }
