@@ -17,7 +17,7 @@
 
 use crate::db::sr as db;
 use crate::error::Result;
-use crate::interop::sr::{ProtoCard, ProtoRating, CardInternal};
+use crate::interop::sr::{CardInternal, ProtoCard, ProtoRating};
 use crate::interop::IdParam;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
@@ -69,10 +69,7 @@ pub async fn card_rated(
     }
 }
 
-fn update_easiness_factor(
-    mut card: CardInternal,
-    rating: i16,
-) -> Result<CardInternal> {
+fn update_easiness_factor(mut card: CardInternal, rating: i16) -> Result<CardInternal> {
     if rating < 3 {
         // start repetitions for the item from the beginning without changing the E-Factor (i.e. use intervals I(1), I(2) etc. as if the item was memorized anew
         card.inter_repetition_interval = 1;
@@ -99,7 +96,8 @@ fn update_easiness_factor(
         }
 
         let rating_f32: f32 = rating as f32;
-        card.easiness_factor = card.easiness_factor - 0.8 + (0.28 * rating_f32) - (0.02 * rating_f32 * rating_f32);
+        card.easiness_factor =
+            card.easiness_factor - 0.8 + (0.28 * rating_f32) - (0.02 * rating_f32 * rating_f32);
         if card.easiness_factor < 1.3 {
             card.easiness_factor = 1.3;
         }

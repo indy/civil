@@ -46,7 +46,7 @@ pub struct CardInternal {
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "cards")]
 pub struct CardUpcomingReviewCount {
-    pub review_count: i64,             // note with postgres' Int8 the '8' refers to bytes not bits
+    pub review_count: i64, // note with postgres' Int8 the '8' refers to bytes not bits
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
@@ -221,8 +221,9 @@ pub(crate) async fn get_cards_upcoming_review(
         "SELECT count(*) as review_count
          FROM cards
          WHERE user_id = $1 and next_test_date < $2",
-        &[&user_id, &due]
-    ).await?;
+        &[&user_id, &due],
+    )
+    .await?;
 
     let review_date = pg::one::<CardUpcomingReviewDate>(
         &tx,
@@ -230,14 +231,13 @@ pub(crate) async fn get_cards_upcoming_review(
          FROM cards
          WHERE user_id = $1
          GROUP BY user_id",
-        &[&user_id]
-    ).await?;
-
+        &[&user_id],
+    )
+    .await?;
 
     tx.commit().await?;
 
     Ok((review_count, review_date).into())
-
 }
 
 pub(crate) async fn card_rated(
@@ -262,7 +262,7 @@ pub(crate) async fn card_rated(
             &card.inter_repetition_interval,
         ],
     )
-        .await?;
+    .await?;
 
     pg::zero(
         &tx,
@@ -271,7 +271,6 @@ pub(crate) async fn card_rated(
         &[&card.id, &rating],
     )
     .await?;
-
 
     tx.commit().await?;
 

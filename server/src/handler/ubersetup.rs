@@ -19,21 +19,21 @@ use crate::error::Result;
 use crate::session;
 use actix_web::web::Data;
 use actix_web::HttpResponse;
-use deadpool_postgres::Pool;
 use chrono::Utc;
+use deadpool_postgres::Pool;
 
 #[allow(unused_imports)]
 use tracing::info;
 
-use crate::db::uploader as db_uploader;
 use crate::db::autocomplete as db_autocomplete;
 use crate::db::decks as db_deck;
 use crate::db::sr as db_sr;
+use crate::db::uploader as db_uploader;
 use crate::handler::cmd::packed_kind;
 
-use crate::interop::Key;
-use crate::interop::uploader as interop_uploader;
 use crate::interop::autocomplete as interop_autocomplete;
+use crate::interop::uploader as interop_uploader;
+use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 struct UberStruct {
@@ -45,10 +45,7 @@ struct UberStruct {
     pub sr_earliest_review_date: chrono::DateTime<chrono::Utc>,
 }
 
-pub async fn setup(
-    db_pool: Data<Pool>,
-    session: actix_session::Session
-) -> Result<HttpResponse> {
+pub async fn setup(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
     info!("get_directory");
 
     let user_id = session::user_id(&session)?;

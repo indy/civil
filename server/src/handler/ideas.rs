@@ -116,11 +116,7 @@ pub async fn delete(
     Ok(HttpResponse::Ok().json(true))
 }
 
-async fn augment(
-    db_pool: &Data<Pool>,
-    idea: &mut interop::Idea,
-    idea_id: Key,
-) -> Result<()> {
+async fn augment(db_pool: &Data<Pool>, idea: &mut interop::Idea, idea_id: Key) -> Result<()> {
     let (notes, decks_in_notes, linkbacks_to_decks) = tokio::try_join!(
         notes_db::all_from_deck(&db_pool, idea_id),
         decks_db::from_deck_id_via_notes_to_decks(&db_pool, idea_id),
@@ -138,7 +134,6 @@ fn contains(linkback: &LinkBack, linkbacks: &[DetailedLinkBack]) -> bool {
     linkbacks.iter().any(|l| l.id == linkback.id)
 }
 
-
 pub async fn additional_search(
     db_pool: Data<Pool>,
     params: Path<IdParam>,
@@ -151,7 +146,7 @@ pub async fn additional_search(
 
     let (linkbacks_to_decks, search_results) = tokio::try_join!(
         decks_db::from_decks_via_notes_to_deck_id(&db_pool, idea_id),
-        decks_db::search_using_deck_id(&db_pool, user_id, idea_id)    // this is slow
+        decks_db::search_using_deck_id(&db_pool, user_id, idea_id) // this is slow
     )?;
 
     // dedupe search results against the linkbacks to decks
@@ -161,7 +156,7 @@ pub async fn additional_search(
         .collect();
 
     let res = interop::SearchResults {
-        results: Some(additional_search_results)
+        results: Some(additional_search_results),
     };
 
     Ok(HttpResponse::Ok().json(res))

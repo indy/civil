@@ -89,8 +89,9 @@ pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Ide
          FROM decks
          WHERE user_id = $1 and kind = 'idea'
          ORDER BY name",
-        &[&user_id])
-        .await
+        &[&user_id],
+    )
+    .await
 }
 
 pub(crate) async fn listings(db_pool: &Pool, user_id: Key) -> Result<interop::IdeasListings> {
@@ -133,12 +134,14 @@ pub(crate) async fn listings(db_pool: &Pool, user_id: Key) -> Result<interop::Id
                    and d.user_id=$1
              order by d.created_at desc"
         ),
-        many_from(db_pool,
-                  user_id,
-                  "SELECT id, name, created_at, graph_terminator
+        many_from(
+            db_pool,
+            user_id,
+            "SELECT id, name, created_at, graph_terminator
                    FROM decks
                    WHERE user_id = $1 and kind = 'idea'
-                   ORDER BY name"),
+                   ORDER BY name"
+        ),
     )?;
 
     Ok(interop::IdeasListings {
