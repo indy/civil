@@ -57,7 +57,9 @@ async function getInitialStateForLoggedInUser() {
     imageDirectory: uber.directory,
     recentImages: uber.recent_images,
     autocompleteDecks: uber.autocomplete,
-    graphConnections: uber.graph_list
+    graphConnections: uber.graph_list,
+    srReviewCount: uber.sr_review_count,
+    srEarliestReviewDate: uber.sr_earliest_review_date
   };
 }
 
@@ -102,7 +104,7 @@ function TopBarMenu(props) {
       <${Link} class='pigment-publications' href='/publications'>Publications</${Link}>
       <${Link} class='pigment-people' href='/people'>People</${Link}>
       <${Link} class='pigment-timelines' href='/timelines'>Timelines</${Link}>
-      <${Link} class='pigment-inherit' href='/sr'>SR</${Link}>
+      <${Link} class='pigment-inherit' href='/sr'>SR(${state.srReviewCount})</${Link}>
     </nav>
 `;
 }

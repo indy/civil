@@ -1,7 +1,7 @@
 import { html, useState, useEffect, Link } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
-import { plural } from '/js/JsUtils.js';
+import { plural, formattedDate, formattedTime } from '/js/JsUtils.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 
 import { useStateValue } from '/js/StateProvider.js';
@@ -71,6 +71,7 @@ function reducer(state, action) {
 };
 
 export default function SpacedRepetition(props) {
+  const [state, dispatch] = useStateValue();
   let [local, localDispatch] = useLocalReducer(reducer, initialState);
 
   useEffect(() => {
@@ -96,9 +97,17 @@ export default function SpacedRepetition(props) {
   const canTest = local.cards.length > 0;
   const cardsToReview = local.cards.length - local.cardIndex;
 
+  let nextTestInfo = "";
+  if (local.mode === MODE_PRE_TEST && !canTest) {
+    const nextReviewDate = formattedDate(Date.parse(state.srEarliestReviewDate));
+    const nextReviewTime = formattedTime(Date.parse(state.srEarliestReviewDate));
+    nextTestInfo = `The next test will be available at ${nextReviewTime} on ${nextReviewDate}`;
+  }
+
   return html`<div>
                 <h1>Spaced Repetition</h1>
                 ${ local.mode !== MODE_POST_TEST && html`<p>${ plural(cardsToReview, 'card', 's') } to review</p>`}
+                ${ local.mode === MODE_PRE_TEST && !canTest && html`<p>${nextTestInfo}</p>`}
                 ${ local.mode === MODE_PRE_TEST && canTest && html`<button onClick=${ startTest }>
                                                                      Start Test
                                                                    </button>`}

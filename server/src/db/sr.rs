@@ -45,6 +45,28 @@ pub struct CardInternal {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "cards")]
+pub struct CardUpcomingReviewCount {
+    pub review_count: i64,             // note with postgres' Int8 the '8' refers to bytes not bits
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
+#[pg_mapper(table = "cards")]
+pub struct CardUpcomingReviewDate {
+    pub earliest_review_date: chrono::DateTime<chrono::Utc>,
+}
+
+impl From<(CardUpcomingReviewCount, CardUpcomingReviewDate)> for interop::CardUpcomingReview {
+    fn from(cc: (CardUpcomingReviewCount, CardUpcomingReviewDate)) -> interop::CardUpcomingReview {
+        let (c, d) = cc;
+        interop::CardUpcomingReview {
+            review_count: c.review_count as i32,
+            earliest_review_date: d.earliest_review_date,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
+#[pg_mapper(table = "cards")]
 pub struct Card {
     pub id: Key,
 
@@ -182,6 +204,40 @@ pub(crate) async fn get_cards(
         &[&user_id, &due]
     )
     .await
+}
+
+pub(crate) async fn get_cards_upcoming_review(
+    db_pool: &Pool,
+    user_id: Key,
+    due: chrono::DateTime<chrono::Utc>,
+) -> Result<interop::CardUpcomingReview> {
+    info!("get_cards_upcoming_review");
+
+    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
+    let tx = client.transaction().await?;
+
+    let review_count = pg::one::<CardUpcomingReviewCount>(
+        &tx,
+        "SELECT count(*) as review_count
+         FROM cards
+         WHERE user_id = $1 and next_test_date < $2",
+        &[&user_id, &due]
+    ).await?;
+
+    let review_date = pg::one::<CardUpcomingReviewDate>(
+        &tx,
+        "SELECT MIN(next_test_date) as earliest_review_date
+         FROM cards
+         WHERE user_id = $1
+         GROUP BY user_id",
+        &[&user_id]
+    ).await?;
+
+
+    tx.commit().await?;
+
+    Ok((review_count, review_date).into())
+
 }
 
 pub(crate) async fn card_rated(

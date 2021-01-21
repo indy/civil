@@ -32,7 +32,10 @@ export const initialState = {
     publications: undefined,
     people: undefined,
     timelines: undefined
-  }
+  },
+
+  srReviewCount: 0,
+  srEarliestReviewDate: undefined
 };
 
 export const reducer = (state, action) => {
@@ -48,7 +51,9 @@ export const reducer = (state, action) => {
       deckIndexFromId: buildDeckIndex(action.autocompleteDecks),
       deckLabels: buildDeckLabels(action.autocompleteDecks),
       fullGraphLoaded: true,
-      fullGraph: buildFullGraph(action.graphConnections)
+      fullGraph: buildFullGraph(action.graphConnections),
+      srReviewCount: action.srReviewCount,
+      srEarliestReviewDate: action.srEarliestReviewDate
     };
   case 'setRecentImages':
     return {

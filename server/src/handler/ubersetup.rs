@@ -20,6 +20,7 @@ use crate::session;
 use actix_web::web::Data;
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
+use chrono::Utc;
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -27,6 +28,7 @@ use tracing::info;
 use crate::db::uploader as db_uploader;
 use crate::db::autocomplete as db_autocomplete;
 use crate::db::decks as db_deck;
+use crate::db::sr as db_sr;
 use crate::handler::cmd::packed_kind;
 
 use crate::interop::Key;
@@ -39,6 +41,8 @@ struct UberStruct {
     pub recent_images: Vec<interop_uploader::UserUploadedImage>,
     pub autocomplete: Vec<interop_autocomplete::Autocomplete>,
     pub graph_list: Vec<i32>,
+    pub sr_review_count: i32,
+    pub sr_earliest_review_date: chrono::DateTime<chrono::Utc>,
 }
 
 pub async fn setup(
@@ -51,10 +55,11 @@ pub async fn setup(
 
     let directory = user_id;
 
-    let (recent_images, autocomplete, graph) = tokio::try_join!(
+    let (recent_images, autocomplete, graph, upcoming_review) = tokio::try_join!(
         db_uploader::get_recent(&db_pool, user_id),
         db_autocomplete::get_decks(&db_pool, user_id),
         db_deck::graph(&db_pool, user_id),
+        db_sr::get_cards_upcoming_review(&db_pool, user_id, Utc::now()),
     )?;
 
     // pack the graph information as integer quadruples
@@ -71,6 +76,8 @@ pub async fn setup(
         recent_images,
         autocomplete,
         graph_list,
+        sr_review_count: upcoming_review.review_count,
+        sr_earliest_review_date: upcoming_review.earliest_review_date,
     };
 
     Ok(HttpResponse::Ok().json(uber))

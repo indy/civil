@@ -30,6 +30,14 @@ export function formattedDate(timestamp) {
   return textual;
 }
 
+export function formattedTime(timestamp) {
+  const options = { hour: '2-digit', minute: '2-digit' };
+  const d = new Date(timestamp);
+  const textual = d.toLocaleTimeString("en-GB", options);
+
+  return textual;
+}
+
 export function opposingKind(kind) {
   switch(kind) {
   case 'ref': return 'ref';

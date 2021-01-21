@@ -19,6 +19,12 @@ use crate::interop::decks::LinkBack;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct CardUpcomingReview {
+    pub review_count: i32,
+    pub earliest_review_date: chrono::DateTime<chrono::Utc>,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Card {
     pub id: Key,
     pub note_id: Key,
