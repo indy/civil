@@ -115,7 +115,8 @@ pub(crate) async fn all(db_pool: &Pool, user_id: Key, deck_id: Key) -> Result<Ve
                 points p
          where  d.user_id = $1
                 and d.id = $2
-                and p.deck_id = d.id",
+                and p.deck_id = d.id
+         order by coalesce(p.exact_date, p.lower_date)",
         &[&user_id, &deck_id],
     )
     .await
