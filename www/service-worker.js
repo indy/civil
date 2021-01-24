@@ -57,8 +57,9 @@ var precacheConfig = [
   "/js/components/QuickFindOrCreate.js",
   "/js/components/RollableSection.js",
   "/js/components/Search.js",
-  "/js/components/SectionLinkBack.js",
+  "/js/components/SectionBackRefs.js",
   "/js/components/SpacedRepetition.js",
+  "/js/components/StarRating.js",
   "/js/components/Timelines.js",
 
   "/wasm.js",

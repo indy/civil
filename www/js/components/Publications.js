@@ -9,8 +9,8 @@ import { RatedListSection, CompactedListSection } from '/js/components/ListSecti
 import DeckManager from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
 import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
-import SectionLinkBack from '/js/components/SectionLinkBack.js';
-import { SpanneStarRatingPartial } from '/js/components/SpanneStarRating.js';
+import SectionBackRefs from '/js/components/SectionBackRefs.js';
+import { StarRatingPartial } from '/js/components/StarRating.js';
 
 function Publications() {
   const [state, dispatch] = useStateValue();
@@ -56,10 +56,10 @@ function Publication(props) {
   return html`
     <article>
       <div>
-        <div class="spanne spanne-in-listing">
-          <${SpanneStarRatingPartial} rating=${publication.rating}/>
-          <div class="spanne-entry">
-            <div class="short-description">${ publication.short_description }</div>
+        <div class="left-margin left-margin-list-entry">
+          <${StarRatingPartial} rating=${publication.rating}/>
+          <div class="left-margin-entry">
+            <div class="descriptive-scribble">${ publication.short_description }</div>
           </div>
         </div>
         ${ deckManager.title }
@@ -71,7 +71,7 @@ function Publication(props) {
       ${ publication.author && authorHeading }
       ${ publication.source && sourceHeading }
       ${ deckManager.noteManager() }
-      ${ nonEmptyArray(publication.linkbacks_to_decks) && html`<${SectionLinkBack} linkbacks=${ publication.linkbacks_to_decks }/>`}
+      ${ nonEmptyArray(publication.backrefs) && html`<${SectionBackRefs} backrefs=${ publication.backrefs }/>`}
       ${ canShowGraph(state, publicationId) && html`<${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${ publicationId } depth=${ 2 }/>`}
     </article>`;
 }

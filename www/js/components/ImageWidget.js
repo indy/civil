@@ -107,8 +107,8 @@ export default function ImageWidget(props) {
     // that might help Preact's diffing algorithm
     //
     return html`<div>
-                  <div class="spanne">
-                    <div class="spanne-entry" onClick=${ onIconClicked }>
+                  <div class="left-margin">
+                    <div class="left-margin-entry" onClick=${ onIconClicked }>
                       ${ svgImage() }
                     </div>
                   </div>
@@ -128,8 +128,8 @@ export default function ImageWidget(props) {
 
     return html`
              <div>
-               <div class="spanne">
-                 <div class="spanne-entry" onClick=${ onIconClicked }>
+               <div class="left-margin">
+                 <div class="left-margin-entry" onClick=${ onIconClicked }>
                    ${ svgCancel() }
                  </div>
                </div>

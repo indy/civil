@@ -10,7 +10,7 @@ import DeckManager from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
 import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
 import RollableSection from '/js/components/RollableSection.js';
-import SectionLinkBack from '/js/components/SectionLinkBack.js';
+import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import { CompactedListSection } from '/js/components/ListSections.js';
 import { ListingLink } from '/js/components/ListingLink.js';
 
@@ -36,7 +36,7 @@ function Ideas() {
 function Idea(props) {
   const [state] = useStateValue();
 
-  const [searchResults, setSearchResults] = useState([]); // an array of linkbacks
+  const [searchResults, setSearchResults] = useState([]); // an array of backrefs
 
   const ideaId = parseInt(props.id, 10);
   const idea = state.cache.deck[ideaId] || { id: ideaId };
@@ -67,7 +67,7 @@ function Idea(props) {
   // this is only for presentational purposes
   // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
   // this check prevents the vis from rendering until after we have all the note and links ready
-  const okToShowGraph = deckManager.hasNotes || idea.linkbacks_to_decks;
+  const okToShowGraph = deckManager.hasNotes || idea.backrefs;
   const created_at_textual = idea.created_at ? formattedDate(idea.created_at) : '';
   const graphTitle = idea.title ? `${idea.title} Connectivity Graph` : '';
 
@@ -78,8 +78,8 @@ function Idea(props) {
       ${ deckManager.buttons }
       ${ deckManager.updateForm }
       ${ deckManager.noteManager() }
-      ${ nonEmptyArray(idea.linkbacks_to_decks) && html`<${SectionLinkBack} linkbacks=${ idea.linkbacks_to_decks }/>`}
-      ${ nonEmptyArray(searchResults) && html`<${SectionSearchResultsLinkBack} linkbacks=${ searchResults }/>`}
+      ${ nonEmptyArray(idea.backrefs) && html`<${SectionBackRefs} backrefs=${ idea.backrefs }/>`}
+      ${ nonEmptyArray(searchResults) && html`<${SectionSearchResultsBackref} backrefs=${ searchResults }/>`}
       ${ canShowGraph(state, ideaId) && html`<${GraphSection} heading=${ graphTitle } okToShowGraph=${okToShowGraph} id=${ ideaId } isIdea depth=${ 2 } />`}
     </article>`;
 }
@@ -150,18 +150,18 @@ function UpdateIdeaForm({ idea }) {
     </form>`;
 }
 
-function SectionSearchResultsLinkBack({ linkbacks }) {
-  function buildLinkback(lb) {
+function SectionSearchResultsBackref({ backrefs }) {
+  function buildBackref(lb) {
     return (
       html`<${ListingLink} id=${ lb.id } name=${ lb.name } resource=${ lb.resource }/>`
     );
   }
 
-  const heading = plural(linkbacks.length, 'Additional Search Result', 's');
+  const heading = plural(backrefs.length, 'Additional Search Result', 's');
 
   return html`<${RollableSection} heading=${ heading } initiallyRolledUp>
                 <ul>
-                  ${ linkbacks.map(buildLinkback) }
+                  ${ backrefs.map(buildBackref) }
                 </ul>
               </${RollableSection}>
 `;

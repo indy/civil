@@ -19,7 +19,7 @@ use crate::db::decks as decks_db;
 use crate::db::ideas as db;
 use crate::db::notes as notes_db;
 use crate::error::Result;
-use crate::interop::decks::{DetailedLinkBack, LinkBack};
+use crate::interop::decks::{BackRef, DetailedBackRef};
 use crate::interop::ideas as interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
@@ -117,21 +117,21 @@ pub async fn delete(
 }
 
 async fn augment(db_pool: &Data<Pool>, idea: &mut interop::Idea, idea_id: Key) -> Result<()> {
-    let (notes, decks_in_notes, linkbacks_to_decks) = tokio::try_join!(
+    let (notes, refs, backrefs) = tokio::try_join!(
         notes_db::all_from_deck(&db_pool, idea_id),
         decks_db::from_deck_id_via_notes_to_decks(&db_pool, idea_id),
         decks_db::from_decks_via_notes_to_deck_id(&db_pool, idea_id),
     )?;
 
     idea.notes = Some(notes);
-    idea.decks_in_notes = Some(decks_in_notes);
-    idea.linkbacks_to_decks = Some(linkbacks_to_decks);
+    idea.refs = Some(refs);
+    idea.backrefs = Some(backrefs);
 
     Ok(())
 }
 
-fn contains(linkback: &LinkBack, linkbacks: &[DetailedLinkBack]) -> bool {
-    linkbacks.iter().any(|l| l.id == linkback.id)
+fn contains(backref: &BackRef, backrefs: &[DetailedBackRef]) -> bool {
+    backrefs.iter().any(|br| br.id == backref.id)
 }
 
 pub async fn additional_search(
@@ -144,15 +144,15 @@ pub async fn additional_search(
     let user_id = session::user_id(&session)?;
     let idea_id = params.id;
 
-    let (linkbacks_to_decks, search_results) = tokio::try_join!(
+    let (backrefs, search_results) = tokio::try_join!(
         decks_db::from_decks_via_notes_to_deck_id(&db_pool, idea_id),
         decks_db::search_using_deck_id(&db_pool, user_id, idea_id) // this is slow
     )?;
 
-    // dedupe search results against the linkbacks to decks
-    let additional_search_results: Vec<LinkBack> = search_results
+    // dedupe search results against the backrefs to decks
+    let additional_search_results: Vec<BackRef> = search_results
         .into_iter()
-        .filter(|lb| lb.id != idea_id && !contains(lb, &linkbacks_to_decks))
+        .filter(|br| br.id != idea_id && !contains(br, &backrefs))
         .collect();
 
     let res = interop::SearchResults {

@@ -41,7 +41,7 @@ pub enum RefKind {
 // links to decks on the side of notes
 //
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct MarginConnection {
+pub struct Ref {
     pub note_id: Key,
     pub id: Key,
     pub name: String,
@@ -53,7 +53,7 @@ pub struct MarginConnection {
 // on a decks page, these link back to other decks
 //
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct LinkBack {
+pub struct BackRef {
     pub id: Key,
     pub name: String,
     pub resource: DeckResource,
@@ -63,7 +63,7 @@ pub struct LinkBack {
 // and contain additional information about the link
 //
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct DetailedLinkBack {
+pub struct DetailedBackRef {
     pub id: Key,
     pub name: String,
     pub resource: DeckResource,

@@ -1,0 +1,33 @@
+
+
+* CSS
+
+| Done | old                | new                    | description                                      |
+|------+--------------------+------------------------+--------------------------------------------------|
+| X    | spanne             | left-margin            | per-note element, left-hand margin               |
+| X    | inline-spanne      | left-margin-inline     |                                                  |
+| X    | spanne-entry       | left-margin-entry      | child of spanne, one per ref                     |
+| X    | spanne-in-listing  | left-margin-list-entry | padding-top:0, for ratings in listings etc       |
+| X    | spanne-icon-label  | left-margin-icon-label |                                                  |
+| X    | noteref            | ref                    |                                                  |
+| X    | noteref-kind       | ref-kind               |                                                  |
+| X    | noteref-annotation | ref-scribble           |                                                  |
+| X    | noteref-clearer    | ref-clearer            |                                                  |
+| X    | margin-text        | right-margin           | right-side of note                               |
+| X    | margin-scribble    | right-margin-scribble  |                                                  |
+| X    | margin-toggle      | right-margin-toggle    |                                                  |
+| X    | sidenote           | right-margin-note      |                                                  |
+| X    | sidenote-counter   | right-margin-counter   |                                                  |
+| X    | sidenote-number    | right-margin-number    |                                                  |
+| X    | short-description  | descriptive-scribble   | hand-written text on left margin and in listings |
+| X    | opinion-neutral    | scribble-neutral       |                                                  |
+| X    | opinion-disagree   | scribble-disagree      |                                                  |
+
+
+* UI
+
+| Done | old              | new        | description                        |
+|------+------------------+------------+------------------------------------|
+| X    | Linkbacks        | BackRefs   | other systems call these Backlinks |
+| X    | SpanneStarRating | StarRating |                                    |
+| X    | MarginConnection | Ref        |                                    |

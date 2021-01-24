@@ -17,7 +17,7 @@
 
 use crate::db::decks as db;
 use crate::error::Result;
-use crate::interop::decks::{LinkBack, RefKind};
+use crate::interop::decks::{BackRef, RefKind};
 use crate::session;
 use actix_web::web::{self, Data};
 use actix_web::HttpResponse;
@@ -26,7 +26,7 @@ use serde::Deserialize;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct ResultList {
-    pub results: Vec<LinkBack>,
+    pub results: Vec<BackRef>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

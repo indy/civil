@@ -49,8 +49,8 @@ impl From<Idea> for interop::Idea {
 
             notes: None,
 
-            decks_in_notes: None,
-            linkbacks_to_decks: None,
+            refs: None,
+            backrefs: None,
         }
     }
 }
@@ -67,8 +67,8 @@ impl From<decks::DeckBase> for interop::Idea {
 
             notes: None,
 
-            decks_in_notes: None,
-            linkbacks_to_decks: None,
+            refs: None,
+            backrefs: None,
         }
     }
 }

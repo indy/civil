@@ -56,8 +56,8 @@ impl From<Publication> for interop::Publication {
 
             notes: None,
 
-            decks_in_notes: None,
-            linkbacks_to_decks: None,
+            refs: None,
+            backrefs: None,
         }
     }
 }
@@ -89,8 +89,8 @@ impl From<(decks::DeckBase, PublicationExtra)> for interop::Publication {
 
             notes: None,
 
-            decks_in_notes: None,
-            linkbacks_to_decks: None,
+            refs: None,
+            backrefs: None,
         }
     }
 }

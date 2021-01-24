@@ -107,23 +107,23 @@ export default function Graph({ id, depth, isIdea }) {
 
   return html`
 <div>
-  <div class="spanne">
-    <div class="spanne-entry clickable" onClick=${ onActivHyperlinksClicked }>
-      <span class="spanne-icon-label">Active Hyperlinks</span>
+  <div class="left-margin">
+    <div class="left-margin-entry clickable" onClick=${ onActivHyperlinksClicked }>
+      <span class="left-margin-icon-label">Active Hyperlinks</span>
       ${ activeHyperlinks ? svgTickedCheckBox() : svgUntickedCheckBox() }
     </div>
-    <div class="spanne-entry clickable" onClick=${ onOnlyIdeaClicked }>
-      <span class="spanne-icon-label">Only Ideas</span>
+    <div class="left-margin-entry clickable" onClick=${ onOnlyIdeaClicked }>
+      <span class="left-margin-icon-label">Only Ideas</span>
       ${ onlyIdea ? svgTickedCheckBox() : svgUntickedCheckBox() }
     </div>
-    <div class="spanne-entry clickable" onClick=${ onOnlyParentChildClicked }>
-      <span class="spanne-icon-label">Only Parent/Child References</span>
+    <div class="left-margin-entry clickable" onClick=${ onOnlyParentChildClicked }>
+      <span class="left-margin-icon-label">Only Parent/Child References</span>
       ${ onlyParentChild ? svgTickedCheckBox() : svgUntickedCheckBox() }
     </div>
-    <div class="spanne-entry">
-      <span class="spanne-icon-label">Depth</span>
+    <div class="left-margin-entry">
+      <span class="left-margin-icon-label">Depth</span>
       <span class="clickable" onClick=${ onLeftClicked }>${ svgChevronLeft() }</span>
-      <span class="spanne-icon-label">${ graphDepth }</span>
+      <span class="left-margin-icon-label">${ graphDepth }</span>
       <span class="clickable" onClick=${ onRightClicked }>${ svgChevronRight() }</span>
     </div>
   </div>

@@ -45,7 +45,7 @@ pub struct DeckBase {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
-struct DeckReference {
+struct Ref {
     note_id: Key,
     id: Key,
     name: String,
@@ -54,9 +54,9 @@ struct DeckReference {
     annotation: Option<String>,
 }
 
-impl From<DeckReference> for interop::MarginConnection {
-    fn from(d: DeckReference) -> interop::MarginConnection {
-        interop::MarginConnection {
+impl From<Ref> for interop::Ref {
+    fn from(d: Ref) -> interop::Ref {
+        interop::Ref {
             note_id: d.note_id,
             id: d.id,
             name: d.name,
@@ -69,15 +69,15 @@ impl From<DeckReference> for interop::MarginConnection {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
-pub struct LinkBackToDeck {
+pub struct BackRef {
     pub id: Key,
     pub name: String,
     pub kind: DeckKind,
 }
 
-impl From<LinkBackToDeck> for interop::LinkBack {
-    fn from(d: LinkBackToDeck) -> interop::LinkBack {
-        interop::LinkBack {
+impl From<BackRef> for interop::BackRef {
+    fn from(d: BackRef) -> interop::BackRef {
+        interop::BackRef {
             id: d.id,
             name: d.name,
             resource: interop::DeckResource::from(d.kind),
@@ -87,7 +87,7 @@ impl From<LinkBackToDeck> for interop::LinkBack {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
-pub struct DetailedLinkBackToDeck {
+pub struct DetailedBackRef {
     pub id: Key,
     pub name: String,
     pub kind: DeckKind,
@@ -95,9 +95,9 @@ pub struct DetailedLinkBackToDeck {
     pub content: String,
 }
 
-impl From<DetailedLinkBackToDeck> for interop::DetailedLinkBack {
-    fn from(d: DetailedLinkBackToDeck) -> interop::DetailedLinkBack {
-        interop::DetailedLinkBack {
+impl From<DetailedBackRef> for interop::DetailedBackRef {
+    fn from(d: DetailedBackRef) -> interop::DetailedBackRef {
+        interop::DetailedBackRef {
             id: d.id,
             name: d.name,
             resource: interop::DeckResource::from(d.kind),
@@ -141,7 +141,7 @@ pub(crate) async fn search_using_deck_id(
     db_pool: &Pool,
     user_id: Key,
     deck_id: Key,
-) -> Result<Vec<interop::LinkBack>> {
+) -> Result<Vec<interop::BackRef>> {
     let (mut results, results_via_notes, results_via_points) = tokio::try_join!(
         query_search_id(
             db_pool,
@@ -216,7 +216,7 @@ pub(crate) async fn search(
     db_pool: &Pool,
     user_id: Key,
     query: &str,
-) -> Result<Vec<interop::LinkBack>> {
+) -> Result<Vec<interop::BackRef>> {
     let (mut results, results_via_notes, results_via_points) = tokio::try_join!(
         query_search(
             db_pool,
@@ -289,8 +289,8 @@ async fn query_search(
     stmt: &str,
     user_id: Key,
     query: &str,
-) -> Result<Vec<interop::LinkBack>> {
-    pg::many_from::<LinkBackToDeck, interop::LinkBack>(db_pool, &stmt, &[&user_id, &query]).await
+) -> Result<Vec<interop::BackRef>> {
+    pg::many_from::<BackRef, interop::BackRef>(db_pool, &stmt, &[&user_id, &query]).await
 }
 
 async fn query_search_id(
@@ -298,13 +298,13 @@ async fn query_search_id(
     stmt: &str,
     user_id: Key,
     deck_id: Key,
-) -> Result<Vec<interop::LinkBack>> {
-    pg::many_from::<LinkBackToDeck, interop::LinkBack>(db_pool, &stmt, &[&user_id, &deck_id]).await
+) -> Result<Vec<interop::BackRef>> {
+    pg::many_from::<BackRef, interop::BackRef>(db_pool, &stmt, &[&user_id, &deck_id]).await
 }
 
-fn contains(linkbacks: &[interop::LinkBack], id: Key) -> bool {
-    for l in linkbacks {
-        if l.id == id {
+fn contains(backrefs: &[interop::BackRef], id: Key) -> bool {
+    for br in backrefs {
+        if br.id == id {
             return true;
         }
     }
@@ -377,7 +377,7 @@ pub(crate) async fn recent(
     db_pool: &Pool,
     user_id: Key,
     resource: &str,
-) -> Result<Vec<interop::LinkBack>> {
+) -> Result<Vec<interop::BackRef>> {
     let deck_kind = resource_string_to_deck_kind_string(resource)?;
     let limit: i32 = 10;
 
@@ -389,7 +389,7 @@ pub(crate) async fn recent(
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
     let stmt = stmt.replace("$limit", &limit.to_string());
 
-    pg::many_from::<LinkBackToDeck, interop::LinkBack>(db_pool, &stmt, &[&user_id]).await
+    pg::many_from::<BackRef, interop::BackRef>(db_pool, &stmt, &[&user_id]).await
 }
 
 pub(crate) async fn graph(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Vertex>> {
@@ -447,8 +447,8 @@ pub(crate) async fn delete(db_pool: &Pool, user_id: Key, id: Key) -> Result<()> 
 pub(crate) async fn from_decks_via_notes_to_deck_id(
     db_pool: &Pool,
     deck_id: Key,
-) -> Result<Vec<interop::DetailedLinkBack>> {
-    pg::many_from::<DetailedLinkBackToDeck, interop::DetailedLinkBack>(
+) -> Result<Vec<interop::DetailedBackRef>> {
+    pg::many_from::<DetailedBackRef, interop::DetailedBackRef>(
         db_pool,
         "SELECT d.id AS id,
                 d.name AS name,
@@ -473,8 +473,8 @@ pub(crate) async fn from_decks_via_notes_to_deck_id(
 pub(crate) async fn from_deck_id_via_notes_to_decks(
     db_pool: &Pool,
     deck_id: Key,
-) -> Result<Vec<interop::MarginConnection>> {
-    pg::many_from::<DeckReference, interop::MarginConnection>(
+) -> Result<Vec<interop::Ref>> {
+    pg::many_from::<Ref, interop::Ref>(
         db_pool,
         "SELECT n.id as note_id,
                 d.id,

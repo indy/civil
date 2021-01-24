@@ -11,7 +11,7 @@ import GraphSection from '/js/components/GraphSection.js';
 import PointForm from '/js/components/PointForm.js';
 import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
 import RollableSection from '/js/components/RollableSection.js';
-import SectionLinkBack from '/js/components/SectionLinkBack.js';
+import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import { BasicListSection } from '/js/components/ListSections.js';
 import { svgPointAdd, svgCancel, svgCaretRight, svgCaretRightEmpty, svgCaretDown } from '/js/svgIcons.js';
 
@@ -46,7 +46,7 @@ function Timeline(props) {
   // this is only for presentational purposes
   // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
   // this check prevents the vis from rendering until after we have all the note and links ready
-  const okToShowGraph = !!(deckManager.hasNotes || (timeline.linkbacks_to_decks && timeline.linkbacks_to_decks.length > 0));
+  const okToShowGraph = !!(deckManager.hasNotes || (timeline.backrefs && timeline.backrefs.length > 0));
 
   return html`
     <article>
@@ -56,7 +56,7 @@ function Timeline(props) {
 
       ${ deckManager.noteManager() }
 
-      ${ nonEmptyArray(timeline.linkbacks_to_decks) && html`<${SectionLinkBack} linkbacks=${ timeline.linkbacks_to_decks }/>`}
+      ${ nonEmptyArray(timeline.backrefs) && html`<${SectionBackRefs} backrefs=${ timeline.backrefs }/>`}
       <${ListPoints} points=${ timeline.points }
                      deckManager=${ deckManager }
                      holderId=${ timeline.id }
@@ -181,9 +181,9 @@ function ListPoints({ points, deckManager, holderId, holderName }) {
       <ul class="unstyled-list hug-left">
         ${ dps }
       </ul>
-      <div class="spanne">
-        <div class="spanne-entry clickable" onClick=${ onAddPointClicked }>
-          <span class="spanne-icon-label">${ formSidebarText }</span>
+      <div class="left-margin">
+        <div class="left-margin-entry clickable" onClick=${ onAddPointClicked }>
+          <span class="left-margin-icon-label">${ formSidebarText }</span>
           ${ showPointForm ? svgCancel() : svgPointAdd() }
         </div>
       </div>

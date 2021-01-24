@@ -320,16 +320,16 @@ function buildNoteReferences(decks) {
     const { id, resource, kind, name, annotation } = ref;
     const href = `/${resource}/${id}`;
     return html`
-      <div class="spanne-entry" key=${ id }>
-        <span class="noteref-kind">(${ kind })</span>
-        <${Link} class="noteref pigment-${ resource }" href=${ href }>${ name }</${Link}>
-        ${annotation && html`<div class="noteref-clearer"/>
-                             <div class="noteref-annotation pigment-fg-${ resource }">${ annotation }</div>
-                             <div class="noteref-clearer"/>`}
+      <div class="left-margin-entry" key=${ id }>
+        <span class="ref-kind">(${ kind })</span>
+        <${Link} class="ref pigment-${ resource }" href=${ href }>${ name }</${Link}>
+        ${annotation && html`<div class="ref-clearer"/>
+                             <div class="ref-scribble pigment-fg-${ resource }">${ annotation }</div>
+                             <div class="ref-clearer"/>`}
       </div>`;
   });
 
-  return html`<div class="spanne">${entries}</div>`;
+  return html`<div class="left-margin">${entries}</div>`;
 };
 
 function addDecks(note, decks, onDecksChanged, dispatch) {

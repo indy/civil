@@ -176,9 +176,9 @@ function NoteForm({ onSubmit, onCancel }) {
 
   return html`
   <div class="append-note">
-    <div class="spanne">
-      <div class="spanne-entry clickable cancel-offset" onClick=${ onCancel }>
-        <span class="spanne-icon-label">Cancel</span>
+    <div class="left-margin">
+      <div class="left-margin-entry clickable cancel-offset" onClick=${ onCancel }>
+        <span class="left-margin-icon-label">Cancel</span>
         ${ svgCancel() }
       </div>
     </div>
@@ -263,15 +263,15 @@ function NoteManager(deck, cacheDeck, optional_deck_point) {
   };
 
   function onDecksChanged(note, all_decks_for_note) {
-    // have to set deck.decks_in_notes to be the canonical version
+    // have to set deck.refs to be the canonical version
     // 'cacheDeck' will use that to populate each note's decks array
 
-    // remove all deck.decks_in_notes that relate to this note
-    deck.decks_in_notes = deck.decks_in_notes.filter(din => {
+    // remove all deck.refs that relate to this note
+    deck.refs = deck.refs.filter(din => {
       return din.note_id !== note.id;
     });
-    // add every note.decks entry to deck.decks_in_notes
-    all_decks_for_note.forEach(d => { deck.decks_in_notes.push(d); });
+    // add every note.decks entry to deck.refs
+    all_decks_for_note.forEach(d => { deck.refs.push(d); });
 
     findNoteWithId(note.id, (notes, index) => {
       notes[index] = note;
@@ -325,10 +325,10 @@ function NoteManager(deck, cacheDeck, optional_deck_point) {
     if (optional_deck_point) {
       return html`
 <div class="inline-append-note">
-  <div class="inline-spanne">
-    <div class="spanne-entry clickable"  onClick=${ onAddNoteClicked }>
+  <div class="left-margin-inline">
+    <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
       ${ svgEdit() }
-      <span class="spanne-icon-label">Append Note to ${ optional_deck_point.title }</span>
+      <span class="left-margin-icon-label">Append Note to ${ optional_deck_point.title }</span>
     </div>
   </div>
 </div>
@@ -336,9 +336,9 @@ function NoteManager(deck, cacheDeck, optional_deck_point) {
     } else {
       return html`
 <div class="append-note">
-  <div class="spanne">
-    <div class="spanne-entry clickable"  onClick=${ onAddNoteClicked }>
-      <span class="spanne-icon-label">Append Note</span>
+  <div class="left-margin">
+    <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
+      <span class="left-margin-icon-label">Append Note</span>
       ${ svgEdit() }
     </div>
   </div>

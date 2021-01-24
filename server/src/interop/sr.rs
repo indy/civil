@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::LinkBack;
+use crate::interop::decks::BackRef;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -28,7 +28,7 @@ pub struct CardUpcomingReview {
 pub struct Card {
     pub id: Key,
     pub note_id: Key,
-    pub deck_info: LinkBack,
+    pub deck_info: BackRef,
 
     pub prompt: String,
 }

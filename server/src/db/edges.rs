@@ -32,7 +32,7 @@ use tracing::info;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
-pub struct MarginConnectionToDeck {
+pub struct Ref {
     pub note_id: Key,
     pub id: Key,
     pub name: String,
@@ -41,9 +41,9 @@ pub struct MarginConnectionToDeck {
     pub annotation: Option<String>,
 }
 
-impl From<MarginConnectionToDeck> for interop_decks::MarginConnection {
-    fn from(e: MarginConnectionToDeck) -> interop_decks::MarginConnection {
-        interop_decks::MarginConnection {
+impl From<Ref> for interop_decks::Ref {
+    fn from(e: Ref) -> interop_decks::Ref {
+        interop_decks::Ref {
             note_id: e.note_id,
             id: e.id,
             name: e.name,
@@ -54,7 +54,7 @@ impl From<MarginConnectionToDeck> for interop_decks::MarginConnection {
     }
 }
 
-fn is_deck_associated_with_note(deck_id: Key, existing_decks: &[MarginConnectionToDeck]) -> bool {
+fn is_deck_associated_with_note(deck_id: Key, existing_decks: &[Ref]) -> bool {
     for existing in existing_decks {
         if existing.id == deck_id {
             return true;
@@ -76,7 +76,7 @@ pub(crate) async fn create_from_note_to_decks(
     db_pool: &Pool,
     edge_connectivity: &interop::ProtoEdgeFromNoteToDecks,
     user_id: Key,
-) -> Result<Vec<interop_decks::MarginConnection>> {
+) -> Result<Vec<interop_decks::Ref>> {
     info!("create_from_note_to_decks");
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
@@ -88,8 +88,7 @@ pub(crate) async fn create_from_note_to_decks(
         "SELECT nd.note_id, d.id, d.name, d.kind as deck_kind, nd.kind as ref_kind, nd.annotation
                           FROM notes_decks nd, decks d
                           WHERE nd.note_id = $1 AND d.id = nd.deck_id";
-    let associated_decks: Vec<MarginConnectionToDeck> =
-        pg::many::<MarginConnectionToDeck>(&tx, &stmt_all_decks, &[&note_id]).await?;
+    let associated_decks: Vec<Ref> = pg::many::<Ref>(&tx, &stmt_all_decks, &[&note_id]).await?;
 
     // remove decks that are in associated_decks but not in edge_connectivity.deck_ids
     let stmt_delete_deck = "DELETE FROM notes_decks WHERE note_id = $1 AND deck_id = $2";
@@ -168,10 +167,5 @@ pub(crate) async fn create_from_note_to_decks(
     tx.commit().await?;
 
     // return a list of [id, name, resource, kind, annotation] containing the complete set of decks associated with this note.
-    pg::many_from::<MarginConnectionToDeck, interop_decks::MarginConnection>(
-        db_pool,
-        &stmt_all_decks,
-        &[&note_id],
-    )
-    .await
+    pg::many_from::<Ref, interop_decks::Ref>(db_pool, &stmt_all_decks, &[&note_id]).await
 }

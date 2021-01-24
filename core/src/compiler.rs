@@ -61,9 +61,9 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
         Node::BlockQuote(ns) => element_key("blockquote", key, ns)?,
         Node::Highlight(ns) => element_key("mark", key, ns)?,
         Node::ListItem(ns) => element_key("li", key, ns)?,
-        Node::MarginScribble(ns) => compile_sidenote(ns, key, "margin-scribble opinion-neutral")?,
-        Node::MarginDisagree(ns) => compile_sidenote(ns, key, "margin-scribble opinion-disagree")?,
-        Node::MarginText(ns) => compile_sidenote(ns, key, "margin-text")?,
+        Node::MarginScribble(ns) => compile_sidenote(ns, key, "right-margin-scribble scribble-neutral")?,
+        Node::MarginDisagree(ns) => compile_sidenote(ns, key, "right-margin-scribble scribble-disagree")?,
+        Node::MarginText(ns) => compile_sidenote(ns, key, "right-margin")?,
         Node::OrderedList(ns) => element_key("ol", key, ns)?,
         Node::Paragraph(ns) => element_key("p", key, ns)?,
         Node::Quotation(ns) => element_key("em", key, ns)?,
@@ -95,12 +95,12 @@ fn compile_sidenote(ns: &[Node], key: usize, class_name: &str) -> Result<Vec<Ele
     let mut id = String::new();
     write!(&mut id, "mn-{}", key)?;
 
-    // the margin-toggle character is 'circled times': https://www.htmlsymbols.xyz/unicode/U+2297
-    res.append(&mut element_key_class_for("label", key, "margin-toggle", &id, &"⊗")?);
+    // the right-margin-toggle character is 'circled times': https://www.htmlsymbols.xyz/unicode/U+2297
+    res.append(&mut element_key_class_for("label", key, "right-margin-toggle", &id, &"⊗")?);
     res.append(&mut element_key_class_type(
         "input",
         key + 100,
-        "margin-toggle",
+        "right-margin-toggle",
         &id,
         "checkbox",
     )?);
@@ -118,18 +118,18 @@ fn compile_numbered_sidenote(ns: &[Node], key: usize) -> Result<Vec<Element>> {
     res.append(&mut element_key_class_for(
         "label",
         key,
-        "margin-toggle sidenote-number",
+        "right-margin-toggle right-margin-number",
         &id,
         &"",
     )?);
     res.append(&mut element_key_class_type(
         "input",
         key + 100,
-        "margin-toggle",
+        "right-margin-toggle",
         &id,
         "checkbox",
     )?);
-    res.append(&mut element_key_class("span", key + 200, "sidenote", ns)?);
+    res.append(&mut element_key_class("span", key + 200, "right-margin-note", ns)?);
 
     Ok(res)
 }

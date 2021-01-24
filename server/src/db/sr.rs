@@ -18,7 +18,7 @@
 use super::pg;
 
 use crate::db::deck_kind::DeckKind;
-use crate::db::decks::LinkBackToDeck;
+use crate::db::decks::BackRef;
 use crate::error::{Error, Result};
 use crate::interop::decks as interop_decks;
 use crate::interop::sr as interop;
@@ -91,7 +91,7 @@ impl From<CardFullFat> for interop::Card {
         interop::Card {
             id: e.id,
             note_id: e.note_id,
-            deck_info: interop_decks::LinkBack {
+            deck_info: interop_decks::BackRef {
                 id: e.deck_id,
                 name: e.deck_name,
                 resource: interop_decks::DeckResource::from(e.deck_kind),
@@ -114,17 +114,17 @@ impl From<CardInternal> for interop::CardInternal {
     }
 }
 
-impl From<(Card, LinkBackToDeck)> for interop::Card {
-    fn from(e: (Card, LinkBackToDeck)) -> interop::Card {
+impl From<(Card, BackRef)> for interop::Card {
+    fn from(e: (Card, BackRef)) -> interop::Card {
         let (c, lb) = e;
 
         // todo: inline
-        let linkback: interop_decks::LinkBack = lb.into();
+        let backref: interop_decks::BackRef = lb.into();
 
         interop::Card {
             id: c.id,
             note_id: c.note_id,
-            deck_info: linkback,
+            deck_info: backref,
             prompt: c.prompt,
         }
     }
@@ -158,7 +158,7 @@ pub(crate) async fn create_card(
     )
     .await?;
 
-    let db_linkback = pg::one::<LinkBackToDeck>(
+    let db_backref = pg::one::<BackRef>(
         &tx,
         "SELECT d.id AS id, d.name AS name, d.kind AS kind
          FROM decks d, notes n
@@ -169,7 +169,7 @@ pub(crate) async fn create_card(
 
     tx.commit().await?;
 
-    Ok((db_card, db_linkback).into())
+    Ok((db_card, db_backref).into())
 }
 
 pub(crate) async fn get_card_internal(

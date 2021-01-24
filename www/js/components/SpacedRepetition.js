@@ -205,9 +205,9 @@ function buildAnswer(card, answerMarkup) {
                 <div class="sr-section">Back</div>
 
 <div class="note">
-                <div class="spanne">
-                  <div class="spanne-entry">
-                    <${Link} class="noteref pigment-${ resource }" href=${ href }>${ name }</${Link}>
+                <div class="left-margin">
+                  <div class="left-margin-entry">
+                    <${Link} class="ref pigment-${ resource }" href=${ href }>${ name }</${Link}>
                   </div>
                 </div>
                 ${answerMarkup}
@@ -225,7 +225,7 @@ function CardRating({ card, onRatedCard }) {
   return html`<div>
                 <div class="sr-section">
                 Rating
-                <ul class="margin-text sr-rating-descriptions">
+                <ul class="right-margin sr-rating-descriptions">
                   <li>5 - perfect response</li>
                   <li>4 - correct response after a hesitation</li>
                   <li>3 - correct response recalled with serious difficulty</li>

@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::{DetailedLinkBack, MarginConnection};
+use crate::interop::decks::{DetailedBackRef, Ref};
 use crate::interop::notes::Note;
 use crate::interop::points::Point;
 use crate::interop::Key;
@@ -29,8 +29,8 @@ pub struct Timeline {
 
     pub notes: Option<Vec<Note>>,
 
-    pub decks_in_notes: Option<Vec<MarginConnection>>,
-    pub linkbacks_to_decks: Option<Vec<DetailedLinkBack>>,
+    pub refs: Option<Vec<Ref>>,
+    pub backrefs: Option<Vec<DetailedBackRef>>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

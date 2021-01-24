@@ -291,7 +291,7 @@ function buildDeckLabels(decks) {
 }
 
 function applyDecksToNotes(obj) {
-  const decksInNotes = hashByNoteIds(obj.decks_in_notes);
+  const decksInNotes = hashByNoteIds(obj.refs);
 
   for(let i = 0;i<obj.notes.length;i++) {
     let n = obj.notes[i];

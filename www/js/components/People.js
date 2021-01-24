@@ -26,7 +26,7 @@ import GraphSection from '/js/components/GraphSection.js';
 import PointForm from '/js/components/PointForm.js';
 import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
 import RollableSection from '/js/components/RollableSection.js';
-import SectionLinkBack from '/js/components/SectionLinkBack.js';
+import SectionBackRefs from '/js/components/SectionBackRefs.js';
 
 function People() {
   const [state, dispatch] = useStateValue();
@@ -119,7 +119,7 @@ function Person(props) {
   // this is only for presentational purposes
   // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
   // this check prevents the vis from rendering until after we have all the note and links ready
-  const okToShowGraph = !!(deckManager.hasNotes || (person.linkbacks_to_decks && person.linkbacks_to_decks.length > 0));
+  const okToShowGraph = !!(deckManager.hasNotes || (person.backrefs && person.backrefs.length > 0));
   const hasBirth = hasBirthPoint(person);
 
   return html`
@@ -133,7 +133,7 @@ function Person(props) {
 
       ${ deckManager.noteManager() }
 
-      ${ nonEmptyArray(person.linkbacks_to_decks) && html`<${SectionLinkBack} linkbacks=${ person.linkbacks_to_decks }/>`}
+      ${ nonEmptyArray(person.backrefs) && html`<${SectionBackRefs} backrefs=${ person.backrefs }/>`}
       ${ hasBirth && html`<${ListDeckPoints} deckPoints=${ person.all_points_during_life }
                                              deckManager=${ deckManager }
                                              dispatch=${ dispatch }
@@ -354,17 +354,17 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, dispatc
 
   return html`
     <${RollableSection} heading='Points during the life of ${ holderName }'>
-      <div class="spanne">
-        ${ !hasDied && html`<div class="spanne-entry clickable" onClick=${ onShowDeathFormClicked }>
-                              <span class="spanne-icon-label">Add Died Point</span>
+      <div class="left-margin">
+        ${ !hasDied && html`<div class="left-margin-entry clickable" onClick=${ onShowDeathFormClicked }>
+                              <span class="left-margin-icon-label">Add Died Point</span>
                               ${ svgPointAdd() }
                             </div>`}
-        <div class="spanne-entry clickable" onClick=${ onOnlyThisPersonClicked }>
-          <span class="spanne-icon-label">Only ${ holderName }</span>
+        <div class="left-margin-entry clickable" onClick=${ onOnlyThisPersonClicked }>
+          <span class="left-margin-icon-label">Only ${ holderName }</span>
           ${ onlyThisPerson ? svgTickedCheckBox() : svgUntickedCheckBox() }
         </div>
-        ${ !onlyThisPerson && html`<div class="spanne-entry clickable" onClick=${ onShowOtherClicked }>
-                                     <span class="spanne-icon-label">Show Other Birth/Deaths</span>
+        ${ !onlyThisPerson && html`<div class="left-margin-entry clickable" onClick=${ onShowOtherClicked }>
+                                     <span class="left-margin-icon-label">Show Other Birth/Deaths</span>
                                      ${ showBirthsDeaths ? svgTickedCheckBox() : svgUntickedCheckBox() }
                                    </div>`}
       </div>
@@ -373,9 +373,9 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, dispatc
       <ul class="unstyled-list hug-left">
         ${ dps }
       </ul>
-      <div class="spanne">
-        <div class="spanne-entry clickable" onClick=${ onAddPointClicked }>
-          <span class="spanne-icon-label">${ formSidebarText }</span>
+      <div class="left-margin">
+        <div class="left-margin-entry clickable" onClick=${ onAddPointClicked }>
+          <span class="left-margin-icon-label">${ formSidebarText }</span>
           ${ showPointForm ? svgCancel() : svgPointAdd() }
         </div>
       </div>

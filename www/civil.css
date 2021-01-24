@@ -156,7 +156,7 @@ body {
   background-color: var(--bg);
   color: var(--fg);
   max-width: 1400px;
-  counter-reset: sidenote-counter;
+  counter-reset: right-margin-counter;
 }
 
 h1 {
@@ -254,9 +254,9 @@ blockquote {
   font-style: italic;           /* is this really needed? */
 }
 
-blockquote .sidenote,
-blockquote .margin-text,
-blockquote .margin-scribble {
+blockquote .right-margin-note,
+blockquote .right-margin,
+blockquote .right-margin-scribble {
   margin-right: -70%;
   min-width: 59%;
   text-align: left;
@@ -312,7 +312,7 @@ div.note > div > img {
   max-width: var(--block-width);
 }
 
-/* Sidenotes, margin notes, figures, captions */
+/* Right-Margin-Notes, margin notes, figures, captions */
 
 nav {
   padding-bottom: 0.5rem;
@@ -335,9 +335,9 @@ mark {
   background: var(--highlight);
 }
 
-.sidenote,
-.margin-text,
-.margin-scribble {
+.right-margin-note,
+.right-margin,
+.right-margin-scribble {
   float: right;
   clear: right;
   margin-right: -60%;
@@ -350,26 +350,26 @@ mark {
   position: relative;
 }
 
-.sidenote-number {
-  counter-increment: sidenote-counter;
+.right-margin-number {
+  counter-increment: right-margin-counter;
 }
 
-.sidenote-number:after,
-.sidenote:before {
+.right-margin-number:after,
+.right-margin-note:before {
   font-family: et-book-roman-old-style;
   position: relative;
   vertical-align: baseline;
 }
 
-.sidenote-number:after {
-  content: counter(sidenote-counter);
+.right-margin-number:after {
+  content: counter(right-margin-counter);
   font-size: 1rem;
   top: -0.5rem;
   left: 0.1rem;
 }
 
-.sidenote:before {
-  content: counter(sidenote-counter) " ";
+.right-margin-note:before {
+  content: counter(right-margin-counter) " ";
   font-size: 1rem;
   top: -0.5rem;
 }
@@ -406,9 +406,9 @@ h3 > code {
   font-size: 0.80rem;
 }
 
-.margin-scribble > code,
-.margin-text > code,
-.sidenote > code {
+.right-margin-scribble > code,
+.right-margin > code,
+.right-margin-note > code {
   font-size: 1rem;
 }
 
@@ -429,15 +429,15 @@ pre.fullwidth > code {
   clear:both;
 }
 
-input.margin-toggle {
+input.right-margin-toggle {
   display: none;
 }
 
-label.sidenote-number {
+label.right-margin-number {
   display: inline;
 }
 
-label.margin-toggle:not(.sidenote-number) {
+label.right-margin-toggle:not(.right-margin-number) {
   display: none;
 }
 
@@ -487,19 +487,19 @@ label.margin-toggle:not(.sidenote-number) {
     width: 100%;
   }
 
-  label.margin-toggle:not(.sidenote-number) {
+  label.right-margin-toggle:not(.right-margin-number) {
     display: inline;
   }
 
-  .sidenote,
-  .margin-text,
-  .margin-scribble {
+  .right-margin,
+  .right-margin-note,
+  .right-margin-scribble {
     display: none;
   }
 
-  .margin-toggle:checked + .sidenote,
-  .margin-toggle:checked + .margin-text,
-  .margin-toggle:checked + .margin-scribble {
+  .right-margin-toggle:checked + .right-margin-note,
+  .right-margin-toggle:checked + .right-margin,
+  .right-margin-toggle:checked + .right-margin-scribble {
     display: block;
     float: left;
     left: 1rem;
@@ -919,25 +919,25 @@ a:link.note-inline-link {
   right: 1rem
 }
 
-.sidenote {
+.right-margin-note {
   text-align: left;
 }
 
-.margin-scribble {
+.right-margin-scribble {
   font-family: 'Nothing You Could Do', cursive;
   font-size: 1.5rem;
   text-align: left;
 }
 
-.opinion-neutral {
+.scribble-neutral {
   color: var(--scribble-neutral);
 }
 
-.opinion-disagree {
+.scribble-disagree {
   color: var(--scribble-disagree);
 }
 
-label.margin-toggle {
+label.right-margin-toggle {
   color: var(--hyperlink);
 }
 
@@ -994,8 +994,8 @@ section > form { width: var(--block-width); }
   width: 96%;
 }
 
-/* the left-hand spanne that contains noterefs, 'add note icons' etc*/
-.spanne {
+/* contains refs, 'add note icons' etc*/
+.left-margin {
   padding-top: 0.5rem;
   float: left;
   margin-left: -30%;
@@ -1005,20 +1005,20 @@ section > form { width: var(--block-width); }
 
   font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
 }
-.spanne-in-listing {
+.left-margin-list-entry {
   /* don't want the padding as each li is only a single line */
   padding-top: 0.0rem;
 }
 
-/* like spanne but inline for adding notes to points */
-.inline-spanne {
+/* like left-margin but inline for adding notes to points */
+.left-margin-inline {
   color: var(--fg1);
   font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
   margin-left: 4rem;
 }
 
 @media (max-width: 1200px) {
-  .spanne {
+  .left-margin {
     float: right;
     text-align: left;
     width: 28%;
@@ -1026,10 +1026,10 @@ section > form { width: var(--block-width); }
 }
 
 @media (max-width: 800px) {
-  .spanne {
+  .left-margin {
     display: none;
   }
-  .inline-spanne {
+  .left-margin-inline {
     display: none;
   }
 }
@@ -1042,15 +1042,15 @@ section > form { width: var(--block-width); }
   cursor: pointer;
 }
 
-.spanne-entry {
+.left-margin-entry {
   padding-right: 3rem;
 }
 
-.spanne-entry a {
+.left-margin-entry a {
   text-decoration: none;
 }
 
-.spanne-icon-label {
+.left-margin-icon-label {
   vertical-align: super;
   margin-right: 0.5rem;
 }
@@ -1060,25 +1060,25 @@ section > form { width: var(--block-width); }
   margin-bottom: 4rem;
 }
 
-.noteref-kind {
+.ref-kind {
   font-size: 75%;
   color: var(--fg1);
   padding-right: 1rem;
 }
 
-.noteref {
+.ref {
   padding: 0.1rem 0.5rem 0.1rem 0.5rem;
   border-radius: var(--coloured-deck-border-radius);
 }
 
-.noteref-annotation {
+.ref-scribble {
   font-family: 'Nothing You Could Do', cursive;
   padding-bottom: 0.3rem;
   width: 20rem;
   float: right;
 }
 
-.noteref-clearer {
+.ref-clearer {
   clear: both;
 }
 
@@ -1201,7 +1201,8 @@ input:required {
   list-style-type: none;
 }
 
-.short-description {
+/* hand-written text on left margin and in listings */
+.descriptive-scribble {
   font-family: 'Nothing You Could Do', cursive;
   color: var(--scribble-neutral);
   margin-left: 1rem;

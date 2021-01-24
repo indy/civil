@@ -15,8 +15,8 @@ export default function RollableSection({ heading, children, initiallyRolledUp }
   return html`
     <section class=${classState}>
       <div>
-        <div class="spanne">
-          <div class="spanne-entry clickable" onClick=${ onRollClicked }>
+        <div class="left-margin">
+          <div class="left-margin-entry clickable" onClick=${ onRollClicked }>
             ${ icon }
           </div>
         </div>

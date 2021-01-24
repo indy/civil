@@ -1,7 +1,7 @@
 import { html, useState, Link } from '/lib/preact/mod.js';
 import { svgExpand, svgMinimise } from '/js/svgIcons.js';
 import { ListingLink } from '/js/components/ListingLink.js';
-import { SpanneStarRating } from '/js/components/SpanneStarRating.js';
+import { StarRating } from '/js/components/StarRating.js';
 
 function BasicListSection({list, resource}) {
   return html`
@@ -97,9 +97,9 @@ function RatedListingLink({ resource, id, name, rating, description }) {
 
   let res = html`
     <li>
-      <${SpanneStarRating} rating=${rating}/>
+      <${StarRating} rating=${rating}/>
       <${Link} class="pigment-fg-${resource}" href=${ href }>${ name }</${Link}>
-      <span class="short-description">${description}</span>
+      <span class="descriptive-scribble">${description}</span>
     </li>`;
 
   return res;

@@ -6,25 +6,25 @@ import { svgCaretDown, svgCaretRight} from '/js/svgIcons.js';
 import RollableSection from '/js/components/RollableSection.js';
 import { ExpandableListingLink } from '/js/components/ListingLink.js';
 
-export default function SectionLinkBack({ linkbacks }) {
+export default function SectionBackRefs({ backrefs }) {
   const sections = [];
 
-  const groupedLinkbacksByResource = groupByResource(linkbacks);
-  Object.keys(groupedLinkbacksByResource).forEach(key => {
-    const byId = groupLinkbacksById(groupedLinkbacksByResource[key]);
+  const groupedBackRefsByResource = groupByResource(backrefs);
+  Object.keys(groupedBackRefsByResource).forEach(key => {
+    const byId = groupBackRefsById(groupedBackRefsByResource[key]);
     const section = SectionLinks(byId);
     sections.push(section);
   });
 
   return html`
-    <${RollableSection} heading='Linkbacks'>
+    <${RollableSection} heading='BackRefs'>
       ${ sections }
     </${RollableSection}>`;
 }
 
-function groupLinkbacksById(linkbacks) {
+function groupBackRefsById(backrefs) {
   let grouped = {};
-  linkbacks.forEach(lb => {
+  backrefs.forEach(lb => {
     grouped[lb.id] = grouped[lb.id] || { id: lb.id, name: lb.name, resource: lb.resource, passages: [] };
     grouped[lb.id].passages.push({note_id: lb.note_id, content: lb.content});
   });
@@ -47,21 +47,21 @@ function groupLinkbacksById(linkbacks) {
   return res;
 }
 
-function groupByResource(linkbacks) {
+function groupByResource(backrefs) {
   // key == resource, value == array of ExpandableListingLink components
   let res = {};
-  linkbacks.forEach(lb => {
-    res[lb.resource] = res[lb.resource] || [];
-    res[lb.resource].push(lb);
+  backrefs.forEach(br => {
+    res[br.resource] = res[br.resource] || [];
+    res[br.resource].push(br);
   });
 
   return res;
 }
 
-function SectionLinks(linkbacks, heading) {
+function SectionLinks(backrefs, heading) {
   const [localState, setLocalState] = useState({
     showExpanded: true,
-    childrenExpanded: linkbacks.map(lb => true)
+    childrenExpanded: backrefs.map(br => true)
   });
 
   let icon = localState.showExpanded ? svgCaretDown() : svgCaretRight();
@@ -83,19 +83,19 @@ function SectionLinks(linkbacks, heading) {
     });
   }
 
-  let list = linkbacks.map((lb, i) => {
+  let list = backrefs.map((br, i) => {
     return html`<${ExpandableListingLink}
                   index=${i}
                   onExpandClick=${onChildClicked}
                   expanded=${ localState.childrenExpanded[i] }
-                  id=${ lb.id }
-                  name=${ lb.name }
-                  resource=${ lb.resource }
-                  passages=${ lb.passages }/>`;
+                  id=${ br.id }
+                  name=${ br.name }
+                  resource=${ br.resource }
+                  passages=${ br.passages }/>`;
   });
 
-  let sectionHeading = capitalise(heading || linkbacks[0].resource);
-  let sectionId = linkbacks[0].id;
+  let sectionHeading = capitalise(heading || backrefs[0].resource);
+  let sectionId = backrefs[0].id;
 
   return html`
     <section key=${ sectionId }>
