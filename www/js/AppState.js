@@ -70,6 +70,11 @@ export const reducer = (state, action) => {
       ...state,
       user: action.user
     };
+  case 'setReviewCount':
+    return {
+      ...state,
+      srReviewCount: action.srReviewCount
+    };
   case 'loadAutocomplete':
     return {
       ...state,

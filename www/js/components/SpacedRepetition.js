@@ -39,7 +39,11 @@ function reducer(state, action) {
     // step 7 from the algorithm at https://www.supermemo.com/en/archives1990-2015/english/ol/sm2
     // "After each repetition session of a given day repeat again all items that scored below four in the quality assessment. Continue the repetitions until all of these items score at least four."
 
-    const rating = action.data;
+    const {
+      rating,
+      globalDispatch
+    } = action.data;
+
     if (rating < 4) {
       // retain this card to test again
       if ((cardIndex + 1) >= cards.length) {
@@ -57,6 +61,11 @@ function reducer(state, action) {
       if (cards.length === 0) {
         mode = MODE_POST_TEST;
       }
+
+      globalDispatch({
+        type: 'setReviewCount',
+        srReviewCount: cards.length
+      });
     }
 
     return {
@@ -89,9 +98,13 @@ export default function SpacedRepetition(props) {
     Net.post(`/api/sr/${card.id}/rated`, {
       rating
     }).then(success => {
-      // todo: return a success value from the server, check it here
+      if (success) {
+        localDispatch(CARD_COMPLETED, {
+          rating: rating,
+          globalDispatch: dispatch // the local logic decides if the global review count should be changed
+        });
+      }
     });
-    localDispatch(CARD_COMPLETED, rating);
   }
 
   const canTest = local.cards.length > 0;
