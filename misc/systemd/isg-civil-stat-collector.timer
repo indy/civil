@@ -1,0 +1,9 @@
+[Unit]
+Description=Collect weekly stats for civil.indy.io
+
+[Timer]
+Unit=isg-civil-stat-collector.service
+OnCalendar=Weekly
+
+[Install]
+WantedBy=timers.target

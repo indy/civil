@@ -42,6 +42,15 @@ impl From<User> for interop::User {
     }
 }
 
+impl From<User> for interop::UserId {
+    fn from(user: User) -> interop::UserId {
+        interop::UserId {
+            id: user.id
+        }
+    }
+}
+
+
 pub(crate) async fn login(
     db_pool: &Pool,
     login_credentials: &interop::LoginCredentials,
@@ -84,6 +93,16 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key) -> Result<interop::User> {
          FROM users
          WHERE id = $1",
         &[&user_id],
+    )
+    .await
+}
+
+pub(crate) async fn get_all_user_ids(db_pool: &Pool) -> Result<Vec<interop::UserId>> {
+    pg::many_from::<User, interop::UserId>(
+        db_pool,
+        "SELECT $table_fields
+         FROM users",
+        &[],
     )
     .await
 }

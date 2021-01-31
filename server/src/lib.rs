@@ -36,6 +36,9 @@ use tracing::Level;
 use tracing::{error, info};
 use tracing_subscriber::FmtSubscriber;
 
+use crate::db::stats as stats_db;
+use crate::db::users as users_db;
+
 const SIGNING_KEY_SIZE: usize = 32;
 
 pub struct ServerConfig {
@@ -128,6 +131,48 @@ pub async fn start_server() -> Result<()> {
     info!("local server running on port: {}", port);
 
     server.await?;
+
+    Ok(())
+}
+
+pub async fn collect_stats() -> Result<()> {
+    dotenv::dotenv().ok();
+
+    // a builder for `FmtSubscriber`.
+    let subscriber = FmtSubscriber::builder()
+        .with_max_level(Level::TRACE)
+        .finish();
+
+    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+
+    let postgres_db = env_var_string("POSTGRES_DB")?;
+    let postgres_host = env_var_string("POSTGRES_HOST")?;
+    let postgres_user = env_var_string("POSTGRES_USER")?;
+    let postgres_password = env_var_string("POSTGRES_PASSWORD")?;
+
+    let cfg = deadpool_postgres::Config {
+        user: Some(String::from(&postgres_user)),
+        password: Some(String::from(&postgres_password)),
+        dbname: Some(String::from(&postgres_db)),
+        host: Some(String::from(&postgres_host)),
+        ..Default::default()
+    };
+
+    let pool: deadpool_postgres::Pool = cfg.create_pool(NoTls)?;
+
+    // crash on startup if no database connection can be established
+    let _ = pool.get().await?;
+
+    let user_ids = users_db::get_all_user_ids(&pool).await?;
+    for user in user_ids {
+        let latest_stats = stats_db::generate_stats(&pool, user.id).await?;
+        let last_saved_stats = stats_db::get_last_saved_stats(&pool, user.id).await?;
+
+        if latest_stats != last_saved_stats {
+            stats_db::create_stats(&pool, user.id, &latest_stats).await?;
+        }
+    }
+
 
     Ok(())
 }

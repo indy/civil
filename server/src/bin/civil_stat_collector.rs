@@ -15,34 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::Key;
+use civil_server::{collect_stats, Result};
 
-#[derive(Debug, serde::Deserialize)]
-pub struct LoginCredentials {
-    pub email: String,
-    pub password: String,
-}
-
-#[derive(serde::Deserialize)]
-pub struct Registration {
-    pub username: String,
-    pub email: String,
-    pub password: String,
-    pub magic_word: String,
-}
-
-#[derive(serde::Serialize)]
-pub struct User {
-    pub username: String,
-    pub email: String,
-    pub admin: Option<Admin>,
-}
-
-pub struct UserId {
-    pub id: Key
-}
-
-#[derive(serde::Serialize)]
-pub struct Admin {
-    pub db_name: String,
+#[actix_rt::main]
+async fn main() -> Result<()> {
+    collect_stats().await
 }

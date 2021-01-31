@@ -26,7 +26,10 @@
 .PHONY: run download-images clean-dist
 
 run:
-	cargo run --manifest-path server/Cargo.toml
+	cargo run --manifest-path server/Cargo.toml --bin civil_server
+
+run-stat-collector:
+	cargo run --manifest-path server/Cargo.toml --bin civil_stat_collector
 
 wasm: www/wasm_bg.wasm
 
@@ -103,6 +106,7 @@ dist/civil_server: $(SERVER_FILES)
 	mkdir -p $(@D)
 	cd server && cargo build --release
 	cp server/target/release/civil_server dist/.
+	cp server/target/release/civil_stat_collector dist/.
 	cp .env.example dist/.
 	cp -r server/errors dist/.
 

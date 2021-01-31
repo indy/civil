@@ -24,6 +24,7 @@ pub mod people;
 pub mod points;
 pub mod publications;
 pub mod sr;
+pub mod stats;
 pub mod timelines;
 pub mod uploader;
 pub mod users;
