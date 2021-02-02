@@ -561,6 +561,7 @@ fn eat_text_as_string<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<String> {
             Token::Whitespace(s) => value += s,
             // Token::GreaterThan => value += ">",
             // Token::LessThan => value += "<",
+            Token::Tilde => value += "~",
             Token::Period => value += ".",
             Token::Hyphen => value += "-",
             //            Token::At => value += "@",
@@ -1215,6 +1216,19 @@ This is code```",
         assert_text(&children[0], "on account of the certitude and evidence of ");
         assert_text(&children[1], "[its");
         assert_text(&children[2], "] reasoning");
+    }
+
+    #[test]
+    fn test_normal_text_with_tilde_bug() {
+        // tilde used to mean scribbled-out but that was later removed
+        //
+        let nodes = build("abc ~AAAAAA~ def");
+
+        assert_eq!(1, nodes.len());
+        let children = paragraph_children(&nodes[0]).unwrap();
+        assert_eq!(children.len(), 1);
+
+        assert_text(&children[0], "abc ~AAAAAA~ def");
     }
 
     #[test]
