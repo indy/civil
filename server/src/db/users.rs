@@ -44,12 +44,9 @@ impl From<User> for interop::User {
 
 impl From<User> for interop::UserId {
     fn from(user: User) -> interop::UserId {
-        interop::UserId {
-            id: user.id
-        }
+        interop::UserId { id: user.id }
     }
 }
-
 
 pub(crate) async fn login(
     db_pool: &Pool,
@@ -97,7 +94,7 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key) -> Result<interop::User> {
     .await
 }
 
-pub(crate) async fn get_all_user_ids(db_pool: &Pool) -> Result<Vec<interop::UserId>> {
+pub async fn get_all_user_ids(db_pool: &Pool) -> Result<Vec<interop::UserId>> {
     pg::many_from::<User, interop::UserId>(
         db_pool,
         "SELECT $table_fields

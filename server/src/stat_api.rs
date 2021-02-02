@@ -15,34 +15,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::stats as stats_db;
+use crate::db::users as users_db;
+use crate::error::Result;
+use crate::interop::stats::Stats;
+use crate::interop::users::UserId;
 use crate::interop::Key;
+use deadpool_postgres::Pool;
 
-#[derive(Debug, serde::Deserialize)]
-pub struct LoginCredentials {
-    pub email: String,
-    pub password: String,
+pub async fn get_all_user_ids(db_pool: &Pool) -> Result<Vec<UserId>> {
+    users_db::get_all_user_ids(db_pool).await
 }
 
-#[derive(serde::Deserialize)]
-pub struct Registration {
-    pub username: String,
-    pub email: String,
-    pub password: String,
-    pub magic_word: String,
+pub async fn create_stats(db_pool: &Pool, user_id: Key, stats: &Stats) -> Result<()> {
+    stats_db::create_stats(db_pool, user_id, stats).await
 }
 
-#[derive(serde::Serialize)]
-pub struct User {
-    pub username: String,
-    pub email: String,
-    pub admin: Option<Admin>,
+pub async fn get_last_saved_stats(db_pool: &Pool, user_id: Key) -> Result<Stats> {
+    stats_db::get_last_saved_stats(db_pool, user_id).await
 }
 
-pub struct UserId {
-    pub id: Key,
-}
-
-#[derive(serde::Serialize)]
-pub struct Admin {
-    pub db_name: String,
+pub async fn generate_stats(db_pool: &Pool, user_id: Key) -> Result<Stats> {
+    stats_db::generate_stats(db_pool, user_id).await
 }

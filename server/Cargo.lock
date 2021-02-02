@@ -616,7 +616,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "civil-server"
+name = "civil"
 version = "0.1.0"
 dependencies = [
  "actix-files",

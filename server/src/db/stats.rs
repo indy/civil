@@ -118,7 +118,6 @@ impl From<Stats> for interop::Stats {
     }
 }
 
-
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
 pub struct Count {
@@ -132,7 +131,7 @@ impl From<Count> for i32 {
     }
 }
 
-pub(crate) async fn create_stats(db_pool: &Pool, user_id: Key, stats: &interop::Stats) -> Result<()> {
+pub async fn create_stats(db_pool: &Pool, user_id: Key, stats: &interop::Stats) -> Result<()> {
     info!("create_stats");
 
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
@@ -175,46 +174,48 @@ pub(crate) async fn create_stats(db_pool: &Pool, user_id: Key, stats: &interop::
                  $10, $11, $12, $13, $14, $15, $16, $17, $18, $19,
                  $20, $21, $22, $23, $24, $25, $26, $27, $28, $29,
                  $30, $31)",
-        &[&user_id,
-          &stats.num_ideas,
-          &stats.num_publications,
-          &stats.num_people,
-          &stats.num_timelines,
-          &stats.num_refs,
-          &stats.num_cards,
-          &stats.num_card_ratings,
-          &stats.num_images,
-          &stats.num_notes_in_ideas,
-          &stats.num_notes_in_publications,
-          &stats.num_notes_in_people,
-          &stats.num_notes_in_timelines,
-          &stats.num_points_in_people,
-          &stats.num_points_in_timelines,
-          &stats.num_refs_ideas_to_ideas,
-          &stats.num_refs_ideas_to_publications,
-          &stats.num_refs_ideas_to_people,
-          &stats.num_refs_ideas_to_timelines,
-          &stats.num_refs_publications_to_ideas,
-          &stats.num_refs_publications_to_publications,
-          &stats.num_refs_publications_to_people,
-          &stats.num_refs_publications_to_timelines,
-          &stats.num_refs_people_to_ideas,
-          &stats.num_refs_people_to_publications,
-          &stats.num_refs_people_to_people,
-          &stats.num_refs_people_to_timelines,
-          &stats.num_refs_timelines_to_ideas,
-          &stats.num_refs_timelines_to_publications,
-          &stats.num_refs_timelines_to_people,
-          &stats.num_refs_timelines_to_timelines],
+        &[
+            &user_id,
+            &stats.num_ideas,
+            &stats.num_publications,
+            &stats.num_people,
+            &stats.num_timelines,
+            &stats.num_refs,
+            &stats.num_cards,
+            &stats.num_card_ratings,
+            &stats.num_images,
+            &stats.num_notes_in_ideas,
+            &stats.num_notes_in_publications,
+            &stats.num_notes_in_people,
+            &stats.num_notes_in_timelines,
+            &stats.num_points_in_people,
+            &stats.num_points_in_timelines,
+            &stats.num_refs_ideas_to_ideas,
+            &stats.num_refs_ideas_to_publications,
+            &stats.num_refs_ideas_to_people,
+            &stats.num_refs_ideas_to_timelines,
+            &stats.num_refs_publications_to_ideas,
+            &stats.num_refs_publications_to_publications,
+            &stats.num_refs_publications_to_people,
+            &stats.num_refs_publications_to_timelines,
+            &stats.num_refs_people_to_ideas,
+            &stats.num_refs_people_to_publications,
+            &stats.num_refs_people_to_people,
+            &stats.num_refs_people_to_timelines,
+            &stats.num_refs_timelines_to_ideas,
+            &stats.num_refs_timelines_to_publications,
+            &stats.num_refs_timelines_to_people,
+            &stats.num_refs_timelines_to_timelines,
+        ],
     )
-        .await?;
+    .await?;
 
     tx.commit().await?;
 
     Ok(())
 }
 
-pub(crate) async fn get_last_saved_stats(db_pool: &Pool, user_id: Key) -> Result<interop::Stats> {
+pub async fn get_last_saved_stats(db_pool: &Pool, user_id: Key) -> Result<interop::Stats> {
     let db_stats = pg::one_non_transactional::<Stats>(
         db_pool,
         "select s.id,
@@ -264,7 +265,7 @@ pub(crate) async fn get_last_saved_stats(db_pool: &Pool, user_id: Key) -> Result
     Ok(db_stats.into())
 }
 
-pub(crate) async fn generate_stats(db_pool: &Pool, user_id: Key) -> Result<interop::Stats> {
+pub async fn generate_stats(db_pool: &Pool, user_id: Key) -> Result<interop::Stats> {
     info!("generate_stats");
 
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
