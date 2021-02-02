@@ -15,29 +15,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-mod compiler;
-mod element;
-mod error;
-mod lexer;
-mod parser;
-mod splitter;
+use civil;
+use civil::{note_parser_api, Result};
+use civil_shared;
 
-use compiler::compile_to_struct;
-use lexer::tokenize;
-use parser::parse;
-use splitter::split;
+use tracing::info;
 
-pub use element::Element;
-pub use error::Result;
+#[actix_rt::main]
+async fn main() -> Result<()> {
+    civil::init_dotenv();
+    civil::init_tracing();
+    let pool = civil::init_postgres_pool().await?;
 
-pub fn markup_as_struct(markup: &str) -> Result<Vec<Element>> {
-    let tokens = tokenize(markup)?;
-    let (_, nodes) = parse(&tokens)?;
-    let html = compile_to_struct(&nodes)?;
+    info!("started parsing all note markup");
+    let notes = note_parser_api::get_all_notes_in_db(&pool).await?;
 
-    Ok(html)
-}
+    let mut num_elements: usize = 0;
 
-pub fn split_markup(markup: &str) -> Result<Vec<String>> {
-    split(markup)
+    for note in notes {
+        let res = civil_shared::markup_as_struct(&note.content)?;
+        num_elements += res.len();
+    }
+    info!("finished parsing all note markup {}", num_elements);
+
+    Ok(())
 }

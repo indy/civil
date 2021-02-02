@@ -26,12 +26,21 @@
 .PHONY: run download-images clean-dist
 
 run:
-	cargo run --manifest-path server/Cargo.toml --bin civil_server
+	cargo run --manifest-path civil-server/Cargo.toml --bin civil_server
 
+# collect stats on each user's content, stores the stats in the db
+# this is run periodically on the server
+#
 run-stat-collector:
-	cargo run --manifest-path server/Cargo.toml --bin civil_stat_collector
+	cargo run --manifest-path civil-server/Cargo.toml --bin civil_stat_collector
 
-wasm: www/wasm_bg.wasm
+# iterates through all the notes in the database, parsing their markup
+# useful as a sanity check to make sure everything is still parseable
+#
+run-note_parser:
+	cargo run --manifest-path civil-server/Cargo.toml --bin civil_note_parser
+
+wasm: www/civil_wasm_bg.wasm
 
 release: clean-dist client-dist server-dist systemd-dist wasm-dist
 
@@ -64,17 +73,17 @@ MINIFY := $(shell command -v minify 2> /dev/null)
 ################################################################################
 
 CLIENT_FILES = $(call rwildcard,www,*)
-SERVER_FILES = $(call rwildcard,server/src,*) $(wildcard server/errors/*.html) server/Cargo.toml
+SERVER_FILES = $(call rwildcard,civil-server/src,*) $(wildcard civil-server/errors/*.html) civil-server/Cargo.toml
 SYSTEMD_FILES = $(wildcard misc/systemd/*)
 
-WASM_FILES = $(wildcard wasm/src/*) wasm/Cargo.toml
-CORE_FILES = $(wildcard core/src/*) core/Cargo.toml
+WASM_FILES = $(wildcard civil-wasm/src/*) civil-wasm/Cargo.toml
+SHARED_FILES = $(wildcard civil-shared/src/*) civil-shared/Cargo.toml
 
 ################################################################################
 # convenient aliases for targets
 ################################################################################
 
-wasm-dist: dist/www/wasm_bg.wasm
+wasm-dist: dist/www/civil_wasm_bg.wasm
 client-dist: dist/www/index.html
 server-dist: dist/civil_server
 systemd-dist: dist/systemd/isg-civil.sh
@@ -83,14 +92,14 @@ systemd-dist: dist/systemd/isg-civil.sh
 # targets
 ################################################################################
 
-www/wasm_bg.wasm: $(WASM_FILES) $(CORE_FILES)
-	cargo build --manifest-path wasm/Cargo.toml --target wasm32-unknown-unknown
-	wasm-bindgen wasm/target/wasm32-unknown-unknown/debug/wasm.wasm --out-dir www --no-typescript --no-modules
+www/civil_wasm_bg.wasm: $(WASM_FILES) $(SHARED_FILES)
+	cargo build --manifest-path civil-wasm/Cargo.toml --target wasm32-unknown-unknown
+	wasm-bindgen civil-wasm/target/wasm32-unknown-unknown/debug/civil_wasm.wasm --out-dir www --no-typescript --no-modules
 
-dist/www/wasm_bg.wasm: $(WASM_FILES) $(CORE_FILES)
+dist/www/civil_wasm_bg.wasm: $(WASM_FILES) $(SHARED_FILES)
 	mkdir -p $(@D)
-	cargo build --manifest-path wasm/Cargo.toml --release --target wasm32-unknown-unknown
-	wasm-bindgen wasm/target/wasm32-unknown-unknown/release/wasm.wasm --out-dir dist/www --no-typescript --no-modules
+	cargo build --manifest-path civil-wasm/Cargo.toml --release --target wasm32-unknown-unknown
+	wasm-bindgen civil-wasm/target/wasm32-unknown-unknown/release/civil_wasm.wasm --out-dir dist/www --no-typescript --no-modules
 
 dist/www/index.html: $(CLIENT_FILES)
 	mkdir -p $(@D)
@@ -104,11 +113,11 @@ endif
 
 dist/civil_server: $(SERVER_FILES)
 	mkdir -p $(@D)
-	cd server && cargo build --release
-	cp server/target/release/civil_server dist/.
-	cp server/target/release/civil_stat_collector dist/.
+	cd civil-server && cargo build --release
+	cp civil-server/target/release/civil_server dist/.
+	cp civil-server/target/release/civil_stat_collector dist/.
 	cp .env.example dist/.
-	cp -r server/errors dist/.
+	cp -r civil-server/errors dist/.
 
 dist/systemd/isg-civil.sh: $(SYSTEMD_FILES)
 	mkdir -p $(@D)

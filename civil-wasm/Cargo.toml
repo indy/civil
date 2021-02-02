@@ -1,5 +1,5 @@
 [package]
-name = "wasm"
+name = "civil-wasm"
 version = "0.1.0"
 authors = ["Inderjit Gill <email@indy.io>"]
 edition = "2018"
@@ -18,7 +18,7 @@ default = ["console_log", "console_error_panic_hook"]
 serde = "^1.0.59"
 serde_derive = "^1.0.59"
 cfg-if = "0.1.2"
-core = { path = "../core" }
+civil-shared = { path = "../civil-shared" }
 log = "0.4"
 console_log = { version = "0.1", optional = true }
 

@@ -62,8 +62,8 @@ var precacheConfig = [
   "/js/components/StarRating.js",
   "/js/components/Timelines.js",
 
-  "/wasm.js",
-  "/wasm_bg.wasm",
+  "/civil_wasm.js",
+  "/civil_wasm_bg.wasm",
   "/lib/preact/hooks.js",
   "/lib/preact/htm.js",
   "/lib/preact/mod.js",

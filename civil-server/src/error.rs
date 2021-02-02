@@ -17,36 +17,38 @@
 
 use crate::interop::Model;
 use actix_web::{HttpResponse, ResponseError};
+use civil_shared;
 use derive_more::{Display, From};
 
 pub type Result<T> = ::std::result::Result<T, Error>;
 
 #[derive(Display, From, Debug)]
 pub enum Error {
-    NotFound,
-    TooManyFound,
-    ThreadpoolBlocking(actix_threadpool::BlockingError<std::io::Error>),
-    TokioPostgres(tokio_postgres::error::Error),
-    TokioPostgresMapper(tokio_pg_mapper::Error),
+    Actix(actix_web::Error),
+    Argon2(argon2::Error),
+    Authenticating,
+    CivilShared(civil_shared::Error),
     DeadPool(deadpool_postgres::PoolError),
     DeadPoolConfig(deadpool_postgres::config::ConfigError),
-    Actix(actix_web::Error),
     IO(std::io::Error),
-    Var(std::env::VarError),
-    Argon2(argon2::Error),
-    Utf8(std::str::Utf8Error),
-    ParseInt(std::num::ParseIntError),
-    SerdeJson(serde_json::Error),
-    Registration,
-    Authenticating,
+    InvalidKind,
     InvalidModelType(Model),
+    InvalidResource,
     MissingField,
     ModelConversion,
     ModelNonUniqueTableName,
-    InvalidKind,
-    InvalidResource,
-    RadixConversion,
+    NotFound,
     Other,
+    ParseInt(std::num::ParseIntError),
+    RadixConversion,
+    Registration,
+    SerdeJson(serde_json::Error),
+    ThreadpoolBlocking(actix_threadpool::BlockingError<std::io::Error>),
+    TokioPostgres(tokio_postgres::error::Error),
+    TokioPostgresMapper(tokio_pg_mapper::Error),
+    TooManyFound,
+    Utf8(std::str::Utf8Error),
+    Var(std::env::VarError),
 }
 
 impl ResponseError for Error {

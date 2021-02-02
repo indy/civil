@@ -2,7 +2,7 @@
 use cfg_if::cfg_if;
 use wasm_bindgen::prelude::*;
 
-use core;
+use civil_shared;
 use log::error;
 
 
@@ -46,12 +46,12 @@ cfg_if! {
 #[wasm_bindgen]
 pub fn init_wasm() -> JsValue {
     init_log();
-    JsValue::from_str("wasm: v.20210108d")
+    JsValue::from_str("civil-client: v.20210108d")
 }
 
 #[wasm_bindgen]
 pub fn markup_as_struct(markup: &str) -> JsValue {
-    match core::markup_as_struct(markup) {
+    match civil_shared::markup_as_struct(markup) {
         Ok(res) => JsValue::from_serde(&res).unwrap(),
         Err(_) => {
             error!("markup_compiler failed");
@@ -62,7 +62,7 @@ pub fn markup_as_struct(markup: &str) -> JsValue {
 
 #[wasm_bindgen]
 pub fn split_markup(markup: &str) -> JsValue {
-    match core::split_markup(markup) {
+    match civil_shared::split_markup(markup) {
         Ok(res) => JsValue::from_serde(&res).unwrap(),
         Err(_) => {
             error!("markup_splitter failed");

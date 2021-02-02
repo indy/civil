@@ -212,3 +212,16 @@ pub(crate) async fn delete_all_notes_connected_with_deck(
 
     Ok(())
 }
+
+pub async fn get_all_notes_in_db(db_pool: &Pool) -> Result<Vec<interop::Note>> {
+    pg::many_from::<Note, interop::Note>(
+        db_pool,
+        "SELECT n.id,
+                n.content,
+                n.point_id
+         FROM   notes n
+         ORDER BY n.id",
+        &[],
+    )
+    .await
+}

@@ -19,6 +19,7 @@ mod db;
 mod error;
 mod handler;
 mod interop;
+pub mod note_parser_api;
 pub mod server_api;
 mod session;
 pub mod stat_api;

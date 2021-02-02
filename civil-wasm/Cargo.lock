@@ -19,6 +19,32 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "civil-shared"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_derive",
+ "strum",
+ "strum_macros",
+]
+
+[[package]]
+name = "civil-wasm"
+version = "0.1.0"
+dependencies = [
+ "cfg-if 0.1.10",
+ "civil-shared",
+ "console_error_panic_hook",
+ "console_log",
+ "log",
+ "serde",
+ "serde_derive",
+ "wasm-bindgen",
+ "wasm-bindgen-test",
+ "wee_alloc",
+]
+
+[[package]]
 name = "console_error_panic_hook"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -36,16 +62,6 @@ checksum = "1e7871d2947441b0fdd8e2bd1ce2a2f75304f896582c0d572162d48290683c48"
 dependencies = [
  "log",
  "web-sys",
-]
-
-[[package]]
-name = "core"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_derive",
- "strum",
- "strum_macros",
 ]
 
 [[package]]
@@ -227,22 +243,6 @@ name = "unicode-xid"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "826e7639553986605ec5979c7dd957c7895e93eabed50ab2ffa7f6128a75097c"
-
-[[package]]
-name = "wasm"
-version = "0.1.0"
-dependencies = [
- "cfg-if 0.1.10",
- "console_error_panic_hook",
- "console_log",
- "core",
- "log",
- "serde",
- "serde_derive",
- "wasm-bindgen",
- "wasm-bindgen-test",
- "wee_alloc",
-]
 
 [[package]]
 name = "wasm-bindgen"

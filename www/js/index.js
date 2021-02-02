@@ -2,7 +2,7 @@ import { render } from '/lib/preact/mod.js';
 import Net from '/js/Net.js';
 import { App, buildInitialState } from '/js/App.js';
 
-wasm_bindgen('/wasm_bg.wasm')
+wasm_bindgen('/civil_wasm_bg.wasm')
   .then(async wasm_bg => {
 
     const { init_wasm, markup_as_struct, split_markup, graph_physics } = wasm_bindgen;

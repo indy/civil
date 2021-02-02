@@ -626,6 +626,7 @@ dependencies = [
  "actix-threadpool",
  "actix-web",
  "chrono",
+ "civil-shared",
  "deadpool-postgres",
  "derive_more",
  "dotenv",
@@ -641,6 +642,16 @@ dependencies = [
  "tokio-postgres",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "civil-shared"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_derive",
+ "strum",
+ "strum_macros",
 ]
 
 [[package]]
@@ -2012,6 +2023,24 @@ checksum = "8ee348cb74b87454fff4b551cbf727025810a004f88aeacae7f85b87f4e9a1c1"
 dependencies = [
  "unicode-bidi",
  "unicode-normalization",
+]
+
+[[package]]
+name = "strum"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57bd81eb48f4c437cadc685403cad539345bf703d78e63707418431cecd4522b"
+
+[[package]]
+name = "strum_macros"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "87c85aa3f8ea653bfd3ddf25f7ee357ee4d204731f6aa9ad04002306f6e2774c"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
