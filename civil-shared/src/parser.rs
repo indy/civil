@@ -239,10 +239,12 @@ fn eat_hash<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     // Hash, Text("h this is a heading"), EOS
     // "#h this is a heading"
 
-    if is_token_at_index(tokens, 1, TokenIdent::Hyphen)
-        && (is_token_at_index(tokens, 2, TokenIdent::EOS) || is_token_at_index(tokens, 2, TokenIdent::Whitespace))
-    {
-        tokens = &tokens[3..];
+    if is_token_at_index(tokens, 1, TokenIdent::Hyphen) {
+        if is_token_at_index(tokens, 2, TokenIdent::EOS) || is_token_at_index(tokens, 2, TokenIdent::Whitespace) {
+            tokens = &tokens[3..];
+        } else {
+            tokens = &tokens[2..];
+        }
         Ok((tokens, Node::HR))
     } else if is_token_at_index(tokens, 1, TokenIdent::Text) {
         match tokens[1] {
@@ -1439,6 +1441,15 @@ This is code```",
         assert_text(&children[0], expected);
     }
 
+    fn paragraph_with_hr(paragraph: &Node) {
+        assert_paragraph(paragraph);
+
+        let children = paragraph_children(paragraph).unwrap();
+        assert_eq!(children.len(), 1);
+
+        assert_hr(&children[0]);
+    }
+
     #[test]
     fn test_parsing_blockquote() {
         {
@@ -1484,5 +1495,24 @@ closing paragraph",
             paragraph_with_single_text(&children[1], "quoted paragraph 2");
             paragraph_with_single_text(&nodes[2], "closing paragraph");
         }
+    }
+
+    #[test]
+    fn test_parsing_paragraphs() {
+        let nodes = build(
+            "hello world
+
+#-
+
+another paragraph
+
+third paragraph",
+        );
+        assert_eq!(4, nodes.len());
+
+        paragraph_with_single_text(&nodes[0], "hello world");
+        paragraph_with_hr(&nodes[1]);
+        paragraph_with_single_text(&nodes[2], "another paragraph");
+        paragraph_with_single_text(&nodes[3], "third paragraph");
     }
 }
