@@ -18,6 +18,7 @@
 use actix_files as fs;
 use actix_session::CookieSession;
 use actix_web::cookie::SameSite;
+use actix_web::middleware;
 use actix_web::middleware::errhandlers::ErrorHandlers;
 use actix_web::{http, web, App, HttpServer};
 use civil;
@@ -65,6 +66,7 @@ async fn main() -> Result<()> {
                 registration_magic_word: registration_magic_word.clone(),
             })
             .data(web::JsonConfig::default().limit(1024 * 1024))
+            .wrap(middleware::DefaultHeaders::new().header("Cache-control", "no-cache"))
             .wrap(session_store)
             .wrap(error_handlers)
             .service(server_api::public_api("/api"))
