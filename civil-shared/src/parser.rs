@@ -85,6 +85,23 @@ pub(crate) fn is_hr(tokens: &'_ [Token]) -> bool {
             || is_token_at_index(tokens, 2, TokenIdent::Newline))
 }
 
+pub(crate) fn is_heading(tokens: &'_ [Token]) -> bool {
+    if is_token_at_index(tokens, 0, TokenIdent::Hash) && is_token_at_index(tokens, 1, TokenIdent::Text) {
+        match tokens[1] {
+            Token::Text(s) => {
+                if let Some(h) = s.strip_prefix("h ") {
+                    h.len() > 0
+                } else {
+                    false
+                }
+            }
+            _ => false,
+        }
+    } else {
+        false
+    }
+}
+
 pub(crate) fn is_img(tokens: &'_ [Token]) -> bool {
     is_at_specifier(tokens) && is_text_at_index(tokens, 1, "img")
 }
@@ -114,6 +131,8 @@ pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
         } else if is_codeblock(tokens) {
             eat_codeblock(tokens)?
         } else if is_hr(tokens) {
+            eat_hash(tokens)?
+        } else if is_heading(tokens) {
             eat_hash(tokens)?
         } else if is_img(tokens) {
             eat_img(tokens)?
@@ -204,6 +223,8 @@ fn eat_item_until<'a>(tokens: &'a [Token], halt_at: TokenIdent) -> ParserResult<
     } else if is_codeblock(tokens) {
         eat_codeblock(tokens)
     } else if is_hr(tokens) {
+        eat_hash(tokens)
+    } else if is_heading(tokens) {
         eat_hash(tokens)
     } else {
         eat_item(tokens)
@@ -807,6 +828,13 @@ mod tests {
     fn assert_hr(node: &Node) {
         match node {
             Node::HR => assert!(true),
+            _ => assert!(false),
+        };
+    }
+
+    fn assert_header(node: &Node) {
+        match node {
+            Node::Header(_) => assert!(true),
             _ => assert!(false),
         };
     }
@@ -1421,6 +1449,17 @@ This is code```",
         children
     }
 
+    fn header_with_text(node: &Node, expected: &'static str) {
+        assert_header(node);
+        match node {
+            Node::Header(children) => {
+                assert_eq!(children.len(), 1);
+                assert_text(&children[0], expected)
+            }
+            _ => assert!(false),
+        };
+    }
+
     // test that the Node is a paragraph with the expected text
     //
     fn paragraph_with_single_text(paragraph: &Node, expected: &'static str) {
@@ -1506,12 +1545,12 @@ third paragraph",
 - first unordered list item
 - second unordered list item",
         );
-        dbg!(&nodes);
-        assert_eq!(2, nodes.len());
 
-        let children = unordered_list_children(&nodes[1]).unwrap();
-        assert_eq!(children.len(), 2);
-        assert_list_item_text(&children[0], "first unordered list item");
-        assert_list_item_text(&children[1], "second unordered list item");
+        assert_eq!(2, nodes.len());
+        header_with_text(&nodes[0], "A header");
+        let list_children = unordered_list_children(&nodes[1]).unwrap();
+        assert_eq!(list_children.len(), 2);
+        assert_list_item_text(&list_children[0], "first unordered list item");
+        assert_list_item_text(&list_children[1], "second unordered list item");
     }
 }

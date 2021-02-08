@@ -18,8 +18,8 @@
 use crate::error::Result;
 use crate::lexer::{get_token_value, is_match, tokenize, Token, TokenIdent};
 use crate::parser::{
-    is_blockquote_start, is_codeblock_start, is_eos, is_hr, is_img, is_numbered_list_item, is_unordered_list_item,
-    skip_leading_newlines, skip_leading_whitespace_and_newlines, ParserResult,
+    is_blockquote_start, is_codeblock_start, is_eos, is_heading, is_hr, is_img, is_numbered_list_item,
+    is_unordered_list_item, skip_leading_newlines, skip_leading_whitespace_and_newlines, ParserResult,
 };
 
 fn move_head_onto_string<'a>(tokens: &'a [Token<'a>], s: &str) -> ParserResult<'a, String> {
@@ -143,6 +143,8 @@ pub fn split(markup: &str) -> Result<Vec<String>> {
         } else if is_codeblock_start(tokens) {
             join_codeblock(tokens)?
         } else if is_hr(tokens) {
+            join_paragraph(tokens)? // ????
+        } else if is_heading(tokens) {
             join_paragraph(tokens)? // ????
         } else if is_img(tokens) {
             join_img(tokens)?
