@@ -80,7 +80,9 @@ pub(crate) fn is_codeblock_start(tokens: &'_ [Token]) -> bool {
 pub(crate) fn is_hr(tokens: &'_ [Token]) -> bool {
     is_token_at_index(tokens, 0, TokenIdent::Hash)
         && is_token_at_index(tokens, 1, TokenIdent::Hyphen)
-        && (is_token_at_index(tokens, 2, TokenIdent::EOS) || is_token_at_index(tokens, 2, TokenIdent::Whitespace))
+        && (is_token_at_index(tokens, 2, TokenIdent::EOS)
+            || is_token_at_index(tokens, 2, TokenIdent::Whitespace)
+            || is_token_at_index(tokens, 2, TokenIdent::Newline))
 }
 
 pub(crate) fn is_img(tokens: &'_ [Token]) -> bool {
@@ -103,6 +105,8 @@ pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
 
     tokens = skip_leading_whitespace_and_newlines(&tokens)?;
     while !tokens.is_empty() && !is_terminator(tokens) {
+        tokens = skip_leading_whitespace_and_newlines(&tokens)?;
+
         let (rem, node) = if is_numbered_list_item(tokens) {
             eat_ordered_list(tokens, None)?
         } else if is_unordered_list_item(tokens) {
@@ -240,7 +244,10 @@ fn eat_hash<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     // "#h this is a heading"
 
     if is_token_at_index(tokens, 1, TokenIdent::Hyphen) {
-        if is_token_at_index(tokens, 2, TokenIdent::EOS) || is_token_at_index(tokens, 2, TokenIdent::Whitespace) {
+        if is_token_at_index(tokens, 2, TokenIdent::EOS)
+            || is_token_at_index(tokens, 2, TokenIdent::Whitespace)
+            || is_token_at_index(tokens, 2, TokenIdent::Newline)
+        {
             tokens = &tokens[3..];
         } else {
             tokens = &tokens[2..];
@@ -250,13 +257,10 @@ fn eat_hash<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
         match tokens[1] {
             Token::Text(s) => {
                 if let Some(h) = s.strip_prefix("h ") {
-                    let first_child = Node::Text(h.to_string());
+                    let header_text = Node::Text(h.to_string());
 
                     tokens = &tokens[2..];
-                    let (remaining, mut children) = eat_to_newline(tokens, None)?;
-                    children.insert(0, first_child);
-
-                    Ok((remaining, Node::Header(children)))
+                    Ok((tokens, Node::Header(vec![header_text])))
                 } else {
                     eat_text_including(tokens)
                 }
@@ -825,20 +829,11 @@ mod tests {
     fn test_only_text() {
         {
             let nodes = build("simple text only test");
-
-            assert_eq!(1, nodes.len());
-            let children = paragraph_children(&nodes[0]).unwrap();
-            assert_eq!(children.len(), 1);
-            assert_text(&children[0], "simple text only test");
+            paragraph_with_single_text(&nodes[0], "simple text only test");
         }
-
         {
             let nodes = build("more token types 1234.9876 - treat as text");
-
-            assert_eq!(1, nodes.len());
-            let children = paragraph_children(&nodes[0]).unwrap();
-            assert_eq!(children.len(), 1);
-            assert_text(&children[0], "more token types 1234.9876 - treat as text");
+            paragraph_with_single_text(&nodes[0], "more token types 1234.9876 - treat as text");
         }
     }
 
@@ -1081,19 +1076,15 @@ here is the closing paragraph",
         );
         assert_eq!(3, nodes.len());
 
-        let mut children = paragraph_children(&nodes[0]).unwrap();
-        assert_eq!(children.len(), 1);
-        assert_text(&children[0], "this is the 1st paragraph");
+        paragraph_with_single_text(&nodes[0], "this is the 1st paragraph");
 
-        children = unordered_list_children(&nodes[1]).unwrap();
+        let children = unordered_list_children(&nodes[1]).unwrap();
         assert_eq!(children.len(), 3);
         assert_list_item_text(&children[0], "item a");
         assert_list_item_text(&children[1], "item b");
         assert_list_item_text(&children[2], "item c");
 
-        children = paragraph_children(&nodes[2]).unwrap();
-        assert_eq!(children.len(), 1);
-        assert_text(&children[0], "here is the closing paragraph");
+        paragraph_with_single_text(&nodes[2], "here is the closing paragraph");
     }
 
     #[test]
@@ -1441,15 +1432,6 @@ This is code```",
         assert_text(&children[0], expected);
     }
 
-    fn paragraph_with_hr(paragraph: &Node) {
-        assert_paragraph(paragraph);
-
-        let children = paragraph_children(paragraph).unwrap();
-        assert_eq!(children.len(), 1);
-
-        assert_hr(&children[0]);
-    }
-
     #[test]
     fn test_parsing_blockquote() {
         {
@@ -1511,8 +1493,25 @@ third paragraph",
         assert_eq!(4, nodes.len());
 
         paragraph_with_single_text(&nodes[0], "hello world");
-        paragraph_with_hr(&nodes[1]);
+        assert_hr(&nodes[1]);
         paragraph_with_single_text(&nodes[2], "another paragraph");
         paragraph_with_single_text(&nodes[3], "third paragraph");
+    }
+
+    #[test]
+    fn test_header_then_list_bug() {
+        let nodes = build(
+            "#h A header
+
+- first unordered list item
+- second unordered list item",
+        );
+        dbg!(&nodes);
+        assert_eq!(2, nodes.len());
+
+        let children = unordered_list_children(&nodes[1]).unwrap();
+        assert_eq!(children.len(), 2);
+        assert_list_item_text(&children[0], "first unordered list item");
+        assert_list_item_text(&children[1], "second unordered list item");
     }
 }

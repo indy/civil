@@ -183,4 +183,23 @@ another line",
         assert_eq!(res[0], "hello world");
         assert_eq!(res[1], "another line");
     }
+
+    #[test]
+    fn test_split_3() {
+        let res = split(
+            "#h A header
+
+- first unordered list item
+- second unordered list item",
+        )
+        .unwrap();
+
+        assert_eq!(res.len(), 2);
+        assert_eq!(res[0], "#h A header");
+        assert_eq!(
+            res[1],
+            "- first unordered list item
+- second unordered list item"
+        );
+    }
 }

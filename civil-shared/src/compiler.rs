@@ -96,7 +96,13 @@ fn compile_sidenote(ns: &[Node], key: usize, class_name: &str) -> Result<Vec<Ele
     write!(&mut id, "mn-{}", key)?;
 
     // the right-margin-toggle character is 'circled times': https://www.htmlsymbols.xyz/unicode/U+2297
-    res.append(&mut element_key_class_for("label", key, "right-margin-toggle", &id, &"⊗")?);
+    res.append(&mut element_key_class_for(
+        "label",
+        key,
+        "right-margin-toggle",
+        &id,
+        &"⊗",
+    )?);
     res.append(&mut element_key_class_type(
         "input",
         key + 100,
