@@ -273,6 +273,7 @@ export default function Note(props) {
 
     return html`
       <div class="block-width">
+        ${ !local.isEditingMarkup && html`<button onClick=${ toggleAddDeckReferencesUI }>References...</button>` }
         ${ !local.showDeleteConfirmation && html`<button onClick=${ onEditClicked }>${ editLabelText }</button>`}
         ${ local.isEditingMarkup && !local.showDeleteConfirmation && html`<button onClick=${ deleteClicked }>Delete</button>` }
         ${ local.isEditingMarkup && local.showDeleteConfirmation && html`
@@ -280,7 +281,6 @@ export default function Note(props) {
                                                     <button onClick=${ cancelDeleteClicked }>Cancel</button>
                                                     <button onClick=${ confirmDeleteClicked }>Yes Delete</button>`}
         ${ local.isEditingMarkup && html`<${ImageWidget}/>` }
-        ${ !local.isEditingMarkup && html`<button onClick=${ toggleAddDeckReferencesUI }>References...</button>` }
         ${ !local.isEditingMarkup && html`<button class="add-flash-card" onClick=${ toggleAddFlashCardUI }>Add Flash Card...</button>` }
       </div>
 `;
