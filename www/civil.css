@@ -1046,6 +1046,10 @@ section > form { width: var(--block-width); }
   padding-right: 3rem;
 }
 
+.left-margin-entry-backref {
+  padding-right: 7rem;
+}
+
 .left-margin-entry a {
   text-decoration: none;
 }

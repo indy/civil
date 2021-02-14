@@ -317,11 +317,11 @@ function onReallyDelete(id, onDelete) {
 
 function buildNoteReferences(decks) {
   const entries = decks.map(ref => {
-    const { id, resource, kind, name, annotation } = ref;
+    const { id, resource, ref_kind, name, annotation } = ref;
     const href = `/${resource}/${id}`;
     return html`
       <div class="left-margin-entry" key=${ id }>
-        <span class="ref-kind">(${ kind })</span>
+        <span class="ref-kind">(${ ref_kind })</span>
         <${Link} class="ref pigment-${ resource }" href=${ href }>${ name }</${Link}>
         ${annotation && html`<div class="ref-clearer"/>
                              <div class="ref-scribble pigment-fg-${ resource }">${ annotation }</div>

@@ -26,7 +26,7 @@ function groupBackRefsById(backrefs) {
   let grouped = {};
   backrefs.forEach(lb => {
     grouped[lb.id] = grouped[lb.id] || { id: lb.id, name: lb.name, resource: lb.resource, passages: [] };
-    grouped[lb.id].passages.push({note_id: lb.note_id, content: lb.content});
+    grouped[lb.id].passages.push(lb);
   });
 
   let res = [];

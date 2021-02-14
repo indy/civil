@@ -43,10 +43,11 @@ pub enum RefKind {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Ref {
     pub note_id: Key,
+    pub note_content: Option<String>, // filled in when Ref is used as a BackRef
     pub id: Key,
     pub name: String,
     pub resource: DeckResource,
-    pub kind: RefKind,
+    pub ref_kind: RefKind,
     pub annotation: Option<String>,
 }
 
@@ -57,18 +58,6 @@ pub struct BackRef {
     pub id: Key,
     pub name: String,
     pub resource: DeckResource,
-}
-
-// on a decks page, these link back to other decks
-// and contain additional information about the link
-//
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct DetailedBackRef {
-    pub id: Key,
-    pub name: String,
-    pub resource: DeckResource,
-    pub note_id: Key,
-    pub content: String,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

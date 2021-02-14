@@ -19,7 +19,7 @@ use crate::db::decks as decks_db;
 use crate::db::ideas as db;
 use crate::db::notes as notes_db;
 use crate::error::Result;
-use crate::interop::decks::{BackRef, DetailedBackRef};
+use crate::interop::decks::{BackRef, Ref};
 use crate::interop::ideas as interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
@@ -130,7 +130,7 @@ async fn augment(db_pool: &Data<Pool>, idea: &mut interop::Idea, idea_id: Key) -
     Ok(())
 }
 
-fn contains(backref: &BackRef, backrefs: &[DetailedBackRef]) -> bool {
+fn contains(backref: &BackRef, backrefs: &[Ref]) -> bool {
     backrefs.iter().any(|br| br.id == backref.id)
 }
 

@@ -58,10 +58,11 @@ impl From<Ref> for interop::Ref {
     fn from(d: Ref) -> interop::Ref {
         interop::Ref {
             note_id: d.note_id,
+            note_content: None,
             id: d.id,
             name: d.name,
             resource: interop::DeckResource::from(d.deck_kind),
-            kind: interop::RefKind::from(d.ref_kind),
+            ref_kind: interop::RefKind::from(d.ref_kind),
             annotation: d.annotation,
         }
     }
@@ -92,17 +93,21 @@ pub struct DetailedBackRef {
     pub name: String,
     pub kind: DeckKind,
     pub note_id: Key,
-    pub content: String,
+    pub note_content: String,
+    pub ref_kind: RefKind,
+    pub annotation: Option<String>,
 }
 
-impl From<DetailedBackRef> for interop::DetailedBackRef {
-    fn from(d: DetailedBackRef) -> interop::DetailedBackRef {
-        interop::DetailedBackRef {
+impl From<DetailedBackRef> for interop::Ref {
+    fn from(d: DetailedBackRef) -> interop::Ref {
+        interop::Ref {
+            note_id: d.note_id,
+            note_content: Some(d.note_content),
             id: d.id,
             name: d.name,
             resource: interop::DeckResource::from(d.kind),
-            note_id: d.note_id,
-            content: d.content,
+            ref_kind: interop::RefKind::from(d.ref_kind),
+            annotation: d.annotation
         }
     }
 }
@@ -447,14 +452,16 @@ pub(crate) async fn delete(db_pool: &Pool, user_id: Key, id: Key) -> Result<()> 
 pub(crate) async fn from_decks_via_notes_to_deck_id(
     db_pool: &Pool,
     deck_id: Key,
-) -> Result<Vec<interop::DetailedBackRef>> {
-    pg::many_from::<DetailedBackRef, interop::DetailedBackRef>(
+) -> Result<Vec<interop::Ref>> {
+    pg::many_from::<DetailedBackRef, interop::Ref>(
         db_pool,
         "SELECT d.id AS id,
                 d.name AS name,
                 d.kind,
-                n.content,
-                n.id as note_id
+                n.content as note_content,
+                n.id as note_id,
+                nd.kind as ref_kind,
+                nd.annotation as annotation
          FROM decks d,
               notes n,
               notes_decks nd

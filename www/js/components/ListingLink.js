@@ -39,11 +39,23 @@ function ExpandableListingLink({ index, resource, id, name, passages, expanded, 
 function buildPassages(passages) {
   const [state] = useStateValue();
 
-  return passages.reduce((a, b) => {
-    a.push(buildMarkup(b.content, state.imageDirectory));
+  let res = passages.reduce((a, passage) => {
+    if (passage.annotation) {
+      a.push(html`<div class="left-margin">
+                    <div class="left-margin-entry-backref">
+                      <div class="ref-scribble pigment-fg-${ passage.resource }">
+                        ${ passage.annotation }
+                      </div>
+                    </div>
+                  </div>`);
+    }
+    a.push(buildMarkup(passage.note_content, state.imageDirectory));
     a.push(html`<hr/>`);
     return a;
   }, []).slice(0, -1);
+
+
+  return html`<div>${res}</div>`;
 }
 
 export { ListingLink, ExpandableListingLink };
