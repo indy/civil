@@ -18,7 +18,7 @@
 use super::pg;
 
 use crate::db::deck_kind::DeckKind;
-use crate::db::decks::BackRef;
+use crate::db::decks::DeckSimple;
 use crate::error::{Error, Result};
 use crate::interop::decks as interop_decks;
 use crate::interop::sr as interop;
@@ -91,7 +91,7 @@ impl From<CardFullFat> for interop::Card {
         interop::Card {
             id: e.id,
             note_id: e.note_id,
-            deck_info: interop_decks::BackRef {
+            deck_info: interop_decks::DeckSimple {
                 id: e.deck_id,
                 name: e.deck_name,
                 resource: interop_decks::DeckResource::from(e.deck_kind),
@@ -114,12 +114,12 @@ impl From<CardInternal> for interop::CardInternal {
     }
 }
 
-impl From<(Card, BackRef)> for interop::Card {
-    fn from(e: (Card, BackRef)) -> interop::Card {
+impl From<(Card, DeckSimple)> for interop::Card {
+    fn from(e: (Card, DeckSimple)) -> interop::Card {
         let (c, lb) = e;
 
         // todo: inline
-        let backref: interop_decks::BackRef = lb.into();
+        let backref: interop_decks::DeckSimple = lb.into();
 
         interop::Card {
             id: c.id,
@@ -158,7 +158,7 @@ pub(crate) async fn create_card(
     )
     .await?;
 
-    let db_backref = pg::one::<BackRef>(
+    let db_backref = pg::one::<DeckSimple>(
         &tx,
         "SELECT d.id AS id, d.name AS name, d.kind AS kind
          FROM decks d, notes n

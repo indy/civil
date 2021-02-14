@@ -51,10 +51,10 @@ pub struct Ref {
     pub annotation: Option<String>,
 }
 
-// on a decks page, these link back to other decks
+// Returned as search results
 //
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct BackRef {
+pub struct DeckSimple {
     pub id: Key,
     pub name: String,
     pub resource: DeckResource,

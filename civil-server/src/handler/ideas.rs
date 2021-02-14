@@ -19,7 +19,7 @@ use crate::db::decks as decks_db;
 use crate::db::ideas as db;
 use crate::db::notes as notes_db;
 use crate::error::Result;
-use crate::interop::decks::{BackRef, Ref};
+use crate::interop::decks::{DeckSimple, Ref};
 use crate::interop::ideas as interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
@@ -130,7 +130,7 @@ async fn augment(db_pool: &Data<Pool>, idea: &mut interop::Idea, idea_id: Key) -
     Ok(())
 }
 
-fn contains(backref: &BackRef, backrefs: &[Ref]) -> bool {
+fn contains(backref: &DeckSimple, backrefs: &[Ref]) -> bool {
     backrefs.iter().any(|br| br.id == backref.id)
 }
 
@@ -150,7 +150,7 @@ pub async fn additional_search(
     )?;
 
     // dedupe search results against the backrefs to decks
-    let additional_search_results: Vec<BackRef> = search_results
+    let additional_search_results: Vec<DeckSimple> = search_results
         .into_iter()
         .filter(|br| br.id != idea_id && !contains(br, &backrefs))
         .collect();

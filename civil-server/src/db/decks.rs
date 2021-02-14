@@ -70,15 +70,15 @@ impl From<Ref> for interop::Ref {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
-pub struct BackRef {
+pub struct DeckSimple {
     pub id: Key,
     pub name: String,
     pub kind: DeckKind,
 }
 
-impl From<BackRef> for interop::BackRef {
-    fn from(d: BackRef) -> interop::BackRef {
-        interop::BackRef {
+impl From<DeckSimple> for interop::DeckSimple {
+    fn from(d: DeckSimple) -> interop::DeckSimple {
+        interop::DeckSimple {
             id: d.id,
             name: d.name,
             resource: interop::DeckResource::from(d.kind),
@@ -88,7 +88,7 @@ impl From<BackRef> for interop::BackRef {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
-pub struct DetailedBackRef {
+pub struct DetailedRef {
     pub id: Key,
     pub name: String,
     pub kind: DeckKind,
@@ -98,8 +98,8 @@ pub struct DetailedBackRef {
     pub annotation: Option<String>,
 }
 
-impl From<DetailedBackRef> for interop::Ref {
-    fn from(d: DetailedBackRef) -> interop::Ref {
+impl From<DetailedRef> for interop::Ref {
+    fn from(d: DetailedRef) -> interop::Ref {
         interop::Ref {
             note_id: d.note_id,
             note_content: Some(d.note_content),
@@ -146,7 +146,7 @@ pub(crate) async fn search_using_deck_id(
     db_pool: &Pool,
     user_id: Key,
     deck_id: Key,
-) -> Result<Vec<interop::BackRef>> {
+) -> Result<Vec<interop::DeckSimple>> {
     let (mut results, results_via_notes, results_via_points) = tokio::try_join!(
         query_search_id(
             db_pool,
@@ -221,7 +221,7 @@ pub(crate) async fn search(
     db_pool: &Pool,
     user_id: Key,
     query: &str,
-) -> Result<Vec<interop::BackRef>> {
+) -> Result<Vec<interop::DeckSimple>> {
     let (mut results, results_via_notes, results_via_points) = tokio::try_join!(
         query_search(
             db_pool,
@@ -294,8 +294,8 @@ async fn query_search(
     stmt: &str,
     user_id: Key,
     query: &str,
-) -> Result<Vec<interop::BackRef>> {
-    pg::many_from::<BackRef, interop::BackRef>(db_pool, &stmt, &[&user_id, &query]).await
+) -> Result<Vec<interop::DeckSimple>> {
+    pg::many_from::<DeckSimple, interop::DeckSimple>(db_pool, &stmt, &[&user_id, &query]).await
 }
 
 async fn query_search_id(
@@ -303,11 +303,11 @@ async fn query_search_id(
     stmt: &str,
     user_id: Key,
     deck_id: Key,
-) -> Result<Vec<interop::BackRef>> {
-    pg::many_from::<BackRef, interop::BackRef>(db_pool, &stmt, &[&user_id, &deck_id]).await
+) -> Result<Vec<interop::DeckSimple>> {
+    pg::many_from::<DeckSimple, interop::DeckSimple>(db_pool, &stmt, &[&user_id, &deck_id]).await
 }
 
-fn contains(backrefs: &[interop::BackRef], id: Key) -> bool {
+fn contains(backrefs: &[interop::DeckSimple], id: Key) -> bool {
     for br in backrefs {
         if br.id == id {
             return true;
@@ -382,7 +382,7 @@ pub(crate) async fn recent(
     db_pool: &Pool,
     user_id: Key,
     resource: &str,
-) -> Result<Vec<interop::BackRef>> {
+) -> Result<Vec<interop::DeckSimple>> {
     let deck_kind = resource_string_to_deck_kind_string(resource)?;
     let limit: i32 = 10;
 
@@ -394,7 +394,7 @@ pub(crate) async fn recent(
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
     let stmt = stmt.replace("$limit", &limit.to_string());
 
-    pg::many_from::<BackRef, interop::BackRef>(db_pool, &stmt, &[&user_id]).await
+    pg::many_from::<DeckSimple, interop::DeckSimple>(db_pool, &stmt, &[&user_id]).await
 }
 
 pub(crate) async fn graph(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Vertex>> {
@@ -453,7 +453,7 @@ pub(crate) async fn from_decks_via_notes_to_deck_id(
     db_pool: &Pool,
     deck_id: Key,
 ) -> Result<Vec<interop::Ref>> {
-    pg::many_from::<DetailedBackRef, interop::Ref>(
+    pg::many_from::<DetailedRef, interop::Ref>(
         db_pool,
         "SELECT d.id AS id,
                 d.name AS name,
