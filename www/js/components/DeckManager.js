@@ -15,6 +15,7 @@ const BUTTONS_TOGGLE = 'buttons-toggle';
 const UPDATE_FORM_TOGGLE = 'update-form-toggle';
 const DELETE_CONFIRMATION_SHOW = 'delete-confirmation-show';
 const DELETE_CONFIRMATION_HIDE = 'delete-confirmation-hide';
+const HIDE_FORM = 'hide-form';
 
 function reducer(state, action) {
   switch(action.type) {
@@ -28,6 +29,12 @@ function reducer(state, action) {
     return {
       ...state,
       showUpdateForm: !state.showUpdateForm
+    }
+  case HIDE_FORM:
+    return {
+      ...state,
+      showButtons: false,
+      showUpdateForm: false
     }
   case DELETE_CONFIRMATION_SHOW:
     return {
@@ -147,6 +154,14 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
 
   if (local.showUpdateForm) {
     res.updateForm = updateForm;
+  }
+
+  function hideForm() {
+    localDispatch(HIDE_FORM);
+  }
+
+  res.buildUpdateForm = function() {
+    return local.showUpdateForm && html`<${updateForm} deck=${deck} hideFormFn=${hideForm}/>`;
   }
 
   res.noteManager = function(optional_point) {

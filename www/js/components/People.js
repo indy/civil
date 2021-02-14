@@ -66,7 +66,7 @@ function Person(props) {
     title: person.name,
     resource: "people",
     preCacheFn: preCacheFn,
-    updateForm: html`<${UpdatePersonForm} person=${person} />`
+    updateForm: UpdatePersonForm
   });
 
   function onShowBirthForm() {
@@ -126,7 +126,7 @@ function Person(props) {
     <article>
       ${ deckManager.title }
       ${ deckManager.buttons }
-      ${ deckManager.updateForm }
+      ${ deckManager.buildUpdateForm() }
 
       ${ !hasBirth && showAddBirthPointMessage() }
       ${ showBirthForm && birthForm() }
@@ -186,8 +186,8 @@ function preCacheFn(person) {
   return person;
 }
 
-function UpdatePersonForm({ person }) {
-  person = person || {};
+function UpdatePersonForm({ deck, hideFormFn }) {
+  const person = deck || {};
   const [state, dispatch] = useStateValue();
 
   const [localState, setLocalState] = useState({
@@ -226,6 +226,8 @@ function UpdatePersonForm({ person }) {
         id: person.id,
         newItem
       });
+      // hide this form
+      hideFormFn();
     });
 
     e.preventDefault();

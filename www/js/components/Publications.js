@@ -41,7 +41,7 @@ function Publication(props) {
     deck: publication,
     title: publication.title,
     resource: "publications",
-    updateForm: html`<${UpdatePublicationForm} publication=${publication} />`
+    updateForm: UpdatePublicationForm
   });
 
   let authorHeading = html`<p class="subtitle">${ publication.author }</p>`;
@@ -66,7 +66,7 @@ function Publication(props) {
       </div>
       ${ created_at_textual }
       ${ deckManager.buttons }
-      ${ deckManager.updateForm }
+      ${ deckManager.buildUpdateForm() }
 
       ${ publication.author && authorHeading }
       ${ publication.source && sourceHeading }
@@ -76,8 +76,8 @@ function Publication(props) {
     </article>`;
 }
 
-function UpdatePublicationForm({ publication }) {
-  publication = publication || {};
+function UpdatePublicationForm({ deck, hideFormFn }) {
+  const publication = deck || {};
   const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(publication.title || '');
   const [author, setAuthor] = useState(publication.author || '');
@@ -142,6 +142,8 @@ function UpdatePublicationForm({ publication }) {
       // fetch the listing incase editing the publication has changed it's star rating or annotation
       //
       fetchDeckListing(dispatch, resource, '/api/publications/listings');
+      // hide this form
+      hideFormFn();
     });
 
     event.preventDefault();

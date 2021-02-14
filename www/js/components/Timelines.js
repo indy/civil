@@ -40,7 +40,7 @@ function Timeline(props) {
     title: timeline.title,
     resource: "timelines",
     preCacheFn: preCacheFn,
-    updateForm: html`<${UpdateTimelineForm} timeline=${timeline} />`
+    updateForm: UpdateTimelineForm
   });
 
   // this is only for presentational purposes
@@ -52,7 +52,7 @@ function Timeline(props) {
     <article>
       ${ deckManager.title }
       ${ deckManager.buttons }
-      ${ deckManager.updateForm }
+      ${ deckManager.buildUpdateForm() }
 
       ${ deckManager.noteManager() }
 
@@ -76,8 +76,8 @@ function preCacheFn(timeline) {
   return timeline;
 }
 
-function UpdateTimelineForm({ timeline }) {
-  timeline = timeline || {};
+function UpdateTimelineForm({ deck, hideFormFn }) {
+  const timeline = deck || {};
   const [state, dispatch] = useStateValue();
 
   const [localState, setLocalState] = useState({
@@ -116,6 +116,8 @@ function UpdateTimelineForm({ timeline }) {
         id: timeline.id,
         newItem
       });
+      // hide this form
+      hideFormFn();
     });
 
     e.preventDefault();

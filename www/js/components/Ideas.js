@@ -61,7 +61,7 @@ function Idea(props) {
     deck: idea,
     title: idea.title,
     resource: "ideas",
-    updateForm: html`<${UpdateIdeaForm} idea=${idea} />`
+    updateForm: UpdateIdeaForm
   });
 
   // this is only for presentational purposes
@@ -76,7 +76,7 @@ function Idea(props) {
       ${ deckManager.title }
       ${ created_at_textual }
       ${ deckManager.buttons }
-      ${ deckManager.updateForm }
+      ${ deckManager.buildUpdateForm() }
       ${ deckManager.noteManager() }
       ${ nonEmptyArray(idea.backrefs) && html`<${SectionBackRefs} backrefs=${ idea.backrefs }/>`}
       ${ nonEmptyArray(searchResults) && html`<${SectionSearchResultsBackref} backrefs=${ searchResults }/>`}
@@ -84,8 +84,8 @@ function Idea(props) {
     </article>`;
 }
 
-function UpdateIdeaForm({ idea }) {
-  idea = idea || {};
+function UpdateIdeaForm({ deck, hideFormFn }) {
+  const idea = deck || {};
   const [state, dispatch] = useStateValue();
   const [title, setTitle] = useState(idea.title || '');
   const [graphTerminator, setGraphTerminator] = useState(idea.graph_terminator);
@@ -118,6 +118,8 @@ function UpdateIdeaForm({ idea }) {
         id: idea.id,
         newItem
       });
+      // hide this form
+      hideFormFn();
     });
 
     event.preventDefault();
