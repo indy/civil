@@ -427,8 +427,6 @@ pub(crate) async fn delete(db_pool: &Pool, user_id: Key, id: Key) -> Result<()> 
     )
     .await?;
 
-    pg::zero(&tx, "DELETE FROM idea_extras WHERE deck_id = $1", &[&id]).await?;
-
     pg::zero(&tx, "DELETE FROM notes_decks WHERE deck_id = $1", &[&id]).await?;
 
     points::delete_all_points_connected_with_deck(&tx, id).await?;

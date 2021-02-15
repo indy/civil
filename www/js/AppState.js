@@ -144,22 +144,34 @@ export const reducer = (state, action) => {
                        ac: {
                          decks: state.ac.decks.filter(filterFn)
                        },
-                       listing: {
-                         ideas: {
-                           all: state.listing.ideas.all.filter(filterFn),
-                           orphans: state.listing.ideas.orphans.filter(filterFn),
-                           recent: state.listing.ideas.recent.filter(filterFn),
-                         },
-                         publications: {
-                           all: state.listing.publications.all.filter(filterFn),
-                           orphans: state.listing.publications.orphans.filter(filterFn),
-                           recent: state.listing.publications.recent.filter(filterFn),
-                           rated: state.listing.publications.rated.filter(filterFn),
-                         },
-                         people: state.listing.people.filter(filterFn),
-                         timelines: state.listing.timelines.filter(filterFn)
-                       }
+                       listing: {}
                      };
+
+      if (state.listing.ideas) {
+        newState.listing.ideas = {
+          all: state.listing.ideas.all.filter(filterFn),
+          orphans: state.listing.ideas.orphans.filter(filterFn),
+          recent: state.listing.ideas.recent.filter(filterFn),
+        };
+      };
+
+      if (state.listing.publications) {
+        newState.listing.publications = {
+          all: state.listing.publications.all.filter(filterFn),
+          orphans: state.listing.publications.orphans.filter(filterFn),
+          recent: state.listing.publications.recent.filter(filterFn),
+          rated: state.listing.publications.rated.filter(filterFn),
+        };
+      }
+
+      if (state.listing.people) {
+        newState.listing.people = state.listing.people.filter(filterFn);
+      }
+
+      if (state.listing.timelines) {
+        newState.listing.timelines = state.listing.timelines.filter(filterFn);
+      }
+
       delete newState.fullGraph[action.id];
       // todo: delete all the other references in fullGraph to action.id
       delete newState.cache.deck[action.id];
