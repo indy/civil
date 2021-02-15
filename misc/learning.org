@@ -1,0 +1,111 @@
+
+* How to read
+  https://medium.com/@maartenvandoorn/the-complete-guide-to-effective-reading-fc1835937757
+
+** reading material
+*** books
+    For materials that are more about the broader picture or fun, I use mindmapping. If your goal is to study the concepts for fun, get the gist of and update your map of this area, then that’s what we’re gonna do — draw a map. (section 8)
+
+    At the end of each chapter, without looking back, write some notes on the main points/arguments/take-aways. Then look back through the chapter and write down anything you missed.
+
+    After you’ve completed a chapter, write bullet points on what you want to take away from it.
+
+    I like this because it will give you a concise list of bullet points per chapter, without interrupting the flow of reading and without you having to write stuff you don’t care about just for the summary to be complete.
+
+    --------------------------------------------------------------------------------
+    So, what does the overall, diachronic process look like?
+
+    1. First, *be clear on what you are reading a book for*. You have to have some idea of what you want to get from the book. This will play a vital role in structuring the information the way that most congenial to your personalized learning goals.
+    2. Then, *before you start reading a new book, review your mindmaps and/or notes of related topics.* If you’ve tagged appropriately (see below), and made your mindmaps true ‘maps of your mind’ this should be intuitive and needn’t take a lot of time. If you want to go the extra mile, take a look at Shane Parrish’s ‘Blank Sheet’ method.
+    3. Based on your learning goals and the book, *determine what the central concept will be and put it at the middle of an empty sheet of paper.*
+    4. Keeping in mind the rules discussed above, *add to the mindmap after each session.*
+    5. *After you conclude a chapter, without looking back, jot down a list of bullet points of things you wish to remember.* While you should realize this is what goes into your system, and what you don’t write down here doesn’t, still be selective (otherwise the exercise doesn’t work).
+    6. *Before you start your next reading session, review the mindmap and bullet points.*
+    7. When you’re done with the book, put your mindmaps and notes in a commonplace book or your preferred note-taking app (I use Evernote) and build a system around it making sure you’ll review it on a regular basis. Don‘t worry, we’ll cover this.
+
+
+*** denser papers
+    if it’s more of a 4-hours-for-20-pages kind of thing, we’re going to take a more linear approach. For the most complex material with a high density of information that is new and/or hard to me, I use Cal Newport’s QEC method. (section 9)
+
+** post-reading review
+
+    To drive your victory in the second half of the battle home, you need to design a system for periodical review. (section 10)
+
+** subconscious
+   “Never go to sleep without a request to your subconscious.” - Ralph Waldo Emerson
+
+   Every night, I take out an empty piece of paper and jot down thoughts and a follow-up question relating to what I’ve been trying to understand. And every morning (except on Cheat Day), the first thing I do after waking is stumbling to my desk and to harvest the fruits of my unconscious by answering last night’s question.
+
+   I often get small but compounding flashes of insight. In fact, many of my most original or ‘deeper’ connections occurred to me in these first five minutes after waking.
+
+   I believe that these sparks of inspiration are a direct consequence of the daily journaling, and that my unconscious wouldn’t toss me so many useful thoughts without it.
+
+
+   the process of learning comprises reflection and feedback, or engagement and repetition. If you read something and you don’t (1) build a vivid mental picture, (2) make mental links and (3) make time to think about what you’ve read, the ROI will be low.
+
+** cataloging and reviewing
+
+   Only do when you can apply it to a new learning project or to something you’re spending your time on. Review when you have a new learning question — and not because you have to because a month has passed or whatever. That is boring, and you won’t do it.
+
+
+** engage in active recall
+
+   For improved learning, don’t just go over your notes over and over. Rereading silently to yourself costs an incredible amount of time but produces only mediocre results.
+
+   The single best strategy for organizing constant growth, I’ve found, is by involving fellow human beings. To test your understanding of something — anything — explain it to someone.
+
+   You’ll have to remove jargon, describe why this information has meaning, and walk them through yours or the author’s logic. It sounds simple. It’s damn hard and constitutes the litmus test of your comprehension.
+
+   *What you can’t explain to others, you don’t understand yourself.*
+
+   Many people, even those who are supposed to be ‘smart’, use complicated vocabulary and jargon to mask shortcomings in their knowledge.
+
+   One method you can use is the so-called Feynman Technique. It has four steps:
+   1. Choose a concept;
+   2. Teach it to a child or someone without prior knowledge in the field;
+   3. Identify gaps (you won’t notice these gaps in your knowledge if you don’t do the verbal explanation exercise — that’s why it’s crucial!);
+   4. Improve & repeat.
+
+      --------------------------------------------------------------------------------
+
+   If there is no one around who is interested, try talking to yourself. That’s what I do … but maybe I’m crazy.
+
+   Shane is not, because the second strategy for optimizing recollection has you do this explicitly. It’s called active recall.
+
+   This technique has you explain the relevant ideas out loud, without peeking at your notes, as if lecturing an imaginary class.
+
+   As with most of the methods described in this guide, active recall requires more mental energy than the alternative. But in exchange, it allows you to learn the material better and in much less time.
+
+
+* Spaced Repetition: SM2 Algorithm
+  https://www.supermemo.com/en/archives1990-2015/english/ol/sm2
+
+** easiness_factor
+   - E-Factors were allowed to vary between 1.1 for the most difficult items and 2.5 for the easiest ones.
+   - At the moment of introducing an item into a SuperMemo database, its E-Factor was assumed to equal 2.5
+   - In the course of repetitions this value was gradually decreased in case of recall problems. Thus the greater problems an item caused in recall, the more significant was the decrease of its E-Factor.
+
+      I noticed that E-Factors should not fall below the value of 1.3. Items having E-Factors lower than 1.3 were repeated annoyingly often and always seemed to have inherent flaws in their formulation (usually they did not conform to the minimum information principle). Thus not letting E-Factors fall below 1.3 substantially improved the throughput of the process and provided an indicator of items that should be reformulated. The formula used in calculating new E-Factors for items was constructed heuristically and did not change much in the following 3.5 years of using the computer-based SuperMemo method.
+
+
+   easiness_factor: 1.3 ... 2.5
+
+   --------------------------------------------------------------------------------
+
+   EF':=f(EF,q)
+
+   where:
+
+   EF' - new value of the E-Factor
+   EF - old value of the E-Factor
+   q - quality of the response
+   f - function used in calculating EF'.
+
+   --------------------------------------------------------------------------------
+
+
+    EF':=EF-0.8+0.28*q-0.02*q*q
+
+which is a reduced form of:
+
+    EF':=EF+(0.1-(5-q)*(0.08+(5-q)*0.02))
