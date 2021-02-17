@@ -58,7 +58,7 @@ function reducer(state, action) {
       canSave: true,
       currentlyChosen: state.currentlyChosen.map(cv => {
         if (cv.id === action.data.reference.id) {
-          cv.kind = action.data.newKind;
+          cv.ref_kind = action.data.newKind;
         }
         return cv;
       })
@@ -119,8 +119,8 @@ export default function CivilSelect({ parentDeckId, chosen, available, onChange,
     // (fuck the web, the entire thing needs to be burnt to the ground)
     //
     let cv = local.currentlyChosen.map(c => {
-      if (!c.kind) {
-        c.kind = "Ref";
+      if (!c.ref_kind) {
+        c.ref_kind = "Ref";
       }
       return c;
     });
@@ -185,11 +185,11 @@ function SelectedReference({ reference, onRemove, onChangeKind, keyIndex, showKe
                 ${ showKeyboardShortcuts && html`<span class='civsel-keyboard-shortcut'>Ctrl-${ keyIndex }</span>`}
                 <span class='civsel-delete-selected' onClick=${onClick}>${svgCloseShifted()}</span>
                 <select onChange=${onKindDropDownSelect} name="choice">
-                  <option value="Ref" selected=${reference.kind == "Ref"}>Generic Reference</option>
-                  <option value="RefToParent" selected=${reference.kind == "RefToParent"}>Reference to Parent</option>
-                  <option value="RefToChild" selected=${reference.kind == "RefToChild"}>Reference to Child</option>
-                  <option value="RefInContrast" selected=${reference.kind == "RefInContrast"}>Contrasting Reference</option>
-                  <option value="RefCritical" selected=${reference.kind == "RefCritical"}>Critical Reference</option>
+                  <option value="Ref" selected=${reference.ref_kind == "Ref"}>Generic Reference</option>
+                  <option value="RefToParent" selected=${reference.ref_kind == "RefToParent"}>Reference to Parent</option>
+                  <option value="RefToChild" selected=${reference.ref_kind == "RefToChild"}>Reference to Child</option>
+                  <option value="RefInContrast" selected=${reference.ref_kind == "RefInContrast"}>Contrasting Reference</option>
+                  <option value="RefCritical" selected=${reference.ref_kind == "RefCritical"}>Critical Reference</option>
                 </select>
                 <span class="civsel-name">${reference.name}</span>
                 <input class="civsel-annotation"
@@ -241,7 +241,7 @@ function Input({ parentDeckId, available, onAdd, candidates, setCandidates, curr
         onAdd(existingOption);
       } else {
         // treat this text as a new idea that needs to be created
-        onAdd({ name: text, kind: "Ref", __isNew__: true});
+        onAdd({ name: text, ref_kind: "Ref", __isNew__: true});
       }
       setText('');
     }

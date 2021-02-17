@@ -21,14 +21,14 @@ use crate::interop::Key;
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct ExistingDeckReference {
     pub id: Key, // id of the existing deck
-    pub kind: RefKind,
+    pub ref_kind: RefKind,
     pub annotation: Option<String>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct NewDeckReference {
     pub name: String,
-    pub kind: RefKind,
+    pub ref_kind: RefKind,
     pub annotation: Option<String>,
 }
 

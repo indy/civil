@@ -111,7 +111,7 @@ pub(crate) async fn create_from_note_to_decks(
     for deck_reference in &edge_connectivity.existing_deck_references {
         for existing in &associated_decks {
             if existing.id == deck_reference.id {
-                let r = RefKind::from(deck_reference.kind);
+                let r = RefKind::from(deck_reference.ref_kind);
                 if existing.ref_kind != r || existing.annotation != deck_reference.annotation {
                     pg::zero(
                         &tx,
@@ -135,7 +135,7 @@ pub(crate) async fn create_from_note_to_decks(
     for deck_reference in &edge_connectivity.existing_deck_references {
         if !is_deck_associated_with_note(deck_reference.id, &associated_decks) {
             info!("creating {}, {}", &note_id, &deck_reference.id);
-            let r = RefKind::from(deck_reference.kind);
+            let r = RefKind::from(deck_reference.ref_kind);
             pg::zero(
                 &tx,
                 &stmt_attach_deck,
@@ -156,7 +156,7 @@ pub(crate) async fn create_from_note_to_decks(
         //
         let deck = ideas_db::create_idea_tx(&tx, user_id, &new_deck_reference.name).await?;
         let no_annotation: Option<String> = None;
-        let r = RefKind::from(new_deck_reference.kind);
+        let r = RefKind::from(new_deck_reference.ref_kind);
         pg::zero(
             &tx,
             &stmt_attach_deck,
