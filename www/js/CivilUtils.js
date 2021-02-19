@@ -1,4 +1,4 @@
-import { useEffect } from '/lib/preact/mod.js';
+import { useEffect, html } from '/lib/preact/mod.js';
 
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
@@ -37,4 +37,13 @@ export function addAutocompleteDeck(dispatch, id, name, resource) {
     name,
     resource
   });
+}
+
+export function leftMarginHeading(content) {
+  return html`
+          <div class="left-margin-entry">
+            <div class="left-margin-heading">
+              ${ content }
+            </div>
+          </div>`;
 }

@@ -71,10 +71,11 @@ var precacheConfig = [
   "/lib/preact/preact-router.js",
   "/favicon-16x16.png",
   "/favicon-32x32.png",
-  "/fonts/et-book-display-italic-old-style-figures/et-book-display-italic-old-style-figures.woff",
-  "/fonts/et-book-roman-line-figures/et-book-roman-line-figures.woff",
-  "/fonts/NothingYouCouldDo-Regular.ttf",
-  "/fonts/Bitter/Bitter-Regular.ttf"
+  "/fonts/Bitter/Bitter-VariableFont_wght.ttf",
+  "/fonts/Bitter/Bitter-Italic-VariableFont_wght.ttf",
+  "/fonts/Crimson/CrimsonPro-VariableFont_wght.ttf",
+  "/fonts/Crimson/CrimsonPro-Italic-VariableFont_wght.ttf",
+  "/fonts/Caveat/Caveat-VariableFont_wght.ttf"
 ];
 
 var urlsToCache = new Set();

@@ -3,7 +3,7 @@ import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
-import { canShowGraph, ensureListingLoaded } from '/js/CivilUtils.js';
+import { canShowGraph, ensureListingLoaded, leftMarginHeading } from '/js/CivilUtils.js';
 import { capitalise, formattedDate, nonEmptyArray, plural } from '/js/JsUtils.js';
 
 import DeckManager from '/js/components/DeckManager.js';
@@ -68,13 +68,16 @@ function Idea(props) {
   // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
   // this check prevents the vis from rendering until after we have all the note and links ready
   const okToShowGraph = deckManager.hasNotes || idea.backrefs;
-  const created_at_textual = idea.created_at ? formattedDate(idea.created_at) : '';
   const graphTitle = idea.title ? `${idea.title} Connectivity Graph` : '';
 
   return html`
     <article>
-      ${ deckManager.title }
-      ${ created_at_textual }
+      <div>
+        <div class="left-margin">
+          ${ idea.created_at && leftMarginHeading(formattedDate(idea.created_at)) }
+        </div>
+        ${ deckManager.title }
+      </div>
       ${ deckManager.buttons }
       ${ deckManager.buildUpdateForm() }
       ${ deckManager.noteManager() }

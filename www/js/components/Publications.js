@@ -1,6 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { canShowGraph, ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
+import { canShowGraph, ensureListingLoaded, fetchDeckListing, leftMarginHeading } from '/js/CivilUtils.js';
 import { capitalise, removeEmptyStrings, nonEmptyArray, formattedDate } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
@@ -44,19 +44,20 @@ function Publication(props) {
     updateForm: UpdatePublicationForm
   });
 
-  let authorHeading = html`<p class="subtitle">${ publication.author }</p>`;
-  let sourceHeading = html`<p class="subtitle">Source: <a href=${ publication.source }>${ publication.source }</a></p>`;
+  let authorHeading = html`<div class="left-margin-heading">${ publication.author }</div>`;
+  let sourceHeading = html`<p class="subtitle"><a href=${ publication.source }>${ publication.source }</a></p>`;
 
   // this is only for presentational purposes
   // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
   // this check prevents the vis from rendering until after we have all the note and links ready
   const okToShowGraph = deckManager.hasNotes;
-  const created_at_textual = publication.created_at ? formattedDate(publication.created_at) : '';
 
   return html`
     <article>
       <div>
-        <div class="left-margin left-margin-list-entry">
+        <div class="left-margin">
+          ${ publication.created_at && leftMarginHeading(formattedDate(publication.created_at)) }
+          ${ publication.author && leftMarginHeading(authorHeading) }
           <${StarRatingPartial} rating=${publication.rating}/>
           <div class="left-margin-entry">
             <div class="descriptive-scribble">${ publication.short_description }</div>
@@ -64,11 +65,9 @@ function Publication(props) {
         </div>
         ${ deckManager.title }
       </div>
-      ${ created_at_textual }
       ${ deckManager.buttons }
       ${ deckManager.buildUpdateForm() }
 
-      ${ publication.author && authorHeading }
       ${ publication.source && sourceHeading }
       ${ deckManager.noteManager() }
       ${ nonEmptyArray(publication.backrefs) && html`<${SectionBackRefs} backrefs=${ publication.backrefs }/>`}
