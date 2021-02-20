@@ -66,14 +66,12 @@ export function svgImage() {
 
 export function svgExpand() {
   return html`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" height="24" width="24">
-<path xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd" d="M12 4C12.5523 4 13 4.44772 13 5V11H19C19.5523 11 20 11.4477 20 12C20 12.5523 19.5523 13 19 13H13V19C13 19.5523 12.5523 20 12 20C11.4477 20 11 19.5523 11 19V13H5C4.44772 13 4 12.5523 4 12C4 11.4477 4.44772 11 5 11H11V5C11 4.44772 11.4477 4 12 4Z" fill="${svgColour}"></path>
+<path xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd" d="M 12 8 C 12.5523 8 13 8.4477 13 9 V 15 H 19 C 19.5523 15 20 15.4477 20 16 C 20 16.5523 19.5523 17 19 17 H 13 V 23 C 13 23.5523 12.5523 24 12 24 C 11.4477 24 11 23.5523 11 23 V 17 H 5 C 4.4477 17 4 16.5523 4 16 C 4 15.4477 4.4477 15 5 15 H 11 V 9 C 11 8.4477 11.4477 8 12 8 Z" fill="${svgColour}"></path>
 </svg>`;
 }
 
 export function svgMinimise() {
-  return html`<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" height="24" width="24">
-<path xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd" d="M4 12C4 11.4477 4.44772 11 5 11H19C19.5523 11 20 11.4477 20 12C20 12.5523 19.5523 13 19 13H5C4.44772 13 4 12.5523 4 12Z" fill="${svgColour}"></path>
-</svg>`;
+  return html`<svg width="24" viewBox="0 0 24 24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg"><path xmlns="http://www.w3.org/2000/svg" d="m4 16c0-.5523.44772-1 1-1h14c.5523 0 1 .4477 1 1s-.4477 1-1 1h-14c-.55228 0-1-.4477-1-1z" fill="${svgColour}"></path></svg>`;
 }
 
 // document-add

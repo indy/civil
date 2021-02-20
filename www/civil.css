@@ -204,6 +204,20 @@ p.subtitle > a {
   color: var(--fg);
 }
 
+p.subheading {
+  font-family: Bitter;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 400;
+  display: block;
+  line-height: 1;
+}
+
+p.subheading > a {
+  color: var(--fg);
+}
+
 img {
   width: 100%;
 }

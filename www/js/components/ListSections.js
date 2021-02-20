@@ -24,7 +24,7 @@ function CompactedListSection({label, list, resource, expanded, hideEmpty }) {
   } else if(show) {
     return html`
       <div>
-        <p class="subtitle" onClick=${ toggleShow }>
+        <p class="subheading" onClick=${ toggleShow }>
           ${ svgMinimise() } ${ label }
         </p>
         <ul class="compacted-list" >
@@ -33,7 +33,7 @@ function CompactedListSection({label, list, resource, expanded, hideEmpty }) {
       </div>`;
   } else {
     return html`
-      <p class="subtitle" onClick=${ toggleShow }>
+      <p class="subheading" onClick=${ toggleShow }>
         ${ svgExpand() } ${ label }
       </p>`;
   }
@@ -49,7 +49,7 @@ function RatedListSection({label, list, resource, expanded}) {
   if(show) {
     return html`
       <div>
-        <p class="subtitle" onClick=${ toggleShow }>
+        <p class="subheading" onClick=${ toggleShow }>
           ${ svgMinimise() } ${ label }
         </p>
         <ul class="standard-list" >
@@ -58,7 +58,7 @@ function RatedListSection({label, list, resource, expanded}) {
       </div>`;
   } else {
     return html`
-      <p class="subtitle" onClick=${ toggleShow }>
+      <p class="subheading" onClick=${ toggleShow }>
         ${ svgExpand() } ${ label }
       </p>`;
   }
