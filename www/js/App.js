@@ -100,10 +100,12 @@ function TopBarMenu(props) {
     <nav>
       <${Link} class='pigment-inherit' href=${ loggedLink() } id="login-menuitem" >${ loggedStatus() }</${Link}>
       <${Link} class='pigment-inherit' href='/'>Search</${Link}>
-      <${Link} class='pigment-ideas' href='/ideas'>Ideas</${Link}>
-      <${Link} class='pigment-publications' href='/publications'>Publications</${Link}>
-      <${Link} class='pigment-people' href='/people'>People</${Link}>
-      <${Link} class='pigment-timelines' href='/timelines'>Timelines</${Link}>
+      <span class="optional-navigable">
+        <${Link} class='pigment-ideas' href='/ideas'>Ideas</${Link}>
+        <${Link} class='pigment-publications' href='/publications'>Publications</${Link}>
+        <${Link} class='pigment-people' href='/people'>People</${Link}>
+        <${Link} class='pigment-timelines' href='/timelines'>Timelines</${Link}>
+      </span>
       <${Link} class='pigment-inherit' href='/sr'>SR(${state.srReviewCount})</${Link}>
     </nav>
 `;
