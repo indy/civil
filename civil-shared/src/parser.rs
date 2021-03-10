@@ -258,10 +258,10 @@ fn eat_url<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
 }
 
 fn eat_hash<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
-    // Hash, Hyphen, Whitespace, Text, EOS
-    // "#- this is a heading"
+    // Hash, Hyphen, Whitespace, (Text), EOS | EOL
+    // "#- this text is following a horizontal line"
 
-    // Hash, Text("h this is a heading"), EOS
+    // Hash, 'h', Whitespace, (Text), EOS | EOL
     // "#h this is a heading"
 
     if is_token_at_index(tokens, 1, TokenIdent::Hyphen) {
@@ -278,10 +278,20 @@ fn eat_hash<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
         match tokens[1] {
             Token::Text(s) => {
                 if let Some(h) = s.strip_prefix("h ") {
-                    let header_text = Node::Text(h.to_string());
-
+                    let mut header_children = vec![Node::Text(h.to_string())];
                     tokens = &tokens[2..];
-                    Ok((tokens, Node::Header(vec![header_text])))
+
+                    // if the header markup contained something like:
+                    //
+                    // #h this is a heading (with a parens)
+                    //
+                    // then header children would be [Node::Text("this is a heading ")]
+                    // and we still need to parse the "(with a parens)"
+                    //
+                    let (toks, mut other_nodes) = eat_to_newline(tokens, None)?;
+                    header_children.append(&mut other_nodes);
+
+                    Ok((toks, Node::Header(header_children)))
                 } else {
                     eat_text_including(tokens)
                 }
@@ -1449,12 +1459,32 @@ This is code```",
         children
     }
 
-    fn header_with_text(node: &Node, expected: &'static str) {
+    fn header_with_single_text(node: &Node, expected: &'static str) {
         assert_header(node);
         match node {
             Node::Header(children) => {
                 assert_eq!(children.len(), 1);
                 assert_text(&children[0], expected)
+            }
+            _ => assert!(false),
+        };
+    }
+
+    fn header_with_multi_text(node: &Node, expected: &'static str) {
+        assert_header(node);
+        match node {
+            Node::Header(children) => {
+                // children is a vec of nodes, assume that they're all text nodes for now
+                let mut s = String::from("");
+                for child in children {
+                    match child {
+                        Node::Text(cs) => {
+                            s += cs;
+                        },
+                        _ => assert!(false)
+                    }
+                }
+                assert_eq!(s, expected);
             }
             _ => assert!(false),
         };
@@ -1547,10 +1577,28 @@ third paragraph",
         );
 
         assert_eq!(2, nodes.len());
-        header_with_text(&nodes[0], "A header");
+        header_with_single_text(&nodes[0], "A header");
         let list_children = unordered_list_children(&nodes[1]).unwrap();
         assert_eq!(list_children.len(), 2);
         assert_list_item_text(&list_children[0], "first unordered list item");
         assert_list_item_text(&list_children[1], "second unordered list item");
+    }
+
+    #[test]
+    fn test_header() {
+        {
+            let nodes = build(
+                "#h A header",
+            );
+            assert_eq!(1, nodes.len());
+            header_with_single_text(&nodes[0], "A header");
+        }
+        {
+            let nodes = build(
+                "#h A header (with parentheses)",
+            );
+            assert_eq!(1, nodes.len());
+            header_with_multi_text(&nodes[0], "A header (with parentheses)");
+        }
     }
 }
