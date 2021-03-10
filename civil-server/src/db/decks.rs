@@ -30,6 +30,11 @@ use tokio_pg_mapper_derive::PostgresMapper;
 #[allow(unused_imports)]
 use tracing::info;
 
+pub(crate) enum DeckBaseOrigin {
+    Created,
+    PreExisting,
+}
+
 // used when constructing a type derived from deck (Idea, Publication etc)
 // gets the basic information from the decks table for use with additional data to construct the final struct
 // e.g. DeckBase + IdeaExtra to create an interop::Idea
@@ -107,7 +112,7 @@ impl From<DetailedRef> for interop::Ref {
             name: d.name,
             resource: interop::DeckResource::from(d.kind),
             ref_kind: interop::RefKind::from(d.ref_kind),
-            annotation: d.annotation
+            annotation: d.annotation,
         }
     }
 }
@@ -338,6 +343,44 @@ pub(crate) async fn deckbase_get(
          from decks
          where user_id = $1 and id = $2 and kind = $3",
         &[&user_id, &deck_id, &kind],
+    )
+    .await
+}
+
+// tuple where the second element is a bool indicating whether the deck was created (true) or
+// we're returning a pre-existing deck (false)
+//
+pub(crate) async fn deckbase_get_or_create(
+    tx: &Transaction<'_>,
+    user_id: Key,
+    kind: DeckKind,
+    name: &str,
+) -> Result<(DeckBase, DeckBaseOrigin)> {
+    let existing_deck_res = deckbase_get_by_name(&tx, user_id, kind, &name).await;
+    match existing_deck_res {
+        Ok(deck) => Ok((deck.into(), DeckBaseOrigin::PreExisting)),
+        Err(e) => match e {
+            Error::NotFound => {
+                let deck = deckbase_create(&tx, user_id, kind, &name).await?;
+                Ok((deck.into(), DeckBaseOrigin::Created))
+            }
+            _ => Err(e),
+        },
+    }
+}
+
+async fn deckbase_get_by_name(
+    tx: &Transaction<'_>,
+    user_id: Key,
+    kind: DeckKind,
+    name: &str,
+) -> Result<DeckBase> {
+    pg::one_may_not_find::<DeckBase>(
+        &tx,
+        "select id, name, created_at, graph_terminator
+         from decks
+         where user_id = $1 and name = $2 and kind = $3",
+        &[&user_id, &name, &kind],
     )
     .await
 }

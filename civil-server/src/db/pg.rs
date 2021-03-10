@@ -53,6 +53,31 @@ pub async fn one<T>(
 where
     T: FromTokioPostgresRow,
 {
+    one_(tx, sql_query, sql_params, true).await
+}
+
+// the same as one except that if the query returns NotFound an error isn't printed
+//
+pub async fn one_may_not_find<T>(
+    tx: &Transaction<'_>,
+    sql_query: &str,
+    sql_params: &[&(dyn tokio_postgres::types::ToSql + std::marker::Sync)],
+) -> Result<T>
+where
+    T: FromTokioPostgresRow,
+{
+    one_(tx, sql_query, sql_params, false).await
+}
+
+async fn one_<T>(
+    tx: &Transaction<'_>,
+    sql_query: &str,
+    sql_params: &[&(dyn tokio_postgres::types::ToSql + std::marker::Sync)],
+    log_not_found_error: bool,
+) -> Result<T>
+where
+    T: FromTokioPostgresRow,
+{
     let _stmt = sql_query;
     let _stmt = _stmt.replace("$table_fields", &T::sql_table_fields());
     let stmt = match tx.prepare(&_stmt).await {
@@ -76,8 +101,18 @@ where
     match res {
         Ok(_) => res,
         Err(e) => {
-            error!("{}", e);
-            error!("QUERY: {}", &sql_query);
+            match e {
+                Error::NotFound => {
+                    if log_not_found_error {
+                        error!("{}", e);
+                        error!("QUERY: {}", &sql_query);
+                    }
+                }
+                _ => {
+                    error!("{}", e);
+                    error!("QUERY: {}", &sql_query);
+                }
+            }
             Err(e)
         }
     }

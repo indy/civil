@@ -19,7 +19,7 @@ use crate::interop::decks as interop;
 use postgres_types::{FromSql, ToSql};
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, ToSql, FromSql, Deserialize, Serialize, PartialEq)]
+#[derive(Copy, Clone, Debug, ToSql, FromSql, Deserialize, Serialize, PartialEq)]
 #[postgres(name = "deck_kind")]
 pub enum DeckKind {
     #[postgres(name = "publication")]

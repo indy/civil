@@ -17,7 +17,7 @@
 
 use super::pg;
 use crate::db::deck_kind::DeckKind;
-use crate::db::ideas as ideas_db;
+use crate::db::decks as decks_db;
 use crate::db::ref_kind::RefKind;
 use crate::error::{Error, Result};
 use crate::interop::decks as interop_decks;
@@ -113,6 +113,10 @@ pub(crate) async fn create_from_note_to_decks(
             if existing.id == deck_reference.id {
                 let r = RefKind::from(deck_reference.ref_kind);
                 if existing.ref_kind != r || existing.annotation != deck_reference.annotation {
+                    info!(
+                        "updating properties of an existing reference {} {}",
+                        existing.id, existing.note_id
+                    );
                     pg::zero(
                         &tx,
                         &stmt_update_ref_kind,
@@ -134,7 +138,10 @@ pub(crate) async fn create_from_note_to_decks(
                             VALUES ($1, $2, $3, $4)";
     for deck_reference in &edge_connectivity.existing_deck_references {
         if !is_deck_associated_with_note(deck_reference.id, &associated_decks) {
-            info!("creating {}, {}", &note_id, &deck_reference.id);
+            info!(
+                "creating new edge to pre-existing deck {}, {}",
+                &note_id, &deck_reference.id
+            );
             let r = RefKind::from(deck_reference.ref_kind);
             pg::zero(
                 &tx,
@@ -148,13 +155,17 @@ pub(crate) async fn create_from_note_to_decks(
     // create new tags and create edges from the note to them
     //
     for new_deck_reference in &edge_connectivity.new_deck_references {
-        // todo(<2020-03-30 Mon>): additional check to make sure that this tag doesn't already exist
-        // it's a stupid thing that could happen if:
-        // 1. a user has the same deck open in two windows
-        // 2. adds a new tag to a note in one window
-        // 3. adds the same new tag in the other window
-        //
-        let deck = ideas_db::create_idea_tx(&tx, user_id, &new_deck_reference.name).await?;
+        info!(
+            "create new idea: {} and a new edge",
+            new_deck_reference.name
+        );
+        let (deck, _created) = decks_db::deckbase_get_or_create(
+            &tx,
+            user_id,
+            DeckKind::Idea,
+            &new_deck_reference.name,
+        )
+        .await?;
         let no_annotation: Option<String> = None;
         let r = RefKind::from(new_deck_reference.ref_kind);
         pg::zero(

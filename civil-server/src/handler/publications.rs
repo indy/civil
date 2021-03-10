@@ -39,7 +39,7 @@ pub async fn create(
     let user_id = session::user_id(&session)?;
     let proto_deck = proto_deck.into_inner();
 
-    let publication = db::create(&db_pool, user_id, &proto_deck.title).await?;
+    let publication = db::get_or_create(&db_pool, user_id, &proto_deck.title).await?;
 
     Ok(HttpResponse::Ok().json(publication))
 }

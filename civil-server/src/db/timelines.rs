@@ -65,11 +65,17 @@ impl From<decks::DeckBase> for interop::Timeline {
     }
 }
 
-pub(crate) async fn create(db_pool: &Pool, user_id: Key, title: &str) -> Result<interop::Timeline> {
+pub(crate) async fn get_or_create(
+    db_pool: &Pool,
+    user_id: Key,
+    title: &str,
+) -> Result<interop::Timeline> {
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
+
     let tx = client.transaction().await?;
 
-    let deck = decks::deckbase_create(&tx, user_id, DeckKind::Timeline, &title).await?;
+    let (deck, _origin) =
+        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Timeline, &title).await?;
 
     tx.commit().await?;
 

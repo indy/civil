@@ -41,7 +41,7 @@ pub async fn create(
     let user_id = session::user_id(&session)?;
     let proto_deck = proto_deck.into_inner();
 
-    let timeline = db::create(&db_pool, user_id, &proto_deck.title).await?;
+    let timeline = db::get_or_create(&db_pool, user_id, &proto_deck.title).await?;
 
     Ok(HttpResponse::Ok().json(timeline))
 }

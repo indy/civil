@@ -181,11 +181,10 @@ pub(crate) async fn get(
     .await
 }
 
-pub(crate) async fn create(
+pub(crate) async fn get_or_create(
     db_pool: &Pool,
     user_id: Key,
     title: &str,
-    // publication: &interop::ProtoPublication,
 ) -> Result<interop::Publication> {
     let source = "";
     let author = "";
@@ -193,17 +192,33 @@ pub(crate) async fn create(
     let rating = 0;
 
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
+
     let tx = client.transaction().await?;
 
-    let deck = decks::deckbase_create(&tx, user_id, DeckKind::Publication, &title).await?;
-    let publication_extras = pg::one::<PublicationExtra>(
-        &tx,
-        "INSERT INTO publication_extras(deck_id, source, author, short_description, rating)
-         VALUES ($1, $2, $3, $4, $5)
-         RETURNING $table_fields",
-        &[&deck.id, &source, &author, &short_description, &rating],
-    )
-    .await?;
+    let (deck, origin) =
+        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Publication, &title).await?;
+
+    let publication_extras =
+        match origin {
+            decks::DeckBaseOrigin::Created => pg::one::<PublicationExtra>(
+                &tx,
+                "INSERT INTO publication_extras(deck_id, source, author, short_description, rating)
+                 VALUES ($1, $2, $3, $4, $5)
+                 RETURNING $table_fields",
+                &[&deck.id, &source, &author, &short_description, &rating],
+            )
+            .await?,
+            decks::DeckBaseOrigin::PreExisting => {
+                pg::one::<PublicationExtra>(
+                    &tx,
+                    "select deck_id, source, author, short_description, rating
+                 from publication_extras
+                 where deck_id=$1",
+                    &[&deck.id],
+                )
+                .await?
+            }
+        };
 
     tx.commit().await?;
 

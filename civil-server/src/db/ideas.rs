@@ -21,7 +21,7 @@ use crate::db::decks;
 use crate::error::{Error, Result};
 use crate::interop::ideas as interop;
 use crate::interop::Key;
-use deadpool_postgres::{Client, Pool, Transaction};
+use deadpool_postgres::{Client, Pool};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
@@ -71,15 +71,6 @@ impl From<decks::DeckBase> for interop::Idea {
             backrefs: None,
         }
     }
-}
-
-pub(crate) async fn create_idea_tx(
-    tx: &Transaction<'_>,
-    user_id: Key,
-    deck_name: &str,
-) -> Result<interop::Idea> {
-    let deck = decks::deckbase_create(&tx, user_id, DeckKind::Idea, deck_name).await?;
-    Ok(deck.into())
 }
 
 pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Idea>> {
@@ -163,11 +154,17 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key, idea_id: Key) -> Result<in
     Ok(deck.into())
 }
 
-pub(crate) async fn create(db_pool: &Pool, user_id: Key, title: &str) -> Result<interop::Idea> {
+pub(crate) async fn get_or_create(
+    db_pool: &Pool,
+    user_id: Key,
+    title: &str,
+) -> Result<interop::Idea> {
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
+
     let tx = client.transaction().await?;
 
-    let deck = decks::deckbase_create(&tx, user_id, DeckKind::Idea, &title).await?;
+    let (deck, _origin) =
+        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Idea, &title).await?;
 
     tx.commit().await?;
 
