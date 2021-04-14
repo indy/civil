@@ -6,36 +6,34 @@ license = "AGPL-3.0"
 edition = "2018"
 
 [dependencies]
-actix-files = "0.3.0"
-actix-multipart = "0.3.0"
-actix-rt = "1.1.1"
-# replace actix-session with official version once https://github.com/actix/actix-extras/issues/87 is merged in
-# this is required for logout to actually work and remove the session cookie
-# pull request: https://github.com/actix/actix-extras/pull/129
-# merged in december 2020, not yet released updated version (current actix-session version: 0.4.0)
-actix-session = { git = "https://github.com/qkniep/actix-extras" }
+
+actix-files = "0.6.0-beta.4"
+actix-multipart = "0.4.0-beta.4"
+actix-rt = "2.2.0"
+actix-session = "0.5.0-beta.1"
 actix-threadpool = "0.3.3"
-actix-web = "3.3.2"
+actix-web = "4.0.0-beta.5"
+
 chrono = { version = "0.4", features = ["serde"] }
 derive_more = "0.99.11"
 dotenv = "0.15.0"
-futures = "0.3.12"
-rand = "0.8.2"
+futures = "0.3.14"
+rand = "0.8.3"
 rust-argon2 = "0.8.3"
-serde = { version = "1.0.104", features = ["derive"] }
-serde_json = "1.0.48"
-tracing = "0.1.22"
-tracing-subscriber = "0.2.15"
+serde = { version = "1.0.125", features = ["derive"] }
+serde_json = "1.0.64"
+tracing = "0.1.25"
+tracing-subscriber = "0.2.17"
 
-tokio = { version = "0.3.6", features = ["macros"] }
+tokio = { version = "1.5.0", features = ["macros"] }
 
-deadpool-postgres = {version = "0.5", default-features = false}
-tokio-postgres = { version = "0.5.5", features = ["with-chrono-0_4"] }
+deadpool-postgres = {version = "0.7", default-features = false}
+tokio-postgres = { version = "0.7.1", features = ["with-chrono-0_4"] }
 
 # depend on tokio-postgres
-tokio-pg-mapper = "0.1.5"
-tokio-pg-mapper-derive = "0.1.5"
-postgres-types = {version = "0.1.2", features = ["derive"]}
+tokio-pg-mapper = "0.2.0"
+tokio-pg-mapper-derive = "0.2.0"
+postgres-types = {version = "0.2.1", features = ["derive"]}
 
 
 civil-shared = { path = "../civil-shared" }

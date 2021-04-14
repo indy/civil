@@ -83,14 +83,18 @@ pub async fn create(
         user_image_count += 1;
         db::set_image_count(&db_pool, user_id, user_image_count).await?;
 
-        let mut f = web::block(|| std::fs::File::create(filepath))
+        // todo: unwrap was added after the File::create - is this right?
+        let mut f = web::block(|| std::fs::File::create(filepath).unwrap())
             .await
             .unwrap();
+
         // Field in turn is stream of *Bytes* object
         while let Some(chunk) = field.next().await {
             let data = chunk.unwrap();
             // filesystem operations are blocking, we have to use threadpool
-            f = web::block(move || f.write_all(&data).map(|_| f)).await?;
+
+            // todo: the await?.unwrap() code looks wrong
+            f = web::block(move || f.write_all(&data).map(|_| f)).await?.unwrap();
         }
 
         // save the entry in the images table

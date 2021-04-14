@@ -19,7 +19,7 @@ use actix_files as fs;
 use actix_session::CookieSession;
 use actix_web::cookie::SameSite;
 use actix_web::middleware;
-use actix_web::middleware::errhandlers::ErrorHandlers;
+use actix_web::middleware::ErrorHandlers;
 use actix_web::{http, web, App, HttpServer};
 use civil;
 use civil::{server_api, Result, ServerConfig};

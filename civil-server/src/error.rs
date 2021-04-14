@@ -44,6 +44,7 @@ pub enum Error {
     Registration,
     SerdeJson(serde_json::Error),
     ThreadpoolBlocking(actix_threadpool::BlockingError<std::io::Error>),
+    ActixWebBlocking(actix_web::error::BlockingError),
     TokioPostgres(tokio_postgres::error::Error),
     TokioPostgresMapper(tokio_pg_mapper::Error),
     TooManyFound,

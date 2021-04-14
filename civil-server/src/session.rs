@@ -31,7 +31,7 @@ pub fn user_id(session: &actix_session::Session) -> Result<Key> {
 }
 
 pub fn save_user_id(session: &actix_session::Session, id: Key) -> Result<()> {
-    session.set(AUTH, format!("{}", id))?;
+    session.insert(AUTH, format!("{}", id))?;
 
     Ok(())
 }
