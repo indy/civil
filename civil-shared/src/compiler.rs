@@ -61,13 +61,13 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
         Node::BlockQuote(ns) => element_key("blockquote", key, ns)?,
         Node::Highlight(ns) => element_key("mark", key, ns)?,
         Node::ListItem(ns) => element_key("li", key, ns)?,
-        Node::MarginScribble(ns) => compile_sidenote(ns, key, "right-margin-scribble scribble-neutral")?,
-        Node::MarginDisagree(ns) => compile_sidenote(ns, key, "right-margin-scribble scribble-disagree")?,
-        Node::MarginText(ns) => compile_sidenote(ns, key, "right-margin")?,
-        Node::OrderedList(ns) => element_key("ol", key, ns)?,
+        Node::MarginScribble(ns) => compile_sidenote("right-margin-scribble scribble-neutral", key, ns)?,
+        Node::MarginDisagree(ns) => compile_sidenote("right-margin-scribble scribble-disagree", key, ns)?,
+        Node::MarginText(ns) => compile_sidenote("right-margin", key, ns)?,
+        Node::OrderedList(ns, start) => compile_ordered_list(start, key, ns)?,
         Node::Paragraph(ns) => element_key("p", key, ns)?,
         Node::Quotation(ns) => element_key("em", key, ns)?,
-        Node::NumberedSidenote(ns) => compile_numbered_sidenote(ns, key)?,
+        Node::NumberedSidenote(ns) => compile_numbered_sidenote(key, ns)?,
         Node::Strong(ns) => element_key("strong", key, ns)?,
         Node::Text(text) => vec![Element {
             name: String::from("text"),
@@ -79,9 +79,9 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
             src: Some(String::from(src)),
             ..Default::default()
         }],
-        Node::Underlined(ns) => element_key_class("span", key, "underlined", ns)?,
+        Node::Underlined(ns) => element_key_class("span", "underlined", key, ns)?,
         Node::UnorderedList(ns) => element_key("ul", key, ns)?,
-        Node::Url(url, ns) => element_key_class_href("a", key, "note-inline-link", url, ns)?,
+        Node::Url(url, ns) => element_key_class_href("a", "note-inline-link", url, key, ns)?,
         Node::HR => element_key("hr", key, &vec![])?,
         Node::Header(ns) => element_key("h2", key, ns)?,
     };
@@ -89,7 +89,7 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
     Ok(res)
 }
 
-fn compile_sidenote(ns: &[Node], key: usize, class_name: &str) -> Result<Vec<Element>> {
+fn compile_sidenote(class_name: &str, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
     let mut res: Vec<Element> = vec![];
 
     let mut id = String::new();
@@ -110,12 +110,12 @@ fn compile_sidenote(ns: &[Node], key: usize, class_name: &str) -> Result<Vec<Ele
         &id,
         "checkbox",
     )?);
-    res.append(&mut element_key_class("span", key + 200, class_name, ns)?);
+    res.append(&mut element_key_class("span", class_name, key + 200, ns)?);
 
     Ok(res)
 }
 
-fn compile_numbered_sidenote(ns: &[Node], key: usize) -> Result<Vec<Element>> {
+fn compile_numbered_sidenote(key: usize, ns: &[Node]) -> Result<Vec<Element>> {
     let mut res: Vec<Element> = vec![];
 
     let mut id = String::new();
@@ -135,9 +135,18 @@ fn compile_numbered_sidenote(ns: &[Node], key: usize) -> Result<Vec<Element>> {
         &id,
         "checkbox",
     )?);
-    res.append(&mut element_key_class("span", key + 200, "right-margin-note", ns)?);
+    res.append(&mut element_key_class("span", "right-margin-note", key + 200, ns)?);
 
     Ok(res)
+}
+
+fn compile_ordered_list(start: &String, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
+    let name = "ol".to_string();
+    let mut e = element_base(&name, key, ns)?;
+
+    e.start = Some(start.to_string());
+
+    Ok(vec![e])
 }
 
 fn element_key(name: &str, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
@@ -154,7 +163,7 @@ fn text_element(text: &str) -> Element {
     }
 }
 
-fn element_key_class(name: &str, key: usize, class_name: &str, ns: &[Node]) -> Result<Vec<Element>> {
+fn element_key_class(name: &str, class_name: &str, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
     let mut e = element_base(name, key, ns)?;
 
     e.class_name = Some(String::from(class_name));
@@ -162,7 +171,7 @@ fn element_key_class(name: &str, key: usize, class_name: &str, ns: &[Node]) -> R
     Ok(vec![e])
 }
 
-fn element_key_class_href(name: &str, key: usize, class_name: &str, url: &str, ns: &[Node]) -> Result<Vec<Element>> {
+fn element_key_class_href(name: &str, class_name: &str, url: &str, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
     let mut e = element_base(name, key, ns)?;
 
     e.class_name = Some(String::from(class_name));

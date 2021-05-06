@@ -15,6 +15,7 @@ export default function buildMarkup(content, imageDirectory) {
     if (n.href)       { res.href = n.href; }
     if (n.html_type)  { res.type = n.html_type; }
     if (n.src)        { res.src = `/u/${imageDirectory}/${n.src}`; }
+    if (n.start)      { res.start = n.start; }
 
     return res;
   }

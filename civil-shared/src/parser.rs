@@ -40,7 +40,7 @@ pub enum Node {
     MarginScribble(Vec<Node>),
     MarginDisagree(Vec<Node>),
     MarginText(Vec<Node>),
-    OrderedList(Vec<Node>),
+    OrderedList(Vec<Node>, String),
     Paragraph(Vec<Node>),
     Quotation(Vec<Node>),
     NumberedSidenote(Vec<Node>),
@@ -153,6 +153,17 @@ pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
 fn eat_ordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>) -> ParserResult<Node> {
     let mut children: Vec<Node> = vec![];
 
+    // tokens should be at a digit, this is the starting number for the ordered list
+    let starts: String;
+    match tokens[0] {
+        Token::Digits(s) => {
+            starts = s.to_string()
+        },
+        _ => {
+            return Err(Error::Parser)
+        }
+    }
+
     while !tokens.is_empty() && !is_head_option(tokens, halt_at) {
         tokens = &tokens[3..]; // digits, period, whitespace
 
@@ -169,7 +180,7 @@ fn eat_ordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>
         }
     }
 
-    Ok((tokens, Node::OrderedList(children)))
+    Ok((tokens, Node::OrderedList(children, starts)))
 }
 
 fn eat_unordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>) -> ParserResult<Node> {
@@ -690,9 +701,11 @@ mod tests {
         }
     }
 
-    fn ordered_list_children<'a>(node: &'a Node) -> Result<&'a Vec<Node>> {
+    fn ordered_list_children<'a>(node: &'a Node, expected_starts: &str) -> Result<&'a Vec<Node>> {
         match node {
-            Node::OrderedList(children) => {
+            Node::OrderedList(children, starts) => {
+                assert_eq!(starts, &expected_starts);
+
                 return Ok(children);
             }
             _ => assert_eq!(false, true),
@@ -1071,7 +1084,7 @@ multiline",
             );
             assert_eq!(1, nodes.len());
 
-            let children = ordered_list_children(&nodes[0]).unwrap();
+            let children = ordered_list_children(&nodes[0], "1").unwrap();
             assert_eq!(children.len(), 3);
             assert_list_item_text(&children[0], "this is a list item in an ordered list");
             assert_list_item_text(&children[1], "here's another");
@@ -1084,7 +1097,7 @@ multiline",
             );
             assert_eq!(1, nodes.len());
 
-            let children = ordered_list_children(&nodes[0]).unwrap();
+            let children = ordered_list_children(&nodes[0], "21").unwrap();
             assert_eq!(children.len(), 2);
             assert_list_item_text(&children[0], "twenty first item");
             assert_list_item_text(&children[1], "twenty second item");
@@ -1096,7 +1109,7 @@ multiline",
             );
             assert_eq!(1, nodes.len());
 
-            let children = ordered_list_children(&nodes[0]).unwrap();
+            let children = ordered_list_children(&nodes[0], "1").unwrap();
             assert_eq!(children.len(), 2);
             assert_list_item_text(&children[0], "5 gold rings");
             assert_list_item_text(&children[1], "4 something somethings");
@@ -1222,7 +1235,7 @@ This is code```",
             Node::NumberedSidenote(vs) => {
                 assert_eq!(vs.len(), 1);
                 match &vs[0] {
-                    Node::OrderedList(os) => {
+                    Node::OrderedList(os, _) => {
                         assert_eq!(os.len(), 2);
                         assert_list_item_text(&os[0], "item-a");
                         assert_list_item_text(&os[1], "item-b");
