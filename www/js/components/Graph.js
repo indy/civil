@@ -3,70 +3,250 @@ import { opposingKind } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { svgTickedCheckBox, svgUntickedCheckBox, svgChevronLeft, svgChevronRight } from '/js/svgIcons.js';
 
-import graphPhysics from "/js/graphPhysics.js";
+import { graphPhysics } from "/js/graphPhysics.js";
 
 let gUpdateGraphCallback = undefined;
-let gGraphState = undefined;
 
-export default function Graph({ id, depth, isIdea }) {
+const ExpandedState_Fully = 0;
+const ExpandedState_Partial = 1;
+const ExpandedState_None = 2;
+
+export default function Graph({ id, depth }) {
   const [state] = useStateValue();
 
-  const [activeHyperlinks, setActiveHyperlinks] = useState(false);
-  const [onlyParentChild, setOnlyParentChild] = useState(false);
-  const [onlyIdea, setOnlyIdea] = useState(!!isIdea);
-  const [graphDepth, setGraphDepth] = useState(depth);
-
-  const [isDragging, setIsDragging] = useState(false);
+  const [activeHyperlinks, setActiveHyperlinks] = useState(false); // hack: remove eventually
+  const [mouseButtonDown, setMouseButtonDown] = useState(false);
+  const [mouseDragging, setMouseDragging] = useState(false);
   const [simIsRunning, setSimIsRunning] = useState(false);
+  const [graphState, setGraphState] = useState({});
 
   const svgContainerRef = createRef();
 
   useEffect(() => {
-    gGraphState = buildGraphState(state, id, graphDepth, onlyIdea, onlyParentChild);
-    let svg = buildSvg(svgContainerRef.current, gGraphState, id);
+
+    let newState = {
+      nodes: {},
+      edges: []
+    };
+
+    newState.nodes[id] = {
+      id: id,
+      is_important: true,
+      expandedState: ExpandedState_Fully,
+      resource: state.ac.decks[state.deckIndexFromId[id]].resource,
+      label: state.ac.decks[state.deckIndexFromId[id]].name,
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0
+    };
+
+    regenGraphState(newState);
+  }, []);
+
+  useEffect(() => {
+    let svg = buildSvg(svgContainerRef.current, graphState);
 
     gUpdateGraphCallback = buildUpdateGraphCallback(svg);
-    graphPhysics(gGraphState, gUpdateGraphCallback, setSimIsRunning);
+    graphPhysics(graphState, gUpdateGraphCallback, setSimIsRunning);
 
-  }, [onlyParentChild, onlyIdea, graphDepth]);
+  }, [graphState]);
 
-  function onMouseDown(event) {
+  function regenGraphState(gs) {
+    let nodes = {};
+    let edges = [];
+
+    // create an updated copy of all the visible nodes
+
+    // copy over the expanded or important nodes
+    for(const key in gs.nodes) {
+      if (gs.nodes[key].is_important || gs.nodes[key].expandedState !== ExpandedState_None) {
+        nodes[key] = gs.nodes[key];
+      }
+    }
+
+    // copy over any nodes directly connected to the expanded or important nodes
+    for (const key in nodes) {
+      if (nodes[key].expandedState === ExpandedState_Fully) {
+        for (const link of state.fullGraph[key]) {
+          let [child_id, kind, strength] = link; // negative strength == backlink
+
+          if (!nodes[child_id]) {
+            if (gs.nodes[child_id]) {
+              // copy over from previous state
+              nodes[child_id] = gs.nodes[child_id];
+            } else {
+              // create a new node
+              nodes[child_id] = {
+                id: child_id,
+                is_important: false,
+                expandedState: ExpandedState_None,
+                resource: state.ac.decks[state.deckIndexFromId[child_id]].resource,
+                label: state.ac.decks[state.deckIndexFromId[child_id]].name,
+                x: nodes[key].x,
+                y: nodes[key].y,
+                vx: -nodes[key.vx],
+                vy: -nodes[key.vy]
+              }
+            }
+          }
+        }
+      } else if (nodes[key].expandedState === ExpandedState_Partial) {
+        for (const link of state.fullGraph[key]) {
+          let [child_id, kind, strength] = link; // negative strength == backlink
+
+          if (!nodes[child_id]) {
+            if (gs.nodes[child_id] && gs.nodes[child_id].expandedState !== ExpandedState_None) {
+              // copy over from previous state
+              nodes[child_id] = gs.nodes[child_id];
+            }
+          }
+        }
+      }
+    }
+
+    // update links
+    for (const key in nodes) {
+      if (nodes[key].expandedState === ExpandedState_Fully) {
+        for (const link of state.fullGraph[key]) {
+          let [child_id, kind, strength] = link; // negative strength == backlink
+          if (nodes[child_id]) {
+            // only if both sides of the link are being displayed
+            edges.push([parseInt(key, 10), child_id, strength, kind]);
+          }
+        }
+      } else if (nodes[key].expandedState === ExpandedState_Partial) {
+        for (const link of state.fullGraph[key]) {
+          let [child_id, kind, strength] = link; // negative strength == backlink
+          if (nodes[child_id] && nodes[child_id].expandedState !== ExpandedState_None) {
+            // only if both sides of the link are being displayed
+            edges.push([parseInt(key, 10), child_id, strength, kind]);
+          }
+        }
+      }
+    }
+
+    // remove edges that would be duplicates (edges that are duplicates of
+    // existing edges but have their  source/target swapped and a negated strength)
+    //
+    let edgesToRender = [];
+    edges.forEach(e => {
+      let [srcIdx, targetIdx, strength, kind] = e;
+
+      let sourceNode = nodes[srcIdx];
+      let targetNode = nodes[targetIdx];
+
+      if (strength < 0) {
+        // only render negative strengths if there is no positive complement
+        //
+        if (!edges.some(f => f[0] === targetIdx && f[1] === srcIdx && f[2] > 0)) {
+          edgesToRender.push(e);
+        } else {
+          // this edge should be ignored
+        }
+      } else {
+        edgesToRender.push(e);
+      }
+    });
+
+    let updatedGraphState = {
+      ...gs,
+      nodes,
+      edges: edgesToRender
+    };
+
+    setGraphState(updatedGraphState);
+  }
+
+  function onMouseButtonDown(event) {
     const target = event.target;
     let g = target.parentElement;
     if (g.nodeName === "g") {
-      svgContainerRef.current.elementBeingDragged = g;
-      setIsDragging(true);
+      svgContainerRef.current.elementClickedOn = g;
+      setMouseButtonDown(true);
     }
 
     if (!simIsRunning) {
       // restart the simulation if it's stopped and the user starts dragging a node
-      graphPhysics(gGraphState, gUpdateGraphCallback, setSimIsRunning);
+      // graphPhysics(graphState, gUpdateGraphCallback, setSimIsRunning);
+      graphPhysics(graphState, gUpdateGraphCallback, setSimIsRunning);
       setSimIsRunning(true);
     }
   }
 
-  function onMouseUp(event) {
-    if (isDragging) {
-      const g = svgContainerRef.current.elementBeingDragged;
-      g.associatedNode.fx = null;
-      g.associatedNode.fy = null;
-      svgContainerRef.current.elementBeingDragged = undefined;
-      setIsDragging(false);
+
+  function numOpenedConnections(id, gs) {
+    /*
+      add nodes to a set rather than count them in place
+      nodes A and B could be connected together twice (parent->child + child->parent) but this should only count as a single connection
+     */
+
+    let s = new Set();
+
+    gs.edges.forEach(e => {
+      if (e[0] === id) {
+        if (gs.nodes[e[1]].expandedState !== ExpandedState_None) {
+          s.add(e[1]);
+        }
+      }
+      if (e[1] === id) {
+        if (gs.nodes[e[0]].expandedState !== ExpandedState_None) {
+          s.add(e[0]);
+        }
+      }
+    });
+
+    return s.size;
+  }
+
+  function onMouseButtonUp(event) {
+    if (mouseButtonDown) {
+      if (mouseDragging) {
+        const g = svgContainerRef.current.elementClickedOn;
+        g.associatedNode.fx = null;
+        g.associatedNode.fy = null;
+        svgContainerRef.current.elementClickedOn = undefined;
+        setMouseDragging(false);
+      } else {
+        let svgNode = svgContainerRef.current.elementClickedOn;
+
+        let id = parseInt(svgNode.getAttribute("referencing_id"), 10);
+        if (id) {
+          if (graphState.nodes[id].expandedState === ExpandedState_Fully) {
+            let openedNeighbours = numOpenedConnections(id, graphState);
+            if (openedNeighbours > 1) {
+              graphState.nodes[id].expandedState = ExpandedState_Partial;
+            } else {
+              graphState.nodes[id].expandedState = ExpandedState_None;
+            }
+          } else if (graphState.nodes[id].expandedState === ExpandedState_Partial) {
+            graphState.nodes[id].expandedState = ExpandedState_Fully;
+          } else if (graphState.nodes[id].expandedState === ExpandedState_None) {
+            graphState.nodes[id].expandedState = ExpandedState_Fully;
+          };
+
+          regenGraphState(graphState);
+        }
+      }
+      setMouseButtonDown(false);
     }
   }
 
   function onMouseMove(event) {
-    if (!isDragging) {
+    if (mouseButtonDown) {
+      setMouseDragging(true);
+
+      const g = svgContainerRef.current.elementClickedOn;
+
+      // identify this node's corressponding entry in graphstate and set it's fx,fy values
+      const [ansx, ansy] = mouseInSvg(event.pageX, event.pageY, svgContainerRef.current);
+
+      g.associatedNode.fx = ansx;
+      g.associatedNode.fy = ansy;
+
+    } else {
       return;
     }
-
-    const g = svgContainerRef.current.elementBeingDragged;
-
-    // identify this node's corressponding entry in graphstate and set it's fx,fy values
-    const [ansx, ansy] = mouseInSvg(event.pageX, event.pageY, svgContainerRef.current);
-
-    g.associatedNode.fx = ansx;
-    g.associatedNode.fy = ansy;
   }
 
   function onGraphClicked(event) {
@@ -85,26 +265,6 @@ export default function Graph({ id, depth, isIdea }) {
     setActiveHyperlinks(!activeHyperlinks);
   }
 
-  function onOnlyParentChildClicked(e) {
-    e.preventDefault();
-    setOnlyParentChild(!onlyParentChild);
-  }
-
-  function onOnlyIdeaClicked(e) {
-    e.preventDefault();
-    setOnlyIdea(!onlyIdea);
-  }
-
-  function onLeftClicked(e) {
-    e.preventDefault();
-    setGraphDepth(Math.max(1, graphDepth - 1));
-  }
-
-  function onRightClicked(e) {
-    e.preventDefault();
-    setGraphDepth(Math.min(10, graphDepth + 1));
-  }
-
   return html`
 <div>
   <div class="left-margin">
@@ -112,27 +272,12 @@ export default function Graph({ id, depth, isIdea }) {
       <span class="left-margin-icon-label">Active Hyperlinks</span>
       ${ activeHyperlinks ? svgTickedCheckBox() : svgUntickedCheckBox() }
     </div>
-    <div class="left-margin-entry clickable" onClick=${ onOnlyIdeaClicked }>
-      <span class="left-margin-icon-label">Only Ideas</span>
-      ${ onlyIdea ? svgTickedCheckBox() : svgUntickedCheckBox() }
-    </div>
-    <div class="left-margin-entry clickable" onClick=${ onOnlyParentChildClicked }>
-      <span class="left-margin-icon-label">Only Parent/Child References</span>
-      ${ onlyParentChild ? svgTickedCheckBox() : svgUntickedCheckBox() }
-    </div>
-    <div class="left-margin-entry">
-      <span class="left-margin-icon-label">Depth</span>
-      <span class="clickable" onClick=${ onLeftClicked }>${ svgChevronLeft() }</span>
-      <span class="left-margin-icon-label">${ graphDepth }</span>
-      <span class="clickable" onClick=${ onRightClicked }>${ svgChevronRight() }</span>
-    </div>
   </div>
   <div class="svg-container" ref=${ svgContainerRef }
        onClick=${ onGraphClicked }
-       onMouseDown=${onMouseDown}
-       onMouseUp=${onMouseUp}
+       onMouseDown=${onMouseButtonDown}
+       onMouseUp=${onMouseButtonUp}
        onMouseMove=${onMouseMove}>
-    <svg viewBox="-300, -300, 900, 900"></svg>
   </div>
 </div>`;
 }
@@ -159,7 +304,8 @@ function mouseInSvg(mouseX, mouseY, svgContainer) {
   return [ansx, ansy];
 }
 
-function buildSvg(ref, graphState, root_id) {
+function buildSvg(ref, graphState) {
+
   let svg = {
     container: undefined,
     element: undefined,
@@ -171,6 +317,11 @@ function buildSvg(ref, graphState, root_id) {
   svg.container = ref;
 
   while(svg.container.firstChild) { svg.container.firstChild.remove();};
+
+  if (Object.keys(graphState).length === 0) {
+    // graphState is the empty object
+    return svg;
+  }
 
   let element = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
   element.setAttribute("viewBox", "-300, -300, 900, 900");
@@ -198,38 +349,6 @@ function buildSvg(ref, graphState, root_id) {
   defs.appendChild(marker);
   element.appendChild(defs);
 
-  /*
-  // g of debug
-  svg.debug = document.createElementNS("http://www.w3.org/2000/svg", 'g');
-  let text1 = document.createElementNS("http://www.w3.org/2000/svg", 'text');
-  text1.setAttribute("fill", "none");
-  text1.setAttribute("x", "10");
-  text1.setAttribute("y", "0");
-  text1.setAttribute("stroke", "var(--fg)");
-  text1.setAttribute("stroke-width", "1");
-  text1.textContent = "shabba";
-  svg.debug.appendChild(text1);
-  svg.appendChild(svg.debug);
-  */
-
-/*
-  // g of axis rendering
-  //
-  let origin = document.createElementNS("http://www.w3.org/2000/svg", 'g');
-  let origin_x = document.createElementNS("http://www.w3.org/2000/svg", 'path');
-  origin_x.setAttribute("fill", "none");
-  origin_x.setAttribute("stroke-width", `3`);
-  origin_x.setAttribute("stroke", 'var(--bg1)');
-  origin_x.setAttribute("d", "M-100,0L100,0");
-  origin.appendChild(origin_x);
-  let origin_y = document.createElementNS("http://www.w3.org/2000/svg", 'path');
-  origin_y.setAttribute("fill", "none");
-  origin_y.setAttribute("stroke-width", `3`);
-  origin_y.setAttribute("stroke", 'var(--bg1)');
-  origin_y.setAttribute("d", "M0,-100L0,100");
-  origin.appendChild(origin_y);
-  svg.appendChild(origin);
-*/
   // g of edges
   //
   svg.edges = document.createElementNS("http://www.w3.org/2000/svg", 'g');
@@ -239,11 +358,12 @@ function buildSvg(ref, graphState, root_id) {
   let nodes = graphState.nodes;
 
   graphState.edges.forEach(e => {
-    let sourceNode = nodes[e[0]];
-    let targetNode = nodes[e[1]];
-    let strength = e[2];
-    let kind = e[3];
-    svg.edges.appendChild(createSvgEdge(sourceNode, targetNode, strength, kind));
+    let [srcIdx, targetIdx, strength, kind] = e;
+
+    let sourceNode = nodes[srcIdx];
+    let targetNode = nodes[targetIdx];
+
+    svg.edges.appendChild(createSvgEdge(sourceNode, targetNode, Math.abs(strength), kind));
   });
 
   element.appendChild(svg.edges);
@@ -257,45 +377,58 @@ function buildSvg(ref, graphState, root_id) {
 
   element.appendChild(svg.nodes);
 
-  graphState.nodes.forEach(n => {
-    let [g, textNode] = createSvgNode(n, root_id);
+  for (const key in graphState.nodes) {
+    let n = graphState.nodes[key];
+
+    let [g, textNode] = createSvgNode(n);
+
     svg.nodes.appendChild(g);
 
     let textBoundingBox = textNode.getBBox();
     n.textWidth = textBoundingBox.width;
     n.textHeight = textBoundingBox.height;
-//    console.log(g);
-//    console.log(g.children[0]);
-//    let h = -textBoundingBox.height;
-//    g.children[0].setAttribute("width", "" + textBoundingBox.width);
-//    g.children[0].setAttribute("height", "" + textBoundingBox.height);
-//    g.children[0].setAttribute("y", "" + h);
 
-  });
+  }
 
   return svg;
 }
 
 function buildUpdateGraphCallback(svg) {
 
-  function updateGraphCallback(graphState) {
+  function updateGraphCallback(graphState, physicsId, globalPhysicsId) {
+
+    if (physicsId !== globalPhysicsId) {
+      console.log("what the fuck? this should never happen");
+    }
+
     let edges = graphState.edges;
     let nodes = graphState.nodes;
 
     Array.from(svg.edges.children).forEach((svgEdge, i) => {
-      let source = nodes[edges[i][0]];
-      let target = nodes[edges[i][1]];
-      let kind = edges[i][3];
+      if (edges.length > i) {
+        let source = nodes[edges[i][0]];
+        let target = nodes[edges[i][1]];
+        let kind = edges[i][3];
 
-      if (kind === "ref_to_parent") {
-        translateEdge(svgEdge, target, source);
-      } else {
-        translateEdge(svgEdge, source, target);
+        if (kind === "ref_to_parent") {
+          translateEdge(svgEdge, target, source);
+        } else {
+          translateEdge(svgEdge, source, target);
+        }
       }
     });
 
     Array.from(svg.nodes.children).forEach((svgNode, i) => {
-      translateNode(svgNode, nodes[i].x, nodes[i].y);
+      let id = svgNode.getAttribute("referencing_id");
+      let nid = parseInt(id, 10);
+      if (nodes[nid]) {
+        if (nodes[nid].x) {
+          translateNode(svgNode, nodes[nid].x, nodes[nid].y);
+        } else {
+          console.log("what???");
+        }
+
+      }
     });
 
     // let dbg = svg.debug.children[0];
@@ -337,9 +470,11 @@ function createSvgEdge(sourceNode, targetNode, strength, kind) {
   return path;
 }
 
-function createSvgNode(n, root_id) {
+function createSvgNode(n) {
   let g = document.createElementNS("http://www.w3.org/2000/svg", 'g');
   g.associatedNode = n;
+
+  g.setAttribute("referencing_id", n.id);
 
   translateNode(g, 0.0, 0.0);
 
@@ -363,22 +498,39 @@ function createSvgNode(n, root_id) {
   text1.classList.add("unselectable-text");
   g.appendChild(text1);
 
-  if (n.id === root_id) {
-    let circle2 = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
-    circle2.setAttribute("fill", "var(--graph-edge)");
-    circle2.setAttribute("r", "8");
-    g.appendChild(circle2);
+  if (n.is_important) {
+    let circledges = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
+    circledges.setAttribute("fill", "var(--graph-edge)");
+    circledges.setAttribute("r", "8");
+    g.appendChild(circledges);
 
-    circle2 = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
-    circle2.setAttribute("fill", "var(--bg)");
-    circle2.setAttribute("r", "6");
-    g.appendChild(circle2);
+    circledges = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
+    circledges.setAttribute("fill", "var(--bg)");
+    circledges.setAttribute("r", "6");
+    g.appendChild(circledges);
   }
 
-  let circle = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
-  circle.setAttribute("fill", "var(--graph-edge)");
-  circle.setAttribute("r", "4");
-  g.appendChild(circle);
+  let circle;
+  switch(n.expandedState) {
+  case ExpandedState_Fully:
+    circle = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
+    circle.setAttribute("fill", "var(--graph-node-expanded)");
+    circle.setAttribute("r", "4");
+    g.appendChild(circle);
+    break;
+  case ExpandedState_Partial:
+    circle = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
+    circle.setAttribute("fill", "var(--graph-node-partial)");
+    circle.setAttribute("r", "4");
+    g.appendChild(circle);
+    break;
+  case ExpandedState_None:
+    circle = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
+    circle.setAttribute("fill", "var(--graph-node-minimised)");
+    circle.setAttribute("r", "4");
+    g.appendChild(circle);
+    break;
+  }
 
   let text2 = document.createElementNS("http://www.w3.org/2000/svg", 'text');
   text2.setAttribute("fill", "var(--fg-" + n.resource + ")");
@@ -401,132 +553,4 @@ function translateEdge(svgNode, source, target) {
 
 function translateNode(svgNode, x, y) {
   svgNode.setAttribute("transform", `translate(${x},${y})`);
-}
-
-function buildGraphState(state, id, depth, onlyIdea, onlyParentChild) {
-
-  function isTerminator(id) {
-    return state.ac.decks[state.deckIndexFromId[id]].graph_terminator;
-  }
-
-  function allowIdeas(id) {
-    return state.ac.decks[state.deckIndexFromId[id]].resource === "ideas";
-  }
-  function allowAll(id) {
-    return true;
-  }
-
-  let usedSet = new Set();
-  let connectionArr = buildConnectivity(state.fullGraph, id, depth, onlyIdea ? allowIdeas : allowAll, onlyParentChild, isTerminator);
-
-  let resEdges = [];
-  for (let [source, target, strength, kind] of connectionArr) {
-    usedSet.add(source);
-    usedSet.add(target);
-
-    resEdges.push({source, target, strength, kind});
-  }
-
-  let resNodes = [];
-  for (let u of usedSet) {
-    resNodes.push({id: u});
-  }
-
-  // id => index object
-  let idToIndex = {};
-  let graphState = {};
-  graphState.nodes = resNodes.map((n, i) => {
-    idToIndex[n.id] = i;
-    return {
-      id: n.id,
-      resource: state.ac.decks[state.deckIndexFromId[n.id]].resource,
-      label: state.ac.decks[state.deckIndexFromId[n.id]].name,
-      x: 0,
-      y: 0,
-      vx: 0,
-      vy: 0
-    }
-  });
-
-  graphState.edges = resEdges.map(n => {
-    return [idToIndex[n.source], idToIndex[n.target], n.strength, n.kind];
-  });
-
-  return graphState;
-}
-
-function buildConnectivity(fullGraph, deckId, depth, isNodeUsedFn, onlyParentChild, isTerminatorFn) {
-  let resultSet = new Set();
-  let futureSet = new Set();    // nodes to visit
-  let activeSet = new Set();    // nodes being visited in the current pass
-  let visitedSet = new Set();   // nodes already processed
-
-  if (fullGraph[deckId]) {
-    // start with this 'root' node
-    if (isNodeUsedFn(deckId)) {
-      futureSet.add(deckId);
-    }
-
-    for (let i = 0; i < depth; i++) {
-      // populate the active set
-      activeSet.clear();
-      for (let f of futureSet) {
-        if (!visitedSet.has(f) && !isTerminatorFn(f)) {
-          // haven't processed this node so add it to activeSet
-          activeSet.add(f);
-        }
-      }
-
-      for (let a of activeSet) {
-        let conn = fullGraph[a];
-        if (conn) {
-          conn.forEach(([id, kind, strength]) => {
-            if (isNodeUsedFn(id) &&
-                ((onlyParentChild && (kind === 'ref_to_parent' || kind === 'ref_to_child'))
-                 || !onlyParentChild)) {
-              // add a link between a and id
-              resultSet.add([a, id, kind, strength]);
-              if (!visitedSet.has(id)) {
-                futureSet.add(id);
-              }
-            }
-          });
-        }
-        visitedSet.add(a);
-      }
-    }
-  }
-
-  // set will now contain some redundent connections
-  // e.g. [123, 142, 'ref', 1] as well as [142, 123, 'ref', -1]
-  // remove these negative strength dupes, however there may still be some
-  // negative strength entries which represent incoming only connections,
-  // these need to be retained (but with their from,to swapped around and
-  // strength negated)
-  //
-
-  let checkSet = {};
-  let res = [];
-  for (let [from, to, kind, strength] of resultSet) {
-    if (strength > 0) {
-      res.push([from, to, strength, kind]);
-
-      if (!checkSet[from]) {
-        checkSet[from] = new Set();
-      }
-      checkSet[from].add(to);
-    }
-  }
-
-  for (let [from, to, kind, strength] of resultSet) {
-    if (strength < 0) {
-      if (!(checkSet[to] && checkSet[to].has(from))) {
-        // an incoming connection
-        res.push([to, from, -strength, opposingKind(kind)]);
-        // no need to add [to, from] to checkSet, as there won't be another similar entry
-      }
-    }
-  }
-
-  return res;
 }

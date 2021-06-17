@@ -1,12 +1,22 @@
 var initialRadius = 10,
     initialAngle = Math.PI * (3 - Math.sqrt(5));
 
-export default function(graphState, tickCallbackFn, setSimIsRunningFn) {
+var gSimIdCounter = 0;
 
-  if (Object.keys(graphState.n2).length === 0) {
+export function graphPhysics(graphState, tickCallbackFn, setSimIsRunningFn) {
+
+  if (Object.keys(graphState).length === 0) {
+    // graphState is the empty object
+    return;
+  }
+  if (Object.keys(graphState.nodes).length === 0) {
     // console.log('graph physics given no nodes - nothing to simulate');
     return;
   }
+
+  // simId is required to make sure that only one sim is running at a time
+  var simId = ++gSimIdCounter;
+  // console.log(`simId = ${simId}`);
 
   var alpha = 1,
       alphaMin = 0.001,
@@ -21,24 +31,32 @@ export default function(graphState, tickCallbackFn, setSimIsRunningFn) {
     // set this to 300 for guaranteed one step
     let tickIterations = 1;    // number of ticks to process per step
 
-    let before = performance.now();
-    let continueSimulating = tick(tickIterations);
-    if (!continueSimulating) {
-      // let after = performance.now();
-      // console.log(`physics step took ${after - before}ms (tickCount: ${graphState.simStats.tickCount})`);
+    if (simId !== gSimIdCounter) {
+      // stopping
+      // console.log(`sim ${simId} has stopped because of newer sim`);
     } else {
-      // console.log('physics requires another step - ignore the timing info thats about to be shown');
-    }
 
-    if (tickCallbackFn) {
-      tickCallbackFn(graphState);
-    }
+      let before = performance.now();
+      let continueSimulating = tick(tickIterations);
+      if (!continueSimulating) {
+        // let after = performance.now();
+        // console.log(`physics step took ${after - before}ms (tickCount: ${graphState.simStats.tickCount})`);
+      } else {
+        // console.log('physics requires another step - ignore the timing info thats about to be shown');
+      }
 
-    if (continueSimulating) {
-      window.requestAnimationFrame(step);
-    } else {
-      console.log("sim has stopped");
-      setSimIsRunningFn(false);
+
+      if (continueSimulating) {
+
+        if (tickCallbackFn) {
+          tickCallbackFn(graphState, simId, gSimIdCounter);
+        }
+
+        window.requestAnimationFrame(step);
+      } else {
+        // console.log("sim has stopped because no need to continue simulation");
+        setSimIsRunningFn(false);
+      }
     }
   }
 
@@ -51,7 +69,7 @@ export default function(graphState, tickCallbackFn, setSimIsRunningFn) {
       clearPerTickSimStats(graphState);
 
       let i, j, node;
-      let nodes = graphState.n2;
+      let nodes = graphState.nodes;
       let node_keys = Object.keys(nodes);
       let n = node_keys.length;
 
@@ -123,14 +141,16 @@ export default function(graphState, tickCallbackFn, setSimIsRunningFn) {
 
   // start the simulation function
   //
-  setSimIsRunningFn(true);
-  window.requestAnimationFrame(step);
+  if (simId === gSimIdCounter) {
+    setSimIsRunningFn(true);
+    window.requestAnimationFrame(step);
+  }
 }
 
 function forceLink(graphState, strengths, bias, alpha) {
   var i;
-  let nodes = graphState.n2;
-  let links = graphState.e2;
+  let nodes = graphState.nodes;
+  let links = graphState.edges;
   let m = links.length;
 
   let distance = 30;
@@ -153,7 +173,7 @@ function forceLink(graphState, strengths, bias, alpha) {
 }
 
 function gatherSimStats(graphState) {
-  let nodes = graphState.n2;
+  let nodes = graphState.nodes;
 
   let maxx = 0.0;
   let maxy = 0.0;
@@ -181,8 +201,8 @@ function clearPerTickSimStats(graphState) {
 
 
 function initializeGraph(graphState) {
-  let nodes = graphState.n2;
-  let links = graphState.e2;
+  let nodes = graphState.nodes;
+  let links = graphState.edges;
   var i,
       m = links.length,
       link,

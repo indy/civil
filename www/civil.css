@@ -7,6 +7,10 @@
   --fg1: #666; /* linked decks (i.e. tags) */
   --fg-inactive: #999;
 
+  --graph-node-expanded: #0bff0b;             /* sat: 0,  light:70 */
+  --graph-node-partial: #ff0b0b;             /* sat: 0,  light:70 */
+  --graph-node-minimised: #ababff;             /* sat: 0,  light:70 */
+
   --graph-edge: #ababab;             /* sat: 0,  light:70 */
   --graph-edge-in-contrast: #73b4c8; /* sat:60.2,light:70 clock05 */
   --graph-edge-critical: #e2969d;    /* sat:60.2,light:70 clock10 */
@@ -47,6 +51,10 @@
 
     --fg1: #999; /* linked decks (i.e. tags) */
     --fg-inactive: var(--fg1);
+
+    --graph-node-expanded: #5e5e5e;             /* sat: 0,  light:40 */
+    --graph-node-partial: #ff0b0b;             /* sat: 0,  light:70 */
+    --graph-node-minimised: #5e5e5e;             /* sat: 0,  light:40 */
 
     --graph-edge: #5e5e5e;             /* sat: 0,  light:40 */
     --graph-edge-in-contrast: #3d636f; /* sat:60.2,light:40 clock05 */
