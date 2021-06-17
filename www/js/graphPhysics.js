@@ -2,17 +2,11 @@ var initialRadius = 10,
     initialAngle = Math.PI * (3 - Math.sqrt(5));
 
 export default function(graphState, tickCallbackFn, setSimIsRunningFn) {
-  if (graphState.nodes == null || graphState.nodes.length === 0) {
+
+  if (Object.keys(graphState.n2).length === 0) {
     // console.log('graph physics given no nodes - nothing to simulate');
     return;
   }
-  // increase size of nodes to help avoid overlaps
-  //
-//  graphState.nodes.forEach(n => {
-//    n.textHeight += 5;
-//    n.textWidth += 30;
-//  });
-
 
   var alpha = 1,
       alphaMin = 0.001,
@@ -43,6 +37,7 @@ export default function(graphState, tickCallbackFn, setSimIsRunningFn) {
     if (continueSimulating) {
       window.requestAnimationFrame(step);
     } else {
+      console.log("sim has stopped");
       setSimIsRunningFn(false);
     }
   }
@@ -56,8 +51,9 @@ export default function(graphState, tickCallbackFn, setSimIsRunningFn) {
       clearPerTickSimStats(graphState);
 
       let i, j, node;
-      let nodes = graphState.nodes;
-      let n = nodes.length;
+      let nodes = graphState.n2;
+      let node_keys = Object.keys(nodes);
+      let n = node_keys.length;
 
       alpha -= alpha * alphaDecay;
 
@@ -68,24 +64,24 @@ export default function(graphState, tickCallbackFn, setSimIsRunningFn) {
           if (i === j) {
             continue;
           }
-          forceManyBody(nodes[j], nodes[i], alpha);
+          forceManyBody(nodes[node_keys[j]], nodes[node_keys[i]], alpha);
         }
       }
 
       for (j = 0; j < n; j++) {
         for (i = j + 1; i < n; i++) {
-          forceCollide(nodes[i], nodes[j]);
+          forceCollide(nodes[node_keys[i]], nodes[node_keys[j]]);
         }
       }
 
       for (j = 0; j < n; j++) {
         for (i = j + 1; i < n; i++) {
-          forceCollideBox(nodes[i], nodes[j]);
+          forceCollideBox(nodes[node_keys[i]], nodes[node_keys[j]]);
         }
       }
 
       for (i = 0; i < n; i++) {
-        node = nodes[i];
+        node = nodes[node_keys[i]];
         forceX(node, alpha);
         forceY(node, alpha);
       }
@@ -93,7 +89,7 @@ export default function(graphState, tickCallbackFn, setSimIsRunningFn) {
       gatherSimStats(graphState);
 
       for (i = 0; i < n; ++i) {
-        node = nodes[i];
+        node = nodes[node_keys[i]];
         if (node.fx == null) {
           node.x += node.vx *= velocityDecay;
         } else {
@@ -133,8 +129,8 @@ export default function(graphState, tickCallbackFn, setSimIsRunningFn) {
 
 function forceLink(graphState, strengths, bias, alpha) {
   var i;
-  let nodes = graphState.nodes;
-  let links = graphState.edges;
+  let nodes = graphState.n2;
+  let links = graphState.e2;
   let m = links.length;
 
   let distance = 30;
@@ -157,12 +153,14 @@ function forceLink(graphState, strengths, bias, alpha) {
 }
 
 function gatherSimStats(graphState) {
-  let nodes = graphState.nodes;
+  let nodes = graphState.n2;
 
   let maxx = 0.0;
   let maxy = 0.0;
 
-  nodes.forEach(n => {
+  for (const key in nodes) {
+    let n = nodes[key];
+
     let absx = Math.abs(n.vx);
     let absy = Math.abs(n.vy);
 
@@ -172,7 +170,7 @@ function gatherSimStats(graphState) {
     if (absy > maxy) {
       maxy = absy;
     }
-  });
+  };
 
   graphState.simStats.maxVelocities = [maxx, maxy];
 }
@@ -183,16 +181,15 @@ function clearPerTickSimStats(graphState) {
 
 
 function initializeGraph(graphState) {
-  let nodes = graphState.nodes;
-  let links = graphState.edges;
+  let nodes = graphState.n2;
+  let links = graphState.e2;
   var i,
-      n = nodes.length,
       m = links.length,
       link,
       node;
 
-  for (i = 0; i < n; ++i) {
-    node = graphState.nodes[i];
+  for (const key in nodes) {
+    node = nodes[key];
 
     if (node.fx != null) node.x = node.fx;
     if (node.fy != null) node.y = node.fy;
@@ -206,7 +203,7 @@ function initializeGraph(graphState) {
     }
   }
 
-  let count = new Array(n);
+  let count = {};
   for (i = 0; i < m; ++i) {
     link = links[i];
     count[link[0]] = (count[link[0]] || 0) + 1;

@@ -81,11 +81,17 @@ function Idea(props) {
       ${ deckManager.buttons }
       ${ deckManager.buildUpdateForm() }
       ${ deckManager.noteManager() }
-      ${ nonEmptyArray(idea.backrefs) && html`<${SectionBackRefs} backrefs=${ idea.backrefs }/>`}
-      ${ nonEmptyArray(searchResults) && html`<${SectionSearchResultsBackref} backrefs=${ searchResults }/>`}
-      ${ canShowGraph(state, ideaId) && html`<${GraphSection} heading=${ graphTitle } okToShowGraph=${okToShowGraph} id=${ ideaId } isIdea depth=${ 2 } />`}
+
+nocheckin: commented out
+
+      ${ canShowGraph(state, ideaId) && html`<${GraphSection} heading=${ graphTitle } okToShowGraph=${okToShowGraph} id=${ ideaId } depth=${ 2 } />`}
     </article>`;
 }
+
+/*
+      ${ nonEmptyArray(idea.backrefs) && html`<${SectionBackRefs} backrefs=${ idea.backrefs }/>`}
+      ${ nonEmptyArray(searchResults) && html`<${SectionSearchResultsBackref} backrefs=${ searchResults }/>`}
+*/
 
 function UpdateIdeaForm({ deck, hideFormFn }) {
   const idea = deck || {};
