@@ -84,18 +84,20 @@ function UpdatePublicationForm({ deck, hideFormFn }) {
   const [shortDescription, setShortDescription] = useState(publication.short_description || '');
   const [rating, setRating] = useState(publication.rating);
 
-  if (publication.title && publication.title !== '' && title === '') {
-    setTitle(publication.title);
-  }
-  if (publication.source && publication.source !== '' && source === '') {
-    setSource(publication.source);
-  }
-  if (publication.author && publication.author !== '' && author === '') {
-    setAuthor(publication.author);
-  }
-  if (publication.short_description && publication.short_description !== '' && shortDescription === '') {
-    setShortDescription(publication.short_description);
-  }
+  useEffect(() => {
+    if (publication.title && publication.title !== '' && title === '') {
+      setTitle(publication.title);
+    }
+    if (publication.source && publication.source !== '' && source === '') {
+      setSource(publication.source);
+    }
+    if (publication.author && publication.author !== '' && author === '') {
+      setAuthor(publication.author);
+    }
+    if (publication.short_description && publication.short_description !== '' && shortDescription === '') {
+      setShortDescription(publication.short_description);
+    }
+  }, [publication]);
 
   const handleChangeEvent = (event) => {
     const target = event.target;

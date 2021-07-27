@@ -194,12 +194,14 @@ function UpdatePersonForm({ deck, hideFormFn }) {
     name: person.name || ''
   });
 
-  if (person.name && person.name !== '' && localState.name === '') {
-    setLocalState({
-      ...localState,
-      name: person.name
-    });
-  }
+  useEffect(() => {
+    if (person.name && person.name !== '' && localState.name === '') {
+      setLocalState({
+        ...localState,
+        name: person.name
+      });
+    }
+  }, [person]);
 
   const handleChangeEvent = (e) => {
     const target = e.target;

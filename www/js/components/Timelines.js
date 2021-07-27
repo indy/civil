@@ -84,12 +84,14 @@ function UpdateTimelineForm({ deck, hideFormFn }) {
     title: timeline.title || ''
   });
 
-  if (timeline.title && timeline.title !== '' && localState.title === '') {
+  useEffect(() => {
+    if (timeline.title && timeline.title !== '' && localState.title === '') {
     setLocalState({
       ...localState,
       title: timeline.title
     });
   }
+  }, [timeline]);
 
   const handleChangeEvent = (e) => {
     const target = e.target;
