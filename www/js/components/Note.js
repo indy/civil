@@ -19,6 +19,23 @@ const FLASH_CARD_SAVED = 'flash-card-saved';
 const MOD_BUTTONS_TOGGLE = 'mod-buttons-toggle';
 const IS_EDITING_MARKUP_TOGGLE = 'is-editing-markup-toggle';
 
+function decksStoreOriginalAnnotations(decks) {
+  // create a copy of the original annotation in case the user changes the annotation and then presses cancel
+  //
+  return {
+    ...decks,
+    annotation_original: decks.annotation
+  };
+}
+
+function decksRestoreOriginalAnnotations(decks) {
+  // restore the annotation using the copy
+  return {
+    ...decks,
+    annotation: decks.annotation_original
+  };
+}
+
 function reducer(state, action) {
   // console.log(action.type);
   // console.log(state);
@@ -57,13 +74,14 @@ function reducer(state, action) {
   case ADD_DECKS_COMMIT:
     return {
       ...state,
+      decks: action.data.map(decksStoreOriginalAnnotations),
       showModButtons: false,
       addDeckReferencesUI: false
     }
   case ADD_DECKS_CANCEL:
     return {
       ...state,
-      decks: action.data,
+      decks: action.data.map(decksRestoreOriginalAnnotations),
       showModButtons: false,
       addDeckReferencesUI: false
     }
@@ -109,7 +127,7 @@ export default function Note(props) {
     isEditingMarkup: false,
     showDeleteConfirmation: false,
     note: { content: props.note.content },
-    decks: (props.note && props.note.decks)
+    decks: (props.note && props.note.decks && props.note.decks.map(decksStoreOriginalAnnotations))
   };
   const [local, localDispatch] = useLocalReducer(reducer, initialState);
 
@@ -211,14 +229,13 @@ export default function Note(props) {
       // 6. clicks cancel
       // expected: only the changes from step 5 should be undone
 
-      // note: it's weird that the ADD_DECKS_CANCEL takes a value, but the ADD_DECKS_COMMIT doesn't
-      localDispatch(ADD_DECKS_CANCEL, props.note && props.note.decks);
+      localDispatch(ADD_DECKS_CANCEL, local.decks);
     };
 
     function commitAddDecks() {
       addDecks(props.note, local.decks, props.onDecksChanged, dispatch);
 
-      localDispatch(ADD_DECKS_COMMIT);
+      localDispatch(ADD_DECKS_COMMIT, local.decks);
     };
 
     return html`
