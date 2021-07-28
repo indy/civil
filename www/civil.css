@@ -126,6 +126,13 @@
   font-style: normal;
 }
 
+.spacer {
+  padding: 0.1rem;
+}
+
+.inlined-blocked {
+  display: inline-block;
+}
 
 html {
   font-size: 15px;

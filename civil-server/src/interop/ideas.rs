@@ -17,6 +17,7 @@
 
 use crate::interop::decks::{DeckSimple, Ref};
 use crate::interop::notes::Note;
+use crate::interop::sr::FlashCard;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -32,6 +33,8 @@ pub struct Idea {
 
     pub refs: Option<Vec<Ref>>,
     pub backrefs: Option<Vec<Ref>>,
+
+    pub flashcards: Option<Vec<FlashCard>>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

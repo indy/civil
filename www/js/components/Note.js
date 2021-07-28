@@ -1,5 +1,6 @@
 import { h, html, Link, useState, useEffect } from '/lib/preact/mod.js';
 
+import { svgFlashCard } from '/js/svgIcons.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
@@ -18,6 +19,7 @@ const ADD_DECKS_CANCEL = 'add-decks-cancel';
 const FLASH_CARD_SAVED = 'flash-card-saved';
 const MOD_BUTTONS_TOGGLE = 'mod-buttons-toggle';
 const IS_EDITING_MARKUP_TOGGLE = 'is-editing-markup-toggle';
+const FLASHCARD_TOGGLE = 'flashcard-toggle';
 
 function decksStoreOriginalAnnotations(decks) {
   // create a copy of the original annotation in case the user changes the annotation and then presses cancel
@@ -40,6 +42,25 @@ function reducer(state, action) {
   // console.log(action.type);
   // console.log(state);
   switch(action.type) {
+  case FLASHCARD_TOGGLE: {
+    console.log("flashcard clicked!!!");
+    console.log(action.data);
+
+    let res = { ...state };
+    let fc = action.data;
+
+    if (res.flashcardToShow) {
+      if (res.flashcardToShow.id === fc.id) {
+        res.flashcardToShow = undefined;
+      } else {
+        res.flashcardToShow = fc;
+      }
+    } else {
+      res.flashcardToShow = fc;
+    }
+
+    return res;
+  }
   case NOTE_SET_PROPERTY: {
     const newNote = { ...state.note };
     newNote[action.data.name] = action.data.value;
@@ -127,7 +148,8 @@ export default function Note(props) {
     isEditingMarkup: false,
     showDeleteConfirmation: false,
     note: { content: props.note.content },
-    decks: (props.note && props.note.decks && props.note.decks.map(decksStoreOriginalAnnotations))
+    decks: (props.note && props.note.decks && props.note.decks.map(decksStoreOriginalAnnotations)),
+    flashcardToShow: undefined
   };
   const [local, localDispatch] = useLocalReducer(reducer, initialState);
 
@@ -305,8 +327,9 @@ export default function Note(props) {
 
   return html`
     <div class="note">
-      ${ local.isEditingMarkup && buildEditableContent() }
-      ${ !local.isEditingMarkup && props.note.decks && buildNoteReferences(props.note.decks)}
+      ${  local.isEditingMarkup && buildEditableContent() }
+      ${ !local.isEditingMarkup && buildLeftMarginContent(props.note, localDispatch)}
+      ${  local.flashcardToShow && showFlashcard(local.flashcardToShow, localDispatch) }
       ${ !local.isEditingMarkup && html`<div onClick=${onNoteClicked}>
                                           ${ buildMarkup(local.note.content, state.imageDirectory) }
                                         </div>`}
@@ -332,6 +355,32 @@ function onReallyDelete(id, onDelete) {
   });
 };
 
+function showFlashcard(flashcard, localDispatch) {
+  return html`<div>${ flashcard.prompt }</div>`;
+}
+
+function buildLeftMarginContent(note, localDispatch) {
+  let decks = undefined;
+  if (note.decks) {
+    decks = buildNoteReferences(note.decks);
+  }
+
+  let flashcards = undefined;
+  if (note.flashcards) {
+    flashcards = buildFlashcardIndicator(note.flashcards, localDispatch);
+  }
+
+  if (!decks && !flashcards) {
+    return html``;
+  } else {
+    return html`<div class="left-margin">
+                  ${flashcards}
+                  ${ decks && flashcards && html`<div class="spacer"></div>`}
+                  ${decks}
+                </div>`;
+  }
+}
+
 function buildNoteReferences(decks) {
   const entries = decks.map(ref => {
     const { id, resource, ref_kind, name, annotation } = ref;
@@ -346,7 +395,28 @@ function buildNoteReferences(decks) {
       </div>`;
   });
 
-  return html`<div class="left-margin">${entries}</div>`;
+  return entries;
+};
+
+function buildFlashcardIndicator(flashcards, localDispatch) {
+  // a single note may have multiple flashcards
+  const entries = flashcards.map(fc => {
+    const { id, prompt } = fc;
+
+    function onFlashcardIconClicked(e) {
+      e.preventDefault();
+      localDispatch(FLASHCARD_TOGGLE, fc);
+    }
+
+    return html`
+      <div class="left-margin-entry" key=${ id }>
+        <span class="inlined-blocked" onClick=${ onFlashcardIconClicked }>
+          ${svgFlashCard()}
+        </span>
+      </div>`;
+  });
+
+  return entries;
 };
 
 function addDecks(note, decks, onDecksChanged, dispatch) {

@@ -51,6 +51,8 @@ impl From<Idea> for interop::Idea {
 
             refs: None,
             backrefs: None,
+
+            flashcards: None,
         }
     }
 }
@@ -69,6 +71,8 @@ impl From<decks::DeckBase> for interop::Idea {
 
             refs: None,
             backrefs: None,
+
+            flashcards: None,
         }
     }
 }

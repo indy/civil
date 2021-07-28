@@ -130,7 +130,7 @@ export const reducer = (state, action) => {
   case 'cacheDeck':
     {
       let deck = action.newItem;
-      let updatedDeck = applyDecksToNotes(deck);
+      let updatedDeck = applyDecksAndCardsToNotes(deck);
 
       let newState = { ...state };
       newState.cache.deck[action.id] = updatedDeck;
@@ -307,12 +307,14 @@ function buildDeckLabels(decks) {
   return res;
 }
 
-function applyDecksToNotes(obj) {
+function applyDecksAndCardsToNotes(obj) {
   const decksInNotes = hashByNoteIds(obj.refs);
+  const cardsInNotes = hashByNoteIds(obj.flashcards);
 
   for(let i = 0;i<obj.notes.length;i++) {
     let n = obj.notes[i];
     n.decks = decksInNotes[n.id];
+    n.flashcards = cardsInNotes[n.id];
   }
 
   return obj;

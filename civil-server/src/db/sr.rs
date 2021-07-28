@@ -32,7 +32,7 @@ use tracing::info;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "cards")]
-pub struct CardInternal {
+pub struct FlashCard {
     pub id: Key,
 
     pub note_id: Key,
@@ -76,7 +76,7 @@ pub struct Card {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "cards")]
-pub struct CardFullFat {
+pub struct CardDbInternal {
     pub id: Key,
     pub note_id: Key,
     pub prompt: String,
@@ -86,8 +86,8 @@ pub struct CardFullFat {
     pub deck_kind: DeckKind,
 }
 
-impl From<CardFullFat> for interop::Card {
-    fn from(e: CardFullFat) -> interop::Card {
+impl From<CardDbInternal> for interop::Card {
+    fn from(e: CardDbInternal) -> interop::Card {
         interop::Card {
             id: e.id,
             note_id: e.note_id,
@@ -101,9 +101,9 @@ impl From<CardFullFat> for interop::Card {
     }
 }
 
-impl From<CardInternal> for interop::CardInternal {
-    fn from(e: CardInternal) -> interop::CardInternal {
-        interop::CardInternal {
+impl From<FlashCard> for interop::FlashCard {
+    fn from(e: FlashCard) -> interop::FlashCard {
+        interop::FlashCard {
             id: e.id,
             note_id: e.note_id,
             prompt: e.prompt,
@@ -172,14 +172,14 @@ pub(crate) async fn create_card(
     Ok((db_card, db_backref).into())
 }
 
-pub(crate) async fn get_card_internal(
+pub(crate) async fn get_card_full_fat(
     db_pool: &Pool,
     user_id: Key,
     card_id: Key,
-) -> Result<interop::CardInternal> {
-    info!("get_card_internal");
+) -> Result<interop::FlashCard> {
+    info!("get_card_full_fat");
 
-    pg::one_from::<CardInternal, interop::CardInternal>(
+    pg::one_from::<FlashCard, interop::FlashCard>(
         db_pool,
         "SELECT id, note_id, prompt, next_test_date, easiness_factor, inter_repetition_interval
          FROM cards
@@ -196,7 +196,7 @@ pub(crate) async fn get_cards(
 ) -> Result<Vec<interop::Card>> {
     info!("get_cards");
 
-    pg::many_from::<CardFullFat, interop::Card>(
+    pg::many_from::<CardDbInternal, interop::Card>(
         db_pool,
         "SELECT c.id, c.note_id, c.prompt, d.id as deck_id, d.name AS deck_name, d.kind AS deck_kind
          FROM cards c, decks d, notes n
@@ -242,7 +242,7 @@ pub(crate) async fn get_cards_upcoming_review(
 
 pub(crate) async fn card_rated(
     db_pool: &Pool,
-    card: interop::CardInternal,
+    card: interop::FlashCard,
     rating: i16,
 ) -> Result<()> {
     info!("card_rated");
@@ -275,4 +275,15 @@ pub(crate) async fn card_rated(
     tx.commit().await?;
 
     Ok(())
+}
+
+pub(crate) async fn all_flashcards_for_deck(db_pool: &Pool, deck_id: Key) -> Result<Vec<interop::FlashCard>> {
+    pg::many_from::<FlashCard, interop::FlashCard>(
+        db_pool,
+        "SELECT c.id, c.note_id, c.prompt, c.next_test_date, c.easiness_factor, c.inter_repetition_interval
+         FROM cards c, decks d, notes n
+         WHERE d.id=$1 AND n.deck_id = d.id AND c.note_id = n.id",
+        &[&deck_id],
+    )
+    .await
 }

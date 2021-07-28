@@ -44,9 +44,8 @@ pub struct ProtoRating {
     pub rating: i16,
 }
 
-// only used between the handler and db, not passed out to the client
-#[derive(Debug)]
-pub struct CardInternal {
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct FlashCard {
     pub id: Key,
 
     pub note_id: Key,

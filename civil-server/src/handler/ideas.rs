@@ -18,6 +18,7 @@
 use crate::db::decks as decks_db;
 use crate::db::ideas as db;
 use crate::db::notes as notes_db;
+use crate::db::sr as sr_db;
 use crate::error::Result;
 use crate::interop::decks::{DeckSimple, Ref};
 use crate::interop::ideas as interop;
@@ -117,15 +118,17 @@ pub async fn delete(
 }
 
 async fn augment(db_pool: &Data<Pool>, idea: &mut interop::Idea, idea_id: Key) -> Result<()> {
-    let (notes, refs, backrefs) = tokio::try_join!(
+    let (notes, refs, backrefs, flashcards) = tokio::try_join!(
         notes_db::all_from_deck(&db_pool, idea_id),
         decks_db::from_deck_id_via_notes_to_decks(&db_pool, idea_id),
         decks_db::from_decks_via_notes_to_deck_id(&db_pool, idea_id),
+        sr_db::all_flashcards_for_deck(&db_pool, idea_id),
     )?;
 
     idea.notes = Some(notes);
     idea.refs = Some(refs);
     idea.backrefs = Some(backrefs);
+    idea.flashcards = Some(flashcards);
 
     Ok(())
 }
