@@ -56,7 +56,7 @@ function Timeline(props) {
 
       ${ deckManager.noteManager() }
 
-      ${ nonEmptyArray(timeline.backrefs) && html`<${SectionBackRefs} backrefs=${ timeline.backrefs }/>`}
+      ${ nonEmptyArray(timeline.backrefs) && html`<${SectionBackRefs} state=${state} backrefs=${ timeline.backrefs }/>`}
       <${ListPoints} points=${ timeline.points }
                      deckManager=${ deckManager }
                      holderId=${ timeline.id }

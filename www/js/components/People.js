@@ -133,7 +133,7 @@ function Person(props) {
 
       ${ deckManager.noteManager() }
 
-      ${ nonEmptyArray(person.backrefs) && html`<${SectionBackRefs} backrefs=${ person.backrefs }/>`}
+      ${ nonEmptyArray(person.backrefs) && html`<${SectionBackRefs} state=${state} backrefs=${ person.backrefs }/>`}
       ${ hasBirth && html`<${ListDeckPoints} deckPoints=${ person.all_points_during_life }
                                              deckManager=${ deckManager }
                                              dispatch=${ dispatch }

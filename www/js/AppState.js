@@ -26,6 +26,8 @@ export const initialState = {
   recentImages: [],
   imageDirectory: '',
 
+  preferredOrder: ["ideas", "people", "publications", "timelines"],
+
   // key == resource name of decks
   listing: {
     ideas: undefined,           // when listing ideas on /ideas page

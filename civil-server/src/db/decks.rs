@@ -486,9 +486,8 @@ pub(crate) async fn delete(db_pool: &Pool, user_id: Key, id: Key) -> Result<()> 
     Ok(())
 }
 
-// return all the decks of a certain kind that mention another particular deck.
-// e.g. from_decks_via_notes_to_deck_id(db_pool, Model::Person, publication_id)
-// will return all the people who mention the given publication, ordered by number of references
+// return all the people, events, publications etc that mention this deck
+// (used for showing backrefs)
 //
 pub(crate) async fn from_decks_via_notes_to_deck_id(
     db_pool: &Pool,
@@ -508,15 +507,15 @@ pub(crate) async fn from_decks_via_notes_to_deck_id(
               notes_decks nd
          WHERE n.deck_id = d.id
                AND nd.note_id = n.id
-               AND nd.deck_id = $1",
+               AND nd.deck_id = $1
+         ORDER BY nd.deck_id, nd.note_id",
         &[&deck_id],
     )
     .await
 }
 
-// return all the referenced decks in the given deck
-// e.g. from_deck_id_via_notes_to_decks(db_pool, publication_id)
-// will return all the people, events, publications etc mentioned in the given publication
+// return all the people, events, publications etc mentioned in the given deck
+// (used to show refs on left hand margin)
 //
 pub(crate) async fn from_deck_id_via_notes_to_decks(
     db_pool: &Pool,
@@ -535,7 +534,8 @@ pub(crate) async fn from_deck_id_via_notes_to_decks(
                 decks d
          WHERE  n.deck_id = $1
                 AND nd.note_id = n.id
-                AND nd.deck_id = d.id",
+                AND nd.deck_id = d.id
+         ORDER BY nd.note_id, d.kind DESC, d.name",
         &[&deck_id],
     )
     .await

@@ -6,14 +6,17 @@ import { svgCaretDown, svgCaretRight} from '/js/svgIcons.js';
 import RollableSection from '/js/components/RollableSection.js';
 import { ExpandableListingLink } from '/js/components/ListingLink.js';
 
-export default function SectionBackRefs({ backrefs }) {
+export default function SectionBackRefs({ state, backrefs }) {
   const sections = [];
 
   const groupedBackRefsByResource = groupByResource(backrefs);
-  Object.keys(groupedBackRefsByResource).forEach(key => {
-    const byId = groupBackRefsById(groupedBackRefsByResource[key]);
-    const section = SectionLinks(byId);
-    sections.push(section);
+
+  state.preferredOrder.forEach(deckKind => {
+    if (groupedBackRefsByResource[deckKind]) {
+      const byId = groupBackRefsById(groupedBackRefsByResource[deckKind]);
+      const section = SectionLinks(byId);
+      sections.push(section);
+    }
   });
 
   return html`
