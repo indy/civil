@@ -846,7 +846,7 @@ a:link.note-inline-link {
 
 .right-margin-scribble {
   font-family: Caveat, cursive;
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   text-align: left;
 }
 
@@ -980,8 +980,9 @@ section > form { width: var(--block-width); }
 
 .ref-scribble {
   font-family: Caveat, cursive;
+  font-size: 1.8rem;
   padding-bottom: 0.3rem;
-  width: 20rem;
+  width: 24rem;
   float: right;
 }
 
@@ -1113,7 +1114,7 @@ input:required {
   font-family: Caveat, cursive;
   color: var(--scribble-neutral);
   margin-left: 1rem;
-  font-size: 1rem;
+  font-size: 1.8rem;
 }
 
 .listing-link p {
@@ -1175,6 +1176,12 @@ input:required {
     text-align: left;
     width: 28%;
   }
+
+  .ref-scribble {
+    width: auto;
+    float: none;
+  }
+
 }
 
 @media (max-width: 800px) {
