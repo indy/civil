@@ -41,14 +41,19 @@ function buildPassages(passages) {
 
   let res = passages.reduce((a, passage) => {
     if (passage.annotation) {
-      a.push(html`<div class="left-margin">
-                    <div class="left-margin-entry-backref">
-                      <div class="ref-scribble pigment-fg-${ passage.resource }">
-                        ${ passage.annotation }
-                      </div>
-                    </div>
+      a.push(html`<div class="ref-top-scribble">
+                    ${ passage.annotation }
                   </div>`);
     }
+    // if (passage.annotation) {
+    //   a.push(html`<div class="left-margin">
+    //                 <div class="left-margin-entry-backref">
+    //                   <div class="ref-scribble pigment-fg-${ passage.resource }">
+    //                     ${ passage.annotation }
+    //                   </div>
+    //                 </div>
+    //               </div>`);
+    // }
     a.push(buildMarkup(passage.note_content, state.imageDirectory));
     a.push(html`<hr/>`);
     return a;

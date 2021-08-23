@@ -986,6 +986,13 @@ section > form { width: var(--block-width); }
   float: right;
 }
 
+.ref-top-scribble {
+  font-family: Caveat, cursive;
+  font-size: 1.8rem;
+  padding-top: 1rem;
+  padding-bottom: 0.3rem;
+}
+
 .ref-clearer {
   clear: both;
 }
