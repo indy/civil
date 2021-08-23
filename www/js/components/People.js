@@ -346,6 +346,17 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, dispatc
   if (!showBirthsDeaths) {
     arr = arr.filter(e => e.deck_id === holderId || !(e.title === "Born" || e.title === "Died"));
   }
+
+  // don't show the person's age for any of their posthumous points
+  const deathIndex = arr.findIndex(e => e.deck_id === holderId && e.kind === "PointEnd");
+  if (deathIndex) {
+    for (let i = deathIndex + 1; i < arr.length; i++) {
+      if(arr[i].deck_id === holderId) {
+        arr[i].age = 0;
+      }
+    }
+  }
+
   const dps = arr.map(dp => html`<${PersonDeckPoint}
                                  key=${ dp.id}
                                  noteManager=${ deckManager.noteManager }
