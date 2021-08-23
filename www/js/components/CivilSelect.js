@@ -9,6 +9,7 @@ const REFERENCE_REMOVE = 'reference-remove';
 const REFERENCE_CHANGE_KIND = 'reference-change-kind';
 const REFERENCE_CHANGE_ANNOTATION = 'reference-change-annotation';
 const CANDIDATES_SET = 'candidate-set';
+const CURRENTLY_CHOSEN_RESET = 'currently-chosen-reset';
 const SELECT_ADD = 'select-add';
 
 function reducer(state, action) {
@@ -82,6 +83,15 @@ function reducer(state, action) {
     ...state,
     candidates: action.data
   }
+    // the annotations and ref kinds persist across notes, this explicitly clears them.
+  case CURRENTLY_CHOSEN_RESET: return {
+    ...state,
+    currentlyChosen: state.currentlyChosen.map(cv => {
+      delete cv.annotation;
+      cv.ref_kind = "Ref";
+      return cv;
+    })
+  }
   default: throw new Error(`unknown action: ${action}`);
   }
 
@@ -147,6 +157,16 @@ export default function CivilSelect({ parentDeckId, chosen, available, onChange,
                   showKeyboardShortcuts=${ local.showKeyboardShortcuts } />`;
   }
 
+
+  function onLocalCancel(e) {
+    onCancelAddDecks(e);
+    localDispatch(CURRENTLY_CHOSEN_RESET);
+  }
+  function onLocalCommit(e) {
+    onCommitAddDecks(e);
+    localDispatch(CURRENTLY_CHOSEN_RESET);
+  }
+
   return html`<div class='civsel-main-box'>
                 ${ local.currentlyChosen.map((value, i) => buildSelectedReference(value, i)) }
                 <${Input} available=${ available }
@@ -156,8 +176,8 @@ export default function CivilSelect({ parentDeckId, chosen, available, onChange,
                           onAdd=${ (candidate) => localDispatch(SELECT_ADD, candidate) }
                           currentlyChosen=${ local.currentlyChosen }
                           showKeyboardShortcuts=${ local.showKeyboardShortcuts }/>
-               <button onClick=${ onCancelAddDecks }>Cancel</button>
-               <button onClick=${ onCommitAddDecks } disabled=${ !local.canSave }>${ local.showKeyboardShortcuts && html`Ctrl-Enter`} Save Changes</button>
+               <button onClick=${ onLocalCancel }>Cancel</button>
+               <button onClick=${ onLocalCommit } disabled=${ !local.canSave }>${ local.showKeyboardShortcuts && html`Ctrl-Enter`} Save Changes</button>
               </div>`;
 }
 
