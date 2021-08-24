@@ -45,6 +45,8 @@ impl From<TimelineDerived> for interop::Timeline {
             notes: None,
 
             refs: None,
+
+            backnotes: None,
             backrefs: None,
         }
     }
@@ -60,6 +62,8 @@ impl From<decks::DeckBase> for interop::Timeline {
             notes: None,
 
             refs: None,
+
+            backnotes: None,
             backrefs: None,
         }
     }

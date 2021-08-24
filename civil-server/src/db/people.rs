@@ -54,6 +54,8 @@ impl From<PersonDerived> for interop::Person {
             notes: None,
 
             refs: None,
+
+            backnotes: None,
             backrefs: None,
         }
     }
@@ -73,6 +75,8 @@ impl From<decks::DeckBase> for interop::Person {
             notes: None,
 
             refs: None,
+
+            backnotes: None,
             backrefs: None,
         }
     }

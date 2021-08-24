@@ -45,7 +45,6 @@ impl From<Ref> for interop_decks::Ref {
     fn from(e: Ref) -> interop_decks::Ref {
         interop_decks::Ref {
             note_id: e.note_id,
-            note_content: None,
             id: e.id,
             name: e.name,
             resource: interop_decks::DeckResource::from(e.deck_kind),

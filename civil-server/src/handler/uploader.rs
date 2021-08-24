@@ -94,7 +94,9 @@ pub async fn create(
             // filesystem operations are blocking, we have to use threadpool
 
             // todo: the await?.unwrap() code looks wrong
-            f = web::block(move || f.write_all(&data).map(|_| f)).await?.unwrap();
+            f = web::block(move || f.write_all(&data).map(|_| f))
+                .await?
+                .unwrap();
         }
 
         // save the entry in the images table

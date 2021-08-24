@@ -50,6 +50,8 @@ impl From<Idea> for interop::Idea {
             notes: None,
 
             refs: None,
+
+            backnotes: None,
             backrefs: None,
 
             flashcards: None,
@@ -70,6 +72,8 @@ impl From<decks::DeckBase> for interop::Idea {
             notes: None,
 
             refs: None,
+
+            backnotes: None,
             backrefs: None,
 
             flashcards: None,

@@ -277,7 +277,10 @@ pub(crate) async fn card_rated(
     Ok(())
 }
 
-pub(crate) async fn all_flashcards_for_deck(db_pool: &Pool, deck_id: Key) -> Result<Vec<interop::FlashCard>> {
+pub(crate) async fn all_flashcards_for_deck(
+    db_pool: &Pool,
+    deck_id: Key,
+) -> Result<Vec<interop::FlashCard>> {
     pg::many_from::<FlashCard, interop::FlashCard>(
         db_pool,
         "SELECT c.id, c.note_id, c.prompt, c.next_test_date, c.easiness_factor, c.inter_repetition_interval

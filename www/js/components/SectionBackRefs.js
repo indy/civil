@@ -6,16 +6,71 @@ import { svgCaretDown, svgCaretRight} from '/js/svgIcons.js';
 import RollableSection from '/js/components/RollableSection.js';
 import { ExpandableListingLink } from '/js/components/ListingLink.js';
 
-export default function SectionBackRefs({ state, backrefs }) {
+export default function SectionBackRefs({ state, backrefs, backnotes, deckId }) {
   const sections = [];
 
-  const groupedBackRefsByResource = groupByResource(backrefs);
+  const decks = [];
 
+  // file into decks with notes
+  //
+  backnotes.forEach(n => {
+    if (decks.length === 0 || decks[decks.length - 1].deck_id !== n.deck_id) {
+      decks.push({
+        deck_id: n.deck_id,
+        deck_name: n.deck_name,
+        resource: n.resource,
+        notes: []
+      });
+    }
+
+    decks[decks.length - 1].notes.push({
+      note_content: n.note_content,
+      note_id: n.note_id,
+      refs: []
+    });
+  });
+
+  // attach refs to the correct notes
+  //
+  backrefs.forEach(br => {
+    // find the note_id
+    for (let i = 0; i < decks.length; i++) {
+      let d = decks[i];
+      for (let j = 0; j < d.notes.length; j++) {
+        if (d.notes[j].note_id === br.note_id) {
+          if (br.deck_id === deckId) {
+            d.notes[j].top_ref_kind = br.ref_kind;
+            d.notes[j].top_annotation = br.annotation;
+          } else {
+            d.notes[j].refs.push({
+              deck_id: br.deck_id,
+              deck_name: br.deck_name,
+              ref_kind: br.ref_kind,
+              resource: br.resource,
+              annotation: br.annotation
+            })
+          }
+          break;
+        }
+      }
+    }
+  });
+
+  // group by resource kind
+  //
+  let groupedByResource = {};
+  decks.forEach(d => {
+    if (!groupedByResource[d.resource]) {
+      groupedByResource[d.resource] = [];
+    }
+    groupedByResource[d.resource].push(d);
+  });
+
+  // render in the preferred order
+  //
   state.preferredOrder.forEach(deckKind => {
-    if (groupedBackRefsByResource[deckKind]) {
-      const byId = groupBackRefsById(groupedBackRefsByResource[deckKind]);
-      const section = SectionLinks(byId);
-      sections.push(section);
+    if (groupedByResource[deckKind]) {
+      sections.push(SectionLinks(groupedByResource[deckKind]));
     }
   });
 
@@ -23,42 +78,6 @@ export default function SectionBackRefs({ state, backrefs }) {
     <${RollableSection} heading='BackRefs'>
       ${ sections }
     </${RollableSection}>`;
-}
-
-function groupBackRefsById(backrefs) {
-  let grouped = {};
-  backrefs.forEach(lb => {
-    grouped[lb.id] = grouped[lb.id] || { id: lb.id, name: lb.name, resource: lb.resource, passages: [] };
-    grouped[lb.id].passages.push(lb);
-  });
-
-  let res = [];
-  for (const [key, value] of Object.entries(grouped)) {
-    res.push(value);
-  }
-  // sort res by size of the passages array
-  res.sort((a, b) => {
-    if (a.passages.length === b.passages.length) {
-      let an = a.name.toUpperCase();
-      let bn = b.name.toUpperCase();
-      return (an < bn) ? -1 : an > bn ? 1 : 0;
-    } else {
-      return b.passages.length - a.passages.length;
-    }
-  });
-
-  return res;
-}
-
-function groupByResource(backrefs) {
-  // key == resource, value == array of ExpandableListingLink components
-  let res = {};
-  backrefs.forEach(br => {
-    res[br.resource] = res[br.resource] || [];
-    res[br.resource].push(br);
-  });
-
-  return res;
 }
 
 function SectionLinks(backrefs, heading) {
@@ -91,10 +110,10 @@ function SectionLinks(backrefs, heading) {
                   index=${i}
                   onExpandClick=${onChildClicked}
                   expanded=${ localState.childrenExpanded[i] }
-                  id=${ br.id }
-                  name=${ br.name }
+                  deck_id=${ br.deck_id }
+                  deck_name=${ br.deck_name }
                   resource=${ br.resource }
-                  passages=${ br.passages }/>`;
+                  notes=${ br.notes }/>`;
   });
 
   let sectionHeading = capitalise(heading || backrefs[0].resource);
@@ -103,8 +122,6 @@ function SectionLinks(backrefs, heading) {
   return html`
     <section key=${ sectionId }>
       <h3 onClick=${ onClickToggle }>${ icon } ${ sectionHeading }</h3>
-      <ul class="unstyled-list">
-        ${ list }
-      </ul>
+      ${ list }
     </section>`;
 }

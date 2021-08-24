@@ -70,7 +70,7 @@ function Publication(props) {
 
       ${ publication.source && sourceHeading }
       ${ deckManager.noteManager() }
-      ${ nonEmptyArray(publication.backrefs) && html`<${SectionBackRefs} state=${state} backrefs=${ publication.backrefs }/>`}
+      ${ nonEmptyArray(publication.backrefs) && html`<${SectionBackRefs} state=${state} backrefs=${ publication.backrefs } backnotes=${ publication.backnotes } deckId=${ publication.id }/>`}
       ${ canShowGraph(state, publicationId) && html`<${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${ publicationId } depth=${ 2 }/>`}
     </article>`;
 }

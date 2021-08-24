@@ -16,49 +16,65 @@ function ListingLink({ resource, id, name }) {
   return res;
 };
 
-function ExpandableListingLink({ index, resource, id, name, passages, expanded, onExpandClick }) {
+function ExpandableListingLink({ index, resource, deck_id, deck_name, notes, expanded, onExpandClick }) {
   function onClicked(e) {
     e.preventDefault();
     onExpandClick(index);
   }
 
-  const href = `/${resource}/${id}`;
+  const href = `/${resource}/${deck_id}`;
 
   let icon = expanded ? svgCaretDown() : svgCaretRight();
 
   let res = html`
-    <li class="listing-link">
+    <div>
       <span onClick=${onClicked}>${ icon }</span>
-      <${Link} class="pigment-fg-${resource}" href=${ href }>${ name }</${Link}>
-      ${ expanded && buildPassages(passages) }
-    </li>`;
+      <span class="backref-deck">
+        <${Link} class="pigment-fg-${resource}" href=${ href }>${ deck_name }</${Link}>
+      </span>
+      ${ expanded && buildNotes(notes) }
+    </div>`;
 
   return res;
 };
 
-function buildPassages(passages) {
+function buildNotes(notes) {
   const [state] = useStateValue();
 
-  let res = passages.reduce((a, passage) => {
-    if (passage.annotation) {
+  let res = notes.reduce((a, note) => {
+    if (note.top_annotation) {
       a.push(html`<div class="ref-top-scribble">
-                    ${ passage.annotation }
+                    ${ note.top_annotation }
                   </div>`);
     }
-    // if (passage.annotation) {
-    //   a.push(html`<div class="left-margin">
-    //                 <div class="left-margin-entry-backref">
-    //                   <div class="ref-scribble pigment-fg-${ passage.resource }">
-    //                     ${ passage.annotation }
-    //                   </div>
-    //                 </div>
-    //               </div>`);
-    // }
-    a.push(buildMarkup(passage.note_content, state.imageDirectory));
+
+    let refs = note.refs && note.refs.map(r => html`
+                <div class="left-margin-entry">
+                  <span class="ref-kind">(${ r.ref_kind })</span>
+                  <${Link} class="ref pigment-${ r.resource }" href="/${r.resource}/${r.deck_id}">${ r.deck_name }</${Link}>
+                  ${ r.annotation && html`<div class="ref-scribble pigment-fg-${ r.resource }">
+                                            ${ r.annotation }
+                                          </div>`}
+                </div>
+      `);
+
+    a.push(html`
+      <div class="note">
+        ${ note.refs && html`
+           <div class="left-margin">
+             ${ refs }
+           </div>`}
+           <div>
+             ${ buildMarkup(note.note_content, state.imageDirectory) }
+           </div>
+      </div>
+    `);
+
+//     a.push(buildMarkup(note.note_content, state.imageDirectory));
+
     a.push(html`<hr/>`);
     return a;
-  }, []).slice(0, -1);
-
+  }, []).slice(0, -1);          // the slice removes the final hr tag
 
   return html`<div>${res}</div>`;
 }

@@ -20,7 +20,7 @@ use crate::db::ideas as db;
 use crate::db::notes as notes_db;
 use crate::db::sr as sr_db;
 use crate::error::Result;
-use crate::interop::decks::{DeckSimple, Ref};
+use crate::interop::decks::{BackNote, DeckSimple};
 use crate::interop::ideas as interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
@@ -118,23 +118,25 @@ pub async fn delete(
 }
 
 async fn augment(db_pool: &Data<Pool>, idea: &mut interop::Idea, idea_id: Key) -> Result<()> {
-    let (notes, refs, backrefs, flashcards) = tokio::try_join!(
+    let (notes, refs, backnotes, backrefs, flashcards) = tokio::try_join!(
         notes_db::all_from_deck(&db_pool, idea_id),
         decks_db::from_deck_id_via_notes_to_decks(&db_pool, idea_id),
-        decks_db::from_decks_via_notes_to_deck_id(&db_pool, idea_id),
+        decks_db::backnotes(&db_pool, idea_id),
+        decks_db::backrefs(&db_pool, idea_id),
         sr_db::all_flashcards_for_deck(&db_pool, idea_id),
     )?;
 
     idea.notes = Some(notes);
     idea.refs = Some(refs);
+    idea.backnotes = Some(backnotes);
     idea.backrefs = Some(backrefs);
     idea.flashcards = Some(flashcards);
 
     Ok(())
 }
 
-fn contains(backref: &DeckSimple, backrefs: &[Ref]) -> bool {
-    backrefs.iter().any(|br| br.id == backref.id)
+fn contains(backref: &DeckSimple, backnotes: &[BackNote]) -> bool {
+    backnotes.iter().any(|br| br.deck_id == backref.id)
 }
 
 pub async fn additional_search(
@@ -147,15 +149,15 @@ pub async fn additional_search(
     let user_id = session::user_id(&session)?;
     let idea_id = params.id;
 
-    let (backrefs, search_results) = tokio::try_join!(
-        decks_db::from_decks_via_notes_to_deck_id(&db_pool, idea_id),
+    let (backnotes, search_results) = tokio::try_join!(
+        decks_db::backnotes(&db_pool, idea_id),
         decks_db::search_using_deck_id(&db_pool, user_id, idea_id) // this is slow
     )?;
 
     // dedupe search results against the backrefs to decks
     let additional_search_results: Vec<DeckSimple> = search_results
         .into_iter()
-        .filter(|br| br.id != idea_id && !contains(br, &backrefs))
+        .filter(|br| br.id != idea_id && !contains(br, &backnotes))
         .collect();
 
     let res = interop::SearchResults {

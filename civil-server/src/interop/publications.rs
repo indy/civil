@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::Ref;
+use crate::interop::decks::{BackNote, BackRef, Ref};
 use crate::interop::notes::Note;
 use crate::interop::Key;
 
@@ -35,7 +35,9 @@ pub struct Publication {
     pub notes: Option<Vec<Note>>,
 
     pub refs: Option<Vec<Ref>>,
-    pub backrefs: Option<Vec<Ref>>,
+
+    pub backnotes: Option<Vec<BackNote>>,
+    pub backrefs: Option<Vec<BackRef>>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

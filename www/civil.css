@@ -920,6 +920,7 @@ section > form { width: var(--block-width); }
 
   font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
 }
+
 .left-margin-heading {
   font-family: Bitter;
   font-weight: 300;
@@ -947,10 +948,6 @@ section > form { width: var(--block-width); }
 
 .left-margin-entry {
   padding-right: 3rem;
-}
-
-.left-margin-entry-backref {
-  padding-right: 7rem;
 }
 
 .left-margin-entry a {
@@ -991,10 +988,15 @@ section > form { width: var(--block-width); }
   font-size: 1.8rem;
   padding-top: 1rem;
   padding-bottom: 0.3rem;
+  width: var(--block-width);
 }
 
 .ref-clearer {
   clear: both;
+}
+
+.backref-deck {
+  font-size: 1.6rem;
 }
 
 div.note > textarea {

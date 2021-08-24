@@ -57,6 +57,8 @@ impl From<Publication> for interop::Publication {
             notes: None,
 
             refs: None,
+
+            backnotes: None,
             backrefs: None,
         }
     }
@@ -90,6 +92,8 @@ impl From<(decks::DeckBase, PublicationExtra)> for interop::Publication {
             notes: None,
 
             refs: None,
+
+            backnotes: None,
             backrefs: None,
         }
     }

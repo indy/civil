@@ -130,16 +130,18 @@ async fn augment(
     timeline_id: Key,
     user_id: Key,
 ) -> Result<()> {
-    let (points, notes, refs, backrefs) = tokio::try_join!(
+    let (points, notes, refs, backnotes, backrefs) = tokio::try_join!(
         points_db::all(&db_pool, user_id, timeline_id),
         notes_db::all_from_deck(&db_pool, timeline_id),
         decks_db::from_deck_id_via_notes_to_decks(&db_pool, timeline_id),
-        decks_db::from_decks_via_notes_to_deck_id(&db_pool, timeline_id),
+        decks_db::backnotes(&db_pool, timeline_id),
+        decks_db::backrefs(&db_pool, timeline_id),
     )?;
 
     timeline.points = Some(points);
     timeline.notes = Some(notes);
     timeline.refs = Some(refs);
+    timeline.backnotes = Some(backnotes);
     timeline.backrefs = Some(backrefs);
 
     Ok(())

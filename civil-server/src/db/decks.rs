@@ -63,7 +63,6 @@ impl From<Ref> for interop::Ref {
     fn from(d: Ref) -> interop::Ref {
         interop::Ref {
             note_id: d.note_id,
-            note_content: None,
             id: d.id,
             name: d.name,
             resource: interop::DeckResource::from(d.deck_kind),
@@ -91,25 +90,73 @@ impl From<DeckSimple> for interop::DeckSimple {
     }
 }
 
+// #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
+// #[pg_mapper(table = "decks")]
+// pub struct DetailedRef {
+//     pub id: Key,
+//     pub name: String,
+//     pub kind: DeckKind,
+//     pub note_id: Key,
+//     pub note_content: String,
+//     pub ref_kind: RefKind,
+//     pub annotation: Option<String>,
+// }
+
+// impl From<DetailedRef> for interop::Ref {
+//     fn from(d: DetailedRef) -> interop::Ref {
+//         interop::Ref {
+//             note_id: d.note_id,
+//             note_content: Some(d.note_content),
+//             id: d.id,
+//             name: d.name,
+//             resource: interop::DeckResource::from(d.kind),
+//             ref_kind: interop::RefKind::from(d.ref_kind),
+//             annotation: d.annotation,
+//         }
+//     }
+// }
+
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
-pub struct DetailedRef {
-    pub id: Key,
-    pub name: String,
-    pub kind: DeckKind,
+pub struct BackNote {
     pub note_id: Key,
     pub note_content: String,
+
+    pub deck_id: Key,
+    pub deck_name: String,
+
+    pub kind: DeckKind,
+}
+
+impl From<BackNote> for interop::BackNote {
+    fn from(d: BackNote) -> interop::BackNote {
+        interop::BackNote {
+            note_id: d.note_id,
+            note_content: d.note_content,
+            deck_id: d.deck_id,
+            deck_name: d.deck_name,
+            resource: interop::DeckResource::from(d.kind),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
+#[pg_mapper(table = "decks")]
+pub struct BackRef {
+    pub note_id: Key,
+    pub deck_id: Key,
+    pub deck_name: String,
+    pub kind: DeckKind,
     pub ref_kind: RefKind,
     pub annotation: Option<String>,
 }
 
-impl From<DetailedRef> for interop::Ref {
-    fn from(d: DetailedRef) -> interop::Ref {
-        interop::Ref {
+impl From<BackRef> for interop::BackRef {
+    fn from(d: BackRef) -> interop::BackRef {
+        interop::BackRef {
             note_id: d.note_id,
-            note_content: Some(d.note_content),
-            id: d.id,
-            name: d.name,
+            deck_id: d.deck_id,
+            deck_name: d.deck_name,
             resource: interop::DeckResource::from(d.kind),
             ref_kind: interop::RefKind::from(d.ref_kind),
             annotation: d.annotation,
@@ -486,22 +533,44 @@ pub(crate) async fn delete(db_pool: &Pool, user_id: Key, id: Key) -> Result<()> 
     Ok(())
 }
 
-// return all the people, events, publications etc that mention this deck
-// (used for showing backrefs)
+// // return all the people, events, publications etc that mention this deck
+// // (used for showing backrefs)
+// //
+// pub(crate) async fn from_decks_via_notes_to_deck_id(
+//     db_pool: &Pool,
+//     deck_id: Key,
+// ) -> Result<Vec<interop::Ref>> {
+//     pg::many_from::<DetailedRef, interop::Ref>(
+//         db_pool,
+//         "SELECT d.id AS id,
+//                 d.name AS name,
+//                 d.kind,
+//                 n.content as note_content,
+//                 n.id as note_id,
+//                 nd.kind as ref_kind,
+//                 nd.annotation as annotation
+//          FROM decks d,
+//               notes n,
+//               notes_decks nd
+//          WHERE n.deck_id = d.id
+//                AND nd.note_id = n.id
+//                AND nd.deck_id = $1
+//          ORDER BY nd.deck_id, nd.note_id",
+//         &[&deck_id],
+//     )
+//     .await
+// }
+
+// return all notes that have references back to the currently displayed deck
 //
-pub(crate) async fn from_decks_via_notes_to_deck_id(
-    db_pool: &Pool,
-    deck_id: Key,
-) -> Result<Vec<interop::Ref>> {
-    pg::many_from::<DetailedRef, interop::Ref>(
+pub(crate) async fn backnotes(db_pool: &Pool, deck_id: Key) -> Result<Vec<interop::BackNote>> {
+    pg::many_from::<BackNote, interop::BackNote>(
         db_pool,
-        "SELECT d.id AS id,
-                d.name AS name,
-                d.kind,
+        "SELECT d.id AS deck_id,
+                d.name AS deck_name,
+                d.kind as kind,
                 n.content as note_content,
-                n.id as note_id,
-                nd.kind as ref_kind,
-                nd.annotation as annotation
+                n.id as note_id
          FROM decks d,
               notes n,
               notes_decks nd
@@ -509,6 +578,27 @@ pub(crate) async fn from_decks_via_notes_to_deck_id(
                AND nd.note_id = n.id
                AND nd.deck_id = $1
          ORDER BY nd.deck_id, nd.note_id",
+        &[&deck_id],
+    )
+    .await
+}
+
+// all refs on notes that have at least one ref back to the currently displayed deck
+//
+pub(crate) async fn backrefs(db_pool: &Pool, deck_id: Key) -> Result<Vec<interop::BackRef>> {
+    pg::many_from::<BackRef, interop::BackRef>(
+        db_pool,
+        "SELECT nd.note_id as note_id,
+                d.id as deck_id,
+                d.kind as kind,
+                d.name as deck_name,
+                nd2.kind as ref_kind,
+                nd2.annotation
+         FROM notes_decks nd, notes_decks nd2, decks d
+         WHERE nd.deck_id = $1
+               AND nd.note_id = nd2.note_id
+               AND d.id = nd2.deck_id
+               ORDER BY nd2.deck_id",
         &[&deck_id],
     )
     .await
