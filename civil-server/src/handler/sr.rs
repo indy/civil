@@ -69,6 +69,36 @@ pub async fn card_rated(
     }
 }
 
+pub async fn edit(
+    flashcard: Json<FlashCard>,
+    db_pool: Data<Pool>,
+    params: Path<IdParam>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    info!("edit_flashcard");
+
+    let flashcard = flashcard.into_inner();
+    let user_id = session::user_id(&session)?;
+
+    let flashcard = db::edit_flashcard(&db_pool, user_id, &flashcard, params.id).await?;
+
+    Ok(HttpResponse::Ok().json(flashcard))
+}
+
+pub async fn delete(
+    db_pool: Data<Pool>,
+    params: Path<IdParam>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    info!("delete flashcard {}", params.id);
+
+    let user_id = session::user_id(&session)?;
+
+    db::delete_flashcard(&db_pool, user_id, params.id).await?;
+
+    Ok(HttpResponse::Ok().json(true))
+}
+
 fn update_easiness_factor(mut card: FlashCard, rating: i16) -> Result<FlashCard> {
     if rating < 3 {
         // start repetitions for the item from the beginning without changing the E-Factor (i.e. use intervals I(1), I(2) etc. as if the item was memorized anew

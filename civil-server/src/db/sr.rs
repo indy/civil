@@ -189,6 +189,53 @@ pub(crate) async fn get_card_full_fat(
     .await
 }
 
+pub(crate) async fn edit_flashcard(
+    db_pool: &Pool,
+    user_id: Key,
+    flashcard: &interop::FlashCard,
+    flashcard_id: Key,
+) -> Result<interop::FlashCard> {
+    let db_flashcard = pg::one_non_transactional::<FlashCard>(
+        db_pool,
+        "UPDATE cards
+         SET prompt = $3
+         WHERE id = $2 and user_id = $1
+         RETURNING $table_fields",
+        &[&user_id, &flashcard_id, &flashcard.prompt],
+    )
+    .await?;
+
+    let flashcard = interop::FlashCard::from(db_flashcard);
+    Ok(flashcard)
+}
+
+pub(crate) async fn delete_flashcard(
+    db_pool: &Pool,
+    user_id: Key,
+    flashcard_id: Key,
+) -> Result<()> {
+    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
+    let tx = client.transaction().await?;
+
+    pg::zero(
+        &tx,
+        "DELETE FROM card_ratings WHERE card_id = $1",
+        &[&flashcard_id],
+    )
+    .await?;
+
+    pg::zero(
+        &tx,
+        "DELETE FROM cards WHERE id = $1 AND user_id = $2",
+        &[&flashcard_id, &user_id],
+    )
+    .await?;
+
+    tx.commit().await?;
+
+    Ok(())
+}
+
 pub(crate) async fn get_cards(
     db_pool: &Pool,
     user_id: Key,

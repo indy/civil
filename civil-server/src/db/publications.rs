@@ -60,6 +60,8 @@ impl From<Publication> for interop::Publication {
 
             backnotes: None,
             backrefs: None,
+
+            flashcards: None,
         }
     }
 }
@@ -95,6 +97,8 @@ impl From<(decks::DeckBase, PublicationExtra)> for interop::Publication {
 
             backnotes: None,
             backrefs: None,
+
+            flashcards: None,
         }
     }
 }

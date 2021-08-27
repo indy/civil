@@ -18,6 +18,7 @@
 use crate::db::decks as decks_db;
 use crate::db::notes as notes_db;
 use crate::db::points as points_db;
+use crate::db::sr as sr_db;
 use crate::db::timelines as db;
 use crate::error::Result;
 use crate::interop::points as points_interop;
@@ -130,12 +131,13 @@ async fn augment(
     timeline_id: Key,
     user_id: Key,
 ) -> Result<()> {
-    let (points, notes, refs, backnotes, backrefs) = tokio::try_join!(
+    let (points, notes, refs, backnotes, backrefs, flashcards) = tokio::try_join!(
         points_db::all(&db_pool, user_id, timeline_id),
         notes_db::all_from_deck(&db_pool, timeline_id),
         decks_db::from_deck_id_via_notes_to_decks(&db_pool, timeline_id),
         decks_db::backnotes(&db_pool, timeline_id),
         decks_db::backrefs(&db_pool, timeline_id),
+        sr_db::all_flashcards_for_deck(&db_pool, timeline_id),
     )?;
 
     timeline.points = Some(points);
@@ -143,6 +145,7 @@ async fn augment(
     timeline.refs = Some(refs);
     timeline.backnotes = Some(backnotes);
     timeline.backrefs = Some(backrefs);
+    timeline.flashcards = Some(flashcards);
 
     Ok(())
 }

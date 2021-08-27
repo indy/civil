@@ -1135,6 +1135,16 @@ input:required {
   float: right;
 }
 
+.in-note-flash-card-prompt {
+  background: var(--bg1);
+
+  border-width: 0.3rem;
+  border-style: solid;
+  border-color: var(--divider);
+  border-radius: var(--coloured-deck-border-radius);
+
+  padding: 1rem 1.5rem 1rem 1.5rem;
+}
 
 .sr-section {
   font-size: x-large;

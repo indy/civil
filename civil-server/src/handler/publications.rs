@@ -18,6 +18,7 @@
 use crate::db::decks as decks_db;
 use crate::db::notes as notes_db;
 use crate::db::publications as db;
+use crate::db::sr as sr_db;
 use crate::error::Result;
 use crate::interop::publications as interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
@@ -118,17 +119,19 @@ async fn augment(
     publication: &mut interop::Publication,
     publication_id: Key,
 ) -> Result<()> {
-    let (notes, refs, backnotes, backrefs) = tokio::try_join!(
+    let (notes, refs, backnotes, backrefs, flashcards) = tokio::try_join!(
         notes_db::all_from_deck(&db_pool, publication_id),
         decks_db::from_deck_id_via_notes_to_decks(&db_pool, publication_id),
         decks_db::backnotes(&db_pool, publication_id),
         decks_db::backrefs(&db_pool, publication_id),
+        sr_db::all_flashcards_for_deck(&db_pool, publication_id),
     )?;
 
     publication.notes = Some(notes);
     publication.refs = Some(refs);
     publication.backnotes = Some(backnotes);
     publication.backrefs = Some(backrefs);
+    publication.flashcards = Some(flashcards);
 
     Ok(())
 }

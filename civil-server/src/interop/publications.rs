@@ -17,6 +17,7 @@
 
 use crate::interop::decks::{BackNote, BackRef, Ref};
 use crate::interop::notes::Note;
+use crate::interop::sr::FlashCard;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -38,6 +39,8 @@ pub struct Publication {
 
     pub backnotes: Option<Vec<BackNote>>,
     pub backrefs: Option<Vec<BackRef>>,
+
+    pub flashcards: Option<Vec<FlashCard>>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

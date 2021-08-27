@@ -113,7 +113,9 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
             scope("/sr")
                 .route("", post().to(sr::create_card))
                 .route("", get().to(sr::get_cards))
-                .route("/{id}/rated", post().to(sr::card_rated)),
+                .route("/{id}/rated", post().to(sr::card_rated))
+                .route("/{id}", put().to(sr::edit))
+                .route("/{id}", delete().to(sr::delete)),
         )
         // setup
         .service(scope("/ubersetup").route("", get().to(ubersetup::setup)))
