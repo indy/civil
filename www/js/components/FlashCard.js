@@ -2,23 +2,21 @@ import { h, html, Link, useState, useEffect } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 
-import { plural } from '/js/JsUtils.js';
+import { daysUntil, plural } from '/js/JsUtils.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
-
+import YesNoConfirmation from '/js/components/YesNoConfirmation.js';
 
 const FLASHCARD_IS_EDITING_TOGGLE = 'flashcard-is-editing-toggle';
 const FLASHCARD_SET_PROMPT = 'flashcard-set-prompt';
 const FLASHCARD_EDITING_SAVED = 'flashcard-editing-saved';
 const FLASHCARD_EDITING_CANCELLED = 'flashcard-editing-cancelled';
 const FLASHCARD_DELETED = 'flashcard-deleted';
-const FLASHCARD_TOGGLE_DELETE_CONFIRMATION = 'flashcard-toggle-delete-confirmation';
 
 function reducer(state, action) {
   switch(action.type) {
   case FLASHCARD_IS_EDITING_TOGGLE: {
     const newState = { ...state };
     newState.isEditingFlashCard = !newState.isEditingFlashCard;
-    newState.showDeleteToggle = false;
     return newState;
   }
   case FLASHCARD_SET_PROMPT: {
@@ -29,7 +27,6 @@ function reducer(state, action) {
   case FLASHCARD_DELETED: {
     const newState = { ...state };
     newState.isEditingFlashCard = false;
-    newState.showDeleteToggle = false;
     return newState;
   }
   case FLASHCARD_EDITING_SAVED: {
@@ -49,16 +46,9 @@ function reducer(state, action) {
 
     return newState;
   }
-  case FLASHCARD_TOGGLE_DELETE_CONFIRMATION: {
-    const newState = { ...state };
-    newState.showDeleteToggle = !newState.showDeleteToggle;
-
-    return newState;
-  }
   default: throw new Error(`unknown action: ${action}`);
   }
 }
-
 
 export default function FlashCard({flashcard, onDelete}) {
 
@@ -70,8 +60,7 @@ export default function FlashCard({flashcard, onDelete}) {
     isEditingFlashCard: false,
     showDeleteConfirmation: false,
     originalFlashcard: { ...flashcard },
-    flashcard: { ...flashcard },
-    showDeleteToggle: false
+    flashcard: { ...flashcard }
   };
 
   const [local, localDispatch] = useLocalReducer(reducer, initialState);
@@ -86,27 +75,13 @@ export default function FlashCard({flashcard, onDelete}) {
     localDispatch(FLASHCARD_IS_EDITING_TOGGLE);
   }
 
-  function deleteClicked(e) {
-    e.preventDefault();
-    localDispatch(FLASHCARD_TOGGLE_DELETE_CONFIRMATION);
-  }
-
-  function confirmedDeleteClicked(e) {
-    e.preventDefault();
-
+  function confirmedDeleteClicked() {
     const url = `/api/sr/${local.flashcard.id}`;
     Net.delete(url).then(() => {
       localDispatch(FLASHCARD_DELETED);
       onDelete();
     });
-
   }
-
-  function cancelDeleteClicked(e) {
-    e.preventDefault();
-    localDispatch(FLASHCARD_TOGGLE_DELETE_CONFIRMATION);
-  }
-
 
   function saveClicked(e) {
     e.preventDefault();
@@ -136,9 +111,7 @@ export default function FlashCard({flashcard, onDelete}) {
         </p>
         <div>
           <button onClick=${ editToggleClicked }>Edit FlashCard</button>
-          ${!local.showDeleteToggle && html`<button onClick=${ deleteClicked }>Delete FlashCard</button>`}
-          ${ local.showDeleteToggle && html`<button onClick=${ cancelDeleteClicked }>No, Cancel Delete</button>`}
-          ${ local.showDeleteToggle && html`<button onClick=${ confirmedDeleteClicked }>Yes, Really Delete</button>`}
+          <${YesNoConfirmation} buttonText="Delete FlashCard..." yesText="Yes, Really" noText="No, Cancel Delete" onYes=${confirmedDeleteClicked }/>
         </div>
       </div>
     </div>`;
@@ -165,16 +138,4 @@ export default function FlashCard({flashcard, onDelete}) {
       </div>
     </div>`;
   }
-}
-
-
-function daysUntil(date) {
-  let nextTestDate  = new Date(date);
-  let todayDate = new Date();
-
-
-  let delta = nextTestDate.getTime() - todayDate.getTime();
-  let deltaDays = delta / (1000 * 3600 * 24);
-
-  return Math.round(deltaDays);
 }

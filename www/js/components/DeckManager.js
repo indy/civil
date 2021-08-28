@@ -10,11 +10,10 @@ import { svgEdit, svgCancel, svgTickedCheckBox, svgUntickedCheckBox } from '/js/
 import Note from '/js/components/Note.js';
 import PointForm from '/js/components/PointForm.js';
 import ImageWidget from '/js/components/ImageWidget.js';
+import YesNoConfirmation from '/js/components/YesNoConfirmation.js';
 
 const BUTTONS_TOGGLE = 'buttons-toggle';
 const UPDATE_FORM_TOGGLE = 'update-form-toggle';
-const DELETE_CONFIRMATION_SHOW = 'delete-confirmation-show';
-const DELETE_CONFIRMATION_HIDE = 'delete-confirmation-hide';
 const HIDE_FORM = 'hide-form';
 
 function reducer(state, action) {
@@ -35,16 +34,6 @@ function reducer(state, action) {
       ...state,
       showButtons: false,
       showUpdateForm: false
-    }
-  case DELETE_CONFIRMATION_SHOW:
-    return {
-      ...state,
-      showDeleteConfirmation: true
-    }
-  case DELETE_CONFIRMATION_HIDE:
-    return {
-      ...state,
-      showDeleteConfirmation: false
     }
   default: throw new Error(`unknown action: ${action}`);
   }
@@ -84,8 +73,7 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
 
   const [local, localDispatch] = useLocalReducer(reducer, {
     showButtons: false,
-    showUpdateForm: false,
-    showDeleteConfirmation: false
+    showUpdateForm: false
   });
 
   function buildButtons() {
@@ -94,18 +82,7 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
       localDispatch(UPDATE_FORM_TOGGLE);
     };
 
-    function onDeleteParentClicked(e) {
-      e.preventDefault();
-      localDispatch(DELETE_CONFIRMATION_SHOW);
-    };
-
-    function cancelDeleteClicked(e) {
-      e.preventDefault();
-      localDispatch(DELETE_CONFIRMATION_HIDE);
-    }
-
-    function confirmDeleteClicked(e) {
-      e.preventDefault();
+    function confirmedDeleteClicked() {
       Net.delete(`/api/${resource}/${deck.id}`).then(() => {
         // remove the resource from the app state
         dispatch({
@@ -114,17 +91,12 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
         });
         route(`/${resource}`, true);
       });
-      localDispatch(DELETE_CONFIRMATION_HIDE);
     }
 
     return html`
       <div>
-        ${ !local.showDeleteConfirmation && html`<button onClick=${ onEditParentClicked }>Edit...</button>`}
-        ${ !local.showDeleteConfirmation && html`<button onClick=${ onDeleteParentClicked }>Delete...</button>`}
-        ${ local.showDeleteConfirmation && html`
-                                      <span class="delete-confirmation">Really Delete?</span>
-                                      <button onClick=${ cancelDeleteClicked }>Cancel</button>
-                                      <button onClick=${ confirmDeleteClicked }>Yes Delete</button>`}
+        <button onClick=${ onEditParentClicked }>Edit...</button>
+        <${YesNoConfirmation} buttonText="Delete..." yesText="Yes, Delete" noText="No, Cancel Delete" onYes=${confirmedDeleteClicked }/>
       </div>`;
   };
 

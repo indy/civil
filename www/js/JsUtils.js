@@ -38,6 +38,18 @@ export function formattedTime(timestamp) {
   return textual;
 }
 
+export function daysUntil(date) {
+  let nextTestDate  = new Date(date);
+  let todayDate = new Date();
+
+
+  let delta = nextTestDate.getTime() - todayDate.getTime();
+  let deltaDays = delta / (1000 * 3600 * 24);
+
+  return Math.round(deltaDays);
+}
+
+
 export function opposingKind(kind) {
   switch(kind) {
   case 'ref': return 'ref';

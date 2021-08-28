@@ -8,12 +8,12 @@ import Net from '/js/Net.js';
 import CivilSelect from '/js/components/CivilSelect.js';
 import FlashCard from '/js/components/FlashCard.js';
 import ImageWidget from '/js/components/ImageWidget.js';
+import YesNoConfirmation from '/js/components/YesNoConfirmation.js';
 import buildMarkup from '/js/components/BuildMarkup.js';
 
 const NOTE_SET_PROPERTY = 'note-set-property';
 const ADD_DECK_REFERENCES_UI_SHOW = 'add-deck-references-ui-show';
 const ADD_FLASH_CARD_UI_SHOW = 'add-flashcard-ui-show';
-const DELETE_CONFIRMATION_SHOW = 'delete-confirmation-show';
 const DECKS_SET = "decks-set";
 const ADD_DECKS_COMMIT = 'add-decks-commit';
 const ADD_DECKS_CANCEL = 'add-decks-cancel';
@@ -84,11 +84,6 @@ function reducer(state, action) {
       showModButtons: showUI ? state.showModButtons : false
     }
   }
-  case DELETE_CONFIRMATION_SHOW:
-    return {
-      ...state,
-      showDeleteConfirmation: action.data
-    }
   case DECKS_SET:
     return {
       ...state,
@@ -148,7 +143,6 @@ export default function Note(props) {
     addDeckReferencesUI: false,
     addFlashCardUI: false,
     isEditingMarkup: false,
-    showDeleteConfirmation: false,
     note: { content: props.note.content },
     decks: (props.note && props.note.decks && props.note.decks.map(decksStoreOriginalAnnotations)),
     flashcardToShow: undefined
@@ -287,20 +281,8 @@ export default function Note(props) {
       editLabelText = "Stop Editing";
     }
 
-    function eventRegardingDeleteConfirmation(e, newVal) {
-      e.preventDefault();
-      localDispatch(DELETE_CONFIRMATION_SHOW, newVal);
-    }
-
-    function deleteClicked(e) {
-      eventRegardingDeleteConfirmation(e, true);
-    }
-    function confirmDeleteClicked(e) {
+    function confirmedDeleteClicked() {
       onReallyDelete(props.note.id, props.onDelete);
-      eventRegardingDeleteConfirmation(e, false);
-    }
-    function cancelDeleteClicked(e) {
-      eventRegardingDeleteConfirmation(e, false);
     }
 
 
@@ -315,12 +297,9 @@ export default function Note(props) {
     return html`
       <div class="block-width">
         ${ !local.isEditingMarkup && html`<button onClick=${ toggleAddDeckReferencesUI }>References...</button>` }
-        ${ !local.showDeleteConfirmation && html`<button onClick=${ onEditClicked }>${ editLabelText }</button>`}
-        ${ local.isEditingMarkup && !local.showDeleteConfirmation && html`<button onClick=${ deleteClicked }>Delete</button>` }
-        ${ local.isEditingMarkup && local.showDeleteConfirmation && html`
-                                                    <span class="delete-confirmation">Really Delete?</span>
-                                                    <button onClick=${ cancelDeleteClicked }>Cancel</button>
-                                                    <button onClick=${ confirmDeleteClicked }>Yes Delete</button>`}
+        <button onClick=${ onEditClicked }>${ editLabelText }</button>
+        ${ local.isEditingMarkup && html`<${YesNoConfirmation} buttonText="Delete..." yesText="Yes, Really" noText="No, Cancel Delete" onYes=${ confirmedDeleteClicked }/>`}
+
         ${ local.isEditingMarkup && html`<${ImageWidget}/>` }
         ${ !local.isEditingMarkup && html`<button class="add-flash-card" onClick=${ toggleAddFlashCardUI }>Add Flash Card...</button>` }
       </div>

@@ -62,6 +62,7 @@ var precacheConfig = [
   "/js/components/SpacedRepetition.js",
   "/js/components/StarRating.js",
   "/js/components/Timelines.js",
+  "/js/components/YesNoConfirmation.js",
 
   "/civil_wasm.js",
   "/civil_wasm_bg.wasm",
