@@ -113,6 +113,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
             scope("/sr")
                 .route("", post().to(sr::create_card))
                 .route("", get().to(sr::get_cards))
+                .route("/practice", get().to(sr::get_practice_card))
                 .route("/{id}/rated", post().to(sr::card_rated))
                 .route("/{id}", put().to(sr::edit))
                 .route("/{id}", delete().to(sr::delete)),

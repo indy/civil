@@ -11,15 +11,12 @@ const MODE_PRE_TEST = 'pre-test';
 const MODE_TEST = 'test';
 const MODE_POST_TEST = 'post-test';
 
-const initialState = {
-  mode: MODE_PRE_TEST,
-  cards: [],
-  cardIndex: 0
-};
 
 const CARDS_SET = 'cards-set';
 const TEST_START = 'test-start';
 const CARD_COMPLETED = 'card-completed';
+
+const PRACTICE_CARD_SET = 'practice-card-set';
 
 function reducer(state, action) {
   switch(action.type) {
@@ -27,10 +24,15 @@ function reducer(state, action) {
     ...state,
     cards: action.data
   };
+  case PRACTICE_CARD_SET: return {
+    ...state,
+    practiceCard: action.data
+  };
   case TEST_START: return {
     ...state,
     mode: MODE_TEST,
-    cardIndex: 0
+    cardIndex: 0,
+    practiceCard: undefined
   };
   case CARD_COMPLETED: {
     let { cards, mode, cardIndex } = state;
@@ -81,6 +83,14 @@ function reducer(state, action) {
 
 export default function SpacedRepetition(props) {
   const [state, dispatch] = useStateValue();
+
+
+  const initialState = {
+    mode: MODE_PRE_TEST,
+    cards: [],
+    cardIndex: 0,
+    practiceCard: undefined
+  };
   let [local, localDispatch] = useLocalReducer(reducer, initialState);
 
   useEffect(() => {
@@ -107,6 +117,13 @@ export default function SpacedRepetition(props) {
     });
   }
 
+  function onPracticeClicked(e) {
+    e.preventDefault();
+    Net.get('/api/sr/practice').then(card => {
+      localDispatch(PRACTICE_CARD_SET, card);
+    });
+  }
+
   const canTest = local.cards.length > 0;
   const cardsToReview = local.cards.length - local.cardIndex;
 
@@ -127,9 +144,16 @@ export default function SpacedRepetition(props) {
                 ${ local.mode === MODE_TEST && html`<${CardTest} card=${local.cards[local.cardIndex]}
                                                                  onRatedCard=${onRatedCard}/>`}
                 ${ local.mode === MODE_POST_TEST && html`<p>All Done!</p>`}
+
+                ${ cardsToReview === 0 && html`<p>You have no cards to review, maybe try a practice flashcard?</p>`}
+                ${ cardsToReview === 0 && html`<button onClick=${ onPracticeClicked }>View Practice Flashcard</button>`}
+                ${ local.practiceCard && html`<${CardTest} card=${local.practiceCard}/>`}
+
               </div>`;
 }
 
+// if onRatedCard isn't passed in, the user won't be able to rate a card (useful when showing a practice card)
+//
 function CardTest({ card, onRatedCard }) {
   const SHOW_PROMPT = 'prompt';
   const SHOW_ANSWER = 'answer';
@@ -204,8 +228,8 @@ function CardTest({ card, onRatedCard }) {
                 <div class="note">${localState.promptMarkup}</div>
                 ${ show === SHOW_PROMPT && html`<button onClick=${ onShowAnswer }>Show Answer</button>`}
                 ${ show === SHOW_ANSWER && buildAnswer(card, localState.answerMarkup)}
-                ${ show === SHOW_ANSWER && html`<${CardRating} card=${card}
-                                                               onRatedCard=${onRated}/>`}
+                ${ show === SHOW_ANSWER && onRatedCard && html`<${CardRating} card=${card}
+                                                                              onRatedCard=${onRated}/>`}
               </div>`;
 
 }

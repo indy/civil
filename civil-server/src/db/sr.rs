@@ -253,6 +253,24 @@ pub(crate) async fn get_cards(
     .await
 }
 
+pub(crate) async fn get_practice_card(
+    db_pool: &Pool,
+    user_id: Key,
+) -> Result<interop::Card> {
+    info!("get_practice_card");
+
+    pg::one_from::<CardDbInternal, interop::Card>(
+        db_pool,
+        "SELECT c.id, c.note_id, c.prompt, d.id as deck_id, d.name AS deck_name, d.kind AS deck_kind
+         FROM cards c, decks d, notes n
+         WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = $1
+         ORDER BY random()
+         LIMIT 1",
+        &[&user_id]
+    )
+    .await
+}
+
 pub(crate) async fn get_cards_upcoming_review(
     db_pool: &Pool,
     user_id: Key,

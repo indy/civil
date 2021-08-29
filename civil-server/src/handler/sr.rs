@@ -149,3 +149,14 @@ pub async fn get_cards(
 
     Ok(HttpResponse::Ok().json(db_cards))
 }
+
+
+pub async fn get_practice_card(
+    db_pool: Data<Pool>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    let user_id = session::user_id(&session)?;
+    let db_card = db::get_practice_card(&db_pool, user_id).await?;
+
+    Ok(HttpResponse::Ok().json(db_card))
+}
