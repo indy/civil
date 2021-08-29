@@ -4,7 +4,7 @@ import Net from '/js/Net.js';
 
 import { daysUntil, plural } from '/js/JsUtils.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
-import YesNoConfirmation from '/js/components/YesNoConfirmation.js';
+import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 
 const FLASHCARD_IS_EDITING_TOGGLE = 'flashcard-is-editing-toggle';
 const FLASHCARD_SET_PROMPT = 'flashcard-set-prompt';
@@ -111,7 +111,7 @@ export default function FlashCard({flashcard, onDelete}) {
         </p>
         <div>
           <button onClick=${ editToggleClicked }>Edit FlashCard</button>
-          <${YesNoConfirmation} buttonText="Delete FlashCard..." yesText="Yes, Really" noText="No, Cancel Delete" onYes=${confirmedDeleteClicked }/>
+          <${DeleteConfirmation} onDelete=${confirmedDeleteClicked }/>
         </div>
       </div>
     </div>`;

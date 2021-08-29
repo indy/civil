@@ -10,7 +10,7 @@ import { svgEdit, svgCancel, svgTickedCheckBox, svgUntickedCheckBox } from '/js/
 import Note from '/js/components/Note.js';
 import PointForm from '/js/components/PointForm.js';
 import ImageWidget from '/js/components/ImageWidget.js';
-import YesNoConfirmation from '/js/components/YesNoConfirmation.js';
+import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 
 const BUTTONS_TOGGLE = 'buttons-toggle';
 const UPDATE_FORM_TOGGLE = 'update-form-toggle';
@@ -96,7 +96,7 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
     return html`
       <div>
         <button onClick=${ onEditParentClicked }>Edit...</button>
-        <${YesNoConfirmation} buttonText="Delete..." yesText="Yes, Delete" noText="No, Cancel Delete" onYes=${confirmedDeleteClicked }/>
+        <${DeleteConfirmation} onDelete=${confirmedDeleteClicked }/>
       </div>`;
   };
 

@@ -21,7 +21,7 @@
 
 // NOTE: Makefile will alter these variables when building a release build
 var devMode = true;
-var CACHE_NAME = "civil-20210827";
+var CACHE_NAME = "civil-20210829";
 
 var precacheConfig = [
   "/apple-touch-icon.png",
@@ -43,6 +43,7 @@ var precacheConfig = [
   "/js/components/BuildMarkup.js",
   "/js/components/CivilSelect.js",
   "/js/components/DeckManager.js",
+  "/js/components/DeleteConfirmation.js",
   "/js/components/FlashCard.js",
   "/js/components/Graph.js",
   "/js/components/GraphSection.js",
@@ -62,7 +63,6 @@ var precacheConfig = [
   "/js/components/SpacedRepetition.js",
   "/js/components/StarRating.js",
   "/js/components/Timelines.js",
-  "/js/components/YesNoConfirmation.js",
 
   "/civil_wasm.js",
   "/civil_wasm_bg.wasm",

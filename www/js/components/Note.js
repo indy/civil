@@ -8,7 +8,7 @@ import Net from '/js/Net.js';
 import CivilSelect from '/js/components/CivilSelect.js';
 import FlashCard from '/js/components/FlashCard.js';
 import ImageWidget from '/js/components/ImageWidget.js';
-import YesNoConfirmation from '/js/components/YesNoConfirmation.js';
+import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 import buildMarkup from '/js/components/BuildMarkup.js';
 
 const NOTE_SET_PROPERTY = 'note-set-property';
@@ -298,7 +298,7 @@ export default function Note(props) {
       <div class="block-width">
         ${ !local.isEditingMarkup && html`<button onClick=${ toggleAddDeckReferencesUI }>References...</button>` }
         <button onClick=${ onEditClicked }>${ editLabelText }</button>
-        ${ local.isEditingMarkup && html`<${YesNoConfirmation} buttonText="Delete..." yesText="Yes, Really" noText="No, Cancel Delete" onYes=${ confirmedDeleteClicked }/>`}
+        ${ local.isEditingMarkup && html`<${DeleteConfirmation} onDelete=${ confirmedDeleteClicked }/>`}
 
         ${ local.isEditingMarkup && html`<${ImageWidget}/>` }
         ${ !local.isEditingMarkup && html`<button class="add-flash-card" onClick=${ toggleAddFlashCardUI }>Add Flash Card...</button>` }

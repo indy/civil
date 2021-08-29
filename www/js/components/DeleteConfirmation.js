@@ -1,6 +1,6 @@
 import { h, html, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-export default function YesNoConfirmation({ buttonText, yesText, noText, onYes }) {
+export default function DeleteConfirmation({ onDelete }) {
 
   const [showToggle, setShowToggle] = useState(false);
 
@@ -17,12 +17,12 @@ export default function YesNoConfirmation({ buttonText, yesText, noText, onYes }
   function yesClicked(e) {
     e.preventDefault();
     setShowToggle(false);
-    onYes();
+    onDelete();
   }
 
   return html`<span>
-                ${!showToggle && html`<button onClick=${ buttonClicked }>${ buttonText }</button>`}
-                ${showToggle && html`<button onClick=${ noClicked }>${ noText }</button>`}
-                ${showToggle && html`<button onClick=${ yesClicked }>${ yesText }</button>`}
+                ${!showToggle && html`<button onClick=${ buttonClicked }>Delete...</button>`}
+                ${showToggle && html`<button onClick=${ noClicked }>No, Cancel Delete</button>`}
+                ${showToggle && html`<button onClick=${ yesClicked }>Yes, Really Delete</button>`}
               </span>`;
 }
