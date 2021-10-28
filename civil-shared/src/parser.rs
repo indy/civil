@@ -33,7 +33,7 @@ pub enum Node {
     Codeblock(Option<CodeblockLanguage>, String),
     BlockQuote(Vec<Node>),
     HR,
-    Header(Vec<Node>),
+    Header(u32, Vec<Node>),
     Highlight(Vec<Node>),
     Image(String),
     ListItem(Vec<Node>),
@@ -85,11 +85,36 @@ pub(crate) fn is_hr(tokens: &'_ [Token]) -> bool {
             || is_token_at_index(tokens, 2, TokenIdent::Newline))
 }
 
+/// returns a tuple of 'heading level' and 'text content'
+fn heading_text<'a>(s: &'a str) -> Option<(u32, &'a str)> {
+    if let Some(a) = s.strip_prefix("h1 ") {
+        Some((1, a))
+    } else if let Some(a) = s.strip_prefix("h2 ") {
+        Some((2, a))
+    } else if let Some(a) = s.strip_prefix("h3 ") {
+        Some((3, a))
+    } else if let Some(a) = s.strip_prefix("h4 ") {
+        Some((4, a))
+    } else if let Some(a) = s.strip_prefix("h5 ") {
+        Some((5, a))
+    } else if let Some(a) = s.strip_prefix("h6 ") {
+        Some((6, a))
+    } else if let Some(a) = s.strip_prefix("h7 ") {
+        Some((7, a))
+    } else if let Some(a) = s.strip_prefix("h8 ") {
+        Some((8, a))
+    } else if let Some(a) = s.strip_prefix("h9 ") {
+        Some((9, a))
+    } else {
+        None
+    }
+}
+
 pub(crate) fn is_heading(tokens: &'_ [Token]) -> bool {
     if is_token_at_index(tokens, 0, TokenIdent::Hash) && is_token_at_index(tokens, 1, TokenIdent::Text) {
         match tokens[1] {
             Token::Text(s) => {
-                if let Some(h) = s.strip_prefix("h ") {
+                if let Some((_level, h)) = heading_text(s) {
                     h.len() > 0
                 } else {
                     false
@@ -288,7 +313,7 @@ fn eat_hash<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     } else if is_token_at_index(tokens, 1, TokenIdent::Text) {
         match tokens[1] {
             Token::Text(s) => {
-                if let Some(h) = s.strip_prefix("h ") {
+                if let Some((level, h)) = heading_text(s) {
                     let mut header_children = vec![Node::Text(h.to_string())];
                     tokens = &tokens[2..];
 
@@ -302,7 +327,7 @@ fn eat_hash<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
                     let (toks, mut other_nodes) = eat_to_newline(tokens, None)?;
                     header_children.append(&mut other_nodes);
 
-                    Ok((toks, Node::Header(header_children)))
+                    Ok((toks, Node::Header(level, header_children)))
                 } else {
                     eat_text_including(tokens)
                 }
@@ -857,7 +882,7 @@ mod tests {
 
     fn assert_header(node: &Node) {
         match node {
-            Node::Header(_) => assert!(true),
+            Node::Header(_,_) => assert!(true),
             _ => assert!(false),
         };
     }
@@ -1472,10 +1497,11 @@ This is code```",
         children
     }
 
-    fn header_with_single_text(node: &Node, expected: &'static str) {
+    fn header_with_single_text(node: &Node, expected_level: u32, expected: &'static str) {
         assert_header(node);
         match node {
-            Node::Header(children) => {
+            Node::Header(level, children) => {
+                assert_eq!(*level, expected_level);
                 assert_eq!(children.len(), 1);
                 assert_text(&children[0], expected)
             }
@@ -1483,10 +1509,11 @@ This is code```",
         };
     }
 
-    fn header_with_multi_text(node: &Node, expected: &'static str) {
+    fn header_with_multi_text(node: &Node, expected_level: u32, expected: &'static str) {
         assert_header(node);
         match node {
-            Node::Header(children) => {
+            Node::Header(level, children) => {
+                assert_eq!(*level, expected_level);
                 // children is a vec of nodes, assume that they're all text nodes for now
                 let mut s = String::from("");
                 for child in children {
@@ -1583,14 +1610,14 @@ third paragraph",
     #[test]
     fn test_header_then_list_bug() {
         let nodes = build(
-            "#h A header
+            "#h2 A header
 
 - first unordered list item
 - second unordered list item",
         );
 
         assert_eq!(2, nodes.len());
-        header_with_single_text(&nodes[0], "A header");
+        header_with_single_text(&nodes[0], 2, "A header");
         let list_children = unordered_list_children(&nodes[1]).unwrap();
         assert_eq!(list_children.len(), 2);
         assert_list_item_text(&list_children[0], "first unordered list item");
@@ -1601,17 +1628,17 @@ third paragraph",
     fn test_header() {
         {
             let nodes = build(
-                "#h A header",
+                "#h2 A header",
             );
             assert_eq!(1, nodes.len());
-            header_with_single_text(&nodes[0], "A header");
+            header_with_single_text(&nodes[0], 2, "A header");
         }
         {
             let nodes = build(
-                "#h A header (with parentheses)",
+                "#h3 A header (with parentheses)",
             );
             assert_eq!(1, nodes.len());
-            header_with_multi_text(&nodes[0], "A header (with parentheses)");
+            header_with_multi_text(&nodes[0], 3, "A header (with parentheses)");
         }
     }
 }

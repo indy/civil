@@ -83,7 +83,7 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
         Node::UnorderedList(ns) => element_key("ul", key, ns)?,
         Node::Url(url, ns) => element_key_class_href("a", "note-inline-link", url, key, ns)?,
         Node::HR => element_key("hr", key, &vec![])?,
-        Node::Header(ns) => element_key("h2", key, ns)?,
+        Node::Header(level, ns) => header_key(*level, key, ns)?,
     };
 
     Ok(res)
@@ -153,6 +153,10 @@ fn element_key(name: &str, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
     let e = element_base(name, key, ns)?;
 
     Ok(vec![e])
+}
+
+fn header_key(level: u32, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
+    element_key(&format!("h{}", level.to_string()), key, ns)
 }
 
 fn text_element(text: &str) -> Element {
