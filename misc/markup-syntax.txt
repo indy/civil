@@ -13,7 +13,10 @@ images:     @img(a21.png Golden Retriever)
 
 lines starting with # apply an effect on the rest of the line
 
-#h this is a heading
+#h2 this is a heading
+#h3 this is a h3 heading
+#h4 this is a h4 heading, etc etc etc
+#h9 this is the smallest heading allowed
 
 #- this line is a <hr/> tag, the rest of the line is ignored
 
