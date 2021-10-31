@@ -23,6 +23,7 @@ import { svgPointAdd,
 import { CompactedListSection } from '/js/components/ListSections.js';
 import DeckManager from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
+import LifespanForm from '/js/components/LifespanForm.js';
 import PointForm from '/js/components/PointForm.js';
 import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
 import RollableSection from '/js/components/RollableSection.js';
@@ -56,7 +57,6 @@ function People() {
 
 function Person(props) {
   const [state, dispatch] = useStateValue();
-  const [showBirthForm, setShowBirthForm] = useState(false);
 
   const personId = parseInt(props.id, 10);
   const person = state.cache.deck[personId] || { id: personId };
@@ -69,40 +69,28 @@ function Person(props) {
     updateForm: UpdatePersonForm
   });
 
-  function onShowBirthForm() {
-    setShowBirthForm(!showBirthForm);
-  }
 
-  function showAddBirthPointMessage() {
-    return html`<p class="fakelink" onClick=${ onShowBirthForm }>
-                  You should add a birth point for this person
-                </p>`;
-  }
-
-  function onAddBirthPoint(point) {
-    // post to /api/people/{id}/points
-    Net.post(`/api/people/${personId}/points`, point).then(person => {
-      setShowBirthForm(false);
-      dispatch({
-        type: 'setPerson',
-        id: person.id,
-        newItem: person
-      });
-
-      // also update the people list now that this person is no longer uncategorised
-      fetchDeckListing(dispatch, 'people');
+  function dispatchUpdatedPerson(person) {
+    dispatch({
+      type: 'setPerson',
+      id: person.id,
+      newItem: preCacheFn(person)
     });
+
+    // also update the people list now that this person is no longer uncategorised
+    fetchDeckListing(dispatch, 'people');
   }
 
-  function birthForm() {
-    let point = {
-      title: 'Born'
-    };
-    return html`
-      <${PointForm} pointKind="point_begin"
-                    point=${ point }
-                    onSubmit=${ onAddBirthPoint }
-                    submitMessage="Create Birth Point"/>`;
+  function onLifespan(birthPoint, deathPoint) {
+    Net.post(`/api/people/${personId}/points`, birthPoint).then(person => {
+      if (deathPoint) {
+        Net.post(`/api/people/${personId}/points`, deathPoint).then(person => {
+          dispatchUpdatedPerson(person);
+        });
+      } else {
+        dispatchUpdatedPerson(person);
+      }
+    });
   }
 
   function hasBirthPoint(person) {
@@ -120,7 +108,7 @@ function Person(props) {
   // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
   // this check prevents the vis from rendering until after we have all the note and links ready
   const okToShowGraph = !!(deckManager.hasNotes || (person.backrefs && person.backrefs.length > 0));
-  const hasBirth = hasBirthPoint(person);
+  const hasKnownLifespan = hasBirthPoint(person);
 
   return html`
     <article>
@@ -128,13 +116,12 @@ function Person(props) {
       ${ deckManager.buttons }
       ${ deckManager.buildUpdateForm() }
 
-      ${ !hasBirth && showAddBirthPointMessage() }
-      ${ showBirthForm && birthForm() }
+      ${ !hasKnownLifespan && html`<${LifespanForm} name=${ person.name } onLifespanGiven=${ onLifespan }/>` }
 
       ${ deckManager.noteManager() }
 
       ${ nonEmptyArray(person.backnotes) && nonEmptyArray(person.backrefs) && html`<${SectionBackRefs} state=${state} backrefs=${ person.backrefs } backnotes=${ person.backnotes } deckId=${ person.id }/>`}
-      ${ hasBirth && html`<${ListDeckPoints} deckPoints=${ person.all_points_during_life }
+      ${ hasKnownLifespan && html`<${ListDeckPoints} deckPoints=${ person.all_points_during_life }
                                              deckManager=${ deckManager }
                                              dispatch=${ dispatch }
                                              holderId=${ person.id }

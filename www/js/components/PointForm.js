@@ -3,7 +3,10 @@ import { html, useState } from '/lib/preact/mod.js';
 import { capitalise } from '/js/JsUtils.js';
 import Net from '/js/Net.js';
 
-export default function PointForm({ point, onSubmit, submitMessage, pointKind }) {
+export default function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegend, locationLegend }) {
+
+  timeLegend ||= "Time";
+  locationLegend ||= "Location";
 
   let initialPoint = {
     title: '',
@@ -280,7 +283,7 @@ export default function PointForm({ point, onSubmit, submitMessage, pointKind })
         </fieldset>
       </div>
       <fieldset>
-        <legend>Time</legend>
+        <legend>${ timeLegend }</legend>
         <label for="exact-date">Exact Date:</label>
         <input id="exact-date"
                type="text"
@@ -348,7 +351,7 @@ export default function PointForm({ point, onSubmit, submitMessage, pointKind })
       </fieldset>
       <br/>
       <fieldset>
-        <legend>Location</legend>
+        <legend>${ locationLegend }</legend>
         <input id="location_textual"
                type="text"
                name="location_textual"
