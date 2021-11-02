@@ -1333,12 +1333,14 @@ input:required {
   }
 }
 
-.sticky-header {
+.h1-sticky {
   position: fixed;
   top: 0;
   left: 0;
 
   margin-top: 0;
+  margin-bottom: 0;
+
   padding-left: calc(100% - var(--body-width) + 4%);
 
   width: 100%;
@@ -1351,18 +1353,7 @@ input:required {
   z-index: 10;
 }
 
-.h1-deck {
-  margin-top: 0;
-  margin-bottom: 0;
-}
-
-.h1-margins {
-  margin-top: 4rem;
-  margin-bottom: 1.5rem;
-}
-
-/* when the header becomes sticky, adding this stops the rest of the content from jerking up the screen so much */
-.h1-marker {
+.h1-bulky-marker {
   display: block;
-  height: 5px;
+  height: 5.5rem;
 }

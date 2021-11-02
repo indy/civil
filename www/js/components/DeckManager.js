@@ -150,33 +150,38 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
 }
 
 function Title(title, onShowButtons) {
+  const markerRef = useRef(null); // an element on the page, when it's offscreen apply h1-sticky to the h1
   const titleRef = useRef(null);
-  const markerRef = useRef(null); // an element on the page, when it's offscreen use the sticky-header
 
   useEffect(() => {
     window.onscroll = function() {
-      const className = "sticky-header";
+      // when making the h1 sticky, also apply the h1-bulky-marker class to the marker div
+      // this prevents the rest of the page from jerking upwards
+      const classNameMarker = "h1-bulky-marker";
+      const classNameTitle = "h1-sticky";
 
       let markerEl = markerRef.current;
       let titleEl = titleRef.current;
 
-      if (titleEl && markerEl) {
+      if (markerEl && titleEl) {
         if (window.pageYOffset > markerEl.offsetTop) {
-          if(!titleEl.classList.contains(className)) {
-            titleEl.classList.add(className);
+          if(!titleEl.classList.contains(classNameTitle)) {
+            markerEl.classList.add(classNameMarker);
+            titleEl.classList.add(classNameTitle);
           }
         } else {
-          if(titleEl.classList.contains(className)) {
-            titleEl.classList.remove(className);
+          if(titleEl.classList.contains(classNameTitle)) {
+            markerEl.classList.remove(classNameMarker);
+            titleEl.classList.remove(classNameTitle);
           }
         }
       }
     };
   }, []);
 
-  return html`<div class="h1-margins">
-                <div ref=${ markerRef } class="h1-marker"></div>
-                <h1 ref=${ titleRef } class="h1-deck" onClick=${ onShowButtons }>${ title }</h1>
+  return html`<div>
+                <div ref=${ markerRef }></div>
+                <h1 ref=${ titleRef } onClick=${ onShowButtons }>${ title }</h1>
               </div>`;
 }
 
