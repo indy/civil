@@ -1,4 +1,4 @@
-import { html, useState, useEffect, route } from '/lib/preact/mod.js';
+import { html, useRef, useState, useEffect, route } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
@@ -107,7 +107,8 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
 
   let res = {};
 
-  res.title = html`<h1 onClick=${ onShowButtons }>${ title }</h1>`;
+  res.title = Title(title, onShowButtons);
+
   if (local.showButtons) {
     res.buttons = buildButtons();
   }
@@ -146,6 +147,37 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
   res.hasNotes = deck.notes && deck.notes.length > 0;
 
   return res;
+}
+
+function Title(title, onShowButtons) {
+  const titleRef = useRef(null);
+  const markerRef = useRef(null); // an element on the page, when it's offscreen use the sticky-header
+
+  useEffect(() => {
+    window.onscroll = function() {
+      const className = "sticky-header";
+
+      let markerEl = markerRef.current;
+      let titleEl = titleRef.current;
+
+      if (titleEl && markerEl) {
+        if (window.pageYOffset > markerEl.offsetTop) {
+          if(!titleEl.classList.contains(className)) {
+            titleEl.classList.add(className);
+          }
+        } else {
+          if(titleEl.classList.contains(className)) {
+            titleEl.classList.remove(className);
+          }
+        }
+      }
+    };
+  }, []);
+
+  return html`<div class="h1-margins">
+                <div ref=${ markerRef } class="h1-marker"></div>
+                <h1 ref=${ titleRef } onClick=${ onShowButtons }>${ title }</h1>
+              </div>`;
 }
 
 function NoteForm({ onSubmit, onCancel }) {
