@@ -176,7 +176,7 @@ function Title(title, onShowButtons) {
 
   return html`<div class="h1-margins">
                 <div ref=${ markerRef } class="h1-marker"></div>
-                <h1 ref=${ titleRef } onClick=${ onShowButtons }>${ title }</h1>
+                <h1 ref=${ titleRef } class="h1-deck" onClick=${ onShowButtons }>${ title }</h1>
               </div>`;
 }
 
