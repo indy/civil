@@ -150,38 +150,46 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
 }
 
 function Title(title, onShowButtons) {
-  const markerRef = useRef(null); // an element on the page, when it's offscreen apply h1-sticky to the h1
+  const preMarkerRef = useRef(null); // an element on the page, when it's offscreen apply h1-sticky to the h1
+  const postMarkerRef = useRef(null); // an element on the page, when it's onscreen remove h1-sticky from the h1
   const titleRef = useRef(null);
 
   useEffect(() => {
     window.onscroll = function() {
       // when making the h1 sticky, also apply the h1-bulky-marker class to the marker div
       // this prevents the rest of the page from jerking upwards
-      const classNameMarker = "h1-bulky-marker";
+      const classNameBulker = "h1-bulky-marker";
       const classNameTitle = "h1-sticky";
 
-      let markerEl = markerRef.current;
+      let preMarkerEl = preMarkerRef.current;
       let titleEl = titleRef.current;
+      let postMarkerEl = postMarkerRef.current;
 
-      if (markerEl && titleEl) {
-        if (window.pageYOffset > markerEl.offsetTop) {
-          if(!titleEl.classList.contains(classNameTitle)) {
-            markerEl.classList.add(classNameMarker);
-            titleEl.classList.add(classNameTitle);
-          }
-        } else {
+      if (preMarkerEl && titleEl && postMarkerEl) {
+        if (window.pageYOffset < postMarkerEl.offsetTop) {
           if(titleEl.classList.contains(classNameTitle)) {
-            markerEl.classList.remove(classNameMarker);
+            preMarkerEl.classList.remove(classNameBulker);
             titleEl.classList.remove(classNameTitle);
+          }
+        }
+        if (window.pageYOffset > preMarkerEl.offsetTop) {
+          if(!titleEl.classList.contains(classNameTitle)) {
+            preMarkerEl.classList.add(classNameBulker);
+            titleEl.classList.add(classNameTitle);
           }
         }
       }
     };
   }, []);
 
+  // there are 2 markers: pre and post so that we get a nice effect in both of these scenarios:
+  // 1. the sticky header appearing when the top of the title scrolls off the top of the screen
+  // 2. the normal inline title appears when the bottom of the title text should be visible as
+  //    the user scrolls up
   return html`<div>
-                <div ref=${ markerRef }></div>
+                <div ref=${ preMarkerRef }></div>
                 <h1 ref=${ titleRef } onClick=${ onShowButtons }>${ title }</h1>
+                <div ref=${ postMarkerRef }></div>
               </div>`;
 }
 
