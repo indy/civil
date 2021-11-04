@@ -1325,17 +1325,38 @@ input:required {
   }
 }
 
-.h1-sticky {
+.title-replacement-spacer {
+  display: block;
+  height: 5.5rem;
+}
+
+.title-background-band {
   position: fixed;
   top: 0;
   left: 0;
 
-  margin-top: 0;
-  margin-bottom: 0;
-
-  padding-left: calc(100% - var(--body-width) + 4%);
-
   width: 100%;
+  /* same value as .title-sticky */
+  height: 1.6rem;
+
+  margin-top: 0;
+
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  font-size: 1.5rem;
+
+  background: var(--bg2);
+  z-index: 9;
+}
+
+.title-sticky {
+  position: fixed;
+  top: 0;
+
+  /* same value as .title-background-band */
+  height: 1.6rem;
+
+  margin-top: 0;
 
   padding-top: 1rem;
   padding-bottom: 1rem;
@@ -1343,9 +1364,6 @@ input:required {
 
   background: var(--bg2);
   z-index: 10;
-}
 
-.h1-bulky-marker {
-  display: block;
-  height: 5.5rem;
+  white-space: nowrap;
 }

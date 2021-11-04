@@ -150,32 +150,37 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
 }
 
 function Title(title, onShowButtons) {
-  const preMarkerRef = useRef(null); // an element on the page, when it's offscreen apply h1-sticky to the h1
-  const postMarkerRef = useRef(null); // an element on the page, when it's onscreen remove h1-sticky from the h1
+  const preMarkerRef = useRef(null); // an element on the page, when it's offscreen apply title-sticky to the h1
+  const postMarkerRef = useRef(null); // an element on the page, when it's onscreen remove title-sticky from the h1
   const titleRef = useRef(null);
+  const backgroundBandRef = useRef(null);
 
   useEffect(() => {
     window.onscroll = function() {
-      // when making the h1 sticky, also apply the h1-bulky-marker class to the marker div
+      // when making the h1 sticky, also apply the title-replacement-spacer class to the marker div
       // this prevents the rest of the page from jerking upwards
-      const classNameBulker = "h1-bulky-marker";
-      const classNameTitle = "h1-sticky";
+      const classReplacementSpacer = "title-replacement-spacer";
+      const classBackgroundBand = "title-background-band";
+      const classSticky = "title-sticky";
 
       let preMarkerEl = preMarkerRef.current;
       let titleEl = titleRef.current;
       let postMarkerEl = postMarkerRef.current;
+      let backgroundBandEl = backgroundBandRef.current;
 
       if (preMarkerEl && titleEl && postMarkerEl) {
         if (window.pageYOffset < postMarkerEl.offsetTop) {
-          if(titleEl.classList.contains(classNameTitle)) {
-            preMarkerEl.classList.remove(classNameBulker);
-            titleEl.classList.remove(classNameTitle);
+          if(titleEl.classList.contains(classSticky)) {
+            preMarkerEl.classList.remove(classReplacementSpacer);
+            titleEl.classList.remove(classSticky);
+            backgroundBandEl.classList.remove(classBackgroundBand);
           }
         }
         if (window.pageYOffset > preMarkerEl.offsetTop) {
-          if(!titleEl.classList.contains(classNameTitle)) {
-            preMarkerEl.classList.add(classNameBulker);
-            titleEl.classList.add(classNameTitle);
+          if(!titleEl.classList.contains(classSticky)) {
+            preMarkerEl.classList.add(classReplacementSpacer);
+            titleEl.classList.add(classSticky);
+            backgroundBandEl.classList.add(classBackgroundBand);
           }
         }
       }
@@ -188,6 +193,7 @@ function Title(title, onShowButtons) {
   //    the user scrolls up
   return html`<div>
                 <div ref=${ preMarkerRef }></div>
+                <div ref=${ backgroundBandRef }></div>
                 <h1 ref=${ titleRef } onClick=${ onShowButtons }>${ title }</h1>
                 <div ref=${ postMarkerRef }></div>
               </div>`;
