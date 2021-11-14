@@ -46,6 +46,8 @@ function Publication(props) {
 
   let authorHeading = html`<div class="left-margin-heading">${ publication.author }</div>`;
   let sourceHeading = html`<p class="subtitle"><a href=${ publication.source }>${ publication.source }</a></p>`;
+  let publishedHeading = html`<div class="left-margin-heading">Published: ${ formattedDate(publication.published_date) }</div>`;
+  let createdHeading = html`<div class="left-margin-heading">Added: ${ formattedDate(publication.created_at) }</div>`;
 
   // this is only for presentational purposes
   // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
@@ -56,8 +58,9 @@ function Publication(props) {
     <article>
       <div>
         <div class="left-margin">
-          ${ publication.created_at && leftMarginHeading(formattedDate(publication.created_at)) }
           ${ publication.author && leftMarginHeading(authorHeading) }
+          ${ publication.published_date && leftMarginHeading(publishedHeading) }
+          ${ publication.created_at && leftMarginHeading(createdHeading) }
           <${StarRatingPartial} rating=${publication.rating}/>
           <div class="left-margin-entry">
             <div class="descriptive-scribble">${ publication.short_description }</div>
@@ -83,6 +86,7 @@ function UpdatePublicationForm({ deck, hideFormFn }) {
   const [source, setSource] = useState(publication.source || '');
   const [shortDescription, setShortDescription] = useState(publication.short_description || '');
   const [rating, setRating] = useState(publication.rating);
+  const [publishedDate, setPublishedDate] = useState(publication.published_date);
 
   useEffect(() => {
     if (publication.title && publication.title !== '' && title === '') {
@@ -96,6 +100,9 @@ function UpdatePublicationForm({ deck, hideFormFn }) {
     }
     if (publication.short_description && publication.short_description !== '' && shortDescription === '') {
       setShortDescription(publication.short_description);
+    }
+    if (publication.published_date && publication.published_date !== '' && publishedDate === '') {
+      setPublished_Date(publication.published_date);
     }
   }, [publication]);
 
@@ -119,6 +126,10 @@ function UpdatePublicationForm({ deck, hideFormFn }) {
     if (name === "rating") {
       setRating(parseInt(value, 10));
     }
+    if (name === "published_date") {
+      setPublishedDate(value);
+    }
+
   };
 
   const handleSubmit = (event) => {
@@ -128,7 +139,8 @@ function UpdatePublicationForm({ deck, hideFormFn }) {
       source: source.trim(),
       short_description: shortDescription.trim(),
       rating: rating,
-      graph_terminator: false
+      graph_terminator: false,
+      published_date: publishedDate.trim()
     }, ["source"]);
 
     const resource = 'publications';
@@ -174,6 +186,14 @@ function UpdatePublicationForm({ deck, hideFormFn }) {
              type="text"
              name="author"
              value=${ author }
+             onInput=${ handleChangeEvent } />
+      <br/>
+      <label for="published_date">Published Date:</label>
+      <br/>
+      <input id="published_date"
+             type="text"
+             name="published_date"
+             value=${ publishedDate }
              onInput=${ handleChangeEvent } />
       <br/>
       <label for="short-description">Short Description:</label>

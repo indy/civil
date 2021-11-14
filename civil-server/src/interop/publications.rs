@@ -41,6 +41,9 @@ pub struct Publication {
     pub backrefs: Option<Vec<BackRef>>,
 
     pub flashcards: Option<Vec<FlashCard>>,
+
+    pub published_date: Option<chrono::NaiveDate>,
+
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -51,6 +54,7 @@ pub struct ProtoPublication {
     pub short_description: Option<String>,
     pub rating: i32,
     pub graph_terminator: bool,
+    pub published_date: Option<chrono::NaiveDate>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

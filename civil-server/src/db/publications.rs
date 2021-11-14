@@ -38,6 +38,7 @@ struct Publication {
     short_description: Option<String>,
     rating: i32,
     created_at: chrono::DateTime<chrono::Utc>,
+    published_date: Option<chrono::NaiveDate>,
 }
 
 impl From<Publication> for interop::Publication {
@@ -62,6 +63,8 @@ impl From<Publication> for interop::Publication {
             backrefs: None,
 
             flashcards: None,
+
+            published_date: a.published_date,
         }
     }
 }
@@ -74,6 +77,7 @@ struct PublicationExtra {
     author: Option<String>,
     short_description: Option<String>,
     rating: i32,
+    published_date: Option<chrono::NaiveDate>,
 }
 
 impl From<(decks::DeckBase, PublicationExtra)> for interop::Publication {
@@ -99,6 +103,8 @@ impl From<(decks::DeckBase, PublicationExtra)> for interop::Publication {
             backrefs: None,
 
             flashcards: None,
+
+            published_date: extra.published_date,
         }
     }
 }
@@ -106,7 +112,7 @@ impl From<(decks::DeckBase, PublicationExtra)> for interop::Publication {
 pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Publication>> {
     pg::many_from::<Publication, interop::Publication>(
         db_pool,
-        "SELECT decks.id, decks.name, publication_extras.source, publication_extras.author, publication_extras.short_description, coalesce(publication_extras.rating, 0) as rating, decks.created_at
+        "SELECT decks.id, decks.name, publication_extras.source, publication_extras.author, publication_extras.short_description, coalesce(publication_extras.rating, 0) as rating, decks.created_at, publication_extras.published_date
          FROM decks left join publication_extras on publication_extras.deck_id = decks.id
          WHERE user_id = $1 and kind = 'publication'
          ORDER BY created_at desc",
@@ -128,7 +134,7 @@ pub(crate) async fn listings(db_pool: &Pool, user_id: Key) -> Result<interop::Pu
         many_from(
             db_pool,
             user_id,
-            "SELECT decks.id, decks.name, publication_extras.source, publication_extras.author, publication_extras.short_description, coalesce(publication_extras.rating, 0) as rating, decks.created_at
+            "SELECT decks.id, decks.name, publication_extras.source, publication_extras.author, publication_extras.short_description, coalesce(publication_extras.rating, 0) as rating, decks.created_at, publication_extras.published_date
              FROM decks left join publication_extras on publication_extras.deck_id = decks.id
              WHERE user_id = $1 and kind = 'publication'
              ORDER BY created_at desc
@@ -137,7 +143,7 @@ pub(crate) async fn listings(db_pool: &Pool, user_id: Key) -> Result<interop::Pu
         many_from(
             db_pool,
             user_id,
-            "SELECT decks.id, decks.name, publication_extras.source, publication_extras.author, publication_extras.short_description, coalesce(publication_extras.rating, 0) as rating, decks.created_at
+            "SELECT decks.id, decks.name, publication_extras.source, publication_extras.author, publication_extras.short_description, coalesce(publication_extras.rating, 0) as rating, decks.created_at, publication_extras.published_date
              FROM decks left join publication_extras on publication_extras.deck_id = decks.id
              WHERE user_id = $1 and kind = 'publication' and publication_extras.rating > 0
              ORDER BY publication_extras.rating desc",
@@ -145,7 +151,7 @@ pub(crate) async fn listings(db_pool: &Pool, user_id: Key) -> Result<interop::Pu
         many_from(
             db_pool,
             user_id,
-            "SELECT d.id, d.name, pe.source, pe.author, pe.short_description, coalesce(pe.rating, 0) as rating, d.created_at
+            "SELECT d.id, d.name, pe.source, pe.author, pe.short_description, coalesce(pe.rating, 0) as rating, d.created_at, pe.published_date
              FROM decks d left join publication_extras pe on pe.deck_id=d.id
              WHERE d.id not in (SELECT deck_id
                                 FROM notes_decks
@@ -159,7 +165,7 @@ pub(crate) async fn listings(db_pool: &Pool, user_id: Key) -> Result<interop::Pu
         ),
         many_from(db_pool,
                   user_id,
-                  "SELECT decks.id, decks.name, publication_extras.source, publication_extras.author, publication_extras.short_description, coalesce(publication_extras.rating, 0) as rating, decks.created_at
+                  "SELECT decks.id, decks.name, publication_extras.source, publication_extras.author, publication_extras.short_description, coalesce(publication_extras.rating, 0) as rating, decks.created_at, publication_extras.published_date
                    FROM decks left join publication_extras on publication_extras.deck_id = decks.id
                    WHERE user_id = $1 and kind = 'publication'
                    ORDER BY created_at desc"
@@ -181,7 +187,7 @@ pub(crate) async fn get(
 ) -> Result<interop::Publication> {
     pg::one_from::<Publication, interop::Publication>(
         db_pool,
-        "SELECT decks.id, decks.name, publication_extras.source, publication_extras.author, publication_extras.short_description, coalesce(publication_extras.rating, 0) as rating, decks.created_at
+        "SELECT decks.id, decks.name, publication_extras.source, publication_extras.author, publication_extras.short_description, coalesce(publication_extras.rating, 0) as rating, decks.created_at, publication_extras.published_date
          FROM decks left join publication_extras on publication_extras.deck_id = decks.id
          WHERE user_id = $1 and id = $2 and kind = 'publication'",
         &[&user_id, &publication_id],
@@ -198,6 +204,7 @@ pub(crate) async fn get_or_create(
     let author = "";
     let short_description = "";
     let rating = 0;
+    let published_date = chrono::Utc::now().naive_utc().date();
 
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
 
@@ -210,16 +217,16 @@ pub(crate) async fn get_or_create(
         match origin {
             decks::DeckBaseOrigin::Created => pg::one::<PublicationExtra>(
                 &tx,
-                "INSERT INTO publication_extras(deck_id, source, author, short_description, rating)
-                 VALUES ($1, $2, $3, $4, $5)
+                "INSERT INTO publication_extras(deck_id, source, author, short_description, rating, published_date)
+                 VALUES ($1, $2, $3, $4, $5, $6)
                  RETURNING $table_fields",
-                &[&deck.id, &source, &author, &short_description, &rating],
+                &[&deck.id, &source, &author, &short_description, &rating, &published_date],
             )
             .await?,
             decks::DeckBaseOrigin::PreExisting => {
                 pg::one::<PublicationExtra>(
                     &tx,
-                    "select deck_id, source, author, short_description, rating
+                    "select deck_id, source, author, short_description, rating, published_date
                  from publication_extras
                  where deck_id=$1",
                     &[&deck.id],
@@ -255,7 +262,7 @@ pub(crate) async fn edit(
 
     let publication_extras_exists = pg::many::<PublicationExtra>(
         &tx,
-        "select deck_id, source, author, short_description, rating
+        "select deck_id, source, author, short_description, rating, published_date
          from publication_extras
          where deck_id=$1",
         &[&publication_id],
@@ -264,13 +271,13 @@ pub(crate) async fn edit(
 
     let sql_query: &str = match publication_extras_exists.len() {
         0 => {
-            "INSERT INTO publication_extras(deck_id, source, author, short_description, rating)
-              VALUES ($1, $2, $3, $4, $5)
+            "INSERT INTO publication_extras(deck_id, source, author, short_description, rating, published_date)
+              VALUES ($1, $2, $3, $4, $5, $6)
               RETURNING $table_fields"
         }
         1 => {
             "UPDATE publication_extras
-              SET source = $2, author = $3, short_description = $4, rating = $5
+              SET source = $2, author = $3, short_description = $4, rating = $5, published_date = $6
               WHERE deck_id = $1
               RETURNING $table_fields"
         }
@@ -294,6 +301,7 @@ pub(crate) async fn edit(
             &publication.author,
             &publication.short_description,
             &publication.rating,
+            &publication.published_date,
         ],
     )
     .await?;
