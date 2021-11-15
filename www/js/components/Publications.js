@@ -6,9 +6,11 @@ import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
 import { RatedListSection, CompactedListSection } from '/js/components/ListSections.js';
-import DeckManager from '/js/components/DeckManager.js';
+import { DeckManager } from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
 import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
+import RollableSection from '/js/components/RollableSection.js';
+import RollableNoteSection from '/js/components/RollableNoteSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import { StarRatingPartial } from '/js/components/StarRating.js';
 
@@ -31,6 +33,10 @@ function Publications() {
     </div>`;
 }
 
+function asUrl(url) {
+  return html`<a href=${ url }>${ url }</a>`;
+}
+
 function Publication(props) {
   const [state] = useStateValue();
 
@@ -41,13 +47,9 @@ function Publication(props) {
     deck: publication,
     title: publication.title,
     resource: "publications",
-    updateForm: UpdatePublicationForm
+    updateForm: UpdatePublicationForm,
+    hasNoteSections: true
   });
-
-  let authorHeading = html`<div class="left-margin-heading">${ publication.author }</div>`;
-  let sourceHeading = html`<p class="subtitle"><a href=${ publication.source }>${ publication.source }</a></p>`;
-  let publishedHeading = html`<div class="left-margin-heading">Published: ${ formattedDate(publication.published_date) }</div>`;
-  let createdHeading = html`<div class="left-margin-heading">Added: ${ formattedDate(publication.created_at) }</div>`;
 
   // this is only for presentational purposes
   // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
@@ -58,21 +60,32 @@ function Publication(props) {
     <article>
       <div>
         <div class="left-margin">
-          ${ publication.author && leftMarginHeading(authorHeading) }
-          ${ publication.published_date && leftMarginHeading(publishedHeading) }
-          ${ publication.created_at && leftMarginHeading(createdHeading) }
+          ${ publication.author && leftMarginHeading(publication.author) }
+          ${ publication.source && leftMarginHeading(asUrl(publication.source)) }
+          ${ publication.published_date && leftMarginHeading(`Published: ${ formattedDate(publication.published_date)}`) }
+          ${ publication.created_at && leftMarginHeading(`Added: ${ formattedDate(publication.created_at) }`) }
           <${StarRatingPartial} rating=${publication.rating}/>
-          <div class="left-margin-entry">
-            <div class="descriptive-scribble">${ publication.short_description }</div>
-          </div>
         </div>
         ${ deckManager.title }
       </div>
-      ${ deckManager.buttons }
+      ${ deckManager.buttons() }
       ${ deckManager.buildUpdateForm() }
 
-      ${ publication.source && sourceHeading }
-      ${ deckManager.noteManager() }
+      <div class="top-scribble">${ publication.short_description }</div>
+
+      <${RollableNoteSection} heading='Summary'
+                              noteKind='NoteSummary'
+                              deckManager=${deckManager}>
+      </${RollableNoteSection}>
+      <${RollableNoteSection} heading='Review'
+                              noteKind='NoteReview'
+                              deckManager=${deckManager}>
+      </${RollableNoteSection}>
+      <${RollableNoteSection} heading=${ deckManager.title }
+                              noteKind='Note'
+                              deckManager=${deckManager}>
+      </${RollableNoteSection}>
+
       ${ nonEmptyArray(publication.backrefs) && html`<${SectionBackRefs} state=${state} backrefs=${ publication.backrefs } backnotes=${ publication.backnotes } deckId=${ publication.id }/>`}
       ${ canShowGraph(state, publicationId) && html`<${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${ publicationId } depth=${ 2 }/>`}
     </article>`;

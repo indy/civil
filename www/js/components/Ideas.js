@@ -6,7 +6,7 @@ import Net from '/js/Net.js';
 import { canShowGraph, ensureListingLoaded, leftMarginHeading } from '/js/CivilUtils.js';
 import { capitalise, formattedDate, nonEmptyArray, plural } from '/js/JsUtils.js';
 
-import DeckManager from '/js/components/DeckManager.js';
+import { DeckManager } from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
 import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
 import RollableSection from '/js/components/RollableSection.js';
@@ -78,9 +78,9 @@ function Idea(props) {
         </div>
         ${ deckManager.title }
       </div>
-      ${ deckManager.buttons }
+      ${ deckManager.buttons() }
       ${ deckManager.buildUpdateForm() }
-      ${ deckManager.noteManager() }
+      ${ deckManager.noteManager('Note') }
       ${ nonEmptyArray(idea.backrefs) && html`<${SectionBackRefs} state=${state} backrefs=${ idea.backrefs } backnotes=${ idea.backnotes } deckId=${ idea.id }/>`}
       ${ nonEmptyArray(searchResults) && html`<${SectionSearchResultsBackref} backrefs=${ searchResults }/>`}
       ${ canShowGraph(state, ideaId) && html`<${GraphSection} heading=${ graphTitle } okToShowGraph=${okToShowGraph} id=${ ideaId } depth=${ 2 } />`}

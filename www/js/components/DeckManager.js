@@ -12,9 +12,15 @@ import PointForm from '/js/components/PointForm.js';
 import ImageWidget from '/js/components/ImageWidget.js';
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 
+const NOTE_SECTION_HIDE = 0;
+const NOTE_SECTION_SHOW = 1;
+const NOTE_SECTION_EXCLUSIVE = 2;
+
 const BUTTONS_TOGGLE = 'buttons-toggle';
 const UPDATE_FORM_TOGGLE = 'update-form-toggle';
 const HIDE_FORM = 'hide-form';
+const SHOW_SUMMARY_BUTTON = 'show-summary-button-toggle';
+const SHOW_REVIEW_BUTTON = 'show-review-button-toggle';
 
 function reducer(state, action) {
   switch(action.type) {
@@ -35,12 +41,22 @@ function reducer(state, action) {
       showButtons: false,
       showUpdateForm: false
     }
+  case SHOW_SUMMARY_BUTTON:
+    return {
+      ...state,
+      showShowSummaryButton: action.data
+    }
+  case SHOW_REVIEW_BUTTON:
+    return {
+      ...state,
+      showShowReviewButton: action.data
+    }
   default: throw new Error(`unknown action: ${action}`);
   }
 }
 
 // preCacheFn performs any one-off calculations before caching the Deck
-export default function DeckManager({ deck, title, resource, updateForm, preCacheFn }) {
+function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasNoteSections }) {
   // returns helper fn that applies preCacheFn and stores deck in AppState
 
   const [state, dispatch] = useStateValue();
@@ -58,6 +74,10 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
   }
 
   useEffect(() => {
+    if (deck.notes) {
+      localDispatch(SHOW_SUMMARY_BUTTON, !deck.notes.some(n => n.kind === 'NoteSummary'));
+      localDispatch(SHOW_REVIEW_BUTTON, !deck.notes.some(n => n.kind === 'NoteReview'));
+    }
     if(!state.cache.deck[deck.id]) {
       // fetch resource from the server
       const url = `/api/${resource}/${deck.id}`;
@@ -71,15 +91,27 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
     }
   }, [deck]);
 
+
   const [local, localDispatch] = useLocalReducer(reducer, {
     showButtons: false,
-    showUpdateForm: false
+    showUpdateForm: false,
+    showShowSummaryButton: hasNoteSections,
+    showShowReviewButton: hasNoteSections
   });
 
   function buildButtons() {
     function onEditParentClicked(e) {
       e.preventDefault();
       localDispatch(UPDATE_FORM_TOGGLE);
+    };
+
+    function onShowSummaryButtonClicked(e) {
+      e.preventDefault();
+      localDispatch(SHOW_SUMMARY_BUTTON, !local.showShowSummaryButton);
+    };
+    function onShowReviewButtonClicked(e) {
+      e.preventDefault();
+      localDispatch(SHOW_REVIEW_BUTTON, !local.showShowReviewButton);
     };
 
     function confirmedDeleteClicked() {
@@ -97,6 +129,8 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
       <div>
         <button onClick=${ onEditParentClicked }>Edit...</button>
         <${DeleteConfirmation} onDelete=${confirmedDeleteClicked }/>
+        ${ local.showShowSummaryButton && html`<button onClick=${ onShowSummaryButtonClicked }>Show Summary Section</button>`}
+        ${ local.showShowReviewButton && html`<button onClick=${ onShowReviewButtonClicked }>Show Review Section</button>`}
       </div>`;
   };
 
@@ -109,8 +143,33 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
 
   res.title = Title(title, onShowButtons);
 
-  if (local.showButtons) {
-    res.buttons = buildButtons();
+  res.showNoteSection = function(noteKind) {
+    if (hasNoteSections) {
+      if (noteKind === 'NoteSummary') {
+        return local.showShowSummaryButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
+      }
+      if (noteKind === 'NoteReview') {
+        return local.showShowReviewButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
+      }
+      if (noteKind === 'Note') {
+        if (local.showShowSummaryButton && local.showShowReviewButton) {
+          return NOTE_SECTION_EXCLUSIVE;
+        } else {
+          return NOTE_SECTION_SHOW;
+        }
+      }
+    } else {
+      if (noteKind === 'Note') {
+        return NOTE_SECTION_EXCLUSIVE;
+      }
+    }
+    return NOTE_SECTION_HIDE;
+  }
+
+  res.buttons = function() {
+    if (local.showButtons) {
+      return buildButtons();
+    }
   }
 
   res.buildPointForm = function(onSuccessCallback) {
@@ -137,9 +196,34 @@ export default function DeckManager({ deck, title, resource, updateForm, preCach
     return local.showUpdateForm && html`<${updateForm} deck=${deck} hideFormFn=${hideForm}/>`;
   }
 
-  res.noteManager = function(optional_point) {
-    return NoteManager(deck, cacheDeck, optional_point);
+  res.noteManagerForDeckPoint = function(deck_point) {
+    return NoteManager({ deck,
+                         cacheDeck,
+                         filterFn: noteFilterDeckPoint(deck_point),
+                         optional_deck_point: deck_point,
+                         appendLabel: `Append Note to ${ deck_point.title }`,
+                         noteKind: 'Note'
+                       });
   }
+
+  res.noteManager = function(noteKind) {
+    let filterFn = n => (!n.point_id) && n.kind === noteKind;
+
+    let appendLabel = "Append Note";
+    if (noteKind === 'NoteSummary') {
+      appendLabel = "Append Summary Note";
+    } else if (noteKind === 'NoteReview') {
+      appendLabel = "Append Review Note";
+    }
+
+    return NoteManager({ deck,
+                         cacheDeck,
+                         filterFn,
+                         appendLabel,
+                         noteKind
+                       });
+  }
+
   res.pointHasNotes = function(point) {
     return deck.notes.some(n => n.point_id === point.id);
   }
@@ -237,7 +321,7 @@ function NoteForm({ onSubmit, onCancel }) {
   </div>`;
 }
 
-function addNote(markup, deck_id, optional_point_id) {
+function addNote(markup, deck_id, noteKind, optional_point_id) {
   const wasmInterface = useWasmInterface();
   const notes = wasmInterface.splitter(markup);
 
@@ -248,6 +332,7 @@ function addNote(markup, deck_id, optional_point_id) {
 
   let data = {
     deck_id,
+    kind: noteKind,
     content: notes
   };
 
@@ -266,18 +351,7 @@ function addNote(markup, deck_id, optional_point_id) {
   }
 }
 
-function NoteManager(deck, cacheDeck, optional_deck_point) {
-  var filterFn;
-  if (optional_deck_point) {
-    // a notemanager for notes associated with the given point_id
-    filterFn = n => n.point_id === optional_deck_point.id;
-  } else {
-    // a notemanager for a deck's top-level notes
-    // uses notes which don't have a point_id
-    filterFn = n => !n.point_id;
-  }
-
-
+function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLabel, noteKind }) {
   const [showNoteForm, setShowNoteForm] = useState(false);
 
   function findNoteWithId(id, modifyFn) {
@@ -337,7 +411,7 @@ function NoteManager(deck, cacheDeck, optional_deck_point) {
       e.preventDefault();
       const noteForm = e.target;
       const markup = noteForm.content.value;
-      addNote(markup, deck.id, optional_deck_point && optional_deck_point.id)
+      addNote(markup, deck.id, noteKind, optional_deck_point && optional_deck_point.id)
         .then(newNotes => {
           const notes = deck.notes;
           newNotes.forEach(n => {
@@ -366,7 +440,7 @@ function NoteManager(deck, cacheDeck, optional_deck_point) {
   <div class="left-margin-inline">
     <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
       ${ svgEdit() }
-      <span class="left-margin-icon-label">Append Note to ${ optional_deck_point.title }</span>
+      <span class="left-margin-icon-label">${ appendLabel }</span>
     </div>
   </div>
 </div>
@@ -376,7 +450,7 @@ function NoteManager(deck, cacheDeck, optional_deck_point) {
 <div class="append-note">
   <div class="left-margin">
     <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
-      <span class="left-margin-icon-label">Append Note</span>
+      <span class="left-margin-icon-label">${ appendLabel }</span>
       ${ svgEdit() }
     </div>
   </div>
@@ -393,3 +467,9 @@ function NoteManager(deck, cacheDeck, optional_deck_point) {
         ${ showNoteForm ? buildNoteForm() : buildNoteFormIcon() }
       </section>`;
 }
+
+function noteFilterDeckPoint(deck_point) {
+  return n => n.point_id === deck_point.id;
+}
+
+export { DeckManager,  NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE };

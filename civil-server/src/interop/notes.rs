@@ -17,15 +17,25 @@
 
 use crate::interop::Key;
 
+#[derive(Copy, Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+pub enum NoteKind {
+    Note,
+    NoteReview,
+    NoteSummary,
+}
+
+
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Note {
     pub id: Key,
+    pub kind: NoteKind,
     pub content: String,
     pub point_id: Option<Key>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct ProtoNote {
+    pub kind: NoteKind,
     pub content: Vec<String>,
     pub deck_id: Key,
     pub point_id: Option<Key>,

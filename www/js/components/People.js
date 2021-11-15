@@ -21,7 +21,7 @@ import { svgPointAdd,
          svgUntickedCheckBox } from '/js/svgIcons.js';
 
 import { CompactedListSection } from '/js/components/ListSections.js';
-import DeckManager from '/js/components/DeckManager.js';
+import { DeckManager } from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
 import LifespanForm from '/js/components/LifespanForm.js';
 import PointForm from '/js/components/PointForm.js';
@@ -113,12 +113,12 @@ function Person(props) {
   return html`
     <article>
       ${ deckManager.title }
-      ${ deckManager.buttons }
+      ${ deckManager.buttons() }
       ${ deckManager.buildUpdateForm() }
 
       ${ !hasKnownLifespan && html`<${LifespanForm} name=${ person.name } onLifespanGiven=${ onLifespan }/>` }
 
-      ${ deckManager.noteManager() }
+      ${ deckManager.noteManager('Note') }
 
       ${ nonEmptyArray(person.backnotes) && nonEmptyArray(person.backrefs) && html`<${SectionBackRefs} state=${state} backrefs=${ person.backrefs } backnotes=${ person.backnotes } deckId=${ person.id }/>`}
       ${ hasKnownLifespan && html`<${ListDeckPoints} deckPoints=${ person.all_points_during_life }
@@ -256,7 +256,7 @@ function PersonDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
                   <span onClick=${onClicked}>${ expanded ? svgCaretDown() : hasNotes ? svgCaretRight() : svgCaretRightEmpty() }</span>
                   ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.date_textual }
                   ${ expanded && html`<div class="point-notes">
-                                        ${ noteManager(deckPoint) }
+                                        ${ noteManager }
                                       </div>`}
                 </li>`;
   } else {
@@ -346,7 +346,7 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, dispatc
 
   const dps = arr.map(dp => html`<${PersonDeckPoint}
                                  key=${ dp.id}
-                                 noteManager=${ deckManager.noteManager }
+                                 noteManager=${ deckManager.noteManagerForDeckPoint(dp) }
                                  hasNotes=${ deckManager.pointHasNotes(dp) }
                                  holderId=${ holderId }
                                  deckPoint=${ dp }/>`);

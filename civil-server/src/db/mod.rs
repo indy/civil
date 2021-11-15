@@ -20,6 +20,7 @@ pub mod deck_kind;
 pub mod decks;
 pub mod edges;
 pub mod ideas;
+pub mod note_kind;
 pub mod notes;
 pub mod people;
 mod pg;

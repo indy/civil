@@ -944,6 +944,7 @@ section > form { width: var(--block-width); }
 
 .left-margin-entry {
   padding-right: 3rem;
+  margin-left: -500rem;
 }
 
 .left-margin-entry a {
@@ -1119,6 +1120,11 @@ input:required {
   font-family: Caveat, cursive;
   color: var(--scribble-neutral);
   margin-left: 1rem;
+  font-size: 1.8rem;
+}
+.top-scribble {
+  font-family: Caveat, cursive;
+  color: var(--scribble-neutral);
   font-size: 1.8rem;
 }
 

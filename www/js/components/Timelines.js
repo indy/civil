@@ -6,7 +6,7 @@ import { addChronologicalSortYear } from '/js/eras.js';
 import { capitalise, nonEmptyArray } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 
-import DeckManager from '/js/components/DeckManager.js';
+import { DeckManager } from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
 import PointForm from '/js/components/PointForm.js';
 import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
@@ -51,10 +51,10 @@ function Timeline(props) {
   return html`
     <article>
       ${ deckManager.title }
-      ${ deckManager.buttons }
+      ${ deckManager.buttons() }
       ${ deckManager.buildUpdateForm() }
 
-      ${ deckManager.noteManager() }
+      ${ deckManager.noteManager('Note') }
 
       ${ nonEmptyArray(timeline.backrefs) && html`<${SectionBackRefs} state=${state} backrefs=${ timeline.backrefs } backnotes=${ timeline.backnotes } deckId=${ timeline.id }/>`}
       <${ListPoints} points=${ timeline.points }
@@ -152,7 +152,7 @@ function TimelineDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
                 <span onClick=${onClicked}>${ expanded ? svgCaretDown() : hasNotes ? svgCaretRight() : svgCaretRightEmpty() }</span>
                 ${ deckPoint.title } ${ deckPoint.date_textual }
                 ${ expanded && html`<div class="point-notes">
-                                      ${ noteManager(deckPoint) }
+                                      ${ noteManager }
                                     </div>`}
               </li>`;
 }
@@ -173,7 +173,7 @@ function ListPoints({ points, deckManager, holderId, holderName }) {
   let arr = points || [];
   let dps = arr.map(dp => html`<${TimelineDeckPoint}
                                  key=${ dp.id}
-                                 noteManager=${ deckManager.noteManager }
+                                 noteManager=${ deckManager.noteManagerForDeckPoint(dp) }
                                  hasNotes=${ deckManager.pointHasNotes(dp) }
                                  holderId=${ holderId }
                                  deckPoint=${ dp }/>`);

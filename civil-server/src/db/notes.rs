@@ -17,6 +17,7 @@
 
 use super::pg;
 use crate::error::{Error, Result};
+use crate::db::note_kind::NoteKind;
 use crate::interop::notes as interop;
 use crate::interop::Key;
 use deadpool_postgres::{Client, Pool, Transaction};
@@ -30,6 +31,7 @@ use tracing::info;
 #[pg_mapper(table = "notes")]
 struct Note {
     id: Key,
+    kind: NoteKind,
     content: String,
     point_id: Option<Key>,
 }
@@ -44,6 +46,7 @@ impl From<Note> for interop::Note {
     fn from(n: Note) -> interop::Note {
         interop::Note {
             id: n.id,
+            kind: interop::NoteKind::from(n.kind),
             content: n.content,
             point_id: n.point_id,
         }
@@ -61,7 +64,7 @@ pub(crate) async fn create_notes(
     let tx = client.transaction().await?;
 
     for content in note.content.iter() {
-        notes.push(create_common(&tx, user_id, note.deck_id, note.point_id, content).await?);
+        notes.push(create_common(&tx, user_id, note.deck_id, NoteKind::from(note.kind), note.point_id, content).await?);
     }
 
     tx.commit().await?;
@@ -76,12 +79,14 @@ pub(crate) async fn create_notes(
 struct NoteBasic {
     id: Key,
     content: String,
+    kind: NoteKind
 }
 
 impl From<NoteBasic> for interop::Note {
     fn from(n: NoteBasic) -> interop::Note {
         interop::Note {
             id: n.id,
+            kind: interop::NoteKind::from(n.kind),
             content: n.content,
             point_id: None,
         }
@@ -92,7 +97,8 @@ pub(crate) async fn get_note(db_pool: &Pool, user_id: Key, note_id: Key) -> Resu
     let db_note = pg::one_non_transactional::<NoteBasic>(
         db_pool,
         "SELECT n.id,
-                n.content
+                n.content,
+                n.kind
          FROM notes n
          WHERE n.id = $1 AND n.user_id = $2",
         &[&note_id, &user_id],
@@ -157,15 +163,16 @@ pub(crate) async fn create_common(
     tx: &Transaction<'_>,
     user_id: Key,
     deck_id: Key,
+    kind: NoteKind,
     point_id: Option<Key>,
     content: &str,
 ) -> Result<interop::Note> {
     let db_note = pg::one::<Note>(
         tx,
-        "INSERT INTO notes(user_id, deck_id, point_id, content)
-         VALUES ($1, $2, $3, $4)
+        "INSERT INTO notes(user_id, deck_id, kind, point_id, content)
+         VALUES ($1, $2, $3, $4, $5)
          RETURNING $table_fields",
-        &[&user_id, &deck_id, &point_id, &content],
+        &[&user_id, &deck_id, &kind, &point_id, &content],
     )
     .await?;
 
@@ -178,6 +185,7 @@ pub(crate) async fn all_from_deck(db_pool: &Pool, deck_id: Key) -> Result<Vec<in
         db_pool,
         "SELECT n.id,
                 n.content,
+                n.kind,
                 n.point_id
          FROM   notes n
          WHERE  n.deck_id = $1
@@ -213,6 +221,7 @@ pub async fn get_all_notes_in_db(db_pool: &Pool) -> Result<Vec<interop::Note>> {
         db_pool,
         "SELECT n.id,
                 n.content,
+                n.kind,
                 n.point_id
          FROM   notes n
          ORDER BY n.id",
