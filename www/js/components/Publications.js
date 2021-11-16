@@ -1,7 +1,7 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { canShowGraph, ensureListingLoaded, fetchDeckListing, leftMarginHeading } from '/js/CivilUtils.js';
-import { capitalise, removeEmptyStrings, nonEmptyArray, formattedDate } from '/js/JsUtils.js';
+import { ensureListingLoaded, fetchDeckListing, leftMarginHeading } from '/js/CivilUtils.js';
+import { capitalise, removeEmptyStrings, formattedDate } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
@@ -75,8 +75,11 @@ function Publication(props) {
 
       ${ deckManager.buildNoteSections() }
 
-      ${ nonEmptyArray(publication.backrefs) && html`<${SectionBackRefs} state=${state} backrefs=${ publication.backrefs } backnotes=${ publication.backnotes } deckId=${ publication.id }/>`}
-      ${ canShowGraph(state, publicationId) && html`<${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${ publicationId } depth=${ 2 }/>`}
+      <${SectionBackRefs} state=${state}
+                          backrefs=${ publication.backrefs }
+                          backnotes=${ publication.backnotes }
+                          deckId=${ publication.id }/>
+      <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${ publicationId } depth=${ 2 }/>
     </article>`;
 }
 

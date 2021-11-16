@@ -3,10 +3,6 @@ import { useEffect, html } from '/lib/preact/mod.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
-export function canShowGraph(state, id) {
-  return !!state.fullGraph[id];
-}
-
 export function ensureListingLoaded(resource, url) {
   const [state, dispatch] = useStateValue();
 

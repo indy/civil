@@ -1,6 +1,6 @@
 import { html, useState } from '/lib/preact/mod.js';
 
-import { capitalise } from '/js/JsUtils.js';
+import { capitalise, nonEmptyArray } from '/js/JsUtils.js';
 import { svgCaretDown, svgCaretRight} from '/js/svgIcons.js';
 
 import RollableSection from '/js/components/RollableSection.js';
@@ -10,6 +10,12 @@ export default function SectionBackRefs({ state, backrefs, backnotes, deckId }) 
   const sections = [];
 
   const decks = [];
+
+  // isg todo: People.js also had a check of nonEmptyArray(backnotes)
+
+  if (!nonEmptyArray(backrefs)) {
+    return html`<div></div>`;
+  }
 
   // file into decks with notes
   //
@@ -78,6 +84,7 @@ export default function SectionBackRefs({ state, backrefs, backnotes, deckId }) 
     <${RollableSection} heading='BackRefs'>
       ${ sections }
     </${RollableSection}>`;
+
 }
 
 function SectionLinks(backrefs, heading) {

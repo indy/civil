@@ -3,7 +3,7 @@ import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
-import { canShowGraph, ensureListingLoaded, leftMarginHeading } from '/js/CivilUtils.js';
+import { ensureListingLoaded, leftMarginHeading } from '/js/CivilUtils.js';
 import { capitalise, formattedDate, nonEmptyArray, plural } from '/js/JsUtils.js';
 
 import { DeckManager } from '/js/components/DeckManager.js';
@@ -82,12 +82,11 @@ function Idea(props) {
       </div>
       ${ deckManager.buttons() }
       ${ deckManager.buildUpdateForm() }
-
       ${ deckManager.buildNoteSections() }
 
-      ${ nonEmptyArray(idea.backrefs) && html`<${SectionBackRefs} state=${state} backrefs=${ idea.backrefs } backnotes=${ idea.backnotes } deckId=${ idea.id }/>`}
-      ${ nonEmptyArray(searchResults) && html`<${SectionSearchResultsBackref} backrefs=${ searchResults }/>`}
-      ${ canShowGraph(state, ideaId) && html`<${GraphSection} heading=${ graphTitle } okToShowGraph=${okToShowGraph} id=${ ideaId } depth=${ 2 } />`}
+      <${SectionBackRefs} state=${state} backrefs=${ idea.backrefs } backnotes=${ idea.backnotes } deckId=${ idea.id }/>
+      <${SectionSearchResultsBackref} backrefs=${ searchResults }/>
+      <${GraphSection} heading=${ graphTitle } okToShowGraph=${okToShowGraph} id=${ ideaId } depth=${ 2 } />
     </article>`;
 }
 
@@ -166,14 +165,16 @@ function SectionSearchResultsBackref({ backrefs }) {
     );
   }
 
-  const heading = plural(backrefs.length, 'Additional Search Result', 's');
-
-  return html`<${RollableSection} heading=${ heading } initiallyRolledUp>
+  if(nonEmptyArray(backrefs)) {
+    const heading = plural(backrefs.length, 'Additional Search Result', 's');
+    return html`<${RollableSection} heading=${ heading } initiallyRolledUp>
                 <ul>
                   ${ backrefs.map(buildBackref) }
                 </ul>
-              </${RollableSection}>
-`;
+              </${RollableSection}>`;
+  } else {
+    return html`<div></div>`;
+  }
 }
 
 export { Ideas, Idea };

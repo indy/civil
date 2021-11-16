@@ -1,9 +1,9 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { canShowGraph, ensureListingLoaded } from '/js/CivilUtils.js';
+import { ensureListingLoaded } from '/js/CivilUtils.js';
 import Net from '/js/Net.js';
 import { addChronologicalSortYear } from '/js/eras.js';
-import { capitalise, nonEmptyArray } from '/js/JsUtils.js';
+import { capitalise } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 
 import { DeckManager } from '/js/components/DeckManager.js';
@@ -57,12 +57,14 @@ function Timeline(props) {
       ${ deckManager.buildUpdateForm() }
       ${ deckManager.buildNoteSections() }
 
-      ${ nonEmptyArray(timeline.backrefs) && html`<${SectionBackRefs} state=${state} backrefs=${ timeline.backrefs } backnotes=${ timeline.backnotes } deckId=${ timeline.id }/>`}
+      <${SectionBackRefs} state=${state} backrefs=${ timeline.backrefs } backnotes=${ timeline.backnotes } deckId=${ timeline.id }/>
+
       <${ListPoints} points=${ timeline.points }
                      deckManager=${ deckManager }
                      holderId=${ timeline.id }
                      holderName=${ timeline.title }/>
-      ${canShowGraph(state, timelineId) && html`<${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${timelineId} depth=${2}/>`}
+
+      <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${timelineId} depth=${2}/>
     </article>`;
 }
 
