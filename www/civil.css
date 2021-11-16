@@ -183,6 +183,12 @@ hr {
   padding: 0;
 }
 
+hr.big-section {
+  height: 0;
+  border-top: 0.1rem solid var(--divider);
+  margin: 0;
+}
+
 p {
   text-align: justify;
 }
