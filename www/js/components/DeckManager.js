@@ -56,7 +56,7 @@ function reducer(state, action) {
 }
 
 // preCacheFn performs any one-off calculations before caching the Deck
-function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasNoteSections }) {
+function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummarySection, hasReviewSection }) {
   // returns helper fn that applies preCacheFn and stores deck in AppState
 
   const [state, dispatch] = useStateValue();
@@ -75,8 +75,12 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasNoteSec
 
   useEffect(() => {
     if (deck.notes) {
-      localDispatch(SHOW_SUMMARY_BUTTON, !deck.notes.some(n => n.kind === 'NoteSummary'));
-      localDispatch(SHOW_REVIEW_BUTTON, !deck.notes.some(n => n.kind === 'NoteReview'));
+      if (hasSummarySection) {
+        localDispatch(SHOW_SUMMARY_BUTTON, !deck.notes.some(n => n.kind === 'NoteSummary'));
+      }
+      if (hasReviewSection) {
+        localDispatch(SHOW_REVIEW_BUTTON, !deck.notes.some(n => n.kind === 'NoteReview'));
+      }
     }
     if(!state.cache.deck[deck.id]) {
       // fetch resource from the server
@@ -91,12 +95,11 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasNoteSec
     }
   }, [deck]);
 
-
   const [local, localDispatch] = useLocalReducer(reducer, {
     showButtons: false,
     showUpdateForm: false,
-    showShowSummaryButton: hasNoteSections,
-    showShowReviewButton: hasNoteSections
+    showShowSummaryButton: hasSummarySection,
+    showShowReviewButton: hasReviewSection
   });
 
   function buildButtons() {
@@ -144,25 +147,32 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasNoteSec
   res.title = Title(title, onShowButtons);
 
   res.showNoteSection = function(noteKind) {
-    if (hasNoteSections) {
-      if (noteKind === 'NoteSummary') {
+    if (noteKind === 'NoteSummary') {
+      if (hasSummarySection) {
         return local.showShowSummaryButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
-      }
-      if (noteKind === 'NoteReview') {
-        return local.showShowReviewButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
-      }
-      if (noteKind === 'Note') {
-        if (local.showShowSummaryButton && local.showShowReviewButton) {
-          return NOTE_SECTION_EXCLUSIVE;
-        } else {
-          return NOTE_SECTION_SHOW;
-        }
-      }
-    } else {
-      if (noteKind === 'Note') {
-        return NOTE_SECTION_EXCLUSIVE;
+      } else {
+        return NOTE_SECTION_HIDE;
       }
     }
+
+    if (noteKind === 'NoteReview') {
+      if (hasReviewSection) {
+        return local.showShowReviewButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
+      } else {
+        return NOTE_SECTION_HIDE;
+      }
+    }
+
+    if (noteKind === 'Note') {
+      if (!hasSummarySection && !hasReviewSection) {
+        return NOTE_SECTION_EXCLUSIVE;
+      } if (local.showShowSummaryButton && local.showShowReviewButton) {
+        return NOTE_SECTION_EXCLUSIVE;
+      } else {
+        return NOTE_SECTION_SHOW;
+      }
+    }
+
     return NOTE_SECTION_HIDE;
   }
 

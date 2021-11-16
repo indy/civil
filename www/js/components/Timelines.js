@@ -40,7 +40,10 @@ function Timeline(props) {
     title: timeline.title,
     resource: "timelines",
     preCacheFn: preCacheFn,
-    updateForm: UpdateTimelineForm
+    updateForm: UpdateTimelineForm,
+    hasSummarySection: true,
+    hasReviewSection: false
+
   });
 
   // this is only for presentational purposes

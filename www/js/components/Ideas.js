@@ -61,7 +61,9 @@ function Idea(props) {
     deck: idea,
     title: idea.title,
     resource: "ideas",
-    updateForm: UpdateIdeaForm
+    updateForm: UpdateIdeaForm,
+    hasSummarySection: false,
+    hasReviewSection: false
   });
 
   // this is only for presentational purposes

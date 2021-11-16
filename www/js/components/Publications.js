@@ -48,7 +48,8 @@ function Publication(props) {
     title: publication.title,
     resource: "publications",
     updateForm: UpdatePublicationForm,
-    hasNoteSections: true
+    hasSummarySection: true,
+    hasReviewSection: true
   });
 
   // this is only for presentational purposes

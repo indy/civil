@@ -66,7 +66,9 @@ function Person(props) {
     title: person.name,
     resource: "people",
     preCacheFn: preCacheFn,
-    updateForm: UpdatePersonForm
+    updateForm: UpdatePersonForm,
+    hasSummarySection: true,
+    hasReviewSection: false
   });
 
 
