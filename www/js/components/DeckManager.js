@@ -9,12 +9,9 @@ import { svgEdit, svgCancel, svgTickedCheckBox, svgUntickedCheckBox } from '/js/
 
 import Note from '/js/components/Note.js';
 import PointForm from '/js/components/PointForm.js';
+import RollableSection from '/js/components/RollableSection.js';
 import ImageWidget from '/js/components/ImageWidget.js';
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
-
-const NOTE_SECTION_HIDE = 0;
-const NOTE_SECTION_SHOW = 1;
-const NOTE_SECTION_EXCLUSIVE = 2;
 
 const BUTTONS_TOGGLE = 'buttons-toggle';
 const UPDATE_FORM_TOGGLE = 'update-form-toggle';
@@ -146,37 +143,6 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
 
   res.title = Title(title, onShowButtons);
 
-  res.showNoteSection = function(noteKind) {
-    if (noteKind === 'NoteSummary') {
-      if (hasSummarySection) {
-        return local.showShowSummaryButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
-      } else {
-        return NOTE_SECTION_HIDE;
-      }
-    }
-
-    if (noteKind === 'NoteReview') {
-      if (hasReviewSection) {
-        return local.showShowReviewButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
-      } else {
-        return NOTE_SECTION_HIDE;
-      }
-    }
-
-    if (noteKind === 'Note') {
-      var r = NOTE_SECTION_EXCLUSIVE;
-      if (hasSummarySection && !local.showShowSummaryButton) {
-        r = NOTE_SECTION_SHOW;
-      }
-      if (hasReviewSection && !local.showShowReviewButton) {
-        r = NOTE_SECTION_SHOW;
-      }
-      return r;
-    }
-
-    return NOTE_SECTION_HIDE;
-  }
-
   res.buttons = function() {
     if (local.showButtons) {
       return buildButtons();
@@ -194,6 +160,85 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
 
     return html`<${PointForm} onSubmit=${ onAddPoint } submitMessage="Create Point"/>`;
   };
+
+
+  function NoteSection({heading, noteKind}) {
+    const NOTE_SECTION_HIDE = 0;
+    const NOTE_SECTION_SHOW = 1;
+    const NOTE_SECTION_EXCLUSIVE = 2;
+
+    function showNoteSection(noteKind) {
+      if (noteKind === 'NoteSummary') {
+        if (hasSummarySection) {
+          return local.showShowSummaryButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
+        } else {
+          return NOTE_SECTION_HIDE;
+        }
+      }
+
+      if (noteKind === 'NoteReview') {
+        if (hasReviewSection) {
+          return local.showShowReviewButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
+        } else {
+          return NOTE_SECTION_HIDE;
+        }
+      }
+
+      if (noteKind === 'Note') {
+        var r = NOTE_SECTION_EXCLUSIVE;
+        if (hasSummarySection && !local.showShowSummaryButton) {
+          r = NOTE_SECTION_SHOW;
+        }
+        if (hasReviewSection && !local.showShowReviewButton) {
+          r = NOTE_SECTION_SHOW;
+        }
+        return r;
+      }
+
+      return NOTE_SECTION_HIDE;
+    }
+
+    function noteManager(noteKind) {
+      let filterFn = n => (!n.point_id) && n.kind === noteKind;
+
+      let appendLabel = "Append Note";
+      if (noteKind === 'NoteSummary') {
+        appendLabel = "Append Summary Note";
+      } else if (noteKind === 'NoteReview') {
+        appendLabel = "Append Review Note";
+      }
+
+      return NoteManager({ deck,
+                           cacheDeck,
+                           filterFn,
+                           appendLabel,
+                           noteKind
+                         });
+    }
+
+    let howShow = showNoteSection(noteKind);
+
+    if (howShow === NOTE_SECTION_SHOW) {
+      return html`
+      <${RollableSection} heading=${heading}>
+        ${ noteManager(noteKind) }
+      </${RollableSection}>`;
+    } else if (howShow === NOTE_SECTION_HIDE) {
+      return html`<div></div>`;
+    } else if (howShow === NOTE_SECTION_EXCLUSIVE) {
+      return html`${ noteManager(noteKind) }`;
+    }
+  }
+
+  res.buildNoteSections = function() {
+    return html`
+      <div>
+        ${ hasSummarySection && html`<${NoteSection} heading='Summary' noteKind='NoteSummary'/>`}
+        ${ hasReviewSection && html`<${NoteSection} heading='Review' noteKind='NoteReview'/>`}
+        <${NoteSection} heading=${ title } noteKind='Note'/>
+      </div>
+    `;
+  }
 
   if (local.showUpdateForm) {
     res.updateForm = updateForm;
@@ -214,24 +259,6 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
                          optional_deck_point: deck_point,
                          appendLabel: `Append Note to ${ deck_point.title }`,
                          noteKind: 'Note'
-                       });
-  }
-
-  res.noteManager = function(noteKind) {
-    let filterFn = n => (!n.point_id) && n.kind === noteKind;
-
-    let appendLabel = "Append Note";
-    if (noteKind === 'NoteSummary') {
-      appendLabel = "Append Summary Note";
-    } else if (noteKind === 'NoteReview') {
-      appendLabel = "Append Review Note";
-    }
-
-    return NoteManager({ deck,
-                         cacheDeck,
-                         filterFn,
-                         appendLabel,
-                         noteKind
                        });
   }
 
@@ -483,4 +510,4 @@ function noteFilterDeckPoint(deck_point) {
   return n => n.point_id === deck_point.id;
 }
 
-export { DeckManager,  NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE };
+export { DeckManager };

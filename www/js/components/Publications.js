@@ -10,7 +10,6 @@ import { DeckManager } from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
 import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
 import RollableSection from '/js/components/RollableSection.js';
-import RollableNoteSection from '/js/components/RollableNoteSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import { StarRatingPartial } from '/js/components/StarRating.js';
 
@@ -74,18 +73,7 @@ function Publication(props) {
 
       <div class="top-scribble">${ publication.short_description }</div>
 
-      <${RollableNoteSection} heading='Summary'
-                              noteKind='NoteSummary'
-                              deckManager=${deckManager}>
-      </${RollableNoteSection}>
-      <${RollableNoteSection} heading='Review'
-                              noteKind='NoteReview'
-                              deckManager=${deckManager}>
-      </${RollableNoteSection}>
-      <${RollableNoteSection} heading=${ deckManager.title }
-                              noteKind='Note'
-                              deckManager=${deckManager}>
-      </${RollableNoteSection}>
+      ${ deckManager.buildNoteSections() }
 
       ${ nonEmptyArray(publication.backrefs) && html`<${SectionBackRefs} state=${state} backrefs=${ publication.backrefs } backnotes=${ publication.backnotes } deckId=${ publication.id }/>`}
       ${ canShowGraph(state, publicationId) && html`<${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${ publicationId } depth=${ 2 }/>`}

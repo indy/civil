@@ -82,7 +82,9 @@ function Idea(props) {
       </div>
       ${ deckManager.buttons() }
       ${ deckManager.buildUpdateForm() }
-      ${ deckManager.noteManager('Note') }
+
+      ${ deckManager.buildNoteSections() }
+
       ${ nonEmptyArray(idea.backrefs) && html`<${SectionBackRefs} state=${state} backrefs=${ idea.backrefs } backnotes=${ idea.backnotes } deckId=${ idea.id }/>`}
       ${ nonEmptyArray(searchResults) && html`<${SectionSearchResultsBackref} backrefs=${ searchResults }/>`}
       ${ canShowGraph(state, ideaId) && html`<${GraphSection} heading=${ graphTitle } okToShowGraph=${okToShowGraph} id=${ ideaId } depth=${ 2 } />`}

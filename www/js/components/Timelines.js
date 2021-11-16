@@ -10,7 +10,6 @@ import { DeckManager } from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
 import PointForm from '/js/components/PointForm.js';
 import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
-import RollableNoteSection from '/js/components/RollableNoteSection.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import { BasicListSection } from '/js/components/ListSections.js';
@@ -44,7 +43,6 @@ function Timeline(props) {
     updateForm: UpdateTimelineForm,
     hasSummarySection: true,
     hasReviewSection: false
-
   });
 
   // this is only for presentational purposes
@@ -57,15 +55,7 @@ function Timeline(props) {
       ${ deckManager.title }
       ${ deckManager.buttons() }
       ${ deckManager.buildUpdateForm() }
-
-      <${RollableNoteSection} heading='Summary'
-                              noteKind='NoteSummary'
-                              deckManager=${deckManager}>
-      </${RollableNoteSection}>
-      <${RollableNoteSection} heading=${ deckManager.title }
-                              noteKind='Note'
-                              deckManager=${deckManager}>
-      </${RollableNoteSection}>
+      ${ deckManager.buildNoteSections() }
 
       ${ nonEmptyArray(timeline.backrefs) && html`<${SectionBackRefs} state=${state} backrefs=${ timeline.backrefs } backnotes=${ timeline.backnotes } deckId=${ timeline.id }/>`}
       <${ListPoints} points=${ timeline.points }

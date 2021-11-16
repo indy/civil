@@ -26,7 +26,6 @@ import GraphSection from '/js/components/GraphSection.js';
 import LifespanForm from '/js/components/LifespanForm.js';
 import PointForm from '/js/components/PointForm.js';
 import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
-import RollableNoteSection from '/js/components/RollableNoteSection.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 
@@ -121,14 +120,7 @@ function Person(props) {
 
       ${ !hasKnownLifespan && html`<${LifespanForm} name=${ person.name } onLifespanGiven=${ onLifespan }/>` }
 
-      <${RollableNoteSection} heading='Summary'
-                              noteKind='NoteSummary'
-                              deckManager=${deckManager}>
-      </${RollableNoteSection}>
-      <${RollableNoteSection} heading=${ deckManager.title }
-                              noteKind='Note'
-                              deckManager=${deckManager}>
-      </${RollableNoteSection}>
+      ${ deckManager.buildNoteSections() }
 
       ${ nonEmptyArray(person.backnotes) && nonEmptyArray(person.backrefs) && html`<${SectionBackRefs} state=${state} backrefs=${ person.backrefs } backnotes=${ person.backnotes } deckId=${ person.id }/>`}
       ${ hasKnownLifespan && html`<${ListDeckPoints} deckPoints=${ person.all_points_during_life }
