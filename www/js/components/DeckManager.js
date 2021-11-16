@@ -164,13 +164,14 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
     }
 
     if (noteKind === 'Note') {
-      if (!hasSummarySection && !hasReviewSection) {
-        return NOTE_SECTION_EXCLUSIVE;
-      } if (local.showShowSummaryButton && local.showShowReviewButton) {
-        return NOTE_SECTION_EXCLUSIVE;
-      } else {
-        return NOTE_SECTION_SHOW;
+      var r = NOTE_SECTION_EXCLUSIVE;
+      if (hasSummarySection && !local.showShowSummaryButton) {
+        r = NOTE_SECTION_SHOW;
       }
+      if (hasReviewSection && !local.showShowReviewButton) {
+        r = NOTE_SECTION_SHOW;
+      }
+      return r;
     }
 
     return NOTE_SECTION_HIDE;
