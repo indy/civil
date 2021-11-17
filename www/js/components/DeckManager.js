@@ -3,14 +3,9 @@ import { html, useRef, useState, useEffect, route } from '/lib/preact/mod.js';
 import Net from '/js/Net.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
-import { useWasmInterface } from '/js/WasmInterfaceProvider.js';
 
-import { svgEdit, svgCancel, svgTickedCheckBox, svgUntickedCheckBox } from '/js/svgIcons.js';
-
-import Note from '/js/components/Note.js';
+import { NoteSection, NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE} from '/js/components/NoteSection.js';
 import PointForm from '/js/components/PointForm.js';
-import RollableSection from '/js/components/RollableSection.js';
-import ImageWidget from '/js/components/ImageWidget.js';
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 
 const BUTTONS_TOGGLE = 'buttons-toggle';
@@ -162,80 +157,55 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
   };
 
 
-  function NoteSection({heading, noteKind}) {
-    const NOTE_SECTION_HIDE = 0;
-    const NOTE_SECTION_SHOW = 1;
-    const NOTE_SECTION_EXCLUSIVE = 2;
-
-    function showNoteSection(noteKind) {
-      if (noteKind === 'NoteSummary') {
-        if (hasSummarySection) {
-          return local.showShowSummaryButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
-        } else {
-          return NOTE_SECTION_HIDE;
-        }
+  function howToShowNoteSection(noteKind) {
+    if (noteKind === 'NoteSummary') {
+      if (hasSummarySection) {
+        return local.showShowSummaryButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
+      } else {
+        return NOTE_SECTION_HIDE;
       }
-
-      if (noteKind === 'NoteReview') {
-        if (hasReviewSection) {
-          return local.showShowReviewButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
-        } else {
-          return NOTE_SECTION_HIDE;
-        }
-      }
-
-      if (noteKind === 'Note') {
-        var r = NOTE_SECTION_EXCLUSIVE;
-        if (hasSummarySection && !local.showShowSummaryButton) {
-          r = NOTE_SECTION_SHOW;
-        }
-        if (hasReviewSection && !local.showShowReviewButton) {
-          r = NOTE_SECTION_SHOW;
-        }
-        return r;
-      }
-
-      return NOTE_SECTION_HIDE;
     }
 
-    function noteManager(noteKind) {
-      let filterFn = n => (!n.point_id) && n.kind === noteKind;
-
-      let appendLabel = "Append Note";
-      if (noteKind === 'NoteSummary') {
-        appendLabel = "Append Summary Note";
-      } else if (noteKind === 'NoteReview') {
-        appendLabel = "Append Review Note";
+    if (noteKind === 'NoteReview') {
+      if (hasReviewSection) {
+        return local.showShowReviewButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
+      } else {
+        return NOTE_SECTION_HIDE;
       }
-
-      return NoteManager({ deck,
-                           cacheDeck,
-                           filterFn,
-                           appendLabel,
-                           noteKind
-                         });
     }
 
-    let howShow = showNoteSection(noteKind);
-
-    if (howShow === NOTE_SECTION_SHOW) {
-      return html`
-      <${RollableSection} heading=${heading}>
-        ${ noteManager(noteKind) }
-      </${RollableSection}>`;
-    } else if (howShow === NOTE_SECTION_HIDE) {
-      return html`<div></div>`;
-    } else if (howShow === NOTE_SECTION_EXCLUSIVE) {
-      return html`${ noteManager(noteKind) }`;
+    if (noteKind === 'Note') {
+      var r = NOTE_SECTION_EXCLUSIVE;
+      if (hasSummarySection && !local.showShowSummaryButton) {
+        r = NOTE_SECTION_SHOW;
+      }
+      if (hasReviewSection && !local.showShowReviewButton) {
+        r = NOTE_SECTION_SHOW;
+      }
+      return r;
     }
+
+    return NOTE_SECTION_HIDE;
   }
 
   res.buildNoteSections = function() {
     return html`
       <div>
-        ${ hasSummarySection && html`<${NoteSection} heading='Summary' noteKind='NoteSummary'/>`}
-        ${ hasReviewSection && html`<${NoteSection} heading='Review' noteKind='NoteReview'/>`}
-        <${NoteSection} heading=${ title } noteKind='Note'/>
+        ${ hasSummarySection && html`<${NoteSection} heading='Summary'
+                                                     noteKind='NoteSummary'
+                                                     howToShowFn=${ howToShowNoteSection }
+                                                     deck=${deck}
+                                                     cacheDeck=${cacheDeck}/>`}
+        ${ hasReviewSection && html`<${NoteSection} heading='Review'
+                                                    noteKind='NoteReview'
+                                                    howToShowFn=${ howToShowNoteSection }
+                                                    deck=${deck}
+                                                    cacheDeck=${cacheDeck} />`}
+        <${NoteSection} heading=${ title }
+                        noteKind='Note'
+                        howToShowFn=${ howToShowNoteSection }
+                        deck=${deck}
+                        cacheDeck=${cacheDeck} />
       </div>
     `;
   }
@@ -250,6 +220,10 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
 
   res.buildUpdateForm = function() {
     return local.showUpdateForm && html`<${updateForm} deck=${deck} hideFormFn=${hideForm}/>`;
+  }
+
+  function noteFilterDeckPoint(deck_point) {
+    return n => n.point_id === deck_point.id;
   }
 
   res.noteManagerForDeckPoint = function(deck_point) {
@@ -319,195 +293,6 @@ function Title(title, onShowButtons) {
                 <h1 ref=${ titleRef } onClick=${ onShowButtons }>${ title }</h1>
                 <div ref=${ postMarkerRef }></div>
               </div>`;
-}
-
-function NoteForm({ onSubmit, onCancel }) {
-  const [content, setContent] = useState('');
-
-  const handleChangeEvent = (event) => {
-    const target = event.target;
-    const name = target.name;
-    const value = target.value;
-
-    if (name === 'content') {
-      setContent(value);
-    }
-  };
-
-  return html`
-  <div class="append-note">
-    <div class="left-margin">
-      <div class="left-margin-entry clickable cancel-offset" onClick=${ onCancel }>
-        <span class="left-margin-icon-label">Cancel</span>
-        ${ svgCancel() }
-      </div>
-    </div>
-    <form class="civil-add-note-form" onSubmit=${ onSubmit }>
-      <label for="content">Append Note:</label>
-      <br/>
-      <textarea id="content"
-                type="text"
-                class="new-note-textarea"
-                name="content"
-                value=${ content }
-                onInput=${ handleChangeEvent }
-      />
-      <br/>
-      <input type="submit" value="Save"/>
-    </form>
-    <${ImageWidget}/>
-  </div>`;
-}
-
-function addNote(markup, deck_id, noteKind, optional_point_id) {
-  const wasmInterface = useWasmInterface();
-  const notes = wasmInterface.splitter(markup);
-
-  if (notes === null) {
-    console.error(markup);
-    return new Promise((resolve, reject) => { reject(new Error("addNote: splitIntoNotes failed")); });
-  }
-
-  let data = {
-    deck_id,
-    kind: noteKind,
-    content: notes
-  };
-
-  if (optional_point_id) {
-    data.point_id = optional_point_id;
-  }
-
-  function isEmptyNote(n) {
-    return n.content.every(n => { return n.length === 0;});
-  }
-
-  if (isEmptyNote(data)) {
-    return new Promise((resolve, reject) => { reject(new Error("Parsed as empty note")); });
-  } else {
-    return Net.post("/api/notes", data);
-  }
-}
-
-function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLabel, noteKind }) {
-  const [showNoteForm, setShowNoteForm] = useState(false);
-
-  function findNoteWithId(id, modifyFn) {
-    const notes = deck.notes;
-    const index = notes.findIndex(n => n.id === id);
-
-    modifyFn(notes, index);
-    cacheDeck({...deck, notes});
-  };
-
-  function onEditedNote(id, data) {
-    findNoteWithId(id, (notes, index) => {
-      notes[index] = Object.assign(notes[index], data);
-    });
-  };
-
-  function onDeleteNote(noteId) {
-    findNoteWithId(noteId, (notes, index) => {
-      notes.splice(index, 1);
-    });
-  };
-
-  function onDecksChanged(note, all_decks_for_note) {
-    // have to set deck.refs to be the canonical version
-    // 'cacheDeck' will use that to populate each note's decks array
-
-    // remove all deck.refs that relate to this note
-    deck.refs = deck.refs.filter(din => {
-      return din.note_id !== note.id;
-    });
-    // add every note.decks entry to deck.refs
-    all_decks_for_note.forEach(d => { deck.refs.push(d); });
-
-    findNoteWithId(note.id, (notes, index) => {
-      notes[index] = note;
-    });
-  };
-
-  function buildNoteComponent(note) {
-    return html`
-      <${Note} key=${ note.id }
-               note=${ note }
-               parentDeckId=${ deck.id }
-               onDelete=${ onDeleteNote }
-               onEdited=${ onEditedNote }
-               onDecksChanged=${ onDecksChanged }
-      />`;
-  }
-
-  function buildNoteForm() {
-    function onCancelAddNote(e) {
-      setShowNoteForm(false);
-      e.preventDefault();
-    };
-
-    function onAddNote(e) {
-      e.preventDefault();
-      const noteForm = e.target;
-      const markup = noteForm.content.value;
-      addNote(markup, deck.id, noteKind, optional_deck_point && optional_deck_point.id)
-        .then(newNotes => {
-          const notes = deck.notes;
-          newNotes.forEach(n => {
-            notes.push(n);
-          });
-
-          cacheDeck({...deck, notes});
-          setShowNoteForm(false);
-          // setShowUpdateForm(false);
-        })
-        .catch(error => console.error(error.message));
-    };
-
-    return html`<${NoteForm} onSubmit=${ onAddNote } onCancel=${ onCancelAddNote } />`;
-  };
-
-  function buildNoteFormIcon() {
-    function onAddNoteClicked(e) {
-      setShowNoteForm(true);
-      e.preventDefault();
-    };
-
-    if (optional_deck_point) {
-      return html`
-<div class="inline-append-note">
-  <div class="left-margin-inline">
-    <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
-      ${ svgEdit() }
-      <span class="left-margin-icon-label">${ appendLabel }</span>
-    </div>
-  </div>
-</div>
-`;
-    } else {
-      return html`
-<div class="append-note">
-  <div class="left-margin">
-    <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
-      <span class="left-margin-icon-label">${ appendLabel }</span>
-      ${ svgEdit() }
-    </div>
-  </div>
-</div>
-`;
-    }
-
-  }
-  const notes = deck.notes ? deck.notes.filter(filterFn).map(buildNoteComponent) : [];
-
-  return html`
-      <section>
-        ${ notes }
-        ${ showNoteForm ? buildNoteForm() : buildNoteFormIcon() }
-      </section>`;
-}
-
-function noteFilterDeckPoint(deck_point) {
-  return n => n.point_id === deck_point.id;
 }
 
 export { DeckManager };
