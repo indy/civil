@@ -12,14 +12,18 @@ const NOTE_SECTION_HIDE = 0;
 const NOTE_SECTION_SHOW = 1;
 const NOTE_SECTION_EXCLUSIVE = 2;
 
-function NoteSection({ heading, noteKind, howToShowFn, deck, cacheDeck }) {
+const NOTE_KIND_NOTE = 'Note';
+const NOTE_KIND_SUMMARY = 'NoteSummary';
+const NOTE_KIND_REVIEW = 'NoteReview';
+
+function NoteSection({ heading, noteKind, howToShow, deck, cacheDeck }) {
   function noteManager(noteKind) {
     let filterFn = n => (!n.point_id) && n.kind === noteKind;
 
     let appendLabel = "Append Note";
-    if (noteKind === 'NoteSummary') {
+    if (noteKind === NOTE_KIND_SUMMARY) {
       appendLabel = "Append Summary Note";
-    } else if (noteKind === 'NoteReview') {
+    } else if (noteKind === NOTE_KIND_REVIEW) {
       appendLabel = "Append Review Note";
     }
 
@@ -31,17 +35,12 @@ function NoteSection({ heading, noteKind, howToShowFn, deck, cacheDeck }) {
                        });
   }
 
-  let howShow = howToShowFn(noteKind);
-
-  if (howShow === NOTE_SECTION_SHOW) {
-    return html`
-      <${RollableSection} heading=${heading}>
-        ${ noteManager(noteKind) }
-      </${RollableSection}>`;
-  } else if (howShow === NOTE_SECTION_HIDE) {
-    return html`<div></div>`;
-  } else if (howShow === NOTE_SECTION_EXCLUSIVE) {
-    return html`${ noteManager(noteKind) }`;
+  switch(howToShow) {
+  case NOTE_SECTION_HIDE:      return html`<div></div>`;
+  case NOTE_SECTION_EXCLUSIVE: return html`${ noteManager(noteKind) }`;
+  case NOTE_SECTION_SHOW:      return html`<${RollableSection} heading=${heading}>
+                                             ${ noteManager(noteKind) }
+                                           </${RollableSection}>`;
   }
 }
 
@@ -230,4 +229,4 @@ function addNote(markup, deck_id, noteKind, optional_point_id) {
   }
 }
 
-export { NoteSection, NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE }
+export { NoteSection, NoteManager, NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE, NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW }

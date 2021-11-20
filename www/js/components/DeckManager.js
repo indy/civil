@@ -4,7 +4,9 @@ import Net from '/js/Net.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 
-import { NoteSection, NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE} from '/js/components/NoteSection.js';
+import { NoteSection, NoteManager,
+         NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE,
+         NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 import PointForm from '/js/components/PointForm.js';
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 
@@ -68,10 +70,10 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
   useEffect(() => {
     if (deck.notes) {
       if (hasSummarySection) {
-        localDispatch(SHOW_SUMMARY_BUTTON, !deck.notes.some(n => n.kind === 'NoteSummary'));
+        localDispatch(SHOW_SUMMARY_BUTTON, !deck.notes.some(n => n.kind === NOTE_KIND_SUMMARY));
       }
       if (hasReviewSection) {
-        localDispatch(SHOW_REVIEW_BUTTON, !deck.notes.some(n => n.kind === 'NoteReview'));
+        localDispatch(SHOW_REVIEW_BUTTON, !deck.notes.some(n => n.kind === NOTE_KIND_REVIEW));
       }
     }
     if(!state.cache.deck[deck.id]) {
@@ -158,7 +160,7 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
 
 
   function howToShowNoteSection(noteKind) {
-    if (noteKind === 'NoteSummary') {
+    if (noteKind === NOTE_KIND_SUMMARY) {
       if (hasSummarySection) {
         return local.showShowSummaryButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
       } else {
@@ -166,7 +168,7 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
       }
     }
 
-    if (noteKind === 'NoteReview') {
+    if (noteKind === NOTE_KIND_REVIEW) {
       if (hasReviewSection) {
         return local.showShowReviewButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
       } else {
@@ -174,7 +176,7 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
       }
     }
 
-    if (noteKind === 'Note') {
+    if (noteKind === NOTE_KIND_NOTE) {
       var r = NOTE_SECTION_EXCLUSIVE;
       if (hasSummarySection && !local.showShowSummaryButton) {
         r = NOTE_SECTION_SHOW;
@@ -192,20 +194,20 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
     return html`
       <div>
         ${ hasSummarySection && html`<${NoteSection} heading='Summary'
-                                                     noteKind='NoteSummary'
-                                                     howToShowFn=${ howToShowNoteSection }
-                                                     deck=${deck}
-                                                     cacheDeck=${cacheDeck}/>`}
+                                                     noteKind=${ NOTE_KIND_SUMMARY }
+                                                     howToShow=${ howToShowNoteSection(NOTE_KIND_SUMMARY) }
+                                                     deck=${ deck }
+                                                     cacheDeck=${ cacheDeck }/>`}
         ${ hasReviewSection && html`<${NoteSection} heading='Review'
-                                                    noteKind='NoteReview'
-                                                    howToShowFn=${ howToShowNoteSection }
-                                                    deck=${deck}
-                                                    cacheDeck=${cacheDeck} />`}
+                                                    noteKind=${ NOTE_KIND_REVIEW }
+                                                    howToShow=${ howToShowNoteSection(NOTE_KIND_REVIEW) }
+                                                    deck=${ deck }
+                                                    cacheDeck=${ cacheDeck } />`}
         <${NoteSection} heading=${ title }
-                        noteKind='Note'
-                        howToShowFn=${ howToShowNoteSection }
-                        deck=${deck}
-                        cacheDeck=${cacheDeck} />
+                        noteKind=${ NOTE_KIND_NOTE }
+                        howToShow=${ howToShowNoteSection(NOTE_KIND_NOTE) }
+                        deck=${ deck }
+                        cacheDeck=${ cacheDeck } />
       </div>
     `;
   }
@@ -232,7 +234,7 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
                          filterFn: noteFilterDeckPoint(deck_point),
                          optional_deck_point: deck_point,
                          appendLabel: `Append Note to ${ deck_point.title }`,
-                         noteKind: 'Note'
+                         noteKind: NOTE_KIND_NOTE
                        });
   }
 
