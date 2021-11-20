@@ -43,3 +43,12 @@ export function leftMarginHeading(content) {
             </div>
           </div>`;
 }
+
+export function leftMarginHeadingNoWrap(content) {
+  return html`
+          <div class="left-margin-entry-no-wrap">
+            <div class="left-margin-heading">
+              ${ content }
+            </div>
+          </div>`;
+}

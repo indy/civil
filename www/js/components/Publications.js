@@ -1,6 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { ensureListingLoaded, fetchDeckListing, leftMarginHeading } from '/js/CivilUtils.js';
+import { ensureListingLoaded, fetchDeckListing, leftMarginHeading, leftMarginHeadingNoWrap } from '/js/CivilUtils.js';
 import { capitalise, removeEmptyStrings, formattedDate } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
@@ -61,7 +61,7 @@ function Publication(props) {
       <div>
         <div class="left-margin">
           ${ publication.author && leftMarginHeading(publication.author) }
-          ${ publication.source && leftMarginHeading(asUrl(publication.source)) }
+          ${ publication.source && leftMarginHeadingNoWrap(asUrl(publication.source)) }
           ${ publication.published_date && leftMarginHeading(`Published: ${ formattedDate(publication.published_date)}`) }
           ${ publication.created_at && leftMarginHeading(`Added: ${ formattedDate(publication.created_at) }`) }
           <${StarRatingPartial} rating=${publication.rating}/>

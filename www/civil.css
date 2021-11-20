@@ -950,6 +950,10 @@ section > form { width: var(--block-width); }
 
 .left-margin-entry {
   padding-right: 3rem;
+}
+
+.left-margin-entry-no-wrap {
+  padding-right: 3rem;
   margin-left: -500rem;
 }
 
