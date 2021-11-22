@@ -14,8 +14,7 @@ import { Login, Logout }             from '/js/components/Login.js';
 import { Person, People }            from '/js/components/People.js';
 import { Publication, Publications } from '/js/components/Publications.js';
 import { Timeline, Timelines }       from '/js/components/Timelines.js';
-
-import { svgLock, svgEdit } from '/js/svgIcons.js';
+import { WhenWritableToggle }        from '/js/components/WhenWritable.js';
 
 export async function buildInitialState() {
   try {
@@ -76,7 +75,7 @@ export function App(state, wasmInterface) {
 }
 
 function TopBarMenu(props) {
-  const [state, dispatch] = useStateValue();
+  const [state] = useStateValue();
 
   function loggedStatus() {
     let status = '';
@@ -98,18 +97,11 @@ function TopBarMenu(props) {
     return state.user ? "/logout" : "/login";
   }
 
-  function lockToggle(e) {
-    e.preventDefault();
-    dispatch({ type: 'toggleLock'});
-  }
-
   return html`
     <nav>
       <div class="righty">
         <${Link} class='pigment-inherit' href=${ loggedLink() } id="login-menuitem" >${ loggedStatus() }</${Link}>
-        <span onClick=${ lockToggle }>
-          ${ state.readOnly ? svgLock() : svgEdit() }
-        </span>
+        <${WhenWritableToggle}/>
       </div>
 
       <${Link} class='pigment-inherit' href='/'>Search</${Link}>

@@ -14,7 +14,7 @@ import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import { BasicListSection } from '/js/components/ListSections.js';
 import { svgPointAdd, svgCancel, svgCaretRight, svgCaretRightEmpty, svgCaretDown } from '/js/svgIcons.js';
-import WhenWritable from '/js/components/WhenWritable.js';
+import { WhenWritable } from '/js/components/WhenWritable.js';
 
 function Timelines() {
   const [state, dispatch] = useStateValue();

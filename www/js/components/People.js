@@ -28,7 +28,7 @@ import PointForm from '/js/components/PointForm.js';
 import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
-import WhenWritable from '/js/components/WhenWritable.js';
+import { WhenWritable } from '/js/components/WhenWritable.js';
 
 function People() {
   const [state, dispatch] = useStateValue();

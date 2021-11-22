@@ -7,7 +7,7 @@ import { useWasmInterface } from '/js/WasmInterfaceProvider.js';
 import ImageWidget from '/js/components/ImageWidget.js';
 import Note from '/js/components/Note.js';
 import RollableSection from '/js/components/RollableSection.js';
-import WhenWritable from '/js/components/WhenWritable.js';
+import { WhenWritable } from '/js/components/WhenWritable.js';
 
 const NOTE_SECTION_HIDE = 0;
 const NOTE_SECTION_SHOW = 1;
