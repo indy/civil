@@ -14,6 +14,7 @@ import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import { BasicListSection } from '/js/components/ListSections.js';
 import { svgPointAdd, svgCancel, svgCaretRight, svgCaretRightEmpty, svgCaretDown } from '/js/svgIcons.js';
+import WhenWritable from '/js/components/WhenWritable.js';
 
 function Timelines() {
   const [state, dispatch] = useStateValue();
@@ -188,13 +189,15 @@ function ListPoints({ points, deckManager, holderId, holderName }) {
       <ul class="unstyled-list hug-left">
         ${ dps }
       </ul>
-      <div class="left-margin">
-        <div class="left-margin-entry clickable" onClick=${ onAddPointClicked }>
-          <span class="left-margin-icon-label">${ formSidebarText }</span>
-          ${ showPointForm ? svgCancel() : svgPointAdd() }
+      <${WhenWritable}>
+        <div class="left-margin">
+          <div class="left-margin-entry clickable" onClick=${ onAddPointClicked }>
+            <span class="left-margin-icon-label">${ formSidebarText }</span>
+            ${ showPointForm ? svgCancel() : svgPointAdd() }
+          </div>
         </div>
-      </div>
-      ${ showPointForm && deckManager.buildPointForm(onPointCreated) }
+        ${ showPointForm && deckManager.buildPointForm(onPointCreated) }
+      </${WhenWritable}>
     </${RollableSection}>`;
 }
 

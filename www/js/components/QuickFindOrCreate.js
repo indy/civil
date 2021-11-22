@@ -130,7 +130,9 @@ export default function QuickFindOrCreate({ autocompletes, resource, minSearchLe
       }
     }
 
-    createDeck(local.searchTerm.trim());
+    if (!state.readOnly) {
+      createDeck(local.searchTerm.trim());
+    }
   }
 
   let cl = local.candidates.map((c, i) => {

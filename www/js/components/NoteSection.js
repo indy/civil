@@ -7,6 +7,7 @@ import { useWasmInterface } from '/js/WasmInterfaceProvider.js';
 import ImageWidget from '/js/components/ImageWidget.js';
 import Note from '/js/components/Note.js';
 import RollableSection from '/js/components/RollableSection.js';
+import WhenWritable from '/js/components/WhenWritable.js';
 
 const NOTE_SECTION_HIDE = 0;
 const NOTE_SECTION_SHOW = 1;
@@ -129,17 +130,20 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
 
     if (optional_deck_point) {
       return html`
+    <${WhenWritable}>
 <div class="inline-append-note">
   <div class="left-margin-inline">
     <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
       ${ svgEdit() }
-      <span class="left-margin-icon-label">${ appendLabel }</span>
+        <span class="left-margin-icon-label">${ appendLabel }</span>
     </div>
   </div>
 </div>
+    </${WhenWritable}>
 `;
     } else {
       return html`
+    <${WhenWritable}>
 <div class="append-note">
   <div class="left-margin">
     <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
@@ -148,6 +152,7 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
     </div>
   </div>
 </div>
+    </${WhenWritable}>
 `;
     }
 

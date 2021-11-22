@@ -177,7 +177,7 @@ export default function Note(props) {
   function onNoteClicked(e) {
     if (e.target.classList.contains("note-inline-link")) {
       // let the browser handle clicked links normally
-    } else {
+    } else if(!state.readOnly){
       // only intercept the clicks to non-link elements
       e.preventDefault();
       localDispatch(MOD_BUTTONS_TOGGLE);

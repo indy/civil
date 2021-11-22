@@ -132,8 +132,10 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
   };
 
   function onShowButtons(e) {
-    e.preventDefault();
-    localDispatch(BUTTONS_TOGGLE);
+    if (!state.readOnly) {
+      e.preventDefault();
+      localDispatch(BUTTONS_TOGGLE);
+    }
   };
 
   let res = {};

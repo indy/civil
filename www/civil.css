@@ -879,6 +879,11 @@ label.right-margin-toggle {
 }
 
 #login-menuitem {
+  /* float: right; */
+  /* clear:both; */
+}
+
+.righty {
   float: right;
   clear:both;
 }

@@ -9,6 +9,8 @@ export const initialState = {
   //   email: ...
   // },
 
+  readOnly: false,
+
   ac: {
     // an array of { id, name, resource }
     decks: []
@@ -56,6 +58,11 @@ export const reducer = (state, action) => {
       fullGraph: buildFullGraph(action.graphConnections),
       srReviewCount: action.srReviewCount,
       srEarliestReviewDate: action.srEarliestReviewDate
+    };
+  case 'toggleLock':
+    return {
+      ...state,
+      readOnly: !state.readOnly
     };
   case 'setRecentImages':
     return {
