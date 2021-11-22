@@ -99,13 +99,11 @@ function TopBarMenu(props) {
 
   return html`
     <nav>
-      <div class="righty">
-        <${Link} class='pigment-inherit' href=${ loggedLink() } id="login-menuitem" >${ loggedStatus() }</${Link}>
+      <div class="corner-writable-toggle">
         <${WhenWritableToggle}/>
       </div>
-
+      <${Link} class='pigment-inherit' href=${ loggedLink() } id="login-menuitem" >${ loggedStatus() }</${Link}>
       <${Link} class='pigment-inherit' href='/'>Search</${Link}>
-
       <span class="optional-navigable">
         ${state.preferredOrder.map(dk => html`<${Link} class='pigment-${dk}' href='/${dk}'>${capitalise(dk)}</${Link}>`)}
       </span>

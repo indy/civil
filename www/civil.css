@@ -879,13 +879,14 @@ label.right-margin-toggle {
 }
 
 #login-menuitem {
-  /* float: right; */
-  /* clear:both; */
-}
-
-.righty {
   float: right;
   clear:both;
+}
+
+.corner-writable-toggle {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
 }
 
 p.fakelink {
