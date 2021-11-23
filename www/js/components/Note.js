@@ -143,7 +143,7 @@ export default function Note(props) {
     addDeckReferencesUI: false,
     addFlashCardUI: false,
     isEditingMarkup: false,
-    note: { content: props.note.content },
+    note: { ...props.note },
     decks: (props.note && props.note.decks && props.note.decks.map(decksStoreOriginalAnnotations)),
     flashcardToShow: undefined
   };
@@ -165,7 +165,13 @@ export default function Note(props) {
 
         // send updated content to server
         //
-        editNote(id, local.note);
+        const updatedNote = {
+          id: local.note.id,
+          kind: local.note.kind,
+          content: local.note.content
+        };
+
+        Net.put("/api/notes/" + id.toString(), updatedNote);
 
         // stopped editing and the editable content is different than
         // the original note's text.
@@ -326,12 +332,6 @@ export default function Note(props) {
 }
 
 function editNote(id, data) {
-  const post = {
-    id: id,
-    ...data
-  };
-
-  return Net.put("/api/notes/" + id.toString(), post);
 }
 
 function onReallyDelete(id, onDelete) {
