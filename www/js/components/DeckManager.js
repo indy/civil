@@ -7,7 +7,7 @@ import { useStateValue } from '/js/StateProvider.js';
 import { NoteSection, NoteManager,
          NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE,
          NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
-import PointForm from '/js/components/PointForm.js';
+import { PointForm } from '/js/components/PointForm.js';
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 
 const BUTTONS_TOGGLE = 'buttons-toggle';

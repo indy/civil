@@ -8,7 +8,7 @@ import { useStateValue } from '/js/StateProvider.js';
 
 import { DeckManager } from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
-import PointForm from '/js/components/PointForm.js';
+import { PointForm } from '/js/components/PointForm.js';
 import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';

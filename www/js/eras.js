@@ -5,6 +5,17 @@ export const era = {
   modernCutoff: 1856
 };
 
+// given a date, return the number of years since that date
+export function deltaInYears(year, month, day) {
+  let earlier = new Date(Date.UTC(year, month, day));
+  let current = Date.now();
+
+  let deltaMS = current - earlier;
+
+  // convert ms to years
+  return deltaMS / (1000 * 60 * 60 * 24 * 365.25);
+}
+
 export function calcAgeInYears(to_triple, from_triple) {
   let years = to_triple[0] - from_triple[0];
   if (to_triple[1] < from_triple[1]) {
@@ -48,7 +59,7 @@ export function filterAfter(objs, year) {
 
 export function addSortYear(p) {
   if (p.sort_date) {
-    p.sort_year = yearFrom(p.sort_date);
+    p.sort_year = extractYear(p.sort_date);
   } else {
     p.sort_year = era.uncategorisedYear;
   }
@@ -56,16 +67,16 @@ export function addSortYear(p) {
 
 export function addChronologicalSortYear(p) {
   if (p.exact_date) {
-    p.sort_year = yearFrom(p.exact_date);
+    p.sort_year = extractYear(p.exact_date);
   } else if (p.lower_date) {
-    p.sort_year = yearFrom(p.lower_date);
+    p.sort_year = extractYear(p.lower_date);
   } else {
     p.sort_year = era.uncategorisedYear;
   }
   return p;
 }
 
-export function yearFrom(dateString) {
+function extractYear(dateString) {
   let res = 0;
   if (!dateString) {
     res = 9999;                 // if an event has been created via quickForm and has only title information

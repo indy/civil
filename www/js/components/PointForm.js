@@ -3,7 +3,26 @@ import { html, useState } from '/lib/preact/mod.js';
 import { capitalise } from '/js/JsUtils.js';
 import Net from '/js/Net.js';
 
-export default function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegend, locationLegend }) {
+
+export function PointBirthForm({ pointBorn, onSubmit }) {
+  return html`<${PointForm} timeLegend="Date of Birth"
+                            locationLegend="Birth Location"
+                            pointKind="point_begin"
+                            point=${ pointBorn }
+                            onSubmit=${ onSubmit }
+                            submitMessage="Add Birth"/>`;
+}
+
+export function PointDeathForm({ pointDied, onSubmit }) {
+  return html`<${PointForm} timeLegend="Date of Death"
+                            locationLegend="DeathLocation"
+                            pointKind="point_end"
+                            point=${ pointDied }
+                            onSubmit=${ onSubmit }
+                            submitMessage="Add Death"/>`;
+}
+
+export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegend, locationLegend }) {
 
   timeLegend ||= "Time";
   locationLegend ||= "Location";

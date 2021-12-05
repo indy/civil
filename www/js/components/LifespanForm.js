@@ -2,7 +2,11 @@ import { html, useEffect, useState } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 
-import PointForm from '/js/components/PointForm.js';
+import { useStateValue } from '/js/StateProvider.js';
+import { PointForm, PointBirthForm, PointDeathForm } from '/js/components/PointForm.js';
+
+import { deltaInYears } from '/js/eras.js';
+
 
 const LIFESPAN_STAGE_BIRTH = 0;
 const LIFESPAN_STAGE_IS_ALIVE = 1;
@@ -10,6 +14,7 @@ const LIFESPAN_STAGE_DEATH = 2;
 const LIFESPAN_STAGE_FINISHED = 3;
 
 export default function LifespanForm({ name, onLifespanGiven }) {
+  const [state, dispatch] = useStateValue();
 
   const [localState, setLocalState] = useState({
     stage: LIFESPAN_STAGE_BIRTH,
@@ -24,11 +29,19 @@ export default function LifespanForm({ name, onLifespanGiven }) {
     }
   }, [localState]);
 
-  function onAddBirthPoint(point) {
+  function onAddBirthPoint(birthPoint) {
+    // ask about date of death if the person was born a long time ago
+    // otherwise ask the user if the person is still alive
+    //
+    let year = parseInt(birthPoint.exact_date[0]);
+    let month = parseInt(birthPoint.exact_date[1]);
+    let day = parseInt(birthPoint.exact_date[2]);
+    let ageInYears = deltaInYears(year, month, day);
+
     setLocalState({
       ...localState,
-      birthPoint: point,
-      stage: LIFESPAN_STAGE_IS_ALIVE
+      birthPoint: birthPoint,
+      stage: (ageInYears > state.oldestAliveAge) ? LIFESPAN_STAGE_DEATH : LIFESPAN_STAGE_IS_ALIVE
     });
   }
 
@@ -59,12 +72,7 @@ export default function LifespanForm({ name, onLifespanGiven }) {
 
   switch(localState.stage) {
   case LIFESPAN_STAGE_BIRTH:
-    return html`<${PointForm} timeLegend="Date of Birth"
-                              locationLegend="Birth Location"
-                              pointKind="point_begin"
-                              point=${ pointBorn }
-                              onSubmit=${ onAddBirthPoint }
-                              submitMessage="Add Birth"/>`;
+    return html`<${PointBirthForm}  pointBorn=${ pointBorn } onSubmit=${ onAddBirthPoint }/>`;
   case LIFESPAN_STAGE_IS_ALIVE:
     return html`<div>
                   <span>
@@ -74,11 +82,6 @@ export default function LifespanForm({ name, onLifespanGiven }) {
                   </span>
                 </div>`;
   case LIFESPAN_STAGE_DEATH:
-    return html`<${PointForm} timeLegend="Date of Death"
-                              locationLegend="Death Location"
-                              pointKind="point_end"
-                              point=${ pointDied }
-                              onSubmit=${ onAddDeathPoint }
-                              submitMessage="Add Death"/>`;
+    return html`<${PointDeathForm}  pointDied=${ pointDied } onSubmit=${ onAddDeathPoint }/>`;
   }
 }

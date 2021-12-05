@@ -25,6 +25,9 @@ export const initialState = {
     deck: {}
   },
 
+  // oldest reasonable age in years, any person whose birth means they're older can be assumed to be dead
+  oldestAliveAge: 120,
+
   recentImages: [],
   imageDirectory: '',
 
