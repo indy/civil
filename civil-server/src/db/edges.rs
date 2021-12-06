@@ -165,12 +165,11 @@ pub(crate) async fn create_from_note_to_decks(
             &new_deck_reference.name,
         )
         .await?;
-        let no_annotation: Option<String> = None;
         let r = RefKind::from(new_deck_reference.ref_kind);
         pg::zero(
             &tx,
             &stmt_attach_deck,
-            &[&note_id, &deck.id, &r, &no_annotation],
+            &[&note_id, &deck.id, &r, &new_deck_reference.annotation],
         )
         .await?;
     }
