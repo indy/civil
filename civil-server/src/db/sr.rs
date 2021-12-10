@@ -253,10 +253,7 @@ pub(crate) async fn get_cards(
     .await
 }
 
-pub(crate) async fn get_practice_card(
-    db_pool: &Pool,
-    user_id: Key,
-) -> Result<interop::Card> {
+pub(crate) async fn get_practice_card(db_pool: &Pool, user_id: Key) -> Result<interop::Card> {
     info!("get_practice_card");
 
     pg::one_from::<CardDbInternal, interop::Card>(

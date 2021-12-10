@@ -52,3 +52,23 @@ export function leftMarginHeadingNoWrap(content) {
             </div>
           </div>`;
 }
+
+
+export function referencesSortFunction(a, b) {
+  if (a.resource < b.resource) {
+    return -1;
+  }
+  if (a.resource > b.resource) {
+    return 1;
+  }
+
+  if (a.name < b.name) {
+    return -1;
+  }
+
+  if (a.name > b.name) {
+    return 1;
+  }
+
+  return 0;
+}

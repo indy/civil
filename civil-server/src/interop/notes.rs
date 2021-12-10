@@ -24,7 +24,6 @@ pub enum NoteKind {
     NoteSummary,
 }
 
-
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Note {
     pub id: Key,

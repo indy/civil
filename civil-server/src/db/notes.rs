@@ -16,8 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::pg;
-use crate::error::{Error, Result};
 use crate::db::note_kind::NoteKind;
+use crate::error::{Error, Result};
 use crate::interop::notes as interop;
 use crate::interop::Key;
 use deadpool_postgres::{Client, Pool, Transaction};
@@ -64,7 +64,17 @@ pub(crate) async fn create_notes(
     let tx = client.transaction().await?;
 
     for content in note.content.iter() {
-        notes.push(create_common(&tx, user_id, note.deck_id, NoteKind::from(note.kind), note.point_id, content).await?);
+        notes.push(
+            create_common(
+                &tx,
+                user_id,
+                note.deck_id,
+                NoteKind::from(note.kind),
+                note.point_id,
+                content,
+            )
+            .await?,
+        );
     }
 
     tx.commit().await?;
@@ -79,7 +89,7 @@ pub(crate) async fn create_notes(
 struct NoteBasic {
     id: Key,
     content: String,
-    kind: NoteKind
+    kind: NoteKind,
 }
 
 impl From<NoteBasic> for interop::Note {

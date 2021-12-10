@@ -150,7 +150,6 @@ pub async fn get_cards(
     Ok(HttpResponse::Ok().json(db_cards))
 }
 
-
 pub async fn get_practice_card(
     db_pool: Data<Pool>,
     session: actix_session::Session,

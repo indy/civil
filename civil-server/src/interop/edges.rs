@@ -15,26 +15,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::RefKind;
+use crate::interop::decks::{DeckResource, RefKind};
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct ExistingDeckReference {
+pub struct ExistingReference {
     pub id: Key, // id of the existing deck
-    pub ref_kind: RefKind,
-    pub annotation: Option<String>,
-}
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct NewDeckReference {
     pub name: String,
+    pub resource: DeckResource,
     pub ref_kind: RefKind,
     pub annotation: Option<String>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct ProtoEdgeFromNoteToDecks {
+pub struct NewReference {
+    pub name: String,
+    pub resource: DeckResource,
+    pub ref_kind: RefKind,
+    pub annotation: Option<String>,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct ProtoNoteReferences {
     pub note_id: Key,
-    pub existing_deck_references: Vec<ExistingDeckReference>,
-    pub new_deck_references: Vec<NewDeckReference>,
+    pub references_added: Vec<ExistingReference>,
+    pub references_changed: Vec<ExistingReference>,
+    pub references_created: Vec<NewReference>,
+    pub references_removed: Vec<ExistingReference>,
 }

@@ -14,31 +14,13 @@ import buildMarkup from '/js/components/BuildMarkup.js';
 const NOTE_SET_PROPERTY = 'note-set-property';
 const ADD_DECK_REFERENCES_UI_SHOW = 'add-deck-references-ui-show';
 const ADD_FLASH_CARD_UI_SHOW = 'add-flashcard-ui-show';
-const DECKS_SET = "decks-set";
 const ADD_DECKS_COMMIT = 'add-decks-commit';
-const ADD_DECKS_CANCEL = 'add-decks-cancel';
+const HIDE_ADD_DECKS_UI = 'hide-add-decks-ui';
 const FLASH_CARD_SAVED = 'flash-card-saved';
 const MOD_BUTTONS_TOGGLE = 'mod-buttons-toggle';
 const IS_EDITING_MARKUP_TOGGLE = 'is-editing-markup-toggle';
 const FLASHCARD_TOGGLE = 'flashcard-toggle';
 const FLASHCARD_HIDE = 'flashcard-hide';
-
-function decksStoreOriginalAnnotations(decks) {
-  // create a copy of the original annotation in case the user changes the annotation and then presses cancel
-  //
-  return {
-    ...decks,
-    annotation_original: decks.annotation
-  };
-}
-
-function decksRestoreOriginalAnnotations(decks) {
-  // restore the annotation using the copy
-  return {
-    ...decks,
-    annotation: decks.annotation_original
-  };
-}
 
 function reducer(state, action) {
   switch(action.type) {
@@ -84,25 +66,20 @@ function reducer(state, action) {
       showModButtons: showUI ? state.showModButtons : false
     }
   }
-  case DECKS_SET:
+  case HIDE_ADD_DECKS_UI:
     return {
       ...state,
-      decks: action.data
-    }
-  case ADD_DECKS_COMMIT:
-    return {
-      ...state,
-      decks: action.data.map(decksStoreOriginalAnnotations),
       showModButtons: false,
       addDeckReferencesUI: false
     }
-  case ADD_DECKS_CANCEL:
+  case ADD_DECKS_COMMIT: {
     return {
       ...state,
-      decks: action.data.map(decksRestoreOriginalAnnotations),
+      decks: action.data,
       showModButtons: false,
       addDeckReferencesUI: false
     }
+  }
   case FLASH_CARD_SAVED:
     return {
       ...state,
@@ -144,7 +121,7 @@ export default function Note(props) {
     addFlashCardUI: false,
     isEditingMarkup: false,
     note: { ...props.note },
-    decks: (props.note && props.note.decks && props.note.decks.map(decksStoreOriginalAnnotations)),
+    decks: (props.note && props.note.decks),
     flashcardToShow: undefined
   };
   const [local, localDispatch] = useLocalReducer(reducer, initialState);
@@ -243,7 +220,8 @@ export default function Note(props) {
   }
 
   function buildAddDecksUI() {
-    function cancelAddDecks() {
+
+    function referenceChanges(changes) {
       // todo: what if someone:
       // 1. clicks on edit note
       // 2. adds decks
@@ -252,14 +230,33 @@ export default function Note(props) {
       // 5. adds more decks
       // 6. clicks cancel
       // expected: only the changes from step 5 should be undone
+      console.log("commitAddDecks");
+      // console.log(changes);
 
-      localDispatch(ADD_DECKS_CANCEL, local.decks);
-    };
 
-    function commitAddDecks() {
-      addDecks(props.note, local.decks, props.onDecksChanged, dispatch);
+      if (changes) {
+        let data = {
+          note_id: props.note.id,
+          // references_unchanged: changes.referencesUnchanged,
+          references_changed: changes.referencesChanged,
+          references_removed: changes.referencesRemoved,
+          references_added: changes.referencesAdded,
+          references_created: changes.referencesCreated
+        };
 
-      localDispatch(ADD_DECKS_COMMIT, local.decks);
+        console.log(data);
+
+        Net.post("/api/edges/notes_decks", data).then((all_decks_for_note) => {
+          updateAutocompleteWithNewDecks(dispatch, changes.referencesCreated, all_decks_for_note);
+          props.onDecksChanged(props.note, all_decks_for_note);
+          localDispatch(ADD_DECKS_COMMIT, all_decks_for_note);
+        });
+
+
+      } else {
+        // cancel was pressed
+        localDispatch(HIDE_ADD_DECKS_UI);
+      }
     };
 
     return html`
@@ -269,9 +266,7 @@ export default function Note(props) {
           parentDeckId=${ props.parentDeckId }
           chosen=${ local.decks }
           available=${ state.ac.decks }
-          onChange=${ (d) => { localDispatch(DECKS_SET, d);} }
-          onCancelAddDecks=${ cancelAddDecks }
-          onCommitAddDecks=${ commitAddDecks }
+          onFinish=${ referenceChanges }
         />
       </div>`;
   };
@@ -400,35 +395,12 @@ function buildFlashcardIndicator(flashcards, localDispatch) {
   return entries;
 };
 
-function addDecks(note, decks, onDecksChanged, dispatch) {
-  let data = {
-    note_id: note.id,
-    existing_deck_references: [],
-    new_deck_references: []
-  };
-
-  // decks would be null if we've removed all decks from a note
-  if (decks) {
-    data = decks.reduce((acc, deck) => {
-      if (deck.__isNew__) {
-        acc.new_deck_references.push(deck);
-      } else if (deck.id) {
-        acc.existing_deck_references.push(deck);
-      } else {
-        console.error(`deck ${deck.name} has neither __isNew__ nor an id ???`);
-        console.error(deck);
-      }
-      return acc;
-    }, data);
-  }
-
-  Net.post("/api/edges/notes_decks", data).then((all_decks_for_note) => {
-    updateAutocompleteWithNewDecks(dispatch, data.new_deck_references, all_decks_for_note);
-    onDecksChanged(note, all_decks_for_note);
-  });
-}
-
 function updateAutocompleteWithNewDecks(dispatch, newDeckReferences, allDecksForNote) {
+
+  const [state, dispatch2] = useStateValue();
+  console.log(newDeckReferences);
+  console.log(allDecksForNote);
+
   let newDecks = [];
 
   newDeckReferences.forEach(d => {
@@ -452,6 +424,15 @@ function updateAutocompleteWithNewDecks(dispatch, newDeckReferences, allDecksFor
     dispatch({
       type: 'addAutocompleteDecks',
       newDecks
+    });
+  }
+
+  if (allDecksForNote) {
+    console.log('(dispatching)');
+    console.log(state.cache.deck);
+    dispatch({
+      type: 'updateCachedDecks',
+      decks: allDecksForNote
     });
   }
 }

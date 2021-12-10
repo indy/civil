@@ -43,7 +43,6 @@ pub struct Publication {
     pub flashcards: Option<Vec<FlashCard>>,
 
     pub published_date: Option<chrono::NaiveDate>,
-
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

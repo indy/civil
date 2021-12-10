@@ -1,5 +1,6 @@
 import { addSortYear } from '/js/eras.js';
 import { opposingKind } from '/js/JsUtils.js';
+import { referencesSortFunction } from '/js/CivilUtils.js';
 
 export const initialState = {
   user: undefined,
@@ -330,7 +331,7 @@ function applyDecksAndCardsToNotes(obj) {
 
   for(let i = 0;i<obj.notes.length;i++) {
     let n = obj.notes[i];
-    n.decks = decksInNotes[n.id];
+    n.decks = decksInNotes[n.id].sort(referencesSortFunction);
     n.flashcards = cardsInNotes[n.id];
   }
 
