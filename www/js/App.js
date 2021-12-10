@@ -22,6 +22,7 @@ export async function buildInitialState() {
     let user = await Net.get("/api/users");
 
     if (user) {
+
       // update initial state with user
       //
       let state = reducer(initialState, {
@@ -29,10 +30,18 @@ export async function buildInitialState() {
         user
       });
 
-      let struct = await getInitialStateForLoggedInUser();
+      let uberSetupStruct = await getInitialStateForLoggedInUser();
       state = reducer(state, {
         type: 'uberSetup',
-        ...struct
+        ...uberSetupStruct
+      });
+
+      // set the app to be read only on small devices
+      //
+      let smallScreen = window.matchMedia("(max-width: 500px)");
+      state = reducer(state, {
+        type: 'setLock',
+        readOnly: smallScreen.matches
       });
 
       console.log('user is logged in');

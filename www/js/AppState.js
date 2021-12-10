@@ -62,6 +62,11 @@ export const reducer = (state, action) => {
       srReviewCount: action.srReviewCount,
       srEarliestReviewDate: action.srEarliestReviewDate
     };
+  case 'setLock':
+    return {
+      ...state,
+      readOnly: action.readOnly
+    };
   case 'toggleLock':
     return {
       ...state,

@@ -1345,6 +1345,10 @@ input:required {
   .svg-container {
     width: 100%;
   }
+
+  .corner-writable-toggle {
+    display: none;
+  }
 }
 
 .title-replacement-spacer {
