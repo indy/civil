@@ -76,7 +76,7 @@ export default function SectionBackRefs({ state, backrefs, backnotes, deckId }) 
   //
   state.preferredOrder.forEach(deckKind => {
     if (groupedByResource[deckKind]) {
-      sections.push(SectionLinks(groupedByResource[deckKind]));
+      sections.push(html`<${SectionLinks} backrefs=${groupedByResource[deckKind]} />`);
     }
   });
 
@@ -84,10 +84,9 @@ export default function SectionBackRefs({ state, backrefs, backnotes, deckId }) 
     <${RollableSection} heading='BackRefs'>
       ${ sections }
     </${RollableSection}>`;
-
 }
 
-function SectionLinks(backrefs, heading) {
+function SectionLinks({ backrefs }) {
   const [localState, setLocalState] = useState({
     showExpanded: true,
     childrenExpanded: backrefs.map(br => true)
@@ -123,7 +122,7 @@ function SectionLinks(backrefs, heading) {
                   notes=${ br.notes }/>`;
   });
 
-  let sectionHeading = capitalise(heading || backrefs[0].resource);
+  let sectionHeading = capitalise(backrefs[0].resource);
   let sectionId = backrefs[0].id;
 
   return html`
