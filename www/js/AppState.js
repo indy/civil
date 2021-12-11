@@ -117,20 +117,57 @@ export const reducer = (state, action) => {
         }
       };
     }
-  case 'addAutocompleteDecks':
+  case 'noteRefsModified':
     {
-      let decks = state.ac.decks;
-      action.newDecks.forEach(newDeck => decks.push(autocompleteTransform({
-        id: newDeck.id,
-        name: newDeck.name,
-        resource: newDeck.resource
-      })));
-      return {
-        ...state,
-        ac: {
-          decks: decks
+      let newState = {...state};
+
+      // update the autocomplete
+      //
+      let rebuildIndex = false;
+      action.changes.referencesCreated.forEach(d => {
+        // find the newly created deck in allDecksForNote
+        let deck = action.allDecksForNote.find(a => a.name === d.name);
+
+        // this deck has just been created, so it isn't in the state's autocomplete list
+        if (deck) {
+          newState.ac.decks.push(autocompleteTransform({
+            id: deck.id,
+            name: deck.name,
+            resource: deck.resource
+          }));
+          rebuildIndex = true;
+        } else {
+          console.error(`Expected a new deck called '${name}' to have been created by the server`);
         }
-      };
+      });
+      if (rebuildIndex) {
+        newState.deckIndexFromId = buildDeckIndex(newState.ac.decks);
+      }
+
+      console.log("todo: update the newState.listing");
+      // console.log(newState.listing.ideas);
+
+      // update any decks in the cache that may have been used as refs in this note
+      // i.e. update their backnotes and backrefs
+
+      // add the note if it already doesn't exist in backnotes
+      console.log(action.note);
+
+      // backrefs will need to be added
+      console.log(action.changes.referencesAdded);
+
+      // backrefs will need to be added
+      console.log(action.changes.referencesCreated);
+
+      // backrefs will need to be removed
+      console.log(action.changes.referencesRemoved);
+
+      // backrefs will need to be updated
+      console.log(action.changes.referencesChanged);
+
+      // console.log(newState.cache.deck);
+
+      return newState;
     }
   case 'loadFullGraph':
     {
@@ -140,7 +177,6 @@ export const reducer = (state, action) => {
         fullGraph: buildFullGraph(action.graphConnections)
       };
     }
-
   case 'setCurrentDeckId':
     {
       return state;

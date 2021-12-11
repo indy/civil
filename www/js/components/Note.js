@@ -231,10 +231,6 @@ export default function Note(props) {
       // 6. clicks cancel
       // expected: only the changes from step 5 should be undone
 
-      console.log("commitAddDecks");
-      // console.log(changes);
-
-
       if (changes) {
         let data = {
           note_id: props.note.id,
@@ -245,10 +241,15 @@ export default function Note(props) {
           references_created: changes.referencesCreated
         };
 
-        Net.post("/api/edges/notes_decks", data).then((all_decks_for_note) => {
-          updateAutocompleteWithNewDecks(dispatch, changes.referencesCreated, all_decks_for_note);
-          props.onDecksChanged(props.note, all_decks_for_note);
-          localDispatch(ADD_DECKS_COMMIT, all_decks_for_note);
+        Net.post("/api/edges/notes_decks", data).then((allDecksForNote) => {
+          dispatch({
+            type: 'noteRefsModified',
+            changes,
+            allDecksForNote,
+            note: props.note
+          });
+          props.onDecksChanged(props.note, allDecksForNote);
+          localDispatch(ADD_DECKS_COMMIT, allDecksForNote);
         });
       } else {
         // cancel was pressed
@@ -391,43 +392,6 @@ function buildFlashcardIndicator(flashcards, localDispatch) {
 
   return entries;
 };
-
-function updateAutocompleteWithNewDecks(dispatch, newDeckReferences, allDecksForNote) {
-  const [state, dispatch2] = useStateValue();
-
-  let newDecks = [];
-
-  newDeckReferences.forEach(d => {
-    const name = d.name;
-    // find the newly created deck in allDecksForNote
-    let deck = allDecksForNote.find(d => d.name === name);
-
-    // this deck has just been created, so it isn't in the state's autocomplete list
-    if (deck) {
-      newDecks.push({
-        id: deck.id,
-        name: deck.name,
-        resource: deck.resource
-      });
-    } else {
-      console.error(`Expected a new deck called '${name}' to have been created by the server`);
-    }
-  });
-
-  if (newDecks.length > 0) {
-    dispatch({
-      type: 'addAutocompleteDecks',
-      newDecks
-    });
-  }
-
-  if (allDecksForNote) {
-    dispatch({
-      type: 'updateCachedDecks',
-      decks: allDecksForNote
-    });
-  }
-}
 
 function hasNoteBeenModified(note, propsNote) {
   return note.content !== propsNote.content;
