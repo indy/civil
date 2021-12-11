@@ -230,6 +230,7 @@ export default function Note(props) {
       // 5. adds more decks
       // 6. clicks cancel
       // expected: only the changes from step 5 should be undone
+
       console.log("commitAddDecks");
       // console.log(changes);
 
@@ -244,15 +245,11 @@ export default function Note(props) {
           references_created: changes.referencesCreated
         };
 
-        console.log(data);
-
         Net.post("/api/edges/notes_decks", data).then((all_decks_for_note) => {
           updateAutocompleteWithNewDecks(dispatch, changes.referencesCreated, all_decks_for_note);
           props.onDecksChanged(props.note, all_decks_for_note);
           localDispatch(ADD_DECKS_COMMIT, all_decks_for_note);
         });
-
-
       } else {
         // cancel was pressed
         localDispatch(HIDE_ADD_DECKS_UI);
@@ -396,10 +393,7 @@ function buildFlashcardIndicator(flashcards, localDispatch) {
 };
 
 function updateAutocompleteWithNewDecks(dispatch, newDeckReferences, allDecksForNote) {
-
   const [state, dispatch2] = useStateValue();
-  console.log(newDeckReferences);
-  console.log(allDecksForNote);
 
   let newDecks = [];
 
@@ -428,8 +422,6 @@ function updateAutocompleteWithNewDecks(dispatch, newDeckReferences, allDecksFor
   }
 
   if (allDecksForNote) {
-    console.log('(dispatching)');
-    console.log(state.cache.deck);
     dispatch({
       type: 'updateCachedDecks',
       decks: allDecksForNote

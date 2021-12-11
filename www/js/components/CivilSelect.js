@@ -17,7 +17,9 @@ const SELECT_CREATE = 'select-create';
 
 
 function rebuildCurrentSelection(state) {
-  state.currentSelection = state.referencesUnchanged.concat(state.referencesChanged).concat(state.referencesAdded).concat(state.referencesCreated);
+  state.currentSelection = state.referencesUnchanged.concat(state.referencesChanged,
+                                                            state.referencesAdded,
+                                                            state.referencesCreated);
 
   state.currentSelection.sort(referencesSortFunction);
   return state;
@@ -177,18 +179,6 @@ function reducer(state, action) {
     ...state,
     candidates: action.data
   }
-  // the annotations and ref kinds persist across notes, this explicitly clears them.
-  case CURRENTLY_CHOSEN_RESET: {
-    return state;
-    // return {
-    //   ...state,
-    //   currentSelection: state.currentSelection.map(cv => {
-    //     delete cv.annotation;
-    //     cv.ref_kind = "Ref";
-    //     return cv;
-    //   })
-    // }
-  }
   default: throw new Error(`unknown action: ${action}`);
   }
 
@@ -196,10 +186,12 @@ function reducer(state, action) {
 
 export default function CivilSelect({ parentDeckId, chosen, available, onFinish }) {
 
-  let s = {
+  const s = {
     currentSelection: undefined, // built by rebuildCurrentSelection
 
-    referencesUnchanged: chosen || [],
+    // make copies of each of the chosen, otherwise cancelling after making edits still shows up on the parent Note
+    // (this is because [...chosen] doesn't deep copy the elements of the array)
+    referencesUnchanged: (chosen || []).map(ref => Object.assign({}, ref)),
     referencesChanged: [],
     referencesRemoved: [],
     referencesAdded: [],
@@ -208,7 +200,7 @@ export default function CivilSelect({ parentDeckId, chosen, available, onFinish 
     showKeyboardShortcuts: false,
     candidates: [],
     canSave: false
-  };
+  }
   const [local, localDispatch] = useLocalReducer(reducer, rebuildCurrentSelection(s));
 
   const onKeyDown = e => {
@@ -229,22 +221,6 @@ export default function CivilSelect({ parentDeckId, chosen, available, onFinish 
       localDispatch(CTRL_KEY_UP);
     }
   };
-
-  /*
-  useEffect(() => {
-    // no 'kind' value is populated if the default is used, so we have to manually add it
-    // (fuck the web, the entire thing needs to be burnt to the ground)
-    //
-    let cv = local.currentSelection.map(c => {
-      if (!c.ref_kind) {
-        c.ref_kind = "Ref";
-      }
-      return c;
-    });
-
-    onChange(cv); // <- this is how changes to the selection are passed up to the parent note
-  }, [local]);
-  */
 
   useEffect(() => {
     document.addEventListener("keydown", onKeyDown);
@@ -267,7 +243,6 @@ export default function CivilSelect({ parentDeckId, chosen, available, onFinish 
 
   function onLocalCancel(e) {
     onFinish();
-    localDispatch(CURRENTLY_CHOSEN_RESET);
   }
 
   function onLocalCommit(e) {
@@ -278,7 +253,6 @@ export default function CivilSelect({ parentDeckId, chosen, available, onFinish 
       referencesAdded: local.referencesAdded,
       referencesCreated: local.referencesCreated
     });
-    localDispatch(CURRENTLY_CHOSEN_RESET);
   }
 
   return html`<div class='civsel-main-box'>

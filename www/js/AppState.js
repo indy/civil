@@ -331,7 +331,8 @@ function applyDecksAndCardsToNotes(obj) {
 
   for(let i = 0;i<obj.notes.length;i++) {
     let n = obj.notes[i];
-    n.decks = decksInNotes[n.id].sort(referencesSortFunction);
+    n.decks = decksInNotes[n.id] || [];
+    n.decks.sort(referencesSortFunction);
     n.flashcards = cardsInNotes[n.id];
   }
 
