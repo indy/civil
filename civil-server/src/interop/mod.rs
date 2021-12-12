@@ -26,6 +26,7 @@ pub mod publications;
 pub mod sr;
 pub mod stats;
 pub mod timelines;
+pub mod unioned;
 pub mod uploader;
 pub mod users;
 

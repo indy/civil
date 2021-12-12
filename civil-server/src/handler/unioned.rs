@@ -15,22 +15,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod autocomplete;
-pub mod deck_kind;
-pub mod decks;
-pub mod edges;
-pub mod ideas;
-pub mod note_kind;
-pub mod notes;
-pub mod people;
-mod pg;
-pub mod point_kind;
-pub mod points;
-pub mod publications;
-pub mod ref_kind;
-pub mod sr;
-pub mod stats;
-pub mod timelines;
-pub mod unioned;
-pub mod uploader;
-pub mod users;
+use crate::db::unioned as db;
+use crate::error::Result;
+use crate::interop::unioned as interop;
+use crate::session;
+use actix_web::web::{Data, Json};
+use actix_web::HttpResponse;
+use deadpool_postgres::Pool;
+
+#[allow(unused_imports)]
+use tracing::info;
+
+pub async fn get_unioned(
+    unioned_args: Json<interop::UnionedArgs>,
+    db_pool: Data<Pool>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+
+    let unioned_args = unioned_args.into_inner();
+    let user_id = session::user_id(&session)?;
+
+    let res = db::get(&db_pool, user_id, unioned_args.keys).await?;
+
+    Ok(HttpResponse::Ok().json(res))
+}

@@ -245,11 +245,30 @@ export default function Note(props) {
           dispatch({
             type: 'noteRefsModified',
             changes,
-            allDecksForNote,
-            note: props.note
+            allDecksForNote
           });
           props.onDecksChanged(props.note, allDecksForNote);
           localDispatch(ADD_DECKS_COMMIT, allDecksForNote);
+
+          let invalidatedCaches = [];
+
+          console.log(changes);
+          console.log(state.cache.deck);
+
+          [changes.referencesChanged, changes.referencesAdded, changes.referencesRemoved].forEach(rs => {
+            rs.forEach(r => {
+              if (state.cache.deck[r.id]) {
+                invalidatedCaches.push(r.id);
+              }
+            });
+          });
+
+          if(invalidatedCaches.length > 0) {
+            // get updated cache data from server
+            console.log("require data from server for the following");
+            console.log(invalidatedCaches);
+          }
+
         });
       } else {
         // cancel was pressed
@@ -261,7 +280,7 @@ export default function Note(props) {
       <div class="block-width">
         <label>Connections:</label>
         <${ CivilSelect }
-          parentDeckId=${ props.parentDeckId }
+          parentDeckId=${ props.parentDeck.id }
           chosen=${ local.decks }
           available=${ state.ac.decks }
           onFinish=${ referenceChanges }

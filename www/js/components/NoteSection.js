@@ -88,7 +88,7 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
     return html`
       <${Note} key=${ note.id }
                note=${ note }
-               parentDeckId=${ deck.id }
+               parentDeck=${ deck }
                onDelete=${ onDeleteNote }
                onEdited=${ onEditedNote }
                onDecksChanged=${ onDecksChanged }

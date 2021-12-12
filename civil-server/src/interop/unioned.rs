@@ -15,22 +15,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod autocomplete;
-pub mod deck_kind;
-pub mod decks;
-pub mod edges;
-pub mod ideas;
-pub mod note_kind;
-pub mod notes;
-pub mod people;
-mod pg;
-pub mod point_kind;
-pub mod points;
-pub mod publications;
-pub mod ref_kind;
-pub mod sr;
-pub mod stats;
-pub mod timelines;
-pub mod unioned;
-pub mod uploader;
-pub mod users;
+use crate::interop::ideas::Idea;
+use crate::interop::people::Person;
+use crate::interop::publications::Publication;
+use crate::interop::timelines::Timeline;
+use crate::interop::Key;
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub enum UnionedDeck {
+    Idea(Idea),
+    Person(Person),
+    Publication(Publication),
+    Timeline(Timeline),
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct UnionedArgs {
+    pub keys: Vec<Key>,
+}

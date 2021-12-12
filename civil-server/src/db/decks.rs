@@ -43,6 +43,7 @@ pub(crate) enum DeckBaseOrigin {
 #[pg_mapper(table = "decks")]
 pub struct DeckBase {
     pub id: Key,
+    pub kind: DeckKind,
     pub name: String,
     pub created_at: chrono::DateTime<chrono::Utc>,
     pub graph_terminator: bool,
@@ -382,14 +383,13 @@ pub(crate) async fn deckbase_get(
     tx: &Transaction<'_>,
     user_id: Key,
     deck_id: Key,
-    kind: DeckKind,
 ) -> Result<DeckBase> {
     pg::one::<DeckBase>(
         &tx,
-        "select id, name, created_at, graph_terminator
+        "select id, kind, name, created_at, graph_terminator
          from decks
-         where user_id = $1 and id = $2 and kind = $3",
-        &[&user_id, &deck_id, &kind],
+         where user_id = $1 and id = $2",
+        &[&user_id, &deck_id],
     )
     .await
 }
@@ -424,7 +424,7 @@ async fn deckbase_get_by_name(
 ) -> Result<DeckBase> {
     pg::one_may_not_find::<DeckBase>(
         &tx,
-        "select id, name, created_at, graph_terminator
+        "select id, kind, name, created_at, graph_terminator
          from decks
          where user_id = $1 and name = $2 and kind = $3",
         &[&user_id, &name, &kind],

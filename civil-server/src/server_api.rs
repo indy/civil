@@ -25,6 +25,7 @@ use crate::handler::publications;
 use crate::handler::sr;
 use crate::handler::timelines;
 use crate::handler::ubersetup;
+use crate::handler::unioned;
 use crate::handler::uploader;
 use crate::handler::users;
 use actix_files::NamedFile;
@@ -118,6 +119,8 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", put().to(sr::edit))
                 .route("/{id}", delete().to(sr::delete)),
         )
+        // unioned
+        .service(scope("/unioned").route("", get().to(unioned::get_unioned)))
         // setup
         .service(scope("/ubersetup").route("", get().to(ubersetup::setup)))
         // edges

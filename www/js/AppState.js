@@ -144,28 +144,8 @@ export const reducer = (state, action) => {
         newState.deckIndexFromId = buildDeckIndex(newState.ac.decks);
       }
 
-      console.log("todo: update the newState.listing");
-      // console.log(newState.listing.ideas);
+      // todo; update the appropriate newState.listing with data from action.changes.referencesCreated
 
-      // update any decks in the cache that may have been used as refs in this note
-      // i.e. update their backnotes and backrefs
-
-      // add the note if it already doesn't exist in backnotes
-      console.log(action.note);
-
-      // backrefs will need to be added
-      console.log(action.changes.referencesAdded);
-
-      // backrefs will need to be added
-      console.log(action.changes.referencesCreated);
-
-      // backrefs will need to be removed
-      console.log(action.changes.referencesRemoved);
-
-      // backrefs will need to be updated
-      console.log(action.changes.referencesChanged);
-
-      // console.log(newState.cache.deck);
 
       return newState;
     }

@@ -63,6 +63,10 @@ impl From<PersonDerived> for interop::Person {
     }
 }
 
+pub(crate) fn person_from_deckbase(deck: decks::DeckBase) -> interop::Person {
+    deck.into()
+}
+
 impl From<decks::DeckBase> for interop::Person {
     fn from(e: decks::DeckBase) -> interop::Person {
         interop::Person {
@@ -133,7 +137,7 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key, person_id: Key) -> Result<
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    let deck = decks::deckbase_get(&tx, user_id, person_id, DeckKind::Person).await?;
+    let deck = decks::deckbase_get(&tx, user_id, person_id).await?;
 
     tx.commit().await?;
 

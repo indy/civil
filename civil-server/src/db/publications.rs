@@ -21,7 +21,7 @@ use crate::db::decks;
 use crate::error::{Error, Result};
 use crate::interop::publications as interop;
 use crate::interop::Key;
-use deadpool_postgres::{Client, Pool};
+use deadpool_postgres::{Client, Pool, Transaction};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
@@ -71,13 +71,17 @@ impl From<Publication> for interop::Publication {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "publication_extras")]
-struct PublicationExtra {
+pub(crate) struct PublicationExtra {
     deck_id: Key,
     source: Option<String>,
     author: Option<String>,
     short_description: Option<String>,
     rating: i32,
     published_date: Option<chrono::NaiveDate>,
+}
+
+pub(crate) fn publication_from_deckbase_and_extra(deck: decks::DeckBase, publication_extra: PublicationExtra) -> interop::Publication {
+    (deck, publication_extra).into()
 }
 
 impl From<(decks::DeckBase, PublicationExtra)> for interop::Publication {
@@ -195,6 +199,17 @@ pub(crate) async fn get(
     .await
 }
 
+pub(crate) async fn publication_extra_get(tx: &Transaction<'_>, deck_id: Key) -> Result<PublicationExtra>
+{
+    pg::one::<PublicationExtra>(
+        &tx,
+        "select deck_id, source, author, short_description, rating, published_date
+                from publication_extras
+                where deck_id=$1",
+        &[&deck_id],
+    ).await
+}
+
 pub(crate) async fn get_or_create(
     db_pool: &Pool,
     user_id: Key,
@@ -223,16 +238,7 @@ pub(crate) async fn get_or_create(
                 &[&deck.id, &source, &author, &short_description, &rating, &published_date],
             )
             .await?,
-            decks::DeckBaseOrigin::PreExisting => {
-                pg::one::<PublicationExtra>(
-                    &tx,
-                    "select deck_id, source, author, short_description, rating, published_date
-                 from publication_extras
-                 where deck_id=$1",
-                    &[&deck.id],
-                )
-                .await?
-            }
+            decks::DeckBaseOrigin::PreExisting => publication_extra_get(&tx, deck.id).await?
         };
 
     tx.commit().await?;

@@ -59,6 +59,10 @@ impl From<Idea> for interop::Idea {
     }
 }
 
+pub(crate) fn idea_from_deckbase(deck: decks::DeckBase) -> interop::Idea {
+    deck.into()
+}
+
 impl From<decks::DeckBase> for interop::Idea {
     fn from(deck: decks::DeckBase) -> interop::Idea {
         interop::Idea {
@@ -155,7 +159,7 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key, idea_id: Key) -> Result<in
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    let deck = decks::deckbase_get(&tx, user_id, idea_id, DeckKind::Idea).await?;
+    let deck = decks::deckbase_get(&tx, user_id, idea_id).await?;
 
     tx.commit().await?;
 
