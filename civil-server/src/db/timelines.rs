@@ -54,10 +54,6 @@ impl From<TimelineDerived> for interop::Timeline {
     }
 }
 
-pub(crate) fn timeline_from_deckbase(deck: decks::DeckBase) -> interop::Timeline {
-    deck.into()
-}
-
 impl From<decks::DeckBase> for interop::Timeline {
     fn from(e: decks::DeckBase) -> interop::Timeline {
         interop::Timeline {
@@ -114,7 +110,7 @@ pub(crate) async fn get(
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
     let tx = client.transaction().await?;
 
-    let deck = decks::deckbase_get(&tx, user_id, timeline_id).await?;
+    let deck = decks::deckbase_get(&tx, user_id, timeline_id, DeckKind::Timeline).await?;
 
     tx.commit().await?;
 

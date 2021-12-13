@@ -25,6 +25,5 @@ pub mod publications;
 pub mod sr;
 pub mod timelines;
 pub mod ubersetup;
-pub mod unioned;
 pub mod uploader;
 pub mod users;
