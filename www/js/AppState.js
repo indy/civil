@@ -121,10 +121,12 @@ export const reducer = (state, action) => {
     {
       let newState = {...state};
 
+      let changes = action.changes;
+
       // update the autocomplete
       //
       let rebuildIndex = false;
-      action.changes.referencesCreated.forEach(d => {
+      changes.referencesCreated.forEach(d => {
         // find the newly created deck in allDecksForNote
         let deck = action.allDecksForNote.find(a => a.name === d.name);
 
@@ -146,6 +148,18 @@ export const reducer = (state, action) => {
 
       // todo; update the appropriate newState.listing with data from action.changes.referencesCreated
 
+
+      // decks that are referenced by this note may have their state changed (e.g. annotation changed,
+      // a backref value added/deleted depending on if the deck was added or removed), so the easiest
+      // thing to do is remove the deck from the cache, and refetch it from the server
+      //
+      [changes.referencesChanged, changes.referencesAdded, changes.referencesRemoved].forEach(rs => {
+        rs.forEach(r => {
+          if (newState.cache.deck[r.id]) {
+            delete newState.cache.deck[r.id];
+          }
+        });
+      });
 
       return newState;
     }
