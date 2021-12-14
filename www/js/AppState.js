@@ -1,6 +1,6 @@
 import { addSortYear } from '/js/eras.js';
 import { opposingKind } from '/js/JsUtils.js';
-import { referencesSortFunction } from '/js/CivilUtils.js';
+import { sortByResourceThenName, sortByTitle } from '/js/CivilUtils.js';
 
 export const initialState = {
   user: undefined,
@@ -146,8 +146,33 @@ export const reducer = (state, action) => {
         newState.deckIndexFromId = buildDeckIndex(newState.ac.decks);
       }
 
-      // todo; update the appropriate newState.listing with data from action.changes.referencesCreated
+      // update the newState.listing with new ideas that were created in action.changes.referencesCreated
+      //
+      function basicNoteFromReference(r) {
+        return {
+          debug: "created by basicNoteFromReference",
+          backnotes: null,
+          backrefs: null,
+          created_at: "",
+          flashcards: null,
+          graph_terminator: false,
+          id: r.id,
+          notes: null,
+          refs: null,
+          title: r.name
+        };
+      };
 
+      action.changes.referencesCreated.forEach(r => {
+        let newReference = action.allDecksForNote.find(d => d.name === r.name && d.resource === "ideas");
+        let newBasicNote = basicNoteFromReference(newReference);
+        // update the listing with the new resource
+        newState.listing.ideas.recent.unshift(newBasicNote);
+        newState.listing.ideas.unnoted.unshift(newBasicNote);
+
+        newState.listing.ideas.all.push(newBasicNote);
+        newState.listing.ideas.all.sort(sortByTitle);
+      });
 
       // decks that are referenced by this note may have their state changed (e.g. annotation changed,
       // a backref value added/deleted depending on if the deck was added or removed), so the easiest
@@ -362,7 +387,7 @@ function applyDecksAndCardsToNotes(obj) {
   for(let i = 0;i<obj.notes.length;i++) {
     let n = obj.notes[i];
     n.decks = decksInNotes[n.id] || [];
-    n.decks.sort(referencesSortFunction);
+    n.decks.sort(sortByResourceThenName);
     n.flashcards = cardsInNotes[n.id];
   }
 

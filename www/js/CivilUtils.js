@@ -54,7 +54,7 @@ export function leftMarginHeadingNoWrap(content) {
 }
 
 
-export function referencesSortFunction(a, b) {
+export function sortByResourceThenName(a, b) {
   if (a.resource < b.resource) {
     return -1;
   }
@@ -62,13 +62,32 @@ export function referencesSortFunction(a, b) {
     return 1;
   }
 
-  if (a.name < b.name) {
+  let nameA = a.name.toUpperCase();
+  let nameB = b.name.toUpperCase();
+  if (nameA < nameB) {
     return -1;
   }
 
-  if (a.name > b.name) {
+  if (nameA > nameB) {
     return 1;
   }
 
+  // names must be equal
+  return 0;
+
+}
+
+export function sortByTitle(a, b) {
+  let nameA = a.title.toUpperCase();
+  let nameB = b.title.toUpperCase();
+
+  if (nameA < nameB) {
+    return -1;
+  }
+  if (nameA > nameB) {
+    return 1;
+  }
+
+  // names must be equal
   return 0;
 }

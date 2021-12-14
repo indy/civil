@@ -2,7 +2,7 @@ import { html, useState, useEffect } from '/lib/preact/mod.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { svgCloseShifted } from '/js/svgIcons.js';
 
-import { referencesSortFunction } from '/js/CivilUtils.js';
+import { sortByResourceThenName } from '/js/CivilUtils.js';
 
 const ESC_KEY_DOWN = 'esc-key-down';
 const CTRL_KEY_DOWN = 'ctrl-key-down';
@@ -21,7 +21,7 @@ function rebuildCurrentSelection(state) {
                                                             state.referencesAdded,
                                                             state.referencesCreated);
 
-  state.currentSelection.sort(referencesSortFunction);
+  state.currentSelection.sort(sortByResourceThenName);
   return state;
 }
 
@@ -231,16 +231,6 @@ export default function CivilSelect({ parentDeckId, chosen, available, onFinish 
     };
   }, [])
 
-  function buildSelectedReference(value, i) {
-    return html`<${SelectedReference}
-                  reference=${value}
-                  onRemove=${ (e) => localDispatch(REFERENCE_REMOVE, e) }
-                  onChangeKind=${ (reference, newKind) => localDispatch(REFERENCE_CHANGE_KIND, { reference, newKind })}
-                  onChangeAnnotation=${ (reference, annotation) => localDispatch(REFERENCE_CHANGE_ANNOTATION, { reference, annotation})}
-                  keyIndex=${ i + 1 }
-                  showKeyboardShortcuts=${ local.showKeyboardShortcuts } />`;
-  }
-
   function onLocalCancel(e) {
     onFinish();
   }
@@ -256,7 +246,14 @@ export default function CivilSelect({ parentDeckId, chosen, available, onFinish 
   }
 
   return html`<div class='civsel-main-box'>
-                ${ local.currentSelection.map((value, i) => buildSelectedReference(value, i)) }
+                ${ local.currentSelection.map((value, i) => html`<${SelectedReference}
+                  reference=${value}
+                  onRemove=${ (e) => localDispatch(REFERENCE_REMOVE, e) }
+                  onChangeKind=${ (reference, newKind) => localDispatch(REFERENCE_CHANGE_KIND, { reference, newKind })}
+                  onChangeAnnotation=${ (reference, annotation) => localDispatch(REFERENCE_CHANGE_ANNOTATION,
+                                                                                 { reference, annotation})}
+                  keyIndex=${ i + 1 }
+                  showKeyboardShortcuts=${ local.showKeyboardShortcuts } />`) }
                 <${Input} available=${ available }
                           parentDeckId=${ parentDeckId }
                           candidates=${ local.candidates }
