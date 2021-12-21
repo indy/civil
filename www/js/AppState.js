@@ -163,16 +163,17 @@ export const reducer = (state, action) => {
         };
       };
 
-      action.changes.referencesCreated.forEach(r => {
-        let newReference = action.allDecksForNote.find(d => d.name === r.name && d.resource === "ideas");
-        let newBasicNote = basicNoteFromReference(newReference);
-        // update the listing with the new resource
-        newState.listing.ideas.recent.unshift(newBasicNote);
-        newState.listing.ideas.unnoted.unshift(newBasicNote);
-
-        newState.listing.ideas.all.push(newBasicNote);
-        newState.listing.ideas.all.sort(sortByTitle);
-      });
+      if (newState.listing.ideas) {
+        action.changes.referencesCreated.forEach(r => {
+          let newReference = action.allDecksForNote.find(d => d.name === r.name && d.resource === "ideas");
+          let newBasicNote = basicNoteFromReference(newReference);
+          // update the listing with the new resource
+          newState.listing.ideas.recent.unshift(newBasicNote);
+          newState.listing.ideas.unnoted.unshift(newBasicNote);
+          newState.listing.ideas.all.push(newBasicNote);
+          newState.listing.ideas.all.sort(sortByTitle);
+        });
+      }
 
       // decks that are referenced by this note may have their state changed (e.g. annotation changed,
       // a backref value added/deleted depending on if the deck was added or removed), so the easiest
