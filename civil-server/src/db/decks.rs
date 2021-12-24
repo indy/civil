@@ -202,15 +202,12 @@ pub(crate) async fn search_using_deck_id(
     let (mut results, results_via_notes, results_via_points) = tokio::try_join!(
         query_search_id(
             db_pool,
-            "select d.id, d.kind, d.name, ts_rank_cd(textsearch, query) AS rank_sum, 1 as rank_count
-             from decks deckname, decks d
-                  left join publication_extras pe on pe.deck_id = d.id,
-                  phraseto_tsquery(deckname.name) query,
-                  to_tsvector(coalesce(d.name, '') || ' ' || coalesce(pe.source, '') || ' ' || coalesce(pe.author, '') || ' ' || coalesce(pe.short_description, '')) textsearch
-             where textsearch @@ query
+            "select d.id, d.kind, d.name, ts_rank_cd(pe.ts, phraseto_tsquery('english', deckname.name)) AS rank_sum, 1 as rank_count
+             from decks deckname, decks d left join publication_extras pe on pe.deck_id = d.id
+             where pe.ts @@ phraseto_tsquery('english', deckname.name)
                    and d.user_id = $1
                    and deckname.id = $2
-             group by d.id, textsearch, query
+             group by d.id, pe.ts, deckname.name
              order by rank_sum desc
              limit 50",
             user_id,
@@ -235,14 +232,12 @@ pub(crate) async fn search_using_deck_id(
         query_search_id(
             db_pool,
             "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-             from (select d.id, d.kind, d.name, ts_rank_cd(textsearch, query) AS rank
-                   from decks deckname, decks d left join points p on p.deck_id = d.id,
-                        phraseto_tsquery(deckname.name) query,
-                        to_tsvector(coalesce(p.title, '') || ' ' || coalesce(p.location_textual, '') || ' ' || coalesce(p.date_textual, '')) textsearch
-                   where textsearch @@ query
+             from (select d.id, d.kind, d.name, ts_rank_cd(p.ts, phraseto_tsquery('english', deckname.name)) AS rank
+                   from decks deckname, decks d left join points p on p.deck_id = d.id
+                   where p.ts @@ phraseto_tsquery('english', deckname.name)
                          and d.user_id = $1
                          and deckname.id = $2
-                         group by d.id, textsearch, query
+                         group by d.id, p.ts, deckname.name
                          order by rank desc) res
              group by res.id, res.kind, res.name
              order by sum(res.rank) desc
@@ -275,14 +270,12 @@ pub(crate) async fn search(
     let (mut results, results_via_notes, results_via_points) = tokio::try_join!(
         query_search(
             db_pool,
-            "select d.id, d.kind, d.name, ts_rank_cd(textsearch, query) AS rank_sum, 1 as rank_count
+            "select d.id, d.kind, d.name, ts_rank_cd(pe.ts, plainto_tsquery('english', $2)) AS rank_sum, 1 as rank_count
              from decks d
-                  left join publication_extras pe on pe.deck_id = d.id,
-                  plainto_tsquery($2) query,
-                  to_tsvector(coalesce(d.name, '') || ' ' || coalesce(pe.source, '') || ' ' || coalesce(pe.author, '') || ' ' || coalesce(pe.short_description, '')) textsearch
-             where textsearch @@ query
+                  left join publication_extras pe on pe.deck_id = d.id
+             where pe.ts @@ plainto_tsquery('english', $2)
                    and d.user_id = $1
-             group by d.id, textsearch, query
+             group by d.id, pe.ts
              order by rank_sum desc
              limit 30",
             user_id,
@@ -306,14 +299,12 @@ pub(crate) async fn search(
         query_search(
             db_pool,
             "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-             from (select d.id, d.kind, d.name, ts_rank_cd(textsearch, query) AS rank
-                   from decks d left join points p on p.deck_id = d.id,
-                        plainto_tsquery($2) query,
-                        to_tsvector(coalesce(p.title, '') || ' ' || coalesce(p.location_textual, '') || ' ' || coalesce(p.date_textual, '')) textsearch
-                   where textsearch @@ query
+             from (select d.id, d.kind, d.name, ts_rank_cd(ts, plainto_tsquery('english', $2)) AS rank
+                   from decks d left join points p on p.deck_id = d.id
+                   where ts @@ plainto_tsquery('english', $2)
                          and d.user_id = $1
-                         group by d.id, textsearch, query
-                         order by rank desc) res
+                   group by d.id, p.ts
+                   order by rank desc) res
              group by res.id, res.kind, res.name
              order by sum(res.rank) desc
              limit 30",
