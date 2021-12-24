@@ -199,7 +199,20 @@ pub(crate) async fn search_using_deck_id(
     user_id: Key,
     deck_id: Key,
 ) -> Result<Vec<interop::DeckSimple>> {
-    let (mut results, results_via_notes, results_via_points) = tokio::try_join!(
+    let (mut results, results_via_pub_ext, results_via_notes, results_via_points) = tokio::try_join!(
+        query_search_id(
+            db_pool,
+            "select d.id, d.kind, d.name, ts_rank_cd(d.ts, phraseto_tsquery('english', deckname.name)) AS rank_sum, 1 as rank_count
+             from decks deckname, decks d
+             where d.ts @@ phraseto_tsquery('english', deckname.name)
+                   and d.user_id = $1
+                   and deckname.id = $2
+             group by d.id, d.ts, deckname.name
+             order by rank_sum desc
+             limit 50",
+            user_id,
+            deck_id
+        ),
         query_search_id(
             db_pool,
             "select d.id, d.kind, d.name, ts_rank_cd(pe.ts, phraseto_tsquery('english', deckname.name)) AS rank_sum, 1 as rank_count
@@ -247,6 +260,12 @@ pub(crate) async fn search_using_deck_id(
         ),
     )?;
 
+    for r in results_via_pub_ext {
+        if !contains(&results, r.id) {
+            results.push(r);
+        }
+    }
+
     for r in results_via_notes {
         if !contains(&results, r.id) {
             results.push(r);
@@ -267,7 +286,19 @@ pub(crate) async fn search(
     user_id: Key,
     query: &str,
 ) -> Result<Vec<interop::DeckSimple>> {
-    let (mut results, results_via_notes, results_via_points) = tokio::try_join!(
+    let (mut results, results_via_pub_ext, results_via_notes, results_via_points) = tokio::try_join!(
+        query_search(
+            db_pool,
+            "select d.id, d.kind, d.name, ts_rank_cd(d.ts, plainto_tsquery('english', $2)) AS rank_sum, 1 as rank_count
+             from decks d
+             where d.ts @@ plainto_tsquery('english', $2)
+                   and d.user_id = $1
+             group by d.id, d.ts
+             order by rank_sum desc
+             limit 30",
+            user_id,
+            query
+        ),
         query_search(
             db_pool,
             "select d.id, d.kind, d.name, ts_rank_cd(pe.ts, plainto_tsquery('english', $2)) AS rank_sum, 1 as rank_count
@@ -299,9 +330,9 @@ pub(crate) async fn search(
         query_search(
             db_pool,
             "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-             from (select d.id, d.kind, d.name, ts_rank_cd(ts, plainto_tsquery('english', $2)) AS rank
+             from (select d.id, d.kind, d.name, ts_rank_cd(p.ts, plainto_tsquery('english', $2)) AS rank
                    from decks d left join points p on p.deck_id = d.id
-                   where ts @@ plainto_tsquery('english', $2)
+                   where p.ts @@ plainto_tsquery('english', $2)
                          and d.user_id = $1
                    group by d.id, p.ts
                    order by rank desc) res
@@ -312,6 +343,12 @@ pub(crate) async fn search(
             query
         ),
     )?;
+
+    for r in results_via_pub_ext {
+        if !contains(&results, r.id) {
+            results.push(r);
+        }
+    }
 
     for r in results_via_notes {
         if !contains(&results, r.id) {
