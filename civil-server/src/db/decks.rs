@@ -205,32 +205,30 @@ pub(crate) async fn search_using_deck_id(
             "select d.id, d.kind, d.name, ts_rank_cd(textsearch, query) AS rank_sum, 1 as rank_count
              from decks deckname, decks d
                   left join publication_extras pe on pe.deck_id = d.id,
-                  plainto_tsquery(deckname.name) query,
+                  phraseto_tsquery(deckname.name) query,
                   to_tsvector(coalesce(d.name, '') || ' ' || coalesce(pe.source, '') || ' ' || coalesce(pe.author, '') || ' ' || coalesce(pe.short_description, '')) textsearch
              where textsearch @@ query
                    and d.user_id = $1
                    and deckname.id = $2
              group by d.id, textsearch, query
              order by rank_sum desc
-             limit 10",
+             limit 50",
             user_id,
             deck_id
         ),
         query_search_id(
             db_pool,
             "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-             from (select d.id, d.kind, d.name, ts_rank_cd(textsearch, query) AS rank
-                   from decks deckname, decks d left join notes n on n.deck_id = d.id,
-                        plainto_tsquery(deckname.name) query,
-                        to_tsvector(coalesce(n.content, '')) textsearch
-                   where textsearch @@ query
+             from (select d.id, d.kind, d.name, ts_rank_cd(n.ts, phraseto_tsquery('english', deckname.name)) AS rank
+                   from decks deckname, decks d left join notes n on n.deck_id = d.id
+                   where n.ts @@ phraseto_tsquery('english', deckname.name)
                          and d.user_id = $1
                          and deckname.id = $2
-                         group by d.id, textsearch, query
+                         group by d.id, n.ts, deckname.name
                          order by rank desc) res
              group by res.id, res.kind, res.name
              order by sum(res.rank) desc
-             limit 10",
+             limit 50",
             user_id,
             deck_id
         ),
@@ -239,7 +237,7 @@ pub(crate) async fn search_using_deck_id(
             "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
              from (select d.id, d.kind, d.name, ts_rank_cd(textsearch, query) AS rank
                    from decks deckname, decks d left join points p on p.deck_id = d.id,
-                        plainto_tsquery(deckname.name) query,
+                        phraseto_tsquery(deckname.name) query,
                         to_tsvector(coalesce(p.title, '') || ' ' || coalesce(p.location_textual, '') || ' ' || coalesce(p.date_textual, '')) textsearch
                    where textsearch @@ query
                          and d.user_id = $1
@@ -248,7 +246,7 @@ pub(crate) async fn search_using_deck_id(
                          order by rank desc) res
              group by res.id, res.kind, res.name
              order by sum(res.rank) desc
-             limit 10",
+             limit 50",
             user_id,
             deck_id
         ),
@@ -280,30 +278,28 @@ pub(crate) async fn search(
             "select d.id, d.kind, d.name, ts_rank_cd(textsearch, query) AS rank_sum, 1 as rank_count
              from decks d
                   left join publication_extras pe on pe.deck_id = d.id,
-                  plainto_tsquery($2) query,
+                  phraseto_tsquery($2) query,
                   to_tsvector(coalesce(d.name, '') || ' ' || coalesce(pe.source, '') || ' ' || coalesce(pe.author, '') || ' ' || coalesce(pe.short_description, '')) textsearch
              where textsearch @@ query
                    and d.user_id = $1
              group by d.id, textsearch, query
              order by rank_sum desc
-             limit 10",
+             limit 30",
             user_id,
             query
         ),
         query_search(
             db_pool,
             "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-             from (select d.id, d.kind, d.name, ts_rank_cd(textsearch, query) AS rank
-                   from decks d left join notes n on n.deck_id = d.id,
-                        plainto_tsquery($2) query,
-                        to_tsvector(coalesce(n.content, '')) textsearch
-                   where textsearch @@ query
+             from (select d.id, d.kind, d.name, ts_rank_cd(n.ts, phraseto_tsquery('english', $2)) AS rank
+                   from decks d left join notes n on n.deck_id = d.id
+                   where n.ts @@ phraseto_tsquery('english', $2)
                          and d.user_id = $1
-                         group by d.id, textsearch, query
+                         group by d.id, n.ts
                          order by rank desc) res
              group by res.id, res.kind, res.name
              order by sum(res.rank) desc
-             limit 10",
+             limit 30",
             user_id,
             query
         ),
@@ -312,7 +308,7 @@ pub(crate) async fn search(
             "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
              from (select d.id, d.kind, d.name, ts_rank_cd(textsearch, query) AS rank
                    from decks d left join points p on p.deck_id = d.id,
-                        plainto_tsquery($2) query,
+                        phraseto_tsquery($2) query,
                         to_tsvector(coalesce(p.title, '') || ' ' || coalesce(p.location_textual, '') || ' ' || coalesce(p.date_textual, '')) textsearch
                    where textsearch @@ query
                          and d.user_id = $1
@@ -320,7 +316,7 @@ pub(crate) async fn search(
                          order by rank desc) res
              group by res.id, res.kind, res.name
              order by sum(res.rank) desc
-             limit 10",
+             limit 30",
             user_id,
             query
         ),
