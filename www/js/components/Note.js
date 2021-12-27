@@ -262,7 +262,6 @@ export default function Note(props) {
         <${ CivilSelect }
           parentDeckId=${ props.parentDeck.id }
           chosen=${ local.decks }
-          available=${ state.ac.decks }
           onFinish=${ referenceChanges }
         />
       </div>`;

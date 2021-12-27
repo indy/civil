@@ -1,20 +1,31 @@
 import { html, useState, useEffect } from '/lib/preact/mod.js';
+
+import Net from '/js/Net.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { svgCloseShifted } from '/js/svgIcons.js';
-
 import { sortByResourceThenName } from '/js/CivilUtils.js';
 
-const ESC_KEY_DOWN = 'esc-key-down';
-const CTRL_KEY_DOWN = 'ctrl-key-down';
-const CTRL_KEY_UP = 'ctrl-key-up';
-const REFERENCE_REMOVE = 'reference-remove';
-const REFERENCE_CHANGE_KIND = 'reference-change-kind';
-const REFERENCE_CHANGE_ANNOTATION = 'reference-change-annotation';
 const CANDIDATES_SET = 'candidate-set';
+const CTRL_KEY_DOWN = 'ctrl-key-down';
 const CURRENTLY_CHOSEN_RESET = 'currently-chosen-reset';
+const ESC_KEY_DOWN = 'esc-key-down';
+const INPUT_GIVEN = 'input-given';
+const REFERENCE_CHANGE_ANNOTATION = 'reference-change-annotation';
+const REFERENCE_CHANGE_KIND = 'reference-change-kind';
+const REFERENCE_REMOVE = 'reference-remove';
 const SELECT_ADD = 'select-add';
 const SELECT_CREATE = 'select-create';
+const SHORTCUT_CHECK = 'shortcut-check';
 
+function candidateToRef(candidate) {
+  return {
+    id: candidate.id,
+    name: candidate.name,
+    resource: candidate.resource,
+    annotation: null,
+    ref_kind: "Ref"
+  }
+}
 
 function rebuildCurrentSelection(state) {
   state.currentSelection = state.referencesUnchanged.concat(state.referencesChanged,
@@ -34,34 +45,29 @@ function reducer(state, action) {
   case CTRL_KEY_DOWN: {
     const e = action.data;
 
-    const newState = {
-      ...state,
-      showKeyboardShortcuts: true
-    };
+    const newState = { ...state };
 
-    if (e.keyCode >= 49 && e.keyCode <= 57) {
-      // Ctrl + digit
-      const digit = e.keyCode - 48;
-
-      if (digit - 1 < newState.currentSelection.length) {
-        // delete from currently chosen
-        newState.currentSelection = newState.currentSelection.filter((cv, i) => i !== digit - 1);
-      } else {
-        const indexToAdd = digit - newState.currentSelection.length - 1;
-
-        if (newState.candidates.length > indexToAdd) {
-          newState.canSave = true;
-          newState.currentSelection = newState.currentSelection.concat([newState.candidates[indexToAdd]]);
-        }
-      }
+    if (!state.showKeyboardShortcuts && state.candidates.length) {
+      newState.showKeyboardShortcuts = true;
+    } else {
+      newState.showKeyboardShortcuts = false;
     }
 
     return newState;
   }
-  case CTRL_KEY_UP: return {
-    ...state,
-    showKeyboardShortcuts: false
-  };
+  case SHORTCUT_CHECK: {
+    if (state.showKeyboardShortcuts && state.candidates.length > action.data) {
+      const index = action.data;
+      const newState = reducer(state, { type: SELECT_ADD, data: state.candidates[index]});
+
+      newState.justAddedViaShortcut = true; // INPUT_GIVEN will not display this shortcut key
+      newState.showKeyboardShortcuts = false;
+
+      return newState;
+    } else {
+      return state;
+    }
+  }
   case REFERENCE_REMOVE: {
     let newState = { ...state };
 
@@ -152,11 +158,13 @@ function reducer(state, action) {
   case SELECT_ADD: {
     let newState = { ...state };
 
-    let refToAdd = action.data;
+    let refToAdd = candidateToRef(action.data);
 
     newState.referencesAdded.push(refToAdd);
 
     newState.canSave = true;
+    newState.text = '';
+    newState.candidates = [];
 
     newState = rebuildCurrentSelection(newState);
 
@@ -179,12 +187,25 @@ function reducer(state, action) {
     ...state,
     candidates: action.data
   }
+  case INPUT_GIVEN: {
+    const newState = {
+      ...state,
+      text: action.data
+    };
+
+    if (newState.justAddedViaShortcut) {
+      newState.text = '';
+      newState.justAddedViaShortcut = false;
+    }
+
+    return newState;
+  }
   default: throw new Error(`unknown action: ${action}`);
   }
 
 }
 
-export default function CivilSelect({ parentDeckId, chosen, available, onFinish }) {
+export default function CivilSelect({ parentDeckId, chosen, onFinish }) {
 
   const s = {
     currentSelection: undefined, // built by rebuildCurrentSelection
@@ -196,6 +217,8 @@ export default function CivilSelect({ parentDeckId, chosen, available, onFinish 
     referencesRemoved: [],
     referencesAdded: [],
     referencesCreated: [],
+
+    text: '',
 
     showKeyboardShortcuts: false,
     candidates: [],
@@ -209,27 +232,47 @@ export default function CivilSelect({ parentDeckId, chosen, available, onFinish 
     }
     if (e.ctrlKey) {
       localDispatch(CTRL_KEY_DOWN, e);
-      if (e.key === "Enter") {
-        // Ctrl+Enter == save
-        onFinish();
-      }
     }
-  };
-
-  const onKeyUp = e => {
-    if (e.key === "Control") {
-      localDispatch(CTRL_KEY_UP);
+    if ((e.keyCode >= 49 && e.keyCode <= 57) || (e.keyCode >= 65 && e.keyCode <= 90)) {
+      // digit: 1 -> 0, 2 -> 1, ... 9 -> 8       letter: a -> 9, b -> 10, ... z -> 34
+      const index = (e.keyCode >= 49 && e.keyCode <= 57) ? e.keyCode - 49 : (e.keyCode - 65) + 9;
+      localDispatch(SHORTCUT_CHECK, index);
     }
   };
 
   useEffect(() => {
     document.addEventListener("keydown", onKeyDown);
-    document.addEventListener("keyup", onKeyUp);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.removeEventListener("keyup", onKeyUp);
     };
   }, [])
+
+
+  function onTextChanged(newText) {
+    refineCandidates(newText);
+    localDispatch(INPUT_GIVEN, newText);
+  }
+
+  function alreadySelected(name) {
+    return local.currentSelection.some(cv => { return cv.name === name;});
+  }
+
+  async function refineCandidates(newText) {
+    if (!local.justAddedViaShortcut && newText.length > 0) {
+      const url = `/api/cmd/namesearch?q=${encodeURI(newText)}`;
+      const searchResponse = await Net.get(url);
+
+      if (searchResponse.results) {
+        const newCandidates = searchResponse.results
+              .filter(op => { return (op.id !== parentDeckId) && !alreadySelected(op.name); })
+              .sort((a, b) => { return a.name.length - b.name.length; });
+        localDispatch(CANDIDATES_SET, newCandidates);
+      }
+    } else {
+      localDispatch(CANDIDATES_SET, []);
+    }
+  }
+
 
   function onLocalCancel(e) {
     onFinish();
@@ -251,13 +294,10 @@ export default function CivilSelect({ parentDeckId, chosen, available, onFinish 
                   onRemove=${ (e) => localDispatch(REFERENCE_REMOVE, e) }
                   onChangeKind=${ (reference, newKind) => localDispatch(REFERENCE_CHANGE_KIND, { reference, newKind })}
                   onChangeAnnotation=${ (reference, annotation) => localDispatch(REFERENCE_CHANGE_ANNOTATION,
-                                                                                 { reference, annotation})}
-                  keyIndex=${ i + 1 }
-                  showKeyboardShortcuts=${ local.showKeyboardShortcuts } />`) }
-                <${Input} available=${ available }
-                          parentDeckId=${ parentDeckId }
+                                                                                 { reference, annotation})}/>`) }
+                <${Input} text=${local.text}
+                          onTextChanged=${onTextChanged}
                           candidates=${ local.candidates }
-                          setCandidates=${ (candidates) => localDispatch(CANDIDATES_SET, candidates) }
                           onAdd=${ (existingDeck) => localDispatch(SELECT_ADD, existingDeck) }
                           onCreate=${ (newDeckInfo) => localDispatch(SELECT_CREATE, newDeckInfo) }
                           currentSelection=${ local.currentSelection }
@@ -267,7 +307,7 @@ export default function CivilSelect({ parentDeckId, chosen, available, onFinish 
               </div>`;
 }
 
-function SelectedReference({ reference, onRemove, onChangeKind, keyIndex, showKeyboardShortcuts, onChangeAnnotation }) {
+function SelectedReference({ reference, onRemove, onChangeKind, onChangeAnnotation }) {
   function onClick(e) {
     e.preventDefault();
     onRemove(reference);
@@ -288,7 +328,6 @@ function SelectedReference({ reference, onRemove, onChangeKind, keyIndex, showKe
   };
 
   return html`<div class='civsel-reference pigment-${reference.resource}'>
-                ${ showKeyboardShortcuts && html`<span class='civsel-keyboard-shortcut'>Ctrl-${ keyIndex }</span>`}
                 <span class='civsel-delete-selected' onClick=${onClick}>${svgCloseShifted()}</span>
                 <select onChange=${onKindDropDownSelect} name="choice">
                   <option value="Ref" selected=${reference.ref_kind == "Ref"}>Generic Reference</option>
@@ -306,55 +345,19 @@ function SelectedReference({ reference, onRemove, onChangeKind, keyIndex, showKe
               </div>`;
 }
 
-function Input({ parentDeckId, available, onAdd, onCreate, candidates, setCandidates, currentSelection, showKeyboardShortcuts }) {
-  let [text, setText] = useState('');
-
-  useEffect(() => {
-    if (text.length >= 2) {
-      refineCandidates();
-    } else {
-      setCandidates([]);
-    }
-  }, [text]);
-
-  function alreadySelected(comparisonName) {
-    return currentSelection.some(cv => { return cv.name.toLowerCase() === comparisonName;});
-  }
-
-  function refineCandidates() {
-    let lowerText = text.toLowerCase();
-
-    setCandidates(available
-                  .filter(op => { return (op.id !== parentDeckId)
-                                  && (op.comparisonName.includes(lowerText))
-                                  && !alreadySelected(op.comparisonName);  })
-                  .sort((a, b) => { return a.comparisonName.length - b.comparisonName.length; }));
-  }
-
+function Input({ text, onTextChanged, onAdd, onCreate, candidates, currentSelection, showKeyboardShortcuts }) {
   function onInput(e) {
-    setText(e.target.value);
-  }
-
-  function candidateToRef(candidate) {
-    return {
-      id: candidate.id,
-      name: candidate.name,
-      resource: candidate.resource,
-      annotation: null,
-      ref_kind: "Ref"
-    }
+    onTextChanged(e.target.value);
   }
 
   function onSubmit(e) {
     e.preventDefault();
-
     if (text.length > 0) {
       // search for text in available
-      let lowerText = text.toLowerCase();
-      let existingOption = available.find(option => { return option.comparisonName === lowerText;});
-      if (existingOption) {
+      // let existingOption = available.find(option => { return option.name === text;});
+      if (false) {
         // pre-existing deck
-        onAdd(candidateToRef(existingOption));
+        onAdd(existingOption);
       } else {
         // treat this text as a new idea that needs to be created
         onCreate({ name: text, resource: "ideas", ref_kind: "Ref", annotation: null });
@@ -364,16 +367,16 @@ function Input({ parentDeckId, available, onAdd, onCreate, candidates, setCandid
   }
 
   function onSelectedCandidate(c) {
-    onAdd(candidateToRef(c));
-    setText('');
-    setCandidates([]);
+    onAdd(c);
+    // setText('');
+    // setCandidates([]);
   }
 
   let cl = candidates.map((c, i) => {
     return html`<${CandidateItem} candidate=${c}
                                   onSelectedCandidate=${ onSelectedCandidate }
                                   showKeyboardShortcuts=${ showKeyboardShortcuts }
-                                  keyIndex=${ currentSelection.length + 1 + i }
+                                  keyIndex=${ i }
                 />`;
   });
 
@@ -389,16 +392,26 @@ function Input({ parentDeckId, available, onAdd, onCreate, candidates, setCandid
     </form>`;
 }
 
+function indexToShortcut(index) {
+  if (index < 9) {
+    return String.fromCharCode(index + 49);
+  } else {
+    return String.fromCharCode((index - 9) + 65).toLowerCase();
+  }
+}
+
 function CandidateItem({ candidate, onSelectedCandidate, showKeyboardShortcuts, keyIndex }) {
   function selectedThisCandidate(e) {
     onSelectedCandidate(candidate);
     e.preventDefault();
   }
 
-  const canShowKeyboardShortcut = showKeyboardShortcuts && keyIndex < 10;
+  const maxShortcuts = 9 + 26;  // 1..9 and a..z
+
+  const canShowKeyboardShortcut = showKeyboardShortcuts && keyIndex < maxShortcuts;
 
   return html`<div class="civsel-candidate pigment-${candidate.resource}" onClick=${selectedThisCandidate}>
-                ${ canShowKeyboardShortcut && html`<span class='civsel-keyboard-shortcut'>Ctrl-${ keyIndex }</span>`}
+                ${ canShowKeyboardShortcut && html`<span class='keyboard-shortcut'>${ indexToShortcut(keyIndex)}: </span>`}
                 ${ candidate.name }
               </div>`;
 }

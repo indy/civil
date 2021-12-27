@@ -49,6 +49,22 @@ pub async fn search(
     Ok(HttpResponse::Ok().json(res))
 }
 
+
+pub async fn namesearch(
+    db_pool: Data<Pool>,
+    session: actix_session::Session,
+    web::Query(query): web::Query<SearchQuery>,
+) -> Result<HttpResponse> {
+    info!("namesearch '{}'", &query.q);
+
+    let user_id = session::user_id(&session)?;
+
+    let results = db::search_by_name(&db_pool, user_id, &query.q).await?;
+
+    let res = ResultList { results };
+    Ok(HttpResponse::Ok().json(res))
+}
+
 #[derive(Deserialize)]
 pub struct RecentQuery {
     resource: String,

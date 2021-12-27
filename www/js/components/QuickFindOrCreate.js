@@ -62,11 +62,9 @@ function reducer(state, action) {
     return newState;
   }
   case INPUT_GIVEN: {
-    const e = action.data;
-
     const newState = {
       ...state,
-      searchTerm: e.target.value
+      searchTerm: action.data
     };
 
     return newState;
@@ -141,7 +139,7 @@ export default function QuickFindOrCreate({ resource }) {
 
   function handleChangeEvent(e) {
     search(e.target.value);
-    localDispatch(INPUT_GIVEN, e);
+    localDispatch(INPUT_GIVEN, e.target.value);
   }
 
   async function search(text) {
@@ -194,7 +192,7 @@ function CandidateItem({ candidate, keyIndex, resource, showKeyboardShortcuts })
 
   if (showKeyboardShortcuts && keyIndex < maxShortcuts) {
     return html`<div class="quickfind-candidate pigment-${resource}">
-                  <${Link} href=${ href }><span class="quickfind-shortcut">${indexToShortcut(keyIndex)}:</span> ${ name }</${Link}>
+                  <${Link} href=${ href }><span class="keyboard-shortcut">${indexToShortcut(keyIndex)}:</span> ${ name }</${Link}>
                 </div>`;
   } else {
     return html`<div class="quickfind-candidate pigment-${resource}">
