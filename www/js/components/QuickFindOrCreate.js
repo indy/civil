@@ -5,57 +5,69 @@ import { useStateValue } from '/js/StateProvider.js';
 import { setDeckListing, addAutocompleteDeck } from '/js/CivilUtils.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 
+const SHORTCUT_CHECK = 'shortcut-check';
 const ESC_KEY_DOWN = 'esc-key-down';
 const CTRL_KEY_DOWN = 'ctrl-key-down';
-const CTRL_KEY_UP = 'ctrl-key-up';
 const INPUT_GIVEN = 'input-given';
+const SEARCH_RESULTS = 'search-results';
 
 function reducer(state, action) {
   switch (action.type) {
   case ESC_KEY_DOWN: return {
     ...state,
+    showKeyboardShortcuts: false,
     candidates: []
   };
   case CTRL_KEY_DOWN: {
     const e = action.data;
 
-    const newState = {
-      ...state,
-      showKeyboardShortcuts: true
-    };
+    const newState = { ...state };
 
-    if (e.keyCode >= 49 && e.keyCode <= 57) {
-      // Ctrl + digit
-      const digit = e.keyCode - 48;
-
-      const index = digit - 1;
-      const id = newState.candidates[index].id;
-      route(`/${newState.resource}/${id}`);
+    if (!state.showKeyboardShortcuts && state.candidates.length) {
+      newState.showKeyboardShortcuts = true;
+    } else {
+      newState.showKeyboardShortcuts = false;
     }
 
     return newState;
   }
-  case CTRL_KEY_UP: return {
-    ...state,
-    showKeyboardShortcuts: false
-  };
-  case INPUT_GIVEN: {
+  case SHORTCUT_CHECK: {
+    if (state.showKeyboardShortcuts) {
+      const index = action.data;
+
+      const newState = {
+        ...state,
+      };
+
+      if (newState.candidates.length > index) {
+        const id = newState.candidates[index].id;
+        route(`/${newState.resource}/${id}`);
+      }
+
+      return newState;
+    } else {
+      return state;
+    }
+  }
+  case SEARCH_RESULTS: {
+    const { searchTerm, searchResults } = action.data;
+
     const newState = {
       ...state,
-      searchTerm: action.data
+      searchTerm: searchTerm
     };
 
-    if (newState.searchTerm.length >= state.minSearchLength) {
-      const lowerText = newState.searchTerm.toLowerCase();
-      newState.candidates = state.autocompletes
-            .filter(op => {
-              return op.resource === state.resource
-                && op.name.toLowerCase().includes(lowerText);
-            })
-            .sort((a, b) => { return a.name.length - b.name.length; });
-    } else {
-      newState.candidates = [];
-    }
+    newState.candidates = searchResults;
+
+    return newState;
+  }
+  case INPUT_GIVEN: {
+    const e = action.data;
+
+    const newState = {
+      ...state,
+      searchTerm: e.target.value
+    };
 
     return newState;
   }
@@ -63,15 +75,13 @@ function reducer(state, action) {
   }
 }
 
-export default function QuickFindOrCreate({ autocompletes, resource, minSearchLength }) {
+export default function QuickFindOrCreate({ resource }) {
   const [state, dispatch] = useStateValue();
 
   const [local, localDispatch] = useLocalReducer(reducer, {
     searchTerm: '',
     showKeyboardShortcuts: false,
     candidates: [],
-    minSearchLength: minSearchLength || 3,
-    autocompletes,
     resource
   });
 
@@ -81,25 +91,19 @@ export default function QuickFindOrCreate({ autocompletes, resource, minSearchLe
     }
     if (e.ctrlKey) {
       localDispatch(CTRL_KEY_DOWN, e);
-      if (e.key === "Enter") {
-        // Ctrl+Enter == save
-        // onCommitAddDecks();
-      }
     }
-  };
 
-  const onKeyUp = e => {
-    if (e.key === "Control") {
-      localDispatch(CTRL_KEY_UP);
+    if ((e.keyCode >= 49 && e.keyCode <= 57) || (e.keyCode >= 65 && e.keyCode <= 90)) {
+      // digit: 1 -> 0, 2 -> 1, ... 9 -> 8       letter: a -> 9, b -> 10, ... z -> 34
+      const index = (e.keyCode >= 49 && e.keyCode <= 57) ? e.keyCode - 49 : (e.keyCode - 65) + 9;
+      localDispatch(SHORTCUT_CHECK, index);
     }
   };
 
   useEffect(() => {
     document.addEventListener("keydown", onKeyDown);
-    document.addEventListener("keyup", onKeyUp);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.removeEventListener("keyup", onKeyUp);
     };
   }, []);
 
@@ -135,10 +139,27 @@ export default function QuickFindOrCreate({ autocompletes, resource, minSearchLe
     }
   }
 
+  function handleChangeEvent(e) {
+    search(e.target.value);
+    localDispatch(INPUT_GIVEN, e);
+  }
+
+  async function search(text) {
+    const url = `/api/${resource}/search?q=${encodeURI(text)}`;
+    const searchResponse = await Net.get(url);
+
+    if (searchResponse.results) {
+      localDispatch(SEARCH_RESULTS, {
+        searchTerm: text,
+        searchResults: searchResponse.results
+      });
+    }
+  }
+
   let cl = local.candidates.map((c, i) => {
     return html`<${CandidateItem} candidate=${c}
                                   resource=${resource}
-                                  keyIndex=${ 1 + i }
+                                  keyIndex=${ i }
                                   showKeyboardShortcuts=${ local.showKeyboardShortcuts }
                 />`;
   });
@@ -150,20 +171,30 @@ export default function QuickFindOrCreate({ autocompletes, resource, minSearchLe
              name="quickfind"
              autoComplete='off'
              value=${ local.searchTerm }
-             onInput=${ (event) => localDispatch(INPUT_GIVEN, event.target.value) }
+             onInput=${ handleChangeEvent }
       />
       <div class='quickfind-candidates'>${ cl }</div>
     </form>
 `;
 }
 
+function indexToShortcut(index) {
+  if (index < 9) {
+    return String.fromCharCode(index + 49);
+  } else {
+    return String.fromCharCode((index - 9) + 65).toLowerCase();
+  }
+}
+
 function CandidateItem({ candidate, keyIndex, resource, showKeyboardShortcuts }) {
   const { id, name } = candidate;
   const href = `/${resource}/${id}`;
 
-  if (showKeyboardShortcuts && keyIndex < 10) {
+  const maxShortcuts = 9 + 26;  // 1..9 and a..z
+
+  if (showKeyboardShortcuts && keyIndex < maxShortcuts) {
     return html`<div class="quickfind-candidate pigment-${resource}">
-                  <${Link} href=${ href }><span class="quickfind-shortcut">${keyIndex}:</span> ${ name }</${Link}>
+                  <${Link} href=${ href }><span class="quickfind-shortcut">${indexToShortcut(keyIndex)}:</span> ${ name }</${Link}>
                 </div>`;
   } else {
     return html`<div class="quickfind-candidate pigment-${resource}">

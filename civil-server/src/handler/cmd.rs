@@ -17,17 +17,13 @@
 
 use crate::db::decks as db;
 use crate::error::Result;
-use crate::interop::decks::{DeckSimple, RefKind};
+use crate::handler::SearchQuery;
+use crate::interop::decks::{RefKind, ResultList};
 use crate::session;
 use actix_web::web::{self, Data};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
 use serde::Deserialize;
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct ResultList {
-    pub results: Vec<DeckSimple>,
-}
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct GraphList {
@@ -37,11 +33,6 @@ pub struct GraphList {
 
 #[allow(unused_imports)]
 use tracing::info;
-
-#[derive(Deserialize)]
-pub struct SearchQuery {
-    q: String,
-}
 
 pub async fn search(
     db_pool: Data<Pool>,

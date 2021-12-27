@@ -89,3 +89,8 @@ pub struct Vertex {
     pub kind: RefKind,
     pub strength: usize,
 }
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct ResultList {
+    pub results: Vec<DeckSimple>,
+}

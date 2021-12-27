@@ -21,11 +21,13 @@ use crate::db::people as db;
 use crate::db::points as points_db;
 use crate::db::sr as sr_db;
 use crate::error::Result;
+use crate::handler::SearchQuery;
+use crate::interop::decks::ResultList;
 use crate::interop::people as interop;
 use crate::interop::points as points_interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
-use actix_web::web::{Data, Json, Path};
+use actix_web::web::{self, Data, Json, Path};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
 use std::time::Instant;
@@ -46,6 +48,18 @@ pub async fn create(
     let person = db::get_or_create(&db_pool, user_id, &proto_deck.title).await?;
 
     Ok(HttpResponse::Ok().json(person))
+}
+
+pub async fn search(
+    db_pool: Data<Pool>,
+    session: actix_session::Session,
+    web::Query(query): web::Query<SearchQuery>,
+) -> Result<HttpResponse> {
+    let user_id = session::user_id(&session)?;
+    let results = db::search(&db_pool, user_id, &query.q).await?;
+
+    let res = ResultList { results };
+    Ok(HttpResponse::Ok().json(res))
 }
 
 pub async fn get_all(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {

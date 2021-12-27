@@ -59,6 +59,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
             scope("/ideas")
                 .route("", post().to(ideas::create))
                 .route("", get().to(ideas::get_all))
+                .route("/search", get().to(ideas::search))
                 .route("/listings", get().to(ideas::get_listings))
                 .route("/{id}", get().to(ideas::get))
                 .route(
@@ -73,6 +74,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
             scope("/people")
                 .route("", post().to(people::create))
                 .route("", get().to(people::get_all))
+                .route("/search", get().to(people::search))
                 .route("/listings", get().to(people::get_all))
                 .route("/{id}", get().to(people::get))
                 .route("/{id}", put().to(people::edit)) // check
@@ -84,6 +86,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
             scope("/timelines")
                 .route("", post().to(timelines::create))
                 .route("", get().to(timelines::get_all))
+                .route("/search", get().to(timelines::search))
                 .route("/listings", get().to(timelines::get_all))
                 .route("/{id}", get().to(timelines::get))
                 .route("/{id}", put().to(timelines::edit)) // check
@@ -95,6 +98,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
             scope("/publications")
                 .route("", post().to(publications::create))
                 .route("", get().to(publications::get_all))
+                .route("/search", get().to(publications::search))
                 .route("/listings", get().to(publications::get_listings))
                 .route("/{id}", get().to(publications::get))
                 .route("/{id}", put().to(publications::edit))

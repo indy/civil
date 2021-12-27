@@ -25,7 +25,7 @@ function Ideas() {
   return html`
     <div>
       <h1>${capitalise(resource)}</h1>
-      <${QuickFindOrCreate} autocompletes=${state.ac.decks} resource=${resource} />
+      <${QuickFindOrCreate} resource=${resource} />
       <${CompactedListSection} label='Recent' list=${ideas.recent} resource=${resource} expanded/>
       <${CompactedListSection} label='Orphans' list=${ideas.orphans} resource=${resource} hideEmpty/>
       <${CompactedListSection} label='Unnoted' list=${ideas.unnoted} resource=${resource} hideEmpty/>

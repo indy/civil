@@ -365,6 +365,56 @@ pub(crate) async fn search(
     Ok(results)
 }
 
+pub(crate) async fn search_within_deck_kind_by_name(
+    db_pool: &Pool,
+    user_id: Key,
+    deck_kind: DeckKind,
+    query: &str,
+) -> Result<Vec<interop::DeckSimple>> {
+    let (mut results, res2) =
+        tokio::try_join!(
+        query_search_within_deck_kind(
+            db_pool,
+            "select id, kind, name, ts_rank_cd(ts, plainto_tsquery('english', $2)) AS rank_sum
+             from decks
+             where ts @@ plainto_tsquery('english', $2)
+                   and user_id = $1
+                   and kind = $3
+             order by rank_sum desc
+             limit 20",
+            user_id, query, &deck_kind
+        ),
+        query_search_within_deck_kind(
+            db_pool,
+            "select id, kind, name
+             from decks
+             where name ilike '%' || $2 || '%'
+                   and user_id = $1
+                   and kind = $3
+             limit 20",
+            user_id, query, &deck_kind
+        )
+    )?;
+
+    for r in res2 {
+        if !contains(&results, r.id) {
+            results.push(r);
+        }
+    }
+
+    Ok(results)
+}
+
+async fn query_search_within_deck_kind(
+    db_pool: &Pool,
+    stmt: &str,
+    user_id: Key,
+    query: &str,
+    dk: &DeckKind,
+) -> Result<Vec<interop::DeckSimple>> {
+    pg::many_from::<DeckSimple, interop::DeckSimple>(db_pool, &stmt, &[&user_id, &query, &dk]).await
+}
+
 async fn query_search(
     db_pool: &Pool,
     stmt: &str,

@@ -19,6 +19,7 @@ use super::pg;
 use crate::db::deck_kind::DeckKind;
 use crate::db::decks;
 use crate::error::{Error, Result};
+use crate::interop::decks as interop_decks;
 use crate::interop::publications as interop;
 use crate::interop::Key;
 use deadpool_postgres::{Client, Pool};
@@ -107,6 +108,14 @@ impl From<(decks::DeckBase, PublicationExtra)> for interop::Publication {
             published_date: extra.published_date,
         }
     }
+}
+
+pub(crate) async fn search(
+    db_pool: &Pool,
+    user_id: Key,
+    query: &str,
+) -> Result<Vec<interop_decks::DeckSimple>> {
+    decks::search_within_deck_kind_by_name(db_pool, user_id, DeckKind::Publication, query).await
 }
 
 pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Publication>> {

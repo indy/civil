@@ -24,7 +24,7 @@ function Publications() {
   return html`
     <div>
       <h1>${capitalise(resource)}</h1>
-      <${QuickFindOrCreate} autocompletes=${state.ac.decks} resource='publications' minSearchLength=3/>
+      <${QuickFindOrCreate} resource='publications' />
       <${RatedListSection} label='Recent' list=${publications.recent} resource=${resource} expanded/>
       <${RatedListSection} label='Rated' list=${publications.rated} resource=${resource}/>
       <${CompactedListSection} label='Orphans' list=${publications.orphans} resource=${resource} hideEmpty/>

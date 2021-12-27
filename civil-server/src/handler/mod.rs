@@ -15,6 +15,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use serde::Deserialize;
+
+#[derive(Deserialize)]
+pub struct SearchQuery {
+    q: String,
+}
+
 pub mod autocomplete;
 pub mod cmd;
 pub mod edges;

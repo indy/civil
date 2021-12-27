@@ -47,7 +47,7 @@ function People() {
   return html`
     <div>
       <h1>${capitalise(resource)}</h1>
-      <${QuickFindOrCreate} autocompletes=${state.ac.decks} resource=${resource} minSearchLength=2/>
+      <${QuickFindOrCreate} resource=${resource} />
       <${CompactedListSection} label='Uncategorised' list=${uncategorised} resource=${resource} expanded hideEmpty/>
       <${CompactedListSection} label='Ancient' list=${ancient} resource=${resource} expanded/>
       <${CompactedListSection} label='Medieval' list=${medieval} resource=${resource} expanded/>
