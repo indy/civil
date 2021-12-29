@@ -4,7 +4,7 @@ import { useStateValue } from '/js/StateProvider.js';
 import RollableSection from '/js/components/RollableSection.js';
 
 function canShowGraph(state, id) {
-  return !!state.fullGraph[id];
+  return !!state.graph.links[id];
 }
 
 export default function GraphSection({ heading, okToShowGraph, id, depth}) {

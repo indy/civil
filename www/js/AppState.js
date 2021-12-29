@@ -12,15 +12,14 @@ export const initialState = {
 
   readOnly: false,
 
-  ac: {
+  graph: {
+    fullyLoaded: false,
     // an array of { id, name, resource }
-    decks: []
+    decks: [],
+    links: [],
+    // an array which is indexed by deck_id, returns the offset into state.graph.decks
+    deckIndexFromId: []
   },
-  // an array which is indexed by deck_id, returns the offset into state.ac.decks
-  deckIndexFromId: [],
-
-  fullGraphLoaded: false,
-  fullGraph: [],
 
   cache: {
     deck: {}
@@ -53,13 +52,12 @@ export const reducer = (state, action) => {
       ...state,
       imageDirectory: action.imageDirectory,
       recentImages: action.recentImages,
-      ac: {
-        decks: action.autocompleteDecks
+      graph: {
+        fullyLoaded: true,
+        decks: action.autocompleteDecks,
+        links: buildFullGraph(action.graphConnections),
+        deckIndexFromId: buildDeckIndex(action.autocompleteDecks)
       },
-      deckIndexFromId: buildDeckIndex(action.autocompleteDecks),
-      deckLabels: buildDeckLabels(action.autocompleteDecks),
-      fullGraphLoaded: true,
-      fullGraph: buildFullGraph(action.graphConnections),
       srReviewCount: action.srReviewCount,
       srEarliestReviewDate: action.srEarliestReviewDate
     };
@@ -93,30 +91,19 @@ export const reducer = (state, action) => {
       ...state,
       srReviewCount: action.srReviewCount
     };
-  case 'loadAutocomplete':
-    return {
-      ...state,
-      ac: {
-        decks: action.decks
-      },
-      deckIndexFromId: buildDeckIndex(action.decks),
-      deckLabels: buildDeckLabels(action.decks)
-    };
-  case 'addAutocompleteDeck':
-    {
-      let decks = state.ac.decks;
-      decks.push({
-        id: action.id,
-        name: action.name,
-        resource: action.resource
-      });
-      return {
-        ...state,
-        ac: {
-          decks: decks
-        }
-      };
-    }
+  case 'addDeckToGraphState': {
+    let newState = { ...state };
+
+    let decks = newState.graph.decks;
+    decks.push({
+      id: action.id,
+      name: action.name,
+      resource: action.resource
+    });
+
+    return newState;
+
+  }
   case 'noteRefsModified':
     {
       let newState = {...state};
@@ -132,7 +119,7 @@ export const reducer = (state, action) => {
 
         // this deck has just been created, so it isn't in the state's autocomplete list
         if (deck) {
-          newState.ac.decks.push({
+          newState.graph.decks.push({
             id: deck.id,
             name: deck.name,
             resource: deck.resource
@@ -143,7 +130,7 @@ export const reducer = (state, action) => {
         }
       });
       if (rebuildIndex) {
-        newState.deckIndexFromId = buildDeckIndex(newState.ac.decks);
+        newState.graph.deckIndexFromId = buildDeckIndex(newState.graph.decks);
       }
 
       // update the newState.listing with new ideas that were created in action.changes.referencesCreated
@@ -189,14 +176,14 @@ export const reducer = (state, action) => {
 
       return newState;
     }
-  case 'loadFullGraph':
-    {
-      return {
-        ...state,
-        fullGraphLoaded: true,
-        fullGraph: buildFullGraph(action.graphConnections)
-      };
-    }
+  case 'loadFullGraph': {
+    let newState = { ... state };
+
+    newState.graph.fullyLoaded = true;
+    newState.graph.links = buildFullGraph(action.graphConnections);
+
+    return newState;
+  }
   case 'setCurrentDeckId':
     {
       return state;
@@ -211,47 +198,44 @@ export const reducer = (state, action) => {
 
       return newState;
     }
-  case 'deleteDeck':
-    {
-      let filterFn = d => d.id !== action.id;
-      let newState = { ...state,
-                       ac: {
-                         decks: state.ac.decks.filter(filterFn)
-                       },
-                       listing: {}
-                     };
+  case 'deleteDeck': {
+    let filterFn = d => d.id !== action.id;
 
-      if (state.listing.ideas) {
-        newState.listing.ideas = {
-          all: state.listing.ideas.all.filter(filterFn),
-          orphans: state.listing.ideas.orphans.filter(filterFn),
-          recent: state.listing.ideas.recent.filter(filterFn),
-        };
+    let newState = { ...state };
+    newState.graph.decks = state.graph.decks.filter(filterFn);
+    newState.listing = {};
+
+    if (state.listing.ideas) {
+      newState.listing.ideas = {
+        all: state.listing.ideas.all.filter(filterFn),
+        orphans: state.listing.ideas.orphans.filter(filterFn),
+        recent: state.listing.ideas.recent.filter(filterFn),
       };
+    };
 
-      if (state.listing.publications) {
-        newState.listing.publications = {
-          all: state.listing.publications.all.filter(filterFn),
-          orphans: state.listing.publications.orphans.filter(filterFn),
-          recent: state.listing.publications.recent.filter(filterFn),
-          rated: state.listing.publications.rated.filter(filterFn),
-        };
-      }
-
-      if (state.listing.people) {
-        newState.listing.people = state.listing.people.filter(filterFn);
-      }
-
-      if (state.listing.timelines) {
-        newState.listing.timelines = state.listing.timelines.filter(filterFn);
-      }
-
-      delete newState.fullGraph[action.id];
-      // todo: delete all the other references in fullGraph to action.id
-      delete newState.cache.deck[action.id];
-      return newState;
-
+    if (state.listing.publications) {
+      newState.listing.publications = {
+        all: state.listing.publications.all.filter(filterFn),
+        orphans: state.listing.publications.orphans.filter(filterFn),
+        recent: state.listing.publications.recent.filter(filterFn),
+        rated: state.listing.publications.rated.filter(filterFn),
+      };
     }
+
+    if (state.listing.people) {
+      newState.listing.people = state.listing.people.filter(filterFn);
+    }
+
+    if (state.listing.timelines) {
+      newState.listing.timelines = state.listing.timelines.filter(filterFn);
+    }
+
+    delete newState.graph.links[action.id];
+    // todo: delete all the other references in graph.links to action.id
+    delete newState.cache.deck[action.id];
+    return newState;
+
+  }
     // sets the listing values for a particular deck kind
   case 'setDeckListing':
     {
@@ -366,16 +350,6 @@ function buildDeckIndex(decks) {
 
   decks.forEach((d, i) => {
     res[d.id] = i;
-  });
-
-  return res;
-}
-
-function buildDeckLabels(decks) {
-  let res = [];
-
-  decks.forEach(d => {
-    res[d.id] = d.name;
   });
 
   return res;

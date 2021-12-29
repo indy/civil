@@ -26,9 +26,9 @@ export function setDeckListing(dispatch, resource, listing) {
   });
 }
 
-export function addAutocompleteDeck(dispatch, id, name, resource) {
+export function addDeckToGraphState(dispatch, id, name, resource) {
   dispatch({
-    type: 'addAutocompleteDeck',
+    type: 'addDeckToGraphState',
     id,
     name,
     resource
