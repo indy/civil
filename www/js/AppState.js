@@ -54,7 +54,7 @@ export const reducer = (state, action) => {
       imageDirectory: action.imageDirectory,
       recentImages: action.recentImages,
       ac: {
-        decks: action.autocompleteDecks.map(autocompleteTransform)
+        decks: action.autocompleteDecks
       },
       deckIndexFromId: buildDeckIndex(action.autocompleteDecks),
       deckLabels: buildDeckLabels(action.autocompleteDecks),
@@ -97,7 +97,7 @@ export const reducer = (state, action) => {
     return {
       ...state,
       ac: {
-        decks: action.decks.map(autocompleteTransform)
+        decks: action.decks
       },
       deckIndexFromId: buildDeckIndex(action.decks),
       deckLabels: buildDeckLabels(action.decks)
@@ -105,11 +105,11 @@ export const reducer = (state, action) => {
   case 'addAutocompleteDeck':
     {
       let decks = state.ac.decks;
-      decks.push(autocompleteTransform({
+      decks.push({
         id: action.id,
         name: action.name,
         resource: action.resource
-      }));
+      });
       return {
         ...state,
         ac: {
@@ -132,11 +132,11 @@ export const reducer = (state, action) => {
 
         // this deck has just been created, so it isn't in the state's autocomplete list
         if (deck) {
-          newState.ac.decks.push(autocompleteTransform({
+          newState.ac.decks.push({
             id: deck.id,
             name: deck.name,
             resource: deck.resource
-          }));
+          });
           rebuildIndex = true;
         } else {
           console.error(`Expected a new deck called '${name}' to have been created by the server`);
@@ -406,10 +406,4 @@ function hashByNoteIds(s) {
     }
     return a;
   }, {});
-}
-
-
-function autocompleteTransform(deck) {
-  deck.comparisonName = deck.name.toLowerCase();
-  return deck;
 }
