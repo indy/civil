@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::autocomplete as db;
+use crate::db::graph as db;
 use crate::error::Result;
 use crate::session;
 use actix_web::web::Data;
@@ -30,7 +30,7 @@ pub async fn get(db_pool: Data<Pool>, session: actix_session::Session) -> Result
 
     let user_id = session::user_id(&session)?;
 
-    let autocomplete = db::get_decks(&db_pool, user_id).await?;
+    let graph = db::get_decks(&db_pool, user_id).await?;
 
-    Ok(HttpResponse::Ok().json(autocomplete))
+    Ok(HttpResponse::Ok().json(graph))
 }

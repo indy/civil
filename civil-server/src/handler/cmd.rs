@@ -49,7 +49,6 @@ pub async fn search(
     Ok(HttpResponse::Ok().json(res))
 }
 
-
 pub async fn namesearch(
     db_pool: Data<Pool>,
     session: actix_session::Session,

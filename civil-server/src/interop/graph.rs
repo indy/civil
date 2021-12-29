@@ -19,7 +19,7 @@ use crate::interop::decks::DeckResource;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct Autocomplete {
+pub struct Graph {
     pub id: Key,
     pub name: String,
     pub resource: DeckResource,

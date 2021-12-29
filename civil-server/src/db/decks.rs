@@ -371,8 +371,7 @@ pub(crate) async fn search_within_deck_kind_by_name(
     deck_kind: DeckKind,
     query: &str,
 ) -> Result<Vec<interop::DeckSimple>> {
-    let (mut results, res2) =
-        tokio::try_join!(
+    let (mut results, res2) = tokio::try_join!(
         query_search_within_deck_kind(
             db_pool,
             "select id, kind, name, ts_rank_cd(ts, plainto_tsquery('english', $2)) AS rank_sum
@@ -382,7 +381,9 @@ pub(crate) async fn search_within_deck_kind_by_name(
                    and kind = $3
              order by rank_sum desc
              limit 20",
-            user_id, query, &deck_kind
+            user_id,
+            query,
+            &deck_kind
         ),
         query_search_within_deck_kind(
             db_pool,
@@ -392,7 +393,9 @@ pub(crate) async fn search_within_deck_kind_by_name(
                    and user_id = $1
                    and kind = $3
              limit 20",
-            user_id, query, &deck_kind
+            user_id,
+            query,
+            &deck_kind
         )
     )?;
 
@@ -410,8 +413,7 @@ pub(crate) async fn search_by_name(
     user_id: Key,
     query: &str,
 ) -> Result<Vec<interop::DeckSimple>> {
-    let (mut results, res2) =
-        tokio::try_join!(
+    let (mut results, res2) = tokio::try_join!(
         query_search(
             db_pool,
             "select id, kind, name, ts_rank_cd(ts, plainto_tsquery('english', $2)) AS rank_sum
@@ -420,7 +422,8 @@ pub(crate) async fn search_by_name(
                    and user_id = $1
              order by rank_sum desc
              limit 20",
-            user_id, query
+            user_id,
+            query
         ),
         query_search(
             db_pool,
@@ -429,7 +432,8 @@ pub(crate) async fn search_by_name(
              where name ilike '%' || $2 || '%'
                    and user_id = $1
              limit 20",
-            user_id, query
+            user_id,
+            query
         )
     )?;
 

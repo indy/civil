@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::handler::autocomplete;
 use crate::handler::cmd;
 use crate::handler::edges;
+use crate::handler::graph;
 use crate::handler::ideas;
 use crate::handler::notes;
 use crate::handler::people;
@@ -127,8 +127,8 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         .service(scope("/ubersetup").route("", get().to(ubersetup::setup)))
         // edges
         .service(scope("/edges").route("/notes_decks", post().to(edges::create_from_note_to_decks)))
-        // autocomplete
-        .service(scope("/autocomplete").route("", get().to(autocomplete::get)))
+        // graph
+        .service(scope("/graph").route("", get().to(graph::get)))
         // upload
         .service(
             scope("/upload")

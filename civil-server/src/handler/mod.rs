@@ -22,9 +22,9 @@ pub struct SearchQuery {
     q: String,
 }
 
-pub mod autocomplete;
 pub mod cmd;
 pub mod edges;
+pub mod graph;
 pub mod ideas;
 pub mod notes;
 pub mod people;

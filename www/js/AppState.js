@@ -48,15 +48,18 @@ export const initialState = {
 export const reducer = (state, action) => {
   switch (action.type) {
   case 'uberSetup':
+
+    console.log(action);
+
     return {
       ...state,
       imageDirectory: action.imageDirectory,
       recentImages: action.recentImages,
       graph: {
         fullyLoaded: true,
-        decks: action.autocompleteDecks,
+        decks: action.graphDecks,
         links: buildFullGraph(action.graphConnections),
-        deckIndexFromId: buildDeckIndex(action.autocompleteDecks)
+        deckIndexFromId: buildDeckIndex(action.graphDecks)
       },
       srReviewCount: action.srReviewCount,
       srEarliestReviewDate: action.srEarliestReviewDate
@@ -110,14 +113,14 @@ export const reducer = (state, action) => {
 
       let changes = action.changes;
 
-      // update the autocomplete
+      // update the graph info
       //
       let rebuildIndex = false;
       changes.referencesCreated.forEach(d => {
         // find the newly created deck in allDecksForNote
         let deck = action.allDecksForNote.find(a => a.name === d.name);
 
-        // this deck has just been created, so it isn't in the state's autocomplete list
+        // this deck has just been created, so it isn't in the state's graph
         if (deck) {
           newState.graph.decks.push({
             id: deck.id,

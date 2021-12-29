@@ -18,7 +18,7 @@
 use super::pg;
 use crate::db::deck_kind::DeckKind;
 use crate::error::Result;
-use crate::interop::autocomplete as interop;
+use crate::interop::graph as interop;
 use crate::interop::Key;
 use deadpool_postgres::Pool;
 use serde::{Deserialize, Serialize};
@@ -29,16 +29,16 @@ use tracing::info;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
-struct AutocompleteDeck {
+struct GraphDeck {
     id: Key,
     name: String,
     kind: DeckKind,
     graph_terminator: bool,
 }
 
-impl From<AutocompleteDeck> for interop::Autocomplete {
-    fn from(p: AutocompleteDeck) -> interop::Autocomplete {
-        interop::Autocomplete {
+impl From<GraphDeck> for interop::Graph {
+    fn from(p: GraphDeck) -> interop::Graph {
+        interop::Graph {
             id: p.id,
             name: String::from(&p.name),
             resource: p.kind.into(),
@@ -47,8 +47,8 @@ impl From<AutocompleteDeck> for interop::Autocomplete {
     }
 }
 
-pub(crate) async fn get_decks(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Autocomplete>> {
-    pg::many_from::<AutocompleteDeck, interop::Autocomplete>(
+pub(crate) async fn get_decks(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Graph>> {
+    pg::many_from::<GraphDeck, interop::Graph>(
         db_pool,
         "SELECT id, name, kind, graph_terminator
          FROM decks
