@@ -178,6 +178,7 @@ function reducer(state, action) {
     newState.referencesCreated.push(refToCreate);
 
     newState.canSave = true;
+    newState.text = '';
 
     newState = rebuildCurrentSelection(newState);
 
@@ -362,19 +363,12 @@ function Input({ text, onTextChanged, onAdd, onCreate, candidates, currentSelect
         // treat this text as a new idea that needs to be created
         onCreate({ name: text, resource: "ideas", ref_kind: "Ref", annotation: null });
       }
-      setText('');
     }
-  }
-
-  function onSelectedCandidate(c) {
-    onAdd(c);
-    // setText('');
-    // setCandidates([]);
   }
 
   let cl = candidates.map((c, i) => {
     return html`<${CandidateItem} candidate=${c}
-                                  onSelectedCandidate=${ onSelectedCandidate }
+                                  onSelectedCandidate=${ onAdd }
                                   showKeyboardShortcuts=${ showKeyboardShortcuts }
                                   keyIndex=${ i }
                 />`;

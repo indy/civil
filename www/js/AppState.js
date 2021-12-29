@@ -48,9 +48,6 @@ export const initialState = {
 export const reducer = (state, action) => {
   switch (action.type) {
   case 'uberSetup':
-
-    console.log(action);
-
     return {
       ...state,
       imageDirectory: action.imageDirectory,
