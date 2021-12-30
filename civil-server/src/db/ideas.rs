@@ -107,7 +107,7 @@ pub(crate) async fn listings(db_pool: &Pool, user_id: Key) -> Result<interop::Id
         pg::many_from::<Idea, interop::Idea>(db_pool, query, &[&user_id]).await
     }
 
-    let (recent, orphans, unnoted, all) = tokio::try_join!(
+    let (recent, orphans, unnoted) = tokio::try_join!(
         many_from(
             db_pool,
             user_id,
@@ -142,21 +142,12 @@ pub(crate) async fn listings(db_pool: &Pool, user_id: Key) -> Result<interop::Id
                    and d.user_id=$1
              order by d.created_at desc"
         ),
-        many_from(
-            db_pool,
-            user_id,
-            "SELECT id, name, created_at, graph_terminator
-                   FROM decks
-                   WHERE user_id = $1 and kind = 'idea'
-                   ORDER BY name"
-        ),
     )?;
 
     Ok(interop::IdeasListings {
         recent,
         orphans,
         unnoted,
-        all,
     })
 }
 

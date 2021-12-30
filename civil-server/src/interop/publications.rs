@@ -61,5 +61,4 @@ pub struct PublicationListings {
     pub recent: Vec<Publication>,
     pub rated: Vec<Publication>,
     pub orphans: Vec<Publication>,
-    pub all: Vec<Publication>,
 }

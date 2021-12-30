@@ -28,7 +28,6 @@ function Publications() {
       <${RatedListSection} label='Recent' list=${publications.recent} resource=${resource} expanded/>
       <${RatedListSection} label='Rated' list=${publications.rated} resource=${resource}/>
       <${CompactedListSection} label='Orphans' list=${publications.orphans} resource=${resource} hideEmpty/>
-      <${CompactedListSection} label='All' list=${publications.all} resource=${resource}/>
     </div>`;
 }
 

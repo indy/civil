@@ -46,7 +46,7 @@ struct UberStruct {
 }
 
 pub async fn setup(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
-    info!("get_directory");
+    info!("setup");
 
     let user_id = session::user_id(&session)?;
 

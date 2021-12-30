@@ -139,7 +139,7 @@ pub(crate) async fn listings(db_pool: &Pool, user_id: Key) -> Result<interop::Pu
         pg::many_from::<Publication, interop::Publication>(db_pool, query, &[&user_id]).await
     }
 
-    let (recent, rated, orphans, all) = tokio::try_join!(
+    let (recent, rated, orphans) = tokio::try_join!(
         many_from(
             db_pool,
             user_id,
@@ -172,20 +172,12 @@ pub(crate) async fn listings(db_pool: &Pool, user_id: Key) -> Result<interop::Pu
              AND d.user_id = $1
              ORDER BY d.created_at desc",
         ),
-        many_from(db_pool,
-                  user_id,
-                  "SELECT decks.id, decks.name, publication_extras.source, publication_extras.author, publication_extras.short_description, coalesce(publication_extras.rating, 0) as rating, decks.created_at, publication_extras.published_date
-                   FROM decks left join publication_extras on publication_extras.deck_id = decks.id
-                   WHERE user_id = $1 and kind = 'publication'
-                   ORDER BY created_at desc"
-        ),
     )?;
 
     Ok(interop::PublicationListings {
         recent,
         rated,
         orphans,
-        all,
     })
 }
 
