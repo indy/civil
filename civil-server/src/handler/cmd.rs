@@ -18,18 +18,12 @@
 use crate::db::decks as db;
 use crate::error::Result;
 use crate::handler::SearchQuery;
-use crate::interop::decks::{RefKind, ResultList};
+use crate::interop::decks::ResultList;
 use crate::session;
 use actix_web::web::{self, Data};
 use actix_web::HttpResponse;
 use deadpool_postgres::Pool;
 use serde::Deserialize;
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct GraphList {
-    // triplet of from_id, to_id, strength
-    pub results: Vec<i32>,
-}
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -81,35 +75,5 @@ pub async fn recent(
     let results = db::recent(&db_pool, user_id, &query.resource).await?;
 
     let res = ResultList { results };
-    Ok(HttpResponse::Ok().json(res))
-}
-
-pub fn packed_kind(kind: RefKind) -> i32 {
-    match kind {
-        RefKind::Ref => 0,
-        RefKind::RefToParent => -1,
-        RefKind::RefToChild => 1,
-        RefKind::RefInContrast => 42,
-        RefKind::RefCritical => 99,
-    }
-}
-
-pub async fn graph(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
-    info!("graph");
-
-    let user_id = session::user_id(&session)?;
-
-    let results = db::graph(&db_pool, user_id).await?;
-
-    // pack the graph information as integer quadruples
-    let mut vs: Vec<i32> = vec![];
-    for r in results {
-        vs.push(r.from_id as i32);
-        vs.push(r.to_id as i32);
-        vs.push(packed_kind(r.kind));
-        vs.push(r.strength as i32);
-    }
-
-    let res = GraphList { results: vs };
     Ok(HttpResponse::Ok().json(res))
 }

@@ -3,6 +3,7 @@ import { opposingKind } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { svgTickedCheckBox, svgUntickedCheckBox, svgChevronLeft, svgChevronRight } from '/js/svgIcons.js';
 
+import Net from "/js/Net.js";
 import { graphPhysics } from "/js/graphPhysics.js";
 
 let gUpdateGraphCallback = undefined;
@@ -11,19 +12,31 @@ const ExpandedState_Fully = 0;
 const ExpandedState_Partial = 1;
 const ExpandedState_None = 2;
 
-export default function Graph({ id, depth }) {
-  const [state] = useStateValue();
+async function loadFullGraph(state, dispatch) {
+  let graph = await Net.get("/api/graph");
+  dispatch({
+    type: 'loadGraph',
+    graphNodes: graph.graph_nodes,
+    graphConnections: graph.graph_connections
+  });
+}
 
-  const [activeHyperlinks, setActiveHyperlinks] = useState(false); // hack: remove eventually
-  const [mouseButtonDown, setMouseButtonDown] = useState(false);
-  const [mouseDragging, setMouseDragging] = useState(false);
-  const [simIsRunning, setSimIsRunning] = useState(false);
+export default function Graph({ id, depth }) {
+  const [state, dispatch] = useStateValue();
+
+  const [localState, setLocalState] = useState({
+    activeHyperlinks: false, // hack: remove eventually
+    mouseButtonDown: false,
+    mouseDragging: false,
+    simIsRunning: false,
+    haveGraphState: false,
+    requireLoad: false
+  });
   const [graphState, setGraphState] = useState({});
 
   const svgContainerRef = createRef();
 
-  useEffect(() => {
-
+  function initialise() {
     let newState = {
       nodes: {},
       edges: []
@@ -42,13 +55,40 @@ export default function Graph({ id, depth }) {
     };
 
     regenGraphState(newState);
+  }
+
+  if (state.graph.fullyLoaded && localState.requireLoad === true) {
+    // console.log("initialising graph after loading in graph data");
+    initialise();
+    setLocalState({
+      ...localState,
+      requireLoad: false
+    });
+  }
+
+  useEffect(() => {
+    if (state.graph.fullyLoaded){
+      // console.log("initialising graph with pre-loaded graph data");
+      initialise();
+    } else {
+      // fetch the graph data from the server and then re-initialise with the if statement above
+      loadFullGraph(state, dispatch);
+      setLocalState({
+        ...localState,
+        requireLoad: true
+      });
+    }
   }, []);
 
   useEffect(() => {
     let svg = buildSvg(svgContainerRef.current, graphState);
 
     gUpdateGraphCallback = buildUpdateGraphCallback(svg);
-    graphPhysics(graphState, gUpdateGraphCallback, setSimIsRunning);
+    graphPhysics(graphState, gUpdateGraphCallback,
+                 function(b) { setLocalState({
+                   ...localState,
+                   simIsRunning: b
+                 })});
 
   }, [graphState]);
 
@@ -163,14 +203,24 @@ export default function Graph({ id, depth }) {
     let g = target.parentElement;
     if (g.nodeName === "g") {
       svgContainerRef.current.elementClickedOn = g;
-      setMouseButtonDown(true);
+      setLocalState({
+        ...localState,
+        mouseButtonDown: true
+      });
     }
 
-    if (!simIsRunning) {
+    if (!localState.simIsRunning) {
       // restart the simulation if it's stopped and the user starts dragging a node
       // graphPhysics(graphState, gUpdateGraphCallback, setSimIsRunning);
-      graphPhysics(graphState, gUpdateGraphCallback, setSimIsRunning);
-      setSimIsRunning(true);
+      graphPhysics(graphState, gUpdateGraphCallback, function(b) { setLocalState({
+                   ...localState,
+                   simIsRunning: b
+      })});
+
+      setLocalState({
+        ...localState,
+        simIsRunning: true
+      });
     }
   }
 
@@ -200,13 +250,16 @@ export default function Graph({ id, depth }) {
   }
 
   function onMouseButtonUp(event) {
-    if (mouseButtonDown) {
-      if (mouseDragging) {
+    if (localState.mouseButtonDown) {
+      if (localState.mouseDragging) {
         const g = svgContainerRef.current.elementClickedOn;
         g.associatedNode.fx = null;
         g.associatedNode.fy = null;
         svgContainerRef.current.elementClickedOn = undefined;
-        setMouseDragging(false);
+        setLocalState({
+          ...localState,
+          mouseDragging: false
+        });
       } else {
         let svgNode = svgContainerRef.current.elementClickedOn;
 
@@ -228,13 +281,20 @@ export default function Graph({ id, depth }) {
           regenGraphState(graphState);
         }
       }
-      setMouseButtonDown(false);
+      setLocalState({
+        ...localState,
+        mouseButtonDown: false
+      });
+
     }
   }
 
   function onMouseMove(event) {
-    if (mouseButtonDown) {
-      setMouseDragging(true);
+    if (localState.mouseButtonDown) {
+        setLocalState({
+          ...localState,
+          mouseDragging: true
+        });
 
       const g = svgContainerRef.current.elementClickedOn;
 
@@ -252,7 +312,7 @@ export default function Graph({ id, depth }) {
   function onGraphClicked(event) {
     const target = event.target;
 
-    if (activeHyperlinks) {
+    if (localState.activeHyperlinks) {
       if (target.id.length > 0 && target.id[0] === '/') {
         // the id looks like a url, that's good enough for us, lets go there
         route(target.id);
@@ -262,7 +322,10 @@ export default function Graph({ id, depth }) {
 
   function onActivHyperlinksClicked(e) {
     e.preventDefault();
-    setActiveHyperlinks(!activeHyperlinks);
+    setLocalState({
+      ...localState,
+      activeHyperlinks: !localState.activeHyperlinks
+    });
   }
 
   return html`
@@ -270,7 +333,7 @@ export default function Graph({ id, depth }) {
   <div class="left-margin">
     <div class="left-margin-entry clickable" onClick=${ onActivHyperlinksClicked }>
       <span class="left-margin-icon-label">Active Hyperlinks</span>
-      ${ activeHyperlinks ? svgTickedCheckBox() : svgUntickedCheckBox() }
+      ${ localState.activeHyperlinks ? svgTickedCheckBox() : svgUntickedCheckBox() }
     </div>
   </div>
   <div class="svg-container" ref=${ svgContainerRef }

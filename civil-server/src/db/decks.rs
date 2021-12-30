@@ -166,26 +166,6 @@ impl From<BackRef> for interop::BackRef {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
-pub struct Vertex {
-    pub from_id: Key,
-    pub to_id: Key,
-    pub kind: RefKind,
-    pub strength: i32,
-}
-
-impl From<Vertex> for interop::Vertex {
-    fn from(v: Vertex) -> interop::Vertex {
-        interop::Vertex {
-            from_id: v.from_id,
-            to_id: v.to_id,
-            kind: interop::RefKind::from(v.kind),
-            strength: v.strength as usize,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
 pub struct Deck {
     pub id: Key,
     pub kind: DeckKind,
@@ -600,21 +580,6 @@ pub(crate) async fn recent(
     let stmt = stmt.replace("$limit", &limit.to_string());
 
     pg::many_from::<DeckSimple, interop::DeckSimple>(db_pool, &stmt, &[&user_id]).await
-}
-
-pub(crate) async fn graph(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Vertex>> {
-    pg::many_from::<Vertex, interop::Vertex>(
-        db_pool,
-        "select d.id as from_id, nd.deck_id as to_id, nd.kind, count(*)::integer as strength
-         from notes_decks nd, decks d, notes n
-         where nd.note_id = n.id
-               and n.deck_id = d.id
-               and d.user_id = $1
-         group by from_id, to_id, nd.kind
-         order by from_id",
-        &[&user_id],
-    )
-    .await
 }
 
 // delete anything that's represented as a deck (publication, person, event)

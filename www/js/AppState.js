@@ -53,14 +53,21 @@ export const reducer = (state, action) => {
       imageDirectory: action.imageDirectory,
       recentImages: action.recentImages,
       graph: {
-        fullyLoaded: true,
-        decks: action.graphDecks,
-        links: buildFullGraph(action.graphConnections),
-        deckIndexFromId: buildDeckIndex(action.graphDecks)
+        fullyLoaded: false
       },
       srReviewCount: action.srReviewCount,
       srEarliestReviewDate: action.srEarliestReviewDate
     };
+  case 'loadGraph':
+    return {
+      ...state,
+      graph: {
+        fullyLoaded: true,
+        decks: action.graphNodes,
+        links: buildFullGraph(action.graphConnections),
+        deckIndexFromId: buildDeckIndex(action.graphNodes)
+      }
+    }
   case 'setLock':
     return {
       ...state,
@@ -176,14 +183,6 @@ export const reducer = (state, action) => {
 
       return newState;
     }
-  case 'loadFullGraph': {
-    let newState = { ... state };
-
-    newState.graph.fullyLoaded = true;
-    newState.graph.links = buildFullGraph(action.graphConnections);
-
-    return newState;
-  }
   case 'setCurrentDeckId':
     {
       return state;

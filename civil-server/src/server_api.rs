@@ -46,8 +46,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
             scope("/cmd")
                 .route("/search", get().to(cmd::search))
                 .route("/namesearch", get().to(cmd::namesearch))
-                .route("/recent", get().to(cmd::recent))
-                .route("/graph", get().to(cmd::graph)),
+                .route("/recent", get().to(cmd::recent)),
         )
         // registration
         .service(

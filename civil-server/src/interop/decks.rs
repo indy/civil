@@ -83,14 +83,6 @@ pub struct DeckSimple {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct Vertex {
-    pub from_id: Key,
-    pub to_id: Key,
-    pub kind: RefKind,
-    pub strength: usize,
-}
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct ResultList {
     pub results: Vec<DeckSimple>,
 }

@@ -66,8 +66,6 @@ async function getInitialStateForLoggedInUser() {
   return {
     imageDirectory: uber.directory,
     recentImages: uber.recent_images,
-    graphDecks: uber.graph,
-    graphConnections: uber.graph_list,
     srReviewCount: uber.sr_review_count,
     srEarliestReviewDate: uber.sr_earliest_review_date
   };

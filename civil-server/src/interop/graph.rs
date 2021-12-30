@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::DeckResource;
+use crate::interop::decks::{DeckResource, RefKind};
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -24,4 +24,12 @@ pub struct Graph {
     pub name: String,
     pub resource: DeckResource,
     pub graph_terminator: bool,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct Vertex {
+    pub from_id: Key,
+    pub to_id: Key,
+    pub kind: RefKind,
+    pub strength: usize,
 }

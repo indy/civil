@@ -17,7 +17,9 @@
 
 use super::pg;
 use crate::db::deck_kind::DeckKind;
+use crate::db::ref_kind::RefKind;
 use crate::error::Result;
+use crate::interop::decks as interop_decks;
 use crate::interop::graph as interop;
 use crate::interop::Key;
 use deadpool_postgres::Pool;
@@ -47,6 +49,26 @@ impl From<GraphDeck> for interop::Graph {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
+#[pg_mapper(table = "decks")]
+pub struct Vertex {
+    pub from_id: Key,
+    pub to_id: Key,
+    pub kind: RefKind,
+    pub strength: i32,
+}
+
+impl From<Vertex> for interop::Vertex {
+    fn from(v: Vertex) -> interop::Vertex {
+        interop::Vertex {
+            from_id: v.from_id,
+            to_id: v.to_id,
+            kind: interop_decks::RefKind::from(v.kind),
+            strength: v.strength as usize,
+        }
+    }
+}
+
 pub(crate) async fn get_decks(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Graph>> {
     pg::many_from::<GraphDeck, interop::Graph>(
         db_pool,
@@ -54,6 +76,21 @@ pub(crate) async fn get_decks(db_pool: &Pool, user_id: Key) -> Result<Vec<intero
          FROM decks
          WHERE user_id = $1
          ORDER BY name",
+        &[&user_id],
+    )
+    .await
+}
+
+pub(crate) async fn get_connections(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Vertex>> {
+    pg::many_from::<Vertex, interop::Vertex>(
+        db_pool,
+        "select d.id as from_id, nd.deck_id as to_id, nd.kind, count(*)::integer as strength
+         from notes_decks nd, decks d, notes n
+         where nd.note_id = n.id
+               and n.deck_id = d.id
+               and d.user_id = $1
+         group by from_id, to_id, nd.kind
+         order by from_id",
         &[&user_id],
     )
     .await
