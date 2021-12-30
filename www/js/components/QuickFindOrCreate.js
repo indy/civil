@@ -2,7 +2,7 @@ import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { useStateValue } from '/js/StateProvider.js';
-import { setDeckListing, addDeckToGraphState } from '/js/CivilUtils.js';
+import { setDeckListing, invalidateGraph } from '/js/CivilUtils.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 
 const SHORTCUT_CHECK = 'shortcut-check';
@@ -114,7 +114,7 @@ export default function QuickFindOrCreate({ resource }) {
     Net.post(`/api/${resource}`, data).then(deck => {
       Net.get(`/api/${resource}/listings`).then(listing => {
         setDeckListing(dispatch, resource, listing);
-        addDeckToGraphState(dispatch, deck.id, deck.title || deck.name, resource);
+        invalidateGraph(dispatch);
       });
       route(`/${resource}/${deck.id}`);
     });

@@ -98,47 +98,18 @@ export const reducer = (state, action) => {
       ...state,
       srReviewCount: action.srReviewCount
     };
-  case 'addDeckToGraphState': {
-    let newState = { ...state };
 
-    let decks = newState.graph.decks;
-    decks.push({
-      id: action.id,
-      name: action.name,
-      resource: action.resource
-    });
+  case 'invalidateGraph': {
+    let newState = {...state };
+    newState.graph.fullyLoaded = false;
 
     return newState;
-
   }
   case 'noteRefsModified':
     {
       let newState = {...state};
 
       let changes = action.changes;
-
-      // update the graph info
-      //
-      let rebuildIndex = false;
-      changes.referencesCreated.forEach(d => {
-        // find the newly created deck in allDecksForNote
-        let deck = action.allDecksForNote.find(a => a.name === d.name);
-
-        // this deck has just been created, so it isn't in the state's graph
-        if (deck) {
-          newState.graph.decks.push({
-            id: deck.id,
-            name: deck.name,
-            resource: deck.resource
-          });
-          rebuildIndex = true;
-        } else {
-          console.error(`Expected a new deck called '${name}' to have been created by the server`);
-        }
-      });
-      if (rebuildIndex) {
-        newState.graph.deckIndexFromId = buildDeckIndex(newState.graph.decks);
-      }
 
       // update the newState.listing with new ideas that were created in action.changes.referencesCreated
       //
@@ -157,6 +128,10 @@ export const reducer = (state, action) => {
         };
       };
 
+      if (action.changes.referencesCreated.length > 0) {
+        newState.graph.fullyLoaded = false;
+      }
+
       if (newState.listing.ideas) {
         action.changes.referencesCreated.forEach(r => {
           let newReference = action.allDecksForNote.find(d => d.name === r.name && d.resource === "ideas");
@@ -164,8 +139,6 @@ export const reducer = (state, action) => {
           // update the listing with the new resource
           newState.listing.ideas.recent.unshift(newBasicNote);
           newState.listing.ideas.unnoted.unshift(newBasicNote);
-          newState.listing.ideas.all.push(newBasicNote);
-          newState.listing.ideas.all.sort(sortByTitle);
         });
       }
 
@@ -206,7 +179,6 @@ export const reducer = (state, action) => {
 
     if (state.listing.ideas) {
       newState.listing.ideas = {
-        all: state.listing.ideas.all.filter(filterFn),
         orphans: state.listing.ideas.orphans.filter(filterFn),
         recent: state.listing.ideas.recent.filter(filterFn),
       };
@@ -214,7 +186,6 @@ export const reducer = (state, action) => {
 
     if (state.listing.publications) {
       newState.listing.publications = {
-        all: state.listing.publications.all.filter(filterFn),
         orphans: state.listing.publications.orphans.filter(filterFn),
         recent: state.listing.publications.recent.filter(filterFn),
         rated: state.listing.publications.rated.filter(filterFn),

@@ -14,6 +14,7 @@ const ExpandedState_None = 2;
 
 async function loadFullGraph(state, dispatch) {
   let graph = await Net.get("/api/graph");
+
   dispatch({
     type: 'loadGraph',
     graphNodes: graph.graph_nodes,
@@ -67,11 +68,13 @@ export default function Graph({ id, depth }) {
   }
 
   useEffect(() => {
-    if (state.graph.fullyLoaded){
+    if (state.graph.fullyLoaded) {
       // console.log("initialising graph with pre-loaded graph data");
       initialise();
     } else {
-      // fetch the graph data from the server and then re-initialise with the if statement above
+      // fetch the graph data from the server,
+      // dispatch the updated state,
+      // and then on the next render initialise using the if statement above
       loadFullGraph(state, dispatch);
       setLocalState({
         ...localState,

@@ -26,12 +26,9 @@ export function setDeckListing(dispatch, resource, listing) {
   });
 }
 
-export function addDeckToGraphState(dispatch, id, name, resource) {
+export function invalidateGraph(dispatch) {
   dispatch({
-    type: 'addDeckToGraphState',
-    id,
-    name,
-    resource
+    type: 'invalidateGraph'
   });
 }
 
