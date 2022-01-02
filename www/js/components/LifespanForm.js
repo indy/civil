@@ -5,7 +5,7 @@ import Net from '/js/Net.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { PointForm, PointBirthForm, PointDeathForm } from '/js/components/PointForm.js';
 
-import { deltaInYears } from '/js/eras.js';
+import { parseDateStringAsTriple, deltaInYears } from '/js/eras.js';
 
 
 const LIFESPAN_STAGE_BIRTH = 0;
@@ -33,9 +33,7 @@ export default function LifespanForm({ name, onLifespanGiven }) {
     // ask about date of death if the person was born a long time ago
     // otherwise ask the user if the person is still alive
     //
-    let year = parseInt(birthPoint.exact_date[0]);
-    let month = parseInt(birthPoint.exact_date[1]);
-    let day = parseInt(birthPoint.exact_date[2]);
+    let [year, month, day] = parseDateStringAsTriple(birthPoint.exact_date);
     let ageInYears = deltaInYears(year, month, day);
 
     setLocalState({

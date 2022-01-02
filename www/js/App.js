@@ -45,6 +45,7 @@ export async function buildInitialState() {
       });
 
       console.log('user is logged in');
+
       return state;
     } else {
       console.log('no user is logged in');

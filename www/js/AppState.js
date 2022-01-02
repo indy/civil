@@ -227,13 +227,17 @@ export const reducer = (state, action) => {
     {
       let newState = { ...state };
       newState.cache.deck[action.newItem.id] = action.newItem;
-      updateListOfNames(newState.listing.people, action.newItem);
+      if (newState.listing.people) {
+        updateListOfNames(newState.listing.people, action.newItem);
+      }
       return newState;
     }
   case 'setTimeline':
     {
       let newState = { ...state };
-      updateListOfTitles(newState.listing.timelines, action.newItem);
+      if (newState.listing.timelines) {
+        updateListOfTitles(newState.listing.timelines, action.newItem);
+      }
       return newState;
     }
   default:

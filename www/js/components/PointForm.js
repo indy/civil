@@ -1,8 +1,8 @@
 import { html, useState } from '/lib/preact/mod.js';
 
 import { capitalise } from '/js/JsUtils.js';
+import { parseDateStringAsTriple, parseDateStringAsYearOnly } from '/js/eras.js';
 import Net from '/js/Net.js';
-
 
 export function PointBirthForm({ pointBorn, onSubmit }) {
   return html`<${PointForm} timeLegend="Date of Birth"
@@ -398,47 +398,6 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
       <input type="submit" value=${ submitMessage }/>
     </form>
 `;
-}
-
-function parseDateStringAsYearOnly(value) {
-  const re = /^(-?)(\d{4})$/;
-  const match = re.exec(value);
-
-  if (!match) {
-    // console.log("input doesn't match the required format of [-]YYYY");
-    return null;
-  }
-
-  const isNegative = match[1] === "-";
-  const year = isNegative ? parseInt(match[2], 10) * -1 : parseInt(match[2], 10);
-
-  return year;
-}
-
-function parseDateStringAsTriple(value) {
-  const re = /^(-?)(\d{4})-(\d{2})-(\d{2})$/;
-  const match = re.exec(value);
-
-  if (!match) {
-    // console.log("input doesn't match the required format of [-]YYYY-MM-DD");
-    return null;
-  }
-
-  const isNegative = match[1] === "-";
-  const year = isNegative ? parseInt(match[2], 10) * -1 : parseInt(match[2], 10);
-  const month = parseInt(match[3], 10);
-  const day = parseInt(match[4], 10);
-
-  if (month < 1 || month > 12) {
-    console.log(`month value of ${month} is not in the range 1..12`);
-    return null;
-  }
-  if (day < 1 || day > 31) {
-    console.log(`day value of ${day} is not in the range 1..31`);
-    return null;
-  }
-
-  return [year, month, day];
 }
 
 function asHumanReadableDate(parsedDate, isApprox, roundToYear) {
