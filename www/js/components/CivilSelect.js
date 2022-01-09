@@ -4,6 +4,7 @@ import Net from '/js/Net.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { svgCloseShifted } from '/js/svgIcons.js';
 import { sortByResourceThenName } from '/js/CivilUtils.js';
+import { indexToShortcut } from '/js/CivilUtils.js';
 
 const CANDIDATES_SET = 'candidate-set';
 const CTRL_KEY_DOWN = 'ctrl-key-down';
@@ -384,14 +385,6 @@ function Input({ text, onTextChanged, onAdd, onCreate, candidates, currentSelect
       />
       <div class='civsel-candidates'>${ cl }</div>
     </form>`;
-}
-
-function indexToShortcut(index) {
-  if (index < 9) {
-    return String.fromCharCode(index + 49);
-  } else {
-    return String.fromCharCode((index - 9) + 65).toLowerCase();
-  }
 }
 
 function CandidateItem({ candidate, onSelectedCandidate, showKeyboardShortcuts, keyIndex }) {

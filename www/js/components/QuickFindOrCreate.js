@@ -4,6 +4,7 @@ import Net from '/js/Net.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { setDeckListing, invalidateGraph } from '/js/CivilUtils.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
+import { indexToShortcut } from '/js/CivilUtils.js';
 
 const SHORTCUT_CHECK = 'shortcut-check';
 const ESC_KEY_DOWN = 'esc-key-down';
@@ -174,14 +175,6 @@ export default function QuickFindOrCreate({ resource }) {
       <div class='quickfind-candidates'>${ cl }</div>
     </form>
 `;
-}
-
-function indexToShortcut(index) {
-  if (index < 9) {
-    return String.fromCharCode(index + 49);
-  } else {
-    return String.fromCharCode((index - 9) + 65).toLowerCase();
-  }
 }
 
 function CandidateItem({ candidate, keyIndex, resource, showKeyboardShortcuts }) {

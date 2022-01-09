@@ -3,6 +3,14 @@ import { useEffect, html } from '/lib/preact/mod.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
+export function indexToShortcut(index) {
+  if (index < 9) {
+    return String.fromCharCode(index + 49);
+  } else {
+    return String.fromCharCode((index - 9) + 65).toLowerCase();
+  }
+}
+
 export function ensureListingLoaded(resource, url) {
   const [state, dispatch] = useStateValue();
 

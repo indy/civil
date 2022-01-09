@@ -17,6 +17,7 @@
 
   --bg1: #eeeee8;
   --bg2: #ede7e3;
+  --bg3: #fff;
 
   --divider: #ccc;
 
@@ -62,6 +63,7 @@
 
     --bg1: #171717;
     --bg2: #12181C;
+    --bg3: #000;
 
     --divider: #444;
 
@@ -139,6 +141,7 @@ html {
 }
 
 body {
+  overflow-y: scroll;
   width: var(--body-width);
   margin-left: auto;
   margin-right: auto;
@@ -330,8 +333,6 @@ nav {
 
 nav a {
   display: inline-block;
-  margin-left: 1rem;
-  margin-right: 1rem;
   padding: 0.4rem 1rem 0.2rem 1rem;
   border-radius: var(--coloured-deck-border-radius);
 }
@@ -648,6 +649,42 @@ textarea {
 }
 
 
+#elastic-top-menu-items {
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* this will right-align the login info on the top menu bar */
+#elastic-top-menu-items div:last-child {
+  margin-left: auto;
+}
+
+#top-menu-search {
+  flex-grow: 2;
+  flex-shrink: 0;
+  margin-top: -0.3rem;
+}
+#top-menu-sr {
+  flex-grow: 2;
+}
+
+.top-menu-decktype {
+  flex-grow: 0.2;
+}
+
+#top-menu-search-results {
+  position: absolute;
+  z-index: 1;
+  background: var(--bg3);
+  border: 0.1rem solid var(--fg);
+}
+
+#top-menu-search-results > ul {
+  font-size: 1.0rem;
+  line-height: 1rem;
+  list-style-type: none;
+  padding-left: 0;
+}
 
 /* -------------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------------- */
@@ -876,11 +913,6 @@ label.right-margin-toggle {
 
 .underlined {
   text-decoration: underline;
-}
-
-#login-menuitem {
-  float: right;
-  clear:both;
 }
 
 .corner-writable-toggle {
@@ -1317,7 +1349,7 @@ input:required {
     margin-left: 0;
   }
 
-  #login-menuitem {
+  #topmenu-login {
     margin-bottom: 1rem;
   }
 }

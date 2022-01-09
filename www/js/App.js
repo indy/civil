@@ -7,7 +7,7 @@ import Net                              from '/js/Net.js';
 import { WasmInterfaceProvider }        from '/js/WasmInterfaceProvider.js';
 import { useStateValue, StateProvider } from '/js/StateProvider.js';
 
-import Search                        from '/js/components/Search.js';
+import FullSearch                    from '/js/components/FullSearch.js';
 import SpacedRepetition              from '/js/components/SpacedRepetition.js';
 import { Idea, Ideas }               from '/js/components/Ideas.js';
 import { Login, Logout }             from '/js/components/Login.js';
@@ -110,14 +110,19 @@ function TopBarMenu(props) {
       <div class="corner-writable-toggle">
         <${WhenWritableToggle}/>
       </div>
-      <${Link} class='pigment-inherit' href=${ loggedLink() } id="login-menuitem" >${ loggedStatus() }</${Link}>
-      <${Link} class='pigment-inherit' href='/'>Search</${Link}>
-      <span class="optional-navigable">
-        ${state.preferredOrder.map(dk => html`<${Link} class='pigment-${dk}' href='/${dk}'>${capitalise(dk)}</${Link}>`)}
-      </span>
-      <${Link} class='pigment-inherit' href='/sr'>SR(${state.srReviewCount})</${Link}>
-    </nav>
-`;
+      <div id="elastic-top-menu-items">
+        <${FullSearch}/>
+        ${state.preferredOrder.map(dk => html`<div class="optional-navigable top-menu-decktype">
+          <${Link} class='pigment-${dk}' href='/${dk}'>${capitalise(dk)}</${Link}>
+        </div>`)}
+        <div id="top-menu-sr">
+          <${Link} class='pigment-inherit' href='/sr'>SR(${state.srReviewCount})</${Link}>
+        </div>
+        <div>
+          <${Link} class='pigment-inherit' href=${ loggedLink() }>${ loggedStatus() }</${Link}>
+        </div>
+      </div>
+    </nav>`;
 }
 
 function AppUI(props) {
@@ -145,6 +150,8 @@ function AppUI(props) {
       // all other pages require the user to be logged in
       if (!state.user) {
         route('/login', true);
+      } else if (e.url === '/') {
+        route('/ideas', true);
       }
     }
   }
@@ -156,7 +163,6 @@ function AppUI(props) {
         <${Login} path="/login" loginCallback=${ loginHandler }/>
         <${Logout} path="/logout"/>
         <${SpacedRepetition} path="/sr"/>
-        <${Search} path="/"/>
         <${Ideas} path="/ideas"/>
         <${Idea} path="/ideas/:id"/>
         <${Publications} path="/publications"/>
