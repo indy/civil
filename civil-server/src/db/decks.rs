@@ -657,7 +657,7 @@ pub(crate) async fn backnotes(db_pool: &Pool, deck_id: Key) -> Result<Vec<intero
          WHERE n.deck_id = d.id
                AND nd.note_id = n.id
                AND nd.deck_id = $1
-         ORDER BY nd.deck_id, nd.note_id",
+         ORDER BY d.name, n.id",
         &[&deck_id],
     )
     .await
