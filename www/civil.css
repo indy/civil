@@ -659,7 +659,7 @@ textarea {
   margin-left: auto;
 }
 
-#top-menu-search {
+#top-menu-search-command {
   flex-grow: 2;
   flex-shrink: 0;
   margin-top: -0.3rem;
@@ -672,14 +672,14 @@ textarea {
   flex-grow: 0.2;
 }
 
-#top-menu-search-results {
+#top-menu-search-command-results {
   position: absolute;
   z-index: 1;
   background: var(--bg3);
   border: 0.1rem solid var(--fg);
 }
 
-#top-menu-search-results > ul {
+#top-menu-search-command-results > ul {
   font-size: 1.0rem;
   line-height: 1rem;
   list-style-type: none;

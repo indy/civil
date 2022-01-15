@@ -7,7 +7,7 @@ import Net                              from '/js/Net.js';
 import { WasmInterfaceProvider }        from '/js/WasmInterfaceProvider.js';
 import { useStateValue, StateProvider } from '/js/StateProvider.js';
 
-import FullSearch                    from '/js/components/FullSearch.js';
+import SearchCommand                 from '/js/components/SearchCommand.js';
 import SpacedRepetition              from '/js/components/SpacedRepetition.js';
 import { Idea, Ideas }               from '/js/components/Ideas.js';
 import { Login, Logout }             from '/js/components/Login.js';
@@ -111,7 +111,7 @@ function TopBarMenu(props) {
         <${WhenWritableToggle}/>
       </div>
       <div id="elastic-top-menu-items">
-        <${FullSearch}/>
+        <${SearchCommand}/>
         ${state.preferredOrder.map(dk => html`<div class="optional-navigable top-menu-decktype">
           <${Link} class='pigment-${dk}' href='/${dk}'>${capitalise(dk)}</${Link}>
         </div>`)}
