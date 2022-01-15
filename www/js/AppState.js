@@ -78,6 +78,16 @@ export const reducer = (state, action) => {
       ...state,
       readOnly: !state.readOnly
     };
+  case 'lock':
+    return {
+      ...state,
+      readOnly: true
+    };
+  case 'unlock':
+    return {
+      ...state,
+      readOnly: false
+    };
   case 'setRecentImages':
     return {
       ...state,

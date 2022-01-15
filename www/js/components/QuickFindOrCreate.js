@@ -2,7 +2,7 @@ import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { useStateValue } from '/js/StateProvider.js';
-import { setDeckListing, invalidateGraph } from '/js/CivilUtils.js';
+import { createDeck } from '/js/CivilUtils.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { indexToShortcut } from '/js/CivilUtils.js';
 
@@ -106,21 +106,6 @@ export default function QuickFindOrCreate({ resource }) {
     };
   }, []);
 
-  function createDeck(title) {
-    // creates a new deck
-    const data = {
-      title: title
-    };
-
-    Net.post(`/api/${resource}`, data).then(deck => {
-      Net.get(`/api/${resource}/listings`).then(listing => {
-        setDeckListing(dispatch, resource, listing);
-        invalidateGraph(dispatch);
-      });
-      route(`/${resource}/${deck.id}`);
-    });
-  }
-
   function onSubmit(event){
     event.preventDefault();
 
@@ -134,7 +119,7 @@ export default function QuickFindOrCreate({ resource }) {
     }
 
     if (!state.readOnly) {
-      createDeck(local.searchTerm.trim());
+      createDeck(dispatch, resource, local.searchTerm.trim());
     }
   }
 

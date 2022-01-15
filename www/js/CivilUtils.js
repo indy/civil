@@ -1,7 +1,22 @@
-import { useEffect, html } from '/lib/preact/mod.js';
+import { useEffect, html, route } from '/lib/preact/mod.js';
 
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
+
+export function createDeck(dispatch, resource, title) {
+  // creates a new deck
+  const data = {
+    title: title
+  };
+
+  Net.post(`/api/${resource}`, data).then(deck => {
+    Net.get(`/api/${resource}/listings`).then(listing => {
+      setDeckListing(dispatch, resource, listing);
+      invalidateGraph(dispatch);
+    });
+    route(`/${resource}/${deck.id}`);
+  });
+}
 
 export function indexToShortcut(index) {
   if (index < 9) {
@@ -24,20 +39,6 @@ export function ensureListingLoaded(resource, url) {
 export async function fetchDeckListing(dispatch, resource, url) {
   const listing = await Net.get(url || `/api/${resource}`);
   setDeckListing(dispatch, resource, listing);
-}
-
-export function setDeckListing(dispatch, resource, listing) {
-  dispatch({
-    type: 'setDeckListing',
-    resource,
-    listing
-  });
-}
-
-export function invalidateGraph(dispatch) {
-  dispatch({
-    type: 'invalidateGraph'
-  });
 }
 
 export function leftMarginHeading(content) {
@@ -95,4 +96,19 @@ export function sortByTitle(a, b) {
 
   // names must be equal
   return 0;
+}
+
+
+function setDeckListing(dispatch, resource, listing) {
+  dispatch({
+    type: 'setDeckListing',
+    resource,
+    listing
+  });
+}
+
+function invalidateGraph(dispatch) {
+  dispatch({
+    type: 'invalidateGraph'
+  });
 }

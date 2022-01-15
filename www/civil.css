@@ -654,6 +654,20 @@ textarea {
   justify-content: flex-start;
 }
 
+.command-entry {
+  padding: 0.4rem 1rem 0.2rem 1rem;
+  border-radius: var(--coloured-deck-border-radius);
+}
+
+.command-entry-name {
+  font-weight: bold;
+  color: var(--fg);
+}
+
+.command-entry-desc {
+  color: var(--fg1);
+}
+
 /* this will right-align the login info on the top menu bar */
 #elastic-top-menu-items div:last-child {
   margin-left: auto;

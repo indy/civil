@@ -2,7 +2,7 @@ import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
 import { useStateValue } from '/js/StateProvider.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
-import { indexToShortcut } from '/js/CivilUtils.js';
+import { createDeck, indexToShortcut } from '/js/CivilUtils.js';
 
 import Net from '/js/Net.js';
 
@@ -10,26 +10,73 @@ const MODE_SEARCH = 'mode-search';
 const MODE_COMMAND = 'mode-command';
 
 // actions to give to the dispatcher
-const SWITCH_OFF_JUST_ROUTED = 'switch-off-just-routed';
 const CANDIDATES_SET = 'candidate-set';
-const CTRL_KEY_DOWN = 'ctrl-key-down';
-const ESC_KEY_DOWN = 'esc-key-down';
+const INPUT_FOCUS = 'input-focus';
+const INPUT_BLUR = 'input-blur';
 const INPUT_GIVEN = 'input-given';
+const KEY_DOWN_CTRL = 'key-down-ctrl';
+const KEY_DOWN_ENTER = 'key-down-enter';
+const KEY_DOWN_ESC = 'key-down-esc';
 const SHORTCUT_CHECK = 'shortcut-check';
+const SWITCH_OFF_JUST_ROUTED = 'switch-off-just-routed';
 
-function reducer(state, action) {
-  switch(action.type) {
-  case SWITCH_OFF_JUST_ROUTED: return {
-    ...state,
-    justRoutedViaKeyboardShortcut: false
-  };
-  case ESC_KEY_DOWN: return {
+function debugState(state) {
+  console.log(`mode: ${state.mode}, text: "${state.text}"`);
+}
+
+function cleanState(state) {
+  return {
     ...state,
     showKeyboardShortcuts: false,
     text: '',
     candidates: []
+  }
+}
+
+function reducer(state, action) {
+  switch(action.type) {
+  case INPUT_FOCUS: {
+    return {
+      ...state,
+      hasFocus: true
+    };
+  }
+  case INPUT_BLUR: {
+    return {
+      ...state,
+      hasFocus: false
+    };
+  }
+  case SWITCH_OFF_JUST_ROUTED: return {
+    ...state,
+    justRoutedViaKeyboardShortcut: false
   };
-  case CTRL_KEY_DOWN: {
+  case KEY_DOWN_ENTER: {
+    if (!state.hasFocus) {
+      return state;
+    }
+
+    if (state.mode === MODE_COMMAND) {
+      const appDispatch = action.data;
+      const success = executeCommand(state.text, appDispatch);
+      if (success) {
+        return cleanState(state);
+      }
+    }
+
+    return state;
+  }
+  case KEY_DOWN_ESC: {
+    if (!state.hasFocus) {
+      return state;
+    }
+    return cleanState(state);
+  };
+  case KEY_DOWN_CTRL: {
+    if (!state.hasFocus) {
+      return state;
+    }
+
     const newState = {
       ...state
     };
@@ -41,19 +88,18 @@ function reducer(state, action) {
     return newState;
   }
   case SHORTCUT_CHECK: {
+    if (!state.hasFocus) {
+      return state;
+    }
+
     if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
       if (state.candidates.length > action.data) {
         const candidate = state.candidates[action.data];
 
         route(`/${candidate.resource}/${candidate.id}`);
 
-        const newState = {
-          ...state,
-          showKeyboardShortcuts: false,
-          justRoutedViaKeyboardShortcut: true,
-          text: '',
-          candidates: []
-        };
+        const newState = cleanState(state);
+        newState.justRoutedViaKeyboardShortcut = true;
 
         return newState;
       }
@@ -65,14 +111,19 @@ function reducer(state, action) {
     candidates: action.data.results ? action.data.results : []
   }
   case INPUT_GIVEN: {
+
+    if (!state.hasFocus) {
+      return state;
+    }
+
     const text = state.justRoutedViaKeyboardShortcut ? state.text : action.data;
     const mode = isCommand(text) ? MODE_COMMAND : MODE_SEARCH;
 
     let candidates = state.candidates;
-    if (mode === MODE_COMMAND && state.mode === MODE_SEARCH) {
-      // just changed mode from search to command
+    if (mode === MODE_COMMAND) {
       candidates = refineCommandCandidates(text);
-    } else if (mode === MODE_SEARCH && state.mode === MODE_COMMAND) {
+    }
+    if (mode === MODE_SEARCH && state.mode === MODE_COMMAND) {
       // just changed mode from command to search
       candidates = [];
     }
@@ -95,22 +146,26 @@ function isCommand(text) {
 }
 
 export default function SearchCommand() {
-  const [state] = useStateValue();
+  const [state, dispatch] = useStateValue();
 
   const [local, localDispatch] = useLocalReducer(reducer, {
     mode: MODE_SEARCH,
+    hasFocus: false,
     showKeyboardShortcuts: false,
     justRoutedViaKeyboardShortcut: false,
     text: '',
     candidates: []
   });
 
-  const onKeyDown = e => {
+  function onKeyDown(e) {
     if (e.key === "Escape") {
-      localDispatch(ESC_KEY_DOWN);
+      localDispatch(KEY_DOWN_ESC);
+    }
+    if (e.key === "Enter") {
+      localDispatch(KEY_DOWN_ENTER, dispatch);
     }
     if (e.ctrlKey) {
-      localDispatch(CTRL_KEY_DOWN, e);
+      localDispatch(KEY_DOWN_CTRL, e);
     }
     if ((e.keyCode >= 49 && e.keyCode <= 57) || (e.keyCode >= 65 && e.keyCode <= 90)) {
       // digit: 1 -> 0, 2 -> 1, ... 9 -> 8       letter: a -> 9, b -> 10, ... z -> 34
@@ -119,6 +174,14 @@ export default function SearchCommand() {
       localDispatch(SHORTCUT_CHECK, index);
     }
   };
+
+  function onFocus() {
+    localDispatch(INPUT_FOCUS);
+  }
+
+  function onBlur() {
+    localDispatch(INPUT_BLUR);
+  }
 
   useEffect(() => {
     document.addEventListener("keydown", onKeyDown);
@@ -167,11 +230,11 @@ export default function SearchCommand() {
   function buildCommandEntry(entry, i) {
     if (entry.spacer) {
       return html`
-        <div>-</div>`;
+        <div class="command-entry">-</div>`;
     } else {
       return html`
-        <div>
-          ${ entry.command } <span>${ entry.description }</span>
+        <div class="command-entry">
+          <span class="command-entry-name">${ entry.command }</span> <span class="command-entry-desc">${ entry.description }</span>
         </div>`;
     }
   }
@@ -189,7 +252,12 @@ export default function SearchCommand() {
   }
 
   return html`<div id="top-menu-search-command">
-                <input type="text" name="full search" value=${local.text} onInput=${handleChangeEvent}/>
+                <input type="text"
+                       name="full search"
+                       value=${local.text}
+                       onInput=${handleChangeEvent}
+                       onFocus=${onFocus}
+                       onBlur=${onBlur}/>
                 ${ !!local.candidates.length && buildCandidates() }
               </div>`;
 }
@@ -214,4 +282,49 @@ function allCommands() {
     {command: 'au', description: "add publication <<title>>"},
     {command: 'at', description: "add timeline <<title>>"}
   ];
+}
+
+function executeCommand(text, appDispatch) {
+  const commandPlusArgs = text.slice(1).split(" ").filter(s => s.length > 0);
+  if (commandPlusArgs.length === 0) {
+    return;
+  }
+
+  const command = commandPlusArgs[0];
+  const rest = commandPlusArgs.slice(1).join(" ");
+
+  switch(command) {
+  case "l":
+    appDispatch({type: 'lock'});
+    return true;
+  case "u":
+    appDispatch({type: 'unlock'});
+    return true;
+  case "gi":
+    route(`/ideas`);
+    return true;
+  case "gp":
+    route(`/people`);
+    return true;
+  case "gu":
+    route(`/publications`);
+    return true;
+  case "gt":
+    route(`/timelines`);
+    return true;
+  case "ai":
+    createDeck(appDispatch, "ideas", rest);
+    return true;
+  case "ap":
+    createDeck(appDispatch, "people", rest);
+    return true;
+  case "au":
+    createDeck(appDispatch, "publications", rest);
+    return true;
+  case "at":
+    createDeck(appDispatch, "timelines", rest);
+    return true;
+  }
+
+  return false;
 }
