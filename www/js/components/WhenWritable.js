@@ -1,7 +1,7 @@
 import { html } from '/lib/preact/mod.js';
 
 import { useStateValue } from '/js/StateProvider.js';
-import { svgLock, svgEdit } from '/js/svgIcons.js';
+import { svgLock } from '/js/svgIcons.js';
 
 function WhenWritable({children}) {
   const [state] = useStateValue();
@@ -11,17 +11,14 @@ function WhenWritable({children}) {
 function WhenWritableToggle() {
   const [state, dispatch] = useStateValue();
 
-
   function lockToggle(e) {
     e.preventDefault();
     dispatch({ type: 'toggleLock'});
   }
 
   return html`<span onClick=${ lockToggle }>
-                ${ state.readOnly ? svgLock() : svgEdit() }
+                ${ state.readOnly && svgLock() }
               </span>`;
-
-
 }
 
 export {WhenWritable, WhenWritableToggle}
