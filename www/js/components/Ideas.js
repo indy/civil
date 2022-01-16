@@ -8,7 +8,6 @@ import { capitalise, formattedDate, nonEmptyArray, plural } from '/js/JsUtils.js
 
 import { DeckManager } from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
-import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import { CompactedListSection } from '/js/components/ListSections.js';
@@ -25,7 +24,6 @@ function Ideas() {
   return html`
     <div>
       <h1>${capitalise(resource)}</h1>
-      <${QuickFindOrCreate} resource=${resource} />
       <${CompactedListSection} label='Recent' list=${ideas.recent} resource=${resource} expanded/>
       <${CompactedListSection} label='Orphans' list=${ideas.orphans} resource=${resource} hideEmpty/>
       <${CompactedListSection} label='Unnoted' list=${ideas.unnoted} resource=${resource} hideEmpty/>

@@ -25,7 +25,6 @@ import { DeckManager } from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
 import LifespanForm from '/js/components/LifespanForm.js';
 import { PointForm } from '/js/components/PointForm.js';
-import QuickFindOrCreate from '/js/components/QuickFindOrCreate.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import { WhenWritable } from '/js/components/WhenWritable.js';
@@ -47,7 +46,6 @@ function People() {
   return html`
     <div>
       <h1>${capitalise(resource)}</h1>
-      <${QuickFindOrCreate} resource=${resource} />
       <${CompactedListSection} label='Uncategorised' list=${uncategorised} resource=${resource} expanded hideEmpty/>
       <${CompactedListSection} label='Ancient' list=${ancient} resource=${resource} expanded/>
       <${CompactedListSection} label='Medieval' list=${medieval} resource=${resource} expanded/>

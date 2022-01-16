@@ -58,7 +58,6 @@ var precacheConfig = [
   "/js/components/People.js",
   "/js/components/PointForm.js",
   "/js/components/Publications.js",
-  "/js/components/QuickFindOrCreate.js",
   "/js/components/RollableSection.js",
   "/js/components/SearchCommand.js",
   "/js/components/SectionBackRefs.js",
