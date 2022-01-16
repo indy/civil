@@ -251,7 +251,7 @@ export default function SearchCommand() {
     `;
   }
 
-  return html`<div id="top-menu-search-command">
+  return html`<div id="top-menu-search-command" class="top-menu-search-command-sticky">
                 <input type="text"
                        name="full search"
                        value=${local.text}
