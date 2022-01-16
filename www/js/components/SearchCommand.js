@@ -269,18 +269,19 @@ function refineCommandCandidates(text) {
 
 function allCommands() {
   return [
-    {command: 'l', description: "lock (prevent edits)"},
-    {command: 'u', description: "unlock (allow edits)"},
-    {spacer: true},
     {command: 'gi', description: "goto ideas"},
-    {command: 'gp', description: "goto people"},
-    {command: 'gu', description: "goto publications"},
+    {command: 'gm', description: "goto people"},
+    {command: 'gp', description: "goto publications"},
     {command: 'gt', description: "goto timelines"},
     {spacer: true},
     {command: 'ai', description: "add idea <<title>>"},
-    {command: 'ap', description: "add person <<name>>"},
-    {command: 'au', description: "add publication <<title>>"},
-    {command: 'at', description: "add timeline <<title>>"}
+    {command: 'am', description: "add person <<name>>"},
+    {command: 'ap', description: "add publication <<title>>"},
+    {command: 'at', description: "add timeline <<title>>"},
+    {spacer: true},
+    {command: 'sr', description: "spaced repetition"},
+    {command: 'l',  description: "lock (prevent edits)"},
+    {command: 'u',  description: "unlock (allow edits)"}
   ];
 }
 
@@ -294,19 +295,13 @@ function executeCommand(text, appDispatch) {
   const rest = commandPlusArgs.slice(1).join(" ");
 
   switch(command) {
-  case "l":
-    appDispatch({type: 'lock'});
-    return true;
-  case "u":
-    appDispatch({type: 'unlock'});
-    return true;
   case "gi":
     route(`/ideas`);
     return true;
-  case "gp":
+  case "gm":
     route(`/people`);
     return true;
-  case "gu":
+  case "gp":
     route(`/publications`);
     return true;
   case "gt":
@@ -323,6 +318,15 @@ function executeCommand(text, appDispatch) {
     return true;
   case "at":
     createDeck(appDispatch, "timelines", rest);
+    return true;
+  case "l":
+    appDispatch({type: 'lock'});
+    return true;
+  case "u":
+    appDispatch({type: 'unlock'});
+    return true;
+  case "sr":
+    route('/sr');
     return true;
   }
 
