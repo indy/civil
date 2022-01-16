@@ -310,10 +310,10 @@ function executeCommand(text, appDispatch) {
   case "ai":
     createDeck(appDispatch, "ideas", rest);
     return true;
-  case "ap":
+  case "am":
     createDeck(appDispatch, "people", rest);
     return true;
-  case "au":
+  case "ap":
     createDeck(appDispatch, "publications", rest);
     return true;
   case "at":
