@@ -1,4 +1,4 @@
-import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
+import { html, route, Link, useState, useEffect, useRef } from '/lib/preact/mod.js';
 
 import { useStateValue } from '/js/StateProvider.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
@@ -60,17 +60,29 @@ function reducer(state, action) {
       const appDispatch = action.data;
       const success = executeCommand(state.text, appDispatch);
       if (success) {
-        return cleanState(state);
+        let newState = cleanState(state);
+        return newState;
       }
     }
 
     return state;
   }
   case KEY_DOWN_ESC: {
-    if (!state.hasFocus) {
+    const inputElement = action.data.current;
+    if (state.hasFocus) {
+      const newState = cleanState(state);
+      if (inputElement) {
+        inputElement.blur();
+        newState.hasFocus = false;
+      }
+      return newState;
+    } else {
+      if (inputElement) {
+        inputElement.focus();
+        state.hasFocus = true;
+      }
       return state;
     }
-    return cleanState(state);
   };
   case KEY_DOWN_CTRL: {
     if (!state.hasFocus) {
@@ -148,6 +160,8 @@ function isCommand(text) {
 export default function SearchCommand() {
   const [state, dispatch] = useStateValue();
 
+  const searchCommandRef = useRef(null);
+
   const [local, localDispatch] = useLocalReducer(reducer, {
     mode: MODE_SEARCH,
     hasFocus: false,
@@ -159,7 +173,7 @@ export default function SearchCommand() {
 
   function onKeyDown(e) {
     if (e.key === "Escape") {
-      localDispatch(KEY_DOWN_ESC);
+      localDispatch(KEY_DOWN_ESC, searchCommandRef);
     }
     if (e.key === "Enter") {
       localDispatch(KEY_DOWN_ENTER, dispatch);
@@ -243,7 +257,7 @@ export default function SearchCommand() {
     let candidateRenderer = local.mode === MODE_SEARCH ? buildSearchResultEntry : buildCommandEntry;
 
     return html`
-      <div id="top-menu-search-command-results">
+      <div id="search-command-results">
         <ul>
           ${ local.candidates.map((entry, i) => html`<li key=${ i }>${ candidateRenderer(entry, i) }</li>`) }
         </ul>
@@ -251,8 +265,11 @@ export default function SearchCommand() {
     `;
   }
 
-  return html`<div id="top-menu-search-command" class="top-menu-search-command-sticky">
+  const extraClasses = local.hasFocus ? "" : "search-command-invisible";
+
+  return html`<div id="search-command" class="${extraClasses}">
                 <input type="text"
+                       ref=${ searchCommandRef }
                        name="full search"
                        value=${local.text}
                        onInput=${handleChangeEvent}

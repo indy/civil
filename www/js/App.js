@@ -91,7 +91,7 @@ function TopBarMenu(props) {
     let user = state.user;
     if (user) {
       status += user.username;
-      if (user.admin) {
+      if (user.admin && user.admin.db_name !== "civil") {
         status += ` (${user.admin.db_name})`;
       }
     } else {
@@ -107,11 +107,7 @@ function TopBarMenu(props) {
 
   return html`
     <nav>
-      <div class="corner-writable-toggle">
-        <${WhenWritableToggle}/>
-      </div>
       <div id="elastic-top-menu-items">
-        <${SearchCommand}/>
         ${state.preferredOrder.map(dk => html`<div class="optional-navigable top-menu-decktype">
           <${Link} class='pigment-${dk}' href='/${dk}'>${capitalise(dk)}</${Link}>
         </div>`)}
@@ -119,6 +115,7 @@ function TopBarMenu(props) {
           <${Link} class='pigment-inherit' href='/sr'>SR(${state.srReviewCount})</${Link}>
         </div>
         <div>
+          <${WhenWritableToggle}/>
           <${Link} class='pigment-inherit' href=${ loggedLink() }>${ loggedStatus() }</${Link}>
         </div>
       </div>
@@ -158,6 +155,7 @@ function AppUI(props) {
 
   return html`
     <div id='civil-app'>
+      <${SearchCommand}/>
       <${TopBarMenu}/>
       <${Router} onChange=${ handleRoute }>
         <${Login} path="/login" loginCallback=${ loginHandler }/>
