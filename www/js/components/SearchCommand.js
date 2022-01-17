@@ -265,10 +265,11 @@ export default function SearchCommand() {
     `;
   }
 
-  const extraClasses = local.hasFocus ? "" : "search-command-invisible";
+  const extraClasses = local.hasFocus ? "search-command-visible" : "search-command-invisible";
 
   return html`<div id="search-command" class="${extraClasses}">
-                <input type="text"
+                <input id="search-command-input"
+                       type="text"
                        ref=${ searchCommandRef }
                        name="full search"
                        value=${local.text}

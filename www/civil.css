@@ -43,6 +43,8 @@
   --block-width-indented: 50%;
 
   --coloured-deck-border-radius: 0.3em;
+
+  --search-command-width: 49rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -681,21 +683,31 @@ textarea {
   flex-grow: 0.2;
 }
 
-.search-command-invisible {
-  margin-left: -100rem;
-}
-
 #search-command {
+  font-size: 1.5rem;
   position: fixed;
   margin-top: 3rem;
-  width: 40%;
+  width: var(--search-command-width);
+}
+
+#search-command-input {
+  /* normally input is at 90% */
+  width: 98%;
 }
 
 #search-command-results {
-  position: absolute;
-  z-index: 1;
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+
   background: var(--bg3);
   border: 0.1rem solid var(--fg);
+  margin: 0.2rem;
+  width: 100%;
+}
+
+#search-command-results a {
+    display: inline-block;
+    padding: 0.4rem 1rem 0.2rem 1rem;
+    border-radius: var(--coloured-deck-border-radius);
 }
 
 #search-command-results > ul {
@@ -703,6 +715,36 @@ textarea {
   line-height: 1rem;
   list-style-type: none;
   padding-left: 0;
+}
+
+.search-command-visible {
+  animation: fadeIn ease 0.2s;
+  -webkit-animation: fadeIn ease 0.2s;
+  -moz-animation: fadeIn ease 0.2s;
+  -o-animation: fadeIn ease 0.2s;
+  -ms-animation: fadeIn ease 0.2s;
+}
+@keyframes fadeIn {
+  0% {
+    opacity:0;
+  }
+  100% {
+    opacity:1;
+  }
+}
+
+.search-command-invisible {
+  animation: fadeOut ease 0.2s;
+  opacity: 0;
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity:1;
+  }
+  100% {
+    opacity:0;
+  }
 }
 
 /* -------------------------------------------------------------------------------- */
@@ -1248,11 +1290,19 @@ input:required {
 
 /* Responsive adjustments
    ========================================================================== */
+@media (max-width: 2000px) {
+  :root {
+    --bg: #00ff00;
+    --search-command-width: 40%;
+  }
+}
 
 @media (max-width: 1200px) {
   :root {
+    /* --bg: #00f2f0; */
     --body-width: 93.5%;
     --block-width: 70%;
+    --search-command-width: 60%;
   }
 
   .left-margin {
@@ -1265,13 +1315,14 @@ input:required {
     width: auto;
     float: none;
   }
-
 }
 
 @media (max-width: 800px) {
   :root {
+    /* --bg: #ffff00; */
     --body-width: 97.5%;
     --block-width: 90%;
+    --search-command-width: 90%;
   }
 
   .left-margin {
@@ -1284,9 +1335,11 @@ input:required {
 
 @media (max-width: 760px) {
   body {
+    /* --bg: #ff0044; */
     width: 84%;
     padding-left: 8%;
     padding-right: 8%;
+    --search-command-width: 76%;
   }
 
   hr,
@@ -1367,11 +1420,14 @@ input:required {
   #topmenu-login {
     margin-bottom: 1rem;
   }
+
 }
 
 @media (max-width: 500px) {
   :root {
+    /* --bg: #220044; */
     --block-width: 100%;
+    --search-command-width: 90%;
   }
 
   body {
@@ -1414,8 +1470,8 @@ input:required {
 
   margin-top: 0;
 
-  padding-top: 1rem;
-  padding-bottom: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
   font-size: 1.5rem;
 
   background: var(--bg2);
@@ -1431,8 +1487,8 @@ input:required {
 
   margin-top: 0;
 
-  padding-top: 1rem;
-  padding-bottom: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
   font-size: 1.5rem;
 
   background: var(--bg2);
