@@ -287,17 +287,17 @@ function refineCommandCandidates(text) {
 
 function allCommands() {
   return [
-    {command: 'gi', description: "goto ideas"},
-    {command: 'gm', description: "goto people"},
-    {command: 'gp', description: "goto publications"},
-    {command: 'gt', description: "goto timelines"},
+    {command: 'ig', description: "goto ideas"},
+    {command: 'mg', description: "goto people"},
+    {command: 'pg', description: "goto publications"},
+    {command: 'tg', description: "goto timelines"},
     {spacer: true},
-    {command: 'ai', description: "add idea <<title>>"},
-    {command: 'am', description: "add person <<name>>"},
-    {command: 'ap', description: "add publication <<title>>"},
-    {command: 'at', description: "add timeline <<title>>"},
+    {command: 'ia', description: "add idea <<title>>"},
+    {command: 'ma', description: "add person <<name>>"},
+    {command: 'pa', description: "add publication <<title>>"},
+    {command: 'ta', description: "add timeline <<title>>"},
     {spacer: true},
-    {command: 'sr', description: "spaced repetition"},
+    {command: 'srg', description: "goto spaced repetition"},
     {command: 'l',  description: "lock (prevent edits)"},
     {command: 'u',  description: "unlock (allow edits)"},
     {command: 'tms',  description: "top menu - show"},
@@ -317,28 +317,28 @@ function executeCommand(text, appDispatch) {
   const rest = commandPlusArgs.slice(1).join(" ");
 
   switch(command) {
-  case "gi":
+  case "ig":
     route(`/ideas`);
     return true;
-  case "gm":
+  case "mg":
     route(`/people`);
     return true;
-  case "gp":
+  case "pg":
     route(`/publications`);
     return true;
-  case "gt":
+  case "tg":
     route(`/timelines`);
     return true;
-  case "ai":
+  case "ia":
     createDeck(appDispatch, "ideas", rest);
     return true;
-  case "am":
+  case "ma":
     createDeck(appDispatch, "people", rest);
     return true;
-  case "ap":
+  case "pa":
     createDeck(appDispatch, "publications", rest);
     return true;
-  case "at":
+  case "ta":
     createDeck(appDispatch, "timelines", rest);
     return true;
   case "l":
@@ -347,7 +347,7 @@ function executeCommand(text, appDispatch) {
   case "u":
     appDispatch({type: 'unlock'});
     return true;
-  case "sr":
+  case "srg":
     route('/sr');
     return true;
   case "tms":
