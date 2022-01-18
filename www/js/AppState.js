@@ -12,6 +12,7 @@ export const initialState = {
 
   readOnly: false,
 
+  showConnectivityGraph: false,
   graph: {
     fullyLoaded: false,
     // an array of { id, name, resource }
@@ -31,6 +32,7 @@ export const initialState = {
   recentImages: [],
   imageDirectory: '',
 
+  showTopMenu: false,
   preferredOrder: ["ideas", "people", "publications", "timelines"],
 
   // key == resource name of decks
@@ -87,6 +89,26 @@ export const reducer = (state, action) => {
     return {
       ...state,
       readOnly: false
+    };
+  case 'topMenuShow':
+    return {
+      ...state,
+      showTopMenu: true
+    };
+  case 'topMenuHide':
+    return {
+      ...state,
+      showTopMenu: false
+    };
+  case 'connectivityGraphShow':
+    return {
+      ...state,
+      showConnectivityGraph: true
+    };
+  case 'connectivityGraphHide':
+    return {
+      ...state,
+      showConnectivityGraph: false
     };
   case 'setRecentImages':
     return {

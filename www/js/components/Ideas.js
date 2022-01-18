@@ -22,12 +22,12 @@ function Ideas() {
   const ideas = state.listing.ideas || {};
 
   return html`
-    <div>
+    <article>
       <h1>${capitalise(resource)}</h1>
       <${CompactedListSection} label='Recent' list=${ideas.recent} resource=${resource} expanded/>
       <${CompactedListSection} label='Orphans' list=${ideas.orphans} resource=${resource} hideEmpty/>
       <${CompactedListSection} label='Unnoted' list=${ideas.unnoted} resource=${resource} hideEmpty/>
-    </div>`;
+    </article>`;
 }
 
 function Idea(props) {

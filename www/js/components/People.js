@@ -44,14 +44,14 @@ function People() {
   const contemporary = filterBetween(people, era.modernCutoff, era.uncategorisedYear);
 
   return html`
-    <div>
+    <article>
       <h1>${capitalise(resource)}</h1>
       <${CompactedListSection} label='Uncategorised' list=${uncategorised} resource=${resource} expanded hideEmpty/>
       <${CompactedListSection} label='Ancient' list=${ancient} resource=${resource} expanded/>
       <${CompactedListSection} label='Medieval' list=${medieval} resource=${resource} expanded/>
       <${CompactedListSection} label='Modern' list=${modern} resource=${resource} expanded/>
       <${CompactedListSection} label='Contemporary' list=${contemporary} resource=${resource} expanded/>
-    </div>`;
+    </article>`;
 }
 
 function Person(props) {

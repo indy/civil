@@ -299,7 +299,11 @@ function allCommands() {
     {spacer: true},
     {command: 'sr', description: "spaced repetition"},
     {command: 'l',  description: "lock (prevent edits)"},
-    {command: 'u',  description: "unlock (allow edits)"}
+    {command: 'u',  description: "unlock (allow edits)"},
+    {command: 'tms',  description: "top menu - show"},
+    {command: 'tmh',  description: "top menu - hide"},
+    {command: 'cgs',  description: "connectivity graph - show"},
+    {command: 'cgh',  description: "connectivity graph - hide"}
   ];
 }
 
@@ -345,6 +349,18 @@ function executeCommand(text, appDispatch) {
     return true;
   case "sr":
     route('/sr');
+    return true;
+  case "tms":
+    appDispatch({type: 'topMenuShow'});
+    return true;
+  case "tmh":
+    appDispatch({type: 'topMenuHide'});
+    return true;
+  case "cgs":
+    appDispatch({type: 'connectivityGraphShow'});
+    return true;
+  case "cgh":
+    appDispatch({type: 'connectivityGraphHide'});
     return true;
   }
 

@@ -22,10 +22,10 @@ function Timelines() {
   ensureListingLoaded(resource);
 
   return html`
-    <div>
+    <article>
       <h1>${capitalise(resource)}</h1>
       <${BasicListSection} list=${state.listing.timelines} resource=${resource}/>
-    </div>`;
+    </article>`;
 }
 
 function Timeline(props) {

@@ -21,12 +21,12 @@ function Publications() {
   const publications = state.listing.publications || {};
 
   return html`
-    <div>
+    <article>
       <h1>${capitalise(resource)}</h1>
       <${RatedListSection} label='Recent' list=${publications.recent} resource=${resource} expanded/>
       <${RatedListSection} label='Rated' list=${publications.rated} resource=${resource}/>
       <${CompactedListSection} label='Orphans' list=${publications.orphans} resource=${resource} hideEmpty/>
-    </div>`;
+    </article>`;
 }
 
 function asUrl(url) {

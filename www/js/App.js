@@ -105,21 +105,25 @@ function TopBarMenu(props) {
     return state.user ? "/logout" : "/login";
   }
 
-  return html`
-    <nav>
-      <div id="elastic-top-menu-items">
-        ${state.preferredOrder.map(dk => html`<div class="optional-navigable top-menu-decktype">
-          <${Link} class='pigment-${dk}' href='/${dk}'>${capitalise(dk)}</${Link}>
+  if (state.showTopMenu) {
+    return html`
+      <nav>
+        <div id="elastic-top-menu-items">
+          ${state.preferredOrder.map(dk => html`<div class="optional-navigable top-menu-decktype">
+        <${Link} class='pigment-${dk}' href='/${dk}'>${capitalise(dk)}</${Link}>
         </div>`)}
-        <div id="top-menu-sr">
-          <${Link} class='pigment-inherit' href='/sr'>SR(${state.srReviewCount})</${Link}>
+          <div id="top-menu-sr">
+            <${Link} class='pigment-inherit' href='/sr'>SR(${state.srReviewCount})</${Link}>
+          </div>
+          <div>
+            <${WhenWritableToggle}/>
+            <${Link} class='pigment-inherit' href=${ loggedLink() }>${ loggedStatus() }</${Link}>
+          </div>
         </div>
-        <div>
-          <${WhenWritableToggle}/>
-          <${Link} class='pigment-inherit' href=${ loggedLink() }>${ loggedStatus() }</${Link}>
-        </div>
-      </div>
-    </nav>`;
+      </nav>`;
+  } else {
+    return html``;
+  }
 }
 
 function AppUI(props) {
