@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::handler::articles;
 use crate::handler::cmd;
 use crate::handler::edges;
 use crate::handler::graph;
 use crate::handler::ideas;
 use crate::handler::notes;
 use crate::handler::people;
-use crate::handler::publications;
 use crate::handler::sr;
 use crate::handler::timelines;
 use crate::handler::ubersetup;
@@ -93,16 +93,16 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", delete().to(timelines::delete))
                 .route("/{id}/points", post().to(timelines::add_point)),
         )
-        // publications
+        // articles
         .service(
-            scope("/publications")
-                .route("", post().to(publications::create))
-                .route("", get().to(publications::get_all))
-                .route("/search", get().to(publications::search))
-                .route("/listings", get().to(publications::get_listings))
-                .route("/{id}", get().to(publications::get))
-                .route("/{id}", put().to(publications::edit))
-                .route("/{id}", delete().to(publications::delete)),
+            scope("/articles")
+                .route("", post().to(articles::create))
+                .route("", get().to(articles::get_all))
+                .route("/search", get().to(articles::search))
+                .route("/listings", get().to(articles::get_listings))
+                .route("/{id}", get().to(articles::get))
+                .route("/{id}", put().to(articles::edit))
+                .route("/{id}", delete().to(articles::delete)),
         )
         // notes
         .service(

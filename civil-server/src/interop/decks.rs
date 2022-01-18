@@ -19,8 +19,8 @@ use crate::interop::Key;
 
 #[derive(PartialEq, Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
 pub enum DeckResource {
-    #[serde(rename = "publications")]
-    Publication,
+    #[serde(rename = "articles")]
+    Article,
     #[serde(rename = "people")]
     Person,
     #[serde(rename = "ideas")]

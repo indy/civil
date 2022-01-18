@@ -22,8 +22,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Copy, Clone, Debug, ToSql, FromSql, Deserialize, Serialize, PartialEq)]
 #[postgres(name = "deck_kind")]
 pub enum DeckKind {
-    #[postgres(name = "publication")]
-    Publication,
+    #[postgres(name = "article")]
+    Article,
     #[postgres(name = "person")]
     Person,
     #[postgres(name = "idea")]
@@ -35,7 +35,7 @@ pub enum DeckKind {
 impl From<DeckKind> for interop::DeckResource {
     fn from(a: DeckKind) -> interop::DeckResource {
         match a {
-            DeckKind::Publication => interop::DeckResource::Publication,
+            DeckKind::Article => interop::DeckResource::Article,
             DeckKind::Person => interop::DeckResource::Person,
             DeckKind::Idea => interop::DeckResource::Idea,
             DeckKind::Timeline => interop::DeckResource::Timeline,
@@ -46,7 +46,7 @@ impl From<DeckKind> for interop::DeckResource {
 impl From<interop::DeckResource> for DeckKind {
     fn from(a: interop::DeckResource) -> DeckKind {
         match a {
-            interop::DeckResource::Publication => DeckKind::Publication,
+            interop::DeckResource::Article => DeckKind::Article,
             interop::DeckResource::Person => DeckKind::Person,
             interop::DeckResource::Idea => DeckKind::Idea,
             interop::DeckResource::Timeline => DeckKind::Timeline,

@@ -35,7 +35,7 @@ pub(crate) enum DeckBaseOrigin {
     PreExisting,
 }
 
-// used when constructing a type derived from deck (Idea, Publication etc)
+// used when constructing a type derived from deck (Idea, Article etc)
 // gets the basic information from the decks table for use with additional data to construct the final struct
 // e.g. DeckBase + IdeaExtra to create an interop::Idea
 //
@@ -196,7 +196,7 @@ pub(crate) async fn search_using_deck_id(
         query_search_id(
             db_pool,
             "select d.id, d.kind, d.name, ts_rank_cd(pe.ts, phraseto_tsquery('english', deckname.name)) AS rank_sum, 1 as rank_count
-             from decks deckname, decks d left join publication_extras pe on pe.deck_id = d.id
+             from decks deckname, decks d left join article_extras pe on pe.deck_id = d.id
              where pe.ts @@ phraseto_tsquery('english', deckname.name)
                    and d.user_id = $1
                    and deckname.id = $2
@@ -283,7 +283,7 @@ pub(crate) async fn search(
             db_pool,
             "select d.id, d.kind, d.name, ts_rank_cd(pe.ts, plainto_tsquery('english', $2)) AS rank_sum, 1 as rank_count
              from decks d
-                  left join publication_extras pe on pe.deck_id = d.id
+                  left join article_extras pe on pe.deck_id = d.id
              where pe.ts @@ plainto_tsquery('english', $2)
                    and d.user_id = $1
              group by d.id, pe.ts
@@ -468,7 +468,7 @@ fn resource_string_to_deck_kind_string(resource: &str) -> Result<&'static str> {
         "events" => Ok("event"),
         "ideas" => Ok("idea"),
         "people" => Ok("person"),
-        "publications" => Ok("publication"),
+        "articles" => Ok("article"),
         _ => Err(Error::InvalidResource),
     }
 }
@@ -582,7 +582,7 @@ pub(crate) async fn recent(
     pg::many_from::<DeckSimple, interop::DeckSimple>(db_pool, &stmt, &[&user_id]).await
 }
 
-// delete anything that's represented as a deck (publication, person, event)
+// delete anything that's represented as a deck (article, person, event)
 //
 pub(crate) async fn delete(db_pool: &Pool, user_id: Key, id: Key) -> Result<()> {
     let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
@@ -590,12 +590,7 @@ pub(crate) async fn delete(db_pool: &Pool, user_id: Key, id: Key) -> Result<()> 
 
     notes::delete_all_notes_connected_with_deck(&tx, user_id, id).await?;
 
-    pg::zero(
-        &tx,
-        "DELETE FROM publication_extras WHERE deck_id = $1",
-        &[&id],
-    )
-    .await?;
+    pg::zero(&tx, "DELETE FROM article_extras WHERE deck_id = $1", &[&id]).await?;
 
     pg::zero(&tx, "DELETE FROM notes_decks WHERE deck_id = $1", &[&id]).await?;
 
@@ -613,7 +608,7 @@ pub(crate) async fn delete(db_pool: &Pool, user_id: Key, id: Key) -> Result<()> 
     Ok(())
 }
 
-// // return all the people, events, publications etc that mention this deck
+// // return all the people, events, articles etc that mention this deck
 // // (used for showing backrefs)
 // //
 // pub(crate) async fn from_decks_via_notes_to_deck_id(
@@ -684,7 +679,7 @@ pub(crate) async fn backrefs(db_pool: &Pool, deck_id: Key) -> Result<Vec<interop
     .await
 }
 
-// return all the people, events, publications etc mentioned in the given deck
+// return all the people, events, articles etc mentioned in the given deck
 // (used to show refs on left hand margin)
 //
 pub(crate) async fn from_deck_id_via_notes_to_decks(

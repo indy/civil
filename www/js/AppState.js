@@ -33,12 +33,12 @@ export const initialState = {
   imageDirectory: '',
 
   showTopMenu: false,
-  preferredOrder: ["ideas", "people", "publications", "timelines"],
+  preferredOrder: ["ideas", "people", "articles", "timelines"],
 
   // key == resource name of decks
   listing: {
     ideas: undefined,           // when listing ideas on /ideas page
-    publications: undefined,
+    articles: undefined,
     people: undefined,
     timelines: undefined
   },
@@ -216,11 +216,11 @@ export const reducer = (state, action) => {
       };
     };
 
-    if (state.listing.publications) {
-      newState.listing.publications = {
-        orphans: state.listing.publications.orphans.filter(filterFn),
-        recent: state.listing.publications.recent.filter(filterFn),
-        rated: state.listing.publications.rated.filter(filterFn),
+    if (state.listing.articles) {
+      newState.listing.articles = {
+        orphans: state.listing.articles.orphans.filter(filterFn),
+        recent: state.listing.articles.recent.filter(filterFn),
+        rated: state.listing.articles.rated.filter(filterFn),
       };
     }
 

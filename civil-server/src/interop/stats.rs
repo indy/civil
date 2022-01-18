@@ -18,7 +18,7 @@
 #[derive(Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct Stats {
     pub num_ideas: i32,
-    pub num_publications: i32,
+    pub num_articles: i32,
     pub num_people: i32,
     pub num_timelines: i32,
 
@@ -28,7 +28,7 @@ pub struct Stats {
     pub num_images: i32,
 
     pub num_notes_in_ideas: i32,
-    pub num_notes_in_publications: i32,
+    pub num_notes_in_articles: i32,
     pub num_notes_in_people: i32,
     pub num_notes_in_timelines: i32,
 
@@ -36,22 +36,22 @@ pub struct Stats {
     pub num_points_in_timelines: i32,
 
     pub num_refs_ideas_to_ideas: i32,
-    pub num_refs_ideas_to_publications: i32,
+    pub num_refs_ideas_to_articles: i32,
     pub num_refs_ideas_to_people: i32,
     pub num_refs_ideas_to_timelines: i32,
 
-    pub num_refs_publications_to_ideas: i32,
-    pub num_refs_publications_to_publications: i32,
-    pub num_refs_publications_to_people: i32,
-    pub num_refs_publications_to_timelines: i32,
+    pub num_refs_articles_to_ideas: i32,
+    pub num_refs_articles_to_articles: i32,
+    pub num_refs_articles_to_people: i32,
+    pub num_refs_articles_to_timelines: i32,
 
     pub num_refs_people_to_ideas: i32,
-    pub num_refs_people_to_publications: i32,
+    pub num_refs_people_to_articles: i32,
     pub num_refs_people_to_people: i32,
     pub num_refs_people_to_timelines: i32,
 
     pub num_refs_timelines_to_ideas: i32,
-    pub num_refs_timelines_to_publications: i32,
+    pub num_refs_timelines_to_articles: i32,
     pub num_refs_timelines_to_people: i32,
     pub num_refs_timelines_to_timelines: i32,
 }

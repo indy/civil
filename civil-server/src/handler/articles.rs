@@ -15,14 +15,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::articles as db;
 use crate::db::decks as decks_db;
 use crate::db::notes as notes_db;
-use crate::db::publications as db;
 use crate::db::sr as sr_db;
 use crate::error::Result;
 use crate::handler::SearchQuery;
+use crate::interop::articles as interop;
 use crate::interop::decks::ResultList;
-use crate::interop::publications as interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
 use actix_web::web::{self, Data, Json, Path};
@@ -42,9 +42,9 @@ pub async fn create(
     let user_id = session::user_id(&session)?;
     let proto_deck = proto_deck.into_inner();
 
-    let publication = db::get_or_create(&db_pool, user_id, &proto_deck.title).await?;
+    let article = db::get_or_create(&db_pool, user_id, &proto_deck.title).await?;
 
-    Ok(HttpResponse::Ok().json(publication))
+    Ok(HttpResponse::Ok().json(article))
 }
 
 pub async fn search(
@@ -63,9 +63,9 @@ pub async fn get_all(db_pool: Data<Pool>, session: actix_session::Session) -> Re
     info!("get_all");
 
     let user_id = session::user_id(&session)?;
-    let publications = db::all(&db_pool, user_id).await?;
+    let articles = db::all(&db_pool, user_id).await?;
 
-    Ok(HttpResponse::Ok().json(publications))
+    Ok(HttpResponse::Ok().json(articles))
 }
 
 pub async fn get_listings(
@@ -75,9 +75,9 @@ pub async fn get_listings(
     info!("get_listings");
 
     let user_id = session::user_id(&session)?;
-    let publications = db::listings(&db_pool, user_id).await?;
+    let articles = db::listings(&db_pool, user_id).await?;
 
-    Ok(HttpResponse::Ok().json(publications))
+    Ok(HttpResponse::Ok().json(articles))
 }
 
 pub async fn get(
@@ -88,16 +88,16 @@ pub async fn get(
     info!("get {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
-    let publication_id = params.id;
+    let article_id = params.id;
 
-    let mut publication = db::get(&db_pool, user_id, publication_id).await?;
-    augment(&db_pool, &mut publication, publication_id).await?;
+    let mut article = db::get(&db_pool, user_id, article_id).await?;
+    augment(&db_pool, &mut article, article_id).await?;
 
-    Ok(HttpResponse::Ok().json(publication))
+    Ok(HttpResponse::Ok().json(article))
 }
 
 pub async fn edit(
-    publication: Json<interop::ProtoPublication>,
+    article: Json<interop::ProtoArticle>,
     db_pool: Data<Pool>,
     params: Path<IdParam>,
     session: actix_session::Session,
@@ -105,13 +105,13 @@ pub async fn edit(
     info!("edit");
 
     let user_id = session::user_id(&session)?;
-    let publication_id = params.id;
-    let publication = publication.into_inner();
+    let article_id = params.id;
+    let article = article.into_inner();
 
-    let mut publication = db::edit(&db_pool, user_id, &publication, publication_id).await?;
-    augment(&db_pool, &mut publication, publication_id).await?;
+    let mut article = db::edit(&db_pool, user_id, &article, article_id).await?;
+    augment(&db_pool, &mut article, article_id).await?;
 
-    Ok(HttpResponse::Ok().json(publication))
+    Ok(HttpResponse::Ok().json(article))
 }
 
 pub async fn delete(
@@ -130,22 +130,22 @@ pub async fn delete(
 
 async fn augment(
     db_pool: &Data<Pool>,
-    publication: &mut interop::Publication,
-    publication_id: Key,
+    article: &mut interop::Article,
+    article_id: Key,
 ) -> Result<()> {
     let (notes, refs, backnotes, backrefs, flashcards) = tokio::try_join!(
-        notes_db::all_from_deck(&db_pool, publication_id),
-        decks_db::from_deck_id_via_notes_to_decks(&db_pool, publication_id),
-        decks_db::backnotes(&db_pool, publication_id),
-        decks_db::backrefs(&db_pool, publication_id),
-        sr_db::all_flashcards_for_deck(&db_pool, publication_id),
+        notes_db::all_from_deck(&db_pool, article_id),
+        decks_db::from_deck_id_via_notes_to_decks(&db_pool, article_id),
+        decks_db::backnotes(&db_pool, article_id),
+        decks_db::backrefs(&db_pool, article_id),
+        sr_db::all_flashcards_for_deck(&db_pool, article_id),
     )?;
 
-    publication.notes = Some(notes);
-    publication.refs = Some(refs);
-    publication.backnotes = Some(backnotes);
-    publication.backrefs = Some(backrefs);
-    publication.flashcards = Some(flashcards);
+    article.notes = Some(notes);
+    article.refs = Some(refs);
+    article.backnotes = Some(backnotes);
+    article.backrefs = Some(backrefs);
+    article.flashcards = Some(flashcards);
 
     Ok(())
 }

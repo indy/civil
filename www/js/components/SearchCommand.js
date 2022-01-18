@@ -288,13 +288,13 @@ function refineCommandCandidates(text) {
 function allCommands() {
   return [
     {command: 'ig', description: "goto ideas"},
-    {command: 'mg', description: "goto people"},
-    {command: 'pg', description: "goto publications"},
+    {command: 'pg', description: "goto people"},
+    {command: 'ag', description: "goto articles"},
     {command: 'tg', description: "goto timelines"},
     {spacer: true},
     {command: 'ia', description: "add idea <<title>>"},
-    {command: 'ma', description: "add person <<name>>"},
-    {command: 'pa', description: "add publication <<title>>"},
+    {command: 'pa', description: "add person <<name>>"},
+    {command: 'aa', description: "add article <<title>>"},
     {command: 'ta', description: "add timeline <<title>>"},
     {spacer: true},
     {command: 'srg', description: "goto spaced repetition"},
@@ -320,11 +320,11 @@ function executeCommand(text, appDispatch) {
   case "ig":
     route(`/ideas`);
     return true;
-  case "mg":
+  case "pg":
     route(`/people`);
     return true;
-  case "pg":
-    route(`/publications`);
+  case "ag":
+    route(`/articles`);
     return true;
   case "tg":
     route(`/timelines`);
@@ -332,11 +332,11 @@ function executeCommand(text, appDispatch) {
   case "ia":
     createDeck(appDispatch, "ideas", rest);
     return true;
-  case "ma":
+  case "pa":
     createDeck(appDispatch, "people", rest);
     return true;
-  case "pa":
-    createDeck(appDispatch, "publications", rest);
+  case "aa":
+    createDeck(appDispatch, "articles", rest);
     return true;
   case "ta":
     createDeck(appDispatch, "timelines", rest);

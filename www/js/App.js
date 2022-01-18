@@ -12,7 +12,7 @@ import SpacedRepetition              from '/js/components/SpacedRepetition.js';
 import { Idea, Ideas }               from '/js/components/Ideas.js';
 import { Login, Logout }             from '/js/components/Login.js';
 import { Person, People }            from '/js/components/People.js';
-import { Publication, Publications } from '/js/components/Publications.js';
+import { Article, Articles } from '/js/components/Articles.js';
 import { Timeline, Timelines }       from '/js/components/Timelines.js';
 import { WhenWritableToggle }        from '/js/components/WhenWritable.js';
 
@@ -167,8 +167,8 @@ function AppUI(props) {
         <${SpacedRepetition} path="/sr"/>
         <${Ideas} path="/ideas"/>
         <${Idea} path="/ideas/:id"/>
-        <${Publications} path="/publications"/>
-        <${Publication} path="/publications/:id"/>
+        <${Articles} path="/articles"/>
+        <${Article} path="/articles/:id"/>
         <${People} path="/people"/>
         <${Person} path="/people/:id"/>
         <${Timelines} path="/timelines"/>

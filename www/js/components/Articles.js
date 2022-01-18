@@ -12,20 +12,20 @@ import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import { StarRatingPartial } from '/js/components/StarRating.js';
 
-function Publications() {
+function Articles() {
   const [state, dispatch] = useStateValue();
-  const resource = 'publications';
+  const resource = 'articles';
 
-  ensureListingLoaded(resource, '/api/publications/listings');
+  ensureListingLoaded(resource, '/api/articles/listings');
 
-  const publications = state.listing.publications || {};
+  const articles = state.listing.articles || {};
 
   return html`
     <article>
       <h1>${capitalise(resource)}</h1>
-      <${RatedListSection} label='Recent' list=${publications.recent} resource=${resource} expanded/>
-      <${RatedListSection} label='Rated' list=${publications.rated} resource=${resource}/>
-      <${CompactedListSection} label='Orphans' list=${publications.orphans} resource=${resource} hideEmpty/>
+      <${RatedListSection} label='Recent' list=${articles.recent} resource=${resource} expanded/>
+      <${RatedListSection} label='Rated' list=${articles.rated} resource=${resource}/>
+      <${CompactedListSection} label='Orphans' list=${articles.orphans} resource=${resource} hideEmpty/>
     </article>`;
 }
 
@@ -33,17 +33,17 @@ function asUrl(url) {
   return html`<a href=${ url }>${ url }</a>`;
 }
 
-function Publication(props) {
+function Article(props) {
   const [state] = useStateValue();
 
-  const publicationId = parseInt(props.id, 10);
-  const publication = state.cache.deck[publicationId] || { id: publicationId };
+  const articleId = parseInt(props.id, 10);
+  const article = state.cache.deck[articleId] || { id: articleId };
 
   const deckManager = DeckManager({
-    deck: publication,
-    title: publication.title,
-    resource: "publications",
-    updateForm: UpdatePublicationForm,
+    deck: article,
+    title: article.title,
+    resource: "articles",
+    updateForm: UpdateArticleForm,
     hasSummarySection: true,
     hasReviewSection: true
   });
@@ -57,56 +57,56 @@ function Publication(props) {
     <article>
       <div>
         <div class="left-margin">
-          ${ publication.author && leftMarginHeading(publication.author) }
-          ${ publication.source && leftMarginHeadingNoWrap(asUrl(publication.source)) }
-          ${ publication.published_date && leftMarginHeading(`Published: ${ formattedDate(publication.published_date)}`) }
-          ${ publication.created_at && leftMarginHeading(`Added: ${ formattedDate(publication.created_at) }`) }
-          <${StarRatingPartial} rating=${publication.rating}/>
+          ${ article.author && leftMarginHeading(article.author) }
+          ${ article.source && leftMarginHeadingNoWrap(asUrl(article.source)) }
+          ${ article.published_date && leftMarginHeading(`Published: ${ formattedDate(article.published_date)}`) }
+          ${ article.created_at && leftMarginHeading(`Added: ${ formattedDate(article.created_at) }`) }
+          <${StarRatingPartial} rating=${article.rating}/>
         </div>
         ${ deckManager.title }
       </div>
       ${ deckManager.buttons() }
       ${ deckManager.buildUpdateForm() }
 
-      <div class="top-scribble">${ publication.short_description }</div>
+      <div class="top-scribble">${ article.short_description }</div>
 
       ${ deckManager.buildNoteSections() }
 
       <${SectionBackRefs} state=${state}
-                          backrefs=${ publication.backrefs }
-                          backnotes=${ publication.backnotes }
-                          deckId=${ publication.id }/>
-      <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${ publicationId } depth=${ 2 }/>
+                          backrefs=${ article.backrefs }
+                          backnotes=${ article.backnotes }
+                          deckId=${ article.id }/>
+      <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${ articleId } depth=${ 2 }/>
     </article>`;
 }
 
-function UpdatePublicationForm({ deck, hideFormFn }) {
-  const publication = deck || {};
+function UpdateArticleForm({ deck, hideFormFn }) {
+  const article = deck || {};
   const [state, dispatch] = useStateValue();
-  const [title, setTitle] = useState(publication.title || '');
-  const [author, setAuthor] = useState(publication.author || '');
-  const [source, setSource] = useState(publication.source || '');
-  const [shortDescription, setShortDescription] = useState(publication.short_description || '');
-  const [rating, setRating] = useState(publication.rating);
-  const [publishedDate, setPublishedDate] = useState(publication.published_date);
+  const [title, setTitle] = useState(article.title || '');
+  const [author, setAuthor] = useState(article.author || '');
+  const [source, setSource] = useState(article.source || '');
+  const [shortDescription, setShortDescription] = useState(article.short_description || '');
+  const [rating, setRating] = useState(article.rating);
+  const [publishedDate, setPublishedDate] = useState(article.published_date);
 
   useEffect(() => {
-    if (publication.title && publication.title !== '' && title === '') {
-      setTitle(publication.title);
+    if (article.title && article.title !== '' && title === '') {
+      setTitle(article.title);
     }
-    if (publication.source && publication.source !== '' && source === '') {
-      setSource(publication.source);
+    if (article.source && article.source !== '' && source === '') {
+      setSource(article.source);
     }
-    if (publication.author && publication.author !== '' && author === '') {
-      setAuthor(publication.author);
+    if (article.author && article.author !== '' && author === '') {
+      setAuthor(article.author);
     }
-    if (publication.short_description && publication.short_description !== '' && shortDescription === '') {
-      setShortDescription(publication.short_description);
+    if (article.short_description && article.short_description !== '' && shortDescription === '') {
+      setShortDescription(article.short_description);
     }
-    if (publication.published_date && publication.published_date !== '' && publishedDate === '') {
-      setPublished_Date(publication.published_date);
+    if (article.published_date && article.published_date !== '' && publishedDate === '') {
+      setPublished_Date(article.published_date);
     }
-  }, [publication]);
+  }, [article]);
 
   const handleChangeEvent = (event) => {
     const target = event.target;
@@ -145,18 +145,18 @@ function UpdatePublicationForm({ deck, hideFormFn }) {
       published_date: publishedDate.trim()
     }, ["source"]);
 
-    const resource = 'publications';
+    const resource = 'articles';
 
-    Net.put(`/api/${ resource }/${ publication.id }`, data).then(newItem => {
+    Net.put(`/api/${ resource }/${ article.id }`, data).then(newItem => {
       dispatch({
         type: 'cacheDeck',
-        id: publication.id,
+        id: article.id,
         newItem
       });
 
-      // fetch the listing incase editing the publication has changed it's star rating or annotation
+      // fetch the listing incase editing the article has changed it's star rating or annotation
       //
-      fetchDeckListing(dispatch, resource, '/api/publications/listings');
+      fetchDeckListing(dispatch, resource, '/api/articles/listings');
       // hide this form
       hideFormFn();
     });
@@ -215,8 +215,8 @@ function UpdatePublicationForm({ deck, hideFormFn }) {
              max="5"
              onInput=${ handleChangeEvent } />
       <br/>
-      <input id="publication-submit" type="submit" value="Update Publication"/>
+      <input id="article-submit" type="submit" value="Update Article"/>
     </form>`;
 }
 
-export { Publication, Publications };
+export { Article, Articles };

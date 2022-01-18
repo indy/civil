@@ -21,7 +21,7 @@ use crate::interop::sr::FlashCard;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct Publication {
+pub struct Article {
     pub id: Key,
     pub title: String,
 
@@ -46,7 +46,7 @@ pub struct Publication {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct ProtoPublication {
+pub struct ProtoArticle {
     pub title: String,
     pub source: Option<String>,
     pub author: Option<String>,
@@ -57,8 +57,8 @@ pub struct ProtoPublication {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct PublicationListings {
-    pub recent: Vec<Publication>,
-    pub rated: Vec<Publication>,
-    pub orphans: Vec<Publication>,
+pub struct ArticleListings {
+    pub recent: Vec<Article>,
+    pub rated: Vec<Article>,
+    pub orphans: Vec<Article>,
 }

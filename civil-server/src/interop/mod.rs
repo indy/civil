@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+pub mod articles;
 pub mod decks;
 pub mod edges;
 pub mod graph;
@@ -22,7 +23,6 @@ pub mod ideas;
 pub mod notes;
 pub mod people;
 pub mod points;
-pub mod publications;
 pub mod sr;
 pub mod stats;
 pub mod timelines;
@@ -51,7 +51,7 @@ pub enum Model {
     Note,
     Person,
     Point,
-    Publication,
+    Article,
 }
 
 impl std::fmt::Display for Model {
@@ -63,7 +63,7 @@ impl std::fmt::Display for Model {
             Model::Note => write!(f, "Mode::Note"),
             Model::Person => write!(f, "Model::Person"),
             Model::Point => write!(f, "Mode::Point"),
-            Model::Publication => write!(f, "Mode::Publication"),
+            Model::Article => write!(f, "Mode::Article"),
         }
     }
 }

@@ -28,13 +28,13 @@
 
   /* saturation: 60.2 lightness: 90 */
   --bg-ideas: #d9e3f3;             /* clock06 */
-  --bg-publications: #f4e0b2;      /* clock12 */
+  --bg-articles: #f4e0b2;      /* clock12 */
   --bg-people: #f4dce7;            /* clock09 */
   --bg-timelines: #98f4d1;         /* clock03 */
 
   /* saturation: 60.2 lightness: 50 */
   --fg-ideas: #5279a8;             /* clock06 */
-  --fg-publications: #867548;      /* clock12 */
+  --fg-articles: #867548;      /* clock12 */
   --fg-people: #bc508e;            /* clock09 */
   --fg-timelines: #4b816d;         /* clock03 */
 
@@ -76,13 +76,13 @@
 
     /* saturation: 60.2 lightness: 50 */
     --bg-ideas: #5279a8;             /* clock06 */
-    --bg-publications: #867548;      /* clock12 */
+    --bg-articles: #867548;      /* clock12 */
     --bg-people: #bc508e;            /* clock09 */
     --bg-timelines: #4b816d;         /* clock03 */
 
     /* saturation: 60.2 lightness: 90 */
     --fg-ideas: #d9e3f3;             /* clock06 */
-    --fg-publications: #f4e0b2;      /* clock12 */
+    --fg-articles: #f4e0b2;      /* clock12 */
     --fg-people: #f4dce7;            /* clock09 */
     --fg-timelines: #98f4d1;         /* clock03 */
   }
@@ -771,18 +771,18 @@ a:visited.pigment-inherit {
 }
 
 .pigment-ideas { color: var(--fg-ideas) !important; background: var(--bg-ideas); }
-.pigment-publications { color: var(--fg-publications) !important; background: var(--bg-publications); }
+.pigment-articles { color: var(--fg-articles) !important; background: var(--bg-articles); }
 .pigment-people { color: var(--fg-people) !important; background: var(--bg-people); }
 .pigment-timelines { color: var(--fg-timelines) !important; background: var(--bg-timelines); }
 
 /* above colours don't work on hyperlinks, have to explicitly specify them  */
 .pigment-ideas a { color: var(--fg-ideas); }
-.pigment-publications a { color: var(--fg-publications); }
+.pigment-articles a { color: var(--fg-articles); }
 .pigment-people a { color: var(--fg-people); }
 .pigment-timelines a { color: var(--fg-timelines); }
 
 .pigment-fg-ideas { color: var(--fg-ideas) !important; }
-.pigment-fg-publications { color: var(--fg-publications) !important; }
+.pigment-fg-articles { color: var(--fg-articles) !important; }
 .pigment-fg-people { color: var(--fg-people) !important; }
 .pigment-fg-timelines { color: var(--fg-timelines) !important; }
 
@@ -1279,7 +1279,7 @@ input:required {
   margin-top: 3rem;
 }
 
-#publication-submit {
+#article-submit {
   width: 14rem;
 }
 
