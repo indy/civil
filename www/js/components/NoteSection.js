@@ -3,11 +3,14 @@ import { html,  useState } from '/lib/preact/mod.js';
 import Net from '/js/Net.js';
 import { svgEdit, svgCancel } from '/js/svgIcons.js';
 import { useWasmInterface } from '/js/WasmInterfaceProvider.js';
+import { useStateValue } from '/js/StateProvider.js';
 
 import ImageWidget from '/js/components/ImageWidget.js';
 import Note from '/js/components/Note.js';
 import RollableSection from '/js/components/RollableSection.js';
 import { WhenWritable } from '/js/components/WhenWritable.js';
+import { WhenVerbose } from '/js/components/WhenVerbose.js';
+
 
 const NOTE_SECTION_HIDE = 0;
 const NOTE_SECTION_SHOW = 1;
@@ -46,7 +49,7 @@ function NoteSection({ heading, noteKind, howToShow, deck, cacheDeck }) {
 }
 
 function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLabel, noteKind }) {
-  const [showNoteForm, setShowNoteForm] = useState(false);
+  const [state, dispatch] = useStateValue();
 
   function findNoteWithId(id, modifyFn) {
     const notes = deck.notes;
@@ -97,7 +100,7 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
 
   function buildNoteForm() {
     function onCancelAddNote(e) {
-      setShowNoteForm(false);
+      dispatch({type: "hideNoteForm"});
       e.preventDefault();
     };
 
@@ -113,8 +116,7 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
           });
 
           cacheDeck({...deck, notes});
-          setShowNoteForm(false);
-          // setShowUpdateForm(false);
+          dispatch({type: "hideNoteForm"});
         })
         .catch(error => console.error(error.message));
     };
@@ -124,25 +126,28 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
 
   function buildNoteFormIcon() {
     function onAddNoteClicked(e) {
-      setShowNoteForm(true);
+      dispatch({type: "showNoteForm"});
       e.preventDefault();
     };
 
     if (optional_deck_point) {
       return html`
+    <${WhenVerbose}>
     <${WhenWritable}>
 <div class="inline-append-note">
   <div class="left-margin-inline">
     <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
       ${ svgEdit() }
-        <span class="left-margin-icon-label">${ appendLabel }</span>
+      <span class="left-margin-icon-label">${ appendLabel }</span>
     </div>
   </div>
 </div>
     </${WhenWritable}>
+    </${WhenVerbose}>
 `;
     } else {
       return html`
+    <${WhenVerbose}>
     <${WhenWritable}>
 <div class="append-note">
   <div class="left-margin">
@@ -153,16 +158,18 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
   </div>
 </div>
     </${WhenWritable}>
+    </${WhenVerbose}>
 `;
     }
 
   }
+
   const notes = deck.notes ? deck.notes.filter(filterFn).map(buildNoteComponent) : [];
 
   return html`
       <section>
         ${ notes }
-        ${ showNoteForm ? buildNoteForm() : buildNoteFormIcon() }
+        ${ state.showNoteForm ? buildNoteForm() : buildNoteFormIcon() }
       </section>`;
 }
 

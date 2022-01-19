@@ -105,7 +105,7 @@ function TopBarMenu(props) {
     return state.user ? "/logout" : "/login";
   }
 
-  if (state.showTopMenu) {
+  if (state.verboseUI) {
     return html`
       <nav>
         <div id="elastic-top-menu-items">

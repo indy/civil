@@ -28,6 +28,7 @@ import { PointForm } from '/js/components/PointForm.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import { WhenWritable } from '/js/components/WhenWritable.js';
+import { WhenVerbose } from '/js/components/WhenVerbose.js';
 
 function People() {
   const [state, dispatch] = useStateValue();
@@ -127,6 +128,7 @@ function Person(props) {
                                              deckManager=${ deckManager }
                                              dispatch=${ dispatch }
                                              holderId=${ person.id }
+                                             showAddPointForm=${ state.showAddPointForm }
                                              holderName=${ person.name }/>`}
       <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${personId} depth=${2}/>
     </article>`;
@@ -273,10 +275,9 @@ function PersonDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
   return item;
 }
 
-function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, dispatch }) {
+function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAddPointForm, dispatch }) {
   const [onlyThisPerson, setOnlyThisPerson] = useState(false);
   const [showBirthsDeaths, setShowBirthsDeaths] = useState(false);
-  const [showPointForm, setShowPointForm] = useState(false);
   const [showDeathForm, setShowDeathForm] = useState(false);
 
   function onOnlyThisPersonClicked(e) {
@@ -289,7 +290,7 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, dispatc
   }
   function onAddPointClicked(e) {
     e.preventDefault();
-    setShowPointForm(!showPointForm);
+    dispatch({type: showAddPointForm ? "hideAddPointForm" : "showAddPointForm"});
   }
   function onShowDeathFormClicked(e) {
     e.preventDefault();
@@ -298,7 +299,7 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, dispatc
 
   // called by DeckManager once a point has been successfully created
   function onPointCreated() {
-    setShowPointForm(false);
+    dispatch({type: "hideAddPointForm"});
   }
 
   function onAddDeathPoint(point) {
@@ -352,7 +353,7 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, dispatc
                                  holderId=${ holderId }
                                  deckPoint=${ dp }/>`);
 
-  const formSidebarText = showPointForm ? "Hide Form" : `Add Point for ${ holderName }`;
+  const formSidebarText = showAddPointForm ? "Hide Form" : `Add Point for ${ holderName }`;
   const hasDied = deckPoints.some(dp => dp.deck_id === holderId && dp.kind === 'PointEnd');
 
   return html`
@@ -362,14 +363,16 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, dispatc
                               <span class="left-margin-icon-label">Add Died Point</span>
                               ${ svgPointAdd() }
                             </div>`}
-        <div class="left-margin-entry clickable" onClick=${ onOnlyThisPersonClicked }>
-          <span class="left-margin-icon-label">Only ${ holderName }</span>
-          ${ onlyThisPerson ? svgTickedCheckBox() : svgUntickedCheckBox() }
-        </div>
-        ${ !onlyThisPerson && html`<div class="left-margin-entry clickable" onClick=${ onShowOtherClicked }>
-                                     <span class="left-margin-icon-label">Show Other Birth/Deaths</span>
-                                     ${ showBirthsDeaths ? svgTickedCheckBox() : svgUntickedCheckBox() }
-                                   </div>`}
+        <${WhenVerbose}>
+          <div class="left-margin-entry clickable" onClick=${ onOnlyThisPersonClicked }>
+            <span class="left-margin-icon-label">Only ${ holderName }</span>
+            ${ onlyThisPerson ? svgTickedCheckBox() : svgUntickedCheckBox() }
+          </div>
+          ${ !onlyThisPerson && html`<div class="left-margin-entry clickable" onClick=${ onShowOtherClicked }>
+                                       <span class="left-margin-icon-label">Show Other Birth/Deaths</span>
+                                       ${ showBirthsDeaths ? svgTickedCheckBox() : svgUntickedCheckBox() }
+                                     </div>`}
+        </${WhenVerbose}>
       </div>
 
       ${ showDeathForm && deathForm() }
@@ -377,13 +380,15 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, dispatc
         ${ dps }
       </ul>
       <${WhenWritable}>
-        <div class="left-margin">
-          <div class="left-margin-entry clickable" onClick=${ onAddPointClicked }>
-            <span class="left-margin-icon-label">${ formSidebarText }</span>
-            ${ showPointForm ? svgCancel() : svgPointAdd() }
+        <${WhenVerbose}>
+          <div class="left-margin">
+            <div class="left-margin-entry clickable" onClick=${ onAddPointClicked }>
+              <span class="left-margin-icon-label">${ formSidebarText }</span>
+              ${ showAddPointForm ? svgCancel() : svgPointAdd() }
+            </div>
           </div>
-        </div>
-        ${ showPointForm && deckManager.buildPointForm(onPointCreated) }
+        </${WhenVerbose}>
+        ${ showAddPointForm && deckManager.buildPointForm(onPointCreated) }
       </${WhenWritable}>
     </${RollableSection}>`;
 }

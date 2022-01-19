@@ -14,6 +14,7 @@ import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import { BasicListSection } from '/js/components/ListSections.js';
 import { svgPointAdd, svgCancel, svgCaretRight, svgCaretRightEmpty, svgCaretDown } from '/js/svgIcons.js';
 import { WhenWritable } from '/js/components/WhenWritable.js';
+import { WhenVerbose } from '/js/components/WhenVerbose.js';
 
 function Timelines() {
   const [state, dispatch] = useStateValue();
@@ -60,6 +61,8 @@ function Timeline(props) {
 
       <${ListPoints} points=${ timeline.points }
                      deckManager=${ deckManager }
+                     dispatch=${ dispatch }
+                     showAddPointForm=${ state.showAddPointForm }
                      holderId=${ timeline.id }
                      holderName=${ timeline.title }/>
 
@@ -159,17 +162,15 @@ function TimelineDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
               </li>`;
 }
 
-function ListPoints({ points, deckManager, holderId, holderName }) {
-  const [showPointForm, setShowPointForm] = useState(false);
-
+function ListPoints({ points, deckManager, holderId, holderName, showAddPointForm, dispatch }) {
   function onAddPointClicked(e) {
     e.preventDefault();
-    setShowPointForm(!showPointForm);
+    dispatch({type: showAddPointForm ? "hideAddPointForm" : "showAddPointForm"});
   }
 
   // called by DeckManager once a point has been successfully created
   function onPointCreated() {
-    setShowPointForm(false);
+    dispatch({type: "hideAddPointForm"});
   }
 
   let arr = points || [];
@@ -180,21 +181,24 @@ function ListPoints({ points, deckManager, holderId, holderName }) {
                                  holderId=${ holderId }
                                  deckPoint=${ dp }/>`);
 
-  let formSidebarText = showPointForm ? "Hide Form" : `Add Point for ${ holderName }`;
+  let formSidebarText = showAddPointForm ? "Hide Form" : `Add Point for ${ holderName }`;
 
   return html`
     <${RollableSection} heading='Timeline'>
       <ul class="unstyled-list hug-left">
         ${ dps }
       </ul>
+
       <${WhenWritable}>
-        <div class="left-margin">
-          <div class="left-margin-entry clickable" onClick=${ onAddPointClicked }>
-            <span class="left-margin-icon-label">${ formSidebarText }</span>
-            ${ showPointForm ? svgCancel() : svgPointAdd() }
+        <${WhenVerbose}>
+          <div class="left-margin">
+            <div class="left-margin-entry clickable" onClick=${ onAddPointClicked }>
+              <span class="left-margin-icon-label">${ formSidebarText }</span>
+              ${ showAddPointForm ? svgCancel() : svgPointAdd() }
+            </div>
           </div>
-        </div>
-        ${ showPointForm && deckManager.buildPointForm(onPointCreated) }
+        </${WhenVerbose}>
+        ${ showAddPointForm && deckManager.buildPointForm(onPointCreated) }
       </${WhenWritable}>
     </${RollableSection}>`;
 }

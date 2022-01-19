@@ -12,6 +12,13 @@ export const initialState = {
 
   readOnly: false,
 
+  // by default don't show the note form, just show the "Append Note" icon
+  // this can be switched on via the SearchCommand bar
+  //
+  showNoteForm: false,
+  // same for the Add Point form
+  showAddPointForm: false,
+
   showConnectivityGraph: false,
   graph: {
     fullyLoaded: false,
@@ -32,7 +39,7 @@ export const initialState = {
   recentImages: [],
   imageDirectory: '',
 
-  showTopMenu: false,
+  verboseUI: false,
   preferredOrder: ["ideas", "people", "articles", "timelines"],
 
   // key == resource name of decks
@@ -70,6 +77,36 @@ export const reducer = (state, action) => {
         deckIndexFromId: buildDeckIndex(action.graphNodes)
       }
     }
+  case 'cleanUI':
+    return {
+      ...state,
+      verboseUI: false
+    };
+  case 'basicUI':
+    return {
+      ...state,
+      verboseUI: true
+    };
+  case 'showNoteForm':
+    return {
+      ...state,
+      showNoteForm: true
+    };
+  case 'hideNoteForm':
+    return {
+      ...state,
+      showNoteForm: false
+    };
+  case 'showAddPointForm':
+    return {
+      ...state,
+      showAddPointForm: true
+    };
+  case 'hideAddPointForm':
+    return {
+      ...state,
+      showAddPointForm: false
+    };
   case 'setLock':
     return {
       ...state,
@@ -89,16 +126,6 @@ export const reducer = (state, action) => {
     return {
       ...state,
       readOnly: false
-    };
-  case 'topMenuShow':
-    return {
-      ...state,
-      showTopMenu: true
-    };
-  case 'topMenuHide':
-    return {
-      ...state,
-      showTopMenu: false
     };
   case 'connectivityGraphShow':
     return {
