@@ -287,28 +287,23 @@ function refineCommandCandidates(text) {
 
 function allCommands() {
   return [
-    {command: 'gi', description: "goto ideas"},
-    {command: 'gp', description: "goto people"},
-    {command: 'ga', description: "goto articles"},
-    {command: 'gt', description: "goto timelines"},
+    {command: 'i', description: "goto ideas or add idea <<title>>"},
+    {command: 'p', description: "goto people or add person <<name>>"},
+    {command: 'a', description: "goto articles or add article <<title>>"},
+    {command: 't', description: "goto timelines or add timeline <<title>>"},
     {spacer: true},
-    {command: 'ai', description: "add idea <<title>>"},
-    {command: 'ap', description: "add person <<name>>"},
-    {command: 'aa', description: "add article <<title>>"},
-    {command: 'at', description: "add timeline <<title>>"},
+    {command: 'n', description: "show add-note form"},
+    {command: 'o', description: "hide add-note form"},
+    {command: 'p', description: "show point form"},
+    {command: 'q', description: "hide point form"},
     {spacer: true},
-    {command: 'an',  description: "add note"},
-    {command: 'hnf', description: "hide note form"},
-    {command: 'spf', description: "show point form"},
-    {command: 'hpf', description: "hide point form"},
-    {spacer: true},
-    {command: 'gsr', description: "goto spaced repetition"},
-    {command: 'l',   description: "lock (prevent edits)"},
-    {command: 'u',   description: "unlock (allow edits)"},
-    {command: 'cui', description: "clean ui"},
-    {command: 'bui', description: "basic ui"},
-    {command: 'scg', description: "show connectivity graph"},
-    {command: 'hcg', description: "hide connectivity graph"}
+    {command: 's', description: "goto spaced repetition"},
+    {command: 'l', description: "lock (prevent edits)"},
+    {command: 'u', description: "unlock (allow edits)"},
+    {command: 'c', description: "clean ui"},
+    {command: 'b', description: "basic ui"},
+    {command: 'g', description: "show connectivity graph"},
+    {command: 'h', description: "hide connectivity graph"}
   ];
 }
 
@@ -321,64 +316,37 @@ function executeCommand(text, appDispatch) {
   const command = commandPlusArgs[0];
   const rest = commandPlusArgs.slice(1).join(" ");
 
+  function routeOrCreate(kind, argString) {
+    if (argString.length === 0) {
+      route(`/${kind}`);
+    } else {
+      createDeck(appDispatch, kind, argString);
+    }
+
+    return true;
+  }
+
+  function dispatchMessage(command) {
+    appDispatch({type: command});
+    return true;
+  }
+
   switch(command) {
-  case "gi":
-    route(`/ideas`);
-    return true;
-  case "gp":
-    route(`/people`);
-    return true;
-  case "ga":
-    route(`/articles`);
-    return true;
-  case "gt":
-    route(`/timelines`);
-    return true;
-  case "ai":
-    createDeck(appDispatch, "ideas", rest);
-    return true;
-  case "ap":
-    createDeck(appDispatch, "people", rest);
-    return true;
-  case "aa":
-    createDeck(appDispatch, "articles", rest);
-    return true;
-  case "at":
-    createDeck(appDispatch, "timelines", rest);
-    return true;
-  case "an":
-    appDispatch({type: 'showNoteForm'});
-    return true;
-  case "hnf":
-    appDispatch({type: 'hideNoteForm'});
-    return true;
-  case "spf":
-    appDispatch({type: 'showAddPointForm'});
-    return true;
-  case "hpf":
-    appDispatch({type: 'hideAddPointForm'});
-    return true;
-  case "l":
-    appDispatch({type: 'lock'});
-    return true;
-  case "u":
-    appDispatch({type: 'unlock'});
-    return true;
-  case "gsr":
-    route('/sr');
-    return true;
-  case "cui":
-    appDispatch({type: 'cleanUI'});
-    return true;
-  case "bui":
-    appDispatch({type: 'basicUI'});
-    return true;
-  case "scg":
-    appDispatch({type: 'connectivityGraphShow'});
-    return true;
-  case "hcg":
-    appDispatch({type: 'connectivityGraphHide'});
-    return true;
+  case "i": return routeOrCreate('ideas', rest);
+  case "p": return routeOrCreate('people', rest);
+  case "a": return routeOrCreate('articles', rest);
+  case "t": return routeOrCreate('timelines', rest);
+  case "n": return dispatchMessage('showNoteForm');
+  case "o": return dispatchMessage('hideNoteForm');
+  case "p": return dispatchMessage('showAddPointForm');
+  case "q": return dispatchMessage('hideAddPointForm');
+  case "l": return dispatchMessage('lock');
+  case "u": return dispatchMessage('unlock');
+  case "s": route('/sr'); return true;
+  case "c": return dispatchMessage('cleanUI');
+  case "b": return dispatchMessage('basicUI');
+  case "g": return dispatchMessage('connectivityGraphShow');
+  case "h": return dispatchMessage('connectivityGraphHide');
   }
 
   return false;
