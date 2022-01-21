@@ -1,4 +1,4 @@
-import { html,  useState } from '/lib/preact/mod.js';
+import { html,  useState, useEffect, useRef } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { svgEdit, svgCancel } from '/js/svgIcons.js';
@@ -174,6 +174,7 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
 }
 
 function NoteForm({ onSubmit, onCancel }) {
+  const textAreaRef = useRef(null);
   const [content, setContent] = useState('');
 
   const handleChangeEvent = (event) => {
@@ -185,6 +186,10 @@ function NoteForm({ onSubmit, onCancel }) {
       setContent(value);
     }
   };
+
+  useEffect(() => {
+    textAreaRef.current.focus();
+  }, []);
 
   return html`
   <div class="append-note">
@@ -199,6 +204,7 @@ function NoteForm({ onSubmit, onCancel }) {
       <br/>
       <textarea id="content"
                 type="text"
+                ref=${ textAreaRef }
                 class="new-note-textarea"
                 name="content"
                 value=${ content }

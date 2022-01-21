@@ -14,6 +14,7 @@ export function createDeck(dispatch, resource, title) {
       setDeckListing(dispatch, resource, listing);
       invalidateGraph(dispatch);
     });
+    dispatch({type: "showNoteForm"});
     route(`/${resource}/${deck.id}`);
   });
 }
