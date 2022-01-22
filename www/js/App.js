@@ -6,6 +6,7 @@ import { html, Router, Route, Link, route } from '/lib/preact/mod.js';
 import Net                              from '/js/Net.js';
 import { WasmInterfaceProvider }        from '/js/WasmInterfaceProvider.js';
 import { useStateValue, StateProvider } from '/js/StateProvider.js';
+import { augmentSettingsWithCssModifierParameters } from '/js/ColourCreator.js';
 
 import SearchCommand                 from '/js/components/SearchCommand.js';
 import SpacedRepetition              from '/js/components/SpacedRepetition.js';
@@ -17,6 +18,9 @@ import { Timeline, Timelines }       from '/js/components/Timelines.js';
 import { WhenWritableToggle }        from '/js/components/WhenWritable.js';
 
 export async function buildInitialState() {
+  let state = initialState;
+  state.uiColours = augmentSettingsWithCssModifierParameters(state.uiColours);
+
   try {
     // logged in
     let user = await Net.get("/api/users");
@@ -25,7 +29,7 @@ export async function buildInitialState() {
 
       // update initial state with user
       //
-      let state = reducer(initialState, {
+      state = reducer(state, {
         type: 'setUser',
         user
       });
@@ -49,11 +53,11 @@ export async function buildInitialState() {
       return state;
     } else {
       console.log('no user is logged in');
-      return initialState;
+      return state;
     }
   } catch(err) {
     console.log('no user is logged in');
-    return initialState;
+    return state;
   }
 }
 

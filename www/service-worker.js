@@ -31,6 +31,7 @@ var precacheConfig = [
   "/js/App.js",
   "/js/AppState.js",
   "/js/CivilUtils.js",
+  "/js/ColourCreator.js",
   "/js/JsUtils.js",
   "/js/Net.js",
   "/js/PreactUtils.js",

@@ -70,3 +70,68 @@ pub fn split_markup(markup: &str) -> JsValue {
         }
     }
 }
+
+
+#[wasm_bindgen]
+pub struct Transport3C {
+    c0: f64,
+    c1: f64,
+    c2: f64,
+}
+
+#[wasm_bindgen]
+impl Transport3C {
+    pub fn new(c0: f64, c1: f64, c2: f64) -> Transport3C {
+        Transport3C {
+            c0: c0,
+            c1: c1,
+            c2: c2,
+        }
+    }
+
+    pub fn blank() -> Transport3C {
+        Transport3C {
+            c0: 0.0,
+            c1: 0.0,
+            c2: 0.0,
+        }
+    }
+
+    pub fn get_0(&self) -> f64 {
+        self.c0
+    }
+
+    pub fn get_1(&self) -> f64 {
+        self.c1
+    }
+
+    pub fn get_2(&self) -> f64 {
+        self.c2
+    }
+}
+
+impl From<civil_shared::Rgb> for Transport3C {
+    fn from(rgb: civil_shared::Rgb) -> Transport3C {
+        Transport3C::new(rgb.r.into(), rgb.g.into(), rgb.b.into())
+    }
+}
+
+impl From<civil_shared::Hsluv> for Transport3C {
+    fn from(hsluv: civil_shared::Hsluv) -> Transport3C {
+        Transport3C::new(hsluv.h.into(), hsluv.s.into(), hsluv.l.into())
+    }
+}
+
+#[wasm_bindgen]
+pub fn hsl_from_rgb(r: f64, g: f64, b: f64) -> Transport3C {
+    let hsluv: civil_shared::Hsluv = civil_shared::Rgb::new(r as f32, g as f32, b as f32, 1.0).into();
+
+    hsluv.into()
+}
+
+#[wasm_bindgen]
+pub fn rgb_from_hsl(h: f64, s: f64, l: f64) -> Transport3C {
+    let rgb: civil_shared::Rgb = civil_shared::Hsluv::new(h as f32, s as f32, l as f32, 1.0).into();
+
+    rgb.into()
+}

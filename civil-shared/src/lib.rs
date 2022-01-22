@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+mod colour;
 mod compiler;
 mod element;
 mod error;
@@ -27,6 +28,7 @@ use lexer::tokenize;
 use parser::parse;
 use splitter::split;
 
+pub use colour::{Hsluv, Rgb};
 pub use element::Element;
 pub use error::{Error, Result};
 

@@ -26,11 +26,19 @@ pub enum Error {
     Lexer,
     Parser,
     FmtError(std::fmt::Error),
+    RgbFromHexError,
+    ParseIntError(std::num::ParseIntError),
 }
 
 impl From<std::fmt::Error> for Error {
     fn from(e: std::fmt::Error) -> Error {
         Error::FmtError(e)
+    }
+}
+
+impl From<std::num::ParseIntError> for Error {
+    fn from(e: std::num::ParseIntError) -> Error {
+        Error::ParseIntError(e)
     }
 }
 
@@ -44,6 +52,8 @@ impl fmt::Display for Error {
             Error::Lexer => write!(f, "civil core: Lexer"),
             Error::Parser => write!(f, "civil core: Parser"),
             Error::FmtError(_) => write!(f, "civil core: Fmt error"),
+            Error::RgbFromHexError => write!(f, "RGB from Hex error"),
+            Error::ParseIntError(_) => write!(f, "ParseIntError"),
         }
     }
 }

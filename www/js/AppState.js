@@ -10,6 +10,11 @@ export const initialState = {
   //   email: ...
   // },
 
+  uiColours: {
+    // note: this will be filled with extra values from
+    // ColourCreator.js::augmentSettingsWithCssModifierParameters
+  },
+
   readOnly: false,
 
   // by default don't show the note form, just show the "Append Note" icon
