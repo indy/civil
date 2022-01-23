@@ -23,6 +23,7 @@ pub mod ideas;
 pub mod notes;
 pub mod people;
 pub mod points;
+pub mod quotes;
 pub mod sr;
 pub mod stats;
 pub mod timelines;
@@ -51,6 +52,7 @@ pub enum Model {
     Note,
     Person,
     Point,
+    Quote,
     Article,
 }
 
@@ -63,6 +65,7 @@ impl std::fmt::Display for Model {
             Model::Note => write!(f, "Mode::Note"),
             Model::Person => write!(f, "Model::Person"),
             Model::Point => write!(f, "Mode::Point"),
+            Model::Quote => write!(f, "Mode::Quote"),
             Model::Article => write!(f, "Mode::Article"),
         }
     }

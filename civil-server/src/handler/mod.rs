@@ -29,6 +29,7 @@ pub mod graph;
 pub mod ideas;
 pub mod notes;
 pub mod people;
+pub mod quotes;
 pub mod sr;
 pub mod timelines;
 pub mod ubersetup;

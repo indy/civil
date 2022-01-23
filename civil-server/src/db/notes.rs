@@ -29,7 +29,7 @@ use tracing::info;
 
 #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
 #[pg_mapper(table = "notes")]
-struct Note {
+pub struct Note {
     id: Key,
     kind: NoteKind,
     content: String,

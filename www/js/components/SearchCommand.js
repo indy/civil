@@ -133,7 +133,7 @@ function reducer(state, action) {
 
     let candidates = state.candidates;
     if (mode === MODE_COMMAND) {
-      candidates = refineCommandCandidates(text);
+      candidates = allCommands();
     }
     if (mode === MODE_SEARCH && state.mode === MODE_COMMAND) {
       // just changed mode from command to search
@@ -280,22 +280,16 @@ export default function SearchCommand() {
               </div>`;
 }
 
-function refineCommandCandidates(text) {
-  return allCommands();
-}
-
-
 function allCommands() {
   return [
-    {command: 'i', description: "goto ideas or add idea <<title>>"},
-    {command: 'p', description: "goto people or add person <<name>>"},
-    {command: 'a', description: "goto articles or add article <<title>>"},
-    {command: 't', description: "goto timelines or add timeline <<title>>"},
+    {command: 'i', description: "goto ideas or add <<title>>"},
+    {command: 'p', description: "goto people or add <<name>>"},
+    {command: 'a', description: "goto articles or add <<title>>"},
+    {command: 't', description: "goto timelines or add <<title>>"},
+    {command: 'q', description: "goto quotes"},
     {spacer: true},
     {command: 'n', description: "show add-note form"},
-    {command: 'o', description: "hide add-note form"},
     {command: 'p', description: "show point form"},
-    {command: 'q', description: "hide point form"},
     {spacer: true},
     {command: 's', description: "goto spaced repetition"},
     {command: 'l', description: "lock (prevent edits)"},
@@ -336,10 +330,9 @@ function executeCommand(text, appDispatch) {
   case "p": return routeOrCreate('people', rest);
   case "a": return routeOrCreate('articles', rest);
   case "t": return routeOrCreate('timelines', rest);
+  case "q": return routeOrCreate('quotes', []);
   case "n": return dispatchMessage('showNoteForm');
-  case "o": return dispatchMessage('hideNoteForm');
   case "p": return dispatchMessage('showAddPointForm');
-  case "q": return dispatchMessage('hideAddPointForm');
   case "l": return dispatchMessage('lock');
   case "u": return dispatchMessage('unlock');
   case "s": route('/sr'); return true;

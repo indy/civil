@@ -8,14 +8,15 @@ import { WasmInterfaceProvider }        from '/js/WasmInterfaceProvider.js';
 import { useStateValue, StateProvider } from '/js/StateProvider.js';
 import { augmentSettingsWithCssModifierParameters } from '/js/ColourCreator.js';
 
-import SearchCommand                 from '/js/components/SearchCommand.js';
-import SpacedRepetition              from '/js/components/SpacedRepetition.js';
-import { Idea, Ideas }               from '/js/components/Ideas.js';
-import { Login, Logout }             from '/js/components/Login.js';
-import { Person, People }            from '/js/components/People.js';
-import { Article, Articles } from '/js/components/Articles.js';
-import { Timeline, Timelines }       from '/js/components/Timelines.js';
-import { WhenWritableToggle }        from '/js/components/WhenWritable.js';
+import SearchCommand           from '/js/components/SearchCommand.js';
+import SpacedRepetition        from '/js/components/SpacedRepetition.js';
+import { Idea, Ideas }         from '/js/components/Ideas.js';
+import { Login, Logout }       from '/js/components/Login.js';
+import { Person, People }      from '/js/components/People.js';
+import { Article, Articles }   from '/js/components/Articles.js';
+import { Timeline, Timelines } from '/js/components/Timelines.js';
+import { Quote, Quotes }       from '/js/components/Quotes.js';
+import { WhenWritableToggle }  from '/js/components/WhenWritable.js';
 
 export async function buildInitialState() {
   let state = initialState;
@@ -114,8 +115,8 @@ function TopBarMenu(props) {
       <nav>
         <div id="elastic-top-menu-items">
           ${state.preferredOrder.map(dk => html`<div class="optional-navigable top-menu-decktype">
-        <${Link} class='pigment-${dk}' href='/${dk}'>${capitalise(dk)}</${Link}>
-        </div>`)}
+            <${Link} class='pigment-${dk}' href='/${dk}'>${capitalise(dk)}</${Link}>
+          </div>`)}
           <div id="top-menu-sr">
             <${Link} class='pigment-inherit' href='/sr'>SR(${state.srReviewCount})</${Link}>
           </div>
@@ -177,6 +178,8 @@ function AppUI(props) {
         <${Person} path="/people/:id"/>
         <${Timelines} path="/timelines"/>
         <${Timeline} path="/timelines/:id"/>
+        <${Quotes} path="/quotes"/>
+        <${Quote} path="/quotes/:id"/>
       </${Router}>
     </div>`;
 }

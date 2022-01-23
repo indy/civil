@@ -15,22 +15,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod articles;
-pub mod deck_kind;
-pub mod decks;
-pub mod edges;
-pub mod graph;
-pub mod ideas;
-pub mod note_kind;
-pub mod notes;
-pub mod people;
-mod pg;
-pub mod point_kind;
-pub mod points;
-pub mod quotes;
-pub mod ref_kind;
-pub mod sr;
-pub mod stats;
-pub mod timelines;
-pub mod uploader;
-pub mod users;
+use crate::interop::decks::{BackNote, BackRef, Ref};
+use crate::interop::notes::Note;
+use crate::interop::sr::FlashCard;
+use crate::interop::Key;
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct Quote {
+    pub id: Key,
+    pub title: String,
+    pub attribution: String,
+
+    // will always be a single note
+    pub notes: Option<Vec<Note>>,
+
+    pub refs: Option<Vec<Ref>>,
+
+    pub backnotes: Option<Vec<BackNote>>,
+    pub backrefs: Option<Vec<BackRef>>,
+
+    pub flashcards: Option<Vec<FlashCard>>,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct ProtoQuote {
+    pub title: String,
+    pub text: String,
+    pub attribution: String,
+}

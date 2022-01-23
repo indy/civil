@@ -45,7 +45,7 @@ export const initialState = {
   imageDirectory: '',
 
   verboseUI: false,
-  preferredOrder: ["ideas", "people", "articles", "timelines"],
+  preferredOrder: ["ideas", "people", "articles", "timelines", "quotes"],
 
   // key == resource name of decks
   listing: {

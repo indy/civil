@@ -22,6 +22,7 @@ use crate::handler::graph;
 use crate::handler::ideas;
 use crate::handler::notes;
 use crate::handler::people;
+use crate::handler::quotes;
 use crate::handler::sr;
 use crate::handler::timelines;
 use crate::handler::ubersetup;
@@ -80,6 +81,15 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", put().to(people::edit)) // check
                 .route("/{id}", delete().to(people::delete))
                 .route("/{id}/points", post().to(people::add_point)),
+        )
+        // quotes
+        .service(
+            scope("/quotes")
+                .route("", post().to(quotes::create))
+                .route("/search", get().to(quotes::search))
+                .route("/{id}", get().to(quotes::get))
+                .route("/{id}", put().to(quotes::edit))
+                .route("/{id}", delete().to(quotes::delete)),
         )
         // timelines
         .service(

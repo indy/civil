@@ -27,6 +27,8 @@ pub enum DeckResource {
     Idea,
     #[serde(rename = "timelines")]
     Timeline,
+    #[serde(rename = "quotes")]
+    Quote,
 }
 
 #[derive(Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]

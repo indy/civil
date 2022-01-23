@@ -741,17 +741,20 @@ a:visited.pigment-inherit {
 .pigment-articles { color: var(--fg-articles) !important; background: var(--bg-articles); }
 .pigment-people { color: var(--fg-people) !important; background: var(--bg-people); }
 .pigment-timelines { color: var(--fg-timelines) !important; background: var(--bg-timelines); }
+.pigment-quotes { color: var(--fg-quotes) !important; background: var(--bg-quotes); }
 
 /* above colours don't work on hyperlinks, have to explicitly specify them  */
 .pigment-ideas a { color: var(--fg-ideas); }
 .pigment-articles a { color: var(--fg-articles); }
 .pigment-people a { color: var(--fg-people); }
 .pigment-timelines a { color: var(--fg-timelines); }
+.pigment-quotes a { color: var(--fg-quotes); }
 
 .pigment-fg-ideas { color: var(--fg-ideas) !important; }
 .pigment-fg-articles { color: var(--fg-articles) !important; }
 .pigment-fg-people { color: var(--fg-people) !important; }
 .pigment-fg-timelines { color: var(--fg-timelines) !important; }
+.pigment-fg-quotes { color: var(--fg-quotes) !important; }
 
 .delete-confirmation {
   padding-left: 3rem;
