@@ -5,6 +5,7 @@ import Net from '/js/Net.js';
 import { addChronologicalSortYear } from '/js/eras.js';
 import { capitalise } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
+import { useLocalReducer } from '/js/PreactUtils.js';
 
 import { DeckManager } from '/js/components/DeckManager.js';
 import RollableSection from '/js/components/RollableSection.js';
@@ -12,13 +13,127 @@ import { svgPointAdd, svgCancel, svgCaretRight, svgCaretRightEmpty, svgCaretDown
 import { WhenWritable } from '/js/components/WhenWritable.js';
 import { WhenVerbose } from '/js/components/WhenVerbose.js';
 
+const SHOW_ADD_FORM = 'show-add-form';
+const HIDE_ADD_FORM = 'hide-add-form';
+const SET_ATTRIBUTION = 'set_attribution';
+const SET_QUOTE_TEXT = 'set-quote-text';
+const CREATED_NEW_QUOTE = 'created-new-quote';
+
+
+function reducer(state, action) {
+  switch(action.type) {
+  case SHOW_ADD_FORM: {
+    return {
+      ...state,
+      showAddForm: true
+    };
+  }
+  case HIDE_ADD_FORM: {
+    return {
+      ...state,
+      showAddForm: false
+    };
+  }
+  case SET_ATTRIBUTION: {
+    return {
+      ...state,
+      attribution: action.data
+    }
+  }
+  case SET_QUOTE_TEXT: {
+    return {
+      ...state,
+      quoteText: action.data
+    }
+  }
+  case CREATED_NEW_QUOTE: {
+    return {
+      ...state,
+      showAddForm: false,
+      attribution: '',
+      quoteText: ''
+    }
+  }
+  default: throw new Error(`unknown action: ${action}`);
+  }
+}
+
 function Quotes() {
   const [state, dispatch] = useStateValue();
   const resource = 'quotes';
 
+  const [local, localDispatch] = useLocalReducer(reducer, {
+    showAddForm: false,
+    attribution: '',
+    quoteText: ''
+  });
+
+  function clickedHeader(e) {
+    e.preventDefault();
+    if (local.showAddForm) {
+      localDispatch(HIDE_ADD_FORM);
+    } else {
+      localDispatch(SHOW_ADD_FORM);
+    }
+  }
+
+  function handleChangeEvent(e) {
+    const value = e.target.value;
+    const name = e.target.name;
+
+    if (name === "attribution") {
+      localDispatch(SET_ATTRIBUTION, value);
+    }
+    if (name === "quote_text") {
+      localDispatch(SET_QUOTE_TEXT, value);
+    }
+  }
+
+  function clickedSave(e) {
+    console.log("saved");
+    e.preventDefault();
+
+    const title = local.quoteText.length > 20 ? local.quoteText.slice(0, 17) + "..." : local.quoteText;
+    const data = {
+      title,
+      text: local.quoteText,
+      attribution: local.attribution
+    };
+
+    Net.post("/api/quotes", data).then(quote => {
+      localDispatch(CREATED_NEW_QUOTE);
+    });
+
+  }
+
+
+
+  function renderAddForm() {
+    return html`<form class="civil-form">
+
+<label for="attribution">QuoteText:</label>
+<textarea id="quote-text"
+type="text"
+name="quote_text"
+value=${ local.quoteText }
+onInput=${handleChangeEvent}/>
+
+<label for="attribution">Attribution:</label>
+<input id="attribution"
+type="text"
+name="attribution"
+value=${ local.attribution }
+onInput=${handleChangeEvent}/>
+
+<button onClick=${clickedSave}>save</button>
+
+</form>`;
+  }
+
   return html`
     <article>
-      <h1>${capitalise(resource)}</h1>
+      <h1 onClick=${ clickedHeader }>${capitalise(resource)}</h1>
+      ${ local.showAddForm && renderAddForm()}
     </article>`;
 }
 
