@@ -216,9 +216,10 @@ where
     Ok(vec)
 }
 */
-// queries the db, storing results in S then converts that into a T
+
+// one_from but without the error! logging
 //
-pub async fn one_from<S, T>(
+pub async fn quietly_one_from<S, T>(
     db_pool: &Pool,
     sql_query: &str,
     sql_params: &[&(dyn tokio_postgres::types::ToSql + std::marker::Sync)],
@@ -239,14 +240,28 @@ where
         }
     };
 
-    let res = client
+    client
         .query(&stmt, sql_params)
         .await?
         .iter()
         .map(|row| T::from(S::from_row_ref(row).unwrap()))
         .collect::<Vec<T>>()
         .pop()
-        .ok_or(Error::NotFound); // more applicable for SELECTs
+        .ok_or(Error::NotFound)
+}
+
+// queries the db, storing results in S then converts that into a T
+//
+pub async fn one_from<S, T>(
+    db_pool: &Pool,
+    sql_query: &str,
+    sql_params: &[&(dyn tokio_postgres::types::ToSql + std::marker::Sync)],
+) -> Result<T>
+where
+    S: FromTokioPostgresRow,
+    T: From<S>,
+{
+    let res = quietly_one_from::<S, T>(db_pool, sql_query, sql_params).await;
 
     match res {
         Ok(_) => res,

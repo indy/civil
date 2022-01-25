@@ -155,6 +155,19 @@ pub(crate) async fn search(
     decks::search_within_deck_kind_by_name(db_pool, user_id, DeckKind::Quote, query).await
 }
 
+pub(crate) async fn random(db_pool: &Pool, user_id: Key) -> Result<interop::Quote> {
+    pg::one_from::<Quote, interop::Quote>(
+        db_pool,
+        "SELECT decks.id, decks.name, quote_extras.attribution
+         FROM decks left join quote_extras on quote_extras.deck_id = decks.id
+         WHERE user_id = $1 and kind = 'quote'
+         ORDER BY random()
+         LIMIT 1",
+        &[&user_id],
+    )
+    .await
+}
+
 pub(crate) async fn get(db_pool: &Pool, user_id: Key, quote_id: Key) -> Result<interop::Quote> {
     pg::one_from::<Quote, interop::Quote>(
         db_pool,
@@ -164,6 +177,68 @@ pub(crate) async fn get(db_pool: &Pool, user_id: Key, quote_id: Key) -> Result<i
         &[&user_id, &quote_id],
     )
     .await
+}
+
+pub(crate) async fn next(db_pool: &Pool, user_id: Key, quote_id: Key) -> Result<interop::Quote> {
+    let res = pg::quietly_one_from::<Quote, interop::Quote>(
+        db_pool,
+        "SELECT decks.id, decks.name, quote_extras.attribution
+         FROM decks left join quote_extras on quote_extras.deck_id = decks.id
+         WHERE user_id = $1 and id > $2 and kind = 'quote'
+         ORDER BY id
+         LIMIT 1",
+        &[&user_id, &quote_id],
+    )
+    .await;
+
+    match res {
+        Ok(_) => res,
+        Err(Error::NotFound) => {
+            // wrap around and get the first quote
+            pg::one_from::<Quote, interop::Quote>(
+                db_pool,
+                "SELECT decks.id, decks.name, quote_extras.attribution
+                 FROM decks left join quote_extras on quote_extras.deck_id = decks.id
+                 WHERE user_id = $1 and kind = 'quote'
+                 ORDER BY id
+                 LIMIT 1",
+                &[&user_id],
+            )
+            .await
+        }
+        Err(e) => Err(e),
+    }
+}
+
+pub(crate) async fn prev(db_pool: &Pool, user_id: Key, quote_id: Key) -> Result<interop::Quote> {
+    let res = pg::quietly_one_from::<Quote, interop::Quote>(
+        db_pool,
+        "SELECT decks.id, decks.name, quote_extras.attribution
+         FROM decks left join quote_extras on quote_extras.deck_id = decks.id
+         WHERE user_id = $1 and id < $2 and kind = 'quote'
+         ORDER BY id desc
+         LIMIT 1",
+        &[&user_id, &quote_id],
+    )
+    .await;
+
+    match res {
+        Ok(_) => res,
+        Err(Error::NotFound) => {
+            // wrap around and get the first quote
+            pg::one_from::<Quote, interop::Quote>(
+                db_pool,
+                "SELECT decks.id, decks.name, quote_extras.attribution
+                 FROM decks left join quote_extras on quote_extras.deck_id = decks.id
+                 WHERE user_id = $1 and kind = 'quote'
+                 ORDER BY id desc
+                 LIMIT 1",
+                &[&user_id],
+            )
+            .await
+        }
+        Err(e) => Err(e),
+    }
 }
 
 pub(crate) async fn edit(

@@ -59,6 +59,17 @@ pub async fn search(
     Ok(HttpResponse::Ok().json(res))
 }
 
+pub async fn random(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
+    info!("random");
+
+    let user_id = session::user_id(&session)?;
+
+    let mut quote = db::random(&db_pool, user_id).await?;
+    augment(&db_pool, &mut quote).await?;
+
+    Ok(HttpResponse::Ok().json(quote))
+}
+
 pub async fn get(
     db_pool: Data<Pool>,
     params: Path<IdParam>,
@@ -67,10 +78,39 @@ pub async fn get(
     info!("get {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
-    let quote_id = params.id;
 
-    let mut quote = db::get(&db_pool, user_id, quote_id).await?;
-    augment(&db_pool, &mut quote, quote_id).await?;
+    let mut quote = db::get(&db_pool, user_id, params.id).await?;
+    augment(&db_pool, &mut quote).await?;
+
+    Ok(HttpResponse::Ok().json(quote))
+}
+
+pub async fn next(
+    db_pool: Data<Pool>,
+    params: Path<IdParam>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    info!("next {:?}", params.id);
+
+    let user_id = session::user_id(&session)?;
+
+    let mut quote = db::next(&db_pool, user_id, params.id).await?;
+    augment(&db_pool, &mut quote).await?;
+
+    Ok(HttpResponse::Ok().json(quote))
+}
+
+pub async fn prev(
+    db_pool: Data<Pool>,
+    params: Path<IdParam>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    info!("prev {:?}", params.id);
+
+    let user_id = session::user_id(&session)?;
+
+    let mut quote = db::prev(&db_pool, user_id, params.id).await?;
+    augment(&db_pool, &mut quote).await?;
 
     Ok(HttpResponse::Ok().json(quote))
 }
@@ -88,7 +128,7 @@ pub async fn edit(
     let quote = quote.into_inner();
 
     let mut quote = db::edit(&db_pool, user_id, &quote, quote_id).await?;
-    augment(&db_pool, &mut quote, quote_id).await?;
+    augment(&db_pool, &mut quote).await?;
 
     Ok(HttpResponse::Ok().json(quote))
 }
@@ -107,7 +147,9 @@ pub async fn delete(
     Ok(HttpResponse::Ok().json(true))
 }
 
-async fn augment(db_pool: &Data<Pool>, quote: &mut interop::Quote, quote_id: Key) -> Result<()> {
+async fn augment(db_pool: &Data<Pool>, quote: &mut interop::Quote) -> Result<()> {
+    let quote_id: Key = quote.id;
+
     let (notes, refs, backnotes, backrefs, flashcards) = tokio::try_join!(
         notes_db::all_from_deck(&db_pool, quote_id),
         decks_db::from_deck_id_via_notes_to_decks(&db_pool, quote_id),

@@ -133,10 +133,16 @@ export default function Note(props) {
 
   function onEditClicked(e) {
     e.preventDefault();
+
     const isEditingMarkupNew = !local.isEditingMarkup; // isEditingMarkupNew is the state after the IS_EDITING_MARKUP_TOGGLE dispatch
+
     localDispatch(IS_EDITING_MARKUP_TOGGLE);
 
-    if (isEditingMarkupNew === false) {
+    if (isEditingMarkupNew) {
+      props.requireKeyboard && props.requireKeyboard();
+    } else {
+      props.releaseKeyboard && props.releaseKeyboard();
+
       if (hasNoteBeenModified(local.note, props.note)) {
         const id = props.note.id;
 
@@ -185,11 +191,13 @@ export default function Note(props) {
 
     function onCancel(e) {
       e.preventDefault();
+      props.releaseKeyboard && props.releaseKeyboard();
       localDispatch(ADD_FLASH_CARD_UI_SHOW, false);
     }
 
     function onSave(e) {
       e.preventDefault();
+      props.releaseKeyboard && props.releaseKeyboard();
 
       let data = {
         note_id: props.note.id,
@@ -231,6 +239,7 @@ export default function Note(props) {
       // 6. clicks cancel
       // expected: only the changes from step 5 should be undone
 
+      props.releaseKeyboard && props.releaseKeyboard();
       if (changes) {
         let data = {
           note_id: props.note.id,
@@ -284,10 +293,21 @@ export default function Note(props) {
 
 
     function toggleAddDeckReferencesUI() {
+      if (!local.addDeckReferencesUI) {
+        props.requireKeyboard && props.requireKeyboard();
+      } else {
+        props.releaseKeyboard && props.releaseKeyboard();
+      }
       localDispatch(ADD_DECK_REFERENCES_UI_SHOW, !local.addDeckReferencesUI);
     }
 
     function toggleAddFlashCardUI() {
+      if (!local.addFlashCardUI) {
+        props.requireKeyboard && props.requireKeyboard();
+      } else {
+        props.releaseKeyboard && props.releaseKeyboard();
+      }
+
       localDispatch(ADD_FLASH_CARD_UI_SHOW, !local.addFlashCardUI);
     }
 

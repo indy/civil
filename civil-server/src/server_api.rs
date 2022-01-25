@@ -87,9 +87,12 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
             scope("/quotes")
                 .route("", post().to(quotes::create))
                 .route("/search", get().to(quotes::search))
+                .route("/random", get().to(quotes::random))
                 .route("/{id}", get().to(quotes::get))
                 .route("/{id}", put().to(quotes::edit))
-                .route("/{id}", delete().to(quotes::delete)),
+                .route("/{id}", delete().to(quotes::delete))
+                .route("/{id}/next", get().to(quotes::next))
+                .route("/{id}/prev", get().to(quotes::prev)),
         )
         // timelines
         .service(

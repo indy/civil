@@ -1,17 +1,12 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { ensureListingLoaded } from '/js/CivilUtils.js';
 import Net from '/js/Net.js';
-import { addChronologicalSortYear } from '/js/eras.js';
 import { capitalise } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 
-import { DeckManager } from '/js/components/DeckManager.js';
-import RollableSection from '/js/components/RollableSection.js';
-import { svgPointAdd, svgCancel, svgCaretRight, svgCaretRightEmpty, svgCaretDown } from '/js/svgIcons.js';
-import { WhenWritable } from '/js/components/WhenWritable.js';
-import { WhenVerbose } from '/js/components/WhenVerbose.js';
+import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
+import Note from '/js/components/Note.js';
 
 const SHOW_ADD_FORM = 'show-add-form';
 const HIDE_ADD_FORM = 'hide-add-form';
@@ -58,6 +53,19 @@ function reducer(state, action) {
   }
 }
 
+function cacheDeck(dispatch, deck) {
+  dispatch({
+    type: 'cacheDeck',
+    id: deck.id,
+    newItem: deck
+  });
+}
+
+function titleFromQuoteText(quoteText) {
+  const title = quoteText.length > 20 ? quoteText.slice(0, 17) + "..." : quoteText;
+  return title;
+}
+
 function Quotes() {
   const [state, dispatch] = useStateValue();
   const resource = 'quotes';
@@ -68,13 +76,17 @@ function Quotes() {
     quoteText: ''
   });
 
-  function clickedHeader(e) {
+  function clickedNewQuoteButton(e) {
     e.preventDefault();
-    if (local.showAddForm) {
-      localDispatch(HIDE_ADD_FORM);
-    } else {
-      localDispatch(SHOW_ADD_FORM);
-    }
+    localDispatch(SHOW_ADD_FORM);
+  }
+
+  function clickedRandomButton(e) {
+    e.preventDefault();
+    Net.get("/api/quotes/random").then(quote => {
+      cacheDeck(dispatch, quote);
+      route(`/quotes/${quote.id}`);
+    });
   }
 
   function handleChangeEvent(e) {
@@ -90,10 +102,9 @@ function Quotes() {
   }
 
   function clickedSave(e) {
-    console.log("saved");
     e.preventDefault();
 
-    const title = local.quoteText.length > 20 ? local.quoteText.slice(0, 17) + "..." : local.quoteText;
+    const title = titleFromQuoteText(local.quoteText);
     const data = {
       title,
       text: local.quoteText,
@@ -103,10 +114,20 @@ function Quotes() {
     Net.post("/api/quotes", data).then(quote => {
       localDispatch(CREATED_NEW_QUOTE);
     });
-
   }
 
+  function clickedCancel(e) {
+    e.preventDefault();
+    localDispatch(HIDE_ADD_FORM);
+  }
 
+  function renderNewQuoteButton() {
+    return html`<button onClick=${ clickedNewQuoteButton }>Add Quote...</button>`;
+  }
+
+  function renderRandomButton() {
+    return html`<button onClick=${ clickedRandomButton }>Random Quote</button>`;
+  }
 
   function renderAddForm() {
     return html`<form class="civil-form">
@@ -125,6 +146,7 @@ name="attribution"
 value=${ local.attribution }
 onInput=${handleChangeEvent}/>
 
+<button onClick=${clickedCancel}>cancel</button>
 <button onClick=${clickedSave}>save</button>
 
 </form>`;
@@ -132,33 +154,288 @@ onInput=${handleChangeEvent}/>
 
   return html`
     <article>
-      <h1 onClick=${ clickedHeader }>${capitalise(resource)}</h1>
-      ${ local.showAddForm && renderAddForm()}
+      <h1>${capitalise(resource)}</h1>
+
+        ${ !local.showAddForm && renderNewQuoteButton()}
+        ${ local.showAddForm && renderAddForm()}
+        ${ !local.showAddForm && renderRandomButton()}
+
     </article>`;
 }
 
 function Quote(props) {
   const [state, dispatch] = useStateValue();
 
+  const [keyboardActive, setKeyboardActive] = useState(true);
+
   const quoteId = parseInt(props.id, 10);
   const quote = state.cache.deck[quoteId] || { id: quoteId };
 
-  const deckManager = DeckManager({
-    deck: quote,
-    title: quote.title,
-    resource: "quotes",
-    updateForm: UpdateQuoteForm,
-    hasSummarySection: false,
-    hasReviewSection: false
-  });
+  useEffect(() => {
+    dispatch({
+      type: 'quoteId',
+      id: quoteId
+    });
+
+    if(!state.cache.deck[quote.id]) {
+      // fetch resource from the server
+      const url = `/api/quotes/${quote.id}`;
+      Net.get(url).then(deck => {
+        if (deck) {
+          cacheDeck(dispatch, deck);
+        } else {
+          console.error(`error: fetchDeck for ${url}`);
+        }
+      });
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [quote]);
+
+  function getQuoteThenRoute(url) {
+    Net.get(url).then(deck => {
+      if (deck) {
+        cacheDeck(dispatch, deck);
+        route(`/quotes/${deck.id}`);
+      } else {
+        console.error(`error: fetchDeck for ${url}`);
+      }
+    });
+  }
+
+  function onKeyDown(e) {
+    if (keyboardActive) {
+      if (e.key === 'n') {
+        console.log(quoteId);
+        //console.log(state.quoteCurrentId);
+        getQuoteThenRoute(`/api/quotes/${quoteId}/next`);
+      } else if (e.key === 'p') {
+        console.log(quoteId);
+        //console.log(state.quoteCurrentId);
+        getQuoteThenRoute(`/api/quotes/${quoteId}/prev`);
+      } else if (e.key === 'r') {
+        Net.get("/api/quotes/random").then(quote => {
+          cacheDeck(dispatch, quote);
+          route(`/quotes/${quote.id}`);
+        });
+      }
+    }
+  };
+
+  const note = quote.notes && quote.notes[0];
+
+  function updateNoteServerSide() {
+    // as the title could have changed, we need to post the updated quote to the server
+    Net.put(`/api/quotes/${quote.id}`, {
+      title: quote.title,
+      text: quote.notes[0].content, // not really needed, server side only uses title and attribution
+      attribution: quote.attribution
+    });
+
+    cacheDeck(dispatch, quote);
+  }
+
+  function onEditedNote(id, data) {
+    quote.notes[0] = Object.assign(quote.notes[0], data);
+    quote.title = titleFromQuoteText(data.content);
+    updateNoteServerSide();
+  }
+
+  function onEditedAttribute(attribution) {
+    quote.attribution = attribution;
+    updateNoteServerSide();
+  }
+
+  function onDelete(id) {
+    Net.delete(`/api/quotes/${quote.id}`).then(() => {
+      route("/quotes");
+    });
+  }
+
+  function onDecksChanged(note, all_decks_for_note) {
+    // have to set deck.refs to be the canonical version
+    // 'cacheDeck' will use that to populate each note's decks array
+
+    // remove all deck.refs that relate to this note
+    quote.refs = quote.refs.filter(din => {
+      return din.note_id !== note.id;
+    });
+    // add every note.decks entry to quote.refs
+    all_decks_for_note.forEach(d => { quote.refs.push(d); });
+
+    quote.notes[0] = note;
+    cacheDeck(dispatch, quote);
+  }
+
+  function requireKeyboard() {
+    // console.log("requireKeyboard setting to false");
+    setKeyboardActive(false);
+  }
+
+  function releaseKeyboard() {
+    // console.log("releaseKeyboard setting to true");
+    setKeyboardActive(true);
+  }
 
   return html`
-    <article>
-      ${ deckManager.title }
-      ${ deckManager.buttons() }
-      ${ deckManager.buildUpdateForm() }
-      ${ deckManager.buildNoteSections() }
+    <article id="quotation-article">
+      ${ note && html`<${Note}
+                        key=${ note.id }
+                        note=${ note }
+                        requireKeyboard=${ requireKeyboard }
+                        releaseKeyboard=${ releaseKeyboard }
+                        parentDeck=${ quote }
+                        onEdited=${ onEditedNote }
+                        onDelete=${ onDelete }
+                        onDecksChanged=${ onDecksChanged }/>`}
+      <${Attribution}
+        requireKeyboard=${ requireKeyboard }
+        releaseKeyboard=${ releaseKeyboard }
+        attribution=${ quote.attribution }
+        onEdited=${ onEditedAttribute}
+        onDelete=${ onDelete }/>
     </article>`;
+}
+
+
+
+
+const ATTR_SHOW_MODE = 'attr-show-mode';
+const ATTR_EDIT_MODE = 'attr-edit-mode';
+
+const ATTR_SET_MODE = 'attr-set-mode';
+const ATTR_INIT_ATTRIBUTION = 'attr-init-attribution';
+const ATTR_SET_ATTRIBUTION = 'attr-set-attribution';
+const ATTR_RESET_ATTRIBUTION = 'attr-reset-attribution';
+const ATTR_SHOW_BUTTONS = 'attr-show-buttons';
+const ATTR_HIDE_BUTTONS = 'attr-hide-buttons';
+
+function reducer2(state, action) {
+  switch(action.type) {
+  case ATTR_SET_MODE: {
+    return {
+      ...state,
+      mode: action.data,
+      showButtons: action.data === ATTR_SHOW_MODE ? false : state.showButtons
+    }
+  }
+  case ATTR_SHOW_BUTTONS: {
+    return {
+      ...state,
+      showButtons: true
+    }
+  }
+  case ATTR_HIDE_BUTTONS: {
+    return {
+      ...state,
+      showButtons: false
+    }
+  }
+  case ATTR_INIT_ATTRIBUTION: {
+    return {
+      ...state,
+      originalAttribution: action.data,
+      attribution: action.data
+    }
+  }
+  case ATTR_SET_ATTRIBUTION: {
+    return {
+      ...state,
+      attribution: action.data
+    }
+  }
+  case ATTR_RESET_ATTRIBUTION: {
+    return {
+      ...state,
+      attribution: state.originalAttribution
+    }
+  }
+  default: throw new Error(`unknown action: ${action}`);
+  }
+}
+
+function Attribution({ attribution, onEdited, onDelete, requireKeyboard, releaseKeyboard}) {
+  const [local, localDispatch] = useLocalReducer(reducer2, {
+    mode: ATTR_SHOW_MODE,
+    showButtons: false,
+    originalAttribution: attribution,
+    attribution
+  });
+
+  useEffect(() => {
+    if (local.originalAttribution !== attribution) {
+      localDispatch(ATTR_INIT_ATTRIBUTION, attribution);
+    }
+  }, [attribution]);
+
+
+  function clickedAttribution(e) {
+    e.preventDefault();
+    localDispatch(local.showButtons ? ATTR_HIDE_BUTTONS : ATTR_SHOW_BUTTONS);
+  }
+
+  function confirmedDeleteClicked() {
+    releaseKeyboard();
+    onDelete();
+  }
+
+  function clickedEdit(e) {
+    e.preventDefault();
+    localDispatch(ATTR_SET_MODE, ATTR_EDIT_MODE);
+    requireKeyboard();
+  }
+
+  function handleChangeEvent(e) {
+    const target = e.target;
+    const name = target.name;
+    const value = target.value;
+
+    localDispatch(ATTR_SET_ATTRIBUTION, value);
+  }
+
+  function clickedCancel(e) {
+    e.preventDefault();
+    releaseKeyboard();
+    localDispatch(ATTR_SET_MODE, ATTR_SHOW_MODE);
+  }
+
+  function clickedOK(e) {
+    e.preventDefault();
+    releaseKeyboard();
+    onEdited(local.attribution);
+    localDispatch(ATTR_SET_MODE, ATTR_SHOW_MODE);
+  }
+
+  return html`<div>
+  ${local.mode === ATTR_SHOW_MODE && html`
+    <div>
+      <div onClick=${clickedAttribution}>
+        ${ attribution }
+      </div>
+    ${local.showButtons && html`
+      <button onClick=${ clickedEdit }>Edit...</button>
+      <${DeleteConfirmation} onDelete=${ confirmedDeleteClicked }/>
+    `}
+    </div>`}
+
+  ${local.mode === ATTR_EDIT_MODE && html`
+    <div>
+      <input id="attribution"
+             type="text"
+             name="attribution"
+             value=${ local.attribution }
+             autoComplete="off"
+             onInput=${ handleChangeEvent } />
+<br/>
+    <button onClick=${ clickedCancel }>Cancel</button>
+    <button onClick=${ clickedOK }>OK</button>
+
+    </div>`}
+
+</div>`;
 }
 
 function UpdateQuoteForm({ deck, hideFormFn }) {
@@ -198,11 +475,7 @@ function UpdateQuoteForm({ deck, hideFormFn }) {
 
     // edit an existing quote
     Net.put(`/api/quotes/${quote.id}`, data).then(newItem => {
-      dispatch({
-        type: 'cacheDeck',
-        id: quote.id,
-        newItem
-      });
+      cacheDeck(dispatch, newItem);
       // hide this form
       hideFormFn();
     });
@@ -223,64 +496,6 @@ function UpdateQuoteForm({ deck, hideFormFn }) {
       <br/>
       <input type="submit" value="Update Quote"/>
     </form>`;
-}
-
-function QuoteDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
-  let [expanded, setExpanded] = useState(false);
-
-  function onClicked(e) {
-    e.preventDefault();
-    setExpanded(!expanded);
-  }
-
-  return html`<li class='relevent-deckpoint'>
-                <span onClick=${onClicked}>${ expanded ? svgCaretDown() : hasNotes ? svgCaretRight() : svgCaretRightEmpty() }</span>
-                ${ deckPoint.title } ${ deckPoint.date_textual }
-                ${ expanded && html`<div class="point-notes">
-                                      ${ noteManager }
-                                    </div>`}
-              </li>`;
-}
-
-function ListPoints({ points, deckManager, holderId, holderName, showAddPointForm, dispatch }) {
-  function onAddPointClicked(e) {
-    e.preventDefault();
-    dispatch({type: showAddPointForm ? "hideAddPointForm" : "showAddPointForm"});
-  }
-
-  // called by DeckManager once a point has been successfully created
-  function onPointCreated() {
-    dispatch({type: "hideAddPointForm"});
-  }
-
-  let arr = points || [];
-  let dps = arr.map(dp => html`<${QuoteDeckPoint}
-                                 key=${ dp.id}
-                                 noteManager=${ deckManager.noteManagerForDeckPoint(dp) }
-                                 hasNotes=${ deckManager.pointHasNotes(dp) }
-                                 holderId=${ holderId }
-                                 deckPoint=${ dp }/>`);
-
-  let formSidebarText = showAddPointForm ? "Hide Form" : `Add Point for ${ holderName }`;
-
-  return html`
-    <${RollableSection} heading='Quote'>
-      <ul class="unstyled-list hug-left">
-        ${ dps }
-      </ul>
-
-      <${WhenWritable}>
-        <${WhenVerbose}>
-          <div class="left-margin">
-            <div class="left-margin-entry clickable" onClick=${ onAddPointClicked }>
-              <span class="left-margin-icon-label">${ formSidebarText }</span>
-              ${ showAddPointForm ? svgCancel() : svgPointAdd() }
-            </div>
-          </div>
-        </${WhenVerbose}>
-        ${ showAddPointForm && deckManager.buildPointForm(onPointCreated) }
-      </${WhenWritable}>
-    </${RollableSection}>`;
 }
 
 export { Quote, Quotes };

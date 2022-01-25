@@ -25,7 +25,7 @@
 
 .PHONY: run download-images clean-dist
 
-run:
+run: wasm
 	cargo run --manifest-path civil-server/Cargo.toml --bin civil_server
 
 # collect stats on each user's content, stores the stats in the db
