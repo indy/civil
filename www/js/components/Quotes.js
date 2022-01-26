@@ -4,6 +4,7 @@ import Net from '/js/Net.js';
 import { capitalise } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
+import buildMarkup from '/js/components/BuildMarkup.js';
 
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 import Note from '/js/components/Note.js';
@@ -13,7 +14,6 @@ const HIDE_ADD_FORM = 'hide-add-form';
 const SET_ATTRIBUTION = 'set_attribution';
 const SET_QUOTE_TEXT = 'set-quote-text';
 const CREATED_NEW_QUOTE = 'created-new-quote';
-
 
 function reducer(state, action) {
   switch(action.type) {
@@ -62,7 +62,7 @@ function cacheDeck(dispatch, deck) {
 }
 
 function titleFromQuoteText(quoteText) {
-  const title = quoteText.length > 20 ? quoteText.slice(0, 17) + "..." : quoteText;
+  const title = quoteText.length > 60 ? quoteText.slice(0, 57) + "..." : quoteText;
   return title;
 }
 
@@ -159,7 +159,6 @@ onInput=${handleChangeEvent}/>
         ${ !local.showAddForm && renderNewQuoteButton()}
         ${ local.showAddForm && renderAddForm()}
         ${ !local.showAddForm && renderRandomButton()}
-
     </article>`;
 }
 
@@ -413,7 +412,7 @@ function Attribution({ attribution, onEdited, onDelete, requireKeyboard, release
   ${local.mode === ATTR_SHOW_MODE && html`
     <div>
       <div onClick=${clickedAttribution}>
-        ${ attribution }
+        ${ attribution && buildMarkup(attribution) }
       </div>
     ${local.showButtons && html`
       <button onClick=${ clickedEdit }>Edit...</button>
