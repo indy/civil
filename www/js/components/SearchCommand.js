@@ -17,6 +17,7 @@ const INPUT_GIVEN = 'input-given';
 const KEY_DOWN_CTRL = 'key-down-ctrl';
 const KEY_DOWN_ENTER = 'key-down-enter';
 const KEY_DOWN_ESC = 'key-down-esc';
+const KEY_DOWN_COLON = 'key-down-colon';
 const SHORTCUT_CHECK = 'shortcut-check';
 const SWITCH_OFF_JUST_ROUTED = 'switch-off-just-routed';
 
@@ -77,6 +78,16 @@ function reducer(state, action) {
       }
       return newState;
     } else {
+      if (inputElement) {
+        inputElement.focus();
+        state.hasFocus = true;
+      }
+      return state;
+    }
+  };
+  case KEY_DOWN_COLON: {
+    const inputElement = action.data.current;
+    if (!state.hasFocus) {
       if (inputElement) {
         inputElement.focus();
         state.hasFocus = true;
@@ -174,6 +185,9 @@ export default function SearchCommand() {
   function onKeyDown(e) {
     if (e.key === "Escape") {
       localDispatch(KEY_DOWN_ESC, searchCommandRef);
+    }
+    if (e.key === ":") {
+      localDispatch(KEY_DOWN_COLON, searchCommandRef);
     }
     if (e.key === "Enter") {
       localDispatch(KEY_DOWN_ENTER, dispatch);
@@ -291,6 +305,7 @@ function allCommands() {
     {command: 'n', description: "show add-note form"},
     {command: 'p', description: "show point form"},
     {spacer: true},
+    {command: 'r', description: "goto random quote"},
     {command: 's', description: "goto spaced repetition"},
     {command: 'l', description: "lock (prevent edits)"},
     {command: 'u', description: "unlock (allow edits)"},
@@ -335,6 +350,12 @@ function executeCommand(text, appDispatch) {
   case "p": return dispatchMessage('showAddPointForm');
   case "l": return dispatchMessage('lock');
   case "u": return dispatchMessage('unlock');
+  case "r": {
+    Net.get("/api/quotes/random").then(quote => {
+      route(`/quotes/${quote.id}`);
+    });
+    return true;
+  }
   case "s": route('/sr'); return true;
   case "c": return dispatchMessage('cleanUI');
   case "b": return dispatchMessage('basicUI');

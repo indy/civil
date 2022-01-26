@@ -1261,6 +1261,15 @@ input:required {
 #quotation-article {
   padding-top: 6rem;
 }
+#quotation-attribute {
+  margin-left: 0.5rem;
+  font-size: 1.4rem;
+}
+
+#quotation-attribute:before {
+  content: "\2014 ";            /* mdash before the quote attribution */
+  padding-right: 0.5rem;
+}
 
 
 /* Responsive adjustments

@@ -208,11 +208,9 @@ function Quote(props) {
   function onKeyDown(e) {
     if (keyboardActive) {
       if (e.key === 'n') {
-        console.log(quoteId);
         //console.log(state.quoteCurrentId);
         getQuoteThenRoute(`/api/quotes/${quoteId}/next`);
       } else if (e.key === 'p') {
-        console.log(quoteId);
         //console.log(state.quoteCurrentId);
         getQuoteThenRoute(`/api/quotes/${quoteId}/prev`);
       } else if (e.key === 'r') {
@@ -408,11 +406,17 @@ function Attribution({ attribution, onEdited, onDelete, requireKeyboard, release
     localDispatch(ATTR_SET_MODE, ATTR_SHOW_MODE);
   }
 
+  let markup = attribution && buildMarkup(attribution);
+  // convert the p tag into spans
+  if (markup) {
+    markup[0].type = "span";
+  }
+
   return html`<div>
   ${local.mode === ATTR_SHOW_MODE && html`
     <div>
-      <div onClick=${clickedAttribution}>
-        ${ attribution && buildMarkup(attribution) }
+      <div id="quotation-attribute" onClick=${clickedAttribution}>
+        ${ markup }
       </div>
     ${local.showButtons && html`
       <button onClick=${ clickedEdit }>Edit...</button>
