@@ -179,7 +179,7 @@ pub(crate) async fn search_using_deck_id(
     user_id: Key,
     deck_id: Key,
 ) -> Result<Vec<interop::DeckSimple>> {
-    let (mut results, results_via_pub_ext, results_via_notes, results_via_points) = tokio::try_join!(
+    let (mut results, results_via_pub_ext, results_via_quote_ext, results_via_notes, results_via_points) = tokio::try_join!(
         query_search_id(
             db_pool,
             "select d.id, d.kind, d.name, ts_rank_cd(d.ts, phraseto_tsquery('english', deckname.name)) AS rank_sum, 1 as rank_count
@@ -201,6 +201,19 @@ pub(crate) async fn search_using_deck_id(
                    and d.user_id = $1
                    and deckname.id = $2
              group by d.id, pe.ts, deckname.name
+             order by rank_sum desc
+             limit 50",
+            user_id,
+            deck_id
+        ),
+        query_search_id(
+            db_pool,
+            "select d.id, d.kind, d.name, ts_rank_cd(qe.ts, phraseto_tsquery('english', deckname.name)) AS rank_sum, 1 as rank_count
+             from decks deckname, decks d left join quote_extras qe on qe.deck_id = d.id
+             where qe.ts @@ phraseto_tsquery('english', deckname.name)
+                   and d.user_id = $1
+                   and deckname.id = $2
+             group by d.id, qe.ts, deckname.name
              order by rank_sum desc
              limit 50",
             user_id,
@@ -246,6 +259,12 @@ pub(crate) async fn search_using_deck_id(
         }
     }
 
+    for r in results_via_quote_ext {
+        if !contains(&results, r.id) {
+            results.push(r);
+        }
+    }
+
     for r in results_via_notes {
         if !contains(&results, r.id) {
             results.push(r);
@@ -266,7 +285,7 @@ pub(crate) async fn search(
     user_id: Key,
     query: &str,
 ) -> Result<Vec<interop::DeckSimple>> {
-    let (mut results, results_via_pub_ext, results_via_notes, results_via_points) = tokio::try_join!(
+    let (mut results, results_via_pub_ext, results_via_quote_ext, results_via_notes, results_via_points) = tokio::try_join!(
         query_search(
             db_pool,
             "select d.id, d.kind, d.name, ts_rank_cd(d.ts, plainto_tsquery('english', $2)) AS rank_sum, 1 as rank_count
@@ -287,6 +306,19 @@ pub(crate) async fn search(
              where pe.ts @@ plainto_tsquery('english', $2)
                    and d.user_id = $1
              group by d.id, pe.ts
+             order by rank_sum desc
+             limit 30",
+            user_id,
+            query
+        ),
+        query_search(
+            db_pool,
+            "select d.id, d.kind, d.name, ts_rank_cd(qe.ts, plainto_tsquery('english', $2)) AS rank_sum, 1 as rank_count
+             from decks d
+                  left join quote_extras qe on qe.deck_id = d.id
+             where qe.ts @@ plainto_tsquery('english', $2)
+                   and d.user_id = $1
+             group by d.id, qe.ts
              order by rank_sum desc
              limit 30",
             user_id,
@@ -325,6 +357,12 @@ pub(crate) async fn search(
     )?;
 
     for r in results_via_pub_ext {
+        if !contains(&results, r.id) {
+            results.push(r);
+        }
+    }
+
+    for r in results_via_quote_ext {
         if !contains(&results, r.id) {
             results.push(r);
         }
