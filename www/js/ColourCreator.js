@@ -93,16 +93,16 @@ function augmentSettingsWithCssModifierParameters(uiColours) {
       // definitions are either hsl triplets or strings that reference the clock values
       //
       definitions: {
-        bg:  [46.5, 19.2,  95.7],
-        bg1: [85.7,  4.5,  93.9],
-        bg2: [46.1, 20.2,  92.0],
-        bg3: [16.7,  0.0, 100.0],
+        bg:  [46.5, 19.2,  15.0],
+        bg1: [85.7,  4.5,  17],
+        bg2: [46.1, 20.2,  19],
+        bg3: [46.5, 19.2,  5.0],
 
-        fg:  [43,  19,  3.5],
-        fg1: [16.7, 0, 40.7],
-        fg_inactive: [16.7, 0, 60],
+        fg:  [43,  19,  75],
+        fg1: [16.7, 0, 60.7],
+        fg_inactive: [16.7, 0, 40],
 
-        divider: [16.7, 0, 77.7],
+        divider: [16.7, 0, 23],
 
         graph_node_expanded: [127, 60, 70],
         graph_node_partial: [37, 60, 70],
@@ -120,26 +120,26 @@ function augmentSettingsWithCssModifierParameters(uiColours) {
         bg_articles: "--bg-clock-12",
         bg_people: "--bg-clock-09",
         bg_timelines: "--bg-clock-03",
-        bg_quotes: "--bg-clock-03",
+        bg_quotes: "--bg-clock-07",
 
         fg_ideas: "--fg-clock-06",
         fg_articles: "--fg-clock-12",
         fg_people: "--fg-clock-09",
         fg_timelines: "--fg-clock-03",
-        fg_quotes: "--fg-clock-03"
+        fg_quotes: "--fg-clock-07"
       },
 
       hueDelta: 30,
 
       // used to generate the fg clock values
-      saturationFg: 60.5,
-      hueOffsetFg: 67.1,
-      lightnessFg: 50.0,
+      saturationBg: 60.5,
+      hueOffsetBg: 67.1,
+      lightnessBg: 50.0,
 
       // used to generate the bg clock values
-      saturationBg: 57.6,
-      hueOffsetBg: 65.7,
-      lightnessBg: 89.9,
+      saturationFg: 57.6,
+      hueOffsetFg: 65.7,
+      lightnessFg: 80
     }
   }
   return s;
