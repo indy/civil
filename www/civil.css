@@ -966,10 +966,11 @@ section > form { width: var(--block-width); }
 .note > img {
   width: var(--block-width);
 }
-.note ol {
+
+.note-content > ol {
   width: var(--block-width);
 }
-.note ul {
+.note-content > ul {
   width: var(--block-width);
 }
 .note li {

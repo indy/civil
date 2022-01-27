@@ -332,7 +332,7 @@ export default function Note(props) {
       ${  local.isEditingMarkup && buildEditableContent() }
       ${ !local.isEditingMarkup && buildLeftMarginContent(props.note, localDispatch)}
       ${  local.flashcardToShow && html`<${FlashCard} flashcard=${local.flashcardToShow} onDelete=${flashCardDeleted}/>`}
-      ${ !local.isEditingMarkup && html`<div onClick=${onNoteClicked}>
+      ${ !local.isEditingMarkup && html`<div class="note-content" onClick=${onNoteClicked}>
                                           ${ buildMarkup(local.note.content, state.imageDirectory) }
                                         </div>`}
       ${ local.showModButtons && local.addDeckReferencesUI && buildAddDecksUI() }
