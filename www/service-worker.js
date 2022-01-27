@@ -63,6 +63,7 @@ var precacheConfig = [
   "/js/components/RollableSection.js",
   "/js/components/SearchCommand.js",
   "/js/components/SectionBackRefs.js",
+  "/js/components/SectionSearchResultsBackref.js",
   "/js/components/SpacedRepetition.js",
   "/js/components/StarRating.js",
   "/js/components/Timelines.js",

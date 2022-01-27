@@ -153,8 +153,8 @@ async fn augment(db_pool: &Data<Pool>, quote: &mut interop::Quote) -> Result<()>
     let (notes, refs, backnotes, backrefs, flashcards) = tokio::try_join!(
         notes_db::all_from_deck(&db_pool, quote_id),
         decks_db::from_deck_id_via_notes_to_decks(&db_pool, quote_id),
-        decks_db::backnotes(&db_pool, quote_id),
-        decks_db::backrefs(&db_pool, quote_id),
+        decks_db::get_backnotes(&db_pool, quote_id),
+        decks_db::get_backrefs(&db_pool, quote_id),
         sr_db::all_flashcards_for_deck(&db_pool, quote_id),
     )?;
 

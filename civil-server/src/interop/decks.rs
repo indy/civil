@@ -88,3 +88,8 @@ pub struct DeckSimple {
 pub struct ResultList {
     pub results: Vec<DeckSimple>,
 }
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct SearchResults {
+    pub results: Option<Vec<DeckSimple>>,
+}

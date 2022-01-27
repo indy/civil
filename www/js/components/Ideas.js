@@ -4,14 +4,13 @@ import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
 import { ensureListingLoaded, leftMarginHeading } from '/js/CivilUtils.js';
-import { capitalise, formattedDate, nonEmptyArray, plural } from '/js/JsUtils.js';
+import { capitalise, formattedDate } from '/js/JsUtils.js';
 
 import { DeckManager } from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
-import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
+import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBackref.js';
 import { CompactedListSection } from '/js/components/ListSections.js';
-import { ListingLink } from '/js/components/ListingLink.js';
 
 function Ideas() {
   const [state, dispatch] = useStateValue();
@@ -153,25 +152,6 @@ function UpdateIdeaForm({ deck, hideFormFn }) {
       <br/>
       <input type="submit" value="Update Idea"/>
     </form>`;
-}
-
-function SectionSearchResultsBackref({ backrefs }) {
-  function buildBackref(lb) {
-    return (
-      html`<${ListingLink} id=${ lb.id } name=${ lb.name } resource=${ lb.resource }/>`
-    );
-  }
-
-  if(nonEmptyArray(backrefs)) {
-    const heading = plural(backrefs.length, 'Additional Search Result', 's');
-    return html`<${RollableSection} heading=${ heading } initiallyRolledUp>
-                <ul>
-                  ${ backrefs.map(buildBackref) }
-                </ul>
-              </${RollableSection}>`;
-  } else {
-    return html`<div></div>`;
-  }
 }
 
 export { Ideas, Idea };

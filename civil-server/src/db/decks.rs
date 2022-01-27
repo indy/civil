@@ -174,6 +174,32 @@ pub struct Deck {
     pub source: Option<String>,
 }
 
+
+pub(crate) async fn additional_search(
+    db_pool: &Pool,
+    user_id: Key,
+    deck_id: Key,
+) -> Result<Vec<interop::DeckSimple>> {
+    info!("additional_search {:?}", deck_id);
+
+    fn has(backref: &interop::DeckSimple, backnotes: &[interop::BackNote]) -> bool {
+        backnotes.iter().any(|br| br.deck_id == backref.id)
+    }
+
+    let (backnotes, search_results) = tokio::try_join!(
+        get_backnotes(&db_pool, deck_id),
+        search_using_deck_id(&db_pool, user_id, deck_id)
+    )?;
+
+    // dedupe search results against the backrefs to decks
+    let additional_search_results: Vec<interop::DeckSimple> = search_results
+        .into_iter()
+        .filter(|br| br.id != deck_id && !has(br, &backnotes))
+        .collect();
+
+    Ok(additional_search_results)
+}
+
 pub(crate) async fn search_using_deck_id(
     db_pool: &Pool,
     user_id: Key,
@@ -677,7 +703,7 @@ pub(crate) async fn delete(db_pool: &Pool, user_id: Key, id: Key) -> Result<()> 
 
 // return all notes that have references back to the currently displayed deck
 //
-pub(crate) async fn backnotes(db_pool: &Pool, deck_id: Key) -> Result<Vec<interop::BackNote>> {
+pub(crate) async fn get_backnotes(db_pool: &Pool, deck_id: Key) -> Result<Vec<interop::BackNote>> {
     pg::many_from::<BackNote, interop::BackNote>(
         db_pool,
         "SELECT d.id AS deck_id,
@@ -699,7 +725,7 @@ pub(crate) async fn backnotes(db_pool: &Pool, deck_id: Key) -> Result<Vec<intero
 
 // all refs on notes that have at least one ref back to the currently displayed deck
 //
-pub(crate) async fn backrefs(db_pool: &Pool, deck_id: Key) -> Result<Vec<interop::BackRef>> {
+pub(crate) async fn get_backrefs(db_pool: &Pool, deck_id: Key) -> Result<Vec<interop::BackRef>> {
     pg::many_from::<BackRef, interop::BackRef>(
         db_pool,
         "SELECT nd.note_id as note_id,

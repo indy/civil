@@ -149,8 +149,8 @@ async fn augment(
         points_db::all(&db_pool, user_id, timeline_id),
         notes_db::all_from_deck(&db_pool, timeline_id),
         decks_db::from_deck_id_via_notes_to_decks(&db_pool, timeline_id),
-        decks_db::backnotes(&db_pool, timeline_id),
-        decks_db::backrefs(&db_pool, timeline_id),
+        decks_db::get_backnotes(&db_pool, timeline_id),
+        decks_db::get_backrefs(&db_pool, timeline_id),
         sr_db::all_flashcards_for_deck(&db_pool, timeline_id),
     )?;
 

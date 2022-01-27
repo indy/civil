@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::{BackNote, BackRef, DeckSimple, Ref};
+use crate::interop::decks::{BackNote, BackRef, Ref};
 use crate::interop::notes::Note;
 use crate::interop::sr::FlashCard;
 use crate::interop::Key;
@@ -37,11 +37,6 @@ pub struct Idea {
     pub backrefs: Option<Vec<BackRef>>,
 
     pub flashcards: Option<Vec<FlashCard>>,
-}
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct SearchResults {
-    pub results: Option<Vec<DeckSimple>>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

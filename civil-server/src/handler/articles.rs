@@ -136,8 +136,8 @@ async fn augment(
     let (notes, refs, backnotes, backrefs, flashcards) = tokio::try_join!(
         notes_db::all_from_deck(&db_pool, article_id),
         decks_db::from_deck_id_via_notes_to_decks(&db_pool, article_id),
-        decks_db::backnotes(&db_pool, article_id),
-        decks_db::backrefs(&db_pool, article_id),
+        decks_db::get_backnotes(&db_pool, article_id),
+        decks_db::get_backrefs(&db_pool, article_id),
         sr_db::all_flashcards_for_deck(&db_pool, article_id),
     )?;
 

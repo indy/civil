@@ -20,15 +20,16 @@ import { svgPointAdd,
          svgTickedCheckBox,
          svgUntickedCheckBox } from '/js/svgIcons.js';
 
-import { CompactedListSection } from '/js/components/ListSections.js';
-import { DeckManager } from '/js/components/DeckManager.js';
 import GraphSection from '/js/components/GraphSection.js';
 import LifespanForm from '/js/components/LifespanForm.js';
-import { PointForm } from '/js/components/PointForm.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
-import { WhenWritable } from '/js/components/WhenWritable.js';
+import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBackref.js';
+import { CompactedListSection } from '/js/components/ListSections.js';
+import { DeckManager } from '/js/components/DeckManager.js';
+import { PointForm } from '/js/components/PointForm.js';
 import { WhenVerbose } from '/js/components/WhenVerbose.js';
+import { WhenWritable } from '/js/components/WhenWritable.js';
 
 function People() {
   const [state, dispatch] = useStateValue();
@@ -58,6 +59,8 @@ function People() {
 function Person(props) {
   const [state, dispatch] = useStateValue();
 
+  const [searchResults, setSearchResults] = useState([]); // an array of backrefs
+
   const personId = parseInt(props.id, 10);
   const person = state.cache.deck[personId] || { id: personId };
 
@@ -71,6 +74,13 @@ function Person(props) {
     hasReviewSection: false
   });
 
+  useEffect(() => {
+    if (person.name) {
+      Net.get(`/api/people/${person.id}/additional_search`).then(search_results => {
+        setSearchResults(search_results.results);
+      });
+    }
+  }, [person]);
 
   function dispatchUpdatedPerson(person) {
     dispatch({
@@ -123,7 +133,7 @@ function Person(props) {
       ${ deckManager.buildNoteSections() }
 
       <${SectionBackRefs} state=${state} backrefs=${ person.backrefs } backnotes=${ person.backnotes } deckId=${ person.id }/>
-
+      <${SectionSearchResultsBackref} backrefs=${ searchResults }/>
       ${ hasKnownLifespan && html`<${ListDeckPoints} deckPoints=${ person.all_points_during_life }
                                              deckManager=${ deckManager }
                                              dispatch=${ dispatch }

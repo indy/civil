@@ -22,7 +22,7 @@ use crate::db::points as points_db;
 use crate::db::sr as sr_db;
 use crate::error::Result;
 use crate::handler::SearchQuery;
-use crate::interop::decks::ResultList;
+use crate::interop::decks::{ResultList, SearchResults};
 use crate::interop::people as interop;
 use crate::interop::points as points_interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
@@ -154,8 +154,8 @@ async fn augment(
         points_db::all_points_during_life(&db_pool, user_id, person_id),
         notes_db::all_from_deck(&db_pool, person_id),
         decks_db::from_deck_id_via_notes_to_decks(&db_pool, person_id),
-        decks_db::backnotes(&db_pool, person_id),
-        decks_db::backrefs(&db_pool, person_id),
+        decks_db::get_backnotes(&db_pool, person_id),
+        decks_db::get_backrefs(&db_pool, person_id),
         sr_db::all_flashcards_for_deck(&db_pool, person_id),
     )?;
 
@@ -168,4 +168,23 @@ async fn augment(
     person.flashcards = Some(flashcards);
 
     Ok(())
+}
+
+pub async fn additional_search(
+    db_pool: Data<Pool>,
+    params: Path<IdParam>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    info!("additional_search {:?}", params.id);
+
+    let user_id = session::user_id(&session)?;
+    let person_id = params.id;
+
+    let additional_search_results = decks_db::additional_search(&db_pool, user_id, person_id).await?;
+
+    let res = SearchResults {
+        results: Some(additional_search_results),
+    };
+
+    Ok(HttpResponse::Ok().json(res))
 }

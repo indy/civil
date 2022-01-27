@@ -21,7 +21,7 @@ use crate::db::notes as notes_db;
 use crate::db::sr as sr_db;
 use crate::error::Result;
 use crate::handler::SearchQuery;
-use crate::interop::decks::{BackNote, DeckSimple, ResultList};
+use crate::interop::decks::{ResultList, SearchResults};
 use crate::interop::ideas as interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
@@ -134,8 +134,8 @@ async fn augment(db_pool: &Data<Pool>, idea: &mut interop::Idea, idea_id: Key) -
     let (notes, refs, backnotes, backrefs, flashcards) = tokio::try_join!(
         notes_db::all_from_deck(&db_pool, idea_id),
         decks_db::from_deck_id_via_notes_to_decks(&db_pool, idea_id),
-        decks_db::backnotes(&db_pool, idea_id),
-        decks_db::backrefs(&db_pool, idea_id),
+        decks_db::get_backnotes(&db_pool, idea_id),
+        decks_db::get_backrefs(&db_pool, idea_id),
         sr_db::all_flashcards_for_deck(&db_pool, idea_id),
     )?;
 
@@ -148,10 +148,6 @@ async fn augment(db_pool: &Data<Pool>, idea: &mut interop::Idea, idea_id: Key) -
     Ok(())
 }
 
-fn contains(backref: &DeckSimple, backnotes: &[BackNote]) -> bool {
-    backnotes.iter().any(|br| br.deck_id == backref.id)
-}
-
 pub async fn additional_search(
     db_pool: Data<Pool>,
     params: Path<IdParam>,
@@ -162,18 +158,9 @@ pub async fn additional_search(
     let user_id = session::user_id(&session)?;
     let idea_id = params.id;
 
-    let (backnotes, search_results) = tokio::try_join!(
-        decks_db::backnotes(&db_pool, idea_id),
-        decks_db::search_using_deck_id(&db_pool, user_id, idea_id) // this is slow
-    )?;
+    let additional_search_results = decks_db::additional_search(&db_pool, user_id, idea_id).await?;
 
-    // dedupe search results against the backrefs to decks
-    let additional_search_results: Vec<DeckSimple> = search_results
-        .into_iter()
-        .filter(|br| br.id != idea_id && !contains(br, &backnotes))
-        .collect();
-
-    let res = interop::SearchResults {
+    let res = SearchResults {
         results: Some(additional_search_results),
     };
 
