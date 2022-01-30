@@ -685,7 +685,7 @@ textarea {
 }
 
 .search-command-visible {
-  animation: fadeIn ease 0.2s;
+  animation: fadeIn ease 0.2s forwards;
   -webkit-animation: fadeIn ease 0.2s;
   -moz-animation: fadeIn ease 0.2s;
   -o-animation: fadeIn ease 0.2s;
@@ -701,16 +701,20 @@ textarea {
 }
 
 .search-command-invisible {
-  animation: fadeOut ease 0.2s;
+  animation: fadeOut ease 0.2s forwards;
   opacity: 0;
 }
 
+/* margins and height required so that the invisible elements can't be clicked on */
 @keyframes fadeOut {
   0% {
     opacity:1;
+    margin-left: 0%;
   }
   100% {
     opacity:0;
+    margin-left: -1000%;
+    height: 0;
   }
 }
 
