@@ -655,7 +655,7 @@ pub(crate) async fn delete(db_pool: &Pool, user_id: Key, id: Key) -> Result<()> 
     notes::delete_all_notes_connected_with_deck(&tx, user_id, id).await?;
 
     pg::zero(&tx, "DELETE FROM article_extras WHERE deck_id = $1", &[&id]).await?;
-    pg::zero(&tx, "DELETE FROM quotes_extras WHERE deck_id = $1", &[&id]).await?;
+    pg::zero(&tx, "DELETE FROM quote_extras WHERE deck_id = $1", &[&id]).await?;
 
     pg::zero(&tx, "DELETE FROM notes_decks WHERE deck_id = $1", &[&id]).await?;
 
