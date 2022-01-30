@@ -214,7 +214,7 @@ pub(crate) async fn search_using_deck_id(
                    and d.user_id = $1
                    and deckname.id = $2
              group by d.id, d.ts, deckname.name
-             order by rank_sum desc
+             order by rank_sum desc, length(d.name) asc
              limit 50",
             user_id,
             deck_id
@@ -227,7 +227,7 @@ pub(crate) async fn search_using_deck_id(
                    and d.user_id = $1
                    and deckname.id = $2
              group by d.id, pe.ts, deckname.name
-             order by rank_sum desc
+             order by rank_sum desc, length(d.name) asc
              limit 50",
             user_id,
             deck_id
@@ -240,7 +240,7 @@ pub(crate) async fn search_using_deck_id(
                    and d.user_id = $1
                    and deckname.id = $2
              group by d.id, qe.ts, deckname.name
-             order by rank_sum desc
+             order by rank_sum desc, length(d.name) asc
              limit 50",
             user_id,
             deck_id
@@ -256,7 +256,7 @@ pub(crate) async fn search_using_deck_id(
                          group by d.id, n.ts, deckname.name
                          order by rank desc) res
              group by res.id, res.kind, res.name
-             order by sum(res.rank) desc
+             order by sum(res.rank) desc, length(res.name) asc
              limit 50",
             user_id,
             deck_id
@@ -272,7 +272,7 @@ pub(crate) async fn search_using_deck_id(
                          group by d.id, p.ts, deckname.name
                          order by rank desc) res
              group by res.id, res.kind, res.name
-             order by sum(res.rank) desc
+             order by sum(res.rank) desc, length(res.name) asc
              limit 50",
             user_id,
             deck_id
@@ -319,7 +319,7 @@ pub(crate) async fn search(
              where d.ts @@ plainto_tsquery('english', $2)
                    and d.user_id = $1
              group by d.id, d.ts
-             order by rank_sum desc
+             order by rank_sum desc, length(d.name) asc
              limit 30",
             user_id,
             query
@@ -332,7 +332,7 @@ pub(crate) async fn search(
              where pe.ts @@ plainto_tsquery('english', $2)
                    and d.user_id = $1
              group by d.id, pe.ts
-             order by rank_sum desc
+             order by rank_sum desc, length(d.name) asc
              limit 30",
             user_id,
             query
@@ -345,7 +345,7 @@ pub(crate) async fn search(
              where qe.ts @@ plainto_tsquery('english', $2)
                    and d.user_id = $1
              group by d.id, qe.ts
-             order by rank_sum desc
+             order by rank_sum desc, length(d.name) asc
              limit 30",
             user_id,
             query
@@ -360,7 +360,7 @@ pub(crate) async fn search(
                          group by d.id, n.ts
                          order by rank desc) res
              group by res.id, res.kind, res.name
-             order by sum(res.rank) desc
+             order by sum(res.rank) desc, length(res.name) asc
              limit 30",
             user_id,
             query
@@ -375,7 +375,7 @@ pub(crate) async fn search(
                    group by d.id, p.ts
                    order by rank desc) res
              group by res.id, res.kind, res.name
-             order by sum(res.rank) desc
+             order by sum(res.rank) desc, length(res.name) asc
              limit 30",
             user_id,
             query
@@ -423,7 +423,7 @@ pub(crate) async fn search_within_deck_kind_by_name(
              where ts @@ plainto_tsquery('english', $2)
                    and user_id = $1
                    and kind = $3
-             order by rank_sum desc
+             order by rank_sum desc, length(name) asc
              limit 20",
             user_id,
             query,
@@ -464,7 +464,7 @@ pub(crate) async fn search_by_name(
              from decks
              where ts @@ plainto_tsquery('english', $2)
                    and user_id = $1
-             order by rank_sum desc
+             order by rank_sum desc, length(name) asc
              limit 20",
             user_id,
             query
