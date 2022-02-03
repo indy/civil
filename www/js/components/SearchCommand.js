@@ -170,7 +170,6 @@ function isCommand(text) {
 
 export default function SearchCommand() {
   const [state, dispatch] = useStateValue();
-
   const searchCommandRef = useRef(null);
 
   const [local, localDispatch] = useLocalReducer(reducer, {
@@ -280,6 +279,10 @@ export default function SearchCommand() {
   }
 
   const extraClasses = local.hasFocus ? "search-command-visible" : "search-command-invisible";
+
+  if (state.showingSearchCommand !== local.hasFocus) {
+    dispatch({type: 'showingSearchCommand', showingSearchCommand: local.hasFocus});
+  }
 
   return html`<div id="search-command" class="${extraClasses}">
                 <input id="search-command-input"

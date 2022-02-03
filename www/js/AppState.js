@@ -15,6 +15,9 @@ export const initialState = {
     // ColourCreator.js::augmentSettingsWithCssModifierParameters
   },
 
+
+  showingSearchCommand: false,
+
   readOnly: false,
 
   // by default don't show the note form, just show the "Append Note" icon
@@ -82,6 +85,11 @@ export const reducer = (state, action) => {
         deckIndexFromId: buildDeckIndex(action.graphNodes)
       }
     }
+  case 'showingSearchCommand':
+    return {
+      ...state,
+      showingSearchCommand: action.showingSearchCommand
+    };
   case 'cleanUI':
     return {
       ...state,

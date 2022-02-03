@@ -162,10 +162,18 @@ onInput=${handleChangeEvent}/>
     </article>`;
 }
 
+// onKeyDown is a function that captures variables when added as an event listener
+// so resorting to these variables that are scoped to this file
+//
+let keyboardActive = true;
+let showingSearchCommand = false;
+
 function Quote(props) {
   const [state, dispatch] = useStateValue();
 
-  const [keyboardActive, setKeyboardActive] = useState(true);
+  function setKeyboardActive(val) {
+    keyboardActive = val;
+  }
 
   const quoteId = parseInt(props.id, 10);
   const quote = state.cache.deck[quoteId] || { id: quoteId };
@@ -194,6 +202,11 @@ function Quote(props) {
     };
   }, [quote]);
 
+
+  useEffect(() => {
+    showingSearchCommand = state.showingSearchCommand;
+  }, [state]);
+
   function getQuoteThenRoute(url) {
     Net.get(url).then(deck => {
       if (deck) {
@@ -206,12 +219,10 @@ function Quote(props) {
   }
 
   function onKeyDown(e) {
-    if (keyboardActive) {
+    if (keyboardActive && !showingSearchCommand) {
       if (e.key === 'n') {
-        //console.log(state.quoteCurrentId);
         getQuoteThenRoute(`/api/quotes/${quoteId}/next`);
       } else if (e.key === 'p') {
-        //console.log(state.quoteCurrentId);
         getQuoteThenRoute(`/api/quotes/${quoteId}/prev`);
       } else if (e.key === 'r') {
         Net.get("/api/quotes/random").then(quote => {
