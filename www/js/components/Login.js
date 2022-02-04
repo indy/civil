@@ -4,67 +4,67 @@ import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
 function Login({ loginCallback}) {
-  const [appState, dispatch] = useStateValue();
+    const [appState, dispatch] = useStateValue();
 
-  if (appState.user) {
-    route('/', true);
-  };
+    if (appState.user) {
+        route('/', true);
+    };
 
-  const [state, setState] = useState({
-    'login-email': '',
-    'login-password': '',
-    'register-username': '',
-    'register-magic-word': '',
-    'register-email': '',
-    'register-password': '',
-    'register-password2': ''
-  });
-
-  const handleChangeEvent = (event) => {
-    const target = event.target;
-    const name = target.name;
-    const value = target.value;
-
-    const newState = { ...state };
-    newState[name] = value;
-    setState(newState);
-  };
-
-  function handleLoginSubmit(event) {
-    Net.post('api/auth', {
-      email: state['login-email'],
-      password: state['login-password']
-    }).then(user => {
-      loginCallback(user);
+    const [state, setState] = useState({
+        'login-email': '',
+        'login-password': '',
+        'register-username': '',
+        'register-magic-word': '',
+        'register-email': '',
+        'register-password': '',
+        'register-password2': ''
     });
 
-    event.preventDefault();
-  };
+    const handleChangeEvent = (event) => {
+        const target = event.target;
+        const name = target.name;
+        const value = target.value;
 
-  function okToSendRegistration() {
-    return state['register-username'].length > 0 &&
-      state['register-email'].length > 0 &&
-      state['register-magic-word'].length > 0 &&
-      state['register-password'].length > 0 &&
-      state['register-password'] === state['register-password-2'];
-  }
+        const newState = { ...state };
+        newState[name] = value;
+        setState(newState);
+    };
 
-  function handleRegisterSubmit(event) {
-    if (okToSendRegistration()) {
-      Net.post('api/users', {
-        username: state['register-username'],
-        email: state['register-email'],
-        password: state['register-password'],
-        magic_word: state['register-magic-word']
-      }).then(user => {
-        loginCallback(user);
-      });
+    function handleLoginSubmit(event) {
+        Net.post('api/auth', {
+            email: state['login-email'],
+            password: state['login-password']
+        }).then(user => {
+            loginCallback(user);
+        });
+
+        event.preventDefault();
+    };
+
+    function okToSendRegistration() {
+        return state['register-username'].length > 0 &&
+            state['register-email'].length > 0 &&
+            state['register-magic-word'].length > 0 &&
+            state['register-password'].length > 0 &&
+            state['register-password'] === state['register-password-2'];
     }
 
-    event.preventDefault();
-  };
+    function handleRegisterSubmit(event) {
+        if (okToSendRegistration()) {
+            Net.post('api/users', {
+                username: state['register-username'],
+                email: state['register-email'],
+                password: state['register-password'],
+                magic_word: state['register-magic-word']
+            }).then(user => {
+                loginCallback(user);
+            });
+        }
 
-  return html`
+        event.preventDefault();
+    };
+
+    return html`
     <section>
       <h1>Login</h1>
       <form onSubmit=${ handleLoginSubmit }>
@@ -120,21 +120,21 @@ function Login({ loginCallback}) {
 }
 
 function Logout() {
-  const [state, dispatch] = useStateValue();
+    const [state, dispatch] = useStateValue();
 
-  const handleLogout = (event) => {
-    Net.delete('api/auth', {}).then(() => {
-      //// this isn't logging out the user, refreshing the app logs the user back in
-      dispatch({
-        type: 'setUser',
-        user: undefined
-      });
-      route('/login', true);
-    });
-    event.preventDefault();
-  };
+    const handleLogout = (event) => {
+        Net.delete('api/auth', {}).then(() => {
+            //// this isn't logging out the user, refreshing the app logs the user back in
+            dispatch({
+                type: 'setUser',
+                user: undefined
+            });
+            route('/login', true);
+        });
+        event.preventDefault();
+    };
 
-  return html`
+    return html`
     <section>
       <form onSubmit=${ handleLogout }>
         <input type="submit" value="Logout"/>

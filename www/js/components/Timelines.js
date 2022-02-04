@@ -17,12 +17,12 @@ import { WhenWritable } from '/js/components/WhenWritable.js';
 import { WhenVerbose } from '/js/components/WhenVerbose.js';
 
 function Timelines() {
-  const [state, dispatch] = useStateValue();
-  const resource = 'timelines';
+    const [state, dispatch] = useStateValue();
+    const resource = 'timelines';
 
-  ensureListingLoaded(resource);
+    ensureListingLoaded(resource);
 
-  return html`
+    return html`
     <article>
       <h1>${capitalise(resource)}</h1>
       <${BasicListSection} list=${state.listing.timelines} resource=${resource}/>
@@ -30,27 +30,27 @@ function Timelines() {
 }
 
 function Timeline(props) {
-  const [state, dispatch] = useStateValue();
+    const [state, dispatch] = useStateValue();
 
-  const timelineId = parseInt(props.id, 10);
-  const timeline = state.cache.deck[timelineId] || { id: timelineId };
+    const timelineId = parseInt(props.id, 10);
+    const timeline = state.cache.deck[timelineId] || { id: timelineId };
 
-  const deckManager = DeckManager({
-    deck: timeline,
-    title: timeline.title,
-    resource: "timelines",
-    preCacheFn: preCacheFn,
-    updateForm: UpdateTimelineForm,
-    hasSummarySection: true,
-    hasReviewSection: false
-  });
+    const deckManager = DeckManager({
+        deck: timeline,
+        title: timeline.title,
+        resource: "timelines",
+        preCacheFn: preCacheFn,
+        updateForm: UpdateTimelineForm,
+        hasSummarySection: true,
+        hasReviewSection: false
+    });
 
-  // this is only for presentational purposes
-  // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
-  // this check prevents the vis from rendering until after we have all the note and links ready
-  const okToShowGraph = !!(deckManager.hasNotes || (timeline.backrefs && timeline.backrefs.length > 0));
+    // this is only for presentational purposes
+    // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
+    // this check prevents the vis from rendering until after we have all the note and links ready
+    const okToShowGraph = !!(deckManager.hasNotes || (timeline.backrefs && timeline.backrefs.length > 0));
 
-  return html`
+    return html`
     <article>
       ${ deckManager.title }
       ${ deckManager.buttons() }
@@ -72,65 +72,65 @@ function Timeline(props) {
 
 // called before this deck is cached by the AppState (ie after every modification)
 function preCacheFn(timeline) {
-  if (timeline.points) {
-    timeline.points = timeline.points
-      .map(addChronologicalSortYear)
-      .sort((a, b) => a.sort_year > b.sort_year);
-  }
+    if (timeline.points) {
+        timeline.points = timeline.points
+            .map(addChronologicalSortYear)
+            .sort((a, b) => a.sort_year > b.sort_year);
+    }
 
-  return timeline;
+    return timeline;
 }
 
 function UpdateTimelineForm({ deck, hideFormFn }) {
-  const timeline = deck || {};
-  const [state, dispatch] = useStateValue();
+    const timeline = deck || {};
+    const [state, dispatch] = useStateValue();
 
-  const [localState, setLocalState] = useState({
-    title: timeline.title || ''
-  });
-
-  useEffect(() => {
-    if (timeline.title && timeline.title !== '' && localState.title === '') {
-    setLocalState({
-      ...localState,
-      title: timeline.title
+    const [localState, setLocalState] = useState({
+        title: timeline.title || ''
     });
-  }
-  }, [timeline]);
 
-  const handleChangeEvent = (e) => {
-    const target = e.target;
-    const name = target.name;
-    const value = target.value;
+    useEffect(() => {
+        if (timeline.title && timeline.title !== '' && localState.title === '') {
+            setLocalState({
+                ...localState,
+                title: timeline.title
+            });
+        }
+    }, [timeline]);
 
-    if (name === "title") {
-      setLocalState({
-        ...localState,
-        title: value
-      });
-    }
-  };
+    const handleChangeEvent = (e) => {
+        const target = e.target;
+        const name = target.name;
+        const value = target.value;
 
-  const handleSubmit = (e) => {
-    const data = {
-      title: localState.title.trim()
+        if (name === "title") {
+            setLocalState({
+                ...localState,
+                title: value
+            });
+        }
     };
 
-    // edit an existing timeline
-    Net.put(`/api/timelines/${timeline.id}`, data).then(newItem => {
-      dispatch({
-        type: 'cacheDeck',
-        id: timeline.id,
-        newItem
-      });
-      // hide this form
-      hideFormFn();
-    });
+    const handleSubmit = (e) => {
+        const data = {
+            title: localState.title.trim()
+        };
 
-    e.preventDefault();
-  };
+        // edit an existing timeline
+        Net.put(`/api/timelines/${timeline.id}`, data).then(newItem => {
+            dispatch({
+                type: 'cacheDeck',
+                id: timeline.id,
+                newItem
+            });
+            // hide this form
+            hideFormFn();
+        });
 
-  return html`
+        e.preventDefault();
+    };
+
+    return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>
       <label for="title">Title:</label>
       <br/>
@@ -146,44 +146,44 @@ function UpdateTimelineForm({ deck, hideFormFn }) {
 }
 
 function TimelineDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
-  let [expanded, setExpanded] = useState(false);
+    let [expanded, setExpanded] = useState(false);
 
-  function onClicked(e) {
-    e.preventDefault();
-    setExpanded(!expanded);
-  }
+    function onClicked(e) {
+        e.preventDefault();
+        setExpanded(!expanded);
+    }
 
-  return html`<li class='relevent-deckpoint'>
+    return html`<li class='relevent-deckpoint'>
                 <span onClick=${onClicked}>${ expanded ? svgCaretDown() : hasNotes ? svgCaretRight() : svgCaretRightEmpty() }</span>
                 ${ deckPoint.title } ${ deckPoint.date_textual }
                 ${ expanded && html`<div class="point-notes">
-                                      ${ noteManager }
-                                    </div>`}
+        ${ noteManager }
+    </div>`}
               </li>`;
 }
 
 function ListPoints({ points, deckManager, holderId, holderName, showAddPointForm, dispatch }) {
-  function onAddPointClicked(e) {
-    e.preventDefault();
-    dispatch({type: showAddPointForm ? "hideAddPointForm" : "showAddPointForm"});
-  }
+    function onAddPointClicked(e) {
+        e.preventDefault();
+        dispatch({type: showAddPointForm ? "hideAddPointForm" : "showAddPointForm"});
+    }
 
-  // called by DeckManager once a point has been successfully created
-  function onPointCreated() {
-    dispatch({type: "hideAddPointForm"});
-  }
+    // called by DeckManager once a point has been successfully created
+    function onPointCreated() {
+        dispatch({type: "hideAddPointForm"});
+    }
 
-  let arr = points || [];
-  let dps = arr.map(dp => html`<${TimelineDeckPoint}
+    let arr = points || [];
+    let dps = arr.map(dp => html`<${TimelineDeckPoint}
                                  key=${ dp.id}
                                  noteManager=${ deckManager.noteManagerForDeckPoint(dp) }
                                  hasNotes=${ deckManager.pointHasNotes(dp) }
                                  holderId=${ holderId }
                                  deckPoint=${ dp }/>`);
 
-  let formSidebarText = showAddPointForm ? "Hide Form" : `Add Point for ${ holderName }`;
+    let formSidebarText = showAddPointForm ? "Hide Form" : `Add Point for ${ holderName }`;
 
-  return html`
+    return html`
     <${RollableSection} heading='Timeline'>
       <ul class="unstyled-list hug-left">
         ${ dps }

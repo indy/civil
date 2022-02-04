@@ -5,11 +5,11 @@ import { useReducer } from '/lib/preact/mod.js';
 // and that the reducer receives an object { type, data }
 //
 export function useLocalReducer(reducer, initialState) {
-  const [state, preactDispatch] = useReducer(reducer, initialState);
+    const [state, preactDispatch] = useReducer(reducer, initialState);
 
-  function dispatch(type, data) {
-    preactDispatch({ type, data });
-  }
+    function dispatch(type, data) {
+        preactDispatch({ type, data });
+    }
 
-  return [state, dispatch];
+    return [state, dispatch];
 }

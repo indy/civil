@@ -21,74 +21,74 @@ const NOTE_KIND_SUMMARY = 'NoteSummary';
 const NOTE_KIND_REVIEW = 'NoteReview';
 
 function NoteSection({ heading, noteKind, howToShow, deck, cacheDeck }) {
-  function noteManager(noteKind) {
-    let filterFn = n => (!n.point_id) && n.kind === noteKind;
+    function noteManager(noteKind) {
+        let filterFn = n => (!n.point_id) && n.kind === noteKind;
 
-    let appendLabel = "Append Note";
-    if (noteKind === NOTE_KIND_SUMMARY) {
-      appendLabel = "Append Summary Note";
-    } else if (noteKind === NOTE_KIND_REVIEW) {
-      appendLabel = "Append Review Note";
+        let appendLabel = "Append Note";
+        if (noteKind === NOTE_KIND_SUMMARY) {
+            appendLabel = "Append Summary Note";
+        } else if (noteKind === NOTE_KIND_REVIEW) {
+            appendLabel = "Append Review Note";
+        }
+
+        return NoteManager({ deck,
+                             cacheDeck,
+                             filterFn,
+                             appendLabel,
+                             noteKind
+                           });
     }
 
-    return NoteManager({ deck,
-                         cacheDeck,
-                         filterFn,
-                         appendLabel,
-                         noteKind
-                       });
-  }
-
-  switch(howToShow) {
-  case NOTE_SECTION_HIDE:      return html`<div></div>`;
-  case NOTE_SECTION_EXCLUSIVE: return html`${ noteManager(noteKind) }`;
-  case NOTE_SECTION_SHOW:      return html`<${RollableSection} heading=${heading}>
+    switch(howToShow) {
+    case NOTE_SECTION_HIDE:      return html`<div></div>`;
+    case NOTE_SECTION_EXCLUSIVE: return html`${ noteManager(noteKind) }`;
+    case NOTE_SECTION_SHOW:      return html`<${RollableSection} heading=${heading}>
                                              ${ noteManager(noteKind) }
                                            </${RollableSection}>`;
-  }
+    }
 }
 
 function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLabel, noteKind }) {
-  const [state, dispatch] = useStateValue();
+    const [state, dispatch] = useStateValue();
 
-  function findNoteWithId(id, modifyFn) {
-    const notes = deck.notes;
-    const index = notes.findIndex(n => n.id === id);
+    function findNoteWithId(id, modifyFn) {
+        const notes = deck.notes;
+        const index = notes.findIndex(n => n.id === id);
 
-    modifyFn(notes, index);
-    cacheDeck({...deck, notes});
-  };
+        modifyFn(notes, index);
+        cacheDeck({...deck, notes});
+    };
 
-  function onEditedNote(id, data) {
-    findNoteWithId(id, (notes, index) => {
-      notes[index] = Object.assign(notes[index], data);
-    });
-  };
+    function onEditedNote(id, data) {
+        findNoteWithId(id, (notes, index) => {
+            notes[index] = Object.assign(notes[index], data);
+        });
+    };
 
-  function onDeleteNote(noteId) {
-    findNoteWithId(noteId, (notes, index) => {
-      notes.splice(index, 1);
-    });
-  };
+    function onDeleteNote(noteId) {
+        findNoteWithId(noteId, (notes, index) => {
+            notes.splice(index, 1);
+        });
+    };
 
-  function onDecksChanged(note, all_decks_for_note) {
-    // have to set deck.refs to be the canonical version
-    // 'cacheDeck' will use that to populate each note's decks array
+    function onDecksChanged(note, all_decks_for_note) {
+        // have to set deck.refs to be the canonical version
+        // 'cacheDeck' will use that to populate each note's decks array
 
-    // remove all deck.refs that relate to this note
-    deck.refs = deck.refs.filter(din => {
-      return din.note_id !== note.id;
-    });
-    // add every note.decks entry to deck.refs
-    all_decks_for_note.forEach(d => { deck.refs.push(d); });
+        // remove all deck.refs that relate to this note
+        deck.refs = deck.refs.filter(din => {
+            return din.note_id !== note.id;
+        });
+        // add every note.decks entry to deck.refs
+        all_decks_for_note.forEach(d => { deck.refs.push(d); });
 
-    findNoteWithId(note.id, (notes, index) => {
-      notes[index] = note;
-    });
-  };
+        findNoteWithId(note.id, (notes, index) => {
+            notes[index] = note;
+        });
+    };
 
-  function buildNoteComponent(note) {
-    return html`
+    function buildNoteComponent(note) {
+        return html`
       <${Note} key=${ note.id }
                note=${ note }
                parentDeck=${ deck }
@@ -96,42 +96,42 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
                onEdited=${ onEditedNote }
                onDecksChanged=${ onDecksChanged }
       />`;
-  }
+    }
 
-  function buildNoteForm() {
-    function onCancelAddNote(e) {
-      dispatch({type: "hideNoteForm"});
-      e.preventDefault();
+    function buildNoteForm() {
+        function onCancelAddNote(e) {
+            dispatch({type: "hideNoteForm"});
+            e.preventDefault();
+        };
+
+        function onAddNote(e) {
+            e.preventDefault();
+            const noteForm = e.target;
+            const markup = noteForm.content.value;
+            addNote(markup, deck.id, noteKind, optional_deck_point && optional_deck_point.id)
+                .then(newNotes => {
+                    const notes = deck.notes;
+                    newNotes.forEach(n => {
+                        notes.push(n);
+                    });
+
+                    cacheDeck({...deck, notes});
+                    dispatch({type: "hideNoteForm"});
+                })
+                .catch(error => console.error(error.message));
+        };
+
+        return html`<${NoteForm} onSubmit=${ onAddNote } onCancel=${ onCancelAddNote } />`;
     };
 
-    function onAddNote(e) {
-      e.preventDefault();
-      const noteForm = e.target;
-      const markup = noteForm.content.value;
-      addNote(markup, deck.id, noteKind, optional_deck_point && optional_deck_point.id)
-        .then(newNotes => {
-          const notes = deck.notes;
-          newNotes.forEach(n => {
-            notes.push(n);
-          });
+    function buildNoteFormIcon() {
+        function onAddNoteClicked(e) {
+            dispatch({type: "showNoteForm"});
+            e.preventDefault();
+        };
 
-          cacheDeck({...deck, notes});
-          dispatch({type: "hideNoteForm"});
-        })
-        .catch(error => console.error(error.message));
-    };
-
-    return html`<${NoteForm} onSubmit=${ onAddNote } onCancel=${ onCancelAddNote } />`;
-  };
-
-  function buildNoteFormIcon() {
-    function onAddNoteClicked(e) {
-      dispatch({type: "showNoteForm"});
-      e.preventDefault();
-    };
-
-    if (optional_deck_point) {
-      return html`
+        if (optional_deck_point) {
+            return html`
     <${WhenVerbose}>
     <${WhenWritable}>
 <div class="inline-append-note">
@@ -145,8 +145,8 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
     </${WhenWritable}>
     </${WhenVerbose}>
 `;
-    } else {
-      return html`
+        } else {
+            return html`
     <${WhenVerbose}>
     <${WhenWritable}>
 <div class="append-note">
@@ -160,13 +160,13 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
     </${WhenWritable}>
     </${WhenVerbose}>
 `;
+        }
+
     }
 
-  }
+    const notes = deck.notes ? deck.notes.filter(filterFn).map(buildNoteComponent) : [];
 
-  const notes = deck.notes ? deck.notes.filter(filterFn).map(buildNoteComponent) : [];
-
-  return html`
+    return html`
       <section>
         ${ notes }
         ${ state.showNoteForm ? buildNoteForm() : buildNoteFormIcon() }
@@ -174,24 +174,24 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
 }
 
 function NoteForm({ onSubmit, onCancel }) {
-  const textAreaRef = useRef(null);
-  const [content, setContent] = useState('');
+    const textAreaRef = useRef(null);
+    const [content, setContent] = useState('');
 
-  const handleChangeEvent = (event) => {
-    const target = event.target;
-    const name = target.name;
-    const value = target.value;
+    const handleChangeEvent = (event) => {
+        const target = event.target;
+        const name = target.name;
+        const value = target.value;
 
-    if (name === 'content') {
-      setContent(value);
-    }
-  };
+        if (name === 'content') {
+            setContent(value);
+        }
+    };
 
-  useEffect(() => {
-    textAreaRef.current.focus();
-  }, []);
+    useEffect(() => {
+        textAreaRef.current.focus();
+    }, []);
 
-  return html`
+    return html`
   <div class="append-note">
     <div class="left-margin">
       <div class="left-margin-entry clickable cancel-offset" onClick=${ onCancel }>
@@ -218,33 +218,33 @@ function NoteForm({ onSubmit, onCancel }) {
 }
 
 function addNote(markup, deck_id, noteKind, optional_point_id) {
-  const wasmInterface = useWasmInterface();
-  const notes = wasmInterface.splitter(markup);
+    const wasmInterface = useWasmInterface();
+    const notes = wasmInterface.splitter(markup);
 
-  if (notes === null) {
-    console.error(markup);
-    return new Promise((resolve, reject) => { reject(new Error("addNote: splitIntoNotes failed")); });
-  }
+    if (notes === null) {
+        console.error(markup);
+        return new Promise((resolve, reject) => { reject(new Error("addNote: splitIntoNotes failed")); });
+    }
 
-  let data = {
-    deck_id,
-    kind: noteKind,
-    content: notes
-  };
+    let data = {
+        deck_id,
+        kind: noteKind,
+        content: notes
+    };
 
-  if (optional_point_id) {
-    data.point_id = optional_point_id;
-  }
+    if (optional_point_id) {
+        data.point_id = optional_point_id;
+    }
 
-  function isEmptyNote(n) {
-    return n.content.every(n => { return n.length === 0;});
-  }
+    function isEmptyNote(n) {
+        return n.content.every(n => { return n.length === 0;});
+    }
 
-  if (isEmptyNote(data)) {
-    return new Promise((resolve, reject) => { reject(new Error("Parsed as empty note")); });
-  } else {
-    return Net.post("/api/notes", data);
-  }
+    if (isEmptyNote(data)) {
+        return new Promise((resolve, reject) => { reject(new Error("Parsed as empty note")); });
+    } else {
+        return Net.post("/api/notes", data);
+    }
 }
 
 export { NoteSection, NoteManager, NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE, NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW }

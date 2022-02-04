@@ -19,66 +19,66 @@ import { Quote, Quotes }       from '/js/components/Quotes.js';
 import { WhenWritableToggle }  from '/js/components/WhenWritable.js';
 
 export async function buildInitialState() {
-  let state = initialState;
-  state.uiColours = augmentSettingsWithCssModifierParameters(state.uiColours);
+    let state = initialState;
+    state.uiColours = augmentSettingsWithCssModifierParameters(state.uiColours);
 
-  try {
-    // logged in
-    let user = await Net.get("/api/users");
+    try {
+        // logged in
+        let user = await Net.get("/api/users");
 
-    if (user) {
+        if (user) {
 
-      // update initial state with user
-      //
-      state = reducer(state, {
-        type: 'setUser',
-        user
-      });
+            // update initial state with user
+            //
+            state = reducer(state, {
+                type: 'setUser',
+                user
+            });
 
-      let uberSetupStruct = await getInitialStateForLoggedInUser();
-      state = reducer(state, {
-        type: 'uberSetup',
-        ...uberSetupStruct
-      });
+            let uberSetupStruct = await getInitialStateForLoggedInUser();
+            state = reducer(state, {
+                type: 'uberSetup',
+                ...uberSetupStruct
+            });
 
-      // set the app to be read only on small devices
-      //
-      let smallScreen = window.matchMedia("(max-width: 500px)");
-      state = reducer(state, {
-        type: 'setLock',
-        readOnly: smallScreen.matches
-      });
+            // set the app to be read only on small devices
+            //
+            let smallScreen = window.matchMedia("(max-width: 500px)");
+            state = reducer(state, {
+                type: 'setLock',
+                readOnly: smallScreen.matches
+            });
 
-      console.log('user is logged in');
+            console.log('user is logged in');
 
-      return state;
-    } else {
-      console.log('no user is logged in');
-      return state;
+            return state;
+        } else {
+            console.log('no user is logged in');
+            return state;
+        }
+    } catch(err) {
+        console.log('no user is logged in');
+        return state;
     }
-  } catch(err) {
-    console.log('no user is logged in');
-    return state;
-  }
 }
 
 async function getInitialStateForLoggedInUser() {
-  // let start = performance.now();
-  let uber = await Net.get("/api/ubersetup");
+    // let start = performance.now();
+    let uber = await Net.get("/api/ubersetup");
 
-  // let finish = performance.now();
-  // console.log(`time new: ${ finish - start}`);
+    // let finish = performance.now();
+    // console.log(`time new: ${ finish - start}`);
 
-  return {
-    imageDirectory: uber.directory,
-    recentImages: uber.recent_images,
-    srReviewCount: uber.sr_review_count,
-    srEarliestReviewDate: uber.sr_earliest_review_date
-  };
+    return {
+        imageDirectory: uber.directory,
+        recentImages: uber.recent_images,
+        srReviewCount: uber.sr_review_count,
+        srEarliestReviewDate: uber.sr_earliest_review_date
+    };
 }
 
 export function App(state, wasmInterface) {
-  return html`
+    return html`
     <${WasmInterfaceProvider} wasmInterface=${wasmInterface}>
       <${StateProvider} initialState=${state} reducer=${reducer}>
           <${AppUI}/>
@@ -88,35 +88,35 @@ export function App(state, wasmInterface) {
 }
 
 function TopBarMenu(props) {
-  const [state] = useStateValue();
+    const [state] = useStateValue();
 
-  function loggedStatus() {
-    let status = '';
+    function loggedStatus() {
+        let status = '';
 
-    let user = state.user;
-    if (user) {
-      status += user.username;
-      if (user.admin && user.admin.db_name !== "civil") {
-        status += ` (${user.admin.db_name})`;
-      }
-    } else {
-      status = 'Login';
+        let user = state.user;
+        if (user) {
+            status += user.username;
+            if (user.admin && user.admin.db_name !== "civil") {
+                status += ` (${user.admin.db_name})`;
+            }
+        } else {
+            status = 'Login';
+        }
+
+        return status;
     }
 
-    return status;
-  }
+    function loggedLink() {
+        return state.user ? "/logout" : "/login";
+    }
 
-  function loggedLink() {
-    return state.user ? "/logout" : "/login";
-  }
-
-  if (state.verboseUI) {
-    return html`
+    if (state.verboseUI) {
+        return html`
       <nav>
         <div id="elastic-top-menu-items">
           ${state.preferredOrder.map(dk => html`<div class="optional-navigable top-menu-decktype">
             <${Link} class='pigment-${dk}' href='/${dk}'>${capitalise(dk)}</${Link}>
-          </div>`)}
+            </div>`)}
           <div id="top-menu-sr">
             <${Link} class='pigment-inherit' href='/sr'>SR(${state.srReviewCount})</${Link}>
           </div>
@@ -126,43 +126,43 @@ function TopBarMenu(props) {
           </div>
         </div>
       </nav>`;
-  } else {
-    return html``;
-  }
+    } else {
+        return html``;
+    }
 }
 
 function AppUI(props) {
-  const [state, dispatch] = useStateValue();
+    const [state, dispatch] = useStateValue();
 
-  async function loginHandler(user) {
-    console.log(user);
+    async function loginHandler(user) {
+        console.log(user);
 
-    dispatch({
-      type: 'setUser',
-      user
-    });
+        dispatch({
+            type: 'setUser',
+            user
+        });
 
-    let struct = await getInitialStateForLoggedInUser();
-    dispatch({
-      type: 'uberSetup',
-      ...struct,
-    });
-    route('/', true);
+        let struct = await getInitialStateForLoggedInUser();
+        dispatch({
+            type: 'uberSetup',
+            ...struct,
+        });
+        route('/', true);
 
-  }
-
-  function handleRoute(e) {
-    if (e.url !== '/login') {
-      // all other pages require the user to be logged in
-      if (!state.user) {
-        route('/login', true);
-      } else if (e.url === '/') {
-        route('/ideas', true);
-      }
     }
-  }
 
-  return html`
+    function handleRoute(e) {
+        if (e.url !== '/login') {
+            // all other pages require the user to be logged in
+            if (!state.user) {
+                route('/login', true);
+            } else if (e.url === '/') {
+                route('/ideas', true);
+            }
+        }
+    }
+
+    return html`
     <div id='civil-app'>
       <${SearchCommand}/>
       <${TopBarMenu}/>

@@ -6,20 +6,20 @@ import RollableSection from '/js/components/RollableSection.js';
 import { ListingLink } from '/js/components/ListingLink.js';
 
 export default function SectionSearchResultsBackref({ backrefs }) {
-  function buildBackref(lb) {
-    return (
-      html`<${ListingLink} id=${ lb.id } name=${ lb.name } resource=${ lb.resource }/>`
-    );
-  }
+    function buildBackref(lb) {
+        return (
+            html`<${ListingLink} id=${ lb.id } name=${ lb.name } resource=${ lb.resource }/>`
+        );
+    }
 
-  if(nonEmptyArray(backrefs)) {
-    const heading = plural(backrefs.length, 'Additional Search Result', 's');
-    return html`<${RollableSection} heading=${ heading } initiallyRolledUp>
+    if(nonEmptyArray(backrefs)) {
+        const heading = plural(backrefs.length, 'Additional Search Result', 's');
+        return html`<${RollableSection} heading=${ heading } initiallyRolledUp>
                   <ul>
                     ${ backrefs.map(buildBackref) }
                   </ul>
                 </${RollableSection}>`;
-  } else {
-    return html`<div></div>`;
-  }
+    } else {
+        return html`<div></div>`;
+    }
 }

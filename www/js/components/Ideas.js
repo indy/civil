@@ -13,14 +13,14 @@ import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBack
 import { CompactedListSection } from '/js/components/ListSections.js';
 
 function Ideas() {
-  const [state, dispatch] = useStateValue();
-  const resource = 'ideas';
+    const [state, dispatch] = useStateValue();
+    const resource = 'ideas';
 
-  ensureListingLoaded(resource, '/api/ideas/listings');
+    ensureListingLoaded(resource, '/api/ideas/listings');
 
-  const ideas = state.listing.ideas || {};
+    const ideas = state.listing.ideas || {};
 
-  return html`
+    return html`
     <article>
       <h1>${capitalise(resource)}</h1>
       <${CompactedListSection} label='Recent' list=${ideas.recent} resource=${resource} expanded/>
@@ -30,45 +30,45 @@ function Ideas() {
 }
 
 function Idea(props) {
-  const [state] = useStateValue();
+    const [state] = useStateValue();
 
-  const [searchResults, setSearchResults] = useState([]); // an array of backrefs
+    const [searchResults, setSearchResults] = useState([]); // an array of backrefs
 
-  const ideaId = parseInt(props.id, 10);
-  const idea = state.cache.deck[ideaId] || { id: ideaId };
+    const ideaId = parseInt(props.id, 10);
+    const idea = state.cache.deck[ideaId] || { id: ideaId };
 
-  useEffect(() => {
-    if (idea.title) {
-      // This  additional search query is slow, so it has to be a separate
-      // async call rather than part of the idea's GET response.
-      //
-      // todo: change this to accept a search parameter, this will normally default to the idea.title
-      // but would also allow differently worded but equivalent text
-      //
-      // todo: should the response be cached in state.cache.deck[ideaId] ???
-      //
-      Net.get(`/api/ideas/${idea.id}/additional_search`).then(search_results => {
-        setSearchResults(search_results.results);
-      });
-    }
-  }, [idea]);
+    useEffect(() => {
+        if (idea.title) {
+            // This  additional search query is slow, so it has to be a separate
+            // async call rather than part of the idea's GET response.
+            //
+            // todo: change this to accept a search parameter, this will normally default to the idea.title
+            // but would also allow differently worded but equivalent text
+            //
+            // todo: should the response be cached in state.cache.deck[ideaId] ???
+            //
+            Net.get(`/api/ideas/${idea.id}/additional_search`).then(search_results => {
+                setSearchResults(search_results.results);
+            });
+        }
+    }, [idea]);
 
-  const deckManager = DeckManager({
-    deck: idea,
-    title: idea.title,
-    resource: "ideas",
-    updateForm: UpdateIdeaForm,
-    hasSummarySection: false,
-    hasReviewSection: false
-  });
+    const deckManager = DeckManager({
+        deck: idea,
+        title: idea.title,
+        resource: "ideas",
+        updateForm: UpdateIdeaForm,
+        hasSummarySection: false,
+        hasReviewSection: false
+    });
 
-  // this is only for presentational purposes
-  // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
-  // this check prevents the vis from rendering until after we have all the note and links ready
-  const okToShowGraph = deckManager.hasNotes || idea.backrefs;
-  const graphTitle = idea.title ? `Connectivity Graph` : '';
+    // this is only for presentational purposes
+    // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
+    // this check prevents the vis from rendering until after we have all the note and links ready
+    const okToShowGraph = deckManager.hasNotes || idea.backrefs;
+    const graphTitle = idea.title ? `Connectivity Graph` : '';
 
-  return html`
+    return html`
     <article>
       <div>
         <div class="left-margin">
@@ -87,53 +87,53 @@ function Idea(props) {
 }
 
 function UpdateIdeaForm({ deck, hideFormFn }) {
-  const idea = deck || {};
-  const [state, dispatch] = useStateValue();
-  const [title, setTitle] = useState(idea.title || '');
-  const [graphTerminator, setGraphTerminator] = useState(idea.graph_terminator);
+    const idea = deck || {};
+    const [state, dispatch] = useStateValue();
+    const [title, setTitle] = useState(idea.title || '');
+    const [graphTerminator, setGraphTerminator] = useState(idea.graph_terminator);
 
-  useEffect(() => {
-    if (idea.title && idea.title !== '' && title === '') {
-      setTitle(idea.title);
-    }
-  }, [idea]);
+    useEffect(() => {
+        if (idea.title && idea.title !== '' && title === '') {
+            setTitle(idea.title);
+        }
+    }, [idea]);
 
-  const handleChangeEvent = (event) => {
-    const target = event.target;
-    const name = target.name;
-    const value = target.value;
+    const handleChangeEvent = (event) => {
+        const target = event.target;
+        const name = target.name;
+        const value = target.value;
 
-    if (name === "title") {
-      setTitle(value);
-    }
-  };
-
-  const handleSubmit = (event) => {
-    const data = {
-      title: title.trim(),
-      graph_terminator: graphTerminator
+        if (name === "title") {
+            setTitle(value);
+        }
     };
 
-    Net.put(`/api/ideas/${idea.id}`, data).then(newItem => {
-      dispatch({
-        type: "cacheDeck",
-        id: idea.id,
-        newItem
-      });
-      // hide this form
-      hideFormFn();
-    });
+    const handleSubmit = (event) => {
+        const data = {
+            title: title.trim(),
+            graph_terminator: graphTerminator
+        };
 
-    event.preventDefault();
-  };
+        Net.put(`/api/ideas/${idea.id}`, data).then(newItem => {
+            dispatch({
+                type: "cacheDeck",
+                id: idea.id,
+                newItem
+            });
+            // hide this form
+            hideFormFn();
+        });
 
-  const handleCheckbox = (event) => {
-    if (event.target.id === 'graph-terminator') {
-      setGraphTerminator(!graphTerminator);
+        event.preventDefault();
+    };
+
+    const handleCheckbox = (event) => {
+        if (event.target.id === 'graph-terminator') {
+            setGraphTerminator(!graphTerminator);
+        }
     }
-  }
 
-  return html`
+    return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>
       <label for="title">Title:</label>
       <br/>

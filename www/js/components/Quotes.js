@@ -16,121 +16,121 @@ const SET_QUOTE_TEXT = 'set-quote-text';
 const CREATED_NEW_QUOTE = 'created-new-quote';
 
 function reducer(state, action) {
-  switch(action.type) {
-  case SHOW_ADD_FORM: {
-    return {
-      ...state,
-      showAddForm: true
-    };
-  }
-  case HIDE_ADD_FORM: {
-    return {
-      ...state,
-      showAddForm: false
-    };
-  }
-  case SET_ATTRIBUTION: {
-    return {
-      ...state,
-      attribution: action.data
+    switch(action.type) {
+    case SHOW_ADD_FORM: {
+        return {
+            ...state,
+            showAddForm: true
+        };
     }
-  }
-  case SET_QUOTE_TEXT: {
-    return {
-      ...state,
-      quoteText: action.data
+    case HIDE_ADD_FORM: {
+        return {
+            ...state,
+            showAddForm: false
+        };
     }
-  }
-  case CREATED_NEW_QUOTE: {
-    return {
-      ...state,
-      showAddForm: false,
-      attribution: '',
-      quoteText: ''
+    case SET_ATTRIBUTION: {
+        return {
+            ...state,
+            attribution: action.data
+        }
     }
-  }
-  default: throw new Error(`unknown action: ${action}`);
-  }
+    case SET_QUOTE_TEXT: {
+        return {
+            ...state,
+            quoteText: action.data
+        }
+    }
+    case CREATED_NEW_QUOTE: {
+        return {
+            ...state,
+            showAddForm: false,
+            attribution: '',
+            quoteText: ''
+        }
+    }
+    default: throw new Error(`unknown action: ${action}`);
+    }
 }
 
 function cacheDeck(dispatch, deck) {
-  dispatch({
-    type: 'cacheDeck',
-    id: deck.id,
-    newItem: deck
-  });
+    dispatch({
+        type: 'cacheDeck',
+        id: deck.id,
+        newItem: deck
+    });
 }
 
 function titleFromQuoteText(quoteText) {
-  const title = quoteText.length > 60 ? quoteText.slice(0, 57) + "..." : quoteText;
-  return title;
+    const title = quoteText.length > 60 ? quoteText.slice(0, 57) + "..." : quoteText;
+    return title;
 }
 
 function Quotes() {
-  const [state, dispatch] = useStateValue();
-  const resource = 'quotes';
+    const [state, dispatch] = useStateValue();
+    const resource = 'quotes';
 
-  const [local, localDispatch] = useLocalReducer(reducer, {
-    showAddForm: false,
-    attribution: '',
-    quoteText: ''
-  });
-
-  function clickedNewQuoteButton(e) {
-    e.preventDefault();
-    localDispatch(SHOW_ADD_FORM);
-  }
-
-  function clickedRandomButton(e) {
-    e.preventDefault();
-    Net.get("/api/quotes/random").then(quote => {
-      cacheDeck(dispatch, quote);
-      route(`/quotes/${quote.id}`);
+    const [local, localDispatch] = useLocalReducer(reducer, {
+        showAddForm: false,
+        attribution: '',
+        quoteText: ''
     });
-  }
 
-  function handleChangeEvent(e) {
-    const value = e.target.value;
-    const name = e.target.name;
-
-    if (name === "attribution") {
-      localDispatch(SET_ATTRIBUTION, value);
+    function clickedNewQuoteButton(e) {
+        e.preventDefault();
+        localDispatch(SHOW_ADD_FORM);
     }
-    if (name === "quote_text") {
-      localDispatch(SET_QUOTE_TEXT, value);
+
+    function clickedRandomButton(e) {
+        e.preventDefault();
+        Net.get("/api/quotes/random").then(quote => {
+            cacheDeck(dispatch, quote);
+            route(`/quotes/${quote.id}`);
+        });
     }
-  }
 
-  function clickedSave(e) {
-    e.preventDefault();
+    function handleChangeEvent(e) {
+        const value = e.target.value;
+        const name = e.target.name;
 
-    const title = titleFromQuoteText(local.quoteText);
-    const data = {
-      title,
-      text: local.quoteText,
-      attribution: local.attribution
-    };
+        if (name === "attribution") {
+            localDispatch(SET_ATTRIBUTION, value);
+        }
+        if (name === "quote_text") {
+            localDispatch(SET_QUOTE_TEXT, value);
+        }
+    }
 
-    Net.post("/api/quotes", data).then(quote => {
-      localDispatch(CREATED_NEW_QUOTE);
-    });
-  }
+    function clickedSave(e) {
+        e.preventDefault();
 
-  function clickedCancel(e) {
-    e.preventDefault();
-    localDispatch(HIDE_ADD_FORM);
-  }
+        const title = titleFromQuoteText(local.quoteText);
+        const data = {
+            title,
+            text: local.quoteText,
+            attribution: local.attribution
+        };
 
-  function renderNewQuoteButton() {
-    return html`<button onClick=${ clickedNewQuoteButton }>Add Quote...</button>`;
-  }
+        Net.post("/api/quotes", data).then(quote => {
+            localDispatch(CREATED_NEW_QUOTE);
+        });
+    }
 
-  function renderRandomButton() {
-    return html`<button onClick=${ clickedRandomButton }>Random Quote</button>`;
-  }
+    function clickedCancel(e) {
+        e.preventDefault();
+        localDispatch(HIDE_ADD_FORM);
+    }
 
-  function renderAddForm() {
-    return html`<form class="civil-form">
+    function renderNewQuoteButton() {
+        return html`<button onClick=${ clickedNewQuoteButton }>Add Quote...</button>`;
+    }
+
+    function renderRandomButton() {
+        return html`<button onClick=${ clickedRandomButton }>Random Quote</button>`;
+    }
+
+    function renderAddForm() {
+        return html`<form class="civil-form">
 
 <label for="attribution">QuoteText:</label>
 <textarea id="quote-text"
@@ -150,9 +150,9 @@ onInput=${handleChangeEvent}/>
 <button onClick=${clickedSave}>save</button>
 
 </form>`;
-  }
+    }
 
-  return html`
+    return html`
     <article>
       <h1>${capitalise(resource)}</h1>
 
@@ -169,136 +169,136 @@ let keyboardActive = true;
 let showingSearchCommand = false;
 
 function Quote(props) {
-  const [state, dispatch] = useStateValue();
+    const [state, dispatch] = useStateValue();
 
-  function setKeyboardActive(val) {
-    keyboardActive = val;
-  }
-
-  const quoteId = parseInt(props.id, 10);
-  const quote = state.cache.deck[quoteId] || { id: quoteId };
-
-  useEffect(() => {
-    dispatch({
-      type: 'quoteId',
-      id: quoteId
-    });
-
-    if(!state.cache.deck[quote.id]) {
-      // fetch resource from the server
-      const url = `/api/quotes/${quote.id}`;
-      Net.get(url).then(deck => {
-        if (deck) {
-          cacheDeck(dispatch, deck);
-        } else {
-          console.error(`error: fetchDeck for ${url}`);
-        }
-      });
+    function setKeyboardActive(val) {
+        keyboardActive = val;
     }
 
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [quote]);
+    const quoteId = parseInt(props.id, 10);
+    const quote = state.cache.deck[quoteId] || { id: quoteId };
 
-
-  useEffect(() => {
-    showingSearchCommand = state.showingSearchCommand;
-  }, [state]);
-
-  function getQuoteThenRoute(url) {
-    Net.get(url).then(deck => {
-      if (deck) {
-        cacheDeck(dispatch, deck);
-        route(`/quotes/${deck.id}`);
-      } else {
-        console.error(`error: fetchDeck for ${url}`);
-      }
-    });
-  }
-
-  function onKeyDown(e) {
-    if (keyboardActive && !showingSearchCommand) {
-      if (e.key === 'n') {
-        getQuoteThenRoute(`/api/quotes/${quoteId}/next`);
-      } else if (e.key === 'p') {
-        getQuoteThenRoute(`/api/quotes/${quoteId}/prev`);
-      } else if (e.key === 'r') {
-        Net.get("/api/quotes/random").then(quote => {
-          cacheDeck(dispatch, quote);
-          route(`/quotes/${quote.id}`);
+    useEffect(() => {
+        dispatch({
+            type: 'quoteId',
+            id: quoteId
         });
-      }
+
+        if(!state.cache.deck[quote.id]) {
+            // fetch resource from the server
+            const url = `/api/quotes/${quote.id}`;
+            Net.get(url).then(deck => {
+                if (deck) {
+                    cacheDeck(dispatch, deck);
+                } else {
+                    console.error(`error: fetchDeck for ${url}`);
+                }
+            });
+        }
+
+        document.addEventListener("keydown", onKeyDown);
+        return () => {
+            document.removeEventListener("keydown", onKeyDown);
+        };
+    }, [quote]);
+
+
+    useEffect(() => {
+        showingSearchCommand = state.showingSearchCommand;
+    }, [state]);
+
+    function getQuoteThenRoute(url) {
+        Net.get(url).then(deck => {
+            if (deck) {
+                cacheDeck(dispatch, deck);
+                route(`/quotes/${deck.id}`);
+            } else {
+                console.error(`error: fetchDeck for ${url}`);
+            }
+        });
     }
-  };
 
-  const note = quote.notes && quote.notes[0];
+    function onKeyDown(e) {
+        if (keyboardActive && !showingSearchCommand) {
+            if (e.key === 'n') {
+                getQuoteThenRoute(`/api/quotes/${quoteId}/next`);
+            } else if (e.key === 'p') {
+                getQuoteThenRoute(`/api/quotes/${quoteId}/prev`);
+            } else if (e.key === 'r') {
+                Net.get("/api/quotes/random").then(quote => {
+                    cacheDeck(dispatch, quote);
+                    route(`/quotes/${quote.id}`);
+                });
+            }
+        }
+    };
 
-  function updateNoteServerSide() {
-    // as the title could have changed, we need to post the updated quote to the server
-    Net.put(`/api/quotes/${quote.id}`, {
-      title: quote.title,
-      text: quote.notes[0].content, // not really needed, server side only uses title and attribution
-      attribution: quote.attribution
-    });
+    const note = quote.notes && quote.notes[0];
 
-    cacheDeck(dispatch, quote);
-  }
+    function updateNoteServerSide() {
+        // as the title could have changed, we need to post the updated quote to the server
+        Net.put(`/api/quotes/${quote.id}`, {
+            title: quote.title,
+            text: quote.notes[0].content, // not really needed, server side only uses title and attribution
+            attribution: quote.attribution
+        });
 
-  function onEditedNote(id, data) {
-    quote.notes[0] = Object.assign(quote.notes[0], data);
-    quote.title = titleFromQuoteText(data.content);
-    updateNoteServerSide();
-  }
+        cacheDeck(dispatch, quote);
+    }
 
-  function onEditedAttribute(attribution) {
-    quote.attribution = attribution;
-    updateNoteServerSide();
-  }
+    function onEditedNote(id, data) {
+        quote.notes[0] = Object.assign(quote.notes[0], data);
+        quote.title = titleFromQuoteText(data.content);
+        updateNoteServerSide();
+    }
 
-  function onDelete(id) {
-    Net.delete(`/api/quotes/${quote.id}`).then(() => {
-      route("/quotes");
-    });
-  }
+    function onEditedAttribute(attribution) {
+        quote.attribution = attribution;
+        updateNoteServerSide();
+    }
 
-  function onDecksChanged(note, all_decks_for_note) {
-    // have to set deck.refs to be the canonical version
-    // 'cacheDeck' will use that to populate each note's decks array
+    function onDelete(id) {
+        Net.delete(`/api/quotes/${quote.id}`).then(() => {
+            route("/quotes");
+        });
+    }
 
-    // remove all deck.refs that relate to this note
-    quote.refs = quote.refs.filter(din => {
-      return din.note_id !== note.id;
-    });
-    // add every note.decks entry to quote.refs
-    all_decks_for_note.forEach(d => { quote.refs.push(d); });
+    function onDecksChanged(note, all_decks_for_note) {
+        // have to set deck.refs to be the canonical version
+        // 'cacheDeck' will use that to populate each note's decks array
 
-    quote.notes[0] = note;
-    cacheDeck(dispatch, quote);
-  }
+        // remove all deck.refs that relate to this note
+        quote.refs = quote.refs.filter(din => {
+            return din.note_id !== note.id;
+        });
+        // add every note.decks entry to quote.refs
+        all_decks_for_note.forEach(d => { quote.refs.push(d); });
 
-  function requireKeyboard() {
-    // console.log("requireKeyboard setting to false");
-    setKeyboardActive(false);
-  }
+        quote.notes[0] = note;
+        cacheDeck(dispatch, quote);
+    }
 
-  function releaseKeyboard() {
-    // console.log("releaseKeyboard setting to true");
-    setKeyboardActive(true);
-  }
+    function requireKeyboard() {
+        // console.log("requireKeyboard setting to false");
+        setKeyboardActive(false);
+    }
 
-  return html`
+    function releaseKeyboard() {
+        // console.log("releaseKeyboard setting to true");
+        setKeyboardActive(true);
+    }
+
+    return html`
     <article id="quotation-article">
       ${ note && html`<${Note}
-                        key=${ note.id }
-                        note=${ note }
-                        requireKeyboard=${ requireKeyboard }
-                        releaseKeyboard=${ releaseKeyboard }
-                        parentDeck=${ quote }
-                        onEdited=${ onEditedNote }
-                        onDelete=${ onDelete }
-                        onDecksChanged=${ onDecksChanged }/>`}
+    key=${ note.id }
+    note=${ note }
+    requireKeyboard=${ requireKeyboard }
+    releaseKeyboard=${ releaseKeyboard }
+    parentDeck=${ quote }
+    onEdited=${ onEditedNote }
+    onDelete=${ onDelete }
+    onDecksChanged=${ onDecksChanged }/>`}
       <${Attribution}
         requireKeyboard=${ requireKeyboard }
         releaseKeyboard=${ releaseKeyboard }
@@ -322,130 +322,130 @@ const ATTR_SHOW_BUTTONS = 'attr-show-buttons';
 const ATTR_HIDE_BUTTONS = 'attr-hide-buttons';
 
 function reducer2(state, action) {
-  switch(action.type) {
-  case ATTR_SET_MODE: {
-    return {
-      ...state,
-      mode: action.data,
-      showButtons: action.data === ATTR_SHOW_MODE ? false : state.showButtons
+    switch(action.type) {
+    case ATTR_SET_MODE: {
+        return {
+            ...state,
+            mode: action.data,
+            showButtons: action.data === ATTR_SHOW_MODE ? false : state.showButtons
+        }
     }
-  }
-  case ATTR_SHOW_BUTTONS: {
-    return {
-      ...state,
-      showButtons: true
+    case ATTR_SHOW_BUTTONS: {
+        return {
+            ...state,
+            showButtons: true
+        }
     }
-  }
-  case ATTR_HIDE_BUTTONS: {
-    return {
-      ...state,
-      showButtons: false
+    case ATTR_HIDE_BUTTONS: {
+        return {
+            ...state,
+            showButtons: false
+        }
     }
-  }
-  case ATTR_INIT_ATTRIBUTION: {
-    return {
-      ...state,
-      originalAttribution: action.data,
-      attribution: action.data
+    case ATTR_INIT_ATTRIBUTION: {
+        return {
+            ...state,
+            originalAttribution: action.data,
+            attribution: action.data
+        }
     }
-  }
-  case ATTR_SET_ATTRIBUTION: {
-    return {
-      ...state,
-      attribution: action.data
+    case ATTR_SET_ATTRIBUTION: {
+        return {
+            ...state,
+            attribution: action.data
+        }
     }
-  }
-  case ATTR_RESET_ATTRIBUTION: {
-    return {
-      ...state,
-      attribution: state.originalAttribution
+    case ATTR_RESET_ATTRIBUTION: {
+        return {
+            ...state,
+            attribution: state.originalAttribution
+        }
     }
-  }
-  default: throw new Error(`unknown action: ${action}`);
-  }
+    default: throw new Error(`unknown action: ${action}`);
+    }
 }
 
 function Attribution({ attribution, onEdited, onDelete, requireKeyboard, releaseKeyboard}) {
-  const [local, localDispatch] = useLocalReducer(reducer2, {
-    mode: ATTR_SHOW_MODE,
-    showButtons: false,
-    originalAttribution: attribution,
-    attribution
-  });
+    const [local, localDispatch] = useLocalReducer(reducer2, {
+        mode: ATTR_SHOW_MODE,
+        showButtons: false,
+        originalAttribution: attribution,
+        attribution
+    });
 
-  useEffect(() => {
-    if (local.originalAttribution !== attribution) {
-      localDispatch(ATTR_INIT_ATTRIBUTION, attribution);
+    useEffect(() => {
+        if (local.originalAttribution !== attribution) {
+            localDispatch(ATTR_INIT_ATTRIBUTION, attribution);
+        }
+    }, [attribution]);
+
+
+    function clickedAttribution(e) {
+        e.preventDefault();
+        localDispatch(local.showButtons ? ATTR_HIDE_BUTTONS : ATTR_SHOW_BUTTONS);
     }
-  }, [attribution]);
 
+    function confirmedDeleteClicked() {
+        releaseKeyboard();
+        onDelete();
+    }
 
-  function clickedAttribution(e) {
-    e.preventDefault();
-    localDispatch(local.showButtons ? ATTR_HIDE_BUTTONS : ATTR_SHOW_BUTTONS);
-  }
+    function clickedEdit(e) {
+        e.preventDefault();
+        localDispatch(ATTR_SET_MODE, ATTR_EDIT_MODE);
+        requireKeyboard();
+    }
 
-  function confirmedDeleteClicked() {
-    releaseKeyboard();
-    onDelete();
-  }
+    function handleChangeEvent(e) {
+        const target = e.target;
+        const name = target.name;
+        const value = target.value;
 
-  function clickedEdit(e) {
-    e.preventDefault();
-    localDispatch(ATTR_SET_MODE, ATTR_EDIT_MODE);
-    requireKeyboard();
-  }
+        localDispatch(ATTR_SET_ATTRIBUTION, value);
+    }
 
-  function handleChangeEvent(e) {
-    const target = e.target;
-    const name = target.name;
-    const value = target.value;
+    function clickedCancel(e) {
+        e.preventDefault();
+        releaseKeyboard();
+        localDispatch(ATTR_SET_MODE, ATTR_SHOW_MODE);
+    }
 
-    localDispatch(ATTR_SET_ATTRIBUTION, value);
-  }
+    function clickedOK(e) {
+        e.preventDefault();
+        releaseKeyboard();
+        onEdited(local.attribution);
+        localDispatch(ATTR_SET_MODE, ATTR_SHOW_MODE);
+    }
 
-  function clickedCancel(e) {
-    e.preventDefault();
-    releaseKeyboard();
-    localDispatch(ATTR_SET_MODE, ATTR_SHOW_MODE);
-  }
+    let markup = attribution && buildMarkup(attribution);
+    // convert the p tag into spans
+    if (markup) {
+        markup[0].type = "span";
+    }
 
-  function clickedOK(e) {
-    e.preventDefault();
-    releaseKeyboard();
-    onEdited(local.attribution);
-    localDispatch(ATTR_SET_MODE, ATTR_SHOW_MODE);
-  }
-
-  let markup = attribution && buildMarkup(attribution);
-  // convert the p tag into spans
-  if (markup) {
-    markup[0].type = "span";
-  }
-
-  return html`<div>
+    return html`<div>
   ${local.mode === ATTR_SHOW_MODE && html`
-    <div>
-      <div id="quotation-attribute" onClick=${clickedAttribution}>
+        <div>
+        <div id="quotation-attribute" onClick=${clickedAttribution}>
         ${ markup }
-      </div>
-    ${local.showButtons && html`
+    </div>
+        ${local.showButtons && html`
       <button onClick=${ clickedEdit }>Edit...</button>
       <${DeleteConfirmation} onDelete=${ confirmedDeleteClicked }/>
     `}
     </div>`}
 
   ${local.mode === ATTR_EDIT_MODE && html`
-    <div>
-      <input id="attribution"
-             type="text"
-             name="attribution"
-             value=${ local.attribution }
-             autoComplete="off"
-             onInput=${ handleChangeEvent } />
-<br/>
-    <button onClick=${ clickedCancel }>Cancel</button>
-    <button onClick=${ clickedOK }>OK</button>
+        <div>
+        <input id="attribution"
+    type="text"
+    name="attribution"
+    value=${ local.attribution }
+    autoComplete="off"
+    onInput=${ handleChangeEvent } />
+        <br/>
+        <button onClick=${ clickedCancel }>Cancel</button>
+        <button onClick=${ clickedOK }>OK</button>
 
     </div>`}
 
@@ -453,51 +453,51 @@ function Attribution({ attribution, onEdited, onDelete, requireKeyboard, release
 }
 
 function UpdateQuoteForm({ deck, hideFormFn }) {
-  const quote = deck || {};
-  const [state, dispatch] = useStateValue();
+    const quote = deck || {};
+    const [state, dispatch] = useStateValue();
 
-  const [localState, setLocalState] = useState({
-    title: quote.title || ''
-  });
-
-  useEffect(() => {
-    if (quote.title && quote.title !== '' && localState.title === '') {
-    setLocalState({
-      ...localState,
-      title: quote.title
+    const [localState, setLocalState] = useState({
+        title: quote.title || ''
     });
-  }
-  }, [quote]);
 
-  const handleChangeEvent = (e) => {
-    const target = e.target;
-    const name = target.name;
-    const value = target.value;
+    useEffect(() => {
+        if (quote.title && quote.title !== '' && localState.title === '') {
+            setLocalState({
+                ...localState,
+                title: quote.title
+            });
+        }
+    }, [quote]);
 
-    if (name === "title") {
-      setLocalState({
-        ...localState,
-        title: value
-      });
-    }
-  };
+    const handleChangeEvent = (e) => {
+        const target = e.target;
+        const name = target.name;
+        const value = target.value;
 
-  const handleSubmit = (e) => {
-    const data = {
-      title: localState.title.trim()
+        if (name === "title") {
+            setLocalState({
+                ...localState,
+                title: value
+            });
+        }
     };
 
-    // edit an existing quote
-    Net.put(`/api/quotes/${quote.id}`, data).then(newItem => {
-      cacheDeck(dispatch, newItem);
-      // hide this form
-      hideFormFn();
-    });
+    const handleSubmit = (e) => {
+        const data = {
+            title: localState.title.trim()
+        };
 
-    e.preventDefault();
-  };
+        // edit an existing quote
+        Net.put(`/api/quotes/${quote.id}`, data).then(newItem => {
+            cacheDeck(dispatch, newItem);
+            // hide this form
+            hideFormFn();
+        });
 
-  return html`
+        e.preventDefault();
+    };
+
+    return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>
       <label for="title">Title:</label>
       <br/>

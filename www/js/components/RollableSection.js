@@ -2,17 +2,17 @@ import { html, useState } from '/lib/preact/mod.js';
 import { svgChevronDoubleDown, svgChevronDoubleRight} from '/js/svgIcons.js';
 
 export default function RollableSection({ heading, children, initiallyRolledUp }) {
-  let [isRolledUp, setIsRolledUp] = useState(!!initiallyRolledUp);
+    let [isRolledUp, setIsRolledUp] = useState(!!initiallyRolledUp);
 
-  function onRollClicked(e) {
-    e.preventDefault();
-    setIsRolledUp(!isRolledUp);
-  }
+    function onRollClicked(e) {
+        e.preventDefault();
+        setIsRolledUp(!isRolledUp);
+    }
 
-  let classState = isRolledUp ? "rolled-up" : "rolled-down";
-  let icon = isRolledUp ? svgChevronDoubleRight() : svgChevronDoubleDown();
+    let classState = isRolledUp ? "rolled-up" : "rolled-down";
+    let icon = isRolledUp ? svgChevronDoubleRight() : svgChevronDoubleDown();
 
-  return html`
+    return html`
     <section class=${classState}>
       <div>
         <div class="left-margin">

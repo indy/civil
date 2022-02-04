@@ -5,7 +5,7 @@ import { parseDateStringAsTriple, parseDateStringAsYearOnly } from '/js/eras.js'
 import Net from '/js/Net.js';
 
 export function PointBirthForm({ pointBorn, onSubmit }) {
-  return html`<${PointForm} timeLegend="Date of Birth"
+    return html`<${PointForm} timeLegend="Date of Birth"
                             locationLegend="Birth Location"
                             pointKind="point_begin"
                             point=${ pointBorn }
@@ -14,7 +14,7 @@ export function PointBirthForm({ pointBorn, onSubmit }) {
 }
 
 export function PointDeathForm({ pointDied, onSubmit }) {
-  return html`<${PointForm} timeLegend="Date of Death"
+    return html`<${PointForm} timeLegend="Date of Death"
                             locationLegend="DeathLocation"
                             pointKind="point_end"
                             point=${ pointDied }
@@ -24,258 +24,258 @@ export function PointDeathForm({ pointDied, onSubmit }) {
 
 export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegend, locationLegend }) {
 
-  timeLegend ||= "Time";
-  locationLegend ||= "Location";
+    timeLegend ||= "Time";
+    locationLegend ||= "Location";
 
-  let initialPoint = {
-    title: '',
-    title_backup: '',           // store the latest user inputted title value (in case title is replaced with a preset like 'Born' or 'Died' and then the user presses the 'Custom' radio tab, this will allow the previous user defined title to be restored)
+    let initialPoint = {
+        title: '',
+        title_backup: '',           // store the latest user inputted title value (in case title is replaced with a preset like 'Born' or 'Died' and then the user presses the 'Custom' radio tab, this will allow the previous user defined title to be restored)
 
-    location_textual: '',
-    latitude: 0.0,
-    longitude: 0.0,
-    location_fuzz: 0.0,
+        location_textual: '',
+        latitude: 0.0,
+        longitude: 0.0,
+        location_fuzz: 0.0,
 
-    date_textual: '',
-    exact_date: '',
-    lower_date: '',
-    upper_date: '',
-    date_fuzz: 0.5
-  };
-
-  if (point) {
-    for (let [k, v] of Object.entries(point)) {
-      if (v !== null) {
-        initialPoint[k] = v;
-      }
-    }
-  }
-
-  // console.log(initialPoint);
-
-  const [state, setState] = useState({
-    title: initialPoint.title,
-    title_backup: initialPoint.title_backup,
-    location_textual: initialPoint.location_textual,
-    latitude: initialPoint.latitude,
-    longitude: initialPoint.longitude,
-    location_fuzz: initialPoint.location_fuzz,
-    date_textual: initialPoint.date_textual,
-    exact_date: initialPoint.exact_date,
-    lower_date: initialPoint.lower_date,
-    upper_date: initialPoint.upper_date,
-    date_fuzz: initialPoint.date_fuzz,
-    date_textual_derived_from: '',
-    is_approx: false,
-    present_as_duration: false,
-    round_to_year: false,
-    has_typed_title: false,
-    kind: pointKind || 'point'
-  });
-
-  // build a date_textual from whatever was the last user input date
-  const buildReadableDateFromLast = (s) => {
-    if (s.date_textual_derived_from === 'exact') {
-      return buildReadableDateFromExact(s, true);
-    } else if (s.date_textual_derived_from === 'range') {
-      return buildReadableDateFromRange(s, true);
-    }
-    return s;
-  };
-
-  const buildReadableDateFromExact = (s, checkOther) => {
-    const parsedDate = parseDateStringAsTriple(s.exact_date);
-    if (parsedDate) {
-      s.date_textual = asHumanReadableDate(parsedDate, s.is_approx, s.round_to_year);
-      s.date_textual_derived_from = 'exact';
-      s.date_fuzz = 0.5;
-    } else if(checkOther) {
-      buildReadableDateFromRange(s, false);
-    } else {
-      let year = parseDateStringAsYearOnly(s.exact_date);
-      if (year) {
-        s.date_textual = `${year}`;
-        s.date_textual_derived_from = 'exact'; // ???
-        s.round_to_year = true;
-      } else {
-        s.date_textual = '';
-        s.date_textual_derived_from = '';
-        s.round_to_year = false;
-      }
-    }
-    return s;
-  };
-
-  const buildReadableDateFromRange = (s, checkOther) => {
-    // lower and upper
-    const parsedLowerDate = parseDateStringAsTriple(s.lower_date);
-    const parsedUpperDate = parseDateStringAsTriple(s.upper_date);
-
-    if (parsedLowerDate && parsedUpperDate) {
-      s.date_textual = asHumanReadableDateRange(parsedLowerDate, parsedUpperDate, s.is_approx, s.round_to_year, s.present_as_duration);
-      s.date_textual_derived_from = 'range';
-      s.date_fuzz = 0.0;
-    } else if (checkOther) {
-      // at least one of the date ranges is invalid, so check if the exact date is correct
-      return buildReadableDateFromExact(s, false);
-    } else {
-      let year = parseDateStringAsYearOnly(s.exact_date);
-      if (year) {
-        s.date_textual = `${year}`;
-        s.date_textual_derived_from = 'exact'; // ???
-        s.round_to_year = true;
-      } else {
-        s.date_textual = '';
-        s.date_textual_derived_from = '';
-        s.round_to_year = false;
-      }
-    }
-    return s;
-  };
-
-  const handleChangeEvent = (event) => {
-    const target = event.target;
-    const name = target.name;
-    const value = target.type === 'checkbox' ? target.checked : target.value;
-
-    let newState = {...state};
-
-    if (name === "title") {
-      newState.title = value;
-      newState.title_backup = value;
-      if (newState.title.length === 0) {
-        // re-enable the functionality to autofill title to 'Born'
-        // or 'Died' if the title is ever completely deleted
-        newState.has_typed_title = false;
-      } else {
-        newState.has_typed_title = true;
-      }
-    } else if (name === "pointkind") {
-      if (event.target.value === "Custom") {
-        newState.title = newState.title_backup;
-        newState.kind = 'point';
-      } else {
-        if (event.target.value === 'Born') {
-          console.log('setting kind to point_begin');
-          newState.kind = 'point_begin';
-        } else if (event.target.value === 'Died') {
-          console.log('setting kind to point_end');
-          newState.kind = 'point_end';
-        }
-        if (!newState.has_typed_title || newState.title.length === 0) {
-          newState.title = event.target.value; // either Born or Died
-        }
-      }
-    } else if (name === "location_textual") {
-      newState.location_textual = value;
-    } else if (name === "latitude") {
-      newState.latitude = parseFloat(value, 10);
-    } else if (name === "longitude") {
-      newState.longitude = parseFloat(value, 10);
-    } else if (name === "exact_date") {
-      newState.exact_date = value;
-      newState = buildReadableDateFromExact(newState, true);
-    } else if (name === "lower_date") {
-      newState.lower_date = value;
-      newState = buildReadableDateFromRange(newState, true);
-    } else if (name === "upper_date") {
-      newState.upper_date = value;
-      newState = buildReadableDateFromRange(newState, true);
-    } else if (name === "is_approx") {
-      newState.is_approx = value;
-      newState = buildReadableDateFromLast(newState);
-    } else if (name === "present_as_duration") {
-      newState.present_as_duration = value;
-      newState = buildReadableDateFromLast(newState);
-    } else if (name === "round_to_year") {
-      newState.round_to_year = value;
-      newState = buildReadableDateFromLast(newState);
-    }
-
-    // passPointIfValid(newState);
-    setState(newState);
-  };
-
-  const onFindLocationClicked = async (event) => {
-    event.preventDefault();
-
-    let geoResult = await geoGet(state.location_textual);
-
-    let [isOk, latitudeNew, longitudeNew] = getLatitudeLongitude(geoResult);
-    if (isOk) {
-      let newState = {
-        ...state,
-        latitude: latitudeNew.toFixed(2),
-        longitude: longitudeNew.toFixed(2)
-      };
-      // props.onPointChange(props.id, newState);
-      setState(newState);
-    } else {
-      console.log(`geoResult failed for ${state.location_textual}`);
-      console.log(geoResult);
-    }
-  };
-
-
-  function kindToSend(k) {
-    if (k === 'point_begin') {
-      return 'PointBegin';
-    }
-    if (k === 'point_end') {
-      return 'PointEnd';
-    }
-    return 'Point';
-  }
-
-  const handleSubmit = (e) => {
-    let s =  {
-      title: state.title.trim(),
-      kind: kindToSend(state.kind),
-      location_fuzz: 0,
-      date_fuzz: 0
+        date_textual: '',
+        exact_date: '',
+        lower_date: '',
+        upper_date: '',
+        date_fuzz: 0.5
     };
-    let canSend = false;
 
-    if (state.location_textual !== '') {
-      s.location_textual = state.location_textual;
-      canSend = true;
+    if (point) {
+        for (let [k, v] of Object.entries(point)) {
+            if (v !== null) {
+                initialPoint[k] = v;
+            }
+        }
     }
 
-    if (state.latitude !== 0 && state.longitude !== 0) {
-      s.latitude = state.latitude;
-      s.longitude = state.longitude;
-      s.location_fuzz = state.location_fuzz;
-      canSend = true;
+    // console.log(initialPoint);
+
+    const [state, setState] = useState({
+        title: initialPoint.title,
+        title_backup: initialPoint.title_backup,
+        location_textual: initialPoint.location_textual,
+        latitude: initialPoint.latitude,
+        longitude: initialPoint.longitude,
+        location_fuzz: initialPoint.location_fuzz,
+        date_textual: initialPoint.date_textual,
+        exact_date: initialPoint.exact_date,
+        lower_date: initialPoint.lower_date,
+        upper_date: initialPoint.upper_date,
+        date_fuzz: initialPoint.date_fuzz,
+        date_textual_derived_from: '',
+        is_approx: false,
+        present_as_duration: false,
+        round_to_year: false,
+        has_typed_title: false,
+        kind: pointKind || 'point'
+    });
+
+    // build a date_textual from whatever was the last user input date
+    const buildReadableDateFromLast = (s) => {
+        if (s.date_textual_derived_from === 'exact') {
+            return buildReadableDateFromExact(s, true);
+        } else if (s.date_textual_derived_from === 'range') {
+            return buildReadableDateFromRange(s, true);
+        }
+        return s;
+    };
+
+    const buildReadableDateFromExact = (s, checkOther) => {
+        const parsedDate = parseDateStringAsTriple(s.exact_date);
+        if (parsedDate) {
+            s.date_textual = asHumanReadableDate(parsedDate, s.is_approx, s.round_to_year);
+            s.date_textual_derived_from = 'exact';
+            s.date_fuzz = 0.5;
+        } else if(checkOther) {
+            buildReadableDateFromRange(s, false);
+        } else {
+            let year = parseDateStringAsYearOnly(s.exact_date);
+            if (year) {
+                s.date_textual = `${year}`;
+                s.date_textual_derived_from = 'exact'; // ???
+                s.round_to_year = true;
+            } else {
+                s.date_textual = '';
+                s.date_textual_derived_from = '';
+                s.round_to_year = false;
+            }
+        }
+        return s;
+    };
+
+    const buildReadableDateFromRange = (s, checkOther) => {
+        // lower and upper
+        const parsedLowerDate = parseDateStringAsTriple(s.lower_date);
+        const parsedUpperDate = parseDateStringAsTriple(s.upper_date);
+
+        if (parsedLowerDate && parsedUpperDate) {
+            s.date_textual = asHumanReadableDateRange(parsedLowerDate, parsedUpperDate, s.is_approx, s.round_to_year, s.present_as_duration);
+            s.date_textual_derived_from = 'range';
+            s.date_fuzz = 0.0;
+        } else if (checkOther) {
+            // at least one of the date ranges is invalid, so check if the exact date is correct
+            return buildReadableDateFromExact(s, false);
+        } else {
+            let year = parseDateStringAsYearOnly(s.exact_date);
+            if (year) {
+                s.date_textual = `${year}`;
+                s.date_textual_derived_from = 'exact'; // ???
+                s.round_to_year = true;
+            } else {
+                s.date_textual = '';
+                s.date_textual_derived_from = '';
+                s.round_to_year = false;
+            }
+        }
+        return s;
+    };
+
+    const handleChangeEvent = (event) => {
+        const target = event.target;
+        const name = target.name;
+        const value = target.type === 'checkbox' ? target.checked : target.value;
+
+        let newState = {...state};
+
+        if (name === "title") {
+            newState.title = value;
+            newState.title_backup = value;
+            if (newState.title.length === 0) {
+                // re-enable the functionality to autofill title to 'Born'
+                // or 'Died' if the title is ever completely deleted
+                newState.has_typed_title = false;
+            } else {
+                newState.has_typed_title = true;
+            }
+        } else if (name === "pointkind") {
+            if (event.target.value === "Custom") {
+                newState.title = newState.title_backup;
+                newState.kind = 'point';
+            } else {
+                if (event.target.value === 'Born') {
+                    console.log('setting kind to point_begin');
+                    newState.kind = 'point_begin';
+                } else if (event.target.value === 'Died') {
+                    console.log('setting kind to point_end');
+                    newState.kind = 'point_end';
+                }
+                if (!newState.has_typed_title || newState.title.length === 0) {
+                    newState.title = event.target.value; // either Born or Died
+                }
+            }
+        } else if (name === "location_textual") {
+            newState.location_textual = value;
+        } else if (name === "latitude") {
+            newState.latitude = parseFloat(value, 10);
+        } else if (name === "longitude") {
+            newState.longitude = parseFloat(value, 10);
+        } else if (name === "exact_date") {
+            newState.exact_date = value;
+            newState = buildReadableDateFromExact(newState, true);
+        } else if (name === "lower_date") {
+            newState.lower_date = value;
+            newState = buildReadableDateFromRange(newState, true);
+        } else if (name === "upper_date") {
+            newState.upper_date = value;
+            newState = buildReadableDateFromRange(newState, true);
+        } else if (name === "is_approx") {
+            newState.is_approx = value;
+            newState = buildReadableDateFromLast(newState);
+        } else if (name === "present_as_duration") {
+            newState.present_as_duration = value;
+            newState = buildReadableDateFromLast(newState);
+        } else if (name === "round_to_year") {
+            newState.round_to_year = value;
+            newState = buildReadableDateFromLast(newState);
+        }
+
+        // passPointIfValid(newState);
+        setState(newState);
+    };
+
+    const onFindLocationClicked = async (event) => {
+        event.preventDefault();
+
+        let geoResult = await geoGet(state.location_textual);
+
+        let [isOk, latitudeNew, longitudeNew] = getLatitudeLongitude(geoResult);
+        if (isOk) {
+            let newState = {
+                ...state,
+                latitude: latitudeNew.toFixed(2),
+                longitude: longitudeNew.toFixed(2)
+            };
+            // props.onPointChange(props.id, newState);
+            setState(newState);
+        } else {
+            console.log(`geoResult failed for ${state.location_textual}`);
+            console.log(geoResult);
+        }
+    };
+
+
+    function kindToSend(k) {
+        if (k === 'point_begin') {
+            return 'PointBegin';
+        }
+        if (k === 'point_end') {
+            return 'PointEnd';
+        }
+        return 'Point';
     }
 
-    if (state.date_textual_derived_from === 'exact') {
-      s.date_textual = state.date_textual;
-      s.exact_date = state.exact_date;
-      s.date_fuzz = state.date_fuzz;
+    const handleSubmit = (e) => {
+        let s =  {
+            title: state.title.trim(),
+            kind: kindToSend(state.kind),
+            location_fuzz: 0,
+            date_fuzz: 0
+        };
+        let canSend = false;
 
-      // hack: need more robust date parsing
-      if (s.exact_date.length === 4 || (s.exact_date.length === 5 && s.exact_date[0] === '-')) {
-        s.exact_date += '-01-01';
-        console.log(`rounding exact date to be: ${s.exact_date}`);
-      }
+        if (state.location_textual !== '') {
+            s.location_textual = state.location_textual;
+            canSend = true;
+        }
 
-      canSend = true;
-    } else if (state.date_textual_derived_from === 'range') {
-      s.date_textual = state.date_textual;
-      s.lower_date = state.lower_date;
-      s.upper_date = state.upper_date;
-      s.date_fuzz = state.date_fuzz;
-      canSend = true;
-    }
+        if (state.latitude !== 0 && state.longitude !== 0) {
+            s.latitude = state.latitude;
+            s.longitude = state.longitude;
+            s.location_fuzz = state.location_fuzz;
+            canSend = true;
+        }
 
-    if (canSend) {
-      onSubmit(s);
-    }
+        if (state.date_textual_derived_from === 'exact') {
+            s.date_textual = state.date_textual;
+            s.exact_date = state.exact_date;
+            s.date_fuzz = state.date_fuzz;
 
-    e.preventDefault();
-  };
+            // hack: need more robust date parsing
+            if (s.exact_date.length === 4 || (s.exact_date.length === 5 && s.exact_date[0] === '-')) {
+                s.exact_date += '-01-01';
+                console.log(`rounding exact date to be: ${s.exact_date}`);
+            }
 
-  return html`
+            canSend = true;
+        } else if (state.date_textual_derived_from === 'range') {
+            s.date_textual = state.date_textual;
+            s.lower_date = state.lower_date;
+            s.upper_date = state.upper_date;
+            s.date_fuzz = state.date_fuzz;
+            canSend = true;
+        }
+
+        if (canSend) {
+            onSubmit(s);
+        }
+
+        e.preventDefault();
+    };
+
+    return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>
       <div class=${ !!pointKind ? 'invisible' : 'point-title'}>
         <fieldset>
@@ -401,139 +401,139 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
 }
 
 function asHumanReadableDate(parsedDate, isApprox, roundToYear) {
-  // parsedDate is in the form: [year, month, day]
+    // parsedDate is in the form: [year, month, day]
 
-  let res = "";
-  const [year, month, day] = parsedDate;
+    let res = "";
+    const [year, month, day] = parsedDate;
 
-  if (isApprox) {
-    if (roundToYear) {
-      res += "c. ";
-    } else {
-      res += "Approx. ";
+    if (isApprox) {
+        if (roundToYear) {
+            res += "c. ";
+        } else {
+            res += "Approx. ";
+        }
     }
-  }
-
-  if (!roundToYear) {
-    res += textualDay(day) + " ";
-    res += textualMonth(month) + ", ";
-  }
-
-  if (year < 0) {
-    res += (year * -1) + "BC";
-  } else {
-    res += year;
-  }
-  return res;
-}
-
-function asHumanReadableDateRange(lowerDate, upperDate, isApprox, roundToYear, presentAsDuration) {
-  // parsedDate is in the form: [year, month, day]
-
-  let res = "";
-
-  let firstWord = presentAsDuration ? "from" : 'between';
-  if (isApprox) {
-    res += `Approx. ${firstWord} `;
-  } else {
-    if (!roundToYear) {
-      res += `${capitalise(firstWord)} `;
-    }
-  }
-
-  if (lowerDate) {
-    const [year, month, day] = lowerDate;
 
     if (!roundToYear) {
-      res += textualDay(day) + " ";
-      res += textualMonth(month) + ", ";
+        res += textualDay(day) + " ";
+        res += textualMonth(month) + ", ";
     }
 
     if (year < 0) {
-      res += (year * -1) + "BC";
+        res += (year * -1) + "BC";
     } else {
-      res += year;
+        res += year;
     }
-  } else {
-    res += " some date";
-  }
+    return res;
+}
 
-  res += presentAsDuration ? " to " : " and ";
+function asHumanReadableDateRange(lowerDate, upperDate, isApprox, roundToYear, presentAsDuration) {
+    // parsedDate is in the form: [year, month, day]
 
-  if (upperDate) {
-    const [upperYear, upperMonth, upperDay] = upperDate;
+    let res = "";
 
-    if (!roundToYear) {
-      res += textualDay(upperDay) + " ";
-      res += textualMonth(upperMonth) + ", ";
-    }
-
-    if (upperYear < 0) {
-      res += (upperYear * -1) + "BC";
+    let firstWord = presentAsDuration ? "from" : 'between';
+    if (isApprox) {
+        res += `Approx. ${firstWord} `;
     } else {
-      res += upperYear;
+        if (!roundToYear) {
+            res += `${capitalise(firstWord)} `;
+        }
     }
-  } else {
-    res += "sometime later";
-  }
+
+    if (lowerDate) {
+        const [year, month, day] = lowerDate;
+
+        if (!roundToYear) {
+            res += textualDay(day) + " ";
+            res += textualMonth(month) + ", ";
+        }
+
+        if (year < 0) {
+            res += (year * -1) + "BC";
+        } else {
+            res += year;
+        }
+    } else {
+        res += " some date";
+    }
+
+    res += presentAsDuration ? " to " : " and ";
+
+    if (upperDate) {
+        const [upperYear, upperMonth, upperDay] = upperDate;
+
+        if (!roundToYear) {
+            res += textualDay(upperDay) + " ";
+            res += textualMonth(upperMonth) + ", ";
+        }
+
+        if (upperYear < 0) {
+            res += (upperYear * -1) + "BC";
+        } else {
+            res += upperYear;
+        }
+    } else {
+        res += "sometime later";
+    }
 
 
-  return res;
+    return res;
 }
 
 
 function textualMonth(month) {
-  switch (month) {
-  case 1: return "January";
-  case 2: return "February";
-  case 3: return "March";
-  case 4: return "April";
-  case 5: return "May";
-  case 6: return "June";
-  case 7: return "July";
-  case 8: return "August";
-  case 9: return "September";
-  case 10: return "October";
-  case 11: return "November";
-  case 12: return "December";
-  default: return "MONTH ERROR"; // should never get here
-  }
+    switch (month) {
+    case 1: return "January";
+    case 2: return "February";
+    case 3: return "March";
+    case 4: return "April";
+    case 5: return "May";
+    case 6: return "June";
+    case 7: return "July";
+    case 8: return "August";
+    case 9: return "September";
+    case 10: return "October";
+    case 11: return "November";
+    case 12: return "December";
+    default: return "MONTH ERROR"; // should never get here
+    }
 }
 
 function textualDay(day) {
-  switch(day) {
-  case 1: return '1st';
-  case 2: return '2nd';
-  case 3: return '3rd';
-  case 21: return '21st';
-  case 22: return '22nd';
-  case 23: return '23rd';
-  case 31: return '31st';
-  default: return `${day}th`;
-  }
+    switch(day) {
+    case 1: return '1st';
+    case 2: return '2nd';
+    case 3: return '3rd';
+    case 21: return '21st';
+    case 22: return '22nd';
+    case 23: return '23rd';
+    case 31: return '31st';
+    default: return `${day}th`;
+    }
 }
 
 async function geoGet(location) {
-  // have to use getCORS because we're not allowed to set 'content-type'
-  let geoResult = await Net.getCORS(`https://geocode.xyz/${location}?json=1`);
-  return geoResult;
+    // have to use getCORS because we're not allowed to set 'content-type'
+    let geoResult = await Net.getCORS(`https://geocode.xyz/${location}?json=1`);
+    return geoResult;
 }
 
 function getLatitudeLongitude(geoResult) {
-  if (geoResult.error) {
-    return [false];
-  };
+    if (geoResult.error) {
+        return [false];
+    };
 
-  let latt = parseFloat(geoResult.latt);
-  let longt = parseFloat(geoResult.longt);
+    let latt = parseFloat(geoResult.latt);
+    let longt = parseFloat(geoResult.longt);
 
-  if (isNaN(latt) || isNaN(longt)) {
-    return [false];
-  }
+    if (isNaN(latt) || isNaN(longt)) {
+        return [false];
+    }
 
-  if (latt === 0.0 && longt === 0.0) {
-    return [false];
-  }
+    if (latt === 0.0 && longt === 0.0) {
+        return [false];
+    }
 
-  return [true, latt, longt];
+    return [true, latt, longt];
 }

@@ -13,14 +13,14 @@ import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import { StarRatingPartial } from '/js/components/StarRating.js';
 
 function Articles() {
-  const [state, dispatch] = useStateValue();
-  const resource = 'articles';
+    const [state, dispatch] = useStateValue();
+    const resource = 'articles';
 
-  ensureListingLoaded(resource, '/api/articles/listings');
+    ensureListingLoaded(resource, '/api/articles/listings');
 
-  const articles = state.listing.articles || {};
+    const articles = state.listing.articles || {};
 
-  return html`
+    return html`
     <article>
       <h1>${capitalise(resource)}</h1>
       <${RatedListSection} label='Recent' list=${articles.recent} resource=${resource} expanded/>
@@ -30,30 +30,30 @@ function Articles() {
 }
 
 function asUrl(url) {
-  return html`<a href=${ url }>${ url }</a>`;
+    return html`<a href=${ url }>${ url }</a>`;
 }
 
 function Article(props) {
-  const [state] = useStateValue();
+    const [state] = useStateValue();
 
-  const articleId = parseInt(props.id, 10);
-  const article = state.cache.deck[articleId] || { id: articleId };
+    const articleId = parseInt(props.id, 10);
+    const article = state.cache.deck[articleId] || { id: articleId };
 
-  const deckManager = DeckManager({
-    deck: article,
-    title: article.title,
-    resource: "articles",
-    updateForm: UpdateArticleForm,
-    hasSummarySection: true,
-    hasReviewSection: true
-  });
+    const deckManager = DeckManager({
+        deck: article,
+        title: article.title,
+        resource: "articles",
+        updateForm: UpdateArticleForm,
+        hasSummarySection: true,
+        hasReviewSection: true
+    });
 
-  // this is only for presentational purposes
-  // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
-  // this check prevents the vis from rendering until after we have all the note and links ready
-  const okToShowGraph = deckManager.hasNotes;
+    // this is only for presentational purposes
+    // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
+    // this check prevents the vis from rendering until after we have all the note and links ready
+    const okToShowGraph = deckManager.hasNotes;
 
-  return html`
+    return html`
     <article>
       <div>
         <div class="left-margin">
@@ -81,90 +81,90 @@ function Article(props) {
 }
 
 function UpdateArticleForm({ deck, hideFormFn }) {
-  const article = deck || {};
-  const [state, dispatch] = useStateValue();
-  const [title, setTitle] = useState(article.title || '');
-  const [author, setAuthor] = useState(article.author || '');
-  const [source, setSource] = useState(article.source || '');
-  const [shortDescription, setShortDescription] = useState(article.short_description || '');
-  const [rating, setRating] = useState(article.rating);
-  const [publishedDate, setPublishedDate] = useState(article.published_date);
+    const article = deck || {};
+    const [state, dispatch] = useStateValue();
+    const [title, setTitle] = useState(article.title || '');
+    const [author, setAuthor] = useState(article.author || '');
+    const [source, setSource] = useState(article.source || '');
+    const [shortDescription, setShortDescription] = useState(article.short_description || '');
+    const [rating, setRating] = useState(article.rating);
+    const [publishedDate, setPublishedDate] = useState(article.published_date);
 
-  useEffect(() => {
-    if (article.title && article.title !== '' && title === '') {
-      setTitle(article.title);
-    }
-    if (article.source && article.source !== '' && source === '') {
-      setSource(article.source);
-    }
-    if (article.author && article.author !== '' && author === '') {
-      setAuthor(article.author);
-    }
-    if (article.short_description && article.short_description !== '' && shortDescription === '') {
-      setShortDescription(article.short_description);
-    }
-    if (article.published_date && article.published_date !== '' && publishedDate === '') {
-      setPublished_Date(article.published_date);
-    }
-  }, [article]);
+    useEffect(() => {
+        if (article.title && article.title !== '' && title === '') {
+            setTitle(article.title);
+        }
+        if (article.source && article.source !== '' && source === '') {
+            setSource(article.source);
+        }
+        if (article.author && article.author !== '' && author === '') {
+            setAuthor(article.author);
+        }
+        if (article.short_description && article.short_description !== '' && shortDescription === '') {
+            setShortDescription(article.short_description);
+        }
+        if (article.published_date && article.published_date !== '' && publishedDate === '') {
+            setPublished_Date(article.published_date);
+        }
+    }, [article]);
 
-  const handleChangeEvent = (event) => {
-    const target = event.target;
-    const name = target.name;
-    const value = target.value;
+    const handleChangeEvent = (event) => {
+        const target = event.target;
+        const name = target.name;
+        const value = target.value;
 
-    if (name === "title") {
-      setTitle(value);
-    }
-    if (name === "source") {
-      setSource(value);
-    }
-    if (name === "author") {
-      setAuthor(value);
-    }
-    if (name === "short-description") {
-      setShortDescription(value);
-    }
-    if (name === "rating") {
-      setRating(parseInt(value, 10));
-    }
-    if (name === "published_date") {
-      setPublishedDate(value);
-    }
+        if (name === "title") {
+            setTitle(value);
+        }
+        if (name === "source") {
+            setSource(value);
+        }
+        if (name === "author") {
+            setAuthor(value);
+        }
+        if (name === "short-description") {
+            setShortDescription(value);
+        }
+        if (name === "rating") {
+            setRating(parseInt(value, 10));
+        }
+        if (name === "published_date") {
+            setPublishedDate(value);
+        }
 
-  };
+    };
 
-  const handleSubmit = (event) => {
-    const data = removeEmptyStrings({
-      title: title.trim(),
-      author: author.trim(),
-      source: source.trim(),
-      short_description: shortDescription.trim(),
-      rating: rating,
-      graph_terminator: false,
-      published_date: publishedDate.trim()
-    }, ["source"]);
+    const handleSubmit = (event) => {
+        const data = removeEmptyStrings({
+            title: title.trim(),
+            author: author.trim(),
+            source: source.trim(),
+            short_description: shortDescription.trim(),
+            rating: rating,
+            graph_terminator: false,
+            published_date: publishedDate.trim()
+        }, ["source"]);
 
-    const resource = 'articles';
+        const resource = 'articles';
 
-    Net.put(`/api/${ resource }/${ article.id }`, data).then(newItem => {
-      dispatch({
-        type: 'cacheDeck',
-        id: article.id,
-        newItem
-      });
+        Net.put(`/api/${ resource }/${ article.id }`, data).then(newItem => {
+            dispatch({
+                type: 'cacheDeck',
+                id: article.id,
+                newItem
+            });
 
-      // fetch the listing incase editing the article has changed it's star rating or annotation
-      //
-      fetchDeckListing(dispatch, resource, '/api/articles/listings');
-      // hide this form
-      hideFormFn();
-    });
+            // fetch the listing incase editing the article has changed it's star rating or annotation
+            //
+            fetchDeckListing(dispatch, resource, '/api/articles/listings');
+            // hide this form
+            hideFormFn();
+        });
 
-    event.preventDefault();
-  };
+        event.preventDefault();
+    };
 
-  return html`
+    return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>
       <label for="title">Title:</label>
       <br/>
