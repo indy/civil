@@ -11,7 +11,7 @@ const MODE_COMMAND = 'mode-command';
 
 // actions to give to the dispatcher
 const CANDIDATES_SET = 'candidate-set';
-const INPUT_FOCUS = 'input-focus';
+const CLICKED_CANDIDATE = 'clicked-candidate';
 const INPUT_BLUR = 'input-blur';
 const INPUT_GIVEN = 'input-given';
 const KEY_DOWN_CTRL = 'key-down-ctrl';
@@ -30,30 +30,30 @@ function cleanState(state) {
         ...state,
         showKeyboardShortcuts: false,
         text: '',
-        candidates: []
+        candidates: [],
+        isVisible: false
     }
 }
 
 function reducer(state, action) {
     switch(action.type) {
-    case INPUT_FOCUS: {
-        return {
-            ...state,
-            hasFocus: true
-        };
+    case CLICKED_CANDIDATE: {
+        const newState = cleanState(state);
+        return newState;
     }
     case INPUT_BLUR: {
-        return {
-            ...state,
-            hasFocus: false
-        };
+        const newState = {...state};
+        if (newState.candidates.length === 0) {
+            newState.isVisible = false;
+        }
+        return newState;
     }
     case SWITCH_OFF_JUST_ROUTED: return {
         ...state,
         justRoutedViaKeyboardShortcut: false
     };
     case KEY_DOWN_ENTER: {
-        if (!state.hasFocus) {
+        if (!state.isVisible) {
             return state;
         }
 
@@ -70,33 +70,32 @@ function reducer(state, action) {
     }
     case KEY_DOWN_ESC: {
         const inputElement = action.data.current;
-        if (state.hasFocus) {
-            const newState = cleanState(state);
+        const newState = cleanState(state);
+        if (state.isVisible) {
             if (inputElement) {
                 inputElement.blur();
-                newState.hasFocus = false;
             }
             return newState;
         } else {
             if (inputElement) {
                 inputElement.focus();
-                state.hasFocus = true;
+                newState.isVisible = true;
             }
-            return state;
+            return newState;
         }
     };
     case KEY_DOWN_COLON: {
         const inputElement = action.data.current;
-        if (!state.hasFocus) {
+        if (!state.isVisible) {
             if (inputElement) {
                 inputElement.focus();
-                state.hasFocus = true;
+                state.isVisible = true;
             }
             return state;
         }
     };
     case KEY_DOWN_CTRL: {
-        if (!state.hasFocus) {
+        if (!state.isVisible) {
             return state;
         }
 
@@ -111,7 +110,7 @@ function reducer(state, action) {
         return newState;
     }
     case SHORTCUT_CHECK: {
-        if (!state.hasFocus) {
+        if (!state.isVisible) {
             return state;
         }
 
@@ -135,7 +134,7 @@ function reducer(state, action) {
     }
     case INPUT_GIVEN: {
 
-        if (!state.hasFocus) {
+        if (!state.isVisible) {
             return state;
         }
 
@@ -174,7 +173,7 @@ export default function SearchCommand() {
 
     const [local, localDispatch] = useLocalReducer(reducer, {
         mode: MODE_SEARCH,
-        hasFocus: false,
+        isVisible: false,
         showKeyboardShortcuts: false,
         justRoutedViaKeyboardShortcut: false,
         text: '',
@@ -203,7 +202,7 @@ export default function SearchCommand() {
     };
 
     function onFocus() {
-        localDispatch(INPUT_FOCUS);
+        // localDispatch(INPUT_FOCUS);
     }
 
     function onBlur() {
@@ -247,8 +246,14 @@ export default function SearchCommand() {
         const maxShortcuts = 9 + 26;  // 1..9 and a..z
         const canShowKeyboardShortcut = local.showKeyboardShortcuts && i < maxShortcuts;
 
+        function clickedCandidate(e) {
+            localDispatch(CLICKED_CANDIDATE);
+        }
+
         return html`
-        <${Link} class="pigment-fg-${entry.resource}" href='/${entry.resource}/${entry.id}'>
+        <${Link} onClick=${clickedCandidate}
+                 class="pigment-fg-${entry.resource}"
+                 href='/${entry.resource}/${entry.id}'>
           ${ canShowKeyboardShortcut && html`<span class='keyboard-shortcut'>${ indexToShortcut(i)}: </span>`}
           ${ entry.name }
         </${Link}>`;
@@ -278,23 +283,26 @@ export default function SearchCommand() {
     `;
     }
 
-    const extraClasses = local.hasFocus ? "search-command-visible" : "search-command-invisible";
+    const extraClasses = local.isVisible ? "search-command-visible" : "search-command-invisible";
 
-    if (state.showingSearchCommand !== local.hasFocus) {
-        dispatch({type: 'showingSearchCommand', showingSearchCommand: local.hasFocus});
+    if (state.showingSearchCommand !== local.isVisible) {
+        dispatch({type: 'showingSearchCommand', showingSearchCommand: local.isVisible});
     }
 
-    return html`<div id="search-command" class="${extraClasses}">
-                <input id="search-command-input"
-                       type="text"
-                       ref=${ searchCommandRef }
-                       name="full search"
-                       value=${local.text}
-                       onInput=${handleChangeEvent}
-                       onFocus=${onFocus}
-                       onBlur=${onBlur}/>
-                ${ !!local.candidates.length && buildCandidates() }
-              </div>`;
+    return html`<div id="search-command">
+                  <div class="${extraClasses}">
+                    <input id="search-command-input"
+                           autocomplete="off"
+                           type="text"
+                           ref=${ searchCommandRef }
+                           name="full search"
+                           value=${local.text}
+                           onInput=${handleChangeEvent}
+                           onFocus=${onFocus}
+                           onBlur=${onBlur}/>
+                    ${ !!local.candidates.length && buildCandidates() }
+                  </div>
+                </div>`;
 }
 
 function allCommands() {
