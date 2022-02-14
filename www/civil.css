@@ -10,7 +10,7 @@
   --coloured-deck-border-radius: 0.3em;
 
   --search-command-width: 49rem;
-  --search-command-border-radius: 0.4em;
+  --search-command-border-radius: 0.1em;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -643,7 +643,15 @@ textarea {
   border-radius: var(--search-command-border-radius);
 }
 
+.search-command-unfocused {
+  /* opacity: 50%; */
+  filter: blur(0.2rem);
+  -webkit-filter: blur(0.2rem);
+}
+
 .search-command-focused {
+  /* opacity: 100%; */
+
   border: 0.2rem solid var(--fg1) !important;
   border-radius: var(--search-command-border-radius);
 }

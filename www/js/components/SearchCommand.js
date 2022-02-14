@@ -332,7 +332,9 @@ export default function SearchCommand() {
     }
 
     const extraClasses = local.isVisible ? "search-command-visible" : "search-command-invisible";
-    const inputClasses = !local.showKeyboardShortcuts ? "search-command-input search-command-focused" : "search-command-input";
+    let inputClasses = "search-command-input ";
+    inputClasses += local.showKeyboardShortcuts ? "search-command-unfocused" : "search-command-focused";
+
 
     if (state.showingSearchCommand !== local.isVisible) {
         dispatch({type: 'showingSearchCommand', showingSearchCommand: local.isVisible});
