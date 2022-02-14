@@ -294,10 +294,13 @@ export default function SearchCommand() {
     }
 
     function buildCandidates() {
+        let classes = local.showKeyboardShortcuts ? "search-command-focused " : "";
+        classes += "search-command-listing";
+
         let candidateRenderer = local.mode === MODE_SEARCH ? buildSearchResultEntry : buildCommandEntry;
 
         return html`
-      <div class="search-command-listing" id="search-candidates">
+      <div class="${classes}" id="search-candidates">
         <ul>
           ${ local.candidates.map((entry, i) => html`<li key=${ i }>${ candidateRenderer(entry, i) }</li>`) }
         </ul>
@@ -329,6 +332,7 @@ export default function SearchCommand() {
     }
 
     const extraClasses = local.isVisible ? "search-command-visible" : "search-command-invisible";
+    const inputClasses = !local.showKeyboardShortcuts ? "search-command-input search-command-focused" : "search-command-input";
 
     if (state.showingSearchCommand !== local.isVisible) {
         dispatch({type: 'showingSearchCommand', showingSearchCommand: local.isVisible});
@@ -339,6 +343,7 @@ export default function SearchCommand() {
                     <input id="search-command-input"
                            autocomplete="off"
                            type="text"
+                           class="${inputClasses}"
                            ref=${ searchCommandRef }
                            name="full search"
                            value=${local.text}
