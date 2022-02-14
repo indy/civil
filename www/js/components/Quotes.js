@@ -104,15 +104,14 @@ function Quotes() {
     function clickedSave(e) {
         e.preventDefault();
 
-        const title = titleFromQuoteText(local.quoteText);
         const data = {
-            title,
+            title: titleFromQuoteText(local.quoteText),
             text: local.quoteText,
             attribution: local.attribution
         };
 
         Net.post("/api/quotes", data).then(quote => {
-            localDispatch(CREATED_NEW_QUOTE);
+            route(`/quotes/${quote.id}`);
         });
     }
 
@@ -131,25 +130,26 @@ function Quotes() {
 
     function renderAddForm() {
         return html`<form class="civil-form">
-
-<label for="attribution">QuoteText:</label>
-<textarea id="quote-text"
-type="text"
-name="quote_text"
-value=${ local.quoteText }
-onInput=${handleChangeEvent}/>
-
-<label for="attribution">Attribution:</label>
-<input id="attribution"
-type="text"
-name="attribution"
-value=${ local.attribution }
-onInput=${handleChangeEvent}/>
-
-<button onClick=${clickedCancel}>cancel</button>
-<button onClick=${clickedSave}>save</button>
-
-</form>`;
+                        <label for="attribution">QuoteText:</label>
+                        <br/>
+                        <textarea id="quote-text"
+                                  type="text"
+                                  name="quote_text"
+                                  value=${ local.quoteText }
+                                  onInput=${handleChangeEvent}/>
+                        <br/>
+                        <label for="attribution">Attribution:</label>
+                        <br/>
+                        <input id="attribution"
+                               type="text"
+                               autocomplete="off"
+                               name="attribution"
+                               value=${ local.attribution }
+                               onInput=${handleChangeEvent}/>
+                        <br/>
+                        <button onClick=${clickedCancel}>cancel</button>
+                        <button onClick=${clickedSave}>save</button>
+                    </form>`;
     }
 
     return html`

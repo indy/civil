@@ -61,6 +61,7 @@
   font-style: normal;
 }
 
+
 .spacer {
   padding: 0.1rem;
 }
@@ -644,14 +645,10 @@ textarea {
 }
 
 .search-command-unfocused {
-  /* opacity: 50%; */
   filter: blur(0.2rem);
   -webkit-filter: blur(0.2rem);
 }
-
 .search-command-focused {
-  /* opacity: 100%; */
-
   border: 0.2rem solid var(--fg1) !important;
   border-radius: var(--search-command-border-radius);
 }
@@ -1047,10 +1044,17 @@ div.note > textarea {
   height: 10rem;
 }
 
+#quote-text {
+  width: 40rem;
+}
+#attribution {
+  width: 40rem
+}
 .civil-form {
   font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
   padding-top: 2rem;
   padding-bottom: 1rem;
+  width: 100%;
 }
 
 .civil-add-note-form {
@@ -1301,6 +1305,13 @@ input:required {
     --body-width: 93.5%;
     --block-width: 70%;
     --search-command-width: 60%;
+  }
+
+  #quote-text {
+    width: 80%;
+  }
+  #attribution {
+    width: 80%;
   }
 
   .left-margin {
