@@ -18,8 +18,7 @@ const KEY_DOWN_CTRL = 'key-down-ctrl';
 const KEY_DOWN_ENTER = 'key-down-enter';
 const KEY_DOWN_ESC = 'key-down-esc';
 const KEY_DOWN_COLON = 'key-down-colon';
-const SHORTCUT_CHECK = 'shortcut-check';
-const SWITCH_OFF_JUST_ROUTED = 'switch-off-just-routed';
+const KEY_DOWN_KEY = 'key-down-key';
 
 function debugState(state) {
     console.log(`mode: ${state.mode}, text: "${state.text}"`);
@@ -29,6 +28,7 @@ function cleanState(state) {
     return {
         ...state,
         showKeyboardShortcuts: false,
+        shiftKey: false,
         text: '',
         candidates: [],
         isVisible: false
@@ -48,10 +48,6 @@ function reducer(state, action) {
         }
         return newState;
     }
-    case SWITCH_OFF_JUST_ROUTED: return {
-        ...state,
-        justRoutedViaKeyboardShortcut: false
-    };
     case KEY_DOWN_ENTER: {
         if (!state.isVisible) {
             return state;
@@ -109,36 +105,29 @@ function reducer(state, action) {
 
         return newState;
     }
-    case SHORTCUT_CHECK: {
+    case KEY_DOWN_KEY: {
         if (!state.isVisible) {
             return state;
         }
 
-        if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
-            if (state.candidates.length > action.data) {
-                const candidate = state.candidates[action.data];
+        const newState = {
+            ...state,
+            keyDownIndex: action.data.index,
+            shiftKey: action.data.shiftKey
+        };
 
-                route(`/${candidate.resource}/${candidate.id}`);
-
-                const newState = cleanState(state);
-                newState.justRoutedViaKeyboardShortcut = true;
-
-                return newState;
-            }
-        }
-        return state;
+        return newState;
     }
     case CANDIDATES_SET: return {
         ...state,
         candidates: action.data.results ? action.data.results : []
     }
     case INPUT_GIVEN: {
-
         if (!state.isVisible) {
             return state;
         }
 
-        const text = state.justRoutedViaKeyboardShortcut ? state.text : action.data;
+        const text = action.data;
         const mode = isCommand(text) ? MODE_COMMAND : MODE_SEARCH;
 
         let candidates = state.candidates;
@@ -148,6 +137,29 @@ function reducer(state, action) {
         if (mode === MODE_SEARCH && state.mode === MODE_COMMAND) {
             // just changed mode from command to search
             candidates = [];
+        }
+
+
+        if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
+            const index = state.keyDownIndex;
+
+            if (state.candidates.length > index) {
+                const candidate = state.candidates[index];
+
+                if (state.shiftKey) {
+                    const newState = {...state};
+
+                    newState.savedSearchResults.push(candidate);
+
+                    return newState;
+                } else {
+                    const url = `/${candidate.resource}/${candidate.id}`;
+                    route(url);
+
+                    const newState = cleanState(state);
+                    return newState;
+                }
+            }
         }
 
         const newState = {
@@ -175,9 +187,10 @@ export default function SearchCommand() {
         mode: MODE_SEARCH,
         isVisible: false,
         showKeyboardShortcuts: false,
-        justRoutedViaKeyboardShortcut: false,
+        shiftKey: false,
         text: '',
-        candidates: []
+        candidates: [],
+        savedSearchResults: []
     });
 
     function onKeyDown(e) {
@@ -191,13 +204,12 @@ export default function SearchCommand() {
             localDispatch(KEY_DOWN_ENTER, dispatch);
         }
         if (e.ctrlKey) {
-            localDispatch(KEY_DOWN_CTRL, e);
+            localDispatch(KEY_DOWN_CTRL);
         }
         if ((e.keyCode >= 49 && e.keyCode <= 57) || (e.keyCode >= 65 && e.keyCode <= 90)) {
             // digit: 1 -> 0, 2 -> 1, ... 9 -> 8       letter: a -> 9, b -> 10, ... z -> 34
             const index = (e.keyCode >= 49 && e.keyCode <= 57) ? e.keyCode - 49 : (e.keyCode - 65) + 9;
-
-            localDispatch(SHORTCUT_CHECK, index);
+            localDispatch(KEY_DOWN_KEY, { index: index, shiftKey: e.shiftKey });
         }
     };
 
@@ -223,13 +235,23 @@ export default function SearchCommand() {
         if (local.mode === MODE_COMMAND) {
             localDispatch(INPUT_GIVEN, text);
         } else if (local.mode === MODE_SEARCH) {
-            if (!local.showKeyboardShortcuts && !local.justRoutedViaKeyboardShortcut) {
+            if (!local.showKeyboardShortcuts) {
                 localDispatch(INPUT_GIVEN, text);
                 if (text.length > 0 && !isCommand(text)) {
                     search(text);
                 }
-            } else if (local.justRoutedViaKeyboardShortcut) {
-                localDispatch(SWITCH_OFF_JUST_ROUTED);
+            }
+
+            if (local.showKeyboardShortcuts) {
+                // searchCommand is showing keyboard shortcuts and the user
+                // has just pressed a key whilst holding down the shift button
+                //
+                // since the handleChangeEvent code runs after the latest
+                // render we have to manually remove the final character
+                //
+                const displayText = local.shiftKey ? text.slice(0, -1) : text;
+
+                localDispatch(INPUT_GIVEN, displayText);
             }
         }
 
@@ -275,12 +297,35 @@ export default function SearchCommand() {
         let candidateRenderer = local.mode === MODE_SEARCH ? buildSearchResultEntry : buildCommandEntry;
 
         return html`
-      <div id="search-command-results">
+      <div class="search-command-listing" id="search-candidates">
         <ul>
           ${ local.candidates.map((entry, i) => html`<li key=${ i }>${ candidateRenderer(entry, i) }</li>`) }
         </ul>
       </div>
     `;
+    }
+
+    function buildSavedSearchResults() {
+        function buildSavedSearchEntry(entry, i) {
+            function clickedCandidate(e) {
+                localDispatch(CLICKED_CANDIDATE);
+            }
+
+            return html`
+        <${Link} onClick=${clickedCandidate}
+                 class="pigment-fg-${entry.resource}"
+                 href='/${entry.resource}/${entry.id}'>
+          ${ entry.name }
+        </${Link}>`;
+        }
+
+        return html`
+      <div class="search-command-listing" id="saved-search-results">
+        <ul>
+          ${ local.savedSearchResults.map((entry, i) => html`<li key=${ i }>${ buildSavedSearchEntry(entry, i) }</li>`) }
+        </ul>
+      </div>
+`;
     }
 
     const extraClasses = local.isVisible ? "search-command-visible" : "search-command-invisible";
@@ -302,6 +347,7 @@ export default function SearchCommand() {
                            onBlur=${onBlur}/>
                     ${ !!local.candidates.length && buildCandidates() }
                   </div>
+                  ${ !!local.savedSearchResults.length && buildSavedSearchResults() }
                 </div>`;
 }
 

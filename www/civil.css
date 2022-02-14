@@ -662,22 +662,32 @@ textarea {
   width: 98%;
 }
 
-#search-command-results {
+#saved-search-results {
+  background: white !important;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+}
+
+#search-candidates {
+  width: 100%;
+}
+
+.search-command-listing {
   font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
 
   background: var(--bg3);
   border: 0.1rem solid var(--fg);
   margin: 0.2rem;
-  width: 100%;
 }
 
-#search-command-results a {
+.search-command-listing a {
     display: inline-block;
     padding: 0.4rem 1rem 0.2rem 1rem;
     border-radius: var(--coloured-deck-border-radius);
 }
 
-#search-command-results > ul {
+.search-command-listing > ul {
   font-size: 1.0rem;
   line-height: 1rem;
   list-style-type: none;
