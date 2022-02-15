@@ -69,12 +69,15 @@ function Login({ loginCallback}) {
       <h1>Login</h1>
       <form onSubmit=${ handleLoginSubmit }>
         <label for="login-email">Email:</label>
+        <br/>
         <input id="login-email"
                type="text"
                name="login-email"
                value=${ state['login-email'] }
                onInput=${ handleChangeEvent } />
+        <br/>
         <label for="login-password">Password:</label>
+        <br/>
         <input id="login-password"
                type="password"
                name="login-password"
@@ -85,30 +88,39 @@ function Login({ loginCallback}) {
       <h1>Register New User</h1>
       <form onSubmit=${ handleRegisterSubmit }>
         <label for="register-magic-word">Magic word that was given to you by Indy:</label>
+        <br/>
         <input id="register-magic-word"
                type="text"
                name="register-magic-word"
                value=${ state['register-magic-word'] }
                onInput=${ handleChangeEvent } />
+        <br/>
         <label for="register-username">Username:</label>
+        <br/>
         <input id="register-username"
                type="text"
                name="register-username"
                value=${ state['register-username'] }
                onInput=${ handleChangeEvent } />
+        <br/>
         <label for="register-email">Email:</label>
+        <br/>
         <input id="register-email"
                type="text"
                name="register-email"
                value=${ state['register-email'] }
                onInput=${ handleChangeEvent } />
+        <br/>
         <label for="register-password">Password:</label>
+        <br/>
         <input id="register-password"
                type="password"
                name="register-password"
                value=${ state['register-password'] }
                onInput=${ handleChangeEvent } />
+        <br/>
         <label for="register-password-2">Confirm Password:</label>
+        <br/>
         <input id="register-password-2"
                type="password"
                name="register-password-2"
