@@ -18,6 +18,9 @@ export const initialState = {
 
     showingSearchCommand: false,
 
+    // when true don't let searchCommand accept any keystrokes
+    componentRequiresFullKeyboardAccess: false,
+
     readOnly: false,
 
     // by default don't show the note form, just show the "Append Note" icon
@@ -85,6 +88,16 @@ export const reducer = (state, action) => {
                 deckIndexFromId: buildDeckIndex(action.graphNodes)
             }
         }
+    case 'enableFullKeyboardAccessForComponent':
+        return {
+            ...state,
+            componentRequiresFullKeyboardAccess: true
+        };
+    case 'disableFullKeyboardAccessForComponent':
+        return {
+            ...state,
+            componentRequiresFullKeyboardAccess: false
+        };
     case 'showingSearchCommand':
         return {
             ...state,

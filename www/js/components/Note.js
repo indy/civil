@@ -112,6 +112,14 @@ function reducer(state, action) {
     }
 };
 
+function enableFullKeyboardAccess(dispatch) {
+    dispatch({ type: 'enableFullKeyboardAccessForComponent' });
+}
+
+function disableFullKeyboardAccess(dispatch) {
+    dispatch({ type: 'disableFullKeyboardAccessForComponent' });
+}
+
 export default function Note(props) {
     const [state, dispatch] = useStateValue();
 
@@ -139,9 +147,9 @@ export default function Note(props) {
         localDispatch(IS_EDITING_MARKUP_TOGGLE);
 
         if (isEditingMarkupNew) {
-            props.requireKeyboard && props.requireKeyboard();
+            enableFullKeyboardAccess(dispatch);
         } else {
-            props.releaseKeyboard && props.releaseKeyboard();
+            disableFullKeyboardAccess(dispatch);
 
             if (hasNoteBeenModified(local.note, props.note)) {
                 const id = props.note.id;
@@ -191,13 +199,13 @@ export default function Note(props) {
 
         function onCancel(e) {
             e.preventDefault();
-            props.releaseKeyboard && props.releaseKeyboard();
+            disableFullKeyboardAccess(dispatch);
             localDispatch(ADD_FLASH_CARD_UI_SHOW, false);
         }
 
         function onSave(e) {
             e.preventDefault();
-            props.releaseKeyboard && props.releaseKeyboard();
+            disableFullKeyboardAccess(dispatch);
 
             let data = {
                 note_id: props.note.id,
@@ -239,7 +247,7 @@ export default function Note(props) {
             // 6. clicks cancel
             // expected: only the changes from step 5 should be undone
 
-            props.releaseKeyboard && props.releaseKeyboard();
+            disableFullKeyboardAccess(dispatch);
             if (changes) {
                 let data = {
                     note_id: props.note.id,
@@ -294,18 +302,18 @@ export default function Note(props) {
 
         function toggleAddDeckReferencesUI() {
             if (!local.addDeckReferencesUI) {
-                props.requireKeyboard && props.requireKeyboard();
+                enableFullKeyboardAccess(dispatch);
             } else {
-                props.releaseKeyboard && props.releaseKeyboard();
+                disableFullKeyboardAccess(dispatch);
             }
             localDispatch(ADD_DECK_REFERENCES_UI_SHOW, !local.addDeckReferencesUI);
         }
 
         function toggleAddFlashCardUI() {
             if (!local.addFlashCardUI) {
-                props.requireKeyboard && props.requireKeyboard();
+                enableFullKeyboardAccess(dispatch);
             } else {
-                props.releaseKeyboard && props.releaseKeyboard();
+                disableFullKeyboardAccess(dispatch);
             }
 
             localDispatch(ADD_FLASH_CARD_UI_SHOW, !local.addFlashCardUI);

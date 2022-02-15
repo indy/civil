@@ -165,15 +165,11 @@ function Quotes() {
 // onKeyDown is a function that captures variables when added as an event listener
 // so resorting to these variables that are scoped to this file
 //
-let keyboardActive = true;
 let showingSearchCommand = false;
+let componentRequiresFullKeyboardAccess = false;
 
 function Quote(props) {
     const [state, dispatch] = useStateValue();
-
-    function setKeyboardActive(val) {
-        keyboardActive = val;
-    }
 
     const quoteId = parseInt(props.id, 10);
     const quote = state.cache.deck[quoteId] || { id: quoteId };
@@ -205,6 +201,7 @@ function Quote(props) {
 
     useEffect(() => {
         showingSearchCommand = state.showingSearchCommand;
+        componentRequiresFullKeyboardAccess = state.componentRequiresFullKeyboardAccess;
     }, [state]);
 
     function getQuoteThenRoute(url) {
@@ -219,7 +216,7 @@ function Quote(props) {
     }
 
     function onKeyDown(e) {
-        if (keyboardActive && !showingSearchCommand) {
+        if (!componentRequiresFullKeyboardAccess && !showingSearchCommand) {
             if (e.key === 'n') {
                 getQuoteThenRoute(`/api/quotes/${quoteId}/next`);
             } else if (e.key === 'p') {
@@ -278,30 +275,16 @@ function Quote(props) {
         cacheDeck(dispatch, quote);
     }
 
-    function requireKeyboard() {
-        // console.log("requireKeyboard setting to false");
-        setKeyboardActive(false);
-    }
-
-    function releaseKeyboard() {
-        // console.log("releaseKeyboard setting to true");
-        setKeyboardActive(true);
-    }
-
     return html`
     <article id="quotation-article">
       ${ note && html`<${Note}
     key=${ note.id }
     note=${ note }
-    requireKeyboard=${ requireKeyboard }
-    releaseKeyboard=${ releaseKeyboard }
     parentDeck=${ quote }
     onEdited=${ onEditedNote }
     onDelete=${ onDelete }
     onDecksChanged=${ onDecksChanged }/>`}
       <${Attribution}
-        requireKeyboard=${ requireKeyboard }
-        releaseKeyboard=${ releaseKeyboard }
         attribution=${ quote.attribution }
         onEdited=${ onEditedAttribute}
         onDelete=${ onDelete }/>
@@ -365,7 +348,17 @@ function reducer2(state, action) {
     }
 }
 
-function Attribution({ attribution, onEdited, onDelete, requireKeyboard, releaseKeyboard}) {
+function enableFullKeyboardAccess(dispatch) {
+    dispatch({ type: 'enableFullKeyboardAccessForComponent' });
+}
+
+function disableFullKeyboardAccess(dispatch) {
+    dispatch({ type: 'disableFullKeyboardAccessForComponent' });
+}
+
+function Attribution({ attribution, onEdited, onDelete}) {
+    const [state, dispatch] = useStateValue();
+
     const [local, localDispatch] = useLocalReducer(reducer2, {
         mode: ATTR_SHOW_MODE,
         showButtons: false,
@@ -386,14 +379,14 @@ function Attribution({ attribution, onEdited, onDelete, requireKeyboard, release
     }
 
     function confirmedDeleteClicked() {
-        releaseKeyboard();
+        disableFullKeyboardAccess(dispatch);
         onDelete();
     }
 
     function clickedEdit(e) {
         e.preventDefault();
         localDispatch(ATTR_SET_MODE, ATTR_EDIT_MODE);
-        requireKeyboard();
+        enableFullKeyboardAccess(dispatch);
     }
 
     function handleChangeEvent(e) {
@@ -406,13 +399,13 @@ function Attribution({ attribution, onEdited, onDelete, requireKeyboard, release
 
     function clickedCancel(e) {
         e.preventDefault();
-        releaseKeyboard();
+        disableFullKeyboardAccess(dispatch);
         localDispatch(ATTR_SET_MODE, ATTR_SHOW_MODE);
     }
 
     function clickedOK(e) {
         e.preventDefault();
-        releaseKeyboard();
+        disableFullKeyboardAccess(dispatch);
         onEdited(local.attribution);
         localDispatch(ATTR_SET_MODE, ATTR_SHOW_MODE);
     }

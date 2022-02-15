@@ -36,6 +36,8 @@ function cleanState(state) {
 }
 
 function reducer(state, action) {
+    const [appState] = useStateValue();
+
     switch(action.type) {
     case CLICKED_CANDIDATE: {
         const newState = cleanState(state);
@@ -81,14 +83,21 @@ function reducer(state, action) {
         }
     };
     case KEY_DOWN_COLON: {
+        const newState = { ...state };
+
+        if (appState.componentRequiresFullKeyboardAccess) {
+            return newState;
+        }
+
         const inputElement = action.data.current;
-        if (!state.isVisible) {
+
+        if (!newState.isVisible) {
             if (inputElement) {
                 inputElement.focus();
-                state.isVisible = true;
+                newState.isVisible = true;
             }
-            return state;
         }
+        return newState;
     };
     case KEY_DOWN_CTRL: {
         if (!state.isVisible) {
