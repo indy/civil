@@ -635,6 +635,14 @@ textarea {
   width: 19%;
 }
 
+.saved-search-result {
+  display: flex;
+  flex-direction: row;
+}
+.saved-search-result-remove {
+  padding-top: 0.5rem;
+}
+
 #search-candidates {
   width: 100%;
   border-radius: var(--search-command-border-radius);

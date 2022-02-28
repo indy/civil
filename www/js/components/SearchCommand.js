@@ -1,5 +1,6 @@
 import { html, route, Link, useState, useEffect, useRef } from '/lib/preact/mod.js';
 
+import { svgX } from '/js/svgIcons.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { createDeck, indexToShortcut } from '/js/CivilUtils.js';
@@ -19,6 +20,7 @@ const KEY_DOWN_ENTER = 'key-down-enter';
 const KEY_DOWN_ESC = 'key-down-esc';
 const KEY_DOWN_COLON = 'key-down-colon';
 const KEY_DOWN_KEY = 'key-down-key';
+const REMOVE_SAVED_SEARCH_RESULT = 'remove-saved-search-result';
 
 function debugState(state) {
     console.log(`mode: ${state.mode}, text: "${state.text}"`);
@@ -189,6 +191,14 @@ function reducer(state, action) {
 
         return newState;
     }
+    case REMOVE_SAVED_SEARCH_RESULT: {
+        const index = action.data;
+        const newState = {...state};
+
+        newState.savedSearchResults.splice(index, 1);
+
+        return newState;
+    }
     default: throw new Error(`unknown action: ${action}`);
     }
 }
@@ -332,12 +342,19 @@ export default function SearchCommand() {
                 localDispatch(CLICKED_CANDIDATE);
             }
 
+            function clickedDelete(e) {
+                localDispatch(REMOVE_SAVED_SEARCH_RESULT, i);
+            }
+
             return html`
-        <${Link} onClick=${clickedCandidate}
-                 class="pigment-fg-${entry.resource}"
-                 href='/${entry.resource}/${entry.id}'>
-          ${ entry.name }
-        </${Link}>`;
+                   <div class="saved-search-result">
+                       <div class="saved-search-result-remove" onClick=${clickedDelete}>${ svgX() }</div>
+                       <${Link} onClick=${clickedCandidate}
+                                class="pigment-fg-${entry.resource}"
+                                href='/${entry.resource}/${entry.id}'>
+                         ${ entry.name }
+                       </${Link}>
+                   </div>`;
         }
 
         return html`
