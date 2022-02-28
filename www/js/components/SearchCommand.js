@@ -324,23 +324,27 @@ export default function SearchCommand() {
         }
 
         return html`
-        <${Link} onClick=${clickedCandidate}
-                 class="pigment-fg-${entry.resource}"
-                 href='/${entry.resource}/${entry.id}'>
-          ${ canShowKeyboardShortcut && html`<span class='keyboard-shortcut'>${ indexToShortcut(i)}: </span>`}
-          ${ entry.name }
-        </${Link}>`;
+            <${Link} onClick=${clickedCandidate}
+                     class="pigment-fg-${entry.resource}"
+                     href='/${entry.resource}/${entry.id}'>
+              ${ canShowKeyboardShortcut && html`<span class='keyboard-shortcut'>${ indexToShortcut(i)}: </span>`}
+              ${ entry.name }
+            </${Link}>
+        `;
     }
 
     function buildCommandEntry(entry, i) {
         if (entry.spacer) {
             return html`
-        <div class="command-entry">-</div>`;
+                <div class="command-entry">-</div>
+            `;
         } else {
             return html`
-        <div class="command-entry">
-          <span class="command-entry-name">${ entry.command }</span> <span class="command-entry-desc">${ entry.description }</span>
-        </div>`;
+                <div class="command-entry">
+                    <span class="command-entry-name">${ entry.command }</span>
+                    <span class="command-entry-desc">${ entry.description }</span>
+                </div>
+            `;
         }
     }
 
@@ -351,12 +355,10 @@ export default function SearchCommand() {
         let candidateRenderer = local.mode === MODE_SEARCH ? buildSearchResultEntry : buildCommandEntry;
 
         return html`
-      <div class="${classes}" id="search-candidates">
-        <ul>
-          ${ local.candidates.map((entry, i) => html`<li key=${ i }>${ candidateRenderer(entry, i) }</li>`) }
-        </ul>
-      </div>
-    `;
+            <ul class="${classes}" id="search-candidates">
+                ${ local.candidates.map((entry, i) => html`<li key=${ i }>${ candidateRenderer(entry, i) }</li>`) }
+            </ul>
+        `;
     }
 
     function buildSavedSearchResults() {
@@ -370,23 +372,22 @@ export default function SearchCommand() {
             }
 
             return html`
-                   <div class="saved-search-result">
-                       <div class="saved-search-result-remove" onClick=${clickedDelete}>${ svgX() }</div>
-                       <${Link} onClick=${clickedCandidate}
-                                class="pigment-fg-${entry.resource}"
-                                href='/${entry.resource}/${entry.id}'>
-                         ${ entry.name }
-                       </${Link}>
-                   </div>`;
+                <div class="saved-search-result">
+                    <div class="saved-search-result-remove" onClick=${clickedDelete}>${ svgX() }</div>
+                    <${Link} onClick=${clickedCandidate}
+                             class="pigment-fg-${entry.resource}"
+                             href='/${entry.resource}/${entry.id}'>
+                        ${ entry.name }
+                    </${Link}>
+                </div>
+            `;
         }
 
         return html`
-      <div class="search-command-listing" id="saved-search-results">
-        <ul>
-          ${ local.savedSearchResults.map((entry, i) => html`<li key=${ i }>${ buildSavedSearchEntry(entry, i) }</li>`) }
-        </ul>
-      </div>
-`;
+            <ul class="search-command-listing" id="saved-search-results">
+                ${ local.savedSearchResults.map((entry, i) => html`<li key=${ i }>${ buildSavedSearchEntry(entry, i) }</li>`) }
+            </ul>
+        `;
     }
 
     const extraClasses = local.isVisible ? "search-command-visible" : "search-command-invisible";
@@ -398,22 +399,24 @@ export default function SearchCommand() {
         dispatch({type: 'showingSearchCommand', showingSearchCommand: local.isVisible});
     }
 
-    return html`<div id="search-command">
-                  <div class="${extraClasses}">
-                    <input id="search-command-input"
-                           autocomplete="off"
-                           type="text"
-                           class="${inputClasses}"
-                           ref=${ searchCommandRef }
-                           name="full search"
-                           value=${local.text}
-                           onInput=${handleChangeEvent}
-                           onFocus=${onFocus}
-                           onBlur=${onBlur}/>
-                    ${ !!local.candidates.length && buildCandidates() }
-                  </div>
-                  ${ !!local.savedSearchResults.length && buildSavedSearchResults() }
-                </div>`;
+    return html`
+        <div id="search-command">
+            <div class="${extraClasses}">
+              <input id="search-command-input"
+                     autocomplete="off"
+                     type="text"
+                     class="${inputClasses}"
+                     ref=${ searchCommandRef }
+                     name="full search"
+                     value=${local.text}
+                     onInput=${handleChangeEvent}
+                     onFocus=${onFocus}
+                     onBlur=${onBlur}/>
+              ${ !!local.candidates.length && buildCandidates() }
+            </div>
+            ${ !!local.savedSearchResults.length && buildSavedSearchResults() }
+          </div>
+    `;
 }
 
 function allCommands() {

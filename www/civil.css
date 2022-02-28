@@ -633,6 +633,8 @@ textarea {
   bottom: 0;
   left: 0;
   width: 19%;
+  max-height: 30rem;
+  overflow: auto;
 }
 
 .saved-search-result {
@@ -640,12 +642,15 @@ textarea {
   flex-direction: row;
 }
 .saved-search-result-remove {
-  padding-top: 0.5rem;
+  padding-top: 0.2rem;
 }
 
 #search-candidates {
   width: 100%;
   border-radius: var(--search-command-border-radius);
+
+  max-height: 40rem;
+  overflow: auto;
 }
 
 .search-command-input {
@@ -666,19 +671,17 @@ textarea {
   background: var(--bg3);
   border: 0.1rem solid var(--fg);
   margin: 0.2rem;
+
+  font-size: 1.0rem;
+  line-height: 1rem;
+  list-style-type: none;
+  padding-left: 0;
 }
 
 .search-command-listing a {
     display: inline-block;
     padding: 0.4rem 1rem 0.2rem 1rem;
     border-radius: var(--coloured-deck-border-radius);
-}
-
-.search-command-listing > ul {
-  font-size: 1.0rem;
-  line-height: 1rem;
-  list-style-type: none;
-  padding-left: 0;
 }
 
 .search-command-visible {
