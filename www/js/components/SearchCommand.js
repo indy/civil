@@ -20,6 +20,7 @@ const KEY_DOWN_ENTER = 'key-down-enter';
 const KEY_DOWN_ESC = 'key-down-esc';
 const KEY_DOWN_COLON = 'key-down-colon';
 const KEY_DOWN_KEY = 'key-down-key';
+const KEY_DOWN_PLUS = 'key-down-plus';
 const REMOVE_SAVED_SEARCH_RESULT = 'remove-saved-search-result';
 
 function debugState(state) {
@@ -121,13 +122,33 @@ function reducer(state, action) {
             return state;
         }
 
-        const newState = {
-            ...state,
-            keyDownIndex: action.data.index,
-            shiftKey: action.data.shiftKey
-        };
+        const newState = {...state};
+
+        if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
+            newState.keyDownIndex = action.data.index;
+            newState.shiftKey = action.data.shiftKey;
+        }
 
         return newState;
+    }
+    case KEY_DOWN_PLUS: {
+        if (!state.isVisible) {
+            return state;
+        }
+
+        const newState = { ...state };
+        if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
+            newState.candidates.forEach(c => {
+                newState.savedSearchResults.push(c);
+            });
+
+            newState.shiftKey = true;
+            newState.keyDownIndex = -1;
+
+            return newState;
+        } else {
+            return newState;
+        }
     }
     case CANDIDATES_SET: return {
         ...state,
@@ -149,7 +170,6 @@ function reducer(state, action) {
             // just changed mode from command to search
             candidates = [];
         }
-
 
         if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
             const index = state.keyDownIndex;
@@ -238,6 +258,9 @@ export default function SearchCommand() {
             // digit: 1 -> 0, 2 -> 1, ... 9 -> 8       letter: a -> 9, b -> 10, ... z -> 34
             const index = (e.keyCode >= 49 && e.keyCode <= 57) ? e.keyCode - 49 : (e.keyCode - 65) + 9;
             localDispatch(KEY_DOWN_KEY, { index: index, shiftKey: e.shiftKey });
+        }
+        if (e.key === "+") {
+            localDispatch(KEY_DOWN_PLUS);
         }
     };
 
