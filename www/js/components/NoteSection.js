@@ -1,7 +1,7 @@
 import { html,  useState, useEffect, useRef } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
-import { svgEdit, svgCancel } from '/js/svgIcons.js';
+import { svgEdit, svgX } from '/js/svgIcons.js';
 import { useWasmInterface } from '/js/WasmInterfaceProvider.js';
 import { useStateValue } from '/js/StateProvider.js';
 
@@ -196,7 +196,7 @@ function NoteForm({ onSubmit, onCancel }) {
     <div class="left-margin">
       <div class="left-margin-entry clickable cancel-offset" onClick=${ onCancel }>
         <span class="left-margin-icon-label">Cancel</span>
-        ${ svgCancel() }
+        ${ svgX() }
       </div>
     </div>
     <form class="civil-add-note-form" onSubmit=${ onSubmit }>

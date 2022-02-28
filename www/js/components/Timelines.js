@@ -12,7 +12,7 @@ import { PointForm } from '/js/components/PointForm.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import { BasicListSection } from '/js/components/ListSections.js';
-import { svgPointAdd, svgCancel, svgCaretRight, svgCaretRightEmpty, svgCaretDown } from '/js/svgIcons.js';
+import { svgPointAdd, svgX, svgCaretRight, svgCaretRightEmpty, svgCaretDown } from '/js/svgIcons.js';
 import { WhenWritable } from '/js/components/WhenWritable.js';
 import { WhenVerbose } from '/js/components/WhenVerbose.js';
 
@@ -194,7 +194,7 @@ function ListPoints({ points, deckManager, holderId, holderName, showAddPointFor
           <div class="left-margin">
             <div class="left-margin-entry clickable" onClick=${ onAddPointClicked }>
               <span class="left-margin-icon-label">${ formSidebarText }</span>
-              ${ showAddPointForm ? svgCancel() : svgPointAdd() }
+              ${ showAddPointForm ? svgX() : svgPointAdd() }
             </div>
           </div>
         </${WhenVerbose}>

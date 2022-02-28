@@ -12,7 +12,7 @@ import { addChronologicalSortYear,
          filterAfter,
          filterBetween } from '/js/eras.js';
 import { svgPointAdd,
-         svgCancel,
+         svgX,
          svgCaretDown,
          svgCaretRight,
          svgCaretRightEmpty,
@@ -394,7 +394,7 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAdd
           <div class="left-margin">
             <div class="left-margin-entry clickable" onClick=${ onAddPointClicked }>
               <span class="left-margin-icon-label">${ formSidebarText }</span>
-              ${ showAddPointForm ? svgCancel() : svgPointAdd() }
+              ${ showAddPointForm ? svgX() : svgPointAdd() }
             </div>
           </div>
         </${WhenVerbose}>

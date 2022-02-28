@@ -1,6 +1,6 @@
 import { html, useState, useEffect, useRef } from '/lib/preact/mod.js';
 import { useStateValue } from '/js/StateProvider.js';
-import { svgCancel, svgImage } from '/js/svgIcons.js';
+import { svgX, svgImage } from '/js/svgIcons.js';
 
 import Net from '/js/Net.js';
 
@@ -130,7 +130,7 @@ export default function ImageWidget(props) {
              <div>
                <div class="left-margin">
                  <div class="left-margin-entry" onClick=${ onIconClicked }>
-                   ${ svgCancel() }
+                   ${ svgX() }
                  </div>
                </div>
                <div class="${containerClass}" ref=${dragArea}>
