@@ -342,6 +342,7 @@ export default function SearchCommand() {
             return html`
                 <div class="command-entry">
                     <span class="command-entry-name">${ entry.command }</span>
+                    <span> </span>
                     <span class="command-entry-desc">${ entry.description }</span>
                 </div>
             `;
