@@ -152,11 +152,20 @@ function reducer(state, action) {
         if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
             const index = state.keyDownIndex;
 
-            if (state.candidates.length > index) {
+            if (index >= 0 && state.candidates.length > index) {
                 const candidate = state.candidates[index];
 
                 if (state.shiftKey) {
-                    const newState = {...state};
+                    // once a candidate has been added to the saved search
+                    // results, set the keyDownIndex to an invalid value,
+                    // otherwise if the user presses shift and an unused
+                    // key (e.g. '+' ) then the last candidate to be added
+                    // will be added again.
+                    //
+                    const newState = {
+                        ...state,
+                        keyDownIndex: -1
+                    };
 
                     newState.savedSearchResults.push(candidate);
 
