@@ -627,12 +627,33 @@ textarea {
   width: 98%;
 }
 
-#saved-search-results {
-  background: white !important;
+#saved-search-component {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 19%;
+}
+
+.saved-search-menu {
+  display: flex;
+  flex-direction: row;
+  margin-left: 0.3rem;
+}
+
+.saved-search-menu-tip {
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  color: var(--fg-inactive);
+
+  margin: 0.4rem 0 0.2rem 1.2rem;
+
+  font-size: 1.0rem;
+  line-height: 1rem;
+  list-style-type: none;
+  padding-left: 0;
+}
+
+#saved-search-results {
+  background: white !important;
   max-height: 30rem;
   overflow: auto;
 }
@@ -1336,7 +1357,7 @@ input:required {
     float: none;
   }
 
-  #saved-search-results {
+  #saved-search-component {
     width: 100%;
   }
 }

@@ -1,6 +1,6 @@
 import { html, route, Link, useState, useEffect, useRef } from '/lib/preact/mod.js';
 
-import { svgX } from '/js/svgIcons.js';
+import { svgX, svgChevronDown, svgChevronUp } from '/js/svgIcons.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { createDeck, indexToShortcut } from '/js/CivilUtils.js';
@@ -22,6 +22,7 @@ const KEY_DOWN_COLON = 'key-down-colon';
 const KEY_DOWN_KEY = 'key-down-key';
 const KEY_DOWN_PLUS = 'key-down-plus';
 const REMOVE_SAVED_SEARCH_RESULT = 'remove-saved-search-result';
+const TOGGLE_SAVED_SEARCH_RESULT_LIST = 'toggle-saved-search-result-list';
 
 function debugState(state) {
     console.log(`mode: ${state.mode}, text: "${state.text}"`);
@@ -219,6 +220,13 @@ function reducer(state, action) {
 
         return newState;
     }
+    case TOGGLE_SAVED_SEARCH_RESULT_LIST: {
+        const newState = {
+            ...state,
+            minimisedSavedSearchResults: !state.minimisedSavedSearchResults
+        }
+        return newState;
+    }
     default: throw new Error(`unknown action: ${action}`);
     }
 }
@@ -238,7 +246,8 @@ export default function SearchCommand() {
         shiftKey: false,
         text: '',
         candidates: [],
-        savedSearchResults: []
+        savedSearchResults: [],
+        minimisedSavedSearchResults: false
     });
 
     function onKeyDown(e) {
@@ -384,10 +393,37 @@ export default function SearchCommand() {
             `;
         }
 
+        function clickedToggle(e) {
+            localDispatch(TOGGLE_SAVED_SEARCH_RESULT_LIST);
+        }
+
+        const savedSearchResults = local.savedSearchResults.map((entry, i) =>
+            html`<li key=${ i }>${ buildSavedSearchEntry(entry, i) }</li>`);
+
         return html`
-            <ul class="search-command-listing" id="saved-search-results">
-                ${ local.savedSearchResults.map((entry, i) => html`<li key=${ i }>${ buildSavedSearchEntry(entry, i) }</li>`) }
-            </ul>
+            <div id="saved-search-component">
+                ${ !local.minimisedSavedSearchResults && html`
+                    <ul class="search-command-listing" id="saved-search-results">
+                        ${ savedSearchResults }
+                    </ul>
+                `}
+
+                ${ local.minimisedSavedSearchResults ? html`
+                    <div class="saved-search-menu">
+                        <div onClick=${clickedToggle}>
+                            ${ svgChevronUp() }
+                        </div>
+                        <span class="saved-search-menu-tip">Maximise Saved Search Results</spand>
+                    </div>
+                ` : html`
+                    <div class="saved-search-menu">
+                        <div onClick=${clickedToggle}>
+                            ${ svgChevronDown() }
+                        </div>
+                        <span class="saved-search-menu-tip">Minimise Saved Search Results</spand>
+                    </div>
+                `}
+            </div>
         `;
     }
 
