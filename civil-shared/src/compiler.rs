@@ -33,7 +33,7 @@ pub fn compile_to_struct(nodes: &[Node]) -> Result<Vec<Element>> {
 
 fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
     let res = match node {
-        Node::Codeblock(lang, code) => {
+        Node::Codeblock(_, lang, code) => {
             let lang = if let Some(lang) = lang {
                 match lang {
                     CodeblockLanguage::Rust => "rust",
@@ -58,32 +58,37 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
                 ..Default::default()
             }]
         }
-        Node::BlockQuote(ns) => element_key("blockquote", key, ns)?,
-        Node::Highlight(ns) => element_key("mark", key, ns)?,
-        Node::ListItem(ns) => element_key("li", key, ns)?,
-        Node::MarginScribble(ns) => compile_sidenote("right-margin-scribble scribble-neutral", key, ns)?,
-        Node::MarginDisagree(ns) => compile_sidenote("right-margin-scribble scribble-disagree", key, ns)?,
-        Node::MarginText(ns) => compile_sidenote("right-margin", key, ns)?,
-        Node::OrderedList(ns, start) => compile_ordered_list(start, key, ns)?,
-        Node::Paragraph(ns) => element_key("p", key, ns)?,
-        Node::Quotation(ns) => element_key("em", key, ns)?,
-        Node::NumberedSidenote(ns) => compile_numbered_sidenote(key, ns)?,
-        Node::Strong(ns) => element_key("strong", key, ns)?,
-        Node::Text(text) => vec![Element {
+        Node::BlockQuote(_, ns) => element_key("blockquote", key, ns)?,
+        Node::Highlight(_, ns) => element_key_unpacked("mark", key, ns)?,
+        Node::ListItem(_, ns) => element_key("li", key, ns)?,
+        Node::MarginScribble(_, ns) => compile_sidenote("right-margin-scribble scribble-neutral", key, ns)?,
+        Node::MarginDisagree(_, ns) => compile_sidenote("right-margin-scribble scribble-disagree", key, ns)?,
+        Node::MarginText(_, numbered, ns) => {
+            if *numbered {
+                compile_numbered_sidenote(key, ns)?
+            } else {
+                compile_sidenote("right-margin", key, ns)?
+            }
+        }
+        Node::OrderedList(_, ns, start) => compile_ordered_list(start, key, ns)?,
+        Node::Paragraph(_, ns) => element_key("p", key, ns)?,
+        Node::Quotation(_, ns) => element_key_unpacked("em", key, ns)?,
+        Node::Strong(_, ns) => element_key_unpacked("strong", key, ns)?,
+        Node::Text(_, text) => vec![Element {
             name: String::from("text"),
             text: Some(String::from(text)),
             ..Default::default()
         }],
-        Node::Image(src) => vec![Element {
+        Node::Image(_, src) => vec![Element {
             name: String::from("img"),
             src: Some(String::from(src)),
             ..Default::default()
         }],
-        Node::Underlined(ns) => element_key_class("span", "underlined", key, ns)?,
-        Node::UnorderedList(ns) => element_key("ul", key, ns)?,
-        Node::Url(url, ns) => element_key_class_href("a", "note-inline-link", url, key, ns)?,
-        Node::HR => element_key("hr", key, &vec![])?,
-        Node::Header(level, ns) => header_key(*level, key, ns)?,
+        Node::Underlined(_, ns) => element_key_unpacked_class("span", "underlined", key, ns)?,
+        Node::UnorderedList(_, ns) => element_key("ul", key, ns)?,
+        Node::Url(_, url, ns) => element_key_class_href("a", "note-inline-link", url, key, ns)?,
+        Node::HorizontalRule(_) => element_key("hr", key, &vec![])?,
+        Node::Header(_, level, ns) => header_key(*level, key, ns)?,
     };
 
     Ok(res)
@@ -155,6 +160,12 @@ fn element_key(name: &str, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
     Ok(vec![e])
 }
 
+fn element_key_unpacked(name: &str, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
+    let e = element_base_unpacked(name, key, ns)?;
+
+    Ok(vec![e])
+}
+
 fn header_key(level: u32, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
     element_key(&format!("h{}", level.to_string()), key, ns)
 }
@@ -169,6 +180,14 @@ fn text_element(text: &str) -> Element {
 
 fn element_key_class(name: &str, class_name: &str, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
     let mut e = element_base(name, key, ns)?;
+
+    e.class_name = Some(String::from(class_name));
+
+    Ok(vec![e])
+}
+
+fn element_key_unpacked_class(name: &str, class_name: &str, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
+    let mut e = element_base_unpacked(name, key, ns)?;
 
     e.class_name = Some(String::from(class_name));
 
@@ -212,4 +231,34 @@ fn element_base(name: &str, key: usize, ns: &[Node]) -> Result<Element> {
         children: if ns.is_empty() { vec![] } else { compile_to_struct(ns)? },
         ..Default::default()
     })
+}
+
+fn element_base_unpacked(name: &str, key: usize, ns: &[Node]) -> Result<Element> {
+    if ns.len() == 1 {
+        match &ns[0] {
+            Node::Paragraph(_, pns) => Ok(Element {
+                name: String::from(name),
+                key: Some(key),
+                children: if pns.is_empty() {
+                    vec![]
+                } else {
+                    compile_to_struct(pns)?
+                },
+                ..Default::default()
+            }),
+            _ => Ok(Element {
+                name: String::from(name),
+                key: Some(key),
+                children: if ns.is_empty() { vec![] } else { compile_to_struct(ns)? },
+                ..Default::default()
+            }),
+        }
+    } else {
+        Ok(Element {
+            name: String::from(name),
+            key: Some(key),
+            children: if ns.is_empty() { vec![] } else { compile_to_struct(ns)? },
+            ..Default::default()
+        })
+    }
 }

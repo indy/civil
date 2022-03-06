@@ -21,16 +21,21 @@ mod element;
 mod error;
 mod lexer;
 mod parser;
-mod splitter;
 
 use compiler::compile_to_struct;
 use lexer::tokenize;
-use parser::parse;
-use splitter::split;
+use parser::{parse, Node};
 
 pub use colour::{Hsluv, Rgb};
 pub use element::Element;
 pub use error::{Error, Result};
+
+pub fn markup_as_ast(markup: &str) -> Result<Vec<Node>> {
+    let tokens = tokenize(markup)?;
+    let (_, nodes) = parse(&tokens)?;
+
+    Ok(nodes)
+}
 
 pub fn markup_as_struct(markup: &str) -> Result<Vec<Element>> {
     let tokens = tokenize(markup)?;
@@ -38,8 +43,4 @@ pub fn markup_as_struct(markup: &str) -> Result<Vec<Element>> {
     let html = compile_to_struct(&nodes)?;
 
     Ok(html)
-}
-
-pub fn split_markup(markup: &str) -> Result<Vec<String>> {
-    split(markup)
 }

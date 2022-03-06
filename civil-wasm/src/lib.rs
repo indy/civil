@@ -50,27 +50,26 @@ pub fn init_wasm() -> JsValue {
 }
 
 #[wasm_bindgen]
-pub fn markup_as_struct(markup: &str) -> JsValue {
-    match civil_shared::markup_as_struct(markup) {
+pub fn markup_as_ast(markup: &str) -> JsValue {
+    match civil_shared::markup_as_ast(markup) {
         Ok(res) => JsValue::from_serde(&res).unwrap(),
         Err(_) => {
-            error!("markup_compiler failed");
+            error!("markup_as_ast failed");
             JsValue::from_serde(&"error").unwrap()
         }
     }
 }
 
 #[wasm_bindgen]
-pub fn split_markup(markup: &str) -> JsValue {
-    match civil_shared::split_markup(markup) {
+pub fn markup_as_struct(markup: &str) -> JsValue {
+    match civil_shared::markup_as_struct(markup) {
         Ok(res) => JsValue::from_serde(&res).unwrap(),
         Err(_) => {
-            error!("markup_splitter failed");
+            error!("markup_as_struct failed");
             JsValue::from_serde(&"error").unwrap()
         }
     }
 }
-
 
 #[wasm_bindgen]
 pub struct Transport3C {

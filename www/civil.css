@@ -275,6 +275,11 @@ mark {
   background: var(--highlight);
 }
 
+.right-margin-pseudo-paragraph {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
 .right-margin-note,
 .right-margin,
 .right-margin-scribble {

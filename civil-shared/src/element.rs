@@ -28,7 +28,7 @@ pub struct Element {
     pub src: Option<String>,
     pub html_type: Option<String>,
     pub id: Option<String>,
-    pub start: Option<String>,  // for ol tag
+    pub start: Option<String>, // for ol tag
 
     pub children: Vec<Element>,
     pub text: Option<String>,

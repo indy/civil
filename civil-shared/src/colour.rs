@@ -77,7 +77,7 @@ struct InternalLinearRgb {
     r: f64,
     g: f64,
     b: f64,
-    alpha: f32
+    alpha: f32,
 }
 
 #[derive(Debug)]
@@ -122,7 +122,7 @@ struct InternalLch {
 
 impl Rgb {
     pub fn new(r: f32, g: f32, b: f32, alpha: f32) -> Self {
-        Rgb {r, b, g, alpha}
+        Rgb { r, b, g, alpha }
     }
 
     // hex in the form: "ff00ff"
@@ -207,7 +207,7 @@ impl From<&InternalLinearRgb> for Rgb {
 
 impl Hsluv {
     pub fn new(h: f32, s: f32, l: f32, alpha: f32) -> Self {
-        Hsluv {h, s, l, alpha}
+        Hsluv { h, s, l, alpha }
     }
 
     pub fn complementary(&self) -> Hsluv {
@@ -288,14 +288,14 @@ impl From<&InternalHsluv> for Hsluv {
             h: colour.h as f32,
             s: colour.s as f32,
             l: colour.l as f32,
-            alpha: colour.alpha
+            alpha: colour.alpha,
         }
     }
 }
 
 impl Oklab {
     pub fn new(l: f32, a: f32, b: f32, alpha: f32) -> Self {
-        Oklab {l, a, b, alpha}
+        Oklab { l, a, b, alpha }
     }
 }
 
@@ -337,7 +337,7 @@ impl From<&InternalOklab> for Oklab {
             l: colour.l as f32,
             a: colour.a as f32,
             b: colour.b as f32,
-            alpha: colour.alpha
+            alpha: colour.alpha,
         }
     }
 }
@@ -357,14 +357,18 @@ impl From<&InternalLinearRgb> for InternalOklab {
         let m_ = m.cbrt();
         let s_ = s.cbrt();
 
-        let okl = 0.2104542553*l_ + 0.7936177850*m_ - 0.0040720468*s_;
-        let oka = 1.9779984951*l_ - 2.4285922050*m_ + 0.4505937099*s_;
-        let okb = 0.0259040371*l_ + 0.7827717662*m_ - 0.8086757660*s_;
+        let okl = 0.2104542553 * l_ + 0.7936177850 * m_ - 0.0040720468 * s_;
+        let oka = 1.9779984951 * l_ - 2.4285922050 * m_ + 0.4505937099 * s_;
+        let okb = 0.0259040371 * l_ + 0.7827717662 * m_ - 0.8086757660 * s_;
 
-        InternalOklab { l: okl, a: oka, b: okb, alpha }
+        InternalOklab {
+            l: okl,
+            a: oka,
+            b: okb,
+            alpha,
+        }
     }
 }
-
 
 impl From<&InternalXyz> for InternalOklab {
     fn from(colour: &InternalXyz) -> InternalOklab {
@@ -385,7 +389,12 @@ impl From<&InternalXyz> for InternalOklab {
         let oka = (ll * 1.9779984951) - (mm * 2.4285922050) + (ss * 0.4505937099);
         let okb = (ll * 0.0259040371) + (mm * 0.7827717662) - (ss * 0.8086757660);
 
-        InternalOklab { l: okl, a: oka, b: okb, alpha }
+        InternalOklab {
+            l: okl,
+            a: oka,
+            b: okb,
+            alpha,
+        }
     }
 }
 
@@ -395,7 +404,7 @@ impl From<&Oklab> for InternalOklab {
             l: f64::from(colour.l),
             a: f64::from(colour.a),
             b: f64::from(colour.b),
-            alpha: colour.alpha
+            alpha: colour.alpha,
         }
     }
 }
@@ -450,7 +459,12 @@ impl From<&InternalLuv> for InternalXyz {
         let alpha = colour.alpha;
 
         if l <= 0.000_000_01 {
-            return InternalXyz { x: 0.0, y: 0.0, z: 0.0, alpha };
+            return InternalXyz {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+                alpha,
+            };
         }
 
         let var_u = u / (13.0 * l) + REF_U;
@@ -477,7 +491,7 @@ impl From<&Hsluv> for InternalHsluv {
             h: f64::from(colour.h),
             s: f64::from(colour.s),
             l: f64::from(colour.l),
-            alpha: colour.alpha
+            alpha: colour.alpha,
         }
     }
 }
@@ -525,13 +539,13 @@ impl From<&InternalOklab> for InternalLinearRgb {
         let m_ = okl - 0.1055613458 * oka - 0.0638541728 * okb;
         let s_ = okl - 0.0894841775 * oka - 1.2914855480 * okb;
 
-        let l = l_*l_*l_;
-        let m = m_*m_*m_;
-        let s = s_*s_*s_;
+        let l = l_ * l_ * l_;
+        let m = m_ * m_ * m_;
+        let s = s_ * s_ * s_;
 
-        let r = 4.0767245293*l - 3.3072168827*m + 0.2307590544*s;
-        let g = - 1.2681437731*l + 2.6093323231*m - 0.3411344290*s;
-        let b = - 0.0041119885*l - 0.7034763098*m + 1.7068625689*s;
+        let r = 4.0767245293 * l - 3.3072168827 * m + 0.2307590544 * s;
+        let g = -1.2681437731 * l + 2.6093323231 * m - 0.3411344290 * s;
+        let b = -0.0041119885 * l - 0.7034763098 * m + 1.7068625689 * s;
 
         InternalLinearRgb { r, g, b, alpha }
     }
@@ -566,7 +580,12 @@ impl From<&InternalXyz> for InternalLuv {
         let v = 13.0 * l * (var_v - REF_V);
 
         if l < 0.000_000_01 {
-            InternalLuv { l, u: 0.0, v: 0.0, alpha }
+            InternalLuv {
+                l,
+                u: 0.0,
+                v: 0.0,
+                alpha,
+            }
         } else {
             InternalLuv { l, u, v, alpha }
         }
@@ -602,9 +621,9 @@ impl From<&InternalHsluv> for InternalLch {
         };
 
         if s < 0.000_000_01 {
-            InternalLch{ l, c, h: 0.0, alpha }
+            InternalLch { l, c, h: 0.0, alpha }
         } else {
-            InternalLch{ l, c, h, alpha }
+            InternalLch { l, c, h, alpha }
         }
     }
 }
@@ -699,11 +718,7 @@ struct Bounds {
 fn get_bounds(l: f64, bounds: &mut [Bounds]) {
     let tl = l + 16.0;
     let sub1 = (tl * tl * tl) / 1_560_896.0;
-    let sub2 = if sub1 > CIE_EPSILON {
-        sub1
-    } else {
-        l / CIE_KAPPA
-    };
+    let sub2 = if sub1 > CIE_EPSILON { sub1 } else { l / CIE_KAPPA };
 
     let mut m = [[0f64; 3]; 3];
     m[0][0] = 3.240_969_941_904_521_343_77;
@@ -723,8 +738,7 @@ fn get_bounds(l: f64, bounds: &mut [Bounds]) {
 
         for t in 0..2 {
             let top1 = (284_517.0 * m1 - 94_839.0 * m3) * sub2;
-            let top2 = (838_422.0 * m3 + 769_860.0 * m2 + 731_718.0 * m1) * l * sub2
-                - 769_860.0 * (t as f64) * l;
+            let top2 = (838_422.0 * m3 + 769_860.0 * m2 + 731_718.0 * m1) * l * sub2 - 769_860.0 * (t as f64) * l;
             let bottom = (632_260.0 * m3 - 126_452.0 * m2) * sub2 + 126_452.0 * (t as f64);
 
             bounds[channel * 2 + t].a = top1 / bottom;
@@ -774,27 +788,21 @@ mod tests {
 
     fn f64_within(a: f64, b: f64, msg: &'static str) {
         const TOLERANCE_64: f64 = 0.005;
-        assert!(
-            (a - b).abs() < TOLERANCE_64,
-            format!("{} expected: {}, actual: {}", msg, b, a)
-        )
+        assert!((a - b).abs() < TOLERANCE_64, "{} expected: {}, actual: {}", msg, b, a)
     }
 
     fn f32_within(a: f32, b: f32, msg: &'static str) {
         const TOLERANCE_32: f32 = 0.005;
-        assert!(
-            (a - b).abs() < TOLERANCE_32,
-            format!("{} expected: {}, actual: {}", msg, b, a)
-        )
+        assert!((a - b).abs() < TOLERANCE_32, "{} expected: {}, actual: {}", msg, b, a)
     }
 
-    fn assert_rgb(rgb: &Rgb, expected: [f32;3]) {
+    fn assert_rgb(rgb: &Rgb, expected: [f32; 3]) {
         f32_within(rgb.r, expected[0], "r");
         f32_within(rgb.g, expected[1], "g");
         f32_within(rgb.b, expected[2], "b");
     }
 
-    fn assert_hsluv(hsluv: &Hsluv, expected: [f32;3]) {
+    fn assert_hsluv(hsluv: &Hsluv, expected: [f32; 3]) {
         f32_within(hsluv.h, expected[0], "h");
         f32_within(hsluv.s, expected[1], "s");
         f32_within(hsluv.l, expected[2], "l");
@@ -806,12 +814,12 @@ mod tests {
         assert_rgb(&rgb, [1.0, 0.0, 1.0]);
     }
 
-    fn assert_equal_f64(a: f64, b: f64) {
-        let diff = (a - b).abs();
-        let delta: f64 = 0.0001;
+    // fn assert_equal_f64(a: f64, b: f64) {
+    //     let diff = (a - b).abs();
+    //     let delta: f64 = 0.0001;
 
-        assert!(diff < delta, "a = {}, b = {}", a, b);
-    }
+    //     assert!(diff < delta, "a = {}, b = {}", a, b);
+    // }
 
     // fn compare_oklab_from_linear_rgb(r: f64, g: f64, b: f64) {
     //     // making sure that the following lines are equivalent:
@@ -868,8 +876,7 @@ mod tests {
         compare_oklab_reversability(1.0, 1.0, 1.0);
     }
 
-
-    fn test_rgb_hsluv_conversions(hex: &str, rgb: [f32;3], hsluv: [f32;3]) {
+    fn test_rgb_hsluv_conversions(hex: &str, rgb: [f32; 3], hsluv: [f32; 3]) {
         let rgbcol = Rgb::from_rgb_hex(hex).unwrap();
         assert_rgb(&rgbcol, rgb);
 
@@ -882,13 +889,16 @@ mod tests {
 
     #[test]
     fn test_known_conversions() {
-        test_rgb_hsluv_conversions("11ee00",
-                                   [0.0666666666666666657, 0.933333333333333348, 0.0], // rgb
-                                   [127.478988192005161, 100.000000000002416, 82.5213119008325577] // hsluv
+        test_rgb_hsluv_conversions(
+            "11ee00",
+            [0.0666666666666666657, 0.933333333333333348, 0.0], // rgb
+            [127.478988192005161, 100.000000000002416, 82.5213119008325577], // hsluv
         );
 
-        test_rgb_hsluv_conversions("11ee55",
-                                   [0.0666666666666666657,0.933333333333333348,0.333333333333333315],
-                                   [131.587310643629934,98.941589727101146,82.8716000285422894]);
+        test_rgb_hsluv_conversions(
+            "11ee55",
+            [0.0666666666666666657, 0.933333333333333348, 0.333333333333333315],
+            [131.587310643629934, 98.941589727101146, 82.8716000285422894],
+        );
     }
 }

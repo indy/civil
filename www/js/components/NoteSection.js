@@ -219,7 +219,9 @@ function NoteForm({ onSubmit, onCancel }) {
 
 function addNote(markup, deck_id, noteKind, optional_point_id) {
     const wasmInterface = useWasmInterface();
+
     const notes = wasmInterface.splitter(markup);
+    // notes.forEach(n => console.log(n));
 
     if (notes === null) {
         console.error(markup);

@@ -20,9 +20,30 @@ export default function buildMarkup(content, imageDirectory) {
         return res;
     }
 
-    function compile(n) {
-        return n.name === "text" ? n.text : h(n.name, attrs(n), ...n.children.map(compile));
+    function assignPseudoParagraph(klass) {
+        let c = klass || "";
+        c += " right-margin-pseudo-paragraph";
+        return c.trim();
     }
 
-    return astArray.map(compile);
+    function compile(n, pDepth) {
+        if (n.name === "text") {
+            return n.text;
+        } else if(n.name === "p") {
+            if (pDepth > 0) {
+                // we have a nested paragraph (e.g. text in the right-hand margin created by the pipe syntax)
+                // as html's <p> tag cannot be nested, use a span with a custom class
+                //
+                let modified_attrs = attrs(n);
+                modified_attrs.class = assignPseudoParagraph(modified_attrs.class);
+                return h("span", modified_attrs, ...n.children.map(child => { return compile(child, pDepth + 1)}));
+            } else {
+                return h(n.name, attrs(n), ...n.children.map(child => { return compile(child, pDepth + 1)}));
+            }
+        } else {
+            return h(n.name, attrs(n), ...n.children.map(child => { return compile(child, pDepth)}));
+        }
+    }
+
+    return astArray.map(node => { return compile(node, 0)});
 }

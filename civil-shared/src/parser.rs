@@ -16,52 +16,75 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::{Error, Result};
-use crate::lexer::{get_token_value, Token, TokenIdent};
+use crate::lexer::{get_token_pos, get_token_value, split_tokens_at, Token, TokenIdent};
+use serde_derive::Serialize;
 use strum_macros::EnumDiscriminants;
 
 // a result type that returns a tuple of the remaining tokens as well as the given return value
 pub type ParserResult<'a, T> = Result<(&'a [Token<'a>], T)>;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Serialize, PartialEq, Eq)]
 pub enum CodeblockLanguage {
     Rust,
 }
 
-#[derive(Debug, EnumDiscriminants)]
+#[derive(Debug, Serialize, EnumDiscriminants)]
 #[strum_discriminants(name(NodeIdent))]
 pub enum Node {
-    Codeblock(Option<CodeblockLanguage>, String),
-    BlockQuote(Vec<Node>),
-    HR,
-    Header(u32, Vec<Node>),
-    Highlight(Vec<Node>),
-    Image(String),
-    ListItem(Vec<Node>),
-    MarginScribble(Vec<Node>),
-    MarginDisagree(Vec<Node>),
-    MarginText(Vec<Node>),
-    OrderedList(Vec<Node>, String),
-    Paragraph(Vec<Node>),
-    Quotation(Vec<Node>),
-    NumberedSidenote(Vec<Node>),
-    Strong(Vec<Node>),
-    Text(String),
-    Underlined(Vec<Node>),
-    UnorderedList(Vec<Node>),
-    Url(String, Vec<Node>),
+    Codeblock(usize, Option<CodeblockLanguage>, String),
+    BlockQuote(usize, Vec<Node>),
+    HorizontalRule(usize),
+    Header(usize, u32, Vec<Node>),
+    Highlight(usize, Vec<Node>),
+    Image(usize, String),
+    ListItem(usize, Vec<Node>),
+    MarginScribble(usize, Vec<Node>),
+    MarginDisagree(usize, Vec<Node>),
+    MarginText(usize, bool, Vec<Node>),
+    OrderedList(usize, Vec<Node>, String),
+    Paragraph(usize, Vec<Node>),
+    Quotation(usize, Vec<Node>),
+    Strong(usize, Vec<Node>),
+    Text(usize, String),
+    Underlined(usize, Vec<Node>),
+    UnorderedList(usize, Vec<Node>),
+    Url(usize, String, Vec<Node>),
 }
 
-pub(crate) fn is_numbered_list_item(tokens: &'_ [Token]) -> bool {
+fn get_node_pos(node: &Node) -> usize {
+    match node {
+        Node::Codeblock(pos, _, _) => *pos,
+        Node::BlockQuote(pos, _) => *pos,
+        Node::HorizontalRule(pos) => *pos,
+        Node::Header(pos, _, _) => *pos,
+        Node::Highlight(pos, _) => *pos,
+        Node::Image(pos, _) => *pos,
+        Node::ListItem(pos, _) => *pos,
+        Node::MarginScribble(pos, _) => *pos,
+        Node::MarginDisagree(pos, _) => *pos,
+        Node::MarginText(pos, _, _) => *pos,
+        Node::OrderedList(pos, _, _) => *pos,
+        Node::Paragraph(pos, _) => *pos,
+        Node::Quotation(pos, _) => *pos,
+        Node::Strong(pos, _) => *pos,
+        Node::Text(pos, _) => *pos,
+        Node::Underlined(pos, _) => *pos,
+        Node::UnorderedList(pos, _) => *pos,
+        Node::Url(pos, _, _) => *pos,
+    }
+}
+
+fn is_numbered_list_item(tokens: &'_ [Token]) -> bool {
     is_token_at_index(tokens, 0, TokenIdent::Digits)
         && is_token_at_index(tokens, 1, TokenIdent::Period)
         && is_token_at_index(tokens, 2, TokenIdent::Whitespace)
 }
 
-pub(crate) fn is_unordered_list_item(tokens: &'_ [Token]) -> bool {
+fn is_unordered_list_item(tokens: &'_ [Token]) -> bool {
     is_token_at_index(tokens, 0, TokenIdent::Hyphen) && is_token_at_index(tokens, 1, TokenIdent::Whitespace)
 }
 
-pub(crate) fn is_codeblock(tokens: &'_ [Token]) -> bool {
+fn is_codeblock(tokens: &'_ [Token]) -> bool {
     let len = tokens.len();
     is_token_at_index(tokens, 0, TokenIdent::BackTick)
         && is_token_at_index(tokens, 1, TokenIdent::BackTick)
@@ -71,13 +94,7 @@ pub(crate) fn is_codeblock(tokens: &'_ [Token]) -> bool {
         && is_token_at_index(tokens, len - 1, TokenIdent::BackTick)
 }
 
-pub(crate) fn is_codeblock_start(tokens: &'_ [Token]) -> bool {
-    is_token_at_index(tokens, 0, TokenIdent::BackTick)
-        && is_token_at_index(tokens, 1, TokenIdent::BackTick)
-        && is_token_at_index(tokens, 2, TokenIdent::BackTick)
-}
-
-pub(crate) fn is_hr(tokens: &'_ [Token]) -> bool {
+fn is_horizontal_rule(tokens: &'_ [Token]) -> bool {
     is_token_at_index(tokens, 0, TokenIdent::Hash)
         && is_token_at_index(tokens, 1, TokenIdent::Hyphen)
         && (is_token_at_index(tokens, 2, TokenIdent::EOS)
@@ -110,10 +127,10 @@ fn heading_text<'a>(s: &'a str) -> Option<(u32, &'a str)> {
     }
 }
 
-pub(crate) fn is_heading(tokens: &'_ [Token]) -> bool {
+fn is_heading(tokens: &'_ [Token]) -> bool {
     if is_token_at_index(tokens, 0, TokenIdent::Hash) && is_token_at_index(tokens, 1, TokenIdent::Text) {
         match tokens[1] {
-            Token::Text(s) => {
+            Token::Text(_, s) => {
                 if let Some((_level, h)) = heading_text(s) {
                     h.len() > 0
                 } else {
@@ -127,15 +144,11 @@ pub(crate) fn is_heading(tokens: &'_ [Token]) -> bool {
     }
 }
 
-pub(crate) fn is_img(tokens: &'_ [Token]) -> bool {
+fn is_img(tokens: &'_ [Token]) -> bool {
     is_at_specifier(tokens) && is_text_at_index(tokens, 1, "img")
 }
 
-pub(crate) fn is_eos(tokens: &'_ [Token]) -> bool {
-    is_token_at_index(tokens, 0, TokenIdent::EOS)
-}
-
-pub(crate) fn is_blockquote_start<'a>(tokens: &'a [Token<'a>]) -> bool {
+fn is_blockquote_start<'a>(tokens: &'a [Token<'a>]) -> bool {
     is_token_at_index(tokens, 0, TokenIdent::BlockquoteBegin)
 }
 
@@ -155,7 +168,7 @@ pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
             eat_unordered_list(tokens, None)?
         } else if is_codeblock(tokens) {
             eat_codeblock(tokens)?
-        } else if is_hr(tokens) {
+        } else if is_horizontal_rule(tokens) {
             eat_hash(tokens)?
         } else if is_heading(tokens) {
             eat_hash(tokens)?
@@ -181,13 +194,11 @@ fn eat_ordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>
     // tokens should be at a digit, this is the starting number for the ordered list
     let starts: String;
     match tokens[0] {
-        Token::Digits(s) => {
-            starts = s.to_string()
-        },
-        _ => {
-            return Err(Error::Parser)
-        }
+        Token::Digits(_, s) => starts = s.to_string(),
+        _ => return Err(Error::Parser),
     }
+
+    let ordered_list_pos = get_token_pos(&tokens[0]);
 
     while !tokens.is_empty() && !is_head_option(tokens, halt_at) {
         tokens = &tokens[3..]; // digits, period, whitespace
@@ -196,7 +207,7 @@ fn eat_ordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>
         tokens = remaining;
 
         if !list_item_children.is_empty() {
-            let li = Node::ListItem(list_item_children);
+            let li = Node::ListItem(get_node_pos(&list_item_children[0]), list_item_children);
             children.push(li);
         }
 
@@ -205,11 +216,13 @@ fn eat_ordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>
         }
     }
 
-    Ok((tokens, Node::OrderedList(children, starts)))
+    Ok((tokens, Node::OrderedList(ordered_list_pos, children, starts)))
 }
 
 fn eat_unordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>) -> ParserResult<Node> {
     let mut children: Vec<Node> = vec![];
+
+    let unordered_list_pos = get_token_pos(&tokens[0]);
 
     while !tokens.is_empty() && !is_head_option(tokens, halt_at) {
         tokens = &tokens[2..]; // hyphen, whitespace
@@ -218,7 +231,7 @@ fn eat_unordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIden
         tokens = remaining;
 
         if !list_item_children.is_empty() {
-            let li = Node::ListItem(list_item_children);
+            let li = Node::ListItem(get_node_pos(&list_item_children[0]), list_item_children);
             children.push(li);
         }
 
@@ -227,12 +240,12 @@ fn eat_unordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIden
         }
     }
 
-    Ok((tokens, Node::UnorderedList(children)))
+    Ok((tokens, Node::UnorderedList(unordered_list_pos, children)))
 }
 
 fn eat_paragraph<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
     let (remaining, children) = eat_to_newline(tokens, None)?;
-    Ok((remaining, Node::Paragraph(children)))
+    Ok((remaining, Node::Paragraph(get_node_pos(&children[0]), children)))
 }
 
 fn eat_to_newline<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>) -> ParserResult<Vec<Node>> {
@@ -251,46 +264,71 @@ fn eat_to_newline<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>) 
     Ok((tokens, nodes))
 }
 
-fn eat_item_until<'a>(tokens: &'a [Token], halt_at: TokenIdent) -> ParserResult<'a, Node> {
-    if is_numbered_list_item(tokens) {
-        eat_ordered_list(tokens, Some(halt_at))
-    } else if is_unordered_list_item(tokens) {
-        eat_unordered_list(tokens, Some(halt_at))
-    } else if is_codeblock(tokens) {
-        eat_codeblock(tokens)
-    } else if is_hr(tokens) {
-        eat_hash(tokens)
-    } else if is_heading(tokens) {
-        eat_hash(tokens)
-    } else {
-        eat_item(tokens)
+fn inside_pair<'a>(tokens: &'a [Token]) -> ParserResult<'a, Vec<Node>> {
+    // derive the tokenIdent from the first token
+    let ident = Into::<TokenIdent>::into(&tokens[0]);
+
+    let (within, outside) = split_tokens_at(&tokens[1..], ident)?;
+
+    let (remaining, within_nodes) = parse(within)?;
+    if !remaining.is_empty() {
+        // parse is unable to process all the content within the pair
+        return Err(Error::Parser);
     }
+
+    Ok((outside, within_nodes))
 }
 
 fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
     match tokens[0] {
-        Token::At => eat_at(tokens),
-        Token::Asterisk => eat_matching_pair(tokens, TokenIdent::Asterisk, NodeIdent::Strong),
-        Token::BackTick => eat_codeblock(tokens),
-        Token::BracketBegin => eat_text_including(tokens),
-        Token::BracketEnd => eat_text_including(tokens),
-        Token::Caret => eat_matching_pair(tokens, TokenIdent::Caret, NodeIdent::Highlight),
-        Token::DoubleQuote => eat_matching_pair(tokens, TokenIdent::DoubleQuote, NodeIdent::Quotation),
-        Token::Hash => eat_hash(tokens),
-        Token::Pipe => eat_pipe(tokens),
-        Token::Underscore => eat_matching_pair(tokens, TokenIdent::Underscore, NodeIdent::Underlined),
+        Token::At(_) => eat_at(tokens),
+        Token::Asterisk(pos) => {
+            if let Ok((toks, inside)) = inside_pair(tokens) {
+                Ok((toks, Node::Strong(pos, inside)))
+            } else {
+                eat_text_including(tokens)
+            }
+        }
+        Token::BackTick(_) => eat_codeblock(tokens),
+        Token::BracketBegin(_) => eat_text_including(tokens),
+        Token::BracketEnd(_) => eat_text_including(tokens),
+        Token::Caret(pos) => {
+            if let Ok((toks, inside)) = inside_pair(tokens) {
+                Ok((toks, Node::Highlight(pos, inside)))
+            } else {
+                eat_text_including(tokens)
+            }
+        }
+        Token::DoubleQuote(pos) => {
+            if let Ok((toks, inside)) = inside_pair(tokens) {
+                Ok((toks, Node::Quotation(pos, inside)))
+            } else {
+                eat_text_including(tokens)
+            }
+        }
+        Token::Hash(_) => eat_hash(tokens),
+        Token::Pipe(_) => eat_pipe(tokens),
+        Token::Underscore(pos) => {
+            if let Ok((toks, inside)) = inside_pair(tokens) {
+                Ok((toks, Node::Underlined(pos, inside)))
+            } else {
+                eat_text_including(tokens)
+            }
+        }
         _ => eat_text(tokens),
     }
 }
 
 fn eat_img<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let pos = get_token_pos(&tokens[0]);
     let (tokens, (image_name, _description)) = eat_as_resource_description_pair(tokens)?;
-    return Ok((tokens, Node::Image(image_name.to_string())));
+    return Ok((tokens, Node::Image(pos, image_name.to_string())));
 }
 
 fn eat_url<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let pos = get_token_pos(&tokens[0]);
     let (tokens, (url, description)) = eat_as_resource_description_pair(tokens)?;
-    return Ok((tokens, Node::Url(url.to_string(), description)));
+    return Ok((tokens, Node::Url(pos, url.to_string(), description)));
 }
 
 fn eat_hash<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
@@ -300,6 +338,7 @@ fn eat_hash<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     // Hash, 'h', Whitespace, (Text), EOS | EOL
     // "#h this is a heading"
 
+    let pos = get_token_pos(&tokens[0]);
     if is_token_at_index(tokens, 1, TokenIdent::Hyphen) {
         if is_token_at_index(tokens, 2, TokenIdent::EOS)
             || is_token_at_index(tokens, 2, TokenIdent::Whitespace)
@@ -309,12 +348,12 @@ fn eat_hash<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
         } else {
             tokens = &tokens[2..];
         }
-        Ok((tokens, Node::HR))
+        Ok((tokens, Node::HorizontalRule(pos)))
     } else if is_token_at_index(tokens, 1, TokenIdent::Text) {
         match tokens[1] {
-            Token::Text(s) => {
+            Token::Text(text_pos, s) => {
                 if let Some((level, h)) = heading_text(s) {
-                    let mut header_children = vec![Node::Text(h.to_string())];
+                    let mut header_children = vec![Node::Text(text_pos, h.to_string())];
                     tokens = &tokens[2..];
 
                     // if the header markup contained something like:
@@ -327,7 +366,7 @@ fn eat_hash<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
                     let (toks, mut other_nodes) = eat_to_newline(tokens, None)?;
                     header_children.append(&mut other_nodes);
 
-                    Ok((toks, Node::Header(level, header_children)))
+                    Ok((toks, Node::Header(pos, level, header_children)))
                 } else {
                     eat_text_including(tokens)
                 }
@@ -346,6 +385,8 @@ fn eat_codeblock<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     {
         return eat_text_including(tokens);
     }
+
+    let pos = get_token_pos(&tokens[0]);
 
     tokens = &tokens[3..]; // opening backticks
 
@@ -378,7 +419,17 @@ fn eat_codeblock<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
         tokens = &tokens[3..];
     }
 
-    Ok((tokens, Node::Codeblock(language, code)))
+    Ok((tokens, Node::Codeblock(pos, language, code)))
+}
+
+fn parse_pipe_content<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
+    let (within_pipe, outside_pipe) = split_tokens_at(tokens, TokenIdent::Pipe)?;
+    let (remaining, within_pipe_nodes) = parse(within_pipe)?;
+    if !remaining.is_empty() {
+        // parse is unable to process all the pipe content
+        return Err(Error::Parser);
+    }
+    Ok((outside_pipe, within_pipe_nodes))
 }
 
 fn eat_pipe<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
@@ -386,23 +437,38 @@ fn eat_pipe<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
         // two pipes, treat this as text (e.g. could be part of code snippet)
         eat_text_including(tokens)
     } else if remaining_tokens_contain(tokens, TokenIdent::Pipe) {
+        let pos = get_token_pos(&tokens[0]);
+
         if is_token_at_index(tokens, 1, TokenIdent::Hash) {
             if is_token_at_index(tokens, 2, TokenIdent::Hash) {
-                tokens = &tokens[2..]; // eat the opening PIPE and 1st HASH,
-                let (toks, children) = eat_list(tokens, TokenIdent::Pipe)?;
-                Ok((toks, Node::MarginDisagree(children)))
+                tokens = &tokens[3..]; // eat the opening PIPE and the two HASH tokens,
+                tokens = skip_leading_whitespace(tokens)?;
+
+                let (tokens, within_pipe_nodes) = parse_pipe_content(tokens)?;
+
+                Ok((tokens, Node::MarginDisagree(pos, within_pipe_nodes)))
             } else {
-                tokens = &tokens[1..]; // eat the opening PIPE,
-                let (toks, children) = eat_list(tokens, TokenIdent::Pipe)?;
-                Ok((toks, Node::MarginScribble(children)))
+                tokens = &tokens[2..]; // eat the opening PIPE and HASH,
+                tokens = skip_leading_whitespace(tokens)?;
+
+                let (tokens, within_pipe_nodes) = parse_pipe_content(tokens)?;
+
+                Ok((tokens, Node::MarginScribble(pos, within_pipe_nodes)))
             }
         } else if is_token_at_index(tokens, 1, TokenIdent::Tilde) {
-            tokens = &tokens[1..]; // eat the opening PIPE,
-            let (toks, children) = eat_list(tokens, TokenIdent::Pipe)?;
-            Ok((toks, Node::MarginText(children)))
+            tokens = &tokens[2..]; // eat the opening PIPE and TILDE,
+            tokens = skip_leading_whitespace(tokens)?;
+
+            let (tokens, within_pipe_nodes) = parse_pipe_content(tokens)?;
+
+            Ok((tokens, Node::MarginText(pos, false, within_pipe_nodes)))
         } else {
-            let (toks, children) = eat_list(tokens, TokenIdent::Pipe)?;
-            Ok((toks, Node::NumberedSidenote(children)))
+            tokens = &tokens[1..]; // eat the opening PIPE
+            tokens = skip_leading_whitespace(tokens)?;
+
+            let (tokens, within_pipe_nodes) = parse_pipe_content(tokens)?;
+
+            Ok((tokens, Node::MarginText(pos, true, within_pipe_nodes)))
         }
     } else {
         eat_text_including(tokens)
@@ -415,16 +481,17 @@ fn is_at_specifier<'a>(tokens: &'a [Token<'a>]) -> bool {
         && is_token_at_index(tokens, 2, TokenIdent::ParenBegin)
 }
 
+// @nocheckin: check that the pos values are correct, they're probably not.
 fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> Result<(Token<'a>, Option<Token<'a>>)> {
     match text_token {
-        Token::Text(s) => {
-            let tokens: Vec<Token<'a>> = s.split_whitespace().map(|chars| Token::Text(chars)).collect();
+        Token::Text(p, s) => {
+            let tokens: Vec<Token<'a>> = s.split_whitespace().map(|chars| Token::Text(p, chars)).collect();
             let t = &tokens[0];
             match t {
-                Token::Text(u) => {
+                Token::Text(p, u) => {
                     if let Some(remaining_text) = s.strip_prefix(u) {
                         if remaining_text.len() > 0 {
-                            Ok((*t, Some(Token::Text(remaining_text.trim_start()))))
+                            Ok((*t, Some(Token::Text(*p, remaining_text.trim_start()))))
                         } else {
                             Ok((*t, None))
                         }
@@ -438,6 +505,8 @@ fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> Result<(Token<'a
         _ => Err(Error::Parser),
     }
 }
+
+// @nocheckin: this whole thing looks really lame, what is going on? why is the parser creating tokens?
 
 // treat every token as Text until we get to a token of the given type
 fn eat_as_resource_description_pair<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<(String, Vec<Node>)> {
@@ -453,11 +522,13 @@ fn eat_as_resource_description_pair<'a>(mut tokens: &'a [Token<'a>]) -> ParserRe
 
     while !tokens.is_empty() {
         if is_head(tokens, TokenIdent::ParenBegin) {
+            let pos = get_token_pos(&tokens[0]);
             paren_balancer += 1;
             tokens = &tokens[1..];
-            inner_tokens.push(Token::ParenBegin);
+            inner_tokens.push(Token::ParenBegin(pos));
         } else if is_head(tokens, TokenIdent::ParenEnd) {
             paren_balancer -= 1;
+            let pos = get_token_pos(&tokens[0]);
             tokens = &tokens[1..];
 
             if paren_balancer == 0 {
@@ -465,14 +536,14 @@ fn eat_as_resource_description_pair<'a>(mut tokens: &'a [Token<'a>]) -> ParserRe
                 break;
             }
 
-            inner_tokens.push(Token::ParenEnd);
+            inner_tokens.push(Token::ParenEnd(pos));
         } else if is_head(tokens, TokenIdent::Text) && !encountered_first_whitespace {
             let (first_text_token, other_tokens) = split_text_token_at_whitespace(tokens[0])?;
 
             inner_tokens.push(first_text_token);
             if let Some(t) = other_tokens {
                 encountered_first_whitespace = true;
-                inner_tokens.push(Token::Whitespace(&ws));
+                inner_tokens.push(Token::Whitespace(get_token_pos(&t), &ws));
                 whitespace_index = inner_tokens.len();
                 inner_tokens.push(t);
             }
@@ -497,13 +568,16 @@ fn eat_as_resource_description_pair<'a>(mut tokens: &'a [Token<'a>]) -> ParserRe
 
         Ok((tokens, (res, children)))
     } else {
+        let pos = get_token_pos(&inner_tokens[0]);
         let (_, url_as_string) = eat_string(&inner_tokens, TokenIdent::EOS)?;
 
-        Ok((tokens, (url_as_string.clone(), vec![Node::Text(url_as_string)])))
+        Ok((tokens, (url_as_string.clone(), vec![Node::Text(pos, url_as_string)])))
     }
 }
 
 fn eat_blockquote<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let pos = get_token_pos(&tokens[0]);
+
     tokens = &tokens[1..]; // skip past the BlockquoteBegin token
 
     let (remaining, nodes) = parse(tokens)?;
@@ -512,14 +586,14 @@ fn eat_blockquote<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
 
     let rem = skip_leading_whitespace_and_newlines(&remaining)?;
 
-    Ok((&rem, Node::BlockQuote(nodes)))
+    Ok((&rem, Node::BlockQuote(pos, nodes)))
 }
 
 fn eat_at<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     if is_at_specifier(tokens) {
         match tokens[1] {
-            Token::Text("img") => return eat_img(tokens),
-            Token::Text("url") => return eat_url(tokens),
+            Token::Text(_, "img") => return eat_img(tokens),
+            Token::Text(_, "url") => return eat_url(tokens),
             _ => (),
         }
     }
@@ -527,24 +601,7 @@ fn eat_at<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     eat_text_including(tokens)
 }
 
-fn eat_matching_pair<'a>(tokens: &'a [Token<'a>], halt_at: TokenIdent, node_ident: NodeIdent) -> ParserResult<Node> {
-    if remaining_tokens_contain(tokens, halt_at) {
-        let (toks, children) = eat_list(tokens, halt_at)?;
-
-        let node = match node_ident {
-            NodeIdent::Strong => Node::Strong(children),
-            NodeIdent::Highlight => Node::Highlight(children),
-            NodeIdent::Quotation => Node::Quotation(children),
-            NodeIdent::Underlined => Node::Underlined(children),
-            _ => return Err(Error::Parser),
-        };
-
-        Ok((toks, node))
-    } else {
-        eat_text_including(tokens)
-    }
-}
-
+// ignores the first token
 fn remaining_tokens_contain<'a>(tokens: &'a [Token<'a>], token_ident: TokenIdent) -> bool {
     if tokens.len() > 1 {
         let ts = &tokens[1..];
@@ -555,24 +612,6 @@ fn remaining_tokens_contain<'a>(tokens: &'a [Token<'a>], token_ident: TokenIdent
         }
     }
     false
-}
-
-fn eat_list<'a>(mut tokens: &'a [Token<'a>], halt_at: TokenIdent) -> ParserResult<Vec<Node>> {
-    let mut res: Vec<Node> = vec![];
-
-    tokens = &tokens[1..]; // shift opening token
-
-    while !tokens.is_empty() && !is_head(tokens, halt_at) {
-        let (toks, content) = eat_item_until(tokens, halt_at)?;
-        res.push(content);
-        tokens = toks;
-    }
-
-    if !tokens.is_empty() {
-        tokens = &tokens[1..]; // shift closing token
-    }
-
-    Ok((tokens, res))
 }
 
 // treat every token as Text until we get to a token of the given type
@@ -590,21 +629,23 @@ fn eat_string<'a>(mut tokens: &'a [Token<'a>], halt_at: TokenIdent) -> ParserRes
 
 // treat the first token as Text and then append any further Text tokens
 fn eat_text_including<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let pos = get_token_pos(&tokens[0]);
     let (tokens, s) = eat_token_as_str(tokens)?;
     let (tokens, st) = eat_text_as_string(tokens)?;
 
-    Ok((tokens, Node::Text(s.to_string() + &st)))
+    Ok((tokens, Node::Text(pos, s.to_string() + &st)))
 }
 
 fn eat_text<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let pos = get_token_pos(&tokens[0]);
     let (tokens, value) = eat_text_as_string(tokens)?;
-    Ok((tokens, Node::Text(value)))
+    Ok((tokens, Node::Text(pos, value)))
 }
 
-pub(crate) fn skip_leading_whitespace_and_newlines<'a>(tokens: &'a [Token]) -> Result<&'a [Token<'a>]> {
+fn skip_leading_whitespace_and_newlines<'a>(tokens: &'a [Token]) -> Result<&'a [Token<'a>]> {
     for (i, tok) in tokens.iter().enumerate() {
         match tok {
-            Token::Whitespace(_) | Token::Newline => (),
+            Token::Whitespace(_, _) | Token::Newline(_) => (),
             _ => return Ok(&tokens[i..]),
         }
     }
@@ -612,7 +653,7 @@ pub(crate) fn skip_leading_whitespace_and_newlines<'a>(tokens: &'a [Token]) -> R
     Ok(&[])
 }
 
-pub(crate) fn skip_leading_newlines<'a>(tokens: &'a [Token]) -> Result<&'a [Token<'a>]> {
+fn skip_leading_newlines<'a>(tokens: &'a [Token]) -> Result<&'a [Token<'a>]> {
     skip_leading(tokens, TokenIdent::Newline)
 }
 
@@ -629,17 +670,17 @@ fn eat_text_as_string<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<String> {
 
     while !tokens.is_empty() {
         match tokens[0] {
-            Token::Text(s) => value += s,
-            Token::Digits(s) => value += s,
-            Token::Whitespace(s) => value += s,
+            Token::Text(_, s) => value += s,
+            Token::Digits(_, s) => value += s,
+            Token::Whitespace(_, s) => value += s,
             // Token::GreaterThan => value += ">",
             // Token::LessThan => value += "<",
-            Token::Tilde => value += "~",
-            Token::Period => value += ".",
-            Token::Hyphen => value += "-",
+            Token::Tilde(_) => value += "~",
+            Token::Period(_) => value += ".",
+            Token::Hyphen(_) => value += "-",
             //            Token::At => value += "@",
-            Token::ParenBegin => value += "(",
-            Token::ParenEnd => value += ")",
+            Token::ParenBegin(_) => value += "(",
+            Token::ParenEnd(_) => value += ")",
             _ => return Ok((tokens, value)),
         }
         tokens = &tokens[1..];
@@ -680,7 +721,7 @@ fn is_token_at_index<'a>(tokens: &'a [Token<'a>], idx: usize, token_ident: Token
 
 fn is_text_at_index<'a>(tokens: &'a [Token<'a>], idx: usize, text: &str) -> bool {
     if is_token_at_index(tokens, idx, TokenIdent::Text) {
-        if let Token::Text(s) = tokens[idx] {
+        if let Token::Text(_, s) = tokens[idx] {
             return s == text;
         }
     }
@@ -701,14 +742,14 @@ mod tests {
     }
 
     #[test]
-    fn test_is_hr() {
+    fn test_is_horizontal_rule() {
         {
             let toks = tokenize("#- ").unwrap();
-            assert_eq!(is_hr(&toks), true);
+            assert_eq!(is_horizontal_rule(&toks), true);
         }
         {
             let toks = tokenize("#-").unwrap();
-            assert_eq!(is_hr(&toks), true);
+            assert_eq!(is_horizontal_rule(&toks), true);
         }
     }
 
@@ -728,7 +769,7 @@ mod tests {
 
     fn ordered_list_children<'a>(node: &'a Node, expected_starts: &str) -> Result<&'a Vec<Node>> {
         match node {
-            Node::OrderedList(children, starts) => {
+            Node::OrderedList(_, children, starts) => {
                 assert_eq!(starts, &expected_starts);
 
                 return Ok(children);
@@ -740,7 +781,7 @@ mod tests {
 
     fn unordered_list_children<'a>(node: &'a Node) -> Result<&'a Vec<Node>> {
         match node {
-            Node::UnorderedList(children) => {
+            Node::UnorderedList(_, children) => {
                 return Ok(children);
             }
             _ => assert_eq!(false, true),
@@ -750,7 +791,7 @@ mod tests {
 
     fn paragraph_children<'a>(node: &'a Node) -> Result<&'a Vec<Node>> {
         match node {
-            Node::Paragraph(children) => {
+            Node::Paragraph(_, children) => {
                 return Ok(children);
             }
             _ => assert_eq!(false, true),
@@ -760,17 +801,7 @@ mod tests {
 
     fn blockquote_children<'a>(node: &'a Node) -> Result<&'a Vec<Node>> {
         match node {
-            Node::BlockQuote(children) => {
-                return Ok(children);
-            }
-            _ => assert_eq!(false, true),
-        };
-        Err(Error::Parser)
-    }
-
-    fn highlight_children<'a>(node: &'a Node) -> Result<&'a Vec<Node>> {
-        match node {
-            Node::Highlight(children) => {
+            Node::BlockQuote(_, children) => {
                 return Ok(children);
             }
             _ => assert_eq!(false, true),
@@ -780,7 +811,7 @@ mod tests {
 
     fn assert_list_item_text(node: &Node, expected: &'static str) {
         match node {
-            Node::ListItem(children) => {
+            Node::ListItem(_, children) => {
                 assert_eq!(children.len(), 1);
                 assert_text(&children[0], expected);
             }
@@ -790,16 +821,27 @@ mod tests {
 
     fn assert_text(node: &Node, expected: &'static str) {
         match node {
-            Node::Text(s) => assert_eq!(s, expected),
+            Node::Text(_, s) => assert_eq!(s, expected),
             _ => assert_eq!(false, true),
         };
     }
 
-    fn assert_code(node: &Node, expected_lang: Option<CodeblockLanguage>, expected: &'static str) {
+    fn assert_text_pos(node: &Node, expected: &'static str, loc: usize) {
         match node {
-            Node::Codeblock(lang, s) => {
+            Node::Text(pos, s) => {
+                assert_eq!(s, expected);
+                assert_eq!(*pos, loc);
+            }
+            _ => assert_eq!(false, true),
+        };
+    }
+
+    fn assert_code(node: &Node, expected_lang: Option<CodeblockLanguage>, expected: &'static str, loc: usize) {
+        match node {
+            Node::Codeblock(pos, lang, s) => {
                 assert_eq!(lang, &expected_lang);
                 assert_eq!(s, expected);
+                assert_eq!(*pos, loc);
             }
             _ => assert_eq!(false, true),
         };
@@ -810,7 +852,7 @@ mod tests {
         assert_eq!(1, nodes.len());
 
         match &nodes[0] {
-            Node::Image(s) => assert_eq!(s, expected),
+            Node::Image(_, s) => assert_eq!(s, expected),
             _ => assert_eq!(false, true),
         };
     }
@@ -822,11 +864,17 @@ mod tests {
     //     };
     // }
 
-    fn assert_strong1(node: &Node, expected: &'static str) {
+    fn assert_strong1_pos(node: &Node, expected: &'static str, loc: usize) {
         match node {
-            Node::Strong(ns) => {
+            Node::Strong(pos, ns) => {
                 assert_eq!(ns.len(), 1);
-                assert_text(&ns[0], expected);
+                match &ns[0] {
+                    Node::Paragraph(_, ns) => {
+                        assert_text(&ns[0], expected);
+                    }
+                    _ => assert!(false),
+                }
+                assert_eq!(*pos, loc);
             }
             _ => assert_eq!(false, true),
         };
@@ -843,60 +891,79 @@ mod tests {
     //     };
     // }
 
-    fn assert_underline1(node: &Node, expected: &'static str) {
+    fn assert_underline1_pos(node: &Node, expected: &'static str, loc: usize) {
         match node {
-            Node::Underlined(ns) => {
+            Node::Underlined(pos, ns) => {
                 assert_eq!(ns.len(), 1);
-                assert_text(&ns[0], expected);
+
+                match &ns[0] {
+                    Node::Paragraph(_, ns) => {
+                        assert_text(&ns[0], expected);
+                    }
+                    _ => assert!(false),
+                }
+                assert_eq!(*pos, loc);
             }
             _ => assert_eq!(false, true),
         };
     }
 
-    fn assert_highlight1(node: &Node, expected: &'static str) {
+    fn assert_highlight1_pos(node: &Node, expected: &'static str, loc: usize) {
         match node {
-            Node::Highlight(ns) => {
+            Node::Highlight(pos, ns) => {
                 assert_eq!(ns.len(), 1);
-                assert_text(&ns[0], expected);
+                match &ns[0] {
+                    Node::Paragraph(_, ns) => {
+                        assert_text(&ns[0], expected);
+                    }
+                    _ => assert!(false),
+                }
+                assert_eq!(*pos, loc);
             }
             _ => assert_eq!(false, true),
         };
     }
 
-    fn assert_quoted1(node: &Node, expected: &'static str) {
+    fn assert_quoted1(node: &Node, expected: &'static str, loc: usize) {
         match node {
-            Node::Quotation(ns) => {
+            Node::Quotation(pos, ns) => {
                 assert_eq!(ns.len(), 1);
-                assert_text(&ns[0], expected);
+                match &ns[0] {
+                    Node::Paragraph(_, ns) => {
+                        assert_text(&ns[0], expected);
+                    }
+                    _ => assert!(false),
+                }
+                assert_eq!(*pos, loc);
             }
             _ => assert_eq!(false, true),
         };
     }
 
-    fn assert_hr(node: &Node) {
+    fn assert_horizontal_rule(node: &Node) {
         match node {
-            Node::HR => assert!(true),
+            Node::HorizontalRule(_) => assert!(true),
             _ => assert!(false),
         };
     }
 
     fn assert_header(node: &Node) {
         match node {
-            Node::Header(_,_) => assert!(true),
+            Node::Header(_, _, _) => assert!(true),
             _ => assert!(false),
         };
     }
 
     fn assert_paragraph(node: &Node) {
         match node {
-            Node::Paragraph(_) => assert!(true),
+            Node::Paragraph(_, _) => assert!(true),
             _ => assert!(false),
         };
     }
 
     fn assert_blockquote(node: &Node) {
         match node {
-            Node::BlockQuote(_) => assert!(true),
+            Node::BlockQuote(_, _) => assert!(true),
             _ => assert!(false),
         };
     }
@@ -905,11 +972,11 @@ mod tests {
     fn test_only_text() {
         {
             let nodes = build("simple text only test");
-            paragraph_with_single_text(&nodes[0], "simple text only test");
+            paragraph_with_single_text_pos(&nodes[0], "simple text only test", 0);
         }
         {
             let nodes = build("more token types 1234.9876 - treat as text");
-            paragraph_with_single_text(&nodes[0], "more token types 1234.9876 - treat as text");
+            paragraph_with_single_text_pos(&nodes[0], "more token types 1234.9876 - treat as text", 0);
         }
     }
 
@@ -917,13 +984,13 @@ mod tests {
     fn test_strong() {
         {
             let nodes = build("words with *emphasis* test");
-
+            dbg!(&nodes);
             assert_eq!(1, nodes.len());
             let children = paragraph_children(&nodes[0]).unwrap();
             assert_eq!(children.len(), 3);
-            assert_text(&children[0], "words with ");
-            assert_strong1(&children[1], "emphasis");
-            assert_text(&children[2], " test");
+            assert_text_pos(&children[0], "words with ", 0);
+            assert_strong1_pos(&children[1], "emphasis", 11);
+            assert_text_pos(&children[2], " test", 21);
         }
         {
             let nodes = build("words with *emphasis*");
@@ -932,7 +999,7 @@ mod tests {
             let children = paragraph_children(&nodes[0]).unwrap();
             assert_eq!(children.len(), 2);
             assert_text(&children[0], "words with ");
-            assert_strong1(&children[1], "emphasis");
+            assert_strong1_pos(&children[1], "emphasis", 11);
         }
         {
             let nodes = build("words with * multiply");
@@ -954,7 +1021,7 @@ mod tests {
             let children = paragraph_children(&nodes[0]).unwrap();
             assert_eq!(children.len(), 3);
             assert_text(&children[0], "words with ");
-            assert_underline1(&children[1], "underlined");
+            assert_underline1_pos(&children[1], "underlined", 11);
             assert_text(&children[2], " test");
         }
         {
@@ -964,7 +1031,7 @@ mod tests {
             let children = paragraph_children(&nodes[0]).unwrap();
             assert_eq!(children.len(), 2);
             assert_text(&children[0], "words with ");
-            assert_underline1(&children[1], "underlines");
+            assert_underline1_pos(&children[1], "underlines", 11);
         }
         {
             let nodes = build("sentence with _ underscore");
@@ -986,7 +1053,7 @@ mod tests {
             let children = paragraph_children(&nodes[0]).unwrap();
             assert_eq!(children.len(), 3);
             assert_text(&children[0], "words with ");
-            assert_highlight1(&children[1], "highlighted");
+            assert_highlight1_pos(&children[1], "highlighted", 11);
             assert_text(&children[2], " test");
         }
         {
@@ -996,7 +1063,7 @@ mod tests {
             let children = paragraph_children(&nodes[0]).unwrap();
             assert_eq!(children.len(), 2);
             assert_text(&children[0], "words with ");
-            assert_highlight1(&children[1], "highlight");
+            assert_highlight1_pos(&children[1], "highlight", 11);
         }
         {
             let nodes = build("words with ^ exponent");
@@ -1018,7 +1085,7 @@ mod tests {
             let children = paragraph_children(&nodes[0]).unwrap();
             assert_eq!(children.len(), 3);
             assert_text(&children[0], "words with ");
-            assert_quoted1(&children[1], "quoted");
+            assert_quoted1(&children[1], "quoted", 11);
             assert_text(&children[2], " text");
         }
         {
@@ -1028,7 +1095,7 @@ mod tests {
             let children = paragraph_children(&nodes[0]).unwrap();
             assert_eq!(children.len(), 2);
             assert_text(&children[0], "sentence ending with ");
-            assert_quoted1(&children[1], "quotation");
+            assert_quoted1(&children[1], "quotation", 21);
         }
         {
             let nodes = build("sentence with random \" double quote character");
@@ -1047,14 +1114,21 @@ mod tests {
 
         assert_eq!(1, nodes.len());
         let children = paragraph_children(&nodes[0]).unwrap();
-        dbg!(&children);
         assert_eq!(children.len(), 2);
 
-        let highlighted = highlight_children(&children[0]).unwrap();
-        assert_eq!(highlighted.len(), 3);
-        assert_strong1(&highlighted[0], "words");
-        assert_text(&highlighted[1], " with ");
-        assert_strong1(&highlighted[2], "strong");
+        match &children[0] {
+            Node::Highlight(_, children) => match &children[0] {
+                Node::Paragraph(_, children) => {
+                    assert_eq!(children.len(), 3);
+                    assert_strong1_pos(&children[0], "words", 1);
+                    assert_text(&children[1], " with ");
+                    assert_strong1_pos(&children[2], "strong", 14);
+                }
+                _ => assert_eq!(false, true),
+            },
+            _ => assert_eq!(false, true),
+        }
+
         assert_text(&children[1], " test");
     }
 
@@ -1152,7 +1226,7 @@ here is the closing paragraph",
         );
         assert_eq!(3, nodes.len());
 
-        paragraph_with_single_text(&nodes[0], "this is the 1st paragraph");
+        paragraph_with_single_text_pos(&nodes[0], "this is the 1st paragraph", 0);
 
         let children = unordered_list_children(&nodes[1]).unwrap();
         assert_eq!(children.len(), 3);
@@ -1160,7 +1234,7 @@ here is the closing paragraph",
         assert_list_item_text(&children[1], "item b");
         assert_list_item_text(&children[2], "item c");
 
-        paragraph_with_single_text(&nodes[2], "here is the closing paragraph");
+        paragraph_with_single_text_pos(&nodes[2], "here is the closing paragraph", 53);
     }
 
     #[test]
@@ -1177,7 +1251,7 @@ This is code
             dbg!(&children);
             assert_eq!(children.len(), 1);
 
-            assert_code(&children[0], None, "\nThis is code\n");
+            assert_code(&children[0], None, "\nThis is code\n", 0);
         }
 
         {
@@ -1191,7 +1265,7 @@ This is code```",
             dbg!(&children);
             assert_eq!(children.len(), 1);
 
-            assert_code(&children[0], Some(CodeblockLanguage::Rust), "\nThis is code");
+            assert_code(&children[0], Some(CodeblockLanguage::Rust), "\nThis is code", 0);
         }
     }
 
@@ -1203,16 +1277,26 @@ This is code```",
         let children = paragraph_children(&nodes[0]).unwrap();
         assert_eq!(children.len(), 3);
 
-        assert_text(
+        assert_text_pos(
             &children[0],
             "Though Aristotle wrote many elegant treatises and dialogues - Cicero described his literary style as ",
+            0,
         );
-        assert_quoted1(&children[1], "a river of gold");
+        assert_quoted1(&children[1], "a river of gold", 101);
         assert_text(
             &children[2],
             " - it is thought that only around a third of his original output has survived.",
         );
     }
+
+    //     #[test]
+    //     fn test_multi_paragraph_margin_text() {
+    //         let nodes = build(
+    //             "start of paragraph |foobar bar| more text in main paragraph afterwards
+    // second main paragraph",
+    //         );
+    //         assert_eq!(3, nodes.len());
+    //     }
 
     #[test]
     fn test_unordered_list_in_sidenote_bug() {
@@ -1227,10 +1311,11 @@ This is code```",
         assert_text(&children[0], "para one");
 
         match &children[1] {
-            Node::NumberedSidenote(vs) => {
+            Node::MarginText(_, numbered, vs) => {
                 assert_eq!(vs.len(), 1);
+                assert_eq!(*numbered, true);
                 match &vs[0] {
-                    Node::UnorderedList(us) => {
+                    Node::UnorderedList(_, us) => {
                         assert_eq!(us.len(), 2);
                         assert_list_item_text(&us[0], "hello");
                         assert_list_item_text(&us[1], "foo");
@@ -1242,6 +1327,92 @@ This is code```",
         };
 
         assert_text(&children[2], " more text afterwards");
+    }
+
+    #[test]
+    fn test_margin_text() {
+        {
+            let nodes = build(
+                "some words|right margin text
+another paragraph
+some other lines| more words afterwards",
+            );
+
+            assert_eq!(1, nodes.len());
+
+            let children = paragraph_children(&nodes[0]).unwrap();
+            assert_eq!(children.len(), 3);
+
+            match &children[1] {
+                Node::MarginText(_, numbered, nodes) => {
+                    assert_eq!(*numbered, true);
+                    assert_eq!(nodes.len(), 3);
+                }
+                _ => assert_eq!(false, true),
+            };
+        }
+        {
+            let nodes = build(
+                "some words|~ unnumberedright margin text
+another paragraph
+some other lines| more words afterwards",
+            );
+
+            assert_eq!(1, nodes.len());
+
+            let children = paragraph_children(&nodes[0]).unwrap();
+            assert_eq!(children.len(), 3);
+
+            match &children[1] {
+                Node::MarginText(_, numbered, nodes) => {
+                    assert_eq!(*numbered, false);
+                    assert_eq!(nodes.len(), 3);
+                }
+                _ => assert_eq!(false, true),
+            };
+        }
+    }
+
+    #[test]
+    fn test_margin_agree() {
+        let nodes = build(
+            "some logical opinion|# i agree with this point
+another paragraph
+some other lines| more words afterwards",
+        );
+
+        assert_eq!(1, nodes.len());
+
+        let children = paragraph_children(&nodes[0]).unwrap();
+        assert_eq!(children.len(), 3);
+
+        match &children[1] {
+            Node::MarginScribble(_, nodes) => {
+                assert_eq!(nodes.len(), 3);
+            }
+            _ => assert_eq!(false, true),
+        };
+    }
+
+    #[test]
+    fn test_margin_disagree() {
+        let nodes = build(
+            "some contentious opinion|## i disagree with this point
+another paragraph
+some other lines| more words afterwards",
+        );
+
+        assert_eq!(1, nodes.len());
+
+        let children = paragraph_children(&nodes[0]).unwrap();
+        assert_eq!(children.len(), 3);
+
+        match &children[1] {
+            Node::MarginDisagree(_, nodes) => {
+                assert_eq!(nodes.len(), 3);
+            }
+            _ => assert_eq!(false, true),
+        };
     }
 
     #[test]
@@ -1257,10 +1428,11 @@ This is code```",
         assert_text(&children[0], "para two");
 
         match &children[1] {
-            Node::NumberedSidenote(vs) => {
+            Node::MarginText(_, numbered, vs) => {
                 assert_eq!(vs.len(), 1);
+                assert_eq!(*numbered, true);
                 match &vs[0] {
-                    Node::OrderedList(os, _) => {
+                    Node::OrderedList(_, os, _) => {
                         assert_eq!(os.len(), 2);
                         assert_list_item_text(&os[0], "item-a");
                         assert_list_item_text(&os[1], "item-b");
@@ -1312,13 +1484,13 @@ This is code```",
 
     #[test]
     fn test_remaining_tokens_contain() {
-        let toks = vec![Token::Asterisk, Token::Asterisk];
+        let toks = vec![Token::Asterisk(0), Token::Asterisk(0)];
         assert_eq!(remaining_tokens_contain(&toks, TokenIdent::Asterisk), true);
 
-        let toks2 = vec![Token::Asterisk, Token::Pipe];
+        let toks2 = vec![Token::Asterisk(0), Token::Pipe(0)];
         assert_eq!(remaining_tokens_contain(&toks2, TokenIdent::Asterisk), false);
 
-        let toks3 = vec![Token::Asterisk];
+        let toks3 = vec![Token::Asterisk(0)];
         assert_eq!(remaining_tokens_contain(&toks3, TokenIdent::Asterisk), false);
     }
 
@@ -1352,7 +1524,7 @@ This is code```",
 
             let node = &children[0];
             match node {
-                Node::Url(url, ns) => {
+                Node::Url(_, url, ns) => {
                     assert_eq!(url, "https://google.com");
 
                     assert_eq!(1, ns.len());
@@ -1370,7 +1542,7 @@ This is code```",
 
             let node = &children[0];
             match node {
-                Node::Url(url, ns) => {
+                Node::Url(_, url, ns) => {
                     assert_eq!(url, "https://google.com");
 
                     assert_eq!(1, ns.len());
@@ -1388,12 +1560,12 @@ This is code```",
 
             let node = &children[0];
             match node {
-                Node::Url(url, ns) => {
+                Node::Url(_, url, ns) => {
                     assert_eq!(url, "https://google.com");
 
                     assert_eq!(3, ns.len());
                     assert_text(&ns[0], "a few (descriptive ");
-                    assert_strong1(&ns[1], "bold");
+                    assert_strong1_pos(&ns[1], "bold", 43);
                     assert_text(&ns[2], ") words");
                 }
                 _ => assert_eq!(false, true),
@@ -1404,21 +1576,21 @@ This is code```",
     #[test]
     fn test_split2() {
         {
-            let text = Token::Text(&"hello world");
+            let text = Token::Text(0, &"hello world");
             let (t, remaining) = split_text_token_at_whitespace(text).unwrap();
-            assert_eq!(t, Token::Text(&"hello"));
-            assert_eq!(remaining, Some(Token::Text(&"world")));
+            assert_eq!(t, Token::Text(0, &"hello"));
+            assert_eq!(remaining, Some(Token::Text(0, &"world")));
         }
         {
-            let text = Token::Text(&"once upon a time");
+            let text = Token::Text(0, &"once upon a time");
             let (t, remaining) = split_text_token_at_whitespace(text).unwrap();
-            assert_eq!(t, Token::Text(&"once"));
-            assert_eq!(remaining, Some(Token::Text(&"upon a time")));
+            assert_eq!(t, Token::Text(0, &"once"));
+            assert_eq!(remaining, Some(Token::Text(0, &"upon a time")));
         }
         {
-            let text = Token::Text(&"one");
+            let text = Token::Text(0, &"one");
             let (t, remaining) = split_text_token_at_whitespace(text).unwrap();
-            assert_eq!(t, Token::Text(&"one"));
+            assert_eq!(t, Token::Text(0, &"one"));
             assert_eq!(remaining, None);
         }
     }
@@ -1429,13 +1601,13 @@ This is code```",
             let nodes = build("#-");
             assert_eq!(1, nodes.len());
 
-            assert_hr(&nodes[0]);
+            assert_horizontal_rule(&nodes[0]);
         }
         {
             let nodes = build("#- Some words");
             assert_eq!(2, nodes.len());
 
-            assert_hr(&nodes[0]);
+            assert_horizontal_rule(&nodes[0]);
 
             let children = paragraph_children(&nodes[1]).unwrap();
             assert_text(&children[0], "Some words");
@@ -1453,7 +1625,7 @@ This is code```",
 
             let node = &children[0];
             match node {
-                Node::Url(url, ns) => {
+                Node::Url(0, url, ns) => {
                     assert_eq!(url, "http://www.example.com/page.pdf#page=3");
 
                     assert_eq!(1, ns.len());
@@ -1475,7 +1647,7 @@ This is code```",
 
             let node = &children[0];
             match node {
-                Node::Url(url, ns) => {
+                Node::Url(0, url, ns) => {
                     assert_eq!(url, "https://en.wikipedia.org/wiki/Karl_Marx");
 
                     assert_eq!(1, ns.len());
@@ -1500,7 +1672,7 @@ This is code```",
     fn header_with_single_text(node: &Node, expected_level: u32, expected: &'static str) {
         assert_header(node);
         match node {
-            Node::Header(level, children) => {
+            Node::Header(_, level, children) => {
                 assert_eq!(*level, expected_level);
                 assert_eq!(children.len(), 1);
                 assert_text(&children[0], expected)
@@ -1512,16 +1684,16 @@ This is code```",
     fn header_with_multi_text(node: &Node, expected_level: u32, expected: &'static str) {
         assert_header(node);
         match node {
-            Node::Header(level, children) => {
+            Node::Header(_, level, children) => {
                 assert_eq!(*level, expected_level);
                 // children is a vec of nodes, assume that they're all text nodes for now
                 let mut s = String::from("");
                 for child in children {
                     match child {
-                        Node::Text(cs) => {
+                        Node::Text(_, cs) => {
                             s += cs;
-                        },
-                        _ => assert!(false)
+                        }
+                        _ => assert!(false),
                     }
                 }
                 assert_eq!(s, expected);
@@ -1539,6 +1711,16 @@ This is code```",
         assert_eq!(children.len(), 1);
 
         assert_text(&children[0], expected);
+    }
+
+    fn paragraph_with_single_text_pos(paragraph: &Node, expected: &'static str, loc: usize) {
+        assert_paragraph(paragraph);
+
+        let children = paragraph_children(paragraph).unwrap();
+        assert_eq!(children.len(), 1);
+
+        assert_text(&children[0], expected);
+        assert_eq!(get_node_pos(&children[0]), loc);
     }
 
     #[test]
@@ -1602,7 +1784,7 @@ third paragraph",
         assert_eq!(4, nodes.len());
 
         paragraph_with_single_text(&nodes[0], "hello world");
-        assert_hr(&nodes[1]);
+        assert_horizontal_rule(&nodes[1]);
         paragraph_with_single_text(&nodes[2], "another paragraph");
         paragraph_with_single_text(&nodes[3], "third paragraph");
     }
@@ -1627,16 +1809,12 @@ third paragraph",
     #[test]
     fn test_header() {
         {
-            let nodes = build(
-                "#h2 A header",
-            );
+            let nodes = build("#h2 A header");
             assert_eq!(1, nodes.len());
             header_with_single_text(&nodes[0], 2, "A header");
         }
         {
-            let nodes = build(
-                "#h3 A header (with parentheses)",
-            );
+            let nodes = build("#h3 A header (with parentheses)");
             assert_eq!(1, nodes.len());
             header_with_multi_text(&nodes[0], 3, "A header (with parentheses)");
         }
