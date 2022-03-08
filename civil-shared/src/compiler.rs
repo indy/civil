@@ -195,7 +195,7 @@ fn element_key_unpacked_class(name: &str, class_name: &str, key: usize, ns: &[No
 }
 
 fn element_key_class_href(name: &str, class_name: &str, url: &str, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
-    let mut e = element_base(name, key, ns)?;
+    let mut e = element_base_unpacked(name, key, ns)?;
 
     e.class_name = Some(String::from(class_name));
     e.href = Some(String::from(url));

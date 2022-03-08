@@ -275,9 +275,26 @@ mark {
   background: var(--highlight);
 }
 
-.right-margin-pseudo-paragraph {
+.right-margin-note > .pseudo-paragraph {
+  /* background: red; */
   display: block;
   margin-bottom: 0.5rem;
+}
+
+.right-margin-note > ol {
+  /* background: red; */
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  padding-left: 2rem;
+}
+
+.right-margin-note > ol > li {
+  /* background: green; */
+  margin: 0;
+}
+
+.pseudo-paragraph {
 }
 
 .right-margin-note,

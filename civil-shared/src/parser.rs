@@ -28,18 +28,20 @@ pub enum CodeblockLanguage {
     Rust,
 }
 
+// NOTE: update the node check in www/js/index.js to reflect this enum
+//
 #[derive(Debug, Serialize, EnumDiscriminants)]
 #[strum_discriminants(name(NodeIdent))]
 pub enum Node {
-    Codeblock(usize, Option<CodeblockLanguage>, String),
     BlockQuote(usize, Vec<Node>),
-    HorizontalRule(usize),
+    Codeblock(usize, Option<CodeblockLanguage>, String),
     Header(usize, u32, Vec<Node>),
     Highlight(usize, Vec<Node>),
+    HorizontalRule(usize),
     Image(usize, String),
     ListItem(usize, Vec<Node>),
-    MarginScribble(usize, Vec<Node>),
     MarginDisagree(usize, Vec<Node>),
+    MarginScribble(usize, Vec<Node>),
     MarginText(usize, bool, Vec<Node>),
     OrderedList(usize, Vec<Node>, String),
     Paragraph(usize, Vec<Node>),
@@ -53,15 +55,15 @@ pub enum Node {
 
 fn get_node_pos(node: &Node) -> usize {
     match node {
-        Node::Codeblock(pos, _, _) => *pos,
         Node::BlockQuote(pos, _) => *pos,
-        Node::HorizontalRule(pos) => *pos,
+        Node::Codeblock(pos, _, _) => *pos,
         Node::Header(pos, _, _) => *pos,
         Node::Highlight(pos, _) => *pos,
+        Node::HorizontalRule(pos) => *pos,
         Node::Image(pos, _) => *pos,
         Node::ListItem(pos, _) => *pos,
-        Node::MarginScribble(pos, _) => *pos,
         Node::MarginDisagree(pos, _) => *pos,
+        Node::MarginScribble(pos, _) => *pos,
         Node::MarginText(pos, _, _) => *pos,
         Node::OrderedList(pos, _, _) => *pos,
         Node::Paragraph(pos, _) => *pos,
@@ -481,7 +483,6 @@ fn is_at_specifier<'a>(tokens: &'a [Token<'a>]) -> bool {
         && is_token_at_index(tokens, 2, TokenIdent::ParenBegin)
 }
 
-// @nocheckin: check that the pos values are correct, they're probably not.
 fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> Result<(Token<'a>, Option<Token<'a>>)> {
     match text_token {
         Token::Text(p, s) => {
@@ -491,7 +492,8 @@ fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> Result<(Token<'a
                 Token::Text(p, u) => {
                     if let Some(remaining_text) = s.strip_prefix(u) {
                         if remaining_text.len() > 0 {
-                            Ok((*t, Some(Token::Text(*p, remaining_text.trim_start()))))
+                            let rhs = Token::Text(p + u.len(), remaining_text.trim_start());
+                            Ok((*t, Some(rhs)))
                         } else {
                             Ok((*t, None))
                         }
@@ -506,17 +508,13 @@ fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> Result<(Token<'a
     }
 }
 
-// @nocheckin: this whole thing looks really lame, what is going on? why is the parser creating tokens?
-
 // treat every token as Text until we get to a token of the given type
 fn eat_as_resource_description_pair<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<(String, Vec<Node>)> {
-    let mut inner_tokens: Vec<Token> = vec![];
+    let mut found_url_desc_divide = false;
+    let mut url_tokens: Vec<Token> = vec![];
+    let mut desc_tokens: Vec<Token> = vec![];
+
     let mut paren_balancer = 1;
-
-    let mut encountered_first_whitespace = false;
-    let mut whitespace_index: usize = 0;
-
-    let ws = "".to_string();
 
     tokens = &tokens[3..]; // eat the '@img(' or '@url('
 
@@ -525,7 +523,11 @@ fn eat_as_resource_description_pair<'a>(mut tokens: &'a [Token<'a>]) -> ParserRe
             let pos = get_token_pos(&tokens[0]);
             paren_balancer += 1;
             tokens = &tokens[1..];
-            inner_tokens.push(Token::ParenBegin(pos));
+            if found_url_desc_divide {
+                desc_tokens.push(Token::ParenBegin(pos));
+            } else {
+                url_tokens.push(Token::ParenBegin(pos));
+            }
         } else if is_head(tokens, TokenIdent::ParenEnd) {
             paren_balancer -= 1;
             let pos = get_token_pos(&tokens[0]);
@@ -535,44 +537,41 @@ fn eat_as_resource_description_pair<'a>(mut tokens: &'a [Token<'a>]) -> ParserRe
                 // reached the closing paren
                 break;
             }
+            if found_url_desc_divide {
+                desc_tokens.push(Token::ParenEnd(pos));
+            } else {
+                url_tokens.push(Token::ParenEnd(pos));
+            }
+        } else if is_head(tokens, TokenIdent::Text) && !found_url_desc_divide {
+            let (first_text_token, maybe_other_text_token) = split_text_token_at_whitespace(tokens[0])?;
 
-            inner_tokens.push(Token::ParenEnd(pos));
-        } else if is_head(tokens, TokenIdent::Text) && !encountered_first_whitespace {
-            let (first_text_token, other_tokens) = split_text_token_at_whitespace(tokens[0])?;
-
-            inner_tokens.push(first_text_token);
-            if let Some(t) = other_tokens {
-                encountered_first_whitespace = true;
-                inner_tokens.push(Token::Whitespace(get_token_pos(&t), &ws));
-                whitespace_index = inner_tokens.len();
-                inner_tokens.push(t);
+            url_tokens.push(first_text_token);
+            if let Some(maybe) = maybe_other_text_token {
+                found_url_desc_divide = true;
+                desc_tokens.push(maybe);
             }
             tokens = &tokens[1..];
         } else {
-            inner_tokens.push(tokens[0]);
+            if found_url_desc_divide {
+                desc_tokens.push(tokens[0]);
+            } else {
+                url_tokens.push(tokens[0]);
+            }
             tokens = &tokens[1..];
         }
     }
 
-    if encountered_first_whitespace {
-        // all of the inner_tokens until the Token::Whitespace are part of the
-        // resource address (e.g. url) everything after the Token::Whitespace
-        // is the description
-        let (left, right) = inner_tokens.split_at(whitespace_index);
-
-        let mut res = String::from("");
-        for t in left {
-            res.push_str(get_token_value(t));
-        }
-        let (_, children) = eat_to_newline(&right, None)?;
-
-        Ok((tokens, (res, children)))
-    } else {
-        let pos = get_token_pos(&inner_tokens[0]);
-        let (_, url_as_string) = eat_string(&inner_tokens, TokenIdent::EOS)?;
-
-        Ok((tokens, (url_as_string.clone(), vec![Node::Text(pos, url_as_string)])))
+    let mut res = String::from("");
+    for t in &url_tokens {
+        res.push_str(get_token_value(&t));
     }
+
+    let (_rem, description_nodes) = if found_url_desc_divide {
+        parse(&desc_tokens)?
+    } else {
+        parse(&url_tokens)?
+    };
+    Ok((tokens, (res, description_nodes)))
 }
 
 fn eat_blockquote<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
@@ -957,6 +956,17 @@ mod tests {
     fn assert_paragraph(node: &Node) {
         match node {
             Node::Paragraph(_, _) => assert!(true),
+            _ => assert!(false),
+        };
+    }
+
+    fn assert_single_paragraph_text(node: &Node, expected: &'static str) {
+        assert_paragraph(node);
+        match node {
+            Node::Paragraph(_, children) => {
+                assert_eq!(children.len(), 1);
+                assert_text(&children[0], expected)
+            }
             _ => assert!(false),
         };
     }
@@ -1526,9 +1536,8 @@ some other lines| more words afterwards",
             match node {
                 Node::Url(_, url, ns) => {
                     assert_eq!(url, "https://google.com");
-
                     assert_eq!(1, ns.len());
-                    assert_text(&ns[0], "https://google.com");
+                    assert_single_paragraph_text(&ns[0], "https://google.com");
                 }
                 _ => assert_eq!(false, true),
             };
@@ -1544,9 +1553,8 @@ some other lines| more words afterwards",
             match node {
                 Node::Url(_, url, ns) => {
                     assert_eq!(url, "https://google.com");
-
                     assert_eq!(1, ns.len());
-                    assert_text(&ns[0], "a few words");
+                    assert_single_paragraph_text(&ns[0], "a few words");
                 }
                 _ => assert_eq!(false, true),
             };
@@ -1562,11 +1570,17 @@ some other lines| more words afterwards",
             match node {
                 Node::Url(_, url, ns) => {
                     assert_eq!(url, "https://google.com");
+                    assert_eq!(1, ns.len()); // paragraph
 
-                    assert_eq!(3, ns.len());
-                    assert_text(&ns[0], "a few (descriptive ");
-                    assert_strong1_pos(&ns[1], "bold", 43);
-                    assert_text(&ns[2], ") words");
+                    match &ns[0] {
+                        Node::Paragraph(_, ns) => {
+                            assert_eq!(3, ns.len()); // text, strong, text
+                            assert_text(&ns[0], "a few (descriptive ");
+                            assert_strong1_pos(&ns[1], "bold", 43);
+                            assert_text(&ns[2], ") words");
+                        }
+                        _ => assert_eq!(false, true),
+                    }
                 }
                 _ => assert_eq!(false, true),
             };
@@ -1579,13 +1593,13 @@ some other lines| more words afterwards",
             let text = Token::Text(0, &"hello world");
             let (t, remaining) = split_text_token_at_whitespace(text).unwrap();
             assert_eq!(t, Token::Text(0, &"hello"));
-            assert_eq!(remaining, Some(Token::Text(0, &"world")));
+            assert_eq!(remaining, Some(Token::Text(5, &"world")));
         }
         {
             let text = Token::Text(0, &"once upon a time");
             let (t, remaining) = split_text_token_at_whitespace(text).unwrap();
             assert_eq!(t, Token::Text(0, &"once"));
-            assert_eq!(remaining, Some(Token::Text(0, &"upon a time")));
+            assert_eq!(remaining, Some(Token::Text(4, &"upon a time")));
         }
         {
             let text = Token::Text(0, &"one");
@@ -1629,7 +1643,7 @@ some other lines| more words afterwards",
                     assert_eq!(url, "http://www.example.com/page.pdf#page=3");
 
                     assert_eq!(1, ns.len());
-                    assert_text(&ns[0], "A document");
+                    assert_single_paragraph_text(&ns[0], "A document");
                 }
                 _ => assert_eq!(false, true),
             };
@@ -1640,6 +1654,8 @@ some other lines| more words afterwards",
     fn test_url_bug_2() {
         {
             let nodes = build("@url(https://en.wikipedia.org/wiki/Karl_Marx)");
+            dbg!(&nodes);
+
             assert_eq!(1, nodes.len());
 
             let children = paragraph_children(&nodes[0]).unwrap();
@@ -1647,11 +1663,19 @@ some other lines| more words afterwards",
 
             let node = &children[0];
             match node {
-                Node::Url(0, url, ns) => {
+                Node::Url(_, url, ns) => {
                     assert_eq!(url, "https://en.wikipedia.org/wiki/Karl_Marx");
 
                     assert_eq!(1, ns.len());
-                    assert_text(&ns[0], "https://en.wikipedia.org/wiki/Karl_Marx");
+                    assert_paragraph(&ns[0]);
+                    match &ns[0] {
+                        Node::Paragraph(_, children) => {
+                            assert_eq!(children.len(), 2);
+                            assert_text(&children[0], "https://en.wikipedia.org/wiki/Karl");
+                            assert_text(&children[1], "_Marx")
+                        }
+                        _ => assert!(false),
+                    };
                 }
                 _ => assert_eq!(false, true),
             };

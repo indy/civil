@@ -13,21 +13,21 @@ wasm_bindgen('/civil_wasm_bg.wasm')
         // console.log(version);
 
         const wasmInterface = {
-            asAst: markup_as_ast, // @nocheckin: remove this
             asHtmlAst: markup_as_struct,
             splitter: function(markup) {
                 const astArray = markup_as_ast(markup);
 
                 let splitPoints = astArray.map(ast => {
-                    let node = ast.Codeblock ||
-                        ast.BlockQuote ||
-                        ast.HorizontalRule ||
+                    // NOTE: this check depends on the Node enum in civil-shared/src/parser.rs
+                    let node = ast.BlockQuote ||
+                        ast.Codeblock ||
                         ast.Header ||
                         ast.Highlight ||
+                        ast.HorizontalRule ||
                         ast.Image ||
                         ast.ListItem ||
-                        ast.MarginScribble ||
                         ast.MarginDisagree ||
+                        ast.MarginScribble ||
                         ast.MarginText ||
                         ast.OrderedList ||
                         ast.Paragraph ||

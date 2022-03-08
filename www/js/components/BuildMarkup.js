@@ -22,7 +22,7 @@ export default function buildMarkup(content, imageDirectory) {
 
     function assignPseudoParagraph(klass) {
         let c = klass || "";
-        c += " right-margin-pseudo-paragraph";
+        c += " pseudo-paragraph";
         return c.trim();
     }
 
