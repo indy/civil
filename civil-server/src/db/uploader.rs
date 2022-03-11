@@ -65,7 +65,7 @@ pub(crate) async fn get_recent(
          FROM images
          WHERE user_id = $1
          ORDER BY created_at DESC
-         LIMIT 5",
+         LIMIT 15",
         &[&user_id],
     )
     .await
