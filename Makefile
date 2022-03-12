@@ -5,16 +5,11 @@
 # 	Build debug server and run
 # 	$ make run
 #
-# 	Build debug build of wasm file
-# 	$ make wasm
+# 	Build release versions in staging directory
+# 	$ make staging
 #
-# 	Build release builds of everything
-# 	$ make release
-#
-#   DEPLOYING
-#
-# 	Upload release builds to server:
-# 	$ make upload
+# 	(only run this on Peru)
+# 	$ make peru-publish
 #
 #   HELP DURING DEVELOPMENT
 #
@@ -22,36 +17,6 @@
 # 	$ make download-images
 #
 ########################################
-
-.PHONY: run download-images clean-dist
-
-run: wasm
-	cargo run --manifest-path civil-server/Cargo.toml --bin civil_server
-
-# collect stats on each user's content, stores the stats in the db
-# this is run periodically on the server
-#
-run-stat-collector:
-	cargo run --manifest-path civil-server/Cargo.toml --bin civil_stat_collector
-
-# iterates through all the notes in the database, parsing their markup
-# useful as a sanity check to make sure everything is still parseable
-#
-run-note_parser:
-	cargo run --manifest-path civil-server/Cargo.toml --bin civil_note_parser
-
-wasm: www/civil_wasm_bg.wasm
-
-release: clean-dist client-dist server-dist systemd-dist wasm-dist
-
-clean-dist:
-	rm -rf dist
-
-upload: release
-	rsync -avzhe ssh dist/. indy@indy.io:/home/indy/work/civil
-
-download-images:
-	rsync -avzhe ssh indy@indy.io:/home/indy/work/civil/user-content .
 
 ################################################################################
 # utils
@@ -66,7 +31,7 @@ MINIFY := $(shell command -v minify 2> /dev/null)
 
 # note: usage of mkdir -p $(@D)
 # $(@D), means "the directory the current target resides in"
-# using it to make sure that a dist directory is created
+# using it to make sure that a staging directory is created
 
 ################################################################################
 # filesets
@@ -79,46 +44,83 @@ SYSTEMD_FILES = $(wildcard misc/systemd/*)
 WASM_FILES = $(wildcard civil-wasm/src/*) civil-wasm/Cargo.toml
 SHARED_FILES = $(wildcard civil-shared/src/*) civil-shared/Cargo.toml
 
+.PHONY: run download-images clean-staging
+
 ################################################################################
-# convenient aliases for targets
+# top-level public targets
 ################################################################################
 
-wasm-dist: dist/www/civil_wasm_bg.wasm
-client-dist: dist/www/index.html
-server-dist: dist/civil_server
-systemd-dist: dist/systemd/isg-civil.sh
+run: www/civil_wasm_bg.wasm server
+	cargo run --manifest-path civil-server/Cargo.toml --bin civil_server
+
+# collect stats on each user's content, stores the stats in the db
+# this is run periodically on the server
+#
+run-stat-collector: civil-server/target/debug/civil_stat_collector
+	cargo run --manifest-path civil-server/Cargo.toml --bin civil_stat_collector
+
+# iterates through all the notes in the database, parsing their markup
+# useful as a sanity check to make sure everything is still parseable
+#
+run-note_parser: civil-server/target/debug/civil_note_parser
+	cargo run --manifest-path civil-server/Cargo.toml --bin civil_note_parser
+
+server: civil-server/target/debug/civil_server
+server-release: civil-server/target/release/civil_server civil-server/target/release/civil_stat_collector
+
+staging: clean-staging staging/www/index.html staging/civil_server staging/systemd/isg-civil.sh staging/www/civil_wasm_bg.wasm
+
+# only run this on the server
+peru-publish: staging
+	mkdir -p ~/work/civil
+	rsync -avzh staging/. ~/work/civil
+
+clean-staging:
+	rm -rf staging
+
+download-images:
+	rsync -avzhe ssh indy@indy.io:/home/indy/work/civil/user-content .
 
 ################################################################################
 # targets
 ################################################################################
 
+civil-server/target/debug/civil_server: $(SERVER_FILES) $(SHARED_FILES)
+	cargo build --manifest-path civil-server/Cargo.toml --bin civil_server
+civil-server/target/debug/civil_stat_collector: $(SERVER_FILES)
+	cargo build --manifest-path civil-server/Cargo.toml --bin civil_stat_collector
+
+civil-server/target/release/civil_server: $(SERVER_FILES) $(SHARED_FILES)
+	cargo build --manifest-path civil-server/Cargo.toml --bin civil_server --release
+civil-server/target/release/civil_stat_collector: $(SERVER_FILES)
+	cargo build --manifest-path civil-server/Cargo.toml --bin civil_stat_collector --release
+
 www/civil_wasm_bg.wasm: $(WASM_FILES) $(SHARED_FILES)
 	cargo build --manifest-path civil-wasm/Cargo.toml --target wasm32-unknown-unknown
 	wasm-bindgen civil-wasm/target/wasm32-unknown-unknown/debug/civil_wasm.wasm --out-dir www --no-typescript --no-modules
 
-dist/www/civil_wasm_bg.wasm: $(WASM_FILES) $(SHARED_FILES)
+staging/www/civil_wasm_bg.wasm: $(WASM_FILES) $(SHARED_FILES)
 	mkdir -p $(@D)
 	cargo build --manifest-path civil-wasm/Cargo.toml --release --target wasm32-unknown-unknown
-	wasm-bindgen civil-wasm/target/wasm32-unknown-unknown/release/civil_wasm.wasm --out-dir dist/www --no-typescript --no-modules
+	wasm-bindgen civil-wasm/target/wasm32-unknown-unknown/release/civil_wasm.wasm --out-dir staging/www --no-typescript --no-modules
 
-dist/www/index.html: $(CLIENT_FILES)
+staging/www/index.html: $(CLIENT_FILES)
 	mkdir -p $(@D)
-	cp -r www dist/.
+	cp -r www staging/.
 ifdef MINIFY
-	minify -o dist/www/ --match=\.css www
-	minify -r -o dist/www/js --match=\.js www/js
+	minify -o staging/www/ --match=\.css www
+	minify -r -o staging/www/js --match=\.js www/js
 endif
-	sed -i 's/^var devMode.*/\/\/ START OF CODE MODIFIED BY MAKEFILE\nvar devMode = false;/g' dist/www/service-worker.js
-	sed -i "s/^var CACHE_NAME.*/var CACHE_NAME = 'civil-$$(date '+%Y%m%d-%H%M')';\n\/\/ END OF CODE MODIFIED BY MAKEFILE/g" dist/www/service-worker.js
+	sed -i 's/^var devMode.*/\/\/ START OF CODE MODIFIED BY MAKEFILE\nvar devMode = false;/g' staging/www/service-worker.js
+	sed -i "s/^var CACHE_NAME.*/var CACHE_NAME = 'civil-$$(date '+%Y%m%d-%H%M')';\n\/\/ END OF CODE MODIFIED BY MAKEFILE/g" staging/www/service-worker.js
 
-dist/civil_server: $(SERVER_FILES)
+staging/civil_server: server-release
 	mkdir -p $(@D)
-	cd civil-server && cargo build --release
-	cp civil-server/target/release/civil_server dist/.
-	cp civil-server/target/release/civil_stat_collector dist/.
-	cp .env.example dist/.
-	cp -r civil-server/errors dist/.
+	cp civil-server/target/release/civil_server staging/.
+	cp civil-server/target/release/civil_stat_collector staging/.
+	cp .env.example staging/.
+	cp -r civil-server/errors staging/.
 
-dist/systemd/isg-civil.sh: $(SYSTEMD_FILES)
+staging/systemd/isg-civil.sh: $(SYSTEMD_FILES)
 	mkdir -p $(@D)
-	cp -r misc/systemd dist/.
+	cp -r misc/systemd staging/.
