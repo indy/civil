@@ -6,15 +6,16 @@ import { addChronologicalSortYear } from '/js/eras.js';
 import { capitalise } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 
-import { DeckManager } from '/js/components/DeckManager.js';
+import CivilInput from '/js/components/CivilInput.js';
 import GraphSection from '/js/components/GraphSection.js';
-import { PointForm } from '/js/components/PointForm.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import { BasicListSection } from '/js/components/ListSections.js';
-import { svgPointAdd, svgX, svgCaretRight, svgCaretRightEmpty, svgCaretDown } from '/js/svgIcons.js';
-import { WhenWritable } from '/js/components/WhenWritable.js';
+import { DeckManager } from '/js/components/DeckManager.js';
+import { PointForm } from '/js/components/PointForm.js';
 import { WhenVerbose } from '/js/components/WhenVerbose.js';
+import { WhenWritable } from '/js/components/WhenWritable.js';
+import { svgPointAdd, svgX, svgCaretRight, svgCaretRightEmpty, svgCaretDown } from '/js/svgIcons.js';
 
 function Timelines() {
     const [state, dispatch] = useStateValue();
@@ -134,12 +135,10 @@ function UpdateTimelineForm({ deck, hideFormFn }) {
     <form class="civil-form" onSubmit=${ handleSubmit }>
       <label for="title">Title:</label>
       <br/>
-      <input id="title"
-             type="text"
-             name="title"
-             value=${ localState.title }
-             autoComplete="off"
-             onInput=${ handleChangeEvent } />
+      <${CivilInput} id="title"
+                     value=${ localState.title }
+                     autoComplete="off"
+                     onInput=${ handleChangeEvent } />
       <br/>
       <input type="submit" value="Update Timeline"/>
     </form>`;

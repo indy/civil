@@ -4,6 +4,7 @@ import Net from '/js/Net.js';
 
 import { daysUntil, plural } from '/js/JsUtils.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
+import CivilTextArea from '/js/components/CivilTextArea.js';
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 
 const FLASHCARD_IS_EDITING_TOGGLE = 'flashcard-is-editing-toggle';
@@ -124,11 +125,9 @@ export default function FlashCard({flashcard, onDelete}) {
         <p>
           <span class="right-margin">Next test in ${local.daysUntilNextTest} (${ local.nextTestDateString })</span>
           <div class="civil-form">
-            <textarea id="flashcard-prompt"
-                      type="text"
-                      name="flashcard-prompt"
-                      value=${ local.flashcard.prompt }
-                      onInput=${ handleChangeEvent }/>
+            <${CivilTextArea} id="flashcard-prompt"
+                              value=${ local.flashcard.prompt }
+                              onInput=${ handleChangeEvent }/>
           </div>
         </p>
         <div>

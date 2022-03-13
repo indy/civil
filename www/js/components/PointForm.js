@@ -4,22 +4,24 @@ import { capitalise } from '/js/JsUtils.js';
 import { parseDateStringAsTriple, parseDateStringAsYearOnly } from '/js/eras.js';
 import Net from '/js/Net.js';
 
+import CivilInput from '/js/components/CivilInput.js';
+
 export function PointBirthForm({ pointBorn, onSubmit }) {
     return html`<${PointForm} timeLegend="Date of Birth"
-                            locationLegend="Birth Location"
-                            pointKind="point_begin"
-                            point=${ pointBorn }
-                            onSubmit=${ onSubmit }
-                            submitMessage="Add Birth"/>`;
+                              locationLegend="Birth Location"
+                              pointKind="point_begin"
+                              point=${ pointBorn }
+                              onSubmit=${ onSubmit }
+                              submitMessage="Add Birth"/>`;
 }
 
 export function PointDeathForm({ pointDied, onSubmit }) {
     return html`<${PointForm} timeLegend="Date of Death"
-                            locationLegend="DeathLocation"
-                            pointKind="point_end"
-                            point=${ pointDied }
-                            onSubmit=${ onSubmit }
-                            submitMessage="Add Death"/>`;
+                              locationLegend="DeathLocation"
+                              pointKind="point_end"
+                              point=${ pointDied }
+                              onSubmit=${ onSubmit }
+                              submitMessage="Add Death"/>`;
 }
 
 export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegend, locationLegend }) {
@@ -280,14 +282,12 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
       <div class=${ !!pointKind ? 'invisible' : 'point-title'}>
         <fieldset>
           <legend>Title</legend>
-          <input id="title"
-                 type="text"
-                 name="title"
-                 value=${ state.title }
-                 autoComplete="off"
-                 size="11"
-                 readOnly=${ !!pointKind }
-                 onInput=${ handleChangeEvent }/>
+          <${CivilInput} id="title"
+                         value=${ state.title }
+                         autoComplete="off"
+                         size="11"
+                         readOnly=${ !!pointKind }
+                         onInput=${ handleChangeEvent }/>
         </fieldset>
       </div>
       <div class=${ !!pointKind ? 'invisible' : 'point-title'}>
@@ -303,33 +303,27 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
       </div>
       <fieldset>
         <legend>${ timeLegend }</legend>
-        <label for="exact-date">Exact Date:</label>
-        <input id="exact-date"
-               type="text"
-               name="exact_date"
-               value=${ state.exact_date }
-               autoComplete="off"
-               size="11"
-               onInput=${ handleChangeEvent } />
+        <label for="exact_date">Exact Date:</label>
+        <${CivilInput} id="exact_date"
+                       value=${ state.exact_date }
+                       autoComplete="off"
+                       size="11"
+                       onInput=${ handleChangeEvent } />
         <span class="civil-date-hint"> Format: YYYY-MM-DD</span>
         <div class="civil-date-hint-after"/>
         <br/>
-        <label for="lower-date">Lower Date:</label>
-        <input id="lower-date"
-               type="text"
-               name="lower_date"
-               value=${ state.lower_date }
-               autoComplete="off"
-               size="11"
-               onInput=${ handleChangeEvent } />
-        <label for="upper-date">Upper Date:</label>
-        <input id="upper-date"
-               type="text"
-               name="upper_date"
-               value=${ state.upper_date }
-               autoComplete="off"
-               size="11"
-               onInput=${ handleChangeEvent } />
+        <label for="lower_date">Lower Date:</label>
+        <${CivilInput} id="lower_date"
+                       value=${ state.lower_date }
+                       autoComplete="off"
+                       size="11"
+                       onInput=${ handleChangeEvent } />
+        <label for="upper_date">Upper Date:</label>
+        <${CivilInput} id="upper_date"
+                       value=${ state.upper_date }
+                       autoComplete="off"
+                       size="11"
+                       onInput=${ handleChangeEvent } />
         <div class="pointform-block pointform-space-top">
           <input id="round-to-year"
                  class="pointform-checkbox"
@@ -359,24 +353,20 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
         </div>
         <div class="pointform-space-top">
           <label for="date_textual">Displayed Date:</label>
-          <input id="date_textual"
-                 type="text"
-                 name="date_textual"
-                 value=${ state.date_textual }
-                 size="40"
-                 autoComplete="off"
-                 readOnly="readOnly" />
+          <${CivilInput} id="date_textual"
+                         value=${ state.date_textual }
+                         size="40"
+                         autoComplete="off"
+                         readOnly="readOnly" />
         </div>
       </fieldset>
       <br/>
       <fieldset>
         <legend>${ locationLegend }</legend>
-        <input id="location_textual"
-               type="text"
-               name="location_textual"
-               autoComplete="off"
-               value=${ state.location_textual }
-               onInput=${ handleChangeEvent } />
+        <${CivilInput} id="location_textual"
+                       autoComplete="off"
+                       value=${ state.location_textual }
+                       onInput=${ handleChangeEvent } />
         <p></p>
         <button onClick=${ (event) => { onFindLocationClicked(event);} }>Find location</button>
         <br/>

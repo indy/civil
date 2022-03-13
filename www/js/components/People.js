@@ -20,6 +20,7 @@ import { svgPointAdd,
          svgTickedCheckBox,
          svgUntickedCheckBox } from '/js/svgIcons.js';
 
+import CivilInput from '/js/components/CivilInput.js';
 import GraphSection from '/js/components/GraphSection.js';
 import LifespanForm from '/js/components/LifespanForm.js';
 import RollableSection from '/js/components/RollableSection.js';
@@ -239,12 +240,10 @@ function UpdatePersonForm({ deck, hideFormFn }) {
     <form class="civil-form" onSubmit=${ handleSubmit }>
       <label for="name">Name:</label>
       <br/>
-      <input id="name"
-             type="text"
-             name="name"
-             value=${ localState.name }
-             autoComplete="off"
-             onInput=${ handleChangeEvent } />
+      <${CivilInput} id="name"
+                     value=${ localState.name }
+                     autoComplete="off"
+                     onInput=${ handleChangeEvent } />
       <br/>
       <input type="submit" value="Update Person"/>
     </form>`;

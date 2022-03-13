@@ -88,16 +88,6 @@ export const reducer = (state, action) => {
                 deckIndexFromId: buildDeckIndex(action.graphNodes)
             }
         }
-    case 'enableFullKeyboardAccessForComponent':
-        return {
-            ...state,
-            componentRequiresFullKeyboardAccess: true
-        };
-    case 'disableFullKeyboardAccessForComponent':
-        return {
-            ...state,
-            componentRequiresFullKeyboardAccess: false
-        };
     case 'showingSearchCommand':
         return {
             ...state,
@@ -116,21 +106,25 @@ export const reducer = (state, action) => {
     case 'showNoteForm':
         return {
             ...state,
+            componentRequiresFullKeyboardAccess: true,
             showNoteForm: true
         };
     case 'hideNoteForm':
         return {
             ...state,
+            componentRequiresFullKeyboardAccess: false,
             showNoteForm: false
         };
     case 'showAddPointForm':
         return {
             ...state,
+            componentRequiresFullKeyboardAccess: true,
             showAddPointForm: true
         };
     case 'hideAddPointForm':
         return {
             ...state,
+            componentRequiresFullKeyboardAccess: false,
             showAddPointForm: false
         };
     case 'setLock':
@@ -325,6 +319,16 @@ export const reducer = (state, action) => {
             }
             return newState;
         }
+    case 'enableFullKeyboardAccessForComponent':
+        return {
+            ...state,
+            componentRequiresFullKeyboardAccess: true
+        };
+    case 'disableFullKeyboardAccessForComponent':
+        return {
+            ...state,
+            componentRequiresFullKeyboardAccess: false
+        };
     default:
         return state;
     }

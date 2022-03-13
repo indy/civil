@@ -5,11 +5,12 @@ import { capitalise, removeEmptyStrings, formattedDate } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
-import { RatedListSection, CompactedListSection } from '/js/components/ListSections.js';
-import { DeckManager } from '/js/components/DeckManager.js';
+import CivilInput from '/js/components/CivilInput.js';
 import GraphSection from '/js/components/GraphSection.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
+import { DeckManager } from '/js/components/DeckManager.js';
+import { RatedListSection, CompactedListSection } from '/js/components/ListSections.js';
 import { StarRatingPartial } from '/js/components/StarRating.js';
 
 function Articles() {
@@ -168,43 +169,33 @@ function UpdateArticleForm({ deck, hideFormFn }) {
     <form class="civil-form" onSubmit=${ handleSubmit }>
       <label for="title">Title:</label>
       <br/>
-      <input id="title"
-             type="text"
-             name="title"
-             value=${ title }
-             onInput=${ handleChangeEvent } />
+      <${CivilInput} id="title"
+                     value=${ title }
+                     onInput=${ handleChangeEvent } />
       <br/>
       <label for="source">Source:</label>
       <br/>
-      <input id="source"
-             type="text"
-             name="source"
-             value=${ source }
-             onInput=${ handleChangeEvent } />
+      <${CivilInput} id="source"
+                     value=${ source }
+                     onInput=${ handleChangeEvent } />
       <br/>
       <label for="author">Author:</label>
       <br/>
-      <input id="author"
-             type="text"
-             name="author"
-             value=${ author }
-             onInput=${ handleChangeEvent } />
+      <${CivilInput} id="author"
+                     value=${ author }
+                     onInput=${ handleChangeEvent } />
       <br/>
       <label for="published_date">Published Date:</label>
       <br/>
-      <input id="published_date"
-             type="text"
-             name="published_date"
-             value=${ publishedDate }
-             onInput=${ handleChangeEvent } />
+      <${CivilInput} id="published_date"
+                     value=${ publishedDate }
+                     onInput=${ handleChangeEvent } />
       <br/>
       <label for="short-description">Short Description:</label>
       <br/>
-      <input id="short-description"
-             type="text"
-             name="short-description"
-             value=${ shortDescription }
-             onInput=${ handleChangeEvent } />
+      <${CivilInput} id="short-description"
+                     value=${ shortDescription }
+                     onInput=${ handleChangeEvent } />
       <br/>
       <label for="rating">Rating (between 0 and 5):</label>
       <input id="rating"

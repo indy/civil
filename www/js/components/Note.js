@@ -6,9 +6,10 @@ import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
 import CivilSelect from '/js/components/CivilSelect.js';
+import CivilTextArea from '/js/components/CivilTextArea.js';
+import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 import FlashCard from '/js/components/FlashCard.js';
 import ImageWidget from '/js/components/ImageWidget.js';
-import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 import buildMarkup from '/js/components/BuildMarkup.js';
 
 const NOTE_SET_PROPERTY = 'note-set-property';
@@ -112,14 +113,6 @@ function reducer(state, action) {
     }
 };
 
-function enableFullKeyboardAccess(dispatch) {
-    dispatch({ type: 'enableFullKeyboardAccessForComponent' });
-}
-
-function disableFullKeyboardAccess(dispatch) {
-    dispatch({ type: 'disableFullKeyboardAccessForComponent' });
-}
-
 export default function Note(props) {
     const [state, dispatch] = useStateValue();
 
@@ -147,10 +140,7 @@ export default function Note(props) {
         localDispatch(IS_EDITING_MARKUP_TOGGLE);
 
         if (isEditingMarkupNew) {
-            enableFullKeyboardAccess(dispatch);
         } else {
-            disableFullKeyboardAccess(dispatch);
-
             if (hasNoteBeenModified(local.note, props.note)) {
                 const id = props.note.id;
 
@@ -184,11 +174,9 @@ export default function Note(props) {
     function buildEditableContent() {
         let res = html`
       <div class="civil-form">
-        <textarea id="content"
-                  type="text"
-                  name="content"
-                  value=${ local.note.content }
-                  onInput=${ handleChangeEvent }/>
+        <${CivilTextArea} id="content"
+                          value=${ local.note.content }
+                          onInput=${ handleChangeEvent }/>
       </div>`;
 
         return res;
@@ -199,13 +187,11 @@ export default function Note(props) {
 
         function onCancel(e) {
             e.preventDefault();
-            disableFullKeyboardAccess(dispatch);
             localDispatch(ADD_FLASH_CARD_UI_SHOW, false);
         }
 
         function onSave(e) {
             e.preventDefault();
-            disableFullKeyboardAccess(dispatch);
 
             let data = {
                 note_id: props.note.id,
@@ -226,9 +212,8 @@ export default function Note(props) {
       <div class="block-width">
         <label>Flash Card Prompt</label>
         <div>
-          <textarea type="text"
-                    value=${ flashCardPrompt }
-                    onInput=${ onInput }/>
+          <${CivilTextArea} value=${ flashCardPrompt }
+                            onInput=${ onInput }/>
         </div>
         <button onClick=${ onCancel }>Cancel</button>
         <button onClick=${ onSave }>Save Flash Card Prompt</button>
@@ -247,7 +232,6 @@ export default function Note(props) {
             // 6. clicks cancel
             // expected: only the changes from step 5 should be undone
 
-            disableFullKeyboardAccess(dispatch);
             if (changes) {
                 let data = {
                     note_id: props.note.id,
@@ -301,21 +285,10 @@ export default function Note(props) {
 
 
         function toggleAddDeckReferencesUI() {
-            if (!local.addDeckReferencesUI) {
-                enableFullKeyboardAccess(dispatch);
-            } else {
-                disableFullKeyboardAccess(dispatch);
-            }
             localDispatch(ADD_DECK_REFERENCES_UI_SHOW, !local.addDeckReferencesUI);
         }
 
         function toggleAddFlashCardUI() {
-            if (!local.addFlashCardUI) {
-                enableFullKeyboardAccess(dispatch);
-            } else {
-                disableFullKeyboardAccess(dispatch);
-            }
-
             localDispatch(ADD_FLASH_CARD_UI_SHOW, !local.addFlashCardUI);
         }
 

@@ -6,11 +6,12 @@ import Net from '/js/Net.js';
 import { ensureListingLoaded, leftMarginHeading } from '/js/CivilUtils.js';
 import { capitalise, formattedDate } from '/js/JsUtils.js';
 
-import { DeckManager } from '/js/components/DeckManager.js';
+import CivilInput from '/js/components/CivilInput.js';
 import GraphSection from '/js/components/GraphSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBackref.js';
 import { CompactedListSection } from '/js/components/ListSections.js';
+import { DeckManager } from '/js/components/DeckManager.js';
 
 function Ideas() {
     const [state, dispatch] = useStateValue();
@@ -137,11 +138,9 @@ function UpdateIdeaForm({ deck, hideFormFn }) {
     <form class="civil-form" onSubmit=${ handleSubmit }>
       <label for="title">Title:</label>
       <br/>
-      <input id="title"
-             type="text"
-             name="title"
-             value=${ title }
-             onInput=${ handleChangeEvent } />
+      <${CivilInput} id="title"
+                     value=${ title }
+                     onInput=${ handleChangeEvent } />
       <br/>
       <label for="graph-terminator">Graph Terminator:</label>
       <input type="checkbox"

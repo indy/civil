@@ -5,6 +5,7 @@ import { svgEdit, svgX } from '/js/svgIcons.js';
 import { useWasmInterface } from '/js/WasmInterfaceProvider.js';
 import { useStateValue } from '/js/StateProvider.js';
 
+import CivilTextArea from '/js/components/CivilTextArea.js';
 import ImageWidget from '/js/components/ImageWidget.js';
 import Note from '/js/components/Note.js';
 import RollableSection from '/js/components/RollableSection.js';
@@ -202,13 +203,11 @@ function NoteForm({ onSubmit, onCancel }) {
     <form class="civil-add-note-form" onSubmit=${ onSubmit }>
       <label for="content">Append Note:</label>
       <br/>
-      <textarea id="content"
-                type="text"
-                ref=${ textAreaRef }
-                class="new-note-textarea"
-                name="content"
-                value=${ content }
-                onInput=${ handleChangeEvent }
+      <${CivilTextArea} id="content"
+                        ref=${ textAreaRef }
+                        klass="new-note-textarea"
+                        value=${ content }
+                        onInput=${ handleChangeEvent }
       />
       <br/>
       <input type="submit" value="Save"/>

@@ -436,6 +436,18 @@ export default function SearchCommand() {
         dispatch({type: 'showingSearchCommand', showingSearchCommand: local.isVisible});
     }
 
+    // note: for debugging purposes:
+    //
+    // function kbInactive() {
+    //     return html`<div>keyboard inactive</div>`;
+    // }
+    //
+    // put this inside the search-command div
+    // <div class="keyboard-access-indicator">
+    //   ${ state.componentRequiresFullKeyboardAccess && html`<div>component has kb</div>` }
+    //   ${ !state.componentRequiresFullKeyboardAccess && html`<div>search command has kb</div>` }
+    // </div>
+
     return html`
         <div id="search-command">
             <div class="${extraClasses}">

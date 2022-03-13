@@ -6,6 +6,8 @@ import { useStateValue } from '/js/StateProvider.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import buildMarkup from '/js/components/BuildMarkup.js';
 
+import CivilInput from '/js/components/CivilInput.js';
+import CivilTextArea from '/js/components/CivilTextArea.js';
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 import Note from '/js/components/Note.js';
 
@@ -96,7 +98,7 @@ function Quotes() {
         if (name === "attribution") {
             localDispatch(SET_ATTRIBUTION, value);
         }
-        if (name === "quote_text") {
+        if (name === "quote-text") {
             localDispatch(SET_QUOTE_TEXT, value);
         }
     }
@@ -132,20 +134,16 @@ function Quotes() {
         return html`<form class="civil-form">
                         <label for="attribution">QuoteText:</label>
                         <br/>
-                        <textarea id="quote-text"
-                                  type="text"
-                                  name="quote_text"
-                                  value=${ local.quoteText }
-                                  onInput=${handleChangeEvent}/>
+                        <${CivilTextArea} id="quote-text"
+                                          value=${ local.quoteText }
+                                          onInput=${handleChangeEvent}/>
                         <br/>
                         <label for="attribution">Attribution:</label>
                         <br/>
-                        <input id="attribution"
-                               type="text"
-                               autocomplete="off"
-                               name="attribution"
-                               value=${ local.attribution }
-                               onInput=${handleChangeEvent}/>
+                        <${CivilInput} id="attribution"
+                                       autocomplete="off"
+                                       value=${ local.attribution }
+                                       onInput=${handleChangeEvent}/>
                         <br/>
                         <button onClick=${clickedCancel}>cancel</button>
                         <button onClick=${clickedSave}>save</button>
@@ -348,14 +346,6 @@ function reducer2(state, action) {
     }
 }
 
-function enableFullKeyboardAccess(dispatch) {
-    dispatch({ type: 'enableFullKeyboardAccessForComponent' });
-}
-
-function disableFullKeyboardAccess(dispatch) {
-    dispatch({ type: 'disableFullKeyboardAccessForComponent' });
-}
-
 function Attribution({ attribution, onEdited, onDelete}) {
     const [state, dispatch] = useStateValue();
 
@@ -379,14 +369,12 @@ function Attribution({ attribution, onEdited, onDelete}) {
     }
 
     function confirmedDeleteClicked() {
-        disableFullKeyboardAccess(dispatch);
         onDelete();
     }
 
     function clickedEdit(e) {
         e.preventDefault();
         localDispatch(ATTR_SET_MODE, ATTR_EDIT_MODE);
-        enableFullKeyboardAccess(dispatch);
     }
 
     function handleChangeEvent(e) {
@@ -399,13 +387,11 @@ function Attribution({ attribution, onEdited, onDelete}) {
 
     function clickedCancel(e) {
         e.preventDefault();
-        disableFullKeyboardAccess(dispatch);
         localDispatch(ATTR_SET_MODE, ATTR_SHOW_MODE);
     }
 
     function clickedOK(e) {
         e.preventDefault();
-        disableFullKeyboardAccess(dispatch);
         onEdited(local.attribution);
         localDispatch(ATTR_SET_MODE, ATTR_SHOW_MODE);
     }
@@ -417,92 +403,28 @@ function Attribution({ attribution, onEdited, onDelete}) {
     }
 
     return html`<div>
-  ${local.mode === ATTR_SHOW_MODE && html`
-        <div>
-        <div id="quotation-attribute" onClick=${clickedAttribution}>
-        ${ markup }
-    </div>
-        ${local.showButtons && html`
-      <button onClick=${ clickedEdit }>Edit...</button>
-      <${DeleteConfirmation} onDelete=${ confirmedDeleteClicked }/>
-    `}
-    </div>`}
-
-  ${local.mode === ATTR_EDIT_MODE && html`
-        <div>
-        <input id="attribution"
-    type="text"
-    name="attribution"
-    value=${ local.attribution }
-    autoComplete="off"
-    onInput=${ handleChangeEvent } />
-        <br/>
-        <button onClick=${ clickedCancel }>Cancel</button>
-        <button onClick=${ clickedOK }>OK</button>
-
-    </div>`}
-
-</div>`;
-}
-
-function UpdateQuoteForm({ deck, hideFormFn }) {
-    const quote = deck || {};
-    const [state, dispatch] = useStateValue();
-
-    const [localState, setLocalState] = useState({
-        title: quote.title || ''
-    });
-
-    useEffect(() => {
-        if (quote.title && quote.title !== '' && localState.title === '') {
-            setLocalState({
-                ...localState,
-                title: quote.title
-            });
-        }
-    }, [quote]);
-
-    const handleChangeEvent = (e) => {
-        const target = e.target;
-        const name = target.name;
-        const value = target.value;
-
-        if (name === "title") {
-            setLocalState({
-                ...localState,
-                title: value
-            });
-        }
-    };
-
-    const handleSubmit = (e) => {
-        const data = {
-            title: localState.title.trim()
-        };
-
-        // edit an existing quote
-        Net.put(`/api/quotes/${quote.id}`, data).then(newItem => {
-            cacheDeck(dispatch, newItem);
-            // hide this form
-            hideFormFn();
-        });
-
-        e.preventDefault();
-    };
-
-    return html`
-    <form class="civil-form" onSubmit=${ handleSubmit }>
-      <label for="title">Title:</label>
-      <br/>
-      <input id="title"
-             type="text"
-             name="title"
-             value=${ localState.title }
-             autoComplete="off"
-             onInput=${ handleChangeEvent } />
-      <br/>
-      <input type="submit" value="Update Quote"/>
-    </form>`;
+        ${local.mode === ATTR_SHOW_MODE && html`
+              <div>
+                  <div id="quotation-attribute" onClick=${clickedAttribution}>
+                      ${ markup }
+                  </div>
+                  ${local.showButtons && html`
+                      <button onClick=${ clickedEdit }>Edit...</button>
+                      <${DeleteConfirmation} onDelete=${ confirmedDeleteClicked }/>
+                  `}
+              </div>`}
+        ${local.mode === ATTR_EDIT_MODE && html`
+              <div>
+                  <${CivilInput} id="attribution"
+                                 value=${ local.attribution }
+                                 autoComplete="off"
+                                 onInput=${ handleChangeEvent } />
+                  <br/>
+                  <button onClick=${ clickedCancel }>Cancel</button>
+                  <button onClick=${ clickedOK }>OK</button>
+              </div>
+          `}
+    </div>`;
 }
 
 export { Quote, Quotes };

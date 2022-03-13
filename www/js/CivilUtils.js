@@ -14,9 +14,21 @@ export function createDeck(dispatch, resource, title) {
             setDeckListing(dispatch, resource, listing);
             invalidateGraph(dispatch);
         });
-        dispatch({type: "showNoteForm"});
         route(`/${resource}/${deck.id}`);
     });
+}
+
+export function obtainKeyboard(dispatch) {
+    return function(e) {
+        e.preventDefault();
+        dispatch({ type: 'enableFullKeyboardAccessForComponent' });
+    }
+}
+export function relinquishKeyboard(dispatch) {
+    return function(e) {
+        e.preventDefault();
+        dispatch({ type: 'disableFullKeyboardAccessForComponent' });
+    }
 }
 
 export function indexToShortcut(index) {

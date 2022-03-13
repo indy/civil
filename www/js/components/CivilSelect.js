@@ -6,6 +6,8 @@ import { svgCloseShifted } from '/js/svgIcons.js';
 import { sortByResourceThenName } from '/js/CivilUtils.js';
 import { indexToShortcut } from '/js/CivilUtils.js';
 
+import CivilInput from '/js/components/CivilInput.js';
+
 const CANDIDATES_SET = 'candidate-set';
 const CTRL_KEY_DOWN = 'ctrl-key-down';
 const CURRENTLY_CHOSEN_RESET = 'currently-chosen-reset';
@@ -324,9 +326,7 @@ function SelectedReference({ reference, onRemove, onChangeKind, onChangeAnnotati
         const name = target.name;
         const value = target.value;
 
-        if (name === "annotation") {
-            onChangeAnnotation(reference, value);
-        }
+        onChangeAnnotation(reference, value);
     };
 
     return html`<div class='civsel-reference pigment-${reference.resource}'>
@@ -339,11 +339,10 @@ function SelectedReference({ reference, onRemove, onChangeKind, onChangeAnnotati
                   <option value="RefCritical" selected=${reference.ref_kind == "RefCritical"}>Critical Reference</option>
                 </select>
                 <span class="civsel-name">${reference.name}</span>
-                <input class="civsel-annotation"
-                  type="text"
-                  name="annotation"
-                  value=${ reference.annotation }
-                  onInput=${ handleChangeEvent } />
+                <${CivilInput} klass="civsel-annotation"
+                               id="annotation"
+                               value=${ reference.annotation }
+                               onInput=${ handleChangeEvent } />
               </div>`;
 }
 
@@ -377,11 +376,10 @@ function Input({ text, onTextChanged, onAdd, onCreate, candidates, currentSelect
 
     return html`
     <form class="civsel-form" onSubmit=${ onSubmit }>
-      <input
-        type='text'
-        value='${ text }'
-        autoComplete='off'
-        onInput=${ onInput }
+      <${CivilInput} type='text'
+                     value='${ text }'
+                     autoComplete='off'
+                     onInput=${ onInput }
       />
       <div class='civsel-candidates'>${ cl }</div>
     </form>`;
