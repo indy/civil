@@ -189,7 +189,9 @@ function NoteForm({ onSubmit, onCancel }) {
     };
 
     useEffect(() => {
-        textAreaRef.current.focus();
+        if (textAreaRef.current) {
+            textAreaRef.current.focus();
+        }
     }, []);
 
     return html`
@@ -204,8 +206,8 @@ function NoteForm({ onSubmit, onCancel }) {
       <label for="content">Append Note:</label>
       <br/>
       <${CivilTextArea} id="content"
-                        ref=${ textAreaRef }
-                        klass="new-note-textarea"
+                        elementRef=${ textAreaRef }
+                        elementClass="new-note-textarea"
                         value=${ content }
                         onInput=${ handleChangeEvent }
       />

@@ -339,7 +339,7 @@ function SelectedReference({ reference, onRemove, onChangeKind, onChangeAnnotati
                   <option value="RefCritical" selected=${reference.ref_kind == "RefCritical"}>Critical Reference</option>
                 </select>
                 <span class="civsel-name">${reference.name}</span>
-                <${CivilInput} klass="civsel-annotation"
+                <${CivilInput} elementClass="civsel-annotation"
                                id="annotation"
                                value=${ reference.annotation }
                                onInput=${ handleChangeEvent } />
