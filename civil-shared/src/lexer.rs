@@ -106,23 +106,23 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
 
     while !input.is_empty() {
         if let Some(ch) = input.chars().next() {
-            let (token, size) = match ch {
-                '*' => (Token::Asterisk(index), 1),
-                '@' => (Token::At(index), 1),
-                '`' => (Token::BackTick(index), 1),
-                '[' => (Token::BracketBegin(index), 1),
-                ']' => (Token::BracketEnd(index), 1),
-                '^' => (Token::Caret(index), 1),
-                '"' => (Token::DoubleQuote(index), 1),
-                '#' => (Token::Hash(index), 1),
-                '-' => (Token::Hyphen(index), 1),
-                '\n' => (Token::Newline(index), 1),
-                '(' => (Token::ParenBegin(index), 1),
-                ')' => (Token::ParenEnd(index), 1),
-                '.' => (Token::Period(index), 1),
-                '|' => (Token::Pipe(index), 1),
-                '~' => (Token::Tilde(index), 1),
-                '_' => (Token::Underscore(index), 1),
+            let (token, characters, bytes) = match ch {
+                '*' => (Token::Asterisk(index), 1, 1),
+                '@' => (Token::At(index), 1, 1),
+                '`' => (Token::BackTick(index), 1, 1),
+                '[' => (Token::BracketBegin(index), 1, 1),
+                ']' => (Token::BracketEnd(index), 1, 1),
+                '^' => (Token::Caret(index), 1, 1),
+                '"' => (Token::DoubleQuote(index), 1, 1),
+                '#' => (Token::Hash(index), 1, 1),
+                '-' => (Token::Hyphen(index), 1, 1),
+                '\n' => (Token::Newline(index), 1, 1),
+                '(' => (Token::ParenBegin(index), 1, 1),
+                ')' => (Token::ParenEnd(index), 1, 1),
+                '.' => (Token::Period(index), 1, 1),
+                '|' => (Token::Pipe(index), 1, 1),
+                '~' => (Token::Tilde(index), 1, 1),
+                '_' => (Token::Underscore(index), 1, 1),
                 '>' => eat_blockquote_begin_or_greater_than_character(index, &input)?,
                 '<' => eat_blockquote_end_or_less_than_character(index, &input)?,
                 '0'..='9' => eat_digits(index, &input)?,
@@ -130,8 +130,8 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
                 _ => eat_text(index, &input)?,
             };
 
-            index = index + size;
-            input = &input[size..];
+            index = index + characters;
+            input = &input[bytes..];
             tokens.push(token)
         } else {
             return Err(Error::Lexer);
@@ -143,57 +143,69 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
     Ok(tokens)
 }
 
-fn eat_blockquote_begin_or_greater_than_character(index: usize, input: &str) -> Result<(Token, usize)> {
+fn eat_blockquote_begin_or_greater_than_character(index: usize, input: &str) -> Result<(Token, usize, usize)> {
     // check if the next three characters are '>'
+    let count = input.chars().count();
     let mut chars = input.chars();
-    if input.len() >= 3 && chars.next() == Some('>') && chars.next() == Some('>') && chars.next() == Some('>') {
-        Ok((Token::BlockquoteBegin(index), 3))
+    if count >= 3 && chars.next() == Some('>') && chars.next() == Some('>') && chars.next() == Some('>') {
+        Ok((Token::BlockquoteBegin(index), 3, 3))
     } else {
         // we know that the first character is definitely a >
-        Ok((Token::Text(index, &input[..1]), 1))
+        Ok((Token::Text(index, &input[..1]), 1, 1))
     }
 }
 
-fn eat_blockquote_end_or_less_than_character(index: usize, input: &str) -> Result<(Token, usize)> {
+fn eat_blockquote_end_or_less_than_character(index: usize, input: &str) -> Result<(Token, usize, usize)> {
     // check if the next three characters are '<'
+    let count = input.chars().count();
     let mut chars = input.chars();
-    if input.len() >= 3 && chars.next() == Some('<') && chars.next() == Some('<') && chars.next() == Some('<') {
-        Ok((Token::BlockquoteEnd(index), 3))
+    if count >= 3 && chars.next() == Some('<') && chars.next() == Some('<') && chars.next() == Some('<') {
+        Ok((Token::BlockquoteEnd(index), 3, 3))
     } else {
         // we know that the first character is definitely a <
-        Ok((Token::Text(index, &input[..1]), 1))
+        Ok((Token::Text(index, &input[..1]), 1, 1))
     }
 }
 
-fn eat_digits(index: usize, input: &str) -> Result<(Token, usize)> {
+fn eat_digits(index: usize, input: &str) -> Result<(Token, usize, usize)> {
+    let mut ch_counter: usize = 0;
     for (ind, ch) in input.char_indices() {
         if !ch.is_digit(10) {
-            return Ok((Token::Digits(index, &input[..ind]), ind));
+            return Ok((Token::Digits(index, &input[..ind]), ch_counter, ind));
         }
+        ch_counter += 1;
     }
 
-    Ok((Token::Digits(index, input), input.len()))
+    Ok((Token::Digits(index, input), input.chars().count(), input.len()))
 }
 
-fn eat_whitespace(index: usize, input: &str) -> Result<(Token, usize)> {
+fn eat_whitespace(index: usize, input: &str) -> Result<(Token, usize, usize)> {
+    let mut ch_counter: usize = 0;
     for (ind, ch) in input.char_indices() {
         if !ch.is_whitespace() {
-            return Ok((Token::Whitespace(index, &input[..ind]), ind));
+            return Ok((Token::Whitespace(index, &input[..ind]), ch_counter, ind));
         }
+        ch_counter += 1;
     }
 
-    Ok((Token::Whitespace(index, input), input.len()))
+    Ok((Token::Whitespace(index, input), input.chars().count(), input.len()))
 }
 
 // greedy
-fn eat_text(index: usize, input: &str) -> Result<(Token, usize)> {
+fn eat_text(index: usize, input: &str) -> Result<(Token, usize, usize)> {
+
+    // the ind from char_indices may increment by more than one for unicode characters
+    // so we'll need to keep count of the actual number of characters processed
+    //
+    let mut ch_counter: usize = 0;
     for (ind, ch) in input.char_indices() {
         if !is_text(ch) {
-            return Ok((Token::Text(index, &input[..ind]), ind));
+            return Ok((Token::Text(index, &input[..ind]), ch_counter, ind));
         }
+        ch_counter += 1;
     }
 
-    Ok((Token::Text(index, input), input.len()))
+    Ok((Token::Text(index, input), input.chars().count(), input.len()))
 }
 
 fn is_text(ch: char) -> bool {
@@ -319,6 +331,24 @@ mod tests {
                 ],
             );
         }
+    }
+
+    #[test]
+    fn test_char_length_bug() {
+        // the apostrophe is unicode, so the number of bytes in
+        // the string doesn't match the number of characters
+        //
+        tok(
+            "For, Putin’s mind?
+#-",
+            &[
+                Token::Text(0, "For, Putin’s mind?"),
+                Token::Newline(18),
+                Token::Hash(19),
+                Token::Hyphen(20),
+                Token::EOS(21)
+            ]
+        );
     }
 
     #[test]

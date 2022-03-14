@@ -6,11 +6,8 @@ import { buildColourConversionFn, declareCssVariables } from '/js/ColourCreator.
 
 wasm_bindgen('/civil_wasm_bg.wasm')
     .then(async wasm_bg => {
-
         const { init_wasm, markup_as_ast, markup_as_struct, rgb_from_hsl } = wasm_bindgen;
-
         const version = init_wasm();
-        // console.log(version);
 
         const wasmInterface = {
             asHtmlAst: markup_as_struct,
@@ -37,7 +34,11 @@ wasm_bindgen('/civil_wasm_bg.wasm')
                         ast.Underlined ||
                         ast.UnorderedList ||
                         ast.Url;
-                    return node[0];
+                    // The Rust enum Node in civil-shared stores the values in an array when
+                    // there is more than one data item attached (e.g. Image(usize, String)),
+                    // but as a single value if there is only one data item (e.g. HorizontalRule(usize))
+                    //
+                    return Array.isArray(node) ? node[0] : node;
                 })
 
                 let res = [];

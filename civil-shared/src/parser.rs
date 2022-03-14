@@ -134,7 +134,7 @@ fn is_heading(tokens: &'_ [Token]) -> bool {
         match tokens[1] {
             Token::Text(_, s) => {
                 if let Some((_level, h)) = heading_text(s) {
-                    h.len() > 0
+                    h.chars().count() > 0
                 } else {
                     false
                 }
@@ -491,8 +491,8 @@ fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> Result<(Token<'a
             match t {
                 Token::Text(p, u) => {
                     if let Some(remaining_text) = s.strip_prefix(u) {
-                        if remaining_text.len() > 0 {
-                            let rhs = Token::Text(p + u.len(), remaining_text.trim_start());
+                        if remaining_text.chars().count() > 0 {
+                            let rhs = Token::Text(p + u.chars().count(), remaining_text.trim_start());
                             Ok((*t, Some(rhs)))
                         } else {
                             Ok((*t, None))
@@ -942,6 +942,16 @@ mod tests {
     fn assert_horizontal_rule(node: &Node) {
         match node {
             Node::HorizontalRule(_) => assert!(true),
+            _ => assert!(false),
+        };
+    }
+
+    fn assert_horizontal_ruleloc(node: &Node, loc: usize) {
+        match node {
+            Node::HorizontalRule(pos) => {
+                assert_eq!(*pos, loc);
+                assert!(true);
+            },
             _ => assert!(false),
         };
     }
@@ -1843,4 +1853,17 @@ third paragraph",
             header_with_multi_text(&nodes[0], 3, "A header (with parentheses)");
         }
     }
+
+    #[test]
+    fn test_offset_bug() {
+        let nodes = build(
+            "For years, the political scientist has claimed that Putin’s aggression toward Ukraine is caused by Western intervention. Have recent events changed his mind?
+#-",
+        );
+        assert_eq!(2, nodes.len());
+
+        paragraph_with_single_text(&nodes[0], "For years, the political scientist has claimed that Putin’s aggression toward Ukraine is caused by Western intervention. Have recent events changed his mind?");
+        assert_horizontal_ruleloc(&nodes[1], 158);
+    }
+
 }
