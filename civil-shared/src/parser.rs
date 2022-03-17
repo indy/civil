@@ -162,8 +162,6 @@ pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
 
     tokens = skip_leading_whitespace_and_newlines(&tokens)?;
     while !tokens.is_empty() && !is_terminator(tokens) {
-        tokens = skip_leading_whitespace_and_newlines(&tokens)?;
-
         let (rem, node) = if is_numbered_list_item(tokens) {
             eat_ordered_list(tokens, None)?
         } else if is_unordered_list_item(tokens) {
@@ -184,7 +182,7 @@ pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
         };
 
         res.push(node);
-        tokens = rem;
+        tokens = skip_leading_whitespace_and_newlines(&rem)?;
     }
 
     Ok((tokens, res))
@@ -1865,5 +1863,19 @@ third paragraph",
         paragraph_with_single_text(&nodes[0], "For years, the political scientist has claimed that Putin’s aggression toward Ukraine is caused by Western intervention. Have recent events changed his mind?");
         assert_horizontal_ruleloc(&nodes[1], 158);
     }
+
+    #[test]
+    fn test_parsing_bug() {
+        // the parse function skipped leading whitespace and newlines
+        // at the start of the loop, should have been at the end.
+        //
+        let s = "@img(abc.jpeg)
+";
+        let nodes = build(s);
+        dbg!(&nodes);
+        assert_eq!(1, nodes.len());
+    }
+
+
 
 }
