@@ -60,13 +60,13 @@ async fn main() -> Result<()> {
             .handler(http::StatusCode::NOT_FOUND, server_api::not_found);
 
         App::new()
-            .data(pool.clone())
-            .data(ServerConfig {
+            .app_data(web::Data::new(pool.clone()))
+            .app_data(web::Data::new(ServerConfig {
                 user_content_path: user_content_path.clone(),
                 registration_magic_word: registration_magic_word.clone(),
-            })
-            .data(web::JsonConfig::default().limit(1024 * 1024))
-            .wrap(middleware::DefaultHeaders::new().header("Cache-control", "no-cache"))
+            }))
+            .app_data(web::JsonConfig::default().limit(1024 * 1024))
+            .wrap(middleware::DefaultHeaders::new().add(("Cache-control", "no-cache")))
             .wrap(session_store)
             .wrap(error_handlers)
             .service(server_api::public_api("/api"))

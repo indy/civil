@@ -70,7 +70,7 @@ pub async fn create(
 
     // iterate over multipart stream
     while let Ok(Some(mut field)) = payload.try_next().await {
-        let content_type = field.content_disposition().unwrap();
+        let content_type = field.content_disposition();
         let filename = content_type.get_filename().unwrap();
 
         let ext = get_extension(filename).unwrap();
