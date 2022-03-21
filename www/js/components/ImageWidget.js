@@ -1,4 +1,4 @@
-import { html, useState, useEffect, useRef } from '/lib/preact/mod.js';
+import { h, html, useState, useEffect, useRef } from '/lib/preact/mod.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { svgX, svgImage } from '/js/svgIcons.js';
 
@@ -98,52 +98,44 @@ export default function ImageWidget(props) {
     }
 
     if (minimised) {
-        // NOTE: the extra pair of outer divs is required here because otherwise
-        // Preact breaks when trying to close the ImageWidget. (It renders the
-        // DOM twice, once correctly as the ImageWidget closed and then straight
-        // away incorrectly as the ImageWidget open. The end result is that once
-        // the ImageWidget has been opened it cannot be shut.) I think having
-        // these extra divs makes this codepath resemble the other codepath and
-        // that might help Preact's diffing algorithm
-        //
-        return html`<div>
-                  <div class="left-margin">
-                    <div class="left-margin-entry" onClick=${ onIconClicked }>
-                      ${ svgImage() }
-                    </div>
-                  </div>
-                </div>`;
+        return h('button',
+                 {
+                     class: "right-side",
+                     onClick: onIconClicked
+                 },
+                 "Images...");
     } else {
-        const recent = state.recentImages.map(ri => html`<${ImageWidgetItem}
-                                                       imageDirectory=${imageDirectory}
-                                                       filename=${ri.filename}/>`);
+        const recent = state.recentImages.map(ri => h(ImageWidgetItem,
+                                                      {
+                                                          imageDirectory: imageDirectory,
+                                                          filename: ri.filename
+                                                      }));
 
-        let containerClass = "";
+        let containerClass = "image-widget-container";
         if (hovering) {
             containerClass += " image-widget-hovering";
         }
-        containerClass += " image-widget-container";
 
-        const dragdropMessage = html`<div class="image-widget-hover-message">Drop Images Here</div>`;
+        const dragdropMessage = h("div", { class: "image-widget-hover-message" }, "Drop Images Here");
 
         return html`
-             <div>
-               <div class="left-margin">
-                 <div class="left-margin-entry" onClick=${ onIconClicked }>
-                   ${ svgX() }
-                 </div>
-               </div>
-               <div class="${containerClass}" ref=${dragArea}>
-                 ${ hovering ? dragdropMessage : recent }
-               </div>
-             </div>`;
+                   <div>
+                       <div class="left-margin">
+                           <div class="left-margin-entry" onClick=${ onIconClicked }>
+                               ${ svgX() }
+                           </div>
+                       </div>
+                       <div class="${containerClass}" ref=${dragArea}>
+                           ${ hovering ? dragdropMessage : recent }
+                       </div>
+                   </div>`;
     }
 }
 
 function ImageWidgetItem({ filename, imageDirectory }) {
     return html`
-<div class="image-widget-item">
-  <img class="image-widget-img" src="/u/${imageDirectory}/${filename}"/>
-  <div class="image-widget-title">@img(${filename})</div>
-</div>`;
+               <div class="image-widget-item">
+                   <img class="image-widget-img" src="/u/${imageDirectory}/${filename}"/>
+                   <div class="image-widget-title">@img(${filename})</div>
+               </div>`;
 }

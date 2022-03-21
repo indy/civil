@@ -19,9 +19,11 @@ const ADD_DECKS_COMMIT = 'add-decks-commit';
 const HIDE_ADD_DECKS_UI = 'hide-add-decks-ui';
 const FLASH_CARD_SAVED = 'flash-card-saved';
 const MOD_BUTTONS_TOGGLE = 'mod-buttons-toggle';
-const IS_EDITING_MARKUP_TOGGLE = 'is-editing-markup-toggle';
+const TOGGLE_EDITING = 'toggle-editing';
+const EDITED_NOTE = 'edited-note';
 const FLASHCARD_TOGGLE = 'flashcard-toggle';
 const FLASHCARD_HIDE = 'flashcard-hide';
+const EDITING_CANCELLED = 'editing-cancelled';
 
 function reducer(state, action) {
     switch(action.type) {
@@ -100,7 +102,7 @@ function reducer(state, action) {
         }
         return newState;
     }
-    case IS_EDITING_MARKUP_TOGGLE: {
+    case TOGGLE_EDITING: {
         const newState = { ...state };
         newState.isEditingMarkup = !newState.isEditingMarkup;
         if (newState.isEditingMarkup === false) {
@@ -109,6 +111,25 @@ function reducer(state, action) {
 
         return newState;
     }
+    case EDITED_NOTE: {
+        const newState = { ...state };
+        newState.isEditingMarkup = !newState.isEditingMarkup;
+        if (newState.isEditingMarkup === false) {
+            newState.showModButtons = false;
+        }
+
+        newState.originalContent = newState.note.content;
+
+        return newState;
+    }
+    case EDITING_CANCELLED: {
+        const newState = { ...state };
+        newState.isEditingMarkup = false;
+        newState.showModButtons = false;
+        newState.note.content = newState.originalContent;
+        return newState;
+    }
+
     default: throw new Error(`unknown action: ${action}`);
     }
 };
@@ -122,6 +143,7 @@ export default function Note(props) {
         addFlashCardUI: false,
         isEditingMarkup: false,
         note: { ...props.note },
+        originalContent: props.note.content,
         decks: (props.note && props.note.decks),
         flashcardToShow: undefined
     };
@@ -132,32 +154,38 @@ export default function Note(props) {
         localDispatch(NOTE_SET_PROPERTY, { name: target.name, value: target.value });
     };
 
+    function onCancelClicked(e) {
+        e.preventDefault();
+        localDispatch(EDITING_CANCELLED);
+    }
+
     function onEditClicked(e) {
         e.preventDefault();
+        localDispatch(TOGGLE_EDITING);
+    };
 
-        const isEditingMarkupNew = !local.isEditingMarkup; // isEditingMarkupNew is the state after the IS_EDITING_MARKUP_TOGGLE dispatch
+    function onSaveEditsClicked(e) {
+        e.preventDefault();
 
-        localDispatch(IS_EDITING_MARKUP_TOGGLE);
+        if (hasNoteBeenModified(local)) {
+            const id = props.note.id;
 
-        if (isEditingMarkupNew) {
+            // send updated content to server
+            //
+            const updatedNote = {
+                id: local.note.id,
+                kind: local.note.kind,
+                content: local.note.content
+            };
+
+            Net.put("/api/notes/" + id.toString(), updatedNote);
+
+            // stopped editing and the editable content is different than
+            // the original note's text.
+            props.onEdited(id, local.note);
+            localDispatch(EDITED_NOTE);
         } else {
-            if (hasNoteBeenModified(local.note, props.note)) {
-                const id = props.note.id;
-
-                // send updated content to server
-                //
-                const updatedNote = {
-                    id: local.note.id,
-                    kind: local.note.kind,
-                    content: local.note.content
-                };
-
-                Net.put("/api/notes/" + id.toString(), updatedNote);
-
-                // stopped editing and the editable content is different than
-                // the original note's text.
-                props.onEdited(id, local.note);
-            }
+            localDispatch(TOGGLE_EDITING);
         }
     };
 
@@ -269,15 +297,7 @@ export default function Note(props) {
     };
 
     function buildMainButtons() {
-        let editLabelText;
-        if (!local.isEditingMarkup) {
-            editLabelText = "Edit...";
-        } else if (hasNoteBeenModified(local.note, props.note)) {
-            // editing and have made changes
-            editLabelText = "Save Edits";
-        } else {
-            editLabelText = "Stop Editing";
-        }
+        let editLabelText = local.isEditingMarkup ? "Save Edits" : "Edit...";
 
         function confirmedDeleteClicked() {
             onReallyDelete(props.note.id, props.onDelete);
@@ -295,11 +315,15 @@ export default function Note(props) {
         return html`
       <div class="block-width">
         ${ !local.isEditingMarkup && html`<button onClick=${ toggleAddDeckReferencesUI }>References...</button>` }
-        <button onClick=${ onEditClicked }>${ editLabelText }</button>
+        ${ local.isEditingMarkup && html`<button onClick=${ onCancelClicked }>Cancel</button>`}
+
+        ${ local.isEditingMarkup && html`<button disabled=${!hasNoteBeenModified(local)} onClick=${ onSaveEditsClicked }>Save Edits</button>`}
+        ${ !local.isEditingMarkup && html`<button onClick=${ onEditClicked }>Edit...</button>`}
+
         ${ local.isEditingMarkup && html`<${DeleteConfirmation} onDelete=${ confirmedDeleteClicked }/>`}
 
         ${ local.isEditingMarkup && html`<${ImageWidget}/>` }
-        ${ !local.isEditingMarkup && html`<button class="add-flash-card" onClick=${ toggleAddFlashCardUI }>Add Flash Card...</button>` }
+        ${ !local.isEditingMarkup && html`<button class="right-side" onClick=${ toggleAddFlashCardUI }>Add Flash Card...</button>` }
       </div>
 `;
     }
@@ -389,6 +413,6 @@ function buildFlashcardIndicator(flashcards, localDispatch) {
     return entries;
 };
 
-function hasNoteBeenModified(note, propsNote) {
-    return note.content !== propsNote.content;
+function hasNoteBeenModified(local) {
+    return local.note.content !== local.originalContent;
 };
