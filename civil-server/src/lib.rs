@@ -31,13 +31,14 @@ pub struct ServerConfig {
     pub registration_magic_word: String,
 }
 
-use deadpool_postgres::Pool;
+use deadpool_postgres::{Pool, Runtime};
 use dotenv;
 use std::env;
 use tokio_postgres::NoTls;
 use tracing::error;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
+
 
 pub fn init_dotenv() {
     dotenv::dotenv().ok();
@@ -66,7 +67,7 @@ pub async fn init_postgres_pool() -> Result<Pool> {
         ..Default::default()
     };
 
-    let pool: deadpool_postgres::Pool = cfg.create_pool(NoTls)?;
+    let pool: Pool = cfg.create_pool(Some(Runtime::Tokio1), NoTls)?;
 
     // crash on startup if no database connection can be established
     let _ = pool.get().await?;

@@ -29,7 +29,7 @@ pub enum Error {
     Authenticating,
     CivilShared(civil_shared::Error),
     DeadPool(deadpool_postgres::PoolError),
-    DeadPoolConfig(deadpool_postgres::config::ConfigError),
+    DeadPoolCreatePool(deadpool_postgres::CreatePoolError),
     IO(std::io::Error),
     InvalidKind,
     InvalidModelType(Model),
