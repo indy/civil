@@ -5,9 +5,6 @@
 # 	Build debug server and run
 # 	$ make run
 #
-# 	Build release versions in staging directory
-# 	$ make staging
-#
 # 	Copy staging directory onto peru
 # 	$ make upload
 #
