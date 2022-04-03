@@ -16,6 +16,23 @@
 ########################################
 
 ################################################################################
+# utils
+################################################################################
+# NOTE: have to declare utils at the top of the file, before they're used
+
+# Make doesn't come with a recursive wildcard function so we have to use this:
+#
+rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
+
+# check if minify is installed
+MINIFY := $(shell command -v minify 2> /dev/null)
+
+# note: usage of mkdir -p $(@D)
+# $(@D), means "the directory the current target resides in"
+# using it to make sure that a staging directory is created
+
+
+################################################################################
 # variables
 ################################################################################
 
@@ -117,18 +134,3 @@ staging/$(SERVER_BINARY): server-release
 staging/systemd/isg-civil.sh: $(SYSTEMD_FILES)
 	mkdir -p $(@D)
 	cp -r misc/systemd staging/.
-
-################################################################################
-# utils
-################################################################################
-
-# Make doesn't come with a recursive wildcard function so we have to use this:
-#
-rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
-
-# check if minify is installed
-MINIFY := $(shell command -v minify 2> /dev/null)
-
-# note: usage of mkdir -p $(@D)
-# $(@D), means "the directory the current target resides in"
-# using it to make sure that a staging directory is created
