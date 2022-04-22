@@ -74,10 +74,10 @@ var precacheConfig = [
 
     "/civil_wasm.js",
     "/civil_wasm_bg.wasm",
-    "/lib/preact/hooks.js",
+    "/lib/preact/hooks.mjs",
     "/lib/preact/htm.js",
     "/lib/preact/mod.js",
-    "/lib/preact/preact.js",
+    "/lib/preact/preact.mjs",
     "/lib/preact/preact-router.js",
     "/favicon-16x16.png",
     "/favicon-32x32.png",
