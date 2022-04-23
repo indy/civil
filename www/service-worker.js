@@ -86,6 +86,7 @@ var precacheConfig = [
     "/fonts/Caveat/Caveat-VariableFont_wght.ttf",
     "/fonts/Crimson/CrimsonPro-Italic-VariableFont_wght.ttf",
     "/fonts/Crimson/CrimsonPro-VariableFont_wght.ttf",
+    "/fonts/Inter-Regular.ttf",
     "/fonts/Inter-SemiBold.ttf"
 ];
 

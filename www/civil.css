@@ -47,11 +47,26 @@
 
 @font-face {
     font-family: 'Inter';
-    src: url('fonts/Inter-SemiBold.ttf');
+    src: url('fonts/Inter-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url('fonts/Inter-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
 }
 
 .ui {
   font-family: Inter;
+  font-weight: 400;
+}
+
+.ui-bold {
+  font-family: Inter;
+  font-weight: 600;
 }
 
 .login-title {
@@ -285,6 +300,7 @@ nav {
   border-color: var(--divider);
 
   font-family: Inter;
+  font-weight: 600;
 }
 
 nav a {
@@ -440,6 +456,7 @@ label.right-margin-toggle:not(.right-margin-number) {
 form {
   width: 20rem;
   font-family: Inter;
+  font-weight: 600;
 }
 
 form label {

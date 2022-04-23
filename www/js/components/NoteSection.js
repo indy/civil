@@ -139,7 +139,7 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
   <div class="left-margin-inline">
     <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
       ${ svgEdit() }
-      <span class="left-margin-icon-label ui">${ appendLabel }</span>
+      <span class="left-margin-icon-label ui-bold">${ appendLabel }</span>
     </div>
   </div>
 </div>
@@ -153,7 +153,7 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
 <div class="append-note">
   <div class="left-margin">
     <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
-      <span class="left-margin-icon-label ui">${ appendLabel }</span>
+      <span class="left-margin-icon-label ui-bold">${ appendLabel }</span>
       ${ svgEdit() }
     </div>
   </div>
