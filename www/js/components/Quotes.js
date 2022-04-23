@@ -152,7 +152,7 @@ function Quotes() {
 
     return html`
     <article>
-      <h1>${capitalise(resource)}</h1>
+      <h1 class="ui">${capitalise(resource)}</h1>
 
         ${ !local.showAddForm && renderNewQuoteButton()}
         ${ local.showAddForm && renderAddForm()}

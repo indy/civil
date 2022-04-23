@@ -25,7 +25,7 @@ function Timelines() {
 
     return html`
     <article>
-      <h1>${capitalise(resource)}</h1>
+      <h1 class="ui">${capitalise(resource)}</h1>
       <${BasicListSection} list=${state.listing.timelines} resource=${resource}/>
     </article>`;
 }

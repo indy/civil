@@ -26,6 +26,10 @@ var CACHE_NAME = "civil-20210829";
 var precacheConfig = [
     "/apple-touch-icon.png",
     "/civil.css",
+    "/civil_wasm.js",
+    "/civil_wasm_bg.wasm",
+    "/favicon-16x16.png",
+    "/favicon-32x32.png",
     "/index.html",
 
     "/js/App.js",
@@ -35,12 +39,13 @@ var precacheConfig = [
     "/js/JsUtils.js",
     "/js/Net.js",
     "/js/PreactUtils.js",
+    "/js/StateProvider.js",
+    "/js/WasmInterfaceProvider.js",
     "/js/eras.js",
     "/js/graphPhysics.js",
     "/js/index.js",
-    "/js/StateProvider.js",
     "/js/svgIcons.js",
-    "/js/WasmInterfaceProvider.js",
+
     "/js/components/Articles.js",
     "/js/components/BuildMarkup.js",
     "/js/components/CivilInput.js",
@@ -72,20 +77,16 @@ var precacheConfig = [
     "/js/components/WhenVerbose.js",
     "/js/components/WhenWritable.js",
 
-    "/civil_wasm.js",
-    "/civil_wasm_bg.wasm",
     "/lib/preact/hooks.mjs",
     "/lib/preact/htm.js",
     "/lib/preact/mod.js",
-    "/lib/preact/preact.mjs",
     "/lib/preact/preact-router.js",
-    "/favicon-16x16.png",
-    "/favicon-32x32.png",
-    "/fonts/Bitter/Bitter-VariableFont_wght.ttf",
-    "/fonts/Bitter/Bitter-Italic-VariableFont_wght.ttf",
-    "/fonts/Crimson/CrimsonPro-VariableFont_wght.ttf",
+    "/lib/preact/preact.mjs",
+
+    "/fonts/Caveat/Caveat-VariableFont_wght.ttf",
     "/fonts/Crimson/CrimsonPro-Italic-VariableFont_wght.ttf",
-    "/fonts/Caveat/Caveat-VariableFont_wght.ttf"
+    "/fonts/Crimson/CrimsonPro-VariableFont_wght.ttf",
+    "/fonts/Inter-SemiBold.ttf"
 ];
 
 var urlsToCache = new Set();

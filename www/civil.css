@@ -22,22 +22,6 @@
 /* -------------------------------------------------------------------------------- */
 
 @font-face {
-  font-family: 'Bitter';
-  src: url('fonts/Bitter/Bitter-VariableFont_wght.ttf') format('truetype');
-  font-weight: 125 950;
-  font-stretch: 75% 125%;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Bitter';
-  src: url('fonts/Bitter/Bitter-Italic-VariableFont_wght.ttf') format('truetype');
-  font-weight: 125 950;
-  font-stretch: 75% 125%;
-  font-style: italic;
-}
-
-@font-face {
   font-family: 'Crimson';
   src: url('fonts/Crimson/CrimsonPro-VariableFont_wght.ttf') format('truetype');
   font-weight: 125 950;
@@ -59,6 +43,15 @@
   font-weight: 125 950;
   font-stretch: 75% 125%;
   font-style: normal;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url('fonts/Inter-SemiBold.ttf');
+}
+
+.ui {
+  font-family: Inter;
 }
 
 .login-title {
@@ -117,7 +110,7 @@ h1, h2, h3, h4, h5, h6 {
   -moz-transition:font-size 0.15s, background 0.15s; /* Firefox 4 */
   -webkit-transition:font-size 0.15s, background 0.15s; /* Safari and Chrome */
 
-  font-family: Bitter;
+  font-family: Crimson;
   font-weight: 400;
   margin-top: 2rem;
   margin-bottom: 1.5rem;
@@ -127,6 +120,10 @@ h1, h2, h3, h4, h5, h6 {
 h1 {
   margin-top: 4rem;
   font-size: 2.6rem;
+}
+
+.deck-title {
+  font-size: 3rem;
 }
 
 h2 { font-size: 2.2rem; }
@@ -156,7 +153,7 @@ p {
 }
 
 p.subtitle {
-  font-family: Bitter;
+  font-family: Crimson;
   margin-top: 1rem;
   margin-bottom: 1rem;
   font-size: 1.0rem;
@@ -170,7 +167,7 @@ p.subtitle > a {
 }
 
 p.subheading {
-  font-family: Bitter;
+  font-family: Inter;
   margin-top: 1rem;
   margin-bottom: 1rem;
   font-size: 1.5rem;
@@ -287,12 +284,12 @@ nav {
   border-bottom-style: solid;
   border-color: var(--divider);
 
-  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-family: Inter;
 }
 
 nav a {
   display: inline-block;
-  padding: 0.4rem 1rem 0.2rem 1rem;
+  padding: 0.4rem 1rem 0.4rem 1rem;
   border-radius: var(--coloured-deck-border-radius);
 }
 
@@ -442,6 +439,7 @@ label.right-margin-toggle:not(.right-margin-number) {
 
 form {
   width: 20rem;
+  font-family: Inter;
 }
 
 form label {
@@ -481,9 +479,9 @@ input,
 optgroup,
 select,
 textarea {
-  font-family: Bitter; /* 1 */
-  font-size: 100%; /* 1 */
-  line-height: 1.15; /* 1 */
+  font-family: Inter;
+  font-size: 100%;
+  line-height: 1.15;
   margin: 0.2rem;
   padding-top:0.3rem;
   padding-bottom:0.1rem;
@@ -688,7 +686,7 @@ textarea {
 }
 
 .saved-search-menu-tip {
-  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-family: Inter;
   color: var(--fg-inactive);
 
   margin: 0.4rem 0 0.2rem 1.2rem;
@@ -734,7 +732,7 @@ textarea {
   border-radius: var(--search-command-border-radius);
 }
 .search-command-listing {
-  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-family: Inter;
 
   background: var(--bg3);
   border: 0.1rem solid var(--fg);
@@ -1040,11 +1038,11 @@ section > form { width: var(--block-width); }
   color: var(--fg1);
   text-align: right;
 
-  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-family: Inter;
 }
 
 .left-margin-heading {
-  font-family: Bitter;
+  font-family: Crimson;
   font-weight: 300;
 }
 
@@ -1056,7 +1054,7 @@ section > form { width: var(--block-width); }
 /* like left-margin but inline for adding notes to points */
 .left-margin-inline {
   color: var(--fg1);
-  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-family: Inter;
   margin-left: 4rem;
 }
 
@@ -1070,6 +1068,7 @@ section > form { width: var(--block-width); }
 
 .left-margin-entry {
   padding-right: 3rem;
+  padding-bottom: 0.4rem;
 }
 
 .left-margin-entry-no-wrap {
@@ -1138,14 +1137,12 @@ div.note > textarea {
   width: 40rem
 }
 .civil-form {
-  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
   padding-top: 2rem;
   padding-bottom: 1rem;
   width: 100%;
 }
 
 .civil-add-note-form {
-  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
   width: var(--block-width);
 }
 

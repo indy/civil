@@ -20,7 +20,7 @@ export default function RollableSection({ heading, children, initiallyRolledUp }
             ${ icon }
           </div>
         </div>
-        <h2 class="clickable" onClick=${ onRollClicked }>${ heading }</h2>
+        <h2 class="clickable ui" onClick=${ onRollClicked }>${ heading }</h2>
         <hr class="big-section"/>
         ${ !isRolledUp && children }
       </div>

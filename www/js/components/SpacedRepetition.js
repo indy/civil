@@ -135,8 +135,8 @@ export default function SpacedRepetition(props) {
     }
 
     return html`<div>
-                <h1>Spaced Repetition</h1>
-                ${ local.mode !== MODE_POST_TEST && html`<p>${ plural(cardsToReview, 'card', 's') } to review</p>`}
+                <h1 class="ui">Spaced Repetition</h1>
+                ${ local.mode !== MODE_POST_TEST && html`<p class="ui">${ plural(cardsToReview, 'card', 's') } to review</p>`}
                 ${ local.mode === MODE_PRE_TEST && !canTest && html`<p>${nextTestInfo}</p>`}
                 ${ local.mode === MODE_PRE_TEST && canTest && html`<button onClick=${ startTest }>
         Start Test

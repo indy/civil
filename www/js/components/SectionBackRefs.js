@@ -127,7 +127,7 @@ function SectionLinks({ backrefs }) {
 
     return html`
     <section key=${ sectionId }>
-      <h3 onClick=${ onClickToggle }>${ icon } ${ sectionHeading }</h3>
+      <h3 class="ui" onClick=${ onClickToggle }>${ icon } ${ sectionHeading }</h3>
       ${ list }
     </section>`;
 }

@@ -48,7 +48,7 @@ function People() {
 
     return html`
     <article>
-      <h1>${capitalise(resource)}</h1>
+      <h1 class="ui">${capitalise(resource)}</h1>
       <${CompactedListSection} label='Uncategorised' list=${uncategorised} resource=${resource} expanded hideEmpty/>
       <${CompactedListSection} label='Ancient' list=${ancient} resource=${resource} expanded/>
       <${CompactedListSection} label='Medieval' list=${medieval} resource=${resource} expanded/>

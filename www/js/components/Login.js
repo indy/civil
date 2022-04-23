@@ -72,7 +72,7 @@ function Login({ loginCallback}) {
 
     return html`
     <section>
-      <h1 class="login-title">Login</h1>
+      <h1 class="login-title ui">Login</h1>
       <form class="login-form" onSubmit=${ handleLoginSubmit }>
         <label class="login-label" for="login-email">Email:</label>
         <input class="login-input" id="login-email"
@@ -89,7 +89,7 @@ function Login({ loginCallback}) {
         <input class="login-button" type="submit" value="Login"/>
         <div class="login-error-message">${state.errorMessage}</div>
       </form>
-      <h1>Register New User</h1>
+      <h1 class="ui">Register New User</h1>
       <form class="login-form" onSubmit=${ handleRegisterSubmit }>
         <label class="login-label" for="register-magic-word">Magic Word:</label>
         <input class="login-input" id="register-magic-word"

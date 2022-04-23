@@ -23,7 +23,7 @@ function Articles() {
 
     return html`
     <article>
-      <h1>${capitalise(resource)}</h1>
+      <h1 class="ui">${capitalise(resource)}</h1>
       <${RatedListSection} label='Recent' list=${articles.recent} resource=${resource} expanded/>
       <${RatedListSection} label='Rated' list=${articles.rated} resource=${resource}/>
       <${CompactedListSection} label='Orphans' list=${articles.orphans} resource=${resource} hideEmpty/>

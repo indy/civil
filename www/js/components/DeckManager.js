@@ -294,7 +294,7 @@ function Title(title, onShowButtons) {
     return html`<div>
                 <div ref=${ preMarkerRef }></div>
                 <div ref=${ backgroundBandRef }></div>
-                <h1 ref=${ titleRef } onClick=${ onShowButtons }>${ title }</h1>
+                <h1 ref=${ titleRef } class="deck-title" onClick=${ onShowButtons }>${ title }</h1>
                 <div ref=${ postMarkerRef }></div>
               </div>`;
 }

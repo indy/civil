@@ -23,7 +23,7 @@ function Ideas() {
 
     return html`
     <article>
-      <h1>${capitalise(resource)}</h1>
+      <h1 class="ui">${capitalise(resource)}</h1>
       <${CompactedListSection} label='Recent' list=${ideas.recent} resource=${resource} expanded/>
       <${CompactedListSection} label='Orphans' list=${ideas.orphans} resource=${resource} hideEmpty/>
       <${CompactedListSection} label='Unnoted' list=${ideas.unnoted} resource=${resource} hideEmpty/>
