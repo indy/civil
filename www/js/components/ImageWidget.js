@@ -100,7 +100,6 @@ export default function ImageWidget(props) {
     if (minimised) {
         return h('button',
                  {
-                     class: "right-side",
                      onClick: onIconClicked
                  },
                  "Images...");
