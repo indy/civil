@@ -108,23 +108,33 @@ fn read_signing_key(signing_key: &mut [u8], session_signing_key: &str) {
 }
 
 fn ascii_hex_digit_to_dec(ascii_hex: u8) -> u8 {
-    match ascii_hex {
-        48 => 0,   // asci 0
-        49 => 1,   // asci 1
-        50 => 2,   // asci 2
-        51 => 3,   // asci 3
-        52 => 4,   // asci 4
-        53 => 5,   // asci 5
-        54 => 6,   // asci 6
-        55 => 7,   // asci 7
-        56 => 8,   // asci 8
-        57 => 9,   // asci 9
-        97 => 10,  // ascii a
-        98 => 11,  // ascii b
-        99 => 12,  // ascii c
-        100 => 13, // ascii d
-        101 => 14, // ascii e
-        102 => 15, // ascii f
-        _ => 0,
+    //
+    // |-------+-----+-----|
+    // | ascii | hex | dec |
+    // |-------+-----+-----|
+    // |     0 |  48 |   0 |
+    // |     1 |  49 |   1 |
+    // |     2 |  50 |   2 |
+    // |     3 |  51 |   3 |
+    // |     4 |  52 |   4 |
+    // |     5 |  53 |   5 |
+    // |     6 |  54 |   6 |
+    // |     7 |  55 |   7 |
+    // |     8 |  56 |   8 |
+    // |     9 |  57 |   9 |
+    // |     a |  97 |  10 |
+    // |     b |  98 |  11 |
+    // |     c |  99 |  12 |
+    // |     d | 100 |  13 |
+    // |     e | 101 |  14 |
+    // |     f | 102 |  15 |
+    // |-------+-----+-----|
+    //
+    if ascii_hex >= 48 && ascii_hex <= 57 {
+        ascii_hex - 48
+    } else if ascii_hex >= 97 && ascii_hex <= 102 {
+        ascii_hex - 87
+    } else {
+        0
     }
 }
