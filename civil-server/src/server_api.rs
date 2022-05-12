@@ -155,40 +155,34 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
 }
 
 pub fn bad_request<B>(res: dev::ServiceResponse<B>) -> actix_web::Result<ErrorHandlerResponse<B>> {
-    let new_resp = NamedFile::open("errors/400.html")?
+    warn!("bad request: {:?} {:?}", &res.status(), &res.request());
+    let new_resp = NamedFile::open("www/errors/400.html")?
         .set_status_code(res.status())
         .into_response(res.request())
         .map_into_right_body();
-    warn!("bad request: {:?} {:?}", &res.status(), &res.request());
-    Ok(ErrorHandlerResponse::Response(
-        res.into_response(new_resp),
-    ))
+    Ok(ErrorHandlerResponse::Response(res.into_response(new_resp)))
 }
 
 pub fn not_found<B>(res: dev::ServiceResponse<B>) -> actix_web::Result<ErrorHandlerResponse<B>> {
-    let new_resp = NamedFile::open("errors/404.html")?
+    warn!("not found: {:?} {:?}", &res.status(), &res.request());
+    let new_resp = NamedFile::open("www/errors/404.html")?
         .set_status_code(res.status())
         .into_response(res.request())
         .map_into_right_body();
-    warn!("not found: {:?} {:?}", &res.status(), &res.request());
-    Ok(ErrorHandlerResponse::Response(
-        res.into_response(new_resp),
-    ))
+    Ok(ErrorHandlerResponse::Response(res.into_response(new_resp)))
 }
 
 pub fn internal_server_error<B>(
     res: dev::ServiceResponse<B>,
 ) -> actix_web::Result<ErrorHandlerResponse<B>> {
-    let new_resp = NamedFile::open("errors/500.html")?
-        .set_status_code(res.status())
-        .into_response(res.request())
-        .map_into_right_body();
     warn!(
         "internal server error: {:?} {:?}",
         &res.status(),
         &res.request()
     );
-    Ok(ErrorHandlerResponse::Response(
-        res.into_response(new_resp),
-    ))
+    let new_resp = NamedFile::open("www/errors/500.html")?
+        .set_status_code(res.status())
+        .into_response(res.request())
+        .map_into_right_body();
+    Ok(ErrorHandlerResponse::Response(res.into_response(new_resp)))
 }

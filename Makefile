@@ -50,7 +50,7 @@ SERVER_FOLDER = civil-server
 ################################################################################
 
 CLIENT_FILES = $(call rwildcard,www,*)
-SERVER_FILES = $(call rwildcard,$(SERVER_FOLDER)/src,*) $(wildcard $(SERVER_FOLDER)/errors/*.html) $(SERVER_FOLDER)/Cargo.toml
+SERVER_FILES = $(call rwildcard,$(SERVER_FOLDER)/src,*) $(SERVER_FOLDER)/Cargo.toml
 SYSTEMD_FILES = $(wildcard misc/systemd/*)
 
 WASM_FILES = $(wildcard $(WASM_FOLDER)/src/*) $(WASM_FOLDER)/Cargo.toml
@@ -129,7 +129,6 @@ staging/$(SERVER_BINARY): server-release
 	cp $(SERVER_FOLDER)/target/release/$(SERVER_BINARY) staging/.
 	cp $(SERVER_FOLDER)/target/release/civil_stat_collector staging/.
 	cp .env.example staging/.
-	cp -r $(SERVER_FOLDER)/errors staging/.
 
 staging/systemd/isg-civil.sh: $(SYSTEMD_FILES)
 	mkdir -p $(@D)
