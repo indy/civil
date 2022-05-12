@@ -180,7 +180,8 @@ pub async fn additional_search(
     let user_id = session::user_id(&session)?;
     let person_id = params.id;
 
-    let additional_search_results = decks_db::additional_search(&db_pool, user_id, person_id).await?;
+    let additional_search_results =
+        decks_db::additional_search(&db_pool, user_id, person_id).await?;
 
     let res = SearchResults {
         results: Some(additional_search_results),

@@ -39,7 +39,6 @@ use tracing::error;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
-
 pub fn init_dotenv() {
     dotenv::dotenv().ok();
 }

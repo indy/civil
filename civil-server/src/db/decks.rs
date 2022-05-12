@@ -174,7 +174,6 @@ pub struct Deck {
     pub source: Option<String>,
 }
 
-
 pub(crate) async fn additional_search(
     db_pool: &Pool,
     user_id: Key,
