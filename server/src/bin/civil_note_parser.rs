@@ -15,17 +15,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use civil;
-use civil::{note_parser_api, Result};
+use civil_server;
+use civil_server::{note_parser_api, Result};
 use civil_shared;
 
 use tracing::info;
 
 #[actix_rt::main]
 async fn main() -> Result<()> {
-    civil::init_dotenv();
-    civil::init_tracing();
-    let pool = civil::init_postgres_pool().await?;
+    civil_server::init_dotenv();
+    civil_server::init_tracing();
+    let pool = civil_server::init_postgres_pool().await?;
 
     info!("started parsing all note markup");
     let notes = note_parser_api::get_all_notes_in_db(&pool).await?;

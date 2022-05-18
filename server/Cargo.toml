@@ -1,5 +1,5 @@
 [package]
-name = "civil"
+name = "civil-server"
 version = "0.1.0"
 authors = ["Inderjit Gill <email@indy.io>"]
 license = "AGPL-3.0"
@@ -32,4 +32,4 @@ tokio-pg-mapper = "0.2.0"
 tokio-pg-mapper-derive = "0.2.0"
 tokio-postgres = { version = "0.7.5", features = ["with-chrono-0_4"] }
 
-civil-shared = { path = "../civil-shared" }
+civil-shared = { path = "../shared" }

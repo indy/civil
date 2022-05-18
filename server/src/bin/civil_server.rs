@@ -21,8 +21,8 @@ use actix_web::cookie::SameSite;
 use actix_web::middleware;
 use actix_web::middleware::ErrorHandlers;
 use actix_web::{http, web, App, HttpServer};
-use civil;
-use civil::{server_api, Result, ServerConfig};
+use civil_server;
+use civil_server::{server_api, Result, ServerConfig};
 use std::env;
 use tracing::{error, info};
 
@@ -30,15 +30,15 @@ const SIGNING_KEY_SIZE: usize = 32;
 
 #[actix_rt::main]
 async fn main() -> Result<()> {
-    civil::init_dotenv();
-    civil::init_tracing();
-    let pool = civil::init_postgres_pool().await?;
+    civil_server::init_dotenv();
+    civil_server::init_tracing();
+    let pool = civil_server::init_postgres_pool().await?;
 
-    let port = civil::env_var_string("PORT")?;
-    let www_path = civil::env_var_string("WWW_PATH")?;
-    let user_content_path = civil::env_var_string("USER_CONTENT_PATH")?;
-    let registration_magic_word = civil::env_var_string("REGISTRATION_MAGIC_WORD")?;
-    let cookie_secure = civil::env_var_bool("COOKIE_OVER_HTTPS_ONLY")?;
+    let port = civil_server::env_var_string("PORT")?;
+    let www_path = civil_server::env_var_string("WWW_PATH")?;
+    let user_content_path = civil_server::env_var_string("USER_CONTENT_PATH")?;
+    let registration_magic_word = civil_server::env_var_string("REGISTRATION_MAGIC_WORD")?;
+    let cookie_secure = civil_server::env_var_bool("COOKIE_OVER_HTTPS_ONLY")?;
 
     let session_signing_key = env::var("SESSION_SIGNING_KEY")?;
 

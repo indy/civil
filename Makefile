@@ -42,8 +42,9 @@ CLIENT_WASM_NAME = civil_wasm
 CLIENT_WASM = $(CLIENT_WASM_NAME).wasm
 CLIENT_WASM_BG = $(CLIENT_WASM_NAME)_bg.wasm
 
-WASM_FOLDER = civil-wasm
-SERVER_FOLDER = civil-server
+WASM_FOLDER = wasm
+SERVER_FOLDER = server
+SHARED_FOLDER = shared
 
 ################################################################################
 # filesets
@@ -54,7 +55,7 @@ SERVER_FILES = $(call rwildcard,$(SERVER_FOLDER)/src,*) $(SERVER_FOLDER)/Cargo.t
 SYSTEMD_FILES = $(wildcard misc/systemd/*)
 
 WASM_FILES = $(wildcard $(WASM_FOLDER)/src/*) $(WASM_FOLDER)/Cargo.toml
-SHARED_FILES = $(wildcard civil-shared/src/*) civil-shared/Cargo.toml
+SHARED_FILES = $(wildcard $(SHARED_FOLDER)/src/*) $(SHARED_FOLDER)/Cargo.toml
 
 .PHONY: run download-images clean-staging
 

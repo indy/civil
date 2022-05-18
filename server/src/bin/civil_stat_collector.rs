@@ -15,14 +15,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use civil;
-use civil::{stat_api, Result};
+use civil_server;
+use civil_server::{stat_api, Result};
 
 #[actix_rt::main]
 async fn main() -> Result<()> {
-    civil::init_dotenv();
-    civil::init_tracing();
-    let pool = civil::init_postgres_pool().await?;
+    civil_server::init_dotenv();
+    civil_server::init_tracing();
+    let pool = civil_server::init_postgres_pool().await?;
 
     let user_ids = stat_api::get_all_user_ids(&pool).await?;
     for user in user_ids {
