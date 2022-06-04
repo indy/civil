@@ -30,6 +30,7 @@ pub struct Card {
     pub note_id: Key,
     pub deck_info: DeckSimple,
 
+    pub note_content: String,
     pub prompt: String,
 }
 

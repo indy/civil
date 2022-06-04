@@ -15,24 +15,66 @@ const MODE_POST_TEST = 'post-test';
 const CARDS_SET = 'cards-set';
 const TEST_START = 'test-start';
 const CARD_COMPLETED = 'card-completed';
+const CARD_SHOW_ANSWER = 'card-show-answer';
 
 const PRACTICE_CARD_SET = 'practice-card-set';
 
+const SHOW_PROMPT = 'prompt';
+const SHOW_ANSWER = 'answer';
+
+function dbg(mode, state) {
+    console.group(mode);
+    console.log(`state.mode = ${state.mode}`);
+    console.log(`state.cardIndex = ${state.cardIndex}`);
+    console.log(`state.cards = ${state.cards.length}`);
+    console.log(state.cards);
+    console.groupEnd();
+}
+
+function augmentCard(state, card) {
+    card.showState = SHOW_PROMPT;
+    card.promptMarkup = buildMarkup(card.prompt, state.imageDirectory);
+    card.answerMarkup = buildMarkup(card.note_content, state.imageDirectory);
+    card.done = false;
+
+    return card;
+}
+
 function reducer(state, action) {
     switch(action.type) {
-    case CARDS_SET: return {
-        ...state,
-        cards: action.data
+    case CARDS_SET: {
+        let newState = {
+            ...state,
+            cards: action.data.cards.map(card => augmentCard(action.data.state, card))
+        }
+        // dbg('CARDS_SET', newState);
+        return newState;
     };
-    case PRACTICE_CARD_SET: return {
-        ...state,
-        practiceCard: action.data
+    case CARD_SHOW_ANSWER: {
+        let card = action.data;
+        card.showState = SHOW_ANSWER;
+        let newState = {
+            ...state,
+        }
+        return newState;
     };
-    case TEST_START: return {
-        ...state,
-        mode: MODE_TEST,
-        cardIndex: 0,
-        practiceCard: undefined
+    case PRACTICE_CARD_SET: {
+        let newState = {
+            ...state,
+            practiceCard: action.data
+        };
+        // dbg("PRACTICE_CARD_SET", newState);
+        return newState;
+    };
+    case TEST_START: {
+        let newState = {
+            ...state,
+            mode: MODE_TEST,
+            cardIndex: 0,
+            practiceCard: undefined
+        };
+        // dbg("TEST_START", newState);
+        return newState;
     };
     case CARD_COMPLETED: {
         let { cards, mode, cardIndex } = state;
@@ -47,6 +89,8 @@ function reducer(state, action) {
         } = action.data;
 
         if (rating < 4) {
+            state.cards[cardIndex].showState = SHOW_PROMPT;
+
             // retain this card to test again
             if ((cardIndex + 1) >= cards.length) {
                 // reached the end of the cards to test for
@@ -70,12 +114,16 @@ function reducer(state, action) {
             });
         }
 
-        return {
+        let newState = {
             ...state,
             mode,
             cards,
             cardIndex
-        }
+        };
+
+        // dbg("CARD_COMPLETED", newState);
+
+        return newState;
     }
     default: throw new Error(`unknown action: ${action}`);
     }
@@ -83,7 +131,6 @@ function reducer(state, action) {
 
 export default function SpacedRepetition(props) {
     const [state, dispatch] = useStateValue();
-
 
     const initialState = {
         mode: MODE_PRE_TEST,
@@ -95,7 +142,7 @@ export default function SpacedRepetition(props) {
 
     useEffect(() => {
         Net.get('/api/sr').then(cards => {
-            localDispatch(CARDS_SET, cards);
+            localDispatch(CARDS_SET, { cards, state });
         });
     }, []);
 
@@ -117,6 +164,10 @@ export default function SpacedRepetition(props) {
         });
     }
 
+    function onShowAnswer(card) {
+        localDispatch(CARD_SHOW_ANSWER, card);
+    }
+
     function onPracticeClicked(e) {
         e.preventDefault();
         Net.get('/api/sr/practice').then(card => {
@@ -125,7 +176,7 @@ export default function SpacedRepetition(props) {
     }
 
     const canTest = local.cards.length > 0;
-    const cardsToReview = local.cards.length - local.cardIndex;
+    const cardsToReview = local.cards.length;// - local.cardIndex;
 
     let nextTestInfo = "";
     if (local.mode === MODE_PRE_TEST && !canTest) {
@@ -142,7 +193,7 @@ export default function SpacedRepetition(props) {
         Start Test
     </button>`}
                 ${ local.mode === MODE_TEST && html`<${CardTest} card=${local.cards[local.cardIndex]}
-    onRatedCard=${onRatedCard}/>`}
+    onRatedCard=${onRatedCard} onShowAnswer=${onShowAnswer}/>`}
                 ${ local.mode === MODE_POST_TEST && html`<p>All Done!</p>`}
 
                 ${ cardsToReview === 0 && html`<p>You have no cards to review, maybe try a practice flashcard?</p>`}
@@ -154,102 +205,42 @@ export default function SpacedRepetition(props) {
 
 // if onRatedCard isn't passed in, the user won't be able to rate a card (useful when showing a practice card)
 //
-function CardTest({ card, onRatedCard }) {
-    const SHOW_PROMPT = 'prompt';
-    const SHOW_ANSWER = 'answer';
-
-    const [state, dispatch] = useStateValue();
-
-    const [localState, setLocalState] = useState({
-        showState: SHOW_PROMPT,
-        answerMarkup: undefined,
-        promptMarkup: undefined
-    });
-
-    useEffect(() => {
-        setLocalState({
-            ...localState,
-            showState: SHOW_PROMPT,
-            promptMarkup: buildMarkup(card.prompt, state.imageDirectory)
-        });
-    }, [card]);
-
-    function onShowAnswer(e) {
+function CardTest({ card, onRatedCard, onShowAnswer }) {
+    function onShowAnswerClicked(e) {
         e.preventDefault();
-
-        function setAnswer(note) {
-            setLocalState({
-                ...localState,
-                showState: SHOW_ANSWER,
-                answerMarkup: buildMarkup(note.content, state.imageDirectory)
-            })
-        }
-
-        const cachedDeck = state.cache.deck[card.deck_info.id];
-        if (cachedDeck) {
-            // console.log('note is already cached');
-            const note = cachedDeck.notes.find(n => n.id === card.note_id);
-            setAnswer(note);
-        } else {
-            // console.log('fetching note from server');
-            Net.get(`/api/notes/${card.note_id}`, {}).then(note => {
-                setAnswer(note);
-            });
-        }
+        onShowAnswer(card);
     }
 
-    function onRated(card, rating) {
-        // when a card has been rated and the next card is about to be shown
-        // the useEffect will reset the state of CardTest to SHOW_PROMPT
-        //
-        // however this fails if there's only one card to test and it's been
-        // rated at 3 or below, at which point it needs to be shown again.
-        // Because it's the same card, the useEffect isn't triggered and so
-        // this CardTest remains in the SHOW_ANSWER state
-        //
-        // therefore we have to intercept the onRatedCard callback and manually
-        // set the state to SHOW_PROMPT just in case we're in the '1 card only,
-        // rated at 3 or below' situation.
-        //
-        // Bugger
-        //
-        setLocalState({
-            ...localState,
-            showState: SHOW_PROMPT
-        });
-
-        onRatedCard(card, rating);
-    }
-
-    const show = localState.showState;
+    const show = card.showState;
 
     return html`<div>
                 <div class="sr-section">Front</div>
-                <div class="note">${localState.promptMarkup}</div>
-                ${ show === SHOW_PROMPT && html`<button onClick=${ onShowAnswer }>Show Answer</button>`}
-                ${ show === SHOW_ANSWER && buildAnswer(card, localState.answerMarkup)}
-                ${ show === SHOW_ANSWER && onRatedCard && html`<${CardRating} card=${card}
-    onRatedCard=${onRated}/>`}
+                <div class="note">${card.promptMarkup}</div>
+                ${ show === SHOW_PROMPT && html`
+                    <button onClick=${ onShowAnswerClicked }>Show Answer</button>
+                `}
+                ${ show === SHOW_ANSWER && buildAnswer(card)}
+                ${ show === SHOW_ANSWER && onRatedCard && html`
+                    <${CardRating} card=${card} onRatedCard=${onRatedCard}/>
+                `}
               </div>`;
-
 }
 
-function buildAnswer(card, answerMarkup) {
+function buildAnswer(card) {
     const { id, name, resource } = card.deck_info;
     const href = `/${resource}/${id}`;
 
     return html`<div>
-                <div class="sr-section">Back</div>
-
-<div class="note">
-                <div class="left-margin">
-                  <div class="left-margin-entry">
-                    <${Link} class="ref pigment-${ resource }" href=${ href }>${ name }</${Link}>
-                  </div>
-                </div>
-                ${answerMarkup}
-              </div>
-</div>`;
+                    <div class="sr-section">Back</div>
+                    <div class="note">
+                        <div class="left-margin">
+                            <div class="left-margin-entry">
+                                <${Link} class="ref pigment-${ resource }" href=${ href }>${ name }</${Link}>
+                            </div>
+                        </div>
+                        ${card.answerMarkup}
+                    </div>
+                </div>`;
 }
 
 function CardRating({ card, onRatedCard }) {
@@ -260,24 +251,24 @@ function CardRating({ card, onRatedCard }) {
     }
 
     return html`<div>
-                <div class="sr-section">
-                Rating
-                <ul class="right-margin sr-rating-descriptions">
-                  <li>5 - perfect response</li>
-                  <li>4 - correct response after a hesitation</li>
-                  <li>3 - correct response recalled with serious difficulty</li>
-                  <li>2 - incorrect response; where the correct one seemed easy to recall</li>
-                  <li>1 - incorrect response; the correct one remembered</li>
-                  <li>0 - complete blackout.</li>
-                </ul>
-                </div>
-                <div class="rating-values" onClick=${ onRated }>
-                  <button class="rating-value">0</button>
-                  <button class="rating-value">1</button>
-                  <button class="rating-value">2</button>
-                  <button class="rating-value">3</button>
-                  <button class="rating-value">4</button>
-                  <button class="rating-value">5</button>
-                </div>
-              </div>`;
+                    <div class="sr-section">
+                        Rating
+                        <ul class="right-margin sr-rating-descriptions">
+                            <li>5 - perfect response</li>
+                            <li>4 - correct response after a hesitation</li>
+                            <li>3 - correct response recalled with serious difficulty</li>
+                            <li>2 - incorrect response; where the correct one seemed easy to recall</li>
+                            <li>1 - incorrect response; the correct one remembered</li>
+                            <li>0 - complete blackout.</li>
+                        </ul>
+                    </div>
+                    <div class="rating-values" onClick=${ onRated }>
+                        <button class="rating-value">0</button>
+                        <button class="rating-value">1</button>
+                        <button class="rating-value">2</button>
+                        <button class="rating-value">3</button>
+                        <button class="rating-value">4</button>
+                        <button class="rating-value">5</button>
+                    </div>
+                </div>`;
 }

@@ -81,6 +81,8 @@ pub struct CardDbInternal {
     pub note_id: Key,
     pub prompt: String,
 
+    pub note_content: String,
+
     pub deck_id: Key,
     pub deck_name: String,
     pub deck_kind: DeckKind,
@@ -91,6 +93,7 @@ impl From<CardDbInternal> for interop::Card {
         interop::Card {
             id: e.id,
             note_id: e.note_id,
+            note_content: e.note_content,
             deck_info: interop_decks::DeckSimple {
                 id: e.deck_id,
                 name: e.deck_name,
@@ -124,6 +127,7 @@ impl From<(Card, DeckSimple)> for interop::Card {
         interop::Card {
             id: c.id,
             note_id: c.note_id,
+            note_content: "???".to_string(),
             deck_info: backref,
             prompt: c.prompt,
         }
@@ -245,7 +249,7 @@ pub(crate) async fn get_cards(
 
     pg::many_from::<CardDbInternal, interop::Card>(
         db_pool,
-        "SELECT c.id, c.note_id, c.prompt, d.id as deck_id, d.name AS deck_name, d.kind AS deck_kind
+        "SELECT c.id, c.note_id, c.prompt, n.content AS note_content, d.id as deck_id, d.name AS deck_name, d.kind AS deck_kind
          FROM cards c, decks d, notes n
          WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = $1 and c.next_test_date < $2",
         &[&user_id, &due]
@@ -258,7 +262,7 @@ pub(crate) async fn get_practice_card(db_pool: &Pool, user_id: Key) -> Result<in
 
     pg::one_from::<CardDbInternal, interop::Card>(
         db_pool,
-        "SELECT c.id, c.note_id, c.prompt, d.id as deck_id, d.name AS deck_name, d.kind AS deck_kind
+        "SELECT c.id, c.note_id, c.prompt, n.content AS note_content, d.id as deck_id, d.name AS deck_name, d.kind AS deck_kind
          FROM cards c, decks d, notes n
          WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = $1
          ORDER BY random()
