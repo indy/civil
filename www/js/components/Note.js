@@ -170,6 +170,10 @@ export default function Note(props) {
         if (hasNoteBeenModified(local)) {
             const id = props.note.id;
 
+            if (local.note.content.length === 0) {
+                local.note.content = "|~placeholder content so that note remains selectable|EMPTY";
+            }
+
             // send updated content to server
             //
             const updatedNote = {
