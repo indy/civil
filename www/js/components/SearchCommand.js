@@ -13,6 +13,7 @@ const MODE_COMMAND = 'mode-command';
 // actions to give to the dispatcher
 const CANDIDATES_SET = 'candidate-set';
 const CLICKED_CANDIDATE = 'clicked-candidate';
+const INPUT_FOCUS = 'input-focus';
 const INPUT_BLUR = 'input-blur';
 const INPUT_GIVEN = 'input-given';
 const KEY_DOWN_CTRL = 'key-down-ctrl';
@@ -35,7 +36,7 @@ function cleanState(state) {
         shiftKey: false,
         text: '',
         candidates: [],
-        isVisible: state.searchAlwaysVisible
+        isVisible: !state.hasPhysicalKeyboard
     }
 }
 
@@ -48,10 +49,20 @@ function reducer(state, action) {
         return newState;
     }
     case INPUT_BLUR: {
-        const newState = {...state};
+        const newState = {
+            ...state,
+            hasFocus: false
+        };
         if (newState.candidates.length === 0) {
-            newState.isVisible = state.searchAlwaysVisible;
+            newState.isVisible = !state.hasPhysicalKeyboard
         }
+        return newState;
+    }
+    case INPUT_FOCUS: {
+        const newState = {
+            ...state,
+            hasFocus: true
+        };
         return newState;
     }
     case KEY_DOWN_ENTER: {
@@ -73,7 +84,7 @@ function reducer(state, action) {
     case KEY_DOWN_ESC: {
         const inputElement = action.data.current;
         const newState = cleanState(state);
-        if (!state.searchAlwaysVisible) {
+        if (state.hasPhysicalKeyboard) {
             if (state.isVisible) {
                 if (inputElement) {
                     inputElement.blur();
@@ -242,8 +253,9 @@ export default function SearchCommand() {
 
     const [local, localDispatch] = useLocalReducer(reducer, {
         mode: MODE_SEARCH,
-        searchAlwaysVisible: state.searchAlwaysVisible,
-        isVisible: state.searchAlwaysVisible,
+        hasPhysicalKeyboard: state.hasPhysicalKeyboard,
+        isVisible: !state.hasPhysicalKeyboard,
+        hasFocus: false,
         showKeyboardShortcuts: false,
         shiftKey: false,
         text: '',
@@ -276,7 +288,7 @@ export default function SearchCommand() {
     };
 
     function onFocus() {
-        // localDispatch(INPUT_FOCUS);
+        localDispatch(INPUT_FOCUS);
     }
 
     function onBlur() {
@@ -361,7 +373,7 @@ export default function SearchCommand() {
     }
 
     function buildCandidates() {
-        let classes = local.showKeyboardShortcuts ? "search-command-focused " : "";
+        let classes = local.hasPhysicalKeyboard && local.showKeyboardShortcuts ? "search-command-important " : "";
         classes += "search-command-listing";
 
         let candidateRenderer = local.mode === MODE_SEARCH ? buildSearchResultEntry : buildCommandEntry;
@@ -430,9 +442,17 @@ export default function SearchCommand() {
     }
 
     const extraClasses = local.isVisible ? "search-command-visible" : "search-command-invisible";
-    let inputClasses = "search-command-input ";
-    inputClasses += local.showKeyboardShortcuts ? "search-command-unfocused" : "search-command-focused";
 
+    let inputClasses = "search-command-input";
+    if (local.hasPhysicalKeyboard) {
+        inputClasses += local.showKeyboardShortcuts ? " search-command-unimportant" : " search-command-important";
+    } else {
+        if (local.hasFocus) {
+            inputClasses += " on-touch-device-search-command-has-focus";
+        } else {
+            inputClasses += " on-touch-device-search-command-lost-focus";
+        }
+    }
 
     if (state.showingSearchCommand !== local.isVisible) {
         dispatch({type: 'showingSearchCommand', showingSearchCommand: local.isVisible});

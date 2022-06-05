@@ -2,7 +2,7 @@
 
 :root {
   --mode: light;
-  --search-always-visible: true;
+  --has-physical-keyboard: false;
 
   --body-width: 80%;
   --block-width: 55%;
@@ -24,7 +24,7 @@
 /* not the most robust logic but hey, seems good enough until I see a real-life failure case */
 @media (hover: hover) and (pointer: fine) {
   :root {
-    --search-always-visible: false;
+    --has-physical-keyboard: true;
   }
 }
 
@@ -749,11 +749,27 @@ textarea {
   border-radius: var(--search-command-border-radius);
 }
 
-.search-command-unfocused {
+.on-touch-device-search-command-has-focus {
+  border: 0;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--fg);
+}
+@media (prefers-color-scheme: dark) {
+  .on-touch-device-search-command-has-focus {
+    background: rgba(0, 0, 0, 0.9);
+  }
+}
+
+.on-touch-device-search-command-lost-focus {
+  border: 0;
+  background: rgba(0, 255, 0, 0.1);
+}
+
+.search-command-unimportant {
   filter: blur(0.2rem);
   -webkit-filter: blur(0.2rem);
 }
-.search-command-focused {
+.search-command-important {
   border: 0.2rem solid var(--fg1) !important;
   border-radius: var(--search-command-border-radius);
 }

@@ -23,8 +23,8 @@ export async function buildInitialState() {
     state.uiColours = augmentSettingsWithCssModifierParameters(state.uiColours);
 
     let root = document.body;
-    let searchAlwaysVisible = getComputedStyle(root).getPropertyValue("--search-always-visible").trim();
-    state.searchAlwaysVisible = searchAlwaysVisible === "true";
+    let hasPhysicalKeyboard = getComputedStyle(root).getPropertyValue("--has-physical-keyboard").trim();
+    state.hasPhysicalKeyboard = hasPhysicalKeyboard === "true";
 
     try {
         // logged in
