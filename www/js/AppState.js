@@ -15,6 +15,10 @@ export const initialState = {
         // ColourCreator.js::augmentSettingsWithCssModifierParameters
     },
 
+    // this is set via the --search-always-visible css variable so
+    // that mobile touch devices will always show the search bar
+    //
+    searchAlwaysVisible: false,
 
     showingSearchCommand: false,
 

@@ -22,6 +22,10 @@ export async function buildInitialState() {
     let state = initialState;
     state.uiColours = augmentSettingsWithCssModifierParameters(state.uiColours);
 
+    let root = document.body;
+    let searchAlwaysVisible = getComputedStyle(root).getPropertyValue("--search-always-visible").trim();
+    state.searchAlwaysVisible = searchAlwaysVisible === "true";
+
     try {
         // logged in
         let user = await Net.get("/api/users");

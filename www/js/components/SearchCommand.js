@@ -35,7 +35,7 @@ function cleanState(state) {
         shiftKey: false,
         text: '',
         candidates: [],
-        isVisible: false
+        isVisible: state.searchAlwaysVisible
     }
 }
 
@@ -50,7 +50,7 @@ function reducer(state, action) {
     case INPUT_BLUR: {
         const newState = {...state};
         if (newState.candidates.length === 0) {
-            newState.isVisible = false;
+            newState.isVisible = state.searchAlwaysVisible;
         }
         return newState;
     }
@@ -73,18 +73,19 @@ function reducer(state, action) {
     case KEY_DOWN_ESC: {
         const inputElement = action.data.current;
         const newState = cleanState(state);
-        if (state.isVisible) {
-            if (inputElement) {
-                inputElement.blur();
+        if (!state.searchAlwaysVisible) {
+            if (state.isVisible) {
+                if (inputElement) {
+                    inputElement.blur();
+                }
+            } else {
+                if (inputElement) {
+                    inputElement.focus();
+                    newState.isVisible = true;
+                }
             }
-            return newState;
-        } else {
-            if (inputElement) {
-                inputElement.focus();
-                newState.isVisible = true;
-            }
-            return newState;
         }
+        return newState;
     };
     case KEY_DOWN_COLON: {
         const newState = { ...state };
@@ -241,7 +242,8 @@ export default function SearchCommand() {
 
     const [local, localDispatch] = useLocalReducer(reducer, {
         mode: MODE_SEARCH,
-        isVisible: false,
+        searchAlwaysVisible: state.searchAlwaysVisible,
+        isVisible: state.searchAlwaysVisible,
         showKeyboardShortcuts: false,
         shiftKey: false,
         text: '',

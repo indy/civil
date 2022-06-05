@@ -2,6 +2,7 @@
 
 :root {
   --mode: light;
+  --search-always-visible: true;
 
   --body-width: 80%;
   --block-width: 55%;
@@ -16,6 +17,14 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --mode: dark;
+  }
+}
+
+/* if user can hover and has a fine pointer then I'm assuming that they also have a keyboard */
+/* not the most robust logic but hey, seems good enough until I see a real-life failure case */
+@media (hover: hover) and (pointer: fine) {
+  :root {
+    --search-always-visible: false;
   }
 }
 
@@ -1453,7 +1462,7 @@ input:required {
     width: 84%;
     padding-left: 8%;
     padding-right: 8%;
-    --search-command-width: 76%;
+    --search-command-width: 89%;
   }
 
   hr,
