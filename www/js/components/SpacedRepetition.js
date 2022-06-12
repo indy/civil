@@ -61,7 +61,7 @@ function reducer(state, action) {
     case PRACTICE_CARD_SET: {
         let newState = {
             ...state,
-            practiceCard: action.data
+            practiceCard: augmentCard(action.data.state, action.data.card)
         };
         // dbg("PRACTICE_CARD_SET", newState);
         return newState;
@@ -171,7 +171,7 @@ export default function SpacedRepetition(props) {
     function onPracticeClicked(e) {
         e.preventDefault();
         Net.get('/api/sr/practice').then(card => {
-            localDispatch(PRACTICE_CARD_SET, card);
+            localDispatch(PRACTICE_CARD_SET, { card, state });
         });
     }
 
@@ -198,7 +198,7 @@ export default function SpacedRepetition(props) {
 
                 ${ cardsToReview === 0 && html`<p>You have no cards to review, maybe try a practice flashcard?</p>`}
                 ${ cardsToReview === 0 && html`<button onClick=${ onPracticeClicked }>View Practice Flashcard</button>`}
-                ${ local.practiceCard && html`<${CardTest} card=${local.practiceCard}/>`}
+                ${ local.practiceCard && html`<${CardTest} card=${local.practiceCard} onShowAnswer=${onShowAnswer}/>`}
 
               </div>`;
 }
