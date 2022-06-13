@@ -135,8 +135,6 @@ fn update_easiness_factor(mut card: FlashCard, rating: i16) -> Result<FlashCard>
 
     card.next_test_date = Utc::now() + Duration::days(card.inter_repetition_interval.into());
 
-    // there is logic in the client to re-display cards in a session until they've all been rated at least 4
-
     Ok(card)
 }
 

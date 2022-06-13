@@ -31,11 +31,11 @@ function dbg(mode, state) {
     console.groupEnd();
 }
 
-function augmentCard(state, card) {
+function augmentCard(state, card, postRatingToServer) {
     card.showState = SHOW_PROMPT;
     card.promptMarkup = buildMarkup(card.prompt, state.imageDirectory);
     card.answerMarkup = buildMarkup(card.note_content, state.imageDirectory);
-    card.done = false;
+    card.postRatingToServer = postRatingToServer;
 
     return card;
 }
@@ -45,7 +45,7 @@ function reducer(state, action) {
     case CARDS_SET: {
         let newState = {
             ...state,
-            cards: action.data.cards.map(card => augmentCard(action.data.state, card))
+            cards: action.data.cards.map(card => augmentCard(action.data.state, card, true))
         }
         // dbg('CARDS_SET', newState);
         return newState;
@@ -61,7 +61,7 @@ function reducer(state, action) {
     case PRACTICE_CARD_SET: {
         let newState = {
             ...state,
-            practiceCard: augmentCard(action.data.state, action.data.card)
+            practiceCard: augmentCard(action.data.state, action.data.card, false)
         };
         // dbg("PRACTICE_CARD_SET", newState);
         return newState;
@@ -87,6 +87,9 @@ function reducer(state, action) {
             rating,
             globalDispatch
         } = action.data;
+
+        // if the rating had to be sent to the server, it's been sent, so now we can prevent any further posts
+        state.cards[cardIndex].postRatingToServer = false;
 
         if (rating < 4) {
             state.cards[cardIndex].showState = SHOW_PROMPT;
@@ -152,15 +155,21 @@ export default function SpacedRepetition(props) {
     }
 
     function onRatedCard(card, rating) {
-        Net.post(`/api/sr/${card.id}/rated`, {
-            rating
-        }).then(success => {
-            if (success) {
-                localDispatch(CARD_COMPLETED, {
-                    rating: rating,
-                    globalDispatch: dispatch // the local logic decides if the global review count should be changed
-                });
-            }
+        // cards will be re-tested during the same session if they're rated
+        // below a 4 but we should only send the first ratings to the server
+        //
+        if (card.postRatingToServer) {
+            Net.post(`/api/sr/${card.id}/rated`, {
+                rating
+            }).then(success => {
+                if (!success) {
+                    console.error(`POST /api/sr/${card.id}/rated failed`);
+                }
+            });
+        }
+        localDispatch(CARD_COMPLETED, {
+            rating: rating,
+            globalDispatch: dispatch // the local logic decides if the global review count should be changed
         });
     }
 
