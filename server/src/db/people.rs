@@ -15,54 +15,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use super::pg;
 use crate::db::deck_kind::DeckKind;
 use crate::db::decks;
-use crate::error::{Error, Result};
-use crate::interop::decks as interop_decks;
+use crate::error::Result;
 use crate::interop::people as interop;
 use crate::interop::Key;
 
-use deadpool_postgres::{Client, Pool};
-use serde::{Deserialize, Serialize};
-use tokio_pg_mapper_derive::PostgresMapper;
-
 #[allow(unused_imports)]
 use tracing::{error, info};
-
-// PersonDerived contains additional information from tables other than people
-// a interop::Person can be created just from a db::PersonDerived
-//
-#[derive(Debug, Deserialize, PostgresMapper, Serialize)]
-#[pg_mapper(table = "decks")]
-struct PersonDerived {
-    id: Key,
-    name: String,
-    birth_date: Option<chrono::NaiveDate>,
-}
-
-impl From<PersonDerived> for interop::Person {
-    fn from(e: PersonDerived) -> interop::Person {
-        interop::Person {
-            id: e.id,
-            name: e.name,
-
-            sort_date: e.birth_date,
-
-            points: None,
-            all_points_during_life: None,
-
-            notes: None,
-
-            refs: None,
-
-            backnotes: None,
-            backrefs: None,
-
-            flashcards: None,
-        }
-    }
-}
 
 impl From<decks::DeckBase> for interop::Person {
     fn from(e: decks::DeckBase) -> interop::Person {
@@ -87,93 +47,111 @@ impl From<decks::DeckBase> for interop::Person {
     }
 }
 
-pub(crate) async fn search(
-    db_pool: &Pool,
-    user_id: Key,
-    query: &str,
-) -> Result<Vec<interop_decks::DeckSimple>> {
-    decks::search_within_deck_kind_by_name(db_pool, user_id, DeckKind::Person, query).await
+use crate::db::sqlite::{self, SqlitePool};
+use rusqlite::{Row, params};
+use crate::db::deck_kind::sqlite_string_from_deck_kind;
+
+fn sqlite_person_with_sortdate_from_row(row: &Row) -> Result<interop::SqlitePerson> {
+    Ok(interop::SqlitePerson {
+        id: row.get(0)?,
+        name: row.get(1)?,
+        sort_date: row.get(2)?,
+        points: None,
+        all_points_during_life: None,
+        notes: None,
+        refs: None,
+        backnotes: None,
+        backrefs: None,
+        flashcards: None,
+    })
 }
 
-pub(crate) async fn get_or_create(
-    db_pool: &Pool,
+fn sqlite_person_from_row(row: &Row) -> Result<interop::SqlitePerson> {
+    Ok(interop::SqlitePerson {
+        id: row.get(0)?,
+        name: row.get(1)?,
+        sort_date: None,
+        points: None,
+        all_points_during_life: None,
+        notes: None,
+        refs: None,
+        backnotes: None,
+        backrefs: None,
+        flashcards: None,
+    })
+}
+
+pub(crate) fn sqlite_get_or_create(
+    sqlite_pool: &SqlitePool,
     user_id: Key,
     title: &str,
-) -> Result<interop::Person> {
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
+) -> Result<interop::SqlitePerson> {
 
-    let tx = client.transaction().await?;
+    let conn = sqlite_pool.get()?;
 
-    let (deck, _origin) =
-        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Person, &title).await?;
-
-    tx.commit().await?;
+    let (deck, _origin) = decks::sqlite_deckbase_get_or_create(&conn, user_id, DeckKind::Person, &title)?;
 
     Ok(deck.into())
 }
 
-pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Person>> {
-    pg::many_from::<PersonDerived, interop::Person>(
-        db_pool,
-        "select d.id,
+pub(crate) fn sqlite_all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::SqlitePerson>> {
+    let conn = sqlite_pool.get()?;
+
+    sqlite::many(&conn,
+                 "select d.id,
                 d.name,
                 coalesce(p.exact_date, p.lower_date) as birth_date
          from decks d, points p
-         where d.user_id = $1
+         where d.user_id = ?1
                and d.kind = 'person'
                and p.deck_id = d.id
-               and p.kind = 'point_begin'::point_kind
+               and p.kind = 'point_begin'
          union
          select d.id,
                 d.name,
                 null as birth_date
          from decks d
               left join points p on p.deck_id = d.id
-         where d.user_id = $1
+         where d.user_id = ?1
                and d.kind = 'person'
                and p.deck_id is null
          order by birth_date",
-        &[&user_id],
-    )
-    .await
+                 params![&user_id],
+                 sqlite_person_with_sortdate_from_row)
 }
 
-pub(crate) async fn get(db_pool: &Pool, user_id: Key, person_id: Key) -> Result<interop::Person> {
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
+pub(crate) fn sqlite_get(sqlite_pool: &SqlitePool, user_id: Key, person_id: Key) -> Result<interop::SqlitePerson> {
+    let conn = sqlite_pool.get()?;
 
-    let deck = decks::deckbase_get(&tx, user_id, person_id, DeckKind::Person).await?;
-
-    tx.commit().await?;
+    let deck = sqlite::one(&conn,
+                           decks::DECKBASE_QUERY,
+                           params![&user_id, &person_id, &sqlite_string_from_deck_kind(DeckKind::Person)],
+                           sqlite_person_from_row)?;
 
     Ok(deck.into())
 }
 
-pub(crate) async fn edit(
-    db_pool: &Pool,
+pub(crate) fn sqlite_edit(
+    sqlite_pool: &SqlitePool,
     user_id: Key,
     person: &interop::ProtoPerson,
     person_id: Key,
-) -> Result<interop::Person> {
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
+) -> Result<interop::SqlitePerson> {
+    let conn = sqlite_pool.get()?;
 
     let graph_terminator = false;
-    let deck = decks::deckbase_edit(
-        &tx,
+    let deck = decks::sqlite_deckbase_edit(
+        &conn,
         user_id,
         person_id,
         DeckKind::Person,
         &person.name,
         graph_terminator,
-    )
-    .await?;
-
-    tx.commit().await?;
+    )?;
 
     Ok(deck.into())
 }
 
-pub(crate) async fn delete(db_pool: &Pool, user_id: Key, person_id: Key) -> Result<()> {
-    decks::delete(db_pool, user_id, person_id).await
+pub(crate) fn sqlite_delete(sqlite_pool: &SqlitePool, user_id: Key, person_id: Key) -> Result<()> {
+    decks::sqlite_delete(sqlite_pool, user_id, person_id)
 }

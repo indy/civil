@@ -21,23 +21,21 @@ use crate::db::people as db;
 use crate::db::points as points_db;
 use crate::db::sr as sr_db;
 use crate::error::Result;
-use crate::handler::SearchQuery;
-use crate::interop::decks::{ResultList, SearchResults};
+use crate::interop::decks::SearchResults;
 use crate::interop::people as interop;
 use crate::interop::points as points_interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
-use actix_web::web::{self, Data, Json, Path};
+use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
-use deadpool_postgres::Pool;
-use std::time::Instant;
+use crate::db::sqlite::SqlitePool;
 
 #[allow(unused_imports)]
 use tracing::info;
 
 pub async fn create(
     proto_deck: Json<ProtoDeck>,
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("create");
@@ -45,55 +43,40 @@ pub async fn create(
     let user_id = session::user_id(&session)?;
     let proto_deck = proto_deck.into_inner();
 
-    let person = db::get_or_create(&db_pool, user_id, &proto_deck.title).await?;
+    let person = db::sqlite_get_or_create(&sqlite_pool, user_id, &proto_deck.title)?;
 
     Ok(HttpResponse::Ok().json(person))
 }
 
-pub async fn search(
-    db_pool: Data<Pool>,
-    session: actix_session::Session,
-    web::Query(query): web::Query<SearchQuery>,
-) -> Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
-    let results = db::search(&db_pool, user_id, &query.q).await?;
-
-    let res = ResultList { results };
-    Ok(HttpResponse::Ok().json(res))
-}
-
-pub async fn get_all(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
+pub async fn get_all(sqlite_pool: Data<SqlitePool>, session: actix_session::Session) -> Result<HttpResponse> {
     info!("get_all");
 
     let user_id = session::user_id(&session)?;
 
-    let people = db::all(&db_pool, user_id).await?;
+    let people = db::sqlite_all(&sqlite_pool, user_id)?;
 
     Ok(HttpResponse::Ok().json(people))
 }
 
 pub async fn get(
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    info!("get {:?}", params.id);
-    let now = Instant::now();
+    info!("get person {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
     let person_id = params.id;
 
-    let mut person = db::get(&db_pool, user_id, person_id).await?;
-    augment(&db_pool, &mut person, person_id, user_id).await?;
-
-    info!("get {:?} took {}ms", params.id, now.elapsed().as_millis());
+    let mut person = db::sqlite_get(&sqlite_pool, user_id, person_id)?;
+    sqlite_augment(&sqlite_pool, &mut person, person_id, user_id)?;
 
     Ok(HttpResponse::Ok().json(person))
 }
 
 pub async fn edit(
     person: Json<interop::ProtoPerson>,
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -103,14 +86,14 @@ pub async fn edit(
     let person_id = params.id;
     let person = person.into_inner();
 
-    let mut person = db::edit(&db_pool, user_id, &person, person_id).await?;
-    augment(&db_pool, &mut person, person_id, user_id).await?;
+    let mut person = db::sqlite_edit(&sqlite_pool, user_id, &person, person_id)?;
+    sqlite_augment(&sqlite_pool, &mut person, person_id, user_id)?;
 
     Ok(HttpResponse::Ok().json(person))
 }
 
 pub async fn delete(
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -118,14 +101,14 @@ pub async fn delete(
 
     let user_id = session::user_id(&session)?;
 
-    db::delete(&db_pool, user_id, params.id).await?;
+    db::sqlite_delete(&sqlite_pool, user_id, params.id)?;
 
     Ok(HttpResponse::Ok().json(true))
 }
 
 pub async fn add_point(
     point: Json<points_interop::ProtoPoint>,
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -135,29 +118,22 @@ pub async fn add_point(
     let point = point.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let _point = points_db::create(&db_pool, user_id, &point, person_id).await?;
+    points_db::sqlite_create(&sqlite_pool, &point, person_id)?;
 
-    let mut person = db::get(&db_pool, user_id, person_id).await?;
-    augment(&db_pool, &mut person, person_id, user_id).await?;
+    let mut person = db::sqlite_get(&sqlite_pool, user_id, person_id)?;
+    sqlite_augment(&sqlite_pool, &mut person, person_id, user_id)?;
 
     Ok(HttpResponse::Ok().json(person))
 }
 
-async fn augment(
-    db_pool: &Data<Pool>,
-    person: &mut interop::Person,
-    person_id: Key,
-    user_id: Key,
-) -> Result<()> {
-    let (points, all_points_during_life, notes, refs, backnotes, backrefs, flashcards) = tokio::try_join!(
-        points_db::all(&db_pool, user_id, person_id),
-        points_db::all_points_during_life(&db_pool, user_id, person_id),
-        notes_db::all_from_deck(&db_pool, person_id),
-        decks_db::from_deck_id_via_notes_to_decks(&db_pool, person_id),
-        decks_db::get_backnotes(&db_pool, person_id),
-        decks_db::get_backrefs(&db_pool, person_id),
-        sr_db::all_flashcards_for_deck(&db_pool, person_id),
-    )?;
+fn sqlite_augment(sqlite_pool: &Data<SqlitePool>, person: &mut interop::SqlitePerson, person_id: Key, user_id: Key) -> Result<()> {
+    let points = points_db::sqlite_all(&sqlite_pool, user_id, person_id)?;
+    let all_points_during_life = points_db::sqlite_all_points_during_life(&sqlite_pool, user_id, person_id)?;
+    let notes = notes_db::sqlite_all_from_deck(&sqlite_pool, person_id)?;
+    let refs = decks_db::sqlite_from_deck_id_via_notes_to_decks(&sqlite_pool, person_id)?;
+    let backnotes = decks_db::sqlite_get_backnotes(&sqlite_pool, person_id)?;
+    let backrefs = decks_db::sqlite_get_backrefs(&sqlite_pool, person_id)?;
+    let flashcards = sr_db::sqlite_all_flashcards_for_deck(&sqlite_pool, person_id)?;
 
     person.points = Some(points);
     person.all_points_during_life = Some(all_points_during_life);
@@ -171,7 +147,7 @@ async fn augment(
 }
 
 pub async fn additional_search(
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -180,8 +156,7 @@ pub async fn additional_search(
     let user_id = session::user_id(&session)?;
     let person_id = params.id;
 
-    let additional_search_results =
-        decks_db::additional_search(&db_pool, user_id, person_id).await?;
+    let additional_search_results = decks_db::sqlite_additional_search(&sqlite_pool, user_id, person_id)?;
 
     let res = SearchResults {
         results: Some(additional_search_results),

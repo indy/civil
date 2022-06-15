@@ -15,194 +15,126 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use super::pg;
 use crate::db::deck_kind::DeckKind;
 use crate::db::decks;
-use crate::error::{Error, Result};
-use crate::interop::decks as interop_decks;
+use crate::error::Result;
 use crate::interop::ideas as interop;
 use crate::interop::Key;
-use deadpool_postgres::{Client, Pool};
-use serde::{Deserialize, Serialize};
-use tokio_pg_mapper_derive::PostgresMapper;
+use crate::db::sqlite::{self, SqlitePool};
+use rusqlite::{Row, params};
+use crate::db::deck_kind::sqlite_string_from_deck_kind;
 
 #[allow(unused_imports)]
 use tracing::info;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
-struct Idea {
-    id: Key,
-    name: String,
-    graph_terminator: bool,
-    created_at: chrono::DateTime<chrono::Utc>,
+fn sqlite_idea_from_row(row: &Row) -> Result<interop::SqliteIdea> {
+    Ok(interop::SqliteIdea {
+        id: row.get(0)?,
+        title: row.get(1)?,
+        graph_terminator: row.get(3)?,
+        created_at: row.get(2)?,
+        notes: None,
+        refs: None,
+        backnotes: None,
+        backrefs: None,
+        flashcards: None,
+    })
 }
 
-impl From<Idea> for interop::Idea {
-    fn from(a: Idea) -> interop::Idea {
-        interop::Idea {
-            id: a.id,
-            title: a.name,
-
-            graph_terminator: a.graph_terminator,
-
-            created_at: a.created_at,
-
-            notes: None,
-
-            refs: None,
-
-            backnotes: None,
-            backrefs: None,
-
-            flashcards: None,
-        }
-    }
-}
-
-impl From<decks::DeckBase> for interop::Idea {
-    fn from(deck: decks::DeckBase) -> interop::Idea {
-        interop::Idea {
-            id: deck.id,
-            title: deck.name,
-
-            graph_terminator: deck.graph_terminator,
-
-            created_at: deck.created_at,
-
-            notes: None,
-
-            refs: None,
-
-            backnotes: None,
-            backrefs: None,
-
-            flashcards: None,
-        }
-    }
-}
-
-pub(crate) async fn search(
-    db_pool: &Pool,
+pub(crate) fn sqlite_get_or_create(
+    sqlite_pool: &SqlitePool,
     user_id: Key,
-    query: &str,
-) -> Result<Vec<interop_decks::DeckSimple>> {
-    decks::search_within_deck_kind_by_name(db_pool, user_id, DeckKind::Idea, query).await
+    title: &str,
+) -> Result<interop::SqliteIdea> {
+
+    let conn = sqlite_pool.get()?;
+
+    let (deck, _origin) = decks::sqlite_deckbase_get_or_create(&conn, user_id, DeckKind::Idea, &title)?;
+
+    Ok(deck.into())
 }
 
-pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Idea>> {
-    pg::many_from::<Idea, interop::Idea>(
-        db_pool,
-        "SELECT id, name, created_at, graph_terminator
-         FROM decks
-         WHERE user_id = $1 and kind = 'idea'
-         ORDER BY name",
-        &[&user_id],
-    )
-    .await
-}
+pub(crate) fn sqlite_listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::SqliteIdeasListings> {
+    let conn = sqlite_pool.get()?;
+    let recent = sqlite::many(&conn,
+                              "select id, name, created_at, graph_terminator
+                               from decks
+                               where user_id = ?1 and kind = 'idea'
+                               order by created_at desc
+                               limit 20",
+                              params![&user_id], sqlite_idea_from_row)?;
+    let orphans = sqlite::many(&conn,
+                              "select id, name, created_at, graph_terminator
+                               from decks
+                               where id not in (select deck_id
+                                                from notes_decks
+                                                group by deck_id)
+                               and id not in (select n.deck_id
+                                              from notes n inner join notes_decks nd on n.id = nd.note_id
+                                              group by n.deck_id)
+                               and kind = 'idea'
+                               and user_id = ?1
+                               order by created_at desc",
+                              params![&user_id], sqlite_idea_from_row)?;
+    let unnoted = sqlite::many(&conn,
+                              "select d.id, d.name, d.created_at, d.graph_terminator
+                               from decks d left join notes n on d.id = n.deck_id
+                               where n.deck_id is null
+                                     and d.kind='idea'
+                                     and d.user_id=?1
+                               order by d.created_at desc",
+                              params![&user_id], sqlite_idea_from_row)?;
 
-pub(crate) async fn listings(db_pool: &Pool, user_id: Key) -> Result<interop::IdeasListings> {
-    async fn many_from(db_pool: &Pool, user_id: Key, query: &str) -> Result<Vec<interop::Idea>> {
-        pg::many_from::<Idea, interop::Idea>(db_pool, query, &[&user_id]).await
-    }
-
-    let (recent, orphans, unnoted) = tokio::try_join!(
-        many_from(
-            db_pool,
-            user_id,
-            "select id, name, created_at, graph_terminator
-             from decks
-             where user_id = $1 and kind = 'idea'
-             order by created_at desc
-             limit 20"
-        ),
-        many_from(
-            db_pool,
-            user_id,
-            "select id, name, created_at, graph_terminator
-             from decks
-             where id not in (select deck_id
-                              from notes_decks
-                              group by deck_id)
-             and id not in (select n.deck_id
-                            from notes n inner join notes_decks nd on n.id = nd.note_id
-                            group by n.deck_id)
-             and kind = 'idea'
-             and user_id = $1
-             order by created_at desc"
-        ),
-        many_from(
-            db_pool,
-            user_id,
-            "select d.id, d.name, d.created_at, d.graph_terminator
-             from decks d left join notes n on d.id = n.deck_id
-             where n.deck_id is null
-                   and d.kind='idea'
-                   and d.user_id=$1
-             order by d.created_at desc"
-        ),
-    )?;
-
-    Ok(interop::IdeasListings {
+    Ok(interop::SqliteIdeasListings {
         recent,
         orphans,
         unnoted,
     })
 }
 
-pub(crate) async fn get(db_pool: &Pool, user_id: Key, idea_id: Key) -> Result<interop::Idea> {
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
+pub(crate) fn sqlite_all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::SqliteIdea>> {
+    let conn = sqlite_pool.get()?;
 
-    let deck = decks::deckbase_get(&tx, user_id, idea_id, DeckKind::Idea).await?;
+    sqlite::many(&conn,
+                 "SELECT id, name, created_at, graph_terminator
+                  FROM decks
+                  WHERE user_id = ?1 and kind = 'idea'
+                  ORDER BY name",
+                 params![&user_id],
+                 sqlite_idea_from_row)
+}
 
-    tx.commit().await?;
+pub(crate) fn sqlite_get(sqlite_pool: &SqlitePool, user_id: Key, idea_id: Key) -> Result<interop::SqliteIdea> {
+    let conn = sqlite_pool.get()?;
+
+    let deck = sqlite::one(&conn,
+                           decks::DECKBASE_QUERY,
+                           params![&user_id, &idea_id, &sqlite_string_from_deck_kind(DeckKind::Idea)],
+                           sqlite_idea_from_row)?;
 
     Ok(deck.into())
 }
 
-pub(crate) async fn get_or_create(
-    db_pool: &Pool,
-    user_id: Key,
-    title: &str,
-) -> Result<interop::Idea> {
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-
-    let tx = client.transaction().await?;
-
-    let (deck, _origin) =
-        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Idea, &title).await?;
-
-    tx.commit().await?;
-
-    Ok(deck.into())
-}
-
-pub(crate) async fn edit(
-    db_pool: &Pool,
+pub(crate) fn sqlite_edit(
+    sqlite_pool: &SqlitePool,
     user_id: Key,
     idea: &interop::ProtoIdea,
     idea_id: Key,
-) -> Result<interop::Idea> {
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
+) -> Result<interop::SqliteIdea> {
+    let conn = sqlite_pool.get()?;
 
-    let deck = decks::deckbase_edit(
-        &tx,
+    let deck = decks::sqlite_deckbase_edit(
+        &conn,
         user_id,
         idea_id,
         DeckKind::Idea,
         &idea.title,
         idea.graph_terminator,
-    )
-    .await?;
-
-    tx.commit().await?;
+    )?;
 
     Ok(deck.into())
 }
 
-pub(crate) async fn delete(db_pool: &Pool, user_id: Key, idea_id: Key) -> Result<()> {
-    decks::delete(db_pool, user_id, idea_id).await
+pub(crate) fn sqlite_delete(sqlite_pool: &SqlitePool, user_id: Key, idea_id: Key) -> Result<()> {
+    decks::sqlite_delete(sqlite_pool, user_id, idea_id)
 }

@@ -34,3 +34,6 @@ pub mod stats;
 pub mod timelines;
 pub mod uploader;
 pub mod users;
+
+pub mod sqlite;
+pub mod sqlite_migrations;

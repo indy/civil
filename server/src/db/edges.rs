@@ -15,15 +15,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use super::pg;
-use crate::db::deck_kind::DeckKind;
+
+use crate::db::deck_kind::{DeckKind, deck_kind_from_sqlite_string};
 use crate::db::decks as decks_db;
 use crate::db::ref_kind::RefKind;
 use crate::error::{Error, Result};
 use crate::interop::decks as interop_decks;
 use crate::interop::edges as interop;
 use crate::interop::Key;
-use deadpool_postgres::{Client, Pool};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
@@ -54,55 +53,101 @@ impl From<Ref> for interop_decks::Ref {
     }
 }
 
-pub(crate) async fn create_from_note_to_decks(
-    db_pool: &Pool,
+use crate::db::sqlite::{self, SqlitePool};
+use rusqlite::{Row, params};
+
+pub(crate) fn ref_kind_to_sqlite_string(rk: interop_decks::RefKind) -> Result<String> {
+    match rk {
+        interop_decks::RefKind::Ref => Ok(String::from("ref")),
+        interop_decks::RefKind::RefToParent => Ok(String::from("ref_to_parent")),
+        interop_decks::RefKind::RefToChild => Ok(String::from("ref_to_child")),
+        interop_decks::RefKind::RefInContrast => Ok(String::from("ref_in_contrast")),
+        interop_decks::RefKind::RefCritical => Ok(String::from("ref_critical")),
+    }
+}
+
+fn from_row(row: &Row) -> Result<interop_decks::Ref> {
+    let kind: String = row.get(3)?;
+    let deck_kind = deck_kind_from_sqlite_string(kind.as_str())?;
+
+    fn my_ref_kind_from_sqlite_string(s: &str) -> Result<interop_decks::RefKind> {
+        if s == "ref" {
+            Ok(interop_decks::RefKind::Ref)
+        } else if s == "ref_to_parent" {
+            Ok(interop_decks::RefKind::RefToParent)
+        } else if s == "ref_to_child" {
+            Ok(interop_decks::RefKind::RefToChild)
+        } else if s == "ref_in_contrast" {
+            Ok(interop_decks::RefKind::RefInContrast)
+        } else if s == "ref_critical" {
+            Ok(interop_decks::RefKind::RefCritical)
+        } else {
+            Err(Error::SqliteStringConversion)
+        }
+    }
+
+    let rk: String = row.get(4)?;
+    let rk_ref_kind = my_ref_kind_from_sqlite_string(rk.as_str())?;
+
+    Ok(interop_decks::Ref {
+        note_id: row.get(0)?,
+        id: row.get(1)?,
+        name:  row.get(2)?,
+        resource:  interop_decks::DeckResource::from(deck_kind),
+        ref_kind:  rk_ref_kind,
+        annotation:  row.get(5)?,
+    })
+}
+
+pub(crate) fn sqlite_create_from_note_to_decks(
+    sqlite_pool: &SqlitePool,
     note_references: &interop::ProtoNoteReferences,
     user_id: Key,
 ) -> Result<Vec<interop_decks::Ref>> {
     info!("create_from_note_to_decks");
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
+    let conn = sqlite_pool.get()?;
 
     let note_id = note_references.note_id;
 
-    let stmt_refs_removed = "DELETE FROM notes_decks WHERE note_id = $1 AND deck_id = $2";
+    let stmt_refs_removed = "DELETE FROM notes_decks WHERE note_id = ?1 AND deck_id = ?2";
     for removed in &note_references.references_removed {
         // this deck has been removed from the note by the user
         info!("deleting {}, {}", &note_id, &removed.id);
-        pg::zero(&tx, &stmt_refs_removed, &[&note_id, &removed.id]).await?;
+        sqlite::zero(&conn, &stmt_refs_removed, params![&note_id, &removed.id])?;
     }
 
     let stmt_refs_changed = "UPDATE notes_decks
-                             SET  kind = $3, annotation = $4
-                             WHERE note_id = $2 and deck_id = $1";
+                             SET  kind = ?3, annotation = ?4
+                             WHERE note_id = ?2 and deck_id = ?1";
     for changed in &note_references.references_changed {
         info!(
             "updating properties of an existing reference {} {}",
             note_id, changed.id
         );
-        let r = RefKind::from(changed.ref_kind);
-        pg::zero(
-            &tx,
+
+        let rstr = ref_kind_to_sqlite_string(changed.ref_kind)?;
+
+        sqlite::zero(
+            &conn,
             &stmt_refs_changed,
-            &[&changed.id, &note_id, &r, &changed.annotation],
-        )
-        .await?;
+            params![&changed.id, &note_id, &rstr, &changed.annotation],
+        )?;
+
     }
 
     let stmt_refs_added = "INSERT INTO notes_decks(note_id, deck_id, kind, annotation)
-                           VALUES ($1, $2, $3, $4)";
+                           VALUES (?1, ?2, ?3, ?4)";
     for added in &note_references.references_added {
         info!(
             "creating new edge to pre-existing deck {}, {}",
             &note_id, &added.id
         );
-        let r = RefKind::from(added.ref_kind);
-        pg::zero(
-            &tx,
+        let rstr = ref_kind_to_sqlite_string(added.ref_kind)?;
+        sqlite::zero(
+            &conn,
             &stmt_refs_added,
-            &[&note_id, &added.id, &r, &added.annotation],
-        )
-        .await?;
+            params![&note_id, &added.id, &rstr, &added.annotation],
+        )?;
     }
 
     // create new tags and create edges from the note to them
@@ -110,22 +155,22 @@ pub(crate) async fn create_from_note_to_decks(
     for created in &note_references.references_created {
         info!("create new idea: {} and a new edge", created.name);
         let (deck, _created) =
-            decks_db::deckbase_get_or_create(&tx, user_id, DeckKind::Idea, &created.name).await?;
-        let r = RefKind::from(created.ref_kind);
-        pg::zero(
-            &tx,
+            decks_db::sqlite_deckbase_get_or_create(&conn, user_id, DeckKind::Idea, &created.name)?;
+        let rstr = ref_kind_to_sqlite_string(created.ref_kind)?;
+        sqlite::zero(
+            &conn,
             &stmt_refs_added,
-            &[&note_id, &deck.id, &r, &created.annotation],
-        )
-        .await?;
+            params![&note_id, &deck.id, &rstr, &created.annotation],
+        )?;
     }
-
-    tx.commit().await?;
 
     // return a list of [id, name, resource, kind, annotation] containing the complete set of decks associated with this note.
     let stmt_all_decks =
         "SELECT nd.note_id, d.id, d.name, d.kind as deck_kind, nd.kind as ref_kind, nd.annotation
                           FROM notes_decks nd, decks d
-                          WHERE nd.note_id = $1 AND d.id = nd.deck_id";
-    pg::many_from::<Ref, interop_decks::Ref>(db_pool, &stmt_all_decks, &[&note_id]).await
+                          WHERE nd.note_id = ?1 AND d.id = nd.deck_id";
+    sqlite::many(&conn,
+                 &stmt_all_decks,
+                 params![&note_id],
+                 from_row)
 }

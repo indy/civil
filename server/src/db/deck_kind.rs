@@ -18,6 +18,11 @@
 use crate::interop::decks as interop;
 use postgres_types::{FromSql, ToSql};
 use serde::{Deserialize, Serialize};
+use crate::error::{Error, Result};
+
+// --------------------------------------------------------------------------------
+// ------------------------------------ Postgres ----------------------------------
+// --------------------------------------------------------------------------------
 
 #[derive(Copy, Clone, Debug, ToSql, FromSql, Deserialize, Serialize, PartialEq)]
 #[postgres(name = "deck_kind")]
@@ -32,6 +37,36 @@ pub enum DeckKind {
     Timeline,
     #[postgres(name = "quote")]
     Quote,
+}
+
+// --------------------------------------------------------------------------------
+// ------------------------------------ Sqlite   ----------------------------------
+// --------------------------------------------------------------------------------
+
+pub(crate) fn deck_kind_from_sqlite_string(s: &str) -> Result<DeckKind> {
+    if s == "article" {
+        Ok(DeckKind::Article)
+    } else if s == "person" {
+        Ok(DeckKind::Person)
+    } else if s == "idea" {
+        Ok(DeckKind::Idea)
+    } else if s == "timeline" {
+        Ok(DeckKind::Timeline)
+    } else if s == "quote" {
+        Ok(DeckKind::Quote)
+    } else {
+        Err(Error::SqliteStringConversion)
+    }
+}
+
+pub(crate) fn sqlite_string_from_deck_kind(deckkind: DeckKind) -> &'static str {
+    match deckkind {
+        DeckKind::Article => "article",
+        DeckKind::Person => "person",
+        DeckKind::Idea => "idea",
+        DeckKind::Timeline => "timeline",
+        DeckKind::Quote => "quote",
+    }
 }
 
 impl From<DeckKind> for interop::DeckResource {

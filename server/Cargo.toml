@@ -32,3 +32,8 @@ tokio-pg-mapper-derive = "0.2.0"
 tokio-postgres = { version = "0.7.5", features = ["with-chrono-0_4"] }
 
 civil-shared = { path = "../shared" }
+
+r2d2 = "0.8.9"
+r2d2_sqlite = "0.20.0"
+rusqlite = { version = "0.27.0", features = ["bundled", "chrono"] }
+rusqlite_migration = "1.0.0"

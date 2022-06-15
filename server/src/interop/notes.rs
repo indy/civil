@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::interop::Key;
+use crate::error::{Error, Result};
 
 #[derive(Copy, Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum NoteKind {
@@ -23,6 +24,19 @@ pub enum NoteKind {
     NoteReview,
     NoteSummary,
 }
+
+pub(crate) fn note_kind_to_sqlite_string(nk: NoteKind) -> Result<String> {
+    if nk == NoteKind::Note {
+        Ok(String::from("note"))
+    } else if nk == NoteKind::NoteReview {
+        Ok(String::from("note_review"))
+    } else if nk == NoteKind::NoteSummary {
+        Ok(String::from("note_summary"))
+    } else {
+        Err(Error::SqliteStringConversion)
+    }
+}
+
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Note {

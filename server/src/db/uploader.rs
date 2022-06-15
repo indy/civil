@@ -117,3 +117,34 @@ pub(crate) async fn add_image_entry(db_pool: &Pool, user_id: Key, filename: &str
 
     Ok(())
 }
+
+
+/////////////////////////////////////////////////////
+
+
+use crate::db::sqlite::{self, SqlitePool};
+use rusqlite::{Row, params};
+
+fn user_uploaded_image_from_row(row: &Row) -> Result<interop::UserUploadedImage> {
+    Ok(interop::UserUploadedImage {
+        filename: row.get(0)?
+    })
+}
+
+pub(crate) fn sqlite_get_recent(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+) -> Result<Vec<interop::UserUploadedImage>> {
+    let conn = sqlite_pool.get()?;
+
+    sqlite::many(
+        &conn,
+        "SELECT filename
+         FROM images
+         WHERE user_id = ?1
+         ORDER BY created_at DESC
+         LIMIT 15",
+        params![&user_id],
+        user_uploaded_image_from_row
+    )
+}

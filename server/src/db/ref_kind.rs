@@ -18,6 +18,7 @@
 use crate::interop::decks as interop;
 use postgres_types::{FromSql, ToSql};
 use serde::{Deserialize, Serialize};
+use crate::error::{Error, Result};
 
 #[derive(Clone, Debug, ToSql, FromSql, Deserialize, Serialize, PartialEq)]
 #[postgres(name = "ref_kind")]
@@ -32,6 +33,26 @@ pub enum RefKind {
     RefInContrast,
     #[postgres(name = "ref_critical")]
     RefCritical,
+}
+
+// --------------------------------------------------------------------------------
+// ------------------------------------ Sqlite   ----------------------------------
+// --------------------------------------------------------------------------------
+
+pub(crate) fn ref_kind_from_sqlite_string(s: &str) -> Result<RefKind> {
+    if s == "ref" {
+        Ok(RefKind::Ref)
+    } else if s == "ref_to_parent" {
+        Ok(RefKind::RefToParent)
+    } else if s == "ref_to_child" {
+        Ok(RefKind::RefToChild)
+    } else if s == "ref_in_contrast" {
+        Ok(RefKind::RefInContrast)
+    } else if s == "ref_critical" {
+        Ok(RefKind::RefCritical)
+    } else {
+        Err(Error::SqliteStringConversion)
+    }
 }
 
 impl From<RefKind> for interop::RefKind {

@@ -15,15 +15,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use super::pg;
-
-use crate::db::deck_kind::DeckKind;
+use crate::db::deck_kind::{DeckKind, deck_kind_from_sqlite_string};
 use crate::db::decks::DeckSimple;
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::interop::decks as interop_decks;
 use crate::interop::sr as interop;
 use crate::interop::Key;
-use deadpool_postgres::{Client, Pool};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
@@ -134,225 +131,285 @@ impl From<(Card, DeckSimple)> for interop::Card {
     }
 }
 
-pub(crate) async fn create_card(
-    db_pool: &Pool,
+
+use crate::db::sqlite::{self, SqlitePool};
+use rusqlite::{Row, params};
+
+fn flashcard_from_row(row: &Row) -> Result<interop::SqliteFlashCard> {
+    Ok(interop::SqliteFlashCard {
+        id: row.get(0)?,
+
+        note_id: row.get(1)?,
+        prompt: row.get(2)?,
+        next_test_date: row.get(3)?,
+
+        easiness_factor: row.get(4)?,
+        inter_repetition_interval: row.get(5)?,
+    })
+}
+
+pub(crate) fn sqlite_all_flashcards_for_deck(
+    sqlite_pool: &SqlitePool,
+    deck_id: Key,
+) -> Result<Vec<interop::SqliteFlashCard>> {
+    let conn = sqlite_pool.get()?;
+    sqlite::many(&conn,
+                 "SELECT c.id, c.note_id, c.prompt, c.next_test_date, c.easiness_factor, c.inter_repetition_interval
+                  FROM cards c, decks d, notes n
+                  WHERE d.id=?1 AND n.deck_id = d.id AND c.note_id = n.id",
+                 params![&deck_id],
+                 flashcard_from_row)
+}
+
+
+fn local_card_from_row(row: &Row) -> Result<Card> {
+    Ok(Card {
+        id: row.get(0)?,
+        note_id: row.get(1)?,
+        prompt: row.get(2)?
+    })
+}
+
+
+
+fn local_decksimple_from_row(row: &Row) -> Result<DeckSimple> {
+    let kind: String = row.get(2)?;
+    let deck_kind = deck_kind_from_sqlite_string(kind.as_str())?;
+    Ok(DeckSimple {
+        id: row.get(0)?,
+        name: row.get(1)?,
+        kind: deck_kind
+    })
+}
+
+
+
+pub(crate) fn sqlite_create_card(
+    sqlite_pool: &SqlitePool,
     card: &interop::ProtoCard,
     user_id: Key,
 ) -> Result<interop::Card> {
     info!("create_card");
 
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
+    let conn = sqlite_pool.get()?;
 
     let easiness_factor: f32 = 2.5;
     let inter_repetition_interval: i32 = 1;
 
-    let db_card = pg::one::<Card>(
-        &tx,
+    let db_card = sqlite::one(
+        &conn,
         "INSERT INTO cards(user_id, note_id, prompt, easiness_factor, inter_repetition_interval)
-         VALUES ($1, $2, $3, $4, $5)
-         RETURNING $table_fields",
-        &[
+         VALUES (?1, ?2, ?3, ?4, ?5)
+         RETURNING id, note_id, prompt",
+        params![
             &user_id,
             &card.note_id,
             &card.prompt,
             &easiness_factor,
             &inter_repetition_interval,
         ],
-    )
-    .await?;
+        local_card_from_row,
+    )?;
 
-    let db_backref = pg::one::<DeckSimple>(
-        &tx,
-        "SELECT d.id AS id, d.name AS name, d.kind AS kind
+    let db_backref = sqlite::one(
+        &conn,
+        "SELECT d.id, d.name, d.kind
          FROM decks d, notes n
-         WHERE d.id = n.deck_id AND n.id = $1",
-        &[&card.note_id],
-    )
-    .await?;
-
-    tx.commit().await?;
+         WHERE d.id = n.deck_id AND n.id = ?1",
+        params![&card.note_id],
+        local_decksimple_from_row
+    )?;
 
     Ok((db_card, db_backref).into())
 }
 
-pub(crate) async fn get_card_full_fat(
-    db_pool: &Pool,
+pub(crate) fn sqlite_get_card_full_fat(
+    sqlite_pool: &SqlitePool,
     user_id: Key,
     card_id: Key,
-) -> Result<interop::FlashCard> {
+) -> Result<interop::SqliteFlashCard> {
     info!("get_card_full_fat");
 
-    pg::one_from::<FlashCard, interop::FlashCard>(
-        db_pool,
+    let conn = sqlite_pool.get()?;
+
+    sqlite::one(
+        &conn,
         "SELECT id, note_id, prompt, next_test_date, easiness_factor, inter_repetition_interval
          FROM cards
-         WHERE user_id=$1 and id=$2",
-        &[&user_id, &card_id],
+         WHERE user_id=?1 and id=?2",
+        params![&user_id, &card_id],
+        flashcard_from_row
     )
-    .await
 }
 
-pub(crate) async fn edit_flashcard(
-    db_pool: &Pool,
-    user_id: Key,
-    flashcard: &interop::FlashCard,
-    flashcard_id: Key,
-) -> Result<interop::FlashCard> {
-    let db_flashcard = pg::one_non_transactional::<FlashCard>(
-        db_pool,
-        "UPDATE cards
-         SET prompt = $3
-         WHERE id = $2 and user_id = $1
-         RETURNING $table_fields",
-        &[&user_id, &flashcard_id, &flashcard.prompt],
-    )
-    .await?;
-
-    let flashcard = interop::FlashCard::from(db_flashcard);
-    Ok(flashcard)
-}
-
-pub(crate) async fn delete_flashcard(
-    db_pool: &Pool,
-    user_id: Key,
-    flashcard_id: Key,
-) -> Result<()> {
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
-
-    pg::zero(
-        &tx,
-        "DELETE FROM card_ratings WHERE card_id = $1",
-        &[&flashcard_id],
-    )
-    .await?;
-
-    pg::zero(
-        &tx,
-        "DELETE FROM cards WHERE id = $1 AND user_id = $2",
-        &[&flashcard_id, &user_id],
-    )
-    .await?;
-
-    tx.commit().await?;
-
-    Ok(())
-}
-
-pub(crate) async fn get_cards(
-    db_pool: &Pool,
-    user_id: Key,
-    due: chrono::DateTime<chrono::Utc>,
-) -> Result<Vec<interop::Card>> {
-    info!("get_cards");
-
-    pg::many_from::<CardDbInternal, interop::Card>(
-        db_pool,
-        "SELECT c.id, c.note_id, c.prompt, n.content AS note_content, d.id as deck_id, d.name AS deck_name, d.kind AS deck_kind
-         FROM cards c, decks d, notes n
-         WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = $1 and c.next_test_date < $2",
-        &[&user_id, &due]
-    )
-    .await
-}
-
-pub(crate) async fn get_practice_card(db_pool: &Pool, user_id: Key) -> Result<interop::Card> {
-    info!("get_practice_card");
-
-    pg::one_from::<CardDbInternal, interop::Card>(
-        db_pool,
-        "SELECT c.id, c.note_id, c.prompt, n.content AS note_content, d.id as deck_id, d.name AS deck_name, d.kind AS deck_kind
-         FROM cards c, decks d, notes n
-         WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = $1
-         ORDER BY random()
-         LIMIT 1",
-        &[&user_id]
-    )
-    .await
-}
-
-pub(crate) async fn get_cards_upcoming_review(
-    db_pool: &Pool,
-    user_id: Key,
-    due: chrono::DateTime<chrono::Utc>,
-) -> Result<interop::CardUpcomingReview> {
-    info!("get_cards_upcoming_review");
-
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
-
-    let review_count = pg::one::<CardUpcomingReviewCount>(
-        &tx,
-        "SELECT count(*) as review_count
-         FROM cards
-         WHERE user_id = $1 and next_test_date < $2",
-        &[&user_id, &due],
-    )
-    .await?;
-
-    let review_date = pg::one::<CardUpcomingReviewDate>(
-        &tx,
-        "SELECT MIN(next_test_date) as earliest_review_date
-         FROM cards
-         WHERE user_id = $1
-         GROUP BY user_id",
-        &[&user_id],
-    )
-    .await?;
-
-    tx.commit().await?;
-
-    Ok((review_count, review_date).into())
-}
-
-pub(crate) async fn card_rated(
-    db_pool: &Pool,
-    card: interop::FlashCard,
+pub(crate) fn sqlite_card_rated(
+    sqlite_pool: &SqlitePool,
+    card: interop::SqliteFlashCard,
     rating: i16,
 ) -> Result<()> {
     info!("card_rated");
 
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
+    let conn = sqlite_pool.get()?;
 
-    pg::zero(
-        &tx,
+    sqlite::zero(
+        &conn,
         "UPDATE cards
-         SET next_test_date = $2, easiness_factor = $3, inter_repetition_interval = $4
-         WHERE id = $1",
-        &[
+         SET next_test_date = ?2, easiness_factor = ?3, inter_repetition_interval = ?4
+         WHERE id = ?1",
+        params![
             &card.id,
             &card.next_test_date,
             &card.easiness_factor,
             &card.inter_repetition_interval,
         ],
-    )
-    .await?;
+    )?;
 
-    pg::zero(
-        &tx,
+    sqlite::zero(
+        &conn,
         "INSERT INTO card_ratings(card_id, rating)
-         VALUES ($1, $2)",
-        &[&card.id, &rating],
-    )
-    .await?;
-
-    tx.commit().await?;
+         VALUES (?1, ?2)",
+        params![&card.id, &rating],
+    )?;
 
     Ok(())
 }
 
-pub(crate) async fn all_flashcards_for_deck(
-    db_pool: &Pool,
-    deck_id: Key,
-) -> Result<Vec<interop::FlashCard>> {
-    pg::many_from::<FlashCard, interop::FlashCard>(
-        db_pool,
-        "SELECT c.id, c.note_id, c.prompt, c.next_test_date, c.easiness_factor, c.inter_repetition_interval
-         FROM cards c, decks d, notes n
-         WHERE d.id=$1 AND n.deck_id = d.id AND c.note_id = n.id",
-        &[&deck_id],
+pub(crate) fn sqlite_edit_flashcard(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    flashcard: &interop::SqliteFlashCard,
+    flashcard_id: Key,
+) -> Result<interop::SqliteFlashCard> {
+    let conn = sqlite_pool.get()?;
+
+    sqlite::one(
+        &conn,
+        "UPDATE cards
+         SET prompt = ?3
+         WHERE id = ?2 and user_id = ?1
+         RETURNING id, note_id, prompt, next_test_date, easiness_factor, inter_repetition_interval",
+        params![&user_id, &flashcard_id, &flashcard.prompt],
+        flashcard_from_row
     )
-    .await
+}
+
+pub(crate) fn sqlite_delete_flashcard(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    flashcard_id: Key,
+) -> Result<()> {
+
+    let conn = sqlite_pool.get()?;
+
+    sqlite::zero(
+        &conn,
+        "DELETE FROM card_ratings WHERE card_id = ?1",
+        params![&flashcard_id],
+    )?;
+
+    sqlite::zero(
+        &conn,
+        "DELETE FROM cards WHERE id = ?1 AND user_id = ?2",
+        params![&flashcard_id, &user_id],
+    )?;
+
+    Ok(())
+}
+
+
+fn interop_card_from_row(row: &Row) -> Result<interop::Card> {
+    let kind: String = row.get(6)?;
+    let deck_kind = deck_kind_from_sqlite_string(kind.as_str())?;
+
+    Ok(interop::Card {
+        id: row.get(0)?,
+        note_id: row.get(1)?,
+        note_content: row.get(3)?,
+        deck_info: interop_decks::DeckSimple {
+            id: row.get(4)?,
+            name: row.get(5)?,
+            resource: interop_decks::DeckResource::from(deck_kind),
+        },
+        prompt: row.get(2)?,
+    })
+}
+
+pub(crate) fn sqlite_get_cards(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    due: chrono::NaiveDateTime,
+) -> Result<Vec<interop::Card>> {
+    info!("get_cards");
+
+    let conn = sqlite_pool.get()?;
+
+    sqlite::many(
+        &conn,
+        "SELECT c.id, c.note_id, c.prompt, n.content, d.id AS deck_id, d.name AS deck_name, d.kind AS deck_kind
+         FROM cards c, decks d, notes n
+         WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = ?1 and c.next_test_date < ?2",
+        params![&user_id, &due],
+        interop_card_from_row
+    )
+}
+
+pub(crate) fn sqlite_get_practice_card(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::Card> {
+    info!("get_practice_card");
+
+    let conn = sqlite_pool.get()?;
+
+    sqlite::one(
+        &conn,
+        "SELECT c.id, c.note_id, c.prompt, n.content, d.id AS deck_id, d.name AS deck_name, d.kind AS deck_kind
+         FROM cards c, decks d, notes n
+         WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = ?1
+         ORDER BY random()
+         LIMIT 1",
+        params![&user_id],
+        interop_card_from_row
+    )
+}
+
+
+pub(crate) fn sqlite_get_cards_upcoming_review(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    due: chrono::NaiveDateTime,
+) -> Result<interop::SqliteCardUpcomingReview> {
+    info!("get_cards_upcoming_review");
+
+    let conn = sqlite_pool.get()?;
+
+
+    fn i32_from_row(row: &Row) -> Result<i32> {
+        Ok(row.get(0)?)
+    }
+
+    fn naive_datetime_from_row(row: &Row) -> Result<chrono::NaiveDateTime> {
+        Ok(row.get(0)?)
+    }
+
+    let review_count = sqlite::one(
+        &conn,
+        "SELECT count(*) as review_count
+         FROM cards
+         WHERE user_id = ?1 and next_test_date < ?2",
+        params![&user_id, &due],
+        i32_from_row
+    )?;
+
+    let earliest_review_date = sqlite::one(
+        &conn,
+        "SELECT MIN(next_test_date) as earliest_review_date
+         FROM cards
+         WHERE user_id = ?1
+         GROUP BY user_id",
+        params![&user_id],
+        naive_datetime_from_row
+    )?;
+
+    Ok(interop::SqliteCardUpcomingReview {
+        review_count,
+        earliest_review_date
+    })
 }

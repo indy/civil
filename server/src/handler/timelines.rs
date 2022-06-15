@@ -21,22 +21,22 @@ use crate::db::points as points_db;
 use crate::db::sr as sr_db;
 use crate::db::timelines as db;
 use crate::error::Result;
-use crate::handler::SearchQuery;
-use crate::interop::decks::ResultList;
 use crate::interop::points as points_interop;
 use crate::interop::timelines as interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
-use actix_web::web::{self, Data, Json, Path};
+use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
-use deadpool_postgres::Pool;
 
 #[allow(unused_imports)]
 use tracing::info;
 
+use crate::db::sqlite::SqlitePool;
+
+
 pub async fn create(
     proto_deck: Json<ProtoDeck>,
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("create");
@@ -44,35 +44,23 @@ pub async fn create(
     let user_id = session::user_id(&session)?;
     let proto_deck = proto_deck.into_inner();
 
-    let timeline = db::get_or_create(&db_pool, user_id, &proto_deck.title).await?;
+    let timeline = db::sqlite_get_or_create(&sqlite_pool, user_id, &proto_deck.title)?;
 
     Ok(HttpResponse::Ok().json(timeline))
 }
 
-pub async fn search(
-    db_pool: Data<Pool>,
-    session: actix_session::Session,
-    web::Query(query): web::Query<SearchQuery>,
-) -> Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
-    let results = db::search(&db_pool, user_id, &query.q).await?;
-
-    let res = ResultList { results };
-    Ok(HttpResponse::Ok().json(res))
-}
-
-pub async fn get_all(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
+pub async fn get_all(sqlite_pool: Data<SqlitePool>, session: actix_session::Session) -> Result<HttpResponse> {
     info!("get_all");
 
     let user_id = session::user_id(&session)?;
 
-    let timelines = db::all(&db_pool, user_id).await?;
+    let timelines = db::sqlite_all(&sqlite_pool, user_id)?;
 
     Ok(HttpResponse::Ok().json(timelines))
 }
 
 pub async fn get(
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -81,15 +69,15 @@ pub async fn get(
     let user_id = session::user_id(&session)?;
     let timeline_id = params.id;
 
-    let mut timeline = db::get(&db_pool, user_id, timeline_id).await?;
-    augment(&db_pool, &mut timeline, timeline_id, user_id).await?;
+    let mut timeline = db::sqlite_get(&sqlite_pool, user_id, timeline_id)?;
+    sqlite_augment(&sqlite_pool, &mut timeline, timeline_id, user_id)?;
 
     Ok(HttpResponse::Ok().json(timeline))
 }
 
 pub async fn edit(
     timeline: Json<interop::ProtoTimeline>,
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -99,14 +87,14 @@ pub async fn edit(
     let timeline_id = params.id;
     let timeline = timeline.into_inner();
 
-    let mut timeline = db::edit(&db_pool, user_id, &timeline, timeline_id).await?;
-    augment(&db_pool, &mut timeline, timeline_id, user_id).await?;
+    let mut timeline = db::sqlite_edit(&sqlite_pool, user_id, &timeline, timeline_id)?;
+    sqlite_augment(&sqlite_pool, &mut timeline, timeline_id, user_id)?;
 
     Ok(HttpResponse::Ok().json(timeline))
 }
 
 pub async fn delete(
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -114,14 +102,14 @@ pub async fn delete(
 
     let user_id = session::user_id(&session)?;
 
-    db::delete(&db_pool, user_id, params.id).await?;
+    db::sqlite_delete(&sqlite_pool, user_id, params.id)?;
 
     Ok(HttpResponse::Ok().json(true))
 }
 
 pub async fn add_point(
     point: Json<points_interop::ProtoPoint>,
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -131,28 +119,21 @@ pub async fn add_point(
     let point = point.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let _point = points_db::create(&db_pool, user_id, &point, timeline_id).await?;
+    points_db::sqlite_create(&sqlite_pool, &point, timeline_id)?;
 
-    let mut timeline = db::get(&db_pool, user_id, timeline_id).await?;
-    augment(&db_pool, &mut timeline, timeline_id, user_id).await?;
+    let mut timeline = db::sqlite_get(&sqlite_pool, user_id, timeline_id)?;
+    sqlite_augment(&sqlite_pool, &mut timeline, timeline_id, user_id)?;
 
     Ok(HttpResponse::Ok().json(timeline))
 }
 
-async fn augment(
-    db_pool: &Data<Pool>,
-    timeline: &mut interop::Timeline,
-    timeline_id: Key,
-    user_id: Key,
-) -> Result<()> {
-    let (points, notes, refs, backnotes, backrefs, flashcards) = tokio::try_join!(
-        points_db::all(&db_pool, user_id, timeline_id),
-        notes_db::all_from_deck(&db_pool, timeline_id),
-        decks_db::from_deck_id_via_notes_to_decks(&db_pool, timeline_id),
-        decks_db::get_backnotes(&db_pool, timeline_id),
-        decks_db::get_backrefs(&db_pool, timeline_id),
-        sr_db::all_flashcards_for_deck(&db_pool, timeline_id),
-    )?;
+fn sqlite_augment(sqlite_pool: &Data<SqlitePool>, timeline: &mut interop::SqliteTimeline, timeline_id: Key, user_id: Key) -> Result<()> {
+    let points = points_db::sqlite_all(&sqlite_pool, user_id, timeline_id)?;
+    let notes = notes_db::sqlite_all_from_deck(&sqlite_pool, timeline_id)?;
+    let refs = decks_db::sqlite_from_deck_id_via_notes_to_decks(&sqlite_pool, timeline_id)?;
+    let backnotes = decks_db::sqlite_get_backnotes(&sqlite_pool, timeline_id)?;
+    let backrefs = decks_db::sqlite_get_backrefs(&sqlite_pool, timeline_id)?;
+    let flashcards = sr_db::sqlite_all_flashcards_for_deck(&sqlite_pool, timeline_id)?;
 
     timeline.points = Some(points);
     timeline.notes = Some(notes);

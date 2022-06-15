@@ -22,14 +22,14 @@ use crate::interop::decks::ResultList;
 use crate::session;
 use actix_web::web::{self, Data};
 use actix_web::HttpResponse;
-use deadpool_postgres::Pool;
 use serde::Deserialize;
+use crate::db::sqlite::SqlitePool;
 
 #[allow(unused_imports)]
 use tracing::info;
 
 pub async fn search(
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
     web::Query(query): web::Query<SearchQuery>,
 ) -> Result<HttpResponse> {
@@ -37,14 +37,14 @@ pub async fn search(
 
     let user_id = session::user_id(&session)?;
 
-    let results = db::search(&db_pool, user_id, &query.q).await?;
+    let results = db::sqlite_search(&sqlite_pool, user_id, &query.q)?;
 
     let res = ResultList { results };
     Ok(HttpResponse::Ok().json(res))
 }
 
 pub async fn namesearch(
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
     web::Query(query): web::Query<SearchQuery>,
 ) -> Result<HttpResponse> {
@@ -52,7 +52,7 @@ pub async fn namesearch(
 
     let user_id = session::user_id(&session)?;
 
-    let results = db::search_by_name(&db_pool, user_id, &query.q).await?;
+    let results = db::sqlite_search_by_name(&sqlite_pool, user_id, &query.q)?;
 
     let res = ResultList { results };
     Ok(HttpResponse::Ok().json(res))
@@ -64,7 +64,7 @@ pub struct RecentQuery {
 }
 
 pub async fn recent(
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
     web::Query(query): web::Query<RecentQuery>,
 ) -> Result<HttpResponse> {
@@ -72,7 +72,7 @@ pub async fn recent(
 
     let user_id = session::user_id(&session)?;
 
-    let results = db::recent(&db_pool, user_id, &query.resource).await?;
+    let results = db::sqlite_recent(&sqlite_pool, user_id, &query.resource)?;
 
     let res = ResultList { results };
     Ok(HttpResponse::Ok().json(res))

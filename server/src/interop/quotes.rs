@@ -17,7 +17,7 @@
 
 use crate::interop::decks::{BackNote, BackRef, Ref};
 use crate::interop::notes::Note;
-use crate::interop::sr::FlashCard;
+use crate::interop::sr::{FlashCard, SqliteFlashCard};
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -35,6 +35,23 @@ pub struct Quote {
     pub backrefs: Option<Vec<BackRef>>,
 
     pub flashcards: Option<Vec<FlashCard>>,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct SqliteQuote {
+    pub id: Key,
+    pub title: String,
+    pub attribution: String,
+
+    // will always be a single note
+    pub notes: Option<Vec<Note>>,
+
+    pub refs: Option<Vec<Ref>>,
+
+    pub backnotes: Option<Vec<BackNote>>,
+    pub backrefs: Option<Vec<BackRef>>,
+
+    pub flashcards: Option<Vec<SqliteFlashCard>>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

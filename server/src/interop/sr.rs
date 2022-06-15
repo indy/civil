@@ -24,6 +24,11 @@ pub struct CardUpcomingReview {
     pub earliest_review_date: chrono::DateTime<chrono::Utc>,
 }
 
+pub struct SqliteCardUpcomingReview {
+    pub review_count: i32,
+    pub earliest_review_date: chrono::NaiveDateTime
+}
+
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Card {
     pub id: Key,
@@ -52,6 +57,18 @@ pub struct FlashCard {
     pub note_id: Key,
     pub prompt: String,
     pub next_test_date: chrono::DateTime<chrono::Utc>,
+
+    pub easiness_factor: f32,
+    pub inter_repetition_interval: i32,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct SqliteFlashCard {
+    pub id: Key,
+
+    pub note_id: Key,
+    pub prompt: String,
+    pub next_test_date: chrono::NaiveDateTime,
 
     pub easiness_factor: f32,
     pub inter_repetition_interval: i32,

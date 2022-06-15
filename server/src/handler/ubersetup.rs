@@ -20,7 +20,7 @@ use crate::session;
 use actix_web::web::Data;
 use actix_web::HttpResponse;
 use chrono::Utc;
-use deadpool_postgres::Pool;
+use crate::db::sqlite::SqlitePool;
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -36,20 +36,18 @@ struct UberStruct {
     pub directory: Key,
     pub recent_images: Vec<interop_uploader::UserUploadedImage>,
     pub sr_review_count: i32,
-    pub sr_earliest_review_date: chrono::DateTime<chrono::Utc>,
+    pub sr_earliest_review_date: chrono::NaiveDateTime,
 }
 
-pub async fn setup(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
+pub async fn setup(sqlite_pool: Data<SqlitePool>, session: actix_session::Session) -> Result<HttpResponse> {
     info!("setup");
 
     let user_id = session::user_id(&session)?;
 
     let directory = user_id;
 
-    let (recent_images, upcoming_review) = tokio::try_join!(
-        db_uploader::get_recent(&db_pool, user_id),
-        db_sr::get_cards_upcoming_review(&db_pool, user_id, Utc::now()),
-    )?;
+    let recent_images = db_uploader::sqlite_get_recent(&sqlite_pool, user_id)?;
+    let upcoming_review = db_sr::sqlite_get_cards_upcoming_review(&sqlite_pool, user_id, Utc::now().naive_utc())?;
 
     let uber = UberStruct {
         directory,

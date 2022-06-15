@@ -22,14 +22,14 @@ use crate::interop::IdParam;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
-use deadpool_postgres::Pool;
+use crate::db::sqlite::SqlitePool;
 
 #[allow(unused_imports)]
 use tracing::info;
 
 pub async fn create_notes(
     note: Json<interop::ProtoNote>,
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     let note = note.into_inner();
@@ -37,27 +37,27 @@ pub async fn create_notes(
 
     let user_id = session::user_id(&session)?;
 
-    let note = db::create_notes(&db_pool, user_id, &note).await?;
+    let notes = db::sqlite_create_notes(&sqlite_pool, user_id, &note)?;
 
-    Ok(HttpResponse::Ok().json(note))
+    Ok(HttpResponse::Ok().json(notes))
 }
 
 pub async fn get_note(
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("get_note {}", params.id);
 
     let user_id = session::user_id(&session)?;
-    let note = db::get_note(&db_pool, user_id, params.id).await?;
+    let note = db::sqlite_get_note(&sqlite_pool, user_id, params.id)?;
 
     Ok(HttpResponse::Ok().json(note))
 }
 
 pub async fn edit_note(
     note: Json<interop::Note>,
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -66,13 +66,13 @@ pub async fn edit_note(
     let note = note.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let note = db::edit_note(&db_pool, user_id, &note, params.id).await?;
+    let note = db::sqlite_edit_note(&sqlite_pool, user_id, &note, params.id)?;
 
     Ok(HttpResponse::Ok().json(note))
 }
 
 pub async fn delete_note(
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -80,7 +80,7 @@ pub async fn delete_note(
 
     let user_id = session::user_id(&session)?;
 
-    db::delete_note_pool(&db_pool, user_id, params.id).await?;
+    db::sqlite_delete_note_pool(&sqlite_pool, user_id, params.id)?;
 
     Ok(HttpResponse::Ok().json(true))
 }

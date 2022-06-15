@@ -15,21 +15,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use super::pg;
+
 use crate::db::deck_kind::DeckKind;
 use crate::db::decks;
-use crate::db::note_kind::NoteKind;
-use crate::db::notes as db_notes;
 use crate::error::{Error, Result};
-use crate::interop::decks as interop_decks;
+use crate::interop::notes as interop_notes;
 use crate::interop::quotes as interop;
 use crate::interop::Key;
-use deadpool_postgres::{Client, Pool};
-use serde::{Deserialize, Serialize};
-use tokio_pg_mapper_derive::PostgresMapper;
 
 #[allow(unused_imports)]
 use tracing::{error, info};
+
+use serde::{Deserialize, Serialize};
+use tokio_pg_mapper_derive::PostgresMapper;
+
 
 #[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "decks")]
@@ -65,6 +64,16 @@ struct QuoteExtra {
     attribution: Option<String>,
 }
 
+struct SqliteQuoteExtra {
+    attribution: Option<String>,
+}
+
+fn sqlite_quote_extra_from_row(row: &Row) -> Result<SqliteQuoteExtra> {
+    Ok(SqliteQuoteExtra {
+        attribution: row.get(0)?
+    })
+}
+
 impl From<(decks::DeckBase, QuoteExtra)> for interop::Quote {
     fn from(a: (decks::DeckBase, QuoteExtra)) -> interop::Quote {
         let (deck, extra) = a;
@@ -92,195 +101,230 @@ impl From<(decks::DeckBase, QuoteExtra)> for interop::Quote {
     }
 }
 
-pub(crate) async fn get_or_create(
-    db_pool: &Pool,
+impl From<(decks::SqliteDeckBase, SqliteQuoteExtra)> for interop::SqliteQuote {
+    fn from(a: (decks::SqliteDeckBase, SqliteQuoteExtra)) -> interop::SqliteQuote {
+        let (deck, extra) = a;
+
+        let attribution = if let Some(attribution) = extra.attribution {
+            attribution
+        } else {
+            "".to_string()
+        };
+
+        interop::SqliteQuote {
+            id: deck.id,
+            title: deck.name,
+            attribution,
+
+            notes: None,
+
+            refs: None,
+
+            backnotes: None,
+            backrefs: None,
+
+            flashcards: None,
+        }
+    }
+}
+
+
+fn quote_from_row(row: &Row) -> Result<interop::SqliteQuote> {
+    Ok(interop::SqliteQuote {
+        id: row.get(0)?,
+        title: row.get(1)?,
+        attribution: row.get(2)?,
+        notes: None,
+
+        refs: None,
+
+        backnotes: None,
+        backrefs: None,
+
+        flashcards: None,
+    })
+}
+
+use crate::db::sqlite::{self, SqlitePool};
+use rusqlite::{Row, params};
+
+pub(crate) fn sqlite_get_or_create(
+    sqlite_pool: &SqlitePool,
     user_id: Key,
     quote: &interop::ProtoQuote,
-) -> Result<interop::Quote> {
+) -> Result<interop::SqliteQuote> {
     let title = &quote.title;
     let text = &quote.text;
     let attribution = &quote.attribution;
 
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
 
-    let tx = client.transaction().await?;
+    let conn = sqlite_pool.get()?;
 
-    let (deck, origin) =
-        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Quote, &title).await?;
+    let (deck, origin) = decks::sqlite_deckbase_get_or_create(&conn, user_id, DeckKind::Quote, &title)?;
 
-    let quote_extras = match origin {
+    let quote_extras: SqliteQuoteExtra = match origin {
         decks::DeckBaseOrigin::Created => {
-            pg::one::<QuoteExtra>(
-                &tx,
-                "INSERT INTO quote_extras(deck_id, attribution)
-                 VALUES ($1, $2)
-                 RETURNING $table_fields",
-                &[&deck.id, &attribution],
-            )
-            .await?
+            sqlite::one(&conn,
+                        "INSERT INTO quote_extras(deck_id, attribution)
+                         VALUES (?1, ?2)
+                         RETURNING attribution",
+                        params![&deck.id, &attribution],
+                        sqlite_quote_extra_from_row)?
         }
         decks::DeckBaseOrigin::PreExisting => {
-            pg::one::<QuoteExtra>(
-                &tx,
-                "select deck_id, attribution
+            sqlite::one(&conn,
+                        "select attribution
                  from quote_extras
-                 where deck_id=$1",
-                &[&deck.id],
-            )
-            .await?
+                 where deck_id=?1",
+                        params![&deck.id],
+                        sqlite_quote_extra_from_row)?
+
         }
     };
 
-    let kind = NoteKind::Note;
+    let k = interop_notes::note_kind_to_sqlite_string(interop_notes::NoteKind::Note)?;
 
-    let _db_note = pg::one::<db_notes::Note>(
-        &tx,
-        "INSERT INTO notes(user_id, deck_id, kind, content)
-         VALUES ($1, $2, $3, $4)
-         RETURNING $table_fields",
-        &[&user_id, &deck.id, &kind, &text],
-    )
-    .await?;
-
-    tx.commit().await?;
+    sqlite::zero(&conn,
+                 "INSERT INTO notes(user_id, deck_id, kind, content)
+                  VALUES (?1, ?2, ?3, ?4)",
+                 params![&user_id, &deck.id, &k, &text])?;
 
     Ok((deck, quote_extras).into())
 }
 
-pub(crate) async fn search(
-    db_pool: &Pool,
-    user_id: Key,
-    query: &str,
-) -> Result<Vec<interop_decks::DeckSimple>> {
-    decks::search_within_deck_kind_by_name(db_pool, user_id, DeckKind::Quote, query).await
-}
+pub(crate) fn sqlite_random(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::SqliteQuote> {
+    let conn = sqlite_pool.get()?;
 
-pub(crate) async fn random(db_pool: &Pool, user_id: Key) -> Result<interop::Quote> {
-    pg::one_from::<Quote, interop::Quote>(
-        db_pool,
+    sqlite::one(
+        &conn,
         "SELECT decks.id, decks.name, quote_extras.attribution
          FROM decks left join quote_extras on quote_extras.deck_id = decks.id
-         WHERE user_id = $1 and kind = 'quote'
+         WHERE user_id = ?1 and kind = 'quote'
          ORDER BY random()
          LIMIT 1",
-        &[&user_id],
+        params![&user_id],
+        quote_from_row
     )
-    .await
 }
 
-pub(crate) async fn get(db_pool: &Pool, user_id: Key, quote_id: Key) -> Result<interop::Quote> {
-    pg::one_from::<Quote, interop::Quote>(
-        db_pool,
+pub(crate) fn sqlite_get(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) -> Result<interop::SqliteQuote> {
+    let conn = sqlite_pool.get()?;
+
+    sqlite::one(
+        &conn,
         "SELECT decks.id, decks.name, quote_extras.attribution
          FROM decks left join quote_extras on quote_extras.deck_id = decks.id
-         WHERE user_id = $1 and id = $2 and kind = 'quote'",
-        &[&user_id, &quote_id],
+         WHERE user_id = ?1 and id = ?2 and kind = 'quote'",
+        params![&user_id, &quote_id],
+        quote_from_row
     )
-    .await
 }
 
-pub(crate) async fn next(db_pool: &Pool, user_id: Key, quote_id: Key) -> Result<interop::Quote> {
-    let res = pg::quietly_one_from::<Quote, interop::Quote>(
-        db_pool,
+
+pub(crate) fn sqlite_next(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) -> Result<interop::SqliteQuote> {
+    let conn = sqlite_pool.get()?;
+
+    let res = sqlite::one(
+        &conn,
         "SELECT decks.id, decks.name, quote_extras.attribution
          FROM decks left join quote_extras on quote_extras.deck_id = decks.id
-         WHERE user_id = $1 and id > $2 and kind = 'quote'
+         WHERE user_id = ?1 and id > ?2 and kind = 'quote'
          ORDER BY id
          LIMIT 1",
-        &[&user_id, &quote_id],
-    )
-    .await;
+        params![&user_id, &quote_id],
+        quote_from_row
+    );
 
     match res {
         Ok(_) => res,
         Err(Error::NotFound) => {
             // wrap around and get the first quote
-            pg::one_from::<Quote, interop::Quote>(
-                db_pool,
+            sqlite::one(
+                &conn,
                 "SELECT decks.id, decks.name, quote_extras.attribution
                  FROM decks left join quote_extras on quote_extras.deck_id = decks.id
-                 WHERE user_id = $1 and kind = 'quote'
+                 WHERE user_id = ?1 and kind = 'quote'
                  ORDER BY id
                  LIMIT 1",
-                &[&user_id],
+                params![&user_id],
+                quote_from_row
             )
-            .await
         }
         Err(e) => Err(e),
     }
 }
 
-pub(crate) async fn prev(db_pool: &Pool, user_id: Key, quote_id: Key) -> Result<interop::Quote> {
-    let res = pg::quietly_one_from::<Quote, interop::Quote>(
-        db_pool,
+pub(crate) fn sqlite_prev(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) -> Result<interop::SqliteQuote> {
+    let conn = sqlite_pool.get()?;
+
+    let res = sqlite::one(
+        &conn,
         "SELECT decks.id, decks.name, quote_extras.attribution
          FROM decks left join quote_extras on quote_extras.deck_id = decks.id
-         WHERE user_id = $1 and id < $2 and kind = 'quote'
+         WHERE user_id = ?1 and id < ?2 and kind = 'quote'
          ORDER BY id desc
          LIMIT 1",
-        &[&user_id, &quote_id],
-    )
-    .await;
+        params![&user_id, &quote_id],
+        quote_from_row
+    );
 
     match res {
         Ok(_) => res,
         Err(Error::NotFound) => {
             // wrap around and get the first quote
-            pg::one_from::<Quote, interop::Quote>(
-                db_pool,
+            sqlite::one(
+                &conn,
                 "SELECT decks.id, decks.name, quote_extras.attribution
                  FROM decks left join quote_extras on quote_extras.deck_id = decks.id
-                 WHERE user_id = $1 and kind = 'quote'
+                 WHERE user_id = ?1 and kind = 'quote'
                  ORDER BY id desc
                  LIMIT 1",
-                &[&user_id],
+                params![&user_id],
+                quote_from_row
             )
-            .await
         }
         Err(e) => Err(e),
     }
 }
 
-pub(crate) async fn edit(
-    db_pool: &Pool,
+pub(crate) fn sqlite_edit(
+    sqlite_pool: &SqlitePool,
     user_id: Key,
     quote: &interop::ProtoQuote,
     quote_id: Key,
-) -> Result<interop::Quote> {
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
+) -> Result<interop::SqliteQuote> {
+    let conn = sqlite_pool.get()?;
 
     let graph_terminator = false;
-    let edited_deck = decks::deckbase_edit(
-        &tx,
+    let edited_deck = decks::sqlite_deckbase_edit(
+        &conn,
         user_id,
         quote_id,
         DeckKind::Quote,
         &quote.title,
         graph_terminator,
-    )
-    .await?;
+    )?;
 
-    let quote_extras_exists = pg::many::<QuoteExtra>(
-        &tx,
-        "select deck_id, attribution
+    let quote_extras_exists = sqlite::many(
+        &conn,
+        "select attribution
          from quote_extras
-         where deck_id=$1",
-        &[&quote_id],
-    )
-    .await?;
+         where deck_id=?1",
+        params![&quote_id],
+        sqlite_quote_extra_from_row
+    )?;
 
     let sql_query: &str = match quote_extras_exists.len() {
         0 => {
             "INSERT INTO quote_extras(deck_id, attribution)
-              VALUES ($1, $2)
-              RETURNING $table_fields"
+             VALUES (?1, ?2)
+             RETURNING attribution"
         }
         1 => {
             "UPDATE quote_extras
-              SET attribution = $2
-              WHERE deck_id = $1
-              RETURNING $table_fields"
+             SET attribution = ?2
+             WHERE deck_id = ?1
+             RETURNING attribution"
         }
         _ => {
             // should be impossible to get here since deck_id
@@ -290,14 +334,15 @@ pub(crate) async fn edit(
         }
     };
 
-    let quote_extras =
-        pg::one::<QuoteExtra>(&tx, sql_query, &[&quote_id, &quote.attribution]).await?;
+    let quote_extras = sqlite::one(&conn,
+                                   sql_query,
+                                   params![&quote_id, &quote.attribution],
+                                   sqlite_quote_extra_from_row)?;
 
-    tx.commit().await?;
 
     Ok((edited_deck, quote_extras).into())
 }
 
-pub(crate) async fn delete(db_pool: &Pool, user_id: Key, quote_id: Key) -> Result<()> {
-    decks::delete(db_pool, user_id, quote_id).await
+pub(crate) fn sqlite_delete(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) -> Result<()> {
+    decks::sqlite_delete(sqlite_pool, user_id, quote_id)
 }

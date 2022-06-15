@@ -17,7 +17,7 @@
 
 use crate::interop::decks::{BackNote, BackRef, Ref};
 use crate::interop::notes::Note;
-use crate::interop::sr::FlashCard;
+use crate::interop::sr::{SqliteFlashCard, FlashCard};
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -46,6 +46,31 @@ pub struct Article {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct SqliteArticle {
+    pub id: Key,
+    pub title: String,
+
+    pub created_at: chrono::NaiveDateTime,
+
+    pub source: Option<String>,
+    pub author: Option<String>,
+    pub short_description: Option<String>,
+
+    pub rating: i32,
+
+    pub notes: Option<Vec<Note>>,
+
+    pub refs: Option<Vec<Ref>>,
+
+    pub backnotes: Option<Vec<BackNote>>,
+    pub backrefs: Option<Vec<BackRef>>,
+
+    pub flashcards: Option<Vec<SqliteFlashCard>>,
+
+    pub published_date: Option<chrono::NaiveDate>,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct ProtoArticle {
     pub title: String,
     pub source: Option<String>,
@@ -61,4 +86,11 @@ pub struct ArticleListings {
     pub recent: Vec<Article>,
     pub rated: Vec<Article>,
     pub orphans: Vec<Article>,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct SqliteArticleListings {
+    pub recent: Vec<SqliteArticle>,
+    pub rated: Vec<SqliteArticle>,
+    pub orphans: Vec<SqliteArticle>,
 }

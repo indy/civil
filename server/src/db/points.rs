@@ -15,16 +15,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use super::pg;
-use crate::db::deck_kind::DeckKind;
+use crate::db::deck_kind::{self, DeckKind};
 use crate::db::point_kind::PointKind;
 use crate::error::{Error, Result};
 use crate::interop::decks as interop_decks;
 use crate::interop::points as interop;
 use crate::interop::Key;
-use deadpool_postgres::{Client, Pool, Transaction};
+
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
+
+#[allow(unused_imports)]
+use tracing::info;
+
 
 #[derive(Debug, Deserialize, PostgresMapper, Serialize)]
 #[pg_mapper(table = "points")]
@@ -96,12 +99,73 @@ impl From<DeckPoint> for interop::DeckPoint {
     }
 }
 
-pub(crate) async fn all(db_pool: &Pool, user_id: Key, deck_id: Key) -> Result<Vec<interop::Point>> {
-    pg::many_from::<Point, interop::Point>(
-        db_pool,
+
+use crate::db::sqlite::{self, SqlitePool};
+use rusqlite::{Connection, Row, params};
+
+pub(crate) fn sqlite_delete_all_points_connected_with_deck(
+    conn: &Connection,
+    deck_id: Key,
+) -> Result<()> {
+    sqlite::zero(&conn,
+                 "DELETE FROM points
+                  WHERE deck_id = ?1",
+                 params![&deck_id])?;
+
+    Ok(())
+}
+
+pub(crate) fn point_kind_from_sqlite_string(s: String) -> Result<interop::PointKind> {
+    if s == "point" {
+        Ok(interop::PointKind::Point)
+    } else if s == "point_begin" {
+        Ok(interop::PointKind::PointBegin)
+    } else if s == "point_end" {
+        Ok(interop::PointKind::PointEnd)
+    } else {
+        Err(Error::SqliteStringConversion)
+    }
+}
+
+pub(crate) fn sqlite_string_from_point_kind(pk: interop::PointKind) -> Result<String> {
+    if pk == interop::PointKind::Point {
+        Ok("point".to_string())
+    } else if pk == interop::PointKind::PointBegin {
+        Ok("point_begin".to_string())
+    } else if pk == interop::PointKind::PointEnd {
+        Ok("point_end".to_string())
+    } else {
+        Err(Error::SqliteStringConversion)
+    }
+}
+
+fn sqlite_point_from_row(row: &Row) -> Result<interop::Point> {
+    Ok(interop::Point {
+        id: row.get(0)?,
+        kind: point_kind_from_sqlite_string(row.get(1)?)?,
+        title: row.get(2)?,
+
+        location_textual: row.get(3)?,
+        longitude: row.get(4)?,
+        latitude: row.get(5)?,
+        location_fuzz: row.get(6)?,
+
+        date_textual: row.get(7)?,
+        exact_date: row.get(8)?,
+        lower_date: row.get(9)?,
+        upper_date: row.get(10)?,
+        date_fuzz: row.get(11)?
+    })
+}
+
+pub(crate) fn sqlite_all(sqlite_pool: &SqlitePool, user_id: Key, deck_id: Key) -> Result<Vec<interop::Point>> {
+    let conn = sqlite_pool.get()?;
+
+    sqlite::many(
+        &conn,
         "select p.id,
-                p.title,
                 p.kind,
+                p.title,
                 p.location_textual,
                 p.longitude,
                 p.latitude,
@@ -113,24 +177,42 @@ pub(crate) async fn all(db_pool: &Pool, user_id: Key, deck_id: Key) -> Result<Ve
                 p.date_fuzz
          from   decks d,
                 points p
-         where  d.user_id = $1
-                and d.id = $2
+         where  d.user_id = ?1
+                and d.id = ?2
                 and p.deck_id = d.id
          order by coalesce(p.exact_date, p.lower_date)",
-        &[&user_id, &deck_id],
+        params![&user_id, &deck_id],
+        sqlite_point_from_row
     )
-    .await
 }
 
-pub(crate) async fn all_points_during_life(
-    db_pool: &Pool,
+
+fn deckpoint_from_row(row: &Row) -> Result<interop::DeckPoint> {
+    let kind: String = row.get(2)?;
+    let deck_kind = deck_kind::deck_kind_from_sqlite_string(kind.as_str())?;
+
+    Ok(interop::DeckPoint {
+        id: row.get(3)?,
+        kind: point_kind_from_sqlite_string(row.get(4)?)?,
+        title: row.get(5)?,
+        date_textual: row.get(6)?,
+        date: row.get(7)?,
+
+        deck_id: row.get(0)?,
+        deck_name: row.get(1)?,
+        deck_resource: interop_decks::DeckResource::from(deck_kind)
+    })
+}
+
+pub(crate) fn sqlite_all_points_during_life(
+    sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
 ) -> Result<Vec<interop::DeckPoint>> {
-    pg::many_from::<DeckPoint, interop::DeckPoint>(
-        db_pool,
-        "( -- all events in the person's life (may also included relevent events that happened posthumously)
-         select d.id as deck_id,
+    let conn = sqlite_pool.get()?;
+    sqlite::many(
+        &conn,
+        "select d.id as deck_id,
                 d.name as deck_name,
                 d.kind as deck_kind,
                 p.id,
@@ -139,12 +221,10 @@ pub(crate) async fn all_points_during_life(
                 p.date_textual,
                 coalesce(p.exact_date, p.lower_date) as date
          from   points p, decks d
-         where  d.id = $2
-                and d.user_id = $1
+         where  d.id = ?2
+                and d.user_id = ?1
                 and p.deck_id = d.id
-         )
          union
-         ( -- other events that occurred during the person's life
          select d.id as deck_id,
                 d.name as deck_name,
                 d.kind as deck_kind,
@@ -156,124 +236,48 @@ pub(crate) async fn all_points_during_life(
          from   points p, decks d
          where  coalesce(p.exact_date, p.upper_date) >= (select coalesce(point_born.exact_date, point_born.lower_date) as born
                                                          from   points point_born
-                                                         where  point_born.deck_id = $2
-                                                                and point_born.kind = 'point_begin'::point_kind)
+                                                         where  point_born.deck_id = ?2
+                                                                and point_born.kind = 'point_begin')
                 and coalesce(p.exact_date, p.lower_date) <= coalesce((select coalesce(point_died.exact_date, point_died.upper_date) as died
                                                                       from   points point_died
-                                                                      where  point_died.deck_id = $2
-                                                                             and point_died.kind = 'point_end'::point_kind), CURRENT_DATE)
+                                                                      where  point_died.deck_id = ?2
+                                                                             and point_died.kind = 'point_end'), CURRENT_DATE)
                 and p.deck_id = d.id
-                and d.id <> $2
-                and d.user_id = $1
-         )
+                and d.id <> ?2
+                and d.user_id = ?1
          order by date",
-        &[&user_id, &deck_id],
+        params![&user_id, &deck_id],
+        deckpoint_from_row
     )
-    .await
 }
 
-pub(crate) async fn create_tx(
-    tx: &Transaction<'_>,
+
+pub(crate) fn sqlite_create(
+    sqlite_pool: &SqlitePool,
     point: &interop::ProtoPoint,
-    deck_id: Key,
-) -> Result<interop::Point> {
-    let db_point = pg::one::<Point>(
-        tx,
-        "INSERT INTO points(deck_id, title, kind, location_textual, longitude, latitude, location_fuzz,
-                            date_textual, exact_date, lower_date, upper_date, date_fuzz)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-         RETURNING $table_fields",
-        &[
-            &deck_id,
-            &point.title,
-            &PointKind::from(point.kind),
-            &point.location_textual,
-            &point.longitude,
-            &point.latitude,
-            &point.location_fuzz,
-            &point.date_textual,
-            &point.exact_date,
-            &point.lower_date,
-            &point.upper_date,
-            &point.date_fuzz,
-        ],
-    )
-    .await?;
-
-    let point = interop::Point::from(db_point);
-    Ok(point)
-}
-
-pub(crate) async fn create(
-    db_pool: &Pool,
-    _user_id: Key,
-    point: &interop::ProtoPoint,
-    deck_id: Key,
-) -> Result<interop::Point> {
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
-
-    let interop_point = create_tx(&tx, point, deck_id).await?;
-
-    tx.commit().await?;
-
-    Ok(interop_point)
-}
-
-/*
-pub(crate) async fn edit(
-    tx: &Transaction<'_>,
-    point: &interop::ProtoPoint,
-    point_id: Key,
-) -> Result<interop::Point> {
-    let db_point = pg::one::<Point>(
-        tx,
-        "UPDATE points
-         SET title = $2, kind = $3, location_textual = $4, longitude = $5, latitude = $6, location_fuzz = $7, date_textual = $8, exact_date = $9, lower_date = $10, upper_date = $11, date_fuzz = $12
-         WHERE id = $1
-         RETURNING $table_fields",
-        &[
-            &point_id,
-            &point.title,
-            &point.kind,
-            &point.location_textual,
-            &point.longitude,
-            &point.latitude,
-            &point.location_fuzz,
-            &point.date_textual,
-            &point.exact_date,
-            &point.lower_date,
-            &point.upper_date,
-            &point.date_fuzz,
-        ],
-    )
-    .await?;
-
-    let point = interop::Point::from(db_point);
-    Ok(point)
-}
-*/
-
-pub(crate) async fn delete_all_points_connected_with_deck(
-    tx: &Transaction<'_>,
     deck_id: Key,
 ) -> Result<()> {
-    pg::zero(
-        tx,
-        "DELETE FROM points
-         WHERE deck_id = $1",
-        &[&deck_id],
-    )
-    .await?;
 
-    Ok(())
+    let conn = sqlite_pool.get()?;
+    let pks = sqlite_string_from_point_kind(point.kind)?;
+
+    sqlite::zero(
+        &conn,
+        "INSERT INTO points(deck_id, title, kind, location_textual, longitude, latitude, location_fuzz,
+                            date_textual, exact_date, lower_date, upper_date, date_fuzz)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+        params![
+            &deck_id,
+            &point.title,
+            &pks,
+            &point.location_textual,
+            &point.longitude,
+            &point.latitude,
+            &point.location_fuzz,
+            &point.date_textual,
+            &point.exact_date,
+            &point.lower_date,
+            &point.upper_date,
+            &point.date_fuzz,
+        ])
 }
-
-/*
-pub(crate) async fn delete(tx: &Transaction<'_>, point_id: Key) -> Result<()> {
-    let stmt = pg::delete_statement(Model::Point)?;
-
-    pg::zero(tx, &stmt, &[&point_id]).await?;
-    Ok(())
-}
- */

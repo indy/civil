@@ -19,6 +19,7 @@ use crate::interop::notes as interop;
 use postgres_types::{FromSql, ToSql};
 use serde::{Deserialize, Serialize};
 
+
 #[derive(Clone, Debug, ToSql, FromSql, Deserialize, Serialize, PartialEq)]
 #[postgres(name = "note_kind")]
 pub enum NoteKind {

@@ -21,12 +21,14 @@ use actix_web::cookie::SameSite;
 use actix_web::middleware;
 use actix_web::middleware::ErrorHandlers;
 use actix_web::{http, web, App, HttpServer};
-use civil_server;
-use civil_server::{server_api, Result, ServerConfig};
+use civil_server::{self, server_api, Result, ServerConfig};
 use std::env;
 use tracing::{error, info};
 
 const SIGNING_KEY_SIZE: usize = 32;
+
+use r2d2_sqlite::SqliteConnectionManager;
+
 
 #[actix_rt::main]
 async fn main() -> Result<()> {
@@ -41,6 +43,15 @@ async fn main() -> Result<()> {
     let cookie_secure = civil_server::env_var_bool("COOKIE_OVER_HTTPS_ONLY")?;
 
     let session_signing_key = env::var("SESSION_SIGNING_KEY")?;
+
+
+    let sqlite_db = civil_server::env_var_string("SQLITE_DB")?;
+    civil_server::db::sqlite_migrations::migration_check(&sqlite_db)?;
+
+    let sqlite_manager = SqliteConnectionManager::file(&sqlite_db);
+    let sqlite_pool = r2d2::Pool::new(sqlite_manager)?;
+
+    // civil_server::db::sqlite_migrations::migrate_from_postgres(sqlite_pool.clone(), pool.clone()).await?;
 
     let server = HttpServer::new(move || {
         let mut signing_key: &mut [u8] = &mut [0; SIGNING_KEY_SIZE];
@@ -60,6 +71,7 @@ async fn main() -> Result<()> {
             .handler(http::StatusCode::NOT_FOUND, server_api::not_found);
 
         App::new()
+            .app_data(web::Data::new(sqlite_pool.clone()))
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(ServerConfig {
                 user_content_path: user_content_path.clone(),

@@ -15,16 +15,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use super::pg;
+
 use crate::db::deck_kind::DeckKind;
 use crate::db::decks;
-use crate::error::{Error, Result};
-use crate::interop::decks as interop_decks;
+use crate::error::Result;
 use crate::interop::timelines as interop;
 use crate::interop::Key;
-use deadpool_postgres::{Client, Pool};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
+
+
+use crate::db::sqlite::{self, SqlitePool};
+use rusqlite::{Row, params};
+use crate::db::deck_kind::sqlite_string_from_deck_kind;
+
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -74,83 +78,76 @@ impl From<decks::DeckBase> for interop::Timeline {
     }
 }
 
-pub(crate) async fn search(
-    db_pool: &Pool,
-    user_id: Key,
-    query: &str,
-) -> Result<Vec<interop_decks::DeckSimple>> {
-    decks::search_within_deck_kind_by_name(db_pool, user_id, DeckKind::Timeline, query).await
+fn from_row(row: &Row) -> Result<interop::SqliteTimeline> {
+    Ok(interop::SqliteTimeline {
+        id: row.get(0)?,
+        title: row.get(1)?,
+        points: None,
+        notes: None,
+        refs: None,
+        backnotes: None,
+        backrefs: None,
+        flashcards: None,
+    })
 }
 
-pub(crate) async fn get_or_create(
-    db_pool: &Pool,
+pub(crate) fn sqlite_get_or_create(
+    sqlite_pool: &SqlitePool,
     user_id: Key,
     title: &str,
-) -> Result<interop::Timeline> {
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
+) -> Result<interop::SqliteTimeline> {
 
-    let tx = client.transaction().await?;
+    let conn = sqlite_pool.get()?;
 
-    let (deck, _origin) =
-        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Timeline, &title).await?;
-
-    tx.commit().await?;
+    let (deck, _origin) = decks::sqlite_deckbase_get_or_create(&conn, user_id, DeckKind::Timeline, &title)?;
 
     Ok(deck.into())
 }
 
-pub(crate) async fn all(db_pool: &Pool, user_id: Key) -> Result<Vec<interop::Timeline>> {
-    pg::many_from::<TimelineDerived, interop::Timeline>(
-        db_pool,
-        "select id, name
-         from decks
-         where user_id = $1 and kind = 'timeline'::deck_kind
-         order by created_at desc",
-        &[&user_id],
-    )
-    .await
+pub(crate) fn sqlite_all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::SqliteTimeline>> {
+    let conn = sqlite_pool.get()?;
+
+    sqlite::many(&conn,
+                 "select id, name
+                  from decks
+                  where user_id = ?1 and kind = 'timeline'
+                  order by created_at desc",
+                 params![&user_id],
+                 from_row)
 }
 
-pub(crate) async fn get(
-    db_pool: &Pool,
-    user_id: Key,
-    timeline_id: Key,
-) -> Result<interop::Timeline> {
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
+pub(crate) fn sqlite_get(sqlite_pool: &SqlitePool, user_id: Key, timeline_id: Key) -> Result<interop::SqliteTimeline> {
+    let conn = sqlite_pool.get()?;
 
-    let deck = decks::deckbase_get(&tx, user_id, timeline_id, DeckKind::Timeline).await?;
-
-    tx.commit().await?;
+    let deck = sqlite::one(&conn,
+                           decks::DECKBASE_QUERY,
+                           params![&user_id, &timeline_id, &sqlite_string_from_deck_kind(DeckKind::Timeline)],
+                           from_row)?;
 
     Ok(deck.into())
 }
 
-pub(crate) async fn edit(
-    db_pool: &Pool,
+pub(crate) fn sqlite_edit(
+    sqlite_pool: &SqlitePool,
     user_id: Key,
     timeline: &interop::ProtoTimeline,
     timeline_id: Key,
-) -> Result<interop::Timeline> {
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
+) -> Result<interop::SqliteTimeline> {
+    let conn = sqlite_pool.get()?;
 
     let graph_terminator = false;
-    let deck = decks::deckbase_edit(
-        &tx,
+    let deck = decks::sqlite_deckbase_edit(
+        &conn,
         user_id,
         timeline_id,
         DeckKind::Timeline,
         &timeline.title,
         graph_terminator,
-    )
-    .await?;
-
-    tx.commit().await?;
+    )?;
 
     Ok(deck.into())
 }
 
-pub(crate) async fn delete(db_pool: &Pool, user_id: Key, timeline_id: Key) -> Result<()> {
-    decks::delete(db_pool, user_id, timeline_id).await
+pub(crate) fn sqlite_delete(sqlite_pool: &SqlitePool, user_id: Key, timeline_id: Key) -> Result<()> {
+    decks::sqlite_delete(sqlite_pool, user_id, timeline_id)
 }

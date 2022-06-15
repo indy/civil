@@ -56,19 +56,6 @@ where
     one_(tx, sql_query, sql_params, true).await
 }
 
-// the same as one except that if the query returns NotFound an error isn't printed
-//
-pub async fn one_may_not_find<T>(
-    tx: &Transaction<'_>,
-    sql_query: &str,
-    sql_params: &[&(dyn tokio_postgres::types::ToSql + std::marker::Sync)],
-) -> Result<T>
-where
-    T: FromTokioPostgresRow,
-{
-    one_(tx, sql_query, sql_params, false).await
-}
-
 async fn one_<T>(
     tx: &Transaction<'_>,
     sql_query: &str,
@@ -118,35 +105,6 @@ where
     }
 }
 
-pub async fn many<T>(
-    tx: &Transaction<'_>,
-    sql_query: &str,
-    sql_params: &[&(dyn tokio_postgres::types::ToSql + std::marker::Sync)],
-) -> Result<Vec<T>>
-where
-    T: FromTokioPostgresRow,
-{
-    let _stmt = sql_query;
-    let _stmt = _stmt.replace("$table_fields", &T::sql_table_fields());
-    let stmt = match tx.prepare(&_stmt).await {
-        Ok(stmt) => stmt,
-        Err(e) => {
-            error!("{}", e);
-            error!("QUERY: {}", &sql_query);
-            return Err(Error::from(e));
-        }
-    };
-
-    let vec = tx
-        .query(&stmt, sql_params)
-        .await?
-        .iter()
-        .map(|row| T::from_row_ref(row).unwrap())
-        .collect::<Vec<T>>();
-
-    Ok(vec)
-}
-
 pub async fn one_non_transactional<T>(
     db_pool: &Pool,
     sql_query: &str,
@@ -185,7 +143,7 @@ where
         }
     }
 }
-/*
+
 pub async fn many_non_transactional<T>(
     db_pool: &Pool,
     sql_query: &str,
@@ -215,7 +173,7 @@ where
 
     Ok(vec)
 }
-*/
+
 
 // one_from but without the error! logging
 //

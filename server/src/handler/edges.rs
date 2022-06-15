@@ -21,13 +21,15 @@ use crate::interop::edges as interop;
 use crate::session;
 use actix_web::web::{Data, Json};
 use actix_web::HttpResponse;
-use deadpool_postgres::Pool;
+use crate::db::sqlite::SqlitePool;
 #[allow(unused_imports)]
 use tracing::info;
 
+
+
 pub async fn create_from_note_to_decks(
     note_references: Json<interop::ProtoNoteReferences>,
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("create_from_note_to_decks");
@@ -35,8 +37,7 @@ pub async fn create_from_note_to_decks(
     let note_references = note_references.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let all_decks_for_note =
-        db::create_from_note_to_decks(&db_pool, &note_references, user_id).await?;
+    let all_decks_for_note = db::sqlite_create_from_note_to_decks(&sqlite_pool, &note_references, user_id)?;
 
     Ok(HttpResponse::Ok().json(all_decks_for_note))
 }

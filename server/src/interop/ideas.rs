@@ -17,7 +17,7 @@
 
 use crate::interop::decks::{BackNote, BackRef, Ref};
 use crate::interop::notes::Note;
-use crate::interop::sr::FlashCard;
+use crate::interop::sr::{FlashCard, SqliteFlashCard};
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -39,6 +39,48 @@ pub struct Idea {
     pub flashcards: Option<Vec<FlashCard>>,
 }
 
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct SqliteIdea {
+    pub id: Key,
+    pub title: String,
+
+    pub graph_terminator: bool,
+
+    pub created_at: chrono::NaiveDateTime,
+
+    pub notes: Option<Vec<Note>>,
+
+    pub refs: Option<Vec<Ref>>,
+
+    pub backnotes: Option<Vec<BackNote>>,
+    pub backrefs: Option<Vec<BackRef>>,
+
+    pub flashcards: Option<Vec<SqliteFlashCard>>,
+}
+
+impl From<crate::db::decks::SqliteDeckBase> for SqliteIdea {
+    fn from(d: crate::db::decks::SqliteDeckBase) -> SqliteIdea {
+        SqliteIdea {
+            id: d.id,
+            title: d.name,
+
+            graph_terminator: d.graph_terminator,
+
+            created_at: d.created_at,
+
+            notes: None,
+
+            refs: None,
+
+            backnotes: None,
+            backrefs: None,
+
+            flashcards: None,
+        }
+    }
+}
+
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct ProtoIdea {
     pub title: String,
@@ -50,4 +92,11 @@ pub struct IdeasListings {
     pub recent: Vec<Idea>,
     pub orphans: Vec<Idea>,
     pub unnoted: Vec<Idea>,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct SqliteIdeasListings {
+    pub recent: Vec<SqliteIdea>,
+    pub orphans: Vec<SqliteIdea>,
+    pub unnoted: Vec<SqliteIdea>,
 }

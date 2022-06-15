@@ -20,21 +20,20 @@ use crate::db::ideas as db;
 use crate::db::notes as notes_db;
 use crate::db::sr as sr_db;
 use crate::error::Result;
-use crate::handler::SearchQuery;
-use crate::interop::decks::{ResultList, SearchResults};
+use crate::interop::decks::SearchResults;
 use crate::interop::ideas as interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
-use actix_web::web::{self, Data, Json, Path};
+use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
-use deadpool_postgres::Pool;
+use crate::db::sqlite::SqlitePool;
 
 #[allow(unused_imports)]
 use tracing::info;
 
 pub async fn create(
     proto_deck: Json<ProtoDeck>,
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("create");
@@ -42,48 +41,36 @@ pub async fn create(
     let user_id = session::user_id(&session)?;
     let proto_deck = proto_deck.into_inner();
 
-    let idea = db::get_or_create(&db_pool, user_id, &proto_deck.title).await?;
+    let idea = db::sqlite_get_or_create(&sqlite_pool, user_id, &proto_deck.title)?;
 
     Ok(HttpResponse::Ok().json(idea))
 }
 
-pub async fn search(
-    db_pool: Data<Pool>,
-    session: actix_session::Session,
-    web::Query(query): web::Query<SearchQuery>,
-) -> Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
-    let results = db::search(&db_pool, user_id, &query.q).await?;
-
-    let res = ResultList { results };
-    Ok(HttpResponse::Ok().json(res))
-}
-
-pub async fn get_all(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
+pub async fn get_all(sqlite_pool: Data<SqlitePool>, session: actix_session::Session) -> Result<HttpResponse> {
     info!("get_all");
 
     let user_id = session::user_id(&session)?;
 
-    let ideas = db::all(&db_pool, user_id).await?;
+    let ideas = db::sqlite_all(&sqlite_pool, user_id)?;
 
     Ok(HttpResponse::Ok().json(ideas))
 }
 
 pub async fn get_listings(
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("get_listings");
 
     let user_id = session::user_id(&session)?;
 
-    let ideas = db::listings(&db_pool, user_id).await?;
+    let ideas = db::sqlite_listings(&sqlite_pool, user_id)?;
 
     Ok(HttpResponse::Ok().json(ideas))
 }
 
 pub async fn get(
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -92,15 +79,15 @@ pub async fn get(
     let user_id = session::user_id(&session)?;
     let idea_id = params.id;
 
-    let mut idea = db::get(&db_pool, user_id, idea_id).await?;
-    augment(&db_pool, &mut idea, idea_id).await?;
+    let mut idea = db::sqlite_get(&sqlite_pool, user_id, idea_id)?;
+    sqlite_augment(&sqlite_pool, &mut idea, idea_id)?;
 
     Ok(HttpResponse::Ok().json(idea))
 }
 
 pub async fn edit(
     idea: Json<interop::ProtoIdea>,
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -110,14 +97,14 @@ pub async fn edit(
     let idea_id = params.id;
     let idea = idea.into_inner();
 
-    let mut idea = db::edit(&db_pool, user_id, &idea, idea_id).await?;
-    augment(&db_pool, &mut idea, idea_id).await?;
+    let mut idea = db::sqlite_edit(&sqlite_pool, user_id, &idea, idea_id)?;
+    sqlite_augment(&sqlite_pool, &mut idea, idea_id)?;
 
     Ok(HttpResponse::Ok().json(idea))
 }
 
 pub async fn delete(
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -125,19 +112,17 @@ pub async fn delete(
 
     let user_id = session::user_id(&session)?;
 
-    db::delete(&db_pool, user_id, params.id).await?;
+    db::sqlite_delete(&sqlite_pool, user_id, params.id)?;
 
     Ok(HttpResponse::Ok().json(true))
 }
 
-async fn augment(db_pool: &Data<Pool>, idea: &mut interop::Idea, idea_id: Key) -> Result<()> {
-    let (notes, refs, backnotes, backrefs, flashcards) = tokio::try_join!(
-        notes_db::all_from_deck(&db_pool, idea_id),
-        decks_db::from_deck_id_via_notes_to_decks(&db_pool, idea_id),
-        decks_db::get_backnotes(&db_pool, idea_id),
-        decks_db::get_backrefs(&db_pool, idea_id),
-        sr_db::all_flashcards_for_deck(&db_pool, idea_id),
-    )?;
+fn sqlite_augment(sqlite_pool: &Data<SqlitePool>, idea: &mut interop::SqliteIdea, idea_id: Key) -> Result<()> {
+    let notes = notes_db::sqlite_all_from_deck(&sqlite_pool, idea_id)?;
+    let refs = decks_db::sqlite_from_deck_id_via_notes_to_decks(&sqlite_pool, idea_id)?;
+    let backnotes = decks_db::sqlite_get_backnotes(&sqlite_pool, idea_id)?;
+    let backrefs = decks_db::sqlite_get_backrefs(&sqlite_pool, idea_id)?;
+    let flashcards = sr_db::sqlite_all_flashcards_for_deck(&sqlite_pool, idea_id)?;
 
     idea.notes = Some(notes);
     idea.refs = Some(refs);
@@ -149,7 +134,7 @@ async fn augment(db_pool: &Data<Pool>, idea: &mut interop::Idea, idea_id: Key) -
 }
 
 pub async fn additional_search(
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -158,7 +143,7 @@ pub async fn additional_search(
     let user_id = session::user_id(&session)?;
     let idea_id = params.id;
 
-    let additional_search_results = decks_db::additional_search(&db_pool, user_id, idea_id).await?;
+    let additional_search_results = decks_db::sqlite_additional_search(&sqlite_pool, user_id, idea_id)?;
 
     let res = SearchResults {
         results: Some(additional_search_results),

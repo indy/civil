@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::interop::Key;
+use crate::error::{Error, Result};
 
 #[derive(PartialEq, Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
 pub enum DeckResource {
@@ -29,6 +30,23 @@ pub enum DeckResource {
     Timeline,
     #[serde(rename = "quotes")]
     Quote,
+}
+
+
+pub(crate) fn deck_resource_from_sqlite_string(s: &str) -> Result<DeckResource> {
+    if s == "articles" {
+        Ok(DeckResource::Article)
+    } else if s == "people" {
+        Ok(DeckResource::Person)
+    } else if s == "ideas" {
+        Ok(DeckResource::Idea)
+    } else if s == "timelines" {
+        Ok(DeckResource::Timeline)
+    } else if s == "quotes" {
+        Ok(DeckResource::Quote)
+    } else {
+        Err(Error::SqliteStringConversion)
+    }
 }
 
 #[derive(Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
