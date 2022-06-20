@@ -79,11 +79,30 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
             text: Some(String::from(text)),
             ..Default::default()
         }],
-        Node::Image(_, src) => vec![Element {
-            name: String::from("img"),
-            src: Some(String::from(src)),
-            ..Default::default()
-        }],
+        Node::Image(_, src, ns) => {
+            let img = Element {
+                name: String::from("img"),
+                src: Some(String::from(src)),
+                ..Default::default()
+            };
+
+            if ns.is_empty() {
+                vec![img]
+            } else {
+                // if there is a text description provided then treat this as a figure
+                // <figure><img/><figcaption>ns contents</figcaption></figure>
+                let mut figcaption = element_key_unpacked("figcaption", key, ns)?;
+                let mut figure_children = vec![img];
+
+                figure_children.append(&mut figcaption);
+
+                vec![Element {
+                    name: String::from("figure"),
+                    children: figure_children,
+                    ..Default::default()
+                }]
+            }
+        },
         Node::Underlined(_, ns) => element_key_unpacked_class("span", "underlined", key, ns)?,
         Node::UnorderedList(_, ns) => element_key("ul", key, ns)?,
         Node::Url(_, url, ns) => element_key_class_href("a", "note-inline-link", url, key, ns)?,

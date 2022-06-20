@@ -38,7 +38,7 @@ pub enum Node {
     Header(usize, u32, Vec<Node>),
     Highlight(usize, Vec<Node>),
     HorizontalRule(usize),
-    Image(usize, String),
+    Image(usize, String, Vec<Node>),
     ListItem(usize, Vec<Node>),
     MarginDisagree(usize, Vec<Node>),
     MarginScribble(usize, Vec<Node>),
@@ -60,7 +60,7 @@ fn get_node_pos(node: &Node) -> usize {
         Node::Header(pos, _, _) => *pos,
         Node::Highlight(pos, _) => *pos,
         Node::HorizontalRule(pos) => *pos,
-        Node::Image(pos, _) => *pos,
+        Node::Image(pos, _, _) => *pos,
         Node::ListItem(pos, _) => *pos,
         Node::MarginDisagree(pos, _) => *pos,
         Node::MarginScribble(pos, _) => *pos,
@@ -321,13 +321,13 @@ fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
 
 fn eat_img<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let pos = get_token_pos(&tokens[0]);
-    let (tokens, (image_name, _description)) = eat_as_resource_description_pair(tokens)?;
-    return Ok((tokens, Node::Image(pos, image_name.to_string())));
+    let (tokens, (image_name, description)) = eat_as_image_description_pair(tokens)?;
+    return Ok((tokens, Node::Image(pos, image_name.to_string(), description)));
 }
 
 fn eat_url<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let pos = get_token_pos(&tokens[0]);
-    let (tokens, (url, description)) = eat_as_resource_description_pair(tokens)?;
+    let (tokens, (url, description)) = eat_as_url_description_pair(tokens)?;
     return Ok((tokens, Node::Url(pos, url.to_string(), description)));
 }
 
@@ -506,10 +506,11 @@ fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> Result<(Token<'a
     }
 }
 
-// treat every token as Text until we get to a token of the given type
-fn eat_as_resource_description_pair<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<(String, Vec<Node>)> {
-    let mut found_url_desc_divide = false;
-    let mut url_tokens: Vec<Token> = vec![];
+// returns found_divide, left tokens, right tokens
+//
+fn core_description_pairing<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<(bool, Vec<Token>, Vec<Token>)> {
+    let mut found_desc_divide = false;
+    let mut core_tokens: Vec<Token> = vec![];
     let mut desc_tokens: Vec<Token> = vec![];
 
     let mut paren_balancer = 1;
@@ -521,10 +522,10 @@ fn eat_as_resource_description_pair<'a>(mut tokens: &'a [Token<'a>]) -> ParserRe
             let pos = get_token_pos(&tokens[0]);
             paren_balancer += 1;
             tokens = &tokens[1..];
-            if found_url_desc_divide {
+            if found_desc_divide {
                 desc_tokens.push(Token::ParenBegin(pos));
             } else {
-                url_tokens.push(Token::ParenBegin(pos));
+                core_tokens.push(Token::ParenBegin(pos));
             }
         } else if is_head(tokens, TokenIdent::ParenEnd) {
             paren_balancer -= 1;
@@ -535,41 +536,68 @@ fn eat_as_resource_description_pair<'a>(mut tokens: &'a [Token<'a>]) -> ParserRe
                 // reached the closing paren
                 break;
             }
-            if found_url_desc_divide {
+            if found_desc_divide {
                 desc_tokens.push(Token::ParenEnd(pos));
             } else {
-                url_tokens.push(Token::ParenEnd(pos));
+                core_tokens.push(Token::ParenEnd(pos));
             }
-        } else if is_head(tokens, TokenIdent::Text) && !found_url_desc_divide {
+        } else if is_head(tokens, TokenIdent::Text) && !found_desc_divide {
             let (first_text_token, maybe_other_text_token) = split_text_token_at_whitespace(tokens[0])?;
 
-            url_tokens.push(first_text_token);
+            core_tokens.push(first_text_token);
             if let Some(maybe) = maybe_other_text_token {
-                found_url_desc_divide = true;
+                found_desc_divide = true;
                 desc_tokens.push(maybe);
             }
             tokens = &tokens[1..];
         } else {
-            if found_url_desc_divide {
+            if found_desc_divide {
                 desc_tokens.push(tokens[0]);
             } else {
-                url_tokens.push(tokens[0]);
+                core_tokens.push(tokens[0]);
             }
             tokens = &tokens[1..];
         }
     }
 
+    Ok((tokens, (found_desc_divide, core_tokens, desc_tokens)))
+}
+
+// treat every token as Text until we get to a token of the given type
+fn eat_as_url_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(String, Vec<Node>)> {
+    let (tokens, (found_divide, left, right)) = core_description_pairing(tokens)?;
+
     let mut res = String::from("");
-    for t in &url_tokens {
+    for t in &left {
         res.push_str(get_token_value(&t));
     }
 
-    let (_rem, description_nodes) = if found_url_desc_divide {
-        parse(&desc_tokens)?
+    // if there is no text after the first space then use the url as the displayed text
+    //
+    let (_, description_nodes) = if found_divide {
+        parse(&right)?
     } else {
-        parse(&url_tokens)?
+        parse(&left)?
     };
     Ok((tokens, (res, description_nodes)))
+}
+
+fn eat_as_image_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(String, Vec<Node>)> {
+    let (tokens, (found_divide, left, right)) = core_description_pairing(tokens)?;
+
+    let mut res = String::from("");
+    for t in &left {
+        res.push_str(get_token_value(&t));
+    }
+
+    // only have descriptive text if it's in the markup after the image filename
+    //
+    if found_divide {
+        let (_, description_nodes) = parse(&right)?;
+        Ok((tokens, (res, description_nodes)))
+    } else {
+        Ok((tokens, (res, vec![])))
+    }
 }
 
 fn eat_blockquote<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
@@ -849,7 +877,27 @@ mod tests {
         assert_eq!(1, nodes.len());
 
         match &nodes[0] {
-            Node::Image(_, s) => assert_eq!(s, expected),
+            Node::Image(_, s, ns) => {
+                assert_eq!(s, expected);
+                assert_eq!(ns.len(), 0);
+            },
+            _ => assert_eq!(false, true),
+        };
+    }
+
+    fn assert_image_with_description(src: &'static str, expected: &'static str, expected_desc: &'static str) {
+        let nodes = build(src);
+        assert_eq!(1, nodes.len());
+
+        match &nodes[0] {
+            Node::Image(_, s, ns) => {
+                dbg!(&nodes);
+
+                assert_eq!(s, expected);
+                assert_eq!(ns.len(), 1);
+
+                assert_single_paragraph_text(&ns[0], expected_desc);
+            },
             _ => assert_eq!(false, true),
         };
     }
@@ -1529,6 +1577,9 @@ some other lines| more words afterwards",
         assert_image("@img(a00.jpg)", "a00.jpg");
         assert_image("@img(00a.jpg)", "00a.jpg");
         assert_image("@img(000.jpg)", "000.jpg");
+
+        assert_image_with_description("@img(000.jpg hello)", "000.jpg", "hello");
+        assert_image_with_description("@img(123.jpg hello this is a description)", "123.jpg", "hello this is a description");
     }
 
     #[test]

@@ -280,15 +280,12 @@ figure {
 }
 
 figcaption {
-  float: right;
-  clear: right;
-  margin-top: 0;
-  margin-bottom: 0;
   font-size: 1.1rem;
   line-height: 1.6;
   vertical-align: baseline;
   position: relative;
-  max-width: 40%;
+  max-width: 96%;
+  margin: auto;
 }
 
 figure.fullwidth figcaption {
