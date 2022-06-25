@@ -5,6 +5,8 @@ import { useStateValue } from '/js/StateProvider.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { createDeck, indexToShortcut } from '/js/CivilUtils.js';
 
+import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
+
 import Net from '/js/Net.js';
 
 const MODE_SEARCH = 'mode-search';
@@ -498,8 +500,10 @@ function allCommands() {
         {command: 't', description: "goto timelines or add <<title>>"},
         {command: 'q', description: "goto quotes"},
         {spacer: true},
-        {command: 'n', description: "show add-note form"},
-        {command: 'p', description: "show point form"},
+        {command: 'n',  description: "show add-note form"},
+        {command: 'nr', description: "show add-note form for review section"},
+        {command: 'ns', description: "show add-note form for summary section"},
+        {command: 'p',  description: "show point form"},
         {spacer: true},
         {command: 'r', description: "goto random quote"},
         {command: 's', description: "goto spaced repetition"},
@@ -531,8 +535,9 @@ function executeCommand(text, appDispatch) {
         return true;
     }
 
-    function dispatchMessage(command) {
-        appDispatch({type: command});
+    function dispatchMessage(command, extra) {
+        let action = extra ? { ...extra, type: command} : {type: command};
+        appDispatch(action);
         return true;
     }
 
@@ -542,7 +547,9 @@ function executeCommand(text, appDispatch) {
     case "a": return routeOrCreate('articles', rest);
     case "t": return routeOrCreate('timelines', rest);
     case "q": return routeOrCreate('quotes', []);
-    case "n": return dispatchMessage('showNoteForm');
+    case "n": return dispatchMessage('showNoteForm', { noteKind: NOTE_KIND_NOTE });
+    case "nr": return dispatchMessage('showNoteForm', { noteKind: NOTE_KIND_REVIEW });
+    case "ns": return dispatchMessage('showNoteForm', { noteKind: NOTE_KIND_SUMMARY });
     case "p": return dispatchMessage('showAddPointForm');
     case "l": return dispatchMessage('lock');
     case "u": return dispatchMessage('unlock');

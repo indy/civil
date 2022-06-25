@@ -101,7 +101,7 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
 
     function buildNoteForm() {
         function onCancelAddNote(e) {
-            dispatch({type: "hideNoteForm"});
+            dispatch({type: "hideNoteForm", noteKind });
             e.preventDefault();
         };
 
@@ -117,7 +117,7 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
                     });
 
                     cacheDeck({...deck, notes});
-                    dispatch({type: "hideNoteForm"});
+                    dispatch({type: "hideNoteForm", noteKind });
                 })
                 .catch(error => console.error(error.message));
         };
@@ -127,7 +127,7 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
 
     function buildNoteFormIcon() {
         function onAddNoteClicked(e) {
-            dispatch({type: "showNoteForm"});
+            dispatch({ type: "showNoteForm", noteKind });
             e.preventDefault();
         };
 
@@ -170,7 +170,7 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
     return html`
       <section>
         ${ notes }
-        ${ state.showNoteForm ? buildNoteForm() : buildNoteFormIcon() }
+        ${ state.showNoteForm[noteKind] ? buildNoteForm() : buildNoteFormIcon() }
       </section>`;
 }
 

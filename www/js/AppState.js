@@ -2,6 +2,8 @@ import { addSortYear } from '/js/eras.js';
 import { opposingKind } from '/js/JsUtils.js';
 import { sortByResourceThenName, sortByTitle } from '/js/CivilUtils.js';
 
+import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
+
 export const initialState = {
     user: undefined,
     // when a user is logged in:
@@ -27,10 +29,13 @@ export const initialState = {
 
     readOnly: false,
 
-    // by default don't show the note form, just show the "Append Note" icon
-    // this can be switched on via the SearchCommand bar
+    // put the variables in square brackets so that they're evaluated
     //
-    showNoteForm: false,
+    showNoteForm: {
+        [NOTE_KIND_NOTE]: false,
+        [NOTE_KIND_SUMMARY]: false,
+        [NOTE_KIND_REVIEW]: false
+    },
     // same for the Add Point form
     showAddPointForm: false,
 
@@ -107,18 +112,22 @@ export const reducer = (state, action) => {
             ...state,
             verboseUI: true
         };
-    case 'showNoteForm':
-        return {
+    case 'showNoteForm': {
+        let newState = {
             ...state,
-            componentRequiresFullKeyboardAccess: true,
-            showNoteForm: true
+            componentRequiresFullKeyboardAccess: true
         };
-    case 'hideNoteForm':
-        return {
+        newState.showNoteForm[action.noteKind] = true;
+        return newState;
+    }
+    case 'hideNoteForm': {
+        let newState = {
             ...state,
-            componentRequiresFullKeyboardAccess: false,
-            showNoteForm: false
+            componentRequiresFullKeyboardAccess: false
         };
+        newState.showNoteForm[action.noteKind] = false;
+        return newState;
+    }
     case 'showAddPointForm':
         return {
             ...state,
