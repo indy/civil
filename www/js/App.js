@@ -84,11 +84,10 @@ async function getInitialStateForLoggedInUser() {
 export function App(state, wasmInterface) {
     return html`
     <${WasmInterfaceProvider} wasmInterface=${wasmInterface}>
-      <${StateProvider} initialState=${state} reducer=${reducer}>
-          <${AppUI}/>
-      </${StateProvider}>
-    </${WasmInterfaceProvider}>
-  `;
+        <${StateProvider} initialState=${state} reducer=${reducer}>
+            <${AppUI}/>
+        </${StateProvider}>
+    </${WasmInterfaceProvider}>`;
 }
 
 function TopBarMenu(props) {
@@ -116,20 +115,21 @@ function TopBarMenu(props) {
 
     if (state.verboseUI) {
         return html`
-      <nav>
-        <div id="elastic-top-menu-items">
-          ${state.preferredOrder.map(dk => html`<div class="optional-navigable top-menu-decktype">
-            <${Link} class='pigment-${dk}' href='/${dk}'>${capitalise(dk)}</${Link}>
-            </div>`)}
-          <div id="top-menu-sr">
-            <${Link} class='pigment-inherit' href='/sr'>SR(${state.srReviewCount})</${Link}>
-          </div>
-          <div>
-            <${WhenWritableToggle}/>
-            <${Link} class='pigment-inherit' href=${ loggedLink() }>${ loggedStatus() }</${Link}>
-          </div>
-        </div>
-      </nav>`;
+        <nav>
+            <div id="elastic-top-menu-items">
+                ${state.preferredOrder.map(dk => html`
+                    <div class="optional-navigable top-menu-decktype">
+                        <${Link} class='pigment-${dk}' href='/${dk}'>${capitalise(dk)}</${Link}>
+                    </div>`)}
+                <div id="top-menu-sr">
+                    <${Link} class='pigment-inherit' href='/sr'>SR(${state.srReviewCount})</${Link}>
+                </div>
+                <div>
+                    <${WhenWritableToggle}/>
+                    <${Link} class='pigment-inherit' href=${ loggedLink() }>${ loggedStatus() }</${Link}>
+                </div>
+            </div>
+        </nav>`;
     } else {
         return html``;
     }
@@ -168,22 +168,22 @@ function AppUI(props) {
 
     return html`
     <div id='civil-app'>
-      <${SearchCommand}/>
-      <${TopBarMenu}/>
-      <${Router} onChange=${ handleRoute }>
-        <${Login} path="/login" loginCallback=${ loginHandler }/>
-        <${Logout} path="/logout"/>
-        <${SpacedRepetition} path="/sr"/>
-        <${Ideas} path="/ideas"/>
-        <${Idea} path="/ideas/:id"/>
-        <${Articles} path="/articles"/>
-        <${Article} path="/articles/:id"/>
-        <${People} path="/people"/>
-        <${Person} path="/people/:id"/>
-        <${Timelines} path="/timelines"/>
-        <${Timeline} path="/timelines/:id"/>
-        <${Quotes} path="/quotes"/>
-        <${Quote} path="/quotes/:id"/>
-      </${Router}>
+        <${SearchCommand}/>
+        <${TopBarMenu}/>
+        <${Router} onChange=${ handleRoute }>
+            <${Login} path="/login" loginCallback=${ loginHandler }/>
+            <${Logout} path="/logout"/>
+            <${SpacedRepetition} path="/sr"/>
+            <${Ideas} path="/ideas"/>
+            <${Idea} path="/ideas/:id"/>
+            <${Articles} path="/articles"/>
+            <${Article} path="/articles/:id"/>
+            <${People} path="/people"/>
+            <${Person} path="/people/:id"/>
+            <${Timelines} path="/timelines"/>
+            <${Timeline} path="/timelines/:id"/>
+            <${Quotes} path="/quotes"/>
+            <${Quote} path="/quotes/:id"/>
+        </${Router}>
     </div>`;
 }

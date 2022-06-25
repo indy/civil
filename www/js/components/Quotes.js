@@ -131,32 +131,33 @@ function Quotes() {
     }
 
     function renderAddForm() {
-        return html`<form class="civil-form">
-                        <label for="attribution">QuoteText:</label>
-                        <br/>
-                        <${CivilTextArea} id="quote-text"
-                                          value=${ local.quoteText }
-                                          onInput=${handleChangeEvent}/>
-                        <br/>
-                        <label for="attribution">Attribution:</label>
-                        <br/>
-                        <${CivilInput} id="attribution"
-                                       autocomplete="off"
-                                       value=${ local.attribution }
-                                       onInput=${handleChangeEvent}/>
-                        <br/>
-                        <button onClick=${clickedCancel}>cancel</button>
-                        <button onClick=${clickedSave}>save</button>
-                    </form>`;
+        return html`
+        <form class="civil-form">
+            <label for="attribution">QuoteText:</label>
+            <br/>
+            <${CivilTextArea} id="quote-text"
+                              value=${ local.quoteText }
+                              onInput=${handleChangeEvent}/>
+            <br/>
+            <label for="attribution">Attribution:</label>
+            <br/>
+            <${CivilInput} id="attribution"
+                           autocomplete="off"
+                           value=${ local.attribution }
+                           onInput=${handleChangeEvent}/>
+            <br/>
+            <button onClick=${clickedCancel}>cancel</button>
+            <button onClick=${clickedSave}>save</button>
+        </form>`;
     }
 
     return html`
     <article>
-      <h1 class="ui">${capitalise(resource)}</h1>
+        <h1 class="ui">${capitalise(resource)}</h1>
 
-        ${ !local.showAddForm && renderNewQuoteButton()}
-        ${ local.showAddForm && renderAddForm()}
-        ${ !local.showAddForm && renderRandomButton()}
+          ${ !local.showAddForm && renderNewQuoteButton()}
+          ${ local.showAddForm && renderAddForm()}
+          ${ !local.showAddForm && renderRandomButton()}
     </article>`;
 }
 
@@ -275,22 +276,18 @@ function Quote(props) {
 
     return html`
     <article id="quotation-article">
-      ${ note && html`<${Note}
-    key=${ note.id }
-    note=${ note }
-    parentDeck=${ quote }
-    onEdited=${ onEditedNote }
-    onDelete=${ onDelete }
-    onDecksChanged=${ onDecksChanged }/>`}
-      <${Attribution}
-        attribution=${ quote.attribution }
-        onEdited=${ onEditedAttribute}
-        onDelete=${ onDelete }/>
+        ${ note && html`
+            <${Note} key=${ note.id }
+                     note=${ note }
+                     parentDeck=${ quote }
+                     onEdited=${ onEditedNote }
+                     onDelete=${ onDelete }
+                     onDecksChanged=${ onDecksChanged }/>`}
+        <${Attribution} attribution=${ quote.attribution }
+                        onEdited=${ onEditedAttribute}
+                        onDelete=${ onDelete }/>
     </article>`;
 }
-
-
-
 
 const ATTR_SHOW_MODE = 'attr-show-mode';
 const ATTR_EDIT_MODE = 'attr-edit-mode';

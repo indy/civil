@@ -14,11 +14,12 @@ export default function SectionSearchResultsBackref({ backrefs }) {
 
     if(nonEmptyArray(backrefs)) {
         const heading = plural(backrefs.length, 'Additional Search Result', 's');
-        return html`<${RollableSection} heading=${ heading } initiallyRolledUp>
-                  <ul>
-                    ${ backrefs.map(buildBackref) }
-                  </ul>
-                </${RollableSection}>`;
+        return html`
+        <${RollableSection} heading=${ heading } initiallyRolledUp>
+            <ul>
+                ${ backrefs.map(buildBackref) }
+            </ul>
+        </${RollableSection}>`;
     } else {
         return html`<div></div>`;
     }

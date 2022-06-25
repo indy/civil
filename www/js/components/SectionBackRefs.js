@@ -112,14 +112,14 @@ function SectionLinks({ backrefs }) {
     }
 
     let list = backrefs.map((br, i) => {
-        return html`<${ExpandableListingLink}
-                  index=${i}
-                  onExpandClick=${onChildClicked}
-                  expanded=${ localState.childrenExpanded[i] }
-                  deck_id=${ br.deck_id }
-                  deck_name=${ br.deck_name }
-                  resource=${ br.resource }
-                  notes=${ br.notes }/>`;
+        return html`
+        <${ExpandableListingLink} index=${i}
+                                  onExpandClick=${onChildClicked}
+                                  expanded=${ localState.childrenExpanded[i] }
+                                  deck_id=${ br.deck_id }
+                                  deck_name=${ br.deck_name }
+                                  resource=${ br.resource }
+                                  notes=${ br.notes }/>`;
     });
 
     let sectionHeading = capitalise(backrefs[0].resource);
@@ -127,7 +127,7 @@ function SectionLinks({ backrefs }) {
 
     return html`
     <section key=${ sectionId }>
-      <h3 class="ui" onClick=${ onClickToggle }>${ icon } ${ sectionHeading }</h3>
-      ${ list }
+        <h3 class="ui" onClick=${ onClickToggle }>${ icon } ${ sectionHeading }</h3>
+        ${ list }
     </section>`;
 }

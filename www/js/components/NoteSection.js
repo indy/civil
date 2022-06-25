@@ -12,7 +12,6 @@ import RollableSection from '/js/components/RollableSection.js';
 import { WhenWritable } from '/js/components/WhenWritable.js';
 import { WhenVerbose } from '/js/components/WhenVerbose.js';
 
-
 const NOTE_SECTION_HIDE = 0;
 const NOTE_SECTION_SHOW = 1;
 const NOTE_SECTION_EXCLUSIVE = 2;
@@ -32,20 +31,21 @@ function NoteSection({ heading, noteKind, howToShow, deck, cacheDeck }) {
             appendLabel = "Append Review Note";
         }
 
-        return NoteManager({ deck,
-                             cacheDeck,
-                             filterFn,
-                             appendLabel,
-                             noteKind
-                           });
+        return NoteManager({
+            deck,
+            cacheDeck,
+            filterFn,
+            appendLabel,
+            noteKind
+        });
     }
 
     switch(howToShow) {
     case NOTE_SECTION_HIDE:      return html`<div></div>`;
     case NOTE_SECTION_EXCLUSIVE: return html`${ noteManager(noteKind) }`;
     case NOTE_SECTION_SHOW:      return html`<${RollableSection} heading=${heading}>
-                                             ${ noteManager(noteKind) }
-                                           </${RollableSection}>`;
+                                               ${ noteManager(noteKind) }
+                                             </${RollableSection}>`;
     }
 }
 
@@ -90,13 +90,13 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
 
     function buildNoteComponent(note) {
         return html`
-      <${Note} key=${ note.id }
-               note=${ note }
-               parentDeck=${ deck }
-               onDelete=${ onDeleteNote }
-               onEdited=${ onEditedNote }
-               onDecksChanged=${ onDecksChanged }
-      />`;
+               <${Note} key=${ note.id }
+                        note=${ note }
+                        parentDeck=${ deck }
+                        onDelete=${ onDeleteNote }
+                        onEdited=${ onEditedNote }
+                        onDecksChanged=${ onDecksChanged }
+               />`;
     }
 
     function buildNoteForm() {
@@ -133,45 +133,42 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
 
         if (optional_deck_point) {
             return html`
-    <${WhenVerbose}>
-    <${WhenWritable}>
-<div class="inline-append-note">
-  <div class="left-margin-inline">
-    <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
-      ${ svgEdit() }
-      <span class="left-margin-icon-label ui-bold">${ appendLabel }</span>
-    </div>
-  </div>
-</div>
-    </${WhenWritable}>
-    </${WhenVerbose}>
-`;
+            <${WhenVerbose}>
+                <${WhenWritable}>
+                    <div class="inline-append-note">
+                        <div class="left-margin-inline">
+                            <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
+                                ${ svgEdit() }
+                                <span class="left-margin-icon-label ui-bold">${ appendLabel }</span>
+                            </div>
+                        </div>
+                    </div>
+                </${WhenWritable}>
+            </${WhenVerbose}>`;
         } else {
             return html`
-    <${WhenVerbose}>
-    <${WhenWritable}>
-<div class="append-note">
-  <div class="left-margin">
-    <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
-      <span class="left-margin-icon-label ui-bold">${ appendLabel }</span>
-      ${ svgEdit() }
-    </div>
-  </div>
-</div>
-    </${WhenWritable}>
-    </${WhenVerbose}>
-`;
+            <${WhenVerbose}>
+                <${WhenWritable}>
+                    <div class="append-note">
+                        <div class="left-margin">
+                            <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
+                                <span class="left-margin-icon-label ui-bold">${ appendLabel }</span>
+                                ${ svgEdit() }
+                            </div>
+                        </div>
+                    </div>
+                </${WhenWritable}>
+            </${WhenVerbose}>`;
         }
-
     }
 
     const notes = deck.notes ? deck.notes.filter(filterFn).map(buildNoteComponent) : [];
 
     return html`
-      <section>
-        ${ notes }
-        ${ state.showNoteForm[noteKind] ? buildNoteForm() : buildNoteFormIcon() }
-      </section>`;
+           <section>
+               ${ notes }
+               ${ state.showNoteForm[noteKind] ? buildNoteForm() : buildNoteFormIcon() }
+           </section>`;
 }
 
 function NoteForm({ onSubmit, onCancel }) {
@@ -195,27 +192,26 @@ function NoteForm({ onSubmit, onCancel }) {
     }, []);
 
     return html`
-  <div class="append-note">
-    <div class="left-margin">
-      <div class="left-margin-entry clickable cancel-offset" onClick=${ onCancel }>
-        <span class="left-margin-icon-label">Cancel</span>
-        ${ svgX() }
-      </div>
-    </div>
-    <form class="civil-add-note-form" onSubmit=${ onSubmit }>
-      <label for="content">Append Note:</label>
-      <br/>
-      <${CivilTextArea} id="content"
-                        elementRef=${ textAreaRef }
-                        elementClass="new-note-textarea"
-                        value=${ content }
-                        onInput=${ handleChangeEvent }
-      />
-      <br/>
-      <input type="submit" value="Save"/>
-    </form>
-    <${ImageWidget}/>
-  </div>`;
+           <div class="append-note">
+               <div class="left-margin">
+                   <div class="left-margin-entry clickable cancel-offset" onClick=${ onCancel }>
+                       <span class="left-margin-icon-label">Cancel</span>
+                       ${ svgX() }
+                   </div>
+               </div>
+               <form class="civil-add-note-form" onSubmit=${ onSubmit }>
+                   <label for="content">Append Note:</label>
+                   <br/>
+                   <${CivilTextArea} id="content"
+                                     elementRef=${ textAreaRef }
+                                     elementClass="new-note-textarea"
+                                     value=${ content }
+                                     onInput=${ handleChangeEvent }/>
+                   <br/>
+                   <input type="submit" value="Save"/>
+               </form>
+               <${ImageWidget}/>
+           </div>`;
 }
 
 function addNote(markup, deck_id, noteKind, optional_point_id) {

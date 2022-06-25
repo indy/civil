@@ -5,7 +5,7 @@ export const StateContext = createContext();
 export const StateProvider = ({reducer, initialState, children}) => {
     return html`
     <${StateContext.Provider} value=${useReducer(reducer, initialState)}>
-      ${children}
+        ${children}
     </${StateContext.Provider}>
 `;
 };

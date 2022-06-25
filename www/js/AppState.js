@@ -59,7 +59,7 @@ export const initialState = {
     recentImages: [],
     imageDirectory: '',
 
-    verboseUI: false,
+    verboseUI: true,
     preferredOrder: ["ideas", "people", "articles", "timelines", "quotes"],
 
     // key == resource name of decks

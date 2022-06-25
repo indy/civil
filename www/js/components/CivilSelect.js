@@ -292,23 +292,23 @@ export default function CivilSelect({ parentDeckId, chosen, onFinish }) {
         });
     }
 
-    return html`<div class='civsel-main-box'>
-                ${ local.currentSelection.map((value, i) => html`<${SelectedReference}
-    reference=${value}
-    onRemove=${ (e) => localDispatch(REFERENCE_REMOVE, e) }
-    onChangeKind=${ (reference, newKind) => localDispatch(REFERENCE_CHANGE_KIND, { reference, newKind })}
-    onChangeAnnotation=${ (reference, annotation) => localDispatch(REFERENCE_CHANGE_ANNOTATION,
-                                                                   { reference, annotation})}/>`) }
-                <${Input} text=${local.text}
-                          onTextChanged=${onTextChanged}
-                          candidates=${ local.candidates }
-                          onAdd=${ (existingDeck) => localDispatch(SELECT_ADD, existingDeck) }
-                          onCreate=${ (newDeckInfo) => localDispatch(SELECT_CREATE, newDeckInfo) }
-                          currentSelection=${ local.currentSelection }
-                          showKeyboardShortcuts=${ local.showKeyboardShortcuts }/>
-               <button onClick=${ onLocalCancel }>Cancel</button>
-               <button onClick=${ onLocalCommit } disabled=${ !local.canSave }>${ local.showKeyboardShortcuts && html`Ctrl-Enter`} Save Changes</button>
-              </div>`;
+    return html`
+    <div class='civsel-main-box'>
+        ${ local.currentSelection.map((value, i) => html`
+            <${SelectedReference} reference=${value}
+                                  onRemove=${ (e) => localDispatch(REFERENCE_REMOVE, e) }
+                                  onChangeKind=${ (reference, newKind) => localDispatch(REFERENCE_CHANGE_KIND, { reference, newKind })}
+                                  onChangeAnnotation=${ (reference, annotation) => localDispatch(REFERENCE_CHANGE_ANNOTATION, { reference, annotation})}/>`) }
+        <${Input} text=${local.text}
+                  onTextChanged=${onTextChanged}
+                  candidates=${ local.candidates }
+                  onAdd=${ (existingDeck) => localDispatch(SELECT_ADD, existingDeck) }
+                  onCreate=${ (newDeckInfo) => localDispatch(SELECT_CREATE, newDeckInfo) }
+                  currentSelection=${ local.currentSelection }
+                  showKeyboardShortcuts=${ local.showKeyboardShortcuts }/>
+        <button onClick=${ onLocalCancel }>Cancel</button>
+        <button onClick=${ onLocalCommit } disabled=${ !local.canSave }>${ local.showKeyboardShortcuts && html`Ctrl-Enter`} Save Changes</button>
+    </div>`;
 }
 
 function SelectedReference({ reference, onRemove, onChangeKind, onChangeAnnotation }) {
@@ -329,21 +329,22 @@ function SelectedReference({ reference, onRemove, onChangeKind, onChangeAnnotati
         onChangeAnnotation(reference, value);
     };
 
-    return html`<div class='civsel-reference pigment-${reference.resource}'>
-                <span class='civsel-delete-selected' onClick=${onClick}>${svgCloseShifted()}</span>
-                <select onChange=${onKindDropDownSelect} name="choice">
-                  <option value="Ref" selected=${reference.ref_kind == "Ref"}>Generic Reference</option>
-                  <option value="RefToParent" selected=${reference.ref_kind == "RefToParent"}>Reference to Parent</option>
-                  <option value="RefToChild" selected=${reference.ref_kind == "RefToChild"}>Reference to Child</option>
-                  <option value="RefInContrast" selected=${reference.ref_kind == "RefInContrast"}>Contrasting Reference</option>
-                  <option value="RefCritical" selected=${reference.ref_kind == "RefCritical"}>Critical Reference</option>
-                </select>
-                <span class="civsel-name">${reference.name}</span>
-                <${CivilInput} elementClass="civsel-annotation"
-                               id="annotation"
-                               value=${ reference.annotation }
-                               onInput=${ handleChangeEvent } />
-              </div>`;
+    return html`
+    <div class='civsel-reference pigment-${reference.resource}'>
+        <span class='civsel-delete-selected' onClick=${onClick}>${svgCloseShifted()}</span>
+        <select onChange=${onKindDropDownSelect} name="choice">
+            <option value="Ref" selected=${reference.ref_kind == "Ref"}>Generic Reference</option>
+            <option value="RefToParent" selected=${reference.ref_kind == "RefToParent"}>Reference to Parent</option>
+            <option value="RefToChild" selected=${reference.ref_kind == "RefToChild"}>Reference to Child</option>
+            <option value="RefInContrast" selected=${reference.ref_kind == "RefInContrast"}>Contrasting Reference</option>
+            <option value="RefCritical" selected=${reference.ref_kind == "RefCritical"}>Critical Reference</option>
+        </select>
+        <span class="civsel-name">${reference.name}</span>
+        <${CivilInput} elementClass="civsel-annotation"
+                       id="annotation"
+                       value=${ reference.annotation }
+                       onInput=${ handleChangeEvent } />
+    </div>`;
 }
 
 function Input({ text, onTextChanged, onAdd, onCreate, candidates, currentSelection, showKeyboardShortcuts }) {
@@ -367,21 +368,20 @@ function Input({ text, onTextChanged, onAdd, onCreate, candidates, currentSelect
     }
 
     let cl = candidates.map((c, i) => {
-        return html`<${CandidateItem} candidate=${c}
-                                  onSelectedCandidate=${ onAdd }
-                                  showKeyboardShortcuts=${ showKeyboardShortcuts }
-                                  keyIndex=${ i }
-                />`;
+        return html`
+        <${CandidateItem} candidate=${c}
+                          onSelectedCandidate=${ onAdd }
+                          showKeyboardShortcuts=${ showKeyboardShortcuts }
+                          keyIndex=${ i }/>`;
     });
 
     return html`
     <form class="civsel-form" onSubmit=${ onSubmit }>
-      <${CivilInput} type='text'
-                     value='${ text }'
-                     autoComplete='off'
-                     onInput=${ onInput }
-      />
-      <div class='civsel-candidates'>${ cl }</div>
+        <${CivilInput} type='text'
+                       value='${ text }'
+                       autoComplete='off'
+                       onInput=${ onInput }/>
+        <div class='civsel-candidates'>${ cl }</div>
     </form>`;
 }
 
@@ -395,8 +395,9 @@ function CandidateItem({ candidate, onSelectedCandidate, showKeyboardShortcuts, 
 
     const canShowKeyboardShortcut = showKeyboardShortcuts && keyIndex < maxShortcuts;
 
-    return html`<div class="civsel-candidate pigment-${candidate.resource}" onClick=${selectedThisCandidate}>
-                ${ canShowKeyboardShortcut && html`<span class='keyboard-shortcut'>${ indexToShortcut(keyIndex)}: </span>`}
-                ${ candidate.name }
-              </div>`;
+    return html`
+    <div class="civsel-candidate pigment-${candidate.resource}" onClick=${selectedThisCandidate}>
+        ${ canShowKeyboardShortcut && html`<span class='keyboard-shortcut'>${ indexToShortcut(keyIndex)}: </span>`}
+        ${ candidate.name }
+    </div>`;
 }

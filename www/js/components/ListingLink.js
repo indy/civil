@@ -10,7 +10,7 @@ function ListingLink({ resource, id, name }) {
 
     let res = html`
     <li class="listing-link">
-      <${Link} class="pigment-fg-${resource}" href=${ href }>${ name }</${Link}>
+        <${Link} class="pigment-fg-${resource}" href=${ href }>${ name }</${Link}>
     </li>`;
 
     return res;
@@ -28,11 +28,11 @@ function ExpandableListingLink({ index, resource, deck_id, deck_name, notes, exp
 
     let res = html`
     <div>
-      <span onClick=${onClicked}>${ icon }</span>
-      <span class="backref-deck">
-        <${Link} class="pigment-fg-${resource}" href=${ href }>${ deck_name }</${Link}>
-      </span>
-      ${ expanded && buildNotes(notes) }
+        <span onClick=${onClicked}>${ icon }</span>
+        <span class="backref-deck">
+            <${Link} class="pigment-fg-${resource}" href=${ href }>${ deck_name }</${Link}>
+        </span>
+        ${ expanded && buildNotes(notes) }
     </div>`;
 
     return res;
@@ -44,33 +44,32 @@ function buildNotes(notes) {
     let res = notes.reduce((a, note) => {
         if (note.top_annotation) {
             a.push(html`<div class="ref-top-scribble">
-                    ${ note.top_annotation }
-                  </div>`);
+                            ${ note.top_annotation }
+                        </div>`);
         }
 
         let refs = note.refs && note.refs.map(r => html`
-                <div class="left-margin-entry">
-                  <span class="ref-kind">(${ r.ref_kind })</span>
-                  <${Link} class="ref pigment-${ r.resource }" href="/${r.resource}/${r.deck_id}">${ r.deck_name }</${Link}>
-                  ${ r.annotation && html`<div class="ref-scribble pigment-fg-${ r.resource }">
-                                              ${ r.annotation }
-                                              </div>`}
-                </div>
+        <div class="left-margin-entry">
+            <span class="ref-kind">(${ r.ref_kind })</span>
+            <${Link} class="ref pigment-${ r.resource }" href="/${r.resource}/${r.deck_id}">${ r.deck_name }</${Link}>
+            ${ r.annotation && html`
+                <div class="ref-scribble pigment-fg-${ r.resource }">
+                    ${ r.annotation }
+                </div>`}
+        </div>
       `);
 
         a.push(html`
-      <div class="note">
-        ${ note.refs && html`
-               <div class="left-margin">
-               ${ refs }
-               </div>`}
-           <div>
-             ${ buildMarkup(note.note_content, state.imageDirectory) }
-           </div>
-      </div>
+        <div class="note">
+            ${ note.refs && html`
+                <div class="left-margin">
+                    ${ refs }
+                </div>`}
+            <div>
+                 ${ buildMarkup(note.note_content, state.imageDirectory) }
+            </div>
+        </div>
     `);
-
-        //     a.push(buildMarkup(note.note_content, state.imageDirectory));
 
         a.push(html`<hr/>`);
         return a;

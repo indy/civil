@@ -123,12 +123,12 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
         }
 
         return html`
-      <div>
-        <button onClick=${ onEditParentClicked }>Edit...</button>
-        <${DeleteConfirmation} onDelete=${confirmedDeleteClicked }/>
-        ${ local.showShowSummaryButton && html`<button onClick=${ onShowSummaryButtonClicked }>Show Summary Section</button>`}
-        ${ local.showShowReviewButton && html`<button onClick=${ onShowReviewButtonClicked }>Show Review Section</button>`}
-      </div>`;
+        <div>
+            <button onClick=${ onEditParentClicked }>Edit...</button>
+            <${DeleteConfirmation} onDelete=${confirmedDeleteClicked }/>
+            ${ local.showShowSummaryButton && html`<button onClick=${ onShowSummaryButtonClicked }>Show Summary Section</button>`}
+            ${ local.showShowReviewButton && html`<button onClick=${ onShowReviewButtonClicked }>Show Review Section</button>`}
+        </div>`;
     };
 
     function onShowButtons(e) {
@@ -194,24 +194,24 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
 
     res.buildNoteSections = function() {
         return html`
-      <div>
-        ${ hasSummarySection && html`<${NoteSection} heading='Summary'
-        noteKind=${ NOTE_KIND_SUMMARY }
-        howToShow=${ howToShowNoteSection(NOTE_KIND_SUMMARY) }
-        deck=${ deck }
-        cacheDeck=${ cacheDeck }/>`}
-        ${ hasReviewSection && html`<${NoteSection} heading='Review'
-        noteKind=${ NOTE_KIND_REVIEW }
-        howToShow=${ howToShowNoteSection(NOTE_KIND_REVIEW) }
-        deck=${ deck }
-        cacheDeck=${ cacheDeck } />`}
-        <${NoteSection} heading=${ title }
-                        noteKind=${ NOTE_KIND_NOTE }
-                        howToShow=${ howToShowNoteSection(NOTE_KIND_NOTE) }
-                        deck=${ deck }
-                        cacheDeck=${ cacheDeck } />
-      </div>
-    `;
+        <div>
+            ${ hasSummarySection && html`
+                <${NoteSection} heading='Summary'
+                                noteKind=${ NOTE_KIND_SUMMARY }
+                                howToShow=${ howToShowNoteSection(NOTE_KIND_SUMMARY) }
+                                deck=${ deck }
+                                cacheDeck=${ cacheDeck }/>`}
+                                ${ hasReviewSection && html`<${NoteSection} heading='Review'
+                                noteKind=${ NOTE_KIND_REVIEW }
+                                howToShow=${ howToShowNoteSection(NOTE_KIND_REVIEW) }
+                                deck=${ deck }
+                                cacheDeck=${ cacheDeck } />`}
+            <${NoteSection} heading=${ title }
+                            noteKind=${ NOTE_KIND_NOTE }
+                            howToShow=${ howToShowNoteSection(NOTE_KIND_NOTE) }
+                            deck=${ deck }
+                            cacheDeck=${ cacheDeck } />
+        </div>`;
     }
 
     if (local.showUpdateForm) {
@@ -291,12 +291,13 @@ function Title(title, onShowButtons) {
     // 1. the sticky header appearing when the top of the title scrolls off the top of the screen
     // 2. the normal inline title appears when the bottom of the title text should be visible as
     //    the user scrolls up
-    return html`<div>
-                <div ref=${ preMarkerRef }></div>
-                <div ref=${ backgroundBandRef }></div>
-                <h1 ref=${ titleRef } class="deck-title" onClick=${ onShowButtons }>${ title }</h1>
-                <div ref=${ postMarkerRef }></div>
-              </div>`;
+    return html`
+    <div>
+        <div ref=${ preMarkerRef }></div>
+        <div ref=${ backgroundBandRef }></div>
+        <h1 ref=${ titleRef } class="deck-title" onClick=${ onShowButtons }>${ title }</h1>
+        <div ref=${ postMarkerRef }></div>
+    </div>`;
 }
 
 export { DeckManager };

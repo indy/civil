@@ -16,9 +16,10 @@ function WhenWritableToggle() {
         dispatch({ type: 'toggleLock'});
     }
 
-    return html`<span onClick=${ lockToggle }>
-                ${ state.readOnly && svgLock() }
-              </span>`;
+    return html`
+    <span onClick=${ lockToggle }>
+        ${ state.readOnly && svgLock() }
+    </span>`;
 }
 
 export {WhenWritable, WhenWritableToggle}

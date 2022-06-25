@@ -332,20 +332,21 @@ export default function Graph({ id, depth }) {
     }
 
     return html`
-<div>
-  <div class="left-margin">
-    <div class="left-margin-entry clickable" onClick=${ onActivHyperlinksClicked }>
-      <span class="left-margin-icon-label">Active Hyperlinks</span>
-      ${ localState.activeHyperlinks ? svgTickedCheckBox() : svgUntickedCheckBox() }
-    </div>
-  </div>
-  <div class="svg-container" ref=${ svgContainerRef }
-       onClick=${ onGraphClicked }
-       onMouseDown=${onMouseButtonDown}
-       onMouseUp=${onMouseButtonUp}
-       onMouseMove=${onMouseMove}>
-  </div>
-</div>`;
+    <div>
+        <div class="left-margin">
+            <div class="left-margin-entry clickable" onClick=${ onActivHyperlinksClicked }>
+                <span class="left-margin-icon-label">Active Hyperlinks</span>
+                ${ localState.activeHyperlinks ? svgTickedCheckBox() : svgUntickedCheckBox() }
+            </div>
+        </div>
+        <div class="svg-container"
+             ref=${ svgContainerRef }
+             onClick=${ onGraphClicked }
+             onMouseDown=${onMouseButtonDown}
+             onMouseUp=${onMouseButtonUp}
+             onMouseMove=${onMouseMove}>
+        </div>
+    </div>`;
 }
 
 function mouseInSvg(mouseX, mouseY, svgContainer) {

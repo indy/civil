@@ -23,10 +23,10 @@ function Ideas() {
 
     return html`
     <article>
-      <h1 class="ui">${capitalise(resource)}</h1>
-      <${CompactedListSection} label='Recent' list=${ideas.recent} resource=${resource} expanded/>
-      <${CompactedListSection} label='Orphans' list=${ideas.orphans} resource=${resource} hideEmpty/>
-      <${CompactedListSection} label='Unnoted' list=${ideas.unnoted} resource=${resource} hideEmpty/>
+        <h1 class="ui">${capitalise(resource)}</h1>
+        <${CompactedListSection} label='Recent' list=${ideas.recent} resource=${resource} expanded/>
+        <${CompactedListSection} label='Orphans' list=${ideas.orphans} resource=${resource} hideEmpty/>
+        <${CompactedListSection} label='Unnoted' list=${ideas.unnoted} resource=${resource} hideEmpty/>
     </article>`;
 }
 
@@ -71,19 +71,19 @@ function Idea(props) {
 
     return html`
     <article>
-      <div>
-        <div class="left-margin">
-          ${ idea.created_at && leftMarginHeading(formattedDate(idea.created_at)) }
+        <div>
+            <div class="left-margin">
+                ${ idea.created_at && leftMarginHeading(formattedDate(idea.created_at)) }
+            </div>
+            ${ deckManager.title }
         </div>
-        ${ deckManager.title }
-      </div>
-      ${ deckManager.buttons() }
-      ${ deckManager.buildUpdateForm() }
-      ${ deckManager.buildNoteSections() }
+        ${ deckManager.buttons() }
+        ${ deckManager.buildUpdateForm() }
+        ${ deckManager.buildNoteSections() }
 
-      <${SectionBackRefs} state=${state} backrefs=${ idea.backrefs } backnotes=${ idea.backnotes } deckId=${ idea.id }/>
-      <${SectionSearchResultsBackref} backrefs=${ searchResults }/>
-      <${GraphSection} heading=${ graphTitle } okToShowGraph=${okToShowGraph} id=${ ideaId } depth=${ 2 } />
+        <${SectionBackRefs} state=${state} backrefs=${ idea.backrefs } backnotes=${ idea.backnotes } deckId=${ idea.id }/>
+        <${SectionSearchResultsBackref} backrefs=${ searchResults }/>
+        <${GraphSection} heading=${ graphTitle } okToShowGraph=${okToShowGraph} id=${ ideaId } depth=${ 2 } />
     </article>`;
 }
 
@@ -136,20 +136,20 @@ function UpdateIdeaForm({ deck, hideFormFn }) {
 
     return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>
-      <label for="title">Title:</label>
-      <br/>
-      <${CivilInput} id="title"
-                     value=${ title }
-                     onInput=${ handleChangeEvent } />
-      <br/>
-      <label for="graph-terminator">Graph Terminator:</label>
-      <input type="checkbox"
-             id="graph-terminator"
-             name="graph-terminator"
-             onInput=${ handleCheckbox }
-             checked=${graphTerminator}/>
-      <br/>
-      <input type="submit" value="Update Idea"/>
+        <label for="title">Title:</label>
+        <br/>
+        <${CivilInput} id="title"
+                       value=${ title }
+                       onInput=${ handleChangeEvent } />
+        <br/>
+        <label for="graph-terminator">Graph Terminator:</label>
+        <input type="checkbox"
+               id="graph-terminator"
+               name="graph-terminator"
+               onInput=${ handleCheckbox }
+               checked=${graphTerminator}/>
+        <br/>
+        <input type="submit" value="Update Idea"/>
     </form>`;
 }
 

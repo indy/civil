@@ -48,12 +48,12 @@ function People() {
 
     return html`
     <article>
-      <h1 class="ui">${capitalise(resource)}</h1>
-      <${CompactedListSection} label='Uncategorised' list=${uncategorised} resource=${resource} expanded hideEmpty/>
-      <${CompactedListSection} label='Ancient' list=${ancient} resource=${resource} expanded/>
-      <${CompactedListSection} label='Medieval' list=${medieval} resource=${resource} expanded/>
-      <${CompactedListSection} label='Modern' list=${modern} resource=${resource} expanded/>
-      <${CompactedListSection} label='Contemporary' list=${contemporary} resource=${resource} expanded/>
+        <h1 class="ui">${capitalise(resource)}</h1>
+        <${CompactedListSection} label='Uncategorised' list=${uncategorised} resource=${resource} expanded hideEmpty/>
+        <${CompactedListSection} label='Ancient' list=${ancient} resource=${resource} expanded/>
+        <${CompactedListSection} label='Medieval' list=${medieval} resource=${resource} expanded/>
+        <${CompactedListSection} label='Modern' list=${modern} resource=${resource} expanded/>
+        <${CompactedListSection} label='Contemporary' list=${contemporary} resource=${resource} expanded/>
     </article>`;
 }
 
@@ -125,23 +125,24 @@ function Person(props) {
 
     return html`
     <article>
-      ${ deckManager.title }
-      ${ deckManager.buttons() }
-      ${ deckManager.buildUpdateForm() }
+        ${ deckManager.title }
+        ${ deckManager.buttons() }
+        ${ deckManager.buildUpdateForm() }
 
-      ${ !hasKnownLifespan && html`<${LifespanForm} name=${ person.name } onLifespanGiven=${ onLifespan }/>` }
+        ${ !hasKnownLifespan && html`<${LifespanForm} name=${ person.name } onLifespanGiven=${ onLifespan }/>` }
 
-      ${ deckManager.buildNoteSections() }
+        ${ deckManager.buildNoteSections() }
 
-      <${SectionBackRefs} state=${state} backrefs=${ person.backrefs } backnotes=${ person.backnotes } deckId=${ person.id }/>
-      <${SectionSearchResultsBackref} backrefs=${ searchResults }/>
-      ${ hasKnownLifespan && html`<${ListDeckPoints} deckPoints=${ person.all_points_during_life }
-    deckManager=${ deckManager }
-    dispatch=${ dispatch }
-    holderId=${ person.id }
-    showAddPointForm=${ state.showAddPointForm }
-    holderName=${ person.name }/>`}
-      <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${personId} depth=${2}/>
+        <${SectionBackRefs} state=${state} backrefs=${ person.backrefs } backnotes=${ person.backnotes } deckId=${ person.id }/>
+        <${SectionSearchResultsBackref} backrefs=${ searchResults }/>
+        ${ hasKnownLifespan && html`
+            <${ListDeckPoints} deckPoints=${ person.all_points_during_life }
+                               deckManager=${ deckManager }
+                               dispatch=${ dispatch }
+                               holderId=${ person.id }
+                               showAddPointForm=${ state.showAddPointForm }
+                               holderName=${ person.name }/>`}
+        <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${personId} depth=${2}/>
     </article>`;
 }
 
@@ -238,14 +239,14 @@ function UpdatePersonForm({ deck, hideFormFn }) {
 
     return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>
-      <label for="name">Name:</label>
-      <br/>
-      <${CivilInput} id="name"
-                     value=${ localState.name }
-                     autoComplete="off"
-                     onInput=${ handleChangeEvent } />
-      <br/>
-      <input type="submit" value="Update Person"/>
+        <label for="name">Name:</label>
+        <br/>
+        <${CivilInput} id="name"
+                       value=${ localState.name }
+                       autoComplete="off"
+                       onInput=${ handleChangeEvent } />
+        <br/>
+        <input type="submit" value="Update Person"/>
     </form>`;
 }
 
@@ -263,22 +264,25 @@ function PersonDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
     let ageText = deckPoint.age > 0 ? `${deckPoint.age}` : "";
 
     if (deckPoint.deck_id === holderId) {
-        item = html`<li class='relevent-deckpoint'>
-                  <span class="deckpoint-age">${ ageText }</span>
-                  <span onClick=${onClicked}>${ expanded ? svgCaretDown() : hasNotes ? svgCaretRight() : svgCaretRightEmpty() }</span>
-                  ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.date_textual }
-                  ${ expanded && html`<div class="point-notes">
-            ${ noteManager }
-        </div>`}
-                </li>`;
+        item = html`
+        <li class='relevent-deckpoint'>
+            <span class="deckpoint-age">${ ageText }</span>
+            <span onClick=${onClicked}>${ expanded ? svgCaretDown() : hasNotes ? svgCaretRight() : svgCaretRightEmpty() }</span>
+            ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.date_textual }
+            ${ expanded && html`
+                <div class="point-notes">
+                    ${ noteManager }
+                </div>`}
+        </li>`;
     } else {
-        item = html`<li class='deckpoint'>
-                  <${Link} href='/${deckPoint.deck_resource}/${deckPoint.deck_id}' >
-                    <span class="deckpoint-age">${ ageText }</span>
-                    ${ svgBlank() }
-                    ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.date_textual }
-                  </${Link}>
-                </li>`;
+        item = html`
+        <li class='deckpoint'>
+            <${Link} href='/${deckPoint.deck_resource}/${deckPoint.deck_id}' >
+                <span class="deckpoint-age">${ ageText }</span>
+                ${ svgBlank() }
+                ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.date_textual }
+            </${Link}>
+        </li>`;
     }
 
     return item;
@@ -330,10 +334,10 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAdd
             title: 'Died'
         };
         return html`
-      <${PointForm} pointKind="point_end"
-                    point=${ point }
-                    onSubmit=${ onAddDeathPoint }
-                    submitMessage="Create Death Point"/>`;
+        <${PointForm} pointKind="point_end"
+                      point=${ point }
+                      onSubmit=${ onAddDeathPoint }
+                      submitMessage="Create Death Point"/>`;
     }
 
 
@@ -355,50 +359,51 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAdd
         }
     }
 
-    const dps = arr.map(dp => html`<${PersonDeckPoint}
-                                 key=${ dp.id}
-                                 noteManager=${ deckManager.noteManagerForDeckPoint(dp) }
-                                 hasNotes=${ deckManager.pointHasNotes(dp) }
-                                 holderId=${ holderId }
-                                 deckPoint=${ dp }/>`);
+    const dps = arr.map(dp => html`
+    <${PersonDeckPoint} key=${ dp.id}
+                        noteManager=${ deckManager.noteManagerForDeckPoint(dp) }
+                        hasNotes=${ deckManager.pointHasNotes(dp) }
+                        holderId=${ holderId }
+                        deckPoint=${ dp }/>`);
 
     const formSidebarText = showAddPointForm ? "Hide Form" : `Add Point for ${ holderName }`;
     const hasDied = deckPoints.some(dp => dp.deck_id === holderId && dp.kind === 'PointEnd');
 
     return html`
     <${RollableSection} heading='Points during the life of ${ holderName }'>
-      <div class="left-margin">
-        ${ !hasDied && html`<div class="left-margin-entry clickable" onClick=${ onShowDeathFormClicked }>
-        <span class="left-margin-icon-label">Add Died Point</span>
-        ${ svgPointAdd() }
-    </div>`}
-        <${WhenVerbose}>
-          <div class="left-margin-entry clickable" onClick=${ onOnlyThisPersonClicked }>
-            <span class="left-margin-icon-label">Only ${ holderName }</span>
-            ${ onlyThisPerson ? svgTickedCheckBox() : svgUntickedCheckBox() }
-          </div>
-          ${ !onlyThisPerson && html`<div class="left-margin-entry clickable" onClick=${ onShowOtherClicked }>
-        <span class="left-margin-icon-label">Show Other Birth/Deaths</span>
-        ${ showBirthsDeaths ? svgTickedCheckBox() : svgUntickedCheckBox() }
-    </div>`}
-        </${WhenVerbose}>
-      </div>
-
-      ${ showDeathForm && deathForm() }
-      <ul class="unstyled-list hug-left">
-        ${ dps }
-      </ul>
-      <${WhenWritable}>
-        <${WhenVerbose}>
-          <div class="left-margin">
-            <div class="left-margin-entry clickable" onClick=${ onAddPointClicked }>
-              <span class="left-margin-icon-label">${ formSidebarText }</span>
-              ${ showAddPointForm ? svgX() : svgPointAdd() }
-            </div>
-          </div>
-        </${WhenVerbose}>
-        ${ showAddPointForm && deckManager.buildPointForm(onPointCreated) }
-      </${WhenWritable}>
+        <div class="left-margin">
+            ${ !hasDied && html`
+                <div class="left-margin-entry clickable" onClick=${ onShowDeathFormClicked }>
+                    <span class="left-margin-icon-label">Add Died Point</span>
+                    ${ svgPointAdd() }
+                </div>`}
+            <${WhenVerbose}>
+                <div class="left-margin-entry clickable" onClick=${ onOnlyThisPersonClicked }>
+                    <span class="left-margin-icon-label">Only ${ holderName }</span>
+                    ${ onlyThisPerson ? svgTickedCheckBox() : svgUntickedCheckBox() }
+                </div>
+                ${ !onlyThisPerson && html`
+                    <div class="left-margin-entry clickable" onClick=${ onShowOtherClicked }>
+                        <span class="left-margin-icon-label">Show Other Birth/Deaths</span>
+                        ${ showBirthsDeaths ? svgTickedCheckBox() : svgUntickedCheckBox() }
+                    </div>`}
+            </${WhenVerbose}>
+        </div>
+        ${ showDeathForm && deathForm() }
+        <ul class="unstyled-list hug-left">
+            ${ dps }
+        </ul>
+        <${WhenWritable}>
+            <${WhenVerbose}>
+                <div class="left-margin">
+                    <div class="left-margin-entry clickable" onClick=${ onAddPointClicked }>
+                        <span class="left-margin-icon-label">${ formSidebarText }</span>
+                        ${ showAddPointForm ? svgX() : svgPointAdd() }
+                    </div>
+                </div>
+            </${WhenVerbose}>
+            ${ showAddPointForm && deckManager.buildPointForm(onPointCreated) }
+        </${WhenWritable}>
     </${RollableSection}>`;
 }
 

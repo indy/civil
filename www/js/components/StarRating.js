@@ -6,9 +6,10 @@ function StarRating({ rating }) {
         return html``;
     }
 
-    return html`<div class="left-margin left-margin-list-entry">
-                <${StarRatingPartial} rating=${rating}/>
-              </div>`;
+    return html`
+    <div class="left-margin left-margin-list-entry">
+        <${StarRatingPartial} rating=${rating}/>
+    </div>`;
 }
 
 function StarRatingPartial({ rating }) {

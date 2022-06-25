@@ -6,14 +6,14 @@ export default function CivilTextArea({id, value, elementRef, elementClass, onIn
     const [state, dispatch] = useStateValue();
 
     return html`
-      <textarea id=${id}
-                type="text"
-                name=${id}
-                value=${ value }
-                ref=${elementRef}
-                class=${elementClass}
-                onFocus=${ obtainKeyboard(dispatch) }
-                onBlur=${ relinquishKeyboard(dispatch) }
-                onInput=${ onInput } />
+    <textarea id=${id}
+              type="text"
+              name=${id}
+              value=${ value }
+              ref=${elementRef}
+              class=${elementClass}
+              onFocus=${ obtainKeyboard(dispatch) }
+              onBlur=${ relinquishKeyboard(dispatch) }
+              onInput=${ onInput } />
     `;
 }

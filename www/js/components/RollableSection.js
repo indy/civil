@@ -14,15 +14,15 @@ export default function RollableSection({ heading, children, initiallyRolledUp }
 
     return html`
     <section class=${classState}>
-      <div>
-        <div class="left-margin">
-          <div class="left-margin-entry clickable" onClick=${ onRollClicked }>
-            ${ icon }
-          </div>
+        <div>
+            <div class="left-margin">
+                <div class="left-margin-entry clickable" onClick=${ onRollClicked }>
+                    ${ icon }
+                </div>
+            </div>
+            <h2 class="clickable ui" onClick=${ onRollClicked }>${ heading }</h2>
+            <hr class="big-section"/>
+            ${ !isRolledUp && children }
         </div>
-        <h2 class="clickable ui" onClick=${ onRollClicked }>${ heading }</h2>
-        <hr class="big-section"/>
-        ${ !isRolledUp && children }
-      </div>
     </section>`;
 }

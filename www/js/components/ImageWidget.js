@@ -118,23 +118,23 @@ export default function ImageWidget(props) {
         const dragdropMessage = h("div", { class: "image-widget-hover-message" }, "Drop Images Here");
 
         return html`
-                   <div>
-                       <div class="left-margin">
-                           <div class="left-margin-entry" onClick=${ onIconClicked }>
-                               ${ svgX() }
-                           </div>
-                       </div>
-                       <div class="${containerClass}" ref=${dragArea}>
-                           ${ hovering ? dragdropMessage : recent }
-                       </div>
-                   </div>`;
+        <div>
+            <div class="left-margin">
+                <div class="left-margin-entry" onClick=${ onIconClicked }>
+                    ${ svgX() }
+                </div>
+            </div>
+            <div class="${containerClass}" ref=${dragArea}>
+                ${ hovering ? dragdropMessage : recent }
+            </div>
+        </div>`;
     }
 }
 
 function ImageWidgetItem({ filename, imageDirectory }) {
     return html`
-               <div class="image-widget-item">
-                   <img class="image-widget-img" src="/u/${imageDirectory}/${filename}"/>
-                   <div class="image-widget-title">@img(${filename})</div>
-               </div>`;
+    <div class="image-widget-item">
+        <img class="image-widget-img" src="/u/${imageDirectory}/${filename}"/>
+        <div class="image-widget-title">@img(${filename})</div>
+    </div>`;
 }

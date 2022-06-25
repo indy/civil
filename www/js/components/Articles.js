@@ -23,10 +23,10 @@ function Articles() {
 
     return html`
     <article>
-      <h1 class="ui">${capitalise(resource)}</h1>
-      <${RatedListSection} label='Recent' list=${articles.recent} resource=${resource} expanded/>
-      <${RatedListSection} label='Rated' list=${articles.rated} resource=${resource}/>
-      <${CompactedListSection} label='Orphans' list=${articles.orphans} resource=${resource} hideEmpty/>
+        <h1 class="ui">${capitalise(resource)}</h1>
+        <${RatedListSection} label='Recent' list=${articles.recent} resource=${resource} expanded/>
+        <${RatedListSection} label='Rated' list=${articles.rated} resource=${resource}/>
+        <${CompactedListSection} label='Orphans' list=${articles.orphans} resource=${resource} hideEmpty/>
     </article>`;
 }
 
@@ -56,28 +56,28 @@ function Article(props) {
 
     return html`
     <article>
-      <div>
-        <div class="left-margin">
-          ${ article.author && leftMarginHeading(article.author) }
-          ${ article.source && leftMarginHeadingNoWrap(asUrl(article.source)) }
-          ${ article.published_date && leftMarginHeading(`Published: ${ formattedDate(article.published_date)}`) }
-          ${ article.created_at && leftMarginHeading(`Added: ${ formattedDate(article.created_at) }`) }
-          <${StarRatingPartial} rating=${article.rating}/>
+        <div>
+            <div class="left-margin">
+                ${ article.author && leftMarginHeading(article.author) }
+                ${ article.source && leftMarginHeadingNoWrap(asUrl(article.source)) }
+                ${ article.published_date && leftMarginHeading(`Published: ${ formattedDate(article.published_date)}`) }
+                ${ article.created_at && leftMarginHeading(`Added: ${ formattedDate(article.created_at) }`) }
+                <${StarRatingPartial} rating=${article.rating}/>
+            </div>
+            ${ deckManager.title }
         </div>
-        ${ deckManager.title }
-      </div>
-      ${ deckManager.buttons() }
-      ${ deckManager.buildUpdateForm() }
+        ${ deckManager.buttons() }
+        ${ deckManager.buildUpdateForm() }
 
-      <div class="top-scribble">${ article.short_description }</div>
+        <div class="top-scribble">${ article.short_description }</div>
 
-      ${ deckManager.buildNoteSections() }
+        ${ deckManager.buildNoteSections() }
 
-      <${SectionBackRefs} state=${state}
-                          backrefs=${ article.backrefs }
-                          backnotes=${ article.backnotes }
-                          deckId=${ article.id }/>
-      <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${ articleId } depth=${ 2 }/>
+        <${SectionBackRefs} state=${state}
+                            backrefs=${ article.backrefs }
+                            backnotes=${ article.backnotes }
+                            deckId=${ article.id }/>
+        <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${ articleId } depth=${ 2 }/>
     </article>`;
 }
 
@@ -167,46 +167,46 @@ function UpdateArticleForm({ deck, hideFormFn }) {
 
     return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>
-      <label for="title">Title:</label>
-      <br/>
-      <${CivilInput} id="title"
-                     value=${ title }
-                     onInput=${ handleChangeEvent } />
-      <br/>
-      <label for="source">Source:</label>
-      <br/>
-      <${CivilInput} id="source"
-                     value=${ source }
-                     onInput=${ handleChangeEvent } />
-      <br/>
-      <label for="author">Author:</label>
-      <br/>
-      <${CivilInput} id="author"
-                     value=${ author }
-                     onInput=${ handleChangeEvent } />
-      <br/>
-      <label for="published_date">Published Date:</label>
-      <br/>
-      <${CivilInput} id="published_date"
-                     value=${ publishedDate }
-                     onInput=${ handleChangeEvent } />
-      <br/>
-      <label for="short-description">Short Description:</label>
-      <br/>
-      <${CivilInput} id="short-description"
-                     value=${ shortDescription }
-                     onInput=${ handleChangeEvent } />
-      <br/>
-      <label for="rating">Rating (between 0 and 5):</label>
-      <input id="rating"
-             type="number"
-             name="rating"
-             value=${ rating }
-             min="0"
-             max="5"
-             onInput=${ handleChangeEvent } />
-      <br/>
-      <input id="article-submit" type="submit" value="Update Article"/>
+        <label for="title">Title:</label>
+        <br/>
+        <${CivilInput} id="title"
+                       value=${ title }
+                       onInput=${ handleChangeEvent } />
+        <br/>
+        <label for="source">Source:</label>
+        <br/>
+        <${CivilInput} id="source"
+                       value=${ source }
+                       onInput=${ handleChangeEvent } />
+        <br/>
+        <label for="author">Author:</label>
+        <br/>
+        <${CivilInput} id="author"
+                       value=${ author }
+                       onInput=${ handleChangeEvent } />
+        <br/>
+        <label for="published_date">Published Date:</label>
+        <br/>
+        <${CivilInput} id="published_date"
+                       value=${ publishedDate }
+                       onInput=${ handleChangeEvent } />
+        <br/>
+        <label for="short-description">Short Description:</label>
+        <br/>
+        <${CivilInput} id="short-description"
+                       value=${ shortDescription }
+                       onInput=${ handleChangeEvent } />
+        <br/>
+        <label for="rating">Rating (between 0 and 5):</label>
+        <input id="rating"
+               type="number"
+               name="rating"
+               value=${ rating }
+               min="0"
+               max="5"
+               onInput=${ handleChangeEvent } />
+        <br/>
+        <input id="article-submit" type="submit" value="Update Article"/>
     </form>`;
 }
 

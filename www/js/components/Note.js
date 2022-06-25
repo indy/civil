@@ -204,14 +204,12 @@ export default function Note(props) {
     };
 
     function buildEditableContent() {
-        let res = html`
-      <div class="civil-form">
-        <${CivilTextArea} id="content"
-                          value=${ local.note.content }
-                          onInput=${ handleChangeEvent }/>
-      </div>`;
-
-        return res;
+        return html`
+        <div class="civil-form">
+            <${CivilTextArea} id="content"
+                              value=${ local.note.content }
+                              onInput=${ handleChangeEvent }/>
+        </div>`;
     };
 
     function buildAddFlashCardUI() {
@@ -241,15 +239,15 @@ export default function Note(props) {
         }
 
         return html`
-      <div class="block-width">
-        <label>Flash Card Prompt</label>
-        <div>
-          <${CivilTextArea} value=${ flashCardPrompt }
-                            onInput=${ onInput }/>
-        </div>
-        <button onClick=${ onCancel }>Cancel</button>
-        <button onClick=${ onSave }>Save Flash Card Prompt</button>
-      </div>`;
+        <div class="block-width">
+            <label>Flash Card Prompt</label>
+            <div>
+                <${CivilTextArea} value=${ flashCardPrompt }
+                                  onInput=${ onInput }/>
+            </div>
+            <button onClick=${ onCancel }>Cancel</button>
+            <button onClick=${ onSave }>Save Flash Card Prompt</button>
+        </div>`;
     }
 
     function buildAddDecksUI() {
@@ -290,14 +288,12 @@ export default function Note(props) {
         };
 
         return html`
-      <div class="block-width">
-        <label>Connections:</label>
-        <${ CivilSelect }
-          parentDeckId=${ props.parentDeck.id }
-          chosen=${ local.decks }
-          onFinish=${ referenceChanges }
-        />
-      </div>`;
+        <div class="block-width">
+            <label>Connections:</label>
+            <${ CivilSelect } parentDeckId=${ props.parentDeck.id }
+                              chosen=${ local.decks }
+                              onFinish=${ referenceChanges }/>
+        </div>`;
     };
 
     function buildMainButtons() {
@@ -317,19 +313,18 @@ export default function Note(props) {
         }
 
         return html`
-      <div class="block-width">
-        ${ !local.isEditingMarkup && html`<button onClick=${ toggleAddDeckReferencesUI }>References...</button>` }
-        ${ local.isEditingMarkup && html`<button onClick=${ onCancelClicked }>Cancel</button>`}
+        <div class="block-width">
+            ${ !local.isEditingMarkup && html`<button onClick=${ toggleAddDeckReferencesUI }>References...</button>` }
+            ${ local.isEditingMarkup && html`<button onClick=${ onCancelClicked }>Cancel</button>`}
 
-        ${ local.isEditingMarkup && html`<button disabled=${!hasNoteBeenModified(local)} onClick=${ onSaveEditsClicked }>Save Edits</button>`}
-        ${ !local.isEditingMarkup && html`<button onClick=${ onEditClicked }>Edit...</button>`}
+            ${ local.isEditingMarkup && html`<button disabled=${!hasNoteBeenModified(local)} onClick=${ onSaveEditsClicked }>Save Edits</button>`}
+            ${ !local.isEditingMarkup && html`<button onClick=${ onEditClicked }>Edit...</button>`}
 
-        ${ local.isEditingMarkup && html`<${DeleteConfirmation} onDelete=${ confirmedDeleteClicked }/>`}
+            ${ local.isEditingMarkup && html`<${DeleteConfirmation} onDelete=${ confirmedDeleteClicked }/>`}
 
-        ${ local.isEditingMarkup && html`<${ImageWidget}/>` }
-        ${ !local.isEditingMarkup && html`<button class="right-side" onClick=${ toggleAddFlashCardUI }>Add Flash Card...</button>` }
-      </div>
-`;
+            ${ local.isEditingMarkup && html`<${ImageWidget}/>` }
+            ${ !local.isEditingMarkup && html`<button class="right-side" onClick=${ toggleAddFlashCardUI }>Add Flash Card...</button>` }
+        </div>`;
     }
 
     function flashCardDeleted() {
@@ -338,17 +333,18 @@ export default function Note(props) {
 
     return html`
     <div class="note">
-      ${  local.isEditingMarkup && buildEditableContent() }
-      ${ !local.isEditingMarkup && buildLeftMarginContent(props.note, localDispatch)}
-      ${  local.flashcardToShow && html`<${FlashCard} flashcard=${local.flashcardToShow} onDelete=${flashCardDeleted}/>`}
-      ${ !local.isEditingMarkup && html`<div class="note-content" onClick=${onNoteClicked}>
-        ${ buildMarkup(local.note.content, state.imageDirectory) }
-    </div>`}
-      ${ local.showModButtons && local.addDeckReferencesUI && buildAddDecksUI() }
-      ${ local.showModButtons && local.addFlashCardUI && buildAddFlashCardUI() }
-      ${ local.showModButtons && !local.addDeckReferencesUI && !local.addFlashCardUI && buildMainButtons() }
-    </div>
-`;
+        ${  local.isEditingMarkup && buildEditableContent() }
+        ${ !local.isEditingMarkup && buildLeftMarginContent(props.note, localDispatch)}
+        ${  local.flashcardToShow && html`
+            <${FlashCard} flashcard=${local.flashcardToShow} onDelete=${flashCardDeleted}/>`}
+        ${ !local.isEditingMarkup && html`
+            <div class="note-content" onClick=${onNoteClicked}>
+                ${ buildMarkup(local.note.content, state.imageDirectory) }
+            </div>`}
+        ${ local.showModButtons && local.addDeckReferencesUI && buildAddDecksUI() }
+        ${ local.showModButtons && local.addFlashCardUI && buildAddFlashCardUI() }
+        ${ local.showModButtons && !local.addDeckReferencesUI && !local.addFlashCardUI && buildMainButtons() }
+    </div>`;
 }
 
 function onReallyDelete(id, onDelete) {
@@ -371,11 +367,12 @@ function buildLeftMarginContent(note, localDispatch) {
     if (!decks && !flashcards) {
         return html``;
     } else {
-        return html`<div class="left-margin">
-                  ${flashcards}
-                  ${ decks && flashcards && html`<div class="spacer"></div>`}
-                  ${decks}
-                </div>`;
+        return html`
+        <div class="left-margin">
+            ${flashcards}
+            ${ decks && flashcards && html`<div class="spacer"></div>`}
+            ${decks}
+        </div>`;
     }
 }
 
@@ -383,14 +380,16 @@ function buildNoteReferences(decks) {
     const entries = decks.map(ref => {
         const { id, resource, ref_kind, name, annotation } = ref;
         const href = `/${resource}/${id}`;
+        // isg todo: how does the code after the annotation check work? the html isn't wrapped in a single div, there are 3 top-level divs????
         return html`
-      <div class="left-margin-entry" key=${ id }>
-        <span class="ref-kind">(${ ref_kind })</span>
-        <${Link} class="ref pigment-${ resource }" href=${ href }>${ name }</${Link}>
-        ${annotation && html`<div class="ref-clearer"/>
-            <div class="ref-scribble pigment-fg-${ resource }">${ annotation }</div>
-            <div class="ref-clearer"/>`}
-      </div>`;
+        <div class="left-margin-entry" key=${ id }>
+            <span class="ref-kind">(${ ref_kind })</span>
+            <${Link} class="ref pigment-${ resource }" href=${ href }>${ name }</${Link}>
+            ${annotation && html`
+                <div class="ref-clearer"/>
+                <div class="ref-scribble pigment-fg-${ resource }">${ annotation }</div>
+                <div class="ref-clearer"/>`}
+        </div>`;
     });
 
     return entries;
@@ -407,11 +406,11 @@ function buildFlashcardIndicator(flashcards, localDispatch) {
         }
 
         return html`
-      <div class="left-margin-entry" key=${ id }>
-        <span class="inlined-blocked" onClick=${ onFlashcardIconClicked }>
-          ${svgFlashCard()}
-        </span>
-      </div>`;
+        <div class="left-margin-entry" key=${ id }>
+            <span class="inlined-blocked" onClick=${ onFlashcardIconClicked }>
+                ${svgFlashCard()}
+            </span>
+        </div>`;
     });
 
     return entries;

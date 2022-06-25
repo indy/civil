@@ -72,57 +72,57 @@ function Login({ loginCallback}) {
 
     return html`
     <section>
-      <h1 class="login-title ui">Login</h1>
-      <form class="login-form" onSubmit=${ handleLoginSubmit }>
-        <label class="login-label" for="login-email">Email:</label>
-        <input class="login-input" id="login-email"
-               type="text"
-               name="login-email"
-               value=${ state['login-email'] }
-               onInput=${ handleChangeEvent } />
-        <label class="login-label" for="login-password">Password:</label>
-        <input class="login-input" id="login-password"
-               type="password"
-               name="login-password"
-               value=${ state['login-password'] }
-               onInput=${ handleChangeEvent } />
-        <input class="login-button" type="submit" value="Login"/>
-        <div class="login-error-message">${state.errorMessage}</div>
-      </form>
-      <h1 class="ui">Register New User</h1>
-      <form class="login-form" onSubmit=${ handleRegisterSubmit }>
-        <label class="login-label" for="register-magic-word">Magic Word:</label>
-        <input class="login-input" id="register-magic-word"
-               type="text"
-               name="register-magic-word"
-               value=${ state['register-magic-word'] }
-               onInput=${ handleChangeEvent } />
-        <label class="login-label" for="register-username">Username:</label>
-        <input class="login-input" id="register-username"
-               type="text"
-               name="register-username"
-               value=${ state['register-username'] }
-               onInput=${ handleChangeEvent } />
-        <label class="login-label" for="register-email">Email:</label>
-        <input class="login-input" id="register-email"
-               type="text"
-               name="register-email"
-               value=${ state['register-email'] }
-               onInput=${ handleChangeEvent } />
-        <label class="login-label" for="register-password">Password:</label>
-        <input class="login-input" id="register-password"
-               type="password"
-               name="register-password"
-               value=${ state['register-password'] }
-               onInput=${ handleChangeEvent } />
-        <label class="login-label" for="register-password-2">Confirm Password:</label>
-        <input class="login-input" id="register-password-2"
-               type="password"
-               name="register-password-2"
-               value=${ state['register-password-2'] }
-               onInput=${ handleChangeEvent } />
-        <input class="login-button" type="submit" value="Register" disabled=${!okToSendRegistration()}/>
-      </form>
+        <h1 class="login-title ui">Login</h1>
+        <form class="login-form" onSubmit=${ handleLoginSubmit }>
+            <label class="login-label" for="login-email">Email:</label>
+            <input class="login-input" id="login-email"
+                   type="text"
+                   name="login-email"
+                   value=${ state['login-email'] }
+                   onInput=${ handleChangeEvent } />
+            <label class="login-label" for="login-password">Password:</label>
+            <input class="login-input" id="login-password"
+                   type="password"
+                   name="login-password"
+                   value=${ state['login-password'] }
+                   onInput=${ handleChangeEvent } />
+            <input class="login-button" type="submit" value="Login"/>
+            <div class="login-error-message">${state.errorMessage}</div>
+        </form>
+        <h1 class="ui">Register New User</h1>
+        <form class="login-form" onSubmit=${ handleRegisterSubmit }>
+            <label class="login-label" for="register-magic-word">Magic Word:</label>
+            <input class="login-input" id="register-magic-word"
+                   type="text"
+                   name="register-magic-word"
+                   value=${ state['register-magic-word'] }
+                   onInput=${ handleChangeEvent } />
+            <label class="login-label" for="register-username">Username:</label>
+            <input class="login-input" id="register-username"
+                   type="text"
+                   name="register-username"
+                   value=${ state['register-username'] }
+                   onInput=${ handleChangeEvent } />
+            <label class="login-label" for="register-email">Email:</label>
+            <input class="login-input" id="register-email"
+                   type="text"
+                   name="register-email"
+                   value=${ state['register-email'] }
+                   onInput=${ handleChangeEvent } />
+            <label class="login-label" for="register-password">Password:</label>
+            <input class="login-input" id="register-password"
+                   type="password"
+                   name="register-password"
+                   value=${ state['register-password'] }
+                   onInput=${ handleChangeEvent } />
+            <label class="login-label" for="register-password-2">Confirm Password:</label>
+            <input class="login-input" id="register-password-2"
+                   type="password"
+                   name="register-password-2"
+                   value=${ state['register-password-2'] }
+                   onInput=${ handleChangeEvent } />
+            <input class="login-button" type="submit" value="Register" disabled=${!okToSendRegistration()}/>
+        </form>
     </section>`;
 }
 
@@ -143,9 +143,9 @@ function Logout() {
 
     return html`
     <section>
-      <form onSubmit=${ handleLogout }>
-        <input type="submit" value="Logout"/>
-      </form>
+        <form onSubmit=${ handleLogout }>
+            <input type="submit" value="Logout"/>
+        </form>
     </section>
 `;
 }

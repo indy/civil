@@ -25,8 +25,8 @@ function Timelines() {
 
     return html`
     <article>
-      <h1 class="ui">${capitalise(resource)}</h1>
-      <${BasicListSection} list=${state.listing.timelines} resource=${resource}/>
+        <h1 class="ui">${capitalise(resource)}</h1>
+        <${BasicListSection} list=${state.listing.timelines} resource=${resource}/>
     </article>`;
 }
 
@@ -53,21 +53,18 @@ function Timeline(props) {
 
     return html`
     <article>
-      ${ deckManager.title }
-      ${ deckManager.buttons() }
-      ${ deckManager.buildUpdateForm() }
-      ${ deckManager.buildNoteSections() }
-
-      <${SectionBackRefs} state=${state} backrefs=${ timeline.backrefs } backnotes=${ timeline.backnotes } deckId=${ timeline.id }/>
-
-      <${ListPoints} points=${ timeline.points }
-                     deckManager=${ deckManager }
-                     dispatch=${ dispatch }
-                     showAddPointForm=${ state.showAddPointForm }
-                     holderId=${ timeline.id }
-                     holderName=${ timeline.title }/>
-
-      <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${timelineId} depth=${2}/>
+        ${ deckManager.title }
+        ${ deckManager.buttons() }
+        ${ deckManager.buildUpdateForm() }
+        ${ deckManager.buildNoteSections() }
+        <${SectionBackRefs} state=${state} backrefs=${ timeline.backrefs } backnotes=${ timeline.backnotes } deckId=${ timeline.id }/>
+        <${ListPoints} points=${ timeline.points }
+                       deckManager=${ deckManager }
+                       dispatch=${ dispatch }
+                       showAddPointForm=${ state.showAddPointForm }
+                       holderId=${ timeline.id }
+                       holderName=${ timeline.title }/>
+        <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${timelineId} depth=${2}/>
     </article>`;
 }
 
@@ -133,14 +130,14 @@ function UpdateTimelineForm({ deck, hideFormFn }) {
 
     return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>
-      <label for="title">Title:</label>
-      <br/>
-      <${CivilInput} id="title"
-                     value=${ localState.title }
-                     autoComplete="off"
-                     onInput=${ handleChangeEvent } />
-      <br/>
-      <input type="submit" value="Update Timeline"/>
+        <label for="title">Title:</label>
+        <br/>
+        <${CivilInput} id="title"
+                       value=${ localState.title }
+                       autoComplete="off"
+                       onInput=${ handleChangeEvent } />
+        <br/>
+        <input type="submit" value="Update Timeline"/>
     </form>`;
 }
 
@@ -152,13 +149,15 @@ function TimelineDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
         setExpanded(!expanded);
     }
 
-    return html`<li class='relevent-deckpoint'>
-                <span onClick=${onClicked}>${ expanded ? svgCaretDown() : hasNotes ? svgCaretRight() : svgCaretRightEmpty() }</span>
-                ${ deckPoint.title } ${ deckPoint.date_textual }
-                ${ expanded && html`<div class="point-notes">
-        ${ noteManager }
-    </div>`}
-              </li>`;
+    return html`
+    <li class='relevent-deckpoint'>
+        <span onClick=${onClicked}>${ expanded ? svgCaretDown() : hasNotes ? svgCaretRight() : svgCaretRightEmpty() }</span>
+        ${ deckPoint.title } ${ deckPoint.date_textual }
+        ${ expanded && html`
+            <div class="point-notes">
+                ${ noteManager }
+            </div>`}
+    </li>`;
 }
 
 function ListPoints({ points, deckManager, holderId, holderName, showAddPointForm, dispatch }) {
@@ -173,32 +172,31 @@ function ListPoints({ points, deckManager, holderId, holderName, showAddPointFor
     }
 
     let arr = points || [];
-    let dps = arr.map(dp => html`<${TimelineDeckPoint}
-                                 key=${ dp.id}
-                                 noteManager=${ deckManager.noteManagerForDeckPoint(dp) }
-                                 hasNotes=${ deckManager.pointHasNotes(dp) }
-                                 holderId=${ holderId }
-                                 deckPoint=${ dp }/>`);
+    let dps = arr.map(dp => html`
+    <${TimelineDeckPoint} key=${ dp.id}
+                          noteManager=${ deckManager.noteManagerForDeckPoint(dp) }
+                          hasNotes=${ deckManager.pointHasNotes(dp) }
+                          holderId=${ holderId }
+                          deckPoint=${ dp }/>`);
 
     let formSidebarText = showAddPointForm ? "Hide Form" : `Add Point for ${ holderName }`;
 
     return html`
     <${RollableSection} heading='Timeline'>
-      <ul class="unstyled-list hug-left">
-        ${ dps }
-      </ul>
-
-      <${WhenWritable}>
-        <${WhenVerbose}>
-          <div class="left-margin">
-            <div class="left-margin-entry clickable" onClick=${ onAddPointClicked }>
-              <span class="left-margin-icon-label">${ formSidebarText }</span>
-              ${ showAddPointForm ? svgX() : svgPointAdd() }
-            </div>
-          </div>
-        </${WhenVerbose}>
-        ${ showAddPointForm && deckManager.buildPointForm(onPointCreated) }
-      </${WhenWritable}>
+        <ul class="unstyled-list hug-left">
+            ${ dps }
+        </ul>
+        <${WhenWritable}>
+            <${WhenVerbose}>
+                <div class="left-margin">
+                    <div class="left-margin-entry clickable" onClick=${ onAddPointClicked }>
+                        <span class="left-margin-icon-label">${ formSidebarText }</span>
+                        ${ showAddPointForm ? svgX() : svgPointAdd() }
+                    </div>
+                </div>
+            </${WhenVerbose}>
+            ${ showAddPointForm && deckManager.buildPointForm(onPointCreated) }
+        </${WhenWritable}>
     </${RollableSection}>`;
 }
 

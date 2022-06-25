@@ -72,13 +72,14 @@ export default function LifespanForm({ name, onLifespanGiven }) {
     case LIFESPAN_STAGE_BIRTH:
         return html`<${PointBirthForm}  pointBorn=${ pointBorn } onSubmit=${ onAddBirthPoint }/>`;
     case LIFESPAN_STAGE_IS_ALIVE:
-        return html`<div>
-                  <span>
-                    Is ${ name } still alive?
-                    <button onClick=${ onPersonIsAlive }>Yes</button>
-                    <button onClick=${ onPersonIsDead }>No</button>
-                  </span>
-                </div>`;
+        return html`
+        <div>
+            <span>
+                Is ${ name } still alive?
+                <button onClick=${ onPersonIsAlive }>Yes</button>
+                <button onClick=${ onPersonIsDead }>No</button>
+            </span>
+        </div>`;
     case LIFESPAN_STAGE_DEATH:
         return html`<${PointDeathForm}  pointDied=${ pointDied } onSubmit=${ onAddDeathPoint }/>`;
     }

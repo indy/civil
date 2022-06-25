@@ -20,9 +20,10 @@ export default function DeleteConfirmation({ onDelete }) {
         onDelete();
     }
 
-    return html`<span>
-                ${!showToggle && html`<button onClick=${ buttonClicked }>Delete...</button>`}
-                ${showToggle && html`<button onClick=${ noClicked }>No, Cancel Delete</button>`}
-                ${showToggle && html`<button onClick=${ yesClicked }>Yes, Really Delete</button>`}
-              </span>`;
+    return html`
+    <span>
+        ${!showToggle && html`<button onClick=${ buttonClicked }>Delete...</button>`}
+        ${showToggle && html`<button onClick=${ noClicked }>No, Cancel Delete</button>`}
+        ${showToggle && html`<button onClick=${ yesClicked }>Yes, Really Delete</button>`}
+    </span>`;
 }

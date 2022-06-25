@@ -5,7 +5,7 @@ export const WasmInterfaceContext = createContext();
 export const WasmInterfaceProvider = ({wasmInterface, children}) => {
     return html`
     <${WasmInterfaceContext.Provider} value=${wasmInterface}>
-      ${children}
+        ${children}
     </${WasmInterfaceContext.Provider}>`;
 };
 

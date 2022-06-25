@@ -194,22 +194,25 @@ export default function SpacedRepetition(props) {
         nextTestInfo = `The next test will be available at ${nextReviewTime} on ${nextReviewDate}`;
     }
 
-    return html`<div>
-                <h1 class="ui">Spaced Repetition</h1>
-                ${ local.mode !== MODE_POST_TEST && html`<p class="ui">${ plural(cardsToReview, 'card', 's') } to review</p>`}
-                ${ local.mode === MODE_PRE_TEST && !canTest && html`<p>${nextTestInfo}</p>`}
-                ${ local.mode === MODE_PRE_TEST && canTest && html`<button onClick=${ startTest }>
-        Start Test
-    </button>`}
-                ${ local.mode === MODE_TEST && html`<${CardTest} card=${local.cards[local.cardIndex]}
-    onRatedCard=${onRatedCard} onShowAnswer=${onShowAnswer}/>`}
-                ${ local.mode === MODE_POST_TEST && html`<p>All Done!</p>`}
-
-                ${ cardsToReview === 0 && html`<p>You have no cards to review, maybe try a practice flashcard?</p>`}
-                ${ cardsToReview === 0 && html`<button onClick=${ onPracticeClicked }>View Practice Flashcard</button>`}
-                ${ local.practiceCard && html`<${CardTest} card=${local.practiceCard} onShowAnswer=${onShowAnswer}/>`}
-
-              </div>`;
+    return html`
+    <div>
+        <h1 class="ui">Spaced Repetition</h1>
+        ${ local.mode !== MODE_POST_TEST && html`<p class="ui">${ plural(cardsToReview, 'card', 's') } to review</p>`}
+        ${ local.mode === MODE_PRE_TEST && !canTest && html`<p>${nextTestInfo}</p>`}
+        ${ local.mode === MODE_PRE_TEST && canTest && html`
+            <button onClick=${ startTest }>
+                Start Test
+            </button>`}
+        ${ local.mode === MODE_TEST && html`
+            <${CardTest} card=${local.cards[local.cardIndex]}
+                         onRatedCard=${onRatedCard}
+                         onShowAnswer=${onShowAnswer}/>`}
+        ${ local.mode === MODE_POST_TEST && html`
+            <p>All Done!</p>`}
+        ${ cardsToReview === 0 && html`<p>You have no cards to review, maybe try a practice flashcard?</p>`}
+        ${ cardsToReview === 0 && html`<button onClick=${ onPracticeClicked }>View Practice Flashcard</button>`}
+        ${ local.practiceCard && html`<${CardTest} card=${local.practiceCard} onShowAnswer=${onShowAnswer}/>`}
+    </div>`;
 }
 
 // if onRatedCard isn't passed in, the user won't be able to rate a card (useful when showing a practice card)
@@ -222,34 +225,34 @@ function CardTest({ card, onRatedCard, onShowAnswer }) {
 
     const show = card.showState;
 
-    return html`<div>
-                <div class="sr-section">Front</div>
-                <div class="note">${card.promptMarkup}</div>
-                ${ show === SHOW_PROMPT && html`
-                    <button onClick=${ onShowAnswerClicked }>Show Answer</button>
-                `}
-                ${ show === SHOW_ANSWER && buildAnswer(card)}
-                ${ show === SHOW_ANSWER && onRatedCard && html`
-                    <${CardRating} card=${card} onRatedCard=${onRatedCard}/>
-                `}
-              </div>`;
+    return html`
+    <div>
+        <div class="sr-section">Front</div>
+        <div class="note">${card.promptMarkup}</div>
+        ${ show === SHOW_PROMPT && html`
+            <button onClick=${ onShowAnswerClicked }>Show Answer</button>`}
+        ${ show === SHOW_ANSWER && buildAnswer(card)}
+        ${ show === SHOW_ANSWER && onRatedCard && html`
+            <${CardRating} card=${card} onRatedCard=${onRatedCard}/>`}
+    </div>`;
 }
 
 function buildAnswer(card) {
     const { id, name, resource } = card.deck_info;
     const href = `/${resource}/${id}`;
 
-    return html`<div>
-                    <div class="sr-section">Back</div>
-                    <div class="note">
-                        <div class="left-margin">
-                            <div class="left-margin-entry">
-                                <${Link} class="ref pigment-${ resource }" href=${ href }>${ name }</${Link}>
-                            </div>
-                        </div>
-                        ${card.answerMarkup}
-                    </div>
-                </div>`;
+    return html`
+    <div>
+        <div class="sr-section">Back</div>
+        <div class="note">
+            <div class="left-margin">
+                <div class="left-margin-entry">
+                    <${Link} class="ref pigment-${ resource }" href=${ href }>${ name }</${Link}>
+                </div>
+            </div>
+            ${card.answerMarkup}
+        </div>
+    </div>`;
 }
 
 function CardRating({ card, onRatedCard }) {
@@ -259,25 +262,26 @@ function CardRating({ card, onRatedCard }) {
         onRatedCard(card, rating);
     }
 
-    return html`<div>
-                    <div class="sr-section">
-                        Rating
-                        <ul class="right-margin sr-rating-descriptions">
-                            <li>5 - perfect response</li>
-                            <li>4 - correct response after a hesitation</li>
-                            <li>3 - correct response recalled with serious difficulty</li>
-                            <li>2 - incorrect response; where the correct one seemed easy to recall</li>
-                            <li>1 - incorrect response; the correct one remembered</li>
-                            <li>0 - complete blackout.</li>
-                        </ul>
-                    </div>
-                    <div class="rating-values" onClick=${ onRated }>
-                        <button class="rating-value">0</button>
-                        <button class="rating-value">1</button>
-                        <button class="rating-value">2</button>
-                        <button class="rating-value">3</button>
-                        <button class="rating-value">4</button>
-                        <button class="rating-value">5</button>
-                    </div>
-                </div>`;
+    return html`
+    <div>
+        <div class="sr-section">
+            Rating
+            <ul class="right-margin sr-rating-descriptions">
+                <li>5 - perfect response</li>
+                <li>4 - correct response after a hesitation</li>
+                <li>3 - correct response recalled with serious difficulty</li>
+                <li>2 - incorrect response; where the correct one seemed easy to recall</li>
+                <li>1 - incorrect response; the correct one remembered</li>
+                <li>0 - complete blackout.</li>
+            </ul>
+        </div>
+        <div class="rating-values" onClick=${ onRated }>
+            <button class="rating-value">0</button>
+            <button class="rating-value">1</button>
+            <button class="rating-value">2</button>
+            <button class="rating-value">3</button>
+            <button class="rating-value">4</button>
+            <button class="rating-value">5</button>
+        </div>
+    </div>`;
 }

@@ -8,9 +8,9 @@ export default function GraphSection({ heading, okToShowGraph, id, depth}) {
 
     if (state.showConnectivityGraph) {
         return html`
-      <${RollableSection} heading=${ heading } initiallyRolledUp>
-        ${ okToShowGraph && html`<${Graph} id=${ id } depth=${ depth }/>`}
-      </${RollableSection}>`;
+        <${RollableSection} heading=${ heading } initiallyRolledUp>
+            ${ okToShowGraph && html`<${Graph} id=${ id } depth=${ depth }/>`}
+        </${RollableSection}>`;
     } else {
         return html``;
     }

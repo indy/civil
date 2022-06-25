@@ -7,21 +7,23 @@ import Net from '/js/Net.js';
 import CivilInput from '/js/components/CivilInput.js';
 
 export function PointBirthForm({ pointBorn, onSubmit }) {
-    return html`<${PointForm} timeLegend="Date of Birth"
-                              locationLegend="Birth Location"
-                              pointKind="point_begin"
-                              point=${ pointBorn }
-                              onSubmit=${ onSubmit }
-                              submitMessage="Add Birth"/>`;
+    return html`
+    <${PointForm} timeLegend="Date of Birth"
+                  locationLegend="Birth Location"
+                  pointKind="point_begin"
+                  point=${ pointBorn }
+                  onSubmit=${ onSubmit }
+                  submitMessage="Add Birth"/>`;
 }
 
 export function PointDeathForm({ pointDied, onSubmit }) {
-    return html`<${PointForm} timeLegend="Date of Death"
-                              locationLegend="DeathLocation"
-                              pointKind="point_end"
-                              point=${ pointDied }
-                              onSubmit=${ onSubmit }
-                              submitMessage="Add Death"/>`;
+    return html`
+    <${PointForm} timeLegend="Date of Death"
+                  locationLegend="DeathLocation"
+                  pointKind="point_end"
+                  point=${ pointDied }
+                  onSubmit=${ onSubmit }
+                  submitMessage="Add Death"/>`;
 }
 
 export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegend, locationLegend }) {
@@ -279,113 +281,113 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
 
     return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>
-      <div class=${ !!pointKind ? 'invisible' : 'point-title'}>
+        <div class=${ !!pointKind ? 'invisible' : 'point-title'}>
+            <fieldset>
+                <legend>Title</legend>
+                <${CivilInput} id="title"
+                               value=${ state.title }
+                               autoComplete="off"
+                               size="11"
+                               readOnly=${ !!pointKind }
+                               onInput=${ handleChangeEvent }/>
+            </fieldset>
+        </div>
+        <div class=${ !!pointKind ? 'invisible' : 'point-title'}>
+            <fieldset>
+                <legend>Point Type</legend>
+                <input type="radio" id="pointkind-custom" name="pointkind" value="Custom" onInput=${ handleChangeEvent }/>
+                <label for="pointkind-custom">Custom</label>
+                <input type="radio" id="pointkind-born" name="pointkind" value="Born" onInput=${ handleChangeEvent }/>
+                <label for="pointkind-born">Born</label>
+                <input type="radio" id="pointkind-died" name="pointkind" value="Died" onInput=${ handleChangeEvent }/>
+                <label for="pointkind-died">Died</label>
+            </fieldset>
+        </div>
         <fieldset>
-          <legend>Title</legend>
-          <${CivilInput} id="title"
-                         value=${ state.title }
-                         autoComplete="off"
-                         size="11"
-                         readOnly=${ !!pointKind }
-                         onInput=${ handleChangeEvent }/>
+            <legend>${ timeLegend }</legend>
+            <label for="exact_date">Exact Date:</label>
+            <${CivilInput} id="exact_date"
+                           value=${ state.exact_date }
+                           autoComplete="off"
+                           size="11"
+                           onInput=${ handleChangeEvent } />
+            <span class="civil-date-hint"> Format: YYYY-MM-DD</span>
+            <div class="civil-date-hint-after"/>
+            <br/>
+            <label for="lower_date">Lower Date:</label>
+            <${CivilInput} id="lower_date"
+                           value=${ state.lower_date }
+                           autoComplete="off"
+                           size="11"
+                           onInput=${ handleChangeEvent } />
+            <label for="upper_date">Upper Date:</label>
+            <${CivilInput} id="upper_date"
+                           value=${ state.upper_date }
+                           autoComplete="off"
+                           size="11"
+                           onInput=${ handleChangeEvent } />
+            <div class="pointform-block pointform-space-top">
+              <input id="round-to-year"
+                     class="pointform-checkbox"
+                     type="checkbox"
+                     name="round_to_year"
+                     checked=${ state.round_to_year }
+                     onInput=${ handleChangeEvent } />
+              <label for="round-to-year">Round to Year</label>
+            </div>
+            <div class="pointform-block">
+              <input id="is-approx"
+                     class="pointform-checkbox"
+                     type="checkbox"
+                     name="is_approx"
+                     checked=${ state.is_approx }
+                     onInput=${ handleChangeEvent } />
+              <label for="is-approx">Is Approx</label>
+            </div>
+            <div class="pointform-block">
+              <input id="present-as-duration"
+                     class="pointform-checkbox"
+                     type="checkbox"
+                     name="present_as_duration"
+                     checked=${ state.present_as_duration }
+                     onInput=${ handleChangeEvent } />
+              <label for="present-as-duration">Present as Duration</label>
+            </div>
+            <div class="pointform-space-top">
+              <label for="date_textual">Displayed Date:</label>
+              <${CivilInput} id="date_textual"
+                             value=${ state.date_textual }
+                             size="40"
+                             autoComplete="off"
+                             readOnly="readOnly" />
+            </div>
         </fieldset>
-      </div>
-      <div class=${ !!pointKind ? 'invisible' : 'point-title'}>
+        <br/>
         <fieldset>
-          <legend>Point Type</legend>
-          <input type="radio" id="pointkind-custom" name="pointkind" value="Custom" onInput=${ handleChangeEvent }/>
-          <label for="pointkind-custom">Custom</label>
-          <input type="radio" id="pointkind-born" name="pointkind" value="Born" onInput=${ handleChangeEvent }/>
-          <label for="pointkind-born">Born</label>
-          <input type="radio" id="pointkind-died" name="pointkind" value="Died" onInput=${ handleChangeEvent }/>
-          <label for="pointkind-died">Died</label>
+            <legend>${ locationLegend }</legend>
+            <${CivilInput} id="location_textual"
+                           autoComplete="off"
+                           value=${ state.location_textual }
+                           onInput=${ handleChangeEvent } />
+            <p></p>
+            <button onClick=${ (event) => { onFindLocationClicked(event);} }>Find location</button>
+            <br/>
+            <label for="latitude">Latitude:</label>
+            <input id="latitude"
+                   type="number"
+                   name="latitude"
+                   step="any"
+                   value=${ state.latitude }
+                   onInput=${ handleChangeEvent } />
+            <label for="longitude">Longitude:</label>
+            <input id="longitude"
+                   type="number"
+                   name="longitude"
+                   step="any"
+                   value=${ state.longitude }
+                   onInput=${ handleChangeEvent } />
         </fieldset>
-      </div>
-      <fieldset>
-        <legend>${ timeLegend }</legend>
-        <label for="exact_date">Exact Date:</label>
-        <${CivilInput} id="exact_date"
-                       value=${ state.exact_date }
-                       autoComplete="off"
-                       size="11"
-                       onInput=${ handleChangeEvent } />
-        <span class="civil-date-hint"> Format: YYYY-MM-DD</span>
-        <div class="civil-date-hint-after"/>
-        <br/>
-        <label for="lower_date">Lower Date:</label>
-        <${CivilInput} id="lower_date"
-                       value=${ state.lower_date }
-                       autoComplete="off"
-                       size="11"
-                       onInput=${ handleChangeEvent } />
-        <label for="upper_date">Upper Date:</label>
-        <${CivilInput} id="upper_date"
-                       value=${ state.upper_date }
-                       autoComplete="off"
-                       size="11"
-                       onInput=${ handleChangeEvent } />
-        <div class="pointform-block pointform-space-top">
-          <input id="round-to-year"
-                 class="pointform-checkbox"
-                 type="checkbox"
-                 name="round_to_year"
-                 checked=${ state.round_to_year }
-                 onInput=${ handleChangeEvent } />
-          <label for="round-to-year">Round to Year</label>
-        </div>
-        <div class="pointform-block">
-          <input id="is-approx"
-                 class="pointform-checkbox"
-                 type="checkbox"
-                 name="is_approx"
-                 checked=${ state.is_approx }
-                 onInput=${ handleChangeEvent } />
-          <label for="is-approx">Is Approx</label>
-        </div>
-        <div class="pointform-block">
-          <input id="present-as-duration"
-                 class="pointform-checkbox"
-                 type="checkbox"
-                 name="present_as_duration"
-                 checked=${ state.present_as_duration }
-                 onInput=${ handleChangeEvent } />
-          <label for="present-as-duration">Present as Duration</label>
-        </div>
-        <div class="pointform-space-top">
-          <label for="date_textual">Displayed Date:</label>
-          <${CivilInput} id="date_textual"
-                         value=${ state.date_textual }
-                         size="40"
-                         autoComplete="off"
-                         readOnly="readOnly" />
-        </div>
-      </fieldset>
-      <br/>
-      <fieldset>
-        <legend>${ locationLegend }</legend>
-        <${CivilInput} id="location_textual"
-                       autoComplete="off"
-                       value=${ state.location_textual }
-                       onInput=${ handleChangeEvent } />
-        <p></p>
-        <button onClick=${ (event) => { onFindLocationClicked(event);} }>Find location</button>
-        <br/>
-        <label for="latitude">Latitude:</label>
-        <input id="latitude"
-               type="number"
-               name="latitude"
-               step="any"
-               value=${ state.latitude }
-               onInput=${ handleChangeEvent } />
-        <label for="longitude">Longitude:</label>
-        <input id="longitude"
-               type="number"
-               name="longitude"
-               step="any"
-               value=${ state.longitude }
-               onInput=${ handleChangeEvent } />
-      </fieldset>
-      <input type="submit" value=${ submitMessage }/>
+        <input type="submit" value=${ submitMessage }/>
     </form>
 `;
 }
