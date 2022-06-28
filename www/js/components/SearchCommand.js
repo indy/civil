@@ -486,25 +486,25 @@ export default function SearchCommand() {
 
 function allCommands() {
     return [
-        {command: 'i', description: "goto ideas or add <<title>>"},
-        {command: 'p', description: "goto people or add <<name>>"},
-        {command: 'a', description: "goto articles or add <<title>>"},
-        {command: 't', description: "goto timelines or add <<title>>"},
-        {command: 'q', description: "goto quotes"},
+        {command: ':i', description: "goto ideas or add <<title>>"},
+        {command: ':p', description: "goto people or add <<name>>"},
+        {command: ':a', description: "goto articles or add <<title>>"},
+        {command: ':t', description: "goto timelines or add <<title>>"},
+        {command: ':q', description: "goto quotes"},
         {spacer: true},
-        {command: 'n',  description: "show add-note form"},
-        {command: 'nr', description: "show add-note form for review section"},
-        {command: 'ns', description: "show add-note form for summary section"},
-        {command: 'p',  description: "show point form"},
+        {command: ':n',  description: "show add-note form"},
+        {command: ':nr', description: "show add-note form for review section"},
+        {command: ':ns', description: "show add-note form for summary section"},
+        {command: ':p',  description: "show point form"},
         {spacer: true},
-        {command: 'r', description: "goto random quote"},
-        {command: 's', description: "goto spaced repetition"},
-        {command: 'l', description: "lock (prevent edits)"},
-        {command: 'u', description: "unlock (allow edits)"},
-        {command: 'c', description: "clean ui"},
-        {command: 'b', description: "basic ui"},
-        {command: 'g', description: "show connectivity graph"},
-        {command: 'h', description: "hide connectivity graph"}
+        {command: ':r', description: "goto random quote"},
+        {command: ':s', description: "goto spaced repetition"},
+        {command: ':l', description: "lock (prevent edits)"},
+        {command: ':u', description: "unlock (allow edits)"},
+        {command: ':c', description: "clean ui"},
+        {command: ':b', description: "basic ui"},
+        {command: ':g', description: "show connectivity graph"},
+        {command: ':h', description: "hide connectivity graph"}
     ];
 }
 
