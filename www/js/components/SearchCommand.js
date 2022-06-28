@@ -15,6 +15,7 @@ const MODE_COMMAND = 'mode-command';
 // actions to give to the dispatcher
 const CANDIDATES_SET = 'candidate-set';
 const CLICKED_CANDIDATE = 'clicked-candidate';
+const CLICKED_COMMAND = 'clicked-command';
 const INPUT_FOCUS = 'input-focus';
 const INPUT_BLUR = 'input-blur';
 const INPUT_GIVEN = 'input-given';
@@ -43,9 +44,15 @@ function cleanState(state) {
 }
 
 function reducer(state, action) {
-    const [appState] = useStateValue();
+    const [appState, appDispatch] = useStateValue();
 
     switch(action.type) {
+    case CLICKED_COMMAND: {
+        executeCommand(action.data.command, appDispatch);
+
+        const newState = cleanState(state);
+        return newState;
+    }
     case CLICKED_CANDIDATE: {
         const newState = cleanState(state);
         return newState;
@@ -358,13 +365,19 @@ export default function SearchCommand() {
     }
 
     function buildCommandEntry(entry, i) {
+
+        function clickedCommand(e) {
+            localDispatch(CLICKED_COMMAND, entry);
+        }
+
         if (entry.spacer) {
             return html`<div class="command-entry">-</div>`;
         } else {
             return html`
-            <div class="command-entry">
+            <div class="command-entry" onClick=${clickedCommand}>
                 <span class="command-entry-name">${ entry.command }</span>
-                <span class="command-entry-desc">${ entry.description }${ entry.quoteAround && html`<span class="command-entry-quote-around">${entry.quoteAround}</span>`}</span>
+                <span class="command-entry-desc">${ entry.description }
+                ${ entry.quoteAround && html`<span class="command-entry-quote-around">${entry.quoteAround}</span>`}</span>
             </div>`;
         }
     }
