@@ -364,8 +364,7 @@ export default function SearchCommand() {
             return html`
             <div class="command-entry">
                 <span class="command-entry-name">${ entry.command }</span>
-                <span> </span>
-                <span class="command-entry-desc">${ entry.description }</span>
+                <span class="command-entry-desc">${ entry.description }${ entry.quoteAround && html`<span class="command-entry-quote-around">${entry.quoteAround}</span>`}</span>
             </div>`;
         }
     }
@@ -486,10 +485,10 @@ export default function SearchCommand() {
 
 function allCommands() {
     return [
-        {command: ':i', description: "goto ideas or add <<title>>"},
-        {command: ':p', description: "goto people or add <<name>>"},
-        {command: ':a', description: "goto articles or add <<title>>"},
-        {command: ':t', description: "goto timelines or add <<title>>"},
+        {command: ':i', description: "goto ideas or add ", quoteAround: "title"},
+        {command: ':p', description: "goto people or add ", quoteAround: "name"},
+        {command: ':a', description: "goto articles or add ", quoteAround: "title"},
+        {command: ':t', description: "goto timelines or add ", quoteAround: "title"},
         {command: ':q', description: "goto quotes"},
         {spacer: true},
         {command: ':n',  description: "show add-note form"},

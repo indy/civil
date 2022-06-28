@@ -664,11 +664,21 @@ textarea {
 .command-entry-name {
   font-weight: bold;
   color: var(--fg);
+  display: inline-block;
+  width: 3rem;
 }
 
 .command-entry-desc {
   color: var(--fg1);
 }
+
+.command-entry-quote-around:before {
+  content: "\00AB";
+}
+.command-entry-quote-around:after {
+  content: "\00BB";
+}
+
 
 /* this will right-align the login info on the top menu bar */
 #elastic-top-menu-items div:last-child {
