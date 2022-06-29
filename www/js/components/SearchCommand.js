@@ -16,6 +16,7 @@ const MODE_COMMAND = 'mode-command';
 const CANDIDATES_SET = 'candidate-set';
 const CLICKED_CANDIDATE = 'clicked-candidate';
 const CLICKED_COMMAND = 'clicked-command';
+const SYNC_VISIBILITY = 'sync-visibility';
 const INPUT_FOCUS = 'input-focus';
 const INPUT_BLUR = 'input-blur';
 const INPUT_GIVEN = 'input-given';
@@ -48,14 +49,23 @@ function reducer(state, action) {
 
     switch(action.type) {
     case CLICKED_COMMAND: {
-        executeCommand(action.data.command, appDispatch);
-
-        const newState = cleanState(state);
-        return newState;
+        const command = action.data.command;
+        const success = executeCommand(command, appDispatch);
+        if (success) {
+            let newState = cleanState(state);
+            return newState;
+        } else {
+            console.error(`Failed to execute command: ${command}`);
+            return state;
+        }
     }
     case CLICKED_CANDIDATE: {
         const newState = cleanState(state);
         return newState;
+    }
+    case SYNC_VISIBILITY: {
+        appDispatch({type: 'showingSearchCommand', showingSearchCommand: state.isVisible});
+        return state;
     }
     case INPUT_BLUR: {
         const newState = {
@@ -80,7 +90,6 @@ function reducer(state, action) {
         }
 
         if (state.mode === MODE_COMMAND) {
-            const appDispatch = action.data;
             const success = executeCommand(state.text, appDispatch);
             if (success) {
                 let newState = cleanState(state);
@@ -257,7 +266,7 @@ function isCommand(text) {
 }
 
 export default function SearchCommand() {
-    const [state, dispatch] = useStateValue();
+    const [state] = useStateValue();
     const searchCommandRef = useRef(null);
 
     const [local, localDispatch] = useLocalReducer(reducer, {
@@ -281,7 +290,7 @@ export default function SearchCommand() {
             localDispatch(KEY_DOWN_COLON, searchCommandRef);
         }
         if (e.key === "Enter") {
-            localDispatch(KEY_DOWN_ENTER, dispatch);
+            localDispatch(KEY_DOWN_ENTER);
         }
         if (e.ctrlKey) {
             localDispatch(KEY_DOWN_CTRL);
@@ -462,7 +471,7 @@ export default function SearchCommand() {
     }
 
     if (state.showingSearchCommand !== local.isVisible) {
-        dispatch({type: 'showingSearchCommand', showingSearchCommand: local.isVisible});
+        localDispatch(SYNC_VISIBILITY);
     }
 
     // note: for debugging purposes:
