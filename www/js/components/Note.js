@@ -26,6 +26,8 @@ const FLASHCARD_HIDE = 'flashcard-hide';
 const EDITING_CANCELLED = 'editing-cancelled';
 
 function reducer(state, action) {
+    const [appState, appDispatch] = useStateValue();
+
     switch(action.type) {
     case FLASHCARD_HIDE: {
         let res = { ...state };
@@ -76,9 +78,16 @@ function reducer(state, action) {
             addDeckReferencesUI: false
         }
     case ADD_DECKS_COMMIT: {
+
+        appDispatch({
+            type: 'noteRefsModified',
+            changes: action.data.changes,
+            allDecksForNote: action.data.allDecksForNote
+        });
+
         return {
             ...state,
-            decks: action.data,
+            decks: action.data.allDecksForNote,
             showModButtons: false,
             addDeckReferencesUI: false
         }
@@ -135,7 +144,7 @@ function reducer(state, action) {
 };
 
 export default function Note(props) {
-    const [state, dispatch] = useStateValue();
+    const [state] = useStateValue();
 
     const initialState = {
         showModButtons: false,
@@ -273,13 +282,8 @@ export default function Note(props) {
                 };
 
                 Net.post("/api/edges/notes_decks", data).then((allDecksForNote) => {
-                    dispatch({
-                        type: 'noteRefsModified',
-                        changes,
-                        allDecksForNote
-                    });
                     props.onDecksChanged(props.note, allDecksForNote);
-                    localDispatch(ADD_DECKS_COMMIT, allDecksForNote);
+                    localDispatch(ADD_DECKS_COMMIT, { allDecksForNote, changes });
                 });
             } else {
                 // cancel was pressed

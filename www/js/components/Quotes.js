@@ -17,7 +17,7 @@ const SET_ATTRIBUTION = 'set_attribution';
 const SET_QUOTE_TEXT = 'set-quote-text';
 const CREATED_NEW_QUOTE = 'created-new-quote';
 
-function reducer(state, action) {
+function quotesReducer(state, action) {
     switch(action.type) {
     case SHOW_ADD_FORM: {
         return {
@@ -72,7 +72,7 @@ function Quotes() {
     const [state, dispatch] = useStateValue();
     const resource = 'quotes';
 
-    const [local, localDispatch] = useLocalReducer(reducer, {
+    const [local, localDispatch] = useLocalReducer(quotesReducer, {
         showAddForm: false,
         attribution: '',
         quoteText: ''
@@ -299,7 +299,7 @@ const ATTR_RESET_ATTRIBUTION = 'attr-reset-attribution';
 const ATTR_SHOW_BUTTONS = 'attr-show-buttons';
 const ATTR_HIDE_BUTTONS = 'attr-hide-buttons';
 
-function reducer2(state, action) {
+function attributionReducer(state, action) {
     switch(action.type) {
     case ATTR_SET_MODE: {
         return {
@@ -344,9 +344,9 @@ function reducer2(state, action) {
 }
 
 function Attribution({ attribution, onEdited, onDelete}) {
-    const [state, dispatch] = useStateValue();
+    const [state] = useStateValue();
 
-    const [local, localDispatch] = useLocalReducer(reducer2, {
+    const [local, localDispatch] = useLocalReducer(attributionReducer, {
         mode: ATTR_SHOW_MODE,
         showButtons: false,
         originalAttribution: attribution,

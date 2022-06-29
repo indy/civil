@@ -49,13 +49,10 @@ function reducer(state, action) {
     }
 }
 
-// preCacheFn performs any one-off calculations before caching the Deck
-function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummarySection, hasReviewSection }) {
-    // returns helper fn that applies preCacheFn and stores deck in AppState
-
+function makeCacheDeckFn(preCacheFn) {
     const [state, dispatch] = useStateValue();
 
-    function cacheDeck(newdeck) {
+    return function(newdeck) {
         if (preCacheFn) {
             newdeck = preCacheFn(newdeck);
         }
@@ -66,6 +63,14 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
             newItem: newdeck
         });
     }
+}
+
+// preCacheFn performs any one-off calculations before caching the Deck
+function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummarySection, hasReviewSection }) {
+    // returns helper fn that applies preCacheFn and stores deck in AppState
+
+    const [state] = useStateValue();
+    const cacheDeck = makeCacheDeckFn(preCacheFn);
 
     useEffect(() => {
         if (deck.notes) {
