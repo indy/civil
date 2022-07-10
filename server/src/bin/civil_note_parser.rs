@@ -19,16 +19,22 @@ use civil_server;
 use civil_server::{note_parser_api, Result};
 use civil_shared;
 
+use r2d2_sqlite::SqliteConnectionManager;
 use tracing::info;
 
 #[actix_rt::main]
 async fn main() -> Result<()> {
     civil_server::init_dotenv();
     civil_server::init_tracing();
-    let pool = civil_server::init_postgres_pool().await?;
+
+    let sqlite_db = civil_server::env_var_string("SQLITE_DB")?;
+    civil_server::db::sqlite_migrations::migration_check(&sqlite_db)?;
+
+    let sqlite_manager = SqliteConnectionManager::file(&sqlite_db);
+    let sqlite_pool = r2d2::Pool::new(sqlite_manager)?;
 
     info!("started parsing all note markup");
-    let notes = note_parser_api::get_all_notes_in_db(&pool).await?;
+    let notes = note_parser_api::get_all_notes_in_db(&sqlite_pool)?;
 
     let mut num_elements: usize = 0;
 

@@ -20,6 +20,7 @@ use crate::session;
 use crate::ServerConfig;
 
 use crate::db::uploader as db;
+use crate::db::sqlite::SqlitePool;
 
 use std::ffi::OsStr;
 use std::path::Path;
@@ -27,7 +28,6 @@ use std::path::Path;
 use actix_multipart::Multipart;
 use actix_web::web::Data;
 use actix_web::{web, HttpResponse};
-use deadpool_postgres::Pool;
 use futures::{StreamExt, TryStreamExt};
 use std::io::Write;
 
@@ -42,12 +42,12 @@ pub async fn get_directory(session: actix_session::Session) -> Result<HttpRespon
     Ok(HttpResponse::Ok().json(user_id))
 }
 
-pub async fn get(db_pool: Data<Pool>, session: actix_session::Session) -> Result<HttpResponse> {
+pub async fn get(sqlite_pool: Data<SqlitePool>, session: actix_session::Session) -> Result<HttpResponse> {
     info!("get_recent_uploads");
 
     let user_id = session::user_id(&session)?;
 
-    let recent = db::get_recent(&db_pool, user_id).await?;
+    let recent = db::sqlite_get_recent(&sqlite_pool, user_id)?;
 
     Ok(HttpResponse::Ok().json(recent))
 }
@@ -55,7 +55,7 @@ pub async fn get(db_pool: Data<Pool>, session: actix_session::Session) -> Result
 pub async fn create(
     mut payload: Multipart,
     server_config: Data<ServerConfig>,
-    db_pool: Data<Pool>,
+    sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
@@ -66,7 +66,7 @@ pub async fn create(
         .create(&user_directory)?;
     // info!("user_directory = {}", &user_directory);
 
-    let mut user_image_count = db::get_image_count(&db_pool, user_id).await?;
+    let mut user_image_count = db::sqlite_get_image_count(&sqlite_pool, user_id)?;
 
     // iterate over multipart stream
     while let Ok(Some(mut field)) = payload.try_next().await {
@@ -81,7 +81,7 @@ pub async fn create(
         let filepath = format!("{}/{}", user_directory, derived_filename);
 
         user_image_count += 1;
-        db::set_image_count(&db_pool, user_id, user_image_count).await?;
+        db::sqlite_set_image_count(&sqlite_pool, user_id, user_image_count)?;
 
         // todo: unwrap was added after the File::create - is this right?
         let mut f = web::block(|| std::fs::File::create(filepath).unwrap())
@@ -101,7 +101,7 @@ pub async fn create(
 
         // save the entry in the images table
 
-        db::add_image_entry(&db_pool, user_id, &derived_filename).await?;
+        db::sqlite_add_image_entry(&sqlite_pool, user_id, &derived_filename)?;
     }
     Ok(HttpResponse::Ok().into())
 }

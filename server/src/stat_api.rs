@@ -21,20 +21,21 @@ use crate::error::Result;
 use crate::interop::stats::Stats;
 use crate::interop::users::UserId;
 use crate::interop::Key;
-use deadpool_postgres::Pool;
 
-pub async fn get_all_user_ids(db_pool: &Pool) -> Result<Vec<UserId>> {
-    users_db::get_all_user_ids(db_pool).await
+use crate::db::sqlite::SqlitePool;
+
+pub fn get_all_user_ids(sqlite_pool: &SqlitePool) -> Result<Vec<UserId>> {
+    users_db::sqlite_get_all_user_ids(sqlite_pool)
 }
 
-pub async fn create_stats(db_pool: &Pool, user_id: Key, stats: &Stats) -> Result<()> {
-    stats_db::create_stats(db_pool, user_id, stats).await
+pub fn create_stats(sqlite_pool: &SqlitePool, user_id: Key, stats: &Stats) -> Result<()> {
+    stats_db::sqlite_create_stats(sqlite_pool, user_id, stats)
 }
 
-pub async fn get_last_saved_stats(db_pool: &Pool, user_id: Key) -> Result<Stats> {
-    stats_db::get_last_saved_stats(db_pool, user_id).await
+pub fn get_last_saved_stats(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Stats> {
+    stats_db::sqlite_get_last_saved_stats(sqlite_pool, user_id)
 }
 
-pub async fn generate_stats(db_pool: &Pool, user_id: Key) -> Result<Stats> {
-    stats_db::generate_stats(db_pool, user_id).await
+pub fn generate_stats(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Stats> {
+    stats_db::sqlite_generate_stats(sqlite_pool, user_id)
 }

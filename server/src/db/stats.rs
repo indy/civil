@@ -15,130 +15,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use super::pg;
-
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::interop::stats as interop;
 use crate::interop::Key;
-use deadpool_postgres::{Client, Pool, Transaction};
-use serde::{Deserialize, Serialize};
-use tokio_pg_mapper_derive::PostgresMapper;
 
 #[allow(unused_imports)]
 use tracing::info;
 
-#[derive(Debug, Deserialize, PostgresMapper, Serialize)]
-#[pg_mapper(table = "stats")]
-struct Stats {
-    id: Key,
-    created_at: chrono::DateTime<chrono::Utc>,
+use crate::db::sqlite::{self, SqlitePool};
+use rusqlite::{Connection, Row, params};
 
-    user_id: Key,
-
-    num_ideas: i32,
-    num_articles: i32,
-    num_people: i32,
-    num_timelines: i32,
-
-    num_refs: i32,
-    num_cards: i32,
-    num_card_ratings: i32,
-    num_images: i32,
-
-    num_notes_in_ideas: i32,
-    num_notes_in_articles: i32,
-    num_notes_in_people: i32,
-    num_notes_in_timelines: i32,
-
-    num_points_in_people: i32,
-    num_points_in_timelines: i32,
-
-    num_refs_ideas_to_ideas: i32,
-    num_refs_ideas_to_articles: i32,
-    num_refs_ideas_to_people: i32,
-    num_refs_ideas_to_timelines: i32,
-
-    num_refs_articles_to_ideas: i32,
-    num_refs_articles_to_articles: i32,
-    num_refs_articles_to_people: i32,
-    num_refs_articles_to_timelines: i32,
-
-    num_refs_people_to_ideas: i32,
-    num_refs_people_to_articles: i32,
-    num_refs_people_to_people: i32,
-    num_refs_people_to_timelines: i32,
-
-    num_refs_timelines_to_ideas: i32,
-    num_refs_timelines_to_articles: i32,
-    num_refs_timelines_to_people: i32,
-    num_refs_timelines_to_timelines: i32,
-}
-
-impl From<Stats> for interop::Stats {
-    fn from(s: Stats) -> interop::Stats {
-        interop::Stats {
-            num_ideas: s.num_ideas,
-            num_articles: s.num_articles,
-            num_people: s.num_people,
-            num_timelines: s.num_timelines,
-
-            num_refs: s.num_refs,
-            num_cards: s.num_cards,
-            num_card_ratings: s.num_card_ratings,
-            num_images: s.num_images,
-
-            num_notes_in_ideas: s.num_notes_in_ideas,
-            num_notes_in_articles: s.num_notes_in_articles,
-            num_notes_in_people: s.num_notes_in_people,
-            num_notes_in_timelines: s.num_notes_in_timelines,
-
-            num_points_in_people: s.num_points_in_people,
-            num_points_in_timelines: s.num_points_in_timelines,
-
-            num_refs_ideas_to_ideas: s.num_refs_ideas_to_ideas,
-            num_refs_ideas_to_articles: s.num_refs_ideas_to_articles,
-            num_refs_ideas_to_people: s.num_refs_ideas_to_people,
-            num_refs_ideas_to_timelines: s.num_refs_ideas_to_timelines,
-
-            num_refs_articles_to_ideas: s.num_refs_articles_to_ideas,
-            num_refs_articles_to_articles: s.num_refs_articles_to_articles,
-            num_refs_articles_to_people: s.num_refs_articles_to_people,
-            num_refs_articles_to_timelines: s.num_refs_articles_to_timelines,
-
-            num_refs_people_to_ideas: s.num_refs_people_to_ideas,
-            num_refs_people_to_articles: s.num_refs_people_to_articles,
-            num_refs_people_to_people: s.num_refs_people_to_people,
-            num_refs_people_to_timelines: s.num_refs_people_to_timelines,
-
-            num_refs_timelines_to_ideas: s.num_refs_timelines_to_ideas,
-            num_refs_timelines_to_articles: s.num_refs_timelines_to_articles,
-            num_refs_timelines_to_people: s.num_refs_timelines_to_people,
-            num_refs_timelines_to_timelines: s.num_refs_timelines_to_timelines,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
-pub struct Count {
-    pub count: i64, // note with postgres' Int8 the '8' refers to bytes not bits
-}
-
-// counts are 8 bytes (i64) but the columns in the stats table are INTEGER or 4 bytes (i32)
-impl From<Count> for i32 {
-    fn from(c: Count) -> i32 {
-        c.count as i32
-    }
-}
-
-pub async fn create_stats(db_pool: &Pool, user_id: Key, stats: &interop::Stats) -> Result<()> {
+pub fn sqlite_create_stats(sqlite_pool: &SqlitePool, user_id: Key, stats: &interop::Stats) -> Result<()> {
     info!("create_stats");
 
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
+    let conn = sqlite_pool.get()?;
 
-    pg::zero(
-        &tx,
+    sqlite::zero(
+        &conn,
         "INSERT INTO stats(user_id,
                            num_ideas,
                            num_articles,
@@ -170,11 +63,11 @@ pub async fn create_stats(db_pool: &Pool, user_id: Key, stats: &interop::Stats) 
                            num_refs_timelines_to_articles,
                            num_refs_timelines_to_people,
                            num_refs_timelines_to_timelines)
-         VALUES (      $1,  $2,  $3,  $4,  $5,  $6,  $7,  $8,  $9,
-                 $10, $11, $12, $13, $14, $15, $16, $17, $18, $19,
-                 $20, $21, $22, $23, $24, $25, $26, $27, $28, $29,
-                 $30, $31)",
-        &[
+         VALUES (      ?1,  ?2,  ?3,  ?4,  ?5,  ?6,  ?7,  ?8,  ?9,
+                 ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19,
+                 ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29,
+                 ?30, ?31)",
+        params![
             &user_id,
             &stats.num_ideas,
             &stats.num_articles,
@@ -207,17 +100,58 @@ pub async fn create_stats(db_pool: &Pool, user_id: Key, stats: &interop::Stats) 
             &stats.num_refs_timelines_to_people,
             &stats.num_refs_timelines_to_timelines,
         ],
-    )
-    .await?;
-
-    tx.commit().await?;
+    )?;
 
     Ok(())
 }
 
-pub async fn get_last_saved_stats(db_pool: &Pool, user_id: Key) -> Result<interop::Stats> {
-    let db_stats = pg::one_non_transactional::<Stats>(
-        db_pool,
+fn state_from_row(row: &Row) -> Result<interop::Stats> {
+    Ok(interop::Stats {
+        num_ideas: row.get(3)?,
+        num_articles: row.get(4)?,
+        num_people: row.get(5)?,
+        num_timelines: row.get(6)?,
+
+        num_refs: row.get(7)?,
+        num_cards: row.get(8)?,
+        num_card_ratings: row.get(9)?,
+        num_images: row.get(10)?,
+
+        num_notes_in_ideas: row.get(11)?,
+        num_notes_in_articles: row.get(12)?,
+        num_notes_in_people: row.get(13)?,
+        num_notes_in_timelines: row.get(14)?,
+
+        num_points_in_people: row.get(15)?,
+        num_points_in_timelines: row.get(16)?,
+
+        num_refs_ideas_to_ideas: row.get(17)?,
+        num_refs_ideas_to_articles: row.get(18)?,
+        num_refs_ideas_to_people: row.get(19)?,
+        num_refs_ideas_to_timelines: row.get(20)?,
+
+        num_refs_articles_to_ideas: row.get(21)?,
+        num_refs_articles_to_articles: row.get(22)?,
+        num_refs_articles_to_people: row.get(23)?,
+        num_refs_articles_to_timelines: row.get(24)?,
+
+        num_refs_people_to_ideas: row.get(25)?,
+        num_refs_people_to_articles: row.get(26)?,
+        num_refs_people_to_people: row.get(27)?,
+        num_refs_people_to_timelines: row.get(28)?,
+
+        num_refs_timelines_to_ideas: row.get(29)?,
+        num_refs_timelines_to_articles: row.get(30)?,
+        num_refs_timelines_to_people: row.get(31)?,
+        num_refs_timelines_to_timelines: row.get(32)?,
+    })
+}
+
+pub fn sqlite_get_last_saved_stats(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::Stats> {
+    let conn = sqlite_pool.get()?;
+
+    sqlite::one(
+        &conn,
         "select s.id,
                 s.created_at,
                 s.user_id,
@@ -255,203 +189,175 @@ pub async fn get_last_saved_stats(db_pool: &Pool, user_id: Key) -> Result<intero
          inner join (
                     select user_id, max(created_at) as latest_date
                     from stats
-                    where user_id = $1
+                    where user_id = ?1
                     group by user_id
          ) slatest on s.user_id = slatest.user_id and s.created_at = slatest.latest_date",
-        &[&user_id],
+        params![&user_id],
+        state_from_row,
     )
-    .await?;
-
-    Ok(db_stats.into())
 }
 
-pub async fn generate_stats(db_pool: &Pool, user_id: Key) -> Result<interop::Stats> {
-    info!("generate_stats");
 
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
-
-    let (
-        num_ideas,
-        num_articles,
-        num_people,
-        num_timelines,
-        num_refs,
-        num_cards,
-        num_card_ratings,
-        num_images,
-        num_notes_in_ideas,
-        num_notes_in_articles,
-        num_notes_in_people,
-        num_notes_in_timelines,
-        num_points_in_people,
-        num_points_in_timelines,
-        num_refs_ideas_to_ideas,
-        num_refs_ideas_to_articles,
-        num_refs_ideas_to_people,
-        num_refs_ideas_to_timelines,
-        num_refs_articles_to_ideas,
-        num_refs_articles_to_articles,
-        num_refs_articles_to_people,
-        num_refs_articles_to_timelines,
-        num_refs_people_to_ideas,
-        num_refs_people_to_articles,
-        num_refs_people_to_people,
-        num_refs_people_to_timelines,
-        num_refs_timelines_to_ideas,
-        num_refs_timelines_to_articles,
-        num_refs_timelines_to_people,
-        num_refs_timelines_to_timelines,
-    ) = tokio::try_join!(
-        get_num_decks(&tx, user_id, &"idea"),
-        get_num_decks(&tx, user_id, &"article"),
-        get_num_decks(&tx, user_id, &"person"),
-        get_num_decks(&tx, user_id, &"timeline"),
-        get_num_refs(&tx, user_id),
-        get_num_cards(&tx, user_id),
-        get_num_card_ratings(&tx, user_id),
-        get_num_images(&tx, user_id),
-        get_num_notes_in_decks(&tx, user_id, &"idea"),
-        get_num_notes_in_decks(&tx, user_id, &"article"),
-        get_num_notes_in_decks(&tx, user_id, &"person"),
-        get_num_notes_in_decks(&tx, user_id, &"timeline"),
-        get_num_points_in_decks(&tx, user_id, &"person"),
-        get_num_points_in_decks(&tx, user_id, &"timeline"),
-        get_num_refs_between(&tx, user_id, &"idea", &"idea"),
-        get_num_refs_between(&tx, user_id, &"idea", &"article"),
-        get_num_refs_between(&tx, user_id, &"idea", &"person"),
-        get_num_refs_between(&tx, user_id, &"idea", &"timeline"),
-        get_num_refs_between(&tx, user_id, &"article", &"idea"),
-        get_num_refs_between(&tx, user_id, &"article", &"article"),
-        get_num_refs_between(&tx, user_id, &"article", &"person"),
-        get_num_refs_between(&tx, user_id, &"article", &"timeline"),
-        get_num_refs_between(&tx, user_id, &"person", &"idea"),
-        get_num_refs_between(&tx, user_id, &"person", &"article"),
-        get_num_refs_between(&tx, user_id, &"person", &"person"),
-        get_num_refs_between(&tx, user_id, &"person", &"timeline"),
-        get_num_refs_between(&tx, user_id, &"timeline", &"idea"),
-        get_num_refs_between(&tx, user_id, &"timeline", &"article"),
-        get_num_refs_between(&tx, user_id, &"timeline", &"person"),
-        get_num_refs_between(&tx, user_id, &"timeline", &"timeline")
-    )?;
-
-    tx.commit().await?;
-
-    Ok(interop::Stats {
-        num_ideas: num_ideas.into(),
-        num_articles: num_articles.into(),
-        num_people: num_people.into(),
-        num_timelines: num_timelines.into(),
-
-        num_refs: num_refs.into(),
-        num_cards: num_cards.into(),
-        num_card_ratings: num_card_ratings.into(),
-        num_images: num_images.into(),
-
-        num_notes_in_ideas: num_notes_in_ideas.into(),
-        num_notes_in_articles: num_notes_in_articles.into(),
-        num_notes_in_people: num_notes_in_people.into(),
-        num_notes_in_timelines: num_notes_in_timelines.into(),
-
-        num_points_in_people: num_points_in_people.into(),
-        num_points_in_timelines: num_points_in_timelines.into(),
-
-        num_refs_ideas_to_ideas: num_refs_ideas_to_ideas.into(),
-        num_refs_ideas_to_articles: num_refs_ideas_to_articles.into(),
-        num_refs_ideas_to_people: num_refs_ideas_to_people.into(),
-        num_refs_ideas_to_timelines: num_refs_ideas_to_timelines.into(),
-
-        num_refs_articles_to_ideas: num_refs_articles_to_ideas.into(),
-        num_refs_articles_to_articles: num_refs_articles_to_articles.into(),
-        num_refs_articles_to_people: num_refs_articles_to_people.into(),
-        num_refs_articles_to_timelines: num_refs_articles_to_timelines.into(),
-
-        num_refs_people_to_ideas: num_refs_people_to_ideas.into(),
-        num_refs_people_to_articles: num_refs_people_to_articles.into(),
-        num_refs_people_to_people: num_refs_people_to_people.into(),
-        num_refs_people_to_timelines: num_refs_people_to_timelines.into(),
-
-        num_refs_timelines_to_ideas: num_refs_timelines_to_ideas.into(),
-        num_refs_timelines_to_articles: num_refs_timelines_to_articles.into(),
-        num_refs_timelines_to_people: num_refs_timelines_to_people.into(),
-        num_refs_timelines_to_timelines: num_refs_timelines_to_timelines.into(),
-    })
+fn i32_from_row(row: &Row) -> Result<i32> {
+    Ok(row.get(0)?)
 }
 
-pub(crate) async fn get_num_decks(
-    tx: &Transaction<'_>,
+pub(crate) fn sqlite_get_num_decks(
+    conn: &Connection,
     user_id: Key,
     deck_kind: &str,
-) -> Result<Count> {
+) -> Result<i32> {
     let stmt =
-        "SELECT count(*) as count FROM decks WHERE kind='$deck_kind'::deck_kind AND user_id = $1";
+        "SELECT count(*) as count FROM decks WHERE kind='$deck_kind' AND user_id = ?1";
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
 
-    pg::one::<Count>(&tx, &stmt, &[&user_id]).await
+    sqlite::one(&conn, &stmt, params![&user_id], i32_from_row)
 }
 
-pub(crate) async fn get_num_refs(tx: &Transaction<'_>, user_id: Key) -> Result<Count> {
-    pg::one::<Count>(&tx, "SELECT count(*) as count from notes_decks nd left join decks d on d.id = nd.deck_id WHERE d.user_id = $1", &[&user_id]).await
+pub(crate) fn sqlite_get_num_refs(conn: &Connection, user_id: Key) -> Result<i32> {
+    sqlite::one(&conn,
+                "SELECT count(*) as count from notes_decks nd left join decks d on d.id = nd.deck_id WHERE d.user_id = ?1",
+                params![&user_id],
+                i32_from_row)
 }
 
-pub(crate) async fn get_num_cards(tx: &Transaction<'_>, user_id: Key) -> Result<Count> {
-    pg::one::<Count>(
-        &tx,
-        "SELECT count(*) as count from cards where user_id = $1",
-        &[&user_id],
-    )
-    .await
+pub(crate) fn sqlite_get_num_cards(conn: &Connection, user_id: Key) -> Result<i32> {
+    sqlite::one(&conn,
+                "SELECT count(*) as count from cards where user_id = ?1",
+                params![&user_id],
+                i32_from_row)
 }
 
-pub(crate) async fn get_num_card_ratings(tx: &Transaction<'_>, user_id: Key) -> Result<Count> {
-    pg::one::<Count>(&tx, "SELECT count(*) as count from card_ratings cr left join cards c on c.id = cr.card_id where c.user_id = $1", &[&user_id]).await
+pub(crate) fn sqlite_get_num_card_ratings(conn: &Connection, user_id: Key) -> Result<i32> {
+    sqlite::one(&conn,
+                "SELECT count(*) as count from card_ratings cr left join cards c on c.id = cr.card_id where c.user_id = ?1",
+                params![&user_id],
+                i32_from_row)
 }
 
-pub(crate) async fn get_num_images(tx: &Transaction<'_>, user_id: Key) -> Result<Count> {
-    pg::one::<Count>(
-        &tx,
-        "SELECT count(*) as count from images where user_id = $1",
-        &[&user_id],
-    )
-    .await
+pub(crate) fn sqlite_get_num_images(conn: &Connection, user_id: Key) -> Result<i32> {
+    sqlite::one(&conn,
+                "SELECT count(*) as count from images where user_id = ?1",
+                params![&user_id],
+                i32_from_row)
 }
 
-pub(crate) async fn get_num_notes_in_decks(
-    tx: &Transaction<'_>,
+pub(crate) fn sqlite_get_num_notes_in_decks(
+    conn: &Connection,
     user_id: Key,
     deck_kind: &str,
-) -> Result<Count> {
-    let stmt = "select count(*) as count from notes n left join decks d on d.id = n.deck_id where d.kind='$deck_kind'::deck_kind and n.user_id = $1";
+) -> Result<i32> {
+    let stmt =
+        "select count(*) as count from notes n left join decks d on d.id = n.deck_id where d.kind='$deck_kind' and n.user_id = ?1";
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
 
-    pg::one::<Count>(&tx, &stmt, &[&user_id]).await
+    sqlite::one(&conn, &stmt, params![&user_id], i32_from_row)
 }
 
-pub(crate) async fn get_num_points_in_decks(
-    tx: &Transaction<'_>,
+pub(crate) fn sqlite_get_num_points_in_decks(
+    conn: &Connection,
     user_id: Key,
     deck_kind: &str,
-) -> Result<Count> {
-    let stmt = "select count(*) as count from points p left join decks d on d.id = p.deck_id where d.kind='$deck_kind'::deck_kind and d.user_id = $1";
+) -> Result<i32> {
+    let stmt =
+        "select count(*) as count from points p left join decks d on d.id = p.deck_id where d.kind='$deck_kind' and d.user_id = ?1";
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
 
-    pg::one::<Count>(&tx, &stmt, &[&user_id]).await
+    sqlite::one(&conn, &stmt, params![&user_id], i32_from_row)
 }
 
-pub(crate) async fn get_num_refs_between(
-    tx: &Transaction<'_>,
+pub(crate) fn sqlite_get_num_refs_between(
+    conn: &Connection,
     user_id: Key,
     deck_from: &str,
     deck_to: &str,
-) -> Result<Count> {
+) -> Result<i32> {
     let stmt = "select count(*) as count
 from notes_decks nd
      left join decks deck_to on deck_to.id = nd.deck_id
      left join notes n on n.id = nd.note_id
      left join decks deck_from on n.deck_id = deck_from.id
-where deck_from.user_id = $1 and deck_from.kind='$deck_kind_from'::deck_kind and deck_to.kind='$deck_kind_to'::deck_kind";
+where deck_from.user_id = ?1 and deck_from.kind='$deck_kind_from' and deck_to.kind='$deck_kind_to'";
     let stmt = stmt.replace("$deck_kind_from", &deck_from.to_string());
     let stmt = stmt.replace("$deck_kind_to", &deck_to.to_string());
 
-    pg::one::<Count>(&tx, &stmt, &[&user_id]).await
+    sqlite::one(&conn, &stmt, params![&user_id], i32_from_row)
+}
+
+
+pub fn sqlite_generate_stats(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::Stats> {
+    info!("generate_stats");
+
+    let conn = sqlite_pool.get()?;
+
+    let num_ideas = sqlite_get_num_decks(&conn, user_id, &"idea")?;
+    let num_articles = sqlite_get_num_decks(&conn, user_id, &"article")?;
+    let num_people = sqlite_get_num_decks(&conn, user_id, &"person")?;
+    let num_timelines = sqlite_get_num_decks(&conn, user_id, &"timeline")?;
+    let num_refs = sqlite_get_num_refs(&conn, user_id)?;
+    let num_cards = sqlite_get_num_cards(&conn, user_id)?;
+    let num_card_ratings = sqlite_get_num_card_ratings(&conn, user_id)?;
+    let num_images = sqlite_get_num_images(&conn, user_id)?;
+    let num_notes_in_ideas = sqlite_get_num_notes_in_decks(&conn, user_id, &"idea")?;
+    let num_notes_in_articles = sqlite_get_num_notes_in_decks(&conn, user_id, &"article")?;
+    let num_notes_in_people = sqlite_get_num_notes_in_decks(&conn, user_id, &"person")?;
+    let num_notes_in_timelines = sqlite_get_num_notes_in_decks(&conn, user_id, &"timeline")?;
+    let num_points_in_people = sqlite_get_num_points_in_decks(&conn, user_id, &"person")?;
+    let num_points_in_timelines = sqlite_get_num_points_in_decks(&conn, user_id, &"timeline")?;
+    let num_refs_ideas_to_ideas = sqlite_get_num_refs_between(&conn, user_id, &"idea", &"idea")?;
+    let num_refs_ideas_to_articles = sqlite_get_num_refs_between(&conn, user_id, &"idea", &"article")?;
+    let num_refs_ideas_to_people = sqlite_get_num_refs_between(&conn, user_id, &"idea", &"person")?;
+    let num_refs_ideas_to_timelines = sqlite_get_num_refs_between(&conn, user_id, &"idea", &"timeline")?;
+    let num_refs_articles_to_ideas = sqlite_get_num_refs_between(&conn, user_id, &"article", &"idea")?;
+    let num_refs_articles_to_articles = sqlite_get_num_refs_between(&conn, user_id, &"article", &"article")?;
+    let num_refs_articles_to_people = sqlite_get_num_refs_between(&conn, user_id, &"article", &"person")?;
+    let num_refs_articles_to_timelines = sqlite_get_num_refs_between(&conn, user_id, &"article", &"timeline")?;
+    let num_refs_people_to_ideas = sqlite_get_num_refs_between(&conn, user_id, &"person", &"idea")?;
+    let num_refs_people_to_articles = sqlite_get_num_refs_between(&conn, user_id, &"person", &"article")?;
+    let num_refs_people_to_people = sqlite_get_num_refs_between(&conn, user_id, &"person", &"person")?;
+    let num_refs_people_to_timelines = sqlite_get_num_refs_between(&conn, user_id, &"person", &"timeline")?;
+    let num_refs_timelines_to_ideas = sqlite_get_num_refs_between(&conn, user_id, &"timeline", &"idea")?;
+    let num_refs_timelines_to_articles = sqlite_get_num_refs_between(&conn, user_id, &"timeline", &"article")?;
+    let num_refs_timelines_to_people = sqlite_get_num_refs_between(&conn, user_id, &"timeline", &"person")?;
+    let num_refs_timelines_to_timelines = sqlite_get_num_refs_between(&conn, user_id, &"timeline", &"timeline")?;
+
+    Ok(interop::Stats {
+        num_ideas,
+        num_articles,
+        num_people,
+        num_timelines,
+
+        num_refs,
+        num_cards,
+        num_card_ratings,
+        num_images,
+
+        num_notes_in_ideas,
+        num_notes_in_articles,
+        num_notes_in_people,
+        num_notes_in_timelines,
+
+        num_points_in_people,
+        num_points_in_timelines,
+
+        num_refs_ideas_to_ideas,
+        num_refs_ideas_to_articles,
+        num_refs_ideas_to_people,
+        num_refs_ideas_to_timelines,
+
+        num_refs_articles_to_ideas,
+        num_refs_articles_to_articles,
+        num_refs_articles_to_people,
+        num_refs_articles_to_timelines,
+
+        num_refs_people_to_ideas,
+        num_refs_people_to_articles,
+        num_refs_people_to_people,
+        num_refs_people_to_timelines,
+
+        num_refs_timelines_to_ideas,
+        num_refs_timelines_to_articles,
+        num_refs_timelines_to_people,
+        num_refs_timelines_to_timelines,
+    })
 }

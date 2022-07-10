@@ -251,3 +251,19 @@ pub(crate) fn sqlite_edit_note(
                 params![&user_id, &note_id, &note.content],
                 sqlite_note_from_row)
 }
+
+pub fn sqlite_get_all_notes_in_db(sqlite_pool: &SqlitePool) -> Result<Vec<interop::Note>> {
+    let conn = sqlite_pool.get()?;
+
+    sqlite::many(
+        &conn,
+        "SELECT n.id,
+                n.content,
+                n.kind,
+                n.point_id
+         FROM   notes n
+         ORDER BY n.id",
+        &[],
+        sqlite_note_from_row
+    )
+}

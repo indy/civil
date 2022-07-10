@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::sqlite::{one, SqlitePool};
+use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Result;
 use crate::interop::users as interop;
 use crate::interop::Key;
@@ -42,7 +42,7 @@ pub(crate) fn login(
     }
 
     let conn = sqlite_pool.get()?;
-    one::<(Key, String, interop::User)>(
+    sqlite::one(
         &conn,
         r#"
            select id, email, username, password
@@ -76,7 +76,7 @@ pub(crate) fn create(
         ))
     }
 
-    one::<(Key, interop::User)>(
+    sqlite::one(
         &conn,
         r#"
            insert into users (email, username, password)
@@ -98,7 +98,7 @@ pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::Use
     }
 
     let conn = sqlite_pool.get()?;
-    one::<interop::User>(
+    sqlite::one(
         &conn,
         r#"
            select email, username
@@ -109,6 +109,24 @@ pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::Use
         from_row,
     )
 }
+
+pub fn sqlite_get_all_user_ids(sqlite_pool: &SqlitePool) -> Result<Vec<interop::UserId>> {
+    fn from_row(row: &Row) -> Result<interop::UserId> {
+        Ok(interop::UserId {
+            id: row.get(0)?,
+        })
+    }
+
+    let conn = sqlite_pool.get()?;
+    sqlite::many(
+        &conn,
+        "SELECT id
+         FROM users",
+        &[],
+        from_row
+    )
+}
+
 
 // --------------------------------------------------------------------------------
 // ------------------------------------ Postgres ----------------------------------

@@ -15,13 +15,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use super::pg;
-use crate::error::{Error, Result};
+
+use crate::error::Result;
 use crate::interop::Key;
 
 use crate::interop::uploader as interop;
 
-use deadpool_postgres::{Client, Pool};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 
@@ -55,73 +54,6 @@ impl From<UserUploadedImage> for interop::UserUploadedImage {
     }
 }
 
-pub(crate) async fn get_recent(
-    db_pool: &Pool,
-    user_id: Key,
-) -> Result<Vec<interop::UserUploadedImage>> {
-    pg::many_from::<UserUploadedImage, interop::UserUploadedImage>(
-        db_pool,
-        "SELECT filename
-         FROM images
-         WHERE user_id = $1
-         ORDER BY created_at DESC
-         LIMIT 15",
-        &[&user_id],
-    )
-    .await
-}
-
-pub(crate) async fn get_image_count(db_pool: &Pool, user_id: Key) -> Result<i32> {
-    pg::one_from::<UserImageCount, i32>(
-        db_pool,
-        "SELECT u.id,
-                u.image_count
-         FROM users u
-         WHERE u.id = $1",
-        &[&user_id],
-    )
-    .await
-}
-
-pub(crate) async fn set_image_count(db_pool: &Pool, user_id: Key, new_count: i32) -> Result<()> {
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
-
-    pg::zero(
-        &tx,
-        "UPDATE users
-         SET image_count = $2
-         WHERE id = $1",
-        &[&user_id, &new_count],
-    )
-    .await?;
-
-    tx.commit().await?;
-
-    Ok(())
-}
-
-pub(crate) async fn add_image_entry(db_pool: &Pool, user_id: Key, filename: &str) -> Result<()> {
-    let mut client: Client = db_pool.get().await.map_err(Error::DeadPool)?;
-    let tx = client.transaction().await?;
-
-    pg::zero(
-        &tx,
-        "INSERT INTO images(user_id, filename)
-         VALUES ($1, $2)",
-        &[&user_id, &filename],
-    )
-    .await?;
-
-    tx.commit().await?;
-
-    Ok(())
-}
-
-
-/////////////////////////////////////////////////////
-
-
 use crate::db::sqlite::{self, SqlitePool};
 use rusqlite::{Row, params};
 
@@ -147,4 +79,50 @@ pub(crate) fn sqlite_get_recent(
         params![&user_id],
         user_uploaded_image_from_row
     )
+}
+
+pub(crate) fn sqlite_get_image_count(sqlite_pool: &SqlitePool, user_id: Key) -> Result<i32> {
+    let conn = sqlite_pool.get()?;
+
+    fn from_row(row: &Row) -> Result<i32> {
+        let i = row.get(0)?;
+        Ok(i)
+    }
+
+    sqlite::one(
+        &conn,
+        "SELECT u.id,
+                u.image_count
+         FROM users u
+         WHERE u.id = ?1",
+        params![&user_id],
+        from_row
+    )
+}
+
+pub(crate) fn sqlite_set_image_count(sqlite_pool: &SqlitePool, user_id: Key, new_count: i32) -> Result<()> {
+    let conn = sqlite_pool.get()?;
+
+    sqlite::zero(
+        &conn,
+        "UPDATE users
+         SET image_count = ?2
+         WHERE id = ?1",
+        params![&user_id, &new_count],
+    )?;
+
+    Ok(())
+}
+
+pub(crate) fn sqlite_add_image_entry(sqlite_pool: &SqlitePool, user_id: Key, filename: &str) -> Result<()> {
+    let conn = sqlite_pool.get()?;
+
+    sqlite::zero(
+        &conn,
+        "INSERT INTO images(user_id, filename)
+         VALUES (?1, ?2)",
+        params![&user_id, &filename],
+    )?;
+
+    Ok(())
 }

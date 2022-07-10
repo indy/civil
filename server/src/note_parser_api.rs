@@ -18,8 +18,8 @@
 use crate::db::notes as notes_db;
 use crate::error::Result;
 use crate::interop::notes::Note;
-use deadpool_postgres::Pool;
+use crate::db::sqlite::SqlitePool;
 
-pub async fn get_all_notes_in_db(db_pool: &Pool) -> Result<Vec<Note>> {
-    notes_db::get_all_notes_in_db(db_pool).await
+pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> Result<Vec<Note>> {
+    notes_db::sqlite_get_all_notes_in_db(sqlite_pool)
 }
