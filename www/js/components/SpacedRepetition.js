@@ -133,7 +133,7 @@ function reducer(state, action) {
 };
 
 export default function SpacedRepetition(props) {
-    const [state] = useStateValue();
+    const [state, dispatch] = useStateValue();
 
     const initialState = {
         mode: MODE_PRE_TEST,
