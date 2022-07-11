@@ -41,17 +41,20 @@ pub async fn create(
     let user_id = session::user_id(&session)?;
     let proto_quote = proto_quote.into_inner();
 
-    let quote = db::sqlite_get_or_create(&sqlite_pool, user_id, &proto_quote)?;
+    let quote = db::get_or_create(&sqlite_pool, user_id, &proto_quote)?;
 
     Ok(HttpResponse::Ok().json(quote))
 }
 
-pub async fn random(sqlite_pool: Data<SqlitePool>, session: actix_session::Session) -> Result<HttpResponse> {
+pub async fn random(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
     info!("random");
 
     let user_id = session::user_id(&session)?;
 
-    let mut quote = db::sqlite_random(&sqlite_pool, user_id)?;
+    let mut quote = db::random(&sqlite_pool, user_id)?;
     sqlite_augment(&sqlite_pool, &mut quote)?;
 
     Ok(HttpResponse::Ok().json(quote))
@@ -66,7 +69,7 @@ pub async fn get(
 
     let user_id = session::user_id(&session)?;
 
-    let mut quote = db::sqlite_get(&sqlite_pool, user_id, params.id)?;
+    let mut quote = db::get(&sqlite_pool, user_id, params.id)?;
     sqlite_augment(&sqlite_pool, &mut quote)?;
 
     Ok(HttpResponse::Ok().json(quote))
@@ -81,7 +84,7 @@ pub async fn next(
 
     let user_id = session::user_id(&session)?;
 
-    let mut quote = db::sqlite_next(&sqlite_pool, user_id, params.id)?;
+    let mut quote = db::next(&sqlite_pool, user_id, params.id)?;
     sqlite_augment(&sqlite_pool, &mut quote)?;
 
     Ok(HttpResponse::Ok().json(quote))
@@ -96,7 +99,7 @@ pub async fn prev(
 
     let user_id = session::user_id(&session)?;
 
-    let mut quote = db::sqlite_prev(&sqlite_pool, user_id, params.id)?;
+    let mut quote = db::prev(&sqlite_pool, user_id, params.id)?;
     sqlite_augment(&sqlite_pool, &mut quote)?;
 
     Ok(HttpResponse::Ok().json(quote))
@@ -114,7 +117,7 @@ pub async fn edit(
     let quote_id = params.id;
     let quote = quote.into_inner();
 
-    let mut quote = db::sqlite_edit(&sqlite_pool, user_id, &quote, quote_id)?;
+    let mut quote = db::edit(&sqlite_pool, user_id, &quote, quote_id)?;
     sqlite_augment(&sqlite_pool, &mut quote)?;
 
     Ok(HttpResponse::Ok().json(quote))
@@ -129,19 +132,19 @@ pub async fn delete(
 
     let user_id = session::user_id(&session)?;
 
-    db::sqlite_delete(&sqlite_pool, user_id, params.id)?;
+    db::delete(&sqlite_pool, user_id, params.id)?;
 
     Ok(HttpResponse::Ok().json(true))
 }
 
-fn sqlite_augment(sqlite_pool: &Data<SqlitePool>, quote: &mut interop::SqliteQuote) -> Result<()> {
+fn sqlite_augment(sqlite_pool: &Data<SqlitePool>, quote: &mut interop::Quote) -> Result<()> {
     let quote_id: Key = quote.id;
 
-    let notes = notes_db::sqlite_all_from_deck(&sqlite_pool, quote_id)?;
-    let refs = decks_db::sqlite_from_deck_id_via_notes_to_decks(&sqlite_pool, quote_id)?;
-    let backnotes = decks_db::sqlite_get_backnotes(&sqlite_pool, quote_id)?;
-    let backrefs = decks_db::sqlite_get_backrefs(&sqlite_pool, quote_id)?;
-    let flashcards = sr_db::sqlite_all_flashcards_for_deck(&sqlite_pool, quote_id)?;
+    let notes = notes_db::all_from_deck(&sqlite_pool, quote_id)?;
+    let refs = decks_db::from_deck_id_via_notes_to_decks(&sqlite_pool, quote_id)?;
+    let backnotes = decks_db::get_backnotes(&sqlite_pool, quote_id)?;
+    let backrefs = decks_db::get_backrefs(&sqlite_pool, quote_id)?;
+    let flashcards = sr_db::all_flashcards_for_deck(&sqlite_pool, quote_id)?;
 
     quote.notes = Some(notes);
     quote.refs = Some(refs);

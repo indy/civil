@@ -15,44 +15,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::deck_kind::DeckKind;
 use crate::db::decks;
 use crate::error::Result;
+use crate::interop::decks::{sqlite_string_from_deck_kind, DeckKind};
 use crate::interop::people as interop;
 use crate::interop::Key;
 
 #[allow(unused_imports)]
 use tracing::{error, info};
 
-impl From<decks::DeckBase> for interop::Person {
-    fn from(e: decks::DeckBase) -> interop::Person {
-        interop::Person {
-            id: e.id,
-            name: e.name,
-
-            sort_date: None,
-
-            points: None,
-            all_points_during_life: None,
-
-            notes: None,
-
-            refs: None,
-
-            backnotes: None,
-            backrefs: None,
-
-            flashcards: None,
-        }
-    }
-}
-
 use crate::db::sqlite::{self, SqlitePool};
-use rusqlite::{Row, params};
-use crate::db::deck_kind::sqlite_string_from_deck_kind;
+use rusqlite::{params, Row};
 
-fn sqlite_person_with_sortdate_from_row(row: &Row) -> Result<interop::SqlitePerson> {
-    Ok(interop::SqlitePerson {
+fn person_with_sortdate_from_row(row: &Row) -> Result<interop::Person> {
+    Ok(interop::Person {
         id: row.get(0)?,
         name: row.get(1)?,
         sort_date: row.get(2)?,
@@ -66,8 +42,8 @@ fn sqlite_person_with_sortdate_from_row(row: &Row) -> Result<interop::SqlitePers
     })
 }
 
-fn sqlite_person_from_row(row: &Row) -> Result<interop::SqlitePerson> {
-    Ok(interop::SqlitePerson {
+fn person_from_row(row: &Row) -> Result<interop::Person> {
+    Ok(interop::Person {
         id: row.get(0)?,
         name: row.get(1)?,
         sort_date: None,
@@ -81,24 +57,24 @@ fn sqlite_person_from_row(row: &Row) -> Result<interop::SqlitePerson> {
     })
 }
 
-pub(crate) fn sqlite_get_or_create(
+pub(crate) fn get_or_create(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     title: &str,
-) -> Result<interop::SqlitePerson> {
-
+) -> Result<interop::Person> {
     let conn = sqlite_pool.get()?;
 
-    let (deck, _origin) = decks::sqlite_deckbase_get_or_create(&conn, user_id, DeckKind::Person, &title)?;
+    let (deck, _origin) = decks::deckbase_get_or_create(&conn, user_id, DeckKind::Person, &title)?;
 
     Ok(deck.into())
 }
 
-pub(crate) fn sqlite_all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::SqlitePerson>> {
+pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::Person>> {
     let conn = sqlite_pool.get()?;
 
-    sqlite::many(&conn,
-                 "select d.id,
+    sqlite::many(
+        &conn,
+        "select d.id,
                 d.name,
                 coalesce(p.exact_date, p.lower_date) as birth_date
          from decks d, points p
@@ -116,31 +92,42 @@ pub(crate) fn sqlite_all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<i
                and d.kind = 'person'
                and p.deck_id is null
          order by birth_date",
-                 params![&user_id],
-                 sqlite_person_with_sortdate_from_row)
+        params![&user_id],
+        person_with_sortdate_from_row,
+    )
 }
 
-pub(crate) fn sqlite_get(sqlite_pool: &SqlitePool, user_id: Key, person_id: Key) -> Result<interop::SqlitePerson> {
+pub(crate) fn get(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    person_id: Key,
+) -> Result<interop::Person> {
     let conn = sqlite_pool.get()?;
 
-    let deck = sqlite::one(&conn,
-                           decks::DECKBASE_QUERY,
-                           params![&user_id, &person_id, &sqlite_string_from_deck_kind(DeckKind::Person)],
-                           sqlite_person_from_row)?;
+    let deck = sqlite::one(
+        &conn,
+        decks::DECKBASE_QUERY,
+        params![
+            &user_id,
+            &person_id,
+            &sqlite_string_from_deck_kind(DeckKind::Person)
+        ],
+        person_from_row,
+    )?;
 
     Ok(deck.into())
 }
 
-pub(crate) fn sqlite_edit(
+pub(crate) fn edit(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     person: &interop::ProtoPerson,
     person_id: Key,
-) -> Result<interop::SqlitePerson> {
+) -> Result<interop::Person> {
     let conn = sqlite_pool.get()?;
 
     let graph_terminator = false;
-    let deck = decks::sqlite_deckbase_edit(
+    let deck = decks::deckbase_edit(
         &conn,
         user_id,
         person_id,
@@ -152,6 +139,6 @@ pub(crate) fn sqlite_edit(
     Ok(deck.into())
 }
 
-pub(crate) fn sqlite_delete(sqlite_pool: &SqlitePool, user_id: Key, person_id: Key) -> Result<()> {
-    decks::sqlite_delete(sqlite_pool, user_id, person_id)
+pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, person_id: Key) -> Result<()> {
+    decks::delete(sqlite_pool, user_id, person_id)
 }

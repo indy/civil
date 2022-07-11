@@ -16,13 +16,13 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::notes as db;
+use crate::db::sqlite::SqlitePool;
 use crate::error::Result;
 use crate::interop::notes as interop;
 use crate::interop::IdParam;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
-use crate::db::sqlite::SqlitePool;
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -37,7 +37,7 @@ pub async fn create_notes(
 
     let user_id = session::user_id(&session)?;
 
-    let notes = db::sqlite_create_notes(&sqlite_pool, user_id, &note)?;
+    let notes = db::create_notes(&sqlite_pool, user_id, &note)?;
 
     Ok(HttpResponse::Ok().json(notes))
 }
@@ -50,7 +50,7 @@ pub async fn get_note(
     info!("get_note {}", params.id);
 
     let user_id = session::user_id(&session)?;
-    let note = db::sqlite_get_note(&sqlite_pool, user_id, params.id)?;
+    let note = db::get_note(&sqlite_pool, user_id, params.id)?;
 
     Ok(HttpResponse::Ok().json(note))
 }
@@ -66,7 +66,7 @@ pub async fn edit_note(
     let note = note.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let note = db::sqlite_edit_note(&sqlite_pool, user_id, &note, params.id)?;
+    let note = db::edit_note(&sqlite_pool, user_id, &note, params.id)?;
 
     Ok(HttpResponse::Ok().json(note))
 }
@@ -80,7 +80,7 @@ pub async fn delete_note(
 
     let user_id = session::user_id(&session)?;
 
-    db::sqlite_delete_note_pool(&sqlite_pool, user_id, params.id)?;
+    db::delete_note_pool(&sqlite_pool, user_id, params.id)?;
 
     Ok(HttpResponse::Ok().json(true))
 }

@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::DeckResource;
+use crate::interop::decks::DeckKind;
 use crate::interop::Key;
 
 #[derive(Copy, Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
@@ -73,7 +73,7 @@ pub struct DeckPoint {
 
     pub deck_id: Key,
     pub deck_name: String,
-    pub deck_resource: DeckResource,
+    pub deck_resource: DeckKind,
 }
 
 fn eq_naive_dates(a: Option<chrono::NaiveDate>, b: Option<chrono::NaiveDate>) -> bool {
@@ -116,42 +116,3 @@ impl PartialEq<Point> for ProtoPoint {
             && self.date_fuzz == other.date_fuzz
     }
 }
-/*
-pub(crate) fn try_build(
-    id: Option<Key>,
-
-    title: Option<String>,
-
-    location_textual: Option<String>,
-    longitude: Option<f32>,
-    latitude: Option<f32>,
-    location_fuzz: Option<f32>,
-
-    date_textual: Option<String>,
-    exact_date: Option<chrono::NaiveDate>,
-    lower_date: Option<chrono::NaiveDate>,
-    upper_date: Option<chrono::NaiveDate>,
-    date_fuzz: Option<f32>,
-) -> Option<Point> {
-    if let Some(id) = id {
-        Some(Point {
-            id,
-
-            title,
-
-            location_textual,
-            longitude,
-            latitude,
-            location_fuzz: location_fuzz.unwrap_or(0.0),
-
-            date_textual,
-            exact_date,
-            lower_date,
-            upper_date,
-            date_fuzz: date_fuzz.unwrap_or(1.0),
-        })
-    } else {
-        None
-    }
-}
-*/

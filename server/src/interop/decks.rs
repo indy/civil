@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::Key;
 use crate::error::{Error, Result};
+use crate::interop::Key;
 
 #[derive(PartialEq, Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
-pub enum DeckResource {
+pub enum DeckKind {
     #[serde(rename = "articles")]
     Article,
     #[serde(rename = "people")]
@@ -32,20 +32,29 @@ pub enum DeckResource {
     Quote,
 }
 
-
-pub(crate) fn deck_resource_from_sqlite_string(s: &str) -> Result<DeckResource> {
-    if s == "articles" {
-        Ok(DeckResource::Article)
-    } else if s == "people" {
-        Ok(DeckResource::Person)
-    } else if s == "ideas" {
-        Ok(DeckResource::Idea)
-    } else if s == "timelines" {
-        Ok(DeckResource::Timeline)
-    } else if s == "quotes" {
-        Ok(DeckResource::Quote)
+pub(crate) fn deck_kind_from_sqlite_string(s: &str) -> Result<DeckKind> {
+    if s == "article" {
+        Ok(DeckKind::Article)
+    } else if s == "person" {
+        Ok(DeckKind::Person)
+    } else if s == "idea" {
+        Ok(DeckKind::Idea)
+    } else if s == "timeline" {
+        Ok(DeckKind::Timeline)
+    } else if s == "quote" {
+        Ok(DeckKind::Quote)
     } else {
         Err(Error::SqliteStringConversion)
+    }
+}
+
+pub(crate) fn sqlite_string_from_deck_kind(deckkind: DeckKind) -> &'static str {
+    match deckkind {
+        DeckKind::Article => "article",
+        DeckKind::Person => "person",
+        DeckKind::Idea => "idea",
+        DeckKind::Timeline => "timeline",
+        DeckKind::Quote => "quote",
     }
 }
 
@@ -58,6 +67,32 @@ pub enum RefKind {
     RefCritical,
 }
 
+pub(crate) fn ref_kind_from_sqlite_string(s: &str) -> Result<RefKind> {
+    if s == "ref" {
+        Ok(RefKind::Ref)
+    } else if s == "ref_to_parent" {
+        Ok(RefKind::RefToParent)
+    } else if s == "ref_to_child" {
+        Ok(RefKind::RefToChild)
+    } else if s == "ref_in_contrast" {
+        Ok(RefKind::RefInContrast)
+    } else if s == "ref_critical" {
+        Ok(RefKind::RefCritical)
+    } else {
+        Err(Error::SqliteStringConversion)
+    }
+}
+
+pub(crate) fn sqlite_string_from_ref_kind(rk: RefKind) -> Result<String> {
+    match rk {
+        RefKind::Ref => Ok(String::from("ref")),
+        RefKind::RefToParent => Ok(String::from("ref_to_parent")),
+        RefKind::RefToChild => Ok(String::from("ref_to_child")),
+        RefKind::RefInContrast => Ok(String::from("ref_in_contrast")),
+        RefKind::RefCritical => Ok(String::from("ref_critical")),
+    }
+}
+
 // links to decks on the side of notes
 //
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -65,7 +100,7 @@ pub struct Ref {
     pub note_id: Key,
     pub id: Key,
     pub name: String,
-    pub resource: DeckResource,
+    pub resource: DeckKind,
     pub ref_kind: RefKind,
     pub annotation: Option<String>,
 }
@@ -78,7 +113,7 @@ pub struct BackNote {
     pub note_content: String,
     pub deck_id: Key,
     pub deck_name: String,
-    pub resource: DeckResource,
+    pub resource: DeckKind,
 }
 
 // all refs on notes that have at least one ref back to the currently displayed deck
@@ -88,7 +123,7 @@ pub struct BackRef {
     pub note_id: Key,
     pub deck_id: Key,
     pub deck_name: String,
-    pub resource: DeckResource,
+    pub resource: DeckKind,
     pub ref_kind: RefKind,
     pub annotation: Option<String>,
 }
@@ -99,7 +134,7 @@ pub struct BackRef {
 pub struct DeckSimple {
     pub id: Key,
     pub name: String,
-    pub resource: DeckResource,
+    pub resource: DeckKind,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

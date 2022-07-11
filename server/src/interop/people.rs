@@ -18,7 +18,7 @@
 use crate::interop::decks::{BackNote, BackRef, Ref};
 use crate::interop::notes::Note;
 use crate::interop::points::{DeckPoint, Point};
-use crate::interop::sr::{FlashCard, SqliteFlashCard};
+use crate::interop::sr::FlashCard;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -46,34 +46,9 @@ pub struct Person {
     pub flashcards: Option<Vec<FlashCard>>,
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct SqlitePerson {
-    pub id: Key,
-    pub name: String,
-
-    pub sort_date: Option<chrono::NaiveDate>,
-
-    pub points: Option<Vec<Point>>,
-
-    // all the points that happened during a person's life. These may not be
-    // directly connected to the person's life, but it's interesting to see
-    // what was happening during their lifetime
-    //
-    pub all_points_during_life: Option<Vec<DeckPoint>>,
-
-    pub notes: Option<Vec<Note>>,
-
-    pub refs: Option<Vec<Ref>>,
-
-    pub backnotes: Option<Vec<BackNote>>,
-    pub backrefs: Option<Vec<BackRef>>,
-
-    pub flashcards: Option<Vec<SqliteFlashCard>>,
-}
-
-impl From<crate::db::decks::SqliteDeckBase> for SqlitePerson {
-    fn from(d: crate::db::decks::SqliteDeckBase) -> SqlitePerson {
-        SqlitePerson {
+impl From<crate::db::decks::DeckBase> for Person {
+    fn from(d: crate::db::decks::DeckBase) -> Person {
+        Person {
             id: d.id,
             name: d.name,
 

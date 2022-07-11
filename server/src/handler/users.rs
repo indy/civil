@@ -47,7 +47,7 @@ pub async fn login(
 
         if id == 1 {
             user.admin = Some(interop::Admin {
-                db_name: env::var("POSTGRES_DB")?,
+                db_name: env::var("SQLITE_DB")?,
             })
         }
 
@@ -61,7 +61,10 @@ pub async fn login(
     }
 }
 
-pub async fn logout(_db_pool: Data<SqlitePool>, session: actix_session::Session) -> Result<HttpResponse> {
+pub async fn logout(
+    _db_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
     session.purge();
     // todo: what to return when logging out???
     Ok(HttpResponse::Ok().json(true))
@@ -92,7 +95,7 @@ pub async fn create_user(
 
         if id == 1 {
             user.admin = Some(interop::Admin {
-                db_name: env::var("POSTGRES_DB")?,
+                db_name: env::var("SQLITE_DB")?,
             })
         }
 
@@ -114,7 +117,7 @@ pub async fn get_user(
 
         if user_id == 1 {
             user.admin = Some(interop::Admin {
-                db_name: env::var("POSTGRES_DB")?,
+                db_name: env::var("SQLITE_DB")?,
             })
         }
 

@@ -25,17 +25,17 @@ use crate::interop::Key;
 use crate::db::sqlite::SqlitePool;
 
 pub fn get_all_user_ids(sqlite_pool: &SqlitePool) -> Result<Vec<UserId>> {
-    users_db::sqlite_get_all_user_ids(sqlite_pool)
+    users_db::get_all_user_ids(sqlite_pool)
 }
 
 pub fn create_stats(sqlite_pool: &SqlitePool, user_id: Key, stats: &Stats) -> Result<()> {
-    stats_db::sqlite_create_stats(sqlite_pool, user_id, stats)
+    stats_db::create_stats(sqlite_pool, user_id, stats)
 }
 
 pub fn get_last_saved_stats(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Stats> {
-    stats_db::sqlite_get_last_saved_stats(sqlite_pool, user_id)
+    stats_db::get_last_saved_stats(sqlite_pool, user_id)
 }
 
 pub fn generate_stats(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Stats> {
-    stats_db::sqlite_generate_stats(sqlite_pool, user_id)
+    stats_db::generate_stats(sqlite_pool, user_id)
 }

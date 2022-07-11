@@ -16,16 +16,14 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::edges as db;
+use crate::db::sqlite::SqlitePool;
 use crate::error::Result;
 use crate::interop::edges as interop;
 use crate::session;
 use actix_web::web::{Data, Json};
 use actix_web::HttpResponse;
-use crate::db::sqlite::SqlitePool;
 #[allow(unused_imports)]
 use tracing::info;
-
-
 
 pub async fn create_from_note_to_decks(
     note_references: Json<interop::ProtoNoteReferences>,
@@ -37,7 +35,8 @@ pub async fn create_from_note_to_decks(
     let note_references = note_references.into_inner();
     let user_id = session::user_id(&session)?;
 
-    let all_decks_for_note = db::sqlite_create_from_note_to_decks(&sqlite_pool, &note_references, user_id)?;
+    let all_decks_for_note =
+        db::create_from_note_to_decks(&sqlite_pool, &note_references, user_id)?;
 
     Ok(HttpResponse::Ok().json(all_decks_for_note))
 }

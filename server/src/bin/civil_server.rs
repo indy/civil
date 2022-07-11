@@ -29,12 +29,10 @@ const SIGNING_KEY_SIZE: usize = 32;
 
 use r2d2_sqlite::SqliteConnectionManager;
 
-
 #[actix_rt::main]
 async fn main() -> Result<()> {
     civil_server::init_dotenv();
     civil_server::init_tracing();
-    let pool = civil_server::init_postgres_pool().await?;
 
     let port = civil_server::env_var_string("PORT")?;
     let www_path = civil_server::env_var_string("WWW_PATH")?;
@@ -44,14 +42,11 @@ async fn main() -> Result<()> {
 
     let session_signing_key = env::var("SESSION_SIGNING_KEY")?;
 
-
     let sqlite_db = civil_server::env_var_string("SQLITE_DB")?;
     civil_server::db::sqlite_migrations::migration_check(&sqlite_db)?;
 
     let sqlite_manager = SqliteConnectionManager::file(&sqlite_db);
     let sqlite_pool = r2d2::Pool::new(sqlite_manager)?;
-
-    // civil_server::db::sqlite_migrations::migrate_from_postgres(sqlite_pool.clone(), pool.clone()).await?;
 
     let server = HttpServer::new(move || {
         let mut signing_key: &mut [u8] = &mut [0; SIGNING_KEY_SIZE];
@@ -72,7 +67,6 @@ async fn main() -> Result<()> {
 
         App::new()
             .app_data(web::Data::new(sqlite_pool.clone()))
-            .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(ServerConfig {
                 user_content_path: user_content_path.clone(),
                 registration_magic_word: registration_magic_word.clone(),

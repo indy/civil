@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::sqlite::SqlitePool;
 use crate::error::Result;
 use crate::session;
 use actix_web::web::Data;
 use actix_web::HttpResponse;
 use chrono::Utc;
-use crate::db::sqlite::SqlitePool;
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -39,15 +39,19 @@ struct UberStruct {
     pub sr_earliest_review_date: chrono::NaiveDateTime,
 }
 
-pub async fn setup(sqlite_pool: Data<SqlitePool>, session: actix_session::Session) -> Result<HttpResponse> {
+pub async fn setup(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
     info!("setup");
 
     let user_id = session::user_id(&session)?;
 
     let directory = user_id;
 
-    let recent_images = db_uploader::sqlite_get_recent(&sqlite_pool, user_id)?;
-    let upcoming_review = db_sr::sqlite_get_cards_upcoming_review(&sqlite_pool, user_id, Utc::now().naive_utc())?;
+    let recent_images = db_uploader::get_recent(&sqlite_pool, user_id)?;
+    let upcoming_review =
+        db_sr::get_cards_upcoming_review(&sqlite_pool, user_id, Utc::now().naive_utc())?;
 
     let uber = UberStruct {
         directory,

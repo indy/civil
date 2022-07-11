@@ -28,8 +28,6 @@ pub enum Error {
     Argon2(argon2::Error),
     Authenticating,
     CivilShared(civil_shared::Error),
-    DeadPool(deadpool_postgres::PoolError),
-    DeadPoolCreatePool(deadpool_postgres::CreatePoolError),
     IO(std::io::Error),
     InvalidKind,
     InvalidModelType(Model),
@@ -44,22 +42,19 @@ pub enum Error {
     Registration,
     ThreadpoolBlocking(actix_threadpool::BlockingError<std::io::Error>),
     ActixWebBlocking(actix_web::error::BlockingError),
-    TokioPostgres(tokio_postgres::error::Error),
-    TokioPostgresMapper(tokio_pg_mapper::Error),
     TooManyFound,
     Utf8(std::str::Utf8Error),
     Var(std::env::VarError),
     Sqlite(rusqlite::Error),
     SqliteMigration(rusqlite_migration::Error),
     SqlitePool(r2d2::Error),
-    SqliteStringConversion
+    SqliteStringConversion,
 }
 
 impl ResponseError for Error {
     fn error_response(&self) -> HttpResponse {
         match *self {
             Error::NotFound => HttpResponse::NotFound().finish(),
-            Error::DeadPool(ref err) => HttpResponse::InternalServerError().body(err.to_string()),
             _ => HttpResponse::InternalServerError().finish(),
         }
     }

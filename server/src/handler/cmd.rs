@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::decks as db;
+use crate::db::sqlite::SqlitePool;
 use crate::error::Result;
 use crate::handler::SearchQuery;
 use crate::interop::decks::ResultList;
@@ -23,7 +24,6 @@ use crate::session;
 use actix_web::web::{self, Data};
 use actix_web::HttpResponse;
 use serde::Deserialize;
-use crate::db::sqlite::SqlitePool;
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -37,7 +37,7 @@ pub async fn search(
 
     let user_id = session::user_id(&session)?;
 
-    let results = db::sqlite_search(&sqlite_pool, user_id, &query.q)?;
+    let results = db::search(&sqlite_pool, user_id, &query.q)?;
 
     let res = ResultList { results };
     Ok(HttpResponse::Ok().json(res))
@@ -52,7 +52,7 @@ pub async fn namesearch(
 
     let user_id = session::user_id(&session)?;
 
-    let results = db::sqlite_search_by_name(&sqlite_pool, user_id, &query.q)?;
+    let results = db::search_by_name(&sqlite_pool, user_id, &query.q)?;
 
     let res = ResultList { results };
     Ok(HttpResponse::Ok().json(res))
@@ -72,7 +72,7 @@ pub async fn recent(
 
     let user_id = session::user_id(&session)?;
 
-    let results = db::sqlite_recent(&sqlite_pool, user_id, &query.resource)?;
+    let results = db::recent(&sqlite_pool, user_id, &query.resource)?;
 
     let res = ResultList { results };
     Ok(HttpResponse::Ok().json(res))

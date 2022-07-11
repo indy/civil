@@ -15,103 +15,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::deck_kind::{DeckKind, deck_kind_from_sqlite_string};
 use crate::db::decks::DeckSimple;
+use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Result;
 use crate::interop::decks as interop_decks;
 use crate::interop::sr as interop;
 use crate::interop::Key;
-use serde::{Deserialize, Serialize};
-use tokio_pg_mapper_derive::PostgresMapper;
 
+use rusqlite::{params, Row};
 #[allow(unused_imports)]
 use tracing::info;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "cards")]
-pub struct FlashCard {
-    pub id: Key,
-
-    pub note_id: Key,
-    pub prompt: String,
-    pub next_test_date: chrono::DateTime<chrono::Utc>,
-
-    pub easiness_factor: f32,
-    pub inter_repetition_interval: i32,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "cards")]
-pub struct CardUpcomingReviewCount {
-    pub review_count: i64, // note with postgres' Int8 the '8' refers to bytes not bits
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "cards")]
-pub struct CardUpcomingReviewDate {
-    pub earliest_review_date: chrono::DateTime<chrono::Utc>,
-}
-
-impl From<(CardUpcomingReviewCount, CardUpcomingReviewDate)> for interop::CardUpcomingReview {
-    fn from(cc: (CardUpcomingReviewCount, CardUpcomingReviewDate)) -> interop::CardUpcomingReview {
-        let (c, d) = cc;
-        interop::CardUpcomingReview {
-            review_count: c.review_count as i32,
-            earliest_review_date: d.earliest_review_date,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "cards")]
+#[derive(Debug, Clone)]
 pub struct Card {
     pub id: Key,
 
     pub note_id: Key,
     pub prompt: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "cards")]
-pub struct CardDbInternal {
-    pub id: Key,
-    pub note_id: Key,
-    pub prompt: String,
-
-    pub note_content: String,
-
-    pub deck_id: Key,
-    pub deck_name: String,
-    pub deck_kind: DeckKind,
-}
-
-impl From<CardDbInternal> for interop::Card {
-    fn from(e: CardDbInternal) -> interop::Card {
-        interop::Card {
-            id: e.id,
-            note_id: e.note_id,
-            note_content: e.note_content,
-            deck_info: interop_decks::DeckSimple {
-                id: e.deck_id,
-                name: e.deck_name,
-                resource: interop_decks::DeckResource::from(e.deck_kind),
-            },
-            prompt: e.prompt,
-        }
-    }
-}
-
-impl From<FlashCard> for interop::FlashCard {
-    fn from(e: FlashCard) -> interop::FlashCard {
-        interop::FlashCard {
-            id: e.id,
-            note_id: e.note_id,
-            prompt: e.prompt,
-            next_test_date: e.next_test_date,
-            easiness_factor: e.easiness_factor,
-            inter_repetition_interval: e.inter_repetition_interval,
-        }
-    }
 }
 
 impl From<(Card, DeckSimple)> for interop::Card {
@@ -131,12 +51,8 @@ impl From<(Card, DeckSimple)> for interop::Card {
     }
 }
 
-
-use crate::db::sqlite::{self, SqlitePool};
-use rusqlite::{Row, params};
-
-fn flashcard_from_row(row: &Row) -> Result<interop::SqliteFlashCard> {
-    Ok(interop::SqliteFlashCard {
+fn flashcard_from_row(row: &Row) -> Result<interop::FlashCard> {
+    Ok(interop::FlashCard {
         id: row.get(0)?,
 
         note_id: row.get(1)?,
@@ -148,10 +64,10 @@ fn flashcard_from_row(row: &Row) -> Result<interop::SqliteFlashCard> {
     })
 }
 
-pub(crate) fn sqlite_all_flashcards_for_deck(
+pub(crate) fn all_flashcards_for_deck(
     sqlite_pool: &SqlitePool,
     deck_id: Key,
-) -> Result<Vec<interop::SqliteFlashCard>> {
+) -> Result<Vec<interop::FlashCard>> {
     let conn = sqlite_pool.get()?;
     sqlite::many(&conn,
                  "SELECT c.id, c.note_id, c.prompt, c.next_test_date, c.easiness_factor, c.inter_repetition_interval
@@ -161,30 +77,25 @@ pub(crate) fn sqlite_all_flashcards_for_deck(
                  flashcard_from_row)
 }
 
-
 fn local_card_from_row(row: &Row) -> Result<Card> {
     Ok(Card {
         id: row.get(0)?,
         note_id: row.get(1)?,
-        prompt: row.get(2)?
+        prompt: row.get(2)?,
     })
 }
-
-
 
 fn local_decksimple_from_row(row: &Row) -> Result<DeckSimple> {
     let kind: String = row.get(2)?;
-    let deck_kind = deck_kind_from_sqlite_string(kind.as_str())?;
+    let deck_kind = interop_decks::deck_kind_from_sqlite_string(kind.as_str())?;
     Ok(DeckSimple {
         id: row.get(0)?,
         name: row.get(1)?,
-        kind: deck_kind
+        kind: deck_kind,
     })
 }
 
-
-
-pub(crate) fn sqlite_create_card(
+pub(crate) fn create_card(
     sqlite_pool: &SqlitePool,
     card: &interop::ProtoCard,
     user_id: Key,
@@ -217,17 +128,17 @@ pub(crate) fn sqlite_create_card(
          FROM decks d, notes n
          WHERE d.id = n.deck_id AND n.id = ?1",
         params![&card.note_id],
-        local_decksimple_from_row
+        local_decksimple_from_row,
     )?;
 
     Ok((db_card, db_backref).into())
 }
 
-pub(crate) fn sqlite_get_card_full_fat(
+pub(crate) fn get_card_full_fat(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     card_id: Key,
-) -> Result<interop::SqliteFlashCard> {
+) -> Result<interop::FlashCard> {
     info!("get_card_full_fat");
 
     let conn = sqlite_pool.get()?;
@@ -238,13 +149,13 @@ pub(crate) fn sqlite_get_card_full_fat(
          FROM cards
          WHERE user_id=?1 and id=?2",
         params![&user_id, &card_id],
-        flashcard_from_row
+        flashcard_from_row,
     )
 }
 
-pub(crate) fn sqlite_card_rated(
+pub(crate) fn card_rated(
     sqlite_pool: &SqlitePool,
-    card: interop::SqliteFlashCard,
+    card: interop::FlashCard,
     rating: i16,
 ) -> Result<()> {
     info!("card_rated");
@@ -274,12 +185,12 @@ pub(crate) fn sqlite_card_rated(
     Ok(())
 }
 
-pub(crate) fn sqlite_edit_flashcard(
+pub(crate) fn edit_flashcard(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    flashcard: &interop::SqliteFlashCard,
+    flashcard: &interop::FlashCard,
     flashcard_id: Key,
-) -> Result<interop::SqliteFlashCard> {
+) -> Result<interop::FlashCard> {
     let conn = sqlite_pool.get()?;
 
     sqlite::one(
@@ -289,16 +200,15 @@ pub(crate) fn sqlite_edit_flashcard(
          WHERE id = ?2 and user_id = ?1
          RETURNING id, note_id, prompt, next_test_date, easiness_factor, inter_repetition_interval",
         params![&user_id, &flashcard_id, &flashcard.prompt],
-        flashcard_from_row
+        flashcard_from_row,
     )
 }
 
-pub(crate) fn sqlite_delete_flashcard(
+pub(crate) fn delete_flashcard(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     flashcard_id: Key,
 ) -> Result<()> {
-
     let conn = sqlite_pool.get()?;
 
     sqlite::zero(
@@ -316,10 +226,9 @@ pub(crate) fn sqlite_delete_flashcard(
     Ok(())
 }
 
-
 fn interop_card_from_row(row: &Row) -> Result<interop::Card> {
     let kind: String = row.get(6)?;
-    let deck_kind = deck_kind_from_sqlite_string(kind.as_str())?;
+    let deck_kind = interop_decks::deck_kind_from_sqlite_string(kind.as_str())?;
 
     Ok(interop::Card {
         id: row.get(0)?,
@@ -328,13 +237,13 @@ fn interop_card_from_row(row: &Row) -> Result<interop::Card> {
         deck_info: interop_decks::DeckSimple {
             id: row.get(4)?,
             name: row.get(5)?,
-            resource: interop_decks::DeckResource::from(deck_kind),
+            resource: interop_decks::DeckKind::from(deck_kind),
         },
         prompt: row.get(2)?,
     })
 }
 
-pub(crate) fn sqlite_get_cards(
+pub(crate) fn get_cards(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     due: chrono::NaiveDateTime,
@@ -353,7 +262,7 @@ pub(crate) fn sqlite_get_cards(
     )
 }
 
-pub(crate) fn sqlite_get_practice_card(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::Card> {
+pub(crate) fn get_practice_card(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::Card> {
     info!("get_practice_card");
 
     let conn = sqlite_pool.get()?;
@@ -370,16 +279,14 @@ pub(crate) fn sqlite_get_practice_card(sqlite_pool: &SqlitePool, user_id: Key) -
     )
 }
 
-
-pub(crate) fn sqlite_get_cards_upcoming_review(
+pub(crate) fn get_cards_upcoming_review(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     due: chrono::NaiveDateTime,
-) -> Result<interop::SqliteCardUpcomingReview> {
+) -> Result<interop::CardUpcomingReview> {
     info!("get_cards_upcoming_review");
 
     let conn = sqlite_pool.get()?;
-
 
     fn i32_from_row(row: &Row) -> Result<i32> {
         Ok(row.get(0)?)
@@ -395,7 +302,7 @@ pub(crate) fn sqlite_get_cards_upcoming_review(
          FROM cards
          WHERE user_id = ?1 and next_test_date < ?2",
         params![&user_id, &due],
-        i32_from_row
+        i32_from_row,
     )?;
 
     let earliest_review_date = sqlite::one(
@@ -405,11 +312,11 @@ pub(crate) fn sqlite_get_cards_upcoming_review(
          WHERE user_id = ?1
          GROUP BY user_id",
         params![&user_id],
-        naive_datetime_from_row
+        naive_datetime_from_row,
     )?;
 
-    Ok(interop::SqliteCardUpcomingReview {
+    Ok(interop::CardUpcomingReview {
         review_count,
-        earliest_review_date
+        earliest_review_date,
     })
 }

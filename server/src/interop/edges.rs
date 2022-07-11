@@ -15,14 +15,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::{DeckResource, RefKind};
+use crate::interop::decks::{DeckKind, RefKind};
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct ExistingReference {
     pub id: Key, // id of the existing deck
     pub name: String,
-    pub resource: DeckResource,
+    pub resource: DeckKind,
     pub ref_kind: RefKind,
     pub annotation: Option<String>,
 }
@@ -30,7 +30,7 @@ pub struct ExistingReference {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct NewReference {
     pub name: String,
-    pub resource: DeckResource,
+    pub resource: DeckKind,
     pub ref_kind: RefKind,
     pub annotation: Option<String>,
 }

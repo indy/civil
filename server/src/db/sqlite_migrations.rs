@@ -21,8 +21,9 @@ use rusqlite_migration::{Migrations, M};
 
 pub fn migration_check(db_name: &str) -> Result<()> {
     // Define migrations
-    let migrations = Migrations::new(vec![M::up(
-        r#"
+    let migrations = Migrations::new(vec![
+        M::up(
+            r#"
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -222,8 +223,9 @@ CREATE TABLE IF NOT EXISTS stats (
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 "#,
-    ),
-                                          M::up(r#"
+        ),
+        M::up(
+            r#"
 CREATE VIRTUAL TABLE decks_fts USING fts5(name, content='decks', content_rowid='id');
 CREATE TRIGGER decks_fts_ai AFTER INSERT ON decks BEGIN
   INSERT INTO decks_fts(rowid, name) VALUES (new.id, new.name);
@@ -284,7 +286,9 @@ CREATE TRIGGER quote_extras_fts_au AFTER UPDATE ON quote_extras BEGIN
   INSERT INTO quote_extras_fts(rowid, attribution) VALUES (new.deck_id, new.attribution);
 END;
 
-"#)]);
+"#,
+        ),
+    ]);
 
     let mut conn = Connection::open(db_name)?;
 

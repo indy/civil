@@ -31,10 +31,8 @@ pub struct ServerConfig {
     pub registration_magic_word: String,
 }
 
-use deadpool_postgres::{Pool, Runtime};
 use dotenv;
 use std::env;
-use tokio_postgres::NoTls;
 use tracing::error;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
@@ -50,28 +48,6 @@ pub fn init_tracing() {
         .finish();
 
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
-}
-
-pub async fn init_postgres_pool() -> Result<Pool> {
-    let postgres_db = env_var_string("POSTGRES_DB")?;
-    let postgres_host = env_var_string("POSTGRES_HOST")?;
-    let postgres_user = env_var_string("POSTGRES_USER")?;
-    let postgres_password = env_var_string("POSTGRES_PASSWORD")?;
-
-    let cfg = deadpool_postgres::Config {
-        user: Some(String::from(&postgres_user)),
-        password: Some(String::from(&postgres_password)),
-        dbname: Some(String::from(&postgres_db)),
-        host: Some(String::from(&postgres_host)),
-        ..Default::default()
-    };
-
-    let pool: Pool = cfg.create_pool(Some(Runtime::Tokio1), NoTls)?;
-
-    // crash on startup if no database connection can be established
-    let _ = pool.get().await?;
-
-    Ok(pool)
 }
 
 pub fn env_var_string(key: &str) -> Result<String> {

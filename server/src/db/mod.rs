@@ -16,19 +16,14 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 pub mod articles;
-pub mod deck_kind;
 pub mod decks;
 pub mod edges;
 pub mod graph;
 pub mod ideas;
-pub mod note_kind;
 pub mod notes;
 pub mod people;
-mod pg;
-pub mod point_kind;
 pub mod points;
 pub mod quotes;
-pub mod ref_kind;
 pub mod sr;
 pub mod stats;
 pub mod timelines;

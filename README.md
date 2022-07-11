@@ -4,7 +4,7 @@ A knowledge management system for the next 30 years. Developed at git.indy.io fo
 
 ## Server
 
-rename .env.example to .env and update it for your environment. The database tables can be created by running the misc/schema.psql file into a Postgres database.
+rename .env.example to .env and update it for your environment.
 
 ```sh
 $ make run
@@ -30,7 +30,6 @@ $ make upload
 
 # Requirements
 - A modern (for c.2020) web-browser
-- PostgreSQL
 - Rust
 - Make
 - (Optional) Minify (https://github.com/tdewolff/minify)

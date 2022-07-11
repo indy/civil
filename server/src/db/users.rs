@@ -110,11 +110,9 @@ pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::Use
     )
 }
 
-pub fn sqlite_get_all_user_ids(sqlite_pool: &SqlitePool) -> Result<Vec<interop::UserId>> {
+pub fn get_all_user_ids(sqlite_pool: &SqlitePool) -> Result<Vec<interop::UserId>> {
     fn from_row(row: &Row) -> Result<interop::UserId> {
-        Ok(interop::UserId {
-            id: row.get(0)?,
-        })
+        Ok(interop::UserId { id: row.get(0)? })
     }
 
     let conn = sqlite_pool.get()?;
@@ -123,99 +121,6 @@ pub fn sqlite_get_all_user_ids(sqlite_pool: &SqlitePool) -> Result<Vec<interop::
         "SELECT id
          FROM users",
         &[],
-        from_row
+        from_row,
     )
 }
-
-
-// --------------------------------------------------------------------------------
-// ------------------------------------ Postgres ----------------------------------
-// --------------------------------------------------------------------------------
-
-use super::pg;
-use deadpool_postgres::Pool;
-use serde::{Deserialize, Serialize};
-use tokio_pg_mapper_derive::PostgresMapper;
-
-
-#[derive(Deserialize, PostgresMapper, Serialize)]
-#[pg_mapper(table = "users")]
-struct User {
-    id: Key,
-    email: String,
-    username: String,
-    password: String,
-}
-
-impl From<User> for interop::User {
-    fn from(user: User) -> interop::User {
-        interop::User {
-            username: user.username,
-            email: user.email,
-            admin: None,
-        }
-    }
-}
-
-impl From<User> for interop::UserId {
-    fn from(user: User) -> interop::UserId {
-        interop::UserId { id: user.id }
-    }
-}
-
-pub async fn get_all_user_ids(db_pool: &Pool) -> Result<Vec<interop::UserId>> {
-    pg::many_from::<User, interop::UserId>(
-        db_pool,
-        "SELECT $table_fields
-         FROM users",
-        &[],
-    )
-    .await
-}
-
-
-// pub(crate) async fn login(
-//     db_pool: &Pool,
-//     login_credentials: &interop::LoginCredentials,
-// ) -> Result<(Key, String, interop::User)> {
-//     let db_user = pg::one_non_transactional::<User>(
-//         db_pool,
-//         "SELECT $table_fields
-//          FROM users
-//          WHERE email = $1",
-//         &[&login_credentials.email],
-//     )
-//     .await?;
-
-//     let password = String::from(&db_user.password);
-
-//     Ok((db_user.id, password, interop::User::from(db_user)))
-// }
-
-// pub(crate) async fn create(
-//     db_pool: &Pool,
-//     registration: &interop::Registration,
-//     hash: &str,
-// ) -> Result<(Key, interop::User)> {
-//     let db_user = pg::one_non_transactional::<User>(
-//         db_pool,
-//         "INSERT INTO users ( username, email, password )
-//          VALUES ( $1, $2, $3 )
-//          RETURNING $table_fields",
-//         &[&registration.username, &registration.email, &hash],
-//     )
-//     .await?;
-
-//     Ok((db_user.id, interop::User::from(db_user)))
-// }
-
-// pub(crate) async fn get(db_pool: &Pool, user_id: Key) -> Result<interop::User> {
-//     pg::one_from::<User, interop::User>(
-//         db_pool,
-//         "SELECT $table_fields
-//          FROM users
-//          WHERE id = $1",
-//         &[&user_id],
-//     )
-//     .await
-// }

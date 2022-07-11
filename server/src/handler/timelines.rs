@@ -33,7 +33,6 @@ use tracing::info;
 
 use crate::db::sqlite::SqlitePool;
 
-
 pub async fn create(
     proto_deck: Json<ProtoDeck>,
     sqlite_pool: Data<SqlitePool>,
@@ -44,17 +43,20 @@ pub async fn create(
     let user_id = session::user_id(&session)?;
     let proto_deck = proto_deck.into_inner();
 
-    let timeline = db::sqlite_get_or_create(&sqlite_pool, user_id, &proto_deck.title)?;
+    let timeline = db::get_or_create(&sqlite_pool, user_id, &proto_deck.title)?;
 
     Ok(HttpResponse::Ok().json(timeline))
 }
 
-pub async fn get_all(sqlite_pool: Data<SqlitePool>, session: actix_session::Session) -> Result<HttpResponse> {
+pub async fn get_all(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
     info!("get_all");
 
     let user_id = session::user_id(&session)?;
 
-    let timelines = db::sqlite_all(&sqlite_pool, user_id)?;
+    let timelines = db::all(&sqlite_pool, user_id)?;
 
     Ok(HttpResponse::Ok().json(timelines))
 }
@@ -69,7 +71,7 @@ pub async fn get(
     let user_id = session::user_id(&session)?;
     let timeline_id = params.id;
 
-    let mut timeline = db::sqlite_get(&sqlite_pool, user_id, timeline_id)?;
+    let mut timeline = db::get(&sqlite_pool, user_id, timeline_id)?;
     sqlite_augment(&sqlite_pool, &mut timeline, timeline_id, user_id)?;
 
     Ok(HttpResponse::Ok().json(timeline))
@@ -87,7 +89,7 @@ pub async fn edit(
     let timeline_id = params.id;
     let timeline = timeline.into_inner();
 
-    let mut timeline = db::sqlite_edit(&sqlite_pool, user_id, &timeline, timeline_id)?;
+    let mut timeline = db::edit(&sqlite_pool, user_id, &timeline, timeline_id)?;
     sqlite_augment(&sqlite_pool, &mut timeline, timeline_id, user_id)?;
 
     Ok(HttpResponse::Ok().json(timeline))
@@ -102,7 +104,7 @@ pub async fn delete(
 
     let user_id = session::user_id(&session)?;
 
-    db::sqlite_delete(&sqlite_pool, user_id, params.id)?;
+    db::delete(&sqlite_pool, user_id, params.id)?;
 
     Ok(HttpResponse::Ok().json(true))
 }
@@ -119,21 +121,26 @@ pub async fn add_point(
     let point = point.into_inner();
     let user_id = session::user_id(&session)?;
 
-    points_db::sqlite_create(&sqlite_pool, &point, timeline_id)?;
+    points_db::create(&sqlite_pool, &point, timeline_id)?;
 
-    let mut timeline = db::sqlite_get(&sqlite_pool, user_id, timeline_id)?;
+    let mut timeline = db::get(&sqlite_pool, user_id, timeline_id)?;
     sqlite_augment(&sqlite_pool, &mut timeline, timeline_id, user_id)?;
 
     Ok(HttpResponse::Ok().json(timeline))
 }
 
-fn sqlite_augment(sqlite_pool: &Data<SqlitePool>, timeline: &mut interop::SqliteTimeline, timeline_id: Key, user_id: Key) -> Result<()> {
-    let points = points_db::sqlite_all(&sqlite_pool, user_id, timeline_id)?;
-    let notes = notes_db::sqlite_all_from_deck(&sqlite_pool, timeline_id)?;
-    let refs = decks_db::sqlite_from_deck_id_via_notes_to_decks(&sqlite_pool, timeline_id)?;
-    let backnotes = decks_db::sqlite_get_backnotes(&sqlite_pool, timeline_id)?;
-    let backrefs = decks_db::sqlite_get_backrefs(&sqlite_pool, timeline_id)?;
-    let flashcards = sr_db::sqlite_all_flashcards_for_deck(&sqlite_pool, timeline_id)?;
+fn sqlite_augment(
+    sqlite_pool: &Data<SqlitePool>,
+    timeline: &mut interop::Timeline,
+    timeline_id: Key,
+    user_id: Key,
+) -> Result<()> {
+    let points = points_db::all(&sqlite_pool, user_id, timeline_id)?;
+    let notes = notes_db::all_from_deck(&sqlite_pool, timeline_id)?;
+    let refs = decks_db::from_deck_id_via_notes_to_decks(&sqlite_pool, timeline_id)?;
+    let backnotes = decks_db::get_backnotes(&sqlite_pool, timeline_id)?;
+    let backrefs = decks_db::get_backrefs(&sqlite_pool, timeline_id)?;
+    let flashcards = sr_db::all_flashcards_for_deck(&sqlite_pool, timeline_id)?;
 
     timeline.points = Some(points);
     timeline.notes = Some(notes);

@@ -16,13 +16,13 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::graph as db;
+use crate::db::sqlite::SqlitePool;
 use crate::error::Result;
 use crate::interop::decks::RefKind;
 use crate::interop::graph as interop;
 use crate::session;
 use actix_web::web::Data;
 use actix_web::HttpResponse;
-use crate::db::sqlite::SqlitePool;
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -43,13 +43,16 @@ struct FullGraphStruct {
     pub graph_connections: Vec<i32>,
 }
 
-pub async fn get(sqlite_pool: Data<SqlitePool>, session: actix_session::Session) -> Result<HttpResponse> {
+pub async fn get(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
     info!("get");
 
     let user_id = session::user_id(&session)?;
 
-    let graph_nodes = db::sqlite_get_decks(&sqlite_pool, user_id)?;
-    let connections = db::sqlite_get_connections(&sqlite_pool, user_id)?;
+    let graph_nodes = db::get_decks(&sqlite_pool, user_id)?;
+    let connections = db::get_connections(&sqlite_pool, user_id)?;
 
     // let (graph_nodes, connections) = tokio::try_join!(
     //     db::get_decks(&db_pool, user_id),

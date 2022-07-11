@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::Key;
 use crate::error::{Error, Result};
+use crate::interop::Key;
 
 #[derive(Copy, Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum NoteKind {
@@ -37,6 +37,17 @@ pub(crate) fn note_kind_to_sqlite_string(nk: NoteKind) -> Result<String> {
     }
 }
 
+pub(crate) fn note_kind_from_sqlite_string(s: String) -> Result<NoteKind> {
+    if s == "note" {
+        Ok(NoteKind::Note)
+    } else if s == "note_review" {
+        Ok(NoteKind::NoteReview)
+    } else if s == "note_summary" {
+        Ok(NoteKind::NoteSummary)
+    } else {
+        Err(Error::SqliteStringConversion)
+    }
+}
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Note {

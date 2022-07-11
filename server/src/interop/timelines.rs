@@ -18,7 +18,7 @@
 use crate::interop::decks::{BackNote, BackRef, Ref};
 use crate::interop::notes::Note;
 use crate::interop::points::Point;
-use crate::interop::sr::{FlashCard, SqliteFlashCard};
+use crate::interop::sr::FlashCard;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -38,32 +38,13 @@ pub struct Timeline {
     pub flashcards: Option<Vec<FlashCard>>,
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct SqliteTimeline {
-    pub id: Key,
-    pub title: String,
-
-    pub points: Option<Vec<Point>>,
-
-    pub notes: Option<Vec<Note>>,
-
-    pub refs: Option<Vec<Ref>>,
-
-    pub backnotes: Option<Vec<BackNote>>,
-    pub backrefs: Option<Vec<BackRef>>,
-
-    pub flashcards: Option<Vec<SqliteFlashCard>>,
-}
-
-impl From<crate::db::decks::SqliteDeckBase> for SqliteTimeline {
-    fn from(d: crate::db::decks::SqliteDeckBase) -> SqliteTimeline {
-        SqliteTimeline {
+impl From<crate::db::decks::DeckBase> for Timeline {
+    fn from(d: crate::db::decks::DeckBase) -> Timeline {
+        Timeline {
             id: d.id,
             title: d.name,
 
-
             points: None,
-
 
             notes: None,
 

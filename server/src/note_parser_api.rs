@@ -16,10 +16,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::notes as notes_db;
+use crate::db::sqlite::SqlitePool;
 use crate::error::Result;
 use crate::interop::notes::Note;
-use crate::db::sqlite::SqlitePool;
 
 pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> Result<Vec<Note>> {
-    notes_db::sqlite_get_all_notes_in_db(sqlite_pool)
+    notes_db::get_all_notes_in_db(sqlite_pool)
 }

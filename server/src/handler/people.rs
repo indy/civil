@@ -19,6 +19,7 @@ use crate::db::decks as decks_db;
 use crate::db::notes as notes_db;
 use crate::db::people as db;
 use crate::db::points as points_db;
+use crate::db::sqlite::SqlitePool;
 use crate::db::sr as sr_db;
 use crate::error::Result;
 use crate::interop::decks::SearchResults;
@@ -28,7 +29,6 @@ use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
-use crate::db::sqlite::SqlitePool;
 
 #[allow(unused_imports)]
 use tracing::info;
@@ -43,17 +43,20 @@ pub async fn create(
     let user_id = session::user_id(&session)?;
     let proto_deck = proto_deck.into_inner();
 
-    let person = db::sqlite_get_or_create(&sqlite_pool, user_id, &proto_deck.title)?;
+    let person = db::get_or_create(&sqlite_pool, user_id, &proto_deck.title)?;
 
     Ok(HttpResponse::Ok().json(person))
 }
 
-pub async fn get_all(sqlite_pool: Data<SqlitePool>, session: actix_session::Session) -> Result<HttpResponse> {
+pub async fn get_all(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
     info!("get_all");
 
     let user_id = session::user_id(&session)?;
 
-    let people = db::sqlite_all(&sqlite_pool, user_id)?;
+    let people = db::all(&sqlite_pool, user_id)?;
 
     Ok(HttpResponse::Ok().json(people))
 }
@@ -68,7 +71,7 @@ pub async fn get(
     let user_id = session::user_id(&session)?;
     let person_id = params.id;
 
-    let mut person = db::sqlite_get(&sqlite_pool, user_id, person_id)?;
+    let mut person = db::get(&sqlite_pool, user_id, person_id)?;
     sqlite_augment(&sqlite_pool, &mut person, person_id, user_id)?;
 
     Ok(HttpResponse::Ok().json(person))
@@ -86,7 +89,7 @@ pub async fn edit(
     let person_id = params.id;
     let person = person.into_inner();
 
-    let mut person = db::sqlite_edit(&sqlite_pool, user_id, &person, person_id)?;
+    let mut person = db::edit(&sqlite_pool, user_id, &person, person_id)?;
     sqlite_augment(&sqlite_pool, &mut person, person_id, user_id)?;
 
     Ok(HttpResponse::Ok().json(person))
@@ -101,7 +104,7 @@ pub async fn delete(
 
     let user_id = session::user_id(&session)?;
 
-    db::sqlite_delete(&sqlite_pool, user_id, params.id)?;
+    db::delete(&sqlite_pool, user_id, params.id)?;
 
     Ok(HttpResponse::Ok().json(true))
 }
@@ -118,22 +121,28 @@ pub async fn add_point(
     let point = point.into_inner();
     let user_id = session::user_id(&session)?;
 
-    points_db::sqlite_create(&sqlite_pool, &point, person_id)?;
+    points_db::create(&sqlite_pool, &point, person_id)?;
 
-    let mut person = db::sqlite_get(&sqlite_pool, user_id, person_id)?;
+    let mut person = db::get(&sqlite_pool, user_id, person_id)?;
     sqlite_augment(&sqlite_pool, &mut person, person_id, user_id)?;
 
     Ok(HttpResponse::Ok().json(person))
 }
 
-fn sqlite_augment(sqlite_pool: &Data<SqlitePool>, person: &mut interop::SqlitePerson, person_id: Key, user_id: Key) -> Result<()> {
-    let points = points_db::sqlite_all(&sqlite_pool, user_id, person_id)?;
-    let all_points_during_life = points_db::sqlite_all_points_during_life(&sqlite_pool, user_id, person_id)?;
-    let notes = notes_db::sqlite_all_from_deck(&sqlite_pool, person_id)?;
-    let refs = decks_db::sqlite_from_deck_id_via_notes_to_decks(&sqlite_pool, person_id)?;
-    let backnotes = decks_db::sqlite_get_backnotes(&sqlite_pool, person_id)?;
-    let backrefs = decks_db::sqlite_get_backrefs(&sqlite_pool, person_id)?;
-    let flashcards = sr_db::sqlite_all_flashcards_for_deck(&sqlite_pool, person_id)?;
+fn sqlite_augment(
+    sqlite_pool: &Data<SqlitePool>,
+    person: &mut interop::Person,
+    person_id: Key,
+    user_id: Key,
+) -> Result<()> {
+    let points = points_db::all(&sqlite_pool, user_id, person_id)?;
+    let all_points_during_life =
+        points_db::all_points_during_life(&sqlite_pool, user_id, person_id)?;
+    let notes = notes_db::all_from_deck(&sqlite_pool, person_id)?;
+    let refs = decks_db::from_deck_id_via_notes_to_decks(&sqlite_pool, person_id)?;
+    let backnotes = decks_db::get_backnotes(&sqlite_pool, person_id)?;
+    let backrefs = decks_db::get_backrefs(&sqlite_pool, person_id)?;
+    let flashcards = sr_db::all_flashcards_for_deck(&sqlite_pool, person_id)?;
 
     person.points = Some(points);
     person.all_points_during_life = Some(all_points_during_life);
@@ -156,7 +165,7 @@ pub async fn additional_search(
     let user_id = session::user_id(&session)?;
     let person_id = params.id;
 
-    let additional_search_results = decks_db::sqlite_additional_search(&sqlite_pool, user_id, person_id)?;
+    let additional_search_results = decks_db::additional_search(&sqlite_pool, user_id, person_id)?;
 
     let res = SearchResults {
         results: Some(additional_search_results),

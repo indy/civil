@@ -1,6 +1,5 @@
 [Unit]
 Description=Start civil.indy.io
-After=postgresql.service
 
 [Service]
 Type=simple

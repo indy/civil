@@ -15,21 +15,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::sqlite::{self, SqlitePool};
-use rusqlite::{params, Row};
-use crate::db::deck_kind::DeckKind;
 use crate::db::decks;
+use crate::db::sqlite::{self, SqlitePool};
 use crate::error::{Error, Result};
 use crate::interop::articles as interop;
+use crate::interop::decks::DeckKind;
 use crate::interop::Key;
-#[allow(unused_imports)]
-use tracing::{error, info};
+use rusqlite::{params, Row};
 
-use serde::{Deserialize, Serialize};
+use tracing::error;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 struct ArticleExtra {
-    deck_id: Key,
     source: Option<String>,
     author: Option<String>,
     short_description: Option<String>,
@@ -37,10 +34,10 @@ struct ArticleExtra {
     published_date: Option<chrono::NaiveDate>,
 }
 
-impl From<(decks::SqliteDeckBase, ArticleExtra)> for interop::SqliteArticle {
-    fn from(a: (decks::SqliteDeckBase, ArticleExtra)) -> interop::SqliteArticle {
+impl From<(decks::DeckBase, ArticleExtra)> for interop::Article {
+    fn from(a: (decks::DeckBase, ArticleExtra)) -> interop::Article {
         let (deck, extra) = a;
-        interop::SqliteArticle {
+        interop::Article {
             id: deck.id,
             title: deck.name,
 
@@ -66,8 +63,8 @@ impl From<(decks::SqliteDeckBase, ArticleExtra)> for interop::SqliteArticle {
     }
 }
 
-fn from_row(row: &Row) -> Result<interop::SqliteArticle> {
-    Ok(interop::SqliteArticle {
+fn from_row(row: &Row) -> Result<interop::Article> {
+    Ok(interop::Article {
         id: row.get(0)?,
         title: row.get(1)?,
 
@@ -92,41 +89,50 @@ fn from_row(row: &Row) -> Result<interop::SqliteArticle> {
     })
 }
 
-pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::SqliteArticle>> {
+pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::Article>> {
     let conn = sqlite_pool.get()?;
-    sqlite::many(&conn, r#"
+    sqlite::many(
+        &conn,
+        r#"
          SELECT decks.id, decks.name, article_extras.source, article_extras.author, article_extras.short_description, coalesce(article_extras.rating, 0) as rating, decks.created_at, article_extras.published_date
          FROM decks left join article_extras on article_extras.deck_id = decks.id
          WHERE user_id = ?1 and kind = 'article'
          ORDER BY created_at desc
     "#,
-                 params![&user_id],
-                 from_row)
+        params![&user_id],
+        from_row,
+    )
 }
 
-pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::SqliteArticleListings> {
+pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::ArticleListings> {
     let conn = sqlite_pool.get()?;
-    let recent = sqlite::many(&conn, r#"
+    let recent = sqlite::many(
+        &conn,
+        r#"
              SELECT decks.id, decks.name, article_extras.source, article_extras.author, article_extras.short_description, coalesce(article_extras.rating, 0) as rating, decks.created_at, article_extras.published_date
              FROM decks left join article_extras on article_extras.deck_id = decks.id
              WHERE user_id = ?1 and kind = 'article'
              ORDER BY created_at desc
              LIMIT 10"#,
-                 params![&user_id],
-                 from_row)?;
+        params![&user_id],
+        from_row,
+    )?;
 
-
-    let rated = sqlite::many(&conn, r#"
+    let rated = sqlite::many(
+        &conn,
+        r#"
 SELECT decks.id, decks.name, article_extras.source, article_extras.author, article_extras.short_description, coalesce(article_extras.rating, 0) as rating, decks.created_at, article_extras.published_date
              FROM decks left join article_extras on article_extras.deck_id = decks.id
              WHERE user_id = ?1 and kind = 'article' and article_extras.rating > 0
              ORDER BY article_extras.rating desc, decks.id desc
 "#,
-                 params![&user_id],
-                 from_row)?;
+        params![&user_id],
+        from_row,
+    )?;
 
-
-    let orphans = sqlite::many(&conn, r#"
+    let orphans = sqlite::many(
+        &conn,
+        r#"
 SELECT d.id, d.name, pe.source, pe.author, pe.short_description, coalesce(pe.rating, 0) as rating, d.created_at, pe.published_date
              FROM decks d left join article_extras pe on pe.deck_id=d.id
              WHERE d.id not in (SELECT deck_id
@@ -139,33 +145,40 @@ SELECT d.id, d.name, pe.source, pe.author, pe.short_description, coalesce(pe.rat
              AND d.user_id = ?1
              ORDER BY d.created_at desc
 "#,
-                 params![&user_id],
-                 from_row)?;
+        params![&user_id],
+        from_row,
+    )?;
 
-    Ok(interop::SqliteArticleListings {
+    Ok(interop::ArticleListings {
         recent,
         rated,
         orphans,
     })
 }
 
-pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, article_id: Key) -> Result<interop::SqliteArticle> {
+pub(crate) fn get(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    article_id: Key,
+) -> Result<interop::Article> {
     let conn = sqlite_pool.get()?;
-    sqlite::one(&conn, r#"
+    sqlite::one(
+        &conn,
+        r#"
          SELECT decks.id, decks.name, article_extras.source, article_extras.author, article_extras.short_description, coalesce(article_extras.rating, 0) as rating, decks.created_at, article_extras.published_date
          FROM decks left join article_extras on article_extras.deck_id = decks.id
          WHERE user_id = ?1 and id = ?2 and kind = 'article'"#,
-                params![&user_id, &article_id],
-                from_row)
+        params![&user_id, &article_id],
+        from_row,
+    )
 }
 
-pub(crate) fn sqlite_delete(sqlite_pool: &SqlitePool, user_id: Key, article_id: Key) -> Result<()> {
-    decks::sqlite_delete(sqlite_pool, user_id, article_id)
+pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, article_id: Key) -> Result<()> {
+    decks::delete(sqlite_pool, user_id, article_id)
 }
 
 fn article_extra_from_row(row: &Row) -> Result<ArticleExtra> {
     Ok(ArticleExtra {
-        deck_id: row.get(0)?,
         source: row.get(1)?,
         author: row.get(2)?,
         short_description: row.get(3)?,
@@ -174,16 +187,16 @@ fn article_extra_from_row(row: &Row) -> Result<ArticleExtra> {
     })
 }
 
-pub(crate) fn sqlite_edit(
+pub(crate) fn edit(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     article: &interop::ProtoArticle,
     article_id: Key,
-) -> Result<interop::SqliteArticle> {
+) -> Result<interop::Article> {
     let conn = sqlite_pool.get()?;
 
     let graph_terminator = false;
-    let edited_deck = decks::sqlite_deckbase_edit(
+    let edited_deck = decks::deckbase_edit(
         &conn,
         user_id,
         article_id,
@@ -192,12 +205,14 @@ pub(crate) fn sqlite_edit(
         graph_terminator,
     )?;
 
-    let article_extras_exists = sqlite::many(&conn,
-                                             "select deck_id, source, author, short_description, rating, published_date
+    let article_extras_exists = sqlite::many(
+        &conn,
+        "select deck_id, source, author, short_description, rating, published_date
                                               from article_extras
                                               where deck_id = ?1",
-                                             params![&article_id],
-                                             article_extra_from_row)?;
+        params![&article_id],
+        article_extra_from_row,
+    )?;
 
     let sql_query: &str = match article_extras_exists.len() {
         0 => {
@@ -233,19 +248,17 @@ pub(crate) fn sqlite_edit(
             &article.rating,
             &article.published_date,
         ],
-        article_extra_from_row
+        article_extra_from_row,
     )?;
-
 
     Ok((edited_deck, article_extras).into())
 }
 
-pub(crate) fn sqlite_get_or_create(
+pub(crate) fn get_or_create(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     title: &str,
-) -> Result<interop::SqliteArticle> {
-
+) -> Result<interop::Article> {
     let conn = sqlite_pool.get()?;
 
     let source = "";
@@ -254,8 +267,7 @@ pub(crate) fn sqlite_get_or_create(
     let rating = 0;
     let published_date = chrono::Utc::now().naive_utc().date();
 
-    let (deck, origin) =
-        decks::sqlite_deckbase_get_or_create(&conn, user_id, DeckKind::Article, &title)?;
+    let (deck, origin) = decks::deckbase_get_or_create(&conn, user_id, DeckKind::Article, &title)?;
 
     let article_extras =
         match origin {

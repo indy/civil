@@ -15,16 +15,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
-use crate::db::deck_kind::{DeckKind, deck_kind_from_sqlite_string, sqlite_string_from_deck_kind};
 use crate::db::notes;
 use crate::db::points;
-use crate::db::ref_kind::{RefKind, ref_kind_from_sqlite_string};
+use crate::db::sqlite::{self, SqlitePool};
 use crate::error::{Error, Result};
 use crate::interop::decks as interop;
+use crate::interop::decks::{deck_kind_from_sqlite_string, sqlite_string_from_deck_kind, DeckKind};
 use crate::interop::Key;
-use crate::db::sqlite::{self, SqlitePool};
-use rusqlite::{Connection, Row, params};
+use rusqlite::{params, Connection, Row};
 
 #[allow(unused_imports)]
 use tracing::{info, warn};
@@ -34,53 +32,7 @@ pub(crate) enum DeckBaseOrigin {
     PreExisting,
 }
 
-// --------------------------------------------------------------------------------
-// ------------------------------------ Postgres ----------------------------------
-// --------------------------------------------------------------------------------
-
-use serde::{Deserialize, Serialize};
-use tokio_pg_mapper_derive::PostgresMapper;
-
-
-// used when constructing a type derived from deck (Idea, Article etc)
-// gets the basic information from the decks table for use with additional data to construct the final struct
-// e.g. DeckBase + IdeaExtra to create an interop::Idea
-//
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
-pub struct DeckBase {
-    pub id: Key,
-    pub name: String,
-    pub created_at: chrono::DateTime<chrono::Utc>,
-    pub graph_terminator: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
-struct Ref {
-    note_id: Key,
-    id: Key,
-    name: String,
-    deck_kind: DeckKind,
-    ref_kind: RefKind,
-    annotation: Option<String>,
-}
-
-impl From<Ref> for interop::Ref {
-    fn from(d: Ref) -> interop::Ref {
-        interop::Ref {
-            note_id: d.note_id,
-            id: d.id,
-            name: d.name,
-            resource: interop::DeckResource::from(d.deck_kind),
-            ref_kind: interop::RefKind::from(d.ref_kind),
-            annotation: d.annotation,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
+#[derive(Debug, Clone)]
 pub struct DeckSimple {
     pub id: Key,
     pub name: String,
@@ -92,67 +44,9 @@ impl From<DeckSimple> for interop::DeckSimple {
         interop::DeckSimple {
             id: d.id,
             name: d.name,
-            resource: interop::DeckResource::from(d.kind),
+            resource: interop::DeckKind::from(d.kind),
         }
     }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
-pub struct BackNote {
-    pub note_id: Key,
-    pub note_content: String,
-
-    pub deck_id: Key,
-    pub deck_name: String,
-
-    pub kind: DeckKind,
-}
-
-impl From<BackNote> for interop::BackNote {
-    fn from(d: BackNote) -> interop::BackNote {
-        interop::BackNote {
-            note_id: d.note_id,
-            note_content: d.note_content,
-            deck_id: d.deck_id,
-            deck_name: d.deck_name,
-            resource: interop::DeckResource::from(d.kind),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
-pub struct BackRef {
-    pub note_id: Key,
-    pub deck_id: Key,
-    pub deck_name: String,
-    pub kind: DeckKind,
-    pub ref_kind: RefKind,
-    pub annotation: Option<String>,
-}
-
-impl From<BackRef> for interop::BackRef {
-    fn from(d: BackRef) -> interop::BackRef {
-        interop::BackRef {
-            note_id: d.note_id,
-            deck_id: d.deck_id,
-            deck_name: d.deck_name,
-            resource: interop::DeckResource::from(d.kind),
-            ref_kind: interop::RefKind::from(d.ref_kind),
-            annotation: d.annotation,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
-pub struct Deck {
-    pub id: Key,
-    pub kind: DeckKind,
-
-    pub name: String,
-    pub source: Option<String>,
 }
 
 fn contains(backrefs: &[interop::DeckSimple], id: Key) -> bool {
@@ -174,25 +68,22 @@ fn resource_string_to_deck_kind_string(resource: &str) -> Result<&'static str> {
     }
 }
 
-
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqliteDeckBase {
+#[derive(Debug, Clone)]
+pub struct DeckBase {
     pub id: Key,
     pub name: String,
     pub created_at: chrono::NaiveDateTime,
     pub graph_terminator: bool,
 }
 
-fn deckbase_from_row(row: &Row) -> Result<SqliteDeckBase> {
-    Ok(SqliteDeckBase {
+fn deckbase_from_row(row: &Row) -> Result<DeckBase> {
+    Ok(DeckBase {
         id: row.get(0)?,
         name: row.get(1)?,
         created_at: row.get(2)?,
-        graph_terminator: row.get(3)?
+        graph_terminator: row.get(3)?,
     })
 }
-
 
 fn decksimple_from_row(row: &Row) -> Result<interop::DeckSimple> {
     let res: String = row.get(2)?;
@@ -200,47 +91,29 @@ fn decksimple_from_row(row: &Row) -> Result<interop::DeckSimple> {
     Ok(interop::DeckSimple {
         id: row.get(0)?,
         name: row.get(1)?,
-        resource: interop::deck_resource_from_sqlite_string(res.as_str())?,
+        resource: interop::deck_kind_from_sqlite_string(res.as_str())?,
     })
 }
 
-// pub(crate) fn sqlite_deckbase_get(
-//     conn: &Connection,
-//     user_id: Key,
-//     deck_id: Key,
-//     kind: DeckKind,
-// ) -> Result<SqliteDeckBase> {
-//     sqlite::one(&conn, r#"
-//                 select id, name, created_at, graph_terminator
-//                 from decks
-//                 where user_id = ?1 and id = ?2 and kind = ?3"#,
-//                 params![&user_id, &deck_id, &sqlite_string_from_deck_kind(kind)],
-//                 deckbase_from_row)
-
-// }
-
-// this replaces the postgres specifiic function: deckbase_get
-//
 pub(crate) const DECKBASE_QUERY: &str = "select id, name, created_at, graph_terminator
                                          from decks
                                          where user_id = ?1 and id = ?2 and kind = ?3";
 
-
 // tuple where the second element is a bool indicating whether the deck was created (true) or
 // we're returning a pre-existing deck (false)
 //
-pub(crate) fn sqlite_deckbase_get_or_create(
+pub(crate) fn deckbase_get_or_create(
     conn: &Connection,
     user_id: Key,
     kind: DeckKind,
     name: &str,
-) -> Result<(SqliteDeckBase, DeckBaseOrigin)> {
-    let existing_deck_res = sqlite_deckbase_get_by_name(&conn, user_id, kind, &name);
+) -> Result<(DeckBase, DeckBaseOrigin)> {
+    let existing_deck_res = deckbase_get_by_name(&conn, user_id, kind, &name);
     match existing_deck_res {
         Ok(deck) => Ok((deck.into(), DeckBaseOrigin::PreExisting)),
         Err(e) => match e {
             Error::NotFound => {
-                let deck = sqlite_deckbase_create(&conn, user_id, kind, &name)?;
+                let deck = deckbase_create(&conn, user_id, kind, &name)?;
                 Ok((deck.into(), DeckBaseOrigin::Created))
             }
             _ => Err(e),
@@ -248,53 +121,73 @@ pub(crate) fn sqlite_deckbase_get_or_create(
     }
 }
 
-fn sqlite_deckbase_get_by_name(
+fn deckbase_get_by_name(
     conn: &Connection,
     user_id: Key,
     kind: DeckKind,
     name: &str,
-) -> Result<SqliteDeckBase> {
-    sqlite::one(&conn, r#"
+) -> Result<DeckBase> {
+    sqlite::one(
+        &conn,
+        r#"
                 select id, name, created_at, graph_terminator
                 from decks
                 where user_id = ?1 and name = ?2 and kind = ?3"#,
-                params![&user_id, &name, &sqlite_string_from_deck_kind(kind)],
-                deckbase_from_row)
+        params![&user_id, &name, &sqlite_string_from_deck_kind(kind)],
+        deckbase_from_row,
+    )
 }
 
-pub(crate) fn sqlite_deckbase_create(
+pub(crate) fn deckbase_create(
     conn: &Connection,
     user_id: Key,
     kind: DeckKind,
     name: &str,
-) -> Result<SqliteDeckBase> {
+) -> Result<DeckBase> {
     let graph_terminator = false;
-    sqlite::one(&conn, r#"
+    sqlite::one(
+        &conn,
+        r#"
                 INSERT INTO decks(user_id, kind, name, graph_terminator)
                 VALUES (?1, ?2, ?3, ?4)
                 RETURNING id, name, created_at, graph_terminator"#,
-                params![&user_id, &sqlite_string_from_deck_kind(kind), name, graph_terminator],
-                deckbase_from_row)
+        params![
+            &user_id,
+            &sqlite_string_from_deck_kind(kind),
+            name,
+            graph_terminator
+        ],
+        deckbase_from_row,
+    )
 }
 
-pub(crate) fn sqlite_deckbase_edit(
+pub(crate) fn deckbase_edit(
     conn: &Connection,
     user_id: Key,
     deck_id: Key,
     kind: DeckKind,
     name: &str,
     graph_terminator: bool,
-) -> Result<SqliteDeckBase> {
-    sqlite::one(&conn, r#"
+) -> Result<DeckBase> {
+    sqlite::one(
+        &conn,
+        r#"
          UPDATE decks
          SET name = ?4, graph_terminator = ?5
          WHERE user_id = ?1 and id = ?2 and kind = ?3
          RETURNING id, name, created_at, graph_terminator"#,
-                params![&user_id, &deck_id, &sqlite_string_from_deck_kind(kind), name, graph_terminator],
-                deckbase_from_row)
+        params![
+            &user_id,
+            &deck_id,
+            &sqlite_string_from_deck_kind(kind),
+            name,
+            graph_terminator
+        ],
+        deckbase_from_row,
+    )
 }
 
-pub(crate) fn sqlite_recent(
+pub(crate) fn recent(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     resource: &str,
@@ -316,25 +209,44 @@ pub(crate) fn sqlite_recent(
 
 // delete anything that's represented as a deck (article, person, event)
 //
-pub(crate) fn sqlite_delete(sqlite_pool: &SqlitePool, user_id: Key, id: Key) -> Result<()> {
+pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, id: Key) -> Result<()> {
     let conn = sqlite_pool.get()?;
 
-    notes::sqlite_delete_all_notes_connected_with_deck(&conn, user_id, id)?;
+    notes::delete_all_notes_connected_with_deck(&conn, user_id, id)?;
 
-    sqlite::zero(&conn, "DELETE FROM article_extras WHERE deck_id = ?1", params![&id])?;
-    sqlite::zero(&conn, "DELETE FROM quote_extras WHERE deck_id = ?1", params![&id])?;
-    sqlite::zero(&conn, "DELETE FROM notes_decks WHERE deck_id = ?1", params![&id])?;
+    sqlite::zero(
+        &conn,
+        "DELETE FROM article_extras WHERE deck_id = ?1",
+        params![&id],
+    )?;
+    sqlite::zero(
+        &conn,
+        "DELETE FROM quote_extras WHERE deck_id = ?1",
+        params![&id],
+    )?;
+    sqlite::zero(
+        &conn,
+        "DELETE FROM notes_decks WHERE deck_id = ?1",
+        params![&id],
+    )?;
 
-    points::sqlite_delete_all_points_connected_with_deck(&conn, id)?;
+    points::delete_all_points_connected_with_deck(&conn, id)?;
 
-    sqlite::zero(&conn, "DELETE FROM decks WHERE id = ?2 and user_id = ?1", params![&user_id, &id])?;
+    sqlite::zero(
+        &conn,
+        "DELETE FROM decks WHERE id = ?2 and user_id = ?1",
+        params![&user_id, &id],
+    )?;
 
     Ok(())
 }
 
 // return all notes that have references back to the currently displayed deck
 //
-pub(crate) fn sqlite_get_backnotes(sqlite_pool: &SqlitePool, deck_id: Key) -> Result<Vec<interop::BackNote>> {
+pub(crate) fn get_backnotes(
+    sqlite_pool: &SqlitePool,
+    deck_id: Key,
+) -> Result<Vec<interop::BackNote>> {
     let conn = sqlite_pool.get()?;
 
     fn backnote_from_row(row: &Row) -> Result<interop::BackNote> {
@@ -346,11 +258,13 @@ pub(crate) fn sqlite_get_backnotes(sqlite_pool: &SqlitePool, deck_id: Key) -> Re
             note_content: row.get(3)?,
             deck_id: row.get(0)?,
             deck_name: row.get(1)?,
-            resource: interop::DeckResource::from(deck_kind),
+            resource: interop::DeckKind::from(deck_kind),
         })
     }
 
-    sqlite::many(&conn, "
+    sqlite::many(
+        &conn,
+        "
          SELECT d.id AS deck_id,
                 d.name AS deck_name,
                 d.kind as kind,
@@ -362,12 +276,18 @@ pub(crate) fn sqlite_get_backnotes(sqlite_pool: &SqlitePool, deck_id: Key) -> Re
          WHERE n.deck_id = d.id
                AND nd.note_id = n.id
                AND nd.deck_id = ?1
-         ORDER BY d.name, n.id", params![&deck_id], backnote_from_row)
+         ORDER BY d.name, n.id",
+        params![&deck_id],
+        backnote_from_row,
+    )
 }
 
 // all refs on notes that have at least one ref back to the currently displayed deck
 //
-pub(crate) fn sqlite_get_backrefs(sqlite_pool: &SqlitePool, deck_id: Key) -> Result<Vec<interop::BackRef>> {
+pub(crate) fn get_backrefs(
+    sqlite_pool: &SqlitePool,
+    deck_id: Key,
+) -> Result<Vec<interop::BackRef>> {
     let conn = sqlite_pool.get()?;
 
     fn backref_from_row(row: &Row) -> Result<interop::BackRef> {
@@ -375,20 +295,21 @@ pub(crate) fn sqlite_get_backrefs(sqlite_pool: &SqlitePool, deck_id: Key) -> Res
         let deck_kind = deck_kind_from_sqlite_string(kind.as_str())?;
 
         let refk: String = row.get(4)?;
-        let ref_kind = ref_kind_from_sqlite_string(refk.as_str())?;
+        let ref_kind = interop::ref_kind_from_sqlite_string(refk.as_str())?;
 
         Ok(interop::BackRef {
             note_id: row.get(0)?,
             deck_id: row.get(1)?,
             deck_name: row.get(3)?,
-            resource: interop::DeckResource::from(deck_kind), // todo: simplify all this
-            ref_kind: interop::RefKind::from(ref_kind),       // todo: simplify all this
+            resource: interop::DeckKind::from(deck_kind), // todo: simplify all this
+            ref_kind: interop::RefKind::from(ref_kind),   // todo: simplify all this
             annotation: row.get(5)?,
         })
     }
 
-    sqlite::many(&conn,
-                 "SELECT nd.note_id as note_id,
+    sqlite::many(
+        &conn,
+        "SELECT nd.note_id as note_id,
                          d.id as deck_id,
                          d.kind as kind,
                          d.name as deck_name,
@@ -399,13 +320,15 @@ pub(crate) fn sqlite_get_backrefs(sqlite_pool: &SqlitePool, deck_id: Key) -> Res
                         AND nd.note_id = nd2.note_id
                         AND d.id = nd2.deck_id
                   ORDER BY nd2.deck_id",
-                 params![&deck_id], backref_from_row)
+        params![&deck_id],
+        backref_from_row,
+    )
 }
 
 // return all the people, events, articles etc mentioned in the given deck
 // (used to show refs on left hand margin)
 //
-pub(crate) fn sqlite_from_deck_id_via_notes_to_decks(
+pub(crate) fn from_deck_id_via_notes_to_decks(
     sqlite_pool: &SqlitePool,
     deck_id: Key,
 ) -> Result<Vec<interop::Ref>> {
@@ -416,19 +339,20 @@ pub(crate) fn sqlite_from_deck_id_via_notes_to_decks(
         let deck_kind = deck_kind_from_sqlite_string(kind.as_str())?;
 
         let refk: String = row.get(4)?;
-        let ref_kind = ref_kind_from_sqlite_string(refk.as_str())?;
+        let ref_kind = interop::ref_kind_from_sqlite_string(refk.as_str())?;
 
         Ok(interop::Ref {
             note_id: row.get(0)?,
             id: row.get(1)?,
             name: row.get(2)?,
-            resource: interop::DeckResource::from(deck_kind), // todo: simplify all this
-            ref_kind: interop::RefKind::from(ref_kind),       // todo: simplify all this
+            resource: interop::DeckKind::from(deck_kind), // todo: simplify all this
+            ref_kind: interop::RefKind::from(ref_kind),   // todo: simplify all this
             annotation: row.get(5)?,
         })
     }
 
-    sqlite::many(&conn,
+    sqlite::many(
+        &conn,
         "SELECT n.id as note_id,
                 d.id,
                 d.name,
@@ -442,9 +366,10 @@ pub(crate) fn sqlite_from_deck_id_via_notes_to_decks(
                 AND nd.note_id = n.id
                 AND nd.deck_id = d.id
          ORDER BY nd.note_id, d.kind DESC, d.name",
-                 params![&deck_id], ref_from_row)
+        params![&deck_id],
+        ref_from_row,
+    )
 }
-
 
 fn deck_simple_from_search_result(row: &Row) -> Result<interop::DeckSimple> {
     let kind: String = row.get(1)?;
@@ -452,29 +377,29 @@ fn deck_simple_from_search_result(row: &Row) -> Result<interop::DeckSimple> {
     Ok(interop::DeckSimple {
         id: row.get(0)?,
         name: row.get(2)?,
-        resource: interop::DeckResource::from(deck_kind)
+        resource: interop::DeckKind::from(deck_kind),
     })
 }
 
-pub(crate) fn sqlite_search(
+pub(crate) fn search(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     query: &str,
 ) -> Result<Vec<interop::DeckSimple>> {
-
     let conn = sqlite_pool.get()?;
 
-    let mut results = sqlite::many(&conn,
-                               "select d.id, d.kind, d.name, decks_fts.rank AS rank_sum, 1 as rank_count
+    let mut results = sqlite::many(
+        &conn,
+        "select d.id, d.kind, d.name, decks_fts.rank AS rank_sum, 1 as rank_count
                                 from decks_fts left join decks d on d.id = decks_fts.rowid
                                 where decks_fts match ?2
                                       and d.user_id = ?1
                                 group by d.id
                                 order by rank_sum asc, length(d.name) asc
                                 limit 30",
-                               params![&user_id, &query],
-                               deck_simple_from_search_result)?;
-
+        params![&user_id, &query],
+        deck_simple_from_search_result,
+    )?;
 
     let results_via_pub_ext = sqlite::many(&conn,
                                            "select d.id, d.kind, d.name, article_extras_fts.rank AS rank_sum, 1 as rank_count
@@ -497,7 +422,6 @@ pub(crate) fn sqlite_search(
                                               limit 30",
                                              params![&user_id, &query],
                                              deck_simple_from_search_result)?;
-
 
     let results_via_notes = sqlite::many(&conn,
                                              "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
@@ -558,35 +482,36 @@ pub(crate) fn sqlite_search(
     Ok(results)
 }
 
-
-pub(crate) fn sqlite_search_by_name(
+pub(crate) fn search_by_name(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     query: &str,
 ) -> Result<Vec<interop::DeckSimple>> {
-
     let conn = sqlite_pool.get()?;
 
-    let mut results = sqlite::many(&conn,
-                                   "select d.id, d.kind, d.name, decks_fts.rank AS rank_sum, 1 as rank_count
+    let mut results = sqlite::many(
+        &conn,
+        "select d.id, d.kind, d.name, decks_fts.rank AS rank_sum, 1 as rank_count
                                     from decks_fts left join decks d on d.id = decks_fts.rowid
                                     where decks_fts match ?2
                                           and d.user_id = ?1
                                     group by d.id
                                     order by rank_sum asc, length(d.name) asc
                                     limit 20",
-                                   params![&user_id, &query],
-                                   deck_simple_from_search_result)?;
+        params![&user_id, &query],
+        deck_simple_from_search_result,
+    )?;
 
-    let res2 = sqlite::many(&conn,
-                                   "select id, kind, name, 0 as rank_sum, 1 as rank_count
+    let res2 = sqlite::many(
+        &conn,
+        "select id, kind, name, 0 as rank_sum, 1 as rank_count
                                     from decks
                                     where name like '%' || ?2 || '%'
                                     and user_id = ?1
                                     limit 20",
-                                   params![&user_id, &query],
-                                   deck_simple_from_search_result)?;
-
+        params![&user_id, &query],
+        deck_simple_from_search_result,
+    )?;
 
     for r in res2 {
         if !contains(&results, r.id) {
@@ -597,7 +522,7 @@ pub(crate) fn sqlite_search_by_name(
     Ok(results)
 }
 
-pub(crate) fn sqlite_additional_search(
+pub(crate) fn additional_search(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
@@ -608,8 +533,8 @@ pub(crate) fn sqlite_additional_search(
         backnotes.iter().any(|br| br.deck_id == backref.id)
     }
 
-    let backnotes = sqlite_get_backnotes(&sqlite_pool, deck_id)?;
-    let search_results = sqlite_search_using_deck_id(&sqlite_pool, user_id, deck_id)?;
+    let backnotes = get_backnotes(&sqlite_pool, deck_id)?;
+    let search_results = search_using_deck_id(&sqlite_pool, user_id, deck_id)?;
 
     // dedupe search results against the backrefs to decks
     let additional_search_results: Vec<interop::DeckSimple> = search_results
@@ -620,12 +545,11 @@ pub(crate) fn sqlite_additional_search(
     Ok(additional_search_results)
 }
 
-pub(crate) fn sqlite_search_using_deck_id(
+pub(crate) fn search_using_deck_id(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
 ) -> Result<Vec<interop::DeckSimple>> {
-
     let conn = sqlite_pool.get()?;
 
     let mut results = sqlite::many(&conn,

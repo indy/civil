@@ -15,14 +15,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::{DeckResource, RefKind};
+use crate::interop::decks::{DeckKind, RefKind};
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Graph {
     pub id: Key,
     pub name: String,
-    pub resource: DeckResource,
+    pub resource: DeckKind,
     pub graph_terminator: bool,
 }
 

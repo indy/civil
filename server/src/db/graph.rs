@@ -15,61 +15,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::deck_kind::{DeckKind, deck_kind_from_sqlite_string};
-use crate::db::ref_kind::{RefKind, ref_kind_from_sqlite_string};
+use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Result;
 use crate::interop::decks as interop_decks;
+use crate::interop::decks::deck_kind_from_sqlite_string;
 use crate::interop::graph as interop;
 use crate::interop::Key;
-use serde::{Deserialize, Serialize};
-use tokio_pg_mapper_derive::PostgresMapper;
 
+use rusqlite::{params, Row};
 #[allow(unused_imports)]
 use tracing::info;
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
-struct GraphDeck {
-    id: Key,
-    name: String,
-    kind: DeckKind,
-    graph_terminator: bool,
-}
-
-impl From<GraphDeck> for interop::Graph {
-    fn from(p: GraphDeck) -> interop::Graph {
-        interop::Graph {
-            id: p.id,
-            name: String::from(&p.name),
-            resource: p.kind.into(),
-            graph_terminator: p.graph_terminator,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PostgresMapper)]
-#[pg_mapper(table = "decks")]
-pub struct Vertex {
-    pub from_id: Key,
-    pub to_id: Key,
-    pub kind: RefKind,
-    pub strength: i32,
-}
-
-impl From<Vertex> for interop::Vertex {
-    fn from(v: Vertex) -> interop::Vertex {
-        interop::Vertex {
-            from_id: v.from_id,
-            to_id: v.to_id,
-            kind: interop_decks::RefKind::from(v.kind),
-            strength: v.strength as usize,
-        }
-    }
-}
-
-use crate::db::sqlite::{self, SqlitePool};
-use rusqlite::{Row, params};
-
 
 fn graph_from_row(row: &Row) -> Result<interop::Graph> {
     let kind: String = row.get(2)?;
@@ -78,12 +33,12 @@ fn graph_from_row(row: &Row) -> Result<interop::Graph> {
     Ok(interop::Graph {
         id: row.get(0)?,
         name: row.get(1)?,
-        resource: interop_decks::DeckResource::from(deck_kind),
+        resource: interop_decks::DeckKind::from(deck_kind),
         graph_terminator: row.get(3)?,
     })
 }
 
-pub(crate) fn sqlite_get_decks(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::Graph>> {
+pub(crate) fn get_decks(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::Graph>> {
     let conn = sqlite_pool.get()?;
 
     sqlite::many(
@@ -93,23 +48,25 @@ pub(crate) fn sqlite_get_decks(sqlite_pool: &SqlitePool, user_id: Key) -> Result
          WHERE user_id = ?1
          ORDER BY name",
         params![&user_id],
-        graph_from_row
+        graph_from_row,
     )
 }
 
 fn vertex_from_row(row: &Row) -> Result<interop::Vertex> {
     let refk: String = row.get(2)?;
-    let ref_kind = ref_kind_from_sqlite_string(refk.as_str())?;
 
     Ok(interop::Vertex {
         from_id: row.get(0)?,
         to_id: row.get(1)?,
-        kind: interop_decks::RefKind::from(ref_kind),
+        kind: interop_decks::ref_kind_from_sqlite_string(refk.as_str())?,
         strength: row.get(3)?,
     })
 }
 
-pub(crate) fn sqlite_get_connections(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::Vertex>> {
+pub(crate) fn get_connections(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+) -> Result<Vec<interop::Vertex>> {
     let conn = sqlite_pool.get()?;
     sqlite::many(
         &conn,
@@ -121,6 +78,6 @@ pub(crate) fn sqlite_get_connections(sqlite_pool: &SqlitePool, user_id: Key) -> 
          group by from_id, to_id, nd.kind
          order by from_id",
         params![&user_id],
-        vertex_from_row
+        vertex_from_row,
     )
 }

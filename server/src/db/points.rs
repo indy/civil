@@ -15,102 +15,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::deck_kind::{self, DeckKind};
-use crate::db::point_kind::PointKind;
+use crate::db::sqlite::{self, SqlitePool};
 use crate::error::{Error, Result};
 use crate::interop::decks as interop_decks;
 use crate::interop::points as interop;
 use crate::interop::Key;
-
-use serde::{Deserialize, Serialize};
-use tokio_pg_mapper_derive::PostgresMapper;
+use rusqlite::{params, Connection, Row};
 
 #[allow(unused_imports)]
 use tracing::info;
 
-
-#[derive(Debug, Deserialize, PostgresMapper, Serialize)]
-#[pg_mapper(table = "points")]
-struct Point {
-    id: Key,
-    kind: PointKind,
-    title: Option<String>,
-
-    location_textual: Option<String>,
-    longitude: Option<f32>,
-    latitude: Option<f32>,
-    location_fuzz: f32,
-
-    date_textual: Option<String>,
-    exact_date: Option<chrono::NaiveDate>,
-    lower_date: Option<chrono::NaiveDate>,
-    upper_date: Option<chrono::NaiveDate>,
-    date_fuzz: f32,
-}
-
-impl From<Point> for interop::Point {
-    fn from(e: Point) -> interop::Point {
-        interop::Point {
-            id: e.id,
-            kind: interop::PointKind::from(e.kind),
-            title: e.title,
-
-            location_textual: e.location_textual,
-            longitude: e.longitude,
-            latitude: e.latitude,
-            location_fuzz: e.location_fuzz,
-
-            date_textual: e.date_textual,
-            exact_date: e.exact_date,
-            lower_date: e.lower_date,
-            upper_date: e.upper_date,
-            date_fuzz: e.date_fuzz,
-        }
-    }
-}
-
-#[derive(Debug, Deserialize, PostgresMapper, Serialize)]
-#[pg_mapper(table = "points")]
-struct DeckPoint {
-    id: Key,
-    kind: PointKind,
-    title: Option<String>,
-    date_textual: Option<String>,
-    date: Option<chrono::NaiveDate>,
-
-    deck_id: Key,
-    deck_name: String,
-    deck_kind: DeckKind,
-}
-
-impl From<DeckPoint> for interop::DeckPoint {
-    fn from(e: DeckPoint) -> interop::DeckPoint {
-        interop::DeckPoint {
-            id: e.id,
-            kind: interop::PointKind::from(e.kind),
-            title: e.title,
-            date_textual: e.date_textual,
-            date: e.date,
-
-            deck_id: e.deck_id,
-            deck_name: e.deck_name,
-            deck_resource: interop_decks::DeckResource::from(e.deck_kind),
-        }
-    }
-}
-
-
-use crate::db::sqlite::{self, SqlitePool};
-use rusqlite::{Connection, Row, params};
-
-pub(crate) fn sqlite_delete_all_points_connected_with_deck(
-    conn: &Connection,
-    deck_id: Key,
-) -> Result<()> {
-    sqlite::zero(&conn,
-                 "DELETE FROM points
+pub(crate) fn delete_all_points_connected_with_deck(conn: &Connection, deck_id: Key) -> Result<()> {
+    sqlite::zero(
+        &conn,
+        "DELETE FROM points
                   WHERE deck_id = ?1",
-                 params![&deck_id])?;
+        params![&deck_id],
+    )?;
 
     Ok(())
 }
@@ -139,7 +60,7 @@ pub(crate) fn sqlite_string_from_point_kind(pk: interop::PointKind) -> Result<St
     }
 }
 
-fn sqlite_point_from_row(row: &Row) -> Result<interop::Point> {
+fn point_from_row(row: &Row) -> Result<interop::Point> {
     Ok(interop::Point {
         id: row.get(0)?,
         kind: point_kind_from_sqlite_string(row.get(1)?)?,
@@ -154,11 +75,15 @@ fn sqlite_point_from_row(row: &Row) -> Result<interop::Point> {
         exact_date: row.get(8)?,
         lower_date: row.get(9)?,
         upper_date: row.get(10)?,
-        date_fuzz: row.get(11)?
+        date_fuzz: row.get(11)?,
     })
 }
 
-pub(crate) fn sqlite_all(sqlite_pool: &SqlitePool, user_id: Key, deck_id: Key) -> Result<Vec<interop::Point>> {
+pub(crate) fn all(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_id: Key,
+) -> Result<Vec<interop::Point>> {
     let conn = sqlite_pool.get()?;
 
     sqlite::many(
@@ -182,14 +107,13 @@ pub(crate) fn sqlite_all(sqlite_pool: &SqlitePool, user_id: Key, deck_id: Key) -
                 and p.deck_id = d.id
          order by coalesce(p.exact_date, p.lower_date)",
         params![&user_id, &deck_id],
-        sqlite_point_from_row
+        point_from_row,
     )
 }
 
-
 fn deckpoint_from_row(row: &Row) -> Result<interop::DeckPoint> {
     let kind: String = row.get(2)?;
-    let deck_kind = deck_kind::deck_kind_from_sqlite_string(kind.as_str())?;
+    let deck_kind = interop_decks::deck_kind_from_sqlite_string(kind.as_str())?;
 
     Ok(interop::DeckPoint {
         id: row.get(3)?,
@@ -200,11 +124,11 @@ fn deckpoint_from_row(row: &Row) -> Result<interop::DeckPoint> {
 
         deck_id: row.get(0)?,
         deck_name: row.get(1)?,
-        deck_resource: interop_decks::DeckResource::from(deck_kind)
+        deck_resource: interop_decks::DeckKind::from(deck_kind),
     })
 }
 
-pub(crate) fn sqlite_all_points_during_life(
+pub(crate) fn all_points_during_life(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
@@ -251,13 +175,11 @@ pub(crate) fn sqlite_all_points_during_life(
     )
 }
 
-
-pub(crate) fn sqlite_create(
+pub(crate) fn create(
     sqlite_pool: &SqlitePool,
     point: &interop::ProtoPoint,
     deck_id: Key,
 ) -> Result<()> {
-
     let conn = sqlite_pool.get()?;
     let pks = sqlite_string_from_point_kind(point.kind)?;
 
