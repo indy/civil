@@ -20,10 +20,33 @@ use crate::error::{Error, Result};
 use crate::interop::decks as interop_decks;
 use crate::interop::points as interop;
 use crate::interop::Key;
-use rusqlite::{params, Connection, Row};
 
-#[allow(unused_imports)]
-use tracing::info;
+use rusqlite::{params, Connection, Row};
+use std::fmt;
+use std::str::FromStr;
+
+impl fmt::Display for interop::PointKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            interop::PointKind::Point => write!(f, "point"),
+            interop::PointKind::PointBegin => write!(f, "point_begin"),
+            interop::PointKind::PointEnd => write!(f, "point_end"),
+        }
+    }
+}
+
+impl FromStr for interop::PointKind {
+    type Err = Error;
+
+    fn from_str(input: &str) -> Result<interop::PointKind> {
+        match input {
+            "point" => Ok(interop::PointKind::Point),
+            "point_begin" => Ok(interop::PointKind::PointBegin),
+            "point_end" => Ok(interop::PointKind::PointEnd),
+            _ => Err(Error::StringConversionToEnum),
+        }
+    }
+}
 
 pub(crate) fn delete_all_points_connected_with_deck(conn: &Connection, deck_id: Key) -> Result<()> {
     sqlite::zero(
@@ -36,34 +59,11 @@ pub(crate) fn delete_all_points_connected_with_deck(conn: &Connection, deck_id: 
     Ok(())
 }
 
-pub(crate) fn point_kind_from_sqlite_string(s: String) -> Result<interop::PointKind> {
-    if s == "point" {
-        Ok(interop::PointKind::Point)
-    } else if s == "point_begin" {
-        Ok(interop::PointKind::PointBegin)
-    } else if s == "point_end" {
-        Ok(interop::PointKind::PointEnd)
-    } else {
-        Err(Error::SqliteStringConversion)
-    }
-}
-
-pub(crate) fn sqlite_string_from_point_kind(pk: interop::PointKind) -> Result<String> {
-    if pk == interop::PointKind::Point {
-        Ok("point".to_string())
-    } else if pk == interop::PointKind::PointBegin {
-        Ok("point_begin".to_string())
-    } else if pk == interop::PointKind::PointEnd {
-        Ok("point_end".to_string())
-    } else {
-        Err(Error::SqliteStringConversion)
-    }
-}
-
 fn point_from_row(row: &Row) -> Result<interop::Point> {
+    let sql_kind: String = row.get(1)?;
     Ok(interop::Point {
         id: row.get(0)?,
-        kind: point_kind_from_sqlite_string(row.get(1)?)?,
+        kind: interop::PointKind::from_str(&sql_kind)?,
         title: row.get(2)?,
 
         location_textual: row.get(3)?,
@@ -112,19 +112,19 @@ pub(crate) fn all(
 }
 
 fn deckpoint_from_row(row: &Row) -> Result<interop::DeckPoint> {
-    let kind: String = row.get(2)?;
-    let deck_kind = interop_decks::deck_kind_from_sqlite_string(kind.as_str())?;
+    let string_deck_kind: String = row.get(2)?;
+    let string_point_kind: String = row.get(4)?;
 
     Ok(interop::DeckPoint {
         id: row.get(3)?,
-        kind: point_kind_from_sqlite_string(row.get(4)?)?,
+        kind: interop::PointKind::from_str(&string_point_kind)?,
         title: row.get(5)?,
         date_textual: row.get(6)?,
         date: row.get(7)?,
 
         deck_id: row.get(0)?,
         deck_name: row.get(1)?,
-        deck_resource: interop_decks::DeckKind::from(deck_kind),
+        deck_resource: interop_decks::DeckKind::from_str(&string_deck_kind)?,
     })
 }
 
@@ -181,7 +181,6 @@ pub(crate) fn create(
     deck_id: Key,
 ) -> Result<()> {
     let conn = sqlite_pool.get()?;
-    let pks = sqlite_string_from_point_kind(point.kind)?;
 
     sqlite::zero(
         &conn,
@@ -191,7 +190,7 @@ pub(crate) fn create(
         params![
             &deck_id,
             &point.title,
-            &pks,
+            &point.kind.to_string(),
             &point.location_textual,
             &point.longitude,
             &point.latitude,

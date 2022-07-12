@@ -18,7 +18,7 @@
 use crate::db::decks;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Result;
-use crate::interop::decks::{sqlite_string_from_deck_kind, DeckKind};
+use crate::interop::decks::DeckKind;
 use crate::interop::ideas as interop;
 use crate::interop::Key;
 use rusqlite::{params, Row};
@@ -116,11 +116,7 @@ pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, idea_id: Key) -> Resul
     let deck = sqlite::one(
         &conn,
         decks::DECKBASE_QUERY,
-        params![
-            &user_id,
-            &idea_id,
-            &sqlite_string_from_deck_kind(DeckKind::Idea)
-        ],
+        params![&user_id, &idea_id, &DeckKind::Idea.to_string()],
         idea_from_row,
     )?;
 

@@ -20,10 +20,11 @@ use crate::db::points;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::{Error, Result};
 use crate::interop::decks as interop;
-use crate::interop::decks::{deck_kind_from_sqlite_string, sqlite_string_from_deck_kind, DeckKind};
+use crate::interop::decks::DeckKind;
 use crate::interop::Key;
 use rusqlite::{params, Connection, Row};
 
+use std::str::FromStr;
 #[allow(unused_imports)]
 use tracing::{info, warn};
 
@@ -91,7 +92,7 @@ fn decksimple_from_row(row: &Row) -> Result<interop::DeckSimple> {
     Ok(interop::DeckSimple {
         id: row.get(0)?,
         name: row.get(1)?,
-        resource: interop::deck_kind_from_sqlite_string(res.as_str())?,
+        resource: DeckKind::from_str(&res)?,
     })
 }
 
@@ -133,7 +134,7 @@ fn deckbase_get_by_name(
                 select id, name, created_at, graph_terminator
                 from decks
                 where user_id = ?1 and name = ?2 and kind = ?3"#,
-        params![&user_id, &name, &sqlite_string_from_deck_kind(kind)],
+        params![&user_id, &name, &kind.to_string()],
         deckbase_from_row,
     )
 }
@@ -151,12 +152,7 @@ pub(crate) fn deckbase_create(
                 INSERT INTO decks(user_id, kind, name, graph_terminator)
                 VALUES (?1, ?2, ?3, ?4)
                 RETURNING id, name, created_at, graph_terminator"#,
-        params![
-            &user_id,
-            &sqlite_string_from_deck_kind(kind),
-            name,
-            graph_terminator
-        ],
+        params![&user_id, &kind.to_string(), name, graph_terminator],
         deckbase_from_row,
     )
 }
@@ -179,7 +175,7 @@ pub(crate) fn deckbase_edit(
         params![
             &user_id,
             &deck_id,
-            &sqlite_string_from_deck_kind(kind),
+            &kind.to_string(),
             name,
             graph_terminator
         ],
@@ -254,14 +250,13 @@ pub(crate) fn get_backnotes(
 
     fn backnote_from_row(row: &Row) -> Result<interop::BackNote> {
         let kind: String = row.get(2)?;
-        let deck_kind = deck_kind_from_sqlite_string(kind.as_str())?;
 
         Ok(interop::BackNote {
             note_id: row.get(4)?,
             note_content: row.get(3)?,
             deck_id: row.get(0)?,
             deck_name: row.get(1)?,
-            resource: interop::DeckKind::from(deck_kind),
+            resource: DeckKind::from_str(&kind)?,
         })
     }
 
@@ -295,17 +290,14 @@ pub(crate) fn get_backrefs(
 
     fn backref_from_row(row: &Row) -> Result<interop::BackRef> {
         let kind: String = row.get(2)?;
-        let deck_kind = deck_kind_from_sqlite_string(kind.as_str())?;
-
         let refk: String = row.get(4)?;
-        let ref_kind = interop::ref_kind_from_sqlite_string(refk.as_str())?;
 
         Ok(interop::BackRef {
             note_id: row.get(0)?,
             deck_id: row.get(1)?,
             deck_name: row.get(3)?,
-            resource: interop::DeckKind::from(deck_kind), // todo: simplify all this
-            ref_kind: interop::RefKind::from(ref_kind),   // todo: simplify all this
+            resource: DeckKind::from_str(&kind)?,
+            ref_kind: interop::RefKind::from_str(&refk)?,
             annotation: row.get(5)?,
         })
     }
@@ -339,17 +331,14 @@ pub(crate) fn from_deck_id_via_notes_to_decks(
 
     fn ref_from_row(row: &Row) -> Result<interop::Ref> {
         let kind: String = row.get(3)?;
-        let deck_kind = deck_kind_from_sqlite_string(kind.as_str())?;
-
         let refk: String = row.get(4)?;
-        let ref_kind = interop::ref_kind_from_sqlite_string(refk.as_str())?;
 
         Ok(interop::Ref {
             note_id: row.get(0)?,
             id: row.get(1)?,
             name: row.get(2)?,
-            resource: interop::DeckKind::from(deck_kind), // todo: simplify all this
-            ref_kind: interop::RefKind::from(ref_kind),   // todo: simplify all this
+            resource: DeckKind::from_str(&kind)?,
+            ref_kind: interop::RefKind::from_str(&refk)?,
             annotation: row.get(5)?,
         })
     }
@@ -376,11 +365,11 @@ pub(crate) fn from_deck_id_via_notes_to_decks(
 
 fn deck_simple_from_search_result(row: &Row) -> Result<interop::DeckSimple> {
     let kind: String = row.get(1)?;
-    let deck_kind = deck_kind_from_sqlite_string(kind.as_str())?;
+
     Ok(interop::DeckSimple {
         id: row.get(0)?,
         name: row.get(2)?,
-        resource: interop::DeckKind::from(deck_kind),
+        resource: DeckKind::from_str(&kind)?,
     })
 }
 

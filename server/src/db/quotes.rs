@@ -113,13 +113,13 @@ pub(crate) fn get_or_create(
         )?,
     };
 
-    let k = interop_notes::note_kind_to_sqlite_string(interop_notes::NoteKind::Note)?;
+    let kind = interop_notes::NoteKind::Note.to_string();
 
     sqlite::zero(
         &tx,
         "INSERT INTO notes(user_id, deck_id, kind, content)
                   VALUES (?1, ?2, ?3, ?4)",
-        params![&user_id, &deck.id, &k, &text],
+        params![&user_id, &deck.id, &kind, &text],
     )?;
 
     tx.commit()?;

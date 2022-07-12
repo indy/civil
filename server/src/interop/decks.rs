@@ -18,6 +18,9 @@
 use crate::error::{Error, Result};
 use crate::interop::Key;
 
+use std::fmt;
+use std::str::FromStr;
+
 #[derive(PartialEq, Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
 pub enum DeckKind {
     #[serde(rename = "articles")]
@@ -32,29 +35,30 @@ pub enum DeckKind {
     Quote,
 }
 
-pub(crate) fn deck_kind_from_sqlite_string(s: &str) -> Result<DeckKind> {
-    if s == "article" {
-        Ok(DeckKind::Article)
-    } else if s == "person" {
-        Ok(DeckKind::Person)
-    } else if s == "idea" {
-        Ok(DeckKind::Idea)
-    } else if s == "timeline" {
-        Ok(DeckKind::Timeline)
-    } else if s == "quote" {
-        Ok(DeckKind::Quote)
-    } else {
-        Err(Error::SqliteStringConversion)
+impl fmt::Display for DeckKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            DeckKind::Article => write!(f, "article"),
+            DeckKind::Person => write!(f, "person"),
+            DeckKind::Idea => write!(f, "idea"),
+            DeckKind::Timeline => write!(f, "timeline"),
+            DeckKind::Quote => write!(f, "quote"),
+        }
     }
 }
 
-pub(crate) fn sqlite_string_from_deck_kind(deckkind: DeckKind) -> &'static str {
-    match deckkind {
-        DeckKind::Article => "article",
-        DeckKind::Person => "person",
-        DeckKind::Idea => "idea",
-        DeckKind::Timeline => "timeline",
-        DeckKind::Quote => "quote",
+impl FromStr for DeckKind {
+    type Err = Error;
+
+    fn from_str(input: &str) -> Result<DeckKind> {
+        match input {
+            "article" => Ok(DeckKind::Article),
+            "person" => Ok(DeckKind::Person),
+            "idea" => Ok(DeckKind::Idea),
+            "timeline" => Ok(DeckKind::Timeline),
+            "quote" => Ok(DeckKind::Quote),
+            _ => Err(Error::StringConversionToEnum),
+        }
     }
 }
 
@@ -67,29 +71,30 @@ pub enum RefKind {
     RefCritical,
 }
 
-pub(crate) fn ref_kind_from_sqlite_string(s: &str) -> Result<RefKind> {
-    if s == "ref" {
-        Ok(RefKind::Ref)
-    } else if s == "ref_to_parent" {
-        Ok(RefKind::RefToParent)
-    } else if s == "ref_to_child" {
-        Ok(RefKind::RefToChild)
-    } else if s == "ref_in_contrast" {
-        Ok(RefKind::RefInContrast)
-    } else if s == "ref_critical" {
-        Ok(RefKind::RefCritical)
-    } else {
-        Err(Error::SqliteStringConversion)
+impl fmt::Display for RefKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            RefKind::Ref => write!(f, "ref"),
+            RefKind::RefToParent => write!(f, "ref_to_parent"),
+            RefKind::RefToChild => write!(f, "ref_to_child"),
+            RefKind::RefInContrast => write!(f, "ref_in_contrast"),
+            RefKind::RefCritical => write!(f, "ref_critical"),
+        }
     }
 }
 
-pub(crate) fn sqlite_string_from_ref_kind(rk: RefKind) -> Result<String> {
-    match rk {
-        RefKind::Ref => Ok(String::from("ref")),
-        RefKind::RefToParent => Ok(String::from("ref_to_parent")),
-        RefKind::RefToChild => Ok(String::from("ref_to_child")),
-        RefKind::RefInContrast => Ok(String::from("ref_in_contrast")),
-        RefKind::RefCritical => Ok(String::from("ref_critical")),
+impl FromStr for RefKind {
+    type Err = Error;
+
+    fn from_str(input: &str) -> Result<RefKind> {
+        match input {
+            "ref" => Ok(RefKind::Ref),
+            "ref_to_parent" => Ok(RefKind::RefToParent),
+            "ref_to_child" => Ok(RefKind::RefToChild),
+            "ref_in_contrast" => Ok(RefKind::RefInContrast),
+            "ref_critical" => Ok(RefKind::RefCritical),
+            _ => Err(Error::StringConversionToEnum),
+        }
     }
 }
 

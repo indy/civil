@@ -19,26 +19,25 @@ use crate::db::decks as decks_db;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Result;
 use crate::interop::decks as interop_decks;
-use crate::interop::decks::{deck_kind_from_sqlite_string, DeckKind};
+use crate::interop::decks::DeckKind;
 use crate::interop::edges as interop;
 use crate::interop::Key;
 
 use rusqlite::{params, Row};
+use std::str::FromStr;
 #[allow(unused_imports)]
 use tracing::info;
 
 fn from_row(row: &Row) -> Result<interop_decks::Ref> {
     let kind: String = row.get(3)?;
-    let deck_kind = deck_kind_from_sqlite_string(kind.as_str())?;
-
     let rk: String = row.get(4)?;
 
     Ok(interop_decks::Ref {
         note_id: row.get(0)?,
         id: row.get(1)?,
         name: row.get(2)?,
-        resource: interop_decks::DeckKind::from(deck_kind),
-        ref_kind: interop_decks::ref_kind_from_sqlite_string(rk.as_str())?,
+        resource: interop_decks::DeckKind::from_str(&kind)?,
+        ref_kind: interop_decks::RefKind::from_str(&rk)?,
         annotation: row.get(5)?,
     })
 }
@@ -70,12 +69,15 @@ pub(crate) fn create_from_note_to_decks(
             note_id, changed.id
         );
 
-        let rstr = interop_decks::sqlite_string_from_ref_kind(changed.ref_kind)?;
-
         sqlite::zero(
             &tx,
             &stmt_refs_changed,
-            params![&changed.id, &note_id, &rstr, &changed.annotation],
+            params![
+                &changed.id,
+                &note_id,
+                &changed.ref_kind.to_string(),
+                &changed.annotation
+            ],
         )?;
     }
 
@@ -86,11 +88,15 @@ pub(crate) fn create_from_note_to_decks(
             "creating new edge to pre-existing deck {}, {}",
             &note_id, &added.id
         );
-        let rstr = interop_decks::sqlite_string_from_ref_kind(added.ref_kind)?;
         sqlite::zero(
             &tx,
             &stmt_refs_added,
-            params![&note_id, &added.id, &rstr, &added.annotation],
+            params![
+                &note_id,
+                &added.id,
+                &added.ref_kind.to_string(),
+                &added.annotation
+            ],
         )?;
     }
 
@@ -100,11 +106,15 @@ pub(crate) fn create_from_note_to_decks(
         info!("create new idea: {} and a new edge", created.name);
         let (deck, _created) =
             decks_db::deckbase_get_or_create(&tx, user_id, DeckKind::Idea, &created.name)?;
-        let rstr = interop_decks::sqlite_string_from_ref_kind(created.ref_kind)?;
         sqlite::zero(
             &tx,
             &stmt_refs_added,
-            params![&note_id, &deck.id, &rstr, &created.annotation],
+            params![
+                &note_id,
+                &deck.id,
+                &created.ref_kind.to_string(),
+                &created.annotation
+            ],
         )?;
     }
 

@@ -18,7 +18,7 @@
 use crate::db::decks;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Result;
-use crate::interop::decks::{sqlite_string_from_deck_kind, DeckKind};
+use crate::interop::decks::DeckKind;
 use crate::interop::timelines as interop;
 use crate::interop::Key;
 
@@ -74,11 +74,7 @@ pub(crate) fn get(
     let deck = sqlite::one(
         &conn,
         decks::DECKBASE_QUERY,
-        params![
-            &user_id,
-            &timeline_id,
-            &sqlite_string_from_deck_kind(DeckKind::Timeline)
-        ],
+        params![&user_id, &timeline_id, &DeckKind::Timeline.to_string()],
         from_row,
     )?;
 

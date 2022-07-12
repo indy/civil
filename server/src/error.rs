@@ -45,6 +45,7 @@ pub enum Error {
     TooManyFound,
     Utf8(std::str::Utf8Error),
     Var(std::env::VarError),
+    StringConversionToEnum,
     Sqlite(rusqlite::Error),
     SqliteMigration(rusqlite_migration::Error),
     SqlitePool(r2d2::Error),

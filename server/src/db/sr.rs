@@ -23,6 +23,7 @@ use crate::interop::sr as interop;
 use crate::interop::Key;
 
 use rusqlite::{params, Row};
+use std::str::FromStr;
 #[allow(unused_imports)]
 use tracing::info;
 
@@ -87,11 +88,11 @@ fn local_card_from_row(row: &Row) -> Result<Card> {
 
 fn local_decksimple_from_row(row: &Row) -> Result<DeckSimple> {
     let kind: String = row.get(2)?;
-    let deck_kind = interop_decks::deck_kind_from_sqlite_string(kind.as_str())?;
+
     Ok(DeckSimple {
         id: row.get(0)?,
         name: row.get(1)?,
-        kind: deck_kind,
+        kind: interop_decks::DeckKind::from_str(&kind)?,
     })
 }
 
@@ -237,7 +238,6 @@ pub(crate) fn delete_flashcard(
 
 fn interop_card_from_row(row: &Row) -> Result<interop::Card> {
     let kind: String = row.get(6)?;
-    let deck_kind = interop_decks::deck_kind_from_sqlite_string(kind.as_str())?;
 
     Ok(interop::Card {
         id: row.get(0)?,
@@ -246,7 +246,7 @@ fn interop_card_from_row(row: &Row) -> Result<interop::Card> {
         deck_info: interop_decks::DeckSimple {
             id: row.get(4)?,
             name: row.get(5)?,
-            resource: interop_decks::DeckKind::from(deck_kind),
+            resource: interop_decks::DeckKind::from_str(&kind)?,
         },
         prompt: row.get(2)?,
     })

@@ -18,6 +18,9 @@
 use crate::error::{Error, Result};
 use crate::interop::Key;
 
+use std::fmt;
+use std::str::FromStr;
+
 #[derive(Copy, Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum NoteKind {
     Note,
@@ -25,27 +28,26 @@ pub enum NoteKind {
     NoteSummary,
 }
 
-pub(crate) fn note_kind_to_sqlite_string(nk: NoteKind) -> Result<String> {
-    if nk == NoteKind::Note {
-        Ok(String::from("note"))
-    } else if nk == NoteKind::NoteReview {
-        Ok(String::from("note_review"))
-    } else if nk == NoteKind::NoteSummary {
-        Ok(String::from("note_summary"))
-    } else {
-        Err(Error::SqliteStringConversion)
+impl fmt::Display for NoteKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            NoteKind::Note => write!(f, "note"),
+            NoteKind::NoteReview => write!(f, "note_review"),
+            NoteKind::NoteSummary => write!(f, "note_summary"),
+        }
     }
 }
 
-pub(crate) fn note_kind_from_sqlite_string(s: String) -> Result<NoteKind> {
-    if s == "note" {
-        Ok(NoteKind::Note)
-    } else if s == "note_review" {
-        Ok(NoteKind::NoteReview)
-    } else if s == "note_summary" {
-        Ok(NoteKind::NoteSummary)
-    } else {
-        Err(Error::SqliteStringConversion)
+impl FromStr for NoteKind {
+    type Err = Error;
+
+    fn from_str(input: &str) -> Result<NoteKind> {
+        match input {
+            "note" => Ok(NoteKind::Note),
+            "note_review" => Ok(NoteKind::NoteReview),
+            "note_summary" => Ok(NoteKind::NoteSummary),
+            _ => Err(Error::StringConversionToEnum),
+        }
     }
 }
 

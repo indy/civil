@@ -18,22 +18,21 @@
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Result;
 use crate::interop::decks as interop_decks;
-use crate::interop::decks::deck_kind_from_sqlite_string;
 use crate::interop::graph as interop;
 use crate::interop::Key;
 
 use rusqlite::{params, Row};
+use std::str::FromStr;
 #[allow(unused_imports)]
 use tracing::info;
 
 fn graph_from_row(row: &Row) -> Result<interop::Graph> {
     let kind: String = row.get(2)?;
-    let deck_kind = deck_kind_from_sqlite_string(kind.as_str())?;
 
     Ok(interop::Graph {
         id: row.get(0)?,
         name: row.get(1)?,
-        resource: interop_decks::DeckKind::from(deck_kind),
+        resource: interop_decks::DeckKind::from_str(&kind)?,
         graph_terminator: row.get(3)?,
     })
 }
@@ -58,7 +57,7 @@ fn vertex_from_row(row: &Row) -> Result<interop::Vertex> {
     Ok(interop::Vertex {
         from_id: row.get(0)?,
         to_id: row.get(1)?,
-        kind: interop_decks::ref_kind_from_sqlite_string(refk.as_str())?,
+        kind: interop_decks::RefKind::from_str(&refk)?,
         strength: row.get(3)?,
     })
 }

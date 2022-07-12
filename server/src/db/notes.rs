@@ -24,11 +24,14 @@ use tracing::info;
 
 use crate::db::sqlite::{self, SqlitePool};
 use rusqlite::{params, Connection, Row};
+use std::str::FromStr;
 
 fn note_from_row(row: &Row) -> Result<interop::Note> {
+    let sql_kind: String = row.get(2)?;
+
     Ok(interop::Note {
         id: row.get(0)?,
-        kind: interop::note_kind_from_sqlite_string(row.get(2)?)?,
+        kind: interop::NoteKind::from_str(&sql_kind)?,
         content: row.get(1)?,
         point_id: row.get(3)?,
     })
@@ -107,14 +110,12 @@ pub(crate) fn create_common(
     point_id: Option<Key>,
     content: &str,
 ) -> Result<interop::Note> {
-    let k = interop::note_kind_to_sqlite_string(kind)?;
-
     sqlite::one(
         &conn,
         "INSERT INTO notes(user_id, deck_id, kind, point_id, content)
                  VALUES (?1, ?2, ?3, ?4, ?5)
                  RETURNING id, content, kind, point_id",
-        params![&user_id, &deck_id, &k, &point_id, &content],
+        params![&user_id, &deck_id, &kind.to_string(), &point_id, &content],
         note_from_row,
     )
 }
@@ -150,9 +151,11 @@ pub(crate) fn get_note(
     note_id: Key,
 ) -> Result<interop::Note> {
     fn note_from_row(row: &Row) -> Result<interop::Note> {
+        let sql_kind: String = row.get(2)?;
+
         Ok(interop::Note {
             id: row.get(0)?,
-            kind: interop::note_kind_from_sqlite_string(row.get(2)?)?,
+            kind: interop::NoteKind::from_str(&sql_kind)?,
             content: row.get(1)?,
             point_id: None,
         })
