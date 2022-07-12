@@ -89,13 +89,14 @@ pub(crate) fn get_or_create(
     let text = &quote.text;
     let attribution = &quote.attribution;
 
-    let conn = sqlite_pool.get()?;
+    let mut conn = sqlite_pool.get()?;
+    let tx = conn.transaction()?;
 
-    let (deck, origin) = decks::deckbase_get_or_create(&conn, user_id, DeckKind::Quote, &title)?;
+    let (deck, origin) = decks::deckbase_get_or_create(&tx, user_id, DeckKind::Quote, &title)?;
 
     let quote_extras: QuoteExtra = match origin {
         decks::DeckBaseOrigin::Created => sqlite::one(
-            &conn,
+            &tx,
             "INSERT INTO quote_extras(deck_id, attribution)
                          VALUES (?1, ?2)
                          RETURNING attribution",
@@ -103,7 +104,7 @@ pub(crate) fn get_or_create(
             quote_extra_from_row,
         )?,
         decks::DeckBaseOrigin::PreExisting => sqlite::one(
-            &conn,
+            &tx,
             "select attribution
                  from quote_extras
                  where deck_id=?1",
@@ -115,11 +116,13 @@ pub(crate) fn get_or_create(
     let k = interop_notes::note_kind_to_sqlite_string(interop_notes::NoteKind::Note)?;
 
     sqlite::zero(
-        &conn,
+        &tx,
         "INSERT INTO notes(user_id, deck_id, kind, content)
                   VALUES (?1, ?2, ?3, ?4)",
         params![&user_id, &deck.id, &k, &text],
     )?;
+
+    tx.commit()?;
 
     Ok((deck, quote_extras).into())
 }
@@ -232,11 +235,12 @@ pub(crate) fn edit(
     quote: &interop::ProtoQuote,
     quote_id: Key,
 ) -> Result<interop::Quote> {
-    let conn = sqlite_pool.get()?;
+    let mut conn = sqlite_pool.get()?;
+    let tx = conn.transaction()?;
 
     let graph_terminator = false;
     let edited_deck = decks::deckbase_edit(
-        &conn,
+        &tx,
         user_id,
         quote_id,
         DeckKind::Quote,
@@ -245,7 +249,7 @@ pub(crate) fn edit(
     )?;
 
     let quote_extras_exists = sqlite::many(
-        &conn,
+        &tx,
         "select attribution
          from quote_extras
          where deck_id=?1",
@@ -274,11 +278,13 @@ pub(crate) fn edit(
     };
 
     let quote_extras = sqlite::one(
-        &conn,
+        &tx,
         sql_query,
         params![&quote_id, &quote.attribution],
         quote_extra_from_row,
     )?;
+
+    tx.commit()?;
 
     Ok((edited_deck, quote_extras).into())
 }

@@ -102,13 +102,14 @@ pub(crate) fn create_card(
 ) -> Result<interop::Card> {
     info!("create_card");
 
-    let conn = sqlite_pool.get()?;
+    let mut conn = sqlite_pool.get()?;
+    let tx = conn.transaction()?;
 
     let easiness_factor: f32 = 2.5;
     let inter_repetition_interval: i32 = 1;
 
     let db_card = sqlite::one(
-        &conn,
+        &tx,
         "INSERT INTO cards(user_id, note_id, prompt, easiness_factor, inter_repetition_interval)
          VALUES (?1, ?2, ?3, ?4, ?5)
          RETURNING id, note_id, prompt",
@@ -123,13 +124,15 @@ pub(crate) fn create_card(
     )?;
 
     let db_backref = sqlite::one(
-        &conn,
+        &tx,
         "SELECT d.id, d.name, d.kind
          FROM decks d, notes n
          WHERE d.id = n.deck_id AND n.id = ?1",
         params![&card.note_id],
         local_decksimple_from_row,
     )?;
+
+    tx.commit()?;
 
     Ok((db_card, db_backref).into())
 }
@@ -160,10 +163,11 @@ pub(crate) fn card_rated(
 ) -> Result<()> {
     info!("card_rated");
 
-    let conn = sqlite_pool.get()?;
+    let mut conn = sqlite_pool.get()?;
+    let tx = conn.transaction()?;
 
     sqlite::zero(
-        &conn,
+        &tx,
         "UPDATE cards
          SET next_test_date = ?2, easiness_factor = ?3, inter_repetition_interval = ?4
          WHERE id = ?1",
@@ -176,11 +180,13 @@ pub(crate) fn card_rated(
     )?;
 
     sqlite::zero(
-        &conn,
+        &tx,
         "INSERT INTO card_ratings(card_id, rating)
          VALUES (?1, ?2)",
         params![&card.id, &rating],
     )?;
+
+    tx.commit()?;
 
     Ok(())
 }
@@ -209,19 +215,22 @@ pub(crate) fn delete_flashcard(
     user_id: Key,
     flashcard_id: Key,
 ) -> Result<()> {
-    let conn = sqlite_pool.get()?;
+    let mut conn = sqlite_pool.get()?;
+    let tx = conn.transaction()?;
 
     sqlite::zero(
-        &conn,
+        &tx,
         "DELETE FROM card_ratings WHERE card_id = ?1",
         params![&flashcard_id],
     )?;
 
     sqlite::zero(
-        &conn,
+        &tx,
         "DELETE FROM cards WHERE id = ?1 AND user_id = ?2",
         params![&flashcard_id, &user_id],
     )?;
+
+    tx.commit()?;
 
     Ok(())
 }
@@ -286,7 +295,8 @@ pub(crate) fn get_cards_upcoming_review(
 ) -> Result<interop::CardUpcomingReview> {
     info!("get_cards_upcoming_review");
 
-    let conn = sqlite_pool.get()?;
+    let mut conn = sqlite_pool.get()?;
+    let tx = conn.transaction()?;
 
     fn i32_from_row(row: &Row) -> Result<i32> {
         Ok(row.get(0)?)
@@ -297,7 +307,7 @@ pub(crate) fn get_cards_upcoming_review(
     }
 
     let review_count = sqlite::one(
-        &conn,
+        &tx,
         "SELECT count(*) as review_count
          FROM cards
          WHERE user_id = ?1 and next_test_date < ?2",
@@ -306,7 +316,7 @@ pub(crate) fn get_cards_upcoming_review(
     )?;
 
     let earliest_review_date = sqlite::one(
-        &conn,
+        &tx,
         "SELECT MIN(next_test_date) as earliest_review_date
          FROM cards
          WHERE user_id = ?1
@@ -314,6 +324,8 @@ pub(crate) fn get_cards_upcoming_review(
         params![&user_id],
         naive_datetime_from_row,
     )?;
+
+    tx.commit()?;
 
     Ok(interop::CardUpcomingReview {
         review_count,

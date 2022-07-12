@@ -210,33 +210,36 @@ pub(crate) fn recent(
 // delete anything that's represented as a deck (article, person, event)
 //
 pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, id: Key) -> Result<()> {
-    let conn = sqlite_pool.get()?;
+    let mut conn = sqlite_pool.get()?;
+    let tx = conn.transaction()?;
 
-    notes::delete_all_notes_connected_with_deck(&conn, user_id, id)?;
+    notes::delete_all_notes_connected_with_deck(&tx, user_id, id)?;
 
     sqlite::zero(
-        &conn,
+        &tx,
         "DELETE FROM article_extras WHERE deck_id = ?1",
         params![&id],
     )?;
     sqlite::zero(
-        &conn,
+        &tx,
         "DELETE FROM quote_extras WHERE deck_id = ?1",
         params![&id],
     )?;
     sqlite::zero(
-        &conn,
+        &tx,
         "DELETE FROM notes_decks WHERE deck_id = ?1",
         params![&id],
     )?;
 
-    points::delete_all_points_connected_with_deck(&conn, id)?;
+    points::delete_all_points_connected_with_deck(&tx, id)?;
 
     sqlite::zero(
-        &conn,
+        &tx,
         "DELETE FROM decks WHERE id = ?2 and user_id = ?1",
         params![&user_id, &id],
     )?;
+
+    tx.commit()?;
 
     Ok(())
 }

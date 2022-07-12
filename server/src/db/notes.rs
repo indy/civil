@@ -125,11 +125,12 @@ pub(crate) fn create_notes(
     note: &interop::ProtoNote,
 ) -> Result<Vec<interop::Note>> {
     let mut notes: Vec<interop::Note> = Vec::new();
-    let conn = sqlite_pool.get()?;
+    let mut conn = sqlite_pool.get()?;
+    let tx = conn.transaction()?;
 
     for content in note.content.iter() {
         notes.push(create_common(
-            &conn,
+            &tx,
             user_id,
             note.deck_id,
             note.kind,
@@ -137,6 +138,8 @@ pub(crate) fn create_notes(
             content,
         )?);
     }
+
+    tx.commit()?;
 
     Ok(notes)
 }

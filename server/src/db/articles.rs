@@ -193,11 +193,12 @@ pub(crate) fn edit(
     article: &interop::ProtoArticle,
     article_id: Key,
 ) -> Result<interop::Article> {
-    let conn = sqlite_pool.get()?;
+    let mut conn = sqlite_pool.get()?;
+    let tx = conn.transaction()?;
 
     let graph_terminator = false;
     let edited_deck = decks::deckbase_edit(
-        &conn,
+        &tx,
         user_id,
         article_id,
         DeckKind::Article,
@@ -206,7 +207,7 @@ pub(crate) fn edit(
     )?;
 
     let article_extras_exists = sqlite::many(
-        &conn,
+        &tx,
         "select deck_id, source, author, short_description, rating, published_date
                                               from article_extras
                                               where deck_id = ?1",
@@ -238,7 +239,7 @@ pub(crate) fn edit(
     };
 
     let article_extras = sqlite::one(
-        &conn,
+        &tx,
         sql_query,
         params![
             &article_id,
@@ -251,6 +252,8 @@ pub(crate) fn edit(
         article_extra_from_row,
     )?;
 
+    tx.commit()?;
+
     Ok((edited_deck, article_extras).into())
 }
 
@@ -259,7 +262,8 @@ pub(crate) fn get_or_create(
     user_id: Key,
     title: &str,
 ) -> Result<interop::Article> {
-    let conn = sqlite_pool.get()?;
+    let mut conn = sqlite_pool.get()?;
+    let tx = conn.transaction()?;
 
     let source = "";
     let author = "";
@@ -267,12 +271,12 @@ pub(crate) fn get_or_create(
     let rating = 0;
     let published_date = chrono::Utc::now().naive_utc().date();
 
-    let (deck, origin) = decks::deckbase_get_or_create(&conn, user_id, DeckKind::Article, &title)?;
+    let (deck, origin) = decks::deckbase_get_or_create(&tx, user_id, DeckKind::Article, &title)?;
 
     let article_extras =
         match origin {
             decks::DeckBaseOrigin::Created => sqlite::one(
-                &conn,
+                &tx,
                 "INSERT INTO article_extras(deck_id, source, author, short_description, rating, published_date)
                  VALUES (?1, ?2, ?3, ?4, ?5, ?6)
                  RETURNING deck_id, source, author, short_description, rating, published_date",
@@ -280,7 +284,7 @@ pub(crate) fn get_or_create(
                 article_extra_from_row
             )?,
             decks::DeckBaseOrigin::PreExisting => sqlite::one(
-                &conn,
+                &tx,
                 "select deck_id, source, author, short_description, rating, published_date
                  from article_extras
                  where deck_id=?1",
@@ -288,6 +292,8 @@ pub(crate) fn get_or_create(
                 article_extra_from_row
             )?
         };
+
+    tx.commit()?;
 
     Ok((deck, article_extras).into())
 }
