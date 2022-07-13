@@ -56,10 +56,9 @@ pub(crate) fn get_image_count(sqlite_pool: &SqlitePool, user_id: Key) -> Result<
 
     sqlite::one(
         &conn,
-        "SELECT u.id,
-                u.image_count
-         FROM users u
-         WHERE u.id = ?1",
+        "SELECT image_count
+         FROM users
+         WHERE id = ?1",
         params![&user_id],
         from_row,
     )
