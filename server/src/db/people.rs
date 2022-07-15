@@ -111,6 +111,8 @@ pub(crate) fn get(
         person_from_row,
     )?;
 
+    decks::hit(&conn, person_id)?;
+
     Ok(deck.into())
 }
 

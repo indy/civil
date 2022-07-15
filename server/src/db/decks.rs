@@ -122,6 +122,14 @@ pub(crate) fn deckbase_get_or_create(
     }
 }
 
+pub(crate) fn hit(conn: &Connection, deck_id: Key) -> Result<()> {
+    sqlite::zero(
+        &conn,
+        "insert into hits(deck_id) values (?1)",
+        params![&deck_id],
+    )
+}
+
 fn deckbase_get_by_name(
     conn: &Connection,
     user_id: Key,

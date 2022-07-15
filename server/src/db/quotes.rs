@@ -145,14 +145,18 @@ pub(crate) fn random(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::
 pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) -> Result<interop::Quote> {
     let conn = sqlite_pool.get()?;
 
-    sqlite::one(
+    let res = sqlite::one(
         &conn,
         "SELECT decks.id, decks.name, quote_extras.attribution
          FROM decks left join quote_extras on quote_extras.deck_id = decks.id
          WHERE user_id = ?1 and id = ?2 and kind = 'quote'",
         params![&user_id, &quote_id],
         quote_from_row,
-    )
+    )?;
+
+    decks::hit(&conn, quote_id)?;
+
+    Ok(res)
 }
 
 pub(crate) fn next(

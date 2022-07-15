@@ -162,7 +162,7 @@ pub(crate) fn get(
     article_id: Key,
 ) -> Result<interop::Article> {
     let conn = sqlite_pool.get()?;
-    sqlite::one(
+    let res = sqlite::one(
         &conn,
         r#"
          SELECT decks.id, decks.name, article_extras.source, article_extras.author, article_extras.short_description, coalesce(article_extras.rating, 0) as rating, decks.created_at, article_extras.published_date
@@ -170,7 +170,11 @@ pub(crate) fn get(
          WHERE user_id = ?1 and id = ?2 and kind = 'article'"#,
         params![&user_id, &article_id],
         from_row,
-    )
+    )?;
+
+    decks::hit(&conn, article_id)?;
+
+    Ok(res)
 }
 
 pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, article_id: Key) -> Result<()> {

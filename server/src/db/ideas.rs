@@ -120,6 +120,8 @@ pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, idea_id: Key) -> Resul
         idea_from_row,
     )?;
 
+    decks::hit(&conn, idea_id)?;
+
     Ok(deck.into())
 }
 

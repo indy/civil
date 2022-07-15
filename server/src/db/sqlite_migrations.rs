@@ -22,272 +22,281 @@ use rusqlite_migration::{Migrations, M};
 pub fn migration_check(db_name: &str) -> Result<()> {
     // Define migrations
     let migrations = Migrations::new(vec![
-        M::up(
-            r#"
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    email TEXT NOT NULL UNIQUE,
-    username TEXT NOT NULL,
+        ////////////////
+        // MIGRATION 0
+        ////////////////
+        M::up("CREATE TABLE IF NOT EXISTS users (
+                   id INTEGER PRIMARY KEY,
+                   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    image_count INTEGER DEFAULT 0,
+                   email TEXT NOT NULL UNIQUE,
+                   username TEXT NOT NULL,
 
-    password TEXT NOT NULL
-);
+                   image_count INTEGER DEFAULT 0,
 
-CREATE TABLE IF NOT EXISTS decks (
-    id INTEGER PRIMARY KEY,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                   password TEXT NOT NULL
+               );
 
-    user_id INTEGER NOT NULL,
-    kind TEXT NOT NULL, -- 'article', 'person', 'idea', 'timeline', 'quote'
+               CREATE TABLE IF NOT EXISTS decks (
+                   id INTEGER PRIMARY KEY,
+                   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    graph_terminator BOOLEAN DEFAULT FALSE,
+                   user_id INTEGER NOT NULL,
+                   kind TEXT NOT NULL, -- 'article', 'person', 'idea', 'timeline', 'quote'
 
-    name TEXT NOT NULL,
+                   graph_terminator BOOLEAN DEFAULT FALSE,
 
-    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
+                   name TEXT NOT NULL,
 
-CREATE TABLE IF NOT EXISTS points (
-    id INTEGER PRIMARY KEY,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                   FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION
+               );
 
-    deck_id INTEGER NOT NULL,
-    title TEXT,
-    kind TEXT NOT NULL, -- 'point', 'point_begin', 'point_end'
+               CREATE TABLE IF NOT EXISTS points (
+                   id INTEGER PRIMARY KEY,
+                   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    location_textual TEXT,
-    longitude REAL,
-    latitude REAL,
-    location_fuzz REAL DEFAULT 0.0,
+                   deck_id INTEGER NOT NULL,
+                   title TEXT,
+                   kind TEXT NOT NULL, -- 'point', 'point_begin', 'point_end'
 
-    date_textual TEXT,
-    exact_date DATE,
-    lower_date DATE,
-    upper_date DATE,
-    date_fuzz REAL DEFAULT 1.0,
+                   location_textual TEXT,
+                   longitude REAL,
+                   latitude REAL,
+                   location_fuzz REAL DEFAULT 0.0,
 
-    FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
+                   date_textual TEXT,
+                   exact_date DATE,
+                   lower_date DATE,
+                   upper_date DATE,
+                   date_fuzz REAL DEFAULT 1.0,
 
-CREATE TABLE IF NOT EXISTS notes (
-    id INTEGER PRIMARY KEY,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                   FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
+               );
 
-    user_id INTEGER NOT NULL,
-    deck_id INTEGER NOT NULL,
+               CREATE TABLE IF NOT EXISTS notes (
+                   id INTEGER PRIMARY KEY,
+                   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    point_id INTEGER,
+                   user_id INTEGER NOT NULL,
+                   deck_id INTEGER NOT NULL,
 
-    kind TEXT NOT NULL, -- 'note', 'note_review', 'note_summary'
+                   point_id INTEGER,
 
-    content TEXT NOT NULL,
+                   kind TEXT NOT NULL, -- 'note', 'note_review', 'note_summary'
 
-    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION,
-    FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION,
-    FOREIGN KEY (point_id) REFERENCES points (id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
+                   content TEXT NOT NULL,
 
-CREATE TABLE IF NOT EXISTS notes_decks (
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                   FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION,
+                   FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION,
+                   FOREIGN KEY (point_id) REFERENCES points (id) ON DELETE CASCADE ON UPDATE NO ACTION
+               );
 
-    kind TEXT NOT NULL, -- 'ref', 'ref_to_parent', 'ref_to_child', 'ref_in_contrast', 'ref_critical'
-    note_id INTEGER NOT NULL,
-    deck_id INTEGER NOT NULL,
+               CREATE TABLE IF NOT EXISTS notes_decks (
+                   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    annotation TEXT,
+                   kind TEXT NOT NULL, -- 'ref', 'ref_to_parent', 'ref_to_child', 'ref_in_contrast', 'ref_critical'
+                   note_id INTEGER NOT NULL,
+                   deck_id INTEGER NOT NULL,
 
-    PRIMARY KEY (note_id, deck_id),
-    FOREIGN KEY (note_id) REFERENCES notes (id) ON DELETE CASCADE ON UPDATE NO ACTION,
-    FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
+                   annotation TEXT,
 
-CREATE TABLE IF NOT EXISTS article_extras (
-    deck_id INTEGER NOT NULL,
+                   PRIMARY KEY (note_id, deck_id),
+                   FOREIGN KEY (note_id) REFERENCES notes (id) ON DELETE CASCADE ON UPDATE NO ACTION,
+                   FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
+               );
 
-    source TEXT,
-    author TEXT,
-    short_description TEXT,
+               CREATE TABLE IF NOT EXISTS article_extras (
+                   deck_id INTEGER NOT NULL,
 
-    rating INTEGER DEFAULT 0,
+                   source TEXT,
+                   author TEXT,
+                   short_description TEXT,
 
-    published_date DATE DEFAULT CURRENT_DATE,
+                   rating INTEGER DEFAULT 0,
+                    published_date DATE DEFAULT CURRENT_DATE,
 
-    FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
+                   FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
+               );
 
-CREATE TABLE IF NOT EXISTS quote_extras (
-    deck_id INTEGER NOT NULL,
+               CREATE TABLE IF NOT EXISTS quote_extras (
+                   deck_id INTEGER NOT NULL,
 
-    attribution TEXT,
+                   attribution TEXT,
 
-    FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
+                   FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
+               );
 
-CREATE TABLE IF NOT EXISTS images (
-    id INTEGER PRIMARY KEY,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+               CREATE TABLE IF NOT EXISTS images (
+                   id INTEGER PRIMARY KEY,
+                   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    user_id INTEGER NOT NULL,
-    filename TEXT NOT NULL,
+                   user_id INTEGER NOT NULL,
+                   filename TEXT NOT NULL,
 
-    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
+                   FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION
+               );
 
-CREATE TABLE IF NOT EXISTS cards (
-    id INTEGER PRIMARY KEY,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+               CREATE TABLE IF NOT EXISTS cards (
+                   id INTEGER PRIMARY KEY,
+                   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    user_id INTEGER NOT NULL,
-    note_id INTEGER NOT NULL,
+                   user_id INTEGER NOT NULL,
+                   note_id INTEGER NOT NULL,
 
-    prompt TEXT NOT NULL,
-    next_test_date DATETIME NOT NULL,
+                   prompt TEXT NOT NULL,
+                   next_test_date DATETIME NOT NULL,
 
-    easiness_factor REAL NOT NULL,
-    inter_repetition_interval INTEGER DEFAULT 0,
+                   easiness_factor REAL NOT NULL,
+                   inter_repetition_interval INTEGER DEFAULT 0,
 
-    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION,
-    FOREIGN KEY (note_id) REFERENCES notes (id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
+                   FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION,
+                   FOREIGN KEY (note_id) REFERENCES notes (id) ON DELETE CASCADE ON UPDATE NO ACTION
+               );
 
-CREATE TABLE IF NOT EXISTS card_ratings (
-    id INTEGER PRIMARY KEY,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+               CREATE TABLE IF NOT EXISTS card_ratings (
+                   id INTEGER PRIMARY KEY,
+                   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    card_id INTEGER NOT NULL,
+                   card_id INTEGER NOT NULL,
 
-    rating INTEGER NOT NULL,
+                   rating INTEGER NOT NULL,
 
-    FOREIGN KEY (card_id) REFERENCES cards (id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
+                   FOREIGN KEY (card_id) REFERENCES cards (id) ON DELETE CASCADE ON UPDATE NO ACTION
+               );
 
-CREATE TABLE IF NOT EXISTS stats (
-    id INTEGER PRIMARY KEY,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+               CREATE TABLE IF NOT EXISTS stats (
+                   id INTEGER PRIMARY KEY,
+                   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    user_id INTEGER NOT NULL,
+                   user_id INTEGER NOT NULL,
 
-    num_ideas INTEGER DEFAULT 0,
-    num_articles INTEGER DEFAULT 0,
-    num_people INTEGER DEFAULT 0,
-    num_timelines INTEGER DEFAULT 0,
-    num_quotes INTEGER DEFAULT 0,
+                   num_ideas INTEGER DEFAULT 0,
+                   num_articles INTEGER DEFAULT 0,
+                   num_people INTEGER DEFAULT 0,
+                   num_timelines INTEGER DEFAULT 0,
+                   num_quotes INTEGER DEFAULT 0,
 
-    num_refs INTEGER DEFAULT 0,
-    num_cards INTEGER DEFAULT 0,
-    num_card_ratings INTEGER DEFAULT 0,
-    num_images INTEGER DEFAULT 0,
+                   num_refs INTEGER DEFAULT 0,
+                   num_cards INTEGER DEFAULT 0,
+                   num_card_ratings INTEGER DEFAULT 0,
+                   num_images INTEGER DEFAULT 0,
 
-    num_notes_in_ideas INTEGER DEFAULT 0,
-    num_notes_in_articles INTEGER DEFAULT 0,
-    num_notes_in_people INTEGER DEFAULT 0,
-    num_notes_in_timelines INTEGER DEFAULT 0,
-    num_notes_in_quotes INTEGER DEFAULT 0,
+                   num_notes_in_ideas INTEGER DEFAULT 0,
+                   num_notes_in_articles INTEGER DEFAULT 0,
+                   num_notes_in_people INTEGER DEFAULT 0,
+                   num_notes_in_timelines INTEGER DEFAULT 0,
+                   num_notes_in_quotes INTEGER DEFAULT 0,
 
-    num_points_in_people INTEGER DEFAULT 0,
-    num_points_in_timelines INTEGER DEFAULT 0,
+                   num_points_in_people INTEGER DEFAULT 0,
+                   num_points_in_timelines INTEGER DEFAULT 0,
 
-    num_refs_ideas_to_ideas INTEGER DEFAULT 0,
-    num_refs_ideas_to_articles INTEGER DEFAULT 0,
-    num_refs_ideas_to_people INTEGER DEFAULT 0,
-    num_refs_ideas_to_timelines INTEGER DEFAULT 0,
-    num_refs_ideas_to_quotes INTEGER DEFAULT 0,
+                   num_refs_ideas_to_ideas INTEGER DEFAULT 0,
+                   num_refs_ideas_to_articles INTEGER DEFAULT 0,
+                   num_refs_ideas_to_people INTEGER DEFAULT 0,
+                   num_refs_ideas_to_timelines INTEGER DEFAULT 0,
+                   num_refs_ideas_to_quotes INTEGER DEFAULT 0,
 
-    num_refs_articles_to_ideas INTEGER DEFAULT 0,
-    num_refs_articles_to_articles INTEGER DEFAULT 0,
-    num_refs_articles_to_people INTEGER DEFAULT 0,
-    num_refs_articles_to_timelines INTEGER DEFAULT 0,
-    num_refs_articles_to_quotes INTEGER DEFAULT 0,
+                   num_refs_articles_to_ideas INTEGER DEFAULT 0,
+                   num_refs_articles_to_articles INTEGER DEFAULT 0,
+                   num_refs_articles_to_people INTEGER DEFAULT 0,
+                   num_refs_articles_to_timelines INTEGER DEFAULT 0,
+                   num_refs_articles_to_quotes INTEGER DEFAULT 0,
 
-    num_refs_people_to_ideas INTEGER DEFAULT 0,
-    num_refs_people_to_articles INTEGER DEFAULT 0,
-    num_refs_people_to_people INTEGER DEFAULT 0,
-    num_refs_people_to_timelines INTEGER DEFAULT 0,
-    num_refs_people_to_quotes INTEGER DEFAULT 0,
+                   num_refs_people_to_ideas INTEGER DEFAULT 0,
+                   num_refs_people_to_articles INTEGER DEFAULT 0,
+                   num_refs_people_to_people INTEGER DEFAULT 0,
+                   num_refs_people_to_timelines INTEGER DEFAULT 0,
+                   num_refs_people_to_quotes INTEGER DEFAULT 0,
 
-    num_refs_timelines_to_ideas INTEGER DEFAULT 0,
-    num_refs_timelines_to_articles INTEGER DEFAULT 0,
-    num_refs_timelines_to_people INTEGER DEFAULT 0,
-    num_refs_timelines_to_timelines INTEGER DEFAULT 0,
-    num_refs_timelines_to_quotes INTEGER DEFAULT 0,
+                   num_refs_timelines_to_ideas INTEGER DEFAULT 0,
+                   num_refs_timelines_to_articles INTEGER DEFAULT 0,
+                   num_refs_timelines_to_people INTEGER DEFAULT 0,
+                   num_refs_timelines_to_timelines INTEGER DEFAULT 0,
+                   num_refs_timelines_to_quotes INTEGER DEFAULT 0,
 
-    num_refs_quotes_to_ideas INTEGER DEFAULT 0,
-    num_refs_quotes_to_articles INTEGER DEFAULT 0,
-    num_refs_quotes_to_people INTEGER DEFAULT 0,
-    num_refs_quotes_to_timelines INTEGER DEFAULT 0,
-    num_refs_quotes_to_quotes INTEGER DEFAULT 0,
+                   num_refs_quotes_to_ideas INTEGER DEFAULT 0,
+                   num_refs_quotes_to_articles INTEGER DEFAULT 0,
+                   num_refs_quotes_to_people INTEGER DEFAULT 0,
+                   num_refs_quotes_to_timelines INTEGER DEFAULT 0,
+                   num_refs_quotes_to_quotes INTEGER DEFAULT 0,
 
-    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
-"#,
+                   FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION
+               );",
         ),
-        M::up(
-            r#"
-CREATE VIRTUAL TABLE decks_fts USING fts5(name, content='decks', content_rowid='id');
-CREATE TRIGGER decks_fts_ai AFTER INSERT ON decks BEGIN
-  INSERT INTO decks_fts(rowid, name) VALUES (new.id, new.name);
-END;
-CREATE TRIGGER decks_fts_ad AFTER DELETE ON decks BEGIN
-  INSERT INTO decks_fts(decks_fts, rowid, name) VALUES('delete', old.id, old.name);
-END;
-CREATE TRIGGER decks_fts_au AFTER UPDATE ON decks BEGIN
-  INSERT INTO decks_fts(decks_fts, rowid, name) VALUES('delete', old.id, old.name);
-  INSERT INTO decks_fts(rowid, name) VALUES (new.id, new.name);
-END;
 
-CREATE VIRTUAL TABLE points_fts USING fts5(title, location_textual, date_textual, content='points', content_rowid='id');
-CREATE TRIGGER points_fts_ai AFTER INSERT ON points BEGIN
-  INSERT INTO points_fts(rowid, title, location_textual, date_textual) VALUES (new.id, new.title, new.location_textual, new.date_textual);
-END;
-CREATE TRIGGER points_fts_ad AFTER DELETE ON points BEGIN
-  INSERT INTO points_fts(points_fts, rowid, title, location_textual, date_textual) VALUES('delete', old.id, old.title, old.location_textual, old.date_textual);
-END;
-CREATE TRIGGER points_fts_au AFTER UPDATE ON points BEGIN
-  INSERT INTO points_fts(points_fts, rowid, title, location_textual, date_textual) VALUES('delete', old.id, old.title, old.location_textual, old.date_textual);
-  INSERT INTO points_fts(rowid, title, location_textual, date_textual) VALUES (new.id, new.title, new.location_textual, new.date_textual);
-END;
+        ////////////////
+        // MIGRATION 1
+        ////////////////
+        M::up("CREATE VIRTUAL TABLE decks_fts USING fts5(name, content='decks', content_rowid='id');
+               CREATE TRIGGER decks_fts_ai AFTER INSERT ON decks BEGIN
+                   INSERT INTO decks_fts(rowid, name) VALUES (new.id, new.name);
+               END;
+               CREATE TRIGGER decks_fts_ad AFTER DELETE ON decks BEGIN
+                   INSERT INTO decks_fts(decks_fts, rowid, name) VALUES('delete', old.id, old.name);
+               END;
+               CREATE TRIGGER decks_fts_au AFTER UPDATE ON decks BEGIN
+                   INSERT INTO decks_fts(decks_fts, rowid, name) VALUES('delete', old.id, old.name);
+                   INSERT INTO decks_fts(rowid, name) VALUES (new.id, new.name);
+               END;
 
-CREATE VIRTUAL TABLE notes_fts USING fts5(content, content='notes', content_rowid='id');
-CREATE TRIGGER notes_fts_ai AFTER INSERT ON notes BEGIN
-  INSERT INTO notes_fts(rowid, content) VALUES (new.id, new.content);
-END;
-CREATE TRIGGER notes_fts_ad AFTER DELETE ON notes BEGIN
-  INSERT INTO notes_fts(notes_fts, rowid, content) VALUES('delete', old.id, old.content);
-END;
-CREATE TRIGGER notes_fts_au AFTER UPDATE ON notes BEGIN
-  INSERT INTO notes_fts(notes_fts, rowid, content) VALUES('delete', old.id, old.content);
-  INSERT INTO notes_fts(rowid, content) VALUES (new.id, new.content);
-END;
+               CREATE VIRTUAL TABLE points_fts USING fts5(title, location_textual, date_textual, content='points', content_rowid='id');
+               CREATE TRIGGER points_fts_ai AFTER INSERT ON points BEGIN
+                   INSERT INTO points_fts(rowid, title, location_textual, date_textual) VALUES (new.id, new.title, new.location_textual, new.date_textual);
+               END;
+               CREATE TRIGGER points_fts_ad AFTER DELETE ON points BEGIN
+                   INSERT INTO points_fts(points_fts, rowid, title, location_textual, date_textual) VALUES('delete', old.id, old.title, old.location_textual, old.date_textual);
+               END;
+               CREATE TRIGGER points_fts_au AFTER UPDATE ON points BEGIN
+                   INSERT INTO points_fts(points_fts, rowid, title, location_textual, date_textual) VALUES('delete', old.id, old.title, old.location_textual, old.date_textual);
+                   INSERT INTO points_fts(rowid, title, location_textual, date_textual) VALUES (new.id, new.title, new.location_textual, new.date_textual);
+               END;
 
-CREATE VIRTUAL TABLE article_extras_fts USING fts5(source, author, short_description, content='article_extras', content_rowid='deck_id');
-CREATE TRIGGER article_extras_fts_ai AFTER INSERT ON article_extras BEGIN
-  INSERT INTO article_extras_fts(rowid, source, author, short_description) VALUES (new.deck_id, new.source, new.author, new.short_description);
-END;
-CREATE TRIGGER article_extras_fts_ad AFTER DELETE ON article_extras BEGIN
-  INSERT INTO article_extras_fts(article_extras_fts, rowid, source, author, short_description) VALUES('delete', old.deck_id, old.source, old.author, old.short_description);
-END;
-CREATE TRIGGER article_extras_fts_au AFTER UPDATE ON article_extras BEGIN
-  INSERT INTO article_extras_fts(article_extras_fts, rowid, source, author, short_description) VALUES('delete', old.deck_id, old.source, old.author, old.short_description);
-  INSERT INTO article_extras_fts(rowid, source, author, short_description) VALUES (new.deck_id, new.source, new.author, new.short_description);
-END;
+               CREATE VIRTUAL TABLE notes_fts USING fts5(content, content='notes', content_rowid='id');
+               CREATE TRIGGER notes_fts_ai AFTER INSERT ON notes BEGIN
+                   INSERT INTO notes_fts(rowid, content) VALUES (new.id, new.content);
+               END;
+               CREATE TRIGGER notes_fts_ad AFTER DELETE ON notes BEGIN
+                   INSERT INTO notes_fts(notes_fts, rowid, content) VALUES('delete', old.id, old.content);
+               END;
+               CREATE TRIGGER notes_fts_au AFTER UPDATE ON notes BEGIN
+                   INSERT INTO notes_fts(notes_fts, rowid, content) VALUES('delete', old.id, old.content);
+                   INSERT INTO notes_fts(rowid, content) VALUES (new.id, new.content);
+               END;
 
-CREATE VIRTUAL TABLE quote_extras_fts USING fts5(attribution, content='quote_extras', content_rowid='deck_id');
-CREATE TRIGGER quote_extras_fts_ai AFTER INSERT ON quote_extras BEGIN
-  INSERT INTO quote_extras_fts(rowid, attribution) VALUES (new.deck_id, new.attribution);
-END;
-CREATE TRIGGER quote_extras_fts_ad AFTER DELETE ON quote_extras BEGIN
-  INSERT INTO quote_extras_fts(quote_extras_fts, rowid, attribution) VALUES('delete', old.deck_id, old.attribution);
-END;
-CREATE TRIGGER quote_extras_fts_au AFTER UPDATE ON quote_extras BEGIN
-  INSERT INTO quote_extras_fts(quote_extras_fts, rowid, attribution) VALUES('delete', old.deck_id, old.attribution);
-  INSERT INTO quote_extras_fts(rowid, attribution) VALUES (new.deck_id, new.attribution);
-END;
+               CREATE VIRTUAL TABLE article_extras_fts USING fts5(source, author, short_description, content='article_extras', content_rowid='deck_id');
+               CREATE TRIGGER article_extras_fts_ai AFTER INSERT ON article_extras BEGIN
+                   INSERT INTO article_extras_fts(rowid, source, author, short_description) VALUES (new.deck_id, new.source, new.author, new.short_description);
+               END;
+               CREATE TRIGGER article_extras_fts_ad AFTER DELETE ON article_extras BEGIN
+                   INSERT INTO article_extras_fts(article_extras_fts, rowid, source, author, short_description) VALUES('delete', old.deck_id, old.source, old.author, old.short_description);
+               END;
+               CREATE TRIGGER article_extras_fts_au AFTER UPDATE ON article_extras BEGIN
+                   INSERT INTO article_extras_fts(article_extras_fts, rowid, source, author, short_description) VALUES('delete', old.deck_id, old.source, old.author, old.short_description);
+                   INSERT INTO article_extras_fts(rowid, source, author, short_description) VALUES (new.deck_id, new.source, new.author, new.short_description);
+               END;
 
-"#,
-        ),
+               CREATE VIRTUAL TABLE quote_extras_fts USING fts5(attribution, content='quote_extras', content_rowid='deck_id');
+               CREATE TRIGGER quote_extras_fts_ai AFTER INSERT ON quote_extras BEGIN
+                   INSERT INTO quote_extras_fts(rowid, attribution) VALUES (new.deck_id, new.attribution);
+               END;
+               CREATE TRIGGER quote_extras_fts_ad AFTER DELETE ON quote_extras BEGIN
+                   INSERT INTO quote_extras_fts(quote_extras_fts, rowid, attribution) VALUES('delete', old.deck_id, old.attribution);
+               END;
+               CREATE TRIGGER quote_extras_fts_au AFTER UPDATE ON quote_extras BEGIN
+                   INSERT INTO quote_extras_fts(quote_extras_fts, rowid, attribution) VALUES('delete', old.deck_id, old.attribution);
+                   INSERT INTO quote_extras_fts(rowid, attribution) VALUES (new.deck_id, new.attribution);
+               END;"),
+
+        ////////////////
+        // MIGRATION 2
+        ////////////////
+        M::up("CREATE TABLE IF NOT EXISTS hits (
+                   id INTEGER PRIMARY KEY,
+                   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                   deck_id INTEGER NOT NULL,
+                   FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
+               );"),
     ]);
 
     let mut conn = Connection::open(db_name)?;

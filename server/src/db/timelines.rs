@@ -78,6 +78,8 @@ pub(crate) fn get(
         from_row,
     )?;
 
+    decks::hit(&conn, timeline_id)?;
+
     Ok(deck.into())
 }
 
