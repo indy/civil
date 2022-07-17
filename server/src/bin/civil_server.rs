@@ -34,15 +34,22 @@ async fn main() -> Result<()> {
     civil_server::init_dotenv();
     civil_server::init_tracing();
 
-    let port = civil_server::env_var_string("PORT")?;
-    let www_path = civil_server::env_var_string("WWW_PATH")?;
-    let user_content_path = civil_server::env_var_string("USER_CONTENT_PATH")?;
+    let port = civil_server::env_var_string_or("PORT", "3002");
+    let www_path = civil_server::env_var_string_or("WWW_PATH", "www");
+    let user_content_path = civil_server::env_var_string_or("USER_CONTENT_PATH", "user-content");
     let registration_magic_word = civil_server::env_var_string("REGISTRATION_MAGIC_WORD")?;
-    let cookie_secure = civil_server::env_var_bool("COOKIE_OVER_HTTPS_ONLY")?;
+    let cookie_secure = civil_server::env_var_bool_or("COOKIE_OVER_HTTPS_ONLY", false);
 
     let session_signing_key = env::var("SESSION_SIGNING_KEY")?;
 
-    let sqlite_db = civil_server::env_var_string("SQLITE_DB")?;
+    let sqlite_db = civil_server::env_var_string_or("SQLITE_DB", "civil.db");
+
+    info!("SQLITE_DB: {}", sqlite_db);
+    info!("PORT: {}", port);
+    info!("WWW_PATH: {}", www_path);
+    info!("USER_CONTENT_PATH: {}", user_content_path);
+    info!("COOKIE_OVER_HTTPS_ONLY: {}", cookie_secure);
+
     civil_server::db::sqlite_migrations::migration_check(&sqlite_db)?;
 
     let sqlite_manager = SqliteConnectionManager::file(&sqlite_db);

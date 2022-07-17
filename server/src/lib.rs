@@ -33,7 +33,6 @@ pub struct ServerConfig {
 
 use dotenv;
 use std::env;
-use tracing::error;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
@@ -53,13 +52,24 @@ pub fn init_tracing() {
 pub fn env_var_string(key: &str) -> Result<String> {
     match env::var(key) {
         Ok(r) => Ok(r),
-        Err(e) => {
-            error!("Error unable to get environment variable: {}", key);
-            Err(Error::Var(e))
-        }
+        Err(e) => Err(Error::Var(e))
+    }
+}
+
+pub fn env_var_string_or(key: &str, default: &str) -> String {
+    match env::var(key) {
+        Ok(r) => r,
+        Err(_e) => default.to_string()
     }
 }
 
 pub fn env_var_bool(key: &str) -> Result<bool> {
     Ok(env_var_string(key)? == "true")
+}
+
+pub fn env_var_bool_or(key: &str, default: bool) -> bool {
+    match env_var_string(key) {
+        Ok(r) => r == "true",
+        Err(_e) => default
+    }
 }
