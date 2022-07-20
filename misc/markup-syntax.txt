@@ -6,12 +6,10 @@ strong:    this is a *strong* word
 
 --------------------------------------------------------------------------------
 
-hyperlinks: @url(https://indy.io everything after the space is descriptive text)
-images:     @img(a21.png Golden Retriever)
+hyperlinks: #url(https://indy.io everything after the space is descriptive text)
+images:     #img(a21.png Golden Retriever)
 
 --------------------------------------------------------------------------------
-
-lines starting with # apply an effect on the rest of the line
 
 #h2 this is a heading
 #h3 this is a h3 heading
@@ -32,7 +30,6 @@ or
 - first
 - second
 - third
-
 
 --------------------------------------------------------------------------------
 

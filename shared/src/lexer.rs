@@ -22,7 +22,6 @@ use strum_macros::EnumDiscriminants;
 #[strum_discriminants(name(TokenIdent))]
 pub enum Token<'a> {
     Asterisk(usize),
-    At(usize),
     BackTick(usize),
     BlockquoteBegin(usize),
     BlockquoteEnd(usize),
@@ -48,7 +47,6 @@ pub enum Token<'a> {
 pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
     match token {
         Token::Asterisk(_) => "*",
-        Token::At(_) => "@",
         Token::BackTick(_) => "`",
         Token::BlockquoteBegin(_) => ">>>",
         Token::BlockquoteEnd(_) => "<<<",
@@ -75,7 +73,6 @@ pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
 pub(crate) fn get_token_pos<'a>(token: &Token) -> usize {
     match token {
         Token::Asterisk(pos) => *pos,
-        Token::At(pos) => *pos,
         Token::BackTick(pos) => *pos,
         Token::BlockquoteBegin(pos) => *pos,
         Token::BlockquoteEnd(pos) => *pos,
@@ -108,7 +105,6 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
         if let Some(ch) = input.chars().next() {
             let (token, characters, bytes) = match ch {
                 '*' => (Token::Asterisk(index), 1, 1),
-                '@' => (Token::At(index), 1, 1),
                 '`' => (Token::BackTick(index), 1, 1),
                 '[' => (Token::BracketBegin(index), 1, 1),
                 ']' => (Token::BracketEnd(index), 1, 1),
@@ -221,7 +217,7 @@ fn eat_text(index: usize, input: &str) -> Result<(Token, usize, usize)> {
 
 fn is_text(ch: char) -> bool {
     match ch {
-        '\n' | '[' | ']' | '(' | ')' | '@' | '_' | '*' | '`' | '^' | '~' | '"' | '“' | '”' | '|' | '#' | '>' | '<' => {
+        '\n' | '[' | ']' | '(' | ')' | '_' | '*' | '`' | '^' | '~' | '"' | '“' | '”' | '|' | '#' | '>' | '<' => {
             false
         }
         _ => true,
@@ -249,11 +245,11 @@ mod tests {
 
     #[test]
     fn test_split_token_at() {
-        let t = tokenize("foo *bar* @ 12345").unwrap();
+        let t = tokenize("foo *bar* # 12345").unwrap();
 
         assert_eq!(t.len(), 9);
 
-        let (a, b) = split_tokens_at(&t, TokenIdent::At).unwrap();
+        let (a, b) = split_tokens_at(&t, TokenIdent::Hash).unwrap();
 
         assert_eq!(a.len(), 5);
         assert_eq!(b.len(), 3);
@@ -287,14 +283,14 @@ mod tests {
         tok("5", &[Token::Digits(0, "5"), Token::EOS(1)]);
 
         tok(
-            "foo *bar* @ 456789",
+            "foo *bar* # 456789",
             &[
                 Token::Text(0, "foo "),
                 Token::Asterisk(4),
                 Token::Text(5, "bar"),
                 Token::Asterisk(8),
                 Token::Whitespace(9, " "),
-                Token::At(10),
+                Token::Hash(10),
                 Token::Whitespace(11, " "),
                 Token::Digits(12, "456789"),
                 Token::EOS(18),
@@ -370,9 +366,9 @@ mod tests {
 
         // fourc starts with digit, ends in letter
         tok(
-            "@img(00a.jpg)",
+            "#img(00a.jpg)",
             &[
-                Token::At(0),
+                Token::Hash(0),
                 Token::Text(1, "img"),
                 Token::ParenBegin(4),
                 Token::Digits(5, "00"),
@@ -384,9 +380,9 @@ mod tests {
 
         // fourc starts with digit, ends in digit
         tok(
-            "@img(000.jpg)",
+            "#img(000.jpg)",
             &[
-                Token::At(0),
+                Token::Hash(0),
                 Token::Text(1, "img"),
                 Token::ParenBegin(4),
                 Token::Digits(5, "000"),
@@ -399,9 +395,9 @@ mod tests {
 
         // fourc starts with letter, ends in digit
         tok(
-            "@img(a00.jpg)",
+            "#img(a00.jpg)",
             &[
-                Token::At(0),
+                Token::Hash(0),
                 Token::Text(1, "img"),
                 Token::ParenBegin(4),
                 Token::Text(5, "a00.jpg"),
@@ -412,9 +408,9 @@ mod tests {
 
         // fourc starts with letter, ends in letter
         tok(
-            "@img(abc.jpg)",
+            "#img(abc.jpg)",
             &[
-                Token::At(0),
+                Token::Hash(0),
                 Token::Text(1, "img"),
                 Token::ParenBegin(4),
                 Token::Text(5, "abc.jpg"),

@@ -147,7 +147,7 @@ fn is_heading(tokens: &'_ [Token]) -> bool {
 }
 
 fn is_img(tokens: &'_ [Token]) -> bool {
-    is_at_specifier(tokens) && is_text_at_index(tokens, 1, "img")
+    is_hash_specifier(tokens) && is_text_at_index(tokens, 1, "img")
 }
 
 fn is_blockquote_start<'a>(tokens: &'a [Token<'a>]) -> bool {
@@ -281,7 +281,6 @@ fn inside_pair<'a>(tokens: &'a [Token]) -> ParserResult<'a, Vec<Node>> {
 
 fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
     match tokens[0] {
-        Token::At(_) => eat_at(tokens),
         Token::Asterisk(pos) => {
             if let Ok((toks, inside)) = inside_pair(tokens) {
                 Ok((toks, Node::Strong(pos, inside)))
@@ -351,6 +350,8 @@ fn eat_hash<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
         Ok((tokens, Node::HorizontalRule(pos)))
     } else if is_token_at_index(tokens, 1, TokenIdent::Text) {
         match tokens[1] {
+            Token::Text(_, "img") => return eat_img(tokens),
+            Token::Text(_, "url") => return eat_url(tokens),
             Token::Text(text_pos, s) => {
                 if let Some((level, h)) = heading_text(s) {
                     let mut header_children = vec![Node::Text(text_pos, h.to_string())];
@@ -475,8 +476,8 @@ fn eat_pipe<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     }
 }
 
-fn is_at_specifier<'a>(tokens: &'a [Token<'a>]) -> bool {
-    is_token_at_index(tokens, 0, TokenIdent::At)
+fn is_hash_specifier<'a>(tokens: &'a [Token<'a>]) -> bool {
+    is_token_at_index(tokens, 0, TokenIdent::Hash)
         && is_token_at_index(tokens, 1, TokenIdent::Text)
         && is_token_at_index(tokens, 2, TokenIdent::ParenBegin)
 }
@@ -515,7 +516,7 @@ fn core_description_pairing<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<(bo
 
     let mut paren_balancer = 1;
 
-    tokens = &tokens[3..]; // eat the '@img(' or '@url('
+    tokens = &tokens[3..]; // eat the '#img(' or '#url('
 
     while !tokens.is_empty() {
         if is_head(tokens, TokenIdent::ParenBegin) {
@@ -608,18 +609,6 @@ fn eat_blockquote<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let rem = skip_leading_whitespace_and_newlines(&remaining)?;
 
     Ok((&rem, Node::BlockQuote(pos, nodes)))
-}
-
-fn eat_at<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
-    if is_at_specifier(tokens) {
-        match tokens[1] {
-            Token::Text(_, "img") => return eat_img(tokens),
-            Token::Text(_, "url") => return eat_url(tokens),
-            _ => (),
-        }
-    }
-
-    eat_text_including(tokens)
 }
 
 // ignores the first token
@@ -777,12 +766,12 @@ mod tests {
     #[test]
     fn test_is_img() {
         {
-            let toks = tokenize("@img(foo.jpeg)").unwrap();
+            let toks = tokenize("#img(foo.jpeg)").unwrap();
             dbg!(&toks);
             assert_eq!(is_img(&toks), true);
         }
         {
-            let toks = tokenize("@img").unwrap();
+            let toks = tokenize("#img").unwrap();
             dbg!(&toks);
             assert_eq!(is_img(&toks), false);
         }
@@ -1569,14 +1558,14 @@ some other lines| more words afterwards",
 
     #[test]
     fn test_at_image() {
-        assert_image("@img(abc.jpg)", "abc.jpg");
-        assert_image("@img(a00.jpg)", "a00.jpg");
-        assert_image("@img(00a.jpg)", "00a.jpg");
-        assert_image("@img(000.jpg)", "000.jpg");
+        assert_image("#img(abc.jpg)", "abc.jpg");
+        assert_image("#img(a00.jpg)", "a00.jpg");
+        assert_image("#img(00a.jpg)", "00a.jpg");
+        assert_image("#img(000.jpg)", "000.jpg");
 
-        assert_image_with_description("@img(000.jpg hello)", "000.jpg", "hello");
+        assert_image_with_description("#img(000.jpg hello)", "000.jpg", "hello");
         assert_image_with_description(
-            "@img(123.jpg hello this is a description)",
+            "#img(123.jpg hello this is a description)",
             "123.jpg",
             "hello this is a description",
         );
@@ -1585,7 +1574,7 @@ some other lines| more words afterwards",
     #[test]
     fn test_at_url() {
         {
-            let nodes = build("@url(https://google.com)");
+            let nodes = build("#url(https://google.com)");
             assert_eq!(1, nodes.len());
 
             let children = paragraph_children(&nodes[0]).unwrap();
@@ -1602,7 +1591,7 @@ some other lines| more words afterwards",
             };
         }
         {
-            let nodes = build("@url(https://google.com a few words)");
+            let nodes = build("#url(https://google.com a few words)");
             assert_eq!(1, nodes.len());
 
             let children = paragraph_children(&nodes[0]).unwrap();
@@ -1619,7 +1608,7 @@ some other lines| more words afterwards",
             };
         }
         {
-            let nodes = build("@url(https://google.com a few (descriptive *bold*) words)");
+            let nodes = build("#url(https://google.com a few (descriptive *bold*) words)");
             assert_eq!(1, nodes.len());
 
             let children = paragraph_children(&nodes[0]).unwrap();
@@ -1690,7 +1679,7 @@ some other lines| more words afterwards",
     #[test]
     fn test_url_bug() {
         {
-            let nodes = build("@url(http://www.example.com/page.pdf#page=3 A document)");
+            let nodes = build("#url(http://www.example.com/page.pdf#page=3 A document)");
             assert_eq!(1, nodes.len());
 
             let children = paragraph_children(&nodes[0]).unwrap();
@@ -1712,7 +1701,7 @@ some other lines| more words afterwards",
     #[test]
     fn test_url_bug_2() {
         {
-            let nodes = build("@url(https://en.wikipedia.org/wiki/Karl_Marx)");
+            let nodes = build("#url(https://en.wikipedia.org/wiki/Karl_Marx)");
             dbg!(&nodes);
 
             assert_eq!(1, nodes.len());
@@ -1920,7 +1909,7 @@ third paragraph",
         // the parse function skipped leading whitespace and newlines
         // at the start of the loop, should have been at the end.
         //
-        let s = "@img(abc.jpeg)
+        let s = "#img(abc.jpeg)
 ";
         let nodes = build(s);
         dbg!(&nodes);
