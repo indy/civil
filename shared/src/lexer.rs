@@ -31,7 +31,7 @@ pub enum Token<'a> {
     Caret(usize),
     Tilde(usize),
     Digits(usize, &'a str),
-    DoubleQuote(usize),
+    DoubleQuote(usize, &'a str),
     Hash(usize),
     Hyphen(usize),
     Newline(usize),
@@ -56,7 +56,7 @@ pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
         Token::BracketBegin(_) => "[",
         Token::Caret(_) => "^",
         Token::Digits(_, s) => s,
-        Token::DoubleQuote(_) => "\"",
+        Token::DoubleQuote(_, s) => s,
         Token::Hash(_) => "#",
         Token::Hyphen(_) => "-",
         Token::Newline(_) => "\n",
@@ -83,7 +83,7 @@ pub(crate) fn get_token_pos<'a>(token: &Token) -> usize {
         Token::BracketBegin(pos) => *pos,
         Token::Caret(pos) => *pos,
         Token::Digits(pos, _) => *pos,
-        Token::DoubleQuote(pos) => *pos,
+        Token::DoubleQuote(pos, _) => *pos,
         Token::Hash(pos) => *pos,
         Token::Hyphen(pos) => *pos,
         Token::Newline(pos) => *pos,
@@ -113,7 +113,7 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
                 '[' => (Token::BracketBegin(index), 1, 1),
                 ']' => (Token::BracketEnd(index), 1, 1),
                 '^' => (Token::Caret(index), 1, 1),
-                '"' => (Token::DoubleQuote(index), 1, 1),
+                '"' | '“' | '”' => eat_doublequote(index, &input)?,
                 '#' => (Token::Hash(index), 1, 1),
                 '-' => (Token::Hyphen(index), 1, 1),
                 '\n' => (Token::Newline(index), 1, 1),
@@ -141,6 +141,18 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
     tokens.push(Token::EOS(index));
 
     Ok(tokens)
+}
+
+fn eat_doublequote(index: usize, input: &str) -> Result<(Token, usize, usize)> {
+    let mut found = false;
+    for (ind, _ch) in input.char_indices() {
+        if found {
+            return Ok((Token::DoubleQuote(index, &input[..ind]), 1, ind));
+        } else {
+            found = true;
+        }
+    }
+    Ok((Token::DoubleQuote(index, input), input.chars().count(), input.len()))
 }
 
 fn eat_blockquote_begin_or_greater_than_character(index: usize, input: &str) -> Result<(Token, usize, usize)> {
@@ -193,7 +205,6 @@ fn eat_whitespace(index: usize, input: &str) -> Result<(Token, usize, usize)> {
 
 // greedy
 fn eat_text(index: usize, input: &str) -> Result<(Token, usize, usize)> {
-
     // the ind from char_indices may increment by more than one for unicode characters
     // so we'll need to keep count of the actual number of characters processed
     //
@@ -210,7 +221,9 @@ fn eat_text(index: usize, input: &str) -> Result<(Token, usize, usize)> {
 
 fn is_text(ch: char) -> bool {
     match ch {
-        '\n' | '[' | ']' | '(' | ')' | '@' | '_' | '*' | '`' | '^' | '~' | '"' | '|' | '#' | '>' | '<' => false,
+        '\n' | '[' | ']' | '(' | ')' | '@' | '_' | '*' | '`' | '^' | '~' | '"' | '“' | '”' | '|' | '#' | '>' | '<' => {
+            false
+        }
         _ => true,
     }
 }
@@ -346,8 +359,8 @@ mod tests {
                 Token::Newline(18),
                 Token::Hash(19),
                 Token::Hyphen(20),
-                Token::EOS(21)
-            ]
+                Token::EOS(21),
+            ],
         );
     }
 
@@ -407,6 +420,39 @@ mod tests {
                 Token::Text(5, "abc.jpg"),
                 Token::ParenEnd(12),
                 Token::EOS(13),
+            ],
+        );
+    }
+
+    #[test]
+    fn test_double_quotes() {
+        tok(
+            "alice said \"hello\"",
+            &[
+                Token::Text(0, "alice said "),
+                Token::DoubleQuote(11, "\""),
+                Token::Text(12, "hello"),
+                Token::DoubleQuote(17, "\""),
+                Token::EOS(18),
+            ],
+        );
+        tok(
+            "bob said “hello”",
+            &[
+                Token::Text(0, "bob said "),
+                Token::DoubleQuote(9, "“"),
+                Token::Text(10, "hello"),
+                Token::DoubleQuote(15, "”"),
+                Token::EOS(16),
+            ],
+        );
+        tok(
+            "charlie said “”",
+            &[
+                Token::Text(0, "charlie said "),
+                Token::DoubleQuote(13, "“"),
+                Token::DoubleQuote(14, "”"),
+                Token::EOS(15),
             ],
         );
     }

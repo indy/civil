@@ -299,7 +299,7 @@ fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
                 eat_text_including(tokens)
             }
         }
-        Token::DoubleQuote(pos) => {
+        Token::DoubleQuote(pos, _) => {
             if let Ok((toks, inside)) = inside_pair(tokens) {
                 Ok((toks, Node::Quotation(pos, inside)))
             } else {
@@ -574,11 +574,7 @@ fn eat_as_url_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(Str
 
     // if there is no text after the first space then use the url as the displayed text
     //
-    let (_, description_nodes) = if found_divide {
-        parse(&right)?
-    } else {
-        parse(&left)?
-    };
+    let (_, description_nodes) = if found_divide { parse(&right)? } else { parse(&left)? };
     Ok((tokens, (res, description_nodes)))
 }
 
@@ -880,7 +876,7 @@ mod tests {
             Node::Image(_, s, ns) => {
                 assert_eq!(s, expected);
                 assert_eq!(ns.len(), 0);
-            },
+            }
             _ => assert_eq!(false, true),
         };
     }
@@ -897,7 +893,7 @@ mod tests {
                 assert_eq!(ns.len(), 1);
 
                 assert_single_paragraph_text(&ns[0], expected_desc);
-            },
+            }
             _ => assert_eq!(false, true),
         };
     }
@@ -997,7 +993,7 @@ mod tests {
             Node::HorizontalRule(pos) => {
                 assert_eq!(*pos, loc);
                 assert!(true);
-            },
+            }
             _ => assert!(false),
         };
     }
@@ -1579,7 +1575,11 @@ some other lines| more words afterwards",
         assert_image("@img(000.jpg)", "000.jpg");
 
         assert_image_with_description("@img(000.jpg hello)", "000.jpg", "hello");
-        assert_image_with_description("@img(123.jpg hello this is a description)", "123.jpg", "hello this is a description");
+        assert_image_with_description(
+            "@img(123.jpg hello this is a description)",
+            "123.jpg",
+            "hello this is a description",
+        );
     }
 
     #[test]
@@ -1926,7 +1926,4 @@ third paragraph",
         dbg!(&nodes);
         assert_eq!(1, nodes.len());
     }
-
-
-
 }

@@ -102,7 +102,7 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
                     ..Default::default()
                 }]
             }
-        },
+        }
         Node::Underlined(_, ns) => element_key_unpacked_class("span", "underlined", key, ns)?,
         Node::UnorderedList(_, ns) => element_key("ul", key, ns)?,
         Node::Url(_, url, ns) => element_key_class_href("a", "note-inline-link", url, key, ns)?,
