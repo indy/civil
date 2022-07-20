@@ -381,12 +381,25 @@ fn deck_simple_from_search_result(row: &Row) -> Result<interop::DeckSimple> {
     })
 }
 
+fn postfix_asterisks(s: &str) -> Result<String> {
+    let mut res: String = "".to_string();
+
+    for i in s.split_whitespace() {
+        res.push_str(i);
+        res.push_str("* ");
+    }
+
+    Ok(res)
+}
+
 pub(crate) fn search(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     query: &str,
 ) -> Result<Vec<interop::DeckSimple>> {
     let conn = sqlite_pool.get()?;
+
+    let q = postfix_asterisks(query)?;
 
     let mut results = sqlite::many(
         &conn,
@@ -397,7 +410,7 @@ pub(crate) fn search(
                                 group by d.id
                                 order by rank_sum asc, length(d.name) asc
                                 limit 30",
-        params![&user_id, &query],
+        params![&user_id, &q],
         deck_simple_from_search_result,
     )?;
 
@@ -409,7 +422,7 @@ pub(crate) fn search(
                                             group by d.id
                                             order by rank_sum asc, length(d.name) asc
                                             limit 30",
-                                           params![&user_id, &query],
+                                           params![&user_id, &q],
                                            deck_simple_from_search_result)?;
 
     let results_via_quote_ext = sqlite::many(&conn,
@@ -420,7 +433,7 @@ pub(crate) fn search(
                                               group by d.id
                                               order by rank_sum asc, length(d.name) asc
                                               limit 30",
-                                             params![&user_id, &query],
+                                             params![&user_id, &q],
                                              deck_simple_from_search_result)?;
 
     let results_via_notes = sqlite::many(&conn,
@@ -436,7 +449,7 @@ pub(crate) fn search(
                                               group by res.id, res.kind, res.name
                                               order by sum(res.rank) asc, length(res.name) asc
                                               limit 30",
-                                             params![&user_id, &query],
+                                             params![&user_id, &q],
                                              deck_simple_from_search_result)?;
 
     let results_via_points = sqlite::many(&conn,
@@ -452,7 +465,7 @@ pub(crate) fn search(
                                               group by res.id, res.kind, res.name
                                               order by sum(res.rank) asc, length(res.name) asc
                                               limit 30",
-                                             params![&user_id, &query],
+                                             params![&user_id, &q],
                                              deck_simple_from_search_result)?;
 
     for r in results_via_pub_ext {
@@ -647,4 +660,14 @@ pub(crate) fn search_using_deck_id(
     }
 
     Ok(results)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_postfix_asterisks() {
+        assert_eq!(postfix_asterisks("hello foo").unwrap(), "hello* foo* ");
+    }
 }
