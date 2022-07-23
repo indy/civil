@@ -321,7 +321,6 @@ mark {
 
 .right-margin-note > .pseudo-paragraph {
   /* background: red; */
-  display: block;
   margin-bottom: 0.5rem;
 }
 
@@ -375,8 +374,7 @@ mark {
 
 .right-margin-note:before {
   content: counter(right-margin-counter) " ";
-  font-size: 1rem;
-  top: -0.5rem;
+  margin-right: 0.5rem;
 }
 
 div.fullwidth,
