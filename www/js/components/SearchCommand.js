@@ -27,7 +27,7 @@ const KEY_DOWN_COLON = 'key-down-colon';
 const KEY_DOWN_KEY = 'key-down-key';
 const KEY_DOWN_PLUS = 'key-down-plus';
 const REMOVE_SAVED_SEARCH_RESULT = 'remove-saved-search-result';
-const TOGGLE_SAVED_SEARCH_RESULT_LIST = 'toggle-saved-search-result-list';
+
 
 function debugState(state) {
     console.log(`mode: ${state.mode}, text: "${state.text}"`);
@@ -169,9 +169,7 @@ function reducer(state, action) {
 
         const newState = { ...state };
         if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
-            newState.candidates.forEach(c => {
-                newState.savedSearchResults.push(c);
-            });
+            appDispatch({type: 'scratchListAddMulti', candidates: newState.candidates});
 
             newState.shiftKey = true;
             newState.keyDownIndex = -1;
@@ -220,7 +218,7 @@ function reducer(state, action) {
                         keyDownIndex: -1
                     };
 
-                    newState.savedSearchResults.push(candidate);
+                    appDispatch({type: 'scratchListAdd', candidate: candidate});
 
                     return newState;
                 } else {
@@ -246,15 +244,8 @@ function reducer(state, action) {
         const index = action.data;
         const newState = {...state};
 
-        newState.savedSearchResults.splice(index, 1);
+        appDispatch({type: 'scratchListRemove', index: index});
 
-        return newState;
-    }
-    case TOGGLE_SAVED_SEARCH_RESULT_LIST: {
-        const newState = {
-            ...state,
-            minimisedSavedSearchResults: !state.minimisedSavedSearchResults
-        }
         return newState;
     }
     default: throw new Error(`unknown action: ${action}`);
@@ -266,7 +257,7 @@ function isCommand(text) {
 }
 
 export default function SearchCommand() {
-    const [state] = useStateValue();
+    const [state, appDispatch] = useStateValue();
     const searchCommandRef = useRef(null);
 
     const [local, localDispatch] = useLocalReducer(reducer, {
@@ -277,9 +268,7 @@ export default function SearchCommand() {
         showKeyboardShortcuts: false,
         shiftKey: false,
         text: '',
-        candidates: [],
-        savedSearchResults: [],
-        minimisedSavedSearchResults: false
+        candidates: []
     });
 
     function onKeyDown(e) {
@@ -404,8 +393,8 @@ export default function SearchCommand() {
         `;
     }
 
-    function buildSavedSearchResults() {
-        function buildSavedSearchEntry(entry, i) {
+    function buildScratchList() {
+        function buildScratchListEntry(entry, i) {
             function clickedCandidate(e) {
                 localDispatch(CLICKED_CANDIDATE);
             }
@@ -427,31 +416,31 @@ export default function SearchCommand() {
         }
 
         function clickedToggle(e) {
-            localDispatch(TOGGLE_SAVED_SEARCH_RESULT_LIST);
+            appDispatch({type: 'scratchListToggle'});
         }
 
-        const savedSearchResults = local.savedSearchResults.map((entry, i) =>
-            html`<li key=${ i }>${ buildSavedSearchEntry(entry, i) }</li>`);
+        const scratchList = state.scratchList.map((entry, i) =>
+            html`<li key=${ i }>${ buildScratchListEntry(entry, i) }</li>`);
 
         return html`
         <div id="saved-search-component">
-            ${ !local.minimisedSavedSearchResults && html`
+            ${ !state.scratchListMinimised && html`
                 <ul class="search-command-listing" id="saved-search-results">
-                    ${ savedSearchResults }
+                    ${ scratchList }
                 </ul>`}
-             ${ local.minimisedSavedSearchResults ? html`
+             ${ state.scratchListMinimised ? html`
                 <div class="saved-search-menu">
                     <div onClick=${clickedToggle}>
                         ${ svgChevronUp() }
                     </div>
-                    <span class="saved-search-menu-tip">Maximise Saved Search Results</spand>
+                    <span class="saved-search-menu-tip">Maximise ScratchList</spand>
                 </div>
             ` : html`
                 <div class="saved-search-menu">
                     <div onClick=${clickedToggle}>
                         ${ svgChevronDown() }
                     </div>
-                    <span class="saved-search-menu-tip">Minimise Saved Search Results</spand>
+                    <span class="saved-search-menu-tip">Minimise ScratchList</spand>
                 </div>
             `}
         </div>`;
@@ -501,7 +490,7 @@ export default function SearchCommand() {
                    onBlur=${onBlur}/>
             ${ !!local.candidates.length && buildCandidates() }
         </div>
-        ${ !!local.savedSearchResults.length && buildSavedSearchResults() }
+        ${ !!state.scratchList.length && buildScratchList() }
       </div>`;
 }
 
@@ -512,18 +501,19 @@ function allCommands() {
         {command: ':a', description: "goto articles or add ", quoteAround: "title"},
         {command: ':t', description: "goto timelines or add ", quoteAround: "title"},
         {command: ':q', description: "goto quotes"},
+        {command: ':r', description: "goto random quote"},
+        {command: ':s', description: "goto spaced repetition"},
         {spacer: true},
         {command: ':n',  description: "show add-note form"},
         {command: ':nr', description: "show add-note form for review section"},
         {command: ':ns', description: "show add-note form for summary section"},
         {command: ':p',  description: "show point form"},
         {spacer: true},
-        {command: ':r', description: "goto random quote"},
-        {command: ':s', description: "goto spaced repetition"},
+        {command: ':b', description: "bookmark current page to scratchlist"},
         {command: ':l', description: "lock (prevent edits)"},
         {command: ':u', description: "unlock (allow edits)"},
-        {command: ':c', description: "clean ui"},
-        {command: ':b', description: "basic ui"},
+        {command: ':uic', description: "clean ui"},
+        {command: ':uib', description: "basic ui"},
         {command: ':g', description: "show connectivity graph"},
         {command: ':h', description: "hide connectivity graph"}
     ];
@@ -573,8 +563,9 @@ function executeCommand(text, appDispatch) {
         return true;
     }
     case "s": route('/sr'); return true;
-    case "c": return dispatchMessage('cleanUI');
-    case "b": return dispatchMessage('basicUI');
+    case "uic": return dispatchMessage('cleanUI');
+    case "uib": return dispatchMessage('basicUI');
+    case "b": return dispatchMessage('bookmarkUrl');
     case "g": return dispatchMessage('connectivityGraphShow');
     case "h": return dispatchMessage('connectivityGraphHide');
     }

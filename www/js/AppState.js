@@ -29,6 +29,18 @@ export const initialState = {
 
     readOnly: false,
 
+    // the url of the current page
+    url: '',
+    // to add the current page to the scratchList we need the id, name, resource.
+    // id and resource can be parsed from the url, but the name needs to be
+    // stored separately
+    //
+    urlName: '',
+
+    scratchList: [],
+    scratchListMinimised: false,
+
+
     // put the variables in square brackets so that they're evaluated
     //
     showNoteForm: {
@@ -76,6 +88,11 @@ export const initialState = {
 
 export const reducer = (state, action) => {
     switch (action.type) {
+    case 'routeChanged':
+        return {
+            ...state,
+            url: action.url
+        };
     case 'uberSetup':
         return {
             ...state,
@@ -87,6 +104,42 @@ export const reducer = (state, action) => {
             srReviewCount: action.srReviewCount,
             srEarliestReviewDate: action.srEarliestReviewDate
         };
+    case 'setUrlName': {
+        return {
+            ...state,
+            urlName: action.urlName
+        };
+    }
+    case 'scratchListToggle': {
+        let newState = {
+            ...state,
+            scratchListMinimised: !state.scratchListMinimised
+        }
+        return newState;
+    }
+    case 'scratchListAddMulti': {
+        let newState = {...state};
+
+        action.candidates.forEach(c => {
+            newState.scratchList.push(c);
+        });
+
+        return newState;
+    }
+    case 'scratchListAdd': {
+        let newState = {...state};
+
+        newState.scratchList.push(action.candidate);
+
+        return newState;
+    }
+    case 'scratchListRemove': {
+        let newState = {...state};
+
+        newState.scratchList.splice(action.index, 1);
+
+        return newState;
+    }
     case 'loadGraph':
         return {
             ...state,
@@ -102,6 +155,12 @@ export const reducer = (state, action) => {
             ...state,
             showingSearchCommand: action.showingSearchCommand
         };
+    case 'bookmarkUrl': {
+        let candidate = parseForScratchList(state.url, state.urlName);
+        let newState = { ...state };
+        newState.scratchList.push(candidate);
+        return newState;
+    }
     case 'cleanUI':
         return {
             ...state,
@@ -346,6 +405,16 @@ export const reducer = (state, action) => {
         return state;
     }
 };
+
+function parseForScratchList(url, urlName) {
+    // note: this will break if we ever change the url schema
+    let res = url.match(/^\/(\w+)\/(\w+)/);
+
+    let id = res[2];
+    let resource = res[1];
+
+    return { id: parseInt(id, 10), name: urlName, resource: resource}
+}
 
 function updateListOfTitles(arr, obj) {
     let isEntry = false;

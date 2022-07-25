@@ -63,6 +63,14 @@ function cacheDeck(dispatch, deck) {
     });
 }
 
+function updateUrlName(dispatch, title) {
+    dispatch({
+        type: 'setUrlName',
+        urlName: title
+    });
+}
+
+
 function titleFromQuoteText(quoteText) {
     const title = quoteText.length > 60 ? quoteText.slice(0, 57) + "..." : quoteText;
     return title;
@@ -185,6 +193,7 @@ function Quote(props) {
             Net.get(url).then(deck => {
                 if (deck) {
                     cacheDeck(dispatch, deck);
+                    updateUrlName(dispatch, deck.title);
                 } else {
                     console.error(`error: fetchDeck for ${url}`);
                 }
@@ -208,6 +217,7 @@ function Quote(props) {
             if (deck) {
                 cacheDeck(dispatch, deck);
                 route(`/quotes/${deck.id}`);
+                updateUrlName(dispatch, deck.title);
             } else {
                 console.error(`error: fetchDeck for ${url}`);
             }
@@ -221,10 +231,7 @@ function Quote(props) {
             } else if (e.key === 'p') {
                 getQuoteThenRoute(`/api/quotes/${quoteId}/prev`);
             } else if (e.key === 'r') {
-                Net.get("/api/quotes/random").then(quote => {
-                    cacheDeck(dispatch, quote);
-                    route(`/quotes/${quote.id}`);
-                });
+                getQuoteThenRoute(`/api/quotes/random`);
             }
         }
     };

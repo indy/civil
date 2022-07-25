@@ -69,8 +69,12 @@ function makeCacheDeckFn(preCacheFn) {
 function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummarySection, hasReviewSection }) {
     // returns helper fn that applies preCacheFn and stores deck in AppState
 
-    const [state] = useStateValue();
+    const [state, appDispatch] = useStateValue();
     const cacheDeck = makeCacheDeckFn(preCacheFn);
+
+    if (title && state.urlName !== title) {
+        appDispatch({type: 'setUrlName', urlName: title});
+    }
 
     useEffect(() => {
         if (deck.notes) {

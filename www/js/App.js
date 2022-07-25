@@ -157,6 +157,11 @@ function AppUI(props) {
 
     function handleRoute(e) {
         if (e.url !== '/login') {
+            dispatch({
+                type: 'routeChanged',
+                url: e.url
+            });
+
             // all other pages require the user to be logged in
             if (!state.user) {
                 route('/login', true);
