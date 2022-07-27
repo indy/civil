@@ -12,6 +12,8 @@
 
   --search-command-width: 49rem;
   --search-command-border-radius: 0.1em;
+
+  --title-height: 1.6rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -1388,8 +1390,7 @@ input:required {
   left: 0;
 
   width: 100%;
-  /* same value as .title-sticky */
-  height: 1.6rem;
+  height: var(--title-height);
 
   margin-top: 0;
 
@@ -1405,8 +1406,7 @@ input:required {
   position: fixed;
   top: 0;
 
-  /* same value as .title-background-band */
-  height: 1.6rem;
+  height: var(--title-height);
 
   margin-top: 0;
 
