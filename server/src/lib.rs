@@ -52,14 +52,14 @@ pub fn init_tracing() {
 pub fn env_var_string(key: &str) -> Result<String> {
     match env::var(key) {
         Ok(r) => Ok(r),
-        Err(e) => Err(Error::Var(e))
+        Err(e) => Err(Error::Var(e)),
     }
 }
 
 pub fn env_var_string_or(key: &str, default: &str) -> String {
     match env::var(key) {
         Ok(r) => r,
-        Err(_e) => default.to_string()
+        Err(_e) => default.to_string(),
     }
 }
 
@@ -70,6 +70,6 @@ pub fn env_var_bool(key: &str) -> Result<bool> {
 pub fn env_var_bool_or(key: &str, default: bool) -> bool {
     match env_var_string(key) {
         Ok(r) => r == "true",
-        Err(_e) => default
+        Err(_e) => default,
     }
 }
