@@ -23,48 +23,75 @@ use crate::error::Result;
 use crate::interop::stats as interop;
 use crate::interop::Key;
 
+pub fn get(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::UserStats> {
+    let conn = sqlite_pool.get()?;
+
+    let stmt = "SELECT decks.id, decks.name, decks.kind
+                FROM hits INNER JOIN decks ON decks.id = hits.deck_id
+                WHERE decks.user_id = ?1
+                GROUP BY hits.deck_id
+                ORDER BY hits.created_at DESC
+                LIMIT 15";
+
+    let recently_visited = sqlite::many(
+        &conn,
+        &stmt,
+        params![&user_id],
+        crate::db::decks::decksimple_from_row,
+    )?;
+
+
+
+    Ok(interop::UserStats {
+        recently_visited,
+        stats: generate_stats(&conn, user_id)?,
+    })
+}
+
 pub fn create_stats(sqlite_pool: &SqlitePool, user_id: Key, stats: &interop::Stats) -> Result<()> {
     info!("create_stats");
 
     let conn = sqlite_pool.get()?;
 
+    let stmt = "INSERT INTO stats(user_id,
+                                  num_ideas,
+                                  num_articles,
+                                  num_people,
+                                  num_timelines,
+                                  num_refs,
+                                  num_cards,
+                                  num_card_ratings,
+                                  num_images,
+                                  num_notes_in_ideas,
+                                  num_notes_in_articles,
+                                  num_notes_in_people,
+                                  num_notes_in_timelines,
+                                  num_points_in_people,
+                                  num_points_in_timelines,
+                                  num_refs_ideas_to_ideas,
+                                  num_refs_ideas_to_articles,
+                                  num_refs_ideas_to_people,
+                                  num_refs_ideas_to_timelines,
+                                  num_refs_articles_to_ideas,
+                                  num_refs_articles_to_articles,
+                                  num_refs_articles_to_people,
+                                  num_refs_articles_to_timelines,
+                                  num_refs_people_to_ideas,
+                                  num_refs_people_to_articles,
+                                  num_refs_people_to_people,
+                                  num_refs_people_to_timelines,
+                                  num_refs_timelines_to_ideas,
+                                  num_refs_timelines_to_articles,
+                                  num_refs_timelines_to_people,
+                                  num_refs_timelines_to_timelines)
+                VALUES ( ?1,  ?2,  ?3,  ?4,  ?5,  ?6,  ?7,  ?8,  ?9,
+                        ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19,
+                        ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29,
+                        ?30, ?31)";
+
     sqlite::zero(
         &conn,
-        "INSERT INTO stats(user_id,
-                           num_ideas,
-                           num_articles,
-                           num_people,
-                           num_timelines,
-                           num_refs,
-                           num_cards,
-                           num_card_ratings,
-                           num_images,
-                           num_notes_in_ideas,
-                           num_notes_in_articles,
-                           num_notes_in_people,
-                           num_notes_in_timelines,
-                           num_points_in_people,
-                           num_points_in_timelines,
-                           num_refs_ideas_to_ideas,
-                           num_refs_ideas_to_articles,
-                           num_refs_ideas_to_people,
-                           num_refs_ideas_to_timelines,
-                           num_refs_articles_to_ideas,
-                           num_refs_articles_to_articles,
-                           num_refs_articles_to_people,
-                           num_refs_articles_to_timelines,
-                           num_refs_people_to_ideas,
-                           num_refs_people_to_articles,
-                           num_refs_people_to_people,
-                           num_refs_people_to_timelines,
-                           num_refs_timelines_to_ideas,
-                           num_refs_timelines_to_articles,
-                           num_refs_timelines_to_people,
-                           num_refs_timelines_to_timelines)
-         VALUES (      ?1,  ?2,  ?3,  ?4,  ?5,  ?6,  ?7,  ?8,  ?9,
-                 ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19,
-                 ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29,
-                 ?30, ?31)",
+        &stmt,
         params![
             &user_id,
             &stats.num_ideas,
@@ -207,32 +234,32 @@ pub(crate) fn get_num_decks(conn: &Connection, user_id: Key, deck_kind: &str) ->
 }
 
 pub(crate) fn get_num_refs(conn: &Connection, user_id: Key) -> Result<i32> {
-    sqlite::one(&conn,
-                "SELECT count(*) as count from notes_decks nd left join decks d on d.id = nd.deck_id WHERE d.user_id = ?1",
-                params![&user_id],
-                i32_from_row)
+    let stmt = "SELECT count(*) AS count
+                FROM notes_decks nd LEFT JOIN decks d ON d.id = nd.deck_id
+                WHERE d.user_id = ?1";
+    sqlite::one(&conn, &stmt, params![&user_id], i32_from_row)
 }
 
 pub(crate) fn get_num_cards(conn: &Connection, user_id: Key) -> Result<i32> {
-    sqlite::one(
-        &conn,
-        "SELECT count(*) as count from cards where user_id = ?1",
-        params![&user_id],
-        i32_from_row,
-    )
+    let stmt = "SELECT count(*) AS count FROM cards WHERE user_id = ?1";
+    sqlite::one(&conn, &stmt, params![&user_id], i32_from_row)
 }
 
 pub(crate) fn get_num_card_ratings(conn: &Connection, user_id: Key) -> Result<i32> {
+    let stmt = "SELECT count(*) AS count
+                FROM card_ratings cr LEFT JOIN cards c ON c.id = cr.card_id
+                WHERE c.user_id = ?1";
     sqlite::one(&conn,
-                "SELECT count(*) as count from card_ratings cr left join cards c on c.id = cr.card_id where c.user_id = ?1",
+                &stmt,
                 params![&user_id],
                 i32_from_row)
 }
 
 pub(crate) fn get_num_images(conn: &Connection, user_id: Key) -> Result<i32> {
+    let stmt = "SELECT count(*) AS count FROM images WHERE user_id = ?1";
     sqlite::one(
         &conn,
-        "SELECT count(*) as count from images where user_id = ?1",
+        &stmt,
         params![&user_id],
         i32_from_row,
     )
@@ -243,8 +270,9 @@ pub(crate) fn get_num_notes_in_decks(
     user_id: Key,
     deck_kind: &str,
 ) -> Result<i32> {
-    let stmt =
-        "select count(*) as count from notes n left join decks d on d.id = n.deck_id where d.kind='$deck_kind' and n.user_id = ?1";
+    let stmt = "SELECT COUNT(*) AS count
+                FROM notes n LEFT JOIN decks d ON d.id = n.deck_id
+                WHERE d.kind='$deck_kind' AND n.user_id = ?1";
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
 
     sqlite::one(&conn, &stmt, params![&user_id], i32_from_row)
@@ -255,8 +283,9 @@ pub(crate) fn get_num_points_in_decks(
     user_id: Key,
     deck_kind: &str,
 ) -> Result<i32> {
-    let stmt =
-        "select count(*) as count from points p left join decks d on d.id = p.deck_id where d.kind='$deck_kind' and d.user_id = ?1";
+    let stmt = "SELECT COUNT(*) AS count
+                FROM points p LEFT JOIN decks d ON d.id = p.deck_id
+                WHERE d.kind='$deck_kind' AND d.user_id = ?1";
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
 
     sqlite::one(&conn, &stmt, params![&user_id], i32_from_row)
@@ -268,22 +297,20 @@ pub(crate) fn get_num_refs_between(
     deck_from: &str,
     deck_to: &str,
 ) -> Result<i32> {
-    let stmt = "select count(*) as count
-from notes_decks nd
-     left join decks deck_to on deck_to.id = nd.deck_id
-     left join notes n on n.id = nd.note_id
-     left join decks deck_from on n.deck_id = deck_from.id
-where deck_from.user_id = ?1 and deck_from.kind='$deck_kind_from' and deck_to.kind='$deck_kind_to'";
+    let stmt = "SELECT COUNT(*) AS count
+                FROM notes_decks nd
+                LEFT JOIN decks deck_to ON deck_to.id = nd.deck_id
+                LEFT JOIN notes n ON n.id = nd.note_id
+                LEFT JOIN decks deck_from ON n.deck_id = deck_from.id
+                WHERE deck_from.user_id = ?1 AND deck_from.kind='$deck_kind_from' AND deck_to.kind='$deck_kind_to'";
     let stmt = stmt.replace("$deck_kind_from", &deck_from.to_string());
     let stmt = stmt.replace("$deck_kind_to", &deck_to.to_string());
 
     sqlite::one(&conn, &stmt, params![&user_id], i32_from_row)
 }
 
-pub fn generate_stats(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::Stats> {
+pub fn generate_stats(conn: &Connection, user_id: Key) -> Result<interop::Stats> {
     info!("generate_stats");
-
-    let conn = sqlite_pool.get()?;
 
     let num_ideas = get_num_decks(&conn, user_id, &"idea")?;
     let num_articles = get_num_decks(&conn, user_id, &"article")?;

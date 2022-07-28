@@ -24,6 +24,7 @@ use crate::handler::notes;
 use crate::handler::people;
 use crate::handler::quotes;
 use crate::handler::sr;
+use crate::handler::stats;
 use crate::handler::timelines;
 use crate::handler::ubersetup;
 use crate::handler::uploader;
@@ -137,6 +138,8 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         )
         // setup
         .service(scope("/ubersetup").route("", get().to(ubersetup::setup)))
+        // stats
+        .service(scope("/stats").route("", get().to(stats::get)))
         // edges
         .service(scope("/edges").route("/notes_decks", post().to(edges::create_from_note_to_decks)))
         // graph

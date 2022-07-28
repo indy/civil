@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::interop::decks::DeckSimple;
+
 #[derive(Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct Stats {
     pub num_ideas: i32,
@@ -54,4 +56,10 @@ pub struct Stats {
     pub num_refs_timelines_to_articles: i32,
     pub num_refs_timelines_to_people: i32,
     pub num_refs_timelines_to_timelines: i32,
+}
+
+#[derive(Debug, serde::Serialize)]
+pub struct UserStats {
+    pub recently_visited: Vec<DeckSimple>,
+    pub stats: Stats,
 }

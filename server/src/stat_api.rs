@@ -37,5 +37,6 @@ pub fn get_last_saved_stats(sqlite_pool: &SqlitePool, user_id: Key) -> Result<St
 }
 
 pub fn generate_stats(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Stats> {
-    stats_db::generate_stats(sqlite_pool, user_id)
+    let conn = sqlite_pool.get()?;
+    stats_db::generate_stats(&conn, user_id)
 }

@@ -15,24 +15,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use serde::Deserialize;
+use crate::db::sqlite::SqlitePool;
+use crate::db::stats as db;
+use crate::error::Result;
+use crate::session;
+use actix_web::web::Data;
+use actix_web::HttpResponse;
 
-#[derive(Deserialize)]
-pub struct SearchQuery {
-    q: String,
+#[allow(unused_imports)]
+use tracing::info;
+
+pub async fn get(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    let user_id = session::user_id(&session)?;
+
+    let stats = db::get(&sqlite_pool, user_id)?;
+
+    Ok(HttpResponse::Ok().json(stats))
 }
-
-pub mod articles;
-pub mod cmd;
-pub mod edges;
-pub mod graph;
-pub mod ideas;
-pub mod notes;
-pub mod people;
-pub mod quotes;
-pub mod sr;
-pub mod stats;
-pub mod timelines;
-pub mod ubersetup;
-pub mod uploader;
-pub mod users;

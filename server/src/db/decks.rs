@@ -33,23 +33,6 @@ pub(crate) enum DeckBaseOrigin {
     PreExisting,
 }
 
-#[derive(Debug, Clone)]
-pub struct DeckSimple {
-    pub id: Key,
-    pub name: String,
-    pub kind: DeckKind,
-}
-
-impl From<DeckSimple> for interop::DeckSimple {
-    fn from(d: DeckSimple) -> interop::DeckSimple {
-        interop::DeckSimple {
-            id: d.id,
-            name: d.name,
-            resource: interop::DeckKind::from(d.kind),
-        }
-    }
-}
-
 fn contains(backrefs: &[interop::DeckSimple], id: Key) -> bool {
     for br in backrefs {
         if br.id == id {
@@ -86,9 +69,8 @@ fn deckbase_from_row(row: &Row) -> Result<DeckBase> {
     })
 }
 
-fn decksimple_from_row(row: &Row) -> Result<interop::DeckSimple> {
+pub(crate) fn decksimple_from_row(row: &Row) -> Result<interop::DeckSimple> {
     let res: String = row.get(2)?;
-
     Ok(interop::DeckSimple {
         id: row.get(0)?,
         name: row.get(1)?,

@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::decks::DeckSimple;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Result;
 use crate::interop::decks as interop_decks;
@@ -35,12 +34,9 @@ pub struct Card {
     pub prompt: String,
 }
 
-impl From<(Card, DeckSimple)> for interop::Card {
-    fn from(e: (Card, DeckSimple)) -> interop::Card {
-        let (c, lb) = e;
-
-        // todo: inline
-        let backref: interop_decks::DeckSimple = lb.into();
+impl From<(Card, interop_decks::DeckSimple)> for interop::Card {
+    fn from(e: (Card, interop_decks::DeckSimple)) -> interop::Card {
+        let (c, backref) = e;
 
         interop::Card {
             id: c.id,
@@ -86,13 +82,13 @@ fn local_card_from_row(row: &Row) -> Result<Card> {
     })
 }
 
-fn local_decksimple_from_row(row: &Row) -> Result<DeckSimple> {
+fn local_decksimple_from_row(row: &Row) -> Result<interop_decks::DeckSimple> {
     let kind: String = row.get(2)?;
 
-    Ok(DeckSimple {
+    Ok(interop_decks::DeckSimple {
         id: row.get(0)?,
         name: row.get(1)?,
-        kind: interop_decks::DeckKind::from_str(&kind)?,
+        resource: interop_decks::DeckKind::from_str(&kind)?,
     })
 }
 

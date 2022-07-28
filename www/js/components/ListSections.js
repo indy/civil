@@ -39,6 +39,33 @@ function CompactedListSection({label, list, resource, expanded, hideEmpty }) {
     }
 }
 
+function DeckSimpleListSection({label, list, expanded, hideEmpty }) {
+    let [show, setShow] = useState(expanded);
+
+    function toggleShow() {
+        setShow(!show);
+    }
+
+    if(hideEmpty && list && list.length === 0) {
+        return html``;
+    } else if(show) {
+        return html`
+        <div>
+            <p class="subheading" onClick=${ toggleShow }>
+                ${ svgMinimise() } ${ label }
+            </p>
+            <ul class="compacted-list" >
+                ${ buildDeckSimpleListing(list) }
+            </ul>
+        </div>`;
+    } else {
+        return html`
+        <p class="subheading" onClick=${ toggleShow }>
+            ${ svgExpand() } ${ label }
+        </p>`;
+    }
+}
+
 function RatedListSection({label, list, resource, expanded}) {
     let [show, setShow] = useState(expanded);
 
@@ -74,6 +101,16 @@ function buildListing(list, resource) {
                     resource=${resource}/>`);
 }
 
+function buildDeckSimpleListing(list) {
+    if (!list) {
+        return [];
+    }
+    return list.map((deck, i) => html`
+    <${ListingLink} id=${ deck.id }
+                    name=${ deck.title || deck.name }
+                    resource=${deck.resource}/>`);
+}
+
 function buildRatingListing(list, resource) {
     if (!list) {
         return [];
@@ -101,4 +138,4 @@ function RatedListingLink({ resource, id, name, rating, description }) {
     return res;
 }
 
-export { CompactedListSection, RatedListSection, BasicListSection };
+export { CompactedListSection, DeckSimpleListSection, RatedListSection, BasicListSection };
