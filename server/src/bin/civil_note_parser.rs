@@ -38,9 +38,20 @@ async fn main() -> Result<()> {
 
     let mut num_elements: usize = 0;
 
+    let mut c: usize = 0;
+
     for note in notes {
+        // if c > 21600 {
+        //     info!("content = {:?}", &note);
+        // }
+
         let res = civil_shared::markup_as_struct(&note.content)?;
         num_elements += res.len();
+        c += 1;
+
+        if c % 1000 == 0 {
+            info!("count: {}", c);
+        }
     }
     info!("finished parsing all note markup {}", num_elements);
 

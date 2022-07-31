@@ -97,7 +97,7 @@ fn is_codeblock(tokens: &'_ [Token]) -> bool {
 }
 
 fn is_horizontal_rule(tokens: &'_ [Token]) -> bool {
-    is_token_at_index(tokens, 0, TokenIdent::Hash)
+    is_token_at_index(tokens, 0, TokenIdent::Colon)
         && is_token_at_index(tokens, 1, TokenIdent::Hyphen)
         && (is_token_at_index(tokens, 2, TokenIdent::EOS)
             || is_token_at_index(tokens, 2, TokenIdent::Whitespace)
@@ -130,7 +130,7 @@ fn heading_text<'a>(s: &'a str) -> Option<(u32, &'a str)> {
 }
 
 fn is_heading(tokens: &'_ [Token]) -> bool {
-    if is_token_at_index(tokens, 0, TokenIdent::Hash) && is_token_at_index(tokens, 1, TokenIdent::Text) {
+    if is_token_at_index(tokens, 0, TokenIdent::Colon) && is_token_at_index(tokens, 1, TokenIdent::Text) {
         match tokens[1] {
             Token::Text(_, s) => {
                 if let Some((_level, h)) = heading_text(s) {
@@ -147,7 +147,7 @@ fn is_heading(tokens: &'_ [Token]) -> bool {
 }
 
 fn is_img(tokens: &'_ [Token]) -> bool {
-    is_hash_specifier(tokens) && is_text_at_index(tokens, 1, "img")
+    is_colon_specifier(tokens) && is_text_at_index(tokens, 1, "img")
 }
 
 fn is_blockquote_start<'a>(tokens: &'a [Token<'a>]) -> bool {
@@ -169,9 +169,9 @@ pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
         } else if is_codeblock(tokens) {
             eat_codeblock(tokens)?
         } else if is_horizontal_rule(tokens) {
-            eat_hash(tokens)?
+            eat_colon(tokens)?
         } else if is_heading(tokens) {
-            eat_hash(tokens)?
+            eat_colon(tokens)?
         } else if is_img(tokens) {
             eat_img(tokens)?
         } else if is_blockquote_start(tokens) {
@@ -298,6 +298,7 @@ fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
                 eat_text_including(tokens)
             }
         }
+        Token::Colon(_) => eat_colon(tokens),
         Token::DoubleQuote(pos, _) => {
             if let Ok((toks, inside)) = inside_pair(tokens) {
                 Ok((toks, Node::Quotation(pos, inside)))
@@ -305,7 +306,7 @@ fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
                 eat_text_including(tokens)
             }
         }
-        Token::Hash(_) => eat_hash(tokens),
+        // Token::Hash(_) => eat_hash(tokens),
         Token::Pipe(_) => eat_pipe(tokens),
         Token::Underscore(pos) => {
             if let Ok((toks, inside)) = inside_pair(tokens) {
@@ -330,12 +331,12 @@ fn eat_url<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     return Ok((tokens, Node::Url(pos, url.to_string(), description)));
 }
 
-fn eat_hash<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
-    // Hash, Hyphen, Whitespace, (Text), EOS | EOL
-    // "#- this text is following a horizontal line"
+fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    // Colon, Hyphen, Whitespace, (Text), EOS | EOL
+    // ":- this text is following a horizontal line"
 
-    // Hash, 'h', Whitespace, (Text), EOS | EOL
-    // "#h this is a heading"
+    // Colon, 'h', Whitespace, (Text), EOS | EOL
+    // ":h this is a heading"
 
     let pos = get_token_pos(&tokens[0]);
     if is_token_at_index(tokens, 1, TokenIdent::Hyphen) {
@@ -359,7 +360,7 @@ fn eat_hash<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
 
                     // if the header markup contained something like:
                     //
-                    // #h this is a heading (with a parens)
+                    // :h1 this is a heading (with a parens)
                     //
                     // then header children would be [Node::Text("this is a heading ")]
                     // and we still need to parse the "(with a parens)"
@@ -440,44 +441,45 @@ fn eat_pipe<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     } else if remaining_tokens_contain(tokens, TokenIdent::Pipe) {
         let pos = get_token_pos(&tokens[0]);
 
-        if is_token_at_index(tokens, 1, TokenIdent::Hash) {
-            if is_token_at_index(tokens, 2, TokenIdent::Hash) {
-                tokens = &tokens[3..]; // eat the opening PIPE and the two HASH tokens,
-                tokens = skip_leading_whitespace(tokens)?;
-
-                let (tokens, within_pipe_nodes) = parse_pipe_content(tokens)?;
-
-                Ok((tokens, Node::MarginDisagree(pos, within_pipe_nodes)))
-            } else {
-                tokens = &tokens[2..]; // eat the opening PIPE and HASH,
-                tokens = skip_leading_whitespace(tokens)?;
-
-                let (tokens, within_pipe_nodes) = parse_pipe_content(tokens)?;
-
-                Ok((tokens, Node::MarginScribble(pos, within_pipe_nodes)))
-            }
-        } else if is_token_at_index(tokens, 1, TokenIdent::Tilde) {
-            tokens = &tokens[2..]; // eat the opening PIPE and TILDE,
+        if is_token_at_index(tokens, 1, TokenIdent::Colon) && is_token_at_index(tokens, 2, TokenIdent::Hash) {
+            tokens = &tokens[3..]; // eat the PIPE, COLON, HASH,
             tokens = skip_leading_whitespace(tokens)?;
 
             let (tokens, within_pipe_nodes) = parse_pipe_content(tokens)?;
 
-            Ok((tokens, Node::MarginText(pos, false, within_pipe_nodes)))
+            // numbered margin text
+            Ok((tokens, Node::MarginText(pos, true, within_pipe_nodes)))
+        } else if is_token_at_index(tokens, 1, TokenIdent::Colon) && is_token_at_index(tokens, 2, TokenIdent::Hyphen) {
+            tokens = &tokens[3..]; // eat the PIPE, COLON, HYPHEN
+            tokens = skip_leading_whitespace(tokens)?;
+
+            let (tokens, within_pipe_nodes) = parse_pipe_content(tokens)?;
+
+            Ok((tokens, Node::MarginDisagree(pos, within_pipe_nodes)))
+        } else if is_token_at_index(tokens, 1, TokenIdent::Colon) && is_token_at_index(tokens, 2, TokenIdent::Plus) {
+            tokens = &tokens[3..]; // eat the PIPE, COLON, PLUS
+            tokens = skip_leading_whitespace(tokens)?;
+
+            let (tokens, within_pipe_nodes) = parse_pipe_content(tokens)?;
+
+            Ok((tokens, Node::MarginScribble(pos, within_pipe_nodes)))
+
         } else {
             tokens = &tokens[1..]; // eat the opening PIPE
             tokens = skip_leading_whitespace(tokens)?;
 
             let (tokens, within_pipe_nodes) = parse_pipe_content(tokens)?;
 
-            Ok((tokens, Node::MarginText(pos, true, within_pipe_nodes)))
+            // unnumbered margin text
+            Ok((tokens, Node::MarginText(pos, false, within_pipe_nodes)))
         }
     } else {
         eat_text_including(tokens)
     }
 }
 
-fn is_hash_specifier<'a>(tokens: &'a [Token<'a>]) -> bool {
-    is_token_at_index(tokens, 0, TokenIdent::Hash)
+fn is_colon_specifier<'a>(tokens: &'a [Token<'a>]) -> bool {
+    is_token_at_index(tokens, 0, TokenIdent::Colon)
         && is_token_at_index(tokens, 1, TokenIdent::Text)
         && is_token_at_index(tokens, 2, TokenIdent::ParenBegin)
 }
@@ -516,7 +518,7 @@ fn core_description_pairing<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<(bo
 
     let mut paren_balancer = 1;
 
-    tokens = &tokens[3..]; // eat the '#img(' or '#url('
+    tokens = &tokens[3..]; // eat the ':img(' or ':url('
 
     while !tokens.is_empty() {
         if is_head(tokens, TokenIdent::ParenBegin) {
@@ -683,12 +685,10 @@ fn eat_text_as_string<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<String> {
             Token::Text(_, s) => value += s,
             Token::Digits(_, s) => value += s,
             Token::Whitespace(_, s) => value += s,
-            // Token::GreaterThan => value += ">",
-            // Token::LessThan => value += "<",
-            Token::Tilde(_) => value += "~",
+            Token::Plus(_) => value += "+",
             Token::Period(_) => value += ".",
+            Token::Hash(_) => value += "#",
             Token::Hyphen(_) => value += "-",
-            //            Token::At => value += "@",
             Token::ParenBegin(_) => value += "(",
             Token::ParenEnd(_) => value += ")",
             _ => return Ok((tokens, value)),
@@ -754,11 +754,11 @@ mod tests {
     #[test]
     fn test_is_horizontal_rule() {
         {
-            let toks = tokenize("#- ").unwrap();
+            let toks = tokenize(":- ").unwrap();
             assert_eq!(is_horizontal_rule(&toks), true);
         }
         {
-            let toks = tokenize("#-").unwrap();
+            let toks = tokenize(":-").unwrap();
             assert_eq!(is_horizontal_rule(&toks), true);
         }
     }
@@ -766,12 +766,12 @@ mod tests {
     #[test]
     fn test_is_img() {
         {
-            let toks = tokenize("#img(foo.jpeg)").unwrap();
+            let toks = tokenize(":img(foo.jpeg)").unwrap();
             dbg!(&toks);
             assert_eq!(is_img(&toks), true);
         }
         {
-            let toks = tokenize("#img").unwrap();
+            let toks = tokenize(":img").unwrap();
             dbg!(&toks);
             assert_eq!(is_img(&toks), false);
         }
@@ -887,12 +887,14 @@ mod tests {
         };
     }
 
-    // fn assert_url(node: &Node, expected_url: &'static str) {
-    //     match node {
-    //         Node::Url(url, _desc) => assert_eq!(url, expected_url),
-    //         _ => assert_eq!(false, true),
-    //     };
-    // }
+    fn assert_url(node: &Node, expected_url: &'static str) {
+        match node {
+            Node::Url(_sz, url, _desc) => {
+                assert_eq!(url, expected_url);
+            }
+            _ => assert_eq!(false, true),
+        };
+    }
 
     fn assert_strong1_pos(node: &Node, expected: &'static str, loc: usize) {
         match node {
@@ -1352,7 +1354,7 @@ This is code```",
     #[test]
     fn test_unordered_list_in_sidenote_bug() {
         let nodes = build(
-            "para one|- hello
+            "para one| - hello
 - foo| more text afterwards",
         );
         assert_eq!(1, nodes.len());
@@ -1364,7 +1366,7 @@ This is code```",
         match &children[1] {
             Node::MarginText(_, numbered, vs) => {
                 assert_eq!(vs.len(), 1);
-                assert_eq!(*numbered, true);
+                assert_eq!(*numbered, false);
                 match &vs[0] {
                     Node::UnorderedList(_, us) => {
                         assert_eq!(us.len(), 2);
@@ -1396,7 +1398,7 @@ some other lines| more words afterwards",
 
             match &children[1] {
                 Node::MarginText(_, numbered, nodes) => {
-                    assert_eq!(*numbered, true);
+                    assert_eq!(*numbered, false);
                     assert_eq!(nodes.len(), 3);
                 }
                 _ => assert_eq!(false, true),
@@ -1404,7 +1406,7 @@ some other lines| more words afterwards",
         }
         {
             let nodes = build(
-                "some words|~ unnumberedright margin text
+                "some words|:# numberedright margin text
 another paragraph
 some other lines| more words afterwards",
             );
@@ -1416,7 +1418,7 @@ some other lines| more words afterwards",
 
             match &children[1] {
                 Node::MarginText(_, numbered, nodes) => {
-                    assert_eq!(*numbered, false);
+                    assert_eq!(*numbered, true);
                     assert_eq!(nodes.len(), 3);
                 }
                 _ => assert_eq!(false, true),
@@ -1427,7 +1429,7 @@ some other lines| more words afterwards",
     #[test]
     fn test_margin_agree() {
         let nodes = build(
-            "some logical opinion|# i agree with this point
+            "some logical opinion|:+ i agree with this point
 another paragraph
 some other lines| more words afterwards",
         );
@@ -1448,7 +1450,7 @@ some other lines| more words afterwards",
     #[test]
     fn test_margin_disagree() {
         let nodes = build(
-            "some contentious opinion|## i disagree with this point
+            "some contentious opinion|:- i disagree with this point
 another paragraph
 some other lines| more words afterwards",
         );
@@ -1481,7 +1483,7 @@ some other lines| more words afterwards",
         match &children[1] {
             Node::MarginText(_, numbered, vs) => {
                 assert_eq!(vs.len(), 1);
-                assert_eq!(*numbered, true);
+                assert_eq!(*numbered, false);
                 match &vs[0] {
                     Node::OrderedList(_, os, _) => {
                         assert_eq!(os.len(), 2);
@@ -1558,14 +1560,14 @@ some other lines| more words afterwards",
 
     #[test]
     fn test_at_image() {
-        assert_image("#img(abc.jpg)", "abc.jpg");
-        assert_image("#img(a00.jpg)", "a00.jpg");
-        assert_image("#img(00a.jpg)", "00a.jpg");
-        assert_image("#img(000.jpg)", "000.jpg");
+        assert_image(":img(abc.jpg)", "abc.jpg");
+        assert_image(":img(a00.jpg)", "a00.jpg");
+        assert_image(":img(00a.jpg)", "00a.jpg");
+        assert_image(":img(000.jpg)", "000.jpg");
 
-        assert_image_with_description("#img(000.jpg hello)", "000.jpg", "hello");
+        assert_image_with_description(":img(000.jpg hello)", "000.jpg", "hello");
         assert_image_with_description(
-            "#img(123.jpg hello this is a description)",
+            ":img(123.jpg hello this is a description)",
             "123.jpg",
             "hello this is a description",
         );
@@ -1574,7 +1576,7 @@ some other lines| more words afterwards",
     #[test]
     fn test_at_url() {
         {
-            let nodes = build("#url(https://google.com)");
+            let nodes = build(":url(https://google.com)");
             assert_eq!(1, nodes.len());
 
             let children = paragraph_children(&nodes[0]).unwrap();
@@ -1585,13 +1587,17 @@ some other lines| more words afterwards",
                 Node::Url(_, url, ns) => {
                     assert_eq!(url, "https://google.com");
                     assert_eq!(1, ns.len());
-                    assert_single_paragraph_text(&ns[0], "https://google.com");
+
+                    let children = paragraph_children(&ns[0]).unwrap();
+                    assert_eq!(children.len(), 2);
+                    assert_text(&children[0], "https");
+                    assert_text(&children[1], "://google.com");
                 }
                 _ => assert_eq!(false, true),
             };
         }
         {
-            let nodes = build("#url(https://google.com a few words)");
+            let nodes = build(":url(https://google.com a few words)");
             assert_eq!(1, nodes.len());
 
             let children = paragraph_children(&nodes[0]).unwrap();
@@ -1608,7 +1614,7 @@ some other lines| more words afterwards",
             };
         }
         {
-            let nodes = build("#url(https://google.com a few (descriptive *bold*) words)");
+            let nodes = build(":url(https://google.com a few (descriptive *bold*) words)");
             assert_eq!(1, nodes.len());
 
             let children = paragraph_children(&nodes[0]).unwrap();
@@ -1633,7 +1639,20 @@ some other lines| more words afterwards",
                 _ => assert_eq!(false, true),
             };
         }
+        {
+            let nodes = build("this is :url(https://google.com) a link within some words");
+            assert_eq!(1, nodes.len());
+
+            let children = paragraph_children(&nodes[0]).unwrap();
+            assert_eq!(children.len(), 3);
+
+            assert_text(&children[0], "this is ");
+            assert_url(&children[1], "https://google.com");
+            assert_text(&children[2], " a link within some words");
+        }
+
     }
+
 
     #[test]
     fn test_split2() {
@@ -1658,15 +1677,15 @@ some other lines| more words afterwards",
     }
 
     #[test]
-    fn test_hash() {
+    fn test_colon() {
         {
-            let nodes = build("#-");
+            let nodes = build(":-");
             assert_eq!(1, nodes.len());
 
             assert_horizontal_rule(&nodes[0]);
         }
         {
-            let nodes = build("#- Some words");
+            let nodes = build(":- Some words");
             assert_eq!(2, nodes.len());
 
             assert_horizontal_rule(&nodes[0]);
@@ -1679,7 +1698,7 @@ some other lines| more words afterwards",
     #[test]
     fn test_url_bug() {
         {
-            let nodes = build("#url(http://www.example.com/page.pdf#page=3 A document)");
+            let nodes = build(":url(http://www.example.com/page.pdf#page=3 A document)");
             assert_eq!(1, nodes.len());
 
             let children = paragraph_children(&nodes[0]).unwrap();
@@ -1701,7 +1720,7 @@ some other lines| more words afterwards",
     #[test]
     fn test_url_bug_2() {
         {
-            let nodes = build("#url(https://en.wikipedia.org/wiki/Karl_Marx)");
+            let nodes = build(":url(https://en.wikipedia.org/wiki/Karl_Marx)");
             dbg!(&nodes);
 
             assert_eq!(1, nodes.len());
@@ -1718,9 +1737,10 @@ some other lines| more words afterwards",
                     assert_paragraph(&ns[0]);
                     match &ns[0] {
                         Node::Paragraph(_, children) => {
-                            assert_eq!(children.len(), 2);
-                            assert_text(&children[0], "https://en.wikipedia.org/wiki/Karl");
-                            assert_text(&children[1], "_Marx")
+                            assert_eq!(children.len(), 3);
+                            assert_text(&children[0], "https");
+                            assert_text(&children[1], "://en.wikipedia.org/wiki/Karl");
+                            assert_text(&children[2], "_Marx")
                         }
                         _ => assert!(false),
                     };
@@ -1847,7 +1867,7 @@ closing paragraph",
         let nodes = build(
             "hello world
 
-#-
+:-
 
 another paragraph
 
@@ -1864,7 +1884,7 @@ third paragraph",
     #[test]
     fn test_header_then_list_bug() {
         let nodes = build(
-            "#h2 A header
+            ":h2 A header
 
 - first unordered list item
 - second unordered list item",
@@ -1881,12 +1901,12 @@ third paragraph",
     #[test]
     fn test_header() {
         {
-            let nodes = build("#h2 A header");
+            let nodes = build(":h2 A header");
             assert_eq!(1, nodes.len());
             header_with_single_text(&nodes[0], 2, "A header");
         }
         {
-            let nodes = build("#h3 A header (with parentheses)");
+            let nodes = build(":h3 A header (with parentheses)");
             assert_eq!(1, nodes.len());
             header_with_multi_text(&nodes[0], 3, "A header (with parentheses)");
         }
@@ -1896,7 +1916,7 @@ third paragraph",
     fn test_offset_bug() {
         let nodes = build(
             "For years, the political scientist has claimed that Putin’s aggression toward Ukraine is caused by Western intervention. Have recent events changed his mind?
-#-",
+:-",
         );
         assert_eq!(2, nodes.len());
 
@@ -1909,10 +1929,33 @@ third paragraph",
         // the parse function skipped leading whitespace and newlines
         // at the start of the loop, should have been at the end.
         //
-        let s = "#img(abc.jpeg)
+        let s = ":img(abc.jpeg)
 ";
         let nodes = build(s);
         dbg!(&nodes);
         assert_eq!(1, nodes.len());
+    }
+
+    #[test]
+    fn test_sidenote_colon_syntax_bug_temp2() {
+        let s = "hello |:url(http://google.com)|world";
+        let nodes = build(s);
+        dbg!("{:?}", &nodes);
+        assert_eq!(1, nodes.len());
+    }
+
+    // TODO: fix this bug
+    // #[test]
+    // fn test_colon_syntax_bug_temp2() {
+    //     let s = "\"You” >>>hi<<<";
+    //     let nodes = build(s);
+    //     assert_eq!(3, nodes.len());
+    // }
+
+    #[test]
+    fn test_colon_syntax_bug_temp2() {
+        let s = ":h2 June: Man jailed in UK for posting memes of George Floyd in WhatsApp & Facebook group chats\n\n:url(https://www.rebelnews.com/man_jailed_in_uk_for_posting_memes_of_george_floyd_in_whatsapp_facebook_group_chats)\n\n|:+ :url(https://twitter.com/kr3at/status/1536833646329479168)|A former West Mercia police officer has been jailed for 20 weeks for sharing 10 memes about George Floyd in a WhatsApp group chat and charged with \"sending grossly offensive messages\".\n\nThe judge by the name of Tan Ikram said, \"You were a prison officer. I have no doubt you would have received training in relation to diversity and inclusion in that role.\"\n\n>>>\nYou undermined the confidence the public has in the police. Your behavior brings the criminal justice system as a whole into disrepute. You are there to protect the public and enforce the law. But what you did was the complete opposite.\n<<<\n\nThe person who made a complaint about James Watt, left the group chat and posted screenshots on Twitter with the caption: \"Former work colleague now serving police officer sent these in group chat. What hope is there in police in the UK sharing these.\"\n\nWhen James' phone was seized for an investigation, it was revealed that James sent \"grossly offensive\" memes to multiple whatsapp groups and through Meta’s Messenger.\n\nWatts was ordered to pay the complainant £75 compensation along with a £115 in court costs and a £128 victim surcharge.\n\nJudge Ikram decided to dismiss the idea of a suspended sentence where he said \"A message must go out and that message can only go out through an immediate sentence of imprisonment.\"";
+        let nodes = build(s);
+        assert_eq!(9, nodes.len());
     }
 }

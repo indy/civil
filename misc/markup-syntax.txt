@@ -6,17 +6,17 @@ strong:    this is a *strong* word
 
 --------------------------------------------------------------------------------
 
-hyperlinks: #url(https://indy.io everything after the space is descriptive text)
-images:     #img(a21.png Golden Retriever)
+hyperlinks: :url(https://indy.io everything after the space is descriptive text)
+images:     :img(a21.png Golden Retriever)
 
 --------------------------------------------------------------------------------
 
-#h2 this is a heading
-#h3 this is a h3 heading
-#h4 this is a h4 heading, etc etc etc
-#h9 this is the smallest heading allowed
+:h2 this is a heading
+:h3 this is a h3 heading
+:h4 this is a h4 heading, etc etc etc
+:h9 this is the smallest heading allowed
 
-#- this line is a <hr/> tag, the rest of the line is ignored
+:- this line is a <hr/> tag, the rest of the line is ignored
 
 --------------------------------------------------------------------------------
 
@@ -48,24 +48,24 @@ this is now outside a blockquote
 content in the right hand margin is marked by surrounding it in pipe (|) characters:
 
 
-by default margin notes are numbered:
+by default margin notes are not numbered:
 
 once upon|this is text on the right-hand margin| a time
 
 ----------
 
-margin notes without numbering have a tilde after the first pipe:
+numbered margin notes have colon, hash after the first pipe:
 
-once upon|~ this is text on the right-hand margin| a time
+once upon|:# this is numbered text on the right-hand margin| a time
 
 ----------
 
-scribbled margin notes have a hash after the first pipe:
+scribbled margin notes have a colon, plus after the first pipe:
 
-once upon|# this is my opinion/summary on the right-hand margin| a time
+once upon|:+ this is my opinion/summary on the right-hand margin| a time
 
-if you want a scribbled disagreement/criticism then use two hashes:
-once upon|## this is my objection/criticism on the right-hand margin| a time
+if you want a scribbled disagreement/criticism then use colon, minus:
+once upon|:- this is my objection/criticism on the right-hand margin| a time
 
 ----------
 

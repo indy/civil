@@ -28,7 +28,7 @@ pub enum Token<'a> {
     BracketBegin(usize),
     BracketEnd(usize),
     Caret(usize),
-    Tilde(usize),
+    Colon(usize),
     Digits(usize, &'a str),
     DoubleQuote(usize, &'a str),
     Hash(usize),
@@ -38,6 +38,7 @@ pub enum Token<'a> {
     ParenBegin(usize),
     Period(usize),
     Pipe(usize),
+    Plus(usize),
     Text(usize, &'a str),
     Underscore(usize),
     Whitespace(usize, &'a str),
@@ -53,6 +54,7 @@ pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
         Token::BracketEnd(_) => "]",
         Token::BracketBegin(_) => "[",
         Token::Caret(_) => "^",
+        Token::Colon(_) => ":",
         Token::Digits(_, s) => s,
         Token::DoubleQuote(_, s) => s,
         Token::Hash(_) => "#",
@@ -62,8 +64,8 @@ pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
         Token::ParenBegin(_) => "(",
         Token::Period(_) => ".",
         Token::Pipe(_) => "|",
+        Token::Plus(_) => "+",
         Token::Text(_, s) => s,
-        Token::Tilde(_) => "~",
         Token::Underscore(_) => "_",
         Token::Whitespace(_, s) => s,
         Token::EOS(_) => "",
@@ -79,6 +81,7 @@ pub(crate) fn get_token_pos<'a>(token: &Token) -> usize {
         Token::BracketEnd(pos) => *pos,
         Token::BracketBegin(pos) => *pos,
         Token::Caret(pos) => *pos,
+        Token::Colon(pos) => *pos,
         Token::Digits(pos, _) => *pos,
         Token::DoubleQuote(pos, _) => *pos,
         Token::Hash(pos) => *pos,
@@ -88,8 +91,8 @@ pub(crate) fn get_token_pos<'a>(token: &Token) -> usize {
         Token::ParenBegin(pos) => *pos,
         Token::Period(pos) => *pos,
         Token::Pipe(pos) => *pos,
+        Token::Plus(pos) => *pos,
         Token::Text(pos, _) => *pos,
-        Token::Tilde(pos) => *pos,
         Token::Underscore(pos) => *pos,
         Token::Whitespace(pos, _) => *pos,
         Token::EOS(pos) => *pos,
@@ -109,6 +112,7 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
                 '[' => (Token::BracketBegin(index), 1, 1),
                 ']' => (Token::BracketEnd(index), 1, 1),
                 '^' => (Token::Caret(index), 1, 1),
+                ':' => (Token::Colon(index), 1, 1),
                 '"' | '“' | '”' => eat_doublequote(index, &input)?,
                 '#' => (Token::Hash(index), 1, 1),
                 '-' => (Token::Hyphen(index), 1, 1),
@@ -117,7 +121,7 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
                 ')' => (Token::ParenEnd(index), 1, 1),
                 '.' => (Token::Period(index), 1, 1),
                 '|' => (Token::Pipe(index), 1, 1),
-                '~' => (Token::Tilde(index), 1, 1),
+                '+' => (Token::Plus(index), 1, 1),
                 '_' => (Token::Underscore(index), 1, 1),
                 '>' => eat_blockquote_begin_or_greater_than_character(index, &input)?,
                 '<' => eat_blockquote_end_or_less_than_character(index, &input)?,
@@ -217,7 +221,7 @@ fn eat_text(index: usize, input: &str) -> Result<(Token, usize, usize)> {
 
 fn is_text(ch: char) -> bool {
     match ch {
-        '\n' | '[' | ']' | '(' | ')' | '_' | '*' | '`' | '^' | '~' | '"' | '“' | '”' | '|' | '#' | '>' | '<' => {
+        '\n' | '[' | ']' | '(' | ')' | '_' | '*' | '`' | '^' | '"' | '“' | '”' | '|' | '#' | ':' | '+' | '>' | '<' => {
             false
         }
         _ => true,
