@@ -17,7 +17,7 @@
 
 use crate::element::Element;
 use crate::error::Result;
-use crate::parser::{CodeblockLanguage, Node};
+use crate::parser::{CodeblockLanguage, MarginTextLabel, Node};
 
 use std::fmt::Write;
 
@@ -63,13 +63,10 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
         Node::ListItem(_, ns) => element_key("li", key, ns)?,
         Node::MarginScribble(_, ns) => compile_sidenote("right-margin-scribble scribble-neutral", key, ns)?,
         Node::MarginDisagree(_, ns) => compile_sidenote("right-margin-scribble scribble-disagree", key, ns)?,
-        Node::MarginText(_, numbered, ns) => {
-            if *numbered {
-                compile_numbered_sidenote(key, ns)?
-            } else {
-                compile_sidenote("right-margin", key, ns)?
-            }
-        }
+        Node::MarginText(_, numbered, ns) => match numbered {
+            MarginTextLabel::Numbered => compile_numbered_sidenote(key, ns)?,
+            MarginTextLabel::UnNumbered => compile_sidenote("right-margin", key, ns)?,
+        },
         Node::OrderedList(_, ns, start) => compile_ordered_list(start, key, ns)?,
         Node::Paragraph(_, ns) => element_key("p", key, ns)?,
         Node::Quotation(_, ns) => element_key_unpacked("em", key, ns)?,

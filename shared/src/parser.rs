@@ -28,6 +28,12 @@ pub enum CodeblockLanguage {
     Rust,
 }
 
+#[derive(Debug, Serialize, PartialEq, Eq)]
+pub enum MarginTextLabel {
+    UnNumbered,
+    Numbered,
+}
+
 // NOTE: update the node check in www/js/index.js to reflect this enum
 //
 #[derive(Debug, Serialize, EnumDiscriminants)]
@@ -42,7 +48,7 @@ pub enum Node {
     ListItem(usize, Vec<Node>),
     MarginDisagree(usize, Vec<Node>),
     MarginScribble(usize, Vec<Node>),
-    MarginText(usize, bool, Vec<Node>),
+    MarginText(usize, MarginTextLabel, Vec<Node>),
     OrderedList(usize, Vec<Node>, String),
     Paragraph(usize, Vec<Node>),
     Quotation(usize, Vec<Node>),
@@ -447,8 +453,10 @@ fn eat_pipe<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
 
             let (tokens, within_pipe_nodes) = parse_pipe_content(tokens)?;
 
-            // numbered margin text
-            Ok((tokens, Node::MarginText(pos, true, within_pipe_nodes)))
+            Ok((
+                tokens,
+                Node::MarginText(pos, MarginTextLabel::Numbered, within_pipe_nodes),
+            ))
         } else if is_token_at_index(tokens, 1, TokenIdent::Colon) && is_token_at_index(tokens, 2, TokenIdent::Hyphen) {
             tokens = &tokens[3..]; // eat the PIPE, COLON, HYPHEN
             tokens = skip_leading_whitespace(tokens)?;
@@ -463,7 +471,6 @@ fn eat_pipe<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
             let (tokens, within_pipe_nodes) = parse_pipe_content(tokens)?;
 
             Ok((tokens, Node::MarginScribble(pos, within_pipe_nodes)))
-
         } else {
             tokens = &tokens[1..]; // eat the opening PIPE
             tokens = skip_leading_whitespace(tokens)?;
@@ -471,7 +478,10 @@ fn eat_pipe<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
             let (tokens, within_pipe_nodes) = parse_pipe_content(tokens)?;
 
             // unnumbered margin text
-            Ok((tokens, Node::MarginText(pos, false, within_pipe_nodes)))
+            Ok((
+                tokens,
+                Node::MarginText(pos, MarginTextLabel::UnNumbered, within_pipe_nodes),
+            ))
         }
     } else {
         eat_text_including(tokens)
@@ -1366,7 +1376,7 @@ This is code```",
         match &children[1] {
             Node::MarginText(_, numbered, vs) => {
                 assert_eq!(vs.len(), 1);
-                assert_eq!(*numbered, false);
+                assert_eq!(*numbered, MarginTextLabel::UnNumbered);
                 match &vs[0] {
                     Node::UnorderedList(_, us) => {
                         assert_eq!(us.len(), 2);
@@ -1398,7 +1408,7 @@ some other lines| more words afterwards",
 
             match &children[1] {
                 Node::MarginText(_, numbered, nodes) => {
-                    assert_eq!(*numbered, false);
+                    assert_eq!(*numbered, MarginTextLabel::UnNumbered);
                     assert_eq!(nodes.len(), 3);
                 }
                 _ => assert_eq!(false, true),
@@ -1418,7 +1428,7 @@ some other lines| more words afterwards",
 
             match &children[1] {
                 Node::MarginText(_, numbered, nodes) => {
-                    assert_eq!(*numbered, true);
+                    assert_eq!(*numbered, MarginTextLabel::Numbered);
                     assert_eq!(nodes.len(), 3);
                 }
                 _ => assert_eq!(false, true),
@@ -1483,7 +1493,7 @@ some other lines| more words afterwards",
         match &children[1] {
             Node::MarginText(_, numbered, vs) => {
                 assert_eq!(vs.len(), 1);
-                assert_eq!(*numbered, false);
+                assert_eq!(*numbered, MarginTextLabel::UnNumbered);
                 match &vs[0] {
                     Node::OrderedList(_, os, _) => {
                         assert_eq!(os.len(), 2);
@@ -1650,9 +1660,7 @@ some other lines| more words afterwards",
             assert_url(&children[1], "https://google.com");
             assert_text(&children[2], " a link within some words");
         }
-
     }
-
 
     #[test]
     fn test_split2() {
