@@ -10,7 +10,7 @@ import CivilInput from '/js/components/CivilInput.js';
 import GraphSection from '/js/components/GraphSection.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
-import { BasicListSection } from '/js/components/ListSections.js';
+import { DeckSimpleList } from '/js/components/ListSections.js';
 import { DeckManager } from '/js/components/DeckManager.js';
 import { PointForm } from '/js/components/PointForm.js';
 import { WhenVerbose } from '/js/components/WhenVerbose.js';
@@ -26,7 +26,7 @@ function Timelines() {
     return html`
     <article>
         <h1 class="ui">${capitalise(resource)}</h1>
-        <${BasicListSection} list=${state.listing.timelines} resource=${resource}/>
+        <${DeckSimpleList} list=${state.listing.timelines} />
     </article>`;
 }
 
@@ -70,6 +70,7 @@ function Timeline(props) {
 
 // called before this deck is cached by the AppState (ie after every modification)
 function preCacheFn(timeline) {
+    // todo: remove this???
     if (timeline.points) {
         timeline.points = timeline.points
             .map(addChronologicalSortYear)

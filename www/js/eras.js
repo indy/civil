@@ -1,10 +1,3 @@
-export const era = {
-    uncategorisedYear: 9999,
-    ancientCutoff: 354,
-    medievalCutoff: 1469,
-    modernCutoff: 1856
-};
-
 // given a date, return the number of years since that date
 export function deltaInYears(year, month, day) {
     let earlier = new Date(Date.UTC(year, month, day));
@@ -38,33 +31,7 @@ export function dateStringAsTriple(dateString) {
     return triple;                // triple is [year, month, day]
 }
 
-export function filterBefore(objs, year) {
-    return objs
-        .filter(o => o.sort_year < year)
-        .sort((a, b) => a.sort_year > b.sort_year);
-
-}
-
-export function filterBetween(objs, early, late) {
-    return objs
-        .filter(o => o.sort_year >= early && o.sort_year < late)
-        .sort((a, b) => a.sort_year > b.sort_year);
-}
-
-export function filterAfter(objs, year) {
-    return objs
-        .filter(o => o.sort_year >= year)
-        .sort((a, b) => a.sort_year > b.sort_year);
-}
-
-export function addSortYear(p) {
-    if (p.sort_date) {
-        p.sort_year = extractYear(p.sort_date);
-    } else {
-        p.sort_year = era.uncategorisedYear;
-    }
-}
-
+// todo: remove this???
 export function addChronologicalSortYear(p) {
     if (p.exact_date) {
         p.sort_year = extractYear(p.exact_date);
@@ -76,6 +43,7 @@ export function addChronologicalSortYear(p) {
     return p;
 }
 
+// todo: remove this???
 function extractYear(dateString) {
     let res = 0;
     if (!dateString) {

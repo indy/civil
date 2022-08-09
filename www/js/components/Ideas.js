@@ -10,7 +10,7 @@ import CivilInput from '/js/components/CivilInput.js';
 import GraphSection from '/js/components/GraphSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBackref.js';
-import { CompactedListSection } from '/js/components/ListSections.js';
+import { DeckSimpleListSection } from '/js/components/ListSections.js';
 import { DeckManager } from '/js/components/DeckManager.js';
 
 function Ideas() {
@@ -24,9 +24,9 @@ function Ideas() {
     return html`
     <article>
         <h1 class="ui">${capitalise(resource)}</h1>
-        <${CompactedListSection} label='Recent' list=${ideas.recent} resource=${resource} expanded/>
-        <${CompactedListSection} label='Orphans' list=${ideas.orphans} resource=${resource} hideEmpty/>
-        <${CompactedListSection} label='Unnoted' list=${ideas.unnoted} resource=${resource} hideEmpty/>
+        <${DeckSimpleListSection} label='Recent' list=${ideas.recent} expanded/>
+        <${DeckSimpleListSection} label='Orphans' list=${ideas.orphans} hideEmpty/>
+        <${DeckSimpleListSection} label='Unnoted' list=${ideas.unnoted} hideEmpty/>
     </article>`;
 }
 

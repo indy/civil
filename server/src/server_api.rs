@@ -76,7 +76,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
             scope("/people")
                 .route("", post().to(people::create))
                 .route("", get().to(people::get_all))
-                .route("/listings", get().to(people::get_all))
+                .route("/listings", get().to(people::get_listings))
                 .route("/{id}", get().to(people::get))
                 .route(
                     "/{id}/additional_search",

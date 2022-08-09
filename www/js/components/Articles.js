@@ -10,7 +10,7 @@ import GraphSection from '/js/components/GraphSection.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import { DeckManager } from '/js/components/DeckManager.js';
-import { RatedListSection, CompactedListSection } from '/js/components/ListSections.js';
+import { DeckSimpleListSection, RatedListSection } from '/js/components/ListSections.js';
 import { StarRatingPartial } from '/js/components/StarRating.js';
 
 function Articles() {
@@ -26,7 +26,7 @@ function Articles() {
         <h1 class="ui">${capitalise(resource)}</h1>
         <${RatedListSection} label='Recent' list=${articles.recent} resource=${resource} expanded/>
         <${RatedListSection} label='Rated' list=${articles.rated} resource=${resource}/>
-        <${CompactedListSection} label='Orphans' list=${articles.orphans} resource=${resource} hideEmpty/>
+        <${DeckSimpleListSection} label='Orphans' list=${articles.orphans} resource=${resource} hideEmpty/>
     </article>`;
 }
 

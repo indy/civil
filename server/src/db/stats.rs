@@ -40,8 +40,6 @@ pub fn get(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::UserStats>
         crate::db::decks::decksimple_from_row,
     )?;
 
-
-
     Ok(interop::UserStats {
         recently_visited,
         stats: generate_stats(&conn, user_id)?,
@@ -249,20 +247,12 @@ pub(crate) fn get_num_card_ratings(conn: &Connection, user_id: Key) -> Result<i3
     let stmt = "SELECT count(*) AS count
                 FROM card_ratings cr LEFT JOIN cards c ON c.id = cr.card_id
                 WHERE c.user_id = ?1";
-    sqlite::one(&conn,
-                &stmt,
-                params![&user_id],
-                i32_from_row)
+    sqlite::one(&conn, &stmt, params![&user_id], i32_from_row)
 }
 
 pub(crate) fn get_num_images(conn: &Connection, user_id: Key) -> Result<i32> {
     let stmt = "SELECT count(*) AS count FROM images WHERE user_id = ?1";
-    sqlite::one(
-        &conn,
-        &stmt,
-        params![&user_id],
-        i32_from_row,
-    )
+    sqlite::one(&conn, &stmt, params![&user_id], i32_from_row)
 }
 
 pub(crate) fn get_num_notes_in_decks(

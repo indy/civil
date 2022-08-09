@@ -18,6 +18,7 @@
 use crate::db::decks;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Result;
+use crate::interop::decks as interop_decks;
 use crate::interop::decks::DeckKind;
 use crate::interop::timelines as interop;
 use crate::interop::Key;
@@ -50,18 +51,18 @@ pub(crate) fn get_or_create(
     Ok(deck.into())
 }
 
-pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::Timeline>> {
+pub(crate) fn all(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+) -> Result<Vec<interop_decks::DeckSimple>> {
     let conn = sqlite_pool.get()?;
 
-    sqlite::many(
-        &conn,
-        "select id, name
-                  from decks
-                  where user_id = ?1 and kind = 'timeline'
-                  order by created_at desc",
-        params![&user_id],
-        from_row,
-    )
+    let stmt = "SELECT id, name, 'timeline'
+                FROM decks
+                WHERE user_id = ?1 AND kind = 'timeline'
+                ORDER BY created_at DESC";
+
+    sqlite::many(&conn, &stmt, params![&user_id], decks::decksimple_from_row)
 }
 
 pub(crate) fn get(

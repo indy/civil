@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::{BackNote, BackRef, Ref};
+use crate::interop::decks::{BackNote, BackRef, DeckSimple, Ref};
 use crate::interop::notes::Note;
 use crate::interop::sr::FlashCard;
 use crate::interop::Key;
@@ -60,5 +60,5 @@ pub struct ProtoArticle {
 pub struct ArticleListings {
     pub recent: Vec<Article>,
     pub rated: Vec<Article>,
-    pub orphans: Vec<Article>,
+    pub orphans: Vec<DeckSimple>,
 }

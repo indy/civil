@@ -1,4 +1,3 @@
-import { addSortYear } from '/js/eras.js';
 import { opposingKind } from '/js/JsUtils.js';
 import { sortByResourceThenName, sortByTitle } from '/js/CivilUtils.js';
 
@@ -362,10 +361,6 @@ export const reducer = (state, action) => {
         {
             let listing = {...state.listing };
             listing[action.resource] = action.listing;
-
-            if (action.resource === 'people') {
-                listing[action.resource].forEach(addSortYear);
-            }
 
             let newState = {
                 ...state,

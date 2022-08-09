@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::{BackNote, BackRef, Ref};
+use crate::interop::decks::{BackNote, BackRef, DeckSimple, Ref};
 use crate::interop::notes::Note;
 use crate::interop::points::{DeckPoint, Point};
 use crate::interop::sr::FlashCard;
@@ -71,4 +71,13 @@ impl From<crate::db::decks::DeckBase> for Person {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct ProtoPerson {
     pub name: String,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct PeopleListings {
+    pub uncategorised: Vec<DeckSimple>,
+    pub ancient: Vec<DeckSimple>,
+    pub medieval: Vec<DeckSimple>,
+    pub modern: Vec<DeckSimple>,
+    pub contemporary: Vec<DeckSimple>,
 }

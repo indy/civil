@@ -6,11 +6,7 @@ import Net from '/js/Net.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { addChronologicalSortYear,
          calcAgeInYears,
-         dateStringAsTriple,
-         era,
-         filterBefore,
-         filterAfter,
-         filterBetween } from '/js/eras.js';
+         dateStringAsTriple } from '/js/eras.js';
 import { svgPointAdd,
          svgX,
          svgCaretDown,
@@ -26,7 +22,7 @@ import LifespanForm from '/js/components/LifespanForm.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBackref.js';
-import { CompactedListSection } from '/js/components/ListSections.js';
+import { DeckSimpleListSection } from '/js/components/ListSections.js';
 import { DeckManager } from '/js/components/DeckManager.js';
 import { PointForm } from '/js/components/PointForm.js';
 import { WhenVerbose } from '/js/components/WhenVerbose.js';
@@ -36,24 +32,18 @@ function People() {
     const [state, dispatch] = useStateValue();
     const resource = 'people';
 
-    ensureListingLoaded(resource);
+    ensureListingLoaded(resource, '/api/people/listings');
 
     const people = state.listing.people || [];
-
-    const uncategorised = filterAfter(people, era.uncategorisedYear);
-    const ancient = filterBefore(people, era.ancientCutoff);
-    const medieval = filterBetween(people, era.ancientCutoff, era.medievalCutoff);
-    const modern = filterBetween(people, era.medievalCutoff, era.modernCutoff);
-    const contemporary = filterBetween(people, era.modernCutoff, era.uncategorisedYear);
 
     return html`
     <article>
         <h1 class="ui">${capitalise(resource)}</h1>
-        <${CompactedListSection} label='Uncategorised' list=${uncategorised} resource=${resource} expanded hideEmpty/>
-        <${CompactedListSection} label='Ancient' list=${ancient} resource=${resource} expanded/>
-        <${CompactedListSection} label='Medieval' list=${medieval} resource=${resource} expanded/>
-        <${CompactedListSection} label='Modern' list=${modern} resource=${resource} expanded/>
-        <${CompactedListSection} label='Contemporary' list=${contemporary} resource=${resource} expanded/>
+        <${DeckSimpleListSection} label='Uncategorised' list=${people.uncategorised} expanded hideEmpty/>
+        <${DeckSimpleListSection} label='Ancient' list=${people.ancient} expanded/>
+        <${DeckSimpleListSection} label='Medieval' list=${people.medieval} expanded/>
+        <${DeckSimpleListSection} label='Modern' list=${people.modern} expanded/>
+        <${DeckSimpleListSection} label='Contemporary' list=${people.contemporary} expanded/>
     </article>`;
 }
 
@@ -148,6 +138,7 @@ function Person(props) {
 
 // called before this deck is cached by the AppState (ie after every modification)
 function preCacheFn(person) {
+    // todo: remove this???
     if (person.points) {
         person.points = person.points
             .map(addChronologicalSortYear)

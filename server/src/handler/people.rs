@@ -61,6 +61,19 @@ pub async fn get_all(
     Ok(HttpResponse::Ok().json(people))
 }
 
+pub async fn get_listings(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    info!("get_listings");
+
+    let user_id = session::user_id(&session)?;
+
+    let people = db::listings(&sqlite_pool, user_id)?;
+
+    Ok(HttpResponse::Ok().json(people))
+}
+
 pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,

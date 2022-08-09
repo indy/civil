@@ -12,31 +12,13 @@ function BasicListSection({list, resource}) {
     </div>`;
 }
 
-function CompactedListSection({label, list, resource, expanded, hideEmpty }) {
-    let [show, setShow] = useState(expanded);
-
-    function toggleShow() {
-        setShow(!show);
-    }
-
-    if(hideEmpty && list && list.length === 0) {
-        return html``;
-    } else if(show) {
-        return html`
-        <div>
-            <p class="subheading" onClick=${ toggleShow }>
-                ${ svgMinimise() } ${ label }
-            </p>
-            <ul class="compacted-list" >
-                ${ buildListing(list, resource) }
-            </ul>
-        </div>`;
-    } else {
-        return html`
-        <p class="subheading" onClick=${ toggleShow }>
-            ${ svgExpand() } ${ label }
-        </p>`;
-    }
+function DeckSimpleList({list}) {
+    return html`
+    <div>
+        <ul class="standard-list" >
+            ${ buildListing(list) }
+        </ul>
+    </div>`;
 }
 
 function DeckSimpleListSection({label, list, expanded, hideEmpty }) {
@@ -98,7 +80,7 @@ function buildListing(list, resource) {
     return list.map((deck, i) => html`
     <${ListingLink} id=${ deck.id }
                     name=${ deck.title || deck.name }
-                    resource=${resource}/>`);
+                    resource=${resource || deck.resource }/>`);
 }
 
 function buildDeckSimpleListing(list) {
@@ -138,4 +120,4 @@ function RatedListingLink({ resource, id, name, rating, description }) {
     return res;
 }
 
-export { CompactedListSection, DeckSimpleListSection, RatedListSection, BasicListSection };
+export { DeckSimpleListSection, RatedListSection, BasicListSection, DeckSimpleList };

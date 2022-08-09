@@ -54,40 +54,37 @@ pub(crate) fn get_or_create(
 
 pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::IdeasListings> {
     let conn = sqlite_pool.get()?;
-    let recent = sqlite::many(
-        &conn,
-        "select id, name, created_at, graph_terminator
-                               from decks
-                               where user_id = ?1 and kind = 'idea'
-                               order by created_at desc
-                               limit 20",
-        params![&user_id],
-        idea_from_row,
-    )?;
-    let orphans = sqlite::many(&conn,
-                              "select id, name, created_at, graph_terminator
-                               from decks
-                               where id not in (select deck_id
-                                                from notes_decks
-                                                group by deck_id)
-                               and id not in (select n.deck_id
-                                              from notes n inner join notes_decks nd on n.id = nd.note_id
-                                              group by n.deck_id)
-                               and kind = 'idea'
-                               and user_id = ?1
-                               order by created_at desc",
-                              params![&user_id], idea_from_row)?;
-    let unnoted = sqlite::many(
-        &conn,
-        "select d.id, d.name, d.created_at, d.graph_terminator
-                               from decks d left join notes n on d.id = n.deck_id
-                               where n.deck_id is null
-                                     and d.kind='idea'
-                                     and d.user_id=?1
-                               order by d.created_at desc",
-        params![&user_id],
-        idea_from_row,
-    )?;
+
+    let stmt = "select id, name, 'idea'
+                from decks
+                where user_id = ?1 and kind = 'idea'
+                order by created_at desc
+                limit 20";
+
+    let recent = sqlite::many(&conn, &stmt, params![&user_id], decks::decksimple_from_row)?;
+
+    let stmt = "SELECT id, name, 'idea'
+                FROM decks
+                WHERE id NOT IN (SELECT deck_id
+                                 FROM notes_decks
+                                 GROUP BY deck_id)
+                AND id NOT IN (SELECT n.deck_id
+                               FROM notes n INNER JOIN notes_decks nd ON n.id = nd.note_id
+                               GROUP BY n.deck_id)
+                AND kind = 'idea'
+                AND user_id = ?1
+                ORDER BY created_at DESC";
+
+    let orphans = sqlite::many(&conn, &stmt, params![&user_id], decks::decksimple_from_row)?;
+
+    let stmt = "SELECT d.id, d.name, 'idea'
+                FROM decks d LEFT JOIN notes n ON d.id = n.deck_id
+                WHERE n.deck_id IS NULL
+                AND d.kind='idea'
+                AND d.user_id=?1
+                ORDER BY d.created_at DESC";
+
+    let unnoted = sqlite::many(&conn, &stmt, params![&user_id], decks::decksimple_from_row)?;
 
     Ok(interop::IdeasListings {
         recent,
@@ -99,15 +96,12 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop
 pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::Idea>> {
     let conn = sqlite_pool.get()?;
 
-    sqlite::many(
-        &conn,
-        "SELECT id, name, created_at, graph_terminator
-                  FROM decks
-                  WHERE user_id = ?1 and kind = 'idea'
-                  ORDER BY name",
-        params![&user_id],
-        idea_from_row,
-    )
+    let stmt = "SELECT id, name, created_at, graph_terminator
+                FROM decks
+                WHERE user_id = ?1 AND kind = 'idea'
+                ORDER BY name";
+
+    sqlite::many(&conn, &stmt, params![&user_id], idea_from_row)
 }
 
 pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, idea_id: Key) -> Result<interop::Idea> {
