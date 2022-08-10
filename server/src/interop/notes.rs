@@ -18,9 +18,6 @@
 use crate::error::{Error, Result};
 use crate::interop::Key;
 
-use std::fmt;
-use std::str::FromStr;
-
 #[derive(Copy, Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum NoteKind {
     Note,
@@ -28,26 +25,20 @@ pub enum NoteKind {
     NoteSummary,
 }
 
-impl fmt::Display for NoteKind {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            NoteKind::Note => write!(f, "note"),
-            NoteKind::NoteReview => write!(f, "note_review"),
-            NoteKind::NoteSummary => write!(f, "note_summary"),
-        }
+pub fn note_kind_to_sqlite(note_kind: NoteKind) -> i32 {
+    match note_kind {
+        NoteKind::Note => 1,
+        NoteKind::NoteReview => 2,
+        NoteKind::NoteSummary => 3,
     }
 }
 
-impl FromStr for NoteKind {
-    type Err = Error;
-
-    fn from_str(input: &str) -> Result<NoteKind> {
-        match input {
-            "note" => Ok(NoteKind::Note),
-            "note_review" => Ok(NoteKind::NoteReview),
-            "note_summary" => Ok(NoteKind::NoteSummary),
-            _ => Err(Error::StringConversionToEnum),
-        }
+pub fn note_kind_from_sqlite(input: i32) -> Result<NoteKind> {
+    match input {
+        1 => Ok(NoteKind::Note),
+        2 => Ok(NoteKind::NoteReview),
+        3 => Ok(NoteKind::NoteSummary),
+        _ => Err(Error::IntConversionToEnum),
     }
 }
 

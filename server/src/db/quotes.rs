@@ -113,7 +113,7 @@ pub(crate) fn get_or_create(
         )?,
     };
 
-    let kind = interop_notes::NoteKind::Note.to_string();
+    let kind = interop_notes::note_kind_to_sqlite(interop_notes::NoteKind::Note);
 
     sqlite::zero(
         &tx,
