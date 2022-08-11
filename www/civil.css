@@ -1060,6 +1060,17 @@ section > form { width: var(--block-width); }
 .block-width {
   width: var(--block-width);
 }
+
+.note-control-increased-visibility {
+  color: var(--fg-inactive) !important;
+}
+.note-control-item {
+  color: rgba(0, 0, 0, 0.00);   /* invisible */
+}
+.note-control-item:hover {
+  color: var(--fg);
+}
+
 .note p {
   width: var(--block-width);
 }
@@ -1076,6 +1087,16 @@ section > form { width: var(--block-width); }
 }
 .note li {
   width: 96%;
+}
+
+.note-controls-container {
+  padding-top: 0.5rem;
+  float: left;
+  margin-left: -3%;
+  color: var(--fg1);
+  text-align: right;
+
+  font-family: Inter;
 }
 
 /* contains refs, 'add note icons' etc*/
@@ -1329,6 +1350,15 @@ input:required {
   border-radius: var(--coloured-deck-border-radius);
 
   padding: 1rem 1.5rem 1rem 1.5rem;
+}
+
+.deck-ref-section {
+  font-family: Inter;
+  margin-top: 1rem;
+}
+
+.deck-ref-item {
+  margin-bottom: 0.5rem;
 }
 
 .sr-section {

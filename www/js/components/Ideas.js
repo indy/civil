@@ -79,6 +79,7 @@ function Idea(props) {
         </div>
         ${ deckManager.buttons() }
         ${ deckManager.buildUpdateForm() }
+        ${ deckManager.buildDeckRefSection() }
         ${ deckManager.buildNoteSections() }
 
         <${SectionBackRefs} state=${state} backrefs=${ idea.backrefs } backnotes=${ idea.backnotes } deckId=${ idea.id }/>

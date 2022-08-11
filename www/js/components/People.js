@@ -120,7 +120,7 @@ function Person(props) {
         ${ deckManager.buildUpdateForm() }
 
         ${ !hasKnownLifespan && html`<${LifespanForm} name=${ person.name } onLifespanGiven=${ onLifespan }/>` }
-
+        ${ deckManager.buildDeckRefSection() }
         ${ deckManager.buildNoteSections() }
 
         <${SectionBackRefs} state=${state} backrefs=${ person.backrefs } backnotes=${ person.backnotes } deckId=${ person.id }/>

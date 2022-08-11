@@ -71,6 +71,7 @@ function Article(props) {
 
         <div class="top-scribble">${ article.short_description }</div>
 
+        ${ deckManager.buildDeckRefSection() }
         ${ deckManager.buildNoteSections() }
 
         <${SectionBackRefs} state=${state}

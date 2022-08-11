@@ -1,4 +1,4 @@
-import { h, html, Link, useState, useEffect } from '/lib/preact/mod.js';
+import { h, html, Link, useState, useEffect, useRef } from '/lib/preact/mod.js';
 
 import { svgFlashCard } from '/js/svgIcons.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
@@ -11,6 +11,7 @@ import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 import FlashCard from '/js/components/FlashCard.js';
 import ImageWidget from '/js/components/ImageWidget.js';
 import buildMarkup from '/js/components/BuildMarkup.js';
+import { Ref } from '/js/components/Ref.js';
 
 const NOTE_SET_PROPERTY = 'note-set-property';
 const ADD_DECK_REFERENCES_UI_SHOW = 'add-deck-references-ui-show';
@@ -18,17 +19,33 @@ const ADD_FLASH_CARD_UI_SHOW = 'add-flashcard-ui-show';
 const ADD_DECKS_COMMIT = 'add-decks-commit';
 const HIDE_ADD_DECKS_UI = 'hide-add-decks-ui';
 const FLASH_CARD_SAVED = 'flash-card-saved';
-const MOD_BUTTONS_TOGGLE = 'mod-buttons-toggle';
 const TOGGLE_EDITING = 'toggle-editing';
 const EDITED_NOTE = 'edited-note';
 const FLASHCARD_TOGGLE = 'flashcard-toggle';
 const FLASHCARD_HIDE = 'flashcard-hide';
 const EDITING_CANCELLED = 'editing-cancelled';
 
+const MOUSE_ENTER = "mouse-enter";
+const MOUSE_LEAVE = "mouse-leave";
+
 function reducer(state, action) {
     const [appState, appDispatch] = useStateValue();
 
     switch(action.type) {
+    case MOUSE_ENTER: {
+        let res = {
+            ...state,
+            mouseHovering: true
+        };
+        return res;
+    }
+    case MOUSE_LEAVE: {
+        let res = {
+            ...state,
+            mouseHovering: false
+        };
+        return res;
+    }
     case FLASHCARD_HIDE: {
         let res = { ...state };
         res.flashcardToShow = undefined;
@@ -67,14 +84,12 @@ function reducer(state, action) {
         const showUI = action.data;
         return {
             ...state,
-            addFlashCardUI: showUI,
-            showModButtons: showUI ? state.showModButtons : false
+            addFlashCardUI: showUI
         }
     }
     case HIDE_ADD_DECKS_UI:
         return {
             ...state,
-            showModButtons: false,
             addDeckReferencesUI: false
         }
     case ADD_DECKS_COMMIT: {
@@ -88,44 +103,23 @@ function reducer(state, action) {
         return {
             ...state,
             decks: action.data.allDecksForNote,
-            showModButtons: false,
             addDeckReferencesUI: false
         }
     }
     case FLASH_CARD_SAVED:
         return {
             ...state,
-            showModButtons: false,
             addFlashCardUI: false,
         }
-    case MOD_BUTTONS_TOGGLE: {
-        const newState = { ...state };
-
-        if (!newState.isEditingMarkup) {
-            newState.showModButtons = !newState.showModButtons;
-            if (!newState.showModButtons) {
-                // reset the state of the 'add references' and 'add flash card' ui
-                newState.addDeckReferencesUI = false;
-                newState.addFlashCardUI = false;
-            }
-        }
-        return newState;
-    }
     case TOGGLE_EDITING: {
         const newState = { ...state };
         newState.isEditingMarkup = !newState.isEditingMarkup;
-        if (newState.isEditingMarkup === false) {
-            newState.showModButtons = false;
-        }
 
         return newState;
     }
     case EDITED_NOTE: {
         const newState = { ...state };
         newState.isEditingMarkup = !newState.isEditingMarkup;
-        if (newState.isEditingMarkup === false) {
-            newState.showModButtons = false;
-        }
 
         newState.originalContent = newState.note.content;
 
@@ -134,7 +128,6 @@ function reducer(state, action) {
     case EDITING_CANCELLED: {
         const newState = { ...state };
         newState.isEditingMarkup = false;
-        newState.showModButtons = false;
         newState.note.content = newState.originalContent;
         return newState;
     }
@@ -147,16 +140,39 @@ export default function Note(props) {
     const [state] = useStateValue();
 
     const initialState = {
-        showModButtons: false,
         addDeckReferencesUI: false,
         addFlashCardUI: false,
         isEditingMarkup: false,
         note: { ...props.note },
         originalContent: props.note.content,
         decks: (props.note && props.note.decks),
-        flashcardToShow: undefined
+        flashcardToShow: undefined,
+        mouseHovering: false
     };
     const [local, localDispatch] = useLocalReducer(reducer, initialState);
+
+    const hoveringRef = useRef(null);
+
+    function mouseEnter() {
+        localDispatch(MOUSE_ENTER);
+    }
+    function mouseLeave() {
+        localDispatch(MOUSE_LEAVE);
+    }
+
+    useEffect(() => {
+        if (hoveringRef && hoveringRef.current) {
+            hoveringRef.current.addEventListener("mouseenter", mouseEnter, false);
+            hoveringRef.current.addEventListener("mouseleave", mouseLeave, false);
+            return () => {
+                if (hoveringRef && hoveringRef.current) {
+                    hoveringRef.current.removeEventListener("mouseenter", mouseEnter);
+                    hoveringRef.current.removeEventListener("mouseleave", mouseLeave);
+                }
+            }
+        }
+    });
+
 
     function handleChangeEvent(event) {
         const target = event.target;
@@ -167,11 +183,6 @@ export default function Note(props) {
         e.preventDefault();
         localDispatch(EDITING_CANCELLED);
     }
-
-    function onEditClicked(e) {
-        e.preventDefault();
-        localDispatch(TOGGLE_EDITING);
-    };
 
     function onSaveEditsClicked(e) {
         e.preventDefault();
@@ -199,16 +210,6 @@ export default function Note(props) {
             localDispatch(EDITED_NOTE);
         } else {
             localDispatch(TOGGLE_EDITING);
-        }
-    };
-
-    function onNoteClicked(e) {
-        if (e.target.classList.contains("note-inline-link")) {
-            // let the browser handle clicked links normally
-        } else if(!state.readOnly){
-            // only intercept the clicks to non-link elements
-            e.preventDefault();
-            localDispatch(MOD_BUTTONS_TOGGLE);
         }
     };
 
@@ -307,28 +308,17 @@ export default function Note(props) {
             onReallyDelete(props.note.id, props.onDelete);
         }
 
-
-        function toggleAddDeckReferencesUI() {
-            localDispatch(ADD_DECK_REFERENCES_UI_SHOW, !local.addDeckReferencesUI);
+        if (local.isEditingMarkup) {
+            return html`
+            <div class="block-width">
+                <button onClick=${ onCancelClicked }>Cancel</button>
+                <button disabled=${!hasNoteBeenModified(local)} onClick=${ onSaveEditsClicked }>Save Edits</button>
+                <${DeleteConfirmation} onDelete=${ confirmedDeleteClicked }/>
+                <${ImageWidget}/>
+            </div>`;
+        } else {
+            return html`<div class="block-width"></div>`;
         }
-
-        function toggleAddFlashCardUI() {
-            localDispatch(ADD_FLASH_CARD_UI_SHOW, !local.addFlashCardUI);
-        }
-
-        return html`
-        <div class="block-width">
-            ${ !local.isEditingMarkup && html`<button onClick=${ toggleAddDeckReferencesUI }>References...</button>` }
-            ${ local.isEditingMarkup && html`<button onClick=${ onCancelClicked }>Cancel</button>`}
-
-            ${ local.isEditingMarkup && html`<button disabled=${!hasNoteBeenModified(local)} onClick=${ onSaveEditsClicked }>Save Edits</button>`}
-            ${ !local.isEditingMarkup && html`<button onClick=${ onEditClicked }>Edit...</button>`}
-
-            ${ local.isEditingMarkup && html`<${DeleteConfirmation} onDelete=${ confirmedDeleteClicked }/>`}
-
-            ${ local.isEditingMarkup && html`<${ImageWidget}/>` }
-            ${ !local.isEditingMarkup && html`<button class="right-side" onClick=${ toggleAddFlashCardUI }>Add Flash Card...</button>` }
-        </div>`;
     }
 
     function flashCardDeleted() {
@@ -339,15 +329,16 @@ export default function Note(props) {
     <div class="note">
         ${  local.isEditingMarkup && buildEditableContent() }
         ${ !local.isEditingMarkup && buildLeftMarginContent(props.note, localDispatch)}
+        ${  buildControls(props.note, local, localDispatch)}
         ${  local.flashcardToShow && html`
             <${FlashCard} flashcard=${local.flashcardToShow} onDelete=${flashCardDeleted}/>`}
+        ${ local.addDeckReferencesUI && buildAddDecksUI() }
         ${ !local.isEditingMarkup && html`
-            <div class="note-content" onClick=${onNoteClicked}>
+            <div class="note-content" ref=${hoveringRef}>
                 ${ buildMarkup(local.note.content, state.imageDirectory) }
             </div>`}
-        ${ local.showModButtons && local.addDeckReferencesUI && buildAddDecksUI() }
-        ${ local.showModButtons && local.addFlashCardUI && buildAddFlashCardUI() }
-        ${ local.showModButtons && !local.addDeckReferencesUI && !local.addFlashCardUI && buildMainButtons() }
+        ${ local.addFlashCardUI && buildAddFlashCardUI() }
+        ${ buildMainButtons() }
     </div>`;
 }
 
@@ -380,20 +371,33 @@ function buildLeftMarginContent(note, localDispatch) {
     }
 }
 
+function buildControls(note, local, localDispatch) {
+    let itemClasses = "note-control-item";
+    if (local.mouseHovering) {
+        itemClasses += " note-control-increased-visibility";
+    }
+
+    function onRefsClicked() {
+        localDispatch(ADD_DECK_REFERENCES_UI_SHOW, !local.addDeckReferencesUI);
+    }
+    function onSRClicked() {
+        localDispatch(ADD_FLASH_CARD_UI_SHOW, !local.addFlashCardUI);
+    }
+    function onEditClicked() {
+        localDispatch(TOGGLE_EDITING);
+    };
+
+
+    return html`<div class="note-controls-container">
+                    <div class="${itemClasses}" onClick=${ onRefsClicked }>[refs]</div>
+                    <div class="${itemClasses}" onClick=${ onEditClicked }>[edit]</div>
+                    <div class="${itemClasses}" onClick=${ onSRClicked }>[sr]</div>
+                </div>`;
+}
+
 function buildNoteReferences(decks) {
     const entries = decks.map(ref => {
-        const { id, resource, ref_kind, name, annotation } = ref;
-        const href = `/${resource}/${id}`;
-        // isg todo: how does the code after the annotation check work? the html isn't wrapped in a single div, there are 3 top-level divs????
-        return html`
-        <div class="left-margin-entry" key=${ id }>
-            <span class="ref-kind">(${ ref_kind })</span>
-            <${Link} class="ref pigment-${ resource }" href=${ href }>${ name }</${Link}>
-            ${annotation && html`
-                <div class="ref-clearer"/>
-                <div class="ref-scribble pigment-fg-${ resource }">${ annotation }</div>
-                <div class="ref-clearer"/>`}
-        </div>`;
+        return html`<${Ref} deckReference=${ref} extraClasses="left-margin-entry"/>`;
     });
 
     return entries;

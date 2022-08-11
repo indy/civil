@@ -1,4 +1,4 @@
-import { html, useRef, useState, useEffect, route } from '/lib/preact/mod.js';
+import { html, useRef, useEffect, useState, route } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
@@ -9,6 +9,7 @@ import { NoteSection, NoteManager,
          NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 import { PointForm } from '/js/components/PointForm.js';
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
+import { Ref } from '/js/components/Ref.js';
 
 const BUTTONS_TOGGLE = 'buttons-toggle';
 const UPDATE_FORM_TOGGLE = 'update-form-toggle';
@@ -76,7 +77,24 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
         appDispatch({type: 'setUrlName', urlName: title});
     }
 
+    const [fetchingDeck, setFetchingDeck] = useState(undefined);
+
     useEffect(() => {
+        if(!state.cache.deck[deck.id]) {
+            setFetchingDeck(deck.id);
+            if (fetchingDeck != deck.id) {
+                // fetch resource from the server
+                const url = `/api/${resource}/${deck.id}`;
+                Net.get(url).then(deck => {
+                    if (deck) {
+                        cacheDeck(deck);
+                    } else {
+                        console.error(`error: fetchDeck for ${url}`);
+                    }
+                });
+            }
+        }
+
         if (deck.notes) {
             if (hasSummarySection) {
                 localDispatch(SHOW_SUMMARY_BUTTON, !deck.notes.some(n => n.kind === NOTE_KIND_SUMMARY));
@@ -86,20 +104,6 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
             }
         }
     }, [deck]);
-
-    useEffect(() => {
-        if(!state.cache.deck[deck.id]) {
-            // fetch resource from the server
-            const url = `/api/${resource}/${deck.id}`;
-            Net.get(url).then(deck => {
-                if (deck) {
-                    cacheDeck(deck);
-                } else {
-                    console.error(`error: fetchDeck for ${url}`);
-                }
-            });
-        }
-    }, []);
 
     const [local, localDispatch] = useLocalReducer(reducer, {
         showButtons: false,
@@ -204,6 +208,10 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
         return NOTE_SECTION_HIDE;
     }
 
+    res.buildDeckRefSection = function() {
+        return html`<${DeckRefSection} deckMeta=${ deck.noteDeckMeta } />`;
+    }
+
     res.buildNoteSections = function() {
         return html`
         <div>
@@ -213,7 +221,8 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
                                 howToShow=${ howToShowNoteSection(NOTE_KIND_SUMMARY) }
                                 deck=${ deck }
                                 cacheDeck=${ cacheDeck }/>`}
-                                ${ hasReviewSection && html`<${NoteSection} heading='Review'
+            ${ hasReviewSection && html`
+                <${NoteSection} heading='Review'
                                 noteKind=${ NOTE_KIND_REVIEW }
                                 howToShow=${ howToShowNoteSection(NOTE_KIND_REVIEW) }
                                 deck=${ deck }
@@ -310,6 +319,21 @@ function Title(title, onShowButtons) {
         <h1 ref=${ titleRef } class="deck-title" onClick=${ onShowButtons }>${ title }</h1>
         <div ref=${ postMarkerRef }></div>
     </div>`;
+}
+
+function DeckRefSection({ deckMeta }) {
+    // deckMeta is the special note (of kind: NoteKind::NoteDeckMeta) that
+    // contains the refs that should apply to the deck as a whole and not
+    // just to individual paragraphs
+
+    let entries = '';
+    if (deckMeta && deckMeta.decks) {
+        entries = deckMeta.decks.map(ref => {
+            return html`<${Ref} deckReference=${ref} extraClasses="deck-ref-item"/>`;
+        });
+    }
+
+    return html`<div class="deck-ref-section">${entries}</div>`;
 }
 
 export { DeckManager };
