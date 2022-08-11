@@ -574,6 +574,7 @@ fn sanitize_for_sqlite_match(s: String) -> Result<String> {
             '!' => ' ',
             '(' => ' ',
             ')' => ' ',
+            ',' => ' ',
             _ => x,
         })
         .collect();

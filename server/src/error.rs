@@ -19,6 +19,7 @@ use crate::interop::Model;
 use actix_web::{HttpResponse, ResponseError};
 use civil_shared;
 use derive_more::{Display, From};
+use tracing::error;
 
 pub type Result<T> = ::std::result::Result<T, Error>;
 
@@ -60,4 +61,26 @@ impl ResponseError for Error {
             _ => HttpResponse::InternalServerError().finish(),
         }
     }
+}
+
+pub(crate) fn display_local_backtrace() {
+    error!("backtrace:");
+
+    let mut depth = 0;
+
+    backtrace::trace(|frame| {
+        backtrace::resolve_frame(frame, |symbol| {
+            if let Some(name) = symbol.name() {
+                if name.to_string().starts_with("civil_server") {
+                    // ignore the first entry on the stack since that's the call to display_local_backtrace
+                    if depth > 0 {
+                        error!("{}", name);
+                    }
+                    depth += 1;
+                }
+            }
+        });
+
+        true // keep going to the next frame
+    });
 }

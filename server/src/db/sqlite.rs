@@ -16,11 +16,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #[allow(unused_imports)]
-use crate::error::Result;
+use crate::error::{display_local_backtrace, Error, Result};
 #[allow(unused_imports)]
 use rusqlite::{Connection, Row, ToSql};
 #[allow(unused_imports)]
-use tracing::info;
+use tracing::{error, info};
 
 pub type SqlitePool = r2d2::Pool<r2d2_sqlite::SqliteConnectionManager>;
 
@@ -38,7 +38,14 @@ pub(crate) fn one<T>(
     let mut stmt = conn.prepare(sql)?;
     let mut rows = stmt.query(params)?;
 
-    if let Some(row) = rows.next()? {
+    if let Some(row) = match rows.next() {
+        Ok(r) => r,
+        Err(e) => {
+            error!("query: {}", sql);
+            display_local_backtrace();
+            return Err(Error::Sqlite(e));
+        }
+    } {
         let res: T = from_row(row)?;
         Ok(res)
     } else {
@@ -54,9 +61,17 @@ pub(crate) fn many<T>(
 ) -> Result<Vec<T>> {
     let mut stmt = conn.prepare(sql)?;
     let mut rows = stmt.query(params)?;
+
     let mut res_vec = Vec::new();
 
-    while let Some(row) = rows.next()? {
+    while let Some(row) = match rows.next() {
+        Ok(r) => r,
+        Err(e) => {
+            error!("query: {}", sql);
+            display_local_backtrace();
+            return Err(Error::Sqlite(e));
+        }
+    } {
         let res: T = from_row(row)?;
         res_vec.push(res);
     }
