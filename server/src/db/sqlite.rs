@@ -35,7 +35,7 @@ pub(crate) fn one<T>(
     params: &[&dyn ToSql],
     from_row: fn(&Row) -> Result<T>,
 ) -> Result<T> {
-    let mut stmt = conn.prepare(sql)?;
+    let mut stmt = conn.prepare_cached(sql)?;
     let mut rows = stmt.query(params)?;
 
     if let Some(row) = match rows.next() {
@@ -59,7 +59,7 @@ pub(crate) fn many<T>(
     params: &[&dyn ToSql],
     from_row: fn(&Row) -> Result<T>,
 ) -> Result<Vec<T>> {
-    let mut stmt = conn.prepare(sql)?;
+    let mut stmt = conn.prepare_cached(sql)?;
     let mut rows = stmt.query(params)?;
 
     let mut res_vec = Vec::new();
