@@ -135,6 +135,6 @@ function ImageWidgetItem({ filename, imageDirectory }) {
     return html`
     <div class="image-widget-item">
         <img class="image-widget-img" src="/u/${imageDirectory}/${filename}"/>
-        <div class="image-widget-title">#img(${filename})</div>
+        <div class="image-widget-title">:img(${filename})</div>
     </div>`;
 }
