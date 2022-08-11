@@ -39,34 +39,26 @@ fn note_from_row(row: &Row) -> Result<interop::Note> {
 pub(crate) fn all_from_deck(sqlite_pool: &SqlitePool, deck_id: Key) -> Result<Vec<interop::Note>> {
     let conn = sqlite_pool.get()?;
 
-    sqlite::many(
-        &conn,
-        "SELECT n.id,
-                         n.content,
-                         n.kind,
-                         n.point_id
-                  FROM   notes n
-                  WHERE  n.deck_id = ?1
-                  ORDER BY n.id",
-        params!(&deck_id),
-        note_from_row,
-    )
+    let stmt = "SELECT n.id,
+                       n.content,
+                       n.kind,
+                       n.point_id
+                FROM notes n
+                WHERE n.deck_id = ?1
+                ORDER BY n.id";
+    sqlite::many(&conn, &stmt, params!(&deck_id), note_from_row)
 }
 
 pub(crate) fn delete_note(conn: &Connection, user_id: Key, note_id: Key) -> Result<()> {
-    sqlite::zero(
-        &conn,
-        "DELETE FROM notes_decks
-                  WHERE   note_id = ?1",
-        params![&note_id],
-    )?;
+    let stmt = "DELETE
+                FROM notes_decks
+                WHERE note_id = ?1";
+    sqlite::zero(&conn, &stmt, params![&note_id])?;
 
-    sqlite::zero(
-        &conn,
-        "DELETE FROM notes
-                  WHERE   id = ?1 AND user_id = ?2",
-        params![&note_id, &user_id],
-    )?;
+    let stmt = "DELETE
+                FROM notes
+                WHERE id = ?1 AND user_id = ?2";
+    sqlite::zero(&conn, &stmt, params![&note_id, &user_id])?;
 
     Ok(())
 }
@@ -85,14 +77,10 @@ pub(crate) fn delete_all_notes_connected_with_deck(
         Ok(row.get(0)?)
     }
 
-    let note_ids: Vec<Key> = sqlite::many(
-        &conn,
-        "SELECT n.id
-                                 FROM   notes n
-                                 WHERE  n.deck_id = ?1",
-        params![&deck_id],
-        id_from_row,
-    )?;
+    let stmt = "SELECT n.id
+                FROM notes n
+                WHERE n.deck_id = ?1";
+    let note_ids: Vec<Key> = sqlite::many(&conn, &stmt, params![&deck_id], id_from_row)?;
 
     for note_id in note_ids {
         delete_note(&conn, user_id, note_id)?;
@@ -101,7 +89,7 @@ pub(crate) fn delete_all_notes_connected_with_deck(
     Ok(())
 }
 
-pub(crate) fn create_common(
+fn create_common(
     conn: &Connection,
     user_id: Key,
     deck_id: Key,
@@ -110,13 +98,31 @@ pub(crate) fn create_common(
     content: &str,
 ) -> Result<interop::Note> {
     let k = interop::note_kind_to_sqlite(kind);
+    let stmt = "INSERT INTO notes(user_id, deck_id, kind, point_id, content)
+                VALUES (?1, ?2, ?3, ?4, ?5)
+                RETURNING id, content, kind, point_id";
     sqlite::one(
         &conn,
-        "INSERT INTO notes(user_id, deck_id, kind, point_id, content)
-                 VALUES (?1, ?2, ?3, ?4, ?5)
-                 RETURNING id, content, kind, point_id",
+        &stmt,
         params![&user_id, &deck_id, &k, &point_id, &content],
         note_from_row,
+    )
+}
+
+// note: this should be part of a transaction
+//
+pub(crate) fn create_note_deck_meta(
+    tx: &Connection,
+    user_id: Key,
+    deck_id: Key,
+) -> Result<interop::Note> {
+    create_common(
+        &tx,
+        user_id,
+        deck_id,
+        interop::NoteKind::NoteDeckMeta,
+        None,
+        "",
     )
 }
 
@@ -162,16 +168,12 @@ pub(crate) fn get_note(
     }
 
     let conn = sqlite_pool.get()?;
-    sqlite::one(
-        &conn,
-        "SELECT n.id,
-                        n.content,
-                        n.kind
-                 FROM notes n
-                 WHERE n.id = ?1 AND n.user_id = ?2",
-        params![&note_id, &user_id],
-        note_from_row,
-    )
+    let stmt = "SELECT n.id,
+                       n.content,
+                       n.kind
+                FROM notes n
+                WHERE n.id = ?1 AND n.user_id = ?2";
+    sqlite::one(&conn, &stmt, params![&note_id, &user_id], note_from_row)
 }
 
 pub(crate) fn edit_note(
@@ -181,13 +183,13 @@ pub(crate) fn edit_note(
     note_id: Key,
 ) -> Result<interop::Note> {
     let conn = sqlite_pool.get()?;
-
+    let stmt = "UPDATE notes
+                SET content = ?3
+                WHERE id = ?2 AND user_id = ?1
+                RETURNING id, content, kind, point_id";
     sqlite::one(
         &conn,
-        "UPDATE notes
-                 SET content = ?3
-                 WHERE id = ?2 and user_id = ?1
-                 RETURNING id, content, kind, point_id",
+        &stmt,
         params![&user_id, &note_id, &note.content],
         note_from_row,
     )
@@ -195,16 +197,11 @@ pub(crate) fn edit_note(
 
 pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> Result<Vec<interop::Note>> {
     let conn = sqlite_pool.get()?;
-
-    sqlite::many(
-        &conn,
-        "SELECT n.id,
-                n.content,
-                n.kind,
-                n.point_id
-         FROM   notes n
-         ORDER BY n.id",
-        &[],
-        note_from_row,
-    )
+    let stmt = "SELECT n.id,
+                       n.content,
+                       n.kind,
+                       n.point_id
+                FROM   notes n
+                ORDER BY n.id";
+    sqlite::many(&conn, &stmt, &[], note_from_row)
 }

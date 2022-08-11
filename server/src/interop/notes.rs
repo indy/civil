@@ -23,6 +23,7 @@ pub enum NoteKind {
     Note,
     NoteReview,
     NoteSummary,
+    NoteDeckMeta,
 }
 
 pub fn note_kind_to_sqlite(note_kind: NoteKind) -> i32 {
@@ -30,6 +31,7 @@ pub fn note_kind_to_sqlite(note_kind: NoteKind) -> i32 {
         NoteKind::Note => 1,
         NoteKind::NoteReview => 2,
         NoteKind::NoteSummary => 3,
+        NoteKind::NoteDeckMeta => 4,
     }
 }
 
@@ -38,6 +40,7 @@ pub fn note_kind_from_sqlite(input: i32) -> Result<NoteKind> {
         1 => Ok(NoteKind::Note),
         2 => Ok(NoteKind::NoteReview),
         3 => Ok(NoteKind::NoteSummary),
+        4 => Ok(NoteKind::NoteDeckMeta),
         _ => Err(Error::IntConversionToEnum),
     }
 }

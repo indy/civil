@@ -62,9 +62,12 @@ pub(crate) fn get_or_create(
     user_id: Key,
     title: &str,
 ) -> Result<interop::Person> {
-    let conn = sqlite_pool.get()?;
+    let mut conn = sqlite_pool.get()?;
+    let tx = conn.transaction()?;
 
-    let (deck, _origin) = decks::deckbase_get_or_create(&conn, user_id, DeckKind::Person, &title)?;
+    let (deck, _origin) = decks::deckbase_get_or_create(&tx, user_id, DeckKind::Person, &title)?;
+
+    tx.commit()?;
 
     Ok(deck.into())
 }

@@ -85,6 +85,9 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
                 localDispatch(SHOW_REVIEW_BUTTON, !deck.notes.some(n => n.kind === NOTE_KIND_REVIEW));
             }
         }
+    }, [deck]);
+
+    useEffect(() => {
         if(!state.cache.deck[deck.id]) {
             // fetch resource from the server
             const url = `/api/${resource}/${deck.id}`;
@@ -96,7 +99,7 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
                 }
             });
         }
-    }, [deck]);
+    }, []);
 
     const [local, localDispatch] = useLocalReducer(reducer, {
         showButtons: false,

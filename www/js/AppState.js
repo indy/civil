@@ -310,16 +310,17 @@ export const reducer = (state, action) => {
         {
             return state;
         }
-    case 'cacheDeck':
-        {
-            let deck = action.newItem;
-            let updatedDeck = applyDecksAndCardsToNotes(deck);
+    case 'cacheDeck': {
+        let deck = action.newItem;
+        let updatedDeck = applyDecksAndCardsToNotes(deck);
 
-            let newState = { ...state };
-            newState.cache.deck[action.id] = updatedDeck;
+        updatedDeck.noteDeckMeta = updatedDeck.notes.find(n => n.kind === 'NoteDeckMeta');
 
-            return newState;
-        }
+        let newState = { ...state };
+        newState.cache.deck[action.id] = updatedDeck;
+
+        return newState;
+    }
     case 'deleteDeck': {
         let filterFn = d => d.id !== action.id;
 

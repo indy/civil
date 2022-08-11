@@ -82,21 +82,23 @@ pub(crate) const DECKBASE_QUERY: &str = "select id, name, created_at, graph_term
                                          from decks
                                          where user_id = ?1 and id = ?2 and kind = ?3";
 
-// tuple where the second element is a bool indicating whether the deck was created (true) or
-// we're returning a pre-existing deck (false)
+// note: may execute multiple sql write statements so should be in a transaction
+//
+// returns tuple where the second element is a bool indicating whether the deck
+// was created (true) or we're returning a pre-existing deck (false)
 //
 pub(crate) fn deckbase_get_or_create(
-    conn: &Connection,
+    tx: &Connection,
     user_id: Key,
     kind: DeckKind,
     name: &str,
 ) -> Result<(DeckBase, DeckBaseOrigin)> {
-    let existing_deck_res = deckbase_get_by_name(&conn, user_id, kind, &name);
+    let existing_deck_res = deckbase_get_by_name(&tx, user_id, kind, &name);
     match existing_deck_res {
         Ok(deck) => Ok((deck.into(), DeckBaseOrigin::PreExisting)),
         Err(e) => match e {
             Error::NotFound => {
-                let deck = deckbase_create(&conn, user_id, kind, &name)?;
+                let deck = deckbase_create(&tx, user_id, kind, &name)?;
                 Ok((deck.into(), DeckBaseOrigin::Created))
             }
             _ => Err(e),
@@ -105,11 +107,8 @@ pub(crate) fn deckbase_get_or_create(
 }
 
 pub(crate) fn hit(conn: &Connection, deck_id: Key) -> Result<()> {
-    sqlite::zero(
-        &conn,
-        "insert into hits(deck_id) values (?1)",
-        params![&deck_id],
-    )
+    let stmt = "INSERT INTO hits(deck_id) VALUES (?1)";
+    sqlite::zero(&conn, &stmt, params![&deck_id])
 }
 
 fn deckbase_get_by_name(
@@ -118,33 +117,35 @@ fn deckbase_get_by_name(
     kind: DeckKind,
     name: &str,
 ) -> Result<DeckBase> {
+    let stmt = "SELECT id, name, created_at, graph_terminator
+                FROM DECKS
+                WHERE user_id = ?1 AND name = ?2 AND kind = ?3";
     sqlite::one(
         &conn,
-        r#"
-                select id, name, created_at, graph_terminator
-                from decks
-                where user_id = ?1 and name = ?2 and kind = ?3"#,
+        &stmt,
         params![&user_id, &name, &kind.to_string()],
         deckbase_from_row,
     )
 }
 
-pub(crate) fn deckbase_create(
-    conn: &Connection,
-    user_id: Key,
-    kind: DeckKind,
-    name: &str,
-) -> Result<DeckBase> {
+// note: will execute multiple sql write statements so should be in a transaction
+//
+fn deckbase_create(tx: &Connection, user_id: Key, kind: DeckKind, name: &str) -> Result<DeckBase> {
     let graph_terminator = false;
-    sqlite::one(
-        &conn,
-        r#"
-                INSERT INTO decks(user_id, kind, name, graph_terminator)
+    let stmt = "INSERT INTO decks(user_id, kind, name, graph_terminator)
                 VALUES (?1, ?2, ?3, ?4)
-                RETURNING id, name, created_at, graph_terminator"#,
+                RETURNING id, name, created_at, graph_terminator";
+    let deckbase: DeckBase = sqlite::one(
+        &tx,
+        &stmt,
         params![&user_id, &kind.to_string(), name, graph_terminator],
         deckbase_from_row,
-    )
+    )?;
+
+    // create the mandatory NoteKind::NoteDeckMeta
+    let _note = notes::create_note_deck_meta(&tx, user_id, deckbase.id)?;
+
+    Ok(deckbase)
 }
 
 pub(crate) fn deckbase_edit(
@@ -155,13 +156,13 @@ pub(crate) fn deckbase_edit(
     name: &str,
     graph_terminator: bool,
 ) -> Result<DeckBase> {
+    let stmt = "UPDATE decks
+                SET name = ?4, graph_terminator = ?5
+                WHERE user_id = ?1 AND id = ?2 AND kind = ?3
+                RETURNING id, name, created_at, graph_terminator";
     sqlite::one(
         &conn,
-        r#"
-         UPDATE decks
-         SET name = ?4, graph_terminator = ?5
-         WHERE user_id = ?1 and id = ?2 and kind = ?3
-         RETURNING id, name, created_at, graph_terminator"#,
+        &stmt,
         params![
             &user_id,
             &deck_id,
@@ -250,24 +251,19 @@ pub(crate) fn get_backnotes(
         })
     }
 
-    sqlite::many(
-        &conn,
-        "
-         SELECT d.id AS deck_id,
-                d.name AS deck_name,
-                d.kind as kind,
-                n.content as note_content,
-                n.id as note_id
-         FROM decks d,
-              notes n,
-              notes_decks nd
-         WHERE n.deck_id = d.id
-               AND nd.note_id = n.id
-               AND nd.deck_id = ?1
-         ORDER BY d.name, n.id",
-        params![&deck_id],
-        backnote_from_row,
-    )
+    let stmt = "SELECT d.id AS deck_id,
+                       d.name AS deck_name,
+                       d.kind as kind,
+                       n.content as note_content,
+                       n.id as note_id
+                FROM decks d,
+                     notes n,
+                     notes_decks nd
+                WHERE n.deck_id = d.id
+                      AND nd.note_id = n.id
+                      AND nd.deck_id = ?1
+                ORDER BY d.name, n.id";
+    sqlite::many(&conn, &stmt, params![&deck_id], backnote_from_row)
 }
 
 // all refs on notes that have at least one ref back to the currently displayed deck
@@ -292,22 +288,18 @@ pub(crate) fn get_backrefs(
         })
     }
 
-    sqlite::many(
-        &conn,
-        "SELECT nd.note_id as note_id,
-                         d.id as deck_id,
-                         d.kind as kind,
-                         d.name as deck_name,
-                         nd2.kind as ref_kind,
-                         nd2.annotation
-                  FROM notes_decks nd, notes_decks nd2, decks d
-                  WHERE nd.deck_id = ?1
-                        AND nd.note_id = nd2.note_id
-                        AND d.id = nd2.deck_id
-                  ORDER BY nd2.deck_id",
-        params![&deck_id],
-        backref_from_row,
-    )
+    let stmt = "SELECT nd.note_id as note_id,
+                       d.id as deck_id,
+                       d.kind as kind,
+                       d.name as deck_name,
+                       nd2.kind as ref_kind,
+                       nd2.annotation
+                FROM notes_decks nd, notes_decks nd2, decks d
+                WHERE nd.deck_id = ?1
+                      AND nd.note_id = nd2.note_id
+                      AND d.id = nd2.deck_id
+                ORDER BY nd2.deck_id";
+    sqlite::many(&conn, &stmt, params![&deck_id], backref_from_row)
 }
 
 // return all the people, events, articles etc mentioned in the given deck
@@ -333,24 +325,20 @@ pub(crate) fn from_deck_id_via_notes_to_decks(
         })
     }
 
-    sqlite::many(
-        &conn,
-        "SELECT n.id as note_id,
-                d.id,
-                d.name,
-                d.kind as deck_kind,
-                nd.kind as ref_kind,
-                nd.annotation
-         FROM   notes n,
-                notes_decks nd,
-                decks d
-         WHERE  n.deck_id = ?1
-                AND nd.note_id = n.id
-                AND nd.deck_id = d.id
-         ORDER BY nd.note_id, d.kind DESC, d.name",
-        params![&deck_id],
-        ref_from_row,
-    )
+    let stmt = "SELECT n.id as note_id,
+                       d.id,
+                       d.name,
+                       d.kind as deck_kind,
+                       nd.kind as ref_kind,
+                       nd.annotation
+                FROM   notes n,
+                       notes_decks nd,
+                       decks d
+                WHERE  n.deck_id = ?1
+                       AND nd.note_id = n.id
+                       AND nd.deck_id = d.id
+                ORDER BY nd.note_id, d.kind DESC, d.name";
+    sqlite::many(&conn, &stmt, params![&deck_id], ref_from_row)
 }
 
 fn deck_simple_from_search_result(row: &Row) -> Result<interop::DeckSimple> {
@@ -383,72 +371,85 @@ pub(crate) fn search(
 
     let q = postfix_asterisks(query)?;
 
+    let stmt = "select d.id, d.kind, d.name, decks_fts.rank AS rank_sum, 1 as rank_count
+                from decks_fts left join decks d on d.id = decks_fts.rowid
+                where decks_fts match ?2
+                      and d.user_id = ?1
+                group by d.id
+                order by rank_sum asc, length(d.name) asc
+                limit 30";
     let mut results = sqlite::many(
         &conn,
-        "select d.id, d.kind, d.name, decks_fts.rank AS rank_sum, 1 as rank_count
-                                from decks_fts left join decks d on d.id = decks_fts.rowid
-                                where decks_fts match ?2
-                                      and d.user_id = ?1
-                                group by d.id
-                                order by rank_sum asc, length(d.name) asc
-                                limit 30",
+        &stmt,
         params![&user_id, &q],
         deck_simple_from_search_result,
     )?;
 
-    let results_via_pub_ext = sqlite::many(&conn,
-                                           "select d.id, d.kind, d.name, article_extras_fts.rank AS rank_sum, 1 as rank_count
-                                            from article_extras_fts left join decks d on d.id = article_extras_fts.rowid
-                                            where article_extras_fts match ?2
-                                                  and d.user_id = ?1
-                                            group by d.id
-                                            order by rank_sum asc, length(d.name) asc
-                                            limit 30",
-                                           params![&user_id, &q],
-                                           deck_simple_from_search_result)?;
+    let stmt = "select d.id, d.kind, d.name, article_extras_fts.rank AS rank_sum, 1 as rank_count
+                from article_extras_fts left join decks d on d.id = article_extras_fts.rowid
+                where article_extras_fts match ?2
+                      and d.user_id = ?1
+                group by d.id
+                order by rank_sum asc, length(d.name) asc
+                limit 30";
+    let results_via_pub_ext = sqlite::many(
+        &conn,
+        &stmt,
+        params![&user_id, &q],
+        deck_simple_from_search_result,
+    )?;
 
-    let results_via_quote_ext = sqlite::many(&conn,
-                                             "select d.id, d.kind, d.name, quote_extras_fts.rank AS rank_sum, 1 as rank_count
-                                              from quote_extras_fts left join decks d on d.id = quote_extras_fts.rowid
-                                              where quote_extras_fts match ?2
-                                                    and d.user_id = ?1
-                                              group by d.id
-                                              order by rank_sum asc, length(d.name) asc
-                                              limit 30",
-                                             params![&user_id, &q],
-                                             deck_simple_from_search_result)?;
+    let stmt = "select d.id, d.kind, d.name, quote_extras_fts.rank AS rank_sum, 1 as rank_count
+                from quote_extras_fts left join decks d on d.id = quote_extras_fts.rowid
+                where quote_extras_fts match ?2
+                      and d.user_id = ?1
+                group by d.id
+                order by rank_sum asc, length(d.name) asc
+                limit 30";
+    let results_via_quote_ext = sqlite::many(
+        &conn,
+        &stmt,
+        params![&user_id, &q],
+        deck_simple_from_search_result,
+    )?;
 
-    let results_via_notes = sqlite::many(&conn,
-                                             "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-                                              from (select d.id, d.kind, d.name, notes_fts.rank AS rank
-                                                    from notes_fts
-                                                         left join notes n on n.id = notes_fts.rowid
-                                                         left join decks d on d.id = n.deck_id
-                                                    where notes_fts match ?2
-                                                          and d.user_id = ?1
-                                                    group by d.id
-                                                    order by rank asc) res
-                                              group by res.id, res.kind, res.name
-                                              order by sum(res.rank) asc, length(res.name) asc
-                                              limit 30",
-                                             params![&user_id, &q],
-                                             deck_simple_from_search_result)?;
+    let stmt = "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+                from (select d.id, d.kind, d.name, notes_fts.rank AS rank
+                      from notes_fts
+                           left join notes n on n.id = notes_fts.rowid
+                           left join decks d on d.id = n.deck_id
+                      where notes_fts match ?2
+                            and d.user_id = ?1
+                      group by d.id
+                      order by rank asc) res
+                group by res.id, res.kind, res.name
+                order by sum(res.rank) asc, length(res.name) asc
+                limit 30";
+    let results_via_notes = sqlite::many(
+        &conn,
+        &stmt,
+        params![&user_id, &q],
+        deck_simple_from_search_result,
+    )?;
 
-    let results_via_points = sqlite::many(&conn,
-                                             "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-                                              from (select d.id, d.kind, d.name, points_fts.rank AS rank
-                                                    from points_fts
-                                                         left join points n on n.id = points_fts.rowid
-                                                         left join decks d on d.id = n.deck_id
-                                                    where points_fts match ?2
-                                                          and d.user_id = ?1
-                                                    group by d.id
-                                                    order by rank asc) res
-                                              group by res.id, res.kind, res.name
-                                              order by sum(res.rank) asc, length(res.name) asc
-                                              limit 30",
-                                             params![&user_id, &q],
-                                             deck_simple_from_search_result)?;
+    let stmt = "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+                from (select d.id, d.kind, d.name, points_fts.rank AS rank
+                      from points_fts
+                           left join points n on n.id = points_fts.rowid
+                           left join decks d on d.id = n.deck_id
+                      where points_fts match ?2
+                            and d.user_id = ?1
+                      group by d.id
+                      order by rank asc) res
+                group by res.id, res.kind, res.name
+                order by sum(res.rank) asc, length(res.name) asc
+                limit 30";
+    let results_via_points = sqlite::many(
+        &conn,
+        &stmt,
+        params![&user_id, &q],
+        deck_simple_from_search_result,
+    )?;
 
     for r in results_via_pub_ext {
         if !contains(&results, r.id) {
@@ -484,26 +485,28 @@ pub(crate) fn search_by_name(
 ) -> Result<Vec<interop::DeckSimple>> {
     let conn = sqlite_pool.get()?;
 
+    let stmt = "select d.id, d.kind, d.name, decks_fts.rank AS rank_sum, 1 as rank_count
+                from decks_fts left join decks d on d.id = decks_fts.rowid
+                where decks_fts match ?2
+                      and d.user_id = ?1
+                group by d.id
+                order by rank_sum asc, length(d.name) asc
+                limit 20";
     let mut results = sqlite::many(
         &conn,
-        "select d.id, d.kind, d.name, decks_fts.rank AS rank_sum, 1 as rank_count
-                                    from decks_fts left join decks d on d.id = decks_fts.rowid
-                                    where decks_fts match ?2
-                                          and d.user_id = ?1
-                                    group by d.id
-                                    order by rank_sum asc, length(d.name) asc
-                                    limit 20",
+        &stmt,
         params![&user_id, &query],
         deck_simple_from_search_result,
     )?;
 
+    let stmt = "select id, kind, name, 0 as rank_sum, 1 as rank_count
+                from decks
+                where name like '%' || ?2 || '%'
+                and user_id = ?1
+                limit 20";
     let res2 = sqlite::many(
         &conn,
-        "select id, kind, name, 0 as rank_sum, 1 as rank_count
-                                    from decks
-                                    where name like '%' || ?2 || '%'
-                                    and user_id = ?1
-                                    limit 20",
+        &stmt,
         params![&user_id, &query],
         deck_simple_from_search_result,
     )?;
@@ -588,72 +591,85 @@ pub(crate) fn search_using_deck_id(
     let name = get_name_of_deck(&conn, deck_id)?;
     let sane_name = sanitize_for_sqlite_match(name)?;
 
+    let stmt = "select d.id, d.kind, d.name, decks_fts.rank AS rank_sum, 1 as rank_count
+                from decks_fts left join decks d on d.id = decks_fts.rowid
+                where decks_fts match ?2
+                      and d.user_id = ?1
+                group by d.id
+                order by rank_sum asc, length(d.name) asc
+                limit 50";
     let mut results = sqlite::many(
         &conn,
-        "select d.id, d.kind, d.name, decks_fts.rank AS rank_sum, 1 as rank_count
-                                from decks_fts left join decks d on d.id = decks_fts.rowid
-                                where decks_fts match ?2
-                                      and d.user_id = ?1
-                                group by d.id
-                                order by rank_sum asc, length(d.name) asc
-                                limit 50",
+        &stmt,
         params![&user_id, &sane_name],
         deck_simple_from_search_result,
     )?;
 
-    let results_via_pub_ext = sqlite::many(&conn,
-                                           "select d.id, d.kind, d.name, article_extras_fts.rank AS rank_sum, 1 as rank_count
-                                            from article_extras_fts left join decks d on d.id = article_extras_fts.rowid
-                                            where article_extras_fts match ?2
-                                                  and d.user_id = ?1
-                                            group by d.id
-                                            order by rank_sum asc, length(d.name) asc
-                                            limit 50",
-                                           params![&user_id, &sane_name],
-                                           deck_simple_from_search_result)?;
+    let stmt = "select d.id, d.kind, d.name, article_extras_fts.rank AS rank_sum, 1 as rank_count
+                from article_extras_fts left join decks d on d.id = article_extras_fts.rowid
+                where article_extras_fts match ?2
+                      and d.user_id = ?1
+                group by d.id
+                order by rank_sum asc, length(d.name) asc
+                limit 50";
+    let results_via_pub_ext = sqlite::many(
+        &conn,
+        &stmt,
+        params![&user_id, &sane_name],
+        deck_simple_from_search_result,
+    )?;
 
-    let results_via_quote_ext = sqlite::many(&conn,
-                                             "select d.id, d.kind, d.name, quote_extras_fts.rank AS rank_sum, 1 as rank_count
-                                              from quote_extras_fts left join decks d on d.id = quote_extras_fts.rowid
-                                              where quote_extras_fts match ?2
-                                                    and d.user_id = ?1
-                                              group by d.id
-                                              order by rank_sum asc, length(d.name) asc
-                                              limit 50",
-                                             params![&user_id, &sane_name],
-                                             deck_simple_from_search_result)?;
+    let stmt = "select d.id, d.kind, d.name, quote_extras_fts.rank AS rank_sum, 1 as rank_count
+                from quote_extras_fts left join decks d on d.id = quote_extras_fts.rowid
+                where quote_extras_fts match ?2
+                      and d.user_id = ?1
+                group by d.id
+                order by rank_sum asc, length(d.name) asc
+                limit 50";
+    let results_via_quote_ext = sqlite::many(
+        &conn,
+        &stmt,
+        params![&user_id, &sane_name],
+        deck_simple_from_search_result,
+    )?;
 
-    let results_via_notes = sqlite::many(&conn,
-                                             "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-                                              from (select d.id, d.kind, d.name, notes_fts.rank AS rank
-                                                    from notes_fts
-                                                         left join notes n on n.id = notes_fts.rowid
-                                                         left join decks d on d.id = n.deck_id
-                                                    where notes_fts match ?2
-                                                          and d.user_id = ?1
-                                                    group by d.id
-                                                    order by rank asc) res
-                                              group by res.id, res.kind, res.name
-                                              order by sum(res.rank) asc, length(res.name) asc
-                                              limit 50",
-                                             params![&user_id, &sane_name],
-                                             deck_simple_from_search_result)?;
+    let stmt = "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+                from (select d.id, d.kind, d.name, notes_fts.rank AS rank
+                      from notes_fts
+                           left join notes n on n.id = notes_fts.rowid
+                           left join decks d on d.id = n.deck_id
+                      where notes_fts match ?2
+                            and d.user_id = ?1
+                      group by d.id
+                      order by rank asc) res
+                group by res.id, res.kind, res.name
+                order by sum(res.rank) asc, length(res.name) asc
+                limit 50";
+    let results_via_notes = sqlite::many(
+        &conn,
+        &stmt,
+        params![&user_id, &sane_name],
+        deck_simple_from_search_result,
+    )?;
 
-    let results_via_points = sqlite::many(&conn,
-                                             "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-                                              from (select d.id, d.kind, d.name, points_fts.rank AS rank
-                                                    from points_fts
-                                                         left join points n on n.id = points_fts.rowid
-                                                         left join decks d on d.id = n.deck_id
-                                                    where points_fts match ?2
-                                                          and d.user_id = ?1
-                                                    group by d.id
-                                                    order by rank asc) res
-                                              group by res.id, res.kind, res.name
-                                              order by sum(res.rank) asc, length(res.name) asc
-                                              limit 30",
-                                             params![&user_id, &sane_name],
-                                             deck_simple_from_search_result)?;
+    let stmt = "select res.id, res.kind, res.name, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+                from (select d.id, d.kind, d.name, points_fts.rank AS rank
+                      from points_fts
+                           left join points n on n.id = points_fts.rowid
+                           left join decks d on d.id = n.deck_id
+                      where points_fts match ?2
+                            and d.user_id = ?1
+                      group by d.id
+                      order by rank asc) res
+                group by res.id, res.kind, res.name
+                order by sum(res.rank) asc, length(res.name) asc
+                limit 30";
+    let results_via_points = sqlite::many(
+        &conn,
+        &stmt,
+        params![&user_id, &sane_name],
+        deck_simple_from_search_result,
+    )?;
 
     for r in results_via_pub_ext {
         if !contains(&results, r.id) {

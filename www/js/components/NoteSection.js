@@ -19,6 +19,7 @@ const NOTE_SECTION_EXCLUSIVE = 2;
 const NOTE_KIND_NOTE = 'Note';
 const NOTE_KIND_SUMMARY = 'NoteSummary';
 const NOTE_KIND_REVIEW = 'NoteReview';
+const NOTE_KIND_DECKMETA = 'NoteDeckMeta';
 
 function NoteSection({ heading, noteKind, howToShow, deck, cacheDeck }) {
     function noteManager(noteKind) {
@@ -244,4 +245,4 @@ function addNote(markup, deck_id, noteKind, optional_point_id) {
     }
 }
 
-export { NoteSection, NoteManager, NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE, NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW }
+export { NoteSection, NoteManager, NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE, NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW, NOTE_KIND_DECKMETA }

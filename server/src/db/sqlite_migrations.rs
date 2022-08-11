@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS notes (
 
        point_id INTEGER,
 
-       kind INTEGER DEFAULT 0, -- 1='note', 2='note_review', 3='note_summary'
+       kind INTEGER DEFAULT 0, -- 1='note', 2='note_review', 3='note_summary', 4='note_deckmeta'
 
        content TEXT NOT NULL,
 
