@@ -54,7 +54,6 @@ function Timeline(props) {
     return html`
     <article>
         ${ deckManager.title }
-        ${ deckManager.buttons() }
         ${ deckManager.buildUpdateForm() }
         ${ deckManager.buildDeckRefSection() }
         ${ deckManager.buildNoteSections() }

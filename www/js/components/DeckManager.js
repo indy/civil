@@ -11,7 +11,6 @@ import { PointForm } from '/js/components/PointForm.js';
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 import { Ref } from '/js/components/Ref.js';
 
-const BUTTONS_TOGGLE = 'buttons-toggle';
 const UPDATE_FORM_TOGGLE = 'update-form-toggle';
 const HIDE_FORM = 'hide-form';
 const SHOW_SUMMARY_BUTTON = 'show-summary-button-toggle';
@@ -19,12 +18,6 @@ const SHOW_REVIEW_BUTTON = 'show-review-button-toggle';
 
 function reducer(state, action) {
     switch(action.type) {
-    case BUTTONS_TOGGLE:
-        return {
-            ...state,
-            showButtons: !state.showButtons,
-            showUpdateForm: false
-        }
     case UPDATE_FORM_TOGGLE:
         return {
             ...state,
@@ -33,7 +26,6 @@ function reducer(state, action) {
     case HIDE_FORM:
         return {
             ...state,
-            showButtons: false,
             showUpdateForm: false
         }
     case SHOW_SUMMARY_BUTTON:
@@ -106,63 +98,25 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
     }, [deck]);
 
     const [local, localDispatch] = useLocalReducer(reducer, {
-        showButtons: false,
         showUpdateForm: false,
         showShowSummaryButton: hasSummarySection,
         showShowReviewButton: hasReviewSection
     });
 
-    function buildButtons() {
-        function onEditParentClicked(e) {
-            e.preventDefault();
-            localDispatch(UPDATE_FORM_TOGGLE);
-        };
-
-        function onShowSummaryButtonClicked(e) {
-            e.preventDefault();
-            localDispatch(SHOW_SUMMARY_BUTTON, !local.showShowSummaryButton);
-        };
-        function onShowReviewButtonClicked(e) {
-            e.preventDefault();
-            localDispatch(SHOW_REVIEW_BUTTON, !local.showShowReviewButton);
-        };
-
-        function confirmedDeleteClicked() {
-            Net.delete(`/api/${resource}/${deck.id}`).then(() => {
-                // remove the resource from the app state
-                dispatch({
-                    type: 'deleteDeck',
-                    id: deck.id
-                });
-                route(`/${resource}`, true);
-            });
-        }
-
-        return html`
-        <div>
-            <button onClick=${ onEditParentClicked }>Edit...</button>
-            <${DeleteConfirmation} onDelete=${confirmedDeleteClicked }/>
-            ${ local.showShowSummaryButton && html`<button onClick=${ onShowSummaryButtonClicked }>Show Summary Section</button>`}
-            ${ local.showShowReviewButton && html`<button onClick=${ onShowReviewButtonClicked }>Show Review Section</button>`}
-        </div>`;
-    };
-
-    function onShowButtons(e) {
-        if (!state.readOnly) {
-            e.preventDefault();
-            localDispatch(BUTTONS_TOGGLE);
-        }
-    };
-
     let res = {};
 
-    res.title = Title(title, onShowButtons);
-
-    res.buttons = function() {
-        if (local.showButtons) {
-            return buildButtons();
-        }
+    function confirmedDeleteClicked() {
+        Net.delete(`/api/${resource}/${deck.id}`).then(() => {
+            // remove the resource from the app state
+            dispatch({
+                type: 'deleteDeck',
+                id: deck.id
+            });
+            route(`/${resource}`, true);
+        });
     }
+
+    res.title = Title(title, local, localDispatch, confirmedDeleteClicked);
 
     res.buildPointForm = function(onSuccessCallback) {
         function onAddPoint(point) {
@@ -270,11 +224,54 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
     return res;
 }
 
-function Title(title, onShowButtons) {
+function Title(title, local, localDispatch, confirmedDeleteClicked) {
+    const hoveringRef = useRef(null);
+    const [mouseHovering, setMouseHovering] = useState(false);
+
+    function mouseEnter() {
+        setMouseHovering(true);
+    }
+    function mouseLeave() {
+        setMouseHovering(false);
+    }
+
+    function onEditParentClicked(e) {
+        e.preventDefault();
+        localDispatch(UPDATE_FORM_TOGGLE);
+    };
+
+    function onShowSummaryButtonClicked(e) {
+        e.preventDefault();
+        localDispatch(SHOW_SUMMARY_BUTTON, !local.showShowSummaryButton);
+    };
+    function onShowReviewButtonClicked(e) {
+        e.preventDefault();
+        localDispatch(SHOW_REVIEW_BUTTON, !local.showShowReviewButton);
+    };
+
+
     const preMarkerRef = useRef(null); // an element on the page, when it's offscreen apply title-sticky to the h1
     const postMarkerRef = useRef(null); // an element on the page, when it's onscreen remove title-sticky from the h1
     const titleRef = useRef(null);
     const backgroundBandRef = useRef(null);
+
+    function buildControls(mouseHovering) {
+        let itemClasses = "note-control-item";
+        if (mouseHovering) {
+            itemClasses += " note-control-increased-visibility";
+        }
+
+        function onDeleteClicked(e) {
+            console.log("get confirmation from user before invoking confirmedDeleteClicked");
+        }
+
+        return html`<div class="note-controls-container">
+                        <div class="${itemClasses}" onClick=${ onEditParentClicked }>[edit]</div>
+                        <div class="${itemClasses}" onClick=${ onDeleteClicked }>[delete]</div>
+                        ${ local.showShowSummaryButton && html`<div class="${itemClasses}" onClick=${ onShowSummaryButtonClicked }>[show summary]</div>`}
+                        ${ local.showShowReviewButton && html`<div class="${itemClasses}" onClick=${ onShowReviewButtonClicked }>[show review]</div>`}
+                    </div>`;
+    }
 
     useEffect(() => {
         window.onscroll = function() {
@@ -306,6 +303,18 @@ function Title(title, onShowButtons) {
                 }
             }
         };
+
+        if (hoveringRef && hoveringRef.current) {
+            hoveringRef.current.addEventListener("mouseenter", mouseEnter, false);
+            hoveringRef.current.addEventListener("mouseleave", mouseLeave, false);
+            return () => {
+                if (hoveringRef && hoveringRef.current) {
+                    hoveringRef.current.removeEventListener("mouseenter", mouseEnter);
+                    hoveringRef.current.removeEventListener("mouseleave", mouseLeave);
+                }
+            }
+        }
+
     }, []);
 
     // there are 2 markers: pre and post so that we get a nice effect in both of these scenarios:
@@ -314,10 +323,13 @@ function Title(title, onShowButtons) {
     //    the user scrolls up
     return html`
     <div>
-        <div ref=${ preMarkerRef }></div>
-        <div ref=${ backgroundBandRef }></div>
-        <h1 ref=${ titleRef } class="deck-title" onClick=${ onShowButtons }>${ title }</h1>
-        <div ref=${ postMarkerRef }></div>
+        ${  buildControls(mouseHovering)}
+        <div ref=${ hoveringRef }>
+            <div ref=${ preMarkerRef }></div>
+            <div ref=${ backgroundBandRef }></div>
+            <h1 ref=${ titleRef } class="deck-title">${ title }</h1>
+            <div ref=${ postMarkerRef }></div>
+        </div>
     </div>`;
 }
 

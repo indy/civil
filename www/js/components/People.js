@@ -116,7 +116,6 @@ function Person(props) {
     return html`
     <article>
         ${ deckManager.title }
-        ${ deckManager.buttons() }
         ${ deckManager.buildUpdateForm() }
 
         ${ !hasKnownLifespan && html`<${LifespanForm} name=${ person.name } onLifespanGiven=${ onLifespan }/>` }

@@ -327,9 +327,9 @@ export default function Note(props) {
 
     return html`
     <div class="note">
-        ${  local.isEditingMarkup && buildEditableContent() }
         ${ !local.isEditingMarkup && buildLeftMarginContent(props.note, localDispatch)}
         ${  buildControls(props.note, local, localDispatch)}
+        ${  local.isEditingMarkup && buildEditableContent() }
         ${  local.flashcardToShow && html`
             <${FlashCard} flashcard=${local.flashcardToShow} onDelete=${flashCardDeleted}/>`}
         ${ local.addDeckReferencesUI && buildAddDecksUI() }
@@ -386,7 +386,6 @@ function buildControls(note, local, localDispatch) {
     function onEditClicked() {
         localDispatch(TOGGLE_EDITING);
     };
-
 
     return html`<div class="note-controls-container">
                     <div class="${itemClasses}" onClick=${ onRefsClicked }>[refs]</div>

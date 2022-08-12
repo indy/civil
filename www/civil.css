@@ -1066,9 +1066,13 @@ section > form { width: var(--block-width); }
 }
 .note-control-item {
   color: rgba(0, 0, 0, 0.00);   /* invisible */
+  width: 10rem;
 }
+
 .note-control-item:hover {
   color: var(--fg);
+  text-align: left;
+  display: block;
 }
 
 .note p {
@@ -1094,8 +1098,8 @@ section > form { width: var(--block-width); }
   float: left;
   margin-left: -3%;
   color: var(--fg1);
-  text-align: right;
 
+  width: 1rem;
   font-family: Inter;
 }
 
