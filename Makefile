@@ -86,6 +86,9 @@ staging: clean-staging staging/www/index.html staging/$(SERVER_BINARY) staging/s
 upload: staging
 	rsync -avzhe ssh staging/. indy@indy.io:/home/indy/work/civil
 
+upload-client: staging
+	rsync -avzhe ssh staging/www/. indy@indy.io:/home/indy/work/civil/www
+
 clean-staging:
 	rm -rf staging
 
