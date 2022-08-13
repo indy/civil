@@ -78,6 +78,7 @@ function Idea(props) {
             ${ deckManager.title }
         </div>
         ${ deckManager.buildUpdateForm() }
+        ${ deckManager.buildDeleteForm() }
         ${ deckManager.buildDeckRefSection() }
         ${ deckManager.buildNoteSections() }
 

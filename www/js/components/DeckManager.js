@@ -15,6 +15,7 @@ const UPDATE_FORM_TOGGLE = 'update-form-toggle';
 const HIDE_FORM = 'hide-form';
 const SHOW_SUMMARY_BUTTON = 'show-summary-button-toggle';
 const SHOW_REVIEW_BUTTON = 'show-review-button-toggle';
+const DELETE_TOGGLE = 'show-delete';
 
 function reducer(state, action) {
     switch(action.type) {
@@ -22,6 +23,11 @@ function reducer(state, action) {
         return {
             ...state,
             showUpdateForm: !state.showUpdateForm
+        }
+    case DELETE_TOGGLE:
+        return {
+            ...state,
+            showDelete: !state.showDelete
         }
     case HIDE_FORM:
         return {
@@ -71,6 +77,13 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
 
     const [fetchingDeck, setFetchingDeck] = useState(undefined);
 
+    const [local, localDispatch] = useLocalReducer(reducer, {
+        showUpdateForm: false,
+        showDelete: false,
+        showShowSummaryButton: hasSummarySection,
+        showShowReviewButton: hasReviewSection
+    });
+
     useEffect(() => {
         if(!state.cache.deck[deck.id]) {
             setFetchingDeck(deck.id);
@@ -97,26 +110,9 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
         }
     }, [deck]);
 
-    const [local, localDispatch] = useLocalReducer(reducer, {
-        showUpdateForm: false,
-        showShowSummaryButton: hasSummarySection,
-        showShowReviewButton: hasReviewSection
-    });
-
     let res = {};
 
-    function confirmedDeleteClicked() {
-        Net.delete(`/api/${resource}/${deck.id}`).then(() => {
-            // remove the resource from the app state
-            dispatch({
-                type: 'deleteDeck',
-                id: deck.id
-            });
-            route(`/${resource}`, true);
-        });
-    }
-
-    res.title = Title(title, local, localDispatch, confirmedDeleteClicked);
+    res.title = Title(title, local, localDispatch);
 
     res.buildPointForm = function(onSuccessCallback) {
         function onAddPoint(point) {
@@ -201,6 +197,21 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
         return local.showUpdateForm && html`<${updateForm} deck=${deck} hideFormFn=${hideForm}/>`;
     }
 
+    function confirmedDeleteClicked() {
+        Net.delete(`/api/${resource}/${deck.id}`).then(() => {
+            // remove the resource from the app state
+            appDispatch({
+                type: 'deleteDeck',
+                id: deck.id
+            });
+            route(`/${resource}`, true);
+        });
+    }
+
+    res.buildDeleteForm = function() {
+        return local.showDelete && html`<${DeleteConfirmation} onDelete=${confirmedDeleteClicked }/>`;
+    }
+
     function noteFilterDeckPoint(deck_point) {
         return n => n.point_id === deck_point.id;
     }
@@ -224,7 +235,7 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
     return res;
 }
 
-function Title(title, local, localDispatch, confirmedDeleteClicked) {
+function Title(title, local, localDispatch) {
     const hoveringRef = useRef(null);
     const [mouseHovering, setMouseHovering] = useState(false);
 
@@ -234,6 +245,11 @@ function Title(title, local, localDispatch, confirmedDeleteClicked) {
     function mouseLeave() {
         setMouseHovering(false);
     }
+
+    function onRefsClicked(e) {
+        e.preventDefault();
+        // localDispatch(UPDATE_FORM_TOGGLE);
+    };
 
     function onEditParentClicked(e) {
         e.preventDefault();
@@ -249,6 +265,10 @@ function Title(title, local, localDispatch, confirmedDeleteClicked) {
         localDispatch(SHOW_REVIEW_BUTTON, !local.showShowReviewButton);
     };
 
+    function onDeleteClicked(e) {
+        e.preventDefault();
+        localDispatch(DELETE_TOGGLE);
+    }
 
     const preMarkerRef = useRef(null); // an element on the page, when it's offscreen apply title-sticky to the h1
     const postMarkerRef = useRef(null); // an element on the page, when it's onscreen remove title-sticky from the h1
@@ -261,11 +281,8 @@ function Title(title, local, localDispatch, confirmedDeleteClicked) {
             itemClasses += " note-control-increased-visibility";
         }
 
-        function onDeleteClicked(e) {
-            console.log("get confirmation from user before invoking confirmedDeleteClicked");
-        }
-
         return html`<div class="note-controls-container">
+                        <div class="${itemClasses}" onClick=${ onRefsClicked }>[refs]</div>
                         <div class="${itemClasses}" onClick=${ onEditParentClicked }>[edit]</div>
                         <div class="${itemClasses}" onClick=${ onDeleteClicked }>[delete]</div>
                         ${ local.showShowSummaryButton && html`<div class="${itemClasses}" onClick=${ onShowSummaryButtonClicked }>[show summary]</div>`}

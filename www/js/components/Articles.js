@@ -67,6 +67,7 @@ function Article(props) {
             ${ deckManager.title }
         </div>
         ${ deckManager.buildUpdateForm() }
+        ${ deckManager.buildDeleteForm() }
 
         <div class="top-scribble">${ article.short_description }</div>
 

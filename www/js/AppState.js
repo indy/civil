@@ -325,7 +325,10 @@ export const reducer = (state, action) => {
         let filterFn = d => d.id !== action.id;
 
         let newState = { ...state };
-        newState.graph.decks = state.graph.decks.filter(filterFn);
+        if (newState.graph && newState.graph.decks) {
+            newState.graph.decks = state.graph.decks.filter(filterFn);
+        }
+
         newState.listing = {};
 
         if (state.listing.ideas) {
@@ -351,7 +354,10 @@ export const reducer = (state, action) => {
             newState.listing.timelines = state.listing.timelines.filter(filterFn);
         }
 
-        delete newState.graph.links[action.id];
+        if (newState.graph.links) {
+            delete newState.graph.links[action.id];
+        }
+
         // todo: delete all the other references in graph.links to action.id
         delete newState.cache.deck[action.id];
         return newState;

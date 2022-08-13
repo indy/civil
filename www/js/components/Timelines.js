@@ -55,6 +55,7 @@ function Timeline(props) {
     <article>
         ${ deckManager.title }
         ${ deckManager.buildUpdateForm() }
+        ${ deckManager.buildDeleteForm() }
         ${ deckManager.buildDeckRefSection() }
         ${ deckManager.buildNoteSections() }
         <${SectionBackRefs} state=${state} backrefs=${ timeline.backrefs } backnotes=${ timeline.backnotes } deckId=${ timeline.id }/>
