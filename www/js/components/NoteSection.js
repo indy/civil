@@ -21,7 +21,7 @@ const NOTE_KIND_SUMMARY = 'NoteSummary';
 const NOTE_KIND_REVIEW = 'NoteReview';
 const NOTE_KIND_DECKMETA = 'NoteDeckMeta';
 
-function NoteSection({ heading, noteKind, howToShow, deck, cacheDeck }) {
+function NoteSection({ heading, noteKind, howToShow, deck, onDecksChanged, cacheDeck }) {
     function noteManager(noteKind) {
         let filterFn = n => (!n.point_id) && n.kind === noteKind;
 
@@ -35,6 +35,7 @@ function NoteSection({ heading, noteKind, howToShow, deck, cacheDeck }) {
         return NoteManager({
             deck,
             cacheDeck,
+            onDecksChanged,
             filterFn,
             appendLabel,
             noteKind
@@ -50,7 +51,7 @@ function NoteSection({ heading, noteKind, howToShow, deck, cacheDeck }) {
     }
 }
 
-function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLabel, noteKind }) {
+function NoteManager({ deck, cacheDeck, onDecksChanged, filterFn, optional_deck_point, appendLabel, noteKind }) {
     const [state, dispatch] = useStateValue();
 
     function findNoteWithId(id, modifyFn) {
@@ -70,22 +71,6 @@ function NoteManager({ deck, cacheDeck, filterFn, optional_deck_point, appendLab
     function onDeleteNote(noteId) {
         findNoteWithId(noteId, (notes, index) => {
             notes.splice(index, 1);
-        });
-    };
-
-    function onDecksChanged(note, all_decks_for_note) {
-        // have to set deck.refs to be the canonical version
-        // 'cacheDeck' will use that to populate each note's decks array
-
-        // remove all deck.refs that relate to this note
-        deck.refs = deck.refs.filter(din => {
-            return din.note_id !== note.id;
-        });
-        // add every note.decks entry to deck.refs
-        all_decks_for_note.forEach(d => { deck.refs.push(d); });
-
-        findNoteWithId(note.id, (notes, index) => {
-            notes[index] = note;
         });
     };
 
