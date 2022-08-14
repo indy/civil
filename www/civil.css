@@ -1183,6 +1183,11 @@ section > form { width: var(--block-width); }
   float: right;
 }
 
+.deck-ref-item > .ref-scribble {
+  float: none;
+  width: var(--block-width);
+}
+
 .ref-top-scribble {
   font-family: Caveat, cursive;
   font-size: 1.8rem;
