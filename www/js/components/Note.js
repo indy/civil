@@ -283,7 +283,7 @@ export default function Note(props) {
                 };
 
                 Net.post("/api/edges/notes_decks", data).then((allDecksForNote) => {
-                    props.onDecksChanged(props.note, allDecksForNote);
+                    props.onRefsChanged(props.note, allDecksForNote);
                     localDispatch(ADD_DECKS_COMMIT, { allDecksForNote, changes });
                 });
             } else {

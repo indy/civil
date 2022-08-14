@@ -266,7 +266,7 @@ function Quote(props) {
         });
     }
 
-    function onDecksChanged(note, all_decks_for_note) {
+    function onRefsChanged(note, all_decks_for_note) {
         // have to set deck.refs to be the canonical version
         // 'cacheDeck' will use that to populate each note's decks array
 
@@ -289,7 +289,7 @@ function Quote(props) {
                      parentDeck=${ quote }
                      onEdited=${ onEditedNote }
                      onDelete=${ onDelete }
-                     onDecksChanged=${ onDecksChanged }/>`}
+                     onRefsChanged=${ onRefsChanged }/>`}
         <${Attribution} attribution=${ quote.attribution }
                         onEdited=${ onEditedAttribute}
                         onDelete=${ onDelete }/>

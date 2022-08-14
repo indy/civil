@@ -174,7 +174,7 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
         cacheDeck({...deck, notes});
     };
 
-    function onDecksChanged(note, all_decks_for_note) {
+    function onRefsChanged(note, all_decks_for_note) {
         // have to set deck.refs to be the canonical version
         // 'cacheDeck' will use that to populate each note's decks array
 
@@ -197,7 +197,7 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
         }
         function onSaved(note, changes, allDecksForNote) {
             // this note is going to be the deck's NoteDeckMeta
-            onDecksChanged(note, allDecksForNote);
+            onRefsChanged(note, allDecksForNote);
 
             appDispatch({
                 type: 'noteRefsModified',
@@ -218,20 +218,20 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
                                 noteKind=${ NOTE_KIND_SUMMARY }
                                 howToShow=${ howToShowNoteSection(NOTE_KIND_SUMMARY) }
                                 deck=${ deck }
-                                onDecksChanged=${onDecksChanged}
+                                onRefsChanged=${onRefsChanged}
                                 cacheDeck=${ cacheDeck }/>`}
             ${ hasReviewSection && html`
                 <${NoteSection} heading='Review'
                                 noteKind=${ NOTE_KIND_REVIEW }
                                 howToShow=${ howToShowNoteSection(NOTE_KIND_REVIEW) }
                                 deck=${ deck }
-                                onDecksChanged=${onDecksChanged}
+                                onRefsChanged=${onRefsChanged}
                                 cacheDeck=${ cacheDeck } />`}
             <${NoteSection} heading=${ title }
                             noteKind=${ NOTE_KIND_NOTE }
                             howToShow=${ howToShowNoteSection(NOTE_KIND_NOTE) }
                             deck=${ deck }
-                            onDecksChanged=${onDecksChanged}
+                            onRefsChanged=${onRefsChanged}
                             cacheDeck=${ cacheDeck } />
         </div>`;
     }
@@ -270,7 +270,7 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
     res.noteManagerForDeckPoint = function(deck_point) {
         return NoteManager({ deck,
                              cacheDeck,
-                             onDecksChanged,
+                             onRefsChanged,
                              filterFn: noteFilterDeckPoint(deck_point),
                              optional_deck_point: deck_point,
                              appendLabel: `Append Note to ${ deck_point.title }`,
@@ -439,12 +439,6 @@ function AddDecksUI({ deckId, note, chosen, onCancel, onSaved }) {
             };
 
             Net.post("/api/edges/notes_decks", data).then((allDecksForNote) => {
-
-                // todo: implement the onDecksChanged functionality for AddDecksUI
-                //
-                // props.onDecksChanged(props.note, allDecksForNote);
-
-
                 onSaved(note, changes, allDecksForNote)
             });
         } else {

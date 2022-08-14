@@ -21,7 +21,7 @@ const NOTE_KIND_SUMMARY = 'NoteSummary';
 const NOTE_KIND_REVIEW = 'NoteReview';
 const NOTE_KIND_DECKMETA = 'NoteDeckMeta';
 
-function NoteSection({ heading, noteKind, howToShow, deck, onDecksChanged, cacheDeck }) {
+function NoteSection({ heading, noteKind, howToShow, deck, onRefsChanged, cacheDeck }) {
     function noteManager(noteKind) {
         let filterFn = n => (!n.point_id) && n.kind === noteKind;
 
@@ -35,7 +35,7 @@ function NoteSection({ heading, noteKind, howToShow, deck, onDecksChanged, cache
         return NoteManager({
             deck,
             cacheDeck,
-            onDecksChanged,
+            onRefsChanged,
             filterFn,
             appendLabel,
             noteKind
@@ -51,7 +51,7 @@ function NoteSection({ heading, noteKind, howToShow, deck, onDecksChanged, cache
     }
 }
 
-function NoteManager({ deck, cacheDeck, onDecksChanged, filterFn, optional_deck_point, appendLabel, noteKind }) {
+function NoteManager({ deck, cacheDeck, onRefsChanged, filterFn, optional_deck_point, appendLabel, noteKind }) {
     const [state, dispatch] = useStateValue();
 
     function findNoteWithId(id, modifyFn) {
@@ -81,7 +81,7 @@ function NoteManager({ deck, cacheDeck, onDecksChanged, filterFn, optional_deck_
                         parentDeck=${ deck }
                         onDelete=${ onDeleteNote }
                         onEdited=${ onEditedNote }
-                        onDecksChanged=${ onDecksChanged }
+                        onRefsChanged=${ onRefsChanged }
                />`;
     }
 
