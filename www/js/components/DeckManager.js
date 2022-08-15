@@ -290,12 +290,20 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
 function Title(title, local, localDispatch) {
     const hoveringRef = useRef(null);
     const [mouseHovering, setMouseHovering] = useState(false);
+    const [mouseHoveringChild, setMouseHoveringChild] = useState(false);
 
-    function mouseEnter() {
+    function mouseEnterTitle() {
         setMouseHovering(true);
     }
-    function mouseLeave() {
+    function mouseLeaveTitle() {
         setMouseHovering(false);
+    }
+
+    function mouseEnterChild() {
+        setMouseHoveringChild(true);
+    }
+    function mouseLeaveChild() {
+        setMouseHoveringChild(false);
     }
 
     function onRefsClicked(e) {
@@ -323,17 +331,12 @@ function Title(title, local, localDispatch) {
     const backgroundBandRef = useRef(null);
 
     function buildControls(mouseHovering) {
-        let itemClasses = "note-control-item";
-        if (mouseHovering) {
-            itemClasses += " note-control-increased-visibility";
-        }
-
         return html`<div class="note-controls-container">
-                        <div class="${itemClasses}" onClick=${ onRefsClicked }>[refs]</div>
-                        <div class="${itemClasses}" onClick=${ onEditParentClicked }>[edit]</div>
-                        <div class="${itemClasses}" onClick=${ onDeleteClicked }>[delete]</div>
-                        ${ local.showShowSummaryButton && html`<div class="${itemClasses}" onClick=${ onShowSummaryButtonClicked }>[show summary]</div>`}
-                        ${ local.showShowReviewButton && html`<div class="${itemClasses}" onClick=${ onShowReviewButtonClicked }>[show review]</div>`}
+                        <${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onRefsClicked } label="[refs]"/>
+                        <${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onEditParentClicked } label="[edit]"/>
+                        <${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onDeleteClicked } label="[delete]"/>
+                        ${ local.showShowSummaryButton && html`<${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onShowSummaryButtonClicked } label="[show summary]"/>`}
+                        ${ local.showShowReviewButton && html`<${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onShowReviewButtonClicked } label="[show review]"/>`}
                     </div>`;
     }
 
@@ -369,6 +372,56 @@ function Title(title, local, localDispatch) {
         };
 
         if (hoveringRef && hoveringRef.current) {
+            hoveringRef.current.addEventListener("mouseenter", mouseEnterTitle, false);
+            hoveringRef.current.addEventListener("mouseleave", mouseLeaveTitle, false);
+            return () => {
+                if (hoveringRef && hoveringRef.current) {
+                    hoveringRef.current.removeEventListener("mouseenter", mouseEnterTitle);
+                    hoveringRef.current.removeEventListener("mouseleave", mouseLeaveTitle);
+                }
+            }
+        }
+
+    }, []);
+
+    let classes = "deck-title";
+
+    let titleEl = titleRef.current;
+    const classSticky = "title-sticky";
+    if(titleEl && titleEl.classList.contains(classSticky)) {
+        // don't add the deck-title-fade if the title is sticky
+    } else if (mouseHovering || mouseHoveringChild) {
+        classes += " deck-title-fade";
+    }
+
+    // there are 2 markers: pre and post so that we get a nice effect in both of these scenarios:
+    // 1. the sticky header appearing when the top of the title scrolls off the top of the screen
+    // 2. the normal inline title appears when the bottom of the title text should be visible as
+    //    the user scrolls up
+    return html`
+    <div>
+        ${ buildControls(mouseHovering) }
+        <div ref=${ hoveringRef }>
+            <div ref=${ preMarkerRef }></div>
+            <div ref=${ backgroundBandRef }></div>
+            <h1 ref=${ titleRef } class=${classes}>${ title }</h1>
+            <div ref=${ postMarkerRef }></div>
+        </div>
+    </div>`;
+}
+
+function DeckControl({ moreVisible, onEnter, onLeave, onClick, label}) {
+    let hoveringRef = useRef(null);
+
+    function mouseEnter() {
+        onEnter();
+    }
+    function mouseLeave() {
+        onLeave();
+    }
+
+    useEffect(() => {
+        if (hoveringRef && hoveringRef.current) {
             hoveringRef.current.addEventListener("mouseenter", mouseEnter, false);
             hoveringRef.current.addEventListener("mouseleave", mouseLeave, false);
             return () => {
@@ -378,40 +431,31 @@ function Title(title, local, localDispatch) {
                 }
             }
         }
-
     }, []);
 
-    // there are 2 markers: pre and post so that we get a nice effect in both of these scenarios:
-    // 1. the sticky header appearing when the top of the title scrolls off the top of the screen
-    // 2. the normal inline title appears when the bottom of the title text should be visible as
-    //    the user scrolls up
-    return html`
-    <div>
-        ${  buildControls(mouseHovering)}
-        <div ref=${ hoveringRef }>
-            <div ref=${ preMarkerRef }></div>
-            <div ref=${ backgroundBandRef }></div>
-            <h1 ref=${ titleRef } class="deck-title">${ title }</h1>
-            <div ref=${ postMarkerRef }></div>
-        </div>
-    </div>`;
+
+    let classes = "note-control-item"
+    if (moreVisible) {
+        classes += " note-control-increased-visibility";
+    }
+    return html`<div ref=${hoveringRef} class=${classes} onClick=${onClick}>${label}</div>`;
 }
+
 
 function DeckRefSection({ deckId, deckMeta, editing, onCancel, onSaved }) {
     // deckMeta is the special note (of kind: NoteKind::NoteDeckMeta) that
     // contains the refs that should apply to the deck as a whole and not
     // just to individual paragraphs
 
-    let entries = '';
+    let entries = [];
     if (deckMeta && deckMeta.decks) {
         entries = deckMeta.decks.map(ref => {
             return html`<${Ref} deckReference=${ref} extraClasses="deck-ref-item"/>`;
         });
     }
 
-    // console.log(deckMeta);
     return html`<div class="deck-ref-section">
-        ${ !editing && html`${entries}`}
+        ${ !editing && entries.length && html`<div><hr class="light"/>${entries}<hr class="light"/></div>`}
         ${  editing && html`<${AddDecksUI} deckId=${deckId} note=${deckMeta} chosen=${deckMeta.decks} onCancel=${onCancel} onSaved=${ onSaved }/>` }
     </div>`;
 }

@@ -150,6 +150,11 @@ h1 {
 
 .deck-title {
   font-size: 3rem;
+  width: var(--block-width);
+}
+
+.deck-title-fade {
+  -webkit-mask-image: -webkit-gradient(linear, left top, right top, from(rgba(0,0,0,0)), to(rgba(0,0,0,1)));
 }
 
 h2 { font-size: 2.2rem; }
@@ -166,6 +171,12 @@ hr {
   border-top: 0.15rem solid var(--divider);
   margin: 1rem 0;
   padding: 0;
+}
+
+hr.light {
+  height: 0.5rem;
+  border-top: 0.15rem solid var(--bg2);
+  margin: 0 0;
 }
 
 hr.big-section {
@@ -1070,7 +1081,7 @@ section > form { width: var(--block-width); }
 }
 
 .note-control-item:hover {
-  color: var(--fg);
+  color: var(--fg) !important;
   text-align: left;
   display: block;
 }
@@ -1339,6 +1350,7 @@ input:required {
   font-family: Caveat, cursive;
   color: var(--scribble-neutral);
   font-size: 1.8rem;
+  width: var(--block-width);
 }
 
 .listing-link p {
