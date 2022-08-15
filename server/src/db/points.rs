@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::predates;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::{Error, Result};
 use crate::interop::decks as interop_decks;
@@ -134,7 +135,9 @@ pub(crate) fn all_points_during_life(
     deck_id: Key,
 ) -> Result<Vec<interop::DeckPoint>> {
     let conn = sqlite_pool.get()?;
-    sqlite::many(
+
+    // bug: sqlite incorrectly sorts dates that begin in BC (it ignores the minus in the year)
+    let buggy = sqlite::many(
         &conn,
         "select d.id as deck_id,
                 d.name as deck_name,
@@ -172,7 +175,14 @@ pub(crate) fn all_points_during_life(
          order by date",
         params![&user_id, &deck_id],
         deckpoint_from_row
-    )
+    )?;
+
+    let (mut bc, mut ad): (Vec<interop::DeckPoint>, Vec<interop::DeckPoint>) =
+        buggy.into_iter().partition(|ds| predates(ds.date));
+    bc.reverse();
+    bc.append(&mut ad);
+
+    Ok(bc)
 }
 
 pub(crate) fn create(

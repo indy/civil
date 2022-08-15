@@ -32,3 +32,10 @@ pub mod users;
 
 pub mod sqlite;
 pub mod sqlite_migrations;
+
+use chrono::Datelike;
+
+pub(crate) fn predates(d: Option<chrono::NaiveDate>) -> bool {
+    let (pre, _year) = d.unwrap().year_ce();
+    !pre
+}
