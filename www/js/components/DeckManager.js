@@ -455,7 +455,7 @@ function DeckRefSection({ deckId, deckMeta, editing, onCancel, onSaved }) {
     }
 
     return html`<div class="deck-ref-section">
-        ${ !editing && entries.length && html`<div><hr class="light"/>${entries}<hr class="light"/></div>`}
+        ${ !editing && entries.length > 0 && html`<div><hr class="light"/>${entries}<hr class="light"/></div>`}
         ${  editing && html`<${AddDecksUI} deckId=${deckId} note=${deckMeta} chosen=${deckMeta.decks} onCancel=${onCancel} onSaved=${ onSaved }/>` }
     </div>`;
 }
