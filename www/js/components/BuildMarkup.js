@@ -40,8 +40,10 @@ export default function buildMarkup(content, imageDirectory) {
             } else {
                 return h(n.name, attrs(n), ...n.children.map(child => { return compile(child, pDepth + 1)}));
             }
-        } else {
+        } else if(n.name === "blockquote") {
             return h(n.name, attrs(n), ...n.children.map(child => { return compile(child, pDepth)}));
+        } else {
+            return h(n.name, attrs(n), ...n.children.map(child => { return compile(child, pDepth + 1)}));
         }
     }
 
