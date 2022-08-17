@@ -29,7 +29,7 @@ export default function buildMarkup(content, imageDirectory) {
     function compile(n, withinRightMargin) {
         if (!withinRightMargin) {
             // set withinRightMargin to true for all subsequent children
-            withinRightMargin = n.class_name === "right-margin";
+            withinRightMargin = n.class_name === "right-margin" || n.class_name === "right-margin-note";
         }
 
         if (n.name === "text") {
@@ -50,5 +50,6 @@ export default function buildMarkup(content, imageDirectory) {
         }
     }
 
+    // console.log(astArray);
     return astArray.map(node => { return compile(node, false)});
 }
