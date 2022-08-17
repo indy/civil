@@ -26,26 +26,29 @@ export default function buildMarkup(content, imageDirectory) {
         return c.trim();
     }
 
-    function compile(n, pDepth) {
+    function compile(n, withinRightMargin) {
+        if (!withinRightMargin) {
+            // set withinRightMargin to true for all subsequent children
+            withinRightMargin = n.class_name === "right-margin";
+        }
+
         if (n.name === "text") {
             return n.text;
         } else if(n.name === "p") {
-            if (pDepth > 0) {
+            if (withinRightMargin) {
                 // we have a nested paragraph (e.g. text in the right-hand margin created by the pipe syntax)
                 // as html's <p> tag cannot be nested, use a span with a custom class
                 //
                 let modified_attrs = attrs(n);
                 modified_attrs.class = assignPseudoParagraph(modified_attrs.class);
-                return h("span", modified_attrs, ...n.children.map(child => { return compile(child, pDepth + 1)}));
+                return h("span", modified_attrs, ...n.children.map(child => { return compile(child, withinRightMargin)}));
             } else {
-                return h(n.name, attrs(n), ...n.children.map(child => { return compile(child, pDepth + 1)}));
+                return h(n.name, attrs(n), ...n.children.map(child => { return compile(child, withinRightMargin)}));
             }
-        } else if(n.name === "blockquote") {
-            return h(n.name, attrs(n), ...n.children.map(child => { return compile(child, pDepth)}));
         } else {
-            return h(n.name, attrs(n), ...n.children.map(child => { return compile(child, pDepth + 1)}));
+            return h(n.name, attrs(n), ...n.children.map(child => { return compile(child, withinRightMargin)}));
         }
     }
 
-    return astArray.map(node => { return compile(node, 0)});
+    return astArray.map(node => { return compile(node, false)});
 }
