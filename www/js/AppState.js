@@ -381,7 +381,7 @@ export const reducer = (state, action) => {
             let newState = { ...state };
             newState.cache.deck[action.newItem.id] = action.newItem;
             if (newState.listing.people) {
-                updateListOfNames(newState.listing.people, action.newItem);
+                updateHashOfNames(newState.listing.people, action.newItem);
             }
             return newState;
         }
@@ -435,22 +435,32 @@ function updateListOfTitles(arr, obj) {
     }
 }
 
-function updateListOfNames(arr, obj) {
-    let isEntry = false;
-    // check if the title of obj has changed, update the listing array if necessary
-    //
-    arr.forEach(a => {
-        if (a.id === obj.id) {
-            isEntry = true;
-            a.name = obj.name;
-        }
-    });
+function updateHashOfNames(people, obj) {
+    function updateArrayOfNames(arr) {
 
-    if (!isEntry) {
-        // this is a new entry, place it at the start of the list
-        arr.unshift({id: obj.id, name: obj.name});
+        let isEntry = false;
+        // check if the title of obj has changed, update the listing array if necessary
+        //
+        arr.forEach(a => {
+            if (a.id === obj.id) {
+                isEntry = true;
+                a.name = obj.name;
+            }
+        });
+
+        if (!isEntry) {
+            // this is a new entry, place it at the start of the list
+            arr.unshift({id: obj.id, name: obj.name});
+        }
     }
+
+    updateArrayOfNames(people.uncategorised);
+    updateArrayOfNames(people.ancient);
+    updateArrayOfNames(people.medieval);
+    updateArrayOfNames(people.contemporary);
 }
+
+
 
 
 function packedToKind(packed) {
