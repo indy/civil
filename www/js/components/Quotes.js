@@ -236,7 +236,7 @@ function Quote(props) {
         }
     };
 
-    const note = quote.notes && quote.notes[0];
+    const note = quote.notes && quote.notes.find(n => n.kind === "Note");
 
     function updateNoteServerSide() {
         // as the title could have changed, we need to post the updated quote to the server
