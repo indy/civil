@@ -2,8 +2,19 @@ import { html, useState, useEffect } from '/lib/preact/mod.js';
 import { obtainKeyboard, relinquishKeyboard } from '/js/CivilUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 
-export default function CivilTextArea({id, value, elementRef, elementClass, onInput }) {
+export default function CivilTextArea({id, value, elementRef, elementClass, onFocus, onBlur, onInput }) {
     const [state, dispatch] = useStateValue();
+
+
+    function onTextAreaFocus() {
+        obtainKeyboard(dispatch);
+        onFocus && onFocus();
+    }
+
+    function onTextAreaBlur() {
+        relinquishKeyboard(dispatch);
+        onBlur && onBlur();
+    }
 
     return html`
     <textarea id=${id}
@@ -12,8 +23,8 @@ export default function CivilTextArea({id, value, elementRef, elementClass, onIn
               value=${ value }
               ref=${elementRef}
               class=${elementClass}
-              onFocus=${ obtainKeyboard(dispatch) }
-              onBlur=${ relinquishKeyboard(dispatch) }
+              onFocus=${ onTextAreaFocus }
+              onBlur=${ onTextAreaBlur }
               onInput=${ onInput } />
     `;
 }

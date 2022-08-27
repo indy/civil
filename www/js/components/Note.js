@@ -28,10 +28,52 @@ const EDITING_CANCELLED = 'editing-cancelled';
 const MOUSE_ENTER = "mouse-enter";
 const MOUSE_LEAVE = "mouse-leave";
 
+const TEXT_AREA_FOCUSED = 'text-area-focused';
+const TEXT_AREA_BLURRED = 'text-area-blurred';
+const IMAGE_PASTED = 'image-pasted';
+
 function reducer(state, action) {
     const [appState, appDispatch] = useStateValue();
 
     switch(action.type) {
+    case IMAGE_PASTED: {
+        const { textAreaRef, markup } = action.data;
+        const content = state.note.content;
+
+        let cursor;
+        if (state.textAreaFocused) {
+            cursor = textAreaRef.current.selectionStart;
+        } else {
+            cursor = state.oldCursorPos;
+        }
+
+        const newContent = content.slice(0, cursor) + markup + " " + content.slice(cursor);
+
+        const res = {
+            ...state,
+            note: {
+                ...state.note,
+                content: newContent
+            },
+            oldCursorPos: cursor + markup.length + 1
+        };
+        return res;
+    }
+    case TEXT_AREA_FOCUSED: {
+        let res = {
+            ...state,
+            textAreaFocused: true
+        };
+        return res;
+    }
+    case TEXT_AREA_BLURRED: {
+        let res = {
+            ...state,
+            oldCursorPos: action.data,
+            textAreaFocused: false
+        };
+        return res;
+    }
     case MOUSE_ENTER: {
         let res = {
             ...state,
@@ -147,11 +189,14 @@ export default function Note(props) {
         originalContent: props.note.content,
         decks: (props.note && props.note.decks),
         flashcardToShow: undefined,
-        mouseHovering: false
+        mouseHovering: false,
+        oldCursorPos: 0,
+        textAreaFocused: false
     };
     const [local, localDispatch] = useLocalReducer(reducer, initialState);
 
     const hoveringRef = useRef(null);
+    const textAreaRef = useRef(null);
 
     function mouseEnter() {
         localDispatch(MOUSE_ENTER);
@@ -213,11 +258,23 @@ export default function Note(props) {
         }
     };
 
+    function onTextAreaFocus() {
+        localDispatch(TEXT_AREA_FOCUSED);
+    }
+
+    function onTextAreaBlur() {
+        let cursor = textAreaRef.current.selectionStart;
+        localDispatch(TEXT_AREA_BLURRED, cursor);
+    }
+
     function buildEditableContent() {
         return html`
         <div class="civil-form">
             <${CivilTextArea} id="content"
                               value=${ local.note.content }
+                              elementRef=${ textAreaRef }
+                              onFocus=${ onTextAreaFocus }
+                              onBlur=${ onTextAreaBlur }
                               onInput=${ handleChangeEvent }/>
         </div>`;
     };
@@ -301,6 +358,10 @@ export default function Note(props) {
         </div>`;
     };
 
+    function onImagePaste(markup) {
+        localDispatch(IMAGE_PASTED, { textAreaRef, markup });
+    }
+
     function buildMainButtons() {
         let editLabelText = local.isEditingMarkup ? "Save Edits" : "Edit...";
 
@@ -314,7 +375,7 @@ export default function Note(props) {
                 <button onClick=${ onCancelClicked }>Cancel</button>
                 <button disabled=${!hasNoteBeenModified(local)} onClick=${ onSaveEditsClicked }>Save Edits</button>
                 <${DeleteConfirmation} onDelete=${ confirmedDeleteClicked }/>
-                <${ImageWidget}/>
+                <${ImageWidget} onPaste=${ onImagePaste } />
             </div>`;
         } else {
             return html`<div class="block-width"></div>`;

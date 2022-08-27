@@ -159,7 +159,18 @@ function NoteManager({ deck, cacheDeck, onRefsChanged, filterFn, optional_deck_p
 
 function NoteForm({ onSubmit, onCancel }) {
     const textAreaRef = useRef(null);
-    const [content, setContent] = useState('');
+
+    // need to keep track of the cursor position in case the user:
+    // moves cursor to a position within the text and clicks on the ImageWidget
+    // to add markup multiple times. The expected result is to have multiple
+    // image markups at the point where the cursor was (by default the cursor
+    // goes to the end of the content once the first image markup has been added)
+    //
+    const [local, setLocal] = useState({
+        content: '',
+        oldCursorPos: 0,
+        textAreaFocused: false
+    });
 
     const handleChangeEvent = (event) => {
         const target = event.target;
@@ -167,7 +178,10 @@ function NoteForm({ onSubmit, onCancel }) {
         const value = target.value;
 
         if (name === 'content') {
-            setContent(value);
+            setLocal({
+                ...local,
+                content: value
+            })
         }
     };
 
@@ -176,6 +190,42 @@ function NoteForm({ onSubmit, onCancel }) {
             textAreaRef.current.focus();
         }
     }, []);
+
+    function onImagePaste(markup) {
+        let content = local.content;
+
+
+        let cursor;
+        if (local.textAreaFocused) {
+            cursor = textAreaRef.current.selectionStart;
+        } else {
+            cursor = local.oldCursorPos;
+        }
+
+        let newContent = content.slice(0, cursor) + markup + " " + content.slice(cursor);
+
+        setLocal({
+            ...local,
+            oldCursorPos: cursor + markup.length + 1,
+            content: newContent
+        });
+    }
+
+    function onTextAreaFocus() {
+        setLocal({
+            ...local,
+            textAreaFocused: true
+        });
+    }
+
+    function onTextAreaBlur() {
+        let cursor = textAreaRef.current.selectionStart;
+        setLocal({
+            ...local,
+            oldCursorPos: cursor,
+            textAreaFocused: false
+        });
+    }
 
     return html`
            <div class="append-note">
@@ -191,12 +241,14 @@ function NoteForm({ onSubmit, onCancel }) {
                    <${CivilTextArea} id="content"
                                      elementRef=${ textAreaRef }
                                      elementClass="new-note-textarea"
-                                     value=${ content }
+                                     value=${ local.content }
+                                     onFocus=${ onTextAreaFocus }
+                                     onBlur=${ onTextAreaBlur }
                                      onInput=${ handleChangeEvent }/>
                    <br/>
                    <input type="submit" value="Save"/>
                </form>
-               <${ImageWidget}/>
+               <${ImageWidget} onPaste=${ onImagePaste }/>
            </div>`;
 }
 
