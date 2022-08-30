@@ -7,6 +7,7 @@
   --body-width: 80%;
   --block-width: 55%;
   --block-width-indented: 50%;
+  --block-width-indented-2: 40%;
 
   --coloured-deck-border-radius: 0.3em;
 
@@ -1206,7 +1207,7 @@ section > form { width: var(--block-width); }
   display: inline-flex;
   padding-left: 1rem;
   float: none;
-  width: var(--block-width-indented);
+  width: var(--block-width-indented-2);
 }
 
 

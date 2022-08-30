@@ -2,6 +2,7 @@ import { html, Link, useState } from '/lib/preact/mod.js';
 
 import { svgCaretRight, svgCaretDown } from '/js/svgIcons.js';
 import { useStateValue } from '/js/StateProvider.js';
+import { Ref } from '/js/components/Ref.js';
 
 import buildMarkup from '/js/components/BuildMarkup.js';
 
@@ -46,11 +47,8 @@ function buildDeckLevelAnnotation(deck_level_annotation) {
 
 function buildDeckLevelBackRefs(deck_level_refs) {
     let refs = deck_level_refs.map(r => html`
-    <div class="deck-level-backref">
-        <span class="ref-kind">(${ r.ref_kind })</span>
-        <${Link} class="ref pigment-${ r.resource }" href="/${r.resource}/${r.deck_id}">${ r.deck_name }</${Link}>
-        ${ r.annotation && html`<div class="ref-scribble pigment-fg-${ r.resource }">${ r.annotation }</div>`}
-    </div>`);
+        <${Ref} deckReference=${r} extraClasses="deck-level-backref"/>
+    `);
 
     return html`<div>${ refs }</div>`;
 }
@@ -60,33 +58,18 @@ function buildNotes(notes) {
 
     let res = notes.reduce((a, note) => {
         if (note.top_annotation) {
-            a.push(html`<div class="ref-top-scribble">
-                            ${ note.top_annotation }
-                        </div>`);
+            a.push(html`<div class="ref-top-scribble">${ note.top_annotation }</div>`);
         }
 
-        let refs = note.refs && note.refs.map(r => html`
-        <div class="left-margin-entry">
-            <span class="ref-kind">(${ r.ref_kind })</span>
-            <${Link} class="ref pigment-${ r.resource }" href="/${r.resource}/${r.deck_id}">${ r.deck_name }</${Link}>
-            ${ r.annotation && html`
-                <div class="ref-scribble pigment-fg-${ r.resource }">
-                    ${ r.annotation }
-                </div>`}
-        </div>
-      `);
+        let refs = note.refs && note.refs.map(r => {
+            return html`<${Ref} deckReference=${r} extraClasses="left-margin-entry"/>`;
+        });
 
         a.push(html`
-        <div class="note">
-            ${ note.refs && html`
-                <div class="left-margin">
-                    ${ refs }
-                </div>`}
-            <div>
-                 ${ buildMarkup(note.note_content, state.imageDirectory) }
-            </div>
-        </div>
-    `);
+            <div class="note">
+                ${ note.refs && html`<div class="left-margin">${ refs }</div>`}
+                ${ buildMarkup(note.note_content, state.imageDirectory) }
+            </div>`);
 
         a.push(html`<hr/>`);
         return a;

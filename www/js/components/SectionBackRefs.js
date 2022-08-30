@@ -54,8 +54,8 @@ export default function SectionBackRefs({ state, backrefs, backnotes, deckId }) 
                     d.deck_level_annotation = br.annotation;
                 } else {
                     d.deck_level_refs.push({
-                        deck_id: br.deck_id,
-                        deck_name: br.deck_name,
+                        id: br.deck_id,
+                        name: br.deck_name,
                         ref_kind: br.ref_kind,
                         resource: br.resource,
                         annotation: br.annotation
@@ -70,8 +70,8 @@ export default function SectionBackRefs({ state, backrefs, backnotes, deckId }) 
                             d.notes[j].top_annotation = br.annotation;
                         } else {
                             d.notes[j].refs.push({
-                                deck_id: br.deck_id,
-                                deck_name: br.deck_name,
+                                id: br.deck_id,
+                                name: br.deck_name,
                                 ref_kind: br.ref_kind,
                                 resource: br.resource,
                                 annotation: br.annotation
