@@ -8,7 +8,6 @@ import { ExpandableListingLink } from '/js/components/ListingLink.js';
 
 export default function SectionBackRefs({ state, backrefs, backnotes, deckId }) {
     const sections = [];
-
     const decks = [];
 
     // isg todo: People.js also had a check of nonEmptyArray(backnotes)
@@ -25,15 +24,22 @@ export default function SectionBackRefs({ state, backrefs, backnotes, deckId }) 
                 deck_id: n.deck_id,
                 deck_name: n.deck_name,
                 resource: n.resource,
-                notes: []
+                notes: [],
+                deck_level_refs: [],
+                meta_note_id: 0
             });
         }
 
-        decks[decks.length - 1].notes.push({
-            note_content: n.note_content,
-            note_id: n.note_id,
-            refs: []
-        });
+        if (n.note_kind === "NoteDeckMeta") {
+            // all refs associated with the NoteDeckMeta note id are rendered differently
+            decks[decks.length - 1].meta_note_id = n.note_id;
+        } else {
+            decks[decks.length - 1].notes.push({
+                note_content: n.note_content,
+                note_id: n.note_id,
+                refs: []
+            });
+        }
     });
 
     // attach refs to the correct notes
@@ -42,21 +48,34 @@ export default function SectionBackRefs({ state, backrefs, backnotes, deckId }) 
         // find the note_id
         for (let i = 0; i < decks.length; i++) {
             let d = decks[i];
-            for (let j = 0; j < d.notes.length; j++) {
-                if (d.notes[j].note_id === br.note_id) {
-                    if (br.deck_id === deckId) {
-                        d.notes[j].top_ref_kind = br.ref_kind;
-                        d.notes[j].top_annotation = br.annotation;
-                    } else {
-                        d.notes[j].refs.push({
-                            deck_id: br.deck_id,
-                            deck_name: br.deck_name,
-                            ref_kind: br.ref_kind,
-                            resource: br.resource,
-                            annotation: br.annotation
-                        })
+
+            if (d.meta_note_id === br.note_id) {
+                // separate out the deck level refs
+                d.deck_level_refs.push({
+                    deck_id: br.deck_id,
+                    deck_name: br.deck_name,
+                    ref_kind: br.ref_kind,
+                    resource: br.resource,
+                    annotation: br.annotation
+                });
+                break;
+            } else {
+                for (let j = 0; j < d.notes.length; j++) {
+                    if (d.notes[j].note_id === br.note_id) {
+                        if (br.deck_id === deckId) {
+                            d.notes[j].top_ref_kind = br.ref_kind;
+                            d.notes[j].top_annotation = br.annotation;
+                        } else {
+                            d.notes[j].refs.push({
+                                deck_id: br.deck_id,
+                                deck_name: br.deck_name,
+                                ref_kind: br.ref_kind,
+                                resource: br.resource,
+                                annotation: br.annotation
+                            })
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
@@ -118,6 +137,7 @@ function SectionLinks({ backrefs }) {
                                   expanded=${ localState.childrenExpanded[i] }
                                   deck_id=${ br.deck_id }
                                   deck_name=${ br.deck_name }
+                                  deck_level_refs=${ br.deck_level_refs }
                                   resource=${ br.resource }
                                   notes=${ br.notes }/>`;
     });

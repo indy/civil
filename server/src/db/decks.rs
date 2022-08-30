@@ -20,6 +20,7 @@ use crate::db::points;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::{Error, Result};
 use crate::interop::decks as interop;
+use crate::interop::notes as note_interop;
 use crate::interop::decks::DeckKind;
 use crate::interop::Key;
 use rusqlite::{params, Connection, Row};
@@ -241,10 +242,12 @@ pub(crate) fn get_backnotes(
 
     fn backnote_from_row(row: &Row) -> Result<interop::BackNote> {
         let kind: String = row.get(2)?;
+        let sql_note_kind: i32 = row.get(5)?;
 
         Ok(interop::BackNote {
             note_id: row.get(4)?,
             note_content: row.get(3)?,
+            note_kind: note_interop::note_kind_from_sqlite(sql_note_kind)?,
             deck_id: row.get(0)?,
             deck_name: row.get(1)?,
             resource: DeckKind::from_str(&kind)?,
@@ -255,7 +258,8 @@ pub(crate) fn get_backnotes(
                        d.name AS deck_name,
                        d.kind as kind,
                        n.content as note_content,
-                       n.id as note_id
+                       n.id as note_id,
+                       n.kind as note_kind
                 FROM decks d,
                      notes n,
                      notes_decks nd

@@ -17,6 +17,7 @@
 
 use crate::error::{Error, Result};
 use crate::interop::Key;
+use crate::interop::notes::NoteKind;
 
 use std::fmt;
 use std::str::FromStr;
@@ -116,6 +117,7 @@ pub struct Ref {
 pub struct BackNote {
     pub note_id: Key,
     pub note_content: String,
+    pub note_kind: NoteKind,
     pub deck_id: Key,
     pub deck_name: String,
     pub resource: DeckKind,

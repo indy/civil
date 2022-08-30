@@ -1196,6 +1196,18 @@ section > form { width: var(--block-width); }
   float: right;
 }
 
+.deck-level-backref {
+  font-family: Inter;
+  font-size: 1.1rem;
+  padding-top: 0.2rem;
+  padding-left: 2rem;
+}
+.deck-level-backref > .ref-scribble {
+  padding-left: 1rem;
+  float: none;
+}
+
+
 .deck-ref-item > .ref-scribble {
   float: none;
   width: var(--block-width);

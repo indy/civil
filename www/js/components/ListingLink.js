@@ -16,7 +16,7 @@ function ListingLink({ resource, id, name }) {
     return res;
 };
 
-function ExpandableListingLink({ index, resource, deck_id, deck_name, notes, expanded, onExpandClick }) {
+function ExpandableListingLink({ index, resource, deck_id, deck_name, deck_level_refs, notes, expanded, onExpandClick }) {
     function onClicked(e) {
         e.preventDefault();
         onExpandClick(index);
@@ -32,11 +32,23 @@ function ExpandableListingLink({ index, resource, deck_id, deck_name, notes, exp
         <span class="backref-deck">
             <${Link} class="pigment-fg-${resource}" href=${ href }>${ deck_name }</${Link}>
         </span>
+        ${ expanded && buildDeckLevelBackRefs(deck_level_refs) }
         ${ expanded && buildNotes(notes) }
     </div>`;
 
     return res;
 };
+
+function buildDeckLevelBackRefs(deck_level_refs) {
+    let refs = deck_level_refs.map(r => html`
+    <div class="deck-level-backref">
+        <span class="ref-kind">(${ r.ref_kind })</span>
+        <${Link} class="ref pigment-${ r.resource }" href="/${r.resource}/${r.deck_id}">${ r.deck_name }</${Link}>
+        ${ r.annotation && html`<span class="ref-scribble pigment-fg-${ r.resource }">${ r.annotation }</span>`}
+    </div>`);
+
+    return html`<div>${ refs }</div>`;
+}
 
 function buildNotes(notes) {
     const [state] = useStateValue();
