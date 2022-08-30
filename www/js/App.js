@@ -17,7 +17,6 @@ import { Person, People }      from '/js/components/People.js';
 import { Article, Articles }   from '/js/components/Articles.js';
 import { Timeline, Timelines } from '/js/components/Timelines.js';
 import { Quote, Quotes }       from '/js/components/Quotes.js';
-import { WhenWritableToggle }  from '/js/components/WhenWritable.js';
 
 export async function buildInitialState() {
     let state = initialState;
@@ -44,14 +43,6 @@ export async function buildInitialState() {
             state = reducer(state, {
                 type: 'uberSetup',
                 ...uberSetupStruct
-            });
-
-            // set the app to be read only on small devices
-            //
-            let smallScreen = window.matchMedia("(max-width: 500px)");
-            state = reducer(state, {
-                type: 'setLock',
-                readOnly: smallScreen.matches
             });
 
             console.log('user is logged in');
@@ -126,7 +117,6 @@ function TopBarMenu(props) {
                     <${Link} class='pigment-inherit' href='/sr'>SR(${state.srReviewCount})</${Link}>
                 </div>
                 <div>
-                    <${WhenWritableToggle}/>
                     <${Link} class='pigment-inherit' href=${ loggedLink() }>${ loggedStatus() }</${Link}>
                 </div>
             </div>

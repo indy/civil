@@ -9,7 +9,6 @@ import CivilTextArea from '/js/components/CivilTextArea.js';
 import ImageWidget from '/js/components/ImageWidget.js';
 import Note from '/js/components/Note.js';
 import RollableSection from '/js/components/RollableSection.js';
-import { WhenWritable } from '/js/components/WhenWritable.js';
 import { WhenVerbose } from '/js/components/WhenVerbose.js';
 
 const NOTE_SECTION_HIDE = 0;
@@ -120,30 +119,26 @@ function NoteManager({ deck, cacheDeck, onRefsChanged, filterFn, optional_deck_p
         if (optional_deck_point) {
             return html`
             <${WhenVerbose}>
-                <${WhenWritable}>
-                    <div class="inline-append-note">
-                        <div class="left-margin-inline">
-                            <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
-                                ${ svgEdit() }
-                                <span class="left-margin-icon-label ui-bold">${ appendLabel }</span>
-                            </div>
+                <div class="inline-append-note">
+                    <div class="left-margin-inline">
+                        <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
+                            ${ svgEdit() }
+                            <span class="left-margin-icon-label ui-bold">${ appendLabel }</span>
                         </div>
                     </div>
-                </${WhenWritable}>
+                </div>
             </${WhenVerbose}>`;
         } else {
             return html`
             <${WhenVerbose}>
-                <${WhenWritable}>
-                    <div class="append-note">
-                        <div class="left-margin">
-                            <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
-                                <span class="left-margin-icon-label ui-bold">${ appendLabel }</span>
-                                ${ svgEdit() }
-                            </div>
+                <div class="append-note">
+                    <div class="left-margin">
+                        <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
+                            <span class="left-margin-icon-label ui-bold">${ appendLabel }</span>
+                            ${ svgEdit() }
                         </div>
                     </div>
-                </${WhenWritable}>
+                </div>
             </${WhenVerbose}>`;
         }
     }

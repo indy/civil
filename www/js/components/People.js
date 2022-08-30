@@ -26,7 +26,6 @@ import { DeckSimpleListSection } from '/js/components/ListSections.js';
 import { DeckManager } from '/js/components/DeckManager.js';
 import { PointForm } from '/js/components/PointForm.js';
 import { WhenVerbose } from '/js/components/WhenVerbose.js';
-import { WhenWritable } from '/js/components/WhenWritable.js';
 
 function People() {
     const [state, dispatch] = useStateValue();
@@ -384,17 +383,15 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAdd
         <ul class="unstyled-list hug-left">
             ${ dps }
         </ul>
-        <${WhenWritable}>
-            <${WhenVerbose}>
-                <div class="left-margin">
-                    <div class="left-margin-entry clickable" onClick=${ onAddPointClicked }>
-                        <span class="left-margin-icon-label">${ formSidebarText }</span>
-                        ${ showAddPointForm ? svgX() : svgPointAdd() }
-                    </div>
+        <${WhenVerbose}>
+            <div class="left-margin">
+                <div class="left-margin-entry clickable" onClick=${ onAddPointClicked }>
+                    <span class="left-margin-icon-label">${ formSidebarText }</span>
+                    ${ showAddPointForm ? svgX() : svgPointAdd() }
                 </div>
-            </${WhenVerbose}>
-            ${ showAddPointForm && deckManager.buildPointForm(onPointCreated) }
-        </${WhenWritable}>
+            </div>
+        </${WhenVerbose}>
+        ${ showAddPointForm && deckManager.buildPointForm(onPointCreated) }
     </${RollableSection}>`;
 }
 

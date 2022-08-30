@@ -77,7 +77,6 @@ var precacheConfig = [
     "/js/components/Stats.js",
     "/js/components/Timelines.js",
     "/js/components/WhenVerbose.js",
-    "/js/components/WhenWritable.js",
 
     "/lib/preact/hooks.mjs",
     "/lib/preact/htm.js",

@@ -198,26 +198,6 @@ export const reducer = (state, action) => {
             componentRequiresFullKeyboardAccess: false,
             showAddPointForm: false
         };
-    case 'setLock':
-        return {
-            ...state,
-            readOnly: action.readOnly
-        };
-    case 'toggleLock':
-        return {
-            ...state,
-            readOnly: !state.readOnly
-        };
-    case 'lock':
-        return {
-            ...state,
-            readOnly: true
-        };
-    case 'unlock':
-        return {
-            ...state,
-            readOnly: false
-        };
     case 'connectivityGraphShow':
         return {
             ...state,

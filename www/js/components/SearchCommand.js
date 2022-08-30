@@ -510,8 +510,6 @@ function allCommands() {
         {command: ':p',  description: "show point form"},
         {spacer: true},
         {command: ':b', description: "bookmark current page to scratchlist"},
-        {command: ':l', description: "lock (prevent edits)"},
-        {command: ':u', description: "unlock (allow edits)"},
         {command: ':uic', description: "clean ui"},
         {command: ':uib', description: "basic ui"},
         {command: ':g', description: "show connectivity graph"},
@@ -554,8 +552,6 @@ function executeCommand(text, appDispatch) {
     case "nr": return dispatchMessage('showNoteForm', { noteKind: NOTE_KIND_REVIEW });
     case "ns": return dispatchMessage('showNoteForm', { noteKind: NOTE_KIND_SUMMARY });
     case "p": return dispatchMessage('showAddPointForm');
-    case "l": return dispatchMessage('lock');
-    case "u": return dispatchMessage('unlock');
     case "r": {
         Net.get("/api/quotes/random").then(quote => {
             route(`/quotes/${quote.id}`);
