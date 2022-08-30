@@ -1203,8 +1203,10 @@ section > form { width: var(--block-width); }
   padding-left: 2rem;
 }
 .deck-level-backref > .ref-scribble {
+  display: inline-flex;
   padding-left: 1rem;
   float: none;
+  width: var(--block-width-indented);
 }
 
 
@@ -1219,6 +1221,9 @@ section > form { width: var(--block-width); }
   padding-top: 1rem;
   padding-bottom: 0.3rem;
   width: var(--block-width);
+}
+.indented {
+  padding-left: 2rem;
 }
 
 .ref-clearer {

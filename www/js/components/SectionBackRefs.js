@@ -50,15 +50,18 @@ export default function SectionBackRefs({ state, backrefs, backnotes, deckId }) 
             let d = decks[i];
 
             if (d.meta_note_id === br.note_id) {
-                // separate out the deck level refs
-                d.deck_level_refs.push({
-                    deck_id: br.deck_id,
-                    deck_name: br.deck_name,
-                    ref_kind: br.ref_kind,
-                    resource: br.resource,
-                    annotation: br.annotation
-                });
-                break;
+                if (br.deck_id === deckId) {
+                    d.deck_level_annotation = br.annotation;
+                } else {
+                    d.deck_level_refs.push({
+                        deck_id: br.deck_id,
+                        deck_name: br.deck_name,
+                        ref_kind: br.ref_kind,
+                        resource: br.resource,
+                        annotation: br.annotation
+                    });
+                    break;
+                }
             } else {
                 for (let j = 0; j < d.notes.length; j++) {
                     if (d.notes[j].note_id === br.note_id) {
@@ -138,6 +141,7 @@ function SectionLinks({ backrefs }) {
                                   deck_id=${ br.deck_id }
                                   deck_name=${ br.deck_name }
                                   deck_level_refs=${ br.deck_level_refs }
+                                  deck_level_annotation=${ br.deck_level_annotation }
                                   resource=${ br.resource }
                                   notes=${ br.notes }/>`;
     });
