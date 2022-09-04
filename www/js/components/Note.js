@@ -154,23 +154,42 @@ function reducer(state, action) {
             addFlashCardUI: false,
         }
     case TOGGLE_EDITING: {
-        const newState = { ...state };
-        newState.isEditingMarkup = !newState.isEditingMarkup;
+        const newState = {
+            ...state,
+            isEditingMarkup: !state.isEditingMarkup
+        };
+
+        if (newState.isEditingMarkup) {
+            appDispatch({type: 'enableFullKeyboardAccessForComponent'});
+        } else {
+            appDispatch({type: 'disableFullKeyboardAccessForComponent'});
+        }
 
         return newState;
     }
     case EDITED_NOTE: {
-        const newState = { ...state };
-        newState.isEditingMarkup = !newState.isEditingMarkup;
+        const newState = {
+            ...state,
+            isEditingMarkup: false,
+            originalContent: state.note.content
+        };
 
-        newState.originalContent = newState.note.content;
+        appDispatch({type: 'disableFullKeyboardAccessForComponent'});
 
         return newState;
     }
     case EDITING_CANCELLED: {
-        const newState = { ...state };
-        newState.isEditingMarkup = false;
-        newState.note.content = newState.originalContent;
+        const newState = {
+            ...state,
+            isEditingMarkup: false,
+            note: {
+                ...state.note,
+                content: state.originalContent
+            }
+        };
+
+        appDispatch({type: 'disableFullKeyboardAccessForComponent'});
+
         return newState;
     }
 
