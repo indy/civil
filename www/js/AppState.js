@@ -11,6 +11,9 @@ export const initialState = {
     //   email: ...
     // },
 
+
+    appName: "Civil",
+
     uiColours: {
         // note: this will be filled with extra values from
         // ColourCreator.js::augmentSettingsWithCssModifierParameters
@@ -104,7 +107,7 @@ export const reducer = (state, action) => {
             srEarliestReviewDate: action.srEarliestReviewDate
         };
     case 'setUrlName': {
-        document.title = `Civil: ${action.urlName}`;
+        document.title = `${state.appName}: ${action.urlName}`;
         return {
             ...state,
             urlName: action.urlName
