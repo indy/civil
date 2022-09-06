@@ -563,6 +563,8 @@ fn core_description_pairing<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<(bo
                 desc_tokens.push(maybe);
             }
             tokens = &tokens[1..];
+        } else if is_head(tokens, TokenIdent::Whitespace) && !found_desc_divide {
+            found_desc_divide = true;
         } else {
             if found_desc_divide {
                 desc_tokens.push(tokens[0]);
@@ -1749,6 +1751,37 @@ some other lines| more words afterwards",
                             assert_text(&children[0], "https");
                             assert_text(&children[1], "://en.wikipedia.org/wiki/Karl");
                             assert_text(&children[2], "_Marx")
+                        }
+                        _ => assert!(false),
+                    };
+                }
+                _ => assert_eq!(false, true),
+            };
+        }
+    }
+
+    #[test]
+    fn test_url_bug_3() {
+        {
+            let nodes = build(":url(https://en.wikipedia.org/wiki/May_68 May 68)");
+            dbg!(&nodes);
+
+            assert_eq!(1, nodes.len());
+
+            let children = paragraph_children(&nodes[0]).unwrap();
+            assert_eq!(children.len(), 1);
+
+            let node = &children[0];
+            match node {
+                Node::Url(_, url, ns) => {
+                    assert_eq!(url, "https://en.wikipedia.org/wiki/May_68");
+
+                    assert_eq!(1, ns.len());
+                    assert_paragraph(&ns[0]);
+                    match &ns[0] {
+                        Node::Paragraph(_, children) => {
+                            assert_eq!(children.len(), 1);
+                            assert_text(&children[0], "May 68");
                         }
                         _ => assert!(false),
                     };
