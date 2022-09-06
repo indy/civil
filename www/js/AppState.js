@@ -104,6 +104,7 @@ export const reducer = (state, action) => {
             srEarliestReviewDate: action.srEarliestReviewDate
         };
     case 'setUrlName': {
+        document.title = `Civil: ${action.urlName}`;
         return {
             ...state,
             urlName: action.urlName

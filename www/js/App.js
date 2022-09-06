@@ -83,7 +83,7 @@ export function App(state, wasmInterface) {
 }
 
 function TopBarMenu(props) {
-    const [state] = useStateValue();
+    const [state, dispatch] = useStateValue();
 
     function loggedStatus() {
         let status = '';
@@ -105,13 +105,21 @@ function TopBarMenu(props) {
         return state.user ? "/logout" : "/login";
     }
 
+    function clickedTopLevel(deckKind) {
+        dispatch({ type: "setUrlName", urlName: deckKind })
+    }
+
     if (state.verboseUI) {
         return html`
         <nav>
             <div id="elastic-top-menu-items">
-                ${state.preferredOrder.map(dk => html`
+                ${state.preferredOrder.map(deckKind => html`
                     <div class="optional-navigable top-menu-decktype">
-                        <${Link} class='pigment-${dk}' href='/${dk}'>${capitalise(dk)}</${Link}>
+                        <${Link} class='pigment-${deckKind}'
+                                 onclick=${ () => { clickedTopLevel(deckKind) } }
+                                 href='/${deckKind}'>
+                            ${capitalise(deckKind)}
+                        </${Link}>
                     </div>`)}
                 <div id="top-menu-sr">
                     <${Link} class='pigment-inherit' href='/sr'>SR(${state.srReviewCount})</${Link}>

@@ -77,11 +77,6 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
 
     const [state, appDispatch] = useStateValue();
     const cacheDeck = makeCacheDeckFn(preCacheFn);
-
-    if (title && state.urlName !== title) {
-        appDispatch({type: 'setUrlName', urlName: title});
-    }
-
     const [fetchingDeck, setFetchingDeck] = useState(undefined);
 
     const [local, localDispatch] = useLocalReducer(reducer, {
@@ -91,6 +86,10 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
         showShowSummaryButton: hasSummarySection,
         showShowReviewButton: hasReviewSection
     });
+
+    useEffect(() => {
+        appDispatch({ type: 'setUrlName', urlName: title });
+    }, [title]);
 
     useEffect(() => {
         if(!state.cache.deck[deck.id]) {
