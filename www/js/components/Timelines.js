@@ -7,9 +7,7 @@ import { capitalise } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 
 import CivilInput from '/js/components/CivilInput.js';
-import GraphSection from '/js/components/GraphSection.js';
 import RollableSection from '/js/components/RollableSection.js';
-import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import { DeckSimpleList } from '/js/components/ListSections.js';
 import { DeckManager } from '/js/components/DeckManager.js';
 import { PointForm } from '/js/components/PointForm.js';
@@ -29,15 +27,13 @@ function Timelines() {
     </article>`;
 }
 
-function Timeline(props) {
+function Timeline({ id }) {
     const [state, dispatch] = useStateValue();
 
-    const timelineId = parseInt(props.id, 10);
-    const timeline = state.cache.deck[timelineId] || { id: timelineId };
+    const timelineId = parseInt(id, 10);
 
     const deckManager = DeckManager({
-        deck: timeline,
-        title: timeline.title,
+        id: timelineId,
         resource: "timelines",
         preCacheFn: preCacheFn,
         updateForm: UpdateTimelineForm,
@@ -45,10 +41,7 @@ function Timeline(props) {
         hasReviewSection: false
     });
 
-    // this is only for presentational purposes
-    // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
-    // this check prevents the vis from rendering until after we have all the note and links ready
-    const okToShowGraph = !!(deckManager.hasNotes || (timeline.backrefs && timeline.backrefs.length > 0));
+    let timeline = state.deckManagerState.deck;
 
     return html`
     <article>
@@ -57,14 +50,17 @@ function Timeline(props) {
         ${ deckManager.buildDeleteForm() }
         ${ deckManager.buildDeckRefSection() }
         ${ deckManager.buildNoteSections() }
-        <${SectionBackRefs} state=${state} backrefs=${ timeline.backrefs } backnotes=${ timeline.backnotes } deckId=${ timeline.id }/>
-        <${ListPoints} points=${ timeline.points }
-                       deckManager=${ deckManager }
-                       dispatch=${ dispatch }
-                       showAddPointForm=${ state.showAddPointForm }
-                       holderId=${ timeline.id }
-                       holderName=${ timeline.title }/>
-        <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${timelineId} depth=${2}/>
+        ${ deckManager.buildSectionBackRefs() }
+
+        ${ !!timeline && html`<${ListPoints} points=${ timeline.points }
+                                             deckManager=${ deckManager }
+                                             dispatch=${ dispatch }
+                                             showAddPointForm=${ state.showAddPointForm }
+                                             holderId=${ timeline.id }
+                                             holderName=${ timeline.title }/>`}
+
+        ${ deckManager.buildGraphSection() }
+
     </article>`;
 }
 
@@ -80,7 +76,7 @@ function preCacheFn(timeline) {
     return timeline;
 }
 
-function UpdateTimelineForm({ deck, hideFormFn }) {
+function UpdateTimelineForm({ deck, hideFormFn, deckModifiedFn }) {
     const timeline = deck || {};
     const [state, dispatch] = useStateValue();
 
@@ -117,12 +113,7 @@ function UpdateTimelineForm({ deck, hideFormFn }) {
 
         // edit an existing timeline
         Net.put(`/api/timelines/${timeline.id}`, data).then(newItem => {
-            dispatch({
-                type: 'cacheDeck',
-                id: timeline.id,
-                newItem
-            });
-            // hide this form
+            deckModifiedFn(newItem);
             hideFormFn();
         });
 

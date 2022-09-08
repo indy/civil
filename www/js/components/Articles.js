@@ -6,9 +6,7 @@ import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
 import CivilInput from '/js/components/CivilInput.js';
-import GraphSection from '/js/components/GraphSection.js';
 import RollableSection from '/js/components/RollableSection.js';
-import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import { DeckManager } from '/js/components/DeckManager.js';
 import { DeckSimpleListSection, RatedListSection } from '/js/components/ListSections.js';
 import { StarRatingPartial } from '/js/components/StarRating.js';
@@ -30,59 +28,59 @@ function Articles() {
     </article>`;
 }
 
-function asUrl(url) {
-    return html`<a href=${ url }>${ url }</a>`;
-}
-
-function Article(props) {
+function Article({ id }) {
     const [state] = useStateValue();
 
-    const articleId = parseInt(props.id, 10);
-    const article = state.cache.deck[articleId] || { id: articleId };
+    const articleId = parseInt(id, 10);
 
     const deckManager = DeckManager({
-        deck: article,
-        title: article.title,
+        id: articleId,
         resource: "articles",
         updateForm: UpdateArticleForm,
         hasSummarySection: true,
         hasReviewSection: true
     });
 
-    // this is only for presentational purposes
-    // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
-    // this check prevents the vis from rendering until after we have all the note and links ready
-    const okToShowGraph = deckManager.hasNotes;
-
+    let shortDescription = !!state.deckManagerState.deck && state.deckManagerState.deck.short_description;
     return html`
     <article>
         <div>
-            <div class="left-margin">
-                ${ article.author && leftMarginHeading(article.author) }
-                ${ article.source && leftMarginHeadingNoWrap(asUrl(article.source)) }
-                ${ article.published_date && leftMarginHeading(`Published: ${ formattedDate(article.published_date)}`) }
-                ${ article.created_at && leftMarginHeading(`Added: ${ formattedDate(article.created_at) }`) }
-                <${StarRatingPartial} rating=${article.rating}/>
-            </div>
+            <${ArticleTopMatter}/>
             ${ deckManager.title }
         </div>
         ${ deckManager.buildUpdateForm() }
         ${ deckManager.buildDeleteForm() }
 
-        <div class="top-scribble">${ article.short_description }</div>
+        ${ shortDescription && html`<div class="top-scribble">${ shortDescription }</div>`}
 
         ${ deckManager.buildDeckRefSection() }
         ${ deckManager.buildNoteSections() }
-
-        <${SectionBackRefs} state=${state}
-                            backrefs=${ article.backrefs }
-                            backnotes=${ article.backnotes }
-                            deckId=${ article.id }/>
-        <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${ articleId } depth=${ 2 }/>
+        ${ deckManager.buildSectionBackRefs() }
+        ${ deckManager.buildGraphSection() }
     </article>`;
 }
 
-function UpdateArticleForm({ deck, hideFormFn }) {
+function ArticleTopMatter() {
+    const [state] = useStateValue();
+
+    function asUrl(url) {
+        return html`<a href=${ url }>${ url }</a>`;
+    }
+
+    if (state.deckManagerState.deck) {
+        return html`<div class="left-margin">
+                ${ leftMarginHeading(state.deckManagerState.deck.author) }
+                ${ leftMarginHeadingNoWrap(asUrl(state.deckManagerState.deck.source)) }
+                ${ leftMarginHeading(`Published: ${ formattedDate(state.deckManagerState.deck.published_date)}`) }
+                ${ leftMarginHeading(`Added: ${ formattedDate(state.deckManagerState.deck.created_at) }`) }
+                <${StarRatingPartial} rating=${state.deckManagerState.deck.rating}/>
+            </div>`;
+    } else {
+        return html`<div></div>`;
+    }
+}
+
+function UpdateArticleForm({ deck, hideFormFn, deckModifiedFn }) {
     const article = deck || {};
     const [state, dispatch] = useStateValue();
     const [title, setTitle] = useState(article.title || '');
@@ -150,11 +148,7 @@ function UpdateArticleForm({ deck, hideFormFn }) {
         const resource = 'articles';
 
         Net.put(`/api/${ resource }/${ article.id }`, data).then(newItem => {
-            dispatch({
-                type: 'cacheDeck',
-                id: article.id,
-                newItem
-            });
+            deckModifiedFn(newItem);
 
             // fetch the listing incase editing the article has changed it's star rating or annotation
             //

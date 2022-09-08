@@ -1,12 +1,13 @@
 import { html, useState } from '/lib/preact/mod.js';
 
+import { useStateValue } from '/js/StateProvider.js';
 import { capitalise, nonEmptyArray } from '/js/JsUtils.js';
 import { svgCaretDown, svgCaretRight} from '/js/svgIcons.js';
 
 import RollableSection from '/js/components/RollableSection.js';
 import { ExpandableListingLink } from '/js/components/ListingLink.js';
 
-export default function SectionBackRefs({ state, backrefs, backnotes, deckId }) {
+export default function SectionBackRefs({ backrefs, backnotes, deckId }) {
     const sections = [];
     const decks = [];
 
@@ -96,6 +97,7 @@ export default function SectionBackRefs({ state, backrefs, backnotes, deckId }) 
 
     // render in the preferred order
     //
+    const [state] = useStateValue();
     state.preferredOrder.forEach(deckKind => {
         if (groupedByResource[deckKind]) {
             sections.push(html`<${SectionLinks} backrefs=${groupedByResource[deckKind]} />`);

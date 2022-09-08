@@ -64,6 +64,7 @@ function cacheDeck(dispatch, deck) {
 }
 
 function updateUrlName(dispatch, title) {
+    // todo: is there a better way of setting the urlname for quotes?
     dispatch({
         type: 'setUrlName',
         urlName: title

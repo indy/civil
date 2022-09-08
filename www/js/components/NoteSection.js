@@ -143,7 +143,7 @@ function NoteManager({ deck, cacheDeck, onRefsChanged, filterFn, optional_deck_p
         }
     }
 
-    const notes = deck.notes ? deck.notes.filter(filterFn).map(buildNoteComponent) : [];
+    const notes = (deck && deck.notes) ? deck.notes.filter(filterFn).map(buildNoteComponent) : [];
 
     return html`
            <section>

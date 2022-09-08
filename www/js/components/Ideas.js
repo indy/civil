@@ -7,8 +7,6 @@ import { ensureListingLoaded, leftMarginHeading } from '/js/CivilUtils.js';
 import { capitalise, formattedDate } from '/js/JsUtils.js';
 
 import CivilInput from '/js/components/CivilInput.js';
-import GraphSection from '/js/components/GraphSection.js';
-import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBackref.js';
 import { DeckSimpleListSection } from '/js/components/ListSections.js';
 import { DeckManager } from '/js/components/DeckManager.js';
@@ -30,65 +28,61 @@ function Ideas() {
     </article>`;
 }
 
-function Idea(props) {
-    const [state] = useStateValue();
-
+function Idea({ id }) {
     const [searchResults, setSearchResults] = useState([]); // an array of backrefs
 
-    const ideaId = parseInt(props.id, 10);
-    const idea = state.cache.deck[ideaId] || { id: ideaId };
+    const ideaId = parseInt(id, 10);
 
     useEffect(() => {
-        if (idea.title) {
-            // This  additional search query is slow, so it has to be a separate
-            // async call rather than part of the idea's GET response.
-            //
-            // todo: change this to accept a search parameter, this will normally default to the idea.title
-            // but would also allow differently worded but equivalent text
-            //
-            // todo: should the response be cached in state.cache.deck[ideaId] ???
-            //
-            Net.get(`/api/ideas/${idea.id}/additional_search`).then(search_results => {
-                setSearchResults(search_results.results);
-            });
-        }
-    }, [idea]);
+        // This  additional search query is slow, so it has to be a separate
+        // async call rather than part of the idea's GET response.
+        //
+        // todo: change this to accept a search parameter, this will normally default to the idea.title
+        // but would also allow differently worded but equivalent text
+        //
+        Net.get(`/api/ideas/${id}/additional_search`).then(search_results => {
+            setSearchResults(search_results.results);
+        });
+    }, [id]);
 
     const deckManager = DeckManager({
-        deck: idea,
-        title: idea.title,
+        id: ideaId,
         resource: "ideas",
         updateForm: UpdateIdeaForm,
         hasSummarySection: false,
         hasReviewSection: false
     });
 
-    // this is only for presentational purposes
-    // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
-    // this check prevents the vis from rendering until after we have all the note and links ready
-    const okToShowGraph = deckManager.hasNotes || idea.backrefs;
-    const graphTitle = idea.title ? `Connectivity Graph` : '';
-
     return html`
     <article>
         <div>
-            <div class="left-margin">
-                ${ idea.created_at && leftMarginHeading(formattedDate(idea.created_at)) }
-            </div>
+            <${IdeaTopMatter}/>
             ${ deckManager.title }
         </div>
         ${ deckManager.buildUpdateForm() }
         ${ deckManager.buildDeleteForm() }
         ${ deckManager.buildDeckRefSection() }
         ${ deckManager.buildNoteSections() }
+        ${ deckManager.buildSectionBackRefs() }
 
-        <${SectionBackRefs} state=${state} backrefs=${ idea.backrefs } backnotes=${ idea.backnotes } deckId=${ idea.id }/>
         <${SectionSearchResultsBackref} backrefs=${ searchResults }/>
-        <${GraphSection} heading=${ graphTitle } okToShowGraph=${okToShowGraph} id=${ ideaId } depth=${ 2 } />
+
+        ${ deckManager.buildGraphSection() }
     </article>`;
 }
 
-function UpdateIdeaForm({ deck, hideFormFn }) {
+function IdeaTopMatter() {
+    const [state] = useStateValue();
+
+    let createdAt = state.deckManagerState.deck && state.deckManagerState.deck.created_at;
+
+    return html`<div class="left-margin">
+                     ${ createdAt && leftMarginHeading(formattedDate(createdAt)) }
+                </div>`;
+}
+
+
+function UpdateIdeaForm({ deck, hideFormFn, deckModifiedFn }) {
     const idea = deck || {};
     const [state, dispatch] = useStateValue();
     const [title, setTitle] = useState(idea.title || '');
@@ -117,12 +111,7 @@ function UpdateIdeaForm({ deck, hideFormFn }) {
         };
 
         Net.put(`/api/ideas/${idea.id}`, data).then(newItem => {
-            dispatch({
-                type: "cacheDeck",
-                id: idea.id,
-                newItem
-            });
-            // hide this form
+            deckModifiedFn(newItem);
             hideFormFn();
         });
 

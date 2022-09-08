@@ -17,10 +17,8 @@ import { svgPointAdd,
          svgUntickedCheckBox } from '/js/svgIcons.js';
 
 import CivilInput from '/js/components/CivilInput.js';
-import GraphSection from '/js/components/GraphSection.js';
 import LifespanForm from '/js/components/LifespanForm.js';
 import RollableSection from '/js/components/RollableSection.js';
-import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBackref.js';
 import { DeckSimpleListSection } from '/js/components/ListSections.js';
 import { DeckManager } from '/js/components/DeckManager.js';
@@ -46,17 +44,15 @@ function People() {
     </article>`;
 }
 
-function Person(props) {
+function Person({ id }) {
     const [state, dispatch] = useStateValue();
 
     const [searchResults, setSearchResults] = useState([]); // an array of backrefs
 
-    const personId = parseInt(props.id, 10);
-    const person = state.cache.deck[personId] || { id: personId };
+    const personId = parseInt(id, 10);
 
     const deckManager = DeckManager({
-        deck: person,
-        title: person.name,
+        id: personId,
         resource: "people",
         preCacheFn: preCacheFn,
         updateForm: UpdatePersonForm,
@@ -65,17 +61,14 @@ function Person(props) {
     });
 
     useEffect(() => {
-        if (person.name) {
-            Net.get(`/api/people/${person.id}/additional_search`).then(search_results => {
-                setSearchResults(search_results.results);
-            });
-        }
-    }, [person]);
+        Net.get(`/api/people/${id}/additional_search`).then(search_results => {
+            setSearchResults(search_results.results);
+        });
+    }, [id]);
 
     function dispatchUpdatedPerson(person) {
         dispatch({
-            type: 'setPerson',
-            id: person.id,
+            type: 'updatePeopleListing',
             newItem: preCacheFn(person)
         });
 
@@ -106,11 +99,10 @@ function Person(props) {
         return false;
     }
 
-    // this is only for presentational purposes
-    // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
-    // this check prevents the vis from rendering until after we have all the note and links ready
-    const okToShowGraph = !!(deckManager.hasNotes || (person.backrefs && person.backrefs.length > 0));
-    const hasKnownLifespan = hasBirthPoint(person);
+    const hasKnownLifespan = !!state.deckManagerState.deck && hasBirthPoint(state.deckManagerState.deck);
+
+    const person = state.deckManagerState.deck;
+    const name = state.deckManagerState.deck && state.deckManagerState.deck.name;
 
     return html`
     <article>
@@ -118,11 +110,11 @@ function Person(props) {
         ${ deckManager.buildUpdateForm() }
         ${ deckManager.buildDeleteForm() }
 
-        ${ !hasKnownLifespan && html`<${LifespanForm} name=${ person.name } onLifespanGiven=${ onLifespan }/>` }
+        ${ !hasKnownLifespan && html`<${LifespanForm} name=${ name } onLifespanGiven=${ onLifespan }/>` }
         ${ deckManager.buildDeckRefSection() }
         ${ deckManager.buildNoteSections() }
+        ${ deckManager.buildSectionBackRefs() }
 
-        <${SectionBackRefs} state=${state} backrefs=${ person.backrefs } backnotes=${ person.backnotes } deckId=${ person.id }/>
         <${SectionSearchResultsBackref} backrefs=${ searchResults }/>
         ${ hasKnownLifespan && html`
             <${ListDeckPoints} deckPoints=${ person.all_points_during_life }
@@ -131,7 +123,8 @@ function Person(props) {
                                holderId=${ person.id }
                                showAddPointForm=${ state.showAddPointForm }
                                holderName=${ person.name }/>`}
-        <${GraphSection} heading='Connectivity Graph' okToShowGraph=${okToShowGraph} id=${personId} depth=${2}/>
+
+        ${ deckManager.buildGraphSection() }
     </article>`;
 }
 
@@ -178,7 +171,7 @@ function preCacheFn(person) {
     return person;
 }
 
-function UpdatePersonForm({ deck, hideFormFn }) {
+function UpdatePersonForm({ deck, hideFormFn, deckModifiedFn }) {
     const person = deck || {};
     const [state, dispatch] = useStateValue();
 
@@ -215,12 +208,7 @@ function UpdatePersonForm({ deck, hideFormFn }) {
 
         // edit an existing person
         Net.put(`/api/people/${person.id}`, data).then(newItem => {
-            dispatch({
-                type: 'cacheDeck',
-                id: person.id,
-                newItem
-            });
-            // hide this form
+            deckModifiedFn(newItem);
             hideFormFn();
         });
 
@@ -309,8 +297,7 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAdd
         Net.post(`/api/people/${holderId}/points`, point).then(person => {
             setShowDeathForm(false);
             dispatch({
-                type: 'setPerson',
-                id: person.id,
+                type: 'updatePeopleListing',
                 newItem: person
             });
 

@@ -1,5 +1,5 @@
 import { opposingKind } from '/js/JsUtils.js';
-import { sortByResourceThenName, sortByTitle } from '/js/CivilUtils.js';
+import { sortByResourceThenName } from '/js/CivilUtils.js'; // todo: delete this import
 
 import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 
@@ -28,8 +28,6 @@ export const initialState = {
 
     // when true don't let searchCommand accept any keystrokes
     componentRequiresFullKeyboardAccess: false,
-
-    readOnly: false,
 
     // the url of the current page
     url: '',
@@ -63,8 +61,16 @@ export const initialState = {
         deckIndexFromId: []
     },
 
-    cache: {
-        deck: {}
+
+    deckManagerState: {
+        deck: undefined,
+        showUpdateForm: false,
+        showDelete: false,
+        isEditingDeckRefs: false,
+        hasSummarySection: false,
+        hasReviewSection: false,
+        showShowSummaryButton: false,
+        showShowReviewButton: false
     },
 
     // oldest reasonable age in years, any person whose birth means they're older can be assumed to be dead
@@ -90,6 +96,84 @@ export const initialState = {
 
 export const reducer = (state, action) => {
     switch (action.type) {
+
+    case 'dms-update-deck': {
+        let urlName = action.data.title || action.data.name;
+
+        // set the state's url value here, this saves a dispatch in App.js::AppUI::handleRoute when navigating to a deck page
+        let newState = {
+            ...state,
+            url: `/${action.resource}/${action.data.id}`,
+            urlName,
+            deckManagerState: {
+                ...state.deckManagerState,
+                deck: action.data
+            }
+        }
+
+        document.title = `${state.appName}: ${urlName}`;
+
+        let deck = newState.deckManagerState.deck;
+
+        if (deck.notes) {
+            if (state.deckManagerState.hasSummarySection) {
+                newState.deckManagerState.showShowSummaryButton = !deck.notes.some(n => n.kind === NOTE_KIND_SUMMARY);
+            }
+            if (state.deckManagerState.hasReviewSection) {
+                newState.deckManagerState.showShowReviewButton = !deck.notes.some(n => n.kind === NOTE_KIND_REVIEW);
+            }
+        }
+        return newState;
+    }
+    case 'dms-update-form-toggle':
+        return {
+            ...state,
+            deckManagerState: {
+                ...state.deckManagerState,
+                showUpdateForm: !state.deckManagerState.showUpdateForm
+            }
+        }
+    case 'dms-delete-toggle':
+        return {
+            ...state,
+            deckManagerState: {
+                ...state.deckManagerState,
+                showDelete: !state.deckManagerState.showDelete
+            }
+        }
+    case 'dms-refs-toggle':
+        return {
+            ...state,
+            deckManagerState: {
+                ...state.deckManagerState,
+                isEditingDeckRefs: !state.deckManagerState.isEditingDeckRefs
+            }
+        }
+    case 'dms-hide-form':
+        return {
+            ...state,
+            deckManagerState: {
+                ...state.deckManagerState,
+                showUpdateForm: false
+            }
+        }
+    case 'dms-show-summary-button-toggle':
+        return {
+            ...state,
+            deckManagerState: {
+                ...state.deckManagerState,
+                showShowSummaryButton: action.data
+            }
+        }
+    case 'dms-show-review-button-toggle':
+        return {
+            ...state,
+            deckManagerState: {
+                ...state.deckManagerState,
+                showShowReviewButton: action.data
+            }
+        }
+
     case 'routeChanged':
         return {
             ...state,
@@ -276,17 +360,18 @@ export const reducer = (state, action) => {
                 });
             }
 
-            // decks that are referenced by this note may have their state changed (e.g. annotation changed,
-            // a backref value added/deleted depending on if the deck was added or removed), so the easiest
-            // thing to do is remove the deck from the cache, and refetch it from the server
-            //
-            [changes.referencesChanged, changes.referencesAdded, changes.referencesRemoved].forEach(rs => {
-                rs.forEach(r => {
-                    if (newState.cache.deck[r.id]) {
-                        delete newState.cache.deck[r.id];
-                    }
-                });
-            });
+            // // decks that are referenced by this note may have their state changed (e.g. annotation changed,
+            // // a backref value added/deleted depending on if the deck was added or removed), so the easiest
+            // // thing to do is remove the deck from the cache, and refetch it from the server
+            // //
+            // [changes.referencesChanged, changes.referencesAdded, changes.referencesRemoved].forEach(rs => {
+            //     rs.forEach(r => {
+            //         if (newState.cache.deck[r.id]) {
+            //             delete newState.cache.deck[r.id];
+            //         }
+            //     });
+            // });
+
 
             return newState;
         }
@@ -295,13 +380,14 @@ export const reducer = (state, action) => {
             return state;
         }
     case 'cacheDeck': {
-        let deck = action.newItem;
-        let updatedDeck = applyDecksAndCardsToNotes(deck);
+        console.log("delete this code");
+        // let deck = action.newItem;
+        // let updatedDeck = applyDecksAndCardsToNotes(deck);
 
-        updatedDeck.noteDeckMeta = updatedDeck.notes.find(n => n.kind === 'NoteDeckMeta');
+        // updatedDeck.noteDeckMeta = updatedDeck.notes.find(n => n.kind === 'NoteDeckMeta');
 
         let newState = { ...state };
-        newState.cache.deck[action.id] = updatedDeck;
+        // newState.cache.deck[action.id] = updatedDeck;
 
         return newState;
     }
@@ -343,40 +429,36 @@ export const reducer = (state, action) => {
         }
 
         // todo: delete all the other references in graph.links to action.id
-        delete newState.cache.deck[action.id];
+        // delete newState.cache.deck[action.id];
         return newState;
 
     }
         // sets the listing values for a particular deck kind
-    case 'setDeckListing':
-        {
-            let listing = {...state.listing };
-            listing[action.resource] = action.listing;
+    case 'setDeckListing': {
+        let listing = {...state.listing };
+        listing[action.resource] = action.listing;
 
-            let newState = {
-                ...state,
-                listing: listing
-            };
+        let newState = {
+            ...state,
+            listing: listing
+        };
 
-            return newState;
+        return newState;
+    }
+    case 'updatePeopleListing': {
+        let newState = { ...state };
+        if (newState.listing.people) {
+            updateHashOfNames(newState.listing.people, action.newItem);
         }
-    case 'setPerson':
-        {
-            let newState = { ...state };
-            newState.cache.deck[action.newItem.id] = action.newItem;
-            if (newState.listing.people) {
-                updateHashOfNames(newState.listing.people, action.newItem);
-            }
-            return newState;
+        return newState;
+    }
+    case 'setTimeline': {
+        let newState = { ...state };
+        if (newState.listing.timelines) {
+            updateListOfTitles(newState.listing.timelines, action.newItem);
         }
-    case 'setTimeline':
-        {
-            let newState = { ...state };
-            if (newState.listing.timelines) {
-                updateListOfTitles(newState.listing.timelines, action.newItem);
-            }
-            return newState;
-        }
+        return newState;
+    }
     case 'enableFullKeyboardAccessForComponent':
         return {
             ...state,

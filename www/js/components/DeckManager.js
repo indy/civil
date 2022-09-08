@@ -1,9 +1,12 @@
 import { html, useRef, useEffect, useState, route } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
-import { useLocalReducer } from '/js/PreactUtils.js';
-import { useStateValue } from '/js/StateProvider.js';
+import { leftMarginHeading, leftMarginHeadingNoWrap, sortByResourceThenName } from '/js/CivilUtils.js';
 
+import { useStateValue } from '/js/StateProvider.js';
+import { formattedDate } from '/js/JsUtils.js';
+
+import GraphSection from '/js/components/GraphSection.js';
 import CivilSelect from '/js/components/CivilSelect.js';
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 import { NoteSection, NoteManager,
@@ -11,119 +14,79 @@ import { NoteSection, NoteManager,
          NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 import { PointForm } from '/js/components/PointForm.js';
 import { Ref } from '/js/components/Ref.js';
+import SectionBackRefs from '/js/components/SectionBackRefs.js';
 
-const UPDATE_FORM_TOGGLE = 'update-form-toggle';
-const HIDE_FORM = 'hide-form';
-const SHOW_SUMMARY_BUTTON = 'show-summary-button-toggle';
-const SHOW_REVIEW_BUTTON = 'show-review-button-toggle';
-const DELETE_TOGGLE = 'delete-toggle';
-const REFS_TOGGLE = 'refs-toggle';
 
-function reducer(state, action) {
-    switch(action.type) {
-    case UPDATE_FORM_TOGGLE:
-        return {
-            ...state,
-            showUpdateForm: !state.showUpdateForm
-        }
-    case DELETE_TOGGLE:
-        return {
-            ...state,
-            showDelete: !state.showDelete
-        }
-    case REFS_TOGGLE:
-        return {
-            ...state,
-            isEditingDeckRefs: !state.isEditingDeckRefs
-        }
-    case HIDE_FORM:
-        return {
-            ...state,
-            showUpdateForm: false
-        }
-    case SHOW_SUMMARY_BUTTON:
-        return {
-            ...state,
-            showShowSummaryButton: action.data
-        }
-    case SHOW_REVIEW_BUTTON:
-        return {
-            ...state,
-            showShowReviewButton: action.data
-        }
-    default: throw new Error(`unknown action: ${action}`);
+function applyDecksAndCardsToNotes(obj) {
+    const decksInNotes = hashByNoteIds(obj.refs);
+    const cardsInNotes = hashByNoteIds(obj.flashcards);
+
+    for(let i = 0;i<obj.notes.length;i++) {
+        let n = obj.notes[i];
+        n.decks = decksInNotes[n.id] || [];
+        n.decks.sort(sortByResourceThenName);
+        n.flashcards = cardsInNotes[n.id];
     }
+
+    return obj;
 }
 
-function makeCacheDeckFn(preCacheFn) {
-    const [state, dispatch] = useStateValue();
+function hashByNoteIds(s) {
+    s = s || [];
+    return s.reduce(function(a, b) {
+        const note_id = b.note_id;
+        if (a[note_id]) {
+            a[note_id].push(b);
+        } else {
+            a[note_id] = [b];
+        }
+        return a;
+    }, {});
+}
 
+function makeCacheDeckFn(preCacheFn, resource) {
     return function(newdeck) {
         if (preCacheFn) {
             newdeck = preCacheFn(newdeck);
         }
 
-        dispatch({
-            type: 'cacheDeck',
-            id: newdeck.id,
-            newItem: newdeck
-        });
+        const [state, appDispatch] = useStateValue();
+
+        let updatedDeck = applyDecksAndCardsToNotes(newdeck);
+        updatedDeck.noteDeckMeta = updatedDeck.notes.find(n => n.kind === 'NoteDeckMeta');
+
+        appDispatch({type: 'dms-update-deck', data: updatedDeck, resource: resource});
     }
 }
 
 // preCacheFn performs any one-off calculations before caching the Deck
-function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummarySection, hasReviewSection }) {
+function DeckManager({ id, resource, updateForm, preCacheFn, hasSummarySection, hasReviewSection }) {
     // returns helper fn that applies preCacheFn and stores deck in AppState
 
     const [state, appDispatch] = useStateValue();
-    const cacheDeck = makeCacheDeckFn(preCacheFn);
-    const [fetchingDeck, setFetchingDeck] = useState(undefined);
 
-    const [local, localDispatch] = useLocalReducer(reducer, {
-        showUpdateForm: false,
-        showDelete: false,
-        isEditingDeckRefs: false,
-        showShowSummaryButton: hasSummarySection,
-        showShowReviewButton: hasReviewSection
-    });
+    const cacheDeck = makeCacheDeckFn(preCacheFn, resource);
 
     useEffect(() => {
-        appDispatch({ type: 'setUrlName', urlName: title });
-    }, [title]);
-
-    useEffect(() => {
-        if(!state.cache.deck[deck.id]) {
-            setFetchingDeck(deck.id);
-            if (fetchingDeck != deck.id) {
-                // fetch resource from the server
-                const url = `/api/${resource}/${deck.id}`;
-                Net.get(url).then(deck => {
-                    if (deck) {
-                        cacheDeck(deck);
-                    } else {
-                        console.error(`error: fetchDeck for ${url}`);
-                    }
-                });
+        // fetch resource from the server
+        const url = `/api/${resource}/${id}`;
+        Net.get(url).then(deck => {
+            if (deck) {
+                cacheDeck(deck);
+            } else {
+                console.error(`error: fetchDeck for ${url}`);
             }
-        }
-
-        if (deck.notes) {
-            if (hasSummarySection) {
-                localDispatch(SHOW_SUMMARY_BUTTON, !deck.notes.some(n => n.kind === NOTE_KIND_SUMMARY));
-            }
-            if (hasReviewSection) {
-                localDispatch(SHOW_REVIEW_BUTTON, !deck.notes.some(n => n.kind === NOTE_KIND_REVIEW));
-            }
-        }
-    }, [deck]);
+        });
+    }, [id]);
 
     let res = {};
 
-    res.title = Title(title, local, localDispatch);
+    let title = state.deckManagerState.deck && (state.deckManagerState.deck.title || state.deckManagerState.deck.name || '');
+    res.title = Title(title);
 
     res.buildPointForm = function(onSuccessCallback) {
         function onAddPoint(point) {
-            const url = `/api/${resource}/${deck.id}/points`;
+            const url = `/api/${resource}/${state.deckManagerState.deck.id}/points`;
             Net.post(url, point).then(updatedDeck => {
                 cacheDeck(updatedDeck);
                 onSuccessCallback();
@@ -133,19 +96,60 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
         return html`<${PointForm} onSubmit=${ onAddPoint } submitMessage="Create Point"/>`;
     };
 
+    res.buildSectionBackRefs = function() {
+        let backrefs = (state.deckManagerState.deck && state.deckManagerState.deck.backrefs) || [];
+        let backnotes = (state.deckManagerState.deck && state.deckManagerState.deck.backnotes) || [];
+        return html`<${SectionBackRefs} state=${state} backrefs=${ backrefs } backnotes=${ backnotes } deckId=${ id }/>`;
+    }
+
+    res.buildGraphSection = function() {
+
+        // PERSON
+        //
+        // this is only for presentational purposes
+        // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
+        // this check prevents the vis from rendering until after we have all the note and links ready
+        // const okToShowGraph = !!(deckManager.hasNotes || (person.backrefs && person.backrefs.length > 0));
+
+        // ARTICLE
+        //
+        // this is only for presentational purposes
+        // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
+        // this check prevents the vis from rendering until after we have all the note and links ready
+        // const okToShowGraph = deckManager.hasNotes;
+
+        // TIMELINE
+        //
+        // this is only for presentational purposes
+        // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
+        // this check prevents the vis from rendering until after we have all the note and links ready
+        // const okToShowGraph = !!(deckManager.hasNotes || (timeline.backrefs && timeline.backrefs.length > 0));
+
+        // IDEA
+        //
+        // this is only for presentational purposes
+        // there's normally an annoying flash of the vis graph whilst a deck is still fetching the notes that will be shown before the vis.
+        // this check prevents the vis from rendering until after we have all the note and links ready
+
+        let deck = state.deckManagerState.deck;
+        const okToShowGraph = (deck && deck.notes && deck.notes.length > 0) || (deck && deck.backrefs);
+        const graphTitle = (deck && deck.title) ? `Connectivity Graph` : '';
+
+        return html`<${GraphSection} heading=${ graphTitle } okToShowGraph=${okToShowGraph} id=${ id } depth=${ 2 } />`;
+    }
 
     function howToShowNoteSection(noteKind) {
         if (noteKind === NOTE_KIND_SUMMARY) {
-            if (hasSummarySection) {
-                return local.showShowSummaryButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
+            if (state.deckManagerState.hasSummarySection) {
+                return state.deckManagerState.showShowSummaryButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
             } else {
                 return NOTE_SECTION_HIDE;
             }
         }
 
         if (noteKind === NOTE_KIND_REVIEW) {
-            if (hasReviewSection) {
-                return local.showShowReviewButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
+            if (state.deckManagerState.hasReviewSection) {
+                return state.deckManagerState.showShowReviewButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
             } else {
                 return NOTE_SECTION_HIDE;
             }
@@ -153,10 +157,10 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
 
         if (noteKind === NOTE_KIND_NOTE) {
             var r = NOTE_SECTION_EXCLUSIVE;
-            if (hasSummarySection && !local.showShowSummaryButton) {
+            if (state.deckManagerState.hasSummarySection && !state.deckManagerState.showShowSummaryButton) {
                 r = NOTE_SECTION_SHOW;
             }
-            if (hasReviewSection && !local.showShowReviewButton) {
+            if (state.deckManagerState.hasReviewSection && !state.deckManagerState.showShowReviewButton) {
                 r = NOTE_SECTION_SHOW;
             }
             return r;
@@ -166,7 +170,7 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
     }
 
     function findNoteWithId(id, modifyFn) {
-        const notes = deck.notes;
+        const notes = state.deckManagerState.deck.notes;
         const index = notes.findIndex(n => n.id === id);
 
         modifyFn(notes, index);
@@ -178,11 +182,11 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
         // 'cacheDeck' will use that to populate each note's decks array
 
         // remove all deck.refs that relate to this note
-        deck.refs = deck.refs.filter(din => {
+        state.deckManagerState.deck.refs = state.deckManagerState.deck.refs.filter(din => {
             return din.note_id !== note.id;
         });
         // add every note.decks entry to deck.refs
-        all_decks_for_note.forEach(d => { deck.refs.push(d); });
+        all_decks_for_note.forEach(d => { state.deckManagerState.deck.refs.push(d); });
 
         findNoteWithId(note.id, (notes, index) => {
             notes[index] = note;
@@ -192,63 +196,69 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
 
     res.buildDeckRefSection = function() {
         function onCancel() {
-            localDispatch(REFS_TOGGLE);
+            appDispatch({type: 'dms-refs-toggle'});
         }
         function onSaved(note, changes, allDecksForNote) {
             // this note is going to be the deck's NoteDeckMeta
             onRefsChanged(note, allDecksForNote);
 
+            // todo: combine these two appDispatch calls
             appDispatch({
                 type: 'noteRefsModified',
                 changes,
                 allDecksForNote,
             });
-            localDispatch(REFS_TOGGLE);
+            appDispatch({type: 'dms-refs-toggle'});
         }
 
-        return html`<${DeckRefSection} deckId=${deck.id} deckMeta=${ deck.noteDeckMeta } editing=${ local.isEditingDeckRefs } onCancel=${onCancel} onSaved=${onSaved} />`;
+        return html`<${DeckRefSection} deck=${ state.deckManagerState.deck } editing=${ state.deckManagerState.isEditingDeckRefs } onCancel=${onCancel} onSaved=${onSaved} />`;
     }
 
     res.buildNoteSections = function() {
         return html`
         <div>
-            ${ hasSummarySection && html`
+            ${ state.deckManagerState.hasSummarySection && html`
                 <${NoteSection} heading='Summary'
                                 noteKind=${ NOTE_KIND_SUMMARY }
                                 howToShow=${ howToShowNoteSection(NOTE_KIND_SUMMARY) }
-                                deck=${ deck }
+                                deck=${ state.deckManagerState.deck }
                                 onRefsChanged=${onRefsChanged}
                                 cacheDeck=${ cacheDeck }/>`}
-            ${ hasReviewSection && html`
+            ${ state.deckManagerState.hasReviewSection && html`
                 <${NoteSection} heading='Review'
                                 noteKind=${ NOTE_KIND_REVIEW }
                                 howToShow=${ howToShowNoteSection(NOTE_KIND_REVIEW) }
-                                deck=${ deck }
+                                deck=${ state.deckManagerState.deck }
                                 onRefsChanged=${onRefsChanged}
                                 cacheDeck=${ cacheDeck } />`}
             <${NoteSection} heading=${ title }
                             noteKind=${ NOTE_KIND_NOTE }
                             howToShow=${ howToShowNoteSection(NOTE_KIND_NOTE) }
-                            deck=${ deck }
+                            deck=${ state.deckManagerState.deck }
                             onRefsChanged=${onRefsChanged}
                             cacheDeck=${ cacheDeck } />
         </div>`;
     }
 
-    if (local.showUpdateForm) {
+    if (state.deckManagerState.showUpdateForm) {
         res.updateForm = updateForm;
     }
 
-    function hideForm() {
-        localDispatch(HIDE_FORM);
-    }
 
     res.buildUpdateForm = function() {
-        return local.showUpdateForm && html`<${updateForm} deck=${deck} hideFormFn=${hideForm}/>`;
+        function hideForm() {
+            appDispatch({type: 'dms-hide-form'});
+        }
+
+        function deckModified(newDeck) {
+            appDispatch({type: 'dms-update-deck', data: newDeck});
+        }
+
+        return state.deckManagerState.showUpdateForm && html`<${updateForm} deck=${state.deckManagerState.deck} hideFormFn=${hideForm} deckModifiedFn=${deckModified}/>`;
     }
 
     function confirmedDeleteClicked() {
-        Net.delete(`/api/${resource}/${deck.id}`).then(() => {
+        Net.delete(`/api/${resource}/${state.deckManagerState.deck.id}`).then(() => {
             // remove the resource from the app state
             appDispatch({
                 type: 'deleteDeck',
@@ -259,7 +269,7 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
     }
 
     res.buildDeleteForm = function() {
-        return local.showDelete && html`<${DeleteConfirmation} onDelete=${confirmedDeleteClicked }/>`;
+        return state.deckManagerState.showDelete && html`<${DeleteConfirmation} onDelete=${confirmedDeleteClicked }/>`;
     }
 
     function noteFilterDeckPoint(deck_point) {
@@ -267,7 +277,7 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
     }
 
     res.noteManagerForDeckPoint = function(deck_point) {
-        return NoteManager({ deck,
+        return NoteManager({ deck: state.deckManagerState.deck,
                              cacheDeck,
                              onRefsChanged,
                              filterFn: noteFilterDeckPoint(deck_point),
@@ -278,15 +288,15 @@ function DeckManager({ deck, title, resource, updateForm, preCacheFn, hasSummary
     }
 
     res.pointHasNotes = function(point) {
-        return deck.notes.some(n => n.point_id === point.id);
+        return state.deckManagerState.deck.notes.some(n => n.point_id === point.id);
     }
-
-    res.hasNotes = deck.notes && deck.notes.length > 0;
 
     return res;
 }
 
-function Title(title, local, localDispatch) {
+function Title(title) {
+    const [state, appDispatch] = useStateValue();
+
     const hoveringRef = useRef(null);
     const [mouseHovering, setMouseHovering] = useState(false);
     const [mouseHoveringChild, setMouseHoveringChild] = useState(false);
@@ -306,22 +316,22 @@ function Title(title, local, localDispatch) {
     }
 
     function onRefsClicked(e) {
-        localDispatch(REFS_TOGGLE);
+        appDispatch({type: 'dms-refs-toggle'});
     };
 
     function onEditParentClicked(e) {
-        localDispatch(UPDATE_FORM_TOGGLE);
+        appDispatch({type: 'dms-update-form-toggle'});
     };
 
     function onShowSummaryButtonClicked(e) {
-        localDispatch(SHOW_SUMMARY_BUTTON, !local.showShowSummaryButton);
+        appDispatch({type: 'dms-show-summary-button-toggle', data: !state.deckManagerState.showShowSummaryButton});
     };
     function onShowReviewButtonClicked(e) {
-        localDispatch(SHOW_REVIEW_BUTTON, !local.showShowReviewButton);
+        appDispatch({type: 'dms-show-review-button-toggle', data: !state.deckManagerState.showShowReviewButton});
     };
 
     function onDeleteClicked(e) {
-        localDispatch(DELETE_TOGGLE);
+        appDispatch({type: 'dms-delete-toggle'});
     }
 
     const preMarkerRef = useRef(null); // an element on the page, when it's offscreen apply title-sticky to the h1
@@ -334,8 +344,8 @@ function Title(title, local, localDispatch) {
                         <${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onRefsClicked } label="[refs]"/>
                         <${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onEditParentClicked } label="[edit]"/>
                         <${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onDeleteClicked } label="[delete]"/>
-                        ${ local.showShowSummaryButton && html`<${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onShowSummaryButtonClicked } label="[show summary]"/>`}
-                        ${ local.showShowReviewButton && html`<${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onShowReviewButtonClicked } label="[show review]"/>`}
+                        ${ state.deckManagerState.showShowSummaryButton && html`<${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onShowSummaryButtonClicked } label="[show summary]"/>`}
+                        ${ state.deckManagerState.showShowReviewButton && html`<${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onShowReviewButtonClicked } label="[show review]"/>`}
                     </div>`;
     }
 
@@ -441,7 +451,10 @@ function DeckControl({ moreVisible, onEnter, onLeave, onClick, label}) {
 }
 
 
-function DeckRefSection({ deckId, deckMeta, editing, onCancel, onSaved }) {
+function DeckRefSection({ deck, editing, onCancel, onSaved }) {
+
+    let deckId = deck && deck.id;
+    let deckMeta = deck && deck.noteDeckMeta;
     // deckMeta is the special note (of kind: NoteKind::NoteDeckMeta) that
     // contains the refs that should apply to the deck as a whole and not
     // just to individual paragraphs

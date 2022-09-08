@@ -54,6 +54,7 @@ export async function fetchDeckListing(dispatch, resource, url) {
     setDeckListing(dispatch, resource, listing);
 }
 
+// todo: these two functions should be somewhere else
 export function leftMarginHeading(content) {
     return html`
           <div class="left-margin-entry">
@@ -95,22 +96,6 @@ export function sortByResourceThenName(a, b) {
     return 0;
 
 }
-
-export function sortByTitle(a, b) {
-    let nameA = a.title.toUpperCase();
-    let nameB = b.title.toUpperCase();
-
-    if (nameA < nameB) {
-        return -1;
-    }
-    if (nameA > nameB) {
-        return 1;
-    }
-
-    // names must be equal
-    return 0;
-}
-
 
 function setDeckListing(dispatch, resource, listing) {
     dispatch({
