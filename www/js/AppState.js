@@ -108,6 +108,11 @@ export const reducer = (state, action) => {
             deckManagerState: {
                 ...state.deckManagerState,
                 deck: action.data
+
+                // showUpdateForm: false,
+                // showDelete: false,
+                // isEditingDeckRefs: false
+
             }
         }
 
@@ -428,8 +433,8 @@ export const reducer = (state, action) => {
             delete newState.graph.links[action.id];
         }
 
-        // todo: delete all the other references in graph.links to action.id
-        // delete newState.cache.deck[action.id];
+        newState.deckManagerState.showDelete = false;
+
         return newState;
 
     }

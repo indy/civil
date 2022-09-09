@@ -17,12 +17,18 @@ import { svgPointAdd,
          svgUntickedCheckBox } from '/js/svgIcons.js';
 
 import CivilInput from '/js/components/CivilInput.js';
+import DeleteDeckConfirmation from '/js/components/DeleteDeckConfirmation.js';
+import SectionGraph from '/js/components/SectionGraph.js';
 import LifespanForm from '/js/components/LifespanForm.js';
 import RollableSection from '/js/components/RollableSection.js';
+import SectionBackRefs from '/js/components/SectionBackRefs.js';
+import SectionDeckRefs from '/js/components/SectionDeckRefs.js';
+import SectionNotes from '/js/components/SectionNotes.js';
 import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBackref.js';
-import { DeckSimpleListSection } from '/js/components/ListSections.js';
 import { DeckManager } from '/js/components/DeckManager.js';
+import { DeckSimpleListSection } from '/js/components/ListSections.js';
 import { PointForm } from '/js/components/PointForm.js';
+import { Title } from '/js/components/Title.js';
 import { WhenVerbose } from '/js/components/WhenVerbose.js';
 
 function People() {
@@ -45,7 +51,7 @@ function People() {
 }
 
 function Person({ id }) {
-    const [state, dispatch] = useStateValue();
+    const [state, appDispatch] = useStateValue();
 
     const [searchResults, setSearchResults] = useState([]); // an array of backrefs
 
@@ -55,7 +61,6 @@ function Person({ id }) {
         id: personId,
         resource: "people",
         preCacheFn: preCacheFn,
-        updateForm: UpdatePersonForm,
         hasSummarySection: true,
         hasReviewSection: false
     });
@@ -67,23 +72,23 @@ function Person({ id }) {
     }, [id]);
 
     function dispatchUpdatedPerson(person) {
-        dispatch({
+        appDispatch({
             type: 'updatePeopleListing',
             newItem: preCacheFn(person)
         });
 
         // also update the people list now that this person is no longer uncategorised
-        fetchDeckListing(dispatch, 'people');
+        fetchDeckListing(appDispatch, 'people');
     }
 
     function onLifespan(birthPoint, deathPoint) {
         Net.post(`/api/people/${personId}/points`, birthPoint).then(person => {
             if (deathPoint) {
                 Net.post(`/api/people/${personId}/points`, deathPoint).then(person => {
-                    dispatchUpdatedPerson(person);
+                    appDispatchUpdatedPerson(person);
                 });
             } else {
-                dispatchUpdatedPerson(person);
+                appDispatchUpdatedPerson(person);
             }
         });
     }
@@ -106,25 +111,27 @@ function Person({ id }) {
 
     return html`
     <article>
-        ${ deckManager.title }
-        ${ deckManager.buildUpdateForm() }
-        ${ deckManager.buildDeleteForm() }
+        <${Title} title=${ deckManager.title }/>
+        <${SectionUpdatePerson}/>
+        <${DeleteDeckConfirmation} resource='people' id=${personId}/>
 
         ${ !hasKnownLifespan && html`<${LifespanForm} name=${ name } onLifespanGiven=${ onLifespan }/>` }
-        ${ deckManager.buildDeckRefSection() }
-        ${ deckManager.buildNoteSections() }
-        ${ deckManager.buildSectionBackRefs() }
+
+        <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
+
+        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } cacheDeck=${ deckManager.cacheDeck }/>
+
+        <${SectionBackRefs} deckId=${ personId }/>
 
         <${SectionSearchResultsBackref} backrefs=${ searchResults }/>
         ${ hasKnownLifespan && html`
             <${ListDeckPoints} deckPoints=${ person.all_points_during_life }
                                deckManager=${ deckManager }
-                               dispatch=${ dispatch }
+                               dispatch=${ appDispatch }
                                holderId=${ person.id }
                                showAddPointForm=${ state.showAddPointForm }
                                holderName=${ person.name }/>`}
-
-        ${ deckManager.buildGraphSection() }
+        <${SectionGraph} depth=${ 2 } />
     </article>`;
 }
 
@@ -171,9 +178,11 @@ function preCacheFn(person) {
     return person;
 }
 
-function UpdatePersonForm({ deck, hideFormFn, deckModifiedFn }) {
-    const person = deck || {};
-    const [state, dispatch] = useStateValue();
+function SectionUpdatePerson() {
+    const [state, appDispatch] = useStateValue();
+
+    const person = state.deckManagerState.deck || {};
+
 
     const [localState, setLocalState] = useState({
         name: person.name || ''
@@ -207,13 +216,17 @@ function UpdatePersonForm({ deck, hideFormFn, deckModifiedFn }) {
         };
 
         // edit an existing person
-        Net.put(`/api/people/${person.id}`, data).then(newItem => {
-            deckModifiedFn(newItem);
-            hideFormFn();
+        Net.put(`/api/people/${person.id}`, data).then(newDeck => {
+            appDispatch({type: 'dms-update-deck', data: newDeck});
+            appDispatch({type: 'dms-hide-form'});
         });
 
         e.preventDefault();
     };
+
+    if (!state.deckManagerState.showUpdateForm) {
+        return html`<div></div>`;
+    }
 
     return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>

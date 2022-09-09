@@ -7,7 +7,12 @@ import { svgCaretDown, svgCaretRight} from '/js/svgIcons.js';
 import RollableSection from '/js/components/RollableSection.js';
 import { ExpandableListingLink } from '/js/components/ListingLink.js';
 
-export default function SectionBackRefs({ backrefs, backnotes, deckId }) {
+export default function SectionBackRefs({ deckId }) {
+    const [state] = useStateValue();
+
+    let backrefs = (state.deckManagerState.deck && state.deckManagerState.deck.backrefs) || [];
+    let backnotes = (state.deckManagerState.deck && state.deckManagerState.deck.backnotes) || [];
+
     const sections = [];
     const decks = [];
 
@@ -97,7 +102,6 @@ export default function SectionBackRefs({ backrefs, backnotes, deckId }) {
 
     // render in the preferred order
     //
-    const [state] = useStateValue();
     state.preferredOrder.forEach(deckKind => {
         if (groupedByResource[deckKind]) {
             sections.push(html`<${SectionLinks} backrefs=${groupedByResource[deckKind]} />`);

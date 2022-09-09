@@ -7,9 +7,15 @@ import { ensureListingLoaded, leftMarginHeading } from '/js/CivilUtils.js';
 import { capitalise, formattedDate } from '/js/JsUtils.js';
 
 import CivilInput from '/js/components/CivilInput.js';
+import DeleteDeckConfirmation from '/js/components/DeleteDeckConfirmation.js';
+import SectionGraph from '/js/components/SectionGraph.js';
+import SectionBackRefs from '/js/components/SectionBackRefs.js';
+import SectionDeckRefs from '/js/components/SectionDeckRefs.js';
+import SectionNotes from '/js/components/SectionNotes.js';
 import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBackref.js';
-import { DeckSimpleListSection } from '/js/components/ListSections.js';
 import { DeckManager } from '/js/components/DeckManager.js';
+import { DeckSimpleListSection } from '/js/components/ListSections.js';
+import { Title } from '/js/components/Title.js';
 
 function Ideas() {
     const [state, dispatch] = useStateValue();
@@ -30,7 +36,7 @@ function Ideas() {
 
 function Idea({ id }) {
     const [searchResults, setSearchResults] = useState([]); // an array of backrefs
-
+    console.log("idea");
     const ideaId = parseInt(id, 10);
 
     useEffect(() => {
@@ -48,43 +54,45 @@ function Idea({ id }) {
     const deckManager = DeckManager({
         id: ideaId,
         resource: "ideas",
-        updateForm: UpdateIdeaForm,
         hasSummarySection: false,
         hasReviewSection: false
     });
 
     return html`
     <article>
-        <div>
-            <${IdeaTopMatter}/>
-            ${ deckManager.title }
-        </div>
-        ${ deckManager.buildUpdateForm() }
-        ${ deckManager.buildDeleteForm() }
-        ${ deckManager.buildDeckRefSection() }
-        ${ deckManager.buildNoteSections() }
-        ${ deckManager.buildSectionBackRefs() }
+        <${IdeaTopMatter} title=${deckManager.title}/>
+        <${SectionUpdateIdea}/>
+        <${DeleteDeckConfirmation} resource='ideas' id=${ideaId}/>
+        <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
 
+        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } cacheDeck=${ deckManager.cacheDeck }/>
+
+        <${SectionBackRefs} deckId=${ ideaId }/>
         <${SectionSearchResultsBackref} backrefs=${ searchResults }/>
-
-        ${ deckManager.buildGraphSection() }
+        <${SectionGraph} depth=${ 2 } />
     </article>`;
 }
 
-function IdeaTopMatter() {
+function IdeaTopMatter({ title }) {
     const [state] = useStateValue();
 
     let createdAt = state.deckManagerState.deck && state.deckManagerState.deck.created_at;
 
-    return html`<div class="left-margin">
-                     ${ createdAt && leftMarginHeading(formattedDate(createdAt)) }
-                </div>`;
+    return html`
+    <div>
+        <div class="left-margin">
+            ${ createdAt && leftMarginHeading(formattedDate(createdAt)) }
+        </div>
+        <${Title} title=${ title }/>
+    </div>`;
 }
 
 
-function UpdateIdeaForm({ deck, hideFormFn, deckModifiedFn }) {
-    const idea = deck || {};
-    const [state, dispatch] = useStateValue();
+function SectionUpdateIdea() {
+    const [state, appDispatch] = useStateValue();
+
+    const idea = state.deckManagerState.deck || {};
+
     const [title, setTitle] = useState(idea.title || '');
     const [graphTerminator, setGraphTerminator] = useState(idea.graph_terminator);
 
@@ -110,9 +118,9 @@ function UpdateIdeaForm({ deck, hideFormFn, deckModifiedFn }) {
             graph_terminator: graphTerminator
         };
 
-        Net.put(`/api/ideas/${idea.id}`, data).then(newItem => {
-            deckModifiedFn(newItem);
-            hideFormFn();
+        Net.put(`/api/ideas/${idea.id}`, data).then(newDeck => {
+            appDispatch({type: 'dms-update-deck', data: newDeck});
+            appDispatch({type: 'dms-hide-form'});
         });
 
         event.preventDefault();
@@ -122,6 +130,10 @@ function UpdateIdeaForm({ deck, hideFormFn, deckModifiedFn }) {
         if (event.target.id === 'graph-terminator') {
             setGraphTerminator(!graphTerminator);
         }
+    }
+
+    if (!state.deckManagerState.showUpdateForm) {
+        return html`<div></div>`;
     }
 
     return html`

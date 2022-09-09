@@ -1,16 +1,22 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { ensureListingLoaded } from '/js/CivilUtils.js';
+import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import Net from '/js/Net.js';
 import { addChronologicalSortYear } from '/js/eras.js';
 import { capitalise } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 
 import CivilInput from '/js/components/CivilInput.js';
+import DeleteDeckConfirmation from '/js/components/DeleteDeckConfirmation.js';
+import SectionGraph from '/js/components/SectionGraph.js';
 import RollableSection from '/js/components/RollableSection.js';
-import { DeckSimpleList } from '/js/components/ListSections.js';
+import SectionBackRefs from '/js/components/SectionBackRefs.js';
+import SectionDeckRefs from '/js/components/SectionDeckRefs.js';
+import SectionNotes from '/js/components/SectionNotes.js';
 import { DeckManager } from '/js/components/DeckManager.js';
+import { DeckSimpleList } from '/js/components/ListSections.js';
 import { PointForm } from '/js/components/PointForm.js';
+import { Title } from '/js/components/Title.js';
 import { WhenVerbose } from '/js/components/WhenVerbose.js';
 import { svgPointAdd, svgX, svgCaretRight, svgCaretRightEmpty, svgCaretDown } from '/js/svgIcons.js';
 
@@ -28,7 +34,7 @@ function Timelines() {
 }
 
 function Timeline({ id }) {
-    const [state, dispatch] = useStateValue();
+    const [state] = useStateValue();
 
     const timelineId = parseInt(id, 10);
 
@@ -36,7 +42,6 @@ function Timeline({ id }) {
         id: timelineId,
         resource: "timelines",
         preCacheFn: preCacheFn,
-        updateForm: UpdateTimelineForm,
         hasSummarySection: true,
         hasReviewSection: false
     });
@@ -45,22 +50,21 @@ function Timeline({ id }) {
 
     return html`
     <article>
-        ${ deckManager.title }
-        ${ deckManager.buildUpdateForm() }
-        ${ deckManager.buildDeleteForm() }
-        ${ deckManager.buildDeckRefSection() }
-        ${ deckManager.buildNoteSections() }
-        ${ deckManager.buildSectionBackRefs() }
+        <${Title} title=${ deckManager.title }/>
+        <${SectionUpdateTimeline}/>
+        <${DeleteDeckConfirmation} resource='timelines' id=${timelineId}/>
+        <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
+        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } cacheDeck=${ deckManager.cacheDeck }/>
+        <${SectionBackRefs} deckId=${ timelineId }/>
+
 
         ${ !!timeline && html`<${ListPoints} points=${ timeline.points }
                                              deckManager=${ deckManager }
-                                             dispatch=${ dispatch }
                                              showAddPointForm=${ state.showAddPointForm }
                                              holderId=${ timeline.id }
                                              holderName=${ timeline.title }/>`}
 
-        ${ deckManager.buildGraphSection() }
-
+        <${SectionGraph} depth=${ 2 } />
     </article>`;
 }
 
@@ -76,9 +80,10 @@ function preCacheFn(timeline) {
     return timeline;
 }
 
-function UpdateTimelineForm({ deck, hideFormFn, deckModifiedFn }) {
-    const timeline = deck || {};
-    const [state, dispatch] = useStateValue();
+function SectionUpdateTimeline() {
+    const [state, appDispatch] = useStateValue();
+
+    const timeline = state.deckManagerState.deck || {};
 
     const [localState, setLocalState] = useState({
         title: timeline.title || ''
@@ -112,13 +117,22 @@ function UpdateTimelineForm({ deck, hideFormFn, deckModifiedFn }) {
         };
 
         // edit an existing timeline
-        Net.put(`/api/timelines/${timeline.id}`, data).then(newItem => {
-            deckModifiedFn(newItem);
-            hideFormFn();
+        Net.put(`/api/timelines/${timeline.id}`, data).then(newDeck => {
+            appDispatch({type: 'dms-update-deck', data: newDeck});
+            appDispatch({type: 'dms-hide-form'});
+
+            // fetch the listing incase editing the article has changed it's star rating or annotation
+            //
+            let resource = 'timelines';
+            fetchDeckListing(appDispatch, resource, '/api/timelines/listings');
         });
 
         e.preventDefault();
     };
+
+    if (!state.deckManagerState.showUpdateForm) {
+        return html`<div></div>`;
+    }
 
     return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>
@@ -152,7 +166,9 @@ function TimelineDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
     </li>`;
 }
 
-function ListPoints({ points, deckManager, holderId, holderName, showAddPointForm, dispatch }) {
+function ListPoints({ points, deckManager, holderId, holderName, showAddPointForm }) {
+    const [state, dispatch] = useStateValue();
+
     function onAddPointClicked(e) {
         e.preventDefault();
         dispatch({type: showAddPointForm ? "hideAddPointForm" : "showAddPointForm"});

@@ -6,10 +6,16 @@ import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
 import CivilInput from '/js/components/CivilInput.js';
+import DeleteDeckConfirmation from '/js/components/DeleteDeckConfirmation.js';
+import SectionGraph from '/js/components/SectionGraph.js';
 import RollableSection from '/js/components/RollableSection.js';
+import SectionBackRefs from '/js/components/SectionBackRefs.js';
+import SectionDeckRefs from '/js/components/SectionDeckRefs.js';
+import SectionNotes from '/js/components/SectionNotes.js';
 import { DeckManager } from '/js/components/DeckManager.js';
 import { DeckSimpleListSection, RatedListSection } from '/js/components/ListSections.js';
 import { StarRatingPartial } from '/js/components/StarRating.js';
+import { Title } from '/js/components/Title.js';
 
 function Articles() {
     const [state, dispatch] = useStateValue();
@@ -36,7 +42,6 @@ function Article({ id }) {
     const deckManager = DeckManager({
         id: articleId,
         resource: "articles",
-        updateForm: UpdateArticleForm,
         hasSummarySection: true,
         hasReviewSection: true
     });
@@ -44,45 +49,53 @@ function Article({ id }) {
     let shortDescription = !!state.deckManagerState.deck && state.deckManagerState.deck.short_description;
     return html`
     <article>
-        <div>
-            <${ArticleTopMatter}/>
-            ${ deckManager.title }
-        </div>
-        ${ deckManager.buildUpdateForm() }
-        ${ deckManager.buildDeleteForm() }
-
-        ${ shortDescription && html`<div class="top-scribble">${ shortDescription }</div>`}
-
-        ${ deckManager.buildDeckRefSection() }
-        ${ deckManager.buildNoteSections() }
-        ${ deckManager.buildSectionBackRefs() }
-        ${ deckManager.buildGraphSection() }
+        <${ArticleTopMatter} title=${ deckManager.title }/>
+        <${SectionUpdateArticle}/>
+        <${DeleteDeckConfirmation} resource='articles' id=${articleId}/>
+        <${TopScribble} text=${ shortDescription }/>
+        <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
+        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } cacheDeck=${ deckManager.cacheDeck }/>
+        <${SectionBackRefs} deckId=${ articleId }/>
+        <${SectionGraph} depth=${ 2 } />
     </article>`;
 }
 
-function ArticleTopMatter() {
+function TopScribble({ text }) {
+    if (text) {
+        return html`<div class="top-scribble">${ text }</div>`;
+    }
+    return html``;
+}
+
+function ArticleTopMatter({ title }) {
     const [state] = useStateValue();
 
     function asUrl(url) {
         return html`<a href=${ url }>${ url }</a>`;
     }
 
-    if (state.deckManagerState.deck) {
-        return html`<div class="left-margin">
-                ${ leftMarginHeading(state.deckManagerState.deck.author) }
-                ${ leftMarginHeadingNoWrap(asUrl(state.deckManagerState.deck.source)) }
-                ${ leftMarginHeading(`Published: ${ formattedDate(state.deckManagerState.deck.published_date)}`) }
-                ${ leftMarginHeading(`Added: ${ formattedDate(state.deckManagerState.deck.created_at) }`) }
-                <${StarRatingPartial} rating=${state.deckManagerState.deck.rating}/>
-            </div>`;
-    } else {
+    if (!state.deckManagerState.deck) {
         return html`<div></div>`;
     }
+
+    return html`
+    <div>
+        <div class="left-margin">
+            ${ leftMarginHeading(state.deckManagerState.deck.author) }
+            ${ leftMarginHeadingNoWrap(asUrl(state.deckManagerState.deck.source)) }
+            ${ leftMarginHeading(`Published: ${ formattedDate(state.deckManagerState.deck.published_date)}`) }
+            ${ leftMarginHeading(`Added: ${ formattedDate(state.deckManagerState.deck.created_at) }`) }
+            <${StarRatingPartial} rating=${state.deckManagerState.deck.rating}/>
+        </div>
+        <${Title} title=${ title }/>
+    </div>`;
 }
 
-function UpdateArticleForm({ deck, hideFormFn, deckModifiedFn }) {
-    const article = deck || {};
-    const [state, dispatch] = useStateValue();
+function SectionUpdateArticle() {
+    const [state, appDispatch] = useStateValue();
+
+    const article = state.deckManagerState.deck || {};
+
     const [title, setTitle] = useState(article.title || '');
     const [author, setAuthor] = useState(article.author || '');
     const [source, setSource] = useState(article.source || '');
@@ -147,18 +160,21 @@ function UpdateArticleForm({ deck, hideFormFn, deckModifiedFn }) {
 
         const resource = 'articles';
 
-        Net.put(`/api/${ resource }/${ article.id }`, data).then(newItem => {
-            deckModifiedFn(newItem);
+        Net.put(`/api/${ resource }/${ article.id }`, data).then(newDeck => {
+            appDispatch({type: 'dms-update-deck', data: newDeck});
+            appDispatch({type: 'dms-hide-form'});
 
             // fetch the listing incase editing the article has changed it's star rating or annotation
             //
-            fetchDeckListing(dispatch, resource, '/api/articles/listings');
-            // hide this form
-            hideFormFn();
+            fetchDeckListing(appDispatch, resource, '/api/articles/listings');
         });
 
         event.preventDefault();
     };
+
+    if (!state.deckManagerState.showUpdateForm) {
+        return html`<div></div>`;
+    }
 
     return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>
