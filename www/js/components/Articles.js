@@ -1,21 +1,23 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { ensureListingLoaded, fetchDeckListing, leftMarginHeading, leftMarginHeadingNoWrap } from '/js/CivilUtils.js';
+import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import { capitalise, removeEmptyStrings, formattedDate } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
 import CivilInput from '/js/components/CivilInput.js';
 import DeleteDeckConfirmation from '/js/components/DeleteDeckConfirmation.js';
+import LeftMarginHeading from '/js/components/LeftMarginHeading.js';
+import LeftMarginHeadingNoWrap from '/js/components/LeftMarginHeadingNoWrap.js';
 import SectionGraph from '/js/components/SectionGraph.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import SectionDeckRefs from '/js/components/SectionDeckRefs.js';
 import SectionNotes from '/js/components/SectionNotes.js';
-import { DeckManager } from '/js/components/DeckManager.js';
+import DeckManager from '/js/components/DeckManager.js';
 import { DeckSimpleListSection, RatedListSection } from '/js/components/ListSections.js';
 import { StarRatingPartial } from '/js/components/StarRating.js';
-import { Title } from '/js/components/Title.js';
+import Title from '/js/components/Title.js';
 
 function Articles() {
     const [state, dispatch] = useStateValue();
@@ -69,23 +71,32 @@ function TopScribble({ text }) {
 
 function ArticleTopMatter({ title }) {
     const [state] = useStateValue();
+    const deck = state.deckManagerState.deck;
 
-    function asUrl(url) {
+    function Url({ url }) {
         return html`<a href=${ url }>${ url }</a>`;
     }
 
-    if (!state.deckManagerState.deck) {
+    if (!deck) {
         return html`<div></div>`;
     }
 
     return html`
     <div>
         <div class="left-margin">
-            ${ leftMarginHeading(state.deckManagerState.deck.author) }
-            ${ leftMarginHeadingNoWrap(asUrl(state.deckManagerState.deck.source)) }
-            ${ leftMarginHeading(`Published: ${ formattedDate(state.deckManagerState.deck.published_date)}`) }
-            ${ leftMarginHeading(`Added: ${ formattedDate(state.deckManagerState.deck.created_at) }`) }
-            <${StarRatingPartial} rating=${state.deckManagerState.deck.rating}/>
+            <${LeftMarginHeading}>
+                ${deck.author}
+            </${LeftMarginHeading}>
+            <${LeftMarginHeadingNoWrap}>
+                <${Url} url=${deck.source}/>
+            </${LeftMarginHeadingNoWrap}>
+            <${LeftMarginHeading}>
+                Published: ${ formattedDate(deck.published_date)}
+            </${LeftMarginHeading}>
+            <${LeftMarginHeading}>
+                Added: ${ formattedDate(deck.created_at) }
+            </${LeftMarginHeading}>
+            <${StarRatingPartial} rating=${deck.rating}/>
         </div>
         <${Title} title=${ title }/>
     </div>`;

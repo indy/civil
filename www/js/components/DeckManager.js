@@ -50,7 +50,7 @@ function makeCacheDeckFn(preCacheFn, resource) {
 }
 
 // preCacheFn performs any one-off calculations before caching the Deck
-function DeckManager({ id, resource, preCacheFn, hasSummarySection, hasReviewSection }) {
+export default function DeckManager({ id, resource, preCacheFn, hasSummarySection, hasReviewSection }) {
     // returns helper fn that applies preCacheFn and stores deck in AppState
 
     const [state, appDispatch] = useStateValue();
@@ -135,5 +135,3 @@ function DeckManager({ id, resource, preCacheFn, hasSummarySection, hasReviewSec
 
     return res;
 }
-
-export { DeckManager };

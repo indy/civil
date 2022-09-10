@@ -1,6 +1,6 @@
 import { Link, html, useState } from '/lib/preact/mod.js';
 
-function Ref({ deckReference, extraClasses }) {
+export default function Ref({ deckReference, extraClasses }) {
     const [expanded, setExpanded] = useState(true);
 
     if (deckReference) {
@@ -14,7 +14,6 @@ function Ref({ deckReference, extraClasses }) {
             }
         }
 
-        // isg todo: how does the code after the annotation check work? the html isn't wrapped in a single div, there are 3 top-level divs????
         return html`
         <div class="${extraClasses}" key=${ id }>
             <span class="ref-kind" onClick=${clickedToggleAnnotation}>(${ ref_kind })${!expanded && '+'}</span>
@@ -25,5 +24,3 @@ function Ref({ deckReference, extraClasses }) {
         return html`<div></div>`
     }
 }
-
-export { Ref }

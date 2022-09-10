@@ -8,8 +8,10 @@ import buildMarkup from '/js/components/BuildMarkup.js';
 
 import CivilInput from '/js/components/CivilInput.js';
 import CivilTextArea from '/js/components/CivilTextArea.js';
+import DeckManager from '/js/components/DeckManager.js';
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 import Note from '/js/components/Note.js';
+import SectionNotes from '/js/components/SectionNotes.js';
 
 const SHOW_ADD_FORM = 'show-add-form';
 const HIDE_ADD_FORM = 'hide-add-form';
@@ -55,14 +57,6 @@ function quotesReducer(state, action) {
     }
 }
 
-function cacheDeck(dispatch, deck) {
-    dispatch({
-        type: 'cacheDeck',
-        id: deck.id,
-        newItem: deck
-    });
-}
-
 function updateUrlName(dispatch, title) {
     // todo: is there a better way of setting the urlname for quotes?
     dispatch({
@@ -95,7 +89,6 @@ function Quotes() {
     function clickedRandomButton(e) {
         e.preventDefault();
         Net.get("/api/quotes/random").then(quote => {
-            cacheDeck(dispatch, quote);
             route(`/quotes/${quote.id}`);
         });
     }
@@ -176,36 +169,24 @@ function Quotes() {
 let showingSearchCommand = false;
 let componentRequiresFullKeyboardAccess = false;
 
-function Quote(props) {
+function Quote({ id }) {
     const [state, dispatch] = useStateValue();
 
-    const quoteId = parseInt(props.id, 10);
-    const quote = state.cache.deck[quoteId] || { id: quoteId };
+    const quoteId = parseInt(id, 10);
+
+    const deckManager = DeckManager({
+        id: quoteId,
+        resource: "quotes",
+        hasSummarySection: false,
+        hasReviewSection: false
+    });
 
     useEffect(() => {
-        dispatch({
-            type: 'quoteId',
-            id: quoteId
-        });
-
-        if(!state.cache.deck[quote.id]) {
-            // fetch resource from the server
-            const url = `/api/quotes/${quote.id}`;
-            Net.get(url).then(deck => {
-                if (deck) {
-                    cacheDeck(dispatch, deck);
-                    updateUrlName(dispatch, deck.title);
-                } else {
-                    console.error(`error: fetchDeck for ${url}`);
-                }
-            });
-        }
-
         document.addEventListener("keydown", onKeyDown);
         return () => {
             document.removeEventListener("keydown", onKeyDown);
         };
-    }, [quote]);
+    }, [id]);
 
 
     useEffect(() => {
@@ -216,7 +197,6 @@ function Quote(props) {
     function getQuoteThenRoute(url) {
         Net.get(url).then(deck => {
             if (deck) {
-                cacheDeck(dispatch, deck);
                 route(`/quotes/${deck.id}`);
                 updateUrlName(dispatch, deck.title);
             } else {
@@ -237,8 +217,6 @@ function Quote(props) {
         }
     };
 
-    const note = quote.notes && quote.notes.find(n => n.kind === "Note");
-
     function updateNoteServerSide() {
         // as the title could have changed, we need to post the updated quote to the server
         Net.put(`/api/quotes/${quote.id}`, {
@@ -247,53 +225,27 @@ function Quote(props) {
             attribution: quote.attribution
         });
 
-        cacheDeck(dispatch, quote);
-    }
-
-    function onEditedNote(id, data) {
-        quote.notes[0] = Object.assign(quote.notes[0], data);
-        quote.title = titleFromQuoteText(data.content);
-        updateNoteServerSide();
     }
 
     function onEditedAttribute(attribution) {
-        quote.attribution = attribution;
-        updateNoteServerSide();
+        // quote.attribution = attribution;
+        // updateNoteServerSide();
     }
 
     function onDelete(id) {
-        Net.delete(`/api/quotes/${quote.id}`).then(() => {
-            route("/quotes");
-        });
+        // Net.delete(`/api/quotes/${quote.id}`).then(() => {
+        //     route("/quotes");
+        // });
     }
 
-    function onRefsChanged(note, all_decks_for_note) {
-        // have to set deck.refs to be the canonical version
-        // 'cacheDeck' will use that to populate each note's decks array
-
-        // remove all deck.refs that relate to this note
-        quote.refs = quote.refs.filter(din => {
-            return din.note_id !== note.id;
-        });
-        // add every note.decks entry to quote.refs
-        all_decks_for_note.forEach(d => { quote.refs.push(d); });
-
-        quote.notes[0] = note;
-        cacheDeck(dispatch, quote);
-    }
+    let deck = state.deckManagerState.deck;
 
     return html`
     <article id="quotation-article">
-        ${ note && html`
-            <${Note} key=${ note.id }
-                     note=${ note }
-                     parentDeck=${ quote }
-                     onEdited=${ onEditedNote }
-                     onDelete=${ onDelete }
-                     onRefsChanged=${ onRefsChanged }/>`}
-        <${Attribution} attribution=${ quote.attribution }
-                        onEdited=${ onEditedAttribute}
-                        onDelete=${ onDelete }/>
+        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } cacheDeck=${ deckManager.cacheDeck } noappend />
+        ${ deck && html`<${Attribution} attribution=${ deck.attribution }
+                                        onEdited=${ onEditedAttribute}
+                                        onDelete=${ onDelete }/>` }
     </article>`;
 }
 

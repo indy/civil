@@ -2,7 +2,7 @@ import { html, Link, useState } from '/lib/preact/mod.js';
 
 import { svgCaretRight, svgCaretDown } from '/js/svgIcons.js';
 import { useStateValue } from '/js/StateProvider.js';
-import { Ref } from '/js/components/Ref.js';
+import Ref from '/js/components/Ref.js';
 
 import buildMarkup from '/js/components/BuildMarkup.js';
 

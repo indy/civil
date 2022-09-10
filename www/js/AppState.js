@@ -61,17 +61,7 @@ export const initialState = {
         deckIndexFromId: []
     },
 
-
-    deckManagerState: {
-        deck: undefined,
-        showUpdateForm: false,
-        showDelete: false,
-        isEditingDeckRefs: false,
-        hasSummarySection: false,
-        hasReviewSection: false,
-        showShowSummaryButton: false,
-        showShowReviewButton: false
-    },
+    deckManagerState: cleanDeckManagerState(),
 
     // oldest reasonable age in years, any person whose birth means they're older can be assumed to be dead
     oldestAliveAge: 120,
@@ -93,6 +83,20 @@ export const initialState = {
     srReviewCount: 0,
     srEarliestReviewDate: undefined
 };
+
+function cleanDeckManagerState() {
+    let res = {
+        deck: undefined,
+        showUpdateForm: false,
+        showDelete: false,
+        isEditingDeckRefs: false,
+        hasSummarySection: false,
+        hasReviewSection: false,
+        showShowSummaryButton: false,
+        showShowReviewButton: false
+    }
+    return res;
+}
 
 export const reducer = (state, action) => {
     switch (action.type) {
@@ -182,7 +186,8 @@ export const reducer = (state, action) => {
     case 'routeChanged':
         return {
             ...state,
-            url: action.url
+            url: action.url,
+            deckManagerState: cleanDeckManagerState()
         };
     case 'uberSetup':
         return {
@@ -380,22 +385,6 @@ export const reducer = (state, action) => {
 
             return newState;
         }
-    case 'setCurrentDeckId':
-        {
-            return state;
-        }
-    case 'cacheDeck': {
-        console.log("delete this code");
-        // let deck = action.newItem;
-        // let updatedDeck = applyDecksAndCardsToNotes(deck);
-
-        // updatedDeck.noteDeckMeta = updatedDeck.notes.find(n => n.kind === 'NoteDeckMeta');
-
-        let newState = { ...state };
-        // newState.cache.deck[action.id] = updatedDeck;
-
-        return newState;
-    }
     case 'deleteDeck': {
         let filterFn = d => d.id !== action.id;
 

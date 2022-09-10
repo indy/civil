@@ -9,7 +9,7 @@ import CivilTextArea from '/js/components/CivilTextArea.js';
 import ImageWidget from '/js/components/ImageWidget.js';
 import Note from '/js/components/Note.js';
 import RollableSection from '/js/components/RollableSection.js';
-import { WhenVerbose } from '/js/components/WhenVerbose.js';
+import WhenVerbose from '/js/components/WhenVerbose.js';
 
 const NOTE_SECTION_HIDE = 0;
 const NOTE_SECTION_SHOW = 1;
@@ -20,7 +20,7 @@ const NOTE_KIND_SUMMARY = 'NoteSummary';
 const NOTE_KIND_REVIEW = 'NoteReview';
 const NOTE_KIND_DECKMETA = 'NoteDeckMeta';
 
-function NoteSection({ heading, noteKind, howToShow, deck, onRefsChanged, cacheDeck }) {
+function NoteSection({ heading, noteKind, howToShow, deck, onRefsChanged, cacheDeck, noappend }) {
     function noteManager(noteKind) {
         let filterFn = n => (!n.point_id) && n.kind === noteKind;
 
@@ -37,7 +37,8 @@ function NoteSection({ heading, noteKind, howToShow, deck, onRefsChanged, cacheD
             onRefsChanged,
             filterFn,
             appendLabel,
-            noteKind
+            noteKind,
+            noappend
         });
     }
 
@@ -50,7 +51,7 @@ function NoteSection({ heading, noteKind, howToShow, deck, onRefsChanged, cacheD
     }
 }
 
-function NoteManager({ deck, cacheDeck, onRefsChanged, filterFn, optional_deck_point, appendLabel, noteKind }) {
+function NoteManager({ deck, cacheDeck, onRefsChanged, filterFn, optional_deck_point, appendLabel, noteKind, noappend }) {
     const [state, dispatch] = useStateValue();
 
     function findNoteWithId(id, modifyFn) {
@@ -144,11 +145,12 @@ function NoteManager({ deck, cacheDeck, onRefsChanged, filterFn, optional_deck_p
     }
 
     const notes = (deck && deck.notes) ? deck.notes.filter(filterFn).map(buildNoteComponent) : [];
+    const addNoteUI = noappend ? '' : (state.showNoteForm[noteKind] ? buildNoteForm() : buildNoteFormIcon());
 
     return html`
            <section>
                ${ notes }
-               ${ state.showNoteForm[noteKind] ? buildNoteForm() : buildNoteFormIcon() }
+               ${ addNoteUI }
            </section>`;
 }
 

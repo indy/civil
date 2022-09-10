@@ -3,19 +3,20 @@ import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
-import { ensureListingLoaded, leftMarginHeading } from '/js/CivilUtils.js';
+import { ensureListingLoaded } from '/js/CivilUtils.js';
 import { capitalise, formattedDate } from '/js/JsUtils.js';
 
 import CivilInput from '/js/components/CivilInput.js';
 import DeleteDeckConfirmation from '/js/components/DeleteDeckConfirmation.js';
+import LeftMarginHeading from '/js/components/LeftMarginHeading.js';
 import SectionGraph from '/js/components/SectionGraph.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import SectionDeckRefs from '/js/components/SectionDeckRefs.js';
 import SectionNotes from '/js/components/SectionNotes.js';
 import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBackref.js';
-import { DeckManager } from '/js/components/DeckManager.js';
+import DeckManager from '/js/components/DeckManager.js';
 import { DeckSimpleListSection } from '/js/components/ListSections.js';
-import { Title } from '/js/components/Title.js';
+import Title from '/js/components/Title.js';
 
 function Ideas() {
     const [state, dispatch] = useStateValue();
@@ -81,7 +82,9 @@ function IdeaTopMatter({ title }) {
     return html`
     <div>
         <div class="left-margin">
-            ${ createdAt && leftMarginHeading(formattedDate(createdAt)) }
+            <${LeftMarginHeading}>
+                ${ createdAt && formattedDate(createdAt)}
+            </${LeftMarginHeading}>
         </div>
         <${Title} title=${ title }/>
     </div>`;

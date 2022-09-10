@@ -59,6 +59,8 @@ var precacheConfig = [
     "/js/components/SectionGraph.js",
     "/js/components/Ideas.js",
     "/js/components/ImageWidget.js",
+    "/js/components/LeftMarginHeading.js",
+    "/js/components/LeftMarginHeadingNoWrap.js",
     "/js/components/LifespanForm.js",
     "/js/components/ListSections.js",
     "/js/components/ListingLink.js",

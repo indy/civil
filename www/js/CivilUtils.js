@@ -54,26 +54,6 @@ export async function fetchDeckListing(dispatch, resource, url) {
     setDeckListing(dispatch, resource, listing);
 }
 
-// todo: these two functions should be somewhere else
-export function leftMarginHeading(content) {
-    return html`
-          <div class="left-margin-entry">
-            <div class="left-margin-heading">
-              ${ content }
-            </div>
-          </div>`;
-}
-
-export function leftMarginHeadingNoWrap(content) {
-    return html`
-          <div class="left-margin-entry-no-wrap">
-            <div class="left-margin-heading">
-              ${ content }
-            </div>
-          </div>`;
-}
-
-
 export function sortByResourceThenName(a, b) {
     if (a.resource < b.resource) {
         return -1;

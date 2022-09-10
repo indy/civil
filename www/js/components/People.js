@@ -25,11 +25,11 @@ import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import SectionDeckRefs from '/js/components/SectionDeckRefs.js';
 import SectionNotes from '/js/components/SectionNotes.js';
 import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBackref.js';
-import { DeckManager } from '/js/components/DeckManager.js';
+import DeckManager from '/js/components/DeckManager.js';
 import { DeckSimpleListSection } from '/js/components/ListSections.js';
 import { PointForm } from '/js/components/PointForm.js';
-import { Title } from '/js/components/Title.js';
-import { WhenVerbose } from '/js/components/WhenVerbose.js';
+import Title from '/js/components/Title.js';
+import WhenVerbose from '/js/components/WhenVerbose.js';
 
 function People() {
     const [state, dispatch] = useStateValue();
@@ -115,7 +115,7 @@ function Person({ id }) {
         <${SectionUpdatePerson}/>
         <${DeleteDeckConfirmation} resource='people' id=${personId}/>
 
-        ${ !hasKnownLifespan && html`<${LifespanForm} name=${ name } onLifespanGiven=${ onLifespan }/>` }
+        ${ name && !hasKnownLifespan && html`<${LifespanForm} name=${ name } onLifespanGiven=${ onLifespan }/>` }
 
         <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
 

@@ -11,7 +11,7 @@ import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 import FlashCard from '/js/components/FlashCard.js';
 import ImageWidget from '/js/components/ImageWidget.js';
 import buildMarkup from '/js/components/BuildMarkup.js';
-import { Ref } from '/js/components/Ref.js';
+import Ref from '/js/components/Ref.js';
 
 const NOTE_SET_PROPERTY = 'note-set-property';
 const ADD_DECK_REFERENCES_UI_SHOW = 'add-deck-references-ui-show';

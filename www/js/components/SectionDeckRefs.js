@@ -3,7 +3,7 @@ import { html } from '/lib/preact/mod.js';
 import Net from '/js/Net.js';
 
 import { useStateValue } from '/js/StateProvider.js';
-import { Ref } from '/js/components/Ref.js';
+import Ref from '/js/components/Ref.js';
 import CivilSelect from '/js/components/CivilSelect.js';
 
 export default function SectionDeckRefs({ onRefsChanged }) {

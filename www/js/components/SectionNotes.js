@@ -7,9 +7,8 @@ import { NoteSection, NoteManager,
          NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE,
          NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 
-export default function SectionNotes({ onRefsChanged, cacheDeck, title }) {
+export default function SectionNotes({ onRefsChanged, cacheDeck, title, noappend }) {
     const [state, appDispatch] = useStateValue();
-
     return html`
     <div>
         ${ state.deckManagerState.hasSummarySection && html`
@@ -18,20 +17,23 @@ export default function SectionNotes({ onRefsChanged, cacheDeck, title }) {
                             howToShow=${ howToShowNoteSection(NOTE_KIND_SUMMARY, state.deckManagerState) }
                             deck=${ state.deckManagerState.deck }
                             onRefsChanged=${onRefsChanged}
-                            cacheDeck=${ cacheDeck }/>`}
+                            cacheDeck=${ cacheDeck }
+                            noappend=${noappend } />`}
         ${ state.deckManagerState.hasReviewSection && html`
             <${NoteSection} heading='Review'
                             noteKind=${ NOTE_KIND_REVIEW }
                             howToShow=${ howToShowNoteSection(NOTE_KIND_REVIEW, state.deckManagerState) }
                             deck=${ state.deckManagerState.deck }
                             onRefsChanged=${onRefsChanged}
-                            cacheDeck=${ cacheDeck } />`}
+                            cacheDeck=${ cacheDeck }
+                            noappend=${noappend } />`}
         <${NoteSection} heading=${ title }
                         noteKind=${ NOTE_KIND_NOTE }
                         howToShow=${ howToShowNoteSection(NOTE_KIND_NOTE, state.deckManagerState) }
                         deck=${ state.deckManagerState.deck }
                         onRefsChanged=${onRefsChanged}
-                        cacheDeck=${ cacheDeck } />
+                        cacheDeck=${ cacheDeck }
+                        noappend=${noappend } />
     </div>`;
 }
 

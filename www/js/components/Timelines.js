@@ -13,11 +13,11 @@ import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import SectionDeckRefs from '/js/components/SectionDeckRefs.js';
 import SectionNotes from '/js/components/SectionNotes.js';
-import { DeckManager } from '/js/components/DeckManager.js';
+import DeckManager from '/js/components/DeckManager.js';
 import { DeckSimpleList } from '/js/components/ListSections.js';
 import { PointForm } from '/js/components/PointForm.js';
-import { Title } from '/js/components/Title.js';
-import { WhenVerbose } from '/js/components/WhenVerbose.js';
+import Title from '/js/components/Title.js';
+import WhenVerbose from '/js/components/WhenVerbose.js';
 import { svgPointAdd, svgX, svgCaretRight, svgCaretRightEmpty, svgCaretDown } from '/js/svgIcons.js';
 
 function Timelines() {

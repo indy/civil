@@ -2,7 +2,7 @@ import { html, useRef, useEffect, useState, route } from '/lib/preact/mod.js';
 
 import { useStateValue } from '/js/StateProvider.js';
 
-function Title({title}) {
+export default function Title({title}) {
     const [state, appDispatch] = useStateValue();
 
     const hoveringRef = useRef(null);
@@ -157,5 +157,3 @@ function DeckControl({ moreVisible, onEnter, onLeave, onClick, label}) {
     }
     return html`<div ref=${hoveringRef} class=${classes} onClick=${onClick}>${label}</div>`;
 }
-
-export { Title };
