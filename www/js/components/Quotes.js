@@ -65,7 +65,6 @@ function updateUrlName(dispatch, title) {
     });
 }
 
-
 function titleFromQuoteText(quoteText) {
     const title = quoteText.length > 60 ? quoteText.slice(0, 57) + "..." : quoteText;
     return title;
@@ -217,25 +216,24 @@ function Quote({ id }) {
         }
     };
 
-    function updateNoteServerSide() {
+    function onEditedAttribute(attribution) {
+        let quote = state.deckManagerState.deck;
+        let note = quote.notes.find(n => n.kind === 'Note');
+
         // as the title could have changed, we need to post the updated quote to the server
         Net.put(`/api/quotes/${quote.id}`, {
             title: quote.title,
-            text: quote.notes[0].content, // not really needed, server side only uses title and attribution
-            attribution: quote.attribution
+            text: note.content, // not really needed, server side only uses title and attribution
+            attribution: attribution
+        }).then((updatedDeck) => {
+            dispatch({type: 'dms-update-deck', data: updatedDeck});
         });
-
-    }
-
-    function onEditedAttribute(attribution) {
-        // quote.attribution = attribution;
-        // updateNoteServerSide();
     }
 
     function onDelete(id) {
-        // Net.delete(`/api/quotes/${quote.id}`).then(() => {
-        //     route("/quotes");
-        // });
+        Net.delete(`/api/quotes/${id}`).then(() => {
+            route("/quotes");
+        });
     }
 
     let deck = state.deckManagerState.deck;
