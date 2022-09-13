@@ -1,27 +1,69 @@
-* (Dev) loading a test database
-
-- copy a backup from the server (e.g. civil_20201116.psql)
-- create a local database: $ createdb civil_20201116
-- load in the backup: psql civil_20201116 < civil_20201116.psql
-- update the .env variables
-
-- restart the server, login, may need an additional refresh to display the db name
 
 
-* (Dev) generating the library js files
+* building the files in www/lib/preact
 
-preact.js:
-package.json script in preact project:
-rename all mangle.json files to _mangle.json
+** preact + hooks
+$ git clone https://github.com/preactjs/preact.git
+$ cd preact
+$ npm install
 
-"isg": "microbundle -i src/index.js -o dist/isg-bundle.js --no-pkg-main --no-compress -f es",
-then rename dist/isg-bundle.module.js to preact.js
+built core preact file with:
+$ npm run build
 
-hooks.js:
-go into the preact project's hooks/src directory, copy index.js to hooks.js updating the import declaration.
+copy over the built libraries:
+$ cp dist/preact.mjs ~/code/civil/www/lib/preact/.
+$ cp hooks/dist/hooks.mjs ~/code/civil/www/lib/preact/.
 
-htm:
-manually copied build.mjs from the project and made changes
+also copy over the map files
+$ cp dist/preact.module.js.map ~/code/civil/www/lib/preact/.
+$ cp hooks/dist/hooks.module.js.map ~/code/civil/www/lib/preact/.
 
-preact-router:
-manually copied over and made changes
+changed the import in the hooks.mjs file from:
+import{options as n,Fragment as t}from"preact";
+to
+import{options as n,Fragment as t}from"/lib/preact/preact.mjs";
+
+
+** htm
+$ git clone https://github.com/developit/htm.git
+$ cd htm
+$ npm install
+$ npm run build
+
+$ cp dist/htm.mjs ~/code/civil/www/lib/preact/.
+
+make sure that mod.js properly imports this file, look into htm/preact/index.mjs for how to do this
+
+** preact-router
+
+$ git clone https://github.com/preactjs/preact-router.git
+
+$ cd preact-router
+$ cp src/index.js ~/code/civil/www/lib/preact/preact-router.js
+$ cp src/util.js ~/code/civil/www/lib/preact/preact-router-util.js
+
+then updated the import lines in preact-router.js to match my locations:
+
+#+BEGIN_SRC javascript
+import {
+    h,
+    cloneElement,
+    Component,
+    toChildArray,
+    createContext
+} from '/lib/preact/preact.mjs';
+import { useContext, useState, useEffect } from '/lib/preact/hooks.mjs';
+import { exec, prepareVNodeForRanking, assign, pathRankSort } from '/lib/preact/preact-router-util.js';
+#+END_SRC
+
+then a line near the bottom of preact-router was changed from:
+#+BEGIN_SRC javascript
+return (
+    <RouterContext.Provider value={ctx}>{current}</RouterContext.Provider>
+);
+#+END_SRC
+
+to:
+#+BEGIN_SRC javascript
+return h(RouterContext.Provider, { value: ctx }, current);
+#+END_SRC

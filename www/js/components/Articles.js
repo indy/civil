@@ -36,6 +36,10 @@ function Articles() {
     </article>`;
 }
 
+function preCacheFn(d) {
+    return d;
+}
+
 function Article({ id }) {
     const [state] = useStateValue();
 
@@ -44,6 +48,7 @@ function Article({ id }) {
     const deckManager = DeckManager({
         id: articleId,
         resource: "articles",
+        preCacheFn: preCacheFn,
         hasSummarySection: true,
         hasReviewSection: true
     });
@@ -56,7 +61,7 @@ function Article({ id }) {
         <${DeleteDeckConfirmation} resource='articles' id=${articleId}/>
         <${TopScribble} text=${ shortDescription }/>
         <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
-        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } cacheDeck=${ deckManager.cacheDeck }/>
+        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } preCacheFn=${preCacheFn} resource="articles" />
         <${SectionBackRefs} deckId=${ articleId }/>
         <${SectionGraph} depth=${ 2 } />
     </article>`;
@@ -172,7 +177,7 @@ function SectionUpdateArticle() {
         const resource = 'articles';
 
         Net.put(`/api/${ resource }/${ article.id }`, data).then(newDeck => {
-            appDispatch({type: 'dms-update-deck', data: newDeck});
+            appDispatch({type: 'dms-update-deck', data: { deck: newDeck, resource: 'articles'}});
             appDispatch({type: 'dms-hide-form'});
 
             // fetch the listing incase editing the article has changed it's star rating or annotation

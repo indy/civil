@@ -45,11 +45,10 @@ function cleanState(state) {
 }
 
 function reducer(state, action) {
-    const [appState, appDispatch] = useStateValue();
-
     switch(action.type) {
     case CLICKED_COMMAND: {
-        const command = action.data.command;
+        const command = action.data.entry.command;
+        const appDispatch = action.data.appDispatch;
         const success = executeCommand(command, appDispatch);
         if (success) {
             let newState = cleanState(state);
@@ -64,6 +63,7 @@ function reducer(state, action) {
         return newState;
     }
     case SYNC_VISIBILITY: {
+        let appDispatch = action.data;
         appDispatch({type: 'showingSearchCommand', showingSearchCommand: state.isVisible});
         return state;
     }
@@ -90,6 +90,7 @@ function reducer(state, action) {
         }
 
         if (state.mode === MODE_COMMAND) {
+            const appDispatch = action.data;
             const success = executeCommand(state.text, appDispatch);
             if (success) {
                 let newState = cleanState(state);
@@ -119,11 +120,13 @@ function reducer(state, action) {
     case KEY_DOWN_COLON: {
         const newState = { ...state };
 
+        let appState = action.data.appState;
         if (appState.componentRequiresFullKeyboardAccess) {
             return newState;
         }
 
-        const inputElement = action.data.current;
+        let searchCommandRef = action.data.searchCommandRef;
+        const inputElement = searchCommandRef.current;
 
         if (!newState.isVisible) {
             if (inputElement) {
@@ -169,6 +172,7 @@ function reducer(state, action) {
 
         const newState = { ...state };
         if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
+            const appDispatch = action.data;
             appDispatch({type: 'scratchListAddMulti', candidates: newState.candidates});
 
             newState.shiftKey = true;
@@ -188,7 +192,7 @@ function reducer(state, action) {
             return state;
         }
 
-        const text = action.data;
+        const text = action.data.text;
         const mode = isCommand(text) ? MODE_COMMAND : MODE_SEARCH;
 
         let candidates = state.candidates;
@@ -218,6 +222,7 @@ function reducer(state, action) {
                         keyDownIndex: -1
                     };
 
+                    let appDispatch = action.data.appDispatch;
                     appDispatch({type: 'scratchListAdd', candidate: candidate});
 
                     return newState;
@@ -241,10 +246,12 @@ function reducer(state, action) {
         return newState;
     }
     case REMOVE_SAVED_SEARCH_RESULT: {
-        const index = action.data;
+        const index = action.data.index;
         const newState = {...state};
 
-        appDispatch({type: 'scratchListRemove', index: index});
+        const appDispatch = action.data.appDispatch;
+
+        appDispatch({type: 'scratchListRemove', index});
 
         return newState;
     }
@@ -276,10 +283,10 @@ export default function SearchCommand() {
             localDispatch(KEY_DOWN_ESC, searchCommandRef);
         }
         if (e.key === ":") {
-            localDispatch(KEY_DOWN_COLON, searchCommandRef);
+            localDispatch(KEY_DOWN_COLON, { searchCommandRef, appState: state});
         }
         if (e.key === "Enter") {
-            localDispatch(KEY_DOWN_ENTER);
+            localDispatch(KEY_DOWN_ENTER, appDispatch);
         }
         if (e.ctrlKey) {
             localDispatch(KEY_DOWN_CTRL);
@@ -290,7 +297,7 @@ export default function SearchCommand() {
             localDispatch(KEY_DOWN_KEY, { index: index, shiftKey: e.shiftKey });
         }
         if (e.key === "+") {
-            localDispatch(KEY_DOWN_PLUS);
+            localDispatch(KEY_DOWN_PLUS, appDispatch);
         }
     };
 
@@ -314,10 +321,10 @@ export default function SearchCommand() {
         const text = event.target.value;
 
         if (local.mode === MODE_COMMAND) {
-            localDispatch(INPUT_GIVEN, text);
+            localDispatch(INPUT_GIVEN, { text, appDispatch });
         } else if (local.mode === MODE_SEARCH) {
             if (!local.showKeyboardShortcuts) {
-                localDispatch(INPUT_GIVEN, text);
+                localDispatch(INPUT_GIVEN, { text, appDispatch });
                 if (text.length > 0 && !isCommand(text)) {
                     search(text);
                 }
@@ -332,7 +339,7 @@ export default function SearchCommand() {
                 //
                 const displayText = local.shiftKey ? text.slice(0, -1) : text;
 
-                localDispatch(INPUT_GIVEN, displayText);
+                localDispatch(INPUT_GIVEN, { text: displayText, appDispatch });
             }
         }
 
@@ -365,7 +372,7 @@ export default function SearchCommand() {
     function buildCommandEntry(entry, i) {
 
         function clickedCommand(e) {
-            localDispatch(CLICKED_COMMAND, entry);
+            localDispatch(CLICKED_COMMAND, { entry, appDispatch });
         }
 
         if (entry.spacer) {
@@ -400,7 +407,7 @@ export default function SearchCommand() {
             }
 
             function clickedDelete(e) {
-                localDispatch(REMOVE_SAVED_SEARCH_RESULT, i);
+                localDispatch(REMOVE_SAVED_SEARCH_RESULT, { index: i, appDispatch });
             }
 
             return html`
@@ -460,7 +467,7 @@ export default function SearchCommand() {
     }
 
     if (state.showingSearchCommand !== local.isVisible) {
-        localDispatch(SYNC_VISIBILITY);
+        localDispatch(SYNC_VISIBILITY, appDispatch);
     }
 
     // note: for debugging purposes:

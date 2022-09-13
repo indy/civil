@@ -35,6 +35,10 @@ function Ideas() {
     </article>`;
 }
 
+function preCacheFn(d) {
+    return d;
+}
+
 function Idea({ id }) {
     const [searchResults, setSearchResults] = useState([]); // an array of backrefs
     console.log("idea");
@@ -55,6 +59,7 @@ function Idea({ id }) {
     const deckManager = DeckManager({
         id: ideaId,
         resource: "ideas",
+        preCacheFn: preCacheFn,
         hasSummarySection: false,
         hasReviewSection: false
     });
@@ -66,7 +71,7 @@ function Idea({ id }) {
         <${DeleteDeckConfirmation} resource='ideas' id=${ideaId}/>
         <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
 
-        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } cacheDeck=${ deckManager.cacheDeck }/>
+        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } preCacheFn=${preCacheFn} resource="ideas"/>
 
         <${SectionBackRefs} deckId=${ ideaId }/>
         <${SectionSearchResultsBackref} backrefs=${ searchResults }/>
@@ -122,7 +127,7 @@ function SectionUpdateIdea() {
         };
 
         Net.put(`/api/ideas/${idea.id}`, data).then(newDeck => {
-            appDispatch({type: 'dms-update-deck', data: newDeck});
+            appDispatch({type: 'dms-update-deck', data: { deck: newDeck, resource: 'ideas'}});
             appDispatch({type: 'dms-hide-form'});
         });
 

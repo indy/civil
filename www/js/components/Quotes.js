@@ -168,6 +168,10 @@ function Quotes() {
 let showingSearchCommand = false;
 let componentRequiresFullKeyboardAccess = false;
 
+function preCacheFn(d) {
+    return d;
+}
+
 function Quote({ id }) {
     const [state, dispatch] = useStateValue();
 
@@ -176,6 +180,7 @@ function Quote({ id }) {
     const deckManager = DeckManager({
         id: quoteId,
         resource: "quotes",
+        preCacheFn: preCacheFn,
         hasSummarySection: false,
         hasReviewSection: false
     });
@@ -226,7 +231,7 @@ function Quote({ id }) {
             text: note.content, // not really needed, server side only uses title and attribution
             attribution: attribution
         }).then((updatedDeck) => {
-            dispatch({type: 'dms-update-deck', data: updatedDeck});
+            dispatch({type: 'dms-update-deck', data: {deck: updatedDeck, resource: 'quotes'}});
         });
     }
 
@@ -240,7 +245,7 @@ function Quote({ id }) {
 
     return html`
     <article id="quotation-article">
-        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } cacheDeck=${ deckManager.cacheDeck } noappend />
+        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } preCacheFn=${preCacheFn} resource="quotes" noappend />
         ${ deck && html`<${Attribution} attribution=${ deck.attribution }
                                         onEdited=${ onEditedAttribute}
                                         onDelete=${ onDelete }/>` }

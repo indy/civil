@@ -102,27 +102,27 @@ export const reducer = (state, action) => {
     switch (action.type) {
 
     case 'dms-update-deck': {
-        let urlName = action.data.title || action.data.name;
+
+        let { deck, resource } = action.data;
+        let updatedDeck = applyDecksAndCardsToNotes(deck);
+        updatedDeck.noteDeckMeta = updatedDeck.notes.find(n => n.kind === 'NoteDeckMeta');
+
+        let urlName = updatedDeck.title || updatedDeck.name;
 
         // set the state's url value here, this saves a dispatch in App.js::AppUI::handleRoute when navigating to a deck page
         let newState = {
             ...state,
-            url: `/${action.resource}/${action.data.id}`,
+            url: `/${resource}/${deck.id}`,
             urlName,
             deckManagerState: {
                 ...state.deckManagerState,
-                deck: action.data
-
-                // showUpdateForm: false,
-                // showDelete: false,
-                // isEditingDeckRefs: false
-
+                deck: updatedDeck
             }
         }
 
         document.title = `${state.appName}: ${urlName}`;
 
-        let deck = newState.deckManagerState.deck;
+        deck = newState.deckManagerState.deck;
 
         if (deck.notes) {
             if (state.deckManagerState.hasSummarySection) {

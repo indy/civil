@@ -33,7 +33,7 @@ const TEXT_AREA_BLURRED = 'text-area-blurred';
 const IMAGE_PASTED = 'image-pasted';
 
 function reducer(state, action) {
-    const [appState, appDispatch] = useStateValue();
+    // const [appState, appDispatch] = useStateValue();
 
     switch(action.type) {
     case IMAGE_PASTED: {
@@ -135,16 +135,16 @@ function reducer(state, action) {
             addDeckReferencesUI: false
         }
     case ADD_DECKS_COMMIT: {
-
+        const { appDispatch, changes, allDecksForNote } = action.data;
         appDispatch({
             type: 'noteRefsModified',
-            changes: action.data.changes,
-            allDecksForNote: action.data.allDecksForNote
+            changes,
+            allDecksForNote
         });
 
         return {
             ...state,
-            decks: action.data.allDecksForNote,
+            decks: allDecksForNote,
             addDeckReferencesUI: false
         }
     }
@@ -159,6 +159,7 @@ function reducer(state, action) {
             isEditingMarkup: !state.isEditingMarkup
         };
 
+        const appDispatch = action.data;
         if (newState.isEditingMarkup) {
             appDispatch({type: 'enableFullKeyboardAccessForComponent'});
         } else {
@@ -174,6 +175,7 @@ function reducer(state, action) {
             originalContent: state.note.content
         };
 
+        const appDispatch = action.data;
         appDispatch({type: 'disableFullKeyboardAccessForComponent'});
 
         return newState;
@@ -188,6 +190,7 @@ function reducer(state, action) {
             }
         };
 
+        const appDispatch = action.data;
         appDispatch({type: 'disableFullKeyboardAccessForComponent'});
 
         return newState;
@@ -198,7 +201,7 @@ function reducer(state, action) {
 };
 
 export default function Note(props) {
-    const [state] = useStateValue();
+    const [state, appDispatch] = useStateValue();
 
     const initialState = {
         addDeckReferencesUI: false,
@@ -245,7 +248,7 @@ export default function Note(props) {
 
     function onCancelClicked(e) {
         e.preventDefault();
-        localDispatch(EDITING_CANCELLED);
+        localDispatch(EDITING_CANCELLED, appDispatch);
     }
 
     function onSaveEditsClicked(e) {
@@ -271,9 +274,9 @@ export default function Note(props) {
             // stopped editing and the editable content is different than
             // the original note's text.
             props.onEdited(id, local.note);
-            localDispatch(EDITED_NOTE);
+            localDispatch(EDITED_NOTE, appDispatch);
         } else {
-            localDispatch(TOGGLE_EDITING);
+            localDispatch(TOGGLE_EDITING, appDispatch);
         }
     };
 
@@ -360,7 +363,7 @@ export default function Note(props) {
 
                 Net.post("/api/edges/notes_decks", data).then((allDecksForNote) => {
                     props.onRefsChanged(props.note, allDecksForNote);
-                    localDispatch(ADD_DECKS_COMMIT, { allDecksForNote, changes });
+                    localDispatch(ADD_DECKS_COMMIT, { allDecksForNote, changes, appDispatch });
                 });
             } else {
                 // cancel was pressed
@@ -408,7 +411,7 @@ export default function Note(props) {
     return html`
     <div class="note">
         ${ !local.isEditingMarkup && buildLeftMarginContent(props.note, localDispatch)}
-        ${  buildControls(props.note, local, localDispatch)}
+        ${  buildControls(props.note, local, localDispatch, appDispatch)}
         ${  local.isEditingMarkup && buildEditableContent() }
         ${  local.flashcardToShow && html`
             <${FlashCard} flashcard=${local.flashcardToShow} onDelete=${flashCardDeleted}/>`}
@@ -451,7 +454,7 @@ function buildLeftMarginContent(note, localDispatch) {
     }
 }
 
-function buildControls(note, local, localDispatch) {
+function buildControls(note, local, localDispatch, appDispatch) {
     let itemClasses = "note-control-item";
     if (local.mouseHovering) {
         itemClasses += " note-control-increased-visibility";
@@ -464,7 +467,7 @@ function buildControls(note, local, localDispatch) {
         localDispatch(ADD_FLASH_CARD_UI_SHOW, !local.addFlashCardUI);
     }
     function onEditClicked() {
-        localDispatch(TOGGLE_EDITING);
+        localDispatch(TOGGLE_EDITING, appDispatch);
     };
 
     return html`<div class="note-controls-container">

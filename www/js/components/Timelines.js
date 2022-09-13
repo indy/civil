@@ -54,7 +54,7 @@ function Timeline({ id }) {
         <${SectionUpdateTimeline}/>
         <${DeleteDeckConfirmation} resource='timelines' id=${timelineId}/>
         <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
-        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } cacheDeck=${ deckManager.cacheDeck }/>
+        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } preCacheFn=${ preCacheFn } resource="timelines" />
         <${SectionBackRefs} deckId=${ timelineId }/>
 
 
@@ -118,7 +118,7 @@ function SectionUpdateTimeline() {
 
         // edit an existing timeline
         Net.put(`/api/timelines/${timeline.id}`, data).then(newDeck => {
-            appDispatch({type: 'dms-update-deck', data: newDeck});
+            appDispatch({type: 'dms-update-deck', data: { deck: newDeck, resource: 'timelines'}});
             appDispatch({type: 'dms-hide-form'});
 
             // fetch the listing incase editing the article has changed it's star rating or annotation

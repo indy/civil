@@ -1,68 +1,21 @@
-import { html, useEffect } from '/lib/preact/mod.js';
+import { html, useEffect, useContext } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { sortByResourceThenName } from '/js/CivilUtils.js';
-import { useStateValue } from '/js/StateProvider.js';
+import { StateContext, useStateValue } from '/js/StateProvider.js';
 
 import { NoteManager, NOTE_KIND_NOTE } from '/js/components/NoteSection.js';
 import { PointForm } from '/js/components/PointForm.js';
 
-function applyDecksAndCardsToNotes(obj) {
-    const decksInNotes = hashByNoteIds(obj.refs);
-    const cardsInNotes = hashByNoteIds(obj.flashcards);
-
-    for(let i = 0;i<obj.notes.length;i++) {
-        let n = obj.notes[i];
-        n.decks = decksInNotes[n.id] || [];
-        n.decks.sort(sortByResourceThenName);
-        n.flashcards = cardsInNotes[n.id];
-    }
-
-    return obj;
-}
-
-function hashByNoteIds(s) {
-    s = s || [];
-    return s.reduce(function(a, b) {
-        const note_id = b.note_id;
-        if (a[note_id]) {
-            a[note_id].push(b);
-        } else {
-            a[note_id] = [b];
-        }
-        return a;
-    }, {});
-}
-
-function makeCacheDeckFn(preCacheFn, resource) {
-    return function(newdeck) {
-        if (preCacheFn) {
-            newdeck = preCacheFn(newdeck);
-        }
-
-        const [state, appDispatch] = useStateValue();
-
-        let updatedDeck = applyDecksAndCardsToNotes(newdeck);
-        updatedDeck.noteDeckMeta = updatedDeck.notes.find(n => n.kind === 'NoteDeckMeta');
-
-        appDispatch({type: 'dms-update-deck', data: updatedDeck, resource: resource});
-    }
-}
-
-// preCacheFn performs any one-off calculations before caching the Deck
 export default function DeckManager({ id, resource, preCacheFn, hasSummarySection, hasReviewSection }) {
-    // returns helper fn that applies preCacheFn and stores deck in AppState
-
     const [state, appDispatch] = useStateValue();
-
-    const cacheDeck = makeCacheDeckFn(preCacheFn, resource);
 
     useEffect(() => {
         // fetch resource from the server
         const url = `/api/${resource}/${id}`;
         Net.get(url).then(deck => {
             if (deck) {
-                cacheDeck(deck);
+                appDispatch({ type: 'dms-update-deck', data: { deck: preCacheFn(deck), resource }});
             } else {
                 console.error(`error: fetchDeck for ${url}`);
             }
@@ -78,7 +31,7 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
         function onAddPoint(point) {
             const url = `/api/${resource}/${state.deckManagerState.deck.id}/points`;
             Net.post(url, point).then(updatedDeck => {
-                cacheDeck(updatedDeck);
+                appDispatch({ type: 'dms-update-deck', data: { deck: preCacheFn(updatedDeck), resource }});
                 onSuccessCallback();
             });
         };
@@ -92,12 +45,14 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
         const index = notes.findIndex(n => n.id === id);
 
         modifyFn(notes, index);
-        cacheDeck({...deck, notes});
+
+        let d = { ...deck, notes};
+        appDispatch({ type: 'dms-update-deck', data: { deck: preCacheFn(d), resource }});
     };
 
     function onRefsChanged(note, all_decks_for_note) {
         // have to set deck.refs to be the canonical version
-        // 'cacheDeck' will use that to populate each note's decks array
+        // (used to populate each note's decks array)
 
         // remove all deck.refs that relate to this note
         state.deckManagerState.deck.refs = state.deckManagerState.deck.refs.filter(din => {
@@ -112,7 +67,7 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
     };
 
     res.onRefsChanged = onRefsChanged;
-    res.cacheDeck = cacheDeck;
+    // res.preCacheFn = preCacheFn || function(d) { return d };
 
     function noteFilterDeckPoint(deck_point) {
         return n => n.point_id === deck_point.id;
@@ -120,7 +75,8 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
 
     res.noteManagerForDeckPoint = function(deck_point) {
         return NoteManager({ deck: state.deckManagerState.deck,
-                             cacheDeck,
+                             preCacheFn,
+                             resource,
                              onRefsChanged,
                              filterFn: noteFilterDeckPoint(deck_point),
                              optional_deck_point: deck_point,

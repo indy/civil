@@ -119,7 +119,7 @@ function Person({ id }) {
 
         <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
 
-        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } cacheDeck=${ deckManager.cacheDeck }/>
+        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } preCacheFn=${preCacheFn} resource="people"/>
 
         <${SectionBackRefs} deckId=${ personId }/>
 
@@ -217,7 +217,7 @@ function SectionUpdatePerson() {
 
         // edit an existing person
         Net.put(`/api/people/${person.id}`, data).then(newDeck => {
-            appDispatch({type: 'dms-update-deck', data: newDeck});
+            appDispatch({type: 'dms-update-deck', data: { deck: newDeck, resource: 'people'}});
             appDispatch({type: 'dms-hide-form'});
         });
 

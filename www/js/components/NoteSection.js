@@ -20,7 +20,7 @@ const NOTE_KIND_SUMMARY = 'NoteSummary';
 const NOTE_KIND_REVIEW = 'NoteReview';
 const NOTE_KIND_DECKMETA = 'NoteDeckMeta';
 
-function NoteSection({ heading, noteKind, howToShow, deck, onRefsChanged, cacheDeck, noappend }) {
+function NoteSection({ heading, noteKind, howToShow, deck, onRefsChanged, preCacheFn, resource, noappend }) {
     function noteManager(noteKind) {
         let filterFn = n => (!n.point_id) && n.kind === noteKind;
 
@@ -33,7 +33,8 @@ function NoteSection({ heading, noteKind, howToShow, deck, onRefsChanged, cacheD
 
         return NoteManager({
             deck,
-            cacheDeck,
+            preCacheFn,
+            resource,
             onRefsChanged,
             filterFn,
             appendLabel,
@@ -51,7 +52,7 @@ function NoteSection({ heading, noteKind, howToShow, deck, onRefsChanged, cacheD
     }
 }
 
-function NoteManager({ deck, cacheDeck, onRefsChanged, filterFn, optional_deck_point, appendLabel, noteKind, noappend }) {
+function NoteManager({ deck, preCacheFn, resource, onRefsChanged, filterFn, optional_deck_point, appendLabel, noteKind, noappend }) {
     const [state, dispatch] = useStateValue();
 
     function findNoteWithId(id, modifyFn) {
@@ -59,7 +60,8 @@ function NoteManager({ deck, cacheDeck, onRefsChanged, filterFn, optional_deck_p
         const index = notes.findIndex(n => n.id === id);
 
         modifyFn(notes, index);
-        cacheDeck({...deck, notes});
+
+        dispatch({ type: 'dms-update-deck', data: { deck: preCacheFn({...deck, notes}), resource }});
     };
 
     function onEditedNote(id, data) {
@@ -102,8 +104,8 @@ function NoteManager({ deck, cacheDeck, onRefsChanged, filterFn, optional_deck_p
                         notes.push(n);
                     });
 
-                    cacheDeck({...deck, notes});
-                    dispatch({type: "hideNoteForm", noteKind });
+                    dispatch({ type: 'dms-update-deck', data: { deck: preCacheFn({...deck, notes}), resource }});
+                    dispatch({ type: "hideNoteForm", noteKind });
                 })
                 .catch(error => console.error(error.message));
         };
