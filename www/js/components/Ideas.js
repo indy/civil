@@ -108,6 +108,9 @@ function SectionUpdateIdea() {
         if (idea.title && idea.title !== '' && title === '') {
             setTitle(idea.title);
         }
+        if (idea.graph_terminator !== undefined) {
+            setGraphTerminator(idea.graph_terminator);
+        }
     }, [idea]);
 
     const handleChangeEvent = (event) => {

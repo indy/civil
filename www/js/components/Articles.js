@@ -116,24 +116,27 @@ function SectionUpdateArticle() {
     const [author, setAuthor] = useState(article.author || '');
     const [source, setSource] = useState(article.source || '');
     const [shortDescription, setShortDescription] = useState(article.short_description || '');
-    const [rating, setRating] = useState(article.rating);
-    const [publishedDate, setPublishedDate] = useState(article.published_date);
+    const [rating, setRating] = useState(article.rating || 0);
+    const [publishedDate, setPublishedDate] = useState(article.published_date || '');
 
     useEffect(() => {
         if (article.title && article.title !== '' && title === '') {
             setTitle(article.title);
         }
-        if (article.source && article.source !== '' && source === '') {
-            setSource(article.source);
-        }
         if (article.author && article.author !== '' && author === '') {
             setAuthor(article.author);
+        }
+        if (article.source && article.source !== '' && source === '') {
+            setSource(article.source);
         }
         if (article.short_description && article.short_description !== '' && shortDescription === '') {
             setShortDescription(article.short_description);
         }
+        if (article.rating) {
+            setRating(article.rating);
+        }
         if (article.published_date && article.published_date !== '' && publishedDate === '') {
-            setPublished_Date(article.published_date);
+            setPublishedDate(article.published_date);
         }
     }, [article]);
 
@@ -160,7 +163,6 @@ function SectionUpdateArticle() {
         if (name === "published_date") {
             setPublishedDate(value);
         }
-
     };
 
     const handleSubmit = (event) => {
