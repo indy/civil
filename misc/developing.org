@@ -36,6 +36,11 @@ make sure that mod.js properly imports this file, look into htm/preact/index.mjs
 
 ** preact-router
 
+NOTE
+the below doesn't work because the initial 'route' from / to /ideas is broken
+I've gone back to an older build of preact-router
+the commit at 03f9fb9 had the 'new but broken' router from below, maybe one day try and fix it?
+
 $ git clone https://github.com/preactjs/preact-router.git
 
 $ cd preact-router
