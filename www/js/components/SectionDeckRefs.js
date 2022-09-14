@@ -61,12 +61,12 @@ function AddDecksUI({ deckId, note, chosen, onCancel, onSaved }) {
 
         if (changes) {
             let data = {
-                note_id: note.id,
+                noteId: note.id,
                 // references_unchanged: changes.referencesUnchanged,
-                references_changed: changes.referencesChanged,
-                references_removed: changes.referencesRemoved,
-                references_added: changes.referencesAdded,
-                references_created: changes.referencesCreated
+                referencesChanged: changes.referencesChanged,
+                referencesRemoved: changes.referencesRemoved,
+                referencesAdded: changes.referencesAdded,
+                referencesCreated: changes.referencesCreated
             };
 
             Net.post("/api/edges/notes_decks", data).then((allDecksForNote) => {

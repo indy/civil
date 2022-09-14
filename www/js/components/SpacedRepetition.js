@@ -34,7 +34,7 @@ function dbg(mode, state) {
 function augmentCard(state, card, postRatingToServer) {
     card.showState = SHOW_PROMPT;
     card.promptMarkup = buildMarkup(card.prompt, state.imageDirectory);
-    card.answerMarkup = buildMarkup(card.note_content, state.imageDirectory);
+    card.answerMarkup = buildMarkup(card.noteContent, state.imageDirectory);
     card.postRatingToServer = postRatingToServer;
 
     return card;
@@ -238,7 +238,7 @@ function CardTest({ card, onRatedCard, onShowAnswer }) {
 }
 
 function buildAnswer(card) {
-    const { id, name, resource } = card.deck_info;
+    const { id, name, resource } = card.deckInfo;
     const href = `/${resource}/${id}`;
 
     return html`

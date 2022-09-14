@@ -67,9 +67,9 @@ async function getInitialStateForLoggedInUser() {
 
     return {
         imageDirectory: uber.directory,
-        recentImages: uber.recent_images,
-        srReviewCount: uber.sr_review_count,
-        srEarliestReviewDate: uber.sr_earliest_review_date
+        recentImages: uber.recentImages,
+        srReviewCount: uber.srReviewCount,
+        srEarliestReviewDate: uber.srEarliestReviewDate
     };
 }
 
@@ -91,8 +91,8 @@ function TopBarMenu(props) {
         let user = state.user;
         if (user) {
             status += user.username;
-            if (user.admin && user.admin.db_name !== "civil") {
-                status += ` (${user.admin.db_name})`;
+            if (user.admin && user.admin.dbName !== "civil") {
+                status += ` (${user.admin.dbName})`;
             }
         } else {
             status = 'Login';

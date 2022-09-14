@@ -46,6 +46,7 @@ pub fn note_kind_from_sqlite(input: i32) -> Result<NoteKind> {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Note {
     pub id: Key,
     pub kind: NoteKind,
@@ -54,6 +55,7 @@ pub struct Note {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ProtoNote {
     pub kind: NoteKind,
     pub content: Vec<String>,

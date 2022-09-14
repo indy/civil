@@ -50,16 +50,16 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
         appDispatch({ type: 'dms-update-deck', data: { deck: preCacheFn(d), resource }});
     };
 
-    function onRefsChanged(note, all_decks_for_note) {
+    function onRefsChanged(note, allDecksForNote) {
         // have to set deck.refs to be the canonical version
         // (used to populate each note's decks array)
 
         // remove all deck.refs that relate to this note
         state.deckManagerState.deck.refs = state.deckManagerState.deck.refs.filter(din => {
-            return din.note_id !== note.id;
+            return din.noteId !== note.id;
         });
         // add every note.decks entry to deck.refs
-        all_decks_for_note.forEach(d => { state.deckManagerState.deck.refs.push(d); });
+        allDecksForNote.forEach(d => { state.deckManagerState.deck.refs.push(d); });
 
         findNoteWithId(note.id, (notes, index) => {
             notes[index] = note;
@@ -69,24 +69,24 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
     res.onRefsChanged = onRefsChanged;
     // res.preCacheFn = preCacheFn || function(d) { return d };
 
-    function noteFilterDeckPoint(deck_point) {
-        return n => n.point_id === deck_point.id;
+    function noteFilterDeckPoint(deckPoint) {
+        return n => n.pointId === deckPoint.id;
     }
 
-    res.noteManagerForDeckPoint = function(deck_point) {
+    res.noteManagerForDeckPoint = function(deckPoint) {
         return NoteManager({ deck: state.deckManagerState.deck,
                              preCacheFn,
                              resource,
                              onRefsChanged,
-                             filterFn: noteFilterDeckPoint(deck_point),
-                             optional_deck_point: deck_point,
-                             appendLabel: `Append Note to ${ deck_point.title }`,
+                             filterFn: noteFilterDeckPoint(deckPoint),
+                             optionalDeckPoint: deckPoint,
+                             appendLabel: `Append Note to ${ deckPoint.title }`,
                              noteKind: NOTE_KIND_NOTE
                            });
     }
 
     res.pointHasNotes = function(point) {
-        return state.deckManagerState.deck.notes.some(n => n.point_id === point.id);
+        return state.deckManagerState.deck.notes.some(n => n.pointId === point.id);
     }
 
     return res;

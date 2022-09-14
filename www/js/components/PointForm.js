@@ -10,7 +10,7 @@ export function PointBirthForm({ pointBorn, onSubmit }) {
     return html`
     <${PointForm} timeLegend="Date of Birth"
                   locationLegend="Birth Location"
-                  pointKind="point_begin"
+                  pointKind="pointBegin"
                   point=${ pointBorn }
                   onSubmit=${ onSubmit }
                   submitMessage="Add Birth"/>`;
@@ -20,7 +20,7 @@ export function PointDeathForm({ pointDied, onSubmit }) {
     return html`
     <${PointForm} timeLegend="Date of Death"
                   locationLegend="DeathLocation"
-                  pointKind="point_end"
+                  pointKind="pointEnd"
                   point=${ pointDied }
                   onSubmit=${ onSubmit }
                   submitMessage="Add Death"/>`;
@@ -33,18 +33,18 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
 
     let initialPoint = {
         title: '',
-        title_backup: '',           // store the latest user inputted title value (in case title is replaced with a preset like 'Born' or 'Died' and then the user presses the 'Custom' radio tab, this will allow the previous user defined title to be restored)
+        titleBackup: '',           // store the latest user inputted title value (in case title is replaced with a preset like 'Born' or 'Died' and then the user presses the 'Custom' radio tab, this will allow the previous user defined title to be restored)
 
-        location_textual: '',
+        locationTextual: '',
         latitude: 0.0,
         longitude: 0.0,
-        location_fuzz: 0.0,
+        locationFuzz: 0.0,
 
-        date_textual: '',
-        exact_date: '',
-        lower_date: '',
-        upper_date: '',
-        date_fuzz: 0.5
+        dateTextual: '',
+        exactDate: '',
+        lowerDate: '',
+        upperDate: '',
+        dateFuzz: 0.5
     };
 
     if (point) {
@@ -59,52 +59,52 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
 
     const [state, setState] = useState({
         title: initialPoint.title,
-        title_backup: initialPoint.title_backup,
-        location_textual: initialPoint.location_textual,
+        titleBackup: initialPoint.titleBackup,
+        locationTextual: initialPoint.locationTextual,
         latitude: initialPoint.latitude,
         longitude: initialPoint.longitude,
-        location_fuzz: initialPoint.location_fuzz,
-        date_textual: initialPoint.date_textual,
-        exact_date: initialPoint.exact_date,
-        lower_date: initialPoint.lower_date,
-        upper_date: initialPoint.upper_date,
-        date_fuzz: initialPoint.date_fuzz,
-        date_textual_derived_from: '',
-        is_approx: false,
-        present_as_duration: false,
-        round_to_year: false,
-        has_typed_title: false,
+        locationFuzz: initialPoint.locationFuzz,
+        dateTextual: initialPoint.dateTextual,
+        exactDate: initialPoint.exactDate,
+        lowerDate: initialPoint.lowerDate,
+        upperDate: initialPoint.upperDate,
+        dateFuzz: initialPoint.dateFuzz,
+        dateTextualDerivedFrom: '',
+        isApprox: false,
+        presentAsDuration: false,
+        roundToYear: false,
+        hasTypedTitle: false,
         kind: pointKind || 'point'
     });
 
-    // build a date_textual from whatever was the last user input date
+    // build a dateTextual from whatever was the last user input date
     const buildReadableDateFromLast = (s) => {
-        if (s.date_textual_derived_from === 'exact') {
+        if (s.dateTextualDerivedFrom === 'exact') {
             return buildReadableDateFromExact(s, true);
-        } else if (s.date_textual_derived_from === 'range') {
+        } else if (s.dateTextualDerivedFrom === 'range') {
             return buildReadableDateFromRange(s, true);
         }
         return s;
     };
 
     const buildReadableDateFromExact = (s, checkOther) => {
-        const parsedDate = parseDateStringAsTriple(s.exact_date);
+        const parsedDate = parseDateStringAsTriple(s.exactDate);
         if (parsedDate) {
-            s.date_textual = asHumanReadableDate(parsedDate, s.is_approx, s.round_to_year);
-            s.date_textual_derived_from = 'exact';
-            s.date_fuzz = 0.5;
+            s.dateTextual = asHumanReadableDate(parsedDate, s.isApprox, s.roundToYear);
+            s.dateTextualDerivedFrom = 'exact';
+            s.dateFuzz = 0.5;
         } else if(checkOther) {
             buildReadableDateFromRange(s, false);
         } else {
-            let year = parseDateStringAsYearOnly(s.exact_date);
+            let year = parseDateStringAsYearOnly(s.exactDate);
             if (year) {
-                s.date_textual = `${year}`;
-                s.date_textual_derived_from = 'exact'; // ???
-                s.round_to_year = true;
+                s.dateTextual = `${year}`;
+                s.dateTextualDerivedFrom = 'exact'; // ???
+                s.roundToYear = true;
             } else {
-                s.date_textual = '';
-                s.date_textual_derived_from = '';
-                s.round_to_year = false;
+                s.dateTextual = '';
+                s.dateTextualDerivedFrom = '';
+                s.roundToYear = false;
             }
         }
         return s;
@@ -112,26 +112,26 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
 
     const buildReadableDateFromRange = (s, checkOther) => {
         // lower and upper
-        const parsedLowerDate = parseDateStringAsTriple(s.lower_date);
-        const parsedUpperDate = parseDateStringAsTriple(s.upper_date);
+        const parsedLowerDate = parseDateStringAsTriple(s.lowerDate);
+        const parsedUpperDate = parseDateStringAsTriple(s.upperDate);
 
         if (parsedLowerDate && parsedUpperDate) {
-            s.date_textual = asHumanReadableDateRange(parsedLowerDate, parsedUpperDate, s.is_approx, s.round_to_year, s.present_as_duration);
-            s.date_textual_derived_from = 'range';
-            s.date_fuzz = 0.0;
+            s.dateTextual = asHumanReadableDateRange(parsedLowerDate, parsedUpperDate, s.isApprox, s.roundToYear, s.presentAsDuration);
+            s.dateTextualDerivedFrom = 'range';
+            s.dateFuzz = 0.0;
         } else if (checkOther) {
             // at least one of the date ranges is invalid, so check if the exact date is correct
             return buildReadableDateFromExact(s, false);
         } else {
-            let year = parseDateStringAsYearOnly(s.exact_date);
+            let year = parseDateStringAsYearOnly(s.exactDate);
             if (year) {
-                s.date_textual = `${year}`;
-                s.date_textual_derived_from = 'exact'; // ???
-                s.round_to_year = true;
+                s.dateTextual = `${year}`;
+                s.dateTextualDerivedFrom = 'exact'; // ???
+                s.roundToYear = true;
             } else {
-                s.date_textual = '';
-                s.date_textual_derived_from = '';
-                s.round_to_year = false;
+                s.dateTextual = '';
+                s.dateTextualDerivedFrom = '';
+                s.roundToYear = false;
             }
         }
         return s;
@@ -146,53 +146,53 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
 
         if (name === "title") {
             newState.title = value;
-            newState.title_backup = value;
+            newState.titleBackup = value;
             if (newState.title.length === 0) {
                 // re-enable the functionality to autofill title to 'Born'
                 // or 'Died' if the title is ever completely deleted
-                newState.has_typed_title = false;
+                newState.hasTypedTitle = false;
             } else {
-                newState.has_typed_title = true;
+                newState.hasTypedTitle = true;
             }
         } else if (name === "pointkind") {
             if (event.target.value === "Custom") {
-                newState.title = newState.title_backup;
+                newState.title = newState.titleBackup;
                 newState.kind = 'point';
             } else {
                 if (event.target.value === 'Born') {
-                    console.log('setting kind to point_begin');
-                    newState.kind = 'point_begin';
+                    console.log('setting kind to pointBegin');
+                    newState.kind = 'pointBegin';
                 } else if (event.target.value === 'Died') {
-                    console.log('setting kind to point_end');
-                    newState.kind = 'point_end';
+                    console.log('setting kind to pointEnd');
+                    newState.kind = 'pointEnd';
                 }
-                if (!newState.has_typed_title || newState.title.length === 0) {
+                if (!newState.hasTypedTitle || newState.title.length === 0) {
                     newState.title = event.target.value; // either Born or Died
                 }
             }
-        } else if (name === "location_textual") {
-            newState.location_textual = value;
+        } else if (name === "locationTextual") {
+            newState.locationTextual = value;
         } else if (name === "latitude") {
             newState.latitude = parseFloat(value, 10);
         } else if (name === "longitude") {
             newState.longitude = parseFloat(value, 10);
-        } else if (name === "exact_date") {
-            newState.exact_date = value;
+        } else if (name === "exactDate") {
+            newState.exactDate = value;
             newState = buildReadableDateFromExact(newState, true);
-        } else if (name === "lower_date") {
-            newState.lower_date = value;
+        } else if (name === "lowerDate") {
+            newState.lowerDate = value;
             newState = buildReadableDateFromRange(newState, true);
-        } else if (name === "upper_date") {
-            newState.upper_date = value;
+        } else if (name === "upperDate") {
+            newState.upperDate = value;
             newState = buildReadableDateFromRange(newState, true);
-        } else if (name === "is_approx") {
-            newState.is_approx = value;
+        } else if (name === "isApprox") {
+            newState.isApprox = value;
             newState = buildReadableDateFromLast(newState);
-        } else if (name === "present_as_duration") {
-            newState.present_as_duration = value;
+        } else if (name === "presentAsDuration") {
+            newState.presentAsDuration = value;
             newState = buildReadableDateFromLast(newState);
-        } else if (name === "round_to_year") {
-            newState.round_to_year = value;
+        } else if (name === "roundToYear") {
+            newState.roundToYear = value;
             newState = buildReadableDateFromLast(newState);
         }
 
@@ -203,7 +203,7 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
     const onFindLocationClicked = async (event) => {
         event.preventDefault();
 
-        let geoResult = await geoGet(state.location_textual);
+        let geoResult = await geoGet(state.locationTextual);
 
         let [isOk, latitudeNew, longitudeNew] = getLatitudeLongitude(geoResult);
         if (isOk) {
@@ -215,17 +215,17 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
             // props.onPointChange(props.id, newState);
             setState(newState);
         } else {
-            console.log(`geoResult failed for ${state.location_textual}`);
+            console.log(`geoResult failed for ${state.locationTextual}`);
             console.log(geoResult);
         }
     };
 
 
     function kindToSend(k) {
-        if (k === 'point_begin') {
+        if (k === 'pointBegin') {
             return 'PointBegin';
         }
-        if (k === 'point_end') {
+        if (k === 'pointEnd') {
             return 'PointEnd';
         }
         return 'Point';
@@ -235,40 +235,40 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
         let s =  {
             title: state.title.trim(),
             kind: kindToSend(state.kind),
-            location_fuzz: 0,
-            date_fuzz: 0
+            locationFuzz: 0,
+            dateFuzz: 0
         };
         let canSend = false;
 
-        if (state.location_textual !== '') {
-            s.location_textual = state.location_textual;
+        if (state.locationTextual !== '') {
+            s.locationTextual = state.locationTextual;
             canSend = true;
         }
 
         if (state.latitude !== 0 && state.longitude !== 0) {
             s.latitude = state.latitude;
             s.longitude = state.longitude;
-            s.location_fuzz = state.location_fuzz;
+            s.locationFuzz = state.locationFuzz;
             canSend = true;
         }
 
-        if (state.date_textual_derived_from === 'exact') {
-            s.date_textual = state.date_textual;
-            s.exact_date = state.exact_date;
-            s.date_fuzz = state.date_fuzz;
+        if (state.dateTextualDerivedFrom === 'exact') {
+            s.dateTextual = state.dateTextual;
+            s.exactDate = state.exactDate;
+            s.dateFuzz = state.dateFuzz;
 
             // hack: need more robust date parsing
-            if (s.exact_date.length === 4 || (s.exact_date.length === 5 && s.exact_date[0] === '-')) {
-                s.exact_date += '-01-01';
-                console.log(`rounding exact date to be: ${s.exact_date}`);
+            if (s.exactDate.length === 4 || (s.exactDate.length === 5 && s.exactDate[0] === '-')) {
+                s.exactDate += '-01-01';
+                console.log(`rounding exact date to be: ${s.exactDate}`);
             }
 
             canSend = true;
-        } else if (state.date_textual_derived_from === 'range') {
-            s.date_textual = state.date_textual;
-            s.lower_date = state.lower_date;
-            s.upper_date = state.upper_date;
-            s.date_fuzz = state.date_fuzz;
+        } else if (state.dateTextualDerivedFrom === 'range') {
+            s.dateTextual = state.dateTextual;
+            s.lowerDate = state.lowerDate;
+            s.upperDate = state.upperDate;
+            s.dateFuzz = state.dateFuzz;
             canSend = true;
         }
 
@@ -305,24 +305,24 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
         </div>
         <fieldset>
             <legend>${ timeLegend }</legend>
-            <label for="exact_date">Exact Date:</label>
-            <${CivilInput} id="exact_date"
-                           value=${ state.exact_date }
+            <label for="exactDate">Exact Date:</label>
+            <${CivilInput} id="exactDate"
+                           value=${ state.exactDate }
                            autoComplete="off"
                            size="11"
                            onInput=${ handleChangeEvent } />
             <span class="civil-date-hint"> Format: YYYY-MM-DD</span>
             <div class="civil-date-hint-after"/>
             <br/>
-            <label for="lower_date">Lower Date:</label>
-            <${CivilInput} id="lower_date"
-                           value=${ state.lower_date }
+            <label for="lowerDate">Lower Date:</label>
+            <${CivilInput} id="lowerDate"
+                           value=${ state.lowerDate }
                            autoComplete="off"
                            size="11"
                            onInput=${ handleChangeEvent } />
-            <label for="upper_date">Upper Date:</label>
-            <${CivilInput} id="upper_date"
-                           value=${ state.upper_date }
+            <label for="upperDate">Upper Date:</label>
+            <${CivilInput} id="upperDate"
+                           value=${ state.upperDate }
                            autoComplete="off"
                            size="11"
                            onInput=${ handleChangeEvent } />
@@ -330,8 +330,8 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
               <input id="round-to-year"
                      class="pointform-checkbox"
                      type="checkbox"
-                     name="round_to_year"
-                     checked=${ state.round_to_year }
+                     name="roundToYear"
+                     checked=${ state.roundToYear }
                      onInput=${ handleChangeEvent } />
               <label for="round-to-year">Round to Year</label>
             </div>
@@ -339,8 +339,8 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
               <input id="is-approx"
                      class="pointform-checkbox"
                      type="checkbox"
-                     name="is_approx"
-                     checked=${ state.is_approx }
+                     name="isApprox"
+                     checked=${ state.isApprox }
                      onInput=${ handleChangeEvent } />
               <label for="is-approx">Is Approx</label>
             </div>
@@ -348,15 +348,15 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
               <input id="present-as-duration"
                      class="pointform-checkbox"
                      type="checkbox"
-                     name="present_as_duration"
-                     checked=${ state.present_as_duration }
+                     name="presentAsDuration"
+                     checked=${ state.presentAsDuration }
                      onInput=${ handleChangeEvent } />
               <label for="present-as-duration">Present as Duration</label>
             </div>
             <div class="pointform-space-top">
-              <label for="date_textual">Displayed Date:</label>
-              <${CivilInput} id="date_textual"
-                             value=${ state.date_textual }
+              <label for="dateTextual">Displayed Date:</label>
+              <${CivilInput} id="dateTextual"
+                             value=${ state.dateTextual }
                              size="40"
                              autoComplete="off"
                              readOnly="readOnly" />
@@ -365,9 +365,9 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
         <br/>
         <fieldset>
             <legend>${ locationLegend }</legend>
-            <${CivilInput} id="location_textual"
+            <${CivilInput} id="locationTextual"
                            autoComplete="off"
-                           value=${ state.location_textual }
+                           value=${ state.locationTextual }
                            onInput=${ handleChangeEvent } />
             <p></p>
             <button onClick=${ (event) => { onFindLocationClicked(event);} }>Find location</button>

@@ -74,7 +74,7 @@ function preCacheFn(timeline) {
     if (timeline.points) {
         timeline.points = timeline.points
             .map(addChronologicalSortYear)
-            .sort((a, b) => a.sort_year > b.sort_year);
+            .sort((a, b) => a.sortYear > b.sortYear);
     }
 
     return timeline;
@@ -158,7 +158,7 @@ function TimelineDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
     return html`
     <li class='relevent-deckpoint'>
         <span onClick=${onClicked}>${ expanded ? svgCaretDown() : hasNotes ? svgCaretRight() : svgCaretRightEmpty() }</span>
-        ${ deckPoint.title } ${ deckPoint.date_textual }
+        ${ deckPoint.title } ${ deckPoint.dateTextual }
         ${ expanded && html`
             <div class="point-notes">
                 ${ noteManager }

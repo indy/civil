@@ -26,7 +26,7 @@ function candidateToRef(candidate) {
         name: candidate.name,
         resource: candidate.resource,
         annotation: null,
-        ref_kind: "Ref"
+        refKind: "Ref"
     }
 }
 
@@ -118,7 +118,7 @@ function reducer(state, action) {
         }
 
         if (found) {
-            found.ref_kind = action.data.newKind;
+            found.refKind = action.data.newKind;
         }
 
         newState.canSave = true;
@@ -333,11 +333,11 @@ function SelectedReference({ reference, onRemove, onChangeKind, onChangeAnnotati
     <div class='civsel-reference pigment-${reference.resource}'>
         <span class='civsel-delete-selected' onClick=${onClick}>${svgCloseShifted()}</span>
         <select onChange=${onKindDropDownSelect} name="choice">
-            <option value="Ref" selected=${reference.ref_kind == "Ref"}>Generic Reference</option>
-            <option value="RefToParent" selected=${reference.ref_kind == "RefToParent"}>Reference to Parent</option>
-            <option value="RefToChild" selected=${reference.ref_kind == "RefToChild"}>Reference to Child</option>
-            <option value="RefInContrast" selected=${reference.ref_kind == "RefInContrast"}>Contrasting Reference</option>
-            <option value="RefCritical" selected=${reference.ref_kind == "RefCritical"}>Critical Reference</option>
+            <option value="Ref" selected=${reference.refKind == "Ref"}>Generic Reference</option>
+            <option value="RefToParent" selected=${reference.refKind == "RefToParent"}>Reference to Parent</option>
+            <option value="RefToChild" selected=${reference.refKind == "RefToChild"}>Reference to Child</option>
+            <option value="RefInContrast" selected=${reference.refKind == "RefInContrast"}>Contrasting Reference</option>
+            <option value="RefCritical" selected=${reference.refKind == "RefCritical"}>Critical Reference</option>
         </select>
         <span class="civsel-name">${reference.name}</span>
         <${CivilInput} elementClass="civsel-annotation"
@@ -362,7 +362,7 @@ function Input({ text, onTextChanged, onAdd, onCreate, candidates, currentSelect
                 onAdd(existingOption);
             } else {
                 // treat this text as a new idea that needs to be created
-                onCreate({ name: text, resource: "ideas", ref_kind: "Ref", annotation: null });
+                onCreate({ name: text, resource: "ideas", refKind: "Ref", annotation: null });
             }
         }
     }

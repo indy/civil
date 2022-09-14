@@ -70,8 +70,8 @@ export function graphPhysics(graphState, tickCallbackFn, setSimIsRunningFn) {
 
             let i, j, node;
             let nodes = graphState.nodes;
-            let node_keys = Object.keys(nodes);
-            let n = node_keys.length;
+            let nodeKeys = Object.keys(nodes);
+            let n = nodeKeys.length;
 
             alpha -= alpha * alphaDecay;
 
@@ -82,24 +82,24 @@ export function graphPhysics(graphState, tickCallbackFn, setSimIsRunningFn) {
                     if (i === j) {
                         continue;
                     }
-                    forceManyBody(nodes[node_keys[j]], nodes[node_keys[i]], alpha);
+                    forceManyBody(nodes[nodeKeys[j]], nodes[nodeKeys[i]], alpha);
                 }
             }
 
             for (j = 0; j < n; j++) {
                 for (i = j + 1; i < n; i++) {
-                    forceCollide(nodes[node_keys[i]], nodes[node_keys[j]]);
+                    forceCollide(nodes[nodeKeys[i]], nodes[nodeKeys[j]]);
                 }
             }
 
             for (j = 0; j < n; j++) {
                 for (i = j + 1; i < n; i++) {
-                    forceCollideBox(nodes[node_keys[i]], nodes[node_keys[j]]);
+                    forceCollideBox(nodes[nodeKeys[i]], nodes[nodeKeys[j]]);
                 }
             }
 
             for (i = 0; i < n; i++) {
-                node = nodes[node_keys[i]];
+                node = nodes[nodeKeys[i]];
                 forceX(node, alpha);
                 forceY(node, alpha);
             }
@@ -107,7 +107,7 @@ export function graphPhysics(graphState, tickCallbackFn, setSimIsRunningFn) {
             gatherSimStats(graphState);
 
             for (i = 0; i < n; ++i) {
-                node = nodes[node_keys[i]];
+                node = nodes[nodeKeys[i]];
                 if (node.fx == null) {
                     node.x += node.vx *= velocityDecay;
                 } else {

@@ -57,7 +57,7 @@ export const initialState = {
         // an array of { id, name, resource }
         decks: [],
         links: [],
-        // an array which is indexed by deck_id, returns the offset into state.graph.decks
+        // an array which is indexed by deckId, returns the offset into state.graph.decks
         deckIndexFromId: []
     },
 
@@ -346,9 +346,9 @@ export const reducer = (state, action) => {
                     debug: "created by basicNoteFromReference",
                     backnotes: null,
                     backrefs: null,
-                    created_at: "",
+                    createdId: "",
                     flashcards: null,
-                    graph_terminator: false,
+                    graphTerminator: false,
                     id: r.id,
                     notes: null,
                     refs: null,
@@ -526,10 +526,10 @@ function updateHashOfNames(people, obj) {
 function packedToKind(packed) {
     switch(packed) {
     case 0: return 'ref';
-    case -1: return 'ref_to_parent';
-    case 1: return 'ref_to_child';
-    case 42: return 'ref_in_contrast';
-    case 99: return 'ref_critical';
+    case -1: return 'refToParent';
+    case 1: return 'refToChild';
+    case 42: return 'refInContrast';
+    case 99: return 'refCritical';
     default: {
         console.log(`packed_to_kind invalid value: ${packed}`);
         return 'packed_to_kind ERROR';
@@ -589,11 +589,11 @@ function applyDecksAndCardsToNotes(obj) {
 function hashByNoteIds(s) {
     s = s || [];
     return s.reduce(function(a, b) {
-        const note_id = b.note_id;
-        if (a[note_id]) {
-            a[note_id].push(b);
+        const noteId = b.noteId;
+        if (a[noteId]) {
+            a[noteId].push(b);
         } else {
-            a[note_id] = [b];
+            a[noteId] = [b];
         }
         return a;
     }, {});

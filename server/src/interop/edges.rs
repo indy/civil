@@ -19,6 +19,7 @@ use crate::interop::decks::{DeckKind, RefKind};
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ExistingReference {
     pub id: Key, // id of the existing deck
     pub name: String,
@@ -28,6 +29,7 @@ pub struct ExistingReference {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct NewReference {
     pub name: String,
     pub resource: DeckKind,
@@ -36,6 +38,7 @@ pub struct NewReference {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ProtoNoteReferences {
     pub note_id: Key,
     pub references_added: Vec<ExistingReference>,

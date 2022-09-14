@@ -32,6 +32,7 @@ use crate::interop::uploader as interop_uploader;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 struct UberStruct {
     pub directory: Key,
     pub recent_images: Vec<interop_uploader::UserUploadedImage>,

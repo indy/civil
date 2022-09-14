@@ -38,6 +38,7 @@ pub fn packed_kind(kind: RefKind) -> i32 {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 struct FullGraphStruct {
     pub graph_nodes: Vec<interop::Graph>,
     pub graph_connections: Vec<i32>,

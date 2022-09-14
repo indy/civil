@@ -24,6 +24,7 @@ pub struct CardUpcomingReview {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Card {
     pub id: Key,
     pub note_id: Key,
@@ -34,17 +35,20 @@ pub struct Card {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ProtoCard {
     pub note_id: Key,
     pub prompt: String,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ProtoRating {
     pub rating: i16,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct FlashCard {
     pub id: Key,
 

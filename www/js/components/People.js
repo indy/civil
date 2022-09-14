@@ -66,8 +66,8 @@ function Person({ id }) {
     });
 
     useEffect(() => {
-        Net.get(`/api/people/${id}/additional_search`).then(search_results => {
-            setSearchResults(search_results.results);
+        Net.get(`/api/people/${id}/additional_search`).then(searchResults => {
+            setSearchResults(searchResults.results);
         });
     }, [id]);
 
@@ -125,7 +125,7 @@ function Person({ id }) {
 
         <${SectionSearchResultsBackref} backrefs=${ searchResults }/>
         ${ hasKnownLifespan && html`
-            <${ListDeckPoints} deckPoints=${ person.all_points_during_life }
+            <${ListDeckPoints} deckPoints=${ person.allPointsDuringLife }
                                deckManager=${ deckManager }
                                dispatch=${ appDispatch }
                                holderId=${ person.id }
@@ -141,20 +141,20 @@ function preCacheFn(person) {
     if (person.points) {
         person.points = person.points
             .map(addChronologicalSortYear)
-            .sort((a, b) => a.sort_year > b.sort_year);
+            .sort((a, b) => a.sortYear > b.sortYear);
     }
 
     function getExactDateFromPoints(points, kind) {
         const p = points.find(p => p.kind === kind);
-        if (!p || !p.exact_date) {
+        if (!p || !p.exactDate) {
             return null;
         }
 
-        let triple = dateStringAsTriple(p.exact_date);
+        let triple = dateStringAsTriple(p.exactDate);
         return triple;
     }
 
-    // point is an element in all_points_during_life
+    // point is an element in allPointsDuringLife
     function addAge(point, born) {
         if (!point.date) {
             console.log("no date???");
@@ -171,8 +171,8 @@ function preCacheFn(person) {
 
     let born = getExactDateFromPoints(person.points, "PointBegin");
     if (born) {
-        // we have a birth year so we can add the age of the person to each of the all_points_during_life elements
-        person.all_points_during_life.forEach(p => addAge(p, born));
+        // we have a birth year so we can add the age of the person to each of the allPointsDuringLife elements
+        person.allPointsDuringLife.forEach(p => addAge(p, born));
     }
 
     return person;
@@ -254,12 +254,12 @@ function PersonDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
     let item;
     let ageText = deckPoint.age > 0 ? `${deckPoint.age}` : "";
 
-    if (deckPoint.deck_id === holderId) {
+    if (deckPoint.deckId === holderId) {
         item = html`
         <li class='relevent-deckpoint'>
             <span class="deckpoint-age">${ ageText }</span>
             <span onClick=${onClicked}>${ expanded ? svgCaretDown() : hasNotes ? svgCaretRight() : svgCaretRightEmpty() }</span>
-            ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.date_textual }
+            ${ deckPoint.deckName } - ${ pointTitle } ${ deckPoint.dateTextual }
             ${ expanded && html`
                 <div class="point-notes">
                     ${ noteManager }
@@ -268,10 +268,10 @@ function PersonDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
     } else {
         item = html`
         <li class='deckpoint'>
-            <${Link} href='/${deckPoint.deck_resource}/${deckPoint.deck_id}' >
+            <${Link} href='/${deckPoint.deckResource}/${deckPoint.deckId}' >
                 <span class="deckpoint-age">${ ageText }</span>
                 ${ svgBlank() }
-                ${ deckPoint.deck_name } - ${ pointTitle } ${ deckPoint.date_textual }
+                ${ deckPoint.deckName } - ${ pointTitle } ${ deckPoint.dateTextual }
             </${Link}>
         </li>`;
     }
@@ -324,7 +324,7 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAdd
             title: 'Died'
         };
         return html`
-        <${PointForm} pointKind="point_end"
+        <${PointForm} pointKind="pointEnd"
                       point=${ point }
                       onSubmit=${ onAddDeathPoint }
                       submitMessage="Create Death Point"/>`;
@@ -333,17 +333,17 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAdd
 
     let arr = deckPoints || [];
     if (onlyThisPerson) {
-        arr = arr.filter(e => e.deck_id === holderId);
+        arr = arr.filter(e => e.deckId === holderId);
     }
     if (!showBirthsDeaths) {
-        arr = arr.filter(e => e.deck_id === holderId || !(e.title === "Born" || e.title === "Died"));
+        arr = arr.filter(e => e.deckId === holderId || !(e.title === "Born" || e.title === "Died"));
     }
 
     // don't show the person's age for any of their posthumous points
-    const deathIndex = arr.findIndex(e => e.deck_id === holderId && e.kind === "PointEnd");
+    const deathIndex = arr.findIndex(e => e.deckId === holderId && e.kind === "PointEnd");
     if (deathIndex) {
         for (let i = deathIndex + 1; i < arr.length; i++) {
-            if(arr[i].deck_id === holderId) {
+            if(arr[i].deckId === holderId) {
                 arr[i].age = 0;
             }
         }
@@ -357,7 +357,7 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAdd
                         deckPoint=${ dp }/>`);
 
     const formSidebarText = showAddPointForm ? "Hide Form" : `Add Point for ${ holderName }`;
-    const hasDied = deckPoints.some(dp => dp.deck_id === holderId && dp.kind === 'PointEnd');
+    const hasDied = deckPoints.some(dp => dp.deckId === holderId && dp.kind === 'PointEnd');
 
     return html`
     <${RollableSection} heading='Points during the life of ${ holderName }'>

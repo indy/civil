@@ -56,8 +56,8 @@ export default function FlashCard({flashcard, onDelete}) {
     let dateOptions = { weekday: 'long', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
 
     const initialState = {
-        nextTestDateString: (new Date(flashcard.next_test_date)).toLocaleDateString("en-US", dateOptions),
-        daysUntilNextTest: plural(daysUntil(flashcard.next_test_date), "day", "s"),
+        nextTestDateString: (new Date(flashcard.nextTestDate)).toLocaleDateString("en-US", dateOptions),
+        daysUntilNextTest: plural(daysUntil(flashcard.nextTestDate), "day", "s"),
         isEditingFlashCard: false,
         showDeleteConfirmation: false,
         originalFlashcard: { ...flashcard },

@@ -25,24 +25,24 @@ export default function SectionBackRefs({ deckId }) {
     // file into decks with notes
     //
     backnotes.forEach(n => {
-        if (decks.length === 0 || decks[decks.length - 1].deck_id !== n.deck_id) {
+        if (decks.length === 0 || decks[decks.length - 1].deckId !== n.deckId) {
             decks.push({
-                deck_id: n.deck_id,
-                deck_name: n.deck_name,
+                deckId: n.deckId,
+                deckName: n.deckName,
                 resource: n.resource,
                 notes: [],
-                deck_level_refs: [],
-                meta_note_id: 0
+                deckLevelRefs: [],
+                metaNoteId: 0
             });
         }
 
-        if (n.note_kind === "NoteDeckMeta") {
+        if (n.noteKind === "NoteDeckMeta") {
             // all refs associated with the NoteDeckMeta note id are rendered differently
-            decks[decks.length - 1].meta_note_id = n.note_id;
+            decks[decks.length - 1].metaNoteId = n.noteId;
         } else {
             decks[decks.length - 1].notes.push({
-                note_content: n.note_content,
-                note_id: n.note_id,
+                noteContent: n.noteContent,
+                noteId: n.noteId,
                 refs: []
             });
         }
@@ -51,18 +51,18 @@ export default function SectionBackRefs({ deckId }) {
     // attach refs to the correct notes
     //
     backrefs.forEach(br => {
-        // find the note_id
+        // find the noteId
         for (let i = 0; i < decks.length; i++) {
             let d = decks[i];
 
-            if (d.meta_note_id === br.note_id) {
-                if (br.deck_id === deckId) {
-                    d.deck_level_annotation = br.annotation;
+            if (d.metaNoteId === br.noteId) {
+                if (br.deckId === deckId) {
+                    d.deckLevelAnnotation = br.annotation;
                 } else {
-                    d.deck_level_refs.push({
-                        id: br.deck_id,
-                        name: br.deck_name,
-                        ref_kind: br.ref_kind,
+                    d.deckLevelRefs.push({
+                        id: br.deckId,
+                        name: br.deckName,
+                        refKind: br.refKind,
                         resource: br.resource,
                         annotation: br.annotation
                     });
@@ -70,15 +70,15 @@ export default function SectionBackRefs({ deckId }) {
                 }
             } else {
                 for (let j = 0; j < d.notes.length; j++) {
-                    if (d.notes[j].note_id === br.note_id) {
-                        if (br.deck_id === deckId) {
-                            d.notes[j].top_ref_kind = br.ref_kind;
-                            d.notes[j].top_annotation = br.annotation;
+                    if (d.notes[j].noteId === br.noteId) {
+                        if (br.deckId === deckId) {
+                            d.notes[j].topRefKind = br.refKind;
+                            d.notes[j].topAnnotation = br.annotation;
                         } else {
                             d.notes[j].refs.push({
-                                id: br.deck_id,
-                                name: br.deck_name,
-                                ref_kind: br.ref_kind,
+                                id: br.deckId,
+                                name: br.deckName,
+                                refKind: br.refKind,
                                 resource: br.resource,
                                 annotation: br.annotation
                             })
@@ -144,10 +144,10 @@ function SectionLinks({ backrefs }) {
         <${ExpandableListingLink} index=${i}
                                   onExpandClick=${onChildClicked}
                                   expanded=${ localState.childrenExpanded[i] }
-                                  deck_id=${ br.deck_id }
-                                  deck_name=${ br.deck_name }
-                                  deck_level_refs=${ br.deck_level_refs }
-                                  deck_level_annotation=${ br.deck_level_annotation }
+                                  deckId=${ br.deckId }
+                                  deckName=${ br.deckName }
+                                  deckLevelRefs=${ br.deckLevelRefs }
+                                  deckLevelAnnotation=${ br.deckLevelAnnotation }
                                   resource=${ br.resource }
                                   notes=${ br.notes }/>`;
     });

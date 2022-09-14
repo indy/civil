@@ -51,8 +51,8 @@ function Idea({ id }) {
         // todo: change this to accept a search parameter, this will normally default to the idea.title
         // but would also allow differently worded but equivalent text
         //
-        Net.get(`/api/ideas/${id}/additional_search`).then(search_results => {
-            setSearchResults(search_results.results);
+        Net.get(`/api/ideas/${id}/additional_search`).then(searchResults => {
+            setSearchResults(searchResults.results);
         });
     }, [id]);
 
@@ -82,7 +82,7 @@ function Idea({ id }) {
 function IdeaTopMatter({ title }) {
     const [state] = useStateValue();
 
-    let createdAt = state.deckManagerState.deck && state.deckManagerState.deck.created_at;
+    let createdAt = state.deckManagerState.deck && state.deckManagerState.deck.createdId;
 
     return html`
     <div>
@@ -102,14 +102,14 @@ function SectionUpdateIdea() {
     const idea = state.deckManagerState.deck || {};
 
     const [title, setTitle] = useState(idea.title || '');
-    const [graphTerminator, setGraphTerminator] = useState(idea.graph_terminator);
+    const [graphTerminator, setGraphTerminator] = useState(idea.graphTerminator);
 
     useEffect(() => {
         if (idea.title && idea.title !== '' && title === '') {
             setTitle(idea.title);
         }
-        if (idea.graph_terminator !== undefined) {
-            setGraphTerminator(idea.graph_terminator);
+        if (idea.graphTerminator !== undefined) {
+            setGraphTerminator(idea.graphTerminator);
         }
     }, [idea]);
 
@@ -126,7 +126,7 @@ function SectionUpdateIdea() {
     const handleSubmit = (event) => {
         const data = {
             title: title.trim(),
-            graph_terminator: graphTerminator
+            graphTerminator: graphTerminator
         };
 
         Net.put(`/api/ideas/${idea.id}`, data).then(newDeck => {

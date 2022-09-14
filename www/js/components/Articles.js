@@ -53,7 +53,7 @@ function Article({ id }) {
         hasReviewSection: true
     });
 
-    let shortDescription = !!state.deckManagerState.deck && state.deckManagerState.deck.short_description;
+    let shortDescription = !!state.deckManagerState.deck && state.deckManagerState.deck.shortDescription;
     return html`
     <article>
         <${ArticleTopMatter} title=${ deckManager.title }/>
@@ -96,10 +96,10 @@ function ArticleTopMatter({ title }) {
                 <${Url} url=${deck.source}/>
             </${LeftMarginHeadingNoWrap}>
             <${LeftMarginHeading}>
-                Published: ${ formattedDate(deck.published_date)}
+                Published: ${ formattedDate(deck.publishedDate)}
             </${LeftMarginHeading}>
             <${LeftMarginHeading}>
-                Added: ${ formattedDate(deck.created_at) }
+                Added: ${ formattedDate(deck.createdId) }
             </${LeftMarginHeading}>
             <${StarRatingPartial} rating=${deck.rating}/>
         </div>
@@ -115,9 +115,9 @@ function SectionUpdateArticle() {
     const [title, setTitle] = useState(article.title || '');
     const [author, setAuthor] = useState(article.author || '');
     const [source, setSource] = useState(article.source || '');
-    const [shortDescription, setShortDescription] = useState(article.short_description || '');
+    const [shortDescription, setShortDescription] = useState(article.shortDescription || '');
     const [rating, setRating] = useState(article.rating || 0);
-    const [publishedDate, setPublishedDate] = useState(article.published_date || '');
+    const [publishedDate, setPublishedDate] = useState(article.publishedDate || '');
 
     useEffect(() => {
         if (article.title && article.title !== '' && title === '') {
@@ -129,14 +129,14 @@ function SectionUpdateArticle() {
         if (article.source && article.source !== '' && source === '') {
             setSource(article.source);
         }
-        if (article.short_description && article.short_description !== '' && shortDescription === '') {
-            setShortDescription(article.short_description);
+        if (article.shortDescription && article.shortDescription !== '' && shortDescription === '') {
+            setShortDescription(article.shortDescription);
         }
         if (article.rating) {
             setRating(article.rating);
         }
-        if (article.published_date && article.published_date !== '' && publishedDate === '') {
-            setPublishedDate(article.published_date);
+        if (article.publishedDate && article.publishedDate !== '' && publishedDate === '') {
+            setPublishedDate(article.publishedDate);
         }
     }, [article]);
 
@@ -160,7 +160,7 @@ function SectionUpdateArticle() {
         if (name === "rating") {
             setRating(parseInt(value, 10));
         }
-        if (name === "published_date") {
+        if (name === "publishedDate") {
             setPublishedDate(value);
         }
     };
@@ -170,10 +170,10 @@ function SectionUpdateArticle() {
             title: title.trim(),
             author: author.trim(),
             source: source.trim(),
-            short_description: shortDescription.trim(),
+            shortDescription: shortDescription.trim(),
             rating: rating,
-            graph_terminator: false,
-            published_date: publishedDate.trim()
+            graphTerminator: false,
+            publishedDate: publishedDate.trim()
         }, ["source"]);
 
         const resource = 'articles';
@@ -214,9 +214,9 @@ function SectionUpdateArticle() {
                        value=${ author }
                        onInput=${ handleChangeEvent } />
         <br/>
-        <label for="published_date">Published Date:</label>
+        <label for="publishedDate">Published Date:</label>
         <br/>
-        <${CivilInput} id="published_date"
+        <${CivilInput} id="publishedDate"
                        value=${ publishedDate }
                        onInput=${ handleChangeEvent } />
         <br/>

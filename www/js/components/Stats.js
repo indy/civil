@@ -17,6 +17,6 @@ export default function Stats(props) {
     return html`
     <article>
         <h1 class="ui">Stats</h1>
-        <${DeckSimpleListSection} label='Recently Visited' list=${ stats.recently_visited } expanded/>
+        <${DeckSimpleListSection} label='Recently Visited' list=${ stats.recentlyVisited } expanded/>
     </article>`;
 }

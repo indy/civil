@@ -22,6 +22,7 @@ use crate::interop::sr::FlashCard;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Person {
     pub id: Key,
     pub name: String,
@@ -69,11 +70,13 @@ impl From<crate::db::decks::DeckBase> for Person {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ProtoPerson {
     pub name: String,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PeopleListings {
     pub uncategorised: Vec<DeckSimple>,
     pub ancient: Vec<DeckSimple>,

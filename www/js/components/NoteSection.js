@@ -22,7 +22,7 @@ const NOTE_KIND_DECKMETA = 'NoteDeckMeta';
 
 function NoteSection({ heading, noteKind, howToShow, deck, onRefsChanged, preCacheFn, resource, noappend }) {
     function noteManager(noteKind) {
-        let filterFn = n => (!n.point_id) && n.kind === noteKind;
+        let filterFn = n => (!n.pointId) && n.kind === noteKind;
 
         let appendLabel = "Append Note";
         if (noteKind === NOTE_KIND_SUMMARY) {
@@ -52,7 +52,7 @@ function NoteSection({ heading, noteKind, howToShow, deck, onRefsChanged, preCac
     }
 }
 
-function NoteManager({ deck, preCacheFn, resource, onRefsChanged, filterFn, optional_deck_point, appendLabel, noteKind, noappend }) {
+function NoteManager({ deck, preCacheFn, resource, onRefsChanged, filterFn, optionalDeckPoint, appendLabel, noteKind, noappend }) {
     const [state, dispatch] = useStateValue();
 
     function findNoteWithId(id, modifyFn) {
@@ -97,7 +97,7 @@ function NoteManager({ deck, preCacheFn, resource, onRefsChanged, filterFn, opti
             e.preventDefault();
             const noteForm = e.target;
             const markup = noteForm.content.value;
-            addNote(markup, deck.id, noteKind, optional_deck_point && optional_deck_point.id)
+            addNote(markup, deck.id, noteKind, optionalDeckPoint && optionalDeckPoint.id)
                 .then(newNotes => {
                     const notes = deck.notes;
                     newNotes.forEach(n => {
@@ -119,7 +119,7 @@ function NoteManager({ deck, preCacheFn, resource, onRefsChanged, filterFn, opti
             e.preventDefault();
         };
 
-        if (optional_deck_point) {
+        if (optionalDeckPoint) {
             return html`
             <${WhenVerbose}>
                 <div class="inline-append-note">
@@ -251,7 +251,7 @@ function NoteForm({ onSubmit, onCancel }) {
            </div>`;
 }
 
-function addNote(markup, deck_id, noteKind, optional_point_id) {
+function addNote(markup, deckId, noteKind, optionalPointId) {
     const wasmInterface = useWasmInterface();
     const notes = wasmInterface.splitter(markup);
 
@@ -261,13 +261,13 @@ function addNote(markup, deck_id, noteKind, optional_point_id) {
     }
 
     let data = {
-        deck_id,
+        deckId,
         kind: noteKind,
         content: notes
     };
 
-    if (optional_point_id) {
-        data.point_id = optional_point_id;
+    if (optionalPointId) {
+        data.pointId = optionalPointId;
     }
 
     function isEmptyNote(n) {

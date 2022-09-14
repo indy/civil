@@ -21,6 +21,7 @@ use crate::interop::sr::FlashCard;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Idea {
     pub id: Key,
     pub title: String,
@@ -62,12 +63,14 @@ impl From<crate::db::decks::DeckBase> for Idea {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ProtoIdea {
     pub title: String,
     pub graph_terminator: bool,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct IdeasListings {
     pub recent: Vec<DeckSimple>,
     pub orphans: Vec<DeckSimple>,

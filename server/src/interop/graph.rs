@@ -19,6 +19,7 @@ use crate::interop::decks::{DeckKind, RefKind};
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Graph {
     pub id: Key,
     pub name: String,
@@ -27,6 +28,7 @@ pub struct Graph {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Vertex {
     pub from_id: Key,
     pub to_id: Key,

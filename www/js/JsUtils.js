@@ -53,10 +53,10 @@ export function daysUntil(date) {
 export function opposingKind(kind) {
     switch(kind) {
     case 'ref': return 'ref';
-    case 'ref_to_parent': return 'ref_to_child';
-    case 'ref_to_child': return 'ref_to_parent';
-    case 'ref_in_contrast': return 'ref_in_contrast';
-    case 'ref_critical': return 'ref_critical';
+    case 'refToParent': return 'refToChild';
+    case 'refToChild': return 'refToParent';
+    case 'refInContrast': return 'refInContrast';
+    case 'refCritical': return 'refCritical';
     default: {
         console.log(`opposing_kind error: ${kind}`);
         return 'opposing_kind ERROR';

@@ -21,6 +21,7 @@ use crate::interop::sr::FlashCard;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Article {
     pub id: Key,
     pub title: String,
@@ -46,6 +47,7 @@ pub struct Article {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ProtoArticle {
     pub title: String,
     pub source: Option<String>,
@@ -57,6 +59,7 @@ pub struct ProtoArticle {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ArticleListings {
     pub recent: Vec<Article>,
     pub rated: Vec<Article>,

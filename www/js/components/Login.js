@@ -61,7 +61,7 @@ function Login({ loginCallback}) {
                 username: state['register-username'],
                 email: state['register-email'],
                 password: state['register-password'],
-                magic_word: state['register-magic-word']
+                magicWord: state['register-magic-word']
             }).then(user => {
                 loginCallback(user);
             });

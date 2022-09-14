@@ -102,7 +102,7 @@ function buildRatingListing(list, resource) {
                          name=${ deck.title }
                          resource=${resource}
                          rating=${deck.rating}
-                         description=${deck.short_description}/>`);
+                         description=${deck.shortDescription}/>`);
 }
 
 // based off ListingLink but displays a star rating in the left hand margin

@@ -22,6 +22,7 @@ use crate::interop::sr::FlashCard;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Timeline {
     pub id: Key,
     pub title: String,
@@ -59,6 +60,7 @@ impl From<crate::db::decks::DeckBase> for Timeline {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ProtoTimeline {
     pub title: String,
 }

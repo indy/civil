@@ -26,6 +26,7 @@ pub enum PointKind {
 }
 
 #[derive(PartialEq, Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Point {
     pub id: Key,
     pub kind: PointKind,
@@ -44,6 +45,7 @@ pub struct Point {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ProtoPoint {
     pub title: Option<String>,
     pub kind: PointKind,
@@ -64,6 +66,7 @@ pub struct ProtoPoint {
 // (used when returning all the points that happened during a person's life)
 //
 #[derive(PartialEq, Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DeckPoint {
     pub id: Key,
     pub kind: PointKind,

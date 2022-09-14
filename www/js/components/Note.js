@@ -313,7 +313,7 @@ export default function Note(props) {
             e.preventDefault();
 
             let data = {
-                note_id: props.note.id,
+                noteId: props.note.id,
                 prompt: flashCardPrompt
             };
 
@@ -353,12 +353,12 @@ export default function Note(props) {
 
             if (changes) {
                 let data = {
-                    note_id: props.note.id,
+                    noteId: props.note.id,
                     // references_unchanged: changes.referencesUnchanged,
-                    references_changed: changes.referencesChanged,
-                    references_removed: changes.referencesRemoved,
-                    references_added: changes.referencesAdded,
-                    references_created: changes.referencesCreated
+                    referencesChanged: changes.referencesChanged,
+                    referencesRemoved: changes.referencesRemoved,
+                    referencesAdded: changes.referencesAdded,
+                    referencesCreated: changes.referencesCreated
                 };
 
                 Net.post("/api/edges/notes_decks", data).then((allDecksForNote) => {

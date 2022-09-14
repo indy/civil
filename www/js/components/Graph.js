@@ -17,8 +17,8 @@ async function loadFullGraph(state, dispatch) {
 
     dispatch({
         type: 'loadGraph',
-        graphNodes: graph.graph_nodes,
-        graphConnections: graph.graph_connections
+        graphNodes: graph.graphNodes,
+        graphConnections: graph.graphConnections
     });
 }
 
@@ -45,7 +45,7 @@ export default function Graph({ id, depth }) {
 
         newState.nodes[id] = {
             id: id,
-            is_important: true,
+            isImportant: true,
             expandedState: ExpandedState_Fully,
             resource: state.graph.decks[state.graph.deckIndexFromId[id]].resource,
             label: state.graph.decks[state.graph.deckIndexFromId[id]].name,
@@ -103,7 +103,7 @@ export default function Graph({ id, depth }) {
 
         // copy over the expanded or important nodes
         for(const key in gs.nodes) {
-            if (gs.nodes[key].is_important || gs.nodes[key].expandedState !== ExpandedState_None) {
+            if (gs.nodes[key].isImportant || gs.nodes[key].expandedState !== ExpandedState_None) {
                 nodes[key] = gs.nodes[key];
             }
         }
@@ -112,20 +112,20 @@ export default function Graph({ id, depth }) {
         for (const key in nodes) {
             if (nodes[key].expandedState === ExpandedState_Fully) {
                 for (const link of state.graph.links[key]) {
-                    let [child_id, kind, strength] = link; // negative strength == backlink
+                    let [childId, kind, strength] = link; // negative strength == backlink
 
-                    if (!nodes[child_id]) {
-                        if (gs.nodes[child_id]) {
+                    if (!nodes[childId]) {
+                        if (gs.nodes[childId]) {
                             // copy over from previous state
-                            nodes[child_id] = gs.nodes[child_id];
+                            nodes[childId] = gs.nodes[childId];
                         } else {
                             // create a new node
-                            nodes[child_id] = {
-                                id: child_id,
-                                is_important: false,
+                            nodes[childId] = {
+                                id: childId,
+                                isImportant: false,
                                 expandedState: ExpandedState_None,
-                                resource: state.graph.decks[state.graph.deckIndexFromId[child_id]].resource,
-                                label: state.graph.decks[state.graph.deckIndexFromId[child_id]].name,
+                                resource: state.graph.decks[state.graph.deckIndexFromId[childId]].resource,
+                                label: state.graph.decks[state.graph.deckIndexFromId[childId]].name,
                                 x: nodes[key].x,
                                 y: nodes[key].y,
                                 vx: -nodes[key.vx],
@@ -136,12 +136,12 @@ export default function Graph({ id, depth }) {
                 }
             } else if (nodes[key].expandedState === ExpandedState_Partial) {
                 for (const link of state.graph.links[key]) {
-                    let [child_id, kind, strength] = link; // negative strength == backlink
+                    let [childId, kind, strength] = link; // negative strength == backlink
 
-                    if (!nodes[child_id]) {
-                        if (gs.nodes[child_id] && gs.nodes[child_id].expandedState !== ExpandedState_None) {
+                    if (!nodes[childId]) {
+                        if (gs.nodes[childId] && gs.nodes[childId].expandedState !== ExpandedState_None) {
                             // copy over from previous state
-                            nodes[child_id] = gs.nodes[child_id];
+                            nodes[childId] = gs.nodes[childId];
                         }
                     }
                 }
@@ -152,18 +152,18 @@ export default function Graph({ id, depth }) {
         for (const key in nodes) {
             if (nodes[key].expandedState === ExpandedState_Fully) {
                 for (const link of state.graph.links[key]) {
-                    let [child_id, kind, strength] = link; // negative strength == backlink
-                    if (nodes[child_id]) {
+                    let [childId, kind, strength] = link; // negative strength == backlink
+                    if (nodes[childId]) {
                         // only if both sides of the link are being displayed
-                        edges.push([parseInt(key, 10), child_id, strength, kind]);
+                        edges.push([parseInt(key, 10), childId, strength, kind]);
                     }
                 }
             } else if (nodes[key].expandedState === ExpandedState_Partial) {
                 for (const link of state.graph.links[key]) {
-                    let [child_id, kind, strength] = link; // negative strength == backlink
-                    if (nodes[child_id] && nodes[child_id].expandedState !== ExpandedState_None) {
+                    let [childId, kind, strength] = link; // negative strength == backlink
+                    if (nodes[childId] && nodes[childId].expandedState !== ExpandedState_None) {
                         // only if both sides of the link are being displayed
-                        edges.push([parseInt(key, 10), child_id, strength, kind]);
+                        edges.push([parseInt(key, 10), childId, strength, kind]);
                     }
                 }
             }
@@ -477,7 +477,7 @@ function buildUpdateGraphCallback(svg) {
                 let target = nodes[edges[i][1]];
                 let kind = edges[i][3];
 
-                if (kind === "ref_to_parent") {
+                if (kind === "refToParent") {
                     translateEdge(svgEdge, target, source);
                 } else {
                     translateEdge(svgEdge, source, target);
@@ -516,18 +516,18 @@ function createSvgEdge(sourceNode, targetNode, strength, kind) {
     if (kind === "ref") {
         path.setAttribute("stroke", 'var(--graph-edge)');
         translateEdge(path, sourceNode, targetNode);
-    } else if (kind === "ref_to_parent") {
+    } else if (kind === "refToParent") {
         path.setAttribute("stroke", 'var(--graph-edge)');
         path.setAttribute("marker-end", `url(${window.location}#arrow-head)`);
         translateEdge(path, targetNode, sourceNode);
-    } else if (kind === "ref_to_child") {
+    } else if (kind === "refToChild") {
         path.setAttribute("stroke", 'var(--graph-edge)');
         path.setAttribute("marker-end", `url(${window.location}#arrow-head)`);
         translateEdge(path, sourceNode, targetNode);
-    } else if (kind === "ref_in_contrast") {
+    } else if (kind === "refInContrast") {
         path.setAttribute("stroke", 'var(--graph-edge-in-contrast)');
         translateEdge(path, sourceNode, targetNode);
-    } else if (kind === "ref_critical") {
+    } else if (kind === "refCritical") {
         path.setAttribute("stroke", 'var(--graph-edge-critical)');
         translateEdge(path, sourceNode, targetNode);
     } else {
@@ -565,7 +565,7 @@ function createSvgNode(n) {
     text1.classList.add("unselectable-text");
     g.appendChild(text1);
 
-    if (n.is_important) {
+    if (n.isImportant) {
         let circledges = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
         circledges.setAttribute("fill", "var(--graph-edge)");
         circledges.setAttribute("r", "8");

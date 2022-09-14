@@ -33,7 +33,7 @@ export default function LifespanForm({ name, onLifespanGiven }) {
         // ask about date of death if the person was born a long time ago
         // otherwise ask the user if the person is still alive
         //
-        let [year, month, day] = parseDateStringAsTriple(birthPoint.exact_date);
+        let [year, month, day] = parseDateStringAsTriple(birthPoint.exactDate);
         let ageInYears = deltaInYears(year, month, day);
 
         setLocalState({

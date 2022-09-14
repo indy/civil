@@ -18,6 +18,7 @@
 use crate::interop::decks::DeckSimple;
 
 #[derive(Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Stats {
     pub num_ideas: i32,
     pub num_articles: i32,
@@ -59,6 +60,7 @@ pub struct Stats {
 }
 
 #[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UserStats {
     pub recently_visited: Vec<DeckSimple>,
     pub stats: Stats,

@@ -17,13 +17,13 @@ function ListingLink({ resource, id, name }) {
     return res;
 };
 
-function ExpandableListingLink({ index, resource, deck_id, deck_name, deck_level_refs, deck_level_annotation, notes, expanded, onExpandClick }) {
+function ExpandableListingLink({ index, resource, deckId, deckName, deckLevelRefs, deckLevelAnnotation, notes, expanded, onExpandClick }) {
     function onClicked(e) {
         e.preventDefault();
         onExpandClick(index);
     }
 
-    const href = `/${resource}/${deck_id}`;
+    const href = `/${resource}/${deckId}`;
 
     let icon = expanded ? svgCaretDown() : svgCaretRight();
 
@@ -31,22 +31,22 @@ function ExpandableListingLink({ index, resource, deck_id, deck_name, deck_level
     <div>
         <span onClick=${onClicked}>${ icon }</span>
         <span class="backref-deck">
-            <${Link} class="pigment-fg-${resource}" href=${ href }>${ deck_name }</${Link}>
+            <${Link} class="pigment-fg-${resource}" href=${ href }>${ deckName }</${Link}>
         </span>
-        ${ expanded && deck_level_annotation && buildDeckLevelAnnotation(deck_level_annotation) }
-        ${ expanded && buildDeckLevelBackRefs(deck_level_refs) }
+        ${ expanded && deckLevelAnnotation && buildDeckLevelAnnotation(deckLevelAnnotation) }
+        ${ expanded && buildDeckLevelBackRefs(deckLevelRefs) }
         ${ expanded && buildNotes(notes) }
     </div>`;
 
     return res;
 };
 
-function buildDeckLevelAnnotation(deck_level_annotation) {
-    return html`<div class="ref-top-scribble indented">${ deck_level_annotation }</div>`;
+function buildDeckLevelAnnotation(deckLevelAnnotation) {
+    return html`<div class="ref-top-scribble indented">${ deckLevelAnnotation }</div>`;
 }
 
-function buildDeckLevelBackRefs(deck_level_refs) {
-    let refs = deck_level_refs.map(r => html`
+function buildDeckLevelBackRefs(deckLevelRefs) {
+    let refs = deckLevelRefs.map(r => html`
         <${Ref} deckReference=${r} extraClasses="deck-level-backref"/>
     `);
 
@@ -57,8 +57,8 @@ function buildNotes(notes) {
     const [state] = useStateValue();
 
     let res = notes.reduce((a, note) => {
-        if (note.top_annotation) {
-            a.push(html`<div class="ref-top-scribble">${ note.top_annotation }</div>`);
+        if (note.topAnnotation) {
+            a.push(html`<div class="ref-top-scribble">${ note.topAnnotation }</div>`);
         }
 
         let refs = note.refs && note.refs.map(r => {
@@ -68,7 +68,7 @@ function buildNotes(notes) {
         a.push(html`
             <div class="note">
                 ${ note.refs && html`<div class="left-margin">${ refs }</div>`}
-                ${ buildMarkup(note.note_content, state.imageDirectory) }
+                ${ buildMarkup(note.noteContent, state.imageDirectory) }
             </div>`);
 
         a.push(html`<hr/>`);

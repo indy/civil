@@ -102,6 +102,7 @@ impl FromStr for RefKind {
 // links to decks on the side of notes
 //
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Ref {
     pub note_id: Key,
     pub id: Key,
@@ -114,6 +115,7 @@ pub struct Ref {
 // notes that have references back to the currently displayed deck
 //
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BackNote {
     pub note_id: Key,
     pub note_content: String,
@@ -126,6 +128,7 @@ pub struct BackNote {
 // all refs on notes that have at least one ref back to the currently displayed deck
 //
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BackRef {
     pub note_id: Key,
     pub deck_id: Key,
@@ -138,6 +141,7 @@ pub struct BackRef {
 // Returned as search results
 //
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DeckSimple {
     pub id: Key,
     pub name: String,
@@ -145,11 +149,13 @@ pub struct DeckSimple {
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ResultList {
     pub results: Vec<DeckSimple>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SearchResults {
     pub results: Option<Vec<DeckSimple>>,
 }

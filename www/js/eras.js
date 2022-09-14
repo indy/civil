@@ -9,12 +9,12 @@ export function deltaInYears(year, month, day) {
     return deltaMS / (1000 * 60 * 60 * 24 * 365.25);
 }
 
-export function calcAgeInYears(to_triple, from_triple) {
-    let years = to_triple[0] - from_triple[0];
-    if (to_triple[1] < from_triple[1]) {
+export function calcAgeInYears(toTriple, fromTriple) {
+    let years = toTriple[0] - fromTriple[0];
+    if (toTriple[1] < fromTriple[1]) {
         years -= 1;
-    } else if (to_triple[1] === from_triple[1]) {
-        if (to_triple[2] < from_triple[2]) {
+    } else if (toTriple[1] === fromTriple[1]) {
+        if (toTriple[2] < fromTriple[2]) {
             years -= 1;
         }
     }
@@ -33,12 +33,12 @@ export function dateStringAsTriple(dateString) {
 
 // todo: remove this???
 export function addChronologicalSortYear(p) {
-    if (p.exact_date) {
-        p.sort_year = extractYear(p.exact_date);
-    } else if (p.lower_date) {
-        p.sort_year = extractYear(p.lower_date);
+    if (p.exactDate) {
+        p.sortYear = extractYear(p.exactDate);
+    } else if (p.lowerDate) {
+        p.sortYear = extractYear(p.lowerDate);
     } else {
-        p.sort_year = era.uncategorisedYear;
+        p.sortYear = era.uncategorisedYear;
     }
     return p;
 }
