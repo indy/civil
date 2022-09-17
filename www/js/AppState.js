@@ -102,12 +102,15 @@ export const reducer = (state, action) => {
     switch (action.type) {
 
     case 'dms-update-deck': {
-
         let { deck, resource } = action.data;
-        let updatedDeck = applyDecksAndCardsToNotes(deck);
-        updatedDeck.noteDeckMeta = updatedDeck.notes.find(n => n.kind === 'NoteDeckMeta');
 
-        let urlName = updatedDeck.title || updatedDeck.name;
+        // modify the notes received from the server
+        applyDecksAndCardsToNotes(deck);
+        // organise the notes into noteSeqs
+        buildNoteSeqs(deck);
+
+        let urlName = deck.title || deck.name;
+        document.title = `${state.appName}: ${urlName}`;
 
         // set the state's url value here, this saves a dispatch in App.js::AppUI::handleRoute when navigating to a deck page
         let newState = {
@@ -116,22 +119,19 @@ export const reducer = (state, action) => {
             urlName,
             deckManagerState: {
                 ...state.deckManagerState,
-                deck: updatedDeck
+                deck
             }
         }
 
-        document.title = `${state.appName}: ${urlName}`;
-
-        deck = newState.deckManagerState.deck;
-
-        if (deck.notes) {
+        if (deck.noteSeqs) {
             if (state.deckManagerState.hasSummarySection) {
-                newState.deckManagerState.showShowSummaryButton = !deck.notes.some(n => n.kind === NOTE_KIND_SUMMARY);
+                newState.deckManagerState.showShowSummaryButton = deck.noteSeqs.noteSummary.length > 0;
             }
             if (state.deckManagerState.hasReviewSection) {
-                newState.deckManagerState.showShowReviewButton = !deck.notes.some(n => n.kind === NOTE_KIND_REVIEW);
+                newState.deckManagerState.showShowReviewButton = deck.noteSeqs.noteReview.length > 0;
             }
         }
+
         return newState;
     }
     case 'dms-update-form-toggle':
@@ -572,20 +572,22 @@ function buildDeckIndex(decks) {
     return res;
 }
 
-function applyDecksAndCardsToNotes(obj) {
-    const decksInNotes = hashByNoteIds(obj.refs);
-    const cardsInNotes = hashByNoteIds(obj.flashcards);
+function applyDecksAndCardsToNotes(deck) {
+    const decksInNotes = hashByNoteIds(deck.refs);
+    const cardsInNotes = hashByNoteIds(deck.flashcards);
 
-    for(let i = 0;i<obj.notes.length;i++) {
-        let n = obj.notes[i];
+    for(let i = 0;i<deck.notes.length;i++) {
+        let n = deck.notes[i];
         n.decks = decksInNotes[n.id] || [];
         n.decks.sort(sortByResourceThenName);
         n.flashcards = cardsInNotes[n.id];
     }
 
-    return obj;
+    return deck;
 }
 
+// todo: hashByNoteIds is using the "I'm so clever" reduce style. noteSeqsForPoints is using a much simpler forEach
+//       perhaps change hashByNoteIds to forEach?
 function hashByNoteIds(s) {
     s = s || [];
     return s.reduce(function(a, b) {
@@ -597,4 +599,88 @@ function hashByNoteIds(s) {
         }
         return a;
     }, {});
+}
+
+function buildNoteSeqs(deck) {
+    deck.noteSeqs = {};
+
+    // build NoteSeqs for notes associated with points
+    deck.noteSeqs.points = noteSeqsForPoints(deck.notes);
+    // add empty noteSeqs for points without any notes
+    if (deck.points) {
+        deck.points.forEach(p => {
+            if (!deck.noteSeqs.points[p.id]) {
+                deck.noteSeqs.points[p.id] = [];
+            }
+        });
+    }
+
+    // build NoteSeqs for all other note kinds
+    deck.noteSeqs.note = noteSeqForNoteKind(deck.notes, "Note");
+    deck.noteSeqs.noteDeckMeta = noteSeqForNoteKind(deck.notes, "NoteDeckMeta"); // should only be of length 1
+    deck.noteSeqs.noteReview = noteSeqForNoteKind(deck.notes, "NoteReview");
+    deck.noteSeqs.noteSummary = noteSeqForNoteKind(deck.notes, "NoteSummary");
+
+    if (deck.noteSeqs.noteDeckMeta.length !== 1) {
+        console.error(`deck: ${deck.id} has a NoteDeckMeta noteseq of length: ${deck.noteSeqs.noteDeckMeta.length} ???`);
+    }
+
+    return deck;
+}
+
+function noteSeqsForPoints(notes) {
+    let p = {};
+    notes.forEach(n => {
+        if (n.pointId) {
+            if (!p[n.pointId]) {
+                p[n.pointId] = [];
+            }
+            p[n.pointId].push(n);
+        }
+    });
+
+    Object.keys(p).forEach(k => {
+        p[k] = createSeq(p[k]);
+    });
+
+    return p;
+}
+
+function noteSeqForNoteKind(notes, kind) {
+    let ns = notes.filter(n => n.kind === kind && n.pointId === null);
+    if (ns.length === 0) {
+        return [];
+    }
+    return createSeq(ns)
+}
+
+function createSeq(ns) {
+    let h = {};
+
+    ns.forEach(n => h[n.id] = n);
+
+    // find the prevNoteId for each note
+    ns.forEach(n => {
+        if (n.nextNoteId) {
+            h[n.nextNoteId].prevNoteId = n.id;
+        } else {
+            // this is the last element
+        }
+    });
+
+    // now find the first element
+    let shouldBeFirst = h[ns[0].id];
+    while (shouldBeFirst.prevNoteId) {
+        shouldBeFirst = h[shouldBeFirst.prevNoteId];
+    }
+
+    // create the ordered note seq to return
+    let res = [];
+    let item = shouldBeFirst;
+    do {
+        res.push(item);
+        item = h[item.nextNoteId];
+    } while(item);
+
+    return res;
 }

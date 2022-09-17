@@ -41,7 +41,6 @@ function preCacheFn(d) {
 
 function Idea({ id }) {
     const [searchResults, setSearchResults] = useState([]); // an array of backrefs
-    console.log("idea");
     const ideaId = parseInt(id, 10);
 
     useEffect(() => {

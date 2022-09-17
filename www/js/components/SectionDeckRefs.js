@@ -29,10 +29,11 @@ export default function SectionDeckRefs({ onRefsChanged }) {
     let editing = state.deckManagerState.isEditingDeckRefs;
 
     let deckId = deck && deck.id;
-    let deckMeta = deck && deck.noteDeckMeta;
+    let deckMeta = deck && deck.noteSeqs && deck.noteSeqs.noteDeckMeta[0];
     // deckMeta is the special note (of kind: NoteKind::NoteDeckMeta) that
     // contains the refs that should apply to the deck as a whole and not
     // just to individual paragraphs
+    // each deck will only ever have one noteDeckMeta note
 
     let entries = [];
     if (deckMeta && deckMeta.decks) {

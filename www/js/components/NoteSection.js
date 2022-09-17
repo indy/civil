@@ -20,10 +20,8 @@ const NOTE_KIND_SUMMARY = 'NoteSummary';
 const NOTE_KIND_REVIEW = 'NoteReview';
 const NOTE_KIND_DECKMETA = 'NoteDeckMeta';
 
-function NoteSection({ heading, noteKind, howToShow, deck, onRefsChanged, preCacheFn, resource, noappend }) {
+function NoteSection({ heading, noteKind, noteSeq, howToShow, deck, onRefsChanged, preCacheFn, resource, noappend }) {
     function noteManager(noteKind) {
-        let filterFn = n => (!n.pointId) && n.kind === noteKind;
-
         let appendLabel = "Append Note";
         if (noteKind === NOTE_KIND_SUMMARY) {
             appendLabel = "Append Summary Note";
@@ -33,10 +31,10 @@ function NoteSection({ heading, noteKind, howToShow, deck, onRefsChanged, preCac
 
         return NoteManager({
             deck,
+            noteSeq,
             preCacheFn,
             resource,
             onRefsChanged,
-            filterFn,
             appendLabel,
             noteKind,
             noappend
@@ -52,7 +50,7 @@ function NoteSection({ heading, noteKind, howToShow, deck, onRefsChanged, preCac
     }
 }
 
-function NoteManager({ deck, preCacheFn, resource, onRefsChanged, filterFn, optionalDeckPoint, appendLabel, noteKind, noappend }) {
+function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optionalDeckPoint, appendLabel, noteKind, noappend }) {
     const [state, dispatch] = useStateValue();
 
     function findNoteWithId(id, modifyFn) {
@@ -70,10 +68,8 @@ function NoteManager({ deck, preCacheFn, resource, onRefsChanged, filterFn, opti
         });
     };
 
-    function onDeleteNote(noteId) {
-        findNoteWithId(noteId, (notes, index) => {
-            notes.splice(index, 1);
-        });
+    function onDeleteNote(noteId, allNotes) {
+        dispatch({ type: 'dms-update-deck', data: { deck: preCacheFn({...deck, notes: allNotes}), resource }});
     };
 
     function buildNoteComponent(note) {
@@ -87,7 +83,11 @@ function NoteManager({ deck, preCacheFn, resource, onRefsChanged, filterFn, opti
                />`;
     }
 
+
     function buildNoteForm() {
+        // hack
+        const wasmInterface = useWasmInterface();
+
         function onCancelAddNote(e) {
             dispatch({type: "hideNoteForm", noteKind });
             e.preventDefault();
@@ -97,14 +97,26 @@ function NoteManager({ deck, preCacheFn, resource, onRefsChanged, filterFn, opti
             e.preventDefault();
             const noteForm = e.target;
             const markup = noteForm.content.value;
-            addNote(markup, deck.id, noteKind, optionalDeckPoint && optionalDeckPoint.id)
-                .then(newNotes => {
-                    const notes = deck.notes;
-                    newNotes.forEach(n => {
-                        notes.push(n);
-                    });
+            let prevNoteId;
 
-                    dispatch({ type: 'dms-update-deck', data: { deck: preCacheFn({...deck, notes}), resource }});
+            if(noteSeq.length > 0) {
+                prevNoteId = noteSeq[noteSeq.length - 1].id;
+            } else {
+                prevNoteId = null;
+            }
+
+            let nextNoteId = null; // don't need a nextNoteId if we give addNote a non-null prevNoteId
+            // if we're adding a note note to the beginning of the noteseq then we'll need a nextNoteId
+
+
+            // a test to see if adding a note to the beginning of a noteseq works
+            //
+            // prevNoteId = null;
+            // nextNoteId = noteSeq[0].id;
+
+            addNote(wasmInterface, markup, deck.id, prevNoteId, nextNoteId, noteKind, optionalDeckPoint && optionalDeckPoint.id)
+                .then(allNotes => {
+                    dispatch({ type: 'dms-update-deck', data: { deck: preCacheFn({...deck, notes: allNotes}), resource }});
                     dispatch({ type: "hideNoteForm", noteKind });
                 })
                 .catch(error => console.error(error.message));
@@ -146,7 +158,7 @@ function NoteManager({ deck, preCacheFn, resource, onRefsChanged, filterFn, opti
         }
     }
 
-    const notes = (deck && deck.notes) ? deck.notes.filter(filterFn).map(buildNoteComponent) : [];
+    const notes = noteSeq ? noteSeq.map(buildNoteComponent) : [];
     const addNoteUI = noappend ? '' : (state.showNoteForm[noteKind] ? buildNoteForm() : buildNoteFormIcon());
 
     return html`
@@ -251,8 +263,7 @@ function NoteForm({ onSubmit, onCancel }) {
            </div>`;
 }
 
-function addNote(markup, deckId, noteKind, optionalPointId) {
-    const wasmInterface = useWasmInterface();
+function addNote(wasmInterface, markup, deckId, prevNoteId, nextNoteId, noteKind, optionalPointId) {
     const notes = wasmInterface.splitter(markup);
 
     if (notes === null) {
@@ -266,6 +277,12 @@ function addNote(markup, deckId, noteKind, optionalPointId) {
         content: notes
     };
 
+    if (prevNoteId) {
+        data.prevNoteId = prevNoteId;
+    } else if (nextNoteId) {
+        data.nextNoteId = nextNoteId;
+    }
+
     if (optionalPointId) {
         data.pointId = optionalPointId;
     }
@@ -274,9 +291,12 @@ function addNote(markup, deckId, noteKind, optionalPointId) {
         return n.content.every(n => { return n.length === 0;});
     }
 
+    // console.log(data);
+
     if (isEmptyNote(data)) {
         return new Promise((resolve, reject) => { reject(new Error("Parsed as empty note")); });
     } else {
+        // returns _all_ the notes associated with the deck
         return Net.post("/api/notes", data);
     }
 }

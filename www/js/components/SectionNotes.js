@@ -9,34 +9,42 @@ import { NoteSection, NoteManager,
 
 export default function SectionNotes({ onRefsChanged, title, preCacheFn, resource, noappend }) {
     const [state] = useStateValue();
+
+    const dms = state.deckManagerState;
+    const deck = dms.deck;
+
     return html`
     <div>
-        ${ state.deckManagerState.hasSummarySection && html`
+        ${ deck && dms.hasSummarySection && html`
             <${NoteSection} heading='Summary'
                             noteKind=${ NOTE_KIND_SUMMARY }
-                            howToShow=${ howToShowNoteSection(NOTE_KIND_SUMMARY, state.deckManagerState) }
-                            deck=${ state.deckManagerState.deck }
+                            howToShow=${ howToShowNoteSection(NOTE_KIND_SUMMARY, dms) }
+                            deck=${ deck }
+                            noteSeq=${ deck.noteSeqs.noteSummary }
                             onRefsChanged=${onRefsChanged}
                             preCacheFn=${preCacheFn}
                             resource=${resource}
                             noappend=${noappend } />`}
-        ${ state.deckManagerState.hasReviewSection && html`
+        ${ deck && dms.hasReviewSection && html`
             <${NoteSection} heading='Review'
                             noteKind=${ NOTE_KIND_REVIEW }
-                            howToShow=${ howToShowNoteSection(NOTE_KIND_REVIEW, state.deckManagerState) }
-                            deck=${ state.deckManagerState.deck }
+                            howToShow=${ howToShowNoteSection(NOTE_KIND_REVIEW, dms) }
+                            deck=${ deck }
+                            noteSeq=${ deck.noteSeqs.noteReview }
                             onRefsChanged=${onRefsChanged}
                             preCacheFn=${preCacheFn}
                             resource=${resource}
                             noappend=${noappend } />`}
-        <${NoteSection} heading=${ title }
-                        noteKind=${ NOTE_KIND_NOTE }
-                        howToShow=${ howToShowNoteSection(NOTE_KIND_NOTE, state.deckManagerState) }
-                        deck=${ state.deckManagerState.deck }
-                        onRefsChanged=${onRefsChanged}
-                        preCacheFn=${preCacheFn}
-                        resource=${resource}
-                        noappend=${noappend } />
+        ${ deck && html`
+            <${NoteSection} heading=${ title }
+                            noteKind=${ NOTE_KIND_NOTE }
+                            howToShow=${ howToShowNoteSection(NOTE_KIND_NOTE, dms) }
+                            deck=${ deck }
+                            noteSeq=${ deck.noteSeqs.note }
+                            onRefsChanged=${onRefsChanged}
+                            preCacheFn=${preCacheFn}
+                            resource=${resource}
+                            noappend=${noappend } />`}
     </div>`;
 }
 

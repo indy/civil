@@ -67,18 +67,13 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
     };
 
     res.onRefsChanged = onRefsChanged;
-    // res.preCacheFn = preCacheFn || function(d) { return d };
-
-    function noteFilterDeckPoint(deckPoint) {
-        return n => n.pointId === deckPoint.id;
-    }
 
     res.noteManagerForDeckPoint = function(deckPoint) {
         return NoteManager({ deck: state.deckManagerState.deck,
+                             noteSeq: state.deckManagerState.deck.noteSeqs.points[deckPoint.id],
                              preCacheFn,
                              resource,
                              onRefsChanged,
-                             filterFn: noteFilterDeckPoint(deckPoint),
                              optionalDeckPoint: deckPoint,
                              appendLabel: `Append Note to ${ deckPoint.title }`,
                              noteKind: NOTE_KIND_NOTE

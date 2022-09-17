@@ -72,3 +72,18 @@ to:
 #+BEGIN_SRC javascript
 return h(RouterContext.Provider, { value: ctx }, current);
 #+END_SRC
+
+* note::next_note_id linked list
+
+each deck can have multiple linked lists of notes
+
+- point_id (each point_id should have it's own list)
+- note kind: 'note'
+- note kind: 'note_review'
+- note kind: 'note_summary'
+- note kind: 'note_deckmeta' (should only ever be 1 per-deck)
+
+deck_id: 769 has a lot of notes attached to points
+
+
+adding a new note to a deck, requires sending the previous note_id

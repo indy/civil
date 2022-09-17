@@ -34,6 +34,17 @@ pub(crate) enum DeckBaseOrigin {
     PreExisting,
 }
 
+pub(crate) fn get_all_deck_ids_in_db(sqlite_pool: &SqlitePool) -> Result<Vec<Key>> {
+    fn key_from_row(row: &Row) -> Result<Key> {
+        Ok(row.get(0)?)
+    }
+
+    let conn = sqlite_pool.get()?;
+    let stmt = "SELECT d.id
+                FROM   decks d";
+    sqlite::many(&conn, &stmt, &[], key_from_row)
+}
+
 fn contains(backrefs: &[interop::DeckSimple], id: Key) -> bool {
     for br in backrefs {
         if br.id == id {

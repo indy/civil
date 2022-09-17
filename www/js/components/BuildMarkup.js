@@ -5,6 +5,7 @@ import { useWasmInterface } from '/js/WasmInterfaceProvider.js';
 //
 export default function buildMarkup(content, imageDirectory) {
     const wasmInterface = useWasmInterface();
+
     const astArray = wasmInterface.asHtmlAst(content);
 
     function attrs(n) {

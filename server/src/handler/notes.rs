@@ -39,6 +39,7 @@ pub async fn create_notes(
 
     let notes = db::create_notes(&sqlite_pool, user_id, &note)?;
 
+    // anything that alters the structure of a deck's notes should return _all_ the notes associated with that deck
     Ok(HttpResponse::Ok().json(notes))
 }
 
@@ -80,7 +81,7 @@ pub async fn delete_note(
 
     let user_id = session::user_id(&session)?;
 
-    db::delete_note_pool(&sqlite_pool, user_id, params.id)?;
-
-    Ok(HttpResponse::Ok().json(true))
+    let notes = db::delete_note_properly(&sqlite_pool, user_id, params.id)?;
+    // anything that alters the structure of a deck's notes should return _all_ the notes associated with that deck
+    Ok(HttpResponse::Ok().json(notes))
 }

@@ -49,9 +49,21 @@ pub fn note_kind_from_sqlite(input: i32) -> Result<NoteKind> {
 #[serde(rename_all = "camelCase")]
 pub struct Note {
     pub id: Key,
+    pub next_note_id: Option<Key>,
     pub kind: NoteKind,
     pub content: String,
     pub point_id: Option<Key>,
+}
+
+// todo: delete this
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Note2 {
+    pub id: Key,
+    pub deck_id: Key,
+    pub kind: NoteKind,
+    pub point_id: Option<Key>,
+    pub next_note_id: Option<Key>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -61,4 +73,6 @@ pub struct ProtoNote {
     pub content: Vec<String>,
     pub deck_id: Key,
     pub point_id: Option<Key>,
+    pub prev_note_id: Option<Key>,
+    pub next_note_id: Option<Key>,
 }

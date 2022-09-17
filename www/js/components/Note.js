@@ -426,8 +426,8 @@ export default function Note(props) {
 }
 
 function onReallyDelete(id, onDelete) {
-    Net.delete("/api/notes/" + id.toString()).then(() => {
-        onDelete(id);
+    Net.delete("/api/notes/" + id.toString()).then(allNotes => {
+        onDelete(id, allNotes);
     });
 };
 
