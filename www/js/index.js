@@ -54,10 +54,10 @@ wasm_bindgen('/civil_wasm_bg.wasm')
             rgbFromHsl: buildColourConversionFn(rgb_from_hsl)
         };
 
-        const state = await buildInitialState();
+        const state = await buildInitialState(wasmInterface);
 
         declareCssVariables(state.uiColours, wasmInterface.rgbFromHsl);
 
-        render(App(state, wasmInterface), document.getElementById('root'));
+        render(App(state), document.getElementById('root'));
     })
     .catch(console.error);

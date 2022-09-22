@@ -40,7 +40,6 @@ var precacheConfig = [
     "/js/Net.js",
     "/js/PreactUtils.js",
     "/js/StateProvider.js",
-    "/js/WasmInterfaceProvider.js",
     "/js/eras.js",
     "/js/graphPhysics.js",
     "/js/index.js",

@@ -2,7 +2,6 @@ import { html,  useState, useEffect, useRef } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { svgEdit, svgX } from '/js/svgIcons.js';
-import { useWasmInterface } from '/js/WasmInterfaceProvider.js';
 import { useStateValue } from '/js/StateProvider.js';
 
 import CivilTextArea from '/js/components/CivilTextArea.js';
@@ -85,9 +84,6 @@ function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optio
 
 
     function buildNoteForm() {
-        // hack
-        const wasmInterface = useWasmInterface();
-
         function onCancelAddNote(e) {
             dispatch({type: "hideNoteForm", noteKind });
             e.preventDefault();
@@ -114,7 +110,7 @@ function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optio
             // prevNoteId = null;
             // nextNoteId = noteSeq[0].id;
 
-            addNote(wasmInterface, markup, deck.id, prevNoteId, nextNoteId, noteKind, optionalDeckPoint && optionalDeckPoint.id)
+            addNote(state.wasmInterface, markup, deck.id, prevNoteId, nextNoteId, noteKind, optionalDeckPoint && optionalDeckPoint.id)
                 .then(allNotes => {
                     dispatch({ type: 'dms-update-deck', data: { deck: preCacheFn({...deck, notes: allNotes}), resource }});
                     dispatch({ type: "hideNoteForm", noteKind });

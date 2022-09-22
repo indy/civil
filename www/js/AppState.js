@@ -14,6 +14,7 @@ export const initialState = {
 
     appName: "Civil",
 
+    wasmInterface: undefined,   // initialised in buildInitialState
     uiColours: {
         // note: this will be filled with extra values from
         // ColourCreator.js::augmentSettingsWithCssModifierParameters

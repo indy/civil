@@ -4,7 +4,6 @@ import { capitalise } from '/js/JsUtils.js';
 import { html, Router, Route, Link, route } from '/lib/preact/mod.js';
 
 import Net                              from '/js/Net.js';
-import { WasmInterfaceProvider }        from '/js/WasmInterfaceProvider.js';
 import { useStateValue, StateProvider } from '/js/StateProvider.js';
 import { augmentSettingsWithCssModifierParameters } from '/js/ColourCreator.js';
 
@@ -18,8 +17,10 @@ import { Article, Articles }   from '/js/components/Articles.js';
 import { Timeline, Timelines } from '/js/components/Timelines.js';
 import { Quote, Quotes }       from '/js/components/Quotes.js';
 
-export async function buildInitialState() {
+export async function buildInitialState(wasmInterface) {
     let state = initialState;
+
+    state.wasmInterface = wasmInterface;
     state.uiColours = augmentSettingsWithCssModifierParameters(state.uiColours);
 
     let root = document.body;
@@ -73,13 +74,11 @@ async function getInitialStateForLoggedInUser() {
     };
 }
 
-export function App(state, wasmInterface) {
+export function App(state) {
     return html`
-    <${WasmInterfaceProvider} wasmInterface=${wasmInterface}>
-        <${StateProvider} initialState=${state} reducer=${reducer}>
-            <${AppUI}/>
-        </${StateProvider}>
-    </${WasmInterfaceProvider}>`;
+    <${StateProvider} initialState=${state} reducer=${reducer}>
+        <${AppUI}/>
+    </${StateProvider}>`;
 }
 
 function TopBarMenu(props) {
