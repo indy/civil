@@ -418,7 +418,7 @@ export default function Note(props) {
         ${ local.addDeckReferencesUI && buildAddDecksUI() }
         ${ !local.isEditingMarkup && html`
             <div class="note-content" ref=${hoveringRef}>
-                ${ buildMarkup(local.note.content, state.imageDirectory) }
+                ${ buildMarkup(local.note.content) }
             </div>`}
         ${ local.addFlashCardUI && buildAddFlashCardUI() }
         ${ buildMainButtons() }

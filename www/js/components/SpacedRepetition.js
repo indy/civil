@@ -210,7 +210,6 @@ export default function SpacedRepetition(props) {
         `}
         ${ local.mode === MODE_TEST && html`
             <${CardTest} card=${local.cards[local.cardIndex]}
-                         imageDirectory=${state.imageDirectory}
                          onRatedCard=${onRatedCard}
                          onShowAnswer=${onShowAnswer}/>
         `}
@@ -225,7 +224,6 @@ export default function SpacedRepetition(props) {
         `}
         ${ local.practiceCard && html`
             <${CardTest} card=${local.practiceCard}
-                         imageDirectory=${state.imageDirectory}
                          onShowAnswer=${onShowAnswer}/>
         `}
     </div>`;
@@ -233,7 +231,7 @@ export default function SpacedRepetition(props) {
 
 // if onRatedCard isn't passed in, the user won't be able to rate a card (useful when showing a practice card)
 //
-function CardTest({ card, onRatedCard, onShowAnswer, imageDirectory }) {
+function CardTest({ card, onRatedCard, onShowAnswer }) {
     function onShowAnswerClicked(e) {
         e.preventDefault();
         onShowAnswer(card);
@@ -244,12 +242,12 @@ function CardTest({ card, onRatedCard, onShowAnswer, imageDirectory }) {
     return html`
     <div>
         <div class="sr-section">Front</div>
-        <div class="note">${buildMarkup(card.prompt, imageDirectory)}</div>
+        <div class="note">${buildMarkup(card.prompt)}</div>
         ${ show === SHOW_PROMPT && html`
             <button onClick=${ onShowAnswerClicked }>Show Answer</button>
         `}
         ${ show === SHOW_ANSWER && html`
-            <${Answer} card=${card} imageDirectory=${imageDirectory}/>
+            <${Answer} card=${card}/>
         `}
         ${ show === SHOW_ANSWER && onRatedCard && html`
             <${CardRating} card=${card} onRatedCard=${onRatedCard}/>
@@ -257,7 +255,7 @@ function CardTest({ card, onRatedCard, onShowAnswer, imageDirectory }) {
     </div>`;
 }
 
-function Answer({ card, imageDirectory }) {
+function Answer({ card }) {
     const { id, name, resource } = card.deckInfo;
     const href = `/${resource}/${id}`;
 
@@ -270,7 +268,7 @@ function Answer({ card, imageDirectory }) {
                     <${Link} class="ref pigment-${ resource }" href=${ href }>${ name }</${Link}>
                 </div>
             </div>
-            ${buildMarkup(card.answer, imageDirectory)}
+            ${buildMarkup(card.answer)}
         </div>
     </div>`;
 }

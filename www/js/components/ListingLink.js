@@ -1,7 +1,6 @@
 import { html, Link, useState } from '/lib/preact/mod.js';
 
 import { svgCaretRight, svgCaretDown } from '/js/svgIcons.js';
-import { useStateValue } from '/js/StateProvider.js';
 import Ref from '/js/components/Ref.js';
 
 import buildMarkup from '/js/components/BuildMarkup.js';
@@ -54,8 +53,6 @@ function buildDeckLevelBackRefs(deckLevelRefs) {
 }
 
 function buildNotes(notes) {
-    const [state] = useStateValue();
-
     let res = notes.reduce((a, note) => {
         if (note.topAnnotation) {
             a.push(html`<div class="ref-top-scribble">${ note.topAnnotation }</div>`);
@@ -68,7 +65,7 @@ function buildNotes(notes) {
         a.push(html`
             <div class="note">
                 ${ note.refs && html`<div class="left-margin">${ refs }</div>`}
-                ${ buildMarkup(note.noteContent, state.imageDirectory) }
+                ${ buildMarkup(note.noteContent) }
             </div>`);
 
         a.push(html`<hr/>`);
