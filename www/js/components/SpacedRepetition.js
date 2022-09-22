@@ -33,8 +33,8 @@ function dbg(mode, state) {
 
 function augmentCard(state, card, postRatingToServer) {
     card.showState = SHOW_PROMPT;
-    card.promptMarkup = buildMarkup(card.prompt, state.imageDirectory);
-    card.answerMarkup = buildMarkup(card.noteContent, state.imageDirectory);
+    card.prompt = card.prompt;
+    card.answer = card.noteContent;
     card.postRatingToServer = postRatingToServer;
 
     return card;
@@ -197,27 +197,43 @@ export default function SpacedRepetition(props) {
     return html`
     <div>
         <h1 class="ui">Spaced Repetition</h1>
-        ${ local.mode !== MODE_POST_TEST && html`<p class="ui">${ plural(cardsToReview, 'card', 's') } to review</p>`}
-        ${ local.mode === MODE_PRE_TEST && !canTest && html`<p>${nextTestInfo}</p>`}
+        ${ local.mode !== MODE_POST_TEST && html`
+            <p class="ui">${ plural(cardsToReview, 'card', 's') } to review</p>
+        `}
+        ${ local.mode === MODE_PRE_TEST && !canTest && html`
+            <p>${nextTestInfo}</p>
+        `}
         ${ local.mode === MODE_PRE_TEST && canTest && html`
             <button onClick=${ startTest }>
                 Start Test
-            </button>`}
+            </button>
+        `}
         ${ local.mode === MODE_TEST && html`
             <${CardTest} card=${local.cards[local.cardIndex]}
+                         imageDirectory=${state.imageDirectory}
                          onRatedCard=${onRatedCard}
-                         onShowAnswer=${onShowAnswer}/>`}
+                         onShowAnswer=${onShowAnswer}/>
+        `}
         ${ local.mode === MODE_POST_TEST && html`
-            <p>All Done!</p>`}
-        ${ cardsToReview === 0 && html`<p>You have no cards to review, maybe try a practice flashcard?</p>`}
-        ${ cardsToReview === 0 && html`<button onClick=${ onPracticeClicked }>View Practice Flashcard</button>`}
-        ${ local.practiceCard && html`<${CardTest} card=${local.practiceCard} onShowAnswer=${onShowAnswer}/>`}
+            <p>All Done!</p>
+        `}
+        ${ cardsToReview === 0 && html`
+            <p>You have no cards to review, maybe try a practice flashcard?</p>
+        `}
+        ${ cardsToReview === 0 && html`
+            <button onClick=${ onPracticeClicked }>View Practice Flashcard</button>
+        `}
+        ${ local.practiceCard && html`
+            <${CardTest} card=${local.practiceCard}
+                         imageDirectory=${state.imageDirectory}
+                         onShowAnswer=${onShowAnswer}/>
+        `}
     </div>`;
 }
 
 // if onRatedCard isn't passed in, the user won't be able to rate a card (useful when showing a practice card)
 //
-function CardTest({ card, onRatedCard, onShowAnswer }) {
+function CardTest({ card, onRatedCard, onShowAnswer, imageDirectory }) {
     function onShowAnswerClicked(e) {
         e.preventDefault();
         onShowAnswer(card);
@@ -228,16 +244,20 @@ function CardTest({ card, onRatedCard, onShowAnswer }) {
     return html`
     <div>
         <div class="sr-section">Front</div>
-        <div class="note">${card.promptMarkup}</div>
+        <div class="note">${buildMarkup(card.prompt, imageDirectory)}</div>
         ${ show === SHOW_PROMPT && html`
-            <button onClick=${ onShowAnswerClicked }>Show Answer</button>`}
-        ${ show === SHOW_ANSWER && buildAnswer(card)}
+            <button onClick=${ onShowAnswerClicked }>Show Answer</button>
+        `}
+        ${ show === SHOW_ANSWER && html`
+            <${Answer} card=${card} imageDirectory=${imageDirectory}/>
+        `}
         ${ show === SHOW_ANSWER && onRatedCard && html`
-            <${CardRating} card=${card} onRatedCard=${onRatedCard}/>`}
+            <${CardRating} card=${card} onRatedCard=${onRatedCard}/>
+        `}
     </div>`;
 }
 
-function buildAnswer(card) {
+function Answer({ card, imageDirectory }) {
     const { id, name, resource } = card.deckInfo;
     const href = `/${resource}/${id}`;
 
@@ -250,7 +270,7 @@ function buildAnswer(card) {
                     <${Link} class="ref pigment-${ resource }" href=${ href }>${ name }</${Link}>
                 </div>
             </div>
-            ${card.answerMarkup}
+            ${buildMarkup(card.answer, imageDirectory)}
         </div>
     </div>`;
 }
