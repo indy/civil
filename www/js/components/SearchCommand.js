@@ -314,8 +314,7 @@ export default function SearchCommand() {
         return () => {
             document.removeEventListener("keydown", onKeyDown);
         };
-    }, [])
-
+    }, [state])
 
     const handleChangeEvent = (event) => {
         const text = event.target.value;
