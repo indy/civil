@@ -99,7 +99,7 @@ function ArticleTopMatter({ title }) {
                 Published: ${ formattedDate(deck.publishedDate)}
             </${LeftMarginHeading}>
             <${LeftMarginHeading}>
-                Added: ${ formattedDate(deck.createdId) }
+                Added: ${ formattedDate(deck.createdAt) }
             </${LeftMarginHeading}>
             <${StarRatingPartial} rating=${deck.rating}/>
         </div>
