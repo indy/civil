@@ -21,6 +21,7 @@ use crate::interop::decks as interop_decks;
 use crate::interop::sr as interop;
 use crate::interop::Key;
 
+use chrono::Utc;
 use rusqlite::{params, Row};
 use std::str::FromStr;
 #[allow(unused_imports)]
@@ -104,16 +105,18 @@ pub(crate) fn create_card(
 
     let easiness_factor: f32 = 2.5;
     let inter_repetition_interval: i32 = 1;
+    let next_test_date = Utc::now().naive_utc();
 
     let db_card = sqlite::one(
         &tx,
-        "INSERT INTO cards(user_id, note_id, prompt, easiness_factor, inter_repetition_interval)
-         VALUES (?1, ?2, ?3, ?4, ?5)
+        "INSERT INTO cards(user_id, note_id, prompt, next_test_date, easiness_factor, inter_repetition_interval)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6)
          RETURNING id, note_id, prompt",
         params![
             &user_id,
             &card.note_id,
             &card.prompt,
+            &next_test_date,
             &easiness_factor,
             &inter_repetition_interval,
         ],
