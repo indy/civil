@@ -2,6 +2,7 @@ import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { capitalise } from '/js/JsUtils.js';
+import { setUrlName } from '/js/CivilUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import buildMarkup from '/js/components/BuildMarkup.js';
@@ -55,14 +56,6 @@ function quotesReducer(state, action) {
     }
     default: throw new Error(`unknown action: ${action}`);
     }
-}
-
-function updateUrlName(dispatch, title) {
-    // todo: is there a better way of setting the urlname for quotes?
-    dispatch({
-        type: 'setUrlName',
-        urlName: title
-    });
 }
 
 function titleFromQuoteText(quoteText) {
@@ -190,7 +183,7 @@ function Quote({ id }) {
         Net.get(url).then(deck => {
             if (deck) {
                 route(`/quotes/${deck.id}`);
-                updateUrlName(dispatch, deck.title);
+                setUrlName(state, title);
             } else {
                 console.error(`error: fetchDeck for ${url}`);
             }

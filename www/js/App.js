@@ -1,5 +1,6 @@
 import { initialState, reducer } from '/js/AppState.js';
 import { capitalise } from '/js/JsUtils.js';
+import { setUrlName } from '/js/CivilUtils.js';
 
 import { html, Router, Route, Link, route } from '/lib/preact/mod.js';
 
@@ -102,7 +103,7 @@ function TopBarMenu(props) {
     }
 
     function clickedTopLevel(deckKind) {
-        dispatch({ type: "setUrlName", urlName: deckKind })
+        setUrlName(state, deckKind);
     }
 
     if (state.verboseUI) {

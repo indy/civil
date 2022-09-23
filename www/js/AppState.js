@@ -1,5 +1,6 @@
 import { signal } from '/lib/preact/mod.js';
 
+import { setUrlName } from '/js/CivilUtils.js';
 import { opposingKind } from '/js/JsUtils.js';
 import { sortByResourceThenName } from '/js/CivilUtils.js'; // todo: delete this import
 
@@ -14,6 +15,12 @@ export const initialState = {
         componentRequiresFullKeyboardAccess: signal(false),
 
         showingSearchCommand: signal(false),
+
+        // to add the current page to the scratchList we need the id, name, resource.
+        // id and resource can be parsed from the url, but the name needs to be
+        // stored separately
+        //
+        urlName: signal(''),
 
         // when a user is logged in:
         // user: {
@@ -38,11 +45,6 @@ export const initialState = {
 
     // the url of the current page
     url: '',
-    // to add the current page to the scratchList we need the id, name, resource.
-    // id and resource can be parsed from the url, but the name needs to be
-    // stored separately
-    //
-    urlName: '',
 
     scratchList: [],
     scratchListMinimised: false,
@@ -107,7 +109,7 @@ function cleanDeckManagerState() {
 
 export const reducer = (state, action) => {
     if (true) {
-        console.log(action.type);
+        console.log(`AppState change: ${action.type}`);
     }
     switch (action.type) {
     case 'dms-update-deck': {
@@ -118,20 +120,18 @@ export const reducer = (state, action) => {
         // organise the notes into noteSeqs
         buildNoteSeqs(deck);
 
-        let urlName = deck.title || deck.name;
-        document.title = `${state.appName}: ${urlName}`;
-
         // set the state's url value here, this saves a dispatch in App.js::AppUI::handleRoute when navigating to a deck page
         let newState = {
             ...state,
             ticks: state.ticks + 1,
             url: `/${resource}/${deck.id}`,
-            urlName,
             deckManagerState: {
                 ...state.deckManagerState,
                 deck
             }
         }
+
+        setUrlName(newState, deck.title || deck.name);
 
         if (deck.noteSeqs) {
             if (state.deckManagerState.hasSummarySection) {
@@ -218,14 +218,6 @@ export const reducer = (state, action) => {
             srReviewCount: action.srReviewCount,
             srEarliestReviewDate: action.srEarliestReviewDate
         };
-    case 'setUrlName': {
-        document.title = `${state.appName}: ${action.urlName}`;
-        return {
-            ...state,
-            ticks: state.ticks + 1,
-            urlName: action.urlName
-        };
-    }
     case 'scratchListToggle': {
         let newState = {
             ...state,
@@ -278,7 +270,7 @@ export const reducer = (state, action) => {
             }
         }
     case 'bookmarkUrl': {
-        let candidate = parseForScratchList(state.url, state.urlName);
+        let candidate = parseForScratchList(state.url, state.sigs.urlName.value);
         let newState = {
             ...state,
             ticks: state.ticks + 1

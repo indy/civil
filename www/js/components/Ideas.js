@@ -42,6 +42,9 @@ function preCacheFn(d) {
 }
 
 function Idea({ id }) {
+    const [state] = useStateValue();
+    console.log(`state ticks: ${state.ticks}`);
+
     const [searchResults, setSearchResults] = useState([]); // an array of backrefs
     const ideaId = parseInt(id, 10);
 

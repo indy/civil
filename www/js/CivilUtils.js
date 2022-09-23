@@ -18,6 +18,11 @@ export function createDeck(dispatch, resource, title) {
     });
 }
 
+export function setUrlName(state, name) {
+    state.sigs.urlName.value = name;
+    document.title = `${state.appName}: ${name}`;
+}
+
 export function obtainKeyboard(state) {
     return function(e) {
         e.preventDefault();
