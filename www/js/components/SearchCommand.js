@@ -1,9 +1,18 @@
 import { html, route, Link, useState, useEffect, useRef } from '/lib/preact/mod.js';
-
+import {
+    basicUI,
+    bookmarkUrl,
+    cleanUI,
+    scratchListAddMulti,
+    scratchListRemove,
+    scratchListToggle
+} from '/js/AppState.js';
 import { svgX, svgChevronDown, svgChevronUp } from '/js/svgIcons.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { createDeck, indexToShortcut } from '/js/CivilUtils.js';
+
+
 
 import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 
@@ -47,7 +56,8 @@ function reducer(state, action) {
     case CLICKED_COMMAND: {
         const command = action.data.entry.command;
         const appDispatch = action.data.appDispatch;
-        const success = executeCommand(command, appDispatch);
+        const appState = action.data.appState;
+        const success = executeCommand(command, appState, appDispatch);
         if (success) {
             let newState = cleanState(state);
             return newState;
@@ -83,8 +93,10 @@ function reducer(state, action) {
         }
 
         if (state.mode === MODE_COMMAND) {
-            const appDispatch = action.data;
-            const success = executeCommand(state.text, appDispatch);
+            const appDispatch = action.data.appDispatch;
+            const appState = action.data.appState;
+
+            const success = executeCommand(state.text, appState, appDispatch);
             if (success) {
                 let newState = cleanState(state);
                 return newState;
@@ -165,8 +177,8 @@ function reducer(state, action) {
 
         const newState = { ...state };
         if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
-            const appDispatch = action.data;
-            appDispatch({type: 'scratchListAddMulti', candidates: newState.candidates});
+            const appState = action.data;
+            scratchListAddMulti(appState, newState.candidates);
 
             newState.shiftKey = true;
             newState.keyDownIndex = -1;
@@ -215,8 +227,8 @@ function reducer(state, action) {
                         keyDownIndex: -1
                     };
 
-                    let appDispatch = action.data.appDispatch;
-                    appDispatch({type: 'scratchListAdd', candidate: candidate});
+                    let appState = action.data.appState;
+                    scratchListAddMulti(appState, [candidate]);
 
                     return newState;
                 } else {
@@ -242,9 +254,9 @@ function reducer(state, action) {
         const index = action.data.index;
         const newState = {...state};
 
-        const appDispatch = action.data.appDispatch;
+        const appState = action.data.appState;
 
-        appDispatch({type: 'scratchListRemove', index});
+        scratchListRemove(appState, index);
 
         return newState;
     }
@@ -279,7 +291,7 @@ export default function SearchCommand() {
             localDispatch(KEY_DOWN_COLON, { searchCommandRef, appState: state});
         }
         if (e.key === "Enter") {
-            localDispatch(KEY_DOWN_ENTER, appDispatch);
+            localDispatch(KEY_DOWN_ENTER, { appState: state, appDispatch });
         }
         if (e.ctrlKey) {
             localDispatch(KEY_DOWN_CTRL);
@@ -290,7 +302,7 @@ export default function SearchCommand() {
             localDispatch(KEY_DOWN_KEY, { index: index, shiftKey: e.shiftKey });
         }
         if (e.key === "+") {
-            localDispatch(KEY_DOWN_PLUS, appDispatch);
+            localDispatch(KEY_DOWN_PLUS, state);
         }
     };
 
@@ -313,10 +325,10 @@ export default function SearchCommand() {
         const text = event.target.value;
 
         if (local.mode === MODE_COMMAND) {
-            localDispatch(INPUT_GIVEN, { text, appDispatch });
+            localDispatch(INPUT_GIVEN, { text, appState: state });
         } else if (local.mode === MODE_SEARCH) {
             if (!local.showKeyboardShortcuts) {
-                localDispatch(INPUT_GIVEN, { text, appDispatch });
+                localDispatch(INPUT_GIVEN, { text, appState: state });
                 if (text.length > 0 && !isCommand(text)) {
                     search(text);
                 }
@@ -331,7 +343,7 @@ export default function SearchCommand() {
                 //
                 const displayText = local.shiftKey ? text.slice(0, -1) : text;
 
-                localDispatch(INPUT_GIVEN, { text: displayText, appDispatch });
+                localDispatch(INPUT_GIVEN, { text: displayText, appState: state });
             }
         }
 
@@ -364,7 +376,7 @@ export default function SearchCommand() {
     function buildCommandEntry(entry, i) {
 
         function clickedCommand(e) {
-            localDispatch(CLICKED_COMMAND, { entry, appDispatch });
+            localDispatch(CLICKED_COMMAND, { entry, appState: state, appDispatch });
         }
 
         if (entry.spacer) {
@@ -399,7 +411,7 @@ export default function SearchCommand() {
             }
 
             function clickedDelete(e) {
-                localDispatch(REMOVE_SAVED_SEARCH_RESULT, { index: i, appDispatch });
+                localDispatch(REMOVE_SAVED_SEARCH_RESULT, { index: i, appState: state });
             }
 
             return html`
@@ -415,19 +427,19 @@ export default function SearchCommand() {
         }
 
         function clickedToggle(e) {
-            appDispatch({type: 'scratchListToggle'});
+            scratchListToggle(state);
         }
 
-        const scratchList = state.scratchList.map((entry, i) =>
+        const scratchList = state.sigs.scratchList.value.map((entry, i) =>
             html`<li key=${ i }>${ buildScratchListEntry(entry, i) }</li>`);
 
         return html`
         <div id="saved-search-component">
-            ${ !state.scratchListMinimised && html`
+            ${ !state.sigs.scratchListMinimised.value && html`
                 <ul class="search-command-listing" id="saved-search-results">
                     ${ scratchList }
                 </ul>`}
-             ${ state.scratchListMinimised ? html`
+             ${ state.sigs.scratchListMinimised.value ? html`
                 <div class="saved-search-menu">
                     <div onClick=${clickedToggle}>
                         ${ svgChevronUp() }
@@ -489,7 +501,7 @@ export default function SearchCommand() {
                    onBlur=${onBlur}/>
             ${ !!local.candidates.length && buildCandidates() }
         </div>
-        ${ !!state.scratchList.length && buildScratchList() }
+        ${ !!state.sigs.scratchList.value.length && buildScratchList() }
       </div>`;
 }
 
@@ -516,7 +528,7 @@ function allCommands() {
     ];
 }
 
-function executeCommand(text, appDispatch) {
+function executeCommand(text, appState, appDispatch) {
     const commandPlusArgs = text.slice(1).split(" ").filter(s => s.length > 0);
     if (commandPlusArgs.length === 0) {
         return;
@@ -558,9 +570,9 @@ function executeCommand(text, appDispatch) {
         return true;
     }
     case "s": route('/sr'); return true;
-    case "uic": return dispatchMessage('cleanUI');
-    case "uib": return dispatchMessage('basicUI');
-    case "b": return dispatchMessage('bookmarkUrl');
+    case "uic": { cleanUI(appState); return true; }
+    case "uib": { basicUI(appState); return true; }
+    case "b": { bookmarkUrl(appState); return true; }
     case "g": return dispatchMessage('connectivityGraphShow');
     case "h": return dispatchMessage('connectivityGraphHide');
     }

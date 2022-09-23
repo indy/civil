@@ -55,7 +55,12 @@ export const initialState = {
         // },
         user: signal(undefined),
 
-        deckManagerState: signal(cleanDeckManagerState())
+        deckManagerState: signal(cleanDeckManagerState()),
+
+        verboseUI: signal(true),
+
+        scratchList: signal([]),
+        scratchListMinimised: signal(false)
     },
 
     appName: "Civil",
@@ -70,10 +75,6 @@ export const initialState = {
     // that mobile touch devices will always show the search bar
     //
     hasPhysicalKeyboard: true,
-
-    scratchList: [],
-    scratchListMinimised: false,
-
 
     // put the variables in square brackets so that they're evaluated
     //
@@ -101,7 +102,7 @@ export const initialState = {
     recentImages: [],
     imageDirectory: '',
 
-    verboseUI: true,
+
     preferredOrder: ["ideas", "people", "articles", "timelines", "quotes", "stats"],
 
     // key == resource name of decks
@@ -191,6 +192,40 @@ export function dmsShowReviewButtonToggle(state, isToggled) {
     state.sigs.deckManagerState.value = dms;
 }
 
+export function scratchListToggle(state) {
+    state.sigs.scratchListMinimised.value = !state.sigs.scratchListMinimised.value;
+}
+
+export function scratchListAddMulti(state, candidates) {
+    let sl = state.sigs.scratchList.value.slice();
+    candidates.forEach(c => {
+        sl.push(c);
+    });
+    state.sigs.scratchList.value = sl;
+}
+
+export function scratchListRemove(state, index) {
+    let sl = state.sigs.scratchList.value.slice();
+    sl.splice(index, 1);
+    state.sigs.scratchList.value = sl;
+}
+
+export function bookmarkUrl(state) {
+    let sl = state.sigs.scratchList.value.slice();
+    let candidate = parseForScratchList(state.sigs.url.value, state.sigs.urlName.value);
+
+    sl.push(candidate);
+    state.sigs.scratchList.value = sl;
+}
+
+export function cleanUI(state) {
+    state.sigs.verboseUI.value = false;
+}
+
+export function basicUI(state) {
+    state.sigs.verboseUI.value = true;
+}
+
 export const reducer = (state, action) => {
     if (true) {
         console.log(`AppState change: ${action.type}`);
@@ -208,46 +243,6 @@ export const reducer = (state, action) => {
             srReviewCount: action.srReviewCount,
             srEarliestReviewDate: action.srEarliestReviewDate
         };
-    case 'scratchListToggle': {
-        let newState = {
-            ...state,
-            ticks: state.ticks + 1,
-            scratchListMinimised: !state.scratchListMinimised
-        }
-        return newState;
-    }
-    case 'scratchListAddMulti': {
-        let newState = {
-            ...state,
-            ticks: state.ticks + 1
-        };
-
-        action.candidates.forEach(c => {
-            newState.scratchList.push(c);
-        });
-
-        return newState;
-    }
-    case 'scratchListAdd': {
-        let newState = {
-            ...state,
-            ticks: state.ticks + 1
-        };
-
-        newState.scratchList.push(action.candidate);
-
-        return newState;
-    }
-    case 'scratchListRemove': {
-        let newState = {
-            ...state,
-            ticks: state.ticks + 1
-        };
-
-        newState.scratchList.splice(action.index, 1);
-
-        return newState;
-    }
     case 'loadGraph':
         return {
             ...state,
@@ -259,27 +254,6 @@ export const reducer = (state, action) => {
                 deckIndexFromId: buildDeckIndex(action.graphNodes)
             }
         }
-    case 'bookmarkUrl': {
-        let candidate = parseForScratchList(state.sigs.url.value, state.sigs.urlName.value);
-        let newState = {
-            ...state,
-            ticks: state.ticks + 1
-        };
-        newState.scratchList.push(candidate);
-        return newState;
-    }
-    case 'cleanUI':
-        return {
-            ...state,
-            ticks: state.ticks + 1,
-            verboseUI: false
-        };
-    case 'basicUI':
-        return {
-            ...state,
-            ticks: state.ticks + 1,
-            verboseUI: true
-        };
     case 'showNoteForm': {
         let newState = {
             ...state,

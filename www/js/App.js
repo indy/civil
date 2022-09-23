@@ -105,7 +105,7 @@ function TopBarMenu(props) {
         setUrlName(state, deckKind);
     }
 
-    if (state.verboseUI) {
+    if (state.sigs.verboseUI.value) {
         return html`
         <nav>
             <div id="elastic-top-menu-items">
