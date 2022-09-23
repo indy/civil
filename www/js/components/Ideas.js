@@ -22,6 +22,8 @@ function Ideas() {
     const [state, dispatch] = useStateValue();
     const resource = 'ideas';
 
+    console.log(`state ticks: ${state.ticks}`);
+
     ensureListingLoaded(resource, '/api/ideas/listings');
 
     const ideas = state.listing.ideas || {};

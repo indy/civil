@@ -6,7 +6,7 @@ import Net from '/js/Net.js';
 function Login({ loginCallback}) {
     const [appState, dispatch] = useStateValue();
 
-    if (appState.user) {
+    if (appState.sigs.user.value) {
         route('/', true);
     };
 
@@ -132,10 +132,7 @@ function Logout() {
     const handleLogout = (event) => {
         Net.delete('api/auth', {}).then(() => {
             //// this isn't logging out the user, refreshing the app logs the user back in
-            dispatch({
-                type: 'setUser',
-                user: undefined
-            });
+            state.sigs.user.value = undefined;
             route('/login', true);
         });
         event.preventDefault();

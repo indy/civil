@@ -6,18 +6,21 @@ import { sortByResourceThenName } from '/js/CivilUtils.js'; // todo: delete this
 import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 
 export const initialState = {
-    user: undefined,
-    // when a user is logged in:
-    // user: {
-    //   username: ...
-    //   email: ...
-    // },
+    ticks: 0,
 
     // signals
     sigs: {
         // when true don't let searchCommand accept any keystrokes
         componentRequiresFullKeyboardAccess: signal(false),
-        showingSearchCommand: signal(false)
+
+        showingSearchCommand: signal(false),
+
+        // when a user is logged in:
+        // user: {
+        //   username: ...
+        //   email: ...
+        // },
+        user: signal(undefined)
     },
 
     appName: "Civil",
@@ -103,8 +106,10 @@ function cleanDeckManagerState() {
 }
 
 export const reducer = (state, action) => {
+    if (true) {
+        console.log(action.type);
+    }
     switch (action.type) {
-
     case 'dms-update-deck': {
         let { deck, resource } = action.data;
 
@@ -119,6 +124,7 @@ export const reducer = (state, action) => {
         // set the state's url value here, this saves a dispatch in App.js::AppUI::handleRoute when navigating to a deck page
         let newState = {
             ...state,
+            ticks: state.ticks + 1,
             url: `/${resource}/${deck.id}`,
             urlName,
             deckManagerState: {
@@ -141,6 +147,7 @@ export const reducer = (state, action) => {
     case 'dms-update-form-toggle':
         return {
             ...state,
+            ticks: state.ticks + 1,
             deckManagerState: {
                 ...state.deckManagerState,
                 showUpdateForm: !state.deckManagerState.showUpdateForm
@@ -149,6 +156,7 @@ export const reducer = (state, action) => {
     case 'dms-delete-toggle':
         return {
             ...state,
+            ticks: state.ticks + 1,
             deckManagerState: {
                 ...state.deckManagerState,
                 showDelete: !state.deckManagerState.showDelete
@@ -157,6 +165,7 @@ export const reducer = (state, action) => {
     case 'dms-refs-toggle':
         return {
             ...state,
+            ticks: state.ticks + 1,
             deckManagerState: {
                 ...state.deckManagerState,
                 isEditingDeckRefs: !state.deckManagerState.isEditingDeckRefs
@@ -165,6 +174,7 @@ export const reducer = (state, action) => {
     case 'dms-hide-form':
         return {
             ...state,
+            ticks: state.ticks + 1,
             deckManagerState: {
                 ...state.deckManagerState,
                 showUpdateForm: false
@@ -173,6 +183,7 @@ export const reducer = (state, action) => {
     case 'dms-show-summary-button-toggle':
         return {
             ...state,
+            ticks: state.ticks + 1,
             deckManagerState: {
                 ...state.deckManagerState,
                 showShowSummaryButton: action.data
@@ -181,6 +192,7 @@ export const reducer = (state, action) => {
     case 'dms-show-review-button-toggle':
         return {
             ...state,
+            ticks: state.ticks + 1,
             deckManagerState: {
                 ...state.deckManagerState,
                 showShowReviewButton: action.data
@@ -190,12 +202,14 @@ export const reducer = (state, action) => {
     case 'routeChanged':
         return {
             ...state,
+            ticks: state.ticks + 1,
             url: action.url,
             deckManagerState: cleanDeckManagerState()
         };
     case 'uberSetup':
         return {
             ...state,
+            ticks: state.ticks + 1,
             imageDirectory: action.imageDirectory,
             recentImages: action.recentImages,
             graph: {
@@ -208,18 +222,23 @@ export const reducer = (state, action) => {
         document.title = `${state.appName}: ${action.urlName}`;
         return {
             ...state,
+            ticks: state.ticks + 1,
             urlName: action.urlName
         };
     }
     case 'scratchListToggle': {
         let newState = {
             ...state,
+            ticks: state.ticks + 1,
             scratchListMinimised: !state.scratchListMinimised
         }
         return newState;
     }
     case 'scratchListAddMulti': {
-        let newState = {...state};
+        let newState = {
+            ...state,
+            ticks: state.ticks + 1
+        };
 
         action.candidates.forEach(c => {
             newState.scratchList.push(c);
@@ -228,14 +247,20 @@ export const reducer = (state, action) => {
         return newState;
     }
     case 'scratchListAdd': {
-        let newState = {...state};
+        let newState = {
+            ...state,
+            ticks: state.ticks + 1
+        };
 
         newState.scratchList.push(action.candidate);
 
         return newState;
     }
     case 'scratchListRemove': {
-        let newState = {...state};
+        let newState = {
+            ...state,
+            ticks: state.ticks + 1
+        };
 
         newState.scratchList.splice(action.index, 1);
 
@@ -244,6 +269,7 @@ export const reducer = (state, action) => {
     case 'loadGraph':
         return {
             ...state,
+            ticks: state.ticks + 1,
             graph: {
                 fullyLoaded: true,
                 decks: action.graphNodes,
@@ -253,84 +279,106 @@ export const reducer = (state, action) => {
         }
     case 'bookmarkUrl': {
         let candidate = parseForScratchList(state.url, state.urlName);
-        let newState = { ...state };
+        let newState = {
+            ...state,
+            ticks: state.ticks + 1
+        };
         newState.scratchList.push(candidate);
         return newState;
     }
     case 'cleanUI':
         return {
             ...state,
+            ticks: state.ticks + 1,
             verboseUI: false
         };
     case 'basicUI':
         return {
             ...state,
+            ticks: state.ticks + 1,
             verboseUI: true
         };
     case 'showNoteForm': {
-        let newState = { ...state };
+        let newState = {
+            ...state,
+            ticks: state.ticks + 1
+        };
         newState.showNoteForm[action.noteKind] = true;
         newState.sigs.componentRequiresFullKeyboardAccess.value = true;
         return newState;
     }
     case 'hideNoteForm': {
-        let newState = { ...state };
+        let newState = {
+            ...state,
+            ticks: state.ticks + 1
+        };
         newState.showNoteForm[action.noteKind] = false;
         newState.sigs.componentRequiresFullKeyboardAccess.value = false;
         return newState;
     }
     case 'showAddPointForm': {
-        let newState = { ...state,
-                         showAddPointForm: true
-                       };
+        let newState = {
+            ...state,
+            ticks: state.ticks + 1,
+            showAddPointForm: true
+        };
         newState.sigs.componentRequiresFullKeyboardAccess.value = true;
     }
     case 'hideAddPointForm': {
-        let newState = { ...state,
-                         showAddPointForm: false
-                       };
+        let newState = {
+            ...state,
+            ticks: state.ticks + 1,
+            showAddPointForm: false
+        };
         newState.sigs.componentRequiresFullKeyboardAccess.value = false;
     }
     case 'connectivityGraphShow':
         return {
             ...state,
+            ticks: state.ticks + 1,
             showConnectivityGraph: true
         };
     case 'connectivityGraphHide':
         return {
             ...state,
+            ticks: state.ticks + 1,
             showConnectivityGraph: false
         };
     case 'setRecentImages':
         return {
             ...state,
+            ticks: state.ticks + 1,
             recentImages: action.recentImages
         };
     case 'setImageDirectory':
         return {
             ...state,
+            ticks: state.ticks + 1,
             imageDirectory: action.imageDirectory
-        };
-    case 'setUser':
-        return {
-            ...state,
-            user: action.user
         };
     case 'setReviewCount':
         return {
             ...state,
+            ticks: state.ticks + 1,
             srReviewCount: action.srReviewCount
         };
 
     case 'invalidateGraph': {
-        let newState = {...state };
+        let newState = {
+            ...state,
+            ticks: state.ticks + 1
+        };
+
         newState.graph.fullyLoaded = false;
 
         return newState;
     }
     case 'noteRefsModified':
         {
-            let newState = {...state};
+            let newState = {
+                ...state,
+                ticks: state.ticks + 1
+            };
 
             let changes = action.changes;
 
@@ -383,7 +431,11 @@ export const reducer = (state, action) => {
     case 'deleteDeck': {
         let filterFn = d => d.id !== action.id;
 
-        let newState = { ...state };
+        let newState = {
+            ...state,
+            ticks: state.ticks + 1
+        };
+
         if (newState.graph && newState.graph.decks) {
             newState.graph.decks = state.graph.decks.filter(filterFn);
         }
@@ -424,32 +476,43 @@ export const reducer = (state, action) => {
     }
         // sets the listing values for a particular deck kind
     case 'setDeckListing': {
-        let listing = {...state.listing };
+        let listing = {
+            ...state.listing
+        };
         listing[action.resource] = action.listing;
 
         let newState = {
             ...state,
+            ticks: state.ticks + 1,
             listing: listing
         };
 
         return newState;
     }
     case 'updatePeopleListing': {
-        let newState = { ...state };
+        let newState = {
+            ...state,
+            ticks: state.ticks + 1
+        };
         if (newState.listing.people) {
             updateHashOfNames(newState.listing.people, action.newItem);
         }
         return newState;
     }
     case 'setTimeline': {
-        let newState = { ...state };
+        let newState = {
+            ...state,
+            ticks: state.ticks + 1
+        };
         if (newState.listing.timelines) {
             updateListOfTitles(newState.listing.timelines, action.newItem);
         }
         return newState;
     }
-    default:
+    default: {
+        console.log("HITTING DEFAULT OF APPSTATE'S SWITCH STATEMENT");
         return state;
+    }
     }
 };
 

@@ -35,10 +35,7 @@ export async function buildInitialState(wasmInterface) {
 
             // update initial state with user
             //
-            state = reducer(state, {
-                type: 'setUser',
-                user
-            });
+            state.sigs.user.value = user;
 
             let uberSetupStruct = await getInitialStateForLoggedInUser();
             state = reducer(state, {
@@ -87,11 +84,11 @@ function TopBarMenu(props) {
     function loggedStatus() {
         let status = '';
 
-        let user = state.user;
-        if (user) {
-            status += user.username;
-            if (user.admin && user.admin.dbName !== "civil") {
-                status += ` (${user.admin.dbName})`;
+        let user = state.sigs.user;
+        if (user.value) {
+            status += user.value.username;
+            if (user.value.admin && user.value.admin.dbName !== "civil") {
+                status += ` (${user.value.admin.dbName})`;
             }
         } else {
             status = 'Login';
@@ -101,7 +98,7 @@ function TopBarMenu(props) {
     }
 
     function loggedLink() {
-        return state.user ? "/logout" : "/login";
+        return state.sigs.user.value ? "/logout" : "/login";
     }
 
     function clickedTopLevel(deckKind) {
@@ -139,10 +136,7 @@ function AppUI(props) {
     async function loginHandler(user) {
         console.log(user);
 
-        dispatch({
-            type: 'setUser',
-            user
-        });
+        state.sigs.user.value = user;
 
         let struct = await getInitialStateForLoggedInUser();
         dispatch({
@@ -167,7 +161,7 @@ function AppUI(props) {
             }
 
             // all other pages require the user to be logged in
-            if (!state.user) {
+            if (!state.sigs.user.value) {
                 route('/login', true);
             } else if (e.url === '/') {
                 route('/ideas', true);
