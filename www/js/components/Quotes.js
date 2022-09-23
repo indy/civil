@@ -2,7 +2,7 @@ import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { capitalise } from '/js/JsUtils.js';
-import { setUrlName } from '/js/CivilUtils.js';
+import { setUrlName } from '/js/AppState.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import buildMarkup from '/js/components/BuildMarkup.js';

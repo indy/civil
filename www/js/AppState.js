@@ -1,10 +1,28 @@
 import { signal } from '/lib/preact/mod.js';
 
-import { setUrlName } from '/js/CivilUtils.js';
 import { opposingKind } from '/js/JsUtils.js';
 import { sortByResourceThenName } from '/js/CivilUtils.js'; // todo: delete this import
 
 import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
+
+export function setUrlName(state, name) {
+    state.sigs.urlName.value = name;
+    document.title = `${state.appName}: ${name}`;
+}
+
+export function obtainKeyboard(state) {
+    return function(e) {
+        e.preventDefault();
+        state.sigs.componentRequiresFullKeyboardAccess.value = true;
+    }
+}
+
+export function relinquishKeyboard(state) {
+    return function(e) {
+        e.preventDefault();
+        state.sigs.componentRequiresFullKeyboardAccess.value = false;
+    }
+}
 
 export const initialState = {
     ticks: 0,

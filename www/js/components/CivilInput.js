@@ -1,5 +1,5 @@
 import { html, useState, useEffect } from '/lib/preact/mod.js';
-import { obtainKeyboard, relinquishKeyboard } from '/js/CivilUtils.js';
+import { obtainKeyboard, relinquishKeyboard } from '/js/AppState.js';
 import { useStateValue } from '/js/StateProvider.js';
 
 export default function CivilInput({id, value, autoComplete, onInput, size, elementClass, readOnly }) {

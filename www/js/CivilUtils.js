@@ -18,24 +18,6 @@ export function createDeck(dispatch, resource, title) {
     });
 }
 
-export function setUrlName(state, name) {
-    state.sigs.urlName.value = name;
-    document.title = `${state.appName}: ${name}`;
-}
-
-export function obtainKeyboard(state) {
-    return function(e) {
-        e.preventDefault();
-        state.sigs.componentRequiresFullKeyboardAccess.value = true;
-    }
-}
-export function relinquishKeyboard(state) {
-    return function(e) {
-        e.preventDefault();
-        state.sigs.componentRequiresFullKeyboardAccess.value = false;
-    }
-}
-
 export function indexToShortcut(index) {
     if (index < 9) {
         return String.fromCharCode(index + 49);
