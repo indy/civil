@@ -2,6 +2,7 @@ import { html } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 
+import { dmsRefsToggle } from '/js/AppState.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Ref from '/js/components/Ref.js';
 import CivilSelect from '/js/components/CivilSelect.js';
@@ -9,24 +10,24 @@ import CivilSelect from '/js/components/CivilSelect.js';
 export default function SectionDeckRefs({ onRefsChanged }) {
     const [state, appDispatch] = useStateValue();
 
-        function onCancel() {
-            appDispatch({type: 'dms-refs-toggle'});
-        }
-        function onSaved(note, changes, allDecksForNote) {
-            // this note is going to be the deck's NoteDeckMeta
-            onRefsChanged(note, allDecksForNote);
+    function onCancel() {
+        dmsRefsToggle(state);
+    }
+    function onSaved(note, changes, allDecksForNote) {
+        // this note is going to be the deck's NoteDeckMeta
+        onRefsChanged(note, allDecksForNote);
 
-            // todo: combine these two appDispatch calls
-            appDispatch({
-                type: 'noteRefsModified',
-                changes,
-                allDecksForNote,
-            });
-            appDispatch({type: 'dms-refs-toggle'});
-        }
+        // todo: combine these two appDispatch calls
+        appDispatch({
+            type: 'noteRefsModified',
+            changes,
+            allDecksForNote,
+        });
+        dmsRefsToggle(state);
+    }
 
-    let deck = state.deckManagerState.deck;
-    let editing = state.deckManagerState.isEditingDeckRefs;
+    let deck = state.sigs.deckManagerState.value.deck;
+    let editing = state.sigs.deckManagerState.value.isEditingDeckRefs;
 
     let deckId = deck && deck.id;
     let deckMeta = deck && deck.noteSeqs && deck.noteSeqs.noteDeckMeta[0];

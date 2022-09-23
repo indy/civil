@@ -1,5 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
+import { dmsUpdateDeck, dmsHideForm } from '/js/AppState.js';
 import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import { capitalise } from '/js/JsUtils.js';
 import Net from '/js/Net.js';
@@ -104,10 +105,10 @@ function Person({ id }) {
         return false;
     }
 
-    const hasKnownLifespan = !!state.deckManagerState.deck && hasBirthPoint(state.deckManagerState.deck);
+    const hasKnownLifespan = !!state.sigs.deckManagerState.value.deck && hasBirthPoint(state.sigs.deckManagerState.value.deck);
 
-    const person = state.deckManagerState.deck;
-    const name = state.deckManagerState.deck && state.deckManagerState.deck.name;
+    const person = state.sigs.deckManagerState.value.deck;
+    const name = state.sigs.deckManagerState.value.deck && state.sigs.deckManagerState.value.deck.name;
 
     return html`
     <article>
@@ -181,7 +182,7 @@ function preCacheFn(person) {
 function SectionUpdatePerson() {
     const [state, appDispatch] = useStateValue();
 
-    const person = state.deckManagerState.deck || {};
+    const person = state.sigs.deckManagerState.value.deck || {};
 
 
     const [localState, setLocalState] = useState({
@@ -217,14 +218,14 @@ function SectionUpdatePerson() {
 
         // edit an existing person
         Net.put(`/api/people/${person.id}`, data).then(newDeck => {
-            appDispatch({type: 'dms-update-deck', data: { deck: newDeck, resource: 'people'}});
-            appDispatch({type: 'dms-hide-form'});
+            dmsUpdateDeck(state, newDeck, 'people');
+            dmsHideForm(state);
         });
 
         e.preventDefault();
     };
 
-    if (!state.deckManagerState.showUpdateForm) {
+    if (!state.sigs.deckManagerState.value.showUpdateForm) {
         return html`<div></div>`;
     }
 

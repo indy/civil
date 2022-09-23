@@ -1,5 +1,6 @@
 import { html,  useState, useEffect, useRef } from '/lib/preact/mod.js';
 
+import { dmsUpdateDeck } from '/js/AppState.js';
 import Net from '/js/Net.js';
 import { svgEdit, svgX } from '/js/svgIcons.js';
 import { useStateValue } from '/js/StateProvider.js';
@@ -58,7 +59,7 @@ function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optio
 
         modifyFn(notes, index);
 
-        dispatch({ type: 'dms-update-deck', data: { deck: preCacheFn({...deck, notes}), resource }});
+        dmsUpdateDeck(state, preCacheFn({...deck, notes}), resource);
     };
 
     function onEditedNote(id, data) {
@@ -68,7 +69,7 @@ function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optio
     };
 
     function onDeleteNote(noteId, allNotes) {
-        dispatch({ type: 'dms-update-deck', data: { deck: preCacheFn({...deck, notes: allNotes}), resource }});
+        dmsUpdateDeck(state, preCacheFn({...deck, notes: allNotes}), resource);
     };
 
     function buildNoteComponent(note) {
@@ -112,7 +113,7 @@ function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optio
 
             addNote(state.wasmInterface, markup, deck.id, prevNoteId, nextNoteId, noteKind, optionalDeckPoint && optionalDeckPoint.id)
                 .then(allNotes => {
-                    dispatch({ type: 'dms-update-deck', data: { deck: preCacheFn({...deck, notes: allNotes}), resource }});
+                    dmsUpdateDeck(state, preCacheFn({...deck, notes: allNotes}), resource);
                     dispatch({ type: "hideNoteForm", noteKind });
                 })
                 .catch(error => console.error(error.message));

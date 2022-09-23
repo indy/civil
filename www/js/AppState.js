@@ -45,7 +45,9 @@ export const initialState = {
         //   username: ...
         //   email: ...
         // },
-        user: signal(undefined)
+        user: signal(undefined),
+
+        deckManagerState: signal(cleanDeckManagerState())
     },
 
     appName: "Civil",
@@ -125,97 +127,74 @@ function cleanDeckManagerState() {
     return res;
 }
 
+export function dmsUpdateDeck(state, deck, resource) {
+    console.log("todo: update the state's url");
+    // url: `/${resource}/${deck.id}`,
+
+    // modify the notes received from the server
+    applyDecksAndCardsToNotes(deck);
+    // organise the notes into noteSeqs
+    buildNoteSeqs(deck);
+
+    // todo: maybe move this back into the apps router now that we're using signals
+    setUrlName(state, deck.title || deck.name);
+
+    let dms = { ...state.sigs.deckManagerState.value };
+    dms.deck = deck;
+
+    if (deck.noteSeqs) {
+        if (dms.hasSummarySection) {
+            dms.showShowSummaryButton = deck.noteSeqs.noteSummary.length > 0;
+        }
+        if (dms.hasReviewSection) {
+            dms.showShowReviewButton = deck.noteSeqs.noteReview.length > 0;
+        }
+    }
+
+    state.sigs.deckManagerState.value = dms;
+}
+
+export function dmsUpdateFormToggle(state) {
+    let dms = { ...state.sigs.deckManagerState.value };
+    dms.showUpdateForm = !dms.showUpdateForm;
+    state.sigs.deckManagerState.value = dms;
+}
+
+export function dmsDeleteToggle(state) {
+    let dms = { ...state.sigs.deckManagerState.value };
+    dms.showDelete = !dms.showDelete;
+    state.sigs.deckManagerState.value = dms;
+}
+
+export function dmsRefsToggle(state) {
+    let dms = { ...state.sigs.deckManagerState.value };
+    dms.isEditingDeckRefs = !dms.isEditingDeckRefs;
+    state.sigs.deckManagerState.value = dms;
+}
+
+export function dmsHideForm(state) {
+    let dms = { ...state.sigs.deckManagerState.value };
+    dms.showUpdateForm = false;
+    state.sigs.deckManagerState.value = dms;
+}
+
+export function dmsShowSummaryButtonToggle(state, isToggled) {
+    let dms = { ...state.sigs.deckManagerState.value };
+    dms.showShowSummaryButton = isToggled;
+    state.sigs.deckManagerState.value = dms;
+}
+
+export function dmsShowReviewButtonToggle(state, isToggled) {
+    let dms = { ...state.sigs.deckManagerState.value };
+    dms.showShowReviewButton = isToggled;
+    state.sigs.deckManagerState.value = dms;
+}
+
 export const reducer = (state, action) => {
     if (true) {
         console.log(`AppState change: ${action.type}`);
     }
     switch (action.type) {
-    case 'dms-update-deck': {
-        let { deck, resource } = action.data;
-
-        // modify the notes received from the server
-        applyDecksAndCardsToNotes(deck);
-        // organise the notes into noteSeqs
-        buildNoteSeqs(deck);
-
-        // set the state's url value here, this saves a dispatch in App.js::AppUI::handleRoute when navigating to a deck page
-        let newState = {
-            ...state,
-            ticks: state.ticks + 1,
-            url: `/${resource}/${deck.id}`,
-            deckManagerState: {
-                ...state.deckManagerState,
-                deck
-            }
-        }
-
-        setUrlName(newState, deck.title || deck.name);
-
-        if (deck.noteSeqs) {
-            if (state.deckManagerState.hasSummarySection) {
-                newState.deckManagerState.showShowSummaryButton = deck.noteSeqs.noteSummary.length > 0;
-            }
-            if (state.deckManagerState.hasReviewSection) {
-                newState.deckManagerState.showShowReviewButton = deck.noteSeqs.noteReview.length > 0;
-            }
-        }
-
-        return newState;
-    }
-    case 'dms-update-form-toggle':
-        return {
-            ...state,
-            ticks: state.ticks + 1,
-            deckManagerState: {
-                ...state.deckManagerState,
-                showUpdateForm: !state.deckManagerState.showUpdateForm
-            }
-        }
-    case 'dms-delete-toggle':
-        return {
-            ...state,
-            ticks: state.ticks + 1,
-            deckManagerState: {
-                ...state.deckManagerState,
-                showDelete: !state.deckManagerState.showDelete
-            }
-        }
-    case 'dms-refs-toggle':
-        return {
-            ...state,
-            ticks: state.ticks + 1,
-            deckManagerState: {
-                ...state.deckManagerState,
-                isEditingDeckRefs: !state.deckManagerState.isEditingDeckRefs
-            }
-        }
-    case 'dms-hide-form':
-        return {
-            ...state,
-            ticks: state.ticks + 1,
-            deckManagerState: {
-                ...state.deckManagerState,
-                showUpdateForm: false
-            }
-        }
-    case 'dms-show-summary-button-toggle':
-        return {
-            ...state,
-            ticks: state.ticks + 1,
-            deckManagerState: {
-                ...state.deckManagerState,
-                showShowSummaryButton: action.data
-            }
-        }
-    case 'dms-show-review-button-toggle':
-        return {
-            ...state,
-            ticks: state.ticks + 1,
-            deckManagerState: {
-                ...state.deckManagerState,
-                showShowReviewButton: action.data
-            }
-        }
 
     case 'routeChanged':
         return {

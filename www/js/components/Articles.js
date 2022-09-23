@@ -1,5 +1,7 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
+import { dmsUpdateDeck, dmsHideForm } from '/js/AppState.js';
+
 import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import { capitalise, removeEmptyStrings, formattedDate } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
@@ -53,7 +55,7 @@ function Article({ id }) {
         hasReviewSection: true
     });
 
-    let shortDescription = !!state.deckManagerState.deck && state.deckManagerState.deck.shortDescription;
+    let shortDescription = !!state.sigs.deckManagerState.value.deck && state.sigs.deckManagerState.value.deck.shortDescription;
     return html`
     <article>
         <${ArticleTopMatter} title=${ deckManager.title }/>
@@ -76,7 +78,7 @@ function TopScribble({ text }) {
 
 function ArticleTopMatter({ title }) {
     const [state] = useStateValue();
-    const deck = state.deckManagerState.deck;
+    const deck = state.sigs.deckManagerState.value.deck;
 
     function Url({ url }) {
         return html`<a href=${ url }>${ url }</a>`;
@@ -110,7 +112,7 @@ function ArticleTopMatter({ title }) {
 function SectionUpdateArticle() {
     const [state, appDispatch] = useStateValue();
 
-    const article = state.deckManagerState.deck || {};
+    const article = state.sigs.deckManagerState.value.deck || {};
 
     const [title, setTitle] = useState(article.title || '');
     const [author, setAuthor] = useState(article.author || '');
@@ -179,8 +181,8 @@ function SectionUpdateArticle() {
         const resource = 'articles';
 
         Net.put(`/api/${ resource }/${ article.id }`, data).then(newDeck => {
-            appDispatch({type: 'dms-update-deck', data: { deck: newDeck, resource: 'articles'}});
-            appDispatch({type: 'dms-hide-form'});
+            dmsUpdateDeck(state, newDeck, 'articles');
+            dmsHideForm(state);
 
             // fetch the listing incase editing the article has changed it's star rating or annotation
             //
@@ -190,7 +192,7 @@ function SectionUpdateArticle() {
         event.preventDefault();
     };
 
-    if (!state.deckManagerState.showUpdateForm) {
+    if (!state.sigs.deckManagerState.value.showUpdateForm) {
         return html`<div></div>`;
     }
 

@@ -1,5 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
+import { dmsUpdateDeck, dmsHideForm } from '/js/AppState.js';
 import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import Net from '/js/Net.js';
 import { addChronologicalSortYear } from '/js/eras.js';
@@ -46,7 +47,7 @@ function Timeline({ id }) {
         hasReviewSection: false
     });
 
-    let timeline = state.deckManagerState.deck;
+    let timeline = state.sigs.deckManagerState.value.deck;
 
     return html`
     <article>
@@ -83,7 +84,7 @@ function preCacheFn(timeline) {
 function SectionUpdateTimeline() {
     const [state, appDispatch] = useStateValue();
 
-    const timeline = state.deckManagerState.deck || {};
+    const timeline = state.sigs.deckManagerState.value.deck || {};
 
     const [localState, setLocalState] = useState({
         title: timeline.title || ''
@@ -118,8 +119,8 @@ function SectionUpdateTimeline() {
 
         // edit an existing timeline
         Net.put(`/api/timelines/${timeline.id}`, data).then(newDeck => {
-            appDispatch({type: 'dms-update-deck', data: { deck: newDeck, resource: 'timelines'}});
-            appDispatch({type: 'dms-hide-form'});
+            dmsUpdateDeck(state, newDeck, 'timelines');
+            dmsHideForm(state);
 
             // fetch the listing incase editing the article has changed it's star rating or annotation
             //
@@ -130,7 +131,7 @@ function SectionUpdateTimeline() {
         e.preventDefault();
     };
 
-    if (!state.deckManagerState.showUpdateForm) {
+    if (!state.sigs.deckManagerState.value.showUpdateForm) {
         return html`<div></div>`;
     }
 

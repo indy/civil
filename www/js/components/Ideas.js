@@ -1,5 +1,7 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
+import { dmsUpdateDeck, dmsHideForm } from '/js/AppState.js';
+
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
@@ -86,7 +88,7 @@ function Idea({ id }) {
 function IdeaTopMatter({ title }) {
     const [state] = useStateValue();
 
-    let createdAt = state.deckManagerState.deck && state.deckManagerState.deck.createdId;
+    let createdAt = state.sigs.deckManagerState.value.deck && state.sigs.deckManagerState.value.deck.createdId;
 
     return html`
     <div>
@@ -103,7 +105,7 @@ function IdeaTopMatter({ title }) {
 function SectionUpdateIdea() {
     const [state, appDispatch] = useStateValue();
 
-    const idea = state.deckManagerState.deck || {};
+    const idea = state.sigs.deckManagerState.value.deck || {};
 
     const [title, setTitle] = useState(idea.title || '');
     const [graphTerminator, setGraphTerminator] = useState(idea.graphTerminator);
@@ -134,8 +136,8 @@ function SectionUpdateIdea() {
         };
 
         Net.put(`/api/ideas/${idea.id}`, data).then(newDeck => {
-            appDispatch({type: 'dms-update-deck', data: { deck: newDeck, resource: 'ideas'}});
-            appDispatch({type: 'dms-hide-form'});
+            dmsUpdateDeck(state, newDeck, 'ideas');
+            dmsHideForm(state);
         });
 
         event.preventDefault();
@@ -147,7 +149,7 @@ function SectionUpdateIdea() {
         }
     }
 
-    if (!state.deckManagerState.showUpdateForm) {
+    if (!state.sigs.deckManagerState.value.showUpdateForm) {
         return html`<div></div>`;
     }
 

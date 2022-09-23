@@ -1,5 +1,6 @@
 import { html, useRef, useEffect, useState, route } from '/lib/preact/mod.js';
 
+import { dmsUpdateFormToggle, dmsDeleteToggle, dmsRefsToggle, dmsShowSummaryButtonToggle, dmsShowReviewButtonToggle } from '/js/AppState.js';
 import { useStateValue } from '/js/StateProvider.js';
 
 export default function Title({title}) {
@@ -24,22 +25,22 @@ export default function Title({title}) {
     }
 
     function onRefsClicked(e) {
-        appDispatch({type: 'dms-refs-toggle'});
+        dmsRefsToggle(state);
     };
 
     function onEditParentClicked(e) {
-        appDispatch({type: 'dms-update-form-toggle'});
+        dmsUpdateFormToggle(state);
     };
 
     function onShowSummaryButtonClicked(e) {
-        appDispatch({type: 'dms-show-summary-button-toggle', data: !state.deckManagerState.showShowSummaryButton});
+        dmsShowSummaryButtonToggle(state, !state.sigs.deckManagerState.value.showShowSummaryButton);
     };
     function onShowReviewButtonClicked(e) {
-        appDispatch({type: 'dms-show-review-button-toggle', data: !state.deckManagerState.showShowReviewButton});
+        dmsShowReviewButtonToggle(state, !state.sigs.deckManagerState.value.showShowReviewButton);
     };
 
     function onDeleteClicked(e) {
-        appDispatch({type: 'dms-delete-toggle'});
+        dmsDeleteToggle(state);
     }
 
     const preMarkerRef = useRef(null); // an element on the page, when it's offscreen apply title-sticky to the h1
@@ -52,8 +53,8 @@ export default function Title({title}) {
                         <${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onRefsClicked } label="[refs]"/>
                         <${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onEditParentClicked } label="[edit]"/>
                         <${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onDeleteClicked } label="[delete]"/>
-                        ${ state.deckManagerState.showShowSummaryButton && html`<${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onShowSummaryButtonClicked } label="[show summary]"/>`}
-                        ${ state.deckManagerState.showShowReviewButton && html`<${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onShowReviewButtonClicked } label="[show review]"/>`}
+                        ${ state.sigs.deckManagerState.value.showShowSummaryButton && html`<${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onShowSummaryButtonClicked } label="[show summary]"/>`}
+                        ${ state.sigs.deckManagerState.value.showShowReviewButton && html`<${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onShowReviewButtonClicked } label="[show review]"/>`}
                     </div>`;
     }
 
