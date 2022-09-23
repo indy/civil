@@ -6,4 +6,6 @@ const html = htm.bind(h);
 
 import { Router, Route, Link, route } from '/lib/preact/preact-router.js';
 
-export { h, html, render, createContext, createRef, useState, useReducer, useEffect, useLayoutEffect, useRef, useImperativeHandle, useMemo, useCallback, useContext, useDebugValue, Router, Route, Link, route };
+import { Signal, batch, computed, effect, signal, useComputed, useSignal, useSignalEffect } from '/lib/preact/signals.mjs';
+
+export { h, html, render, createContext, createRef, useState, useReducer, useEffect, useLayoutEffect, useRef, useImperativeHandle, useMemo, useCallback, useContext, useDebugValue, Router, Route, Link, route, Signal, batch, computed, effect, signal, useComputed, useSignal, useSignalEffect };

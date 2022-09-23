@@ -90,6 +90,10 @@ var precacheConfig = [
     "/lib/preact/preact.mjs",
     "/lib/preact/preact.module.js.map",
     "/lib/preact/preact-router.js",
+    "/lib/preact/signals-core.mjs",
+    "/lib/preact/signals-core.mjs.map",
+    "/lib/preact/signals.mjs",
+    "/lib/preact/signals.mjs.map",
 
     "/fonts/Caveat/Caveat-VariableFont_wght.ttf",
     "/fonts/Crimson/CrimsonPro-Italic-VariableFont_wght.ttf",

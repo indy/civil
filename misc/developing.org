@@ -73,6 +73,34 @@ to:
 return h(RouterContext.Provider, { value: ctx }, current);
 #+END_SRC
 
+
+** signals
+
+pre-requisite for building: requires pnpm
+$ npm install -g pnpm
+
+$ git clone https://github.com/preactjs/signals.git
+$ cd signals
+
+changed the package.json to also include all dev dependencies from packages/preact and packages/react package.json files
+
+$ npm install --include=dev
+$ pnpm run build
+
+copy over
+$ cd ~/code/civil/www/lib/preact
+$ cp ~/repos/js/ppp/signals/packages/core/dist/signals-core.mjs .
+$ cp ~/repos/js/ppp/signals/packages/core/dist/signals-core.mjs.map .
+
+$ cp ~/repos/js/ppp/signals/packages/preact/dist/signals.mjs .
+$ cp ~/repos/js/ppp/signals/packages/preact/dist/signals.mjs.map .
+
+in the signals.mjs file:
+replace "preact" import with "/lib/preact/preact.mjs"
+replace "preact/hooks" with "/lib/preact/hooks.mjs"
+replace "@preact/signals-core" with "/lib/preact/signals-core.mjs" (twice, once for an import, another for an export)
+
+
 * note::next_note_id linked list
 
 each deck can have multiple linked lists of notes
