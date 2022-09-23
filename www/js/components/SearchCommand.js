@@ -16,7 +16,6 @@ const MODE_COMMAND = 'mode-command';
 const CANDIDATES_SET = 'candidate-set';
 const CLICKED_CANDIDATE = 'clicked-candidate';
 const CLICKED_COMMAND = 'clicked-command';
-const SYNC_VISIBILITY = 'sync-visibility';
 const INPUT_FOCUS = 'input-focus';
 const INPUT_BLUR = 'input-blur';
 const INPUT_GIVEN = 'input-given';
@@ -27,7 +26,6 @@ const KEY_DOWN_COLON = 'key-down-colon';
 const KEY_DOWN_KEY = 'key-down-key';
 const KEY_DOWN_PLUS = 'key-down-plus';
 const REMOVE_SAVED_SEARCH_RESULT = 'remove-saved-search-result';
-
 
 function debugState(state) {
     console.log(`mode: ${state.mode}, text: "${state.text}"`);
@@ -61,11 +59,6 @@ function reducer(state, action) {
     case CLICKED_CANDIDATE: {
         const newState = cleanState(state);
         return newState;
-    }
-    case SYNC_VISIBILITY: {
-        let appDispatch = action.data;
-        appDispatch({type: 'showingSearchCommand', showingSearchCommand: state.isVisible});
-        return state;
     }
     case INPUT_BLUR: {
         const newState = {
@@ -465,8 +458,8 @@ export default function SearchCommand() {
         }
     }
 
-    if (state.showingSearchCommand !== local.isVisible) {
-        localDispatch(SYNC_VISIBILITY, appDispatch);
+    if (state.sigs.showingSearchCommand.value !== local.isVisible) {
+        state.sigs.showingSearchCommand.value = local.isVisible;
     }
 
     // note: for debugging purposes:

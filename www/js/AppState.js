@@ -16,7 +16,8 @@ export const initialState = {
     // signals
     sigs: {
         // when true don't let searchCommand accept any keystrokes
-        componentRequiresFullKeyboardAccess: signal(false)
+        componentRequiresFullKeyboardAccess: signal(false),
+        showingSearchCommand: signal(false)
     },
 
     appName: "Civil",
@@ -31,8 +32,6 @@ export const initialState = {
     // that mobile touch devices will always show the search bar
     //
     hasPhysicalKeyboard: true,
-
-    showingSearchCommand: false,
 
     // the url of the current page
     url: '',
@@ -252,11 +251,6 @@ export const reducer = (state, action) => {
                 deckIndexFromId: buildDeckIndex(action.graphNodes)
             }
         }
-    case 'showingSearchCommand':
-        return {
-            ...state,
-            showingSearchCommand: action.showingSearchCommand
-        };
     case 'bookmarkUrl': {
         let candidate = parseForScratchList(state.url, state.urlName);
         let newState = { ...state };

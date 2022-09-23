@@ -162,11 +162,6 @@ function Quotes() {
     </article>`;
 }
 
-// onKeyDown is a function that captures variables when added as an event listener
-// so resorting to these variables that are scoped to this file
-//
-let showingSearchCommand = false;
-
 function preCacheFn(d) {
     return d;
 }
@@ -191,11 +186,6 @@ function Quote({ id }) {
         };
     }, [id]);
 
-
-    useEffect(() => {
-        showingSearchCommand = state.showingSearchCommand;
-    }, [state]);
-
     function getQuoteThenRoute(url) {
         Net.get(url).then(deck => {
             if (deck) {
@@ -208,7 +198,7 @@ function Quote({ id }) {
     }
 
     function onKeyDown(e) {
-        if (!state.sigs.componentRequiresFullKeyboardAccess.value && !showingSearchCommand) {
+        if (!state.sigs.componentRequiresFullKeyboardAccess.value && !state.sigs.showingSearchCommand.value) {
             if (e.key === 'n') {
                 getQuoteThenRoute(`/api/quotes/${quoteId}/next`);
             } else if (e.key === 'p') {
