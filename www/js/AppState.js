@@ -10,6 +10,11 @@ export function setUrlName(state, name) {
     document.title = `${state.appName}: ${name}`;
 }
 
+export function routeChanged(state, url) {
+    state.sigs.url.value = url;
+    state.sigs.deckManagerState.value = cleanDeckManagerState();
+}
+
 export function obtainKeyboard(state) {
     return function(e) {
         e.preventDefault();
@@ -40,6 +45,9 @@ export const initialState = {
         //
         urlName: signal(''),
 
+        // the url of the current page
+        url: signal(''),
+
         // when a user is logged in:
         // user: {
         //   username: ...
@@ -62,9 +70,6 @@ export const initialState = {
     // that mobile touch devices will always show the search bar
     //
     hasPhysicalKeyboard: true,
-
-    // the url of the current page
-    url: '',
 
     scratchList: [],
     scratchListMinimised: false,
@@ -89,8 +94,6 @@ export const initialState = {
         // an array which is indexed by deckId, returns the offset into state.graph.decks
         deckIndexFromId: []
     },
-
-    deckManagerState: cleanDeckManagerState(),
 
     // oldest reasonable age in years, any person whose birth means they're older can be assumed to be dead
     oldestAliveAge: 120,
@@ -128,9 +131,6 @@ function cleanDeckManagerState() {
 }
 
 export function dmsUpdateDeck(state, deck, resource) {
-    console.log("todo: update the state's url");
-    // url: `/${resource}/${deck.id}`,
-
     // modify the notes received from the server
     applyDecksAndCardsToNotes(deck);
     // organise the notes into noteSeqs
@@ -138,6 +138,7 @@ export function dmsUpdateDeck(state, deck, resource) {
 
     // todo: maybe move this back into the apps router now that we're using signals
     setUrlName(state, deck.title || deck.name);
+    state.sigs.url.value = `/${resource}/${deck.id}`;
 
     let dms = { ...state.sigs.deckManagerState.value };
     dms.deck = deck;
@@ -195,14 +196,6 @@ export const reducer = (state, action) => {
         console.log(`AppState change: ${action.type}`);
     }
     switch (action.type) {
-
-    case 'routeChanged':
-        return {
-            ...state,
-            ticks: state.ticks + 1,
-            url: action.url,
-            deckManagerState: cleanDeckManagerState()
-        };
     case 'uberSetup':
         return {
             ...state,
@@ -267,7 +260,7 @@ export const reducer = (state, action) => {
             }
         }
     case 'bookmarkUrl': {
-        let candidate = parseForScratchList(state.url, state.sigs.urlName.value);
+        let candidate = parseForScratchList(state.sigs.url.value, state.sigs.urlName.value);
         let newState = {
             ...state,
             ticks: state.ticks + 1
@@ -401,19 +394,6 @@ export const reducer = (state, action) => {
                     newState.listing.ideas.unnoted.unshift(newBasicNote);
                 });
             }
-
-            // // decks that are referenced by this note may have their state changed (e.g. annotation changed,
-            // // a backref value added/deleted depending on if the deck was added or removed), so the easiest
-            // // thing to do is remove the deck from the cache, and refetch it from the server
-            // //
-            // [changes.referencesChanged, changes.referencesAdded, changes.referencesRemoved].forEach(rs => {
-            //     rs.forEach(r => {
-            //         if (newState.cache.deck[r.id]) {
-            //             delete newState.cache.deck[r.id];
-            //         }
-            //     });
-            // });
-
 
             return newState;
         }

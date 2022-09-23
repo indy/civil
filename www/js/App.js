@@ -1,4 +1,4 @@
-import { initialState, reducer, setUrlName } from '/js/AppState.js';
+import { initialState, reducer, setUrlName, routeChanged } from '/js/AppState.js';
 import { capitalise } from '/js/JsUtils.js';
 
 import { html, Router, Route, Link, route } from '/lib/preact/mod.js';
@@ -149,15 +149,8 @@ function AppUI(props) {
 
     function handleRoute(e) {
         if (e.url !== '/login') {
-            // only dispatch routeChanged when navigating to a top level page like /people, /ideas etc
-            // (dms-update-deck will update the url when viewing any deck page)
-            // this saves a redraw
-            //
             if (state.preferredOrder.some(p => e.url === `/${p}`)) {
-                dispatch({
-                    type: 'routeChanged',
-                    url: e.url
-                });
+                routeChanged(state, e.url);
             }
 
             // all other pages require the user to be logged in

@@ -21,10 +21,8 @@ import { DeckSimpleListSection } from '/js/components/ListSections.js';
 import Title from '/js/components/Title.js';
 
 function Ideas() {
-    const [state, dispatch] = useStateValue();
+    const [state] = useStateValue();
     const resource = 'ideas';
-
-    console.log(`state ticks: ${state.ticks}`);
 
     ensureListingLoaded(resource, '/api/ideas/listings');
 
@@ -44,9 +42,6 @@ function preCacheFn(d) {
 }
 
 function Idea({ id }) {
-    const [state] = useStateValue();
-    console.log(`state ticks: ${state.ticks}`);
-
     const [searchResults, setSearchResults] = useState([]); // an array of backrefs
     const ideaId = parseInt(id, 10);
 
@@ -103,7 +98,7 @@ function IdeaTopMatter({ title }) {
 
 
 function SectionUpdateIdea() {
-    const [state, appDispatch] = useStateValue();
+    const [state] = useStateValue();
 
     const idea = state.sigs.deckManagerState.value.deck || {};
 
