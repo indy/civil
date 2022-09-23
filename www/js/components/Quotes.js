@@ -183,7 +183,7 @@ function Quote({ id }) {
         Net.get(url).then(deck => {
             if (deck) {
                 route(`/quotes/${deck.id}`);
-                setUrlName(state, title);
+                setUrlName(state, deck.title);
             } else {
                 console.error(`error: fetchDeck for ${url}`);
             }

@@ -228,7 +228,7 @@ export function basicUI(state) {
 
 export const reducer = (state, action) => {
     if (true) {
-        console.log(`AppState change: ${action.type}`);
+        console.log(`(${state.ticks}) AppState: ${action.type}`);
     }
     switch (action.type) {
     case 'uberSetup':
