@@ -3,7 +3,7 @@ import { obtainKeyboard, relinquishKeyboard } from '/js/CivilUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 
 export default function CivilInput({id, value, autoComplete, onInput, size, elementClass, readOnly }) {
-    const [state, dispatch] = useStateValue();
+    const [state] = useStateValue();
 
     return html`
       <input id=${id}
@@ -14,8 +14,8 @@ export default function CivilInput({id, value, autoComplete, onInput, size, elem
              autoComplete=${autoComplete}
              size=${ size }
              readOnly=${ readOnly }
-             onFocus=${ obtainKeyboard(dispatch) }
-             onBlur=${ relinquishKeyboard(dispatch) }
+             onFocus=${ obtainKeyboard(state) }
+             onBlur=${ relinquishKeyboard(state) }
              onInput=${ onInput } />
     `;
 }

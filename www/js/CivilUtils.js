@@ -18,16 +18,16 @@ export function createDeck(dispatch, resource, title) {
     });
 }
 
-export function obtainKeyboard(dispatch) {
+export function obtainKeyboard(state) {
     return function(e) {
         e.preventDefault();
-        dispatch({ type: 'enableFullKeyboardAccessForComponent' });
+        state.sigs.componentRequiresFullKeyboardAccess.value = true;
     }
 }
-export function relinquishKeyboard(dispatch) {
+export function relinquishKeyboard(state) {
     return function(e) {
         e.preventDefault();
-        dispatch({ type: 'disableFullKeyboardAccessForComponent' });
+        state.sigs.componentRequiresFullKeyboardAccess.value = false;
     }
 }
 

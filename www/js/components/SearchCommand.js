@@ -121,7 +121,7 @@ function reducer(state, action) {
         const newState = { ...state };
 
         let appState = action.data.appState;
-        if (appState.componentRequiresFullKeyboardAccess) {
+        if (appState.sigs.componentRequiresFullKeyboardAccess.value) {
             return newState;
         }
 
@@ -477,8 +477,8 @@ export default function SearchCommand() {
     //
     // put this inside the search-command div
     // <div class="keyboard-access-indicator">
-    //   ${ state.componentRequiresFullKeyboardAccess && html`<div>component has kb</div>` }
-    //   ${ !state.componentRequiresFullKeyboardAccess && html`<div>search command has kb</div>` }
+    //   ${ state.sigs.componentRequiresFullKeyboardAccess.value && html`<div>component has kb</div>` }
+    //   ${ !state.sigs.componentRequiresFullKeyboardAccess.value && html`<div>search command has kb</div>` }
     // </div>
 
     return html`

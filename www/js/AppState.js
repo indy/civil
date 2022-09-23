@@ -1,3 +1,5 @@
+import { signal } from '/lib/preact/mod.js';
+
 import { opposingKind } from '/js/JsUtils.js';
 import { sortByResourceThenName } from '/js/CivilUtils.js'; // todo: delete this import
 
@@ -11,6 +13,11 @@ export const initialState = {
     //   email: ...
     // },
 
+    // signals
+    sigs: {
+        // when true don't let searchCommand accept any keystrokes
+        componentRequiresFullKeyboardAccess: signal(false)
+    },
 
     appName: "Civil",
 
@@ -26,9 +33,6 @@ export const initialState = {
     hasPhysicalKeyboard: true,
 
     showingSearchCommand: false,
-
-    // when true don't let searchCommand accept any keystrokes
-    componentRequiresFullKeyboardAccess: false,
 
     // the url of the current page
     url: '',
@@ -270,33 +274,29 @@ export const reducer = (state, action) => {
             verboseUI: true
         };
     case 'showNoteForm': {
-        let newState = {
-            ...state,
-            componentRequiresFullKeyboardAccess: true
-        };
+        let newState = { ...state };
         newState.showNoteForm[action.noteKind] = true;
+        newState.sigs.componentRequiresFullKeyboardAccess.value = true;
         return newState;
     }
     case 'hideNoteForm': {
-        let newState = {
-            ...state,
-            componentRequiresFullKeyboardAccess: false
-        };
+        let newState = { ...state };
         newState.showNoteForm[action.noteKind] = false;
+        newState.sigs.componentRequiresFullKeyboardAccess.value = false;
         return newState;
     }
-    case 'showAddPointForm':
-        return {
-            ...state,
-            componentRequiresFullKeyboardAccess: true,
-            showAddPointForm: true
-        };
-    case 'hideAddPointForm':
-        return {
-            ...state,
-            componentRequiresFullKeyboardAccess: false,
-            showAddPointForm: false
-        };
+    case 'showAddPointForm': {
+        let newState = { ...state,
+                         showAddPointForm: true
+                       };
+        newState.sigs.componentRequiresFullKeyboardAccess.value = true;
+    }
+    case 'hideAddPointForm': {
+        let newState = { ...state,
+                         showAddPointForm: false
+                       };
+        newState.sigs.componentRequiresFullKeyboardAccess.value = false;
+    }
     case 'connectivityGraphShow':
         return {
             ...state,
@@ -454,16 +454,6 @@ export const reducer = (state, action) => {
         }
         return newState;
     }
-    case 'enableFullKeyboardAccessForComponent':
-        return {
-            ...state,
-            componentRequiresFullKeyboardAccess: true
-        };
-    case 'disableFullKeyboardAccessForComponent':
-        return {
-            ...state,
-            componentRequiresFullKeyboardAccess: false
-        };
     default:
         return state;
     }

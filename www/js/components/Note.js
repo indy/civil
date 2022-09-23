@@ -159,11 +159,13 @@ function reducer(state, action) {
             isEditingMarkup: !state.isEditingMarkup
         };
 
-        const appDispatch = action.data;
+        // const appDispatch = action.data;
+        const appState = action.data;
+        console.log("TOGGLE_EDITING");
         if (newState.isEditingMarkup) {
-            appDispatch({type: 'enableFullKeyboardAccessForComponent'});
+            appState.sigs.componentRequiresFullKeyboardAccess.value = true;
         } else {
-            appDispatch({type: 'disableFullKeyboardAccessForComponent'});
+            appState.sigs.componentRequiresFullKeyboardAccess.value = false;
         }
 
         return newState;
@@ -175,8 +177,8 @@ function reducer(state, action) {
             originalContent: state.note.content
         };
 
-        const appDispatch = action.data;
-        appDispatch({type: 'disableFullKeyboardAccessForComponent'});
+        const appState = action.data;
+        appState.sigs.componentRequiresFullKeyboardAccess.value = false;
 
         return newState;
     }
@@ -190,8 +192,8 @@ function reducer(state, action) {
             }
         };
 
-        const appDispatch = action.data;
-        appDispatch({type: 'disableFullKeyboardAccessForComponent'});
+        const appState = action.data;
+        appState.sigs.componentRequiresFullKeyboardAccess.value = false;
 
         return newState;
     }
@@ -248,7 +250,7 @@ export default function Note(props) {
 
     function onCancelClicked(e) {
         e.preventDefault();
-        localDispatch(EDITING_CANCELLED, appDispatch);
+        localDispatch(EDITING_CANCELLED, state);
     }
 
     function onSaveEditsClicked(e) {
@@ -274,9 +276,9 @@ export default function Note(props) {
             // stopped editing and the editable content is different than
             // the original note's text.
             props.onEdited(id, local.note);
-            localDispatch(EDITED_NOTE, appDispatch);
+            localDispatch(EDITED_NOTE, state);
         } else {
-            localDispatch(TOGGLE_EDITING, appDispatch);
+            localDispatch(TOGGLE_EDITING, state);
         }
     };
 
@@ -411,7 +413,7 @@ export default function Note(props) {
     return html`
     <div class="note">
         ${ !local.isEditingMarkup && buildLeftMarginContent(props.note, localDispatch)}
-        ${  buildControls(props.note, local, localDispatch, appDispatch)}
+        ${  buildControls(props.note, local, localDispatch, state)}
         ${  local.isEditingMarkup && buildEditableContent() }
         ${  local.flashcardToShow && html`
             <${FlashCard} flashcard=${local.flashcardToShow} onDelete=${flashCardDeleted}/>`}
@@ -454,7 +456,7 @@ function buildLeftMarginContent(note, localDispatch) {
     }
 }
 
-function buildControls(note, local, localDispatch, appDispatch) {
+function buildControls(note, local, localDispatch, state) {
     let itemClasses = "note-control-item";
     if (local.mouseHovering) {
         itemClasses += " note-control-increased-visibility";
@@ -467,7 +469,7 @@ function buildControls(note, local, localDispatch, appDispatch) {
         localDispatch(ADD_FLASH_CARD_UI_SHOW, !local.addFlashCardUI);
     }
     function onEditClicked() {
-        localDispatch(TOGGLE_EDITING, appDispatch);
+        localDispatch(TOGGLE_EDITING, state);
     };
 
     return html`<div class="note-controls-container">

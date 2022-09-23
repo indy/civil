@@ -166,7 +166,6 @@ function Quotes() {
 // so resorting to these variables that are scoped to this file
 //
 let showingSearchCommand = false;
-let componentRequiresFullKeyboardAccess = false;
 
 function preCacheFn(d) {
     return d;
@@ -195,7 +194,6 @@ function Quote({ id }) {
 
     useEffect(() => {
         showingSearchCommand = state.showingSearchCommand;
-        componentRequiresFullKeyboardAccess = state.componentRequiresFullKeyboardAccess;
     }, [state]);
 
     function getQuoteThenRoute(url) {
@@ -210,7 +208,7 @@ function Quote({ id }) {
     }
 
     function onKeyDown(e) {
-        if (!componentRequiresFullKeyboardAccess && !showingSearchCommand) {
+        if (!state.sigs.componentRequiresFullKeyboardAccess.value && !showingSearchCommand) {
             if (e.key === 'n') {
                 getQuoteThenRoute(`/api/quotes/${quoteId}/next`);
             } else if (e.key === 'p') {

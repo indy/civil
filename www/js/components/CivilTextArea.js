@@ -3,16 +3,16 @@ import { obtainKeyboard, relinquishKeyboard } from '/js/CivilUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 
 export default function CivilTextArea({id, value, elementRef, elementClass, onFocus, onBlur, onInput }) {
-    const [state, dispatch] = useStateValue();
+    const [state] = useStateValue();
 
 
     function onTextAreaFocus() {
-        obtainKeyboard(dispatch);
+        obtainKeyboard(state);
         onFocus && onFocus();
     }
 
     function onTextAreaBlur() {
-        relinquishKeyboard(dispatch);
+        relinquishKeyboard(state);
         onBlur && onBlur();
     }
 
