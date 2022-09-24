@@ -5,30 +5,6 @@ import { sortByResourceThenName } from '/js/CivilUtils.js'; // todo: delete this
 
 import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 
-export function setUrlName(state, name) {
-    state.sigs.urlName.value = name;
-    document.title = `${state.appName}: ${name}`;
-}
-
-export function routeChanged(state, url) {
-    state.sigs.url.value = url;
-    state.sigs.deckManagerState.value = cleanDeckManagerState();
-}
-
-export function obtainKeyboard(state) {
-    return function(e) {
-        e.preventDefault();
-        state.sigs.componentRequiresFullKeyboardAccess.value = true;
-    }
-}
-
-export function relinquishKeyboard(state) {
-    return function(e) {
-        e.preventDefault();
-        state.sigs.componentRequiresFullKeyboardAccess.value = false;
-    }
-}
-
 export const initialState = {
     ticks: 0,
 
@@ -56,6 +32,14 @@ export const initialState = {
         user: signal(undefined),
 
         deckManagerState: signal(cleanDeckManagerState()),
+
+        // key == resource name of decks
+        listing: signal({
+            ideas: undefined,           // when listing ideas on /ideas page
+            articles: undefined,
+            people: undefined,
+            timelines: undefined
+        }),
 
         verboseUI: signal(true),
 
@@ -92,15 +76,6 @@ export const initialState = {
 
     appName: "Civil",
 
-    // key == resource name of decks
-    listing: {
-        ideas: undefined,           // when listing ideas on /ideas page
-        articles: undefined,
-        people: undefined,
-        timelines: undefined
-    },
-
-
     wasmInterface: undefined,   // initialised in index.js
     uiColours: {
         // note: this will be filled with extra values from
@@ -132,7 +107,48 @@ function cleanDeckManagerState() {
     return res;
 }
 
+const DEBUG_APP_STATE = false;
+
+export function setUrlName(state, name) {
+    if (DEBUG_APP_STATE) {
+        console.log("setUrlName");
+    }
+    state.sigs.urlName.value = name;
+    document.title = `${state.appName}: ${name}`;
+}
+
+export function routeChanged(state, url) {
+    if (DEBUG_APP_STATE) {
+        console.log("routeChanged");
+    }
+    state.sigs.url.value = url;
+    state.sigs.deckManagerState.value = cleanDeckManagerState();
+}
+
+export function obtainKeyboard(state) {
+    if (DEBUG_APP_STATE) {
+        console.log("obtainKeyboard");
+    }
+    return function(e) {
+        e.preventDefault();
+        state.sigs.componentRequiresFullKeyboardAccess.value = true;
+    }
+}
+
+export function relinquishKeyboard(state) {
+    if (DEBUG_APP_STATE) {
+        console.log("relinquishKeyboard");
+    }
+    return function(e) {
+        e.preventDefault();
+        state.sigs.componentRequiresFullKeyboardAccess.value = false;
+    }
+}
+
 export function dmsUpdateDeck(state, deck, resource) {
+    if (DEBUG_APP_STATE) {
+        console.log("dmsUpdateDeck");
+    }
     // modify the notes received from the server
     applyDecksAndCardsToNotes(deck);
     // organise the notes into noteSeqs
@@ -158,46 +174,70 @@ export function dmsUpdateDeck(state, deck, resource) {
 }
 
 export function dmsUpdateFormToggle(state) {
+    if (DEBUG_APP_STATE) {
+        console.log("dmsUpdateFormToggle");
+    }
     let dms = { ...state.sigs.deckManagerState.value };
     dms.showUpdateForm = !dms.showUpdateForm;
     state.sigs.deckManagerState.value = dms;
 }
 
 export function dmsDeleteToggle(state) {
+    if (DEBUG_APP_STATE) {
+        console.log("dmsDeleteToggle");
+    }
     let dms = { ...state.sigs.deckManagerState.value };
     dms.showDelete = !dms.showDelete;
     state.sigs.deckManagerState.value = dms;
 }
 
 export function dmsRefsToggle(state) {
+    if (DEBUG_APP_STATE) {
+        console.log("dmsRefsToggle");
+    }
     let dms = { ...state.sigs.deckManagerState.value };
     dms.isEditingDeckRefs = !dms.isEditingDeckRefs;
     state.sigs.deckManagerState.value = dms;
 }
 
 export function dmsHideForm(state) {
+    if (DEBUG_APP_STATE) {
+        console.log("dmsHideForm");
+    }
     let dms = { ...state.sigs.deckManagerState.value };
     dms.showUpdateForm = false;
     state.sigs.deckManagerState.value = dms;
 }
 
 export function dmsShowSummaryButtonToggle(state, isToggled) {
+    if (DEBUG_APP_STATE) {
+        console.log("dmsShowSummaryButtonToggle");
+    }
     let dms = { ...state.sigs.deckManagerState.value };
     dms.showShowSummaryButton = isToggled;
     state.sigs.deckManagerState.value = dms;
 }
 
 export function dmsShowReviewButtonToggle(state, isToggled) {
+    if (DEBUG_APP_STATE) {
+        console.log("dmsShowReviewButtonToggle");
+    }
     let dms = { ...state.sigs.deckManagerState.value };
     dms.showShowReviewButton = isToggled;
     state.sigs.deckManagerState.value = dms;
 }
 
 export function scratchListToggle(state) {
+    if (DEBUG_APP_STATE) {
+        console.log("scratchListToggle");
+    }
     state.sigs.scratchListMinimised.value = !state.sigs.scratchListMinimised.value;
 }
 
 export function scratchListAddMulti(state, candidates) {
+    if (DEBUG_APP_STATE) {
+        console.log("scratchListAddMulti");
+    }
     let sl = state.sigs.scratchList.value.slice();
     candidates.forEach(c => {
         sl.push(c);
@@ -206,12 +246,18 @@ export function scratchListAddMulti(state, candidates) {
 }
 
 export function scratchListRemove(state, index) {
+    if (DEBUG_APP_STATE) {
+        console.log("scratchListRemove");
+    }
     let sl = state.sigs.scratchList.value.slice();
     sl.splice(index, 1);
     state.sigs.scratchList.value = sl;
 }
 
 export function bookmarkUrl(state) {
+    if (DEBUG_APP_STATE) {
+        console.log("bookmarkUrl");
+    }
     let sl = state.sigs.scratchList.value.slice();
     let candidate = parseForScratchList(state.sigs.url.value, state.sigs.urlName.value);
 
@@ -220,32 +266,51 @@ export function bookmarkUrl(state) {
 }
 
 export function cleanUI(state) {
+    if (DEBUG_APP_STATE) {
+        console.log("cleanUI");
+    }
     state.sigs.verboseUI.value = false;
 }
 
 export function basicUI(state) {
+    if (DEBUG_APP_STATE) {
+        console.log("basicUI");
+    }
     state.sigs.verboseUI.value = true;
 }
 
 export function sc_showAddPointForm(state) {
+    if (DEBUG_APP_STATE) {
+        console.log("sc_showAddPointForm");
+    }
     state.sigs.showAddPointForm.value = true;
     state.sigs.componentRequiresFullKeyboardAccess.value = true;
 }
 
 export function sc_hideAddPointForm(state) {
+    if (DEBUG_APP_STATE) {
+        console.log("sc_hideAddPointForm");
+    }
     state.sigs.showAddPointForm.value = false;
     state.sigs.componentRequiresFullKeyboardAccess.value = false;
 }
 
 export function sc_showNoteForm(state, noteKind) {
-    let snf = [...state.sigs.showNoteForm.value];
+    if (DEBUG_APP_STATE) {
+        console.log("sc_showNoteForm");
+    }
+    let snf = {...state.sigs.showNoteForm.value};
     snf[noteKind] = true;
 
     state.sigs.showNoteForm.value = snf;
     state.sigs.componentRequiresFullKeyboardAccess.value = true;
 }
+
 export function sc_hideNoteForm(state, noteKind) {
-    let snf = [...state.sigs.showNoteForm.value];
+    if (DEBUG_APP_STATE) {
+        console.log("sc_hideNoteForm");
+    }
+    let snf = {...state.sigs.showNoteForm.value};
     snf[noteKind] = false;
 
     state.sigs.showNoteForm.value = snf;
@@ -253,22 +318,37 @@ export function sc_hideNoteForm(state, noteKind) {
 }
 
 export function sc_setRecentImages(state, recentImages) {
+    if (DEBUG_APP_STATE) {
+        console.log("sc_setRecentImages");
+    }
     state.sigs.recentImages.value = recentImages;
 }
 
 export function sc_connectivityGraphShow(state) {
+    if (DEBUG_APP_STATE) {
+        console.log("sc_connectivityGraphShow");
+    }
     state.sigs.showConnectivityGraph.value = true;
 }
 
 export function sc_connectivityGraphHide(state) {
+    if (DEBUG_APP_STATE) {
+        console.log("sc_connectivityGraphHide");
+    }
     state.sigs.showConnectivityGraph.value = false;
 }
 
 export function sc_setReviewCount(state, count) {
+    if (DEBUG_APP_STATE) {
+        console.log("sc_setReviewCount");
+    }
     state.sigs.srReviewCount.value = count;
 }
 
 export function sc_loadGraph(state, graphNodes, graphConnections) {
+    if (DEBUG_APP_STATE) {
+        console.log("sc_loadGraph");
+    }
     let ng = {
         fullyLoaded: true,
         decks: graphNodes,
@@ -279,155 +359,138 @@ export function sc_loadGraph(state, graphNodes, graphConnections) {
 }
 
 export function sc_invalidateGraph(state) {
+    if (DEBUG_APP_STATE) {
+        console.log("sc_invalidateGraph");
+    }
     state.sigs.graph.value = { fullyLoaded: false };
 }
 
-export function sc_uberSetup(state, action) {
+export function sc_uberSetup(state, uber) {
+    if (DEBUG_APP_STATE) {
+        console.log("sc_uberSetup");
+    }
     state.sigs.graph.value = { fullyLoaded: false };
-    state.sigs.recentImages.value = action.recentImages;
-    state.sigs.imageDirectory.value = action.directory;
-    state.sigs.srReviewCount.value = action.srReviewCount;
-    state.sigs.srEarliestReviewDate.value = action.srEarliestReviewDate;
+    state.sigs.recentImages.value = uber.recentImages;
+    state.sigs.imageDirectory.value = uber.directory;
+    state.sigs.srReviewCount.value = uber.srReviewCount;
+    state.sigs.srEarliestReviewDate.value = uber.srEarliestReviewDate;
+}
+
+export function sc_setDeckListing(state, resource, listing) {
+    if (DEBUG_APP_STATE) {
+        console.log("sc_setDeckListing");
+    }
+    let li = {...state.sigs.listing.value};
+    li[resource] = listing;
+    state.sigs.listing.value = li;
+}
+
+export function sc_updatePeopleListing(state, newPerson) {
+    if (DEBUG_APP_STATE) {
+        console.log("sc_updatePeopleListing");
+    }
+    let li = {...state.sigs.listing.value};
+
+    if (li.people) {
+        updateHashOfNames(li.people, newPerson);
+    }
+
+    state.sigs.listing.value = li;
+}
+
+export function sc_noteRefsModified(state, allDecksForNote, changes) {
+    if (DEBUG_APP_STATE) {
+        console.log("sc_noteRefsModified");
+    }
+    // update the state.listing with new ideas that were created in action.changes.referencesCreated
+    //
+    function basicNoteFromReference(r) {
+        return {
+            debug: "created by basicNoteFromReference",
+            backnotes: null,
+            backrefs: null,
+            createdId: "",
+            flashcards: null,
+            graphTerminator: false,
+            id: r.id,
+            notes: null,
+            refs: null,
+            title: r.name
+        };
+    };
+
+    if (changes.referencesCreated.length > 0) {
+        let ng = {...state.sigs.graph.value, fullLoaded: false };
+        state.sigs.graph.value = ng;
+    }
+
+    if (state.sigs.listing.value.ideas) {
+        let li = {...state.sigs.listing.value};
+
+        changes.referencesCreated.forEach(r => {
+            let newReference = allDecksForNote.find(d => d.name === r.name && d.resource === "ideas");
+            let newBasicNote = basicNoteFromReference(newReference);
+            // update the listing with the new resource
+            li.recent.unshift(newBasicNote);
+            li.unnoted.unshift(newBasicNote);
+        });
+
+        state.sigs.listing.value = li;
+    }
+}
+
+export function sc_deleteDeck(state, id) {
+    if (DEBUG_APP_STATE) {
+        console.log("sc_deleteDeck");
+    }
+    let filterFn = d => d.id !== id;
+
+    if (state.sigs.graph.value && state.sigs.graph.value.decks) {
+        let g = { ...state.sigs.graph.value,
+                  decks: state.sigs.graph.value.decks.filter(filterFn)};
+        state.sigs.graph.value = g;
+    }
+
+    let li = {};
+
+    if (state.sigs.listing.value.ideas) {
+        li.ideas = {
+            orphans: state.sigs.listing.value.ideas.orphans.filter(filterFn),
+            recent: state.sigs.listing.value.ideas.recent.filter(filterFn),
+        };
+    };
+
+    if (state.sigs.listing.value.articles) {
+        li.articles = {
+            orphans: state.sigs.listing.value.articles.orphans.filter(filterFn),
+            recent: state.sigs.listing.value.articles.recent.filter(filterFn),
+            rated: state.sigs.listing.value.articles.rated.filter(filterFn),
+        };
+    }
+
+    if (state.sigs.listing.value.people) {
+        li.people = state.sigs.listing.value.people.filter(filterFn);
+    }
+
+    if (state.sigs.listing.value.timelines) {
+        li.timelines = state.sigs.listing.value.timelines.filter(filterFn);
+    }
+
+    state.sigs.listing.value = li;
+
+    if (state.sigs.graph.value.links) {
+        let g = {...state.sigs.graph.value};
+        delete g.links[id];
+        state.sigs.graph.value = g;
+    }
+
+    state.sigs.deckManagerState.value.showDelete = false;
 }
 
 export const reducer = (state, action) => {
-    if (true) {
-        console.log(`(${state.ticks}) AppState: ${action.type}`);
-    }
-    switch (action.type) {
-    case 'noteRefsModified':
-        {
-            let newState = {
-                ...state,
-                ticks: state.ticks + 1
-            };
-
-            let changes = action.changes;
-
-            // update the newState.listing with new ideas that were created in action.changes.referencesCreated
-            //
-            function basicNoteFromReference(r) {
-                return {
-                    debug: "created by basicNoteFromReference",
-                    backnotes: null,
-                    backrefs: null,
-                    createdId: "",
-                    flashcards: null,
-                    graphTerminator: false,
-                    id: r.id,
-                    notes: null,
-                    refs: null,
-                    title: r.name
-                };
-            };
-
-            if (action.changes.referencesCreated.length > 0) {
-                let ng = {...newState.sigs.graph.value, fullLoaded: false };
-                newState.sigs.graph.value = ng;
-            }
-
-            if (newState.listing.ideas) {
-                action.changes.referencesCreated.forEach(r => {
-                    let newReference = action.allDecksForNote.find(d => d.name === r.name && d.resource === "ideas");
-                    let newBasicNote = basicNoteFromReference(newReference);
-                    // update the listing with the new resource
-                    newState.listing.ideas.recent.unshift(newBasicNote);
-                    newState.listing.ideas.unnoted.unshift(newBasicNote);
-                });
-            }
-
-            return newState;
-        }
-    case 'deleteDeck': {
-        let filterFn = d => d.id !== action.id;
-
-        let newState = {
-            ...state,
-            ticks: state.ticks + 1
-        };
-
-        if (newState.sigs.graph.value && newState.sigs.graph.value.decks) {
-            let g = { ...newState.sigs.graph.value,
-                      decks: newState.sigs.graph.value.decks.filter(filterFn)};
-            newState.sigs.graph.value = g;
-        }
-
-        newState.listing = {};
-
-        if (state.listing.ideas) {
-            newState.listing.ideas = {
-                orphans: state.listing.ideas.orphans.filter(filterFn),
-                recent: state.listing.ideas.recent.filter(filterFn),
-            };
-        };
-
-        if (state.listing.articles) {
-            newState.listing.articles = {
-                orphans: state.listing.articles.orphans.filter(filterFn),
-                recent: state.listing.articles.recent.filter(filterFn),
-                rated: state.listing.articles.rated.filter(filterFn),
-            };
-        }
-
-        if (state.listing.people) {
-            newState.listing.people = state.listing.people.filter(filterFn);
-        }
-
-        if (state.listing.timelines) {
-            newState.listing.timelines = state.listing.timelines.filter(filterFn);
-        }
-
-        if (newState.sigs.graph.value.links) {
-            let g = {...newState.sigs.graph.value};
-            delete g.links[action.id];
-            newState.sigs.graph.value = g;
-        }
-
-        newState.deckManagerState.showDelete = false;
-
-        return newState;
-
-    }
-        // sets the listing values for a particular deck kind
-    case 'setDeckListing': {
-        let listing = {
-            ...state.listing
-        };
-        listing[action.resource] = action.listing;
-
-        let newState = {
-            ...state,
-            ticks: state.ticks + 1,
-            listing: listing
-        };
-
-        return newState;
-    }
-    case 'updatePeopleListing': {
-        let newState = {
-            ...state,
-            ticks: state.ticks + 1
-        };
-        if (newState.listing.people) {
-            updateHashOfNames(newState.listing.people, action.newItem);
-        }
-        return newState;
-    }
-    case 'setTimeline': {
-        let newState = {
-            ...state,
-            ticks: state.ticks + 1
-        };
-        if (newState.listing.timelines) {
-            updateListOfTitles(newState.listing.timelines, action.newItem);
-        }
-        return newState;
-    }
-    default: {
-        console.log("HITTING DEFAULT OF APPSTATE'S SWITCH STATEMENT");
-        return state;
-    }
-    }
+    console.log(`AppState: ${action.type}`);
+    console.log("DEAD CODE!!!!");
+    return state;
 };
 
 function parseForScratchList(url, urlName) {
@@ -438,23 +501,6 @@ function parseForScratchList(url, urlName) {
     let resource = res[1];
 
     return { id: parseInt(id, 10), name: urlName, resource: resource}
-}
-
-function updateListOfTitles(arr, obj) {
-    let isEntry = false;
-    // check if the title of obj has changed, update the listing array if necessary
-    //
-    arr.forEach(a => {
-        if (a.id === obj.id) {
-            isEntry = true;
-            a.title = obj.title;
-        }
-    });
-
-    if (!isEntry) {
-        // this is a new entry, place it at the start of the list
-        arr.unshift({id: obj.id, title: obj.title});
-    }
 }
 
 function updateHashOfNames(people, obj) {

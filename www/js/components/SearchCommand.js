@@ -543,7 +543,7 @@ function executeCommand(text, appState, appDispatch) {
         if (argString.length === 0) {
             route(`/${kind}`);
         } else {
-            createDeck(appDispatch, appState, kind, argString);
+            createDeck(appState, kind, argString);
         }
 
         return true;

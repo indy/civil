@@ -2,7 +2,7 @@ import { html } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 
-import { dmsRefsToggle } from '/js/AppState.js';
+import { dmsRefsToggle, sc_noteRefsModified } from '/js/AppState.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Ref from '/js/components/Ref.js';
 import CivilSelect from '/js/components/CivilSelect.js';
@@ -17,12 +17,7 @@ export default function SectionDeckRefs({ onRefsChanged }) {
         // this note is going to be the deck's NoteDeckMeta
         onRefsChanged(note, allDecksForNote);
 
-        // todo: combine these two appDispatch calls
-        appDispatch({
-            type: 'noteRefsModified',
-            changes,
-            allDecksForNote,
-        });
+        sc_noteRefsModified(state, allDecksForNote, changes);
         dmsRefsToggle(state);
     }
 

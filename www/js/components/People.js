@@ -1,6 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { dmsUpdateDeck, dmsHideForm, sc_hideAddPointForm, sc_showAddPointForm } from '/js/AppState.js';
+import { dmsUpdateDeck, dmsHideForm, sc_hideAddPointForm, sc_showAddPointForm, sc_updatePeopleListing } from '/js/AppState.js';
 import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import { capitalise } from '/js/JsUtils.js';
 import Net from '/js/Net.js';
@@ -38,7 +38,7 @@ function People() {
 
     ensureListingLoaded(resource, '/api/people/listings');
 
-    const people = state.listing.people || [];
+    const people = state.sigs.listing.value.people || [];
 
     return html`
     <article>
@@ -73,13 +73,11 @@ function Person({ id }) {
     }, [id]);
 
     function dispatchUpdatedPerson(person) {
-        appDispatch({
-            type: 'updatePeopleListing',
-            newItem: preCacheFn(person)
-        });
+        // todo: how does this work? won't the fetchDeckListing overwrite the categorisation that sc_updatePeopleListing does?
 
+        sc_updatePeopleListing(state, preCacheFn(person));
         // also update the people list now that this person is no longer uncategorised
-        fetchDeckListing(appDispatch, 'people');
+        fetchDeckListing(state, 'people');
     }
 
     function onLifespan(birthPoint, deathPoint) {
@@ -312,13 +310,10 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAdd
     function onAddDeathPoint(point) {
         Net.post(`/api/people/${holderId}/points`, point).then(person => {
             setShowDeathForm(false);
-            dispatch({
-                type: 'updatePeopleListing',
-                newItem: person
-            });
+            sc_updatePeopleListing(state, person);
 
             // also update the people list now that this person is no longer uncategorised
-            fetchDeckListing(dispatch, 'people');
+            fetchDeckListing(state, 'people');
         });
     }
 

@@ -26,7 +26,7 @@ function Ideas() {
 
     ensureListingLoaded(resource, '/api/ideas/listings');
 
-    const ideas = state.listing.ideas || {};
+    const ideas = state.sigs.listing.value.ideas || {};
 
     return html`
     <article>

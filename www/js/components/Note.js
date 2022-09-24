@@ -1,5 +1,6 @@
 import { h, html, Link, useState, useEffect, useRef } from '/lib/preact/mod.js';
 
+import { sc_noteRefsModified } from '/js/AppState.js';
 import { svgFlashCard } from '/js/svgIcons.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
@@ -135,12 +136,8 @@ function reducer(state, action) {
             addDeckReferencesUI: false
         }
     case ADD_DECKS_COMMIT: {
-        const { appDispatch, changes, allDecksForNote } = action.data;
-        appDispatch({
-            type: 'noteRefsModified',
-            changes,
-            allDecksForNote
-        });
+        const { appState, changes, allDecksForNote } = action.data;
+        sc_noteRefsModified(appState, allDecksForNote, changes);
 
         return {
             ...state,
@@ -161,7 +158,6 @@ function reducer(state, action) {
 
         // const appDispatch = action.data;
         const appState = action.data;
-        console.log("TOGGLE_EDITING");
         if (newState.isEditingMarkup) {
             appState.sigs.componentRequiresFullKeyboardAccess.value = true;
         } else {
@@ -365,7 +361,7 @@ export default function Note(props) {
 
                 Net.post("/api/edges/notes_decks", data).then((allDecksForNote) => {
                     props.onRefsChanged(props.note, allDecksForNote);
-                    localDispatch(ADD_DECKS_COMMIT, { allDecksForNote, changes, appDispatch });
+                    localDispatch(ADD_DECKS_COMMIT, { allDecksForNote, changes, appState: state });
                 });
             } else {
                 // cancel was pressed

@@ -1,10 +1,10 @@
 import { useEffect, html, route } from '/lib/preact/mod.js';
 
-import { sc_invalidateGraph } from '/js/AppState.js';
+import { sc_invalidateGraph, sc_setDeckListing } from '/js/AppState.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
-export function createDeck(dispatch, state, resource, title) {
+export function createDeck(state, resource, title) {
     // creates a new deck
     const data = {
         title: title
@@ -12,7 +12,7 @@ export function createDeck(dispatch, state, resource, title) {
 
     Net.post(`/api/${resource}`, data).then(deck => {
         Net.get(`/api/${resource}/listings`).then(listing => {
-            setDeckListing(dispatch, resource, listing);
+            sc_setDeckListing(state, resource, listing);
             sc_invalidateGraph(state);
         });
         route(`/${resource}/${deck.id}`);
@@ -28,18 +28,19 @@ export function indexToShortcut(index) {
 }
 
 export function ensureListingLoaded(resource, url) {
-    const [state, dispatch] = useStateValue();
+    const [state] = useStateValue();
 
     useEffect(() => {
-        if(!state.listing[resource]) {
-            fetchDeckListing(dispatch, resource, url);
+        if(!state.sigs.listing.value[resource]) {
+            fetchDeckListing(state, resource, url);
         }
     }, []);
 }
 
-export async function fetchDeckListing(dispatch, resource, url) {
-    const listing = await Net.get(url || `/api/${resource}`);
-    setDeckListing(dispatch, resource, listing);
+export function fetchDeckListing(state, resource, url) {
+    Net.get(url || `/api/${resource}`).then(listing => {
+        sc_setDeckListing(state, resource, listing);
+    });
 }
 
 export function sortByResourceThenName(a, b) {
@@ -63,12 +64,4 @@ export function sortByResourceThenName(a, b) {
     // names must be equal
     return 0;
 
-}
-
-function setDeckListing(dispatch, resource, listing) {
-    dispatch({
-        type: 'setDeckListing',
-        resource,
-        listing
-    });
 }

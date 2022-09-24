@@ -30,7 +30,7 @@ function Timelines() {
     return html`
     <article>
         <h1 class="ui">${capitalise(resource)}</h1>
-        <${DeckSimpleList} list=${state.listing.timelines} />
+        <${DeckSimpleList} list=${state.sigs.listing.value.timelines} />
     </article>`;
 }
 
@@ -125,7 +125,7 @@ function SectionUpdateTimeline() {
             // fetch the listing incase editing the article has changed it's star rating or annotation
             //
             let resource = 'timelines';
-            fetchDeckListing(appDispatch, resource, '/api/timelines/listings');
+            fetchDeckListing(state, resource, '/api/timelines/listings');
         });
 
         e.preventDefault();

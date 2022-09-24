@@ -27,7 +27,7 @@ function Articles() {
 
     ensureListingLoaded(resource, '/api/articles/listings');
 
-    const articles = state.listing.articles || {};
+    const articles = state.sigs.listing.value.articles || {};
 
     return html`
     <article>
@@ -186,7 +186,7 @@ function SectionUpdateArticle() {
 
             // fetch the listing incase editing the article has changed it's star rating or annotation
             //
-            fetchDeckListing(appDispatch, resource, '/api/articles/listings');
+            fetchDeckListing(state, resource, '/api/articles/listings');
         });
 
         event.preventDefault();
