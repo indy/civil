@@ -1,6 +1,5 @@
 import { render } from '/lib/preact/mod.js';
-
-import { initialState } from '/js/AppState.js';
+import { initialState, sc_uberSetup } from '/js/AppState.js';
 import Net from '/js/Net.js';
 import { App } from '/js/App.js';
 import { buildColourConversionFn, declareCssVariables, augmentSettingsWithCssModifierParameters } from '/js/ColourCreator.js';
@@ -65,6 +64,17 @@ wasm_bindgen('/civil_wasm_bg.wasm')
         let hasPhysicalKeyboard = getComputedStyle(root).getPropertyValue("--has-physical-keyboard").trim();
         state.hasPhysicalKeyboard = hasPhysicalKeyboard === "true";
 
-        render(App(state), document.getElementById('root'));
+        Net.get("/api/users").then(user => {
+            if (user) {
+                // update initial state with user
+                //
+                state.user.value = user;
+
+                Net.get("/api/ubersetup").then(uber => {
+                    sc_uberSetup(state, uber);
+                });
+            }
+            render(App(state), document.getElementById('root'));
+        });
     })
     .catch(console.error);

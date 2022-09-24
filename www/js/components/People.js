@@ -126,7 +126,6 @@ function Person({ id }) {
         ${ hasKnownLifespan && html`
             <${ListDeckPoints} deckPoints=${ person.allPointsDuringLife }
                                deckManager=${ deckManager }
-                               dispatch=${ appDispatch }
                                holderId=${ person.id }
                                showAddPointForm=${ state.showAddPointForm.value }
                                holderName=${ person.name }/>`}
@@ -278,7 +277,7 @@ function PersonDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
     return item;
 }
 
-function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAddPointForm, dispatch }) {
+function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAddPointForm }) {
     const state = useStateValue();
 
     const [onlyThisPerson, setOnlyThisPerson] = useState(false);

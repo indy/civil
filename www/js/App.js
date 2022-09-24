@@ -79,23 +79,7 @@ function TopBarMenu(props) {
 function AppUI(props) {
     const state = useStateValue();
 
-    useEffect(() => {
-        Net.get("/api/users").then(user => {
-            if (user) {
-                // update initial state with user
-                //
-                state.user.value = user;
-
-                Net.get("/api/ubersetup").then(uber => {
-                    sc_uberSetup(state, uber);
-                });
-            }
-        });
-    }, []);
-
     function loginHandler(user) {
-        console.log(user);
-
         state.user.value = user;
 
         Net.get("/api/ubersetup").then(uber => {
