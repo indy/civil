@@ -74,6 +74,14 @@ export const initialState = {
         imageDirectory: signal(''),
 
         showConnectivityGraph: signal(false),
+        graph: signal({
+            fullyLoaded: false,
+            // an array of { id, name, resource }
+            decks: [],
+            links: [],
+            // an array which is indexed by deckId, returns the offset into state.sigs.graph.value.decks
+            deckIndexFromId: []
+        }),
 
         scratchList: signal([]),
         scratchListMinimised: signal(false),
@@ -94,16 +102,6 @@ export const initialState = {
     // that mobile touch devices will always show the search bar
     //
     hasPhysicalKeyboard: true,
-
-    // showConnectivityGraph: false,
-    graph: {
-        fullyLoaded: false,
-        // an array of { id, name, resource }
-        decks: [],
-        links: [],
-        // an array which is indexed by deckId, returns the offset into state.graph.decks
-        deckIndexFromId: []
-    },
 
     // oldest reasonable age in years, any person whose birth means they're older can be assumed to be dead
     oldestAliveAge: 120,
@@ -271,6 +269,20 @@ export function sc_setReviewCount(state, count) {
     state.sigs.srReviewCount.value = count;
 }
 
+export function sc_loadGraph(state, graphNodes, graphConnections) {
+    let ng = {
+        fullyLoaded: true,
+        decks: graphNodes,
+        links: buildFullGraph(graphConnections),
+        deckIndexFromId: buildDeckIndex(graphNodes)
+    };
+    state.sigs.graph.value = ng;
+}
+
+export function sc_invalidateGraph(state) {
+    state.sigs.graph.value = { fullyLoaded: false };
+}
+
 export const reducer = (state, action) => {
     if (true) {
         console.log(`(${state.ticks}) AppState: ${action.type}`);
@@ -279,37 +291,14 @@ export const reducer = (state, action) => {
     case 'uberSetup': {
         let newState = {
             ...state,
-            ticks: state.ticks + 1,
-            graph: {
-                fullyLoaded: false
-            }
+            ticks: state.ticks + 1
         };
 
+        newState.sigs.graph.value = { fullyLoaded: false };
         newState.sigs.recentImages.value = action.recentImages;
         newState.sigs.imageDirectory.value = action.imageDirectory;
         newState.sigs.srReviewCount.value = action.srReviewCount;
         newState.sigs.srEarliestReviewDate.value = action.srEarliestReviewDate;
-
-        return newState;
-    }
-    case 'loadGraph':
-        return {
-            ...state,
-            ticks: state.ticks + 1,
-            graph: {
-                fullyLoaded: true,
-                decks: action.graphNodes,
-                links: buildFullGraph(action.graphConnections),
-                deckIndexFromId: buildDeckIndex(action.graphNodes)
-            }
-        }
-    case 'invalidateGraph': {
-        let newState = {
-            ...state,
-            ticks: state.ticks + 1
-        };
-
-        newState.graph.fullyLoaded = false;
 
         return newState;
     }
@@ -340,7 +329,8 @@ export const reducer = (state, action) => {
             };
 
             if (action.changes.referencesCreated.length > 0) {
-                newState.graph.fullyLoaded = false;
+                let ng = {...newState.sigs.graph.value, fullLoaded: false };
+                newState.sigs.graph.value = ng;
             }
 
             if (newState.listing.ideas) {
@@ -363,8 +353,10 @@ export const reducer = (state, action) => {
             ticks: state.ticks + 1
         };
 
-        if (newState.graph && newState.graph.decks) {
-            newState.graph.decks = state.graph.decks.filter(filterFn);
+        if (newState.sigs.graph.value && newState.sigs.graph.value.decks) {
+            let g = { ...newState.sigs.graph.value,
+                      decks: newState.sigs.graph.value.decks.filter(filterFn)};
+            newState.sigs.graph.value = g;
         }
 
         newState.listing = {};
@@ -392,8 +384,10 @@ export const reducer = (state, action) => {
             newState.listing.timelines = state.listing.timelines.filter(filterFn);
         }
 
-        if (newState.graph.links) {
-            delete newState.graph.links[action.id];
+        if (newState.sigs.graph.value.links) {
+            let g = {...newState.sigs.graph.value};
+            delete g.links[action.id];
+            newState.sigs.graph.value = g;
         }
 
         newState.deckManagerState.showDelete = false;

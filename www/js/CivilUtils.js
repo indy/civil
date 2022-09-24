@@ -1,9 +1,10 @@
 import { useEffect, html, route } from '/lib/preact/mod.js';
 
+import { sc_invalidateGraph } from '/js/AppState.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
-export function createDeck(dispatch, resource, title) {
+export function createDeck(dispatch, state, resource, title) {
     // creates a new deck
     const data = {
         title: title
@@ -12,7 +13,7 @@ export function createDeck(dispatch, resource, title) {
     Net.post(`/api/${resource}`, data).then(deck => {
         Net.get(`/api/${resource}/listings`).then(listing => {
             setDeckListing(dispatch, resource, listing);
-            invalidateGraph(dispatch);
+            sc_invalidateGraph(state);
         });
         route(`/${resource}/${deck.id}`);
     });
@@ -69,11 +70,5 @@ function setDeckListing(dispatch, resource, listing) {
         type: 'setDeckListing',
         resource,
         listing
-    });
-}
-
-function invalidateGraph(dispatch) {
-    dispatch({
-        type: 'invalidateGraph'
     });
 }
