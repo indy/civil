@@ -78,7 +78,8 @@ export const initialState = {
         scratchList: signal([]),
         scratchListMinimised: signal(false),
 
-        srReviewCount: signal(0)
+        srReviewCount: signal(0),
+        srEarliestReviewDate: signal(undefined)
     },
 
     appName: "Civil",
@@ -115,9 +116,9 @@ export const initialState = {
         articles: undefined,
         people: undefined,
         timelines: undefined
-    },
+    }
 
-    srEarliestReviewDate: undefined
+
 };
 
 function cleanDeckManagerState() {
@@ -281,12 +282,13 @@ export const reducer = (state, action) => {
             ticks: state.ticks + 1,
             graph: {
                 fullyLoaded: false
-            },
-            srEarliestReviewDate: action.srEarliestReviewDate
+            }
         };
+
         newState.sigs.recentImages.value = action.recentImages;
         newState.sigs.imageDirectory.value = action.imageDirectory;
         newState.sigs.srReviewCount.value = action.srReviewCount;
+        newState.sigs.srEarliestReviewDate.value = action.srEarliestReviewDate;
 
         return newState;
     }
