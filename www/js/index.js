@@ -1,8 +1,9 @@
 import { render } from '/lib/preact/mod.js';
 
+import { initialState } from '/js/AppState.js';
 import Net from '/js/Net.js';
-import { App, buildInitialState } from '/js/App.js';
-import { buildColourConversionFn, declareCssVariables } from '/js/ColourCreator.js';
+import { App } from '/js/App.js';
+import { buildColourConversionFn, declareCssVariables, augmentSettingsWithCssModifierParameters } from '/js/ColourCreator.js';
 
 wasm_bindgen('/civil_wasm_bg.wasm')
     .then(async wasm_bg => {
@@ -54,9 +55,15 @@ wasm_bindgen('/civil_wasm_bg.wasm')
             rgbFromHsl: buildColourConversionFn(rgb_from_hsl)
         };
 
-        const state = await buildInitialState(wasmInterface);
+        let state = initialState;
 
+        state.wasmInterface = wasmInterface;
+        state.uiColours = augmentSettingsWithCssModifierParameters(state.uiColours);
         declareCssVariables(state.uiColours, wasmInterface.rgbFromHsl);
+
+        let root = document.body;
+        let hasPhysicalKeyboard = getComputedStyle(root).getPropertyValue("--has-physical-keyboard").trim();
+        state.hasPhysicalKeyboard = hasPhysicalKeyboard === "true";
 
         render(App(state), document.getElementById('root'));
     })

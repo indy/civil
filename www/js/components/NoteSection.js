@@ -1,6 +1,6 @@
 import { html,  useState, useEffect, useRef } from '/lib/preact/mod.js';
 
-import { dmsUpdateDeck } from '/js/AppState.js';
+import { dmsUpdateDeck, sc_hideNoteForm, sc_showNoteForm } from '/js/AppState.js';
 import Net from '/js/Net.js';
 import { svgEdit, svgX } from '/js/svgIcons.js';
 import { useStateValue } from '/js/StateProvider.js';
@@ -86,7 +86,7 @@ function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optio
 
     function buildNoteForm() {
         function onCancelAddNote(e) {
-            dispatch({type: "hideNoteForm", noteKind });
+            sc_hideNoteForm(state, noteKind);
             e.preventDefault();
         };
 
@@ -114,7 +114,7 @@ function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optio
             addNote(state.wasmInterface, markup, deck.id, prevNoteId, nextNoteId, noteKind, optionalDeckPoint && optionalDeckPoint.id)
                 .then(allNotes => {
                     dmsUpdateDeck(state, preCacheFn({...deck, notes: allNotes}), resource);
-                    dispatch({ type: "hideNoteForm", noteKind });
+                    sc_hideNoteForm(state, noteKind);
                 })
                 .catch(error => console.error(error.message));
         };
@@ -124,7 +124,7 @@ function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optio
 
     function buildNoteFormIcon() {
         function onAddNoteClicked(e) {
-            dispatch({ type: "showNoteForm", noteKind });
+            sc_showNoteForm(state, noteKind);
             e.preventDefault();
         };
 
@@ -156,7 +156,7 @@ function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optio
     }
 
     const notes = noteSeq ? noteSeq.map(buildNoteComponent) : [];
-    const addNoteUI = noappend ? '' : (state.showNoteForm[noteKind] ? buildNoteForm() : buildNoteFormIcon());
+    const addNoteUI = noappend ? '' : (state.sigs.showNoteForm.value[noteKind] ? buildNoteForm() : buildNoteFormIcon());
 
     return html`
            <section>

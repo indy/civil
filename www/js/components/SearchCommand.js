@@ -4,6 +4,7 @@ import {
     bookmarkUrl,
     cleanUI,
     sc_showAddPointForm,
+    sc_showNoteForm,
     scratchListAddMulti,
     scratchListRemove,
     scratchListToggle
@@ -12,8 +13,6 @@ import { svgX, svgChevronDown, svgChevronUp } from '/js/svgIcons.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { createDeck, indexToShortcut } from '/js/CivilUtils.js';
-
-
 
 import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 
@@ -560,9 +559,9 @@ function executeCommand(text, appState, appDispatch) {
     case "a": return routeOrCreate('articles', rest);
     case "t": return routeOrCreate('timelines', rest);
     case "q": return routeOrCreate('quotes', []);
-    case "fn": return dispatchMessage('showNoteForm', { noteKind: NOTE_KIND_NOTE });
-    case "fnr": return dispatchMessage('showNoteForm', { noteKind: NOTE_KIND_REVIEW });
-    case "fns": return dispatchMessage('showNoteForm', { noteKind: NOTE_KIND_SUMMARY });
+    case "fn": { sc_showNoteForm(appState, NOTE_KIND_NOTE); return true; };
+    case "fnr": { sc_showNoteForm(appState, NOTE_KIND_REVIEW); return true; };
+    case "fns": { sc_showNoteForm(appState, NOTE_KIND_SUMMARY); return true; };
     case "fp": { sc_showAddPointForm(appState); return true; };
     case "r": {
         Net.get("/api/quotes/random").then(quote => {

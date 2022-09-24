@@ -59,8 +59,19 @@ export const initialState = {
 
         verboseUI: signal(true),
 
+        // put the variables in square brackets so that they're evaluated
+        //
+        showNoteForm: signal({
+            [NOTE_KIND_NOTE]: false,
+            [NOTE_KIND_SUMMARY]: false,
+            [NOTE_KIND_REVIEW]: false
+        }),
+
         // same for the Add Point form
-        showAddPointForm: signal(false), // todo: why is this in state?, is it because it can be modified from the SearchCommand?
+        showAddPointForm: signal(false),
+
+        recentImages: signal([]),
+        imageDirectory: signal(''),
 
         scratchList: signal([]),
         scratchListMinimised: signal(false)
@@ -68,7 +79,7 @@ export const initialState = {
 
     appName: "Civil",
 
-    wasmInterface: undefined,   // initialised in buildInitialState
+    wasmInterface: undefined,   // initialised in index.js
     uiColours: {
         // note: this will be filled with extra values from
         // ColourCreator.js::augmentSettingsWithCssModifierParameters
@@ -78,16 +89,6 @@ export const initialState = {
     // that mobile touch devices will always show the search bar
     //
     hasPhysicalKeyboard: true,
-
-    // put the variables in square brackets so that they're evaluated
-    //
-    showNoteForm: {
-        [NOTE_KIND_NOTE]: false,
-        [NOTE_KIND_SUMMARY]: false,
-        [NOTE_KIND_REVIEW]: false
-    },
-    // // same for the Add Point form
-    // showAddPointForm: false,
 
     showConnectivityGraph: false,
     graph: {
@@ -101,10 +102,6 @@ export const initialState = {
 
     // oldest reasonable age in years, any person whose birth means they're older can be assumed to be dead
     oldestAliveAge: 120,
-
-    recentImages: [],
-    imageDirectory: '',
-
 
     preferredOrder: ["ideas", "people", "articles", "timelines", "quotes", "stats"],
 
@@ -239,23 +236,45 @@ export function sc_hideAddPointForm(state) {
     state.sigs.componentRequiresFullKeyboardAccess.value = false;
 }
 
+export function sc_showNoteForm(state, noteKind) {
+    let snf = [...state.sigs.showNoteForm.value];
+    snf[noteKind] = true;
+
+    state.sigs.showNoteForm.value = snf;
+    state.sigs.componentRequiresFullKeyboardAccess.value = true;
+}
+export function sc_hideNoteForm(state, noteKind) {
+    let snf = [...state.sigs.showNoteForm.value];
+    snf[noteKind] = false;
+
+    state.sigs.showNoteForm.value = snf;
+    state.sigs.componentRequiresFullKeyboardAccess.value = false;
+}
+
+export function sc_setRecentImages(state, recentImages) {
+    state.sigs.recentImages.value = recentImages;
+}
+
 export const reducer = (state, action) => {
     if (true) {
         console.log(`(${state.ticks}) AppState: ${action.type}`);
     }
     switch (action.type) {
-    case 'uberSetup':
-        return {
+    case 'uberSetup': {
+        let newState = {
             ...state,
             ticks: state.ticks + 1,
-            imageDirectory: action.imageDirectory,
-            recentImages: action.recentImages,
             graph: {
                 fullyLoaded: false
             },
             srReviewCount: action.srReviewCount,
             srEarliestReviewDate: action.srEarliestReviewDate
         };
+        newState.sigs.recentImages.value = action.recentImages;
+        newState.sigs.imageDirectory.value = action.imageDirectory;
+
+        return newState;
+    }
     case 'loadGraph':
         return {
             ...state,
@@ -267,24 +286,6 @@ export const reducer = (state, action) => {
                 deckIndexFromId: buildDeckIndex(action.graphNodes)
             }
         }
-    case 'showNoteForm': {
-        let newState = {
-            ...state,
-            ticks: state.ticks + 1
-        };
-        newState.showNoteForm[action.noteKind] = true;
-        newState.sigs.componentRequiresFullKeyboardAccess.value = true;
-        return newState;
-    }
-    case 'hideNoteForm': {
-        let newState = {
-            ...state,
-            ticks: state.ticks + 1
-        };
-        newState.showNoteForm[action.noteKind] = false;
-        newState.sigs.componentRequiresFullKeyboardAccess.value = false;
-        return newState;
-    }
     case 'connectivityGraphShow':
         return {
             ...state,
@@ -296,18 +297,6 @@ export const reducer = (state, action) => {
             ...state,
             ticks: state.ticks + 1,
             showConnectivityGraph: false
-        };
-    case 'setRecentImages':
-        return {
-            ...state,
-            ticks: state.ticks + 1,
-            recentImages: action.recentImages
-        };
-    case 'setImageDirectory':
-        return {
-            ...state,
-            ticks: state.ticks + 1,
-            imageDirectory: action.imageDirectory
         };
     case 'setReviewCount':
         return {

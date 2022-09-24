@@ -1,4 +1,5 @@
 import { h, html, useState, useEffect, useRef } from '/lib/preact/mod.js';
+import { sc_setRecentImages } from '/js/AppState.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { svgX, svgImage } from '/js/svgIcons.js';
 
@@ -12,7 +13,7 @@ export default function ImageWidget({ onPaste }) {
 
     const dragArea = useRef(null);
 
-    const imageDirectory = state.imageDirectory;
+    const imageDirectory = state.sigs.imageDirectory.value;
 
     useEffect(() => {
         if (dragArea && dragArea.current) {
@@ -54,10 +55,7 @@ export default function ImageWidget({ onPaste }) {
             fetch("/api/upload", options).then(resp => {
                 // fetch the most recent uploads
                 Net.get("/api/upload").then(recentImages => {
-                    dispatch({
-                        type: 'setRecentImages',
-                        recentImages
-                    });
+                    sc_setRecentImages(state, recentImages);
                 });
             });
         }
@@ -104,7 +102,7 @@ export default function ImageWidget({ onPaste }) {
                  },
                  "Images...");
     } else {
-        const recent = state.recentImages.map(ri => h(ImageWidgetItem,
+        const recent = state.sigs.recentImages.value.map(ri => h(ImageWidgetItem,
                                                       {
                                                           imageDirectory: imageDirectory,
                                                           filename: ri.filename,
