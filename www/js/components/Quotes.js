@@ -64,7 +64,7 @@ function titleFromQuoteText(quoteText) {
 }
 
 function Quotes() {
-    const [state, dispatch] = useStateValue();
+    const state = useStateValue();
     const resource = 'quotes';
 
     const [local, localDispatch] = useLocalReducer(quotesReducer, {
@@ -160,7 +160,7 @@ function preCacheFn(d) {
 }
 
 function Quote({ id }) {
-    const [state, dispatch] = useStateValue();
+    const state = useStateValue();
 
     const quoteId = parseInt(id, 10);
 
@@ -288,7 +288,7 @@ function attributionReducer(state, action) {
 }
 
 function Attribution({ attribution, onEdited, onDelete}) {
-    const [state] = useStateValue();
+    const state = useStateValue();
 
     const [local, localDispatch] = useLocalReducer(attributionReducer, {
         mode: ATTR_SHOW_MODE,

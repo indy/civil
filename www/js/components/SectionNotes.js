@@ -8,7 +8,7 @@ import { NoteSection, NoteManager,
          NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 
 export default function SectionNotes({ onRefsChanged, title, preCacheFn, resource, noappend }) {
-    const [state] = useStateValue();
+    const state = useStateValue();
 
     const dms = state.sigs.deckManagerState.value;
     const deck = dms.deck;

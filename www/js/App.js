@@ -1,4 +1,4 @@
-import { initialState, reducer, setUrlName, routeChanged, sc_uberSetup } from '/js/AppState.js';
+import { initialState, setUrlName, routeChanged, sc_uberSetup } from '/js/AppState.js';
 import { capitalise } from '/js/JsUtils.js';
 
 import { html, Router, Route, Link, route, useEffect } from '/lib/preact/mod.js';
@@ -19,13 +19,13 @@ import { Quote, Quotes }       from '/js/components/Quotes.js';
 
 export function App(state) {
     return html`
-    <${StateProvider} initialState=${state} reducer=${reducer}>
+    <${StateProvider} state=${state}>
         <${AppUI}/>
     </${StateProvider}>`;
 }
 
 function TopBarMenu(props) {
-    const [state, dispatch] = useStateValue();
+    const state = useStateValue();
 
     function loggedStatus() {
         let status = '';
@@ -77,7 +77,7 @@ function TopBarMenu(props) {
 }
 
 function AppUI(props) {
-    const [state, dispatch] = useStateValue();
+    const state = useStateValue();
 
     useEffect(() => {
         Net.get("/api/users").then(user => {

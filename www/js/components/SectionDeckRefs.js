@@ -8,7 +8,7 @@ import Ref from '/js/components/Ref.js';
 import CivilSelect from '/js/components/CivilSelect.js';
 
 export default function SectionDeckRefs({ onRefsChanged }) {
-    const [state, appDispatch] = useStateValue();
+    const state = useStateValue();
 
     function onCancel() {
         dmsRefsToggle(state);

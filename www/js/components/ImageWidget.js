@@ -6,7 +6,7 @@ import { svgX, svgImage } from '/js/svgIcons.js';
 import Net from '/js/Net.js';
 
 export default function ImageWidget({ onPaste }) {
-    const [state, dispatch] = useStateValue();
+    const state = useStateValue();
     const [minimised, setMinimised] = useState(true);
 
     const [hovering, setHovering] = useState(false);

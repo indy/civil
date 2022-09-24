@@ -8,7 +8,7 @@ import RollableSection from '/js/components/RollableSection.js';
 import { ExpandableListingLink } from '/js/components/ListingLink.js';
 
 export default function SectionBackRefs({ deckId }) {
-    const [state] = useStateValue();
+    const state = useStateValue();
 
     let backrefs = (state.sigs.deckManagerState.value.deck && state.sigs.deckManagerState.value.deck.backrefs) || [];
     let backnotes = (state.sigs.deckManagerState.value.deck && state.sigs.deckManagerState.value.deck.backnotes) || [];

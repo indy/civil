@@ -57,9 +57,8 @@ function reducer(state, action) {
     switch(action.type) {
     case CLICKED_COMMAND: {
         const command = action.data.entry.command;
-        const appDispatch = action.data.appDispatch;
         const appState = action.data.appState;
-        const success = executeCommand(command, appState, appDispatch);
+        const success = executeCommand(command, appState);
         if (success) {
             let newState = cleanState(state);
             return newState;
@@ -95,10 +94,9 @@ function reducer(state, action) {
         }
 
         if (state.mode === MODE_COMMAND) {
-            const appDispatch = action.data.appDispatch;
             const appState = action.data.appState;
 
-            const success = executeCommand(state.text, appState, appDispatch);
+            const success = executeCommand(state.text, appState);
             if (success) {
                 let newState = cleanState(state);
                 return newState;
@@ -271,7 +269,7 @@ function isCommand(text) {
 }
 
 export default function SearchCommand() {
-    const [state, appDispatch] = useStateValue();
+    const state = useStateValue();
     const searchCommandRef = useRef(null);
 
     const [local, localDispatch] = useLocalReducer(reducer, {
@@ -293,7 +291,7 @@ export default function SearchCommand() {
             localDispatch(KEY_DOWN_COLON, { searchCommandRef, appState: state});
         }
         if (e.key === "Enter") {
-            localDispatch(KEY_DOWN_ENTER, { appState: state, appDispatch });
+            localDispatch(KEY_DOWN_ENTER, { appState: state });
         }
         if (e.ctrlKey) {
             localDispatch(KEY_DOWN_CTRL);
@@ -378,7 +376,7 @@ export default function SearchCommand() {
     function buildCommandEntry(entry, i) {
 
         function clickedCommand(e) {
-            localDispatch(CLICKED_COMMAND, { entry, appState: state, appDispatch });
+            localDispatch(CLICKED_COMMAND, { entry, appState: state });
         }
 
         if (entry.spacer) {
@@ -530,7 +528,7 @@ function allCommands() {
     ];
 }
 
-function executeCommand(text, appState, appDispatch) {
+function executeCommand(text, appState) {
     const commandPlusArgs = text.slice(1).split(" ").filter(s => s.length > 0);
     if (commandPlusArgs.length === 0) {
         return;
@@ -546,12 +544,6 @@ function executeCommand(text, appState, appDispatch) {
             createDeck(appState, kind, argString);
         }
 
-        return true;
-    }
-
-    function dispatchMessage(command, extra) {
-        let action = extra ? { ...extra, type: command} : {type: command};
-        appDispatch(action);
         return true;
     }
 

@@ -21,7 +21,7 @@ import { DeckSimpleListSection } from '/js/components/ListSections.js';
 import Title from '/js/components/Title.js';
 
 function Ideas() {
-    const [state] = useStateValue();
+    const state = useStateValue();
     const resource = 'ideas';
 
     ensureListingLoaded(resource, '/api/ideas/listings');
@@ -81,7 +81,7 @@ function Idea({ id }) {
 }
 
 function IdeaTopMatter({ title }) {
-    const [state] = useStateValue();
+    const state = useStateValue();
 
     let createdAt = state.sigs.deckManagerState.value.deck && state.sigs.deckManagerState.value.deck.createdId;
 
@@ -98,7 +98,7 @@ function IdeaTopMatter({ title }) {
 
 
 function SectionUpdateIdea() {
-    const [state] = useStateValue();
+    const state = useStateValue();
 
     const idea = state.sigs.deckManagerState.value.deck || {};
 

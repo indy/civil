@@ -51,7 +51,7 @@ function NoteSection({ heading, noteKind, noteSeq, howToShow, deck, onRefsChange
 }
 
 function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optionalDeckPoint, appendLabel, noteKind, noappend }) {
-    const [state, dispatch] = useStateValue();
+    const state = useStateValue();
 
     function findNoteWithId(id, modifyFn) {
         const notes = deck.notes;

@@ -22,7 +22,7 @@ import WhenVerbose from '/js/components/WhenVerbose.js';
 import { svgPointAdd, svgX, svgCaretRight, svgCaretRightEmpty, svgCaretDown } from '/js/svgIcons.js';
 
 function Timelines() {
-    const [state, dispatch] = useStateValue();
+    const state = useStateValue();
     const resource = 'timelines';
 
     ensureListingLoaded(resource);
@@ -35,7 +35,7 @@ function Timelines() {
 }
 
 function Timeline({ id }) {
-    const [state] = useStateValue();
+    const state = useStateValue();
 
     const timelineId = parseInt(id, 10);
 
@@ -82,7 +82,7 @@ function preCacheFn(timeline) {
 }
 
 function SectionUpdateTimeline() {
-    const [state, appDispatch] = useStateValue();
+    const state = useStateValue();
 
     const timeline = state.sigs.deckManagerState.value.deck || {};
 
@@ -168,7 +168,7 @@ function TimelineDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
 }
 
 function ListPoints({ points, deckManager, holderId, holderName, showAddPointForm }) {
-    const [state] = useStateValue();
+    const state = useStateValue();
 
     function onAddPointClicked(e) {
         e.preventDefault();

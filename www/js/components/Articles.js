@@ -22,7 +22,7 @@ import { StarRatingPartial } from '/js/components/StarRating.js';
 import Title from '/js/components/Title.js';
 
 function Articles() {
-    const [state, dispatch] = useStateValue();
+    const state = useStateValue();
     const resource = 'articles';
 
     ensureListingLoaded(resource, '/api/articles/listings');
@@ -43,7 +43,7 @@ function preCacheFn(d) {
 }
 
 function Article({ id }) {
-    const [state] = useStateValue();
+    const state = useStateValue();
 
     const articleId = parseInt(id, 10);
 
@@ -77,7 +77,7 @@ function TopScribble({ text }) {
 }
 
 function ArticleTopMatter({ title }) {
-    const [state] = useStateValue();
+    const state = useStateValue();
     const deck = state.sigs.deckManagerState.value.deck;
 
     function Url({ url }) {
@@ -110,7 +110,7 @@ function ArticleTopMatter({ title }) {
 }
 
 function SectionUpdateArticle() {
-    const [state, appDispatch] = useStateValue();
+    const state = useStateValue();
 
     const article = state.sigs.deckManagerState.value.deck || {};
 

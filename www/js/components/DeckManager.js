@@ -9,7 +9,7 @@ import { NoteManager, NOTE_KIND_NOTE } from '/js/components/NoteSection.js';
 import { PointForm } from '/js/components/PointForm.js';
 
 export default function DeckManager({ id, resource, preCacheFn, hasSummarySection, hasReviewSection }) {
-    const [state, appDispatch] = useStateValue();
+    const state = useStateValue();
 
     useEffect(() => {
         // fetch resource from the server

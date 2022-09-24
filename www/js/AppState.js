@@ -487,12 +487,6 @@ export function sc_deleteDeck(state, id) {
     state.sigs.deckManagerState.value.showDelete = false;
 }
 
-export const reducer = (state, action) => {
-    console.log(`AppState: ${action.type}`);
-    console.log("DEAD CODE!!!!");
-    return state;
-};
-
 function parseForScratchList(url, urlName) {
     // note: this will break if we ever change the url schema
     let res = url.match(/^\/(\w+)\/(\w+)/);

@@ -20,7 +20,7 @@ async function loadFullGraph(state, dispatch) {
 }
 
 export default function Graph({ id, depth }) {
-    const [state, dispatch] = useStateValue();
+    const state = useStateValue();
 
     const [localState, setLocalState] = useState({
         activeHyperlinks: false, // hack: remove eventually

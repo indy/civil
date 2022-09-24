@@ -34,7 +34,7 @@ const TEXT_AREA_BLURRED = 'text-area-blurred';
 const IMAGE_PASTED = 'image-pasted';
 
 function reducer(state, action) {
-    // const [appState, appDispatch] = useStateValue();
+    // const appState = useStateValue();
 
     switch(action.type) {
     case IMAGE_PASTED: {
@@ -156,7 +156,6 @@ function reducer(state, action) {
             isEditingMarkup: !state.isEditingMarkup
         };
 
-        // const appDispatch = action.data;
         const appState = action.data;
         if (newState.isEditingMarkup) {
             appState.sigs.componentRequiresFullKeyboardAccess.value = true;
@@ -199,7 +198,7 @@ function reducer(state, action) {
 };
 
 export default function Note(props) {
-    const [state, appDispatch] = useStateValue();
+    const state = useStateValue();
 
     const initialState = {
         addDeckReferencesUI: false,

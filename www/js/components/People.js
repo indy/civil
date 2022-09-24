@@ -33,7 +33,7 @@ import Title from '/js/components/Title.js';
 import WhenVerbose from '/js/components/WhenVerbose.js';
 
 function People() {
-    const [state, dispatch] = useStateValue();
+    const state = useStateValue();
     const resource = 'people';
 
     ensureListingLoaded(resource, '/api/people/listings');
@@ -52,7 +52,7 @@ function People() {
 }
 
 function Person({ id }) {
-    const [state, appDispatch] = useStateValue();
+    const state = useStateValue();
 
     const [searchResults, setSearchResults] = useState([]); // an array of backrefs
 
@@ -84,10 +84,10 @@ function Person({ id }) {
         Net.post(`/api/people/${personId}/points`, birthPoint).then(person => {
             if (deathPoint) {
                 Net.post(`/api/people/${personId}/points`, deathPoint).then(person => {
-                    appDispatchUpdatedPerson(person);
+                    dispatchUpdatedPerson(person);
                 });
             } else {
-                appDispatchUpdatedPerson(person);
+                dispatchUpdatedPerson(person);
             }
         });
     }
@@ -178,7 +178,7 @@ function preCacheFn(person) {
 }
 
 function SectionUpdatePerson() {
-    const [state, appDispatch] = useStateValue();
+    const state = useStateValue();
 
     const person = state.sigs.deckManagerState.value.deck || {};
 
@@ -279,7 +279,7 @@ function PersonDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
 }
 
 function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAddPointForm, dispatch }) {
-    const [state] = useStateValue();
+    const state = useStateValue();
 
     const [onlyThisPerson, setOnlyThisPerson] = useState(false);
     const [showBirthsDeaths, setShowBirthsDeaths] = useState(false);

@@ -4,7 +4,7 @@ import { dmsUpdateFormToggle, dmsDeleteToggle, dmsRefsToggle, dmsShowSummaryButt
 import { useStateValue } from '/js/StateProvider.js';
 
 export default function Title({title}) {
-    const [state, appDispatch] = useStateValue();
+    const state = useStateValue();
 
     const hoveringRef = useRef(null);
     const [mouseHovering, setMouseHovering] = useState(false);

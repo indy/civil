@@ -14,7 +14,7 @@ const LIFESPAN_STAGE_DEATH = 2;
 const LIFESPAN_STAGE_FINISHED = 3;
 
 export default function LifespanForm({ name, onLifespanGiven }) {
-    const [state, dispatch] = useStateValue();
+    const state = useStateValue();
 
     const [localState, setLocalState] = useState({
         stage: LIFESPAN_STAGE_BIRTH,

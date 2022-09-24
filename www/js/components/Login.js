@@ -4,7 +4,7 @@ import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
 function Login({ loginCallback}) {
-    const [appState, dispatch] = useStateValue();
+    const appState = useStateValue();
 
     if (appState.sigs.user.value) {
         route('/', true);
@@ -127,7 +127,7 @@ function Login({ loginCallback}) {
 }
 
 function Logout() {
-    const [state, dispatch] = useStateValue();
+    const state = useStateValue();
 
     const handleLogout = (event) => {
         Net.delete('api/auth', {}).then(() => {

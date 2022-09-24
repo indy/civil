@@ -28,7 +28,7 @@ export function indexToShortcut(index) {
 }
 
 export function ensureListingLoaded(resource, url) {
-    const [state] = useStateValue();
+    const state = useStateValue();
 
     useEffect(() => {
         if(!state.sigs.listing.value[resource]) {
