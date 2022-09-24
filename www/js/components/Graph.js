@@ -44,8 +44,8 @@ export default function Graph({ id, depth }) {
             id: id,
             isImportant: true,
             expandedState: ExpandedState_Fully,
-            resource: state.sigs.graph.value.decks[state.sigs.graph.value.deckIndexFromId[id]].resource,
-            label: state.sigs.graph.value.decks[state.sigs.graph.value.deckIndexFromId[id]].name,
+            resource: state.graph.value.decks[state.graph.value.deckIndexFromId[id]].resource,
+            label: state.graph.value.decks[state.graph.value.deckIndexFromId[id]].name,
             x: 0,
             y: 0,
             vx: 0,
@@ -55,7 +55,7 @@ export default function Graph({ id, depth }) {
         regenGraphState(newState);
     }
 
-    if (state.sigs.graph.value.fullyLoaded && localState.requireLoad === true) {
+    if (state.graph.value.fullyLoaded && localState.requireLoad === true) {
         // console.log("initialising graph after loading in graph data");
         initialise();
         setLocalState({
@@ -65,7 +65,7 @@ export default function Graph({ id, depth }) {
     }
 
     useEffect(() => {
-        if (state.sigs.graph.value.fullyLoaded) {
+        if (state.graph.value.fullyLoaded) {
             // console.log("initialising graph with pre-loaded graph data");
             initialise();
         } else {
@@ -108,7 +108,7 @@ export default function Graph({ id, depth }) {
         // copy over any nodes directly connected to the expanded or important nodes
         for (const key in nodes) {
             if (nodes[key].expandedState === ExpandedState_Fully) {
-                for (const link of state.sigs.graph.value.links[key]) {
+                for (const link of state.graph.value.links[key]) {
                     let [childId, kind, strength] = link; // negative strength == backlink
 
                     if (!nodes[childId]) {
@@ -121,8 +121,8 @@ export default function Graph({ id, depth }) {
                                 id: childId,
                                 isImportant: false,
                                 expandedState: ExpandedState_None,
-                                resource: state.sigs.graph.value.decks[state.sigs.graph.value.deckIndexFromId[childId]].resource,
-                                label: state.sigs.graph.value.decks[state.sigs.graph.value.deckIndexFromId[childId]].name,
+                                resource: state.graph.value.decks[state.graph.value.deckIndexFromId[childId]].resource,
+                                label: state.graph.value.decks[state.graph.value.deckIndexFromId[childId]].name,
                                 x: nodes[key].x,
                                 y: nodes[key].y,
                                 vx: -nodes[key.vx],
@@ -132,7 +132,7 @@ export default function Graph({ id, depth }) {
                     }
                 }
             } else if (nodes[key].expandedState === ExpandedState_Partial) {
-                for (const link of state.sigs.graph.value.links[key]) {
+                for (const link of state.graph.value.links[key]) {
                     let [childId, kind, strength] = link; // negative strength == backlink
 
                     if (!nodes[childId]) {
@@ -148,7 +148,7 @@ export default function Graph({ id, depth }) {
         // update links
         for (const key in nodes) {
             if (nodes[key].expandedState === ExpandedState_Fully) {
-                for (const link of state.sigs.graph.value.links[key]) {
+                for (const link of state.graph.value.links[key]) {
                     let [childId, kind, strength] = link; // negative strength == backlink
                     if (nodes[childId]) {
                         // only if both sides of the link are being displayed
@@ -156,7 +156,7 @@ export default function Graph({ id, depth }) {
                     }
                 }
             } else if (nodes[key].expandedState === ExpandedState_Partial) {
-                for (const link of state.sigs.graph.value.links[key]) {
+                for (const link of state.graph.value.links[key]) {
                     let [childId, kind, strength] = link; // negative strength == backlink
                     if (nodes[childId] && nodes[childId].expandedState !== ExpandedState_None) {
                         // only if both sides of the link are being displayed

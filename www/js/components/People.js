@@ -38,7 +38,7 @@ function People() {
 
     ensureListingLoaded(resource, '/api/people/listings');
 
-    const people = state.sigs.listing.value.people || [];
+    const people = state.listing.value.people || [];
 
     return html`
     <article>
@@ -103,10 +103,10 @@ function Person({ id }) {
         return false;
     }
 
-    const hasKnownLifespan = !!state.sigs.deckManagerState.value.deck && hasBirthPoint(state.sigs.deckManagerState.value.deck);
+    const hasKnownLifespan = !!state.deckManagerState.value.deck && hasBirthPoint(state.deckManagerState.value.deck);
 
-    const person = state.sigs.deckManagerState.value.deck;
-    const name = state.sigs.deckManagerState.value.deck && state.sigs.deckManagerState.value.deck.name;
+    const person = state.deckManagerState.value.deck;
+    const name = state.deckManagerState.value.deck && state.deckManagerState.value.deck.name;
 
     return html`
     <article>
@@ -128,7 +128,7 @@ function Person({ id }) {
                                deckManager=${ deckManager }
                                dispatch=${ appDispatch }
                                holderId=${ person.id }
-                               showAddPointForm=${ state.sigs.showAddPointForm.value }
+                               showAddPointForm=${ state.showAddPointForm.value }
                                holderName=${ person.name }/>`}
         <${SectionGraph} depth=${ 2 } />
     </article>`;
@@ -180,7 +180,7 @@ function preCacheFn(person) {
 function SectionUpdatePerson() {
     const state = useStateValue();
 
-    const person = state.sigs.deckManagerState.value.deck || {};
+    const person = state.deckManagerState.value.deck || {};
 
 
     const [localState, setLocalState] = useState({
@@ -223,7 +223,7 @@ function SectionUpdatePerson() {
         e.preventDefault();
     };
 
-    if (!state.sigs.deckManagerState.value.showUpdateForm) {
+    if (!state.deckManagerState.value.showUpdateForm) {
         return html`<div></div>`;
     }
 

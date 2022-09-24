@@ -126,7 +126,7 @@ function reducer(state, action) {
         const newState = { ...state };
 
         let appState = action.data.appState;
-        if (appState.sigs.componentRequiresFullKeyboardAccess.value) {
+        if (appState.componentRequiresFullKeyboardAccess.value) {
             return newState;
         }
 
@@ -430,16 +430,16 @@ export default function SearchCommand() {
             scratchListToggle(state);
         }
 
-        const scratchList = state.sigs.scratchList.value.map((entry, i) =>
+        const scratchList = state.scratchList.value.map((entry, i) =>
             html`<li key=${ i }>${ buildScratchListEntry(entry, i) }</li>`);
 
         return html`
         <div id="saved-search-component">
-            ${ !state.sigs.scratchListMinimised.value && html`
+            ${ !state.scratchListMinimised.value && html`
                 <ul class="search-command-listing" id="saved-search-results">
                     ${ scratchList }
                 </ul>`}
-             ${ state.sigs.scratchListMinimised.value ? html`
+             ${ state.scratchListMinimised.value ? html`
                 <div class="saved-search-menu">
                     <div onClick=${clickedToggle}>
                         ${ svgChevronUp() }
@@ -470,8 +470,8 @@ export default function SearchCommand() {
         }
     }
 
-    if (state.sigs.showingSearchCommand.value !== local.isVisible) {
-        state.sigs.showingSearchCommand.value = local.isVisible;
+    if (state.showingSearchCommand.value !== local.isVisible) {
+        state.showingSearchCommand.value = local.isVisible;
     }
 
     // note: for debugging purposes:
@@ -482,8 +482,8 @@ export default function SearchCommand() {
     //
     // put this inside the search-command div
     // <div class="keyboard-access-indicator">
-    //   ${ state.sigs.componentRequiresFullKeyboardAccess.value && html`<div>component has kb</div>` }
-    //   ${ !state.sigs.componentRequiresFullKeyboardAccess.value && html`<div>search command has kb</div>` }
+    //   ${ state.componentRequiresFullKeyboardAccess.value && html`<div>component has kb</div>` }
+    //   ${ !state.componentRequiresFullKeyboardAccess.value && html`<div>search command has kb</div>` }
     // </div>
 
     return html`
@@ -501,7 +501,7 @@ export default function SearchCommand() {
                    onBlur=${onBlur}/>
             ${ !!local.candidates.length && buildCandidates() }
         </div>
-        ${ !!state.sigs.scratchList.value.length && buildScratchList() }
+        ${ !!state.scratchList.value.length && buildScratchList() }
       </div>`;
 }
 

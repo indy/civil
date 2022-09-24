@@ -21,8 +21,8 @@ export default function SectionDeckRefs({ onRefsChanged }) {
         dmsRefsToggle(state);
     }
 
-    let deck = state.sigs.deckManagerState.value.deck;
-    let editing = state.sigs.deckManagerState.value.isEditingDeckRefs;
+    let deck = state.deckManagerState.value.deck;
+    let editing = state.deckManagerState.value.isEditingDeckRefs;
 
     let deckId = deck && deck.id;
     let deckMeta = deck && deck.noteSeqs && deck.noteSeqs.noteDeckMeta[0];

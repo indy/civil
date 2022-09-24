@@ -17,7 +17,7 @@ export default function DeleteDeckConfirmation({ resource, id }) {
         });
     }
 
-    if (!state.sigs.deckManagerState.value.showDelete) {
+    if (!state.deckManagerState.value.showDelete) {
         return html`<div></div>`;
     }
 

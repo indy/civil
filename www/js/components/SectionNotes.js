@@ -10,7 +10,7 @@ import { NoteSection, NoteManager,
 export default function SectionNotes({ onRefsChanged, title, preCacheFn, resource, noappend }) {
     const state = useStateValue();
 
-    const dms = state.sigs.deckManagerState.value;
+    const dms = state.deckManagerState.value;
     const deck = dms.deck;
 
     return html`

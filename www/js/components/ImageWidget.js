@@ -13,7 +13,7 @@ export default function ImageWidget({ onPaste }) {
 
     const dragArea = useRef(null);
 
-    const imageDirectory = state.sigs.imageDirectory.value;
+    const imageDirectory = state.imageDirectory.value;
 
     useEffect(() => {
         if (dragArea && dragArea.current) {
@@ -102,7 +102,7 @@ export default function ImageWidget({ onPaste }) {
                  },
                  "Images...");
     } else {
-        const recent = state.sigs.recentImages.value.map(ri => h(ImageWidgetItem,
+        const recent = state.recentImages.value.map(ri => h(ImageWidgetItem,
                                                       {
                                                           imageDirectory: imageDirectory,
                                                           filename: ri.filename,

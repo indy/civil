@@ -6,74 +6,6 @@ import { sortByResourceThenName } from '/js/CivilUtils.js'; // todo: delete this
 import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 
 export const initialState = {
-    ticks: 0,
-
-    // signals
-    sigs: {
-        // when true don't let searchCommand accept any keystrokes
-        componentRequiresFullKeyboardAccess: signal(false),
-
-        showingSearchCommand: signal(false),
-
-        // to add the current page to the scratchList we need the id, name, resource.
-        // id and resource can be parsed from the url, but the name needs to be
-        // stored separately
-        //
-        urlName: signal(''),
-
-        // the url of the current page
-        url: signal(''),
-
-        // when a user is logged in:
-        // user: {
-        //   username: ...
-        //   email: ...
-        // },
-        user: signal(undefined),
-
-        deckManagerState: signal(cleanDeckManagerState()),
-
-        // key == resource name of decks
-        listing: signal({
-            ideas: undefined,           // when listing ideas on /ideas page
-            articles: undefined,
-            people: undefined,
-            timelines: undefined
-        }),
-
-        verboseUI: signal(true),
-
-        // put the variables in square brackets so that they're evaluated
-        //
-        showNoteForm: signal({
-            [NOTE_KIND_NOTE]: false,
-            [NOTE_KIND_SUMMARY]: false,
-            [NOTE_KIND_REVIEW]: false
-        }),
-
-        // same for the Add Point form
-        showAddPointForm: signal(false),
-
-        recentImages: signal([]),
-        imageDirectory: signal(''),
-
-        showConnectivityGraph: signal(false),
-        graph: signal({
-            fullyLoaded: false,
-            // an array of { id, name, resource }
-            decks: [],
-            links: [],
-            // an array which is indexed by deckId, returns the offset into state.sigs.graph.value.decks
-            deckIndexFromId: []
-        }),
-
-        scratchList: signal([]),
-        scratchListMinimised: signal(false),
-
-        srReviewCount: signal(0),
-        srEarliestReviewDate: signal(undefined)
-    },
-
     appName: "Civil",
 
     wasmInterface: undefined,   // initialised in index.js
@@ -90,7 +22,71 @@ export const initialState = {
     // oldest reasonable age in years, any person whose birth means they're older can be assumed to be dead
     oldestAliveAge: 120,
 
-    preferredOrder: ["ideas", "people", "articles", "timelines", "quotes", "stats"]
+
+    // when true don't let searchCommand accept any keystrokes
+    componentRequiresFullKeyboardAccess: signal(false),
+
+    showingSearchCommand: signal(false),
+
+    // to add the current page to the scratchList we need the id, name, resource.
+    // id and resource can be parsed from the url, but the name needs to be
+    // stored separately
+    //
+    urlName: signal(''),
+
+    // the url of the current page
+    url: signal(''),
+
+    // when a user is logged in:
+    // user: {
+    //   username: ...
+    //   email: ...
+    // },
+    user: signal(undefined),
+
+    deckManagerState: signal(cleanDeckManagerState()),
+
+    preferredOrder: ["ideas", "people", "articles", "timelines", "quotes", "stats"],
+
+    // key == resource name of decks
+    listing: signal({
+        ideas: undefined,           // when listing ideas on /ideas page
+        articles: undefined,
+        people: undefined,
+        timelines: undefined
+    }),
+
+    verboseUI: signal(true),
+
+    // put the variables in square brackets so that they're evaluated
+    //
+    showNoteForm: signal({
+        [NOTE_KIND_NOTE]: false,
+        [NOTE_KIND_SUMMARY]: false,
+        [NOTE_KIND_REVIEW]: false
+    }),
+
+    // same for the Add Point form
+    showAddPointForm: signal(false),
+
+    recentImages: signal([]),
+    imageDirectory: signal(''),
+
+    showConnectivityGraph: signal(false),
+    graph: signal({
+        fullyLoaded: false,
+        // an array of { id, name, resource }
+        decks: [],
+        links: [],
+        // an array which is indexed by deckId, returns the offset into state.graph.value.decks
+        deckIndexFromId: []
+    }),
+
+    scratchList: signal([]),
+    scratchListMinimised: signal(false),
+
+    srReviewCount: signal(0),
+    srEarliestReviewDate: signal(undefined)
 };
 
 function cleanDeckManagerState() {
@@ -113,7 +109,7 @@ export function setUrlName(state, name) {
     if (DEBUG_APP_STATE) {
         console.log("setUrlName");
     }
-    state.sigs.urlName.value = name;
+    state.urlName.value = name;
     document.title = `${state.appName}: ${name}`;
 }
 
@@ -121,8 +117,8 @@ export function routeChanged(state, url) {
     if (DEBUG_APP_STATE) {
         console.log("routeChanged");
     }
-    state.sigs.url.value = url;
-    state.sigs.deckManagerState.value = cleanDeckManagerState();
+    state.url.value = url;
+    state.deckManagerState.value = cleanDeckManagerState();
 }
 
 export function obtainKeyboard(state) {
@@ -131,7 +127,7 @@ export function obtainKeyboard(state) {
     }
     return function(e) {
         e.preventDefault();
-        state.sigs.componentRequiresFullKeyboardAccess.value = true;
+        state.componentRequiresFullKeyboardAccess.value = true;
     }
 }
 
@@ -141,7 +137,7 @@ export function relinquishKeyboard(state) {
     }
     return function(e) {
         e.preventDefault();
-        state.sigs.componentRequiresFullKeyboardAccess.value = false;
+        state.componentRequiresFullKeyboardAccess.value = false;
     }
 }
 
@@ -156,9 +152,9 @@ export function dmsUpdateDeck(state, deck, resource) {
 
     // todo: maybe move this back into the apps router now that we're using signals
     setUrlName(state, deck.title || deck.name);
-    state.sigs.url.value = `/${resource}/${deck.id}`;
+    state.url.value = `/${resource}/${deck.id}`;
 
-    let dms = { ...state.sigs.deckManagerState.value };
+    let dms = { ...state.deckManagerState.value };
     dms.deck = deck;
 
     if (deck.noteSeqs) {
@@ -170,179 +166,179 @@ export function dmsUpdateDeck(state, deck, resource) {
         }
     }
 
-    state.sigs.deckManagerState.value = dms;
+    state.deckManagerState.value = dms;
 }
 
 export function dmsUpdateFormToggle(state) {
     if (DEBUG_APP_STATE) {
         console.log("dmsUpdateFormToggle");
     }
-    let dms = { ...state.sigs.deckManagerState.value };
+    let dms = { ...state.deckManagerState.value };
     dms.showUpdateForm = !dms.showUpdateForm;
-    state.sigs.deckManagerState.value = dms;
+    state.deckManagerState.value = dms;
 }
 
 export function dmsDeleteToggle(state) {
     if (DEBUG_APP_STATE) {
         console.log("dmsDeleteToggle");
     }
-    let dms = { ...state.sigs.deckManagerState.value };
+    let dms = { ...state.deckManagerState.value };
     dms.showDelete = !dms.showDelete;
-    state.sigs.deckManagerState.value = dms;
+    state.deckManagerState.value = dms;
 }
 
 export function dmsRefsToggle(state) {
     if (DEBUG_APP_STATE) {
         console.log("dmsRefsToggle");
     }
-    let dms = { ...state.sigs.deckManagerState.value };
+    let dms = { ...state.deckManagerState.value };
     dms.isEditingDeckRefs = !dms.isEditingDeckRefs;
-    state.sigs.deckManagerState.value = dms;
+    state.deckManagerState.value = dms;
 }
 
 export function dmsHideForm(state) {
     if (DEBUG_APP_STATE) {
         console.log("dmsHideForm");
     }
-    let dms = { ...state.sigs.deckManagerState.value };
+    let dms = { ...state.deckManagerState.value };
     dms.showUpdateForm = false;
-    state.sigs.deckManagerState.value = dms;
+    state.deckManagerState.value = dms;
 }
 
 export function dmsShowSummaryButtonToggle(state, isToggled) {
     if (DEBUG_APP_STATE) {
         console.log("dmsShowSummaryButtonToggle");
     }
-    let dms = { ...state.sigs.deckManagerState.value };
+    let dms = { ...state.deckManagerState.value };
     dms.showShowSummaryButton = isToggled;
-    state.sigs.deckManagerState.value = dms;
+    state.deckManagerState.value = dms;
 }
 
 export function dmsShowReviewButtonToggle(state, isToggled) {
     if (DEBUG_APP_STATE) {
         console.log("dmsShowReviewButtonToggle");
     }
-    let dms = { ...state.sigs.deckManagerState.value };
+    let dms = { ...state.deckManagerState.value };
     dms.showShowReviewButton = isToggled;
-    state.sigs.deckManagerState.value = dms;
+    state.deckManagerState.value = dms;
 }
 
 export function scratchListToggle(state) {
     if (DEBUG_APP_STATE) {
         console.log("scratchListToggle");
     }
-    state.sigs.scratchListMinimised.value = !state.sigs.scratchListMinimised.value;
+    state.scratchListMinimised.value = !state.scratchListMinimised.value;
 }
 
 export function scratchListAddMulti(state, candidates) {
     if (DEBUG_APP_STATE) {
         console.log("scratchListAddMulti");
     }
-    let sl = state.sigs.scratchList.value.slice();
+    let sl = state.scratchList.value.slice();
     candidates.forEach(c => {
         sl.push(c);
     });
-    state.sigs.scratchList.value = sl;
+    state.scratchList.value = sl;
 }
 
 export function scratchListRemove(state, index) {
     if (DEBUG_APP_STATE) {
         console.log("scratchListRemove");
     }
-    let sl = state.sigs.scratchList.value.slice();
+    let sl = state.scratchList.value.slice();
     sl.splice(index, 1);
-    state.sigs.scratchList.value = sl;
+    state.scratchList.value = sl;
 }
 
 export function bookmarkUrl(state) {
     if (DEBUG_APP_STATE) {
         console.log("bookmarkUrl");
     }
-    let sl = state.sigs.scratchList.value.slice();
-    let candidate = parseForScratchList(state.sigs.url.value, state.sigs.urlName.value);
+    let sl = state.scratchList.value.slice();
+    let candidate = parseForScratchList(state.url.value, state.urlName.value);
 
     sl.push(candidate);
-    state.sigs.scratchList.value = sl;
+    state.scratchList.value = sl;
 }
 
 export function cleanUI(state) {
     if (DEBUG_APP_STATE) {
         console.log("cleanUI");
     }
-    state.sigs.verboseUI.value = false;
+    state.verboseUI.value = false;
 }
 
 export function basicUI(state) {
     if (DEBUG_APP_STATE) {
         console.log("basicUI");
     }
-    state.sigs.verboseUI.value = true;
+    state.verboseUI.value = true;
 }
 
 export function sc_showAddPointForm(state) {
     if (DEBUG_APP_STATE) {
         console.log("sc_showAddPointForm");
     }
-    state.sigs.showAddPointForm.value = true;
-    state.sigs.componentRequiresFullKeyboardAccess.value = true;
+    state.showAddPointForm.value = true;
+    state.componentRequiresFullKeyboardAccess.value = true;
 }
 
 export function sc_hideAddPointForm(state) {
     if (DEBUG_APP_STATE) {
         console.log("sc_hideAddPointForm");
     }
-    state.sigs.showAddPointForm.value = false;
-    state.sigs.componentRequiresFullKeyboardAccess.value = false;
+    state.showAddPointForm.value = false;
+    state.componentRequiresFullKeyboardAccess.value = false;
 }
 
 export function sc_showNoteForm(state, noteKind) {
     if (DEBUG_APP_STATE) {
         console.log("sc_showNoteForm");
     }
-    let snf = {...state.sigs.showNoteForm.value};
+    let snf = {...state.showNoteForm.value};
     snf[noteKind] = true;
 
-    state.sigs.showNoteForm.value = snf;
-    state.sigs.componentRequiresFullKeyboardAccess.value = true;
+    state.showNoteForm.value = snf;
+    state.componentRequiresFullKeyboardAccess.value = true;
 }
 
 export function sc_hideNoteForm(state, noteKind) {
     if (DEBUG_APP_STATE) {
         console.log("sc_hideNoteForm");
     }
-    let snf = {...state.sigs.showNoteForm.value};
+    let snf = {...state.showNoteForm.value};
     snf[noteKind] = false;
 
-    state.sigs.showNoteForm.value = snf;
-    state.sigs.componentRequiresFullKeyboardAccess.value = false;
+    state.showNoteForm.value = snf;
+    state.componentRequiresFullKeyboardAccess.value = false;
 }
 
 export function sc_setRecentImages(state, recentImages) {
     if (DEBUG_APP_STATE) {
         console.log("sc_setRecentImages");
     }
-    state.sigs.recentImages.value = recentImages;
+    state.recentImages.value = recentImages;
 }
 
 export function sc_connectivityGraphShow(state) {
     if (DEBUG_APP_STATE) {
         console.log("sc_connectivityGraphShow");
     }
-    state.sigs.showConnectivityGraph.value = true;
+    state.showConnectivityGraph.value = true;
 }
 
 export function sc_connectivityGraphHide(state) {
     if (DEBUG_APP_STATE) {
         console.log("sc_connectivityGraphHide");
     }
-    state.sigs.showConnectivityGraph.value = false;
+    state.showConnectivityGraph.value = false;
 }
 
 export function sc_setReviewCount(state, count) {
     if (DEBUG_APP_STATE) {
         console.log("sc_setReviewCount");
     }
-    state.sigs.srReviewCount.value = count;
+    state.srReviewCount.value = count;
 }
 
 export function sc_loadGraph(state, graphNodes, graphConnections) {
@@ -355,47 +351,47 @@ export function sc_loadGraph(state, graphNodes, graphConnections) {
         links: buildFullGraph(graphConnections),
         deckIndexFromId: buildDeckIndex(graphNodes)
     };
-    state.sigs.graph.value = ng;
+    state.graph.value = ng;
 }
 
 export function sc_invalidateGraph(state) {
     if (DEBUG_APP_STATE) {
         console.log("sc_invalidateGraph");
     }
-    state.sigs.graph.value = { fullyLoaded: false };
+    state.graph.value = { fullyLoaded: false };
 }
 
 export function sc_uberSetup(state, uber) {
     if (DEBUG_APP_STATE) {
         console.log("sc_uberSetup");
     }
-    state.sigs.graph.value = { fullyLoaded: false };
-    state.sigs.recentImages.value = uber.recentImages;
-    state.sigs.imageDirectory.value = uber.directory;
-    state.sigs.srReviewCount.value = uber.srReviewCount;
-    state.sigs.srEarliestReviewDate.value = uber.srEarliestReviewDate;
+    state.graph.value = { fullyLoaded: false };
+    state.recentImages.value = uber.recentImages;
+    state.imageDirectory.value = uber.directory;
+    state.srReviewCount.value = uber.srReviewCount;
+    state.srEarliestReviewDate.value = uber.srEarliestReviewDate;
 }
 
 export function sc_setDeckListing(state, resource, listing) {
     if (DEBUG_APP_STATE) {
         console.log("sc_setDeckListing");
     }
-    let li = {...state.sigs.listing.value};
+    let li = {...state.listing.value};
     li[resource] = listing;
-    state.sigs.listing.value = li;
+    state.listing.value = li;
 }
 
 export function sc_updatePeopleListing(state, newPerson) {
     if (DEBUG_APP_STATE) {
         console.log("sc_updatePeopleListing");
     }
-    let li = {...state.sigs.listing.value};
+    let li = {...state.listing.value};
 
     if (li.people) {
         updateHashOfNames(li.people, newPerson);
     }
 
-    state.sigs.listing.value = li;
+    state.listing.value = li;
 }
 
 export function sc_noteRefsModified(state, allDecksForNote, changes) {
@@ -420,12 +416,12 @@ export function sc_noteRefsModified(state, allDecksForNote, changes) {
     };
 
     if (changes.referencesCreated.length > 0) {
-        let ng = {...state.sigs.graph.value, fullLoaded: false };
-        state.sigs.graph.value = ng;
+        let ng = {...state.graph.value, fullLoaded: false };
+        state.graph.value = ng;
     }
 
-    if (state.sigs.listing.value.ideas) {
-        let li = {...state.sigs.listing.value};
+    if (state.listing.value.ideas) {
+        let li = {...state.listing.value};
 
         changes.referencesCreated.forEach(r => {
             let newReference = allDecksForNote.find(d => d.name === r.name && d.resource === "ideas");
@@ -435,7 +431,7 @@ export function sc_noteRefsModified(state, allDecksForNote, changes) {
             li.unnoted.unshift(newBasicNote);
         });
 
-        state.sigs.listing.value = li;
+        state.listing.value = li;
     }
 }
 
@@ -445,46 +441,46 @@ export function sc_deleteDeck(state, id) {
     }
     let filterFn = d => d.id !== id;
 
-    if (state.sigs.graph.value && state.sigs.graph.value.decks) {
-        let g = { ...state.sigs.graph.value,
-                  decks: state.sigs.graph.value.decks.filter(filterFn)};
-        state.sigs.graph.value = g;
+    if (state.graph.value && state.graph.value.decks) {
+        let g = { ...state.graph.value,
+                  decks: state.graph.value.decks.filter(filterFn)};
+        state.graph.value = g;
     }
 
     let li = {};
 
-    if (state.sigs.listing.value.ideas) {
+    if (state.listing.value.ideas) {
         li.ideas = {
-            orphans: state.sigs.listing.value.ideas.orphans.filter(filterFn),
-            recent: state.sigs.listing.value.ideas.recent.filter(filterFn),
+            orphans: state.listing.value.ideas.orphans.filter(filterFn),
+            recent: state.listing.value.ideas.recent.filter(filterFn),
         };
     };
 
-    if (state.sigs.listing.value.articles) {
+    if (state.listing.value.articles) {
         li.articles = {
-            orphans: state.sigs.listing.value.articles.orphans.filter(filterFn),
-            recent: state.sigs.listing.value.articles.recent.filter(filterFn),
-            rated: state.sigs.listing.value.articles.rated.filter(filterFn),
+            orphans: state.listing.value.articles.orphans.filter(filterFn),
+            recent: state.listing.value.articles.recent.filter(filterFn),
+            rated: state.listing.value.articles.rated.filter(filterFn),
         };
     }
 
-    if (state.sigs.listing.value.people) {
-        li.people = state.sigs.listing.value.people.filter(filterFn);
+    if (state.listing.value.people) {
+        li.people = state.listing.value.people.filter(filterFn);
     }
 
-    if (state.sigs.listing.value.timelines) {
-        li.timelines = state.sigs.listing.value.timelines.filter(filterFn);
+    if (state.listing.value.timelines) {
+        li.timelines = state.listing.value.timelines.filter(filterFn);
     }
 
-    state.sigs.listing.value = li;
+    state.listing.value = li;
 
-    if (state.sigs.graph.value.links) {
-        let g = {...state.sigs.graph.value};
+    if (state.graph.value.links) {
+        let g = {...state.graph.value};
         delete g.links[id];
-        state.sigs.graph.value = g;
+        state.graph.value = g;
     }
 
-    state.sigs.deckManagerState.value.showDelete = false;
+    state.deckManagerState.value.showDelete = false;
 }
 
 function parseForScratchList(url, urlName) {

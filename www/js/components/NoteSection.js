@@ -156,7 +156,7 @@ function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optio
     }
 
     const notes = noteSeq ? noteSeq.map(buildNoteComponent) : [];
-    const addNoteUI = noappend ? '' : (state.sigs.showNoteForm.value[noteKind] ? buildNoteForm() : buildNoteFormIcon());
+    const addNoteUI = noappend ? '' : (state.showNoteForm.value[noteKind] ? buildNoteForm() : buildNoteFormIcon());
 
     return html`
            <section>

@@ -16,7 +16,7 @@ export default function buildMarkup(content) {
         if (n.html_for)   { res.for = n.html_for; }
         if (n.href)       { res.href = n.href; }
         if (n.html_type)  { res.type = n.html_type; }
-        if (n.src)        { res.src = `/u/${state.sigs.imageDirectory.value}/${n.src}`; }
+        if (n.src)        { res.src = `/u/${state.imageDirectory.value}/${n.src}`; }
         if (n.start)      { res.start = n.start; }
 
         return res;

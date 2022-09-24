@@ -187,8 +187,8 @@ export default function SpacedRepetition(props) {
 
     let nextTestInfo = "";
     if (local.mode === MODE_PRE_TEST && !canTest) {
-        const nextReviewDate = formattedDate(Date.parse(state.sigs.srEarliestReviewDate.value));
-        const nextReviewTime = formattedTime(Date.parse(state.sigs.srEarliestReviewDate.value));
+        const nextReviewDate = formattedDate(Date.parse(state.srEarliestReviewDate.value));
+        const nextReviewTime = formattedTime(Date.parse(state.srEarliestReviewDate.value));
         nextTestInfo = `The next test will be available at ${nextReviewTime} on ${nextReviewDate}`;
     }
 

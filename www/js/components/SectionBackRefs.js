@@ -10,8 +10,8 @@ import { ExpandableListingLink } from '/js/components/ListingLink.js';
 export default function SectionBackRefs({ deckId }) {
     const state = useStateValue();
 
-    let backrefs = (state.sigs.deckManagerState.value.deck && state.sigs.deckManagerState.value.deck.backrefs) || [];
-    let backnotes = (state.sigs.deckManagerState.value.deck && state.sigs.deckManagerState.value.deck.backnotes) || [];
+    let backrefs = (state.deckManagerState.value.deck && state.deckManagerState.value.deck.backrefs) || [];
+    let backnotes = (state.deckManagerState.value.deck && state.deckManagerState.value.deck.backnotes) || [];
 
     const sections = [];
     const decks = [];

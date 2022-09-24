@@ -26,7 +26,7 @@ function Ideas() {
 
     ensureListingLoaded(resource, '/api/ideas/listings');
 
-    const ideas = state.sigs.listing.value.ideas || {};
+    const ideas = state.listing.value.ideas || {};
 
     return html`
     <article>
@@ -83,7 +83,7 @@ function Idea({ id }) {
 function IdeaTopMatter({ title }) {
     const state = useStateValue();
 
-    let createdAt = state.sigs.deckManagerState.value.deck && state.sigs.deckManagerState.value.deck.createdId;
+    let createdAt = state.deckManagerState.value.deck && state.deckManagerState.value.deck.createdId;
 
     return html`
     <div>
@@ -100,7 +100,7 @@ function IdeaTopMatter({ title }) {
 function SectionUpdateIdea() {
     const state = useStateValue();
 
-    const idea = state.sigs.deckManagerState.value.deck || {};
+    const idea = state.deckManagerState.value.deck || {};
 
     const [title, setTitle] = useState(idea.title || '');
     const [graphTerminator, setGraphTerminator] = useState(idea.graphTerminator);
@@ -144,7 +144,7 @@ function SectionUpdateIdea() {
         }
     }
 
-    if (!state.sigs.deckManagerState.value.showUpdateForm) {
+    if (!state.deckManagerState.value.showUpdateForm) {
         return html`<div></div>`;
     }
 

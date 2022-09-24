@@ -27,7 +27,7 @@ function Articles() {
 
     ensureListingLoaded(resource, '/api/articles/listings');
 
-    const articles = state.sigs.listing.value.articles || {};
+    const articles = state.listing.value.articles || {};
 
     return html`
     <article>
@@ -55,7 +55,7 @@ function Article({ id }) {
         hasReviewSection: true
     });
 
-    let shortDescription = !!state.sigs.deckManagerState.value.deck && state.sigs.deckManagerState.value.deck.shortDescription;
+    let shortDescription = !!state.deckManagerState.value.deck && state.deckManagerState.value.deck.shortDescription;
     return html`
     <article>
         <${ArticleTopMatter} title=${ deckManager.title }/>
@@ -78,7 +78,7 @@ function TopScribble({ text }) {
 
 function ArticleTopMatter({ title }) {
     const state = useStateValue();
-    const deck = state.sigs.deckManagerState.value.deck;
+    const deck = state.deckManagerState.value.deck;
 
     function Url({ url }) {
         return html`<a href=${ url }>${ url }</a>`;
@@ -112,7 +112,7 @@ function ArticleTopMatter({ title }) {
 function SectionUpdateArticle() {
     const state = useStateValue();
 
-    const article = state.sigs.deckManagerState.value.deck || {};
+    const article = state.deckManagerState.value.deck || {};
 
     const [title, setTitle] = useState(article.title || '');
     const [author, setAuthor] = useState(article.author || '');
@@ -192,7 +192,7 @@ function SectionUpdateArticle() {
         event.preventDefault();
     };
 
-    if (!state.sigs.deckManagerState.value.showUpdateForm) {
+    if (!state.deckManagerState.value.showUpdateForm) {
         return html`<div></div>`;
     }
 

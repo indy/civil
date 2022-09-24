@@ -33,10 +33,10 @@ export default function Title({title}) {
     };
 
     function onShowSummaryButtonClicked(e) {
-        dmsShowSummaryButtonToggle(state, !state.sigs.deckManagerState.value.showShowSummaryButton);
+        dmsShowSummaryButtonToggle(state, !state.deckManagerState.value.showShowSummaryButton);
     };
     function onShowReviewButtonClicked(e) {
-        dmsShowReviewButtonToggle(state, !state.sigs.deckManagerState.value.showShowReviewButton);
+        dmsShowReviewButtonToggle(state, !state.deckManagerState.value.showShowReviewButton);
     };
 
     function onDeleteClicked(e) {
@@ -53,8 +53,8 @@ export default function Title({title}) {
                         <${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onRefsClicked } label="[refs]"/>
                         <${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onEditParentClicked } label="[edit]"/>
                         <${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onDeleteClicked } label="[delete]"/>
-                        ${ state.sigs.deckManagerState.value.showShowSummaryButton && html`<${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onShowSummaryButtonClicked } label="[show summary]"/>`}
-                        ${ state.sigs.deckManagerState.value.showShowReviewButton && html`<${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onShowReviewButtonClicked } label="[show review]"/>`}
+                        ${ state.deckManagerState.value.showShowSummaryButton && html`<${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onShowSummaryButtonClicked } label="[show summary]"/>`}
+                        ${ state.deckManagerState.value.showShowReviewButton && html`<${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onShowReviewButtonClicked } label="[show review]"/>`}
                     </div>`;
     }
 

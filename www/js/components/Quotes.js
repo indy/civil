@@ -191,7 +191,7 @@ function Quote({ id }) {
     }
 
     function onKeyDown(e) {
-        if (!state.sigs.componentRequiresFullKeyboardAccess.value && !state.sigs.showingSearchCommand.value) {
+        if (!state.componentRequiresFullKeyboardAccess.value && !state.showingSearchCommand.value) {
             if (e.key === 'n') {
                 getQuoteThenRoute(`/api/quotes/${quoteId}/next`);
             } else if (e.key === 'p') {
@@ -203,7 +203,7 @@ function Quote({ id }) {
     };
 
     function onEditedAttribute(attribution) {
-        let quote = state.sigs.deckManagerState.value.deck;
+        let quote = state.deckManagerState.value.deck;
         let note = quote.notes.find(n => n.kind === 'Note');
 
         // as the title could have changed, we need to post the updated quote to the server
@@ -222,7 +222,7 @@ function Quote({ id }) {
         });
     }
 
-    let deck = state.sigs.deckManagerState.value.deck;
+    let deck = state.deckManagerState.value.deck;
 
     return html`
     <article id="quotation-article">

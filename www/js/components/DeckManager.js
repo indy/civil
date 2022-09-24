@@ -25,12 +25,12 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
 
     let res = {};
 
-    let title = state.sigs.deckManagerState.value.deck && (state.sigs.deckManagerState.value.deck.title || state.sigs.deckManagerState.value.deck.name || '');
+    let title = state.deckManagerState.value.deck && (state.deckManagerState.value.deck.title || state.deckManagerState.value.deck.name || '');
     res.title = title;
 
     res.buildPointForm = function(onSuccessCallback) {
         function onAddPoint(point) {
-            const url = `/api/${resource}/${state.sigs.deckManagerState.value.deck.id}/points`;
+            const url = `/api/${resource}/${state.deckManagerState.value.deck.id}/points`;
             Net.post(url, point).then(updatedDeck => {
                 dmsUpdateDeck(state, preCacheFn(updatedDeck), resource);
                 onSuccessCallback();
@@ -41,7 +41,7 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
     };
 
     function findNoteWithId(id, modifyFn) {
-        const deck = state.sigs.deckManagerState.value.deck;
+        const deck = state.deckManagerState.value.deck;
         const notes = deck.notes;
         const index = notes.findIndex(n => n.id === id);
 
@@ -56,11 +56,11 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
         // (used to populate each note's decks array)
 
         // remove all deck.refs that relate to this note
-        state.sigs.deckManagerState.value.deck.refs = state.sigs.deckManagerState.value.deck.refs.filter(din => {
+        state.deckManagerState.value.deck.refs = state.deckManagerState.value.deck.refs.filter(din => {
             return din.noteId !== note.id;
         });
         // add every note.decks entry to deck.refs
-        allDecksForNote.forEach(d => { state.sigs.deckManagerState.value.deck.refs.push(d); });
+        allDecksForNote.forEach(d => { state.deckManagerState.value.deck.refs.push(d); });
 
         findNoteWithId(note.id, (notes, index) => {
             notes[index] = note;
@@ -70,8 +70,8 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
     res.onRefsChanged = onRefsChanged;
 
     res.noteManagerForDeckPoint = function(deckPoint) {
-        return NoteManager({ deck: state.sigs.deckManagerState.value.deck,
-                             noteSeq: state.sigs.deckManagerState.value.deck.noteSeqs.points[deckPoint.id],
+        return NoteManager({ deck: state.deckManagerState.value.deck,
+                             noteSeq: state.deckManagerState.value.deck.noteSeqs.points[deckPoint.id],
                              preCacheFn,
                              resource,
                              onRefsChanged,
@@ -82,7 +82,7 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
     }
 
     res.pointHasNotes = function(point) {
-        return state.sigs.deckManagerState.value.deck.notes.some(n => n.pointId === point.id);
+        return state.deckManagerState.value.deck.notes.some(n => n.pointId === point.id);
     }
 
     return res;

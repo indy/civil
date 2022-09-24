@@ -30,7 +30,7 @@ function Timelines() {
     return html`
     <article>
         <h1 class="ui">${capitalise(resource)}</h1>
-        <${DeckSimpleList} list=${state.sigs.listing.value.timelines} />
+        <${DeckSimpleList} list=${state.listing.value.timelines} />
     </article>`;
 }
 
@@ -47,7 +47,7 @@ function Timeline({ id }) {
         hasReviewSection: false
     });
 
-    let timeline = state.sigs.deckManagerState.value.deck;
+    let timeline = state.deckManagerState.value.deck;
 
     return html`
     <article>
@@ -61,7 +61,7 @@ function Timeline({ id }) {
 
         ${ !!timeline && html`<${ListPoints} points=${ timeline.points }
                                              deckManager=${ deckManager }
-                                             showAddPointForm=${ state.sigs.showAddPointForm.value }
+                                             showAddPointForm=${ state.showAddPointForm.value }
                                              holderId=${ timeline.id }
                                              holderName=${ timeline.title }/>`}
 
@@ -84,7 +84,7 @@ function preCacheFn(timeline) {
 function SectionUpdateTimeline() {
     const state = useStateValue();
 
-    const timeline = state.sigs.deckManagerState.value.deck || {};
+    const timeline = state.deckManagerState.value.deck || {};
 
     const [localState, setLocalState] = useState({
         title: timeline.title || ''
@@ -131,7 +131,7 @@ function SectionUpdateTimeline() {
         e.preventDefault();
     };
 
-    if (!state.sigs.deckManagerState.value.showUpdateForm) {
+    if (!state.deckManagerState.value.showUpdateForm) {
         return html`<div></div>`;
     }
 

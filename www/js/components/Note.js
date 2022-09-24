@@ -158,9 +158,9 @@ function reducer(state, action) {
 
         const appState = action.data;
         if (newState.isEditingMarkup) {
-            appState.sigs.componentRequiresFullKeyboardAccess.value = true;
+            appState.componentRequiresFullKeyboardAccess.value = true;
         } else {
-            appState.sigs.componentRequiresFullKeyboardAccess.value = false;
+            appState.componentRequiresFullKeyboardAccess.value = false;
         }
 
         return newState;
@@ -173,7 +173,7 @@ function reducer(state, action) {
         };
 
         const appState = action.data;
-        appState.sigs.componentRequiresFullKeyboardAccess.value = false;
+        appState.componentRequiresFullKeyboardAccess.value = false;
 
         return newState;
     }
@@ -188,7 +188,7 @@ function reducer(state, action) {
         };
 
         const appState = action.data;
-        appState.sigs.componentRequiresFullKeyboardAccess.value = false;
+        appState.componentRequiresFullKeyboardAccess.value = false;
 
         return newState;
     }

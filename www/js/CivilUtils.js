@@ -31,7 +31,7 @@ export function ensureListingLoaded(resource, url) {
     const state = useStateValue();
 
     useEffect(() => {
-        if(!state.sigs.listing.value[resource]) {
+        if(!state.listing.value[resource]) {
             fetchDeckListing(state, resource, url);
         }
     }, []);
