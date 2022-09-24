@@ -92,6 +92,15 @@ export const initialState = {
 
     appName: "Civil",
 
+    // key == resource name of decks
+    listing: {
+        ideas: undefined,           // when listing ideas on /ideas page
+        articles: undefined,
+        people: undefined,
+        timelines: undefined
+    },
+
+
     wasmInterface: undefined,   // initialised in index.js
     uiColours: {
         // note: this will be filled with extra values from
@@ -106,17 +115,7 @@ export const initialState = {
     // oldest reasonable age in years, any person whose birth means they're older can be assumed to be dead
     oldestAliveAge: 120,
 
-    preferredOrder: ["ideas", "people", "articles", "timelines", "quotes", "stats"],
-
-    // key == resource name of decks
-    listing: {
-        ideas: undefined,           // when listing ideas on /ideas page
-        articles: undefined,
-        people: undefined,
-        timelines: undefined
-    }
-
-
+    preferredOrder: ["ideas", "people", "articles", "timelines", "quotes", "stats"]
 };
 
 function cleanDeckManagerState() {
@@ -283,25 +282,19 @@ export function sc_invalidateGraph(state) {
     state.sigs.graph.value = { fullyLoaded: false };
 }
 
+export function sc_uberSetup(state, action) {
+    state.sigs.graph.value = { fullyLoaded: false };
+    state.sigs.recentImages.value = action.recentImages;
+    state.sigs.imageDirectory.value = action.directory;
+    state.sigs.srReviewCount.value = action.srReviewCount;
+    state.sigs.srEarliestReviewDate.value = action.srEarliestReviewDate;
+}
+
 export const reducer = (state, action) => {
     if (true) {
         console.log(`(${state.ticks}) AppState: ${action.type}`);
     }
     switch (action.type) {
-    case 'uberSetup': {
-        let newState = {
-            ...state,
-            ticks: state.ticks + 1
-        };
-
-        newState.sigs.graph.value = { fullyLoaded: false };
-        newState.sigs.recentImages.value = action.recentImages;
-        newState.sigs.imageDirectory.value = action.imageDirectory;
-        newState.sigs.srReviewCount.value = action.srReviewCount;
-        newState.sigs.srEarliestReviewDate.value = action.srEarliestReviewDate;
-
-        return newState;
-    }
     case 'noteRefsModified':
         {
             let newState = {

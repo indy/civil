@@ -1,4 +1,4 @@
-import { initialState, reducer, setUrlName, routeChanged } from '/js/AppState.js';
+import { initialState, reducer, setUrlName, routeChanged, sc_uberSetup } from '/js/AppState.js';
 import { capitalise } from '/js/JsUtils.js';
 
 import { html, Router, Route, Link, route, useEffect } from '/lib/preact/mod.js';
@@ -87,13 +87,7 @@ function AppUI(props) {
                 state.sigs.user.value = user;
 
                 Net.get("/api/ubersetup").then(uber => {
-                    let d = {
-                        imageDirectory: uber.directory, // todo: rename directory to imageDirectory, can then pass uber into the state directly
-                        recentImages: uber.recentImages,
-                        srReviewCount: uber.srReviewCount,
-                        srEarliestReviewDate: uber.srEarliestReviewDate
-                    };
-                    dispatch({ type: 'uberSetup', ...d});
+                    sc_uberSetup(state, uber);
                 });
             }
         });
@@ -105,13 +99,7 @@ function AppUI(props) {
         state.sigs.user.value = user;
 
         Net.get("/api/ubersetup").then(uber => {
-            let d = {
-                imageDirectory: uber.directory, // todo: rename directory to imageDirectory, can then pass uber into the state directly
-                recentImages: uber.recentImages,
-                srReviewCount: uber.srReviewCount,
-                srEarliestReviewDate: uber.srEarliestReviewDate
-            };
-            dispatch({ type: 'uberSetup', ...d});
+            sc_uberSetup(state, uber);
             route('/', true);
         });
     }
