@@ -73,8 +73,12 @@ export const initialState = {
         recentImages: signal([]),
         imageDirectory: signal(''),
 
+        showConnectivityGraph: signal(false),
+
         scratchList: signal([]),
-        scratchListMinimised: signal(false)
+        scratchListMinimised: signal(false),
+
+        srReviewCount: signal(0)
     },
 
     appName: "Civil",
@@ -90,7 +94,7 @@ export const initialState = {
     //
     hasPhysicalKeyboard: true,
 
-    showConnectivityGraph: false,
+    // showConnectivityGraph: false,
     graph: {
         fullyLoaded: false,
         // an array of { id, name, resource }
@@ -113,7 +117,6 @@ export const initialState = {
         timelines: undefined
     },
 
-    srReviewCount: 0,
     srEarliestReviewDate: undefined
 };
 
@@ -255,6 +258,18 @@ export function sc_setRecentImages(state, recentImages) {
     state.sigs.recentImages.value = recentImages;
 }
 
+export function sc_connectivityGraphShow(state) {
+    state.sigs.showConnectivityGraph.value = true;
+}
+
+export function sc_connectivityGraphHide(state) {
+    state.sigs.showConnectivityGraph.value = false;
+}
+
+export function sc_setReviewCount(state, count) {
+    state.sigs.srReviewCount.value = count;
+}
+
 export const reducer = (state, action) => {
     if (true) {
         console.log(`(${state.ticks}) AppState: ${action.type}`);
@@ -267,11 +282,11 @@ export const reducer = (state, action) => {
             graph: {
                 fullyLoaded: false
             },
-            srReviewCount: action.srReviewCount,
             srEarliestReviewDate: action.srEarliestReviewDate
         };
         newState.sigs.recentImages.value = action.recentImages;
         newState.sigs.imageDirectory.value = action.imageDirectory;
+        newState.sigs.srReviewCount.value = action.srReviewCount;
 
         return newState;
     }
@@ -286,25 +301,6 @@ export const reducer = (state, action) => {
                 deckIndexFromId: buildDeckIndex(action.graphNodes)
             }
         }
-    case 'connectivityGraphShow':
-        return {
-            ...state,
-            ticks: state.ticks + 1,
-            showConnectivityGraph: true
-        };
-    case 'connectivityGraphHide':
-        return {
-            ...state,
-            ticks: state.ticks + 1,
-            showConnectivityGraph: false
-        };
-    case 'setReviewCount':
-        return {
-            ...state,
-            ticks: state.ticks + 1,
-            srReviewCount: action.srReviewCount
-        };
-
     case 'invalidateGraph': {
         let newState = {
             ...state,

@@ -34,7 +34,7 @@ import RollableSection from '/js/components/RollableSection.js';
 export default function SectionGraph({ depth }) {
     const [state] = useStateValue();
 
-    if (state.showConnectivityGraph && state.sigs.deckManagerState.value.deck) {
+    if (state.sigs.showConnectivityGraph.value && state.sigs.deckManagerState.value.deck) {
         let deck = state.sigs.deckManagerState.value.deck;
         const okToShowGraph = (deck.notes && deck.notes.length > 0) || deck.backrefs;
         const heading = (deck.title) ? `Connectivity Graph` : '';

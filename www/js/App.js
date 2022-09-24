@@ -64,7 +64,7 @@ function TopBarMenu(props) {
                         </${Link}>
                     </div>`)}
                 <div id="top-menu-sr">
-                    <${Link} class='pigment-inherit' href='/sr'>SR(${state.srReviewCount})</${Link}>
+                    <${Link} class='pigment-inherit' href='/sr'>SR(${state.sigs.srReviewCount.value})</${Link}>
                 </div>
                 <div>
                     <${Link} class='pigment-inherit' href=${ loggedLink() }>${ loggedStatus() }</${Link}>

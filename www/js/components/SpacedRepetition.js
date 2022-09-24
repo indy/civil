@@ -1,5 +1,6 @@
 import { html, useState, useEffect, Link } from '/lib/preact/mod.js';
 
+import { sc_setReviewCount } from '/js/AppState.js';
 import Net from '/js/Net.js';
 import { plural, formattedDate, formattedTime } from '/js/JsUtils.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
@@ -85,7 +86,7 @@ function reducer(state, action) {
 
         const {
             rating,
-            globalDispatch
+            appState
         } = action.data;
 
         // if the rating had to be sent to the server, it's been sent, so now we can prevent any further posts
@@ -111,10 +112,7 @@ function reducer(state, action) {
                 mode = MODE_POST_TEST;
             }
 
-            globalDispatch({
-                type: 'setReviewCount',
-                srReviewCount: cards.length
-            });
+            sc_setReviewCount(appState, cards.length);
         }
 
         let newState = {
@@ -169,7 +167,7 @@ export default function SpacedRepetition(props) {
         }
         localDispatch(CARD_COMPLETED, {
             rating: rating,
-            globalDispatch: dispatch // the local logic decides if the global review count should be changed
+            appState: state
         });
     }
 

@@ -3,6 +3,8 @@ import {
     basicUI,
     bookmarkUrl,
     cleanUI,
+    sc_connectivityGraphHide,
+    sc_connectivityGraphShow,
     sc_showAddPointForm,
     sc_showNoteForm,
     scratchListAddMulti,
@@ -573,8 +575,8 @@ function executeCommand(text, appState, appDispatch) {
     case "uic": { cleanUI(appState); return true; }
     case "uib": { basicUI(appState); return true; }
     case "b": { bookmarkUrl(appState); return true; }
-    case "g": return dispatchMessage('connectivityGraphShow');
-    case "h": return dispatchMessage('connectivityGraphHide');
+    case "g": { sc_connectivityGraphShow(appState); return true; }
+    case "h": { sc_connectivityGraphHide(appState); return true; }
     }
 
     return false;
