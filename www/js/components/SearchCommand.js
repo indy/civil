@@ -3,6 +3,7 @@ import {
     basicUI,
     bookmarkUrl,
     cleanUI,
+    sc_showAddPointForm,
     scratchListAddMulti,
     scratchListRemove,
     scratchListToggle
@@ -515,10 +516,10 @@ function allCommands() {
         {command: ':r', description: "goto random quote"},
         {command: ':s', description: "goto spaced repetition"},
         {spacer: true},
-        {command: ':n',  description: "show add-note form"},
-        {command: ':nr', description: "show add-note form for review section"},
-        {command: ':ns', description: "show add-note form for summary section"},
-        {command: ':p',  description: "show point form"},
+        {command: ':fn',  description: "show add-note form"},
+        {command: ':fnr', description: "show add-note form for review section"},
+        {command: ':fns', description: "show add-note form for summary section"},
+        {command: ':fp',  description: "show point form"},
         {spacer: true},
         {command: ':b', description: "bookmark current page to scratchlist"},
         {command: ':uic', description: "clean ui"},
@@ -559,10 +560,10 @@ function executeCommand(text, appState, appDispatch) {
     case "a": return routeOrCreate('articles', rest);
     case "t": return routeOrCreate('timelines', rest);
     case "q": return routeOrCreate('quotes', []);
-    case "n": return dispatchMessage('showNoteForm', { noteKind: NOTE_KIND_NOTE });
-    case "nr": return dispatchMessage('showNoteForm', { noteKind: NOTE_KIND_REVIEW });
-    case "ns": return dispatchMessage('showNoteForm', { noteKind: NOTE_KIND_SUMMARY });
-    case "p": return dispatchMessage('showAddPointForm');
+    case "fn": return dispatchMessage('showNoteForm', { noteKind: NOTE_KIND_NOTE });
+    case "fnr": return dispatchMessage('showNoteForm', { noteKind: NOTE_KIND_REVIEW });
+    case "fns": return dispatchMessage('showNoteForm', { noteKind: NOTE_KIND_SUMMARY });
+    case "fp": { sc_showAddPointForm(appState); return true; };
     case "r": {
         Net.get("/api/quotes/random").then(quote => {
             route(`/quotes/${quote.id}`);

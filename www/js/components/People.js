@@ -1,6 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { dmsUpdateDeck, dmsHideForm } from '/js/AppState.js';
+import { dmsUpdateDeck, dmsHideForm, sc_hideAddPointForm, sc_showAddPointForm } from '/js/AppState.js';
 import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import { capitalise } from '/js/JsUtils.js';
 import Net from '/js/Net.js';
@@ -130,7 +130,7 @@ function Person({ id }) {
                                deckManager=${ deckManager }
                                dispatch=${ appDispatch }
                                holderId=${ person.id }
-                               showAddPointForm=${ state.showAddPointForm }
+                               showAddPointForm=${ state.sigs.showAddPointForm.value }
                                holderName=${ person.name }/>`}
         <${SectionGraph} depth=${ 2 } />
     </article>`;
@@ -281,6 +281,8 @@ function PersonDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
 }
 
 function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAddPointForm, dispatch }) {
+    const [state] = useStateValue();
+
     const [onlyThisPerson, setOnlyThisPerson] = useState(false);
     const [showBirthsDeaths, setShowBirthsDeaths] = useState(false);
     const [showDeathForm, setShowDeathForm] = useState(false);
@@ -295,7 +297,7 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAdd
     }
     function onAddPointClicked(e) {
         e.preventDefault();
-        dispatch({type: showAddPointForm ? "hideAddPointForm" : "showAddPointForm"});
+        showAddPointForm ? sc_hideAddPointForm(state) : sc_showAddPointForm(state);
     }
     function onShowDeathFormClicked(e) {
         e.preventDefault();
@@ -304,7 +306,7 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAdd
 
     // called by DeckManager once a point has been successfully created
     function onPointCreated() {
-        dispatch({type: "hideAddPointForm"});
+        sc_hideAddPointForm(state);
     }
 
     function onAddDeathPoint(point) {

@@ -59,6 +59,9 @@ export const initialState = {
 
         verboseUI: signal(true),
 
+        // same for the Add Point form
+        showAddPointForm: signal(false), // todo: why is this in state?, is it because it can be modified from the SearchCommand?
+
         scratchList: signal([]),
         scratchListMinimised: signal(false)
     },
@@ -83,8 +86,8 @@ export const initialState = {
         [NOTE_KIND_SUMMARY]: false,
         [NOTE_KIND_REVIEW]: false
     },
-    // same for the Add Point form
-    showAddPointForm: false,
+    // // same for the Add Point form
+    // showAddPointForm: false,
 
     showConnectivityGraph: false,
     graph: {
@@ -226,6 +229,16 @@ export function basicUI(state) {
     state.sigs.verboseUI.value = true;
 }
 
+export function sc_showAddPointForm(state) {
+    state.sigs.showAddPointForm.value = true;
+    state.sigs.componentRequiresFullKeyboardAccess.value = true;
+}
+
+export function sc_hideAddPointForm(state) {
+    state.sigs.showAddPointForm.value = false;
+    state.sigs.componentRequiresFullKeyboardAccess.value = false;
+}
+
 export const reducer = (state, action) => {
     if (true) {
         console.log(`(${state.ticks}) AppState: ${action.type}`);
@@ -271,22 +284,6 @@ export const reducer = (state, action) => {
         newState.showNoteForm[action.noteKind] = false;
         newState.sigs.componentRequiresFullKeyboardAccess.value = false;
         return newState;
-    }
-    case 'showAddPointForm': {
-        let newState = {
-            ...state,
-            ticks: state.ticks + 1,
-            showAddPointForm: true
-        };
-        newState.sigs.componentRequiresFullKeyboardAccess.value = true;
-    }
-    case 'hideAddPointForm': {
-        let newState = {
-            ...state,
-            ticks: state.ticks + 1,
-            showAddPointForm: false
-        };
-        newState.sigs.componentRequiresFullKeyboardAccess.value = false;
     }
     case 'connectivityGraphShow':
         return {
