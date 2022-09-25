@@ -1,11 +1,7 @@
 import { html, useState, useEffect } from '/lib/preact/mod.js';
 import { AppStateChange } from '/js/AppState.js';
-import { useStateValue } from '/js/StateProvider.js';
 
 export default function CivilTextArea({id, value, elementRef, elementClass, onFocus, onBlur, onInput }) {
-    const state = useStateValue();
-
-
     function onTextAreaFocus() {
         AppStateChange.obtainKeyboard();
         onFocus && onFocus();

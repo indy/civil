@@ -1,21 +1,16 @@
 import { html, useEffect, useState } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
-
-import { useStateValue } from '/js/StateProvider.js';
-import { PointForm, PointBirthForm, PointDeathForm } from '/js/components/PointForm.js';
-
 import { parseDateStringAsTriple, deltaInYears } from '/js/eras.js';
 
+import { PointForm, PointBirthForm, PointDeathForm } from '/js/components/PointForm.js';
 
 const LIFESPAN_STAGE_BIRTH = 0;
 const LIFESPAN_STAGE_IS_ALIVE = 1;
 const LIFESPAN_STAGE_DEATH = 2;
 const LIFESPAN_STAGE_FINISHED = 3;
 
-export default function LifespanForm({ name, onLifespanGiven }) {
-    const state = useStateValue();
-
+export default function LifespanForm({ name, onLifespanGiven, oldestAliveAge }) {
     const [localState, setLocalState] = useState({
         stage: LIFESPAN_STAGE_BIRTH,
         birthPoint: undefined,

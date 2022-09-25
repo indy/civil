@@ -114,7 +114,7 @@ function Person({ id }) {
         <${SectionUpdatePerson}/>
         <${DeleteDeckConfirmation} resource='people' id=${personId}/>
 
-        ${ name && !hasKnownLifespan && html`<${LifespanForm} name=${ name } onLifespanGiven=${ onLifespan }/>` }
+        ${ name && !hasKnownLifespan && html`<${LifespanForm} name=${ name } onLifespanGiven=${ onLifespan } oldestAliveAge=${state.oldestAliveAge}/>` }
 
         <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
 

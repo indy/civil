@@ -34,8 +34,6 @@ const TEXT_AREA_BLURRED = 'text-area-blurred';
 const IMAGE_PASTED = 'image-pasted';
 
 function reducer(state, action) {
-    // const appState = useStateValue();
-
     switch(action.type) {
     case IMAGE_PASTED: {
         const { textAreaRef, markup } = action.data;
