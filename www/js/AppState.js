@@ -167,6 +167,8 @@ export function dmsUpdateDeck(state, deck, resource) {
     }
 
     state.deckManagerState.value = dms;
+
+    window.scrollTo(0, 0);
 }
 
 export function dmsUpdateFormToggle(state) {
