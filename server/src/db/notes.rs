@@ -215,8 +215,7 @@ pub(crate) fn create_notes(
             let last_new_note = &notes[notes.len() - 1];
             update_next_note_id(&tx, last_new_note.id, next_note_id)?;
         } else {
-            error!("neither prev_note_id, nor next_note_id were given to create_notes");
-            error!("{:?}", &note);
+            // this will be the first note of a particular note_kind
         }
 
     }
