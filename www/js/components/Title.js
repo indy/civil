@@ -33,10 +33,10 @@ export default function Title({title}) {
     };
 
     function onShowSummaryButtonClicked(e) {
-        AppStateChange.dmsShowSummaryButtonToggle(!state.deckManagerState.value.showShowSummaryButton);
+        AppStateChange.dmsShowSummaryButtonToggle(!state.deckManagerState.value.displayShowSummaryButton);
     };
     function onShowReviewButtonClicked(e) {
-        AppStateChange.dmsShowReviewButtonToggle(!state.deckManagerState.value.showShowReviewButton);
+        AppStateChange.dmsShowReviewButtonToggle(!state.deckManagerState.value.displayShowReviewButton);
     };
 
     function onDeleteClicked(e) {
@@ -49,13 +49,37 @@ export default function Title({title}) {
     const backgroundBandRef = useRef(null);
 
     function buildControls(mouseHovering) {
-        return html`<div class="note-controls-container">
-                        <${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onRefsClicked } label="[refs]"/>
-                        <${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onEditParentClicked } label="[edit]"/>
-                        <${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onDeleteClicked } label="[delete]"/>
-                        ${ state.deckManagerState.value.showShowSummaryButton && html`<${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onShowSummaryButtonClicked } label="[show summary]"/>`}
-                        ${ state.deckManagerState.value.showShowReviewButton && html`<${DeckControl} onEnter=${mouseEnterChild} onLeave=${mouseLeaveChild} moreVisible=${mouseHovering || mouseHoveringChild} onClick=${ onShowReviewButtonClicked } label="[show review]"/>`}
-                    </div>`;
+        return html`
+            <div class="note-controls-container">
+                <${DeckControl} onEnter=${mouseEnterChild}
+                                onLeave=${mouseLeaveChild}
+                                moreVisible=${mouseHovering || mouseHoveringChild}
+                                onClick=${ onRefsClicked }
+                                label="[refs]"/>
+                <${DeckControl} onEnter=${mouseEnterChild}
+                                onLeave=${mouseLeaveChild}
+                                moreVisible=${mouseHovering || mouseHoveringChild}
+                                onClick=${ onEditParentClicked }
+                                label="[edit]"/>
+                <${DeckControl} onEnter=${mouseEnterChild}
+                                onLeave=${mouseLeaveChild}
+                                moreVisible=${mouseHovering || mouseHoveringChild}
+                                onClick=${ onDeleteClicked }
+                                label="[delete]"/>
+                ${ state.deckManagerState.value.displayShowSummaryButton && html`
+                    <${DeckControl} onEnter=${mouseEnterChild}
+                                    onLeave=${mouseLeaveChild}
+                                    moreVisible=${mouseHovering || mouseHoveringChild}
+                                    onClick=${ onShowSummaryButtonClicked }
+                                    label="[show summary]"/>
+                `}
+                ${ state.deckManagerState.value.displayShowReviewButton && html`
+                    <${DeckControl} onEnter=${mouseEnterChild}
+                                    onLeave=${mouseLeaveChild}
+                                    moreVisible=${mouseHovering || mouseHoveringChild}
+                                    onClick=${ onShowReviewButtonClicked }
+                                    label="[show review]"/>`}
+            </div>`;
     }
 
     useEffect(() => {

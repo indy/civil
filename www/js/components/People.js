@@ -62,8 +62,8 @@ function Person({ id }) {
         id: personId,
         resource: "people",
         preCacheFn: preCacheFn,
-        hasSummarySection: true,
-        hasReviewSection: false
+        canHaveSummarySection: true,
+        canHaveReviewSection: false
     });
 
     useEffect(() => {

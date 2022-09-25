@@ -5,10 +5,10 @@ import Net from '/js/Net.js';
 import { sortByResourceThenName } from '/js/CivilUtils.js';
 import { StateContext, useStateValue } from '/js/StateProvider.js';
 
-import { NoteManager, NOTE_KIND_NOTE } from '/js/components/NoteSection.js';
+import { NoteManager, NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW } from '/js/components/NoteSection.js';
 import { PointForm } from '/js/components/PointForm.js';
 
-export default function DeckManager({ id, resource, preCacheFn, hasSummarySection, hasReviewSection }) {
+export default function DeckManager({ id, resource, preCacheFn, canHaveSummarySection, canHaveReviewSection }) {
     const state = useStateValue();
 
     useEffect(() => {
@@ -17,6 +17,8 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
         Net.get(url).then(deck => {
             if (deck) {
                 AppStateChange.dmsUpdateDeck(preCacheFn(deck), resource);
+                AppStateChange.dmsCanHaveSummarySection(canHaveSummarySection);
+                AppStateChange.dmsCanHaveReviewSection(canHaveReviewSection);
             } else {
                 console.error(`error: fetchDeck for ${url}`);
             }

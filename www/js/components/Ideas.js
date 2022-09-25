@@ -61,8 +61,8 @@ function Idea({ id }) {
         id: ideaId,
         resource: "ideas",
         preCacheFn: preCacheFn,
-        hasSummarySection: false,
-        hasReviewSection: false
+        canHaveSummarySection: false,
+        canHaveReviewSection: false
     });
 
     return html`

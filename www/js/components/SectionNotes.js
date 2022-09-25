@@ -15,7 +15,7 @@ export default function SectionNotes({ onRefsChanged, title, preCacheFn, resourc
 
     return html`
     <div>
-        ${ deck && dms.hasSummarySection && html`
+        ${ deck && dms.canHaveSummarySection && html`
             <${NoteSection} heading='Summary'
                             noteKind=${ NOTE_KIND_SUMMARY }
                             howToShow=${ howToShowNoteSection(NOTE_KIND_SUMMARY, dms) }
@@ -25,7 +25,7 @@ export default function SectionNotes({ onRefsChanged, title, preCacheFn, resourc
                             preCacheFn=${preCacheFn}
                             resource=${resource}
                             noappend=${noappend } />`}
-        ${ deck && dms.hasReviewSection && html`
+        ${ deck && dms.canHaveReviewSection && html`
             <${NoteSection} heading='Review'
                             noteKind=${ NOTE_KIND_REVIEW }
                             howToShow=${ howToShowNoteSection(NOTE_KIND_REVIEW, dms) }
@@ -50,16 +50,16 @@ export default function SectionNotes({ onRefsChanged, title, preCacheFn, resourc
 
 function howToShowNoteSection(noteKind, deckManagerState) {
     if (noteKind === NOTE_KIND_SUMMARY) {
-        if (deckManagerState.hasSummarySection) {
-            return deckManagerState.showShowSummaryButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
+        if (deckManagerState.canHaveSummarySection) {
+            return deckManagerState.displayShowSummaryButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
         } else {
             return NOTE_SECTION_HIDE;
         }
     }
 
     if (noteKind === NOTE_KIND_REVIEW) {
-        if (deckManagerState.hasReviewSection) {
-            return deckManagerState.showShowReviewButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
+        if (deckManagerState.canHaveReviewSection) {
+            return deckManagerState.displayShowReviewButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
         } else {
             return NOTE_SECTION_HIDE;
         }
@@ -67,10 +67,10 @@ function howToShowNoteSection(noteKind, deckManagerState) {
 
     if (noteKind === NOTE_KIND_NOTE) {
         var r = NOTE_SECTION_EXCLUSIVE;
-        if (deckManagerState.hasSummarySection && !deckManagerState.showShowSummaryButton) {
+        if (deckManagerState.canHaveSummarySection && !deckManagerState.displayShowSummaryButton) {
             r = NOTE_SECTION_SHOW;
         }
-        if (deckManagerState.hasReviewSection && !deckManagerState.showShowReviewButton) {
+        if (deckManagerState.canHaveReviewSection && !deckManagerState.displayShowReviewButton) {
             r = NOTE_SECTION_SHOW;
         }
         return r;

@@ -51,8 +51,8 @@ function Article({ id }) {
         id: articleId,
         resource: "articles",
         preCacheFn: preCacheFn,
-        hasSummarySection: true,
-        hasReviewSection: true
+        canHaveSummarySection: true,
+        canHaveReviewSection: true
     });
 
     let shortDescription = !!state.deckManagerState.value.deck && state.deckManagerState.value.deck.shortDescription;

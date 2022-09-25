@@ -145,18 +145,31 @@ export const AppStateChange = {
         let dms = { ...state.deckManagerState.value };
         dms.deck = deck;
 
-        if (deck.noteSeqs) {
-            if (dms.hasSummarySection) {
-                dms.showShowSummaryButton = deck.noteSeqs.noteSummary.length > 0;
-            }
-            if (dms.hasReviewSection) {
-                dms.showShowReviewButton = deck.noteSeqs.noteReview.length > 0;
-            }
-        }
-
         state.deckManagerState.value = dms;
 
         window.scrollTo(0, 0);
+    },
+
+    dmsCanHaveSummarySection: function(canHave) {
+        let dms = {...state.deckManagerState.value};
+        dms.canHaveSummarySection = canHave;
+
+        if (canHave) {
+            dms.displayShowSummaryButton = !dms.deck.notes.some(n => n.kind === NOTE_KIND_SUMMARY);
+        }
+
+        state.deckManagerState.value = dms;
+    },
+
+    dmsCanHaveReviewSection: function(canHave) {
+        let dms = {...state.deckManagerState.value};
+        dms.canHaveReviewSection = canHave;
+
+        if (canHave) {
+            dms.displayShowReviewButton = !dms.deck.notes.some(n => n.kind === NOTE_KIND_REVIEW);
+        }
+
+        state.deckManagerState.value = dms;
     },
 
     dmsUpdateFormToggle: function() {
@@ -200,7 +213,7 @@ export const AppStateChange = {
             console.log("dmsShowSummaryButtonToggle");
         }
         let dms = { ...state.deckManagerState.value };
-        dms.showShowSummaryButton = isToggled;
+        dms.displayShowSummaryButton = isToggled;
         state.deckManagerState.value = dms;
     },
 
@@ -209,7 +222,7 @@ export const AppStateChange = {
             console.log("dmsShowReviewButtonToggle");
         }
         let dms = { ...state.deckManagerState.value };
-        dms.showShowReviewButton = isToggled;
+        dms.displayShowReviewButton = isToggled;
         state.deckManagerState.value = dms;
     },
 
@@ -485,10 +498,10 @@ function cleanDeckManagerState() {
         showUpdateForm: false,
         showDelete: false,
         isEditingDeckRefs: false,
-        hasSummarySection: false,
-        hasReviewSection: false,
-        showShowSummaryButton: false,
-        showShowReviewButton: false
+        canHaveSummarySection: false,
+        canHaveReviewSection: false,
+        displayShowSummaryButton: false,
+        displayShowReviewButton: false
     }
     return res;
 }

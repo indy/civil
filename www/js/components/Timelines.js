@@ -43,8 +43,8 @@ function Timeline({ id }) {
         id: timelineId,
         resource: "timelines",
         preCacheFn: preCacheFn,
-        hasSummarySection: true,
-        hasReviewSection: false
+        canHaveSummarySection: true,
+        canHaveReviewSection: false
     });
 
     let timeline = state.deckManagerState.value.deck;

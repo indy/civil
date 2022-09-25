@@ -168,8 +168,8 @@ function Quote({ id }) {
         id: quoteId,
         resource: "quotes",
         preCacheFn: preCacheFn,
-        hasSummarySection: false,
-        hasReviewSection: false
+        canHaveSummarySection: false,
+        canHaveReviewSection: false
     });
 
     useEffect(() => {
