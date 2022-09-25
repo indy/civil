@@ -48,7 +48,7 @@ function TopBarMenu(props) {
     }
 
     function clickedTopLevel(deckKind) {
-        AppStateChange.setUrlName(deckKind);
+        AppStateChange.urlName(deckKind);
     }
 
     if (state.verboseUI.value) {

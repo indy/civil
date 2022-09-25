@@ -94,7 +94,7 @@ export const initialState = state;
 const DEBUG_APP_STATE = false;
 
 export const AppStateChange = {
-    setUrlName: function(name) {
+    urlName: function(name) {
         if (DEBUG_APP_STATE) {
             console.log("setUrlName");
         }
