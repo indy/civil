@@ -1,6 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { dmsUpdateDeck, dmsHideForm } from '/js/AppState.js';
+import { AppStateChange } from '/js/AppState.js';
 
 import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import { capitalise, removeEmptyStrings, formattedDate } from '/js/JsUtils.js';
@@ -181,12 +181,12 @@ function SectionUpdateArticle() {
         const resource = 'articles';
 
         Net.put(`/api/${ resource }/${ article.id }`, data).then(newDeck => {
-            dmsUpdateDeck(state, newDeck, 'articles');
-            dmsHideForm(state);
+            AppStateChange.dmsUpdateDeck(newDeck, 'articles');
+            AppStateChange.dmsHideForm();
 
             // fetch the listing incase editing the article has changed it's star rating or annotation
             //
-            fetchDeckListing(state, resource, '/api/articles/listings');
+            fetchDeckListing(resource, '/api/articles/listings');
         });
 
         event.preventDefault();

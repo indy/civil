@@ -1,5 +1,5 @@
 import { render } from '/lib/preact/mod.js';
-import { initialState, sc_uberSetup } from '/js/AppState.js';
+import { AppStateChange, initialState } from '/js/AppState.js';
 import Net from '/js/Net.js';
 import { App } from '/js/App.js';
 import { buildColourConversionFn, declareCssVariables, augmentSettingsWithCssModifierParameters } from '/js/ColourCreator.js';
@@ -71,7 +71,7 @@ wasm_bindgen('/civil_wasm_bg.wasm')
                 state.user.value = user;
 
                 Net.get("/api/ubersetup").then(uber => {
-                    sc_uberSetup(state, uber);
+                    AppStateChange.uberSetup(uber);
                 });
             }
             render(App(state), document.getElementById('root'));

@@ -1,5 +1,5 @@
 import { h, html, useState, useEffect, useRef } from '/lib/preact/mod.js';
-import { sc_setRecentImages } from '/js/AppState.js';
+import { AppStateChange } from '/js/AppState.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { svgX, svgImage } from '/js/svgIcons.js';
 
@@ -55,7 +55,7 @@ export default function ImageWidget({ onPaste }) {
             fetch("/api/upload", options).then(resp => {
                 // fetch the most recent uploads
                 Net.get("/api/upload").then(recentImages => {
-                    sc_setRecentImages(state, recentImages);
+                    AppStateChange.setRecentImages(recentImages);
                 });
             });
         }

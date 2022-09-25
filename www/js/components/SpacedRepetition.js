@@ -1,6 +1,6 @@
 import { html, useState, useEffect, Link } from '/lib/preact/mod.js';
 
-import { sc_setReviewCount } from '/js/AppState.js';
+import { AppStateChange } from '/js/AppState.js';
 import Net from '/js/Net.js';
 import { plural, formattedDate, formattedTime } from '/js/JsUtils.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
@@ -112,7 +112,7 @@ function reducer(state, action) {
                 mode = MODE_POST_TEST;
             }
 
-            sc_setReviewCount(appState, cards.length);
+            AppStateChange.setReviewCount(cards.length);
         }
 
         let newState = {

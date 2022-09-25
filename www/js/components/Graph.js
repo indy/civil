@@ -1,5 +1,5 @@
 import { createRef, html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
-import { sc_loadGraph } from '/js/AppState.js';
+import { AppStateChange } from '/js/AppState.js';
 import { opposingKind } from '/js/JsUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { svgTickedCheckBox, svgUntickedCheckBox, svgChevronLeft, svgChevronRight } from '/js/svgIcons.js';
@@ -16,7 +16,7 @@ const ExpandedState_None = 2;
 async function loadFullGraph(state, dispatch) {
     let graph = await Net.get("/api/graph");
 
-    sc_loadGraph(state, graph.graphNodes, graph.graphConnections);
+    AppStateChange.loadGraph(graph.graphNodes, graph.graphConnections);
 }
 
 export default function Graph({ id, depth }) {

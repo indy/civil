@@ -1,6 +1,6 @@
 import { html, useRef, useEffect, useState, route } from '/lib/preact/mod.js';
 
-import { dmsUpdateFormToggle, dmsDeleteToggle, dmsRefsToggle, dmsShowSummaryButtonToggle, dmsShowReviewButtonToggle } from '/js/AppState.js';
+import { AppStateChange } from '/js/AppState.js';
 import { useStateValue } from '/js/StateProvider.js';
 
 export default function Title({title}) {
@@ -25,22 +25,22 @@ export default function Title({title}) {
     }
 
     function onRefsClicked(e) {
-        dmsRefsToggle(state);
+        AppStateChange.dmsRefsToggle();
     };
 
     function onEditParentClicked(e) {
-        dmsUpdateFormToggle(state);
+        AppStateChange.dmsUpdateFormToggle();
     };
 
     function onShowSummaryButtonClicked(e) {
-        dmsShowSummaryButtonToggle(state, !state.deckManagerState.value.showShowSummaryButton);
+        AppStateChange.dmsShowSummaryButtonToggle(!state.deckManagerState.value.showShowSummaryButton);
     };
     function onShowReviewButtonClicked(e) {
-        dmsShowReviewButtonToggle(state, !state.deckManagerState.value.showShowReviewButton);
+        AppStateChange.dmsShowReviewButtonToggle(!state.deckManagerState.value.showShowReviewButton);
     };
 
     function onDeleteClicked(e) {
-        dmsDeleteToggle(state);
+        AppStateChange.dmsDeleteToggle();
     }
 
     const preMarkerRef = useRef(null); // an element on the page, when it's offscreen apply title-sticky to the h1

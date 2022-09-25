@@ -2,7 +2,7 @@ import { html, route } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { useStateValue } from '/js/StateProvider.js';
-import { sc_deleteDeck } from '/js/AppState.js';
+import { AppStateChange } from '/js/AppState.js';
 
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 
@@ -12,7 +12,7 @@ export default function DeleteDeckConfirmation({ resource, id }) {
     function confirmedDeleteClicked() {
         Net.delete(`/api/${resource}/${id}`).then(() => {
             // remove the resource from the app state
-            sc_deleteDeck(state, id);
+            AppStateChange.deleteDeck(id);
             route(`/${resource}`, true);
         });
     }

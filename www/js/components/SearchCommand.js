@@ -1,16 +1,5 @@
 import { html, route, Link, useState, useEffect, useRef } from '/lib/preact/mod.js';
-import {
-    basicUI,
-    bookmarkUrl,
-    cleanUI,
-    sc_connectivityGraphHide,
-    sc_connectivityGraphShow,
-    sc_showAddPointForm,
-    sc_showNoteForm,
-    scratchListAddMulti,
-    scratchListRemove,
-    scratchListToggle
-} from '/js/AppState.js';
+import { AppStateChange } from '/js/AppState.js';
 import { svgX, svgChevronDown, svgChevronUp } from '/js/svgIcons.js';
 import { useStateValue } from '/js/StateProvider.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
@@ -57,8 +46,7 @@ function reducer(state, action) {
     switch(action.type) {
     case CLICKED_COMMAND: {
         const command = action.data.entry.command;
-        const appState = action.data.appState;
-        const success = executeCommand(command, appState);
+        const success = executeCommand(command);
         if (success) {
             let newState = cleanState(state);
             return newState;
@@ -94,9 +82,7 @@ function reducer(state, action) {
         }
 
         if (state.mode === MODE_COMMAND) {
-            const appState = action.data.appState;
-
-            const success = executeCommand(state.text, appState);
+            const success = executeCommand(state.text);
             if (success) {
                 let newState = cleanState(state);
                 return newState;
@@ -291,7 +277,7 @@ export default function SearchCommand() {
             localDispatch(KEY_DOWN_COLON, { searchCommandRef, appState: state});
         }
         if (e.key === "Enter") {
-            localDispatch(KEY_DOWN_ENTER, { appState: state });
+            localDispatch(KEY_DOWN_ENTER);
         }
         if (e.ctrlKey) {
             localDispatch(KEY_DOWN_CTRL);
@@ -376,7 +362,7 @@ export default function SearchCommand() {
     function buildCommandEntry(entry, i) {
 
         function clickedCommand(e) {
-            localDispatch(CLICKED_COMMAND, { entry, appState: state });
+            localDispatch(CLICKED_COMMAND, { entry });
         }
 
         if (entry.spacer) {
@@ -528,7 +514,7 @@ function allCommands() {
     ];
 }
 
-function executeCommand(text, appState) {
+function executeCommand(text) {
     const commandPlusArgs = text.slice(1).split(" ").filter(s => s.length > 0);
     if (commandPlusArgs.length === 0) {
         return;
@@ -541,7 +527,7 @@ function executeCommand(text, appState) {
         if (argString.length === 0) {
             route(`/${kind}`);
         } else {
-            createDeck(appState, kind, argString);
+            createDeck(kind, argString);
         }
 
         return true;
@@ -553,10 +539,10 @@ function executeCommand(text, appState) {
     case "a": return routeOrCreate('articles', rest);
     case "t": return routeOrCreate('timelines', rest);
     case "q": return routeOrCreate('quotes', []);
-    case "fn": { sc_showNoteForm(appState, NOTE_KIND_NOTE); return true; };
-    case "fnr": { sc_showNoteForm(appState, NOTE_KIND_REVIEW); return true; };
-    case "fns": { sc_showNoteForm(appState, NOTE_KIND_SUMMARY); return true; };
-    case "fp": { sc_showAddPointForm(appState); return true; };
+    case "fn": { AppStateChange.showNoteForm(NOTE_KIND_NOTE); return true; };
+    case "fnr": { AppStateChange.showNoteForm(NOTE_KIND_REVIEW); return true; };
+    case "fns": { AppStateChange.showNoteForm(NOTE_KIND_SUMMARY); return true; };
+    case "fp": { AppStateChange.showAddPointForm(); return true; };
     case "r": {
         Net.get("/api/quotes/random").then(quote => {
             route(`/quotes/${quote.id}`);
@@ -564,11 +550,11 @@ function executeCommand(text, appState) {
         return true;
     }
     case "s": route('/sr'); return true;
-    case "uic": { cleanUI(appState); return true; }
-    case "uib": { basicUI(appState); return true; }
-    case "b": { bookmarkUrl(appState); return true; }
-    case "g": { sc_connectivityGraphShow(appState); return true; }
-    case "h": { sc_connectivityGraphHide(appState); return true; }
+    case "uic": { AppStateChange.cleanUI(); return true; }
+    case "uib": { AppStateChange.basicUI(); return true; }
+    case "b": { AppStateChange.bookmarkUrl(); return true; }
+    case "g": { AppStateChange.connectivityGraphShow(); return true; }
+    case "h": { AppStateChange.connectivityGraphHide(); return true; }
     }
 
     return false;

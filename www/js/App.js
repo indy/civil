@@ -1,4 +1,4 @@
-import { initialState, setUrlName, routeChanged, sc_uberSetup } from '/js/AppState.js';
+import { AppStateChange, initialState } from '/js/AppState.js';
 import { capitalise } from '/js/JsUtils.js';
 
 import { html, Router, Route, Link, route, useEffect } from '/lib/preact/mod.js';
@@ -48,7 +48,7 @@ function TopBarMenu(props) {
     }
 
     function clickedTopLevel(deckKind) {
-        setUrlName(state, deckKind);
+        AppStateChange.setUrlName(deckKind);
     }
 
     if (state.verboseUI.value) {
@@ -83,7 +83,7 @@ function AppUI(props) {
         state.user.value = user;
 
         Net.get("/api/ubersetup").then(uber => {
-            sc_uberSetup(state, uber);
+            AppStateChange.uberSetup(uber);
             route('/', true);
         });
     }
@@ -91,7 +91,7 @@ function AppUI(props) {
     function handleRoute(e) {
         if (e.url !== '/login') {
             if (state.preferredOrder.some(p => e.url === `/${p}`)) {
-                routeChanged(state, e.url);
+                AppStateChange.routeChanged(e.url);
             }
 
             // all other pages require the user to be logged in

@@ -1,5 +1,5 @@
 import { html, useState, useEffect } from '/lib/preact/mod.js';
-import { obtainKeyboard, relinquishKeyboard } from '/js/AppState.js';
+import { AppStateChange } from '/js/AppState.js';
 import { useStateValue } from '/js/StateProvider.js';
 
 export default function CivilTextArea({id, value, elementRef, elementClass, onFocus, onBlur, onInput }) {
@@ -7,12 +7,12 @@ export default function CivilTextArea({id, value, elementRef, elementClass, onFo
 
 
     function onTextAreaFocus() {
-        obtainKeyboard(state);
+        AppStateChange.obtainKeyboard();
         onFocus && onFocus();
     }
 
     function onTextAreaBlur() {
-        relinquishKeyboard(state);
+        AppStateChange.relinquishKeyboard();
         onBlur && onBlur();
     }
 

@@ -1,6 +1,6 @@
 import { html,  useState, useEffect, useRef } from '/lib/preact/mod.js';
 
-import { dmsUpdateDeck, sc_hideNoteForm, sc_showNoteForm } from '/js/AppState.js';
+import { AppStateChange } from '/js/AppState.js';
 import Net from '/js/Net.js';
 import { svgEdit, svgX } from '/js/svgIcons.js';
 import { useStateValue } from '/js/StateProvider.js';
@@ -59,7 +59,7 @@ function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optio
 
         modifyFn(notes, index);
 
-        dmsUpdateDeck(state, preCacheFn({...deck, notes}), resource);
+        AppStateChange.dmsUpdateDeck(preCacheFn({...deck, notes}), resource);
     };
 
     function onEditedNote(id, data) {
@@ -69,7 +69,7 @@ function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optio
     };
 
     function onDeleteNote(noteId, allNotes) {
-        dmsUpdateDeck(state, preCacheFn({...deck, notes: allNotes}), resource);
+        AppStateChange.dmsUpdateDeck(preCacheFn({...deck, notes: allNotes}), resource);
     };
 
     function buildNoteComponent(note) {
@@ -86,7 +86,7 @@ function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optio
 
     function buildNoteForm() {
         function onCancelAddNote(e) {
-            sc_hideNoteForm(state, noteKind);
+            AppStateChange.hideNoteForm(noteKind);
             e.preventDefault();
         };
 
@@ -113,8 +113,8 @@ function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optio
 
             addNote(state.wasmInterface, markup, deck.id, prevNoteId, nextNoteId, noteKind, optionalDeckPoint && optionalDeckPoint.id)
                 .then(allNotes => {
-                    dmsUpdateDeck(state, preCacheFn({...deck, notes: allNotes}), resource);
-                    sc_hideNoteForm(state, noteKind);
+                    AppStateChange.dmsUpdateDeck(preCacheFn({...deck, notes: allNotes}), resource);
+                    AppStateChange.hideNoteForm(noteKind);
                 })
                 .catch(error => console.error(error.message));
         };
@@ -124,7 +124,7 @@ function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optio
 
     function buildNoteFormIcon() {
         function onAddNoteClicked(e) {
-            sc_showNoteForm(state, noteKind);
+            AppStateChange.showNoteForm(noteKind);
             e.preventDefault();
         };
 

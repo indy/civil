@@ -1,6 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { dmsUpdateDeck, dmsHideForm, sc_hideAddPointForm, sc_showAddPointForm } from '/js/AppState.js';
+import { AppStateChange } from '/js/AppState.js';
 import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import Net from '/js/Net.js';
 import { addChronologicalSortYear } from '/js/eras.js';
@@ -119,13 +119,13 @@ function SectionUpdateTimeline() {
 
         // edit an existing timeline
         Net.put(`/api/timelines/${timeline.id}`, data).then(newDeck => {
-            dmsUpdateDeck(state, newDeck, 'timelines');
-            dmsHideForm(state);
+            AppStateChange.dmsUpdateDeck(newDeck, 'timelines');
+            AppStateChange.dmsHideForm();
 
             // fetch the listing incase editing the article has changed it's star rating or annotation
             //
             let resource = 'timelines';
-            fetchDeckListing(state, resource, '/api/timelines/listings');
+            fetchDeckListing(resource, '/api/timelines/listings');
         });
 
         e.preventDefault();
@@ -172,12 +172,12 @@ function ListPoints({ points, deckManager, holderId, holderName, showAddPointFor
 
     function onAddPointClicked(e) {
         e.preventDefault();
-        showAddPointForm ? sc_hideAddPointForm(state) : sc_showAddPointForm(state);
+        showAddPointForm ? AppStateChange.hideAddPointForm() : AppStateChange.showAddPointForm();
     }
 
     // called by DeckManager once a point has been successfully created
     function onPointCreated() {
-        sc_hideAddPointForm(state);
+        AppStateChange.hideAddPointForm();
     }
 
     let arr = points || [];

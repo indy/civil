@@ -1,6 +1,6 @@
 import { h, html, Link, useState, useEffect, useRef } from '/lib/preact/mod.js';
 
-import { sc_noteRefsModified } from '/js/AppState.js';
+import { AppStateChange } from '/js/AppState.js';
 import { svgFlashCard } from '/js/svgIcons.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
@@ -137,7 +137,7 @@ function reducer(state, action) {
         }
     case ADD_DECKS_COMMIT: {
         const { appState, changes, allDecksForNote } = action.data;
-        sc_noteRefsModified(appState, allDecksForNote, changes);
+        AppStateChange.noteRefsModified(allDecksForNote, changes);
 
         return {
             ...state,

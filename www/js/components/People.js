@@ -1,6 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { dmsUpdateDeck, dmsHideForm, sc_hideAddPointForm, sc_showAddPointForm, sc_updatePeopleListing } from '/js/AppState.js';
+import { AppStateChange } from '/js/AppState.js';
 import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import { capitalise } from '/js/JsUtils.js';
 import Net from '/js/Net.js';
@@ -73,11 +73,11 @@ function Person({ id }) {
     }, [id]);
 
     function dispatchUpdatedPerson(person) {
-        // todo: how does this work? won't the fetchDeckListing overwrite the categorisation that sc_updatePeopleListing does?
+        // todo: how does this work? won't the fetchDeckListing overwrite the categorisation that updatePeopleListing does?
 
-        sc_updatePeopleListing(state, preCacheFn(person));
+        AppStateChange.updatePeopleListing(preCacheFn(person));
         // also update the people list now that this person is no longer uncategorised
-        fetchDeckListing(state, 'people');
+        fetchDeckListing('people');
     }
 
     function onLifespan(birthPoint, deathPoint) {
@@ -215,8 +215,8 @@ function SectionUpdatePerson() {
 
         // edit an existing person
         Net.put(`/api/people/${person.id}`, data).then(newDeck => {
-            dmsUpdateDeck(state, newDeck, 'people');
-            dmsHideForm(state);
+            AppStateChange.dmsUpdateDeck(newDeck, 'people');
+            AppStateChange.dmsHideForm();
         });
 
         e.preventDefault();
@@ -294,7 +294,7 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAdd
     }
     function onAddPointClicked(e) {
         e.preventDefault();
-        showAddPointForm ? sc_hideAddPointForm(state) : sc_showAddPointForm(state);
+        showAddPointForm ? AppStateChange.hideAddPointForm() : AppStateChange.showAddPointForm();
     }
     function onShowDeathFormClicked(e) {
         e.preventDefault();
@@ -303,16 +303,16 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAdd
 
     // called by DeckManager once a point has been successfully created
     function onPointCreated() {
-        sc_hideAddPointForm(state);
+        AppStateChange.hideAddPointForm();
     }
 
     function onAddDeathPoint(point) {
         Net.post(`/api/people/${holderId}/points`, point).then(person => {
             setShowDeathForm(false);
-            sc_updatePeopleListing(state, person);
+            AppStateChange.updatePeopleListing(person);
 
             // also update the people list now that this person is no longer uncategorised
-            fetchDeckListing(state, 'people');
+            fetchDeckListing('people');
         });
     }
 

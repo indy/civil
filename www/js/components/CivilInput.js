@@ -1,5 +1,5 @@
 import { html, useState, useEffect } from '/lib/preact/mod.js';
-import { obtainKeyboard, relinquishKeyboard } from '/js/AppState.js';
+import { AppStateChange } from '/js/AppState.js';
 import { useStateValue } from '/js/StateProvider.js';
 
 export default function CivilInput({id, value, autoComplete, onInput, size, elementClass, readOnly }) {
@@ -14,8 +14,8 @@ export default function CivilInput({id, value, autoComplete, onInput, size, elem
              autoComplete=${autoComplete}
              size=${ size }
              readOnly=${ readOnly }
-             onFocus=${ obtainKeyboard(state) }
-             onBlur=${ relinquishKeyboard(state) }
+             onFocus=${ AppStateChange.obtainKeyboard() }
+             onBlur=${ AppStateChange.relinquishKeyboard() }
              onInput=${ onInput } />
     `;
 }

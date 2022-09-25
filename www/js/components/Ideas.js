@@ -1,6 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { dmsUpdateDeck, dmsHideForm } from '/js/AppState.js';
+import { AppStateChange } from '/js/AppState.js';
 
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
@@ -131,8 +131,8 @@ function SectionUpdateIdea() {
         };
 
         Net.put(`/api/ideas/${idea.id}`, data).then(newDeck => {
-            dmsUpdateDeck(state, newDeck, 'ideas');
-            dmsHideForm(state);
+            AppStateChange.dmsUpdateDeck(newDeck, 'ideas');
+            AppStateChange.dmsHideForm();
         });
 
         event.preventDefault();

@@ -5,7 +5,7 @@ import { sortByResourceThenName } from '/js/CivilUtils.js'; // todo: delete this
 
 import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 
-export const initialState = {
+const state = {
     appName: "Civil",
 
     wasmInterface: undefined,   // initialised in index.js
@@ -89,6 +89,396 @@ export const initialState = {
     srEarliestReviewDate: signal(undefined)
 };
 
+export const initialState = state;
+
+const DEBUG_APP_STATE = false;
+
+export const AppStateChange = {
+    setUrlName: function(name) {
+        if (DEBUG_APP_STATE) {
+            console.log("setUrlName");
+        }
+        _setUrlName(name);
+    },
+
+    routeChanged: function(url) {
+        if (DEBUG_APP_STATE) {
+            console.log("routeChanged");
+        }
+        state.url.value = url;
+        state.deckManagerState.value = cleanDeckManagerState();
+    },
+
+    obtainKeyboard: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("obtainKeyboard");
+        }
+        return function(e) {
+            e.preventDefault();
+            state.componentRequiresFullKeyboardAccess.value = true;
+        }
+    },
+
+    relinquishKeyboard: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("relinquishKeyboard");
+        }
+        return function(e) {
+            e.preventDefault();
+            state.componentRequiresFullKeyboardAccess.value = false;
+        }
+    },
+
+    dmsUpdateDeck: function(deck, resource) {
+        if (DEBUG_APP_STATE) {
+            console.log("dmsUpdateDeck");
+        }
+        // modify the notes received from the server
+        applyDecksAndCardsToNotes(deck);
+        // organise the notes into noteSeqs
+        buildNoteSeqs(deck);
+
+        // todo: maybe move this back into the apps router now that we're using signals
+        _setUrlName(deck.title || deck.name);
+        state.url.value = `/${resource}/${deck.id}`;
+
+        let dms = { ...state.deckManagerState.value };
+        dms.deck = deck;
+
+        if (deck.noteSeqs) {
+            if (dms.hasSummarySection) {
+                dms.showShowSummaryButton = deck.noteSeqs.noteSummary.length > 0;
+            }
+            if (dms.hasReviewSection) {
+                dms.showShowReviewButton = deck.noteSeqs.noteReview.length > 0;
+            }
+        }
+
+        state.deckManagerState.value = dms;
+
+        window.scrollTo(0, 0);
+    },
+
+    dmsUpdateFormToggle: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("dmsUpdateFormToggle");
+        }
+        let dms = { ...state.deckManagerState.value };
+        dms.showUpdateForm = !dms.showUpdateForm;
+        state.deckManagerState.value = dms;
+    },
+
+    dmsDeleteToggle: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("dmsDeleteToggle");
+        }
+        let dms = { ...state.deckManagerState.value };
+        dms.showDelete = !dms.showDelete;
+        state.deckManagerState.value = dms;
+    },
+
+    dmsRefsToggle: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("dmsRefsToggle");
+        }
+        let dms = { ...state.deckManagerState.value };
+        dms.isEditingDeckRefs = !dms.isEditingDeckRefs;
+        state.deckManagerState.value = dms;
+    },
+
+    dmsHideForm: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("dmsHideForm");
+        }
+        let dms = { ...state.deckManagerState.value };
+        dms.showUpdateForm = false;
+        state.deckManagerState.value = dms;
+    },
+
+    dmsShowSummaryButtonToggle: function(isToggled) {
+        if (DEBUG_APP_STATE) {
+            console.log("dmsShowSummaryButtonToggle");
+        }
+        let dms = { ...state.deckManagerState.value };
+        dms.showShowSummaryButton = isToggled;
+        state.deckManagerState.value = dms;
+    },
+
+    dmsShowReviewButtonToggle: function(isToggled) {
+        if (DEBUG_APP_STATE) {
+            console.log("dmsShowReviewButtonToggle");
+        }
+        let dms = { ...state.deckManagerState.value };
+        dms.showShowReviewButton = isToggled;
+        state.deckManagerState.value = dms;
+    },
+
+    scratchListToggle: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("scratchListToggle");
+        }
+        state.scratchListMinimised.value = !state.scratchListMinimised.value;
+    },
+
+    scratchListAddMulti: function(candidates) {
+        if (DEBUG_APP_STATE) {
+            console.log("scratchListAddMulti");
+        }
+        let sl = state.scratchList.value.slice();
+        candidates.forEach(c => {
+            sl.push(c);
+        });
+        state.scratchList.value = sl;
+    },
+
+    scratchListRemove: function(index) {
+        if (DEBUG_APP_STATE) {
+            console.log("scratchListRemove");
+        }
+        let sl = state.scratchList.value.slice();
+        sl.splice(index, 1);
+        state.scratchList.value = sl;
+    },
+
+    bookmarkUrl: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("bookmarkUrl");
+        }
+        let sl = state.scratchList.value.slice();
+        let candidate = parseForScratchList(state.url.value, state.urlName.value);
+
+        sl.push(candidate);
+        state.scratchList.value = sl;
+    },
+
+    cleanUI: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("cleanUI");
+        }
+        state.verboseUI.value = false;
+    },
+
+    basicUI: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("basicUI");
+        }
+        state.verboseUI.value = true;
+    },
+
+    showAddPointForm: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("showAddPointForm");
+        }
+        state.showAddPointForm.value = true;
+        state.componentRequiresFullKeyboardAccess.value = true;
+    },
+
+    hideAddPointForm: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("hideAddPointForm");
+        }
+        state.showAddPointForm.value = false;
+        state.componentRequiresFullKeyboardAccess.value = false;
+    },
+
+    showNoteForm: function(noteKind) {
+        if (DEBUG_APP_STATE) {
+            console.log("showNoteForm");
+        }
+        let snf = {...state.showNoteForm.value};
+        snf[noteKind] = true;
+
+        state.showNoteForm.value = snf;
+        state.componentRequiresFullKeyboardAccess.value = true;
+    },
+
+    hideNoteForm: function(noteKind) {
+        if (DEBUG_APP_STATE) {
+            console.log("hideNoteForm");
+        }
+        let snf = {...state.showNoteForm.value};
+        snf[noteKind] = false;
+
+        state.showNoteForm.value = snf;
+        state.componentRequiresFullKeyboardAccess.value = false;
+    },
+
+    setRecentImages: function(recentImages) {
+        if (DEBUG_APP_STATE) {
+            console.log("setRecentImages");
+        }
+        state.recentImages.value = recentImages;
+    },
+
+    connectivityGraphShow: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("connectivityGraphShow");
+        }
+        state.showConnectivityGraph.value = true;
+    },
+
+    connectivityGraphHide: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("connectivityGraphHide");
+        }
+        state.showConnectivityGraph.value = false;
+    },
+
+    setReviewCount: function(count) {
+        if (DEBUG_APP_STATE) {
+            console.log("setReviewCount");
+        }
+        state.srReviewCount.value = count;
+    },
+
+    loadGraph: function(graphNodes, graphConnections) {
+        if (DEBUG_APP_STATE) {
+            console.log("loadGraph");
+        }
+        let ng = {
+            fullyLoaded: true,
+            decks: graphNodes,
+            links: buildFullGraph(graphConnections),
+            deckIndexFromId: buildDeckIndex(graphNodes)
+        };
+        state.graph.value = ng;
+    },
+
+    invalidateGraph: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("invalidateGraph");
+        }
+        state.graph.value = { fullyLoaded: false };
+    },
+
+    uberSetup: function(uber) {
+        if (DEBUG_APP_STATE) {
+            console.log("uberSetup");
+        }
+        state.graph.value = { fullyLoaded: false };
+        state.recentImages.value = uber.recentImages;
+        state.imageDirectory.value = uber.directory;
+        state.srReviewCount.value = uber.srReviewCount;
+        state.srEarliestReviewDate.value = uber.srEarliestReviewDate;
+    },
+
+    setDeckListing: function(resource, listing) {
+        if (DEBUG_APP_STATE) {
+            console.log("setDeckListing");
+        }
+        let li = {...state.listing.value};
+        li[resource] = listing;
+        state.listing.value = li;
+    },
+
+    updatePeopleListing: function(newPerson) {
+        if (DEBUG_APP_STATE) {
+            console.log("updatePeopleListing");
+        }
+        let li = {...state.listing.value};
+
+        if (li.people) {
+            updateHashOfNames(li.people, newPerson);
+        }
+
+        state.listing.value = li;
+    },
+
+    noteRefsModified: function(allDecksForNote, changes) {
+        if (DEBUG_APP_STATE) {
+            console.log("noteRefsModified");
+        }
+        // update the state.listing with new ideas that were created in action.changes.referencesCreated
+        //
+        function basicNoteFromReference(r) {
+            return {
+                debug: "created by basicNoteFromReference",
+                backnotes: null,
+                backrefs: null,
+                createdId: "",
+                flashcards: null,
+                graphTerminator: false,
+                id: r.id,
+                notes: null,
+                refs: null,
+                title: r.name
+            };
+        };
+
+        if (changes.referencesCreated.length > 0) {
+            let ng = {...state.graph.value, fullLoaded: false };
+            state.graph.value = ng;
+        }
+
+        if (state.listing.value.ideas) {
+            let li = {...state.listing.value};
+
+            changes.referencesCreated.forEach(r => {
+                let newReference = allDecksForNote.find(d => d.name === r.name && d.resource === "ideas");
+                let newBasicNote = basicNoteFromReference(newReference);
+                // update the listing with the new resource
+                li.recent.unshift(newBasicNote);
+                li.unnoted.unshift(newBasicNote);
+            });
+
+            state.listing.value = li;
+        }
+    },
+
+    deleteDeck: function(id) {
+        if (DEBUG_APP_STATE) {
+            console.log("deleteDeck");
+        }
+        let filterFn = d => d.id !== id;
+
+        if (state.graph.value && state.graph.value.decks) {
+            let g = { ...state.graph.value,
+                      decks: state.graph.value.decks.filter(filterFn)};
+            state.graph.value = g;
+        }
+
+        let li = {};
+
+        if (state.listing.value.ideas) {
+            li.ideas = {
+                orphans: state.listing.value.ideas.orphans.filter(filterFn),
+                recent: state.listing.value.ideas.recent.filter(filterFn),
+            };
+        };
+
+        if (state.listing.value.articles) {
+            li.articles = {
+                orphans: state.listing.value.articles.orphans.filter(filterFn),
+                recent: state.listing.value.articles.recent.filter(filterFn),
+                rated: state.listing.value.articles.rated.filter(filterFn),
+            };
+        }
+
+        if (state.listing.value.people) {
+            li.people = state.listing.value.people.filter(filterFn);
+        }
+
+        if (state.listing.value.timelines) {
+            li.timelines = state.listing.value.timelines.filter(filterFn);
+        }
+
+        state.listing.value = li;
+
+        if (state.graph.value.links) {
+            let g = {...state.graph.value};
+            delete g.links[id];
+            state.graph.value = g;
+        }
+
+        state.deckManagerState.value.showDelete = false;
+    }
+}
+
+function _setUrlName(name) {
+    state.urlName.value = name;
+    document.title = `${state.appName}: ${name}`;
+}
+
 function cleanDeckManagerState() {
     let res = {
         deck: undefined,
@@ -101,388 +491,6 @@ function cleanDeckManagerState() {
         showShowReviewButton: false
     }
     return res;
-}
-
-const DEBUG_APP_STATE = false;
-
-export function setUrlName(state, name) {
-    if (DEBUG_APP_STATE) {
-        console.log("setUrlName");
-    }
-    state.urlName.value = name;
-    document.title = `${state.appName}: ${name}`;
-}
-
-export function routeChanged(state, url) {
-    if (DEBUG_APP_STATE) {
-        console.log("routeChanged");
-    }
-    state.url.value = url;
-    state.deckManagerState.value = cleanDeckManagerState();
-}
-
-export function obtainKeyboard(state) {
-    if (DEBUG_APP_STATE) {
-        console.log("obtainKeyboard");
-    }
-    return function(e) {
-        e.preventDefault();
-        state.componentRequiresFullKeyboardAccess.value = true;
-    }
-}
-
-export function relinquishKeyboard(state) {
-    if (DEBUG_APP_STATE) {
-        console.log("relinquishKeyboard");
-    }
-    return function(e) {
-        e.preventDefault();
-        state.componentRequiresFullKeyboardAccess.value = false;
-    }
-}
-
-export function dmsUpdateDeck(state, deck, resource) {
-    if (DEBUG_APP_STATE) {
-        console.log("dmsUpdateDeck");
-    }
-    // modify the notes received from the server
-    applyDecksAndCardsToNotes(deck);
-    // organise the notes into noteSeqs
-    buildNoteSeqs(deck);
-
-    // todo: maybe move this back into the apps router now that we're using signals
-    setUrlName(state, deck.title || deck.name);
-    state.url.value = `/${resource}/${deck.id}`;
-
-    let dms = { ...state.deckManagerState.value };
-    dms.deck = deck;
-
-    if (deck.noteSeqs) {
-        if (dms.hasSummarySection) {
-            dms.showShowSummaryButton = deck.noteSeqs.noteSummary.length > 0;
-        }
-        if (dms.hasReviewSection) {
-            dms.showShowReviewButton = deck.noteSeqs.noteReview.length > 0;
-        }
-    }
-
-    state.deckManagerState.value = dms;
-
-    window.scrollTo(0, 0);
-}
-
-export function dmsUpdateFormToggle(state) {
-    if (DEBUG_APP_STATE) {
-        console.log("dmsUpdateFormToggle");
-    }
-    let dms = { ...state.deckManagerState.value };
-    dms.showUpdateForm = !dms.showUpdateForm;
-    state.deckManagerState.value = dms;
-}
-
-export function dmsDeleteToggle(state) {
-    if (DEBUG_APP_STATE) {
-        console.log("dmsDeleteToggle");
-    }
-    let dms = { ...state.deckManagerState.value };
-    dms.showDelete = !dms.showDelete;
-    state.deckManagerState.value = dms;
-}
-
-export function dmsRefsToggle(state) {
-    if (DEBUG_APP_STATE) {
-        console.log("dmsRefsToggle");
-    }
-    let dms = { ...state.deckManagerState.value };
-    dms.isEditingDeckRefs = !dms.isEditingDeckRefs;
-    state.deckManagerState.value = dms;
-}
-
-export function dmsHideForm(state) {
-    if (DEBUG_APP_STATE) {
-        console.log("dmsHideForm");
-    }
-    let dms = { ...state.deckManagerState.value };
-    dms.showUpdateForm = false;
-    state.deckManagerState.value = dms;
-}
-
-export function dmsShowSummaryButtonToggle(state, isToggled) {
-    if (DEBUG_APP_STATE) {
-        console.log("dmsShowSummaryButtonToggle");
-    }
-    let dms = { ...state.deckManagerState.value };
-    dms.showShowSummaryButton = isToggled;
-    state.deckManagerState.value = dms;
-}
-
-export function dmsShowReviewButtonToggle(state, isToggled) {
-    if (DEBUG_APP_STATE) {
-        console.log("dmsShowReviewButtonToggle");
-    }
-    let dms = { ...state.deckManagerState.value };
-    dms.showShowReviewButton = isToggled;
-    state.deckManagerState.value = dms;
-}
-
-export function scratchListToggle(state) {
-    if (DEBUG_APP_STATE) {
-        console.log("scratchListToggle");
-    }
-    state.scratchListMinimised.value = !state.scratchListMinimised.value;
-}
-
-export function scratchListAddMulti(state, candidates) {
-    if (DEBUG_APP_STATE) {
-        console.log("scratchListAddMulti");
-    }
-    let sl = state.scratchList.value.slice();
-    candidates.forEach(c => {
-        sl.push(c);
-    });
-    state.scratchList.value = sl;
-}
-
-export function scratchListRemove(state, index) {
-    if (DEBUG_APP_STATE) {
-        console.log("scratchListRemove");
-    }
-    let sl = state.scratchList.value.slice();
-    sl.splice(index, 1);
-    state.scratchList.value = sl;
-}
-
-export function bookmarkUrl(state) {
-    if (DEBUG_APP_STATE) {
-        console.log("bookmarkUrl");
-    }
-    let sl = state.scratchList.value.slice();
-    let candidate = parseForScratchList(state.url.value, state.urlName.value);
-
-    sl.push(candidate);
-    state.scratchList.value = sl;
-}
-
-export function cleanUI(state) {
-    if (DEBUG_APP_STATE) {
-        console.log("cleanUI");
-    }
-    state.verboseUI.value = false;
-}
-
-export function basicUI(state) {
-    if (DEBUG_APP_STATE) {
-        console.log("basicUI");
-    }
-    state.verboseUI.value = true;
-}
-
-export function sc_showAddPointForm(state) {
-    if (DEBUG_APP_STATE) {
-        console.log("sc_showAddPointForm");
-    }
-    state.showAddPointForm.value = true;
-    state.componentRequiresFullKeyboardAccess.value = true;
-}
-
-export function sc_hideAddPointForm(state) {
-    if (DEBUG_APP_STATE) {
-        console.log("sc_hideAddPointForm");
-    }
-    state.showAddPointForm.value = false;
-    state.componentRequiresFullKeyboardAccess.value = false;
-}
-
-export function sc_showNoteForm(state, noteKind) {
-    if (DEBUG_APP_STATE) {
-        console.log("sc_showNoteForm");
-    }
-    let snf = {...state.showNoteForm.value};
-    snf[noteKind] = true;
-
-    state.showNoteForm.value = snf;
-    state.componentRequiresFullKeyboardAccess.value = true;
-}
-
-export function sc_hideNoteForm(state, noteKind) {
-    if (DEBUG_APP_STATE) {
-        console.log("sc_hideNoteForm");
-    }
-    let snf = {...state.showNoteForm.value};
-    snf[noteKind] = false;
-
-    state.showNoteForm.value = snf;
-    state.componentRequiresFullKeyboardAccess.value = false;
-}
-
-export function sc_setRecentImages(state, recentImages) {
-    if (DEBUG_APP_STATE) {
-        console.log("sc_setRecentImages");
-    }
-    state.recentImages.value = recentImages;
-}
-
-export function sc_connectivityGraphShow(state) {
-    if (DEBUG_APP_STATE) {
-        console.log("sc_connectivityGraphShow");
-    }
-    state.showConnectivityGraph.value = true;
-}
-
-export function sc_connectivityGraphHide(state) {
-    if (DEBUG_APP_STATE) {
-        console.log("sc_connectivityGraphHide");
-    }
-    state.showConnectivityGraph.value = false;
-}
-
-export function sc_setReviewCount(state, count) {
-    if (DEBUG_APP_STATE) {
-        console.log("sc_setReviewCount");
-    }
-    state.srReviewCount.value = count;
-}
-
-export function sc_loadGraph(state, graphNodes, graphConnections) {
-    if (DEBUG_APP_STATE) {
-        console.log("sc_loadGraph");
-    }
-    let ng = {
-        fullyLoaded: true,
-        decks: graphNodes,
-        links: buildFullGraph(graphConnections),
-        deckIndexFromId: buildDeckIndex(graphNodes)
-    };
-    state.graph.value = ng;
-}
-
-export function sc_invalidateGraph(state) {
-    if (DEBUG_APP_STATE) {
-        console.log("sc_invalidateGraph");
-    }
-    state.graph.value = { fullyLoaded: false };
-}
-
-export function sc_uberSetup(state, uber) {
-    if (DEBUG_APP_STATE) {
-        console.log("sc_uberSetup");
-    }
-    state.graph.value = { fullyLoaded: false };
-    state.recentImages.value = uber.recentImages;
-    state.imageDirectory.value = uber.directory;
-    state.srReviewCount.value = uber.srReviewCount;
-    state.srEarliestReviewDate.value = uber.srEarliestReviewDate;
-}
-
-export function sc_setDeckListing(state, resource, listing) {
-    if (DEBUG_APP_STATE) {
-        console.log("sc_setDeckListing");
-    }
-    let li = {...state.listing.value};
-    li[resource] = listing;
-    state.listing.value = li;
-}
-
-export function sc_updatePeopleListing(state, newPerson) {
-    if (DEBUG_APP_STATE) {
-        console.log("sc_updatePeopleListing");
-    }
-    let li = {...state.listing.value};
-
-    if (li.people) {
-        updateHashOfNames(li.people, newPerson);
-    }
-
-    state.listing.value = li;
-}
-
-export function sc_noteRefsModified(state, allDecksForNote, changes) {
-    if (DEBUG_APP_STATE) {
-        console.log("sc_noteRefsModified");
-    }
-    // update the state.listing with new ideas that were created in action.changes.referencesCreated
-    //
-    function basicNoteFromReference(r) {
-        return {
-            debug: "created by basicNoteFromReference",
-            backnotes: null,
-            backrefs: null,
-            createdId: "",
-            flashcards: null,
-            graphTerminator: false,
-            id: r.id,
-            notes: null,
-            refs: null,
-            title: r.name
-        };
-    };
-
-    if (changes.referencesCreated.length > 0) {
-        let ng = {...state.graph.value, fullLoaded: false };
-        state.graph.value = ng;
-    }
-
-    if (state.listing.value.ideas) {
-        let li = {...state.listing.value};
-
-        changes.referencesCreated.forEach(r => {
-            let newReference = allDecksForNote.find(d => d.name === r.name && d.resource === "ideas");
-            let newBasicNote = basicNoteFromReference(newReference);
-            // update the listing with the new resource
-            li.recent.unshift(newBasicNote);
-            li.unnoted.unshift(newBasicNote);
-        });
-
-        state.listing.value = li;
-    }
-}
-
-export function sc_deleteDeck(state, id) {
-    if (DEBUG_APP_STATE) {
-        console.log("sc_deleteDeck");
-    }
-    let filterFn = d => d.id !== id;
-
-    if (state.graph.value && state.graph.value.decks) {
-        let g = { ...state.graph.value,
-                  decks: state.graph.value.decks.filter(filterFn)};
-        state.graph.value = g;
-    }
-
-    let li = {};
-
-    if (state.listing.value.ideas) {
-        li.ideas = {
-            orphans: state.listing.value.ideas.orphans.filter(filterFn),
-            recent: state.listing.value.ideas.recent.filter(filterFn),
-        };
-    };
-
-    if (state.listing.value.articles) {
-        li.articles = {
-            orphans: state.listing.value.articles.orphans.filter(filterFn),
-            recent: state.listing.value.articles.recent.filter(filterFn),
-            rated: state.listing.value.articles.rated.filter(filterFn),
-        };
-    }
-
-    if (state.listing.value.people) {
-        li.people = state.listing.value.people.filter(filterFn);
-    }
-
-    if (state.listing.value.timelines) {
-        li.timelines = state.listing.value.timelines.filter(filterFn);
-    }
-
-    state.listing.value = li;
-
-    if (state.graph.value.links) {
-        let g = {...state.graph.value};
-        delete g.links[id];
-        state.graph.value = g;
-    }
-
-    state.deckManagerState.value.showDelete = false;
 }
 
 function parseForScratchList(url, urlName) {

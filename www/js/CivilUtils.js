@@ -1,10 +1,10 @@
 import { useEffect, html, route } from '/lib/preact/mod.js';
 
-import { sc_invalidateGraph, sc_setDeckListing } from '/js/AppState.js';
+import { AppStateChange } from '/js/AppState.js';
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
 
-export function createDeck(state, resource, title) {
+export function createDeck(resource, title) {
     // creates a new deck
     const data = {
         title: title
@@ -12,8 +12,8 @@ export function createDeck(state, resource, title) {
 
     Net.post(`/api/${resource}`, data).then(deck => {
         Net.get(`/api/${resource}/listings`).then(listing => {
-            sc_setDeckListing(state, resource, listing);
-            sc_invalidateGraph(state);
+            AppStateChange.setDeckListing(resource, listing);
+            AppStateChange.invalidateGraph();
         });
         route(`/${resource}/${deck.id}`);
     });
@@ -32,14 +32,14 @@ export function ensureListingLoaded(resource, url) {
 
     useEffect(() => {
         if(!state.listing.value[resource]) {
-            fetchDeckListing(state, resource, url);
+            fetchDeckListing(resource, url);
         }
     }, []);
 }
 
-export function fetchDeckListing(state, resource, url) {
+export function fetchDeckListing(resource, url) {
     Net.get(url || `/api/${resource}`).then(listing => {
-        sc_setDeckListing(state, resource, listing);
+        AppStateChange.setDeckListing(resource, listing);
     });
 }
 
