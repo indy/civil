@@ -20,6 +20,7 @@ import DeckManager from '/js/components/DeckManager.js';
 import { DeckSimpleListSection, RatedListSection } from '/js/components/ListSections.js';
 import { StarRatingPartial } from '/js/components/StarRating.js';
 import Title from '/js/components/Title.js';
+import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
 
 function Articles() {
     const state = useStateValue();
@@ -59,7 +60,10 @@ function Article({ id }) {
     return html`
     <article>
         <${ArticleTopMatter} title=${ deckManager.title }/>
-        <${SectionUpdateArticle}/>
+        <${WhenShowUpdateForm}>
+            <${SectionUpdateArticle} article=${ state.deckManagerState.value.deck}/>
+        </${WhenShowUpdateForm}>
+
         <${DeleteDeckConfirmation} resource='articles' id=${articleId}/>
         <${TopScribble} text=${ shortDescription }/>
         <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
@@ -109,11 +113,7 @@ function ArticleTopMatter({ title }) {
     </div>`;
 }
 
-function SectionUpdateArticle() {
-    const state = useStateValue();
-
-    const article = state.deckManagerState.value.deck || {};
-
+function SectionUpdateArticle({article}) {
     const [title, setTitle] = useState(article.title || '');
     const [author, setAuthor] = useState(article.author || '');
     const [source, setSource] = useState(article.source || '');
@@ -191,10 +191,6 @@ function SectionUpdateArticle() {
 
         event.preventDefault();
     };
-
-    if (!state.deckManagerState.value.showUpdateForm) {
-        return html`<div></div>`;
-    }
 
     return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>

@@ -18,6 +18,7 @@ import DeckManager from '/js/components/DeckManager.js';
 import { DeckSimpleList } from '/js/components/ListSections.js';
 import { PointForm } from '/js/components/PointForm.js';
 import Title from '/js/components/Title.js';
+import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
 import WhenVerbose from '/js/components/WhenVerbose.js';
 import { svgPointAdd, svgX, svgCaretRight, svgCaretRightEmpty, svgCaretDown } from '/js/svgIcons.js';
 
@@ -52,7 +53,9 @@ function Timeline({ id }) {
     return html`
     <article>
         <${Title} title=${ deckManager.title }/>
-        <${SectionUpdateTimeline}/>
+        <${WhenShowUpdateForm}>
+            <${SectionUpdateTimeline} timeline=${ state.deckManagerState.value.deck }/>
+        </${WhenShowUpdateForm}>
         <${DeleteDeckConfirmation} resource='timelines' id=${timelineId}/>
         <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
         <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } preCacheFn=${ preCacheFn } resource="timelines" />
@@ -81,11 +84,7 @@ function preCacheFn(timeline) {
     return timeline;
 }
 
-function SectionUpdateTimeline() {
-    const state = useStateValue();
-
-    const timeline = state.deckManagerState.value.deck || {};
-
+function SectionUpdateTimeline({timeline}) {
     const [localState, setLocalState] = useState({
         title: timeline.title || ''
     });
@@ -130,10 +129,6 @@ function SectionUpdateTimeline() {
 
         e.preventDefault();
     };
-
-    if (!state.deckManagerState.value.showUpdateForm) {
-        return html`<div></div>`;
-    }
 
     return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>

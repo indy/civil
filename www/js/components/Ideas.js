@@ -19,6 +19,7 @@ import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBack
 import DeckManager from '/js/components/DeckManager.js';
 import { DeckSimpleListSection } from '/js/components/ListSections.js';
 import Title from '/js/components/Title.js';
+import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
 
 function Ideas() {
     const state = useStateValue();
@@ -42,6 +43,7 @@ function preCacheFn(d) {
 }
 
 function Idea({ id }) {
+    const state = useStateValue();
     const [searchResults, setSearchResults] = useState([]); // an array of backrefs
     const ideaId = parseInt(id, 10);
 
@@ -68,7 +70,9 @@ function Idea({ id }) {
     return html`
     <article>
         <${IdeaTopMatter} title=${deckManager.title}/>
-        <${SectionUpdateIdea}/>
+        <${WhenShowUpdateForm}>
+            <${SectionUpdateIdea} idea=${state.deckManagerState.value.deck}/>
+        </${WhenShowUpdateForm}>
         <${DeleteDeckConfirmation} resource='ideas' id=${ideaId}/>
         <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
 
@@ -97,11 +101,7 @@ function IdeaTopMatter({ title }) {
 }
 
 
-function SectionUpdateIdea() {
-    const state = useStateValue();
-
-    const idea = state.deckManagerState.value.deck || {};
-
+function SectionUpdateIdea({idea}) {
     const [title, setTitle] = useState(idea.title || '');
     const [graphTerminator, setGraphTerminator] = useState(idea.graphTerminator);
 
@@ -142,10 +142,6 @@ function SectionUpdateIdea() {
         if (event.target.id === 'graph-terminator') {
             setGraphTerminator(!graphTerminator);
         }
-    }
-
-    if (!state.deckManagerState.value.showUpdateForm) {
-        return html`<div></div>`;
     }
 
     return html`

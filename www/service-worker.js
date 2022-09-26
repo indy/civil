@@ -81,6 +81,7 @@ var precacheConfig = [
     "/js/components/Stats.js",
     "/js/components/Timelines.js",
     "/js/components/Title.js",
+    "/js/components/WhenShowUpdateForm.js",
     "/js/components/WhenVerbose.js",
 
     "/lib/preact/hooks.mjs",

@@ -31,6 +31,7 @@ import { DeckSimpleListSection } from '/js/components/ListSections.js';
 import { PointForm } from '/js/components/PointForm.js';
 import Title from '/js/components/Title.js';
 import WhenVerbose from '/js/components/WhenVerbose.js';
+import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
 
 function People() {
     const state = useStateValue();
@@ -111,7 +112,9 @@ function Person({ id }) {
     return html`
     <article>
         <${Title} title=${ deckManager.title }/>
-        <${SectionUpdatePerson}/>
+        <${WhenShowUpdateForm}>
+            <${SectionUpdatePerson} person=${state.deckManagerState.value.deck}/>
+        </${WhenShowUpdateForm}>
         <${DeleteDeckConfirmation} resource='people' id=${personId}/>
 
         ${ name && !hasKnownLifespan && html`<${LifespanForm} name=${ name } onLifespanGiven=${ onLifespan } oldestAliveAge=${state.oldestAliveAge}/>` }
@@ -176,12 +179,7 @@ function preCacheFn(person) {
     return person;
 }
 
-function SectionUpdatePerson() {
-    const state = useStateValue();
-
-    const person = state.deckManagerState.value.deck || {};
-
-
+function SectionUpdatePerson({person}) {
     const [localState, setLocalState] = useState({
         name: person.name || ''
     });
@@ -221,10 +219,6 @@ function SectionUpdatePerson() {
 
         e.preventDefault();
     };
-
-    if (!state.deckManagerState.value.showUpdateForm) {
-        return html`<div></div>`;
-    }
 
     return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>
