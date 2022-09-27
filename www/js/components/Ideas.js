@@ -1,6 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { AppStateChange } from '/js/AppState.js';
+import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 
 import { useStateValue } from '/js/StateProvider.js';
 import Net from '/js/Net.js';
@@ -19,6 +19,7 @@ import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBack
 import DeckManager from '/js/components/DeckManager.js';
 import { DeckSimpleListSection } from '/js/components/ListSections.js';
 import Title from '/js/components/Title.js';
+import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
 
 function Ideas() {
@@ -69,13 +70,14 @@ function Idea({ id }) {
 
     return html`
     <article>
+        <${DeluxeToolbar}/>
         <${IdeaTopMatter} title=${deckManager.title}/>
         <${WhenShowUpdateForm}>
+            <${DeleteDeckConfirmation} resource='ideas' id=${ideaId}/>
             <${SectionUpdateIdea} idea=${state.deckManagerState.value.deck}/>
         </${WhenShowUpdateForm}>
-        <${DeleteDeckConfirmation} resource='ideas' id=${ideaId}/>
-        <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
 
+        <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
         <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } preCacheFn=${preCacheFn} resource="ideas"/>
 
         <${SectionBackRefs} deckId=${ ideaId }/>
@@ -133,6 +135,7 @@ function SectionUpdateIdea({idea}) {
         Net.put(`/api/ideas/${idea.id}`, data).then(newDeck => {
             AppStateChange.dmsUpdateDeck(newDeck, 'ideas');
             AppStateChange.dmsHideForm();
+            AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
         });
 
         event.preventDefault();

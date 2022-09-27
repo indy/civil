@@ -1,6 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { AppStateChange } from '/js/AppState.js';
+import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import Net from '/js/Net.js';
 import { addChronologicalSortYear } from '/js/eras.js';
@@ -21,6 +21,7 @@ import Title from '/js/components/Title.js';
 import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
 import WhenVerbose from '/js/components/WhenVerbose.js';
 import { svgPointAdd, svgX, svgCaretRight, svgCaretRightEmpty, svgCaretDown } from '/js/svgIcons.js';
+import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 
 function Timelines() {
     const state = useStateValue();
@@ -52,11 +53,12 @@ function Timeline({ id }) {
 
     return html`
     <article>
+        <${DeluxeToolbar}/>
         <${Title} title=${ deckManager.title }/>
         <${WhenShowUpdateForm}>
+            <${DeleteDeckConfirmation} resource='timelines' id=${timelineId}/>
             <${SectionUpdateTimeline} timeline=${ state.deckManagerState.value.deck }/>
         </${WhenShowUpdateForm}>
-        <${DeleteDeckConfirmation} resource='timelines' id=${timelineId}/>
         <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
         <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } preCacheFn=${ preCacheFn } resource="timelines" />
         <${SectionBackRefs} deckId=${ timelineId }/>
@@ -120,6 +122,7 @@ function SectionUpdateTimeline({timeline}) {
         Net.put(`/api/timelines/${timeline.id}`, data).then(newDeck => {
             AppStateChange.dmsUpdateDeck(newDeck, 'timelines');
             AppStateChange.dmsHideForm();
+            AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
 
             // fetch the listing incase editing the article has changed it's star rating or annotation
             //

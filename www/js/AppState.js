@@ -5,8 +5,17 @@ import { sortByResourceThenName } from '/js/CivilUtils.js'; // todo: delete this
 
 import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 
+export const DELUXE_TOOLBAR_VIEW = 1;
+export const DELUXE_TOOLBAR_EDIT = 2;
+export const DELUXE_TOOLBAR_REFS = 3;
+export const DELUXE_TOOLBAR_SR = 4;
+export const DELUXE_TOOLBAR_ADD_ABOVE = 5;
+export const DELUXE_TOOLBAR_ADD_BELOW = 6;
+
 const state = {
     appName: "Civil",
+
+    toolbarMode: signal(DELUXE_TOOLBAR_VIEW),
 
     wasmInterface: undefined,   // initialised in index.js
     uiColours: {
@@ -94,6 +103,14 @@ export const initialState = state;
 const DEBUG_APP_STATE = false;
 
 export const AppStateChange = {
+
+    toolbarMode: function(newMode) {
+        if (DEBUG_APP_STATE) {
+            console.log("toolbarMode");
+        }
+        state.toolbarMode.value = newMode;
+    },
+
     urlName: function(name) {
         if (DEBUG_APP_STATE) {
             console.log("setUrlName");
@@ -178,15 +195,6 @@ export const AppStateChange = {
         }
         let dms = { ...state.deckManagerState.value };
         dms.showUpdateForm = !dms.showUpdateForm;
-        state.deckManagerState.value = dms;
-    },
-
-    dmsDeleteToggle: function() {
-        if (DEBUG_APP_STATE) {
-            console.log("dmsDeleteToggle");
-        }
-        let dms = { ...state.deckManagerState.value };
-        dms.showDelete = !dms.showDelete;
         state.deckManagerState.value = dms;
     },
 
@@ -482,8 +490,6 @@ export const AppStateChange = {
             delete g.links[id];
             state.graph.value = g;
         }
-
-        state.deckManagerState.value.showDelete = false;
     }
 }
 
@@ -496,7 +502,6 @@ function cleanDeckManagerState() {
     let res = {
         deck: undefined,
         showUpdateForm: false,
-        showDelete: false,
         isEditingDeckRefs: false,
         canHaveSummarySection: false,
         canHaveReviewSection: false,

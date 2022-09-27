@@ -1,6 +1,7 @@
 import { h, html, Link, useState, useEffect, useRef } from '/lib/preact/mod.js';
 
-import { AppStateChange } from '/js/AppState.js';
+import { AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBAR_REFS, DELUXE_TOOLBAR_SR, DELUXE_TOOLBAR_ADD_ABOVE, DELUXE_TOOLBAR_ADD_BELOW } from '/js/AppState.js';
+
 import { svgFlashCard } from '/js/svgIcons.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { useStateValue } from '/js/StateProvider.js';
@@ -128,14 +129,20 @@ function reducer(state, action) {
             addFlashCardUI: showUI
         }
     }
-    case HIDE_ADD_DECKS_UI:
-        return {
+    case HIDE_ADD_DECKS_UI: {
+        const newState = {
             ...state,
             addDeckReferencesUI: false
-        }
+        };
+        AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
+
+        return newState;
+    }
     case ADD_DECKS_COMMIT: {
         const { appState, changes, allDecksForNote } = action.data;
+
         AppStateChange.noteRefsModified(allDecksForNote, changes);
+        AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
 
         return {
             ...state,
@@ -143,11 +150,16 @@ function reducer(state, action) {
             addDeckReferencesUI: false
         }
     }
-    case FLASH_CARD_SAVED:
-        return {
+    case FLASH_CARD_SAVED: {
+        const newState = {
             ...state,
             addFlashCardUI: false,
         }
+
+        AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
+
+        return newState;
+    }
     case TOGGLE_EDITING: {
         const newState = {
             ...state,
@@ -159,6 +171,7 @@ function reducer(state, action) {
             appState.componentRequiresFullKeyboardAccess.value = true;
         } else {
             appState.componentRequiresFullKeyboardAccess.value = false;
+            AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
         }
 
         return newState;
@@ -172,6 +185,7 @@ function reducer(state, action) {
 
         const appState = action.data;
         appState.componentRequiresFullKeyboardAccess.value = false;
+        AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
 
         return newState;
     }
@@ -187,6 +201,7 @@ function reducer(state, action) {
 
         const appState = action.data;
         appState.componentRequiresFullKeyboardAccess.value = false;
+        AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
 
         return newState;
     }
@@ -235,7 +250,6 @@ export default function Note(props) {
         }
     });
 
-
     function handleChangeEvent(event) {
         const target = event.target;
         localDispatch(NOTE_SET_PROPERTY, { name: target.name, value: target.value });
@@ -276,10 +290,12 @@ export default function Note(props) {
     };
 
     function onTextAreaFocus() {
+        console.log("onTextAreaFocus");
         localDispatch(TEXT_AREA_FOCUSED);
     }
 
     function onTextAreaBlur() {
+        console.log("onTextAreaBlur");
         let cursor = textAreaRef.current.selectionStart;
         localDispatch(TEXT_AREA_BLURRED, cursor);
     }
@@ -403,16 +419,42 @@ export default function Note(props) {
         localDispatch(FLASHCARD_HIDE);
     }
 
+    let noteClasses = "note selectable-container";
+    if (local.mouseHovering && state.toolbarMode.value !== DELUXE_TOOLBAR_VIEW) {
+        noteClasses += " selectable-container-hovering";
+    }
+
+    function onNoteClicked(e) {
+        if (state.toolbarMode.value === DELUXE_TOOLBAR_EDIT) {
+            if (!local.isEditingMarkup) {
+                localDispatch(TOGGLE_EDITING, state);
+            }
+            return;
+        }
+        if (state.toolbarMode.value === DELUXE_TOOLBAR_REFS) {
+            if (!local.addDeckReferencesUI) {
+                localDispatch(ADD_DECK_REFERENCES_UI_SHOW, !local.addDeckReferencesUI);
+            }
+            return;
+        }
+        if (state.toolbarMode.value === DELUXE_TOOLBAR_SR) {
+            if (!local.addFlashCardUI) {
+                localDispatch(ADD_FLASH_CARD_UI_SHOW, !local.addFlashCardUI);
+            }
+            return;
+        }
+    }
+
     return html`
-    <div class="note">
+    <div class="${noteClasses}" onClick=${onNoteClicked}>
         ${ !local.isEditingMarkup && buildLeftMarginContent(props.note, localDispatch)}
-        ${  buildControls(props.note, local, localDispatch, state)}
+
         ${  local.isEditingMarkup && buildEditableContent() }
         ${  local.flashcardToShow && html`
             <${FlashCard} flashcard=${local.flashcardToShow} onDelete=${flashCardDeleted}/>`}
         ${ local.addDeckReferencesUI && buildAddDecksUI() }
         ${ !local.isEditingMarkup && html`
-            <div class="note-content" ref=${hoveringRef}>
+            <div class="selectable-content" ref=${hoveringRef}>
                 ${ buildMarkup(local.note.content) }
             </div>`}
         ${ local.addFlashCardUI && buildAddFlashCardUI() }
@@ -447,29 +489,6 @@ function buildLeftMarginContent(note, localDispatch) {
             ${decks}
         </div>`;
     }
-}
-
-function buildControls(note, local, localDispatch, state) {
-    let itemClasses = "note-control-item";
-    if (local.mouseHovering) {
-        itemClasses += " note-control-increased-visibility";
-    }
-
-    function onRefsClicked() {
-        localDispatch(ADD_DECK_REFERENCES_UI_SHOW, !local.addDeckReferencesUI);
-    }
-    function onSRClicked() {
-        localDispatch(ADD_FLASH_CARD_UI_SHOW, !local.addFlashCardUI);
-    }
-    function onEditClicked() {
-        localDispatch(TOGGLE_EDITING, state);
-    };
-
-    return html`<div class="note-controls-container">
-                    <div class="${itemClasses}" onClick=${ onRefsClicked }>[refs]</div>
-                    <div class="${itemClasses}" onClick=${ onEditClicked }>[edit]</div>
-                    <div class="${itemClasses}" onClick=${ onSRClicked }>[sr]</div>
-                </div>`;
 }
 
 function buildNoteReferences(decks) {

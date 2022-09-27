@@ -133,7 +133,7 @@ function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optio
             <${WhenVerbose}>
                 <div class="inline-append-note">
                     <div class="left-margin-inline">
-                        <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
+                        <div class="left-margin-entry-no-note-on-right clickable"  onClick=${ onAddNoteClicked }>
                             ${ svgEdit() }
                             <span class="left-margin-icon-label ui-bold">${ appendLabel }</span>
                         </div>
@@ -145,7 +145,7 @@ function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optio
             <${WhenVerbose}>
                 <div class="append-note">
                     <div class="left-margin">
-                        <div class="left-margin-entry clickable"  onClick=${ onAddNoteClicked }>
+                        <div class="left-margin-entry-no-note-on-right clickable"  onClick=${ onAddNoteClicked }>
                             <span class="left-margin-icon-label ui-bold">${ appendLabel }</span>
                             ${ svgEdit() }
                         </div>

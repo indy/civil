@@ -16,7 +16,7 @@ export default function RollableSection({ heading, children, initiallyRolledUp }
     <section class=${classState}>
         <div>
             <div class="left-margin">
-                <div class="left-margin-entry clickable" onClick=${ onRollClicked }>
+                <div class="left-margin-entry-no-note-on-right clickable" onClick=${ onRollClicked }>
                     ${ icon }
                 </div>
             </div>

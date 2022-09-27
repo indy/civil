@@ -1,6 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { AppStateChange } from '/js/AppState.js';
+import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 
 import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import { capitalise, removeEmptyStrings, formattedDate } from '/js/JsUtils.js';
@@ -21,6 +21,7 @@ import { DeckSimpleListSection, RatedListSection } from '/js/components/ListSect
 import { StarRatingPartial } from '/js/components/StarRating.js';
 import Title from '/js/components/Title.js';
 import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
+import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 
 function Articles() {
     const state = useStateValue();
@@ -56,15 +57,26 @@ function Article({ id }) {
         canHaveReviewSection: true
     });
 
+    function onShowSummaryClicked() {
+        AppStateChange.dmsShowSummaryButtonToggle(!state.deckManagerState.value.displayShowSummaryButton);
+    }
+    function onShowReviewClicked() {
+        AppStateChange.dmsShowReviewButtonToggle(!state.deckManagerState.value.displayShowReviewButton);
+    }
+
     let shortDescription = !!state.deckManagerState.value.deck && state.deckManagerState.value.deck.shortDescription;
     return html`
     <article>
+        <${DeluxeToolbar}/>
         <${ArticleTopMatter} title=${ deckManager.title }/>
         <${WhenShowUpdateForm}>
+            <${DeleteDeckConfirmation} resource='articles' id=${articleId}/>
+            <button onClick=${ onShowSummaryClicked }>Show Summary Section</button>
+            <button onClick=${ onShowReviewClicked }>Show Review Section</button>
             <${SectionUpdateArticle} article=${ state.deckManagerState.value.deck}/>
         </${WhenShowUpdateForm}>
 
-        <${DeleteDeckConfirmation} resource='articles' id=${articleId}/>
+
         <${TopScribble} text=${ shortDescription }/>
         <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
         <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } preCacheFn=${preCacheFn} resource="articles" />
@@ -183,6 +195,7 @@ function SectionUpdateArticle({article}) {
         Net.put(`/api/${ resource }/${ article.id }`, data).then(newDeck => {
             AppStateChange.dmsUpdateDeck(newDeck, 'articles');
             AppStateChange.dmsHideForm();
+            AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
 
             // fetch the listing incase editing the article has changed it's star rating or annotation
             //

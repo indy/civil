@@ -13,6 +13,7 @@ import DeckManager from '/js/components/DeckManager.js';
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 import Note from '/js/components/Note.js';
 import SectionNotes from '/js/components/SectionNotes.js';
+import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 
 const SHOW_ADD_FORM = 'show-add-form';
 const HIDE_ADD_FORM = 'hide-add-form';
@@ -225,6 +226,7 @@ function Quote({ id }) {
 
     return html`
     <article id="quotation-article">
+        <${DeluxeToolbar}/>
         <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } preCacheFn=${preCacheFn} resource="quotes" noappend />
         ${ deck && html`<${Attribution} attribution=${ deck.attribution }
                                         onEdited=${ onEditedAttribute}

@@ -156,8 +156,19 @@ h1 {
   width: var(--block-width);
 }
 
-.deck-title-fade {
-  -webkit-mask-image: -webkit-gradient(linear, left top, right top, from(rgba(0,0,0,0)), to(rgba(0,0,0,1)));
+/*
+  the -2rem margin of .selectable-container is cancelled out by the 1rem
+  border in .selectable-container and the 1rem margin in .selectable-content
+ */
+.selectable-container {
+  border-left: 1rem solid rgba(0.0, 0.0, 0.0, 0.0);
+  margin-left: -2rem;
+}
+.selectable-container-hovering {
+  border-left: 1rem solid var(--scribble-disagree);
+}
+.selectable-content {
+  margin-left: 1rem;
 }
 
 h2 { font-size: 2.2rem; }
@@ -1075,20 +1086,12 @@ section > form { width: var(--block-width); }
   width: var(--block-width);
 }
 
-.note-control-increased-visibility {
-  color: var(--fg-inactive) !important;
+.note-hovering-mark {
+  background: red !important;
+  position: absolute;
+  width: 5rem;
+  height: 5rem;
 }
-.note-control-item {
-  color: rgba(0, 0, 0, 0.00);   /* invisible */
-  width: 10rem;
-}
-
-.note-control-item:hover {
-  color: var(--fg) !important;
-  text-align: left;
-  display: block;
-}
-
 .note p {
   width: var(--block-width);
 }
@@ -1154,13 +1157,18 @@ section > form { width: var(--block-width); }
   cursor: pointer;
 }
 
+.left-margin-entry-no-note-on-right {
+  padding-right: 2rem;
+  padding-bottom: 0.4rem;
+}
+
 .left-margin-entry {
-  padding-right: 3rem;
+  padding-right: 1rem;
   padding-bottom: 0.4rem;
 }
 
 .left-margin-entry-no-wrap {
-  padding-right: 3rem;
+  padding-right: 2rem;
   margin-left: -500rem;
 }
 
@@ -1490,6 +1498,37 @@ input:required {
 
   white-space: nowrap;
 }
+
+.deluxe-toolbar {
+  position: fixed;
+  top: 50%;
+  left: 0;
+  transform: translate(0, -50%);
+  z-index: 10;
+}
+
+.toolbar-item {
+  background: var(--bg2);
+  color: var(--fg1);
+  font-family: Inter;
+  margin-left: 1rem;
+  padding: 0.5rem 1.0rem 0.5rem 0.5rem;
+  border: 5px solid var(--bg);
+}
+
+.toolbar-item-text {
+  vertical-align: super;
+  margin-left: 0.5rem;
+}
+
+.toolbar-item-active:hover {
+  border: 5px solid var(--scribble-disagree);
+}
+
+.toolbar-item-selected {
+  border-left: 5px solid var(--scribble-disagree);
+}
+
 
 
 /* Responsive adjustments

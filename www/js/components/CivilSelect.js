@@ -1,5 +1,6 @@
 import { html, useState, useEffect } from '/lib/preact/mod.js';
 
+import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 import Net from '/js/Net.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { svgCloseShifted } from '/js/svgIcons.js';
@@ -279,10 +280,12 @@ export default function CivilSelect({ parentDeckId, chosen, onFinish }) {
 
 
     function onLocalCancel(e) {
+        AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
         onFinish();
     }
 
     function onLocalCommit(e) {
+        AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
         onFinish({
             referencesUnchanged: local.referencesUnchanged,
             referencesChanged: local.referencesChanged,

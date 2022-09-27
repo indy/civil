@@ -1,6 +1,6 @@
 import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { AppStateChange } from '/js/AppState.js';
+import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import { capitalise } from '/js/JsUtils.js';
 import Net from '/js/Net.js';
@@ -32,6 +32,7 @@ import { PointForm } from '/js/components/PointForm.js';
 import Title from '/js/components/Title.js';
 import WhenVerbose from '/js/components/WhenVerbose.js';
 import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
+import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 
 function People() {
     const state = useStateValue();
@@ -111,11 +112,12 @@ function Person({ id }) {
 
     return html`
     <article>
+        <${DeluxeToolbar}/>
         <${Title} title=${ deckManager.title }/>
         <${WhenShowUpdateForm}>
+            <${DeleteDeckConfirmation} resource='people' id=${personId}/>
             <${SectionUpdatePerson} person=${state.deckManagerState.value.deck}/>
         </${WhenShowUpdateForm}>
-        <${DeleteDeckConfirmation} resource='people' id=${personId}/>
 
         ${ name && !hasKnownLifespan && html`<${LifespanForm} name=${ name } onLifespanGiven=${ onLifespan } oldestAliveAge=${state.oldestAliveAge}/>` }
 
@@ -215,6 +217,7 @@ function SectionUpdatePerson({person}) {
         Net.put(`/api/people/${person.id}`, data).then(newDeck => {
             AppStateChange.dmsUpdateDeck(newDeck, 'people');
             AppStateChange.dmsHideForm();
+            AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
         });
 
         e.preventDefault();

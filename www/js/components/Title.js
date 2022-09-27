@@ -1,6 +1,5 @@
 import { html, useRef, useEffect, useState, route } from '/lib/preact/mod.js';
-
-import { AppStateChange } from '/js/AppState.js';
+import { AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBAR_REFS } from '/js/AppState.js';
 import { useStateValue } from '/js/StateProvider.js';
 
 export default function Title({title}) {
@@ -8,7 +7,6 @@ export default function Title({title}) {
 
     const hoveringRef = useRef(null);
     const [mouseHovering, setMouseHovering] = useState(false);
-    const [mouseHoveringChild, setMouseHoveringChild] = useState(false);
 
     function mouseEnterTitle() {
         setMouseHovering(true);
@@ -17,69 +15,26 @@ export default function Title({title}) {
         setMouseHovering(false);
     }
 
-    function mouseEnterChild() {
-        setMouseHoveringChild(true);
-    }
-    function mouseLeaveChild() {
-        setMouseHoveringChild(false);
-    }
-
-    function onRefsClicked(e) {
-        AppStateChange.dmsRefsToggle();
-    };
-
-    function onEditParentClicked(e) {
-        AppStateChange.dmsUpdateFormToggle();
-    };
-
-    function onShowSummaryButtonClicked(e) {
-        AppStateChange.dmsShowSummaryButtonToggle(!state.deckManagerState.value.displayShowSummaryButton);
-    };
-    function onShowReviewButtonClicked(e) {
-        AppStateChange.dmsShowReviewButtonToggle(!state.deckManagerState.value.displayShowReviewButton);
-    };
-
-    function onDeleteClicked(e) {
-        AppStateChange.dmsDeleteToggle();
-    }
-
     const preMarkerRef = useRef(null); // an element on the page, when it's offscreen apply title-sticky to the h1
     const postMarkerRef = useRef(null); // an element on the page, when it's onscreen remove title-sticky from the h1
     const titleRef = useRef(null);
     const backgroundBandRef = useRef(null);
 
-    function buildControls(mouseHovering) {
-        return html`
-            <div class="note-controls-container">
-                <${DeckControl} onEnter=${mouseEnterChild}
-                                onLeave=${mouseLeaveChild}
-                                moreVisible=${mouseHovering || mouseHoveringChild}
-                                onClick=${ onRefsClicked }
-                                label="[refs]"/>
-                <${DeckControl} onEnter=${mouseEnterChild}
-                                onLeave=${mouseLeaveChild}
-                                moreVisible=${mouseHovering || mouseHoveringChild}
-                                onClick=${ onEditParentClicked }
-                                label="[edit]"/>
-                <${DeckControl} onEnter=${mouseEnterChild}
-                                onLeave=${mouseLeaveChild}
-                                moreVisible=${mouseHovering || mouseHoveringChild}
-                                onClick=${ onDeleteClicked }
-                                label="[delete]"/>
-                ${ state.deckManagerState.value.displayShowSummaryButton && html`
-                    <${DeckControl} onEnter=${mouseEnterChild}
-                                    onLeave=${mouseLeaveChild}
-                                    moreVisible=${mouseHovering || mouseHoveringChild}
-                                    onClick=${ onShowSummaryButtonClicked }
-                                    label="[show summary]"/>
-                `}
-                ${ state.deckManagerState.value.displayShowReviewButton && html`
-                    <${DeckControl} onEnter=${mouseEnterChild}
-                                    onLeave=${mouseLeaveChild}
-                                    moreVisible=${mouseHovering || mouseHoveringChild}
-                                    onClick=${ onShowReviewButtonClicked }
-                                    label="[show review]"/>`}
-            </div>`;
+    function onTitleClicked(e) {
+        if (state.toolbarMode.value === DELUXE_TOOLBAR_EDIT) {
+            if (state.deckManagerState.value.showUpdateForm) {
+                AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW)
+            }
+            AppStateChange.dmsUpdateFormToggle();
+            return;
+        }
+        if (state.toolbarMode.value === DELUXE_TOOLBAR_REFS) {
+            if (state.deckManagerState.value.isEditingDeckRefs) {
+                AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW)
+            }
+            AppStateChange.dmsRefsToggle();
+            return;
+        }
     }
 
     useEffect(() => {
@@ -126,14 +81,20 @@ export default function Title({title}) {
 
     }, []);
 
-    let classes = "deck-title";
-
+    let classes = "deck-title selectable-content";
+    let containerClasses = "selectable-container";
     let titleEl = titleRef.current;
     const classSticky = "title-sticky";
+
     if(titleEl && titleEl.classList.contains(classSticky)) {
-        // don't add the deck-title-fade if the title is sticky
-    } else if (mouseHovering || mouseHoveringChild) {
-        classes += " deck-title-fade";
+        // don't show selectable highlight if the title is sticky
+    } else if (mouseHovering) {
+        // only show as selectable if in edit or refs mode
+        if (state.toolbarMode.value === DELUXE_TOOLBAR_EDIT ||
+            state.toolbarMode.value === DELUXE_TOOLBAR_REFS) {
+            containerClasses += " selectable-container-hovering";
+        }
+
     }
 
     // there are 2 markers: pre and post so that we get a nice effect in both of these scenarios:
@@ -142,43 +103,11 @@ export default function Title({title}) {
     //    the user scrolls up
     return html`
     <div>
-        ${ buildControls(mouseHovering) }
-        <div ref=${ hoveringRef }>
+        <div class=${containerClasses} ref=${ hoveringRef } onClick=${onTitleClicked}>
             <div ref=${ preMarkerRef }></div>
             <div ref=${ backgroundBandRef }></div>
             <h1 ref=${ titleRef } class=${classes}>${ title }</h1>
             <div ref=${ postMarkerRef }></div>
         </div>
     </div>`;
-}
-
-function DeckControl({ moreVisible, onEnter, onLeave, onClick, label}) {
-    let hoveringRef = useRef(null);
-
-    function mouseEnter() {
-        onEnter();
-    }
-    function mouseLeave() {
-        onLeave();
-    }
-
-    useEffect(() => {
-        if (hoveringRef && hoveringRef.current) {
-            hoveringRef.current.addEventListener("mouseenter", mouseEnter, false);
-            hoveringRef.current.addEventListener("mouseleave", mouseLeave, false);
-            return () => {
-                if (hoveringRef && hoveringRef.current) {
-                    hoveringRef.current.removeEventListener("mouseenter", mouseEnter);
-                    hoveringRef.current.removeEventListener("mouseleave", mouseLeave);
-                }
-            }
-        }
-    }, []);
-
-
-    let classes = "note-control-item"
-    if (moreVisible) {
-        classes += " note-control-increased-visibility";
-    }
-    return html`<div ref=${hoveringRef} class=${classes} onClick=${onClick}>${label}</div>`;
 }
