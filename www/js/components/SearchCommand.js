@@ -27,6 +27,149 @@ const KEY_DOWN_KEY = 'key-down-key';
 const KEY_DOWN_PLUS = 'key-down-plus';
 const REMOVE_SAVED_SEARCH_RESULT = 'remove-saved-search-result';
 
+
+// array because ordering is important when printing the commands
+//
+const Commands = [
+    {
+        command: "i",
+        description: "goto ideas or add ",
+        quoteAround: "title",
+        fn: args => {
+            return routeOrCreate('ideas', args);
+        }
+    },
+    {
+        command: 'p',
+        description: "goto people or add ",
+        quoteAround: "name",
+        fn: args => {
+            return routeOrCreate('people', args);
+        }
+    },
+    {
+        command: 'a',
+        description: "goto articles or add ",
+        quoteAround: "title",
+        fn: args => {
+            return routeOrCreate('articles', args);
+        }
+    },
+    {
+        command: 't',
+        description: "goto timelines or add ",
+        quoteAround: "title",
+        fn: args => {
+            return routeOrCreate('timelines', args);
+        }
+
+    },
+    {
+        command: 'q',
+        description: "goto quotes",
+        fn: () => {
+            return routeOrCreate('quotes', []);
+        }
+    },
+    {
+        command: 'r',
+        description: "goto random quote",
+        fn: () => {
+            Net.get("/api/quotes/random").then(quote => {
+                route(`/quotes/${quote.id}`);
+            });
+            return true;
+        }
+    },
+    {
+        command: 's',
+        description: "goto spaced repetition",
+        fn: () => {
+            route('/sr');
+            return true;
+        }
+    },
+    {
+        spacer: true
+    },
+    {
+        command: 'n',
+        description: "show add-note form",
+        fn: () => {
+            AppStateChange.showNoteForm(NOTE_KIND_NOTE);
+            return true;
+        }
+    },
+    {
+        command: 'nr',
+        description: "show add-note form for review section",
+        fn: () => {
+            AppStateChange.showNoteForm(NOTE_KIND_REVIEW);
+            return true;
+        }
+    },
+    {
+        command: 'ns',
+        description: "show add-note form for summary section",
+        fn: () => {
+            AppStateChange.showNoteForm(NOTE_KIND_SUMMARY);
+            return true;
+        }
+    },
+    {
+        command: 'fp',
+        description: "show point form",
+        fn: () => {
+            AppStateChange.showAddPointForm();
+            return true;
+        }
+    },
+    {
+        spacer: true
+    },
+    {
+        command: 'b',
+        description: "bookmark current page to scratchlist",
+        fn: () => {
+            AppStateChange.bookmarkUrl();
+            return true;
+        }
+    },
+    {
+        command: 'uic',
+        description: "clean ui",
+        fn: () => {
+            AppStateChange.cleanUI();
+            return true;
+        }
+    },
+    {
+        command: 'uib',
+        description: "basic ui",
+        fn: () => {
+            AppStateChange.basicUI();
+            return true;
+        }
+    },
+    {
+        command: 'g',
+        description: "show connectivity graph",
+        fn: () => {
+            AppStateChange.connectivityGraphShow()
+            return true;
+        }
+    },
+    {
+        command: 'h',
+        description: "hide connectivity graph",
+        fn: () => {
+            AppStateChange.connectivityGraphHide()
+            return true;
+        }
+    }
+];
+
+
 function debugState(state) {
     console.log(`mode: ${state.mode}, text: "${state.text}"`);
 }
@@ -188,7 +331,7 @@ function reducer(state, action) {
 
         let candidates = state.candidates;
         if (mode === MODE_COMMAND) {
-            candidates = allCommands();
+            candidates = Commands;
         }
         if (mode === MODE_SEARCH && state.mode === MODE_COMMAND) {
             // just changed mode from command to search
@@ -360,17 +503,15 @@ export default function SearchCommand() {
     }
 
     function buildCommandEntry(entry, i) {
-
         function clickedCommand(e) {
             localDispatch(CLICKED_COMMAND, { entry });
         }
-
         if (entry.spacer) {
             return html`<div class="command-entry">-</div>`;
         } else {
             return html`
             <div class="command-entry" onClick=${clickedCommand}>
-                <span class="command-entry-name">${ entry.command }</span>
+                <span class="command-entry-name">:${ entry.command }</span>
                 <span class="command-entry-desc">${ entry.description }
                 ${ entry.quoteAround && html`<span class="command-entry-quote-around">${entry.quoteAround}</span>`}</span>
             </div>`;
@@ -491,27 +632,14 @@ export default function SearchCommand() {
       </div>`;
 }
 
-function allCommands() {
-    return [
-        {command: ':i', description: "goto ideas or add ", quoteAround: "title"},
-        {command: ':p', description: "goto people or add ", quoteAround: "name"},
-        {command: ':a', description: "goto articles or add ", quoteAround: "title"},
-        {command: ':t', description: "goto timelines or add ", quoteAround: "title"},
-        {command: ':q', description: "goto quotes"},
-        {command: ':r', description: "goto random quote"},
-        {command: ':s', description: "goto spaced repetition"},
-        {spacer: true},
-        {command: ':fn',  description: "show add-note form"},
-        {command: ':fnr', description: "show add-note form for review section"},
-        {command: ':fns', description: "show add-note form for summary section"},
-        {command: ':fp',  description: "show point form"},
-        {spacer: true},
-        {command: ':b', description: "bookmark current page to scratchlist"},
-        {command: ':uic', description: "clean ui"},
-        {command: ':uib', description: "basic ui"},
-        {command: ':g', description: "show connectivity graph"},
-        {command: ':h', description: "hide connectivity graph"}
-    ];
+function routeOrCreate(kind, argString) {
+    if (argString.length === 0) {
+        route(`/${kind}`);
+    } else {
+        createDeck(kind, argString);
+    }
+
+    return true;
 }
 
 function executeCommand(text) {
@@ -521,41 +649,11 @@ function executeCommand(text) {
     }
 
     const command = commandPlusArgs[0];
-    const rest = commandPlusArgs.slice(1).join(" ");
 
-    function routeOrCreate(kind, argString) {
-        if (argString.length === 0) {
-            route(`/${kind}`);
-        } else {
-            createDeck(kind, argString);
-        }
-
-        return true;
+    const action = Commands.find(c => c.command === command);
+    if (action) {
+        const rest = commandPlusArgs.slice(1).join(" ");
+        return action.fn(rest);
     }
-
-    switch(command) {
-    case "i": return routeOrCreate('ideas', rest);
-    case "p": return routeOrCreate('people', rest);
-    case "a": return routeOrCreate('articles', rest);
-    case "t": return routeOrCreate('timelines', rest);
-    case "q": return routeOrCreate('quotes', []);
-    case "fn": { AppStateChange.showNoteForm(NOTE_KIND_NOTE); return true; };
-    case "fnr": { AppStateChange.showNoteForm(NOTE_KIND_REVIEW); return true; };
-    case "fns": { AppStateChange.showNoteForm(NOTE_KIND_SUMMARY); return true; };
-    case "fp": { AppStateChange.showAddPointForm(); return true; };
-    case "r": {
-        Net.get("/api/quotes/random").then(quote => {
-            route(`/quotes/${quote.id}`);
-        });
-        return true;
-    }
-    case "s": route('/sr'); return true;
-    case "uic": { AppStateChange.cleanUI(); return true; }
-    case "uib": { AppStateChange.basicUI(); return true; }
-    case "b": { AppStateChange.bookmarkUrl(); return true; }
-    case "g": { AppStateChange.connectivityGraphShow(); return true; }
-    case "h": { AppStateChange.connectivityGraphHide(); return true; }
-    }
-
     return false;
 }
