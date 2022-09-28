@@ -10,6 +10,7 @@ import { NoteSection, NoteManager,
 export default function SectionNotes({ onRefsChanged, title, preCacheFn, resource, noappend }) {
     const state = useStateValue();
 
+    const toolbarMode = state.toolbarMode.value;
     const dms = state.deckManagerState.value;
     const deck = dms.deck;
 
@@ -20,7 +21,7 @@ export default function SectionNotes({ onRefsChanged, title, preCacheFn, resourc
                             noteKind=${ NOTE_KIND_SUMMARY }
                             howToShow=${ howToShowNoteSection(NOTE_KIND_SUMMARY, dms) }
                             deck=${ deck }
-                            toolbarMode=${ state.toolbarMode.value }
+                            toolbarMode=${ toolbarMode }
                             noteSeq=${ deck.noteSeqs.noteSummary }
                             onRefsChanged=${onRefsChanged}
                             preCacheFn=${preCacheFn}
@@ -31,7 +32,7 @@ export default function SectionNotes({ onRefsChanged, title, preCacheFn, resourc
                             noteKind=${ NOTE_KIND_REVIEW }
                             howToShow=${ howToShowNoteSection(NOTE_KIND_REVIEW, dms) }
                             deck=${ deck }
-                            toolbarMode=${ state.toolbarMode.value }
+                            toolbarMode=${ toolbarMode }
                             noteSeq=${ deck.noteSeqs.noteReview }
                             onRefsChanged=${onRefsChanged}
                             preCacheFn=${preCacheFn}
@@ -42,7 +43,7 @@ export default function SectionNotes({ onRefsChanged, title, preCacheFn, resourc
                             noteKind=${ NOTE_KIND_NOTE }
                             howToShow=${ howToShowNoteSection(NOTE_KIND_NOTE, dms) }
                             deck=${ deck }
-                            toolbarMode=${ state.toolbarMode.value }
+                            toolbarMode=${ toolbarMode }
                             noteSeq=${ deck.noteSeqs.note }
                             onRefsChanged=${onRefsChanged}
                             preCacheFn=${preCacheFn}

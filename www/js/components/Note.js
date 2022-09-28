@@ -456,7 +456,7 @@ export default function Note(props) {
             <${FlashCard} flashcard=${local.flashcardToShow} onDelete=${flashCardDeleted}/>`}
         ${ local.addDeckReferencesUI && buildAddDecksUI() }
         ${ !local.isEditingMarkup && html`
-            <div class="selectable-content" ref=${hoveringRef}>
+            <div class="note-content selectable-content" ref=${hoveringRef}>
                 ${ buildMarkup(local.note.content) }
             </div>`}
         ${ local.addFlashCardUI && buildAddFlashCardUI() }

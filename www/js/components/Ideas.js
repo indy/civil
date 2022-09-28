@@ -78,8 +78,10 @@ function Idea({ id }) {
         </${WhenShowUpdateForm}>
 
         <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
-        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } preCacheFn=${preCacheFn} resource="ideas"/>
-
+        <${SectionNotes} resource="ideas"
+                         title=${ deckManager.title }
+                         onRefsChanged=${ deckManager.onRefsChanged }
+                         preCacheFn=${preCacheFn} />
         <${SectionBackRefs} deckId=${ ideaId }/>
         <${SectionSearchResultsBackref} backrefs=${ searchResults }/>
         <${SectionGraph} depth=${ 2 } />
