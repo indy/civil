@@ -20,7 +20,7 @@ const NOTE_KIND_SUMMARY = 'NoteSummary';
 const NOTE_KIND_REVIEW = 'NoteReview';
 const NOTE_KIND_DECKMETA = 'NoteDeckMeta';
 
-function NoteSection({ heading, noteKind, noteSeq, howToShow, deck, onRefsChanged, preCacheFn, resource, noappend }) {
+function NoteSection({ heading, noteKind, noteSeq, howToShow, deck, toolbarMode, onRefsChanged, preCacheFn, resource, noappend }) {
     function noteManager(noteKind) {
         let appendLabel = "Append Note";
         if (noteKind === NOTE_KIND_SUMMARY) {
@@ -31,6 +31,7 @@ function NoteSection({ heading, noteKind, noteSeq, howToShow, deck, onRefsChange
 
         return NoteManager({
             deck,
+            toolbarMode,
             noteSeq,
             preCacheFn,
             resource,
@@ -50,7 +51,7 @@ function NoteSection({ heading, noteKind, noteSeq, howToShow, deck, onRefsChange
     }
 }
 
-function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optionalDeckPoint, appendLabel, noteKind, noappend }) {
+function NoteManager({ deck, toolbarMode, noteSeq, preCacheFn, resource, onRefsChanged, optionalDeckPoint, appendLabel, noteKind, noappend }) {
     const state = useStateValue();
 
     function findNoteWithId(id, modifyFn) {
@@ -77,6 +78,7 @@ function NoteManager({ deck, noteSeq, preCacheFn, resource, onRefsChanged, optio
                <${Note} key=${ note.id }
                         note=${ note }
                         parentDeck=${ deck }
+                        toolbarMode=${ toolbarMode }
                         onDelete=${ onDeleteNote }
                         onEdited=${ onEditedNote }
                         onRefsChanged=${ onRefsChanged }

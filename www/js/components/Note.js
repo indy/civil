@@ -210,6 +210,8 @@ function reducer(state, action) {
     }
 };
 
+
+
 export default function Note(props) {
     const state = useStateValue();
 
@@ -420,7 +422,7 @@ export default function Note(props) {
     }
 
     let noteClasses = "note selectable-container";
-    if (local.mouseHovering && state.toolbarMode.value !== DELUXE_TOOLBAR_VIEW) {
+    if (local.mouseHovering && props.toolbarMode !== DELUXE_TOOLBAR_VIEW) {
         noteClasses += " selectable-container-hovering";
     }
 
