@@ -2,7 +2,6 @@ import { html, useEffect, useContext } from '/lib/preact/mod.js';
 
 import { AppStateChange } from '/js/AppState.js';
 import Net from '/js/Net.js';
-import { sortByResourceThenName } from '/js/CivilUtils.js';
 import { StateContext, useStateValue } from '/js/StateProvider.js';
 
 import { NoteManager, NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW } from '/js/components/NoteSection.js';
@@ -16,7 +15,7 @@ export default function DeckManager({ id, resource, preCacheFn, canHaveSummarySe
         const url = `/api/${resource}/${id}`;
         Net.get(url).then(deck => {
             if (deck) {
-                AppStateChange.dmsUpdateDeck(preCacheFn(deck), resource);
+                AppStateChange.dmsUpdateDeck(preCacheFn(deck), resource, true);
                 AppStateChange.dmsCanHaveSummarySection(canHaveSummarySection);
                 AppStateChange.dmsCanHaveReviewSection(canHaveReviewSection);
             } else {
@@ -34,7 +33,7 @@ export default function DeckManager({ id, resource, preCacheFn, canHaveSummarySe
         function onAddPoint(point) {
             const url = `/api/${resource}/${state.deckManagerState.value.deck.id}/points`;
             Net.post(url, point).then(updatedDeck => {
-                AppStateChange.dmsUpdateDeck(preCacheFn(updatedDeck), resource);
+                AppStateChange.dmsUpdateDeck(preCacheFn(updatedDeck), resource, true);
                 onSuccessCallback();
             });
         };
@@ -50,7 +49,7 @@ export default function DeckManager({ id, resource, preCacheFn, canHaveSummarySe
         modifyFn(notes, index);
 
         let d = { ...deck, notes};
-        AppStateChange.dmsUpdateDeck(preCacheFn(d), resource);
+        AppStateChange.dmsUpdateDeck(preCacheFn(d), resource, true);
     };
 
     function onRefsChanged(note, allDecksForNote) {

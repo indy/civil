@@ -212,7 +212,7 @@ function Quote({ id }) {
             text: note.content, // not really needed, server side only uses title and attribution
             attribution: attribution
         }).then((updatedDeck) => {
-            AppStateChange.dmsUpdateDeck(updatedDeck, 'quotes');
+            AppStateChange.dmsUpdateDeck(updatedDeck, 'quotes', true);
         });
     }
 

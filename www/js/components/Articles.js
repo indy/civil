@@ -193,7 +193,7 @@ function SectionUpdateArticle({article}) {
         const resource = 'articles';
 
         Net.put(`/api/${ resource }/${ article.id }`, data).then(newDeck => {
-            AppStateChange.dmsUpdateDeck(newDeck, 'articles');
+            AppStateChange.dmsUpdateDeck(newDeck, 'articles', true);
             AppStateChange.dmsHideForm();
             AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
 

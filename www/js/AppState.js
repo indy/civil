@@ -1,7 +1,7 @@
 import { signal } from '/lib/preact/mod.js';
 
 import { opposingKind } from '/js/JsUtils.js';
-import { sortByResourceThenName } from '/js/CivilUtils.js'; // todo: delete this import
+import { sortByResourceThenName } from '/js/CivilUtils.js';
 
 import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 
@@ -126,7 +126,15 @@ export const AppStateChange = {
         state.deckManagerState.value = cleanDeckManagerState();
     },
 
-    obtainKeyboard: function() {
+    obtainKeyboard: function(b) {
+        state.componentRequiresFullKeyboardAccess.value = true;
+    },
+
+    relinquishKeyboard: function(b) {
+        state.componentRequiresFullKeyboardAccess.value = true;
+    },
+
+    obtainKeyboardFn: function() {
         if (DEBUG_APP_STATE) {
             console.log("obtainKeyboard");
         }
@@ -136,7 +144,7 @@ export const AppStateChange = {
         }
     },
 
-    relinquishKeyboard: function() {
+    relinquishKeyboardFn: function() {
         if (DEBUG_APP_STATE) {
             console.log("relinquishKeyboard");
         }
@@ -146,7 +154,7 @@ export const AppStateChange = {
         }
     },
 
-    dmsUpdateDeck: function(deck, resource) {
+    dmsUpdateDeck: function(deck, resource, scrollToTop) {
         if (DEBUG_APP_STATE) {
             console.log("dmsUpdateDeck");
         }
@@ -164,7 +172,9 @@ export const AppStateChange = {
 
         state.deckManagerState.value = dms;
 
-        window.scrollTo(0, 0);
+        if (scrollToTop) {
+            window.scrollTo(0, 0);
+        }
     },
 
     dmsCanHaveSummarySection: function(canHave) {
@@ -413,7 +423,6 @@ export const AppStateChange = {
         //
         function basicNoteFromReference(r) {
             return {
-                debug: "created by basicNoteFromReference",
                 backnotes: null,
                 backrefs: null,
                 createdId: "",

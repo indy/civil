@@ -215,7 +215,7 @@ function SectionUpdatePerson({person}) {
 
         // edit an existing person
         Net.put(`/api/people/${person.id}`, data).then(newDeck => {
-            AppStateChange.dmsUpdateDeck(newDeck, 'people');
+            AppStateChange.dmsUpdateDeck(newDeck, 'people', true);
             AppStateChange.dmsHideForm();
             AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
         });

@@ -168,9 +168,9 @@ function reducer(state, action) {
 
         const appState = action.data;
         if (newState.isEditingMarkup) {
-            appState.componentRequiresFullKeyboardAccess.value = true;
+            AppStateChange.obtainKeyboard();
         } else {
-            appState.componentRequiresFullKeyboardAccess.value = false;
+            AppStateChange.relinquishKeyboard();
             AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
         }
 
@@ -184,7 +184,7 @@ function reducer(state, action) {
         };
 
         const appState = action.data;
-        appState.componentRequiresFullKeyboardAccess.value = false;
+        AppStateChange.relinquishKeyboard();
         AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
 
         return newState;
@@ -200,7 +200,7 @@ function reducer(state, action) {
         };
 
         const appState = action.data;
-        appState.componentRequiresFullKeyboardAccess.value = false;
+        AppStateChange.relinquishKeyboard();
         AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
 
         return newState;
@@ -280,11 +280,9 @@ export default function Note(props) {
                 content: local.note.content
             };
 
-            Net.put("/api/notes/" + id.toString(), updatedNote);
-
             // stopped editing and the editable content is different than
             // the original note's text.
-            props.onEdited(id, local.note);
+            props.onEdited(id, updatedNote);
             localDispatch(EDITED_NOTE, state);
         } else {
             localDispatch(TOGGLE_EDITING, state);
@@ -401,7 +399,7 @@ export default function Note(props) {
         let editLabelText = local.isEditingMarkup ? "Save Edits" : "Edit...";
 
         function confirmedDeleteClicked() {
-            onReallyDelete(props.note.id, props.onDelete);
+            props.onDelete(props.note.id);
         }
 
         if (local.isEditingMarkup) {
@@ -463,12 +461,6 @@ export default function Note(props) {
         ${ buildMainButtons() }
     </div>`;
 }
-
-function onReallyDelete(id, onDelete) {
-    Net.delete("/api/notes/" + id.toString()).then(allNotes => {
-        onDelete(id, allNotes);
-    });
-};
 
 function buildLeftMarginContent(note, localDispatch) {
     let decks = undefined;

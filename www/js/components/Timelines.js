@@ -120,7 +120,7 @@ function SectionUpdateTimeline({timeline}) {
 
         // edit an existing timeline
         Net.put(`/api/timelines/${timeline.id}`, data).then(newDeck => {
-            AppStateChange.dmsUpdateDeck(newDeck, 'timelines');
+            AppStateChange.dmsUpdateDeck(newDeck, 'timelines', true);
             AppStateChange.dmsHideForm();
             AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
 

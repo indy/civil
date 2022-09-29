@@ -3,12 +3,12 @@ import { AppStateChange } from '/js/AppState.js';
 
 export default function CivilTextArea({id, value, elementRef, elementClass, onFocus, onBlur, onInput }) {
     function onTextAreaFocus() {
-        AppStateChange.obtainKeyboard();
+        AppStateChange.obtainKeyboardFn();
         onFocus && onFocus();
     }
 
     function onTextAreaBlur() {
-        AppStateChange.relinquishKeyboard();
+        AppStateChange.relinquishKeyboardFn();
         onBlur && onBlur();
     }
 

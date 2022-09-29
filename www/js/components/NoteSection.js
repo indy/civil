@@ -54,23 +54,15 @@ function NoteSection({ heading, noteKind, noteSeq, howToShow, deck, toolbarMode,
 function NoteManager({ deck, toolbarMode, noteSeq, preCacheFn, resource, onRefsChanged, optionalDeckPoint, appendLabel, noteKind, noappend }) {
     const state = useStateValue();
 
-    function findNoteWithId(id, modifyFn) {
-        const notes = deck.notes;
-        const index = notes.findIndex(n => n.id === id);
-
-        modifyFn(notes, index);
-
-        AppStateChange.dmsUpdateDeck(preCacheFn({...deck, notes}), resource);
+    function onEditedNote(id, updatedNote) {
+        Net.put("/api/notes/" + id.toString(), updatedNote);
     };
 
-    function onEditedNote(id, data) {
-        findNoteWithId(id, (notes, index) => {
-            notes[index] = Object.assign(notes[index], data);
+    function onDeleteNote(id) {
+        Net.delete("/api/notes/" + id.toString()).then(allRemainingNotes => {
+            let notes = allRemainingNotes;
+            AppStateChange.dmsUpdateDeck(preCacheFn({...deck, notes}), resource, false);
         });
-    };
-
-    function onDeleteNote(noteId, allNotes) {
-        AppStateChange.dmsUpdateDeck(preCacheFn({...deck, notes: allNotes}), resource);
     };
 
     function buildNoteComponent(note) {
@@ -115,7 +107,7 @@ function NoteManager({ deck, toolbarMode, noteSeq, preCacheFn, resource, onRefsC
 
             addNote(state.wasmInterface, markup, deck.id, prevNoteId, nextNoteId, noteKind, optionalDeckPoint && optionalDeckPoint.id)
                 .then(allNotes => {
-                    AppStateChange.dmsUpdateDeck(preCacheFn({...deck, notes: allNotes}), resource);
+                    AppStateChange.dmsUpdateDeck(preCacheFn({...deck, notes: allNotes}), resource, true);
                     AppStateChange.hideNoteForm(noteKind);
                 })
                 .catch(error => console.error(error.message));

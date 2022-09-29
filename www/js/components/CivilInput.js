@@ -11,8 +11,8 @@ export default function CivilInput({id, value, autoComplete, onInput, size, elem
              autoComplete=${autoComplete}
              size=${ size }
              readOnly=${ readOnly }
-             onFocus=${ AppStateChange.obtainKeyboard() }
-             onBlur=${ AppStateChange.relinquishKeyboard() }
+             onFocus=${ AppStateChange.obtainKeyboardFn() }
+             onBlur=${ AppStateChange.relinquishKeyboardFn() }
              onInput=${ onInput } />
     `;
 }

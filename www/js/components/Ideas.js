@@ -135,7 +135,7 @@ function SectionUpdateIdea({idea}) {
         };
 
         Net.put(`/api/ideas/${idea.id}`, data).then(newDeck => {
-            AppStateChange.dmsUpdateDeck(newDeck, 'ideas');
+            AppStateChange.dmsUpdateDeck(newDeck, 'ideas', true);
             AppStateChange.dmsHideForm();
             AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
         });
