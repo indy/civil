@@ -27,16 +27,8 @@ use std::str::FromStr;
 #[allow(unused_imports)]
 use tracing::info;
 
-#[derive(Debug, Clone)]
-pub struct Card {
-    pub id: Key,
-
-    pub note_id: Key,
-    pub prompt: String,
-}
-
-impl From<(Card, interop_decks::DeckSimple)> for interop::Card {
-    fn from(e: (Card, interop_decks::DeckSimple)) -> interop::Card {
+impl From<(interop::FlashCard, interop_decks::DeckSimple)> for interop::Card {
+    fn from(e: (interop::FlashCard, interop_decks::DeckSimple)) -> interop::Card {
         let (c, backref) = e;
 
         interop::Card {
@@ -75,29 +67,11 @@ pub(crate) fn all_flashcards_for_deck(
                  flashcard_from_row)
 }
 
-fn local_card_from_row(row: &Row) -> Result<Card> {
-    Ok(Card {
-        id: row.get(0)?,
-        note_id: row.get(1)?,
-        prompt: row.get(2)?,
-    })
-}
-
-fn local_decksimple_from_row(row: &Row) -> Result<interop_decks::DeckSimple> {
-    let kind: String = row.get(2)?;
-
-    Ok(interop_decks::DeckSimple {
-        id: row.get(0)?,
-        name: row.get(1)?,
-        resource: interop_decks::DeckKind::from_str(&kind)?,
-    })
-}
-
 pub(crate) fn create_card(
     sqlite_pool: &SqlitePool,
     card: &interop::ProtoCard,
     user_id: Key,
-) -> Result<interop::Card> {
+) -> Result<interop::FlashCard> {
     info!("create_card");
 
     let mut conn = sqlite_pool.get()?;
@@ -107,11 +81,11 @@ pub(crate) fn create_card(
     let inter_repetition_interval: i32 = 1;
     let next_test_date = Utc::now().naive_utc();
 
-    let db_card = sqlite::one(
+    let flashcard = sqlite::one(
         &tx,
         "INSERT INTO cards(user_id, note_id, prompt, next_test_date, easiness_factor, inter_repetition_interval)
          VALUES (?1, ?2, ?3, ?4, ?5, ?6)
-         RETURNING id, note_id, prompt",
+         RETURNING id, note_id, prompt, next_test_date, easiness_factor, inter_repetition_interval",
         params![
             &user_id,
             &card.note_id,
@@ -120,21 +94,12 @@ pub(crate) fn create_card(
             &easiness_factor,
             &inter_repetition_interval,
         ],
-        local_card_from_row,
-    )?;
-
-    let db_backref = sqlite::one(
-        &tx,
-        "SELECT d.id, d.name, d.kind
-         FROM decks d, notes n
-         WHERE d.id = n.deck_id AND n.id = ?1",
-        params![&card.note_id],
-        local_decksimple_from_row,
+        flashcard_from_row,
     )?;
 
     tx.commit()?;
 
-    Ok((db_card, db_backref).into())
+    Ok(flashcard)
 }
 
 pub(crate) fn get_card_full_fat(

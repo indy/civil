@@ -25,6 +25,7 @@ const TOGGLE_EDITING = 'toggle-editing';
 const EDITED_NOTE = 'edited-note';
 const FLASHCARD_TOGGLE = 'flashcard-toggle';
 const FLASHCARD_HIDE = 'flashcard-hide';
+const FLASHCARD_DELETED = 'flashcard-deleted';
 const EDITING_CANCELLED = 'editing-cancelled';
 
 const MOUSE_ENTER = "mouse-enter";
@@ -93,6 +94,17 @@ function reducer(state, action) {
         res.flashcardToShow = undefined;
         return res;
     }
+    case FLASHCARD_DELETED: {
+        let flashcard = action.data;
+        let res = {
+            ...state
+        };
+
+        res.note.flashcards = res.note.flashcards.filter(fc => fc.id !== flashcard.id);
+        res.flashcardToShow = undefined;
+
+        return res;
+    }
     case FLASHCARD_TOGGLE: {
         let res = { ...state };
         let fc = action.data;
@@ -151,9 +163,17 @@ function reducer(state, action) {
         }
     }
     case FLASH_CARD_SAVED: {
+        let flashcard = action.data;
+
         const newState = {
             ...state,
             addFlashCardUI: false,
+        }
+
+        if (newState.note.flashcards) {
+            newState.note.flashcards.push(flashcard)
+        } else {
+            newState.note.flashcards = [flashcard];
         }
 
         AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
@@ -290,12 +310,10 @@ export default function Note(props) {
     };
 
     function onTextAreaFocus() {
-        console.log("onTextAreaFocus");
         localDispatch(TEXT_AREA_FOCUSED);
     }
 
     function onTextAreaBlur() {
-        console.log("onTextAreaBlur");
         let cursor = textAreaRef.current.selectionStart;
         localDispatch(TEXT_AREA_BLURRED, cursor);
     }
@@ -328,8 +346,8 @@ export default function Note(props) {
                 prompt: flashCardPrompt
             };
 
-            Net.post("/api/sr", data).then(res => {
-                localDispatch(FLASH_CARD_SAVED);
+            Net.post("/api/sr", data).then(newFlashcard => {
+                localDispatch(FLASH_CARD_SAVED, newFlashcard);
             });
         }
 
@@ -415,8 +433,8 @@ export default function Note(props) {
         }
     }
 
-    function flashCardDeleted() {
-        localDispatch(FLASHCARD_HIDE);
+    function flashCardDeleted(flashcard) {
+        localDispatch(FLASHCARD_DELETED, flashcard);
     }
 
     let noteClasses = "note selectable-container";
@@ -447,7 +465,7 @@ export default function Note(props) {
 
     return html`
     <div class="${noteClasses}" onClick=${onNoteClicked}>
-        ${ !local.isEditingMarkup && buildLeftMarginContent(props.note, localDispatch)}
+        ${ !local.isEditingMarkup && buildLeftMarginContent(local.note, localDispatch)}
 
         ${  local.isEditingMarkup && buildEditableContent() }
         ${  local.flashcardToShow && html`
@@ -478,9 +496,9 @@ function buildLeftMarginContent(note, localDispatch) {
     } else {
         return html`
         <div class="left-margin">
-            ${flashcards}
+            ${ flashcards }
             ${ decks && flashcards && html`<div class="spacer"></div>`}
-            ${decks}
+            ${ decks }
         </div>`;
     }
 }

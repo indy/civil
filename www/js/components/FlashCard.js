@@ -80,7 +80,7 @@ export default function FlashCard({flashcard, onDelete}) {
         const url = `/api/sr/${local.flashcard.id}`;
         Net.delete(url).then(() => {
             localDispatch(FLASHCARD_DELETED);
-            onDelete();
+            onDelete(flashcard);
         });
     }
 
