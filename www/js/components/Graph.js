@@ -331,7 +331,7 @@ export default function Graph({ id, depth }) {
     return html`
     <div>
         <div class="left-margin">
-            <div class="left-margin-entry clickable" onClick=${ onActivHyperlinksClicked }>
+            <div class="left-margin-entry fadeable clickable" onClick=${ onActivHyperlinksClicked }>
                 <span class="left-margin-icon-label">Active Hyperlinks</span>
                 ${ localState.activeHyperlinks ? svgTickedCheckBox() : svgUntickedCheckBox() }
             </div>

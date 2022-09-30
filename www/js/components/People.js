@@ -357,17 +357,17 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAdd
     <${RollableSection} heading='Points during the life of ${ holderName }'>
         <div class="left-margin">
             ${ !hasDied && html`
-                <div class="left-margin-entry clickable" onClick=${ onShowDeathFormClicked }>
+                <div class="left-margin-entry fadeable clickable" onClick=${ onShowDeathFormClicked }>
                     <span class="left-margin-icon-label">Add Died Point</span>
                     ${ svgPointAdd() }
                 </div>`}
             <${WhenVerbose}>
-                <div class="left-margin-entry clickable" onClick=${ onOnlyThisPersonClicked }>
+                <div class="left-margin-entry fadeable clickable" onClick=${ onOnlyThisPersonClicked }>
                     <span class="left-margin-icon-label">Only ${ holderName }</span>
                     ${ onlyThisPerson ? svgTickedCheckBox() : svgUntickedCheckBox() }
                 </div>
                 ${ !onlyThisPerson && html`
-                    <div class="left-margin-entry clickable" onClick=${ onShowOtherClicked }>
+                    <div class="left-margin-entry fadeable clickable" onClick=${ onShowOtherClicked }>
                         <span class="left-margin-icon-label">Show Other Birth/Deaths</span>
                         ${ showBirthsDeaths ? svgTickedCheckBox() : svgUntickedCheckBox() }
                     </div>`}
@@ -379,7 +379,7 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAdd
         </ul>
         <${WhenVerbose}>
             <div class="left-margin">
-                <div class="left-margin-entry clickable" onClick=${ onAddPointClicked }>
+                <div class="left-margin-entry fadeable clickable" onClick=${ onAddPointClicked }>
                     <span class="left-margin-icon-label">${ formSidebarText }</span>
                     ${ showAddPointForm ? svgX() : svgPointAdd() }
                 </div>

@@ -1153,6 +1153,14 @@ section > form { width: var(--block-width); }
   margin-top: 2rem;
 }
 
+.fadeable {
+  opacity: 0.2;
+  transition: opacity 200ms linear;
+}
+.fadeable:hover {
+  opacity: 1.0;
+}
+
 .clickable {
   cursor: pointer;
 }

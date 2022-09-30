@@ -127,7 +127,7 @@ function NoteManager({ deck, toolbarMode, noteSeq, preCacheFn, resource, onRefsC
             <${WhenVerbose}>
                 <div class="inline-append-note">
                     <div class="left-margin-inline">
-                        <div class="left-margin-entry-no-note-on-right clickable"  onClick=${ onAddNoteClicked }>
+                        <div class="left-margin-entry-no-note-on-right fadeable clickable"  onClick=${ onAddNoteClicked }>
                             ${ svgEdit() }
                             <span class="left-margin-icon-label ui-bold">${ appendLabel }</span>
                         </div>
@@ -139,7 +139,7 @@ function NoteManager({ deck, toolbarMode, noteSeq, preCacheFn, resource, onRefsC
             <${WhenVerbose}>
                 <div class="append-note">
                     <div class="left-margin">
-                        <div class="left-margin-entry-no-note-on-right clickable"  onClick=${ onAddNoteClicked }>
+                        <div class="left-margin-entry-no-note-on-right fadeable clickable"  onClick=${ onAddNoteClicked }>
                             <span class="left-margin-icon-label ui-bold">${ appendLabel }</span>
                             ${ svgEdit() }
                         </div>
@@ -232,7 +232,7 @@ function NoteForm({ onSubmit, onCancel }) {
     return html`
            <div class="append-note">
                <div class="left-margin">
-                   <div class="left-margin-entry clickable cancel-offset" onClick=${ onCancel }>
+                   <div class="left-margin-entry fadeable clickable cancel-offset" onClick=${ onCancel }>
                        <span class="left-margin-icon-label">Cancel</span>
                        ${ svgX() }
                    </div>

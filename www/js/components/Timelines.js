@@ -195,7 +195,7 @@ function ListPoints({ points, deckManager, holderId, holderName, showAddPointFor
         </ul>
         <${WhenVerbose}>
             <div class="left-margin">
-                <div class="left-margin-entry clickable" onClick=${ onAddPointClicked }>
+                <div class="left-margin-entry fadeable clickable" onClick=${ onAddPointClicked }>
                     <span class="left-margin-icon-label">${ formSidebarText }</span>
                     ${ showAddPointForm ? svgX() : svgPointAdd() }
                 </div>
