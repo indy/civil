@@ -41,29 +41,31 @@ export default function DeckManager({ id, resource, preCacheFn, canHaveSummarySe
         return html`<${PointForm} onSubmit=${ onAddPoint } submitMessage="Create Point"/>`;
     };
 
-    function findNoteWithId(id, modifyFn) {
-        const deck = state.deckManagerState.value.deck;
+    function findNoteWithId(deck, id, modifyFn) {
         const notes = deck.notes;
         const index = notes.findIndex(n => n.id === id);
 
         modifyFn(notes, index);
 
         let d = { ...deck, notes};
+
         AppStateChange.dmsUpdateDeck(preCacheFn(d), resource, true);
     };
 
     function onRefsChanged(note, allDecksForNote) {
+        let deck = state.deckManagerState.value.deck;
+
         // have to set deck.refs to be the canonical version
         // (used to populate each note's decks array)
 
         // remove all deck.refs that relate to this note
-        state.deckManagerState.value.deck.refs = state.deckManagerState.value.deck.refs.filter(din => {
+        deck.refs = deck.refs.filter(din => {
             return din.noteId !== note.id;
         });
         // add every note.decks entry to deck.refs
-        allDecksForNote.forEach(d => { state.deckManagerState.value.deck.refs.push(d); });
+        allDecksForNote.forEach(d => { deck.refs.push(d); });
 
-        findNoteWithId(note.id, (notes, index) => {
+        findNoteWithId(deck, note.id, (notes, index) => {
             notes[index] = note;
         });
     };

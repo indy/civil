@@ -463,9 +463,13 @@ export default function Note(props) {
         }
     }
 
+    // NOTE: left margin content has to use props.note rather than local.note
+    // so that it can correctly re-render the note whenever refs are added,
+    // deleted, changed.
+    //
     return html`
     <div class="${noteClasses}" onClick=${onNoteClicked}>
-        ${ !local.isEditingMarkup && buildLeftMarginContent(local.note, localDispatch)}
+        ${ !local.isEditingMarkup && buildLeftMarginContent(props.note, localDispatch)}
 
         ${  local.isEditingMarkup && buildEditableContent() }
         ${  local.flashcardToShow && html`
