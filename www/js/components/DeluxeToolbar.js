@@ -7,8 +7,16 @@ import { useStateValue } from '/js/StateProvider.js';
 import { AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBAR_REFS, DELUXE_TOOLBAR_SR, DELUXE_TOOLBAR_ADD_ABOVE, DELUXE_TOOLBAR_ADD_BELOW } from '/js/AppState.js';
 
 export default function DeluxeToolbar({}) {
+    const state = useStateValue();
+
+    let classes = "deluxe-toolbar";
+
+    if (state.toolbarMode.value === DELUXE_TOOLBAR_VIEW) {
+        classes += " deluxe-toolbar-faded";
+    }
+
     return html`
-    <div class="deluxe-toolbar">
+    <div class=${classes}>
         <${ToolbarItem} toolbarMode=${DELUXE_TOOLBAR_EDIT} toolbarText="Edit">
             ${svgEdit()}
         </${ToolbarItem}>
