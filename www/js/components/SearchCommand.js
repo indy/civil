@@ -306,8 +306,7 @@ function reducer(state, action) {
 
         const newState = { ...state };
         if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
-            const appState = action.data;
-            scratchListAddMulti(appState, newState.candidates);
+            AppStateChange.scratchListAddMulti(newState.candidates);
 
             newState.shiftKey = true;
             newState.keyDownIndex = -1;
@@ -356,8 +355,7 @@ function reducer(state, action) {
                         keyDownIndex: -1
                     };
 
-                    let appState = action.data.appState;
-                    scratchListAddMulti(appState, [candidate]);
+                    AppStateChange.scratchListAddMulti([candidate]);
 
                     return newState;
                 } else {
@@ -383,9 +381,7 @@ function reducer(state, action) {
         const index = action.data.index;
         const newState = {...state};
 
-        const appState = action.data.appState;
-
-        scratchListRemove(appState, index);
+        AppStateChange.scratchListRemove(index);
 
         return newState;
     }
@@ -431,7 +427,7 @@ export default function SearchCommand() {
             localDispatch(KEY_DOWN_KEY, { index: index, shiftKey: e.shiftKey });
         }
         if (e.key === "+") {
-            localDispatch(KEY_DOWN_PLUS, state);
+            localDispatch(KEY_DOWN_PLUS);
         }
     };
 
@@ -454,10 +450,10 @@ export default function SearchCommand() {
         const text = event.target.value;
 
         if (local.mode === MODE_COMMAND) {
-            localDispatch(INPUT_GIVEN, { text, appState: state });
+            localDispatch(INPUT_GIVEN, { text });
         } else if (local.mode === MODE_SEARCH) {
             if (!local.showKeyboardShortcuts) {
-                localDispatch(INPUT_GIVEN, { text, appState: state });
+                localDispatch(INPUT_GIVEN, { text });
                 if (text.length > 0 && !isCommand(text)) {
                     search(text);
                 }
@@ -472,7 +468,7 @@ export default function SearchCommand() {
                 //
                 const displayText = local.shiftKey ? text.slice(0, -1) : text;
 
-                localDispatch(INPUT_GIVEN, { text: displayText, appState: state });
+                localDispatch(INPUT_GIVEN, { text: displayText });
             }
         }
 
@@ -538,7 +534,7 @@ export default function SearchCommand() {
             }
 
             function clickedDelete(e) {
-                localDispatch(REMOVE_SAVED_SEARCH_RESULT, { index: i, appState: state });
+                localDispatch(REMOVE_SAVED_SEARCH_RESULT, { index: i });
             }
 
             return html`
@@ -554,7 +550,7 @@ export default function SearchCommand() {
         }
 
         function clickedToggle(e) {
-            scratchListToggle(state);
+            AppStateChange.scratchListToggle();
         }
 
         const scratchList = state.scratchList.value.map((entry, i) =>
