@@ -1,10 +1,10 @@
 import { html, route, useState } from '/lib/preact/mod.js';
-import { useStateValue } from '/js/StateProvider.js';
+import { useAppState } from '/js/AppStateProvider.js';
 
 import Net from '/js/Net.js';
 
 function Login({ loginCallback}) {
-    const appState = useStateValue();
+    const appState = useAppState();
 
     if (appState.user.value) {
         route('/', true);
@@ -127,12 +127,12 @@ function Login({ loginCallback}) {
 }
 
 function Logout() {
-    const state = useStateValue();
+    const appState = useAppState();
 
     const handleLogout = (event) => {
         Net.delete('api/auth', {}).then(() => {
             //// this isn't logging out the user, refreshing the app logs the user back in
-            state.user.value = undefined;
+            appState.user.value = undefined;
             route('/login', true);
         });
         event.preventDefault();

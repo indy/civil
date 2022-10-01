@@ -4,7 +4,7 @@ import { AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBA
 
 import { svgFlashCard } from '/js/svgIcons.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
-import { useStateValue } from '/js/StateProvider.js';
+import { useAppState } from '/js/AppStateProvider.js';
 import Net from '/js/Net.js';
 
 import CivilSelect from '/js/components/CivilSelect.js';
@@ -160,7 +160,7 @@ function reducer(state, action) {
         return newState;
     }
     case ADD_DECKS_COMMIT: {
-        const { appState, changes, allDecksForNote } = action.data;
+        const { changes, allDecksForNote } = action.data;
 
         AppStateChange.noteRefsModified(allDecksForNote, changes);
         AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
@@ -195,7 +195,6 @@ function reducer(state, action) {
             isEditingMarkup: !state.isEditingMarkup
         };
 
-        const appState = action.data;
         if (newState.isEditingMarkup) {
             AppStateChange.obtainKeyboard();
         } else {
@@ -212,7 +211,6 @@ function reducer(state, action) {
             originalContent: state.note.content
         };
 
-        const appState = action.data;
         AppStateChange.relinquishKeyboard();
         AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
 
@@ -228,7 +226,6 @@ function reducer(state, action) {
             }
         };
 
-        const appState = action.data;
         AppStateChange.relinquishKeyboard();
         AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
 
@@ -240,8 +237,6 @@ function reducer(state, action) {
 };
 
 export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited, onRefsChanged }) {
-    const state = useStateValue();
-
     const initialState = {
         addDeckReferencesUI: false,
         addFlashCardUI: false,
@@ -292,7 +287,7 @@ export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited
 
     function onCancelClicked(e) {
         e.preventDefault();
-        localDispatch(EDITING_CANCELLED, state);
+        localDispatch(EDITING_CANCELLED);
     }
 
     function onSaveEditsClicked(e) {
@@ -316,9 +311,9 @@ export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited
             // stopped editing and the editable content is different than
             // the original note's text.
             onEdited(id, updatedNote);
-            localDispatch(EDITED_NOTE, state);
+            localDispatch(EDITED_NOTE);
         } else {
-            localDispatch(TOGGLE_EDITING, state);
+            localDispatch(TOGGLE_EDITING);
         }
     };
 
@@ -405,7 +400,7 @@ export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited
 
                 Net.post("/api/edges/notes_decks", data).then((allDecksForNote) => {
                     onRefsChanged(note, allDecksForNote);
-                    localDispatch(ADD_DECKS_COMMIT, { allDecksForNote, changes, appState: state });
+                    localDispatch(ADD_DECKS_COMMIT, { allDecksForNote, changes });
                 });
             } else {
                 // cancel was pressed
@@ -452,23 +447,28 @@ export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited
 
     let noteClasses = "note selectable-container";
     if (local.mouseHovering && toolbarMode !== DELUXE_TOOLBAR_VIEW) {
+        console.log("h");
+        console.log(toolbarMode);
         noteClasses += " selectable-container-hovering";
     }
 
+    // has to be outside of the onNoteClicked callback
+    const appState = useAppState();
+
     function onNoteClicked(e) {
-        if (state.toolbarMode.value === DELUXE_TOOLBAR_EDIT) {
+        if (appState.toolbarMode.value === DELUXE_TOOLBAR_EDIT) {
             if (!local.isEditingMarkup) {
-                localDispatch(TOGGLE_EDITING, state);
+                localDispatch(TOGGLE_EDITING);
             }
             return;
         }
-        if (state.toolbarMode.value === DELUXE_TOOLBAR_REFS) {
+        if (appState.toolbarMode.value === DELUXE_TOOLBAR_REFS) {
             if (!local.addDeckReferencesUI) {
                 localDispatch(ADD_DECK_REFERENCES_UI_SHOW, !local.addDeckReferencesUI);
             }
             return;
         }
-        if (state.toolbarMode.value === DELUXE_TOOLBAR_SR) {
+        if (appState.toolbarMode.value === DELUXE_TOOLBAR_SR) {
             if (!local.addFlashCardUI) {
                 localDispatch(ADD_FLASH_CARD_UI_SHOW, !local.addFlashCardUI);
             }

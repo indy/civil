@@ -1,7 +1,7 @@
 import { useEffect, html, route } from '/lib/preact/mod.js';
 
 import { AppStateChange } from '/js/AppState.js';
-import { useStateValue } from '/js/StateProvider.js';
+import { useAppState } from '/js/AppStateProvider.js';
 import Net from '/js/Net.js';
 
 export function createDeck(resource, title) {
@@ -28,10 +28,10 @@ export function indexToShortcut(index) {
 }
 
 export function ensureListingLoaded(resource, url) {
-    const state = useStateValue();
+    const appState = useAppState();
 
     useEffect(() => {
-        if(!state.listing.value[resource]) {
+        if(!appState.listing.value[resource]) {
             fetchDeckListing(resource, url);
         }
     }, []);

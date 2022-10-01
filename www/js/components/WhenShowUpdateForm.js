@@ -1,7 +1,8 @@
 import { html } from '/lib/preact/mod.js';
-import { useStateValue } from '/js/StateProvider.js';
+import { useAppState } from '/js/AppStateProvider.js';
 
 export default function WhenShowUpdateForm({children}) {
-    const state = useStateValue();
-    return html`<div>${state.deckManagerState.value.showUpdateForm && children}</div>`;
+    const appState = useAppState();
+
+    return html`<div>${appState.deckManagerState.value.showUpdateForm && children}</div>`;
 }

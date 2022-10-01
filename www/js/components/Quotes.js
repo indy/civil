@@ -3,7 +3,7 @@ import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 import Net from '/js/Net.js';
 import { capitalise } from '/js/JsUtils.js';
 import { AppStateChange } from '/js/AppState.js';
-import { useStateValue } from '/js/StateProvider.js';
+import { useAppState } from '/js/AppStateProvider.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import buildMarkup from '/js/components/BuildMarkup.js';
 
@@ -160,7 +160,7 @@ function preCacheFn(d) {
 }
 
 function Quote({ id }) {
-    const state = useStateValue();
+    const appState = useAppState();
 
     const quoteId = parseInt(id, 10);
 
@@ -191,7 +191,7 @@ function Quote({ id }) {
     }
 
     function onKeyDown(e) {
-        if (!state.componentRequiresFullKeyboardAccess.value && !state.showingSearchCommand.value) {
+        if (!appState.componentRequiresFullKeyboardAccess.value && !appState.showingSearchCommand.value) {
             if (e.key === 'n') {
                 getQuoteThenRoute(`/api/quotes/${quoteId}/next`);
             } else if (e.key === 'p') {
@@ -203,7 +203,7 @@ function Quote({ id }) {
     };
 
     function onEditedAttribute(attribution) {
-        let quote = state.deckManagerState.value.deck;
+        let quote = appState.deckManagerState.value.deck;
         let note = quote.notes.find(n => n.kind === 'Note');
 
         // as the title could have changed, we need to post the updated quote to the server
@@ -222,7 +222,7 @@ function Quote({ id }) {
         });
     }
 
-    let deck = state.deckManagerState.value.deck;
+    let deck = appState.deckManagerState.value.deck;
 
     return html`
     <article id="quotation-article">

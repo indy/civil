@@ -4,7 +4,7 @@ import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import { capitalise } from '/js/JsUtils.js';
 import Net from '/js/Net.js';
-import { useStateValue } from '/js/StateProvider.js';
+import { useAppState } from '/js/AppStateProvider.js';
 import { addChronologicalSortYear,
          calcAgeInYears,
          dateStringAsTriple } from '/js/eras.js';
@@ -35,12 +35,12 @@ import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
 import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 
 function People() {
-    const state = useStateValue();
+    const appState = useAppState();
     const resource = 'people';
 
     ensureListingLoaded(resource, '/api/people/listings');
 
-    const people = state.listing.value.people || [];
+    const people = appState.listing.value.people || [];
 
     return html`
     <article>
@@ -54,7 +54,7 @@ function People() {
 }
 
 function Person({ id }) {
-    const state = useStateValue();
+    const appState = useAppState();
 
     const [searchResults, setSearchResults] = useState([]); // an array of backrefs
 
@@ -105,10 +105,10 @@ function Person({ id }) {
         return false;
     }
 
-    const hasKnownLifespan = !!state.deckManagerState.value.deck && hasBirthPoint(state.deckManagerState.value.deck);
+    const hasKnownLifespan = !!appState.deckManagerState.value.deck && hasBirthPoint(appState.deckManagerState.value.deck);
 
-    const person = state.deckManagerState.value.deck;
-    const name = state.deckManagerState.value.deck && state.deckManagerState.value.deck.name;
+    const person = appState.deckManagerState.value.deck;
+    const name = appState.deckManagerState.value.deck && appState.deckManagerState.value.deck.name;
 
     return html`
     <article>
@@ -116,10 +116,10 @@ function Person({ id }) {
         <${Title} title=${ deckManager.title }/>
         <${WhenShowUpdateForm}>
             <${DeleteDeckConfirmation} resource='people' id=${personId}/>
-            <${SectionUpdatePerson} person=${state.deckManagerState.value.deck}/>
+            <${SectionUpdatePerson} person=${appState.deckManagerState.value.deck}/>
         </${WhenShowUpdateForm}>
 
-        ${ name && !hasKnownLifespan && html`<${LifespanForm} name=${ name } onLifespanGiven=${ onLifespan } oldestAliveAge=${state.oldestAliveAge}/>` }
+        ${ name && !hasKnownLifespan && html`<${LifespanForm} name=${ name } onLifespanGiven=${ onLifespan } oldestAliveAge=${appState.oldestAliveAge}/>` }
 
         <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
 
@@ -132,7 +132,7 @@ function Person({ id }) {
             <${ListDeckPoints} deckPoints=${ person.allPointsDuringLife }
                                deckManager=${ deckManager }
                                holderId=${ person.id }
-                               showAddPointForm=${ state.showAddPointForm.value }
+                               showAddPointForm=${ appState.showAddPointForm.value }
                                holderName=${ person.name }/>`}
         <${SectionGraph} depth=${ 2 } />
     </article>`;
@@ -275,8 +275,6 @@ function PersonDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
 }
 
 function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAddPointForm }) {
-    const state = useStateValue();
-
     const [onlyThisPerson, setOnlyThisPerson] = useState(false);
     const [showBirthsDeaths, setShowBirthsDeaths] = useState(false);
     const [showDeathForm, setShowDeathForm] = useState(false);

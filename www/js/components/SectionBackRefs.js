@@ -1,6 +1,6 @@
 import { html, useState } from '/lib/preact/mod.js';
 
-import { useStateValue } from '/js/StateProvider.js';
+import { useAppState } from '/js/AppStateProvider.js';
 import { capitalise, nonEmptyArray } from '/js/JsUtils.js';
 import { svgCaretDown, svgCaretRight} from '/js/svgIcons.js';
 
@@ -8,10 +8,10 @@ import RollableSection from '/js/components/RollableSection.js';
 import { ExpandableListingLink } from '/js/components/ListingLink.js';
 
 export default function SectionBackRefs({ deckId }) {
-    const state = useStateValue();
+    const appState = useAppState();
 
-    let backrefs = (state.deckManagerState.value.deck && state.deckManagerState.value.deck.backrefs) || [];
-    let backnotes = (state.deckManagerState.value.deck && state.deckManagerState.value.deck.backnotes) || [];
+    let backrefs = (appState.deckManagerState.value.deck && appState.deckManagerState.value.deck.backrefs) || [];
+    let backnotes = (appState.deckManagerState.value.deck && appState.deckManagerState.value.deck.backnotes) || [];
 
     const sections = [];
     const decks = [];
@@ -102,7 +102,7 @@ export default function SectionBackRefs({ deckId }) {
 
     // render in the preferred order
     //
-    state.preferredOrder.forEach(deckKind => {
+    appState.preferredOrder.forEach(deckKind => {
         if (groupedByResource[deckKind]) {
             sections.push(html`<${SectionLinks} backrefs=${groupedByResource[deckKind]} />`);
         }

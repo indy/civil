@@ -1,7 +1,7 @@
 import { html } from '/lib/preact/mod.js';
-import { useStateValue } from '/js/StateProvider.js';
+import { useAppState } from '/js/AppStateProvider.js';
 
 export default function WhenVerbose({children}) {
-    const state = useStateValue();
-    return html`<div>${state.verboseUI.value && children}</div>`;
+    const appState = useAppState();
+    return html`<div>${appState.verboseUI.value && children}</div>`;
 }

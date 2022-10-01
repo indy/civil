@@ -1,19 +1,19 @@
 import { h, html, useState, useEffect, useRef } from '/lib/preact/mod.js';
 import { AppStateChange } from '/js/AppState.js';
-import { useStateValue } from '/js/StateProvider.js';
+import { useAppState } from '/js/AppStateProvider.js';
 import { svgX, svgImage } from '/js/svgIcons.js';
 
 import Net from '/js/Net.js';
 
 export default function ImageWidget({ onPaste }) {
-    const state = useStateValue();
+    const appState = useAppState();
     const [minimised, setMinimised] = useState(true);
 
     const [hovering, setHovering] = useState(false);
 
     const dragArea = useRef(null);
 
-    const imageDirectory = state.imageDirectory.value;
+    const imageDirectory = appState.imageDirectory.value;
 
     useEffect(() => {
         if (dragArea && dragArea.current) {
@@ -102,12 +102,13 @@ export default function ImageWidget({ onPaste }) {
                  },
                  "Images...");
     } else {
-        const recent = state.recentImages.value.map(ri => h(ImageWidgetItem,
-                                                      {
-                                                          imageDirectory: imageDirectory,
-                                                          filename: ri.filename,
-                                                          onPaste: onPaste
-                                                      }));
+        const recent = appState.recentImages.value.map(ri =>
+            h(ImageWidgetItem,
+              {
+                  imageDirectory: imageDirectory,
+                  filename: ri.filename,
+                  onPaste: onPaste
+              }));
 
         let containerClass = "image-widget-container";
         if (hovering) {

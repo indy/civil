@@ -2,7 +2,7 @@ import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
 import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 
-import { useStateValue } from '/js/StateProvider.js';
+import { useAppState } from '/js/AppStateProvider.js';
 import Net from '/js/Net.js';
 
 import { ensureListingLoaded } from '/js/CivilUtils.js';
@@ -23,12 +23,12 @@ import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
 
 function Ideas() {
-    const state = useStateValue();
+    const appState = useAppState();
     const resource = 'ideas';
 
     ensureListingLoaded(resource, '/api/ideas/listings');
 
-    const ideas = state.listing.value.ideas || {};
+    const ideas = appState.listing.value.ideas || {};
 
     return html`
     <article>
@@ -44,7 +44,7 @@ function preCacheFn(d) {
 }
 
 function Idea({ id }) {
-    const state = useStateValue();
+    const appState = useAppState();
     const [searchResults, setSearchResults] = useState([]); // an array of backrefs
     const ideaId = parseInt(id, 10);
 
@@ -74,7 +74,7 @@ function Idea({ id }) {
         <${IdeaTopMatter} title=${deckManager.title}/>
         <${WhenShowUpdateForm}>
             <${DeleteDeckConfirmation} resource='ideas' id=${ideaId}/>
-            <${SectionUpdateIdea} idea=${state.deckManagerState.value.deck}/>
+            <${SectionUpdateIdea} idea=${appState.deckManagerState.value.deck}/>
         </${WhenShowUpdateForm}>
 
         <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
@@ -89,9 +89,9 @@ function Idea({ id }) {
 }
 
 function IdeaTopMatter({ title }) {
-    const state = useStateValue();
+    const appState = useAppState();
 
-    let createdAt = state.deckManagerState.value.deck && state.deckManagerState.value.deck.createdId;
+    let createdAt = appState.deckManagerState.value.deck && appState.deckManagerState.value.deck.createdId;
 
     return html`
     <div>

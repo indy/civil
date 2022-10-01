@@ -3,7 +3,7 @@ import { html,  useState, useEffect, useRef } from '/lib/preact/mod.js';
 import { AppStateChange } from '/js/AppState.js';
 import Net from '/js/Net.js';
 import { svgEdit, svgX } from '/js/svgIcons.js';
-import { useStateValue } from '/js/StateProvider.js';
+import { useAppState } from '/js/AppStateProvider.js';
 
 import CivilTextArea from '/js/components/CivilTextArea.js';
 import ImageWidget from '/js/components/ImageWidget.js';
@@ -52,7 +52,7 @@ function NoteSection({ heading, noteKind, noteSeq, howToShow, deck, toolbarMode,
 }
 
 function NoteManager({ deck, toolbarMode, noteSeq, preCacheFn, resource, onRefsChanged, optionalDeckPoint, appendLabel, noteKind, noappend }) {
-    const state = useStateValue();
+    const appState = useAppState();
 
     function onEditedNote(id, updatedNote) {
         Net.put("/api/notes/" + id.toString(), updatedNote);
@@ -105,7 +105,7 @@ function NoteManager({ deck, toolbarMode, noteSeq, preCacheFn, resource, onRefsC
             // prevNoteId = null;
             // nextNoteId = noteSeq[0].id;
 
-            addNote(state.wasmInterface, markup, deck.id, prevNoteId, nextNoteId, noteKind, optionalDeckPoint && optionalDeckPoint.id)
+            addNote(appState.wasmInterface, markup, deck.id, prevNoteId, nextNoteId, noteKind, optionalDeckPoint && optionalDeckPoint.id)
                 .then(allNotes => {
                     AppStateChange.dmsUpdateDeck(preCacheFn({...deck, notes: allNotes}), resource, true);
                     AppStateChange.hideNoteForm(noteKind);
@@ -150,7 +150,7 @@ function NoteManager({ deck, toolbarMode, noteSeq, preCacheFn, resource, onRefsC
     }
 
     const notes = noteSeq ? noteSeq.map(buildNoteComponent) : [];
-    const addNoteUI = noappend ? '' : (state.showNoteForm.value[noteKind] ? buildNoteForm() : buildNoteFormIcon());
+    const addNoteUI = noappend ? '' : (appState.showNoteForm.value[noteKind] ? buildNoteForm() : buildNoteFormIcon());
 
     return html`
            <section>

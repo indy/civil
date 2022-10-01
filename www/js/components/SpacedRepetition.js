@@ -5,7 +5,7 @@ import Net from '/js/Net.js';
 import { plural, formattedDate, formattedTime } from '/js/JsUtils.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 
-import { useStateValue } from '/js/StateProvider.js';
+import { useAppState } from '/js/AppStateProvider.js';
 import buildMarkup from '/js/components/BuildMarkup.js';
 
 const MODE_PRE_TEST = 'pre-test';
@@ -131,7 +131,7 @@ function reducer(state, action) {
 };
 
 export default function SpacedRepetition(props) {
-    const state = useStateValue();
+    const appState = useAppState();
 
     const initialState = {
         mode: MODE_PRE_TEST,
@@ -187,8 +187,8 @@ export default function SpacedRepetition(props) {
 
     let nextTestInfo = "";
     if (local.mode === MODE_PRE_TEST && !canTest) {
-        const nextReviewDate = formattedDate(Date.parse(state.srEarliestReviewDate.value));
-        const nextReviewTime = formattedTime(Date.parse(state.srEarliestReviewDate.value));
+        const nextReviewDate = formattedDate(Date.parse(appState.srEarliestReviewDate.value));
+        const nextReviewTime = formattedTime(Date.parse(appState.srEarliestReviewDate.value));
         nextTestInfo = `The next test will be available at ${nextReviewTime} on ${nextReviewDate}`;
     }
 

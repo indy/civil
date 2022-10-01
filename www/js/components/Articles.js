@@ -4,7 +4,7 @@ import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 
 import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import { capitalise, removeEmptyStrings, formattedDate } from '/js/JsUtils.js';
-import { useStateValue } from '/js/StateProvider.js';
+import { useAppState } from '/js/AppStateProvider.js';
 import Net from '/js/Net.js';
 
 import CivilInput from '/js/components/CivilInput.js';
@@ -24,12 +24,12 @@ import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
 import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 
 function Articles() {
-    const state = useStateValue();
+    const appState = useAppState();
     const resource = 'articles';
 
     ensureListingLoaded(resource, '/api/articles/listings');
 
-    const articles = state.listing.value.articles || {};
+    const articles = appState.listing.value.articles || {};
 
     return html`
     <article>
@@ -45,7 +45,7 @@ function preCacheFn(d) {
 }
 
 function Article({ id }) {
-    const state = useStateValue();
+    const appState = useAppState();
 
     const articleId = parseInt(id, 10);
 
@@ -58,13 +58,13 @@ function Article({ id }) {
     });
 
     function onShowSummaryClicked() {
-        AppStateChange.dmsShowSummaryButtonToggle(!state.deckManagerState.value.displayShowSummaryButton);
+        AppStateChange.dmsShowSummaryButtonToggle(!appState.deckManagerState.value.displayShowSummaryButton);
     }
     function onShowReviewClicked() {
-        AppStateChange.dmsShowReviewButtonToggle(!state.deckManagerState.value.displayShowReviewButton);
+        AppStateChange.dmsShowReviewButtonToggle(!appState.deckManagerState.value.displayShowReviewButton);
     }
 
-    let shortDescription = !!state.deckManagerState.value.deck && state.deckManagerState.value.deck.shortDescription;
+    let shortDescription = !!appState.deckManagerState.value.deck && appState.deckManagerState.value.deck.shortDescription;
     return html`
     <article>
         <${DeluxeToolbar}/>
@@ -73,7 +73,7 @@ function Article({ id }) {
             <${DeleteDeckConfirmation} resource='articles' id=${articleId}/>
             <button onClick=${ onShowSummaryClicked }>Show Summary Section</button>
             <button onClick=${ onShowReviewClicked }>Show Review Section</button>
-            <${SectionUpdateArticle} article=${ state.deckManagerState.value.deck}/>
+            <${SectionUpdateArticle} article=${ appState.deckManagerState.value.deck}/>
         </${WhenShowUpdateForm}>
 
 
@@ -93,8 +93,8 @@ function TopScribble({ text }) {
 }
 
 function ArticleTopMatter({ title }) {
-    const state = useStateValue();
-    const deck = state.deckManagerState.value.deck;
+    const appState = useAppState();
+    const deck = appState.deckManagerState.value.deck;
 
     function Url({ url }) {
         return html`<a href=${ url }>${ url }</a>`;

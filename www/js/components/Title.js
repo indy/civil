@@ -1,9 +1,9 @@
 import { html, useRef, useEffect, useState, route } from '/lib/preact/mod.js';
 import { AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBAR_REFS } from '/js/AppState.js';
-import { useStateValue } from '/js/StateProvider.js';
+import { useAppState } from '/js/AppStateProvider.js';
 
 export default function Title({title}) {
-    const state = useStateValue();
+    const appState = useAppState();
 
     const hoveringRef = useRef(null);
     const [mouseHovering, setMouseHovering] = useState(false);
@@ -21,15 +21,15 @@ export default function Title({title}) {
     const backgroundBandRef = useRef(null);
 
     function onTitleClicked(e) {
-        if (state.toolbarMode.value === DELUXE_TOOLBAR_EDIT) {
-            if (state.deckManagerState.value.showUpdateForm) {
+        if (appState.toolbarMode.value === DELUXE_TOOLBAR_EDIT) {
+            if (appState.deckManagerState.value.showUpdateForm) {
                 AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW)
             }
             AppStateChange.dmsUpdateFormToggle();
             return;
         }
-        if (state.toolbarMode.value === DELUXE_TOOLBAR_REFS) {
-            if (state.deckManagerState.value.isEditingDeckRefs) {
+        if (appState.toolbarMode.value === DELUXE_TOOLBAR_REFS) {
+            if (appState.deckManagerState.value.isEditingDeckRefs) {
                 AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW)
             }
             AppStateChange.dmsRefsToggle();
@@ -90,8 +90,8 @@ export default function Title({title}) {
         // don't show selectable highlight if the title is sticky
     } else if (mouseHovering) {
         // only show as selectable if in edit or refs mode
-        if (state.toolbarMode.value === DELUXE_TOOLBAR_EDIT ||
-            state.toolbarMode.value === DELUXE_TOOLBAR_REFS) {
+        if (appState.toolbarMode.value === DELUXE_TOOLBAR_EDIT ||
+            appState.toolbarMode.value === DELUXE_TOOLBAR_REFS) {
             containerClasses += " selectable-container-hovering";
         }
 

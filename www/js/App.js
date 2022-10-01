@@ -4,7 +4,7 @@ import { capitalise } from '/js/JsUtils.js';
 import { html, Router, Route, Link, route, useEffect } from '/lib/preact/mod.js';
 
 import Net                              from '/js/Net.js';
-import { useStateValue, StateProvider } from '/js/StateProvider.js';
+import { useAppState, AppStateProvider } from '/js/AppStateProvider.js';
 import { augmentSettingsWithCssModifierParameters } from '/js/ColourCreator.js';
 
 import SearchCommand           from '/js/components/SearchCommand.js';
@@ -19,18 +19,18 @@ import { Quote, Quotes }       from '/js/components/Quotes.js';
 
 export function App(state) {
     return html`
-    <${StateProvider} state=${state}>
+    <${AppStateProvider} state=${state}>
         <${AppUI}/>
-    </${StateProvider}>`;
+    </${AppStateProvider}>`;
 }
 
 function TopBarMenu(props) {
-    const state = useStateValue();
+    const appState = useAppState();
 
     function loggedStatus() {
         let status = '';
 
-        let user = state.user;
+        let user = appState.user;
         if (user.value) {
             status += user.value.username;
             if (user.value.admin && user.value.admin.dbName !== "civil") {
@@ -44,18 +44,18 @@ function TopBarMenu(props) {
     }
 
     function loggedLink() {
-        return state.user.value ? "/logout" : "/login";
+        return appState.user.value ? "/logout" : "/login";
     }
 
     function clickedTopLevel(deckKind) {
         AppStateChange.urlName(deckKind);
     }
 
-    if (state.verboseUI.value) {
+    if (appState.verboseUI.value) {
         return html`
         <nav>
             <div id="elastic-top-menu-items">
-                ${state.preferredOrder.map(deckKind => html`
+                ${appState.preferredOrder.map(deckKind => html`
                     <div class="optional-navigable top-menu-decktype">
                         <${Link} class='pigment-${deckKind}'
                                  onclick=${ () => { clickedTopLevel(deckKind) } }
@@ -64,7 +64,7 @@ function TopBarMenu(props) {
                         </${Link}>
                     </div>`)}
                 <div id="top-menu-sr">
-                    <${Link} class='pigment-inherit' href='/sr'>SR(${state.srReviewCount.value})</${Link}>
+                    <${Link} class='pigment-inherit' href='/sr'>SR(${appState.srReviewCount.value})</${Link}>
                 </div>
                 <div>
                     <${Link} class='pigment-inherit' href=${ loggedLink() }>${ loggedStatus() }</${Link}>
@@ -77,10 +77,10 @@ function TopBarMenu(props) {
 }
 
 function AppUI(props) {
-    const state = useStateValue();
+    const appState = useAppState();
 
     function loginHandler(user) {
-        state.user.value = user;
+        appState.user.value = user;
 
         Net.get("/api/ubersetup").then(uber => {
             AppStateChange.uberSetup(uber);
@@ -90,12 +90,12 @@ function AppUI(props) {
 
     function handleRoute(e) {
         if (e.url !== '/login') {
-            if (state.preferredOrder.some(p => e.url === `/${p}`)) {
+            if (appState.preferredOrder.some(p => e.url === `/${p}`)) {
                 AppStateChange.routeChanged(e.url);
             }
 
             // all other pages require the user to be logged in
-            if (!state.user.value) {
+            if (!appState.user.value) {
                 route('/login', true);
             } else if (e.url === '/') {
                 route('/ideas', true);

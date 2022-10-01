@@ -1,7 +1,7 @@
 import { html, route, Link, useState, useEffect, useRef } from '/lib/preact/mod.js';
 import { AppStateChange } from '/js/AppState.js';
 import { svgX, svgChevronDown, svgChevronUp } from '/js/svgIcons.js';
-import { useStateValue } from '/js/StateProvider.js';
+import { useAppState } from '/js/AppStateProvider.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { createDeck, indexToShortcut } from '/js/CivilUtils.js';
 
@@ -26,7 +26,6 @@ const KEY_DOWN_COLON = 'key-down-colon';
 const KEY_DOWN_KEY = 'key-down-key';
 const KEY_DOWN_PLUS = 'key-down-plus';
 const REMOVE_SAVED_SEARCH_RESULT = 'remove-saved-search-result';
-
 
 // array because ordering is important when printing the commands
 //
@@ -394,13 +393,13 @@ function isCommand(text) {
 }
 
 export default function SearchCommand() {
-    const state = useStateValue();
+    const appState = useAppState();
     const searchCommandRef = useRef(null);
 
     const [local, localDispatch] = useLocalReducer(reducer, {
         mode: MODE_SEARCH,
-        hasPhysicalKeyboard: state.hasPhysicalKeyboard,
-        isVisible: !state.hasPhysicalKeyboard,
+        hasPhysicalKeyboard: appState.hasPhysicalKeyboard,
+        isVisible: !appState.hasPhysicalKeyboard,
         hasFocus: false,
         showKeyboardShortcuts: false,
         shiftKey: false,
@@ -413,7 +412,7 @@ export default function SearchCommand() {
             localDispatch(KEY_DOWN_ESC, searchCommandRef);
         }
         if (e.key === ":") {
-            localDispatch(KEY_DOWN_COLON, { searchCommandRef, appState: state});
+            localDispatch(KEY_DOWN_COLON, { searchCommandRef, appState });
         }
         if (e.key === "Enter") {
             localDispatch(KEY_DOWN_ENTER);
@@ -444,7 +443,7 @@ export default function SearchCommand() {
         return () => {
             document.removeEventListener("keydown", onKeyDown);
         };
-    }, [state])
+    }, [appState])
 
     const handleChangeEvent = (event) => {
         const text = event.target.value;
@@ -553,16 +552,16 @@ export default function SearchCommand() {
             AppStateChange.scratchListToggle();
         }
 
-        const scratchList = state.scratchList.value.map((entry, i) =>
+        const scratchList = appState.scratchList.value.map((entry, i) =>
             html`<li key=${ i }>${ buildScratchListEntry(entry, i) }</li>`);
 
         return html`
         <div id="saved-search-component">
-            ${ !state.scratchListMinimised.value && html`
+            ${ !appState.scratchListMinimised.value && html`
                 <ul class="search-command-listing" id="saved-search-results">
                     ${ scratchList }
                 </ul>`}
-             ${ state.scratchListMinimised.value ? html`
+             ${ appState.scratchListMinimised.value ? html`
                 <div class="saved-search-menu">
                     <div onClick=${clickedToggle}>
                         ${ svgChevronUp() }
@@ -593,8 +592,8 @@ export default function SearchCommand() {
         }
     }
 
-    if (state.showingSearchCommand.value !== local.isVisible) {
-        state.showingSearchCommand.value = local.isVisible;
+    if (appState.showingSearchCommand.value !== local.isVisible) {
+        appState.showingSearchCommand.value = local.isVisible;
     }
 
     // note: for debugging purposes:
@@ -605,8 +604,8 @@ export default function SearchCommand() {
     //
     // put this inside the search-command div
     // <div class="keyboard-access-indicator">
-    //   ${ state.componentRequiresFullKeyboardAccess.value && html`<div>component has kb</div>` }
-    //   ${ !state.componentRequiresFullKeyboardAccess.value && html`<div>search command has kb</div>` }
+    //   ${ appState.componentRequiresFullKeyboardAccess.value && html`<div>component has kb</div>` }
+    //   ${ !appState.componentRequiresFullKeyboardAccess.value && html`<div>search command has kb</div>` }
     // </div>
 
     return html`
@@ -624,7 +623,7 @@ export default function SearchCommand() {
                    onBlur=${onBlur}/>
             ${ !!local.candidates.length && buildCandidates() }
         </div>
-        ${ !!state.scratchList.value.length && buildScratchList() }
+        ${ !!appState.scratchList.value.length && buildScratchList() }
       </div>`;
 }
 

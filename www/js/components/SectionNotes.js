@@ -2,16 +2,16 @@ import { html } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 
-import { useStateValue } from '/js/StateProvider.js';
+import { useAppState } from '/js/AppStateProvider.js';
 import { NoteSection, NoteManager,
          NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE,
          NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 
 export default function SectionNotes({ onRefsChanged, title, preCacheFn, resource, noappend }) {
-    const state = useStateValue();
+    const appState = useAppState();
 
-    const toolbarMode = state.toolbarMode.value;
-    const dms = state.deckManagerState.value;
+    const toolbarMode = appState.toolbarMode.value;
+    const dms = appState.deckManagerState.value;
     const deck = dms.deck;
 
     return html`

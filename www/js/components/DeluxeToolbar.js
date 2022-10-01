@@ -1,17 +1,17 @@
 import { html } from '/lib/preact/mod.js';
 
+import { useAppState } from '/js/AppStateProvider.js';
+import { AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBAR_REFS, DELUXE_TOOLBAR_SR, DELUXE_TOOLBAR_ADD_ABOVE, DELUXE_TOOLBAR_ADD_BELOW } from '/js/AppState.js';
 import { svgEdit, svgLinkAlt, svgFlashCard, svgAddAbove, svgAddBelow } from '/js/svgIcons.js';
 
-import { useStateValue } from '/js/StateProvider.js';
 
-import { AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBAR_REFS, DELUXE_TOOLBAR_SR, DELUXE_TOOLBAR_ADD_ABOVE, DELUXE_TOOLBAR_ADD_BELOW } from '/js/AppState.js';
 
 export default function DeluxeToolbar({}) {
-    const state = useStateValue();
+    const appState = useAppState();
 
     let classes = "deluxe-toolbar";
 
-    if (state.toolbarMode.value === DELUXE_TOOLBAR_VIEW) {
+    if (appState.toolbarMode.value === DELUXE_TOOLBAR_VIEW) {
         classes += " deluxe-toolbar-faded";
     }
 
@@ -37,10 +37,10 @@ export default function DeluxeToolbar({}) {
 }
 
 function ToolbarItem({ toolbarMode, toolbarText, children }) {
-    const state = useStateValue();
+    const appState = useAppState();
 
     function onClickHandler(e) {
-        if (state.toolbarMode.value === toolbarMode) {
+        if (appState.toolbarMode.value === toolbarMode) {
             // toggle the current mode off
             AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
         } else {
@@ -49,7 +49,7 @@ function ToolbarItem({ toolbarMode, toolbarText, children }) {
     }
 
     let classes = "toolbar-item";
-    if (toolbarMode === state.toolbarMode.value) {
+    if (toolbarMode === appState.toolbarMode.value) {
         classes += " toolbar-item-selected";
     }
 

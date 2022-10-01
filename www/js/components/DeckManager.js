@@ -2,13 +2,13 @@ import { html, useEffect, useContext } from '/lib/preact/mod.js';
 
 import { AppStateChange } from '/js/AppState.js';
 import Net from '/js/Net.js';
-import { StateContext, useStateValue } from '/js/StateProvider.js';
+import { useAppState } from '/js/AppStateProvider.js';
 
 import { NoteManager, NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW } from '/js/components/NoteSection.js';
 import { PointForm } from '/js/components/PointForm.js';
 
 export default function DeckManager({ id, resource, preCacheFn, canHaveSummarySection, canHaveReviewSection }) {
-    const state = useStateValue();
+    const appState = useAppState();
 
     useEffect(() => {
         // fetch resource from the server
@@ -26,12 +26,12 @@ export default function DeckManager({ id, resource, preCacheFn, canHaveSummarySe
 
     let res = {};
 
-    let title = state.deckManagerState.value.deck && (state.deckManagerState.value.deck.title || state.deckManagerState.value.deck.name || '');
+    let title = appState.deckManagerState.value.deck && (appState.deckManagerState.value.deck.title || appState.deckManagerState.value.deck.name || '');
     res.title = title;
 
     res.buildPointForm = function(onSuccessCallback) {
         function onAddPoint(point) {
-            const url = `/api/${resource}/${state.deckManagerState.value.deck.id}/points`;
+            const url = `/api/${resource}/${appState.deckManagerState.value.deck.id}/points`;
             Net.post(url, point).then(updatedDeck => {
                 AppStateChange.dmsUpdateDeck(preCacheFn(updatedDeck), resource, true);
                 onSuccessCallback();
@@ -49,7 +49,7 @@ export default function DeckManager({ id, resource, preCacheFn, canHaveSummarySe
 
         let d = { ...deck, notes};
 
-        AppStateChange.dmsUpdateDeck(preCacheFn(d), resource, true);
+        AppStateChange.dmsUpdateDeck(preCacheFn(d), resource, false);
     };
 
     function onRefsChanged(note, allDecksForNote) {
@@ -58,7 +58,7 @@ export default function DeckManager({ id, resource, preCacheFn, canHaveSummarySe
         //
         let n = {...note};
 
-        let deck = state.deckManagerState.value.deck;
+        let deck = appState.deckManagerState.value.deck;
 
         // have to set deck.refs to be the canonical version
         // (used to populate each note's decks array)
@@ -78,19 +78,21 @@ export default function DeckManager({ id, resource, preCacheFn, canHaveSummarySe
     res.onRefsChanged = onRefsChanged;
 
     res.noteManagerForDeckPoint = function(deckPoint) {
-        return NoteManager({ deck: state.deckManagerState.value.deck,
-                             noteSeq: state.deckManagerState.value.deck.noteSeqs.points[deckPoint.id],
-                             preCacheFn,
-                             resource,
-                             onRefsChanged,
-                             optionalDeckPoint: deckPoint,
-                             appendLabel: `Append Note to ${ deckPoint.title }`,
-                             noteKind: NOTE_KIND_NOTE
-                           });
+        return NoteManager({
+            deck: appState.deckManagerState.value.deck,
+            toolbarMode: appState.toolbarMode.value,
+            noteSeq: appState.deckManagerState.value.deck.noteSeqs.points[deckPoint.id],
+            preCacheFn,
+            resource,
+            onRefsChanged,
+            optionalDeckPoint: deckPoint,
+            appendLabel: `Append Note to ${ deckPoint.title }`,
+            noteKind: NOTE_KIND_NOTE
+        });
     }
 
     res.pointHasNotes = function(point) {
-        return state.deckManagerState.value.deck.notes.some(n => n.pointId === point.id);
+        return appState.deckManagerState.value.deck.notes.some(n => n.pointId === point.id);
     }
 
     return res;

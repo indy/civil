@@ -5,7 +5,7 @@ import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import Net from '/js/Net.js';
 import { addChronologicalSortYear } from '/js/eras.js';
 import { capitalise } from '/js/JsUtils.js';
-import { useStateValue } from '/js/StateProvider.js';
+import { useAppState } from '/js/AppStateProvider.js';
 
 import CivilInput from '/js/components/CivilInput.js';
 import DeleteDeckConfirmation from '/js/components/DeleteDeckConfirmation.js';
@@ -24,7 +24,7 @@ import { svgPointAdd, svgX, svgCaretRight, svgCaretRightEmpty, svgCaretDown } fr
 import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 
 function Timelines() {
-    const state = useStateValue();
+    const appState = useAppState();
     const resource = 'timelines';
 
     ensureListingLoaded(resource);
@@ -32,12 +32,12 @@ function Timelines() {
     return html`
     <article>
         <h1 class="ui">${capitalise(resource)}</h1>
-        <${DeckSimpleList} list=${state.listing.value.timelines} />
+        <${DeckSimpleList} list=${appState.listing.value.timelines} />
     </article>`;
 }
 
 function Timeline({ id }) {
-    const state = useStateValue();
+    const appState = useAppState();
 
     const timelineId = parseInt(id, 10);
 
@@ -49,7 +49,7 @@ function Timeline({ id }) {
         canHaveReviewSection: false
     });
 
-    let timeline = state.deckManagerState.value.deck;
+    let timeline = appState.deckManagerState.value.deck;
 
     return html`
     <article>
@@ -57,7 +57,7 @@ function Timeline({ id }) {
         <${Title} title=${ deckManager.title }/>
         <${WhenShowUpdateForm}>
             <${DeleteDeckConfirmation} resource='timelines' id=${timelineId}/>
-            <${SectionUpdateTimeline} timeline=${ state.deckManagerState.value.deck }/>
+            <${SectionUpdateTimeline} timeline=${ appState.deckManagerState.value.deck }/>
         </${WhenShowUpdateForm}>
         <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
         <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } preCacheFn=${ preCacheFn } resource="timelines" />
@@ -66,7 +66,7 @@ function Timeline({ id }) {
 
         ${ !!timeline && html`<${ListPoints} points=${ timeline.points }
                                              deckManager=${ deckManager }
-                                             showAddPointForm=${ state.showAddPointForm.value }
+                                             showAddPointForm=${ appState.showAddPointForm.value }
                                              holderId=${ timeline.id }
                                              holderName=${ timeline.title }/>`}
 
@@ -166,7 +166,7 @@ function TimelineDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
 }
 
 function ListPoints({ points, deckManager, holderId, holderName, showAddPointForm }) {
-    const state = useStateValue();
+    const appState = useAppState();
 
     function onAddPointClicked(e) {
         e.preventDefault();
