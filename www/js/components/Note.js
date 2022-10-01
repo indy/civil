@@ -15,6 +15,7 @@ import ImageWidget from '/js/components/ImageWidget.js';
 import buildMarkup from '/js/components/BuildMarkup.js';
 import Ref from '/js/components/Ref.js';
 
+const NOTE_CHANGED = 'note-changed';
 const NOTE_SET_PROPERTY = 'note-set-property';
 const ADD_DECK_REFERENCES_UI_SHOW = 'add-deck-references-ui-show';
 const ADD_FLASH_CARD_UI_SHOW = 'add-flashcard-ui-show';
@@ -37,6 +38,14 @@ const IMAGE_PASTED = 'image-pasted';
 
 function reducer(state, action) {
     switch(action.type) {
+    case NOTE_CHANGED: {
+        const note = action.data;
+        let newState = {
+            ...state,
+            note
+        };
+        return newState;
+    }
     case IMAGE_PASTED: {
         const { textAreaRef, markup } = action.data;
         const content = state.note.content;
@@ -230,18 +239,16 @@ function reducer(state, action) {
     }
 };
 
-
-
-export default function Note(props) {
+export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited, onRefsChanged }) {
     const state = useStateValue();
 
     const initialState = {
         addDeckReferencesUI: false,
         addFlashCardUI: false,
         isEditingMarkup: false,
-        note: { ...props.note },
-        originalContent: props.note.content,
-        decks: (props.note && props.note.decks),
+        note: { ...note },
+        originalContent: note.content,
+        decks: (note && note.decks),
         flashcardToShow: undefined,
         mouseHovering: false,
         oldCursorPos: 0,
@@ -258,6 +265,12 @@ export default function Note(props) {
     function mouseLeave() {
         localDispatch(MOUSE_LEAVE);
     }
+
+    useEffect(() => {
+        // pick up changes to the note's references
+        // from the DeckManager::onRefsChanged callback
+        localDispatch(NOTE_CHANGED, note);
+    }, [note]);
 
     useEffect(() => {
         if (hoveringRef && hoveringRef.current) {
@@ -286,7 +299,7 @@ export default function Note(props) {
         e.preventDefault();
 
         if (hasNoteBeenModified(local)) {
-            const id = props.note.id;
+            const id = note.id;
 
             if (local.note.content.length === 0) {
                 local.note.content = "|~placeholder content so that note remains selectable|EMPTY";
@@ -302,7 +315,7 @@ export default function Note(props) {
 
             // stopped editing and the editable content is different than
             // the original note's text.
-            props.onEdited(id, updatedNote);
+            onEdited(id, updatedNote);
             localDispatch(EDITED_NOTE, state);
         } else {
             localDispatch(TOGGLE_EDITING, state);
@@ -342,7 +355,7 @@ export default function Note(props) {
             e.preventDefault();
 
             let data = {
-                noteId: props.note.id,
+                noteId: note.id,
                 prompt: flashCardPrompt
             };
 
@@ -382,7 +395,7 @@ export default function Note(props) {
 
             if (changes) {
                 let data = {
-                    noteId: props.note.id,
+                    noteId: note.id,
                     // references_unchanged: changes.referencesUnchanged,
                     referencesChanged: changes.referencesChanged,
                     referencesRemoved: changes.referencesRemoved,
@@ -391,7 +404,7 @@ export default function Note(props) {
                 };
 
                 Net.post("/api/edges/notes_decks", data).then((allDecksForNote) => {
-                    props.onRefsChanged(props.note, allDecksForNote);
+                    onRefsChanged(note, allDecksForNote);
                     localDispatch(ADD_DECKS_COMMIT, { allDecksForNote, changes, appState: state });
                 });
             } else {
@@ -403,7 +416,7 @@ export default function Note(props) {
         return html`
         <div class="block-width">
             <label>Connections:</label>
-            <${ CivilSelect } parentDeckId=${ props.parentDeck.id }
+            <${ CivilSelect } parentDeckId=${ parentDeck.id }
                               chosen=${ local.decks }
                               onFinish=${ referenceChanges }/>
         </div>`;
@@ -417,7 +430,7 @@ export default function Note(props) {
         let editLabelText = local.isEditingMarkup ? "Save Edits" : "Edit...";
 
         function confirmedDeleteClicked() {
-            props.onDelete(props.note.id);
+            onDelete(note.id);
         }
 
         if (local.isEditingMarkup) {
@@ -438,7 +451,7 @@ export default function Note(props) {
     }
 
     let noteClasses = "note selectable-container";
-    if (local.mouseHovering && props.toolbarMode !== DELUXE_TOOLBAR_VIEW) {
+    if (local.mouseHovering && toolbarMode !== DELUXE_TOOLBAR_VIEW) {
         noteClasses += " selectable-container-hovering";
     }
 
@@ -463,13 +476,9 @@ export default function Note(props) {
         }
     }
 
-    // NOTE: left margin content has to use props.note rather than local.note
-    // so that it can correctly re-render the note whenever refs are added,
-    // deleted, changed.
-    //
     return html`
     <div class="${noteClasses}" onClick=${onNoteClicked}>
-        ${ !local.isEditingMarkup && buildLeftMarginContent(props.note, localDispatch)}
+        ${ !local.isEditingMarkup && buildLeftMarginContent(local.note, localDispatch)}
 
         ${  local.isEditingMarkup && buildEditableContent() }
         ${  local.flashcardToShow && html`

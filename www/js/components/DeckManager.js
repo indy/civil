@@ -53,6 +53,11 @@ export default function DeckManager({ id, resource, preCacheFn, canHaveSummarySe
     };
 
     function onRefsChanged(note, allDecksForNote) {
+        // have to make a copy of note so that preact's
+        // diff algorithm can pick up the change
+        //
+        let n = {...note};
+
         let deck = state.deckManagerState.value.deck;
 
         // have to set deck.refs to be the canonical version
@@ -60,13 +65,13 @@ export default function DeckManager({ id, resource, preCacheFn, canHaveSummarySe
 
         // remove all deck.refs that relate to this note
         deck.refs = deck.refs.filter(din => {
-            return din.noteId !== note.id;
+            return din.noteId !== n.id;
         });
         // add every note.decks entry to deck.refs
         allDecksForNote.forEach(d => { deck.refs.push(d); });
 
-        findNoteWithId(deck, note.id, (notes, index) => {
-            notes[index] = note;
+        findNoteWithId(deck, n.id, (notes, index) => {
+            notes[index] = n;
         });
     };
 
