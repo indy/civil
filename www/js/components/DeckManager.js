@@ -2,13 +2,13 @@ import { html, useEffect, useContext } from '/lib/preact/mod.js';
 
 import { AppStateChange } from '/js/AppState.js';
 import Net from '/js/Net.js';
-import { useAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppStateProvider.js';
 
 import { NoteManager, NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW } from '/js/components/NoteSection.js';
 import { PointForm } from '/js/components/PointForm.js';
 
 export default function DeckManager({ id, resource, preCacheFn, canHaveSummarySection, canHaveReviewSection }) {
-    const appState = useAppState();
+    const appState = getAppState();
 
     useEffect(() => {
         // fetch resource from the server

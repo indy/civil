@@ -1,7 +1,7 @@
 import { createRef, html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 import { AppStateChange } from '/js/AppState.js';
 import { opposingKind } from '/js/JsUtils.js';
-import { useAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppStateProvider.js';
 import { svgTickedCheckBox, svgUntickedCheckBox, svgChevronLeft, svgChevronRight } from '/js/svgIcons.js';
 
 import Net from "/js/Net.js";
@@ -20,7 +20,7 @@ async function loadFullGraph(state, dispatch) {
 }
 
 export default function Graph({ id, depth }) {
-    const appState = useAppState();
+    const appState = getAppState();
 
     const [localState, setLocalState] = useState({
         activeHyperlinks: false, // hack: remove eventually

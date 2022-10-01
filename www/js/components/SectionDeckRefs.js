@@ -3,12 +3,12 @@ import { html } from '/lib/preact/mod.js';
 import Net from '/js/Net.js';
 
 import { AppStateChange } from '/js/AppState.js';
-import { useAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppStateProvider.js';
 import Ref from '/js/components/Ref.js';
 import CivilSelect from '/js/components/CivilSelect.js';
 
 export default function SectionDeckRefs({ onRefsChanged }) {
-    const appState = useAppState();
+    const appState = getAppState();
 
     function onCancel() {
         AppStateChange.dmsRefsToggle();

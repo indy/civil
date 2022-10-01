@@ -3,7 +3,7 @@ import { html,  useState, useEffect, useRef } from '/lib/preact/mod.js';
 import { AppStateChange } from '/js/AppState.js';
 import Net from '/js/Net.js';
 import { svgEdit, svgX } from '/js/svgIcons.js';
-import { useAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppStateProvider.js';
 
 import CivilTextArea from '/js/components/CivilTextArea.js';
 import ImageWidget from '/js/components/ImageWidget.js';
@@ -52,7 +52,7 @@ function NoteSection({ heading, noteKind, noteSeq, howToShow, deck, toolbarMode,
 }
 
 function NoteManager({ deck, toolbarMode, noteSeq, preCacheFn, resource, onRefsChanged, optionalDeckPoint, appendLabel, noteKind, noappend }) {
-    const appState = useAppState();
+    const appState = getAppState();
 
     function onEditedNote(id, updatedNote) {
         Net.put("/api/notes/" + id.toString(), updatedNote);

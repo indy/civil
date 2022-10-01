@@ -3,7 +3,7 @@ import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 import Net from '/js/Net.js';
 import { capitalise } from '/js/JsUtils.js';
 import { AppStateChange } from '/js/AppState.js';
-import { useAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppStateProvider.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import buildMarkup from '/js/components/BuildMarkup.js';
 
@@ -160,7 +160,7 @@ function preCacheFn(d) {
 }
 
 function Quote({ id }) {
-    const appState = useAppState();
+    const appState = getAppState();
 
     const quoteId = parseInt(id, 10);
 

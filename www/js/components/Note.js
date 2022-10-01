@@ -4,7 +4,7 @@ import { AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBA
 
 import { svgFlashCard } from '/js/svgIcons.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
-import { useAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppStateProvider.js';
 import Net from '/js/Net.js';
 
 import CivilSelect from '/js/components/CivilSelect.js';
@@ -453,7 +453,7 @@ export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited
     }
 
     // has to be outside of the onNoteClicked callback
-    const appState = useAppState();
+    const appState = getAppState();
 
     function onNoteClicked(e) {
         if (appState.toolbarMode.value === DELUXE_TOOLBAR_EDIT) {

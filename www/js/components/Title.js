@@ -1,9 +1,9 @@
 import { html, useRef, useEffect, useState, route } from '/lib/preact/mod.js';
 import { AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBAR_REFS } from '/js/AppState.js';
-import { useAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppStateProvider.js';
 
 export default function Title({title}) {
-    const appState = useAppState();
+    const appState = getAppState();
 
     const hoveringRef = useRef(null);
     const [mouseHovering, setMouseHovering] = useState(false);

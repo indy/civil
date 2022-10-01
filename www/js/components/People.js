@@ -4,7 +4,7 @@ import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import { capitalise } from '/js/JsUtils.js';
 import Net from '/js/Net.js';
-import { useAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppStateProvider.js';
 import { addChronologicalSortYear,
          calcAgeInYears,
          dateStringAsTriple } from '/js/eras.js';
@@ -35,7 +35,7 @@ import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
 import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 
 function People() {
-    const appState = useAppState();
+    const appState = getAppState();
     const resource = 'people';
 
     ensureListingLoaded(resource, '/api/people/listings');
@@ -54,7 +54,7 @@ function People() {
 }
 
 function Person({ id }) {
-    const appState = useAppState();
+    const appState = getAppState();
 
     const [searchResults, setSearchResults] = useState([]); // an array of backrefs
 

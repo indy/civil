@@ -1,12 +1,12 @@
 import { h, html, useState, useEffect, useRef } from '/lib/preact/mod.js';
 import { AppStateChange } from '/js/AppState.js';
-import { useAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppStateProvider.js';
 import { svgX, svgImage } from '/js/svgIcons.js';
 
 import Net from '/js/Net.js';
 
 export default function ImageWidget({ onPaste }) {
-    const appState = useAppState();
+    const appState = getAppState();
     const [minimised, setMinimised] = useState(true);
 
     const [hovering, setHovering] = useState(false);

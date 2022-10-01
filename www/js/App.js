@@ -4,7 +4,7 @@ import { capitalise } from '/js/JsUtils.js';
 import { html, Router, Route, Link, route, useEffect } from '/lib/preact/mod.js';
 
 import Net                              from '/js/Net.js';
-import { useAppState, AppStateProvider } from '/js/AppStateProvider.js';
+import { getAppState, AppStateProvider } from '/js/AppStateProvider.js';
 import { augmentSettingsWithCssModifierParameters } from '/js/ColourCreator.js';
 
 import SearchCommand           from '/js/components/SearchCommand.js';
@@ -25,7 +25,7 @@ export function App(state) {
 }
 
 function TopBarMenu(props) {
-    const appState = useAppState();
+    const appState = getAppState();
 
     function loggedStatus() {
         let status = '';
@@ -77,7 +77,7 @@ function TopBarMenu(props) {
 }
 
 function AppUI(props) {
-    const appState = useAppState();
+    const appState = getAppState();
 
     function loginHandler(user) {
         appState.user.value = user;

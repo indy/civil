@@ -2,7 +2,7 @@ import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
 
 import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 
-import { useAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppStateProvider.js';
 import Net from '/js/Net.js';
 
 import { ensureListingLoaded } from '/js/CivilUtils.js';
@@ -23,7 +23,7 @@ import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
 
 function Ideas() {
-    const appState = useAppState();
+    const appState = getAppState();
     const resource = 'ideas';
 
     ensureListingLoaded(resource, '/api/ideas/listings');
@@ -44,7 +44,7 @@ function preCacheFn(d) {
 }
 
 function Idea({ id }) {
-    const appState = useAppState();
+    const appState = getAppState();
     const [searchResults, setSearchResults] = useState([]); // an array of backrefs
     const ideaId = parseInt(id, 10);
 
@@ -89,7 +89,7 @@ function Idea({ id }) {
 }
 
 function IdeaTopMatter({ title }) {
-    const appState = useAppState();
+    const appState = getAppState();
 
     let createdAt = appState.deckManagerState.value.deck && appState.deckManagerState.value.deck.createdId;
 

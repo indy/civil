@@ -1,6 +1,6 @@
 import { html, useState } from '/lib/preact/mod.js';
 
-import { useAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppStateProvider.js';
 import { capitalise, nonEmptyArray } from '/js/JsUtils.js';
 import { svgCaretDown, svgCaretRight} from '/js/svgIcons.js';
 
@@ -8,7 +8,7 @@ import RollableSection from '/js/components/RollableSection.js';
 import { ExpandableListingLink } from '/js/components/ListingLink.js';
 
 export default function SectionBackRefs({ deckId }) {
-    const appState = useAppState();
+    const appState = getAppState();
 
     let backrefs = (appState.deckManagerState.value.deck && appState.deckManagerState.value.deck.backrefs) || [];
     let backnotes = (appState.deckManagerState.value.deck && appState.deckManagerState.value.deck.backnotes) || [];

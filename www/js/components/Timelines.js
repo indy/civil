@@ -5,7 +5,7 @@ import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import Net from '/js/Net.js';
 import { addChronologicalSortYear } from '/js/eras.js';
 import { capitalise } from '/js/JsUtils.js';
-import { useAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppStateProvider.js';
 
 import CivilInput from '/js/components/CivilInput.js';
 import DeleteDeckConfirmation from '/js/components/DeleteDeckConfirmation.js';
@@ -24,7 +24,7 @@ import { svgPointAdd, svgX, svgCaretRight, svgCaretRightEmpty, svgCaretDown } fr
 import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 
 function Timelines() {
-    const appState = useAppState();
+    const appState = getAppState();
     const resource = 'timelines';
 
     ensureListingLoaded(resource);
@@ -37,7 +37,7 @@ function Timelines() {
 }
 
 function Timeline({ id }) {
-    const appState = useAppState();
+    const appState = getAppState();
 
     const timelineId = parseInt(id, 10);
 
@@ -166,7 +166,7 @@ function TimelineDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
 }
 
 function ListPoints({ points, deckManager, holderId, holderName, showAddPointForm }) {
-    const appState = useAppState();
+    const appState = getAppState();
 
     function onAddPointClicked(e) {
         e.preventDefault();

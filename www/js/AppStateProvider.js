@@ -9,4 +9,4 @@ export const AppStateProvider = ({state, children}) => {
         </${AppStateContext.Provider}>`;
 };
 
-export const useAppState = () => useContext(AppStateContext);
+export const getAppState = () => useContext(AppStateContext);

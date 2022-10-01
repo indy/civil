@@ -4,7 +4,7 @@ import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 
 import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
 import { capitalise, removeEmptyStrings, formattedDate } from '/js/JsUtils.js';
-import { useAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppStateProvider.js';
 import Net from '/js/Net.js';
 
 import CivilInput from '/js/components/CivilInput.js';
@@ -24,7 +24,7 @@ import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
 import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 
 function Articles() {
-    const appState = useAppState();
+    const appState = getAppState();
     const resource = 'articles';
 
     ensureListingLoaded(resource, '/api/articles/listings');
@@ -45,7 +45,7 @@ function preCacheFn(d) {
 }
 
 function Article({ id }) {
-    const appState = useAppState();
+    const appState = getAppState();
 
     const articleId = parseInt(id, 10);
 
@@ -93,7 +93,7 @@ function TopScribble({ text }) {
 }
 
 function ArticleTopMatter({ title }) {
-    const appState = useAppState();
+    const appState = getAppState();
     const deck = appState.deckManagerState.value.deck;
 
     function Url({ url }) {

@@ -1,7 +1,7 @@
 import { html, route, Link, useState, useEffect, useRef } from '/lib/preact/mod.js';
 import { AppStateChange } from '/js/AppState.js';
 import { svgX, svgChevronDown, svgChevronUp } from '/js/svgIcons.js';
-import { useAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppStateProvider.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { createDeck, indexToShortcut } from '/js/CivilUtils.js';
 
@@ -393,7 +393,7 @@ function isCommand(text) {
 }
 
 export default function SearchCommand() {
-    const appState = useAppState();
+    const appState = getAppState();
     const searchCommandRef = useRef(null);
 
     const [local, localDispatch] = useLocalReducer(reducer, {

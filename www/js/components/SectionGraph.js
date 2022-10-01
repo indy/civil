@@ -1,5 +1,5 @@
 import { html } from '/lib/preact/mod.js';
-import { useAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppStateProvider.js';
 import Graph from '/js/components/Graph.js';
 import RollableSection from '/js/components/RollableSection.js';
 
@@ -32,7 +32,7 @@ import RollableSection from '/js/components/RollableSection.js';
 
 
 export default function SectionGraph({ depth }) {
-    const appState = useAppState();
+    const appState = getAppState();
 
     if (appState.showConnectivityGraph.value && appState.deckManagerState.value.deck) {
         let deck = appState.deckManagerState.value.deck;

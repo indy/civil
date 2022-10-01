@@ -5,7 +5,7 @@ import Net from '/js/Net.js';
 import { plural, formattedDate, formattedTime } from '/js/JsUtils.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 
-import { useAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppStateProvider.js';
 import buildMarkup from '/js/components/BuildMarkup.js';
 
 const MODE_PRE_TEST = 'pre-test';
@@ -131,7 +131,7 @@ function reducer(state, action) {
 };
 
 export default function SpacedRepetition(props) {
-    const appState = useAppState();
+    const appState = getAppState();
 
     const initialState = {
         mode: MODE_PRE_TEST,
