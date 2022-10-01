@@ -1,7 +1,7 @@
-import { h, html, useState, useEffect, useRef } from '/lib/preact/mod.js';
+import { html, useState, useEffect, useRef } from '/lib/preact/mod.js';
 import { AppStateChange } from '/js/AppState.js';
 import { getAppState } from '/js/AppStateProvider.js';
-import { svgX, svgImage } from '/js/svgIcons.js';
+import { svgX } from '/js/svgIcons.js';
 
 import Net from '/js/Net.js';
 

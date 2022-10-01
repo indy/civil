@@ -1,4 +1,4 @@
-import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
+import { html, Link, useState, useEffect } from '/lib/preact/mod.js';
 
 import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
@@ -18,21 +18,21 @@ import { svgPointAdd,
          svgUntickedCheckBox } from '/js/svgIcons.js';
 
 import CivilInput from '/js/components/CivilInput.js';
+import DeckManager from '/js/components/DeckManager.js';
 import DeleteDeckConfirmation from '/js/components/DeleteDeckConfirmation.js';
-import SectionGraph from '/js/components/SectionGraph.js';
+import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 import LifespanForm from '/js/components/LifespanForm.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import SectionDeckRefs from '/js/components/SectionDeckRefs.js';
+import SectionGraph from '/js/components/SectionGraph.js';
 import SectionNotes from '/js/components/SectionNotes.js';
 import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBackref.js';
-import DeckManager from '/js/components/DeckManager.js';
+import Title from '/js/components/Title.js';
+import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
+import WhenVerbose from '/js/components/WhenVerbose.js';
 import { DeckSimpleListSection } from '/js/components/ListSections.js';
 import { PointForm } from '/js/components/PointForm.js';
-import Title from '/js/components/Title.js';
-import WhenVerbose from '/js/components/WhenVerbose.js';
-import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
-import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 
 function People() {
     const appState = getAppState();

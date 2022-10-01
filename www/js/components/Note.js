@@ -1,40 +1,38 @@
-import { h, html, Link, useState, useEffect, useRef } from '/lib/preact/mod.js';
+import { html, useState, useEffect, useRef } from '/lib/preact/mod.js';
 
 import { AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBAR_REFS, DELUXE_TOOLBAR_SR, DELUXE_TOOLBAR_ADD_ABOVE, DELUXE_TOOLBAR_ADD_BELOW } from '/js/AppState.js';
 
+import Net from '/js/Net.js';
+import { getAppState } from '/js/AppStateProvider.js';
 import { svgFlashCard } from '/js/svgIcons.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
-import { getAppState } from '/js/AppStateProvider.js';
-import Net from '/js/Net.js';
 
 import CivilSelect from '/js/components/CivilSelect.js';
 import CivilTextArea from '/js/components/CivilTextArea.js';
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 import FlashCard from '/js/components/FlashCard.js';
 import ImageWidget from '/js/components/ImageWidget.js';
-import buildMarkup from '/js/components/BuildMarkup.js';
 import Ref from '/js/components/Ref.js';
+import buildMarkup from '/js/components/BuildMarkup.js';
 
-const NOTE_CHANGED = 'note-changed';
-const NOTE_SET_PROPERTY = 'note-set-property';
+const ADD_DECKS_COMMIT = 'add-decks-commit';
 const ADD_DECK_REFERENCES_UI_SHOW = 'add-deck-references-ui-show';
 const ADD_FLASH_CARD_UI_SHOW = 'add-flashcard-ui-show';
-const ADD_DECKS_COMMIT = 'add-decks-commit';
-const HIDE_ADD_DECKS_UI = 'hide-add-decks-ui';
-const FLASH_CARD_SAVED = 'flash-card-saved';
-const TOGGLE_EDITING = 'toggle-editing';
 const EDITED_NOTE = 'edited-note';
-const FLASHCARD_TOGGLE = 'flashcard-toggle';
-const FLASHCARD_HIDE = 'flashcard-hide';
-const FLASHCARD_DELETED = 'flashcard-deleted';
 const EDITING_CANCELLED = 'editing-cancelled';
-
+const FLASHCARD_DELETED = 'flashcard-deleted';
+const FLASHCARD_HIDE = 'flashcard-hide';
+const FLASHCARD_TOGGLE = 'flashcard-toggle';
+const FLASH_CARD_SAVED = 'flash-card-saved';
+const HIDE_ADD_DECKS_UI = 'hide-add-decks-ui';
+const IMAGE_PASTED = 'image-pasted';
 const MOUSE_ENTER = "mouse-enter";
 const MOUSE_LEAVE = "mouse-leave";
-
-const TEXT_AREA_FOCUSED = 'text-area-focused';
+const NOTE_CHANGED = 'note-changed';
+const NOTE_SET_PROPERTY = 'note-set-property';
 const TEXT_AREA_BLURRED = 'text-area-blurred';
-const IMAGE_PASTED = 'image-pasted';
+const TEXT_AREA_FOCUSED = 'text-area-focused';
+const TOGGLE_EDITING = 'toggle-editing';
 
 function reducer(state, action) {
     switch(action.type) {

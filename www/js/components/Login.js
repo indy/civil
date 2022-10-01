@@ -1,7 +1,7 @@
 import { html, route, useState } from '/lib/preact/mod.js';
-import { getAppState } from '/js/AppStateProvider.js';
 
 import Net from '/js/Net.js';
+import { getAppState } from '/js/AppStateProvider.js';
 
 function Login({ loginCallback}) {
     const appState = getAppState();

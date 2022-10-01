@@ -1,7 +1,7 @@
 import { html, useState } from '/lib/preact/mod.js';
 
-import { getAppState } from '/js/AppStateProvider.js';
 import { capitalise, nonEmptyArray } from '/js/JsUtils.js';
+import { getAppState } from '/js/AppStateProvider.js';
 import { svgCaretDown, svgCaretRight} from '/js/svgIcons.js';
 
 import RollableSection from '/js/components/RollableSection.js';

@@ -1,4 +1,4 @@
-import { html, Link, useState } from '/lib/preact/mod.js';
+import { html, Link } from '/lib/preact/mod.js';
 
 import { svgCaretRight, svgCaretDown } from '/js/svgIcons.js';
 import Ref from '/js/components/Ref.js';

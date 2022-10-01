@@ -1,13 +1,13 @@
-import { html, route, Link, useState, useEffect, useRef } from '/lib/preact/mod.js';
-import { AppStateChange } from '/js/AppState.js';
-import { svgX, svgChevronDown, svgChevronUp } from '/js/svgIcons.js';
-import { getAppState } from '/js/AppStateProvider.js';
-import { useLocalReducer } from '/js/PreactUtils.js';
-import { createDeck, indexToShortcut } from '/js/CivilUtils.js';
-
-import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
+import { html, route, Link, useEffect, useRef } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
+import { AppStateChange } from '/js/AppState.js';
+import { createDeck, indexToShortcut } from '/js/CivilUtils.js';
+import { getAppState } from '/js/AppStateProvider.js';
+import { svgX, svgChevronDown, svgChevronUp } from '/js/svgIcons.js';
+import { useLocalReducer } from '/js/PreactUtils.js';
+
+import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 
 const MODE_SEARCH = 'mode-search';
 const MODE_COMMAND = 'mode-command';
@@ -16,13 +16,13 @@ const MODE_COMMAND = 'mode-command';
 const CANDIDATES_SET = 'candidate-set';
 const CLICKED_CANDIDATE = 'clicked-candidate';
 const CLICKED_COMMAND = 'clicked-command';
-const INPUT_FOCUS = 'input-focus';
 const INPUT_BLUR = 'input-blur';
+const INPUT_FOCUS = 'input-focus';
 const INPUT_GIVEN = 'input-given';
+const KEY_DOWN_COLON = 'key-down-colon';
 const KEY_DOWN_CTRL = 'key-down-ctrl';
 const KEY_DOWN_ENTER = 'key-down-enter';
 const KEY_DOWN_ESC = 'key-down-esc';
-const KEY_DOWN_COLON = 'key-down-colon';
 const KEY_DOWN_KEY = 'key-down-key';
 const KEY_DOWN_PLUS = 'key-down-plus';
 const REMOVE_SAVED_SEARCH_RESULT = 'remove-saved-search-result';

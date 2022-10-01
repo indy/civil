@@ -1,4 +1,4 @@
-import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
+import { html, route, useEffect } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { capitalise } from '/js/JsUtils.js';
@@ -11,7 +11,6 @@ import CivilInput from '/js/components/CivilInput.js';
 import CivilTextArea from '/js/components/CivilTextArea.js';
 import DeckManager from '/js/components/DeckManager.js';
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
-import Note from '/js/components/Note.js';
 import SectionNotes from '/js/components/SectionNotes.js';
 import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 

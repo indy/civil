@@ -1,4 +1,4 @@
-import { html, useState, useEffect, Link } from '/lib/preact/mod.js';
+import { html, useState, useEffect } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { DeckSimpleListSection } from '/js/components/ListSections.js';

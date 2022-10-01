@@ -1,26 +1,24 @@
-import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
+import { html, useState, useEffect } from '/lib/preact/mod.js';
 
-import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
-
-import { getAppState } from '/js/AppStateProvider.js';
 import Net from '/js/Net.js';
-
-import { ensureListingLoaded } from '/js/CivilUtils.js';
+import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 import { capitalise, formattedDate } from '/js/JsUtils.js';
+import { ensureListingLoaded } from '/js/CivilUtils.js';
+import { getAppState } from '/js/AppStateProvider.js';
 
 import CivilInput from '/js/components/CivilInput.js';
+import DeckManager from '/js/components/DeckManager.js';
 import DeleteDeckConfirmation from '/js/components/DeleteDeckConfirmation.js';
+import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 import LeftMarginHeading from '/js/components/LeftMarginHeading.js';
-import SectionGraph from '/js/components/SectionGraph.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import SectionDeckRefs from '/js/components/SectionDeckRefs.js';
+import SectionGraph from '/js/components/SectionGraph.js';
 import SectionNotes from '/js/components/SectionNotes.js';
 import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBackref.js';
-import DeckManager from '/js/components/DeckManager.js';
-import { DeckSimpleListSection } from '/js/components/ListSections.js';
 import Title from '/js/components/Title.js';
-import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
+import { DeckSimpleListSection } from '/js/components/ListSections.js';
 
 function Ideas() {
     const appState = getAppState();

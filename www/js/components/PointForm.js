@@ -1,8 +1,8 @@
 import { html, useState } from '/lib/preact/mod.js';
 
+import Net from '/js/Net.js';
 import { capitalise } from '/js/JsUtils.js';
 import { parseDateStringAsTriple, parseDateStringAsYearOnly } from '/js/eras.js';
-import Net from '/js/Net.js';
 
 import CivilInput from '/js/components/CivilInput.js';
 

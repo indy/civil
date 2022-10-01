@@ -1,4 +1,5 @@
-import { html, useRef, useEffect, useState, route } from '/lib/preact/mod.js';
+import { html, useRef, useEffect, useState } from '/lib/preact/mod.js';
+
 import { AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBAR_REFS } from '/js/AppState.js';
 import { getAppState } from '/js/AppStateProvider.js';
 

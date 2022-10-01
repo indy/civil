@@ -4,8 +4,6 @@ import { getAppState } from '/js/AppStateProvider.js';
 import { AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBAR_REFS, DELUXE_TOOLBAR_SR, DELUXE_TOOLBAR_ADD_ABOVE, DELUXE_TOOLBAR_ADD_BELOW } from '/js/AppState.js';
 import { svgEdit, svgLinkAlt, svgFlashCard, svgAddAbove, svgAddBelow } from '/js/svgIcons.js';
 
-
-
 export default function DeluxeToolbar({}) {
     const appState = getAppState();
 

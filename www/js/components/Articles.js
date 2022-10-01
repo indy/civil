@@ -1,4 +1,4 @@
-import { html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
+import { html, useState, useEffect } from '/lib/preact/mod.js';
 
 import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 
@@ -12,7 +12,6 @@ import DeleteDeckConfirmation from '/js/components/DeleteDeckConfirmation.js';
 import LeftMarginHeading from '/js/components/LeftMarginHeading.js';
 import LeftMarginHeadingNoWrap from '/js/components/LeftMarginHeadingNoWrap.js';
 import SectionGraph from '/js/components/SectionGraph.js';
-import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import SectionDeckRefs from '/js/components/SectionDeckRefs.js';
 import SectionNotes from '/js/components/SectionNotes.js';

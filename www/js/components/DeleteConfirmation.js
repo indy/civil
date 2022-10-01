@@ -1,4 +1,4 @@
-import { h, html, Link, useState } from '/lib/preact/mod.js';
+import {  html, useState } from '/lib/preact/mod.js';
 
 export default function DeleteConfirmation({ onDelete }) {
 

@@ -3,7 +3,7 @@ import { html, useEffect, useState } from '/lib/preact/mod.js';
 import Net from '/js/Net.js';
 import { parseDateStringAsTriple, deltaInYears } from '/js/eras.js';
 
-import { PointForm, PointBirthForm, PointDeathForm } from '/js/components/PointForm.js';
+import { PointBirthForm, PointDeathForm } from '/js/components/PointForm.js';
 
 const LIFESPAN_STAGE_BIRTH = 0;
 const LIFESPAN_STAGE_IS_ALIVE = 1;

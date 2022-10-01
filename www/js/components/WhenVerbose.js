@@ -1,4 +1,5 @@
 import { html } from '/lib/preact/mod.js';
+
 import { getAppState } from '/js/AppStateProvider.js';
 
 export default function WhenVerbose({children}) {

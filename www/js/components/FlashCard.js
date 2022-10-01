@@ -1,9 +1,9 @@
-import { h, html, Link, useState, useEffect } from '/lib/preact/mod.js';
+import { html, useState } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
-
 import { daysUntil, plural } from '/js/JsUtils.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
+
 import CivilTextArea from '/js/components/CivilTextArea.js';
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 

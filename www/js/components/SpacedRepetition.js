@@ -1,17 +1,16 @@
-import { html, useState, useEffect, Link } from '/lib/preact/mod.js';
+import { html, useEffect, Link } from '/lib/preact/mod.js';
 
-import { AppStateChange } from '/js/AppState.js';
 import Net from '/js/Net.js';
+import { AppStateChange } from '/js/AppState.js';
+import { getAppState } from '/js/AppStateProvider.js';
 import { plural, formattedDate, formattedTime } from '/js/JsUtils.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 
-import { getAppState } from '/js/AppStateProvider.js';
 import buildMarkup from '/js/components/BuildMarkup.js';
 
 const MODE_PRE_TEST = 'pre-test';
 const MODE_TEST = 'test';
 const MODE_POST_TEST = 'post-test';
-
 
 const CARDS_SET = 'cards-set';
 const TEST_START = 'test-start';

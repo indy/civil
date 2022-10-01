@@ -1,4 +1,4 @@
-import { html, useState, useEffect } from '/lib/preact/mod.js';
+import { html, useEffect } from '/lib/preact/mod.js';
 
 import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 import Net from '/js/Net.js';

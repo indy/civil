@@ -1,4 +1,4 @@
-import { html, useState, useEffect } from '/lib/preact/mod.js';
+import { html } from '/lib/preact/mod.js';
 import { AppStateChange } from '/js/AppState.js';
 
 export default function CivilTextArea({id, value, elementRef, elementClass, onFocus, onBlur, onInput }) {

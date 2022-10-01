@@ -1,8 +1,7 @@
-import { createRef, html, route, Link, useState, useEffect } from '/lib/preact/mod.js';
+import { createRef, html, route, useState, useEffect } from '/lib/preact/mod.js';
 import { AppStateChange } from '/js/AppState.js';
-import { opposingKind } from '/js/JsUtils.js';
 import { getAppState } from '/js/AppStateProvider.js';
-import { svgTickedCheckBox, svgUntickedCheckBox, svgChevronLeft, svgChevronRight } from '/js/svgIcons.js';
+import { svgTickedCheckBox, svgUntickedCheckBox } from '/js/svgIcons.js';
 
 import Net from "/js/Net.js";
 import { graphPhysics } from "/js/graphPhysics.js";
