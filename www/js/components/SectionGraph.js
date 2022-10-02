@@ -5,11 +5,10 @@ import { getAppState } from '/js/AppStateProvider.js';
 import Graph from '/js/components/Graph.js';
 import RollableSection from '/js/components/RollableSection.js';
 
-export default function SectionGraph({ depth }) {
+export default function SectionGraph({ depth, deck }) {
     const appState = getAppState();
 
-    if (appState.showConnectivityGraph.value && appState.deckManagerState.value.deck) {
-        let deck = appState.deckManagerState.value.deck;
+    if (appState.showConnectivityGraph.value && deck) {
         const okToShowGraph = (deck.notes && deck.notes.length > 0) || deck.backrefs;
         const heading = (deck.title) ? `Connectivity Graph` : '';
 

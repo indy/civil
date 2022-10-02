@@ -16,6 +16,7 @@ import { svgPointAdd,
          svgBlank,
          svgTickedCheckBox,
          svgUntickedCheckBox } from '/js/svgIcons.js';
+import WhenVerbose from '/js/components/WhenVerbose.js';
 
 import CivilInput from '/js/components/CivilInput.js';
 import DeckManager from '/js/components/DeckManager.js';
@@ -30,7 +31,6 @@ import SectionNotes from '/js/components/SectionNotes.js';
 import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBackref.js';
 import Title from '/js/components/Title.js';
 import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
-import WhenVerbose from '/js/components/WhenVerbose.js';
 import { DeckSimpleListSection } from '/js/components/ListSections.js';
 import { PointForm } from '/js/components/PointForm.js';
 
@@ -60,12 +60,13 @@ function Person({ id }) {
 
     const personId = parseInt(id, 10);
 
+    const resource = "people";
     const deckManager = DeckManager({
         id: personId,
-        resource: "people",
-        preCacheFn: preCacheFn,
-        canHaveSummarySection: true,
-        canHaveReviewSection: false
+        resource,
+        preCacheFn,
+        hasSummarySection: true,
+        hasReviewSection: false
     });
 
     useEffect(() => {
@@ -105,27 +106,28 @@ function Person({ id }) {
         return false;
     }
 
-    const hasKnownLifespan = !!appState.deckManagerState.value.deck && hasBirthPoint(appState.deckManagerState.value.deck);
+    let dms = deckManager.dms;
+    const hasKnownLifespan = !!dms.deck && hasBirthPoint(dms.deck);
 
-    const person = appState.deckManagerState.value.deck;
-    const name = appState.deckManagerState.value.deck && appState.deckManagerState.value.deck.name;
+    const person = dms.deck;
+    const name = dms.deck && dms.deck.name;
 
     return html`
     <article>
         <${DeluxeToolbar}/>
-        <${Title} title=${ deckManager.title }/>
-        <${WhenShowUpdateForm}>
+        <${Title} title=${ deckManager.title } dms=${ dms } refsToggle=${ deckManager.refsToggle } formToggle=${ deckManager.formToggle } />
+        <${WhenShowUpdateForm} showUpdateForm=${dms.showUpdateForm}>
             <${DeleteDeckConfirmation} resource='people' id=${personId}/>
-            <${SectionUpdatePerson} person=${appState.deckManagerState.value.deck}/>
+            <${SectionUpdatePerson} person=${dms.deck} onUpdate=${ deckManager.updateAndReset }/>
         </${WhenShowUpdateForm}>
 
         ${ name && !hasKnownLifespan && html`<${LifespanForm} name=${ name } onLifespanGiven=${ onLifespan } oldestAliveAge=${appState.oldestAliveAge}/>` }
 
-        <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
+        <${SectionDeckRefs} dms=${ dms } onRefsChanged=${ deckManager.onRefsChanged } refsToggle=${ deckManager.refsToggle }/>
 
-        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } preCacheFn=${preCacheFn} resource="people"/>
+        <${SectionNotes} dms=${ dms } title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } resource="people" onUpdateDeck=${deckManager.update}/>
 
-        <${SectionBackRefs} deckId=${ personId }/>
+        <${SectionBackRefs} deck=${dms.deck} deckId=${ personId }/>
 
         <${SectionSearchResultsBackref} backrefs=${ searchResults }/>
         ${ hasKnownLifespan && html`
@@ -134,7 +136,7 @@ function Person({ id }) {
                                holderId=${ person.id }
                                showAddPointForm=${ appState.showAddPointForm.value }
                                holderName=${ person.name }/>`}
-        <${SectionGraph} depth=${ 2 } />
+        <${SectionGraph} depth=${ 2 } deck=${ dms.deck }/>
     </article>`;
 }
 
@@ -181,7 +183,7 @@ function preCacheFn(person) {
     return person;
 }
 
-function SectionUpdatePerson({person}) {
+function SectionUpdatePerson({ person, onUpdate }) {
     const [localState, setLocalState] = useState({
         name: person.name || ''
     });
@@ -215,9 +217,7 @@ function SectionUpdatePerson({person}) {
 
         // edit an existing person
         Net.put(`/api/people/${person.id}`, data).then(newDeck => {
-            AppStateChange.dmsUpdateDeck(newDeck, 'people', true);
-            AppStateChange.dmsHideForm();
-            AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
+            onUpdate(newDeck);
         });
 
         e.preventDefault();

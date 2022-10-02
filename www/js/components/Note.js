@@ -445,8 +445,6 @@ export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited
 
     let noteClasses = "note selectable-container";
     if (local.mouseHovering && toolbarMode !== DELUXE_TOOLBAR_VIEW) {
-        console.log("h");
-        console.log(toolbarMode);
         noteClasses += " selectable-container-hovering";
     }
 

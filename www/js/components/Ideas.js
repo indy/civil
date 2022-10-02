@@ -42,7 +42,6 @@ function preCacheFn(d) {
 }
 
 function Idea({ id }) {
-    const appState = getAppState();
     const [searchResults, setSearchResults] = useState([]); // an array of backrefs
     const ideaId = parseInt(id, 10);
 
@@ -58,38 +57,40 @@ function Idea({ id }) {
         });
     }, [id]);
 
+    const resource = "ideas";
     const deckManager = DeckManager({
         id: ideaId,
-        resource: "ideas",
-        preCacheFn: preCacheFn,
-        canHaveSummarySection: false,
-        canHaveReviewSection: false
+        resource,
+        preCacheFn,
+        hasSummarySection: false,
+        hasReviewSection: false
     });
 
+    let dms = deckManager.dms;
     return html`
     <article>
         <${DeluxeToolbar}/>
-        <${IdeaTopMatter} title=${deckManager.title}/>
-        <${WhenShowUpdateForm}>
+        <${IdeaTopMatter} title=${deckManager.title} dms=${ dms } refsToggle=${ deckManager.refsToggle } formToggle=${ deckManager.formToggle }/>
+        <${WhenShowUpdateForm} showUpdateForm=${dms.showUpdateForm}>
             <${DeleteDeckConfirmation} resource='ideas' id=${ideaId}/>
-            <${SectionUpdateIdea} idea=${appState.deckManagerState.value.deck}/>
+            <${SectionUpdateIdea} idea=${dms.deck} onUpdate=${ deckManager.updateAndReset }/>
         </${WhenShowUpdateForm}>
 
-        <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
-        <${SectionNotes} resource="ideas"
+        <${SectionDeckRefs} dms=${ dms } onRefsChanged=${ deckManager.onRefsChanged } refsToggle=${ deckManager.refsToggle }/>
+        <${SectionNotes} dms=${dms}
+                         resource="ideas"
                          title=${ deckManager.title }
                          onRefsChanged=${ deckManager.onRefsChanged }
-                         preCacheFn=${preCacheFn} />
-        <${SectionBackRefs} deckId=${ ideaId }/>
+                         onUpdateDeck=${deckManager.update} />
+        <${SectionBackRefs} deck=${dms.deck} deckId=${ ideaId }/>
         <${SectionSearchResultsBackref} backrefs=${ searchResults }/>
-        <${SectionGraph} depth=${ 2 } />
+        <${SectionGraph} depth=${ 2 } deck=${ dms.deck }/>
     </article>`;
 }
 
-function IdeaTopMatter({ title }) {
-    const appState = getAppState();
-
-    let createdAt = appState.deckManagerState.value.deck && appState.deckManagerState.value.deck.createdId;
+function IdeaTopMatter({ title, dms, refsToggle, formToggle }) {
+    let deck = dms.deck;
+    let createdAt = deck && deck.createdId;
 
     return html`
     <div>
@@ -98,12 +99,12 @@ function IdeaTopMatter({ title }) {
                 ${ createdAt && formattedDate(createdAt)}
             </${LeftMarginHeading}>
         </div>
-        <${Title} title=${ title }/>
+        <${Title} title=${ title } dms=${ dms } refsToggle=${ refsToggle } formToggle=${ formToggle }/>
     </div>`;
 }
 
 
-function SectionUpdateIdea({idea}) {
+function SectionUpdateIdea({ idea, onUpdate }) {
     const [title, setTitle] = useState(idea.title || '');
     const [graphTerminator, setGraphTerminator] = useState(idea.graphTerminator);
 
@@ -133,9 +134,7 @@ function SectionUpdateIdea({idea}) {
         };
 
         Net.put(`/api/ideas/${idea.id}`, data).then(newDeck => {
-            AppStateChange.dmsUpdateDeck(newDeck, 'ideas', true);
-            AppStateChange.dmsHideForm();
-            AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
+            onUpdate(newDeck);
         });
 
         event.preventDefault();

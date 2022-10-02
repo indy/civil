@@ -52,6 +52,7 @@ var precacheConfig = [
     "/js/components/CivilSelect.js",
     "/js/components/CivilTextArea.js",
     "/js/components/DeckManager.js",
+    "/js/components/DeckManagerState.js",
     "/js/components/DeleteConfirmation.js",
     "/js/components/DeleteDeckConfirmation.js",
     "/js/components/DeluxeToolbar.js",
@@ -264,7 +265,7 @@ self.addEventListener("fetch", function (event) {
         } else {
             // check for a phantom request made by Chrome's debug
             let path = url.split("/").slice(3);
-            if (path[0] !== "api" && path[0] !== "site.webmanifest") {
+            if (path[0] !== "api" && path[0] !== "site.webmanifest" && path[0] !== "u") {
                 // when opening Chromium's Developer Tools, there is a GET
                 // request made for the current page. As Civil's router
                 // re-writes the url this will result in a request to the server

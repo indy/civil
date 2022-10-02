@@ -53,8 +53,6 @@ const state = {
     // },
     user: signal(undefined),
 
-    deckManagerState: signal(cleanDeckManagerState()),
-
     preferredOrder: ["ideas", "people", "articles", "timelines", "quotes", "stats"],
 
     // key == resource name of decks
@@ -123,7 +121,6 @@ export const AppStateChange = {
             console.log("routeChanged");
         }
         state.url.value = url;
-        state.deckManagerState.value = cleanDeckManagerState();
     },
 
     obtainKeyboard: function(b) {
@@ -152,96 +149,6 @@ export const AppStateChange = {
             e.preventDefault();
             state.componentRequiresFullKeyboardAccess.value = false;
         }
-    },
-
-    dmsUpdateDeck: function(deck, resource, scrollToTop) {
-        if (DEBUG_APP_STATE) {
-            console.log("dmsUpdateDeck");
-        }
-        // modify the notes received from the server
-        applyDecksAndCardsToNotes(deck);
-        // organise the notes into noteSeqs
-        buildNoteSeqs(deck);
-
-        // todo: maybe move this back into the apps router now that we're using signals
-        _setUrlName(deck.title || deck.name);
-        state.url.value = `/${resource}/${deck.id}`;
-
-        let dms = { ...state.deckManagerState.value };
-        dms.deck = deck;
-
-        state.deckManagerState.value = dms;
-
-        if (scrollToTop) {
-            window.scrollTo(0, 0);
-        }
-    },
-
-    dmsCanHaveSummarySection: function(canHave) {
-        let dms = {...state.deckManagerState.value};
-        dms.canHaveSummarySection = canHave;
-
-        if (canHave) {
-            dms.displayShowSummaryButton = !dms.deck.notes.some(n => n.kind === NOTE_KIND_SUMMARY);
-        }
-
-        state.deckManagerState.value = dms;
-    },
-
-    dmsCanHaveReviewSection: function(canHave) {
-        let dms = {...state.deckManagerState.value};
-        dms.canHaveReviewSection = canHave;
-
-        if (canHave) {
-            dms.displayShowReviewButton = !dms.deck.notes.some(n => n.kind === NOTE_KIND_REVIEW);
-        }
-
-        state.deckManagerState.value = dms;
-    },
-
-    dmsUpdateFormToggle: function() {
-        if (DEBUG_APP_STATE) {
-            console.log("dmsUpdateFormToggle");
-        }
-        let dms = { ...state.deckManagerState.value };
-        dms.showUpdateForm = !dms.showUpdateForm;
-        state.deckManagerState.value = dms;
-    },
-
-    dmsRefsToggle: function() {
-        if (DEBUG_APP_STATE) {
-            console.log("dmsRefsToggle");
-        }
-        let dms = { ...state.deckManagerState.value };
-        dms.isEditingDeckRefs = !dms.isEditingDeckRefs;
-        state.deckManagerState.value = dms;
-    },
-
-    dmsHideForm: function() {
-        if (DEBUG_APP_STATE) {
-            console.log("dmsHideForm");
-        }
-        let dms = { ...state.deckManagerState.value };
-        dms.showUpdateForm = false;
-        state.deckManagerState.value = dms;
-    },
-
-    dmsShowSummaryButtonToggle: function(isToggled) {
-        if (DEBUG_APP_STATE) {
-            console.log("dmsShowSummaryButtonToggle");
-        }
-        let dms = { ...state.deckManagerState.value };
-        dms.displayShowSummaryButton = isToggled;
-        state.deckManagerState.value = dms;
-    },
-
-    dmsShowReviewButtonToggle: function(isToggled) {
-        if (DEBUG_APP_STATE) {
-            console.log("dmsShowReviewButtonToggle");
-        }
-        let dms = { ...state.deckManagerState.value };
-        dms.displayShowReviewButton = isToggled;
-        state.deckManagerState.value = dms;
     },
 
     scratchListToggle: function() {
@@ -507,19 +414,6 @@ function _setUrlName(name) {
     document.title = `${state.appName}: ${name}`;
 }
 
-function cleanDeckManagerState() {
-    let res = {
-        deck: undefined,
-        showUpdateForm: false,
-        isEditingDeckRefs: false,
-        canHaveSummarySection: false,
-        canHaveReviewSection: false,
-        displayShowSummaryButton: false,
-        displayShowReviewButton: false
-    }
-    return res;
-}
-
 function parseForScratchList(url, urlName) {
     // note: this will break if we ever change the url schema
     let res = url.match(/^\/(\w+)\/(\w+)/);
@@ -603,119 +497,6 @@ function buildDeckIndex(decks) {
     decks.forEach((d, i) => {
         res[d.id] = i;
     });
-
-    return res;
-}
-
-function applyDecksAndCardsToNotes(deck) {
-    const decksInNotes = hashByNoteIds(deck.refs);
-    const cardsInNotes = hashByNoteIds(deck.flashcards);
-
-    for(let i = 0;i<deck.notes.length;i++) {
-        let n = deck.notes[i];
-        n.decks = decksInNotes[n.id] || [];
-        n.decks.sort(sortByResourceThenName);
-        n.flashcards = cardsInNotes[n.id];
-    }
-
-    return deck;
-}
-
-// todo: hashByNoteIds is using the "I'm so clever" reduce style. noteSeqsForPoints is using a much simpler forEach
-//       perhaps change hashByNoteIds to forEach?
-function hashByNoteIds(s) {
-    s = s || [];
-    return s.reduce(function(a, b) {
-        const noteId = b.noteId;
-        if (a[noteId]) {
-            a[noteId].push(b);
-        } else {
-            a[noteId] = [b];
-        }
-        return a;
-    }, {});
-}
-
-function buildNoteSeqs(deck) {
-    deck.noteSeqs = {};
-
-    // build NoteSeqs for notes associated with points
-    deck.noteSeqs.points = noteSeqsForPoints(deck.notes);
-    // add empty noteSeqs for points without any notes
-    if (deck.points) {
-        deck.points.forEach(p => {
-            if (!deck.noteSeqs.points[p.id]) {
-                deck.noteSeqs.points[p.id] = [];
-            }
-        });
-    }
-
-    // build NoteSeqs for all other note kinds
-    deck.noteSeqs.note = noteSeqForNoteKind(deck.notes, "Note");
-    deck.noteSeqs.noteDeckMeta = noteSeqForNoteKind(deck.notes, "NoteDeckMeta"); // should only be of length 1
-    deck.noteSeqs.noteReview = noteSeqForNoteKind(deck.notes, "NoteReview");
-    deck.noteSeqs.noteSummary = noteSeqForNoteKind(deck.notes, "NoteSummary");
-
-    if (deck.noteSeqs.noteDeckMeta.length !== 1) {
-        console.error(`deck: ${deck.id} has a NoteDeckMeta noteseq of length: ${deck.noteSeqs.noteDeckMeta.length} ???`);
-    }
-
-    return deck;
-}
-
-function noteSeqsForPoints(notes) {
-    let p = {};
-    notes.forEach(n => {
-        if (n.pointId) {
-            if (!p[n.pointId]) {
-                p[n.pointId] = [];
-            }
-            p[n.pointId].push(n);
-        }
-    });
-
-    Object.keys(p).forEach(k => {
-        p[k] = createSeq(p[k]);
-    });
-
-    return p;
-}
-
-function noteSeqForNoteKind(notes, kind) {
-    let ns = notes.filter(n => n.kind === kind && n.pointId === null);
-    if (ns.length === 0) {
-        return [];
-    }
-    return createSeq(ns)
-}
-
-function createSeq(ns) {
-    let h = {};
-
-    ns.forEach(n => h[n.id] = n);
-
-    // find the prevNoteId for each note
-    ns.forEach(n => {
-        if (n.nextNoteId) {
-            h[n.nextNoteId].prevNoteId = n.id;
-        } else {
-            // this is the last element
-        }
-    });
-
-    // now find the first element
-    let shouldBeFirst = h[ns[0].id];
-    while (shouldBeFirst.prevNoteId) {
-        shouldBeFirst = h[shouldBeFirst.prevNoteId];
-    }
-
-    // create the ordered note seq to return
-    let res = [];
-    let item = shouldBeFirst;
-    do {
-        res.push(item);
-        item = h[item.nextNoteId];
-    } while(item);
 
     return res;
 }

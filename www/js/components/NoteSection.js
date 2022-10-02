@@ -20,7 +20,7 @@ const NOTE_KIND_SUMMARY = 'NoteSummary';
 const NOTE_KIND_REVIEW = 'NoteReview';
 const NOTE_KIND_DECKMETA = 'NoteDeckMeta';
 
-function NoteSection({ heading, noteKind, noteSeq, howToShow, deck, toolbarMode, onRefsChanged, preCacheFn, resource, noappend }) {
+function NoteSection({ heading, noteKind, noteSeq, howToShow, deck, toolbarMode, onRefsChanged, resource, onUpdateDeck, noappend }) {
     function noteManager(noteKind) {
         let appendLabel = "Append Note";
         if (noteKind === NOTE_KIND_SUMMARY) {
@@ -32,8 +32,8 @@ function NoteSection({ heading, noteKind, noteSeq, howToShow, deck, toolbarMode,
         return NoteManager({
             deck,
             toolbarMode,
+            onUpdateDeck,
             noteSeq,
-            preCacheFn,
             resource,
             onRefsChanged,
             appendLabel,
@@ -51,7 +51,7 @@ function NoteSection({ heading, noteKind, noteSeq, howToShow, deck, toolbarMode,
     }
 }
 
-function NoteManager({ deck, toolbarMode, noteSeq, preCacheFn, resource, onRefsChanged, optionalDeckPoint, appendLabel, noteKind, noappend }) {
+function NoteManager({ deck, toolbarMode, onUpdateDeck, noteSeq, resource, onRefsChanged, optionalDeckPoint, appendLabel, noteKind, noappend }) {
     const appState = getAppState();
 
     function onEditedNote(id, updatedNote) {
@@ -61,7 +61,7 @@ function NoteManager({ deck, toolbarMode, noteSeq, preCacheFn, resource, onRefsC
     function onDeleteNote(id) {
         Net.delete("/api/notes/" + id.toString()).then(allRemainingNotes => {
             let notes = allRemainingNotes;
-            AppStateChange.dmsUpdateDeck(preCacheFn({...deck, notes}), resource, false);
+            onUpdateDeck({...deck, notes});
         });
     };
 
@@ -107,7 +107,7 @@ function NoteManager({ deck, toolbarMode, noteSeq, preCacheFn, resource, onRefsC
 
             addNote(appState.wasmInterface, markup, deck.id, prevNoteId, nextNoteId, noteKind, optionalDeckPoint && optionalDeckPoint.id)
                 .then(allNotes => {
-                    AppStateChange.dmsUpdateDeck(preCacheFn({...deck, notes: allNotes}), resource, true);
+                    onUpdateDeck({...deck, notes: allNotes});
                     AppStateChange.hideNoteForm(noteKind);
                 })
                 .catch(error => console.error(error.message));

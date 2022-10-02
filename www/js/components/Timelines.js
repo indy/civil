@@ -40,28 +40,29 @@ function Timeline({ id }) {
     const appState = getAppState();
 
     const timelineId = parseInt(id, 10);
+    const resource = 'timelines';
 
     const deckManager = DeckManager({
         id: timelineId,
-        resource: "timelines",
-        preCacheFn: preCacheFn,
-        canHaveSummarySection: true,
-        canHaveReviewSection: false
+        resource,
+        preCacheFn,
+        hasSummarySection: true,
+        hasReviewSection: false
     });
 
-    let timeline = appState.deckManagerState.value.deck;
-
+    let dms = deckManager.dms;
+    let timeline = dms.deck;
     return html`
     <article>
         <${DeluxeToolbar}/>
-        <${Title} title=${ deckManager.title }/>
-        <${WhenShowUpdateForm}>
+        <${Title} title=${ deckManager.title } dms=${ dms } refsToggle=${ deckManager.refsToggle } formToggle=${ deckManager.formToggle } />
+        <${WhenShowUpdateForm} showUpdateForm=${dms.showUpdateForm}>
             <${DeleteDeckConfirmation} resource='timelines' id=${timelineId}/>
-            <${SectionUpdateTimeline} timeline=${ appState.deckManagerState.value.deck }/>
+            <${SectionUpdateTimeline} timeline=${ dms.deck } onUpdate=${ deckManager.updateAndReset }/>
         </${WhenShowUpdateForm}>
-        <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
-        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } preCacheFn=${ preCacheFn } resource="timelines" />
-        <${SectionBackRefs} deckId=${ timelineId }/>
+        <${SectionDeckRefs} dms=${ dms } onRefsChanged=${ deckManager.onRefsChanged } refsToggle=${ deckManager.refsToggle }/>
+        <${SectionNotes} dms=${ dms } title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } resource="timelines" onUpdateDeck=${ deckManager.update }/>
+        <${SectionBackRefs} deck=${dms.deck} deckId=${ timelineId }/>
 
 
         ${ !!timeline && html`<${ListPoints} points=${ timeline.points }
@@ -70,7 +71,7 @@ function Timeline({ id }) {
                                              holderId=${ timeline.id }
                                              holderName=${ timeline.title }/>`}
 
-        <${SectionGraph} depth=${ 2 } />
+        <${SectionGraph} depth=${ 2 } deck=${ dms.deck }/>
     </article>`;
 }
 
@@ -86,7 +87,7 @@ function preCacheFn(timeline) {
     return timeline;
 }
 
-function SectionUpdateTimeline({timeline}) {
+function SectionUpdateTimeline({ timeline, onUpdate }) {
     const [localState, setLocalState] = useState({
         title: timeline.title || ''
     });
@@ -120,14 +121,7 @@ function SectionUpdateTimeline({timeline}) {
 
         // edit an existing timeline
         Net.put(`/api/timelines/${timeline.id}`, data).then(newDeck => {
-            AppStateChange.dmsUpdateDeck(newDeck, 'timelines', true);
-            AppStateChange.dmsHideForm();
-            AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
-
-            // fetch the listing incase editing the article has changed it's star rating or annotation
-            //
-            let resource = 'timelines';
-            fetchDeckListing(resource, '/api/timelines/listings');
+            onUpdate(newDeck);
         });
 
         e.preventDefault();
@@ -166,8 +160,6 @@ function TimelineDeckPoint({ deckPoint, hasNotes, noteManager, holderId }) {
 }
 
 function ListPoints({ points, deckManager, holderId, holderName, showAddPointForm }) {
-    const appState = getAppState();
-
     function onAddPointClicked(e) {
         e.preventDefault();
         showAddPointForm ? AppStateChange.hideAddPointForm() : AppStateChange.showAddPointForm();

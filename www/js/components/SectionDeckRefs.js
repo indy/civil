@@ -7,22 +7,21 @@ import { getAppState } from '/js/AppStateProvider.js';
 import CivilSelect from '/js/components/CivilSelect.js';
 import Ref from '/js/components/Ref.js';
 
-export default function SectionDeckRefs({ onRefsChanged }) {
-    const appState = getAppState();
 
+export default function SectionDeckRefs({ dms, onRefsChanged, refsToggle }) {
     function onCancel() {
-        AppStateChange.dmsRefsToggle();
+        refsToggle();
     }
     function onSaved(note, changes, allDecksForNote) {
         // this note is going to be the deck's NoteDeckMeta
         onRefsChanged(note, allDecksForNote);
 
         AppStateChange.noteRefsModified(allDecksForNote, changes);
-        AppStateChange.dmsRefsToggle();
+        refsToggle();
     }
 
-    let deck = appState.deckManagerState.value.deck;
-    let editing = appState.deckManagerState.value.isEditingDeckRefs;
+    let deck = dms.deck;
+    let editing = dms.isEditingDeckRefs;
 
     let deckId = deck && deck.id;
     let deckMeta = deck && deck.noteSeqs && deck.noteSeqs.noteDeckMeta[0];

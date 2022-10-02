@@ -7,11 +7,10 @@ import { NoteSection,
          NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE,
          NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 
-export default function SectionNotes({ onRefsChanged, title, preCacheFn, resource, noappend }) {
+export default function SectionNotes({ dms, onRefsChanged, title, resource, onUpdateDeck, noappend }) {
     const appState = getAppState();
 
     const toolbarMode = appState.toolbarMode.value;
-    const dms = appState.deckManagerState.value;
     const deck = dms.deck;
 
     return html`
@@ -21,10 +20,10 @@ export default function SectionNotes({ onRefsChanged, title, preCacheFn, resourc
                             noteKind=${ NOTE_KIND_SUMMARY }
                             howToShow=${ howToShowNoteSection(NOTE_KIND_SUMMARY, dms) }
                             deck=${ deck }
+                            onUpdateDeck=${onUpdateDeck}
                             toolbarMode=${ toolbarMode }
                             noteSeq=${ deck.noteSeqs.noteSummary }
                             onRefsChanged=${onRefsChanged}
-                            preCacheFn=${preCacheFn}
                             resource=${resource}
                             noappend=${noappend } />`}
         ${ deck && dms.canHaveReviewSection && html`
@@ -32,10 +31,10 @@ export default function SectionNotes({ onRefsChanged, title, preCacheFn, resourc
                             noteKind=${ NOTE_KIND_REVIEW }
                             howToShow=${ howToShowNoteSection(NOTE_KIND_REVIEW, dms) }
                             deck=${ deck }
+                            onUpdateDeck=${onUpdateDeck}
                             toolbarMode=${ toolbarMode }
                             noteSeq=${ deck.noteSeqs.noteReview }
                             onRefsChanged=${onRefsChanged}
-                            preCacheFn=${preCacheFn}
                             resource=${resource}
                             noappend=${noappend } />`}
         ${ deck && html`
@@ -43,10 +42,10 @@ export default function SectionNotes({ onRefsChanged, title, preCacheFn, resourc
                             noteKind=${ NOTE_KIND_NOTE }
                             howToShow=${ howToShowNoteSection(NOTE_KIND_NOTE, dms) }
                             deck=${ deck }
+                            onUpdateDeck=${onUpdateDeck}
                             toolbarMode=${ toolbarMode }
                             noteSeq=${ deck.noteSeqs.note }
                             onRefsChanged=${onRefsChanged}
-                            preCacheFn=${preCacheFn}
                             resource=${resource}
                             noappend=${noappend } />`}
     </div>`;

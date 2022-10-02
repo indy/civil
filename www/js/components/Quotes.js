@@ -1,4 +1,4 @@
-import { html, route, useEffect } from '/lib/preact/mod.js';
+import { html, route, useState, useEffect } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { capitalise } from '/js/JsUtils.js';
@@ -162,13 +162,14 @@ function Quote({ id }) {
     const appState = getAppState();
 
     const quoteId = parseInt(id, 10);
+    const resource = "quotes";
 
     const deckManager = DeckManager({
         id: quoteId,
-        resource: "quotes",
-        preCacheFn: preCacheFn,
-        canHaveSummarySection: false,
-        canHaveReviewSection: false
+        resource,
+        preCacheFn,
+        hasSummarySection: false,
+        hasReviewSection: false
     });
 
     useEffect(() => {
@@ -202,7 +203,7 @@ function Quote({ id }) {
     };
 
     function onEditedAttribute(attribution) {
-        let quote = appState.deckManagerState.value.deck;
+        let quote = dms.deck;
         let note = quote.notes.find(n => n.kind === 'Note');
 
         // as the title could have changed, we need to post the updated quote to the server
@@ -211,7 +212,7 @@ function Quote({ id }) {
             text: note.content, // not really needed, server side only uses title and attribution
             attribution: attribution
         }).then((updatedDeck) => {
-            AppStateChange.dmsUpdateDeck(updatedDeck, 'quotes', true);
+            deckManager.updateAndReset(updatedDeck);
         });
     }
 
@@ -221,12 +222,12 @@ function Quote({ id }) {
         });
     }
 
-    let deck = appState.deckManagerState.value.deck;
+    let deck = deckManager.dms.deck;
 
     return html`
     <article id="quotation-article">
         <${DeluxeToolbar}/>
-        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } preCacheFn=${preCacheFn} resource="quotes" noappend />
+        <${SectionNotes} dms=${ deckManager.dms } title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } resource="quotes" onUpdateDeck=${deckManager.update} noappend />
         ${ deck && html`<${Attribution} attribution=${ deck.attribution }
                                         onEdited=${ onEditedAttribute}
                                         onDelete=${ onDelete }/>` }

@@ -7,11 +7,11 @@ import { svgCaretDown, svgCaretRight} from '/js/svgIcons.js';
 import RollableSection from '/js/components/RollableSection.js';
 import { ExpandableListingLink } from '/js/components/ListingLink.js';
 
-export default function SectionBackRefs({ deckId }) {
+export default function SectionBackRefs({ deckId, deck }) {
     const appState = getAppState();
 
-    let backrefs = (appState.deckManagerState.value.deck && appState.deckManagerState.value.deck.backrefs) || [];
-    let backnotes = (appState.deckManagerState.value.deck && appState.deckManagerState.value.deck.backnotes) || [];
+    let backrefs = (deck && deck.backrefs) || [];
+    let backnotes = (deck && deck.backnotes) || [];
 
     const sections = [];
     const decks = [];

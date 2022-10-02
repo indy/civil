@@ -8,19 +8,19 @@ import { getAppState } from '/js/AppStateProvider.js';
 import Net from '/js/Net.js';
 
 import CivilInput from '/js/components/CivilInput.js';
+import DeckManager from '/js/components/DeckManager.js';
 import DeleteDeckConfirmation from '/js/components/DeleteDeckConfirmation.js';
+import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 import LeftMarginHeading from '/js/components/LeftMarginHeading.js';
 import LeftMarginHeadingNoWrap from '/js/components/LeftMarginHeadingNoWrap.js';
-import SectionGraph from '/js/components/SectionGraph.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import SectionDeckRefs from '/js/components/SectionDeckRefs.js';
+import SectionGraph from '/js/components/SectionGraph.js';
 import SectionNotes from '/js/components/SectionNotes.js';
-import DeckManager from '/js/components/DeckManager.js';
-import { DeckSimpleListSection, RatedListSection } from '/js/components/ListSections.js';
-import { StarRatingPartial } from '/js/components/StarRating.js';
 import Title from '/js/components/Title.js';
 import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
-import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
+import { DeckSimpleListSection, RatedListSection } from '/js/components/ListSections.js';
+import { StarRatingPartial } from '/js/components/StarRating.js';
 
 function Articles() {
     const appState = getAppState();
@@ -44,43 +44,36 @@ function preCacheFn(d) {
 }
 
 function Article({ id }) {
-    const appState = getAppState();
-
     const articleId = parseInt(id, 10);
 
+    const resource = "articles";
     const deckManager = DeckManager({
         id: articleId,
-        resource: "articles",
-        preCacheFn: preCacheFn,
-        canHaveSummarySection: true,
-        canHaveReviewSection: true
+        resource,
+        preCacheFn,
+        hasSummarySection: true,
+        hasReviewSection: true
     });
 
-    function onShowSummaryClicked() {
-        AppStateChange.dmsShowSummaryButtonToggle(!appState.deckManagerState.value.displayShowSummaryButton);
-    }
-    function onShowReviewClicked() {
-        AppStateChange.dmsShowReviewButtonToggle(!appState.deckManagerState.value.displayShowReviewButton);
-    }
-
-    let shortDescription = !!appState.deckManagerState.value.deck && appState.deckManagerState.value.deck.shortDescription;
+    let dms = deckManager.dms;
+    let shortDescription = !!dms.deck && dms.deck.shortDescription;
     return html`
     <article>
         <${DeluxeToolbar}/>
-        <${ArticleTopMatter} title=${ deckManager.title }/>
-        <${WhenShowUpdateForm}>
+        <${ArticleTopMatter} title=${ deckManager.title } dms=${dms} refsToggle=${ deckManager.refsToggle } formToggle=${ deckManager.formToggle } />
+        <${WhenShowUpdateForm} showUpdateForm=${dms.showUpdateForm}>
             <${DeleteDeckConfirmation} resource='articles' id=${articleId}/>
-            <button onClick=${ onShowSummaryClicked }>Show Summary Section</button>
-            <button onClick=${ onShowReviewClicked }>Show Review Section</button>
-            <${SectionUpdateArticle} article=${ appState.deckManagerState.value.deck}/>
+            <button onClick=${ deckManager.onShowSummaryClicked }>Show Summary Section</button>
+            <button onClick=${ deckManager.onShowReviewClicked }>Show Review Section</button>
+            <${SectionUpdateArticle} article=${ dms.deck } onUpdate=${ deckManager.updateAndReset }/>
         </${WhenShowUpdateForm}>
 
 
         <${TopScribble} text=${ shortDescription }/>
-        <${SectionDeckRefs} onRefsChanged=${ deckManager.onRefsChanged }/>
-        <${SectionNotes} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } preCacheFn=${preCacheFn} resource="articles" />
-        <${SectionBackRefs} deckId=${ articleId }/>
-        <${SectionGraph} depth=${ 2 } />
+        <${SectionDeckRefs} dms=${ dms } onRefsChanged=${ deckManager.onRefsChanged } refsToggle=${ deckManager.refsToggle }/>
+        <${SectionNotes} dms=${dms} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } resource="articles" onUpdateDeck=${deckManager.update}/>
+        <${SectionBackRefs} deck=${dms.deck} deckId=${ articleId }/>
+        <${SectionGraph} depth=${ 2 } deck=${ dms.deck }/>
     </article>`;
 }
 
@@ -91,14 +84,12 @@ function TopScribble({ text }) {
     return html``;
 }
 
-function ArticleTopMatter({ title }) {
-    const appState = getAppState();
-    const deck = appState.deckManagerState.value.deck;
-
+function ArticleTopMatter({ title, dms, refsToggle, formToggle }) {
     function Url({ url }) {
         return html`<a href=${ url }>${ url }</a>`;
     }
 
+    let deck = dms.deck;
     if (!deck) {
         return html`<div></div>`;
     }
@@ -120,11 +111,11 @@ function ArticleTopMatter({ title }) {
             </${LeftMarginHeading}>
             <${StarRatingPartial} rating=${deck.rating}/>
         </div>
-        <${Title} title=${ title }/>
+        <${Title} title=${ title } dms=${ dms } refsToggle=${ refsToggle } formToggle=${ formToggle }/>
     </div>`;
 }
 
-function SectionUpdateArticle({article}) {
+function SectionUpdateArticle({ article, onUpdate }) {
     const [title, setTitle] = useState(article.title || '');
     const [author, setAuthor] = useState(article.author || '');
     const [source, setSource] = useState(article.source || '');
@@ -192,9 +183,7 @@ function SectionUpdateArticle({article}) {
         const resource = 'articles';
 
         Net.put(`/api/${ resource }/${ article.id }`, data).then(newDeck => {
-            AppStateChange.dmsUpdateDeck(newDeck, 'articles', true);
-            AppStateChange.dmsHideForm();
-            AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
+            onUpdate(newDeck);
 
             // fetch the listing incase editing the article has changed it's star rating or annotation
             //
