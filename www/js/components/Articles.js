@@ -2,7 +2,7 @@ import { html, useState, useEffect } from '/lib/preact/mod.js';
 
 import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 
-import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
+import { ensureListingLoaded, fetchDeckListing, deckTitle } from '/js/CivilUtils.js';
 import { capitalise, removeEmptyStrings, formattedDate } from '/js/JsUtils.js';
 import { getAppState } from '/js/AppStateProvider.js';
 import Net from '/js/Net.js';
@@ -18,7 +18,6 @@ import SectionDeckRefs from '/js/components/SectionDeckRefs.js';
 import SectionGraph from '/js/components/SectionGraph.js';
 import SectionNotes from '/js/components/SectionNotes.js';
 import Title from '/js/components/Title.js';
-import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
 import { DeckSimpleListSection, RatedListSection } from '/js/components/ListSections.js';
 import { StarRatingPartial } from '/js/components/StarRating.js';
 
@@ -55,25 +54,30 @@ function Article({ id }) {
         hasReviewSection: true
     });
 
-    let dms = deckManager.dms;
-    let shortDescription = !!dms.deck && dms.deck.shortDescription;
+    let deck = deckManager.getDeck()
+    let shortDescription = !!deck && deck.shortDescription;
+
     return html`
     <article>
         <${DeluxeToolbar}/>
-        <${ArticleTopMatter} title=${ deckManager.title } dms=${dms} refsToggle=${ deckManager.refsToggle } formToggle=${ deckManager.formToggle } />
-        <${WhenShowUpdateForm} showUpdateForm=${dms.showUpdateForm}>
+        <${ArticleTopMatter} title=${ deckTitle(deck) } deck=${deck} isShowingUpdateForm=${deckManager.isShowingUpdateForm()} isEditingDeckRefs=${deckManager.isEditingDeckRefs()} onRefsToggle=${ deckManager.onRefsToggle } onFormToggle=${ deckManager.onFormToggle } />
+        ${ deckManager.isShowingUpdateForm() && html`
             <${DeleteDeckConfirmation} resource='articles' id=${articleId}/>
             <button onClick=${ deckManager.onShowSummaryClicked }>Show Summary Section</button>
             <button onClick=${ deckManager.onShowReviewClicked }>Show Review Section</button>
-            <${SectionUpdateArticle} article=${ dms.deck } onUpdate=${ deckManager.updateAndReset }/>
-        </${WhenShowUpdateForm}>
-
-
+            <${SectionUpdateArticle} article=${ deck } onUpdate=${ deckManager.updateAndReset }/>
+        `}
         <${TopScribble} text=${ shortDescription }/>
-        <${SectionDeckRefs} dms=${ dms } onRefsChanged=${ deckManager.onRefsChanged } refsToggle=${ deckManager.refsToggle }/>
-        <${SectionNotes} dms=${dms} title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } resource="articles" onUpdateDeck=${deckManager.update}/>
-        <${SectionBackRefs} deck=${dms.deck} deckId=${ articleId }/>
-        <${SectionGraph} depth=${ 2 } deck=${ dms.deck }/>
+        <${SectionDeckRefs} deck=${ deck } isEditing=${ deckManager.isEditingDeckRefs()} onRefsChanged=${ deckManager.onRefsChanged } onRefsToggle=${ deckManager.onRefsToggle }/>
+        <${SectionNotes} deck=${ deck }
+                         title=${ deckTitle(deck) }
+                         onRefsChanged=${ deckManager.onRefsChanged }
+                         resource="articles"
+                         howToShowNoteSection=${ deckManager.howToShowNoteSection }
+                         canShowNoteSection=${ deckManager.canShowNoteSection }
+                         onUpdateDeck=${deckManager.update}/>
+        <${SectionBackRefs} deck=${ deck } />
+        <${SectionGraph} depth=${ 2 } deck=${ deck }/>
     </article>`;
 }
 
@@ -84,12 +88,11 @@ function TopScribble({ text }) {
     return html``;
 }
 
-function ArticleTopMatter({ title, dms, refsToggle, formToggle }) {
+function ArticleTopMatter({ title, deck, isShowingUpdateForm, isEditingDeckRefs, onRefsToggle, onFormToggle }) {
     function Url({ url }) {
         return html`<a href=${ url }>${ url }</a>`;
     }
 
-    let deck = dms.deck;
     if (!deck) {
         return html`<div></div>`;
     }
@@ -111,7 +114,7 @@ function ArticleTopMatter({ title, dms, refsToggle, formToggle }) {
             </${LeftMarginHeading}>
             <${StarRatingPartial} rating=${deck.rating}/>
         </div>
-        <${Title} title=${ title } dms=${ dms } refsToggle=${ refsToggle } formToggle=${ formToggle }/>
+        <${Title} title=${ title } isShowingUpdateForm=${isShowingUpdateForm} isEditingDeckRefs=${isEditingDeckRefs} onRefsToggle=${ onRefsToggle } onFormToggle=${ onFormToggle }/>
     </div>`;
 }
 

@@ -3,7 +3,7 @@ import { html, useRef, useEffect, useState } from '/lib/preact/mod.js';
 import { AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBAR_REFS } from '/js/AppState.js';
 import { getAppState } from '/js/AppStateProvider.js';
 
-export default function Title({ dms, title, refsToggle, formToggle }) {
+export default function Title({ title, isShowingUpdateForm, isEditingDeckRefs, onRefsToggle, onFormToggle }) {
     const appState = getAppState();
 
     const hoveringRef = useRef(null);
@@ -23,17 +23,17 @@ export default function Title({ dms, title, refsToggle, formToggle }) {
 
     function onTitleClicked(e) {
         if (appState.toolbarMode.value === DELUXE_TOOLBAR_EDIT) {
-            if (dms.showUpdateForm) {
+            if (isShowingUpdateForm) {
                 AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW)
             }
-            formToggle();
+            onFormToggle();
             return;
         }
         if (appState.toolbarMode.value === DELUXE_TOOLBAR_REFS) {
-            if (dms.isEditingDeckRefs) {
+            if (isEditingDeckRefs) {
                 AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW)
             }
-            refsToggle();
+            onRefsToggle();
             return;
         }
     }

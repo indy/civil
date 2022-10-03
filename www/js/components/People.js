@@ -1,7 +1,7 @@
 import { html, Link, useState, useEffect } from '/lib/preact/mod.js';
 
 import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
-import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
+import { ensureListingLoaded, fetchDeckListing, deckTitle } from '/js/CivilUtils.js';
 import { capitalise } from '/js/JsUtils.js';
 import Net from '/js/Net.js';
 import { getAppState } from '/js/AppStateProvider.js';
@@ -30,7 +30,6 @@ import SectionGraph from '/js/components/SectionGraph.js';
 import SectionNotes from '/js/components/SectionNotes.js';
 import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBackref.js';
 import Title from '/js/components/Title.js';
-import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
 import { DeckSimpleListSection } from '/js/components/ListSections.js';
 import { PointForm } from '/js/components/PointForm.js';
 
@@ -80,7 +79,7 @@ function Person({ id }) {
 
         AppStateChange.updatePeopleListing(preCacheFn(person));
         // also update the people list now that this person is no longer uncategorised
-        fetchDeckListing('people');
+        fetchDeckListing(resource);
     }
 
     function onLifespan(birthPoint, deathPoint) {
@@ -106,37 +105,41 @@ function Person({ id }) {
         return false;
     }
 
-    let dms = deckManager.dms;
-    const hasKnownLifespan = !!dms.deck && hasBirthPoint(dms.deck);
-
-    const person = dms.deck;
-    const name = dms.deck && dms.deck.name;
+    const deck = deckManager.getDeck();
+    const name = deck && deck.name;
+    const hasKnownLifespan = deck && hasBirthPoint(deck);
 
     return html`
     <article>
         <${DeluxeToolbar}/>
-        <${Title} title=${ deckManager.title } dms=${ dms } refsToggle=${ deckManager.refsToggle } formToggle=${ deckManager.formToggle } />
-        <${WhenShowUpdateForm} showUpdateForm=${dms.showUpdateForm}>
+        <${Title} title=${ deckTitle(deck) } isShowingUpdateForm=${deckManager.isShowingUpdateForm()} isEditingDeckRefs=${deckManager.isEditingDeckRefs()} onRefsToggle=${ deckManager.onRefsToggle } onFormToggle=${ deckManager.onFormToggle } />
+        ${ deckManager.isShowingUpdateForm() && html`
             <${DeleteDeckConfirmation} resource='people' id=${personId}/>
-            <${SectionUpdatePerson} person=${dms.deck} onUpdate=${ deckManager.updateAndReset }/>
-        </${WhenShowUpdateForm}>
+            <${SectionUpdatePerson} person=${deck} onUpdate=${ deckManager.updateAndReset }/>
+        `}
 
-        ${ name && !hasKnownLifespan && html`<${LifespanForm} name=${ name } onLifespanGiven=${ onLifespan } oldestAliveAge=${appState.oldestAliveAge}/>` }
+        ${ name && !hasKnownLifespan && html`<${LifespanForm} name=${ name } onLifespanGiven=${ onLifespan } oldestAliveAge=${ appState.oldestAliveAge }/>` }
 
-        <${SectionDeckRefs} dms=${ dms } onRefsChanged=${ deckManager.onRefsChanged } refsToggle=${ deckManager.refsToggle }/>
+        <${SectionDeckRefs} deck=${ deck } isEditing=${ deckManager.isEditingDeckRefs() } onRefsChanged=${ deckManager.onRefsChanged } onRefsToggle=${ deckManager.onRefsToggle }/>
 
-        <${SectionNotes} dms=${ dms } title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } resource="people" onUpdateDeck=${deckManager.update}/>
+        <${SectionNotes} deck=${ deck }
+                         title=${ deckTitle(deck) }
+                         onRefsChanged=${ deckManager.onRefsChanged }
+                         resource="people"
+                         howToShowNoteSection=${ deckManager.howToShowNoteSection }
+                         canShowNoteSection=${ deckManager.canShowNoteSection }
+                         onUpdateDeck=${ deckManager.update }/>
 
-        <${SectionBackRefs} deck=${dms.deck} deckId=${ personId }/>
+        <${SectionBackRefs} deck=${ deck } />
 
         <${SectionSearchResultsBackref} backrefs=${ searchResults }/>
         ${ hasKnownLifespan && html`
-            <${ListDeckPoints} deckPoints=${ person.allPointsDuringLife }
+            <${ListDeckPoints} deckPoints=${ deck.allPointsDuringLife }
                                deckManager=${ deckManager }
-                               holderId=${ person.id }
+                               holderId=${ deck.id }
                                showAddPointForm=${ appState.showAddPointForm.value }
-                               holderName=${ person.name }/>`}
-        <${SectionGraph} depth=${ 2 } deck=${ dms.deck }/>
+                               holderName=${ deck.name }/>`}
+        <${SectionGraph} depth=${ 2 } deck=${ deck }/>
     </article>`;
 }
 

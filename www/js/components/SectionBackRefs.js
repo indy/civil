@@ -7,7 +7,7 @@ import { svgCaretDown, svgCaretRight} from '/js/svgIcons.js';
 import RollableSection from '/js/components/RollableSection.js';
 import { ExpandableListingLink } from '/js/components/ListingLink.js';
 
-export default function SectionBackRefs({ deckId, deck }) {
+export default function SectionBackRefs({ deck }) {
     const appState = getAppState();
 
     let backrefs = (deck && deck.backrefs) || [];
@@ -48,47 +48,49 @@ export default function SectionBackRefs({ deckId, deck }) {
         }
     });
 
-    // attach refs to the correct notes
-    //
-    backrefs.forEach(br => {
-        // find the noteId
-        for (let i = 0; i < decks.length; i++) {
-            let d = decks[i];
+    if (deck) {
+        // attach refs to the correct notes
+        //
+        backrefs.forEach(br => {
+            // find the noteId
+            for (let i = 0; i < decks.length; i++) {
+                let d = decks[i];
 
-            if (d.metaNoteId === br.noteId) {
-                if (br.deckId === deckId) {
-                    d.deckLevelAnnotation = br.annotation;
-                } else {
-                    d.deckLevelRefs.push({
-                        id: br.deckId,
-                        name: br.deckName,
-                        refKind: br.refKind,
-                        resource: br.resource,
-                        annotation: br.annotation
-                    });
-                    break;
-                }
-            } else {
-                for (let j = 0; j < d.notes.length; j++) {
-                    if (d.notes[j].noteId === br.noteId) {
-                        if (br.deckId === deckId) {
-                            d.notes[j].topRefKind = br.refKind;
-                            d.notes[j].topAnnotation = br.annotation;
-                        } else {
-                            d.notes[j].refs.push({
-                                id: br.deckId,
-                                name: br.deckName,
-                                refKind: br.refKind,
-                                resource: br.resource,
-                                annotation: br.annotation
-                            })
-                        }
+                if (d.metaNoteId === br.noteId) {
+                    if (br.deckId === deck.id) {
+                        d.deckLevelAnnotation = br.annotation;
+                    } else {
+                        d.deckLevelRefs.push({
+                            id: br.deckId,
+                            name: br.deckName,
+                            refKind: br.refKind,
+                            resource: br.resource,
+                            annotation: br.annotation
+                        });
                         break;
+                    }
+                } else {
+                    for (let j = 0; j < d.notes.length; j++) {
+                        if (d.notes[j].noteId === br.noteId) {
+                            if (br.deckId === deck.id) {
+                                d.notes[j].topRefKind = br.refKind;
+                                d.notes[j].topAnnotation = br.annotation;
+                            } else {
+                                d.notes[j].refs.push({
+                                    id: br.deckId,
+                                    name: br.deckName,
+                                    refKind: br.refKind,
+                                    resource: br.resource,
+                                    annotation: br.annotation
+                                })
+                            }
+                            break;
+                        }
                     }
                 }
             }
-        }
-    });
+        });
+    }
 
     // group by resource kind
     //

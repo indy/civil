@@ -7,21 +7,17 @@ import { getAppState } from '/js/AppStateProvider.js';
 import CivilSelect from '/js/components/CivilSelect.js';
 import Ref from '/js/components/Ref.js';
 
-
-export default function SectionDeckRefs({ dms, onRefsChanged, refsToggle }) {
+export default function SectionDeckRefs({ deck, isEditing, onRefsChanged, onRefsToggle }) {
     function onCancel() {
-        refsToggle();
+        onRefsToggle();
     }
     function onSaved(note, changes, allDecksForNote) {
         // this note is going to be the deck's NoteDeckMeta
         onRefsChanged(note, allDecksForNote);
 
         AppStateChange.noteRefsModified(allDecksForNote, changes);
-        refsToggle();
+        onRefsToggle();
     }
-
-    let deck = dms.deck;
-    let editing = dms.isEditingDeckRefs;
 
     let deckId = deck && deck.id;
     let deckMeta = deck && deck.noteSeqs && deck.noteSeqs.noteDeckMeta[0];
@@ -38,8 +34,8 @@ export default function SectionDeckRefs({ dms, onRefsChanged, refsToggle }) {
     }
 
     return html`<div class="deck-ref-section">
-        ${ !editing && entries.length > 0 && html`<div><hr class="light"/>${entries}<hr class="light"/></div>`}
-        ${  editing && html`<${AddDecksUI} deckId=${deckId} note=${deckMeta} chosen=${deckMeta.decks} onCancel=${onCancel} onSaved=${ onSaved }/>` }
+        ${ !isEditing && entries.length > 0 && html`<div><hr class="light"/>${entries}<hr class="light"/></div>`}
+        ${  isEditing && html`<${AddDecksUI} deckId=${deckId} note=${deckMeta} chosen=${deckMeta.decks} onCancel=${onCancel} onSaved=${ onSaved }/>` }
     </div>`;
 }
 

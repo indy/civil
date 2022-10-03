@@ -4,6 +4,11 @@ import { AppStateChange } from '/js/AppState.js';
 import { getAppState } from '/js/AppStateProvider.js';
 import Net from '/js/Net.js';
 
+export function deckTitle(deck) {
+    let title = deck && (deck.title || deck.name || '');
+    return title;
+}
+
 export function createDeck(resource, title) {
     // creates a new deck
     const data = {

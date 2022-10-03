@@ -3,9 +3,12 @@ import { html, useState, useEffect } from '/lib/preact/mod.js';
 import Net from '/js/Net.js';
 import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 import { getAppState } from '/js/AppStateProvider.js';
-import { sortByResourceThenName } from '/js/CivilUtils.js';
+import { sortByResourceThenName, deckTitle } from '/js/CivilUtils.js';
 
-import { NoteManager, NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW } from '/js/components/NoteSection.js';
+import { NoteManager,
+         NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE,
+         NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW
+       } from '/js/components/NoteSection.js';
 import { PointForm } from '/js/components/PointForm.js';
 
 export default function DeckManager({ id, resource, preCacheFn, hasSummarySection, hasReviewSection }) {
@@ -27,8 +30,6 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
             }
         });
     }, [id]);
-
-    let title = dms.deck && (dms.deck.title || dms.deck.name || '');
 
     function update(newDeck) {
         let newDms = dmsUpdateDeck(dms, preCacheFn(newDeck), resource, false);
@@ -71,9 +72,16 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
     };
 
     let res = {
-        dms,
-        title,
         update,
+        getDeck: function() {
+            return dms.deck;
+        },
+        isShowingUpdateForm: function() {
+            return dms.isShowingUpdateForm;
+        },
+        isEditingDeckRefs: function() {
+            return dms.isEditingDeckRefs;
+        },
         updateAndReset: function(newDeck) {
             let newDms = dmsUpdateDeck(dms, preCacheFn(newDeck), resource, true);
             newDms = dmsHideForm(newDms);
@@ -89,11 +97,11 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
             let newDms = dmsShowReviewButtonToggle(dms, !dms.displayShowReviewButton);
             setDms(newDms);
         },
-        refsToggle: function() {
+        onRefsToggle: function() {
             let newDms = dmsRefsToggle(dms);
             setDms(newDms);
         },
-        formToggle: function() {
+        onFormToggle: function() {
             let newDms = dmsUpdateFormToggle(dms);
             setDms(newDms);
         },
@@ -123,6 +131,48 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
         },
         pointHasNotes: function(point) {
             return dms.deck.notes.some(n => n.pointId === point.id);
+        },
+        canShowNoteSection: function(noteKind) {
+            if (noteKind === NOTE_KIND_SUMMARY && dms.canHaveSummarySection) {
+                return true;
+            }
+            if (noteKind === NOTE_KIND_REVIEW && dms.canHaveReviewSection) {
+                return true;
+            }
+            if (noteKind === NOTE_KIND_NOTE) {
+                return true;
+            }
+            return false;
+        },
+        howToShowNoteSection: function(noteKind) {
+            if (noteKind === NOTE_KIND_SUMMARY) {
+                if (dms.canHaveSummarySection) {
+                    return dms.displayShowSummaryButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
+                } else {
+                    return NOTE_SECTION_HIDE;
+                }
+            }
+
+            if (noteKind === NOTE_KIND_REVIEW) {
+                if (dms.canHaveReviewSection) {
+                    return dms.displayShowReviewButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
+                } else {
+                    return NOTE_SECTION_HIDE;
+                }
+            }
+
+            if (noteKind === NOTE_KIND_NOTE) {
+                var r = NOTE_SECTION_EXCLUSIVE;
+                if (dms.canHaveSummarySection && !dms.displayShowSummaryButton) {
+                    r = NOTE_SECTION_SHOW;
+                }
+                if (dms.canHaveReviewSection && !dms.displayShowReviewButton) {
+                    r = NOTE_SECTION_SHOW;
+                }
+                return r;
+            }
+
+            return NOTE_SECTION_HIDE;
         }
     };
 
@@ -133,7 +183,7 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
 function cleanDeckManagerState() {
     let res = {
         deck: undefined,
-        showUpdateForm: false,
+        isShowingUpdateForm: false,
         isEditingDeckRefs: false,
         canHaveSummarySection: false,
         canHaveReviewSection: false,
@@ -150,7 +200,7 @@ function dmsUpdateDeck(dms, deck, resource, scrollToTop) {
     buildNoteSeqs(deck);
 
     // todo: maybe move this back into the apps router now that we're using signals
-    AppStateChange.urlName(deck.title || deck.name);
+    AppStateChange.urlName(deckTitle(deck));
     AppStateChange.routeChanged(`/${resource}/${deck.id}`);
 
     let res = { ...dms };
@@ -200,7 +250,7 @@ function dmsCanHaveReviewSection(dms, canHave) {
 
 function dmsUpdateFormToggle(dms) {
     let res = { ...dms };
-    res.showUpdateForm = !res.showUpdateForm;
+    res.isShowingUpdateForm = !res.isShowingUpdateForm;
 
     return res;
 }
@@ -215,7 +265,7 @@ function dmsRefsToggle(dms) {
 function dmsHideForm(dms) {
     let res = {
         ...dms,
-        showUpdateForm: false
+        isShowingUpdateForm: false
     };
     return res;
 }

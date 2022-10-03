@@ -1,11 +1,12 @@
 import { html, route, useState, useEffect } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
-import { capitalise } from '/js/JsUtils.js';
+import buildMarkup from '/js/components/BuildMarkup.js';
 import { AppStateChange } from '/js/AppState.js';
+import { capitalise } from '/js/JsUtils.js';
+import { deckTitle } from '/js/CivilUtils.js';
 import { getAppState } from '/js/AppStateProvider.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
-import buildMarkup from '/js/components/BuildMarkup.js';
 
 import CivilInput from '/js/components/CivilInput.js';
 import CivilTextArea from '/js/components/CivilTextArea.js';
@@ -202,13 +203,14 @@ function Quote({ id }) {
         }
     };
 
+    let deck = deckManager.getDeck();
+
     function onEditedAttribute(attribution) {
-        let quote = dms.deck;
-        let note = quote.notes.find(n => n.kind === 'Note');
+        let note = deck.notes.find(n => n.kind === 'Note');
 
         // as the title could have changed, we need to post the updated quote to the server
         Net.put(`/api/quotes/${quote.id}`, {
-            title: quote.title,
+            title: deck.title,
             text: note.content, // not really needed, server side only uses title and attribution
             attribution: attribution
         }).then((updatedDeck) => {
@@ -222,14 +224,18 @@ function Quote({ id }) {
         });
     }
 
-    let deck = deckManager.dms.deck;
-
     return html`
     <article id="quotation-article">
         <${DeluxeToolbar}/>
-        <${SectionNotes} dms=${ deckManager.dms } title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } resource="quotes" onUpdateDeck=${deckManager.update} noappend />
+        <${SectionNotes} deck=${ deck }
+                         title=${ deckTitle(deck) }
+                         howToShowNoteSection=${ deckManager.howToShowNoteSection }
+                         canShowNoteSection=${ deckManager.canShowNoteSection }
+                         onRefsChanged=${ deckManager.onRefsChanged }
+                         resource="quotes"
+                         onUpdateDeck=${deckManager.update} noappend />
         ${ deck && html`<${Attribution} attribution=${ deck.attribution }
-                                        onEdited=${ onEditedAttribute}
+                                        onEdited=${ onEditedAttribute }
                                         onDelete=${ onDelete }/>` }
     </article>`;
 }

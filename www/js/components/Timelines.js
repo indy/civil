@@ -4,7 +4,7 @@ import Net from '/js/Net.js';
 import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 import { addChronologicalSortYear } from '/js/eras.js';
 import { capitalise } from '/js/JsUtils.js';
-import { ensureListingLoaded, fetchDeckListing } from '/js/CivilUtils.js';
+import { ensureListingLoaded, fetchDeckListing, deckTitle } from '/js/CivilUtils.js';
 import { getAppState } from '/js/AppStateProvider.js';
 
 import CivilInput from '/js/components/CivilInput.js';
@@ -17,7 +17,6 @@ import SectionDeckRefs from '/js/components/SectionDeckRefs.js';
 import SectionGraph from '/js/components/SectionGraph.js';
 import SectionNotes from '/js/components/SectionNotes.js';
 import Title from '/js/components/Title.js';
-import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
 import WhenVerbose from '/js/components/WhenVerbose.js';
 import { DeckSimpleList } from '/js/components/ListSections.js';
 import { PointForm } from '/js/components/PointForm.js';
@@ -50,28 +49,32 @@ function Timeline({ id }) {
         hasReviewSection: false
     });
 
-    let dms = deckManager.dms;
-    let timeline = dms.deck;
+    let deck = deckManager.getDeck();
+
     return html`
     <article>
         <${DeluxeToolbar}/>
-        <${Title} title=${ deckManager.title } dms=${ dms } refsToggle=${ deckManager.refsToggle } formToggle=${ deckManager.formToggle } />
-        <${WhenShowUpdateForm} showUpdateForm=${dms.showUpdateForm}>
+        <${Title} title=${ deckTitle(deck) } isShowingUpdateForm=${deckManager.isShowingUpdateForm()} isEditingDeckRefs=${deckManager.isEditingDeckRefs()} onRefsToggle=${ deckManager.onRefsToggle } onFormToggle=${ deckManager.onFormToggle } />
+        ${ deckManager.isShowingUpdateForm() && html`
             <${DeleteDeckConfirmation} resource='timelines' id=${timelineId}/>
-            <${SectionUpdateTimeline} timeline=${ dms.deck } onUpdate=${ deckManager.updateAndReset }/>
-        </${WhenShowUpdateForm}>
-        <${SectionDeckRefs} dms=${ dms } onRefsChanged=${ deckManager.onRefsChanged } refsToggle=${ deckManager.refsToggle }/>
-        <${SectionNotes} dms=${ dms } title=${ deckManager.title } onRefsChanged=${ deckManager.onRefsChanged } resource="timelines" onUpdateDeck=${ deckManager.update }/>
-        <${SectionBackRefs} deck=${dms.deck} deckId=${ timelineId }/>
-
-
-        ${ !!timeline && html`<${ListPoints} points=${ timeline.points }
+            <${SectionUpdateTimeline} timeline=${ deck } onUpdate=${ deckManager.updateAndReset }/>
+        `}
+        <${SectionDeckRefs} deck=${ deck } isEditing=${ deckManager.isEditingDeckRefs()} onRefsChanged=${ deckManager.onRefsChanged } onRefsToggle=${ deckManager.onRefsToggle }/>
+        <${SectionNotes} deck=${ deck }
+                         title=${ deckTitle(deck) }
+                         onRefsChanged=${ deckManager.onRefsChanged }
+                         resource="timelines"
+                         howToShowNoteSection=${ deckManager.howToShowNoteSection }
+                         canShowNoteSection=${ deckManager.canShowNoteSection }
+                         onUpdateDeck=${ deckManager.update }/>
+        <${SectionBackRefs} deck=${ deck } />
+        ${ !!timeline && html`<${ListPoints} points=${ deck.points }
                                              deckManager=${ deckManager }
                                              showAddPointForm=${ appState.showAddPointForm.value }
-                                             holderId=${ timeline.id }
-                                             holderName=${ timeline.title }/>`}
+                                             holderId=${ deck.id }
+                                             holderName=${ deck.title }/>`}
 
-        <${SectionGraph} depth=${ 2 } deck=${ dms.deck }/>
+        <${SectionGraph} depth=${ 2 } deck=${ deck }/>
     </article>`;
 }
 

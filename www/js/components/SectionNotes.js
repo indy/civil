@@ -7,18 +7,17 @@ import { NoteSection,
          NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE,
          NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 
-export default function SectionNotes({ dms, onRefsChanged, title, resource, onUpdateDeck, noappend }) {
+export default function SectionNotes({ deck, onRefsChanged, title, resource, howToShowNoteSection, canShowNoteSection, onUpdateDeck, noappend }) {
     const appState = getAppState();
 
     const toolbarMode = appState.toolbarMode.value;
-    const deck = dms.deck;
 
     return html`
     <div>
-        ${ deck && dms.canHaveSummarySection && html`
+        ${ deck && canShowNoteSection(NOTE_KIND_SUMMARY) && html`
             <${NoteSection} heading='Summary'
                             noteKind=${ NOTE_KIND_SUMMARY }
-                            howToShow=${ howToShowNoteSection(NOTE_KIND_SUMMARY, dms) }
+                            howToShow=${ howToShowNoteSection(NOTE_KIND_SUMMARY) }
                             deck=${ deck }
                             onUpdateDeck=${onUpdateDeck}
                             toolbarMode=${ toolbarMode }
@@ -26,10 +25,10 @@ export default function SectionNotes({ dms, onRefsChanged, title, resource, onUp
                             onRefsChanged=${onRefsChanged}
                             resource=${resource}
                             noappend=${noappend } />`}
-        ${ deck && dms.canHaveReviewSection && html`
+        ${ deck && canShowNoteSection(NOTE_KIND_REVIEW) && html`
             <${NoteSection} heading='Review'
                             noteKind=${ NOTE_KIND_REVIEW }
-                            howToShow=${ howToShowNoteSection(NOTE_KIND_REVIEW, dms) }
+                            howToShow=${ howToShowNoteSection(NOTE_KIND_REVIEW) }
                             deck=${ deck }
                             onUpdateDeck=${onUpdateDeck}
                             toolbarMode=${ toolbarMode }
@@ -40,7 +39,7 @@ export default function SectionNotes({ dms, onRefsChanged, title, resource, onUp
         ${ deck && html`
             <${NoteSection} heading=${ title }
                             noteKind=${ NOTE_KIND_NOTE }
-                            howToShow=${ howToShowNoteSection(NOTE_KIND_NOTE, dms) }
+                            howToShow=${ howToShowNoteSection(NOTE_KIND_NOTE) }
                             deck=${ deck }
                             onUpdateDeck=${onUpdateDeck}
                             toolbarMode=${ toolbarMode }
@@ -49,35 +48,4 @@ export default function SectionNotes({ dms, onRefsChanged, title, resource, onUp
                             resource=${resource}
                             noappend=${noappend } />`}
     </div>`;
-}
-
-function howToShowNoteSection(noteKind, deckManagerState) {
-    if (noteKind === NOTE_KIND_SUMMARY) {
-        if (deckManagerState.canHaveSummarySection) {
-            return deckManagerState.displayShowSummaryButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
-        } else {
-            return NOTE_SECTION_HIDE;
-        }
-    }
-
-    if (noteKind === NOTE_KIND_REVIEW) {
-        if (deckManagerState.canHaveReviewSection) {
-            return deckManagerState.displayShowReviewButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
-        } else {
-            return NOTE_SECTION_HIDE;
-        }
-    }
-
-    if (noteKind === NOTE_KIND_NOTE) {
-        var r = NOTE_SECTION_EXCLUSIVE;
-        if (deckManagerState.canHaveSummarySection && !deckManagerState.displayShowSummaryButton) {
-            r = NOTE_SECTION_SHOW;
-        }
-        if (deckManagerState.canHaveReviewSection && !deckManagerState.displayShowReviewButton) {
-            r = NOTE_SECTION_SHOW;
-        }
-        return r;
-    }
-
-    return NOTE_SECTION_HIDE;
 }

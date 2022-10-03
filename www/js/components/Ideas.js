@@ -3,7 +3,7 @@ import { html, useState, useEffect } from '/lib/preact/mod.js';
 import Net from '/js/Net.js';
 import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 import { capitalise, formattedDate } from '/js/JsUtils.js';
-import { ensureListingLoaded } from '/js/CivilUtils.js';
+import { ensureListingLoaded, deckTitle } from '/js/CivilUtils.js';
 import { getAppState } from '/js/AppStateProvider.js';
 
 import CivilInput from '/js/components/CivilInput.js';
@@ -17,7 +17,6 @@ import SectionGraph from '/js/components/SectionGraph.js';
 import SectionNotes from '/js/components/SectionNotes.js';
 import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBackref.js';
 import Title from '/js/components/Title.js';
-import WhenShowUpdateForm from '/js/components/WhenShowUpdateForm.js';
 import { DeckSimpleListSection } from '/js/components/ListSections.js';
 
 function Ideas() {
@@ -66,31 +65,40 @@ function Idea({ id }) {
         hasReviewSection: false
     });
 
-    let dms = deckManager.dms;
+    let deck = deckManager.getDeck();
+    let createdAt = deck && deck.createdId;
+
     return html`
     <article>
         <${DeluxeToolbar}/>
-        <${IdeaTopMatter} title=${deckManager.title} dms=${ dms } refsToggle=${ deckManager.refsToggle } formToggle=${ deckManager.formToggle }/>
-        <${WhenShowUpdateForm} showUpdateForm=${dms.showUpdateForm}>
+        <${IdeaTopMatter} title=${ deckTitle(deck) }
+                          createdAt=${ createdAt }
+                          isShowingUpdateForm=${ deckManager.isShowingUpdateForm() }
+                          isEditingDeckRefs=${ deckManager.isEditingDeckRefs() }
+                          onRefsToggle=${ deckManager.onRefsToggle }
+                          onFormToggle=${ deckManager.onFormToggle }/>
+        ${ deckManager.isShowingUpdateForm() && html`
             <${DeleteDeckConfirmation} resource='ideas' id=${ideaId}/>
-            <${SectionUpdateIdea} idea=${dms.deck} onUpdate=${ deckManager.updateAndReset }/>
-        </${WhenShowUpdateForm}>
-
-        <${SectionDeckRefs} dms=${ dms } onRefsChanged=${ deckManager.onRefsChanged } refsToggle=${ deckManager.refsToggle }/>
-        <${SectionNotes} dms=${dms}
+            <${SectionUpdateIdea} idea=${ deck } onUpdate=${ deckManager.updateAndReset }/>
+        `}
+        <${SectionDeckRefs} deck=${ deck }
+                            isEditing=${ deckManager.isEditingDeckRefs() }
+                            onRefsChanged=${ deckManager.onRefsChanged }
+                            onRefsToggle=${ deckManager.onRefsToggle }/>
+        <${SectionNotes} deck=${ deck }
                          resource="ideas"
-                         title=${ deckManager.title }
+                         title=${ deckTitle(deck) }
+                         howToShowNoteSection=${ deckManager.howToShowNoteSection }
+                         canShowNoteSection=${ deckManager.canShowNoteSection }
                          onRefsChanged=${ deckManager.onRefsChanged }
-                         onUpdateDeck=${deckManager.update} />
-        <${SectionBackRefs} deck=${dms.deck} deckId=${ ideaId }/>
+                         onUpdateDeck=${ deckManager.update } />
+        <${SectionBackRefs} deck=${ deck } />
         <${SectionSearchResultsBackref} backrefs=${ searchResults }/>
-        <${SectionGraph} depth=${ 2 } deck=${ dms.deck }/>
+        <${SectionGraph} depth=${ 2 } deck=${ deck }/>
     </article>`;
 }
 
-function IdeaTopMatter({ title, dms, refsToggle, formToggle }) {
-    let deck = dms.deck;
-    let createdAt = deck && deck.createdId;
+function IdeaTopMatter({ title, createdAt, isShowingUpdateForm, isEditingDeckRefs, onRefsToggle, onFormToggle }) {
 
     return html`
     <div>
@@ -99,7 +107,7 @@ function IdeaTopMatter({ title, dms, refsToggle, formToggle }) {
                 ${ createdAt && formattedDate(createdAt)}
             </${LeftMarginHeading}>
         </div>
-        <${Title} title=${ title } dms=${ dms } refsToggle=${ refsToggle } formToggle=${ formToggle }/>
+        <${Title} title=${ title } isShowingUpdateForm=${isShowingUpdateForm} isEditingDeckRefs=${isEditingDeckRefs} onRefsToggle=${ onRefsToggle } onFormToggle=${ onFormToggle }/>
     </div>`;
 }
 
