@@ -52,7 +52,6 @@ var precacheConfig = [
     "/js/components/CivilSelect.js",
     "/js/components/CivilTextArea.js",
     "/js/components/DeckManager.js",
-    "/js/components/DeckManagerState.js",
     "/js/components/DeleteConfirmation.js",
     "/js/components/DeleteDeckConfirmation.js",
     "/js/components/DeluxeToolbar.js",
