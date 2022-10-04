@@ -6,7 +6,7 @@ import { getAppState } from '/js/AppStateProvider.js';
 import { svgEdit, svgX } from '/js/svgIcons.js';
 
 import CivilTextArea from '/js/components/CivilTextArea.js';
-import ImageWidget from '/js/components/ImageWidget.js';
+import ImageSelector from '/js/components/ImageSelector.js';
 import Note from '/js/components/Note.js';
 import RollableSection from '/js/components/RollableSection.js';
 import WhenVerbose from '/js/components/WhenVerbose.js';
@@ -163,7 +163,7 @@ function NoteForm({ onSubmit, onCancel }) {
     const textAreaRef = useRef(null);
 
     // need to keep track of the cursor position in case the user:
-    // moves cursor to a position within the text and clicks on the ImageWidget
+    // moves cursor to a position within the text and clicks on the ImageSelector
     // to add markup multiple times. The expected result is to have multiple
     // image markups at the point where the cursor was (by default the cursor
     // goes to the end of the content once the first image markup has been added)
@@ -250,7 +250,7 @@ function NoteForm({ onSubmit, onCancel }) {
                    <br/>
                    <input type="submit" value="Save"/>
                </form>
-               <${ImageWidget} onPaste=${ onImagePaste }/>
+               <${ImageSelector} onPaste=${ onImagePaste }/>
            </div>`;
 }
 

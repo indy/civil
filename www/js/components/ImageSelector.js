@@ -5,7 +5,7 @@ import { svgX } from '/js/svgIcons.js';
 
 import Net from '/js/Net.js';
 
-export default function ImageWidget({ onPaste }) {
+export default function ImageSelector({ onPaste }) {
     const appState = getAppState();
     const [minimised, setMinimised] = useState(true);
 
@@ -103,7 +103,7 @@ export default function ImageWidget({ onPaste }) {
                  "Images...");
     } else {
         const recent = appState.recentImages.value.map(ri =>
-            h(ImageWidgetItem,
+            h(ImageSelectorItem,
               {
                   imageDirectory: imageDirectory,
                   filename: ri.filename,
@@ -131,7 +131,7 @@ export default function ImageWidget({ onPaste }) {
     }
 }
 
-function ImageWidgetItem({ filename, imageDirectory, onPaste }) {
+function ImageSelectorItem({ filename, imageDirectory, onPaste }) {
     let markupSyntax = `:img(${filename})`;
 
     function onClick() {

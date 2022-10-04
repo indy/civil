@@ -11,7 +11,7 @@ import CivilSelect from '/js/components/CivilSelect.js';
 import CivilTextArea from '/js/components/CivilTextArea.js';
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 import FlashCard from '/js/components/FlashCard.js';
-import ImageWidget from '/js/components/ImageWidget.js';
+import ImageSelector from '/js/components/ImageSelector.js';
 import Ref from '/js/components/Ref.js';
 import buildMarkup from '/js/components/BuildMarkup.js';
 
@@ -432,7 +432,7 @@ export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited
                 <button onClick=${ onCancelClicked }>Cancel</button>
                 <button disabled=${!hasNoteBeenModified(local)} onClick=${ onSaveEditsClicked }>Save Edits</button>
                 <${DeleteConfirmation} onDelete=${ confirmedDeleteClicked }/>
-                <${ImageWidget} onPaste=${ onImagePaste } />
+                <${ImageSelector} onPaste=${ onImagePaste } />
             </div>`;
         } else {
             return html`<div class="block-width"></div>`;
