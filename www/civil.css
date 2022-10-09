@@ -794,7 +794,7 @@ textarea {
 
 .on-touch-device-search-command-lost-focus {
   border: 0;
-  background: rgba(0, 255, 0, 0.1);
+  background: rgba(0, 255, 0, 0.05);
 }
 
 .search-command-unimportant {

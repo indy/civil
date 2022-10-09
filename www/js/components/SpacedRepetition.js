@@ -31,7 +31,7 @@ function dbg(mode, state) {
     console.groupEnd();
 }
 
-function augmentCard(state, card, postRatingToServer) {
+function augmentCard(card, postRatingToServer) {
     card.showState = SHOW_PROMPT;
     card.prompt = card.prompt;
     card.answer = card.noteContent;
@@ -45,7 +45,7 @@ function reducer(state, action) {
     case CARDS_SET: {
         let newState = {
             ...state,
-            cards: action.data.cards.map(card => augmentCard(action.data.state, card, true))
+            cards: action.data.cards.map(card => augmentCard(card, true))
         }
         // dbg('CARDS_SET', newState);
         return newState;
@@ -61,7 +61,7 @@ function reducer(state, action) {
     case PRACTICE_CARD_SET: {
         let newState = {
             ...state,
-            practiceCard: augmentCard(action.data.state, action.data.card, false)
+            practiceCard: augmentCard(action.data.card, false)
         };
         // dbg("PRACTICE_CARD_SET", newState);
         return newState;
@@ -142,7 +142,7 @@ export default function SpacedRepetition(props) {
 
     useEffect(() => {
         Net.get('/api/sr').then(cards => {
-            localDispatch(CARDS_SET, { cards, state });
+            localDispatch(CARDS_SET, { cards });
         });
     }, []);
 
@@ -166,7 +166,7 @@ export default function SpacedRepetition(props) {
         }
         localDispatch(CARD_COMPLETED, {
             rating: rating,
-            appState: state
+            appState
         });
     }
 
@@ -177,7 +177,7 @@ export default function SpacedRepetition(props) {
     function onPracticeClicked(e) {
         e.preventDefault();
         Net.get('/api/sr/practice').then(card => {
-            localDispatch(PRACTICE_CARD_SET, { card, state });
+            localDispatch(PRACTICE_CARD_SET, { card });
         });
     }
 
