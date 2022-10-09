@@ -479,11 +479,11 @@ export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited
         ${  local.isEditingMarkup && buildEditableContent() }
         ${  local.flashcardToShow && html`
             <${FlashCard} flashcard=${local.flashcardToShow} onDelete=${flashCardDeleted}/>`}
-        ${ local.addDeckReferencesUI && buildAddDecksUI() }
         ${ !local.isEditingMarkup && html`
             <div class="note-content selectable-content" ref=${hoveringRef}>
                 ${ buildMarkup(local.note.content) }
             </div>`}
+        ${ local.addDeckReferencesUI && buildAddDecksUI() }
         ${ local.addFlashCardUI && buildAddFlashCardUI() }
         ${ buildMainButtons() }
     </div>`;
