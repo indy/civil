@@ -355,22 +355,24 @@ function noteSeqForNoteKind(notes, kind) {
 
 function createSeq(ns) {
     let h = {};
+    let shouldBeFirst = false;
 
-    ns.forEach(n => h[n.id] = n);
-
-    // find the prevNoteId for each note
+    // key by prevNoteId
+    //
     ns.forEach(n => {
-        if (n.nextNoteId) {
-            h[n.nextNoteId].prevNoteId = n.id;
+        if (n.prevNoteId) {
+            h[n.prevNoteId] = n;
         } else {
-            // this is the last element
+            if (shouldBeFirst) {
+                console.error("there is more than one note without a prev_note_id???");
+            }
+            shouldBeFirst = n;
         }
+
     });
 
-    // now find the first element
-    let shouldBeFirst = h[ns[0].id];
-    while (shouldBeFirst.prevNoteId) {
-        shouldBeFirst = h[shouldBeFirst.prevNoteId];
+    if (!shouldBeFirst) {
+        console.error("no shouldBeFirst found by createSeq");
     }
 
     // create the ordered note seq to return
@@ -378,7 +380,7 @@ function createSeq(ns) {
     let item = shouldBeFirst;
     do {
         res.push(item);
-        item = h[item.nextNoteId];
+        item = h[item.id];
     } while(item);
 
     return res;

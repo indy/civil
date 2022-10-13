@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS notes (
        user_id INTEGER NOT NULL,
        deck_id INTEGER NOT NULL,
 
-       next_note_id INTEGER,   -- single linked-list
+       prev_note_id INTEGER,   -- single linked-list
 
        point_id INTEGER,
 
@@ -524,9 +524,9 @@ pub fn migration_check(db_name: &str) -> Result<()> {
                ALTER TABLE notes DROP COLUMN kind_old;"),
 
         ////////////////
-        // MIGRATION 4: notes::next_note_id single linked-list for notes
+        // MIGRATION 4: notes::prev_note_id single linked-list for notes
         ////////////////
-        M::up("ALTER TABLE notes ADD COLUMN next_note_id INTEGER;"),
+        M::up("ALTER TABLE notes ADD COLUMN prev_note_id INTEGER;"),
     ]);
 
     let mut conn = Connection::open(db_name)?;

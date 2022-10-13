@@ -57,7 +57,7 @@ SYSTEMD_FILES = $(wildcard misc/systemd/*)
 WASM_FILES = $(wildcard $(WASM_FOLDER)/src/*) $(WASM_FOLDER)/Cargo.toml
 SHARED_FILES = $(wildcard $(SHARED_FOLDER)/src/*) $(SHARED_FOLDER)/Cargo.toml
 
-.PHONY: run download-images download-db clean-staging run-note_parser run-note_linked_list
+.PHONY: run download-images download-db clean-staging run-note_parser run-note_linked_list run-note_prev
 
 ################################################################################
 # top-level public targets
@@ -82,6 +82,11 @@ run-note_parser:
 #
 run-note_linked_list:
 	cargo run --manifest-path $(SERVER_FOLDER)/Cargo.toml --bin civil_note_linked_list
+
+# TEMPORARY file for one-time generation of prev_note_id for notes
+#
+run-note_prev:
+	cargo run --manifest-path $(SERVER_FOLDER)/Cargo.toml --bin civil_note_prev
 
 server: $(SERVER_FOLDER)/target/debug/$(SERVER_BINARY)
 server-release: $(SERVER_FOLDER)/target/release/$(SERVER_BINARY) $(SERVER_FOLDER)/target/release/civil_stat_collector

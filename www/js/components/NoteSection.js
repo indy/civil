@@ -99,12 +99,6 @@ function NoteManager({ deck, toolbarMode, onUpdateDeck, noteSeq, resource, onRef
             let nextNoteId = null; // don't need a nextNoteId if we give addNote a non-null prevNoteId
             // if we're adding a note note to the beginning of the noteseq then we'll need a nextNoteId
 
-
-            // a test to see if adding a note to the beginning of a noteseq works
-            //
-            // prevNoteId = null;
-            // nextNoteId = noteSeq[0].id;
-
             addNote(appState.wasmInterface, markup, deck.id, prevNoteId, nextNoteId, noteKind, optionalDeckPoint && optionalDeckPoint.id)
                 .then(allNotes => {
                     onUpdateDeck({...deck, notes: allNotes});

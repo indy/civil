@@ -19,7 +19,6 @@ pub mod db;
 mod error;
 mod handler;
 pub mod interop;
-pub mod note_linked_list_api;
 pub mod note_parser_api;
 pub mod server_api;
 mod session;

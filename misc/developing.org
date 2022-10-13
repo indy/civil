@@ -99,19 +99,3 @@ in the signals.mjs file:
 replace "preact" import with "/lib/preact/preact.mjs"
 replace "preact/hooks" with "/lib/preact/hooks.mjs"
 replace "@preact/signals-core" with "/lib/preact/signals-core.mjs" (twice, once for an import, another for an export)
-
-
-* note::next_note_id linked list
-
-each deck can have multiple linked lists of notes
-
-- point_id (each point_id should have it's own list)
-- note kind: 'note'
-- note kind: 'note_review'
-- note kind: 'note_summary'
-- note kind: 'note_deckmeta' (should only ever be 1 per-deck)
-
-deck_id: 769 has a lot of notes attached to points
-
-
-adding a new note to a deck, requires sending the previous note_id
