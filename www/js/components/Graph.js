@@ -12,12 +12,6 @@ const ExpandedState_Fully = 0;
 const ExpandedState_Partial = 1;
 const ExpandedState_None = 2;
 
-async function loadFullGraph(state, dispatch) {
-    let graph = await Net.get("/api/graph");
-
-    AppStateChange.loadGraph(graph.graphNodes, graph.graphConnections);
-}
-
 export default function Graph({ id, depth }) {
     const appState = getAppState();
 
@@ -71,10 +65,14 @@ export default function Graph({ id, depth }) {
             // fetch the graph data from the server,
             // dispatch the updated state,
             // and then on the next render initialise using the if statement above
-            loadFullGraph(state, dispatch);
-            setLocalState({
-                ...localState,
-                requireLoad: true
+            Net.get("/api/graph").then(graph => {
+                let notes = graph.graphNodes;
+                let connections = graph.graphConnections;
+                AppStateChange.loadGraph(nodes, connections);
+                setLocalState({
+                    ...localState,
+                    requireLoad: true
+                });
             });
         }
     }, []);

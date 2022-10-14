@@ -269,17 +269,17 @@ export const AppStateChange = {
         state.srReviewCount.value = count;
     },
 
-    loadGraph: function(graphNodes, graphConnections) {
+    loadGraph: function(nodes, connections) {
         if (DEBUG_APP_STATE) {
             console.log("loadGraph");
         }
-        let ng = {
+        let newGraph = {
             fullyLoaded: true,
-            decks: graphNodes,
-            links: buildFullGraph(graphConnections),
-            deckIndexFromId: buildDeckIndex(graphNodes)
+            decks: nodes,
+            links: buildFullGraph(connections),
+            deckIndexFromId: buildDeckIndex(nodes)
         };
-        state.graph.value = ng;
+        state.graph.value = newGraph;
     },
 
     invalidateGraph: function() {
