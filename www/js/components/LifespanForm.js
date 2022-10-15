@@ -34,7 +34,7 @@ export default function LifespanForm({ name, onLifespanGiven, oldestAliveAge }) 
         setLocalState({
             ...localState,
             birthPoint: birthPoint,
-            stage: (ageInYears > state.oldestAliveAge) ? LIFESPAN_STAGE_DEATH : LIFESPAN_STAGE_IS_ALIVE
+            stage: (ageInYears > oldestAliveAge) ? LIFESPAN_STAGE_DEATH : LIFESPAN_STAGE_IS_ALIVE
         });
     }
 
