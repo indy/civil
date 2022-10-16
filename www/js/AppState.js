@@ -326,21 +326,6 @@ export const AppStateChange = {
         if (DEBUG_APP_STATE) {
             console.log("noteRefsModified");
         }
-        // update the state.listing with new ideas that were created in action.changes.referencesCreated
-        //
-        function basicNoteFromReference(r) {
-            return {
-                backnotes: null,
-                backrefs: null,
-                createdId: "",
-                flashcards: null,
-                graphTerminator: false,
-                id: r.id,
-                notes: null,
-                refs: null,
-                title: r.name
-            };
-        };
 
         if (changes.referencesCreated.length > 0) {
             let ng = {...state.graph.value, fullLoaded: false };
@@ -349,13 +334,23 @@ export const AppStateChange = {
 
         if (state.listing.value.ideas) {
             let li = {...state.listing.value};
-
             changes.referencesCreated.forEach(r => {
                 let newReference = allDecksForNote.find(d => d.name === r.name && d.resource === "ideas");
-                let newBasicNote = basicNoteFromReference(newReference);
-                // update the listing with the new resource
-                li.recent.unshift(newBasicNote);
-                li.unnoted.unshift(newBasicNote);
+
+                if (newReference) {
+                    let newIdeaListing = {
+                        id: newReference.id,
+                        name: newReference.name,
+                        resource: "ideas"
+                    };
+                    // update the listing with the new resource
+                    if (li.ideas.recent) {
+                        li.ideas.recent.unshift(newIdeaListing);
+                    }
+                    if (li.ideas.unnoted) {
+                        li.ideas.unnoted.unshift(newIdeaListing);
+                    }
+                }
             });
 
             state.listing.value = li;

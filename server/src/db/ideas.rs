@@ -80,7 +80,7 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop
     let orphans = sqlite::many(&conn, &stmt, params![&user_id], decks::decksimple_from_row)?;
 
     let stmt = "SELECT d.id, d.name, 'idea'
-                FROM decks d LEFT JOIN notes n ON d.id = n.deck_id
+                FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
                 WHERE n.deck_id IS NULL
                 AND d.kind='idea'
                 AND d.user_id=?1
