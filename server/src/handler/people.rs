@@ -148,14 +148,14 @@ fn sqlite_augment(
     person_id: Key,
     user_id: Key,
 ) -> Result<()> {
-    let points = points_db::all(&sqlite_pool, user_id, person_id)?;
+    let points = points_db::all(sqlite_pool, user_id, person_id)?;
     let all_points_during_life =
-        points_db::all_points_during_life(&sqlite_pool, user_id, person_id)?;
-    let notes = notes_db::all_from_deck(&sqlite_pool, person_id)?;
-    let refs = decks_db::from_deck_id_via_notes_to_decks(&sqlite_pool, person_id)?;
-    let backnotes = decks_db::get_backnotes(&sqlite_pool, person_id)?;
-    let backrefs = decks_db::get_backrefs(&sqlite_pool, person_id)?;
-    let flashcards = sr_db::all_flashcards_for_deck(&sqlite_pool, person_id)?;
+        points_db::all_points_during_life(sqlite_pool, user_id, person_id)?;
+    let notes = notes_db::all_from_deck(sqlite_pool, person_id)?;
+    let refs = decks_db::from_deck_id_via_notes_to_decks(sqlite_pool, person_id)?;
+    let backnotes = decks_db::get_backnotes(sqlite_pool, person_id)?;
+    let backrefs = decks_db::get_backrefs(sqlite_pool, person_id)?;
+    let flashcards = sr_db::all_flashcards_for_deck(sqlite_pool, person_id)?;
 
     person.points = Some(points);
     person.all_points_during_life = Some(all_points_during_life);

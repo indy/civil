@@ -170,7 +170,10 @@ function reducer(state, action) {
         }
     }
     case FLASH_CARD_SAVED: {
-        let flashcard = action.data;
+        let {
+            flashcard,
+            appState
+        } = action.data;
 
         const newState = {
             ...state,
@@ -183,6 +186,9 @@ function reducer(state, action) {
             newState.note.flashcards = [flashcard];
         }
 
+        let reviewCount = appState.srReviewCount.value + 1;
+
+        AppStateChange.setReviewCount(reviewCount);
         AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
 
         return newState;
@@ -235,6 +241,8 @@ function reducer(state, action) {
 };
 
 export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited, onRefsChanged }) {
+    const appState = getAppState();
+
     const initialState = {
         addDeckReferencesUI: false,
         addFlashCardUI: false,
@@ -353,7 +361,10 @@ export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited
             };
 
             Net.post("/api/sr", data).then(newFlashcard => {
-                localDispatch(FLASH_CARD_SAVED, newFlashcard);
+                localDispatch(FLASH_CARD_SAVED, {
+                    flashcard: newFlashcard,
+                    appState
+                });
             });
         }
 
@@ -447,9 +458,6 @@ export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited
     if (local.mouseHovering && toolbarMode !== DELUXE_TOOLBAR_VIEW) {
         noteClasses += " selectable-container-hovering";
     }
-
-    // has to be outside of the onNoteClicked callback
-    const appState = getAppState();
 
     function onNoteClicked(e) {
         if (appState.toolbarMode.value === DELUXE_TOOLBAR_EDIT) {

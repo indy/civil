@@ -57,7 +57,7 @@ pub(crate) fn create_from_note_to_decks(
     for removed in &note_references.references_removed {
         // this deck has been removed from the note by the user
         info!("deleting {}, {}", &note_id, &removed.id);
-        sqlite::zero(&tx, &stmt_refs_removed, params![&note_id, &removed.id])?;
+        sqlite::zero(&tx, stmt_refs_removed, params![&note_id, &removed.id])?;
     }
 
     let stmt_refs_changed = "UPDATE notes_decks
@@ -71,7 +71,7 @@ pub(crate) fn create_from_note_to_decks(
 
         sqlite::zero(
             &tx,
-            &stmt_refs_changed,
+            stmt_refs_changed,
             params![
                 &changed.id,
                 &note_id,
@@ -90,7 +90,7 @@ pub(crate) fn create_from_note_to_decks(
         );
         sqlite::zero(
             &tx,
-            &stmt_refs_added,
+            stmt_refs_added,
             params![
                 &note_id,
                 &added.id,
@@ -108,7 +108,7 @@ pub(crate) fn create_from_note_to_decks(
             decks_db::deckbase_get_or_create(&tx, user_id, DeckKind::Idea, &created.name)?;
         sqlite::zero(
             &tx,
-            &stmt_refs_added,
+            stmt_refs_added,
             params![
                 &note_id,
                 &deck.id,
@@ -123,7 +123,7 @@ pub(crate) fn create_from_note_to_decks(
         "SELECT nd.note_id, d.id, d.name, d.kind as deck_kind, nd.kind as ref_kind, nd.annotation
                           FROM notes_decks nd, decks d
                           WHERE nd.note_id = ?1 AND d.id = nd.deck_id";
-    let res = sqlite::many(&tx, &stmt_all_decks, params![&note_id], from_row)?;
+    let res = sqlite::many(&tx, stmt_all_decks, params![&note_id], from_row)?;
 
     tx.commit()?;
 

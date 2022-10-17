@@ -57,7 +57,7 @@ pub async fn card_rated(
     let card_id = params.id;
     let rating = rating.into_inner().rating;
 
-    if rating >= 0 && rating <= 5 {
+    if (0..=5).contains(&rating) {
         let mut card = db::get_card_full_fat(&sqlite_pool, user_id, card_id)?;
         card = sqlite_update_easiness_factor(card, rating)?;
 

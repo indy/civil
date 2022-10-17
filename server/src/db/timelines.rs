@@ -46,7 +46,7 @@ pub(crate) fn get_or_create(
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    let (deck, _origin) = decks::deckbase_get_or_create(&tx, user_id, DeckKind::Timeline, &title)?;
+    let (deck, _origin) = decks::deckbase_get_or_create(&tx, user_id, DeckKind::Timeline, title)?;
 
     tx.commit()?;
 
@@ -64,7 +64,7 @@ pub(crate) fn all(
                 WHERE user_id = ?1 AND kind = 'timeline'
                 ORDER BY created_at DESC";
 
-    sqlite::many(&conn, &stmt, params![&user_id], decks::decksimple_from_row)
+    sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)
 }
 
 pub(crate) fn get(
@@ -83,7 +83,7 @@ pub(crate) fn get(
 
     decks::hit(&conn, timeline_id)?;
 
-    Ok(deck.into())
+    Ok(deck)
 }
 
 pub(crate) fn edit(

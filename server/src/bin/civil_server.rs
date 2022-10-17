@@ -56,9 +56,9 @@ async fn main() -> Result<()> {
     let sqlite_pool = r2d2::Pool::new(sqlite_manager)?;
 
     let server = HttpServer::new(move || {
-        let mut signing_key: &mut [u8] = &mut [0; SIGNING_KEY_SIZE];
-        read_signing_key(&mut signing_key, &session_signing_key);
-        // info!("signing key: {:?}", signing_key);
+        let signing_key: &mut [u8] = &mut [0; SIGNING_KEY_SIZE];
+        read_signing_key(signing_key, &session_signing_key);
+        info!("signing key: {:?}", signing_key);
 
         let session_store = CookieSession::private(signing_key)
             .secure(cookie_secure)
@@ -143,9 +143,9 @@ fn ascii_hex_digit_to_dec(ascii_hex: u8) -> u8 {
     // |   f |   102 |  15 |
     // |-----+-------+-----|
     //
-    if ascii_hex >= 48 && ascii_hex <= 57 {
+    if (48..=57).contains(&ascii_hex) {
         ascii_hex - 48
-    } else if ascii_hex >= 97 && ascii_hex <= 102 {
+    } else if (97..=102).contains(&ascii_hex) {
         ascii_hex - 87
     } else {
         0

@@ -16,13 +16,13 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::{Error, Result};
-use crate::interop::Key;
 use crate::interop::notes::NoteKind;
+use crate::interop::Key;
 
 use std::fmt;
 use std::str::FromStr;
 
-#[derive(PartialEq, Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
 pub enum DeckKind {
     #[serde(rename = "articles")]
     Article,

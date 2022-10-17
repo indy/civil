@@ -18,7 +18,7 @@
 use crate::error::{Error, Result};
 use crate::interop::Key;
 
-#[derive(Copy, Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 pub enum NoteKind {
     Note,
     NoteReview,

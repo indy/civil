@@ -48,7 +48,7 @@ pub(crate) fn get_or_create(
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    let (deck, _origin) = decks::deckbase_get_or_create(&tx, user_id, DeckKind::Idea, &title)?;
+    let (deck, _origin) = decks::deckbase_get_or_create(&tx, user_id, DeckKind::Idea, title)?;
 
     tx.commit()?;
     Ok(deck.into())
@@ -63,7 +63,7 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop
                 order by created_at desc
                 limit 20";
 
-    let recent = sqlite::many(&conn, &stmt, params![&user_id], decks::decksimple_from_row)?;
+    let recent = sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)?;
 
     let stmt = "SELECT id, name, 'idea'
                 FROM decks
@@ -77,7 +77,7 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop
                 AND user_id = ?1
                 ORDER BY created_at DESC";
 
-    let orphans = sqlite::many(&conn, &stmt, params![&user_id], decks::decksimple_from_row)?;
+    let orphans = sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)?;
 
     let stmt = "SELECT d.id, d.name, 'idea'
                 FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
@@ -86,7 +86,7 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop
                 AND d.user_id=?1
                 ORDER BY d.created_at DESC";
 
-    let unnoted = sqlite::many(&conn, &stmt, params![&user_id], decks::decksimple_from_row)?;
+    let unnoted = sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)?;
 
     Ok(interop::IdeasListings {
         recent,
@@ -103,7 +103,7 @@ pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop:
                 WHERE user_id = ?1 AND kind = 'idea'
                 ORDER BY name";
 
-    sqlite::many(&conn, &stmt, params![&user_id], idea_from_row)
+    sqlite::many(&conn, stmt, params![&user_id], idea_from_row)
 }
 
 pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, idea_id: Key) -> Result<interop::Idea> {
@@ -118,7 +118,7 @@ pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, idea_id: Key) -> Resul
 
     decks::hit(&conn, idea_id)?;
 
-    Ok(deck.into())
+    Ok(deck)
 }
 
 pub(crate) fn edit(

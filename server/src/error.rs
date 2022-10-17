@@ -17,7 +17,6 @@
 
 use crate::interop::Model;
 use actix_web::{HttpResponse, ResponseError};
-use civil_shared;
 use derive_more::{Display, From};
 use tracing::error;
 

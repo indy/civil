@@ -51,7 +51,7 @@ impl FromStr for interop::PointKind {
 
 pub(crate) fn delete_all_points_connected_with_deck(conn: &Connection, deck_id: Key) -> Result<()> {
     sqlite::zero(
-        &conn,
+        conn,
         "DELETE FROM points
                   WHERE deck_id = ?1",
         params![&deck_id],

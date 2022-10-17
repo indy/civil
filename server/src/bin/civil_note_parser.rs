@@ -15,9 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use civil_server;
 use civil_server::{note_parser_api, Result};
-use civil_shared;
 
 use r2d2_sqlite::SqliteConnectionManager;
 use tracing::info;

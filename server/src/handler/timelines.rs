@@ -135,12 +135,12 @@ fn sqlite_augment(
     timeline_id: Key,
     user_id: Key,
 ) -> Result<()> {
-    let points = points_db::all(&sqlite_pool, user_id, timeline_id)?;
-    let notes = notes_db::all_from_deck(&sqlite_pool, timeline_id)?;
-    let refs = decks_db::from_deck_id_via_notes_to_decks(&sqlite_pool, timeline_id)?;
-    let backnotes = decks_db::get_backnotes(&sqlite_pool, timeline_id)?;
-    let backrefs = decks_db::get_backrefs(&sqlite_pool, timeline_id)?;
-    let flashcards = sr_db::all_flashcards_for_deck(&sqlite_pool, timeline_id)?;
+    let points = points_db::all(sqlite_pool, user_id, timeline_id)?;
+    let notes = notes_db::all_from_deck(sqlite_pool, timeline_id)?;
+    let refs = decks_db::from_deck_id_via_notes_to_decks(sqlite_pool, timeline_id)?;
+    let backnotes = decks_db::get_backnotes(sqlite_pool, timeline_id)?;
+    let backrefs = decks_db::get_backrefs(sqlite_pool, timeline_id)?;
+    let flashcards = sr_db::all_flashcards_for_deck(sqlite_pool, timeline_id)?;
 
     timeline.points = Some(points);
     timeline.notes = Some(notes);

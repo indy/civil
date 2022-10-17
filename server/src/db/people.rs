@@ -65,7 +65,7 @@ pub(crate) fn get_or_create(
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    let (deck, _origin) = decks::deckbase_get_or_create(&tx, user_id, DeckKind::Person, &title)?;
+    let (deck, _origin) = decks::deckbase_get_or_create(&tx, user_id, DeckKind::Person, title)?;
 
     tx.commit()?;
 
@@ -139,7 +139,7 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop
                 WHERE d.user_id = ?1
                       AND d.kind = 'person'
                       AND p.deck_id is null";
-    let uncategorised = sqlite::many(&conn, &stmt, params![&user_id], decks::decksimple_from_row)?;
+    let uncategorised = sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)?;
 
     let stmt = "SELECT d.id, d.name, 'person', COALESCE(p.exact_date, p.lower_date) AS birth_date
                 FROM decks d, points p
@@ -155,14 +155,14 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop
     // fix: 1. extract all DeckSimples with a negative date
     //      2. reverse them
     //      3. add them to the beginning of the Vec
-    let ancient_buggy = sqlite::many(&conn, &stmt, params![&user_id], decksimpledate_from_row)?;
+    let ancient_buggy = sqlite::many(&conn, stmt, params![&user_id], decksimpledate_from_row)?;
     let (mut bc, mut ad): (Vec<DeckSimpleDate>, Vec<DeckSimpleDate>) = ancient_buggy
         .into_iter()
         .partition(|ds| predates(ds.birth_date));
     bc.reverse();
     bc.append(&mut ad);
 
-    let ancient = bc.into_iter().map(|b| DeckSimple::from(b)).collect();
+    let ancient = bc.into_iter().map(DeckSimple::from).collect();
 
     let stmt = "SELECT d.id, d.name, 'person', COALESCE(p.exact_date, p.lower_date) AS birth_date
                 FROM decks d, points p
@@ -172,7 +172,7 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop
                       AND p.kind = 'point_begin'
                       AND birth_date >= '0354-01-01' AND birth_date < '1469-01-01'
                 ORDER BY birth_date";
-    let medieval = sqlite::many(&conn, &stmt, params![&user_id], decks::decksimple_from_row)?;
+    let medieval = sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)?;
 
     let stmt = "SELECT d.id, d.name, 'person', COALESCE(p.exact_date, p.lower_date) AS birth_date
                 FROM decks d, points p
@@ -182,7 +182,7 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop
                       AND p.kind = 'point_begin'
                       AND birth_date >= '1469-01-01' AND birth_date < '1856-01-01'
                 ORDER BY birth_date";
-    let modern = sqlite::many(&conn, &stmt, params![&user_id], decks::decksimple_from_row)?;
+    let modern = sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)?;
 
     let stmt = "SELECT d.id, d.name, 'person', COALESCE(p.exact_date, p.lower_date) AS birth_date
                 FROM decks d, points p
@@ -192,7 +192,7 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop
                       AND p.kind = 'point_begin'
                       AND birth_date >= '1856-01-01'
                 ORDER BY birth_date";
-    let contemporary = sqlite::many(&conn, &stmt, params![&user_id], decks::decksimple_from_row)?;
+    let contemporary = sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)?;
 
     Ok(interop::PeopleListings {
         uncategorised,
@@ -219,7 +219,7 @@ pub(crate) fn get(
 
     decks::hit(&conn, person_id)?;
 
-    Ok(deck.into())
+    Ok(deck)
 }
 
 pub(crate) fn edit(

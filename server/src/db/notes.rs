@@ -20,7 +20,7 @@ use crate::interop::notes as interop;
 use crate::interop::Key;
 
 #[allow(unused_imports)]
-use tracing::{info, error};
+use tracing::{error, info};
 
 use crate::db::sqlite::{self, SqlitePool};
 use rusqlite::{params, Connection, Row};
@@ -48,10 +48,14 @@ pub(crate) fn all_from_deck(sqlite_pool: &SqlitePool, deck_id: Key) -> Result<Ve
                 FROM notes n
                 WHERE n.deck_id = ?1
                 ORDER BY n.id";
-    sqlite::many(&conn, &stmt, params!(&deck_id), note_from_row)
+    sqlite::many(&conn, stmt, params!(&deck_id), note_from_row)
 }
 
-pub(crate) fn delete_note_properly(sqlite_pool: &SqlitePool, user_id: Key, note_id: Key) -> Result<Vec<interop::Note>> {
+pub(crate) fn delete_note_properly(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    note_id: Key,
+) -> Result<Vec<interop::Note>> {
     let note = get_note(sqlite_pool, user_id, note_id)?;
 
     let mut conn = sqlite_pool.get()?;
@@ -65,13 +69,13 @@ pub(crate) fn delete_note_properly(sqlite_pool: &SqlitePool, user_id: Key, note_
     let stmt = "SELECT deck_id
                 FROM notes
                 WHERE id = ?1";
-    let deck_id = sqlite::one(&tx, &stmt, params![&note_id], key_from_row)?;
+    let deck_id = sqlite::one(&tx, stmt, params![&note_id], key_from_row)?;
 
     // point the next note to the previous note
     let stmt = "SELECT id
                 FROM notes
                 WHERE prev_note_id = ?1";
-    let next_ids = sqlite::many(&tx, &stmt, params![&note_id], key_from_row)?;
+    let next_ids = sqlite::many(&tx, stmt, params![&note_id], key_from_row)?;
     if next_ids.len() == 1 {
         let next_id = next_ids[0];
 
@@ -89,17 +93,17 @@ pub(crate) fn delete_note_properly(sqlite_pool: &SqlitePool, user_id: Key, note_
     let stmt = "DELETE
                 FROM notes_decks
                 WHERE note_id = ?1";
-    sqlite::zero(&tx, &stmt, params![&note_id])?;
+    sqlite::zero(&tx, stmt, params![&note_id])?;
 
     let stmt = "DELETE
                 FROM notes
                 WHERE id = ?1 AND user_id = ?2";
-    sqlite::zero(&tx, &stmt, params![&note_id, &user_id])?;
+    sqlite::zero(&tx, stmt, params![&note_id, &user_id])?;
 
     tx.commit()?;
 
     // return all the notes that the parent deck has
-    let all_notes = all_from_deck(&sqlite_pool, deck_id)?;
+    let all_notes = all_from_deck(sqlite_pool, deck_id)?;
     Ok(all_notes)
 }
 
@@ -115,18 +119,18 @@ pub(crate) fn delete_all_notes_connected_with_deck(
     let stmt = "SELECT n.id
                 FROM notes n
                 WHERE n.deck_id = ?1";
-    let note_ids: Vec<Key> = sqlite::many(&conn, &stmt, params![&deck_id], id_from_row)?;
+    let note_ids: Vec<Key> = sqlite::many(conn, stmt, params![&deck_id], id_from_row)?;
 
     for note_id in note_ids {
         let stmt = "DELETE
                 FROM notes_decks
                 WHERE note_id = ?1";
-        sqlite::zero(&conn, &stmt, params![&note_id])?;
+        sqlite::zero(conn, stmt, params![&note_id])?;
 
         let stmt = "DELETE
                 FROM notes
                 WHERE id = ?1 AND user_id = ?2";
-        sqlite::zero(&conn, &stmt, params![&note_id, &user_id])?;
+        sqlite::zero(conn, stmt, params![&note_id, &user_id])?;
     }
 
     Ok(())
@@ -146,8 +150,8 @@ fn create_common(
                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)
                 RETURNING id, content, kind, point_id, prev_note_id";
     sqlite::one(
-        &conn,
-        &stmt,
+        conn,
+        stmt,
         params![&user_id, &deck_id, &k, &point_id, &content, &prev_note_id],
         note_from_row,
     )
@@ -161,7 +165,7 @@ pub(crate) fn create_note_deck_meta(
     deck_id: Key,
 ) -> Result<interop::Note> {
     create_common(
-        &tx,
+        tx,
         user_id,
         deck_id,
         interop::NoteKind::NoteDeckMeta,
@@ -198,7 +202,7 @@ pub(crate) fn create_notes(
 
     tx.commit()?;
 
-    let all_notes = all_from_deck(&sqlite_pool, note.deck_id)?;
+    let all_notes = all_from_deck(sqlite_pool, note.deck_id)?;
     Ok(all_notes)
 }
 
@@ -206,14 +210,14 @@ fn update_prev_note_id(conn: &Connection, note_id: Key, prev_note_id: Key) -> Re
     let stmt = "UPDATE notes
                 SET prev_note_id = ?2
                 WHERE id = ?1";
-    sqlite::zero(&conn, &stmt, params![&note_id, &prev_note_id])
+    sqlite::zero(conn, stmt, params![&note_id, &prev_note_id])
 }
 
 fn clear_prev_note_id(conn: &Connection, note_id: Key) -> Result<()> {
     let stmt = "UPDATE notes
                 SET prev_note_id = null
                 WHERE id = ?1";
-    sqlite::zero(&conn, &stmt, params![&note_id])
+    sqlite::zero(conn, stmt, params![&note_id])
 }
 
 pub(crate) fn get_note(
@@ -225,11 +229,7 @@ pub(crate) fn get_note(
     get_note_(&conn, user_id, note_id)
 }
 
-fn get_note_(
-    conn: &Connection,
-    user_id: Key,
-    note_id: Key,
-) -> Result<interop::Note> {
+fn get_note_(conn: &Connection, user_id: Key, note_id: Key) -> Result<interop::Note> {
     fn note_from_row(row: &Row) -> Result<interop::Note> {
         let sql_kind: i32 = row.get(2)?;
 
@@ -248,7 +248,7 @@ fn get_note_(
                        n.prev_note_id
                 FROM notes n
                 WHERE n.id = ?1 AND n.user_id = ?2";
-    sqlite::one(&conn, &stmt, params![&note_id, &user_id], note_from_row)
+    sqlite::one(conn, stmt, params![&note_id, &user_id], note_from_row)
 }
 
 pub(crate) fn edit_note(
@@ -264,7 +264,7 @@ pub(crate) fn edit_note(
                 RETURNING id, content, kind, point_id, prev_note_id";
     sqlite::one(
         &conn,
-        &stmt,
+        stmt,
         params![&user_id, &note_id, &note.content],
         note_from_row,
     )
@@ -279,5 +279,5 @@ pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> Result<Vec<interop::Note
                        n.prev_note_id
                 FROM   notes n
                 ORDER BY n.id";
-    sqlite::many(&conn, &stmt, &[], note_from_row)
+    sqlite::many(&conn, stmt, &[], note_from_row)
 }

@@ -32,7 +32,7 @@ pub(crate) fn login(
 
         Ok((
             id,
-            password.to_string(),
+            password,
             interop::User {
                 username: row.get(2)?,
                 email: row.get(1)?,

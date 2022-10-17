@@ -31,7 +31,6 @@ pub struct ServerConfig {
     pub registration_magic_word: String,
 }
 
-use dotenv;
 use std::env;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;

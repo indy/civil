@@ -18,7 +18,7 @@
 use crate::interop::decks::DeckKind;
 use crate::interop::Key;
 
-#[derive(Copy, Clone, Debug, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 pub enum PointKind {
     Point,
     PointBegin,
@@ -65,7 +65,7 @@ pub struct ProtoPoint {
 // a point with additional information about the deck that 'owns' the point
 // (used when returning all the points that happened during a person's life)
 //
-#[derive(PartialEq, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(PartialEq, Eq, Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DeckPoint {
     pub id: Key,

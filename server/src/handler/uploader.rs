@@ -123,10 +123,10 @@ fn format_radix(mut x: u32, radix: u32) -> Result<String> {
 
     loop {
         let m = x % radix;
-        x = x / radix;
+        x /= radix;
 
         // will panic if you use a bad radix (< 2 or > 36).
-        result.push(std::char::from_digit(m, radix).ok_or_else(|| Error::RadixConversion)?);
+        result.push(std::char::from_digit(m, radix).ok_or(Error::RadixConversion)?);
         if x == 0 {
             break;
         }

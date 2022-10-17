@@ -20,8 +20,8 @@ use crate::db::points;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::{Error, Result};
 use crate::interop::decks as interop;
-use crate::interop::notes as note_interop;
 use crate::interop::decks::DeckKind;
+use crate::interop::notes as note_interop;
 use crate::interop::Key;
 use rusqlite::{params, Connection, Row};
 
@@ -94,13 +94,13 @@ pub(crate) fn deckbase_get_or_create(
     kind: DeckKind,
     name: &str,
 ) -> Result<(DeckBase, DeckBaseOrigin)> {
-    let existing_deck_res = deckbase_get_by_name(&tx, user_id, kind, &name);
+    let existing_deck_res = deckbase_get_by_name(tx, user_id, kind, name);
     match existing_deck_res {
-        Ok(deck) => Ok((deck.into(), DeckBaseOrigin::PreExisting)),
+        Ok(deck) => Ok((deck, DeckBaseOrigin::PreExisting)),
         Err(e) => match e {
             Error::NotFound => {
-                let deck = deckbase_create(&tx, user_id, kind, &name)?;
-                Ok((deck.into(), DeckBaseOrigin::Created))
+                let deck = deckbase_create(tx, user_id, kind, name)?;
+                Ok((deck, DeckBaseOrigin::Created))
             }
             _ => Err(e),
         },
@@ -109,7 +109,7 @@ pub(crate) fn deckbase_get_or_create(
 
 pub(crate) fn hit(conn: &Connection, deck_id: Key) -> Result<()> {
     let stmt = "INSERT INTO hits(deck_id) VALUES (?1)";
-    sqlite::zero(&conn, &stmt, params![&deck_id])
+    sqlite::zero(conn, stmt, params![&deck_id])
 }
 
 fn deckbase_get_by_name(
@@ -122,8 +122,8 @@ fn deckbase_get_by_name(
                 FROM DECKS
                 WHERE user_id = ?1 AND name = ?2 AND kind = ?3";
     sqlite::one(
-        &conn,
-        &stmt,
+        conn,
+        stmt,
         params![&user_id, &name, &kind.to_string()],
         deckbase_from_row,
     )
@@ -137,14 +137,14 @@ fn deckbase_create(tx: &Connection, user_id: Key, kind: DeckKind, name: &str) ->
                 VALUES (?1, ?2, ?3, ?4)
                 RETURNING id, name, created_at, graph_terminator";
     let deckbase: DeckBase = sqlite::one(
-        &tx,
-        &stmt,
+        tx,
+        stmt,
         params![&user_id, &kind.to_string(), name, graph_terminator],
         deckbase_from_row,
     )?;
 
     // create the mandatory NoteKind::NoteDeckMeta
-    let _note = notes::create_note_deck_meta(&tx, user_id, deckbase.id)?;
+    let _note = notes::create_note_deck_meta(tx, user_id, deckbase.id)?;
 
     Ok(deckbase)
 }
@@ -162,8 +162,8 @@ pub(crate) fn deckbase_edit(
                 WHERE user_id = ?1 AND id = ?2 AND kind = ?3
                 RETURNING id, name, created_at, graph_terminator";
     sqlite::one(
-        &conn,
-        &stmt,
+        conn,
+        stmt,
         params![
             &user_id,
             &deck_id,
@@ -189,7 +189,7 @@ pub(crate) fn recent(
                 WHERE user_id = ?1 AND kind = '$deck_kind'
                 ORDER BY created_at DESC
                 LIMIT $limit";
-    let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
+    let stmt = stmt.replace("$deck_kind", deck_kind);
     let stmt = stmt.replace("$limit", &limit.to_string());
 
     sqlite::many(&conn, &stmt, params![&user_id], decksimple_from_row)
@@ -267,7 +267,7 @@ pub(crate) fn get_backnotes(
                       AND nd.note_id = n.id
                       AND nd.deck_id = ?1
                 ORDER BY d.name, n.id";
-    sqlite::many(&conn, &stmt, params![&deck_id], backnote_from_row)
+    sqlite::many(&conn, stmt, params![&deck_id], backnote_from_row)
 }
 
 // all refs on notes that have at least one ref back to the currently displayed deck
@@ -303,7 +303,7 @@ pub(crate) fn get_backrefs(
                       AND nd.note_id = nd2.note_id
                       AND d.id = nd2.deck_id
                 ORDER BY nd2.deck_id";
-    sqlite::many(&conn, &stmt, params![&deck_id], backref_from_row)
+    sqlite::many(&conn, stmt, params![&deck_id], backref_from_row)
 }
 
 // return all the people, events, articles etc mentioned in the given deck
@@ -342,7 +342,7 @@ pub(crate) fn from_deck_id_via_notes_to_decks(
                        AND nd.note_id = n.id
                        AND nd.deck_id = d.id
                 ORDER BY nd.note_id, d.kind DESC, d.name";
-    sqlite::many(&conn, &stmt, params![&deck_id], ref_from_row)
+    sqlite::many(&conn, stmt, params![&deck_id], ref_from_row)
 }
 
 fn deck_simple_from_search_result(row: &Row) -> Result<interop::DeckSimple> {
@@ -384,7 +384,7 @@ pub(crate) fn search(
                 limit 30";
     let mut results = sqlite::many(
         &conn,
-        &stmt,
+        stmt,
         params![&user_id, &q],
         deck_simple_from_search_result,
     )?;
@@ -398,7 +398,7 @@ pub(crate) fn search(
                 limit 30";
     let results_via_pub_ext = sqlite::many(
         &conn,
-        &stmt,
+        stmt,
         params![&user_id, &q],
         deck_simple_from_search_result,
     )?;
@@ -412,7 +412,7 @@ pub(crate) fn search(
                 limit 30";
     let results_via_quote_ext = sqlite::many(
         &conn,
-        &stmt,
+        stmt,
         params![&user_id, &q],
         deck_simple_from_search_result,
     )?;
@@ -431,7 +431,7 @@ pub(crate) fn search(
                 limit 30";
     let results_via_notes = sqlite::many(
         &conn,
-        &stmt,
+        stmt,
         params![&user_id, &q],
         deck_simple_from_search_result,
     )?;
@@ -450,7 +450,7 @@ pub(crate) fn search(
                 limit 30";
     let results_via_points = sqlite::many(
         &conn,
-        &stmt,
+        stmt,
         params![&user_id, &q],
         deck_simple_from_search_result,
     )?;
@@ -498,7 +498,7 @@ pub(crate) fn search_by_name(
                 limit 20";
     let mut results = sqlite::many(
         &conn,
-        &stmt,
+        stmt,
         params![&user_id, &query],
         deck_simple_from_search_result,
     )?;
@@ -510,7 +510,7 @@ pub(crate) fn search_by_name(
                 limit 20";
     let res2 = sqlite::many(
         &conn,
-        &stmt,
+        stmt,
         params![&user_id, &query],
         deck_simple_from_search_result,
     )?;
@@ -535,8 +535,8 @@ pub(crate) fn additional_search(
         backnotes.iter().any(|br| br.deck_id == backref.id)
     }
 
-    let backnotes = get_backnotes(&sqlite_pool, deck_id)?;
-    let search_results = search_using_deck_id(&sqlite_pool, user_id, deck_id)?;
+    let backnotes = get_backnotes(sqlite_pool, deck_id)?;
+    let search_results = search_using_deck_id(sqlite_pool, user_id, deck_id)?;
 
     // dedupe search results against the backrefs to decks
     let additional_search_results: Vec<interop::DeckSimple> = search_results
@@ -550,11 +550,11 @@ pub(crate) fn additional_search(
 fn get_name_of_deck(conn: &Connection, deck_id: Key) -> Result<String> {
     fn string_from_row(row: &Row) -> Result<String> {
         let s: String = row.get(0)?;
-        Ok(s.to_string())
+        Ok(s)
     }
 
     let name: String = sqlite::one(
-        &conn,
+        conn,
         "select name from decks where id = ?1",
         params![&deck_id],
         string_from_row,
@@ -608,7 +608,7 @@ pub(crate) fn search_using_deck_id(
                 limit 50";
     let mut results = sqlite::many(
         &conn,
-        &stmt,
+        stmt,
         params![&user_id, &sane_name],
         deck_simple_from_search_result,
     )?;
@@ -622,7 +622,7 @@ pub(crate) fn search_using_deck_id(
                 limit 50";
     let results_via_pub_ext = sqlite::many(
         &conn,
-        &stmt,
+        stmt,
         params![&user_id, &sane_name],
         deck_simple_from_search_result,
     )?;
@@ -636,7 +636,7 @@ pub(crate) fn search_using_deck_id(
                 limit 50";
     let results_via_quote_ext = sqlite::many(
         &conn,
-        &stmt,
+        stmt,
         params![&user_id, &sane_name],
         deck_simple_from_search_result,
     )?;
@@ -655,7 +655,7 @@ pub(crate) fn search_using_deck_id(
                 limit 50";
     let results_via_notes = sqlite::many(
         &conn,
-        &stmt,
+        stmt,
         params![&user_id, &sane_name],
         deck_simple_from_search_result,
     )?;
@@ -674,7 +674,7 @@ pub(crate) fn search_using_deck_id(
                 limit 30";
     let results_via_points = sqlite::many(
         &conn,
-        &stmt,
+        stmt,
         params![&user_id, &sane_name],
         deck_simple_from_search_result,
     )?;

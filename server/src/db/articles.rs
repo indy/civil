@@ -98,7 +98,7 @@ pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop:
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
                 WHERE user_id = ?1 AND kind = 'article'
                 ORDER BY created_at DESC";
-    sqlite::many(&conn, &stmt, params![&user_id], from_row)
+    sqlite::many(&conn, stmt, params![&user_id], from_row)
 }
 
 pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::ArticleListings> {
@@ -111,7 +111,7 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop
                 WHERE user_id = ?1 and kind = 'article'
                 ORDER BY created_at desc
                 LIMIT 10";
-    let recent = sqlite::many(&conn, &stmt, params![&user_id], from_row)?;
+    let recent = sqlite::many(&conn, stmt, params![&user_id], from_row)?;
 
     let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
                        article_extras.short_description, coalesce(article_extras.rating, 0) as rating,
@@ -119,7 +119,7 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
                 WHERE user_id = ?1 AND kind = 'article' AND article_extras.rating > 0
                 ORDER BY article_extras.rating desc, decks.id desc";
-    let rated = sqlite::many(&conn, &stmt, params![&user_id], from_row)?;
+    let rated = sqlite::many(&conn, stmt, params![&user_id], from_row)?;
 
     let stmt = "SELECT d.id, d.name, 'article'
                 FROM decks d LEFT JOIN article_extras pe ON pe.deck_id=d.id
@@ -132,7 +132,7 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop
                 AND d.kind = 'article'
                 AND d.user_id = ?1
                 ORDER BY d.created_at desc";
-    let orphans = sqlite::many(&conn, &stmt, params![&user_id], decks::decksimple_from_row)?;
+    let orphans = sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)?;
 
     Ok(interop::ArticleListings {
         recent,
@@ -153,7 +153,7 @@ pub(crate) fn get(
                        decks.created_at, article_extras.published_date
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
                 WHERE user_id = ?1 AND id = ?2 AND kind = 'article'";
-    let res = sqlite::one(&conn, &stmt, params![&user_id, &article_id], from_row)?;
+    let res = sqlite::one(&conn, stmt, params![&user_id, &article_id], from_row)?;
 
     decks::hit(&conn, article_id)?;
 
@@ -197,7 +197,7 @@ pub(crate) fn edit(
                 FROM article_extras
                 WHERE deck_id = ?1";
     let article_extras_exists =
-        sqlite::many(&tx, &stmt, params![&article_id], article_extra_from_row)?;
+        sqlite::many(&tx, stmt, params![&article_id], article_extra_from_row)?;
 
     let sql_query: &str = match article_extras_exists.len() {
         0 => {
@@ -255,7 +255,7 @@ pub(crate) fn get_or_create(
     let rating = 0;
     let published_date = chrono::Utc::now().naive_utc().date();
 
-    let (deck, origin) = decks::deckbase_get_or_create(&tx, user_id, DeckKind::Article, &title)?;
+    let (deck, origin) = decks::deckbase_get_or_create(&tx, user_id, DeckKind::Article, title)?;
 
     let article_extras =
         match origin {

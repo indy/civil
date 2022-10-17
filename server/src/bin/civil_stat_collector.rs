@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use civil_server;
 use civil_server::{stat_api, Result};
 
 use r2d2_sqlite::SqliteConnectionManager;

@@ -140,11 +140,11 @@ pub async fn delete(
 fn sqlite_augment(sqlite_pool: &Data<SqlitePool>, quote: &mut interop::Quote) -> Result<()> {
     let quote_id: Key = quote.id;
 
-    let notes = notes_db::all_from_deck(&sqlite_pool, quote_id)?;
-    let refs = decks_db::from_deck_id_via_notes_to_decks(&sqlite_pool, quote_id)?;
-    let backnotes = decks_db::get_backnotes(&sqlite_pool, quote_id)?;
-    let backrefs = decks_db::get_backrefs(&sqlite_pool, quote_id)?;
-    let flashcards = sr_db::all_flashcards_for_deck(&sqlite_pool, quote_id)?;
+    let notes = notes_db::all_from_deck(sqlite_pool, quote_id)?;
+    let refs = decks_db::from_deck_id_via_notes_to_decks(sqlite_pool, quote_id)?;
+    let backnotes = decks_db::get_backnotes(sqlite_pool, quote_id)?;
+    let backrefs = decks_db::get_backrefs(sqlite_pool, quote_id)?;
+    let flashcards = sr_db::all_flashcards_for_deck(sqlite_pool, quote_id)?;
 
     quote.notes = Some(notes);
     quote.refs = Some(refs);

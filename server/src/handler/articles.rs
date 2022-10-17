@@ -123,11 +123,11 @@ fn sqlite_augment(
     article: &mut interop::Article,
     article_id: Key,
 ) -> Result<()> {
-    let notes = notes_db::all_from_deck(&sqlite_pool, article_id)?;
-    let refs = decks_db::from_deck_id_via_notes_to_decks(&sqlite_pool, article_id)?;
-    let backnotes = decks_db::get_backnotes(&sqlite_pool, article_id)?;
-    let backrefs = decks_db::get_backrefs(&sqlite_pool, article_id)?;
-    let flashcards = sr_db::all_flashcards_for_deck(&sqlite_pool, article_id)?;
+    let notes = notes_db::all_from_deck(sqlite_pool, article_id)?;
+    let refs = decks_db::from_deck_id_via_notes_to_decks(sqlite_pool, article_id)?;
+    let backnotes = decks_db::get_backnotes(sqlite_pool, article_id)?;
+    let backrefs = decks_db::get_backrefs(sqlite_pool, article_id)?;
+    let flashcards = sr_db::all_flashcards_for_deck(sqlite_pool, article_id)?;
 
     article.notes = Some(notes);
     article.refs = Some(refs);
