@@ -2,9 +2,7 @@
 use cfg_if::cfg_if;
 use wasm_bindgen::prelude::*;
 
-use civil_shared;
 use log::error;
-
 
 cfg_if! {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -82,9 +80,9 @@ pub struct Transport3C {
 impl Transport3C {
     pub fn new(c0: f64, c1: f64, c2: f64) -> Transport3C {
         Transport3C {
-            c0: c0,
-            c1: c1,
-            c2: c2,
+            c0,
+            c1,
+            c2,
         }
     }
 

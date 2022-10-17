@@ -30,7 +30,6 @@
 // |--------+-----------+-------------+-------------|
 
 use crate::error::{Error, Result};
-use std;
 
 const COLOUR_UNIT_ANGLE: f32 = 360.0 / 12.0;
 const COLOUR_COMPLIMENTARY_ANGLE: f32 = COLOUR_UNIT_ANGLE * 6.0;
@@ -503,7 +502,7 @@ impl From<&InternalLch> for InternalHsluv {
         let h = colour.h;
         let alpha = colour.alpha;
 
-        let s = if l > 99.999_999_9 || l < 0.000_000_01 {
+        let s = if (0.000_000_01..=99.999_999_9).contains(&l) {
             0.0
         } else {
             c / max_chroma_for_lh(l, h) * 100.0
@@ -614,7 +613,7 @@ impl From<&InternalHsluv> for InternalLch {
         let l = colour.l;
         let alpha = colour.alpha;
 
-        let c = if l > 99.999_999_9 || l < 0.000_000_01 {
+        let c = if (0.000_000_01..=99.999_999_9).contains(&l) {
             0.0
         } else {
             max_chroma_for_lh(l, h) / 100.0 * s
@@ -759,7 +758,7 @@ fn max_chroma_for_lh(l: f64, h: f64) -> f64 {
     get_bounds(l, &mut bounds);
 
     for b in &bounds {
-        let l2 = ray_length_until_intersect(hrad, &b);
+        let l2 = ray_length_until_intersect(hrad, b);
 
         if l2 >= 0.0 && l2 < min_len {
             min_len = l2;

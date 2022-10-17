@@ -42,7 +42,7 @@ pub enum Token<'a> {
     Text(usize, &'a str),
     Underscore(usize),
     Whitespace(usize, &'a str),
-    EOS(usize), // end of stream
+    Eos(usize), // end of stream
 }
 
 pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
@@ -68,11 +68,11 @@ pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
         Token::Text(_, s) => s,
         Token::Underscore(_) => "_",
         Token::Whitespace(_, s) => s,
-        Token::EOS(_) => "",
+        Token::Eos(_) => "",
     }
 }
 
-pub(crate) fn get_token_pos<'a>(token: &Token) -> usize {
+pub(crate) fn get_token_pos(token: &Token) -> usize {
     match token {
         Token::Asterisk(pos) => *pos,
         Token::BackTick(pos) => *pos,
@@ -95,7 +95,7 @@ pub(crate) fn get_token_pos<'a>(token: &Token) -> usize {
         Token::Text(pos, _) => *pos,
         Token::Underscore(pos) => *pos,
         Token::Whitespace(pos, _) => *pos,
-        Token::EOS(pos) => *pos,
+        Token::Eos(pos) => *pos,
     }
 }
 
@@ -113,7 +113,7 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
                 ']' => (Token::BracketEnd(index), 1, 1),
                 '^' => (Token::Caret(index), 1, 1),
                 ':' => (Token::Colon(index), 1, 1),
-                '"' | '“' | '”' => eat_doublequote(index, &input)?,
+                '"' | '“' | '”' => eat_doublequote(index, input)?,
                 '#' => (Token::Hash(index), 1, 1),
                 '-' => (Token::Hyphen(index), 1, 1),
                 '\n' => (Token::Newline(index), 1, 1),
@@ -123,14 +123,14 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
                 '|' => (Token::Pipe(index), 1, 1),
                 '+' => (Token::Plus(index), 1, 1),
                 '_' => (Token::Underscore(index), 1, 1),
-                '>' => eat_blockquote_begin_or_greater_than_character(index, &input)?,
-                '<' => eat_blockquote_end_or_less_than_character(index, &input)?,
-                '0'..='9' => eat_digits(index, &input)?,
-                ch if ch.is_whitespace() => eat_whitespace(index, &input)?,
-                _ => eat_text(index, &input)?,
+                '>' => eat_blockquote_begin_or_greater_than_character(index, input)?,
+                '<' => eat_blockquote_end_or_less_than_character(index, input)?,
+                '0'..='9' => eat_digits(index, input)?,
+                ch if ch.is_whitespace() => eat_whitespace(index, input)?,
+                _ => eat_text(index, input)?,
             };
 
-            index = index + characters;
+            index += characters;
             input = &input[bytes..];
             tokens.push(token)
         } else {
@@ -138,7 +138,7 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
         }
     }
 
-    tokens.push(Token::EOS(index));
+    tokens.push(Token::Eos(index));
 
     Ok(tokens)
 }
@@ -180,24 +180,20 @@ fn eat_blockquote_end_or_less_than_character(index: usize, input: &str) -> Resul
 }
 
 fn eat_digits(index: usize, input: &str) -> Result<(Token, usize, usize)> {
-    let mut ch_counter: usize = 0;
-    for (ind, ch) in input.char_indices() {
-        if !ch.is_digit(10) {
+    for (ch_counter, (ind, ch)) in input.char_indices().enumerate() {
+        if !ch.is_ascii_digit() {
             return Ok((Token::Digits(index, &input[..ind]), ch_counter, ind));
         }
-        ch_counter += 1;
     }
 
     Ok((Token::Digits(index, input), input.chars().count(), input.len()))
 }
 
 fn eat_whitespace(index: usize, input: &str) -> Result<(Token, usize, usize)> {
-    let mut ch_counter: usize = 0;
-    for (ind, ch) in input.char_indices() {
+    for (ch_counter, (ind, ch)) in input.char_indices().enumerate() {
         if !ch.is_whitespace() {
             return Ok((Token::Whitespace(index, &input[..ind]), ch_counter, ind));
         }
-        ch_counter += 1;
     }
 
     Ok((Token::Whitespace(index, input), input.chars().count(), input.len()))
@@ -208,12 +204,10 @@ fn eat_text(index: usize, input: &str) -> Result<(Token, usize, usize)> {
     // the ind from char_indices may increment by more than one for unicode characters
     // so we'll need to keep count of the actual number of characters processed
     //
-    let mut ch_counter: usize = 0;
-    for (ind, ch) in input.char_indices() {
+    for (ch_counter, (ind, ch)) in input.char_indices().enumerate() {
         if !is_text(ch) {
             return Ok((Token::Text(index, &input[..ind]), ch_counter, ind));
         }
-        ch_counter += 1;
     }
 
     Ok((Token::Text(index, input), input.chars().count(), input.len()))
@@ -271,20 +265,20 @@ mod tests {
 
         assert_eq!(
             b,
-            &[Token::Whitespace(11, " "), Token::Digits(12, "12345"), Token::EOS(17),]
+            &[Token::Whitespace(11, " "), Token::Digits(12, "12345"), Token::Eos(17),]
         )
     }
 
     #[test]
     fn test_lexer() {
-        tok("[]", &[Token::BracketBegin(0), Token::BracketEnd(1), Token::EOS(2)]);
+        tok("[]", &[Token::BracketBegin(0), Token::BracketEnd(1), Token::Eos(2)]);
 
         tok(
             "here are some words",
-            &[Token::Text(0, "here are some words"), Token::EOS(19)],
+            &[Token::Text(0, "here are some words"), Token::Eos(19)],
         );
 
-        tok("5", &[Token::Digits(0, "5"), Token::EOS(1)]);
+        tok("5", &[Token::Digits(0, "5"), Token::Eos(1)]);
 
         tok(
             "foo *bar* # 456789",
@@ -297,7 +291,7 @@ mod tests {
                 Token::Hash(10),
                 Token::Whitespace(11, " "),
                 Token::Digits(12, "456789"),
-                Token::EOS(18),
+                Token::Eos(18),
             ],
         );
     }
@@ -312,7 +306,7 @@ mod tests {
                     Token::Whitespace(3, " "),
                     Token::Text(4, "only a blockquote "),
                     Token::BlockquoteEnd(22),
-                    Token::EOS(25),
+                    Token::Eos(25),
                 ],
             );
         }
@@ -325,7 +319,7 @@ mod tests {
                     Token::Text(1, ">"),
                     Token::Whitespace(2, " "),
                     Token::Text(3, "not quite a blockquote"),
-                    Token::EOS(25),
+                    Token::Eos(25),
                 ],
             );
         }
@@ -340,7 +334,7 @@ mod tests {
                     Token::BlockquoteEnd(28),
                     Token::Whitespace(31, " "),
                     Token::Text(32, "suffix words"),
-                    Token::EOS(44),
+                    Token::Eos(44),
                 ],
             );
         }
@@ -359,7 +353,7 @@ mod tests {
                 Token::Newline(18),
                 Token::Hash(19),
                 Token::Hyphen(20),
-                Token::EOS(21),
+                Token::Eos(21),
             ],
         );
     }
@@ -378,7 +372,7 @@ mod tests {
                 Token::Digits(5, "00"),
                 Token::Text(7, "a.jpg"),
                 Token::ParenEnd(12),
-                Token::EOS(13),
+                Token::Eos(13),
             ],
         );
 
@@ -393,7 +387,7 @@ mod tests {
                 Token::Period(8),
                 Token::Text(9, "jpg"),
                 Token::ParenEnd(12),
-                Token::EOS(13),
+                Token::Eos(13),
             ],
         );
 
@@ -406,7 +400,7 @@ mod tests {
                 Token::ParenBegin(4),
                 Token::Text(5, "a00.jpg"),
                 Token::ParenEnd(12),
-                Token::EOS(13),
+                Token::Eos(13),
             ],
         );
 
@@ -419,7 +413,7 @@ mod tests {
                 Token::ParenBegin(4),
                 Token::Text(5, "abc.jpg"),
                 Token::ParenEnd(12),
-                Token::EOS(13),
+                Token::Eos(13),
             ],
         );
     }
@@ -433,7 +427,7 @@ mod tests {
                 Token::DoubleQuote(11, "\""),
                 Token::Text(12, "hello"),
                 Token::DoubleQuote(17, "\""),
-                Token::EOS(18),
+                Token::Eos(18),
             ],
         );
         tok(
@@ -443,7 +437,7 @@ mod tests {
                 Token::DoubleQuote(9, "“"),
                 Token::Text(10, "hello"),
                 Token::DoubleQuote(15, "”"),
-                Token::EOS(16),
+                Token::Eos(16),
             ],
         );
         tok(
@@ -452,7 +446,7 @@ mod tests {
                 Token::Text(0, "charlie said "),
                 Token::DoubleQuote(13, "“"),
                 Token::DoubleQuote(14, "”"),
-                Token::EOS(15),
+                Token::Eos(15),
             ],
         );
     }

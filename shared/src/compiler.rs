@@ -103,7 +103,7 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
         Node::Underlined(_, ns) => element_key_unpacked_class("span", "underlined", key, ns)?,
         Node::UnorderedList(_, ns) => element_key("ul", key, ns)?,
         Node::Url(_, url, ns) => element_key_class_href("a", "note-inline-link", url, key, ns)?,
-        Node::HorizontalRule(_) => element_key("hr", key, &vec![])?,
+        Node::HorizontalRule(_) => element_key("hr", key, &[])?,
         Node::Header(_, level, ns) => header_key(*level, key, ns)?,
     };
 
@@ -122,7 +122,7 @@ fn compile_sidenote(class_name: &str, key: usize, ns: &[Node]) -> Result<Vec<Ele
         key,
         "right-margin-toggle",
         &id,
-        &"⊗",
+        "⊗",
     )?);
     res.append(&mut element_key_class_type(
         "input",
@@ -147,7 +147,7 @@ fn compile_numbered_sidenote(key: usize, ns: &[Node]) -> Result<Vec<Element>> {
         key,
         "right-margin-toggle right-margin-number",
         &id,
-        &"",
+        "",
     )?);
     res.append(&mut element_key_class_type(
         "input",
@@ -183,7 +183,7 @@ fn element_key_unpacked(name: &str, key: usize, ns: &[Node]) -> Result<Vec<Eleme
 }
 
 fn header_key(level: u32, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
-    element_key(&format!("h{}", level.to_string()), key, ns)
+    element_key(&format!("h{}", level), key, ns)
 }
 
 fn text_element(text: &str) -> Element {

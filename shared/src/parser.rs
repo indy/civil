@@ -105,13 +105,14 @@ fn is_codeblock(tokens: &'_ [Token]) -> bool {
 fn is_horizontal_rule(tokens: &'_ [Token]) -> bool {
     is_token_at_index(tokens, 0, TokenIdent::Colon)
         && is_token_at_index(tokens, 1, TokenIdent::Hyphen)
-        && (is_token_at_index(tokens, 2, TokenIdent::EOS)
+        && (is_token_at_index(tokens, 2, TokenIdent::Eos)
             || is_token_at_index(tokens, 2, TokenIdent::Whitespace)
             || is_token_at_index(tokens, 2, TokenIdent::Newline))
 }
 
 /// returns a tuple of 'heading level' and 'text content'
-fn heading_text<'a>(s: &'a str) -> Option<(u32, &'a str)> {
+#[allow(clippy::manual_map)]
+fn heading_text(s: &str) -> Option<(u32, &str)> {
     if let Some(a) = s.strip_prefix("h1 ") {
         Some((1, a))
     } else if let Some(a) = s.strip_prefix("h2 ") {
@@ -160,13 +161,13 @@ fn is_blockquote_start<'a>(tokens: &'a [Token<'a>]) -> bool {
     is_token_at_index(tokens, 0, TokenIdent::BlockquoteBegin)
 }
 
-// need: parse until a terminator token (EOS, BlockquoteEnd) is reached
+// need: parse until a terminator token (Eos, BlockquoteEnd) is reached
 //
 pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
-    let mut tokens: &[Token] = &tokens;
+    let mut tokens: &[Token] = tokens;
     let mut res = Vec::new();
 
-    tokens = skip_leading_whitespace_and_newlines(&tokens)?;
+    tokens = skip_leading_whitespace_and_newlines(tokens)?;
     while !tokens.is_empty() && !is_terminator(tokens) {
         let (rem, node) = if is_numbered_list_item(tokens) {
             eat_ordered_list(tokens, None)?
@@ -174,9 +175,7 @@ pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
             eat_unordered_list(tokens, None)?
         } else if is_codeblock(tokens) {
             eat_codeblock(tokens)?
-        } else if is_horizontal_rule(tokens) {
-            eat_colon(tokens)?
-        } else if is_heading(tokens) {
+        } else if is_horizontal_rule(tokens) || is_heading(tokens) {
             eat_colon(tokens)?
         } else if is_img(tokens) {
             eat_img(tokens)?
@@ -188,7 +187,7 @@ pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
         };
 
         res.push(node);
-        tokens = skip_leading_whitespace_and_newlines(&rem)?;
+        tokens = skip_leading_whitespace_and_newlines(rem)?;
     }
 
     Ok((tokens, res))
@@ -198,11 +197,10 @@ fn eat_ordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>
     let mut children: Vec<Node> = vec![];
 
     // tokens should be at a digit, this is the starting number for the ordered list
-    let starts: String;
-    match tokens[0] {
-        Token::Digits(_, s) => starts = s.to_string(),
+    let starts: String = match tokens[0] {
+        Token::Digits(_, s) => s.to_string(),
         _ => return Err(Error::Parser),
-    }
+    };
 
     let ordered_list_pos = get_token_pos(&tokens[0]);
 
@@ -328,25 +326,27 @@ fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
 fn eat_img<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let pos = get_token_pos(&tokens[0]);
     let (tokens, (image_name, description)) = eat_as_image_description_pair(tokens)?;
-    return Ok((tokens, Node::Image(pos, image_name.to_string(), description)));
+
+    Ok((tokens, Node::Image(pos, image_name, description)))
 }
 
 fn eat_url<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let pos = get_token_pos(&tokens[0]);
     let (tokens, (url, description)) = eat_as_url_description_pair(tokens)?;
-    return Ok((tokens, Node::Url(pos, url.to_string(), description)));
+
+    Ok((tokens, Node::Url(pos, url, description)))
 }
 
 fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
-    // Colon, Hyphen, Whitespace, (Text), EOS | EOL
+    // Colon, Hyphen, Whitespace, (Text), Eos | EOL
     // ":- this text is following a horizontal line"
 
-    // Colon, 'h', Whitespace, (Text), EOS | EOL
+    // Colon, 'h', Whitespace, (Text), Eos | EOL
     // ":h this is a heading"
 
     let pos = get_token_pos(&tokens[0]);
     if is_token_at_index(tokens, 1, TokenIdent::Hyphen) {
-        if is_token_at_index(tokens, 2, TokenIdent::EOS)
+        if is_token_at_index(tokens, 2, TokenIdent::Eos)
             || is_token_at_index(tokens, 2, TokenIdent::Whitespace)
             || is_token_at_index(tokens, 2, TokenIdent::Newline)
         {
@@ -357,8 +357,8 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
         Ok((tokens, Node::HorizontalRule(pos)))
     } else if is_token_at_index(tokens, 1, TokenIdent::Text) {
         match tokens[1] {
-            Token::Text(_, "img") => return eat_img(tokens),
-            Token::Text(_, "url") => return eat_url(tokens),
+            Token::Text(_, "img") => eat_img(tokens),
+            Token::Text(_, "url") => eat_url(tokens),
             Token::Text(text_pos, s) => {
                 if let Some((level, h)) = heading_text(s) {
                     let mut header_children = vec![Node::Text(text_pos, h.to_string())];
@@ -584,7 +584,7 @@ fn eat_as_url_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(Str
 
     let mut res = String::from("");
     for t in &left {
-        res.push_str(get_token_value(&t));
+        res.push_str(get_token_value(t));
     }
 
     // if there is no text after the first space then use the url as the displayed text
@@ -598,7 +598,7 @@ fn eat_as_image_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(S
 
     let mut res = String::from("");
     for t in &left {
-        res.push_str(get_token_value(&t));
+        res.push_str(get_token_value(t));
     }
 
     // only have descriptive text if it's in the markup after the image filename
@@ -620,9 +620,9 @@ fn eat_blockquote<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
 
     let remaining = &remaining[1..]; // skip past the BlockquoteEnd token
 
-    let rem = skip_leading_whitespace_and_newlines(&remaining)?;
+    let rem = skip_leading_whitespace_and_newlines(remaining)?;
 
-    Ok((&rem, Node::BlockQuote(pos, nodes)))
+    Ok((rem, Node::BlockQuote(pos, nodes)))
 }
 
 // ignores the first token
@@ -722,7 +722,7 @@ fn skip_leading<'a>(tokens: &'a [Token], token_ident: TokenIdent) -> Result<&'a 
 }
 
 fn is_terminator<'a>(tokens: &'a [Token<'a>]) -> bool {
-    is_token_at_index(tokens, 0, TokenIdent::EOS) || is_token_at_index(tokens, 0, TokenIdent::BlockquoteEnd)
+    is_token_at_index(tokens, 0, TokenIdent::Eos) || is_token_at_index(tokens, 0, TokenIdent::BlockquoteEnd)
 }
 
 fn is_head<'a>(tokens: &'a [Token<'a>], token_ident: TokenIdent) -> bool {
