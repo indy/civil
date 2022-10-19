@@ -66,7 +66,7 @@ export default function Graph({ id, depth }) {
             // dispatch the updated state,
             // and then on the next render initialise using the if statement above
             Net.get("/api/graph").then(graph => {
-                let notes = graph.graphNodes;
+                let nodes = graph.graphNodes;
                 let connections = graph.graphConnections;
                 AppStateChange.loadGraph(nodes, connections);
                 setLocalState({
