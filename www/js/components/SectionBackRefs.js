@@ -99,7 +99,15 @@ export default function SectionBackRefs({ deck }) {
         if (!groupedByResource[d.resource]) {
             groupedByResource[d.resource] = [];
         }
-        groupedByResource[d.resource].push(d);
+        if (d.metaNoteId) {
+            // deck-level back refs should be given priority
+            // add them to the front of the array
+            groupedByResource[d.resource].unshift(d);
+        } else {
+            // normal per-note back refs are added to the end
+            groupedByResource[d.resource].push(d);
+        }
+
     });
 
     // render in the preferred order
