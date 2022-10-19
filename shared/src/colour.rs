@@ -502,7 +502,7 @@ impl From<&InternalLch> for InternalHsluv {
         let h = colour.h;
         let alpha = colour.alpha;
 
-        let s = if (0.000_000_01..=99.999_999_9).contains(&l) {
+        let s = if !(0.000_000_01..=99.999_999_9).contains(&l) {
             0.0
         } else {
             c / max_chroma_for_lh(l, h) * 100.0
@@ -613,7 +613,7 @@ impl From<&InternalHsluv> for InternalLch {
         let l = colour.l;
         let alpha = colour.alpha;
 
-        let c = if (0.000_000_01..=99.999_999_9).contains(&l) {
+        let c = if !(0.000_000_01..=99.999_999_9).contains(&l) {
             0.0
         } else {
             max_chroma_for_lh(l, h) / 100.0 * s
