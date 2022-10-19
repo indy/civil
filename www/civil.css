@@ -1545,7 +1545,7 @@ input:required {
 }
 
 .toolbar-item-selected {
-  border-left: 5px solid var(--scribble-disagree) !important;
+  border-right: 5px solid var(--scribble-disagree) !important;
 }
 
 

@@ -58,7 +58,7 @@ async fn main() -> Result<()> {
     let server = HttpServer::new(move || {
         let signing_key: &mut [u8] = &mut [0; SIGNING_KEY_SIZE];
         read_signing_key(signing_key, &session_signing_key);
-        info!("signing key: {:?}", signing_key);
+        // info!("signing key: {:?}", signing_key);
 
         let session_store = CookieSession::private(signing_key)
             .secure(cookie_secure)
