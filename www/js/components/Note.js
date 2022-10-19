@@ -408,7 +408,7 @@ export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited
                 };
 
                 Net.post("/api/edges/notes_decks", data).then((allDecksForNote) => {
-                    onRefsChanged(note, allDecksForNote);
+                    onRefsChanged(local.note, allDecksForNote);
                     localDispatch(ADD_DECKS_COMMIT, { allDecksForNote, changes });
                 });
             } else {
