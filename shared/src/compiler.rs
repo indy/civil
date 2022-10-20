@@ -59,23 +59,9 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
             }]
         }
         Node::BlockQuote(_, ns) => element_key("blockquote", key, ns)?,
+        Node::Header(_, level, ns) => header_key(*level, key, ns)?,
         Node::Highlight(_, ns) => element_key_unpacked("mark", key, ns)?,
-        Node::ListItem(_, ns) => element_key("li", key, ns)?,
-        Node::MarginScribble(_, ns) => compile_sidenote("right-margin-scribble scribble-neutral", key, ns)?,
-        Node::MarginDisagree(_, ns) => compile_sidenote("right-margin-scribble scribble-disagree", key, ns)?,
-        Node::MarginText(_, numbered, ns) => match numbered {
-            MarginTextLabel::Numbered => compile_numbered_sidenote(key, ns)?,
-            MarginTextLabel::UnNumbered => compile_sidenote("right-margin", key, ns)?,
-        },
-        Node::OrderedList(_, ns, start) => compile_ordered_list(start, key, ns)?,
-        Node::Paragraph(_, ns) => element_key("p", key, ns)?,
-        Node::Quotation(_, ns) => element_key_unpacked("em", key, ns)?,
-        Node::Strong(_, ns) => element_key_unpacked("strong", key, ns)?,
-        Node::Text(_, text) => vec![Element {
-            name: String::from("text"),
-            text: Some(String::from(text)),
-            ..Default::default()
-        }],
+        Node::HorizontalRule(_) => element_key("hr", key, &[])?,
         Node::Image(_, src, ns) => {
             let img = Element {
                 name: String::from("img"),
@@ -99,12 +85,27 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
                     ..Default::default()
                 }]
             }
-        }
+        },
+        Node::Italic(_, ns) => element_key_unpacked("i", key, ns)?,
+        Node::ListItem(_, ns) => element_key("li", key, ns)?,
+        Node::MarginScribble(_, ns) => compile_sidenote("right-margin-scribble scribble-neutral", key, ns)?,
+        Node::MarginDisagree(_, ns) => compile_sidenote("right-margin-scribble scribble-disagree", key, ns)?,
+        Node::MarginText(_, numbered, ns) => match numbered {
+            MarginTextLabel::Numbered => compile_numbered_sidenote(key, ns)?,
+            MarginTextLabel::UnNumbered => compile_sidenote("right-margin", key, ns)?,
+        },
+        Node::OrderedList(_, ns, start) => compile_ordered_list(start, key, ns)?,
+        Node::Paragraph(_, ns) => element_key("p", key, ns)?,
+        Node::Quotation(_, ns) => element_key_unpacked("em", key, ns)?,
+        Node::Strong(_, ns) => element_key_unpacked("strong", key, ns)?,
+        Node::Text(_, text) => vec![Element {
+            name: String::from("text"),
+            text: Some(String::from(text)),
+            ..Default::default()
+        }],
         Node::Underlined(_, ns) => element_key_unpacked_class("span", "underlined", key, ns)?,
         Node::UnorderedList(_, ns) => element_key("ul", key, ns)?,
         Node::Url(_, url, ns) => element_key_class_href("a", "note-inline-link", url, key, ns)?,
-        Node::HorizontalRule(_) => element_key("hr", key, &[])?,
-        Node::Header(_, level, ns) => header_key(*level, key, ns)?,
     };
 
     Ok(res)

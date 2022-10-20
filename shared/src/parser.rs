@@ -45,6 +45,7 @@ pub enum Node {
     Highlight(usize, Vec<Node>),
     HorizontalRule(usize),
     Image(usize, String, Vec<Node>),
+    Italic(usize, Vec<Node>),
     ListItem(usize, Vec<Node>),
     MarginDisagree(usize, Vec<Node>),
     MarginScribble(usize, Vec<Node>),
@@ -67,6 +68,7 @@ fn get_node_pos(node: &Node) -> usize {
         Node::Highlight(pos, _) => *pos,
         Node::HorizontalRule(pos) => *pos,
         Node::Image(pos, _, _) => *pos,
+        Node::Italic(pos, _) => *pos,
         Node::ListItem(pos, _) => *pos,
         Node::MarginDisagree(pos, _) => *pos,
         Node::MarginScribble(pos, _) => *pos,
@@ -337,6 +339,26 @@ fn eat_url<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     Ok((tokens, Node::Url(pos, url, description)))
 }
 
+fn eat_new_syntax_bold<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
+    Ok((tokens, Node::Strong(pos, parsed_content)))
+}
+
+fn eat_new_syntax_highlighted<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
+    Ok((tokens, Node::Highlight(pos, parsed_content)))
+}
+
+fn eat_new_syntax_underlined<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
+    Ok((tokens, Node::Underlined(pos, parsed_content)))
+}
+
+fn eat_new_syntax_italic<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
+    Ok((tokens, Node::Italic(pos, parsed_content)))
+}
+
 fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     // Colon, Hyphen, Whitespace, (Text), Eos | EOL
     // ":- this text is following a horizontal line"
@@ -359,6 +381,10 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
         match tokens[1] {
             Token::Text(_, "img") => eat_img(tokens),
             Token::Text(_, "url") => eat_url(tokens),
+            Token::Text(_, "b") => eat_new_syntax_bold(tokens),
+            Token::Text(_, "h") => eat_new_syntax_highlighted(tokens),
+            Token::Text(_, "u") => eat_new_syntax_underlined(tokens),
+            Token::Text(_, "i") => eat_new_syntax_italic(tokens),
             Token::Text(text_pos, s) => {
                 if let Some((level, h)) = heading_text(s) {
                     let mut header_children = vec![Node::Text(text_pos, h.to_string())];
@@ -519,16 +545,59 @@ fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> Result<(Token<'a
     }
 }
 
+// returns tokens within the colon command
+//
+fn eat_colon_command_content<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Vec<Token>> {
+    let mut content: Vec<Token> = vec![];
+    let mut paren_balancer = 1;
+
+    tokens = &tokens[3..]; // eat the colon, text, opening parentheses
+
+    while !tokens.is_empty() {
+        if is_head(tokens, TokenIdent::ParenBegin) {
+            let pos = get_token_pos(&tokens[0]);
+            paren_balancer += 1;
+            tokens = &tokens[1..];
+            content.push(Token::ParenBegin(pos));
+        } else if is_head(tokens, TokenIdent::ParenEnd) {
+            paren_balancer -= 1;
+            let pos = get_token_pos(&tokens[0]);
+            tokens = &tokens[1..];
+
+            if paren_balancer == 0 {
+                // reached the closing paren
+                break;
+            }
+            content.push(Token::ParenEnd(pos));
+        } else {
+            content.push(tokens[0]);
+            tokens = &tokens[1..];
+        }
+    }
+
+    Ok((tokens, content))
+}
+
+fn eat_basic_colon_command<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(usize, Vec<Node>)> {
+    let pos = get_token_pos(&tokens[0]);
+    let (tokens, content) = eat_colon_command_content(tokens)?;
+
+    // isg todo: check that the first item of parse's results is an empty vec
+    let (_, parsed_content) = parse(&content)?;
+
+    Ok((tokens, (pos, parsed_content)))
+}
+
 // returns found_divide, left tokens, right tokens
 //
-fn core_description_pairing<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<(bool, Vec<Token>, Vec<Token>)> {
+fn eat_colon_command_pairing<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<(bool, Vec<Token>, Vec<Token>)> {
     let mut found_desc_divide = false;
     let mut core_tokens: Vec<Token> = vec![];
     let mut desc_tokens: Vec<Token> = vec![];
 
     let mut paren_balancer = 1;
 
-    tokens = &tokens[3..]; // eat the ':img(' or ':url('
+    tokens = &tokens[3..]; // eat the colon, text, opening parentheses
 
     while !tokens.is_empty() {
         if is_head(tokens, TokenIdent::ParenBegin) {
@@ -580,7 +649,7 @@ fn core_description_pairing<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<(bo
 
 // treat every token as Text until we get to a token of the given type
 fn eat_as_url_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(String, Vec<Node>)> {
-    let (tokens, (found_divide, left, right)) = core_description_pairing(tokens)?;
+    let (tokens, (found_divide, left, right)) = eat_colon_command_pairing(tokens)?;
 
     let mut res = String::from("");
     for t in &left {
@@ -594,7 +663,7 @@ fn eat_as_url_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(Str
 }
 
 fn eat_as_image_description_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(String, Vec<Node>)> {
-    let (tokens, (found_divide, left, right)) = core_description_pairing(tokens)?;
+    let (tokens, (found_divide, left, right)) = eat_colon_command_pairing(tokens)?;
 
     let mut res = String::from("");
     for t in &left {
@@ -1048,8 +1117,16 @@ mod tests {
     #[test]
     fn test_strong() {
         {
+            let nodes = build("words with :b(emphasis) test");
+            assert_eq!(1, nodes.len());
+            let children = paragraph_children(&nodes[0]).unwrap();
+            assert_eq!(children.len(), 3);
+            assert_text_pos(&children[0], "words with ", 0);
+            assert_strong1_pos(&children[1], "emphasis", 11);
+            assert_text_pos(&children[2], " test", 23);
+        }
+        {
             let nodes = build("words with *emphasis* test");
-            dbg!(&nodes);
             assert_eq!(1, nodes.len());
             let children = paragraph_children(&nodes[0]).unwrap();
             assert_eq!(children.len(), 3);
@@ -1059,6 +1136,15 @@ mod tests {
         }
         {
             let nodes = build("words with *emphasis*");
+
+            assert_eq!(1, nodes.len());
+            let children = paragraph_children(&nodes[0]).unwrap();
+            assert_eq!(children.len(), 2);
+            assert_text(&children[0], "words with ");
+            assert_strong1_pos(&children[1], "emphasis", 11);
+        }
+        {
+            let nodes = build("words with :b(emphasis)");
 
             assert_eq!(1, nodes.len());
             let children = paragraph_children(&nodes[0]).unwrap();

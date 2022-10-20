@@ -1,4 +1,10 @@
 
+highlight: certain words :h(can be highlighted) in a sentence
+underline: this is an :u(important) word
+bold:    this is a :b(bold) word
+italic:    this is an :i(italic) word
+
+obsolete syntax:
 codeblock: ` codeblocks are surrounded by backticks `
 highlight: certain words ^can be highlighted^ in a sentence
 underline: this is an _important_ word
