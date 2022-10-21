@@ -155,6 +155,19 @@ fn is_heading(tokens: &'_ [Token]) -> bool {
     }
 }
 
+fn is_new_syntax_heading(tokens: &'_ [Token]) -> bool {
+    let headings = ["h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", "h9"];
+
+    if is_token_at_index(tokens, 0, TokenIdent::Colon) && is_token_at_index(tokens, 1, TokenIdent::Text) {
+        match tokens[1] {
+            Token::Text(_, s) => headings.contains(&s),
+            _ => false,
+        }
+    } else {
+        false
+    }
+}
+
 fn is_img(tokens: &'_ [Token]) -> bool {
     is_colon_specifier(tokens) && is_text_at_index(tokens, 1, "img")
 }
@@ -177,7 +190,7 @@ pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
             eat_unordered_list(tokens, None)?
         } else if is_codeblock(tokens) {
             eat_codeblock(tokens)?
-        } else if is_horizontal_rule(tokens) || is_heading(tokens) {
+        } else if is_horizontal_rule(tokens) || is_heading(tokens) || is_new_syntax_heading(tokens) {
             eat_colon(tokens)?
         } else if is_img(tokens) {
             eat_img(tokens)?
@@ -359,6 +372,11 @@ fn eat_new_syntax_italic<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     Ok((tokens, Node::Italic(pos, parsed_content)))
 }
 
+fn eat_new_syntax_header<'a>(level: u32, tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
+    Ok((tokens, Node::Header(pos, level, parsed_content)))
+}
+
 fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     // Colon, Hyphen, Whitespace, (Text), Eos | EOL
     // ":- this text is following a horizontal line"
@@ -385,6 +403,15 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
             Token::Text(_, "h") => eat_new_syntax_highlighted(tokens),
             Token::Text(_, "u") => eat_new_syntax_underlined(tokens),
             Token::Text(_, "i") => eat_new_syntax_italic(tokens),
+            Token::Text(_, "h1") => eat_new_syntax_header(1, tokens),
+            Token::Text(_, "h2") => eat_new_syntax_header(2, tokens),
+            Token::Text(_, "h3") => eat_new_syntax_header(3, tokens),
+            Token::Text(_, "h4") => eat_new_syntax_header(4, tokens),
+            Token::Text(_, "h5") => eat_new_syntax_header(5, tokens),
+            Token::Text(_, "h6") => eat_new_syntax_header(6, tokens),
+            Token::Text(_, "h7") => eat_new_syntax_header(7, tokens),
+            Token::Text(_, "h8") => eat_new_syntax_header(8, tokens),
+            Token::Text(_, "h9") => eat_new_syntax_header(9, tokens),
             Token::Text(text_pos, s) => {
                 if let Some((level, h)) = heading_text(s) {
                     let mut header_children = vec![Node::Text(text_pos, h.to_string())];

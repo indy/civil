@@ -60,7 +60,7 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
         }
         Node::BlockQuote(_, ns) => element_key("blockquote", key, ns)?,
         Node::Header(_, level, ns) => header_key(*level, key, ns)?,
-        Node::Highlight(_, ns) => element_key_unpacked("mark", key, ns)?,
+        Node::Highlight(_, ns) => element_key_hoisted("mark", key, ns)?,
         Node::HorizontalRule(_) => element_key("hr", key, &[])?,
         Node::Image(_, src, ns) => {
             let img = Element {
@@ -74,7 +74,7 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
             } else {
                 // if there is a text description provided then treat this as a figure
                 // <figure><img/><figcaption>ns contents</figcaption></figure>
-                let mut figcaption = element_key_unpacked("figcaption", key, ns)?;
+                let mut figcaption = element_key_hoisted("figcaption", key, ns)?;
                 let mut figure_children = vec![img];
 
                 figure_children.append(&mut figcaption);
@@ -86,7 +86,7 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
                 }]
             }
         },
-        Node::Italic(_, ns) => element_key_unpacked("i", key, ns)?,
+        Node::Italic(_, ns) => element_key_hoisted("i", key, ns)?,
         Node::ListItem(_, ns) => element_key("li", key, ns)?,
         Node::MarginScribble(_, ns) => compile_sidenote("right-margin-scribble scribble-neutral", key, ns)?,
         Node::MarginDisagree(_, ns) => compile_sidenote("right-margin-scribble scribble-disagree", key, ns)?,
@@ -96,14 +96,14 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
         },
         Node::OrderedList(_, ns, start) => compile_ordered_list(start, key, ns)?,
         Node::Paragraph(_, ns) => element_key("p", key, ns)?,
-        Node::Quotation(_, ns) => element_key_unpacked("em", key, ns)?,
-        Node::Strong(_, ns) => element_key_unpacked("strong", key, ns)?,
+        Node::Quotation(_, ns) => element_key_hoisted("em", key, ns)?,
+        Node::Strong(_, ns) => element_key_hoisted("strong", key, ns)?,
         Node::Text(_, text) => vec![Element {
             name: String::from("text"),
             text: Some(String::from(text)),
             ..Default::default()
         }],
-        Node::Underlined(_, ns) => element_key_unpacked_class("span", "underlined", key, ns)?,
+        Node::Underlined(_, ns) => element_key_hoisted_class("span", "underlined", key, ns)?,
         Node::UnorderedList(_, ns) => element_key("ul", key, ns)?,
         Node::Url(_, url, ns) => element_key_class_href("a", "note-inline-link", url, key, ns)?,
     };
@@ -177,14 +177,14 @@ fn element_key(name: &str, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
     Ok(vec![e])
 }
 
-fn element_key_unpacked(name: &str, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
-    let e = element_base_unpacked(name, key, ns)?;
+fn element_key_hoisted(name: &str, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
+    let e = element_base_hoisted(name, key, ns)?;
 
     Ok(vec![e])
 }
 
 fn header_key(level: u32, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
-    element_key(&format!("h{}", level), key, ns)
+    element_key_hoisted(&format!("h{}", level), key, ns)
 }
 
 fn text_element(text: &str) -> Element {
@@ -203,8 +203,8 @@ fn element_key_class(name: &str, class_name: &str, key: usize, ns: &[Node]) -> R
     Ok(vec![e])
 }
 
-fn element_key_unpacked_class(name: &str, class_name: &str, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
-    let mut e = element_base_unpacked(name, key, ns)?;
+fn element_key_hoisted_class(name: &str, class_name: &str, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
+    let mut e = element_base_hoisted(name, key, ns)?;
 
     e.class_name = Some(String::from(class_name));
 
@@ -212,7 +212,7 @@ fn element_key_unpacked_class(name: &str, class_name: &str, key: usize, ns: &[No
 }
 
 fn element_key_class_href(name: &str, class_name: &str, url: &str, key: usize, ns: &[Node]) -> Result<Vec<Element>> {
-    let mut e = element_base_unpacked(name, key, ns)?;
+    let mut e = element_base_hoisted(name, key, ns)?;
 
     e.class_name = Some(String::from(class_name));
     e.href = Some(String::from(url));
@@ -250,7 +250,11 @@ fn element_base(name: &str, key: usize, ns: &[Node]) -> Result<Element> {
     })
 }
 
-fn element_base_unpacked(name: &str, key: usize, ns: &[Node]) -> Result<Element> {
+// after parsing, a lot of nodes will have 1 child which is a paragraph
+// (e.g. bold, italic, headings). this fn hoists the children from the
+// inbetween paragraph up into the base element
+//
+fn element_base_hoisted(name: &str, key: usize, ns: &[Node]) -> Result<Element> {
     if ns.len() == 1 {
         match &ns[0] {
             Node::Paragraph(_, pns) => Ok(Element {
