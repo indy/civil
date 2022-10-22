@@ -300,23 +300,9 @@ fn inside_pair<'a>(tokens: &'a [Token]) -> ParserResult<'a, Vec<Node>> {
 
 fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
     match tokens[0] {
-        Token::Asterisk(pos) => {
-            if let Ok((toks, inside)) = inside_pair(tokens) {
-                Ok((toks, Node::Strong(pos, inside)))
-            } else {
-                eat_text_including(tokens)
-            }
-        }
         Token::BackTick(_) => eat_codeblock(tokens),
         Token::BracketBegin(_) => eat_text_including(tokens),
         Token::BracketEnd(_) => eat_text_including(tokens),
-        Token::Caret(pos) => {
-            if let Ok((toks, inside)) = inside_pair(tokens) {
-                Ok((toks, Node::Highlight(pos, inside)))
-            } else {
-                eat_text_including(tokens)
-            }
-        }
         Token::Colon(_) => eat_colon(tokens),
         Token::DoubleQuote(pos, _) => {
             if let Ok((toks, inside)) = inside_pair(tokens) {
@@ -327,13 +313,6 @@ fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
         }
         // Token::Hash(_) => eat_hash(tokens),
         Token::Pipe(_) => eat_pipe(tokens),
-        Token::Underscore(pos) => {
-            if let Ok((toks, inside)) = inside_pair(tokens) {
-                Ok((toks, Node::Underlined(pos, inside)))
-            } else {
-                eat_text_including(tokens)
-            }
-        }
         _ => eat_text(tokens),
     }
 }
@@ -1159,22 +1138,13 @@ mod tests {
             assert_text_pos(&children[2], " test", 23);
         }
         {
-            let nodes = build("words with *emphasis* test");
+            let nodes = build("words with :b(emphasis) test");
             assert_eq!(1, nodes.len());
             let children = paragraph_children(&nodes[0]).unwrap();
             assert_eq!(children.len(), 3);
             assert_text_pos(&children[0], "words with ", 0);
             assert_strong1_pos(&children[1], "emphasis", 11);
-            assert_text_pos(&children[2], " test", 21);
-        }
-        {
-            let nodes = build("words with *emphasis*");
-
-            assert_eq!(1, nodes.len());
-            let children = paragraph_children(&nodes[0]).unwrap();
-            assert_eq!(children.len(), 2);
-            assert_text(&children[0], "words with ");
-            assert_strong1_pos(&children[1], "emphasis", 11);
+            assert_text_pos(&children[2], " test", 23);
         }
         {
             let nodes = build("words with :b(emphasis)");
@@ -1185,21 +1155,12 @@ mod tests {
             assert_text(&children[0], "words with ");
             assert_strong1_pos(&children[1], "emphasis", 11);
         }
-        {
-            let nodes = build("words with * multiply");
-            assert_eq!(1, nodes.len());
-
-            let children = paragraph_children(&nodes[0]).unwrap();
-            assert_eq!(children.len(), 2);
-            assert_text(&children[0], "words with ");
-            assert_text(&children[1], "* multiply");
-        }
     }
 
     #[test]
     fn test_underline() {
         {
-            let nodes = build("words with _underlined_ test");
+            let nodes = build("words with :u(underlined) test");
 
             assert_eq!(1, nodes.len());
             let children = paragraph_children(&nodes[0]).unwrap();
@@ -1209,7 +1170,7 @@ mod tests {
             assert_text(&children[2], " test");
         }
         {
-            let nodes = build("words with _underlines_");
+            let nodes = build("words with :u(underlines)");
 
             assert_eq!(1, nodes.len());
             let children = paragraph_children(&nodes[0]).unwrap();
@@ -1217,21 +1178,12 @@ mod tests {
             assert_text(&children[0], "words with ");
             assert_underline1_pos(&children[1], "underlines", 11);
         }
-        {
-            let nodes = build("sentence with _ underscore");
-            assert_eq!(1, nodes.len());
-
-            let children = paragraph_children(&nodes[0]).unwrap();
-            assert_eq!(children.len(), 2);
-            assert_text(&children[0], "sentence with ");
-            assert_text(&children[1], "_ underscore");
-        }
     }
 
     #[test]
     fn test_highlight() {
         {
-            let nodes = build("words with ^highlighted^ test");
+            let nodes = build("words with :h(highlighted) test");
 
             assert_eq!(1, nodes.len());
             let children = paragraph_children(&nodes[0]).unwrap();
@@ -1241,22 +1193,13 @@ mod tests {
             assert_text(&children[2], " test");
         }
         {
-            let nodes = build("words with ^highlight^");
+            let nodes = build("words with :h(highlight)");
 
             assert_eq!(1, nodes.len());
             let children = paragraph_children(&nodes[0]).unwrap();
             assert_eq!(children.len(), 2);
             assert_text(&children[0], "words with ");
             assert_highlight1_pos(&children[1], "highlight", 11);
-        }
-        {
-            let nodes = build("words with ^ exponent");
-            assert_eq!(1, nodes.len());
-
-            let children = paragraph_children(&nodes[0]).unwrap();
-            assert_eq!(children.len(), 2);
-            assert_text(&children[0], "words with ");
-            assert_text(&children[1], "^ exponent");
         }
     }
 
@@ -1294,8 +1237,7 @@ mod tests {
 
     #[test]
     fn test_nested_markup() {
-        let nodes = build("^*words* with *strong*^ test");
-
+        let nodes = build(":h(:b(words) with :b(strong)) test");
         assert_eq!(1, nodes.len());
         let children = paragraph_children(&nodes[0]).unwrap();
         assert_eq!(children.len(), 2);
@@ -1304,9 +1246,9 @@ mod tests {
             Node::Highlight(_, children) => match &children[0] {
                 Node::Paragraph(_, children) => {
                     assert_eq!(children.len(), 3);
-                    assert_strong1_pos(&children[0], "words", 1);
+                    assert_strong1_pos(&children[0], "words", 3);
                     assert_text(&children[1], " with ");
-                    assert_strong1_pos(&children[2], "strong", 14);
+                    assert_strong1_pos(&children[2], "strong", 18);
                 }
                 _ => assert_eq!(false, true),
             },
@@ -1668,14 +1610,14 @@ some other lines| more words afterwards",
 
     #[test]
     fn test_remaining_tokens_contain() {
-        let toks = vec![Token::Asterisk(0), Token::Asterisk(0)];
-        assert_eq!(remaining_tokens_contain(&toks, TokenIdent::Asterisk), true);
+        let toks = vec![Token::Colon(0), Token::Colon(0)];
+        assert_eq!(remaining_tokens_contain(&toks, TokenIdent::Colon), true);
 
-        let toks2 = vec![Token::Asterisk(0), Token::Pipe(0)];
-        assert_eq!(remaining_tokens_contain(&toks2, TokenIdent::Asterisk), false);
+        let toks2 = vec![Token::Colon(0), Token::Pipe(0)];
+        assert_eq!(remaining_tokens_contain(&toks2, TokenIdent::Colon), false);
 
-        let toks3 = vec![Token::Asterisk(0)];
-        assert_eq!(remaining_tokens_contain(&toks3, TokenIdent::Asterisk), false);
+        let toks3 = vec![Token::Colon(0)];
+        assert_eq!(remaining_tokens_contain(&toks3, TokenIdent::Colon), false);
     }
 
     #[test]
@@ -1745,7 +1687,7 @@ some other lines| more words afterwards",
             };
         }
         {
-            let nodes = build(":url(https://google.com a few (descriptive *bold*) words)");
+            let nodes = build(":url(https://google.com a few (descriptive :b(bold)) words)");
             assert_eq!(1, nodes.len());
 
             let children = paragraph_children(&nodes[0]).unwrap();
@@ -1840,39 +1782,6 @@ some other lines| more words afterwards",
 
                     assert_eq!(1, ns.len());
                     assert_single_paragraph_text(&ns[0], "A document");
-                }
-                _ => assert_eq!(false, true),
-            };
-        }
-    }
-
-    #[test]
-    fn test_url_bug_2() {
-        {
-            let nodes = build(":url(https://en.wikipedia.org/wiki/Karl_Marx)");
-            dbg!(&nodes);
-
-            assert_eq!(1, nodes.len());
-
-            let children = paragraph_children(&nodes[0]).unwrap();
-            assert_eq!(children.len(), 1);
-
-            let node = &children[0];
-            match node {
-                Node::Url(_, url, ns) => {
-                    assert_eq!(url, "https://en.wikipedia.org/wiki/Karl_Marx");
-
-                    assert_eq!(1, ns.len());
-                    assert_paragraph(&ns[0]);
-                    match &ns[0] {
-                        Node::Paragraph(_, children) => {
-                            assert_eq!(children.len(), 3);
-                            assert_text(&children[0], "https");
-                            assert_text(&children[1], "://en.wikipedia.org/wiki/Karl");
-                            assert_text(&children[2], "_Marx")
-                        }
-                        _ => assert!(false),
-                    };
                 }
                 _ => assert_eq!(false, true),
             };

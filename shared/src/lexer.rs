@@ -21,13 +21,11 @@ use strum_macros::EnumDiscriminants;
 #[derive(Copy, Clone, Debug, Eq, PartialEq, EnumDiscriminants)]
 #[strum_discriminants(name(TokenIdent))]
 pub enum Token<'a> {
-    Asterisk(usize),
     BackTick(usize),
     BlockquoteBegin(usize),
     BlockquoteEnd(usize),
     BracketBegin(usize),
     BracketEnd(usize),
-    Caret(usize),
     Colon(usize),
     Digits(usize, &'a str),
     DoubleQuote(usize, &'a str),
@@ -40,20 +38,17 @@ pub enum Token<'a> {
     Pipe(usize),
     Plus(usize),
     Text(usize, &'a str),
-    Underscore(usize),
     Whitespace(usize, &'a str),
     Eos(usize), // end of stream
 }
 
 pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
     match token {
-        Token::Asterisk(_) => "*",
         Token::BackTick(_) => "`",
         Token::BlockquoteBegin(_) => ">>>",
         Token::BlockquoteEnd(_) => "<<<",
         Token::BracketEnd(_) => "]",
         Token::BracketBegin(_) => "[",
-        Token::Caret(_) => "^",
         Token::Colon(_) => ":",
         Token::Digits(_, s) => s,
         Token::DoubleQuote(_, s) => s,
@@ -66,7 +61,6 @@ pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
         Token::Pipe(_) => "|",
         Token::Plus(_) => "+",
         Token::Text(_, s) => s,
-        Token::Underscore(_) => "_",
         Token::Whitespace(_, s) => s,
         Token::Eos(_) => "",
     }
@@ -74,13 +68,11 @@ pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
 
 pub(crate) fn get_token_pos(token: &Token) -> usize {
     match token {
-        Token::Asterisk(pos) => *pos,
         Token::BackTick(pos) => *pos,
         Token::BlockquoteBegin(pos) => *pos,
         Token::BlockquoteEnd(pos) => *pos,
         Token::BracketEnd(pos) => *pos,
         Token::BracketBegin(pos) => *pos,
-        Token::Caret(pos) => *pos,
         Token::Colon(pos) => *pos,
         Token::Digits(pos, _) => *pos,
         Token::DoubleQuote(pos, _) => *pos,
@@ -93,7 +85,6 @@ pub(crate) fn get_token_pos(token: &Token) -> usize {
         Token::Pipe(pos) => *pos,
         Token::Plus(pos) => *pos,
         Token::Text(pos, _) => *pos,
-        Token::Underscore(pos) => *pos,
         Token::Whitespace(pos, _) => *pos,
         Token::Eos(pos) => *pos,
     }
@@ -107,11 +98,9 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
     while !input.is_empty() {
         if let Some(ch) = input.chars().next() {
             let (token, characters, bytes) = match ch {
-                '*' => (Token::Asterisk(index), 1, 1),
                 '`' => (Token::BackTick(index), 1, 1),
                 '[' => (Token::BracketBegin(index), 1, 1),
                 ']' => (Token::BracketEnd(index), 1, 1),
-                '^' => (Token::Caret(index), 1, 1),
                 ':' => (Token::Colon(index), 1, 1),
                 '"' | '“' | '”' => eat_doublequote(index, input)?,
                 '#' => (Token::Hash(index), 1, 1),
@@ -122,7 +111,6 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
                 '.' => (Token::Period(index), 1, 1),
                 '|' => (Token::Pipe(index), 1, 1),
                 '+' => (Token::Plus(index), 1, 1),
-                '_' => (Token::Underscore(index), 1, 1),
                 '>' => eat_blockquote_begin_or_greater_than_character(index, input)?,
                 '<' => eat_blockquote_end_or_less_than_character(index, input)?,
                 '0'..='9' => eat_digits(index, input)?,
@@ -215,9 +203,7 @@ fn eat_text(index: usize, input: &str) -> Result<(Token, usize, usize)> {
 
 fn is_text(ch: char) -> bool {
     match ch {
-        '\n' | '[' | ']' | '(' | ')' | '_' | '*' | '`' | '^' | '"' | '“' | '”' | '|' | '#' | ':' | '+' | '>' | '<' => {
-            false
-        }
+        '\n' | '[' | ']' | '(' | ')' | '`' | '"' | '“' | '”' | '|' | '#' | ':' | '+' | '>' | '<' => false,
         _ => true,
     }
 }
@@ -243,7 +229,7 @@ mod tests {
 
     #[test]
     fn test_split_token_at() {
-        let t = tokenize("foo *bar* # 12345").unwrap();
+        let t = tokenize("foo :bar: # 12345").unwrap();
 
         assert_eq!(t.len(), 9);
 
@@ -256,9 +242,9 @@ mod tests {
             a,
             &[
                 Token::Text(0, "foo "),
-                Token::Asterisk(4),
+                Token::Colon(4),
                 Token::Text(5, "bar"),
-                Token::Asterisk(8),
+                Token::Colon(8),
                 Token::Whitespace(9, " "),
             ]
         );
@@ -281,12 +267,12 @@ mod tests {
         tok("5", &[Token::Digits(0, "5"), Token::Eos(1)]);
 
         tok(
-            "foo *bar* # 456789",
+            "foo :bar: # 456789",
             &[
                 Token::Text(0, "foo "),
-                Token::Asterisk(4),
+                Token::Colon(4),
                 Token::Text(5, "bar"),
-                Token::Asterisk(8),
+                Token::Colon(8),
                 Token::Whitespace(9, " "),
                 Token::Hash(10),
                 Token::Whitespace(11, " "),
