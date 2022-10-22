@@ -251,7 +251,7 @@ fn get_note_(conn: &Connection, user_id: Key, note_id: Key) -> Result<interop::N
     sqlite::one(conn, stmt, params![&note_id, &user_id], note_from_row)
 }
 
-pub(crate) fn edit_note(
+pub fn edit_note(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     note: &interop::Note,

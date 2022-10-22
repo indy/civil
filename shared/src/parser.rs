@@ -379,7 +379,10 @@ fn eat_new_syntax_header<'a>(level: u32, tokens: &'a [Token<'a>]) -> ParserResul
 
 fn eat_new_syntax_side<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
-    Ok((tokens, Node::MarginText(pos, MarginTextLabel::UnNumbered, parsed_content)))
+    Ok((
+        tokens,
+        Node::MarginText(pos, MarginTextLabel::UnNumbered, parsed_content),
+    ))
 }
 
 fn eat_new_syntax_nside<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
@@ -398,11 +401,10 @@ fn eat_new_syntax_disagree<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
 }
 
 fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    // either a horizontal line or more likely a colon command
+
     // Colon, Hyphen, Whitespace, (Text), Eos | EOL
     // ":- this text is following a horizontal line"
-
-    // Colon, 'h', Whitespace, (Text), Eos | EOL
-    // ":h this is a heading"
 
     let pos = get_token_pos(&tokens[0]);
     if is_token_at_index(tokens, 1, TokenIdent::Hyphen) {
@@ -436,27 +438,7 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
             Token::Text(_, "nside") => eat_new_syntax_nside(tokens),
             Token::Text(_, "comment") => eat_new_syntax_comment(tokens),
             Token::Text(_, "disagree") => eat_new_syntax_disagree(tokens),
-            Token::Text(text_pos, s) => {
-                if let Some((level, h)) = heading_text(s) {
-                    let mut header_children = vec![Node::Text(text_pos, h.to_string())];
-                    tokens = &tokens[2..];
-
-                    // if the header markup contained something like:
-                    //
-                    // :h1 this is a heading (with a parens)
-                    //
-                    // then header children would be [Node::Text("this is a heading ")]
-                    // and we still need to parse the "(with a parens)"
-                    //
-                    let (toks, mut other_nodes) = eat_to_newline(tokens, None)?;
-                    header_children.append(&mut other_nodes);
-
-                    Ok((toks, Node::Header(pos, level, header_children)))
-                } else {
-                    eat_text_including(tokens)
-                }
-            }
-            _ => Err(Error::Parser),
+            _ => eat_text_including(tokens),
         }
     } else {
         eat_text_including(tokens)
@@ -1945,7 +1927,8 @@ some other lines| more words afterwards",
             Node::Header(_, level, children) => {
                 assert_eq!(*level, expected_level);
                 assert_eq!(children.len(), 1);
-                assert_text(&children[0], expected)
+                assert_single_paragraph_text(&children[0], expected)
+                // assert_text(&children[0], expected)
             }
             _ => assert!(false),
         };
@@ -1956,17 +1939,22 @@ some other lines| more words afterwards",
         match node {
             Node::Header(_, level, children) => {
                 assert_eq!(*level, expected_level);
-                // children is a vec of nodes, assume that they're all text nodes for now
-                let mut s = String::from("");
-                for child in children {
-                    match child {
-                        Node::Text(_, cs) => {
-                            s += cs;
+                match &children[0] {
+                    Node::Paragraph(_, children) => {
+                        // children is a vec of nodes, assume that they're all text nodes for now
+                        let mut s = String::from("");
+                        for child in children {
+                            match child {
+                                Node::Text(_, cs) => {
+                                    s += cs;
+                                }
+                                _ => assert!(false),
+                            }
                         }
-                        _ => assert!(false),
+                        assert_eq!(s, expected);
                     }
+                    _ => assert!(false),
                 }
-                assert_eq!(s, expected);
             }
             _ => assert!(false),
         };
@@ -2062,7 +2050,7 @@ third paragraph",
     #[test]
     fn test_header_then_list_bug() {
         let nodes = build(
-            ":h2 A header
+            ":h2(A header)
 
 - first unordered list item
 - second unordered list item",
@@ -2079,12 +2067,12 @@ third paragraph",
     #[test]
     fn test_header() {
         {
-            let nodes = build(":h2 A header");
+            let nodes = build(":h2(A header)");
             assert_eq!(1, nodes.len());
             header_with_single_text(&nodes[0], 2, "A header");
         }
         {
-            let nodes = build(":h3 A header (with parentheses)");
+            let nodes = build(":h3(A header (with parentheses))");
             assert_eq!(1, nodes.len());
             header_with_multi_text(&nodes[0], 3, "A header (with parentheses)");
         }
@@ -2129,11 +2117,4 @@ third paragraph",
     //     let nodes = build(s);
     //     assert_eq!(3, nodes.len());
     // }
-
-    #[test]
-    fn test_colon_syntax_bug_temp2() {
-        let s = ":h2 June: Man jailed in UK for posting memes of George Floyd in WhatsApp & Facebook group chats\n\n:url(https://www.rebelnews.com/man_jailed_in_uk_for_posting_memes_of_george_floyd_in_whatsapp_facebook_group_chats)\n\n|:+ :url(https://twitter.com/kr3at/status/1536833646329479168)|A former West Mercia police officer has been jailed for 20 weeks for sharing 10 memes about George Floyd in a WhatsApp group chat and charged with \"sending grossly offensive messages\".\n\nThe judge by the name of Tan Ikram said, \"You were a prison officer. I have no doubt you would have received training in relation to diversity and inclusion in that role.\"\n\n>>>\nYou undermined the confidence the public has in the police. Your behavior brings the criminal justice system as a whole into disrepute. You are there to protect the public and enforce the law. But what you did was the complete opposite.\n<<<\n\nThe person who made a complaint about James Watt, left the group chat and posted screenshots on Twitter with the caption: \"Former work colleague now serving police officer sent these in group chat. What hope is there in police in the UK sharing these.\"\n\nWhen James' phone was seized for an investigation, it was revealed that James sent \"grossly offensive\" memes to multiple whatsapp groups and through Meta’s Messenger.\n\nWatts was ordered to pay the complainant £75 compensation along with a £115 in court costs and a £128 victim surcharge.\n\nJudge Ikram decided to dismiss the idea of a suspended sentence where he said \"A message must go out and that message can only go out through an immediate sentence of imprisonment.\"";
-        let nodes = build(s);
-        assert_eq!(9, nodes.len());
-    }
 }

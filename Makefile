@@ -75,18 +75,8 @@ run-stat-collector: $(SERVER_FOLDER)/target/debug/civil_stat_collector
 # iterates through all the notes in the database, parsing their markup
 # useful as a sanity check to make sure everything is still parseable
 #
-run-note_parser:
+run-note-parser:
 	cargo run --manifest-path $(SERVER_FOLDER)/Cargo.toml --bin civil_note_parser
-
-# TEMPORARY file for one-time generation of linked-list for notes
-#
-run-note_linked_list:
-	cargo run --manifest-path $(SERVER_FOLDER)/Cargo.toml --bin civil_note_linked_list
-
-# TEMPORARY file for one-time generation of prev_note_id for notes
-#
-run-note_prev:
-	cargo run --manifest-path $(SERVER_FOLDER)/Cargo.toml --bin civil_note_prev
 
 server: $(SERVER_FOLDER)/target/debug/$(SERVER_BINARY)
 server-release: $(SERVER_FOLDER)/target/release/$(SERVER_BINARY) $(SERVER_FOLDER)/target/release/civil_stat_collector
