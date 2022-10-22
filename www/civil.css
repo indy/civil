@@ -269,7 +269,7 @@ blockquote {
   font-style: italic;           /* is this really needed? */
 }
 
-blockquote .right-margin-note,
+blockquote .right-margin-numbered,
 blockquote .right-margin,
 blockquote .right-margin-scribble {
   margin-right: -70%;
@@ -324,7 +324,7 @@ div.note > div > img {
   max-width: var(--block-width);
 }
 
-/* Right-Margin-Notes, margin notes, figures, captions */
+/* Right-Margin-Numbereds, margin notes, figures, captions */
 
 nav {
   padding-bottom: 0.5rem;
@@ -346,12 +346,12 @@ mark {
   background: var(--highlight);
 }
 
-.right-margin-note > .pseudo-paragraph {
+.right-margin-numbered > .pseudo-paragraph {
   /* background: red; */
   margin-bottom: 0.5rem;
 }
 
-.right-margin-note > ol {
+.right-margin-numbered > ol {
   /* background: red; */
   margin: 0;
   font-size: 1rem;
@@ -359,7 +359,7 @@ mark {
   padding-left: 2rem;
 }
 
-.right-margin-note > ol > li {
+.right-margin-numbered > ol > li {
   /* background: green; */
   margin: 0;
 }
@@ -367,7 +367,7 @@ mark {
 .pseudo-paragraph {
 }
 
-.right-margin-note,
+.right-margin-numbered,
 .right-margin,
 .right-margin-scribble {
   float: right;
@@ -387,7 +387,7 @@ mark {
 }
 
 .right-margin-number:after,
-.right-margin-note:before {
+.right-margin-numbered:before {
   position: relative;
   vertical-align: baseline;
 }
@@ -399,7 +399,7 @@ mark {
   left: 0.1rem;
 }
 
-.right-margin-note:before {
+.right-margin-numbered:before {
   content: counter(right-margin-counter) " ";
   margin-right: 0.5rem;
 }
@@ -438,7 +438,7 @@ h3 > code {
 
 .right-margin-scribble > code,
 .right-margin > code,
-.right-margin-note > code {
+.right-margin-numbered > code {
   font-size: 1rem;
 }
 
@@ -1038,7 +1038,7 @@ a:link.note-inline-link {
   right: 1rem
 }
 
-.right-margin-note {
+.right-margin-numbered {
   text-align: left;
 }
 
@@ -1659,12 +1659,12 @@ input:required {
   }
 
   .right-margin,
-  .right-margin-note,
+  .right-margin-numbered,
   .right-margin-scribble {
     display: none;
   }
 
-  .right-margin-toggle:checked + .right-margin-note,
+  .right-margin-toggle:checked + .right-margin-numbered,
   .right-margin-toggle:checked + .right-margin,
   .right-margin-toggle:checked + .right-margin-scribble {
     display: block;

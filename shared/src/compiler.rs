@@ -157,7 +157,7 @@ fn compile_numbered_sidenote(key: usize, ns: &[Node]) -> Result<Vec<Element>> {
         &id,
         "checkbox",
     )?);
-    res.append(&mut element_key_class("span", "right-margin-note", key + 200, ns)?);
+    res.append(&mut element_key_class("span", "right-margin-numbered", key + 200, ns)?);
 
     Ok(res)
 }

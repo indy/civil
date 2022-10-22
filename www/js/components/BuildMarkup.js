@@ -31,9 +31,12 @@ export default function buildMarkup(content) {
     }
 
     function compile(n, withinRightMargin) {
-        if (!withinRightMargin) {
+        if (!withinRightMargin && n.class_name) {
             // set withinRightMargin to true for all subsequent children
-            withinRightMargin = n.class_name === "right-margin" || n.class_name === "right-margin-note";
+            withinRightMargin =
+                (n.class_name.search("right-margin") >= 0) ||
+                (n.class_name.search("right-margin-numbered") >= 0) ||
+                (n.class_name.search("right-margin-scribble") >= 0);
         }
 
         if (n.name === "text") {
