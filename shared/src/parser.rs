@@ -48,7 +48,7 @@ pub enum Node {
     Italic(usize, Vec<Node>),
     ListItem(usize, Vec<Node>),
     MarginDisagree(usize, Vec<Node>),
-    MarginScribble(usize, Vec<Node>),
+    MarginComment(usize, Vec<Node>),
     MarginText(usize, MarginTextLabel, Vec<Node>),
     OrderedList(usize, Vec<Node>, String),
     Paragraph(usize, Vec<Node>),
@@ -71,7 +71,7 @@ fn get_node_pos(node: &Node) -> usize {
         Node::Italic(pos, _) => *pos,
         Node::ListItem(pos, _) => *pos,
         Node::MarginDisagree(pos, _) => *pos,
-        Node::MarginScribble(pos, _) => *pos,
+        Node::MarginComment(pos, _) => *pos,
         Node::MarginText(pos, _, _) => *pos,
         Node::OrderedList(pos, _, _) => *pos,
         Node::Paragraph(pos, _) => *pos,
@@ -377,6 +377,26 @@ fn eat_new_syntax_header<'a>(level: u32, tokens: &'a [Token<'a>]) -> ParserResul
     Ok((tokens, Node::Header(pos, level, parsed_content)))
 }
 
+fn eat_new_syntax_side<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
+    Ok((tokens, Node::MarginText(pos, MarginTextLabel::UnNumbered, parsed_content)))
+}
+
+fn eat_new_syntax_nside<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
+    Ok((tokens, Node::MarginText(pos, MarginTextLabel::Numbered, parsed_content)))
+}
+
+fn eat_new_syntax_comment<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
+    Ok((tokens, Node::MarginComment(pos, parsed_content)))
+}
+
+fn eat_new_syntax_disagree<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
+    Ok((tokens, Node::MarginDisagree(pos, parsed_content)))
+}
+
 fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     // Colon, Hyphen, Whitespace, (Text), Eos | EOL
     // ":- this text is following a horizontal line"
@@ -412,6 +432,10 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
             Token::Text(_, "h7") => eat_new_syntax_header(7, tokens),
             Token::Text(_, "h8") => eat_new_syntax_header(8, tokens),
             Token::Text(_, "h9") => eat_new_syntax_header(9, tokens),
+            Token::Text(_, "side") => eat_new_syntax_side(tokens),
+            Token::Text(_, "nside") => eat_new_syntax_nside(tokens),
+            Token::Text(_, "comment") => eat_new_syntax_comment(tokens),
+            Token::Text(_, "disagree") => eat_new_syntax_disagree(tokens),
             Token::Text(text_pos, s) => {
                 if let Some((level, h)) = heading_text(s) {
                     let mut header_children = vec![Node::Text(text_pos, h.to_string())];
@@ -523,7 +547,7 @@ fn eat_pipe<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
 
             let (tokens, within_pipe_nodes) = parse_pipe_content(tokens)?;
 
-            Ok((tokens, Node::MarginScribble(pos, within_pipe_nodes)))
+            Ok((tokens, Node::MarginComment(pos, within_pipe_nodes)))
         } else {
             tokens = &tokens[1..]; // eat the opening PIPE
             tokens = skip_leading_whitespace(tokens)?;
@@ -1565,7 +1589,7 @@ some other lines| more words afterwards",
         assert_eq!(children.len(), 3);
 
         match &children[1] {
-            Node::MarginScribble(_, nodes) => {
+            Node::MarginComment(_, nodes) => {
                 assert_eq!(nodes.len(), 3);
             }
             _ => assert_eq!(false, true),

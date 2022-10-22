@@ -88,7 +88,7 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
         },
         Node::Italic(_, ns) => element_key_hoisted("i", key, ns)?,
         Node::ListItem(_, ns) => element_key("li", key, ns)?,
-        Node::MarginScribble(_, ns) => compile_sidenote("right-margin-scribble scribble-neutral", key, ns)?,
+        Node::MarginComment(_, ns) => compile_sidenote("right-margin-scribble scribble-neutral", key, ns)?,
         Node::MarginDisagree(_, ns) => compile_sidenote("right-margin-scribble scribble-disagree", key, ns)?,
         Node::MarginText(_, numbered, ns) => match numbered {
             MarginTextLabel::Numbered => compile_numbered_sidenote(key, ns)?,
