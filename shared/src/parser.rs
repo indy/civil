@@ -311,8 +311,6 @@ fn eat_item<'a>(tokens: &'a [Token]) -> ParserResult<'a, Node> {
                 eat_text_including(tokens)
             }
         }
-        // Token::Hash(_) => eat_hash(tokens),
-        Token::Pipe(_) => eat_pipe(tokens),
         _ => eat_text(tokens),
     }
 }
@@ -466,64 +464,6 @@ fn eat_codeblock<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     }
 
     Ok((tokens, Node::Codeblock(pos, language, code)))
-}
-
-fn parse_pipe_content<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
-    let (within_pipe, outside_pipe) = split_tokens_at(tokens, TokenIdent::Pipe)?;
-    let (remaining, within_pipe_nodes) = parse(within_pipe)?;
-    if !remaining.is_empty() {
-        // parse is unable to process all the pipe content
-        return Err(Error::Parser);
-    }
-    Ok((outside_pipe, within_pipe_nodes))
-}
-
-fn eat_pipe<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
-    if is_token_at_index(tokens, 1, TokenIdent::Pipe) {
-        // two pipes, treat this as text (e.g. could be part of code snippet)
-        eat_text_including(tokens)
-    } else if remaining_tokens_contain(tokens, TokenIdent::Pipe) {
-        let pos = get_token_pos(&tokens[0]);
-
-        if is_token_at_index(tokens, 1, TokenIdent::Colon) && is_token_at_index(tokens, 2, TokenIdent::Hash) {
-            tokens = &tokens[3..]; // eat the PIPE, COLON, HASH,
-            tokens = skip_leading_whitespace(tokens)?;
-
-            let (tokens, within_pipe_nodes) = parse_pipe_content(tokens)?;
-
-            Ok((
-                tokens,
-                Node::MarginText(pos, MarginTextLabel::Numbered, within_pipe_nodes),
-            ))
-        } else if is_token_at_index(tokens, 1, TokenIdent::Colon) && is_token_at_index(tokens, 2, TokenIdent::Hyphen) {
-            tokens = &tokens[3..]; // eat the PIPE, COLON, HYPHEN
-            tokens = skip_leading_whitespace(tokens)?;
-
-            let (tokens, within_pipe_nodes) = parse_pipe_content(tokens)?;
-
-            Ok((tokens, Node::MarginDisagree(pos, within_pipe_nodes)))
-        } else if is_token_at_index(tokens, 1, TokenIdent::Colon) && is_token_at_index(tokens, 2, TokenIdent::Plus) {
-            tokens = &tokens[3..]; // eat the PIPE, COLON, PLUS
-            tokens = skip_leading_whitespace(tokens)?;
-
-            let (tokens, within_pipe_nodes) = parse_pipe_content(tokens)?;
-
-            Ok((tokens, Node::MarginComment(pos, within_pipe_nodes)))
-        } else {
-            tokens = &tokens[1..]; // eat the opening PIPE
-            tokens = skip_leading_whitespace(tokens)?;
-
-            let (tokens, within_pipe_nodes) = parse_pipe_content(tokens)?;
-
-            // unnumbered margin text
-            Ok((
-                tokens,
-                Node::MarginText(pos, MarginTextLabel::UnNumbered, within_pipe_nodes),
-            ))
-        }
-    } else {
-        eat_text_including(tokens)
-    }
 }
 
 fn is_colon_specifier<'a>(tokens: &'a [Token<'a>]) -> bool {
@@ -706,19 +646,6 @@ fn eat_blockquote<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     Ok((rem, Node::BlockQuote(pos, nodes)))
 }
 
-// ignores the first token
-fn remaining_tokens_contain<'a>(tokens: &'a [Token<'a>], token_ident: TokenIdent) -> bool {
-    if tokens.len() > 1 {
-        let ts = &tokens[1..];
-        for t in ts {
-            if Into::<TokenIdent>::into(t) == token_ident {
-                return true;
-            }
-        }
-    }
-    false
-}
-
 // treat every token as Text until we get to a token of the given type
 fn eat_string<'a>(mut tokens: &'a [Token<'a>], halt_at: TokenIdent) -> ParserResult<String> {
     let mut value = "".to_string();
@@ -778,9 +705,7 @@ fn eat_text_as_string<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<String> {
             Token::Text(_, s) => value += s,
             Token::Digits(_, s) => value += s,
             Token::Whitespace(_, s) => value += s,
-            Token::Plus(_) => value += "+",
             Token::Period(_) => value += ".",
-            Token::Hash(_) => value += "#",
             Token::Hyphen(_) => value += "-",
             Token::ParenBegin(_) => value += "(",
             Token::ParenEnd(_) => value += ")",
@@ -836,7 +761,7 @@ mod tests {
     use super::*;
     use crate::error::{Error, Result};
     use crate::lexer::tokenize;
-    use crate::lexer::{Token, TokenIdent};
+    use crate::lexer::Token;
 
     fn build(s: &'static str) -> Vec<Node> {
         let toks = tokenize(s).unwrap();
@@ -1427,8 +1352,8 @@ This is code```",
     #[test]
     fn test_unordered_list_in_sidenote_bug() {
         let nodes = build(
-            "para one| - hello
-- foo| more text afterwards",
+            "para one:side(- hello
+- foo) more text afterwards",
         );
         assert_eq!(1, nodes.len());
 
@@ -1459,9 +1384,9 @@ This is code```",
     fn test_margin_text() {
         {
             let nodes = build(
-                "some words|right margin text
+                "some words:side(right margin text
 another paragraph
-some other lines| more words afterwards",
+some other lines) more words afterwards",
             );
 
             assert_eq!(1, nodes.len());
@@ -1479,9 +1404,9 @@ some other lines| more words afterwards",
         }
         {
             let nodes = build(
-                "some words|:# numberedright margin text
+                "some words:nside(numberedright margin text
 another paragraph
-some other lines| more words afterwards",
+some other lines) more words afterwards",
             );
 
             assert_eq!(1, nodes.len());
@@ -1502,9 +1427,9 @@ some other lines| more words afterwards",
     #[test]
     fn test_margin_agree() {
         let nodes = build(
-            "some logical opinion|:+ i agree with this point
+            "some logical opinion:comment(i agree with this point
 another paragraph
-some other lines| more words afterwards",
+some other lines) more words afterwards",
         );
 
         assert_eq!(1, nodes.len());
@@ -1523,9 +1448,9 @@ some other lines| more words afterwards",
     #[test]
     fn test_margin_disagree() {
         let nodes = build(
-            "some contentious opinion|:- i disagree with this point
+            "some contentious opinion:disagree(i disagree with this point
 another paragraph
-some other lines| more words afterwards",
+some other lines) more words afterwards",
         );
 
         assert_eq!(1, nodes.len());
@@ -1544,8 +1469,8 @@ some other lines| more words afterwards",
     #[test]
     fn test_ordered_list_in_sidenote_bug() {
         let nodes = build(
-            "para two|1. item-a
-2. item-b| more text afterwards",
+            "para two:side(1. item-a
+2. item-b) more text afterwards",
         );
         assert_eq!(1, nodes.len());
 
@@ -1606,18 +1531,6 @@ some other lines| more words afterwards",
         let children = paragraph_children(&nodes[0]).unwrap();
         assert_eq!(children.len(), 1);
         assert_text(&children[0], "12 monkeys");
-    }
-
-    #[test]
-    fn test_remaining_tokens_contain() {
-        let toks = vec![Token::Colon(0), Token::Colon(0)];
-        assert_eq!(remaining_tokens_contain(&toks, TokenIdent::Colon), true);
-
-        let toks2 = vec![Token::Colon(0), Token::Pipe(0)];
-        assert_eq!(remaining_tokens_contain(&toks2, TokenIdent::Colon), false);
-
-        let toks3 = vec![Token::Colon(0)];
-        assert_eq!(remaining_tokens_contain(&toks3, TokenIdent::Colon), false);
     }
 
     #[test]

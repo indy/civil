@@ -23,10 +23,22 @@ use std::cmp;
 use r2d2_sqlite::SqliteConnectionManager;
 use tracing::info;
 
+use std::io::{stdin,stdout,Write};
+
 #[actix_rt::main]
 async fn main() -> Result<()> {
     civil_server::init_dotenv();
     civil_server::init_tracing();
+
+
+
+    // let text = "|:# hello “foo”|.";
+    // let res = convert_syntax_nside(&text);
+
+    // info!("inp: '{}'", &text);
+    // info!("out: '{}'", &res);
+
+
 
     let sqlite_db = civil_server::env_var_string("SQLITE_DB")?;
     civil_server::db::sqlite_migrations::migration_check(&sqlite_db)?;
@@ -43,6 +55,7 @@ async fn main() -> Result<()> {
     for mut note in notes {
         if note.kind != NoteKind::NoteDeckMeta {
             let original_content = String::from(&note.content);
+
             // note.content = convert_syntax_highlight(note.id, &note.content);
             // note.content = convert_syntax_bold(note.id, &note.content);
             // // note.content = convert_syntax_underline(note.id, &note.content); // don't use this, too many false positives
@@ -58,10 +71,25 @@ async fn main() -> Result<()> {
             // note.content = convert_syntax_h8(note.id, &note.content);
             // note.content = convert_syntax_h9(note.id, &note.content);
 
-            // if original_content != note.content {
-            //     // info!("saving {}", note.id);
-            //     edit_note(&sqlite_pool, 1, &note, note.id)?;
-            // }
+
+            note.content = convert_syntax_pipe(&note.content);
+
+
+
+            if original_content != note.content {
+                // print!("\n\n{}\n\n", original_content);
+                // print!("{}\n\n", &note.content);
+
+                // let mut input=String::new();
+                // stdin().read_line(&mut input).expect("Did not enter a correct string");
+
+                //if input.starts_with("y") {
+                //info!("saving {}", note.id);
+                    edit_note(&sqlite_pool, 1, &note, note.id)?;
+                // } else {
+                //     println!("note.id: {}, skip this one", note.id);
+                // }
+            }
 
             let res = civil_shared::markup_as_struct(&note.content)?;
             num_elements += res.len();
@@ -79,6 +107,226 @@ async fn main() -> Result<()> {
 
     Ok(())
 }
+
+fn convert_syntax_pipe(content: &str) -> String {
+    let mut res: String = String::from("");
+    let mut inside: bool = false;
+
+    // first count to make sure there's an even number of delimiters
+    let mut count: i32 = 0;
+    for c in content.chars() {
+        if c == '|' {
+            count += 1;
+        }
+    }
+    if count % 2 != 0 {
+        // info!("note id {} has {} delimiters", id, count);
+        // info!("{}", content);
+        return String::from(content);
+    }
+
+    for c in content.chars() {
+        if c == '|' {
+            inside = !inside;
+            if inside {
+                res.push(':');
+                res.push('s');
+                res.push('i');
+                res.push('d');
+                res.push('e');
+                res.push('(');
+            } else {
+                res.push(')');
+            }
+        } else {
+            res.push(c);
+        }
+    }
+
+    // if inside {
+    //     res.push(')');
+    // }
+
+    res
+}
+
+fn convert_syntax_comment(content: &str) -> String {
+    let mut res: String = String::from("");
+
+    let mut inside: bool = false;
+    let mut inside_opening: usize = 0;
+
+
+    if !content.contains("|:+") {
+        return String::from(content);
+    }
+
+    let len = content.chars().count();
+
+    let mut counter: usize = 0;
+
+    for (_i, c) in content.char_indices() {
+        let end = cmp::min(len, counter + 3);
+        if content.chars().take(end).skip(counter).collect::<String>() == "|:+" {
+            inside = true;
+            inside_opening = counter + 3;
+
+            res.push(':');
+            res.push('c');
+            res.push('o');
+            res.push('m');
+            res.push('m');
+            res.push('e');
+            res.push('n');
+            res.push('t');
+            res.push('(');
+        }
+
+        if !inside {
+            res.push(c);
+        } else {
+            if counter < inside_opening {
+                // do nothing
+            } else {
+                let end = cmp::min(len, counter + 1);
+                if content.chars().take(end).skip(counter).collect::<String>() == "|" {
+                    inside = false;
+                    inside_opening = 0;
+                    res.push(')');
+                } else {
+                    res.push(c);
+                }
+            }
+        }
+
+        counter += 1;
+    }
+
+    if inside {
+        res.push(')');
+    }
+
+    res
+}
+
+fn convert_syntax_disagree(content: &str) -> String {
+    let mut res: String = String::from("");
+
+    let mut inside: bool = false;
+    let mut inside_opening: usize = 0;
+
+
+    if !content.contains("|:-") {
+        return String::from(content);
+    }
+
+    let len = content.chars().count();
+
+    let mut counter: usize = 0;
+
+    for (_i, c) in content.char_indices() {
+        let end = cmp::min(len, counter + 4);
+        if content.chars().take(end).skip(counter).collect::<String>() == "|:- " {
+            inside = true;
+            inside_opening = counter + 4;
+
+            res.push(':');
+            res.push('d');
+            res.push('i');
+            res.push('s');
+            res.push('a');
+            res.push('g');
+            res.push('r');
+            res.push('e');
+            res.push('e');
+            res.push('(');
+        }
+
+        if !inside {
+            res.push(c);
+        } else {
+            if counter < inside_opening {
+                // do nothing
+            } else {
+                let end = cmp::min(len, counter + 1);
+                if content.chars().take(end).skip(counter).collect::<String>() == "|" {
+                    inside = false;
+                    inside_opening = 0;
+                    res.push(')');
+                } else {
+                    res.push(c);
+                }
+            }
+        }
+
+        counter += 1;
+    }
+
+    if inside {
+        res.push(')');
+    }
+
+    res
+}
+fn convert_syntax_nside(content: &str) -> String {
+    let mut res: String = String::from("");
+
+    let mut inside: bool = false;
+    let mut inside_opening: usize = 0;
+
+
+    if !content.contains("|:#") {
+        return String::from(content);
+    }
+
+    let len = content.chars().count();
+
+    let mut counter: usize = 0;
+
+    for (_i, c) in content.char_indices() {
+        let end = cmp::min(len, counter + 4);
+        if content.chars().take(end).skip(counter).collect::<String>() == "|:# " {
+            inside = true;
+            inside_opening = counter + 4;
+
+            res.push(':');
+            res.push('n');
+            res.push('s');
+            res.push('i');
+            res.push('d');
+            res.push('e');
+            res.push('(');
+        }
+
+        if !inside {
+            res.push(c);
+        } else {
+            if counter < inside_opening {
+                // do nothing
+            } else {
+                let end = cmp::min(len, counter + 1);
+                if content.chars().take(end).skip(counter).collect::<String>() == "|" {
+                    inside = false;
+                    inside_opening = 0;
+                    res.push(')');
+                } else {
+                    res.push(c);
+                }
+            }
+        }
+
+        counter += 1;
+    }
+
+    if inside {
+        res.push(')');
+    }
+
+    res
+}
+
+
+
 
 fn convert_syntax_h1(id: Key, content: &str) -> String {
     let mut res: String = String::from("");

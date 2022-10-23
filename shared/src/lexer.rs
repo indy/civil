@@ -29,14 +29,11 @@ pub enum Token<'a> {
     Colon(usize),
     Digits(usize, &'a str),
     DoubleQuote(usize, &'a str),
-    Hash(usize),
     Hyphen(usize),
     Newline(usize),
     ParenEnd(usize),
     ParenBegin(usize),
     Period(usize),
-    Pipe(usize),
-    Plus(usize),
     Text(usize, &'a str),
     Whitespace(usize, &'a str),
     Eos(usize), // end of stream
@@ -52,14 +49,11 @@ pub(crate) fn get_token_value<'a>(token: &'a Token) -> &'a str {
         Token::Colon(_) => ":",
         Token::Digits(_, s) => s,
         Token::DoubleQuote(_, s) => s,
-        Token::Hash(_) => "#",
         Token::Hyphen(_) => "-",
         Token::Newline(_) => "\n",
         Token::ParenEnd(_) => ")",
         Token::ParenBegin(_) => "(",
         Token::Period(_) => ".",
-        Token::Pipe(_) => "|",
-        Token::Plus(_) => "+",
         Token::Text(_, s) => s,
         Token::Whitespace(_, s) => s,
         Token::Eos(_) => "",
@@ -76,14 +70,11 @@ pub(crate) fn get_token_pos(token: &Token) -> usize {
         Token::Colon(pos) => *pos,
         Token::Digits(pos, _) => *pos,
         Token::DoubleQuote(pos, _) => *pos,
-        Token::Hash(pos) => *pos,
         Token::Hyphen(pos) => *pos,
         Token::Newline(pos) => *pos,
         Token::ParenEnd(pos) => *pos,
         Token::ParenBegin(pos) => *pos,
         Token::Period(pos) => *pos,
-        Token::Pipe(pos) => *pos,
-        Token::Plus(pos) => *pos,
         Token::Text(pos, _) => *pos,
         Token::Whitespace(pos, _) => *pos,
         Token::Eos(pos) => *pos,
@@ -103,14 +94,11 @@ pub fn tokenize(s: &str) -> Result<Vec<Token>> {
                 ']' => (Token::BracketEnd(index), 1, 1),
                 ':' => (Token::Colon(index), 1, 1),
                 '"' | '“' | '”' => eat_doublequote(index, input)?,
-                '#' => (Token::Hash(index), 1, 1),
                 '-' => (Token::Hyphen(index), 1, 1),
                 '\n' => (Token::Newline(index), 1, 1),
                 '(' => (Token::ParenBegin(index), 1, 1),
                 ')' => (Token::ParenEnd(index), 1, 1),
                 '.' => (Token::Period(index), 1, 1),
-                '|' => (Token::Pipe(index), 1, 1),
-                '+' => (Token::Plus(index), 1, 1),
                 '>' => eat_blockquote_begin_or_greater_than_character(index, input)?,
                 '<' => eat_blockquote_end_or_less_than_character(index, input)?,
                 '0'..='9' => eat_digits(index, input)?,
@@ -203,7 +191,7 @@ fn eat_text(index: usize, input: &str) -> Result<(Token, usize, usize)> {
 
 fn is_text(ch: char) -> bool {
     match ch {
-        '\n' | '[' | ']' | '(' | ')' | '`' | '"' | '“' | '”' | '|' | '#' | ':' | '+' | '>' | '<' => false,
+        '\n' | '[' | ']' | '(' | ')' | '`' | '"' | '“' | '”' | ':' | '>' | '<' => false,
         _ => true,
     }
 }
@@ -229,11 +217,11 @@ mod tests {
 
     #[test]
     fn test_split_token_at() {
-        let t = tokenize("foo :bar: # 12345").unwrap();
+        let t = tokenize("foo :bar: . 12345").unwrap();
 
         assert_eq!(t.len(), 9);
 
-        let (a, b) = split_tokens_at(&t, TokenIdent::Hash).unwrap();
+        let (a, b) = split_tokens_at(&t, TokenIdent::Period).unwrap();
 
         assert_eq!(a.len(), 5);
         assert_eq!(b.len(), 3);
@@ -267,14 +255,14 @@ mod tests {
         tok("5", &[Token::Digits(0, "5"), Token::Eos(1)]);
 
         tok(
-            "foo :bar: # 456789",
+            "foo :bar: . 456789",
             &[
                 Token::Text(0, "foo "),
                 Token::Colon(4),
                 Token::Text(5, "bar"),
                 Token::Colon(8),
                 Token::Whitespace(9, " "),
-                Token::Hash(10),
+                Token::Period(10),
                 Token::Whitespace(11, " "),
                 Token::Digits(12, "456789"),
                 Token::Eos(18),
@@ -333,11 +321,11 @@ mod tests {
         //
         tok(
             "For, Putin’s mind?
-#-",
+:-",
             &[
                 Token::Text(0, "For, Putin’s mind?"),
                 Token::Newline(18),
-                Token::Hash(19),
+                Token::Colon(19),
                 Token::Hyphen(20),
                 Token::Eos(21),
             ],
@@ -350,9 +338,9 @@ mod tests {
 
         // fourc starts with digit, ends in letter
         tok(
-            "#img(00a.jpg)",
+            ":img(00a.jpg)",
             &[
-                Token::Hash(0),
+                Token::Colon(0),
                 Token::Text(1, "img"),
                 Token::ParenBegin(4),
                 Token::Digits(5, "00"),
@@ -364,9 +352,9 @@ mod tests {
 
         // fourc starts with digit, ends in digit
         tok(
-            "#img(000.jpg)",
+            ":img(000.jpg)",
             &[
-                Token::Hash(0),
+                Token::Colon(0),
                 Token::Text(1, "img"),
                 Token::ParenBegin(4),
                 Token::Digits(5, "000"),
@@ -379,9 +367,9 @@ mod tests {
 
         // fourc starts with letter, ends in digit
         tok(
-            "#img(a00.jpg)",
+            ":img(a00.jpg)",
             &[
-                Token::Hash(0),
+                Token::Colon(0),
                 Token::Text(1, "img"),
                 Token::ParenBegin(4),
                 Token::Text(5, "a00.jpg"),
@@ -392,9 +380,9 @@ mod tests {
 
         // fourc starts with letter, ends in letter
         tok(
-            "#img(abc.jpg)",
+            ":img(abc.jpg)",
             &[
-                Token::Hash(0),
+                Token::Colon(0),
                 Token::Text(1, "img"),
                 Token::ParenBegin(4),
                 Token::Text(5, "abc.jpg"),
