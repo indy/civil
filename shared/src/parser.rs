@@ -41,19 +41,22 @@ pub enum MarginTextLabel {
 pub enum Node {
     BlockQuote(usize, Vec<Node>),
     Codeblock(usize, Option<CodeblockLanguage>, String),
+    Deleted(usize, Vec<Node>),
     Header(usize, u32, Vec<Node>),
     Highlight(usize, Vec<Node>),
     HorizontalRule(usize),
     Image(usize, String, Vec<Node>),
     Italic(usize, Vec<Node>),
     ListItem(usize, Vec<Node>),
-    MarginDisagree(usize, Vec<Node>),
     MarginComment(usize, Vec<Node>),
+    MarginDisagree(usize, Vec<Node>),
     MarginText(usize, MarginTextLabel, Vec<Node>),
     OrderedList(usize, Vec<Node>, String),
     Paragraph(usize, Vec<Node>),
     Quotation(usize, Vec<Node>),
     Strong(usize, Vec<Node>),
+    Subscript(usize, Vec<Node>),
+    Superscript(usize, Vec<Node>),
     Text(usize, String),
     Underlined(usize, Vec<Node>),
     UnorderedList(usize, Vec<Node>),
@@ -64,19 +67,22 @@ fn get_node_pos(node: &Node) -> usize {
     match node {
         Node::BlockQuote(pos, _) => *pos,
         Node::Codeblock(pos, _, _) => *pos,
+        Node::Deleted(pos, _) => *pos,
         Node::Header(pos, _, _) => *pos,
         Node::Highlight(pos, _) => *pos,
         Node::HorizontalRule(pos) => *pos,
         Node::Image(pos, _, _) => *pos,
         Node::Italic(pos, _) => *pos,
         Node::ListItem(pos, _) => *pos,
-        Node::MarginDisagree(pos, _) => *pos,
         Node::MarginComment(pos, _) => *pos,
+        Node::MarginDisagree(pos, _) => *pos,
         Node::MarginText(pos, _, _) => *pos,
         Node::OrderedList(pos, _, _) => *pos,
         Node::Paragraph(pos, _) => *pos,
         Node::Quotation(pos, _) => *pos,
         Node::Strong(pos, _) => *pos,
+        Node::Subscript(pos, _) => *pos,
+        Node::Superscript(pos, _) => *pos,
         Node::Text(pos, _) => *pos,
         Node::Underlined(pos, _) => *pos,
         Node::UnorderedList(pos, _) => *pos,
@@ -349,6 +355,21 @@ fn eat_new_syntax_italic<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     Ok((tokens, Node::Italic(pos, parsed_content)))
 }
 
+fn eat_new_syntax_subscript<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
+    Ok((tokens, Node::Subscript(pos, parsed_content)))
+}
+
+fn eat_new_syntax_superscript<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
+    Ok((tokens, Node::Superscript(pos, parsed_content)))
+}
+
+fn eat_new_syntax_deleted<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
+    Ok((tokens, Node::Deleted(pos, parsed_content)))
+}
+
 fn eat_new_syntax_header<'a>(level: u32, tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Header(pos, level, parsed_content)))
@@ -415,6 +436,9 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
             Token::Text(_, "nside") => eat_new_syntax_nside(tokens),
             Token::Text(_, "comment") => eat_new_syntax_comment(tokens),
             Token::Text(_, "disagree") => eat_new_syntax_disagree(tokens),
+            Token::Text(_, "subscript") => eat_new_syntax_subscript(tokens),
+            Token::Text(_, "superscript") => eat_new_syntax_superscript(tokens),
+            Token::Text(_, "deleted") => eat_new_syntax_deleted(tokens),
             _ => eat_text_including(tokens),
         }
     } else {

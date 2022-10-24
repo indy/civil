@@ -33,6 +33,7 @@ pub fn compile_to_struct(nodes: &[Node]) -> Result<Vec<Element>> {
 
 fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
     let res = match node {
+        Node::BlockQuote(_, ns) => element_key("blockquote", key, ns)?,
         Node::Codeblock(_, lang, code) => {
             let lang = if let Some(lang) = lang {
                 match lang {
@@ -58,7 +59,7 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
                 ..Default::default()
             }]
         }
-        Node::BlockQuote(_, ns) => element_key("blockquote", key, ns)?,
+        Node::Deleted(_, ns) => element_key_hoisted("del", key, ns)?,
         Node::Header(_, level, ns) => header_key(*level, key, ns)?,
         Node::Highlight(_, ns) => element_key_hoisted("mark", key, ns)?,
         Node::HorizontalRule(_) => element_key("hr", key, &[])?,
@@ -98,6 +99,8 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
         Node::Paragraph(_, ns) => element_key("p", key, ns)?,
         Node::Quotation(_, ns) => element_key_hoisted("em", key, ns)?,
         Node::Strong(_, ns) => element_key_hoisted("strong", key, ns)?,
+        Node::Subscript(_, ns) => element_key_hoisted("sub", key, ns)?,
+        Node::Superscript(_, ns) => element_key_hoisted("sup", key, ns)?,
         Node::Text(_, text) => vec![Element {
             name: String::from("text"),
             text: Some(String::from(text)),
