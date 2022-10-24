@@ -118,50 +118,7 @@ fn is_horizontal_rule(tokens: &'_ [Token]) -> bool {
             || is_token_at_index(tokens, 2, TokenIdent::Newline))
 }
 
-/// returns a tuple of 'heading level' and 'text content'
-#[allow(clippy::manual_map)]
-fn heading_text(s: &str) -> Option<(u32, &str)> {
-    if let Some(a) = s.strip_prefix("h1 ") {
-        Some((1, a))
-    } else if let Some(a) = s.strip_prefix("h2 ") {
-        Some((2, a))
-    } else if let Some(a) = s.strip_prefix("h3 ") {
-        Some((3, a))
-    } else if let Some(a) = s.strip_prefix("h4 ") {
-        Some((4, a))
-    } else if let Some(a) = s.strip_prefix("h5 ") {
-        Some((5, a))
-    } else if let Some(a) = s.strip_prefix("h6 ") {
-        Some((6, a))
-    } else if let Some(a) = s.strip_prefix("h7 ") {
-        Some((7, a))
-    } else if let Some(a) = s.strip_prefix("h8 ") {
-        Some((8, a))
-    } else if let Some(a) = s.strip_prefix("h9 ") {
-        Some((9, a))
-    } else {
-        None
-    }
-}
-
 fn is_heading(tokens: &'_ [Token]) -> bool {
-    if is_token_at_index(tokens, 0, TokenIdent::Colon) && is_token_at_index(tokens, 1, TokenIdent::Text) {
-        match tokens[1] {
-            Token::Text(_, s) => {
-                if let Some((_level, h)) = heading_text(s) {
-                    h.chars().count() > 0
-                } else {
-                    false
-                }
-            }
-            _ => false,
-        }
-    } else {
-        false
-    }
-}
-
-fn is_new_syntax_heading(tokens: &'_ [Token]) -> bool {
     let headings = ["h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8", "h9"];
 
     if is_token_at_index(tokens, 0, TokenIdent::Colon) && is_token_at_index(tokens, 1, TokenIdent::Text) {
@@ -196,7 +153,7 @@ pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
             eat_unordered_list(tokens, None)?
         } else if is_codeblock(tokens) {
             eat_codeblock(tokens)?
-        } else if is_horizontal_rule(tokens) || is_heading(tokens) || is_new_syntax_heading(tokens) {
+        } else if is_horizontal_rule(tokens) || is_heading(tokens) {
             eat_colon(tokens)?
         } else if is_img(tokens) {
             eat_img(tokens)?
@@ -335,47 +292,47 @@ fn eat_url<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     Ok((tokens, Node::Url(pos, url, description)))
 }
 
-fn eat_new_syntax_bold<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_bold<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Strong(pos, parsed_content)))
 }
 
-fn eat_new_syntax_highlighted<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_highlighted<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Highlight(pos, parsed_content)))
 }
 
-fn eat_new_syntax_underlined<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_underlined<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Underlined(pos, parsed_content)))
 }
 
-fn eat_new_syntax_italic<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_italic<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Italic(pos, parsed_content)))
 }
 
-fn eat_new_syntax_subscript<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_subscript<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Subscript(pos, parsed_content)))
 }
 
-fn eat_new_syntax_superscript<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_superscript<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Superscript(pos, parsed_content)))
 }
 
-fn eat_new_syntax_deleted<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_deleted<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Deleted(pos, parsed_content)))
 }
 
-fn eat_new_syntax_header<'a>(level: u32, tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_header<'a>(level: u32, tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Header(pos, level, parsed_content)))
 }
 
-fn eat_new_syntax_side<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_side<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((
         tokens,
@@ -383,17 +340,17 @@ fn eat_new_syntax_side<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     ))
 }
 
-fn eat_new_syntax_nside<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_nside<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::MarginText(pos, MarginTextLabel::Numbered, parsed_content)))
 }
 
-fn eat_new_syntax_comment<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_comment<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::MarginComment(pos, parsed_content)))
 }
 
-fn eat_new_syntax_disagree<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+fn eat_disagree<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::MarginDisagree(pos, parsed_content)))
 }
@@ -419,26 +376,26 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
         match tokens[1] {
             Token::Text(_, "img") => eat_img(tokens),
             Token::Text(_, "url") => eat_url(tokens),
-            Token::Text(_, "b") => eat_new_syntax_bold(tokens),
-            Token::Text(_, "h") => eat_new_syntax_highlighted(tokens),
-            Token::Text(_, "u") => eat_new_syntax_underlined(tokens),
-            Token::Text(_, "i") => eat_new_syntax_italic(tokens),
-            Token::Text(_, "h1") => eat_new_syntax_header(1, tokens),
-            Token::Text(_, "h2") => eat_new_syntax_header(2, tokens),
-            Token::Text(_, "h3") => eat_new_syntax_header(3, tokens),
-            Token::Text(_, "h4") => eat_new_syntax_header(4, tokens),
-            Token::Text(_, "h5") => eat_new_syntax_header(5, tokens),
-            Token::Text(_, "h6") => eat_new_syntax_header(6, tokens),
-            Token::Text(_, "h7") => eat_new_syntax_header(7, tokens),
-            Token::Text(_, "h8") => eat_new_syntax_header(8, tokens),
-            Token::Text(_, "h9") => eat_new_syntax_header(9, tokens),
-            Token::Text(_, "side") => eat_new_syntax_side(tokens),
-            Token::Text(_, "nside") => eat_new_syntax_nside(tokens),
-            Token::Text(_, "comment") => eat_new_syntax_comment(tokens),
-            Token::Text(_, "disagree") => eat_new_syntax_disagree(tokens),
-            Token::Text(_, "subscript") => eat_new_syntax_subscript(tokens),
-            Token::Text(_, "superscript") => eat_new_syntax_superscript(tokens),
-            Token::Text(_, "deleted") => eat_new_syntax_deleted(tokens),
+            Token::Text(_, "b") => eat_bold(tokens),
+            Token::Text(_, "h") => eat_highlighted(tokens),
+            Token::Text(_, "u") => eat_underlined(tokens),
+            Token::Text(_, "i") => eat_italic(tokens),
+            Token::Text(_, "h1") => eat_header(1, tokens),
+            Token::Text(_, "h2") => eat_header(2, tokens),
+            Token::Text(_, "h3") => eat_header(3, tokens),
+            Token::Text(_, "h4") => eat_header(4, tokens),
+            Token::Text(_, "h5") => eat_header(5, tokens),
+            Token::Text(_, "h6") => eat_header(6, tokens),
+            Token::Text(_, "h7") => eat_header(7, tokens),
+            Token::Text(_, "h8") => eat_header(8, tokens),
+            Token::Text(_, "h9") => eat_header(9, tokens),
+            Token::Text(_, "side") => eat_side(tokens),
+            Token::Text(_, "nside") => eat_nside(tokens),
+            Token::Text(_, "comment") => eat_comment(tokens),
+            Token::Text(_, "disagree") => eat_disagree(tokens),
+            Token::Text(_, "subscript") => eat_subscript(tokens),
+            Token::Text(_, "superscript") => eat_superscript(tokens),
+            Token::Text(_, "deleted") => eat_deleted(tokens),
             _ => eat_text_including(tokens),
         }
     } else {
