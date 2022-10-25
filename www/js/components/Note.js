@@ -157,7 +157,15 @@ function reducer(state, action) {
             ...state,
             addNoteAboveUI: showUI
         }
+
+        if (showUI) {
+            AppStateChange.obtainKeyboard();
+        } else {
+            AppStateChange.relinquishKeyboard();
+        }
+
         AppStateChange.toolbarMode(TOOLBAR_VIEW);
+
 
         return newState;
     }

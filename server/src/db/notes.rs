@@ -158,7 +158,6 @@ fn create_common(
     )?;
 
     if let Some(next_note_id) = next_note_id {
-        info!("update_prev_note_id {}, {}", next_note_id, note.id);
         update_prev_note_id(conn, next_note_id, note.id)?;
     }
 
@@ -204,8 +203,11 @@ pub(crate) fn create_notes(
 
     let mut it = note.content.iter().peekable();
     while let Some(content) = it.next() {
-        if it.peek().is_none() {
-            info!("next_note_id: {:?}", &next_note_id);
+        if content.is_empty() {
+            // this empty check was on the client side, moving it hear,
+            // although not sure how often it's triggered
+            //
+            continue;
         }
 
         let new_note = create_common(

@@ -20,6 +20,7 @@ export default function NoteForm({ label, onCreate, onCancel, deckId, prevNoteId
     const [local, setLocal] = useState({
         content: '',
         oldCursorPos: 0,
+        splitIntoMultipleNotes: true,
         textAreaFocused: false
     });
 
@@ -80,14 +81,23 @@ export default function NoteForm({ label, onCreate, onCancel, deckId, prevNoteId
 
     function onSubmit(e) {
         e.preventDefault();
+
         const noteForm = e.target;
         const markup = noteForm.content.value;
+        const notes = local.splitIntoMultipleNotes ? appState.wasmInterface.splitter(markup) : [markup];
 
-        addNote(appState.wasmInterface, markup, deckId, prevNoteId, nextNoteId, noteKind, optionalPointId)
+        addNote(notes, deckId, prevNoteId, nextNoteId, noteKind, optionalPointId)
             .then(allNotes => {
                 onCreate(allNotes);
             })
             .catch(error => console.error(error.message));
+    }
+
+    function handleCheckbox(e) {
+        setLocal({
+            ...local,
+            splitIntoMultipleNotes: !local.splitIntoMultipleNotes
+        })
     }
 
     return html`
@@ -110,19 +120,20 @@ export default function NoteForm({ label, onCreate, onCancel, deckId, prevNoteId
                                      onInput=${ handleChangeEvent }/>
                    <br/>
                    <input type="submit" value="Save"/>
+                   <span class="note-split-option">
+                       <label for="splitbox">Split into multiple notes:</label>
+                       <input type="checkbox"
+                              id="splitbox"
+                              name="splitbox"
+                              onInput=${ handleCheckbox }
+                              checked=${ local.splitIntoMultipleNotes }/>
+                   </span>
                </form>
                <${ImageSelector} onPaste=${ onImagePaste }/>
            </div>`;
 }
 
-function addNote(wasmInterface, markup, deckId, prevNoteId, nextNoteId, noteKind, optionalPointId) {
-    const notes = wasmInterface.splitter(markup);
-
-    if (notes === null) {
-        console.error(markup);
-        return new Promise((resolve, reject) => { reject(new Error("addNote: splitIntoNotes failed")); });
-    }
-
+function addNote(notes, deckId, prevNoteId, nextNoteId, noteKind, optionalPointId) {
     let data = {
         deckId,
         kind: noteKind,
@@ -141,16 +152,6 @@ function addNote(wasmInterface, markup, deckId, prevNoteId, nextNoteId, noteKind
         data.pointId = optionalPointId;
     }
 
-    function isEmptyNote(n) {
-        return n.content.every(n => { return n.length === 0;});
-    }
-
     // console.log(data);
-
-    if (isEmptyNote(data)) {
-        return new Promise((resolve, reject) => { reject(new Error("Parsed as empty note")); });
-    } else {
-        // returns _all_ the notes associated with the deck
-        return Net.post("/api/notes", data);
-    }
+    return Net.post("/api/notes", data);
 }

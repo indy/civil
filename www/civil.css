@@ -1272,6 +1272,10 @@ div.note > textarea {
   width: var(--block-width);
 }
 
+.note-split-option {
+  float: right;
+}
+
 .civil-date-hint {
   color: var(--fg1);
   float:right;
