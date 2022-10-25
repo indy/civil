@@ -1,6 +1,6 @@
 import { html, useState, useEffect } from '/lib/preact/mod.js';
 
-import { getAppState, AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
+import { getAppState, AppStateChange } from '/js/AppState.js';
 
 import { ensureListingLoaded, fetchDeckListing, deckTitle } from '/js/CivilUtils.js';
 import { capitalise, removeEmptyStrings, formattedDate } from '/js/JsUtils.js';
@@ -9,7 +9,6 @@ import Net from '/js/Net.js';
 import CivilInput from '/js/components/CivilInput.js';
 import DeckManager from '/js/components/DeckManager.js';
 import DeleteDeckConfirmation from '/js/components/DeleteDeckConfirmation.js';
-import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 import LeftMarginHeading from '/js/components/LeftMarginHeading.js';
 import LeftMarginHeadingNoWrap from '/js/components/LeftMarginHeadingNoWrap.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
@@ -18,6 +17,7 @@ import SectionGraph from '/js/components/SectionGraph.js';
 import SectionNotes from '/js/components/SectionNotes.js';
 import Title from '/js/components/Title.js';
 import { DeckSimpleListSection, RatedListSection } from '/js/components/ListSections.js';
+import { DeluxeToolbar, TOOLBAR_VIEW } from '/js/components/DeluxeToolbar.js';
 import { StarRatingPartial } from '/js/components/StarRating.js';
 
 function Articles() {

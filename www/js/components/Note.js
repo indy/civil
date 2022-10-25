@@ -1,6 +1,6 @@
 import { html, useState, useEffect, useRef } from '/lib/preact/mod.js';
 
-import { getAppState, AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBAR_REFS, DELUXE_TOOLBAR_SR, DELUXE_TOOLBAR_ADD_ABOVE, DELUXE_TOOLBAR_ADD_BELOW } from '/js/AppState.js';
+import { getAppState, AppStateChange } from '/js/AppState.js';
 
 import Net from '/js/Net.js';
 import { svgFlashCard } from '/js/svgIcons.js';
@@ -11,12 +11,16 @@ import CivilTextArea from '/js/components/CivilTextArea.js';
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 import FlashCard from '/js/components/FlashCard.js';
 import ImageSelector from '/js/components/ImageSelector.js';
+import NoteForm from '/js/components/NoteForm.js';
 import Ref from '/js/components/Ref.js';
 import buildMarkup from '/js/components/BuildMarkup.js';
+import { TOOLBAR_VIEW, TOOLBAR_EDIT, TOOLBAR_REFS, TOOLBAR_SR, TOOLBAR_ADD_ABOVE } from '/js/components/DeluxeToolbar.js';
+
 
 const ADD_DECKS_COMMIT = 'add-decks-commit';
 const ADD_DECK_REFERENCES_UI_SHOW = 'add-deck-references-ui-show';
 const ADD_FLASH_CARD_UI_SHOW = 'add-flashcard-ui-show';
+const ADD_NOTE_ABOVE_UI_SHOW = 'add-note-above-ui-show';
 const EDITED_NOTE = 'edited-note';
 const EDITING_CANCELLED = 'editing-cancelled';
 const FLASHCARD_DELETED = 'flashcard-deleted';
@@ -147,12 +151,22 @@ function reducer(state, action) {
             addFlashCardUI: showUI
         }
     }
+    case ADD_NOTE_ABOVE_UI_SHOW: {
+        const showUI = action.data;
+        const newState = {
+            ...state,
+            addNoteAboveUI: showUI
+        }
+        AppStateChange.toolbarMode(TOOLBAR_VIEW);
+
+        return newState;
+    }
     case HIDE_ADD_DECKS_UI: {
         const newState = {
             ...state,
             addDeckReferencesUI: false
         };
-        AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
+        AppStateChange.toolbarMode(TOOLBAR_VIEW);
 
         return newState;
     }
@@ -160,7 +174,7 @@ function reducer(state, action) {
         const { changes, allDecksForNote } = action.data;
 
         AppStateChange.noteRefsModified(allDecksForNote, changes);
-        AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
+        AppStateChange.toolbarMode(TOOLBAR_VIEW);
 
         return {
             ...state,
@@ -188,7 +202,7 @@ function reducer(state, action) {
         let reviewCount = appState.srReviewCount.value + 1;
 
         AppStateChange.setReviewCount(reviewCount);
-        AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
+        AppStateChange.toolbarMode(TOOLBAR_VIEW);
 
         return newState;
     }
@@ -202,7 +216,7 @@ function reducer(state, action) {
             AppStateChange.obtainKeyboard();
         } else {
             AppStateChange.relinquishKeyboard();
-            AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
+            AppStateChange.toolbarMode(TOOLBAR_VIEW);
         }
 
         return newState;
@@ -215,7 +229,7 @@ function reducer(state, action) {
         };
 
         AppStateChange.relinquishKeyboard();
-        AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
+        AppStateChange.toolbarMode(TOOLBAR_VIEW);
 
         return newState;
     }
@@ -230,7 +244,7 @@ function reducer(state, action) {
         };
 
         AppStateChange.relinquishKeyboard();
-        AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
+        AppStateChange.toolbarMode(TOOLBAR_VIEW);
 
         return newState;
     }
@@ -239,12 +253,13 @@ function reducer(state, action) {
     }
 };
 
-export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited, onRefsChanged }) {
+export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited, onRefsChanged, onUpdateDeck }) {
     const appState = getAppState();
 
     const initialState = {
         addDeckReferencesUI: false,
         addFlashCardUI: false,
+        addNoteAboveUI: false,
         isEditingMarkup: false,
         note: { ...note },
         originalContent: note.content,
@@ -384,6 +399,27 @@ export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited
         </div>`;
     }
 
+    function buildAddNoteAboveUI() {
+
+        function onCancelled(e) {
+            e.preventDefault();
+            localDispatch(ADD_NOTE_ABOVE_UI_SHOW, false);
+        };
+
+        function onNoteCreated(allNotes) {
+            localDispatch(ADD_NOTE_ABOVE_UI_SHOW, false);
+            onUpdateDeck({...parentDeck, notes: allNotes});
+        }
+
+        return html`<${NoteForm} label="Insert Note:"
+                                 onCreate=${ onNoteCreated }
+                                 onCancel=${ onCancelled }
+                                 deckId=${ parentDeck.id }
+                                 nextNoteId=${ note.id }
+                                 noteKind=${ note.kind }
+                                 optionalPointId=${ note.pointId }/>`;
+    }
+
     function buildAddDecksUI() {
 
         function referenceChanges(changes) {
@@ -454,33 +490,39 @@ export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited
     }
 
     let noteClasses = "note selectable-container";
-    if (local.mouseHovering && toolbarMode !== DELUXE_TOOLBAR_VIEW) {
+    if (local.mouseHovering && toolbarMode !== TOOLBAR_VIEW) {
         noteClasses += " selectable-container-hovering";
     }
 
     function onNoteClicked(e) {
-        if (appState.toolbarMode.value === DELUXE_TOOLBAR_EDIT) {
+        switch (appState.toolbarMode.value) {
+        case TOOLBAR_EDIT:
             if (!local.isEditingMarkup) {
                 localDispatch(TOGGLE_EDITING);
             }
-            return;
-        }
-        if (appState.toolbarMode.value === DELUXE_TOOLBAR_REFS) {
+            break;
+        case TOOLBAR_REFS:
             if (!local.addDeckReferencesUI) {
                 localDispatch(ADD_DECK_REFERENCES_UI_SHOW, !local.addDeckReferencesUI);
             }
-            return;
-        }
-        if (appState.toolbarMode.value === DELUXE_TOOLBAR_SR) {
+            break;
+        case TOOLBAR_SR:
             if (!local.addFlashCardUI) {
                 localDispatch(ADD_FLASH_CARD_UI_SHOW, !local.addFlashCardUI);
             }
-            return;
+            break;
+        case TOOLBAR_ADD_ABOVE:
+            if (!local.addNoteAboveUI) {
+                localDispatch(ADD_NOTE_ABOVE_UI_SHOW, !local.addNoteAboveUI);
+            }
+            break;
         }
+
     }
 
     return html`
     <div class="${noteClasses}" onClick=${onNoteClicked}>
+        ${ local.addNoteAboveUI && buildAddNoteAboveUI() }
         ${ !local.isEditingMarkup && buildLeftMarginContent(local.note, localDispatch)}
 
         ${  local.isEditingMarkup && buildEditableContent() }

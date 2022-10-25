@@ -1,7 +1,7 @@
 import { html, useState, useEffect } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
-import { getAppState, AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
+import { getAppState, AppStateChange } from '/js/AppState.js';
 import { addChronologicalSortYear } from '/js/eras.js';
 import { capitalise } from '/js/JsUtils.js';
 import { ensureListingLoaded, fetchDeckListing, deckTitle } from '/js/CivilUtils.js';
@@ -9,7 +9,6 @@ import { ensureListingLoaded, fetchDeckListing, deckTitle } from '/js/CivilUtils
 import CivilInput from '/js/components/CivilInput.js';
 import DeckManager from '/js/components/DeckManager.js';
 import DeleteDeckConfirmation from '/js/components/DeleteDeckConfirmation.js';
-import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import SectionDeckRefs from '/js/components/SectionDeckRefs.js';
@@ -18,6 +17,7 @@ import SectionNotes from '/js/components/SectionNotes.js';
 import Title from '/js/components/Title.js';
 import WhenVerbose from '/js/components/WhenVerbose.js';
 import { DeckSimpleList } from '/js/components/ListSections.js';
+import { DeluxeToolbar, TOOLBAR_VIEW } from '/js/components/DeluxeToolbar.js';
 import { PointForm } from '/js/components/PointForm.js';
 import { svgPointAdd, svgX, svgCaretRight, svgCaretRightEmpty, svgCaretDown } from '/js/svgIcons.js';
 

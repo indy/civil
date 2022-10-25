@@ -1,8 +1,9 @@
 import { html, useState, useEffect } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
-import { getAppState, AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
+import { getAppState, AppStateChange } from '/js/AppState.js';
 import { sortByResourceThenName, deckTitle } from '/js/CivilUtils.js';
+import { TOOLBAR_VIEW } from '/js/components/DeluxeToolbar.js';
 
 import { NoteManager,
          NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE,
@@ -84,7 +85,7 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
         updateAndReset: function(newDeck) {
             let newDms = dmsUpdateDeck(dms, preCacheFn(newDeck), resource, true);
             newDms = dmsHideForm(newDms);
-            AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
+            AppStateChange.toolbarMode(TOOLBAR_VIEW);
 
             setDms(newDms);
         },

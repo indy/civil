@@ -144,17 +144,25 @@ fn create_common(
     point_id: Option<Key>,
     content: &str,
     prev_note_id: Option<Key>,
+    next_note_id: Option<Key>,
 ) -> Result<interop::Note> {
     let k = interop::note_kind_to_sqlite(kind);
     let stmt = "INSERT INTO notes(user_id, deck_id, kind, point_id, content, prev_note_id)
                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)
                 RETURNING id, content, kind, point_id, prev_note_id";
-    sqlite::one(
+    let note = sqlite::one(
         conn,
         stmt,
         params![&user_id, &deck_id, &k, &point_id, &content, &prev_note_id],
         note_from_row,
-    )
+    )?;
+
+    if let Some(next_note_id) = next_note_id {
+        info!("update_prev_note_id {}, {}", next_note_id, note.id);
+        update_prev_note_id(conn, next_note_id, note.id)?;
+    }
+
+    Ok(note)
 }
 
 // note: this should be part of a transaction
@@ -172,6 +180,7 @@ pub(crate) fn create_note_deck_meta(
         None,
         "",
         None,
+        None,
     )
 }
 
@@ -185,8 +194,20 @@ pub(crate) fn create_notes(
     let tx = conn.transaction()?;
 
     let mut new_prev = note.prev_note_id;
+    let next_note_id = note.next_note_id;
 
-    for content in note.content.iter() {
+    if let Some(next_note_id) = next_note_id {
+        // when the ProtoNote has a Some(next_note_id) then it can have a None for prev_note_id,
+        // it's upto this code to get the correct prev_note_id
+        new_prev = get_prev_note_id(sqlite_pool, next_note_id)?;
+    }
+
+    let mut it = note.content.iter().peekable();
+    while let Some(content) = it.next() {
+        if it.peek().is_none() {
+            info!("next_note_id: {:?}", &next_note_id);
+        }
+
         let new_note = create_common(
             &tx,
             user_id,
@@ -195,6 +216,7 @@ pub(crate) fn create_notes(
             note.point_id,
             content,
             new_prev,
+            if it.peek().is_none() { next_note_id } else { None },
         )?;
         new_prev = Some(new_note.id);
         notes.push(new_note);
@@ -280,4 +302,16 @@ pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> Result<Vec<interop::Note
                 FROM   notes n
                 ORDER BY n.id";
     sqlite::many(&conn, stmt, &[], note_from_row)
+}
+
+fn get_prev_note_id(sqlite_pool: &SqlitePool, id: Key) -> Result<Option<Key>> {
+    fn prev_id_from_row(row: &Row) -> Result<Option<Key>> {
+        Ok(row.get(0)?)
+    }
+
+    let conn = sqlite_pool.get()?;
+    let stmt = "SELECT prev_note_id
+                FROM   notes
+                WHERE  id=?1";
+    sqlite::one(&conn, stmt, &[&id], prev_id_from_row)
 }

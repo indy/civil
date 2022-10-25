@@ -12,7 +12,7 @@ import CivilTextArea from '/js/components/CivilTextArea.js';
 import DeckManager from '/js/components/DeckManager.js';
 import DeleteConfirmation from '/js/components/DeleteConfirmation.js';
 import SectionNotes from '/js/components/SectionNotes.js';
-import DeluxeToolbar from '/js/components/DeluxeToolbar.js';
+import { DeluxeToolbar } from '/js/components/DeluxeToolbar.js';
 
 const SHOW_ADD_FORM = 'show-add-form';
 const HIDE_ADD_FORM = 'hide-add-form';

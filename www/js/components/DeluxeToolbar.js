@@ -1,29 +1,35 @@
 import { html } from '/lib/preact/mod.js';
 
-import { getAppState, AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBAR_REFS, DELUXE_TOOLBAR_SR, DELUXE_TOOLBAR_ADD_ABOVE, DELUXE_TOOLBAR_ADD_BELOW } from '/js/AppState.js';
+import { getAppState, AppStateChange } from '/js/AppState.js';
 import { svgEdit, svgLinkAlt, svgFlashCard, svgAddAbove } from '/js/svgIcons.js';
 
-export default function DeluxeToolbar({}) {
+export const TOOLBAR_VIEW = 1;
+export const TOOLBAR_EDIT = 2;
+export const TOOLBAR_REFS = 3;
+export const TOOLBAR_SR = 4;
+export const TOOLBAR_ADD_ABOVE = 5;
+
+export function DeluxeToolbar({}) {
     const appState = getAppState();
 
     let classes = "deluxe-toolbar";
 
-    if (appState.toolbarMode.value === DELUXE_TOOLBAR_VIEW) {
+    if (appState.toolbarMode.value === TOOLBAR_VIEW) {
         classes += " deluxe-toolbar-faded";
     }
 
     return html`
     <div class=${classes}>
-        <${ToolbarItem} toolbarMode=${DELUXE_TOOLBAR_EDIT} toolbarText="Edit">
+        <${ToolbarItem} toolbarMode=${TOOLBAR_EDIT} toolbarText="Edit">
             ${svgEdit()}
         </${ToolbarItem}>
-        <${ToolbarItem} toolbarMode=${DELUXE_TOOLBAR_REFS} toolbarText="Refs">
+        <${ToolbarItem} toolbarMode=${TOOLBAR_REFS} toolbarText="Refs">
             ${svgLinkAlt()}
         </${ToolbarItem}>
-        <${ToolbarItem} toolbarMode=${DELUXE_TOOLBAR_SR} toolbarText="SR">
+        <${ToolbarItem} toolbarMode=${TOOLBAR_SR} toolbarText="SR">
             ${svgFlashCard()}
         </${ToolbarItem}>
-        <${ToolbarItem} toolbarMode=${DELUXE_TOOLBAR_ADD_ABOVE} toolbarText="Add Above">
+        <${ToolbarItem} toolbarMode=${TOOLBAR_ADD_ABOVE} toolbarText="Prepend">
             ${svgAddAbove()}
         </${ToolbarItem}>
     </div>
@@ -36,7 +42,7 @@ function ToolbarItem({ toolbarMode, toolbarText, children }) {
     function onClickHandler(e) {
         if (appState.toolbarMode.value === toolbarMode) {
             // toggle the current mode off
-            AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
+            AppStateChange.toolbarMode(TOOLBAR_VIEW);
         } else {
             AppStateChange.toolbarMode(toolbarMode);
         }

@@ -66,6 +66,7 @@ var precacheConfig = [
     "/js/components/ListingLink.js",
     "/js/components/Login.js",
     "/js/components/Note.js",
+    "/js/components/NoteForm.js",
     "/js/components/NoteSection.js",
     "/js/components/People.js",
     "/js/components/PointForm.js",

@@ -2,13 +2,13 @@ import { html,  useState, useEffect, useRef } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { getAppState, AppStateChange } from '/js/AppState.js';
-import { svgEdit, svgX } from '/js/svgIcons.js';
+import { svgEdit } from '/js/svgIcons.js';
 
-import CivilTextArea from '/js/components/CivilTextArea.js';
-import ImageSelector from '/js/components/ImageSelector.js';
 import Note from '/js/components/Note.js';
+import NoteForm from '/js/components/NoteForm.js';
 import RollableSection from '/js/components/RollableSection.js';
 import WhenVerbose from '/js/components/WhenVerbose.js';
+
 
 const NOTE_SECTION_HIDE = 0;
 const NOTE_SECTION_SHOW = 1;
@@ -73,40 +73,35 @@ function NoteManager({ deck, toolbarMode, onUpdateDeck, noteSeq, resource, onRef
                         onDelete=${ onDeleteNote }
                         onEdited=${ onEditedNote }
                         onRefsChanged=${ onRefsChanged }
+                        onUpdateDeck=${ onUpdateDeck }
                />`;
     }
 
 
     function buildNoteForm() {
-        function onCancelAddNote(e) {
+        function onCancelled(e) {
             AppStateChange.hideNoteForm(noteKind);
             e.preventDefault();
         };
 
-        function onAddNote(e) {
-            e.preventDefault();
-            const noteForm = e.target;
-            const markup = noteForm.content.value;
-            let prevNoteId;
+        function onNoteCreated(allNotes) {
+            onUpdateDeck({...deck, notes: allNotes});
+            AppStateChange.hideNoteForm(noteKind);
+        }
 
-            if(noteSeq.length > 0) {
-                prevNoteId = noteSeq[noteSeq.length - 1].id;
-            } else {
-                prevNoteId = null;
-            }
+        let nextNoteId = null;
+        let prevNoteId = (noteSeq && noteSeq.length > 0) ? noteSeq[noteSeq.length - 1].id : null;
+        let optionalPointId = optionalDeckPoint && optionalDeckPoint.id
 
-            let nextNoteId = null; // don't need a nextNoteId if we give addNote a non-null prevNoteId
-            // if we're adding a note note to the beginning of the noteseq then we'll need a nextNoteId
-
-            addNote(appState.wasmInterface, markup, deck.id, prevNoteId, nextNoteId, noteKind, optionalDeckPoint && optionalDeckPoint.id)
-                .then(allNotes => {
-                    onUpdateDeck({...deck, notes: allNotes});
-                    AppStateChange.hideNoteForm(noteKind);
-                })
-                .catch(error => console.error(error.message));
-        };
-
-        return html`<${NoteForm} onSubmit=${ onAddNote } onCancel=${ onCancelAddNote } />`;
+        return html`<${NoteForm} label="Append Note:"
+                                 onCreate=${ onNoteCreated }
+                                 onCancel=${ onCancelled }
+                                 deckId=${ deck.id }
+                                 prevNoteId=${ prevNoteId }
+                                 nextNoteId=${ nextNoteId }
+                                 noteKind=${ noteKind }
+                                 optionalPointId=${ optionalPointId }
+                                 />`;
     };
 
     function buildNoteFormIcon() {
@@ -152,137 +147,4 @@ function NoteManager({ deck, toolbarMode, onUpdateDeck, noteSeq, resource, onRef
            </section>`;
 }
 
-function NoteForm({ onSubmit, onCancel }) {
-    const textAreaRef = useRef(null);
-
-    // need to keep track of the cursor position in case the user:
-    // moves cursor to a position within the text and clicks on the ImageSelector
-    // to add markup multiple times. The expected result is to have multiple
-    // image markups at the point where the cursor was (by default the cursor
-    // goes to the end of the content once the first image markup has been added)
-    //
-    const [local, setLocal] = useState({
-        content: '',
-        oldCursorPos: 0,
-        textAreaFocused: false
-    });
-
-    const handleChangeEvent = (event) => {
-        const target = event.target;
-        const name = target.name;
-        const value = target.value;
-
-        if (name === 'content') {
-            setLocal({
-                ...local,
-                content: value
-            })
-        }
-    };
-
-    useEffect(() => {
-        if (textAreaRef.current) {
-            textAreaRef.current.focus();
-        }
-    }, []);
-
-    function onImagePaste(markup) {
-        let content = local.content;
-
-
-        let cursor;
-        if (local.textAreaFocused) {
-            cursor = textAreaRef.current.selectionStart;
-        } else {
-            cursor = local.oldCursorPos;
-        }
-
-        let newContent = content.slice(0, cursor) + markup + " " + content.slice(cursor);
-
-        setLocal({
-            ...local,
-            oldCursorPos: cursor + markup.length + 1,
-            content: newContent
-        });
-    }
-
-    function onTextAreaFocus() {
-        setLocal({
-            ...local,
-            textAreaFocused: true
-        });
-    }
-
-    function onTextAreaBlur() {
-        let cursor = textAreaRef.current.selectionStart;
-        setLocal({
-            ...local,
-            oldCursorPos: cursor,
-            textAreaFocused: false
-        });
-    }
-
-    return html`
-           <div class="append-note">
-               <div class="left-margin">
-                   <div class="left-margin-entry fadeable clickable cancel-offset" onClick=${ onCancel }>
-                       <span class="left-margin-icon-label">Cancel</span>
-                       ${ svgX() }
-                   </div>
-               </div>
-               <form class="civil-add-note-form" onSubmit=${ onSubmit }>
-                   <label for="content">Append Note:</label>
-                   <br/>
-                   <${CivilTextArea} id="content"
-                                     elementRef=${ textAreaRef }
-                                     elementClass="new-note-textarea"
-                                     value=${ local.content }
-                                     onFocus=${ onTextAreaFocus }
-                                     onBlur=${ onTextAreaBlur }
-                                     onInput=${ handleChangeEvent }/>
-                   <br/>
-                   <input type="submit" value="Save"/>
-               </form>
-               <${ImageSelector} onPaste=${ onImagePaste }/>
-           </div>`;
-}
-
-function addNote(wasmInterface, markup, deckId, prevNoteId, nextNoteId, noteKind, optionalPointId) {
-    const notes = wasmInterface.splitter(markup);
-
-    if (notes === null) {
-        console.error(markup);
-        return new Promise((resolve, reject) => { reject(new Error("addNote: splitIntoNotes failed")); });
-    }
-
-    let data = {
-        deckId,
-        kind: noteKind,
-        content: notes
-    };
-
-    if (prevNoteId) {
-        data.prevNoteId = prevNoteId;
-    } else if (nextNoteId) {
-        data.nextNoteId = nextNoteId;
-    }
-
-    if (optionalPointId) {
-        data.pointId = optionalPointId;
-    }
-
-    function isEmptyNote(n) {
-        return n.content.every(n => { return n.length === 0;});
-    }
-
-    // console.log(data);
-
-    if (isEmptyNote(data)) {
-        return new Promise((resolve, reject) => { reject(new Error("Parsed as empty note")); });
-    } else {
-        // returns _all_ the notes associated with the deck
-        return Net.post("/api/notes", data);
-    }
-}
-
-export { NoteSection, NoteManager, NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE, NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW, NOTE_KIND_DECKMETA }
+export { NoteSection, NoteManager, NoteForm, NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE, NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW, NOTE_KIND_DECKMETA }

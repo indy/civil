@@ -1,6 +1,6 @@
 import { html, useEffect } from '/lib/preact/mod.js';
 
-import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
+import { AppStateChange } from '/js/AppState.js';
 import Net from '/js/Net.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 import { svgCloseShifted } from '/js/svgIcons.js';
@@ -8,6 +8,7 @@ import { sortByResourceThenName } from '/js/CivilUtils.js';
 import { indexToShortcut } from '/js/CivilUtils.js';
 
 import CivilInput from '/js/components/CivilInput.js';
+import { TOOLBAR_VIEW } from '/js/components/DeluxeToolbar.js';
 
 const CANDIDATES_SET = 'candidate-set';
 const CTRL_KEY_DOWN = 'ctrl-key-down';
@@ -280,12 +281,12 @@ export default function CivilSelect({ parentDeckId, chosen, onFinish }) {
 
 
     function onLocalCancel(e) {
-        AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
+        AppStateChange.toolbarMode(TOOLBAR_VIEW);
         onFinish();
     }
 
     function onLocalCommit(e) {
-        AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW);
+        AppStateChange.toolbarMode(TOOLBAR_VIEW);
         onFinish({
             referencesUnchanged: local.referencesUnchanged,
             referencesChanged: local.referencesChanged,

@@ -3,14 +3,8 @@ import { html, createContext, useContext, signal } from '/lib/preact/mod.js';
 import { opposingKind } from '/js/JsUtils.js';
 import { sortByResourceThenName } from '/js/CivilUtils.js';
 
+import { TOOLBAR_VIEW } from '/js/components/DeluxeToolbar.js';
 import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
-
-export const DELUXE_TOOLBAR_VIEW = 1;
-export const DELUXE_TOOLBAR_EDIT = 2;
-export const DELUXE_TOOLBAR_REFS = 3;
-export const DELUXE_TOOLBAR_SR = 4;
-export const DELUXE_TOOLBAR_ADD_ABOVE = 5;
-export const DELUXE_TOOLBAR_ADD_BELOW = 6;
 
 export const AppStateContext = createContext();
 
@@ -26,7 +20,7 @@ export const getAppState = () => useContext(AppStateContext);
 const state = {
     appName: "Civil",
 
-    toolbarMode: signal(DELUXE_TOOLBAR_VIEW),
+    toolbarMode: signal(TOOLBAR_VIEW),
 
     wasmInterface: undefined,   // initialised in index.js
     uiColours: {

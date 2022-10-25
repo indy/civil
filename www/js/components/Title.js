@@ -1,6 +1,7 @@
 import { html, useRef, useEffect, useState } from '/lib/preact/mod.js';
 
-import { getAppState, AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBAR_REFS } from '/js/AppState.js';
+import { getAppState, AppStateChange } from '/js/AppState.js';
+import { TOOLBAR_VIEW, TOOLBAR_EDIT, TOOLBAR_REFS } from '/js/components/DeluxeToolbar.js';
 
 export default function Title({ title, isShowingUpdateForm, isEditingDeckRefs, onRefsToggle, onFormToggle }) {
     const appState = getAppState();
@@ -21,16 +22,16 @@ export default function Title({ title, isShowingUpdateForm, isEditingDeckRefs, o
     const backgroundBandRef = useRef(null);
 
     function onTitleClicked(e) {
-        if (appState.toolbarMode.value === DELUXE_TOOLBAR_EDIT) {
+        if (appState.toolbarMode.value === TOOLBAR_EDIT) {
             if (isShowingUpdateForm) {
-                AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW)
+                AppStateChange.toolbarMode(TOOLBAR_VIEW)
             }
             onFormToggle();
             return;
         }
-        if (appState.toolbarMode.value === DELUXE_TOOLBAR_REFS) {
+        if (appState.toolbarMode.value === TOOLBAR_REFS) {
             if (isEditingDeckRefs) {
-                AppStateChange.toolbarMode(DELUXE_TOOLBAR_VIEW)
+                AppStateChange.toolbarMode(TOOLBAR_VIEW)
             }
             onRefsToggle();
             return;
@@ -90,8 +91,8 @@ export default function Title({ title, isShowingUpdateForm, isEditingDeckRefs, o
         // don't show selectable highlight if the title is sticky
     } else if (mouseHovering) {
         // only show as selectable if in edit or refs mode
-        if (appState.toolbarMode.value === DELUXE_TOOLBAR_EDIT ||
-            appState.toolbarMode.value === DELUXE_TOOLBAR_REFS) {
+        if (appState.toolbarMode.value === TOOLBAR_EDIT ||
+            appState.toolbarMode.value === TOOLBAR_REFS) {
             containerClasses += " selectable-container-hovering";
         }
 
