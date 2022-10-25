@@ -1,9 +1,8 @@
 import { html, useState, useEffect, useRef } from '/lib/preact/mod.js';
 
-import { AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBAR_REFS, DELUXE_TOOLBAR_SR, DELUXE_TOOLBAR_ADD_ABOVE, DELUXE_TOOLBAR_ADD_BELOW } from '/js/AppState.js';
+import { getAppState, AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBAR_REFS, DELUXE_TOOLBAR_SR, DELUXE_TOOLBAR_ADD_ABOVE, DELUXE_TOOLBAR_ADD_BELOW } from '/js/AppState.js';
 
 import Net from '/js/Net.js';
-import { getAppState } from '/js/AppStateProvider.js';
 import { svgFlashCard } from '/js/svgIcons.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 

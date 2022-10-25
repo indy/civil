@@ -1,7 +1,7 @@
 import { html } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
-import { getAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppState.js';
 
 import { NoteSection,
          NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE,

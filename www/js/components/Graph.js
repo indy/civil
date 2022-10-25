@@ -1,6 +1,5 @@
 import { createRef, html, route, useState, useEffect } from '/lib/preact/mod.js';
-import { AppStateChange } from '/js/AppState.js';
-import { getAppState } from '/js/AppStateProvider.js';
+import { getAppState, AppStateChange } from '/js/AppState.js';
 import { svgTickedCheckBox, svgUntickedCheckBox } from '/js/svgIcons.js';
 
 import Net from "/js/Net.js";

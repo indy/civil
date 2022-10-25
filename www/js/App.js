@@ -1,10 +1,9 @@
-import { AppStateChange, initialState } from '/js/AppState.js';
+import { getAppState, AppStateProvider, AppStateChange, initialState } from '/js/AppState.js';
 import { capitalise } from '/js/JsUtils.js';
 
 import { html, Router, Route, Link, route, useEffect } from '/lib/preact/mod.js';
 
 import Net                              from '/js/Net.js';
-import { getAppState, AppStateProvider } from '/js/AppStateProvider.js';
 import { augmentSettingsWithCssModifierParameters } from '/js/ColourCreator.js';
 
 import SearchCommand           from '/js/components/SearchCommand.js';

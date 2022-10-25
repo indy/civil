@@ -1,6 +1,5 @@
 import { h, html, useState, useEffect, useRef } from '/lib/preact/mod.js';
-import { AppStateChange } from '/js/AppState.js';
-import { getAppState } from '/js/AppStateProvider.js';
+import { getAppState, AppStateChange } from '/js/AppState.js';
 import { svgX } from '/js/svgIcons.js';
 
 export default function Image({ src }) {

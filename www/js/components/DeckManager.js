@@ -1,8 +1,7 @@
 import { html, useState, useEffect } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
-import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
-import { getAppState } from '/js/AppStateProvider.js';
+import { getAppState, AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 import { sortByResourceThenName, deckTitle } from '/js/CivilUtils.js';
 
 import { NoteManager,

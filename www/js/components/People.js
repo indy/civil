@@ -1,10 +1,9 @@
 import { html, Link, useState, useEffect } from '/lib/preact/mod.js';
 
-import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
+import { getAppState, AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 import { ensureListingLoaded, fetchDeckListing, deckTitle } from '/js/CivilUtils.js';
 import { capitalise } from '/js/JsUtils.js';
 import Net from '/js/Net.js';
-import { getAppState } from '/js/AppStateProvider.js';
 import { addChronologicalSortYear,
          calcAgeInYears,
          dateStringAsTriple } from '/js/eras.js';

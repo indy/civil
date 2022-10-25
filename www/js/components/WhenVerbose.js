@@ -1,6 +1,6 @@
 import { html } from '/lib/preact/mod.js';
 
-import { getAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppState.js';
 
 export default function WhenVerbose({children}) {
     const appState = getAppState();

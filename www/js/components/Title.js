@@ -1,7 +1,6 @@
 import { html, useRef, useEffect, useState } from '/lib/preact/mod.js';
 
-import { AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBAR_REFS } from '/js/AppState.js';
-import { getAppState } from '/js/AppStateProvider.js';
+import { getAppState, AppStateChange, DELUXE_TOOLBAR_VIEW, DELUXE_TOOLBAR_EDIT, DELUXE_TOOLBAR_REFS } from '/js/AppState.js';
 
 export default function Title({ title, isShowingUpdateForm, isEditingDeckRefs, onRefsToggle, onFormToggle }) {
     const appState = getAppState();

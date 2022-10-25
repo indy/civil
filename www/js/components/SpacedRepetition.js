@@ -1,8 +1,7 @@
 import { html, useEffect, Link } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
-import { AppStateChange } from '/js/AppState.js';
-import { getAppState } from '/js/AppStateProvider.js';
+import { getAppState, AppStateChange } from '/js/AppState.js';
 import { plural, formattedDate, formattedTime } from '/js/JsUtils.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 

@@ -1,6 +1,6 @@
 import { html } from '/lib/preact/mod.js';
 
-import { getAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppState.js';
 
 import Graph from '/js/components/Graph.js';
 import RollableSection from '/js/components/RollableSection.js';

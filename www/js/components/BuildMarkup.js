@@ -1,5 +1,5 @@
 import { h, html } from '/lib/preact/mod.js';
-import { getAppState } from '/js/AppStateProvider.js';
+import { getAppState } from '/js/AppState.js';
 
 import Image from '/js/components/Image.js';
 

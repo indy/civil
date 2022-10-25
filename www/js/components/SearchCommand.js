@@ -1,9 +1,8 @@
 import { html, route, Link, useEffect, useRef } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
-import { AppStateChange } from '/js/AppState.js';
+import { getAppState, AppStateChange } from '/js/AppState.js';
 import { createDeck, indexToShortcut } from '/js/CivilUtils.js';
-import { getAppState } from '/js/AppStateProvider.js';
 import { svgX, svgChevronDown, svgChevronUp } from '/js/svgIcons.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 

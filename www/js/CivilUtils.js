@@ -1,7 +1,6 @@
 import { useEffect, html, route } from '/lib/preact/mod.js';
 
-import { AppStateChange } from '/js/AppState.js';
-import { getAppState } from '/js/AppStateProvider.js';
+import { getAppState, AppStateChange } from '/js/AppState.js';
 import Net from '/js/Net.js';
 
 export function deckTitle(deck) {

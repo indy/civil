@@ -2,10 +2,9 @@ import { html, route, useState, useEffect } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import buildMarkup from '/js/components/BuildMarkup.js';
-import { AppStateChange } from '/js/AppState.js';
+import { getAppState, AppStateChange } from '/js/AppState.js';
 import { capitalise } from '/js/JsUtils.js';
 import { deckTitle } from '/js/CivilUtils.js';
-import { getAppState } from '/js/AppStateProvider.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 
 import CivilInput from '/js/components/CivilInput.js';

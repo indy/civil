@@ -1,8 +1,7 @@
 import { html } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
-import { AppStateChange } from '/js/AppState.js';
-import { getAppState } from '/js/AppStateProvider.js';
+import { getAppState, AppStateChange } from '/js/AppState.js';
 
 import CivilSelect from '/js/components/CivilSelect.js';
 import Ref from '/js/components/Ref.js';

@@ -1,4 +1,4 @@
-import { signal } from '/lib/preact/mod.js';
+import { html, createContext, useContext, signal } from '/lib/preact/mod.js';
 
 import { opposingKind } from '/js/JsUtils.js';
 import { sortByResourceThenName } from '/js/CivilUtils.js';
@@ -11,6 +11,17 @@ export const DELUXE_TOOLBAR_REFS = 3;
 export const DELUXE_TOOLBAR_SR = 4;
 export const DELUXE_TOOLBAR_ADD_ABOVE = 5;
 export const DELUXE_TOOLBAR_ADD_BELOW = 6;
+
+export const AppStateContext = createContext();
+
+export const AppStateProvider = ({state, children}) => {
+    return html`
+        <${AppStateContext.Provider} value=${state}>
+            ${children}
+        </${AppStateContext.Provider}>`;
+};
+
+export const getAppState = () => useContext(AppStateContext);
 
 const state = {
     appName: "Civil",

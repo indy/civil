@@ -1,11 +1,10 @@
 import { html, useState, useEffect } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
-import { AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
+import { getAppState, AppStateChange, DELUXE_TOOLBAR_VIEW } from '/js/AppState.js';
 import { addChronologicalSortYear } from '/js/eras.js';
 import { capitalise } from '/js/JsUtils.js';
 import { ensureListingLoaded, fetchDeckListing, deckTitle } from '/js/CivilUtils.js';
-import { getAppState } from '/js/AppStateProvider.js';
 
 import CivilInput from '/js/components/CivilInput.js';
 import DeckManager from '/js/components/DeckManager.js';
