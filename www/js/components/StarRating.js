@@ -22,7 +22,7 @@ function StarRatingPartial({ rating }) {
         ratings.push(svgRatingStar());
     }
 
-    return html`<div class="left-margin-entry">${ratings}</div>`;
+    return html`<div class="left-margin-entry-no-note-on-right">${ratings}</div>`;
 }
 
 
