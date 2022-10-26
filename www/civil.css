@@ -156,16 +156,24 @@ h1 {
   width: var(--block-width);
 }
 
-/*
-  the -2rem margin of .selectable-container is cancelled out by the 1rem
-  border in .selectable-container and the 1rem margin in .selectable-content
- */
 .selectable-container {
-  border-left: 1rem solid rgba(0.0, 0.0, 0.0, 0.0);
+  border-left: 0.6rem solid rgba(0.0, 0.0, 0.0, 0.0);
   margin-left: -2rem;
 }
 .selectable-container-hovering {
-  border-left: 1rem solid var(--scribble-disagree);
+  border-radius: 1.5rem;
+}
+.selectable-container-hovering-edit {
+  border-left: 0.6rem solid var(--fg-clock-10);
+}
+.selectable-container-hovering-refs {
+  border-left: 0.6rem solid var(--fg-clock-08);
+}
+.selectable-container-hovering-sr {
+  border-left: 0.6rem solid var(--fg-clock-07);
+}
+.selectable-container-hovering-add-above {
+  border-left: 0.6rem solid var(--fg-clock-02);
 }
 .selectable-content {
   margin-left: 1rem;
@@ -1544,15 +1552,22 @@ input:required {
   margin-left: 0.5rem;
 }
 
-.toolbar-item-active:hover {
-  border: 5px solid var(--scribble-disagree);
-}
-
 .toolbar-item-selected {
-  border-right: 5px solid var(--scribble-disagree) !important;
+  border-radius: 1.5rem;
 }
 
-
+.toolbar-item-selected-edit {
+  border-right: 5px solid var(--fg-clock-10) !important;
+}
+.toolbar-item-selected-refs {
+  border-right: 5px solid var(--fg-clock-08) !important;
+}
+.toolbar-item-selected-sr {
+  border-right: 5px solid var(--fg-clock-07) !important;
+}
+.toolbar-item-selected-add-above {
+  border-right: 5px solid var(--fg-clock-02) !important;
+}
 
 /* Responsive adjustments
    ========================================================================== */

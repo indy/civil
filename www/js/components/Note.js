@@ -3,6 +3,7 @@ import { html, useState, useEffect, useRef } from '/lib/preact/mod.js';
 import { getAppState, AppStateChange } from '/js/AppState.js';
 
 import Net from '/js/Net.js';
+import { addToolbarSelectableClasses } from '/js/CivilUtils.js';
 import { svgFlashCard } from '/js/svgIcons.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 
@@ -499,7 +500,7 @@ export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited
 
     let noteClasses = "note selectable-container";
     if (local.mouseHovering && toolbarMode !== TOOLBAR_VIEW) {
-        noteClasses += " selectable-container-hovering";
+        noteClasses += addToolbarSelectableClasses(toolbarMode);
     }
 
     function onNoteClicked(e) {

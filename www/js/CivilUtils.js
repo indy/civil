@@ -1,7 +1,21 @@
 import { useEffect, html, route } from '/lib/preact/mod.js';
 
-import { getAppState, AppStateChange } from '/js/AppState.js';
 import Net from '/js/Net.js';
+import { TOOLBAR_VIEW, TOOLBAR_EDIT, TOOLBAR_REFS, TOOLBAR_SR, TOOLBAR_ADD_ABOVE } from '/js/components/DeluxeToolbar.js';
+import { getAppState, AppStateChange } from '/js/AppState.js';
+
+export function addToolbarSelectableClasses(toolbarMode) {
+    switch (toolbarMode) {
+    case TOOLBAR_EDIT:
+        return " selectable-container-hovering selectable-container-hovering-edit";
+    case TOOLBAR_REFS:
+        return " selectable-container-hovering selectable-container-hovering-refs";
+    case TOOLBAR_SR:
+        return " selectable-container-hovering selectable-container-hovering-sr";
+    case TOOLBAR_ADD_ABOVE:
+        return " selectable-container-hovering selectable-container-hovering-add-above";
+    }
+}
 
 export function deckTitle(deck) {
     let title = deck && (deck.title || deck.name || '');

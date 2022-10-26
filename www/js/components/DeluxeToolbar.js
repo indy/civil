@@ -50,11 +50,27 @@ function ToolbarItem({ toolbarMode, toolbarText, children }) {
 
     let classes = "toolbar-item";
     if (toolbarMode === appState.toolbarMode.value) {
-        classes += " toolbar-item-selected";
+        classes += addActiveToolbarClasses(toolbarMode);
     }
 
     return html`<div class=${ classes } onClick=${ onClickHandler }>
                     ${ children }
                     <span class="toolbar-item-text">${ toolbarText }</span>
                 </div>`;
+}
+
+export function addActiveToolbarClasses(toolbarMode) {
+    switch (toolbarMode) {
+    case TOOLBAR_EDIT:
+        return " toolbar-item-selected toolbar-item-selected-edit";
+    case TOOLBAR_REFS:
+        return " toolbar-item-selected toolbar-item-selected-refs";
+    case TOOLBAR_SR:
+        return " toolbar-item-selected toolbar-item-selected-sr";
+    case TOOLBAR_ADD_ABOVE:
+        return " toolbar-item-selected toolbar-item-selected-add-above";
+    }
+
+    console.error(`unknown toolbarMode: ${toolbarMode}`);
+    return "";
 }
