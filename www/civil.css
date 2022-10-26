@@ -1094,6 +1094,10 @@ section > form { width: var(--block-width); }
   width: var(--block-width);
 }
 
+.form-margin {
+  margin-left: 1rem;
+}
+
 .note-hovering-mark {
   background: red !important;
   position: absolute;
@@ -1274,6 +1278,7 @@ div.note > textarea {
   padding-top: 2rem;
   padding-bottom: 1rem;
   width: 100%;
+  margin-left: 1rem;
 }
 
 .civil-add-note-form {

@@ -397,7 +397,7 @@ export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited
         }
 
         return html`
-        <div class="block-width">
+        <div class="block-width form-margin">
             <label>Flash Card Prompt</label>
             <div>
                 <${CivilTextArea} value=${ flashCardPrompt }
@@ -462,7 +462,7 @@ export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited
         };
 
         return html`
-        <div class="block-width">
+        <div class="block-width form-margin">
             <label>Connections:</label>
             <${ CivilSelect } parentDeckId=${ parentDeck.id }
                               chosen=${ local.decks }
@@ -481,17 +481,13 @@ export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited
             onDelete(note.id);
         }
 
-        if (local.isEditingMarkup) {
-            return html`
-            <div class="block-width">
-                <button onClick=${ onCancelClicked }>Cancel</button>
-                <button disabled=${!hasNoteBeenModified(local)} onClick=${ onSaveEditsClicked }>Save Edits</button>
-                <${DeleteConfirmation} onDelete=${ confirmedDeleteClicked }/>
-                <${ImageSelector} onPaste=${ onImagePaste } />
-            </div>`;
-        } else {
-            return html`<div class="block-width"></div>`;
-        }
+        return html`
+        <div class="block-width form-margin">
+            <button onClick=${ onCancelClicked }>Cancel</button>
+            <button disabled=${!hasNoteBeenModified(local)} onClick=${ onSaveEditsClicked }>Save Edits</button>
+            <${DeleteConfirmation} onDelete=${ confirmedDeleteClicked }/>
+            <${ImageSelector} onPaste=${ onImagePaste } />
+        </div>`;
     }
 
     function flashCardDeleted(flashcard) {
@@ -543,7 +539,7 @@ export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited
             </div>`}
         ${ local.addDeckReferencesUI && buildAddDecksUI() }
         ${ local.addFlashCardUI && buildAddFlashCardUI() }
-        ${ buildMainButtons() }
+        ${ local.isEditingMarkup && buildMainButtons() }
     </div>`;
 }
 

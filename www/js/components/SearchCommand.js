@@ -7,6 +7,7 @@ import { svgX, svgChevronDown, svgChevronUp } from '/js/svgIcons.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 
 import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
+import { TOOLBAR_EDIT, TOOLBAR_REFS } from '/js/components/DeluxeToolbar.js';
 
 const MODE_SEARCH = 'mode-search';
 const MODE_COMMAND = 'mode-command';
@@ -70,7 +71,7 @@ const Commands = [
         }
     },
     {
-        command: 'r',
+        command: 'qr',
         description: "goto random quote",
         fn: () => {
             Net.get("/api/quotes/random").then(quote => {
@@ -84,6 +85,25 @@ const Commands = [
         description: "goto spaced repetition",
         fn: () => {
             route('/sr');
+            return true;
+        }
+    },
+    {
+        spacer: true
+    },
+    {
+        command: 'e',
+        description: "switch to edit mode",
+        fn: () => {
+            AppStateChange.toolbarMode(TOOLBAR_EDIT);
+            return true;
+        }
+    },
+    {
+        command: 'r',
+        description: "switch to add reference mode",
+        fn: () => {
+            AppStateChange.toolbarMode(TOOLBAR_REFS);
             return true;
         }
     },
