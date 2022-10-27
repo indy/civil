@@ -2,7 +2,6 @@ import { html, useState, useEffect } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { getAppState, AppStateChange } from '/js/AppState.js';
-import { addChronologicalSortYear } from '/js/eras.js';
 import { capitalise } from '/js/JsUtils.js';
 import { ensureListingLoaded, fetchDeckListing, deckTitle } from '/js/CivilUtils.js';
 
@@ -43,7 +42,6 @@ function Timeline({ id }) {
     const deckManager = DeckManager({
         id: timelineId,
         resource,
-        preCacheFn,
         hasSummarySection: true,
         hasReviewSection: false
     });
@@ -67,26 +65,14 @@ function Timeline({ id }) {
                          canShowNoteSection=${ deckManager.canShowNoteSection }
                          onUpdateDeck=${ deckManager.update }/>
         <${SectionBackRefs} deck=${ deck } />
-        ${ !!timeline && html`<${ListPoints} points=${ deck.points }
-                                             deckManager=${ deckManager }
-                                             showAddPointForm=${ appState.showAddPointForm.value }
-                                             holderId=${ deck.id }
-                                             holderName=${ deck.title }/>`}
+        ${ !!deck && html`<${ListPoints} points=${ deck.points }
+                                         deckManager=${ deckManager }
+                                         showAddPointForm=${ appState.showAddPointForm.value }
+                                         holderId=${ deck.id }
+                                         holderName=${ deck.title }/>`}
 
         <${SectionGraph} depth=${ 2 } deck=${ deck }/>
     </article>`;
-}
-
-// called before this deck is cached by the AppState (ie after every modification)
-function preCacheFn(timeline) {
-    // todo: remove this???
-    if (timeline.points) {
-        timeline.points = timeline.points
-            .map(addChronologicalSortYear)
-            .sort((a, b) => a.sortYear > b.sortYear);
-    }
-
-    return timeline;
 }
 
 function SectionUpdateTimeline({ timeline, onUpdate }) {

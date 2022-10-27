@@ -31,32 +31,6 @@ export function dateStringAsTriple(dateString) {
     return triple;                // triple is [year, month, day]
 }
 
-// todo: remove this???
-export function addChronologicalSortYear(p) {
-    if (p.exactDate) {
-        p.sortYear = extractYear(p.exactDate);
-    } else if (p.lowerDate) {
-        p.sortYear = extractYear(p.lowerDate);
-    } else {
-        p.sortYear = era.uncategorisedYear;
-    }
-    return p;
-}
-
-// todo: remove this???
-function extractYear(dateString) {
-    let res = 0;
-    if (!dateString) {
-        res = 9999;                 // if an event has been created via quickForm and has only title information
-    } else if (dateString[0] === '-') {
-        res = parseInt(dateString.slice(0, 5), 10);
-    } else {
-        res = parseInt(dateString.slice(0, 4), 10);
-    }
-    return res;
-}
-
-
 export function parseDateStringAsYearOnly(value) {
     const re = /^(-?)(\d{4})$/;
     const match = re.exec(value);

@@ -37,10 +37,6 @@ function Articles() {
     </article>`;
 }
 
-function preCacheFn(d) {
-    return d;
-}
-
 function Article({ id }) {
     const articleId = parseInt(id, 10);
 
@@ -48,7 +44,6 @@ function Article({ id }) {
     const deckManager = DeckManager({
         id: articleId,
         resource,
-        preCacheFn,
         hasSummarySection: true,
         hasReviewSection: true
     });

@@ -4,8 +4,7 @@ import { getAppState, AppStateChange } from '/js/AppState.js';
 import { ensureListingLoaded, fetchDeckListing, deckTitle } from '/js/CivilUtils.js';
 import { capitalise } from '/js/JsUtils.js';
 import Net from '/js/Net.js';
-import { addChronologicalSortYear,
-         calcAgeInYears,
+import { calcAgeInYears,
          dateStringAsTriple } from '/js/eras.js';
 import { svgPointAdd,
          svgX,
@@ -144,13 +143,6 @@ function Person({ id }) {
 
 // called before this deck is cached by the AppState (ie after every modification)
 function preCacheFn(person) {
-    // todo: remove this???
-    if (person.points) {
-        person.points = person.points
-            .map(addChronologicalSortYear)
-            .sort((a, b) => a.sortYear > b.sortYear);
-    }
-
     function getExactDateFromPoints(points, kind) {
         const p = points.find(p => p.kind === kind);
         if (!p || !p.exactDate) {

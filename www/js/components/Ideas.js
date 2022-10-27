@@ -35,10 +35,6 @@ function Ideas() {
     </article>`;
 }
 
-function preCacheFn(d) {
-    return d;
-}
-
 function Idea({ id }) {
     const [searchResults, setSearchResults] = useState([]); // an array of backrefs
     const ideaId = parseInt(id, 10);
@@ -59,7 +55,6 @@ function Idea({ id }) {
     const deckManager = DeckManager({
         id: ideaId,
         resource,
-        preCacheFn,
         hasSummarySection: false,
         hasReviewSection: false
     });

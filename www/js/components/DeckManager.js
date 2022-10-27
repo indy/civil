@@ -11,7 +11,12 @@ import { NoteManager,
        } from '/js/components/NoteSection.js';
 import { PointForm } from '/js/components/PointForm.js';
 
+function identity(a) {
+    return a;
+}
+
 export default function DeckManager({ id, resource, preCacheFn, hasSummarySection, hasReviewSection }) {
+    const preCacheFunction = preCacheFn || identity;
     const appState = getAppState();
 
     const [dms, setDms] = useState(cleanDeckManagerState());
@@ -21,7 +26,7 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
         const url = `/api/${resource}/${id}`;
         Net.get(url).then(deck => {
             if (deck) {
-                let newDms = dmsUpdateDeck(dms, preCacheFn(deck), resource, true);
+                let newDms = dmsUpdateDeck(dms, preCacheFunction(deck), resource, true);
                 newDms = dmsCanHaveSummarySection(newDms, hasSummarySection);
                 newDms = dmsCanHaveReviewSection(newDms, hasReviewSection);
                 setDms(newDms);
@@ -32,7 +37,7 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
     }, [id]);
 
     function update(newDeck) {
-        let newDms = dmsUpdateDeck(dms, preCacheFn(newDeck), resource, false);
+        let newDms = dmsUpdateDeck(dms, preCacheFunction(newDeck), resource, false);
         setDms(newDms);
     }
     function findNoteWithId(deck, id, modifyFn) {
@@ -83,7 +88,7 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
             return dms.isEditingDeckRefs;
         },
         updateAndReset: function(newDeck) {
-            let newDms = dmsUpdateDeck(dms, preCacheFn(newDeck), resource, true);
+            let newDms = dmsUpdateDeck(dms, preCacheFunction(newDeck), resource, true);
             newDms = dmsHideForm(newDms);
             AppStateChange.toolbarMode(TOOLBAR_VIEW);
 
