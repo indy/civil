@@ -16,8 +16,6 @@ export default function SectionBackRefs({ deck }) {
     const sections = [];
     const decks = [];
 
-    // isg todo: People.js also had a check of nonEmptyArray(backnotes)
-
     if (!nonEmptyArray(backrefs)) {
         return html`<div></div>`;
     }

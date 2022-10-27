@@ -204,7 +204,6 @@ function dmsUpdateDeck(dms, deck, resource, scrollToTop) {
     // organise the notes into noteSeqs
     buildNoteSeqs(deck);
 
-    // todo: maybe move this back into the apps router now that we're using signals
     AppStateChange.urlName(deckTitle(deck));
     AppStateChange.routeChanged(`/${resource}/${deck.id}`);
 
@@ -289,20 +288,21 @@ function applyDecksAndCardsToNotes(deck) {
     return deck;
 }
 
-
-// todo: hashByNoteIds is using the "I'm so clever" reduce style. noteSeqsForPoints is using a much simpler forEach
-//       perhaps change hashByNoteIds to forEach?
 function hashByNoteIds(s) {
+    let res = {};
+
     s = s || [];
-    return s.reduce(function(a, b) {
-        const noteId = b.noteId;
-        if (a[noteId]) {
-            a[noteId].push(b);
-        } else {
-            a[noteId] = [b];
+    s.forEach(n => {
+        const noteId = n.noteId;
+        if (noteId) {
+            if (!res[noteId]) {
+                res[noteId] = [];
+            }
+            res[noteId].push(n);
         }
-        return a;
-    }, {});
+    });
+
+    return res;
 }
 
 function buildNoteSeqs(deck) {
