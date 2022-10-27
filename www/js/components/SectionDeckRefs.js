@@ -41,15 +41,6 @@ export default function SectionDeckRefs({ deck, isEditing, onRefsChanged, onRefs
 function AddDecksUI({ deckId, note, chosen, onCancel, onSaved }) {
 
     function referenceChanges(changes) {
-        // todo: what if someone:
-        // 1. clicks on edit note
-        // 2. adds decks
-        // 3. clicks ok (these decks should now be associated with the note)
-        // 4. clicks on edit note
-        // 5. adds more decks
-        // 6. clicks cancel
-        // expected: only the changes from step 5 should be undone
-
         if (changes) {
             let data = {
                 noteId: note.id,
