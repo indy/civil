@@ -73,11 +73,7 @@ function Person({ id }) {
     }, [id]);
 
     function dispatchUpdatedPerson(person) {
-        // todo: how does this work? won't the fetchDeckListing overwrite the categorisation that updatePeopleListing does?
-
-        AppStateChange.updatePeopleListing(preCacheFn(person));
-        // also update the people list now that this person is no longer uncategorised
-        fetchDeckListing(resource);
+        fetchDeckListing(resource, '/api/people/listings');
     }
 
     function onLifespan(birthPoint, deathPoint) {
@@ -298,10 +294,6 @@ function ListDeckPoints({ deckPoints, deckManager, holderId, holderName, showAdd
     function onAddDeathPoint(point) {
         Net.post(`/api/people/${holderId}/points`, point).then(person => {
             setShowDeathForm(false);
-            AppStateChange.updatePeopleListing(person);
-
-            // also update the people list now that this person is no longer uncategorised
-            fetchDeckListing('people');
         });
     }
 

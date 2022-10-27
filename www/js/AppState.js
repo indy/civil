@@ -314,19 +314,6 @@ export const AppStateChange = {
         state.listing.value = li;
     },
 
-    updatePeopleListing: function(newPerson) {
-        if (DEBUG_APP_STATE) {
-            console.log("updatePeopleListing");
-        }
-        let li = {...state.listing.value};
-
-        if (li.people) {
-            updateHashOfNames(li.people, newPerson);
-        }
-
-        state.listing.value = li;
-    },
-
     noteRefsModified: function(allDecksForNote, changes) {
         if (DEBUG_APP_STATE) {
             console.log("noteRefsModified");
@@ -423,34 +410,6 @@ function parseForScratchList(url, urlName) {
 
     return { id: parseInt(id, 10), name: urlName, resource: resource}
 }
-
-function updateHashOfNames(people, obj) {
-    function updateArrayOfNames(arr) {
-
-        let isEntry = false;
-        // check if the title of obj has changed, update the listing array if necessary
-        //
-        arr.forEach(a => {
-            if (a.id === obj.id) {
-                isEntry = true;
-                a.name = obj.name;
-            }
-        });
-
-        if (!isEntry) {
-            // this is a new entry, place it at the start of the list
-            arr.unshift({id: obj.id, name: obj.name});
-        }
-    }
-
-    updateArrayOfNames(people.uncategorised);
-    updateArrayOfNames(people.ancient);
-    updateArrayOfNames(people.medieval);
-    updateArrayOfNames(people.contemporary);
-}
-
-
-
 
 function packedToKind(packed) {
     switch(packed) {
