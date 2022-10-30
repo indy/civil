@@ -55,9 +55,9 @@ function augmentSettingsWithCssModifierParameters(uiColours) {
                 graph_edge_in_contrast: [217, 60, 70],
                 graph_edge_critical: [7, 60, 70],
 
-                scribble_neutral: [247, 100, 50],
-                scribble_disagree: [7, 100, 50],
-                hyperlink: [247, 60, 50],
+                scribble_neutral: [247, 83.7, 53.6],
+                scribble_disagree: [15.1, 83.7, 53.6],
+                hyperlink: [247, 83.7, 53.6],
                 highlight: [85, 100, 90],
 
                 bg_ideas: "--bg-clock-06",
@@ -76,14 +76,14 @@ function augmentSettingsWithCssModifierParameters(uiColours) {
             hueDelta: 30,
 
             // used to generate the fg clock values
-            saturationFg: 60,
             hueOffsetFg: 67,
-            lightnessFg: 50.0,
+            saturationFg: 60,
+            lightnessFg: 53.6,
 
             // used to generate the bg clock values
-            saturationBg: 60,
             hueOffsetBg: 67,
-            lightnessBg: 89.9,
+            saturationBg: 60,
+            lightnessBg: 89.9
         }
     } else {
 
