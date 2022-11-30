@@ -121,7 +121,6 @@ function SectionUpdateTimeline({ timeline, onUpdate }) {
         <br/>
         <${CivilInput} id="title"
                        value=${ localState.title }
-                       autoComplete="off"
                        onInput=${ handleChangeEvent } />
         <br/>
         <input type="submit" value="Update Timeline"/>

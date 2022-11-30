@@ -286,7 +286,6 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
                 <legend>Title</legend>
                 <${CivilInput} id="title"
                                value=${ state.title }
-                               autoComplete="off"
                                size="11"
                                readOnly=${ !!pointKind }
                                onInput=${ handleChangeEvent }/>
@@ -308,7 +307,6 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
             <label for="exactDate">Exact Date:</label>
             <${CivilInput} id="exactDate"
                            value=${ state.exactDate }
-                           autoComplete="off"
                            size="11"
                            onInput=${ handleChangeEvent } />
             <span class="civil-date-hint"> Format: YYYY-MM-DD</span>
@@ -317,13 +315,11 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
             <label for="lowerDate">Lower Date:</label>
             <${CivilInput} id="lowerDate"
                            value=${ state.lowerDate }
-                           autoComplete="off"
                            size="11"
                            onInput=${ handleChangeEvent } />
             <label for="upperDate">Upper Date:</label>
             <${CivilInput} id="upperDate"
                            value=${ state.upperDate }
-                           autoComplete="off"
                            size="11"
                            onInput=${ handleChangeEvent } />
             <div class="pointform-block pointform-space-top">
@@ -358,7 +354,6 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
               <${CivilInput} id="dateTextual"
                              value=${ state.dateTextual }
                              size="40"
-                             autoComplete="off"
                              readOnly="readOnly" />
             </div>
         </fieldset>
@@ -366,7 +361,6 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
         <fieldset>
             <legend>${ locationLegend }</legend>
             <${CivilInput} id="locationTextual"
-                           autoComplete="off"
                            value=${ state.locationTextual }
                            onInput=${ handleChangeEvent } />
             <p></p>

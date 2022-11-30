@@ -219,7 +219,6 @@ function SectionUpdatePerson({ person, onUpdate }) {
         <br/>
         <${CivilInput} id="name"
                        value=${ localState.name }
-                       autoComplete="off"
                        onInput=${ handleChangeEvent } />
         <br/>
         <input type="submit" value="Update Person"/>

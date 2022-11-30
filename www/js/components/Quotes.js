@@ -135,7 +135,6 @@ function Quotes() {
             <label for="attribution">Attribution:</label>
             <br/>
             <${CivilInput} id="attribution"
-                           autocomplete="off"
                            value=${ local.attribution }
                            onInput=${handleChangeEvent}/>
             <br/>
@@ -362,7 +361,6 @@ function Attribution({ attribution, onEdited, onDelete}) {
               <div>
                   <${CivilInput} id="attribution"
                                  value=${ local.attribution }
-                                 autoComplete="off"
                                  onInput=${ handleChangeEvent } />
                   <br/>
                   <button onClick=${ clickedCancel }>Cancel</button>
