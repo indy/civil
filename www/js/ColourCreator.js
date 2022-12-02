@@ -13,12 +13,9 @@ function buildColourConversionFn(rgb_from_hsl) {
         }
 
         const transportRGB = rgb_from_hsl(hsl[0], hsl[1], hsl[2]);
-
-        let r = Math.floor(clamp(transportRGB.get_0(), 0, 1) * 255);
-        let g = Math.floor(clamp(transportRGB.get_1(), 0, 1) * 255);
-        let b = Math.floor(clamp(transportRGB.get_2(), 0, 1) * 255);
-
-        transportRGB.free();
+        let r = Math.floor(clamp(transportRGB.c0, 0, 1) * 255);
+        let g = Math.floor(clamp(transportRGB.c1, 0, 1) * 255);
+        let b = Math.floor(clamp(transportRGB.c2, 0, 1) * 255);
 
         return "#" + componentAsHexString(r) + componentAsHexString(g) + componentAsHexString(b);
     }

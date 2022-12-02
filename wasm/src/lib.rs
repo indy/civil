@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 use cfg_if::cfg_if;
 use wasm_bindgen::prelude::*;
+use serde::{Serialize, Deserialize};
 
 use log::error;
 
@@ -44,16 +45,16 @@ cfg_if! {
 #[wasm_bindgen]
 pub fn init_wasm() -> JsValue {
     init_log();
-    JsValue::from_str("civil-client: v.20210108d")
+    serde_wasm_bindgen::to_value("civil-client: v.20210108d").unwrap()
 }
 
 #[wasm_bindgen]
 pub fn markup_as_ast(markup: &str) -> JsValue {
     match civil_shared::markup_as_ast(markup) {
-        Ok(res) => JsValue::from_serde(&res).unwrap(),
+        Ok(res) => serde_wasm_bindgen::to_value(&res).unwrap(),
         Err(_) => {
             error!("markup_as_ast failed");
-            JsValue::from_serde(&"error").unwrap()
+            serde_wasm_bindgen::to_value(&"error").unwrap()
         }
     }
 }
@@ -61,22 +62,21 @@ pub fn markup_as_ast(markup: &str) -> JsValue {
 #[wasm_bindgen]
 pub fn markup_as_struct(markup: &str) -> JsValue {
     match civil_shared::markup_as_struct(markup) {
-        Ok(res) => JsValue::from_serde(&res).unwrap(),
+        Ok(res) => serde_wasm_bindgen::to_value(&res).unwrap(),
         Err(_) => {
             error!("markup_as_struct failed");
-            JsValue::from_serde(&"error").unwrap()
+            serde_wasm_bindgen::to_value(&"error").unwrap()
         }
     }
 }
 
-#[wasm_bindgen]
+#[derive(Serialize, Deserialize)]
 pub struct Transport3C {
     c0: f64,
     c1: f64,
     c2: f64,
 }
 
-#[wasm_bindgen]
 impl Transport3C {
     pub fn new(c0: f64, c1: f64, c2: f64) -> Transport3C {
         Transport3C {
@@ -93,18 +93,6 @@ impl Transport3C {
             c2: 0.0,
         }
     }
-
-    pub fn get_0(&self) -> f64 {
-        self.c0
-    }
-
-    pub fn get_1(&self) -> f64 {
-        self.c1
-    }
-
-    pub fn get_2(&self) -> f64 {
-        self.c2
-    }
 }
 
 impl From<civil_shared::Rgb> for Transport3C {
@@ -120,15 +108,18 @@ impl From<civil_shared::Hsluv> for Transport3C {
 }
 
 #[wasm_bindgen]
-pub fn hsl_from_rgb(r: f64, g: f64, b: f64) -> Transport3C {
+pub fn hsl_from_rgb(r: f64, g: f64, b: f64) -> JsValue {
     let hsluv: civil_shared::Hsluv = civil_shared::Rgb::new(r as f32, g as f32, b as f32, 1.0).into();
 
-    hsluv.into()
+    let res: Transport3C = hsluv.into();
+    serde_wasm_bindgen::to_value(&res).unwrap()
 }
 
 #[wasm_bindgen]
-pub fn rgb_from_hsl(h: f64, s: f64, l: f64) -> Transport3C {
+pub fn rgb_from_hsl(h: f64, s: f64, l: f64) -> JsValue {
     let rgb: civil_shared::Rgb = civil_shared::Hsluv::new(h as f32, s as f32, l as f32, 1.0).into();
 
-    rgb.into()
+    // rgb.into()
+    let res: Transport3C = rgb.into();
+    serde_wasm_bindgen::to_value(&res).unwrap()
 }
