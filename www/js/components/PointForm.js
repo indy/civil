@@ -1,10 +1,11 @@
-import { html, useState } from '/lib/preact/mod.js';
+import { html, useState, useRef } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { capitalise } from '/js/JsUtils.js';
 import { parseDateStringAsTriple, parseDateStringAsYearOnly } from '/js/eras.js';
 
 import CivilInput from '/js/components/CivilInput.js';
+import CivilTextArea from '/js/components/CivilTextArea.js';
 
 export function PointBirthForm({ pointBorn, onSubmit }) {
     return html`
@@ -26,7 +27,7 @@ export function PointDeathForm({ pointDied, onSubmit }) {
                   submitMessage="Add Death"/>`;
 }
 
-export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegend, locationLegend }) {
+export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegend, locationLegend, onSubmitMultiplePoints }) {
 
     timeLegend ||= "Time";
     locationLegend ||= "Location";
@@ -74,11 +75,12 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
         presentAsDuration: false,
         roundToYear: false,
         hasTypedTitle: false,
-        kind: pointKind || 'point'
+        kind: pointKind || 'point',
+        showMultiPointInput: false
     });
 
     // build a dateTextual from whatever was the last user input date
-    const buildReadableDateFromLast = (s) => {
+    function buildReadableDateFromLast(s) {
         if (s.dateTextualDerivedFrom === 'exact') {
             return buildReadableDateFromExact(s, true);
         } else if (s.dateTextualDerivedFrom === 'range') {
@@ -87,7 +89,7 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
         return s;
     };
 
-    const buildReadableDateFromExact = (s, checkOther) => {
+    function buildReadableDateFromExact(s, checkOther) {
         const parsedDate = parseDateStringAsTriple(s.exactDate);
         if (parsedDate) {
             s.dateTextual = asHumanReadableDate(parsedDate, s.isApprox, s.roundToYear);
@@ -110,7 +112,7 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
         return s;
     };
 
-    const buildReadableDateFromRange = (s, checkOther) => {
+    function buildReadableDateFromRange(s, checkOther) {
         // lower and upper
         const parsedLowerDate = parseDateStringAsTriple(s.lowerDate);
         const parsedUpperDate = parseDateStringAsTriple(s.upperDate);
@@ -137,7 +139,7 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
         return s;
     };
 
-    const handleChangeEvent = (event) => {
+    function handleChangeEvent(event) {
         const target = event.target;
         const name = target.name;
         const value = target.type === 'checkbox' ? target.checked : target.value;
@@ -200,7 +202,7 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
         setState(newState);
     };
 
-    const onFindLocationClicked = async (event) => {
+    async function onFindLocationClicked(event) {
         event.preventDefault();
 
         let geoResult = await geoGet(state.locationTextual);
@@ -231,7 +233,7 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
         return 'Point';
     }
 
-    const handleSubmit = (e) => {
+    function handleSubmit(e) {
         let s =  {
             title: state.title.trim(),
             kind: kindToSend(state.kind),
@@ -272,6 +274,7 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
             canSend = true;
         }
 
+
         if (canSend) {
             onSubmit(s);
         }
@@ -279,7 +282,16 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
         e.preventDefault();
     };
 
+    function onShowMultiPointInputClicked(e) {
+        e.preventDefault();
+        setState({
+            ...state,
+            showMultiPointInput: !state.showMultiPointInput
+        })
+    }
+
     return html`
+<div>
     <form class="civil-form" onSubmit=${ handleSubmit }>
         <div class=${ !!pointKind ? 'invisible' : 'point-title'}>
             <fieldset>
@@ -382,6 +394,79 @@ export function PointForm({ point, onSubmit, submitMessage, pointKind, timeLegen
                    onInput=${ handleChangeEvent } />
         </fieldset>
         <input type="submit" value=${ submitMessage }/>
+    </form>
+    ${ onSubmitMultiplePoints && html`<button onClick=${ onShowMultiPointInputClicked }>Multi Point Input...</button>`}
+    ${ state.showMultiPointInput && html`<${MultiPointInput} onSubmit=${ onSubmitMultiplePoints }/>`}
+</div>
+`;
+}
+
+function MultiPointInput({ onSubmit }) {
+    const textAreaRef = useRef(null);
+    const [content, setContent] = useState("");
+
+    function buildPointItem(date, title) {
+        let s =  {
+            title: title.trim(),
+            kind: "Point",
+            locationFuzz: 0,
+            dateFuzz: 0,
+            exactDate: date,
+            dateFuzz: 0.5
+        };
+
+        let parsedDate = parseDateStringAsTriple(date);
+        if (parsedDate) {
+            s.dateTextual = asHumanReadableDate(parsedDate, false, false);
+        } else {
+            let year = parseDateStringAsYearOnly(date);
+            s.dateTextual = `${year}`;
+            if (s.exactDate.length === 4 || (s.exactDate.length === 5 && s.exactDate[0] === '-')) {
+                s.exactDate += '-01-01';
+            }
+        }
+
+        return s;
+    }
+
+    function handleSubmit(e) {
+        e.preventDefault();
+
+        function processLine(line) {
+            let xs = line.split(" ");
+            let date = xs[0];
+            let title = xs.slice(1).join(" ");
+
+            return buildPointItem(date, title);
+        }
+
+        let points = content.split("\n").map(processLine);
+
+        //console.log(points);
+        onSubmit(points);
+    }
+
+    function onInput(event) {
+        const target = event.target;
+        setContent(target.value);
+    };
+
+    function onTextAreaFocus() {
+    }
+
+    function onTextAreaBlur() {
+    }
+
+    return html`
+    <form class="civil-form" onSubmit=${ handleSubmit }>
+        <${CivilTextArea} id="content"
+                          value=${ content }
+                          elementRef=${ textAreaRef }
+                          onFocus=${ onTextAreaFocus }
+                          onBlur=${ onTextAreaBlur }
+                          onInput=${ onInput }/>
+        <br/>
+        <input type="submit" value="import multiple points"/>
     </form>
 `;
 }

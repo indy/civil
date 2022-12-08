@@ -111,6 +111,8 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
             setDms(newDms);
         },
         buildPointForm: function(onSuccessCallback) {
+            // currently only people and timelines have these endpoints
+            //
             function onAddPoint(point) {
                 const url = `/api/${resource}/${dms.deck.id}/points`;
                 Net.post(url, point).then(updatedDeck => {
@@ -118,8 +120,15 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
                     onSuccessCallback();
                 });
             };
+            function onAddPoints(points) {
+                const url = `/api/${resource}/${dms.deck.id}/multipoints`;
+                Net.post(url, points).then(updatedDeck => {
+                    update(updatedDeck);
+                    onSuccessCallback();
+                });
+            };
 
-            return html`<${PointForm} onSubmit=${ onAddPoint } submitMessage="Create Point"/>`;
+            return html`<${PointForm} onSubmit=${ onAddPoint } submitMessage="Create Point" onSubmitMultiplePoints=${ onAddPoints }/>`;
         },
         onRefsChanged,
         noteManagerForDeckPoint: function(deckPoint) {

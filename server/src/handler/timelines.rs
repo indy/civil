@@ -129,6 +129,28 @@ pub async fn add_point(
     Ok(HttpResponse::Ok().json(timeline))
 }
 
+pub async fn add_multipoints(
+    points: Json<Vec<points_interop::ProtoPoint>>,
+    sqlite_pool: Data<SqlitePool>,
+    params: Path<IdParam>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    info!("add_multipoints");
+
+    let timeline_id = params.id;
+    let points = points.into_inner();
+    let user_id = session::user_id(&session)?;
+
+    for point in points {
+        points_db::create(&sqlite_pool, &point, timeline_id)?;
+    }
+
+    let mut timeline = db::get(&sqlite_pool, user_id, timeline_id)?;
+    sqlite_augment(&sqlite_pool, &mut timeline, timeline_id, user_id)?;
+
+    Ok(HttpResponse::Ok().json(timeline))
+}
+
 fn sqlite_augment(
     sqlite_pool: &Data<SqlitePool>,
     timeline: &mut interop::Timeline,

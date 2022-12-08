@@ -84,7 +84,8 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 )
                 .route("/{id}", put().to(people::edit)) // check
                 .route("/{id}", delete().to(people::delete))
-                .route("/{id}/points", post().to(people::add_point)),
+                .route("/{id}/points", post().to(people::add_point))
+                .route("/{id}/multipoints", post().to(people::add_multipoints)),
         )
         // quotes
         .service(
@@ -106,7 +107,8 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", get().to(timelines::get))
                 .route("/{id}", put().to(timelines::edit)) // check
                 .route("/{id}", delete().to(timelines::delete))
-                .route("/{id}/points", post().to(timelines::add_point)),
+                .route("/{id}/points", post().to(timelines::add_point))
+                .route("/{id}/multipoints", post().to(timelines::add_multipoints)),
         )
         // articles
         .service(
