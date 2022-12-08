@@ -171,6 +171,23 @@ pub fn parse<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
     Ok((tokens, res))
 }
 
+// a version of parse that treats everything as textual paragraphs. Used
+// when parsing headers as they shouldn't contain numbered lists
+//
+pub fn parse_as_paragraphs<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Vec<Node>> {
+    let mut tokens: &[Token] = tokens;
+    let mut res = Vec::new();
+
+    tokens = skip_leading_whitespace_and_newlines(tokens)?;
+    while !tokens.is_empty() && !is_terminator(tokens) {
+        let (rem, node) = eat_paragraph(tokens)?;
+        res.push(node);
+        tokens = skip_leading_whitespace_and_newlines(rem)?;
+    }
+
+    Ok((tokens, res))
+}
+
 fn eat_ordered_list<'a>(mut tokens: &'a [Token<'a>], halt_at: Option<TokenIdent>) -> ParserResult<Node> {
     let mut children: Vec<Node> = vec![];
 
@@ -328,7 +345,7 @@ fn eat_deleted<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
 }
 
 fn eat_header<'a>(level: u32, tokens: &'a [Token<'a>]) -> ParserResult<Node> {
-    let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
+    let (tokens, (pos, parsed_content)) = eat_header_contents(tokens)?;
     Ok((tokens, Node::Header(pos, level, parsed_content)))
 }
 
@@ -515,8 +532,22 @@ fn eat_basic_colon_command<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(usize, 
     let pos = get_token_pos(&tokens[0]);
     let (tokens, content) = eat_colon_command_content(tokens)?;
 
-    // isg todo: check that the first item of parse's results is an empty vec
-    let (_, parsed_content) = parse(&content)?;
+    let (rem, parsed_content) = parse(&content)?;
+    if !rem.is_empty() {
+        return Err(Error::ParserExpectedToEatAll);
+    }
+
+    Ok((tokens, (pos, parsed_content)))
+}
+
+fn eat_header_contents<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(usize, Vec<Node>)> {
+    let pos = get_token_pos(&tokens[0]);
+    let (tokens, content) = eat_colon_command_content(tokens)?;
+
+    let (rem, parsed_content) = parse_as_paragraphs(&content)?;
+    if !rem.is_empty() {
+        return Err(Error::ParserExpectedToEatAll);
+    }
 
     Ok((tokens, (pos, parsed_content)))
 }
@@ -1878,6 +1909,14 @@ third paragraph",
             let nodes = build(":h3(A header (with parentheses))");
             assert_eq!(1, nodes.len());
             header_with_multi_text(&nodes[0], 3, "A header (with parentheses)");
+        }
+        {
+            // even though this header starts with a 1. it shouldn't
+            // be treated as a numbered list
+            //
+            let nodes = build(":h2(1. A header)");
+            assert_eq!(1, nodes.len());
+            header_with_single_text(&nodes[0], 2, "1. A header");
         }
     }
 
