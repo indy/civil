@@ -17,7 +17,7 @@
 
 use crate::interop::decks::{BackNote, BackRef, DeckSimple, Ref};
 use crate::interop::notes::Note;
-use crate::interop::points::{DeckPoint, Point};
+use crate::interop::points::DeckPoint;
 use crate::interop::sr::FlashCard;
 use crate::interop::Key;
 
@@ -28,8 +28,6 @@ pub struct Person {
     pub name: String,
 
     pub sort_date: Option<chrono::NaiveDate>,
-
-    pub points: Option<Vec<Point>>,
 
     // all the points that happened during a person's life. These may not be
     // directly connected to the person's life, but it's interesting to see
@@ -54,7 +52,6 @@ impl From<crate::db::decks::DeckBase> for Person {
             name: d.name,
 
             sort_date: None,
-            points: None,
             all_points_during_life: None,
 
             notes: None,

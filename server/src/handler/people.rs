@@ -170,7 +170,6 @@ fn sqlite_augment(
     person_id: Key,
     user_id: Key,
 ) -> Result<()> {
-    let points = points_db::all(sqlite_pool, user_id, person_id)?;
     let all_points_during_life =
         points_db::all_points_during_life(sqlite_pool, user_id, person_id)?;
     let notes = notes_db::all_from_deck(sqlite_pool, person_id)?;
@@ -179,7 +178,6 @@ fn sqlite_augment(
     let backrefs = decks_db::get_backrefs(sqlite_pool, person_id)?;
     let flashcards = sr_db::all_flashcards_for_deck(sqlite_pool, person_id)?;
 
-    person.points = Some(points);
     person.all_points_during_life = Some(all_points_during_life);
     person.notes = Some(notes);
     person.refs = Some(refs);

@@ -90,11 +90,11 @@ function Person({ id }) {
 
     function hasBirthPoint(person) {
         function hasBirth(point) {
-            return point.title === "Born";
+            return point.title === "Born" && point.deckId === person.id;
         }
 
-        if (person.points) {
-            return person.points.find(hasBirth);
+        if (person.allPointsDuringLife) {
+            return person.allPointsDuringLife.find(hasBirth);
         };
         return false;
     }
@@ -140,7 +140,7 @@ function Person({ id }) {
 // called before this deck is cached by the AppState (ie after every modification)
 function preCacheFn(person) {
     function getExactDateFromPoints(points, kind) {
-        const p = points.find(p => p.kind === kind);
+        const p = points.find(p => p.kind === kind && p.deckId === person.id);
         if (!p || !p.exactDate) {
             return null;
         }
@@ -164,7 +164,7 @@ function preCacheFn(person) {
         return point;
     }
 
-    let born = getExactDateFromPoints(person.points, "PointBegin");
+    let born = getExactDateFromPoints(person.allPointsDuringLife, "PointBegin");
     if (born) {
         // we have a birth year so we can add the age of the person to each of the allPointsDuringLife elements
         person.allPointsDuringLife.forEach(p => addAge(p, born));

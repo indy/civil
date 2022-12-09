@@ -87,9 +87,6 @@ pub(crate) fn all(
 ) -> Result<Vec<interop::Point>> {
     let conn = sqlite_pool.get()?;
 
-    // todo: unify all sqlite BC date handling code
-
-    // bug: sqlite incorrectly sorts dates that begin in BC (it ignores the minus in the year)
     let points = sqlite::many(
         &conn,
         "select p.id,
@@ -149,7 +146,6 @@ pub(crate) fn all_points_during_life(
 ) -> Result<Vec<interop::DeckPoint>> {
     let conn = sqlite_pool.get()?;
 
-    // bug: sqlite incorrectly sorts dates that begin in BC (it ignores the minus in the year)
     let buggy = sqlite::many(
         &conn,
         "select d.id as deck_id,
