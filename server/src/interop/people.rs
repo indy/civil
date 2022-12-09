@@ -33,7 +33,7 @@ pub struct Person {
     // directly connected to the person's life, but it's interesting to see
     // what was happening during their lifetime
     //
-    pub all_points_during_life: Option<Vec<DeckPoint>>,
+    pub points: Option<Vec<DeckPoint>>,
 
     pub notes: Option<Vec<Note>>,
 
@@ -52,7 +52,7 @@ impl From<crate::db::decks::DeckBase> for Person {
             name: d.name,
 
             sort_date: None,
-            all_points_during_life: None,
+            points: None,
 
             notes: None,
 

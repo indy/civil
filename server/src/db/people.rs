@@ -32,7 +32,7 @@ fn person_with_sortdate_from_row(row: &Row) -> Result<interop::Person> {
         id: row.get(0)?,
         name: row.get(1)?,
         sort_date: row.get(2)?,
-        all_points_during_life: None,
+        points: None,
         notes: None,
         refs: None,
         backnotes: None,
@@ -46,7 +46,7 @@ fn person_from_row(row: &Row) -> Result<interop::Person> {
         id: row.get(0)?,
         name: row.get(1)?,
         sort_date: None,
-        all_points_during_life: None,
+        points: None,
         notes: None,
         refs: None,
         backnotes: None,
@@ -154,7 +154,6 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop
     //      2. reverse them
     //      3. add them to the beginning of the Vec
     let ancient_buggy = sqlite::many(&conn, stmt, params![&user_id], decksimpledate_from_row)?;
-
 
     fn grab_date(d: &DeckSimpleDate) -> Option<chrono::NaiveDate> {
         d.birth_date

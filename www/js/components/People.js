@@ -93,8 +93,8 @@ function Person({ id }) {
             return point.title === "Born" && point.deckId === person.id;
         }
 
-        if (person.allPointsDuringLife) {
-            return person.allPointsDuringLife.find(hasBirth);
+        if (person.points) {
+            return person.points.find(hasBirth);
         };
         return false;
     }
@@ -128,7 +128,7 @@ function Person({ id }) {
 
         <${SectionSearchResultsBackref} backrefs=${ searchResults }/>
         ${ hasKnownLifespan && html`
-            <${ListDeckPoints} deckPoints=${ deck.allPointsDuringLife }
+            <${ListDeckPoints} deckPoints=${ deck.points }
                                deckManager=${ deckManager }
                                holderId=${ deck.id }
                                showAddPointForm=${ appState.showAddPointForm.value }
@@ -149,7 +149,7 @@ function preCacheFn(person) {
         return triple;
     }
 
-    // point is an element in allPointsDuringLife
+    // point is an element in points
     function addAge(point, born) {
         if (!point.date) {
             console.log("no date???");
@@ -164,10 +164,10 @@ function preCacheFn(person) {
         return point;
     }
 
-    let born = getExactDateFromPoints(person.allPointsDuringLife, "PointBegin");
+    let born = getExactDateFromPoints(person.points, "PointBegin");
     if (born) {
-        // we have a birth year so we can add the age of the person to each of the allPointsDuringLife elements
-        person.allPointsDuringLife.forEach(p => addAge(p, born));
+        // we have a birth year so we can add the age of the person to each of the points elements
+        person.points.forEach(p => addAge(p, born));
     }
 
     return person;
