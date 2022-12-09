@@ -137,6 +137,7 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
                 toolbarMode: appState.toolbarMode.value,
                 noteSeq: dms.deck.noteSeqs.points[deckPoint.id],
                 resource,
+                onUpdateDeck: update,
                 onRefsChanged,
                 optionalDeckPoint: deckPoint,
                 appendLabel: `Append Note to ${ deckPoint.title }`,

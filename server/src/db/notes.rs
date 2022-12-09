@@ -218,7 +218,11 @@ pub(crate) fn create_notes(
             note.point_id,
             content,
             new_prev,
-            if it.peek().is_none() { next_note_id } else { None },
+            if it.peek().is_none() {
+                next_note_id
+            } else {
+                None
+            },
         )?;
         new_prev = Some(new_note.id);
         notes.push(new_note);

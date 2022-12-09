@@ -87,7 +87,10 @@ pub(crate) fn all(
 ) -> Result<Vec<interop::Point>> {
     let conn = sqlite_pool.get()?;
 
-    sqlite::many(
+    // todo: unify all sqlite BC date handling code
+
+    // bug: sqlite incorrectly sorts dates that begin in BC (it ignores the minus in the year)
+    let points = sqlite::many(
         &conn,
         "select p.id,
                 p.kind,
@@ -109,7 +112,21 @@ pub(crate) fn all(
          order by coalesce(p.exact_date, p.lower_date)",
         params![&user_id, &deck_id],
         point_from_row,
-    )
+    )?;
+
+    let (mut bc, mut ad): (Vec<interop::Point>, Vec<interop::Point>) =
+        points.into_iter().partition(|p| {
+            if p.exact_date.is_some() {
+                predates(p.exact_date)
+            } else {
+                predates(p.lower_date)
+            }
+        });
+
+    bc.reverse();
+    bc.append(&mut ad);
+
+    Ok(bc)
 }
 
 fn deckpoint_from_row(row: &Row) -> Result<interop::DeckPoint> {

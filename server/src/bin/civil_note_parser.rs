@@ -23,22 +23,18 @@ use std::cmp;
 use r2d2_sqlite::SqliteConnectionManager;
 use tracing::info;
 
-use std::io::{stdin,stdout,Write};
+use std::io::{stdin, stdout, Write};
 
 #[actix_rt::main]
 async fn main() -> Result<()> {
     civil_server::init_dotenv();
     civil_server::init_tracing();
 
-
-
     // let text = "|:# hello “foo”|.";
     // let res = convert_syntax_nside(&text);
 
     // info!("inp: '{}'", &text);
     // info!("out: '{}'", &res);
-
-
 
     let sqlite_db = civil_server::env_var_string("SQLITE_DB")?;
     civil_server::db::sqlite_migrations::migration_check(&sqlite_db)?;
@@ -71,10 +67,7 @@ async fn main() -> Result<()> {
             // note.content = convert_syntax_h8(note.id, &note.content);
             // note.content = convert_syntax_h9(note.id, &note.content);
 
-
             note.content = convert_syntax_pipe(&note.content);
-
-
 
             if original_content != note.content {
                 // print!("\n\n{}\n\n", original_content);
@@ -85,7 +78,7 @@ async fn main() -> Result<()> {
 
                 //if input.starts_with("y") {
                 //info!("saving {}", note.id);
-                    edit_note(&sqlite_pool, 1, &note, note.id)?;
+                edit_note(&sqlite_pool, 1, &note, note.id)?;
                 // } else {
                 //     println!("note.id: {}, skip this one", note.id);
                 // }
@@ -156,7 +149,6 @@ fn convert_syntax_comment(content: &str) -> String {
     let mut inside: bool = false;
     let mut inside_opening: usize = 0;
 
-
     if !content.contains("|:+") {
         return String::from(content);
     }
@@ -214,7 +206,6 @@ fn convert_syntax_disagree(content: &str) -> String {
 
     let mut inside: bool = false;
     let mut inside_opening: usize = 0;
-
 
     if !content.contains("|:-") {
         return String::from(content);
@@ -274,7 +265,6 @@ fn convert_syntax_nside(content: &str) -> String {
     let mut inside: bool = false;
     let mut inside_opening: usize = 0;
 
-
     if !content.contains("|:#") {
         return String::from(content);
     }
@@ -324,9 +314,6 @@ fn convert_syntax_nside(content: &str) -> String {
 
     res
 }
-
-
-
 
 fn convert_syntax_h1(id: Key, content: &str) -> String {
     let mut res: String = String::from("");
