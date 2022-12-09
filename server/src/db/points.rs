@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::predates;
+use crate::db::fix_bc_sort_order;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::{Error, Result};
 use crate::interop::decks as interop_decks;
@@ -114,19 +114,15 @@ pub(crate) fn all(
         point_from_row,
     )?;
 
-    let (mut bc, mut ad): (Vec<interop::Point>, Vec<interop::Point>) =
-        points.into_iter().partition(|p| {
-            if p.exact_date.is_some() {
-                predates(p.exact_date)
-            } else {
-                predates(p.lower_date)
-            }
-        });
+    fn grab_date(p: &interop::Point) -> Option<chrono::NaiveDate> {
+        if p.exact_date.is_some() {
+            p.exact_date
+        } else {
+            p.lower_date
+        }
+    }
 
-    bc.reverse();
-    bc.append(&mut ad);
-
-    Ok(bc)
+    Ok(fix_bc_sort_order::<interop::Point>(points, grab_date))
 }
 
 fn deckpoint_from_row(row: &Row) -> Result<interop::DeckPoint> {
@@ -194,12 +190,10 @@ pub(crate) fn all_points_during_life(
         deckpoint_from_row
     )?;
 
-    let (mut bc, mut ad): (Vec<interop::DeckPoint>, Vec<interop::DeckPoint>) =
-        buggy.into_iter().partition(|ds| predates(ds.date));
-    bc.reverse();
-    bc.append(&mut ad);
-
-    Ok(bc)
+    fn grab_date(d: &interop::DeckPoint) -> Option<chrono::NaiveDate> {
+        d.date
+    }
+    Ok(fix_bc_sort_order::<interop::DeckPoint>(buggy, grab_date))
 }
 
 pub(crate) fn create(

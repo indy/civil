@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::{decks, predates};
+use crate::db::{decks, fix_bc_sort_order};
 use crate::error::Result;
 use crate::interop::decks::{DeckKind, DeckSimple};
 use crate::interop::people as interop;
@@ -156,13 +156,13 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop
     //      2. reverse them
     //      3. add them to the beginning of the Vec
     let ancient_buggy = sqlite::many(&conn, stmt, params![&user_id], decksimpledate_from_row)?;
-    let (mut bc, mut ad): (Vec<DeckSimpleDate>, Vec<DeckSimpleDate>) = ancient_buggy
-        .into_iter()
-        .partition(|ds| predates(ds.birth_date));
-    bc.reverse();
-    bc.append(&mut ad);
 
-    let ancient = bc.into_iter().map(DeckSimple::from).collect();
+
+    fn grab_date(d: &DeckSimpleDate) -> Option<chrono::NaiveDate> {
+        d.birth_date
+    }
+    let ancient_fixed = fix_bc_sort_order::<DeckSimpleDate>(ancient_buggy, grab_date);
+    let ancient = ancient_fixed.into_iter().map(DeckSimple::from).collect();
 
     let stmt = "SELECT d.id, d.name, 'person', COALESCE(p.exact_date, p.lower_date) AS birth_date
                 FROM decks d, points p
