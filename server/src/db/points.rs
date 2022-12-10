@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::fix_bc_sort_order;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::{Error, Result};
 use crate::interop::decks as interop_decks;
@@ -87,7 +86,7 @@ pub(crate) fn all(
 ) -> Result<Vec<interop::Point>> {
     let conn = sqlite_pool.get()?;
 
-    let points = sqlite::many(
+    sqlite::many(
         &conn,
         "select p.id,
                 p.kind,
@@ -97,29 +96,19 @@ pub(crate) fn all(
                 p.latitude,
                 p.location_fuzz,
                 p.date_textual,
-                p.exact_date,
-                p.lower_date,
-                p.upper_date,
+                date(p.exact_realdate),
+                date(p.lower_realdate),
+                date(p.upper_realdate),
                 p.date_fuzz
          from   decks d,
                 points p
          where  d.user_id = ?1
                 and d.id = ?2
                 and p.deck_id = d.id
-         order by coalesce(p.exact_date, p.lower_date)",
+         order by coalesce(p.exact_realdate, p.lower_realdate)",
         params![&user_id, &deck_id],
         point_from_row,
-    )?;
-
-    fn grab_date(p: &interop::Point) -> Option<chrono::NaiveDate> {
-        if p.exact_date.is_some() {
-            p.exact_date
-        } else {
-            p.lower_date
-        }
-    }
-
-    Ok(fix_bc_sort_order::<interop::Point>(points, grab_date))
+    )
 }
 
 fn deckpoint_from_row(row: &Row) -> Result<interop::DeckPoint> {
@@ -146,7 +135,11 @@ pub(crate) fn all_points_during_life(
 ) -> Result<Vec<interop::DeckPoint>> {
     let conn = sqlite_pool.get()?;
 
-    let buggy = sqlite::many(
+    // a union of two queries:
+    // 1. all the points associated with a person (may include posthumous points)
+    // 2. all the points between the person's birth and death (if not dead then up until the present day)
+    //
+    sqlite::many(
         &conn,
         "select d.id as deck_id,
                 d.name as deck_name,
@@ -155,7 +148,8 @@ pub(crate) fn all_points_during_life(
                 p.kind,
                 p.title,
                 p.date_textual,
-                coalesce(p.exact_date, p.lower_date) as date
+                coalesce(date(p.exact_realdate), date(p.lower_realdate)) as date,
+                coalesce(p.exact_realdate, p.lower_realdate) as sortdate
          from   points p, decks d
          where  d.id = ?2
                 and d.user_id = ?1
@@ -168,28 +162,24 @@ pub(crate) fn all_points_during_life(
                 p.kind,
                 p.title,
                 p.date_textual,
-                coalesce(p.exact_date, p.lower_date) as date
+                coalesce(date(p.exact_realdate), date(p.lower_realdate)) as date,
+                coalesce(p.exact_realdate, p.lower_realdate) as sortdate
          from   points p, decks d
-         where  coalesce(p.exact_date, p.upper_date) >= (select coalesce(point_born.exact_date, point_born.lower_date) as born
+         where  coalesce(p.exact_realdate, p.upper_realdate) >= (select coalesce(point_born.exact_realdate, point_born.lower_realdate) as born
                                                          from   points point_born
                                                          where  point_born.deck_id = ?2
                                                                 and point_born.kind = 'point_begin')
-                and coalesce(p.exact_date, p.lower_date) <= coalesce((select coalesce(point_died.exact_date, point_died.upper_date) as died
+                and coalesce(p.exact_realdate, p.lower_realdate) <= coalesce((select coalesce(point_died.exact_realdate, point_died.upper_realdate) as died
                                                                       from   points point_died
                                                                       where  point_died.deck_id = ?2
                                                                              and point_died.kind = 'point_end'), CURRENT_DATE)
                 and p.deck_id = d.id
                 and d.id <> ?2
                 and d.user_id = ?1
-         order by date",
+         order by sortdate",
         params![&user_id, &deck_id],
         deckpoint_from_row
-    )?;
-
-    fn grab_date(d: &interop::DeckPoint) -> Option<chrono::NaiveDate> {
-        d.date
-    }
-    Ok(fix_bc_sort_order::<interop::DeckPoint>(buggy, grab_date))
+    )
 }
 
 pub(crate) fn create(
@@ -202,8 +192,8 @@ pub(crate) fn create(
     sqlite::zero(
         &conn,
         "INSERT INTO points(deck_id, title, kind, location_textual, longitude, latitude, location_fuzz,
-                            date_textual, exact_date, lower_date, upper_date, date_fuzz)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+                            date_textual, exact_realdate, lower_realdate, upper_realdate, date_fuzz)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, julianday(?9), julianday(?10), julianday(?11), ?12)",
         params![
             &deck_id,
             &point.title,

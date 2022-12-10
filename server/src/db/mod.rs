@@ -32,21 +32,3 @@ pub mod users;
 
 pub mod sqlite;
 pub mod sqlite_migrations;
-
-use chrono::Datelike;
-
-fn predates(d: Option<chrono::NaiveDate>) -> bool {
-    let (pre, _year) = d.unwrap().year_ce();
-    !pre
-}
-
-// sqlite can't correctly sort BC dates, they're reversed. So this un-reverses them
-pub(crate) fn fix_bc_sort_order<T>(
-    points: Vec<T>,
-    f: fn(&T) -> Option<chrono::NaiveDate>,
-) -> Vec<T> {
-    let (mut bc, mut ad): (Vec<T>, Vec<T>) = points.into_iter().partition(|p| predates(f(p)));
-    bc.reverse();
-    bc.append(&mut ad);
-    bc
-}
