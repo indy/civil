@@ -74,9 +74,6 @@ CREATE TABLE IF NOT EXISTS points (
        exact_realdate REAL,
        lower_realdate REAL,
        upper_realdate REAL,
-       exact_date DATE,
-       lower_date DATE,
-       upper_date DATE,
        date_fuzz REAL DEFAULT 1.0,
 
        FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -541,6 +538,13 @@ pub fn migration_check(db_name: &str) -> Result<()> {
                UPDATE points SET exact_realdate = julianday(exact_date);
                UPDATE points SET lower_realdate = julianday(lower_date);
                UPDATE points SET upper_realdate = julianday(upper_date);"),
+
+        ////////////////
+        // MIGRATION 6: remove old dates from points
+        ////////////////
+        M::up("ALTER TABLE points DROP COLUMN exact_date;
+               ALTER TABLE points DROP COLUMN lower_date;
+               ALTER TABLE points DROP COLUMN upper_date;"),
     ]);
 
     let mut conn = Connection::open(db_name)?;
