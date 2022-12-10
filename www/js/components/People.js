@@ -139,13 +139,14 @@ function Person({ id }) {
 
 // called before this deck is cached by the AppState (ie after every modification)
 function preCacheFn(person) {
-    function getExactDateFromPoints(points, kind) {
-        const p = points.find(p => p.kind === kind && p.deckId === person.id);
-        if (!p || !p.exactDate) {
+    function getBirthDateFromPoints(points) {
+        const kind = "PointBegin";
+        const p = points.find(p => (p.kind === kind) && (p.deckId === person.id));
+        if (!p || !p.date) {
             return null;
         }
 
-        let triple = dateStringAsTriple(p.exactDate);
+        let triple = dateStringAsTriple(p.date);
         return triple;
     }
 
@@ -164,7 +165,7 @@ function preCacheFn(person) {
         return point;
     }
 
-    let born = getExactDateFromPoints(person.points, "PointBegin");
+    let born = getBirthDateFromPoints(person.points);
     if (born) {
         // we have a birth year so we can add the age of the person to each of the points elements
         person.points.forEach(p => addAge(p, born));
