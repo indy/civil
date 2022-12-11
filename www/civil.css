@@ -1535,6 +1535,7 @@ input:required {
 .deluxe-toolbar-faded {
   opacity: 0.2;
 }
+
 .deluxe-toolbar:hover {
   opacity: 1.0;
 }
@@ -1555,6 +1556,13 @@ input:required {
 .toolbar-item-text {
   vertical-align: super;
   margin-left: 0.5rem;
+  opacity: 0.0;
+}
+.deluxe-toolbar:hover .toolbar-item-text {
+  opacity: 1.0;
+}
+.toolbar-item-selected .toolbar-item-text {
+  opacity: 1.0;
 }
 
 .toolbar-item-selected {
