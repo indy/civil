@@ -90,14 +90,14 @@ function augmentSettingsWithCssModifierParameters(uiColours) {
             // definitions are either hsl triplets or strings that reference the clock values
             //
             definitions: {
-                bg:  [46.5, 19.2,  15.0],
-                bg1: [85.7,  4.5,  17],
-                bg2: [46.1, 20.2,  19],
-                bg3: [46.5, 19.2,  5.0],
+                bg:  [46.5, 19.2,  2.0],
+                bg1: [85.7,  4.5,  4],
+                bg2: [46.1, 20.2,  6],
+                bg3: [46.5, 19.2,  0.0],
 
-                fg:  [43,  19,  75],
-                fg1: [16.7, 0, 60.7],
-                fg_inactive: [16.7, 0, 40],
+                fg:  [43,  19,  45],
+                fg1: [16.7, 0, 40.7],
+                fg_inactive: [16.7, 0, 20],
 
                 divider: [16.7, 0, 23],
 
@@ -131,12 +131,12 @@ function augmentSettingsWithCssModifierParameters(uiColours) {
             // used to generate the fg clock values
             saturationBg: 60.5,
             hueOffsetBg: 67.1,
-            lightnessBg: 50.0,
+            lightnessBg: 30.0,
 
             // used to generate the bg clock values
             saturationFg: 57.6,
             hueOffsetFg: 65.7,
-            lightnessFg: 80
+            lightnessFg: 60
         }
     }
     return s;
