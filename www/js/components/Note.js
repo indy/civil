@@ -147,10 +147,18 @@ function reducer(state, action) {
         }
     case ADD_FLASH_CARD_UI_SHOW: {
         const showUI = action.data;
-        return {
+        const newState = {
             ...state,
             addFlashCardUI: showUI
         }
+
+        if (showUI) {
+            AppStateChange.obtainKeyboard();
+        } else {
+            AppStateChange.relinquishKeyboard();
+        }
+
+        return newState;
     }
     case ADD_NOTE_ABOVE_UI_SHOW: {
         const showUI = action.data;
@@ -210,6 +218,7 @@ function reducer(state, action) {
 
         let reviewCount = appState.srReviewCount.value + 1;
 
+        AppStateChange.relinquishKeyboard();
         AppStateChange.setReviewCount(reviewCount);
         AppStateChange.toolbarMode(TOOLBAR_VIEW);
 
@@ -388,6 +397,7 @@ export default function Note({ note, parentDeck, toolbarMode, onDelete, onEdited
                     flashcard: newFlashcard,
                     appState
                 });
+                setFlashCardPrompt('');
             });
         }
 
