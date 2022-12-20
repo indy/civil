@@ -22,11 +22,15 @@ function DeckSimpleList({list}) {
     </div>`;
 }
 
-function DeckSimpleListSection({label, list, expanded, hideEmpty }) {
+function DeckSimpleListSection({label, list, expanded, hideEmpty, onToggle }) {
     let [show, setShow] = useState(expanded);
 
     function toggleShow() {
-        setShow(!show);
+        const newShowState = !show;
+        setShow(newShowState);
+        if (onToggle) {
+            onToggle(newShowState);
+        }
     }
 
     if(hideEmpty && list && list.length === 0) {

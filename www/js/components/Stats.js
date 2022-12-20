@@ -3,20 +3,28 @@ import { html, useState, useEffect } from '/lib/preact/mod.js';
 import Net from '/js/Net.js';
 import { DeckSimpleListSection } from '/js/components/ListSections.js';
 
-export default function Stats(props) {
+export default function Stats() {
 
-    let [stats, setStats] = useState({});
+    let [localState, setLocalState] = useState({
+        fetchedStats: false,
+        stats: {}
+    });
 
-    useEffect(() => {
-        Net.get('/api/stats').then(s => {
-            console.log(s);
-            setStats(s);
-        });
-    }, []);
+    function onToggleStats(visible) {
+        if (visible && !localState.fetchedStats) {
+            Net.get('/api/stats').then(s => {
+                setLocalState({
+                    ...localState,
+                    fetchedStats: true,
+                    stats: s
+                });
+            });
+        }
+    }
 
     return html`
     <article>
         <h1 class="ui">Stats</h1>
-        <${DeckSimpleListSection} label='Recently Visited' list=${ stats.recentlyVisited } expanded/>
+        <${DeckSimpleListSection} label='Recently Visited' list=${ localState.stats.recentlyVisited } onToggle=${onToggleStats}/>
     </article>`;
 }
