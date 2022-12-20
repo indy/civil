@@ -58,7 +58,7 @@ const state = {
     // },
     user: signal(undefined),
 
-    preferredOrder: ["ideas", "people", "articles", "timelines", "quotes", "stats"],
+    preferredOrder: ["ideas", "people", "articles", "timelines", "quotes", "stuff"],
 
     // key == resource name of decks
     listing: signal({

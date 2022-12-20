@@ -81,7 +81,7 @@ var precacheConfig = [
     "/js/components/SectionSearchResultsBackref.js",
     "/js/components/SpacedRepetition.js",
     "/js/components/StarRating.js",
-    "/js/components/Stats.js",
+    "/js/components/Stuff.js",
     "/js/components/Timelines.js",
     "/js/components/Title.js",
     "/js/components/WhenVerbose.js",

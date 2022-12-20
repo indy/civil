@@ -3,7 +3,7 @@ import { html, useState, useEffect } from '/lib/preact/mod.js';
 import Net from '/js/Net.js';
 import { DeckSimpleListSection } from '/js/components/ListSections.js';
 
-export default function Stats() {
+export default function Stuff() {
 
     let [localState, setLocalState] = useState({
         fetchedStats: false,

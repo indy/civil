@@ -8,7 +8,7 @@ import { augmentSettingsWithCssModifierParameters } from '/js/ColourCreator.js';
 
 import SearchCommand           from '/js/components/SearchCommand.js';
 import SpacedRepetition        from '/js/components/SpacedRepetition.js';
-import Stats                   from '/js/components/Stats.js';
+import Stuff                   from '/js/components/Stuff.js';
 import { Idea, Ideas }         from '/js/components/Ideas.js';
 import { Login, Logout }       from '/js/components/Login.js';
 import { Person, People }      from '/js/components/People.js';
@@ -110,7 +110,7 @@ function AppUI(props) {
             <${Login} path="/login" loginCallback=${ loginHandler }/>
             <${Logout} path="/logout"/>
             <${SpacedRepetition} path="/sr"/>
-            <${Stats} path="/stats"/>
+            <${Stuff} path="/stuff"/>
             <${Ideas} path="/ideas"/>
             <${Idea} path="/ideas/:id"/>
             <${Articles} path="/articles"/>
