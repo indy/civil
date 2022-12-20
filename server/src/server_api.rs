@@ -141,7 +141,11 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // setup
         .service(scope("/ubersetup").route("", get().to(ubersetup::setup)))
         // stats
-        .service(scope("/stats").route("", get().to(stats::get)))
+        .service(
+            scope("/stats")
+                .route("", get().to(stats::get))
+                .route("/recently_visited", get().to(stats::recently_visited)),
+        )
         // edges
         .service(scope("/edges").route("/notes_decks", post().to(edges::create_from_note_to_decks)))
         // graph

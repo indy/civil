@@ -1,5 +1,7 @@
 import { html, useState, Link } from '/lib/preact/mod.js';
 
+import Net from '/js/Net.js';
+
 import { ListingLink } from '/js/components/ListingLink.js';
 import { StarRating } from '/js/components/StarRating.js';
 import { svgExpand, svgMinimise } from '/js/svgIcons.js';
@@ -22,15 +24,11 @@ function DeckSimpleList({list}) {
     </div>`;
 }
 
-function DeckSimpleListSection({label, list, expanded, hideEmpty, onToggle }) {
+function DeckSimpleListSection({label, list, expanded, hideEmpty }) {
     let [show, setShow] = useState(expanded);
 
     function toggleShow() {
-        const newShowState = !show;
-        setShow(newShowState);
-        if (onToggle) {
-            onToggle(newShowState);
-        }
+        setShow(!show);
     }
 
     if(hideEmpty && list && list.length === 0) {
@@ -52,6 +50,51 @@ function DeckSimpleListSection({label, list, expanded, hideEmpty, onToggle }) {
         </p>`;
     }
 }
+
+function LazyLoadedListSection({label, url }) {
+    // list, expanded, hideEmpty, onToggle
+    let [localState, setLocalState] = useState({
+        fetchedData: false,
+        list: [],
+        show: false
+    });
+
+    function toggleShow() {
+        const visible = !localState.show;
+        setLocalState({
+            ...localState,
+            show: visible
+        });
+        if (visible && !localState.fetchedStats) {
+            Net.get(url).then(d => {
+                setLocalState({
+                    ...localState,
+                    fetchedStats: true,
+                    list: d,
+                    show: true
+                });
+            });
+        }
+    }
+
+    if(localState.show) {
+        return html`
+        <div>
+            <p class="subheading" onClick=${ toggleShow }>
+                ${ svgMinimise() } ${ label }
+            </p>
+            <ul class="compacted-list" >
+                ${ buildDeckSimpleListing(localState.list) }
+            </ul>
+        </div>`;
+    } else {
+        return html`
+        <p class="subheading" onClick=${ toggleShow }>
+            ${ svgExpand() } ${ label }
+        </p>`;
+    }
+}
+
 
 function RatedListSection({label, list, resource, expanded}) {
     let [show, setShow] = useState(expanded);
@@ -125,4 +168,4 @@ function RatedListingLink({ resource, id, name, rating, description }) {
     return res;
 }
 
-export { DeckSimpleListSection, RatedListSection, BasicListSection, DeckSimpleList };
+export { DeckSimpleListSection, RatedListSection, BasicListSection, DeckSimpleList, LazyLoadedListSection };

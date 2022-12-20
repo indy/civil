@@ -20,10 +20,21 @@ use tracing::info;
 
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Result;
+use crate::interop::decks::DeckSimple;
 use crate::interop::stats as interop;
 use crate::interop::Key;
 
 pub fn get(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::UserStats> {
+    let recently_visited = recently_visited(sqlite_pool, user_id)?;
+
+    let conn = sqlite_pool.get()?;
+    Ok(interop::UserStats {
+        recently_visited,
+        stats: generate_stats(&conn, user_id)?,
+    })
+}
+
+pub fn recently_visited(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<DeckSimple>> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT decks.id, decks.name, decks.kind
@@ -33,17 +44,12 @@ pub fn get(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::UserStats>
                 ORDER BY hits.created_at DESC
                 LIMIT 15";
 
-    let recently_visited = sqlite::many(
+    sqlite::many(
         &conn,
         stmt,
         params![&user_id],
         crate::db::decks::decksimple_from_row,
-    )?;
-
-    Ok(interop::UserStats {
-        recently_visited,
-        stats: generate_stats(&conn, user_id)?,
-    })
+    )
 }
 
 pub fn create_stats(sqlite_pool: &SqlitePool, user_id: Key, stats: &interop::Stats) -> Result<()> {
