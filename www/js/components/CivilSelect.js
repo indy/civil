@@ -33,10 +33,10 @@ function candidateToRef(candidate) {
 }
 
 function rebuildCurrentSelection(state) {
-    state.currentSelection = state.referencesUnchanged.concat(state.referencesChanged,
-                                                              state.referencesAdded,
-                                                              state.referencesCreated);
-
+    state.currentSelection = state.referencesUnchanged.concat(
+        state.referencesChanged,
+        state.referencesAdded,
+        state.referencesCreated);
     state.currentSelection.sort(sortByResourceThenName);
     return state;
 }
@@ -383,6 +383,7 @@ function Input({ text, onTextChanged, onAdd, onCreate, candidates, currentSelect
     <form class="civsel-form" onSubmit=${ onSubmit }>
         <${CivilInput} type='text'
                        value='${ text }'
+                       focus
                        autoComplete='off'
                        onInput=${ onInput }/>
         <div class='civsel-candidates'>${ cl }</div>

@@ -1,4 +1,4 @@
-import { html,  useState, useEffect, useRef } from '/lib/preact/mod.js';
+import { html } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
 import { getAppState, AppStateChange } from '/js/AppState.js';

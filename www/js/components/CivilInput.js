@@ -1,10 +1,19 @@
-import { html } from '/lib/preact/mod.js';
+import { html, useRef, useEffect } from '/lib/preact/mod.js';
 import { AppStateChange } from '/js/AppState.js';
 
-export default function CivilInput({id, value, autoComplete, onInput, size, elementClass, readOnly }) {
+export default function CivilInput({id, value, autoComplete, onInput, size, elementClass, readOnly, focus }) {
+    const inputRef = useRef(null);
+
+    useEffect(() => {
+        if (inputRef.current && focus) {
+            inputRef.current.focus();
+        }
+    }, []);
+
     const ac = autoComplete || "off";
     return html`
-      <input id=${id}
+      <input ref=${inputRef}
+             id=${id}
              class=${elementClass}
              type="text"
              name=${id}
