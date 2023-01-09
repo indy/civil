@@ -228,14 +228,20 @@ function dmsUpdateDeck(dms, deck, resource, scrollToTop) {
 }
 
 function dmsShowSummaryButtonToggle(dms, isToggled) {
-    let res = { ...dms };
-    res.displayShowSummaryButton = isToggled;
+    let res = {
+        ...dms,
+        displayShowSummaryButton: isToggled,
+        isShowingUpdateForm: false
+    };
     return res;
 }
 
 function dmsShowReviewButtonToggle(dms, isToggled) {
-    let res = { ...dms };
-    res.displayShowReviewButton = isToggled;
+    let res = {
+        ...dms,
+        displayShowReviewButton: isToggled,
+        isShowingUpdateForm: false
+    };
     return res;
 }
 
