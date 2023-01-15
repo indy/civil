@@ -5,3 +5,8 @@ staging
 *.db
 *.db-shm
 *.db-wal
+
+client/www/civil_wasm_bg.wasm
+client/www/civil_wasm.js
+client/www/civil_wasm.d.ts
+client/www/civil_wasm_bg.wasm.d.ts
