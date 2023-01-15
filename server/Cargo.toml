@@ -2,7 +2,7 @@
 name = "civil-server"
 version = "0.1.0"
 authors = ["Inderjit Gill <email@indy.io>"]
-license = "AGPL-3.0"
+license = "AGPL-3.0-or-later"
 edition = "2021"
 
 [dependencies]

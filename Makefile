@@ -42,7 +42,7 @@ CLIENT_WASM_NAME = civil_wasm
 CLIENT_WASM = $(CLIENT_WASM_NAME).wasm
 CLIENT_WASM_BG = $(CLIENT_WASM_NAME)_bg.wasm
 
-CLIENT_FOLDER = client/www
+WWW_FOLDER = client/www
 WASM_FOLDER = client/wasm
 SERVER_FOLDER = server
 SHARED_FOLDER = shared
@@ -51,7 +51,7 @@ SHARED_FOLDER = shared
 # filesets
 ################################################################################
 
-CLIENT_FILES = $(call rwildcard,$(CLIENT_FOLDER),*)
+CLIENT_FILES = $(call rwildcard,$(WWW_FOLDER),*)
 SERVER_FILES = $(call rwildcard,$(SERVER_FOLDER)/src,*) $(SERVER_FOLDER)/Cargo.toml
 SYSTEMD_FILES = $(wildcard misc/systemd/*)
 
@@ -64,7 +64,7 @@ SHARED_FILES = $(wildcard $(SHARED_FOLDER)/src/*) $(SHARED_FOLDER)/Cargo.toml
 # top-level public targets
 ################################################################################
 
-run: $(CLIENT_FOLDER)/$(CLIENT_WASM_BG) server
+run: $(WWW_FOLDER)/$(CLIENT_WASM_BG) server
 	cargo run --manifest-path $(SERVER_FOLDER)/Cargo.toml --bin $(SERVER_BINARY)
 
 # collect stats on each user's content, stores the stats in the db
@@ -113,21 +113,21 @@ $(SERVER_FOLDER)/target/release/$(SERVER_BINARY): $(SERVER_FILES) $(SHARED_FILES
 $(SERVER_FOLDER)/target/release/civil_stat_collector: $(SERVER_FILES)
 	cargo build --manifest-path $(SERVER_FOLDER)/Cargo.toml --bin civil_stat_collector --release
 
-$(CLIENT_FOLDER)/$(CLIENT_WASM_BG): $(WASM_FILES) $(SHARED_FILES)
+$(WWW_FOLDER)/$(CLIENT_WASM_BG): $(WASM_FILES) $(SHARED_FILES)
 	cargo build --manifest-path $(WASM_FOLDER)/Cargo.toml --target wasm32-unknown-unknown
-	wasm-bindgen $(WASM_FOLDER)/target/wasm32-unknown-unknown/debug/$(CLIENT_WASM) --out-dir www --no-typescript --no-modules
+	wasm-bindgen $(WASM_FOLDER)/target/wasm32-unknown-unknown/debug/$(CLIENT_WASM) --out-dir $(WWW_FOLDER) --no-modules
 
 staging/www/$(CLIENT_WASM_BG): $(WASM_FILES) $(SHARED_FILES)
 	mkdir -p $(@D)
 	cargo build --manifest-path $(WASM_FOLDER)/Cargo.toml --release --target wasm32-unknown-unknown
-	wasm-bindgen $(WASM_FOLDER)/target/wasm32-unknown-unknown/release/$(CLIENT_WASM) --out-dir staging/www --no-typescript --no-modules
+	wasm-bindgen $(WASM_FOLDER)/target/wasm32-unknown-unknown/release/$(CLIENT_WASM) --out-dir staging/www --no-modules
 
 staging/www/index.html: $(CLIENT_FILES)
 	mkdir -p $(@D)
-	cp -r client/www staging/.
+	cp -r $(WWW_FOLDER) staging/.
 ifdef MINIFY
-	minify -o staging/www/ --match=\.css www
-	minify -r -o staging/www/js --match=\.js www/js
+	minify -o staging/www/ --match=\.css $(WWW_FOLDER)
+	minify -r -o staging/www/js --match=\.js $(WWW_FOLDER)/js
 endif
 	sed -i 's/^var devMode.*/\/\/ START OF CODE MODIFIED BY MAKEFILE\nvar devMode = false;/g' staging/www/service-worker.js
 	sed -i "s/^var CACHE_NAME.*/var CACHE_NAME = 'civil-$$(date '+%Y%m%d-%H%M')';\n\/\/ END OF CODE MODIFIED BY MAKEFILE/g" staging/www/service-worker.js
