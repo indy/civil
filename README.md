@@ -6,6 +6,12 @@ A knowledge management system for the next 30 years. Developed at git.indy.io fo
 
 rename .env.example to .env and update it for your environment.
 
+one time initialisation with:
+```sh
+$ make init
+```
+
+
 ```sh
 $ make run
 ```
