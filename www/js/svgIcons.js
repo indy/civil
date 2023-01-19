@@ -1,6 +1,15 @@
 // svg icons are from https://icons.mono.company
 // old ones were from https://github.com/tabler/tabler-icons
-// some more free icons are here (haven't tried these yet): https://iconoir.com/
+
+
+// some more free icons are here (haven't tried these yet):
+// - https://icons.getbootstrap.com/ (good icon fonts)
+// - https://iconduck.com/sets/small-n-flat-icons
+
+// - https://www.streamlinehq.com/icons (pay)
+// - https://iconoir.com/ (colourful, but have to register/pay)
+
+
 
 // tidy up svg with: https://yqnn.github.io/svg-path-editor/
 

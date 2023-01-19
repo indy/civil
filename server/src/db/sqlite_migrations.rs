@@ -54,6 +54,9 @@ CREATE TABLE IF NOT EXISTS decks (
 
        name TEXT NOT NULL,
 
+       -- called insignia in case we want to save 'badge' for future use
+       insignia INTEGER DEFAULT 0,
+
        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
@@ -545,6 +548,11 @@ pub fn migration_check(db_name: &str) -> Result<()> {
         M::up("ALTER TABLE points DROP COLUMN exact_date;
                ALTER TABLE points DROP COLUMN lower_date;
                ALTER TABLE points DROP COLUMN upper_date;"),
+
+        ////////////////
+        // MIGRATION 7: add insignia column to decks
+        ////////////////
+        M::up("ALTER TABLE decks ADD COLUMN insignia INTEGER DEFAULT 0;"),
     ]);
 
     let mut conn = Connection::open(db_name)?;
