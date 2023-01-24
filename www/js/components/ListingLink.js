@@ -4,19 +4,21 @@ import { svgCaretRight, svgCaretDown } from '/js/svgIcons.js';
 import Ref from '/js/components/Ref.js';
 
 import buildMarkup from '/js/components/BuildMarkup.js';
+import { renderInsignia } from '/js/components/Insignias.js';
 
-function ListingLink({ resource, id, name }) {
+function ListingLink({ resource, id, name, insignia }) {
     const href = `/${resource}/${id}`;
 
     let res = html`
     <li class="listing-link">
+        ${renderInsignia(insignia)}
         <${Link} class="pigment-fg-${resource}" href=${ href }>${ name }</${Link}>
     </li>`;
 
     return res;
 };
 
-function ExpandableListingLink({ index, resource, deckId, deckName, deckLevelRefs, deckLevelAnnotation, notes, expanded, onExpandClick }) {
+function ExpandableListingLink({ index, resource, deckId, deckName, deckInsignia, deckLevelRefs, deckLevelAnnotation, notes, expanded, onExpandClick }) {
     function onClicked(e) {
         e.preventDefault();
         onExpandClick(index);
@@ -30,6 +32,7 @@ function ExpandableListingLink({ index, resource, deckId, deckName, deckLevelRef
     <div>
         <span onClick=${onClicked}>${ icon }</span>
         <span class="backref-deck">
+            ${renderInsignia(deckInsignia)}
             <${Link} class="pigment-fg-${resource}" href=${ href }>${ deckName }</${Link}>
         </span>
         ${ expanded && deckLevelAnnotation && buildDeckLevelAnnotation(deckLevelAnnotation) }

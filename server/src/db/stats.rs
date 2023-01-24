@@ -37,7 +37,7 @@ pub fn get(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::UserStats>
 pub fn recently_visited(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<DeckSimple>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT decks.id, decks.name, decks.kind
+    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.insignia
                 FROM hits INNER JOIN decks ON decks.id = hits.deck_id
                 WHERE decks.user_id = ?1
                 GROUP BY hits.deck_id

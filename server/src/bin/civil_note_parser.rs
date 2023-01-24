@@ -23,7 +23,7 @@ use std::cmp;
 use r2d2_sqlite::SqliteConnectionManager;
 use tracing::info;
 
-use std::io::{stdin, stdout, Write};
+// use std::io::{stdin, stdout, Write};
 
 #[actix_rt::main]
 async fn main() -> Result<()> {
@@ -143,7 +143,7 @@ fn convert_syntax_pipe(content: &str) -> String {
     res
 }
 
-fn convert_syntax_comment(content: &str) -> String {
+fn _convert_syntax_comment(content: &str) -> String {
     let mut res: String = String::from("");
 
     let mut inside: bool = false;
@@ -201,7 +201,7 @@ fn convert_syntax_comment(content: &str) -> String {
     res
 }
 
-fn convert_syntax_disagree(content: &str) -> String {
+fn _convert_syntax_disagree(content: &str) -> String {
     let mut res: String = String::from("");
 
     let mut inside: bool = false;
@@ -259,7 +259,7 @@ fn convert_syntax_disagree(content: &str) -> String {
 
     res
 }
-fn convert_syntax_nside(content: &str) -> String {
+fn _convert_syntax_nside(content: &str) -> String {
     let mut res: String = String::from("");
 
     let mut inside: bool = false;
@@ -315,7 +315,7 @@ fn convert_syntax_nside(content: &str) -> String {
     res
 }
 
-fn convert_syntax_h1(id: Key, content: &str) -> String {
+fn _convert_syntax_h1(_id: Key, content: &str) -> String {
     let mut res: String = String::from("");
 
     let mut inside: bool = false;
@@ -360,7 +360,7 @@ fn convert_syntax_h1(id: Key, content: &str) -> String {
     res
 }
 
-fn convert_syntax_h2(id: Key, content: &str) -> String {
+fn _convert_syntax_h2(_id: Key, content: &str) -> String {
     let mut res: String = String::from("");
 
     let mut inside: bool = false;
@@ -405,7 +405,7 @@ fn convert_syntax_h2(id: Key, content: &str) -> String {
     res
 }
 
-fn convert_syntax_h3(id: Key, content: &str) -> String {
+fn _convert_syntax_h3(_id: Key, content: &str) -> String {
     let mut res: String = String::from("");
 
     let mut inside: bool = false;
@@ -450,7 +450,7 @@ fn convert_syntax_h3(id: Key, content: &str) -> String {
     res
 }
 
-fn convert_syntax_h4(id: Key, content: &str) -> String {
+fn _convert_syntax_h4(_id: Key, content: &str) -> String {
     let mut res: String = String::from("");
 
     let mut inside: bool = false;
@@ -495,7 +495,7 @@ fn convert_syntax_h4(id: Key, content: &str) -> String {
     res
 }
 
-fn convert_syntax_h5(id: Key, content: &str) -> String {
+fn _convert_syntax_h5(_id: Key, content: &str) -> String {
     let mut res: String = String::from("");
 
     let mut inside: bool = false;
@@ -540,7 +540,7 @@ fn convert_syntax_h5(id: Key, content: &str) -> String {
     res
 }
 
-fn convert_syntax_h6(id: Key, content: &str) -> String {
+fn _convert_syntax_h6(_id: Key, content: &str) -> String {
     let mut res: String = String::from("");
 
     let mut inside: bool = false;
@@ -585,7 +585,7 @@ fn convert_syntax_h6(id: Key, content: &str) -> String {
     res
 }
 
-fn convert_syntax_h7(id: Key, content: &str) -> String {
+fn _convert_syntax_h7(_id: Key, content: &str) -> String {
     let mut res: String = String::from("");
 
     let mut inside: bool = false;
@@ -630,7 +630,7 @@ fn convert_syntax_h7(id: Key, content: &str) -> String {
     res
 }
 
-fn convert_syntax_h8(id: Key, content: &str) -> String {
+fn _convert_syntax_h8(_id: Key, content: &str) -> String {
     let mut res: String = String::from("");
 
     let mut inside: bool = false;
@@ -675,7 +675,7 @@ fn convert_syntax_h8(id: Key, content: &str) -> String {
     res
 }
 
-fn convert_syntax_h9(id: Key, content: &str) -> String {
+fn _convert_syntax_h9(_id: Key, content: &str) -> String {
     let mut res: String = String::from("");
 
     let mut inside: bool = false;
@@ -720,7 +720,7 @@ fn convert_syntax_h9(id: Key, content: &str) -> String {
     res
 }
 
-fn convert_syntax_highlight(id: Key, content: &str) -> String {
+fn _convert_syntax_highlight(_id: Key, content: &str) -> String {
     let mut res: String = String::from("");
     let mut inside: bool = false;
 
@@ -759,7 +759,7 @@ fn convert_syntax_highlight(id: Key, content: &str) -> String {
     res
 }
 
-fn convert_syntax_bold(id: Key, content: &str) -> String {
+fn _convert_syntax_bold(_id: Key, content: &str) -> String {
     let mut res: String = String::from("");
     let mut inside: bool = false;
 
@@ -798,7 +798,7 @@ fn convert_syntax_bold(id: Key, content: &str) -> String {
     res
 }
 
-fn convert_syntax_underline(id: Key, content: &str) -> String {
+fn _convert_syntax_underline(id: Key, content: &str) -> String {
     // let mut res: String = String::from("");
     // let mut inside: bool = false;
 

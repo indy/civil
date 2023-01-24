@@ -9,6 +9,7 @@ import Net from '/js/Net.js';
 import CivilInput from '/js/components/CivilInput.js';
 import DeckManager from '/js/components/DeckManager.js';
 import DeleteDeckConfirmation from '/js/components/DeleteDeckConfirmation.js';
+import { renderInsignia, InsigniaSelector } from '/js/components/Insignias.js';
 import LeftMarginHeading from '/js/components/LeftMarginHeading.js';
 import LeftMarginHeadingNoWrap from '/js/components/LeftMarginHeadingNoWrap.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
@@ -95,6 +96,9 @@ function ArticleTopMatter({ title, deck, isShowingUpdateForm, isEditingDeckRefs,
     <div>
         <div class="left-margin">
             <${LeftMarginHeading}>
+                ${renderInsignia(deck.insignia)}
+            </${LeftMarginHeading}>
+            <${LeftMarginHeading}>
                 ${deck.author}
             </${LeftMarginHeading}>
             <${LeftMarginHeadingNoWrap}>
@@ -119,6 +123,7 @@ function SectionUpdateArticle({ article, onUpdate }) {
     const [shortDescription, setShortDescription] = useState(article.shortDescription || '');
     const [rating, setRating] = useState(article.rating || 0);
     const [publishedDate, setPublishedDate] = useState(article.publishedDate || '');
+    const [insigniaId, setInsigniaId] = useState(article.insignia || 0);
 
     useEffect(() => {
         if (article.title && article.title !== '' && title === '') {
@@ -138,6 +143,9 @@ function SectionUpdateArticle({ article, onUpdate }) {
         }
         if (article.publishedDate && article.publishedDate !== '' && publishedDate === '') {
             setPublishedDate(article.publishedDate);
+        }
+        if (article.insignia !== undefined) {
+            setInsigniaId(article.insignia);
         }
     }, [article]);
 
@@ -174,7 +182,8 @@ function SectionUpdateArticle({ article, onUpdate }) {
             shortDescription: shortDescription.trim(),
             rating: rating,
             graphTerminator: false,
-            publishedDate: publishedDate.trim()
+            publishedDate: publishedDate.trim(),
+            insignia: insigniaId
         }, ["source"]);
 
         const resource = 'articles';
@@ -198,6 +207,10 @@ function SectionUpdateArticle({ article, onUpdate }) {
                        value=${ title }
                        onInput=${ handleChangeEvent } />
         <br/>
+
+        <${InsigniaSelector} insigniaId=${insigniaId} onChange=${setInsigniaId}/>
+        <br/>
+
         <label for="source">Source:</label>
         <br/>
         <${CivilInput} id="source"

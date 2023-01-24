@@ -30,6 +30,7 @@ fn idea_from_row(row: &Row) -> Result<interop::Idea> {
     Ok(interop::Idea {
         id: row.get(0)?,
         title: row.get(1)?,
+        insignia: row.get(4)?,
         graph_terminator: row.get(3)?,
         created_at: row.get(2)?,
         notes: None,
@@ -57,7 +58,7 @@ pub(crate) fn get_or_create(
 pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::IdeasListings> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "select id, name, 'idea'
+    let stmt = "select id, name, 'idea', insignia
                 from decks
                 where user_id = ?1 and kind = 'idea'
                 order by created_at desc
@@ -65,7 +66,7 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop
 
     let recent = sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)?;
 
-    let stmt = "SELECT id, name, 'idea'
+    let stmt = "SELECT id, name, 'idea', insignia
                 FROM decks
                 WHERE id NOT IN (SELECT deck_id
                                  FROM notes_decks
@@ -79,7 +80,7 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop
 
     let orphans = sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)?;
 
-    let stmt = "SELECT d.id, d.name, 'idea'
+    let stmt = "SELECT d.id, d.name, 'idea', d.insignia
                 FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
                 WHERE n.deck_id IS NULL
                 AND d.kind='idea'
@@ -98,7 +99,7 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop
 pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::Idea>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT id, name, created_at, graph_terminator
+    let stmt = "SELECT id, name, created_at, graph_terminator, insignia
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'idea'
                 ORDER BY name";
@@ -136,6 +137,7 @@ pub(crate) fn edit(
         DeckKind::Idea,
         &idea.title,
         idea.graph_terminator,
+        idea.insignia,
     )?;
 
     Ok(deck.into())

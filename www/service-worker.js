@@ -59,6 +59,7 @@ var precacheConfig = [
     "/js/components/Ideas.js",
     "/js/components/Image.js",
     "/js/components/ImageSelector.js",
+    "/js/components/Insignias.js",
     "/js/components/LeftMarginHeading.js",
     "/js/components/LeftMarginHeadingNoWrap.js",
     "/js/components/LifespanForm.js",

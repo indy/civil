@@ -5,6 +5,7 @@ import { getAppState, AppStateChange } from '/js/AppState.js';
 import { capitalise, formattedDate } from '/js/JsUtils.js';
 import { ensureListingLoaded, deckTitle } from '/js/CivilUtils.js';
 
+import { renderInsignia, InsigniaSelector } from '/js/components/Insignias.js';
 import CivilInput from '/js/components/CivilInput.js';
 import DeckManager from '/js/components/DeckManager.js';
 import DeleteDeckConfirmation from '/js/components/DeleteDeckConfirmation.js';
@@ -109,6 +110,7 @@ function IdeaTopMatter({ title, createdAt, isShowingUpdateForm, isEditingDeckRef
 function SectionUpdateIdea({ idea, onUpdate }) {
     const [title, setTitle] = useState(idea.title || '');
     const [graphTerminator, setGraphTerminator] = useState(idea.graphTerminator);
+    const [insigniaId, setInsigniaId] = useState(idea.insignia || 0);
 
     useEffect(() => {
         if (idea.title && idea.title !== '' && title === '') {
@@ -117,6 +119,12 @@ function SectionUpdateIdea({ idea, onUpdate }) {
         if (idea.graphTerminator !== undefined) {
             setGraphTerminator(idea.graphTerminator);
         }
+
+        if (idea.insignia !== undefined) {
+            setInsigniaId(idea.insignia);
+        }
+
+
     }, [idea]);
 
     const handleChangeEvent = (event) => {
@@ -132,7 +140,8 @@ function SectionUpdateIdea({ idea, onUpdate }) {
     const handleSubmit = (event) => {
         const data = {
             title: title.trim(),
-            graphTerminator: graphTerminator
+            graphTerminator: graphTerminator,
+            insignia: insigniaId
         };
 
         Net.put(`/api/ideas/${idea.id}`, data).then(newDeck => {
@@ -148,6 +157,7 @@ function SectionUpdateIdea({ idea, onUpdate }) {
         }
     }
 
+
     return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>
         <label for="title">Title:</label>
@@ -155,6 +165,10 @@ function SectionUpdateIdea({ idea, onUpdate }) {
         <${CivilInput} id="title"
                        value=${ title }
                        onInput=${ handleChangeEvent } />
+        <br/>
+
+        <${InsigniaSelector} insigniaId=${insigniaId} onChange=${setInsigniaId}/>
+
         <br/>
         <label for="graph-terminator">Graph Terminator:</label>
         <input type="checkbox"

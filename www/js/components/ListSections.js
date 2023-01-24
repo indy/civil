@@ -1,10 +1,11 @@
 import { html, useState, Link } from '/lib/preact/mod.js';
 
 import Net from '/js/Net.js';
+import { svgExpand, svgMinimise } from '/js/svgIcons.js';
 
 import { ListingLink } from '/js/components/ListingLink.js';
 import { StarRating } from '/js/components/StarRating.js';
-import { svgExpand, svgMinimise } from '/js/svgIcons.js';
+import { renderInsignia } from '/js/components/Insignias.js';
 
 function BasicListSection({list, resource}) {
     return html`
@@ -128,6 +129,7 @@ function buildListing(list, resource) {
     return list.map((deck, i) => html`
     <${ListingLink} id=${ deck.id }
                     name=${ deck.title || deck.name }
+                    insignia=${ deck.insignia }
                     resource=${resource || deck.resource }/>`);
 }
 
@@ -138,6 +140,7 @@ function buildDeckSimpleListing(list) {
     return list.map((deck, i) => html`
     <${ListingLink} id=${ deck.id }
                     name=${ deck.title || deck.name }
+                    insignia=${ deck.insignia }
                     resource=${deck.resource}/>`);
 }
 
@@ -146,26 +149,28 @@ function buildRatingListing(list, resource) {
         return [];
     }
     return list.map((deck, i) => html`
-    <${RatedListingLink} id=${ deck.id }
-                         name=${ deck.title }
+    <${RatedListingLink} deck=${deck}
                          resource=${resource}
-                         rating=${deck.rating}
                          description=${deck.shortDescription}/>`);
 }
 
 // based off ListingLink but displays a star rating in the left hand margin
 //
-function RatedListingLink({ resource, id, name, rating, description }) {
-    const href = `/${resource}/${id}`;
+function RatedListingLink({ deck, resource }) {
+    if (deck) {
+        let { id, title, rating, shortDescription, insignia } = deck;
+        const href = `/${resource}/${id}`;
 
-    let res = html`
-    <li>
-        <${StarRating} rating=${rating}/>
-        <${Link} class="pigment-fg-${resource}" href=${ href }>${ name }</${Link}>
-        <span class="descriptive-scribble">${description}</span>
-    </li>`;
-
-    return res;
+        return html`
+        <li>
+            <${StarRating} rating=${rating}/>
+            ${renderInsignia(insignia)}
+            <${Link} class="pigment-fg-${resource}" href=${ href }>${ title }</${Link}>
+            <span class="descriptive-scribble">${shortDescription}</span>
+        </li>`;
+    } else {
+        return html`<li></li>`;
+    }
 }
 
 export { DeckSimpleListSection, RatedListSection, BasicListSection, DeckSimpleList, LazyLoadedListSection };

@@ -154,6 +154,7 @@ function SectionLinks({ backrefs }) {
                                   expanded=${ localState.childrenExpanded[i] }
                                   deckId=${ br.deckId }
                                   deckName=${ br.deckName }
+                                  deckInsignia=${br.insignia}
                                   deckLevelRefs=${ br.deckLevelRefs }
                                   deckLevelAnnotation=${ br.deckLevelAnnotation }
                                   resource=${ br.resource }

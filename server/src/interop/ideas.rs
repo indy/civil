@@ -26,6 +26,8 @@ pub struct Idea {
     pub id: Key,
     pub title: String,
 
+    pub insignia: i32,
+
     pub graph_terminator: bool,
 
     pub created_at: chrono::NaiveDateTime,
@@ -45,6 +47,8 @@ impl From<crate::db::decks::DeckBase> for Idea {
         Idea {
             id: d.id,
             title: d.name,
+
+            insignia: d.insignia,
 
             graph_terminator: d.graph_terminator,
 
@@ -67,6 +71,7 @@ impl From<crate::db::decks::DeckBase> for Idea {
 pub struct ProtoIdea {
     pub title: String,
     pub graph_terminator: bool,
+    pub insignia: i32,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

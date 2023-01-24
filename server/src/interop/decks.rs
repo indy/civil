@@ -146,6 +146,7 @@ pub struct DeckSimple {
     pub id: Key,
     pub name: String,
     pub resource: DeckKind,
+    pub insignia: i32,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

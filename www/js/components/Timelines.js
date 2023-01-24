@@ -8,6 +8,7 @@ import { ensureListingLoaded, fetchDeckListing, deckTitle } from '/js/CivilUtils
 import CivilInput from '/js/components/CivilInput.js';
 import DeckManager from '/js/components/DeckManager.js';
 import DeleteDeckConfirmation from '/js/components/DeleteDeckConfirmation.js';
+import { renderInsignia, InsigniaSelector } from '/js/components/Insignias.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import SectionDeckRefs from '/js/components/SectionDeckRefs.js';
@@ -77,7 +78,8 @@ function Timeline({ id }) {
 
 function SectionUpdateTimeline({ timeline, onUpdate }) {
     const [localState, setLocalState] = useState({
-        title: timeline.title || ''
+        title: timeline.title || '',
+        insigniaId: timeline.insignia || 0
     });
 
     useEffect(() => {
@@ -87,6 +89,13 @@ function SectionUpdateTimeline({ timeline, onUpdate }) {
                 title: timeline.title
             });
         }
+        if (timeline.insignia) {
+            setLocalState({
+                ...localState,
+                insigniaId: timeline.insignia
+            });
+        }
+
     }, [timeline]);
 
     const handleChangeEvent = (e) => {
@@ -104,7 +113,8 @@ function SectionUpdateTimeline({ timeline, onUpdate }) {
 
     const handleSubmit = (e) => {
         const data = {
-            title: localState.title.trim()
+            title: localState.title.trim(),
+            insignia: localState.insigniaId
         };
 
         // edit an existing timeline
@@ -115,6 +125,13 @@ function SectionUpdateTimeline({ timeline, onUpdate }) {
         e.preventDefault();
     };
 
+    const setInsigniaId = (id) => {
+        setLocalState({
+            ...localState,
+            insigniaId: id
+        });
+    }
+
     return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>
         <label for="title">Title:</label>
@@ -123,6 +140,10 @@ function SectionUpdateTimeline({ timeline, onUpdate }) {
                        value=${ localState.title }
                        onInput=${ handleChangeEvent } />
         <br/>
+
+        <${InsigniaSelector} insigniaId=${localState.insigniaId} onChange=${setInsigniaId}/>
+        <br/>
+
         <input type="submit" value="Update Timeline"/>
     </form>`;
 }

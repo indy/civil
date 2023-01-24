@@ -8,7 +8,10 @@ import { ListingLink } from '/js/components/ListingLink.js';
 export default function SectionSearchResultsBackref({ backrefs }) {
     function buildBackref(lb) {
         return (
-            html`<${ListingLink} id=${ lb.id } name=${ lb.name } resource=${ lb.resource }/>`
+            html`<${ListingLink} id=${ lb.id }
+                                 insignia=${ lb.insignia }
+                                 name=${ lb.name }
+                                 resource=${ lb.resource }/>`
         );
     }
 

@@ -1,5 +1,7 @@
 import { html, Link, useState, useEffect } from '/lib/preact/mod.js';
 
+import { InsigniaSelector } from '/js/components/Insignias.js';
+
 import { getAppState, AppStateChange } from '/js/AppState.js';
 import { ensureListingLoaded, fetchDeckListing, deckTitle } from '/js/CivilUtils.js';
 import { capitalise } from '/js/JsUtils.js';
@@ -176,7 +178,8 @@ function preCacheFn(person) {
 
 function SectionUpdatePerson({ person, onUpdate }) {
     const [localState, setLocalState] = useState({
-        name: person.name || ''
+        name: person.name || '',
+        insigniaId: person.insignia || 0
     });
 
     useEffect(() => {
@@ -184,6 +187,13 @@ function SectionUpdatePerson({ person, onUpdate }) {
             setLocalState({
                 ...localState,
                 name: person.name
+            });
+        }
+
+        if (person.insignia) {
+            setLocalState({
+                ...localState,
+                insigniaId: person.insignia
             });
         }
     }, [person]);
@@ -203,7 +213,8 @@ function SectionUpdatePerson({ person, onUpdate }) {
 
     const handleSubmit = (e) => {
         const data = {
-            name: localState.name.trim()
+            name: localState.name.trim(),
+            insignia: localState.insigniaId
         };
 
         // edit an existing person
@@ -214,6 +225,13 @@ function SectionUpdatePerson({ person, onUpdate }) {
         e.preventDefault();
     };
 
+    const setInsigniaId = (id) => {
+        setLocalState({
+            ...localState,
+            insigniaId: id
+        });
+    }
+
     return html`
     <form class="civil-form" onSubmit=${ handleSubmit }>
         <label for="name">Name:</label>
@@ -222,6 +240,10 @@ function SectionUpdatePerson({ person, onUpdate }) {
                        value=${ localState.name }
                        onInput=${ handleChangeEvent } />
         <br/>
+
+        <${InsigniaSelector} insigniaId=${localState.insigniaId} onChange=${setInsigniaId}/>
+        <br/>
+
         <input type="submit" value="Update Person"/>
     </form>`;
 }

@@ -27,6 +27,8 @@ pub struct Timeline {
     pub id: Key,
     pub title: String,
 
+    pub insignia: i32,
+
     pub points: Option<Vec<Point>>,
 
     pub notes: Option<Vec<Note>>,
@@ -44,6 +46,8 @@ impl From<crate::db::decks::DeckBase> for Timeline {
         Timeline {
             id: d.id,
             title: d.name,
+
+            insignia: d.insignia,
 
             points: None,
 
@@ -63,4 +67,5 @@ impl From<crate::db::decks::DeckBase> for Timeline {
 #[serde(rename_all = "camelCase")]
 pub struct ProtoTimeline {
     pub title: String,
+    pub insignia: i32,
 }

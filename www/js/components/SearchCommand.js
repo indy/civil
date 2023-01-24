@@ -6,6 +6,7 @@ import { createDeck, indexToShortcut } from '/js/CivilUtils.js';
 import { svgX, svgChevronDown, svgChevronUp } from '/js/svgIcons.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 
+import { renderInsignia } from '/js/components/Insignias.js';
 import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 import { TOOLBAR_EDIT, TOOLBAR_REFS } from '/js/components/DeluxeToolbar.js';
 
@@ -495,7 +496,6 @@ export default function SearchCommand() {
     async function search(text) {
         const url = `/api/cmd/search?q=${encodeURI(text)}`;
         const searchResponse = await Net.get(url);
-
         localDispatch(CANDIDATES_SET, searchResponse);
     }
 
@@ -513,6 +513,7 @@ export default function SearchCommand() {
                  href='/${entry.resource}/${entry.id}'>
             ${ canShowKeyboardShortcut && html`<span class='keyboard-shortcut'>${ indexToShortcut(i)}: </span>`}
             ${ entry.name }
+            ${renderInsignia(entry.insignia)}
         </${Link}>`;
     }
 

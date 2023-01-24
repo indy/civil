@@ -26,6 +26,8 @@ pub struct Article {
     pub id: Key,
     pub title: String,
 
+    pub insignia: i32,
+
     pub created_at: chrono::NaiveDateTime,
 
     pub source: Option<String>,
@@ -56,6 +58,7 @@ pub struct ProtoArticle {
     pub rating: i32,
     pub graph_terminator: bool,
     pub published_date: Option<chrono::NaiveDate>,
+    pub insignia: i32,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

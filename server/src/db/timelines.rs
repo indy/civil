@@ -29,6 +29,7 @@ fn from_row(row: &Row) -> Result<interop::Timeline> {
     Ok(interop::Timeline {
         id: row.get(0)?,
         title: row.get(1)?,
+        insignia: row.get(4)?,
         points: None,
         notes: None,
         refs: None,
@@ -59,7 +60,7 @@ pub(crate) fn all(
 ) -> Result<Vec<interop_decks::DeckSimple>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT id, name, 'timeline'
+    let stmt = "SELECT id, name, 'timeline', insignia
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'timeline'
                 ORDER BY created_at DESC";
@@ -102,6 +103,7 @@ pub(crate) fn edit(
         DeckKind::Timeline,
         &timeline.title,
         graph_terminator,
+        timeline.insignia,
     )?;
 
     Ok(deck.into())

@@ -27,6 +27,8 @@ pub struct Person {
     pub id: Key,
     pub name: String,
 
+    pub insignia: i32,
+
     pub sort_date: Option<chrono::NaiveDate>,
 
     // all the points that happened during a person's life. These may not be
@@ -51,6 +53,8 @@ impl From<crate::db::decks::DeckBase> for Person {
             id: d.id,
             name: d.name,
 
+            insignia: d.insignia,
+
             sort_date: None,
             points: None,
 
@@ -70,6 +74,7 @@ impl From<crate::db::decks::DeckBase> for Person {
 #[serde(rename_all = "camelCase")]
 pub struct ProtoPerson {
     pub name: String,
+    pub insignia: i32,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
