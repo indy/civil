@@ -61,13 +61,12 @@ function Idea({ id }) {
     });
 
     let deck = deckManager.getDeck();
-    let createdAt = deck && deck.createdId;
 
     return html`
     <article>
         <${DeluxeToolbar}/>
         <${IdeaTopMatter} title=${ deckTitle(deck) }
-                          createdAt=${ createdAt }
+                          deck=${deck}
                           isShowingUpdateForm=${ deckManager.isShowingUpdateForm() }
                           isEditingDeckRefs=${ deckManager.isEditingDeckRefs() }
                           onRefsToggle=${ deckManager.onRefsToggle }
@@ -93,13 +92,20 @@ function Idea({ id }) {
     </article>`;
 }
 
-function IdeaTopMatter({ title, createdAt, isShowingUpdateForm, isEditingDeckRefs, onRefsToggle, onFormToggle }) {
+function IdeaTopMatter({ title, deck, isShowingUpdateForm, isEditingDeckRefs, onRefsToggle, onFormToggle }) {
+
+    if (!deck) {
+        return html`<div></div>`;
+    }
 
     return html`
     <div>
         <div class="left-margin">
             <${LeftMarginHeading}>
-                ${ createdAt && formattedDate(createdAt)}
+                ${renderInsignia(deck.insignia)}
+            </${LeftMarginHeading}>
+            <${LeftMarginHeading}>
+                ${ formattedDate(deck.createdAt)}
             </${LeftMarginHeading}>
         </div>
         <${Title} title=${ title } isShowingUpdateForm=${isShowingUpdateForm} isEditingDeckRefs=${isEditingDeckRefs} onRefsToggle=${ onRefsToggle } onFormToggle=${ onFormToggle }/>

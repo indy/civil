@@ -6,7 +6,7 @@ import { createDeck, indexToShortcut } from '/js/CivilUtils.js';
 import { svgX, svgChevronDown, svgChevronUp } from '/js/svgIcons.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 
-import { renderInsignia } from '/js/components/Insignias.js';
+import { DeckLink } from '/js/components/ListingLink.js';
 import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 import { TOOLBAR_EDIT, TOOLBAR_REFS } from '/js/components/DeluxeToolbar.js';
 
@@ -508,13 +508,13 @@ export default function SearchCommand() {
         }
 
         return html`
-        <${Link} onClick=${clickedCandidate}
-                 class="pigment-fg-${entry.resource}"
-                 href='/${entry.resource}/${entry.id}'>
-            ${ canShowKeyboardShortcut && html`<span class='keyboard-shortcut'>${ indexToShortcut(i)}: </span>`}
-            ${ entry.name }
-            ${renderInsignia(entry.insignia)}
-        </${Link}>`;
+            <${DeckLink} resource=${entry.resource}
+                         href='/${entry.resource}/${entry.id}'
+                         insignia=${entry.insignia}
+                         name=${entry.name}
+                         onClick=${clickedCandidate}>
+                ${ canShowKeyboardShortcut && html`<span class='keyboard-shortcut'>${ indexToShortcut(i)}: </span>`}
+            </${DeckLink}>`;
     }
 
     function buildCommandEntry(entry, i) {

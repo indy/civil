@@ -6,13 +6,32 @@ import Ref from '/js/components/Ref.js';
 import buildMarkup from '/js/components/BuildMarkup.js';
 import { renderInsignia } from '/js/components/Insignias.js';
 
+function DeckLink({ onClick, resource, href, insignia, name, children}) {
+    function clicked(e) {
+        if (onClick) {
+            onClick(e)
+        }
+    }
+
+    return html`
+    <${Link} class="pigment-fg-${resource}"
+             href=${ href }
+             onClick=${clicked}>
+        ${ children }
+        ${ renderInsignia(insignia) }
+        ${ name }
+    </${Link}>`;
+}
+
 function ListingLink({ resource, id, name, insignia }) {
     const href = `/${resource}/${id}`;
 
     let res = html`
     <li class="listing-link">
-        ${renderInsignia(insignia)}
-        <${Link} class="pigment-fg-${resource}" href=${ href }>${ name }</${Link}>
+        <${DeckLink} resource=${resource}
+                     href=${href}
+                     insignia=${insignia}
+                     name=${name}/>
     </li>`;
 
     return res;
@@ -32,8 +51,10 @@ function ExpandableListingLink({ index, resource, deckId, deckName, deckInsignia
     <div>
         <span onClick=${onClicked}>${ icon }</span>
         <span class="backref-deck">
-            ${renderInsignia(deckInsignia)}
-            <${Link} class="pigment-fg-${resource}" href=${ href }>${ deckName }</${Link}>
+            <${DeckLink} resource=${resource}
+                         href=${href}
+                         insignia=${deckInsignia}
+                         name=${deckName}/>
         </span>
         ${ expanded && deckLevelAnnotation && buildDeckLevelAnnotation(deckLevelAnnotation) }
         ${ expanded && buildDeckLevelBackRefs(deckLevelRefs) }
@@ -78,4 +99,4 @@ function buildNotes(notes) {
     return html`<div>${res}</div>`;
 }
 
-export { ListingLink, ExpandableListingLink };
+export { DeckLink, ListingLink, ExpandableListingLink };

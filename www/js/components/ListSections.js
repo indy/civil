@@ -3,9 +3,8 @@ import { html, useState, Link } from '/lib/preact/mod.js';
 import Net from '/js/Net.js';
 import { svgExpand, svgMinimise } from '/js/svgIcons.js';
 
-import { ListingLink } from '/js/components/ListingLink.js';
+import { DeckLink, ListingLink } from '/js/components/ListingLink.js';
 import { StarRating } from '/js/components/StarRating.js';
-import { renderInsignia } from '/js/components/Insignias.js';
 
 function BasicListSection({list, resource}) {
     return html`
@@ -164,8 +163,10 @@ function RatedListingLink({ deck, resource }) {
         return html`
         <li>
             <${StarRating} rating=${rating}/>
-            ${renderInsignia(insignia)}
-            <${Link} class="pigment-fg-${resource}" href=${ href }>${ title }</${Link}>
+            <${DeckLink} resource=${resource}
+                         href=${href}
+                         insignia=${insignia}
+                         name=${title}/>
             <span class="descriptive-scribble">${shortDescription}</span>
         </li>`;
     } else {

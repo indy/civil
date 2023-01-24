@@ -55,7 +55,12 @@ function Article({ id }) {
     return html`
     <article>
         <${DeluxeToolbar}/>
-        <${ArticleTopMatter} title=${ deckTitle(deck) } deck=${deck} isShowingUpdateForm=${deckManager.isShowingUpdateForm()} isEditingDeckRefs=${deckManager.isEditingDeckRefs()} onRefsToggle=${ deckManager.onRefsToggle } onFormToggle=${ deckManager.onFormToggle } />
+        <${ArticleTopMatter} title=${ deckTitle(deck) }
+                             deck=${deck}
+                             isShowingUpdateForm=${deckManager.isShowingUpdateForm()}
+                             isEditingDeckRefs=${deckManager.isEditingDeckRefs()}
+                             onRefsToggle=${ deckManager.onRefsToggle }
+                             onFormToggle=${ deckManager.onFormToggle } />
         ${ deckManager.isShowingUpdateForm() && html`
             <${DeleteDeckConfirmation} resource='articles' id=${articleId}/>
             <button onClick=${ deckManager.onShowSummaryClicked }>Show Summary Section</button>
