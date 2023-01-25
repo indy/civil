@@ -39,6 +39,7 @@ fn from_row(row: &Row) -> Result<interop_decks::Ref> {
         resource: interop_decks::DeckKind::from_str(&kind)?,
         ref_kind: interop_decks::RefKind::from_str(&rk)?,
         annotation: row.get(5)?,
+        insignia: row.get(6)?,
     })
 }
 
@@ -120,7 +121,7 @@ pub(crate) fn create_from_note_to_decks(
 
     // return a list of [id, name, resource, kind, annotation] containing the complete set of decks associated with this note.
     let stmt_all_decks =
-        "SELECT nd.note_id, d.id, d.name, d.kind as deck_kind, nd.kind as ref_kind, nd.annotation
+        "SELECT nd.note_id, d.id, d.name, d.kind as deck_kind, nd.kind as ref_kind, nd.annotation, d.insignia
                           FROM notes_decks nd, decks d
                           WHERE nd.note_id = ?1 AND d.id = nd.deck_id";
     let res = sqlite::many(&tx, stmt_all_decks, params![&note_id], from_row)?;

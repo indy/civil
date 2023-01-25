@@ -300,7 +300,6 @@ function applyDecksAndCardsToNotes(deck) {
         n.decks.sort(sortByResourceThenName);
         n.flashcards = cardsInNotes[n.id];
     }
-
     return deck;
 }
 

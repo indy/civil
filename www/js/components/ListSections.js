@@ -3,7 +3,8 @@ import { html, useState, Link } from '/lib/preact/mod.js';
 import Net from '/js/Net.js';
 import { svgExpand, svgMinimise } from '/js/svgIcons.js';
 
-import { DeckLink, ListingLink } from '/js/components/ListingLink.js';
+import DeckLink from '/js/components/DeckLink.js';
+import { ListingLink } from '/js/components/ListingLink.js';
 import { StarRating } from '/js/components/StarRating.js';
 
 function BasicListSection({list, resource}) {

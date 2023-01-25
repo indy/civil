@@ -6,7 +6,7 @@ import { createDeck, indexToShortcut } from '/js/CivilUtils.js';
 import { svgX, svgChevronDown, svgChevronUp } from '/js/svgIcons.js';
 import { useLocalReducer } from '/js/PreactUtils.js';
 
-import { DeckLink } from '/js/components/ListingLink.js';
+import DeckLink from '/js/components/DeckLink.js';
 import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from '/js/components/NoteSection.js';
 import { TOOLBAR_EDIT, TOOLBAR_REFS } from '/js/components/DeluxeToolbar.js';
 

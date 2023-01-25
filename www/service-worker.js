@@ -50,6 +50,7 @@ var precacheConfig = [
     "/js/components/CivilInput.js",
     "/js/components/CivilSelect.js",
     "/js/components/CivilTextArea.js",
+    "/js/components/DeckLink.js",
     "/js/components/DeckManager.js",
     "/js/components/DeleteConfirmation.js",
     "/js/components/DeleteDeckConfirmation.js",

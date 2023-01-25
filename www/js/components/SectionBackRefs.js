@@ -63,7 +63,8 @@ export default function SectionBackRefs({ deck }) {
                             name: br.deckName,
                             refKind: br.refKind,
                             resource: br.resource,
-                            annotation: br.annotation
+                            annotation: br.annotation,
+                            insignia: br.insignia
                         });
                         break;
                     }

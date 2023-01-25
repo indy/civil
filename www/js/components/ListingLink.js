@@ -2,26 +2,9 @@ import { html, Link } from '/lib/preact/mod.js';
 
 import { svgCaretRight, svgCaretDown } from '/js/svgIcons.js';
 import Ref from '/js/components/Ref.js';
+import DeckLink from '/js/components/DeckLink.js';
 
 import buildMarkup from '/js/components/BuildMarkup.js';
-import { renderInsignia } from '/js/components/Insignias.js';
-
-function DeckLink({ onClick, resource, href, insignia, name, children}) {
-    function clicked(e) {
-        if (onClick) {
-            onClick(e)
-        }
-    }
-
-    return html`
-    <${Link} class="pigment-fg-${resource}"
-             href=${ href }
-             onClick=${clicked}>
-        ${ children }
-        ${ renderInsignia(insignia) }
-        ${ name }
-    </${Link}>`;
-}
 
 function ListingLink({ resource, id, name, insignia }) {
     const href = `/${resource}/${id}`;
@@ -81,7 +64,6 @@ function buildNotes(notes) {
         if (note.topAnnotation) {
             a.push(html`<div class="ref-top-scribble">${ note.topAnnotation }</div>`);
         }
-
         let refs = note.refs && note.refs.map(r => {
             return html`<${Ref} deckReference=${r} extraClasses="left-margin-entry"/>`;
         });
@@ -99,4 +81,4 @@ function buildNotes(notes) {
     return html`<div>${res}</div>`;
 }
 
-export { DeckLink, ListingLink, ExpandableListingLink };
+export { ListingLink, ExpandableListingLink };

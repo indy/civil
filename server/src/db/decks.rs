@@ -295,6 +295,7 @@ pub(crate) fn get_backrefs(
             resource: DeckKind::from_str(&kind)?,
             ref_kind: interop::RefKind::from_str(&refk)?,
             annotation: row.get(5)?,
+            insignia: row.get(6)?,
         })
     }
 
@@ -303,7 +304,8 @@ pub(crate) fn get_backrefs(
                        d.kind as kind,
                        d.name as deck_name,
                        nd2.kind as ref_kind,
-                       nd2.annotation
+                       nd2.annotation,
+                       d.insignia
                 FROM notes_decks nd, notes_decks nd2, decks d
                 WHERE nd.deck_id = ?1
                       AND nd.note_id = nd2.note_id
@@ -312,7 +314,7 @@ pub(crate) fn get_backrefs(
     sqlite::many(&conn, stmt, params![&deck_id], backref_from_row)
 }
 
-// return all the people, events, articles etc mentioned in the given deck
+// return all the ideas, people, articles etc mentioned in the given deck
 // (used to show refs on left hand margin)
 //
 pub(crate) fn from_deck_id_via_notes_to_decks(
@@ -332,6 +334,7 @@ pub(crate) fn from_deck_id_via_notes_to_decks(
             resource: DeckKind::from_str(&kind)?,
             ref_kind: interop::RefKind::from_str(&refk)?,
             annotation: row.get(5)?,
+            insignia: row.get(6)?,
         })
     }
 
@@ -340,7 +343,8 @@ pub(crate) fn from_deck_id_via_notes_to_decks(
                        d.name,
                        d.kind as deck_kind,
                        nd.kind as ref_kind,
-                       nd.annotation
+                       nd.annotation,
+                       d.insignia
                 FROM   notes n,
                        notes_decks nd,
                        decks d
