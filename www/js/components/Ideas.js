@@ -15,7 +15,7 @@ import SectionDeckRefs from '/js/components/SectionDeckRefs.js';
 import SectionGraph from '/js/components/SectionGraph.js';
 import SectionNotes from '/js/components/SectionNotes.js';
 import SectionSearchResultsBackref from '/js/components/SectionSearchResultsBackref.js';
-import Title from '/js/components/Title.js';
+import TopMatter from '/js/components/TopMatter.js';
 import { DeluxeToolbar, TOOLBAR_VIEW } from '/js/components/DeluxeToolbar.js';
 import { DeckSimpleListSection } from '/js/components/ListSections.js';
 
@@ -65,20 +65,30 @@ function Idea({ id }) {
     return html`
     <article>
         <${DeluxeToolbar}/>
-        <${IdeaTopMatter} title=${ deckTitle(deck) }
+
+        ${ deck && html`
+            <${TopMatter} title=${ deckTitle(deck) }
                           deck=${deck}
                           isShowingUpdateForm=${ deckManager.isShowingUpdateForm() }
                           isEditingDeckRefs=${ deckManager.isEditingDeckRefs() }
                           onRefsToggle=${ deckManager.onRefsToggle }
-                          onFormToggle=${ deckManager.onFormToggle }/>
+                          onFormToggle=${ deckManager.onFormToggle }>
+                <${LeftMarginHeading}>
+                    ${ formattedDate(deck.createdAt)}
+                </${LeftMarginHeading}>
+            </${TopMatter}>
+        `}
+
         ${ deckManager.isShowingUpdateForm() && html`
             <${DeleteDeckConfirmation} resource='ideas' id=${ideaId}/>
             <${SectionUpdateIdea} idea=${ deck } onUpdate=${ deckManager.updateAndReset }/>
         `}
+
         <${SectionDeckRefs} deck=${ deck }
                             isEditing=${ deckManager.isEditingDeckRefs() }
                             onRefsChanged=${ deckManager.onRefsChanged }
                             onRefsToggle=${ deckManager.onRefsToggle }/>
+
         <${SectionNotes} deck=${ deck }
                          resource="ideas"
                          title=${ deckTitle(deck) }
@@ -91,27 +101,6 @@ function Idea({ id }) {
         <${SectionGraph} depth=${ 2 } deck=${ deck }/>
     </article>`;
 }
-
-function IdeaTopMatter({ title, deck, isShowingUpdateForm, isEditingDeckRefs, onRefsToggle, onFormToggle }) {
-
-    if (!deck) {
-        return html`<div></div>`;
-    }
-
-    return html`
-    <div>
-        <div class="left-margin">
-            <${LeftMarginHeading}>
-                ${renderInsignia(deck.insignia)}
-            </${LeftMarginHeading}>
-            <${LeftMarginHeading}>
-                ${ formattedDate(deck.createdAt)}
-            </${LeftMarginHeading}>
-        </div>
-        <${Title} title=${ title } isShowingUpdateForm=${isShowingUpdateForm} isEditingDeckRefs=${isEditingDeckRefs} onRefsToggle=${ onRefsToggle } onFormToggle=${ onFormToggle }/>
-    </div>`;
-}
-
 
 function SectionUpdateIdea({ idea, onUpdate }) {
     const [title, setTitle] = useState(idea.title || '');

@@ -16,7 +16,7 @@ import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import SectionDeckRefs from '/js/components/SectionDeckRefs.js';
 import SectionGraph from '/js/components/SectionGraph.js';
 import SectionNotes from '/js/components/SectionNotes.js';
-import Title from '/js/components/Title.js';
+import TopMatter from '/js/components/TopMatter.js';
 import { DeckSimpleListSection, RatedListSection } from '/js/components/ListSections.js';
 import { DeluxeToolbar, TOOLBAR_VIEW } from '/js/components/DeluxeToolbar.js';
 import { StarRatingPartial } from '/js/components/StarRating.js';
@@ -52,15 +52,37 @@ function Article({ id }) {
     let deck = deckManager.getDeck()
     let shortDescription = !!deck && deck.shortDescription;
 
+    function Url({ url }) {
+        return html`<a href=${ url }>${ url }</a>`;
+    }
+
     return html`
     <article>
         <${DeluxeToolbar}/>
-        <${ArticleTopMatter} title=${ deckTitle(deck) }
-                             deck=${deck}
-                             isShowingUpdateForm=${deckManager.isShowingUpdateForm()}
-                             isEditingDeckRefs=${deckManager.isEditingDeckRefs()}
-                             onRefsToggle=${ deckManager.onRefsToggle }
-                             onFormToggle=${ deckManager.onFormToggle } />
+
+        ${ deck && html`
+            <${TopMatter} title=${ deckTitle(deck) }
+                          deck=${deck}
+                          isShowingUpdateForm=${ deckManager.isShowingUpdateForm() }
+                          isEditingDeckRefs=${ deckManager.isEditingDeckRefs() }
+                          onRefsToggle=${ deckManager.onRefsToggle }
+                          onFormToggle=${ deckManager.onFormToggle }>
+                <${LeftMarginHeading}>
+                    ${deck.author}
+                </${LeftMarginHeading}>
+                <${LeftMarginHeadingNoWrap}>
+                    <${Url} url=${deck.source}/>
+                </${LeftMarginHeadingNoWrap}>
+                <${LeftMarginHeading}>
+                    Published: ${ formattedDate(deck.publishedDate)}
+                </${LeftMarginHeading}>
+                <${LeftMarginHeading}>
+                    Added: ${ formattedDate(deck.createdAt) }
+                </${LeftMarginHeading}>
+                <${StarRatingPartial} rating=${deck.rating}/>
+            </${TopMatter}>
+        `}
+
         ${ deckManager.isShowingUpdateForm() && html`
             <${DeleteDeckConfirmation} resource='articles' id=${articleId}/>
             <button onClick=${ deckManager.onShowSummaryClicked }>Show Summary Section</button>
@@ -86,39 +108,6 @@ function TopScribble({ text }) {
         return html`<div class="top-scribble">${ text }</div>`;
     }
     return html``;
-}
-
-function ArticleTopMatter({ title, deck, isShowingUpdateForm, isEditingDeckRefs, onRefsToggle, onFormToggle }) {
-    function Url({ url }) {
-        return html`<a href=${ url }>${ url }</a>`;
-    }
-
-    if (!deck) {
-        return html`<div></div>`;
-    }
-
-    return html`
-    <div>
-        <div class="left-margin">
-            <${LeftMarginHeading}>
-                ${renderInsignia(deck.insignia)}
-            </${LeftMarginHeading}>
-            <${LeftMarginHeading}>
-                ${deck.author}
-            </${LeftMarginHeading}>
-            <${LeftMarginHeadingNoWrap}>
-                <${Url} url=${deck.source}/>
-            </${LeftMarginHeadingNoWrap}>
-            <${LeftMarginHeading}>
-                Published: ${ formattedDate(deck.publishedDate)}
-            </${LeftMarginHeading}>
-            <${LeftMarginHeading}>
-                Added: ${ formattedDate(deck.createdAt) }
-            </${LeftMarginHeading}>
-            <${StarRatingPartial} rating=${deck.rating}/>
-        </div>
-        <${Title} title=${ title } isShowingUpdateForm=${isShowingUpdateForm} isEditingDeckRefs=${isEditingDeckRefs} onRefsToggle=${ onRefsToggle } onFormToggle=${ onFormToggle }/>
-    </div>`;
 }
 
 function SectionUpdateArticle({ article, onUpdate }) {

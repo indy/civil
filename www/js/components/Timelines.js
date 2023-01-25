@@ -9,13 +9,12 @@ import CivilInput from '/js/components/CivilInput.js';
 import DeckManager from '/js/components/DeckManager.js';
 import DeleteDeckConfirmation from '/js/components/DeleteDeckConfirmation.js';
 import { renderInsignia, InsigniaSelector } from '/js/components/Insignias.js';
-import LeftMarginHeading from '/js/components/LeftMarginHeading.js';
 import RollableSection from '/js/components/RollableSection.js';
 import SectionBackRefs from '/js/components/SectionBackRefs.js';
 import SectionDeckRefs from '/js/components/SectionDeckRefs.js';
 import SectionGraph from '/js/components/SectionGraph.js';
 import SectionNotes from '/js/components/SectionNotes.js';
-import Title from '/js/components/Title.js';
+import TopMatter from '/js/components/TopMatter.js';
 import WhenVerbose from '/js/components/WhenVerbose.js';
 import { DeckSimpleList } from '/js/components/ListSections.js';
 import { DeluxeToolbar, TOOLBAR_VIEW } from '/js/components/DeluxeToolbar.js';
@@ -54,17 +53,19 @@ function Timeline({ id }) {
     <article>
         <${DeluxeToolbar}/>
 
-        <${TimelineTopMatter} title=${ deckTitle(deck) }
-                              deck=${deck}
-                              isShowingUpdateForm=${ deckManager.isShowingUpdateForm() }
-                              isEditingDeckRefs=${ deckManager.isEditingDeckRefs() }
-                              onRefsToggle=${ deckManager.onRefsToggle }
-                              onFormToggle=${ deckManager.onFormToggle }/>
+        <${TopMatter} title=${ deckTitle(deck) }
+                      deck=${deck}
+                      isShowingUpdateForm=${ deckManager.isShowingUpdateForm() }
+                      isEditingDeckRefs=${ deckManager.isEditingDeckRefs() }
+                      onRefsToggle=${ deckManager.onRefsToggle }
+                      onFormToggle=${ deckManager.onFormToggle }>
+        </${TopMatter}>
 
         ${ deckManager.isShowingUpdateForm() && html`
             <${DeleteDeckConfirmation} resource='timelines' id=${timelineId}/>
             <${SectionUpdateTimeline} timeline=${ deck } onUpdate=${ deckManager.updateAndReset }/>
         `}
+
         <${SectionDeckRefs} deck=${ deck } isEditing=${ deckManager.isEditingDeckRefs()} onRefsChanged=${ deckManager.onRefsChanged } onRefsToggle=${ deckManager.onRefsToggle }/>
         <${SectionNotes} deck=${ deck }
                          title=${ deckTitle(deck) }
@@ -82,23 +83,6 @@ function Timeline({ id }) {
 
         <${SectionGraph} depth=${ 2 } deck=${ deck }/>
     </article>`;
-}
-
-function TimelineTopMatter({ title, deck, isShowingUpdateForm, isEditingDeckRefs, onRefsToggle, onFormToggle }) {
-
-    if (!deck) {
-        return html`<div></div>`;
-    }
-
-    return html`
-    <div>
-        <div class="left-margin">
-            <${LeftMarginHeading}>
-                ${renderInsignia(deck.insignia)}
-            </${LeftMarginHeading}>
-        </div>
-        <${Title} title=${ title } isShowingUpdateForm=${isShowingUpdateForm} isEditingDeckRefs=${isEditingDeckRefs} onRefsToggle=${ onRefsToggle } onFormToggle=${ onFormToggle }/>
-    </div>`;
 }
 
 function SectionUpdateTimeline({ timeline, onUpdate }) {
