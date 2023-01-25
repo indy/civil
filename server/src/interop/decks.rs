@@ -124,6 +124,7 @@ pub struct BackNote {
     pub deck_id: Key,
     pub deck_name: String,
     pub resource: DeckKind,
+    pub insignia: i32,
 }
 
 // all refs on notes that have at least one ref back to the currently displayed deck

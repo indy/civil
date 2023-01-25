@@ -27,6 +27,7 @@ export default function SectionBackRefs({ deck }) {
             decks.push({
                 deckId: n.deckId,
                 deckName: n.deckName,
+                deckInsignia: n.insignia,
                 resource: n.resource,
                 notes: [],
                 deckLevelRefs: [],
@@ -80,7 +81,8 @@ export default function SectionBackRefs({ deck }) {
                                     name: br.deckName,
                                     refKind: br.refKind,
                                     resource: br.resource,
-                                    annotation: br.annotation
+                                    annotation: br.annotation,
+                                    insignia: br.insignia
                                 })
                             }
                             break;
@@ -155,7 +157,7 @@ function SectionLinks({ backrefs }) {
                                   expanded=${ localState.childrenExpanded[i] }
                                   deckId=${ br.deckId }
                                   deckName=${ br.deckName }
-                                  deckInsignia=${br.insignia}
+                                  deckInsignia=${br.deckInsignia}
                                   deckLevelRefs=${ br.deckLevelRefs }
                                   deckLevelAnnotation=${ br.deckLevelAnnotation }
                                   resource=${ br.resource }

@@ -257,6 +257,7 @@ pub(crate) fn get_backnotes(
             deck_id: row.get(0)?,
             deck_name: row.get(1)?,
             resource: DeckKind::from_str(&kind)?,
+            insignia: row.get(6)?,
         })
     }
 
@@ -265,7 +266,8 @@ pub(crate) fn get_backnotes(
                        d.kind as kind,
                        n.content as note_content,
                        n.id as note_id,
-                       n.kind as note_kind
+                       n.kind as note_kind,
+                       d.insignia
                 FROM decks d,
                      notes n,
                      notes_decks nd
