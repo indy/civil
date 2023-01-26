@@ -42,7 +42,8 @@ CLIENT_WASM_NAME = civil_wasm
 CLIENT_WASM = $(CLIENT_WASM_NAME).wasm
 CLIENT_WASM_BG = $(CLIENT_WASM_NAME)_bg.wasm
 
-WASM_FOLDER = wasm
+CLIENT_FOLDER = client/www
+WASM_FOLDER = client/wasm
 SERVER_FOLDER = server
 SHARED_FOLDER = shared
 
@@ -50,7 +51,7 @@ SHARED_FOLDER = shared
 # filesets
 ################################################################################
 
-CLIENT_FILES = $(call rwildcard,www,*)
+CLIENT_FILES = $(call rwildcard,$(CLIENT_FOLDER),*)
 SERVER_FILES = $(call rwildcard,$(SERVER_FOLDER)/src,*) $(SERVER_FOLDER)/Cargo.toml
 SYSTEMD_FILES = $(wildcard misc/systemd/*)
 
@@ -63,7 +64,7 @@ SHARED_FILES = $(wildcard $(SHARED_FOLDER)/src/*) $(SHARED_FOLDER)/Cargo.toml
 # top-level public targets
 ################################################################################
 
-run: www/$(CLIENT_WASM_BG) server
+run: $(CLIENT_FOLDER)/$(CLIENT_WASM_BG) server
 	cargo run --manifest-path $(SERVER_FOLDER)/Cargo.toml --bin $(SERVER_BINARY)
 
 # collect stats on each user's content, stores the stats in the db
@@ -112,7 +113,7 @@ $(SERVER_FOLDER)/target/release/$(SERVER_BINARY): $(SERVER_FILES) $(SHARED_FILES
 $(SERVER_FOLDER)/target/release/civil_stat_collector: $(SERVER_FILES)
 	cargo build --manifest-path $(SERVER_FOLDER)/Cargo.toml --bin civil_stat_collector --release
 
-www/$(CLIENT_WASM_BG): $(WASM_FILES) $(SHARED_FILES)
+$(CLIENT_FOLDER)/$(CLIENT_WASM_BG): $(WASM_FILES) $(SHARED_FILES)
 	cargo build --manifest-path $(WASM_FOLDER)/Cargo.toml --target wasm32-unknown-unknown
 	wasm-bindgen $(WASM_FOLDER)/target/wasm32-unknown-unknown/debug/$(CLIENT_WASM) --out-dir www --no-typescript --no-modules
 
@@ -123,7 +124,7 @@ staging/www/$(CLIENT_WASM_BG): $(WASM_FILES) $(SHARED_FILES)
 
 staging/www/index.html: $(CLIENT_FILES)
 	mkdir -p $(@D)
-	cp -r www staging/.
+	cp -r client/www staging/.
 ifdef MINIFY
 	minify -o staging/www/ --match=\.css www
 	minify -r -o staging/www/js --match=\.js www/js
