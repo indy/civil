@@ -6,6 +6,13 @@ staging
 *.db-shm
 *.db-wal
 
+client/node_modules
+
+client/www/index.css
+client/www/index.css.map
+client/www/index.js
+client/www/index.js.map
+
 client/www/civil_wasm_bg.wasm
 client/www/civil_wasm.js
 client/www/civil_wasm.d.ts

@@ -42,26 +42,41 @@ CLIENT_WASM_NAME = civil_wasm
 CLIENT_WASM = $(CLIENT_WASM_NAME).wasm
 CLIENT_WASM_BG = $(CLIENT_WASM_NAME)_bg.wasm
 
+SERVER_FOLDER = server
+CLIENT_FOLDER = client
+SHARED_FOLDER = shared
+
 WWW_FOLDER = client/www
 WASM_FOLDER = client/wasm
-SERVER_FOLDER = server
-SHARED_FOLDER = shared
 
 ################################################################################
 # filesets
 ################################################################################
 
-CLIENT_FILES = $(call rwildcard,$(WWW_FOLDER),*)
+CLIENT_FILES = $(call rwildcard,$(CLIENT_FOLDER)/src,*)
+# CLIENT_FILES = $(call rwildcard,$(WWW_FOLDER),*)
 SERVER_FILES = $(call rwildcard,$(SERVER_FOLDER)/src,*) $(SERVER_FOLDER)/Cargo.toml
 SYSTEMD_FILES = $(wildcard misc/systemd/*)
 
 WASM_FILES = $(wildcard $(WASM_FOLDER)/src/*) $(WASM_FOLDER)/Cargo.toml
 SHARED_FILES = $(wildcard $(SHARED_FOLDER)/src/*) $(SHARED_FOLDER)/Cargo.toml
 
-.PHONY: run download-images download-db clean-staging run-note_parser run-note_linked_list run-note_prev init
+.PHONY: run download-images download-db clean-staging run-note_parser run-note_linked_list run-note_prev typescript-watch typescript-typecheck typescript-format init
 
 init:
 	cd client; yarn install
+
+typescript-watch:
+	while true; do inotifywait -e close_write --quiet --recursive ./$(CLIENT_FOLDER)/src; make typescript-build-and-typecheck; done
+
+typescript-build-and-typecheck: $(CLIENT_FOLDER)/www/index.js typescript-typecheck
+
+typescript-typecheck:
+	./$(CLIENT_FOLDER)/node_modules/typescript/bin/tsc -p ./$(CLIENT_FOLDER)/tsconfig.json --noEmit
+
+typescript-format:
+	cd client; yarn prettier --write src
+
 
 ################################################################################
 # top-level public targets
@@ -116,6 +131,9 @@ $(SERVER_FOLDER)/target/release/$(SERVER_BINARY): $(SERVER_FILES) $(SHARED_FILES
 $(SERVER_FOLDER)/target/release/civil_stat_collector: $(SERVER_FILES)
 	cargo build --manifest-path $(SERVER_FOLDER)/Cargo.toml --bin civil_stat_collector --release
 
+$(CLIENT_FOLDER)/www/index.js: $(CLIENT_FILES)
+	./$(CLIENT_FOLDER)/node_modules/esbuild/bin/esbuild ./$(CLIENT_FOLDER)/src/index.tsx --sourcemap --bundle --external:fonts --outdir=./$(CLIENT_FOLDER)/www
+
 $(WWW_FOLDER)/$(CLIENT_WASM_BG): $(WASM_FILES) $(SHARED_FILES)
 	cargo build --manifest-path $(WASM_FOLDER)/Cargo.toml --target wasm32-unknown-unknown
 	wasm-bindgen $(WASM_FOLDER)/target/wasm32-unknown-unknown/debug/$(CLIENT_WASM) --out-dir $(WWW_FOLDER) --no-modules
@@ -125,7 +143,7 @@ staging/www/$(CLIENT_WASM_BG): $(WASM_FILES) $(SHARED_FILES)
 	cargo build --manifest-path $(WASM_FOLDER)/Cargo.toml --release --target wasm32-unknown-unknown
 	wasm-bindgen $(WASM_FOLDER)/target/wasm32-unknown-unknown/release/$(CLIENT_WASM) --out-dir staging/www --no-modules
 
-staging/www/index.html: $(CLIENT_FILES)
+staging/www/index.html: $(CLIENT_FOLDER)/www/index.js
 	mkdir -p $(@D)
 	cp -r $(WWW_FOLDER) staging/.
 ifdef MINIFY
