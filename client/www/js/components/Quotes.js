@@ -102,7 +102,8 @@ function Quotes() {
         const data = {
             title: titleFromQuoteText(local.quoteText),
             text: local.quoteText,
-            attribution: local.attribution
+            attribution: local.attribution,
+            insignia: 0
         };
 
         Net.post("/api/quotes", data).then(quote => {
