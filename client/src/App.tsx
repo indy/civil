@@ -1,7 +1,7 @@
 import { h } from "preact";
 
 import { Router, route, RouterOnChangeArgs } from "preact-router";
-import { /*AppStateChange,*/ AppStateProvider, getAppState } from "./AppState";
+import { AppStateChange, AppStateProvider, getAppState } from "./AppState";
 
 import { IState } from "./types";
 
@@ -17,8 +17,7 @@ const AppUI = () => {
     const state = getAppState();
 
     function handleRoute(e: RouterOnChangeArgs<Record<string, string | undefined> | null>): void {
-        // isg reinstate
-        // AppStateChange.routeChanged(e.url);
+        AppStateChange.routeChanged(e.url);
 
         if (e.url !== "/login") {
             // all other pages require the user to be logged in

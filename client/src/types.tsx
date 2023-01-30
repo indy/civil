@@ -15,26 +15,16 @@ export interface IUser {
     admin?: IAdmin;
 }
 
-export interface ICategory {
-    id: number;
-    title: string;
-}
 
-export interface INote {
-    age: string;
-    content: string;
-    createdAt: string;
-    id: number;
-    pinned: boolean;
-    title: string;
-    triagedAt?: string;
-    categoryId?: number;
+export interface IDeck {
+    name: string;
 }
 
 export interface IListing {
-    notes: Array<INote>;
-    category: { [key: number]: Array<INote> };
-    bin: Array<INote>;
+    ideas: Array<IDeck> | undefined;
+    articles: Array<IDeck> | undefined;
+    people: Array<IDeck> | undefined;
+    timelines: Array<IDeck> | undefined;
 }
 
 export interface ISettings {
@@ -99,8 +89,11 @@ export interface WasmInterface {
 
 
 export enum ToolbarMode {
-    Fake = 1,
-    SomethingElse
+    View = 1,
+    Edit,
+    Refs,
+    SR,
+    AddAbove,
 }
 
 export interface IState {
@@ -113,9 +106,66 @@ export interface IState {
     definitions: Signal<IDefinitions>;
 
     hasPhysicalKeyboard: boolean;
+    oldestAliveAge: number;
+
+    componentRequiresFullKeyboardAccess: Signal<boolean>;
+
+    showingSearchCommand: Signal<boolean>;
+
+
+    urlName: Signal<string>;
+    url: Signal<string>;
 
     user: Signal<IUser>;
 
+    preferredOrder: Array<string>;
+
+    listing: Signal<IListing>;
+
+    verboseUI: Signal<boolean>;
+
+    showNoteForm: Signal<IShowNoteForm>;
+
+    showAddPointForm: Signal<boolean>;
+
+    // isg hacked in
+    recentImages: Signal<Array<string>>;
+
+    imageDirectory: Signal<string>;
+
+    showConnectivityGraph: Signal<boolean>;
+
+    graph: Signal<IGraph>;
+
+    scratchList: Signal<Array<IScratchList>>;
+
+    scratchListMinimised: Signal<boolean>;
+
+    srReviewCount: Signal<number>;
+    srEarliestReviewDate: Signal<undefined | string>;
+
+}
+
+// isg hacked in:
+export interface IScratchList {
+    fake: boolean;
+}
+
+// isg hacked in:
+export interface IGraph {
+    fullyLoaded: boolean;
+    // an array of { id, name, resource }
+    decks: Array<any>;
+    links: Array<any>;
+    // an array which is indexed by deckId, returns the offset into state.graph.value.decks
+    deckIndexFromId: Array<any>;
+}
+
+// isg hacked in:
+export interface IShowNoteForm {
+    note: boolean;
+    summary: boolean;
+    review: boolean;
 }
 
 export interface IPigment {

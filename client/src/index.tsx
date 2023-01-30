@@ -84,7 +84,6 @@ wasm_bindgen("/civil_wasm_bg.wasm")
         state.hasPhysicalKeyboard = hasPhysicalKeyboard === "true";
 
         Net.get<IUser>("/api/users").then(user => {
-            console.log(user);
             if (user) {
                 // update initial state with user
                 //

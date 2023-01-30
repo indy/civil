@@ -12,7 +12,7 @@ const emptyUser: IUser = {
 
 const state: IState = {
     appName: "civil",
-    toolbarMode: signal(ToolbarMode.Fake),
+    toolbarMode: signal(ToolbarMode.View),
     wasmInterface: undefined,
 
     settings: signal({
@@ -28,9 +28,77 @@ const state: IState = {
     }),
     definitions: signal({}),
 
+    // this is set via the --search-always-visible css variable so
+    // that mobile touch devices will always show the search bar
+    //
     hasPhysicalKeyboard: true,
 
+    // oldest reasonable age in years, any person whose birth means they're older can be assumed to be dead
+    oldestAliveAge: 120,
+
+
+    // when true don't let searchCommand accept any keystrokes
+    componentRequiresFullKeyboardAccess: signal(false),
+
+    showingSearchCommand: signal(false),
+
+    // to add the current page to the scratchList we need the id, name, resource.
+    // id and resource can be parsed from the url, but the name needs to be
+    // stored separately
+    //
+    urlName: signal(''),
+
+    // the url of the current page
+    url: signal(''),
+
     user: signal(emptyUser),
+
+    preferredOrder: ["ideas", "people", "articles", "timelines", "quotes", "stuff"],
+
+    // key == resource name of decks
+    listing: signal({
+        ideas: undefined,           // when listing ideas on /ideas page
+        articles: undefined,
+        people: undefined,
+        timelines: undefined
+    }),
+
+    verboseUI: signal(true),
+
+    // put the variables in square brackets so that they're evaluated
+    //
+    // showNoteForm: signal({
+    //     [NOTE_KIND_NOTE]: false,
+    //     [NOTE_KIND_SUMMARY]: false,
+    //     [NOTE_KIND_REVIEW]: false
+    // }),
+    showNoteForm: signal({
+        note: false,
+        summary: false,
+        review: false
+    }),
+
+    // same for the Add Point form
+    showAddPointForm: signal(false),
+
+    recentImages: signal([]),
+    imageDirectory: signal(''),
+
+    showConnectivityGraph: signal(false),
+    graph: signal({
+        fullyLoaded: false,
+        // an array of { id, name, resource }
+        decks: [],
+        links: [],
+        // an array which is indexed by deckId, returns the offset into state.graph.value.decks
+        deckIndexFromId: []
+    }),
+
+    scratchList: signal([]),
+    scratchListMinimised: signal(false),
+
+    srReviewCount: signal(0),
+    srEarliestReviewDate: signal(undefined)
 };
 
 export const initialState = state;
@@ -56,6 +124,12 @@ export const getAppState = () => useContext(AppStateContext);
 const DEBUG_APP_STATE = false;
 
 export const AppStateChange = {
+    routeChanged: function (url: string) {
+        if (DEBUG_APP_STATE) {
+            console.log("routeChanged");
+        }
+        state.url.value = url;
+    },
     uberSetup: function (uber: IUberSetup) {
         if (DEBUG_APP_STATE) {
             console.log("uberSetup");
