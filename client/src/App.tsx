@@ -1,6 +1,8 @@
 import { h } from "preact";
+import { Link, Router, route, RouterOnChangeArgs } from "preact-router";
 
-import { Router, route, RouterOnChangeArgs } from "preact-router";
+import { capitalise } from './JsUtils';
+
 import { AppStateChange, AppStateProvider, getAppState } from "./AppState";
 import Net from "./Net.js";
 
@@ -15,6 +17,60 @@ export const App = ({ state }: { state: IState }) => {
         </AppStateProvider>
     );
 };
+
+function TopBarMenu() {
+    const appState = getAppState();
+
+    function loggedStatus() {
+        let status = '';
+
+        let user = appState.user;
+        if (user.value) {
+            status += user.value.username;
+            if (user.value.admin && user.value.admin.dbName !== "civil") {
+                status += ` (${user.value.admin.dbName})`;
+            }
+        } else {
+            status = 'Login';
+        }
+
+        return status;
+    }
+
+    function loggedLink() {
+        return appState.user.value ? "/logout" : "/login";
+    }
+
+    function clickedTopLevel(deckKind: string) {
+        AppStateChange.urlName(deckKind);
+    }
+
+    if (appState.verboseUI.value) {
+        return (
+        <nav>
+            <div id="elastic-top-menu-items">
+
+                {appState.preferredOrder.map(deckKind =>
+                    <div class="optional-navigable top-menu-decktype">
+                        <Link class={`pigment-${deckKind}`}
+                              onClick={ () => { clickedTopLevel(deckKind) } }
+                              href={`/${deckKind}`}>
+                            {capitalise(deckKind)}
+                        </Link>
+                    </div>)}
+
+                <div id="top-menu-sr">
+                    <Link class='pigment-inherit' href='/sr'>SR({appState.srReviewCount.value})</Link>
+                </div>
+                <div>
+                    <Link class='pigment-inherit' href={ loggedLink() }>{ loggedStatus() }</Link>
+                </div>
+            </div>
+        </nav>);
+    } else {
+        return <div></div>;
+    }
+}
 
 const AppUI = () => {
     const state = getAppState();
@@ -33,7 +89,6 @@ const AppUI = () => {
         AppStateChange.routeChanged(e.url);
 
         if (e.url !== "/login") {
-            console.log(e.url);
             // all other pages require the user to be logged in
             if (state.user.value.username === "") {
                 console.log(
@@ -54,6 +109,7 @@ const AppUI = () => {
     return (
         <div id="memo-app">
             <div id="app-content">
+                <TopBarMenu/>
                 <Router onChange={handleRoute}>
                     <Login path="/login" loginCallback={ loginHandler }/>
                     <Logout path="/logout"/>

@@ -124,6 +124,13 @@ export const getAppState = () => useContext(AppStateContext);
 const DEBUG_APP_STATE = false;
 
 export const AppStateChange = {
+    urlName: function(name: string) {
+        if (DEBUG_APP_STATE) {
+            console.log("urlName");
+        }
+        state.urlName.value = name;
+        document.title = `${state.appName}: ${name}`;
+    },
     routeChanged: function (url: string) {
         if (DEBUG_APP_STATE) {
             console.log("routeChanged");

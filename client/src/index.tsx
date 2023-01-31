@@ -58,7 +58,7 @@ wasm_bindgen("/civil_wasm_bg.wasm")
                     return Array.isArray(node) ? node[0] : node;
                 })
 
-                let res = [];
+                let res: Array<string> = [];
                 for (let i = 0; i < splitPoints.length - 1; i++) {
                     const r = markup.slice(splitPoints[i], splitPoints[i+1]).trim();
                     res.push(r);

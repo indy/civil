@@ -164,7 +164,7 @@ function declareCssVariables(uiColours: ISettings, uiDefinitions: IDefinitions, 
         return cssName;
     }
 
-    let hueFg, hueBg, rgb, index;
+    let hueFg: number, hueBg: number, rgb: string, index: string;
     for(let i = 0; i < 12; i++) {
         hueFg = uiColours.hueOffsetFg + ( i * uiColours.hueDelta);
         hueBg = uiColours.hueOffsetBg + ( i * uiColours.hueDelta);
