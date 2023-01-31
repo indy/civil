@@ -128,8 +128,7 @@ export interface IState {
 
     showAddPointForm: Signal<boolean>;
 
-    // isg hacked in
-    recentImages: Signal<Array<string>>;
+    recentImages: Signal<Array<IUserUploadedImage>>;
 
     imageDirectory: Signal<string>;
 
@@ -180,8 +179,8 @@ export interface IUserUploadedImage {
 }
 
 export interface IUberSetup {
-    directory: number;
-    recentImages: [IUserUploadedImage];
+    directory: string;
+    recentImages: Array<IUserUploadedImage>;
     srReviewCount: number;
     srEarliestReviewDate: string;
 }

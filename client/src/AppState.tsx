@@ -135,16 +135,31 @@ export const AppStateChange = {
             console.log("uberSetup");
         }
 
-        console.log(uber);
+        state.graph.value = {
+            fullyLoaded: false,
+            decks: [],
+            links: [],
+            deckIndexFromId: []
+        };
+
+        state.recentImages.value = uber.recentImages;
+        state.imageDirectory.value = uber.directory;
+        state.srReviewCount.value = uber.srReviewCount;
+        state.srEarliestReviewDate.value = uber.srEarliestReviewDate;
     },
-    userLogin: function () {
+    userLogin: function (user: IUser) {
         if (DEBUG_APP_STATE) {
             console.log("userLogin");
         }
+        state.user.value = user;
     },
     userLogout: function () {
         if (DEBUG_APP_STATE) {
             console.log("userLogout");
         }
+        let user: IUser = { ...state.user.value };
+        user.username = "";
+
+        state.user.value = user;
     },
 };
