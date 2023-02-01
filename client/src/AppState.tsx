@@ -2,7 +2,7 @@ import { h, createContext, ComponentChildren } from "preact";
 import { signal } from "@preact/signals";
 import { useContext } from "preact/hooks";
 
-import { IUser, IUberSetup, IState, ToolbarMode } from "./types";
+import { IUser, IUberSetup, IState, ToolbarMode, IDeckSimple, IIdeasListings, IPeopleListings, IArticleListings } from "./types";
 
 const emptyUser: IUser = {
     username: "",
@@ -169,4 +169,40 @@ export const AppStateChange = {
 
         state.user.value = user;
     },
+    setIdeasListing: function(listing: IIdeasListings) {
+        if (DEBUG_APP_STATE) {
+            console.log("setIdeasListing");
+        }
+        let li = {...state.listing.value};
+        li.ideas = listing;
+        state.listing.value = li;
+    },
+    setPeopleListing: function(listing: IPeopleListings) {
+        if (DEBUG_APP_STATE) {
+            console.log("setPeopleListing");
+        }
+        let li = {...state.listing.value};
+        li.people = listing;
+        state.listing.value = li;
+    },
+    setArticlesListing: function(listing: IArticleListings) {
+        if (DEBUG_APP_STATE) {
+            console.log("setArticleListing");
+        }
+        let li = {...state.listing.value};
+        li.articles = listing;
+        state.listing.value = li;
+    },
+    setTimelineListing: function(listing: Array<IDeckSimple>) {
+        if (DEBUG_APP_STATE) {
+            console.log("setIdeasListing");
+        }
+        let li = {...state.listing.value};
+        li.timelines = listing;
+        state.listing.value = li;
+    },
+    setDeckListing: function(resource: string, listing: Array<IDeckSimple>) {
+        console.error("REPLACE setDeckListing WITH ILISTING SPECIFIC VARIANTS");
+    },
+
 };

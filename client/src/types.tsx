@@ -16,15 +16,65 @@ export interface IUser {
 }
 
 
-export interface IDeck {
-    name: string;
+
+export interface IArticle {
+    id: number;
+    title: string;
+
+    insignia: number;
+
+    created_at: string;
+
+    source?: string;
+    author?: string;
+    short_description?: string;
+
+    rating: number;
+
+    notes?: any;
+
+    refs?: any;
+
+    backnotes?: any;
+    backrefs?: any;
+
+    flashcards?: any;
+
+    published_date?: any;
+}
+
+export interface IDeckSimple {
+    id: number,
+    name: string,
+    resource: string,
+    insignia: number,
+}
+
+export interface IIdeasListings {
+    recent: Array<IDeckSimple>;
+    orphans: Array<IDeckSimple>;
+    unnoted: Array<IDeckSimple>;
+}
+
+export interface IPeopleListings {
+    uncategorised: Array<IDeckSimple>;
+    ancient: Array<IDeckSimple>;
+    medieval: Array<IDeckSimple>;
+    modern: Array<IDeckSimple>;
+    contemporary: Array<IDeckSimple>;
+}
+
+export interface IArticleListings {
+    recent: Array<IArticle>;
+    rated: Array<IArticle>;
+    orphans: Array<IDeckSimple>;
 }
 
 export interface IListing {
-    ideas: Array<IDeck> | undefined;
-    articles: Array<IDeck> | undefined;
-    people: Array<IDeck> | undefined;
-    timelines: Array<IDeck> | undefined;
+    ideas: IIdeasListings | undefined;
+    people: IPeopleListings | undefined;
+    articles: IArticleListings | undefined;
+    timelines: Array<IDeckSimple> | undefined;
 }
 
 export interface ISettings {

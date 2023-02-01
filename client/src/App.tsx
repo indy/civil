@@ -8,6 +8,7 @@ import Net from "./Net.js";
 
 import { IState, IUser, IUberSetup } from "./types";
 
+import { Ideas }         from './components/Ideas';
 import { Login, Logout }       from './components/Login';
 
 export const App = ({ state }: { state: IState }) => {
@@ -101,7 +102,8 @@ const AppUI = () => {
                 // once that issue is fixed the setTimeout can be replaced
                 // with a normal function call to 'route'
                 setTimeout(() => route("/login", true), 0);
-                // route("/login", true);
+            } else if (e.url === '/') {
+                setTimeout(() => route("/ideas", true), 0);
             }
         }
     }
@@ -113,6 +115,7 @@ const AppUI = () => {
                 <Router onChange={handleRoute}>
                     <Login path="/login" loginCallback={ loginHandler }/>
                     <Logout path="/logout"/>
+                    <Ideas path="/ideas"/>
                 </Router>
             </div>
         </div>
