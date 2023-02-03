@@ -22,12 +22,12 @@ export function addToolbarSelectableClasses(toolbarMode) {
         return " selectable-container-hovering selectable-container-hovering-add-above";
     }
 }
-
-export function deckTitle(deck) {
+*/
+export function deckTitle(deck: any) {
     let title = deck && (deck.title || deck.name || '');
     return title;
 }
-
+/*
 export function createDeck(resource, title) {
     // creates a new deck
     const data = {
@@ -69,8 +69,8 @@ export function fetchDeckListing(resource: string, url: string) {
         AppStateChange.setDeckListing(resource, listing);
     });
 }
-/*
-export function sortByResourceThenName(a, b) {
+
+export function sortByResourceThenName(a: any, b: any) {
     if (a.resource < b.resource) {
         return -1;
     }
@@ -92,4 +92,3 @@ export function sortByResourceThenName(a, b) {
     return 0;
 
 }
-*/

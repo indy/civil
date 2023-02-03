@@ -8,7 +8,7 @@ import Net from "./Net.js";
 
 import { IState, IUser, IUberSetup } from "./types";
 
-import { Ideas }         from './components/Ideas';
+import { Ideas, Idea }         from './components/Ideas';
 import { Login, Logout }       from './components/Login';
 
 export const App = ({ state }: { state: IState }) => {
@@ -116,6 +116,7 @@ const AppUI = () => {
                     <Login path="/login" loginCallback={ loginHandler }/>
                     <Logout path="/logout"/>
                     <Ideas path="/ideas"/>
+                    <Idea path="/ideas/:id"/>
                 </Router>
             </div>
         </div>

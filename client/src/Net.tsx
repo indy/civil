@@ -20,6 +20,11 @@ const Net = {
     ): Promise<TResp> {
         return go<TData, TResp>("DELETE", url, data);
     },
+    // use getCORS when you're not allowed to set 'content-type'
+    getCORS: async function <TResp>(url: string): Promise<TResp> {
+        return fetch(url).then(response => response.json());
+    },
+
 };
 
 async function go<TData, TResp>(

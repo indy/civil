@@ -50,6 +50,10 @@ export interface IDeckSimple {
     insignia: number,
 }
 
+export interface ISearchResults {
+    results?: Array<IDeckSimple>;
+}
+
 export interface IIdeasListings {
     recent: Array<IDeckSimple>;
     orphans: Array<IDeckSimple>;
@@ -94,40 +98,40 @@ export interface ISettings {
 export interface IDefinitions {
     [index: string]: string | [number, number, number] | undefined;
 
-    bg?: [number, number, number],
-    bg1?: [number, number, number],
-    bg2?: [number, number, number],
-    bg3?: [number, number, number],
+    bg?: [number, number, number];
+    bg1?: [number, number, number];
+    bg2?: [number, number, number];
+    bg3?: [number, number, number];
 
-    fg?: [number, number, number],
-    fg1?: [number, number, number],
-    fg_inactive?: [number, number, number],
+    fg?: [number, number, number];
+    fg1?: [number, number, number];
+    fg_inactive?: [number, number, number];
 
-    divider?: [number, number, number],
+    divider?: [number, number, number];
 
-    graph_node_expanded?: [number, number, number],
-    graph_node_partial?: [number, number, number],
-    graph_node_minimised?: [number, number, number],
-    graph_edge?: [number, number, number],
-    graph_edge_in_contrast?: [number, number, number],
-    graph_edge_critical?: [number, number, number],
+    graph_node_expanded?: [number, number, number];
+    graph_node_partial?: [number, number, number];
+    graph_node_minimised?: [number, number, number];
+    graph_edge?: [number, number, number];
+    graph_edge_in_contrast?: [number, number, number];
+    graph_edge_critical?: [number, number, number];
 
-    scribble_neutral?: [number, number, number],
-    scribble_disagree?: [number, number, number],
-    hyperlink?: [number, number, number],
-    highlight?: [number, number, number],
+    scribble_neutral?: [number, number, number];
+    scribble_disagree?: [number, number, number];
+    hyperlink?: [number, number, number];
+    highlight?: [number, number, number];
 
-    bg_ideas?: string,
-    bg_articles?: string,
-    bg_people?: string,
-    bg_timelines?: string,
-    bg_quotes?: string,
+    bg_ideas?: string;
+    bg_articles?: string;
+    bg_people?: string;
+    bg_timelines?: string;
+    bg_quotes?: string;
 
-    fg_ideas?: string,
-    fg_articles?: string,
-    fg_people?: string,
-    fg_timelines?: string,
-    fg_quotes?: string,
+    fg_ideas?: string;
+    fg_articles?: string;
+    fg_people?: string;
+    fg_timelines?: string;
+    fg_quotes?: string;
 }
 
 export interface WasmInterface {

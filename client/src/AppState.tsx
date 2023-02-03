@@ -124,6 +124,12 @@ export const getAppState = () => useContext(AppStateContext);
 const DEBUG_APP_STATE = false;
 
 export const AppStateChange = {
+    toolbarMode: function(newMode: ToolbarMode) {
+        if (DEBUG_APP_STATE) {
+            console.log("toolbarMode");
+        }
+        state.toolbarMode.value = newMode;
+    },
     urlName: function(name: string) {
         if (DEBUG_APP_STATE) {
             console.log("urlName");
@@ -204,5 +210,25 @@ export const AppStateChange = {
     setDeckListing: function(resource: string, listing: Array<IDeckSimple>) {
         console.error("REPLACE setDeckListing WITH ILISTING SPECIFIC VARIANTS");
     },
+    obtainKeyboardFn: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("obtainKeyboard");
+        }
+        return function(e: Event) {
+            e.preventDefault();
+            state.componentRequiresFullKeyboardAccess.value = true;
+        }
+    },
+
+    relinquishKeyboardFn: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("relinquishKeyboard");
+        }
+        return function(e: Event) {
+            e.preventDefault();
+            state.componentRequiresFullKeyboardAccess.value = false;
+        }
+    },
+
 
 };
