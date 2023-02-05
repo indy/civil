@@ -22,21 +22,21 @@ export function plural(num: number, phrase: string, suffix: string) {
     return (num === 1) ? `${num} ${phrase}` : `${num} ${phrase}${suffix}`;
 }
 
-// export function formattedDate(timestamp: string) {
-//     const options = { year: 'numeric', month: 'long', day: 'numeric' };
-//     const d = new Date(timestamp);
-//     const textual = d.toLocaleDateString("en-GB", options);
+export function formattedDate(timestamp: string) {
+    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+    const d = new Date(timestamp);
+    const textual = d.toLocaleDateString("en-GB", options);
 
-//     return textual;
-// }
+    return textual;
+}
 
-// export function formattedTime(timestamp: string) {
-//     const options = { hour: '2-digit', minute: '2-digit' };
-//     const d = new Date(timestamp);
-//     const textual = d.toLocaleTimeString("en-GB", options);
+export function formattedTime(timestamp: string) {
+    const options: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' };
+    const d = new Date(timestamp);
+    const textual = d.toLocaleTimeString("en-GB", options);
 
-//     return textual;
-// }
+    return textual;
+}
 
 export function daysUntil(date: string) {
     let nextTestDate  = new Date(date);

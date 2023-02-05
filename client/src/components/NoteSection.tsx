@@ -1,29 +1,24 @@
 import { h } from "preact";
 
-// import Net from '../Net';
-// import { getAppState, AppStateChange } from '../AppState';
-// import { svgEdit } from '../svgIcons';
+import Net from '../Net';
+import { getAppState, AppStateChange } from '../AppState';
+import { svgEdit } from '../svgIcons';
 
-// import Note from '/js/components/Note.js';
-// import NoteForm from '/js/components/NoteForm.js';
-// import RollableSection from '/js/components/RollableSection.js';
-// import WhenVerbose from '/js/components/WhenVerbose.js';
+import Note from './Note';
+import NoteForm from './NoteForm';
+import RollableSection from './RollableSection';
+import WhenVerbose from './WhenVerbose';
 
-
-const NOTE_SECTION_HIDE = 0;
-const NOTE_SECTION_SHOW = 1;
-const NOTE_SECTION_EXCLUSIVE = 2;
+import { NoteSectionHowToShow } from '../types';
 
 const NOTE_KIND_NOTE = 'Note';
 const NOTE_KIND_SUMMARY = 'NoteSummary';
 const NOTE_KIND_REVIEW = 'NoteReview';
 const NOTE_KIND_DECKMETA = 'NoteDeckMeta';
 
-function NoteSection({ heading, noteKind, noteSeq, howToShow, deck, toolbarMode, onRefsChanged, resource, onUpdateDeck, noappend }: { heading?: any, noteKind?: any, noteSeq?: any, howToShow?: any, deck?: any, toolbarMode?: any, onRefsChanged?: any, resource?: any, onUpdateDeck?: any, noappend?: any }) {
+function NoteSection({ heading, noteKind, noteSeq, howToShow, deck, toolbarMode, onRefsChanged, resource, onUpdateDeck, noappend }: { heading?: any, noteKind?: any, noteSeq?: any, howToShow?: NoteSectionHowToShow, deck?: any, toolbarMode?: any, onRefsChanged?: any, resource?: any, onUpdateDeck?: any, noappend?: any }) {
 
-    return (<div>FAKE NoteSection</div>);
-/*
-    function noteManager(noteKind) {
+    function noteManager(noteKind: any) {
         let appendLabel = "Append Note";
         if (noteKind === NOTE_KIND_SUMMARY) {
             appendLabel = "Append Summary Note";
@@ -44,21 +39,23 @@ function NoteSection({ heading, noteKind, noteSeq, howToShow, deck, toolbarMode,
         });
     }
 
-    switch(howToShow) {
-    case NOTE_SECTION_HIDE:      return html`<div></div>`;
-    case NOTE_SECTION_EXCLUSIVE: return html`${ noteManager(noteKind) }`;
-    case NOTE_SECTION_SHOW:      return html`<${RollableSection} heading=${heading}>
-                                               ${ noteManager(noteKind) }
-                                             </${RollableSection}>`;
-                                             }
-*/
+    // todo: typescript: better way of going through the enums
+    if (howToShow === NoteSectionHowToShow.Hide) {
+        return (<div></div>);
+    } else if (howToShow === NoteSectionHowToShow.Exclusive) {
+        return noteManager(noteKind);
+    } else if (howToShow === NoteSectionHowToShow.Show) {
+        return (<RollableSection heading={heading}>
+                    { noteManager(noteKind) }
+                </RollableSection>);
+    }
+
+    // todo: will never get here, fix typescript so that this line can be removed
+    return (<div></div>);
 }
 
 function NoteManager({ deck, toolbarMode, onUpdateDeck, noteSeq, resource, onRefsChanged, optionalDeckPoint, appendLabel, noteKind, noappend }: { deck?: any, toolbarMode?: any, onUpdateDeck?: any, noteSeq?: any, resource?: any, onRefsChanged?: any, optionalDeckPoint?: any, appendLabel?: any, noteKind?: any, noappend?: any }) {
 
-    return (<div>FAKE NoteSection</div>);
-
-/*
     const appState = getAppState();
 
     function onEditedNote(id, updatedNote) {
@@ -66,33 +63,33 @@ function NoteManager({ deck, toolbarMode, onUpdateDeck, noteSeq, resource, onRef
     };
 
     function onDeleteNote(id) {
-        Net.delete("/api/notes/" + id.toString()).then(allRemainingNotes => {
+        Net.delete("/api/notes/" + id.toString(), '').then(allRemainingNotes => {
             let notes = allRemainingNotes;
             onUpdateDeck({...deck, notes});
         });
     };
 
     function buildNoteComponent(note) {
-        return html`
-               <${Note} key=${ note.id }
-                        note=${ note }
-                        parentDeck=${ deck }
-                        toolbarMode=${ toolbarMode }
-                        onDelete=${ onDeleteNote }
-                        onEdited=${ onEditedNote }
-                        onRefsChanged=${ onRefsChanged }
-                        onUpdateDeck=${ onUpdateDeck }
-               />`;
+        return (<Note key={ note.id }
+                        note={ note }
+                        parentDeck={ deck }
+                        toolbarMode={ toolbarMode }
+                        onDelete={ onDeleteNote }
+                        onEdited={ onEditedNote }
+                        onRefsChanged={ onRefsChanged }
+                        onUpdateDeck={ onUpdateDeck }
+               />);
     }
 
 
     function buildNoteForm() {
-        function onCancelled(e) {
+        function onCancelled(e: Event) {
+
             AppStateChange.hideNoteForm(noteKind);
             e.preventDefault();
         };
 
-        function onNoteCreated(allNotes) {
+        function onNoteCreated(allNotes: any) {
             onUpdateDeck({...deck, notes: allNotes});
             AppStateChange.hideNoteForm(noteKind);
         }
@@ -101,15 +98,15 @@ function NoteManager({ deck, toolbarMode, onUpdateDeck, noteSeq, resource, onRef
         let prevNoteId = (noteSeq && noteSeq.length > 0) ? noteSeq[noteSeq.length - 1].id : null;
         let optionalPointId = optionalDeckPoint && optionalDeckPoint.id
 
-        return html`<${NoteForm} label="Append Note:"
-                                 onCreate=${ onNoteCreated }
-                                 onCancel=${ onCancelled }
-                                 deckId=${ deck.id }
-                                 prevNoteId=${ prevNoteId }
-                                 nextNoteId=${ nextNoteId }
-                                 noteKind=${ noteKind }
-                                 optionalPointId=${ optionalPointId }
-                                 />`;
+        return (<NoteForm label="Append Note:"
+                          onCreate={ onNoteCreated }
+                          onCancel={ onCancelled }
+                          deckId={ deck.id }
+                          prevNoteId={ prevNoteId }
+                          nextNoteId={ nextNoteId }
+                          noteKind={ noteKind }
+                          optionalPointId={ optionalPointId }
+                                 />);
     };
 
     function buildNoteFormIcon() {
@@ -119,41 +116,37 @@ function NoteManager({ deck, toolbarMode, onUpdateDeck, noteSeq, resource, onRef
         };
 
         if (optionalDeckPoint) {
-            return html`
-            <${WhenVerbose}>
+            return (<WhenVerbose>
                 <div class="inline-append-note">
                     <div class="left-margin-inline">
-                        <div class="left-margin-entry-no-note-on-right fadeable clickable"  onClick=${ onAddNoteClicked }>
-                            ${ svgEdit() }
-                            <span class="left-margin-icon-label ui-bold">${ appendLabel }</span>
+                        <div class="left-margin-entry-no-note-on-right fadeable clickable"  onClick={ onAddNoteClicked }>
+                            { svgEdit() }
+                            <span class="left-margin-icon-label ui-bold">{ appendLabel }</span>
                         </div>
                     </div>
                 </div>
-            </${WhenVerbose}>`;
+            </WhenVerbose>);
         } else {
-            return html`
-            <${WhenVerbose}>
+            return (<WhenVerbose>
                 <div class="append-note">
                     <div class="left-margin">
-                        <div class="left-margin-entry-no-note-on-right fadeable clickable"  onClick=${ onAddNoteClicked }>
-                            <span class="left-margin-icon-label ui-bold">${ appendLabel }</span>
-                            ${ svgEdit() }
+                        <div class="left-margin-entry-no-note-on-right fadeable clickable"  onClick={ onAddNoteClicked }>
+                            <span class="left-margin-icon-label ui-bold">{ appendLabel }</span>
+                            { svgEdit() }
                         </div>
                     </div>
                 </div>
-            </${WhenVerbose}>`;
+            </WhenVerbose>);
         }
     }
 
     const notes = noteSeq ? noteSeq.map(buildNoteComponent) : [];
     const addNoteUI = noappend ? '' : (appState.showNoteForm.value[noteKind] ? buildNoteForm() : buildNoteFormIcon());
 
-    return html`
-           <section>
-               ${ notes }
-               ${ addNoteUI }
-               </section>`;
-*/
+    return (<section>
+                { notes }
+                { addNoteUI }
+            </section>);
 }
 
-export { NoteSection, NoteManager, NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE, NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW, NOTE_KIND_DECKMETA }
+export { NoteSection, NoteManager, NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW, NOTE_KIND_DECKMETA }

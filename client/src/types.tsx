@@ -150,6 +150,12 @@ export enum ToolbarMode {
     AddAbove,
 }
 
+export enum NoteSectionHowToShow {
+    Hide = 1,
+    Show,
+    Exclusive,
+}
+
 export interface IState {
     appName: string;
     toolbarMode: Signal<ToolbarMode>;

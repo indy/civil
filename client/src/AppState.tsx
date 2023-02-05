@@ -2,7 +2,7 @@ import { h, createContext, ComponentChildren } from "preact";
 import { signal } from "@preact/signals";
 import { useContext } from "preact/hooks";
 
-import { IUser, IUberSetup, IState, ToolbarMode, IDeckSimple, IIdeasListings, IPeopleListings, IArticleListings } from "./types";
+import { IListing, IUser, IUberSetup, IState, ToolbarMode, IDeckSimple, IIdeasListings, IPeopleListings, IArticleListings, IUserUploadedImage } from "./types";
 
 const emptyUser: IUser = {
     username: "",
@@ -207,9 +207,75 @@ export const AppStateChange = {
         li.timelines = listing;
         state.listing.value = li;
     },
-    setDeckListing: function(resource: string, listing: Array<IDeckSimple>) {
-        console.error("REPLACE setDeckListing WITH ILISTING SPECIFIC VARIANTS");
+
+    noteRefsModified: function(allDecksForNote?: any, changes?: any) {
+        if (DEBUG_APP_STATE) {
+            console.log("noteRefsModified");
+        }
+
+        if (changes.referencesCreated.length > 0) {
+            let ng = {...state.graph.value, fullLoaded: false };
+            state.graph.value = ng;
+        }
+
+        if (state.listing.value.ideas) {
+            let li: IListing = { ...state.listing.value };
+            if (li) {
+                changes.referencesCreated.forEach(r => {
+                    let newReference = allDecksForNote.find(d => d.name === r.name && d.resource === "ideas");
+
+                    if (newReference) {
+                        // todo: what should insignia be here?
+                        let newIdeaListing: IDeckSimple = {
+                            id: newReference.id,
+                            name: newReference.name,
+                            resource: "ideas",
+                            insignia: 0
+                        };
+                        if (li.ideas) {
+                            // update the listing with the new resource
+                            if (li.ideas.recent) {
+                                li.ideas.recent.unshift(newIdeaListing);
+                            }
+                            if (li.ideas.unnoted) {
+                                li.ideas.unnoted.unshift(newIdeaListing);
+                            }
+                        }
+                    }
+                });
+                state.listing.value = li;
+            }
+        }
     },
+
+    setDeckListing: function(resource: string, listing: any) {
+        if (DEBUG_APP_STATE) {
+            console.log("setDeckListing");
+        }
+        let li = { ...state.listing.value };
+        if (li)  {
+            if (resource == "ideas") {
+                li.ideas = listing;
+            } else if (resource == "people") {
+                li.people = listing;
+            } else if (resource == "articles") {
+                li.articles = listing;
+            } else if (resource == "timelines") {
+                li.timelines = listing;
+            }
+            state.listing.value = li;
+        }
+    },
+
+    obtainKeyboard: function() {
+        state.componentRequiresFullKeyboardAccess.value = true;
+    },
+
+    relinquishKeyboard: function() {
+        // isg todo: the original js code had a bug in which this was set to true
+        state.componentRequiresFullKeyboardAccess.value = false;
+    },
+
     obtainKeyboardFn: function() {
         if (DEBUG_APP_STATE) {
             console.log("obtainKeyboard");
@@ -230,5 +296,100 @@ export const AppStateChange = {
         }
     },
 
+    showNoteForm: function(noteKind: any) {
+        if (DEBUG_APP_STATE) {
+            console.log("showNoteForm");
+        }
+        let snf = {...state.showNoteForm.value};
+        snf[noteKind] = true;
+
+        state.showNoteForm.value = snf;
+        state.componentRequiresFullKeyboardAccess.value = true;
+    },
+
+    hideNoteForm: function(noteKind: any) {
+        if (DEBUG_APP_STATE) {
+            console.log("hideNoteForm");
+        }
+        let snf = {...state.showNoteForm.value};
+        snf[noteKind] = false;
+
+        state.showNoteForm.value = snf;
+        state.componentRequiresFullKeyboardAccess.value = false;
+    },
+
+    setRecentImages: function(recentImages: Array<IUserUploadedImage>) {
+        if (DEBUG_APP_STATE) {
+            console.log("setRecentImages");
+        }
+        state.recentImages.value = recentImages;
+    },
+
+    deleteDeck: function(id: any) {
+        // todo: typescript check the IListing entry and the filterFn
+
+        if (DEBUG_APP_STATE) {
+            console.log("deleteDeck");
+        }
+        let filterFn = d => d.id !== id;
+
+        if (state.graph.value && state.graph.value.decks) {
+            let g = { ...state.graph.value,
+                      decks: state.graph.value.decks.filter(filterFn)};
+            state.graph.value = g;
+        }
+
+        let li: IListing = {
+            ideas: undefined,
+            people: undefined,
+            articles: undefined,
+            timelines: undefined
+        };
+
+        if (state.listing.value.ideas) {
+            li.ideas = {
+                orphans: state.listing.value.ideas.orphans.filter(filterFn),
+                recent: state.listing.value.ideas.recent.filter(filterFn),
+                unnoted: state.listing.value.ideas.unnoted.filter(filterFn),
+            };
+        };
+
+        if (state.listing.value.articles) {
+            li.articles = {
+                orphans: state.listing.value.articles.orphans.filter(filterFn),
+                recent: state.listing.value.articles.recent.filter(filterFn),
+                rated: state.listing.value.articles.rated.filter(filterFn),
+            };
+        }
+
+        if (state.listing.value.people) {
+            li.people = {
+                uncategorised: state.listing.value.people.uncategorised.filter(filterFn),
+                ancient: state.listing.value.people.ancient.filter(filterFn),
+                medieval: state.listing.value.people.medieval.filter(filterFn),
+                modern: state.listing.value.people.modern.filter(filterFn),
+                contemporary: state.listing.value.people.contemporary.filter(filterFn)
+            };
+        }
+
+        if (state.listing.value.timelines) {
+            li.timelines = state.listing.value.timelines.filter(filterFn);
+        }
+
+        state.listing.value = li;
+
+        if (state.graph.value.links) {
+            let g = {...state.graph.value};
+            delete g.links[id];
+            state.graph.value = g;
+        }
+    },
+
+    setReviewCount: function(count: number) {
+        if (DEBUG_APP_STATE) {
+            console.log("setReviewCount");
+        }
+        state.srReviewCount.value = count;
+    },
 
 };

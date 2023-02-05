@@ -3,26 +3,26 @@ import { useEffect } from "preact/hooks";
 
 import Net from './Net';
 
-import { IDeckSimple } from './types';
+import { IDeckSimple, ToolbarMode } from './types';
 
-// import { TOOLBAR_VIEW, TOOLBAR_EDIT, TOOLBAR_REFS, TOOLBAR_SR, TOOLBAR_ADD_ABOVE } from './components/DeluxeToolbar';
+// import { ToolbarMode.View, ToolbarMode.Edit, TOOLBAR_REFS, TOOLBAR_SR, TOOLBAR_ADD_ABOVE } from './components/DeluxeToolbar';
 import { getAppState, AppStateChange } from './AppState';
 
-
-/*
-export function addToolbarSelectableClasses(toolbarMode) {
+export function addToolbarSelectableClasses(toolbarMode: ToolbarMode) {
     switch (toolbarMode) {
-    case TOOLBAR_EDIT:
-        return " selectable-container-hovering selectable-container-hovering-edit";
-    case TOOLBAR_REFS:
-        return " selectable-container-hovering selectable-container-hovering-refs";
-    case TOOLBAR_SR:
-        return " selectable-container-hovering selectable-container-hovering-sr";
-    case TOOLBAR_ADD_ABOVE:
-        return " selectable-container-hovering selectable-container-hovering-add-above";
+        case ToolbarMode.Edit:
+            return " selectable-container-hovering selectable-container-hovering-edit";
+        case ToolbarMode.Refs:
+            return " selectable-container-hovering selectable-container-hovering-refs";
+        case ToolbarMode.SR:
+            return " selectable-container-hovering selectable-container-hovering-sr";
+        case ToolbarMode.AddAbove:
+            return " selectable-container-hovering selectable-container-hovering-add-above";
+        default:
+            return "";
     }
 }
-*/
+
 export function deckTitle(deck: any) {
     let title = deck && (deck.title || deck.name || '');
     return title;
@@ -42,15 +42,15 @@ export function createDeck(resource, title) {
         route(`/${resource}/${deck.id}`);
     });
 }
-
-export function indexToShortcut(index) {
+*/
+export function indexToShortcut(index: number) {
     if (index < 9) {
         return String.fromCharCode(index + 49);
     } else {
         return String.fromCharCode((index - 9) + 65).toLowerCase();
     }
 }
-*/
+
 export function ensureListingLoaded(resource: string, url: string) {
     console.error("REPLACE ensureListingLoaded WITH ILISTING SPECIFIC VARIANTS");
 

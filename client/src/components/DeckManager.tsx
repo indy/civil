@@ -2,14 +2,13 @@ import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 // import { IIdeasListings, ISearchResults, IDeckSimple } from '../types';
-import { ToolbarMode } from '../types';
+import { ToolbarMode, NoteSectionHowToShow } from '../types';
 
 import Net from '../Net';
 import { getAppState, AppStateChange } from "../AppState";
 import { sortByResourceThenName, deckTitle } from '../CivilUtils';
 
 import { NoteManager,
-         NOTE_SECTION_HIDE, NOTE_SECTION_SHOW, NOTE_SECTION_EXCLUSIVE,
          NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW
        } from './NoteSection';
 
@@ -177,35 +176,35 @@ export default function DeckManager({ id, resource, preCacheFn, hasSummarySectio
             }
             return false;
         },
-        howToShowNoteSection: function(noteKind: any) {
+        howToShowNoteSection: function(noteKind: any): NoteSectionHowToShow {
             if (noteKind === NOTE_KIND_SUMMARY) {
                 if (dms.canHaveSummarySection) {
-                    return dms.displayShowSummaryButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
+                    return dms.displayShowSummaryButton ? NoteSectionHowToShow.Hide : NoteSectionHowToShow.Show;
                 } else {
-                    return NOTE_SECTION_HIDE;
+                    return NoteSectionHowToShow.Hide;
                 }
             }
 
             if (noteKind === NOTE_KIND_REVIEW) {
                 if (dms.canHaveReviewSection) {
-                    return dms.displayShowReviewButton ? NOTE_SECTION_HIDE : NOTE_SECTION_SHOW;
+                    return dms.displayShowReviewButton ? NoteSectionHowToShow.Hide : NoteSectionHowToShow.Show;
                 } else {
-                    return NOTE_SECTION_HIDE;
+                    return NoteSectionHowToShow.Hide;
                 }
             }
 
             if (noteKind === NOTE_KIND_NOTE) {
-                var r = NOTE_SECTION_EXCLUSIVE;
+                var r = NoteSectionHowToShow.Exclusive;
                 if (dms.canHaveSummarySection && !dms.displayShowSummaryButton) {
-                    r = NOTE_SECTION_SHOW;
+                    r = NoteSectionHowToShow.Show;
                 }
                 if (dms.canHaveReviewSection && !dms.displayShowReviewButton) {
-                    r = NOTE_SECTION_SHOW;
+                    r = NoteSectionHowToShow.Show;
                 }
                 return r;
             }
 
-            return NOTE_SECTION_HIDE;
+            return NoteSectionHowToShow.Hide;
         }
     };
 
