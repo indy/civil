@@ -143,6 +143,14 @@ export const AppStateChange = {
         }
         state.url.value = url;
     },
+
+    invalidateGraph: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("invalidateGraph");
+        }
+        state.graph.value = { fullyLoaded: false };
+    },
+
     uberSetup: function (uber: IUberSetup) {
         if (DEBUG_APP_STATE) {
             console.log("uberSetup");
@@ -397,9 +405,78 @@ export const AppStateChange = {
 
         if (state.graph.value.links) {
             let g = {...state.graph.value};
-            delete g.links[id];
+            if (g.links) {
+                delete g.links[id];
+            }
+
             state.graph.value = g;
         }
+    },
+
+    scratchListToggle: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("scratchListToggle");
+        }
+        state.scratchListMinimised.value = !state.scratchListMinimised.value;
+    },
+
+    scratchListAddMulti: function(candidates) {
+        if (DEBUG_APP_STATE) {
+            console.log("scratchListAddMulti");
+        }
+        let sl = state.scratchList.value.slice();
+        candidates.forEach(c => {
+            sl.push(c);
+        });
+        state.scratchList.value = sl;
+    },
+
+    scratchListRemove: function(index) {
+        if (DEBUG_APP_STATE) {
+            console.log("scratchListRemove");
+        }
+        let sl = state.scratchList.value.slice();
+        sl.splice(index, 1);
+        state.scratchList.value = sl;
+    },
+
+    bookmarkUrl: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("bookmarkUrl");
+        }
+        let sl = state.scratchList.value.slice();
+        let candidate: any = parseForScratchList(state.url.value, state.urlName.value);
+
+        sl.push(candidate);
+        state.scratchList.value = sl;
+    },
+
+    cleanUI: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("cleanUI");
+        }
+        state.verboseUI.value = false;
+    },
+
+    basicUI: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("basicUI");
+        }
+        state.verboseUI.value = true;
+    },
+
+    connectivityGraphShow: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("connectivityGraphShow");
+        }
+        state.showConnectivityGraph.value = true;
+    },
+
+    connectivityGraphHide: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("connectivityGraphHide");
+        }
+        state.showConnectivityGraph.value = false;
     },
 
     setReviewCount: function(count: number) {
@@ -410,3 +487,14 @@ export const AppStateChange = {
     },
 
 };
+
+
+function parseForScratchList(url?: any, urlName?: any) {
+    // note: this will break if we ever change the url schema
+    let res = url.match(/^\/(\w+)\/(\w+)/);
+
+    let id = res[2];
+    let resource = res[1];
+
+    return { id: parseInt(id, 10), name: urlName, resource: resource}
+}

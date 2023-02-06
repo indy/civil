@@ -1,4 +1,4 @@
-// import { route } from "preact-router";
+import { route } from "preact-router";
 import { useEffect } from "preact/hooks";
 
 import Net from './Net';
@@ -27,14 +27,14 @@ export function deckTitle(deck: any) {
     let title = deck && (deck.title || deck.name || '');
     return title;
 }
-/*
-export function createDeck(resource, title) {
+
+export function createDeck(resource?: any, title?: any) {
     // creates a new deck
     const data = {
         title: title
     };
 
-    Net.post(`/api/${resource}`, data).then(deck => {
+    Net.post<any, any>(`/api/${resource}`, data).then(deck => {
         Net.get(`/api/${resource}/listings`).then(listing => {
             AppStateChange.setDeckListing(resource, listing);
             AppStateChange.invalidateGraph();
@@ -42,7 +42,7 @@ export function createDeck(resource, title) {
         route(`/${resource}/${deck.id}`);
     });
 }
-*/
+
 export function indexToShortcut(index: number) {
     if (index < 9) {
         return String.fromCharCode(index + 49);

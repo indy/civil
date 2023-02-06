@@ -227,17 +227,17 @@ export interface IState {
 
 // isg hacked in:
 export interface IScratchList {
-    fake: boolean;
+    fake?: boolean;
 }
 
 // isg hacked in:
 export interface IGraph {
     fullyLoaded: boolean;
     // an array of { id, name, resource }
-    decks: Array<any>;
-    links: Array<any>;
+    decks?: Array<any>;
+    links?: Array<any>;
     // an array which is indexed by deckId, returns the offset into state.graph.value.decks
-    deckIndexFromId: Array<any>;
+    deckIndexFromId?: Array<any>;
 }
 
 // isg hacked in:

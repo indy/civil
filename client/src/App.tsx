@@ -11,6 +11,8 @@ import { IState, IUser, IUberSetup } from "./types";
 import { Article, Articles }   from './components/Articles';
 import { Ideas, Idea }         from './components/Ideas';
 import { Person, People }   from './components/People';
+import { Timeline, Timelines }   from './components/Timelines';
+import { Quote, Quotes }   from './components/Quotes';
 import { Login, Logout }       from './components/Login';
 
 export const App = ({ state }: { state: IState }) => {
@@ -111,8 +113,7 @@ const AppUI = () => {
     }
 
     return (
-        <div id="memo-app">
-            <div id="app-content">
+        <div id="civil-app">
                 <TopBarMenu/>
                 <Router onChange={handleRoute}>
                     <Login path="/login" loginCallback={ loginHandler }/>
@@ -123,8 +124,11 @@ const AppUI = () => {
                     <Article path="/articles/:id"/>
                     <People path="/people"/>
                     <Person path="/people/:id"/>
+                    <Timelines path="/timelines"/>
+                    <Timeline path="/timelines/:id"/>
+                    <Quotes path="/quotes"/>
+                    <Quote path="/quotes/:id"/>
                 </Router>
-            </div>
         </div>
     );
 };
