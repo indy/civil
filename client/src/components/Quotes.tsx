@@ -186,10 +186,10 @@ function Quote({ path, id }: { path?: string, id?: string }) {
     function getQuoteThenRoute(url: string) {
         Net.get<any>(url).then(deck => {
             if (deck) {
-                route(`/quotes/{deck.id}`);
+                route(`/quotes/${deck.id}`);
                 AppStateChange.urlName(deck.title);
             } else {
-                console.error(`error: fetchDeck for {url}`);
+                console.error(`error: fetchDeck for ${url}`);
             }
         });
     }
@@ -197,9 +197,9 @@ function Quote({ path, id }: { path?: string, id?: string }) {
     function onKeyDown(e?: any) {
         if (!appState.componentRequiresFullKeyboardAccess.value && !appState.showingSearchCommand.value) {
             if (e.key === 'n') {
-                getQuoteThenRoute(`/api/quotes/{quoteId}/next`);
+                getQuoteThenRoute(`/api/quotes/${quoteId}/next`);
             } else if (e.key === 'p') {
-                getQuoteThenRoute(`/api/quotes/{quoteId}/prev`);
+                getQuoteThenRoute(`/api/quotes/${quoteId}/prev`);
             } else if (e.key === 'r') {
                 getQuoteThenRoute(`/api/quotes/random`);
             }
@@ -212,7 +212,7 @@ function Quote({ path, id }: { path?: string, id?: string }) {
         let note = deck.notes.find(n => n.kind === 'Note');
 
         // as the title could have changed, we need to post the updated quote to the server
-        Net.put(`/api/quotes/{quote.id}`, {
+        Net.put(`/api/quotes/${quote.id}`, {
             title: deck.title,
             text: note.content, // not really needed, server side only uses title and attribution
             attribution: attribution
@@ -222,7 +222,7 @@ function Quote({ path, id }: { path?: string, id?: string }) {
     }
 
     function onDelete(id) {
-        Net.delete(`/api/quotes/{id}`, {}).then(() => {
+        Net.delete(`/api/quotes/${id}`, {}).then(() => {
             route("/quotes");
         });
     }

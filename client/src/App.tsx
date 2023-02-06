@@ -8,6 +8,9 @@ import Net from "./Net.js";
 
 import { IState, IUser, IUberSetup } from "./types";
 
+import Stuff                   from './components/Stuff';
+import SpacedRepetition        from './components/SpacedRepetition';
+import SearchCommand   from './components/SearchCommand';
 import { Article, Articles }   from './components/Articles';
 import { Ideas, Idea }         from './components/Ideas';
 import { Person, People }   from './components/People';
@@ -114,21 +117,24 @@ const AppUI = () => {
 
     return (
         <div id="civil-app">
-                <TopBarMenu/>
-                <Router onChange={handleRoute}>
-                    <Login path="/login" loginCallback={ loginHandler }/>
-                    <Logout path="/logout"/>
-                    <Ideas path="/ideas"/>
-                    <Idea path="/ideas/:id"/>
-                    <Articles path="/articles"/>
-                    <Article path="/articles/:id"/>
-                    <People path="/people"/>
-                    <Person path="/people/:id"/>
-                    <Timelines path="/timelines"/>
-                    <Timeline path="/timelines/:id"/>
-                    <Quotes path="/quotes"/>
-                    <Quote path="/quotes/:id"/>
-                </Router>
+            <SearchCommand/>
+            <TopBarMenu/>
+            <Router onChange={handleRoute}>
+                <Login path="/login" loginCallback={ loginHandler }/>
+                <Logout path="/logout"/>
+                <SpacedRepetition path="/sr"/>
+                <Stuff path="/stuff"/>
+                <Ideas path="/ideas"/>
+                <Idea path="/ideas/:id"/>
+                <Articles path="/articles"/>
+                <Article path="/articles/:id"/>
+                <People path="/people"/>
+                <Person path="/people/:id"/>
+                <Timelines path="/timelines"/>
+                <Timeline path="/timelines/:id"/>
+                <Quotes path="/quotes"/>
+                <Quote path="/quotes/:id"/>
+            </Router>
         </div>
     );
 };
