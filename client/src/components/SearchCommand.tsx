@@ -2,34 +2,38 @@ import { h } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import { Link, route } from "preact-router";
 
-import { ToolbarMode } from '../types';
+import { ToolbarMode } from "../types";
 
-import Net from '../Net';
-import { getAppState, AppStateChange } from '../AppState';
-import { createDeck, indexToShortcut } from '../CivilUtils';
-import { svgX, svgChevronDown, svgChevronUp } from '../svgIcons';
-import { useLocalReducer } from '../PreactUtils';
+import Net from "../Net";
+import { getAppState, AppStateChange } from "../AppState";
+import { createDeck, indexToShortcut } from "../CivilUtils";
+import { svgX, svgChevronDown, svgChevronUp } from "../svgIcons";
+import { useLocalReducer } from "../PreactUtils";
 
-import DeckLink from './DeckLink';
-import { NOTE_KIND_NOTE, NOTE_KIND_SUMMARY, NOTE_KIND_REVIEW} from './NoteSection';
+import DeckLink from "./DeckLink";
+import {
+    NOTE_KIND_NOTE,
+    NOTE_KIND_SUMMARY,
+    NOTE_KIND_REVIEW,
+} from "./NoteSection";
 
-const MODE_SEARCH = 'mode-search';
-const MODE_COMMAND = 'mode-command';
+const MODE_SEARCH = "mode-search";
+const MODE_COMMAND = "mode-command";
 
 // actions to give to the dispatcher
-const CANDIDATES_SET = 'candidate-set';
-const CLICKED_CANDIDATE = 'clicked-candidate';
-const CLICKED_COMMAND = 'clicked-command';
-const INPUT_BLUR = 'input-blur';
-const INPUT_FOCUS = 'input-focus';
-const INPUT_GIVEN = 'input-given';
-const KEY_DOWN_COLON = 'key-down-colon';
-const KEY_DOWN_CTRL = 'key-down-ctrl';
-const KEY_DOWN_ENTER = 'key-down-enter';
-const KEY_DOWN_ESC = 'key-down-esc';
-const KEY_DOWN_KEY = 'key-down-key';
-const KEY_DOWN_PLUS = 'key-down-plus';
-const REMOVE_SAVED_SEARCH_RESULT = 'remove-saved-search-result';
+const CANDIDATES_SET = "candidate-set";
+const CLICKED_CANDIDATE = "clicked-candidate";
+const CLICKED_COMMAND = "clicked-command";
+const INPUT_BLUR = "input-blur";
+const INPUT_FOCUS = "input-focus";
+const INPUT_GIVEN = "input-given";
+const KEY_DOWN_COLON = "key-down-colon";
+const KEY_DOWN_CTRL = "key-down-ctrl";
+const KEY_DOWN_ENTER = "key-down-enter";
+const KEY_DOWN_ESC = "key-down-esc";
+const KEY_DOWN_KEY = "key-down-key";
+const KEY_DOWN_PLUS = "key-down-plus";
+const REMOVE_SAVED_SEARCH_RESULT = "remove-saved-search-result";
 
 // array because ordering is important when printing the commands
 //
@@ -38,159 +42,157 @@ const Commands = [
         command: "i",
         description: "goto ideas or add ",
         quoteAround: "title",
-        fn: args => {
-            return routeOrCreate('ideas', args);
-        }
+        fn: (args) => {
+            return routeOrCreate("ideas", args);
+        },
     },
     {
-        command: 'p',
+        command: "p",
         description: "goto people or add ",
         quoteAround: "name",
-        fn: args => {
-            return routeOrCreate('people', args);
-        }
+        fn: (args) => {
+            return routeOrCreate("people", args);
+        },
     },
     {
-        command: 'a',
+        command: "a",
         description: "goto articles or add ",
         quoteAround: "title",
-        fn: args => {
-            return routeOrCreate('articles', args);
-        }
+        fn: (args) => {
+            return routeOrCreate("articles", args);
+        },
     },
     {
-        command: 't',
+        command: "t",
         description: "goto timelines or add ",
         quoteAround: "title",
-        fn: args => {
-            return routeOrCreate('timelines', args);
-        }
-
+        fn: (args) => {
+            return routeOrCreate("timelines", args);
+        },
     },
     {
-        command: 'q',
+        command: "q",
         description: "goto quotes",
         fn: () => {
-            return routeOrCreate('quotes', []);
-        }
+            return routeOrCreate("quotes", []);
+        },
     },
     {
-        command: 'qr',
+        command: "qr",
         description: "goto random quote",
         fn: () => {
-            Net.get<any>("/api/quotes/random").then(quote => {
+            Net.get<any>("/api/quotes/random").then((quote) => {
                 route(`/quotes/${quote.id}`);
             });
             return true;
-        }
+        },
     },
     {
-        command: 's',
+        command: "s",
         description: "goto spaced repetition",
         fn: () => {
-            route('/sr');
+            route("/sr");
             return true;
-        }
+        },
     },
     {
-        spacer: true
+        spacer: true,
     },
     {
-        command: 'e',
+        command: "e",
         description: "switch to edit mode",
         fn: () => {
             AppStateChange.toolbarMode(ToolbarMode.Edit);
             return true;
-        }
+        },
     },
     {
-        command: 'r',
+        command: "r",
         description: "switch to add reference mode",
         fn: () => {
             AppStateChange.toolbarMode(ToolbarMode.Refs);
             return true;
-        }
+        },
     },
     {
-        spacer: true
+        spacer: true,
     },
     {
-        command: 'n',
+        command: "n",
         description: "show add-note form",
         fn: () => {
             AppStateChange.showNoteForm(NOTE_KIND_NOTE);
             return true;
-        }
+        },
     },
     {
-        command: 'nr',
+        command: "nr",
         description: "show add-note form for review section",
         fn: () => {
             AppStateChange.showNoteForm(NOTE_KIND_REVIEW);
             return true;
-        }
+        },
     },
     {
-        command: 'ns',
+        command: "ns",
         description: "show add-note form for summary section",
         fn: () => {
             AppStateChange.showNoteForm(NOTE_KIND_SUMMARY);
             return true;
-        }
+        },
     },
     {
-        command: 'fp',
+        command: "fp",
         description: "show point form",
         fn: () => {
             AppStateChange.showAddPointForm();
             return true;
-        }
+        },
     },
     {
-        spacer: true
+        spacer: true,
     },
     {
-        command: 'b',
+        command: "b",
         description: "bookmark current page to scratchlist",
         fn: () => {
             AppStateChange.bookmarkUrl();
             return true;
-        }
+        },
     },
     {
-        command: 'uic',
+        command: "uic",
         description: "clean ui",
         fn: () => {
             AppStateChange.cleanUI();
             return true;
-        }
+        },
     },
     {
-        command: 'uib',
+        command: "uib",
         description: "basic ui",
         fn: () => {
             AppStateChange.basicUI();
             return true;
-        }
+        },
     },
     {
-        command: 'g',
+        command: "g",
         description: "show connectivity graph",
         fn: () => {
-            AppStateChange.connectivityGraphShow()
+            AppStateChange.connectivityGraphShow();
             return true;
-        }
+        },
     },
     {
-        command: 'h',
+        command: "h",
         description: "hide connectivity graph",
         fn: () => {
-            AppStateChange.connectivityGraphHide()
+            AppStateChange.connectivityGraphHide();
             return true;
-        }
-    }
+        },
+    },
 ];
-
 
 // function debugState(state) {
 //     console.log(`mode: ${state.mode}, text: "${state.text}"`);
@@ -201,218 +203,221 @@ function cleanState(state) {
         ...state,
         showKeyboardShortcuts: false,
         shiftKey: false,
-        text: '',
+        text: "",
         candidates: [],
-        isVisible: !state.hasPhysicalKeyboard
-    }
+        isVisible: !state.hasPhysicalKeyboard,
+    };
 }
 
 function reducer(state?: any, action?: any) {
-    switch(action.type) {
-    case CLICKED_COMMAND: {
-        const command = action.data.entry.command;
-        const success = executeCommand(command);
-        if (success) {
-            let newState = cleanState(state);
-            return newState;
-        } else {
-            console.error(`Failed to execute command: ${command}`);
-            return state;
-        }
-    }
-    case CLICKED_CANDIDATE: {
-        const newState = cleanState(state);
-        return newState;
-    }
-    case INPUT_BLUR: {
-        const newState = {
-            ...state,
-            hasFocus: false
-        };
-        if (newState.candidates.length === 0) {
-            newState.isVisible = !state.hasPhysicalKeyboard
-        }
-        return newState;
-    }
-    case INPUT_FOCUS: {
-        const newState = {
-            ...state,
-            hasFocus: true
-        };
-        return newState;
-    }
-    case KEY_DOWN_ENTER: {
-        if (!state.isVisible) {
-            return state;
-        }
-
-        if (state.mode === MODE_COMMAND) {
-            const success = executeCommand(state.text);
+    switch (action.type) {
+        case CLICKED_COMMAND: {
+            const command = action.data.entry.command;
+            const success = executeCommand(command);
             if (success) {
                 let newState = cleanState(state);
                 return newState;
+            } else {
+                console.error(`Failed to execute command: ${command}`);
+                return state;
             }
         }
+        case CLICKED_CANDIDATE: {
+            const newState = cleanState(state);
+            return newState;
+        }
+        case INPUT_BLUR: {
+            const newState = {
+                ...state,
+                hasFocus: false,
+            };
+            if (newState.candidates.length === 0) {
+                newState.isVisible = !state.hasPhysicalKeyboard;
+            }
+            return newState;
+        }
+        case INPUT_FOCUS: {
+            const newState = {
+                ...state,
+                hasFocus: true,
+            };
+            return newState;
+        }
+        case KEY_DOWN_ENTER: {
+            if (!state.isVisible) {
+                return state;
+            }
 
-        return state;
-    }
-    case KEY_DOWN_ESC: {
-        const inputElement = action.data.current;
-        const newState = cleanState(state);
-        if (state.hasPhysicalKeyboard) {
-            if (state.isVisible) {
-                if (inputElement) {
-                    inputElement.blur();
+            if (state.mode === MODE_COMMAND) {
+                const success = executeCommand(state.text);
+                if (success) {
+                    let newState = cleanState(state);
+                    return newState;
                 }
-            } else {
+            }
+
+            return state;
+        }
+        case KEY_DOWN_ESC: {
+            const inputElement = action.data.current;
+            const newState = cleanState(state);
+            if (state.hasPhysicalKeyboard) {
+                if (state.isVisible) {
+                    if (inputElement) {
+                        inputElement.blur();
+                    }
+                } else {
+                    if (inputElement) {
+                        inputElement.focus();
+                        newState.isVisible = true;
+                    }
+                }
+            }
+            return newState;
+        }
+        case KEY_DOWN_COLON: {
+            const newState = { ...state };
+
+            let appState = action.data.appState;
+            if (appState.componentRequiresFullKeyboardAccess.value) {
+                return newState;
+            }
+
+            let searchCommandRef = action.data.searchCommandRef;
+            const inputElement = searchCommandRef.current;
+
+            if (!newState.isVisible) {
                 if (inputElement) {
                     inputElement.focus();
                     newState.isVisible = true;
                 }
             }
-        }
-        return newState;
-    };
-    case KEY_DOWN_COLON: {
-        const newState = { ...state };
-
-        let appState = action.data.appState;
-        if (appState.componentRequiresFullKeyboardAccess.value) {
             return newState;
         }
+        case KEY_DOWN_CTRL: {
+            if (!state.isVisible) {
+                return state;
+            }
 
-        let searchCommandRef = action.data.searchCommandRef;
-        const inputElement = searchCommandRef.current;
+            const newState = {
+                ...state,
+            };
 
-        if (!newState.isVisible) {
-            if (inputElement) {
-                inputElement.focus();
-                newState.isVisible = true;
+            if (state.mode === MODE_SEARCH) {
+                newState.showKeyboardShortcuts =
+                    !state.showKeyboardShortcuts && state.candidates.length > 0;
+            }
+
+            return newState;
+        }
+        case KEY_DOWN_KEY: {
+            if (!state.isVisible) {
+                return state;
+            }
+
+            const newState = { ...state };
+
+            if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
+                newState.keyDownIndex = action.data.index;
+                newState.shiftKey = action.data.shiftKey;
+            }
+
+            return newState;
+        }
+        case KEY_DOWN_PLUS: {
+            if (!state.isVisible) {
+                return state;
+            }
+
+            const newState = { ...state };
+            if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
+                AppStateChange.scratchListAddMulti(newState.candidates);
+
+                newState.shiftKey = true;
+                newState.keyDownIndex = -1;
+
+                return newState;
+            } else {
+                return newState;
             }
         }
-        return newState;
-    };
-    case KEY_DOWN_CTRL: {
-        if (!state.isVisible) {
-            return state;
-        }
+        case CANDIDATES_SET:
+            return {
+                ...state,
+                candidates: action.data.results ? action.data.results : [],
+            };
+        case INPUT_GIVEN: {
+            if (!state.isVisible) {
+                return state;
+            }
 
-        const newState = {
-            ...state
-        };
+            const text = action.data.text;
+            const mode = isCommand(text) ? MODE_COMMAND : MODE_SEARCH;
 
-        if (state.mode === MODE_SEARCH) {
-            newState.showKeyboardShortcuts = !state.showKeyboardShortcuts && (state.candidates.length > 0);
-        }
+            let candidates = state.candidates;
+            if (mode === MODE_COMMAND) {
+                candidates = Commands;
+            }
+            if (mode === MODE_SEARCH && state.mode === MODE_COMMAND) {
+                // just changed mode from command to search
+                candidates = [];
+            }
 
-        return newState;
-    }
-    case KEY_DOWN_KEY: {
-        if (!state.isVisible) {
-            return state;
-        }
+            if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
+                const index = state.keyDownIndex;
 
-        const newState = {...state};
+                if (index >= 0 && state.candidates.length > index) {
+                    const candidate = state.candidates[index];
 
-        if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
-            newState.keyDownIndex = action.data.index;
-            newState.shiftKey = action.data.shiftKey;
-        }
+                    if (state.shiftKey) {
+                        // once a candidate has been added to the saved search
+                        // results, set the keyDownIndex to an invalid value,
+                        // otherwise if the user presses shift and an unused
+                        // key (e.g. '+' ) then the last candidate to be added
+                        // will be added again.
+                        //
+                        const newState = {
+                            ...state,
+                            keyDownIndex: -1,
+                        };
 
-        return newState;
-    }
-    case KEY_DOWN_PLUS: {
-        if (!state.isVisible) {
-            return state;
-        }
+                        AppStateChange.scratchListAddMulti([candidate]);
 
-        const newState = { ...state };
-        if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
-            AppStateChange.scratchListAddMulti(newState.candidates);
+                        return newState;
+                    } else {
+                        const url = `/${candidate.resource}/${candidate.id}`;
+                        route(url);
 
-            newState.shiftKey = true;
-            newState.keyDownIndex = -1;
-
-            return newState;
-        } else {
-            return newState;
-        }
-    }
-    case CANDIDATES_SET: return {
-        ...state,
-        candidates: action.data.results ? action.data.results : []
-    }
-    case INPUT_GIVEN: {
-        if (!state.isVisible) {
-            return state;
-        }
-
-        const text = action.data.text;
-        const mode = isCommand(text) ? MODE_COMMAND : MODE_SEARCH;
-
-        let candidates = state.candidates;
-        if (mode === MODE_COMMAND) {
-            candidates = Commands;
-        }
-        if (mode === MODE_SEARCH && state.mode === MODE_COMMAND) {
-            // just changed mode from command to search
-            candidates = [];
-        }
-
-        if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
-            const index = state.keyDownIndex;
-
-            if (index >= 0 && state.candidates.length > index) {
-                const candidate = state.candidates[index];
-
-                if (state.shiftKey) {
-                    // once a candidate has been added to the saved search
-                    // results, set the keyDownIndex to an invalid value,
-                    // otherwise if the user presses shift and an unused
-                    // key (e.g. '+' ) then the last candidate to be added
-                    // will be added again.
-                    //
-                    const newState = {
-                        ...state,
-                        keyDownIndex: -1
-                    };
-
-                    AppStateChange.scratchListAddMulti([candidate]);
-
-                    return newState;
-                } else {
-                    const url = `/${candidate.resource}/${candidate.id}`;
-                    route(url);
-
-                    const newState = cleanState(state);
-                    return newState;
+                        const newState = cleanState(state);
+                        return newState;
+                    }
                 }
             }
+
+            const newState = {
+                ...state,
+                mode,
+                text,
+                candidates,
+            };
+
+            return newState;
         }
+        case REMOVE_SAVED_SEARCH_RESULT: {
+            const index = action.data.index;
+            const newState = { ...state };
 
-        const newState = {
-            ...state,
-            mode,
-            text,
-            candidates
-        };
+            AppStateChange.scratchListRemove(index);
 
-        return newState;
-    }
-    case REMOVE_SAVED_SEARCH_RESULT: {
-        const index = action.data.index;
-        const newState = {...state};
-
-        AppStateChange.scratchListRemove(index);
-
-        return newState;
-    }
-    default: throw new Error(`unknown action: ${action}`);
+            return newState;
+        }
+        default:
+            throw new Error(`unknown action: ${action}`);
     }
 }
 
 function isCommand(text) {
-    return text.length >= 1 && text[0] === ':';
+    return text.length >= 1 && text[0] === ":";
 }
 
 export default function SearchCommand() {
@@ -426,8 +431,8 @@ export default function SearchCommand() {
         hasFocus: false,
         showKeyboardShortcuts: false,
         shiftKey: false,
-        text: '',
-        candidates: []
+        text: "",
+        candidates: [],
     });
 
     function onKeyDown(e: KeyboardEvent) {
@@ -443,15 +448,21 @@ export default function SearchCommand() {
         if (e.ctrlKey) {
             localDispatch(KEY_DOWN_CTRL);
         }
-        if ((e.keyCode >= 49 && e.keyCode <= 57) || (e.keyCode >= 65 && e.keyCode <= 90)) {
+        if (
+            (e.keyCode >= 49 && e.keyCode <= 57) ||
+            (e.keyCode >= 65 && e.keyCode <= 90)
+        ) {
             // digit: 1 -> 0, 2 -> 1, ... 9 -> 8       letter: a -> 9, b -> 10, ... z -> 34
-            const index = (e.keyCode >= 49 && e.keyCode <= 57) ? e.keyCode - 49 : (e.keyCode - 65) + 9;
+            const index =
+                e.keyCode >= 49 && e.keyCode <= 57
+                    ? e.keyCode - 49
+                    : e.keyCode - 65 + 9;
             localDispatch(KEY_DOWN_KEY, { index: index, shiftKey: e.shiftKey });
         }
         if (e.key === "+") {
             localDispatch(KEY_DOWN_PLUS);
         }
-    };
+    }
 
     function onFocus() {
         localDispatch(INPUT_FOCUS);
@@ -466,7 +477,7 @@ export default function SearchCommand() {
         return () => {
             document.removeEventListener("keydown", onKeyDown);
         };
-    }, [appState])
+    }, [appState]);
 
     const handleChangeEvent = (event) => {
         const text = event.target.value;
@@ -493,7 +504,6 @@ export default function SearchCommand() {
                 localDispatch(INPUT_GIVEN, { text: displayText });
             }
         }
-
     };
 
     async function search(text) {
@@ -503,8 +513,9 @@ export default function SearchCommand() {
     }
 
     function buildSearchResultEntry(entry, i) {
-        const maxShortcuts = 9 + 26;  // 1..9 and a..z
-        const canShowKeyboardShortcut = local.showKeyboardShortcuts && i < maxShortcuts;
+        const maxShortcuts = 9 + 26; // 1..9 and a..z
+        const canShowKeyboardShortcut =
+            local.showKeyboardShortcuts && i < maxShortcuts;
 
         function clickedCandidate(e) {
             localDispatch(CLICKED_CANDIDATE);
@@ -512,13 +523,20 @@ export default function SearchCommand() {
 
         let hreff = `/${entry.resource}/${entry.id}`;
         return (
-            <DeckLink resource={entry.resource}
-                      href={hreff}
-                      insignia={entry.insignia}
-                      name={entry.name}
-                      onClick={clickedCandidate}>
-                { canShowKeyboardShortcut && <span class='keyboard-shortcut'>${ indexToShortcut(i)}: </span>}
-            </DeckLink>);
+            <DeckLink
+                resource={entry.resource}
+                href={hreff}
+                insignia={entry.insignia}
+                name={entry.name}
+                onClick={clickedCandidate}
+            >
+                {canShowKeyboardShortcut && (
+                    <span class="keyboard-shortcut">
+                        ${indexToShortcut(i)}:{" "}
+                    </span>
+                )}
+            </DeckLink>
+        );
     }
 
     function buildCommandEntry(entry, i) {
@@ -529,25 +547,40 @@ export default function SearchCommand() {
             return <div class="command-entry">-</div>;
         } else {
             return (
-            <div class="command-entry" onClick={clickedCommand}>
-                <span class="command-entry-name">:{ entry.command }</span>
-                <span class="command-entry-desc">{ entry.description }
-                { entry.quoteAround && <span class="command-entry-quote-around">{entry.quoteAround}</span>}</span>
-            </div>);
+                <div class="command-entry" onClick={clickedCommand}>
+                    <span class="command-entry-name">:{entry.command}</span>
+                    <span class="command-entry-desc">
+                        {entry.description}
+                        {entry.quoteAround && (
+                            <span class="command-entry-quote-around">
+                                {entry.quoteAround}
+                            </span>
+                        )}
+                    </span>
+                </div>
+            );
         }
     }
 
     function buildCandidates() {
-        let classes = local.hasPhysicalKeyboard && local.showKeyboardShortcuts ? "search-command-important " : "";
+        let classes =
+            local.hasPhysicalKeyboard && local.showKeyboardShortcuts
+                ? "search-command-important "
+                : "";
         classes += "search-command-listing";
 
-        let candidateRenderer = local.mode === MODE_SEARCH ? buildSearchResultEntry : buildCommandEntry;
+        let candidateRenderer =
+            local.mode === MODE_SEARCH
+                ? buildSearchResultEntry
+                : buildCommandEntry;
 
         return (
-        <ul class={classes} id="search-candidates">
-            { local.candidates.map((entry, i) => <li key={ i }>{ candidateRenderer(entry, i) }</li>) }
-            </ul>);
-
+            <ul class={classes} id="search-candidates">
+                {local.candidates.map((entry, i) => (
+                    <li key={i}>{candidateRenderer(entry, i)}</li>
+                ))}
+            </ul>
+        );
     }
 
     function buildScratchList() {
@@ -563,52 +596,66 @@ export default function SearchCommand() {
             let klass = `pigment-fg-${entry.resource}`;
             let hreff = `/${entry.resource}/${entry.id}`;
             return (
-            <div class="saved-search-result">
-                <div class="saved-search-result-remove" onClick={clickedDelete}>${ svgX() }</div>
-                <Link onClick={clickedCandidate}
-                class={ klass }
-                href= { hreff }>
-                    { entry.name }
-                </Link>
-            </div>);
+                <div class="saved-search-result">
+                    <div
+                        class="saved-search-result-remove"
+                        onClick={clickedDelete}
+                    >
+                        ${svgX()}
+                    </div>
+                    <Link onClick={clickedCandidate} class={klass} href={hreff}>
+                        {entry.name}
+                    </Link>
+                </div>
+            );
         }
 
         function clickedToggle(e) {
             AppStateChange.scratchListToggle();
         }
 
-        const scratchList = appState.scratchList.value.map((entry, i) =>
-            <li key={ i }>{ buildScratchListEntry(entry, i) }</li>);
+        const scratchList = appState.scratchList.value.map((entry, i) => (
+            <li key={i}>{buildScratchListEntry(entry, i)}</li>
+        ));
 
         return (
-        <div id="saved-search-component">
-            { !appState.scratchListMinimised.value && (
-                <ul class="search-command-listing" id="saved-search-results">
-                    { scratchList }
-                </ul>)}
-             { appState.scratchListMinimised.value ? (
-                <div class="saved-search-menu">
-                    <div onClick={clickedToggle}>
-                        { svgChevronUp() }
+            <div id="saved-search-component">
+                {!appState.scratchListMinimised.value && (
+                    <ul
+                        class="search-command-listing"
+                        id="saved-search-results"
+                    >
+                        {scratchList}
+                    </ul>
+                )}
+                {appState.scratchListMinimised.value ? (
+                    <div class="saved-search-menu">
+                        <div onClick={clickedToggle}>{svgChevronUp()}</div>
+                        <span class="saved-search-menu-tip">
+                            Maximise ScratchList
+                        </span>
                     </div>
-                    <span class="saved-search-menu-tip">Maximise ScratchList</span>
-                </div>
-            ) : (
-                <div class="saved-search-menu">
-                    <div onClick={clickedToggle}>
-                        { svgChevronDown() }
+                ) : (
+                    <div class="saved-search-menu">
+                        <div onClick={clickedToggle}>{svgChevronDown()}</div>
+                        <span class="saved-search-menu-tip">
+                            Minimise ScratchList
+                        </span>
                     </div>
-                    <span class="saved-search-menu-tip">Minimise ScratchList</span>
-                </div>
-            )}
-        </div>);
+                )}
+            </div>
+        );
     }
 
-    const extraClasses = local.isVisible ? "search-command-visible" : "search-command-invisible";
+    const extraClasses = local.isVisible
+        ? "search-command-visible"
+        : "search-command-invisible";
 
     let inputClasses = "search-command-input";
     if (local.hasPhysicalKeyboard) {
-        inputClasses += local.showKeyboardShortcuts ? " search-command-unimportant" : " search-command-important";
+        inputClasses += local.showKeyboardShortcuts
+            ? " search-command-unimportant"
+            : " search-command-important";
     } else {
         if (local.hasFocus) {
             inputClasses += " on-touch-device-search-command-has-focus";
@@ -634,22 +681,25 @@ export default function SearchCommand() {
     // </div>
 
     return (
-    <div id="search-command">
-        <div class={extraClasses}>
-            <input id="search-command-input"
-                   autocomplete="off"
-                   type="text"
-                   class={inputClasses}
-                   ref={ searchCommandRef }
-                   name="full search"
-                   value={local.text}
-                   onInput={handleChangeEvent}
-                   onFocus={onFocus}
-                   onBlur={onBlur}/>
-            { !!local.candidates.length && buildCandidates() }
+        <div id="search-command">
+            <div class={extraClasses}>
+                <input
+                    id="search-command-input"
+                    autocomplete="off"
+                    type="text"
+                    class={inputClasses}
+                    ref={searchCommandRef}
+                    name="full search"
+                    value={local.text}
+                    onInput={handleChangeEvent}
+                    onFocus={onFocus}
+                    onBlur={onBlur}
+                />
+                {!!local.candidates.length && buildCandidates()}
+            </div>
+            {!!appState.scratchList.value.length && buildScratchList()}
         </div>
-        { !!appState.scratchList.value.length && buildScratchList() }
-      </div>);
+    );
 }
 
 function routeOrCreate(kind, argString) {
@@ -663,14 +713,17 @@ function routeOrCreate(kind, argString) {
 }
 
 function executeCommand(text) {
-    const commandPlusArgs = text.slice(1).split(" ").filter(s => s.length > 0);
+    const commandPlusArgs = text
+        .slice(1)
+        .split(" ")
+        .filter((s) => s.length > 0);
     if (commandPlusArgs.length === 0) {
         return;
     }
 
     const command = commandPlusArgs[0];
 
-    const action: any = Commands.find(c => c.command === command);
+    const action: any = Commands.find((c) => c.command === command);
     if (action) {
         const rest = commandPlusArgs.slice(1).join(" ");
         return action.fn(rest);

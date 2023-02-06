@@ -1,12 +1,22 @@
 import { h } from "preact";
 
-import Net from '../Net';
-import { AppStateChange } from '../AppState';
+import Net from "../Net";
+import { AppStateChange } from "../AppState";
 
-import CivilSelect from './CivilSelect';
-import Ref from './Ref';
+import CivilSelect from "./CivilSelect";
+import Ref from "./Ref";
 
-export default function SectionDeckRefs({ deck, isEditing, onRefsChanged, onRefsToggle }: { deck?: any, isEditing?: any, onRefsChanged?: any, onRefsToggle?: any }) {
+export default function SectionDeckRefs({
+    deck,
+    isEditing,
+    onRefsChanged,
+    onRefsToggle,
+}: {
+    deck?: any;
+    isEditing?: any;
+    onRefsChanged?: any;
+    onRefsToggle?: any;
+}) {
     function onCancel() {
         onRefsToggle();
     }
@@ -27,27 +37,54 @@ export default function SectionDeckRefs({ deck, isEditing, onRefsChanged, onRefs
 
     let entries = [];
     if (deckMeta && deckMeta.decks) {
-        entries = deckMeta.decks.map(ref => {
-            return (<Ref deckReference={ref} extraClasses="deck-ref-item"/>);
+        entries = deckMeta.decks.map((ref) => {
+            return <Ref deckReference={ref} extraClasses="deck-ref-item" />;
         });
     }
 
-    return (<div class="deck-ref-section">
-        { !isEditing && entries.length > 0 && (<div><hr class="light"/>{entries}<hr class="light"/></div>)}
-        {  isEditing && (<AddDecksUI deckId={deckId} note={deckMeta} chosen={deckMeta.decks} onCancel={onCancel} onSaved={ onSaved }/>) }
-    </div>);
+    return (
+        <div class="deck-ref-section">
+            {!isEditing && entries.length > 0 && (
+                <div>
+                    <hr class="light" />
+                    {entries}
+                    <hr class="light" />
+                </div>
+            )}
+            {isEditing && (
+                <AddDecksUI
+                    deckId={deckId}
+                    note={deckMeta}
+                    chosen={deckMeta.decks}
+                    onCancel={onCancel}
+                    onSaved={onSaved}
+                />
+            )}
+        </div>
+    );
 }
 
-function AddDecksUI({ deckId, note, chosen, onCancel, onSaved }: { deckId?: any, note?: any, chosen?: any, onCancel?: any, onSaved?: any}) {
-
+function AddDecksUI({
+    deckId,
+    note,
+    chosen,
+    onCancel,
+    onSaved,
+}: {
+    deckId?: any;
+    note?: any;
+    chosen?: any;
+    onCancel?: any;
+    onSaved?: any;
+}) {
     // todo: fix this typescript interface
     interface IFuckKnows {
         noteId: any;
         referencesChanged: any;
-        referencesRemoved:any;
+        referencesRemoved: any;
         referencesAdded: any;
         referencesCreated: any;
-    };
+    }
 
     function referenceChanges(changes: any) {
         if (changes) {
@@ -57,22 +94,27 @@ function AddDecksUI({ deckId, note, chosen, onCancel, onSaved }: { deckId?: any,
                 referencesChanged: changes.referencesChanged,
                 referencesRemoved: changes.referencesRemoved,
                 referencesAdded: changes.referencesAdded,
-                referencesCreated: changes.referencesCreated
+                referencesCreated: changes.referencesCreated,
             };
 
-            Net.post<IFuckKnows, any>("/api/edges/notes_decks", data).then((allDecksForNote) => {
-                onSaved(note, changes, allDecksForNote)
-            });
+            Net.post<IFuckKnows, any>("/api/edges/notes_decks", data).then(
+                (allDecksForNote) => {
+                    onSaved(note, changes, allDecksForNote);
+                }
+            );
         } else {
             onCancel();
         }
+    }
 
-    };
-
-    return (<div class="block-width">
+    return (
+        <div class="block-width">
             <label>Connections:</label>
-            <CivilSelect parentDeckId={ deckId }
-                         chosen={ chosen }
-                         onFinish={ referenceChanges }/>
-            </div>);
-};
+            <CivilSelect
+                parentDeckId={deckId}
+                chosen={chosen}
+                onFinish={referenceChanges}
+            />
+        </div>
+    );
+}

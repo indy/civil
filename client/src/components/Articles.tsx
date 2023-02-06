@@ -1,37 +1,37 @@
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { IArticleListings } from '../types';
+import { IArticleListings } from "../types";
 
-import { getAppState, AppStateChange } from '../AppState';
+import { getAppState, AppStateChange } from "../AppState";
 
-import { fetchDeckListing, deckTitle } from '../CivilUtils';
-import { capitalise, removeEmptyStrings, formattedDate } from '../JsUtils';
-import Net from '../Net';
+import { fetchDeckListing, deckTitle } from "../CivilUtils";
+import { capitalise, removeEmptyStrings, formattedDate } from "../JsUtils";
+import Net from "../Net";
 
-import CivilInput from './CivilInput';
-import DeckManager from './DeckManager';
-import DeleteDeckConfirmation from './DeleteDeckConfirmation';
-import { InsigniaSelector } from './Insignias';
-import LeftMarginHeading from './LeftMarginHeading';
-import LeftMarginHeadingNoWrap from './LeftMarginHeadingNoWrap';
-import SectionBackRefs from './SectionBackRefs';
-import SectionDeckRefs from './SectionDeckRefs';
-import SectionGraph from './SectionGraph';
-import SectionNotes from './SectionNotes';
-import TopMatter from './TopMatter';
-import { DeckSimpleListSection, RatedListSection } from './ListSections';
-import { DeluxeToolbar } from './DeluxeToolbar';
-import { StarRatingPartial } from './StarRating';
+import CivilInput from "./CivilInput";
+import DeckManager from "./DeckManager";
+import DeleteDeckConfirmation from "./DeleteDeckConfirmation";
+import { InsigniaSelector } from "./Insignias";
+import LeftMarginHeading from "./LeftMarginHeading";
+import LeftMarginHeadingNoWrap from "./LeftMarginHeadingNoWrap";
+import SectionBackRefs from "./SectionBackRefs";
+import SectionDeckRefs from "./SectionDeckRefs";
+import SectionGraph from "./SectionGraph";
+import SectionNotes from "./SectionNotes";
+import TopMatter from "./TopMatter";
+import { DeckSimpleListSection, RatedListSection } from "./ListSections";
+import { DeluxeToolbar } from "./DeluxeToolbar";
+import { StarRatingPartial } from "./StarRating";
 
 function Articles({ path }: { path?: string }) {
     const appState = getAppState();
-    const resource = 'articles';
+    const resource = "articles";
 
     useEffect(() => {
-        if(!appState.listing.value.articles) {
-            let url: string = '/api/articles/listings';
-            Net.get<IArticleListings>(url).then(listing => {
+        if (!appState.listing.value.articles) {
+            let url: string = "/api/articles/listings";
+            Net.get<IArticleListings>(url).then((listing) => {
                 AppStateChange.setArticlesListing(listing);
             });
         }
@@ -40,19 +40,33 @@ function Articles({ path }: { path?: string }) {
     const articles = appState.listing.value.articles;
 
     if (articles) {
-    return (
-    <article>
-        <h1 class="ui">{capitalise(resource)}</h1>
-        <RatedListSection label='Recent' list={articles.recent} resource={resource} expanded/>
-        <RatedListSection label='Rated' list={articles.rated} resource={resource}/>
-        <DeckSimpleListSection label='Orphans' list={articles.orphans}  hideEmpty/>
-    </article>);
+        return (
+            <article>
+                <h1 class="ui">{capitalise(resource)}</h1>
+                <RatedListSection
+                    label="Recent"
+                    list={articles.recent}
+                    resource={resource}
+                    expanded
+                />
+                <RatedListSection
+                    label="Rated"
+                    list={articles.rated}
+                    resource={resource}
+                />
+                <DeckSimpleListSection
+                    label="Orphans"
+                    list={articles.orphans}
+                    hideEmpty
+                />
+            </article>
+        );
     } else {
-        return <div></div>
+        return <div></div>;
     }
 }
 
-function Article({ path, id }: { path?: string, id?: string }) {
+function Article({ path, id }: { path?: string; id?: string }) {
     const articleId = id ? parseInt(id, 10) : 0;
 
     const resource = "articles";
@@ -60,96 +74,128 @@ function Article({ path, id }: { path?: string, id?: string }) {
         id: articleId,
         resource,
         hasSummarySection: true,
-        hasReviewSection: true
+        hasReviewSection: true,
     });
 
-    let deck: any = deckManager.getDeck()
+    let deck: any = deckManager.getDeck();
     let shortDescription = !!deck && deck.shortDescription;
 
     function Url({ url }: { url?: any }) {
-        return <a href={ url }>{ url }</a>;
+        return <a href={url}>{url}</a>;
     }
 
     return (
-    <article>
-        <DeluxeToolbar/>
+        <article>
+            <DeluxeToolbar />
 
-        { deck && (
-            <TopMatter title={ deckTitle(deck) }
-                          deck={deck}
-                          isShowingUpdateForm={ deckManager.isShowingUpdateForm() }
-                          isEditingDeckRefs={ deckManager.isEditingDeckRefs() }
-                          onRefsToggle={ deckManager.onRefsToggle }
-                          onFormToggle={ deckManager.onFormToggle }>
-                <LeftMarginHeading>
-                    {deck.author}
-                </LeftMarginHeading>
-                <LeftMarginHeadingNoWrap>
-                    <Url url={deck.source}/>
-                </LeftMarginHeadingNoWrap>
-                <LeftMarginHeading>
-                    Published: { formattedDate(deck.publishedDate)}
-                </LeftMarginHeading>
-                <LeftMarginHeading>
-                    Added: { formattedDate(deck.createdAt) }
-                </LeftMarginHeading>
-                <StarRatingPartial rating={deck.rating}/>
-            </TopMatter>)
-        }
+            {deck && (
+                <TopMatter
+                    title={deckTitle(deck)}
+                    deck={deck}
+                    isShowingUpdateForm={deckManager.isShowingUpdateForm()}
+                    isEditingDeckRefs={deckManager.isEditingDeckRefs()}
+                    onRefsToggle={deckManager.onRefsToggle}
+                    onFormToggle={deckManager.onFormToggle}
+                >
+                    <LeftMarginHeading>{deck.author}</LeftMarginHeading>
+                    <LeftMarginHeadingNoWrap>
+                        <Url url={deck.source} />
+                    </LeftMarginHeadingNoWrap>
+                    <LeftMarginHeading>
+                        Published: {formattedDate(deck.publishedDate)}
+                    </LeftMarginHeading>
+                    <LeftMarginHeading>
+                        Added: {formattedDate(deck.createdAt)}
+                    </LeftMarginHeading>
+                    <StarRatingPartial rating={deck.rating} />
+                </TopMatter>
+            )}
 
-        { deckManager.isShowingUpdateForm() && (<div>
-            <DeleteDeckConfirmation resource='articles' id={articleId}/>
-            <button onClick={ deckManager.onShowSummaryClicked }>Show Summary Section</button>
-            <button onClick={ deckManager.onShowReviewClicked }>Show Review Section</button>
-            <SectionUpdateArticle article={ deck } onUpdate={ deckManager.updateAndReset }/>
-        </div>)}
-        <TopScribble text={ shortDescription }/>
-        <SectionDeckRefs deck={ deck } isEditing={ deckManager.isEditingDeckRefs()} onRefsChanged={ deckManager.onRefsChanged } onRefsToggle={ deckManager.onRefsToggle }/>
-        <SectionNotes deck={ deck }
-                         title={ deckTitle(deck) }
-                         onRefsChanged={ deckManager.onRefsChanged }
-                         resource="articles"
-                         howToShowNoteSection={ deckManager.howToShowNoteSection }
-                         canShowNoteSection={ deckManager.canShowNoteSection }
-                         onUpdateDeck={deckManager.update}/>
-        <SectionBackRefs deck={ deck } />
-        <SectionGraph depth={ 2 } deck={ deck }/>
-    </article>);
+            {deckManager.isShowingUpdateForm() && (
+                <div>
+                    <DeleteDeckConfirmation
+                        resource="articles"
+                        id={articleId}
+                    />
+                    <button onClick={deckManager.onShowSummaryClicked}>
+                        Show Summary Section
+                    </button>
+                    <button onClick={deckManager.onShowReviewClicked}>
+                        Show Review Section
+                    </button>
+                    <SectionUpdateArticle
+                        article={deck}
+                        onUpdate={deckManager.updateAndReset}
+                    />
+                </div>
+            )}
+            <TopScribble text={shortDescription} />
+            <SectionDeckRefs
+                deck={deck}
+                isEditing={deckManager.isEditingDeckRefs()}
+                onRefsChanged={deckManager.onRefsChanged}
+                onRefsToggle={deckManager.onRefsToggle}
+            />
+            <SectionNotes
+                deck={deck}
+                title={deckTitle(deck)}
+                onRefsChanged={deckManager.onRefsChanged}
+                resource="articles"
+                howToShowNoteSection={deckManager.howToShowNoteSection}
+                canShowNoteSection={deckManager.canShowNoteSection}
+                onUpdateDeck={deckManager.update}
+            />
+            <SectionBackRefs deck={deck} />
+            <SectionGraph depth={2} deck={deck} />
+        </article>
+    );
 }
 
 function TopScribble({ text }: { text?: any }) {
     if (text) {
-        return <div class="top-scribble">{ text }</div>;
+        return <div class="top-scribble">{text}</div>;
     }
     return <span></span>;
 }
 
 function SectionUpdateArticle({ article, onUpdate }) {
-    const [title, setTitle] = useState(article.title || '');
-    const [author, setAuthor] = useState(article.author || '');
-    const [source, setSource] = useState(article.source || '');
-    const [shortDescription, setShortDescription] = useState(article.shortDescription || '');
+    const [title, setTitle] = useState(article.title || "");
+    const [author, setAuthor] = useState(article.author || "");
+    const [source, setSource] = useState(article.source || "");
+    const [shortDescription, setShortDescription] = useState(
+        article.shortDescription || ""
+    );
     const [rating, setRating] = useState(article.rating || 0);
-    const [publishedDate, setPublishedDate] = useState(article.publishedDate || '');
+    const [publishedDate, setPublishedDate] = useState(
+        article.publishedDate || ""
+    );
     const [insigniaId, setInsigniaId] = useState(article.insignia || 0);
 
     useEffect(() => {
-        if (article.title && article.title !== '' && title === '') {
+        if (article.title && article.title !== "" && title === "") {
             setTitle(article.title);
         }
-        if (article.author && article.author !== '' && author === '') {
+        if (article.author && article.author !== "" && author === "") {
             setAuthor(article.author);
         }
-        if (article.source && article.source !== '' && source === '') {
+        if (article.source && article.source !== "" && source === "") {
             setSource(article.source);
         }
-        if (article.shortDescription && article.shortDescription !== '' && shortDescription === '') {
+        if (
+            article.shortDescription &&
+            article.shortDescription !== "" &&
+            shortDescription === ""
+        ) {
             setShortDescription(article.shortDescription);
         }
         if (article.rating) {
             setRating(article.rating);
         }
-        if (article.publishedDate && article.publishedDate !== '' && publishedDate === '') {
+        if (
+            article.publishedDate &&
+            article.publishedDate !== "" &&
+            publishedDate === ""
+        ) {
             setPublishedDate(article.publishedDate);
         }
         if (article.insignia !== undefined) {
@@ -185,77 +231,92 @@ function SectionUpdateArticle({ article, onUpdate }) {
     };
 
     const handleSubmit = (event: Event) => {
-        const data = removeEmptyStrings({
-            title: title.trim(),
-            author: author.trim(),
-            source: source.trim(),
-            shortDescription: shortDescription.trim(),
-            rating: rating,
-            graphTerminator: false,
-            publishedDate: publishedDate.trim(),
-            insignia: insigniaId
-        }, ["source"]);
+        const data = removeEmptyStrings(
+            {
+                title: title.trim(),
+                author: author.trim(),
+                source: source.trim(),
+                shortDescription: shortDescription.trim(),
+                rating: rating,
+                graphTerminator: false,
+                publishedDate: publishedDate.trim(),
+                insignia: insigniaId,
+            },
+            ["source"]
+        );
 
-        const resource = 'articles';
+        const resource = "articles";
 
-        Net.put(`/api/${ resource }/${ article.id }`, data).then(newDeck => {
+        Net.put(`/api/${resource}/${article.id}`, data).then((newDeck) => {
             onUpdate(newDeck);
 
             // fetch the listing incase editing the article has changed it's star rating or annotation
             //
-            fetchDeckListing(resource, '/api/articles/listings');
+            fetchDeckListing(resource, "/api/articles/listings");
         });
 
         event.preventDefault();
     };
 
     return (
-    <form class="civil-form" onSubmit={ handleSubmit }>
-        <label for="title">Title:</label>
-        <br/>
-        <CivilInput id="title"
-                       value={ title }
-                       onInput={ handleChangeEvent } />
-        <br/>
+        <form class="civil-form" onSubmit={handleSubmit}>
+            <label for="title">Title:</label>
+            <br />
+            <CivilInput id="title" value={title} onInput={handleChangeEvent} />
+            <br />
 
-        <InsigniaSelector insigniaId={insigniaId} onChange={setInsigniaId}/>
-        <br/>
+            <InsigniaSelector
+                insigniaId={insigniaId}
+                onChange={setInsigniaId}
+            />
+            <br />
 
-        <label for="source">Source:</label>
-        <br/>
-        <CivilInput id="source"
-                       value={ source }
-                       onInput={ handleChangeEvent } />
-        <br/>
-        <label for="author">Author:</label>
-        <br/>
-        <CivilInput id="author"
-                       value={ author }
-                       onInput={ handleChangeEvent } />
-        <br/>
-        <label for="publishedDate">Published Date:</label>
-        <br/>
-        <CivilInput id="publishedDate"
-                       value={ publishedDate }
-                       onInput={ handleChangeEvent } />
-        <br/>
-        <label for="short-description">Short Description:</label>
-        <br/>
-        <CivilInput id="short-description"
-                       value={ shortDescription }
-                       onInput={ handleChangeEvent } />
-        <br/>
-        <label for="rating">Rating (between 0 and 5):</label>
-        <input id="rating"
-               type="number"
-               name="rating"
-               value={ rating }
-               min="0"
-               max="5"
-               onInput={ handleChangeEvent } />
-        <br/>
-        <input id="article-submit" type="submit" value="Update Article"/>
-    </form>);
+            <label for="source">Source:</label>
+            <br />
+            <CivilInput
+                id="source"
+                value={source}
+                onInput={handleChangeEvent}
+            />
+            <br />
+            <label for="author">Author:</label>
+            <br />
+            <CivilInput
+                id="author"
+                value={author}
+                onInput={handleChangeEvent}
+            />
+            <br />
+            <label for="publishedDate">Published Date:</label>
+            <br />
+            <CivilInput
+                id="publishedDate"
+                value={publishedDate}
+                onInput={handleChangeEvent}
+            />
+            <br />
+            <label for="short-description">Short Description:</label>
+            <br />
+            <CivilInput
+                id="short-description"
+                value={shortDescription}
+                onInput={handleChangeEvent}
+            />
+            <br />
+            <label for="rating">Rating (between 0 and 5):</label>
+            <input
+                id="rating"
+                type="number"
+                name="rating"
+                value={rating}
+                min="0"
+                max="5"
+                onInput={handleChangeEvent}
+            />
+            <br />
+            <input id="article-submit" type="submit" value="Update Article" />
+        </form>
+    );
 }
 
 export { Article, Articles };

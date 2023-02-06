@@ -1,12 +1,18 @@
 import { h } from "preact";
 import { route } from "preact-router";
 
-import Net from '../Net';
-import { AppStateChange } from '../AppState';
+import Net from "../Net";
+import { AppStateChange } from "../AppState";
 
-import DeleteConfirmation from './DeleteConfirmation';
+import DeleteConfirmation from "./DeleteConfirmation";
 
-export default function DeleteDeckConfirmation({ resource, id }: { resource?: any, id?: any }) {
+export default function DeleteDeckConfirmation({
+    resource,
+    id,
+}: {
+    resource?: any;
+    id?: any;
+}) {
     function confirmedDeleteClicked() {
         Net.delete(`/api/${resource}/${id}`, {}).then(() => {
             // remove the resource from the app state
@@ -15,5 +21,5 @@ export default function DeleteDeckConfirmation({ resource, id }: { resource?: an
         });
     }
 
-    return (<DeleteConfirmation onDelete={confirmedDeleteClicked }/>);
+    return <DeleteConfirmation onDelete={confirmedDeleteClicked} />;
 }

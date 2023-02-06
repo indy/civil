@@ -2,7 +2,6 @@
 
 // COPIED FROM MEMO
 
-
 import { Signal } from "@preact/signals";
 
 export interface IAdmin {
@@ -14,8 +13,6 @@ export interface IUser {
     email: string;
     admin?: IAdmin;
 }
-
-
 
 export interface IArticle {
     id: number;
@@ -64,10 +61,10 @@ export interface IPerson {
 }
 
 export interface IDeckSimple {
-    id: number,
-    name: string,
-    resource: string,
-    insignia: number,
+    id: number;
+    name: string;
+    resource: string;
+    insignia: number;
 }
 
 export interface ISearchResults {
@@ -158,9 +155,8 @@ export interface WasmInterface {
     asHtmlAst(markup: string): any;
     splitter(markup: string): any;
 
-    rgbFromHsl(hsl: [number, number, number]): string
+    rgbFromHsl(hsl: [number, number, number]): string;
 }
-
 
 export enum ToolbarMode {
     View = 1,
@@ -192,7 +188,6 @@ export interface IState {
 
     showingSearchCommand: Signal<boolean>;
 
-
     urlName: Signal<string>;
     url: Signal<string>;
 
@@ -222,7 +217,6 @@ export interface IState {
 
     srReviewCount: Signal<number>;
     srEarliestReviewDate: Signal<undefined | string>;
-
 }
 
 // isg hacked in:
@@ -235,7 +229,7 @@ export interface IGraph {
     fullyLoaded: boolean;
     // an array of { id, name, resource }
     decks?: Array<any>;
-    links?: Array<any>;
+    links?: any;
     // an array which is indexed by deckId, returns the offset into state.graph.value.decks
     deckIndexFromId?: Array<any>;
 }

@@ -1,22 +1,22 @@
 import { h } from "preact";
 import { Link, Router, route, RouterOnChangeArgs } from "preact-router";
 
-import { capitalise } from './JsUtils';
+import { capitalise } from "./JsUtils";
 
 import { AppStateChange, AppStateProvider, getAppState } from "./AppState";
 import Net from "./Net.js";
 
 import { IState, IUser, IUberSetup } from "./types";
 
-import Stuff                   from './components/Stuff';
-import SpacedRepetition        from './components/SpacedRepetition';
-import SearchCommand   from './components/SearchCommand';
-import { Article, Articles }   from './components/Articles';
-import { Ideas, Idea }         from './components/Ideas';
-import { Person, People }   from './components/People';
-import { Timeline, Timelines }   from './components/Timelines';
-import { Quote, Quotes }   from './components/Quotes';
-import { Login, Logout }       from './components/Login';
+import Stuff from "./components/Stuff";
+import SpacedRepetition from "./components/SpacedRepetition";
+import SearchCommand from "./components/SearchCommand";
+import { Article, Articles } from "./components/Articles";
+import { Ideas, Idea } from "./components/Ideas";
+import { Person, People } from "./components/People";
+import { Timeline, Timelines } from "./components/Timelines";
+import { Quote, Quotes } from "./components/Quotes";
+import { Login, Logout } from "./components/Login";
 
 export const App = ({ state }: { state: IState }) => {
     return (
@@ -30,7 +30,7 @@ function TopBarMenu() {
     const appState = getAppState();
 
     function loggedStatus() {
-        let status = '';
+        let status = "";
 
         let user = appState.user;
         if (user.value) {
@@ -39,7 +39,7 @@ function TopBarMenu() {
                 status += ` (${user.value.admin.dbName})`;
             }
         } else {
-            status = 'Login';
+            status = "Login";
         }
 
         return status;
@@ -55,26 +55,35 @@ function TopBarMenu() {
 
     if (appState.verboseUI.value) {
         return (
-        <nav>
-            <div id="elastic-top-menu-items">
+            <nav>
+                <div id="elastic-top-menu-items">
+                    {appState.preferredOrder.map((deckKind) => (
+                        <div class="optional-navigable top-menu-decktype">
+                            <Link
+                                class={`pigment-${deckKind}`}
+                                onClick={() => {
+                                    clickedTopLevel(deckKind);
+                                }}
+                                href={`/${deckKind}`}
+                            >
+                                {capitalise(deckKind)}
+                            </Link>
+                        </div>
+                    ))}
 
-                {appState.preferredOrder.map(deckKind =>
-                    <div class="optional-navigable top-menu-decktype">
-                        <Link class={`pigment-${deckKind}`}
-                              onClick={ () => { clickedTopLevel(deckKind) } }
-                              href={`/${deckKind}`}>
-                            {capitalise(deckKind)}
+                    <div id="top-menu-sr">
+                        <Link class="pigment-inherit" href="/sr">
+                            SR({appState.srReviewCount.value})
                         </Link>
-                    </div>)}
-
-                <div id="top-menu-sr">
-                    <Link class='pigment-inherit' href='/sr'>SR({appState.srReviewCount.value})</Link>
+                    </div>
+                    <div>
+                        <Link class="pigment-inherit" href={loggedLink()}>
+                            {loggedStatus()}
+                        </Link>
+                    </div>
                 </div>
-                <div>
-                    <Link class='pigment-inherit' href={ loggedLink() }>{ loggedStatus() }</Link>
-                </div>
-            </div>
-        </nav>);
+            </nav>
+        );
     } else {
         return <div></div>;
     }
@@ -86,14 +95,15 @@ const AppUI = () => {
     function loginHandler(user: IUser) {
         AppStateChange.userLogin(user);
 
-        Net.get<IUberSetup>("/api/ubersetup").then(uber => {
+        Net.get<IUberSetup>("/api/ubersetup").then((uber) => {
             AppStateChange.uberSetup(uber);
-            route('/', true);
+            route("/", true);
         });
     }
 
-
-    function handleRoute(e: RouterOnChangeArgs<Record<string, string | undefined> | null>): void {
+    function handleRoute(
+        e: RouterOnChangeArgs<Record<string, string | undefined> | null>
+    ): void {
         AppStateChange.routeChanged(e.url);
 
         if (e.url !== "/login") {
@@ -109,7 +119,7 @@ const AppUI = () => {
                 // once that issue is fixed the setTimeout can be replaced
                 // with a normal function call to 'route'
                 setTimeout(() => route("/login", true), 0);
-            } else if (e.url === '/') {
+            } else if (e.url === "/") {
                 setTimeout(() => route("/ideas", true), 0);
             }
         }
@@ -117,23 +127,23 @@ const AppUI = () => {
 
     return (
         <div id="civil-app">
-            <SearchCommand/>
-            <TopBarMenu/>
+            <SearchCommand />
+            <TopBarMenu />
             <Router onChange={handleRoute}>
-                <Login path="/login" loginCallback={ loginHandler }/>
-                <Logout path="/logout"/>
-                <SpacedRepetition path="/sr"/>
-                <Stuff path="/stuff"/>
-                <Ideas path="/ideas"/>
-                <Idea path="/ideas/:id"/>
-                <Articles path="/articles"/>
-                <Article path="/articles/:id"/>
-                <People path="/people"/>
-                <Person path="/people/:id"/>
-                <Timelines path="/timelines"/>
-                <Timeline path="/timelines/:id"/>
-                <Quotes path="/quotes"/>
-                <Quote path="/quotes/:id"/>
+                <Login path="/login" loginCallback={loginHandler} />
+                <Logout path="/logout" />
+                <SpacedRepetition path="/sr" />
+                <Stuff path="/stuff" />
+                <Ideas path="/ideas" />
+                <Idea path="/ideas/:id" />
+                <Articles path="/articles" />
+                <Article path="/articles/:id" />
+                <People path="/people" />
+                <Person path="/people/:id" />
+                <Timelines path="/timelines" />
+                <Timeline path="/timelines/:id" />
+                <Quotes path="/quotes" />
+                <Quote path="/quotes/:id" />
             </Router>
         </div>
     );

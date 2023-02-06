@@ -1,9 +1,11 @@
 import { ISettings, IDefinitions } from "./types";
 
-function buildColourConversionFn(rgb_from_hsl: (h: number, s: number, l: number) => any) {
+function buildColourConversionFn(
+    rgb_from_hsl: (h: number, s: number, l: number) => any
+) {
     return (hsl: [number, number, number]) => {
         function clamp(value: number, min: number, max: number) {
-            return value < min ? min : (value > max ? max : value);
+            return value < min ? min : value > max ? max : value;
         }
 
         function componentAsHexString(c: number) {
@@ -19,8 +21,13 @@ function buildColourConversionFn(rgb_from_hsl: (h: number, s: number, l: number)
         let g = Math.floor(clamp(transportRGB.c1, 0, 1) * 255);
         let b = Math.floor(clamp(transportRGB.c2, 0, 1) * 255);
 
-        return "#" + componentAsHexString(r) + componentAsHexString(g) + componentAsHexString(b);
-    }
+        return (
+            "#" +
+            componentAsHexString(r) +
+            componentAsHexString(g) +
+            componentAsHexString(b)
+        );
+    };
 }
 
 function augmentSettingsWithCssModifierParameters(uiColours: ISettings) {
@@ -43,10 +50,9 @@ function augmentSettingsWithCssModifierParameters(uiColours: ISettings) {
             // used to generate the bg clock values
             hueOffsetBg: 67,
             saturationBg: 60,
-            lightnessBg: 89.9
-        }
+            lightnessBg: 89.9,
+        };
     } else {
-
         s = {
             ...uiColours,
 
@@ -60,13 +66,15 @@ function augmentSettingsWithCssModifierParameters(uiColours: ISettings) {
             // used to generate the bg clock values
             saturationFg: 57.6,
             hueOffsetFg: 65.7,
-            lightnessFg: 60
-        }
+            lightnessFg: 60,
+        };
     }
     return s;
 }
 
-function augmentDefinitionsWithCssModifierParameters(uiDefinitions: IDefinitions) {
+function augmentDefinitionsWithCssModifierParameters(
+    uiDefinitions: IDefinitions
+) {
     let root = document.body;
     let mode = getComputedStyle(root).getPropertyValue("--mode").trim();
 
@@ -76,28 +84,28 @@ function augmentDefinitionsWithCssModifierParameters(uiDefinitions: IDefinitions
         s = {
             ...uiDefinitions,
 
-            bg:  ([46.5, 19.2,  95.7] as [number, number, number]),
-            bg1: ([85.7,  4.5,  93.9] as [number, number, number]),
-            bg2: ([46.1, 20.2,  92.0] as [number, number, number]),
-            bg3: ([0,  0.0, 100.0] as [number, number, number]),
+            bg: [46.5, 19.2, 95.7] as [number, number, number],
+            bg1: [85.7, 4.5, 93.9] as [number, number, number],
+            bg2: [46.1, 20.2, 92.0] as [number, number, number],
+            bg3: [0, 0.0, 100.0] as [number, number, number],
 
-            fg: ([43,  19,  3.5] as [number, number, number]),
-            fg1: ([0, 0, 40.7] as [number, number, number]),
-            fg_inactive: ([0, 0, 60] as [number, number, number]),
+            fg: [43, 19, 3.5] as [number, number, number],
+            fg1: [0, 0, 40.7] as [number, number, number],
+            fg_inactive: [0, 0, 60] as [number, number, number],
 
-            divider: ([0, 0, 77.7] as [number, number, number]),
+            divider: [0, 0, 77.7] as [number, number, number],
 
-            graph_node_expanded: ([127, 60, 70] as [number, number, number]),
-            graph_node_partial: ([37, 60, 70] as [number, number, number]),
-            graph_node_minimised: ([0, 0, 70] as [number, number, number]),
-            graph_edge: ([0, 0, 70] as [number, number, number]),
-            graph_edge_in_contrast: ([217, 60, 70] as [number, number, number]),
-            graph_edge_critical: ([7, 60, 70] as [number, number, number]),
+            graph_node_expanded: [127, 60, 70] as [number, number, number],
+            graph_node_partial: [37, 60, 70] as [number, number, number],
+            graph_node_minimised: [0, 0, 70] as [number, number, number],
+            graph_edge: [0, 0, 70] as [number, number, number],
+            graph_edge_in_contrast: [217, 60, 70] as [number, number, number],
+            graph_edge_critical: [7, 60, 70] as [number, number, number],
 
-            scribble_neutral: ([247, 83.7, 53.6] as [number, number, number]),
-            scribble_disagree: ([15.1, 83.7, 53.6] as [number, number, number]),
-            hyperlink: ([247, 83.7, 53.6] as [number, number, number]),
-            highlight: ([85, 100, 90] as [number, number, number]),
+            scribble_neutral: [247, 83.7, 53.6] as [number, number, number],
+            scribble_disagree: [15.1, 83.7, 53.6] as [number, number, number],
+            hyperlink: [247, 83.7, 53.6] as [number, number, number],
+            highlight: [85, 100, 90] as [number, number, number],
 
             bg_ideas: "--bg-clock-06",
             bg_articles: "--bg-clock-12",
@@ -109,35 +117,34 @@ function augmentDefinitionsWithCssModifierParameters(uiDefinitions: IDefinitions
             fg_articles: "--fg-clock-12",
             fg_people: "--fg-clock-09",
             fg_timelines: "--fg-clock-03",
-            fg_quotes: "--fg-clock-07"
-        }
+            fg_quotes: "--fg-clock-07",
+        };
     } else {
-
         s = {
             ...uiDefinitions,
 
-            bg: ( [46.5, 19.2,  2.0] as [number, number, number]),
-            bg1: ([85.7,  4.5,  4] as [number, number, number]),
-            bg2: ([46.1, 20.2,  6] as [number, number, number]),
-            bg3: ([46.5, 19.2,  0.0] as [number, number, number]),
+            bg: [46.5, 19.2, 2.0] as [number, number, number],
+            bg1: [85.7, 4.5, 4] as [number, number, number],
+            bg2: [46.1, 20.2, 6] as [number, number, number],
+            bg3: [46.5, 19.2, 0.0] as [number, number, number],
 
-            fg: ( [43,  19,  45] as [number, number, number]),
-            fg1: ([16.7, 0, 40.7] as [number, number, number]),
-            fg_inactive: ([16.7, 0, 20] as [number, number, number]),
+            fg: [43, 19, 45] as [number, number, number],
+            fg1: [16.7, 0, 40.7] as [number, number, number],
+            fg_inactive: [16.7, 0, 20] as [number, number, number],
 
-            divider: ([16.7, 0, 23] as [number, number, number]),
+            divider: [16.7, 0, 23] as [number, number, number],
 
-            graph_node_expanded: ([127, 60, 70] as [number, number, number]),
-            graph_node_partial: ([37, 60, 70] as [number, number, number]),
-            graph_node_minimised: ([0, 0, 70] as [number, number, number]),
-            graph_edge: ([0, 0, 70] as [number, number, number]),
-            graph_edge_in_contrast: ([217, 60, 70] as [number, number, number]),
-            graph_edge_critical: ([7, 60, 70] as [number, number, number]),
+            graph_node_expanded: [127, 60, 70] as [number, number, number],
+            graph_node_partial: [37, 60, 70] as [number, number, number],
+            graph_node_minimised: [0, 0, 70] as [number, number, number],
+            graph_edge: [0, 0, 70] as [number, number, number],
+            graph_edge_in_contrast: [217, 60, 70] as [number, number, number],
+            graph_edge_critical: [7, 60, 70] as [number, number, number],
 
-            scribble_neutral: ([247, 100, 50] as [number, number, number]),
-            scribble_disagree: ([7, 100, 50] as [number, number, number]),
-            hyperlink: ([247, 60, 50] as [number, number, number]),
-            highlight: ([85, 100, 90] as [number, number, number]),
+            scribble_neutral: [247, 100, 50] as [number, number, number],
+            scribble_disagree: [7, 100, 50] as [number, number, number],
+            hyperlink: [247, 60, 50] as [number, number, number],
+            highlight: [85, 100, 90] as [number, number, number],
 
             bg_ideas: "--bg-clock-06",
             bg_articles: "--bg-clock-12",
@@ -149,36 +156,47 @@ function augmentDefinitionsWithCssModifierParameters(uiDefinitions: IDefinitions
             fg_articles: "--fg-clock-12",
             fg_people: "--fg-clock-09",
             fg_timelines: "--fg-clock-03",
-            fg_quotes: "--fg-clock-07"
-        }
+            fg_quotes: "--fg-clock-07",
+        };
     }
     return s;
 }
 
-function declareCssVariables(uiColours: ISettings, uiDefinitions: IDefinitions, rgbFromHsl: (hsl: [number, number, number]) => any) {
-
+function declareCssVariables(
+    uiColours: ISettings,
+    uiDefinitions: IDefinitions,
+    rgbFromHsl: (hsl: [number, number, number]) => any
+) {
     let root = document.body;
 
     function cssFromUnderscore(name: string) {
-        let cssName = '--' + name.replaceAll('_', '-');
+        let cssName = "--" + name.replaceAll("_", "-");
         return cssName;
     }
 
     let hueFg: number, hueBg: number, rgb: string, index: string;
-    for(let i = 0; i < 12; i++) {
-        hueFg = uiColours.hueOffsetFg + ( i * uiColours.hueDelta);
-        hueBg = uiColours.hueOffsetBg + ( i * uiColours.hueDelta);
+    for (let i = 0; i < 12; i++) {
+        hueFg = uiColours.hueOffsetFg + i * uiColours.hueDelta;
+        hueBg = uiColours.hueOffsetBg + i * uiColours.hueDelta;
 
         index = indexAsString(i);
 
-        rgb = rgbFromHsl([hueFg, uiColours.saturationFg, uiColours.lightnessFg]);
+        rgb = rgbFromHsl([
+            hueFg,
+            uiColours.saturationFg,
+            uiColours.lightnessFg,
+        ]);
         root.style.setProperty(`--fg-clock-${index}`, rgb);
 
-        rgb = rgbFromHsl([hueBg, uiColours.saturationBg, uiColours.lightnessBg]);
+        rgb = rgbFromHsl([
+            hueBg,
+            uiColours.saturationBg,
+            uiColours.lightnessBg,
+        ]);
         root.style.setProperty(`--bg-clock-${index}`, rgb);
     }
 
-    Object.keys(uiDefinitions).forEach(key => {
+    Object.keys(uiDefinitions).forEach((key) => {
         let cssName = cssFromUnderscore(key);
         let value = uiDefinitions[key];
 
@@ -206,4 +224,9 @@ function indexAsString(i: number) {
     }
 }
 
-export { buildColourConversionFn, declareCssVariables, augmentSettingsWithCssModifierParameters, augmentDefinitionsWithCssModifierParameters }
+export {
+    buildColourConversionFn,
+    declareCssVariables,
+    augmentSettingsWithCssModifierParameters,
+    augmentDefinitionsWithCssModifierParameters,
+};

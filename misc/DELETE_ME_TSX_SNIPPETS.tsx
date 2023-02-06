@@ -26,3 +26,11 @@ import { getAppState, AppStateChange } from '../AppState';
     }
 
 // todo: fix any code with 'as any'
+
+
+
+
+
+import { h, ComponentChildren } from "preact";
+export default function WhenVerbose({children}: {children: ComponentChildren}) {
+}

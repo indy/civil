@@ -1,14 +1,32 @@
 import { h } from "preact";
 import { useEffect, useState, useRef } from "preact/hooks";
 
-import Net from '../Net';
-import { svgX } from '../svgIcons';
-import { getAppState } from '../AppState';
+import Net from "../Net";
+import { svgX } from "../svgIcons";
+import { getAppState } from "../AppState";
 
-import CivilTextArea from './CivilTextArea';
-import ImageSelector from './ImageSelector';
+import CivilTextArea from "./CivilTextArea";
+import ImageSelector from "./ImageSelector";
 
-export default function NoteForm({ label, onCreate, onCancel, deckId, prevNoteId, nextNoteId, noteKind, optionalPointId }: { label?: any, onCreate?: any, onCancel?: any, deckId?: any, prevNoteId?: any, nextNoteId?: any, noteKind?: any, optionalPointId?: any }) {
+export default function NoteForm({
+    label,
+    onCreate,
+    onCancel,
+    deckId,
+    prevNoteId,
+    nextNoteId,
+    noteKind,
+    optionalPointId,
+}: {
+    label?: any;
+    onCreate?: any;
+    onCancel?: any;
+    deckId?: any;
+    prevNoteId?: any;
+    nextNoteId?: any;
+    noteKind?: any;
+    optionalPointId?: any;
+}) {
     const appState = getAppState();
     const textAreaRef = useRef(null);
 
@@ -19,10 +37,10 @@ export default function NoteForm({ label, onCreate, onCancel, deckId, prevNoteId
     // goes to the end of the content once the first image markup has been added)
     //
     const [local, setLocal] = useState({
-        content: '',
+        content: "",
         oldCursorPos: 0,
         splitIntoMultipleNotes: true,
-        textAreaFocused: false
+        textAreaFocused: false,
     });
 
     const handleChangeEvent = (event) => {
@@ -30,11 +48,11 @@ export default function NoteForm({ label, onCreate, onCancel, deckId, prevNoteId
         const name = target.name;
         const value = target.value;
 
-        if (name === 'content') {
+        if (name === "content") {
             setLocal({
                 ...local,
-                content: value
-            })
+                content: value,
+            });
         }
     };
 
@@ -49,10 +67,8 @@ export default function NoteForm({ label, onCreate, onCancel, deckId, prevNoteId
     function onImagePaste(markup) {
         let content = local.content;
 
-
         let cursor = local.oldCursorPos;
         if (local.textAreaFocused) {
-
             if (textAreaRef.current) {
                 // todo: casting check
                 const tar = textAreaRef.current as HTMLTextAreaElement;
@@ -62,19 +78,20 @@ export default function NoteForm({ label, onCreate, onCancel, deckId, prevNoteId
             // cursor = textAreaRef.current.selectionStart;
         }
 
-        let newContent = content.slice(0, cursor) + markup + " " + content.slice(cursor);
+        let newContent =
+            content.slice(0, cursor) + markup + " " + content.slice(cursor);
 
         setLocal({
             ...local,
             oldCursorPos: cursor + markup.length + 1,
-            content: newContent
+            content: newContent,
         });
     }
 
     function onTextAreaFocus() {
         setLocal({
             ...local,
-            textAreaFocused: true
+            textAreaFocused: true,
         });
     }
 
@@ -87,7 +104,7 @@ export default function NoteForm({ label, onCreate, onCancel, deckId, prevNoteId
             setLocal({
                 ...local,
                 oldCursorPos: cursor,
-                textAreaFocused: false
+                textAreaFocused: false,
             });
         }
     }
@@ -98,69 +115,92 @@ export default function NoteForm({ label, onCreate, onCancel, deckId, prevNoteId
         if (appState.wasmInterface) {
             const noteForm = e.target;
             const markup = noteForm.content.value;
-            const notes = local.splitIntoMultipleNotes ? appState.wasmInterface.splitter(markup) : [markup];
+            const notes = local.splitIntoMultipleNotes
+                ? appState.wasmInterface.splitter(markup)
+                : [markup];
 
-            addNote(notes, deckId, prevNoteId, nextNoteId, noteKind, optionalPointId)
-                .then(allNotes => {
+            addNote(
+                notes,
+                deckId,
+                prevNoteId,
+                nextNoteId,
+                noteKind,
+                optionalPointId
+            )
+                .then((allNotes) => {
                     onCreate(allNotes);
                 })
-                .catch(error => console.error(error.message));
+                .catch((error) => console.error(error.message));
         }
     }
 
     function handleCheckbox(e) {
         setLocal({
             ...local,
-            splitIntoMultipleNotes: !local.splitIntoMultipleNotes
-        })
+            splitIntoMultipleNotes: !local.splitIntoMultipleNotes,
+        });
     }
 
-    return (<div class="append-note">
-               <div class="left-margin">
-                   <div class="left-margin-entry fadeable clickable cancel-offset" onClick={ onCancel }>
-                       <span class="left-margin-icon-label">Cancel</span>
-                       { svgX() }
-                   </div>
-               </div>
-               <form class="civil-add-note-form" onSubmit={ onSubmit }>
-                   <label for="content">{ label }</label>
-                   <br/>
-                   <CivilTextArea id="content"
-                                  elementRef={ textAreaRef }
-                                  elementClass="new-note-textarea"
-                                  value={ local.content }
-                                  onFocus={ onTextAreaFocus }
-                                  onBlur={ onTextAreaBlur }
-                                  onInput={ handleChangeEvent }/>
-                   <br/>
-                   <input type="submit" value="Save"/>
-                   <span class="note-split-option">
-                       <label for="splitbox">Split into multiple notes:</label>
-                       <input type="checkbox"
-                              id="splitbox"
-                              name="splitbox"
-                              onInput={ handleCheckbox }
-                              checked={ local.splitIntoMultipleNotes }/>
-                   </span>
-               </form>
-               <ImageSelector onPaste={ onImagePaste }/>
-           </div>);
+    return (
+        <div class="append-note">
+            <div class="left-margin">
+                <div
+                    class="left-margin-entry fadeable clickable cancel-offset"
+                    onClick={onCancel}
+                >
+                    <span class="left-margin-icon-label">Cancel</span>
+                    {svgX()}
+                </div>
+            </div>
+            <form class="civil-add-note-form" onSubmit={onSubmit}>
+                <label for="content">{label}</label>
+                <br />
+                <CivilTextArea
+                    id="content"
+                    elementRef={textAreaRef}
+                    elementClass="new-note-textarea"
+                    value={local.content}
+                    onFocus={onTextAreaFocus}
+                    onBlur={onTextAreaBlur}
+                    onInput={handleChangeEvent}
+                />
+                <br />
+                <input type="submit" value="Save" />
+                <span class="note-split-option">
+                    <label for="splitbox">Split into multiple notes:</label>
+                    <input
+                        type="checkbox"
+                        id="splitbox"
+                        name="splitbox"
+                        onInput={handleCheckbox}
+                        checked={local.splitIntoMultipleNotes}
+                    />
+                </span>
+            </form>
+            <ImageSelector onPaste={onImagePaste} />
+        </div>
+    );
 }
 
-function addNote(notes?: any, deckId?: any, prevNoteId?: any, nextNoteId?: any, noteKind?: any, optionalPointId?: any) {
-
-
+function addNote(
+    notes?: any,
+    deckId?: any,
+    prevNoteId?: any,
+    nextNoteId?: any,
+    noteKind?: any,
+    optionalPointId?: any
+) {
     let data: {
-        deckId?: any,
-        kind?: any
-        content?: any,
-        nextNoteId?: any,
-        prevNoteId?: any,
-        pointId?: any
+        deckId?: any;
+        kind?: any;
+        content?: any;
+        nextNoteId?: any;
+        prevNoteId?: any;
+        pointId?: any;
     } = {
         deckId,
         kind: noteKind,
-        content: notes
+        content: notes,
     };
 
     if (nextNoteId) {

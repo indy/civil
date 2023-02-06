@@ -1,12 +1,12 @@
 import { h } from "preact";
 import { useEffect, useState, useRef } from "preact/hooks";
 
-import { getAppState, AppStateChange } from '../AppState';
-import { svgX } from '../svgIcons';
+import { getAppState, AppStateChange } from "../AppState";
+import { svgX } from "../svgIcons";
 
-import Net from '../Net';
+import Net from "../Net";
 
-import { IUserUploadedImage } from '../types'
+import { IUserUploadedImage } from "../types";
 
 export default function ImageSelector({ onPaste }: { onPaste?: any }) {
     const appState = getAppState();
@@ -32,7 +32,7 @@ export default function ImageSelector({ onPaste }: { onPaste?: any }) {
                 dragAreaElement.removeEventListener("dragleave", dragLeave);
                 dragAreaElement.removeEventListener("dragover", dragOver);
                 dragAreaElement.removeEventListener("drop", drop);
-            }
+            };
         }
 
         // fake: fix for typescript error todo: check this code
@@ -46,7 +46,7 @@ export default function ImageSelector({ onPaste }: { onPaste?: any }) {
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
 
-            if (file.type.startsWith('image/')) {
+            if (file.type.startsWith("image/")) {
                 formData.append("file" + counter, file);
                 counter += 1;
             }
@@ -55,14 +55,16 @@ export default function ImageSelector({ onPaste }: { onPaste?: any }) {
         if (counter > 0) {
             let options = {
                 method: "POST",
-                body: formData
+                body: formData,
             };
             // post the image data
-            fetch("/api/upload", options).then(resp => {
+            fetch("/api/upload", options).then((resp) => {
                 // fetch the most recent uploads
-                Net.get<Array<IUserUploadedImage>>("/api/upload").then(recentImages => {
-                    AppStateChange.setRecentImages(recentImages);
-                });
+                Net.get<Array<IUserUploadedImage>>("/api/upload").then(
+                    (recentImages) => {
+                        AppStateChange.setRecentImages(recentImages);
+                    }
+                );
             });
         }
     }
@@ -102,37 +104,45 @@ export default function ImageSelector({ onPaste }: { onPaste?: any }) {
     }
 
     if (minimised) {
-        return h('button',
-                 {
-                     onClick: onIconClicked
-                 },
-                 "Images...");
+        return h(
+            "button",
+            {
+                onClick: onIconClicked,
+            },
+            "Images..."
+        );
     } else {
-        const recent = appState.recentImages.value.map(ri =>
-            h(ImageSelectorItem,
-              {
-                  imageDirectory: imageDirectory,
-                  filename: ri.filename,
-                  onPaste: onPaste
-              }));
+        const recent = appState.recentImages.value.map((ri) =>
+            h(ImageSelectorItem, {
+                imageDirectory: imageDirectory,
+                filename: ri.filename,
+                onPaste: onPaste,
+            })
+        );
 
         let containerClass = "image-widget-container";
         if (hovering) {
             containerClass += " image-widget-hovering";
         }
 
-        const dragdropMessage = h("div", { class: "image-widget-hover-message" }, "Drop Images Here");
+        const dragdropMessage = h(
+            "div",
+            { class: "image-widget-hover-message" },
+            "Drop Images Here"
+        );
 
-        return (<div>
-            <div class="left-margin">
-                <div class="left-margin-entry" onClick={ onIconClicked }>
-                    { svgX() }
+        return (
+            <div>
+                <div class="left-margin">
+                    <div class="left-margin-entry" onClick={onIconClicked}>
+                        {svgX()}
+                    </div>
+                </div>
+                <div class={containerClass} ref={dragArea}>
+                    {hovering ? dragdropMessage : recent}
                 </div>
             </div>
-            <div class={containerClass} ref={dragArea}>
-                { hovering ? dragdropMessage : recent }
-            </div>
-        </div>);
+        );
     }
 }
 
@@ -145,8 +155,10 @@ function ImageSelectorItem({ filename, imageDirectory, onPaste }) {
 
     const srcPath = `/u/${imageDirectory}/${filename}`;
 
-    return (<div class="image-widget-item">
-        <img class="image-widget-img" onClick={ onClick } src={srcPath}/>
-        <div class="image-widget-title">{ markupSyntax }</div>
-    </div>);
+    return (
+        <div class="image-widget-item">
+            <img class="image-widget-img" onClick={onClick} src={srcPath} />
+            <div class="image-widget-title">{markupSyntax}</div>
+        </div>
+    );
 }

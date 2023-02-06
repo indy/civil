@@ -9,7 +9,10 @@ export function deltaInYears(year: number, month: number, day: number) {
     return deltaMS / (1000 * 60 * 60 * 24 * 365.25);
 }
 
-export function calcAgeInYears(toTriple: [number, number, number], fromTriple: [number, number, number]) {
+export function calcAgeInYears(
+    toTriple: [number, number, number],
+    fromTriple: [number, number, number]
+) {
     let years = toTriple[0] - fromTriple[0];
     if (toTriple[1] < fromTriple[1]) {
         years -= 1;
@@ -21,16 +24,18 @@ export function calcAgeInYears(toTriple: [number, number, number], fromTriple: [
     return years;
 }
 
-export function dateStringAsTriple(dateString: string): [number, number, number] {
-    let triple = dateString.split('-').map(d => parseInt(d, 10));
-    if (dateString[0] == '-') {
+export function dateStringAsTriple(
+    dateString: string
+): [number, number, number] {
+    let triple = dateString.split("-").map((d) => parseInt(d, 10));
+    if (dateString[0] == "-") {
         // triple will contain 4 elements, 1st is a NaN
         triple = triple.slice(1);
         triple[0] = -triple[0];
     }
 
     let ret: [number, number, number] = [triple[0], triple[1], triple[2]];
-    return ret;                // triple is [year, month, day]
+    return ret; // triple is [year, month, day]
 }
 
 export function parseDateStringAsYearOnly(value: string) {
@@ -43,12 +48,16 @@ export function parseDateStringAsYearOnly(value: string) {
     }
 
     const isNegative = match[1] === "-";
-    const year = isNegative ? parseInt(match[2], 10) * -1 : parseInt(match[2], 10);
+    const year = isNegative
+        ? parseInt(match[2], 10) * -1
+        : parseInt(match[2], 10);
 
     return year;
 }
 
-export function parseDateStringAsTriple(value: string): [number, number, number] | null {
+export function parseDateStringAsTriple(
+    value: string
+): [number, number, number] | null {
     const re = /^(-?)(\d{4})-(\d{2})-(\d{2})$/;
     const match = re.exec(value);
 
@@ -58,7 +67,9 @@ export function parseDateStringAsTriple(value: string): [number, number, number]
     }
 
     const isNegative = match[1] === "-";
-    const year = isNegative ? parseInt(match[2], 10) * -1 : parseInt(match[2], 10);
+    const year = isNegative
+        ? parseInt(match[2], 10) * -1
+        : parseInt(match[2], 10);
     const month = parseInt(match[3], 10);
     const day = parseInt(match[4], 10);
 

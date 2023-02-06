@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { svgRatingStar } from '../svgIcons';
+import { svgRatingStar } from "../svgIcons";
 
 function StarRating({ rating }: { rating?: any }) {
     if (!rating) {
@@ -7,9 +7,10 @@ function StarRating({ rating }: { rating?: any }) {
     }
 
     return (
-    <div class="left-margin left-margin-list-entry">
-        <StarRatingPartial rating={rating}/>
-    </div>);
+        <div class="left-margin left-margin-list-entry">
+            <StarRatingPartial rating={rating} />
+        </div>
+    );
 }
 
 function StarRatingPartial({ rating }: { rating?: any }) {
@@ -24,6 +25,5 @@ function StarRatingPartial({ rating }: { rating?: any }) {
 
     return <div class="left-margin-entry-no-note-on-right">{ratings}</div>;
 }
-
 
 export { StarRating, StarRatingPartial };

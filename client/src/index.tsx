@@ -9,31 +9,28 @@ import {
     buildColourConversionFn,
     declareCssVariables,
     augmentSettingsWithCssModifierParameters,
-    augmentDefinitionsWithCssModifierParameters
-} from './ColourCreator';
+    augmentDefinitionsWithCssModifierParameters,
+} from "./ColourCreator";
 
 import { IUser, IUberSetup } from "./types";
 
 wasm_bindgen("/civil_wasm_bg.wasm")
     .then(() => {
-        const {
-            init_wasm,
-            markup_as_ast,
-            markup_as_struct,
-            rgb_from_hsl
-        } = wasm_bindgen;
+        const { init_wasm, markup_as_ast, markup_as_struct, rgb_from_hsl } =
+            wasm_bindgen;
 
         const version = init_wasm();
-        console.log(version);   // remove this
+        console.log(version); // remove this
 
         const wasmInterface = {
             asHtmlAst: markup_as_struct,
-            splitter: function(markup: string) {
+            splitter: function (markup: string) {
                 const astArray = markup_as_ast(markup);
 
                 let splitPoints = astArray.map((ast: any) => {
                     // NOTE: this check depends on the Node enum in civil-shared/src/parser.rs
-                    let node = ast.BlockQuote ||
+                    let node =
+                        ast.BlockQuote ||
                         ast.Codeblock ||
                         ast.Header ||
                         ast.Highlight ||
@@ -56,40 +53,54 @@ wasm_bindgen("/civil_wasm_bg.wasm")
                     // but as a single value if there is only one data item (e.g. HorizontalRule(usize))
                     //
                     return Array.isArray(node) ? node[0] : node;
-                })
+                });
 
                 let res: Array<string> = [];
                 for (let i = 0; i < splitPoints.length - 1; i++) {
-                    const r = markup.slice(splitPoints[i], splitPoints[i+1]).trim();
+                    const r = markup
+                        .slice(splitPoints[i], splitPoints[i + 1])
+                        .trim();
                     res.push(r);
                 }
-                const r = markup.slice(splitPoints[splitPoints.length - 1]).trim();
+                const r = markup
+                    .slice(splitPoints[splitPoints.length - 1])
+                    .trim();
                 res.push(r);
 
                 return res;
             },
-            rgbFromHsl: buildColourConversionFn(rgb_from_hsl)
-        }
+            rgbFromHsl: buildColourConversionFn(rgb_from_hsl),
+        };
 
         let state = initialState;
 
         state.wasmInterface = wasmInterface;
-        state.settings.value = augmentSettingsWithCssModifierParameters(state.settings.value);
-        state.definitions.value = augmentDefinitionsWithCssModifierParameters(state.definitions.value);
+        state.settings.value = augmentSettingsWithCssModifierParameters(
+            state.settings.value
+        );
+        state.definitions.value = augmentDefinitionsWithCssModifierParameters(
+            state.definitions.value
+        );
 
-        declareCssVariables(state.settings.value, state.definitions.value, wasmInterface.rgbFromHsl);
+        declareCssVariables(
+            state.settings.value,
+            state.definitions.value,
+            wasmInterface.rgbFromHsl
+        );
 
         let body = document.body;
-        let hasPhysicalKeyboard = getComputedStyle(body).getPropertyValue("--has-physical-keyboard").trim();
+        let hasPhysicalKeyboard = getComputedStyle(body)
+            .getPropertyValue("--has-physical-keyboard")
+            .trim();
         state.hasPhysicalKeyboard = hasPhysicalKeyboard === "true";
 
-        Net.get<IUser>("/api/users").then(user => {
+        Net.get<IUser>("/api/users").then((user) => {
             if (user) {
                 // update initial state with user
                 //
                 state.user.value = user;
 
-                Net.get<IUberSetup>("/api/ubersetup").then(uber => {
+                Net.get<IUberSetup>("/api/ubersetup").then((uber) => {
                     AppStateChange.uberSetup(uber);
                 });
             }

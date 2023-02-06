@@ -5,10 +5,9 @@ import { h } from "preact";
 // import { svgX } from '../svgIcons';
 
 export default function Image({ src }: { src?: any }) {
-
     function onClick() {
         console.log("clicked on an image");
     }
 
-    return <img onClick={ onClick } src={ src }/>
+    return <img onClick={onClick} src={src} />;
 }

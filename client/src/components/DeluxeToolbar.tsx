@@ -1,9 +1,9 @@
-import { h } from "preact";
+import { h, ComponentChildren } from "preact";
 
-import { getAppState, AppStateChange } from '../AppState';
-import { svgEdit, svgLinkAlt, svgFlashCard, svgAddAbove } from '../svgIcons';
+import { getAppState, AppStateChange } from "../AppState";
+import { svgEdit, svgLinkAlt, svgFlashCard, svgAddAbove } from "../svgIcons";
 
-import { ToolbarMode } from '../types';
+import { ToolbarMode } from "../types";
 
 // export const TOOLBAR_VIEW = 1;
 // export const TOOLBAR_EDIT = 2;
@@ -20,23 +20,36 @@ export function DeluxeToolbar({}) {
         classes += " deluxe-toolbar-faded";
     }
 
-    return (<div class={classes}>
-        <ToolbarItem toolbarMode={ToolbarMode.Edit} toolbarText="Edit">
-            {svgEdit()}
-        </ToolbarItem>
-        <ToolbarItem toolbarMode={ToolbarMode.Refs} toolbarText="Refs">
-            {svgLinkAlt()}
-        </ToolbarItem>
-        <ToolbarItem toolbarMode={ToolbarMode.SR} toolbarText="SR">
-            {svgFlashCard()}
-        </ToolbarItem>
-        <ToolbarItem toolbarMode={ToolbarMode.AddAbove} toolbarText="Prepend">
-            {svgAddAbove()}
-        </ToolbarItem>
-        </div>);
+    return (
+        <div class={classes}>
+            <ToolbarItem toolbarMode={ToolbarMode.Edit} toolbarText="Edit">
+                {svgEdit()}
+            </ToolbarItem>
+            <ToolbarItem toolbarMode={ToolbarMode.Refs} toolbarText="Refs">
+                {svgLinkAlt()}
+            </ToolbarItem>
+            <ToolbarItem toolbarMode={ToolbarMode.SR} toolbarText="SR">
+                {svgFlashCard()}
+            </ToolbarItem>
+            <ToolbarItem
+                toolbarMode={ToolbarMode.AddAbove}
+                toolbarText="Prepend"
+            >
+                {svgAddAbove()}
+            </ToolbarItem>
+        </div>
+    );
 }
 
-function ToolbarItem({ toolbarMode, toolbarText, children }: { toolbarMode: ToolbarMode, toolbarText: string, children?: any }) {
+function ToolbarItem({
+    toolbarMode,
+    toolbarText,
+    children,
+}: {
+    toolbarMode: ToolbarMode;
+    toolbarText: string;
+    children: ComponentChildren;
+}) {
     const appState = getAppState();
 
     function onClickHandler() {
@@ -53,22 +66,24 @@ function ToolbarItem({ toolbarMode, toolbarText, children }: { toolbarMode: Tool
         classes += addActiveToolbarClasses(toolbarMode);
     }
 
-    return (<div class={ classes } onClick={ onClickHandler }>
-               { children }
-               <span class="toolbar-item-text">{ toolbarText }</span>
-            </div>);
+    return (
+        <div class={classes} onClick={onClickHandler}>
+            {children}
+            <span class="toolbar-item-text">{toolbarText}</span>
+        </div>
+    );
 }
 
 export function addActiveToolbarClasses(toolbarMode: ToolbarMode) {
     switch (toolbarMode) {
-    case ToolbarMode.Edit:
-        return " toolbar-item-selected toolbar-item-selected-edit";
-    case ToolbarMode.Refs:
-        return " toolbar-item-selected toolbar-item-selected-refs";
-    case ToolbarMode.SR:
-        return " toolbar-item-selected toolbar-item-selected-sr";
-    case ToolbarMode.AddAbove:
-        return " toolbar-item-selected toolbar-item-selected-add-above";
+        case ToolbarMode.Edit:
+            return " toolbar-item-selected toolbar-item-selected-edit";
+        case ToolbarMode.Refs:
+            return " toolbar-item-selected toolbar-item-selected-refs";
+        case ToolbarMode.SR:
+            return " toolbar-item-selected toolbar-item-selected-sr";
+        case ToolbarMode.AddAbove:
+            return " toolbar-item-selected toolbar-item-selected-add-above";
     }
 
     console.error(`unknown toolbarMode: ${toolbarMode}`);

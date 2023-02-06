@@ -1,13 +1,25 @@
 import { h } from "preact";
 import { useEffect, useState, useRef } from "preact/hooks";
 
-import { addToolbarSelectableClasses } from '../CivilUtils';
+import { addToolbarSelectableClasses } from "../CivilUtils";
 
-import { getAppState, AppStateChange } from '../AppState';
+import { getAppState, AppStateChange } from "../AppState";
 
-import { ToolbarMode } from '../types';
+import { ToolbarMode } from "../types";
 
-export default function Title({ title, isShowingUpdateForm, isEditingDeckRefs, onRefsToggle, onFormToggle }: { title?: any, isShowingUpdateForm?: any, isEditingDeckRefs?: any, onRefsToggle?: any, onFormToggle?: any }) {
+export default function Title({
+    title,
+    isShowingUpdateForm,
+    isEditingDeckRefs,
+    onRefsToggle,
+    onFormToggle,
+}: {
+    title?: any;
+    isShowingUpdateForm?: any;
+    isEditingDeckRefs?: any;
+    onRefsToggle?: any;
+    onFormToggle?: any;
+}) {
     const appState = getAppState();
 
     const hoveringRef = useRef(null);
@@ -28,14 +40,14 @@ export default function Title({ title, isShowingUpdateForm, isEditingDeckRefs, o
     function onTitleClicked(e) {
         if (appState.toolbarMode.value === ToolbarMode.Edit) {
             if (isShowingUpdateForm) {
-                AppStateChange.toolbarMode(ToolbarMode.View)
+                AppStateChange.toolbarMode(ToolbarMode.View);
             }
             onFormToggle();
             return;
         }
         if (appState.toolbarMode.value === ToolbarMode.Refs) {
             if (isEditingDeckRefs) {
-                AppStateChange.toolbarMode(ToolbarMode.View)
+                AppStateChange.toolbarMode(ToolbarMode.View);
             }
             onRefsToggle();
             return;
@@ -43,14 +55,19 @@ export default function Title({ title, isShowingUpdateForm, isEditingDeckRefs, o
     }
 
     useEffect(() => {
-        window.onscroll = function() {
+        window.onscroll = function () {
             // when making the h1 sticky, also apply the title-replacement-spacer class to the marker div
             // this prevents the rest of the page from jerking upwards
             const classReplacementSpacer = "title-replacement-spacer";
             const classBackgroundBand = "title-background-band";
             const classSticky = "title-sticky";
 
-            if (preMarkerRef.current && postMarkerRef.current && titleRef.current && backgroundBandRef.current) {
+            if (
+                preMarkerRef.current &&
+                postMarkerRef.current &&
+                titleRef.current &&
+                backgroundBandRef.current
+            ) {
                 let preMarkerEl = preMarkerRef.current as HTMLElement;
                 let titleEl = titleRef.current as HTMLElement;
                 let postMarkerEl = postMarkerRef.current as HTMLElement;
@@ -58,14 +75,18 @@ export default function Title({ title, isShowingUpdateForm, isEditingDeckRefs, o
 
                 if (preMarkerEl && titleEl && postMarkerEl) {
                     if (window.pageYOffset < postMarkerEl.offsetTop) {
-                        if(titleEl.classList.contains(classSticky)) {
-                            preMarkerEl.classList.remove(classReplacementSpacer);
+                        if (titleEl.classList.contains(classSticky)) {
+                            preMarkerEl.classList.remove(
+                                classReplacementSpacer
+                            );
                             titleEl.classList.remove(classSticky);
-                            backgroundBandEl.classList.remove(classBackgroundBand);
+                            backgroundBandEl.classList.remove(
+                                classBackgroundBand
+                            );
                         }
                     }
                     if (window.pageYOffset > preMarkerEl.offsetTop) {
-                        if(!titleEl.classList.contains(classSticky)) {
+                        if (!titleEl.classList.contains(classSticky)) {
                             preMarkerEl.classList.add(classReplacementSpacer);
                             titleEl.classList.add(classSticky);
                             backgroundBandEl.classList.add(classBackgroundBand);
@@ -84,26 +105,27 @@ export default function Title({ title, isShowingUpdateForm, isEditingDeckRefs, o
                     hc.removeEventListener("mouseenter", mouseEnterTitle);
                     hc.removeEventListener("mouseleave", mouseLeaveTitle);
                 }
-            }
+            };
         }
         // todo: added to please tsc
-        return () => {}
+        return () => {};
     }, []);
 
     let classes = "deck-title selectable-content";
     let containerClasses = "selectable-container";
     const classSticky = "title-sticky";
 
-
     if (titleRef.current) {
         let titleEl = titleRef.current as HTMLElement;
-        if(titleEl && titleEl.classList.contains(classSticky)) {
+        if (titleEl && titleEl.classList.contains(classSticky)) {
             // don't show selectable highlight if the title is sticky
         } else if (mouseHovering) {
             let toolbarMode = appState.toolbarMode.value;
             // only show as selectable if in edit or refs mode
-            if (toolbarMode === ToolbarMode.Edit ||
-                toolbarMode === ToolbarMode.Refs) {
+            if (
+                toolbarMode === ToolbarMode.Edit ||
+                toolbarMode === ToolbarMode.Refs
+            ) {
                 containerClasses += addToolbarSelectableClasses(toolbarMode);
             }
         }
@@ -114,12 +136,19 @@ export default function Title({ title, isShowingUpdateForm, isEditingDeckRefs, o
     // 2. the normal inline title appears when the bottom of the title text should be visible as
     //    the user scrolls up
     return (
-    <div>
-        <div class={containerClasses} ref={ hoveringRef } onClick={onTitleClicked}>
-            <div ref={ preMarkerRef }></div>
-            <div ref={ backgroundBandRef }></div>
-            <h1 ref={ titleRef } class={classes}>{ title }</h1>
-            <div ref={ postMarkerRef }></div>
+        <div>
+            <div
+                class={containerClasses}
+                ref={hoveringRef}
+                onClick={onTitleClicked}
+            >
+                <div ref={preMarkerRef}></div>
+                <div ref={backgroundBandRef}></div>
+                <h1 ref={titleRef} class={classes}>
+                    {title}
+                </h1>
+                <div ref={postMarkerRef}></div>
+            </div>
         </div>
-    </div>);
+    );
 }

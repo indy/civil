@@ -1,8 +1,11 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 
-export default function DeleteConfirmation({ onDelete }: { onDelete?: any }) {
-
+export default function DeleteConfirmation({
+    onDelete,
+}: {
+    onDelete: () => void;
+}) {
     const [showToggle, setShowToggle] = useState(false);
 
     function buttonClicked(e: Event) {
@@ -22,9 +25,14 @@ export default function DeleteConfirmation({ onDelete }: { onDelete?: any }) {
     }
 
     return (
-    <span>
-        {!showToggle && <button onClick={ buttonClicked }>Delete...</button>}
-        { showToggle && <button onClick={ noClicked }>No, Cancel Delete</button>}
-        { showToggle && <button onClick={ yesClicked }>Yes, Really Delete</button>}
-    </span>);
+        <span>
+            {!showToggle && <button onClick={buttonClicked}>Delete...</button>}
+            {showToggle && (
+                <button onClick={noClicked}>No, Cancel Delete</button>
+            )}
+            {showToggle && (
+                <button onClick={yesClicked}>Yes, Really Delete</button>
+            )}
+        </span>
+    );
 }
