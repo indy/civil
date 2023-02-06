@@ -175,6 +175,23 @@ export const AppStateChange = {
 
         state.user.value = user;
     },
+
+    showAddPointForm: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("showAddPointForm");
+        }
+        state.showAddPointForm.value = true;
+        state.componentRequiresFullKeyboardAccess.value = true;
+    },
+
+    hideAddPointForm: function() {
+        if (DEBUG_APP_STATE) {
+            console.log("hideAddPointForm");
+        }
+        state.showAddPointForm.value = false;
+        state.componentRequiresFullKeyboardAccess.value = false;
+    },
+
     setIdeasListing: function(listing: IIdeasListings) {
         if (DEBUG_APP_STATE) {
             console.log("setIdeasListing");

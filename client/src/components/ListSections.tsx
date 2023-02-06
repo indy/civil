@@ -1,33 +1,32 @@
 import { h } from "preact";
-// import { Link } from "preact-router";
 import { useState } from "preact/hooks";
 
-// import Net from '../Net';
+import Net from '../Net';
 import { svgExpand, svgMinimise } from '../svgIcons';
 
-// import DeckLink from './DeckLink';
+import DeckLink from './DeckLink';
 import { ListingLink } from './ListingLink';
-// import { StarRating } from './StarRating';
+import { StarRating } from './StarRating';
 
-/*
-function BasicListSection({list, resource}) {
-    return html`
+
+function BasicListSection({list, resource}: {list?: any, resource?: any}) {
+    return (
     <div>
         <ul class="standard-list" >
-            ${ buildListing(list, resource) }
+            { buildListing(list, resource) }
         </ul>
-    </div>`;
+    </div>);
 }
 
-function DeckSimpleList({list}) {
-    return html`
+function DeckSimpleList({list}: {list?: any}) {
+    return (
     <div>
         <ul class="standard-list" >
-            ${ buildListing(list) }
+            { buildListing(list) }
         </ul>
-    </div>`;
+    </div>);
 }
-*/
+
 function DeckSimpleListSection({label, list, expanded, hideEmpty }: {label: any, list: any, expanded?: any, hideEmpty?: any }) {
     let [show, setShow] = useState(expanded);
 
@@ -54,10 +53,10 @@ function DeckSimpleListSection({label, list, expanded, hideEmpty }: {label: any,
         </p>);
     }
 }
-/*
-function LazyLoadedListSection({label, url }) {
+
+function LazyLoadedListSection({label, url }: {label?: any, url?: any }) {
     // list, expanded, hideEmpty, onToggle
-    let [localState, setLocalState] = useState({
+    let [localState, setLocalState]: [localState: any, setLocalState: any] = useState({
         fetchedData: false,
         list: [],
         show: false
@@ -82,25 +81,25 @@ function LazyLoadedListSection({label, url }) {
     }
 
     if(localState.show) {
-        return html`
+        return (
         <div>
-            <p class="subheading" onClick=${ toggleShow }>
-                ${ svgMinimise() } ${ label }
+            <p class="subheading" onClick={ toggleShow }>
+                { svgMinimise() } { label }
             </p>
             <ul class="compacted-list" >
-                ${ buildDeckSimpleListing(localState.list) }
+                { buildDeckSimpleListing(localState.list) }
             </ul>
-        </div>`;
+        </div>);
     } else {
-        return html`
-        <p class="subheading" onClick=${ toggleShow }>
-            ${ svgExpand() } ${ label }
-        </p>`;
+        return (
+        <p class="subheading" onClick={ toggleShow }>
+            { svgExpand() } { label }
+        </p>);
     }
 }
 
 
-function RatedListSection({label, list, resource, expanded}) {
+function RatedListSection({label, list, resource, expanded}: {label?: any, list?: any, resource?: any, expanded?: any}) {
     let [show, setShow] = useState(expanded);
 
     function toggleShow() {
@@ -108,35 +107,35 @@ function RatedListSection({label, list, resource, expanded}) {
     }
 
     if(show) {
-        return html`
+        return (
         <div>
-            <p class="subheading" onClick=${ toggleShow }>
-                ${ svgMinimise() } ${ label }
+            <p class="subheading" onClick={ toggleShow }>
+                { svgMinimise() } { label }
             </p>
             <ul class="standard-list" >
-                ${ buildRatingListing(list, resource) }
+                { buildRatingListing(list, resource) }
             </ul>
-        </div>`;
+        </div>);
     } else {
-        return html`
-        <p class="subheading" onClick=${ toggleShow }>
-            ${ svgExpand() } ${ label }
-        </p>`;
+        return (
+        <p class="subheading" onClick={ toggleShow }>
+            { svgExpand() } { label }
+        </p>);
     }
 }
 
-function buildListing(list, resource) {
+function buildListing(list?: any, resource?: any) {
     if (!list) {
         return [];
     }
-    return list.map((deck, i) => html`
-    <${ListingLink} id=${ deck.id }
-                    name=${ deck.title || deck.name }
-                    insignia=${ deck.insignia }
-                    resource=${resource || deck.resource }/>`);
+    return list.map((deck, i) => (
+    <ListingLink id={ deck.id }
+                    name={ deck.title || deck.name }
+                    insignia={ deck.insignia }
+                    resource={resource || deck.resource }/>));
 }
-*/
-function buildDeckSimpleListing(list) {
+
+function buildDeckSimpleListing(list?: any) {
     if (!list) {
         return [];
     }
@@ -146,36 +145,35 @@ function buildDeckSimpleListing(list) {
                     insignia={ deck.insignia }
                     resource={deck.resource}/>));
 }
-/*
-function buildRatingListing(list, resource) {
+
+function buildRatingListing(list?: any, resource?: any) {
     if (!list) {
         return [];
     }
-    return list.map((deck, i) => html`
-    <${RatedListingLink} deck=${deck}
-                         resource=${resource}
-                         description=${deck.shortDescription}/>`);
+    return list.map((deck, i) => (
+    <RatedListingLink deck={deck}
+                         resource={resource}/>));
 }
 
 // based off ListingLink but displays a star rating in the left hand margin
 //
-function RatedListingLink({ deck, resource }) {
+function RatedListingLink({ deck, resource }: { deck?: any, resource?: any }) {
     if (deck) {
         let { id, title, rating, shortDescription, insignia } = deck;
         const href = `/${resource}/${id}`;
 
-        return html`
+        return (
         <li>
-            <${StarRating} rating=${rating}/>
-            <${DeckLink} resource=${resource}
-                         href=${href}
-                         insignia=${insignia}
-                         name=${title}/>
-            <span class="descriptive-scribble">${shortDescription}</span>
-        </li>`;
+            <StarRating rating={rating}/>
+            <DeckLink resource={resource}
+                         href={href}
+                         insignia={insignia}
+                         name={title}/>
+            <span class="descriptive-scribble">{shortDescription}</span>
+        </li>);
     } else {
-        return html`<li></li>`;
+        return <li></li>;
     }
 }
-*/
-export { DeckSimpleListSection/*, RatedListSection, BasicListSection, DeckSimpleList, LazyLoadedListSection*/ };
+
+export { DeckSimpleListSection, RatedListSection, BasicListSection, DeckSimpleList, LazyLoadedListSection };

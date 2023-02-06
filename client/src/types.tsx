@@ -43,6 +43,26 @@ export interface IArticle {
     published_date?: any;
 }
 
+export interface IPerson {
+    id: number;
+    name: string;
+
+    insignia: number;
+
+    sort_date?: string;
+
+    points?: any;
+
+    notes?: any;
+
+    refs?: any;
+
+    backnotes?: any;
+    backrefs?: any;
+
+    flashcards?: any;
+}
+
 export interface IDeckSimple {
     id: number,
     name: string,

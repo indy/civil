@@ -21,14 +21,16 @@ export function calcAgeInYears(toTriple: [number, number, number], fromTriple: [
     return years;
 }
 
-export function dateStringAsTriple(dateString: string) {
+export function dateStringAsTriple(dateString: string): [number, number, number] {
     let triple = dateString.split('-').map(d => parseInt(d, 10));
     if (dateString[0] == '-') {
         // triple will contain 4 elements, 1st is a NaN
         triple = triple.slice(1);
         triple[0] = -triple[0];
     }
-    return triple;                // triple is [year, month, day]
+
+    let ret: [number, number, number] = [triple[0], triple[1], triple[2]];
+    return ret;                // triple is [year, month, day]
 }
 
 export function parseDateStringAsYearOnly(value: string) {
@@ -46,7 +48,7 @@ export function parseDateStringAsYearOnly(value: string) {
     return year;
 }
 
-export function parseDateStringAsTriple(value: string) {
+export function parseDateStringAsTriple(value: string): [number, number, number] | null {
     const re = /^(-?)(\d{4})-(\d{2})-(\d{2})$/;
     const match = re.exec(value);
 
