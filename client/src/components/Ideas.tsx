@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { IIdeasListings, ISearchResults } from '../types';
+import { IIdeasListings, ISearchResults, IDeckSimple } from '../types';
 
 import Net from '../Net';
 import { capitalise, formattedDate } from '../JsUtils';
@@ -16,8 +16,11 @@ import TopMatter from './TopMatter';
 import LeftMarginHeading from './LeftMarginHeading';
 import { InsigniaSelector } from './Insignias';
 import CivilInput from './CivilInput';
+import SectionBackRefs from './SectionBackRefs';
 import SectionDeckRefs from './SectionDeckRefs';
+import SectionSearchResultsBackref from './SectionSearchResultsBackref';
 import SectionNotes from './SectionNotes';
+import SectionGraph from './SectionGraph';
 
 function Ideas({ path }: { path?: string }) {
     const appState = getAppState();
@@ -48,7 +51,7 @@ function Ideas({ path }: { path?: string }) {
 }
 
 function Idea({ path, id }: { path?: string, id?: string }) {
-    //// const [searchResults, setSearchResults]: [Array<IDeckSimple>, any] = useState([]); // an array of backrefs
+    const [searchResults, setSearchResults]: [Array<IDeckSimple>, any] = useState([]); // an array of backrefs
     const ideaId = id ? parseInt(id, 10) : 0;
 
     useEffect(() => {
@@ -59,7 +62,7 @@ function Idea({ path, id }: { path?: string, id?: string }) {
         // but would also allow differently worded but equivalent text
         //
         Net.get<ISearchResults>(`/api/ideas/${id}/additional_search`).then(searchResults => {
-            //// setSearchResults(searchResults.results);
+            setSearchResults(searchResults.results);
         });
     }, [id]);
 
@@ -107,13 +110,11 @@ function Idea({ path, id }: { path?: string, id?: string }) {
                       howToShowNoteSection={ deckManager.howToShowNoteSection }
                       canShowNoteSection={ deckManager.canShowNoteSection }
                       onRefsChanged={ deckManager.onRefsChanged }
-                      onUpdateDeck={ deckManager.update } />
-        </article>);
-/*
+            onUpdateDeck={ deckManager.update } />
         <SectionBackRefs deck={ deck } />
         <SectionSearchResultsBackref backrefs={ searchResults }/>
         <SectionGraph depth={ 2 } deck={ deck }/>
-*/
+        </article>);
 }
 
 function SectionUpdateIdea({ idea, onUpdate }: { idea?: any, onUpdate?: any }) {
