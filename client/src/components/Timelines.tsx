@@ -42,10 +42,11 @@ function Timelines({ path }: { path?: string }) {
         }
     }, []);
 
+    let timelines = appState.listing.value.timelines;
     return (
         <article>
             <h1 class="ui">{capitalise(resource)}</h1>
-            <DeckSimpleList list={appState.listing.value.timelines} />
+            {timelines && <DeckSimpleList list={timelines} />}
         </article>
     );
 }

@@ -4,17 +4,17 @@
 
 import { Signal } from "@preact/signals";
 
-export interface IAdmin {
+export type IAdmin = {
     dbName: string;
 }
 
-export interface IUser {
+export type IUser = {
     username: string;
     email: string;
     admin?: IAdmin;
 }
 
-export interface IArticle {
+export type IArticle = {
     id: number;
     title: string;
 
@@ -24,7 +24,7 @@ export interface IArticle {
 
     source?: string;
     author?: string;
-    short_description?: string;
+    shortDescription?: string;
 
     rating: number;
 
@@ -40,7 +40,7 @@ export interface IArticle {
     published_date?: any;
 }
 
-export interface IPerson {
+export type IPerson = {
     id: number;
     name: string;
 
@@ -60,24 +60,25 @@ export interface IPerson {
     flashcards?: any;
 }
 
-export interface IDeckSimple {
+export type IDeckSimple = {
     id: number;
     name: string;
+    title?: string;
     resource: string;
     insignia: number;
 }
 
-export interface ISearchResults {
+export type ISearchResults = {
     results?: Array<IDeckSimple>;
 }
 
-export interface IIdeasListings {
+export type IIdeasListings = {
     recent: Array<IDeckSimple>;
     orphans: Array<IDeckSimple>;
     unnoted: Array<IDeckSimple>;
 }
 
-export interface IPeopleListings {
+export type IPeopleListings = {
     uncategorised: Array<IDeckSimple>;
     ancient: Array<IDeckSimple>;
     medieval: Array<IDeckSimple>;
@@ -85,13 +86,13 @@ export interface IPeopleListings {
     contemporary: Array<IDeckSimple>;
 }
 
-export interface IArticleListings {
+export type IArticleListings = {
     recent: Array<IArticle>;
     rated: Array<IArticle>;
     orphans: Array<IDeckSimple>;
 }
 
-export interface IListing {
+export type IListing = {
     ideas: IIdeasListings | undefined;
     people: IPeopleListings | undefined;
     articles: IArticleListings | undefined;
@@ -151,7 +152,7 @@ export interface IDefinitions {
     fg_quotes?: string;
 }
 
-export interface WasmInterface {
+export type WasmInterface = {
     asHtmlAst(markup: string): any;
     splitter(markup: string): any;
 
@@ -172,7 +173,7 @@ export enum NoteSectionHowToShow {
     Exclusive,
 }
 
-export interface IState {
+export type IState = {
     appName: string;
     toolbarMode: Signal<ToolbarMode>;
 
@@ -220,12 +221,12 @@ export interface IState {
 }
 
 // isg hacked in:
-export interface IScratchList {
+export type IScratchList = {
     fake?: boolean;
 }
 
 // isg hacked in:
-export interface IGraph {
+export type IGraph = {
     fullyLoaded: boolean;
     // an array of { id, name, resource }
     decks?: Array<any>;
@@ -235,24 +236,24 @@ export interface IGraph {
 }
 
 // isg hacked in:
-export interface IShowNoteForm {
+export type IShowNoteForm = {
     note: boolean;
     summary: boolean;
     review: boolean;
 }
 
-export interface IPigment {
+export type IPigment = {
     num: number;
     numString: string;
     class: string;
     classAlt: string;
 }
 
-export interface IUserUploadedImage {
+export type IUserUploadedImage = {
     filename: string;
 }
 
-export interface IUberSetup {
+export type IUberSetup = {
     directory: string;
     recentImages: Array<IUserUploadedImage>;
     srReviewCount: number;

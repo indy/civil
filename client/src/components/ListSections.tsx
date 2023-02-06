@@ -1,5 +1,7 @@
-import { h } from "preact";
+import { h, ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
+
+import { IArticle, IDeckSimple } from "../types";
 
 import Net from "../Net";
 import { svgExpand, svgMinimise } from "../svgIcons";
@@ -8,15 +10,7 @@ import DeckLink from "./DeckLink";
 import { ListingLink } from "./ListingLink";
 import { StarRating } from "./StarRating";
 
-function BasicListSection({ list, resource }: { list?: any; resource?: any }) {
-    return (
-        <div>
-            <ul class="standard-list">{buildListing(list, resource)}</ul>
-        </div>
-    );
-}
-
-function DeckSimpleList({ list }: { list?: any }) {
+function DeckSimpleList({ list }: { list: Array<IDeckSimple> }) {
     return (
         <div>
             <ul class="standard-list">{buildListing(list)}</ul>
@@ -24,17 +18,18 @@ function DeckSimpleList({ list }: { list?: any }) {
     );
 }
 
+type DeckSimpleListSectionProps = {
+    label: string;
+    list: Array<IDeckSimple>;
+    expanded?: boolean;
+    hideEmpty?: boolean;
+}
 function DeckSimpleListSection({
     label,
     list,
     expanded,
     hideEmpty,
-}: {
-    label: any;
-    list: any;
-    expanded?: any;
-    hideEmpty?: any;
-}) {
+}: DeckSimpleListSectionProps) {
     let [show, setShow] = useState(expanded);
 
     function toggleShow() {
@@ -61,14 +56,21 @@ function DeckSimpleListSection({
     }
 }
 
-function LazyLoadedListSection({ label, url }: { label?: any; url?: any }) {
-    // list, expanded, hideEmpty, onToggle
-    let [localState, setLocalState]: [localState: any, setLocalState: any] =
-        useState({
-            fetchedData: false,
-            list: [],
-            show: false,
-        });
+function LazyLoadedListSection({ label, url }: { label: string; url: string }) {
+
+    type LocalStateType = {
+        fetchedData: boolean;
+        list: Array<IDeckSimple>;
+        show: boolean;
+    };
+
+    let initialState: LocalStateType = {
+        fetchedData: false,
+        list: [],
+        show: false,
+    };
+    let [localState, setLocalState]: [localState: LocalStateType, setLocalState: any] =
+        useState(initialState);
 
     function toggleShow() {
         const visible = !localState.show;
@@ -76,11 +78,11 @@ function LazyLoadedListSection({ label, url }: { label?: any; url?: any }) {
             ...localState,
             show: visible,
         });
-        if (visible && !localState.fetchedStats) {
-            Net.get(url).then((d) => {
+        if (visible && !localState.fetchedData) {
+            Net.get<Array<IDeckSimple>>(url).then(d => {
                 setLocalState({
                     ...localState,
-                    fetchedStats: true,
+                    fetchedData: true,
                     list: d,
                     show: true,
                 });
@@ -108,17 +110,19 @@ function LazyLoadedListSection({ label, url }: { label?: any; url?: any }) {
     }
 }
 
+type RatedListSectionProps = {
+    label: string;
+    list: Array<IArticle>;
+    resource: string;
+    expanded?: boolean;
+}
+
 function RatedListSection({
     label,
     list,
     resource,
     expanded,
-}: {
-    label?: any;
-    list?: any;
-    resource?: any;
-    expanded?: any;
-}) {
+}: RatedListSectionProps) {
     let [show, setShow] = useState(expanded);
 
     function toggleShow() {
@@ -145,11 +149,11 @@ function RatedListSection({
     }
 }
 
-function buildListing(list?: any, resource?: any) {
-    if (!list) {
-        return [];
-    }
-    return list.map((deck, i) => (
+function buildListing(
+    list: Array<IDeckSimple>,
+    resource?: string
+): Array<ComponentChildren> {
+    return list.map((deck) => (
         <ListingLink
             id={deck.id}
             name={deck.title || deck.name}
@@ -159,11 +163,8 @@ function buildListing(list?: any, resource?: any) {
     ));
 }
 
-function buildDeckSimpleListing(list?: any) {
-    if (!list) {
-        return [];
-    }
-    return list.map((deck, i) => (
+function buildDeckSimpleListing(list: Array<IDeckSimple>) {
+    return list.map((deck) => (
         <ListingLink
             id={deck.id}
             name={deck.title || deck.name}
@@ -173,19 +174,18 @@ function buildDeckSimpleListing(list?: any) {
     ));
 }
 
-function buildRatingListing(list?: any, resource?: any) {
+function buildRatingListing(list: Array<IArticle>, resource: string) {
     if (!list) {
         return [];
     }
-    return list.map((deck, i) => (
+    return list.map((deck) => (
         <RatedListingLink deck={deck} resource={resource} />
     ));
 }
 
 // based off ListingLink but displays a star rating in the left hand margin
 //
-function RatedListingLink({ deck, resource }: { deck?: any; resource?: any }) {
-    if (deck) {
+function RatedListingLink({ deck, resource }: { deck: IArticle; resource: string }) {
         let { id, title, rating, shortDescription, insignia } = deck;
         const href = `/${resource}/${id}`;
 
@@ -201,15 +201,11 @@ function RatedListingLink({ deck, resource }: { deck?: any; resource?: any }) {
                 <span class="descriptive-scribble">{shortDescription}</span>
             </li>
         );
-    } else {
-        return <li></li>;
-    }
 }
 
 export {
     DeckSimpleListSection,
     RatedListSection,
-    BasicListSection,
     DeckSimpleList,
     LazyLoadedListSection,
 };

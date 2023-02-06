@@ -165,13 +165,15 @@ function SectionUpdateIdea({ idea, onUpdate }: { idea?: any; onUpdate?: any }) {
         }
     }, [idea]);
 
-    const handleChangeEvent = (event) => {
-        const target = event.target;
-        const name = target.name;
-        const value = target.value;
+    const handleChangeEvent = (event: Event) => {
+        if (event.target instanceof HTMLInputElement) {
+            const target = event.target;
+            const name = target.name;
+            const value = target.value;
 
-        if (name === "title") {
-            setTitle(value);
+            if (name === "title") {
+                setTitle(value);
+            }
         }
     };
 
@@ -213,6 +215,7 @@ function SectionUpdateIdea({ idea, onUpdate }: { idea?: any; onUpdate?: any }) {
         <form class="civil-form" onSubmit={handleSubmit}>
             <label for="title">Title:</label>
             <br />
+
             <CivilInput id="title" value={title} onInput={handleChangeEvent} />
             <br />
 
@@ -220,8 +223,8 @@ function SectionUpdateIdea({ idea, onUpdate }: { idea?: any; onUpdate?: any }) {
                 insigniaId={insigniaId}
                 onChange={setInsigniaId}
             />
-
             <br />
+
             <label for="graph-terminator">Graph Terminator:</label>
             <input
                 type="checkbox"
@@ -231,6 +234,7 @@ function SectionUpdateIdea({ idea, onUpdate }: { idea?: any; onUpdate?: any }) {
                 checked={graphTerminator}
             />
             <br />
+
             <input type="submit" value="Update Idea" />
         </form>
     );
