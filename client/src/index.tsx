@@ -1,18 +1,17 @@
 import { render, h } from "preact";
 import "./index.css";
 
+import { User, UberSetup } from "./types";
+
+import Net from "./Net.js";
 import { App } from "./App";
 import { AppStateChange, initialState } from "./AppState";
-import Net from "./Net.js";
-
 import {
+    augmentDefinitionsWithCssModifierParameters,
+    augmentSettingsWithCssModifierParameters,
     buildColourConversionFn,
     declareCssVariables,
-    augmentSettingsWithCssModifierParameters,
-    augmentDefinitionsWithCssModifierParameters,
 } from "./ColourCreator";
-
-import { IUser, IUberSetup } from "./types";
 
 wasm_bindgen("/civil_wasm_bg.wasm")
     .then(() => {
@@ -27,7 +26,7 @@ wasm_bindgen("/civil_wasm_bg.wasm")
             splitter: function (markup: string) {
                 const astArray = markup_as_ast(markup);
 
-                let splitPoints = astArray.map((ast: any) => {
+                let splitPoints = astArray.map((ast) => {
                     // NOTE: this check depends on the Node enum in civil-shared/src/parser.rs
                     let node =
                         ast.BlockQuote ||
@@ -94,13 +93,13 @@ wasm_bindgen("/civil_wasm_bg.wasm")
             .trim();
         state.hasPhysicalKeyboard = hasPhysicalKeyboard === "true";
 
-        Net.get<IUser>("/api/users").then((user) => {
+        Net.get<User>("/api/users").then((user) => {
             if (user) {
                 // update initial state with user
                 //
                 state.user.value = user;
 
-                Net.get<IUberSetup>("/api/ubersetup").then((uber) => {
+                Net.get<UberSetup>("/api/ubersetup").then((uber) => {
                     AppStateChange.uberSetup(uber);
                 });
             }

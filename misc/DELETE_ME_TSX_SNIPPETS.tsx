@@ -27,10 +27,19 @@ import { getAppState, AppStateChange } from '../AppState';
 
 // todo: fix any code with 'as any'
 
-
-
-
-
 import { h, ComponentChildren } from "preact";
 export default function WhenVerbose({children}: {children: ComponentChildren}) {
 }
+
+type Props = {
+    insigniaId: number;
+    onChange: (id: number) => void;
+};
+
+
+    let ini: Array<preact.JSX.Element> = [];
+
+// rename resource to deckKind
+
+
+// SectionDeckRefs.tsx

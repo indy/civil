@@ -1,21 +1,26 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 
+import { Ref } from "../types";
+
+import { deckKindToResourceString } from "../CivilUtils";
+
 import DeckLink from "./DeckLink";
 
-export default function Ref({
-    deckReference,
-    extraClasses,
-}: {
-    deckReference: any;
+type Props = {
+    deckReference: Ref;
     extraClasses: string;
-}) {
+};
+
+export default function RefView({ deckReference, extraClasses }: Props) {
     const [expanded, setExpanded] = useState(true);
 
     if (deckReference) {
         const { id, resource, refKind, name, annotation, insignia } =
             deckReference;
-        const href = `/${resource}/${id}`;
+
+        const str = deckKindToResourceString(resource);
+        const href = `/${str}/${id}`;
 
         // clicked on the ref kind label toggles the annotation
         function clickedToggleAnnotation() {
@@ -39,7 +44,7 @@ export default function Ref({
                 />
 
                 {annotation && expanded && (
-                    <div class="ref-scribble pigment-fg-{ resource }">
+                    <div class="ref-scribble pigment-fg-{ str }">
                         {annotation}
                     </div>
                 )}

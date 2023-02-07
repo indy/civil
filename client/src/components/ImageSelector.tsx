@@ -1,14 +1,17 @@
 import { h } from "preact";
 import { useEffect, useState, useRef } from "preact/hooks";
 
+import { UserUploadedImage } from "../types";
+
+import Net from "../Net";
 import { getAppState, AppStateChange } from "../AppState";
 import { svgX } from "../svgIcons";
 
-import Net from "../Net";
+type Props = {
+    onPaste: (s: string) => void;
+};
 
-import { IUserUploadedImage } from "../types";
-
-export default function ImageSelector({ onPaste }: { onPaste?: any }) {
+export default function ImageSelector({ onPaste }: Props) {
     const appState = getAppState();
     const [minimised, setMinimised] = useState(true);
 
@@ -39,7 +42,7 @@ export default function ImageSelector({ onPaste }: { onPaste?: any }) {
         return () => {};
     });
 
-    function handleFiles(files: any) {
+    function handleFiles(files: FileList) {
         let counter = 0;
         let formData = new FormData();
 
@@ -60,7 +63,7 @@ export default function ImageSelector({ onPaste }: { onPaste?: any }) {
             // post the image data
             fetch("/api/upload", options).then((resp) => {
                 // fetch the most recent uploads
-                Net.get<Array<IUserUploadedImage>>("/api/upload").then(
+                Net.get<Array<UserUploadedImage>>("/api/upload").then(
                     (recentImages) => {
                         AppStateChange.setRecentImages(recentImages);
                     }
@@ -69,36 +72,37 @@ export default function ImageSelector({ onPaste }: { onPaste?: any }) {
         }
     }
 
-    function dragEnter(e) {
+    function dragEnter(e: Event) {
         e.stopPropagation();
         e.preventDefault();
         setHovering(true);
     }
 
-    function dragLeave(e) {
+    function dragLeave(e: Event) {
         e.stopPropagation();
         e.preventDefault();
         setHovering(false);
     }
 
-    function dragOver(e) {
+    function dragOver(e: Event) {
         e.stopPropagation();
         e.preventDefault();
     }
 
-    function drop(e) {
+    function drop(e: InputEvent) {
         e.stopPropagation();
         e.preventDefault();
 
         const dt = e.dataTransfer;
-        const files = dt.files;
+        if (dt) {
+            const files = dt.files;
 
-        handleFiles(files);
-
+            handleFiles(files);
+        }
         setHovering(false);
     }
 
-    function onIconClicked(e) {
+    function onIconClicked(e: Event) {
         e.preventDefault();
         setMinimised(!minimised);
     }

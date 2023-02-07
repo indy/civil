@@ -2,35 +2,56 @@ import { h, createRef } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { route } from "preact-router";
 
-import { getAppState, AppStateChange } from "../AppState";
-import { svgTickedCheckBox, svgUntickedCheckBox } from "../svgIcons";
+import {
+    Edge,
+    ExpandedState,
+    GraphCallback,
+    GraphNode,
+    GraphState,
+    Node,
+    RefKind,
+} from "../types";
 
 import Net from "../Net";
+import { getAppState, AppStateChange } from "../AppState";
 import { graphPhysics } from "../graphPhysics";
+import { svgTickedCheckBox, svgUntickedCheckBox } from "../svgIcons";
 
-let gUpdateGraphCallback = undefined;
+let gUpdateGraphCallback: GraphCallback | undefined = undefined;
 
-const ExpandedState_Fully = 0;
-const ExpandedState_Partial = 1;
-const ExpandedState_None = 2;
+type LocalState = {
+    activeHyperlinks: boolean;
+    mouseButtonDown: boolean;
+    mouseDragging: boolean;
+    simIsRunning: boolean;
+    haveGraphState: boolean;
+    requireLoad: boolean;
+};
 
-export default function Graph({ id, depth }: { id?: any; depth?: any }) {
+export default function Graph({ id, depth }: { id: number; depth: number }) {
+    console.log(`todo: re-implement depth: ${depth}`);
+
     const appState = getAppState();
 
-    const [localState, setLocalState] = useState({
+    const initialLocalState: LocalState = {
         activeHyperlinks: false, // hack: remove eventually
         mouseButtonDown: false,
         mouseDragging: false,
         simIsRunning: false,
         haveGraphState: false,
         requireLoad: false,
-    });
-    const [graphState, setGraphState]: [any, any] = useState({});
+    };
+    const [localState, setLocalState] = useState(initialLocalState);
+    const initialState: GraphState = {
+        nodes: {},
+        edges: [],
+    };
+    const [graphState, setGraphState] = useState(initialState);
 
     const svgContainerRef = createRef();
 
     function initialise() {
-        let newState = {
+        let newState: GraphState = {
             nodes: {},
             edges: [],
         };
@@ -43,7 +64,7 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
             newState.nodes[id] = {
                 id: id,
                 isImportant: true,
-                expandedState: ExpandedState_Fully,
+                expandedState: ExpandedState.Fully,
                 resource:
                     appState.graph.value.decks[
                         appState.graph.value.deckIndexFromId[id]
@@ -77,7 +98,12 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
             // fetch the graph data from the server,
             // dispatch the updated state,
             // and then on the next render initialise using the if statement above
-            Net.get<any>("/api/graph").then((graph) => {
+            type FullGraphStruct = {
+                graphNodes: Array<GraphNode>;
+                graphConnections: Array<number>;
+            };
+
+            Net.get<FullGraphStruct>("/api/graph").then((graph) => {
                 let nodes = graph.graphNodes;
                 let connections = graph.graphConnections;
                 AppStateChange.loadGraph(nodes, connections);
@@ -92,8 +118,8 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
     useEffect(() => {
         let svg = buildSvg(svgContainerRef.current, graphState);
 
-        gUpdateGraphCallback = buildUpdateGraphCallback(svg) as any;
-        graphPhysics(graphState, gUpdateGraphCallback, function (b) {
+        gUpdateGraphCallback = buildUpdateGraphCallback(svg);
+        graphPhysics(graphState, gUpdateGraphCallback, function (b: boolean) {
             setLocalState({
                 ...localState,
                 simIsRunning: b,
@@ -101,9 +127,9 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
         });
     }, [graphState]);
 
-    function regenGraphState(gs) {
-        let nodes = {};
-        let edges: any = [];
+    function regenGraphState(gs: GraphState) {
+        let nodes: { [index: number]: Node } = {};
+        let edges: Array<Edge> = [];
 
         // create an updated copy of all the visible nodes
 
@@ -111,7 +137,7 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
         for (const key in gs.nodes) {
             if (
                 gs.nodes[key].isImportant ||
-                gs.nodes[key].expandedState !== ExpandedState_None
+                gs.nodes[key].expandedState !== ExpandedState.None
             ) {
                 nodes[key] = gs.nodes[key];
             }
@@ -119,7 +145,7 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
 
         // copy over any nodes directly connected to the expanded or important nodes
         for (const key in nodes) {
-            if (nodes[key].expandedState === ExpandedState_Fully) {
+            if (nodes[key].expandedState === ExpandedState.Fully) {
                 for (const link of appState.graph.value.links[key]) {
                     let [childId, _kind, _strength] = link; // negative strength == backlink
 
@@ -132,7 +158,7 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
                             nodes[childId] = {
                                 id: childId,
                                 isImportant: false,
-                                expandedState: ExpandedState_None,
+                                expandedState: ExpandedState.None,
                                 resource:
                                     appState.graph!.value.decks![
                                         appState.graph.value.deckIndexFromId![
@@ -152,7 +178,7 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
                         }
                     }
                 }
-            } else if (nodes[key].expandedState === ExpandedState_Partial) {
+            } else if (nodes[key].expandedState === ExpandedState.Partial) {
                 for (const link of appState.graph.value.links[key]) {
                     let [childId, _kind, _strength] = link; // negative strength == backlink
 
@@ -160,7 +186,7 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
                         if (
                             gs.nodes[childId] &&
                             gs.nodes[childId].expandedState !==
-                                ExpandedState_None
+                                ExpandedState.None
                         ) {
                             // copy over from previous state
                             nodes[childId] = gs.nodes[childId];
@@ -172,7 +198,7 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
 
         // update links
         for (const key in nodes) {
-            if (nodes[key].expandedState === ExpandedState_Fully) {
+            if (nodes[key].expandedState === ExpandedState.Fully) {
                 for (const link of appState.graph.value.links[key]) {
                     let [childId, kind, strength] = link; // negative strength == backlink
                     if (nodes[childId]) {
@@ -185,12 +211,12 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
                         ]);
                     }
                 }
-            } else if (nodes[key].expandedState === ExpandedState_Partial) {
+            } else if (nodes[key].expandedState === ExpandedState.Partial) {
                 for (const link of appState.graph.value.links[key]) {
                     let [childId, kind, strength] = link; // negative strength == backlink
                     if (
                         nodes[childId] &&
-                        nodes[childId].expandedState !== ExpandedState_None
+                        nodes[childId].expandedState !== ExpandedState.None
                     ) {
                         // only if both sides of the link are being displayed
                         edges.push([
@@ -207,8 +233,8 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
         // remove edges that would be duplicates (edges that are duplicates of
         // existing edges but have their  source/target swapped and a negated strength)
         //
-        let edgesToRender: any = [];
-        edges.forEach((e: any) => {
+        let edgesToRender: Array<Edge> = [];
+        edges.forEach((e: Edge) => {
             let [srcIdx, targetIdx, strength, _kind] = e;
 
             // let sourceNode = nodes[srcIdx];
@@ -243,34 +269,40 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
     function onMouseButtonDown(event: Event) {
         if (event.target instanceof HTMLInputElement) {
             const target = event.target;
-            let g: any = target.parentElement;
-            if (g.nodeName === "g") {
-                svgContainerRef.current.elementClickedOn = g;
-                setLocalState({
-                    ...localState,
-                    mouseButtonDown: true,
-                });
-            }
-
-            if (!localState.simIsRunning) {
-                // restart the simulation if it's stopped and the user starts dragging a node
-                // graphPhysics(graphState, gUpdateGraphCallback, setSimIsRunning);
-                graphPhysics(graphState, gUpdateGraphCallback, function (b) {
+            if (target.parentElement) {
+                let g: HTMLElement = target.parentElement;
+                if (g.nodeName === "g") {
+                    svgContainerRef.current.elementClickedOn = g;
                     setLocalState({
                         ...localState,
-                        simIsRunning: b,
+                        mouseButtonDown: true,
                     });
-                });
+                }
 
-                setLocalState({
-                    ...localState,
-                    simIsRunning: true,
-                });
+                if (!localState.simIsRunning && gUpdateGraphCallback) {
+                    // restart the simulation if it's stopped and the user starts dragging a node
+                    // graphPhysics(graphState, gUpdateGraphCallback, setSimIsRunning);
+                    graphPhysics(
+                        graphState,
+                        gUpdateGraphCallback,
+                        function (b) {
+                            setLocalState({
+                                ...localState,
+                                simIsRunning: b,
+                            });
+                        }
+                    );
+
+                    setLocalState({
+                        ...localState,
+                        simIsRunning: true,
+                    });
+                }
             }
         }
     }
 
-    function numOpenedConnections(id?: any, gs?: any) {
+    function numOpenedConnections(id: number, gs: GraphState) {
         /*
           add nodes to a set rather than count them in place
           nodes A and B could be connected together twice (parent->child + child->parent) but this should only count as a single connection
@@ -280,12 +312,12 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
 
         gs.edges.forEach((e) => {
             if (e[0] === id) {
-                if (gs.nodes[e[1]].expandedState !== ExpandedState_None) {
+                if (gs.nodes[e[1]].expandedState !== ExpandedState.None) {
                     s.add(e[1]);
                 }
             }
             if (e[1] === id) {
-                if (gs.nodes[e[0]].expandedState !== ExpandedState_None) {
+                if (gs.nodes[e[0]].expandedState !== ExpandedState.None) {
                     s.add(e[0]);
                 }
             }
@@ -294,7 +326,7 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
         return s.size;
     }
 
-    function onMouseButtonUp(event) {
+    function onMouseButtonUp() {
         if (localState.mouseButtonDown) {
             if (localState.mouseDragging) {
                 const g = svgContainerRef.current.elementClickedOn;
@@ -312,7 +344,7 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
                 if (id) {
                     if (
                         graphState.nodes[id].expandedState ===
-                        ExpandedState_Fully
+                        ExpandedState.Fully
                     ) {
                         let openedNeighbours = numOpenedConnections(
                             id,
@@ -320,23 +352,23 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
                         );
                         if (openedNeighbours > 1) {
                             graphState.nodes[id].expandedState =
-                                ExpandedState_Partial;
+                                ExpandedState.Partial;
                         } else {
                             graphState.nodes[id].expandedState =
-                                ExpandedState_None;
+                                ExpandedState.None;
                         }
                     } else if (
                         graphState.nodes[id].expandedState ===
-                        ExpandedState_Partial
+                        ExpandedState.Partial
                     ) {
                         graphState.nodes[id].expandedState =
-                            ExpandedState_Fully;
+                            ExpandedState.Fully;
                     } else if (
                         graphState.nodes[id].expandedState ===
-                        ExpandedState_None
+                        ExpandedState.None
                     ) {
                         graphState.nodes[id].expandedState =
-                            ExpandedState_Fully;
+                            ExpandedState.Fully;
                     }
 
                     regenGraphState(graphState);
@@ -349,7 +381,7 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
         }
     }
 
-    function onMouseMove(event) {
+    function onMouseMove(event: MouseEvent) {
         if (localState.mouseButtonDown) {
             setLocalState({
                 ...localState,
@@ -372,18 +404,20 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
         }
     }
 
-    function onGraphClicked(event) {
-        const target = event.target;
+    function onGraphClicked(event: Event) {
+        if (event.target instanceof HTMLInputElement) {
+            const target = event.target;
 
-        if (localState.activeHyperlinks) {
-            if (target.id.length > 0 && target.id[0] === "/") {
-                // the id looks like a url, that's good enough for us, lets go there
-                route(target.id);
+            if (localState.activeHyperlinks) {
+                if (target.id.length > 0 && target.id[0] === "/") {
+                    // the id looks like a url, that's good enough for us, lets go there
+                    route(target.id);
+                }
             }
         }
     }
 
-    function onActivHyperlinksClicked(e) {
+    function onActivHyperlinksClicked(e: Event) {
         e.preventDefault();
         setLocalState({
             ...localState,
@@ -418,29 +452,32 @@ export default function Graph({ id, depth }: { id?: any; depth?: any }) {
     );
 }
 
-function mouseInSvg(mouseX?: any, mouseY?: any, svgContainer?: any) {
-    const svgElement = svgContainer.firstChild;
+function mouseInSvg(mouseX: number, mouseY: number, svgContainer?: any) {
+    const svgElement: SVGViewElement = svgContainer!.firstChild;
+    if (svgElement) {
+        const innerViewport = svgElement.viewBox.baseVal;
 
-    const innerViewport = svgElement.viewBox.baseVal;
+        const relToSvgElementX = mouseX - svgContainer.offsetLeft;
+        const relToSvgElementY = mouseY - svgContainer.offsetTop;
 
-    const relToSvgElementX = mouseX - svgContainer.offsetLeft;
-    const relToSvgElementY = mouseY - svgContainer.offsetTop;
+        const outerViewportWidth = svgElement.clientWidth;
+        const outerViewportHeight = svgElement.clientHeight;
 
-    const outerViewportWidth = svgElement.clientWidth;
-    const outerViewportHeight = svgElement.clientHeight;
+        const tx = relToSvgElementX / outerViewportWidth;
+        let ansx = innerViewport.width * tx;
+        ansx += innerViewport.x;
 
-    const tx = relToSvgElementX / outerViewportWidth;
-    let ansx = innerViewport.width * tx;
-    ansx += innerViewport.x;
+        const ty = relToSvgElementY / outerViewportHeight;
+        let ansy = innerViewport.height * ty;
+        ansy += innerViewport.y;
 
-    const ty = relToSvgElementY / outerViewportHeight;
-    let ansy = innerViewport.height * ty;
-    ansy += innerViewport.y;
-
-    return [ansx, ansy];
+        return [ansx, ansy];
+    } else {
+        return [0, 0];
+    }
 }
 
-function buildSvg(ref?: any, graphState?: any) {
+function buildSvg(ref: any, graphState: GraphState) {
     let svg: any = {
         container: undefined,
         element: undefined,
@@ -534,11 +571,11 @@ function buildSvg(ref?: any, graphState?: any) {
     return svg;
 }
 
-function buildUpdateGraphCallback(svg?: any) {
+function buildUpdateGraphCallback(svg?: any): GraphCallback {
     function updateGraphCallback(
-        graphState?: any,
-        physicsId?: any,
-        globalPhysicsId?: any
+        graphState: GraphState,
+        physicsId: number,
+        globalPhysicsId: number
     ) {
         if (physicsId !== globalPhysicsId) {
             console.log("what the fuck? this should never happen");
@@ -553,7 +590,7 @@ function buildUpdateGraphCallback(svg?: any) {
                 let target = nodes[edges[i][1]];
                 let kind = edges[i][3];
 
-                if (kind === "refToParent") {
+                if (kind === RefKind.RefToParent) {
                     translateEdge(svgEdge, target, source);
                 } else {
                     translateEdge(svgEdge, source, target);
@@ -583,41 +620,51 @@ function buildUpdateGraphCallback(svg?: any) {
 }
 
 function createSvgEdge(
-    sourceNode?: any,
-    targetNode?: any,
-    strength?: any,
-    kind?: any
+    sourceNode: Node,
+    targetNode: Node,
+    strength: number,
+    kind: RefKind
 ) {
     let path = document.createElementNS("http://www.w3.org/2000/svg", "path");
 
     let width = 1.0 + strength * 0.5;
     path.setAttribute("stroke-width", `${width}`);
 
-    if (kind === "ref") {
-        path.setAttribute("stroke", "var(--graph-edge)");
-        translateEdge(path, sourceNode, targetNode);
-    } else if (kind === "refToParent") {
-        path.setAttribute("stroke", "var(--graph-edge)");
-        path.setAttribute("marker-end", `url(${window.location}#arrow-head)`);
-        translateEdge(path, targetNode, sourceNode);
-    } else if (kind === "refToChild") {
-        path.setAttribute("stroke", "var(--graph-edge)");
-        path.setAttribute("marker-end", `url(${window.location}#arrow-head)`);
-        translateEdge(path, sourceNode, targetNode);
-    } else if (kind === "refInContrast") {
-        path.setAttribute("stroke", "var(--graph-edge-in-contrast)");
-        translateEdge(path, sourceNode, targetNode);
-    } else if (kind === "refCritical") {
-        path.setAttribute("stroke", "var(--graph-edge-critical)");
-        translateEdge(path, sourceNode, targetNode);
-    } else {
-        console.log(kind);
+    switch (kind) {
+        case RefKind.Ref:
+            path.setAttribute("stroke", "var(--graph-edge)");
+            translateEdge(path, sourceNode, targetNode);
+            break;
+        case RefKind.RefToParent:
+            path.setAttribute("stroke", "var(--graph-edge)");
+            path.setAttribute(
+                "marker-end",
+                `url(${window.location}#arrow-head)`
+            );
+            translateEdge(path, targetNode, sourceNode);
+            break;
+        case RefKind.RefToChild:
+            path.setAttribute("stroke", "var(--graph-edge)");
+            path.setAttribute(
+                "marker-end",
+                `url(${window.location}#arrow-head)`
+            );
+            translateEdge(path, sourceNode, targetNode);
+            break;
+        case RefKind.RefInContrast:
+            path.setAttribute("stroke", "var(--graph-edge-in-contrast)");
+            translateEdge(path, sourceNode, targetNode);
+            break;
+        case RefKind.RefCritical:
+            path.setAttribute("stroke", "var(--graph-edge-critical)");
+            translateEdge(path, sourceNode, targetNode);
+            break;
     }
 
     return path;
 }
 
-function createSvgNode(n?: any) {
+function createSvgNode(n: Node) {
     let g: any = document.createElementNS("http://www.w3.org/2000/svg", "g");
     g.associatedNode = n;
 
@@ -665,7 +712,7 @@ function createSvgNode(n?: any) {
 
     let circle;
     switch (n.expandedState) {
-        case ExpandedState_Fully:
+        case ExpandedState.Fully:
             circle = document.createElementNS(
                 "http://www.w3.org/2000/svg",
                 "circle"
@@ -674,7 +721,7 @@ function createSvgNode(n?: any) {
             circle.setAttribute("r", "4");
             g.appendChild(circle);
             break;
-        case ExpandedState_Partial:
+        case ExpandedState.Partial:
             circle = document.createElementNS(
                 "http://www.w3.org/2000/svg",
                 "circle"
@@ -683,7 +730,7 @@ function createSvgNode(n?: any) {
             circle.setAttribute("r", "4");
             g.appendChild(circle);
             break;
-        case ExpandedState_None:
+        case ExpandedState.None:
             circle = document.createElementNS(
                 "http://www.w3.org/2000/svg",
                 "circle"
@@ -707,12 +754,12 @@ function createSvgNode(n?: any) {
     return [g, text2];
 }
 
-function translateEdge(svgNode?: any, source?: any, target?: any) {
+function translateEdge(svgNode: any, source: Node, target: Node) {
     const r = Math.hypot(target.x - source.x, target.y - source.y);
     let d = `M${source.x},${source.y} A${r},${r} 0 0,1 ${target.x},${target.y}`;
     svgNode.setAttribute("d", d);
 }
 
-function translateNode(svgNode?: any, x?: any, y?: any) {
+function translateNode(svgNode: any, x: number, y: number) {
     svgNode.setAttribute("transform", `translate(${x},${y})`);
 }

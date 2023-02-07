@@ -2,11 +2,12 @@ import { h } from "preact";
 import { useEffect } from "preact/hooks";
 import { route } from "preact-router";
 
+import { DeckKind, NoteKind, DeckQuote, IDeckCore } from "../types";
+
 import Net from "../Net";
 import buildMarkup from "./BuildMarkup";
-import { getAppState, AppStateChange } from "../AppState";
 import { capitalise } from "../JsUtils";
-import { deckTitle } from "../CivilUtils";
+import { getAppState, AppStateChange } from "../AppState";
 import { useLocalReducer } from "../PreactUtils";
 
 import CivilInput from "./CivilInput";
@@ -16,48 +17,50 @@ import DeleteConfirmation from "./DeleteConfirmation";
 import SectionNotes from "./SectionNotes";
 import { DeluxeToolbar } from "./DeluxeToolbar";
 
-const SHOW_ADD_FORM = "show-add-form";
-const HIDE_ADD_FORM = "hide-add-form";
-const SET_ATTRIBUTION = "set_attribution";
-const SET_QUOTE_TEXT = "set-quote-text";
-const CREATED_NEW_QUOTE = "created-new-quote";
+enum ActionType {
+    ShowAddForm,
+    HideAddForm,
+    SetAttribution,
+    SetQuoteText,
+}
 
-function quotesReducer(state?: any, action?: any) {
+type Action = {
+    type: ActionType;
+    data?: string;
+};
+
+type State = {
+    showAddForm: boolean;
+    attribution: string;
+    quoteText: string;
+};
+
+function quotesReducer(state: State, action: Action) {
     switch (action.type) {
-        case SHOW_ADD_FORM: {
+        case ActionType.ShowAddForm: {
             return {
                 ...state,
                 showAddForm: true,
             };
         }
-        case HIDE_ADD_FORM: {
+        case ActionType.HideAddForm: {
             return {
                 ...state,
                 showAddForm: false,
             };
         }
-        case SET_ATTRIBUTION: {
+        case ActionType.SetAttribution: {
             return {
                 ...state,
                 attribution: action.data,
             };
         }
-        case SET_QUOTE_TEXT: {
+        case ActionType.SetQuoteText: {
             return {
                 ...state,
                 quoteText: action.data,
             };
         }
-        case CREATED_NEW_QUOTE: {
-            return {
-                ...state,
-                showAddForm: false,
-                attribution: "",
-                quoteText: "",
-            };
-        }
-        default:
-            throw new Error(`unknown action: ${action}`);
     }
 }
 
@@ -70,34 +73,39 @@ function titleFromQuoteText(quoteText: string) {
 function Quotes({ path }: { path?: string }) {
     const resource = "quotes";
 
-    const [local, localDispatch] = useLocalReducer(quotesReducer, {
+    const initialState: State = {
         showAddForm: false,
         attribution: "",
         quoteText: "",
-    });
+    };
+
+    const [local, localDispatch] = useLocalReducer(quotesReducer, initialState);
 
     function clickedNewQuoteButton(e: Event) {
         e.preventDefault();
-        localDispatch(SHOW_ADD_FORM);
+        localDispatch(ActionType.ShowAddForm);
     }
 
     function clickedRandomButton(e: Event) {
         e.preventDefault();
-        Net.get<any>("/api/quotes/random").then((quote) => {
+        Net.get<DeckQuote>("/api/quotes/random").then((quote) => {
             route(`/quotes/${quote.id}`);
         });
     }
 
     function handleChangeEvent(e: Event) {
-        if (e.target instanceof HTMLInputElement) {
+        if (
+            e.target instanceof HTMLInputElement ||
+            e.target instanceof HTMLTextAreaElement
+        ) {
             const value = e.target.value;
             const name = e.target.name;
 
             if (name === "attribution") {
-                localDispatch(SET_ATTRIBUTION, value);
+                localDispatch(ActionType.SetAttribution, value);
             }
             if (name === "quote-text") {
-                localDispatch(SET_QUOTE_TEXT, value);
+                localDispatch(ActionType.SetQuoteText, value);
             }
         }
     }
@@ -105,21 +113,28 @@ function Quotes({ path }: { path?: string }) {
     function clickedSave(e: Event) {
         e.preventDefault();
 
-        const data = {
+        type ProtoQuote = {
+            title: string;
+            text: string;
+            attribution: string;
+            insignia: number;
+        };
+
+        const data: ProtoQuote = {
             title: titleFromQuoteText(local.quoteText),
             text: local.quoteText,
             attribution: local.attribution,
             insignia: 0,
         };
 
-        Net.post<any, any>("/api/quotes", data).then((quote) => {
+        Net.post<ProtoQuote, DeckQuote>("/api/quotes", data).then((quote) => {
             route(`/quotes/${quote.id}`);
         });
     }
 
     function clickedCancel(e: Event) {
         e.preventDefault();
-        localDispatch(HIDE_ADD_FORM);
+        localDispatch(ActionType.HideAddForm);
     }
 
     function renderNewQuoteButton() {
@@ -166,7 +181,7 @@ function Quotes({ path }: { path?: string }) {
     );
 }
 
-function preCacheFn(d) {
+function preCacheFn(d: IDeckCore) {
     return d;
 }
 
@@ -174,7 +189,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
     const appState = getAppState();
 
     const quoteId = id ? parseInt(id, 10) : 0;
-    const resource = "quotes";
+    const resource = DeckKind.Quote;
 
     const deckManager = DeckManager({
         id: quoteId,
@@ -192,7 +207,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
     }, [id]);
 
     function getQuoteThenRoute(url: string) {
-        Net.get<any>(url).then((deck) => {
+        Net.get<DeckQuote>(url).then((deck) => {
             if (deck) {
                 route(`/quotes/${deck.id}`);
                 AppStateChange.urlName(deck.title);
@@ -202,7 +217,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
         });
     }
 
-    function onKeyDown(e?: any) {
+    function onKeyDown(e: KeyboardEvent) {
         if (
             !appState.componentRequiresFullKeyboardAccess.value &&
             !appState.showingSearchCommand.value
@@ -217,125 +232,161 @@ function Quote({ path, id }: { path?: string; id?: string }) {
         }
     }
 
-    let deck: any = deckManager.getDeck();
+    function onEditedAttribute(attribution: string) {
+        let deckQuote: DeckQuote = deck! as DeckQuote;
+        let note = deckQuote.notes.find((n) => n.kind === NoteKind.Note);
 
-    function onEditedAttribute(attribution) {
-        let note = deck.notes.find((n) => n.kind === "Note");
+        type ProtoQuote = {
+            title: string;
+            text: string; // not really needed, server side only uses title and attribution
+            attribution: string;
+            insignia: number;
+        };
 
-        // as the title could have changed, we need to post the updated quote to the server
-        Net.put(`/api/quotes/${quoteId}`, {
-            title: deck.title,
-            text: note.content, // not really needed, server side only uses title and attribution
-            attribution: attribution,
-        }).then((updatedDeck) => {
-            deckManager.updateAndReset(updatedDeck);
-        });
+        if (note) {
+            let data: ProtoQuote = {
+                title: deckQuote.title,
+                text: note.content, // not really needed, server side only uses title and attribution
+                attribution: attribution,
+                insignia: 0,
+            };
+
+            // as the title could have changed, we need to post the updated quote to the server
+            Net.put<ProtoQuote, IDeckCore>(`/api/quotes/${quoteId}`, data).then(
+                (updatedDeck) => {
+                    deckManager.updateAndReset(updatedDeck);
+                }
+            );
+        }
     }
 
-    function onDelete(id) {
-        Net.delete(`/api/quotes/${id}`, {}).then(() => {
+    function onDelete() {
+        Net.delete(`/api/quotes/${quoteId}`, {}).then(() => {
             route("/quotes");
         });
     }
 
-    return (
-        <article id="quotation-article">
-            <DeluxeToolbar />
-            <SectionNotes
-                deck={deck}
-                title={deckTitle(deck)}
-                howToShowNoteSection={deckManager.howToShowNoteSection}
-                canShowNoteSection={deckManager.canShowNoteSection}
-                onRefsChanged={deckManager.onRefsChanged}
-                resource="quotes"
-                onUpdateDeck={deckManager.update}
-                noappend
-            />
-            {deck && (
+    const deck: DeckQuote | undefined = deckManager.getDeck() as
+        | DeckQuote
+        | undefined;
+    if (deck) {
+        return (
+            <article id="quotation-article">
+                <DeluxeToolbar />
+                <SectionNotes
+                    deck={deck}
+                    title={deck.title}
+                    howToShowNoteSection={deckManager.howToShowNoteSection}
+                    canShowNoteSection={deckManager.canShowNoteSection}
+                    onRefsChanged={deckManager.onRefsChanged}
+                    resource={resource}
+                    onUpdateDeck={deckManager.update}
+                    noappend
+                />
+
                 <Attribution
                     attribution={deck.attribution}
                     onEdited={onEditedAttribute}
                     onDelete={onDelete}
                 />
-            )}
-        </article>
-    );
+            </article>
+        );
+    } else {
+        return (
+            <article>
+                <DeluxeToolbar />
+            </article>
+        );
+    }
 }
 
-const ATTR_SHOW_MODE = "attr-show-mode";
-const ATTR_EDIT_MODE = "attr-edit-mode";
+enum AttrMode {
+    Show,
+    Edit,
+}
 
-const ATTR_SET_MODE = "attr-set-mode";
-const ATTR_INIT_ATTRIBUTION = "attr-init-attribution";
-const ATTR_SET_ATTRIBUTION = "attr-set-attribution";
-const ATTR_RESET_ATTRIBUTION = "attr-reset-attribution";
-const ATTR_SHOW_BUTTONS = "attr-show-buttons";
-const ATTR_HIDE_BUTTONS = "attr-hide-buttons";
+enum ActionAttrType {
+    SetMode,
+    InitAttribution,
+    SetAttribution,
+    ShowButtons,
+    HideButtons,
+}
 
-function attributionReducer(state?: any, action?: any) {
+type ActionAttr = {
+    type: ActionAttrType;
+    data: AttrMode;
+};
+
+type StateAttr = {
+    mode: AttrMode;
+    showButtons: boolean;
+    originalAttribution: string;
+    attribution: string;
+};
+
+function attributionReducer(state: StateAttr, action: ActionAttr) {
     switch (action.type) {
-        case ATTR_SET_MODE: {
+        case ActionAttrType.SetMode: {
             return {
                 ...state,
                 mode: action.data,
                 showButtons:
-                    action.data === ATTR_SHOW_MODE ? false : state.showButtons,
+                    action.data === AttrMode.Show ? false : state.showButtons,
             };
         }
-        case ATTR_SHOW_BUTTONS: {
+        case ActionAttrType.ShowButtons: {
             return {
                 ...state,
                 showButtons: true,
             };
         }
-        case ATTR_HIDE_BUTTONS: {
+        case ActionAttrType.HideButtons: {
             return {
                 ...state,
                 showButtons: false,
             };
         }
-        case ATTR_INIT_ATTRIBUTION: {
+        case ActionAttrType.InitAttribution: {
             return {
                 ...state,
                 originalAttribution: action.data,
                 attribution: action.data,
             };
         }
-        case ATTR_SET_ATTRIBUTION: {
+        case ActionAttrType.SetAttribution: {
             return {
                 ...state,
                 attribution: action.data,
             };
         }
-        case ATTR_RESET_ATTRIBUTION: {
-            return {
-                ...state,
-                attribution: state.originalAttribution,
-            };
-        }
-        default:
-            throw new Error(`unknown action: {action}`);
     }
 }
 
 function Attribution({ attribution, onEdited, onDelete }) {
-    const [local, localDispatch] = useLocalReducer(attributionReducer, {
-        mode: ATTR_SHOW_MODE,
+    let initialState: StateAttr = {
+        mode: AttrMode.Show,
         showButtons: false,
         originalAttribution: attribution,
         attribution,
-    });
+    };
+    const [local, localDispatch] = useLocalReducer(
+        attributionReducer,
+        initialState
+    );
 
     useEffect(() => {
         if (local.originalAttribution !== attribution) {
-            localDispatch(ATTR_INIT_ATTRIBUTION, attribution);
+            localDispatch(ActionAttrType.InitAttribution, attribution);
         }
     }, [attribution]);
 
-    function clickedAttribution(e) {
+    function clickedAttribution(e: Event) {
         e.preventDefault();
         localDispatch(
-            local.showButtons ? ATTR_HIDE_BUTTONS : ATTR_SHOW_BUTTONS
+            local.showButtons
+                ? ActionAttrType.HideButtons
+                : ActionAttrType.ShowButtons
         );
     }
 
@@ -343,9 +394,9 @@ function Attribution({ attribution, onEdited, onDelete }) {
         onDelete();
     }
 
-    function clickedEdit(e) {
+    function clickedEdit(e: Event) {
         e.preventDefault();
-        localDispatch(ATTR_SET_MODE, ATTR_EDIT_MODE);
+        localDispatch(ActionAttrType.SetMode, AttrMode.Edit);
     }
 
     function handleChangeEvent(e: Event) {
@@ -353,19 +404,19 @@ function Attribution({ attribution, onEdited, onDelete }) {
             const target = e.target;
             const value = target.value;
 
-            localDispatch(ATTR_SET_ATTRIBUTION, value);
+            localDispatch(ActionAttrType.SetAttribution, value);
         }
     }
 
-    function clickedCancel(e) {
+    function clickedCancel(e: Event) {
         e.preventDefault();
-        localDispatch(ATTR_SET_MODE, ATTR_SHOW_MODE);
+        localDispatch(ActionAttrType.SetMode, AttrMode.Show);
     }
 
-    function clickedOK(e) {
+    function clickedOK(e: Event) {
         e.preventDefault();
         onEdited(local.attribution);
-        localDispatch(ATTR_SET_MODE, ATTR_SHOW_MODE);
+        localDispatch(ActionAttrType.SetMode, AttrMode.Show);
     }
 
     let markup = attribution && buildMarkup(attribution);
@@ -376,7 +427,7 @@ function Attribution({ attribution, onEdited, onDelete }) {
 
     return (
         <div>
-            {local.mode === ATTR_SHOW_MODE && (
+            {local.mode === AttrMode.Show && (
                 <div>
                     <div id="quotation-attribute" onClick={clickedAttribution}>
                         {markup}
@@ -391,7 +442,7 @@ function Attribution({ attribution, onEdited, onDelete }) {
                     )}
                 </div>
             )}
-            {local.mode === ATTR_EDIT_MODE && (
+            {local.mode === AttrMode.Edit && (
                 <div>
                     <CivilInput
                         id="attribution"

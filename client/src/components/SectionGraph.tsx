@@ -1,5 +1,7 @@
 import { h } from "preact";
 
+import { IDeckCore } from "../types";
+
 import { getAppState } from "../AppState";
 
 import Graph from "./Graph";
@@ -9,15 +11,15 @@ export default function SectionGraph({
     depth,
     deck,
 }: {
-    depth?: any;
-    deck?: any;
+    depth: number;
+    deck: IDeckCore;
 }) {
     const appState = getAppState();
 
     if (appState.showConnectivityGraph.value && deck) {
         const okToShowGraph =
             (deck.notes && deck.notes.length > 0) || deck.backrefs;
-        const heading = deck.title ? `Connectivity Graph` : "";
+        const heading = "Connectivity Graph";
 
         return (
             <RollableSection heading={heading} initiallyRolledUp>

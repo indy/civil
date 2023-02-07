@@ -1,5 +1,17 @@
 import { h } from "preact";
+import { Ref } from "preact/hooks";
+
 import { AppStateChange } from "../AppState";
+
+type Props = {
+    id?: string;
+    value: string;
+    elementRef?: Ref<HTMLTextAreaElement>;
+    elementClass?: string;
+    onFocus?: () => void;
+    onBlur?: (e?: Event) => void;
+    onInput?: (e: Event) => void;
+};
 
 export default function CivilTextArea({
     id,
@@ -9,15 +21,7 @@ export default function CivilTextArea({
     onFocus,
     onBlur,
     onInput,
-}: {
-    id?: any;
-    value?: any;
-    elementRef?: any;
-    elementClass?: any;
-    onFocus?: any;
-    onBlur?: any;
-    onInput?: any;
-}) {
+}: Props) {
     function onTextAreaFocus() {
         AppStateChange.obtainKeyboardFn();
         onFocus && onFocus();

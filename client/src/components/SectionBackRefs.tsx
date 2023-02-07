@@ -1,21 +1,43 @@
-import { h } from "preact";
+import { h, ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 
-import { capitalise, nonEmptyArray } from "../JsUtils";
+import {
+    BackNote,
+    BackRef,
+    DeckKind,
+    IDeckCore,
+    NoteKind,
+    NoteThing,
+    Ref,
+} from "../types";
+
+import { deckKindToHeadingString } from "../CivilUtils";
 import { getAppState } from "../AppState";
+import { nonEmptyArray } from "../JsUtils";
 import { svgCaretDown, svgCaretRight } from "../svgIcons";
 
 import RollableSection from "./RollableSection";
 import { ExpandableListingLink } from "./ListingLink";
 
-export default function SectionBackRefs({ deck }: { deck?: any }) {
+type BackRefSectionItem = {
+    deckId: number;
+    deckName: string;
+    deckInsignia: number;
+    resource: DeckKind;
+    notes: Array<NoteThing>;
+    deckLevelRefs: Array<Ref>;
+    metaNoteId: number;
+    deckLevelAnnotation?: string;
+};
+
+export default function SectionBackRefs({ deck }: { deck?: IDeckCore }) {
     const appState = getAppState();
 
-    let backrefs = (deck && deck.backrefs) || [];
-    let backnotes = (deck && deck.backnotes) || [];
+    let backrefs: Array<BackRef> = (deck && deck.backrefs) || [];
+    let backnotes: Array<BackNote> = (deck && deck.backnotes) || [];
 
-    const sections: any = [];
-    const decks: any = [];
+    const sections: Array<ComponentChildren> = [];
+    const decks: Array<BackRefSectionItem> = [];
 
     if (!nonEmptyArray(backrefs)) {
         return <div></div>;
@@ -23,9 +45,9 @@ export default function SectionBackRefs({ deck }: { deck?: any }) {
 
     // file into decks with notes
     //
-    backnotes.forEach((n) => {
+    backnotes.forEach((n: BackNote) => {
         if (decks.length === 0 || decks[decks.length - 1].deckId !== n.deckId) {
-            decks.push({
+            let deckThing: BackRefSectionItem = {
                 deckId: n.deckId,
                 deckName: n.deckName,
                 deckInsignia: n.insignia,
@@ -33,41 +55,45 @@ export default function SectionBackRefs({ deck }: { deck?: any }) {
                 notes: [],
                 deckLevelRefs: [],
                 metaNoteId: 0,
-            });
+            };
+            decks.push(deckThing);
         }
 
-        if (n.noteKind === "NoteDeckMeta") {
+        if (n.noteKind === NoteKind.NoteDeckMeta) {
             // all refs associated with the NoteDeckMeta note id are rendered differently
             decks[decks.length - 1].metaNoteId = n.noteId;
         } else {
-            decks[decks.length - 1].notes.push({
+            let noteThing: NoteThing = {
                 noteContent: n.noteContent,
                 noteId: n.noteId,
                 refs: [],
-            });
+            };
+            decks[decks.length - 1].notes.push(noteThing);
         }
     });
 
     if (deck) {
         // attach refs to the correct notes
         //
-        backrefs.forEach((br) => {
+        backrefs.forEach((br: BackRef) => {
             // find the noteId
             for (let i = 0; i < decks.length; i++) {
-                let d = decks[i];
+                let d: BackRefSectionItem = decks[i];
 
                 if (d.metaNoteId === br.noteId) {
                     if (br.deckId === deck.id) {
                         d.deckLevelAnnotation = br.annotation;
                     } else {
-                        d.deckLevelRefs.push({
+                        let ref: Ref = {
+                            noteId: br.noteId,
                             id: br.deckId,
                             name: br.deckName,
                             refKind: br.refKind,
                             resource: br.resource,
                             annotation: br.annotation,
                             insignia: br.insignia,
-                        });
+                        };
+                        d.deckLevelRefs.push(ref);
                         break;
                     }
                 } else {
@@ -77,14 +103,16 @@ export default function SectionBackRefs({ deck }: { deck?: any }) {
                                 d.notes[j].topRefKind = br.refKind;
                                 d.notes[j].topAnnotation = br.annotation;
                             } else {
-                                d.notes[j].refs.push({
+                                let ref: Ref = {
+                                    noteId: br.noteId,
                                     id: br.deckId,
                                     name: br.deckName,
                                     refKind: br.refKind,
                                     resource: br.resource,
                                     annotation: br.annotation,
                                     insignia: br.insignia,
-                                });
+                                };
+                                d.notes[j].refs.push(ref);
                             }
                             break;
                         }
@@ -97,7 +125,7 @@ export default function SectionBackRefs({ deck }: { deck?: any }) {
     // group by resource kind
     //
     let groupedByResource = {};
-    decks.forEach((d) => {
+    decks.forEach((d: BackRefSectionItem) => {
         if (!groupedByResource[d.resource]) {
             groupedByResource[d.resource] = [];
         }
@@ -113,7 +141,7 @@ export default function SectionBackRefs({ deck }: { deck?: any }) {
 
     // render in the preferred order
     //
-    appState.preferredOrder.forEach((deckKind) => {
+    appState.preferredDeckKindOrder.forEach((deckKind: DeckKind) => {
         if (groupedByResource[deckKind]) {
             sections.push(
                 <SectionLinks backrefs={groupedByResource[deckKind]} />
@@ -124,7 +152,7 @@ export default function SectionBackRefs({ deck }: { deck?: any }) {
     return <RollableSection heading="BackRefs">{sections}</RollableSection>;
 }
 
-function SectionLinks({ backrefs }: { backrefs?: any }) {
+function SectionLinks({ backrefs }: { backrefs: Array<BackRefSectionItem> }) {
     const [localState, setLocalState] = useState({
         showExpanded: true,
         childrenExpanded: backrefs.map((br) => true),
@@ -144,7 +172,7 @@ function SectionLinks({ backrefs }: { backrefs?: any }) {
         });
     }
 
-    function onChildClicked(key: any) {
+    function onChildClicked(key: number) {
         setLocalState({
             ...localState,
             childrenExpanded: localState.childrenExpanded.map((c, i) =>
@@ -170,8 +198,8 @@ function SectionLinks({ backrefs }: { backrefs?: any }) {
         );
     });
 
-    let sectionHeading = capitalise(backrefs[0].resource);
-    let sectionId = backrefs[0].id;
+    let sectionHeading: string = deckKindToHeadingString(backrefs[0].resource);
+    let sectionId = backrefs[0].deckId;
 
     return (
         <section key={sectionId}>

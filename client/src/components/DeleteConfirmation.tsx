@@ -1,11 +1,11 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 
-export default function DeleteConfirmation({
-    onDelete,
-}: {
+type Props = {
     onDelete: () => void;
-}) {
+};
+
+export default function DeleteConfirmation({ onDelete }: Props) {
     const [showToggle, setShowToggle] = useState(false);
 
     function buttonClicked(e: Event) {

@@ -1,16 +1,18 @@
 import { h } from "preact";
 
+import { DeckSimple } from "../types";
+
 import { nonEmptyArray, plural } from "../JsUtils";
 
 import RollableSection from "./RollableSection";
 import { ListingLink } from "./ListingLink";
 
-export default function SectionSearchResultsBackref({
-    backrefs,
+export default function SectionSearchResults({
+    searchResults,
 }: {
-    backrefs?: any;
+    searchResults: Array<DeckSimple>;
 }) {
-    function buildBackref(lb) {
+    function buildSearchResult(lb: DeckSimple) {
         return (
             <ListingLink
                 id={lb.id}
@@ -21,15 +23,15 @@ export default function SectionSearchResultsBackref({
         );
     }
 
-    if (nonEmptyArray(backrefs)) {
+    if (nonEmptyArray(searchResults)) {
         const heading = plural(
-            backrefs.length,
+            searchResults.length,
             "Additional Search Result",
             "s"
         );
         return (
             <RollableSection heading={heading} initiallyRolledUp>
-                <ul>{backrefs.map(buildBackref)}</ul>
+                <ul>{searchResults.map(buildSearchResult)}</ul>
             </RollableSection>
         );
     } else {

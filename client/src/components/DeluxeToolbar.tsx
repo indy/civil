@@ -1,15 +1,9 @@
 import { h, ComponentChildren } from "preact";
 
-import { getAppState, AppStateChange } from "../AppState";
-import { svgEdit, svgLinkAlt, svgFlashCard, svgAddAbove } from "../svgIcons";
-
 import { ToolbarMode } from "../types";
 
-// export const TOOLBAR_VIEW = 1;
-// export const TOOLBAR_EDIT = 2;
-// export const TOOLBAR_REFS = 3;
-// export const TOOLBAR_SR = 4;
-// export const TOOLBAR_ADD_ABOVE = 5;
+import { getAppState, AppStateChange } from "../AppState";
+import { svgEdit, svgLinkAlt, svgFlashCard, svgAddAbove } from "../svgIcons";
 
 export function DeluxeToolbar({}) {
     const appState = getAppState();

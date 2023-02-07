@@ -2,6 +2,8 @@ import { h } from "preact";
 import { useEffect } from "preact/hooks";
 import { Link } from "preact-router";
 
+import { DeckSimple } from "../types";
+
 import Net from "../Net";
 import { getAppState, AppStateChange } from "../AppState";
 import { plural, formattedDate, formattedTime } from "../JsUtils";
@@ -9,31 +11,55 @@ import { useLocalReducer } from "../PreactUtils";
 
 import buildMarkup from "./BuildMarkup";
 
-const MODE_PRE_TEST = "pre-test";
-const MODE_TEST = "test";
-const MODE_POST_TEST = "post-test";
+enum Mode {
+    PreTest,
+    Test,
+    PostTest,
+}
 
-const CARDS_SET = "cards-set";
-const TEST_START = "test-start";
-const CARD_COMPLETED = "card-completed";
-const CARD_SHOW_ANSWER = "card-show-answer";
+enum ShowState {
+    Prompt,
+    Answer,
+}
 
-const PRACTICE_CARD_SET = "practice-card-set";
+interface ICard {
+    id: number;
+    noteId: number;
+    deckInfo: DeckSimple;
+    noteContent: string;
+    prompt: string;
+}
 
-const SHOW_PROMPT = "prompt";
-const SHOW_ANSWER = "answer";
+type Card = ICard & {
+    showState?: ShowState;
+    answer?: string;
+    postRatingToServer?: boolean;
+};
 
-// function dbg(mode?: any, state?: any) {
-//     console.group(mode);
-//     console.log(`state.mode = ${state.mode}`);
-//     console.log(`state.cardIndex = ${state.cardIndex}`);
-//     console.log(`state.cards = ${state.cards.length}`);
-//     console.log(state.cards);
-//     console.groupEnd();
-// }
+type State = {
+    mode: Mode;
+    cards: Array<Card>;
+    cardIndex: number;
+    practiceCard: Card | undefined;
+};
 
-function augmentCard(card?: any, postRatingToServer?: any) {
-    card.showState = SHOW_PROMPT;
+enum ActionType {
+    CardsSet,
+    TestStart,
+    CardCompleted,
+    CardShowAnswer,
+    PracticeCardSet,
+}
+
+type ActionDataCardsSet = { cards: Array<ICard> };
+type ActionDataCardCompleted = { rating: number };
+type Action = {
+    type: ActionType;
+    data: Card | ActionDataCardsSet | ActionDataCardCompleted;
+};
+
+function augmentCard(card: Card, postRatingToServer: boolean) {
+    card.showState = ShowState.Prompt;
     card.prompt = card.prompt;
     card.answer = card.noteContent;
     card.postRatingToServer = postRatingToServer;
@@ -41,56 +67,58 @@ function augmentCard(card?: any, postRatingToServer?: any) {
     return card;
 }
 
-function reducer(state?: any, action?: any) {
+function reducer(state: State, action: Action) {
     switch (action.type) {
-        case CARDS_SET: {
+        case ActionType.CardsSet: {
+            let cs = action.data as ActionDataCardsSet;
             let newState = {
                 ...state,
-                cards: action.data.cards.map((card) => augmentCard(card, true)),
+                cards: cs.cards.map((card: ICard) => augmentCard(card, true)),
             };
-            // dbg('CARDS_SET', newState);
+            // dbg('ActionType.CardsSet', newState);
             return newState;
         }
-        case CARD_SHOW_ANSWER: {
-            let card = action.data;
-            card.showState = SHOW_ANSWER;
+        case ActionType.CardShowAnswer: {
+            let card: Card = action.data as Card;
+            card.showState = ShowState.Answer;
             let newState = {
                 ...state,
             };
             return newState;
         }
-        case PRACTICE_CARD_SET: {
+        case ActionType.PracticeCardSet: {
+            let card: Card = action.data as Card;
             let newState = {
                 ...state,
-                practiceCard: augmentCard(action.data.card, false),
+                practiceCard: augmentCard(card, false),
             };
-            // dbg("PRACTICE_CARD_SET", newState);
+            // dbg("ActionType.PracticeCardSet", newState);
             return newState;
         }
-        case TEST_START: {
+        case ActionType.TestStart: {
             let newState = {
                 ...state,
-                mode: MODE_TEST,
+                mode: Mode.Test,
                 cardIndex: 0,
                 practiceCard: undefined,
             };
-            // dbg("TEST_START", newState);
+            // dbg("ActionType.TestStart", newState);
             return newState;
         }
-        case CARD_COMPLETED: {
+        case ActionType.CardCompleted: {
             let { cards, mode, cardIndex } = state;
 
             // some of the logic for the SM2 algorithm is here:
             // step 7 from the algorithm at https://www.supermemo.com/en/archives1990-2015/english/ol/sm2
             // "After each repetition session of a given day repeat again all items that scored below four in the quality assessment. Continue the repetitions until all of these items score at least four."
 
-            const { rating } = action.data;
+            const d = action.data as ActionDataCardCompleted;
 
             // if the rating had to be sent to the server, it's been sent, so now we can prevent any further posts
             state.cards[cardIndex].postRatingToServer = false;
 
-            if (rating < 4) {
-                state.cards[cardIndex].showState = SHOW_PROMPT;
+            if (d.rating < 4) {
+                state.cards[cardIndex].showState = ShowState.Prompt;
 
                 // retain this card to test again
                 if (cardIndex + 1 >= cards.length) {
@@ -106,7 +134,7 @@ function reducer(state?: any, action?: any) {
                     cardIndex = 0;
                 }
                 if (cards.length === 0) {
-                    mode = MODE_POST_TEST;
+                    mode = Mode.PostTest;
                 }
 
                 AppStateChange.setReviewCount(cards.length);
@@ -119,20 +147,18 @@ function reducer(state?: any, action?: any) {
                 cardIndex,
             };
 
-            // dbg("CARD_COMPLETED", newState);
+            // dbg("ActionType.CardCompleted", newState);
 
             return newState;
         }
-        default:
-            throw new Error(`unknown action: ${action}`);
     }
 }
 
 export default function SpacedRepetition({ path }: { path?: string }) {
     const appState = getAppState();
 
-    const initialState = {
-        mode: MODE_PRE_TEST,
+    const initialState: State = {
+        mode: Mode.PreTest,
         cards: [],
         cardIndex: 0,
         practiceCard: undefined,
@@ -140,43 +166,43 @@ export default function SpacedRepetition({ path }: { path?: string }) {
     let [local, localDispatch] = useLocalReducer(reducer, initialState);
 
     useEffect(() => {
-        Net.get<any>("/api/sr").then((cards) => {
-            localDispatch(CARDS_SET, { cards });
+        Net.get<Array<ICard>>("/api/sr").then((cards) => {
+            localDispatch(ActionType.CardsSet, { cards });
         });
     }, []);
 
-    function startTest(e) {
+    function startTest(e: Event) {
         e.preventDefault();
-        localDispatch(TEST_START);
+        localDispatch(ActionType.TestStart);
     }
 
-    function onRatedCard(card, rating) {
+    function onRatedCard(card: Card, rating: number) {
         // cards will be re-tested during the same session if they're rated
         // below a 4 but we should only send the first ratings to the server
         //
         if (card.postRatingToServer) {
-            Net.post<any, any>(`/api/sr/${card.id}/rated`, {
-                rating,
-            }).then((success) => {
+            Net.post<ActionDataCardCompleted, boolean>(
+                `/api/sr/${card.id}/rated`,
+                {
+                    rating,
+                }
+            ).then((success) => {
                 if (!success) {
                     console.error(`POST /api/sr/${card.id}/rated failed`);
                 }
             });
         }
-        localDispatch(CARD_COMPLETED, {
-            rating: rating,
-            appState,
-        });
+        localDispatch(ActionType.CardCompleted, { rating });
     }
 
-    function onShowAnswer(card) {
-        localDispatch(CARD_SHOW_ANSWER, card);
+    function onShowAnswer(card: Card) {
+        localDispatch(ActionType.CardShowAnswer, card);
     }
 
-    function onPracticeClicked(e) {
+    function onPracticeClicked(e: Event) {
         e.preventDefault();
-        Net.get<any>("/api/sr/practice").then((card) => {
-            localDispatch(PRACTICE_CARD_SET, { card });
+        Net.get<ICard>("/api/sr/practice").then((card) => {
+            localDispatch(ActionType.PracticeCardSet, { card });
         });
     }
 
@@ -184,7 +210,7 @@ export default function SpacedRepetition({ path }: { path?: string }) {
     const cardsToReview = local.cards.length; // - local.cardIndex;
 
     let nextTestInfo = "";
-    if (local.mode === MODE_PRE_TEST && !canTest) {
+    if (local.mode === Mode.PreTest && !canTest) {
         const nextReviewDate = formattedDate(
             Date.parse(
                 appState.srEarliestReviewDate.value!
@@ -201,21 +227,21 @@ export default function SpacedRepetition({ path }: { path?: string }) {
     return (
         <div>
             <h1 class="ui">Spaced Repetition</h1>
-            {local.mode !== MODE_POST_TEST && (
+            {local.mode !== Mode.PostTest && (
                 <p class="ui">{plural(cardsToReview, "card", "s")} to review</p>
             )}
-            {local.mode === MODE_PRE_TEST && !canTest && <p>{nextTestInfo}</p>}
-            {local.mode === MODE_PRE_TEST && canTest && (
+            {local.mode === Mode.PreTest && !canTest && <p>{nextTestInfo}</p>}
+            {local.mode === Mode.PreTest && canTest && (
                 <button onClick={startTest}>Start Test</button>
             )}
-            {local.mode === MODE_TEST && (
+            {local.mode === Mode.Test && (
                 <CardTest
                     card={local.cards[local.cardIndex]}
                     onRatedCard={onRatedCard}
                     onShowAnswer={onShowAnswer}
                 />
             )}
-            {local.mode === MODE_POST_TEST && <p>All Done!</p>}
+            {local.mode === Mode.PostTest && <p>All Done!</p>}
             {cardsToReview === 0 && (
                 <p>
                     You have no cards to review, maybe try a practice flashcard?
@@ -238,18 +264,18 @@ export default function SpacedRepetition({ path }: { path?: string }) {
 
 // if onRatedCard isn't passed in, the user won't be able to rate a card (useful when showing a practice card)
 //
-function CardTest({
-    card,
-    onRatedCard,
-    onShowAnswer,
-}: {
-    card?: any;
-    onRatedCard?: any;
-    onShowAnswer?: any;
-}) {
+type CardTestProps = {
+    card: Card;
+    onRatedCard?: (c: Card, r: number) => void;
+    onShowAnswer?: (c: Card) => void;
+};
+
+function CardTest({ card, onRatedCard, onShowAnswer }: CardTestProps) {
     function onShowAnswerClicked(e: Event) {
         e.preventDefault();
-        onShowAnswer(card);
+        if (onShowAnswer) {
+            onShowAnswer(card);
+        }
     }
 
     const show = card.showState;
@@ -258,18 +284,18 @@ function CardTest({
         <div>
             <div class="sr-section">Front</div>
             <div class="note">{buildMarkup(card.prompt)}</div>
-            {show === SHOW_PROMPT && (
+            {show === ShowState.Prompt && (
                 <button onClick={onShowAnswerClicked}>Show Answer</button>
             )}
-            {show === SHOW_ANSWER && <Answer card={card} />}
-            {show === SHOW_ANSWER && onRatedCard && (
+            {show === ShowState.Answer && <Answer card={card} />}
+            {show === ShowState.Answer && onRatedCard && (
                 <CardRating card={card} onRatedCard={onRatedCard} />
             )}
         </div>
     );
 }
 
-function Answer({ card }: { card?: any }) {
+function Answer({ card }: { card: Card }) {
     const { id, name, resource } = card.deckInfo;
     const href = `/${resource}/${id}`;
 
@@ -285,13 +311,17 @@ function Answer({ card }: { card?: any }) {
                         </Link>
                     </div>
                 </div>
-                {buildMarkup(card.answer)}
+                {card.answer && buildMarkup(card.answer)}
             </div>
         </div>
     );
 }
 
-function CardRating({ card, onRatedCard }: { card?: any; onRatedCard?: any }) {
+type CardRatingProps = {
+    card: Card;
+    onRatedCard: (c: Card, r: number) => void;
+};
+function CardRating({ card, onRatedCard }: CardRatingProps) {
     function onRated(e: Event) {
         if (e.target instanceof HTMLInputElement) {
             e.preventDefault();

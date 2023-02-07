@@ -1,7 +1,20 @@
 import { h, ComponentChildren } from "preact";
 import { Link } from "preact-router";
 
+import { DeckKind } from "../types";
+
+import { deckKindToResourceString } from "../CivilUtils";
 import { renderInsignia } from "./Insignias";
+
+type Props = {
+    extraClasses?: string;
+    onClick?: () => void;
+    resource: DeckKind;
+    href: string;
+    insignia: number;
+    name: string;
+    children?: ComponentChildren;
+};
 
 export default function DeckLink({
     extraClasses,
@@ -11,22 +24,16 @@ export default function DeckLink({
     insignia,
     name,
     children,
-}: {
-    extraClasses?: string;
-    onClick?: any;
-    resource: string;
-    href: string;
-    insignia: number;
-    name: string;
-    children?: ComponentChildren;
-}) {
-    function clicked(e: Event) {
+}: Props) {
+    function clicked(_e: Event) {
         if (onClick) {
-            onClick(e);
+            onClick();
         }
     }
 
-    const klass = `${extraClasses} pigment-fg-${resource}`;
+    const klass = `${extraClasses} pigment-fg-${deckKindToResourceString(
+        resource
+    )}`;
     return (
         <Link class={klass} href={href} onClick={clicked}>
             {children}

@@ -1,6 +1,8 @@
 import { h } from "preact";
 import { useState, useRef } from "preact/hooks";
 
+import { DeckPoint, PointKind, ProtoPoint } from "../types";
+
 import Net from "../Net";
 import { capitalise } from "../JsUtils";
 import { parseDateStringAsTriple, parseDateStringAsYearOnly } from "../eras";
@@ -9,18 +11,16 @@ import CivilInput from "./CivilInput";
 import CivilTextArea from "./CivilTextArea";
 
 export function PointBirthForm({
-    pointBorn,
     onSubmit,
 }: {
-    pointBorn: any;
-    onSubmit: any;
+    onSubmit: (p: ProtoPoint | DeckPoint) => void;
 }) {
     return (
         <PointForm
             timeLegend="Date of Birth"
             locationLegend="Birth Location"
-            pointKind="pointBegin"
-            point={pointBorn}
+            pointKind={PointKind.PointBegin}
+            pointTitle="Born"
             onSubmit={onSubmit}
             submitMessage="Add Birth"
         />
@@ -28,46 +28,67 @@ export function PointBirthForm({
 }
 
 export function PointDeathForm({
-    pointDied,
     onSubmit,
 }: {
-    pointDied: any;
-    onSubmit: any;
+    onSubmit: (p: ProtoPoint | DeckPoint) => void;
 }) {
     return (
         <PointForm
             timeLegend="Date of Death"
             locationLegend="DeathLocation"
-            pointKind="pointEnd"
-            point={pointDied}
+            pointKind={PointKind.PointEnd}
+            pointTitle="Died"
             onSubmit={onSubmit}
             submitMessage="Add Death"
         />
     );
 }
 
+type PointFormProps = {
+    pointKind?: PointKind;
+    pointTitle?: string;
+    onSubmit?: (p: ProtoPoint | DeckPoint) => void;
+    submitMessage?: string;
+    timeLegend?: string;
+    locationLegend?: string;
+    onSubmitMultiplePoints?: (ps: Array<ProtoPoint>) => void;
+};
+
+type State = {
+    title: string;
+    titleBackup: string;
+    locationTextual: string;
+    latitude: number;
+    longitude: number;
+    locationFuzz: number;
+    dateTextual: string;
+    exactDate: string;
+    lowerDate: string;
+    upperDate: string;
+    dateFuzz: number;
+    dateTextualDerivedFrom: string;
+    isApprox: boolean;
+    presentAsDuration: boolean;
+    roundToYear: boolean;
+    hasTypedTitle: boolean;
+    kind: PointKind;
+    showMultiPointInput: boolean;
+};
+
 export function PointForm({
-    point,
+    pointTitle,
     onSubmit,
     submitMessage,
     pointKind,
     timeLegend,
     locationLegend,
     onSubmitMultiplePoints,
-}: {
-    point?: any;
-    onSubmit?: any;
-    submitMessage?: any;
-    pointKind?: any;
-    timeLegend?: any;
-    locationLegend?: any;
-    onSubmitMultiplePoints?: any;
-}) {
+}: PointFormProps) {
     timeLegend ||= "Time";
     locationLegend ||= "Location";
 
     let initialPoint = {
-        title: "",
+        title: pointTitle || "",
         titleBackup: "", // store the latest user inputted title value (in case title is replaced with a preset like 'Born' or 'Died' and then the user presses the 'Custom' radio tab, this will allow the previous user defined title to be restored)
 
         locationTextual: "",
@@ -82,15 +103,7 @@ export function PointForm({
         dateFuzz: 0.5,
     };
 
-    if (point) {
-        for (let [k, v] of Object.entries(point)) {
-            if (v !== null) {
-                initialPoint[k] = v;
-            }
-        }
-    }
-
-    const [state, setState] = useState({
+    const initialState: State = {
         title: initialPoint.title,
         titleBackup: initialPoint.titleBackup,
         locationTextual: initialPoint.locationTextual,
@@ -107,12 +120,13 @@ export function PointForm({
         presentAsDuration: false,
         roundToYear: false,
         hasTypedTitle: false,
-        kind: pointKind || "point",
+        kind: pointKind || PointKind.Point,
         showMultiPointInput: false,
-    });
+    };
+    const [state, setState] = useState(initialState);
 
     // build a dateTextual from whatever was the last user input date
-    function buildReadableDateFromLast(s: any) {
+    function buildReadableDateFromLast(s: State) {
         if (s.dateTextualDerivedFrom === "exact") {
             return buildReadableDateFromExact(s, true);
         } else if (s.dateTextualDerivedFrom === "range") {
@@ -121,7 +135,7 @@ export function PointForm({
         return s;
     }
 
-    function buildReadableDateFromExact(s, checkOther) {
+    function buildReadableDateFromExact(s: State, checkOther: boolean) {
         const parsedDate = parseDateStringAsTriple(s.exactDate);
         if (parsedDate) {
             s.dateTextual = asHumanReadableDate(
@@ -148,7 +162,7 @@ export function PointForm({
         return s;
     }
 
-    function buildReadableDateFromRange(s: any, checkOther: any) {
+    function buildReadableDateFromRange(s: State, checkOther: boolean) {
         // lower and upper
         const parsedLowerDate = parseDateStringAsTriple(s.lowerDate);
         const parsedUpperDate = parseDateStringAsTriple(s.upperDate);
@@ -205,14 +219,12 @@ export function PointForm({
             } else if (name === "pointkind") {
                 if (event.target.value === "Custom") {
                     newState.title = newState.titleBackup;
-                    newState.kind = "point";
+                    newState.kind = PointKind.Point;
                 } else {
                     if (event.target.value === "Born") {
-                        console.log("setting kind to pointBegin");
-                        newState.kind = "pointBegin";
+                        newState.kind = PointKind.PointBegin;
                     } else if (event.target.value === "Died") {
-                        console.log("setting kind to pointEnd");
-                        newState.kind = "pointEnd";
+                        newState.kind = PointKind.PointEnd;
                     }
                     if (
                         !newState.hasTypedTitle ||
@@ -258,53 +270,34 @@ export function PointForm({
     async function onFindLocationClicked(event: Event) {
         event.preventDefault();
 
-        let geoResult = await geoGet(state.locationTextual);
+        let geoResult: GeoResult | unknown = await geoGet(
+            state.locationTextual
+        );
 
-        let [isOk, latitudeNew, longitudeNew] = getLatitudeLongitude(geoResult);
+        if (geoResult) {
+            let [isOk, latitudeNew, longitudeNew] = getLatitudeLongitude(
+                geoResult as GeoResult
+            );
 
-        if (isOk) {
-            let newState = {
-                ...state,
-                latitude: latitudeNew.toFixed(2) as unknown as number,
-                longitude: longitudeNew.toFixed(2) as unknown as number,
-            };
-            // props.onPointChange(props.id, newState);
-            setState(newState);
-        } else {
-            console.log(`geoResult failed for ${state.locationTextual}`);
-            console.log(geoResult);
+            if (isOk) {
+                let newState = {
+                    ...state,
+                    latitude: latitudeNew.toFixed(2) as unknown as number,
+                    longitude: longitudeNew.toFixed(2) as unknown as number,
+                };
+                // props.onPointChange(props.id, newState);
+                setState(newState);
+            } else {
+                console.log(`geoResult failed for ${state.locationTextual}`);
+                console.log(geoResult);
+            }
         }
-    }
-
-    function kindToSend(k: string) {
-        if (k === "pointBegin") {
-            return "PointBegin";
-        }
-        if (k === "pointEnd") {
-            return "PointEnd";
-        }
-        return "Point";
-    }
-
-    interface IPointSubmitData {
-        title: string;
-        kind: string;
-        locationFuzz: number;
-        dateFuzz: number;
-
-        locationTextual?: string;
-        latitude?: number;
-        longitude?: number;
-        dateTextual?: string;
-        exactDate?: string;
-        lowerDate?: string;
-        upperDate?: string;
     }
 
     function handleSubmit(e: Event) {
-        let s: IPointSubmitData = {
+        let s: ProtoPoint = {
             title: state.title.trim(),
-            kind: kindToSend(state.kind),
+            kind: state.kind,
             locationFuzz: 0,
             dateFuzz: 0,
         };
@@ -345,14 +338,14 @@ export function PointForm({
             canSend = true;
         }
 
-        if (canSend) {
+        if (canSend && onSubmit) {
             onSubmit(s);
         }
 
         e.preventDefault();
     }
 
-    function onShowMultiPointInputClicked(e) {
+    function onShowMultiPointInputClicked(e: Event) {
         e.preventDefault();
         setState({
             ...state,
@@ -369,7 +362,7 @@ export function PointForm({
                         <CivilInput
                             id="title"
                             value={state.title}
-                            size="11"
+                            size={11}
                             readOnly={!!pointKind}
                             onInput={handleChangeEvent}
                         />
@@ -410,7 +403,7 @@ export function PointForm({
                     <CivilInput
                         id="exactDate"
                         value={state.exactDate}
-                        size="11"
+                        size={11}
                         onInput={handleChangeEvent}
                     />
                     <span class="civil-date-hint"> Format: YYYY-MM-DD</span>
@@ -420,14 +413,14 @@ export function PointForm({
                     <CivilInput
                         id="lowerDate"
                         value={state.lowerDate}
-                        size="11"
+                        size={11}
                         onInput={handleChangeEvent}
                     />
                     <label for="upperDate">Upper Date:</label>
                     <CivilInput
                         id="upperDate"
                         value={state.upperDate}
-                        size="11"
+                        size={11}
                         onInput={handleChangeEvent}
                     />
                     <div class="pointform-block pointform-space-top">
@@ -470,8 +463,8 @@ export function PointForm({
                         <CivilInput
                             id="dateTextual"
                             value={state.dateTextual}
-                            size="40"
-                            readOnly="readOnly"
+                            size={40}
+                            readOnly={true}
                         />
                     </div>
                 </fieldset>
@@ -518,21 +511,25 @@ export function PointForm({
                     Multi Point Input...
                 </button>
             )}
-            {state.showMultiPointInput && (
+            {state.showMultiPointInput && onSubmitMultiplePoints && (
                 <MultiPointInput onSubmit={onSubmitMultiplePoints} />
             )}
         </div>
     );
 }
 
-function MultiPointInput({ onSubmit }: { onSubmit?: any }) {
-    const textAreaRef = useRef(null);
+function MultiPointInput({
+    onSubmit,
+}: {
+    onSubmit: (ps: Array<ProtoPoint>) => void;
+}) {
+    const textAreaRef = useRef<HTMLTextAreaElement>(null);
     const [content, setContent] = useState("");
 
-    function buildPointItem(date: any, title: string) {
-        let s = {
+    function buildPointItem(date: string, title: string): ProtoPoint {
+        let s: ProtoPoint = {
             title: title.trim(),
-            kind: "Point",
+            kind: PointKind.Point,
             locationFuzz: 0,
             exactDate: date,
             dateFuzz: 0.5,
@@ -546,8 +543,9 @@ function MultiPointInput({ onSubmit }: { onSubmit?: any }) {
             let year = parseDateStringAsYearOnly(date);
             s.dateTextual = `${year}`;
             if (
-                s.exactDate.length === 4 ||
-                (s.exactDate.length === 5 && s.exactDate[0] === "-")
+                s.exactDate &&
+                (s.exactDate.length === 4 ||
+                    (s.exactDate.length === 5 && s.exactDate[0] === "-"))
             ) {
                 s.exactDate += "-01-01";
             }
@@ -556,10 +554,10 @@ function MultiPointInput({ onSubmit }: { onSubmit?: any }) {
         return s;
     }
 
-    function handleSubmit(e) {
+    function handleSubmit(e: Event) {
         e.preventDefault();
 
-        function processLine(line) {
+        function processLine(line: string): ProtoPoint {
             let xs = line.split(" ");
             let date = xs[0];
             let title = xs.slice(1).join(" ");
@@ -567,15 +565,17 @@ function MultiPointInput({ onSubmit }: { onSubmit?: any }) {
             return buildPointItem(date, title);
         }
 
-        let points = content.split("\n").map(processLine);
+        let points: Array<ProtoPoint> = content.split("\n").map(processLine);
 
         //console.log(points);
         onSubmit(points);
     }
 
-    function onInput(event) {
-        const target = event.target;
-        setContent(target.value);
+    function onInput(event: Event) {
+        if (event.target instanceof HTMLInputElement) {
+            const target = event.target;
+            setContent(target.value);
+        }
     }
 
     function onTextAreaFocus() {}
@@ -598,7 +598,11 @@ function MultiPointInput({ onSubmit }: { onSubmit?: any }) {
     );
 }
 
-function asHumanReadableDate(parsedDate: any, isApprox: any, roundToYear: any) {
+function asHumanReadableDate(
+    parsedDate: [number, number, number],
+    isApprox: boolean,
+    roundToYear: boolean
+) {
     // parsedDate is in the form: [year, month, day]
 
     let res = "";
@@ -626,11 +630,11 @@ function asHumanReadableDate(parsedDate: any, isApprox: any, roundToYear: any) {
 }
 
 function asHumanReadableDateRange(
-    lowerDate: any,
-    upperDate: any,
-    isApprox: any,
-    roundToYear: any,
-    presentAsDuration: any
+    lowerDate: [number, number, number],
+    upperDate: [number, number, number],
+    isApprox: boolean,
+    roundToYear: boolean,
+    presentAsDuration: boolean
 ) {
     // parsedDate is in the form: [year, month, day]
 
@@ -736,13 +740,18 @@ function textualDay(day: number) {
     }
 }
 
-async function geoGet(location: any) {
+async function geoGet(location: string) {
     // have to use getCORS because we're not allowed to set 'content-type'
     let geoResult = await Net.getCORS(`https://geocode.xyz/${location}?json=1`);
     return geoResult;
 }
 
-function getLatitudeLongitude(geoResult: any): [boolean, number, number] {
+type GeoResult = {
+    error: number;
+    latt: string;
+    longt: string;
+};
+function getLatitudeLongitude(geoResult: GeoResult): [boolean, number, number] {
     if (geoResult.error) {
         return [false, 0.0, 0.0];
     }

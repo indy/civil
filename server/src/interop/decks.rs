@@ -22,17 +22,13 @@ use crate::interop::Key;
 use std::fmt;
 use std::str::FromStr;
 
-#[derive(PartialEq, Eq, Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[repr(u8)]
 pub enum DeckKind {
-    #[serde(rename = "articles")]
-    Article,
-    #[serde(rename = "people")]
+    Article = 1,
     Person,
-    #[serde(rename = "ideas")]
     Idea,
-    #[serde(rename = "timelines")]
     Timeline,
-    #[serde(rename = "quotes")]
     Quote,
 }
 

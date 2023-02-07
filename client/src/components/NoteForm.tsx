@@ -1,12 +1,25 @@
 import { h } from "preact";
 import { useEffect, useState, useRef } from "preact/hooks";
 
+import { Notes, NoteKind } from "../types";
+
 import Net from "../Net";
-import { svgX } from "../svgIcons";
 import { getAppState } from "../AppState";
+import { svgX } from "../svgIcons";
 
 import CivilTextArea from "./CivilTextArea";
 import ImageSelector from "./ImageSelector";
+
+type Props = {
+    label: string;
+    onCreate: (ns: Notes) => void;
+    onCancel: (e: Event) => void;
+    deckId: number;
+    prevNoteId?: number;
+    nextNoteId?: number;
+    noteKind: NoteKind;
+    optionalPointId?: number;
+};
 
 export default function NoteForm({
     label,
@@ -17,16 +30,7 @@ export default function NoteForm({
     nextNoteId,
     noteKind,
     optionalPointId,
-}: {
-    label?: any;
-    onCreate?: any;
-    onCancel?: any;
-    deckId?: any;
-    prevNoteId?: any;
-    nextNoteId?: any;
-    noteKind?: any;
-    optionalPointId?: any;
-}) {
+}: Props) {
     const appState = getAppState();
     const textAreaRef = useRef(null);
 
@@ -58,7 +62,6 @@ export default function NoteForm({
 
     useEffect(() => {
         if (textAreaRef.current) {
-            // todo: casting check
             const tar = textAreaRef.current as HTMLElement;
             tar.focus();
         }
@@ -70,7 +73,6 @@ export default function NoteForm({
         let cursor = local.oldCursorPos;
         if (local.textAreaFocused) {
             if (textAreaRef.current) {
-                // todo: casting check
                 const tar = textAreaRef.current as HTMLTextAreaElement;
                 cursor = tar.selectionStart;
             }
@@ -97,7 +99,6 @@ export default function NoteForm({
 
     function onTextAreaBlur() {
         if (textAreaRef.current) {
-            // todo: casting check
             const tar = textAreaRef.current as HTMLTextAreaElement;
             let cursor = tar.selectionStart;
 
@@ -122,9 +123,9 @@ export default function NoteForm({
             addNote(
                 notes,
                 deckId,
+                noteKind,
                 prevNoteId,
                 nextNoteId,
-                noteKind,
                 optionalPointId
             )
                 .then((allNotes) => {
@@ -183,21 +184,23 @@ export default function NoteForm({
 }
 
 function addNote(
-    notes?: any,
-    deckId?: any,
-    prevNoteId?: any,
-    nextNoteId?: any,
-    noteKind?: any,
-    optionalPointId?: any
+    notes: Array<string>,
+    deckId: number,
+    noteKind: NoteKind,
+    prevNoteId?: number,
+    nextNoteId?: number,
+    optionalPointId?: number
 ) {
-    let data: {
-        deckId?: any;
-        kind?: any;
-        content?: any;
-        nextNoteId?: any;
-        prevNoteId?: any;
-        pointId?: any;
-    } = {
+    type Data = {
+        deckId: number;
+        kind: NoteKind;
+        content: Array<string>;
+        nextNoteId?: number;
+        prevNoteId?: number;
+        pointId?: number;
+    };
+
+    let data: Data = {
         deckId,
         kind: noteKind,
         content: notes,
@@ -215,6 +218,5 @@ function addNote(
         data.pointId = optionalPointId;
     }
 
-    // console.log(data);
-    return Net.post("/api/notes", data);
+    return Net.post<Data, any>("/api/notes", data);
 }

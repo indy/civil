@@ -1,8 +1,20 @@
 import { h, ComponentChildren } from "preact";
 
-import { renderInsignia } from "./Insignias";
+import { IDeckCore } from "../types";
+
 import LeftMarginHeading from "./LeftMarginHeading";
 import Title from "./Title";
+import { renderInsignia } from "./Insignias";
+
+type Props = {
+    title: string;
+    deck: IDeckCore;
+    isShowingUpdateForm: boolean;
+    isEditingDeckRefs: boolean;
+    onRefsToggle: () => void;
+    onFormToggle: () => void;
+    children?: ComponentChildren;
+};
 
 export default function TopMatter({
     title,
@@ -12,15 +24,7 @@ export default function TopMatter({
     onRefsToggle,
     onFormToggle,
     children,
-}: {
-    title?: any;
-    deck?: any;
-    isShowingUpdateForm?: any;
-    isEditingDeckRefs?: any;
-    onRefsToggle?: any;
-    onFormToggle?: any;
-    children?: ComponentChildren;
-}) {
+}: Props) {
     if (!deck) {
         return <div></div>;
     }

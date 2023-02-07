@@ -1,6 +1,6 @@
 // given a date, return the number of years since that date
 export function deltaInYears(year: number, month: number, day: number) {
-    let earlier: any = new Date(Date.UTC(year, month, day));
+    let earlier: number = new Date(Date.UTC(year, month, day)).valueOf();
     let current = Date.now();
 
     let deltaMS = current - earlier;

@@ -1,20 +1,20 @@
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { IArticleListings } from "../types";
+import { DeckArticle, DeckKind, ArticleListings } from "../types";
 
 import { getAppState, AppStateChange } from "../AppState";
-
-import { fetchDeckListing, deckTitle } from "../CivilUtils";
-import { capitalise, removeEmptyStrings, formattedDate } from "../JsUtils";
-import Net from "../Net";
-
 import CivilInput from "./CivilInput";
+import {
+    deckKindToHeadingString,
+    deckKindToResourceString,
+    fetchDeckListing,
+} from "../CivilUtils";
 import DeckManager from "./DeckManager";
 import DeleteDeckConfirmation from "./DeleteDeckConfirmation";
-import { InsigniaSelector } from "./Insignias";
 import LeftMarginHeading from "./LeftMarginHeading";
 import LeftMarginHeadingNoWrap from "./LeftMarginHeadingNoWrap";
+import Net from "../Net";
 import SectionBackRefs from "./SectionBackRefs";
 import SectionDeckRefs from "./SectionDeckRefs";
 import SectionGraph from "./SectionGraph";
@@ -22,16 +22,18 @@ import SectionNotes from "./SectionNotes";
 import TopMatter from "./TopMatter";
 import { DeckSimpleListSection, RatedListSection } from "./ListSections";
 import { DeluxeToolbar } from "./DeluxeToolbar";
+import { InsigniaSelector } from "./Insignias";
 import { StarRatingPartial } from "./StarRating";
+import { removeEmptyStrings, formattedDate } from "../JsUtils";
 
 function Articles({ path }: { path?: string }) {
     const appState = getAppState();
-    const resource = "articles";
+    const resource: DeckKind = DeckKind.Article;
 
     useEffect(() => {
         if (!appState.listing.value.articles) {
             let url: string = "/api/articles/listings";
-            Net.get<IArticleListings>(url).then((listing) => {
+            Net.get<ArticleListings>(url).then((listing) => {
                 AppStateChange.setArticlesListing(listing);
             });
         }
@@ -42,18 +44,13 @@ function Articles({ path }: { path?: string }) {
     if (articles) {
         return (
             <article>
-                <h1 class="ui">{capitalise(resource)}</h1>
+                <h1 class="ui">{deckKindToHeadingString(resource)}</h1>
                 <RatedListSection
                     label="Recent"
                     list={articles.recent}
-                    resource={resource}
                     expanded
                 />
-                <RatedListSection
-                    label="Rated"
-                    list={articles.rated}
-                    resource={resource}
-                />
+                <RatedListSection label="Rated" list={articles.rated} />
                 <DeckSimpleListSection
                     label="Orphans"
                     list={articles.orphans}
@@ -69,7 +66,7 @@ function Articles({ path }: { path?: string }) {
 function Article({ path, id }: { path?: string; id?: string }) {
     const articleId = id ? parseInt(id, 10) : 0;
 
-    const resource = "articles";
+    const resource = DeckKind.Article;
     const deckManager = DeckManager({
         id: articleId,
         resource,
@@ -77,20 +74,19 @@ function Article({ path, id }: { path?: string; id?: string }) {
         hasReviewSection: true,
     });
 
-    let deck: any = deckManager.getDeck();
-    let shortDescription = !!deck && deck.shortDescription;
-
-    function Url({ url }: { url?: any }) {
+    function Url({ url }: { url: string }) {
         return <a href={url}>{url}</a>;
     }
 
-    return (
-        <article>
-            <DeluxeToolbar />
-
-            {deck && (
+    const deck: DeckArticle | undefined = deckManager.getDeck() as
+        | DeckArticle
+        | undefined;
+    if (deck) {
+        return (
+            <article>
+                <DeluxeToolbar />
                 <TopMatter
-                    title={deckTitle(deck)}
+                    title={deck.title}
                     deck={deck}
                     isShowingUpdateForm={deckManager.isShowingUpdateForm()}
                     isEditingDeckRefs={deckManager.isEditingDeckRefs()}
@@ -98,60 +94,74 @@ function Article({ path, id }: { path?: string; id?: string }) {
                     onFormToggle={deckManager.onFormToggle}
                 >
                     <LeftMarginHeading>{deck.author}</LeftMarginHeading>
-                    <LeftMarginHeadingNoWrap>
-                        <Url url={deck.source} />
-                    </LeftMarginHeadingNoWrap>
-                    <LeftMarginHeading>
-                        Published: {formattedDate(deck.publishedDate)}
-                    </LeftMarginHeading>
+
+                    {deck.source && (
+                        <LeftMarginHeadingNoWrap>
+                            <Url url={deck.source} />
+                        </LeftMarginHeadingNoWrap>
+                    )}
+                    {deck.publishedDate && (
+                        <LeftMarginHeading>
+                            Published: {formattedDate(deck.publishedDate)}
+                        </LeftMarginHeading>
+                    )}
+
                     <LeftMarginHeading>
                         Added: {formattedDate(deck.createdAt)}
                     </LeftMarginHeading>
                     <StarRatingPartial rating={deck.rating} />
                 </TopMatter>
-            )}
 
-            {deckManager.isShowingUpdateForm() && (
-                <div>
-                    <DeleteDeckConfirmation
-                        resource="articles"
-                        id={articleId}
-                    />
-                    <button onClick={deckManager.onShowSummaryClicked}>
-                        Show Summary Section
-                    </button>
-                    <button onClick={deckManager.onShowReviewClicked}>
-                        Show Review Section
-                    </button>
-                    <SectionUpdateArticle
-                        article={deck}
-                        onUpdate={deckManager.updateAndReset}
-                    />
-                </div>
-            )}
-            <TopScribble text={shortDescription} />
-            <SectionDeckRefs
-                deck={deck}
-                isEditing={deckManager.isEditingDeckRefs()}
-                onRefsChanged={deckManager.onRefsChanged}
-                onRefsToggle={deckManager.onRefsToggle}
-            />
-            <SectionNotes
-                deck={deck}
-                title={deckTitle(deck)}
-                onRefsChanged={deckManager.onRefsChanged}
-                resource="articles"
-                howToShowNoteSection={deckManager.howToShowNoteSection}
-                canShowNoteSection={deckManager.canShowNoteSection}
-                onUpdateDeck={deckManager.update}
-            />
-            <SectionBackRefs deck={deck} />
-            <SectionGraph depth={2} deck={deck} />
-        </article>
-    );
+                {deckManager.isShowingUpdateForm() && (
+                    <div>
+                        <DeleteDeckConfirmation
+                            resource={DeckKind.Article}
+                            id={articleId}
+                        />
+                        <button onClick={deckManager.onShowSummaryClicked}>
+                            Show Summary Section
+                        </button>
+                        <button onClick={deckManager.onShowReviewClicked}>
+                            Show Review Section
+                        </button>
+                        <SectionUpdateArticle
+                            article={deck}
+                            onUpdate={deckManager.updateAndReset}
+                        />
+                    </div>
+                )}
+                {deck.shortDescription && (
+                    <TopScribble text={deck.shortDescription} />
+                )}
+                <SectionDeckRefs
+                    deck={deck}
+                    isEditing={deckManager.isEditingDeckRefs()}
+                    onRefsChanged={deckManager.onRefsChanged}
+                    onRefsToggle={deckManager.onRefsToggle}
+                />
+                <SectionNotes
+                    deck={deck}
+                    title={deck.title}
+                    onRefsChanged={deckManager.onRefsChanged}
+                    resource={resource}
+                    howToShowNoteSection={deckManager.howToShowNoteSection}
+                    canShowNoteSection={deckManager.canShowNoteSection}
+                    onUpdateDeck={deckManager.update}
+                />
+                <SectionBackRefs deck={deck} />
+                <SectionGraph depth={2} deck={deck} />
+            </article>
+        );
+    } else {
+        return (
+            <article>
+                <DeluxeToolbar />
+            </article>
+        );
+    }
 }
 
-function TopScribble({ text }: { text?: any }) {
+function TopScribble({ text }: { text: string }) {
     if (text) {
         return <div class="top-scribble">{text}</div>;
     }
@@ -245,14 +255,20 @@ function SectionUpdateArticle({ article, onUpdate }) {
             ["source"]
         );
 
-        const resource = "articles";
+        const resource: DeckKind = DeckKind.Article;
 
-        Net.put(`/api/${resource}/${article.id}`, data).then((newDeck) => {
+        Net.put(
+            `/api/${deckKindToResourceString(resource)}/${article.id}`,
+            data
+        ).then((newDeck) => {
             onUpdate(newDeck);
 
             // fetch the listing incase editing the article has changed it's star rating or annotation
             //
-            fetchDeckListing(resource, "/api/articles/listings");
+            fetchDeckListing(
+                resource,
+                `/api/${deckKindToResourceString(resource)}/listings`
+            );
         });
 
         event.preventDefault();

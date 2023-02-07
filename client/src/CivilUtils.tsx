@@ -1,12 +1,64 @@
 import { route } from "preact-router";
-import { useEffect } from "preact/hooks";
+
+import {
+    AnyDeckListing,
+    DeckKind,
+    DeckSimple,
+    RefKind,
+    ToolbarMode,
+} from "./types";
 
 import Net from "./Net";
+import { AppStateChange } from "./AppState";
 
-import { IDeckSimple, ToolbarMode } from "./types";
+export function deckKindToResourceString(deckKind: DeckKind): string {
+    switch (deckKind) {
+        case DeckKind.Article:
+            return "articles";
+        case DeckKind.Idea:
+            return "ideas";
+        case DeckKind.Person:
+            return "people";
+        case DeckKind.Timeline:
+            return "timelines";
+        case DeckKind.Quote:
+            return "quotes";
+    }
+}
 
-// import { ToolbarMode.View, ToolbarMode.Edit, TOOLBAR_REFS, TOOLBAR_SR, TOOLBAR_ADD_ABOVE } from './components/DeluxeToolbar';
-import { getAppState, AppStateChange } from "./AppState";
+export function deckKindToHeadingString(deckKind: DeckKind): string {
+    switch (deckKind) {
+        case DeckKind.Article:
+            return "Article";
+        case DeckKind.Idea:
+            return "Idea";
+        case DeckKind.Person:
+            return "Person";
+        case DeckKind.Timeline:
+            return "Timeline";
+        case DeckKind.Quote:
+            return "Quote";
+    }
+}
+
+export function stringToRefKind(s: string): RefKind | undefined {
+    if (s === "Ref") {
+        return RefKind.Ref;
+    }
+    if (s === "RefToParent") {
+        return RefKind.RefToParent;
+    }
+    if (s === "RefToChild") {
+        return RefKind.RefToChild;
+    }
+    if (s === "RefInContrast") {
+        return RefKind.RefInContrast;
+    }
+    if (s === "RefCritical") {
+        return RefKind.RefCritical;
+    }
+    return undefined;
+}
 
 export function addToolbarSelectableClasses(toolbarMode: ToolbarMode) {
     switch (toolbarMode) {
@@ -23,20 +75,21 @@ export function addToolbarSelectableClasses(toolbarMode: ToolbarMode) {
     }
 }
 
-export function deckTitle(deck: any) {
-    let title = deck && (deck.title || deck.name || "");
-    return title;
-}
+export function createDeck(deckKind: DeckKind, title: string) {
+    type ProtoDeck = {
+        title: string;
+    };
 
-export function createDeck(resource?: any, title?: any) {
     // creates a new deck
-    const data = {
+    const data: ProtoDeck = {
         title: title,
     };
 
-    Net.post<any, any>(`/api/${resource}`, data).then((deck) => {
-        Net.get(`/api/${resource}/listings`).then((listing) => {
-            AppStateChange.setDeckListing(resource, listing);
+    const resource = deckKindToResourceString(deckKind);
+
+    Net.post<ProtoDeck, DeckSimple>(`/api/${resource}`, data).then((deck) => {
+        Net.get<AnyDeckListing>(`/api/${resource}/listings`).then((listing) => {
+            AppStateChange.setDeckListing(deckKind, listing);
             AppStateChange.invalidateGraph();
         });
         route(`/${resource}/${deck.id}`);
@@ -51,28 +104,14 @@ export function indexToShortcut(index: number) {
     }
 }
 
-export function ensureListingLoaded(resource: string, url: string) {
-    console.error(
-        "REPLACE ensureListingLoaded WITH ILISTING SPECIFIC VARIANTS"
-    );
-
-    const appState = getAppState();
-
-    useEffect(() => {
-        if (!appState.listing.value[resource]) {
-            fetchDeckListing(resource, url);
-        }
-    }, []);
-}
-
-export function fetchDeckListing(resource: string, url: string) {
+export function fetchDeckListing(resource: DeckKind, url: string) {
     console.error("REPLACE fetchDeckListing WITH ILISTING SPECIFIC VARIANTS");
-    Net.get<Array<IDeckSimple>>(url || `/api/${resource}`).then((listing) => {
+    Net.get<Array<DeckSimple>>(url || `/api/${resource}`).then((listing) => {
         AppStateChange.setDeckListing(resource, listing);
     });
 }
 
-export function sortByResourceThenName(a: any, b: any) {
+export function sortByResourceThenName(a: DeckSimple, b: DeckSimple): number {
     if (a.resource < b.resource) {
         return -1;
     }

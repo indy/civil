@@ -3,15 +3,17 @@ import { useState } from "preact/hooks";
 
 import { svgChevronDoubleDown, svgChevronDoubleRight } from "../svgIcons";
 
+type Props = {
+    heading: string;
+    children: ComponentChildren;
+    initiallyRolledUp?: boolean;
+};
+
 export default function RollableSection({
     heading,
     children,
     initiallyRolledUp,
-}: {
-    heading?: any;
-    children: ComponentChildren;
-    initiallyRolledUp?: any;
-}) {
+}: Props) {
     let [isRolledUp, setIsRolledUp] = useState(!!initiallyRolledUp);
 
     function onRollClicked(e: Event) {

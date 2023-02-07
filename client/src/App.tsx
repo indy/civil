@@ -1,24 +1,23 @@
 import { h } from "preact";
 import { Link, Router, route, RouterOnChangeArgs } from "preact-router";
 
+import { State, User, UberSetup } from "./types";
+
+import Net from "./Net.js";
+import { AppStateChange, AppStateProvider, getAppState } from "./AppState";
 import { capitalise } from "./JsUtils";
 
-import { AppStateChange, AppStateProvider, getAppState } from "./AppState";
-import Net from "./Net.js";
-
-import { IState, IUser, IUberSetup } from "./types";
-
-import Stuff from "./components/Stuff";
-import SpacedRepetition from "./components/SpacedRepetition";
 import SearchCommand from "./components/SearchCommand";
+import SpacedRepetition from "./components/SpacedRepetition";
+import Stuff from "./components/Stuff";
 import { Article, Articles } from "./components/Articles";
 import { Ideas, Idea } from "./components/Ideas";
-import { Person, People } from "./components/People";
-import { Timeline, Timelines } from "./components/Timelines";
-import { Quote, Quotes } from "./components/Quotes";
 import { Login, Logout } from "./components/Login";
+import { Person, People } from "./components/People";
+import { Quote, Quotes } from "./components/Quotes";
+import { Timeline, Timelines } from "./components/Timelines";
 
-export const App = ({ state }: { state: IState }) => {
+export const App = ({ state }: { state: State }) => {
     return (
         <AppStateProvider state={state}>
             <AppUI />
@@ -49,24 +48,24 @@ function TopBarMenu() {
         return appState.user.value ? "/logout" : "/login";
     }
 
-    function clickedTopLevel(deckKind: string) {
-        AppStateChange.urlName(deckKind);
+    function clickedTopLevel(topMenuItem: string) {
+        AppStateChange.urlName(topMenuItem);
     }
 
     if (appState.verboseUI.value) {
         return (
             <nav>
                 <div id="elastic-top-menu-items">
-                    {appState.preferredOrder.map((deckKind) => (
+                    {appState.preferredOrder.map((topMenuItem) => (
                         <div class="optional-navigable top-menu-decktype">
                             <Link
-                                class={`pigment-${deckKind}`}
+                                class={`pigment-${topMenuItem}`}
                                 onClick={() => {
-                                    clickedTopLevel(deckKind);
+                                    clickedTopLevel(topMenuItem);
                                 }}
-                                href={`/${deckKind}`}
+                                href={`/${topMenuItem}`}
                             >
-                                {capitalise(deckKind)}
+                                {capitalise(topMenuItem)}
                             </Link>
                         </div>
                     ))}
@@ -92,10 +91,10 @@ function TopBarMenu() {
 const AppUI = () => {
     const state = getAppState();
 
-    function loginHandler(user: IUser) {
+    function loginHandler(user: User) {
         AppStateChange.userLogin(user);
 
-        Net.get<IUberSetup>("/api/ubersetup").then((uber) => {
+        Net.get<UberSetup>("/api/ubersetup").then((uber) => {
             AppStateChange.uberSetup(uber);
             route("/", true);
         });

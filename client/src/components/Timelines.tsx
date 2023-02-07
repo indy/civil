@@ -1,17 +1,29 @@
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { IDeckSimple } from "../types";
+import {
+    DeckKind,
+    DeckManagerType,
+    DeckPoint,
+    DeckTimeline,
+    DeckSimple,
+    NoteManagerType,
+} from "../types";
 
 import Net from "../Net";
-import { getAppState, AppStateChange } from "../AppState";
 import { capitalise } from "../JsUtils";
-import { deckTitle } from "../CivilUtils";
+import { getAppState, AppStateChange } from "../AppState";
+import {
+    svgCaretDown,
+    svgCaretRight,
+    svgCaretRightEmpty,
+    svgPointAdd,
+    svgX,
+} from "../svgIcons";
 
 import CivilInput from "./CivilInput";
 import DeckManager from "./DeckManager";
 import DeleteDeckConfirmation from "./DeleteDeckConfirmation";
-import { InsigniaSelector } from "./Insignias";
 import RollableSection from "./RollableSection";
 import SectionBackRefs from "./SectionBackRefs";
 import SectionDeckRefs from "./SectionDeckRefs";
@@ -21,22 +33,16 @@ import TopMatter from "./TopMatter";
 import WhenVerbose from "./WhenVerbose";
 import { DeckSimpleList } from "./ListSections";
 import { DeluxeToolbar } from "./DeluxeToolbar";
-import {
-    svgPointAdd,
-    svgX,
-    svgCaretRight,
-    svgCaretRightEmpty,
-    svgCaretDown,
-} from "../svgIcons";
+import { InsigniaSelector } from "./Insignias";
 
 function Timelines({ path }: { path?: string }) {
     const appState = getAppState();
     const resource = "timelines";
 
     useEffect(() => {
-        if (!appState.listing.value.articles) {
+        if (!appState.listing.value.timelines) {
             let url: string = "/api/timelines/listings";
-            Net.get<Array<IDeckSimple>>(url).then((listing) => {
+            Net.get<Array<DeckSimple>>(url).then((listing) => {
                 AppStateChange.setTimelineListing(listing);
             });
         }
@@ -55,7 +61,7 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
     const appState = getAppState();
 
     const timelineId = id ? parseInt(id, 10) : 0;
-    const resource = "timelines";
+    const resource: DeckKind = DeckKind.Timeline;
 
     const deckManager = DeckManager({
         id: timelineId,
@@ -64,63 +70,69 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
         hasReviewSection: false,
     });
 
-    let deck: any = deckManager.getDeck();
+    const deck: DeckTimeline | undefined = deckManager.getDeck() as
+        | DeckTimeline
+        | undefined;
+    if (deck) {
+        return (
+            <article>
+                <DeluxeToolbar />
 
-    return (
-        <article>
-            <DeluxeToolbar />
+                <TopMatter
+                    title={deck.title}
+                    deck={deck}
+                    isShowingUpdateForm={deckManager.isShowingUpdateForm()}
+                    isEditingDeckRefs={deckManager.isEditingDeckRefs()}
+                    onRefsToggle={deckManager.onRefsToggle}
+                    onFormToggle={deckManager.onFormToggle}
+                ></TopMatter>
 
-            <TopMatter
-                title={deckTitle(deck)}
-                deck={deck}
-                isShowingUpdateForm={deckManager.isShowingUpdateForm()}
-                isEditingDeckRefs={deckManager.isEditingDeckRefs()}
-                onRefsToggle={deckManager.onRefsToggle}
-                onFormToggle={deckManager.onFormToggle}
-            ></TopMatter>
+                {deckManager.isShowingUpdateForm() && (
+                    <div>
+                        <DeleteDeckConfirmation
+                            resource={DeckKind.Timeline}
+                            id={timelineId}
+                        />
+                        <SectionUpdateTimeline
+                            timeline={deck}
+                            onUpdate={deckManager.updateAndReset}
+                        />
+                    </div>
+                )}
 
-            {deckManager.isShowingUpdateForm() && (
-                <div>
-                    <DeleteDeckConfirmation
-                        resource="timelines"
-                        id={timelineId}
-                    />
-                    <SectionUpdateTimeline
-                        timeline={deck}
-                        onUpdate={deckManager.updateAndReset}
-                    />
-                </div>
-            )}
+                <SectionDeckRefs
+                    deck={deck}
+                    isEditing={deckManager.isEditingDeckRefs()}
+                    onRefsChanged={deckManager.onRefsChanged}
+                    onRefsToggle={deckManager.onRefsToggle}
+                />
+                <SectionNotes
+                    deck={deck}
+                    title={deck.title}
+                    onRefsChanged={deckManager.onRefsChanged}
+                    resource={resource}
+                    howToShowNoteSection={deckManager.howToShowNoteSection}
+                    canShowNoteSection={deckManager.canShowNoteSection}
+                    onUpdateDeck={deckManager.update}
+                />
+                <SectionBackRefs deck={deck} />
 
-            <SectionDeckRefs
-                deck={deck}
-                isEditing={deckManager.isEditingDeckRefs()}
-                onRefsChanged={deckManager.onRefsChanged}
-                onRefsToggle={deckManager.onRefsToggle}
-            />
-            <SectionNotes
-                deck={deck}
-                title={deckTitle(deck)}
-                onRefsChanged={deckManager.onRefsChanged}
-                resource="timelines"
-                howToShowNoteSection={deckManager.howToShowNoteSection}
-                canShowNoteSection={deckManager.canShowNoteSection}
-                onUpdateDeck={deckManager.update}
-            />
-            <SectionBackRefs deck={deck} />
-            {!!deck && (
                 <ListPoints
                     points={deck.points}
                     deckManager={deckManager}
                     showAddPointForm={appState.showAddPointForm.value}
-                    holderId={deck.id}
-                    holderName={deck.title}
                 />
-            )}
 
-            <SectionGraph depth={2} deck={deck} />
-        </article>
-    );
+                <SectionGraph depth={2} deck={deck} />
+            </article>
+        );
+    } else {
+        return (
+            <article>
+                <DeluxeToolbar />
+            </article>
+        );
+    }
 }
 
 function SectionUpdateTimeline({ timeline, onUpdate }) {
@@ -177,7 +189,7 @@ function SectionUpdateTimeline({ timeline, onUpdate }) {
         e.preventDefault();
     };
 
-    const setInsigniaId = (id?: any) => {
+    const setInsigniaId = (id: number) => {
         setLocalState({
             ...localState,
             insigniaId: id,
@@ -210,12 +222,10 @@ function TimelineDeckPoint({
     deckPoint,
     hasNotes,
     noteManager,
-    holderId,
 }: {
-    deckPoint?: any;
-    hasNotes?: any;
-    noteManager?: any;
-    holderId?: any;
+    deckPoint: DeckPoint;
+    hasNotes: boolean;
+    noteManager: NoteManagerType;
 }) {
     let [expanded, setExpanded] = useState(false);
 
@@ -242,15 +252,11 @@ function TimelineDeckPoint({
 function ListPoints({
     points,
     deckManager,
-    holderId,
-    holderName,
     showAddPointForm,
 }: {
-    points?: any;
-    deckManager?: any;
-    holderId?: any;
-    holderName?: any;
-    showAddPointForm?: any;
+    points: Array<DeckPoint> | undefined;
+    deckManager: DeckManagerType;
+    showAddPointForm: boolean;
 }) {
     function onAddPointClicked(e: Event) {
         e.preventDefault();
@@ -270,7 +276,6 @@ function ListPoints({
             key={dp.id}
             noteManager={deckManager.noteManagerForDeckPoint(dp)}
             hasNotes={deckManager.pointHasNotes(dp)}
-            holderId={holderId}
             deckPoint={dp}
         />
     ));

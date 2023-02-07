@@ -13,14 +13,14 @@ export default function CivilInput({
     readOnly,
     focus,
 }: {
-    id?: any;
-    value?: any;
-    autoComplete?: any;
-    onInput?: any;
-    size?: any;
-    elementClass?: any;
-    readOnly?: any;
-    focus?: any;
+    id?: string;
+    value?: string;
+    autoComplete?: string;
+    onInput?: (e: Event) => void;
+    size?: number;
+    elementClass?: string;
+    readOnly?: boolean;
+    focus?: boolean;
 }) {
     const inputRef = useRef(null);
 

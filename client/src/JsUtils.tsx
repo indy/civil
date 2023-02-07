@@ -1,3 +1,5 @@
+import { RefKind } from "./types";
+
 // remove the keys from obj that have empty strings
 export function removeEmptyStrings(obj, keys) {
     for (var i = 0; i < keys.length; i++) {
@@ -9,7 +11,7 @@ export function removeEmptyStrings(obj, keys) {
     return obj;
 }
 
-export function nonEmptyArray(arr: any) {
+export function nonEmptyArray(arr: Array<any>) {
     return arr && arr.length > 0;
 }
 
@@ -19,7 +21,7 @@ export function capitalise(text: string) {
     return text.split(" ").map(capitaliseWord).join(" ");
 }
 
-export function plural(num: number, phrase: string, suffix: string) {
+export function plural(num: number, phrase: string, suffix: string): string {
     return num === 1 ? `${num} ${phrase}` : `${num} ${phrase}${suffix}`;
 }
 
@@ -56,21 +58,17 @@ export function daysUntil(date: string) {
     return Math.round(deltaDays);
 }
 
-export function opposingKind(kind: string) {
+export function opposingKind(kind: RefKind): RefKind {
     switch (kind) {
-        case "ref":
-            return "ref";
-        case "refToParent":
-            return "refToChild";
-        case "refToChild":
-            return "refToParent";
-        case "refInContrast":
-            return "refInContrast";
-        case "refCritical":
-            return "refCritical";
-        default: {
-            console.log(`opposing_kind error: ${kind}`);
-            return "opposing_kind ERROR";
-        }
+        case RefKind.Ref:
+            return RefKind.Ref;
+        case RefKind.RefToParent:
+            return RefKind.RefToChild;
+        case RefKind.RefToChild:
+            return RefKind.RefToParent;
+        case RefKind.RefInContrast:
+            return RefKind.RefInContrast;
+        case RefKind.RefCritical:
+            return RefKind.RefCritical;
     }
 }

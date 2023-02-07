@@ -1,10 +1,6 @@
 import { h } from "preact";
-// import { useEffect, useState, useRef } from "preact/hooks";
 
-// import { getAppState, AppStateChange } from '../AppState';
-// import { svgX } from '../svgIcons';
-
-export default function Image({ src }: { src?: any }) {
+export default function Image({ src }: { src?: string }) {
     function onClick() {
         console.log("clicked on an image");
     }

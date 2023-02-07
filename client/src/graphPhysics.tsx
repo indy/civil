@@ -1,9 +1,15 @@
+import { GraphCallback, GraphState } from "./types";
+
 var initialRadius = 10,
     initialAngle = Math.PI * (3 - Math.sqrt(5));
 
 var gSimIdCounter = 0;
 
-export function graphPhysics(graphState, tickCallbackFn, setSimIsRunningFn) {
+export function graphPhysics(
+    graphState: GraphState,
+    tickCallbackFn: GraphCallback,
+    setSimIsRunningFn: (b: boolean) => void
+) {
     if (Object.keys(graphState).length === 0) {
         // graphState is the empty object
         return;
@@ -22,7 +28,12 @@ export function graphPhysics(graphState, tickCallbackFn, setSimIsRunningFn) {
         alphaDecay = 1 - Math.pow(alphaMin, 1 / 300),
         velocityDecay = 0.03;
 
-    if (graphState.simStats == null) graphState.simStats = { tickCount: 0 };
+    if (!graphState.simStats) {
+        graphState.simStats = {
+            tickCount: 0,
+            maxVelocities: [0, 0],
+        };
+    }
 
     let { bias, strengths } = initializeGraph(graphState);
 
@@ -60,7 +71,9 @@ export function graphPhysics(graphState, tickCallbackFn, setSimIsRunningFn) {
         iterations = iterations || 1;
 
         for (let iter = 0; iter < iterations; iter++) {
-            graphState.simStats.tickCount++;
+            if (graphState.simStats) {
+                graphState.simStats.tickCount++;
+            }
 
             clearPerTickSimStats(graphState);
 
@@ -131,7 +144,8 @@ export function graphPhysics(graphState, tickCallbackFn, setSimIsRunningFn) {
 
             if (
                 alpha < alphaMin ||
-                (s.tickCount > 5 &&
+                (s &&
+                    s.tickCount > 5 &&
                     s.maxVelocities[0] < m &&
                     s.maxVelocities[1] < m)
             ) {
@@ -152,7 +166,7 @@ export function graphPhysics(graphState, tickCallbackFn, setSimIsRunningFn) {
     }
 }
 
-function forceLink(graphState, strengths, bias, alpha) {
+function forceLink(graphState: GraphState, strengths, bias, alpha) {
     var i;
     let nodes = graphState.nodes;
     let links = graphState.edges;
@@ -177,7 +191,7 @@ function forceLink(graphState, strengths, bias, alpha) {
     }
 }
 
-function gatherSimStats(graphState) {
+function gatherSimStats(graphState: GraphState) {
     let nodes = graphState.nodes;
 
     let maxx = 0.0;
@@ -197,14 +211,18 @@ function gatherSimStats(graphState) {
         }
     }
 
-    graphState.simStats.maxVelocities = [maxx, maxy];
+    if (graphState.simStats) {
+        graphState.simStats.maxVelocities = [maxx, maxy];
+    }
 }
 
-function clearPerTickSimStats(graphState) {
-    graphState.simStats.maxVelocities = [0.0, 0.0];
+function clearPerTickSimStats(graphState: GraphState) {
+    if (graphState.simStats) {
+        graphState.simStats.maxVelocities = [0.0, 0.0];
+    }
 }
 
-function initializeGraph(graphState) {
+function initializeGraph(graphState: GraphState) {
     let nodes = graphState.nodes;
     let links = graphState.edges;
     var i,

@@ -1,4 +1,4 @@
-import { ISettings, IDefinitions } from "./types";
+import { Settings, Definitions } from "./types";
 
 function buildColourConversionFn(
     rgb_from_hsl: (h: number, s: number, l: number) => any
@@ -30,7 +30,7 @@ function buildColourConversionFn(
     };
 }
 
-function augmentSettingsWithCssModifierParameters(uiColours: ISettings) {
+function augmentSettingsWithCssModifierParameters(uiColours: Settings) {
     let root = document.body;
     let mode = getComputedStyle(root).getPropertyValue("--mode").trim();
 
@@ -73,7 +73,7 @@ function augmentSettingsWithCssModifierParameters(uiColours: ISettings) {
 }
 
 function augmentDefinitionsWithCssModifierParameters(
-    uiDefinitions: IDefinitions
+    uiDefinitions: Definitions
 ) {
     let root = document.body;
     let mode = getComputedStyle(root).getPropertyValue("--mode").trim();
@@ -163,8 +163,8 @@ function augmentDefinitionsWithCssModifierParameters(
 }
 
 function declareCssVariables(
-    uiColours: ISettings,
-    uiDefinitions: IDefinitions,
+    uiColours: Settings,
+    uiDefinitions: Definitions,
     rgbFromHsl: (hsl: [number, number, number]) => any
 ) {
     let root = document.body;

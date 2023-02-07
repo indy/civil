@@ -1,13 +1,18 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 import { route } from "preact-router";
-import { AppStateChange, getAppState } from "../AppState";
 
-import { IUser } from "../types";
+import { User } from "../types";
 
 import Net from "../Net";
+import { AppStateChange, getAppState } from "../AppState";
 
-function Login({ path, loginCallback }: { path?: string; loginCallback: any }) {
+type Props = {
+    path?: string;
+    loginCallback: (_: User) => void;
+};
+
+function Login({ path, loginCallback }: Props) {
     const appState = getAppState();
 
     if (appState.user.value.username !== "") {
@@ -66,7 +71,7 @@ function Login({ path, loginCallback }: { path?: string; loginCallback: any }) {
     }
 
     function handleLoginSubmit(event: Event) {
-        Net.post<IAuthData, IUser>("api/auth", {
+        Net.post<IAuthData, User>("api/auth", {
             email: state["login-email"],
             password: state["login-password"],
         })
@@ -95,7 +100,7 @@ function Login({ path, loginCallback }: { path?: string; loginCallback: any }) {
 
     function handleRegisterSubmit(event: Event) {
         if (okToSendRegistration()) {
-            Net.post<IRegisterData, IUser>("api/users", {
+            Net.post<IRegisterData, User>("api/users", {
                 username: state["register-username"],
                 email: state["register-email"],
                 password: state["register-password"],

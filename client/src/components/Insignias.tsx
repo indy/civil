@@ -1,14 +1,15 @@
 import { h } from "preact";
 
-export function InsigniaSelector({
-    insigniaId,
-    onChange,
-}: {
+type Props = {
     insigniaId: number;
-    onChange: any;
-}) {
-    const handleInsigniaChange = (event) => {
-        onChange(parseInt(event.target.value, 10));
+    onChange: (id: number) => void;
+};
+
+export function InsigniaSelector({ insigniaId, onChange }: Props) {
+    const handleInsigniaChange = (event: Event) => {
+        if (event.target instanceof HTMLInputElement) {
+            onChange(parseInt(event.target.value, 10));
+        }
     };
 
     return (

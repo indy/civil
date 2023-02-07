@@ -18,13 +18,16 @@
 use crate::error::{Error, Result};
 use crate::interop::Key;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[repr(u8)]
 pub enum NoteKind {
-    Note,
+    Note = 1,
     NoteReview,
     NoteSummary,
     NoteDeckMeta,
 }
+
+// todo (2023-02-08): now that NoteKind explicitly starts at 1 is this conversion code required?
 
 pub fn note_kind_to_sqlite(note_kind: NoteKind) -> i32 {
     match note_kind {

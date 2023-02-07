@@ -1,23 +1,25 @@
 import { h } from "preact";
 import { route } from "preact-router";
 
-import Net from "../Net";
-import { AppStateChange } from "../AppState";
+import { DeckKind } from "../types";
 
 import DeleteConfirmation from "./DeleteConfirmation";
+import Net from "../Net";
+import { AppStateChange } from "../AppState";
+import { deckKindToResourceString } from "../CivilUtils";
 
-export default function DeleteDeckConfirmation({
-    resource,
-    id,
-}: {
-    resource?: any;
-    id?: any;
-}) {
+type Props = {
+    resource: DeckKind;
+    id: number;
+};
+
+export default function DeleteDeckConfirmation({ resource, id }: Props) {
     function confirmedDeleteClicked() {
-        Net.delete(`/api/${resource}/${id}`, {}).then(() => {
+        let str = deckKindToResourceString(resource);
+        Net.delete(`/api/${str}/${id}`, {}).then(() => {
             // remove the resource from the app state
             AppStateChange.deleteDeck(id);
-            route(`/${resource}`, true);
+            route(`/${str}`, true);
         });
     }
 

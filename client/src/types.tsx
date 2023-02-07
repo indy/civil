@@ -1,105 +1,311 @@
 // todo: the exports could be wrong, see the correct way of defining interfaces
 
-// COPIED FROM MEMO
-
 import { Signal } from "@preact/signals";
 
-export type IAdmin = {
-    dbName: string;
+export type ProtoNoteReferences = {
+    noteId: number;
+    referencesChanged: Array<Ref>;
+    referencesRemoved: Array<Ref>;
+    referencesAdded: Array<Ref>;
+    referencesCreated: Array<Ref>;
+};
+
+// graph stuff
+//
+export type GraphCallback = (g: GraphState, p: number, h: number) => void;
+
+export enum ExpandedState {
+    Fully = 0,
+    Partial,
+    None,
 }
 
-export type IUser = {
+type SimStats = {
+    tickCount: number;
+    maxVelocities: [number, number];
+};
+export type GraphState = {
+    nodes: { [index: number]: Node };
+    edges: Array<Edge>;
+
+    simStats?: SimStats;
+};
+
+export type Node = {
+    id: number;
+    isImportant: boolean;
+    expandedState: ExpandedState;
+    resource: DeckKind;
+    label: string;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    textWidth?: number;
+    textHeight?: number;
+};
+
+export type Edge = [number, number, number, RefKind];
+
+export type DeckManagerType = {
+    update: (d: IDeckCore) => void;
+    getDeck: () => IDeckCore | undefined;
+    isShowingUpdateForm: () => boolean;
+    isEditingDeckRefs: () => boolean;
+    updateAndReset: (newDeck: IDeckCore) => void;
+    onShowSummaryClicked: () => void;
+    onShowReviewClicked: () => void;
+    onRefsToggle: () => void;
+    onFormToggle: () => any;
+    buildPointForm: (onSuccessCallback: () => void) => any;
+    onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => any;
+    noteManagerForDeckPoint: (deckPoint: DeckPoint) => any;
+    pointHasNotes: (point: DeckPoint) => any;
+    canShowNoteSection: (noteKind: NoteKind) => any;
+    howToShowNoteSection: (noteKind: NoteKind) => NoteSectionHowToShow;
+};
+
+export type NoteManagerType = {
+    x?: any;
+};
+
+export type NoteThing = {
+    topRefKind?: RefKind;
+    topAnnotation?: string;
+    noteContent: string;
+    noteId: number;
+    refs: Array<Ref>;
+};
+
+export type RefsModified = {
+    referencesChanged: Array<Ref>;
+    referencesRemoved: Array<Ref>;
+    referencesAdded: Array<Ref>;
+    referencesCreated: Array<Ref>;
+};
+
+export type Admin = {
+    dbName: string;
+};
+
+export type User = {
     username: string;
     email: string;
-    admin?: IAdmin;
+    admin?: Admin;
+};
+
+export enum RefKind {
+    Ref = 1,
+    RefToParent,
+    RefToChild,
+    RefInContrast,
+    RefCritical,
 }
 
-export type IArticle = {
+export enum NoteKind {
+    Note = 1,
+    NoteReview,
+    NoteSummary,
+    NoteDeckMeta,
+}
+
+export enum DeckKind {
+    Article = 1,
+    Person,
+    Idea,
+    Timeline,
+    Quote,
+}
+
+export type Ref = {
+    noteId: number;
     id: number;
-    title: string;
-
+    name: string;
+    resource: DeckKind;
+    refKind: RefKind;
+    annotation?: string;
     insignia: number;
+};
 
-    created_at: string;
+export type BackNote = {
+    noteId: number;
+    noteContent: string;
+    noteKind: NoteKind;
+    deckId: number;
+    deckName: string;
+    resource: DeckKind;
+    insignia: number;
+};
 
+export type BackRef = {
+    noteId: number;
+    deckId: number;
+    deckName: string;
+    resource: DeckKind;
+    refKind: RefKind;
+    annotation?: string;
+    insignia: number;
+};
+
+export enum PointKind {
+    Point = 1,
+    PointBegin,
+    PointEnd,
+}
+
+export type ProtoPoint = {
+    title?: string;
+    kind: PointKind;
+
+    locationTextual?: string;
+    longitude?: number;
+    latitude?: number;
+    locationFuzz: number;
+
+    dateTextual?: string;
+    exactDate?: string;
+    lowerDate?: string;
+    upperDate?: string;
+    dateFuzz: number;
+};
+
+export type DeckPoint = {
+    id: number;
+    kind: PointKind;
+    title?: string;
+    dateTextual?: string;
+    date?: string;
+    age?: number;
+
+    deckId: number;
+    deckName: string;
+    deckResource: DeckKind;
+};
+
+export type FlashCard = {
+    id: number;
+    noteId: number;
+    prompt: string;
+    nextTestDate: string;
+    easinessFactor: number;
+    interRepetitionInterval: number;
+};
+
+export type Note = {
+    id: number;
+    prevNoteId: number | null;
+    kind: NoteKind;
+    content: string;
+    pointId: number | null;
+
+    decks: Array<Ref>;
+    flashcards: Array<FlashCard>;
+};
+
+export type Notes = Array<Note>;
+
+export type NoteSeqs = {
+    points?: { [_: number]: Notes };
+    note: Notes;
+    noteDeckMeta: Notes;
+    noteReview: Notes;
+    noteSummary: Notes;
+};
+
+export interface IDeckCore {
+    backnotes?: Array<BackNote>;
+    backrefs?: Array<BackRef>;
+    flashcards?: Array<FlashCard>;
+    id: number;
+    insignia: number;
+    noteSeqs?: NoteSeqs;
+    notes: Notes;
+    refs?: Array<Ref>;
+    points?: Array<DeckPoint>;
+}
+
+interface IDeckIdea {
+    title: string;
+    createdAt: string;
+    graphTerminator: boolean;
+}
+
+interface IDeckPerson {
+    name: string;
+    sortDate?: string;
+}
+
+interface IDeckArticle {
+    title: string;
     source?: string;
     author?: string;
-    shortDescription?: string;
-
+    createdAt: string;
+    publishedDate?: string;
     rating: number;
-
-    notes?: any;
-
-    refs?: any;
-
-    backnotes?: any;
-    backrefs?: any;
-
-    flashcards?: any;
-
-    published_date?: any;
+    shortDescription?: string;
 }
 
-export type IPerson = {
+interface IDeckTimeline {
+    title: string;
+}
+
+interface IDeckQuote {
+    title: string;
+    attribution: string;
+}
+
+export type DeckIdea = IDeckCore & IDeckIdea;
+export type DeckPerson = IDeckCore & IDeckPerson;
+export type DeckArticle = IDeckCore & IDeckArticle;
+export type DeckTimeline = IDeckCore & IDeckTimeline;
+export type DeckQuote = IDeckCore & IDeckQuote;
+
+export type DeckSimple = {
     id: number;
     name: string;
-
+    resource: DeckKind;
     insignia: number;
+};
 
-    sort_date?: string;
+export type SearchResults = {
+    results?: Array<DeckSimple>;
+};
 
-    points?: any;
+export type IdeasListings = {
+    recent: Array<DeckSimple>;
+    orphans: Array<DeckSimple>;
+    unnoted: Array<DeckSimple>;
+};
 
-    notes?: any;
+export type PeopleListings = {
+    uncategorised: Array<DeckSimple>;
+    ancient: Array<DeckSimple>;
+    medieval: Array<DeckSimple>;
+    modern: Array<DeckSimple>;
+    contemporary: Array<DeckSimple>;
+};
 
-    refs?: any;
+export type ArticleListings = {
+    recent: Array<DeckArticle>;
+    rated: Array<DeckArticle>;
+    orphans: Array<DeckSimple>;
+};
 
-    backnotes?: any;
-    backrefs?: any;
+export type Listing = {
+    ideas: IdeasListings | undefined;
+    people: PeopleListings | undefined;
+    articles: ArticleListings | undefined;
+    timelines: Array<DeckSimple> | undefined;
+};
 
-    flashcards?: any;
-}
+// used by setDeckListing
+export type AnyDeckListing =
+    | IdeasListings
+    | PeopleListings
+    | ArticleListings
+    | Array<DeckSimple>;
 
-export type IDeckSimple = {
-    id: number;
-    name: string;
-    title?: string;
-    resource: string;
-    insignia: number;
-}
-
-export type ISearchResults = {
-    results?: Array<IDeckSimple>;
-}
-
-export type IIdeasListings = {
-    recent: Array<IDeckSimple>;
-    orphans: Array<IDeckSimple>;
-    unnoted: Array<IDeckSimple>;
-}
-
-export type IPeopleListings = {
-    uncategorised: Array<IDeckSimple>;
-    ancient: Array<IDeckSimple>;
-    medieval: Array<IDeckSimple>;
-    modern: Array<IDeckSimple>;
-    contemporary: Array<IDeckSimple>;
-}
-
-export type IArticleListings = {
-    recent: Array<IArticle>;
-    rated: Array<IArticle>;
-    orphans: Array<IDeckSimple>;
-}
-
-export type IListing = {
-    ideas: IIdeasListings | undefined;
-    people: IPeopleListings | undefined;
-    articles: IArticleListings | undefined;
-    timelines: Array<IDeckSimple> | undefined;
-}
-
-export interface ISettings {
+export type Settings = {
     [index: string]: number;
 
     hueDelta: number;
@@ -111,9 +317,9 @@ export interface ISettings {
     hueOffsetBg: number;
     saturationBg: number;
     lightnessBg: number;
-}
+};
 
-export interface IDefinitions {
+export type Definitions = {
     [index: string]: string | [number, number, number] | undefined;
 
     bg?: [number, number, number];
@@ -150,14 +356,14 @@ export interface IDefinitions {
     fg_people?: string;
     fg_timelines?: string;
     fg_quotes?: string;
-}
+};
 
 export type WasmInterface = {
     asHtmlAst(markup: string): any;
     splitter(markup: string): any;
 
     rgbFromHsl(hsl: [number, number, number]): string;
-}
+};
 
 export enum ToolbarMode {
     View = 1,
@@ -173,14 +379,14 @@ export enum NoteSectionHowToShow {
     Exclusive,
 }
 
-export type IState = {
+export type State = {
     appName: string;
     toolbarMode: Signal<ToolbarMode>;
 
     wasmInterface: WasmInterface | undefined;
 
-    settings: Signal<ISettings>;
-    definitions: Signal<IDefinitions>;
+    settings: Signal<Settings>;
+    definitions: Signal<Definitions>;
 
     hasPhysicalKeyboard: boolean;
     oldestAliveAge: number;
@@ -192,70 +398,68 @@ export type IState = {
     urlName: Signal<string>;
     url: Signal<string>;
 
-    user: Signal<IUser>;
+    user: Signal<User>;
 
-    preferredOrder: Array<string>;
+    preferredDeckKindOrder: Array<DeckKind>;
+    preferredOrder: Array<string>; // rename to preferredTopMenuOrder
 
-    listing: Signal<IListing>;
+    listing: Signal<Listing>;
 
     verboseUI: Signal<boolean>;
 
-    showNoteForm: Signal<IShowNoteForm>;
+    showNoteForm: Signal<ShowNoteForm>;
+    showNoteFormPointId: Signal<number | undefined>;
 
     showAddPointForm: Signal<boolean>;
 
-    recentImages: Signal<Array<IUserUploadedImage>>;
+    recentImages: Signal<Array<UserUploadedImage>>;
 
     imageDirectory: Signal<string>;
 
     showConnectivityGraph: Signal<boolean>;
 
-    graph: Signal<IGraph>;
+    graph: Signal<Graph>;
 
-    scratchList: Signal<Array<IScratchList>>;
+    scratchList: Signal<Array<DeckSimple>>;
 
     scratchListMinimised: Signal<boolean>;
 
     srReviewCount: Signal<number>;
     srEarliestReviewDate: Signal<undefined | string>;
-}
+};
 
-// isg hacked in:
-export type IScratchList = {
-    fake?: boolean;
-}
+type GraphEdge = [number, RefKind, number];
 
-// isg hacked in:
-export type IGraph = {
+export type GraphNode = {
+    id: number;
+    name: string;
+    resource: DeckKind;
+    graphTerminator: boolean;
+};
+
+export type Graph = {
     fullyLoaded: boolean;
     // an array of { id, name, resource }
-    decks?: Array<any>;
-    links?: any;
+    decks: Array<GraphNode>;
+    links: { [id: number]: Set<GraphEdge> };
     // an array which is indexed by deckId, returns the offset into state.graph.value.decks
-    deckIndexFromId?: Array<any>;
-}
+    deckIndexFromId: Array<number>;
+};
 
 // isg hacked in:
-export type IShowNoteForm = {
+export type ShowNoteForm = {
     note: boolean;
     summary: boolean;
     review: boolean;
-}
+};
 
-export type IPigment = {
-    num: number;
-    numString: string;
-    class: string;
-    classAlt: string;
-}
-
-export type IUserUploadedImage = {
+export type UserUploadedImage = {
     filename: string;
-}
+};
 
-export type IUberSetup = {
+export type UberSetup = {
     directory: string;
-    recentImages: Array<IUserUploadedImage>;
+    recentImages: Array<UserUploadedImage>;
     srReviewCount: number;
     srEarliestReviewDate: string;
-}
+};

@@ -1,89 +1,98 @@
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
+import { ProtoPoint } from "../types";
+
 import { parseDateStringAsTriple, deltaInYears } from "../eras";
 
 import { PointBirthForm, PointDeathForm } from "./PointForm";
 
-const LIFESPAN_STAGE_BIRTH = 0;
-const LIFESPAN_STAGE_IS_ALIVE = 1;
-const LIFESPAN_STAGE_DEATH = 2;
-const LIFESPAN_STAGE_FINISHED = 3;
+enum LifespanStage {
+    Birth = 0,
+    IsAlive,
+    Death,
+    Finished,
+}
+
+type Props = {
+    name: string;
+    onLifespanGiven: (a: ProtoPoint, b?: ProtoPoint) => void;
+    oldestAliveAge: number;
+};
+
+type State = {
+    stage: LifespanStage;
+    birthPoint?: ProtoPoint;
+    deathPoint?: ProtoPoint;
+};
 
 export default function LifespanForm({
     name,
     onLifespanGiven,
     oldestAliveAge,
-}: {
-    name?: any;
-    onLifespanGiven?: any;
-    oldestAliveAge?: any;
-}) {
-    const [localState, setLocalState] = useState({
-        stage: LIFESPAN_STAGE_BIRTH,
+}: Props) {
+    const initialState: State = {
+        stage: LifespanStage.Birth,
         birthPoint: undefined,
         deathPoint: undefined,
-    });
+    };
+    const [localState, setLocalState] = useState(initialState);
 
     useEffect(() => {
-        if (localState.stage === LIFESPAN_STAGE_FINISHED) {
+        if (localState.stage === LifespanStage.Finished) {
             // invoking onLifespanGiven will remove this form
-            onLifespanGiven(localState.birthPoint, localState.deathPoint);
+            if (localState.birthPoint) {
+                onLifespanGiven(localState.birthPoint, localState.deathPoint);
+            }
         }
     }, [localState]);
 
-    function onAddBirthPoint(birthPoint?: any) {
+    function onAddBirthPoint(birthPoint: ProtoPoint) {
         // ask about date of death if the person was born a long time ago
         // otherwise ask the user if the person is still alive
         //
-        let [year, month, day]: [number, number, number] =
-            parseDateStringAsTriple(birthPoint.exactDate)!;
-        let ageInYears = deltaInYears(year, month, day);
+        if (birthPoint.exactDate) {
+            let [year, month, day]: [number, number, number] =
+                parseDateStringAsTriple(birthPoint.exactDate)!;
+            let ageInYears = deltaInYears(year, month, day);
 
-        setLocalState({
-            ...localState,
-            birthPoint: birthPoint,
-            stage:
-                ageInYears > oldestAliveAge
-                    ? LIFESPAN_STAGE_DEATH
-                    : LIFESPAN_STAGE_IS_ALIVE,
-        });
+            setLocalState({
+                ...localState,
+                birthPoint: birthPoint,
+                stage:
+                    ageInYears > oldestAliveAge
+                        ? LifespanStage.Death
+                        : LifespanStage.IsAlive,
+            });
+        }
     }
 
     function onPersonIsAlive() {
         setLocalState({
             ...localState,
-            stage: LIFESPAN_STAGE_FINISHED,
+            stage: LifespanStage.Finished,
         });
     }
 
     function onPersonIsDead() {
         setLocalState({
             ...localState,
-            stage: LIFESPAN_STAGE_DEATH,
+            stage: LifespanStage.Death,
         });
     }
 
-    function onAddDeathPoint(point?: any) {
+    function onAddDeathPoint(point: ProtoPoint) {
         setLocalState({
             ...localState,
             deathPoint: point,
-            stage: LIFESPAN_STAGE_FINISHED,
+            stage: LifespanStage.Finished,
         });
     }
 
-    let pointBorn = { title: "Born" };
-    let pointDied = { title: "Died" };
-
     switch (localState.stage) {
-        case LIFESPAN_STAGE_BIRTH:
-            return (
-                <PointBirthForm
-                    pointBorn={pointBorn}
-                    onSubmit={onAddBirthPoint}
-                />
-            );
-        case LIFESPAN_STAGE_IS_ALIVE:
+        case LifespanStage.Birth:
+            return <PointBirthForm onSubmit={onAddBirthPoint} />;
+        case LifespanStage.IsAlive:
             return (
                 <div>
                     <span>
@@ -93,13 +102,8 @@ export default function LifespanForm({
                     </span>
                 </div>
             );
-        case LIFESPAN_STAGE_DEATH:
-            return (
-                <PointDeathForm
-                    pointDied={pointDied}
-                    onSubmit={onAddDeathPoint}
-                />
-            );
+        case LifespanStage.Death:
+            return <PointDeathForm onSubmit={onAddDeathPoint} />;
         default:
             return <div></div>;
     }

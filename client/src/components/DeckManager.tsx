@@ -1,25 +1,55 @@
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-// import { IIdeasListings, ISearchResults, IDeckSimple } from '../types';
-import { ToolbarMode, NoteSectionHowToShow } from "../types";
+import {
+    DeckArticle,
+    DeckIdea,
+    DeckKind,
+    DeckPerson,
+    DeckPoint,
+    DeckQuote,
+    DeckTimeline,
+    FlashCard,
+    IDeckCore,
+    Note,
+    NoteKind,
+    NoteSectionHowToShow,
+    Notes,
+    ProtoPoint,
+    Ref,
+    ToolbarMode,
+} from "../types";
 
 import Net from "../Net";
 import { getAppState, AppStateChange } from "../AppState";
-import { sortByResourceThenName, deckTitle } from "../CivilUtils";
-
 import {
-    NoteManager,
-    NOTE_KIND_NOTE,
-    NOTE_KIND_SUMMARY,
-    NOTE_KIND_REVIEW,
-} from "./NoteSection";
-
+    deckKindToResourceString,
+    sortByResourceThenName,
+} from "../CivilUtils";
+import { NoteManager } from "./NoteSection";
 import { PointForm } from "./PointForm";
 
-function identity(a: any) {
+type DeckManagerState = {
+    deck: IDeckCore | undefined;
+    isShowingUpdateForm: boolean;
+    isEditingDeckRefs: boolean;
+    canHaveSummarySection: boolean;
+    canHaveReviewSection: boolean;
+    displayShowSummaryButton: boolean;
+    displayShowReviewButton: boolean;
+};
+
+function identity(a: IDeckCore): IDeckCore {
     return a;
 }
+
+type Props = {
+    id: number;
+    resource: DeckKind;
+    preCacheFn?: (_: IDeckCore) => IDeckCore;
+    hasSummarySection: boolean;
+    hasReviewSection: boolean;
+};
 
 export default function DeckManager({
     id,
@@ -27,22 +57,18 @@ export default function DeckManager({
     preCacheFn,
     hasSummarySection,
     hasReviewSection,
-}: {
-    id?: any;
-    resource?: any;
-    preCacheFn?: any;
-    hasSummarySection?: any;
-    hasReviewSection?: any;
-}) {
+}: Props) {
     const preCacheFunction = preCacheFn || identity;
     const appState = getAppState();
 
-    const [dms, setDms] = useState(cleanDeckManagerState());
+    const [dms, setDms]: [DeckManagerState, any] = useState(
+        cleanDeckManagerState()
+    );
 
     useEffect(() => {
         // fetch resource from the server
-        const url = `/api/${resource}/${id}`;
-        Net.get(url).then((deck) => {
+        const url = `/api/${deckKindToResourceString(resource)}/${id}`;
+        Net.get<IDeckCore>(url).then((deck) => {
             if (deck) {
                 let newDms = dmsUpdateDeck(
                     dms,
@@ -59,7 +85,7 @@ export default function DeckManager({
         });
     }, [id]);
 
-    function update(newDeck: any) {
+    function update(newDeck: IDeckCore) {
         let newDms = dmsUpdateDeck(
             dms,
             preCacheFunction(newDeck),
@@ -68,7 +94,11 @@ export default function DeckManager({
         );
         setDms(newDms);
     }
-    function findNoteWithId(deck: any, id: any, modifyFn: any) {
+    function findNoteWithId(
+        deck: IDeckCore,
+        id: number,
+        modifyFn: (n: Notes, idx: number) => void
+    ) {
         const notes = deck.notes;
         const index = notes.findIndex((n) => n.id === id);
 
@@ -79,28 +109,32 @@ export default function DeckManager({
         update(d);
     }
 
-    function onRefsChanged(note: any, allDecksForNote: any) {
+    function onRefsChanged(note: Note, allDecksForNote: Array<Ref>) {
+        // guess
         // have to make a copy of note so that preact's
         // diff algorithm can pick up the change
         //
         let n = { ...note };
 
-        let deck: any = dms.deck;
+        if (dms.deck) {
+            let deck: IDeckCore = dms.deck;
 
-        if (deck) {
             // have to set deck.refs to be the canonical version
             // (used to populate each note's decks array)
 
-            // remove all deck.refs that relate to this note
-            deck.refs = deck.refs.filter((din) => {
-                return din.noteId !== n.id;
-            });
-            // add every note.decks entry to deck.refs
-            allDecksForNote.forEach((d) => {
-                deck.refs.push(d);
-            });
+            if (deck.refs) {
+                // remove all deck.refs that relate to this note
+                deck.refs = deck.refs.filter((din) => {
+                    return din.noteId !== n.id;
+                });
+                // add every note.decks entry to deck.refs
+                allDecksForNote.forEach((d) => {
+                    // exclamation to please the compiler, even though checks ensure that refs will not be undefined
+                    deck.refs!.push(d);
+                });
+            }
 
-            findNoteWithId(deck, n.id, (notes: any, index: any) => {
+            findNoteWithId(deck, n.id, (notes: Notes, index: number) => {
                 notes[index] = n;
             });
 
@@ -119,7 +153,7 @@ export default function DeckManager({
         isEditingDeckRefs: function () {
             return dms.isEditingDeckRefs;
         },
-        updateAndReset: function (newDeck: any) {
+        updateAndReset: function (newDeck: IDeckCore) {
             let newDms = dmsUpdateDeck(
                 dms,
                 preCacheFunction(newDeck),
@@ -153,27 +187,29 @@ export default function DeckManager({
             let newDms = dmsUpdateFormToggle(dms);
             setDms(newDms);
         },
-        buildPointForm: function (onSuccessCallback: any) {
+        buildPointForm: function (onSuccessCallback: () => void) {
             // currently only people and timelines have these endpoints
             //
-            function onAddPoint(point: any) {
+            function onAddPoint(point: ProtoPoint) {
                 if (dms.deck) {
-                    let fake: any = dms.deck;
-                    const url = `/api/${resource}/${fake.id}/points`;
-                    Net.post(url, point).then((updatedDeck) => {
-                        update(updatedDeck);
-                        onSuccessCallback();
-                    });
+                    const url = `/api/${resource}/${dms.deck.id}/points`;
+                    Net.post<ProtoPoint, IDeckCore>(url, point).then(
+                        (updatedDeck) => {
+                            update(updatedDeck);
+                            onSuccessCallback();
+                        }
+                    );
                 }
             }
-            function onAddPoints(points: any) {
+            function onAddPoints(points: Array<ProtoPoint>) {
                 if (dms.deck) {
-                    let fake: any = dms.deck;
-                    const url = `/api/${resource}/${fake.id}/multipoints`;
-                    Net.post(url, points).then((updatedDeck) => {
-                        update(updatedDeck);
-                        onSuccessCallback();
-                    });
+                    const url = `/api/${resource}/${dms.deck.id}/multipoints`;
+                    Net.post<Array<ProtoPoint>, IDeckCore>(url, points).then(
+                        (updatedDeck) => {
+                            update(updatedDeck);
+                            onSuccessCallback();
+                        }
+                    );
                 }
             }
 
@@ -186,42 +222,50 @@ export default function DeckManager({
             );
         },
         onRefsChanged,
-        noteManagerForDeckPoint: function (deckPoint: any) {
-            let fake: any = dms.deck;
-            if (fake && fake.noteSeqs) {
-                return NoteManager({
-                    deck: dms.deck,
-                    toolbarMode: appState.toolbarMode.value,
-                    noteSeq: fake.noteSeqs.points[deckPoint.id],
-                    resource,
-                    onUpdateDeck: update,
-                    onRefsChanged,
-                    optionalDeckPoint: deckPoint,
-                    appendLabel: `Append Note to ${deckPoint.title}`,
-                    noteKind: NOTE_KIND_NOTE,
-                });
+        noteManagerForDeckPoint: function (deckPoint: DeckPoint) {
+            if (dms.deck) {
+                let deck: IDeckCore = dms.deck;
+                if (deck && deck.noteSeqs && deck.noteSeqs.points) {
+                    return NoteManager({
+                        deck: deck,
+                        toolbarMode: appState.toolbarMode.value,
+                        notes: deck.noteSeqs.points[deckPoint.id],
+                        onUpdateDeck: update,
+                        onRefsChanged,
+                        optionalDeckPoint: deckPoint,
+                        appendLabel: `Append Note to ${deckPoint.title}`,
+                        noteKind: NoteKind.Note,
+                    });
+                }
+            }
+            return "FAKE";
+        },
+        pointHasNotes: function (point: DeckPoint) {
+            if (dms.deck) {
+                return dms.deck.notes.some((n) => n.pointId === point.id);
             } else {
-                return "FAKE";
+                return false;
             }
         },
-        pointHasNotes: function (point: any) {
-            let fake: any = dms.deck;
-            return fake.notes.some((n) => n.pointId === point.id);
-        },
-        canShowNoteSection: function (noteKind: any) {
-            if (noteKind === NOTE_KIND_SUMMARY && dms.canHaveSummarySection) {
+        canShowNoteSection: function (noteKind: NoteKind) {
+            if (
+                noteKind === NoteKind.NoteSummary &&
+                dms.canHaveSummarySection
+            ) {
                 return true;
             }
-            if (noteKind === NOTE_KIND_REVIEW && dms.canHaveReviewSection) {
+            if (noteKind === NoteKind.NoteReview && dms.canHaveReviewSection) {
                 return true;
             }
-            if (noteKind === NOTE_KIND_NOTE) {
+            if (noteKind === NoteKind.Note) {
                 return true;
             }
             return false;
         },
-        howToShowNoteSection: function (noteKind: any): NoteSectionHowToShow {
-            if (noteKind === NOTE_KIND_SUMMARY) {
+        howToShowNoteSection: function (
+            noteKind: NoteKind
+        ): NoteSectionHowToShow {
+            if (noteKind === NoteKind.NoteSummary) {
                 if (dms.canHaveSummarySection) {
                     return dms.displayShowSummaryButton
                         ? NoteSectionHowToShow.Hide
@@ -231,7 +275,7 @@ export default function DeckManager({
                 }
             }
 
-            if (noteKind === NOTE_KIND_REVIEW) {
+            if (noteKind === NoteKind.NoteReview) {
                 if (dms.canHaveReviewSection) {
                     return dms.displayShowReviewButton
                         ? NoteSectionHowToShow.Hide
@@ -241,7 +285,7 @@ export default function DeckManager({
                 }
             }
 
-            if (noteKind === NOTE_KIND_NOTE) {
+            if (noteKind === NoteKind.Note) {
                 var r = NoteSectionHowToShow.Exclusive;
                 if (
                     dms.canHaveSummarySection &&
@@ -262,8 +306,8 @@ export default function DeckManager({
     return res;
 }
 
-function cleanDeckManagerState() {
-    let res = {
+function cleanDeckManagerState(): DeckManagerState {
+    let res: DeckManagerState = {
         deck: undefined,
         isShowingUpdateForm: false,
         isEditingDeckRefs: false,
@@ -275,16 +319,43 @@ function cleanDeckManagerState() {
     return res;
 }
 
-function dmsUpdateDeck(dms: any, deck: any, resource: any, scrollToTop: any) {
+function dmsUpdateDeck(
+    dms: DeckManagerState,
+    deck: IDeckCore,
+    resource: DeckKind,
+    scrollToTop: boolean
+): DeckManagerState {
     // modify the notes received from the server
     applyDecksAndCardsToNotes(deck);
     // organise the notes into noteSeqs
     buildNoteSeqs(deck);
 
-    AppStateChange.urlName(deckTitle(deck));
-    AppStateChange.routeChanged(`/${resource}/${deck.id}`);
+    let urlName = "";
 
-    let res = { ...dms };
+    switch (resource) {
+        case DeckKind.Person:
+            urlName = (deck as DeckPerson).name;
+            break;
+        case DeckKind.Idea:
+            urlName = (deck as DeckIdea).title;
+            break;
+        case DeckKind.Article:
+            urlName = (deck as DeckArticle).title;
+            break;
+        case DeckKind.Timeline:
+            urlName = (deck as DeckTimeline).title;
+            break;
+        case DeckKind.Quote:
+            urlName = (deck as DeckQuote).title;
+            break;
+    }
+
+    AppStateChange.urlName(urlName);
+    AppStateChange.routeChanged(
+        `/${deckKindToResourceString(resource)}/${deck.id}`
+    );
+
+    let res: DeckManagerState = { ...dms };
     res.deck = deck;
 
     if (scrollToTop) {
@@ -294,7 +365,10 @@ function dmsUpdateDeck(dms: any, deck: any, resource: any, scrollToTop: any) {
     return res;
 }
 
-function dmsShowSummaryButtonToggle(dms: any, isToggled: any) {
+function dmsShowSummaryButtonToggle(
+    dms: DeckManagerState,
+    isToggled: boolean
+): DeckManagerState {
     let res = {
         ...dms,
         displayShowSummaryButton: isToggled,
@@ -303,7 +377,10 @@ function dmsShowSummaryButtonToggle(dms: any, isToggled: any) {
     return res;
 }
 
-function dmsShowReviewButtonToggle(dms: any, isToggled: any) {
+function dmsShowReviewButtonToggle(
+    dms: DeckManagerState,
+    isToggled: boolean
+): DeckManagerState {
     let res = {
         ...dms,
         displayShowReviewButton: isToggled,
@@ -312,48 +389,54 @@ function dmsShowReviewButtonToggle(dms: any, isToggled: any) {
     return res;
 }
 
-function dmsCanHaveSummarySection(dms: any, canHave: any) {
+function dmsCanHaveSummarySection(
+    dms: DeckManagerState,
+    canHave: boolean
+): DeckManagerState {
     let res = { ...dms };
 
     res.canHaveSummarySection = canHave;
-    if (canHave) {
+    if (res.deck && canHave) {
         res.displayShowSummaryButton = !res.deck.notes.some(
-            (n) => n.kind === NOTE_KIND_SUMMARY
+            (n) => n.kind === NoteKind.NoteSummary
         );
     }
 
     return res;
 }
 
-function dmsCanHaveReviewSection(dms: any, canHave: any) {
+function dmsCanHaveReviewSection(
+    dms: DeckManagerState,
+    canHave: boolean
+): DeckManagerState {
     let res = { ...dms };
 
     res.canHaveReviewSection = canHave;
 
-    if (canHave) {
+    if (res.deck && canHave) {
         res.displayShowReviewButton = !res.deck.notes.some(
-            (n) => n.kind === NOTE_KIND_REVIEW
+            (n) => n.kind === NoteKind.NoteReview
         );
     }
 
     return res;
 }
 
-function dmsUpdateFormToggle(dms: any) {
+function dmsUpdateFormToggle(dms: DeckManagerState): DeckManagerState {
     let res = { ...dms };
     res.isShowingUpdateForm = !res.isShowingUpdateForm;
 
     return res;
 }
 
-function dmsRefsToggle(dms: any) {
+function dmsRefsToggle(dms: DeckManagerState): DeckManagerState {
     let res = { ...dms };
     res.isEditingDeckRefs = !res.isEditingDeckRefs;
 
     return res;
 }
 
-function dmsHideForm(dms: any) {
+function dmsHideForm(dms: DeckManagerState): DeckManagerState {
     let res = {
         ...dms,
         isShowingUpdateForm: false,
@@ -361,20 +444,36 @@ function dmsHideForm(dms: any) {
     return res;
 }
 
-function applyDecksAndCardsToNotes(deck: any) {
-    const decksInNotes = hashByNoteIds(deck.refs);
-    const cardsInNotes = hashByNoteIds(deck.flashcards);
+function applyDecksAndCardsToNotes(deck: IDeckCore) {
+    if (deck.notes) {
+        if (deck.refs) {
+            const decksInNotes = hashByNoteIds(deck.refs);
+            for (let i = 0; i < deck.notes.length; i++) {
+                let n = deck.notes[i];
+                n.decks = decksInNotes[n.id] || [];
+                if (n.decks) {
+                    n.decks.sort(sortByResourceThenName);
+                }
+            }
+        }
 
-    for (let i = 0; i < deck.notes.length; i++) {
-        let n = deck.notes[i];
-        n.decks = decksInNotes[n.id] || [];
-        n.decks.sort(sortByResourceThenName);
-        n.flashcards = cardsInNotes[n.id];
+        if (deck.flashcards) {
+            const cardsInNotes = hashByNoteIds(deck.flashcards);
+            for (let i = 0; i < deck.notes.length; i++) {
+                let n = deck.notes[i];
+                if (cardsInNotes[n.id]) {
+                    n.flashcards = cardsInNotes[n.id];
+                } else {
+                    n.flashcards = [];
+                }
+            }
+        }
     }
+
     return deck;
 }
 
-function hashByNoteIds(s: any) {
+function hashByNoteIds(s: Array<Ref | FlashCard>) {
     let res = {};
 
     s = s || [];
@@ -391,36 +490,42 @@ function hashByNoteIds(s: any) {
     return res;
 }
 
-function buildNoteSeqs(deck: any) {
-    deck.noteSeqs = {};
-
+function buildNoteSeqs(deck: IDeckCore) {
     // build NoteSeqs for notes associated with points
-    deck.noteSeqs.points = noteSeqsForPoints(deck.notes);
+    let points: { [id: number]: Notes } = noteSeqsForPoints(deck.notes);
     // add empty noteSeqs for points without any notes
     if (deck.points) {
         deck.points.forEach((p) => {
-            if (!deck.noteSeqs.points[p.id]) {
-                deck.noteSeqs.points[p.id] = [];
+            if (!points[p.id]) {
+                points[p.id] = [];
             }
         });
     }
 
     // build NoteSeqs for all other note kinds
-    deck.noteSeqs.note = noteSeqForNoteKind(deck.notes, "Note");
-    deck.noteSeqs.noteDeckMeta = noteSeqForNoteKind(deck.notes, "NoteDeckMeta"); // should only be of length 1
-    deck.noteSeqs.noteReview = noteSeqForNoteKind(deck.notes, "NoteReview");
-    deck.noteSeqs.noteSummary = noteSeqForNoteKind(deck.notes, "NoteSummary");
+    let note: Notes = noteSeq(deck.notes, NoteKind.Note);
+    let noteDeckMeta: Notes = noteSeq(deck.notes, NoteKind.NoteDeckMeta); // should only be of length 1
+    let noteReview: Notes = noteSeq(deck.notes, NoteKind.NoteReview);
+    let noteSummary: Notes = noteSeq(deck.notes, NoteKind.NoteSummary);
 
-    if (deck.noteSeqs.noteDeckMeta.length !== 1) {
+    if (noteDeckMeta.length !== 1) {
         console.error(
-            `deck: ${deck.id} has a NoteDeckMeta noteseq of length: ${deck.noteSeqs.noteDeckMeta.length} ???`
+            `deck: ${deck.id} has a NoteDeckMeta noteseq of length: ${noteDeckMeta.length} ???`
         );
     }
+
+    deck.noteSeqs = {
+        points,
+        note,
+        noteDeckMeta,
+        noteReview,
+        noteSummary,
+    };
 
     return deck;
 }
 
-function noteSeqsForPoints(notes: any) {
+function noteSeqsForPoints(notes: Notes): { [id: number]: Notes } {
     let p = {};
     notes.forEach((n) => {
         if (n.pointId) {
@@ -438,7 +543,7 @@ function noteSeqsForPoints(notes: any) {
     return p;
 }
 
-function noteSeqForNoteKind(notes: any, kind: any) {
+function noteSeq(notes: Notes, kind: NoteKind): Notes {
     let ns = notes.filter((n) => n.kind === kind && n.pointId === null);
     if (ns.length === 0) {
         return [];
@@ -446,9 +551,9 @@ function noteSeqForNoteKind(notes: any, kind: any) {
     return createSeq(ns);
 }
 
-function createSeq(ns: any) {
-    let h = {};
-    let shouldBeFirst = false;
+function createSeq(ns: Notes): Notes {
+    let h: { [_: number]: Note } = {};
+    let firstNote: Note | undefined;
 
     // key by prevNoteId
     //
@@ -456,26 +561,27 @@ function createSeq(ns: any) {
         if (n.prevNoteId) {
             h[n.prevNoteId] = n;
         } else {
-            if (shouldBeFirst) {
+            if (firstNote) {
                 console.error(
                     "there is more than one note without a prev_note_id???"
                 );
             }
-            shouldBeFirst = n;
+            firstNote = n;
         }
     });
 
-    if (!shouldBeFirst) {
-        console.error("no shouldBeFirst found by createSeq");
-    }
+    let res: Notes = [];
 
-    // create the ordered note seq to return
-    let res: any = [];
-    let item: any = shouldBeFirst;
-    do {
-        res.push(item);
-        item = h[item.id];
-    } while (item);
+    if (firstNote) {
+        // create the ordered note seq to return
+        let item: Note = firstNote;
+        do {
+            res.push(item);
+            item = h[item.id];
+        } while (item);
+    } else {
+        console.error("no firstNote found by createSeq");
+    }
 
     return res;
 }

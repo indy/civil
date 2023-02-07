@@ -3,28 +3,35 @@ import { signal } from "@preact/signals";
 import { useContext } from "preact/hooks";
 
 import {
-    IGraph,
-    IListing,
-    IUser,
-    IUberSetup,
-    IState,
+    AnyDeckListing,
+    ArticleListings,
+    DeckKind,
+    DeckSimple,
+    Graph,
+    GraphNode,
+    IdeasListings,
+    Listing,
+    NoteKind,
+    PeopleListings,
+    Ref,
+    RefKind,
+    RefsModified,
+    State,
     ToolbarMode,
-    IDeckSimple,
-    IIdeasListings,
-    IPeopleListings,
-    IArticleListings,
-    IUserUploadedImage,
+    UberSetup,
+    User,
+    UserUploadedImage,
 } from "./types";
 
 import { opposingKind } from "./JsUtils";
 
-const emptyUser: IUser = {
+const emptyUser: User = {
     username: "",
     email: "",
     admin: { dbName: "" },
 };
 
-const state: IState = {
+const state: State = {
     appName: "civil",
     toolbarMode: signal(ToolbarMode.View),
     wasmInterface: undefined,
@@ -66,6 +73,14 @@ const state: IState = {
 
     user: signal(emptyUser),
 
+    preferredDeckKindOrder: [
+        DeckKind.Idea,
+        DeckKind.Person,
+        DeckKind.Article,
+        DeckKind.Timeline,
+        DeckKind.Quote,
+    ],
+
     preferredOrder: [
         "ideas",
         "people",
@@ -85,18 +100,12 @@ const state: IState = {
 
     verboseUI: signal(true),
 
-    // put the variables in square brackets so that they're evaluated
-    //
-    // showNoteForm: signal({
-    //     [NOTE_KIND_NOTE]: false,
-    //     [NOTE_KIND_SUMMARY]: false,
-    //     [NOTE_KIND_REVIEW]: false
-    // }),
     showNoteForm: signal({
         note: false,
         summary: false,
         review: false,
     }),
+    showNoteFormPointId: signal(undefined),
 
     // same for the Add Point form
     showAddPointForm: signal(false),
@@ -129,7 +138,7 @@ export const AppStateProvider = ({
     state,
     children,
 }: {
-    state: IState;
+    state: State;
     children: ComponentChildren;
 }) => {
     return (
@@ -164,7 +173,7 @@ export const AppStateChange = {
         state.url.value = url;
     },
 
-    uberSetup: function (uber: IUberSetup) {
+    uberSetup: function (uber: UberSetup) {
         if (DEBUG_APP_STATE) {
             console.log("uberSetup");
         }
@@ -181,7 +190,7 @@ export const AppStateChange = {
         state.srReviewCount.value = uber.srReviewCount;
         state.srEarliestReviewDate.value = uber.srEarliestReviewDate;
     },
-    userLogin: function (user: IUser) {
+    userLogin: function (user: User) {
         if (DEBUG_APP_STATE) {
             console.log("userLogin");
         }
@@ -191,7 +200,7 @@ export const AppStateChange = {
         if (DEBUG_APP_STATE) {
             console.log("userLogout");
         }
-        let user: IUser = { ...state.user.value };
+        let user: User = { ...state.user.value };
         user.username = "";
 
         state.user.value = user;
@@ -213,7 +222,7 @@ export const AppStateChange = {
         state.componentRequiresFullKeyboardAccess.value = false;
     },
 
-    setIdeasListing: function (listing: IIdeasListings) {
+    setIdeasListing: function (listing: IdeasListings) {
         if (DEBUG_APP_STATE) {
             console.log("setIdeasListing");
         }
@@ -221,7 +230,7 @@ export const AppStateChange = {
         li.ideas = listing;
         state.listing.value = li;
     },
-    setPeopleListing: function (listing: IPeopleListings) {
+    setPeopleListing: function (listing: PeopleListings) {
         if (DEBUG_APP_STATE) {
             console.log("setPeopleListing");
         }
@@ -229,7 +238,7 @@ export const AppStateChange = {
         li.people = listing;
         state.listing.value = li;
     },
-    setArticlesListing: function (listing: IArticleListings) {
+    setArticlesListing: function (listing: ArticleListings) {
         if (DEBUG_APP_STATE) {
             console.log("setArticleListing");
         }
@@ -237,7 +246,7 @@ export const AppStateChange = {
         li.articles = listing;
         state.listing.value = li;
     },
-    setTimelineListing: function (listing: Array<IDeckSimple>) {
+    setTimelineListing: function (listing: Array<DeckSimple>) {
         if (DEBUG_APP_STATE) {
             console.log("setIdeasListing");
         }
@@ -246,7 +255,10 @@ export const AppStateChange = {
         state.listing.value = li;
     },
 
-    noteRefsModified: function (allDecksForNote?: any, changes?: any) {
+    noteRefsModified: function (
+        allDecksForNote: Array<Ref>,
+        changes: RefsModified
+    ) {
         if (DEBUG_APP_STATE) {
             console.log("noteRefsModified");
         }
@@ -257,19 +269,19 @@ export const AppStateChange = {
         }
 
         if (state.listing.value.ideas) {
-            let li: IListing = { ...state.listing.value };
+            let li: Listing = { ...state.listing.value };
             if (li) {
                 changes.referencesCreated.forEach((r) => {
                     let newReference = allDecksForNote.find(
-                        (d) => d.name === r.name && d.resource === "ideas"
+                        (d) => d.name === r.name && d.resource === DeckKind.Idea
                     );
 
                     if (newReference) {
                         // todo: what should insignia be here?
-                        let newIdeaListing: IDeckSimple = {
+                        let newIdeaListing: DeckSimple = {
                             id: newReference.id,
                             name: newReference.name,
-                            resource: "ideas",
+                            resource: DeckKind.Idea,
                             insignia: 0,
                         };
                         if (li.ideas) {
@@ -288,20 +300,20 @@ export const AppStateChange = {
         }
     },
 
-    setDeckListing: function (resource: string, listing: any) {
+    setDeckListing: function (resource: DeckKind, listing: AnyDeckListing) {
         if (DEBUG_APP_STATE) {
             console.log("setDeckListing");
         }
         let li = { ...state.listing.value };
         if (li) {
-            if (resource == "ideas") {
-                li.ideas = listing;
-            } else if (resource == "people") {
-                li.people = listing;
-            } else if (resource == "articles") {
-                li.articles = listing;
-            } else if (resource == "timelines") {
-                li.timelines = listing;
+            if (resource == DeckKind.Idea) {
+                li.ideas = listing as IdeasListings;
+            } else if (resource == DeckKind.Person) {
+                li.people = listing as PeopleListings;
+            } else if (resource == DeckKind.Article) {
+                li.articles = listing as ArticleListings;
+            } else if (resource == DeckKind.Timeline) {
+                li.timelines = listing as Array<DeckSimple>;
             }
             state.listing.value = li;
         }
@@ -336,37 +348,52 @@ export const AppStateChange = {
         };
     },
 
-    showNoteForm: function (noteKind: any) {
+    showNoteForm: function (noteKind: NoteKind, pointId?: number) {
         if (DEBUG_APP_STATE) {
             console.log("showNoteForm");
         }
         let snf = { ...state.showNoteForm.value };
-        snf[noteKind] = true;
+        if (noteKind == NoteKind.Note) {
+            snf.note = true;
+        } else if (noteKind == NoteKind.NoteSummary) {
+            snf.summary = true;
+        } else if (noteKind == NoteKind.NoteReview) {
+            snf.review = true;
+        }
 
         state.showNoteForm.value = snf;
+        state.showNoteFormPointId.value = pointId || undefined;
         state.componentRequiresFullKeyboardAccess.value = true;
     },
 
-    hideNoteForm: function (noteKind: any) {
+    hideNoteForm: function (noteKind: NoteKind) {
         if (DEBUG_APP_STATE) {
             console.log("hideNoteForm");
         }
         let snf = { ...state.showNoteForm.value };
-        snf[noteKind] = false;
+
+        if (noteKind == NoteKind.Note) {
+            snf.note = false;
+        } else if (noteKind == NoteKind.NoteSummary) {
+            snf.summary = false;
+        } else if (noteKind == NoteKind.NoteReview) {
+            snf.review = false;
+        }
 
         state.showNoteForm.value = snf;
+        state.showNoteFormPointId.value = undefined;
         state.componentRequiresFullKeyboardAccess.value = false;
     },
 
-    setRecentImages: function (recentImages: Array<IUserUploadedImage>) {
+    setRecentImages: function (recentImages: Array<UserUploadedImage>) {
         if (DEBUG_APP_STATE) {
             console.log("setRecentImages");
         }
         state.recentImages.value = recentImages;
     },
 
-    deleteDeck: function (id: any) {
-        // todo: typescript check the IListing entry and the filterFn
+    deleteDeck: function (id: number) {
+        // todo: typescript check the Listing entry and the filterFn
 
         if (DEBUG_APP_STATE) {
             console.log("deleteDeck");
@@ -381,7 +408,7 @@ export const AppStateChange = {
             state.graph.value = g;
         }
 
-        let li: IListing = {
+        let li: Listing = {
             ideas: undefined,
             people: undefined,
             articles: undefined,
@@ -439,7 +466,7 @@ export const AppStateChange = {
         state.scratchListMinimised.value = !state.scratchListMinimised.value;
     },
 
-    scratchListAddMulti: function (candidates) {
+    scratchListAddMulti: function (candidates: Array<DeckSimple>) {
         if (DEBUG_APP_STATE) {
             console.log("scratchListAddMulti");
         }
@@ -450,7 +477,7 @@ export const AppStateChange = {
         state.scratchList.value = sl;
     },
 
-    scratchListRemove: function (index) {
+    scratchListRemove: function (index: number) {
         if (DEBUG_APP_STATE) {
             console.log("scratchListRemove");
         }
@@ -464,13 +491,15 @@ export const AppStateChange = {
             console.log("bookmarkUrl");
         }
         let sl = state.scratchList.value.slice();
-        let candidate: any = parseForScratchList(
+        let candidate: DeckSimple | undefined = parseForScratchList(
             state.url.value,
             state.urlName.value
         );
 
-        sl.push(candidate);
-        state.scratchList.value = sl;
+        if (candidate) {
+            sl.push(candidate);
+            state.scratchList.value = sl;
+        }
     },
 
     cleanUI: function () {
@@ -508,11 +537,11 @@ export const AppStateChange = {
         state.srReviewCount.value = count;
     },
 
-    loadGraph: function (nodes?: any, connections?: any) {
+    loadGraph: function (nodes: Array<GraphNode>, connections: Array<number>) {
         if (DEBUG_APP_STATE) {
             console.log("loadGraph");
         }
-        let newGraph: IGraph = {
+        let newGraph: Graph = {
             fullyLoaded: true,
             decks: nodes,
             links: buildFullGraph(connections),
@@ -525,40 +554,69 @@ export const AppStateChange = {
         if (DEBUG_APP_STATE) {
             console.log("invalidateGraph");
         }
-        state.graph.value = { fullyLoaded: false };
+        state.graph.value = {
+            fullyLoaded: false,
+            decks: [],
+            links: {},
+            deckIndexFromId: [],
+        };
     },
 };
 
-function parseForScratchList(url?: any, urlName?: any) {
+function parseForScratchList(
+    url: string,
+    urlName: string
+): DeckSimple | undefined {
     // note: this will break if we ever change the url schema
     let res = url.match(/^\/(\w+)\/(\w+)/);
 
-    let id = res[2];
-    let resource = res[1];
+    if (res) {
+        let id = res[2];
+        let resource = res[1];
 
-    return { id: parseInt(id, 10), name: urlName, resource: resource };
+        let dk: DeckKind = DeckKind.Article;
+        if (resource === "articles") {
+            dk = DeckKind.Article;
+        } else if (resource === "ideas") {
+            dk = DeckKind.Idea;
+        } else if (resource === "people") {
+            dk = DeckKind.Person;
+        } else if (resource === "timelines") {
+            dk = DeckKind.Timeline;
+        } else if (resource === "quotes") {
+            dk = DeckKind.Quote;
+        }
+
+        return {
+            id: parseInt(id, 10),
+            name: urlName,
+            resource: dk,
+            insignia: 0,
+        };
+    }
+    return undefined;
 }
 
-function packedToKind(packed?: any) {
+function packedToKind(packed: number): RefKind {
     switch (packed) {
         case 0:
-            return "ref";
+            return RefKind.Ref;
         case -1:
-            return "refToParent";
+            return RefKind.RefToParent;
         case 1:
-            return "refToChild";
+            return RefKind.RefToChild;
         case 42:
-            return "refInContrast";
+            return RefKind.RefInContrast;
         case 99:
-            return "refCritical";
+            return RefKind.RefCritical;
         default: {
             console.log(`packed_to_kind invalid value: ${packed}`);
-            return "packed_to_kind ERROR";
+            return RefKind.Ref;
         }
     }
 }
 
-function buildFullGraph(graphConnections?: any) {
+function buildFullGraph(graphConnections: Array<number>) {
     let res = {};
 
     for (let i = 0; i < graphConnections.length; i += 4) {
@@ -567,7 +625,7 @@ function buildFullGraph(graphConnections?: any) {
         let packedKind = graphConnections[i + 2];
         let strength = graphConnections[i + 3];
 
-        let kind = packedToKind(packedKind);
+        let kind: RefKind = packedToKind(packedKind);
 
         if (!res[fromDeck]) {
             res[fromDeck] = new Set();
@@ -583,8 +641,8 @@ function buildFullGraph(graphConnections?: any) {
     return res;
 }
 
-function buildDeckIndex(decks?: any) {
-    let res: any = [];
+function buildDeckIndex(decks: Array<GraphNode>) {
+    let res: Array<number> = [];
 
     decks.forEach((d, i) => {
         res[d.id] = i;

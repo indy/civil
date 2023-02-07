@@ -1,13 +1,23 @@
 import { h } from "preact";
 
-import { svgCaretRight, svgCaretDown } from "../svgIcons";
-import Ref from "./Ref";
-import DeckLink from "./DeckLink";
+import { NoteThing, Ref, DeckKind } from "../types";
 
+import { deckKindToResourceString } from "../CivilUtils";
+import { svgCaretRight, svgCaretDown } from "../svgIcons";
+
+import DeckLink from "./DeckLink";
+import RefView from "./RefView";
 import buildMarkup from "./BuildMarkup";
 
-function ListingLink({ resource, id, name, insignia }) {
-    const href = `/${resource}/${id}`;
+type ListingLinkProps = {
+    resource: DeckKind;
+    id: number;
+    name: string;
+    insignia: number;
+};
+
+function ListingLink({ resource, id, name, insignia }: ListingLinkProps) {
+    const href = `/${deckKindToResourceString(resource)}/${id}`;
 
     let res = (
         <li class="listing-link">
@@ -23,6 +33,19 @@ function ListingLink({ resource, id, name, insignia }) {
     return res;
 }
 
+type ExpandableListingLinkProps = {
+    index: number;
+    resource: DeckKind;
+    deckId: number;
+    deckName: string;
+    deckInsignia: number;
+    deckLevelRefs: Array<Ref>;
+    deckLevelAnnotation?: string;
+    notes: Array<NoteThing>;
+    expanded: boolean;
+    onExpandClick: (key: number) => void;
+};
+
 function ExpandableListingLink({
     index,
     resource,
@@ -34,25 +57,13 @@ function ExpandableListingLink({
     notes,
     expanded,
     onExpandClick,
-}: {
-    index?: any;
-    resource?: any;
-    deckId?: any;
-    deckName?: any;
-    deckInsignia?: any;
-    deckLevelRefs?: any;
-    deckLevelAnnotation?: any;
-    notes?: any;
-    expanded?: any;
-    onExpandClick?: any;
-}) {
+}: ExpandableListingLinkProps) {
     function onClicked(e: Event) {
         e.preventDefault();
         onExpandClick(index);
     }
 
-    const href = `/${resource}/${deckId}`;
-
+    const href = `/${deckKindToResourceString(resource)}/${deckId}`;
     let icon = expanded ? svgCaretDown() : svgCaretRight();
 
     let res = (
@@ -77,22 +88,24 @@ function ExpandableListingLink({
     return res;
 }
 
-function buildDeckLevelAnnotation(deckLevelAnnotation?: any) {
+function buildDeckLevelAnnotation(deckLevelAnnotation: string) {
     return <div class="ref-top-scribble indented">{deckLevelAnnotation}</div>;
 }
 
-function buildDeckLevelBackRefs(deckLevelRefs?: any) {
+function buildDeckLevelBackRefs(deckLevelRefs: Array<Ref>) {
     let refs = deckLevelRefs.map((r) => (
-        <Ref deckReference={r} extraClasses="deck-level-backref" />
+        <RefView deckReference={r} extraClasses="deck-level-backref" />
     ));
 
     return <div>{refs}</div>;
 }
 
-function buildNotes(notes) {
+function buildNotes(notes: Array<NoteThing>) {
+    let ini: Array<preact.JSX.Element> = [];
+
     let res = notes
         .reduce((a, note) => {
-            if (note.topAnnotation) {
+            if (note.topAnnotation !== undefined) {
                 a.push(
                     <div class="ref-top-scribble">{note.topAnnotation}</div>
                 );
@@ -101,7 +114,7 @@ function buildNotes(notes) {
                 note.refs &&
                 note.refs.map((r) => {
                     return (
-                        <Ref
+                        <RefView
                             deckReference={r}
                             extraClasses="left-margin-entry"
                         />
@@ -117,7 +130,7 @@ function buildNotes(notes) {
 
             a.push(<hr />);
             return a;
-        }, [])
+        }, ini)
         .slice(0, -1); // the slice removes the final hr tag
 
     return <div>{res}</div>;

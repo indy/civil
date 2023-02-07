@@ -1,26 +1,40 @@
 import { h } from "preact";
 
+import {
+    IDeckCore,
+    Note,
+    ProtoNoteReferences,
+    Ref,
+    RefsModified,
+} from "../types";
+
 import Net from "../Net";
 import { AppStateChange } from "../AppState";
 
 import CivilSelect from "./CivilSelect";
-import Ref from "./Ref";
+import RefView from "./RefView";
+
+type Props = {
+    deck: IDeckCore;
+    isEditing: boolean;
+    onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
+    onRefsToggle: () => void;
+};
 
 export default function SectionDeckRefs({
     deck,
     isEditing,
     onRefsChanged,
     onRefsToggle,
-}: {
-    deck?: any;
-    isEditing?: any;
-    onRefsChanged?: any;
-    onRefsToggle?: any;
-}) {
+}: Props) {
     function onCancel() {
         onRefsToggle();
     }
-    function onSaved(note, changes, allDecksForNote) {
+    function onSaved(
+        note: Note,
+        changes: RefsModified,
+        allDecksForNote: Array<Ref>
+    ) {
         // this note is going to be the deck's NoteDeckMeta
         onRefsChanged(note, allDecksForNote);
 
@@ -28,41 +42,56 @@ export default function SectionDeckRefs({
         onRefsToggle();
     }
 
-    let deckId = deck && deck.id;
-    let deckMeta = deck && deck.noteSeqs && deck.noteSeqs.noteDeckMeta[0];
+    let deckId: number = deck && deck.id;
+    let deckMeta: Note | undefined =
+        deck && deck.noteSeqs && deck.noteSeqs.noteDeckMeta[0];
     // deckMeta is the special note (of kind: NoteKind::NoteDeckMeta) that
     // contains the refs that should apply to the deck as a whole and not
     // just to individual paragraphs
     // each deck will only ever have one noteDeckMeta note
 
-    let entries = [];
     if (deckMeta && deckMeta.decks) {
-        entries = deckMeta.decks.map((ref) => {
-            return <Ref deckReference={ref} extraClasses="deck-ref-item" />;
-        });
+        return (
+            <div class="deck-ref-section">
+                {!isEditing && deckMeta.decks.length > 0 && (
+                    <div>
+                        <hr class="light" />
+                        {deckMeta.decks.map((ref) => (
+                            <RefView
+                                deckReference={ref}
+                                extraClasses="deck-ref-item"
+                            />
+                        ))}
+                        <hr class="light" />
+                    </div>
+                )}
+                {isEditing && (
+                    <AddDecksUI
+                        deckId={deckId}
+                        note={deckMeta}
+                        chosen={deckMeta.decks}
+                        onCancel={onCancel}
+                        onSaved={onSaved}
+                    />
+                )}
+            </div>
+        );
+    } else {
+        return <div></div>;
     }
-
-    return (
-        <div class="deck-ref-section">
-            {!isEditing && entries.length > 0 && (
-                <div>
-                    <hr class="light" />
-                    {entries}
-                    <hr class="light" />
-                </div>
-            )}
-            {isEditing && (
-                <AddDecksUI
-                    deckId={deckId}
-                    note={deckMeta}
-                    chosen={deckMeta.decks}
-                    onCancel={onCancel}
-                    onSaved={onSaved}
-                />
-            )}
-        </div>
-    );
 }
+
+type AddDecksUIProps = {
+    deckId: number;
+    note: Note;
+    chosen: Array<Ref>;
+    onCancel: () => void;
+    onSaved: (
+        n: Note,
+        changes: RefsModified,
+        allDecksForNote: Array<Ref>
+    ) => void;
+};
 
 function AddDecksUI({
     deckId,
@@ -70,38 +99,23 @@ function AddDecksUI({
     chosen,
     onCancel,
     onSaved,
-}: {
-    deckId?: any;
-    note?: any;
-    chosen?: any;
-    onCancel?: any;
-    onSaved?: any;
-}) {
-    // todo: fix this typescript interface
-    interface IFuckKnows {
-        noteId: any;
-        referencesChanged: any;
-        referencesRemoved: any;
-        referencesAdded: any;
-        referencesCreated: any;
-    }
-
-    function referenceChanges(changes: any) {
+}: AddDecksUIProps) {
+    function referenceChanges(changes: RefsModified) {
         if (changes) {
-            let data = {
+            let data: ProtoNoteReferences = {
                 noteId: note.id,
-                // references_unchanged: changes.referencesUnchanged,
                 referencesChanged: changes.referencesChanged,
                 referencesRemoved: changes.referencesRemoved,
                 referencesAdded: changes.referencesAdded,
                 referencesCreated: changes.referencesCreated,
             };
 
-            Net.post<IFuckKnows, any>("/api/edges/notes_decks", data).then(
-                (allDecksForNote) => {
-                    onSaved(note, changes, allDecksForNote);
-                }
-            );
+            Net.post<ProtoNoteReferences, Array<Ref>>(
+                "/api/edges/notes_decks",
+                data
+            ).then((allDecksForNote) => {
+                onSaved(note, changes, allDecksForNote);
+            });
         } else {
             onCancel();
         }

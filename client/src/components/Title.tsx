@@ -1,11 +1,18 @@
 import { h } from "preact";
 import { useEffect, useState, useRef } from "preact/hooks";
 
-import { addToolbarSelectableClasses } from "../CivilUtils";
+import { ToolbarMode } from "../types";
 
+import { addToolbarSelectableClasses } from "../CivilUtils";
 import { getAppState, AppStateChange } from "../AppState";
 
-import { ToolbarMode } from "../types";
+type Props = {
+    title: string;
+    isShowingUpdateForm: boolean;
+    isEditingDeckRefs: boolean;
+    onRefsToggle: () => void;
+    onFormToggle: () => void;
+};
 
 export default function Title({
     title,
@@ -13,13 +20,7 @@ export default function Title({
     isEditingDeckRefs,
     onRefsToggle,
     onFormToggle,
-}: {
-    title?: any;
-    isShowingUpdateForm?: any;
-    isEditingDeckRefs?: any;
-    onRefsToggle?: any;
-    onFormToggle?: any;
-}) {
+}: Props) {
     const appState = getAppState();
 
     const hoveringRef = useRef(null);
@@ -107,7 +108,7 @@ export default function Title({
                 }
             };
         }
-        // todo: added to please tsc
+        // added to please tsc
         return () => {};
     }, []);
 

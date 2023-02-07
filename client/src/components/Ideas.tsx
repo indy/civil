@@ -1,26 +1,31 @@
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { IIdeasListings, ISearchResults, IDeckSimple } from "../types";
+import {
+    DeckIdea,
+    DeckKind,
+    DeckSimple,
+    IdeasListings,
+    SearchResults,
+} from "../types";
 
 import Net from "../Net";
 import { capitalise, formattedDate } from "../JsUtils";
-import { deckTitle } from "../CivilUtils";
 import { getAppState, AppStateChange } from "../AppState";
 
-import { DeckSimpleListSection } from "./ListSections";
-import DeleteDeckConfirmation from "./DeleteDeckConfirmation";
-import DeckManager from "./DeckManager";
-import { DeluxeToolbar } from "./DeluxeToolbar";
-import TopMatter from "./TopMatter";
-import LeftMarginHeading from "./LeftMarginHeading";
-import { InsigniaSelector } from "./Insignias";
 import CivilInput from "./CivilInput";
+import DeckManager from "./DeckManager";
+import DeleteDeckConfirmation from "./DeleteDeckConfirmation";
+import LeftMarginHeading from "./LeftMarginHeading";
 import SectionBackRefs from "./SectionBackRefs";
 import SectionDeckRefs from "./SectionDeckRefs";
-import SectionSearchResultsBackref from "./SectionSearchResultsBackref";
-import SectionNotes from "./SectionNotes";
 import SectionGraph from "./SectionGraph";
+import SectionNotes from "./SectionNotes";
+import SectionSearchResults from "./SectionSearchResults";
+import TopMatter from "./TopMatter";
+import { DeckSimpleListSection } from "./ListSections";
+import { DeluxeToolbar } from "./DeluxeToolbar";
+import { InsigniaSelector } from "./Insignias";
 
 function Ideas({ path }: { path?: string }) {
     const appState = getAppState();
@@ -29,7 +34,7 @@ function Ideas({ path }: { path?: string }) {
     useEffect(() => {
         if (!appState.listing.value.ideas) {
             let url: string = "/api/ideas/listings";
-            Net.get<IIdeasListings>(url).then((listing) => {
+            Net.get<IdeasListings>(url).then((listing) => {
                 AppStateChange.setIdeasListing(listing);
             });
         }
@@ -64,7 +69,7 @@ function Ideas({ path }: { path?: string }) {
 }
 
 function Idea({ path, id }: { path?: string; id?: string }) {
-    const [searchResults, setSearchResults]: [Array<IDeckSimple>, any] =
+    const [searchResults, setSearchResults]: [Array<DeckSimple>, any] =
         useState([]); // an array of backrefs
     const ideaId = id ? parseInt(id, 10) : 0;
 
@@ -75,14 +80,14 @@ function Idea({ path, id }: { path?: string; id?: string }) {
         // todo: change this to accept a search parameter, this will normally default to the idea.title
         // but would also allow differently worded but equivalent text
         //
-        Net.get<ISearchResults>(`/api/ideas/${id}/additional_search`).then(
+        Net.get<SearchResults>(`/api/ideas/${id}/additional_search`).then(
             (searchResults) => {
                 setSearchResults(searchResults.results);
             }
         );
     }, [id]);
 
-    const resource = "ideas";
+    const resource: DeckKind = DeckKind.Idea;
 
     const deckManager = DeckManager({
         id: ideaId,
@@ -91,15 +96,16 @@ function Idea({ path, id }: { path?: string; id?: string }) {
         hasReviewSection: false,
     });
 
-    let deck = deckManager.getDeck() as any;
+    const deck: DeckIdea | undefined = deckManager.getDeck() as
+        | DeckIdea
+        | undefined;
+    if (deck) {
+        return (
+            <article>
+                <DeluxeToolbar />
 
-    return (
-        <article>
-            <DeluxeToolbar />
-
-            {deck && (
                 <TopMatter
-                    title={deckTitle(deck)}
+                    title={deck.title}
                     deck={deck}
                     isShowingUpdateForm={deckManager.isShowingUpdateForm()}
                     isEditingDeckRefs={deckManager.isEditingDeckRefs()}
@@ -110,42 +116,56 @@ function Idea({ path, id }: { path?: string; id?: string }) {
                         {formattedDate(deck.createdAt)}
                     </LeftMarginHeading>
                 </TopMatter>
-            )}
 
-            {deckManager.isShowingUpdateForm() && (
-                <div>
-                    <DeleteDeckConfirmation resource="ideas" id={ideaId} />
-                    <SectionUpdateIdea
-                        idea={deck}
-                        onUpdate={deckManager.updateAndReset}
-                    />{" "}
-                </div>
-            )}
+                {deckManager.isShowingUpdateForm() && (
+                    <div>
+                        <DeleteDeckConfirmation
+                            resource={DeckKind.Idea}
+                            id={ideaId}
+                        />
+                        <SectionUpdateIdea
+                            idea={deck}
+                            onUpdate={deckManager.updateAndReset}
+                        />{" "}
+                    </div>
+                )}
 
-            <SectionDeckRefs
-                deck={deck}
-                isEditing={deckManager.isEditingDeckRefs()}
-                onRefsChanged={deckManager.onRefsChanged}
-                onRefsToggle={deckManager.onRefsToggle}
-            />
+                <SectionDeckRefs
+                    deck={deck}
+                    isEditing={deckManager.isEditingDeckRefs()}
+                    onRefsChanged={deckManager.onRefsChanged}
+                    onRefsToggle={deckManager.onRefsToggle}
+                />
 
-            <SectionNotes
-                deck={deck}
-                resource="ideas"
-                title={deckTitle(deck)}
-                howToShowNoteSection={deckManager.howToShowNoteSection}
-                canShowNoteSection={deckManager.canShowNoteSection}
-                onRefsChanged={deckManager.onRefsChanged}
-                onUpdateDeck={deckManager.update}
-            />
-            <SectionBackRefs deck={deck} />
-            <SectionSearchResultsBackref backrefs={searchResults} />
-            <SectionGraph depth={2} deck={deck} />
-        </article>
-    );
+                <SectionNotes
+                    deck={deck}
+                    resource={resource}
+                    title={deck.title}
+                    howToShowNoteSection={deckManager.howToShowNoteSection}
+                    canShowNoteSection={deckManager.canShowNoteSection}
+                    onRefsChanged={deckManager.onRefsChanged}
+                    onUpdateDeck={deckManager.update}
+                />
+                <SectionBackRefs deck={deck} />
+                <SectionSearchResults searchResults={searchResults} />
+                <SectionGraph depth={2} deck={deck} />
+            </article>
+        );
+    } else {
+        return (
+            <article>
+                <DeluxeToolbar />
+            </article>
+        );
+    }
 }
 
-function SectionUpdateIdea({ idea, onUpdate }: { idea?: any; onUpdate?: any }) {
+type SectionUpdateIdeaProps = {
+    idea: DeckIdea;
+    onUpdate: (d: DeckIdea) => void;
+};
+
+function SectionUpdateIdea({ idea, onUpdate }: SectionUpdateIdeaProps) {
     const [title, setTitle] = useState(idea.title || "");
     const [graphTerminator, setGraphTerminator] = useState(
         idea.graphTerminator
@@ -177,10 +197,6 @@ function SectionUpdateIdea({ idea, onUpdate }: { idea?: any; onUpdate?: any }) {
         }
     };
 
-    interface IDeck {
-        fuckKnowsWhatGoesHere: string;
-    }
-
     interface ISubmitData {
         title: string;
         graphTerminator: boolean;
@@ -194,7 +210,7 @@ function SectionUpdateIdea({ idea, onUpdate }: { idea?: any; onUpdate?: any }) {
             insignia: insigniaId,
         };
 
-        Net.put<ISubmitData, IDeck>(`/api/ideas/${idea.id}`, data).then(
+        Net.put<ISubmitData, DeckIdea>(`/api/ideas/${idea.id}`, data).then(
             (newDeck) => {
                 onUpdate(newDeck);
             }

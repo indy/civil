@@ -3,53 +3,59 @@ import { Link } from "preact-router";
 import { useEffect, useState } from "preact/hooks";
 
 import {
-    IPerson,
-    IDeckSimple,
-    ISearchResults,
-    IPeopleListings,
+    DeckKind,
+    DeckManagerType,
+    DeckPerson,
+    DeckPoint,
+    IDeckCore,
+    DeckSimple,
+    PeopleListings,
+    SearchResults,
+    NoteManagerType,
+    PointKind,
+    ProtoPoint,
 } from "../types";
 
-import { getAppState, AppStateChange } from "../AppState";
-import { fetchDeckListing, deckTitle } from "../CivilUtils";
-import { capitalise } from "../JsUtils";
 import Net from "../Net";
 import { calcAgeInYears, dateStringAsTriple } from "../eras";
+import { deckKindToHeadingString, fetchDeckListing } from "../CivilUtils";
+import { getAppState, AppStateChange } from "../AppState";
 import {
-    svgPointAdd,
-    svgX,
+    svgBlank,
     svgCaretDown,
     svgCaretRight,
     svgCaretRightEmpty,
-    svgBlank,
+    svgPointAdd,
     svgTickedCheckBox,
     svgUntickedCheckBox,
+    svgX,
 } from "../svgIcons";
 import WhenVerbose from "./WhenVerbose";
 
 import CivilInput from "./CivilInput";
 import DeckManager from "./DeckManager";
 import DeleteDeckConfirmation from "./DeleteDeckConfirmation";
-import { InsigniaSelector } from "./Insignias";
 import LifespanForm from "./LifespanForm";
 import RollableSection from "./RollableSection";
 import SectionBackRefs from "./SectionBackRefs";
 import SectionDeckRefs from "./SectionDeckRefs";
 import SectionGraph from "./SectionGraph";
 import SectionNotes from "./SectionNotes";
-import SectionSearchResultsBackref from "./SectionSearchResultsBackref";
+import SectionSearchResults from "./SectionSearchResults";
 import TopMatter from "./TopMatter";
 import { DeckSimpleListSection } from "./ListSections";
 import { DeluxeToolbar } from "./DeluxeToolbar";
+import { InsigniaSelector } from "./Insignias";
 import { PointForm } from "./PointForm";
 
 function People({ path }: { path?: string }) {
     const appState = getAppState();
-    const resource = "people";
+    const resource: DeckKind = DeckKind.Person;
 
     useEffect(() => {
-        if (!appState.listing.value.articles) {
+        if (!appState.listing.value.people) {
             let url: string = "/api/people/listings";
-            Net.get<IPeopleListings>(url).then((listing) => {
+            Net.get<PeopleListings>(url).then((listing) => {
                 AppStateChange.setPeopleListing(listing);
             });
         }
@@ -60,7 +66,7 @@ function People({ path }: { path?: string }) {
     if (people) {
         return (
             <article>
-                <h1 class="ui">{capitalise(resource)}</h1>
+                <h1 class="ui">{deckKindToHeadingString(resource)}</h1>
                 <DeckSimpleListSection
                     label="Uncategorised"
                     list={people.uncategorised}
@@ -97,13 +103,13 @@ function People({ path }: { path?: string }) {
 function Person({ path, id }: { path?: string; id?: string }) {
     const appState = getAppState();
 
-    const [searchResults, setSearchResults]: [Array<IDeckSimple>, any] =
+    const [searchResults, setSearchResults]: [Array<DeckSimple>, any] =
         useState([]); // an array of backrefs
 
     const personId = id ? parseInt(id, 10) : 0;
 
-    const resource = "people";
-    const deckManager = DeckManager({
+    const resource: DeckKind = DeckKind.Person;
+    const deckManager: DeckManagerType = DeckManager({
         id: personId,
         resource,
         preCacheFn,
@@ -112,35 +118,37 @@ function Person({ path, id }: { path?: string; id?: string }) {
     });
 
     useEffect(() => {
-        Net.get<ISearchResults>(`/api/people/${id}/additional_search`).then(
+        Net.get<SearchResults>(`/api/people/${id}/additional_search`).then(
             (searchResults) => {
                 setSearchResults(searchResults.results);
             }
         );
     }, [id]);
 
-    function dispatchUpdatedPerson(person?: any) {
+    function dispatchUpdatedPerson(person?: DeckPerson) {
         fetchDeckListing(resource, "/api/people/listings");
     }
 
-    function onLifespan(birthPoint?: any, deathPoint?: any) {
-        Net.post(`/api/people/${personId}/points`, birthPoint).then(
-            (person) => {
-                if (deathPoint) {
-                    Net.post(`/api/people/${personId}/points`, deathPoint).then(
-                        (person) => {
-                            dispatchUpdatedPerson(person);
-                        }
-                    );
-                } else {
+    function onLifespan(birthPoint: ProtoPoint, deathPoint?: ProtoPoint) {
+        Net.post<ProtoPoint, DeckPerson>(
+            `/api/people/${personId}/points`,
+            birthPoint
+        ).then((person) => {
+            if (deathPoint) {
+                Net.post<ProtoPoint, DeckPerson>(
+                    `/api/people/${personId}/points`,
+                    deathPoint
+                ).then((person) => {
                     dispatchUpdatedPerson(person);
-                }
+                });
+            } else {
+                dispatchUpdatedPerson(person);
             }
-        );
+        });
     }
 
-    function hasBirthPoint(person?: any) {
-        function hasBirth(point?: any) {
+    function hasBirthPoint(person: IDeckCore) {
+        function hasBirth(point: DeckPoint) {
             return point.title === "Born" && point.deckId === person.id;
         }
 
@@ -150,82 +158,94 @@ function Person({ path, id }: { path?: string; id?: string }) {
         return false;
     }
 
-    const deck: any = deckManager.getDeck();
-    const name = deck && deck.name;
-    const hasKnownLifespan = deck && hasBirthPoint(deck);
+    const deck: DeckPerson | undefined = deckManager.getDeck() as
+        | DeckPerson
+        | undefined;
+    if (deck) {
+        const name = deck && deck.name;
+        const hasKnownLifespan = deck && hasBirthPoint(deck);
+        return (
+            <article>
+                <DeluxeToolbar />
 
-    return (
-        <article>
-            <DeluxeToolbar />
+                <TopMatter
+                    title={deck.name}
+                    deck={deck}
+                    isShowingUpdateForm={deckManager.isShowingUpdateForm()}
+                    isEditingDeckRefs={deckManager.isEditingDeckRefs()}
+                    onRefsToggle={deckManager.onRefsToggle}
+                    onFormToggle={deckManager.onFormToggle}
+                ></TopMatter>
 
-            <TopMatter
-                title={deckTitle(deck)}
-                deck={deck}
-                isShowingUpdateForm={deckManager.isShowingUpdateForm()}
-                isEditingDeckRefs={deckManager.isEditingDeckRefs()}
-                onRefsToggle={deckManager.onRefsToggle}
-                onFormToggle={deckManager.onFormToggle}
-            ></TopMatter>
+                {deckManager.isShowingUpdateForm() && (
+                    <div>
+                        <DeleteDeckConfirmation
+                            resource={DeckKind.Person}
+                            id={personId}
+                        />
+                        <SectionUpdatePerson
+                            person={deck}
+                            onUpdate={deckManager.updateAndReset}
+                        />
+                    </div>
+                )}
 
-            {deckManager.isShowingUpdateForm() && (
-                <div>
-                    <DeleteDeckConfirmation resource="people" id={personId} />
-                    <SectionUpdatePerson
-                        person={deck}
-                        onUpdate={deckManager.updateAndReset}
+                {name && !hasKnownLifespan && (
+                    <LifespanForm
+                        name={name}
+                        onLifespanGiven={onLifespan}
+                        oldestAliveAge={appState.oldestAliveAge}
                     />
-                </div>
-            )}
+                )}
 
-            {name && !hasKnownLifespan && (
-                <LifespanForm
-                    name={name}
-                    onLifespanGiven={onLifespan}
-                    oldestAliveAge={appState.oldestAliveAge}
+                <SectionDeckRefs
+                    deck={deck}
+                    isEditing={deckManager.isEditingDeckRefs()}
+                    onRefsChanged={deckManager.onRefsChanged}
+                    onRefsToggle={deckManager.onRefsToggle}
                 />
-            )}
 
-            <SectionDeckRefs
-                deck={deck}
-                isEditing={deckManager.isEditingDeckRefs()}
-                onRefsChanged={deckManager.onRefsChanged}
-                onRefsToggle={deckManager.onRefsToggle}
-            />
-
-            <SectionNotes
-                deck={deck}
-                title={deckTitle(deck)}
-                onRefsChanged={deckManager.onRefsChanged}
-                resource="people"
-                howToShowNoteSection={deckManager.howToShowNoteSection}
-                canShowNoteSection={deckManager.canShowNoteSection}
-                onUpdateDeck={deckManager.update}
-            />
-
-            <SectionBackRefs deck={deck} />
-
-            <SectionSearchResultsBackref backrefs={searchResults} />
-            {hasKnownLifespan && (
-                <ListDeckPoints
-                    deckPoints={deck.points}
-                    deckManager={deckManager}
-                    holderId={deck.id}
-                    showAddPointForm={appState.showAddPointForm.value}
-                    holderName={deck.name}
+                <SectionNotes
+                    deck={deck}
+                    title={deck.name}
+                    onRefsChanged={deckManager.onRefsChanged}
+                    resource={resource}
+                    howToShowNoteSection={deckManager.howToShowNoteSection}
+                    canShowNoteSection={deckManager.canShowNoteSection}
+                    onUpdateDeck={deckManager.update}
                 />
-            )}
-            <SectionGraph depth={2} deck={deck} />
-        </article>
-    );
+
+                <SectionBackRefs deck={deck} />
+
+                <SectionSearchResults searchResults={searchResults} />
+                {hasKnownLifespan && (
+                    <ListDeckPoints
+                        deckPoints={deck.points}
+                        deckManager={deckManager}
+                        holderId={deck.id}
+                        showAddPointForm={appState.showAddPointForm.value}
+                        holderName={deck.name}
+                    />
+                )}
+                <SectionGraph depth={2} deck={deck} />
+            </article>
+        );
+    } else {
+        return (
+            <article>
+                <DeluxeToolbar />
+            </article>
+        );
+    }
 }
 
 // called before this deck is cached by the AppState (ie after every modification)
-function preCacheFn(person?: any) {
-    function getBirthDateFromPoints(points?: any) {
-        const kind = "PointBegin";
+function preCacheFn(person: IDeckCore): IDeckCore {
+    function getBirthDateFromPoints(points: Array<DeckPoint>) {
+        const kind: PointKind = PointKind.PointBegin;
         const p = points.find((p) => p.kind === kind && p.deckId === person.id);
         if (!p || !p.date) {
-            return null;
+            return undefined;
         }
 
         let triple = dateStringAsTriple(p.date);
@@ -233,7 +253,7 @@ function preCacheFn(person?: any) {
     }
 
     // point is an element in points
-    function addAge(point?: any, born?: any) {
+    function addAge(point: DeckPoint, born: [number, number, number]) {
         if (!point.date) {
             console.log("no date???");
             return point;
@@ -249,10 +269,15 @@ function preCacheFn(person?: any) {
         return point;
     }
 
-    let born = getBirthDateFromPoints(person.points);
-    if (born) {
-        // we have a birth year so we can add the age of the person to each of the points elements
-        person.points.forEach((p) => addAge(p, born));
+    if (person.points) {
+        let born: [number, number, number] | undefined = getBirthDateFromPoints(
+            person.points
+        );
+        if (born) {
+            let b: [number, number, number] = born;
+            // we have a birth year so we can add the age of the person to each of the points elements
+            person.points.forEach((p) => addAge(p, b));
+        }
     }
 
     return person;
@@ -262,8 +287,8 @@ function SectionUpdatePerson({
     person,
     onUpdate,
 }: {
-    person?: any;
-    onUpdate?: any;
+    person: DeckPerson;
+    onUpdate: (p: IDeckCore) => void;
 }) {
     const [localState, setLocalState] = useState({
         name: person.name || "",
@@ -302,15 +327,22 @@ function SectionUpdatePerson({
     };
 
     const handleSubmit = (e: Event) => {
-        const data = {
+        type Data = {
+            name: string;
+            insignia: number;
+        };
+
+        const data: Data = {
             name: localState.name.trim(),
             insignia: localState.insigniaId,
         };
 
         // edit an existing person
-        Net.put(`/api/people/${person.id}`, data).then((newDeck) => {
-            onUpdate(newDeck);
-        });
+        Net.put<Data, DeckPerson>(`/api/people/${person.id}`, data).then(
+            (newDeck) => {
+                onUpdate(newDeck);
+            }
+        );
 
         e.preventDefault();
     };
@@ -350,10 +382,10 @@ function PersonDeckPoint({
     noteManager,
     holderId,
 }: {
-    deckPoint?: any;
-    hasNotes?: any;
-    noteManager?: any;
-    holderId?: any;
+    deckPoint: DeckPoint;
+    hasNotes: boolean;
+    noteManager: NoteManagerType;
+    holderId: number;
 }) {
     let [expanded, setExpanded] = useState(false);
 
@@ -365,7 +397,7 @@ function PersonDeckPoint({
     let pointTitle = deckPoint.title;
 
     let item;
-    let ageText = deckPoint.age > 0 ? `${deckPoint.age}` : "";
+    let ageText = deckPoint.age! > 0 ? `${deckPoint.age}` : "";
 
     if (deckPoint.deckId === holderId) {
         item = (
@@ -405,11 +437,11 @@ function ListDeckPoints({
     holderName,
     showAddPointForm,
 }: {
-    deckPoints?: any;
-    deckManager?: any;
-    holderId?: any;
-    holderName?: any;
-    showAddPointForm?: any;
+    deckPoints: Array<DeckPoint> | undefined;
+    deckManager: DeckManagerType;
+    holderId: number;
+    holderName: string;
+    showAddPointForm: boolean;
 }) {
     const [onlyThisPerson, setOnlyThisPerson] = useState(false);
     const [showBirthsDeaths, setShowBirthsDeaths] = useState(false);
@@ -439,22 +471,20 @@ function ListDeckPoints({
         AppStateChange.hideAddPointForm();
     }
 
-    function onAddDeathPoint(point: any) {
-        Net.post<any, IPerson>(`/api/people/${holderId}/points`, point).then(
-            (person) => {
-                setShowDeathForm(false);
-            }
-        );
+    function onAddDeathPoint(point: DeckPoint) {
+        Net.post<DeckPoint, DeckPerson>(
+            `/api/people/${holderId}/points`,
+            point
+        ).then((_person) => {
+            setShowDeathForm(false);
+        });
     }
 
     function deathForm() {
-        let point = {
-            title: "Died",
-        };
         return (
             <PointForm
-                pointKind="pointEnd"
-                point={point}
+                pointKind={PointKind.PointEnd}
+                pointTitle="Died"
                 onSubmit={onAddDeathPoint}
                 submitMessage="Create Death Point"
             />
@@ -475,7 +505,7 @@ function ListDeckPoints({
 
     // don't show the person's age for any of their posthumous points
     const deathIndex = arr.findIndex(
-        (e) => e.deckId === holderId && e.kind === "PointEnd"
+        (e) => e.deckId === holderId && e.kind === PointKind.PointEnd
     );
     if (deathIndex) {
         for (let i = deathIndex + 1; i < arr.length; i++) {
@@ -498,9 +528,11 @@ function ListDeckPoints({
     const formSidebarText = showAddPointForm
         ? "Hide Form"
         : `Add Point for { holderName }`;
-    const hasDied = deckPoints.some(
-        (dp) => dp.deckId === holderId && dp.kind === "PointEnd"
-    );
+    const hasDied =
+        deckPoints &&
+        deckPoints.some(
+            (dp) => dp.deckId === holderId && dp.kind === PointKind.PointEnd
+        );
 
     const sectionTitle = `Points during the life of ${holderName}`;
     return (

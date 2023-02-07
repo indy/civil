@@ -1,60 +1,114 @@
 import { h } from "preact";
-import { useEffect, useState, useRef } from "preact/hooks";
+import { useEffect, useState, useRef, Ref as PreactRef } from "preact/hooks";
 
-import { ToolbarMode } from "../types";
-
-import { getAppState, AppStateChange } from "../AppState";
+import {
+    FlashCard,
+    IDeckCore,
+    Note,
+    Notes,
+    ProtoNoteReferences,
+    Ref,
+    RefsModified,
+    State,
+    ToolbarMode,
+} from "../types";
 
 import Net from "../Net";
 import { addToolbarSelectableClasses } from "../CivilUtils";
+import { getAppState, AppStateChange } from "../AppState";
 import { svgFlashCard } from "../svgIcons";
 import { useLocalReducer } from "../PreactUtils";
 
 import CivilSelect from "./CivilSelect";
 import CivilTextArea from "./CivilTextArea";
 import DeleteConfirmation from "./DeleteConfirmation";
-import FlashCard from "./FlashCard";
+import FlashCardView from "./FlashCardView";
 import ImageSelector from "./ImageSelector";
 import NoteForm from "./NoteForm";
-import Ref from "./Ref";
+import RefView from "./RefView";
 import buildMarkup from "./BuildMarkup";
 
-const ADD_DECKS_COMMIT = "add-decks-commit";
-const ADD_DECK_REFERENCES_UI_SHOW = "add-deck-references-ui-show";
-const ADD_FLASH_CARD_UI_SHOW = "add-flashcard-ui-show";
-const ADD_NOTE_ABOVE_UI_SHOW = "add-note-above-ui-show";
-const EDITED_NOTE = "edited-note";
-const EDITING_CANCELLED = "editing-cancelled";
-const FLASHCARD_DELETED = "flashcard-deleted";
-const FLASHCARD_HIDE = "flashcard-hide";
-const FLASHCARD_TOGGLE = "flashcard-toggle";
-const FLASH_CARD_SAVED = "flash-card-saved";
-const HIDE_ADD_DECKS_UI = "hide-add-decks-ui";
-const IMAGE_PASTED = "image-pasted";
-const MOUSE_ENTER = "mouse-enter";
-const MOUSE_LEAVE = "mouse-leave";
-const NOTE_CHANGED = "note-changed";
-const NOTE_SET_PROPERTY = "note-set-property";
-const TEXT_AREA_BLURRED = "text-area-blurred";
-const TEXT_AREA_FOCUSED = "text-area-focused";
-const TOGGLE_EDITING = "toggle-editing";
+enum ActionType {
+    AddDecksCommit,
+    AddDeckReferencesUiShow,
+    AddFlashCardUiShow,
+    AddNoteAboveUiShow,
+    EditedNote,
+    EditingCancelled,
+    FlashcardDeleted,
+    FlashcardHide,
+    FlashcardToggle,
+    FlashCardSaved,
+    HideAddDecksUi,
+    ImagePasted,
+    MouseEnter,
+    MouseLeave,
+    NoteChanged,
+    NoteSetProperty,
+    TextAreaBlurred,
+    TextAreaFocused,
+    ToggleEditing,
+}
 
-function reducer(state?: any, action?: any) {
+type LocalState = {
+    addDeckReferencesUI: boolean;
+    addFlashCardUI: boolean;
+    addNoteAboveUI: boolean;
+    isEditingMarkup: boolean;
+    note: Note;
+    originalContent: string;
+    decks: Array<Ref>;
+    flashcardToShow: FlashCard | undefined;
+    mouseHovering: boolean;
+    oldCursorPos: number;
+    textAreaFocused: boolean;
+};
+
+type ActionDataFlashCardSaved = {
+    flashcard: FlashCard;
+    appState: State;
+};
+
+type ActionDataImagePasted = {
+    textAreaRef: PreactRef<HTMLTextAreaElement>;
+    markup: string;
+};
+
+type ActionDataDecksCommit = {
+    allDecksForNote: Array<Ref>;
+    changes: RefsModified;
+};
+
+type Action = {
+    type: ActionType;
+    data?:
+        | Note
+        | FlashCard
+        | number
+        | boolean
+        | ActionDataImagePasted
+        | ActionDataDecksCommit
+        | ActionDataFlashCardSaved
+        | any;
+};
+
+function reducer(state: LocalState, action: Action) {
     switch (action.type) {
-        case NOTE_CHANGED: {
-            const note = action.data;
+        case ActionType.NoteChanged: {
+            const note = action.data as Note;
             let newState = {
                 ...state,
                 note,
             };
             return newState;
         }
-        case IMAGE_PASTED: {
-            const { textAreaRef, markup } = action.data;
+        case ActionType.ImagePasted: {
+            const { textAreaRef, markup } =
+                action.data as ActionDataImagePasted;
             const content = state.note.content;
 
-            let cursor;
-            if (state.textAreaFocused) {
+            let cursor: number;
+            if (state.textAreaFocused && textAreaRef.current) {
                 cursor = textAreaRef.current.selectionStart;
             } else {
                 cursor = state.oldCursorPos;
@@ -73,42 +127,42 @@ function reducer(state?: any, action?: any) {
             };
             return res;
         }
-        case TEXT_AREA_FOCUSED: {
+        case ActionType.TextAreaFocused: {
             let res = {
                 ...state,
                 textAreaFocused: true,
             };
             return res;
         }
-        case TEXT_AREA_BLURRED: {
+        case ActionType.TextAreaBlurred: {
             let res = {
                 ...state,
-                oldCursorPos: action.data,
+                oldCursorPos: action.data as number,
                 textAreaFocused: false,
             };
             return res;
         }
-        case MOUSE_ENTER: {
+        case ActionType.MouseEnter: {
             let res = {
                 ...state,
                 mouseHovering: true,
             };
             return res;
         }
-        case MOUSE_LEAVE: {
+        case ActionType.MouseLeave: {
             let res = {
                 ...state,
                 mouseHovering: false,
             };
             return res;
         }
-        case FLASHCARD_HIDE: {
+        case ActionType.FlashcardHide: {
             let res = { ...state };
             res.flashcardToShow = undefined;
             return res;
         }
-        case FLASHCARD_DELETED: {
-            let flashcard = action.data;
+        case ActionType.FlashcardDeleted: {
+            let flashcard = action.data as FlashCard;
             let res = {
                 ...state,
             };
@@ -120,9 +174,9 @@ function reducer(state?: any, action?: any) {
 
             return res;
         }
-        case FLASHCARD_TOGGLE: {
+        case ActionType.FlashcardToggle: {
             let res = { ...state };
-            let fc = action.data;
+            let fc = action.data as FlashCard;
 
             if (res.flashcardToShow) {
                 if (res.flashcardToShow.id === fc.id) {
@@ -136,7 +190,7 @@ function reducer(state?: any, action?: any) {
 
             return res;
         }
-        case NOTE_SET_PROPERTY: {
+        case ActionType.NoteSetProperty: {
             const newNote = { ...state.note };
             newNote[action.data.name] = action.data.value;
             return {
@@ -144,13 +198,13 @@ function reducer(state?: any, action?: any) {
                 note: newNote,
             };
         }
-        case ADD_DECK_REFERENCES_UI_SHOW:
+        case ActionType.AddDeckReferencesUiShow:
             return {
                 ...state,
-                addDeckReferencesUI: action.data,
+                addDeckReferencesUI: action.data as boolean,
             };
-        case ADD_FLASH_CARD_UI_SHOW: {
-            const showUI = action.data;
+        case ActionType.AddFlashCardUiShow: {
+            const showUI = action.data as boolean;
             const newState = {
                 ...state,
                 addFlashCardUI: showUI,
@@ -164,8 +218,8 @@ function reducer(state?: any, action?: any) {
 
             return newState;
         }
-        case ADD_NOTE_ABOVE_UI_SHOW: {
-            const showUI = action.data;
+        case ActionType.AddNoteAboveUiShow: {
+            const showUI = action.data as boolean;
             const newState = {
                 ...state,
                 addNoteAboveUI: showUI,
@@ -181,7 +235,7 @@ function reducer(state?: any, action?: any) {
 
             return newState;
         }
-        case HIDE_ADD_DECKS_UI: {
+        case ActionType.HideAddDecksUi: {
             const newState = {
                 ...state,
                 addDeckReferencesUI: false,
@@ -190,8 +244,9 @@ function reducer(state?: any, action?: any) {
 
             return newState;
         }
-        case ADD_DECKS_COMMIT: {
-            const { changes, allDecksForNote } = action.data;
+        case ActionType.AddDecksCommit: {
+            const { allDecksForNote, changes } =
+                action.data as ActionDataDecksCommit;
 
             AppStateChange.noteRefsModified(allDecksForNote, changes);
             AppStateChange.toolbarMode(ToolbarMode.View);
@@ -202,8 +257,9 @@ function reducer(state?: any, action?: any) {
                 addDeckReferencesUI: false,
             };
         }
-        case FLASH_CARD_SAVED: {
-            let { flashcard, appState } = action.data;
+        case ActionType.FlashCardSaved: {
+            let { flashcard, appState } =
+                action.data as ActionDataFlashCardSaved;
 
             const newState = {
                 ...state,
@@ -224,7 +280,7 @@ function reducer(state?: any, action?: any) {
 
             return newState;
         }
-        case TOGGLE_EDITING: {
+        case ActionType.ToggleEditing: {
             const newState = {
                 ...state,
                 isEditingMarkup: !state.isEditingMarkup,
@@ -239,7 +295,7 @@ function reducer(state?: any, action?: any) {
 
             return newState;
         }
-        case EDITED_NOTE: {
+        case ActionType.EditedNote: {
             const newState = {
                 ...state,
                 isEditingMarkup: false,
@@ -251,7 +307,7 @@ function reducer(state?: any, action?: any) {
 
             return newState;
         }
-        case EDITING_CANCELLED: {
+        case ActionType.EditingCancelled: {
             const newState = {
                 ...state,
                 isEditingMarkup: false,
@@ -266,13 +322,20 @@ function reducer(state?: any, action?: any) {
 
             return newState;
         }
-
-        default:
-            throw new Error(`unknown action: ${action}`);
     }
 }
 
-export default function Note({
+type Props = {
+    note: Note;
+    parentDeck: IDeckCore;
+    toolbarMode: ToolbarMode;
+    onDelete: (id: number) => void;
+    onEdited: (id: number, n: Note) => void;
+    onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
+    onUpdateDeck: (d: IDeckCore) => void;
+};
+
+export default function NoteView({
     note,
     parentDeck,
     toolbarMode,
@@ -280,30 +343,10 @@ export default function Note({
     onEdited,
     onRefsChanged,
     onUpdateDeck,
-}: {
-    note?: any;
-    parentDeck?: any;
-    toolbarMode?: any;
-    onDelete?: any;
-    onEdited?: any;
-    onRefsChanged?: any;
-    onUpdateDeck?: any;
-}) {
+}: Props) {
     const appState = getAppState();
 
-    const initialState: {
-        addDeckReferencesUI: boolean;
-        addFlashCardUI: boolean;
-        addNoteAboveUI: boolean;
-        isEditingMarkup: boolean;
-        note: any;
-        originalContent: string;
-        decks: any;
-        flashcardToShow: any;
-        mouseHovering: boolean;
-        oldCursorPos: number;
-        textAreaFocused: boolean;
-    } = {
+    const initialState: LocalState = {
         addDeckReferencesUI: false,
         addFlashCardUI: false,
         addNoteAboveUI: false,
@@ -319,19 +362,19 @@ export default function Note({
     const [local, localDispatch] = useLocalReducer(reducer, initialState);
 
     const hoveringRef = useRef(null);
-    const textAreaRef = useRef(null);
+    const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
     function mouseEnter() {
-        localDispatch(MOUSE_ENTER);
+        localDispatch(ActionType.MouseEnter);
     }
     function mouseLeave() {
-        localDispatch(MOUSE_LEAVE);
+        localDispatch(ActionType.MouseLeave);
     }
 
     useEffect(() => {
         // pick up changes to the note's references
         // from the DeckManager::onRefsChanged callback
-        localDispatch(NOTE_CHANGED, note);
+        localDispatch(ActionType.NoteChanged, note);
     }, [note]);
 
     useEffect(() => {
@@ -346,24 +389,26 @@ export default function Note({
                 }
             };
         }
-        // todo: added to please tsc
+        // added to please tsc
         return () => {};
     });
 
-    function handleChangeEvent(event) {
-        const target = event.target;
-        localDispatch(NOTE_SET_PROPERTY, {
-            name: target.name,
-            value: target.value,
-        });
+    function handleChangeEvent(event: Event) {
+        if (event.target instanceof HTMLTextAreaElement) {
+            const target = event.target;
+            localDispatch(ActionType.NoteSetProperty, {
+                name: target.name,
+                value: target.value,
+            });
+        }
     }
 
-    function onCancelClicked(e) {
+    function onCancelClicked(e: Event) {
         e.preventDefault();
-        localDispatch(EDITING_CANCELLED);
+        localDispatch(ActionType.EditingCancelled);
     }
 
-    function onSaveEditsClicked(e) {
+    function onSaveEditsClicked(e: Event) {
         e.preventDefault();
 
         if (hasNoteBeenModified(local)) {
@@ -376,30 +421,34 @@ export default function Note({
 
             // send updated content to server
             //
-            const updatedNote = {
+            const updatedNote: Note = {
                 id: local.note.id,
+                prevNoteId: null,
                 kind: local.note.kind,
                 content: local.note.content,
+                pointId: null,
+                decks: [],
+                flashcards: [],
             };
 
             // stopped editing and the editable content is different than
             // the original note's text.
             onEdited(id, updatedNote);
-            localDispatch(EDITED_NOTE);
+            localDispatch(ActionType.EditedNote);
         } else {
-            localDispatch(TOGGLE_EDITING);
+            localDispatch(ActionType.ToggleEditing);
         }
     }
 
     function onTextAreaFocus() {
-        localDispatch(TEXT_AREA_FOCUSED);
+        localDispatch(ActionType.TextAreaFocused);
     }
 
     function onTextAreaBlur() {
         if (textAreaRef.current) {
             let tar: HTMLTextAreaElement = textAreaRef.current;
             let cursor = tar.selectionStart;
-            localDispatch(TEXT_AREA_BLURRED, cursor);
+            localDispatch(ActionType.TextAreaBlurred, cursor);
         }
     }
 
@@ -421,12 +470,12 @@ export default function Note({
     function buildAddFlashCardUI() {
         let [flashCardPrompt, setFlashCardPrompt] = useState("");
 
-        function onCancel(e) {
+        function onCancel(e: Event) {
             e.preventDefault();
-            localDispatch(ADD_FLASH_CARD_UI_SHOW, false);
+            localDispatch(ActionType.AddFlashCardUiShow, false);
         }
 
-        function onSave(e) {
+        function onSave(e: Event) {
             e.preventDefault();
 
             let data = {
@@ -435,7 +484,7 @@ export default function Note({
             };
 
             Net.post("/api/sr", data).then((newFlashcard) => {
-                localDispatch(FLASH_CARD_SAVED, {
+                localDispatch(ActionType.FlashCardSaved, {
                     flashcard: newFlashcard,
                     appState,
                 });
@@ -443,9 +492,11 @@ export default function Note({
             });
         }
 
-        function onInput(e) {
+        function onInput(e: Event) {
             e.preventDefault();
-            setFlashCardPrompt(e.target.value);
+            if (e.target instanceof HTMLInputElement) {
+                setFlashCardPrompt(e.target.value);
+            }
         }
 
         return (
@@ -461,13 +512,13 @@ export default function Note({
     }
 
     function buildAddNoteAboveUI() {
-        function onCancelled(e) {
+        function onCancelled(e: Event) {
             e.preventDefault();
-            localDispatch(ADD_NOTE_ABOVE_UI_SHOW, false);
+            localDispatch(ActionType.AddNoteAboveUiShow, false);
         }
 
-        function onNoteCreated(allNotes) {
-            localDispatch(ADD_NOTE_ABOVE_UI_SHOW, false);
+        function onNoteCreated(allNotes: Notes) {
+            localDispatch(ActionType.AddNoteAboveUiShow, false);
             onUpdateDeck({ ...parentDeck, notes: allNotes });
         }
 
@@ -479,46 +530,35 @@ export default function Note({
                 deckId={parentDeck.id}
                 nextNoteId={note.id}
                 noteKind={note.kind}
-                optionalPointId={note.pointId}
+                optionalPointId={note.pointId ? note.pointId : undefined}
             />
         );
     }
 
     function buildAddDecksUI() {
-        // todo : there is similar code in SectionDeckRefs
-
-        // todo: fix this typescript interface
-        interface IFuckKnows {
-            noteId: any;
-            referencesChanged: any;
-            referencesRemoved: any;
-            referencesAdded: any;
-            referencesCreated: any;
-        }
-
-        function referenceChanges(changes?: any) {
+        function referenceChanges(changes?: RefsModified) {
             if (changes) {
-                let data = {
+                let data: ProtoNoteReferences = {
                     noteId: note.id,
-                    // references_unchanged: changes.referencesUnchanged,
                     referencesChanged: changes.referencesChanged,
                     referencesRemoved: changes.referencesRemoved,
                     referencesAdded: changes.referencesAdded,
                     referencesCreated: changes.referencesCreated,
                 };
 
-                Net.post<IFuckKnows, any>("/api/edges/notes_decks", data).then(
-                    (allDecksForNote) => {
-                        onRefsChanged(local.note, allDecksForNote);
-                        localDispatch(ADD_DECKS_COMMIT, {
-                            allDecksForNote,
-                            changes,
-                        });
-                    }
-                );
+                Net.post<ProtoNoteReferences, Array<Ref>>(
+                    "/api/edges/notes_decks",
+                    data
+                ).then((allDecksForNote) => {
+                    onRefsChanged(local.note, allDecksForNote);
+                    localDispatch(ActionType.AddDecksCommit, {
+                        allDecksForNote,
+                        changes,
+                    });
+                });
             } else {
                 // cancel was pressed
-                localDispatch(HIDE_ADD_DECKS_UI);
+                localDispatch(ActionType.HideAddDecksUi);
             }
         }
 
@@ -534,15 +574,14 @@ export default function Note({
         );
     }
 
-    function onImagePaste(markup?: any) {
-        localDispatch(IMAGE_PASTED, { textAreaRef, markup });
+    function onImagePaste(markup: string) {
+        localDispatch(ActionType.ImagePasted, { textAreaRef, markup });
     }
 
     function buildMainButtons() {
         function confirmedDeleteClicked() {
             onDelete(note.id);
         }
-
         return (
             <div class="block-width form-margin">
                 <button onClick={onCancelClicked}>Cancel</button>
@@ -558,8 +597,8 @@ export default function Note({
         );
     }
 
-    function flashCardDeleted(flashcard?: any) {
-        localDispatch(FLASHCARD_DELETED, flashcard);
+    function flashCardDeleted(flashcard: FlashCard) {
+        localDispatch(ActionType.FlashcardDeleted, flashcard);
     }
 
     let noteClasses = "note selectable-container";
@@ -571,13 +610,13 @@ export default function Note({
         switch (appState.toolbarMode.value) {
             case ToolbarMode.Edit:
                 if (!local.isEditingMarkup) {
-                    localDispatch(TOGGLE_EDITING);
+                    localDispatch(ActionType.ToggleEditing);
                 }
                 break;
             case ToolbarMode.Refs:
                 if (!local.addDeckReferencesUI) {
                     localDispatch(
-                        ADD_DECK_REFERENCES_UI_SHOW,
+                        ActionType.AddDeckReferencesUiShow,
                         !local.addDeckReferencesUI
                     );
                 }
@@ -585,7 +624,7 @@ export default function Note({
             case ToolbarMode.SR:
                 if (!local.addFlashCardUI) {
                     localDispatch(
-                        ADD_FLASH_CARD_UI_SHOW,
+                        ActionType.AddFlashCardUiShow,
                         !local.addFlashCardUI
                     );
                 }
@@ -593,7 +632,7 @@ export default function Note({
             case ToolbarMode.AddAbove:
                 if (!local.addNoteAboveUI) {
                     localDispatch(
-                        ADD_NOTE_ABOVE_UI_SHOW,
+                        ActionType.AddNoteAboveUiShow,
                         !local.addNoteAboveUI
                     );
                 }
@@ -609,7 +648,7 @@ export default function Note({
 
             {local.isEditingMarkup && buildEditableContent()}
             {local.flashcardToShow && (
-                <FlashCard
+                <FlashCardView
                     flashcard={local.flashcardToShow}
                     onDelete={flashCardDeleted}
                 />
@@ -626,46 +665,39 @@ export default function Note({
     );
 }
 
-function buildLeftMarginContent(note, localDispatch) {
-    let decks = undefined;
-    if (note.decks) {
-        decks = buildNoteReferences(note.decks);
-    }
-
-    let flashcards = undefined;
-    if (note.flashcards) {
-        flashcards = buildFlashcardIndicator(note.flashcards, localDispatch);
-    }
-
-    if (!decks && !flashcards) {
+function buildLeftMarginContent(note: Note, localDispatch) {
+    if (!note.decks && !note.flashcards) {
         return <span></span>;
     } else {
         return (
             <div class="left-margin">
-                {flashcards}
-                {decks && flashcards && <div class="spacer"></div>}
-                {decks}
+                {buildFlashcardIndicator(note.flashcards, localDispatch)}
+                {note.decks && note.flashcards && <div class="spacer"></div>}
+                {buildNoteReferences(note.decks)}
             </div>
         );
     }
 }
 
-function buildNoteReferences(decks?: any) {
+function buildNoteReferences(decks: Array<Ref>) {
     const entries = decks.map((ref) => {
-        return <Ref deckReference={ref} extraClasses="left-margin-entry" />;
+        return <RefView deckReference={ref} extraClasses="left-margin-entry" />;
     });
 
     return entries;
 }
 
-function buildFlashcardIndicator(flashcards?: any, localDispatch?: any) {
+function buildFlashcardIndicator(
+    flashcards: Array<FlashCard>,
+    localDispatch?: any
+) {
     // a single note may have multiple flashcards
     const entries = flashcards.map((fc) => {
         const { id } = fc;
 
         function onFlashcardIconClicked(e: Event) {
             e.preventDefault();
-            localDispatch(FLASHCARD_TOGGLE, fc);
+            localDispatch(ActionType.FlashcardToggle, fc);
         }
 
         return (
@@ -680,6 +712,6 @@ function buildFlashcardIndicator(flashcards?: any, localDispatch?: any) {
     return entries;
 }
 
-function hasNoteBeenModified(local?: any) {
+function hasNoteBeenModified(local: LocalState) {
     return local.note.content !== local.originalContent;
 }

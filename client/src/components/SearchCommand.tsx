@@ -2,48 +2,75 @@ import { h } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import { Link, route } from "preact-router";
 
-import { ToolbarMode } from "../types";
+import { DeckKind, DeckQuote, NoteKind, ToolbarMode } from "../types";
 
 import Net from "../Net";
 import { getAppState, AppStateChange } from "../AppState";
-import { createDeck, indexToShortcut } from "../CivilUtils";
+import {
+    createDeck,
+    deckKindToResourceString,
+    indexToShortcut,
+} from "../CivilUtils";
 import { svgX, svgChevronDown, svgChevronUp } from "../svgIcons";
 import { useLocalReducer } from "../PreactUtils";
 
 import DeckLink from "./DeckLink";
-import {
-    NOTE_KIND_NOTE,
-    NOTE_KIND_SUMMARY,
-    NOTE_KIND_REVIEW,
-} from "./NoteSection";
 
-const MODE_SEARCH = "mode-search";
-const MODE_COMMAND = "mode-command";
+enum Mode {
+    Search,
+    Command,
+}
 
-// actions to give to the dispatcher
-const CANDIDATES_SET = "candidate-set";
-const CLICKED_CANDIDATE = "clicked-candidate";
-const CLICKED_COMMAND = "clicked-command";
-const INPUT_BLUR = "input-blur";
-const INPUT_FOCUS = "input-focus";
-const INPUT_GIVEN = "input-given";
-const KEY_DOWN_COLON = "key-down-colon";
-const KEY_DOWN_CTRL = "key-down-ctrl";
-const KEY_DOWN_ENTER = "key-down-enter";
-const KEY_DOWN_ESC = "key-down-esc";
-const KEY_DOWN_KEY = "key-down-key";
-const KEY_DOWN_PLUS = "key-down-plus";
-const REMOVE_SAVED_SEARCH_RESULT = "remove-saved-search-result";
+type Command = {
+    command?: string;
+    description?: string;
+    quoteAround?: string;
+    fn?: (args?: any) => any;
+    spacer?: boolean;
+};
+
+enum ActionType {
+    CandidatesSet,
+    ClickedCandidate,
+    ClickedCommand,
+    InputBlur,
+    InputFocus,
+    InputGiven,
+    KeyDownColon,
+    KeyDownCtrl,
+    KeyDownEnter,
+    KeyDownEsc,
+    KeyDownKey,
+    KeyDownPlus,
+    RemoveSavedSearchResult,
+}
+
+type Action = {
+    type: ActionType;
+    data?: any;
+};
+
+type State = {
+    mode: Mode;
+    hasPhysicalKeyboard: boolean;
+    isVisible: boolean;
+    hasFocus: boolean;
+    showKeyboardShortcuts: boolean;
+    shiftKey: boolean;
+    text: string;
+    candidates: Array<any>;
+    keyDownIndex: number;
+};
 
 // array because ordering is important when printing the commands
 //
-const Commands = [
+const Commands: Array<Command> = [
     {
         command: "i",
         description: "goto ideas or add ",
         quoteAround: "title",
         fn: (args) => {
-            return routeOrCreate("ideas", args);
+            return routeOrCreate(DeckKind.Idea, args);
         },
     },
     {
@@ -51,7 +78,7 @@ const Commands = [
         description: "goto people or add ",
         quoteAround: "name",
         fn: (args) => {
-            return routeOrCreate("people", args);
+            return routeOrCreate(DeckKind.Person, args);
         },
     },
     {
@@ -59,7 +86,7 @@ const Commands = [
         description: "goto articles or add ",
         quoteAround: "title",
         fn: (args) => {
-            return routeOrCreate("articles", args);
+            return routeOrCreate(DeckKind.Article, args);
         },
     },
     {
@@ -67,21 +94,21 @@ const Commands = [
         description: "goto timelines or add ",
         quoteAround: "title",
         fn: (args) => {
-            return routeOrCreate("timelines", args);
+            return routeOrCreate(DeckKind.Timeline, args);
         },
     },
     {
         command: "q",
         description: "goto quotes",
         fn: () => {
-            return routeOrCreate("quotes", []);
+            return routeOrCreate(DeckKind.Quote, "");
         },
     },
     {
         command: "qr",
         description: "goto random quote",
         fn: () => {
-            Net.get<any>("/api/quotes/random").then((quote) => {
+            Net.get<DeckQuote>("/api/quotes/random").then((quote) => {
                 route(`/quotes/${quote.id}`);
             });
             return true;
@@ -121,7 +148,7 @@ const Commands = [
         command: "n",
         description: "show add-note form",
         fn: () => {
-            AppStateChange.showNoteForm(NOTE_KIND_NOTE);
+            AppStateChange.showNoteForm(NoteKind.Note);
             return true;
         },
     },
@@ -129,7 +156,7 @@ const Commands = [
         command: "nr",
         description: "show add-note form for review section",
         fn: () => {
-            AppStateChange.showNoteForm(NOTE_KIND_REVIEW);
+            AppStateChange.showNoteForm(NoteKind.NoteReview);
             return true;
         },
     },
@@ -137,7 +164,7 @@ const Commands = [
         command: "ns",
         description: "show add-note form for summary section",
         fn: () => {
-            AppStateChange.showNoteForm(NOTE_KIND_SUMMARY);
+            AppStateChange.showNoteForm(NoteKind.NoteSummary);
             return true;
         },
     },
@@ -194,11 +221,7 @@ const Commands = [
     },
 ];
 
-// function debugState(state) {
-//     console.log(`mode: ${state.mode}, text: "${state.text}"`);
-// }
-
-function cleanState(state) {
+function cleanState(state: State) {
     return {
         ...state,
         showKeyboardShortcuts: false,
@@ -206,12 +229,13 @@ function cleanState(state) {
         text: "",
         candidates: [],
         isVisible: !state.hasPhysicalKeyboard,
+        keyDownIndex: -1,
     };
 }
 
-function reducer(state?: any, action?: any) {
+function reducer(state: State, action: Action) {
     switch (action.type) {
-        case CLICKED_COMMAND: {
+        case ActionType.ClickedCommand: {
             const command = action.data.entry.command;
             const success = executeCommand(command);
             if (success) {
@@ -222,11 +246,11 @@ function reducer(state?: any, action?: any) {
                 return state;
             }
         }
-        case CLICKED_CANDIDATE: {
+        case ActionType.ClickedCandidate: {
             const newState = cleanState(state);
             return newState;
         }
-        case INPUT_BLUR: {
+        case ActionType.InputBlur: {
             const newState = {
                 ...state,
                 hasFocus: false,
@@ -236,19 +260,19 @@ function reducer(state?: any, action?: any) {
             }
             return newState;
         }
-        case INPUT_FOCUS: {
+        case ActionType.InputFocus: {
             const newState = {
                 ...state,
                 hasFocus: true,
             };
             return newState;
         }
-        case KEY_DOWN_ENTER: {
+        case ActionType.KeyDownEnter: {
             if (!state.isVisible) {
                 return state;
             }
 
-            if (state.mode === MODE_COMMAND) {
+            if (state.mode === Mode.Command) {
                 const success = executeCommand(state.text);
                 if (success) {
                     let newState = cleanState(state);
@@ -258,7 +282,7 @@ function reducer(state?: any, action?: any) {
 
             return state;
         }
-        case KEY_DOWN_ESC: {
+        case ActionType.KeyDownEsc: {
             const inputElement = action.data.current;
             const newState = cleanState(state);
             if (state.hasPhysicalKeyboard) {
@@ -275,7 +299,7 @@ function reducer(state?: any, action?: any) {
             }
             return newState;
         }
-        case KEY_DOWN_COLON: {
+        case ActionType.KeyDownColon: {
             const newState = { ...state };
 
             let appState = action.data.appState;
@@ -294,7 +318,7 @@ function reducer(state?: any, action?: any) {
             }
             return newState;
         }
-        case KEY_DOWN_CTRL: {
+        case ActionType.KeyDownCtrl: {
             if (!state.isVisible) {
                 return state;
             }
@@ -303,34 +327,34 @@ function reducer(state?: any, action?: any) {
                 ...state,
             };
 
-            if (state.mode === MODE_SEARCH) {
+            if (state.mode === Mode.Search) {
                 newState.showKeyboardShortcuts =
                     !state.showKeyboardShortcuts && state.candidates.length > 0;
             }
 
             return newState;
         }
-        case KEY_DOWN_KEY: {
+        case ActionType.KeyDownKey: {
             if (!state.isVisible) {
                 return state;
             }
 
             const newState = { ...state };
 
-            if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
+            if (state.showKeyboardShortcuts && state.mode === Mode.Search) {
                 newState.keyDownIndex = action.data.index;
                 newState.shiftKey = action.data.shiftKey;
             }
 
             return newState;
         }
-        case KEY_DOWN_PLUS: {
+        case ActionType.KeyDownPlus: {
             if (!state.isVisible) {
                 return state;
             }
 
             const newState = { ...state };
-            if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
+            if (state.showKeyboardShortcuts && state.mode === Mode.Search) {
                 AppStateChange.scratchListAddMulti(newState.candidates);
 
                 newState.shiftKey = true;
@@ -341,29 +365,29 @@ function reducer(state?: any, action?: any) {
                 return newState;
             }
         }
-        case CANDIDATES_SET:
+        case ActionType.CandidatesSet:
             return {
                 ...state,
                 candidates: action.data.results ? action.data.results : [],
             };
-        case INPUT_GIVEN: {
+        case ActionType.InputGiven: {
             if (!state.isVisible) {
                 return state;
             }
 
             const text = action.data.text;
-            const mode = isCommand(text) ? MODE_COMMAND : MODE_SEARCH;
+            const mode = isCommand(text) ? Mode.Command : Mode.Search;
 
             let candidates = state.candidates;
-            if (mode === MODE_COMMAND) {
+            if (mode === Mode.Command) {
                 candidates = Commands;
             }
-            if (mode === MODE_SEARCH && state.mode === MODE_COMMAND) {
+            if (mode === Mode.Search && state.mode === Mode.Command) {
                 // just changed mode from command to search
                 candidates = [];
             }
 
-            if (state.showKeyboardShortcuts && state.mode === MODE_SEARCH) {
+            if (state.showKeyboardShortcuts && state.mode === Mode.Search) {
                 const index = state.keyDownIndex;
 
                 if (index >= 0 && state.candidates.length > index) {
@@ -403,7 +427,7 @@ function reducer(state?: any, action?: any) {
 
             return newState;
         }
-        case REMOVE_SAVED_SEARCH_RESULT: {
+        case ActionType.RemoveSavedSearchResult: {
             const index = action.data.index;
             const newState = { ...state };
 
@@ -416,7 +440,7 @@ function reducer(state?: any, action?: any) {
     }
 }
 
-function isCommand(text) {
+function isCommand(text: string) {
     return text.length >= 1 && text[0] === ":";
 }
 
@@ -424,8 +448,8 @@ export default function SearchCommand() {
     const appState = getAppState();
     const searchCommandRef = useRef(null);
 
-    const [local, localDispatch] = useLocalReducer(reducer, {
-        mode: MODE_SEARCH,
+    const initialState: State = {
+        mode: Mode.Search,
         hasPhysicalKeyboard: appState.hasPhysicalKeyboard,
         isVisible: !appState.hasPhysicalKeyboard,
         hasFocus: false,
@@ -433,20 +457,25 @@ export default function SearchCommand() {
         shiftKey: false,
         text: "",
         candidates: [],
-    });
+        keyDownIndex: -1,
+    };
+    const [local, localDispatch] = useLocalReducer(reducer, initialState);
 
     function onKeyDown(e: KeyboardEvent) {
         if (e.key === "Escape") {
-            localDispatch(KEY_DOWN_ESC, searchCommandRef);
+            localDispatch(ActionType.KeyDownEsc, searchCommandRef);
         }
         if (e.key === ":") {
-            localDispatch(KEY_DOWN_COLON, { searchCommandRef, appState });
+            localDispatch(ActionType.KeyDownColon, {
+                searchCommandRef,
+                appState,
+            });
         }
         if (e.key === "Enter") {
-            localDispatch(KEY_DOWN_ENTER);
+            localDispatch(ActionType.KeyDownEnter);
         }
         if (e.ctrlKey) {
-            localDispatch(KEY_DOWN_CTRL);
+            localDispatch(ActionType.KeyDownCtrl);
         }
         if (
             (e.keyCode >= 49 && e.keyCode <= 57) ||
@@ -457,19 +486,22 @@ export default function SearchCommand() {
                 e.keyCode >= 49 && e.keyCode <= 57
                     ? e.keyCode - 49
                     : e.keyCode - 65 + 9;
-            localDispatch(KEY_DOWN_KEY, { index: index, shiftKey: e.shiftKey });
+            localDispatch(ActionType.KeyDownKey, {
+                index: index,
+                shiftKey: e.shiftKey,
+            });
         }
         if (e.key === "+") {
-            localDispatch(KEY_DOWN_PLUS);
+            localDispatch(ActionType.KeyDownPlus);
         }
     }
 
     function onFocus() {
-        localDispatch(INPUT_FOCUS);
+        localDispatch(ActionType.InputFocus);
     }
 
     function onBlur() {
-        localDispatch(INPUT_BLUR);
+        localDispatch(ActionType.InputBlur);
     }
 
     useEffect(() => {
@@ -479,46 +511,50 @@ export default function SearchCommand() {
         };
     }, [appState]);
 
-    const handleChangeEvent = (event) => {
-        const text = event.target.value;
+    const handleChangeEvent = (event: Event) => {
+        if (event.target instanceof HTMLInputElement) {
+            const text = event.target.value;
 
-        if (local.mode === MODE_COMMAND) {
-            localDispatch(INPUT_GIVEN, { text });
-        } else if (local.mode === MODE_SEARCH) {
-            if (!local.showKeyboardShortcuts) {
-                localDispatch(INPUT_GIVEN, { text });
-                if (text.length > 0 && !isCommand(text)) {
-                    search(text);
+            if (local.mode === Mode.Command) {
+                localDispatch(ActionType.InputGiven, { text });
+            } else if (local.mode === Mode.Search) {
+                if (!local.showKeyboardShortcuts) {
+                    localDispatch(ActionType.InputGiven, { text });
+                    if (text.length > 0 && !isCommand(text)) {
+                        search(text);
+                    }
                 }
-            }
 
-            if (local.showKeyboardShortcuts) {
-                // searchCommand is showing keyboard shortcuts and the user
-                // has just pressed a key whilst holding down the shift button
-                //
-                // since the handleChangeEvent code runs after the latest
-                // render we have to manually remove the final character
-                //
-                const displayText = local.shiftKey ? text.slice(0, -1) : text;
+                if (local.showKeyboardShortcuts) {
+                    // searchCommand is showing keyboard shortcuts and the user
+                    // has just pressed a key whilst holding down the shift button
+                    //
+                    // since the handleChangeEvent code runs after the latest
+                    // render we have to manually remove the final character
+                    //
+                    const displayText = local.shiftKey
+                        ? text.slice(0, -1)
+                        : text;
 
-                localDispatch(INPUT_GIVEN, { text: displayText });
+                    localDispatch(ActionType.InputGiven, { text: displayText });
+                }
             }
         }
     };
 
-    async function search(text) {
+    async function search(text: string) {
         const url = `/api/cmd/search?q=${encodeURI(text)}`;
         const searchResponse = await Net.get(url);
-        localDispatch(CANDIDATES_SET, searchResponse);
+        localDispatch(ActionType.CandidatesSet, searchResponse);
     }
 
-    function buildSearchResultEntry(entry, i) {
+    function buildSearchResultEntry(entry: any, i: number) {
         const maxShortcuts = 9 + 26; // 1..9 and a..z
         const canShowKeyboardShortcut =
             local.showKeyboardShortcuts && i < maxShortcuts;
 
-        function clickedCandidate(e) {
-            localDispatch(CLICKED_CANDIDATE);
+        function clickedCandidate() {
+            localDispatch(ActionType.ClickedCandidate);
         }
 
         let hreff = `/${entry.resource}/${entry.id}`;
@@ -539,9 +575,9 @@ export default function SearchCommand() {
         );
     }
 
-    function buildCommandEntry(entry, i) {
-        function clickedCommand(e) {
-            localDispatch(CLICKED_COMMAND, { entry });
+    function buildCommandEntry(entry: any, i: number) {
+        function clickedCommand() {
+            localDispatch(ActionType.ClickedCommand, { entry });
         }
         if (entry.spacer) {
             return <div class="command-entry">-</div>;
@@ -570,7 +606,7 @@ export default function SearchCommand() {
         classes += "search-command-listing";
 
         let candidateRenderer =
-            local.mode === MODE_SEARCH
+            local.mode === Mode.Search
                 ? buildSearchResultEntry
                 : buildCommandEntry;
 
@@ -585,12 +621,12 @@ export default function SearchCommand() {
 
     function buildScratchList() {
         function buildScratchListEntry(entry, i) {
-            function clickedCandidate(e) {
-                localDispatch(CLICKED_CANDIDATE);
+            function clickedCandidate() {
+                localDispatch(ActionType.ClickedCandidate);
             }
 
-            function clickedDelete(e) {
-                localDispatch(REMOVE_SAVED_SEARCH_RESULT, { index: i });
+            function clickedDelete() {
+                localDispatch(ActionType.RemoveSavedSearchResult, { index: i });
             }
 
             let klass = `pigment-fg-${entry.resource}`;
@@ -610,7 +646,7 @@ export default function SearchCommand() {
             );
         }
 
-        function clickedToggle(e) {
+        function clickedToggle() {
             AppStateChange.scratchListToggle();
         }
 
@@ -702,9 +738,9 @@ export default function SearchCommand() {
     );
 }
 
-function routeOrCreate(kind, argString) {
+function routeOrCreate(kind: DeckKind, argString: string): boolean {
     if (argString.length === 0) {
-        route(`/${kind}`);
+        route(`/${deckKindToResourceString(kind)}`);
     } else {
         createDeck(kind, argString);
     }
@@ -712,7 +748,7 @@ function routeOrCreate(kind, argString) {
     return true;
 }
 
-function executeCommand(text) {
+function executeCommand(text: string) {
     const commandPlusArgs = text
         .slice(1)
         .split(" ")
@@ -723,10 +759,12 @@ function executeCommand(text) {
 
     const command = commandPlusArgs[0];
 
-    const action: any = Commands.find((c) => c.command === command);
+    const action: Command | undefined = Commands.find(
+        (c) => c.command === command
+    );
     if (action) {
         const rest = commandPlusArgs.slice(1).join(" ");
-        return action.fn(rest);
+        return action.fn ? action.fn(rest) : false;
     }
     return false;
 }

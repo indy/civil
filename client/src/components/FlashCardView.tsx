@@ -1,5 +1,7 @@
 import { h } from "preact";
 
+import { FlashCard } from "../types";
+
 import Net from "../Net";
 import { daysUntil, plural } from "../JsUtils";
 import { useLocalReducer } from "../PreactUtils";
@@ -7,37 +9,56 @@ import { useLocalReducer } from "../PreactUtils";
 import CivilTextArea from "./CivilTextArea";
 import DeleteConfirmation from "./DeleteConfirmation";
 
-const FLASHCARD_IS_EDITING_TOGGLE = "flashcard-is-editing-toggle";
-const FLASHCARD_SET_PROMPT = "flashcard-set-prompt";
-const FLASHCARD_EDITING_SAVED = "flashcard-editing-saved";
-const FLASHCARD_EDITING_CANCELLED = "flashcard-editing-cancelled";
-const FLASHCARD_DELETED = "flashcard-deleted";
+enum ActionType {
+    IsEditingToggle,
+    SetPrompt,
+    EditingSaved,
+    EditingCancelled,
+    Deleted,
+}
 
-function reducer(state?: any, action?: any) {
+type Action = {
+    type: ActionType;
+    data?: string;
+};
+
+type State = {
+    nextTestDateString: string;
+    daysUntilNextTest: string;
+    isEditingFlashCard: boolean;
+    showDeleteConfirmation: boolean;
+    originalFlashcard: FlashCard;
+    flashcard: FlashCard;
+};
+
+function reducer(state: State, action: Action) {
     switch (action.type) {
-        case FLASHCARD_IS_EDITING_TOGGLE: {
+        case ActionType.IsEditingToggle: {
             const newState = { ...state };
             newState.isEditingFlashCard = !newState.isEditingFlashCard;
             return newState;
         }
-        case FLASHCARD_SET_PROMPT: {
+        case ActionType.SetPrompt: {
             const newState = { ...state };
-            newState.flashcard.prompt = action.data.prompt;
+            if (action.data) {
+                const prompt: string = action.data;
+                newState.flashcard.prompt = prompt;
+            }
             return newState;
         }
-        case FLASHCARD_DELETED: {
+        case ActionType.Deleted: {
             const newState = { ...state };
             newState.isEditingFlashCard = false;
             return newState;
         }
-        case FLASHCARD_EDITING_SAVED: {
+        case ActionType.EditingSaved: {
             const newState = { ...state };
             newState.originalFlashcard.prompt = newState.flashcard.prompt;
             newState.isEditingFlashCard = false;
 
             return newState;
         }
-        case FLASHCARD_EDITING_CANCELLED: {
+        case ActionType.EditingCancelled: {
             const newState = { ...state };
             newState.flashcard.prompt = newState.originalFlashcard.prompt;
             newState.isEditingFlashCard = false;
@@ -51,13 +72,12 @@ function reducer(state?: any, action?: any) {
     }
 }
 
-export default function FlashCard({
-    flashcard,
-    onDelete,
-}: {
-    flashcard?: any;
-    onDelete?: any;
-}) {
+type Props = {
+    flashcard: FlashCard;
+    onDelete: (_: FlashCard) => void;
+};
+
+export default function FlashCardView({ flashcard, onDelete }: Props) {
     let dateOptions: Intl.DateTimeFormatOptions = {
         weekday: "long",
         month: "long",
@@ -66,7 +86,7 @@ export default function FlashCard({
         minute: "2-digit",
     };
 
-    const initialState = {
+    const initialState: State = {
         nextTestDateString: new Date(flashcard.nextTestDate).toLocaleDateString(
             "en-US",
             dateOptions
@@ -87,19 +107,20 @@ export default function FlashCard({
     function handleChangeEvent(e: Event) {
         if (e.target instanceof HTMLInputElement) {
             const target = e.target;
-            localDispatch(FLASHCARD_SET_PROMPT, { prompt: target.value });
+            localDispatch(ActionType.SetPrompt, target.value);
         }
     }
 
     function editToggleClicked(e: Event) {
         e.preventDefault();
-        localDispatch(FLASHCARD_IS_EDITING_TOGGLE);
+        localDispatch(ActionType.IsEditingToggle);
     }
 
     function confirmedDeleteClicked() {
         const url = `/api/sr/${local.flashcard.id}`;
-        Net.delete<any, any>(url, {}).then(() => {
-            localDispatch(FLASHCARD_DELETED);
+        type Data = {};
+        Net.delete<Data, boolean>(url, {}).then(() => {
+            localDispatch(ActionType.Deleted);
             onDelete(flashcard);
         });
     }
@@ -108,14 +129,16 @@ export default function FlashCard({
         e.preventDefault();
 
         const url = `/api/sr/${local.flashcard.id}`;
-        Net.put(url, local.flashcard).then((updatedFlashcard) => {
-            localDispatch(FLASHCARD_EDITING_SAVED);
-        });
+        Net.put<FlashCard, FlashCard>(url, local.flashcard).then(
+            (updatedFlashcard) => {
+                localDispatch(ActionType.EditingSaved);
+            }
+        );
     }
 
     function cancelClicked(e) {
         e.preventDefault();
-        localDispatch(FLASHCARD_EDITING_CANCELLED);
+        localDispatch(ActionType.EditingCancelled);
     }
 
     if (!local.isEditingFlashCard) {
