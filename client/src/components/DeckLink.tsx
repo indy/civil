@@ -10,7 +10,7 @@ type Props = {
     extraClasses?: string;
     onClick?: () => void;
     resource: DeckKind;
-    href: string;
+    id: number;
     insignia: number;
     name: string;
     children?: ComponentChildren;
@@ -20,7 +20,7 @@ export default function DeckLink({
     extraClasses,
     onClick,
     resource,
-    href,
+    id,
     insignia,
     name,
     children,
@@ -31,9 +31,10 @@ export default function DeckLink({
         }
     }
 
-    const klass = `${extraClasses} pigment-fg-${deckKindToResourceString(
-        resource
-    )}`;
+    const resourceString = deckKindToResourceString(resource);
+    const href = `/${resourceString}/${id}`;
+    const klass = `${extraClasses} pigment-fg-${resourceString}`;
+
     return (
         <Link class={klass} href={href} onClick={clicked}>
             {children}

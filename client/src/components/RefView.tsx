@@ -29,15 +29,14 @@ export default function RefView({ deckReference, extraClasses }: Props) {
         const { id, resource, refKind, name, annotation, insignia } =
             deckReference;
 
-        const str = deckKindToResourceString(resource);
-        const href = `/${str}/${id}`;
-
         // clicked on the ref kind label toggles the annotation
         function clickedToggleAnnotation() {
             if (annotation) {
                 setExpanded(!expanded);
             }
         }
+
+        const scribbleClasses = `ref-scribble pigment-fg-${ deckKindToResourceString(resource) }`;
 
         return (
             <div class={extraClasses} key={id}>
@@ -48,13 +47,13 @@ export default function RefView({ deckReference, extraClasses }: Props) {
                 <DeckLink
                     extraClasses="ref"
                     resource={resource}
-                    href={href}
+                    id={id}
                     insignia={insignia}
                     name={name}
                 />
 
                 {annotation && expanded && (
-                    <div class="ref-scribble pigment-fg-{ str }">
+                    <div class={scribbleClasses}>
                         {annotation}
                     </div>
                 )}

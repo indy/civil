@@ -4,7 +4,6 @@ import { useState } from "preact/hooks";
 import { DeckKind, DeckArticle, DeckSimple } from "../types";
 
 import Net from "../Net";
-import { deckKindToResourceString } from "../CivilUtils";
 import { svgExpand, svgMinimise } from "../svgIcons";
 
 import DeckLink from "./DeckLink";
@@ -183,14 +182,13 @@ type RatedListingLinkProps = {
 function RatedListingLink({ deck }: RatedListingLinkProps) {
     let { id, title, rating, shortDescription, insignia } = deck;
     let resource: DeckKind = DeckKind.Article;
-    const href = `/${deckKindToResourceString(resource)}/${id}`;
 
     return (
         <li>
             <StarRating rating={rating} />
             <DeckLink
                 resource={resource}
-                href={href}
+                id={id}
                 insignia={insignia}
                 name={title}
             />

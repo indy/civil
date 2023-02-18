@@ -557,18 +557,17 @@ export default function SearchCommand() {
             localDispatch(ActionType.ClickedCandidate);
         }
 
-        let hreff = `/${entry.resource}/${entry.id}`;
         return (
             <DeckLink
                 resource={entry.resource}
-                href={hreff}
+                id={entry.id}
                 insignia={entry.insignia}
                 name={entry.name}
                 onClick={clickedCandidate}
             >
                 {canShowKeyboardShortcut && (
                     <span class="keyboard-shortcut">
-                        ${indexToShortcut(i)}:{" "}
+                        {indexToShortcut(i)}:{" "}
                     </span>
                 )}
             </DeckLink>

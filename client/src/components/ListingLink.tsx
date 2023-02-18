@@ -2,7 +2,6 @@ import { h } from "preact";
 
 import { NoteThing, Ref, DeckKind } from "../types";
 
-import { deckKindToResourceString } from "../CivilUtils";
 import { svgCaretRight, svgCaretDown } from "../svgIcons";
 
 import DeckLink from "./DeckLink";
@@ -17,13 +16,11 @@ type ListingLinkProps = {
 };
 
 function ListingLink({ resource, id, name, insignia }: ListingLinkProps) {
-    const href = `/${deckKindToResourceString(resource)}/${id}`;
-
     let res = (
         <li class="listing-link">
             <DeckLink
                 resource={resource}
-                href={href}
+                id={id}
                 insignia={insignia}
                 name={name}
             />
@@ -63,7 +60,6 @@ function ExpandableListingLink({
         onExpandClick(index);
     }
 
-    const href = `/${deckKindToResourceString(resource)}/${deckId}`;
     let icon = expanded ? svgCaretDown() : svgCaretRight();
 
     let res = (
@@ -72,7 +68,7 @@ function ExpandableListingLink({
             <span class="backref-deck">
                 <DeckLink
                     resource={resource}
-                    href={href}
+                    id={deckId}
                     insignia={deckInsignia}
                     name={deckName}
                 />
