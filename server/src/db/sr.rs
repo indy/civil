@@ -210,7 +210,7 @@ fn interop_card_from_row(row: &Row) -> Result<interop::Card> {
         deck_info: interop_decks::DeckSimple {
             id: row.get(4)?,
             name: row.get(5)?,
-            resource: interop_decks::DeckKind::from_str(&kind)?,
+            deck_kind: interop_decks::DeckKind::from_str(&kind)?,
             insignia: row.get(7)?,
         },
         prompt: row.get(2)?,

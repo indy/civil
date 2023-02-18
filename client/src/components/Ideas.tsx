@@ -87,11 +87,11 @@ function Idea({ path, id }: { path?: string; id?: string }) {
         );
     }, [id]);
 
-    const resource: DeckKind = DeckKind.Idea;
+    const deckKind: DeckKind = DeckKind.Idea;
 
     const deckManager = DeckManager({
         id: ideaId,
-        resource,
+        deckKind,
         hasSummarySection: false,
         hasReviewSection: false,
     });
@@ -120,7 +120,7 @@ function Idea({ path, id }: { path?: string; id?: string }) {
                 {deckManager.isShowingUpdateForm() && (
                     <div>
                         <DeleteDeckConfirmation
-                            resource={DeckKind.Idea}
+                            deckKind={DeckKind.Idea}
                             id={ideaId}
                         />
                         <SectionUpdateIdea
@@ -139,7 +139,7 @@ function Idea({ path, id }: { path?: string; id?: string }) {
 
                 <SectionNotes
                     deck={deck}
-                    resource={resource}
+                    deckKind={deckKind}
                     title={deck.title}
                     howToShowNoteSection={deckManager.howToShowNoteSection}
                     canShowNoteSection={deckManager.canShowNoteSection}

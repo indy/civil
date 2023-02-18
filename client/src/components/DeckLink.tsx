@@ -3,13 +3,13 @@ import { Link } from "preact-router";
 
 import { DeckKind } from "../types";
 
-import { deckKindToResourceString } from "../CivilUtils";
+import { buildUrl, deckKindToResourceString } from "../CivilUtils";
 import { renderInsignia } from "./Insignias";
 
 type Props = {
     extraClasses?: string;
     onClick?: () => void;
-    resource: DeckKind;
+    deckKind: DeckKind;
     id: number;
     insignia: number;
     name: string;
@@ -19,7 +19,7 @@ type Props = {
 export default function DeckLink({
     extraClasses,
     onClick,
-    resource,
+    deckKind,
     id,
     insignia,
     name,
@@ -31,12 +31,12 @@ export default function DeckLink({
         }
     }
 
-    const resourceString = deckKindToResourceString(resource);
-    const href = `/${resourceString}/${id}`;
-    const klass = `${extraClasses} pigment-fg-${resourceString}`;
+    const klass = `${extraClasses} pigment-fg-${deckKindToResourceString(
+        deckKind
+    )}`;
 
     return (
-        <Link class={klass} href={href} onClick={clicked}>
+        <Link class={klass} href={buildUrl(deckKind, id)} onClick={clicked}>
             {children}
             {renderInsignia(insignia)}
             {name}

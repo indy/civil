@@ -6,17 +6,17 @@ import { DeckKind } from "../types";
 import DeleteConfirmation from "./DeleteConfirmation";
 import Net from "../Net";
 import { AppStateChange } from "../AppState";
-import { deckKindToResourceString } from "../CivilUtils";
+import { buildUrl, deckKindToResourceString } from "../CivilUtils";
 
 type Props = {
-    resource: DeckKind;
+    deckKind: DeckKind;
     id: number;
 };
 
-export default function DeleteDeckConfirmation({ resource, id }: Props) {
+export default function DeleteDeckConfirmation({ deckKind, id }: Props) {
     function confirmedDeleteClicked() {
-        let str = deckKindToResourceString(resource);
-        Net.delete(`/api/${str}/${id}`, {}).then(() => {
+        let str = deckKindToResourceString(deckKind);
+        Net.delete(`/api/${buildUrl(deckKind, id)}`, {}).then(() => {
             // remove the resource from the app state
             AppStateChange.deleteDeck(id);
             route(`/${str}`, true);

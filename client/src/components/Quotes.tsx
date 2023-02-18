@@ -189,11 +189,11 @@ function Quote({ path, id }: { path?: string; id?: string }) {
     const appState = getAppState();
 
     const quoteId = id ? parseInt(id, 10) : 0;
-    const resource = DeckKind.Quote;
+    const deckKind = DeckKind.Quote;
 
     const deckManager = DeckManager({
         id: quoteId,
-        resource,
+        deckKind,
         preCacheFn,
         hasSummarySection: false,
         hasReviewSection: false,
@@ -279,7 +279,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                     howToShowNoteSection={deckManager.howToShowNoteSection}
                     canShowNoteSection={deckManager.canShowNoteSection}
                     onRefsChanged={deckManager.onRefsChanged}
-                    resource={resource}
+                    deckKind={deckKind}
                     onUpdateDeck={deckManager.update}
                     noappend
                 />

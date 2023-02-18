@@ -104,7 +104,7 @@ pub struct Ref {
     pub note_id: Key,
     pub id: Key,
     pub name: String,
-    pub resource: DeckKind,
+    pub deck_kind: DeckKind,
     pub ref_kind: RefKind,
     pub annotation: Option<String>,
     pub insignia: i32,
@@ -120,7 +120,7 @@ pub struct BackNote {
     pub note_kind: NoteKind,
     pub deck_id: Key,
     pub deck_name: String,
-    pub resource: DeckKind,
+    pub deck_kind: DeckKind,
     pub insignia: i32,
 }
 
@@ -132,7 +132,7 @@ pub struct BackRef {
     pub note_id: Key,
     pub deck_id: Key,
     pub deck_name: String,
-    pub resource: DeckKind,
+    pub deck_kind: DeckKind,
     pub ref_kind: RefKind,
     pub annotation: Option<String>,
     pub insignia: i32,
@@ -145,7 +145,7 @@ pub struct BackRef {
 pub struct DeckSimple {
     pub id: Key,
     pub name: String,
-    pub resource: DeckKind,
+    pub deck_kind: DeckKind,
     pub insignia: i32,
 }
 

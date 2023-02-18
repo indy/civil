@@ -7,6 +7,7 @@ import { DeckKind, DeckQuote, NoteKind, ToolbarMode } from "../types";
 import Net from "../Net";
 import { getAppState, AppStateChange } from "../AppState";
 import {
+    buildUrl,
     createDeck,
     deckKindToResourceString,
     indexToShortcut,
@@ -559,7 +560,7 @@ export default function SearchCommand() {
 
         return (
             <DeckLink
-                resource={entry.resource}
+                deckKind={entry.deckKind}
                 id={entry.id}
                 insignia={entry.insignia}
                 name={entry.name}
@@ -628,8 +629,10 @@ export default function SearchCommand() {
                 localDispatch(ActionType.RemoveSavedSearchResult, { index: i });
             }
 
-            let klass = `pigment-fg-${entry.resource}`;
-            let hreff = `/${entry.resource}/${entry.id}`;
+            let klass = `pigment-fg-${deckKindToResourceString(
+                entry.deckKind
+            )}`;
+            let hreff = buildUrl(entry.deckKind, entry.id);
             return (
                 <div class="saved-search-result">
                     <div

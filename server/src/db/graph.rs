@@ -32,7 +32,7 @@ fn graph_from_row(row: &Row) -> Result<interop::Graph> {
     Ok(interop::Graph {
         id: row.get(0)?,
         name: row.get(1)?,
-        resource: interop_decks::DeckKind::from_str(&kind)?,
+        deck_kind: interop_decks::DeckKind::from_str(&kind)?,
         graph_terminator: row.get(3)?,
     })
 }

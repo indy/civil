@@ -18,7 +18,11 @@ import {
 
 import Net from "../Net";
 import { calcAgeInYears, dateStringAsTriple } from "../eras";
-import { deckKindToHeadingString, fetchDeckListing } from "../CivilUtils";
+import {
+    buildUrl,
+    deckKindToHeadingString,
+    fetchDeckListing,
+} from "../CivilUtils";
 import { getAppState, AppStateChange } from "../AppState";
 import {
     svgBlank,
@@ -50,7 +54,7 @@ import { PointForm } from "./PointForm";
 
 function People({ path }: { path?: string }) {
     const appState = getAppState();
-    const resource: DeckKind = DeckKind.Person;
+    const deckKind: DeckKind = DeckKind.Person;
 
     useEffect(() => {
         if (!appState.listing.value.people) {
@@ -66,7 +70,7 @@ function People({ path }: { path?: string }) {
     if (people) {
         return (
             <article>
-                <h1 class="ui">{deckKindToHeadingString(resource)}</h1>
+                <h1 class="ui">{deckKindToHeadingString(deckKind)}</h1>
                 <DeckSimpleListSection
                     label="Uncategorised"
                     list={people.uncategorised}
@@ -108,10 +112,10 @@ function Person({ path, id }: { path?: string; id?: string }) {
 
     const personId = id ? parseInt(id, 10) : 0;
 
-    const resource: DeckKind = DeckKind.Person;
+    const deckKind: DeckKind = DeckKind.Person;
     const deckManager: DeckManagerType = DeckManager({
         id: personId,
-        resource,
+        deckKind,
         preCacheFn,
         hasSummarySection: true,
         hasReviewSection: false,
@@ -126,7 +130,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
     }, [id]);
 
     function dispatchUpdatedPerson(person?: DeckPerson) {
-        fetchDeckListing(resource, "/api/people/listings");
+        fetchDeckListing(deckKind, "/api/people/listings");
     }
 
     function onLifespan(birthPoint: ProtoPoint, deathPoint?: ProtoPoint) {
@@ -180,7 +184,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
                 {deckManager.isShowingUpdateForm() && (
                     <div>
                         <DeleteDeckConfirmation
-                            resource={DeckKind.Person}
+                            deckKind={DeckKind.Person}
                             id={personId}
                         />
                         <SectionUpdatePerson
@@ -209,7 +213,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
                     deck={deck}
                     title={deck.name}
                     onRefsChanged={deckManager.onRefsChanged}
-                    resource={resource}
+                    deckKind={deckKind}
                     howToShowNoteSection={deckManager.howToShowNoteSection}
                     canShowNoteSection={deckManager.canShowNoteSection}
                     onUpdateDeck={deckManager.update}
@@ -396,11 +400,10 @@ function PersonDeckPoint({
 
     let pointTitle = deckPoint.title;
 
-    let item;
     let ageText = deckPoint.age! > 0 ? `${deckPoint.age}` : "";
 
     if (deckPoint.deckId === holderId) {
-        item = (
+        return (
             <li class="relevent-deckpoint">
                 <span class="deckpoint-age">{ageText}</span>
                 <span onClick={onClicked}>
@@ -415,10 +418,9 @@ function PersonDeckPoint({
             </li>
         );
     } else {
-        let hreff = `/${deckPoint.deckResource}/${deckPoint.deckId}`;
-        item = (
+        return (
             <li class="deckpoint">
-                <Link href={hreff}>
+                <Link href={buildUrl(deckPoint.deckKind, deckPoint.deckId)}>
                     <span class="deckpoint-age">{ageText}</span>
                     {svgBlank()}
                     {deckPoint.deckName} - {pointTitle} {deckPoint.dateTextual}
@@ -426,8 +428,6 @@ function PersonDeckPoint({
             </li>
         );
     }
-
-    return item;
 }
 
 function ListDeckPoints({

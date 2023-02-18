@@ -77,7 +77,7 @@ pub struct DeckPoint {
 
     pub deck_id: Key,
     pub deck_name: String,
-    pub deck_resource: DeckKind,
+    pub deck_kind: DeckKind,
 }
 
 fn eq_naive_dates(a: Option<chrono::NaiveDate>, b: Option<chrono::NaiveDate>) -> bool {

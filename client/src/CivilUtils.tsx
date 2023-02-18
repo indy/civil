@@ -11,6 +11,18 @@ import {
 import Net from "./Net";
 import { AppStateChange } from "./AppState";
 
+export function buildUrl(
+    deckKind: DeckKind,
+    id: number,
+    prefix?: string
+): string {
+    if (prefix) {
+        return `${prefix}/${deckKindToResourceString(deckKind)}/${id}`;
+    } else {
+        return `/${deckKindToResourceString(deckKind)}/${id}`;
+    }
+}
+
 export function deckKindToResourceString(deckKind: DeckKind): string {
     switch (deckKind) {
         case DeckKind.Article:
@@ -104,18 +116,18 @@ export function indexToShortcut(index: number) {
     }
 }
 
-export function fetchDeckListing(resource: DeckKind, url: string) {
+export function fetchDeckListing(deckKind: DeckKind, url: string) {
     console.error("REPLACE fetchDeckListing WITH ILISTING SPECIFIC VARIANTS");
-    Net.get<Array<DeckSimple>>(url || `/api/${resource}`).then((listing) => {
-        AppStateChange.setDeckListing(resource, listing);
+    Net.get<Array<DeckSimple>>(url || `/api/${deckKind}`).then((listing) => {
+        AppStateChange.setDeckListing(deckKind, listing);
     });
 }
 
 export function sortByResourceThenName(a: DeckSimple, b: DeckSimple): number {
-    if (a.resource < b.resource) {
+    if (a.deckKind < b.deckKind) {
         return -1;
     }
-    if (a.resource > b.resource) {
+    if (a.deckKind > b.deckKind) {
         return 1;
     }
 

@@ -77,7 +77,7 @@ pub(crate) fn decksimple_from_row(row: &Row) -> Result<interop::DeckSimple> {
     Ok(interop::DeckSimple {
         id: row.get(0)?,
         name: row.get(1)?,
-        resource: DeckKind::from_str(&res)?,
+        deck_kind: DeckKind::from_str(&res)?,
         insignia: row.get(3)?,
     })
 }
@@ -256,7 +256,7 @@ pub(crate) fn get_backnotes(
             note_kind: note_interop::note_kind_from_sqlite(sql_note_kind)?,
             deck_id: row.get(0)?,
             deck_name: row.get(1)?,
-            resource: DeckKind::from_str(&kind)?,
+            deck_kind: DeckKind::from_str(&kind)?,
             insignia: row.get(6)?,
         })
     }
@@ -294,7 +294,7 @@ pub(crate) fn get_backrefs(
             note_id: row.get(0)?,
             deck_id: row.get(1)?,
             deck_name: row.get(3)?,
-            resource: DeckKind::from_str(&kind)?,
+            deck_kind: DeckKind::from_str(&kind)?,
             ref_kind: interop::RefKind::from_str(&refk)?,
             annotation: row.get(5)?,
             insignia: row.get(6)?,
@@ -333,7 +333,7 @@ pub(crate) fn from_deck_id_via_notes_to_decks(
             note_id: row.get(0)?,
             id: row.get(1)?,
             name: row.get(2)?,
-            resource: DeckKind::from_str(&kind)?,
+            deck_kind: DeckKind::from_str(&kind)?,
             ref_kind: interop::RefKind::from_str(&refk)?,
             annotation: row.get(5)?,
             insignia: row.get(6)?,
@@ -363,7 +363,7 @@ fn deck_simple_from_search_result(row: &Row) -> Result<interop::DeckSimple> {
     Ok(interop::DeckSimple {
         id: row.get(0)?,
         name: row.get(2)?,
-        resource: DeckKind::from_str(&kind)?,
+        deck_kind: DeckKind::from_str(&kind)?,
         insignia: row.get(3)?,
     })
 }

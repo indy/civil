@@ -18,7 +18,7 @@ export default function SectionSearchResults({
                 id={lb.id}
                 insignia={lb.insignia}
                 name={lb.name}
-                resource={lb.resource}
+                deckKind={lb.deckKind}
             />
         );
     }

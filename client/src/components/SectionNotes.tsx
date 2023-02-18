@@ -17,7 +17,7 @@ type Props = {
     deck: IDeckCore;
     onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
     title: string;
-    resource: DeckKind;
+    deckKind: DeckKind;
     howToShowNoteSection: (noteKind: NoteKind) => NoteSectionHowToShow;
     canShowNoteSection: (noteKind: NoteKind) => boolean;
     onUpdateDeck: (newDeck: IDeckCore) => void;
@@ -28,7 +28,7 @@ export default function SectionNotes({
     deck,
     onRefsChanged,
     title,
-    resource,
+    deckKind,
     howToShowNoteSection,
     canShowNoteSection,
     onUpdateDeck,
@@ -51,7 +51,7 @@ export default function SectionNotes({
                         toolbarMode={toolbarMode}
                         notes={deck.noteSeqs.noteSummary}
                         onRefsChanged={onRefsChanged}
-                        resource={resource}
+                        deckKind={deckKind}
                         noappend={noappend}
                     />
                 )}
@@ -65,7 +65,7 @@ export default function SectionNotes({
                         toolbarMode={toolbarMode}
                         notes={deck.noteSeqs.noteReview}
                         onRefsChanged={onRefsChanged}
-                        resource={resource}
+                        deckKind={deckKind}
                         noappend={noappend}
                     />
                 )}
@@ -79,7 +79,7 @@ export default function SectionNotes({
                     toolbarMode={toolbarMode}
                     notes={deck.noteSeqs.note}
                     onRefsChanged={onRefsChanged}
-                    resource={resource}
+                    deckKind={deckKind}
                     noappend={noappend}
                 />
             </div>

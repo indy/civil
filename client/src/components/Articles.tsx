@@ -6,6 +6,7 @@ import { DeckArticle, DeckKind, ArticleListings } from "../types";
 import { getAppState, AppStateChange } from "../AppState";
 import CivilInput from "./CivilInput";
 import {
+    buildUrl,
     deckKindToHeadingString,
     deckKindToResourceString,
     fetchDeckListing,
@@ -28,7 +29,7 @@ import { removeEmptyStrings, formattedDate } from "../JsUtils";
 
 function Articles({ path }: { path?: string }) {
     const appState = getAppState();
-    const resource: DeckKind = DeckKind.Article;
+    const deckKind: DeckKind = DeckKind.Article;
 
     useEffect(() => {
         if (!appState.listing.value.articles) {
@@ -44,7 +45,7 @@ function Articles({ path }: { path?: string }) {
     if (articles) {
         return (
             <article>
-                <h1 class="ui">{deckKindToHeadingString(resource)}</h1>
+                <h1 class="ui">{deckKindToHeadingString(deckKind)}</h1>
                 <RatedListSection
                     label="Recent"
                     list={articles.recent}
@@ -66,10 +67,10 @@ function Articles({ path }: { path?: string }) {
 function Article({ path, id }: { path?: string; id?: string }) {
     const articleId = id ? parseInt(id, 10) : 0;
 
-    const resource = DeckKind.Article;
+    const deckKind = DeckKind.Article;
     const deckManager = DeckManager({
         id: articleId,
-        resource,
+        deckKind,
         hasSummarySection: true,
         hasReviewSection: true,
     });
@@ -115,7 +116,7 @@ function Article({ path, id }: { path?: string; id?: string }) {
                 {deckManager.isShowingUpdateForm() && (
                     <div>
                         <DeleteDeckConfirmation
-                            resource={DeckKind.Article}
+                            deckKind={DeckKind.Article}
                             id={articleId}
                         />
                         <button onClick={deckManager.onShowSummaryClicked}>
@@ -143,7 +144,7 @@ function Article({ path, id }: { path?: string; id?: string }) {
                     deck={deck}
                     title={deck.title}
                     onRefsChanged={deckManager.onRefsChanged}
-                    resource={resource}
+                    deckKind={deckKind}
                     howToShowNoteSection={deckManager.howToShowNoteSection}
                     canShowNoteSection={deckManager.canShowNoteSection}
                     onUpdateDeck={deckManager.update}
@@ -255,21 +256,20 @@ function SectionUpdateArticle({ article, onUpdate }) {
             ["source"]
         );
 
-        const resource: DeckKind = DeckKind.Article;
+        const deckKind: DeckKind = DeckKind.Article;
 
-        Net.put(
-            `/api/${deckKindToResourceString(resource)}/${article.id}`,
-            data
-        ).then((newDeck) => {
-            onUpdate(newDeck);
+        Net.put(buildUrl(deckKind, article.id, "/api"), data).then(
+            (newDeck) => {
+                onUpdate(newDeck);
 
-            // fetch the listing incase editing the article has changed it's star rating or annotation
-            //
-            fetchDeckListing(
-                resource,
-                `/api/${deckKindToResourceString(resource)}/listings`
-            );
-        });
+                // fetch the listing incase editing the article has changed it's star rating or annotation
+                //
+                fetchDeckListing(
+                    deckKind,
+                    `/api/${deckKindToResourceString(deckKind)}/listings`
+                );
+            }
+        );
 
         event.preventDefault();
     };

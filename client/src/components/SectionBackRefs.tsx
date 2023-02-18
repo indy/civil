@@ -23,7 +23,7 @@ type BackRefSectionItem = {
     deckId: number;
     deckName: string;
     deckInsignia: number;
-    resource: DeckKind;
+    deckKind: DeckKind;
     notes: Array<NoteThing>;
     deckLevelRefs: Array<Ref>;
     metaNoteId: number;
@@ -51,7 +51,7 @@ export default function SectionBackRefs({ deck }: { deck?: IDeckCore }) {
                 deckId: n.deckId,
                 deckName: n.deckName,
                 deckInsignia: n.insignia,
-                resource: n.resource,
+                deckKind: n.deckKind,
                 notes: [],
                 deckLevelRefs: [],
                 metaNoteId: 0,
@@ -89,7 +89,7 @@ export default function SectionBackRefs({ deck }: { deck?: IDeckCore }) {
                             id: br.deckId,
                             name: br.deckName,
                             refKind: br.refKind,
-                            resource: br.resource,
+                            deckKind: br.deckKind,
                             annotation: br.annotation,
                             insignia: br.insignia,
                         };
@@ -108,7 +108,7 @@ export default function SectionBackRefs({ deck }: { deck?: IDeckCore }) {
                                     id: br.deckId,
                                     name: br.deckName,
                                     refKind: br.refKind,
-                                    resource: br.resource,
+                                    deckKind: br.deckKind,
                                     annotation: br.annotation,
                                     insignia: br.insignia,
                                 };
@@ -122,20 +122,20 @@ export default function SectionBackRefs({ deck }: { deck?: IDeckCore }) {
         });
     }
 
-    // group by resource kind
+    // group by deckKind kind
     //
     let groupedByResource = {};
     decks.forEach((d: BackRefSectionItem) => {
-        if (!groupedByResource[d.resource]) {
-            groupedByResource[d.resource] = [];
+        if (!groupedByResource[d.deckKind]) {
+            groupedByResource[d.deckKind] = [];
         }
         if (d.metaNoteId) {
             // deck-level back refs should be given priority
             // add them to the front of the array
-            groupedByResource[d.resource].unshift(d);
+            groupedByResource[d.deckKind].unshift(d);
         } else {
             // normal per-note back refs are added to the end
-            groupedByResource[d.resource].push(d);
+            groupedByResource[d.deckKind].push(d);
         }
     });
 
@@ -192,13 +192,13 @@ function SectionLinks({ backrefs }: { backrefs: Array<BackRefSectionItem> }) {
                 deckInsignia={br.deckInsignia}
                 deckLevelRefs={br.deckLevelRefs}
                 deckLevelAnnotation={br.deckLevelAnnotation}
-                resource={br.resource}
+                deckKind={br.deckKind}
                 notes={br.notes}
             />
         );
     });
 
-    let sectionHeading: string = deckKindToHeadingString(backrefs[0].resource);
+    let sectionHeading: string = deckKindToHeadingString(backrefs[0].deckKind);
     let sectionId = backrefs[0].deckId;
 
     return (

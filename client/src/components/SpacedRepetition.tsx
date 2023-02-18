@@ -5,6 +5,7 @@ import { Link } from "preact-router";
 import { DeckSimple } from "../types";
 
 import Net from "../Net";
+import { buildUrl, deckKindToResourceString } from "../CivilUtils";
 import { getAppState, AppStateChange } from "../AppState";
 import { plural, formattedDate, formattedTime } from "../JsUtils";
 import { useLocalReducer } from "../PreactUtils";
@@ -296,10 +297,9 @@ function CardTest({ card, onRatedCard, onShowAnswer }: CardTestProps) {
 }
 
 function Answer({ card }: { card: Card }) {
-    const { id, name, resource } = card.deckInfo;
-    const href = `/${resource}/${id}`;
-
-    const klass = `ref pigment-${resource}`;
+    const { id, name, deckKind } = card.deckInfo;
+    const href = buildUrl(deckKind, id);
+    const klass = `ref pigment-${deckKindToResourceString(deckKind)}`;
     return (
         <div>
             <div class="sr-section">Back</div>

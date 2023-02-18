@@ -74,7 +74,7 @@ function candidateToRef(candidate: DeckSimple): Ref {
     return {
         id: candidate.id,
         name: candidate.name,
-        resource: candidate.resource,
+        deckKind: candidate.deckKind,
         refKind: RefKind.Ref,
         noteId: 0, // todo: fix this, hacked in
         insignia: candidate.insignia,
@@ -507,7 +507,7 @@ function SelectedReference({
     };
 
     let topclass = `civsel-reference pigment-${deckKindToResourceString(
-        reference.resource
+        reference.deckKind
     )}`;
     return (
         <div class={topclass}>
@@ -594,7 +594,7 @@ function Input({
                     noteId: 0, // todo: isg typescript hacked in so that it becomes a Ref type
                     id: 0, // todo: isg typescript hacked in so that it becomes a Ref type
                     name: text,
-                    resource: DeckKind.Idea,
+                    deckKind: DeckKind.Idea,
                     refKind: RefKind.Ref,
                     insignia: 0,
                 };
@@ -651,7 +651,7 @@ function CandidateItem({
         showKeyboardShortcuts && keyIndex < maxShortcuts;
 
     const topclass = `civsel-candidate pigment-${deckKindToResourceString(
-        candidate.resource
+        candidate.deckKind
     )}`;
     return (
         <div class={topclass} onClick={selectedThisCandidate}>

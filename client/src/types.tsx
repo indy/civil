@@ -35,7 +35,7 @@ export type Node = {
     id: number;
     isImportant: boolean;
     expandedState: ExpandedState;
-    resource: DeckKind;
+    deckKind: DeckKind;
     label: string;
     x: number;
     y: number;
@@ -121,7 +121,7 @@ export type Ref = {
     noteId: number;
     id: number;
     name: string;
-    resource: DeckKind;
+    deckKind: DeckKind;
     refKind: RefKind;
     annotation?: string;
     insignia: number;
@@ -133,7 +133,7 @@ export type BackNote = {
     noteKind: NoteKind;
     deckId: number;
     deckName: string;
-    resource: DeckKind;
+    deckKind: DeckKind;
     insignia: number;
 };
 
@@ -141,7 +141,7 @@ export type BackRef = {
     noteId: number;
     deckId: number;
     deckName: string;
-    resource: DeckKind;
+    deckKind: DeckKind;
     refKind: RefKind;
     annotation?: string;
     insignia: number;
@@ -179,7 +179,7 @@ export type DeckPoint = {
 
     deckId: number;
     deckName: string;
-    deckResource: DeckKind;
+    deckKind: DeckKind;
 };
 
 export type FlashCard = {
@@ -263,7 +263,7 @@ export type DeckQuote = IDeckCore & IDeckQuote;
 export type DeckSimple = {
     id: number;
     name: string;
-    resource: DeckKind;
+    deckKind: DeckKind;
     insignia: number;
 };
 
@@ -433,7 +433,7 @@ type GraphEdge = [number, RefKind, number];
 export type GraphNode = {
     id: number;
     name: string;
-    resource: DeckKind;
+    deckKind: DeckKind;
     graphTerminator: boolean;
 };
 

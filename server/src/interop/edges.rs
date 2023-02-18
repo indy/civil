@@ -23,7 +23,7 @@ use crate::interop::Key;
 pub struct ExistingReference {
     pub id: Key, // id of the existing deck
     pub name: String,
-    pub resource: DeckKind,
+    pub deck_kind: DeckKind,
     pub ref_kind: RefKind,
     pub annotation: Option<String>,
 }
@@ -32,7 +32,7 @@ pub struct ExistingReference {
 #[serde(rename_all = "camelCase")]
 pub struct NewReference {
     pub name: String,
-    pub resource: DeckKind,
+    pub deck_kind: DeckKind,
     pub ref_kind: RefKind,
     pub annotation: Option<String>,
 }

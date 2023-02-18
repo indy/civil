@@ -124,7 +124,7 @@ fn deckpoint_from_row(row: &Row) -> Result<interop::DeckPoint> {
 
         deck_id: row.get(0)?,
         deck_name: row.get(1)?,
-        deck_resource: interop_decks::DeckKind::from_str(&string_deck_kind)?,
+        deck_kind: interop_decks::DeckKind::from_str(&string_deck_kind)?,
     })
 }
 

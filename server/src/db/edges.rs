@@ -36,7 +36,7 @@ fn from_row(row: &Row) -> Result<interop_decks::Ref> {
         note_id: row.get(0)?,
         id: row.get(1)?,
         name: row.get(2)?,
-        resource: interop_decks::DeckKind::from_str(&kind)?,
+        deck_kind: interop_decks::DeckKind::from_str(&kind)?,
         ref_kind: interop_decks::RefKind::from_str(&rk)?,
         annotation: row.get(5)?,
         insignia: row.get(6)?,

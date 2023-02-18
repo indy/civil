@@ -61,11 +61,11 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
     const appState = getAppState();
 
     const timelineId = id ? parseInt(id, 10) : 0;
-    const resource: DeckKind = DeckKind.Timeline;
+    const deckKind: DeckKind = DeckKind.Timeline;
 
     const deckManager = DeckManager({
         id: timelineId,
-        resource,
+        deckKind,
         hasSummarySection: true,
         hasReviewSection: false,
     });
@@ -90,7 +90,7 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                 {deckManager.isShowingUpdateForm() && (
                     <div>
                         <DeleteDeckConfirmation
-                            resource={DeckKind.Timeline}
+                            deckKind={DeckKind.Timeline}
                             id={timelineId}
                         />
                         <SectionUpdateTimeline
@@ -110,7 +110,7 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                     deck={deck}
                     title={deck.title}
                     onRefsChanged={deckManager.onRefsChanged}
-                    resource={resource}
+                    deckKind={deckKind}
                     howToShowNoteSection={deckManager.howToShowNoteSection}
                     canShowNoteSection={deckManager.canShowNoteSection}
                     onUpdateDeck={deckManager.update}

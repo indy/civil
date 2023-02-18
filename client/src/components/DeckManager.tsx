@@ -22,10 +22,7 @@ import {
 
 import Net from "../Net";
 import { getAppState, AppStateChange } from "../AppState";
-import {
-    deckKindToResourceString,
-    sortByResourceThenName,
-} from "../CivilUtils";
+import { buildUrl, sortByResourceThenName } from "../CivilUtils";
 import { NoteManager } from "./NoteSection";
 import { PointForm } from "./PointForm";
 
@@ -45,7 +42,7 @@ function identity(a: IDeckCore): IDeckCore {
 
 type Props = {
     id: number;
-    resource: DeckKind;
+    deckKind: DeckKind;
     preCacheFn?: (_: IDeckCore) => IDeckCore;
     hasSummarySection: boolean;
     hasReviewSection: boolean;
@@ -53,7 +50,7 @@ type Props = {
 
 export default function DeckManager({
     id,
-    resource,
+    deckKind,
     preCacheFn,
     hasSummarySection,
     hasReviewSection,
@@ -66,14 +63,14 @@ export default function DeckManager({
     );
 
     useEffect(() => {
-        // fetch resource from the server
-        const url = `/api/${deckKindToResourceString(resource)}/${id}`;
+        // fetch deckKind from the server
+        const url = buildUrl(deckKind, id, "/api");
         Net.get<IDeckCore>(url).then((deck) => {
             if (deck) {
                 let newDms = dmsUpdateDeck(
                     dms,
                     preCacheFunction(deck),
-                    resource,
+                    deckKind,
                     true
                 );
                 newDms = dmsCanHaveSummarySection(newDms, hasSummarySection);
@@ -89,7 +86,7 @@ export default function DeckManager({
         let newDms = dmsUpdateDeck(
             dms,
             preCacheFunction(newDeck),
-            resource,
+            deckKind,
             false
         );
         setDms(newDms);
@@ -157,7 +154,7 @@ export default function DeckManager({
             let newDms = dmsUpdateDeck(
                 dms,
                 preCacheFunction(newDeck),
-                resource,
+                deckKind,
                 true
             );
             newDms = dmsHideForm(newDms);
@@ -192,7 +189,8 @@ export default function DeckManager({
             //
             function onAddPoint(point: ProtoPoint) {
                 if (dms.deck) {
-                    const url = `/api/${resource}/${dms.deck.id}/points`;
+                    const url =
+                        buildUrl(deckKind, dms.deck.id, "/api") + "/points";
                     Net.post<ProtoPoint, IDeckCore>(url, point).then(
                         (updatedDeck) => {
                             update(updatedDeck);
@@ -203,7 +201,9 @@ export default function DeckManager({
             }
             function onAddPoints(points: Array<ProtoPoint>) {
                 if (dms.deck) {
-                    const url = `/api/${resource}/${dms.deck.id}/multipoints`;
+                    const url =
+                        buildUrl(deckKind, dms.deck.id, "/api") +
+                        "/multipoints";
                     Net.post<Array<ProtoPoint>, IDeckCore>(url, points).then(
                         (updatedDeck) => {
                             update(updatedDeck);
@@ -322,7 +322,7 @@ function cleanDeckManagerState(): DeckManagerState {
 function dmsUpdateDeck(
     dms: DeckManagerState,
     deck: IDeckCore,
-    resource: DeckKind,
+    deckKind: DeckKind,
     scrollToTop: boolean
 ): DeckManagerState {
     // modify the notes received from the server
@@ -332,7 +332,7 @@ function dmsUpdateDeck(
 
     let urlName = "";
 
-    switch (resource) {
+    switch (deckKind) {
         case DeckKind.Person:
             urlName = (deck as DeckPerson).name;
             break;
@@ -351,9 +351,7 @@ function dmsUpdateDeck(
     }
 
     AppStateChange.urlName(urlName);
-    AppStateChange.routeChanged(
-        `/${deckKindToResourceString(resource)}/${deck.id}`
-    );
+    AppStateChange.routeChanged(buildUrl(deckKind, deck.id));
 
     let res: DeckManagerState = { ...dms };
     res.deck = deck;

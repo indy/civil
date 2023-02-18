@@ -9,17 +9,17 @@ import RefView from "./RefView";
 import buildMarkup from "./BuildMarkup";
 
 type ListingLinkProps = {
-    resource: DeckKind;
+    deckKind: DeckKind;
     id: number;
     name: string;
     insignia: number;
 };
 
-function ListingLink({ resource, id, name, insignia }: ListingLinkProps) {
+function ListingLink({ deckKind, id, name, insignia }: ListingLinkProps) {
     let res = (
         <li class="listing-link">
             <DeckLink
-                resource={resource}
+                deckKind={deckKind}
                 id={id}
                 insignia={insignia}
                 name={name}
@@ -32,7 +32,7 @@ function ListingLink({ resource, id, name, insignia }: ListingLinkProps) {
 
 type ExpandableListingLinkProps = {
     index: number;
-    resource: DeckKind;
+    deckKind: DeckKind;
     deckId: number;
     deckName: string;
     deckInsignia: number;
@@ -45,7 +45,7 @@ type ExpandableListingLinkProps = {
 
 function ExpandableListingLink({
     index,
-    resource,
+    deckKind,
     deckId,
     deckName,
     deckInsignia,
@@ -67,7 +67,7 @@ function ExpandableListingLink({
             <span onClick={onClicked}>{icon}</span>
             <span class="backref-deck">
                 <DeckLink
-                    resource={resource}
+                    deckKind={deckKind}
                     id={deckId}
                     insignia={deckInsignia}
                     name={deckName}

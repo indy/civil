@@ -30,7 +30,7 @@ type NoteSectionProps = {
     deck: IDeckCore;
     toolbarMode: ToolbarMode;
     onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
-    resource: DeckKind;
+    deckKind: DeckKind;
     onUpdateDeck: (d: IDeckCore) => void;
     noappend?: boolean;
 };

@@ -62,8 +62,8 @@ const state: State = {
 
     showingSearchCommand: signal(false),
 
-    // to add the current page to the scratchList we need the id, name, resource.
-    // id and resource can be parsed from the url, but the name needs to be
+    // to add the current page to the scratchList we need the id, name, deckKind.
+    // id and deckKind can be parsed from the url, but the name needs to be
     // stored separately
     //
     urlName: signal(""),
@@ -90,7 +90,7 @@ const state: State = {
         "stuff",
     ],
 
-    // key == resource name of decks
+    // key == deckKind name of decks
     listing: signal({
         ideas: undefined, // when listing ideas on /ideas page
         articles: undefined,
@@ -116,7 +116,7 @@ const state: State = {
     showConnectivityGraph: signal(false),
     graph: signal({
         fullyLoaded: false,
-        // an array of { id, name, resource }
+        // an array of { id, name, deckKind }
         decks: [],
         links: [],
         // an array which is indexed by deckId, returns the offset into state.graph.value.decks
@@ -273,7 +273,7 @@ export const AppStateChange = {
             if (li) {
                 changes.referencesCreated.forEach((r) => {
                     let newReference = allDecksForNote.find(
-                        (d) => d.name === r.name && d.resource === DeckKind.Idea
+                        (d) => d.name === r.name && d.deckKind === DeckKind.Idea
                     );
 
                     if (newReference) {
@@ -281,11 +281,11 @@ export const AppStateChange = {
                         let newIdeaListing: DeckSimple = {
                             id: newReference.id,
                             name: newReference.name,
-                            resource: DeckKind.Idea,
+                            deckKind: DeckKind.Idea,
                             insignia: 0,
                         };
                         if (li.ideas) {
-                            // update the listing with the new resource
+                            // update the listing with the new deckKind
                             if (li.ideas.recent) {
                                 li.ideas.recent.unshift(newIdeaListing);
                             }
@@ -300,19 +300,19 @@ export const AppStateChange = {
         }
     },
 
-    setDeckListing: function (resource: DeckKind, listing: AnyDeckListing) {
+    setDeckListing: function (deckKind: DeckKind, listing: AnyDeckListing) {
         if (DEBUG_APP_STATE) {
             console.log("setDeckListing");
         }
         let li = { ...state.listing.value };
         if (li) {
-            if (resource == DeckKind.Idea) {
+            if (deckKind == DeckKind.Idea) {
                 li.ideas = listing as IdeasListings;
-            } else if (resource == DeckKind.Person) {
+            } else if (deckKind == DeckKind.Person) {
                 li.people = listing as PeopleListings;
-            } else if (resource == DeckKind.Article) {
+            } else if (deckKind == DeckKind.Article) {
                 li.articles = listing as ArticleListings;
-            } else if (resource == DeckKind.Timeline) {
+            } else if (deckKind == DeckKind.Timeline) {
                 li.timelines = listing as Array<DeckSimple>;
             }
             state.listing.value = li;
@@ -590,7 +590,7 @@ function parseForScratchList(
         return {
             id: parseInt(id, 10),
             name: urlName,
-            resource: dk,
+            deckKind: dk,
             insignia: 0,
         };
     }

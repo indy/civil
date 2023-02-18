@@ -13,6 +13,7 @@ import {
 } from "../types";
 
 import Net from "../Net";
+import { deckKindToResourceString } from "../CivilUtils";
 import { getAppState, AppStateChange } from "../AppState";
 import { graphPhysics } from "../graphPhysics";
 import { svgTickedCheckBox, svgUntickedCheckBox } from "../svgIcons";
@@ -65,10 +66,10 @@ export default function Graph({ id, depth }: { id: number; depth: number }) {
                 id: id,
                 isImportant: true,
                 expandedState: ExpandedState.Fully,
-                resource:
+                deckKind:
                     appState.graph.value.decks[
                         appState.graph.value.deckIndexFromId[id]
-                    ].resource,
+                    ].deckKind,
                 label: appState.graph.value.decks[
                     appState.graph.value.deckIndexFromId[id]
                 ].name,
@@ -159,12 +160,12 @@ export default function Graph({ id, depth }: { id: number; depth: number }) {
                                 id: childId,
                                 isImportant: false,
                                 expandedState: ExpandedState.None,
-                                resource:
+                                deckKind:
                                     appState.graph!.value.decks![
                                         appState.graph.value.deckIndexFromId![
                                             childId
                                         ]
-                                    ].resource,
+                                    ].deckKind,
                                 label: appState.graph!.value.decks![
                                     appState.graph.value.deckIndexFromId![
                                         childId
@@ -742,11 +743,11 @@ function createSvgNode(n: Node) {
     }
 
     let text2 = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    text2.setAttribute("fill", "var(--fg-" + n.resource + ")");
+    text2.setAttribute("fill", "var(--fg-" + n.deckKind + ")");
     text2.setAttribute("x", "10");
     text2.setAttribute("y", "0");
     text2.textContent = label;
-    text2.id = `/${n.resource}/${n.id}`;
+    text2.id = `/${deckKindToResourceString(n.deckKind)}/${n.id}`;
     text2.classList.add("svg-pseudo-link");
     text2.classList.add("unselectable-text"); // don't highlight the text as it's being dragged
     g.appendChild(text2);

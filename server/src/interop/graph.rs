@@ -23,7 +23,7 @@ use crate::interop::Key;
 pub struct Graph {
     pub id: Key,
     pub name: String,
-    pub resource: DeckKind,
+    pub deck_kind: DeckKind,
     pub graph_terminator: bool,
 }
 

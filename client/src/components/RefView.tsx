@@ -14,11 +14,16 @@ type Props = {
 
 function refKindToString(refKind: RefKind): string {
     switch (refKind) {
-        case RefKind.Ref: return "Ref";
-        case RefKind.RefToParent: return "RefToParent";
-        case RefKind.RefToChild: return "RefToChild";
-        case RefKind.RefInContrast: return "RefInContrast";
-        case RefKind.RefCritical: return "RefCritical";
+        case RefKind.Ref:
+            return "Ref";
+        case RefKind.RefToParent:
+            return "RefToParent";
+        case RefKind.RefToChild:
+            return "RefToChild";
+        case RefKind.RefInContrast:
+            return "RefInContrast";
+        case RefKind.RefCritical:
+            return "RefCritical";
     }
 }
 
@@ -26,7 +31,7 @@ export default function RefView({ deckReference, extraClasses }: Props) {
     const [expanded, setExpanded] = useState(true);
 
     if (deckReference) {
-        const { id, resource, refKind, name, annotation, insignia } =
+        const { id, deckKind, refKind, name, annotation, insignia } =
             deckReference;
 
         // clicked on the ref kind label toggles the annotation
@@ -36,7 +41,9 @@ export default function RefView({ deckReference, extraClasses }: Props) {
             }
         }
 
-        const scribbleClasses = `ref-scribble pigment-fg-${ deckKindToResourceString(resource) }`;
+        const scribbleClasses = `ref-scribble pigment-fg-${deckKindToResourceString(
+            deckKind
+        )}`;
 
         return (
             <div class={extraClasses} key={id}>
@@ -46,16 +53,14 @@ export default function RefView({ deckReference, extraClasses }: Props) {
 
                 <DeckLink
                     extraClasses="ref"
-                    resource={resource}
+                    deckKind={deckKind}
                     id={id}
                     insignia={insignia}
                     name={name}
                 />
 
                 {annotation && expanded && (
-                    <div class={scribbleClasses}>
-                        {annotation}
-                    </div>
+                    <div class={scribbleClasses}>{annotation}</div>
                 )}
             </div>
         );

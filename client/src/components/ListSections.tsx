@@ -150,7 +150,7 @@ function buildListing(list: Array<DeckSimple>): Array<ComponentChildren> {
             id={deck.id}
             name={deck.name}
             insignia={deck.insignia}
-            resource={deck.resource}
+            deckKind={deck.deckKind}
         />
     ));
 }
@@ -161,7 +161,7 @@ function buildDeckSimpleListing(list: Array<DeckSimple>) {
             id={deck.id}
             name={deck.name}
             insignia={deck.insignia}
-            resource={deck.resource}
+            deckKind={deck.deckKind}
         />
     ));
 }
@@ -181,13 +181,13 @@ type RatedListingLinkProps = {
 //
 function RatedListingLink({ deck }: RatedListingLinkProps) {
     let { id, title, rating, shortDescription, insignia } = deck;
-    let resource: DeckKind = DeckKind.Article;
+    let deckKind: DeckKind = DeckKind.Article;
 
     return (
         <li>
             <StarRating rating={rating} />
             <DeckLink
-                resource={resource}
+                deckKind={deckKind}
                 id={id}
                 insignia={insignia}
                 name={title}
