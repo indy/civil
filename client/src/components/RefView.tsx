@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import { Ref } from "../types";
+import { Ref, RefKind } from "../types";
 
 import { deckKindToResourceString } from "../CivilUtils";
 
@@ -11,6 +11,16 @@ type Props = {
     deckReference: Ref;
     extraClasses: string;
 };
+
+function refKindToString(refKind: RefKind): string {
+    switch (refKind) {
+        case RefKind.Ref: return "Ref";
+        case RefKind.RefToParent: return "RefToParent";
+        case RefKind.RefToChild: return "RefToChild";
+        case RefKind.RefInContrast: return "RefInContrast";
+        case RefKind.RefCritical: return "RefCritical";
+    }
+}
 
 export default function RefView({ deckReference, extraClasses }: Props) {
     const [expanded, setExpanded] = useState(true);
@@ -32,7 +42,7 @@ export default function RefView({ deckReference, extraClasses }: Props) {
         return (
             <div class={extraClasses} key={id}>
                 <span class="ref-kind" onClick={clickedToggleAnnotation}>
-                    ({refKind}){!expanded && "+"}
+                    ({refKindToString(refKind)}){!expanded && "+"}
                 </span>
 
                 <DeckLink

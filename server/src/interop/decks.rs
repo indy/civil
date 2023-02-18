@@ -59,9 +59,10 @@ impl FromStr for DeckKind {
     }
 }
 
-#[derive(Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[repr(u8)]
 pub enum RefKind {
-    Ref,
+    Ref = 1,
     RefToParent,
     RefToChild,
     RefInContrast,
