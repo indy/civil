@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::Model;
 use actix_web::{HttpResponse, ResponseError};
 use derive_more::{Display, From};
 use tracing::error;
@@ -30,11 +29,7 @@ pub enum Error {
     CivilShared(civil_shared::Error),
     IO(std::io::Error),
     InvalidKind,
-    InvalidModelType(Model),
     InvalidResource,
-    MissingField,
-    ModelConversion,
-    ModelNonUniqueTableName,
     NotFound,
     Other,
     ParseInt(std::num::ParseIntError),

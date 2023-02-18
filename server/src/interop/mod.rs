@@ -30,8 +30,6 @@ pub mod timelines;
 pub mod uploader;
 pub mod users;
 
-use std::fmt;
-
 pub type Key = i64;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -42,31 +40,4 @@ pub struct ProtoDeck {
 #[derive(serde::Deserialize)]
 pub struct IdParam {
     pub id: Key,
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum Model {
-    Event,
-    Timeline,
-    Idea,
-    Note,
-    Person,
-    Point,
-    Quote,
-    Article,
-}
-
-impl std::fmt::Display for Model {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Model::Event => write!(f, "Model::Event"),
-            Model::Timeline => write!(f, "Model::Timeline"),
-            Model::Idea => write!(f, "Model::Idea"),
-            Model::Note => write!(f, "Mode::Note"),
-            Model::Person => write!(f, "Model::Person"),
-            Model::Point => write!(f, "Mode::Point"),
-            Model::Quote => write!(f, "Mode::Quote"),
-            Model::Article => write!(f, "Mode::Article"),
-        }
-    }
 }
