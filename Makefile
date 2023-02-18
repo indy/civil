@@ -82,7 +82,7 @@ typescript-format:
 # top-level public targets
 ################################################################################
 
-run: $(WWW_FOLDER)/$(CLIENT_WASM_BG) server
+run: $(CLIENT_FOLDER)/www/index.js $(WWW_FOLDER)/$(CLIENT_WASM_BG) server
 	cargo run --manifest-path $(SERVER_FOLDER)/Cargo.toml --bin $(SERVER_BINARY)
 
 # collect stats on each user's content, stores the stats in the db
