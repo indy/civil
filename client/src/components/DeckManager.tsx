@@ -10,7 +10,7 @@ import {
     DeckQuote,
     DeckTimeline,
     FlashCard,
-    IDeckCore,
+    FatDeck,
     Note,
     NoteKind,
     NoteSectionHowToShow,
@@ -27,7 +27,7 @@ import { NoteManager } from "./NoteSection";
 import { PointForm } from "./PointForm";
 
 type DeckManagerState = {
-    deck: IDeckCore | undefined;
+    deck: FatDeck | undefined;
     isShowingUpdateForm: boolean;
     isEditingDeckRefs: boolean;
     canHaveSummarySection: boolean;
@@ -36,14 +36,14 @@ type DeckManagerState = {
     displayShowReviewButton: boolean;
 };
 
-function identity(a: IDeckCore): IDeckCore {
+function identity(a: FatDeck): FatDeck {
     return a;
 }
 
 type Props = {
     id: number;
     deckKind: DeckKind;
-    preCacheFn?: (_: IDeckCore) => IDeckCore;
+    preCacheFn?: (_: FatDeck) => FatDeck;
     hasSummarySection: boolean;
     hasReviewSection: boolean;
 };
@@ -65,7 +65,7 @@ export default function DeckManager({
     useEffect(() => {
         // fetch deckKind from the server
         const url = buildUrl(deckKind, id, "/api");
-        Net.get<IDeckCore>(url).then((deck) => {
+        Net.get<FatDeck>(url).then((deck) => {
             if (deck) {
                 let newDms = dmsUpdateDeck(
                     dms,
@@ -82,7 +82,7 @@ export default function DeckManager({
         });
     }, [id]);
 
-    function update(newDeck: IDeckCore) {
+    function update(newDeck: FatDeck) {
         let newDms = dmsUpdateDeck(
             dms,
             preCacheFunction(newDeck),
@@ -92,7 +92,7 @@ export default function DeckManager({
         setDms(newDms);
     }
     function findNoteWithId(
-        deck: IDeckCore,
+        deck: FatDeck,
         id: number,
         modifyFn: (n: Notes, idx: number) => void
     ) {
@@ -114,7 +114,7 @@ export default function DeckManager({
         let n = { ...note };
 
         if (dms.deck) {
-            let deck: IDeckCore = dms.deck;
+            let deck: FatDeck = dms.deck;
 
             // have to set deck.refs to be the canonical version
             // (used to populate each note's decks array)
@@ -150,7 +150,7 @@ export default function DeckManager({
         isEditingDeckRefs: function () {
             return dms.isEditingDeckRefs;
         },
-        updateAndReset: function (newDeck: IDeckCore) {
+        updateAndReset: function (newDeck: FatDeck) {
             let newDms = dmsUpdateDeck(
                 dms,
                 preCacheFunction(newDeck),
@@ -191,7 +191,7 @@ export default function DeckManager({
                 if (dms.deck) {
                     const url =
                         buildUrl(deckKind, dms.deck.id, "/api") + "/points";
-                    Net.post<ProtoPoint, IDeckCore>(url, point).then(
+                    Net.post<ProtoPoint, FatDeck>(url, point).then(
                         (updatedDeck) => {
                             update(updatedDeck);
                             onSuccessCallback();
@@ -204,7 +204,7 @@ export default function DeckManager({
                     const url =
                         buildUrl(deckKind, dms.deck.id, "/api") +
                         "/multipoints";
-                    Net.post<Array<ProtoPoint>, IDeckCore>(url, points).then(
+                    Net.post<Array<ProtoPoint>, FatDeck>(url, points).then(
                         (updatedDeck) => {
                             update(updatedDeck);
                             onSuccessCallback();
@@ -224,7 +224,7 @@ export default function DeckManager({
         onRefsChanged,
         noteManagerForDeckPoint: function (deckPoint: DeckPoint) {
             if (dms.deck) {
-                let deck: IDeckCore = dms.deck;
+                let deck: FatDeck = dms.deck;
                 if (deck && deck.noteSeqs && deck.noteSeqs.points) {
                     return NoteManager({
                         deck: deck,
@@ -321,7 +321,7 @@ function cleanDeckManagerState(): DeckManagerState {
 
 function dmsUpdateDeck(
     dms: DeckManagerState,
-    deck: IDeckCore,
+    deck: FatDeck,
     deckKind: DeckKind,
     scrollToTop: boolean
 ): DeckManagerState {
@@ -442,7 +442,7 @@ function dmsHideForm(dms: DeckManagerState): DeckManagerState {
     return res;
 }
 
-function applyDecksAndCardsToNotes(deck: IDeckCore) {
+function applyDecksAndCardsToNotes(deck: FatDeck) {
     if (deck.notes) {
         if (deck.refs) {
             const decksInNotes = hashByNoteIds(deck.refs);
@@ -488,7 +488,7 @@ function hashByNoteIds(s: Array<Ref | FlashCard>) {
     return res;
 }
 
-function buildNoteSeqs(deck: IDeckCore) {
+function buildNoteSeqs(deck: FatDeck) {
     // build NoteSeqs for notes associated with points
     let points: { [id: number]: Notes } = noteSeqsForPoints(deck.notes);
     // add empty noteSeqs for points without any notes

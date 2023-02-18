@@ -2,7 +2,7 @@ import { h } from "preact";
 import { useEffect } from "preact/hooks";
 import { Link } from "preact-router";
 
-import { DeckSimple } from "../types";
+import { SlimDeck } from "../types";
 
 import Net from "../Net";
 import { buildUrl, deckKindToResourceString } from "../CivilUtils";
@@ -26,7 +26,7 @@ enum ShowState {
 interface ICard {
     id: number;
     noteId: number;
-    deckInfo: DeckSimple;
+    deckInfo: SlimDeck;
     noteContent: string;
     prompt: string;
 }
@@ -297,7 +297,7 @@ function CardTest({ card, onRatedCard, onShowAnswer }: CardTestProps) {
 }
 
 function Answer({ card }: { card: Card }) {
-    const { id, name, deckKind } = card.deckInfo;
+    const { id, title, deckKind } = card.deckInfo;
     const href = buildUrl(deckKind, id);
     const klass = `ref pigment-${deckKindToResourceString(deckKind)}`;
     return (
@@ -307,7 +307,7 @@ function Answer({ card }: { card: Card }) {
                 <div class="left-margin">
                     <div class="left-margin-entry">
                         <Link class={klass} href={href}>
-                            {name}
+                            {title}
                         </Link>
                     </div>
                 </div>

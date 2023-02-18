@@ -6,7 +6,7 @@ import {
     DeckManagerType,
     DeckPoint,
     DeckTimeline,
-    DeckSimple,
+    SlimDeck,
     NoteManagerType,
 } from "../types";
 
@@ -31,7 +31,7 @@ import SectionGraph from "./SectionGraph";
 import SectionNotes from "./SectionNotes";
 import TopMatter from "./TopMatter";
 import WhenVerbose from "./WhenVerbose";
-import { DeckSimpleList } from "./ListSections";
+import { SlimDeckList } from "./ListSections";
 import { DeluxeToolbar } from "./DeluxeToolbar";
 import { InsigniaSelector } from "./Insignias";
 
@@ -42,7 +42,7 @@ function Timelines({ path }: { path?: string }) {
     useEffect(() => {
         if (!appState.listing.value.timelines) {
             let url: string = "/api/timelines/listings";
-            Net.get<Array<DeckSimple>>(url).then((listing) => {
+            Net.get<Array<SlimDeck>>(url).then((listing) => {
                 AppStateChange.setTimelineListing(listing);
             });
         }
@@ -52,7 +52,7 @@ function Timelines({ path }: { path?: string }) {
     return (
         <article>
             <h1 class="ui">{capitalise(resource)}</h1>
-            {timelines && <DeckSimpleList list={timelines} />}
+            {timelines && <SlimDeckList list={timelines} />}
         </article>
     );
 }

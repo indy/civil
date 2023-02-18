@@ -1,6 +1,6 @@
 import { h } from "preact";
 
-import { IDeckCore } from "../types";
+import { FatDeck } from "../types";
 
 import { getAppState } from "../AppState";
 
@@ -12,7 +12,7 @@ export default function SectionGraph({
     deck,
 }: {
     depth: number;
-    deck: IDeckCore;
+    deck: FatDeck;
 }) {
     const appState = getAppState();
 

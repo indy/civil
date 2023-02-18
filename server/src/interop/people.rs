@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::{BackNote, BackRef, DeckSimple, Ref};
+use crate::interop::decks::{BackNote, SlimDeck, Ref};
 use crate::interop::notes::Note;
 use crate::interop::points::DeckPoint;
 use crate::interop::sr::FlashCard;
@@ -42,7 +42,7 @@ pub struct Person {
     pub refs: Option<Vec<Ref>>,
 
     pub backnotes: Option<Vec<BackNote>>,
-    pub backrefs: Option<Vec<BackRef>>,
+    pub backrefs: Option<Vec<Ref>>,
 
     pub flashcards: Option<Vec<FlashCard>>,
 }
@@ -80,9 +80,9 @@ pub struct ProtoPerson {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PeopleListings {
-    pub uncategorised: Vec<DeckSimple>,
-    pub ancient: Vec<DeckSimple>,
-    pub medieval: Vec<DeckSimple>,
-    pub modern: Vec<DeckSimple>,
-    pub contemporary: Vec<DeckSimple>,
+    pub uncategorised: Vec<SlimDeck>,
+    pub ancient: Vec<SlimDeck>,
+    pub medieval: Vec<SlimDeck>,
+    pub modern: Vec<SlimDeck>,
+    pub contemporary: Vec<SlimDeck>,
 }

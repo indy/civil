@@ -1,6 +1,6 @@
 import { h } from "preact";
 
-import { DeckSimple } from "../types";
+import { SlimDeck } from "../types";
 
 import { nonEmptyArray, plural } from "../JsUtils";
 
@@ -10,14 +10,14 @@ import { ListingLink } from "./ListingLink";
 export default function SectionSearchResults({
     searchResults,
 }: {
-    searchResults: Array<DeckSimple>;
+    searchResults: Array<SlimDeck>;
 }) {
-    function buildSearchResult(lb: DeckSimple) {
+    function buildSearchResult(lb: SlimDeck) {
         return (
             <ListingLink
                 id={lb.id}
                 insignia={lb.insignia}
-                name={lb.name}
+                title={lb.title}
                 deckKind={lb.deckKind}
             />
         );

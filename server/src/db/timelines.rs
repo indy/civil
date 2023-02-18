@@ -57,7 +57,7 @@ pub(crate) fn get_or_create(
 pub(crate) fn all(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-) -> Result<Vec<interop_decks::DeckSimple>> {
+) -> Result<Vec<interop_decks::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT id, name, 'timeline', insignia

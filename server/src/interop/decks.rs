@@ -103,7 +103,7 @@ impl FromStr for RefKind {
 pub struct Ref {
     pub note_id: Key,
     pub id: Key,
-    pub name: String,
+    pub title: String,
     pub deck_kind: DeckKind,
     pub ref_kind: RefKind,
     pub annotation: Option<String>,
@@ -118,23 +118,9 @@ pub struct BackNote {
     pub note_id: Key,
     pub note_content: String,
     pub note_kind: NoteKind,
-    pub deck_id: Key,
-    pub deck_name: String,
+    pub id: Key,
+    pub title: String,
     pub deck_kind: DeckKind,
-    pub insignia: i32,
-}
-
-// all refs on notes that have at least one ref back to the currently displayed deck
-//
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct BackRef {
-    pub note_id: Key,
-    pub deck_id: Key,
-    pub deck_name: String,
-    pub deck_kind: DeckKind,
-    pub ref_kind: RefKind,
-    pub annotation: Option<String>,
     pub insignia: i32,
 }
 
@@ -142,9 +128,9 @@ pub struct BackRef {
 //
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct DeckSimple {
+pub struct SlimDeck {
     pub id: Key,
-    pub name: String,
+    pub title: String,
     pub deck_kind: DeckKind,
     pub insignia: i32,
 }
@@ -152,11 +138,11 @@ pub struct DeckSimple {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ResultList {
-    pub results: Vec<DeckSimple>,
+    pub results: Vec<SlimDeck>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResults {
-    pub results: Option<Vec<DeckSimple>>,
+    pub results: Option<Vec<SlimDeck>>,
 }

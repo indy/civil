@@ -2,7 +2,7 @@ import { h } from "preact";
 
 import {
     DeckKind,
-    IDeckCore,
+    FatDeck,
     Note,
     NoteKind,
     NoteSectionHowToShow,
@@ -14,13 +14,13 @@ import { getAppState } from "../AppState";
 import { NoteSection } from "./NoteSection";
 
 type Props = {
-    deck: IDeckCore;
+    deck: FatDeck;
     onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
     title: string;
     deckKind: DeckKind;
     howToShowNoteSection: (noteKind: NoteKind) => NoteSectionHowToShow;
     canShowNoteSection: (noteKind: NoteKind) => boolean;
-    onUpdateDeck: (newDeck: IDeckCore) => void;
+    onUpdateDeck: (newDeck: FatDeck) => void;
     noappend?: boolean;
 };
 

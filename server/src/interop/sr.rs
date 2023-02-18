@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::DeckSimple;
+use crate::interop::decks::SlimDeck;
 use crate::interop::Key;
 
 pub struct CardUpcomingReview {
@@ -28,7 +28,7 @@ pub struct CardUpcomingReview {
 pub struct Card {
     pub id: Key,
     pub note_id: Key,
-    pub deck_info: DeckSimple,
+    pub deck_info: SlimDeck,
 
     pub note_content: String,
     pub prompt: String,

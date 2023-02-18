@@ -31,7 +31,7 @@ export default function RefView({ deckReference, extraClasses }: Props) {
     const [expanded, setExpanded] = useState(true);
 
     if (deckReference) {
-        const { id, deckKind, refKind, name, annotation, insignia } =
+        const { id, deckKind, refKind, title, annotation, insignia } =
             deckReference;
 
         // clicked on the ref kind label toggles the annotation
@@ -56,7 +56,7 @@ export default function RefView({ deckReference, extraClasses }: Props) {
                     deckKind={deckKind}
                     id={id}
                     insignia={insignia}
-                    name={name}
+                    title={title}
                 />
 
                 {annotation && expanded && (

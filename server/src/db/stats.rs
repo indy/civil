@@ -20,7 +20,7 @@ use tracing::info;
 
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Result;
-use crate::interop::decks::DeckSimple;
+use crate::interop::decks::SlimDeck;
 use crate::interop::stats as interop;
 use crate::interop::Key;
 
@@ -34,7 +34,7 @@ pub fn get(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::UserStats>
     })
 }
 
-pub fn recently_visited(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<DeckSimple>> {
+pub fn recently_visited(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT decks.id, decks.name, decks.kind, decks.insignia

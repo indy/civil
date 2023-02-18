@@ -3,7 +3,7 @@ import { route } from "preact-router";
 import {
     AnyDeckListing,
     DeckKind,
-    DeckSimple,
+    SlimDeck,
     RefKind,
     ToolbarMode,
 } from "./types";
@@ -99,7 +99,7 @@ export function createDeck(deckKind: DeckKind, title: string) {
 
     const resource = deckKindToResourceString(deckKind);
 
-    Net.post<ProtoDeck, DeckSimple>(`/api/${resource}`, data).then((deck) => {
+    Net.post<ProtoDeck, SlimDeck>(`/api/${resource}`, data).then((deck) => {
         Net.get<AnyDeckListing>(`/api/${resource}/listings`).then((listing) => {
             AppStateChange.setDeckListing(deckKind, listing);
             AppStateChange.invalidateGraph();
@@ -118,12 +118,12 @@ export function indexToShortcut(index: number) {
 
 export function fetchDeckListing(deckKind: DeckKind, url: string) {
     console.error("REPLACE fetchDeckListing WITH ILISTING SPECIFIC VARIANTS");
-    Net.get<Array<DeckSimple>>(url || `/api/${deckKind}`).then((listing) => {
+    Net.get<Array<SlimDeck>>(url || `/api/${deckKind}`).then((listing) => {
         AppStateChange.setDeckListing(deckKind, listing);
     });
 }
 
-export function sortByResourceThenName(a: DeckSimple, b: DeckSimple): number {
+export function sortByResourceThenName(a: SlimDeck, b: SlimDeck): number {
     if (a.deckKind < b.deckKind) {
         return -1;
     }
@@ -131,16 +131,16 @@ export function sortByResourceThenName(a: DeckSimple, b: DeckSimple): number {
         return 1;
     }
 
-    let nameA = a.name.toUpperCase();
-    let nameB = b.name.toUpperCase();
-    if (nameA < nameB) {
+    let titleA = a.title.toUpperCase();
+    let titleB = b.title.toUpperCase();
+    if (titleA < titleB) {
         return -1;
     }
 
-    if (nameA > nameB) {
+    if (titleA > titleB) {
         return 1;
     }
 
-    // names must be equal
+    // titles must be equal
     return 0;
 }

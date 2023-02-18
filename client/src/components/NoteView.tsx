@@ -3,7 +3,7 @@ import { useEffect, useState, useRef, Ref as PreactRef } from "preact/hooks";
 
 import {
     FlashCard,
-    IDeckCore,
+    FatDeck,
     Note,
     Notes,
     ProtoNoteReferences,
@@ -327,12 +327,12 @@ function reducer(state: LocalState, action: Action) {
 
 type Props = {
     note: Note;
-    parentDeck: IDeckCore;
+    parentDeck: FatDeck;
     toolbarMode: ToolbarMode;
     onDelete: (id: number) => void;
     onEdited: (id: number, n: Note) => void;
     onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
-    onUpdateDeck: (d: IDeckCore) => void;
+    onUpdateDeck: (d: FatDeck) => void;
 };
 
 export default function NoteView({

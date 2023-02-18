@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::DeckSimple;
+use crate::interop::decks::SlimDeck;
 
 #[derive(Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -62,6 +62,6 @@ pub struct Stats {
 #[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UserStats {
-    pub recently_visited: Vec<DeckSimple>,
+    pub recently_visited: Vec<SlimDeck>,
     pub stats: Stats,
 }

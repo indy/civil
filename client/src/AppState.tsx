@@ -6,7 +6,7 @@ import {
     AnyDeckListing,
     ArticleListings,
     DeckKind,
-    DeckSimple,
+    SlimDeck,
     Graph,
     GraphNode,
     IdeasListings,
@@ -246,7 +246,7 @@ export const AppStateChange = {
         li.articles = listing;
         state.listing.value = li;
     },
-    setTimelineListing: function (listing: Array<DeckSimple>) {
+    setTimelineListing: function (listing: Array<SlimDeck>) {
         if (DEBUG_APP_STATE) {
             console.log("setIdeasListing");
         }
@@ -273,14 +273,14 @@ export const AppStateChange = {
             if (li) {
                 changes.referencesCreated.forEach((r) => {
                     let newReference = allDecksForNote.find(
-                        (d) => d.name === r.name && d.deckKind === DeckKind.Idea
+                        (d) => d.title === r.title && d.deckKind === DeckKind.Idea
                     );
 
                     if (newReference) {
                         // todo: what should insignia be here?
-                        let newIdeaListing: DeckSimple = {
+                        let newIdeaListing: SlimDeck = {
                             id: newReference.id,
-                            name: newReference.name,
+                            title: newReference.title,
                             deckKind: DeckKind.Idea,
                             insignia: 0,
                         };
@@ -313,7 +313,7 @@ export const AppStateChange = {
             } else if (deckKind == DeckKind.Article) {
                 li.articles = listing as ArticleListings;
             } else if (deckKind == DeckKind.Timeline) {
-                li.timelines = listing as Array<DeckSimple>;
+                li.timelines = listing as Array<SlimDeck>;
             }
             state.listing.value = li;
         }
@@ -466,7 +466,7 @@ export const AppStateChange = {
         state.scratchListMinimised.value = !state.scratchListMinimised.value;
     },
 
-    scratchListAddMulti: function (candidates: Array<DeckSimple>) {
+    scratchListAddMulti: function (candidates: Array<SlimDeck>) {
         if (DEBUG_APP_STATE) {
             console.log("scratchListAddMulti");
         }
@@ -491,7 +491,7 @@ export const AppStateChange = {
             console.log("bookmarkUrl");
         }
         let sl = state.scratchList.value.slice();
-        let candidate: DeckSimple | undefined = parseForScratchList(
+        let candidate: SlimDeck | undefined = parseForScratchList(
             state.url.value,
             state.urlName.value
         );
@@ -566,7 +566,7 @@ export const AppStateChange = {
 function parseForScratchList(
     url: string,
     urlName: string
-): DeckSimple | undefined {
+): SlimDeck | undefined {
     // note: this will break if we ever change the url schema
     let res = url.match(/^\/(\w+)\/(\w+)/);
 
@@ -589,7 +589,7 @@ function parseForScratchList(
 
         return {
             id: parseInt(id, 10),
-            name: urlName,
+            title: urlName,
             deckKind: dk,
             insignia: 0,
         };

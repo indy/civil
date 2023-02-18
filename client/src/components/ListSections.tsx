@@ -1,7 +1,7 @@
 import { h, ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 
-import { DeckKind, DeckArticle, DeckSimple } from "../types";
+import { DeckKind, DeckArticle, SlimDeck } from "../types";
 
 import Net from "../Net";
 import { svgExpand, svgMinimise } from "../svgIcons";
@@ -10,7 +10,7 @@ import DeckLink from "./DeckLink";
 import { ListingLink } from "./ListingLink";
 import { StarRating } from "./StarRating";
 
-function DeckSimpleList({ list }: { list: Array<DeckSimple> }) {
+function SlimDeckList({ list }: { list: Array<SlimDeck> }) {
     return (
         <div>
             <ul class="standard-list">{buildListing(list)}</ul>
@@ -18,18 +18,18 @@ function DeckSimpleList({ list }: { list: Array<DeckSimple> }) {
     );
 }
 
-type DeckSimpleListSectionProps = {
+type SlimDeckListSectionProps = {
     label: string;
-    list: Array<DeckSimple>;
+    list: Array<SlimDeck>;
     expanded?: boolean;
     hideEmpty?: boolean;
 };
-function DeckSimpleListSection({
+function SlimDeckListSection({
     label,
     list,
     expanded,
     hideEmpty,
-}: DeckSimpleListSectionProps) {
+}: SlimDeckListSectionProps) {
     let [show, setShow] = useState(expanded);
 
     function toggleShow() {
@@ -44,7 +44,7 @@ function DeckSimpleListSection({
                 <p class="subheading" onClick={toggleShow}>
                     {svgMinimise()} {label}
                 </p>
-                <ul class="compacted-list">{buildDeckSimpleListing(list)}</ul>
+                <ul class="compacted-list">{buildSlimDeckListing(list)}</ul>
             </div>
         );
     } else {
@@ -64,7 +64,7 @@ type LazyLoadedListSectionProps = {
 function LazyLoadedListSection({ label, url }: LazyLoadedListSectionProps) {
     type State = {
         fetchedData: boolean;
-        list: Array<DeckSimple>;
+        list: Array<SlimDeck>;
         show: boolean;
     };
 
@@ -82,7 +82,7 @@ function LazyLoadedListSection({ label, url }: LazyLoadedListSectionProps) {
             show: visible,
         });
         if (visible && !localState.fetchedData) {
-            Net.get<Array<DeckSimple>>(url).then((d) => {
+            Net.get<Array<SlimDeck>>(url).then((d) => {
                 setLocalState({
                     ...localState,
                     fetchedData: true,
@@ -100,7 +100,7 @@ function LazyLoadedListSection({ label, url }: LazyLoadedListSectionProps) {
                     {svgMinimise()} {label}
                 </p>
                 <ul class="compacted-list">
-                    {buildDeckSimpleListing(localState.list)}
+                    {buildSlimDeckListing(localState.list)}
                 </ul>
             </div>
         );
@@ -144,22 +144,22 @@ function RatedListSection({ label, list, expanded }: RatedListSectionProps) {
     }
 }
 
-function buildListing(list: Array<DeckSimple>): Array<ComponentChildren> {
+function buildListing(list: Array<SlimDeck>): Array<ComponentChildren> {
     return list.map((deck) => (
         <ListingLink
             id={deck.id}
-            name={deck.name}
+            title={deck.title}
             insignia={deck.insignia}
             deckKind={deck.deckKind}
         />
     ));
 }
 
-function buildDeckSimpleListing(list: Array<DeckSimple>) {
+function buildSlimDeckListing(list: Array<SlimDeck>) {
     return list.map((deck) => (
         <ListingLink
             id={deck.id}
-            name={deck.name}
+            title={deck.title}
             insignia={deck.insignia}
             deckKind={deck.deckKind}
         />
@@ -190,7 +190,7 @@ function RatedListingLink({ deck }: RatedListingLinkProps) {
                 deckKind={deckKind}
                 id={id}
                 insignia={insignia}
-                name={title}
+                title={title}
             />
             <span class="descriptive-scribble">{shortDescription}</span>
         </li>
@@ -198,8 +198,8 @@ function RatedListingLink({ deck }: RatedListingLinkProps) {
 }
 
 export {
-    DeckSimpleListSection,
+    SlimDeckListSection,
     RatedListSection,
-    DeckSimpleList,
+    SlimDeckList,
     LazyLoadedListSection,
 };

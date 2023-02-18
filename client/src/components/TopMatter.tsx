@@ -1,6 +1,6 @@
 import { h, ComponentChildren } from "preact";
 
-import { IDeckCore } from "../types";
+import { FatDeck } from "../types";
 
 import LeftMarginHeading from "./LeftMarginHeading";
 import Title from "./Title";
@@ -8,7 +8,7 @@ import { renderInsignia } from "./Insignias";
 
 type Props = {
     title: string;
-    deck: IDeckCore;
+    deck: FatDeck;
     isShowingUpdateForm: boolean;
     isEditingDeckRefs: boolean;
     onRefsToggle: () => void;

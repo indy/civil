@@ -3,7 +3,7 @@ import { h } from "preact";
 import {
     DeckKind,
     DeckPoint,
-    IDeckCore,
+    FatDeck,
     Note,
     NoteKind,
     NoteSectionHowToShow,
@@ -27,11 +27,11 @@ type NoteSectionProps = {
     noteKind: NoteKind;
     notes: Notes;
     howToShow: NoteSectionHowToShow;
-    deck: IDeckCore;
+    deck: FatDeck;
     toolbarMode: ToolbarMode;
     onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
     deckKind: DeckKind;
-    onUpdateDeck: (d: IDeckCore) => void;
+    onUpdateDeck: (d: FatDeck) => void;
     noappend?: boolean;
 };
 
@@ -82,9 +82,9 @@ function NoteSection({
 }
 
 type NoteManagerProps = {
-    deck: IDeckCore;
+    deck: FatDeck;
     toolbarMode: ToolbarMode;
-    onUpdateDeck: (d: IDeckCore) => void;
+    onUpdateDeck: (d: FatDeck) => void;
     notes: Notes;
     onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
     optionalDeckPoint?: DeckPoint;

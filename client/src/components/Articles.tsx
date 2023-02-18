@@ -21,7 +21,7 @@ import SectionDeckRefs from "./SectionDeckRefs";
 import SectionGraph from "./SectionGraph";
 import SectionNotes from "./SectionNotes";
 import TopMatter from "./TopMatter";
-import { DeckSimpleListSection, RatedListSection } from "./ListSections";
+import { SlimDeckListSection, RatedListSection } from "./ListSections";
 import { DeluxeToolbar } from "./DeluxeToolbar";
 import { InsigniaSelector } from "./Insignias";
 import { StarRatingPartial } from "./StarRating";
@@ -52,7 +52,7 @@ function Articles({ path }: { path?: string }) {
                     expanded
                 />
                 <RatedListSection label="Rated" list={articles.rated} />
-                <DeckSimpleListSection
+                <SlimDeckListSection
                     label="Orphans"
                     list={articles.orphans}
                     hideEmpty

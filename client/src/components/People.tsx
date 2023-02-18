@@ -7,8 +7,8 @@ import {
     DeckManagerType,
     DeckPerson,
     DeckPoint,
-    IDeckCore,
-    DeckSimple,
+    FatDeck,
+    SlimDeck,
     PeopleListings,
     SearchResults,
     NoteManagerType,
@@ -47,7 +47,7 @@ import SectionGraph from "./SectionGraph";
 import SectionNotes from "./SectionNotes";
 import SectionSearchResults from "./SectionSearchResults";
 import TopMatter from "./TopMatter";
-import { DeckSimpleListSection } from "./ListSections";
+import { SlimDeckListSection } from "./ListSections";
 import { DeluxeToolbar } from "./DeluxeToolbar";
 import { InsigniaSelector } from "./Insignias";
 import { PointForm } from "./PointForm";
@@ -71,28 +71,28 @@ function People({ path }: { path?: string }) {
         return (
             <article>
                 <h1 class="ui">{deckKindToHeadingString(deckKind)}</h1>
-                <DeckSimpleListSection
+                <SlimDeckListSection
                     label="Uncategorised"
                     list={people.uncategorised}
                     expanded
                     hideEmpty
                 />
-                <DeckSimpleListSection
+                <SlimDeckListSection
                     label="Ancient"
                     list={people.ancient}
                     expanded
                 />
-                <DeckSimpleListSection
+                <SlimDeckListSection
                     label="Medieval"
                     list={people.medieval}
                     expanded
                 />
-                <DeckSimpleListSection
+                <SlimDeckListSection
                     label="Modern"
                     list={people.modern}
                     expanded
                 />
-                <DeckSimpleListSection
+                <SlimDeckListSection
                     label="Contemporary"
                     list={people.contemporary}
                     expanded
@@ -107,7 +107,7 @@ function People({ path }: { path?: string }) {
 function Person({ path, id }: { path?: string; id?: string }) {
     const appState = getAppState();
 
-    const [searchResults, setSearchResults]: [Array<DeckSimple>, any] =
+    const [searchResults, setSearchResults]: [Array<SlimDeck>, any] =
         useState([]); // an array of backrefs
 
     const personId = id ? parseInt(id, 10) : 0;
@@ -151,7 +151,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
         });
     }
 
-    function hasBirthPoint(person: IDeckCore) {
+    function hasBirthPoint(person: FatDeck) {
         function hasBirth(point: DeckPoint) {
             return point.title === "Born" && point.deckId === person.id;
         }
@@ -244,7 +244,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
 }
 
 // called before this deck is cached by the AppState (ie after every modification)
-function preCacheFn(person: IDeckCore): IDeckCore {
+function preCacheFn(person: FatDeck): FatDeck {
     function getBirthDateFromPoints(points: Array<DeckPoint>) {
         const kind: PointKind = PointKind.PointBegin;
         const p = points.find((p) => p.kind === kind && p.deckId === person.id);
@@ -292,7 +292,7 @@ function SectionUpdatePerson({
     onUpdate,
 }: {
     person: DeckPerson;
-    onUpdate: (p: IDeckCore) => void;
+    onUpdate: (p: FatDeck) => void;
 }) {
     const [localState, setLocalState] = useState({
         title: person.title || "",

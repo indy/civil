@@ -48,11 +48,11 @@ export type Node = {
 export type Edge = [number, number, number, RefKind];
 
 export type DeckManagerType = {
-    update: (d: IDeckCore) => void;
-    getDeck: () => IDeckCore | undefined;
+    update: (d: FatDeck) => void;
+    getDeck: () => FatDeck | undefined;
     isShowingUpdateForm: () => boolean;
     isEditingDeckRefs: () => boolean;
-    updateAndReset: (newDeck: IDeckCore) => void;
+    updateAndReset: (newDeck: FatDeck) => void;
     onShowSummaryClicked: () => void;
     onShowReviewClicked: () => void;
     onRefsToggle: () => void;
@@ -117,34 +117,16 @@ export enum DeckKind {
     Quote,
 }
 
-export type Ref = {
+export type Ref = SlimDeck & {
     noteId: number;
-    id: number;
-    name: string;
-    deckKind: DeckKind;
     refKind: RefKind;
     annotation?: string;
-    insignia: number;
 };
 
-export type BackNote = {
+export type BackNote = SlimDeck & {
     noteId: number;
     noteContent: string;
     noteKind: NoteKind;
-    deckId: number;
-    deckName: string;
-    deckKind: DeckKind;
-    insignia: number;
-};
-
-export type BackRef = {
-    noteId: number;
-    deckId: number;
-    deckName: string;
-    deckKind: DeckKind;
-    refKind: RefKind;
-    annotation?: string;
-    insignia: number;
 };
 
 export enum PointKind {
@@ -212,16 +194,17 @@ export type NoteSeqs = {
     noteSummary: Notes;
 };
 
-export type DeckSimple = {
+export type SlimDeck = {
     id: number;
-    name: string;
+    title: string;
     deckKind: DeckKind;
     insignia: number;
 }
 
-export interface IDeckCore {
+export interface FatDeck {
+    title: string;
     backnotes?: Array<BackNote>;
-    backrefs?: Array<BackRef>;
+    backrefs?: Array<Ref>;
     flashcards?: Array<FlashCard>;
     id: number;
     insignia: number;
@@ -231,72 +214,59 @@ export interface IDeckCore {
     points?: Array<DeckPoint>;
 }
 
-interface IDeckIdea {
-    title: string;
+export type DeckIdea = FatDeck & {
     createdAt: string;
     graphTerminator: boolean;
-}
+};
 
-interface IDeckPerson {
-    title: string;
+export type DeckPerson = FatDeck & {
     sortDate?: string;
-}
+};
 
-interface IDeckArticle {
-    title: string;
+export type DeckArticle = FatDeck & {
     source?: string;
     author?: string;
     createdAt: string;
     publishedDate?: string;
     rating: number;
     shortDescription?: string;
-}
+};
 
-interface IDeckTimeline {
-    title: string;
-}
+export type DeckTimeline = FatDeck;
 
-interface IDeckQuote {
-    title: string;
+export type DeckQuote = FatDeck & {
     attribution: string;
-}
+};
 
-export type DeckIdea = IDeckCore & IDeckIdea;
-export type DeckPerson = IDeckCore & IDeckPerson;
-export type DeckArticle = IDeckCore & IDeckArticle;
-export type DeckTimeline = IDeckCore & IDeckTimeline;
-export type DeckQuote = IDeckCore & IDeckQuote;
-
-;
 export type SearchResults = {
-    results?: Array<DeckSimple>;
+    results?: Array<SlimDeck>;
 };
 
 export type IdeasListings = {
-    recent: Array<DeckSimple>;
-    orphans: Array<DeckSimple>;
-    unnoted: Array<DeckSimple>;
+    recent: Array<SlimDeck>;
+    orphans: Array<SlimDeck>;
+    unnoted: Array<SlimDeck>;
 };
 
 export type PeopleListings = {
-    uncategorised: Array<DeckSimple>;
-    ancient: Array<DeckSimple>;
-    medieval: Array<DeckSimple>;
-    modern: Array<DeckSimple>;
-    contemporary: Array<DeckSimple>;
+    uncategorised: Array<SlimDeck>;
+    ancient: Array<SlimDeck>;
+    medieval: Array<SlimDeck>;
+    modern: Array<SlimDeck>;
+    contemporary: Array<SlimDeck>;
 };
 
 export type ArticleListings = {
     recent: Array<DeckArticle>;
     rated: Array<DeckArticle>;
-    orphans: Array<DeckSimple>;
+    orphans: Array<SlimDeck>;
 };
 
 export type Listing = {
     ideas: IdeasListings | undefined;
     people: PeopleListings | undefined;
     articles: ArticleListings | undefined;
-    timelines: Array<DeckSimple> | undefined;
+    timelines: Array<SlimDeck> | undefined;
 };
 
 // used by setDeckListing
@@ -304,7 +274,7 @@ export type AnyDeckListing =
     | IdeasListings
     | PeopleListings
     | ArticleListings
-    | Array<DeckSimple>;
+    | Array<SlimDeck>;
 
 export type Settings = {
     [index: string]: number;
@@ -421,7 +391,7 @@ export type State = {
 
     graph: Signal<Graph>;
 
-    scratchList: Signal<Array<DeckSimple>>;
+    scratchList: Signal<Array<SlimDeck>>;
 
     scratchListMinimised: Signal<boolean>;
 

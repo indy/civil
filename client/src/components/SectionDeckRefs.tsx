@@ -1,7 +1,7 @@
 import { h } from "preact";
 
 import {
-    IDeckCore,
+    FatDeck,
     Note,
     ProtoNoteReferences,
     Ref,
@@ -15,7 +15,7 @@ import CivilSelect from "./CivilSelect";
 import RefView from "./RefView";
 
 type Props = {
-    deck: IDeckCore;
+    deck: FatDeck;
     isEditing: boolean;
     onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
     onRefsToggle: () => void;

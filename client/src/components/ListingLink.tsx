@@ -11,18 +11,18 @@ import buildMarkup from "./BuildMarkup";
 type ListingLinkProps = {
     deckKind: DeckKind;
     id: number;
-    name: string;
+    title: string;
     insignia: number;
 };
 
-function ListingLink({ deckKind, id, name, insignia }: ListingLinkProps) {
+function ListingLink({ deckKind, id, title, insignia }: ListingLinkProps) {
     let res = (
         <li class="listing-link">
             <DeckLink
                 deckKind={deckKind}
                 id={id}
                 insignia={insignia}
-                name={name}
+                title={title}
             />
         </li>
     );
@@ -33,8 +33,8 @@ function ListingLink({ deckKind, id, name, insignia }: ListingLinkProps) {
 type ExpandableListingLinkProps = {
     index: number;
     deckKind: DeckKind;
-    deckId: number;
-    deckName: string;
+    id: number;
+    title: string;
     deckInsignia: number;
     deckLevelRefs: Array<Ref>;
     deckLevelAnnotation?: string;
@@ -46,8 +46,8 @@ type ExpandableListingLinkProps = {
 function ExpandableListingLink({
     index,
     deckKind,
-    deckId,
-    deckName,
+    id,
+    title,
     deckInsignia,
     deckLevelRefs,
     deckLevelAnnotation,
@@ -68,9 +68,9 @@ function ExpandableListingLink({
             <span class="backref-deck">
                 <DeckLink
                     deckKind={deckKind}
-                    id={deckId}
+                    id={id}
                     insignia={deckInsignia}
-                    name={deckName}
+                    title={title}
                 />
             </span>
             {expanded &&

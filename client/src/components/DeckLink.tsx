@@ -12,7 +12,7 @@ type Props = {
     deckKind: DeckKind;
     id: number;
     insignia: number;
-    name: string;
+    title: string;
     children?: ComponentChildren;
 };
 
@@ -22,7 +22,7 @@ export default function DeckLink({
     deckKind,
     id,
     insignia,
-    name,
+    title,
     children,
 }: Props) {
     function clicked(_e: Event) {
@@ -39,7 +39,7 @@ export default function DeckLink({
         <Link class={klass} href={buildUrl(deckKind, id)} onClick={clicked}>
             {children}
             {renderInsignia(insignia)}
-            {name}
+            {title}
         </Link>
     );
 }

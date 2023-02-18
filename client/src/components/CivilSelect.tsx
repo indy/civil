@@ -3,7 +3,7 @@ import { useEffect } from "preact/hooks";
 
 import {
     DeckKind,
-    DeckSimple,
+    SlimDeck,
     Ref,
     RefKind,
     RefsModified,
@@ -51,7 +51,7 @@ type Action = {
         | string
         | number
         | Ref
-        | DeckSimple
+        | SlimDeck
         | ActionDataReferenceChangeKind
         | ActionDataReferenceChangeAnnotation;
 };
@@ -65,15 +65,15 @@ type State = {
     referencesCreated: Array<Ref>;
     text: string;
     showKeyboardShortcuts: boolean;
-    candidates: Array<DeckSimple>;
+    candidates: Array<SlimDeck>;
     canSave: boolean;
     justAddedViaShortcut: boolean;
 };
 
-function candidateToRef(candidate: DeckSimple): Ref {
+function candidateToRef(candidate: SlimDeck): Ref {
     return {
         id: candidate.id,
-        name: candidate.name,
+        title: candidate.title,
         deckKind: candidate.deckKind,
         refKind: RefKind.Ref,
         noteId: 0, // todo: fix this, hacked in
@@ -262,7 +262,7 @@ function reducer(state: State, action: Action) {
         case ActionType.SelectAdd: {
             let newState = { ...state };
 
-            let data = action.data as DeckSimple;
+            let data = action.data as SlimDeck;
             let refToAdd = candidateToRef(data);
 
             newState.referencesAdded.push(refToAdd);
@@ -379,9 +379,9 @@ export default function CivilSelect({
         localDispatch(ActionType.InputGiven, newText);
     }
 
-    function alreadySelected(name: string) {
+    function alreadySelected(title: string) {
         return local.currentSelection.some((cv) => {
-            return cv.name === name;
+            return cv.title === title;
         });
     }
 
@@ -390,7 +390,7 @@ export default function CivilSelect({
             const url = `/api/cmd/namesearch?q=${encodeURI(newText)}`;
 
             type Response = {
-                results: Array<DeckSimple>;
+                results: Array<SlimDeck>;
             };
 
             const searchResponse = await Net.get<Response>(url);
@@ -398,11 +398,11 @@ export default function CivilSelect({
                 const newCandidates = searchResponse.results
                     .filter((op) => {
                         return (
-                            op.id !== parentDeckId && !alreadySelected(op.name)
+                            op.id !== parentDeckId && !alreadySelected(op.title)
                         );
                     })
                     .sort((a, b) => {
-                        return a.name.length - b.name.length;
+                        return a.title.length - b.title.length;
                     });
                 localDispatch(ActionType.CandidatesSet, newCandidates);
             }
@@ -543,7 +543,7 @@ function SelectedReference({
                     Critical Reference
                 </option>
             </select>
-            <span class="civsel-name">{reference.name}</span>
+            <span class="civsel-name">{reference.title}</span>
             <CivilInput
                 elementClass="civsel-annotation"
                 id="annotation"
@@ -557,9 +557,9 @@ function SelectedReference({
 type InputProps = {
     text: string;
     onTextChanged: (s: string) => void;
-    onAdd: (c: DeckSimple) => void;
+    onAdd: (c: SlimDeck) => void;
     onCreate: (r: Ref) => void;
-    candidates: Array<DeckSimple>;
+    candidates: Array<SlimDeck>;
     showKeyboardShortcuts: boolean;
 };
 
@@ -593,7 +593,7 @@ function Input({
                 let r: Ref = {
                     noteId: 0, // todo: isg typescript hacked in so that it becomes a Ref type
                     id: 0, // todo: isg typescript hacked in so that it becomes a Ref type
-                    name: text,
+                    title: text,
                     deckKind: DeckKind.Idea,
                     refKind: RefKind.Ref,
                     insignia: 0,
@@ -628,8 +628,8 @@ function Input({
 }
 
 type CandidateItemProps = {
-    candidate: DeckSimple;
-    onSelectedCandidate: (c: DeckSimple) => void;
+    candidate: SlimDeck;
+    onSelectedCandidate: (c: SlimDeck) => void;
     showKeyboardShortcuts: boolean;
     keyIndex: number;
 };
@@ -660,7 +660,7 @@ function CandidateItem({
                     {indexToShortcut(keyIndex)}:{" "}
                 </span>
             )}
-            {candidate.name}
+            {candidate.title}
         </div>
     );
 }

@@ -563,7 +563,7 @@ export default function SearchCommand() {
                 deckKind={entry.deckKind}
                 id={entry.id}
                 insignia={entry.insignia}
-                name={entry.name}
+                title={entry.title}
                 onClick={clickedCandidate}
             >
                 {canShowKeyboardShortcut && (
@@ -642,7 +642,7 @@ export default function SearchCommand() {
                         ${svgX()}
                     </div>
                     <Link onClick={clickedCandidate} class={klass} href={hreff}>
-                        {entry.name}
+                        {entry.title}
                     </Link>
                 </div>
             );

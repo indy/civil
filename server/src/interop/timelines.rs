@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::{BackNote, BackRef, Ref};
+use crate::interop::decks::{BackNote, Ref};
 use crate::interop::notes::Note;
 use crate::interop::points::Point;
 use crate::interop::sr::FlashCard;
@@ -36,7 +36,7 @@ pub struct Timeline {
     pub refs: Option<Vec<Ref>>,
 
     pub backnotes: Option<Vec<BackNote>>,
-    pub backrefs: Option<Vec<BackRef>>,
+    pub backrefs: Option<Vec<Ref>>,
 
     pub flashcards: Option<Vec<FlashCard>>,
 }

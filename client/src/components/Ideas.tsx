@@ -4,7 +4,7 @@ import { useEffect, useState } from "preact/hooks";
 import {
     DeckIdea,
     DeckKind,
-    DeckSimple,
+    SlimDeck,
     IdeasListings,
     SearchResults,
 } from "../types";
@@ -23,7 +23,7 @@ import SectionGraph from "./SectionGraph";
 import SectionNotes from "./SectionNotes";
 import SectionSearchResults from "./SectionSearchResults";
 import TopMatter from "./TopMatter";
-import { DeckSimpleListSection } from "./ListSections";
+import { SlimDeckListSection } from "./ListSections";
 import { DeluxeToolbar } from "./DeluxeToolbar";
 import { InsigniaSelector } from "./Insignias";
 
@@ -46,17 +46,17 @@ function Ideas({ path }: { path?: string }) {
         return (
             <article>
                 <h1 class="ui">{capitalise(resource)}</h1>
-                <DeckSimpleListSection
+                <SlimDeckListSection
                     label="Recent"
                     list={ideas.recent}
                     expanded
                 />
-                <DeckSimpleListSection
+                <SlimDeckListSection
                     label="Orphans"
                     list={ideas.orphans}
                     hideEmpty
                 />
-                <DeckSimpleListSection
+                <SlimDeckListSection
                     label="Unnoted"
                     list={ideas.unnoted}
                     hideEmpty
@@ -69,7 +69,7 @@ function Ideas({ path }: { path?: string }) {
 }
 
 function Idea({ path, id }: { path?: string; id?: string }) {
-    const [searchResults, setSearchResults]: [Array<DeckSimple>, any] =
+    const [searchResults, setSearchResults]: [Array<SlimDeck>, any] =
         useState([]); // an array of backrefs
     const ideaId = id ? parseInt(id, 10) : 0;
 

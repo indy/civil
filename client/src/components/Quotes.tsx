@@ -2,7 +2,7 @@ import { h } from "preact";
 import { useEffect } from "preact/hooks";
 import { route } from "preact-router";
 
-import { DeckKind, NoteKind, DeckQuote, IDeckCore } from "../types";
+import { DeckKind, NoteKind, DeckQuote, FatDeck } from "../types";
 
 import Net from "../Net";
 import buildMarkup from "./BuildMarkup";
@@ -181,7 +181,7 @@ function Quotes({ path }: { path?: string }) {
     );
 }
 
-function preCacheFn(d: IDeckCore) {
+function preCacheFn(d: FatDeck) {
     return d;
 }
 
@@ -252,7 +252,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
             };
 
             // as the title could have changed, we need to post the updated quote to the server
-            Net.put<ProtoQuote, IDeckCore>(`/api/quotes/${quoteId}`, data).then(
+            Net.put<ProtoQuote, FatDeck>(`/api/quotes/${quoteId}`, data).then(
                 (updatedDeck) => {
                     deckManager.updateAndReset(updatedDeck);
                 }

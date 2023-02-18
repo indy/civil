@@ -27,8 +27,8 @@ use std::str::FromStr;
 #[allow(unused_imports)]
 use tracing::info;
 
-impl From<(interop::FlashCard, interop_decks::DeckSimple)> for interop::Card {
-    fn from(e: (interop::FlashCard, interop_decks::DeckSimple)) -> interop::Card {
+impl From<(interop::FlashCard, interop_decks::SlimDeck)> for interop::Card {
+    fn from(e: (interop::FlashCard, interop_decks::SlimDeck)) -> interop::Card {
         let (c, backref) = e;
 
         interop::Card {
@@ -207,9 +207,9 @@ fn interop_card_from_row(row: &Row) -> Result<interop::Card> {
         id: row.get(0)?,
         note_id: row.get(1)?,
         note_content: row.get(3)?,
-        deck_info: interop_decks::DeckSimple {
+        deck_info: interop_decks::SlimDeck {
             id: row.get(4)?,
-            name: row.get(5)?,
+            title: row.get(5)?,
             deck_kind: interop_decks::DeckKind::from_str(&kind)?,
             insignia: row.get(7)?,
         },
