@@ -30,7 +30,7 @@ use rusqlite::{params, Row};
 fn person_with_sortdate_from_row(row: &Row) -> Result<interop::Person> {
     Ok(interop::Person {
         id: row.get(0)?,
-        name: row.get(1)?,
+        title: row.get(1)?,
         insignia: row.get(3)?,
         sort_date: row.get(2)?,
         points: None,
@@ -45,7 +45,7 @@ fn person_with_sortdate_from_row(row: &Row) -> Result<interop::Person> {
 fn person_from_row(row: &Row) -> Result<interop::Person> {
     Ok(interop::Person {
         id: row.get(0)?,
-        name: row.get(1)?,
+        title: row.get(1)?,
         insignia: row.get(4)?,
         sort_date: None,
         points: None,
@@ -194,7 +194,7 @@ pub(crate) fn edit(
         user_id,
         person_id,
         DeckKind::Person,
-        &person.name,
+        &person.title,
         graph_terminator,
         person.insignia,
     )?;

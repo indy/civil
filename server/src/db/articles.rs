@@ -39,7 +39,7 @@ impl From<(decks::DeckBase, ArticleExtra)> for interop::Article {
         let (deck, extra) = a;
         interop::Article {
             id: deck.id,
-            title: deck.name,
+            title: deck.title,
 
             insignia: deck.insignia,
 

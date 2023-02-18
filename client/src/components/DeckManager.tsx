@@ -334,7 +334,7 @@ function dmsUpdateDeck(
 
     switch (deckKind) {
         case DeckKind.Person:
-            urlName = (deck as DeckPerson).name;
+            urlName = (deck as DeckPerson).title;
             break;
         case DeckKind.Idea:
             urlName = (deck as DeckIdea).title;

@@ -46,7 +46,7 @@ impl From<crate::db::decks::DeckBase> for Idea {
     fn from(d: crate::db::decks::DeckBase) -> Idea {
         Idea {
             id: d.id,
-            title: d.name,
+            title: d.title,
 
             insignia: d.insignia,
 

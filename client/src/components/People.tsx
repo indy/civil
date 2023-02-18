@@ -166,14 +166,14 @@ function Person({ path, id }: { path?: string; id?: string }) {
         | DeckPerson
         | undefined;
     if (deck) {
-        const name = deck && deck.name;
+        const title = deck && deck.title;
         const hasKnownLifespan = deck && hasBirthPoint(deck);
         return (
             <article>
                 <DeluxeToolbar />
 
                 <TopMatter
-                    title={deck.name}
+                    title={deck.title}
                     deck={deck}
                     isShowingUpdateForm={deckManager.isShowingUpdateForm()}
                     isEditingDeckRefs={deckManager.isEditingDeckRefs()}
@@ -194,9 +194,9 @@ function Person({ path, id }: { path?: string; id?: string }) {
                     </div>
                 )}
 
-                {name && !hasKnownLifespan && (
+                {title && !hasKnownLifespan && (
                     <LifespanForm
-                        name={name}
+                        title={title}
                         onLifespanGiven={onLifespan}
                         oldestAliveAge={appState.oldestAliveAge}
                     />
@@ -211,7 +211,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
 
                 <SectionNotes
                     deck={deck}
-                    title={deck.name}
+                    title={deck.title}
                     onRefsChanged={deckManager.onRefsChanged}
                     deckKind={deckKind}
                     howToShowNoteSection={deckManager.howToShowNoteSection}
@@ -228,7 +228,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
                         deckManager={deckManager}
                         holderId={deck.id}
                         showAddPointForm={appState.showAddPointForm.value}
-                        holderName={deck.name}
+                        holderTitle={deck.title}
                     />
                 )}
                 <SectionGraph depth={2} deck={deck} />
@@ -295,15 +295,15 @@ function SectionUpdatePerson({
     onUpdate: (p: IDeckCore) => void;
 }) {
     const [localState, setLocalState] = useState({
-        name: person.name || "",
+        title: person.title || "",
         insigniaId: person.insignia || 0,
     });
 
     useEffect(() => {
-        if (person.name && person.name !== "" && localState.name === "") {
+        if (person.title && person.title !== "" && localState.title === "") {
             setLocalState({
                 ...localState,
-                name: person.name,
+                title: person.title,
             });
         }
 
@@ -324,7 +324,7 @@ function SectionUpdatePerson({
             if (name === "name") {
                 setLocalState({
                     ...localState,
-                    name: value,
+                    title: value,
                 });
             }
         }
@@ -332,12 +332,12 @@ function SectionUpdatePerson({
 
     const handleSubmit = (e: Event) => {
         type Data = {
-            name: string;
+            title: string;
             insignia: number;
         };
 
         const data: Data = {
-            name: localState.name.trim(),
+            title: localState.title.trim(),
             insignia: localState.insigniaId,
         };
 
@@ -364,7 +364,7 @@ function SectionUpdatePerson({
             <br />
             <CivilInput
                 id="name"
-                value={localState.name}
+                value={localState.title}
                 onInput={handleChangeEvent}
             />
             <br />
@@ -434,13 +434,13 @@ function ListDeckPoints({
     deckPoints,
     deckManager,
     holderId,
-    holderName,
+    holderTitle,
     showAddPointForm,
 }: {
     deckPoints: Array<DeckPoint> | undefined;
     deckManager: DeckManagerType;
     holderId: number;
-    holderName: string;
+    holderTitle: string;
     showAddPointForm: boolean;
 }) {
     const [onlyThisPerson, setOnlyThisPerson] = useState(false);
@@ -527,14 +527,14 @@ function ListDeckPoints({
 
     const formSidebarText = showAddPointForm
         ? "Hide Form"
-        : `Add Point for { holderName }`;
+        : `Add Point for { holderTitle }`;
     const hasDied =
         deckPoints &&
         deckPoints.some(
             (dp) => dp.deckId === holderId && dp.kind === PointKind.PointEnd
         );
 
-    const sectionTitle = `Points during the life of ${holderName}`;
+    const sectionTitle = `Points during the life of ${holderTitle}`;
     return (
         <RollableSection heading={sectionTitle}>
             <div class="left-margin">
@@ -555,7 +555,7 @@ function ListDeckPoints({
                         onClick={onOnlyThisPersonClicked}
                     >
                         <span class="left-margin-icon-label">
-                            Only {holderName}
+                            Only {holderTitle}
                         </span>
                         {onlyThisPerson
                             ? svgTickedCheckBox()

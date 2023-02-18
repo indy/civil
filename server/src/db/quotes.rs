@@ -49,7 +49,7 @@ impl From<(decks::DeckBase, QuoteExtra)> for interop::Quote {
 
         interop::Quote {
             id: deck.id,
-            title: deck.name,
+            title: deck.title,
             attribution,
 
             insignia: deck.insignia,

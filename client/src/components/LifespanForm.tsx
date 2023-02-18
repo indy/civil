@@ -15,7 +15,7 @@ enum LifespanStage {
 }
 
 type Props = {
-    name: string;
+    title: string;
     onLifespanGiven: (a: ProtoPoint, b?: ProtoPoint) => void;
     oldestAliveAge: number;
 };
@@ -27,7 +27,7 @@ type State = {
 };
 
 export default function LifespanForm({
-    name,
+    title,
     onLifespanGiven,
     oldestAliveAge,
 }: Props) {
@@ -96,7 +96,7 @@ export default function LifespanForm({
             return (
                 <div>
                     <span>
-                        Is {name} still alive?
+                        Is {title} still alive?
                         <button onClick={onPersonIsAlive}>Yes</button>
                         <button onClick={onPersonIsDead}>No</button>
                     </span>

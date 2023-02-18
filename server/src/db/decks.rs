@@ -56,7 +56,7 @@ fn resource_string_to_deck_kind_string(resource: &str) -> Result<&'static str> {
 #[derive(Debug, Clone)]
 pub struct DeckBase {
     pub id: Key,
-    pub name: String,
+    pub title: String,
     pub created_at: chrono::NaiveDateTime,
     pub graph_terminator: bool,
     pub insignia: i32,
@@ -65,7 +65,7 @@ pub struct DeckBase {
 fn deckbase_from_row(row: &Row) -> Result<DeckBase> {
     Ok(DeckBase {
         id: row.get(0)?,
-        name: row.get(1)?,
+        title: row.get(1)?,
         created_at: row.get(2)?,
         graph_terminator: row.get(3)?,
         insignia: row.get(4)?,

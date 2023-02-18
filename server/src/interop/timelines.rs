@@ -45,7 +45,7 @@ impl From<crate::db::decks::DeckBase> for Timeline {
     fn from(d: crate::db::decks::DeckBase) -> Timeline {
         Timeline {
             id: d.id,
-            title: d.name,
+            title: d.title,
 
             insignia: d.insignia,
 

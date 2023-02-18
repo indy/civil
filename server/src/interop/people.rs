@@ -25,7 +25,7 @@ use crate::interop::Key;
 #[serde(rename_all = "camelCase")]
 pub struct Person {
     pub id: Key,
-    pub name: String,
+    pub title: String,
 
     pub insignia: i32,
 
@@ -51,7 +51,7 @@ impl From<crate::db::decks::DeckBase> for Person {
     fn from(d: crate::db::decks::DeckBase) -> Person {
         Person {
             id: d.id,
-            name: d.name,
+            title: d.title,
 
             insignia: d.insignia,
 
@@ -73,7 +73,7 @@ impl From<crate::db::decks::DeckBase> for Person {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProtoPerson {
-    pub name: String,
+    pub title: String,
     pub insignia: i32,
 }
 

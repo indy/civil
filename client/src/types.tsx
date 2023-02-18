@@ -212,6 +212,13 @@ export type NoteSeqs = {
     noteSummary: Notes;
 };
 
+export type DeckSimple = {
+    id: number;
+    name: string;
+    deckKind: DeckKind;
+    insignia: number;
+}
+
 export interface IDeckCore {
     backnotes?: Array<BackNote>;
     backrefs?: Array<BackRef>;
@@ -231,7 +238,7 @@ interface IDeckIdea {
 }
 
 interface IDeckPerson {
-    name: string;
+    title: string;
     sortDate?: string;
 }
 
@@ -260,13 +267,7 @@ export type DeckArticle = IDeckCore & IDeckArticle;
 export type DeckTimeline = IDeckCore & IDeckTimeline;
 export type DeckQuote = IDeckCore & IDeckQuote;
 
-export type DeckSimple = {
-    id: number;
-    name: string;
-    deckKind: DeckKind;
-    insignia: number;
-};
-
+;
 export type SearchResults = {
     results?: Array<DeckSimple>;
 };
