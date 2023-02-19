@@ -49,7 +49,7 @@ function TopBarMenu() {
     }
 
     function clickedTopLevel(topMenuItem: string) {
-        AppStateChange.urlName(topMenuItem);
+        AppStateChange.urlTitle(topMenuItem);
     }
 
     if (appState.verboseUI.value) {

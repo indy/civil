@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { useEffect, useState, useRef } from "preact/hooks";
 
-import { Notes, NoteKind } from "../types";
+import { Note, Notes, NoteKind } from "../types";
 
 import Net from "../Net";
 import { getAppState } from "../AppState";
@@ -218,5 +218,5 @@ function addNote(
         data.pointId = optionalPointId;
     }
 
-    return Net.post<Data, any>("/api/notes", data);
+    return Net.post<Data, Note>("/api/notes", data);
 }

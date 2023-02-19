@@ -2,112 +2,7 @@
 
 import { Signal } from "@preact/signals";
 
-export type ProtoNoteReferences = {
-    noteId: number;
-    referencesChanged: Array<Ref>;
-    referencesRemoved: Array<Ref>;
-    referencesAdded: Array<Ref>;
-    referencesCreated: Array<Ref>;
-};
-
-// graph stuff
-//
-export type GraphCallback = (g: GraphState, p: number, h: number) => void;
-
-export enum ExpandedState {
-    Fully = 0,
-    Partial,
-    None,
-}
-
-type SimStats = {
-    tickCount: number;
-    maxVelocities: [number, number];
-};
-export type GraphState = {
-    nodes: { [index: number]: Node };
-    edges: Array<Edge>;
-
-    simStats?: SimStats;
-};
-
-export type Node = {
-    id: number;
-    isImportant: boolean;
-    expandedState: ExpandedState;
-    deckKind: DeckKind;
-    label: string;
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    textWidth?: number;
-    textHeight?: number;
-};
-
-export type Edge = [number, number, number, RefKind];
-
-export type DeckManagerType = {
-    update: (d: FatDeck) => void;
-    getDeck: () => FatDeck | undefined;
-    isShowingUpdateForm: () => boolean;
-    isEditingDeckRefs: () => boolean;
-    updateAndReset: (newDeck: FatDeck) => void;
-    onShowSummaryClicked: () => void;
-    onShowReviewClicked: () => void;
-    onRefsToggle: () => void;
-    onFormToggle: () => any;
-    buildPointForm: (onSuccessCallback: () => void) => any;
-    onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => any;
-    noteManagerForDeckPoint: (deckPoint: DeckPoint) => any;
-    pointHasNotes: (point: DeckPoint) => any;
-    canShowNoteSection: (noteKind: NoteKind) => any;
-    howToShowNoteSection: (noteKind: NoteKind) => NoteSectionHowToShow;
-};
-
-export type NoteManagerType = {
-    x?: any;
-};
-
-export type NoteThing = {
-    topRefKind?: RefKind;
-    topAnnotation?: string;
-    noteContent: string;
-    noteId: number;
-    refs: Array<Ref>;
-};
-
-export type RefsModified = {
-    referencesChanged: Array<Ref>;
-    referencesRemoved: Array<Ref>;
-    referencesAdded: Array<Ref>;
-    referencesCreated: Array<Ref>;
-};
-
-export type Admin = {
-    dbName: string;
-};
-
-export type User = {
-    username: string;
-    email: string;
-    admin?: Admin;
-};
-
-export enum RefKind {
-    Ref = 1,
-    RefToParent,
-    RefToChild,
-    RefInContrast,
-    RefCritical,
-}
-
-export enum NoteKind {
-    Note = 1,
-    NoteReview,
-    NoteSummary,
-    NoteDeckMeta,
-}
+export type Key = number;
 
 export enum DeckKind {
     Article = 1,
@@ -117,17 +12,20 @@ export enum DeckKind {
     Quote,
 }
 
-export type Ref = SlimDeck & {
-    noteId: number;
-    refKind: RefKind;
-    annotation?: string;
-};
+export enum NoteKind {
+    Note = 1,
+    NoteReview,
+    NoteSummary,
+    NoteDeckMeta,
+}
 
-export type BackNote = SlimDeck & {
-    noteId: number;
-    noteContent: string;
-    noteKind: NoteKind;
-};
+export enum RefKind {
+    Ref = 1,
+    RefToParent,
+    RefToChild,
+    RefInContrast,
+    RefCritical,
+}
 
 export enum PointKind {
     Point = 1,
@@ -135,78 +33,45 @@ export enum PointKind {
     PointEnd,
 }
 
-export type ProtoPoint = {
-    title?: string;
-    kind: PointKind;
+export enum ToolbarMode {
+    View = 1,
+    Edit,
+    Refs,
+    SR,
+    AddAbove,
+}
 
-    locationTextual?: string;
-    longitude?: number;
-    latitude?: number;
-    locationFuzz: number;
-
-    dateTextual?: string;
-    exactDate?: string;
-    lowerDate?: string;
-    upperDate?: string;
-    dateFuzz: number;
-};
-
-export type DeckPoint = {
-    id: number;
-    kind: PointKind;
-    title?: string;
-    dateTextual?: string;
-    date?: string;
-    age?: number;
-
-    deckId: number;
-    deckName: string;
-    deckKind: DeckKind;
-};
-
-export type FlashCard = {
-    id: number;
-    noteId: number;
-    prompt: string;
-    nextTestDate: string;
-    easinessFactor: number;
-    interRepetitionInterval: number;
-};
-
-export type Note = {
-    id: number;
-    prevNoteId: number | null;
-    kind: NoteKind;
-    content: string;
-    pointId: number | null;
-
-    decks: Array<Ref>;
-    flashcards: Array<FlashCard>;
-};
-
-export type Notes = Array<Note>;
-
-export type NoteSeqs = {
-    points?: { [_: number]: Notes };
-    note: Notes;
-    noteDeckMeta: Notes;
-    noteReview: Notes;
-    noteSummary: Notes;
-};
+export enum NoteSectionHowToShow {
+    Hide = 1,
+    Show,
+    Exclusive,
+}
 
 export type SlimDeck = {
-    id: number;
+    id: Key;
     title: string;
     deckKind: DeckKind;
     insignia: number;
-}
+};
+
+export type Ref = SlimDeck & {
+    noteId: Key;
+    refKind: RefKind;
+    annotation?: string;
+};
+
+export type BackNote = SlimDeck & {
+    noteId: Key;
+    noteContent: string;
+    noteKind: NoteKind;
+};
 
 export interface FatDeck {
     title: string;
     backnotes?: Array<BackNote>;
     backrefs?: Array<Ref>;
     flashcards?: Array<FlashCard>;
-    id: number;
+    id: Key;
     insignia: number;
     noteSeqs?: NoteSeqs;
     notes: Notes;
@@ -236,6 +101,65 @@ export type DeckTimeline = FatDeck;
 
 export type DeckQuote = FatDeck & {
     attribution: string;
+};
+
+export type Note = {
+    id: Key;
+    prevNoteId: Key | null;
+    kind: NoteKind;
+    content: string;
+    pointId: Key | null;
+
+    decks: Array<Ref>;
+    flashcards: Array<FlashCard>;
+};
+
+export type Notes = Array<Note>;
+
+export type NoteSeqs = {
+    points?: { [_: Key]: Notes };
+    note: Notes;
+    noteDeckMeta: Notes;
+    noteReview: Notes;
+    noteSummary: Notes;
+};
+
+export type ProtoPoint = {
+    title?: string;
+    kind: PointKind;
+
+    locationTextual?: string;
+    longitude?: number;
+    latitude?: number;
+    locationFuzz: number;
+
+    dateTextual?: string;
+    exactDate?: string;
+    lowerDate?: string;
+    upperDate?: string;
+    dateFuzz: number;
+};
+
+export type DeckPoint = {
+    id: Key;
+    kind: PointKind;
+    title?: string;
+    dateTextual?: string;
+    date?: string;
+    age?: number;
+
+    deckId: Key;
+    deckName: string;
+    deckKind: DeckKind;
+};
+
+export type FlashCard = {
+    id: Key;
+    noteId: Key;
+    prompt: string;
+    nextTestDate: string;
+    easinessFactor: number;
+    interRepetitionInterval: number;
 };
 
 export type SearchResults = {
@@ -290,31 +214,33 @@ export type Settings = {
     lightnessBg: number;
 };
 
+export type ColourTriple = [number, number, number];
+
 export type Definitions = {
-    [index: string]: string | [number, number, number] | undefined;
+    [index: string]: string | ColourTriple | undefined;
 
-    bg?: [number, number, number];
-    bg1?: [number, number, number];
-    bg2?: [number, number, number];
-    bg3?: [number, number, number];
+    bg?: ColourTriple;
+    bg1?: ColourTriple;
+    bg2?: ColourTriple;
+    bg3?: ColourTriple;
 
-    fg?: [number, number, number];
-    fg1?: [number, number, number];
-    fg_inactive?: [number, number, number];
+    fg?: ColourTriple;
+    fg1?: ColourTriple;
+    fg_inactive?: ColourTriple;
 
-    divider?: [number, number, number];
+    divider?: ColourTriple;
 
-    graph_node_expanded?: [number, number, number];
-    graph_node_partial?: [number, number, number];
-    graph_node_minimised?: [number, number, number];
-    graph_edge?: [number, number, number];
-    graph_edge_in_contrast?: [number, number, number];
-    graph_edge_critical?: [number, number, number];
+    graph_node_expanded?: ColourTriple;
+    graph_node_partial?: ColourTriple;
+    graph_node_minimised?: ColourTriple;
+    graph_edge?: ColourTriple;
+    graph_edge_in_contrast?: ColourTriple;
+    graph_edge_critical?: ColourTriple;
 
-    scribble_neutral?: [number, number, number];
-    scribble_disagree?: [number, number, number];
-    hyperlink?: [number, number, number];
-    highlight?: [number, number, number];
+    scribble_neutral?: ColourTriple;
+    scribble_disagree?: ColourTriple;
+    hyperlink?: ColourTriple;
+    highlight?: ColourTriple;
 
     bg_ideas?: string;
     bg_articles?: string;
@@ -333,22 +259,8 @@ export type WasmInterface = {
     asHtmlAst(markup: string): any;
     splitter(markup: string): any;
 
-    rgbFromHsl(hsl: [number, number, number]): string;
+    rgbFromHsl(hsl: ColourTriple): string;
 };
-
-export enum ToolbarMode {
-    View = 1,
-    Edit,
-    Refs,
-    SR,
-    AddAbove,
-}
-
-export enum NoteSectionHowToShow {
-    Hide = 1,
-    Show,
-    Exclusive,
-}
 
 export type State = {
     appName: string;
@@ -366,7 +278,7 @@ export type State = {
 
     showingSearchCommand: Signal<boolean>;
 
-    urlName: Signal<string>;
+    urlTitle: Signal<string>;
     url: Signal<string>;
 
     user: Signal<User>;
@@ -379,7 +291,7 @@ export type State = {
     verboseUI: Signal<boolean>;
 
     showNoteForm: Signal<ShowNoteForm>;
-    showNoteFormPointId: Signal<number | undefined>;
+    showNoteFormPointId: Signal<Key | undefined>;
 
     showAddPointForm: Signal<boolean>;
 
@@ -402,7 +314,7 @@ export type State = {
 type GraphEdge = [number, RefKind, number];
 
 export type GraphNode = {
-    id: number;
+    id: Key;
     name: string;
     deckKind: DeckKind;
     graphTerminator: boolean;
@@ -412,7 +324,7 @@ export type Graph = {
     fullyLoaded: boolean;
     // an array of { id, name, resource }
     decks: Array<GraphNode>;
-    links: { [id: number]: Set<GraphEdge> };
+    links: { [id: Key]: Set<GraphEdge> };
     // an array which is indexed by deckId, returns the offset into state.graph.value.decks
     deckIndexFromId: Array<number>;
 };
@@ -433,4 +345,96 @@ export type UberSetup = {
     recentImages: Array<UserUploadedImage>;
     srReviewCount: number;
     srEarliestReviewDate: string;
+};
+
+export type ProtoNoteReferences = {
+    noteId: Key;
+    referencesChanged: Array<Ref>;
+    referencesRemoved: Array<Ref>;
+    referencesAdded: Array<Ref>;
+    referencesCreated: Array<Ref>;
+};
+
+// graph stuff
+//
+export type GraphCallback = (g: GraphState, p: number, h: number) => void;
+
+export enum ExpandedState {
+    Fully = 0,
+    Partial,
+    None,
+}
+
+type SimStats = {
+    tickCount: number;
+    maxVelocities: [number, number];
+};
+export type GraphState = {
+    nodes: { [index: Key]: Node };
+    edges: Array<Edge>;
+
+    simStats?: SimStats;
+};
+
+export type Node = {
+    id: Key;
+    isImportant: boolean;
+    expandedState: ExpandedState;
+    deckKind: DeckKind;
+    label: string;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    textWidth?: number;
+    textHeight?: number;
+};
+
+export type Edge = [number, number, number, RefKind];
+
+export type DeckManagerType = {
+    update: (d: FatDeck) => void;
+    getDeck: () => FatDeck | undefined;
+    isShowingUpdateForm: () => boolean;
+    isEditingDeckRefs: () => boolean;
+    updateAndReset: (newDeck: FatDeck) => void;
+    onShowSummaryClicked: () => void;
+    onShowReviewClicked: () => void;
+    onRefsToggle: () => void;
+    onFormToggle: () => any;
+    buildPointForm: (onSuccessCallback: () => void) => any;
+    onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => any;
+    noteManagerForDeckPoint: (deckPoint: DeckPoint) => any;
+    pointHasNotes: (point: DeckPoint) => any;
+    canShowNoteSection: (noteKind: NoteKind) => any;
+    howToShowNoteSection: (noteKind: NoteKind) => NoteSectionHowToShow;
+};
+
+export type NoteManagerType = {
+    x?: any;
+};
+
+export type NoteThing = {
+    topRefKind?: RefKind;
+    topAnnotation?: string;
+    noteContent: string;
+    noteId: Key;
+    refs: Array<Ref>;
+};
+
+export type RefsModified = {
+    referencesChanged: Array<Ref>;
+    referencesRemoved: Array<Ref>;
+    referencesAdded: Array<Ref>;
+    referencesCreated: Array<Ref>;
+};
+
+export type Admin = {
+    dbName: string;
+};
+
+export type User = {
+    username: string;
+    email: string;
+    admin?: Admin;
 };

@@ -210,7 +210,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
         Net.get<DeckQuote>(url).then((deck) => {
             if (deck) {
                 route(`/quotes/${deck.id}`);
-                AppStateChange.urlName(deck.title);
+                AppStateChange.urlTitle(deck.title);
             } else {
                 console.error(`error: fetchDeck for ${url}`);
             }

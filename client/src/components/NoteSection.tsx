@@ -106,7 +106,7 @@ function NoteManager({
     const appState = getAppState();
 
     function onEditedNote(id: number, updatedNote: Note) {
-        Net.put<Note, any>("/api/notes/" + id.toString(), updatedNote);
+        Net.put<Note, Note>("/api/notes/" + id.toString(), updatedNote);
     }
 
     function onDeleteNote(id: number) {

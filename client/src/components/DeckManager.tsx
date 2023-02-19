@@ -2,13 +2,8 @@ import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import {
-    DeckArticle,
-    DeckIdea,
     DeckKind,
-    DeckPerson,
     DeckPoint,
-    DeckQuote,
-    DeckTimeline,
     FlashCard,
     FatDeck,
     Note,
@@ -330,27 +325,7 @@ function dmsUpdateDeck(
     // organise the notes into noteSeqs
     buildNoteSeqs(deck);
 
-    let urlName = "";
-
-    switch (deckKind) {
-        case DeckKind.Person:
-            urlName = (deck as DeckPerson).title;
-            break;
-        case DeckKind.Idea:
-            urlName = (deck as DeckIdea).title;
-            break;
-        case DeckKind.Article:
-            urlName = (deck as DeckArticle).title;
-            break;
-        case DeckKind.Timeline:
-            urlName = (deck as DeckTimeline).title;
-            break;
-        case DeckKind.Quote:
-            urlName = (deck as DeckQuote).title;
-            break;
-    }
-
-    AppStateChange.urlName(urlName);
+    AppStateChange.urlTitle(deck.title);
     AppStateChange.routeChanged(buildUrl(deckKind, deck.id));
 
     let res: DeckManagerState = { ...dms };

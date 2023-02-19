@@ -1,9 +1,9 @@
-import { Settings, Definitions } from "./types";
+import { ColourTriple, Settings, Definitions } from "./types";
 
 function buildColourConversionFn(
     rgb_from_hsl: (h: number, s: number, l: number) => any
 ) {
-    return (hsl: [number, number, number]) => {
+    return (hsl: ColourTriple) => {
         function clamp(value: number, min: number, max: number) {
             return value < min ? min : value > max ? max : value;
         }
@@ -84,28 +84,28 @@ function augmentDefinitionsWithCssModifierParameters(
         s = {
             ...uiDefinitions,
 
-            bg: [46.5, 19.2, 95.7] as [number, number, number],
-            bg1: [85.7, 4.5, 93.9] as [number, number, number],
-            bg2: [46.1, 20.2, 92.0] as [number, number, number],
-            bg3: [0, 0.0, 100.0] as [number, number, number],
+            bg: [46.5, 19.2, 95.7] as ColourTriple,
+            bg1: [85.7, 4.5, 93.9] as ColourTriple,
+            bg2: [46.1, 20.2, 92.0] as ColourTriple,
+            bg3: [0, 0.0, 100.0] as ColourTriple,
 
-            fg: [43, 19, 3.5] as [number, number, number],
-            fg1: [0, 0, 40.7] as [number, number, number],
-            fg_inactive: [0, 0, 60] as [number, number, number],
+            fg: [43, 19, 3.5] as ColourTriple,
+            fg1: [0, 0, 40.7] as ColourTriple,
+            fg_inactive: [0, 0, 60] as ColourTriple,
 
-            divider: [0, 0, 77.7] as [number, number, number],
+            divider: [0, 0, 77.7] as ColourTriple,
 
-            graph_node_expanded: [127, 60, 70] as [number, number, number],
-            graph_node_partial: [37, 60, 70] as [number, number, number],
-            graph_node_minimised: [0, 0, 70] as [number, number, number],
-            graph_edge: [0, 0, 70] as [number, number, number],
-            graph_edge_in_contrast: [217, 60, 70] as [number, number, number],
-            graph_edge_critical: [7, 60, 70] as [number, number, number],
+            graph_node_expanded: [127, 60, 70] as ColourTriple,
+            graph_node_partial: [37, 60, 70] as ColourTriple,
+            graph_node_minimised: [0, 0, 70] as ColourTriple,
+            graph_edge: [0, 0, 70] as ColourTriple,
+            graph_edge_in_contrast: [217, 60, 70] as ColourTriple,
+            graph_edge_critical: [7, 60, 70] as ColourTriple,
 
-            scribble_neutral: [247, 83.7, 53.6] as [number, number, number],
-            scribble_disagree: [15.1, 83.7, 53.6] as [number, number, number],
-            hyperlink: [247, 83.7, 53.6] as [number, number, number],
-            highlight: [85, 100, 90] as [number, number, number],
+            scribble_neutral: [247, 83.7, 53.6] as ColourTriple,
+            scribble_disagree: [15.1, 83.7, 53.6] as ColourTriple,
+            hyperlink: [247, 83.7, 53.6] as ColourTriple,
+            highlight: [85, 100, 90] as ColourTriple,
 
             bg_ideas: "--bg-clock-06",
             bg_articles: "--bg-clock-12",
@@ -123,28 +123,28 @@ function augmentDefinitionsWithCssModifierParameters(
         s = {
             ...uiDefinitions,
 
-            bg: [46.5, 19.2, 2.0] as [number, number, number],
-            bg1: [85.7, 4.5, 4] as [number, number, number],
-            bg2: [46.1, 20.2, 6] as [number, number, number],
-            bg3: [46.5, 19.2, 0.0] as [number, number, number],
+            bg: [46.5, 19.2, 2.0] as ColourTriple,
+            bg1: [85.7, 4.5, 4] as ColourTriple,
+            bg2: [46.1, 20.2, 6] as ColourTriple,
+            bg3: [46.5, 19.2, 0.0] as ColourTriple,
 
-            fg: [43, 19, 45] as [number, number, number],
-            fg1: [16.7, 0, 40.7] as [number, number, number],
-            fg_inactive: [16.7, 0, 20] as [number, number, number],
+            fg: [43, 19, 45] as ColourTriple,
+            fg1: [16.7, 0, 40.7] as ColourTriple,
+            fg_inactive: [16.7, 0, 20] as ColourTriple,
 
-            divider: [16.7, 0, 23] as [number, number, number],
+            divider: [16.7, 0, 23] as ColourTriple,
 
-            graph_node_expanded: [127, 60, 70] as [number, number, number],
-            graph_node_partial: [37, 60, 70] as [number, number, number],
-            graph_node_minimised: [0, 0, 70] as [number, number, number],
-            graph_edge: [0, 0, 70] as [number, number, number],
-            graph_edge_in_contrast: [217, 60, 70] as [number, number, number],
-            graph_edge_critical: [7, 60, 70] as [number, number, number],
+            graph_node_expanded: [127, 60, 70] as ColourTriple,
+            graph_node_partial: [37, 60, 70] as ColourTriple,
+            graph_node_minimised: [0, 0, 70] as ColourTriple,
+            graph_edge: [0, 0, 70] as ColourTriple,
+            graph_edge_in_contrast: [217, 60, 70] as ColourTriple,
+            graph_edge_critical: [7, 60, 70] as ColourTriple,
 
-            scribble_neutral: [247, 100, 50] as [number, number, number],
-            scribble_disagree: [7, 100, 50] as [number, number, number],
-            hyperlink: [247, 60, 50] as [number, number, number],
-            highlight: [85, 100, 90] as [number, number, number],
+            scribble_neutral: [247, 100, 50] as ColourTriple,
+            scribble_disagree: [7, 100, 50] as ColourTriple,
+            hyperlink: [247, 60, 50] as ColourTriple,
+            highlight: [85, 100, 90] as ColourTriple,
 
             bg_ideas: "--bg-clock-06",
             bg_articles: "--bg-clock-12",
@@ -165,7 +165,7 @@ function augmentDefinitionsWithCssModifierParameters(
 function declareCssVariables(
     uiColours: Settings,
     uiDefinitions: Definitions,
-    rgbFromHsl: (hsl: [number, number, number]) => any
+    rgbFromHsl: (hsl: ColourTriple) => any
 ) {
     let root = document.body;
 

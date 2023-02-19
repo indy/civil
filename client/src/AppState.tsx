@@ -66,7 +66,7 @@ const state: State = {
     // id and deckKind can be parsed from the url, but the name needs to be
     // stored separately
     //
-    urlName: signal(""),
+    urlTitle: signal(""),
 
     // the url of the current page
     url: signal(""),
@@ -159,12 +159,12 @@ export const AppStateChange = {
         }
         state.toolbarMode.value = newMode;
     },
-    urlName: function (name: string) {
+    urlTitle: function (title: string) {
         if (DEBUG_APP_STATE) {
-            console.log("urlName");
+            console.log("urlTitle");
         }
-        state.urlName.value = name;
-        document.title = `${state.appName}: ${name}`;
+        state.urlTitle.value = title;
+        document.title = `${state.appName}: ${title}`;
     },
     routeChanged: function (url: string) {
         if (DEBUG_APP_STATE) {
@@ -273,7 +273,8 @@ export const AppStateChange = {
             if (li) {
                 changes.referencesCreated.forEach((r) => {
                     let newReference = allDecksForNote.find(
-                        (d) => d.title === r.title && d.deckKind === DeckKind.Idea
+                        (d) =>
+                            d.title === r.title && d.deckKind === DeckKind.Idea
                     );
 
                     if (newReference) {
@@ -493,7 +494,7 @@ export const AppStateChange = {
         let sl = state.scratchList.value.slice();
         let candidate: SlimDeck | undefined = parseForScratchList(
             state.url.value,
-            state.urlName.value
+            state.urlTitle.value
         );
 
         if (candidate) {
@@ -565,7 +566,7 @@ export const AppStateChange = {
 
 function parseForScratchList(
     url: string,
-    urlName: string
+    urlTitle: string
 ): SlimDeck | undefined {
     // note: this will break if we ever change the url schema
     let res = url.match(/^\/(\w+)\/(\w+)/);
@@ -589,7 +590,7 @@ function parseForScratchList(
 
         return {
             id: parseInt(id, 10),
-            title: urlName,
+            title: urlTitle,
             deckKind: dk,
             insignia: 0,
         };

@@ -107,8 +107,9 @@ function People({ path }: { path?: string }) {
 function Person({ path, id }: { path?: string; id?: string }) {
     const appState = getAppState();
 
-    const [searchResults, setSearchResults]: [Array<SlimDeck>, any] =
-        useState([]); // an array of backrefs
+    const [searchResults, setSearchResults]: [Array<SlimDeck>, any] = useState(
+        []
+    ); // an array of backrefs
 
     const personId = id ? parseInt(id, 10) : 0;
 
