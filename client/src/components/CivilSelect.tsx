@@ -487,7 +487,7 @@ function SelectedReference({
     }
 
     function onKindDropDownSelect(e: Event) {
-        if (e.target instanceof HTMLInputElement) {
+        if (e.target instanceof HTMLSelectElement) {
             let refkind: RefKind | undefined = stringToRefKind(e.target.value);
             if (refkind) {
                 onChangeKind(reference, refkind);
