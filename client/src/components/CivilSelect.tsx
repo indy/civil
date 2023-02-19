@@ -581,26 +581,16 @@ function Input({
     function onSubmit(e: Event) {
         e.preventDefault();
         if (text.length > 0) {
-            // isg todo: tsx stuff: the existingOption was commented out yet onAdd used existingOption as a parameter????
-
-            // search for text in available
-            // let existingOption = available.find(option => { return option.name === text;});
-            console.log("sort this mess out asap, when is onAdd used???");
-            if (false) {
-                // pre-existing deck
-                // onAdd(existingOption);
-            } else {
-                // treat this text as a new idea that needs to be created
-                let r: Ref = {
-                    noteId: 0, // todo: isg typescript hacked in so that it becomes a Ref type
-                    id: 0, // todo: isg typescript hacked in so that it becomes a Ref type
-                    title: text,
-                    deckKind: DeckKind.Idea,
-                    refKind: RefKind.Ref,
-                    insignia: 0,
-                };
-                onCreate(r);
-            }
+            // treat this text as a new idea that needs to be created
+            let r: Ref = {
+                noteId: 0,
+                id: 0,
+                title: text,
+                deckKind: DeckKind.Idea,
+                refKind: RefKind.Ref,
+                insignia: 0,
+            };
+            onCreate(r);
         }
     }
 
