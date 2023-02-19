@@ -10,7 +10,6 @@ import {
     NoteSectionHowToShow,
     Notes,
     Ref,
-    ShowNoteForm,
     ToolbarMode,
 } from "../types";
 
@@ -223,12 +222,7 @@ function NoteManager({
     let addNoteUI = <div></div>;
 
     function correctNoteKind() {
-        let showNoteForm: ShowNoteForm = appState.showNoteForm.value;
-        return (
-            (noteKind === NoteKind.Note && showNoteForm.note) ||
-            (noteKind === NoteKind.NoteReview && showNoteForm.review) ||
-            (noteKind === NoteKind.NoteSummary && showNoteForm.summary)
-        );
+        return appState.showNoteForm.value[noteKind];
     }
 
     function correctDeckPointScope() {

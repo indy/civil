@@ -290,7 +290,7 @@ export type State = {
 
     verboseUI: Signal<boolean>;
 
-    showNoteForm: Signal<ShowNoteForm>;
+    showNoteForm: Signal<Record<NoteKind, boolean>>;
     showNoteFormPointId: Signal<Key | undefined>;
 
     showAddPointForm: Signal<boolean>;
@@ -327,13 +327,6 @@ export type Graph = {
     links: { [id: Key]: Set<GraphEdge> };
     // an array which is indexed by deckId, returns the offset into state.graph.value.decks
     deckIndexFromId: Array<Key>;
-};
-
-// isg hacked in:
-export type ShowNoteForm = {
-    note: boolean;
-    summary: boolean;
-    review: boolean;
 };
 
 export type UserUploadedImage = {

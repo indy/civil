@@ -102,9 +102,10 @@ const state: State = {
     verboseUI: signal(true),
 
     showNoteForm: signal({
-        note: false,
-        summary: false,
-        review: false,
+        [NoteKind.Note]: false,
+        [NoteKind.NoteReview]: false,
+        [NoteKind.NoteSummary]: false,
+        [NoteKind.NoteDeckMeta]: false,
     }),
     showNoteFormPointId: signal(undefined),
 
@@ -355,13 +356,8 @@ export const AppStateChange = {
             console.log("showNoteForm");
         }
         let snf = { ...state.showNoteForm.value };
-        if (noteKind == NoteKind.Note) {
-            snf.note = true;
-        } else if (noteKind == NoteKind.NoteSummary) {
-            snf.summary = true;
-        } else if (noteKind == NoteKind.NoteReview) {
-            snf.review = true;
-        }
+
+        snf[noteKind] = true;
 
         state.showNoteForm.value = snf;
         state.showNoteFormPointId.value = pointId || undefined;
@@ -374,13 +370,7 @@ export const AppStateChange = {
         }
         let snf = { ...state.showNoteForm.value };
 
-        if (noteKind == NoteKind.Note) {
-            snf.note = false;
-        } else if (noteKind == NoteKind.NoteSummary) {
-            snf.summary = false;
-        } else if (noteKind == NoteKind.NoteReview) {
-            snf.review = false;
-        }
+        snf[noteKind] = false;
 
         state.showNoteForm.value = snf;
         state.showNoteFormPointId.value = undefined;
