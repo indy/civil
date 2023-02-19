@@ -377,6 +377,8 @@ export type Node = {
     label: string;
     x: number;
     y: number;
+    fx?: number;
+    fy?: number;
     vx: number;
     vy: number;
     textWidth?: number;

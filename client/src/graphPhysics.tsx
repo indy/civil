@@ -1,4 +1,4 @@
-import { GraphCallback, GraphState } from "./types";
+import { Edge, Node, GraphCallback, GraphState } from "./types";
 
 var initialRadius = 10,
     initialAngle = Math.PI * (3 - Math.sqrt(5));
@@ -67,7 +67,7 @@ export function graphPhysics(
         }
     }
 
-    function tick(iterations) {
+    function tick(iterations?: number) {
         iterations = iterations || 1;
 
         for (let iter = 0; iter < iterations; iter++) {
@@ -77,7 +77,7 @@ export function graphPhysics(
 
             clearPerTickSimStats(graphState);
 
-            let i, j, node;
+            let i: number, j: number, node: Node;
             let nodes = graphState.nodes;
             let nodeKeys = Object.keys(nodes);
             let n = nodeKeys.length;
@@ -222,13 +222,13 @@ function clearPerTickSimStats(graphState: GraphState) {
     }
 }
 
-function initializeGraph(graphState: GraphState) {
+function initializeGraph(graphState: GraphState): { bias: Array<number>, strengths: Array<number>} {
     let nodes = graphState.nodes;
     let links = graphState.edges;
-    var i,
-        m = links.length,
-        link,
-        node;
+    var i: number,
+    m = links.length,
+    link: Edge,
+    node: Node;
 
     for (const key in nodes) {
         node = nodes[key];
@@ -236,8 +236,8 @@ function initializeGraph(graphState: GraphState) {
         if (node.fx != null) node.x = node.fx;
         if (node.fy != null) node.y = node.fy;
         if (isNaN(node.x) || isNaN(node.y)) {
-            var radius = initialRadius * Math.sqrt(0.5 + i),
-                angle = i * initialAngle;
+            var radius = initialRadius * Math.sqrt(0.5),
+                angle = initialAngle;
             node.x = radius * Math.cos(angle);
             node.y = radius * Math.sin(angle);
         }
@@ -259,7 +259,7 @@ function initializeGraph(graphState: GraphState) {
         bias[i] = count[link[0]] / (count[link[0]] + count[link[1]]);
     }
 
-    function defaultStrength(link) {
+    function defaultStrength(link: Edge) {
         return 1 / Math.min(count[link[0]], count[link[1]]);
     }
 
@@ -271,11 +271,11 @@ function initializeGraph(graphState: GraphState) {
     return { bias, strengths };
 }
 
-function jiggle() {
+function jiggle(): number {
     return (Math.random() - 0.5) * 1e-6;
 }
 
-function forceManyBody(nodeA, nodeB, alpha) {
+function forceManyBody(nodeA: Node, nodeB: Node, alpha: number) {
     let distanceMin2 = 1;
     let separatingForce = -900;
 
@@ -300,7 +300,7 @@ function forceManyBody(nodeA, nodeB, alpha) {
     nodeA.vy += yDelta * w;
 }
 
-function forceCollideBox(nodeA, nodeB) {
+function forceCollideBox(nodeA: Node, nodeB: Node) {
     let xa = nodeA.x;
     let ya = nodeA.y;
 
@@ -311,35 +311,38 @@ function forceCollideBox(nodeA, nodeB) {
     let overlappingX = false;
     let overlappingY = false;
 
-    if (xa < xb && xa + nodeA.textWidth > xb) {
-        overlappingX = true; // left overlap
-    } else if (xa >= xb && xa + nodeA.textWidth < xb + nodeB.textWidth) {
-        overlappingX = true; // completely enclosed
-    } else if (xb < xa && xb + nodeB.textWidth > xa) {
-        overlappingX = true;
-    } else if (xb >= xa && xb + nodeB.textWidth < xa + nodeA.textWidth) {
-        overlappingX = true; // completely enclosed
-    }
+    if (nodeA.textWidth && nodeB.textWidth
+       && nodeA.textHeight && nodeB.textHeight) {
+        if (xa < xb && xa + nodeA.textWidth > xb) {
+            overlappingX = true; // left overlap
+        } else if (xa >= xb && xa + nodeA.textWidth < xb + nodeB.textWidth) {
+            overlappingX = true; // completely enclosed
+        } else if (xb < xa && xb + nodeB.textWidth > xa) {
+            overlappingX = true;
+        } else if (xb >= xa && xb + nodeB.textWidth < xa + nodeA.textWidth) {
+            overlappingX = true; // completely enclosed
+        }
 
-    if (ya < yb && ya + nodeA.textHeight > yb) {
-        overlappingY = true;
-    } else if (yb < ya && yb + nodeB.textHeight > ya) {
-        overlappingY = true;
-    }
+        if (ya < yb && ya + nodeA.textHeight > yb) {
+            overlappingY = true;
+        } else if (yb < ya && yb + nodeB.textHeight > ya) {
+            overlappingY = true;
+        }
 
-    if (overlappingX && overlappingY) {
-        if (ya === yb) {
-            nodeA.vy -= jiggle();
-            nodeB.vy += jiggle();
-        } else {
-            // move a and b apart
-            nodeA.vy -= (yb - ya) / 32;
-            nodeB.vy += (yb - ya) / 32;
+        if (overlappingX && overlappingY) {
+            if (ya === yb) {
+                nodeA.vy -= jiggle();
+                nodeB.vy += jiggle();
+            } else {
+                // move a and b apart
+                nodeA.vy -= (yb - ya) / 32;
+                nodeB.vy += (yb - ya) / 32;
+            }
         }
     }
 }
 
-function forceCollide(nodeA, nodeB) {
+function forceCollide(nodeA: Node, nodeB: Node) {
     let ri = 40;
     let ri2 = ri * ri;
 
@@ -370,16 +373,16 @@ function forceCollide(nodeA, nodeB) {
     }
 }
 
-function forceX(node, alpha) {
-    let isgXStrength = 0.1;
-    let isgXZ = 0.0; // the value of x to goto
+function forceX(node: Node, alpha: number) {
+    let xStrength = 0.1;
+    let xZ = 0.0; // the value of x to goto
 
-    node.vx += (isgXZ - node.x) * isgXStrength * alpha;
+    node.vx += (xZ - node.x) * xStrength * alpha;
 }
 
-function forceY(node, alpha) {
-    let isgYStrength = 0.12;
-    let isgYZ = 0.0; // the value of y to goto
+function forceY(node: Node, alpha: number) {
+    let yStrength = 0.12;
+    let yZ = 0.0; // the value of y to goto
 
-    node.vy += (isgYZ - node.y) * isgYStrength * alpha;
+    node.vy += (yZ - node.y) * yStrength * alpha;
 }
