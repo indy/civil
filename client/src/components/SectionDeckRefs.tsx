@@ -2,6 +2,7 @@ import { h } from "preact";
 
 import {
     FatDeck,
+    Key,
     Note,
     ProtoNoteReferences,
     Ref,
@@ -42,7 +43,7 @@ export default function SectionDeckRefs({
         onRefsToggle();
     }
 
-    let deckId: number = deck && deck.id;
+    let deckId: Key = deck && deck.id;
     let deckMeta: Note | undefined =
         deck && deck.noteSeqs && deck.noteSeqs.noteDeckMeta[0];
     // deckMeta is the special note (of kind: NoteKind::NoteDeckMeta) that
@@ -82,7 +83,7 @@ export default function SectionDeckRefs({
 }
 
 type AddDecksUIProps = {
-    deckId: number;
+    deckId: Key;
     note: Note;
     chosen: Array<Ref>;
     onCancel: () => void;

@@ -1,7 +1,7 @@
 import { h, ComponentChildren } from "preact";
 import { Link } from "preact-router";
 
-import { DeckKind } from "../types";
+import { DeckKind, Key } from "../types";
 
 import { buildUrl, deckKindToResourceString } from "../CivilUtils";
 import { renderInsignia } from "./Insignias";
@@ -10,7 +10,7 @@ type Props = {
     extraClasses?: string;
     onClick?: () => void;
     deckKind: DeckKind;
-    id: number;
+    id: Key;
     insignia: number;
     title: string;
     children?: ComponentChildren;

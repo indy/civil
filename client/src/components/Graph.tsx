@@ -8,6 +8,7 @@ import {
     GraphCallback,
     GraphNode,
     GraphState,
+    Key,
     Node,
     RefKind,
 } from "../types";
@@ -29,7 +30,7 @@ type LocalState = {
     requireLoad: boolean;
 };
 
-export default function Graph({ id, depth }: { id: number; depth: number }) {
+export default function Graph({ id, depth }: { id: Key; depth: number }) {
     console.log(`todo: re-implement depth: ${depth}`);
 
     const appState = getAppState();
@@ -303,7 +304,7 @@ export default function Graph({ id, depth }: { id: number; depth: number }) {
         }
     }
 
-    function numOpenedConnections(id: number, gs: GraphState) {
+    function numOpenedConnections(id: Key, gs: GraphState) {
         /*
           add nodes to a set rather than count them in place
           nodes A and B could be connected together twice (parent->child + child->parent) but this should only count as a single connection

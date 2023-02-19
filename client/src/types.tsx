@@ -326,7 +326,7 @@ export type Graph = {
     decks: Array<GraphNode>;
     links: { [id: Key]: Set<GraphEdge> };
     // an array which is indexed by deckId, returns the offset into state.graph.value.decks
-    deckIndexFromId: Array<number>;
+    deckIndexFromId: Array<Key>;
 };
 
 // isg hacked in:

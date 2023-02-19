@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { route } from "preact-router";
 
-import { DeckKind } from "../types";
+import { DeckKind, Key } from "../types";
 
 import DeleteConfirmation from "./DeleteConfirmation";
 import Net from "../Net";
@@ -10,7 +10,7 @@ import { buildUrl, deckKindToResourceString } from "../CivilUtils";
 
 type Props = {
     deckKind: DeckKind;
-    id: number;
+    id: Key;
 };
 
 export default function DeleteDeckConfirmation({ deckKind, id }: Props) {

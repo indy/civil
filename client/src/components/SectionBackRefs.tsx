@@ -5,6 +5,7 @@ import {
     BackNote,
     DeckKind,
     FatDeck,
+    Key,
     NoteKind,
     NoteThing,
     Ref,
@@ -19,13 +20,13 @@ import RollableSection from "./RollableSection";
 import { ExpandableListingLink } from "./ListingLink";
 
 type BackRefSectionItem = {
-    id: number;
+    id: Key;
     title: string;
     deckInsignia: number;
     deckKind: DeckKind;
     notes: Array<NoteThing>;
     deckLevelRefs: Array<Ref>;
-    metaNoteId: number;
+    metaNoteId: Key;
     deckLevelAnnotation?: string;
 };
 

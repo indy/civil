@@ -6,6 +6,7 @@ import {
     DeckPoint,
     FlashCard,
     FatDeck,
+    Key,
     Note,
     NoteKind,
     NoteSectionHowToShow,
@@ -36,7 +37,7 @@ function identity(a: FatDeck): FatDeck {
 }
 
 type Props = {
-    id: number;
+    id: Key;
     deckKind: DeckKind;
     preCacheFn?: (_: FatDeck) => FatDeck;
     hasSummarySection: boolean;
@@ -88,7 +89,7 @@ export default function DeckManager({
     }
     function findNoteWithId(
         deck: FatDeck,
-        id: number,
+        id: Key,
         modifyFn: (n: Notes, idx: number) => void
     ) {
         const notes = deck.notes;
@@ -465,7 +466,7 @@ function hashByNoteIds(s: Array<Ref | FlashCard>) {
 
 function buildNoteSeqs(deck: FatDeck) {
     // build NoteSeqs for notes associated with points
-    let points: { [id: number]: Notes } = noteSeqsForPoints(deck.notes);
+    let points: { [id: Key]: Notes } = noteSeqsForPoints(deck.notes);
     // add empty noteSeqs for points without any notes
     if (deck.points) {
         deck.points.forEach((p) => {
@@ -498,7 +499,7 @@ function buildNoteSeqs(deck: FatDeck) {
     return deck;
 }
 
-function noteSeqsForPoints(notes: Notes): { [id: number]: Notes } {
+function noteSeqsForPoints(notes: Notes): { [id: Key]: Notes } {
     let p = {};
     notes.forEach((n) => {
         if (n.pointId) {

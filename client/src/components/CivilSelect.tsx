@@ -3,6 +3,7 @@ import { useEffect } from "preact/hooks";
 
 import {
     DeckKind,
+    Key,
     SlimDeck,
     Ref,
     RefKind,
@@ -317,7 +318,7 @@ export default function CivilSelect({
     chosen,
     onFinish,
 }: {
-    parentDeckId: number;
+    parentDeckId: Key;
     chosen: Array<Ref>;
     onFinish: (ref?: RefsModified) => void;
 }) {

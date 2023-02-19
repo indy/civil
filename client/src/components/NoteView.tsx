@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, Ref as PreactRef } from "preact/hooks";
 import {
     FlashCard,
     FatDeck,
+    Key,
     Note,
     Notes,
     ProtoNoteReferences,
@@ -329,8 +330,8 @@ type Props = {
     note: Note;
     parentDeck: FatDeck;
     toolbarMode: ToolbarMode;
-    onDelete: (id: number) => void;
-    onEdited: (id: number, n: Note) => void;
+    onDelete: (id: Key) => void;
+    onEdited: (id: Key, n: Note) => void;
     onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
     onUpdateDeck: (d: FatDeck) => void;
 };

@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { useEffect, useState, useRef } from "preact/hooks";
 
-import { Note, Notes, NoteKind } from "../types";
+import { Key, Notes, NoteKind } from "../types";
 
 import Net from "../Net";
 import { getAppState } from "../AppState";
@@ -14,7 +14,7 @@ type Props = {
     label: string;
     onCreate: (ns: Notes) => void;
     onCancel: (e: Event) => void;
-    deckId: number;
+    deckId: Key;
     prevNoteId?: number;
     nextNoteId?: number;
     noteKind: NoteKind;
@@ -185,14 +185,14 @@ export default function NoteForm({
 
 function addNote(
     notes: Array<string>,
-    deckId: number,
+    deckId: Key,
     noteKind: NoteKind,
     prevNoteId?: number,
     nextNoteId?: number,
     optionalPointId?: number
-) {
-    type Data = {
-        deckId: number;
+): Promise<Notes> {
+    type ProtoNote = {
+        deckId: Key;
         kind: NoteKind;
         content: Array<string>;
         nextNoteId?: number;
@@ -200,7 +200,7 @@ function addNote(
         pointId?: number;
     };
 
-    let data: Data = {
+    let protoNote: ProtoNote = {
         deckId,
         kind: noteKind,
         content: notes,
@@ -208,15 +208,15 @@ function addNote(
 
     if (nextNoteId) {
         // if a nextNoteId is given then we're inserting a note within a sequence of notes
-        data.nextNoteId = nextNoteId;
+        protoNote.nextNoteId = nextNoteId;
     } else if (prevNoteId) {
         // if nextNoteId is null then this note is being appended onto the end of a seq of notes
-        data.prevNoteId = prevNoteId;
+        protoNote.prevNoteId = prevNoteId;
     }
 
     if (optionalPointId) {
-        data.pointId = optionalPointId;
+        protoNote.pointId = optionalPointId;
     }
 
-    return Net.post<Data, Note>("/api/notes", data);
+    return Net.post<ProtoNote, Notes>("/api/notes", protoNote);
 }

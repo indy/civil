@@ -1,6 +1,6 @@
 import { h } from "preact";
 
-import { NoteThing, Ref, DeckKind } from "../types";
+import { Key, NoteThing, Ref, DeckKind } from "../types";
 
 import { svgCaretRight, svgCaretDown } from "../svgIcons";
 
@@ -10,7 +10,7 @@ import buildMarkup from "./BuildMarkup";
 
 type ListingLinkProps = {
     deckKind: DeckKind;
-    id: number;
+    id: Key;
     title: string;
     insignia: number;
 };
@@ -33,7 +33,7 @@ function ListingLink({ deckKind, id, title, insignia }: ListingLinkProps) {
 type ExpandableListingLinkProps = {
     index: number;
     deckKind: DeckKind;
-    id: number;
+    id: Key;
     title: string;
     deckInsignia: number;
     deckLevelRefs: Array<Ref>;

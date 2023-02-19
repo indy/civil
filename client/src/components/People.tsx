@@ -8,6 +8,7 @@ import {
     DeckPerson,
     DeckPoint,
     FatDeck,
+    Key,
     SlimDeck,
     PeopleListings,
     SearchResults,
@@ -390,7 +391,7 @@ function PersonDeckPoint({
     deckPoint: DeckPoint;
     hasNotes: boolean;
     noteManager: NoteManagerType;
-    holderId: number;
+    holderId: Key;
 }) {
     let [expanded, setExpanded] = useState(false);
 
@@ -440,7 +441,7 @@ function ListDeckPoints({
 }: {
     deckPoints: Array<DeckPoint> | undefined;
     deckManager: DeckManagerType;
-    holderId: number;
+    holderId: Key;
     holderTitle: string;
     showAddPointForm: boolean;
 }) {

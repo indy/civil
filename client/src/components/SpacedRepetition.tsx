@@ -2,7 +2,7 @@ import { h } from "preact";
 import { useEffect } from "preact/hooks";
 import { Link } from "preact-router";
 
-import { SlimDeck } from "../types";
+import { Key, SlimDeck } from "../types";
 
 import Net from "../Net";
 import { buildUrl, deckKindToResourceString } from "../CivilUtils";
@@ -24,8 +24,8 @@ enum ShowState {
 }
 
 interface ICard {
-    id: number;
-    noteId: number;
+    id: Key;
+    noteId: Key;
     deckInfo: SlimDeck;
     noteContent: string;
     prompt: string;

@@ -6,6 +6,7 @@ import {
     AnyDeckListing,
     ArticleListings,
     DeckKind,
+    Key,
     SlimDeck,
     Graph,
     GraphNode,
@@ -393,7 +394,7 @@ export const AppStateChange = {
         state.recentImages.value = recentImages;
     },
 
-    deleteDeck: function (id: number) {
+    deleteDeck: function (id: Key) {
         // todo: typescript check the Listing entry and the filterFn
 
         if (DEBUG_APP_STATE) {

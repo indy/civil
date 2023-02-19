@@ -3,6 +3,7 @@ import { route } from "preact-router";
 import {
     AnyDeckListing,
     DeckKind,
+    Key,
     SlimDeck,
     RefKind,
     ToolbarMode,
@@ -13,7 +14,7 @@ import { AppStateChange } from "./AppState";
 
 export function buildUrl(
     deckKind: DeckKind,
-    id: number,
+    id: Key,
     prefix?: string
 ): string {
     if (prefix) {

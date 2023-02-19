@@ -4,6 +4,7 @@ import {
     DeckKind,
     DeckPoint,
     FatDeck,
+    Key,
     Note,
     NoteKind,
     NoteSectionHowToShow,
@@ -105,11 +106,11 @@ function NoteManager({
 }: NoteManagerProps) {
     const appState = getAppState();
 
-    function onEditedNote(id: number, updatedNote: Note) {
+    function onEditedNote(id: Key, updatedNote: Note) {
         Net.put<Note, Note>("/api/notes/" + id.toString(), updatedNote);
     }
 
-    function onDeleteNote(id: number) {
+    function onDeleteNote(id: Key) {
         type Data = {};
         let empty: Data = {};
         Net.delete<Data, Notes>("/api/notes/" + id.toString(), empty).then(
