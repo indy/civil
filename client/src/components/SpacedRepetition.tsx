@@ -203,7 +203,7 @@ export default function SpacedRepetition({ path }: { path?: string }) {
     function onPracticeClicked(e: Event) {
         e.preventDefault();
         Net.get<ICard>("/api/sr/practice").then((card) => {
-            localDispatch(ActionType.PracticeCardSet, { card });
+            localDispatch(ActionType.PracticeCardSet, card);
         });
     }
 
