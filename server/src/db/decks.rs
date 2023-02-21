@@ -587,6 +587,7 @@ fn sanitize_for_sqlite_match(s: String) -> Result<String> {
             '<' => ' ',
             '+' => ' ',
             '-' => ' ',
+            '/' => ' ',
             '\\' => ' ',
             '*' => ' ',
             '%' => ' ',
