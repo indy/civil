@@ -399,13 +399,13 @@ export type DeckManagerType = {
     onFormToggle: () => any;
     buildPointForm: (onSuccessCallback: () => void) => any;
     onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => any;
-    noteManagerForDeckPoint: (deckPoint: DeckPoint) => any;
+    noteSectionForDeckPoint: (deckPoint: DeckPoint) => any;
     pointHasNotes: (point: DeckPoint) => any;
     canShowNoteSection: (noteKind: NoteKind) => any;
     howToShowNoteSection: (noteKind: NoteKind) => NoteSectionHowToShow;
 };
 
-export type NoteManagerType = {
+export type NoteSectionType = {
     x?: any;
 };
 

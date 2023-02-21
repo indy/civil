@@ -14,23 +14,36 @@ export function DeluxeToolbar({}) {
         classes += " deluxe-toolbar-faded";
     }
 
+    function canShow(toolbarMode: ToolbarMode): boolean {
+        if (toolbarMode == ToolbarMode.AddAbove) {
+            // don't show Prepend option for quotes
+            return !appState.url.value.startsWith("/quotes/");
+        }
+        return true;
+    }
+
     return (
         <div class={classes}>
-            <ToolbarItem toolbarMode={ToolbarMode.Edit} toolbarText="Edit">
-                {svgEdit()}
-            </ToolbarItem>
-            <ToolbarItem toolbarMode={ToolbarMode.Refs} toolbarText="Refs">
-                {svgLinkAlt()}
-            </ToolbarItem>
-            <ToolbarItem toolbarMode={ToolbarMode.SR} toolbarText="SR">
-                {svgFlashCard()}
-            </ToolbarItem>
-            <ToolbarItem
-                toolbarMode={ToolbarMode.AddAbove}
-                toolbarText="Prepend"
-            >
-                {svgAddAbove()}
-            </ToolbarItem>
+            { canShow(ToolbarMode.Edit) && (
+                <ToolbarItem toolbarMode={ToolbarMode.Edit} toolbarText="Edit">
+                    {svgEdit()}
+                </ToolbarItem>
+            )}
+            { canShow(ToolbarMode.Refs) && (
+                <ToolbarItem toolbarMode={ToolbarMode.Refs} toolbarText="Refs">
+                    {svgLinkAlt()}
+                </ToolbarItem>
+            )}
+            { canShow(ToolbarMode.SR) && (
+                <ToolbarItem toolbarMode={ToolbarMode.SR} toolbarText="SR">
+                    {svgFlashCard()}
+                </ToolbarItem>
+            )}
+            { canShow(ToolbarMode.AddAbove) && (
+                <ToolbarItem toolbarMode={ToolbarMode.AddAbove} toolbarText="Prepend">
+                    {svgAddAbove()}
+                </ToolbarItem>
+            )}
         </div>
     );
 }

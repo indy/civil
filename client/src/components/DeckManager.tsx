@@ -17,10 +17,10 @@ import {
 } from "../types";
 
 import Net from "../Net";
-import { getAppState, AppStateChange } from "../AppState";
-import { buildUrl, sortByResourceThenName } from "../CivilUtils";
-import { NoteManager } from "./NoteSection";
+import NoteSection from "./NoteSection";
 import { PointForm } from "./PointForm";
+import { buildUrl, sortByResourceThenName } from "../CivilUtils";
+import { getAppState, AppStateChange } from "../AppState";
 
 type DeckManagerState = {
     deck: FatDeck | undefined;
@@ -218,11 +218,11 @@ export default function DeckManager({
             );
         },
         onRefsChanged,
-        noteManagerForDeckPoint: function (deckPoint: DeckPoint) {
+        noteSectionForDeckPoint: function (deckPoint: DeckPoint) {
             if (dms.deck) {
                 let deck: FatDeck = dms.deck;
                 if (deck && deck.noteSeqs && deck.noteSeqs.points) {
-                    return NoteManager({
+                    return NoteSection({
                         deck: deck,
                         toolbarMode: appState.toolbarMode.value,
                         notes: deck.noteSeqs.points[deckPoint.id],

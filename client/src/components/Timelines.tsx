@@ -7,7 +7,7 @@ import {
     DeckPoint,
     DeckTimeline,
     SlimDeck,
-    NoteManagerType,
+    NoteSectionType,
 } from "../types";
 
 import Net from "../Net";
@@ -221,11 +221,11 @@ function SectionUpdateTimeline({ timeline, onUpdate }) {
 function TimelineDeckPoint({
     deckPoint,
     hasNotes,
-    noteManager,
+    noteSection,
 }: {
     deckPoint: DeckPoint;
     hasNotes: boolean;
-    noteManager: NoteManagerType;
+    noteSection: NoteSectionType;
 }) {
     let [expanded, setExpanded] = useState(false);
 
@@ -244,7 +244,7 @@ function TimelineDeckPoint({
                     : svgCaretRightEmpty()}
             </span>
             {deckPoint.title} {deckPoint.dateTextual}
-            {expanded && <div class="point-notes">{noteManager}</div>}
+            {expanded && <div class="point-notes">{noteSection}</div>}
         </li>
     );
 }
@@ -274,7 +274,7 @@ function ListPoints({
     let dps = arr.map((dp) => (
         <TimelineDeckPoint
             key={dp.id}
-            noteManager={deckManager.noteManagerForDeckPoint(dp)}
+            noteSection={deckManager.noteSectionForDeckPoint(dp)}
             hasNotes={deckManager.pointHasNotes(dp)}
             deckPoint={dp}
         />

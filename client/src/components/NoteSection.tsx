@@ -1,13 +1,11 @@
 import { h } from "preact";
 
 import {
-    DeckKind,
     DeckPoint,
     FatDeck,
     Key,
     Note,
     NoteKind,
-    NoteSectionHowToShow,
     Notes,
     Ref,
     ToolbarMode,
@@ -19,69 +17,9 @@ import { svgEdit } from "../svgIcons";
 
 import NoteForm from "./NoteForm";
 import NoteView from "./NoteView";
-import RollableSection from "./RollableSection";
 import WhenVerbose from "./WhenVerbose";
 
 type NoteSectionProps = {
-    heading: string;
-    noteKind: NoteKind;
-    notes: Notes;
-    howToShow: NoteSectionHowToShow;
-    deck: FatDeck;
-    toolbarMode: ToolbarMode;
-    onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
-    deckKind: DeckKind;
-    onUpdateDeck: (d: FatDeck) => void;
-    noappend?: boolean;
-};
-
-function NoteSection({
-    heading,
-    noteKind,
-    notes,
-    howToShow,
-    deck,
-    toolbarMode,
-    onRefsChanged,
-    onUpdateDeck,
-    noappend,
-}: NoteSectionProps) {
-    function noteManager(noteKind: NoteKind) {
-        let appendLabel = "Append Note";
-
-        if (noteKind === NoteKind.NoteSummary) {
-            appendLabel = "Append Summary Note";
-        } else if (noteKind === NoteKind.NoteReview) {
-            appendLabel = "Append Review Note";
-        }
-
-        return NoteManager({
-            deck,
-            toolbarMode,
-            onUpdateDeck,
-            notes,
-            onRefsChanged,
-            appendLabel,
-            noteKind,
-            noappend,
-        });
-    }
-
-    switch (howToShow) {
-        case NoteSectionHowToShow.Hide:
-            return <div></div>;
-        case NoteSectionHowToShow.Exclusive:
-            return noteManager(noteKind);
-        case NoteSectionHowToShow.Show:
-            return (
-                <RollableSection heading={heading}>
-                    {noteManager(noteKind)}
-                </RollableSection>
-            );
-    }
-}
-
-type NoteManagerProps = {
     deck: FatDeck;
     toolbarMode: ToolbarMode;
     onUpdateDeck: (d: FatDeck) => void;
@@ -92,7 +30,8 @@ type NoteManagerProps = {
     noteKind: NoteKind;
     noappend?: boolean;
 };
-function NoteManager({
+
+export default function NoteSection({
     deck,
     toolbarMode,
     onUpdateDeck,
@@ -102,7 +41,7 @@ function NoteManager({
     appendLabel,
     noteKind,
     noappend,
-}: NoteManagerProps) {
+}: NoteSectionProps) {
     const appState = getAppState();
 
     function onEditedNote(id: Key, updatedNote: Note) {
@@ -120,7 +59,7 @@ function NoteManager({
         );
     }
 
-    function buildNoteComponent(note) {
+    function buildNoteComponent(note: Note) {
         return (
             <NoteView
                 key={note.id}
@@ -250,5 +189,3 @@ function NoteManager({
         </section>
     );
 }
-
-export { NoteSection, NoteManager };

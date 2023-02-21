@@ -12,7 +12,7 @@ import {
     SlimDeck,
     PeopleListings,
     SearchResults,
-    NoteManagerType,
+    NoteSectionType,
     PointKind,
     ProtoPoint,
 } from "../types";
@@ -385,12 +385,12 @@ function SectionUpdatePerson({
 function PersonDeckPoint({
     deckPoint,
     hasNotes,
-    noteManager,
+    noteSection,
     holderId,
 }: {
     deckPoint: DeckPoint;
     hasNotes: boolean;
-    noteManager: NoteManagerType;
+    noteSection: NoteSectionType;
     holderId: Key;
 }) {
     let [expanded, setExpanded] = useState(false);
@@ -416,7 +416,7 @@ function PersonDeckPoint({
                         : svgCaretRightEmpty()}
                 </span>
                 {deckPoint.deckName} - {pointTitle} {deckPoint.dateTextual}
-                {expanded && <div class="point-notes">{noteManager}</div>}
+                {expanded && <div class="point-notes">{noteSection}</div>}
             </li>
         );
     } else {
@@ -520,7 +520,7 @@ function ListDeckPoints({
     const dps = arr.map((dp) => (
         <PersonDeckPoint
             key={dp.id}
-            noteManager={deckManager.noteManagerForDeckPoint(dp)}
+            noteSection={deckManager.noteSectionForDeckPoint(dp)}
             hasNotes={deckManager.pointHasNotes(dp)}
             holderId={holderId}
             deckPoint={dp}
