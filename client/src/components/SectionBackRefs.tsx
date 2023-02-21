@@ -139,6 +139,14 @@ export default function SectionBackRefs({ deck }: { deck?: FatDeck }) {
         }
     });
 
+    // don't use the messy auto-generated quote titles
+    // just name them after the deck id
+    if (groupedByResource[DeckKind.Quote]) {
+        groupedByResource[DeckKind.Quote].forEach((d: BackRefSectionItem) => {
+            d.title = `Quote #${d.id}`;
+        });
+    }
+
     // render in the preferred order
     //
     appState.preferredDeckKindOrder.forEach((deckKind: DeckKind) => {
