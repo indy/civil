@@ -106,12 +106,8 @@ export default function NoteSection({
     function buildNoteFormIcon() {
         function onAddNoteClicked(e: Event) {
             if (optionalDeckPoint) {
-                console.log(
-                    `onAddNoteClicked with deckpoint ${optionalDeckPoint.id}`
-                );
                 AppStateChange.showNoteForm(noteKind, optionalDeckPoint.id);
             } else {
-                console.log(`onAddNoteClicked without deckpoint`);
                 AppStateChange.showNoteForm(noteKind);
             }
 

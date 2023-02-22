@@ -47,16 +47,18 @@ export default function NoteForm({
         textAreaFocused: false,
     });
 
-    const handleChangeEvent = (event) => {
-        const target = event.target;
-        const name = target.name;
-        const value = target.value;
+    const handleChangeEvent = (event: Event) => {
+        if (event.target instanceof HTMLInputElement) {
+            const target = event.target;
+            const name = target.name;
+            const value = target.value;
 
-        if (name === "content") {
-            setLocal({
-                ...local,
-                content: value,
-            });
+            if (name === "content") {
+                setLocal({
+                    ...local,
+                    content: value,
+                });
+            }
         }
     };
 
@@ -67,7 +69,7 @@ export default function NoteForm({
         }
     }, []);
 
-    function onImagePaste(markup) {
+    function onImagePaste(markup: string) {
         let content = local.content;
 
         let cursor = local.oldCursorPos;
