@@ -61,9 +61,9 @@ SYSTEMD_FILES = $(wildcard misc/systemd/*)
 WASM_FILES = $(wildcard $(WASM_FOLDER)/src/*) $(WASM_FOLDER)/Cargo.toml
 SHARED_FILES = $(wildcard $(SHARED_FOLDER)/src/*) $(SHARED_FOLDER)/Cargo.toml
 
-.PHONY: run download-images download-db clean-staging run-note_parser run-note_linked_list run-note_prev typescript-watch typescript-typecheck typescript-format init
+.PHONY: run download-images download-db clean-staging run-note_parser run-note_linked_list run-note_prev typescript-watch typescript-typecheck typescript-format deps
 
-init:
+deps:
 	cd client; yarn install
 
 typescript-watch:

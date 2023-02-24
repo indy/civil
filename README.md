@@ -8,7 +8,7 @@ rename .env.example to .env and update it for your environment.
 
 one time initialisation with:
 ```sh
-$ make init
+$ make deps
 ```
 
 
