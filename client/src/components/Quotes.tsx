@@ -93,21 +93,12 @@ function Quotes({ path }: { path?: string }) {
         });
     }
 
-    function handleChangeEvent(e: Event) {
-        if (
-            e.target instanceof HTMLInputElement ||
-            e.target instanceof HTMLTextAreaElement
-        ) {
-            const value = e.target.value;
-            const name = e.target.name;
+    function handleAttributionChange(content: string) {
+        localDispatch(ActionType.SetAttribution, content);
+    }
 
-            if (name === "attribution") {
-                localDispatch(ActionType.SetAttribution, value);
-            }
-            if (name === "quote-text") {
-                localDispatch(ActionType.SetQuoteText, value);
-            }
-        }
+    function handleContentChange(content: string) {
+        localDispatch(ActionType.SetQuoteText, content);
     }
 
     function clickedSave(e: Event) {
@@ -153,7 +144,7 @@ function Quotes({ path }: { path?: string }) {
                 <CivilTextArea
                     id="quote-text"
                     value={local.quoteText}
-                    onInput={handleChangeEvent}
+                    onContentChange={handleContentChange}
                 />
                 <br />
                 <label for="attribution">Attribution:</label>
@@ -161,7 +152,7 @@ function Quotes({ path }: { path?: string }) {
                 <CivilInput
                     id="attribution"
                     value={local.attribution}
-                    onInput={handleChangeEvent}
+                    onContentChange={handleAttributionChange}
                 />
                 <br />
                 <button onClick={clickedCancel}>cancel</button>
@@ -399,13 +390,8 @@ function Attribution({ attribution, onEdited, onDelete }) {
         localDispatch(ActionAttrType.SetMode, AttrMode.Edit);
     }
 
-    function handleChangeEvent(e: Event) {
-        if (e.target instanceof HTMLInputElement) {
-            const target = e.target;
-            const value = target.value;
-
-            localDispatch(ActionAttrType.SetAttribution, value);
-        }
+    function handleAttributionChange(content: string) {
+        localDispatch(ActionAttrType.SetAttribution, content);
     }
 
     function clickedCancel(e: Event) {
@@ -447,7 +433,7 @@ function Attribution({ attribution, onEdited, onDelete }) {
                     <CivilInput
                         id="attribution"
                         value={local.attribution}
-                        onInput={handleChangeEvent}
+                        onContentChange={handleAttributionChange}
                     />
                     <br />
                     <button onClick={clickedCancel}>Cancel</button>

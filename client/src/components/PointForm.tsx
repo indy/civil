@@ -206,17 +206,7 @@ export function PointForm({
 
             let newState = { ...state };
 
-            if (name === "title") {
-                newState.title = svalue;
-                newState.titleBackup = svalue;
-                if (newState.title.length === 0) {
-                    // re-enable the functionality to autofill title to 'Born'
-                    // or 'Died' if the title is ever completely deleted
-                    newState.hasTypedTitle = false;
-                } else {
-                    newState.hasTypedTitle = true;
-                }
-            } else if (name === "pointkind") {
+            if (name === "pointkind") {
                 if (event.target.value === "Custom") {
                     newState.title = newState.titleBackup;
                     newState.kind = PointKind.Point;
@@ -233,21 +223,10 @@ export function PointForm({
                         newState.title = event.target.value; // either Born or Died
                     }
                 }
-            } else if (name === "locationTextual") {
-                newState.locationTextual = svalue;
             } else if (name === "latitude") {
                 newState.latitude = parseFloat(svalue);
             } else if (name === "longitude") {
                 newState.longitude = parseFloat(svalue);
-            } else if (name === "exactDate") {
-                newState.exactDate = svalue;
-                newState = buildReadableDateFromExact(newState, true);
-            } else if (name === "lowerDate") {
-                newState.lowerDate = svalue;
-                newState = buildReadableDateFromRange(newState, true);
-            } else if (name === "upperDate") {
-                newState.upperDate = svalue;
-                newState = buildReadableDateFromRange(newState, true);
             } else if (name === "isApprox") {
                 let bvalue: boolean = value as boolean;
                 newState.isApprox = bvalue;
@@ -265,6 +244,35 @@ export function PointForm({
             // passPointIfValid(newState);
             setState(newState);
         }
+    }
+
+    function handleContentChange(content: string, name: string) {
+        let newState = { ...state };
+
+        if (name === "title") {
+            newState.title = content;
+            newState.titleBackup = content;
+            if (newState.title.length === 0) {
+                // re-enable the functionality to autofill title to 'Born'
+                // or 'Died' if the title is ever completely deleted
+                newState.hasTypedTitle = false;
+            } else {
+                newState.hasTypedTitle = true;
+            }
+        } else if (name === "exactDate") {
+            newState.exactDate = content;
+            newState = buildReadableDateFromExact(newState, true);
+        } else if (name === "lowerDate") {
+            newState.lowerDate = content;
+            newState = buildReadableDateFromRange(newState, true);
+        } else if (name === "upperDate") {
+            newState.upperDate = content;
+            newState = buildReadableDateFromRange(newState, true);
+        } else if (name === "locationTextual") {
+            newState.locationTextual = content;
+        }
+
+        setState(newState);
     }
 
     async function onFindLocationClicked(event: Event) {
@@ -364,7 +372,7 @@ export function PointForm({
                             value={state.title}
                             size={11}
                             readOnly={!!pointKind}
-                            onInput={handleChangeEvent}
+                            onContentChange={handleContentChange}
                         />
                     </fieldset>
                 </div>
@@ -404,7 +412,7 @@ export function PointForm({
                         id="exactDate"
                         value={state.exactDate}
                         size={11}
-                        onInput={handleChangeEvent}
+                        onContentChange={handleContentChange}
                     />
                     <span class="civil-date-hint"> Format: YYYY-MM-DD</span>
                     <div class="civil-date-hint-after" />
@@ -414,14 +422,14 @@ export function PointForm({
                         id="lowerDate"
                         value={state.lowerDate}
                         size={11}
-                        onInput={handleChangeEvent}
+                        onContentChange={handleContentChange}
                     />
                     <label for="upperDate">Upper Date:</label>
                     <CivilInput
                         id="upperDate"
                         value={state.upperDate}
                         size={11}
-                        onInput={handleChangeEvent}
+                        onContentChange={handleContentChange}
                     />
                     <div class="pointform-block pointform-space-top">
                         <input
@@ -474,7 +482,7 @@ export function PointForm({
                     <CivilInput
                         id="locationTextual"
                         value={state.locationTextual}
-                        onInput={handleChangeEvent}
+                        onContentChange={handleContentChange}
                     />
                     <p></p>
                     <button
@@ -571,13 +579,6 @@ function MultiPointInput({
         onSubmit(points);
     }
 
-    function onInput(event: Event) {
-        if (event.target instanceof HTMLInputElement) {
-            const target = event.target;
-            setContent(target.value);
-        }
-    }
-
     function onTextAreaFocus() {}
 
     function onTextAreaBlur() {}
@@ -590,7 +591,7 @@ function MultiPointInput({
                 elementRef={textAreaRef}
                 onFocus={onTextAreaFocus}
                 onBlur={onTextAreaBlur}
-                onInput={onInput}
+                onContentChange={setContent}
             />
             <br />
             <input type="submit" value="import multiple points" />

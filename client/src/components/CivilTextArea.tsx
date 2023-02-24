@@ -10,7 +10,7 @@ type Props = {
     elementClass?: string;
     onFocus?: () => void;
     onBlur?: (e?: Event) => void;
-    onInput?: (e: Event) => void;
+    onContentChange?: (s: string) => void;
 };
 
 export default function CivilTextArea({
@@ -20,7 +20,7 @@ export default function CivilTextArea({
     elementClass,
     onFocus,
     onBlur,
-    onInput,
+    onContentChange,
 }: Props) {
     function onTextAreaFocus() {
         AppStateChange.obtainKeyboardFn();
@@ -30,6 +30,17 @@ export default function CivilTextArea({
     function onTextAreaBlur() {
         AppStateChange.relinquishKeyboardFn();
         onBlur && onBlur();
+    }
+
+    function onInput(event: Event) {
+        if (event.target instanceof HTMLTextAreaElement) {
+            const target = event.target;
+            const value = target.value;
+
+            if (onContentChange) {
+                onContentChange(value);
+            }
+        }
     }
 
     return (

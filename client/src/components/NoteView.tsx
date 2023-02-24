@@ -394,14 +394,11 @@ export default function NoteView({
         return () => {};
     });
 
-    function handleChangeEvent(event: Event) {
-        if (event.target instanceof HTMLTextAreaElement) {
-            const target = event.target;
-            localDispatch(ActionType.NoteSetProperty, {
-                name: target.name,
-                value: target.value,
-            });
-        }
+    function handleChangeEvent(content: string) {
+        localDispatch(ActionType.NoteSetProperty, {
+            name: "content",
+            value: content,
+        });
     }
 
     function onCancelClicked(e: Event) {
@@ -462,7 +459,7 @@ export default function NoteView({
                     elementRef={textAreaRef}
                     onFocus={onTextAreaFocus}
                     onBlur={onTextAreaBlur}
-                    onInput={handleChangeEvent}
+                    onContentChange={handleChangeEvent}
                 />
             </div>
         );
@@ -493,18 +490,15 @@ export default function NoteView({
             });
         }
 
-        function onInput(e: Event) {
-            e.preventDefault();
-            if (e.target instanceof HTMLInputElement) {
-                setFlashCardPrompt(e.target.value);
-            }
+        function onContentChange(content: string) {
+            setFlashCardPrompt(content);
         }
 
         return (
             <div class="block-width form-margin">
                 <label>Flash Card Prompt</label>
                 <div>
-                    <CivilTextArea value={flashCardPrompt} onInput={onInput} />
+                    <CivilTextArea value={flashCardPrompt} onContentChange={onContentChange} />
                 </div>
                 <button onClick={onCancel}>Cancel</button>
                 <button onClick={onSave}>Save Flash Card Prompt</button>

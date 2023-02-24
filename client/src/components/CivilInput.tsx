@@ -7,7 +7,7 @@ export default function CivilInput({
     id,
     value,
     autoComplete,
-    onInput,
+    onContentChange,
     size,
     elementClass,
     readOnly,
@@ -16,7 +16,7 @@ export default function CivilInput({
     id?: string;
     value?: string;
     autoComplete?: string;
-    onInput?: (e: Event) => void;
+    onContentChange?: (content: string, name: string) => void;
     size?: number;
     elementClass?: string;
     readOnly?: boolean;
@@ -30,6 +30,19 @@ export default function CivilInput({
             c.focus();
         }
     }, []);
+
+
+    function onInput(event: Event) {
+        if (event.target instanceof HTMLInputElement) {
+            const target = event.target;
+            const name = target.name;
+            const value = target.value;
+
+            if (onContentChange) {
+                onContentChange(value, name);
+            }
+        }
+    }
 
     const ac = autoComplete || "off";
     return (

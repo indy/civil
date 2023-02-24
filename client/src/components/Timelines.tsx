@@ -160,20 +160,12 @@ function SectionUpdateTimeline({ timeline, onUpdate }) {
         }
     }, [timeline]);
 
-    const handleChangeEvent = (e: Event) => {
-        if (e.target instanceof HTMLInputElement) {
-            const target = e.target;
-            const name = target.name;
-            const value = target.value;
-
-            if (name === "title") {
-                setLocalState({
-                    ...localState,
-                    title: value,
-                });
-            }
-        }
-    };
+    function handleContentChange(content: string) {
+        setLocalState({
+            ...localState,
+            title: content,
+        });
+    }
 
     const handleSubmit = (e: Event) => {
         const data = {
@@ -203,7 +195,7 @@ function SectionUpdateTimeline({ timeline, onUpdate }) {
             <CivilInput
                 id="title"
                 value={localState.title}
-                onInput={handleChangeEvent}
+                onContentChange={handleContentChange}
             />
             <br />
 

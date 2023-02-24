@@ -47,19 +47,11 @@ export default function NoteForm({
         textAreaFocused: false,
     });
 
-    const handleChangeEvent = (event: Event) => {
-        if (event.target instanceof HTMLInputElement) {
-            const target = event.target;
-            const name = target.name;
-            const value = target.value;
-
-            if (name === "content") {
-                setLocal({
-                    ...local,
-                    content: value,
-                });
-            }
-        }
+    const handleContentChange = (content: string) => {
+        setLocal({
+            ...local,
+            content,
+        });
     };
 
     useEffect(() => {
@@ -165,7 +157,7 @@ export default function NoteForm({
                     value={local.content}
                     onFocus={onTextAreaFocus}
                     onBlur={onTextAreaBlur}
-                    onInput={handleChangeEvent}
+                    onContentChange={handleContentChange}
                 />
                 <br />
                 <input type="submit" value="Save" />

@@ -214,34 +214,37 @@ function SectionUpdateArticle({ article, onUpdate }) {
         }
     }, [article]);
 
-    const handleChangeEvent = (event: Event) => {
+    function onRatingChange(event: Event) {
         if (event.target instanceof HTMLInputElement) {
             const target = event.target;
             const name = target.name;
             const value = target.value;
 
-            if (name === "title") {
-                setTitle(value);
-            }
-            if (name === "source") {
-                setSource(value);
-            }
-            if (name === "author") {
-                setAuthor(value);
-            }
-            if (name === "short-description") {
-                setShortDescription(value);
-            }
             if (name === "rating") {
                 setRating(parseInt(value, 10));
-            }
-            if (name === "publishedDate") {
-                setPublishedDate(value);
             }
         }
     };
 
-    const handleSubmit = (event: Event) => {
+    function onContentChange(content: string, name: string) {
+        if (name === "title") {
+            setTitle(content);
+        }
+        if (name === "source") {
+            setSource(content);
+        }
+        if (name === "author") {
+            setAuthor(content);
+        }
+        if (name === "short-description") {
+            setShortDescription(content);
+        }
+        if (name === "publishedDate") {
+            setPublishedDate(content);
+        }
+    }
+
+    function handleSubmit(event: Event) {
         const data = removeEmptyStrings(
             {
                 title: title.trim(),
@@ -278,7 +281,7 @@ function SectionUpdateArticle({ article, onUpdate }) {
         <form class="civil-form" onSubmit={handleSubmit}>
             <label for="title">Title:</label>
             <br />
-            <CivilInput id="title" value={title} onInput={handleChangeEvent} />
+            <CivilInput id="title" value={title} onContentChange={onContentChange} />
             <br />
 
             <InsigniaSelector
@@ -292,7 +295,7 @@ function SectionUpdateArticle({ article, onUpdate }) {
             <CivilInput
                 id="source"
                 value={source}
-                onInput={handleChangeEvent}
+                onContentChange={onContentChange}
             />
             <br />
             <label for="author">Author:</label>
@@ -300,7 +303,7 @@ function SectionUpdateArticle({ article, onUpdate }) {
             <CivilInput
                 id="author"
                 value={author}
-                onInput={handleChangeEvent}
+                onContentChange={onContentChange}
             />
             <br />
             <label for="publishedDate">Published Date:</label>
@@ -308,7 +311,7 @@ function SectionUpdateArticle({ article, onUpdate }) {
             <CivilInput
                 id="publishedDate"
                 value={publishedDate}
-                onInput={handleChangeEvent}
+                onContentChange={onContentChange}
             />
             <br />
             <label for="short-description">Short Description:</label>
@@ -316,7 +319,7 @@ function SectionUpdateArticle({ article, onUpdate }) {
             <CivilInput
                 id="short-description"
                 value={shortDescription}
-                onInput={handleChangeEvent}
+                onContentChange={onContentChange}
             />
             <br />
             <label for="rating">Rating (between 0 and 5):</label>
@@ -327,7 +330,7 @@ function SectionUpdateArticle({ article, onUpdate }) {
                 value={rating}
                 min="0"
                 max="5"
-                onInput={handleChangeEvent}
+                onInput={onRatingChange}
             />
             <br />
             <input id="article-submit" type="submit" value="Update Article" />

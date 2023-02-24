@@ -104,11 +104,8 @@ export default function FlashCardView({ flashcard, onDelete }: Props) {
 
     const [local, localDispatch] = useLocalReducer(reducer, initialState);
 
-    function handleChangeEvent(e: Event) {
-        if (e.target instanceof HTMLInputElement) {
-            const target = e.target;
-            localDispatch(ActionType.SetPrompt, target.value);
-        }
+    function handleContentChange(text: string) {
+        localDispatch(ActionType.SetPrompt, text);
     }
 
     function editToggleClicked(e: Event) {
@@ -180,7 +177,7 @@ export default function FlashCardView({ flashcard, onDelete }: Props) {
                             <CivilTextArea
                                 id="flashcard-prompt"
                                 value={local.flashcard.prompt}
-                                onInput={handleChangeEvent}
+                                onContentChange={handleContentChange}
                             />
                         </div>
                     </p>

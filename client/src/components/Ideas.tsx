@@ -186,17 +186,9 @@ function SectionUpdateIdea({ idea, onUpdate }: SectionUpdateIdeaProps) {
         }
     }, [idea]);
 
-    const handleChangeEvent = (event: Event) => {
-        if (event.target instanceof HTMLInputElement) {
-            const target = event.target;
-            const name = target.name;
-            const value = target.value;
-
-            if (name === "title") {
-                setTitle(value);
-            }
-        }
-    };
+    function handleContentChange(content: string) {
+        setTitle(content);
+    }
 
     interface ISubmitData {
         title: string;
@@ -233,7 +225,7 @@ function SectionUpdateIdea({ idea, onUpdate }: SectionUpdateIdeaProps) {
             <label for="title">Title:</label>
             <br />
 
-            <CivilInput id="title" value={title} onInput={handleChangeEvent} />
+            <CivilInput id="title" value={title} onContentChange={handleContentChange} />
             <br />
 
             <InsigniaSelector

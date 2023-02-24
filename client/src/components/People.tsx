@@ -317,20 +317,12 @@ function SectionUpdatePerson({
         }
     }, [person]);
 
-    const handleChangeEvent = (e: Event) => {
-        if (e.target instanceof HTMLInputElement) {
-            const target = e.target;
-            const name = target.name;
-            const value = target.value;
-
-            if (name === "name") {
-                setLocalState({
-                    ...localState,
-                    title: value,
-                });
-            }
-        }
-    };
+    function handleContentChange(content: string) {
+        setLocalState({
+            ...localState,
+            title: content,
+        });
+    }
 
     const handleSubmit = (e: Event) => {
         type Data = {
@@ -367,7 +359,7 @@ function SectionUpdatePerson({
             <CivilInput
                 id="name"
                 value={localState.title}
-                onInput={handleChangeEvent}
+                onContentChange={handleContentChange}
             />
             <br />
 

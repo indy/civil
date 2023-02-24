@@ -323,7 +323,7 @@ type CardRatingProps = {
 };
 function CardRating({ card, onRatedCard }: CardRatingProps) {
     function onRated(e: Event) {
-        if (e.target instanceof HTMLInputElement) {
+        if (e.target instanceof HTMLButtonElement) {
             e.preventDefault();
             const rating = parseInt(e.target.textContent!, 10);
             onRatedCard(card, rating);

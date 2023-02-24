@@ -498,14 +498,9 @@ function SelectedReference({
         }
     }
 
-    const handleChangeEvent = (event: Event) => {
-        if (event.target instanceof HTMLInputElement) {
-            const target = event.target;
-            const value = target.value;
-
-            onChangeAnnotation(reference, value);
-        }
-    };
+    function handleContentChange(content: string) {
+        onChangeAnnotation(reference, content);
+    }
 
     let topclass = `civsel-reference pigment-${deckKindToResourceString(
         reference.deckKind
@@ -549,7 +544,7 @@ function SelectedReference({
                 elementClass="civsel-annotation"
                 id="annotation"
                 value={reference.annotation}
-                onInput={handleChangeEvent}
+                onContentChange={handleContentChange}
             />
         </div>
     );
@@ -572,11 +567,6 @@ function Input({
     candidates,
     showKeyboardShortcuts,
 }: InputProps) {
-    function onInput(e: Event) {
-        if (e.target instanceof HTMLInputElement) {
-            onTextChanged(e.target.value);
-        }
-    }
 
     function onSubmit(e: Event) {
         e.preventDefault();
@@ -611,7 +601,7 @@ function Input({
                 value={text}
                 focus
                 autoComplete="off"
-                onInput={onInput}
+                onContentChange={onTextChanged}
             />
             <div class="civsel-candidates">{cl}</div>
         </form>
