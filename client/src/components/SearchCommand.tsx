@@ -2,7 +2,7 @@ import { h } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import { Link, route } from "preact-router";
 
-import { DeckKind, DeckQuote, NoteKind, ToolbarMode } from "../types";
+import { DeckKind, DeckQuote, NoteKind, ToolbarMode, SlimDeck } from "../types";
 
 import Net from "../Net";
 import { getAppState, AppStateChange } from "../AppState";
@@ -31,7 +31,7 @@ type Command = {
 };
 
 enum ActionType {
-    CandidatesSet,
+    SearchCandidatesSet,
     ClickedCandidate,
     ClickedCommand,
     InputBlur,
@@ -59,7 +59,7 @@ type State = {
     showKeyboardShortcuts: boolean;
     shiftKey: boolean;
     text: string;
-    candidates: Array<any>;
+    searchCandidates: Array<SlimDeck>;
     keyDownIndex: number;
 };
 
@@ -256,7 +256,7 @@ function reducer(state: State, action: Action) {
                 ...state,
                 hasFocus: false,
             };
-            if (newState.candidates.length === 0) {
+            if (newState.searchCandidates.length === 0) {
                 newState.isVisible = !state.hasPhysicalKeyboard;
             }
             return newState;
@@ -330,7 +330,7 @@ function reducer(state: State, action: Action) {
 
             if (state.mode === Mode.Search) {
                 newState.showKeyboardShortcuts =
-                    !state.showKeyboardShortcuts && state.candidates.length > 0;
+                    !state.showKeyboardShortcuts && state.searchCandidates.length > 0;
             }
 
             return newState;
@@ -356,7 +356,7 @@ function reducer(state: State, action: Action) {
 
             const newState = { ...state };
             if (state.showKeyboardShortcuts && state.mode === Mode.Search) {
-                AppStateChange.scratchListAddMulti(newState.candidates);
+                AppStateChange.scratchListAddMulti(newState.searchCandidates);
 
                 newState.shiftKey = true;
                 newState.keyDownIndex = -1;
@@ -366,33 +366,30 @@ function reducer(state: State, action: Action) {
                 return newState;
             }
         }
-        case ActionType.CandidatesSet:
+        case ActionType.SearchCandidatesSet:
             return {
                 ...state,
-                candidates: action.data.results ? action.data.results : [],
+                searchCandidates: action.data.results || [],
             };
         case ActionType.InputGiven: {
             if (!state.isVisible) {
                 return state;
             }
-
             const text = action.data.text;
             const mode = isCommand(text) ? Mode.Command : Mode.Search;
 
-            let candidates = state.candidates;
-            if (mode === Mode.Command) {
-                candidates = Commands;
-            }
+            let searchCandidates = state.searchCandidates;
+
             if (mode === Mode.Search && state.mode === Mode.Command) {
                 // just changed mode from command to search
-                candidates = [];
+                searchCandidates = [];
             }
 
             if (state.showKeyboardShortcuts && state.mode === Mode.Search) {
                 const index = state.keyDownIndex;
 
-                if (index >= 0 && state.candidates.length > index) {
-                    const candidate = state.candidates[index];
+                if (index >= 0 && state.searchCandidates.length > index) {
+                    const candidate = state.searchCandidates[index];
 
                     if (state.shiftKey) {
                         // once a candidate has been added to the saved search
@@ -410,10 +407,11 @@ function reducer(state: State, action: Action) {
 
                         return newState;
                     } else {
-                        const url = `/${candidate.resource}/${candidate.id}`;
+                        const url = `/${deckKindToResourceString(candidate.deckKind)}/${candidate.id}`;
                         route(url);
 
                         const newState = cleanState(state);
+
                         return newState;
                     }
                 }
@@ -423,7 +421,7 @@ function reducer(state: State, action: Action) {
                 ...state,
                 mode,
                 text,
-                candidates,
+                searchCandidates,
             };
 
             return newState;
@@ -457,7 +455,7 @@ export default function SearchCommand() {
         showKeyboardShortcuts: false,
         shiftKey: false,
         text: "",
-        candidates: [],
+        searchCandidates: [],
         keyDownIndex: -1,
     };
     const [local, localDispatch] = useLocalReducer(reducer, initialState);
@@ -546,10 +544,10 @@ export default function SearchCommand() {
     async function search(text: string) {
         const url = `/api/cmd/search?q=${encodeURI(text)}`;
         const searchResponse = await Net.get(url);
-        localDispatch(ActionType.CandidatesSet, searchResponse);
+        localDispatch(ActionType.SearchCandidatesSet, searchResponse);
     }
 
-    function buildSearchResultEntry(entry: any, i: number) {
+    function buildSearchResultEntry(entry: SlimDeck, i: number) {
         const maxShortcuts = 9 + 26; // 1..9 and a..z
         const canShowKeyboardShortcut =
             local.showKeyboardShortcuts && i < maxShortcuts;
@@ -575,7 +573,7 @@ export default function SearchCommand() {
         );
     }
 
-    function buildCommandEntry(entry: any, i: number) {
+    function buildCommandEntry(entry: Command) {
         function clickedCommand() {
             localDispatch(ActionType.ClickedCommand, { entry });
         }
@@ -598,25 +596,33 @@ export default function SearchCommand() {
         }
     }
 
+    // build either the SearchCandidates or the CommandCandidates
     function buildCandidates() {
-        let classes =
-            local.hasPhysicalKeyboard && local.showKeyboardShortcuts
+        if (local.mode === Mode.Command) {
+            return (
+                <ul class="search-command-listing" id="search-candidates">
+                    {Commands.map((entry: Command, i: number) => (
+                        <li key={i}>{buildCommandEntry(entry)}</li>
+                    ))}
+                </ul>
+            );
+        } else if (local.mode === Mode.Search && local.searchCandidates.length > 0) {
+            let classes =
+                local.hasPhysicalKeyboard && local.showKeyboardShortcuts
                 ? "search-command-important "
                 : "";
-        classes += "search-command-listing";
+            classes += "search-command-listing";
 
-        let candidateRenderer =
-            local.mode === Mode.Search
-                ? buildSearchResultEntry
-                : buildCommandEntry;
-
-        return (
-            <ul class={classes} id="search-candidates">
-                {local.candidates.map((entry, i) => (
-                    <li key={i}>{candidateRenderer(entry, i)}</li>
-                ))}
-            </ul>
-        );
+            return (
+                <ul class={classes} id="search-candidates">
+                    {local.searchCandidates.map((entry: SlimDeck, i: number) => (
+                        <li key={i}>{buildSearchResultEntry(entry, i)}</li>
+                    ))}
+                </ul>
+            );
+        } else {
+            return (<div></div>)
+        }
     }
 
     function buildScratchList() {
@@ -733,7 +739,7 @@ export default function SearchCommand() {
                     onFocus={onFocus}
                     onBlur={onBlur}
                 />
-                {!!local.candidates.length && buildCandidates()}
+                {buildCandidates()}
             </div>
             {!!appState.scratchList.value.length && buildScratchList()}
         </div>
