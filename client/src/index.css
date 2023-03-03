@@ -15,6 +15,8 @@
     --search-command-border-radius: 0.1em;
 
     --title-height: 1.6rem;
+
+    --ui-element-border-radius: 0.4em;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -1649,6 +1651,24 @@ input:required {
 }
 .toolbar-item-selected-add-above {
     border-right: 5px solid var(--fg-clock-02) !important;
+}
+
+.insignia-selector {
+  display: flex;
+  justify-content: flex-start;
+}
+.insignia-button {
+  padding: 0.5rem 0.5rem 0.2rem 0.6rem;
+  margin: 0.3rem;
+  transition: border 0.2s;
+  border-radius: var(--ui-element-border-radius);
+}
+.insignia-selected {
+  border: 0.2rem solid var(--fg1);
+}
+
+.insignia-unselected {
+  border: 0.2rem solid var(--bg);
 }
 
 /* Responsive adjustments

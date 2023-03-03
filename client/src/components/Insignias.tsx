@@ -6,59 +6,86 @@ type Props = {
 };
 
 export function InsigniaSelector({ insigniaId, onChange }: Props) {
-    const handleInsigniaChange = (event: Event) => {
-        if (event.target instanceof HTMLInputElement) {
-            onChange(parseInt(event.target.value, 10));
-        }
-    };
+
+    function onTicked(bit: number) {
+        let val = setbit(insigniaId, bit);
+        onChange(val);
+    }
+
+    function onUnticked(bit: number) {
+        let val = clearbit(insigniaId, bit);
+        onChange(val);
+    }
 
     return (
-        <span>
-            {renderInsignia(insigniaId)}
-            <label for="insignia-value">
-                Insignia value:
-                <input
-                    type="number"
-                    name="insignia-value"
-                    id="insignia-value"
-                    onInput={handleInsigniaChange}
-                    min="0"
-                    max="10"
-                    step="1"
-                    value="{insigniaId}"
-                />
-            </label>
-        </span>
+        <div class="insignia-selector">
+            {
+                [1, 2, 3, 4, 5, 6, 7, 8].map(i =>
+                <SingleInsignia value={insigniaId}
+                                bit={i}
+                                onTicked={onTicked}
+                                onUnticked={onUnticked}/>)
+            }
+        </div>
+    );
+}
+
+type SingleInsigniaProps = {
+    value: number;
+    bit: number;
+    onTicked: (bit: number) => void;
+    onUnticked: (bit: number) => void;
+};
+
+function SingleInsignia({ value, bit, onTicked, onUnticked }: SingleInsigniaProps) {
+    let cl = "insignia-button ";
+    cl += bitset(value, bit) ? "insignia-selected" : "insignia-unselected";
+
+
+    function onClickHandler() {
+        if (bitset(value, bit)) {
+            onUnticked(bit);
+        } else {
+            onTicked(bit);
+        }
+    }
+
+    return (
+        <div class={cl} onClick={onClickHandler}>
+            { renderInsignia(bitAsValue(bit))}
+        </div>
     );
 }
 
 export function renderInsignia(insigniaId: number) {
-    switch (insigniaId) {
-        case 0:
-            return "";
-        case 1:
-            return svgTwitter();
-        case 2:
-            return svgBook();
-        case 3:
-            return svgCone();
-        case 4: // bookmark red
-            return svgBookmark("#ff0000");
-        case 5: // bookmark blue
-            return svgBookmark("#0000ff");
-        case 6: // tag red
-            return svgTag("#ff0000");
-        case 7: // tag blue
-            return svgTag("#0000ff");
-        case 8:
-            return svgBell();
-        case 9:
-            return svgFire();
-        case 10:
-            return svgHeart();
-        default:
-            return <span></span>;
-    }
+    return (
+        <span>
+            {bitset(insigniaId, 1) && svgTwitter()}
+            {bitset(insigniaId, 2) && svgBook()}
+            {bitset(insigniaId, 3) && svgCone()}
+            {bitset(insigniaId, 4) && svgLightning()}
+            {bitset(insigniaId, 5) && svgHeart()}
+            {bitset(insigniaId, 6) && svgFire()}
+            {bitset(insigniaId, 7) && svgBookmark("#0000ff")}
+            {bitset(insigniaId, 8) && svgTag("#00aa00")}
+        </span>
+    );
+}
+
+function bitAsValue(bit: number) {
+    return 1 << (bit - 1);
+}
+
+function bitset(insigniaId: number, bit: number) {
+    return !!(insigniaId & (1 << (bit - 1)));
+}
+
+function setbit(insigniaId: number, bit: number) {
+    return insigniaId | (1 << (bit - 1));
+}
+
+function clearbit(insigniaId: number, bit: number) {
+    return insigniaId & ~(1 << (bit - 1));
 }
 
 // https://icons.getbootstrap.com/icons/twitter/
@@ -105,43 +132,27 @@ function svgCone() {
     );
 }
 
-function svgBookmark(hexColour: string) {
+function svgLightning() {
     return (
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="16"
-            fill="{hexColour}"
-            viewBox="1 0 16 16"
-        >
-            <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z" />
-        </svg>
-    );
-}
-function svgTag(hexColour) {
-    return (
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="16"
-            fill="{hexColour}"
-            viewBox="1 0 16 16"
-        >
-            <path d="M2 1a1 1 0 0 0-1 1v4.586a1 1 0 0 0 .293.707l7 7a1 1 0 0 0 1.414 0l4.586-4.586a1 1 0 0 0 0-1.414l-7-7A1 1 0 0 0 6.586 1H2zm4 3.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
-        </svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="18" height="16" fill="#e6aa00" viewBox="1 0 16 16">
+  <path d="M5.52.359A.5.5 0 0 1 6 0h4a.5.5 0 0 1 .474.658L8.694 6H12.5a.5.5 0 0 1 .395.807l-7 9a.5.5 0 0 1-.873-.454L6.823 9.5H3.5a.5.5 0 0 1-.48-.641l2.5-8.5z"/>
+</svg>
     );
 }
 
-function svgBell() {
+function svgHeart() {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"
             width="18"
             height="16"
-            fill="#ffff00"
+            fill="#ff0000"
             viewBox="1 0 16 16"
         >
-            <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zm.995-14.901a1 1 0 1 0-1.99 0A5.002 5.002 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901z" />
+            <path
+                fill-rule="evenodd"
+                d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"
+            />
         </svg>
     );
 }
@@ -160,19 +171,29 @@ function svgFire() {
     );
 }
 
-function svgHeart() {
+function svgBookmark(hexColour: string) {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"
             width="18"
             height="16"
-            fill="#ff0000"
+            fill={hexColour}
             viewBox="1 0 16 16"
         >
-            <path
-                fill-rule="evenodd"
-                d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"
-            />
+            <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z" />
+        </svg>
+    );
+}
+function svgTag(hexColour: string) {
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="16"
+            fill={hexColour}
+            viewBox="1 0 16 16"
+        >
+            <path d="M2 1a1 1 0 0 0-1 1v4.586a1 1 0 0 0 .293.707l7 7a1 1 0 0 0 1.414 0l4.586-4.586a1 1 0 0 0 0-1.414l-7-7A1 1 0 0 0 6.586 1H2zm4 3.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
         </svg>
     );
 }
