@@ -127,6 +127,7 @@ function Idea({ path, id }: { path?: string; id?: string }) {
                         <SectionUpdateIdea
                             idea={deck}
                             onUpdate={deckManager.updateAndReset}
+                            onCancel={deckManager.onFormHide}
                         />{" "}
                     </div>
                 )}
@@ -164,9 +165,10 @@ function Idea({ path, id }: { path?: string; id?: string }) {
 type SectionUpdateIdeaProps = {
     idea: DeckIdea;
     onUpdate: (d: DeckIdea) => void;
+    onCancel: () => void;
 };
 
-function SectionUpdateIdea({ idea, onUpdate }: SectionUpdateIdeaProps) {
+function SectionUpdateIdea({ idea, onUpdate, onCancel }: SectionUpdateIdeaProps) {
     const [title, setTitle] = useState(idea.title || "");
     const [graphTerminator, setGraphTerminator] = useState(
         idea.graphTerminator
@@ -190,20 +192,20 @@ function SectionUpdateIdea({ idea, onUpdate }: SectionUpdateIdeaProps) {
         setTitle(content);
     }
 
-    interface ISubmitData {
-        title: string;
-        graphTerminator: boolean;
-        insignia: number;
-    }
+    function handleSubmit(event: Event) {
+        type SubmitData = {
+            title: string;
+            graphTerminator: boolean;
+            insignia: number;
+        }
 
-    const handleSubmit = (event: Event) => {
-        const data: ISubmitData = {
+        const data: SubmitData = {
             title: title.trim(),
             graphTerminator: graphTerminator,
             insignia: insigniaId,
         };
 
-        Net.put<ISubmitData, DeckIdea>(`/api/ideas/${idea.id}`, data).then(
+        Net.put<SubmitData, DeckIdea>(`/api/ideas/${idea.id}`, data).then(
             (newDeck) => {
                 onUpdate(newDeck);
             }
@@ -212,7 +214,7 @@ function SectionUpdateIdea({ idea, onUpdate }: SectionUpdateIdeaProps) {
         event.preventDefault();
     };
 
-    const handleCheckbox = (event: Event) => {
+    function handleCheckbox(event: Event) {
         if (event.target instanceof HTMLInputElement) {
             if (event.target.id === "graph-terminator") {
                 setGraphTerminator(!graphTerminator);
@@ -243,7 +245,7 @@ function SectionUpdateIdea({ idea, onUpdate }: SectionUpdateIdeaProps) {
                 checked={graphTerminator}
             />
             <br />
-
+            <input type="button" value="Cancel" class="dialog-cancel" onClick={onCancel}/>
             <input type="submit" value="Update Idea" />
         </form>
     );

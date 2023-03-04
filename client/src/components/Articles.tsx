@@ -128,6 +128,7 @@ function Article({ path, id }: { path?: string; id?: string }) {
                         <SectionUpdateArticle
                             article={deck}
                             onUpdate={deckManager.updateAndReset}
+                            onCancel={deckManager.onFormHide}
                         />
                     </div>
                 )}
@@ -169,7 +170,12 @@ function TopScribble({ text }: { text: string }) {
     return <span></span>;
 }
 
-function SectionUpdateArticle({ article, onUpdate }) {
+type SectionUpdateArticleProps = {
+    article: DeckArticle;
+    onUpdate: (d: DeckArticle) => void;
+    onCancel: () => void;
+}
+function SectionUpdateArticle({ article, onUpdate, onCancel }: SectionUpdateArticleProps) {
     const [title, setTitle] = useState(article.title || "");
     const [author, setAuthor] = useState(article.author || "");
     const [source, setSource] = useState(article.source || "");
@@ -261,7 +267,7 @@ function SectionUpdateArticle({ article, onUpdate }) {
 
         const deckKind: DeckKind = DeckKind.Article;
 
-        Net.put(buildUrl(deckKind, article.id, "/api"), data).then(
+        Net.put<any, DeckArticle>(buildUrl(deckKind, article.id, "/api"), data).then(
             (newDeck) => {
                 onUpdate(newDeck);
 
@@ -333,6 +339,7 @@ function SectionUpdateArticle({ article, onUpdate }) {
                 onInput={onRatingChange}
             />
             <br />
+            <input type="button" value="Cancel" class="dialog-cancel" onClick={onCancel}/>
             <input id="article-submit" type="submit" value="Update Article" />
         </form>
     );

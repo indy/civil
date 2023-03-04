@@ -178,6 +178,12 @@ export default function DeckManager({
         },
         onFormToggle: function () {
             let newDms = dmsUpdateFormToggle(dms);
+            AppStateChange.toolbarMode(ToolbarMode.View);
+            setDms(newDms);
+        },
+        onFormHide: function () {
+            let newDms = dmsHideForm(dms);
+            AppStateChange.toolbarMode(ToolbarMode.View);
             setDms(newDms);
         },
         buildPointForm: function (onSuccessCallback: () => void) {

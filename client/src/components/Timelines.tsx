@@ -96,6 +96,7 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                         <SectionUpdateTimeline
                             timeline={deck}
                             onUpdate={deckManager.updateAndReset}
+                            onCancel={deckManager.onFormHide}
                         />
                     </div>
                 )}
@@ -135,7 +136,13 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
     }
 }
 
-function SectionUpdateTimeline({ timeline, onUpdate }) {
+type SectionUpdateTimelineProps = {
+    timeline: DeckTimeline;
+    onUpdate: (d: DeckTimeline) => void;
+    onCancel: () => void;
+}
+
+function SectionUpdateTimeline({ timeline, onUpdate, onCancel }: SectionUpdateTimelineProps) {
     const [localState, setLocalState] = useState({
         title: timeline.title || "",
         insigniaId: timeline.insignia || 0,
@@ -168,13 +175,19 @@ function SectionUpdateTimeline({ timeline, onUpdate }) {
     }
 
     const handleSubmit = (e: Event) => {
-        const data = {
+
+        type SubmitData = {
+            title: string;
+            insignia: number;
+        }
+
+        const data: SubmitData = {
             title: localState.title.trim(),
             insignia: localState.insigniaId,
         };
 
         // edit an existing timeline
-        Net.put(`/api/timelines/${timeline.id}`, data).then((newDeck) => {
+        Net.put<SubmitData, DeckTimeline>(`/api/timelines/${timeline.id}`, data).then((newDeck) => {
             onUpdate(newDeck);
         });
 
@@ -204,7 +217,7 @@ function SectionUpdateTimeline({ timeline, onUpdate }) {
                 onChange={setInsigniaId}
             />
             <br />
-
+            <input type="button" value="Cancel" class="dialog-cancel" onClick={onCancel}/>
             <input type="submit" value="Update Timeline" />
         </form>
     );

@@ -396,12 +396,13 @@ export type DeckManagerType = {
     onShowSummaryClicked: () => void;
     onShowReviewClicked: () => void;
     onRefsToggle: () => void;
-    onFormToggle: () => any;
+    onFormToggle: () => void;
+    onFormHide: () => void;
     buildPointForm: (onSuccessCallback: () => void) => any;
-    onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => any;
+    onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
     noteSectionForDeckPoint: (deckPoint: DeckPoint) => any;
-    pointHasNotes: (point: DeckPoint) => any;
-    canShowNoteSection: (noteKind: NoteKind) => any;
+    pointHasNotes: (point: DeckPoint) => boolean;
+    canShowNoteSection: (noteKind: NoteKind) => boolean;
     howToShowNoteSection: (noteKind: NoteKind) => NoteSectionHowToShow;
 };
 

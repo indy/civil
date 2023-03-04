@@ -192,6 +192,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
                         <SectionUpdatePerson
                             person={deck}
                             onUpdate={deckManager.updateAndReset}
+                            onCancel={deckManager.onFormHide}
                         />
                     </div>
                 )}
@@ -292,9 +293,11 @@ function preCacheFn(person: FatDeck): FatDeck {
 function SectionUpdatePerson({
     person,
     onUpdate,
+    onCancel,
 }: {
     person: DeckPerson;
     onUpdate: (p: FatDeck) => void;
+    onCancel: () => void;
 }) {
     const [localState, setLocalState] = useState({
         title: person.title || "",
@@ -368,7 +371,7 @@ function SectionUpdatePerson({
                 onChange={setInsigniaId}
             />
             <br />
-
+            <input type="button" value="Cancel" class="dialog-cancel" onClick={onCancel}/>
             <input type="submit" value="Update Person" />
         </form>
     );
