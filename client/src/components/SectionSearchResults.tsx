@@ -23,7 +23,7 @@ export default function SectionSearchResults({
         );
     }
 
-    if (nonEmptyArray(searchResults)) {
+    if (nonEmptyArray<SlimDeck>(searchResults)) {
         const heading = plural(
             searchResults.length,
             "Additional Search Result",

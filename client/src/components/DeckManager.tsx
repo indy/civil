@@ -54,7 +54,7 @@ export default function DeckManager({
     const preCacheFunction = preCacheFn || identity;
     const appState = getAppState();
 
-    const [dms, setDms]: [DeckManagerState, any] = useState(
+    const [dms, setDms]: [DeckManagerState, Function] = useState(
         cleanDeckManagerState()
     );
 

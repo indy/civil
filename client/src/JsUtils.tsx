@@ -1,7 +1,7 @@
 import { RefKind } from "./types";
 
 // remove the keys from obj that have empty strings
-export function removeEmptyStrings(obj, keys) {
+export function removeEmptyStrings(obj, keys: Array<string>) {
     for (var i = 0; i < keys.length; i++) {
         let key = keys[i];
         if (typeof obj[key] === "string" && obj[key].trim().length === 0) {
@@ -11,7 +11,7 @@ export function removeEmptyStrings(obj, keys) {
     return obj;
 }
 
-export function nonEmptyArray(arr: Array<any>) {
+export function nonEmptyArray<T>(arr: Array<T>) {
     return arr && arr.length > 0;
 }
 

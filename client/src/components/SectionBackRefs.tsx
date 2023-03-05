@@ -39,7 +39,7 @@ export default function SectionBackRefs({ deck }: { deck?: FatDeck }) {
     const sections: Array<ComponentChildren> = [];
     const decks: Array<BackRefSectionItem> = [];
 
-    if (!nonEmptyArray(backrefs)) {
+    if (!nonEmptyArray<Ref>(backrefs)) {
         return <div></div>;
     }
 

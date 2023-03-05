@@ -660,7 +660,7 @@ export default function NoteView({
     );
 }
 
-function buildLeftMarginContent(note: Note, localDispatch) {
+function buildLeftMarginContent(note: Note, localDispatch: Function) {
     if (!note.decks && !note.flashcards) {
         return <span></span>;
     } else {
@@ -684,7 +684,7 @@ function buildNoteReferences(decks: Array<Ref>) {
 
 function buildFlashcardIndicator(
     flashcards: Array<FlashCard>,
-    localDispatch?: any
+    localDispatch: Function
 ) {
     // a single note may have multiple flashcards
     const entries = flashcards.map((fc) => {

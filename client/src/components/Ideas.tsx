@@ -69,7 +69,7 @@ function Ideas({ path }: { path?: string }) {
 }
 
 function Idea({ path, id }: { path?: string; id?: string }) {
-    const [searchResults, setSearchResults]: [Array<SlimDeck>, any] = useState(
+    const [searchResults, setSearchResults]: [Array<SlimDeck>, Function] = useState(
         []
     ); // an array of backrefs
     const ideaId = id ? parseInt(id, 10) : 0;
