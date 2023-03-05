@@ -117,13 +117,6 @@ export function indexToShortcut(index: number) {
     }
 }
 
-export function fetchDeckListing(deckKind: DeckKind, url: string) {
-    console.error("REPLACE fetchDeckListing WITH ILISTING SPECIFIC VARIANTS");
-    Net.get<Array<SlimDeck>>(url || `/api/${deckKind}`).then((listing) => {
-        AppStateChange.setDeckListing(deckKind, listing);
-    });
-}
-
 export function sortByResourceThenName(a: SlimDeck, b: SlimDeck): number {
     if (a.deckKind < b.deckKind) {
         return -1;

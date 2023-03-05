@@ -303,6 +303,22 @@ export const AppStateChange = {
         }
     },
 
+    setPeopleListings: function (people: PeopleListings) {
+        let li = {
+            ...state.listing.value,
+            people
+        };
+        state.listing.value = li;
+    },
+
+    setArticleListings: function (articles: ArticleListings) {
+        let li = {
+            ...state.listing.value,
+            articles
+        };
+        state.listing.value = li;
+    },
+
     setDeckListing: function (deckKind: DeckKind, listing: AnyDeckListing) {
         if (DEBUG_APP_STATE) {
             console.log("setDeckListing");

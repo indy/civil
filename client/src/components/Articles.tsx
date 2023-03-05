@@ -7,9 +7,7 @@ import { getAppState, AppStateChange } from "../AppState";
 import CivilInput from "./CivilInput";
 import {
     buildUrl,
-    deckKindToHeadingString,
-    deckKindToResourceString,
-    fetchDeckListing,
+    deckKindToHeadingString
 } from "../CivilUtils";
 import DeckManager from "./DeckManager";
 import DeleteDeckConfirmation from "./DeleteDeckConfirmation";
@@ -251,7 +249,19 @@ function SectionUpdateArticle({ article, onUpdate, onCancel }: SectionUpdateArti
     }
 
     function handleSubmit(event: Event) {
-        const data = removeEmptyStrings(
+
+        type Data = {
+            title: string;
+            author: string;
+            source?: string;
+            shortDescription: string;
+            rating: number;
+            graphTerminator: boolean;
+            publishedDate: string;
+            insignia: number;
+        };
+
+        const data: Data = removeEmptyStrings(
             {
                 title: title.trim(),
                 author: author.trim(),
@@ -267,16 +277,16 @@ function SectionUpdateArticle({ article, onUpdate, onCancel }: SectionUpdateArti
 
         const deckKind: DeckKind = DeckKind.Article;
 
-        Net.put<any, DeckArticle>(buildUrl(deckKind, article.id, "/api"), data).then(
+        Net.put<Data, DeckArticle>(buildUrl(deckKind, article.id, "/api"), data).then(
             (newDeck) => {
                 onUpdate(newDeck);
 
                 // fetch the listing incase editing the article has changed it's star rating or annotation
                 //
-                fetchDeckListing(
-                    deckKind,
-                    `/api/${deckKindToResourceString(deckKind)}/listings`
-                );
+                Net.get<ArticleListings>("/api/articles/listings").then((articles) => {
+                    AppStateChange.setArticleListings(articles);
+                });
+
             }
         );
 

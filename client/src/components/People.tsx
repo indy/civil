@@ -22,7 +22,6 @@ import { calcAgeInYears, dateStringAsTriple } from "../eras";
 import {
     buildUrl,
     deckKindToHeadingString,
-    fetchDeckListing,
 } from "../CivilUtils";
 import { getAppState, AppStateChange } from "../AppState";
 import {
@@ -108,7 +107,7 @@ function People({ path }: { path?: string }) {
 function Person({ path, id }: { path?: string; id?: string }) {
     const appState = getAppState();
 
-    const [searchResults, setSearchResults]: [Array<SlimDeck>, any] = useState(
+    const [searchResults, setSearchResults]: [Array<SlimDeck>, Function] = useState(
         []
     ); // an array of backrefs
 
@@ -131,8 +130,11 @@ function Person({ path, id }: { path?: string; id?: string }) {
         );
     }, [id]);
 
-    function dispatchUpdatedPerson(person?: DeckPerson) {
-        fetchDeckListing(deckKind, "/api/people/listings");
+    function dispatchUpdatedPerson(person: DeckPerson) {
+        deckManager.update(person);
+        Net.get<PeopleListings>("/api/people/listings").then((people) => {
+            AppStateChange.setPeopleListings(people);
+        });
     }
 
     function onLifespan(birthPoint: ProtoPoint, deathPoint?: ProtoPoint) {
