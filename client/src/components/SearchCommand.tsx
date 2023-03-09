@@ -9,6 +9,7 @@ import {
     IdeasListings,
     NoteKind,
     PeopleListings,
+    SearchResults,
     SlimDeck,
     ToolbarMode,
 } from "../types";
@@ -389,6 +390,10 @@ function reducer(state: State, action: Action) {
 
             let searchCandidates = state.searchCandidates;
 
+            if (text.length === 0) {
+                searchCandidates = [];
+            }
+
             if (mode === Mode.Search && state.mode === Mode.Command) {
                 // just changed mode from command to search
                 searchCandidates = [];
@@ -524,7 +529,6 @@ export default function SearchCommand() {
     const handleChangeEvent = (event: Event) => {
         if (event.target instanceof HTMLInputElement) {
             const text = event.target.value;
-
             if (local.mode === Mode.Command) {
                 localDispatch(ActionType.InputGiven, { text });
             } else if (local.mode === Mode.Search) {
@@ -554,7 +558,7 @@ export default function SearchCommand() {
 
     async function search(text: string) {
         const url = `/api/cmd/search?q=${encodeURI(text)}`;
-        const searchResponse = await Net.get(url);
+        const searchResponse: SearchResults = await Net.get(url);
         localDispatch(ActionType.SearchCandidatesSet, searchResponse);
     }
 
