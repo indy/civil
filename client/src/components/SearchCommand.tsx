@@ -556,10 +556,18 @@ export default function SearchCommand() {
         }
     };
 
+    function sanitize(text: string) {
+        let blocked = ["?", ">", "<", "+", "-", "/", "*", "%", "!", "(", ")", ",", ".", ":", "`", "\\", "'"];
+        return blocked.reduce((a, b) => a.replaceAll(b, ""), text);
+    }
+
     async function search(text: string) {
-        const url = `/api/cmd/search?q=${encodeURI(text)}`;
-        const searchResponse: SearchResults = await Net.get(url);
-        localDispatch(ActionType.SearchCandidatesSet, searchResponse);
+        let sanitized: string = sanitize(text);
+        if (sanitized.length > 0) {
+            const url = `/api/cmd/search?q=${encodeURI(sanitized)}`;
+            const searchResponse: SearchResults = await Net.get(url);
+            localDispatch(ActionType.SearchCandidatesSet, searchResponse);
+        }
     }
 
     function buildSearchResultEntry(entry: SlimDeck, i: number) {

@@ -588,7 +588,6 @@ fn sanitize_for_sqlite_match(s: String) -> Result<String> {
             '+' => ' ',
             '-' => ' ',
             '/' => ' ',
-            '\\' => ' ',
             '*' => ' ',
             '%' => ' ',
             '!' => ' ',
@@ -597,6 +596,8 @@ fn sanitize_for_sqlite_match(s: String) -> Result<String> {
             ',' => ' ',
             '.' => ' ',
             ':' => ' ',
+            '`' => ' ',
+            '\\' => ' ',
             '\'' => ' ',
             _ => x,
         })
@@ -614,6 +615,10 @@ pub(crate) fn search_using_deck_id(
 
     let name = get_name_of_deck(&conn, deck_id)?;
     let sane_name = sanitize_for_sqlite_match(name)?;
+
+    if sane_name.is_empty() {
+        return Ok(vec!())
+    }
 
     let stmt =
         "select d.id, d.kind, d.name, d.insignia, decks_fts.rank AS rank_sum, 1 as rank_count
