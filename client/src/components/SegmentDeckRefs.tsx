@@ -22,7 +22,7 @@ type Props = {
     onRefsToggle: () => void;
 };
 
-export default function SectionDeckRefs({
+export default function SegmentDeckRefs({
     deck,
     isEditing,
     onRefsChanged,
@@ -53,7 +53,7 @@ export default function SectionDeckRefs({
 
     if (deckMeta && deckMeta.decks) {
         return (
-            <div class="deck-ref-section">
+            <div class="deck-ref-segment">
                 {!isEditing && deckMeta.decks.length > 0 && (
                     <div>
                         <hr class="light" />

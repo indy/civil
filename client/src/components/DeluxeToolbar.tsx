@@ -24,23 +24,26 @@ export function DeluxeToolbar({}) {
 
     return (
         <div class={classes}>
-            { canShow(ToolbarMode.Edit) && (
+            {canShow(ToolbarMode.Edit) && (
                 <ToolbarItem toolbarMode={ToolbarMode.Edit} toolbarText="Edit">
                     {svgEdit()}
                 </ToolbarItem>
             )}
-            { canShow(ToolbarMode.Refs) && (
+            {canShow(ToolbarMode.Refs) && (
                 <ToolbarItem toolbarMode={ToolbarMode.Refs} toolbarText="Refs">
                     {svgLinkAlt()}
                 </ToolbarItem>
             )}
-            { canShow(ToolbarMode.SR) && (
+            {canShow(ToolbarMode.SR) && (
                 <ToolbarItem toolbarMode={ToolbarMode.SR} toolbarText="SR">
                     {svgFlashCard()}
                 </ToolbarItem>
             )}
-            { canShow(ToolbarMode.AddAbove) && (
-                <ToolbarItem toolbarMode={ToolbarMode.AddAbove} toolbarText="Prepend">
+            {canShow(ToolbarMode.AddAbove) && (
+                <ToolbarItem
+                    toolbarMode={ToolbarMode.AddAbove}
+                    toolbarText="Prepend"
+                >
                     {svgAddAbove()}
                 </ToolbarItem>
             )}

@@ -5,14 +5,14 @@ import {
     FatDeck,
     Note,
     NoteKind,
-    NoteSectionHowToShow,
+    PassageHowToShow,
     Notes,
     Ref,
-    ToolbarMode
+    ToolbarMode,
 } from "../types";
 
-import NoteSection from "./NoteSection";
-import RollableSection from "./RollableSection";
+import Passage from "./Passage";
+import RollableSegment from "./RollableSegment";
 import { getAppState } from "../AppState";
 
 type Props = {
@@ -20,19 +20,19 @@ type Props = {
     onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
     title: string;
     deckKind: DeckKind;
-    howToShowNoteSection: (noteKind: NoteKind) => NoteSectionHowToShow;
-    canShowNoteSection: (noteKind: NoteKind) => boolean;
+    howToShowPassage: (noteKind: NoteKind) => PassageHowToShow;
+    canShowPassage: (noteKind: NoteKind) => boolean;
     onUpdateDeck: (newDeck: FatDeck) => void;
     noappend?: boolean;
 };
 
-export default function SectionNotes({
+export default function SegmentNotes({
     deck,
     onRefsChanged,
     title,
     deckKind,
-    howToShowNoteSection,
-    canShowNoteSection,
+    howToShowPassage,
+    canShowPassage,
     onUpdateDeck,
     noappend,
 }: Props) {
@@ -43,11 +43,11 @@ export default function SectionNotes({
     if (deck && deck.noteSeqs) {
         return (
             <div>
-                {canShowNoteSection(NoteKind.NoteSummary) && (
-                    <NoteKindSection
+                {canShowPassage(NoteKind.NoteSummary) && (
+                    <NoteKindPassage
                         heading="Summary"
                         noteKind={NoteKind.NoteSummary}
-                        howToShow={howToShowNoteSection(NoteKind.NoteSummary)}
+                        howToShow={howToShowPassage(NoteKind.NoteSummary)}
                         deck={deck}
                         onUpdateDeck={onUpdateDeck}
                         toolbarMode={toolbarMode}
@@ -57,11 +57,11 @@ export default function SectionNotes({
                         noappend={noappend}
                     />
                 )}
-                {canShowNoteSection(NoteKind.NoteReview) && (
-                    <NoteKindSection
+                {canShowPassage(NoteKind.NoteReview) && (
+                    <NoteKindPassage
                         heading="Review"
                         noteKind={NoteKind.NoteReview}
-                        howToShow={howToShowNoteSection(NoteKind.NoteReview)}
+                        howToShow={howToShowPassage(NoteKind.NoteReview)}
                         deck={deck}
                         onUpdateDeck={onUpdateDeck}
                         toolbarMode={toolbarMode}
@@ -72,10 +72,10 @@ export default function SectionNotes({
                     />
                 )}
 
-                <NoteKindSection
+                <NoteKindPassage
                     heading={title}
                     noteKind={NoteKind.Note}
-                    howToShow={howToShowNoteSection(NoteKind.Note)}
+                    howToShow={howToShowPassage(NoteKind.Note)}
                     deck={deck}
                     onUpdateDeck={onUpdateDeck}
                     toolbarMode={toolbarMode}
@@ -91,11 +91,11 @@ export default function SectionNotes({
     }
 }
 
-type NoteKindSectionProps = {
+type NoteKindPassageProps = {
     heading: string;
     noteKind: NoteKind;
     notes: Notes;
-    howToShow: NoteSectionHowToShow;
+    howToShow: PassageHowToShow;
     deck: FatDeck;
     toolbarMode: ToolbarMode;
     onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
@@ -104,7 +104,7 @@ type NoteKindSectionProps = {
     noappend?: boolean;
 };
 
-function NoteKindSection({
+function NoteKindPassage({
     heading,
     noteKind,
     notes,
@@ -114,8 +114,8 @@ function NoteKindSection({
     onRefsChanged,
     onUpdateDeck,
     noappend,
-}: NoteKindSectionProps) {
-    function noteSection(noteKind: NoteKind) {
+}: NoteKindPassageProps) {
+    function notePassage(noteKind: NoteKind) {
         let appendLabel = "Append Note";
 
         if (noteKind === NoteKind.NoteSummary) {
@@ -124,7 +124,7 @@ function NoteKindSection({
             appendLabel = "Append Review Note";
         }
 
-        return NoteSection({
+        return Passage({
             deck,
             toolbarMode,
             onUpdateDeck,
@@ -137,15 +137,15 @@ function NoteKindSection({
     }
 
     switch (howToShow) {
-        case NoteSectionHowToShow.Hide:
+        case PassageHowToShow.Hide:
             return <div></div>;
-        case NoteSectionHowToShow.Exclusive:
-            return noteSection(noteKind);
-        case NoteSectionHowToShow.Show:
+        case PassageHowToShow.Exclusive:
+            return notePassage(noteKind);
+        case PassageHowToShow.Show:
             return (
-                <RollableSection heading={heading}>
-                    {noteSection(noteKind)}
-                </RollableSection>
+                <RollableSegment heading={heading}>
+                    {notePassage(noteKind)}
+                </RollableSegment>
             );
     }
 }

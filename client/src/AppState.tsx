@@ -3,7 +3,6 @@ import { signal } from "@preact/signals";
 import { useContext } from "preact/hooks";
 
 import {
-    AnyDeckListing,
     ArticleListings,
     DeckKind,
     Key,
@@ -24,7 +23,7 @@ import {
     UserUploadedImage,
 } from "./types";
 
-import { opposingKind } from "./JsUtils";
+import { resourceStringToDeckKind } from "./CivilUtils";
 
 const emptyUser: User = {
     username: "",
@@ -223,40 +222,6 @@ export const AppStateChange = {
         state.showAddPointForm.value = false;
         state.componentRequiresFullKeyboardAccess.value = false;
     },
-
-    setIdeasListing: function (listing: IdeasListings) {
-        if (DEBUG_APP_STATE) {
-            console.log("setIdeasListing");
-        }
-        let li = { ...state.listing.value };
-        li.ideas = listing;
-        state.listing.value = li;
-    },
-    setPeopleListing: function (listing: PeopleListings) {
-        if (DEBUG_APP_STATE) {
-            console.log("setPeopleListing");
-        }
-        let li = { ...state.listing.value };
-        li.people = listing;
-        state.listing.value = li;
-    },
-    setArticlesListing: function (listing: ArticleListings) {
-        if (DEBUG_APP_STATE) {
-            console.log("setArticleListing");
-        }
-        let li = { ...state.listing.value };
-        li.articles = listing;
-        state.listing.value = li;
-    },
-    setTimelineListing: function (listing: Array<SlimDeck>) {
-        if (DEBUG_APP_STATE) {
-            console.log("setIdeasListing");
-        }
-        let li = { ...state.listing.value };
-        li.timelines = listing;
-        state.listing.value = li;
-    },
-
     noteRefsModified: function (
         allDecksForNote: Array<Ref>,
         changes: RefsModified
@@ -303,10 +268,18 @@ export const AppStateChange = {
         }
     },
 
+    setIdeaListings: function (ideas: IdeasListings) {
+        let li = {
+            ...state.listing.value,
+            ideas,
+        };
+        state.listing.value = li;
+    },
+
     setPeopleListings: function (people: PeopleListings) {
         let li = {
             ...state.listing.value,
-            people
+            people,
         };
         state.listing.value = li;
     },
@@ -314,28 +287,17 @@ export const AppStateChange = {
     setArticleListings: function (articles: ArticleListings) {
         let li = {
             ...state.listing.value,
-            articles
+            articles,
         };
         state.listing.value = li;
     },
 
-    setDeckListing: function (deckKind: DeckKind, listing: AnyDeckListing) {
-        if (DEBUG_APP_STATE) {
-            console.log("setDeckListing");
-        }
-        let li = { ...state.listing.value };
-        if (li) {
-            if (deckKind == DeckKind.Idea) {
-                li.ideas = listing as IdeasListings;
-            } else if (deckKind == DeckKind.Person) {
-                li.people = listing as PeopleListings;
-            } else if (deckKind == DeckKind.Article) {
-                li.articles = listing as ArticleListings;
-            } else if (deckKind == DeckKind.Timeline) {
-                li.timelines = listing as Array<SlimDeck>;
-            }
-            state.listing.value = li;
-        }
+    setTimelineListings: function (timelines: Array<SlimDeck>) {
+        let li = {
+            ...state.listing.value,
+            timelines,
+        };
+        state.listing.value = li;
     },
 
     obtainKeyboard: function () {
@@ -494,12 +456,12 @@ export const AppStateChange = {
         state.scratchList.value = sl;
     },
 
-    bookmarkUrl: function () {
+    bookmarkCurrentUrl: function () {
         if (DEBUG_APP_STATE) {
-            console.log("bookmarkUrl");
+            console.log("bookmarkCurrentUrl");
         }
         let sl = state.scratchList.value.slice();
-        let candidate: SlimDeck | undefined = parseForScratchList(
+        let candidate: SlimDeck | undefined = parseCurrentUrlIntoSlimDeck(
             state.url.value,
             state.urlTitle.value
         );
@@ -571,37 +533,35 @@ export const AppStateChange = {
     },
 };
 
-function parseForScratchList(
+function parseCurrentUrlIntoSlimDeck(
     url: string,
     urlTitle: string
 ): SlimDeck | undefined {
     // note: this will break if we ever change the url schema
-    let res = url.match(/^\/(\w+)\/(\w+)/);
+    let re = url.match(/^\/(\w+)\/(\w+)/);
 
-    if (res) {
-        let id = res[2];
-        let resource = res[1];
+    if (re) {
+        let id = re[2];
+        let resource = re[1];
 
-        let dk: DeckKind = DeckKind.Article;
-        if (resource === "articles") {
-            dk = DeckKind.Article;
-        } else if (resource === "ideas") {
-            dk = DeckKind.Idea;
-        } else if (resource === "people") {
-            dk = DeckKind.Person;
-        } else if (resource === "timelines") {
-            dk = DeckKind.Timeline;
-        } else if (resource === "quotes") {
-            dk = DeckKind.Quote;
+        let dk: DeckKind | undefined = resourceStringToDeckKind(resource);
+
+        if (dk) {
+            let res: SlimDeck = {
+                id: parseInt(id, 10),
+                title: urlTitle,
+                deckKind: dk,
+                insignia: 0,
+            };
+
+            return res;
+        } else {
+            console.error(
+                `unable to determine DeckKind from parsing "${resource}"`
+            );
         }
-
-        return {
-            id: parseInt(id, 10),
-            title: urlTitle,
-            deckKind: dk,
-            insignia: 0,
-        };
     }
+
     return undefined;
 }
 
@@ -621,6 +581,21 @@ function packedToKind(packed: number): RefKind {
             console.log(`packed_to_kind invalid value: ${packed}`);
             return RefKind.Ref;
         }
+    }
+}
+
+function opposingKind(kind: RefKind): RefKind {
+    switch (kind) {
+        case RefKind.Ref:
+            return RefKind.Ref;
+        case RefKind.RefToParent:
+            return RefKind.RefToChild;
+        case RefKind.RefToChild:
+            return RefKind.RefToParent;
+        case RefKind.RefInContrast:
+            return RefKind.RefInContrast;
+        case RefKind.RefCritical:
+            return RefKind.RefCritical;
     }
 }
 

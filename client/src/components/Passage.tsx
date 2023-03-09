@@ -19,7 +19,7 @@ import NoteForm from "./NoteForm";
 import NoteView from "./NoteView";
 import WhenVerbose from "./WhenVerbose";
 
-type NoteSectionProps = {
+type PassageProps = {
     deck: FatDeck;
     toolbarMode: ToolbarMode;
     onUpdateDeck: (d: FatDeck) => void;
@@ -31,7 +31,7 @@ type NoteSectionProps = {
     noappend?: boolean;
 };
 
-export default function NoteSection({
+export default function Passage({
     deck,
     toolbarMode,
     onUpdateDeck,
@@ -41,7 +41,7 @@ export default function NoteSection({
     appendLabel,
     noteKind,
     noappend,
-}: NoteSectionProps) {
+}: PassageProps) {
     const appState = getAppState();
 
     function onEditedNote(id: Key, updatedNote: Note) {

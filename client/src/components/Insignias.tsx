@@ -6,7 +6,6 @@ type Props = {
 };
 
 export function InsigniaSelector({ insigniaId, onChange }: Props) {
-
     function onTicked(bit: number) {
         let val = setbit(insigniaId, bit);
         onChange(val);
@@ -19,13 +18,14 @@ export function InsigniaSelector({ insigniaId, onChange }: Props) {
 
     return (
         <div class="insignia-selector">
-            {
-                [1, 2, 3, 4, 5, 6, 7, 8].map(i =>
-                <SingleInsignia value={insigniaId}
-                                bit={i}
-                                onTicked={onTicked}
-                                onUnticked={onUnticked}/>)
-            }
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <SingleInsignia
+                    value={insigniaId}
+                    bit={i}
+                    onTicked={onTicked}
+                    onUnticked={onUnticked}
+                />
+            ))}
         </div>
     );
 }
@@ -37,10 +37,14 @@ type SingleInsigniaProps = {
     onUnticked: (bit: number) => void;
 };
 
-function SingleInsignia({ value, bit, onTicked, onUnticked }: SingleInsigniaProps) {
+function SingleInsignia({
+    value,
+    bit,
+    onTicked,
+    onUnticked,
+}: SingleInsigniaProps) {
     let cl = "insignia-button ";
     cl += bitset(value, bit) ? "insignia-selected" : "insignia-unselected";
-
 
     function onClickHandler() {
         if (bitset(value, bit)) {
@@ -52,7 +56,7 @@ function SingleInsignia({ value, bit, onTicked, onUnticked }: SingleInsigniaProp
 
     return (
         <div class={cl} onClick={onClickHandler}>
-            { renderInsignia(bitAsValue(bit))}
+            {renderInsignia(bitAsValue(bit))}
         </div>
     );
 }
@@ -134,9 +138,15 @@ function svgCone() {
 
 function svgLightning() {
     return (
-<svg xmlns="http://www.w3.org/2000/svg" width="18" height="16" fill="#e6aa00" viewBox="1 0 16 16">
-  <path d="M5.52.359A.5.5 0 0 1 6 0h4a.5.5 0 0 1 .474.658L8.694 6H12.5a.5.5 0 0 1 .395.807l-7 9a.5.5 0 0 1-.873-.454L6.823 9.5H3.5a.5.5 0 0 1-.48-.641l2.5-8.5z"/>
-</svg>
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="16"
+            fill="#e6aa00"
+            viewBox="1 0 16 16"
+        >
+            <path d="M5.52.359A.5.5 0 0 1 6 0h4a.5.5 0 0 1 .474.658L8.694 6H12.5a.5.5 0 0 1 .395.807l-7 9a.5.5 0 0 1-.873-.454L6.823 9.5H3.5a.5.5 0 0 1-.48-.641l2.5-8.5z" />
+        </svg>
     );
 }
 

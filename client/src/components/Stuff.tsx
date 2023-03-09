@@ -1,11 +1,11 @@
 import { h } from "preact";
 
-import { LazyLoadedListSection } from "./ListSections";
+import { LazyLoadedGrouping } from "./Groupings";
 
 export default function Stuff({ path }: { path?: string }) {
     return (
         <article>
-            <LazyLoadedListSection
+            <LazyLoadedGrouping
                 label="Recently Visited"
                 url="/api/stats/recently_visited"
             />

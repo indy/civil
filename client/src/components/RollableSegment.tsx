@@ -9,7 +9,7 @@ type Props = {
     initiallyRolledUp?: boolean;
 };
 
-export default function RollableSection({
+export default function RollableSegment({
     heading,
     children,
     initiallyRolledUp,
@@ -38,7 +38,7 @@ export default function RollableSection({
                 <h2 class="clickable ui" onClick={onRollClicked}>
                     {heading}
                 </h2>
-                <hr class="big-section" />
+                <hr class="big-segment" />
                 {!isRolledUp && children}
             </div>
         </section>

@@ -1,27 +1,30 @@
-import { route } from "preact-router";
+import { DeckKind, Key, SlimDeck, ToolbarMode } from "./types";
 
-import {
-    AnyDeckListing,
-    DeckKind,
-    Key,
-    SlimDeck,
-    RefKind,
-    ToolbarMode,
-} from "./types";
-
-import Net from "./Net";
-import { AppStateChange } from "./AppState";
-
-export function buildUrl(
-    deckKind: DeckKind,
-    id: Key,
-    prefix?: string
-): string {
+export function buildUrl(deckKind: DeckKind, id: Key, prefix?: string): string {
     if (prefix) {
         return `${prefix}/${deckKindToResourceString(deckKind)}/${id}`;
     } else {
         return `/${deckKindToResourceString(deckKind)}/${id}`;
     }
+}
+
+export function resourceStringToDeckKind(s: string): DeckKind | undefined {
+    if (s === "articles") {
+        return DeckKind.Article;
+    }
+    if (s === "ideas") {
+        return DeckKind.Idea;
+    }
+    if (s === "people") {
+        return DeckKind.Person;
+    }
+    if (s === "timelines") {
+        return DeckKind.Timeline;
+    }
+    if (s === "quotes") {
+        return DeckKind.Quote;
+    }
+    return undefined;
 }
 
 export function deckKindToResourceString(deckKind: DeckKind): string {
@@ -54,25 +57,6 @@ export function deckKindToHeadingString(deckKind: DeckKind): string {
     }
 }
 
-export function stringToRefKind(s: string): RefKind | undefined {
-    if (s === "Ref") {
-        return RefKind.Ref;
-    }
-    if (s === "RefToParent") {
-        return RefKind.RefToParent;
-    }
-    if (s === "RefToChild") {
-        return RefKind.RefToChild;
-    }
-    if (s === "RefInContrast") {
-        return RefKind.RefInContrast;
-    }
-    if (s === "RefCritical") {
-        return RefKind.RefCritical;
-    }
-    return undefined;
-}
-
 export function addToolbarSelectableClasses(toolbarMode: ToolbarMode) {
     switch (toolbarMode) {
         case ToolbarMode.Edit:
@@ -86,27 +70,6 @@ export function addToolbarSelectableClasses(toolbarMode: ToolbarMode) {
         default:
             return "";
     }
-}
-
-export function createDeck(deckKind: DeckKind, title: string) {
-    type ProtoDeck = {
-        title: string;
-    };
-
-    // creates a new deck
-    const data: ProtoDeck = {
-        title: title,
-    };
-
-    const resource = deckKindToResourceString(deckKind);
-
-    Net.post<ProtoDeck, SlimDeck>(`/api/${resource}`, data).then((deck) => {
-        Net.get<AnyDeckListing>(`/api/${resource}/listings`).then((listing) => {
-            AppStateChange.setDeckListing(deckKind, listing);
-            AppStateChange.invalidateGraph();
-        });
-        route(`/${resource}/${deck.id}`);
-    });
 }
 
 export function indexToShortcut(index: number) {

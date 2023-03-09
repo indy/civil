@@ -76,7 +76,7 @@
 }
 
 .dialog-cancel {
-  width: 10rem;
+    width: 10rem;
 }
 
 .ui {
@@ -225,7 +225,7 @@ hr.light {
     margin: 0 0;
 }
 
-hr.big-section {
+hr.big-segment {
     height: 0;
     border-top: 0.1rem solid var(--divider);
     margin: 0;
@@ -1503,7 +1503,7 @@ input:required {
     padding: 1rem 1.5rem 1rem 1.5rem;
 }
 
-.deck-ref-section {
+.deck-ref-segment {
     font-family: Inter;
     margin-top: 1rem;
 }
@@ -1512,7 +1512,7 @@ input:required {
     margin-bottom: 0.5rem;
 }
 
-.sr-section {
+.sr-segment {
     font-size: x-large;
     margin-top: 1rem;
     border-top: 0.1rem solid var(--bg2);
@@ -1658,21 +1658,21 @@ input:required {
 }
 
 .insignia-selector {
-  display: flex;
-  justify-content: flex-start;
+    display: flex;
+    justify-content: flex-start;
 }
 .insignia-button {
-  padding: 0.5rem 0.5rem 0.2rem 0.6rem;
-  margin: 0.3rem;
-  transition: border 0.2s;
-  border-radius: var(--ui-element-border-radius);
+    padding: 0.5rem 0.5rem 0.2rem 0.6rem;
+    margin: 0.3rem;
+    transition: border 0.2s;
+    border-radius: var(--ui-element-border-radius);
 }
 .insignia-selected {
-  border: 0.2rem solid var(--fg1);
+    border: 0.2rem solid var(--fg1);
 }
 
 .insignia-unselected {
-  border: 0.2rem solid var(--bg);
+    border: 0.2rem solid var(--bg);
 }
 
 /* Responsive adjustments

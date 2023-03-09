@@ -41,7 +41,7 @@ export enum ToolbarMode {
     AddAbove,
 }
 
-export enum NoteSectionHowToShow {
+export enum PassageHowToShow {
     Hide = 1,
     Show,
     Exclusive,
@@ -192,13 +192,6 @@ export type Listing = {
     articles: ArticleListings | undefined;
     timelines: Array<SlimDeck> | undefined;
 };
-
-// used by setDeckListing
-export type AnyDeckListing =
-    | IdeasListings
-    | PeopleListings
-    | ArticleListings
-    | Array<SlimDeck>;
 
 export type Settings = {
     [index: string]: number;
@@ -400,13 +393,13 @@ export type DeckManagerType = {
     onFormHide: () => void;
     buildPointForm: (onSuccessCallback: () => void) => any;
     onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
-    noteSectionForDeckPoint: (deckPoint: DeckPoint) => any;
+    passageForDeckPoint: (deckPoint: DeckPoint) => any;
     pointHasNotes: (point: DeckPoint) => boolean;
-    canShowNoteSection: (noteKind: NoteKind) => boolean;
-    howToShowNoteSection: (noteKind: NoteKind) => NoteSectionHowToShow;
+    canShowPassage: (noteKind: NoteKind) => boolean;
+    howToShowPassage: (noteKind: NoteKind) => PassageHowToShow;
 };
 
-export type NoteSectionType = {
+export type PassageType = {
     x?: any;
 };
 

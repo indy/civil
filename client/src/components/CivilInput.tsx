@@ -31,7 +31,6 @@ export default function CivilInput({
         }
     }, []);
 
-
     function onInput(event: Event) {
         if (event.target instanceof HTMLInputElement) {
             const target = event.target;

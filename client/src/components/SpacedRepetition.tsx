@@ -283,7 +283,7 @@ function CardTest({ card, onRatedCard, onShowAnswer }: CardTestProps) {
 
     return (
         <div>
-            <div class="sr-section">Front</div>
+            <div class="sr-segment">Front</div>
             <div class="note">{buildMarkup(card.prompt)}</div>
             {show === ShowState.Prompt && (
                 <button onClick={onShowAnswerClicked}>Show Answer</button>
@@ -302,7 +302,7 @@ function Answer({ card }: { card: Card }) {
     const klass = `ref pigment-${deckKindToResourceString(deckKind)}`;
     return (
         <div>
-            <div class="sr-section">Back</div>
+            <div class="sr-segment">Back</div>
             <div class="note">
                 <div class="left-margin">
                     <div class="left-margin-entry">
@@ -332,7 +332,7 @@ function CardRating({ card, onRatedCard }: CardRatingProps) {
 
     return (
         <div>
-            <div class="sr-section">
+            <div class="sr-segment">
                 Rating
                 <ul class="right-margin sr-rating-descriptions">
                     <li>5 - perfect response</li>

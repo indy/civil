@@ -5,9 +5,9 @@ import { FatDeck } from "../types";
 import { getAppState } from "../AppState";
 
 import Graph from "./Graph";
-import RollableSection from "./RollableSection";
+import RollableSegment from "./RollableSegment";
 
-export default function SectionGraph({
+export default function SegmentGraph({
     depth,
     deck,
 }: {
@@ -22,9 +22,9 @@ export default function SectionGraph({
         const heading = "Connectivity Graph";
 
         return (
-            <RollableSection heading={heading} initiallyRolledUp>
+            <RollableSegment heading={heading} initiallyRolledUp>
                 {okToShowGraph && <Graph id={deck.id} depth={depth} />}
-            </RollableSection>
+            </RollableSegment>
         );
     } else {
         return <div></div>;

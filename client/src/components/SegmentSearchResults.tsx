@@ -4,10 +4,10 @@ import { SlimDeck } from "../types";
 
 import { nonEmptyArray, plural } from "../JsUtils";
 
-import RollableSection from "./RollableSection";
+import RollableSegment from "./RollableSegment";
 import { ListingLink } from "./ListingLink";
 
-export default function SectionSearchResults({
+export default function SegmentSearchResults({
     searchResults,
 }: {
     searchResults: Array<SlimDeck>;
@@ -30,9 +30,9 @@ export default function SectionSearchResults({
             "s"
         );
         return (
-            <RollableSection heading={heading} initiallyRolledUp>
+            <RollableSegment heading={heading} initiallyRolledUp>
                 <ul>{searchResults.map(buildSearchResult)}</ul>
-            </RollableSection>
+            </RollableSegment>
         );
     } else {
         return <div></div>;

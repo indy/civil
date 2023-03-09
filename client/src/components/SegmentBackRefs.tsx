@@ -16,10 +16,10 @@ import { getAppState } from "../AppState";
 import { nonEmptyArray } from "../JsUtils";
 import { svgCaretDown, svgCaretRight } from "../svgIcons";
 
-import RollableSection from "./RollableSection";
+import RollableSegment from "./RollableSegment";
 import { ExpandableListingLink } from "./ListingLink";
 
-type BackRefSectionItem = {
+type BackRefItem = {
     id: Key;
     title: string;
     deckInsignia: number;
@@ -30,14 +30,14 @@ type BackRefSectionItem = {
     deckLevelAnnotation?: string;
 };
 
-export default function SectionBackRefs({ deck }: { deck?: FatDeck }) {
+export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
     const appState = getAppState();
 
     let backrefs: Array<Ref> = (deck && deck.backrefs) || [];
     let backnotes: Array<BackNote> = (deck && deck.backnotes) || [];
 
-    const sections: Array<ComponentChildren> = [];
-    const decks: Array<BackRefSectionItem> = [];
+    const segments: Array<ComponentChildren> = [];
+    const decks: Array<BackRefItem> = [];
 
     if (!nonEmptyArray<Ref>(backrefs)) {
         return <div></div>;
@@ -47,7 +47,7 @@ export default function SectionBackRefs({ deck }: { deck?: FatDeck }) {
     //
     backnotes.forEach((n: BackNote) => {
         if (decks.length === 0 || decks[decks.length - 1].id !== n.id) {
-            let deckThing: BackRefSectionItem = {
+            let deckThing: BackRefItem = {
                 id: n.id,
                 title: n.title,
                 deckInsignia: n.insignia,
@@ -78,7 +78,7 @@ export default function SectionBackRefs({ deck }: { deck?: FatDeck }) {
         backrefs.forEach((br: Ref) => {
             // find the noteId
             for (let i = 0; i < decks.length; i++) {
-                let d: BackRefSectionItem = decks[i];
+                let d: BackRefItem = decks[i];
 
                 if (d.metaNoteId === br.noteId) {
                     if (br.id === deck.id) {
@@ -125,7 +125,7 @@ export default function SectionBackRefs({ deck }: { deck?: FatDeck }) {
     // group by deckKind kind
     //
     let groupedByResource = {};
-    decks.forEach((d: BackRefSectionItem) => {
+    decks.forEach((d: BackRefItem) => {
         if (!groupedByResource[d.deckKind]) {
             groupedByResource[d.deckKind] = [];
         }
@@ -142,7 +142,7 @@ export default function SectionBackRefs({ deck }: { deck?: FatDeck }) {
     // don't use the messy auto-generated quote titles
     // just name them after the deck id
     if (groupedByResource[DeckKind.Quote]) {
-        groupedByResource[DeckKind.Quote].forEach((d: BackRefSectionItem) => {
+        groupedByResource[DeckKind.Quote].forEach((d: BackRefItem) => {
             d.title = `Quote #${d.id}`;
         });
     }
@@ -151,16 +151,16 @@ export default function SectionBackRefs({ deck }: { deck?: FatDeck }) {
     //
     appState.preferredDeckKindOrder.forEach((deckKind: DeckKind) => {
         if (groupedByResource[deckKind]) {
-            sections.push(
-                <SectionLinks backrefs={groupedByResource[deckKind]} />
+            segments.push(
+                <SegmentLinks backrefs={groupedByResource[deckKind]} />
             );
         }
     });
 
-    return <RollableSection heading="BackRefs">{sections}</RollableSection>;
+    return <RollableSegment heading="BackRefs">{segments}</RollableSegment>;
 }
 
-function SectionLinks({ backrefs }: { backrefs: Array<BackRefSectionItem> }) {
+function SegmentLinks({ backrefs }: { backrefs: Array<BackRefItem> }) {
     const [localState, setLocalState] = useState({
         showExpanded: true,
         childrenExpanded: backrefs.map((br) => true),
@@ -206,13 +206,13 @@ function SectionLinks({ backrefs }: { backrefs: Array<BackRefSectionItem> }) {
         );
     });
 
-    let sectionHeading: string = deckKindToHeadingString(backrefs[0].deckKind);
-    let sectionId = backrefs[0].id;
+    let segmentHeading: string = deckKindToHeadingString(backrefs[0].deckKind);
+    let segmentId = backrefs[0].id;
 
     return (
-        <section key={sectionId}>
+        <section key={segmentId}>
             <h3 class="ui" onClick={onClickToggle}>
-                {icon} {sectionHeading}
+                {icon} {segmentHeading}
             </h3>
             {list}
         </section>

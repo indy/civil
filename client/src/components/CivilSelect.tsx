@@ -16,7 +16,6 @@ import {
     deckKindToResourceString,
     indexToShortcut,
     sortByResourceThenName,
-    stringToRefKind,
 } from "../CivilUtils";
 import Net from "../Net";
 import { AppStateChange } from "../AppState";
@@ -476,6 +475,25 @@ type SelectedReferenceProps = {
     onChangeAnnotation: (r: Ref, s: string) => void;
 };
 
+function stringToRefKind(s: string): RefKind | undefined {
+    if (s === "Ref") {
+        return RefKind.Ref;
+    }
+    if (s === "RefToParent") {
+        return RefKind.RefToParent;
+    }
+    if (s === "RefToChild") {
+        return RefKind.RefToChild;
+    }
+    if (s === "RefInContrast") {
+        return RefKind.RefInContrast;
+    }
+    if (s === "RefCritical") {
+        return RefKind.RefCritical;
+    }
+    return undefined;
+}
+
 function SelectedReference({
     reference,
     onRemove,
@@ -567,7 +585,6 @@ function Input({
     candidates,
     showKeyboardShortcuts,
 }: InputProps) {
-
     function onSubmit(e: Event) {
         e.preventDefault();
         if (text.length > 0) {

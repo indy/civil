@@ -498,7 +498,10 @@ export default function NoteView({
             <div class="block-width form-margin">
                 <label>Flash Card Prompt</label>
                 <div>
-                    <CivilTextArea value={flashCardPrompt} onContentChange={onContentChange} />
+                    <CivilTextArea
+                        value={flashCardPrompt}
+                        onContentChange={onContentChange}
+                    />
                 </div>
                 <button onClick={onCancel}>Cancel</button>
                 <button onClick={onSave}>Save Flash Card Prompt</button>

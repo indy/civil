@@ -14,7 +14,7 @@ import CivilInput from "./CivilInput";
 import CivilTextArea from "./CivilTextArea";
 import DeckManager from "./DeckManager";
 import DeleteConfirmation from "./DeleteConfirmation";
-import SectionNotes from "./SectionNotes";
+import SegmentNotes from "./SegmentNotes";
 import { DeluxeToolbar } from "./DeluxeToolbar";
 
 enum ActionType {
@@ -186,8 +186,8 @@ function Quote({ path, id }: { path?: string; id?: string }) {
         id: quoteId,
         deckKind,
         preCacheFn,
-        hasSummarySection: false,
-        hasReviewSection: false,
+        hasSummaryPassage: false,
+        hasReviewPassage: false,
     });
 
     useEffect(() => {
@@ -264,11 +264,11 @@ function Quote({ path, id }: { path?: string; id?: string }) {
         return (
             <article id="quotation-article">
                 <DeluxeToolbar />
-                <SectionNotes
+                <SegmentNotes
                     deck={deck}
                     title={deck.title}
-                    howToShowNoteSection={deckManager.howToShowNoteSection}
-                    canShowNoteSection={deckManager.canShowNoteSection}
+                    howToShowPassage={deckManager.howToShowPassage}
+                    canShowPassage={deckManager.canShowPassage}
                     onRefsChanged={deckManager.onRefsChanged}
                     deckKind={deckKind}
                     onUpdateDeck={deckManager.update}

@@ -12,17 +12,14 @@ import {
     SlimDeck,
     PeopleListings,
     SearchResults,
-    NoteSectionType,
+    PassageType,
     PointKind,
     ProtoPoint,
 } from "../types";
 
 import Net from "../Net";
 import { calcAgeInYears, dateStringAsTriple } from "../eras";
-import {
-    buildUrl,
-    deckKindToHeadingString,
-} from "../CivilUtils";
+import { buildUrl, deckKindToHeadingString } from "../CivilUtils";
 import { getAppState, AppStateChange } from "../AppState";
 import {
     svgBlank,
@@ -40,14 +37,14 @@ import CivilInput from "./CivilInput";
 import DeckManager from "./DeckManager";
 import DeleteDeckConfirmation from "./DeleteDeckConfirmation";
 import LifespanForm from "./LifespanForm";
-import RollableSection from "./RollableSection";
-import SectionBackRefs from "./SectionBackRefs";
-import SectionDeckRefs from "./SectionDeckRefs";
-import SectionGraph from "./SectionGraph";
-import SectionNotes from "./SectionNotes";
-import SectionSearchResults from "./SectionSearchResults";
+import RollableSegment from "./RollableSegment";
+import SegmentBackRefs from "./SegmentBackRefs";
+import SegmentDeckRefs from "./SegmentDeckRefs";
+import SegmentGraph from "./SegmentGraph";
+import SegmentNotes from "./SegmentNotes";
+import SegmentSearchResults from "./SegmentSearchResults";
 import TopMatter from "./TopMatter";
-import { SlimDeckListSection } from "./ListSections";
+import { SlimDeckGrouping } from "./Groupings";
 import { DeluxeToolbar } from "./DeluxeToolbar";
 import { InsigniaSelector } from "./Insignias";
 import { PointForm } from "./PointForm";
@@ -59,8 +56,8 @@ function People({ path }: { path?: string }) {
     useEffect(() => {
         if (!appState.listing.value.people) {
             let url: string = "/api/people/listings";
-            Net.get<PeopleListings>(url).then((listing) => {
-                AppStateChange.setPeopleListing(listing);
+            Net.get<PeopleListings>(url).then((listings) => {
+                AppStateChange.setPeopleListings(listings);
             });
         }
     }, []);
@@ -71,28 +68,28 @@ function People({ path }: { path?: string }) {
         return (
             <article>
                 <h1 class="ui">{deckKindToHeadingString(deckKind)}</h1>
-                <SlimDeckListSection
+                <SlimDeckGrouping
                     label="Uncategorised"
                     list={people.uncategorised}
                     expanded
                     hideEmpty
                 />
-                <SlimDeckListSection
+                <SlimDeckGrouping
                     label="Ancient"
                     list={people.ancient}
                     expanded
                 />
-                <SlimDeckListSection
+                <SlimDeckGrouping
                     label="Medieval"
                     list={people.medieval}
                     expanded
                 />
-                <SlimDeckListSection
+                <SlimDeckGrouping
                     label="Modern"
                     list={people.modern}
                     expanded
                 />
-                <SlimDeckListSection
+                <SlimDeckGrouping
                     label="Contemporary"
                     list={people.contemporary}
                     expanded
@@ -107,9 +104,8 @@ function People({ path }: { path?: string }) {
 function Person({ path, id }: { path?: string; id?: string }) {
     const appState = getAppState();
 
-    const [searchResults, setSearchResults]: [Array<SlimDeck>, Function] = useState(
-        []
-    ); // an array of backrefs
+    const [searchResults, setSearchResults]: [Array<SlimDeck>, Function] =
+        useState([]); // an array of backrefs
 
     const personId = id ? parseInt(id, 10) : 0;
 
@@ -118,8 +114,8 @@ function Person({ path, id }: { path?: string; id?: string }) {
         id: personId,
         deckKind,
         preCacheFn,
-        hasSummarySection: true,
-        hasReviewSection: false,
+        hasSummaryPassage: true,
+        hasReviewPassage: false,
     });
 
     useEffect(() => {
@@ -191,7 +187,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
                             deckKind={DeckKind.Person}
                             id={personId}
                         />
-                        <SectionUpdatePerson
+                        <PersonUpdater
                             person={deck}
                             onUpdate={deckManager.updateAndReset}
                             onCancel={deckManager.onFormHide}
@@ -207,28 +203,28 @@ function Person({ path, id }: { path?: string; id?: string }) {
                     />
                 )}
 
-                <SectionDeckRefs
+                <SegmentDeckRefs
                     deck={deck}
                     isEditing={deckManager.isEditingDeckRefs()}
                     onRefsChanged={deckManager.onRefsChanged}
                     onRefsToggle={deckManager.onRefsToggle}
                 />
 
-                <SectionNotes
+                <SegmentNotes
                     deck={deck}
                     title={deck.title}
                     onRefsChanged={deckManager.onRefsChanged}
                     deckKind={deckKind}
-                    howToShowNoteSection={deckManager.howToShowNoteSection}
-                    canShowNoteSection={deckManager.canShowNoteSection}
+                    howToShowPassage={deckManager.howToShowPassage}
+                    canShowPassage={deckManager.canShowPassage}
                     onUpdateDeck={deckManager.update}
                 />
 
-                <SectionBackRefs deck={deck} />
+                <SegmentBackRefs deck={deck} />
 
-                <SectionSearchResults searchResults={searchResults} />
+                <SegmentSearchResults searchResults={searchResults} />
                 {hasKnownLifespan && (
-                    <ListDeckPoints
+                    <SegmentPoints
                         deckPoints={deck.points}
                         deckManager={deckManager}
                         holderId={deck.id}
@@ -236,7 +232,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
                         holderTitle={deck.title}
                     />
                 )}
-                <SectionGraph depth={2} deck={deck} />
+                <SegmentGraph depth={2} deck={deck} />
             </article>
         );
     } else {
@@ -292,7 +288,7 @@ function preCacheFn(person: FatDeck): FatDeck {
     return person;
 }
 
-function SectionUpdatePerson({
+function PersonUpdater({
     person,
     onUpdate,
     onCancel,
@@ -373,7 +369,12 @@ function SectionUpdatePerson({
                 onChange={setInsigniaId}
             />
             <br />
-            <input type="button" value="Cancel" class="dialog-cancel" onClick={onCancel}/>
+            <input
+                type="button"
+                value="Cancel"
+                class="dialog-cancel"
+                onClick={onCancel}
+            />
             <input type="submit" value="Update Person" />
         </form>
     );
@@ -382,12 +383,12 @@ function SectionUpdatePerson({
 function PersonDeckPoint({
     deckPoint,
     hasNotes,
-    noteSection,
+    passage,
     holderId,
 }: {
     deckPoint: DeckPoint;
     hasNotes: boolean;
-    noteSection: NoteSectionType;
+    passage: PassageType;
     holderId: Key;
 }) {
     let [expanded, setExpanded] = useState(false);
@@ -413,7 +414,7 @@ function PersonDeckPoint({
                         : svgCaretRightEmpty()}
                 </span>
                 {deckPoint.deckName} - {pointTitle} {deckPoint.dateTextual}
-                {expanded && <div class="point-notes">{noteSection}</div>}
+                {expanded && <div class="point-notes">{passage}</div>}
             </li>
         );
     } else {
@@ -429,7 +430,7 @@ function PersonDeckPoint({
     }
 }
 
-function ListDeckPoints({
+function SegmentPoints({
     deckPoints,
     deckManager,
     holderId,
@@ -517,7 +518,7 @@ function ListDeckPoints({
     const dps = arr.map((dp) => (
         <PersonDeckPoint
             key={dp.id}
-            noteSection={deckManager.noteSectionForDeckPoint(dp)}
+            passage={deckManager.passageForDeckPoint(dp)}
             hasNotes={deckManager.pointHasNotes(dp)}
             holderId={holderId}
             deckPoint={dp}
@@ -533,9 +534,9 @@ function ListDeckPoints({
             (dp) => dp.deckId === holderId && dp.kind === PointKind.PointEnd
         );
 
-    const sectionTitle = `Points during the life of ${holderTitle}`;
+    const segmentTitle = `Points during the life of ${holderTitle}`;
     return (
-        <RollableSection heading={sectionTitle}>
+        <RollableSegment heading={segmentTitle}>
             <div class="left-margin">
                 {!hasDied && (
                     <div
@@ -591,7 +592,7 @@ function ListDeckPoints({
                 </div>
             </WhenVerbose>
             {showAddPointForm && deckManager.buildPointForm(onPointCreated)}
-        </RollableSection>
+        </RollableSegment>
     );
 }
 

@@ -7,7 +7,7 @@ import {
     DeckPoint,
     DeckTimeline,
     SlimDeck,
-    NoteSectionType,
+    PassageType,
 } from "../types";
 
 import Net from "../Net";
@@ -24,14 +24,14 @@ import {
 import CivilInput from "./CivilInput";
 import DeckManager from "./DeckManager";
 import DeleteDeckConfirmation from "./DeleteDeckConfirmation";
-import RollableSection from "./RollableSection";
-import SectionBackRefs from "./SectionBackRefs";
-import SectionDeckRefs from "./SectionDeckRefs";
-import SectionGraph from "./SectionGraph";
-import SectionNotes from "./SectionNotes";
+import RollableSegment from "./RollableSegment";
+import SegmentBackRefs from "./SegmentBackRefs";
+import SegmentDeckRefs from "./SegmentDeckRefs";
+import SegmentGraph from "./SegmentGraph";
+import SegmentNotes from "./SegmentNotes";
 import TopMatter from "./TopMatter";
 import WhenVerbose from "./WhenVerbose";
-import { SlimDeckList } from "./ListSections";
+import { SlimDeckList } from "./Groupings";
 import { DeluxeToolbar } from "./DeluxeToolbar";
 import { InsigniaSelector } from "./Insignias";
 
@@ -42,8 +42,8 @@ function Timelines({ path }: { path?: string }) {
     useEffect(() => {
         if (!appState.listing.value.timelines) {
             let url: string = "/api/timelines/listings";
-            Net.get<Array<SlimDeck>>(url).then((listing) => {
-                AppStateChange.setTimelineListing(listing);
+            Net.get<Array<SlimDeck>>(url).then((listings) => {
+                AppStateChange.setTimelineListings(listings);
             });
         }
     }, []);
@@ -66,8 +66,8 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
     const deckManager = DeckManager({
         id: timelineId,
         deckKind,
-        hasSummarySection: true,
-        hasReviewSection: false,
+        hasSummaryPassage: true,
+        hasReviewPassage: false,
     });
 
     const deck: DeckTimeline | undefined = deckManager.getDeck() as
@@ -93,7 +93,7 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                             deckKind={DeckKind.Timeline}
                             id={timelineId}
                         />
-                        <SectionUpdateTimeline
+                        <TimelineUpdater
                             timeline={deck}
                             onUpdate={deckManager.updateAndReset}
                             onCancel={deckManager.onFormHide}
@@ -101,30 +101,30 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                     </div>
                 )}
 
-                <SectionDeckRefs
+                <SegmentDeckRefs
                     deck={deck}
                     isEditing={deckManager.isEditingDeckRefs()}
                     onRefsChanged={deckManager.onRefsChanged}
                     onRefsToggle={deckManager.onRefsToggle}
                 />
-                <SectionNotes
+                <SegmentNotes
                     deck={deck}
                     title={deck.title}
                     onRefsChanged={deckManager.onRefsChanged}
                     deckKind={deckKind}
-                    howToShowNoteSection={deckManager.howToShowNoteSection}
-                    canShowNoteSection={deckManager.canShowNoteSection}
+                    howToShowPassage={deckManager.howToShowPassage}
+                    canShowPassage={deckManager.canShowPassage}
                     onUpdateDeck={deckManager.update}
                 />
-                <SectionBackRefs deck={deck} />
+                <SegmentBackRefs deck={deck} />
 
-                <ListPoints
+                <SegmentPoints
                     points={deck.points}
                     deckManager={deckManager}
                     showAddPointForm={appState.showAddPointForm.value}
                 />
 
-                <SectionGraph depth={2} deck={deck} />
+                <SegmentGraph depth={2} deck={deck} />
             </article>
         );
     } else {
@@ -136,13 +136,17 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
     }
 }
 
-type SectionUpdateTimelineProps = {
+type TimelineUpdaterProps = {
     timeline: DeckTimeline;
     onUpdate: (d: DeckTimeline) => void;
     onCancel: () => void;
-}
+};
 
-function SectionUpdateTimeline({ timeline, onUpdate, onCancel }: SectionUpdateTimelineProps) {
+function TimelineUpdater({
+    timeline,
+    onUpdate,
+    onCancel,
+}: TimelineUpdaterProps) {
     const [localState, setLocalState] = useState({
         title: timeline.title || "",
         insigniaId: timeline.insignia || 0,
@@ -175,11 +179,10 @@ function SectionUpdateTimeline({ timeline, onUpdate, onCancel }: SectionUpdateTi
     }
 
     const handleSubmit = (e: Event) => {
-
         type SubmitData = {
             title: string;
             insignia: number;
-        }
+        };
 
         const data: SubmitData = {
             title: localState.title.trim(),
@@ -187,7 +190,10 @@ function SectionUpdateTimeline({ timeline, onUpdate, onCancel }: SectionUpdateTi
         };
 
         // edit an existing timeline
-        Net.put<SubmitData, DeckTimeline>(`/api/timelines/${timeline.id}`, data).then((newDeck) => {
+        Net.put<SubmitData, DeckTimeline>(
+            `/api/timelines/${timeline.id}`,
+            data
+        ).then((newDeck) => {
             onUpdate(newDeck);
         });
 
@@ -217,7 +223,12 @@ function SectionUpdateTimeline({ timeline, onUpdate, onCancel }: SectionUpdateTi
                 onChange={setInsigniaId}
             />
             <br />
-            <input type="button" value="Cancel" class="dialog-cancel" onClick={onCancel}/>
+            <input
+                type="button"
+                value="Cancel"
+                class="dialog-cancel"
+                onClick={onCancel}
+            />
             <input type="submit" value="Update Timeline" />
         </form>
     );
@@ -226,11 +237,11 @@ function SectionUpdateTimeline({ timeline, onUpdate, onCancel }: SectionUpdateTi
 function TimelineDeckPoint({
     deckPoint,
     hasNotes,
-    noteSection,
+    passage,
 }: {
     deckPoint: DeckPoint;
     hasNotes: boolean;
-    noteSection: NoteSectionType;
+    passage: PassageType;
 }) {
     let [expanded, setExpanded] = useState(false);
 
@@ -249,12 +260,12 @@ function TimelineDeckPoint({
                     : svgCaretRightEmpty()}
             </span>
             {deckPoint.title} {deckPoint.dateTextual}
-            {expanded && <div class="point-notes">{noteSection}</div>}
+            {expanded && <div class="point-notes">{passage}</div>}
         </li>
     );
 }
 
-function ListPoints({
+function SegmentPoints({
     points,
     deckManager,
     showAddPointForm,
@@ -279,7 +290,7 @@ function ListPoints({
     let dps = arr.map((dp) => (
         <TimelineDeckPoint
             key={dp.id}
-            noteSection={deckManager.noteSectionForDeckPoint(dp)}
+            passage={deckManager.passageForDeckPoint(dp)}
             hasNotes={deckManager.pointHasNotes(dp)}
             deckPoint={dp}
         />
@@ -290,7 +301,7 @@ function ListPoints({
         : `Add Point for { holderName }`;
 
     return (
-        <RollableSection heading="Timeline">
+        <RollableSegment heading="Timeline">
             <ul class="unstyled-list hug-left">{dps}</ul>
             <WhenVerbose>
                 <div class="left-margin">
@@ -306,7 +317,7 @@ function ListPoints({
                 </div>
             </WhenVerbose>
             {showAddPointForm && deckManager.buildPointForm(onPointCreated)}
-        </RollableSection>
+        </RollableSegment>
     );
 }
 

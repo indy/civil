@@ -9,7 +9,7 @@ import {
     Key,
     Note,
     NoteKind,
-    NoteSectionHowToShow,
+    PassageHowToShow,
     Notes,
     ProtoPoint,
     Ref,
@@ -17,7 +17,7 @@ import {
 } from "../types";
 
 import Net from "../Net";
-import NoteSection from "./NoteSection";
+import Passage from "./Passage";
 import { PointForm } from "./PointForm";
 import { buildUrl, sortByResourceThenName } from "../CivilUtils";
 import { getAppState, AppStateChange } from "../AppState";
@@ -26,8 +26,8 @@ type DeckManagerState = {
     deck: FatDeck | undefined;
     isShowingUpdateForm: boolean;
     isEditingDeckRefs: boolean;
-    canHaveSummarySection: boolean;
-    canHaveReviewSection: boolean;
+    canHaveSummaryPassage: boolean;
+    canHaveReviewPassage: boolean;
     displayShowSummaryButton: boolean;
     displayShowReviewButton: boolean;
 };
@@ -40,16 +40,16 @@ type Props = {
     id: Key;
     deckKind: DeckKind;
     preCacheFn?: (_: FatDeck) => FatDeck;
-    hasSummarySection: boolean;
-    hasReviewSection: boolean;
+    hasSummaryPassage: boolean;
+    hasReviewPassage: boolean;
 };
 
 export default function DeckManager({
     id,
     deckKind,
     preCacheFn,
-    hasSummarySection,
-    hasReviewSection,
+    hasSummaryPassage,
+    hasReviewPassage,
 }: Props) {
     const preCacheFunction = preCacheFn || identity;
     const appState = getAppState();
@@ -69,8 +69,8 @@ export default function DeckManager({
                     deckKind,
                     true
                 );
-                newDms = dmsCanHaveSummarySection(newDms, hasSummarySection);
-                newDms = dmsCanHaveReviewSection(newDms, hasReviewSection);
+                newDms = dmsCanHaveSummaryPassage(newDms, hasSummaryPassage);
+                newDms = dmsCanHaveReviewPassage(newDms, hasReviewPassage);
                 setDms(newDms);
             } else {
                 console.error(`error: fetchDeck for ${url}`);
@@ -224,11 +224,11 @@ export default function DeckManager({
             );
         },
         onRefsChanged,
-        noteSectionForDeckPoint: function (deckPoint: DeckPoint) {
+        passageForDeckPoint: function (deckPoint: DeckPoint) {
             if (dms.deck) {
                 let deck: FatDeck = dms.deck;
                 if (deck && deck.noteSeqs && deck.noteSeqs.points) {
-                    return NoteSection({
+                    return Passage({
                         deck: deck,
                         toolbarMode: appState.toolbarMode.value,
                         notes: deck.noteSeqs.points[deckPoint.id],
@@ -249,14 +249,14 @@ export default function DeckManager({
                 return false;
             }
         },
-        canShowNoteSection: function (noteKind: NoteKind) {
+        canShowPassage: function (noteKind: NoteKind) {
             if (
                 noteKind === NoteKind.NoteSummary &&
-                dms.canHaveSummarySection
+                dms.canHaveSummaryPassage
             ) {
                 return true;
             }
-            if (noteKind === NoteKind.NoteReview && dms.canHaveReviewSection) {
+            if (noteKind === NoteKind.NoteReview && dms.canHaveReviewPassage) {
                 return true;
             }
             if (noteKind === NoteKind.Note) {
@@ -264,44 +264,42 @@ export default function DeckManager({
             }
             return false;
         },
-        howToShowNoteSection: function (
-            noteKind: NoteKind
-        ): NoteSectionHowToShow {
+        howToShowPassage: function (noteKind: NoteKind): PassageHowToShow {
             if (noteKind === NoteKind.NoteSummary) {
-                if (dms.canHaveSummarySection) {
+                if (dms.canHaveSummaryPassage) {
                     return dms.displayShowSummaryButton
-                        ? NoteSectionHowToShow.Hide
-                        : NoteSectionHowToShow.Show;
+                        ? PassageHowToShow.Hide
+                        : PassageHowToShow.Show;
                 } else {
-                    return NoteSectionHowToShow.Hide;
+                    return PassageHowToShow.Hide;
                 }
             }
 
             if (noteKind === NoteKind.NoteReview) {
-                if (dms.canHaveReviewSection) {
+                if (dms.canHaveReviewPassage) {
                     return dms.displayShowReviewButton
-                        ? NoteSectionHowToShow.Hide
-                        : NoteSectionHowToShow.Show;
+                        ? PassageHowToShow.Hide
+                        : PassageHowToShow.Show;
                 } else {
-                    return NoteSectionHowToShow.Hide;
+                    return PassageHowToShow.Hide;
                 }
             }
 
             if (noteKind === NoteKind.Note) {
-                var r = NoteSectionHowToShow.Exclusive;
+                var r = PassageHowToShow.Exclusive;
                 if (
-                    dms.canHaveSummarySection &&
+                    dms.canHaveSummaryPassage &&
                     !dms.displayShowSummaryButton
                 ) {
-                    r = NoteSectionHowToShow.Show;
+                    r = PassageHowToShow.Show;
                 }
-                if (dms.canHaveReviewSection && !dms.displayShowReviewButton) {
-                    r = NoteSectionHowToShow.Show;
+                if (dms.canHaveReviewPassage && !dms.displayShowReviewButton) {
+                    r = PassageHowToShow.Show;
                 }
                 return r;
             }
 
-            return NoteSectionHowToShow.Hide;
+            return PassageHowToShow.Hide;
         },
     };
 
@@ -313,8 +311,8 @@ function cleanDeckManagerState(): DeckManagerState {
         deck: undefined,
         isShowingUpdateForm: false,
         isEditingDeckRefs: false,
-        canHaveSummarySection: false,
-        canHaveReviewSection: false,
+        canHaveSummaryPassage: false,
+        canHaveReviewPassage: false,
         displayShowSummaryButton: false,
         displayShowReviewButton: false,
     };
@@ -369,13 +367,13 @@ function dmsShowReviewButtonToggle(
     return res;
 }
 
-function dmsCanHaveSummarySection(
+function dmsCanHaveSummaryPassage(
     dms: DeckManagerState,
     canHave: boolean
 ): DeckManagerState {
     let res = { ...dms };
 
-    res.canHaveSummarySection = canHave;
+    res.canHaveSummaryPassage = canHave;
     if (res.deck && canHave) {
         res.displayShowSummaryButton = !res.deck.notes.some(
             (n) => n.kind === NoteKind.NoteSummary
@@ -385,13 +383,13 @@ function dmsCanHaveSummarySection(
     return res;
 }
 
-function dmsCanHaveReviewSection(
+function dmsCanHaveReviewPassage(
     dms: DeckManagerState,
     canHave: boolean
 ): DeckManagerState {
     let res = { ...dms };
 
-    res.canHaveReviewSection = canHave;
+    res.canHaveReviewPassage = canHave;
 
     if (res.deck && canHave) {
         res.displayShowReviewButton = !res.deck.notes.some(

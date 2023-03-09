@@ -222,13 +222,16 @@ function clearPerTickSimStats(graphState: GraphState) {
     }
 }
 
-function initializeGraph(graphState: GraphState): { bias: Array<number>, strengths: Array<number>} {
+function initializeGraph(graphState: GraphState): {
+    bias: Array<number>;
+    strengths: Array<number>;
+} {
     let nodes = graphState.nodes;
     let links = graphState.edges;
     var i: number,
-    m = links.length,
-    link: Edge,
-    node: Node;
+        m = links.length,
+        link: Edge,
+        node: Node;
 
     for (const key in nodes) {
         node = nodes[key];
@@ -311,8 +314,12 @@ function forceCollideBox(nodeA: Node, nodeB: Node) {
     let overlappingX = false;
     let overlappingY = false;
 
-    if (nodeA.textWidth && nodeB.textWidth
-       && nodeA.textHeight && nodeB.textHeight) {
+    if (
+        nodeA.textWidth &&
+        nodeB.textWidth &&
+        nodeA.textHeight &&
+        nodeB.textHeight
+    ) {
         if (xa < xb && xa + nodeA.textWidth > xb) {
             overlappingX = true; // left overlap
         } else if (xa >= xb && xa + nodeA.textWidth < xb + nodeB.textWidth) {

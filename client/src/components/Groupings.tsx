@@ -18,18 +18,18 @@ function SlimDeckList({ list }: { list: Array<SlimDeck> }) {
     );
 }
 
-type SlimDeckListSectionProps = {
+type SlimDeckGroupingProps = {
     label: string;
     list: Array<SlimDeck>;
     expanded?: boolean;
     hideEmpty?: boolean;
 };
-function SlimDeckListSection({
+function SlimDeckGrouping({
     label,
     list,
     expanded,
     hideEmpty,
-}: SlimDeckListSectionProps) {
+}: SlimDeckGroupingProps) {
     let [show, setShow] = useState(expanded);
 
     function toggleShow() {
@@ -56,12 +56,12 @@ function SlimDeckListSection({
     }
 }
 
-type LazyLoadedListSectionProps = {
+type LazyLoadedGroupingProps = {
     label: string;
     url: string;
 };
 
-function LazyLoadedListSection({ label, url }: LazyLoadedListSectionProps) {
+function LazyLoadedGrouping({ label, url }: LazyLoadedGroupingProps) {
     type State = {
         fetchedData: boolean;
         list: Array<SlimDeck>;
@@ -113,13 +113,13 @@ function LazyLoadedListSection({ label, url }: LazyLoadedListSectionProps) {
     }
 }
 
-type RatedListSectionProps = {
+type RatedGroupingProps = {
     label: string;
     list: Array<DeckArticle>;
     expanded?: boolean;
 };
 
-function RatedListSection({ label, list, expanded }: RatedListSectionProps) {
+function RatedGrouping({ label, list, expanded }: RatedGroupingProps) {
     let [show, setShow] = useState(expanded);
 
     function toggleShow() {
@@ -197,9 +197,4 @@ function RatedListingLink({ deck }: RatedListingLinkProps) {
     );
 }
 
-export {
-    SlimDeckListSection,
-    RatedListSection,
-    SlimDeckList,
-    LazyLoadedListSection,
-};
+export { SlimDeckGrouping, RatedGrouping, SlimDeckList, LazyLoadedGrouping };

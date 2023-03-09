@@ -42,4 +42,4 @@ type Props = {
 // rename resource to deckKind
 
 
-// SectionDeckRefs.tsx
+// SegmentDeckRefs.tsx

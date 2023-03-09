@@ -17,13 +17,13 @@ import CivilInput from "./CivilInput";
 import DeckManager from "./DeckManager";
 import DeleteDeckConfirmation from "./DeleteDeckConfirmation";
 import LeftMarginHeading from "./LeftMarginHeading";
-import SectionBackRefs from "./SectionBackRefs";
-import SectionDeckRefs from "./SectionDeckRefs";
-import SectionGraph from "./SectionGraph";
-import SectionNotes from "./SectionNotes";
-import SectionSearchResults from "./SectionSearchResults";
+import SegmentBackRefs from "./SegmentBackRefs";
+import SegmentDeckRefs from "./SegmentDeckRefs";
+import SegmentGraph from "./SegmentGraph";
+import SegmentNotes from "./SegmentNotes";
+import SegmentSearchResults from "./SegmentSearchResults";
 import TopMatter from "./TopMatter";
-import { SlimDeckListSection } from "./ListSections";
+import { SlimDeckGrouping } from "./Groupings";
 import { DeluxeToolbar } from "./DeluxeToolbar";
 import { InsigniaSelector } from "./Insignias";
 
@@ -34,8 +34,8 @@ function Ideas({ path }: { path?: string }) {
     useEffect(() => {
         if (!appState.listing.value.ideas) {
             let url: string = "/api/ideas/listings";
-            Net.get<IdeasListings>(url).then((listing) => {
-                AppStateChange.setIdeasListing(listing);
+            Net.get<IdeasListings>(url).then((listings) => {
+                AppStateChange.setIdeaListings(listings);
             });
         }
     }, []);
@@ -46,17 +46,13 @@ function Ideas({ path }: { path?: string }) {
         return (
             <article>
                 <h1 class="ui">{capitalise(resource)}</h1>
-                <SlimDeckListSection
-                    label="Recent"
-                    list={ideas.recent}
-                    expanded
-                />
-                <SlimDeckListSection
+                <SlimDeckGrouping label="Recent" list={ideas.recent} expanded />
+                <SlimDeckGrouping
                     label="Orphans"
                     list={ideas.orphans}
                     hideEmpty
                 />
-                <SlimDeckListSection
+                <SlimDeckGrouping
                     label="Unnoted"
                     list={ideas.unnoted}
                     hideEmpty
@@ -69,9 +65,8 @@ function Ideas({ path }: { path?: string }) {
 }
 
 function Idea({ path, id }: { path?: string; id?: string }) {
-    const [searchResults, setSearchResults]: [Array<SlimDeck>, Function] = useState(
-        []
-    ); // an array of backrefs
+    const [searchResults, setSearchResults]: [Array<SlimDeck>, Function] =
+        useState([]); // an array of backrefs
     const ideaId = id ? parseInt(id, 10) : 0;
 
     useEffect(() => {
@@ -93,8 +88,8 @@ function Idea({ path, id }: { path?: string; id?: string }) {
     const deckManager = DeckManager({
         id: ideaId,
         deckKind,
-        hasSummarySection: false,
-        hasReviewSection: false,
+        hasSummaryPassage: false,
+        hasReviewPassage: false,
     });
 
     const deck: DeckIdea | undefined = deckManager.getDeck() as
@@ -124,7 +119,7 @@ function Idea({ path, id }: { path?: string; id?: string }) {
                             deckKind={DeckKind.Idea}
                             id={ideaId}
                         />
-                        <SectionUpdateIdea
+                        <IdeaUpdater
                             idea={deck}
                             onUpdate={deckManager.updateAndReset}
                             onCancel={deckManager.onFormHide}
@@ -132,25 +127,25 @@ function Idea({ path, id }: { path?: string; id?: string }) {
                     </div>
                 )}
 
-                <SectionDeckRefs
+                <SegmentDeckRefs
                     deck={deck}
                     isEditing={deckManager.isEditingDeckRefs()}
                     onRefsChanged={deckManager.onRefsChanged}
                     onRefsToggle={deckManager.onRefsToggle}
                 />
 
-                <SectionNotes
+                <SegmentNotes
                     deck={deck}
                     deckKind={deckKind}
                     title={deck.title}
-                    howToShowNoteSection={deckManager.howToShowNoteSection}
-                    canShowNoteSection={deckManager.canShowNoteSection}
+                    howToShowPassage={deckManager.howToShowPassage}
+                    canShowPassage={deckManager.canShowPassage}
                     onRefsChanged={deckManager.onRefsChanged}
                     onUpdateDeck={deckManager.update}
                 />
-                <SectionBackRefs deck={deck} />
-                <SectionSearchResults searchResults={searchResults} />
-                <SectionGraph depth={2} deck={deck} />
+                <SegmentBackRefs deck={deck} />
+                <SegmentSearchResults searchResults={searchResults} />
+                <SegmentGraph depth={2} deck={deck} />
             </article>
         );
     } else {
@@ -162,13 +157,13 @@ function Idea({ path, id }: { path?: string; id?: string }) {
     }
 }
 
-type SectionUpdateIdeaProps = {
+type IdeaUpdaterProps = {
     idea: DeckIdea;
     onUpdate: (d: DeckIdea) => void;
     onCancel: () => void;
 };
 
-function SectionUpdateIdea({ idea, onUpdate, onCancel }: SectionUpdateIdeaProps) {
+function IdeaUpdater({ idea, onUpdate, onCancel }: IdeaUpdaterProps) {
     const [title, setTitle] = useState(idea.title || "");
     const [graphTerminator, setGraphTerminator] = useState(
         idea.graphTerminator
@@ -197,7 +192,7 @@ function SectionUpdateIdea({ idea, onUpdate, onCancel }: SectionUpdateIdeaProps)
             title: string;
             graphTerminator: boolean;
             insignia: number;
-        }
+        };
 
         const data: SubmitData = {
             title: title.trim(),
@@ -212,7 +207,7 @@ function SectionUpdateIdea({ idea, onUpdate, onCancel }: SectionUpdateIdeaProps)
         );
 
         event.preventDefault();
-    };
+    }
 
     function handleCheckbox(event: Event) {
         if (event.target instanceof HTMLInputElement) {
@@ -220,14 +215,18 @@ function SectionUpdateIdea({ idea, onUpdate, onCancel }: SectionUpdateIdeaProps)
                 setGraphTerminator(!graphTerminator);
             }
         }
-    };
+    }
 
     return (
         <form class="civil-form" onSubmit={handleSubmit}>
             <label for="title">Title:</label>
             <br />
 
-            <CivilInput id="title" value={title} onContentChange={handleContentChange} />
+            <CivilInput
+                id="title"
+                value={title}
+                onContentChange={handleContentChange}
+            />
             <br />
 
             <InsigniaSelector
@@ -245,7 +244,12 @@ function SectionUpdateIdea({ idea, onUpdate, onCancel }: SectionUpdateIdeaProps)
                 checked={graphTerminator}
             />
             <br />
-            <input type="button" value="Cancel" class="dialog-cancel" onClick={onCancel}/>
+            <input
+                type="button"
+                value="Cancel"
+                class="dialog-cancel"
+                onClick={onCancel}
+            />
             <input type="submit" value="Update Idea" />
         </form>
     );

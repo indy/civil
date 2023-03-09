@@ -5,21 +5,18 @@ import { DeckArticle, DeckKind, ArticleListings } from "../types";
 
 import { getAppState, AppStateChange } from "../AppState";
 import CivilInput from "./CivilInput";
-import {
-    buildUrl,
-    deckKindToHeadingString
-} from "../CivilUtils";
+import { buildUrl, deckKindToHeadingString } from "../CivilUtils";
 import DeckManager from "./DeckManager";
 import DeleteDeckConfirmation from "./DeleteDeckConfirmation";
 import LeftMarginHeading from "./LeftMarginHeading";
 import LeftMarginHeadingNoWrap from "./LeftMarginHeadingNoWrap";
 import Net from "../Net";
-import SectionBackRefs from "./SectionBackRefs";
-import SectionDeckRefs from "./SectionDeckRefs";
-import SectionGraph from "./SectionGraph";
-import SectionNotes from "./SectionNotes";
+import SegmentBackRefs from "./SegmentBackRefs";
+import SegmentDeckRefs from "./SegmentDeckRefs";
+import SegmentGraph from "./SegmentGraph";
+import SegmentNotes from "./SegmentNotes";
 import TopMatter from "./TopMatter";
-import { SlimDeckListSection, RatedListSection } from "./ListSections";
+import { SlimDeckGrouping, RatedGrouping } from "./Groupings";
 import { DeluxeToolbar } from "./DeluxeToolbar";
 import { InsigniaSelector } from "./Insignias";
 import { StarRatingPartial } from "./StarRating";
@@ -32,8 +29,8 @@ function Articles({ path }: { path?: string }) {
     useEffect(() => {
         if (!appState.listing.value.articles) {
             let url: string = "/api/articles/listings";
-            Net.get<ArticleListings>(url).then((listing) => {
-                AppStateChange.setArticlesListing(listing);
+            Net.get<ArticleListings>(url).then((listings) => {
+                AppStateChange.setArticleListings(listings);
             });
         }
     }, []);
@@ -44,13 +41,9 @@ function Articles({ path }: { path?: string }) {
         return (
             <article>
                 <h1 class="ui">{deckKindToHeadingString(deckKind)}</h1>
-                <RatedListSection
-                    label="Recent"
-                    list={articles.recent}
-                    expanded
-                />
-                <RatedListSection label="Rated" list={articles.rated} />
-                <SlimDeckListSection
+                <RatedGrouping label="Recent" list={articles.recent} expanded />
+                <RatedGrouping label="Rated" list={articles.rated} />
+                <SlimDeckGrouping
                     label="Orphans"
                     list={articles.orphans}
                     hideEmpty
@@ -69,8 +62,8 @@ function Article({ path, id }: { path?: string; id?: string }) {
     const deckManager = DeckManager({
         id: articleId,
         deckKind,
-        hasSummarySection: true,
-        hasReviewSection: true,
+        hasSummaryPassage: true,
+        hasReviewPassage: true,
     });
 
     function Url({ url }: { url: string }) {
@@ -118,12 +111,12 @@ function Article({ path, id }: { path?: string; id?: string }) {
                             id={articleId}
                         />
                         <button onClick={deckManager.onShowSummaryClicked}>
-                            Show Summary Section
+                            Show Summary Passage
                         </button>
                         <button onClick={deckManager.onShowReviewClicked}>
-                            Show Review Section
+                            Show Review Passage
                         </button>
-                        <SectionUpdateArticle
+                        <ArticleUpdater
                             article={deck}
                             onUpdate={deckManager.updateAndReset}
                             onCancel={deckManager.onFormHide}
@@ -133,23 +126,23 @@ function Article({ path, id }: { path?: string; id?: string }) {
                 {deck.shortDescription && (
                     <TopScribble text={deck.shortDescription} />
                 )}
-                <SectionDeckRefs
+                <SegmentDeckRefs
                     deck={deck}
                     isEditing={deckManager.isEditingDeckRefs()}
                     onRefsChanged={deckManager.onRefsChanged}
                     onRefsToggle={deckManager.onRefsToggle}
                 />
-                <SectionNotes
+                <SegmentNotes
                     deck={deck}
                     title={deck.title}
                     onRefsChanged={deckManager.onRefsChanged}
                     deckKind={deckKind}
-                    howToShowNoteSection={deckManager.howToShowNoteSection}
-                    canShowNoteSection={deckManager.canShowNoteSection}
+                    howToShowPassage={deckManager.howToShowPassage}
+                    canShowPassage={deckManager.canShowPassage}
                     onUpdateDeck={deckManager.update}
                 />
-                <SectionBackRefs deck={deck} />
-                <SectionGraph depth={2} deck={deck} />
+                <SegmentBackRefs deck={deck} />
+                <SegmentGraph depth={2} deck={deck} />
             </article>
         );
     } else {
@@ -168,12 +161,12 @@ function TopScribble({ text }: { text: string }) {
     return <span></span>;
 }
 
-type SectionUpdateArticleProps = {
+type ArticleUpdaterProps = {
     article: DeckArticle;
     onUpdate: (d: DeckArticle) => void;
     onCancel: () => void;
-}
-function SectionUpdateArticle({ article, onUpdate, onCancel }: SectionUpdateArticleProps) {
+};
+function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
     const [title, setTitle] = useState(article.title || "");
     const [author, setAuthor] = useState(article.author || "");
     const [source, setSource] = useState(article.source || "");
@@ -228,7 +221,7 @@ function SectionUpdateArticle({ article, onUpdate, onCancel }: SectionUpdateArti
                 setRating(parseInt(value, 10));
             }
         }
-    };
+    }
 
     function onContentChange(content: string, name: string) {
         if (name === "title") {
@@ -249,7 +242,6 @@ function SectionUpdateArticle({ article, onUpdate, onCancel }: SectionUpdateArti
     }
 
     function handleSubmit(event: Event) {
-
         type Data = {
             title: string;
             author: string;
@@ -277,27 +269,33 @@ function SectionUpdateArticle({ article, onUpdate, onCancel }: SectionUpdateArti
 
         const deckKind: DeckKind = DeckKind.Article;
 
-        Net.put<Data, DeckArticle>(buildUrl(deckKind, article.id, "/api"), data).then(
-            (newDeck) => {
-                onUpdate(newDeck);
+        Net.put<Data, DeckArticle>(
+            buildUrl(deckKind, article.id, "/api"),
+            data
+        ).then((newDeck) => {
+            onUpdate(newDeck);
 
-                // fetch the listing incase editing the article has changed it's star rating or annotation
-                //
-                Net.get<ArticleListings>("/api/articles/listings").then((articles) => {
+            // fetch the listing incase editing the article has changed it's star rating or annotation
+            //
+            Net.get<ArticleListings>("/api/articles/listings").then(
+                (articles) => {
                     AppStateChange.setArticleListings(articles);
-                });
-
-            }
-        );
+                }
+            );
+        });
 
         event.preventDefault();
-    };
+    }
 
     return (
         <form class="civil-form" onSubmit={handleSubmit}>
             <label for="title">Title:</label>
             <br />
-            <CivilInput id="title" value={title} onContentChange={onContentChange} />
+            <CivilInput
+                id="title"
+                value={title}
+                onContentChange={onContentChange}
+            />
             <br />
 
             <InsigniaSelector
@@ -349,7 +347,12 @@ function SectionUpdateArticle({ article, onUpdate, onCancel }: SectionUpdateArti
                 onInput={onRatingChange}
             />
             <br />
-            <input type="button" value="Cancel" class="dialog-cancel" onClick={onCancel}/>
+            <input
+                type="button"
+                value="Cancel"
+                class="dialog-cancel"
+                onClick={onCancel}
+            />
             <input id="article-submit" type="submit" value="Update Article" />
         </form>
     );

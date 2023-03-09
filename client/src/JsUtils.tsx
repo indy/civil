@@ -1,5 +1,3 @@
-import { RefKind } from "./types";
-
 // remove the keys from obj that have empty strings
 export function removeEmptyStrings(obj, keys: Array<string>) {
     for (var i = 0; i < keys.length; i++) {
@@ -56,19 +54,4 @@ export function daysUntil(date: string) {
     let deltaDays = delta / (1000 * 3600 * 24);
 
     return Math.round(deltaDays);
-}
-
-export function opposingKind(kind: RefKind): RefKind {
-    switch (kind) {
-        case RefKind.Ref:
-            return RefKind.Ref;
-        case RefKind.RefToParent:
-            return RefKind.RefToChild;
-        case RefKind.RefToChild:
-            return RefKind.RefToParent;
-        case RefKind.RefInContrast:
-            return RefKind.RefInContrast;
-        case RefKind.RefCritical:
-            return RefKind.RefCritical;
-    }
 }

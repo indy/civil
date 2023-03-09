@@ -2,13 +2,21 @@ import { h } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 import { Link, route } from "preact-router";
 
-import { DeckKind, DeckQuote, NoteKind, ToolbarMode, SlimDeck } from "../types";
+import {
+    ArticleListings,
+    DeckKind,
+    DeckQuote,
+    IdeasListings,
+    NoteKind,
+    PeopleListings,
+    SlimDeck,
+    ToolbarMode,
+} from "../types";
 
 import Net from "../Net";
 import { getAppState, AppStateChange } from "../AppState";
 import {
     buildUrl,
-    createDeck,
     deckKindToResourceString,
     indexToShortcut,
 } from "../CivilUtils";
@@ -155,7 +163,7 @@ const Commands: Array<Command> = [
     },
     {
         command: "nr",
-        description: "show add-note form for review section",
+        description: "show add-note form for review passage",
         fn: () => {
             AppStateChange.showNoteForm(NoteKind.NoteReview);
             return true;
@@ -163,7 +171,7 @@ const Commands: Array<Command> = [
     },
     {
         command: "ns",
-        description: "show add-note form for summary section",
+        description: "show add-note form for summary passage",
         fn: () => {
             AppStateChange.showNoteForm(NoteKind.NoteSummary);
             return true;
@@ -184,7 +192,7 @@ const Commands: Array<Command> = [
         command: "b",
         description: "bookmark current page to scratchlist",
         fn: () => {
-            AppStateChange.bookmarkUrl();
+            AppStateChange.bookmarkCurrentUrl();
             return true;
         },
     },
@@ -330,7 +338,8 @@ function reducer(state: State, action: Action) {
 
             if (state.mode === Mode.Search) {
                 newState.showKeyboardShortcuts =
-                    !state.showKeyboardShortcuts && state.searchCandidates.length > 0;
+                    !state.showKeyboardShortcuts &&
+                    state.searchCandidates.length > 0;
             }
 
             return newState;
@@ -407,7 +416,9 @@ function reducer(state: State, action: Action) {
 
                         return newState;
                     } else {
-                        const url = `/${deckKindToResourceString(candidate.deckKind)}/${candidate.id}`;
+                        const url = `/${deckKindToResourceString(
+                            candidate.deckKind
+                        )}/${candidate.id}`;
                         route(url);
 
                         const newState = cleanState(state);
@@ -606,22 +617,27 @@ export default function SearchCommand() {
                     ))}
                 </ul>
             );
-        } else if (local.mode === Mode.Search && local.searchCandidates.length > 0) {
+        } else if (
+            local.mode === Mode.Search &&
+            local.searchCandidates.length > 0
+        ) {
             let classes =
                 local.hasPhysicalKeyboard && local.showKeyboardShortcuts
-                ? "search-command-important "
-                : "";
+                    ? "search-command-important "
+                    : "";
             classes += "search-command-listing";
 
             return (
                 <ul class={classes} id="search-candidates">
-                    {local.searchCandidates.map((entry: SlimDeck, i: number) => (
-                        <li key={i}>{buildSearchResultEntry(entry, i)}</li>
-                    ))}
+                    {local.searchCandidates.map(
+                        (entry: SlimDeck, i: number) => (
+                            <li key={i}>{buildSearchResultEntry(entry, i)}</li>
+                        )
+                    )}
                 </ul>
             );
         } else {
-            return (<div></div>)
+            return <div></div>;
         }
     }
 
@@ -645,7 +661,7 @@ export default function SearchCommand() {
                         class="saved-search-result-remove"
                         onClick={clickedDelete}
                     >
-                        ${svgX()}
+                        {svgX()}
                     </div>
                     <Link onClick={clickedCandidate} class={klass} href={hreff}>
                         {entry.title}
@@ -775,4 +791,48 @@ function executeCommand(text: string) {
         return action.fn ? action.fn(rest) : false;
     }
     return false;
+}
+
+function createDeck(deckKind: DeckKind, title: string) {
+    type ProtoDeck = {
+        title: string;
+    };
+
+    // creates a new deck
+    const data: ProtoDeck = {
+        title: title,
+    };
+
+    const resource = deckKindToResourceString(deckKind);
+
+    type AnyDeckListing =
+        | IdeasListings
+        | PeopleListings
+        | ArticleListings
+        | Array<SlimDeck>;
+
+    Net.post<ProtoDeck, SlimDeck>(`/api/${resource}`, data).then((deck) => {
+        Net.get<AnyDeckListing>(`/api/${resource}/listings`).then((listing) => {
+            switch (deckKind) {
+                case DeckKind.Idea:
+                    AppStateChange.setIdeaListings(listing as IdeasListings);
+                    break;
+                case DeckKind.Person:
+                    AppStateChange.setPeopleListings(listing as PeopleListings);
+                    break;
+                case DeckKind.Article:
+                    AppStateChange.setArticleListings(
+                        listing as ArticleListings
+                    );
+                    break;
+                case DeckKind.Timeline:
+                    AppStateChange.setTimelineListings(
+                        listing as Array<SlimDeck>
+                    );
+                    break;
+            }
+            AppStateChange.invalidateGraph();
+        });
+        route(`/${resource}/${deck.id}`);
+    });
 }
