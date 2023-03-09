@@ -41,6 +41,8 @@ pub(crate) fn login(
         ))
     }
 
+    let email = login_credentials.email.trim();
+
     let conn = sqlite_pool.get()?;
     sqlite::one(
         &conn,
@@ -49,7 +51,7 @@ pub(crate) fn login(
            from users
            where email = ?1
         "#,
-        params![login_credentials.email],
+        params![email],
         from_row,
     )
 }

@@ -1,5 +1,6 @@
 import { h } from "preact";
-import { useState } from "preact/hooks";
+import { useState, useRef } from "preact/hooks";
+
 import { route } from "preact-router";
 
 import { User } from "../types";
@@ -29,6 +30,9 @@ function Login({ path, loginCallback }: Props) {
         "register-password-2": "",
         errorMessage: "",
     });
+
+    const emailRef = useRef(null);
+    const passwordRef = useRef(null);
 
     const handleChangeEvent = (event: Event) => {
         if (event.target instanceof HTMLInputElement) {
@@ -63,6 +67,7 @@ function Login({ path, loginCallback }: Props) {
         email: string;
         password: string;
     }
+
     interface IRegisterData {
         username: string;
         email: string;
@@ -71,20 +76,34 @@ function Login({ path, loginCallback }: Props) {
     }
 
     function handleLoginSubmit(event: Event) {
-        Net.post<IAuthData, User>("api/auth", {
-            email: state["login-email"],
-            password: state["login-password"],
-        })
-            .then((user) => {
-                loginCallback(user);
-            })
-            .catch(() => {
-                setState({
-                    ...state,
-                    errorMessage: "Unable to login",
-                });
-            });
+        if (emailRef && emailRef.current
+            && passwordRef && passwordRef.current) {
 
+            // get the email and password using refs rather than local state
+            // this is because there might be browser password managers
+            // that auto-fill the login fields
+
+            let ec = emailRef.current as HTMLInputElement;
+            let pc = passwordRef.current as HTMLInputElement;
+
+            let email: string = ec.value.trim();
+            let password: string = pc.value.trim();
+
+            Net.post<IAuthData, User>("api/auth", {
+                email,
+                password
+            })
+                .then((user) => {
+                    loginCallback(user);
+                })
+                .catch((e) => {
+                    console.log(e);
+                    setState({
+                        ...state,
+                        errorMessage: "Unable to login",
+                    });
+                });
+        }
         event.preventDefault();
     }
 
@@ -127,6 +146,7 @@ function Login({ path, loginCallback }: Props) {
                     name="login-email"
                     value={state["login-email"]}
                     onInput={handleChangeEvent}
+                    ref={emailRef}
                 />
                 <label class="login-label" for="login-password">
                     Password:
@@ -138,6 +158,7 @@ function Login({ path, loginCallback }: Props) {
                     name="login-password"
                     value={state["login-password"]}
                     onInput={handleChangeEvent}
+                    ref={passwordRef}
                 />
                 <input class="login-button" type="submit" value="Login" />
                 <div class="login-error-message">{state.errorMessage}</div>
