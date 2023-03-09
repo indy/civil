@@ -25,6 +25,20 @@ export const App = ({ state }: { state: State }) => {
     );
 };
 
+function DebugMessages() {
+    const appState = getAppState();
+
+    function render(msg: string) {
+        return <div>{msg}</div>;
+    }
+
+    return (
+        <div class="debug-messages">
+            { appState.debugMessages.value.map(render)}
+        </div>
+    )
+}
+
 function TopBarMenu() {
     const appState = getAppState();
 
@@ -126,6 +140,7 @@ const AppUI = () => {
 
     return (
         <div id="civil-app">
+            <DebugMessages />
             <SearchCommand />
             <TopBarMenu />
             <Router onChange={handleRoute}>

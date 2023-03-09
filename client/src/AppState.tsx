@@ -32,6 +32,8 @@ const emptyUser: User = {
 };
 
 const state: State = {
+    debugMessages: signal([]),
+
     appName: "civil",
     toolbarMode: signal(ToolbarMode.View),
     wasmInterface: undefined,
@@ -154,6 +156,11 @@ export const getAppState = () => useContext(AppStateContext);
 const DEBUG_APP_STATE = false;
 
 export const AppStateChange = {
+    addDebugMessage: function (msg: string) {
+        let dm = state.debugMessages.value.slice();
+        dm.unshift(msg);
+        state.debugMessages.value = dm;
+    },
     toolbarMode: function (newMode: ToolbarMode) {
         if (DEBUG_APP_STATE) {
             console.log("toolbarMode");

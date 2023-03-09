@@ -256,6 +256,8 @@ export type WasmInterface = {
 };
 
 export type State = {
+    debugMessages: Signal<Array<string>>;
+
     appName: string;
     toolbarMode: Signal<ToolbarMode>;
 
@@ -289,15 +291,12 @@ export type State = {
     showAddPointForm: Signal<boolean>;
 
     recentImages: Signal<Array<UserUploadedImage>>;
-
     imageDirectory: Signal<string>;
 
     showConnectivityGraph: Signal<boolean>;
-
     graph: Signal<Graph>;
 
     scratchList: Signal<Array<SlimDeck>>;
-
     scratchListMinimised: Signal<boolean>;
 
     srReviewCount: Signal<number>;
