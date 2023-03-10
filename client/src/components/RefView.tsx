@@ -31,8 +31,7 @@ export default function RefView({ deckReference, extraClasses }: Props) {
     const [expanded, setExpanded] = useState(true);
 
     if (deckReference) {
-        const { id, deckKind, refKind, title, annotation, insignia } =
-            deckReference;
+        const { id, deckKind, refKind, annotation } = deckReference;
 
         // clicked on the ref kind label toggles the annotation
         function clickedToggleAnnotation() {
@@ -51,13 +50,7 @@ export default function RefView({ deckReference, extraClasses }: Props) {
                     ({refKindToString(refKind)}){!expanded && "+"}
                 </span>
 
-                <DeckLink
-                    extraClasses="ref"
-                    deckKind={deckKind}
-                    id={id}
-                    insignia={insignia}
-                    title={title}
-                />
+                <DeckLink extraClasses="ref" slimDeck={deckReference} />
 
                 {annotation && expanded && (
                     <div class={scribbleClasses}>{annotation}</div>

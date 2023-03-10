@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import { Link, route } from "preact-router";
+import { route } from "preact-router";
 
 import {
     ArticleListings,
@@ -16,11 +16,7 @@ import {
 
 import Net from "../Net";
 import { getAppState, AppStateChange } from "../AppState";
-import {
-    buildUrl,
-    deckKindToResourceString,
-    indexToShortcut,
-} from "../CivilUtils";
+import { deckKindToResourceString, indexToShortcut } from "../CivilUtils";
 import { svgX, svgChevronDown, svgChevronUp } from "../svgIcons";
 import { useLocalReducer } from "../PreactUtils";
 
@@ -194,6 +190,14 @@ const Commands: Array<Command> = [
         description: "bookmark current page to scratchlist",
         fn: () => {
             AppStateChange.bookmarkCurrentUrl();
+            return true;
+        },
+    },
+    {
+        command: "bl",
+        description: "clicking on a link adds it to the scratchlist",
+        fn: () => {
+            AppStateChange.bookmarkLinkToggle();
             return true;
         },
     },
@@ -557,7 +561,25 @@ export default function SearchCommand() {
     };
 
     function sanitize(text: string) {
-        let blocked = ["?", ">", "<", "+", "-", "/", "*", "%", "!", "(", ")", ",", ".", ":", "`", "\\", "'"];
+        let blocked = [
+            "?",
+            ">",
+            "<",
+            "+",
+            "-",
+            "/",
+            "*",
+            "%",
+            "!",
+            "(",
+            ")",
+            ",",
+            ".",
+            ":",
+            "`",
+            "\\",
+            "'",
+        ];
         return blocked.reduce((a, b) => a.replaceAll(b, ""), text);
     }
 
@@ -580,13 +602,7 @@ export default function SearchCommand() {
         }
 
         return (
-            <DeckLink
-                deckKind={entry.deckKind}
-                id={entry.id}
-                insignia={entry.insignia}
-                title={entry.title}
-                onClick={clickedCandidate}
-            >
+            <DeckLink slimDeck={entry} onClick={clickedCandidate}>
                 {canShowKeyboardShortcut && (
                     <span class="keyboard-shortcut">
                         {indexToShortcut(i)}:{" "}
@@ -654,7 +670,7 @@ export default function SearchCommand() {
     }
 
     function buildScratchList() {
-        function buildScratchListEntry(entry, i) {
+        function buildScratchListEntry(entry: SlimDeck, i: number) {
             function clickedCandidate() {
                 localDispatch(ActionType.ClickedCandidate);
             }
@@ -663,10 +679,6 @@ export default function SearchCommand() {
                 localDispatch(ActionType.RemoveSavedSearchResult, { index: i });
             }
 
-            let klass = `pigment-fg-${deckKindToResourceString(
-                entry.deckKind
-            )}`;
-            let hreff = buildUrl(entry.deckKind, entry.id);
             return (
                 <div class="saved-search-result">
                     <div
@@ -675,9 +687,11 @@ export default function SearchCommand() {
                     >
                         {svgX()}
                     </div>
-                    <Link onClick={clickedCandidate} class={klass} href={hreff}>
-                        {entry.title}
-                    </Link>
+                    <DeckLink
+                        onClick={clickedCandidate}
+                        slimDeck={entry}
+                        alwaysLink
+                    />
                 </div>
             );
         }

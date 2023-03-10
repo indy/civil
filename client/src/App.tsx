@@ -34,9 +34,9 @@ function DebugMessages() {
 
     return (
         <div class="debug-messages">
-            { appState.debugMessages.value.map(render)}
+            {appState.debugMessages.value.map(render)}
         </div>
-    )
+    );
 }
 
 function TopBarMenu() {

@@ -11,7 +11,7 @@ import {
     Ref,
 } from "../types";
 
-import { deckKindToHeadingString } from "../CivilUtils";
+import { buildSlimDeck, deckKindToHeadingString } from "../CivilUtils";
 import { getAppState } from "../AppState";
 import { nonEmptyArray } from "../JsUtils";
 import { svgCaretDown, svgCaretRight } from "../svgIcons";
@@ -190,17 +190,21 @@ function SegmentLinks({ backrefs }: { backrefs: Array<BackRefItem> }) {
     }
 
     let list = backrefs.map((br, i) => {
+        const slimDeck = buildSlimDeck(
+            br.deckKind,
+            br.id,
+            br.title,
+            br.deckInsignia
+        );
+
         return (
             <ExpandableListingLink
                 index={i}
+                slimDeck={slimDeck}
                 onExpandClick={onChildClicked}
                 expanded={localState.childrenExpanded[i]}
-                id={br.id}
-                title={br.title}
-                deckInsignia={br.deckInsignia}
                 deckLevelRefs={br.deckLevelRefs}
                 deckLevelAnnotation={br.deckLevelAnnotation}
-                deckKind={br.deckKind}
                 notes={br.notes}
             />
         );

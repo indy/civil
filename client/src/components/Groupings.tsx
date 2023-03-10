@@ -2,6 +2,7 @@ import { h, ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 
 import { DeckKind, DeckArticle, SlimDeck } from "../types";
+import { buildSlimDeck } from "../CivilUtils";
 
 import Net from "../Net";
 import { svgExpand, svgMinimise } from "../svgIcons";
@@ -145,25 +146,11 @@ function RatedGrouping({ label, list, expanded }: RatedGroupingProps) {
 }
 
 function buildListing(list: Array<SlimDeck>): Array<ComponentChildren> {
-    return list.map((deck) => (
-        <ListingLink
-            id={deck.id}
-            title={deck.title}
-            insignia={deck.insignia}
-            deckKind={deck.deckKind}
-        />
-    ));
+    return list.map((deck) => <ListingLink slimDeck={deck} />);
 }
 
 function buildSlimDeckListing(list: Array<SlimDeck>) {
-    return list.map((deck) => (
-        <ListingLink
-            id={deck.id}
-            title={deck.title}
-            insignia={deck.insignia}
-            deckKind={deck.deckKind}
-        />
-    ));
+    return list.map((deck) => <ListingLink slimDeck={deck} />);
 }
 
 function buildRatingListing(list: Array<DeckArticle>) {
@@ -181,17 +168,12 @@ type RatedListingLinkProps = {
 //
 function RatedListingLink({ deck }: RatedListingLinkProps) {
     let { id, title, rating, shortDescription, insignia } = deck;
-    let deckKind: DeckKind = DeckKind.Article;
+    let slimDeck = buildSlimDeck(DeckKind.Article, id, title, insignia);
 
     return (
         <li>
             <StarRating rating={rating} />
-            <DeckLink
-                deckKind={deckKind}
-                id={id}
-                insignia={insignia}
-                title={title}
-            />
+            <DeckLink slimDeck={slimDeck} />
             <span class="descriptive-scribble">{shortDescription}</span>
         </li>
     );

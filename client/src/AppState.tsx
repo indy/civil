@@ -34,6 +34,8 @@ const emptyUser: User = {
 const state: State = {
     debugMessages: signal([]),
 
+    bookmarkNextLink: signal(false),
+
     appName: "civil",
     toolbarMode: signal(ToolbarMode.View),
     wasmInterface: undefined,
@@ -463,19 +465,30 @@ export const AppStateChange = {
         state.scratchList.value = sl;
     },
 
+    bookmarkLinkToggle: function () {
+        if (DEBUG_APP_STATE) {
+            console.log("bookmarkLinkToggle");
+        }
+        state.bookmarkNextLink.value = !state.bookmarkNextLink.value;
+    },
+
+    addBookmarkLink: function (candidate: SlimDeck) {
+        if (DEBUG_APP_STATE) {
+            console.log("addBookmarkLink");
+        }
+        addSlimDeckToScratchList(state, candidate);
+    },
+
     bookmarkCurrentUrl: function () {
         if (DEBUG_APP_STATE) {
             console.log("bookmarkCurrentUrl");
         }
-        let sl = state.scratchList.value.slice();
         let candidate: SlimDeck | undefined = parseCurrentUrlIntoSlimDeck(
             state.url.value,
             state.urlTitle.value
         );
-
         if (candidate) {
-            sl.push(candidate);
-            state.scratchList.value = sl;
+            addSlimDeckToScratchList(state, candidate);
         }
     },
 
@@ -539,6 +552,12 @@ export const AppStateChange = {
         };
     },
 };
+
+function addSlimDeckToScratchList(state: State, candidate: SlimDeck) {
+    let sl = state.scratchList.value.slice();
+    sl.push(candidate);
+    state.scratchList.value = sl;
+}
 
 function parseCurrentUrlIntoSlimDeck(
     url: string,

@@ -76,9 +76,12 @@ function Login({ path, loginCallback }: Props) {
     }
 
     function handleLoginSubmit(event: Event) {
-        if (emailRef && emailRef.current
-            && passwordRef && passwordRef.current) {
-
+        if (
+            emailRef &&
+            emailRef.current &&
+            passwordRef &&
+            passwordRef.current
+        ) {
             // get the email and password using refs rather than local state
             // this is because there might be browser password managers
             // that auto-fill the login fields
@@ -91,7 +94,7 @@ function Login({ path, loginCallback }: Props) {
 
             Net.post<IAuthData, User>("api/auth", {
                 email,
-                password
+                password,
             })
                 .then((user) => {
                     loginCallback(user);

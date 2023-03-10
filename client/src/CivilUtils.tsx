@@ -72,6 +72,20 @@ export function addToolbarSelectableClasses(toolbarMode: ToolbarMode) {
     }
 }
 
+export function buildSlimDeck(
+    deckKind: DeckKind,
+    id: Key,
+    title: string,
+    insignia: number
+): SlimDeck {
+    return {
+        id,
+        title,
+        deckKind,
+        insignia,
+    };
+}
+
 export function indexToShortcut(index: number) {
     if (index < 9) {
         return String.fromCharCode(index + 49);

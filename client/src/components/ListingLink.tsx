@@ -1,6 +1,6 @@
 import { h } from "preact";
 
-import { Key, NoteThing, Ref, DeckKind } from "../types";
+import { NoteThing, Ref, SlimDeck } from "../types";
 
 import { svgCaretRight, svgCaretDown } from "../svgIcons";
 
@@ -9,21 +9,13 @@ import RefView from "./RefView";
 import buildMarkup from "./BuildMarkup";
 
 type ListingLinkProps = {
-    deckKind: DeckKind;
-    id: Key;
-    title: string;
-    insignia: number;
+    slimDeck: SlimDeck;
 };
 
-function ListingLink({ deckKind, id, title, insignia }: ListingLinkProps) {
+function ListingLink({ slimDeck }: ListingLinkProps) {
     let res = (
         <li class="listing-link">
-            <DeckLink
-                deckKind={deckKind}
-                id={id}
-                insignia={insignia}
-                title={title}
-            />
+            <DeckLink slimDeck={slimDeck} />
         </li>
     );
 
@@ -32,10 +24,7 @@ function ListingLink({ deckKind, id, title, insignia }: ListingLinkProps) {
 
 type ExpandableListingLinkProps = {
     index: number;
-    deckKind: DeckKind;
-    id: Key;
-    title: string;
-    deckInsignia: number;
+    slimDeck: SlimDeck;
     deckLevelRefs: Array<Ref>;
     deckLevelAnnotation?: string;
     notes: Array<NoteThing>;
@@ -45,10 +34,7 @@ type ExpandableListingLinkProps = {
 
 function ExpandableListingLink({
     index,
-    deckKind,
-    id,
-    title,
-    deckInsignia,
+    slimDeck,
     deckLevelRefs,
     deckLevelAnnotation,
     notes,
@@ -66,12 +52,7 @@ function ExpandableListingLink({
         <div>
             <span onClick={onClicked}>{icon}</span>
             <span class="backref-deck">
-                <DeckLink
-                    deckKind={deckKind}
-                    id={id}
-                    insignia={deckInsignia}
-                    title={title}
-                />
+                <DeckLink slimDeck={slimDeck} />
             </span>
             {expanded &&
                 deckLevelAnnotation &&

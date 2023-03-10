@@ -258,6 +258,8 @@ export type WasmInterface = {
 export type State = {
     debugMessages: Signal<Array<string>>;
 
+    bookmarkNextLink: Signal<boolean>;
+
     appName: string;
     toolbarMode: Signal<ToolbarMode>;
 

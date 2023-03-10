@@ -12,15 +12,8 @@ export default function SegmentSearchResults({
 }: {
     searchResults: Array<SlimDeck>;
 }) {
-    function buildSearchResult(lb: SlimDeck) {
-        return (
-            <ListingLink
-                id={lb.id}
-                insignia={lb.insignia}
-                title={lb.title}
-                deckKind={lb.deckKind}
-            />
-        );
+    function buildSearchResult(slimDeck: SlimDeck) {
+        return <ListingLink slimDeck={slimDeck} />;
     }
 
     if (nonEmptyArray<SlimDeck>(searchResults)) {

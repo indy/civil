@@ -34,9 +34,13 @@
 }
 
 .debug-messages {
-  position: fixed;
-  top: 0;
-  left: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+.bookmarkmode-active {
+    background: var(--highlight);
 }
 
 /* -------------------------------------------------------------------------------- */
