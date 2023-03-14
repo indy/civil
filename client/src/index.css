@@ -1666,6 +1666,9 @@ input:required {
 .toolbar-item-selected-add-above {
     border-right: 5px solid var(--fg-clock-02) !important;
 }
+.toolbar-item-selected-bookmark-links {
+    border-right: 5px solid var(--fg-clock-04) !important;
+}
 
 .insignia-selector {
     display: flex;

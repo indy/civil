@@ -1,7 +1,7 @@
 import { h, ComponentChildren } from "preact";
 import { Link } from "preact-router";
 
-import { SlimDeck } from "../types";
+import { SlimDeck, ToolbarMode } from "../types";
 
 import { buildUrl, deckKindToResourceString } from "../CivilUtils";
 import { getAppState, AppStateChange } from "../AppState";
@@ -38,7 +38,10 @@ export default function DeckLink({
     const dk: string = deckKindToResourceString(slimDeck.deckKind);
     let klass = `${ec} pigment-fg-${dk}`;
 
-    if (!alwaysLink && appState.bookmarkNextLink.value) {
+    if (
+        !alwaysLink &&
+        appState.toolbarMode.value === ToolbarMode.BookmarkLinks
+    ) {
         klass += " bookmarkmode-active";
         return (
             <span class={klass} onClick={bookmarkModeClicked}>

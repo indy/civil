@@ -32,7 +32,6 @@ import SegmentNotes from "./SegmentNotes";
 import TopMatter from "./TopMatter";
 import WhenVerbose from "./WhenVerbose";
 import { SlimDeckList } from "./Groupings";
-import { DeluxeToolbar } from "./DeluxeToolbar";
 import { InsigniaSelector } from "./Insignias";
 
 function Timelines({ path }: { path?: string }) {
@@ -76,8 +75,6 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
     if (deck) {
         return (
             <article>
-                <DeluxeToolbar />
-
                 <TopMatter
                     title={deck.title}
                     deck={deck}
@@ -128,11 +125,7 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
             </article>
         );
     } else {
-        return (
-            <article>
-                <DeluxeToolbar />
-            </article>
-        );
+        return <article></article>;
     }
 }
 

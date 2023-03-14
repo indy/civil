@@ -11,6 +11,7 @@ import SearchCommand from "./components/SearchCommand";
 import SpacedRepetition from "./components/SpacedRepetition";
 import Stuff from "./components/Stuff";
 import { Article, Articles } from "./components/Articles";
+import { DeluxeToolbar } from "./components/DeluxeToolbar";
 import { Ideas, Idea } from "./components/Ideas";
 import { Login, Logout } from "./components/Login";
 import { Person, People } from "./components/People";
@@ -143,6 +144,7 @@ const AppUI = () => {
             <DebugMessages />
             <SearchCommand />
             <TopBarMenu />
+            <DeluxeToolbar />
             <Router onChange={handleRoute}>
                 <Login path="/login" loginCallback={loginHandler} />
                 <Logout path="/logout" />

@@ -23,9 +23,8 @@ import SegmentGraph from "./SegmentGraph";
 import SegmentNotes from "./SegmentNotes";
 import SegmentSearchResults from "./SegmentSearchResults";
 import TopMatter from "./TopMatter";
-import { SlimDeckGrouping } from "./Groupings";
-import { DeluxeToolbar } from "./DeluxeToolbar";
 import { InsigniaSelector } from "./Insignias";
+import { SlimDeckGrouping } from "./Groupings";
 
 function Ideas({ path }: { path?: string }) {
     const appState = getAppState();
@@ -98,8 +97,6 @@ function Idea({ path, id }: { path?: string; id?: string }) {
     if (deck) {
         return (
             <article>
-                <DeluxeToolbar />
-
                 <TopMatter
                     title={deck.title}
                     deck={deck}
@@ -149,11 +146,7 @@ function Idea({ path, id }: { path?: string; id?: string }) {
             </article>
         );
     } else {
-        return (
-            <article>
-                <DeluxeToolbar />
-            </article>
-        );
+        return <article></article>;
     }
 }
 

@@ -39,6 +39,7 @@ export enum ToolbarMode {
     Refs,
     SR,
     AddAbove,
+    BookmarkLinks,
 }
 
 export enum PassageHowToShow {
@@ -257,8 +258,6 @@ export type WasmInterface = {
 
 export type State = {
     debugMessages: Signal<Array<string>>;
-
-    bookmarkNextLink: Signal<boolean>;
 
     appName: string;
     toolbarMode: Signal<ToolbarMode>;

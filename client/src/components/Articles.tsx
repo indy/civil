@@ -17,7 +17,6 @@ import SegmentGraph from "./SegmentGraph";
 import SegmentNotes from "./SegmentNotes";
 import TopMatter from "./TopMatter";
 import { SlimDeckGrouping, RatedGrouping } from "./Groupings";
-import { DeluxeToolbar } from "./DeluxeToolbar";
 import { InsigniaSelector } from "./Insignias";
 import { StarRatingPartial } from "./StarRating";
 import { removeEmptyStrings, formattedDate } from "../JsUtils";
@@ -76,7 +75,6 @@ function Article({ path, id }: { path?: string; id?: string }) {
     if (deck) {
         return (
             <article>
-                <DeluxeToolbar />
                 <TopMatter
                     title={deck.title}
                     deck={deck}
@@ -146,11 +144,7 @@ function Article({ path, id }: { path?: string; id?: string }) {
             </article>
         );
     } else {
-        return (
-            <article>
-                <DeluxeToolbar />
-            </article>
-        );
+        return <article></article>;
     }
 }
 

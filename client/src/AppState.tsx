@@ -34,8 +34,6 @@ const emptyUser: User = {
 const state: State = {
     debugMessages: signal([]),
 
-    bookmarkNextLink: signal(false),
-
     appName: "civil",
     toolbarMode: signal(ToolbarMode.View),
     wasmInterface: undefined,
@@ -469,7 +467,11 @@ export const AppStateChange = {
         if (DEBUG_APP_STATE) {
             console.log("bookmarkLinkToggle");
         }
-        state.bookmarkNextLink.value = !state.bookmarkNextLink.value;
+        if (state.toolbarMode.value === ToolbarMode.BookmarkLinks) {
+            state.toolbarMode.value = ToolbarMode.View;
+        } else {
+            state.toolbarMode.value = ToolbarMode.BookmarkLinks;
+        }
     },
 
     addBookmarkLink: function (candidate: SlimDeck) {

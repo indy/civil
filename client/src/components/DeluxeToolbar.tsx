@@ -14,12 +14,28 @@ export function DeluxeToolbar({}) {
         classes += " deluxe-toolbar-faded";
     }
 
+    // e.g. appState.url.value = /articles or /ideas/42
+    // urlParts is of either one of these forms: ["", "articles"], or ["", "ideas", "42"]
+    let urlParts = appState.url.value.split("/");
+
+    const onListingPage = urlParts.length === 2;
+
     function canShow(toolbarMode: ToolbarMode): boolean {
-        if (toolbarMode == ToolbarMode.AddAbove) {
-            // don't show Prepend option for quotes
-            return !appState.url.value.startsWith("/quotes/");
+        switch (toolbarMode) {
+            case ToolbarMode.View:
+                return !onListingPage;
+            case ToolbarMode.Edit:
+                return !onListingPage;
+            case ToolbarMode.Refs:
+                return !onListingPage;
+            case ToolbarMode.SR:
+                return !onListingPage;
+            case ToolbarMode.AddAbove:
+                // don't show Prepend option for quotes
+                return !onListingPage && urlParts[1] !== "quotes";
+            case ToolbarMode.BookmarkLinks:
+                return true;
         }
-        return true;
     }
 
     return (
@@ -45,6 +61,14 @@ export function DeluxeToolbar({}) {
                     toolbarText="Prepend"
                 >
                     {svgAddAbove()}
+                </ToolbarItem>
+            )}
+            {canShow(ToolbarMode.BookmarkLinks) && (
+                <ToolbarItem
+                    toolbarMode={ToolbarMode.BookmarkLinks}
+                    toolbarText="Bookmark Links"
+                >
+                    {svgFlashCard()}
                 </ToolbarItem>
             )}
         </div>
@@ -86,6 +110,8 @@ function ToolbarItem({
 
 export function addActiveToolbarClasses(toolbarMode: ToolbarMode) {
     switch (toolbarMode) {
+        case ToolbarMode.View:
+            return " ";
         case ToolbarMode.Edit:
             return " toolbar-item-selected toolbar-item-selected-edit";
         case ToolbarMode.Refs:
@@ -94,8 +120,7 @@ export function addActiveToolbarClasses(toolbarMode: ToolbarMode) {
             return " toolbar-item-selected toolbar-item-selected-sr";
         case ToolbarMode.AddAbove:
             return " toolbar-item-selected toolbar-item-selected-add-above";
+        case ToolbarMode.BookmarkLinks:
+            return " toolbar-item-selected toolbar-item-selected-bookmark-links";
     }
-
-    console.error(`unknown toolbarMode: ${toolbarMode}`);
-    return "";
 }

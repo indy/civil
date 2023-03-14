@@ -15,7 +15,6 @@ import CivilTextArea from "./CivilTextArea";
 import DeckManager from "./DeckManager";
 import DeleteConfirmation from "./DeleteConfirmation";
 import SegmentNotes from "./SegmentNotes";
-import { DeluxeToolbar } from "./DeluxeToolbar";
 
 enum ActionType {
     ShowAddForm,
@@ -263,7 +262,6 @@ function Quote({ path, id }: { path?: string; id?: string }) {
     if (deck) {
         return (
             <article id="quotation-article">
-                <DeluxeToolbar />
                 <SegmentNotes
                     deck={deck}
                     title={deck.title}
@@ -283,11 +281,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
             </article>
         );
     } else {
-        return (
-            <article>
-                <DeluxeToolbar />
-            </article>
-        );
+        return <article></article>;
     }
 }
 
