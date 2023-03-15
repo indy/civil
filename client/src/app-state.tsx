@@ -1,0 +1,663 @@
+import { h, createContext, ComponentChildren } from "preact";
+import { signal } from "@preact/signals";
+import { useContext } from "preact/hooks";
+
+import {
+    ArticleListings,
+    DeckKind,
+    Key,
+    SlimDeck,
+    Graph,
+    GraphNode,
+    IdeasListings,
+    Listing,
+    NoteKind,
+    PeopleListings,
+    Ref,
+    RefKind,
+    RefsModified,
+    State,
+    ToolbarMode,
+    UberSetup,
+    User,
+    UserUploadedImage,
+} from "./types";
+
+import { resourceStringToDeckKind } from "./civil-utils";
+
+const emptyUser: User = {
+    username: "",
+    email: "",
+    admin: { dbName: "" },
+};
+
+const state: State = {
+    debugMessages: signal([]),
+
+    appName: "civil",
+    toolbarMode: signal(ToolbarMode.View),
+    wasmInterface: undefined,
+
+    settings: signal({
+        hueDelta: 30,
+
+        hueOffsetFg: 0,
+        saturationFg: 0,
+        lightnessFg: 0,
+
+        hueOffsetBg: 0,
+        saturationBg: 0,
+        lightnessBg: 0,
+    }),
+    definitions: signal({}),
+
+    // this is set via the --search-always-visible css variable so
+    // that mobile touch devices will always show the search bar
+    //
+    hasPhysicalKeyboard: true,
+
+    // oldest reasonable age in years, any person whose birth means they're older can be assumed to be dead
+    oldestAliveAge: 120,
+
+    // when true don't let searchCommand accept any keystrokes
+    componentRequiresFullKeyboardAccess: signal(false),
+
+    showingSearchCommand: signal(false),
+
+    // to add the current page to the scratchList we need the id, name, deckKind.
+    // id and deckKind can be parsed from the url, but the name needs to be
+    // stored separately
+    //
+    urlTitle: signal(""),
+
+    // the url of the current page
+    url: signal(""),
+
+    user: signal(emptyUser),
+
+    preferredDeckKindOrder: [
+        DeckKind.Idea,
+        DeckKind.Person,
+        DeckKind.Article,
+        DeckKind.Timeline,
+        DeckKind.Quote,
+    ],
+
+    preferredOrder: [
+        "ideas",
+        "people",
+        "articles",
+        "timelines",
+        "quotes",
+        "stuff",
+    ],
+
+    // key == deckKind name of decks
+    listing: signal({
+        ideas: undefined, // when listing ideas on /ideas page
+        articles: undefined,
+        people: undefined,
+        timelines: undefined,
+    }),
+
+    verboseUI: signal(true),
+
+    showNoteForm: signal({
+        [NoteKind.Note]: false,
+        [NoteKind.NoteReview]: false,
+        [NoteKind.NoteSummary]: false,
+        [NoteKind.NoteDeckMeta]: false,
+    }),
+    showNoteFormPointId: signal(undefined),
+
+    // same for the Add Point form
+    showAddPointForm: signal(false),
+
+    recentImages: signal([]),
+    imageDirectory: signal(""),
+
+    showConnectivityGraph: signal(false),
+    graph: signal({
+        fullyLoaded: false,
+        // an array of { id, name, deckKind }
+        decks: [],
+        links: [],
+        // an array which is indexed by deckId, returns the offset into state.graph.value.decks
+        deckIndexFromId: [],
+    }),
+
+    scratchList: signal([]),
+    scratchListMinimised: signal(false),
+
+    srReviewCount: signal(0),
+    srEarliestReviewDate: signal(undefined),
+};
+
+export const initialState = state;
+
+export const AppStateContext = createContext(state);
+
+export const AppStateProvider = ({
+    state,
+    children,
+}: {
+    state: State;
+    children: ComponentChildren;
+}) => {
+    return (
+        <AppStateContext.Provider value={state}>
+            {children}
+        </AppStateContext.Provider>
+    );
+};
+
+export const getAppState = () => useContext(AppStateContext);
+
+const DEBUG_APP_STATE = false;
+
+export const AppStateChange = {
+    addDebugMessage: function (msg: string) {
+        let dm = state.debugMessages.value.slice();
+        dm.unshift(msg);
+        state.debugMessages.value = dm;
+    },
+    toolbarMode: function (newMode: ToolbarMode) {
+        if (DEBUG_APP_STATE) {
+            console.log("toolbarMode");
+        }
+        state.toolbarMode.value = newMode;
+    },
+    urlTitle: function (title: string) {
+        if (DEBUG_APP_STATE) {
+            console.log("urlTitle");
+        }
+        state.urlTitle.value = title;
+        document.title = `${state.appName}: ${title}`;
+    },
+    routeChanged: function (url: string) {
+        if (DEBUG_APP_STATE) {
+            console.log("routeChanged");
+        }
+        state.url.value = url;
+    },
+
+    uberSetup: function (uber: UberSetup) {
+        if (DEBUG_APP_STATE) {
+            console.log("uberSetup");
+        }
+
+        state.graph.value = {
+            fullyLoaded: false,
+            decks: [],
+            links: [],
+            deckIndexFromId: [],
+        };
+
+        state.recentImages.value = uber.recentImages;
+        state.imageDirectory.value = uber.directory;
+        state.srReviewCount.value = uber.srReviewCount;
+        state.srEarliestReviewDate.value = uber.srEarliestReviewDate;
+    },
+    userLogin: function (user: User) {
+        if (DEBUG_APP_STATE) {
+            console.log("userLogin");
+        }
+        state.user.value = user;
+    },
+    userLogout: function () {
+        if (DEBUG_APP_STATE) {
+            console.log("userLogout");
+        }
+        let user: User = { ...state.user.value };
+        user.username = "";
+
+        state.user.value = user;
+    },
+
+    showAddPointForm: function () {
+        if (DEBUG_APP_STATE) {
+            console.log("showAddPointForm");
+        }
+        state.showAddPointForm.value = true;
+        state.componentRequiresFullKeyboardAccess.value = true;
+    },
+
+    hideAddPointForm: function () {
+        if (DEBUG_APP_STATE) {
+            console.log("hideAddPointForm");
+        }
+        state.showAddPointForm.value = false;
+        state.componentRequiresFullKeyboardAccess.value = false;
+    },
+    noteRefsModified: function (
+        allDecksForNote: Array<Ref>,
+        changes: RefsModified
+    ) {
+        if (DEBUG_APP_STATE) {
+            console.log("noteRefsModified");
+        }
+
+        if (changes.referencesCreated.length > 0) {
+            let ng = { ...state.graph.value, fullLoaded: false };
+            state.graph.value = ng;
+        }
+
+        if (state.listing.value.ideas) {
+            let li: Listing = { ...state.listing.value };
+            if (li) {
+                changes.referencesCreated.forEach((r) => {
+                    let newReference = allDecksForNote.find(
+                        (d) =>
+                            d.title === r.title && d.deckKind === DeckKind.Idea
+                    );
+
+                    if (newReference) {
+                        // todo: what should insignia be here?
+                        let newIdeaListing: SlimDeck = {
+                            id: newReference.id,
+                            title: newReference.title,
+                            deckKind: DeckKind.Idea,
+                            insignia: 0,
+                        };
+                        if (li.ideas) {
+                            // update the listing with the new deckKind
+                            if (li.ideas.recent) {
+                                li.ideas.recent.unshift(newIdeaListing);
+                            }
+                            if (li.ideas.unnoted) {
+                                li.ideas.unnoted.unshift(newIdeaListing);
+                            }
+                        }
+                    }
+                });
+                state.listing.value = li;
+            }
+        }
+    },
+
+    setIdeaListings: function (ideas: IdeasListings) {
+        let li = {
+            ...state.listing.value,
+            ideas,
+        };
+        state.listing.value = li;
+    },
+
+    setPeopleListings: function (people: PeopleListings) {
+        let li = {
+            ...state.listing.value,
+            people,
+        };
+        state.listing.value = li;
+    },
+
+    setArticleListings: function (articles: ArticleListings) {
+        let li = {
+            ...state.listing.value,
+            articles,
+        };
+        state.listing.value = li;
+    },
+
+    setTimelineListings: function (timelines: Array<SlimDeck>) {
+        let li = {
+            ...state.listing.value,
+            timelines,
+        };
+        state.listing.value = li;
+    },
+
+    obtainKeyboard: function () {
+        state.componentRequiresFullKeyboardAccess.value = true;
+    },
+
+    relinquishKeyboard: function () {
+        // isg todo: the original js code had a bug in which this was set to true
+        state.componentRequiresFullKeyboardAccess.value = false;
+    },
+
+    obtainKeyboardFn: function () {
+        if (DEBUG_APP_STATE) {
+            console.log("obtainKeyboard");
+        }
+        return function (e: Event) {
+            e.preventDefault();
+            state.componentRequiresFullKeyboardAccess.value = true;
+        };
+    },
+
+    relinquishKeyboardFn: function () {
+        if (DEBUG_APP_STATE) {
+            console.log("relinquishKeyboard");
+        }
+        return function (e: Event) {
+            e.preventDefault();
+            state.componentRequiresFullKeyboardAccess.value = false;
+        };
+    },
+
+    showNoteForm: function (noteKind: NoteKind, pointId?: number) {
+        if (DEBUG_APP_STATE) {
+            console.log("showNoteForm");
+        }
+        let snf = { ...state.showNoteForm.value };
+
+        snf[noteKind] = true;
+
+        state.showNoteForm.value = snf;
+        state.showNoteFormPointId.value = pointId || undefined;
+        state.componentRequiresFullKeyboardAccess.value = true;
+    },
+
+    hideNoteForm: function (noteKind: NoteKind) {
+        if (DEBUG_APP_STATE) {
+            console.log("hideNoteForm");
+        }
+        let snf = { ...state.showNoteForm.value };
+
+        snf[noteKind] = false;
+
+        state.showNoteForm.value = snf;
+        state.showNoteFormPointId.value = undefined;
+        state.componentRequiresFullKeyboardAccess.value = false;
+    },
+
+    setRecentImages: function (recentImages: Array<UserUploadedImage>) {
+        if (DEBUG_APP_STATE) {
+            console.log("setRecentImages");
+        }
+        state.recentImages.value = recentImages;
+    },
+
+    deleteDeck: function (id: Key) {
+        // todo: typescript check the Listing entry and the filterFn
+
+        if (DEBUG_APP_STATE) {
+            console.log("deleteDeck");
+        }
+        let filterFn = (d) => d.id !== id;
+
+        if (state.graph.value && state.graph.value.decks) {
+            let g = {
+                ...state.graph.value,
+                decks: state.graph.value.decks.filter(filterFn),
+            };
+            state.graph.value = g;
+        }
+
+        let li: Listing = {
+            ideas: undefined,
+            people: undefined,
+            articles: undefined,
+            timelines: undefined,
+        };
+
+        if (state.listing.value.ideas) {
+            li.ideas = {
+                orphans: state.listing.value.ideas.orphans.filter(filterFn),
+                recent: state.listing.value.ideas.recent.filter(filterFn),
+                unnoted: state.listing.value.ideas.unnoted.filter(filterFn),
+            };
+        }
+
+        if (state.listing.value.articles) {
+            li.articles = {
+                orphans: state.listing.value.articles.orphans.filter(filterFn),
+                recent: state.listing.value.articles.recent.filter(filterFn),
+                rated: state.listing.value.articles.rated.filter(filterFn),
+            };
+        }
+
+        if (state.listing.value.people) {
+            li.people = {
+                uncategorised:
+                    state.listing.value.people.uncategorised.filter(filterFn),
+                ancient: state.listing.value.people.ancient.filter(filterFn),
+                medieval: state.listing.value.people.medieval.filter(filterFn),
+                modern: state.listing.value.people.modern.filter(filterFn),
+                contemporary:
+                    state.listing.value.people.contemporary.filter(filterFn),
+            };
+        }
+
+        if (state.listing.value.timelines) {
+            li.timelines = state.listing.value.timelines.filter(filterFn);
+        }
+
+        state.listing.value = li;
+
+        if (state.graph.value.links) {
+            let g = { ...state.graph.value };
+            if (g.links) {
+                delete g.links[id];
+            }
+
+            state.graph.value = g;
+        }
+    },
+
+    scratchListToggle: function () {
+        if (DEBUG_APP_STATE) {
+            console.log("scratchListToggle");
+        }
+        state.scratchListMinimised.value = !state.scratchListMinimised.value;
+    },
+
+    scratchListAddMulti: function (candidates: Array<SlimDeck>) {
+        if (DEBUG_APP_STATE) {
+            console.log("scratchListAddMulti");
+        }
+        let sl = state.scratchList.value.slice();
+        candidates.forEach((c) => {
+            sl.push(c);
+        });
+        state.scratchList.value = sl;
+    },
+
+    scratchListRemove: function (index: number) {
+        if (DEBUG_APP_STATE) {
+            console.log("scratchListRemove");
+        }
+        let sl = state.scratchList.value.slice();
+        sl.splice(index, 1);
+        state.scratchList.value = sl;
+    },
+
+    bookmarkLinkToggle: function () {
+        if (DEBUG_APP_STATE) {
+            console.log("bookmarkLinkToggle");
+        }
+        if (state.toolbarMode.value === ToolbarMode.BookmarkLinks) {
+            state.toolbarMode.value = ToolbarMode.View;
+        } else {
+            state.toolbarMode.value = ToolbarMode.BookmarkLinks;
+        }
+    },
+
+    addBookmarkLink: function (candidate: SlimDeck) {
+        if (DEBUG_APP_STATE) {
+            console.log("addBookmarkLink");
+        }
+        addSlimDeckToScratchList(state, candidate);
+    },
+
+    bookmarkCurrentUrl: function () {
+        if (DEBUG_APP_STATE) {
+            console.log("bookmarkCurrentUrl");
+        }
+        let candidate: SlimDeck | undefined = parseCurrentUrlIntoSlimDeck(
+            state.url.value,
+            state.urlTitle.value
+        );
+        if (candidate) {
+            addSlimDeckToScratchList(state, candidate);
+        }
+    },
+
+    cleanUI: function () {
+        if (DEBUG_APP_STATE) {
+            console.log("cleanUI");
+        }
+        state.verboseUI.value = false;
+    },
+
+    basicUI: function () {
+        if (DEBUG_APP_STATE) {
+            console.log("basicUI");
+        }
+        state.verboseUI.value = true;
+    },
+
+    connectivityGraphShow: function () {
+        if (DEBUG_APP_STATE) {
+            console.log("connectivityGraphShow");
+        }
+        state.showConnectivityGraph.value = true;
+    },
+
+    connectivityGraphHide: function () {
+        if (DEBUG_APP_STATE) {
+            console.log("connectivityGraphHide");
+        }
+        state.showConnectivityGraph.value = false;
+    },
+
+    setReviewCount: function (count: number) {
+        if (DEBUG_APP_STATE) {
+            console.log("setReviewCount");
+        }
+        state.srReviewCount.value = count;
+    },
+
+    loadGraph: function (nodes: Array<GraphNode>, connections: Array<number>) {
+        if (DEBUG_APP_STATE) {
+            console.log("loadGraph");
+        }
+        let newGraph: Graph = {
+            fullyLoaded: true,
+            decks: nodes,
+            links: buildFullGraph(connections),
+            deckIndexFromId: buildDeckIndex(nodes),
+        };
+        state.graph.value = newGraph;
+    },
+
+    invalidateGraph: function () {
+        if (DEBUG_APP_STATE) {
+            console.log("invalidateGraph");
+        }
+        state.graph.value = {
+            fullyLoaded: false,
+            decks: [],
+            links: {},
+            deckIndexFromId: [],
+        };
+    },
+};
+
+function addSlimDeckToScratchList(state: State, candidate: SlimDeck) {
+    let sl = state.scratchList.value.slice();
+    sl.push(candidate);
+    state.scratchList.value = sl;
+}
+
+function parseCurrentUrlIntoSlimDeck(
+    url: string,
+    urlTitle: string
+): SlimDeck | undefined {
+    // note: this will break if we ever change the url schema
+    let re = url.match(/^\/(\w+)\/(\w+)/);
+
+    if (re) {
+        let id = re[2];
+        let resource = re[1];
+
+        let dk: DeckKind | undefined = resourceStringToDeckKind(resource);
+
+        if (dk) {
+            let res: SlimDeck = {
+                id: parseInt(id, 10),
+                title: urlTitle,
+                deckKind: dk,
+                insignia: 0,
+            };
+
+            return res;
+        } else {
+            console.error(
+                `unable to determine DeckKind from parsing "${resource}"`
+            );
+        }
+    }
+
+    return undefined;
+}
+
+function packedToKind(packed: number): RefKind {
+    switch (packed) {
+        case 0:
+            return RefKind.Ref;
+        case -1:
+            return RefKind.RefToParent;
+        case 1:
+            return RefKind.RefToChild;
+        case 42:
+            return RefKind.RefInContrast;
+        case 99:
+            return RefKind.RefCritical;
+        default: {
+            console.log(`packed_to_kind invalid value: ${packed}`);
+            return RefKind.Ref;
+        }
+    }
+}
+
+function opposingKind(kind: RefKind): RefKind {
+    switch (kind) {
+        case RefKind.Ref:
+            return RefKind.Ref;
+        case RefKind.RefToParent:
+            return RefKind.RefToChild;
+        case RefKind.RefToChild:
+            return RefKind.RefToParent;
+        case RefKind.RefInContrast:
+            return RefKind.RefInContrast;
+        case RefKind.RefCritical:
+            return RefKind.RefCritical;
+    }
+}
+
+function buildFullGraph(graphConnections: Array<number>) {
+    let res = {};
+
+    for (let i = 0; i < graphConnections.length; i += 4) {
+        let fromDeck = graphConnections[i + 0];
+        let toDeck = graphConnections[i + 1];
+        let packedKind = graphConnections[i + 2];
+        let strength = graphConnections[i + 3];
+
+        let kind: RefKind = packedToKind(packedKind);
+
+        if (!res[fromDeck]) {
+            res[fromDeck] = new Set();
+        }
+        res[fromDeck].add([toDeck, kind, strength]);
+
+        if (!res[toDeck]) {
+            res[toDeck] = new Set();
+        }
+        res[toDeck].add([fromDeck, opposingKind(kind), -strength]);
+    }
+
+    return res;
+}
+
+function buildDeckIndex(decks: Array<GraphNode>) {
+    let res: Array<number> = [];
+
+    decks.forEach((d, i) => {
+        res[d.id] = i;
+    });
+
+    return res;
+}

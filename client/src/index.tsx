@@ -3,15 +3,15 @@ import "./index.css";
 
 import { User, UberSetup } from "./types";
 
-import Net from "./Net.js";
-import { App } from "./App";
-import { AppStateChange, initialState } from "./AppState";
+import Net from "net";
+import { App } from "./app";
+import { AppStateChange, initialState } from "./app-state";
 import {
     augmentDefinitionsWithCssModifierParameters,
     augmentSettingsWithCssModifierParameters,
     buildColourConversionFn,
     declareCssVariables,
-} from "./ColourCreator";
+} from "./colour-creator";
 
 wasm_bindgen("/civil_wasm_bg.wasm")
     .then(() => {
