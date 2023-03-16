@@ -3,12 +3,12 @@ import { useState, useRef } from "preact/hooks";
 
 import { DeckPoint, PointKind, ProtoPoint } from "types";
 
-import Net from "net";
-import { capitalise } from "../js-utils";
-import { parseDateStringAsTriple, parseDateStringAsYearOnly } from "../eras";
+import Net from "utils/net";
+import { capitalise } from "utils/js";
+import { parseDateStringAsTriple, parseDateStringAsYearOnly } from "utils/eras";
 
-import CivilInput from "./civil-input";
-import CivilTextArea from "./civil-text-area";
+import CivilInput from "components/civil-input";
+import CivilTextArea from "components/civil-text-area";
 
 export function PointBirthForm({
     onSubmit,

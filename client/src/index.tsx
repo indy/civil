@@ -1,17 +1,17 @@
 import { render, h } from "preact";
 import "./index.css";
 
-import { User, UberSetup } from "./types";
+import { User, UberSetup } from "types";
 
-import Net from "net";
-import { App } from "./app";
-import { AppStateChange, initialState } from "./app-state";
+import Net from "utils/net";
+import { App } from "app";
+import { AppStateChange, initialState } from "app-state";
 import {
     augmentDefinitionsWithCssModifierParameters,
     augmentSettingsWithCssModifierParameters,
     buildColourConversionFn,
     declareCssVariables,
-} from "./colour-creator";
+} from "utils/colour-creator";
 
 wasm_bindgen("/civil_wasm_bg.wasm")
     .then(() => {

@@ -2,14 +2,14 @@ import { h, ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 
 import { DeckKind, DeckArticle, SlimDeck } from "types";
-import { buildSlimDeck } from "../civil-utils";
+import { buildSlimDeck } from "utils/civil";
 
-import Net from "net";
-import { svgExpand, svgMinimise } from "../svg-icons";
+import Net from "utils/net";
+import { svgExpand, svgMinimise } from "components/svg-icons";
 
-import DeckLink from "./deck-link";
-import { ListingLink } from "./listing-link";
-import { StarRating } from "./star-rating";
+import DeckLink from "components/deck-link";
+import { ListingLink } from "components/listing-link";
+import { StarRating } from "components/star-rating";
 
 function SlimDeckList({ list }: { list: Array<SlimDeck> }) {
     return (

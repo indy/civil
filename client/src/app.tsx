@@ -1,22 +1,22 @@
 import { h } from "preact";
 import { Link, Router, route, RouterOnChangeArgs } from "preact-router";
 
-import { State, User, UberSetup } from "./types";
+import { State, User, UberSetup } from "types";
 
-import Net from "net";
-import { AppStateChange, AppStateProvider, getAppState } from "./app-state";
-import { capitalise } from "./js-utils";
+import Net from "utils/net";
+import { AppStateChange, AppStateProvider, getAppState } from "app-state";
+import { capitalise } from "utils/js";
 
-import SearchCommand from "./components/search-command";
-import SpacedRepetition from "./components/spaced-repetition";
-import Stuff from "./components/stuff";
-import { Article, Articles } from "./components/articles";
-import { DeluxeToolbar } from "./components/deluxe-toolbar";
-import { Ideas, Idea } from "./components/ideas";
-import { Login, Logout } from "./components/login";
-import { Person, People } from "./components/people";
-import { Quote, Quotes } from "./components/quotes";
-import { Timeline, Timelines } from "./components/timelines";
+import SearchCommand from "features/search-command";
+import SpacedRepetition from "pages/spaced-repetition";
+import Stuff from "pages/stuff";
+import { Article, Articles } from "pages/articles";
+import { DeluxeToolbar } from "features/deluxe-toolbar";
+import { Ideas, Idea } from "pages/ideas";
+import { Login, Logout } from "pages/login";
+import { Person, People } from "pages/people";
+import { Quote, Quotes } from "pages/quotes";
+import { Timeline, Timelines } from "pages/timelines";
 
 export const App = ({ state }: { state: State }) => {
     return (

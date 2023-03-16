@@ -4,17 +4,17 @@ import { route } from "preact-router";
 
 import { DeckKind, NoteKind, DeckQuote, FatDeck } from "types";
 
-import Net from "net";
-import buildMarkup from "./build-markup";
-import { capitalise } from "../js-utils";
+import Net from "utils/net";
+import buildMarkup from "features/notes/build-markup";
+import { capitalise } from "utils/js";
 import { getAppState, AppStateChange } from "app-state";
-import { useLocalReducer } from "../preact-utils";
+import { useLocalReducer } from "components/use-local-reducer";
 
-import CivilInput from "./civil-input";
-import CivilTextArea from "./civil-text-area";
-import DeckManager from "./deck-manager";
-import DeleteConfirmation from "./delete-confirmation";
-import SegmentNotes from "./segment-notes";
+import CivilInput from "components/civil-input";
+import CivilTextArea from "components/civil-text-area";
+import DeckManager from "components/deck-manager";
+import DeleteConfirmation from "components/delete-confirmation";
+import SegmentNotes from "features/notes/segment-notes";
 
 enum ActionType {
     ShowAddForm,

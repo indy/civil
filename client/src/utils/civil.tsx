@@ -1,4 +1,4 @@
-import { DeckKind, Key, SlimDeck, ToolbarMode } from "./types";
+import { DeckKind, Key, SlimDeck, ToolbarMode } from "types";
 
 export function buildUrl(deckKind: DeckKind, id: Key, prefix?: string): string {
     if (prefix) {

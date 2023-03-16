@@ -2,9 +2,9 @@ import { h, ComponentChildren } from "preact";
 
 import { FatDeck } from "types";
 
-import LeftMarginHeading from "./left-margin-heading";
-import Title from "./title";
-import { renderInsignia } from "./insignias";
+import LeftMarginHeading from "components/left-margin-heading";
+import Title from "components/title";
+import { renderInsignia } from "features/insignias/renderer";
 
 type Props = {
     title: string;

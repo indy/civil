@@ -1,4 +1,4 @@
-import { ColourTriple, Settings, Definitions } from "./types";
+import { ColourTriple, Settings, Definitions } from "types";
 
 function buildColourConversionFn(
     rgb_from_hsl: (h: number, s: number, l: number) => any

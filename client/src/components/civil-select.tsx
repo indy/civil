@@ -11,16 +11,16 @@ import {
     ToolbarMode,
 } from "types";
 
-import CivilInput from "./civil-input";
+import CivilInput from "components/civil-input";
 import {
     deckKindToResourceString,
     indexToShortcut,
     sortByResourceThenName,
-} from "../civil-utils";
-import Net from "net";
+} from "utils/civil";
+import Net from "utils/net";
 import { AppStateChange } from "app-state";
-import { svgCloseShifted } from "../svg-icons";
-import { useLocalReducer } from "../preact-utils";
+import { svgCloseShifted } from "components/svg-icons";
+import { useLocalReducer } from "components/use-local-reducer";
 
 enum ActionType {
     CandidatesSet,

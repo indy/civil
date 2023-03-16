@@ -2,11 +2,11 @@ import { h } from "preact";
 
 import { NoteThing, Ref, SlimDeck } from "types";
 
-import { svgCaretRight, svgCaretDown } from "../svg-icons";
+import { svgCaretRight, svgCaretDown } from "components/svg-icons";
 
-import DeckLink from "./deck-link";
-import RefView from "./ref-view";
-import buildMarkup from "./build-markup";
+import DeckLink from "components/deck-link";
+import RefView from "components/ref-view";
+import buildMarkup from "features/notes/build-markup";
 
 type ListingLinkProps = {
     slimDeck: SlimDeck;

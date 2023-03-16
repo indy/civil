@@ -2,12 +2,12 @@ import { h } from "preact";
 
 import { FlashCard } from "types";
 
-import Net from "net";
-import { daysUntil, plural } from "../js-utils";
-import { useLocalReducer } from "../preact-utils";
+import Net from "utils/net";
+import { daysUntil, plural } from "utils/js";
+import { useLocalReducer } from "components/use-local-reducer";
 
-import CivilTextArea from "./civil-text-area";
-import DeleteConfirmation from "./delete-confirmation";
+import CivilTextArea from "components/civil-text-area";
+import DeleteConfirmation from "components/delete-confirmation";
 
 enum ActionType {
     IsEditingToggle,

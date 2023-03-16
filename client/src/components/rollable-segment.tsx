@@ -1,7 +1,10 @@
 import { h, ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 
-import { svgChevronDoubleDown, svgChevronDoubleRight } from "../svg-icons";
+import {
+    svgChevronDoubleDown,
+    svgChevronDoubleRight,
+} from "components/svg-icons";
 
 type Props = {
     heading: string;

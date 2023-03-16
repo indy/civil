@@ -13,11 +13,11 @@ import {
     RefKind,
 } from "types";
 
-import Net from "net";
-import { deckKindToResourceString } from "../civil-utils";
+import Net from "utils/net";
+import { deckKindToResourceString } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
-import { graphPhysics } from "../graph-physics";
-import { svgTickedCheckBox, svgUntickedCheckBox } from "../svg-icons";
+import { graphPhysics } from "features/graph/graph-physics";
+import { svgTickedCheckBox, svgUntickedCheckBox } from "components/svg-icons";
 
 let gUpdateGraphCallback: GraphCallback | undefined = undefined;
 

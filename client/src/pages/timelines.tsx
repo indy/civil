@@ -10,8 +10,8 @@ import {
     PassageType,
 } from "types";
 
-import Net from "net";
-import { capitalise } from "../js-utils";
+import Net from "utils/net";
+import { capitalise } from "utils/js";
 import { getAppState, AppStateChange } from "app-state";
 import {
     svgCaretDown,
@@ -19,20 +19,20 @@ import {
     svgCaretRightEmpty,
     svgPointAdd,
     svgX,
-} from "../svg-icons";
+} from "components/svg-icons";
 
-import CivilInput from "./civil-input";
-import DeckManager from "./deck-manager";
-import DeleteDeckConfirmation from "./delete-deck-confirmation";
-import RollableSegment from "./rollable-segment";
-import SegmentBackRefs from "./segment-back-refs";
-import SegmentDeckRefs from "./segment-deck-refs";
-import SegmentGraph from "./segment-graph";
-import SegmentNotes from "./segment-notes";
-import TopMatter from "./top-matter";
-import WhenVerbose from "./when-verbose";
-import { SlimDeckList } from "./groupings";
-import { InsigniaSelector } from "./insignias";
+import CivilInput from "components/civil-input";
+import DeckManager from "components/deck-manager";
+import DeleteDeckConfirmation from "components/delete-deck-confirmation";
+import InsigniaSelector from "features/insignias/selector";
+import RollableSegment from "components/rollable-segment";
+import SegmentBackRefs from "components/segment-back-refs";
+import SegmentDeckRefs from "components/segment-deck-refs";
+import SegmentGraph from "features/graph/segment-graph";
+import SegmentNotes from "features/notes/segment-notes";
+import TopMatter from "components/top-matter";
+import WhenVerbose from "components/when-verbose";
+import { SlimDeckList } from "components/groupings";
 
 function Timelines({ path }: { path?: string }) {
     const appState = getAppState();

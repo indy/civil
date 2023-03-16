@@ -9,11 +9,11 @@ import {
     RefsModified,
 } from "types";
 
-import Net from "net";
+import Net from "utils/net";
 import { AppStateChange } from "app-state";
 
-import CivilSelect from "./civil-select";
-import RefView from "./ref-view";
+import CivilSelect from "components/civil-select";
+import RefView from "components/ref-view";
 
 type Props = {
     deck: FatDeck;

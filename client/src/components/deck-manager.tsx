@@ -16,10 +16,10 @@ import {
     ToolbarMode,
 } from "types";
 
-import Net from "net";
-import Passage from "./passage";
-import { PointForm } from "./point-form";
-import { buildUrl, sortByResourceThenName } from "../civil-utils";
+import Net from "utils/net";
+import Passage from "features/notes/passage";
+import { PointForm } from "components/point-form";
+import { buildUrl, sortByResourceThenName } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
 
 type DeckManagerState = {

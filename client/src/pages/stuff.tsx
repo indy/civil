@@ -1,6 +1,6 @@
 import { h } from "preact";
 
-import { LazyLoadedGrouping } from "./groupings";
+import { LazyLoadedGrouping } from "components/groupings";
 
 export default function Stuff({ path }: { path?: string }) {
     return (

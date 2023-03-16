@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "preact/hooks";
 
 import { ToolbarMode } from "types";
 
-import { addToolbarSelectableClasses } from "../civil-utils";
+import { addToolbarSelectableClasses } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
 
 type Props = {

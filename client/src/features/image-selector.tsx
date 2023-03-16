@@ -3,9 +3,9 @@ import { useEffect, useState, useRef } from "preact/hooks";
 
 import { UserUploadedImage } from "types";
 
-import Net from "net";
+import Net from "utils/net";
 import { getAppState, AppStateChange } from "app-state";
-import { svgX } from "../svg-icons";
+import { svgX } from "components/svg-icons";
 
 type Props = {
     onPaste: (s: string) => void;

@@ -2,10 +2,10 @@ import { h } from "preact";
 
 import { SlimDeck } from "types";
 
-import { nonEmptyArray, plural } from "../js-utils";
+import { nonEmptyArray, plural } from "utils/js";
 
-import RollableSegment from "./rollable-segment";
-import { ListingLink } from "./listing-link";
+import RollableSegment from "components/rollable-segment";
+import { ListingLink } from "components/listing-link";
 
 export default function SegmentSearchResults({
     searchResults,

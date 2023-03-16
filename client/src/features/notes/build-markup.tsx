@@ -1,7 +1,7 @@
 // import { h, ComponentType } from "preact";
 import { h } from "preact";
 
-import Image from "./image";
+import Image from "components/image";
 import { getAppState } from "app-state";
 
 type Element = {

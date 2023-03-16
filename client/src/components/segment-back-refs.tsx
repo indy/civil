@@ -11,13 +11,13 @@ import {
     Ref,
 } from "types";
 
-import { buildSlimDeck, deckKindToHeadingString } from "../civil-utils";
+import { buildSlimDeck, deckKindToHeadingString } from "utils/civil";
 import { getAppState } from "app-state";
-import { nonEmptyArray } from "../js-utils";
-import { svgCaretDown, svgCaretRight } from "../svg-icons";
+import { nonEmptyArray } from "utils/js";
+import { svgCaretDown, svgCaretRight } from "components/svg-icons";
 
-import RollableSegment from "./rollable-segment";
-import { ExpandableListingLink } from "./listing-link";
+import RollableSegment from "components/rollable-segment";
+import { ExpandableListingLink } from "components/listing-link";
 
 type BackRefItem = {
     id: Key;
@@ -163,7 +163,7 @@ export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
 function SegmentLinks({ backrefs }: { backrefs: Array<BackRefItem> }) {
     const [localState, setLocalState] = useState({
         showExpanded: true,
-        childrenExpanded: backrefs.map((br) => true),
+        childrenExpanded: backrefs.map(() => true),
     });
 
     let icon = localState.showExpanded ? svgCaretDown() : svgCaretRight();
@@ -175,7 +175,7 @@ function SegmentLinks({ backrefs }: { backrefs: Array<BackRefItem> }) {
             ...localState,
             showExpanded: !localState.showExpanded,
             childrenExpanded: localState.childrenExpanded.map(
-                (ce) => !localState.showExpanded
+                () => !localState.showExpanded
             ),
         });
     }

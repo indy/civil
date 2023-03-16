@@ -14,13 +14,13 @@ import {
     ToolbarMode,
 } from "types";
 
-import Net from "net";
+import Net from "utils/net";
 import { getAppState, AppStateChange } from "app-state";
-import { deckKindToResourceString, indexToShortcut } from "../civil-utils";
-import { svgX, svgChevronDown, svgChevronUp } from "../svg-icons";
-import { useLocalReducer } from "../preact-utils";
+import { deckKindToResourceString, indexToShortcut } from "utils/civil";
+import { svgX, svgChevronDown, svgChevronUp } from "components/svg-icons";
+import { useLocalReducer } from "components/use-local-reducer";
 
-import DeckLink from "./deck-link";
+import DeckLink from "components/deck-link";
 
 enum Mode {
     Search,

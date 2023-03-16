@@ -3,12 +3,12 @@ import { useEffect, useState, useRef } from "preact/hooks";
 
 import { Key, Notes, NoteKind } from "types";
 
-import Net from "net";
+import Net from "utils/net";
 import { getAppState } from "app-state";
-import { svgX } from "../svg-icons";
+import { svgX } from "components/svg-icons";
 
-import CivilTextArea from "./civil-text-area";
-import ImageSelector from "./image-selector";
+import CivilTextArea from "components/civil-text-area";
+import ImageSelector from "features/image-selector";
 
 type Props = {
     label: string;

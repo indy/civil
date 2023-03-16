@@ -1,6 +1,6 @@
 import { h, ComponentChildren } from "preact";
 
-import { svgRatingStar } from "../svg-icons";
+import { svgRatingStar } from "components/svg-icons";
 
 function StarRating({ rating }: { rating: number }) {
     return (

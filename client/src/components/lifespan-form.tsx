@@ -3,9 +3,9 @@ import { useEffect, useState } from "preact/hooks";
 
 import { ProtoPoint } from "types";
 
-import { parseDateStringAsTriple, deltaInYears } from "../eras";
+import { parseDateStringAsTriple, deltaInYears } from "utils/eras";
 
-import { PointBirthForm, PointDeathForm } from "./point-form";
+import { PointBirthForm, PointDeathForm } from "components/point-form";
 
 enum LifespanStage {
     Birth = 0,

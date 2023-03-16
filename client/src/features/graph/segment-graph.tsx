@@ -4,8 +4,8 @@ import { FatDeck } from "types";
 
 import { getAppState } from "app-state";
 
-import Graph from "./graph";
-import RollableSegment from "./rollable-segment";
+import Graph from "features/graph/graph";
+import RollableSegment from "components/rollable-segment";
 
 export default function SegmentGraph({
     depth,

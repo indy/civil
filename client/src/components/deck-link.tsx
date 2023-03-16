@@ -3,9 +3,9 @@ import { Link } from "preact-router";
 
 import { SlimDeck, ToolbarMode } from "types";
 
-import { buildUrl, deckKindToResourceString } from "../civil-utils";
+import { buildUrl, deckKindToResourceString } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
-import { renderInsignia, svgBookmarkLink } from "./insignias";
+import { renderInsignia, svgBookmarkLink } from "features/insignias/renderer";
 
 type Props = {
     slimDeck: SlimDeck;

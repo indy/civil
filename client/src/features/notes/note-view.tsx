@@ -14,20 +14,20 @@ import {
     ToolbarMode,
 } from "types";
 
-import Net from "net";
-import { addToolbarSelectableClasses } from "../civil-utils";
+import Net from "utils/net";
+import { addToolbarSelectableClasses } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
-import { svgFlashCard } from "../svg-icons";
-import { useLocalReducer } from "../preact-utils";
+import { svgFlashCard } from "components/svg-icons";
+import { useLocalReducer } from "components/use-local-reducer";
 
-import CivilSelect from "./civil-select";
-import CivilTextArea from "./civil-text-area";
-import DeleteConfirmation from "./delete-confirmation";
-import FlashCardView from "./flashcard-view";
-import ImageSelector from "./image-selector";
-import NoteForm from "./note-form";
-import RefView from "./ref-view";
-import buildMarkup from "./build-markup";
+import CivilSelect from "components/civil-select";
+import CivilTextArea from "components/civil-text-area";
+import DeleteConfirmation from "components/delete-confirmation";
+import FlashCardView from "components/flashcard-view";
+import ImageSelector from "features/image-selector";
+import NoteForm from "features/notes/note-form";
+import RefView from "components/ref-view";
+import buildMarkup from "features/notes/build-markup";
 
 enum ActionType {
     AddDecksCommit,

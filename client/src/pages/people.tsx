@@ -17,9 +17,9 @@ import {
     ProtoPoint,
 } from "types";
 
-import Net from "net";
-import { calcAgeInYears, dateStringAsTriple } from "../eras";
-import { buildUrl, deckKindToHeadingString } from "../civil-utils";
+import Net from "utils/net";
+import { calcAgeInYears, dateStringAsTriple } from "utils/eras";
+import { buildUrl, deckKindToHeadingString } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
 import {
     svgBlank,
@@ -30,23 +30,23 @@ import {
     svgTickedCheckBox,
     svgUntickedCheckBox,
     svgX,
-} from "../svg-icons";
-import WhenVerbose from "./when-verbose";
+} from "components/svg-icons";
+import WhenVerbose from "components/when-verbose";
 
-import CivilInput from "./civil-input";
-import DeckManager from "./deck-manager";
-import DeleteDeckConfirmation from "./delete-deck-confirmation";
-import LifespanForm from "./lifespan-form";
-import RollableSegment from "./rollable-segment";
-import SegmentBackRefs from "./segment-back-refs";
-import SegmentDeckRefs from "./segment-deck-refs";
-import SegmentGraph from "./segment-graph";
-import SegmentNotes from "./segment-notes";
-import SegmentSearchResults from "./segment-search-results";
-import TopMatter from "./top-matter";
-import { SlimDeckGrouping } from "./groupings";
-import { InsigniaSelector } from "./insignias";
-import { PointForm } from "./point-form";
+import CivilInput from "components/civil-input";
+import DeckManager from "components/deck-manager";
+import DeleteDeckConfirmation from "components/delete-deck-confirmation";
+import InsigniaSelector from "features/insignias/selector";
+import LifespanForm from "components/lifespan-form";
+import RollableSegment from "components/rollable-segment";
+import SegmentBackRefs from "components/segment-back-refs";
+import SegmentDeckRefs from "components/segment-deck-refs";
+import SegmentGraph from "features/graph/segment-graph";
+import SegmentNotes from "features/notes/segment-notes";
+import SegmentSearchResults from "components/segment-search-results";
+import TopMatter from "components/top-matter";
+import { PointForm } from "components/point-form";
+import { SlimDeckGrouping } from "components/groupings";
 
 function People({ path }: { path?: string }) {
     const appState = getAppState();

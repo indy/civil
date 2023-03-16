@@ -21,9 +21,9 @@ import {
     UberSetup,
     User,
     UserUploadedImage,
-} from "./types";
+} from "types";
 
-import { resourceStringToDeckKind } from "./civil-utils";
+import { resourceStringToDeckKind } from "utils/civil";
 
 const emptyUser: User = {
     username: "",

@@ -4,13 +4,13 @@ import { Link } from "preact-router";
 
 import { Key, SlimDeck } from "types";
 
-import Net from "net";
-import { buildUrl, deckKindToResourceString } from "../civil-utils";
+import Net from "utils/net";
+import { buildUrl, deckKindToResourceString } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
-import { plural, formattedDate, formattedTime } from "../js-utils";
-import { useLocalReducer } from "../preact-utils";
+import { plural, formattedDate, formattedTime } from "utils/js";
+import { useLocalReducer } from "components/use-local-reducer";
 
-import buildMarkup from "./build-markup";
+import buildMarkup from "features/notes/build-markup";
 
 enum Mode {
     PreTest,

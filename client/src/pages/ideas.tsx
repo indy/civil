@@ -9,22 +9,22 @@ import {
     SearchResults,
 } from "types";
 
-import Net from "net";
-import { capitalise, formattedDate } from "../js-utils";
+import Net from "utils/net";
+import { capitalise, formattedDate } from "utils/js";
 import { getAppState, AppStateChange } from "app-state";
 
-import CivilInput from "./civil-input";
-import DeckManager from "./deck-manager";
-import DeleteDeckConfirmation from "./delete-deck-confirmation";
-import LeftMarginHeading from "./left-margin-heading";
-import SegmentBackRefs from "./segment-back-refs";
-import SegmentDeckRefs from "./segment-deck-refs";
-import SegmentGraph from "./segment-graph";
-import SegmentNotes from "./segment-notes";
-import SegmentSearchResults from "./segment-search-results";
-import TopMatter from "./top-matter";
-import { InsigniaSelector } from "./insignias";
-import { SlimDeckGrouping } from "./groupings";
+import CivilInput from "components/civil-input";
+import DeckManager from "components/deck-manager";
+import DeleteDeckConfirmation from "components/delete-deck-confirmation";
+import InsigniaSelector from "features/insignias/selector";
+import LeftMarginHeading from "components/left-margin-heading";
+import SegmentBackRefs from "components/segment-back-refs";
+import SegmentDeckRefs from "components/segment-deck-refs";
+import SegmentGraph from "features/graph/segment-graph";
+import SegmentNotes from "features/notes/segment-notes";
+import SegmentSearchResults from "components/segment-search-results";
+import TopMatter from "components/top-matter";
+import { SlimDeckGrouping } from "components/groupings";
 
 function Ideas({ path }: { path?: string }) {
     const appState = getAppState();

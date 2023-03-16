@@ -5,7 +5,7 @@ import { route } from "preact-router";
 
 import { User } from "types";
 
-import Net from "net";
+import Net from "utils/net";
 import { AppStateChange, getAppState } from "app-state";
 
 type Props = {

@@ -3,23 +3,23 @@ import { useEffect, useState } from "preact/hooks";
 
 import { DeckArticle, DeckKind, ArticleListings } from "types";
 
+import CivilInput from "components/civil-input";
+import DeckManager from "components/deck-manager";
+import DeleteDeckConfirmation from "components/delete-deck-confirmation";
+import InsigniaSelector from "features/insignias/selector";
+import LeftMarginHeading from "components/left-margin-heading";
+import LeftMarginHeadingNoWrap from "components/left-margin-heading-no-wrap";
+import Net from "utils/net";
+import SegmentBackRefs from "components/segment-back-refs";
+import SegmentDeckRefs from "components/segment-deck-refs";
+import SegmentGraph from "features/graph/segment-graph";
+import SegmentNotes from "features/notes/segment-notes";
+import TopMatter from "components/top-matter";
+import { SlimDeckGrouping, RatedGrouping } from "components/groupings";
+import { StarRatingPartial } from "components/star-rating";
+import { buildUrl, deckKindToHeadingString } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
-import CivilInput from "./civil-input";
-import { buildUrl, deckKindToHeadingString } from "../civil-utils";
-import DeckManager from "./deck-manager";
-import DeleteDeckConfirmation from "./delete-deck-confirmation";
-import LeftMarginHeading from "./left-margin-heading";
-import LeftMarginHeadingNoWrap from "./left-margin-heading-no-wrap";
-import Net from "net";
-import SegmentBackRefs from "./segment-back-refs";
-import SegmentDeckRefs from "./segment-deck-refs";
-import SegmentGraph from "./segment-graph";
-import SegmentNotes from "./segment-notes";
-import TopMatter from "./top-matter";
-import { SlimDeckGrouping, RatedGrouping } from "./groupings";
-import { InsigniaSelector } from "./insignias";
-import { StarRatingPartial } from "./star-rating";
-import { removeEmptyStrings, formattedDate } from "../js-utils";
+import { removeEmptyStrings, formattedDate } from "utils/js";
 
 function Articles({ path }: { path?: string }) {
     const appState = getAppState();

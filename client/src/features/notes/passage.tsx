@@ -11,13 +11,13 @@ import {
     ToolbarMode,
 } from "types";
 
-import Net from "net";
+import Net from "utils/net";
 import { getAppState, AppStateChange } from "app-state";
-import { svgEdit } from "../svg-icons";
+import { svgEdit } from "components/svg-icons";
 
-import NoteForm from "./note-form";
-import NoteView from "./note-view";
-import WhenVerbose from "./when-verbose";
+import NoteForm from "features/notes/note-form";
+import NoteView from "features/notes/note-view";
+import WhenVerbose from "components/when-verbose";
 
 type PassageProps = {
     deck: FatDeck;

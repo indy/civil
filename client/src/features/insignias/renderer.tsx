@@ -1,65 +1,5 @@
 import { h } from "preact";
-
-type Props = {
-    insigniaId: number;
-    onChange: (id: number) => void;
-};
-
-export function InsigniaSelector({ insigniaId, onChange }: Props) {
-    function onTicked(bit: number) {
-        let val = setbit(insigniaId, bit);
-        onChange(val);
-    }
-
-    function onUnticked(bit: number) {
-        let val = clearbit(insigniaId, bit);
-        onChange(val);
-    }
-
-    return (
-        <div class="insignia-selector">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                <SingleInsignia
-                    value={insigniaId}
-                    bit={i}
-                    onTicked={onTicked}
-                    onUnticked={onUnticked}
-                />
-            ))}
-        </div>
-    );
-}
-
-type SingleInsigniaProps = {
-    value: number;
-    bit: number;
-    onTicked: (bit: number) => void;
-    onUnticked: (bit: number) => void;
-};
-
-function SingleInsignia({
-    value,
-    bit,
-    onTicked,
-    onUnticked,
-}: SingleInsigniaProps) {
-    let cl = "insignia-button ";
-    cl += bitset(value, bit) ? "insignia-selected" : "insignia-unselected";
-
-    function onClickHandler() {
-        if (bitset(value, bit)) {
-            onUnticked(bit);
-        } else {
-            onTicked(bit);
-        }
-    }
-
-    return (
-        <div class={cl} onClick={onClickHandler}>
-            {renderInsignia(bitAsValue(bit))}
-        </div>
-    );
-}
+import { bitset } from "utils/bitops";
 
 export function renderInsignia(insigniaId: number) {
     return (
@@ -74,22 +14,6 @@ export function renderInsignia(insigniaId: number) {
             {bitset(insigniaId, 8) && svgTag("#00aa00")}
         </span>
     );
-}
-
-function bitAsValue(bit: number) {
-    return 1 << (bit - 1);
-}
-
-function bitset(insigniaId: number, bit: number) {
-    return !!(insigniaId & (1 << (bit - 1)));
-}
-
-function setbit(insigniaId: number, bit: number) {
-    return insigniaId | (1 << (bit - 1));
-}
-
-function clearbit(insigniaId: number, bit: number) {
-    return insigniaId & ~(1 << (bit - 1));
 }
 
 // https://icons.getbootstrap.com/icons/twitter/
