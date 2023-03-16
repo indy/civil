@@ -2,7 +2,7 @@ import { h } from "preact";
 import { useEffect } from "preact/hooks";
 import { route } from "preact-router";
 
-import { DeckKind, NoteKind, DeckQuote, FatDeck } from "types";
+import { Key, DM, DeckKind, NoteKind, DeckQuote } from "types";
 
 import Net from "utils/net";
 import buildMarkup from "features/notes/build-markup";
@@ -12,7 +12,7 @@ import { useLocalReducer } from "components/use-local-reducer";
 
 import CivilInput from "components/civil-input";
 import CivilTextArea from "components/civil-text-area";
-import DeckManager from "components/deck-manager";
+import UseDeckManager from "components/use-deck-manager";
 import DeleteConfirmation from "components/delete-confirmation";
 import SegmentNotes from "features/notes/segment-notes";
 
@@ -171,23 +171,10 @@ function Quotes({ path }: { path?: string }) {
     );
 }
 
-function preCacheFn(d: FatDeck) {
-    return d;
-}
-
 function Quote({ path, id }: { path?: string; id?: string }) {
     const appState = getAppState();
 
-    const quoteId = id ? parseInt(id, 10) : 0;
-    const deckKind = DeckKind.Quote;
-
-    const deckManager = DeckManager({
-        id: quoteId,
-        deckKind,
-        preCacheFn,
-        hasSummaryPassage: false,
-        hasReviewPassage: false,
-    });
+    const deckManager: DM<DeckQuote> = UseDeckManager(id, DeckKind.Quote);
 
     useEffect(() => {
         document.addEventListener("keydown", onKeyDown);
@@ -209,9 +196,11 @@ function Quote({ path, id }: { path?: string; id?: string }) {
 
     function onKeyDown(e: KeyboardEvent) {
         if (
+            id &&
             !appState.componentRequiresFullKeyboardAccess.value &&
             !appState.showingSearchCommand.value
         ) {
+            const quoteId = parseInt(id, 10);
             if (e.key === "n") {
                 getQuoteThenRoute(`/api/quotes/${quoteId}/next`);
             } else if (e.key === "p") {
@@ -222,43 +211,45 @@ function Quote({ path, id }: { path?: string; id?: string }) {
         }
     }
 
-    function onEditedAttribute(attribution: string) {
-        let deckQuote: DeckQuote = deck! as DeckQuote;
-        let note = deckQuote.notes.find((n) => n.kind === NoteKind.Note);
+    function onEditedAttributeFn(deckId: Key) {
+        return function(attribution: string) {
+            let deckQuote: DeckQuote = deck! as DeckQuote;
+            let note = deckQuote.notes.find((n) => n.kind === NoteKind.Note);
 
-        type ProtoQuote = {
-            title: string;
-            text: string; // not really needed, server side only uses title and attribution
-            attribution: string;
-            insignia: number;
-        };
-
-        if (note) {
-            let data: ProtoQuote = {
-                title: deckQuote.title,
-                text: note.content, // not really needed, server side only uses title and attribution
-                attribution: attribution,
-                insignia: 0,
+            type ProtoQuote = {
+                title: string;
+                text: string; // not really needed, server side only uses title and attribution
+                attribution: string;
+                insignia: number;
             };
 
-            // as the title could have changed, we need to post the updated quote to the server
-            Net.put<ProtoQuote, FatDeck>(`/api/quotes/${quoteId}`, data).then(
-                (updatedDeck) => {
-                    deckManager.updateAndReset(updatedDeck);
-                }
-            );
+            if (note) {
+                let data: ProtoQuote = {
+                    title: deckQuote.title,
+                    text: note.content, // not really needed, server side only uses title and attribution
+                    attribution: attribution,
+                    insignia: 0,
+                };
+
+                // as the title could have changed, we need to post the updated quote to the server
+                Net.put<ProtoQuote, DeckQuote>(`/api/quotes/${deckId}`, data).then(
+                    (updatedDeck) => {
+                        deckManager.updateAndReset(updatedDeck);
+                    }
+                );
+            }
         }
     }
 
-    function onDelete() {
-        Net.delete(`/api/quotes/${quoteId}`, {}).then(() => {
-            route("/quotes");
-        });
+    function onDeleteFn(deckId: Key) {
+        return function() {
+            Net.delete(`/api/quotes/${deckId}`, {}).then(() => {
+                route("/quotes");
+            });
+        }
     }
 
-    const deck: DeckQuote | undefined = deckManager.getDeck() as
-        | DeckQuote
-        | undefined;
+    const deck: DeckQuote | undefined = deckManager.getDeck();
     if (deck) {
         return (
             <article id="quotation-article">
@@ -268,15 +259,15 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                     howToShowPassage={deckManager.howToShowPassage}
                     canShowPassage={deckManager.canShowPassage}
                     onRefsChanged={deckManager.onRefsChanged}
-                    deckKind={deckKind}
+                    deckKind={deckManager.getDeckKind()}
                     onUpdateDeck={deckManager.update}
                     noappend
                 />
 
                 <Attribution
                     attribution={deck.attribution}
-                    onEdited={onEditedAttribute}
-                    onDelete={onDelete}
+                    onEdited={onEditedAttributeFn(deck.id)}
+                    onDelete={onDeleteFn(deck.id)}
                 />
             </article>
         );

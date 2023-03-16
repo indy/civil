@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { ProtoPoint } from "types";
+import { Key, ProtoPoint } from "types";
 
 import { parseDateStringAsTriple, deltaInYears } from "utils/eras";
 
@@ -15,8 +15,9 @@ enum LifespanStage {
 }
 
 type Props = {
+    deckId: Key;
     title: string;
-    onLifespanGiven: (a: ProtoPoint, b?: ProtoPoint) => void;
+    onLifespanGiven: (id: Key, a: ProtoPoint, b?: ProtoPoint) => void;
     oldestAliveAge: number;
 };
 
@@ -27,6 +28,7 @@ type State = {
 };
 
 export default function LifespanForm({
+    deckId,
     title,
     onLifespanGiven,
     oldestAliveAge,
@@ -42,7 +44,7 @@ export default function LifespanForm({
         if (localState.stage === LifespanStage.Finished) {
             // invoking onLifespanGiven will remove this form
             if (localState.birthPoint) {
-                onLifespanGiven(localState.birthPoint, localState.deathPoint);
+                onLifespanGiven(deckId, localState.birthPoint, localState.deathPoint);
             }
         }
     }, [localState]);

@@ -4,10 +4,10 @@ import { useEffect, useState } from "preact/hooks";
 
 import {
     DeckKind,
-    DeckManagerType,
+    DeckManagerFlags,
+    DM,
     DeckPerson,
     DeckPoint,
-    FatDeck,
     Key,
     SlimDeck,
     PeopleListings,
@@ -34,7 +34,7 @@ import {
 import WhenVerbose from "components/when-verbose";
 
 import CivilInput from "components/civil-input";
-import DeckManager from "components/deck-manager";
+import UseDeckManager from "components/use-deck-manager";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "features/insignias/selector";
 import LifespanForm from "components/lifespan-form";
@@ -106,16 +106,8 @@ function Person({ path, id }: { path?: string; id?: string }) {
     const [searchResults, setSearchResults]: [Array<SlimDeck>, Function] =
         useState([]); // an array of backrefs
 
-    const personId = id ? parseInt(id, 10) : 0;
-
-    const deckKind: DeckKind = DeckKind.Person;
-    const deckManager: DeckManagerType = DeckManager({
-        id: personId,
-        deckKind,
-        preCacheFn,
-        hasSummaryPassage: true,
-        hasReviewPassage: false,
-    });
+    let flags = DeckManagerFlags.Summary;
+    const deckManager: DM<DeckPerson> = UseDeckManager(id, DeckKind.Person, flags, preCacheFn);
 
     useEffect(() => {
         Net.get<SearchResults>(`/api/people/${id}/additional_search`).then(
@@ -132,14 +124,14 @@ function Person({ path, id }: { path?: string; id?: string }) {
         });
     }
 
-    function onLifespan(birthPoint: ProtoPoint, deathPoint?: ProtoPoint) {
+    function onLifespan(deckId: Key, birthPoint: ProtoPoint, deathPoint?: ProtoPoint) {
         Net.post<ProtoPoint, DeckPerson>(
-            `/api/people/${personId}/points`,
+            `/api/people/${deckId}/points`,
             birthPoint
         ).then((person) => {
             if (deathPoint) {
                 Net.post<ProtoPoint, DeckPerson>(
-                    `/api/people/${personId}/points`,
+                    `/api/people/${deckId}/points`,
                     deathPoint
                 ).then((person) => {
                     dispatchUpdatedPerson(person);
@@ -150,7 +142,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
         });
     }
 
-    function hasBirthPoint(person: FatDeck) {
+    function hasBirthPoint(person: DeckPerson) {
         function hasBirth(point: DeckPoint) {
             return point.title === "Born" && point.deckId === person.id;
         }
@@ -161,9 +153,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
         return false;
     }
 
-    const deck: DeckPerson | undefined = deckManager.getDeck() as
-        | DeckPerson
-        | undefined;
+    const deck: DeckPerson | undefined = deckManager.getDeck();
     if (deck) {
         const title = deck && deck.title;
         const hasKnownLifespan = deck && hasBirthPoint(deck);
@@ -181,8 +171,8 @@ function Person({ path, id }: { path?: string; id?: string }) {
                 {deckManager.isShowingUpdateForm() && (
                     <div>
                         <DeleteDeckConfirmation
-                            deckKind={DeckKind.Person}
-                            id={personId}
+                            deckKind={deckManager.getDeckKind()}
+                            id={deck.id}
                         />
                         <PersonUpdater
                             person={deck}
@@ -194,6 +184,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
 
                 {title && !hasKnownLifespan && (
                     <LifespanForm
+                        deckId={deck.id}
                         title={title}
                         onLifespanGiven={onLifespan}
                         oldestAliveAge={appState.oldestAliveAge}
@@ -211,7 +202,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
                     deck={deck}
                     title={deck.title}
                     onRefsChanged={deckManager.onRefsChanged}
-                    deckKind={deckKind}
+                    deckKind={deckManager.getDeckKind()}
                     howToShowPassage={deckManager.howToShowPassage}
                     canShowPassage={deckManager.canShowPassage}
                     onUpdateDeck={deckManager.update}
@@ -238,7 +229,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
 }
 
 // called before this deck is cached by the AppState (ie after every modification)
-function preCacheFn(person: FatDeck): FatDeck {
+function preCacheFn(person: DeckPerson): DeckPerson {
     function getBirthDateFromPoints(points: Array<DeckPoint>) {
         const kind: PointKind = PointKind.PointBegin;
         const p = points.find((p) => p.kind === kind && p.deckId === person.id);
@@ -287,7 +278,7 @@ function PersonUpdater({
     onCancel,
 }: {
     person: DeckPerson;
-    onUpdate: (p: FatDeck) => void;
+    onUpdate: (p: DeckPerson) => void;
     onCancel: () => void;
 }) {
     const [localState, setLocalState] = useState({
@@ -431,7 +422,7 @@ function SegmentPoints({
     showAddPointForm,
 }: {
     deckPoints: Array<DeckPoint> | undefined;
-    deckManager: DeckManagerType;
+    deckManager: DM<DeckPerson>;
     holderId: Key;
     holderTitle: string;
     showAddPointForm: boolean;

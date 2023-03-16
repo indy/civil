@@ -4,6 +4,11 @@ import { Signal } from "@preact/signals";
 
 export type Key = number;
 
+export enum DeckManagerFlags {
+    Summary = 1,
+    Review = 2,
+}
+
 export enum DeckKind {
     Article = 1,
     Person,
@@ -380,12 +385,13 @@ export type Node = {
 
 export type Edge = [number, number, number, RefKind];
 
-export type DeckManagerType = {
-    update: (d: FatDeck) => void;
-    getDeck: () => FatDeck | undefined;
+export type DM<T extends FatDeck> = {
+    update: (d: T) => void;
+    getDeck: () => T | undefined;
+    getDeckKind: () => DeckKind;
     isShowingUpdateForm: () => boolean;
     isEditingDeckRefs: () => boolean;
-    updateAndReset: (newDeck: FatDeck) => void;
+    updateAndReset: (newDeck: T) => void;
     onShowSummaryClicked: () => void;
     onShowReviewClicked: () => void;
     onRefsToggle: () => void;

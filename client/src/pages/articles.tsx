@@ -1,24 +1,27 @@
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { DeckArticle, DeckKind, ArticleListings } from "types";
+import { DeckManagerFlags, DM, DeckArticle, DeckKind, ArticleListings } from "types";
 
-import CivilInput from "components/civil-input";
-import DeckManager from "components/deck-manager";
-import DeleteDeckConfirmation from "components/delete-deck-confirmation";
+import { getAppState, AppStateChange } from "app-state";
+
 import InsigniaSelector from "features/insignias/selector";
-import LeftMarginHeading from "components/left-margin-heading";
-import LeftMarginHeadingNoWrap from "components/left-margin-heading-no-wrap";
-import Net from "utils/net";
-import SegmentBackRefs from "components/segment-back-refs";
-import SegmentDeckRefs from "components/segment-deck-refs";
 import SegmentGraph from "features/graph/segment-graph";
 import SegmentNotes from "features/notes/segment-notes";
+
+import CivilInput from "components/civil-input";
+import UseDeckManager from "components/use-deck-manager";
+import DeleteDeckConfirmation from "components/delete-deck-confirmation";
+import LeftMarginHeading from "components/left-margin-heading";
+import LeftMarginHeadingNoWrap from "components/left-margin-heading-no-wrap";
+import SegmentBackRefs from "components/segment-back-refs";
+import SegmentDeckRefs from "components/segment-deck-refs";
 import TopMatter from "components/top-matter";
 import { SlimDeckGrouping, RatedGrouping } from "components/groupings";
 import { StarRatingPartial } from "components/star-rating";
+
+import Net from "utils/net";
 import { buildUrl, deckKindToHeadingString } from "utils/civil";
-import { getAppState, AppStateChange } from "app-state";
 import { removeEmptyStrings, formattedDate } from "utils/js";
 
 function Articles({ path }: { path?: string }) {
@@ -55,23 +58,14 @@ function Articles({ path }: { path?: string }) {
 }
 
 function Article({ path, id }: { path?: string; id?: string }) {
-    const articleId = id ? parseInt(id, 10) : 0;
-
-    const deckKind = DeckKind.Article;
-    const deckManager = DeckManager({
-        id: articleId,
-        deckKind,
-        hasSummaryPassage: true,
-        hasReviewPassage: true,
-    });
+    let flags = DeckManagerFlags.Summary | DeckManagerFlags.Review;
+    const deckManager: DM<DeckArticle> = UseDeckManager(id, DeckKind.Article, flags);
 
     function Url({ url }: { url: string }) {
         return <a href={url}>{url}</a>;
     }
 
-    const deck: DeckArticle | undefined = deckManager.getDeck() as
-        | DeckArticle
-        | undefined;
+    const deck: DeckArticle | undefined = deckManager.getDeck();
     if (deck) {
         return (
             <article>
@@ -105,8 +99,8 @@ function Article({ path, id }: { path?: string; id?: string }) {
                 {deckManager.isShowingUpdateForm() && (
                     <div>
                         <DeleteDeckConfirmation
-                            deckKind={DeckKind.Article}
-                            id={articleId}
+                            deckKind={deckManager.getDeckKind()}
+                            id={deck.id}
                         />
                         <button onClick={deckManager.onShowSummaryClicked}>
                             Show Summary Passage
@@ -134,7 +128,7 @@ function Article({ path, id }: { path?: string; id?: string }) {
                     deck={deck}
                     title={deck.title}
                     onRefsChanged={deckManager.onRefsChanged}
-                    deckKind={deckKind}
+                    deckKind={deckManager.getDeckKind()}
                     howToShowPassage={deckManager.howToShowPassage}
                     canShowPassage={deckManager.canShowPassage}
                     onUpdateDeck={deckManager.update}

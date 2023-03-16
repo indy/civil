@@ -2,6 +2,7 @@ import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import {
+    DM,
     DeckIdea,
     DeckKind,
     SlimDeck,
@@ -14,7 +15,7 @@ import { capitalise, formattedDate } from "utils/js";
 import { getAppState, AppStateChange } from "app-state";
 
 import CivilInput from "components/civil-input";
-import DeckManager from "components/deck-manager";
+import UseDeckManager from "components/use-deck-manager";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "features/insignias/selector";
 import LeftMarginHeading from "components/left-margin-heading";
@@ -66,7 +67,6 @@ function Ideas({ path }: { path?: string }) {
 function Idea({ path, id }: { path?: string; id?: string }) {
     const [searchResults, setSearchResults]: [Array<SlimDeck>, Function] =
         useState([]); // an array of backrefs
-    const ideaId = id ? parseInt(id, 10) : 0;
 
     useEffect(() => {
         // This  additional search query is slow, so it has to be a separate
@@ -82,18 +82,9 @@ function Idea({ path, id }: { path?: string; id?: string }) {
         );
     }, [id]);
 
-    const deckKind: DeckKind = DeckKind.Idea;
+    const deckManager: DM<DeckIdea> = UseDeckManager(id, DeckKind.Idea);
 
-    const deckManager = DeckManager({
-        id: ideaId,
-        deckKind,
-        hasSummaryPassage: false,
-        hasReviewPassage: false,
-    });
-
-    const deck: DeckIdea | undefined = deckManager.getDeck() as
-        | DeckIdea
-        | undefined;
+    const deck: DeckIdea | undefined = deckManager.getDeck();
     if (deck) {
         return (
             <article>
@@ -113,8 +104,8 @@ function Idea({ path, id }: { path?: string; id?: string }) {
                 {deckManager.isShowingUpdateForm() && (
                     <div>
                         <DeleteDeckConfirmation
-                            deckKind={DeckKind.Idea}
-                            id={ideaId}
+                            deckKind={deckManager.getDeckKind()}
+                            id={deck.id}
                         />
                         <IdeaUpdater
                             idea={deck}
@@ -133,7 +124,7 @@ function Idea({ path, id }: { path?: string; id?: string }) {
 
                 <SegmentNotes
                     deck={deck}
-                    deckKind={deckKind}
+                    deckKind={deckManager.getDeckKind()}
                     title={deck.title}
                     howToShowPassage={deckManager.howToShowPassage}
                     canShowPassage={deckManager.canShowPassage}

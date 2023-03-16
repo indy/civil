@@ -3,7 +3,8 @@ import { useEffect, useState } from "preact/hooks";
 
 import {
     DeckKind,
-    DeckManagerType,
+    DeckManagerFlags,
+    DM,
     DeckPoint,
     DeckTimeline,
     SlimDeck,
@@ -22,7 +23,7 @@ import {
 } from "components/svg-icons";
 
 import CivilInput from "components/civil-input";
-import DeckManager from "components/deck-manager";
+import UseDeckManager from "components/use-deck-manager";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "features/insignias/selector";
 import RollableSegment from "components/rollable-segment";
@@ -59,19 +60,10 @@ function Timelines({ path }: { path?: string }) {
 function Timeline({ path, id }: { path?: string; id?: string }) {
     const appState = getAppState();
 
-    const timelineId = id ? parseInt(id, 10) : 0;
-    const deckKind: DeckKind = DeckKind.Timeline;
+    let flags = DeckManagerFlags.Summary;
+    const deckManager: DM<DeckTimeline> = UseDeckManager(id, DeckKind.Timeline, flags);
 
-    const deckManager = DeckManager({
-        id: timelineId,
-        deckKind,
-        hasSummaryPassage: true,
-        hasReviewPassage: false,
-    });
-
-    const deck: DeckTimeline | undefined = deckManager.getDeck() as
-        | DeckTimeline
-        | undefined;
+    const deck: DeckTimeline | undefined = deckManager.getDeck();
     if (deck) {
         return (
             <article>
@@ -88,7 +80,7 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                     <div>
                         <DeleteDeckConfirmation
                             deckKind={DeckKind.Timeline}
-                            id={timelineId}
+                            id={deck.id}
                         />
                         <TimelineUpdater
                             timeline={deck}
@@ -108,7 +100,7 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                     deck={deck}
                     title={deck.title}
                     onRefsChanged={deckManager.onRefsChanged}
-                    deckKind={deckKind}
+                    deckKind={deckManager.getDeckKind()}
                     howToShowPassage={deckManager.howToShowPassage}
                     canShowPassage={deckManager.canShowPassage}
                     onUpdateDeck={deckManager.update}
@@ -264,7 +256,7 @@ function SegmentPoints({
     showAddPointForm,
 }: {
     points: Array<DeckPoint> | undefined;
-    deckManager: DeckManagerType;
+    deckManager: DM<DeckTimeline>;
     showAddPointForm: boolean;
 }) {
     function onAddPointClicked(e: Event) {
