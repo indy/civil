@@ -40,7 +40,7 @@ function identity<T extends FatDeck>(a: T): T {
     return a;
 }
 
-export default function UseDeckManager<T extends FatDeck>(
+export default function useDeckManager<T extends FatDeck>(
     id: string | undefined,
     deckKind: DeckKind,
     flags?: number,

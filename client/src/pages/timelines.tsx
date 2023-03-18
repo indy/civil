@@ -23,7 +23,7 @@ import {
 } from "components/svg-icons";
 
 import CivilInput from "components/civil-input";
-import UseDeckManager from "components/use-deck-manager";
+import useDeckManager from "components/use-deck-manager";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "features/insignias/selector";
 import RollableSegment from "components/rollable-segment";
@@ -61,7 +61,7 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
     const appState = getAppState();
 
     let flags = DeckManagerFlags.Summary;
-    const deckManager: DM<DeckTimeline> = UseDeckManager(
+    const deckManager: DM<DeckTimeline> = useDeckManager(
         id,
         DeckKind.Timeline,
         flags

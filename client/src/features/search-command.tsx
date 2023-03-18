@@ -18,9 +18,9 @@ import Net from "utils/net";
 import { getAppState, AppStateChange } from "app-state";
 import { deckKindToResourceString, indexToShortcut } from "utils/civil";
 import { svgX, svgChevronDown, svgChevronUp } from "components/svg-icons";
-import { useLocalReducer } from "components/use-local-reducer";
 
 import DeckLink from "components/deck-link";
+import useLocalReducer from "components/use-local-reducer";
 
 enum Mode {
     Search,

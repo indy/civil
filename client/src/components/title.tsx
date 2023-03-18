@@ -1,10 +1,12 @@
 import { h } from "preact";
-import { useEffect, useState, useRef } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 
 import { ToolbarMode } from "types";
+import { getAppState, AppStateChange } from "app-state";
 
 import { addToolbarSelectableClasses } from "utils/civil";
-import { getAppState, AppStateChange } from "app-state";
+
+import useMouseHovering from "components/use-mouse-hovering";
 
 type Props = {
     title: string;
@@ -24,14 +26,7 @@ export default function Title({
     const appState = getAppState();
 
     const hoveringRef = useRef(null);
-    const [mouseHovering, setMouseHovering] = useState(false);
-
-    function mouseEnterTitle() {
-        setMouseHovering(true);
-    }
-    function mouseLeaveTitle() {
-        setMouseHovering(false);
-    }
+    const mouseHovering = useMouseHovering(hoveringRef);
 
     const preMarkerRef = useRef(null); // an element on the page, when it's offscreen apply title-sticky to the h1
     const postMarkerRef = useRef(null); // an element on the page, when it's onscreen remove title-sticky from the h1
@@ -96,20 +91,6 @@ export default function Title({
                 }
             }
         };
-
-        if (hoveringRef && hoveringRef.current) {
-            let hc = hoveringRef.current as HTMLElement;
-            hc.addEventListener("mouseenter", mouseEnterTitle, false);
-            hc.addEventListener("mouseleave", mouseLeaveTitle, false);
-            return () => {
-                if (hoveringRef && hc) {
-                    hc.removeEventListener("mouseenter", mouseEnterTitle);
-                    hc.removeEventListener("mouseleave", mouseLeaveTitle);
-                }
-            };
-        }
-        // added to please tsc
-        return () => {};
     }, []);
 
     let classes = "deck-title selectable-content";

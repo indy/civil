@@ -1,4 +1,5 @@
 import { h } from "preact";
+import { useRef } from "preact/hooks";
 
 import {
     FatDeck,
@@ -7,13 +8,17 @@ import {
     ProtoNoteReferences,
     Ref,
     RefsModified,
+    ToolbarMode,
 } from "types";
 
 import Net from "utils/net";
-import { AppStateChange } from "app-state";
+import { getAppState, AppStateChange } from "app-state";
+import { addToolbarSelectableClasses } from "utils/civil";
 
 import CivilSelect from "components/civil-select";
 import RefView from "components/ref-view";
+
+import useMouseHovering from "components/use-mouse-hovering";
 
 type Props = {
     deck: FatDeck;
@@ -28,6 +33,29 @@ export default function SegmentDeckRefs({
     onRefsChanged,
     onRefsToggle,
 }: Props) {
+    const appState = getAppState();
+
+    const hoveringRef = useRef(null);
+    const mouseHovering = useMouseHovering(hoveringRef);
+
+    let containerClasses = "deck-ref-segment selectable-container";
+    if (mouseHovering) {
+        let toolbarMode = appState.toolbarMode.value;
+        // only show as selectable if in edit or refs mode
+        if (toolbarMode === ToolbarMode.Refs) {
+            containerClasses += addToolbarSelectableClasses(toolbarMode);
+        }
+    }
+    function onSegmentClicked(e) {
+        if (appState.toolbarMode.value === ToolbarMode.Refs) {
+            if (isEditing) {
+                AppStateChange.toolbarMode(ToolbarMode.View);
+            }
+            onRefsToggle();
+            return;
+        }
+    }
+
     function onCancel() {
         onRefsToggle();
     }
@@ -53,7 +81,11 @@ export default function SegmentDeckRefs({
 
     if (deckMeta && deckMeta.decks) {
         return (
-            <div class="deck-ref-segment">
+            <div
+                class={containerClasses}
+                ref={hoveringRef}
+                onClick={onSegmentClicked}
+            >
                 {!isEditing && deckMeta.decks.length > 0 && (
                     <div>
                         <hr class="light" />

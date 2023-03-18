@@ -4,10 +4,10 @@ import { FlashCard } from "types";
 
 import Net from "utils/net";
 import { daysUntil, plural } from "utils/js";
-import { useLocalReducer } from "components/use-local-reducer";
 
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";
+import useLocalReducer from "components/use-local-reducer";
 
 enum ActionType {
     IsEditingToggle,

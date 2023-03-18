@@ -34,7 +34,7 @@ import {
 import WhenVerbose from "components/when-verbose";
 
 import CivilInput from "components/civil-input";
-import UseDeckManager from "components/use-deck-manager";
+import useDeckManager from "components/use-deck-manager";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "features/insignias/selector";
 import LifespanForm from "components/lifespan-form";
@@ -107,7 +107,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
         useState([]); // an array of backrefs
 
     let flags = DeckManagerFlags.Summary;
-    const deckManager: DM<DeckPerson> = UseDeckManager(
+    const deckManager: DM<DeckPerson> = useDeckManager(
         id,
         DeckKind.Person,
         flags,

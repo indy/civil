@@ -8,13 +8,13 @@ import Net from "utils/net";
 import buildMarkup from "features/notes/build-markup";
 import { capitalise } from "utils/js";
 import { getAppState, AppStateChange } from "app-state";
-import { useLocalReducer } from "components/use-local-reducer";
 
 import CivilInput from "components/civil-input";
 import CivilTextArea from "components/civil-text-area";
-import UseDeckManager from "components/use-deck-manager";
 import DeleteConfirmation from "components/delete-confirmation";
 import SegmentNotes from "features/notes/segment-notes";
+import useDeckManager from "components/use-deck-manager";
+import useLocalReducer from "components/use-local-reducer";
 
 enum ActionType {
     ShowAddForm,
@@ -174,7 +174,7 @@ function Quotes({ path }: { path?: string }) {
 function Quote({ path, id }: { path?: string; id?: string }) {
     const appState = getAppState();
 
-    const deckManager: DM<DeckQuote> = UseDeckManager(id, DeckKind.Quote);
+    const deckManager: DM<DeckQuote> = useDeckManager(id, DeckKind.Quote);
 
     useEffect(() => {
         document.addEventListener("keydown", onKeyDown);

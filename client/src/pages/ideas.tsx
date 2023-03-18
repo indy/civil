@@ -15,7 +15,7 @@ import { capitalise, formattedDate } from "utils/js";
 import { getAppState, AppStateChange } from "app-state";
 
 import CivilInput from "components/civil-input";
-import UseDeckManager from "components/use-deck-manager";
+import useDeckManager from "components/use-deck-manager";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "features/insignias/selector";
 import LeftMarginHeading from "components/left-margin-heading";
@@ -82,7 +82,7 @@ function Idea({ path, id }: { path?: string; id?: string }) {
         );
     }, [id]);
 
-    const deckManager: DM<DeckIdea> = UseDeckManager(id, DeckKind.Idea);
+    const deckManager: DM<DeckIdea> = useDeckManager(id, DeckKind.Idea);
 
     const deck: DeckIdea | undefined = deckManager.getDeck();
     if (deck) {

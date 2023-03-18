@@ -18,7 +18,6 @@ import Net from "utils/net";
 import { addToolbarSelectableClasses } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
 import { svgFlashCard } from "components/svg-icons";
-import { useLocalReducer } from "components/use-local-reducer";
 
 import CivilSelect from "components/civil-select";
 import CivilTextArea from "components/civil-text-area";
@@ -28,6 +27,8 @@ import ImageSelector from "features/image-selector";
 import NoteForm from "features/notes/note-form";
 import RefView from "components/ref-view";
 import buildMarkup from "features/notes/build-markup";
+import useLocalReducer from "components/use-local-reducer";
+import useMouseHovering from "components/use-mouse-hovering";
 
 enum ActionType {
     AddDecksCommit,
@@ -42,8 +43,6 @@ enum ActionType {
     FlashCardSaved,
     HideAddDecksUi,
     ImagePasted,
-    MouseEnter,
-    MouseLeave,
     NoteChanged,
     NoteSetProperty,
     TextAreaBlurred,
@@ -60,7 +59,6 @@ type LocalState = {
     originalContent: string;
     decks: Array<Ref>;
     flashcardToShow: FlashCard | undefined;
-    mouseHovering: boolean;
     oldCursorPos: number;
     textAreaFocused: boolean;
 };
@@ -140,20 +138,6 @@ function reducer(state: LocalState, action: Action) {
                 ...state,
                 oldCursorPos: action.data as number,
                 textAreaFocused: false,
-            };
-            return res;
-        }
-        case ActionType.MouseEnter: {
-            let res = {
-                ...state,
-                mouseHovering: true,
-            };
-            return res;
-        }
-        case ActionType.MouseLeave: {
-            let res = {
-                ...state,
-                mouseHovering: false,
             };
             return res;
         }
@@ -356,43 +340,21 @@ export default function NoteView({
         originalContent: note.content,
         decks: note && note.decks,
         flashcardToShow: undefined,
-        mouseHovering: false,
         oldCursorPos: 0,
         textAreaFocused: false,
     };
     const [local, localDispatch] = useLocalReducer(reducer, initialState);
 
     const hoveringRef = useRef(null);
-    const textAreaRef = useRef<HTMLTextAreaElement>(null);
+    const mouseHovering = useMouseHovering(hoveringRef);
 
-    function mouseEnter() {
-        localDispatch(ActionType.MouseEnter);
-    }
-    function mouseLeave() {
-        localDispatch(ActionType.MouseLeave);
-    }
+    const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
         // pick up changes to the note's references
         // from the DeckManager::onRefsChanged callback
         localDispatch(ActionType.NoteChanged, note);
     }, [note]);
-
-    useEffect(() => {
-        if (hoveringRef && hoveringRef.current) {
-            let hc = hoveringRef.current as HTMLElement;
-            hc.addEventListener("mouseenter", mouseEnter, false);
-            hc.addEventListener("mouseleave", mouseLeave, false);
-            return () => {
-                if (hoveringRef && hc) {
-                    hc.removeEventListener("mouseenter", mouseEnter);
-                    hc.removeEventListener("mouseleave", mouseLeave);
-                }
-            };
-        }
-        // added to please tsc
-        return () => {};
-    });
 
     function handleChangeEvent(content: string) {
         localDispatch(ActionType.NoteSetProperty, {
@@ -600,7 +562,7 @@ export default function NoteView({
     }
 
     let noteClasses = "note selectable-container";
-    if (local.mouseHovering && toolbarMode !== ToolbarMode.View) {
+    if (mouseHovering && toolbarMode !== ToolbarMode.View) {
         noteClasses += addToolbarSelectableClasses(toolbarMode);
     }
 

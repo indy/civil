@@ -1518,6 +1518,7 @@ input:required {
 .deck-ref-segment {
     font-family: Inter;
     margin-top: 1rem;
+    padding-left: 1rem;
 }
 
 .deck-ref-item {

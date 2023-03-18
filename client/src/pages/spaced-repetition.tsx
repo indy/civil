@@ -8,7 +8,8 @@ import Net from "utils/net";
 import { buildUrl, deckKindToResourceString } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
 import { plural, formattedDate, formattedTime } from "utils/js";
-import { useLocalReducer } from "components/use-local-reducer";
+
+import useLocalReducer from "components/use-local-reducer";
 
 import buildMarkup from "features/notes/build-markup";
 

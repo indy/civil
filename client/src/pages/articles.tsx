@@ -16,7 +16,7 @@ import SegmentGraph from "features/graph/segment-graph";
 import SegmentNotes from "features/notes/segment-notes";
 
 import CivilInput from "components/civil-input";
-import UseDeckManager from "components/use-deck-manager";
+import useDeckManager from "components/use-deck-manager";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import LeftMarginHeading from "components/left-margin-heading";
 import LeftMarginHeadingNoWrap from "components/left-margin-heading-no-wrap";
@@ -65,7 +65,7 @@ function Articles({ path }: { path?: string }) {
 
 function Article({ path, id }: { path?: string; id?: string }) {
     let flags = DeckManagerFlags.Summary | DeckManagerFlags.Review;
-    const deckManager: DM<DeckArticle> = UseDeckManager(
+    const deckManager: DM<DeckArticle> = useDeckManager(
         id,
         DeckKind.Article,
         flags
