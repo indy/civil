@@ -41,6 +41,8 @@
 
 .bookmarkmode-active {
     background: var(--highlight);
+    border-radius: var(--coloured-deck-border-radius);
+    padding: 0.3rem;
 }
 
 /* -------------------------------------------------------------------------------- */
@@ -775,8 +777,8 @@ textarea {
 #saved-search-component {
     position: fixed;
     bottom: 0;
-    left: 0;
-    width: 19%;
+    right: 0;
+    width: 30rem;
 }
 
 .saved-search-menu {
