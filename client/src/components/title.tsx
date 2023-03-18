@@ -11,7 +11,6 @@ import useMouseHovering from "components/use-mouse-hovering";
 type Props = {
     title: string;
     isShowingUpdateForm: boolean;
-    isEditingDeckRefs: boolean;
     onRefsToggle: () => void;
     onFormToggle: () => void;
 };
@@ -19,7 +18,6 @@ type Props = {
 export default function Title({
     title,
     isShowingUpdateForm,
-    isEditingDeckRefs,
     onRefsToggle,
     onFormToggle,
 }: Props) {
@@ -42,9 +40,7 @@ export default function Title({
             return;
         }
         if (appState.toolbarMode.value === ToolbarMode.Refs) {
-            if (isEditingDeckRefs) {
-                AppStateChange.toolbarMode(ToolbarMode.View);
-            }
+            AppStateChange.toolbarMode(ToolbarMode.View);
             onRefsToggle();
             return;
         }

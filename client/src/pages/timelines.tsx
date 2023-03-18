@@ -75,7 +75,6 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                     title={deck.title}
                     deck={deck}
                     isShowingUpdateForm={deckManager.isShowingUpdateForm()}
-                    isEditingDeckRefs={deckManager.isEditingDeckRefs()}
                     onRefsToggle={deckManager.onRefsToggle}
                     onFormToggle={deckManager.onFormToggle}
                 ></TopMatter>

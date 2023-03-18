@@ -10,7 +10,6 @@ type Props = {
     title: string;
     deck: FatDeck;
     isShowingUpdateForm: boolean;
-    isEditingDeckRefs: boolean;
     onRefsToggle: () => void;
     onFormToggle: () => void;
     children?: ComponentChildren;
@@ -20,7 +19,6 @@ export default function TopMatter({
     title,
     deck,
     isShowingUpdateForm,
-    isEditingDeckRefs,
     onRefsToggle,
     onFormToggle,
     children,
@@ -40,7 +38,6 @@ export default function TopMatter({
             <Title
                 title={title}
                 isShowingUpdateForm={isShowingUpdateForm}
-                isEditingDeckRefs={isEditingDeckRefs}
                 onRefsToggle={onRefsToggle}
                 onFormToggle={onFormToggle}
             />
