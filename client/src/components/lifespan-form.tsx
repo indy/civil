@@ -1,11 +1,11 @@
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { Key, ProtoPoint } from "types";
+import { Key, DeckPoint, PointKind, ProtoPoint } from "types";
 
 import { parseDateStringAsTriple, deltaInYears } from "utils/eras";
 
-import { PointBirthForm, PointDeathForm } from "components/point-form";
+import PointForm from "components/point-form";
 
 enum LifespanStage {
     Birth = 0,
@@ -113,4 +113,38 @@ export default function LifespanForm({
         default:
             return <div></div>;
     }
+}
+
+function PointBirthForm({
+    onSubmit,
+}: {
+    onSubmit: (p: ProtoPoint | DeckPoint) => void;
+}) {
+    return (
+        <PointForm
+            timeLegend="Date of Birth"
+            locationLegend="Birth Location"
+            pointKind={PointKind.PointBegin}
+            pointTitle="Born"
+            onSubmit={onSubmit}
+            submitMessage="Add Birth"
+        />
+    );
+}
+
+function PointDeathForm({
+    onSubmit,
+}: {
+    onSubmit: (p: ProtoPoint | DeckPoint) => void;
+}) {
+    return (
+        <PointForm
+            timeLegend="Date of Death"
+            locationLegend="DeathLocation"
+            pointKind={PointKind.PointEnd}
+            pointTitle="Died"
+            onSubmit={onSubmit}
+            submitMessage="Add Death"
+        />
+    );
 }

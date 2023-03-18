@@ -10,40 +10,6 @@ import { parseDateStringAsTriple, parseDateStringAsYearOnly } from "utils/eras";
 import CivilInput from "components/civil-input";
 import CivilTextArea from "components/civil-text-area";
 
-export function PointBirthForm({
-    onSubmit,
-}: {
-    onSubmit: (p: ProtoPoint | DeckPoint) => void;
-}) {
-    return (
-        <PointForm
-            timeLegend="Date of Birth"
-            locationLegend="Birth Location"
-            pointKind={PointKind.PointBegin}
-            pointTitle="Born"
-            onSubmit={onSubmit}
-            submitMessage="Add Birth"
-        />
-    );
-}
-
-export function PointDeathForm({
-    onSubmit,
-}: {
-    onSubmit: (p: ProtoPoint | DeckPoint) => void;
-}) {
-    return (
-        <PointForm
-            timeLegend="Date of Death"
-            locationLegend="DeathLocation"
-            pointKind={PointKind.PointEnd}
-            pointTitle="Died"
-            onSubmit={onSubmit}
-            submitMessage="Add Death"
-        />
-    );
-}
-
 type PointFormProps = {
     pointKind?: PointKind;
     pointTitle?: string;
@@ -72,10 +38,9 @@ type State = {
     roundToYear: boolean;
     hasTypedTitle: boolean;
     kind: PointKind;
-    showMultiPointInput: boolean;
 };
 
-export function PointForm({
+export default function PointForm({
     pointTitle,
     onSubmit,
     submitMessage,
@@ -121,7 +86,6 @@ export function PointForm({
         roundToYear: false,
         hasTypedTitle: false,
         kind: pointKind || PointKind.Point,
-        showMultiPointInput: false,
     };
     const [state, setState] = useState(initialState);
 
@@ -353,14 +317,6 @@ export function PointForm({
         e.preventDefault();
     }
 
-    function onShowMultiPointInputClicked(e: Event) {
-        e.preventDefault();
-        setState({
-            ...state,
-            showMultiPointInput: !state.showMultiPointInput,
-        });
-    }
-
     return (
         <div>
             <form class="civil-form" onSubmit={handleSubmit}>
@@ -514,25 +470,28 @@ export function PointForm({
                 </fieldset>
                 <input type="submit" value={submitMessage} />
             </form>
-            {onSubmitMultiplePoints && (
-                <button onClick={onShowMultiPointInputClicked}>
-                    Multi Point Input...
-                </button>
-            )}
-            {state.showMultiPointInput && onSubmitMultiplePoints && (
-                <MultiPointInput onSubmit={onSubmitMultiplePoints} />
-            )}
+            <OptionalMultiPointInput onSubmit={onSubmitMultiplePoints} />
         </div>
     );
 }
 
-function MultiPointInput({
+function OptionalMultiPointInput({
     onSubmit,
 }: {
-    onSubmit: (ps: Array<ProtoPoint>) => void;
+    onSubmit?: (ps: Array<ProtoPoint>) => void;
 }) {
+    if (!onSubmit) {
+        return <div></div>;
+    }
+
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
     const [content, setContent] = useState("");
+    const [showMultiPointInput, setShowMultiPointInput] = useState(false);
+
+    function onShowMultiPointInputClicked(e: Event) {
+        e.preventDefault();
+        setShowMultiPointInput(!showMultiPointInput);
+    }
 
     function buildPointItem(date: string, title: string): ProtoPoint {
         let s: ProtoPoint = {
@@ -573,30 +532,52 @@ function MultiPointInput({
             return buildPointItem(date, title);
         }
 
-        let points: Array<ProtoPoint> = content.split("\n").map(processLine);
+        let points: Array<ProtoPoint> = [];
+        content.split("\n").forEach((line) => {
+            if (line.trim().length > 0) {
+                points.push(processLine(line));
+            }
+        });
 
-        //console.log(points);
-        onSubmit(points);
+        console.log(points);
+        onSubmit && onSubmit(points); // this stupid check is to please tsc
     }
 
     function onTextAreaFocus() {}
 
     function onTextAreaBlur() {}
 
-    return (
-        <form class="civil-form" onSubmit={handleSubmit}>
-            <CivilTextArea
-                id="content"
-                value={content}
-                elementRef={textAreaRef}
-                onFocus={onTextAreaFocus}
-                onBlur={onTextAreaBlur}
-                onContentChange={setContent}
-            />
-            <br />
-            <input type="submit" value="import multiple points" />
-        </form>
-    );
+    if (showMultiPointInput) {
+        return (
+            <form class="civil-form" onSubmit={handleSubmit}>
+                <p>Start each line with a date followed by the title:</p>
+                <pre>
+                    <code>YYYY-MM-DD some point title</code>
+                    <code>YYYY another point title</code>
+                </pre>
+                <CivilTextArea
+                    id="content"
+                    value={content}
+                    elementRef={textAreaRef}
+                    onFocus={onTextAreaFocus}
+                    onBlur={onTextAreaBlur}
+                    onContentChange={setContent}
+                />
+                <br />
+                <input
+                    class="wider-button"
+                    type="submit"
+                    value="import multiple points"
+                />
+            </form>
+        );
+    } else {
+        return (
+            <button class="wider-button" onClick={onShowMultiPointInputClicked}>
+                Multi Point Input...
+            </button>
+        );
+    }
 }
 
 function asHumanReadableDate(

@@ -184,11 +184,14 @@ function reducer(state: LocalState, action: Action) {
             };
         }
         case ActionType.AddDeckReferencesUiShow:
+            AppStateChange.toolbarMode(ToolbarMode.View);
             return {
                 ...state,
                 addDeckReferencesUI: action.data as boolean,
             };
         case ActionType.AddFlashCardUiShow: {
+            AppStateChange.toolbarMode(ToolbarMode.View);
+
             const showUI = action.data as boolean;
             const newState = {
                 ...state,
@@ -204,6 +207,8 @@ function reducer(state: LocalState, action: Action) {
             return newState;
         }
         case ActionType.AddNoteAboveUiShow: {
+            AppStateChange.toolbarMode(ToolbarMode.View);
+
             const showUI = action.data as boolean;
             const newState = {
                 ...state,
@@ -215,8 +220,6 @@ function reducer(state: LocalState, action: Action) {
             } else {
                 AppStateChange.relinquishKeyboard();
             }
-
-            AppStateChange.toolbarMode(ToolbarMode.View);
 
             return newState;
         }
@@ -266,6 +269,7 @@ function reducer(state: LocalState, action: Action) {
             return newState;
         }
         case ActionType.ToggleEditing: {
+            AppStateChange.toolbarMode(ToolbarMode.View);
             const newState = {
                 ...state,
                 isEditingMarkup: !state.isEditingMarkup,
@@ -275,7 +279,6 @@ function reducer(state: LocalState, action: Action) {
                 AppStateChange.obtainKeyboard();
             } else {
                 AppStateChange.relinquishKeyboard();
-                AppStateChange.toolbarMode(ToolbarMode.View);
             }
 
             return newState;
@@ -600,6 +603,11 @@ export default function NoteView({
         }
     }
 
+    let markupClasses = "note-content selectable-content";
+    if (local.isEditingMarkup) {
+        markupClasses += " invisible";
+    }
+
     return (
         <div class={noteClasses} onClick={onNoteClicked}>
             {local.addNoteAboveUI && buildAddNoteAboveUI()}
@@ -613,11 +621,11 @@ export default function NoteView({
                     onDelete={flashCardDeleted}
                 />
             )}
-            {!local.isEditingMarkup && (
-                <div class="note-content selectable-content" ref={hoveringRef}>
-                    {buildMarkup(local.note.content)}
-                </div>
-            )}
+
+            <div class={markupClasses} ref={hoveringRef}>
+                {buildMarkup(local.note.content)}
+            </div>
+
             {local.addDeckReferencesUI && buildAddDecksUI()}
             {local.addFlashCardUI && buildAddFlashCardUI()}
             {local.isEditingMarkup && buildMainButtons()}

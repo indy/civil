@@ -1,4 +1,4 @@
-import { Edge, Node, GraphCallback, GraphState } from "types";
+import { Edge, GraphNode, GraphCallback, GraphState } from "types";
 
 var initialRadius = 10,
     initialAngle = Math.PI * (3 - Math.sqrt(5));
@@ -77,7 +77,7 @@ export function graphPhysics(
 
             clearPerTickSimStats(graphState);
 
-            let i: number, j: number, node: Node;
+            let i: number, j: number, node: GraphNode;
             let nodes = graphState.nodes;
             let nodeKeys = Object.keys(nodes);
             let n = nodeKeys.length;
@@ -231,7 +231,7 @@ function initializeGraph(graphState: GraphState): {
     var i: number,
         m = links.length,
         link: Edge,
-        node: Node;
+        node: GraphNode;
 
     for (const key in nodes) {
         node = nodes[key];
@@ -278,7 +278,7 @@ function jiggle(): number {
     return (Math.random() - 0.5) * 1e-6;
 }
 
-function forceManyBody(nodeA: Node, nodeB: Node, alpha: number) {
+function forceManyBody(nodeA: GraphNode, nodeB: GraphNode, alpha: number) {
     let distanceMin2 = 1;
     let separatingForce = -900;
 
@@ -303,7 +303,7 @@ function forceManyBody(nodeA: Node, nodeB: Node, alpha: number) {
     nodeA.vy += yDelta * w;
 }
 
-function forceCollideBox(nodeA: Node, nodeB: Node) {
+function forceCollideBox(nodeA: GraphNode, nodeB: GraphNode) {
     let xa = nodeA.x;
     let ya = nodeA.y;
 
@@ -349,7 +349,7 @@ function forceCollideBox(nodeA: Node, nodeB: Node) {
     }
 }
 
-function forceCollide(nodeA: Node, nodeB: Node) {
+function forceCollide(nodeA: GraphNode, nodeB: GraphNode) {
     let ri = 40;
     let ri2 = ri * ri;
 
@@ -380,14 +380,14 @@ function forceCollide(nodeA: Node, nodeB: Node) {
     }
 }
 
-function forceX(node: Node, alpha: number) {
+function forceX(node: GraphNode, alpha: number) {
     let xStrength = 0.1;
     let xZ = 0.0; // the value of x to goto
 
     node.vx += (xZ - node.x) * xStrength * alpha;
 }
 
-function forceY(node: Node, alpha: number) {
+function forceY(node: GraphNode, alpha: number) {
     let yStrength = 0.12;
     let yZ = 0.0; // the value of y to goto
 

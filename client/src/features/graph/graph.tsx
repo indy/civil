@@ -5,11 +5,11 @@ import { route } from "preact-router";
 import {
     Edge,
     ExpandedState,
+    FullGraphStruct,
     GraphCallback,
     GraphNode,
     GraphState,
     Key,
-    Node,
     RefKind,
 } from "types";
 
@@ -100,15 +100,8 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
             // fetch the graph data from the server,
             // dispatch the updated state,
             // and then on the next render initialise using the if statement above
-            type FullGraphStruct = {
-                graphNodes: Array<GraphNode>;
-                graphConnections: Array<number>;
-            };
-
             Net.get<FullGraphStruct>("/api/graph").then((graph) => {
-                let nodes = graph.graphNodes;
-                let connections = graph.graphConnections;
-                AppStateChange.loadGraph(nodes, connections);
+                AppStateChange.loadGraph(graph);
                 setLocalState({
                     ...localState,
                     requireLoad: true,
@@ -130,7 +123,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
     }, [graphState]);
 
     function regenGraphState(gs: GraphState) {
-        let nodes: { [index: number]: Node } = {};
+        let nodes: { [index: number]: GraphNode } = {};
         let edges: Array<Edge> = [];
 
         // create an updated copy of all the visible nodes
@@ -269,7 +262,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
     }
 
     function onMouseButtonDown(event: Event) {
-        if (event.target instanceof HTMLInputElement) {
+        if (event.target instanceof Node) {
             const target = event.target;
             if (target.parentElement) {
                 let g: HTMLElement = target.parentElement;
@@ -622,8 +615,8 @@ function buildUpdateGraphCallback(svg?: any): GraphCallback {
 }
 
 function createSvgEdge(
-    sourceNode: Node,
-    targetNode: Node,
+    sourceNode: GraphNode,
+    targetNode: GraphNode,
     strength: number,
     kind: RefKind
 ) {
@@ -666,7 +659,7 @@ function createSvgEdge(
     return path;
 }
 
-function createSvgNode(n: Node) {
+function createSvgNode(n: GraphNode) {
     let g: any = document.createElementNS("http://www.w3.org/2000/svg", "g");
     g.associatedNode = n;
 
@@ -756,7 +749,7 @@ function createSvgNode(n: Node) {
     return [g, text2];
 }
 
-function translateEdge(svgNode: any, source: Node, target: Node) {
+function translateEdge(svgNode: any, source: GraphNode, target: GraphNode) {
     const r = Math.hypot(target.x - source.x, target.y - source.y);
     let d = `M${source.x},${source.y} A${r},${r} 0 0,1 ${target.x},${target.y}`;
     svgNode.setAttribute("d", d);

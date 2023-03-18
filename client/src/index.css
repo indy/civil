@@ -33,6 +33,12 @@
     }
 }
 
+.mode-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
 .debug-messages {
     position: fixed;
     top: 0;
@@ -1359,6 +1365,11 @@ div.note > textarea {
 #attribution {
     width: 40rem;
 }
+
+.wider-button {
+    width: 12rem;
+}
+
 .civil-form {
     padding-top: 2rem;
     padding-bottom: 1rem;

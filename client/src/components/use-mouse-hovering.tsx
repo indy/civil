@@ -15,10 +15,8 @@ export default function useMouseHovering(hoveringRef: any) {
             hc.addEventListener("mouseenter", mouseEnter, false);
             hc.addEventListener("mouseleave", mouseLeave, false);
             return () => {
-                if (hoveringRef && hc) {
-                    hc.removeEventListener("mouseenter", mouseEnter);
-                    hc.removeEventListener("mouseleave", mouseLeave);
-                }
+                hc.removeEventListener("mouseenter", mouseEnter);
+                hc.removeEventListener("mouseleave", mouseLeave);
             };
         }
         // added to please tsc

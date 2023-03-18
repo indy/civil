@@ -20,7 +20,7 @@ import { getAppState, AppStateChange } from "app-state";
 
 import Passage from "features/notes/passage";
 
-import { PointForm } from "components/point-form";
+import PointForm from "components/point-form";
 
 import { bitset } from "utils/bitops";
 import { buildUrl, sortByResourceThenName } from "utils/civil";

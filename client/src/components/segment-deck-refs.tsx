@@ -48,9 +48,7 @@ export default function SegmentDeckRefs({
     }
     function onSegmentClicked(e) {
         if (appState.toolbarMode.value === ToolbarMode.Refs) {
-            if (isEditing) {
-                AppStateChange.toolbarMode(ToolbarMode.View);
-            }
+            AppStateChange.toolbarMode(ToolbarMode.View);
             onRefsToggle();
             return;
         }

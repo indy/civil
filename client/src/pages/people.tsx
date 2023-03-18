@@ -34,10 +34,10 @@ import {
 import WhenVerbose from "components/when-verbose";
 
 import CivilInput from "components/civil-input";
-import useDeckManager from "components/use-deck-manager";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "features/insignias/selector";
 import LifespanForm from "components/lifespan-form";
+import PointForm from "components/point-form";
 import RollableSegment from "components/rollable-segment";
 import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
@@ -45,7 +45,7 @@ import SegmentGraph from "features/graph/segment-graph";
 import SegmentNotes from "features/notes/segment-notes";
 import SegmentSearchResults from "components/segment-search-results";
 import TopMatter from "components/top-matter";
-import { PointForm } from "components/point-form";
+import useDeckManager from "components/use-deck-manager";
 import { SlimDeckGrouping } from "components/groupings";
 
 function People({ path }: { path?: string }) {
@@ -522,7 +522,7 @@ function SegmentPoints({
 
     const formSidebarText = showAddPointForm
         ? "Hide Form"
-        : `Add Point for { holderTitle }`;
+        : `Add Point for ${holderTitle}`;
     const hasDied =
         deckPoints &&
         deckPoints.some(

@@ -20,7 +20,7 @@ use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Graph {
+pub struct GraphDeck {
     pub id: Key,
     pub name: String,
     pub deck_kind: DeckKind,

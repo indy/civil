@@ -5,17 +5,18 @@ import { useContext } from "preact/hooks";
 import {
     ArticleListings,
     DeckKind,
-    Key,
-    SlimDeck,
+    FullGraphStruct,
     Graph,
-    GraphNode,
+    GraphDeck,
     IdeasListings,
+    Key,
     Listing,
     NoteKind,
     PeopleListings,
     Ref,
     RefKind,
     RefsModified,
+    SlimDeck,
     State,
     ToolbarMode,
     UberSetup,
@@ -32,6 +33,7 @@ const emptyUser: User = {
 };
 
 const state: State = {
+    modeIndicator: signal(""),
     debugMessages: signal([]),
 
     appName: "civil",
@@ -116,7 +118,7 @@ const state: State = {
     recentImages: signal([]),
     imageDirectory: signal(""),
 
-    showConnectivityGraph: signal(false),
+    showConnectivityGraph: signal(true),
     graph: signal({
         fullyLoaded: false,
         // an array of { id, name, deckKind }
@@ -156,6 +158,9 @@ export const getAppState = () => useContext(AppStateContext);
 const DEBUG_APP_STATE = false;
 
 export const AppStateChange = {
+    setModeIndicator: function (mode: string) {
+        state.modeIndicator.value = mode;
+    },
     addDebugMessage: function (msg: string) {
         let dm = state.debugMessages.value.slice();
         dm.unshift(msg);
@@ -529,15 +534,15 @@ export const AppStateChange = {
         state.srReviewCount.value = count;
     },
 
-    loadGraph: function (nodes: Array<GraphNode>, connections: Array<number>) {
+    loadGraph: function (graph: FullGraphStruct) {
         if (DEBUG_APP_STATE) {
             console.log("loadGraph");
         }
         let newGraph: Graph = {
             fullyLoaded: true,
-            decks: nodes,
-            links: buildFullGraph(connections),
-            deckIndexFromId: buildDeckIndex(nodes),
+            decks: graph.graphDecks,
+            links: buildFullGraph(graph.graphConnections),
+            deckIndexFromId: buildDeckIndex(graph.graphDecks),
         };
         state.graph.value = newGraph;
     },
@@ -652,7 +657,7 @@ function buildFullGraph(graphConnections: Array<number>) {
     return res;
 }
 
-function buildDeckIndex(decks: Array<GraphNode>) {
+function buildDeckIndex(decks: Array<GraphDeck>) {
     let res: Array<number> = [];
 
     decks.forEach((d, i) => {

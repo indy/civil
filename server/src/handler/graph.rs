@@ -40,7 +40,7 @@ pub fn packed_kind(kind: RefKind) -> i32 {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 struct FullGraphStruct {
-    pub graph_nodes: Vec<interop::Graph>,
+    pub graph_decks: Vec<interop::GraphDeck>,
     pub graph_connections: Vec<i32>,
 }
 
@@ -52,7 +52,7 @@ pub async fn get(
 
     let user_id = session::user_id(&session)?;
 
-    let graph_nodes = db::get_decks(&sqlite_pool, user_id)?;
+    let graph_decks = db::get_decks(&sqlite_pool, user_id)?;
     let connections = db::get_connections(&sqlite_pool, user_id)?;
 
     // let (graph_nodes, connections) = tokio::try_join!(
@@ -70,7 +70,7 @@ pub async fn get(
     }
 
     let full_graph = FullGraphStruct {
-        graph_nodes,
+        graph_decks,
         graph_connections,
     };
     Ok(HttpResponse::Ok().json(full_graph))

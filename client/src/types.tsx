@@ -262,6 +262,7 @@ export type WasmInterface = {
 };
 
 export type State = {
+    modeIndicator: Signal<string>;
     debugMessages: Signal<Array<string>>;
 
     appName: string;
@@ -311,17 +312,22 @@ export type State = {
 
 type GraphEdge = [number, RefKind, number];
 
-export type GraphNode = {
+export type GraphDeck = {
     id: Key;
     name: string;
     deckKind: DeckKind;
     graphTerminator: boolean;
 };
 
+export type FullGraphStruct = {
+    graphDecks: Array<GraphDeck>;
+    graphConnections: Array<number>;
+};
+
 export type Graph = {
     fullyLoaded: boolean;
     // an array of { id, name, resource }
-    decks: Array<GraphNode>;
+    decks: Array<GraphDeck>;
     links: { [id: Key]: Set<GraphEdge> };
     // an array which is indexed by deckId, returns the offset into state.graph.value.decks
     deckIndexFromId: Array<Key>;
@@ -360,14 +366,7 @@ type SimStats = {
     tickCount: number;
     maxVelocities: [number, number];
 };
-export type GraphState = {
-    nodes: { [index: Key]: Node };
-    edges: Array<Edge>;
-
-    simStats?: SimStats;
-};
-
-export type Node = {
+export type GraphNode = {
     id: Key;
     isImportant: boolean;
     expandedState: ExpandedState;
@@ -384,6 +383,14 @@ export type Node = {
 };
 
 export type Edge = [number, number, number, RefKind];
+
+export type GraphState = {
+    nodes: { [index: Key]: GraphNode };
+    edges: Array<Edge>;
+
+    simStats?: SimStats;
+};
+
 
 export type DM<T extends FatDeck> = {
     update: (d: T) => void;

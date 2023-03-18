@@ -26,10 +26,10 @@ use std::str::FromStr;
 #[allow(unused_imports)]
 use tracing::info;
 
-fn graph_from_row(row: &Row) -> Result<interop::Graph> {
+fn graph_from_row(row: &Row) -> Result<interop::GraphDeck> {
     let kind: String = row.get(2)?;
 
-    Ok(interop::Graph {
+    Ok(interop::GraphDeck {
         id: row.get(0)?,
         name: row.get(1)?,
         deck_kind: interop_decks::DeckKind::from_str(&kind)?,
@@ -37,7 +37,7 @@ fn graph_from_row(row: &Row) -> Result<interop::Graph> {
     })
 }
 
-pub(crate) fn get_decks(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::Graph>> {
+pub(crate) fn get_decks(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::GraphDeck>> {
     let conn = sqlite_pool.get()?;
 
     sqlite::many(
