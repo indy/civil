@@ -40,10 +40,14 @@ function identity<T extends FatDeck>(a: T): T {
     return a;
 }
 
-export default function UseDeckManager<T extends FatDeck>(id: string | undefined, deckKind: DeckKind, flags?: number, preCacheFn?: ((_: T) => T)) {
+export default function UseDeckManager<T extends FatDeck>(
+    id: string | undefined,
+    deckKind: DeckKind,
+    flags?: number,
+    preCacheFn?: (_: T) => T
+) {
     const preCacheFunction = preCacheFn || identity;
     const appState = getAppState();
-
 
     const [dms, setDms]: [DeckManagerState<T>, Function] = useState(
         cleanDeckManagerState<T>()
@@ -67,7 +71,10 @@ export default function UseDeckManager<T extends FatDeck>(id: string | undefined
                     let hasSummaryPassage = bitset(flags || 0, 1);
                     let hasReviewPassage = bitset(flags || 0, 2);
 
-                    newDms = dmsCanHaveSummaryPassage(newDms, hasSummaryPassage);
+                    newDms = dmsCanHaveSummaryPassage(
+                        newDms,
+                        hasSummaryPassage
+                    );
                     newDms = dmsCanHaveReviewPassage(newDms, hasReviewPassage);
                     setDms(newDms);
                 } else {
@@ -188,19 +195,17 @@ export default function UseDeckManager<T extends FatDeck>(id: string | undefined
             AppStateChange.toolbarMode(ToolbarMode.View);
             setDms(newDms);
         },
-        buildPointForm: function(onSuccessCallback: () => void) {
+        buildPointForm: function (onSuccessCallback: () => void) {
             // currently only people and timelines have these endpoints
             //
             function onAddPoint(point: ProtoPoint) {
                 if (dms.deck) {
                     const url =
                         buildUrl(deckKind, dms.deck.id, "/api") + "/points";
-                    Net.post<ProtoPoint, T>(url, point).then(
-                        (updatedDeck) => {
-                            update(updatedDeck);
-                            onSuccessCallback();
-                        }
-                    );
+                    Net.post<ProtoPoint, T>(url, point).then((updatedDeck) => {
+                        update(updatedDeck);
+                        onSuccessCallback();
+                    });
                 }
             }
             function onAddPoints(points: Array<ProtoPoint>) {
@@ -402,21 +407,27 @@ function dmsCanHaveReviewPassage<T extends FatDeck>(
     return res;
 }
 
-function dmsUpdateFormToggle<T extends FatDeck>(dms: DeckManagerState<T>): DeckManagerState<T> {
+function dmsUpdateFormToggle<T extends FatDeck>(
+    dms: DeckManagerState<T>
+): DeckManagerState<T> {
     let res = { ...dms };
     res.isShowingUpdateForm = !res.isShowingUpdateForm;
 
     return res;
 }
 
-function dmsRefsToggle<T extends FatDeck>(dms: DeckManagerState<T>): DeckManagerState<T> {
+function dmsRefsToggle<T extends FatDeck>(
+    dms: DeckManagerState<T>
+): DeckManagerState<T> {
     let res = { ...dms };
     res.isEditingDeckRefs = !res.isEditingDeckRefs;
 
     return res;
 }
 
-function dmsHideForm<T extends FatDeck>(dms: DeckManagerState<T>): DeckManagerState<T> {
+function dmsHideForm<T extends FatDeck>(
+    dms: DeckManagerState<T>
+): DeckManagerState<T> {
     let res = {
         ...dms,
         isShowingUpdateForm: false,

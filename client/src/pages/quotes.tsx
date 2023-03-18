@@ -212,7 +212,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
     }
 
     function onEditedAttributeFn(deckId: Key) {
-        return function(attribution: string) {
+        return function (attribution: string) {
             let deckQuote: DeckQuote = deck! as DeckQuote;
             let note = deckQuote.notes.find((n) => n.kind === NoteKind.Note);
 
@@ -232,21 +232,22 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                 };
 
                 // as the title could have changed, we need to post the updated quote to the server
-                Net.put<ProtoQuote, DeckQuote>(`/api/quotes/${deckId}`, data).then(
-                    (updatedDeck) => {
-                        deckManager.updateAndReset(updatedDeck);
-                    }
-                );
+                Net.put<ProtoQuote, DeckQuote>(
+                    `/api/quotes/${deckId}`,
+                    data
+                ).then((updatedDeck) => {
+                    deckManager.updateAndReset(updatedDeck);
+                });
             }
-        }
+        };
     }
 
     function onDeleteFn(deckId: Key) {
-        return function() {
+        return function () {
             Net.delete(`/api/quotes/${deckId}`, {}).then(() => {
                 route("/quotes");
             });
-        }
+        };
     }
 
     const deck: DeckQuote | undefined = deckManager.getDeck();

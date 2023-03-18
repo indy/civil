@@ -107,7 +107,12 @@ function Person({ path, id }: { path?: string; id?: string }) {
         useState([]); // an array of backrefs
 
     let flags = DeckManagerFlags.Summary;
-    const deckManager: DM<DeckPerson> = UseDeckManager(id, DeckKind.Person, flags, preCacheFn);
+    const deckManager: DM<DeckPerson> = UseDeckManager(
+        id,
+        DeckKind.Person,
+        flags,
+        preCacheFn
+    );
 
     useEffect(() => {
         Net.get<SearchResults>(`/api/people/${id}/additional_search`).then(
@@ -124,7 +129,11 @@ function Person({ path, id }: { path?: string; id?: string }) {
         });
     }
 
-    function onLifespan(deckId: Key, birthPoint: ProtoPoint, deathPoint?: ProtoPoint) {
+    function onLifespan(
+        deckId: Key,
+        birthPoint: ProtoPoint,
+        deathPoint?: ProtoPoint
+    ) {
         Net.post<ProtoPoint, DeckPerson>(
             `/api/people/${deckId}/points`,
             birthPoint

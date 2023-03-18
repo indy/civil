@@ -1,7 +1,13 @@
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { DeckManagerFlags, DM, DeckArticle, DeckKind, ArticleListings } from "types";
+import {
+    DeckManagerFlags,
+    DM,
+    DeckArticle,
+    DeckKind,
+    ArticleListings,
+} from "types";
 
 import { getAppState, AppStateChange } from "app-state";
 
@@ -59,7 +65,11 @@ function Articles({ path }: { path?: string }) {
 
 function Article({ path, id }: { path?: string; id?: string }) {
     let flags = DeckManagerFlags.Summary | DeckManagerFlags.Review;
-    const deckManager: DM<DeckArticle> = UseDeckManager(id, DeckKind.Article, flags);
+    const deckManager: DM<DeckArticle> = UseDeckManager(
+        id,
+        DeckKind.Article,
+        flags
+    );
 
     function Url({ url }: { url: string }) {
         return <a href={url}>{url}</a>;

@@ -44,7 +44,11 @@ export default function LifespanForm({
         if (localState.stage === LifespanStage.Finished) {
             // invoking onLifespanGiven will remove this form
             if (localState.birthPoint) {
-                onLifespanGiven(deckId, localState.birthPoint, localState.deathPoint);
+                onLifespanGiven(
+                    deckId,
+                    localState.birthPoint,
+                    localState.deathPoint
+                );
             }
         }
     }, [localState]);

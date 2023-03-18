@@ -61,7 +61,11 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
     const appState = getAppState();
 
     let flags = DeckManagerFlags.Summary;
-    const deckManager: DM<DeckTimeline> = UseDeckManager(id, DeckKind.Timeline, flags);
+    const deckManager: DM<DeckTimeline> = UseDeckManager(
+        id,
+        DeckKind.Timeline,
+        flags
+    );
 
     const deck: DeckTimeline | undefined = deckManager.getDeck();
     if (deck) {
