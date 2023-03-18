@@ -82,6 +82,9 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                             deckKind={DeckKind.Timeline}
                             id={deck.id}
                         />
+                        <button onClick={deckManager.onShowSummaryClicked}>
+                            Show Summary Passage
+                        </button>
                         <TimelineUpdater
                             timeline={deck}
                             onUpdate={deckManager.updateAndReset}

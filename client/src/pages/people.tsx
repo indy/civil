@@ -174,6 +174,9 @@ function Person({ path, id }: { path?: string; id?: string }) {
                             deckKind={deckManager.getDeckKind()}
                             id={deck.id}
                         />
+                        <button onClick={deckManager.onShowSummaryClicked}>
+                            Show Summary Passage
+                        </button>
                         <PersonUpdater
                             person={deck}
                             onUpdate={deckManager.updateAndReset}
