@@ -39,6 +39,10 @@ export default function buildMarkup(content: string) {
     const wasmInterface = appState.wasmInterface!;
 
     const astArray = wasmInterface.asHtmlAst(content);
+    if (!astArray) {
+        console.error(`unable to correctly parse: '${content}'`);
+        return false;
+    }
 
     function attrs(n: Element): Attrs {
         const res: Attrs = {

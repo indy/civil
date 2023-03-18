@@ -64,8 +64,8 @@ pub fn markup_as_struct(markup: &str) -> JsValue {
     match civil_shared::markup_as_struct(markup) {
         Ok(res) => serde_wasm_bindgen::to_value(&res).unwrap(),
         Err(_) => {
-            error!("markup_as_struct failed");
-            serde_wasm_bindgen::to_value(&"error").unwrap()
+            // error!("markup_as_struct failed");
+            serde_wasm_bindgen::to_value(&false).unwrap()
         }
     }
 }
