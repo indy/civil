@@ -26,12 +26,6 @@ export const App = ({ state }: { state: State }) => {
     );
 };
 
-function ModeIndicator() {
-    const appState = getAppState();
-
-    return <div class="mode-indicator">{appState.modeIndicator.value}</div>;
-}
-
 function DebugMessages() {
     const appState = getAppState();
 
@@ -147,7 +141,6 @@ const AppUI = () => {
 
     return (
         <div id="civil-app">
-            <ModeIndicator />
             <DebugMessages />
             <SearchCommand />
             <TopBarMenu />

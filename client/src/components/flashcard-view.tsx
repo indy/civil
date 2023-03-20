@@ -3,7 +3,7 @@ import { h } from "preact";
 import { FlashCard } from "types";
 
 import Net from "utils/net";
-import { daysUntil, plural } from "utils/js";
+import { plural } from "utils/js";
 
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";
@@ -189,4 +189,14 @@ export default function FlashCardView({ flashcard, onDelete }: Props) {
             </div>
         );
     }
+}
+
+function daysUntil(date: string) {
+    let nextTestDate = new Date(date);
+    let todayDate = new Date();
+
+    let delta = nextTestDate.getTime() - todayDate.getTime();
+    let deltaDays = delta / (1000 * 3600 * 24);
+
+    return Math.round(deltaDays);
 }

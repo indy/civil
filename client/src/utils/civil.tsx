@@ -1,4 +1,4 @@
-import { State, DeckKind, Key, SlimDeck, ToolbarMode } from "types";
+import { DeckKind, Key, SlimDeck, ToolbarMode } from "types";
 
 export function buildUrl(deckKind: DeckKind, id: Key, prefix?: string): string {
     if (prefix) {
@@ -6,25 +6,6 @@ export function buildUrl(deckKind: DeckKind, id: Key, prefix?: string): string {
     } else {
         return `/${deckKindToResourceString(deckKind)}/${id}`;
     }
-}
-
-export function resourceStringToDeckKind(s: string): DeckKind | undefined {
-    if (s === "articles") {
-        return DeckKind.Article;
-    }
-    if (s === "ideas") {
-        return DeckKind.Idea;
-    }
-    if (s === "people") {
-        return DeckKind.Person;
-    }
-    if (s === "timelines") {
-        return DeckKind.Timeline;
-    }
-    if (s === "quotes") {
-        return DeckKind.Quote;
-    }
-    return undefined;
 }
 
 export function deckKindToResourceString(deckKind: DeckKind): string {

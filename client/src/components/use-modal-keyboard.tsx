@@ -8,8 +8,9 @@ export default function useModalKeyboard(
     keyHandler: (key: string) => void
 ) {
     const appState = getAppState();
+    const isActive = canReceiveModalCommands(appState);
     function onKeyDown(e: KeyboardEvent) {
-        if (canReceiveModalCommands(appState)) {
+        if (isActive) {
             keyHandler(e.key);
         }
     }
@@ -20,6 +21,8 @@ export default function useModalKeyboard(
             document.removeEventListener("keydown", onKeyDown);
         };
     }, [id]);
+
+    return isActive;
 }
 
 function canReceiveModalCommands(appState: State) {

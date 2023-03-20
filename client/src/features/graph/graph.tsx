@@ -20,6 +20,7 @@ import { deckKindToResourceString } from "utils/civil";
 
 import { graphPhysics } from "features/graph/graph-physics";
 
+import useLocalReducer from "components/use-local-reducer";
 import useModalKeyboard from "components/use-modal-keyboard";
 import { svgTickedCheckBox, svgUntickedCheckBox } from "components/svg-icons";
 
@@ -34,15 +35,108 @@ type LocalState = {
     requireLoad: boolean;
 };
 
+function initialLocalState(): LocalState {
+    return {
+        activeHyperlinks: false, // hack: remove eventually
+        mouseButtonDown: false,
+        mouseDragging: false,
+        simIsRunning: false,
+        haveGraphState: false,
+        requireLoad: false,
+    };
+}
+
+enum ActionType {
+    ToggleHyperlinks,
+    MouseButtonDown,
+    MouseButtonUp,
+    MouseDraggingStart,
+    MouseDraggingStop,
+    SimIsRunning,
+    RequireLoad,
+}
+
+type Action = {
+    type: ActionType;
+    data?: any;
+};
+
+function reducer(state: LocalState, action: Action) {
+    switch (action.type) {
+        case ActionType.ToggleHyperlinks: {
+            const newState = {
+                ...state,
+                activeHyperlinks: !state.activeHyperlinks,
+            };
+            return newState;
+        }
+        case ActionType.MouseButtonDown: {
+            const newState = {
+                ...state,
+                mouseButtonDown: true,
+            };
+            return newState;
+        }
+        case ActionType.MouseButtonUp: {
+            const newState = {
+                ...state,
+                mouseButtonDown: false,
+            };
+            return newState;
+        }
+        case ActionType.MouseDraggingStart: {
+            const newState = {
+                ...state,
+                mouseDragging: true,
+            };
+            return newState;
+        }
+        case ActionType.MouseDraggingStop: {
+            const newState = {
+                ...state,
+                mouseDragging: false,
+            };
+            return newState;
+        }
+        case ActionType.SimIsRunning: {
+            const newState = {
+                ...state,
+                simIsRunning: action.data,
+            };
+            return newState;
+        }
+        case ActionType.RequireLoad: {
+            const newState = {
+                ...state,
+                requireLoad: action.data,
+            };
+            return newState;
+        }
+        default:
+            throw new Error(`unknown action: ${action}`);
+    }
+}
+
 export default function Graph({ id, depth }: { id: Key; depth: number }) {
     console.log(`todo: re-implement depth: ${depth}`);
 
     const appState = getAppState();
 
-    useModalKeyboard(id, (key: string) => {
+    const initialState: GraphState = {
+        nodes: {},
+        edges: [],
+    };
+    const [graphState, setGraphState] = useState(initialState);
+    const svgContainerRef = createRef();
+    const [local, localDispatch] = useLocalReducer(
+        reducer,
+        initialLocalState()
+    );
+
+    const canReadKeyboard = useModalKeyboard(id, (key: string) => {
         switch (key) {
-            case "n":
-                console.log("pressed n");
+            case "h":
+                localDispatch(ActionType.ToggleHyperlinks);
                 break;
             case "p":
                 console.log("pressed p");
@@ -52,23 +146,19 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
                 break;
         }
     });
-
-    const initialLocalState: LocalState = {
-        activeHyperlinks: false, // hack: remove eventually
-        mouseButtonDown: false,
-        mouseDragging: false,
-        simIsRunning: false,
-        haveGraphState: false,
-        requireLoad: false,
-    };
-    const [localState, setLocalState] = useState(initialLocalState);
-    const initialState: GraphState = {
-        nodes: {},
-        edges: [],
-    };
-    const [graphState, setGraphState] = useState(initialState);
-
-    const svgContainerRef = createRef();
+    function showKeyboardHelp() {
+        let kl = "modal-keyboard-help";
+        if (canReadKeyboard) {
+            kl += " modal-keyboard-help-visible";
+        }
+        return (
+            <div class={kl}>
+                <pre>h: toggle hyperlinks</pre>
+                <pre>p: previous quote</pre>
+                <pre>r: random quote</pre>
+            </div>
+        );
+    }
 
     function initialise() {
         let newState: GraphState = {
@@ -101,13 +191,10 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
         }
     }
 
-    if (appState.graph.value.fullyLoaded && localState.requireLoad === true) {
+    if (appState.graph.value.fullyLoaded && local.requireLoad === true) {
         // console.log("initialising graph after loading in graph data");
         initialise();
-        setLocalState({
-            ...localState,
-            requireLoad: false,
-        });
+        localDispatch(ActionType.RequireLoad, false);
     }
 
     useEffect(() => {
@@ -120,10 +207,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
             // and then on the next render initialise using the if statement above
             Net.get<FullGraphStruct>("/api/graph").then((graph) => {
                 AppStateChange.loadGraph(graph);
-                setLocalState({
-                    ...localState,
-                    requireLoad: true,
-                });
+                localDispatch(ActionType.RequireLoad, true);
             });
         }
     }, []);
@@ -133,10 +217,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
 
         gUpdateGraphCallback = buildUpdateGraphCallback(svg);
         graphPhysics(graphState, gUpdateGraphCallback, function (b: boolean) {
-            setLocalState({
-                ...localState,
-                simIsRunning: b,
-            });
+            localDispatch(ActionType.SimIsRunning, b);
         });
     }, [graphState]);
 
@@ -286,30 +367,21 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
                 let g: HTMLElement = target.parentElement;
                 if (g.nodeName === "g") {
                     svgContainerRef.current.elementClickedOn = g;
-                    setLocalState({
-                        ...localState,
-                        mouseButtonDown: true,
-                    });
+                    localDispatch(ActionType.MouseButtonDown);
                 }
 
-                if (!localState.simIsRunning && gUpdateGraphCallback) {
+                if (!local.simIsRunning && gUpdateGraphCallback) {
                     // restart the simulation if it's stopped and the user starts dragging a node
                     // graphPhysics(graphState, gUpdateGraphCallback, setSimIsRunning);
                     graphPhysics(
                         graphState,
                         gUpdateGraphCallback,
                         function (b) {
-                            setLocalState({
-                                ...localState,
-                                simIsRunning: b,
-                            });
+                            localDispatch(ActionType.SimIsRunning, b);
                         }
                     );
 
-                    setLocalState({
-                        ...localState,
-                        simIsRunning: true,
-                    });
+                    localDispatch(ActionType.SimIsRunning, true);
                 }
             }
         }
@@ -340,16 +412,13 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
     }
 
     function onMouseButtonUp() {
-        if (localState.mouseButtonDown) {
-            if (localState.mouseDragging) {
+        if (local.mouseButtonDown) {
+            if (local.mouseDragging) {
                 const g = svgContainerRef.current.elementClickedOn;
                 g.associatedNode.fx = null;
                 g.associatedNode.fy = null;
                 svgContainerRef.current.elementClickedOn = undefined;
-                setLocalState({
-                    ...localState,
-                    mouseDragging: false,
-                });
+                localDispatch(ActionType.MouseDraggingStop);
             } else {
                 let svgNode = svgContainerRef.current.elementClickedOn;
 
@@ -387,19 +456,13 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
                     regenGraphState(graphState);
                 }
             }
-            setLocalState({
-                ...localState,
-                mouseButtonDown: false,
-            });
+            localDispatch(ActionType.MouseButtonUp);
         }
     }
 
     function onMouseMove(event: MouseEvent) {
-        if (localState.mouseButtonDown) {
-            setLocalState({
-                ...localState,
-                mouseDragging: true,
-            });
+        if (local.mouseButtonDown) {
+            localDispatch(ActionType.MouseDraggingStart);
 
             const g = svgContainerRef.current.elementClickedOn;
 
@@ -418,11 +481,17 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
     }
 
     function onGraphClicked(event: Event) {
-        if (event.target instanceof HTMLInputElement) {
+        console.log("aaaa");
+        console.log(event.target);
+        if (event.target instanceof SVGTextElement) {
             const target = event.target;
-
-            if (localState.activeHyperlinks) {
+            console.log("clicked on text element");
+            if (local.activeHyperlinks) {
+                console.log("active hyperlinks");
+                console.log(target.id);
                 if (target.id.length > 0 && target.id[0] === "/") {
+                    console.log("just before route");
+
                     // the id looks like a url, that's good enough for us, lets go there
                     route(target.id);
                 }
@@ -432,10 +501,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
 
     function onActivHyperlinksClicked(e: Event) {
         e.preventDefault();
-        setLocalState({
-            ...localState,
-            activeHyperlinks: !localState.activeHyperlinks,
-        });
+        localDispatch(ActionType.ToggleHyperlinks);
     }
 
     return (
@@ -448,7 +514,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
                     <span class="left-margin-icon-label">
                         Active Hyperlinks
                     </span>
-                    {localState.activeHyperlinks
+                    {local.activeHyperlinks
                         ? svgTickedCheckBox()
                         : svgUntickedCheckBox()}
                 </div>
@@ -461,6 +527,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
                 onMouseUp={onMouseButtonUp}
                 onMouseMove={onMouseMove}
             ></div>
+            {showKeyboardHelp()}
         </div>
     );
 }

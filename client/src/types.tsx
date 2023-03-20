@@ -260,7 +260,6 @@ export type WasmInterface = {
 };
 
 export type State = {
-    modeIndicator: Signal<string>;
     debugMessages: Signal<Array<string>>;
 
     appName: string;

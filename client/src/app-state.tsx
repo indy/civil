@@ -24,8 +24,6 @@ import {
     UserUploadedImage,
 } from "types";
 
-import { resourceStringToDeckKind } from "utils/civil";
-
 const emptyUser: User = {
     username: "",
     email: "",
@@ -33,7 +31,6 @@ const emptyUser: User = {
 };
 
 const state: State = {
-    modeIndicator: signal(""),
     debugMessages: signal([]),
 
     appName: "civil",
@@ -162,9 +159,6 @@ export const AppStateChange = {
     },
     resetShowingSearchCommand: function () {
         state.showingSearchCommand.value = !state.hasPhysicalKeyboard;
-    },
-    setModeIndicator: function (mode: string) {
-        state.modeIndicator.value = mode;
     },
     addDebugMessage: function (msg: string) {
         let dm = state.debugMessages.value.slice();
@@ -669,4 +663,23 @@ function buildDeckIndex(decks: Array<GraphDeck>) {
     });
 
     return res;
+}
+
+function resourceStringToDeckKind(s: string): DeckKind | undefined {
+    if (s === "articles") {
+        return DeckKind.Article;
+    }
+    if (s === "ideas") {
+        return DeckKind.Idea;
+    }
+    if (s === "people") {
+        return DeckKind.Person;
+    }
+    if (s === "timelines") {
+        return DeckKind.Timeline;
+    }
+    if (s === "quotes") {
+        return DeckKind.Quote;
+    }
+    return undefined;
 }

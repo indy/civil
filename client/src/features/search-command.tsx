@@ -299,13 +299,11 @@ function reducer(state: State, action: Action) {
                     if (inputElement) {
                         inputElement.blur();
                         AppStateChange.resetShowingSearchCommand();
-                        AppStateChange.setModeIndicator("normal");
                     }
                 } else {
                     if (inputElement) {
                         inputElement.focus();
                         AppStateChange.setShowingSearchCommand(true);
-                        AppStateChange.setModeIndicator("search bar activated");
                     }
                 }
             }

@@ -28,7 +28,7 @@ import { StarRatingPartial } from "components/star-rating";
 
 import Net from "utils/net";
 import { buildUrl, deckKindToHeadingString } from "utils/civil";
-import { removeEmptyStrings, formattedDate } from "utils/js";
+import { formattedDate } from "utils/js";
 
 function Articles({ path }: { path?: string }) {
     const appState = getAppState();
@@ -353,6 +353,17 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
             <input id="article-submit" type="submit" value="Update Article" />
         </form>
     );
+}
+
+// remove the keys from obj that have empty strings
+function removeEmptyStrings(obj, keys: Array<string>) {
+    for (var i = 0; i < keys.length; i++) {
+        let key = keys[i];
+        if (typeof obj[key] === "string" && obj[key].trim().length === 0) {
+            delete obj[key];
+        }
+    }
+    return obj;
 }
 
 export { Article, Articles };

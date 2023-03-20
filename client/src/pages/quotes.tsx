@@ -176,7 +176,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
     const deckManager: DM<DeckQuote> = useDeckManager(id, DeckKind.Quote);
 
     const quoteId: number = id ? parseInt(id, 10) : 0;
-    useModalKeyboard(quoteId, (key: string) => {
+    const canReadKeyboard = useModalKeyboard(quoteId, (key: string) => {
         switch (key) {
             case "n":
                 getQuoteThenRoute(`/api/quotes/${quoteId}/next`);
@@ -189,6 +189,20 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                 break;
         }
     });
+
+    function showKeyboardHelp() {
+        let kl = "modal-keyboard-help";
+        if (canReadKeyboard) {
+            kl += " modal-keyboard-help-visible";
+        }
+        return (
+            <div class={kl}>
+                <pre>n: next quote</pre>
+                <pre>p: previous quote</pre>
+                <pre>r: random quote</pre>
+            </div>
+        );
+    }
 
     function getQuoteThenRoute(url: string) {
         Net.get<DeckQuote>(url).then((deck) => {
@@ -260,6 +274,8 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                     onEdited={onEditedAttributeFn(deck.id)}
                     onDelete={onDeleteFn(deck.id)}
                 />
+
+                {showKeyboardHelp()}
             </article>
         );
     } else {

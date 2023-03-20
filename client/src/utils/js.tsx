@@ -1,14 +1,3 @@
-// remove the keys from obj that have empty strings
-export function removeEmptyStrings(obj, keys: Array<string>) {
-    for (var i = 0; i < keys.length; i++) {
-        let key = keys[i];
-        if (typeof obj[key] === "string" && obj[key].trim().length === 0) {
-            delete obj[key];
-        }
-    }
-    return obj;
-}
-
 export function nonEmptyArray<T>(arr: Array<T>) {
     return arr && arr.length > 0;
 }
@@ -44,14 +33,4 @@ export function formattedTime(timestamp: string) {
     const textual = d.toLocaleTimeString("en-GB", options);
 
     return textual;
-}
-
-export function daysUntil(date: string) {
-    let nextTestDate = new Date(date);
-    let todayDate = new Date();
-
-    let delta = nextTestDate.getTime() - todayDate.getTime();
-    let deltaDays = delta / (1000 * 3600 * 24);
-
-    return Math.round(deltaDays);
 }
