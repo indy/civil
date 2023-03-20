@@ -71,13 +71,13 @@ type State = {
     justAddedViaShortcut: boolean;
 };
 
-function candidateToRef(candidate: SlimDeck): Ref {
+function candidateToAddedRef(candidate: SlimDeck): Ref {
     return {
         id: candidate.id,
         title: candidate.title,
         deckKind: candidate.deckKind,
         refKind: RefKind.Ref,
-        noteId: 0, // todo: fix this, hacked in
+        noteId: 0, // this noteId isn't used when adding a ref
         insignia: candidate.insignia,
     };
 }
@@ -264,7 +264,7 @@ function reducer(state: State, action: Action) {
             let newState = { ...state };
 
             let data = action.data as SlimDeck;
-            let refToAdd = candidateToRef(data);
+            let refToAdd = candidateToAddedRef(data);
 
             newState.referencesAdded.push(refToAdd);
 

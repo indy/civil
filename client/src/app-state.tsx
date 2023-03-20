@@ -317,7 +317,6 @@ export const AppStateChange = {
     },
 
     relinquishKeyboard: function () {
-        // isg todo: the original js code had a bug in which this was set to true
         state.componentRequiresFullKeyboardAccess.value = false;
     },
 

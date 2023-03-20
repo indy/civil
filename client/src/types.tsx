@@ -1,5 +1,3 @@
-// todo: the exports could be wrong, see the correct way of defining interfaces
-
 import { Signal } from "@preact/signals";
 
 export type Key = number;

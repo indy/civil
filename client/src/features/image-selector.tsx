@@ -37,9 +37,7 @@ export default function ImageSelector({ onPaste }: Props) {
                 dragAreaElement.removeEventListener("drop", drop);
             };
         }
-
-        // fake: fix for typescript error todo: check this code
-        return () => {};
+        return () => {};        // to please tsc
     });
 
     function handleFiles(files: FileList) {
