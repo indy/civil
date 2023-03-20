@@ -14,7 +14,7 @@ import {
 } from "types";
 
 import Net from "utils/net";
-import { deckKindToResourceString } from "utils/civil";
+import { canReceiveModalCommands, deckKindToResourceString } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
 import { graphPhysics } from "features/graph/graph-physics";
 import { svgTickedCheckBox, svgUntickedCheckBox } from "components/svg-icons";
@@ -34,6 +34,21 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
     console.log(`todo: re-implement depth: ${depth}`);
 
     const appState = getAppState();
+
+    useEffect(() => {
+        document.addEventListener("keydown", onKeyDown);
+        return () => {
+            document.removeEventListener("keydown", onKeyDown);
+        };
+    }, [id]);
+
+    function onKeyDown(e: KeyboardEvent) {
+        if (id && canReceiveModalCommands(appState)) {
+            if (e.key === "n") {
+                console.log("pressed n");
+            }
+        }
+    }
 
     const initialLocalState: LocalState = {
         activeHyperlinks: false, // hack: remove eventually

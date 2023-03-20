@@ -37,7 +37,7 @@ export default function ImageSelector({ onPaste }: Props) {
                 dragAreaElement.removeEventListener("drop", drop);
             };
         }
-        return () => {};        // to please tsc
+        return () => {}; // to please tsc
     });
 
     function handleFiles(files: FileList) {

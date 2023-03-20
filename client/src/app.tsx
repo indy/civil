@@ -29,11 +29,7 @@ export const App = ({ state }: { state: State }) => {
 function ModeIndicator() {
     const appState = getAppState();
 
-    return (
-        <div class="mode-indicator">
-            {appState.modeIndicator.value}
-        </div>
-    );
+    return <div class="mode-indicator">{appState.modeIndicator.value}</div>;
 }
 
 function DebugMessages() {

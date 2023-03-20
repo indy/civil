@@ -388,7 +388,6 @@ export type GraphState = {
     simStats?: SimStats;
 };
 
-
 export type DM<T extends FatDeck> = {
     update: (d: T) => void;
     getDeck: () => T | undefined;

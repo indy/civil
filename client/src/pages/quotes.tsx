@@ -196,9 +196,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
     }
 
     function onKeyDown(e: KeyboardEvent) {
-        if (
-            id && canReceiveModalCommands(appState)
-        ) {
+        if (id && canReceiveModalCommands(appState)) {
             const quoteId = parseInt(id, 10);
             if (e.key === "n") {
                 getQuoteThenRoute(`/api/quotes/${quoteId}/next`);

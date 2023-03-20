@@ -157,7 +157,7 @@ export const getAppState = () => useContext(AppStateContext);
 const DEBUG_APP_STATE = false;
 
 export const AppStateChange = {
-    setShowingSearchCommand: function(b: boolean) {
+    setShowingSearchCommand: function (b: boolean) {
         state.showingSearchCommand.value = b;
     },
     resetShowingSearchCommand: function () {
