@@ -13,10 +13,14 @@ import {
     RefKind,
 } from "types";
 
-import Net from "utils/net";
-import { canReceiveModalCommands, deckKindToResourceString } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
+
+import Net from "utils/net";
+import { deckKindToResourceString } from "utils/civil";
+
 import { graphPhysics } from "features/graph/graph-physics";
+
+import useModalKeyboard from "components/use-modal-keyboard";
 import { svgTickedCheckBox, svgUntickedCheckBox } from "components/svg-icons";
 
 let gUpdateGraphCallback: GraphCallback | undefined = undefined;
@@ -35,20 +39,19 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
 
     const appState = getAppState();
 
-    useEffect(() => {
-        document.addEventListener("keydown", onKeyDown);
-        return () => {
-            document.removeEventListener("keydown", onKeyDown);
-        };
-    }, [id]);
-
-    function onKeyDown(e: KeyboardEvent) {
-        if (id && canReceiveModalCommands(appState)) {
-            if (e.key === "n") {
+    useModalKeyboard(id, (key: string) => {
+        switch (key) {
+            case "n":
                 console.log("pressed n");
-            }
+                break;
+            case "p":
+                console.log("pressed p");
+                break;
+            case "r":
+                console.log("pressed r");
+                break;
         }
-    }
+    });
 
     const initialLocalState: LocalState = {
         activeHyperlinks: false, // hack: remove eventually

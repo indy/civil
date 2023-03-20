@@ -58,7 +58,6 @@ type Action = {
 
 type State = {
     mode: Mode;
-    hasPhysicalKeyboard: boolean;
     hasFocus: boolean;
     showKeyboardShortcuts: boolean;
     shiftKey: boolean;
@@ -235,7 +234,6 @@ const Commands: Array<Command> = [
 ];
 
 function cleanState(state: State) {
-    AppStateChange.resetShowingSearchCommand();
     return {
         ...state,
         showKeyboardShortcuts: false,
@@ -252,6 +250,7 @@ function reducer(state: State, action: Action) {
             const command = action.data.entry.command;
             const success = executeCommand(command);
             if (success) {
+                AppStateChange.resetShowingSearchCommand();
                 let newState = cleanState(state);
                 return newState;
             } else {
@@ -260,6 +259,7 @@ function reducer(state: State, action: Action) {
             }
         }
         case ActionType.ClickedCandidate: {
+            AppStateChange.resetShowingSearchCommand();
             const newState = cleanState(state);
             return newState;
         }
@@ -284,6 +284,7 @@ function reducer(state: State, action: Action) {
             if (state.mode === Mode.Command) {
                 const success = executeCommand(state.text);
                 if (success) {
+                    AppStateChange.resetShowingSearchCommand();
                     let newState = cleanState(state);
                     return newState;
                 }
@@ -293,11 +294,11 @@ function reducer(state: State, action: Action) {
         }
         case ActionType.KeyDownEsc: {
             const inputElement = action.data.searchCommandRef.current;
-            const newState = cleanState(state);
-            if (state.hasPhysicalKeyboard) {
+            if (action.data.hasPhysicalKeyboard) {
                 if (action.data.isVisible) {
                     if (inputElement) {
                         inputElement.blur();
+                        AppStateChange.resetShowingSearchCommand();
                         AppStateChange.setModeIndicator("normal");
                     }
                 } else {
@@ -308,6 +309,8 @@ function reducer(state: State, action: Action) {
                     }
                 }
             }
+
+            const newState = cleanState(state);
             return newState;
         }
         case ActionType.KeyDownColon: {
@@ -425,6 +428,7 @@ function reducer(state: State, action: Action) {
                         )}/${candidate.id}`;
                         route(url);
 
+                        AppStateChange.resetShowingSearchCommand();
                         const newState = cleanState(state);
 
                         return newState;
@@ -454,10 +458,12 @@ function reducer(state: State, action: Action) {
     }
 }
 
+// map key code for an alphanumeric character to an index value
+//
+//  digit: 1 -> 0, 2 ->  1, ... 9 ->  8
+// letter: a -> 9, b -> 10, ... z -> 34
+//
 function indexFromCode(code: string) {
-    //  digit: 1 -> 0, 2 ->  1, ... 9 ->  8
-    // letter: a -> 9, b -> 10, ... z -> 34
-
     // this was the simple code that now has to be replaced
     // because the retards who define web standards have
     // deprecated keyCode .
@@ -555,7 +561,6 @@ export default function SearchCommand() {
 
     const initialState: State = {
         mode: Mode.Search,
-        hasPhysicalKeyboard: appState.hasPhysicalKeyboard,
         hasFocus: false,
         showKeyboardShortcuts: false,
         shiftKey: false,
@@ -568,6 +573,7 @@ export default function SearchCommand() {
     function onKeyDown(e: KeyboardEvent) {
         if (e.key === "Escape") {
             localDispatch(ActionType.KeyDownEsc, {
+                hasPhysicalKeyboard: appState.hasPhysicalKeyboard,
                 isVisible: appState.showingSearchCommand.value,
                 searchCommandRef,
             });
@@ -746,7 +752,7 @@ export default function SearchCommand() {
             local.searchCandidates.length > 0
         ) {
             let classes =
-                local.hasPhysicalKeyboard && local.showKeyboardShortcuts
+                appState.hasPhysicalKeyboard && local.showKeyboardShortcuts
                     ? "search-command-important "
                     : "";
             classes += "search-command-listing";
@@ -834,7 +840,7 @@ export default function SearchCommand() {
         : "search-command-invisible";
 
     let inputClasses = "search-command-input";
-    if (local.hasPhysicalKeyboard) {
+    if (appState.hasPhysicalKeyboard) {
         inputClasses += local.showKeyboardShortcuts
             ? " search-command-unimportant"
             : " search-command-important";

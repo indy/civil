@@ -6,9 +6,8 @@ import { Key, DM, DeckKind, NoteKind, DeckQuote } from "types";
 
 import Net from "utils/net";
 import buildMarkup from "features/notes/build-markup";
-import { canReceiveModalCommands } from "utils/civil";
 import { capitalise } from "utils/js";
-import { getAppState, AppStateChange } from "app-state";
+import { AppStateChange } from "app-state";
 
 import CivilInput from "components/civil-input";
 import CivilTextArea from "components/civil-text-area";
@@ -16,6 +15,7 @@ import DeleteConfirmation from "components/delete-confirmation";
 import SegmentNotes from "features/notes/segment-notes";
 import useDeckManager from "components/use-deck-manager";
 import useLocalReducer from "components/use-local-reducer";
+import useModalKeyboard from "components/use-modal-keyboard";
 
 enum ActionType {
     ShowAddForm,
@@ -29,13 +29,13 @@ type Action = {
     data?: string;
 };
 
-type State = {
+type QuoteState = {
     showAddForm: boolean;
     attribution: string;
     quoteText: string;
 };
 
-function quotesReducer(state: State, action: Action) {
+function quotesReducer(state: QuoteState, action: Action) {
     switch (action.type) {
         case ActionType.ShowAddForm: {
             return {
@@ -73,7 +73,7 @@ function titleFromQuoteText(quoteText: string) {
 function Quotes({ path }: { path?: string }) {
     const resource = "quotes";
 
-    const initialState: State = {
+    const initialState: QuoteState = {
         showAddForm: false,
         attribution: "",
         quoteText: "",
@@ -173,16 +173,22 @@ function Quotes({ path }: { path?: string }) {
 }
 
 function Quote({ path, id }: { path?: string; id?: string }) {
-    const appState = getAppState();
-
     const deckManager: DM<DeckQuote> = useDeckManager(id, DeckKind.Quote);
 
-    useEffect(() => {
-        document.addEventListener("keydown", onKeyDown);
-        return () => {
-            document.removeEventListener("keydown", onKeyDown);
-        };
-    }, [id]);
+    const quoteId: number = id ? parseInt(id, 10) : 0;
+    useModalKeyboard(quoteId, (key: string) => {
+        switch (key) {
+            case "n":
+                getQuoteThenRoute(`/api/quotes/${quoteId}/next`);
+                break;
+            case "p":
+                getQuoteThenRoute(`/api/quotes/${quoteId}/prev`);
+                break;
+            case "r":
+                getQuoteThenRoute(`/api/quotes/random`);
+                break;
+        }
+    });
 
     function getQuoteThenRoute(url: string) {
         Net.get<DeckQuote>(url).then((deck) => {
@@ -193,19 +199,6 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                 console.error(`error: fetchDeck for ${url}`);
             }
         });
-    }
-
-    function onKeyDown(e: KeyboardEvent) {
-        if (id && canReceiveModalCommands(appState)) {
-            const quoteId = parseInt(id, 10);
-            if (e.key === "n") {
-                getQuoteThenRoute(`/api/quotes/${quoteId}/next`);
-            } else if (e.key === "p") {
-                getQuoteThenRoute(`/api/quotes/${quoteId}/prev`);
-            } else if (e.key === "r") {
-                getQuoteThenRoute(`/api/quotes/random`);
-            }
-        }
     }
 
     function onEditedAttributeFn(deckId: Key) {
