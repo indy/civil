@@ -63,7 +63,6 @@ const state: State = {
 
     // when true don't let searchCommand accept any keystrokes
     componentRequiresFullKeyboardAccess: signal(false),
-
     showingSearchCommand: signal(false),
 
     // to add the current page to the scratchList we need the id, name, deckKind.
@@ -158,6 +157,12 @@ export const getAppState = () => useContext(AppStateContext);
 const DEBUG_APP_STATE = false;
 
 export const AppStateChange = {
+    setShowingSearchCommand: function(b: boolean) {
+        state.showingSearchCommand.value = b;
+    },
+    resetShowingSearchCommand: function () {
+        state.showingSearchCommand.value = !state.hasPhysicalKeyboard;
+    },
     setModeIndicator: function (mode: string) {
         state.modeIndicator.value = mode;
     },

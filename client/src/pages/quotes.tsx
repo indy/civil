@@ -6,6 +6,7 @@ import { Key, DM, DeckKind, NoteKind, DeckQuote } from "types";
 
 import Net from "utils/net";
 import buildMarkup from "features/notes/build-markup";
+import { canReceiveModalCommands } from "utils/civil";
 import { capitalise } from "utils/js";
 import { getAppState, AppStateChange } from "app-state";
 
@@ -196,9 +197,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
 
     function onKeyDown(e: KeyboardEvent) {
         if (
-            id &&
-            !appState.componentRequiresFullKeyboardAccess.value &&
-            !appState.showingSearchCommand.value
+            id && canReceiveModalCommands(appState)
         ) {
             const quoteId = parseInt(id, 10);
             if (e.key === "n") {

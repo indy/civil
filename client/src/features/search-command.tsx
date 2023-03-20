@@ -59,7 +59,6 @@ type Action = {
 type State = {
     mode: Mode;
     hasPhysicalKeyboard: boolean;
-    isVisible: boolean;
     hasFocus: boolean;
     showKeyboardShortcuts: boolean;
     shiftKey: boolean;
@@ -236,13 +235,13 @@ const Commands: Array<Command> = [
 ];
 
 function cleanState(state: State) {
+    AppStateChange.resetShowingSearchCommand();
     return {
         ...state,
         showKeyboardShortcuts: false,
         shiftKey: false,
         text: "",
         candidates: [],
-        isVisible: !state.hasPhysicalKeyboard,
         keyDownIndex: -1,
     };
 }
@@ -270,7 +269,7 @@ function reducer(state: State, action: Action) {
                 hasFocus: false,
             };
             if (newState.searchCandidates.length === 0) {
-                newState.isVisible = !state.hasPhysicalKeyboard;
+                AppStateChange.resetShowingSearchCommand();
             }
             return newState;
         }
@@ -282,10 +281,6 @@ function reducer(state: State, action: Action) {
             return newState;
         }
         case ActionType.KeyDownEnter: {
-            if (!state.isVisible) {
-                return state;
-            }
-
             if (state.mode === Mode.Command) {
                 const success = executeCommand(state.text);
                 if (success) {
@@ -297,10 +292,10 @@ function reducer(state: State, action: Action) {
             return state;
         }
         case ActionType.KeyDownEsc: {
-            const inputElement = action.data.current;
+            const inputElement = action.data.searchCommandRef.current;
             const newState = cleanState(state);
             if (state.hasPhysicalKeyboard) {
-                if (state.isVisible) {
+                if (action.data.isVisible) {
                     if (inputElement) {
                         inputElement.blur();
                         AppStateChange.setModeIndicator("normal");
@@ -308,7 +303,7 @@ function reducer(state: State, action: Action) {
                 } else {
                     if (inputElement) {
                         inputElement.focus();
-                        newState.isVisible = true;
+                        AppStateChange.setShowingSearchCommand(true);
                         AppStateChange.setModeIndicator("search bar activated");
                     }
                 }
@@ -326,19 +321,15 @@ function reducer(state: State, action: Action) {
             let searchCommandRef = action.data.searchCommandRef;
             const inputElement = searchCommandRef.current;
 
-            if (!newState.isVisible) {
+            if (!appState.showingSearchCommand.value) {
                 if (inputElement) {
                     inputElement.focus();
-                    newState.isVisible = true;
+                    AppStateChange.setShowingSearchCommand(true);
                 }
             }
             return newState;
         }
         case ActionType.KeyDownCtrl: {
-            if (!state.isVisible) {
-                return state;
-            }
-
             const newState = {
                 ...state,
             };
@@ -352,10 +343,6 @@ function reducer(state: State, action: Action) {
             return newState;
         }
         case ActionType.KeyDownKey: {
-            if (!state.isVisible) {
-                return state;
-            }
-
             const newState = { ...state };
 
             const code = action.data.code; // key code
@@ -363,7 +350,7 @@ function reducer(state: State, action: Action) {
 
             if (state.showKeyboardShortcuts
                 && state.mode === Mode.Search
-                && index >= 1) {
+                && index >= 0) {
                 newState.keyDownIndex = index;
                 newState.shiftKey = action.data.shiftKey;
             }
@@ -371,10 +358,6 @@ function reducer(state: State, action: Action) {
             return newState;
         }
         case ActionType.KeyDownPlus: {
-            if (!state.isVisible) {
-                return state;
-            }
-
             const newState = { ...state };
             if (state.showKeyboardShortcuts && state.mode === Mode.Search) {
                 AppStateChange.scratchListAddMulti(newState.searchCandidates);
@@ -393,9 +376,12 @@ function reducer(state: State, action: Action) {
                 searchCandidates: action.data.results || [],
             };
         case ActionType.InputGiven: {
-            if (!state.isVisible) {
+            const appState = action.data.appState;
+
+            if (!appState.showingSearchCommand.value) {
                 return state;
             }
+
             const text = action.data.text;
             const mode = isCommand(text) ? Mode.Command : Mode.Search;
 
@@ -533,7 +519,6 @@ export default function SearchCommand() {
     const initialState: State = {
         mode: Mode.Search,
         hasPhysicalKeyboard: appState.hasPhysicalKeyboard,
-        isVisible: !appState.hasPhysicalKeyboard,
         hasFocus: false,
         showKeyboardShortcuts: false,
         shiftKey: false,
@@ -545,7 +530,10 @@ export default function SearchCommand() {
 
     function onKeyDown(e: KeyboardEvent) {
         if (e.key === "Escape") {
-            localDispatch(ActionType.KeyDownEsc, searchCommandRef);
+            localDispatch(ActionType.KeyDownEsc, {
+                isVisible: appState.showingSearchCommand.value,
+                searchCommandRef
+            });
         }
         if (e.key === ":") {
             localDispatch(ActionType.KeyDownColon, {
@@ -554,10 +542,14 @@ export default function SearchCommand() {
             });
         }
         if (e.key === "Enter") {
-            localDispatch(ActionType.KeyDownEnter);
+            if (appState.showingSearchCommand.value) {
+                localDispatch(ActionType.KeyDownEnter);
+            }
         }
         if (e.ctrlKey) {
-            localDispatch(ActionType.KeyDownCtrl);
+            if (appState.showingSearchCommand.value) {
+                localDispatch(ActionType.KeyDownCtrl);
+            }
         }
         // console.log(`keyCode = ${e.keyCode}, code = ${e.code}, key = ${e.key}`);
         if (
@@ -565,13 +557,17 @@ export default function SearchCommand() {
             || (e.key >= '1' && e.key <= '9')
             || (e.key >= 'a' && e.key <= 'z')
         ) {
-            localDispatch(ActionType.KeyDownKey, {
-                code: e.code,
-                shiftKey: e.shiftKey,
-            });
+            if (appState.showingSearchCommand.value) {
+                localDispatch(ActionType.KeyDownKey, {
+                    code: e.code,
+                    shiftKey: e.shiftKey,
+                });
+            }
         }
         if (e.key === "+") {
-            localDispatch(ActionType.KeyDownPlus);
+            if (appState.showingSearchCommand.value) {
+                localDispatch(ActionType.KeyDownPlus);
+            }
         }
     }
 
@@ -594,10 +590,10 @@ export default function SearchCommand() {
         if (event.target instanceof HTMLInputElement) {
             const text = event.target.value;
             if (local.mode === Mode.Command) {
-                localDispatch(ActionType.InputGiven, { text });
+                localDispatch(ActionType.InputGiven, { text, appState });
             } else if (local.mode === Mode.Search) {
                 if (!local.showKeyboardShortcuts) {
-                    localDispatch(ActionType.InputGiven, { text });
+                    localDispatch(ActionType.InputGiven, { text, appState });
                     if (text.length > 0 && !isCommand(text)) {
                         search(text);
                     }
@@ -614,7 +610,7 @@ export default function SearchCommand() {
                         ? text.slice(0, -1)
                         : text;
 
-                    localDispatch(ActionType.InputGiven, { text: displayText });
+                    localDispatch(ActionType.InputGiven, { text: displayText, appState });
                 }
             }
         }
@@ -793,7 +789,7 @@ export default function SearchCommand() {
         );
     }
 
-    const extraClasses = local.isVisible
+    const extraClasses = appState.showingSearchCommand.value
         ? "search-command-visible"
         : "search-command-invisible";
 
@@ -809,22 +805,6 @@ export default function SearchCommand() {
             inputClasses += " on-touch-device-search-command-lost-focus";
         }
     }
-
-    if (appState.showingSearchCommand.value !== local.isVisible) {
-        appState.showingSearchCommand.value = local.isVisible;
-    }
-
-    // note: for debugging purposes:
-    //
-    // function kbInactive() {
-    //     return html`<div>keyboard inactive</div>`;
-    // }
-    //
-    // put this inside the search-command div
-    // <div class="keyboard-access-indicator">
-    //   ${ appState.componentRequiresFullKeyboardAccess.value && html`<div>component has kb</div>` }
-    //   ${ !appState.componentRequiresFullKeyboardAccess.value && html`<div>search command has kb</div>` }
-    // </div>
 
     return (
         <div id="search-command">

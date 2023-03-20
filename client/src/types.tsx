@@ -275,7 +275,6 @@ export type State = {
     oldestAliveAge: number;
 
     componentRequiresFullKeyboardAccess: Signal<boolean>;
-
     showingSearchCommand: Signal<boolean>;
 
     urlTitle: Signal<string>;

@@ -1,4 +1,9 @@
-import { DeckKind, Key, SlimDeck, ToolbarMode } from "types";
+import { State, DeckKind, Key, SlimDeck, ToolbarMode } from "types";
+
+export function canReceiveModalCommands(appState: State) {
+    return !appState.componentRequiresFullKeyboardAccess.value
+        && !appState.showingSearchCommand.value;
+}
 
 export function buildUrl(deckKind: DeckKind, id: Key, prefix?: string): string {
     if (prefix) {
