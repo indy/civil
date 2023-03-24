@@ -99,42 +99,57 @@ pub async fn delete(
     Ok(HttpResponse::Ok().json(true))
 }
 
+/*
+5 - perfect response
+4 - correct response after a hesitation
+3 - correct response recalled with serious difficulty
+2 - incorrect response; where the correct one seemed easy to recall
+1 - incorrect response; the correct one remembered
+0 - complete blackout.
+*/
 fn sqlite_update_easiness_factor(mut card: FlashCard, rating: i16) -> Result<FlashCard> {
     if rating < 3 {
         // start repetitions for the item from the beginning without changing the E-Factor (i.e. use intervals I(1), I(2) etc. as if the item was memorized anew
-        card.inter_repetition_interval = 1;
+        card.interval = 1;
+        card.repetition = 0;
     } else {
         // according to https://www.supermemo.com/en/archives1990-2015/english/ol/sm2
         // calculate the inter_repetition_interval using the existing easiness_factor, then update the easiness_factor
         //
-        if card.inter_repetition_interval == 0 {
+        if card.repetition == 0 {
             // a new card hasn't been recalled yet
-            card.inter_repetition_interval = 1;
-        } else if card.inter_repetition_interval == 1 {
+            card.interval = 1;
+            card.repetition = 1;
+        } else if card.repetition == 1 {
             // a card that's been recalled once
-            card.inter_repetition_interval = 6;
+            card.interval = 6;
+            card.repetition = 2;
         } else {
-            let iri_f32: f32 = (card.inter_repetition_interval as f32) * card.easiness_factor;
-            let mut new_iri = iri_f32 as i32;
+            let interval_f32: f32 = (card.interval as f32) * card.easiness_factor;
+            let mut new_interval = interval_f32 as i32;
 
-            if iri_f32 - (new_iri as f32) > 0.5 {
+            if interval_f32 - (new_interval as f32) > 0.5 {
                 // round up inter_repetition_interval
-                new_iri += 1;
+                new_interval += 1;
             }
 
-            card.inter_repetition_interval = new_iri;
-        }
-
-        let rating_f32: f32 = rating as f32;
-        card.easiness_factor =
-            card.easiness_factor - 0.8 + (0.28 * rating_f32) - (0.02 * rating_f32 * rating_f32);
-        if card.easiness_factor < 1.3 {
-            card.easiness_factor = 1.3;
+            card.interval = new_interval;
+            card.repetition = card.repetition + 1;
         }
     }
 
-    card.next_test_date =
-        Utc::now().naive_utc() + Duration::days(card.inter_repetition_interval.into());
+    let rating_f32: f32 = rating as f32;
+    // card.easiness_factor =
+    //     card.easiness_factor - 0.8 + (0.28 * rating_f32) - (0.02 * rating_f32 * rating_f32);
+
+    card.easiness_factor =
+        card.easiness_factor + (0.1 - (5.0 - rating_f32) * (0.08 + (5.0 - rating_f32) * 0.02));
+
+    if card.easiness_factor < 1.3 {
+        card.easiness_factor = 1.3;
+    }
+
+    card.next_test_date = Utc::now().naive_utc() + Duration::days(card.interval.into());
 
     // there is logic in the client to re-display cards in a session until they've all been rated at least 4
 

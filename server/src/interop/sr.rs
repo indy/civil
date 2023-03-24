@@ -57,5 +57,6 @@ pub struct FlashCard {
     pub next_test_date: chrono::NaiveDateTime,
 
     pub easiness_factor: f32,
-    pub inter_repetition_interval: i32,
+    pub interval: i32,
+    pub repetition: i32,
 }

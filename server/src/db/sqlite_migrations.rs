@@ -158,7 +158,8 @@ CREATE TABLE IF NOT EXISTS cards (
        next_test_date DATETIME NOT NULL,
 
        easiness_factor REAL NOT NULL,
-       inter_repetition_interval INTEGER DEFAULT 0,
+       interval INTEGER DEFAULT 0,
+       repetition INTEGER DEFAULT 0,
 
        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION,
        FOREIGN KEY (note_id) REFERENCES notes (id) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -553,6 +554,17 @@ pub fn migration_check(db_name: &str) -> Result<()> {
         // MIGRATION 7: add insignia column to decks
         ////////////////
         M::up("ALTER TABLE decks ADD COLUMN insignia INTEGER DEFAULT 0;"),
+
+        ////////////////
+        // MIGRATION 8: fix spaced repetition
+        ////////////////
+        M::up("ALTER TABLE cards ADD COLUMN interval INTEGER DEFAULT 0;
+               ALTER TABLE cards ADD COLUMN repetition INTEGER DEFAULT 0;
+
+               UPDATE cards SET interval = inter_repetition_interval;
+               UPDATE cards SET repetition = 3;
+
+               ALTER TABLE cards DROP COLUMN inter_repetition_interval;"),
     ]);
 
     let mut conn = Connection::open(db_name)?;

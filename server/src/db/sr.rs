@@ -50,7 +50,8 @@ fn flashcard_from_row(row: &Row) -> Result<interop::FlashCard> {
         next_test_date: row.get(3)?,
 
         easiness_factor: row.get(4)?,
-        inter_repetition_interval: row.get(5)?,
+        interval: row.get(5)?,
+        repetition: row.get(6)?,
     })
 }
 
@@ -60,7 +61,7 @@ pub(crate) fn all_flashcards_for_deck(
 ) -> Result<Vec<interop::FlashCard>> {
     let conn = sqlite_pool.get()?;
     sqlite::many(&conn,
-                 "SELECT c.id, c.note_id, c.prompt, c.next_test_date, c.easiness_factor, c.inter_repetition_interval
+                 "SELECT c.id, c.note_id, c.prompt, c.next_test_date, c.easiness_factor, c.interval, c.repetition
                   FROM cards c, decks d, notes n
                   WHERE d.id=?1 AND n.deck_id = d.id AND c.note_id = n.id",
                  params![&deck_id],
@@ -78,21 +79,23 @@ pub(crate) fn create_card(
     let tx = conn.transaction()?;
 
     let easiness_factor: f32 = 2.5;
-    let inter_repetition_interval: i32 = 1;
+    let interval: i32 = 1;
+    let repetition: i32 = 1;
     let next_test_date = Utc::now().naive_utc();
 
     let flashcard = sqlite::one(
         &tx,
-        "INSERT INTO cards(user_id, note_id, prompt, next_test_date, easiness_factor, inter_repetition_interval)
+        "INSERT INTO cards(user_id, note_id, prompt, next_test_date, easiness_factor, interval, repetition)
          VALUES (?1, ?2, ?3, ?4, ?5, ?6)
-         RETURNING id, note_id, prompt, next_test_date, easiness_factor, inter_repetition_interval",
+         RETURNING id, note_id, prompt, next_test_date, easiness_factor, interval, repetition",
         params![
             &user_id,
             &card.note_id,
             &card.prompt,
             &next_test_date,
             &easiness_factor,
-            &inter_repetition_interval,
+            &interval,
+            &repetition
         ],
         flashcard_from_row,
     )?;
@@ -113,7 +116,7 @@ pub(crate) fn get_card_full_fat(
 
     sqlite::one(
         &conn,
-        "SELECT id, note_id, prompt, next_test_date, easiness_factor, inter_repetition_interval
+        "SELECT id, note_id, prompt, next_test_date, easiness_factor, interval, repetition
          FROM cards
          WHERE user_id=?1 and id=?2",
         params![&user_id, &card_id],
@@ -134,13 +137,14 @@ pub(crate) fn card_rated(
     sqlite::zero(
         &tx,
         "UPDATE cards
-         SET next_test_date = ?2, easiness_factor = ?3, inter_repetition_interval = ?4
+         SET next_test_date = ?2, easiness_factor = ?3, interval = ?4, repetition = ?5
          WHERE id = ?1",
         params![
             &card.id,
             &card.next_test_date,
             &card.easiness_factor,
-            &card.inter_repetition_interval,
+            &card.interval,
+            &card.repetition,
         ],
     )?;
 
@@ -169,7 +173,7 @@ pub(crate) fn edit_flashcard(
         "UPDATE cards
          SET prompt = ?3
          WHERE id = ?2 and user_id = ?1
-         RETURNING id, note_id, prompt, next_test_date, easiness_factor, inter_repetition_interval",
+         RETURNING id, note_id, prompt, next_test_date, easiness_factor, interval, repetition",
         params![&user_id, &flashcard_id, &flashcard.prompt],
         flashcard_from_row,
     )

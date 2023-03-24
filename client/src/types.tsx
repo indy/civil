@@ -163,7 +163,8 @@ export type FlashCard = {
     prompt: string;
     nextTestDate: string;
     easinessFactor: number;
-    interRepetitionInterval: number;
+    interval: number;
+    repetition: number;
 };
 
 export type SearchResults = {

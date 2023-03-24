@@ -115,6 +115,7 @@ download-images:
 	rsync -avzhe ssh indy@indy.io:/home/indy/work/civil/user-content .
 
 download-db:
+	rm civil.db*
 	scp indy.io:work/civil/civil.db* .
 
 ################################################################################
