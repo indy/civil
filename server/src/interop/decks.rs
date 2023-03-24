@@ -22,7 +22,9 @@ use crate::interop::Key;
 use std::fmt;
 use std::str::FromStr;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
+)]
 #[repr(u8)]
 pub enum DeckKind {
     Article = 1,
@@ -59,7 +61,9 @@ impl FromStr for DeckKind {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
+)]
 #[repr(u8)]
 pub enum RefKind {
     Ref = 1,

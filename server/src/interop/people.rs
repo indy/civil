@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::{BackNote, SlimDeck, Ref};
+use crate::interop::decks::{BackNote, Ref, SlimDeck};
 use crate::interop::notes::Note;
 use crate::interop::points::DeckPoint;
 use crate::interop::sr::FlashCard;

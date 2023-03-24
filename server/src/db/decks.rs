@@ -143,7 +143,13 @@ fn deckbase_create(tx: &Connection, user_id: Key, kind: DeckKind, name: &str) ->
     let deckbase: DeckBase = sqlite::one(
         tx,
         stmt,
-        params![&user_id, &kind.to_string(), name, graph_terminator, &insignia],
+        params![
+            &user_id,
+            &kind.to_string(),
+            name,
+            graph_terminator,
+            &insignia
+        ],
         deckbase_from_row,
     )?;
 
@@ -280,10 +286,7 @@ pub(crate) fn get_backnotes(
 
 // all refs on notes that have at least one ref back to the currently displayed deck
 //
-pub(crate) fn get_backrefs(
-    sqlite_pool: &SqlitePool,
-    deck_id: Key,
-) -> Result<Vec<interop::Ref>> {
+pub(crate) fn get_backrefs(sqlite_pool: &SqlitePool, deck_id: Key) -> Result<Vec<interop::Ref>> {
     let conn = sqlite_pool.get()?;
 
     fn backref_from_row(row: &Row) -> Result<interop::Ref> {
@@ -617,7 +620,7 @@ pub(crate) fn search_using_deck_id(
     let sane_name = sanitize_for_sqlite_match(name)?;
 
     if sane_name.is_empty() {
-        return Ok(vec!())
+        return Ok(vec![]);
     }
 
     let stmt =

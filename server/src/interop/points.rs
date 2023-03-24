@@ -18,7 +18,9 @@
 use crate::interop::decks::DeckKind;
 use crate::interop::Key;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr)]
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
+)]
 #[repr(u8)]
 pub enum PointKind {
     Point = 1,
