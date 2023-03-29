@@ -81,6 +81,9 @@ function augmentDefinitionsWithCssModifierParameters(
     let s;
 
     if (mode === "light") {
+        // console.log("mode is light");
+        let textSat = 83.7;
+        let textLit = 53.6;
         s = {
             ...uiDefinitions,
 
@@ -102,9 +105,9 @@ function augmentDefinitionsWithCssModifierParameters(
             graph_edge_in_contrast: [217, 60, 70] as ColourTriple,
             graph_edge_critical: [7, 60, 70] as ColourTriple,
 
-            scribble_neutral: [247, 83.7, 53.6] as ColourTriple,
-            scribble_disagree: [15.1, 83.7, 53.6] as ColourTriple,
-            hyperlink: [247, 83.7, 53.6] as ColourTriple,
+            scribble_neutral: [247, textSat, textLit] as ColourTriple,
+            scribble_disagree: [15.1, textSat, textLit] as ColourTriple,
+            hyperlink: [247, textSat, textLit] as ColourTriple,
             highlight: [85, 100, 90] as ColourTriple,
 
             bg_ideas: "--bg-clock-06",
@@ -118,21 +121,27 @@ function augmentDefinitionsWithCssModifierParameters(
             fg_people: "--fg-clock-09",
             fg_timelines: "--fg-clock-03",
             fg_quotes: "--fg-clock-07",
+
+            red_text: [10, textSat, textLit] as ColourTriple,
+            green_text: [130, textSat, textLit] as ColourTriple,
         };
     } else {
+        // console.log("mode is dark");
+        let textSat = 100;
+        let textLit = 50;
         s = {
             ...uiDefinitions,
 
             bg: [46.5, 19.2, 2.0] as ColourTriple,
-            bg1: [85.7, 4.5, 4] as ColourTriple,
-            bg2: [46.1, 20.2, 6] as ColourTriple,
+            bg1: [46.5, 19.2, 2.0] as ColourTriple,
+            bg2: [46.5, 19.2, 2.0] as ColourTriple,
             bg3: [46.5, 19.2, 0.0] as ColourTriple,
 
             fg: [43, 19, 45] as ColourTriple,
             fg1: [16.7, 0, 40.7] as ColourTriple,
             fg_inactive: [16.7, 0, 20] as ColourTriple,
 
-            divider: [16.7, 0, 23] as ColourTriple,
+            divider: [46.5, 19.2, 2.0] as ColourTriple,
 
             graph_node_expanded: [127, 60, 70] as ColourTriple,
             graph_node_partial: [37, 60, 70] as ColourTriple,
@@ -141,9 +150,9 @@ function augmentDefinitionsWithCssModifierParameters(
             graph_edge_in_contrast: [217, 60, 70] as ColourTriple,
             graph_edge_critical: [7, 60, 70] as ColourTriple,
 
-            scribble_neutral: [247, 100, 50] as ColourTriple,
-            scribble_disagree: [7, 100, 50] as ColourTriple,
-            hyperlink: [247, 60, 50] as ColourTriple,
+            scribble_neutral: [247, textSat, textLit] as ColourTriple,
+            scribble_disagree: [7, textSat, textLit] as ColourTriple,
+            hyperlink: [247, textSat, textLit] as ColourTriple,
             highlight: [85, 100, 90] as ColourTriple,
 
             bg_ideas: "--bg-clock-06",
@@ -157,6 +166,9 @@ function augmentDefinitionsWithCssModifierParameters(
             fg_people: "--fg-clock-09",
             fg_timelines: "--fg-clock-03",
             fg_quotes: "--fg-clock-07",
+
+            red_text: [10, textSat, textLit] as ColourTriple,
+            green_text: [130, textSat, textLit] as ColourTriple,
         };
     }
     return s;

@@ -42,6 +42,7 @@ pub enum Node {
     BlockQuote(usize, Vec<Node>),
     Codeblock(usize, Option<CodeblockLanguage>, String),
     Deleted(usize, Vec<Node>),
+    Green(usize, Vec<Node>),
     Header(usize, u32, Vec<Node>),
     Highlight(usize, Vec<Node>),
     HorizontalRule(usize),
@@ -54,6 +55,7 @@ pub enum Node {
     OrderedList(usize, Vec<Node>, String),
     Paragraph(usize, Vec<Node>),
     Quotation(usize, Vec<Node>),
+    Red(usize, Vec<Node>),
     Strong(usize, Vec<Node>),
     Subscript(usize, Vec<Node>),
     Superscript(usize, Vec<Node>),
@@ -68,6 +70,7 @@ fn get_node_pos(node: &Node) -> usize {
         Node::BlockQuote(pos, _) => *pos,
         Node::Codeblock(pos, _, _) => *pos,
         Node::Deleted(pos, _) => *pos,
+        Node::Green(pos, _) => *pos,
         Node::Header(pos, _, _) => *pos,
         Node::Highlight(pos, _) => *pos,
         Node::HorizontalRule(pos) => *pos,
@@ -80,6 +83,7 @@ fn get_node_pos(node: &Node) -> usize {
         Node::OrderedList(pos, _, _) => *pos,
         Node::Paragraph(pos, _) => *pos,
         Node::Quotation(pos, _) => *pos,
+        Node::Red(pos, _) => *pos,
         Node::Strong(pos, _) => *pos,
         Node::Subscript(pos, _) => *pos,
         Node::Superscript(pos, _) => *pos,
@@ -329,6 +333,16 @@ fn eat_italic<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     Ok((tokens, Node::Italic(pos, parsed_content)))
 }
 
+fn eat_red<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
+    Ok((tokens, Node::Red(pos, parsed_content)))
+}
+
+fn eat_green<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
+    Ok((tokens, Node::Green(pos, parsed_content)))
+}
+
 fn eat_subscript<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Subscript(pos, parsed_content)))
@@ -397,6 +411,8 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
             Token::Text(_, "h") => eat_highlighted(tokens),
             Token::Text(_, "u") => eat_underlined(tokens),
             Token::Text(_, "i") => eat_italic(tokens),
+            Token::Text(_, "red") => eat_red(tokens),
+            Token::Text(_, "green") => eat_green(tokens),
             Token::Text(_, "h1") => eat_header(1, tokens),
             Token::Text(_, "h2") => eat_header(2, tokens),
             Token::Text(_, "h3") => eat_header(3, tokens),

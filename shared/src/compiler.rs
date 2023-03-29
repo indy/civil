@@ -60,6 +60,7 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
             }]
         }
         Node::Deleted(_, ns) => element_key_hoisted("del", key, ns)?,
+        Node::Green(_, ns) => element_key_hoisted_class("span", "green-text", key, ns)?,
         Node::Header(_, level, ns) => header_key(*level, key, ns)?,
         Node::Highlight(_, ns) => element_key_hoisted("mark", key, ns)?,
         Node::HorizontalRule(_) => element_key("hr", key, &[])?,
@@ -98,6 +99,7 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
         Node::OrderedList(_, ns, start) => compile_ordered_list(start, key, ns)?,
         Node::Paragraph(_, ns) => element_key("p", key, ns)?,
         Node::Quotation(_, ns) => element_key_hoisted("em", key, ns)?,
+        Node::Red(_, ns) => element_key_hoisted_class("span", "red-text", key, ns)?,
         Node::Strong(_, ns) => element_key_hoisted("strong", key, ns)?,
         Node::Subscript(_, ns) => element_key_hoisted("sub", key, ns)?,
         Node::Superscript(_, ns) => element_key_hoisted("sup", key, ns)?,

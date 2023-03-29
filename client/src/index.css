@@ -735,6 +735,14 @@ textarea {
     font: inherit; /* 2 */
 }
 
+
+.red-text {
+  color: var(--red-text);
+}
+.green-text {
+  color: var(--green-text);
+}
+
 #elastic-top-menu-items {
     display: flex;
     justify-content: flex-start;
