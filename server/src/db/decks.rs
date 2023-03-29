@@ -397,7 +397,7 @@ pub(crate) fn search(
                 where decks_fts match ?2
                       and d.user_id = ?1
                 group by d.id
-                order by rank_sum asc, length(d.name) asc
+                order by rank_sum asc, length(d.name) asc, d.created_at desc
                 limit 30";
     let mut results = sqlite::many(
         &conn,
