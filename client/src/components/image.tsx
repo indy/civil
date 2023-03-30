@@ -5,5 +5,5 @@ export default function Image({ src }: { src?: string }) {
         console.log("clicked on an image");
     }
 
-    return <img onClick={onClick} src={src} />;
+    return <p><img class="deck-image" onClick={onClick} src={src}/></p>;
 }

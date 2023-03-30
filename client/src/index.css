@@ -377,9 +377,18 @@ figure.fullwidth figcaption {
     margin-right: 24%;
 }
 
-div.note > div > img {
-    /* top-level images */
-    max-width: var(--block-width);
+/* div.note > div > img { */
+/*     /\* top-level images *\/ */
+/*   max-width: var(--block-width); */
+/* } */
+
+.deck-image {
+  display: block;
+  margin: 0 auto;
+  max-height:50rem;
+  max-width: var(--block-width);
+  height:auto;
+  width:auto;
 }
 
 /* Right-Margin-Numbereds, margin notes, figures, captions */
