@@ -5,6 +5,8 @@ import { useContext } from "preact/hooks";
 import {
     ArticleListings,
     DeckKind,
+    PreviewDeck,
+    PreviewNotes,
     FullGraphStruct,
     Graph,
     GraphDeck,
@@ -12,6 +14,7 @@ import {
     Key,
     Listing,
     NoteKind,
+    Notes,
     PeopleListings,
     Ref,
     RefKind,
@@ -22,7 +25,10 @@ import {
     UberSetup,
     User,
     UserUploadedImage,
+    VisiblePreview,
 } from "types";
+
+import { noteSeq } from "utils/civil";
 
 const emptyUser: User = {
     username: "",
@@ -97,6 +103,8 @@ const state: State = {
         people: undefined,
         timelines: undefined,
     }),
+    previewCache: signal({}),
+    visiblePreviewDeck: signal({ id: 0, showing: false }),
 
     verboseUI: signal(true),
 
@@ -154,13 +162,89 @@ export const getAppState = () => useContext(AppStateContext);
 const DEBUG_APP_STATE = false;
 
 export const AppStateChange = {
+    showPreviewDeck: function (deckId: Key) {
+        if (DEBUG_APP_STATE) {
+            console.log("showPreviewDeck");
+        }
+        let vp: VisiblePreview = {
+            id: deckId,
+            showing: true,
+        };
+
+        state.visiblePreviewDeck.value = vp;
+    },
+    hidePreviewDeck: function (deckId: Key) {
+        if (DEBUG_APP_STATE) {
+            console.log("hidePreviewDeck");
+        }
+
+        if (state.visiblePreviewDeck.value.id === deckId) {
+            let vp: VisiblePreview = {
+                ...state.visiblePreviewDeck.value,
+                showing: false,
+            };
+
+            state.visiblePreviewDeck.value = vp;
+        } else {
+            console.log(
+                "calling hidePreviewDeck with a deckId that isn't the current preview deck: " +
+                    deckId +
+                    " " +
+                    state.visiblePreviewDeck.value.id
+            );
+        }
+    },
+    addPreview: function (slimDeck: SlimDeck, previewNotes: PreviewNotes) {
+        if (DEBUG_APP_STATE) {
+            console.log("addPreviewDeck");
+        }
+        if (slimDeck.id !== previewNotes.deckId) {
+            console.error(
+                `addPreview: deck id mismatch: ${slimDeck.id} ${previewNotes.deckId}`
+            );
+        }
+
+        let pc = {
+            ...state.previewCache.value,
+        };
+
+        // use the summary notes if present
+        let ns: Notes = noteSeq(previewNotes.notes, NoteKind.NoteSummary);
+        // otherwise use the normal notes
+        if (ns.length === 0) {
+            ns = noteSeq(previewNotes.notes, NoteKind.Note);
+        }
+
+        let previewDeck: PreviewDeck = {
+            id: slimDeck.id,
+            title: slimDeck.title,
+            deckKind: slimDeck.deckKind,
+            insignia: slimDeck.insignia,
+            notes: ns,
+        };
+
+        pc[previewDeck.id] = previewDeck;
+        state.previewCache.value = pc;
+    },
     setShowingSearchCommand: function (b: boolean) {
+        if (DEBUG_APP_STATE) {
+            console.log("setShowingSearchCommand");
+        }
+
         state.showingSearchCommand.value = b;
     },
     resetShowingSearchCommand: function () {
+        if (DEBUG_APP_STATE) {
+            console.log("resetShowingSearchCommand");
+        }
+
         state.showingSearchCommand.value = !state.hasPhysicalKeyboard;
     },
     addDebugMessage: function (msg: string) {
+        if (DEBUG_APP_STATE) {
+            console.log("addDebugMessage");
+        }
+
         let dm = state.debugMessages.value.slice();
         dm.unshift(msg);
         state.debugMessages.value = dm;

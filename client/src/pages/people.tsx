@@ -65,7 +65,7 @@ function People({ path }: { path?: string }) {
 
     if (people) {
         return (
-            <article>
+            <article class="listing-page">
                 <h1 class="ui">{deckKindToHeadingString(deckKind)}</h1>
                 <SlimDeckGrouping
                     label="Uncategorised"

@@ -50,7 +50,7 @@ function Timelines({ path }: { path?: string }) {
 
     let timelines = appState.listing.value.timelines;
     return (
-        <article>
+        <article class="listing-page">
             <h1 class="ui">{capitalise(resource)}</h1>
             {timelines && <SlimDeckList list={timelines} />}
         </article>

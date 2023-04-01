@@ -1,11 +1,16 @@
 import { h, ComponentChildren } from "preact";
+import { useRef /*, useState*/ } from "preact/hooks";
 import { Link } from "preact-router";
 
-import { SlimDeck, ToolbarMode } from "types";
+import { PreviewNotes, SlimDeck, ToolbarMode } from "types";
 
+import Net from "utils/net";
 import { buildUrl, deckKindToResourceString } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
 import { renderInsignia, svgBookmarkLink } from "features/insignias/renderer";
+
+// import useMouseHovering from "components/use-mouse-hovering";
+import useMouseHoveringEvents from "components/use-mouse-hovering-events";
 
 type Props = {
     slimDeck: SlimDeck;
@@ -24,13 +29,32 @@ export default function DeckLink({
 }: Props) {
     const appState = getAppState();
 
+    const hoveringRef = useRef(null);
+    useMouseHoveringEvents(hoveringRef, onMouseEnter, onMouseLeave);
+
+    function onMouseEnter() {
+        if (!appState.previewCache.value[slimDeck.id]) {
+            Net.get<PreviewNotes>(`/api/cmd/preview/${slimDeck.id}`).then(
+                (pn) => {
+                    AppStateChange.addPreview(slimDeck, pn);
+                }
+            );
+        }
+        AppStateChange.showPreviewDeck(slimDeck.id);
+    }
+    function onMouseLeave() {
+        AppStateChange.hidePreviewDeck(slimDeck.id);
+    }
+
     function clicked(_e: Event) {
+        AppStateChange.hidePreviewDeck(slimDeck.id);
         if (onClick) {
             onClick();
         }
     }
 
     function bookmarkModeClicked() {
+        AppStateChange.hidePreviewDeck(slimDeck.id);
         AppStateChange.addBookmarkLink(slimDeck);
     }
 
@@ -38,13 +62,14 @@ export default function DeckLink({
     const dk: string = deckKindToResourceString(slimDeck.deckKind);
     let klass = `${ec} pigment-fg-${dk}`;
 
+    let elem: any;
     if (
         !alwaysLink &&
         appState.toolbarMode.value === ToolbarMode.BookmarkLinks
     ) {
         klass += " bookmarkmode-active";
-        return (
-            <span class={klass} onClick={bookmarkModeClicked}>
+        elem = (
+            <span class={klass} ref={hoveringRef} onClick={bookmarkModeClicked}>
                 {children}
                 {svgBookmarkLink("#ff00ff")}
                 {renderInsignia(slimDeck.insignia)}
@@ -52,11 +77,12 @@ export default function DeckLink({
             </span>
         );
     } else {
-        return (
+        elem = (
             <Link
                 class={klass}
                 href={buildUrl(slimDeck.deckKind, slimDeck.id)}
                 onClick={clicked}
+                ref={hoveringRef}
             >
                 {children}
                 {renderInsignia(slimDeck.insignia)}
@@ -64,4 +90,6 @@ export default function DeckLink({
             </Link>
         );
     }
+
+    return <span ref={hoveringRef}>{elem}</span>;
 }

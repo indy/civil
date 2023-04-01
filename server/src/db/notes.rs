@@ -279,6 +279,39 @@ fn get_note_(conn: &Connection, user_id: Key, note_id: Key) -> Result<interop::N
     sqlite::one(conn, stmt, params![&note_id, &user_id], note_from_row)
 }
 
+pub(crate) fn preview(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_id: Key,
+) -> Result<interop::PreviewNotes> {
+    let conn = sqlite_pool.get()?;
+
+    fn note_from_row(row: &Row) -> Result<interop::Note> {
+        let sql_kind: i32 = row.get(2)?;
+
+        Ok(interop::Note {
+            id: row.get(0)?,
+            kind: interop::note_kind_from_sqlite(sql_kind)?,
+            content: row.get(1)?,
+            point_id: None,
+            prev_note_id: row.get(3)?,
+        })
+    }
+
+    let stmt = "SELECT n.id,
+                       n.content,
+                       n.kind,
+                       n.prev_note_id
+                FROM notes n
+                WHERE n.point_id is null AND n.deck_id = ?1 AND n.user_id = ?2";
+    let notes = sqlite::many(&conn, stmt, params![&deck_id, &user_id], note_from_row)?;
+
+    Ok(interop::PreviewNotes {
+        deck_id,
+        notes,
+    })
+}
+
 pub fn edit_note(
     sqlite_pool: &SqlitePool,
     user_id: Key,

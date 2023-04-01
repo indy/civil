@@ -70,3 +70,10 @@ pub struct ProtoNote {
     pub prev_note_id: Option<Key>,
     pub next_note_id: Option<Key>,
 }
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PreviewNotes {
+    pub deck_id: Key,
+    pub notes: Vec<Note>,
+}

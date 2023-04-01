@@ -47,7 +47,7 @@ function Articles({ path }: { path?: string }) {
 
     if (articles) {
         return (
-            <article>
+            <article class="listing-page">
                 <h1 class="ui">{deckKindToHeadingString(deckKind)}</h1>
                 <RatedGrouping label="Recent" list={articles.recent} expanded />
                 <RatedGrouping label="Rated" list={articles.rated} />

@@ -51,13 +51,6 @@ export enum PassageHowToShow {
     Exclusive,
 }
 
-export type SlimDeck = {
-    id: Key;
-    title: string;
-    deckKind: DeckKind;
-    insignia: number;
-};
-
 export type Ref = SlimDeck & {
     noteId: Key;
     refKind: RefKind;
@@ -68,6 +61,22 @@ export type BackNote = SlimDeck & {
     noteId: Key;
     noteContent: string;
     noteKind: NoteKind;
+};
+
+export type PreviewNotes = {
+    deckId: Key;
+    notes: Notes;
+};
+
+export type PreviewDeck = SlimDeck & {
+    notes: Notes;
+};
+
+export type SlimDeck = {
+    id: Key;
+    title: string;
+    deckKind: DeckKind;
+    insignia: number;
 };
 
 export interface FatDeck {
@@ -260,6 +269,11 @@ export type WasmInterface = {
     rgbFromHsl(hsl: ColourTriple): string;
 };
 
+export type VisiblePreview = {
+    id: Key;
+    showing: boolean; // replace boolean with enum
+};
+
 export type State = {
     debugMessages: Signal<Array<string>>;
 
@@ -286,6 +300,10 @@ export type State = {
     preferredOrder: Array<string>; // rename to preferredTopMenuOrder
 
     listing: Signal<Listing>;
+
+    previewCache: Signal<Record<Key, PreviewDeck>>;
+
+    visiblePreviewDeck: Signal<VisiblePreview>;
 
     verboseUI: Signal<boolean>;
 

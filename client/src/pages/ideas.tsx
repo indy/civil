@@ -44,7 +44,7 @@ function Ideas({ path }: { path?: string }) {
 
     if (ideas) {
         return (
-            <article>
+            <article class="listing-page">
                 <h1 class="ui">{capitalise(resource)}</h1>
                 <SlimDeckGrouping label="Recent" list={ideas.recent} expanded />
                 <SlimDeckGrouping

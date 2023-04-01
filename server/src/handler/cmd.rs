@@ -16,12 +16,14 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::decks as db;
+use crate::db::notes as db_notes;
 use crate::db::sqlite::SqlitePool;
 use crate::error::Result;
 use crate::handler::SearchQuery;
+use crate::interop::IdParam;
 use crate::interop::decks::ResultList;
 use crate::session;
-use actix_web::web::{self, Data};
+use actix_web::web::{self, Data, Path};
 use actix_web::HttpResponse;
 use serde::Deserialize;
 
@@ -76,4 +78,19 @@ pub async fn recent(
 
     let res = ResultList { results };
     Ok(HttpResponse::Ok().json(res))
+}
+
+pub async fn preview(
+    sqlite_pool: Data<SqlitePool>,
+    params: Path<IdParam>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    info!("preview {:?}", params.id);
+
+    let user_id = session::user_id(&session)?;
+    let deck_id = params.id;
+
+    let preview = db_notes::preview(&sqlite_pool, user_id, deck_id)?;
+
+    Ok(HttpResponse::Ok().json(preview))
 }

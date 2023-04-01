@@ -7,6 +7,7 @@ import Net from "utils/net";
 import { AppStateChange, AppStateProvider, getAppState } from "app-state";
 import { capitalise } from "utils/js";
 
+import Previewer from "components/previewer";
 import SearchCommand from "features/search-command";
 import SpacedRepetition from "pages/spaced-repetition";
 import Stuff from "pages/stuff";
@@ -145,6 +146,7 @@ const AppUI = () => {
             <SearchCommand />
             <TopBarMenu />
             <DeluxeToolbar />
+            <Previewer />
             <Router onChange={handleRoute}>
                 <Login path="/login" loginCallback={loginHandler} />
                 <Logout path="/logout" />

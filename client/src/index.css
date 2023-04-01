@@ -191,6 +191,38 @@ h1 {
     font-size: 2.6rem;
 }
 
+.listing-page {
+    width: 62rem;
+}
+
+.previewer {
+    opacity: 0;
+    transition: opacity 400ms linear;
+
+    /* transform: scaleX(0); */
+    /* transform-origin: right; */
+    /* transition: transform 0.26s ease; */
+
+    position: fixed;
+    background: var(--bg2);
+    top: 5rem;
+    right: 1rem;
+    width: 30rem;
+    margin: 1rem;
+    padding: 1rem;
+    z-index: 100;
+    border: 5px solid var(--fg1);
+    border-radius: 1.5rem;
+
+    max-height: 80%;
+    overflow-y: clip;
+}
+
+.previewer-active {
+    /* transform: scaleX(1); */
+    opacity: 1;
+}
+
 .deck-title {
     font-size: 3rem;
     width: var(--block-width);
@@ -383,12 +415,12 @@ figure.fullwidth figcaption {
 /* } */
 
 .deck-image {
-  display: block;
-  margin: 0 auto;
-  max-height:50rem;
-  max-width: var(--block-width);
-  height:auto;
-  width:auto;
+    display: block;
+    margin: 0 auto;
+    max-height: 50rem;
+    max-width: var(--block-width);
+    height: auto;
+    width: auto;
 }
 
 /* Right-Margin-Numbereds, margin notes, figures, captions */
@@ -744,12 +776,11 @@ textarea {
     font: inherit; /* 2 */
 }
 
-
 .red-text {
-  color: var(--red-text);
+    color: var(--red-text);
 }
 .green-text {
-  color: var(--green-text);
+    color: var(--green-text);
 }
 
 #elastic-top-menu-items {

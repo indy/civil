@@ -1,4 +1,6 @@
-import { useEffect, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
+
+import useMouseHoveringEvents from "components/use-mouse-hovering-events";
 
 export default function useMouseHovering(hoveringRef: any) {
     const [mouseHovering, setMouseHovering] = useState(false);
@@ -9,19 +11,8 @@ export default function useMouseHovering(hoveringRef: any) {
     function mouseLeave() {
         setMouseHovering(false);
     }
-    useEffect(() => {
-        if (hoveringRef && hoveringRef.current) {
-            let hc = hoveringRef.current as HTMLElement;
-            hc.addEventListener("mouseenter", mouseEnter, false);
-            hc.addEventListener("mouseleave", mouseLeave, false);
-            return () => {
-                hc.removeEventListener("mouseenter", mouseEnter);
-                hc.removeEventListener("mouseleave", mouseLeave);
-            };
-        }
-        // added to please tsc
-        return () => {};
-    }, []);
+
+    useMouseHoveringEvents(hoveringRef, mouseEnter, mouseLeave);
 
     return mouseHovering;
 }
