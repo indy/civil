@@ -1,14 +1,13 @@
 import { h } from "preact";
 import { useEffect } from "preact/hooks";
-import { Link } from "preact-router";
 
 import { Key, SlimDeck } from "types";
 
 import Net from "utils/net";
-import { buildUrl, deckKindToResourceString } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
 import { plural, formattedDate, formattedTime } from "utils/js";
 
+import DeckLink from "components/deck-link";
 import useLocalReducer from "components/use-local-reducer";
 
 import buildMarkup from "features/notes/build-markup";
@@ -298,21 +297,19 @@ function CardTest({ card, onRatedCard, onShowAnswer }: CardTestProps) {
 }
 
 function Answer({ card }: { card: Card }) {
-    const { id, title, deckKind } = card.deckInfo;
-    const href = buildUrl(deckKind, id);
-    const klass = `ref pigment-${deckKindToResourceString(deckKind)}`;
     return (
         <div>
             <div class="sr-segment">Back</div>
-            <div class="note">
+            <div class="note selectable-container">
                 <div class="left-margin">
                     <div class="left-margin-entry">
-                        <Link class={klass} href={href}>
-                            {title}
-                        </Link>
+                        <span class="ref-kind">(Answer Deck)</span>
+                        <DeckLink slimDeck={card.deckInfo}/>
                     </div>
                 </div>
-                {card.answer && buildMarkup(card.answer)}
+                <div class="note-content selectable-content">
+                    {card.answer && buildMarkup(card.answer)}
+                </div>
             </div>
         </div>
     );
