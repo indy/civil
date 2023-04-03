@@ -211,7 +211,7 @@ h1 {
     margin: 1rem;
     padding: 1rem;
     z-index: 100;
-    border: 5px solid var(--fg1);
+    border: 0.1rem solid var(--fg2);
     border-radius: 1.5rem;
 
     max-height: 80%;

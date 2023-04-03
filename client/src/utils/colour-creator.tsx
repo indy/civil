@@ -94,6 +94,7 @@ function augmentDefinitionsWithCssModifierParameters(
 
             fg: [43, 19, 3.5] as ColourTriple,
             fg1: [0, 0, 40.7] as ColourTriple,
+            fg2: [0, 0, 70.7] as ColourTriple,
             fg_inactive: [0, 0, 60] as ColourTriple,
 
             divider: [0, 0, 77.7] as ColourTriple,
@@ -139,6 +140,7 @@ function augmentDefinitionsWithCssModifierParameters(
 
             fg: [43, 19, 45] as ColourTriple,
             fg1: [16.7, 0, 40.7] as ColourTriple,
+            fg2: [16.7, 0, 35.7] as ColourTriple,
             fg_inactive: [16.7, 0, 20] as ColourTriple,
 
             divider: [46.5, 19.2, 2.0] as ColourTriple,
