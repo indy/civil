@@ -23,20 +23,21 @@ use crate::db::sqlite::SqlitePool;
 use crate::db::uploader as db;
 
 use std::ffi::OsStr;
-use std::path::Path;
+use std::path::Path as StdPath;
 
 use actix_multipart::Multipart;
 use actix_web::web::Data;
+use actix_web::web::Path;
 use actix_web::{web, HttpResponse};
 use futures::{StreamExt, TryStreamExt};
 use std::io::Write;
+
+use crate::interop::AtLeastParam;
 
 #[allow(unused_imports)]
 use tracing::info;
 
 pub async fn get_directory(session: actix_session::Session) -> Result<HttpResponse> {
-    info!("get_directory");
-
     let user_id = session::user_id(&session)?;
 
     Ok(HttpResponse::Ok().json(user_id))
@@ -44,13 +45,12 @@ pub async fn get_directory(session: actix_session::Session) -> Result<HttpRespon
 
 pub async fn get(
     sqlite_pool: Data<SqlitePool>,
+    params: Path<AtLeastParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    info!("get_recent_uploads");
-
     let user_id = session::user_id(&session)?;
 
-    let recent = db::get_recent(&sqlite_pool, user_id)?;
+    let recent = db::get_recent(&sqlite_pool, user_id, params.at_least)?;
 
     Ok(HttpResponse::Ok().json(recent))
 }
@@ -67,9 +67,9 @@ pub async fn create(
     std::fs::DirBuilder::new()
         .recursive(true)
         .create(&user_directory)?;
-    // info!("user_directory = {}", &user_directory);
 
-    let mut user_image_count = db::get_image_count(&sqlite_pool, user_id)?;
+    let mut user_total_image_count = db::get_image_count(&sqlite_pool, user_id)?;
+    let mut upload_image_count = 0;
 
     // iterate over multipart stream
     while let Ok(Some(mut field)) = payload.try_next().await {
@@ -77,14 +77,14 @@ pub async fn create(
         let filename = content_type.get_filename().unwrap();
 
         let ext = get_extension(filename).unwrap();
-        let fourc = number_as_fourc(user_image_count)?;
+        let fourc = number_as_fourc(user_total_image_count)?;
 
         let derived_filename = format!("{}.{}", fourc, ext);
 
         let filepath = format!("{}/{}", user_directory, derived_filename);
 
-        user_image_count += 1;
-        db::set_image_count(&sqlite_pool, user_id, user_image_count)?;
+        user_total_image_count += 1;
+        upload_image_count += 1;
 
         // todo: unwrap was added after the File::create - is this right?
         let mut f = web::block(|| std::fs::File::create(filepath).unwrap())
@@ -103,14 +103,15 @@ pub async fn create(
         }
 
         // save the entry in the images table
-
         db::add_image_entry(&sqlite_pool, user_id, &derived_filename)?;
     }
-    Ok(HttpResponse::Ok().into())
+    db::set_image_count(&sqlite_pool, user_id, user_total_image_count)?;
+
+    Ok(HttpResponse::Ok().json(upload_image_count))
 }
 
 fn get_extension(filename: &str) -> Option<&str> {
-    Path::new(filename).extension().and_then(OsStr::to_str)
+    StdPath::new(filename).extension().and_then(OsStr::to_str)
 }
 
 fn number_as_fourc(n: i32) -> Result<String> {

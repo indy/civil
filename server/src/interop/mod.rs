@@ -41,3 +41,8 @@ pub struct ProtoDeck {
 pub struct IdParam {
     pub id: Key,
 }
+
+#[derive(serde::Deserialize)]
+pub struct AtLeastParam {
+    pub at_least: u8,
+}

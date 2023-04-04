@@ -8,7 +8,7 @@ import { getAppState } from "app-state";
 import { svgX } from "components/svg-icons";
 
 import CivilTextArea from "components/civil-text-area";
-import ImageSelector from "features/image-selector";
+import ImageSelector from "features/images/image-selector";
 
 type Props = {
     label: string;
@@ -158,6 +158,7 @@ export default function NoteForm({
                     onFocus={onTextAreaFocus}
                     onBlur={onTextAreaBlur}
                     onContentChange={handleContentChange}
+                    onPaste={onImagePaste}
                 />
                 <br />
                 <input type="submit" value="Save" />

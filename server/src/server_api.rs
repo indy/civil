@@ -155,7 +155,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         .service(
             scope("/upload")
                 .route("", post().to(uploader::create)) // upload images
-                .route("", get().to(uploader::get)) // get this user's most recent uploads
+                .route("/{at_least}", get().to(uploader::get)) // get this user's most recent uploads
                 .route("directory", get().to(uploader::get_directory)), // this user's upload directory
         )
 }

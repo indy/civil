@@ -1,7 +1,13 @@
 import { h } from "preact";
-import { Ref } from "preact/hooks";
+import { Ref, useState } from "preact/hooks";
+
+import { UserUploadedImage } from "types";
 
 import { AppStateChange } from "app-state";
+
+import uploadImages from "features/images/image-upload";
+
+import useDragDrop from "components/use-drag-drop";
 
 type Props = {
     id?: string;
@@ -10,6 +16,7 @@ type Props = {
     elementClass?: string;
     onFocus?: () => void;
     onBlur?: (e?: Event) => void;
+    onPaste?: (s: string) => void;
     onContentChange?: (s: string) => void;
 };
 
@@ -20,8 +27,30 @@ export default function CivilTextArea({
     elementClass,
     onFocus,
     onBlur,
+    onPaste,
     onContentChange,
 }: Props) {
+    const [hovering, setHovering] = useState(false);
+    useDragDrop(elementRef, droppedFiles, setHovering);
+
+    async function droppedFiles(files: FileList) {
+        const numImages = files.length;
+        // upload the images
+        const recentImages: Array<UserUploadedImage> = await uploadImages(
+            files
+        );
+        // update the recent images list
+        AppStateChange.setRecentImages(recentImages);
+        // update the markup with the correct image filenames
+        if (onPaste) {
+            let markup = "";
+            for (let i = 0; i < numImages; i++) {
+                markup += ":img(" + recentImages[i].filename + ") ";
+            }
+            onPaste(markup.trimEnd());
+        }
+    }
+
     function onTextAreaFocus() {
         AppStateChange.obtainKeyboardFn();
         onFocus && onFocus();
@@ -43,14 +72,19 @@ export default function CivilTextArea({
         }
     }
 
+    let klasses = elementClass;
+    if (hovering) {
+        klasses += " drop-target";
+    }
+
     return (
         <textarea
+            class={klasses}
             id={id}
             type="text"
             name={id}
             value={value}
             ref={elementRef}
-            class={elementClass}
             onFocus={onTextAreaFocus}
             onBlur={onTextAreaBlur}
             onInput={onInput}

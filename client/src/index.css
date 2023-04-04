@@ -1034,13 +1034,12 @@ a:visited.pigment-inherit {
     margin: auto;
 }
 
+.drop-target {
+    /* transparent hover region */
+    background: rgba(255, 128, 64, 0.2) !important;
+}
+
 .image-widget-hovering {
-    background: rgba(
-        255,
-        128,
-        64,
-        0.2
-    ) !important; /* transparent hover region */
     height: 15rem;
     padding: 1rem 0 2.5rem 0;
 }

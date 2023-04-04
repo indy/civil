@@ -50,7 +50,7 @@ pub async fn setup(
 
     let directory = user_id;
 
-    let recent_images = db_uploader::get_recent(&sqlite_pool, user_id)?;
+    let recent_images = db_uploader::get_recent(&sqlite_pool, user_id, 0)?;
     let upcoming_review =
         db_sr::get_cards_upcoming_review(&sqlite_pool, user_id, Utc::now().naive_utc())?;
 

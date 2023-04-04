@@ -23,7 +23,7 @@ import CivilSelect from "components/civil-select";
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";
 import FlashCardView from "components/flashcard-view";
-import ImageSelector from "features/image-selector";
+import ImageSelector from "features/images/image-selector";
 import NoteForm from "features/notes/note-form";
 import RefView from "components/ref-view";
 import buildMarkup from "features/notes/build-markup";
@@ -425,6 +425,7 @@ export default function NoteView({
                     onFocus={onTextAreaFocus}
                     onBlur={onTextAreaBlur}
                     onContentChange={handleChangeEvent}
+                    onPaste={onImagePaste}
                 />
             </div>
         );
@@ -537,6 +538,7 @@ export default function NoteView({
         );
     }
 
+    // update the markup when clicking on an image in the ImageSelector
     function onImagePaste(markup: string) {
         localDispatch(ActionType.ImagePasted, { textAreaRef, markup });
     }

@@ -759,7 +759,9 @@ export default function SearchCommand() {
                 <ul class={classes} id="search-candidates">
                     {local.searchCandidates.map(
                         (entry: SlimDeck, i: number) => (
-                            <li key={entry.id}>{buildSearchResultEntry(entry, i)}</li>
+                            <li key={entry.id}>
+                                {buildSearchResultEntry(entry, i)}
+                            </li>
                         )
                     )}
                 </ul>

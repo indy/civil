@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use std::cmp;
+
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Result;
 use crate::interop::uploader as interop;
@@ -31,17 +33,21 @@ fn user_uploaded_image_from_row(row: &Row) -> Result<interop::UserUploadedImage>
 pub(crate) fn get_recent(
     sqlite_pool: &SqlitePool,
     user_id: Key,
+    at_least: u8,
 ) -> Result<Vec<interop::UserUploadedImage>> {
     let conn = sqlite_pool.get()?;
 
+    let limit = cmp::max(at_least, 15);
+
+    // the ORDER BY used created_at but this might not work as expected when multiple images are uploaded at once
     sqlite::many(
         &conn,
         "SELECT filename
          FROM images
          WHERE user_id = ?1
-         ORDER BY created_at DESC
-         LIMIT 15",
-        params![&user_id],
+         ORDER BY id DESC
+         LIMIT ?2",
+        params![&user_id, &limit],
         user_uploaded_image_from_row,
     )
 }

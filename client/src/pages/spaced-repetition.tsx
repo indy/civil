@@ -304,7 +304,7 @@ function Answer({ card }: { card: Card }) {
                 <div class="left-margin">
                     <div class="left-margin-entry">
                         <span class="ref-kind">(Answer Deck)</span>
-                        <DeckLink slimDeck={card.deckInfo}/>
+                        <DeckLink slimDeck={card.deckInfo} />
                     </div>
                 </div>
                 <div class="note-content selectable-content">
