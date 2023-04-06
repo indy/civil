@@ -39,8 +39,8 @@
     transition: opacity 200ms linear;
     position: fixed;
     bottom: 0;
-    left: 0;
-    padding-left: 2rem;
+    right: 0;
+    padding-right: 2rem;
     padding-bottom: 1rem;
 }
 .modal-keyboard-help-visible {
@@ -208,7 +208,6 @@ h1 {
     width: 30rem;
     margin: 1rem;
     padding: 1rem;
-    z-index: 100;
     border: 0.1rem solid var(--fg2);
     border-radius: 1.5rem;
 
@@ -833,20 +832,21 @@ textarea {
     width: 98%;
 }
 
-#saved-search-component {
+#bookmarks-component {
     position: fixed;
     bottom: 0;
-    right: 0;
+    left: 1rem;
     width: 30rem;
+    z-index: 200;
 }
 
-.saved-search-menu {
+.bookmarks-menu {
     display: flex;
     flex-direction: row;
     margin-left: 0.3rem;
 }
 
-.saved-search-menu-tip {
+.bookmarks-menu-tip {
     font-family: Inter;
     color: var(--fg-inactive);
 
@@ -858,17 +858,17 @@ textarea {
     padding-left: 0;
 }
 
-#saved-search-results {
+#bookmarks-results {
     background: white !important;
-    max-height: 30rem;
+    max-height: 50rem;
     overflow: auto;
 }
 
-.saved-search-result {
+.bookmarks-result {
     display: flex;
     flex-direction: row;
 }
-.saved-search-result-remove {
+.bookmarks-result-remove {
     padding-top: 0.2rem;
 }
 
@@ -1677,9 +1677,8 @@ input:required {
 
 .deluxe-toolbar {
     position: fixed;
-    top: 50%;
+    top: 5rem;
     left: 0;
-    transform: translate(0, -50%);
     z-index: 10;
     transition: opacity 200ms linear;
 }
@@ -1789,7 +1788,7 @@ input:required {
         float: none;
     }
 
-    #saved-search-component {
+    #bookmarks-component {
         width: 100%;
     }
 }

@@ -782,9 +782,9 @@ export default function SearchCommand() {
             }
 
             return (
-                <div class="saved-search-result">
+                <div class="bookmarks-result">
                     <div
-                        class="saved-search-result-remove"
+                        class="bookmarks-result-remove"
                         onClick={clickedDelete}
                     >
                         {svgX()}
@@ -807,26 +807,26 @@ export default function SearchCommand() {
         ));
 
         return (
-            <div id="saved-search-component">
+            <div id="bookmarks-component">
                 {!appState.scratchListMinimised.value && (
                     <ul
                         class="search-command-listing"
-                        id="saved-search-results"
+                        id="bookmarks-results"
                     >
                         {scratchList}
                     </ul>
                 )}
                 {appState.scratchListMinimised.value ? (
-                    <div class="saved-search-menu">
+                    <div class="bookmarks-menu">
                         <div onClick={clickedToggle}>{svgChevronUp()}</div>
-                        <span class="saved-search-menu-tip">
+                        <span class="bookmarks-menu-tip">
                             Maximise ScratchList
                         </span>
                     </div>
                 ) : (
-                    <div class="saved-search-menu">
+                    <div class="bookmarks-menu">
                         <div onClick={clickedToggle}>{svgChevronDown()}</div>
-                        <span class="saved-search-menu-tip">
+                        <span class="bookmarks-menu-tip">
                             Minimise ScratchList
                         </span>
                     </div>
