@@ -37,11 +37,11 @@ pub fn get(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::UserStats>
 pub fn recently_visited(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.insignia
+    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.insignia, max(hits.created_at) as most_recent_visit
                 FROM hits INNER JOIN decks ON decks.id = hits.deck_id
                 WHERE decks.user_id = ?1
                 GROUP BY hits.deck_id
-                ORDER BY hits.created_at DESC
+                ORDER BY most_recent_visit DESC
                 LIMIT 15";
 
     sqlite::many(
