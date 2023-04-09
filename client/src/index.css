@@ -1770,6 +1770,10 @@ input:required {
         --search-command-width: 60%;
     }
 
+    .listing-page {
+        width: 100%;
+    }
+
     #quote-text {
         width: 80%;
     }
