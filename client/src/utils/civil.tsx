@@ -110,13 +110,13 @@ export function deckKindToHeadingString(deckKind: DeckKind): string {
 export function addToolbarSelectableClasses(toolbarMode: ToolbarMode) {
     switch (toolbarMode) {
         case ToolbarMode.Edit:
-            return " selectable-container-hovering selectable-container-hovering-edit";
+            return " selectable-hovering selectable-hovering-edit";
         case ToolbarMode.Refs:
-            return " selectable-container-hovering selectable-container-hovering-refs";
+            return " selectable-hovering selectable-hovering-refs";
         case ToolbarMode.SR:
-            return " selectable-container-hovering selectable-container-hovering-sr";
+            return " selectable-hovering selectable-hovering-sr";
         case ToolbarMode.AddAbove:
-            return " selectable-container-hovering selectable-container-hovering-add-above";
+            return " selectable-hovering selectable-hovering-add-above";
         default:
             return "";
     }

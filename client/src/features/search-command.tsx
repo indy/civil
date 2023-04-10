@@ -809,10 +809,7 @@ export default function SearchCommand() {
         return (
             <div id="bookmarks-component">
                 {!appState.scratchListMinimised.value && (
-                    <ul
-                        class="search-command-listing"
-                        id="bookmarks-results"
-                    >
+                    <ul class="search-command-listing" id="bookmarks-results">
                         {scratchList}
                     </ul>
                 )}

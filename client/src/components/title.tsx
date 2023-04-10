@@ -89,8 +89,8 @@ export default function Title({
         };
     }, []);
 
-    let classes = "deck-title selectable-content";
-    let containerClasses = "selectable-container";
+    let classes = "deck-title muh-content";
+    let containerClasses = "muh-container";
     const classSticky = "title-sticky";
 
     if (titleRef.current) {

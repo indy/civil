@@ -566,7 +566,7 @@ export default function NoteView({
         localDispatch(ActionType.FlashcardDeleted, flashcard);
     }
 
-    let noteClasses = "note selectable-container";
+    let noteClasses = "note muh-container";
     if (mouseHovering && toolbarMode !== ToolbarMode.View) {
         noteClasses += addToolbarSelectableClasses(toolbarMode);
     }
@@ -605,7 +605,7 @@ export default function NoteView({
         }
     }
 
-    let markupClasses = "note-content selectable-content";
+    let markupClasses = "note-content muh-content";
     if (local.isEditingMarkup) {
         markupClasses += " invisible";
     }

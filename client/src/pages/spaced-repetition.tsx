@@ -300,14 +300,14 @@ function Answer({ card }: { card: Card }) {
     return (
         <div>
             <div class="sr-segment">Back</div>
-            <div class="note selectable-container">
+            <div class="note muh-container">
                 <div class="left-margin">
                     <div class="left-margin-entry">
                         <span class="ref-kind">(Answer Deck)</span>
                         <DeckLink slimDeck={card.deckInfo} />
                     </div>
                 </div>
-                <div class="note-content selectable-content">
+                <div class="note-content muh-content">
                     {card.answer && buildMarkup(card.answer)}
                 </div>
             </div>

@@ -224,27 +224,28 @@ h1 {
     width: var(--block-width);
 }
 
-.selectable-container {
+/* the weird margin-left values for muh-container and muh-content are to provide space for the visible border when one of the selectable classes is applied  */
+.muh-container {
     border-left: 0.6rem solid rgba(0, 0, 0, 0);
     margin-left: -2rem;
 }
-.selectable-container-hovering {
+.muh-content {
+    margin-left: 1rem;
+}
+.selectable-hovering {
     border-radius: 1.5rem;
 }
-.selectable-container-hovering-edit {
+.selectable-hovering-edit {
     border-left: 0.6rem solid var(--fg-clock-10);
 }
-.selectable-container-hovering-refs {
+.selectable-hovering-refs {
     border-left: 0.6rem solid var(--fg-clock-08);
 }
-.selectable-container-hovering-sr {
+.selectable-hovering-sr {
     border-left: 0.6rem solid var(--fg-clock-07);
 }
-.selectable-container-hovering-add-above {
+.selectable-hovering-add-above {
     border-left: 0.6rem solid var(--fg-clock-02);
-}
-.selectable-content {
-    margin-left: 1rem;
 }
 
 h2 {
@@ -1353,11 +1354,10 @@ section > form {
 .ref-kind {
     font-size: 75%;
     color: var(--fg1);
-    padding-right: 1rem;
 }
 
 .ref {
-    padding: 0.1rem 0.5rem 0.1rem 0.5rem;
+    padding: 0.1rem 0rem 0.1rem 0.5rem;
     border-radius: var(--coloured-deck-border-radius);
 }
 

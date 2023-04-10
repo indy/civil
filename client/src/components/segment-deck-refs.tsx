@@ -38,7 +38,7 @@ export default function SegmentDeckRefs({
     const hoveringRef = useRef(null);
     const mouseHovering = useMouseHovering(hoveringRef);
 
-    let containerClasses = "deck-ref-segment selectable-container";
+    let containerClasses = "deck-ref-segment muh-container";
     if (mouseHovering) {
         let toolbarMode = appState.toolbarMode.value;
         // only show as selectable if in edit or refs mode

@@ -99,9 +99,11 @@ function buildNotes(notes: Array<NoteThing>) {
                 });
 
             a.push(
-                <div class="note">
+                <div class="note muh-container">
                     {note.refs && <div class="left-margin">{refs}</div>}
-                    {buildMarkup(note.noteContent)}
+                    <div class="note-content muh-content">
+                        {buildMarkup(note.noteContent)}
+                    </div>
                 </div>
             );
 
