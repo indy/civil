@@ -318,8 +318,8 @@ export type State = {
     showConnectivityGraph: Signal<boolean>;
     graph: Signal<Graph>;
 
-    scratchList: Signal<Array<SlimDeck>>;
-    scratchListMinimised: Signal<boolean>;
+    bookmarkList: Signal<Array<SlimDeck>>;
+    bookmarkListMinimised: Signal<boolean>;
 
     srReviewCount: Signal<number>;
     srEarliestReviewDate: Signal<undefined | string>;

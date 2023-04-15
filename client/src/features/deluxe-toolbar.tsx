@@ -8,6 +8,7 @@ import {
     svgLinkAlt,
     svgFlashCard,
     svgAddAbove,
+    svgBookmark,
 } from "components/svg-icons";
 
 export function DeluxeToolbar({}) {
@@ -73,7 +74,7 @@ export function DeluxeToolbar({}) {
                     toolbarMode={ToolbarMode.BookmarkLinks}
                     toolbarText="Bookmark Links"
                 >
-                    {svgFlashCard()}
+                    {svgBookmark()}
                 </ToolbarItem>
             )}
         </div>

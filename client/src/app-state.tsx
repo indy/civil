@@ -68,7 +68,7 @@ const state: State = {
     componentRequiresFullKeyboardAccess: signal(false),
     showingSearchCommand: signal(false),
 
-    // to add the current page to the scratchList we need the id, name, deckKind.
+    // to add the current page to the bookmarkList we need the id, name, deckKind.
     // id and deckKind can be parsed from the url, but the name needs to be
     // stored separately
     //
@@ -132,8 +132,8 @@ const state: State = {
         deckIndexFromId: [],
     }),
 
-    scratchList: signal([]),
-    scratchListMinimised: signal(false),
+    bookmarkList: signal([]),
+    bookmarkListMinimised: signal(false),
 
     srReviewCount: signal(0),
     srEarliestReviewDate: signal(undefined),
@@ -523,31 +523,31 @@ export const AppStateChange = {
         }
     },
 
-    scratchListToggle: function () {
+    bookmarkListToggle: function () {
         if (DEBUG_APP_STATE) {
-            console.log("scratchListToggle");
+            console.log("bookmarkListToggle");
         }
-        state.scratchListMinimised.value = !state.scratchListMinimised.value;
+        state.bookmarkListMinimised.value = !state.bookmarkListMinimised.value;
     },
 
-    scratchListAddMulti: function (candidates: Array<SlimDeck>) {
+    bookmarkListAddMulti: function (candidates: Array<SlimDeck>) {
         if (DEBUG_APP_STATE) {
-            console.log("scratchListAddMulti");
+            console.log("bookmarkListAddMulti");
         }
-        let sl = state.scratchList.value.slice();
+        let sl = state.bookmarkList.value.slice();
         candidates.forEach((c) => {
             sl.push(c);
         });
-        state.scratchList.value = sl;
+        state.bookmarkList.value = sl;
     },
 
-    scratchListRemove: function (index: number) {
+    bookmarkListRemove: function (index: number) {
         if (DEBUG_APP_STATE) {
-            console.log("scratchListRemove");
+            console.log("bookmarkListRemove");
         }
-        let sl = state.scratchList.value.slice();
+        let sl = state.bookmarkList.value.slice();
         sl.splice(index, 1);
-        state.scratchList.value = sl;
+        state.bookmarkList.value = sl;
     },
 
     bookmarkLinkToggle: function () {
@@ -565,7 +565,7 @@ export const AppStateChange = {
         if (DEBUG_APP_STATE) {
             console.log("addBookmarkLink");
         }
-        addSlimDeckToScratchList(state, candidate);
+        addSlimDeckToBookmarkList(state, candidate);
     },
 
     bookmarkCurrentUrl: function () {
@@ -577,7 +577,7 @@ export const AppStateChange = {
             state.urlTitle.value
         );
         if (candidate) {
-            addSlimDeckToScratchList(state, candidate);
+            addSlimDeckToBookmarkList(state, candidate);
         }
     },
 
@@ -642,10 +642,10 @@ export const AppStateChange = {
     },
 };
 
-function addSlimDeckToScratchList(state: State, candidate: SlimDeck) {
-    let sl = state.scratchList.value.slice();
+function addSlimDeckToBookmarkList(state: State, candidate: SlimDeck) {
+    let sl = state.bookmarkList.value.slice();
     sl.push(candidate);
-    state.scratchList.value = sl;
+    state.bookmarkList.value = sl;
 }
 
 function parseCurrentUrlIntoSlimDeck(

@@ -185,7 +185,7 @@ const Commands: Array<Command> = [
     },
     {
         command: "b",
-        description: "bookmark current page to scratchlist",
+        description: "bookmark current page to bookmarklist",
         fn: () => {
             AppStateChange.bookmarkCurrentUrl();
             return true;
@@ -193,7 +193,7 @@ const Commands: Array<Command> = [
     },
     {
         command: "bl",
-        description: "clicking on a link adds it to the scratchlist",
+        description: "clicking on a link adds it to the bookmarklist",
         fn: () => {
             AppStateChange.bookmarkLinkToggle();
             return true;
@@ -363,7 +363,7 @@ function reducer(state: State, action: Action) {
         case ActionType.KeyDownPlus: {
             const newState = { ...state };
             if (state.showKeyboardShortcuts && state.mode === Mode.Search) {
-                AppStateChange.scratchListAddMulti(newState.searchCandidates);
+                AppStateChange.bookmarkListAddMulti(newState.searchCandidates);
 
                 newState.shiftKey = true;
                 newState.keyDownIndex = -1;
@@ -417,7 +417,7 @@ function reducer(state: State, action: Action) {
                             keyDownIndex: -1,
                         };
 
-                        AppStateChange.scratchListAddMulti([candidate]);
+                        AppStateChange.bookmarkListAddMulti([candidate]);
 
                         return newState;
                     } else {
@@ -447,7 +447,7 @@ function reducer(state: State, action: Action) {
             const index = action.data.index;
             const newState = { ...state };
 
-            AppStateChange.scratchListRemove(index);
+            AppStateChange.bookmarkListRemove(index);
 
             return newState;
         }
@@ -771,8 +771,8 @@ export default function SearchCommand() {
         }
     }
 
-    function buildScratchList() {
-        function buildScratchListEntry(entry: SlimDeck, i: number) {
+    function buildBookmarkList() {
+        function buildBookmarkListEntry(entry: SlimDeck, i: number) {
             function clickedCandidate() {
                 localDispatch(ActionType.ClickedCandidate);
             }
@@ -799,32 +799,32 @@ export default function SearchCommand() {
         }
 
         function clickedToggle() {
-            AppStateChange.scratchListToggle();
+            AppStateChange.bookmarkListToggle();
         }
 
-        const scratchList = appState.scratchList.value.map((entry, i) => (
-            <li key={i}>{buildScratchListEntry(entry, i)}</li>
+        const bookmarkList = appState.bookmarkList.value.map((entry, i) => (
+            <li key={i}>{buildBookmarkListEntry(entry, i)}</li>
         ));
 
         return (
             <div id="bookmarks-component">
-                {!appState.scratchListMinimised.value && (
+                {!appState.bookmarkListMinimised.value && (
                     <ul class="search-command-listing" id="bookmarks-results">
-                        {scratchList}
+                        {bookmarkList}
                     </ul>
                 )}
-                {appState.scratchListMinimised.value ? (
+                {appState.bookmarkListMinimised.value ? (
                     <div class="bookmarks-menu">
                         <div onClick={clickedToggle}>{svgChevronUp()}</div>
                         <span class="bookmarks-menu-tip">
-                            Maximise ScratchList
+                            Maximise Bookmark List
                         </span>
                     </div>
                 ) : (
                     <div class="bookmarks-menu">
                         <div onClick={clickedToggle}>{svgChevronDown()}</div>
                         <span class="bookmarks-menu-tip">
-                            Minimise ScratchList
+                            Minimise Bookmark List
                         </span>
                     </div>
                 )}
@@ -866,7 +866,7 @@ export default function SearchCommand() {
                 />
                 {buildCandidates()}
             </div>
-            {!!appState.scratchList.value.length && buildScratchList()}
+            {!!appState.bookmarkList.value.length && buildBookmarkList()}
         </div>
     );
 }
