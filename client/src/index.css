@@ -9,6 +9,8 @@
     --block-width-indented: 50%;
     --block-width-indented-2: 40%;
 
+    --image-width: 80%;
+
     --coloured-deck-border-radius: 0.3em;
 
     --search-command-width: 49rem;
@@ -400,6 +402,7 @@ figcaption {
     position: relative;
     max-width: 96%;
     margin: auto;
+    text-align: center;
 }
 
 figure.fullwidth figcaption {
@@ -415,7 +418,7 @@ figure.fullwidth figcaption {
     display: block;
     margin: 0 auto;
     max-height: 50rem;
-    max-width: var(--block-width);
+    max-width: var(--image-width);
     height: auto;
     width: auto;
 }

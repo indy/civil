@@ -29,7 +29,6 @@ type Attrs = {
     type?: string;
     src?: string;
     start?: any;
-    onRight?: any;
 };
 // start?: ComponentType<Attrs>;
 
@@ -82,7 +81,7 @@ export default function buildMarkup(content: string, options?: any) {
         return c.trim();
     }
 
-    function isOnRight(n: Element): boolean {
+    function isOnRightMargin(n: Element): boolean {
         if (!n.class_name) {
             return false;
         }
@@ -95,10 +94,16 @@ export default function buildMarkup(content: string, options?: any) {
         return onRight;
     }
 
-    function compile(n: Element, onRight: boolean) {
+    function isFigureElement(n: Element): boolean {
+        return n.name === "figure";
+    }
+
+    function compile(n: Element, onRight: boolean, withinFigure: boolean) {
+        let isOnRight = onRight || isOnRightMargin(n);
+        let isWithinFigure = withinFigure || isFigureElement(n);
         let children = n.children
-            .filter((child) => !(ignoreRight && isOnRight(child)))
-            .map((child) => compile(child, onRight || isOnRight(child)));
+            .filter((child) => !(ignoreRight && isOnRightMargin(child)))
+            .map((child) => compile(child, isOnRight, isWithinFigure));
 
         if (n.name === "text") {
             return n.text;
@@ -114,10 +119,12 @@ export default function buildMarkup(content: string, options?: any) {
             // replace the requested img tag with our own Image component which
             // has more functionality
             //
-            let a = attrs(n);
-            a.onRight = onRight;
-
-            return h(Image, a, ...children);
+            if (isOnRight || isWithinFigure) {
+                return h(Image, attrs(n), ...children);
+            } else {
+                // wrap a regular image within a p tag
+                return h("p", {}, h(Image, attrs(n), ...children));
+            }
         } else {
             return h(n.name, attrs(n), ...children);
         }
@@ -125,6 +132,6 @@ export default function buildMarkup(content: string, options?: any) {
 
     // console.log(astArray);
     return astArray.map((node: Element) => {
-        return compile(node, false);
+        return compile(node, false, false);
     });
 }
