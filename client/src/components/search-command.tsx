@@ -233,13 +233,14 @@ const Commands: Array<Command> = [
     },
 ];
 
-function cleanState(state: State) {
+function cleanState(state: State): State {
     return {
         ...state,
+        hasFocus: false,
         showKeyboardShortcuts: false,
         shiftKey: false,
         text: "",
-        candidates: [],
+        searchCandidates: [],
         keyDownIndex: -1,
     };
 }
