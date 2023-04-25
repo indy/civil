@@ -10,7 +10,7 @@ import { plural, formattedDate, formattedTime } from "utils/js";
 import DeckLink from "components/deck-link";
 import useLocalReducer from "components/use-local-reducer";
 
-import buildMarkup from "features/notes/build-markup";
+import buildMarkup from "components/notes/build-markup";
 
 enum Mode {
     PreTest,

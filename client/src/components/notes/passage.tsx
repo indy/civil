@@ -15,8 +15,8 @@ import Net from "utils/net";
 import { getAppState, AppStateChange } from "app-state";
 import { svgEdit } from "components/svg-icons";
 
-import NoteForm from "features/notes/note-form";
-import NoteView from "features/notes/note-view";
+import NoteForm from "components/notes/note-form";
+import NoteView from "components/notes/note-view";
 import WhenVerbose from "components/when-verbose";
 
 type PassageProps = {

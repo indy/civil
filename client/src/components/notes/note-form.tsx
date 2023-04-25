@@ -8,7 +8,7 @@ import { getAppState } from "app-state";
 import { svgX } from "components/svg-icons";
 
 import CivilTextArea from "components/civil-text-area";
-import ImageSelector from "features/images/image-selector";
+import ImageSelector from "components/images/image-selector";
 
 type Props = {
     label: string;

@@ -11,7 +11,7 @@ import {
     ToolbarMode,
 } from "types";
 
-import Passage from "features/notes/passage";
+import Passage from "components/notes/passage";
 import RollableSegment from "components/rollable-segment";
 import { getAppState } from "app-state";
 

@@ -35,14 +35,14 @@ import WhenVerbose from "components/when-verbose";
 
 import CivilInput from "components/civil-input";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
-import InsigniaSelector from "features/insignias/selector";
+import InsigniaSelector from "components/insignias/selector";
 import LifespanForm from "components/lifespan-form";
 import PointForm from "components/point-form";
 import RollableSegment from "components/rollable-segment";
 import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
-import SegmentGraph from "features/graph/segment-graph";
-import SegmentNotes from "features/notes/segment-notes";
+import SegmentGraph from "components/graph/segment-graph";
+import SegmentNotes from "components/notes/segment-notes";
 import SegmentSearchResults from "components/segment-search-results";
 import TopMatter from "components/top-matter";
 import useDeckManager from "components/use-deck-manager";

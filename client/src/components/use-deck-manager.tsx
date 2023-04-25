@@ -18,7 +18,7 @@ import {
 
 import { getAppState, AppStateChange } from "app-state";
 
-import Passage from "features/notes/passage";
+import Passage from "components/notes/passage";
 
 import PointForm from "components/point-form";
 

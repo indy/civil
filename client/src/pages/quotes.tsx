@@ -5,14 +5,14 @@ import { route } from "preact-router";
 import { Key, DM, DeckKind, NoteKind, DeckQuote } from "types";
 
 import Net from "utils/net";
-import buildMarkup from "features/notes/build-markup";
+import buildMarkup from "components/notes/build-markup";
 import { capitalise } from "utils/js";
 import { AppStateChange } from "app-state";
 
 import CivilInput from "components/civil-input";
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";
-import SegmentNotes from "features/notes/segment-notes";
+import SegmentNotes from "components/notes/segment-notes";
 import useDeckManager from "components/use-deck-manager";
 import useLocalReducer from "components/use-local-reducer";
 import useModalKeyboard from "components/use-modal-keyboard";

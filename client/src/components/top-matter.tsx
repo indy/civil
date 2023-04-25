@@ -4,7 +4,7 @@ import { FatDeck } from "types";
 
 import LeftMarginHeading from "components/left-margin-heading";
 import Title from "components/title";
-import { renderInsignia } from "features/insignias/renderer";
+import { renderInsignia } from "components/insignias/renderer";
 
 type Props = {
     title: string;

@@ -11,9 +11,9 @@ import {
 
 import { getAppState, AppStateChange } from "app-state";
 
-import InsigniaSelector from "features/insignias/selector";
-import SegmentGraph from "features/graph/segment-graph";
-import SegmentNotes from "features/notes/segment-notes";
+import InsigniaSelector from "components/insignias/selector";
+import SegmentGraph from "components/graph/segment-graph";
+import SegmentNotes from "components/notes/segment-notes";
 
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";

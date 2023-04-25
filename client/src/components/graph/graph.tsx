@@ -18,7 +18,7 @@ import { getAppState, AppStateChange } from "app-state";
 import Net from "utils/net";
 import { deckKindToResourceString } from "utils/civil";
 
-import { graphPhysics } from "features/graph/graph-physics";
+import { graphPhysics } from "components/graph/graph-physics";
 
 import useLocalReducer from "components/use-local-reducer";
 import useModalKeyboard from "components/use-modal-keyboard";

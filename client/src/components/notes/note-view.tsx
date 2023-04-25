@@ -23,10 +23,10 @@ import CivilSelect from "components/civil-select";
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";
 import FlashCardView from "components/flashcard-view";
-import ImageSelector from "features/images/image-selector";
-import NoteForm from "features/notes/note-form";
+import ImageSelector from "components/images/image-selector";
+import NoteForm from "components/notes/note-form";
 import RefView from "components/ref-view";
-import buildMarkup from "features/notes/build-markup";
+import buildMarkup from "components/notes/build-markup";
 import useLocalReducer from "components/use-local-reducer";
 import useMouseHovering from "components/use-mouse-hovering";
 

@@ -8,11 +8,11 @@ import { AppStateChange, AppStateProvider, getAppState } from "app-state";
 import { capitalise } from "utils/js";
 
 import Previewer from "components/previewer";
-import SearchCommand from "features/search-command";
+import SearchCommand from "components/search-command";
 import SpacedRepetition from "pages/spaced-repetition";
 import Stuff from "pages/stuff";
 import { Article, Articles } from "pages/articles";
-import { DeluxeToolbar } from "features/deluxe-toolbar";
+import { DeluxeToolbar } from "components/deluxe-toolbar";
 import { Ideas, Idea } from "pages/ideas";
 import { Login, Logout } from "pages/login";
 import { Person, People } from "pages/people";

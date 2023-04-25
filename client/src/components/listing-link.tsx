@@ -6,7 +6,7 @@ import { svgCaretRight, svgCaretDown } from "components/svg-icons";
 
 import DeckLink from "components/deck-link";
 import RefView from "components/ref-view";
-import buildMarkup from "features/notes/build-markup";
+import buildMarkup from "components/notes/build-markup";
 
 type ListingLinkProps = {
     slimDeck: SlimDeck;

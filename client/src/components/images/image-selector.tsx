@@ -5,7 +5,7 @@ import { UserUploadedImage } from "types";
 
 import { AppStateChange } from "app-state";
 
-import uploadImages from "features/images/image-upload";
+import uploadImages from "components/images/image-upload";
 
 import { getAppState } from "app-state";
 import { svgX } from "components/svg-icons";

@@ -25,12 +25,12 @@ import {
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
-import InsigniaSelector from "features/insignias/selector";
+import InsigniaSelector from "components/insignias/selector";
 import RollableSegment from "components/rollable-segment";
 import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
-import SegmentGraph from "features/graph/segment-graph";
-import SegmentNotes from "features/notes/segment-notes";
+import SegmentGraph from "components/graph/segment-graph";
+import SegmentNotes from "components/notes/segment-notes";
 import TopMatter from "components/top-matter";
 import WhenVerbose from "components/when-verbose";
 import { SlimDeckList } from "components/groupings";

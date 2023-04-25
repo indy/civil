@@ -7,7 +7,7 @@ import { PreviewNotes, SlimDeck, ToolbarMode } from "types";
 import Net from "utils/net";
 import { buildUrl, deckKindToResourceString } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
-import { renderInsignia, svgBookmarkLink } from "features/insignias/renderer";
+import { renderInsignia, svgBookmarkLink } from "components/insignias/renderer";
 
 // import useMouseHovering from "components/use-mouse-hovering";
 import useMouseHoveringEvents from "components/use-mouse-hovering-events";
@@ -71,7 +71,7 @@ export default function DeckLink({
         elem = (
             <span class={klass} ref={hoveringRef} onClick={bookmarkModeClicked}>
                 {children}
-                {svgBookmarkLink("#ff00ff")}
+                {svgBookmarkLink("#F91880")}
                 {renderInsignia(slimDeck.insignia)}
                 {slimDeck.title}
             </span>
