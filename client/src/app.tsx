@@ -7,6 +7,7 @@ import Net from "utils/net";
 import { AppStateChange, AppStateProvider, getAppState } from "app-state";
 import { capitalise } from "utils/js";
 
+import BookmarkList from "components/bookmark-list";
 import Previewer from "components/previewer";
 import SearchCommand from "components/search-command";
 import SpacedRepetition from "pages/spaced-repetition";
@@ -143,6 +144,7 @@ const AppUI = () => {
     return (
         <div id="civil-app">
             <DebugMessages />
+            <BookmarkList />
             <SearchCommand />
             <TopBarMenu />
             <DeluxeToolbar />

@@ -17,7 +17,6 @@ import {
 import Net from "utils/net";
 import { getAppState, AppStateChange } from "app-state";
 import { deckKindToResourceString, indexToShortcut } from "utils/civil";
-import { svgX, svgChevronDown, svgChevronUp } from "components/svg-icons";
 
 import DeckLink from "components/deck-link";
 import useLocalReducer from "components/use-local-reducer";
@@ -48,7 +47,6 @@ enum ActionType {
     KeyDownEsc,
     KeyDownKey,
     KeyDownPlus,
-    RemoveSavedSearchResult,
 }
 
 type Action = {
@@ -245,7 +243,7 @@ function cleanState(state: State): State {
     };
 }
 
-function reducer(state: State, action: Action) {
+function reducer(state: State, action: Action): State {
     switch (action.type) {
         case ActionType.ClickedCommand: {
             const command = action.data.entry.command;
@@ -444,14 +442,6 @@ function reducer(state: State, action: Action) {
 
             return newState;
         }
-        case ActionType.RemoveSavedSearchResult: {
-            const index = action.data.index;
-            const newState = { ...state };
-
-            AppStateChange.bookmarkListRemove(index);
-
-            return newState;
-        }
         default:
             throw new Error(`unknown action: ${action}`);
     }
@@ -462,7 +452,7 @@ function reducer(state: State, action: Action) {
 //  digit: 1 -> 0, 2 ->  1, ... 9 ->  8
 // letter: a -> 9, b -> 10, ... z -> 34
 //
-function indexFromCode(code: string) {
+function indexFromCode(code: string): number {
     // this was the simple code that now has to be replaced
     // because the retards who define web standards have
     // deprecated keyCode .
@@ -772,67 +762,6 @@ export default function SearchCommand() {
         }
     }
 
-    function buildBookmarkList() {
-        function buildBookmarkListEntry(entry: SlimDeck, i: number) {
-            function clickedCandidate() {
-                localDispatch(ActionType.ClickedCandidate);
-            }
-
-            function clickedDelete() {
-                localDispatch(ActionType.RemoveSavedSearchResult, { index: i });
-            }
-
-            return (
-                <div class="bookmarks-result">
-                    <div
-                        class="bookmarks-result-remove"
-                        onClick={clickedDelete}
-                    >
-                        {svgX()}
-                    </div>
-                    <DeckLink
-                        onClick={clickedCandidate}
-                        slimDeck={entry}
-                        alwaysLink
-                    />
-                </div>
-            );
-        }
-
-        function clickedToggle() {
-            AppStateChange.bookmarkListToggle();
-        }
-
-        const bookmarkList = appState.bookmarkList.value.map((entry, i) => (
-            <li key={i}>{buildBookmarkListEntry(entry, i)}</li>
-        ));
-
-        return (
-            <div id="bookmarks-component">
-                {!appState.bookmarkListMinimised.value && (
-                    <ul class="search-command-listing" id="bookmarks-results">
-                        {bookmarkList}
-                    </ul>
-                )}
-                {appState.bookmarkListMinimised.value ? (
-                    <div class="bookmarks-menu">
-                        <div onClick={clickedToggle}>{svgChevronUp()}</div>
-                        <span class="bookmarks-menu-tip">
-                            Maximise Bookmark List
-                        </span>
-                    </div>
-                ) : (
-                    <div class="bookmarks-menu">
-                        <div onClick={clickedToggle}>{svgChevronDown()}</div>
-                        <span class="bookmarks-menu-tip">
-                            Minimise Bookmark List
-                        </span>
-                    </div>
-                )}
-            </div>
-        );
-    }
-
     const extraClasses = appState.showingSearchCommand.value
         ? "search-command-visible"
         : "search-command-invisible";
@@ -853,6 +782,7 @@ export default function SearchCommand() {
     return (
         <div id="search-command">
             <div class={extraClasses}>
+                {buildCandidates()}
                 <input
                     id="search-command-input"
                     autocomplete="off"
@@ -865,9 +795,7 @@ export default function SearchCommand() {
                     onFocus={onFocus}
                     onBlur={onBlur}
                 />
-                {buildCandidates()}
             </div>
-            {!!appState.bookmarkList.value.length && buildBookmarkList()}
         </div>
     );
 }

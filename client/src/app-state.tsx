@@ -237,7 +237,6 @@ export const AppStateChange = {
         if (DEBUG_APP_STATE) {
             console.log("resetShowingSearchCommand");
         }
-
         state.showingSearchCommand.value = !state.hasPhysicalKeyboard;
     },
     addDebugMessage: function (msg: string) {

@@ -328,10 +328,6 @@ img {
     color: red;
 }
 
-article {
-    padding: 3rem 0rem 8rem 0rem;
-}
-
 section {
     padding-top: 1rem;
     padding-bottom: 1rem;
@@ -831,18 +827,6 @@ textarea {
     flex-grow: 0.2;
 }
 
-#search-command {
-    font-size: 1.5rem;
-    position: fixed;
-    margin-top: 3rem;
-    width: var(--search-command-width);
-}
-
-#search-command-input {
-    /* normally input is at 90% */
-    width: 98%;
-}
-
 #bookmarks-component {
     position: fixed;
     bottom: 0;
@@ -881,6 +865,18 @@ textarea {
 }
 .bookmarks-result-remove {
     padding-top: 0.2rem;
+}
+
+#search-command {
+    font-size: 1.5rem;
+    position: fixed;
+    bottom: 2rem;
+    width: var(--search-command-width);
+}
+
+#search-command-input {
+    /* normally input is at 90% */
+    width: 98%;
 }
 
 #search-candidates {
@@ -939,7 +935,7 @@ textarea {
 }
 
 .search-command-visible {
-    margin-top: 0rem;
+    margin-bottom: 0rem;
 }
 
 .search-command-invisible {
