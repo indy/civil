@@ -883,7 +883,7 @@ textarea {
     width: 100%;
     border-radius: var(--search-command-border-radius);
 
-    max-height: 40rem;
+    max-height: 50rem;
     overflow: auto;
 }
 
