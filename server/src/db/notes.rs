@@ -306,10 +306,7 @@ pub(crate) fn preview(
                 WHERE n.point_id is null AND n.deck_id = ?1 AND n.user_id = ?2";
     let notes = sqlite::many(&conn, stmt, params![&deck_id, &user_id], note_from_row)?;
 
-    Ok(interop::PreviewNotes {
-        deck_id,
-        notes,
-    })
+    Ok(interop::PreviewNotes { deck_id, notes })
 }
 
 pub fn edit_note(

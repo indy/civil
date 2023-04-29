@@ -42,7 +42,7 @@ pub fn init_dotenv() {
 pub fn init_tracing() {
     // a builder for `FmtSubscriber`.
     let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::TRACE)
+        .with_max_level(Level::DEBUG)
         .finish();
 
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");

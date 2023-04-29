@@ -30,9 +30,9 @@ use crate::handler::ubersetup;
 use crate::handler::uploader;
 use crate::handler::users;
 use actix_files::NamedFile;
-use actix_web::dev;
 use actix_web::middleware::ErrorHandlerResponse;
 use actix_web::web::{delete, get, post, put, scope};
+use actix_web::{dev, Responder};
 use std::env;
 use tracing::warn;
 
@@ -164,8 +164,10 @@ pub fn bad_request<B>(res: dev::ServiceResponse<B>) -> actix_web::Result<ErrorHa
     warn!("bad request: {:?} {:?}", &res.status(), &res.request());
     let www = env::var("WWW_PATH").expect("unable to resolve WWW_PATH");
     let new_resp = NamedFile::open(format!("{}/errors/400.html", www))?
-        .set_status_code(res.status())
-        .into_response(res.request())
+        .customize()
+        .with_status(res.status())
+        .respond_to(res.request())
+        .map_into_boxed_body()
         .map_into_right_body();
     Ok(ErrorHandlerResponse::Response(res.into_response(new_resp)))
 }
@@ -174,8 +176,10 @@ pub fn not_found<B>(res: dev::ServiceResponse<B>) -> actix_web::Result<ErrorHand
     warn!("not found: {:?} {:?}", &res.status(), &res.request());
     let www = env::var("WWW_PATH").expect("unable to resolve WWW_PATH");
     let new_resp = NamedFile::open(format!("{}/errors/404.html", www))?
-        .set_status_code(res.status())
-        .into_response(res.request())
+        .customize()
+        .with_status(res.status())
+        .respond_to(res.request())
+        .map_into_boxed_body()
         .map_into_right_body();
     Ok(ErrorHandlerResponse::Response(res.into_response(new_resp)))
 }
@@ -191,8 +195,10 @@ pub fn internal_server_error<B>(
 
     let www = env::var("WWW_PATH").expect("unable to resolve WWW_PATH");
     let new_resp = NamedFile::open(format!("{}/errors/500.html", www))?
-        .set_status_code(res.status())
-        .into_response(res.request())
+        .customize()
+        .with_status(res.status())
+        .respond_to(res.request())
+        .map_into_boxed_body()
         .map_into_right_body();
     Ok(ErrorHandlerResponse::Response(res.into_response(new_resp)))
 }

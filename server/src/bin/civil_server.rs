@@ -16,16 +16,15 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use actix_files as fs;
-use actix_session::CookieSession;
-use actix_web::cookie::SameSite;
-use actix_web::middleware;
-use actix_web::middleware::ErrorHandlers;
+use actix_session::{config::PersistentSession, storage::CookieSessionStore, SessionMiddleware};
+use actix_web::cookie::{self, Key, SameSite};
+use actix_web::middleware::{self, ErrorHandlers};
 use actix_web::{http, web, App, HttpServer};
 use civil_server::{self, server_api, Result, ServerConfig};
 use std::env;
 use tracing::{error, info};
 
-const SIGNING_KEY_SIZE: usize = 32;
+const SIGNING_KEY_SIZE: usize = 64;
 
 use r2d2_sqlite::SqliteConnectionManager;
 
@@ -60,10 +59,15 @@ async fn main() -> Result<()> {
         read_signing_key(signing_key, &session_signing_key);
         // info!("signing key: {:?}", signing_key);
 
-        let session_store = CookieSession::private(signing_key)
-            .secure(cookie_secure)
-            .same_site(SameSite::Strict)
-            .max_age(60 * 60 * 24 * 30); // 30 days
+        let session_store =
+            SessionMiddleware::builder(CookieSessionStore::default(), Key::from(signing_key))
+                .cookie_secure(cookie_secure)
+                .cookie_same_site(SameSite::Strict)
+                .session_lifecycle(
+                    PersistentSession::default().session_ttl(cookie::time::Duration::days(30)),
+                )
+                .build();
+
         let error_handlers = ErrorHandlers::new()
             .handler(
                 http::StatusCode::INTERNAL_SERVER_ERROR,
@@ -102,7 +106,8 @@ fn read_signing_key(signing_key: &mut [u8], session_signing_key: &str) {
     //
     if session_signing_key.len() != (SIGNING_KEY_SIZE * 2) {
         error!(
-            "SESSION_SIGNING_KEY in .env has to be 32 bytes (currently: {})",
+            "SESSION_SIGNING_KEY in .env has to be {} characters long (currently: {})",
+            SIGNING_KEY_SIZE * 2,
             session_signing_key.len()
         );
     }

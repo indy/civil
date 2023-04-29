@@ -41,6 +41,8 @@ pub enum Error {
     Utf8(std::str::Utf8Error),
     Var(std::env::VarError),
     IntConversionToEnum,
+    SessionGetError(actix_session::SessionGetError),
+    SessionInsertError(actix_session::SessionInsertError),
     StringConversionToEnum,
     Sqlite(rusqlite::Error),
     SqliteMigration(rusqlite_migration::Error),
