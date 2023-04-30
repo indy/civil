@@ -26,6 +26,7 @@ pub enum Error {
     Actix(actix_web::Error),
     Argon2(argon2::Error),
     Authenticating,
+    ChatGPTError(chatgpt::err::Error),
     CivilShared(civil_shared::Error),
     IO(std::io::Error),
     InvalidKind,

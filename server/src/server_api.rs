@@ -47,6 +47,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // console commands
         .service(
             scope("/cmd")
+                .route("/ask", get().to(cmd::ask))
                 .route("/search", get().to(cmd::search))
                 .route("/namesearch", get().to(cmd::namesearch))
                 .route("/recent", get().to(cmd::recent))

@@ -68,6 +68,22 @@ type State = {
 //
 const Commands: Array<Command> = [
     {
+        command: "z",
+        description: "test ",
+        quoteAround: "title",
+        fn: (args) => {
+            async function foo(text: string) {
+                const url = `/api/cmd/ask?q=${encodeURI(text)}`;
+                const askResponse: any = await Net.get(url);
+                console.log(askResponse);
+            }
+
+            foo(args);
+            // console.log(args);
+            return true;
+        },
+    },
+    {
         command: "i",
         description: "goto ideas or add ",
         quoteAround: "title",

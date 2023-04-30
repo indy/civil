@@ -30,6 +30,57 @@ use serde::Deserialize;
 #[allow(unused_imports)]
 use tracing::info;
 
+use chatgpt::prelude::*;
+use chatgpt::types::{ChatMessage, MessageChoice};
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChatGPTResponse {
+    pub response: Vec<CivilMessageChoice>
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CivilMessageChoice {
+    /// The actual message
+    pub message: ChatMessage,
+    /// The reason completion was stopped
+    pub finish_reason: String,
+    /// The index of this message in the outer `message_choices` array
+    pub index: u32,
+}
+
+impl From<MessageChoice> for CivilMessageChoice {
+    fn from(mc: MessageChoice) -> CivilMessageChoice {
+        CivilMessageChoice {
+            message: mc.message,
+            finish_reason: mc.finish_reason,
+            index: mc.index
+        }
+    }
+}
+
+pub async fn ask(
+    chatgpt_client: Data<ChatGPT>,
+    web::Query(query): web::Query<SearchQuery>,
+) -> Result<HttpResponse> {
+    info!("ask '{}'", &query.q);
+
+    let r = chatgpt_client
+        .send_message(&query.q)
+        .await?;
+
+    let mut response: Vec<CivilMessageChoice> = vec![];
+    for message_choice in r.message_choices {
+        response.push(CivilMessageChoice::from(message_choice));
+    }
+
+    let res = ChatGPTResponse { response };
+
+    Ok(HttpResponse::Ok().json(res))
+}
+
+
 pub async fn search(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,

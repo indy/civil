@@ -32,6 +32,9 @@ pub use colour::{Hsluv, Rgb};
 pub use element::Element;
 pub use error::{Error, Result};
 
+// return internal AST representation, useful for splitting given
+// markup into logical sections
+//
 pub fn markup_as_ast(markup: &str) -> Result<Vec<Node>> {
     let tokens = tokenize(markup)?;
     let (_, nodes) = parse(&tokens)?;
@@ -39,6 +42,9 @@ pub fn markup_as_ast(markup: &str) -> Result<Vec<Node>> {
     Ok(nodes)
 }
 
+// return an AST that's easily convertible into
+// HTML/Plain Text/Preact components
+//
 pub fn markup_as_struct(markup: &str) -> Result<Vec<Element>> {
     let tokens = tokenize(markup)?;
     let (_, nodes) = parse(&tokens)?;
