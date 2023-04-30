@@ -22,7 +22,7 @@ wasm_bindgen("/civil_wasm_bg.wasm")
         console.log(version); // remove this
 
         const wasmInterface = {
-            asHtmlAst: markup_as_struct,
+            markupAsStruct: markup_as_struct,
             splitter: function (markup: string) {
                 const astArray = markup_as_ast(markup);
 

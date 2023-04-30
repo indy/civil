@@ -1,4 +1,3 @@
-// import { h, ComponentType } from "preact";
 import { h } from "preact";
 
 import Image from "components/image";
@@ -40,7 +39,7 @@ export default function buildMarkup(content: string, options?: any) {
 
     const ignoreRight = options ? options.ignoreRight : false;
 
-    const astArray = wasmInterface.asHtmlAst(content);
+    const astArray = wasmInterface.markupAsStruct(content);
     if (!astArray) {
         console.error(`unable to correctly parse: '${content}'`);
         return false;

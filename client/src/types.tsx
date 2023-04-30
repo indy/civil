@@ -263,7 +263,7 @@ export type Definitions = {
 };
 
 export type WasmInterface = {
-    asHtmlAst(markup: string): any;
+    markupAsStruct(markup: string): any;
     splitter(markup: string): any;
 
     rgbFromHsl(hsl: ColourTriple): string;
