@@ -819,11 +819,7 @@ textarea {
     margin-left: auto;
 }
 
-#top-menu-sr {
-    flex-grow: 2;
-}
-
-.top-menu-decktype {
+.top-menu-item {
     flex-grow: 0.2;
 }
 
@@ -993,6 +989,26 @@ a:visited.pigment-inherit {
     color: var(--fg-quotes) !important;
     background: var(--bg-quotes);
 }
+
+
+.pigment-dialogue {
+    color: var(--fg-dialogue) !important;
+    background: var(--bg-dialogue);
+}
+.pigment-stuff {
+    color: var(--fg-stuff) !important;
+    background: var(--bg-stuff);
+}
+.pigment-sr {
+    color: var(--fg-sr) !important;
+    background: var(--bg-sr);
+}
+/* used when there are some spaced repetition questions that are scheduled to be answered */
+.pigment-sr-active {
+    color: var(--fg-sr-active) !important;
+    background: var(--bg-sr-active);
+}
+
 
 /* above colours don't work on hyperlinks, have to explicitly specify them  */
 .pigment-ideas a {

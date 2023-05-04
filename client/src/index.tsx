@@ -78,6 +78,7 @@ wasm_bindgen("/civil_wasm_bg.wasm")
             state.settings.value
         );
         state.definitions.value = augmentDefinitionsWithCssModifierParameters(
+            state.settings.value,
             state.definitions.value
         );
 

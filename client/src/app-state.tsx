@@ -62,9 +62,11 @@ const state: State = {
     hasPhysicalKeyboard: true,
 
     // oldest reasonable age in years, any person whose birth means they're older can be assumed to be dead
+    //
     oldestAliveAge: 120,
 
     // when true don't let searchCommand accept any keystrokes
+    //
     componentRequiresFullKeyboardAccess: signal(false),
     showingSearchCommand: signal(false),
 
@@ -75,25 +77,32 @@ const state: State = {
     urlTitle: signal(""),
 
     // the url of the current page
+    //
     url: signal(""),
 
     user: signal(emptyUser),
 
+    // preferred order of rendering the back-refs
+    //
     preferredDeckKindOrder: [
+        DeckKind.Quote,
         DeckKind.Idea,
         DeckKind.Person,
         DeckKind.Article,
         DeckKind.Timeline,
-        DeckKind.Quote,
     ],
 
+    // preferred order of the top-level menu bar
+    //
     preferredOrder: [
         "ideas",
         "people",
         "articles",
         "timelines",
         "quotes",
+        "dialogue",
         "stuff",
+        "sr"
     ],
 
     // key == deckKind name of decks

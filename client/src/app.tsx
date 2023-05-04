@@ -69,29 +69,40 @@ function TopBarMenu() {
         AppStateChange.urlTitle(topMenuItem);
     }
 
+    function menuItemText(topMenuItem: string): string {
+        if (topMenuItem === "sr") {
+            return `SR(${appState.srReviewCount.value})`;
+        } else {
+            return capitalise(topMenuItem)
+        }
+    }
+
+    function menuItemClass(topMenuItem: string): string {
+        if (topMenuItem === "sr" && appState.srReviewCount.value > 0) {
+            return `pigment-${topMenuItem}-active`;
+        } else {
+            return `pigment-${topMenuItem}`;
+        }
+    }
+
     if (appState.verboseUI.value) {
         return (
             <nav>
                 <div id="elastic-top-menu-items">
                     {appState.preferredOrder.map((topMenuItem) => (
-                        <div class="optional-navigable top-menu-decktype">
+                        <div class="optional-navigable top-menu-item">
                             <Link
-                                class={`pigment-${topMenuItem}`}
+                                class={menuItemClass(topMenuItem)}
                                 onClick={() => {
                                     clickedTopLevel(topMenuItem);
                                 }}
                                 href={`/${topMenuItem}`}
                             >
-                                {capitalise(topMenuItem)}
+                                { menuItemText(topMenuItem) }
                             </Link>
                         </div>
                     ))}
 
-                    <div id="top-menu-sr">
-                        <Link class="pigment-inherit" href="/sr">
-                            SR({appState.srReviewCount.value})
-                        </Link>
-                    </div>
                     <div>
                         <Link class="pigment-inherit" href={loggedLink()}>
                             {loggedStatus()}

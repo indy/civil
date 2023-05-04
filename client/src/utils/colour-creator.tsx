@@ -73,6 +73,7 @@ function augmentSettingsWithCssModifierParameters(uiColours: Settings) {
 }
 
 function augmentDefinitionsWithCssModifierParameters(
+    uiColours: Settings,
     uiDefinitions: Definitions
 ) {
     let root = document.body;
@@ -117,11 +118,27 @@ function augmentDefinitionsWithCssModifierParameters(
             bg_timelines: "--bg-clock-03",
             bg_quotes: "--bg-clock-07",
 
+            bg_dialogue: "--bg-clock-02",
+            bg_stuff: "--bg-clock-11",
+
+            // "--bg-clock-10"
+            bg_sr: [(uiColours.hueDelta * 10) + uiColours.hueOffsetBg, uiColours.saturationBg - 30, uiColours.lightnessBg] as ColourTriple,
+            bg_sr_active: [(uiColours.hueDelta * 10) + uiColours.hueOffsetBg, uiColours.saturationBg + 50, uiColours.lightnessBg] as ColourTriple,
+
+
             fg_ideas: "--fg-clock-06",
             fg_articles: "--fg-clock-12",
             fg_people: "--fg-clock-09",
             fg_timelines: "--fg-clock-03",
             fg_quotes: "--fg-clock-07",
+
+            fg_dialogue: "--fg-clock-02",
+            fg_stuff: "--fg-clock-11",
+
+            // "--fg-clock-10"
+            fg_sr: [(uiColours.hueDelta * 10) + uiColours.hueOffsetFg, uiColours.saturationFg - 30, uiColours.lightnessFg] as ColourTriple,
+            fg_sr_active: [(uiColours.hueDelta * 10) + uiColours.hueOffsetFg, uiColours.saturationFg + 50, uiColours.lightnessFg] as ColourTriple,
+
 
             red_text: [10, textSat, textLit] as ColourTriple,
             green_text: [130, textSat, textLit] as ColourTriple,
@@ -163,11 +180,25 @@ function augmentDefinitionsWithCssModifierParameters(
             bg_timelines: "--bg-clock-03",
             bg_quotes: "--bg-clock-07",
 
+            bg_dialogue: "--bg-clock-02",
+            bg_stuff: "--bg-clock-11",
+
+            // "--bg-clock-10"
+            bg_sr: [(uiColours.hueDelta * 10) + uiColours.hueOffsetBg, uiColours.saturationBg - 30, uiColours.lightnessBg] as ColourTriple,
+            bg_sr_active: [(uiColours.hueDelta * 10) + uiColours.hueOffsetBg, uiColours.saturationBg + 50, uiColours.lightnessBg] as ColourTriple,
+
             fg_ideas: "--fg-clock-06",
             fg_articles: "--fg-clock-12",
             fg_people: "--fg-clock-09",
             fg_timelines: "--fg-clock-03",
             fg_quotes: "--fg-clock-07",
+
+            fg_dialogue: "--fg-clock-02",
+            fg_stuff: "--fg-clock-11",
+            // "--fg-clock-10"
+            fg_sr: [(uiColours.hueDelta * 10) + uiColours.hueOffsetFg, uiColours.saturationFg - 30, uiColours.lightnessFg] as ColourTriple,
+            fg_sr_active: [(uiColours.hueDelta * 10) + uiColours.hueOffsetFg, uiColours.saturationFg + 50, uiColours.lightnessFg] as ColourTriple,
+
 
             red_text: [10, textSat, textLit] as ColourTriple,
             green_text: [130, textSat, textLit] as ColourTriple,
