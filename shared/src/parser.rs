@@ -1961,18 +1961,30 @@ third paragraph",
     }
 
     #[test]
-    fn test_sidenote_colon_syntax_bug_temp2() {
+    fn test_sidenote_colon_syntax_bug() {
         let s = "hello |:url(http://google.com)|world";
         let nodes = build(s);
         dbg!("{:?}", &nodes);
         assert_eq!(1, nodes.len());
     }
 
-    // TODO: fix this bug
-    // #[test]
-    // fn test_colon_syntax_bug_temp2() {
-    //     let s = "\"You” >>>hi<<<";
-    //     let nodes = build(s);
-    //     assert_eq!(3, nodes.len());
-    // }
+    #[test]
+    fn test_colon_syntax_bug() {
+        // the space inbetween the colon and the newline would result
+        // in an infinite loop.
+        //
+        let s = "hello: \n>>>\nhi\n<<<\n";
+        let nodes = build(s);
+        assert_eq!(2, nodes.len());
+
+        let paragraph = &nodes[0];
+        assert_paragraph(paragraph);
+        let children = paragraph_children(paragraph).unwrap();
+        assert_eq!(children.len(), 2);
+        assert_text(&children[0], "hello");
+        assert_text(&children[1], ": ");
+
+        let children = blockquote_with_children(&nodes[1], 1);
+        paragraph_with_single_text(&children[0], "hi");
+    }
 }

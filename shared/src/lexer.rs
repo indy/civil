@@ -167,7 +167,7 @@ fn eat_digits(index: usize, input: &str) -> Result<(Token, usize, usize)> {
 
 fn eat_whitespace(index: usize, input: &str) -> Result<(Token, usize, usize)> {
     for (ch_counter, (ind, ch)) in input.char_indices().enumerate() {
-        if !ch.is_whitespace() {
+        if !ch.is_whitespace() || ch == '\n' {
             return Ok((Token::Whitespace(index, &input[..ind]), ch_counter, ind));
         }
     }
