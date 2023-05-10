@@ -137,6 +137,25 @@ CREATE TABLE IF NOT EXISTS quote_extras (
        FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
+CREATE TABLE IF NOT EXISTS dialogue_extras (
+       deck_id INTEGER NOT NULL,
+
+       kind TEXT, -- the kind of AI assistant, currently going to be a variant of OpenAI
+
+       FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
+CREATE TABLE IF NOT EXISTS dialogue_messages (
+       id INTEGER PRIMARY KEY,
+
+       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+       role TEXT NOT NULL, -- 'system', 'assistant', 'user'
+       content TEXT NOT NULL, -- storing the original content since the copy in the note may get modified
+       note_id INTEGER NOT NULL,
+
+       FOREIGN KEY (note_id) REFERENCES notes (id) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
 CREATE TABLE IF NOT EXISTS images (
        id INTEGER PRIMARY KEY,
        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -260,7 +279,7 @@ pub fn migration_check(db_name: &str) -> Result<()> {
                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
                    user_id INTEGER NOT NULL,
-                   kind TEXT NOT NULL, -- 'article', 'person', 'idea', 'timeline', 'quote'
+                   kind TEXT NOT NULL, -- 'article', 'person', 'idea', 'timeline', 'quote', 'dialogue'
 
                    graph_terminator BOOLEAN DEFAULT FALSE,
 
@@ -565,6 +584,23 @@ pub fn migration_check(db_name: &str) -> Result<()> {
                UPDATE cards SET repetition = 3;
 
                ALTER TABLE cards DROP COLUMN inter_repetition_interval;"),
+
+        ////////////////
+        // MIGRATION 9: dialogue
+        ////////////////
+        M::up("CREATE TABLE IF NOT EXISTS dialogue_extras (
+                   deck_id INTEGER NOT NULL,
+                   kind TEXT,
+                   FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
+               );
+               CREATE TABLE IF NOT EXISTS dialogue_messages (
+                   id INTEGER PRIMARY KEY,
+                   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                   role TEXT NOT NULL,
+                   content TEXT NOT NULL,
+                   note_id INTEGER NOT NULL,
+                   FOREIGN KEY (note_id) REFERENCES notes (id) ON DELETE CASCADE ON UPDATE NO ACTION
+               );"),
     ]);
 
     let mut conn = Connection::open(db_name)?;
