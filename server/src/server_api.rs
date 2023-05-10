@@ -17,6 +17,7 @@
 
 use crate::handler::articles;
 use crate::handler::cmd;
+use crate::handler::dialogues;
 use crate::handler::edges;
 use crate::handler::graph;
 use crate::handler::ideas;
@@ -121,6 +122,15 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", get().to(articles::get))
                 .route("/{id}", put().to(articles::edit))
                 .route("/{id}", delete().to(articles::delete)),
+        )
+        // dialogues
+        .service(
+            scope("/dialogues")
+                .route("", post().to(dialogues::create))
+                .route("", get().to(dialogues::get_all))
+                .route("/{id}", get().to(dialogues::get))
+                .route("/{id}", put().to(dialogues::edit))
+                .route("/{id}", delete().to(dialogues::delete)),
         )
         // notes
         .service(

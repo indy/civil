@@ -24,6 +24,7 @@ pub struct SearchQuery {
 
 pub mod articles;
 pub mod cmd;
+pub mod dialogues;
 pub mod edges;
 pub mod graph;
 pub mod ideas;

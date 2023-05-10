@@ -117,8 +117,8 @@ function augmentDefinitionsWithCssModifierParameters(
             bg_people: "--bg-clock-09",
             bg_timelines: "--bg-clock-03",
             bg_quotes: "--bg-clock-07",
+            bg_dialogues: "--bg-clock-02",
 
-            bg_dialogue: "--bg-clock-02",
             bg_stuff: "--bg-clock-11",
 
             // "--bg-clock-10"
@@ -131,8 +131,8 @@ function augmentDefinitionsWithCssModifierParameters(
             fg_people: "--fg-clock-09",
             fg_timelines: "--fg-clock-03",
             fg_quotes: "--fg-clock-07",
+            fg_dialogues: "--fg-clock-02",
 
-            fg_dialogue: "--fg-clock-02",
             fg_stuff: "--fg-clock-11",
 
             // "--fg-clock-10"
@@ -179,8 +179,8 @@ function augmentDefinitionsWithCssModifierParameters(
             bg_people: "--bg-clock-09",
             bg_timelines: "--bg-clock-03",
             bg_quotes: "--bg-clock-07",
+            bg_dialogues: "--bg-clock-02",
 
-            bg_dialogue: "--bg-clock-02",
             bg_stuff: "--bg-clock-11",
 
             // "--bg-clock-10"
@@ -192,8 +192,8 @@ function augmentDefinitionsWithCssModifierParameters(
             fg_people: "--fg-clock-09",
             fg_timelines: "--fg-clock-03",
             fg_quotes: "--fg-clock-07",
+            fg_dialogues: "--fg-clock-02",
 
-            fg_dialogue: "--fg-clock-02",
             fg_stuff: "--fg-clock-11",
             // "--fg-clock-10"
             fg_sr: [(uiColours.hueDelta * 10) + uiColours.hueOffsetFg, uiColours.saturationFg - 30, uiColours.lightnessFg] as ColourTriple,

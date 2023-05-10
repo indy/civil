@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS decks (
        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
        user_id INTEGER NOT NULL,
-       kind TEXT NOT NULL, -- 'article', 'person', 'idea', 'timeline', 'quote'
+       kind TEXT NOT NULL, -- 'article', 'person', 'idea', 'timeline', 'quote', 'dialogue'
 
        graph_terminator BOOLEAN DEFAULT FALSE,
 
@@ -140,7 +140,7 @@ CREATE TABLE IF NOT EXISTS quote_extras (
 CREATE TABLE IF NOT EXISTS dialogue_extras (
        deck_id INTEGER NOT NULL,
 
-       kind TEXT, -- the kind of AI assistant, currently going to be a variant of OpenAI
+       kind TEXT NOT NULL, -- the kind of AI assistant, currently going to be a variant of OpenAI
 
        FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
@@ -590,7 +590,7 @@ pub fn migration_check(db_name: &str) -> Result<()> {
         ////////////////
         M::up("CREATE TABLE IF NOT EXISTS dialogue_extras (
                    deck_id INTEGER NOT NULL,
-                   kind TEXT,
+                   kind TEXT NOT NULL,
                    FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
                );
                CREATE TABLE IF NOT EXISTS dialogue_messages (

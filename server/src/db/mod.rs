@@ -17,6 +17,7 @@
 
 pub mod articles;
 pub mod decks;
+pub mod dialogues;
 pub mod edges;
 pub mod graph;
 pub mod ideas;

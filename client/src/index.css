@@ -942,6 +942,16 @@ textarea {
 /* -------------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------------- */
 
+.dialogue-chat-input {
+  position: fixed;
+  bottom: 1rem;
+  width: 56rem;
+}
+
+/* -------------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------------- */
+
 .svg-fill-colour {
     fill: var(--fg);
 }
@@ -989,12 +999,11 @@ a:visited.pigment-inherit {
     color: var(--fg-quotes) !important;
     background: var(--bg-quotes);
 }
-
-
-.pigment-dialogue {
-    color: var(--fg-dialogue) !important;
-    background: var(--bg-dialogue);
+.pigment-dialogues {
+    color: var(--fg-dialogues) !important;
+    background: var(--bg-dialogues);
 }
+
 .pigment-stuff {
     color: var(--fg-stuff) !important;
     background: var(--bg-stuff);

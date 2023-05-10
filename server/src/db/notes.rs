@@ -107,35 +107,6 @@ pub(crate) fn delete_note_properly(
     Ok(all_notes)
 }
 
-pub(crate) fn delete_all_notes_connected_with_deck(
-    conn: &Connection,
-    user_id: Key,
-    deck_id: Key,
-) -> Result<()> {
-    fn id_from_row(row: &Row) -> Result<Key> {
-        Ok(row.get(0)?)
-    }
-
-    let stmt = "SELECT n.id
-                FROM notes n
-                WHERE n.deck_id = ?1";
-    let note_ids: Vec<Key> = sqlite::many(conn, stmt, params![&deck_id], id_from_row)?;
-
-    for note_id in note_ids {
-        let stmt = "DELETE
-                FROM notes_decks
-                WHERE note_id = ?1";
-        sqlite::zero(conn, stmt, params![&note_id])?;
-
-        let stmt = "DELETE
-                FROM notes
-                WHERE id = ?1 AND user_id = ?2";
-        sqlite::zero(conn, stmt, params![&note_id, &user_id])?;
-    }
-
-    Ok(())
-}
-
 fn create_common(
     conn: &Connection,
     user_id: Key,

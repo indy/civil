@@ -19,7 +19,7 @@ import {
 
 import Net from "utils/net";
 import { calcAgeInYears, dateStringAsTriple } from "utils/eras";
-import { buildUrl, deckKindToHeadingString } from "utils/civil";
+import { buildUrl } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
 import {
     svgBlank,
@@ -34,6 +34,7 @@ import {
 import WhenVerbose from "components/when-verbose";
 
 import CivilInput from "components/civil-input";
+import DeckListingPage from "components/deck-listing-page";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "components/insignias/selector";
 import LifespanForm from "components/lifespan-form";
@@ -50,7 +51,6 @@ import { SlimDeckGrouping } from "components/groupings";
 
 function People({ path }: { path?: string }) {
     const appState = getAppState();
-    const deckKind: DeckKind = DeckKind.Person;
 
     useEffect(() => {
         if (!appState.listing.value.people) {
@@ -65,8 +65,7 @@ function People({ path }: { path?: string }) {
 
     if (people) {
         return (
-            <article class="listing-page">
-                <h1 class="ui">{deckKindToHeadingString(deckKind)}</h1>
+            <DeckListingPage deckKind={DeckKind.Article}>
                 <SlimDeckGrouping
                     label="Uncategorised"
                     list={people.uncategorised}
@@ -93,7 +92,7 @@ function People({ path }: { path?: string }) {
                     list={people.contemporary}
                     expanded
                 />
-            </article>
+            </DeckListingPage>
         );
     } else {
         return <div></div>;

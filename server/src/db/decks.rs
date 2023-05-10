@@ -16,7 +16,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::notes;
-use crate::db::points;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::{Error, Result};
 use crate::interop::decks as interop;
@@ -49,6 +48,7 @@ fn resource_string_to_deck_kind_string(resource: &str) -> Result<&'static str> {
         "ideas" => Ok("idea"),
         "people" => Ok("person"),
         "articles" => Ok("article"),
+        "dialogues" => Ok("dialogue"),
         _ => Err(Error::InvalidResource),
     }
 }
@@ -207,39 +207,16 @@ pub(crate) fn recent(
     sqlite::many(&conn, &stmt, params![&user_id], decksimple_from_row)
 }
 
-// delete anything that's represented as a deck (article, person, event)
+// delete anything that's represented as a deck (article, person, idea, timeline, quote, dialogue)
 //
 pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, id: Key) -> Result<()> {
-    let mut conn = sqlite_pool.get()?;
-    let tx = conn.transaction()?;
-
-    notes::delete_all_notes_connected_with_deck(&tx, user_id, id)?;
+    let conn = sqlite_pool.get()?;
 
     sqlite::zero(
-        &tx,
-        "DELETE FROM article_extras WHERE deck_id = ?1",
-        params![&id],
-    )?;
-    sqlite::zero(
-        &tx,
-        "DELETE FROM quote_extras WHERE deck_id = ?1",
-        params![&id],
-    )?;
-    sqlite::zero(
-        &tx,
-        "DELETE FROM notes_decks WHERE deck_id = ?1",
-        params![&id],
-    )?;
-
-    points::delete_all_points_connected_with_deck(&tx, id)?;
-
-    sqlite::zero(
-        &tx,
+        &conn,
         "DELETE FROM decks WHERE id = ?2 and user_id = ?1",
         params![&user_id, &id],
     )?;
-
-    tx.commit()?;
 
     Ok(())
 }

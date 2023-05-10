@@ -90,17 +90,18 @@ const state: State = {
         DeckKind.Person,
         DeckKind.Article,
         DeckKind.Timeline,
+        DeckKind.Dialogue,
     ],
 
     // preferred order of the top-level menu bar
     //
     preferredOrder: [
+        "dialogues",
         "ideas",
         "people",
         "articles",
         "timelines",
         "quotes",
-        "dialogue",
         "stuff",
         "sr"
     ],
@@ -111,6 +112,7 @@ const state: State = {
         articles: undefined,
         people: undefined,
         timelines: undefined,
+        dialogues: undefined,
     }),
     previewCache: signal({}),
     visiblePreviewDeck: signal({ id: 0, showing: false }),
@@ -403,6 +405,14 @@ export const AppStateChange = {
         state.listing.value = li;
     },
 
+    setDialogueListings: function (dialogues: Array<SlimDeck>) {
+        let li = {
+            ...state.listing.value,
+            dialogues,
+        };
+        state.listing.value = li;
+    },
+
     obtainKeyboard: function () {
         state.componentRequiresFullKeyboardAccess.value = true;
     },
@@ -485,6 +495,7 @@ export const AppStateChange = {
             people: undefined,
             articles: undefined,
             timelines: undefined,
+            dialogues: undefined,
         };
 
         if (state.listing.value.ideas) {
@@ -517,6 +528,10 @@ export const AppStateChange = {
 
         if (state.listing.value.timelines) {
             li.timelines = state.listing.value.timelines.filter(filterFn);
+        }
+
+        if (state.listing.value.dialogues) {
+            li.dialogues = state.listing.value.dialogues.filter(filterFn);
         }
 
         state.listing.value = li;
@@ -660,6 +675,28 @@ function parseCurrentUrlIntoSlimDeck(
     url: string,
     urlTitle: string
 ): SlimDeck | undefined {
+
+    function resourceStringToDeckKind(s: string): DeckKind | undefined {
+        if (s === "articles") {
+            return DeckKind.Article;
+        }
+        if (s === "ideas") {
+            return DeckKind.Idea;
+        }
+        if (s === "people") {
+            return DeckKind.Person;
+        }
+        if (s === "timelines") {
+            return DeckKind.Timeline;
+        }
+        if (s === "quotes") {
+            return DeckKind.Quote;
+        }
+        if (s === "dialogues") {
+            return DeckKind.Dialogue;
+        }
+        return undefined;
+    }
     // note: this will break if we ever change the url schema
     let re = url.match(/^\/(\w+)\/(\w+)/);
 
@@ -755,23 +792,4 @@ function buildDeckIndex(decks: Array<GraphDeck>) {
     });
 
     return res;
-}
-
-function resourceStringToDeckKind(s: string): DeckKind | undefined {
-    if (s === "articles") {
-        return DeckKind.Article;
-    }
-    if (s === "ideas") {
-        return DeckKind.Idea;
-    }
-    if (s === "people") {
-        return DeckKind.Person;
-    }
-    if (s === "timelines") {
-        return DeckKind.Timeline;
-    }
-    if (s === "quotes") {
-        return DeckKind.Quote;
-    }
-    return undefined;
 }

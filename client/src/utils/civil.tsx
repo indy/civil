@@ -8,6 +8,8 @@ import {
     Note,
 } from "types";
 
+import { capitalise } from "utils/js";
+
 export function noteSeq(notes: Notes, kind: NoteKind): Notes {
     let ns = notes.filter((n) => n.kind === kind && n.pointId === null);
     if (ns.length === 0) {
@@ -89,22 +91,13 @@ export function deckKindToResourceString(deckKind: DeckKind): string {
             return "timelines";
         case DeckKind.Quote:
             return "quotes";
+        case DeckKind.Dialogue:
+            return "dialogues";
     }
 }
 
 export function deckKindToHeadingString(deckKind: DeckKind): string {
-    switch (deckKind) {
-        case DeckKind.Article:
-            return "Article";
-        case DeckKind.Idea:
-            return "Idea";
-        case DeckKind.Person:
-            return "Person";
-        case DeckKind.Timeline:
-            return "Timeline";
-        case DeckKind.Quote:
-            return "Quote";
-    }
+    return capitalise(deckKindToResourceString(deckKind));
 }
 
 export function addToolbarSelectableClasses(toolbarMode: ToolbarMode) {

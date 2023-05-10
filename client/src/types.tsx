@@ -13,6 +13,7 @@ export enum DeckKind {
     Idea,
     Timeline,
     Quote,
+    Dialogue,
 }
 
 export enum NoteKind {
@@ -110,6 +111,7 @@ export type DeckArticle = FatDeck & {
     shortDescription?: string;
 };
 
+export type DeckDialogue = FatDeck;
 export type DeckTimeline = FatDeck;
 
 export type DeckQuote = FatDeck & {
@@ -205,6 +207,7 @@ export type Listing = {
     people: PeopleListings | undefined;
     articles: ArticleListings | undefined;
     timelines: Array<SlimDeck> | undefined;
+    dialogues: Array<SlimDeck> | undefined;
 };
 
 export type Settings = {
@@ -254,12 +257,14 @@ export type Definitions = {
     bg_people?: string;
     bg_timelines?: string;
     bg_quotes?: string;
+    bg_dialogues?: string;
 
     fg_ideas?: string;
     fg_articles?: string;
     fg_people?: string;
     fg_timelines?: string;
     fg_quotes?: string;
+    fg_dialogues?: string;
 };
 
 export type WasmInterface = {

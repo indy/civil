@@ -19,6 +19,7 @@ import { Login, Logout } from "pages/login";
 import { Person, People } from "pages/people";
 import { Quote, Quotes } from "pages/quotes";
 import { Timeline, Timelines } from "pages/timelines";
+import { Dialogue, DialogueChat, Dialogues } from "pages/dialogues";
 
 export const App = ({ state }: { state: State }) => {
     return (
@@ -175,6 +176,9 @@ const AppUI = () => {
                 <Timeline path="/timelines/:id" />
                 <Quotes path="/quotes" />
                 <Quote path="/quotes/:id" />
+                <Dialogues path="/dialogues" />
+                <DialogueChat path="/dialogues/chat" />
+                <Dialogue path="/dialogues/:id" />
             </Router>
         </div>
     );

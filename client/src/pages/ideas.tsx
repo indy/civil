@@ -11,11 +11,12 @@ import {
 } from "types";
 
 import Net from "utils/net";
-import { capitalise, formattedDate } from "utils/js";
+import { formattedDate } from "utils/js";
 import { getAppState, AppStateChange } from "app-state";
 
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
+import DeckListingPage from "components/deck-listing-page";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "components/insignias/selector";
 import LeftMarginHeading from "components/left-margin-heading";
@@ -29,7 +30,6 @@ import { SlimDeckGrouping } from "components/groupings";
 
 function Ideas({ path }: { path?: string }) {
     const appState = getAppState();
-    const resource = "ideas";
 
     useEffect(() => {
         if (!appState.listing.value.ideas) {
@@ -44,8 +44,7 @@ function Ideas({ path }: { path?: string }) {
 
     if (ideas) {
         return (
-            <article class="listing-page">
-                <h1 class="ui">{capitalise(resource)}</h1>
+            <DeckListingPage deckKind={DeckKind.Idea}>
                 <SlimDeckGrouping label="Recent" list={ideas.recent} expanded />
                 <SlimDeckGrouping
                     label="Orphans"
@@ -57,7 +56,7 @@ function Ideas({ path }: { path?: string }) {
                     list={ideas.unnoted}
                     hideEmpty
                 />
-            </article>
+            </DeckListingPage>
         );
     } else {
         return <div></div>;

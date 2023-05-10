@@ -21,7 +21,7 @@ use crate::interop::decks as interop_decks;
 use crate::interop::points as interop;
 use crate::interop::Key;
 
-use rusqlite::{params, Connection, Row};
+use rusqlite::{params, Row};
 use std::fmt;
 use std::str::FromStr;
 
@@ -46,17 +46,6 @@ impl FromStr for interop::PointKind {
             _ => Err(Error::StringConversionToEnum),
         }
     }
-}
-
-pub(crate) fn delete_all_points_connected_with_deck(conn: &Connection, deck_id: Key) -> Result<()> {
-    sqlite::zero(
-        conn,
-        "DELETE FROM points
-                  WHERE deck_id = ?1",
-        params![&deck_id],
-    )?;
-
-    Ok(())
 }
 
 fn point_from_row(row: &Row) -> Result<interop::Point> {

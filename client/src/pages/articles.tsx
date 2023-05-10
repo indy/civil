@@ -17,6 +17,7 @@ import SegmentNotes from "components/notes/segment-notes";
 
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
+import DeckListingPage from "components/deck-listing-page";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import LeftMarginHeading from "components/left-margin-heading";
 import LeftMarginHeadingNoWrap from "components/left-margin-heading-no-wrap";
@@ -27,12 +28,11 @@ import { SlimDeckGrouping, RatedGrouping } from "components/groupings";
 import { StarRatingPartial } from "components/star-rating";
 
 import Net from "utils/net";
-import { buildUrl, deckKindToHeadingString } from "utils/civil";
+import { buildUrl } from "utils/civil";
 import { formattedDate } from "utils/js";
 
 function Articles({ path }: { path?: string }) {
     const appState = getAppState();
-    const deckKind: DeckKind = DeckKind.Article;
 
     useEffect(() => {
         if (!appState.listing.value.articles) {
@@ -47,8 +47,7 @@ function Articles({ path }: { path?: string }) {
 
     if (articles) {
         return (
-            <article class="listing-page">
-                <h1 class="ui">{deckKindToHeadingString(deckKind)}</h1>
+            <DeckListingPage deckKind={DeckKind.Article}>
                 <RatedGrouping label="Recent" list={articles.recent} expanded />
                 <RatedGrouping label="Rated" list={articles.rated} />
                 <SlimDeckGrouping
@@ -56,7 +55,7 @@ function Articles({ path }: { path?: string }) {
                     list={articles.orphans}
                     hideEmpty
                 />
-            </article>
+            </DeckListingPage>
         );
     } else {
         return <div></div>;

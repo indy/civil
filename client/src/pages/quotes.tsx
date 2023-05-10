@@ -6,11 +6,11 @@ import { Key, DM, DeckKind, NoteKind, DeckQuote } from "types";
 
 import Net from "utils/net";
 import buildMarkup from "components/notes/build-markup";
-import { capitalise } from "utils/js";
 import { AppStateChange } from "app-state";
 
 import CivilInput from "components/civil-input";
 import CivilTextArea from "components/civil-text-area";
+import DeckListingPage from "components/deck-listing-page";
 import DeleteConfirmation from "components/delete-confirmation";
 import SegmentNotes from "components/notes/segment-notes";
 import useDeckManager from "components/use-deck-manager";
@@ -71,8 +71,6 @@ function titleFromQuoteText(quoteText: string) {
 }
 
 function Quotes({ path }: { path?: string }) {
-    const resource = "quotes";
-
     const initialState: QuoteState = {
         showAddForm: false,
         attribution: "",
@@ -162,13 +160,11 @@ function Quotes({ path }: { path?: string }) {
     }
 
     return (
-        <article>
-            <h1 class="ui">{capitalise(resource)}</h1>
-
+        <DeckListingPage deckKind={DeckKind.Quote}>
             {!local.showAddForm && renderNewQuoteButton()}
             {local.showAddForm && renderAddForm()}
             {!local.showAddForm && renderRandomButton()}
-        </article>
+        </DeckListingPage>
     );
 }
 

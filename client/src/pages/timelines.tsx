@@ -12,7 +12,6 @@ import {
 } from "types";
 
 import Net from "utils/net";
-import { capitalise } from "utils/js";
 import { getAppState, AppStateChange } from "app-state";
 import {
     svgCaretDown,
@@ -24,6 +23,7 @@ import {
 
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
+import DeckListingPage from "components/deck-listing-page";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "components/insignias/selector";
 import RollableSegment from "components/rollable-segment";
@@ -37,7 +37,6 @@ import { SlimDeckList } from "components/groupings";
 
 function Timelines({ path }: { path?: string }) {
     const appState = getAppState();
-    const resource = "timelines";
 
     useEffect(() => {
         if (!appState.listing.value.timelines) {
@@ -50,10 +49,9 @@ function Timelines({ path }: { path?: string }) {
 
     let timelines = appState.listing.value.timelines;
     return (
-        <article class="listing-page">
-            <h1 class="ui">{capitalise(resource)}</h1>
+        <DeckListingPage deckKind={DeckKind.Timeline}>
             {timelines && <SlimDeckList list={timelines} />}
-        </article>
+        </DeckListingPage>
     );
 }
 
