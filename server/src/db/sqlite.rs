@@ -25,8 +25,14 @@ use tracing::{error, info};
 pub type SqlitePool = r2d2::Pool<r2d2_sqlite::SqliteConnectionManager>;
 
 pub(crate) fn zero(conn: &Connection, sql: &str, params: &[&dyn ToSql]) -> Result<()> {
-    conn.execute(sql, params)?;
-    Ok(())
+    match conn.execute(sql, params) {
+        Ok(_) => return Ok(()),
+        Err(e) => {
+            error!("{}", &sql);
+            error!("{:?}", e);
+            return Err(Error::Sqlite(e));
+        }
+    };
 }
 
 pub(crate) fn one<T>(
@@ -35,7 +41,15 @@ pub(crate) fn one<T>(
     params: &[&dyn ToSql],
     from_row: fn(&Row) -> Result<T>,
 ) -> Result<T> {
-    let mut stmt = conn.prepare_cached(sql)?;
+    let mut stmt = match conn.prepare_cached(sql) {
+        Ok(st) => st,
+        Err(e) => {
+            error!("{}", &sql);
+            error!("{:?}", e);
+            return Err(Error::Sqlite(e));
+        }
+    };
+
     let mut rows = stmt.query(params)?;
 
     if let Some(row) = match rows.next() {
@@ -59,7 +73,15 @@ pub(crate) fn many<T>(
     params: &[&dyn ToSql],
     from_row: fn(&Row) -> Result<T>,
 ) -> Result<Vec<T>> {
-    let mut stmt = conn.prepare_cached(sql)?;
+    let mut stmt = match conn.prepare_cached(sql) {
+        Ok(st) => st,
+        Err(e) => {
+            error!("{}", &sql);
+            error!("{:?}", e);
+            return Err(Error::Sqlite(e));
+        }
+    };
+
     let mut rows = stmt.query(params)?;
 
     let mut res_vec = Vec::new();

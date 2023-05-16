@@ -86,7 +86,7 @@ pub(crate) fn create_card(
     let flashcard = sqlite::one(
         &tx,
         "INSERT INTO cards(user_id, note_id, prompt, next_test_date, easiness_factor, interval, repetition)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
          RETURNING id, note_id, prompt, next_test_date, easiness_factor, interval, repetition",
         params![
             &user_id,
