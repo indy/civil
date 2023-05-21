@@ -17,9 +17,9 @@ import {
     sortByResourceThenName,
 } from "utils/civil";
 import Net from "utils/net";
-import { AppStateChange } from "app-state";
+import { AppStateChange, getAppState } from "app-state";
 import { svgCloseShifted } from "components/svg-icons";
-
+import { renderInsignia } from "components/insignias/renderer";
 import CivilInput from "components/civil-input";
 import useLocalReducer from "components/use-local-reducer";
 
@@ -314,10 +314,12 @@ function reducer(state: State, action: Action) {
 }
 
 export default function CivilSelect({
+    extraClasses,
     parentDeckId,
     chosen,
     onFinish,
 }: {
+    extraClasses?: string;
     parentDeckId: Key;
     chosen: Array<Ref>;
     onFinish: (ref?: RefsModified) => void;
@@ -427,44 +429,106 @@ export default function CivilSelect({
         });
     }
 
+    let topLevelClasses = "block-width";
+    if (extraClasses) {
+        topLevelClasses += " " + extraClasses;
+    }
+
     return (
-        <div class="civsel-main-box">
-            {local.currentSelection.map((value, i) => (
-                <SelectedReference
-                    reference={value}
-                    onRemove={(e) =>
-                        localDispatch(ActionType.ReferenceRemove, e)
-                    }
-                    onChangeKind={(reference: Ref, newKind: RefKind) =>
-                        localDispatch(ActionType.ReferenceChangeKind, {
-                            reference,
-                            newKind,
-                        })
-                    }
-                    onChangeAnnotation={(reference: Ref, annotation: string) =>
-                        localDispatch(ActionType.ReferenceChangeAnnotation, {
-                            reference,
-                            annotation,
-                        })
-                    }
-                />
-            ))}
-            <Input
-                text={local.text}
-                onTextChanged={onTextChanged}
-                candidates={local.candidates}
-                onAdd={(existingDeck) =>
-                    localDispatch(ActionType.SelectAdd, existingDeck)
+        <div class={topLevelClasses}>
+            <label>Connections:</label>
+            <RecentDecks
+                localState={local}
+                onAdd={(recentDeck) =>
+                    localDispatch(ActionType.SelectAdd, recentDeck)
                 }
-                onCreate={(newDeckInfo) =>
-                    localDispatch(ActionType.SelectCreate, newDeckInfo)
-                }
-                showKeyboardShortcuts={local.showKeyboardShortcuts}
             />
-            <button onClick={onLocalCancel}>Cancel</button>
-            <button onClick={onLocalCommit} disabled={!local.canSave}>
-                {local.showKeyboardShortcuts && `Ctrl-Enter`} Save Changes
-            </button>
+            <div class="civsel-main-box">
+                {local.currentSelection.map((value, i) => (
+                    <SelectedReference
+                        reference={value}
+                        onRemove={(e) =>
+                            localDispatch(ActionType.ReferenceRemove, e)
+                        }
+                        onChangeKind={(reference: Ref, newKind: RefKind) =>
+                            localDispatch(ActionType.ReferenceChangeKind, {
+                                reference,
+                                newKind,
+                            })
+                        }
+                        onChangeAnnotation={(
+                            reference: Ref,
+                            annotation: string
+                        ) =>
+                            localDispatch(
+                                ActionType.ReferenceChangeAnnotation,
+                                {
+                                    reference,
+                                    annotation,
+                                }
+                            )
+                        }
+                    />
+                ))}
+                <Input
+                    text={local.text}
+                    onTextChanged={onTextChanged}
+                    candidates={local.candidates}
+                    onAdd={(existingDeck) => {
+                        AppStateChange.addRecentDeck(existingDeck);
+                        localDispatch(ActionType.SelectAdd, existingDeck);
+                    }}
+                    onCreate={(newDeckInfo) => {
+                        AppStateChange.addRecentDeck(newDeckInfo);
+                        localDispatch(ActionType.SelectCreate, newDeckInfo);
+                    }}
+                    showKeyboardShortcuts={local.showKeyboardShortcuts}
+                />
+                <button onClick={onLocalCancel}>Cancel</button>
+                <button onClick={onLocalCommit} disabled={!local.canSave}>
+                    {local.showKeyboardShortcuts && `Ctrl-Enter`} Save Changes
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function RecentDecks({
+    localState,
+    onAdd,
+}: {
+    localState: State;
+    onAdd: (deck?: SlimDeck) => void;
+}) {
+    const appState = getAppState();
+
+    function alreadyAdded(sd: SlimDeck): boolean {
+        // have to check title rather than id in case one of the added decks
+        // has been newly created (it won't have an id)
+        //
+        return localState.currentSelection.some((x) => x.title === sd.title);
+    }
+
+    function buildRecent(slimDeck: SlimDeck) {
+        const dk: string = deckKindToResourceString(slimDeck.deckKind);
+        let klass = `civsel-recent-deck pigment-fg-${dk}`;
+
+        return (
+            <div class={klass} onClick={() => onAdd(slimDeck)}>
+                {renderInsignia(slimDeck.insignia)}
+                {slimDeck.title}
+            </div>
+        );
+    }
+
+    const recent = appState.recentDecks.value
+        .filter((rd) => !alreadyAdded(rd))
+        .map(buildRecent);
+
+    return (
+        <div class="right-margin civsel-recent-decks">
+            {!!recent.length && <div>Recently Used Refs:</div>}
+            {recent}
         </div>
     );
 }

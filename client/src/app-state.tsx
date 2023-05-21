@@ -103,7 +103,7 @@ const state: State = {
         "timelines",
         "quotes",
         "stuff",
-        "sr"
+        "sr",
     ],
 
     // key == deckKind name of decks
@@ -129,6 +129,8 @@ const state: State = {
 
     // same for the Add Point form
     showAddPointForm: signal(false),
+
+    recentDecks: signal([]),
 
     recentImages: signal([]),
     imageDirectory: signal(""),
@@ -602,6 +604,18 @@ export const AppStateChange = {
         if (candidate) {
             addSlimDeckToBookmarkList(state, candidate);
         }
+    },
+
+    addRecentDeck: function (ref: SlimDeck) {
+        if (DEBUG_APP_STATE) {
+            console.log("addRecentDeck");
+        }
+
+        let sl = state.recentDecks.value.slice();
+        sl.unshift(ref);
+        sl.slice(0, 3);
+        console.log(sl);
+        state.recentDecks.value = sl;
     },
 
     cleanUI: function () {

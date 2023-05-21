@@ -317,6 +317,9 @@ export type State = {
 
     showAddPointForm: Signal<boolean>;
 
+    // the three most recent decks added as refs
+    recentDecks: Signal<Array<SlimDeck>>;
+
     recentImages: Signal<Array<UserUploadedImage>>;
     imageDirectory: Signal<string>;
 

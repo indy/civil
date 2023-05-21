@@ -153,13 +153,10 @@ function AddDecksUI({
     }
 
     return (
-        <div class="block-width">
-            <label>Connections:</label>
-            <CivilSelect
-                parentDeckId={deckId}
-                chosen={chosen}
-                onFinish={referenceChanges}
-            />
-        </div>
+        <CivilSelect
+            parentDeckId={deckId}
+            chosen={chosen}
+            onFinish={referenceChanges}
+        />
     );
 }
