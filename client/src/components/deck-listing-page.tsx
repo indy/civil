@@ -9,14 +9,11 @@ type Props = {
     children: ComponentChildren;
 };
 
-export default function DeckListingPage({
-    deckKind,
-    children,
-}: Props) {
+export default function DeckListingPage({ deckKind, children }: Props) {
     return (
         <article class="listing-page">
             <h1 class="ui">{deckKindToHeadingString(deckKind)}</h1>
-            { children }
+            {children}
         </article>
     );
 }

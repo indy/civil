@@ -27,7 +27,7 @@ import ImageSelector from "components/images/image-selector";
 import NoteForm from "components/notes/note-form";
 import RefView from "components/ref-view";
 import buildMarkup from "components/notes/build-markup";
-import buildSimplifiedText from "components/notes/build-simplified-text";
+// import buildSimplifiedText from "components/notes/build-simplified-text";
 import useLocalReducer from "components/use-local-reducer";
 import useMouseHovering from "components/use-mouse-hovering";
 
@@ -528,14 +528,12 @@ export default function NoteView({
         }
 
         return (
-            <div class="block-width form-margin">
-                <label>Connections:</label>
-                <CivilSelect
-                    parentDeckId={parentDeck.id}
-                    chosen={local.decks}
-                    onFinish={referenceChanges}
-                />
-            </div>
+            <CivilSelect
+                extraClasses="form-margin"
+                parentDeckId={parentDeck.id}
+                chosen={local.decks}
+                onFinish={referenceChanges}
+            />
         );
     }
 
@@ -614,7 +612,7 @@ export default function NoteView({
     // console.log("input:");
     // console.log(local.note.content);
     // console.log("output:");
-    console.log(buildSimplifiedText(local.note.content));
+    // console.log(buildSimplifiedText(local.note.content));
 
     return (
         <div class={noteClasses} onClick={onNoteClicked}>

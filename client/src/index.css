@@ -419,10 +419,10 @@ figure.fullwidth figcaption {
     width: auto;
 }
 .deck-image-maximised {
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
 }
 
 /* Right-Margin-Numbereds, margin notes, figures, captions */
@@ -480,8 +480,8 @@ mark {
     font-size: 1.1rem;
     line-height: 1.3;
     vertical-align: baseline;
-    position: relative;
-    z-index: -100;
+    /* position: relative; */
+    /* z-index: -100; */
 }
 
 .right-margin-number {
@@ -943,9 +943,9 @@ textarea {
 /* -------------------------------------------------------------------------------- */
 
 .dialogue-chat-input {
-  position: fixed;
-  bottom: 1rem;
-  width: 56rem;
+    position: fixed;
+    bottom: 1rem;
+    width: 56rem;
 }
 
 /* -------------------------------------------------------------------------------- */
@@ -1017,7 +1017,6 @@ a:visited.pigment-inherit {
     color: var(--fg-sr-active) !important;
     background: var(--bg-sr-active);
 }
-
 
 /* above colours don't work on hyperlinks, have to explicitly specify them  */
 .pigment-ideas a {
@@ -1139,6 +1138,8 @@ a:visited.pigment-inherit {
 }
 
 .civsel-recent-deck {
+    z-index: 1000;
+    cursor: pointer;
 }
 
 /* -------------------------------------------------------------------------------- */

@@ -73,8 +73,8 @@ const Commands: Array<Command> = [
         quoteAround: "title",
         fn: (args) => {
             async function foo(text: string) {
-                const url = `/api/cmd/ask?q=${encodeURI(text)}`;
-                const askResponse: any = await Net.get(url);
+                const url = `/api/dialogues/ask?q=${encodeURI(text)}`;
+                const askResponse: any = await Net.post(url, {});
                 console.log(askResponse);
             }
 

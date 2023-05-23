@@ -74,7 +74,7 @@ function TopBarMenu() {
         if (topMenuItem === "sr") {
             return `SR(${appState.srReviewCount.value})`;
         } else {
-            return capitalise(topMenuItem)
+            return capitalise(topMenuItem);
         }
     }
 
@@ -99,7 +99,7 @@ function TopBarMenu() {
                                 }}
                                 href={`/${topMenuItem}`}
                             >
-                                { menuItemText(topMenuItem) }
+                                {menuItemText(topMenuItem)}
                             </Link>
                         </div>
                     ))}

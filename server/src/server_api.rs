@@ -48,7 +48,6 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // console commands
         .service(
             scope("/cmd")
-                .route("/ask", get().to(cmd::ask))
                 .route("/search", get().to(cmd::search))
                 .route("/namesearch", get().to(cmd::namesearch))
                 .route("/recent", get().to(cmd::recent))
@@ -126,6 +125,9 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // dialogues
         .service(
             scope("/dialogues")
+                .route("/ask", get().to(dialogues::ask)) // delete this eventually
+                // .route("/chat", post().to(dialogues::chat))
+                // .route("/{id}/chat", post().to(dialogues::converse))
                 .route("", post().to(dialogues::create))
                 .route("", get().to(dialogues::get_all))
                 .route("/{id}", get().to(dialogues::get))

@@ -27,8 +27,7 @@ export default function BookmarkList() {
         AppStateChange.bookmarkListToggle();
     }
 
-    if(!!appState.bookmarkList.value.length) {
-
+    if (!!appState.bookmarkList.value.length) {
         const bookmarkList = appState.bookmarkList.value.map((entry, i) => (
             <li key={i}>{buildBookmarkListEntry(entry, i)}</li>
         ));
@@ -40,25 +39,24 @@ export default function BookmarkList() {
                         {bookmarkList}
                     </ul>
                 )}
-            {appState.bookmarkListMinimised.value ? (
-                <div class="bookmarks-menu">
-                    <div onClick={clickedToggle}>{svgChevronUp()}</div>
-                    <span class="bookmarks-menu-tip">
-                    Maximise Bookmark List
-                </span>
+                {appState.bookmarkListMinimised.value ? (
+                    <div class="bookmarks-menu">
+                        <div onClick={clickedToggle}>{svgChevronUp()}</div>
+                        <span class="bookmarks-menu-tip">
+                            Maximise Bookmark List
+                        </span>
                     </div>
-            ) : (
-                <div class="bookmarks-menu">
-                    <div onClick={clickedToggle}>{svgChevronDown()}</div>
-                    <span class="bookmarks-menu-tip">
-                    Minimise Bookmark List
-                </span>
+                ) : (
+                    <div class="bookmarks-menu">
+                        <div onClick={clickedToggle}>{svgChevronDown()}</div>
+                        <span class="bookmarks-menu-tip">
+                            Minimise Bookmark List
+                        </span>
                     </div>
-            )}
+                )}
             </div>
         );
-
     } else {
-        return <div></div>
+        return <div></div>;
     }
 }

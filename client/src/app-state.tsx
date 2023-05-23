@@ -689,7 +689,6 @@ function parseCurrentUrlIntoSlimDeck(
     url: string,
     urlTitle: string
 ): SlimDeck | undefined {
-
     function resourceStringToDeckKind(s: string): DeckKind | undefined {
         if (s === "articles") {
             return DeckKind.Article;

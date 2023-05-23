@@ -48,3 +48,7 @@ pub struct ProtoDialogue {
     pub kind: String,
     pub insignia: i32,
 }
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProtoChat {}

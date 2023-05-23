@@ -62,7 +62,6 @@ export default function buildSimplifiedText(content: string) {
         }
     }
 
-
     function isEmpty(ns: string | Array<string>): boolean {
         return Array.isArray(ns) && ns.length === 0;
     }
@@ -71,7 +70,7 @@ export default function buildSimplifiedText(content: string) {
         if (Array.isArray(ns)) {
             return ns
                 .filter((child) => !isEmpty(child))
-                .map((child) => removeEmpty(child))
+                .map((child) => removeEmpty(child));
         } else {
             return ns;
         }
@@ -81,7 +80,7 @@ export default function buildSimplifiedText(content: string) {
         return compile(node, false);
     });
 
-//    console.log(textTree);
+    //    console.log(textTree);
 
     return removeEmpty(textTree).flat().join(" ");
 }

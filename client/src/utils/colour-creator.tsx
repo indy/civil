@@ -122,9 +122,16 @@ function augmentDefinitionsWithCssModifierParameters(
             bg_stuff: "--bg-clock-11",
 
             // "--bg-clock-10"
-            bg_sr: [(uiColours.hueDelta * 10) + uiColours.hueOffsetBg, uiColours.saturationBg - 30, uiColours.lightnessBg] as ColourTriple,
-            bg_sr_active: [(uiColours.hueDelta * 10) + uiColours.hueOffsetBg, uiColours.saturationBg + 50, uiColours.lightnessBg] as ColourTriple,
-
+            bg_sr: [
+                uiColours.hueDelta * 10 + uiColours.hueOffsetBg,
+                uiColours.saturationBg - 30,
+                uiColours.lightnessBg,
+            ] as ColourTriple,
+            bg_sr_active: [
+                uiColours.hueDelta * 10 + uiColours.hueOffsetBg,
+                uiColours.saturationBg + 50,
+                uiColours.lightnessBg,
+            ] as ColourTriple,
 
             fg_ideas: "--fg-clock-06",
             fg_articles: "--fg-clock-12",
@@ -136,9 +143,16 @@ function augmentDefinitionsWithCssModifierParameters(
             fg_stuff: "--fg-clock-11",
 
             // "--fg-clock-10"
-            fg_sr: [(uiColours.hueDelta * 10) + uiColours.hueOffsetFg, uiColours.saturationFg - 30, uiColours.lightnessFg] as ColourTriple,
-            fg_sr_active: [(uiColours.hueDelta * 10) + uiColours.hueOffsetFg, uiColours.saturationFg + 50, uiColours.lightnessFg] as ColourTriple,
-
+            fg_sr: [
+                uiColours.hueDelta * 10 + uiColours.hueOffsetFg,
+                uiColours.saturationFg - 30,
+                uiColours.lightnessFg,
+            ] as ColourTriple,
+            fg_sr_active: [
+                uiColours.hueDelta * 10 + uiColours.hueOffsetFg,
+                uiColours.saturationFg + 50,
+                uiColours.lightnessFg,
+            ] as ColourTriple,
 
             red_text: [10, textSat, textLit] as ColourTriple,
             green_text: [130, textSat, textLit] as ColourTriple,
@@ -184,8 +198,16 @@ function augmentDefinitionsWithCssModifierParameters(
             bg_stuff: "--bg-clock-11",
 
             // "--bg-clock-10"
-            bg_sr: [(uiColours.hueDelta * 10) + uiColours.hueOffsetBg, uiColours.saturationBg - 30, uiColours.lightnessBg] as ColourTriple,
-            bg_sr_active: [(uiColours.hueDelta * 10) + uiColours.hueOffsetBg, uiColours.saturationBg + 50, uiColours.lightnessBg] as ColourTriple,
+            bg_sr: [
+                uiColours.hueDelta * 10 + uiColours.hueOffsetBg,
+                uiColours.saturationBg - 30,
+                uiColours.lightnessBg,
+            ] as ColourTriple,
+            bg_sr_active: [
+                uiColours.hueDelta * 10 + uiColours.hueOffsetBg,
+                uiColours.saturationBg + 50,
+                uiColours.lightnessBg,
+            ] as ColourTriple,
 
             fg_ideas: "--fg-clock-06",
             fg_articles: "--fg-clock-12",
@@ -196,9 +218,16 @@ function augmentDefinitionsWithCssModifierParameters(
 
             fg_stuff: "--fg-clock-11",
             // "--fg-clock-10"
-            fg_sr: [(uiColours.hueDelta * 10) + uiColours.hueOffsetFg, uiColours.saturationFg - 30, uiColours.lightnessFg] as ColourTriple,
-            fg_sr_active: [(uiColours.hueDelta * 10) + uiColours.hueOffsetFg, uiColours.saturationFg + 50, uiColours.lightnessFg] as ColourTriple,
-
+            fg_sr: [
+                uiColours.hueDelta * 10 + uiColours.hueOffsetFg,
+                uiColours.saturationFg - 30,
+                uiColours.lightnessFg,
+            ] as ColourTriple,
+            fg_sr_active: [
+                uiColours.hueDelta * 10 + uiColours.hueOffsetFg,
+                uiColours.saturationFg + 50,
+                uiColours.lightnessFg,
+            ] as ColourTriple,
 
             red_text: [10, textSat, textLit] as ColourTriple,
             green_text: [130, textSat, textLit] as ColourTriple,

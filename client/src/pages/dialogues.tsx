@@ -2,13 +2,7 @@ import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { Link } from "preact-router";
 
-import {
-    DeckManagerFlags,
-    DM,
-    DeckDialogue,
-    DeckKind,
-    SlimDeck
-} from "types";
+import { DeckManagerFlags, DM, DeckDialogue, DeckKind, SlimDeck } from "types";
 
 import { getAppState, AppStateChange } from "app-state";
 
@@ -48,7 +42,7 @@ function Dialogues({ path }: { path?: string }) {
         return (
             <DeckListingPage deckKind={DeckKind.Dialogue}>
                 <Link class="" href="/dialogues/chat">
-                Open new dialogue
+                    Open new dialogue
                 </Link>
                 <SlimDeckGrouping label="Recent" list={dialogues} hideEmpty />
             </DeckListingPage>
@@ -70,32 +64,42 @@ enum Role {
 type ChatMessage = {
     role: Role;
     content: string;
+};
+
+function roleToString(role: Role): string {
+    switch (role) {
+        case Role.System: return "system";
+        case Role.Assistant: return "assistant";
+        case Role.User: return "user";
+    }
 }
 
 function DialogueChat({ path }: { path?: string }) {
-    const fake: Array<ChatMessage> = [];
-    const [content, setContent] = useState("hello this is content");
-    const [messages, setMessages] = useState(fake);
+    const fake: Array<ChatMessage> = [
+        { role: Role.User, content: "hello"},
+        { role: Role.Assistant, content: "this is a response"}];
 
+    const [waiting, setWaiting] = useState(false);
+    const [content, setContent] = useState("type here");
+    const [messages, setMessages] = useState(fake);
 
     async function onSubmit() {
         const newChatMessage: ChatMessage = {
             role: Role.User,
-            content
+            content,
         };
 
         messages.push(newChatMessage);
         setMessages(messages);
 
-        console.log("asking");
-        const url = `/api/cmd/ask?q=${encodeURI(content)}`;
-        const askResponse: any = await Net.get(url);
-        console.log(askResponse);
-
+        const url = `/api/dialogues/ask?q=${encodeURI(content)}`;
+        setWaiting(true);
+        const askResponse: any = await Net.post(url, {});
+        setWaiting(false);
         if (askResponse.response.length === 1) {
             const responseChatMessage: ChatMessage = {
                 role: Role.Assistant,
-                content: askResponse.response[0].message.content
+                content: askResponse.response[0].message.content,
             };
             messages.push(responseChatMessage);
             setMessages(messages);
@@ -107,16 +111,35 @@ function DialogueChat({ path }: { path?: string }) {
         setContent("");
     }
 
-
     function buildChatMessageElement(chatMessage: ChatMessage) {
-        return <p>{chatMessage.content}</p>;
+        return [
+            <div class="left-margin">
+                {roleToString(chatMessage.role)}
+            </div>,
+            <div class="note-content muh-content">
+                <p>
+                    {chatMessage.content}
+                </p>
+            </div>
+        ];
     }
 
-    let m = messages.map(buildChatMessageElement);
+    let m = messages.flatMap(buildChatMessageElement);
+
+    if (waiting) {
+        m.push(<div class="note-content muh-content">
+                <p>
+                    <em>Waiting for response...</em>
+                </p>
+            </div>);
+    }
 
     return (
         <article>
-            { m }
+            <section>
+            <div class="note muh-container">
+            {m}
+            </div>
             <div class="dialogue-chat-input">
                 <CivilTextArea
                     id="chat-input"
@@ -125,6 +148,7 @@ function DialogueChat({ path }: { path?: string }) {
                 />
                 <button onClick={onSubmit}>submit</button>
             </div>
+            </section>
         </article>
     );
 }
@@ -147,8 +171,7 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
                     isShowingUpdateForm={deckManager.isShowingUpdateForm()}
                     onRefsToggle={deckManager.onRefsToggle}
                     onFormToggle={deckManager.onFormToggle}
-                >
-                </TopMatter>
+                ></TopMatter>
 
                 {deckManager.isShowingUpdateForm() && (
                     <div>
@@ -198,7 +221,11 @@ type DialogueUpdaterProps = {
     onUpdate: (d: DeckDialogue) => void;
     onCancel: () => void;
 };
-function DialogueUpdater({ dialogue, onUpdate, onCancel }: DialogueUpdaterProps) {
+function DialogueUpdater({
+    dialogue,
+    onUpdate,
+    onCancel,
+}: DialogueUpdaterProps) {
     const [title, setTitle] = useState(dialogue.title || "");
     const [insigniaId, setInsigniaId] = useState(dialogue.insignia || 0);
 
@@ -277,6 +304,5 @@ function DialogueUpdater({ dialogue, onUpdate, onCancel }: DialogueUpdaterProps)
         </form>
     );
 }
-
 
 export { Dialogue, DialogueChat, Dialogues };
