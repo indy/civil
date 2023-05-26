@@ -8,7 +8,7 @@ import {
     svgLinkAlt,
     svgFlashCard,
     svgAddAbove,
-    svgBookmark,
+    svgScratchList,
 } from "components/svg-icons";
 
 export function DeluxeToolbar({}) {
@@ -39,7 +39,7 @@ export function DeluxeToolbar({}) {
             case ToolbarMode.AddAbove:
                 // don't show Prepend option for quotes
                 return !onListingPage && urlParts[1] !== "quotes";
-            case ToolbarMode.BookmarkLinks:
+            case ToolbarMode.ScratchListLinks:
                 return true;
         }
     }
@@ -69,12 +69,12 @@ export function DeluxeToolbar({}) {
                     {svgAddAbove()}
                 </ToolbarItem>
             )}
-            {canShow(ToolbarMode.BookmarkLinks) && (
+            {canShow(ToolbarMode.ScratchListLinks) && (
                 <ToolbarItem
-                    toolbarMode={ToolbarMode.BookmarkLinks}
-                    toolbarText="Bookmark Links"
+                    toolbarMode={ToolbarMode.ScratchListLinks}
+                    toolbarText="Add Links to ScratchList"
                 >
-                    {svgBookmark()}
+                    {svgScratchList()}
                 </ToolbarItem>
             )}
         </div>
@@ -126,7 +126,7 @@ export function addActiveToolbarClasses(toolbarMode: ToolbarMode) {
             return " toolbar-item-selected toolbar-item-selected-sr";
         case ToolbarMode.AddAbove:
             return " toolbar-item-selected toolbar-item-selected-add-above";
-        case ToolbarMode.BookmarkLinks:
-            return " toolbar-item-selected toolbar-item-selected-bookmark-links";
+        case ToolbarMode.ScratchListLinks:
+            return " toolbar-item-selected toolbar-item-selected-scratchlist-links";
     }
 }

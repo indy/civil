@@ -199,17 +199,17 @@ const Commands: Array<Command> = [
     },
     {
         command: "b",
-        description: "bookmark current page to bookmarklist",
+        description: "bookmark current page to scratchlist",
         fn: () => {
-            AppStateChange.bookmarkCurrentUrl();
+            AppStateChange.addCurrentUrlToScratchList();
             return true;
         },
     },
     {
         command: "bl",
-        description: "clicking on a link adds it to the bookmarklist",
+        description: "clicking on a link adds it to the scratchlist",
         fn: () => {
-            AppStateChange.bookmarkLinkToggle();
+            AppStateChange.scratchlistLinkToggle();
             return true;
         },
     },
@@ -378,7 +378,7 @@ function reducer(state: State, action: Action): State {
         case ActionType.KeyDownPlus: {
             const newState = { ...state };
             if (state.showKeyboardShortcuts && state.mode === Mode.Search) {
-                AppStateChange.bookmarkListAddMulti(newState.searchCandidates);
+                AppStateChange.scratchListAddMulti(newState.searchCandidates);
 
                 newState.shiftKey = true;
                 newState.keyDownIndex = -1;
@@ -432,7 +432,7 @@ function reducer(state: State, action: Action): State {
                             keyDownIndex: -1,
                         };
 
-                        AppStateChange.bookmarkListAddMulti([candidate]);
+                        AppStateChange.scratchListAddMulti([candidate]);
 
                         return newState;
                     } else {

@@ -70,7 +70,7 @@ const state: State = {
     componentRequiresFullKeyboardAccess: signal(false),
     showingSearchCommand: signal(false),
 
-    // to add the current page to the bookmarkList we need the id, name, deckKind.
+    // to add the current page to the scratchList we need the id, name, deckKind.
     // id and deckKind can be parsed from the url, but the name needs to be
     // stored separately
     //
@@ -145,8 +145,8 @@ const state: State = {
         deckIndexFromId: [],
     }),
 
-    bookmarkList: signal([]),
-    bookmarkListMinimised: signal(false),
+    scratchList: signal([]),
+    scratchListMinimised: signal(false),
 
     srReviewCount: signal(0),
     srEarliestReviewDate: signal(undefined),
@@ -548,61 +548,61 @@ export const AppStateChange = {
         }
     },
 
-    bookmarkListToggle: function () {
+    scratchListToggle: function () {
         if (DEBUG_APP_STATE) {
-            console.log("bookmarkListToggle");
+            console.log("scratchListToggle");
         }
-        state.bookmarkListMinimised.value = !state.bookmarkListMinimised.value;
+        state.scratchListMinimised.value = !state.scratchListMinimised.value;
     },
 
-    bookmarkListAddMulti: function (candidates: Array<SlimDeck>) {
+    scratchListAddMulti: function (candidates: Array<SlimDeck>) {
         if (DEBUG_APP_STATE) {
-            console.log("bookmarkListAddMulti");
+            console.log("scratchListAddMulti");
         }
-        let sl = state.bookmarkList.value.slice();
+        let sl = state.scratchList.value.slice();
         candidates.forEach((c) => {
             sl.push(c);
         });
-        state.bookmarkList.value = sl;
+        state.scratchList.value = sl;
     },
 
-    bookmarkListRemove: function (index: number) {
+    scratchListRemove: function (index: number) {
         if (DEBUG_APP_STATE) {
-            console.log("bookmarkListRemove");
+            console.log("scratchListRemove");
         }
-        let sl = state.bookmarkList.value.slice();
+        let sl = state.scratchList.value.slice();
         sl.splice(index, 1);
-        state.bookmarkList.value = sl;
+        state.scratchList.value = sl;
     },
 
-    bookmarkLinkToggle: function () {
+    scratchlistLinkToggle: function () {
         if (DEBUG_APP_STATE) {
-            console.log("bookmarkLinkToggle");
+            console.log("scratchlistLinkToggle");
         }
-        if (state.toolbarMode.value === ToolbarMode.BookmarkLinks) {
+        if (state.toolbarMode.value === ToolbarMode.ScratchListLinks) {
             state.toolbarMode.value = ToolbarMode.View;
         } else {
-            state.toolbarMode.value = ToolbarMode.BookmarkLinks;
+            state.toolbarMode.value = ToolbarMode.ScratchListLinks;
         }
     },
 
-    addBookmarkLink: function (candidate: SlimDeck) {
+    addScratchListLink: function (candidate: SlimDeck) {
         if (DEBUG_APP_STATE) {
-            console.log("addBookmarkLink");
+            console.log("addScratchListLink");
         }
-        addSlimDeckToBookmarkList(state, candidate);
+        addSlimDeckToScratchList(state, candidate);
     },
 
-    bookmarkCurrentUrl: function () {
+    addCurrentUrlToScratchList: function () {
         if (DEBUG_APP_STATE) {
-            console.log("bookmarkCurrentUrl");
+            console.log("addCurrentUrlToScratchList");
         }
         let candidate: SlimDeck | undefined = parseCurrentUrlIntoSlimDeck(
             state.url.value,
             state.urlTitle.value
         );
         if (candidate) {
-            addSlimDeckToBookmarkList(state, candidate);
+            addSlimDeckToScratchList(state, candidate);
         }
     },
 
@@ -679,10 +679,10 @@ export const AppStateChange = {
     },
 };
 
-function addSlimDeckToBookmarkList(state: State, candidate: SlimDeck) {
-    let sl = state.bookmarkList.value.slice();
+function addSlimDeckToScratchList(state: State, candidate: SlimDeck) {
+    let sl = state.scratchList.value.slice();
     sl.push(candidate);
-    state.bookmarkList.value = sl;
+    state.scratchList.value = sl;
 }
 
 function parseCurrentUrlIntoSlimDeck(

@@ -68,16 +68,20 @@ type ChatMessage = {
 
 function roleToString(role: Role): string {
     switch (role) {
-        case Role.System: return "system";
-        case Role.Assistant: return "assistant";
-        case Role.User: return "user";
+        case Role.System:
+            return "system";
+        case Role.Assistant:
+            return "assistant";
+        case Role.User:
+            return "user";
     }
 }
 
 function DialogueChat({ path }: { path?: string }) {
     const fake: Array<ChatMessage> = [
-        { role: Role.User, content: "hello"},
-        { role: Role.Assistant, content: "this is a response"}];
+        { role: Role.User, content: "hello" },
+        { role: Role.Assistant, content: "this is a response" },
+    ];
 
     const [waiting, setWaiting] = useState(false);
     const [content, setContent] = useState("type here");
@@ -113,41 +117,37 @@ function DialogueChat({ path }: { path?: string }) {
 
     function buildChatMessageElement(chatMessage: ChatMessage) {
         return [
-            <div class="left-margin">
-                {roleToString(chatMessage.role)}
-            </div>,
+            <div class="left-margin">{roleToString(chatMessage.role)}</div>,
             <div class="note-content muh-content">
-                <p>
-                    {chatMessage.content}
-                </p>
-            </div>
+                <p>{chatMessage.content}</p>
+            </div>,
         ];
     }
 
     let m = messages.flatMap(buildChatMessageElement);
 
     if (waiting) {
-        m.push(<div class="note-content muh-content">
+        m.push(
+            <div class="note-content muh-content">
                 <p>
                     <em>Waiting for response...</em>
                 </p>
-            </div>);
+            </div>
+        );
     }
 
     return (
         <article>
             <section>
-            <div class="note muh-container">
-            {m}
-            </div>
-            <div class="dialogue-chat-input">
-                <CivilTextArea
-                    id="chat-input"
-                    value={content}
-                    onContentChange={setContent}
-                />
-                <button onClick={onSubmit}>submit</button>
-            </div>
+                <div class="note muh-container">{m}</div>
+                <div class="dialogue-chat-input">
+                    <CivilTextArea
+                        id="chat-input"
+                        value={content}
+                        onContentChange={setContent}
+                    />
+                    <button onClick={onSubmit}>submit</button>
+                </div>
             </section>
         </article>
     );

@@ -55,7 +55,7 @@
     left: 0;
 }
 
-.bookmarkmode-active {
+.scratchlistmode-active {
     background: var(--highlight);
     border-radius: var(--coloured-deck-border-radius);
     padding: 0.3rem;
@@ -823,7 +823,7 @@ textarea {
     flex-grow: 0.2;
 }
 
-#bookmarks-component {
+#scratchlist-component {
     position: fixed;
     bottom: 0;
     left: 1rem;
@@ -831,13 +831,13 @@ textarea {
     z-index: 200;
 }
 
-.bookmarks-menu {
+.scratchlist-menu {
     display: flex;
     flex-direction: row;
     margin-left: 0.3rem;
 }
 
-.bookmarks-menu-tip {
+.scratchlist-menu-tip {
     font-family: Inter;
     color: var(--fg-inactive);
 
@@ -849,17 +849,17 @@ textarea {
     padding-left: 0;
 }
 
-#bookmarks-results {
+#scratchlist-results {
     background: white !important;
     max-height: 50rem;
     overflow: auto;
 }
 
-.bookmarks-result {
+.scratchlist-result {
     display: flex;
     flex-direction: row;
 }
-.bookmarks-result-remove {
+.scratchlist-result-remove {
     padding-top: 0.2rem;
 }
 
@@ -1769,7 +1769,7 @@ input:required {
 .toolbar-item-selected-add-above {
     border-right: 5px solid var(--fg-clock-02) !important;
 }
-.toolbar-item-selected-bookmark-links {
+.toolbar-item-selected-scratchlist-links {
     border-right: 5px solid var(--fg-clock-04) !important;
 }
 
@@ -1830,7 +1830,7 @@ input:required {
         float: none;
     }
 
-    #bookmarks-component {
+    #scratchlist-component {
         width: 100%;
     }
 }

@@ -43,7 +43,7 @@ export enum ToolbarMode {
     Refs,
     SR,
     AddAbove,
-    BookmarkLinks,
+    ScratchListLinks,
 }
 
 export enum PassageHowToShow {
@@ -326,8 +326,8 @@ export type State = {
     showConnectivityGraph: Signal<boolean>;
     graph: Signal<Graph>;
 
-    bookmarkList: Signal<Array<SlimDeck>>;
-    bookmarkListMinimised: Signal<boolean>;
+    scratchList: Signal<Array<SlimDeck>>;
+    scratchListMinimised: Signal<boolean>;
 
     srReviewCount: Signal<number>;
     srEarliestReviewDate: Signal<undefined | string>;

@@ -525,7 +525,7 @@ export function svgAddBelow() {
     );
 }
 
-export function svgBookmark() {
+export function svgScratchList() {
     return (
         <svg
             fill="none"

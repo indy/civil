@@ -7,7 +7,10 @@ import { PreviewNotes, SlimDeck, ToolbarMode } from "types";
 import Net from "utils/net";
 import { buildUrl, deckKindToResourceString } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
-import { renderInsignia, svgBookmarkLink } from "components/insignias/renderer";
+import {
+    renderInsignia,
+    svgScratchListLink,
+} from "components/insignias/renderer";
 
 // import useMouseHovering from "components/use-mouse-hovering";
 import useMouseHoveringEvents from "components/use-mouse-hovering-events";
@@ -53,9 +56,9 @@ export default function DeckLink({
         }
     }
 
-    function bookmarkModeClicked() {
+    function scratchListModeClicked() {
         AppStateChange.hidePreviewDeck(slimDeck.id);
-        AppStateChange.addBookmarkLink(slimDeck);
+        AppStateChange.addScratchListLink(slimDeck);
     }
 
     const ec: string = extraClasses || "";
@@ -65,13 +68,17 @@ export default function DeckLink({
     let elem: any;
     if (
         !alwaysLink &&
-        appState.toolbarMode.value === ToolbarMode.BookmarkLinks
+        appState.toolbarMode.value === ToolbarMode.ScratchListLinks
     ) {
-        klass += " bookmarkmode-active";
+        klass += " scratchlistmode-active";
         elem = (
-            <span class={klass} ref={hoveringRef} onClick={bookmarkModeClicked}>
+            <span
+                class={klass}
+                ref={hoveringRef}
+                onClick={scratchListModeClicked}
+            >
                 {children}
-                {svgBookmarkLink("#F91880")}
+                {svgScratchListLink("#F91880")}
                 {renderInsignia(slimDeck.insignia)}
                 {slimDeck.title}
             </span>
