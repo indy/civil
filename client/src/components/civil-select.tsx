@@ -264,6 +264,9 @@ function reducer(state: State, action: Action) {
             let newState = { ...state };
 
             let data = action.data as SlimDeck;
+
+            AppStateChange.addRecentDeck(data);
+
             let refToAdd = candidateToAddedRef(data);
 
             newState.referencesAdded.push(refToAdd);
@@ -280,6 +283,8 @@ function reducer(state: State, action: Action) {
             let newState = { ...state };
 
             let refToCreate = action.data as Ref;
+
+            AppStateChange.addRecentDeck(refToCreate);
 
             newState.referencesCreated.push(refToCreate);
 
@@ -475,11 +480,9 @@ export default function CivilSelect({
                     onTextChanged={onTextChanged}
                     candidates={local.candidates}
                     onAdd={(existingDeck) => {
-                        AppStateChange.addRecentDeck(existingDeck);
                         localDispatch(ActionType.SelectAdd, existingDeck);
                     }}
                     onCreate={(newDeckInfo) => {
-                        AppStateChange.addRecentDeck(newDeckInfo);
                         localDispatch(ActionType.SelectCreate, newDeckInfo);
                     }}
                     showKeyboardShortcuts={local.showKeyboardShortcuts}

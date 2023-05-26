@@ -613,9 +613,7 @@ export const AppStateChange = {
 
         let sl = state.recentDecks.value.slice();
         sl.unshift(ref);
-        sl.slice(0, 3);
-        console.log(sl);
-        state.recentDecks.value = sl;
+        state.recentDecks.value = sl.slice(0, 3);
     },
 
     cleanUI: function () {
