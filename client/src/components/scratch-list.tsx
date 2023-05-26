@@ -41,17 +41,21 @@ export default function ScratchList() {
                 )}
                 {appState.scratchListMinimised.value ? (
                     <div class="scratchlist-menu">
-                        <div onClick={clickedToggle}>{svgChevronUp()}</div>
-                        <span class="scratchlist-menu-tip">
-                            Maximise ScratchList
-                        </span>
+                        <div onClick={clickedToggle}>
+                            {svgChevronDown()}
+                            <span class="scratchlist-menu-tip">
+                                Maximise ScratchList
+                            </span>
+                        </div>
                     </div>
                 ) : (
                     <div class="scratchlist-menu">
-                        <div onClick={clickedToggle}>{svgChevronDown()}</div>
-                        <span class="scratchlist-menu-tip">
-                            Minimise ScratchList
-                        </span>
+                        <div onClick={clickedToggle}>
+                            {svgChevronUp()}
+                            <span class="scratchlist-menu-tip">
+                                Minimise ScratchList
+                            </span>
+                        </div>
                     </div>
                 )}
             </div>

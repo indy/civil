@@ -825,10 +825,11 @@ textarea {
 
 #scratchlist-component {
     position: fixed;
-    bottom: 0;
+    bottom: 0.5rem;
     left: 1rem;
     width: 30rem;
     z-index: 200;
+    cursor: pointer;
 }
 
 .scratchlist-menu {
@@ -840,9 +841,7 @@ textarea {
 .scratchlist-menu-tip {
     font-family: Inter;
     color: var(--fg-inactive);
-
-    margin: 0.4rem 0 0.2rem 1.2rem;
-
+    margin-left: 0.4rem;
     font-size: 1rem;
     line-height: 1rem;
     list-style-type: none;
