@@ -25,9 +25,11 @@ use chrono::Utc;
 #[allow(unused_imports)]
 use tracing::info;
 
+use crate::db::edges as db_edges;
 use crate::db::sr as db_sr;
 use crate::db::uploader as db_uploader;
 
+use crate::interop::decks::SlimDeck;
 use crate::interop::uploader as interop_uploader;
 use crate::interop::Key;
 
@@ -35,6 +37,7 @@ use crate::interop::Key;
 #[serde(rename_all = "camelCase")]
 struct UberStruct {
     pub directory: Key,
+    pub recently_used_decks: Vec<SlimDeck>,
     pub recent_images: Vec<interop_uploader::UserUploadedImage>,
     pub sr_review_count: i32,
     pub sr_earliest_review_date: chrono::NaiveDateTime,
@@ -49,13 +52,14 @@ pub async fn setup(
     let user_id = session::user_id(&session)?;
 
     let directory = user_id;
-
+    let recently_used_decks = db_edges::get_recently_used_decks(&sqlite_pool, user_id)?;
     let recent_images = db_uploader::get_recent(&sqlite_pool, user_id, 0)?;
     let upcoming_review =
         db_sr::get_cards_upcoming_review(&sqlite_pool, user_id, Utc::now().naive_utc())?;
 
     let uber = UberStruct {
         directory,
+        recently_used_decks,
         recent_images,
         sr_review_count: upcoming_review.review_count,
         sr_earliest_review_date: upcoming_review.earliest_review_date,

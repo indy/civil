@@ -7,7 +7,6 @@ import {
     Key,
     Note,
     Notes,
-    ProtoNoteReferences,
     Ref,
     RefsModified,
     State,
@@ -501,38 +500,27 @@ export default function NoteView({
     }
 
     function buildAddDecksUI() {
-        function referenceChanges(changes?: RefsModified) {
-            if (changes) {
-                let data: ProtoNoteReferences = {
-                    noteId: note.id,
-                    referencesChanged: changes.referencesChanged,
-                    referencesRemoved: changes.referencesRemoved,
-                    referencesAdded: changes.referencesAdded,
-                    referencesCreated: changes.referencesCreated,
-                };
+        function onSave(changes: RefsModified, allDecksForNote: Array<Ref>) {
+            onRefsChanged(local.note, allDecksForNote);
+            localDispatch(ActionType.AddDecksCommit, {
+                allDecksForNote,
+                changes,
+            });
+        }
 
-                Net.post<ProtoNoteReferences, Array<Ref>>(
-                    "/api/edges/notes_decks",
-                    data
-                ).then((allDecksForNote) => {
-                    onRefsChanged(local.note, allDecksForNote);
-                    localDispatch(ActionType.AddDecksCommit, {
-                        allDecksForNote,
-                        changes,
-                    });
-                });
-            } else {
-                // cancel was pressed
-                localDispatch(ActionType.HideAddDecksUi);
-            }
+        function onCancel() {
+            // cancel was pressed
+            localDispatch(ActionType.HideAddDecksUi);
         }
 
         return (
             <CivilSelect
                 extraClasses="form-margin"
                 parentDeckId={parentDeck.id}
+                noteId={note.id}
                 chosen={local.decks}
-                onFinish={referenceChanges}
+                onSave={onSave}
+                onCancel={onCancel}
             />
         );
     }

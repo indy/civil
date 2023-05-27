@@ -19,16 +19,16 @@ use crate::db::decks as decks_db;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Result;
 use crate::interop::decks as interop_decks;
-use crate::interop::decks::DeckKind;
+use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::edges as interop;
 use crate::interop::Key;
 
-use rusqlite::{params, Row};
+use rusqlite::{params, Connection, Row};
 use std::str::FromStr;
 #[allow(unused_imports)]
 use tracing::info;
 
-fn from_row(row: &Row) -> Result<interop_decks::Ref> {
+fn ref_from_row(row: &Row) -> Result<interop_decks::Ref> {
     let kind: String = row.get(3)?;
     let rk: String = row.get(4)?;
 
@@ -43,11 +43,22 @@ fn from_row(row: &Row) -> Result<interop_decks::Ref> {
     })
 }
 
+fn slimdeck_from_row(row: &Row) -> Result<interop_decks::SlimDeck> {
+    let kind: String = row.get(2)?;
+
+    Ok(interop_decks::SlimDeck {
+        id: row.get(0)?,
+        title: row.get(1)?,
+        deck_kind: interop_decks::DeckKind::from_str(&kind)?,
+        insignia: row.get(3)?,
+    })
+}
+
 pub(crate) fn create_from_note_to_decks(
     sqlite_pool: &SqlitePool,
     note_references: &interop::ProtoNoteReferences,
     user_id: Key,
-) -> Result<Vec<interop_decks::Ref>> {
+) -> Result<interop::ReferencesApplied> {
     info!("create_from_note_to_decks");
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
@@ -124,9 +135,32 @@ pub(crate) fn create_from_note_to_decks(
         "SELECT nd.note_id, d.id, d.name, d.kind as deck_kind, nd.kind as ref_kind, nd.annotation, d.insignia
                           FROM notes_decks nd, decks d
                           WHERE nd.note_id = ?1 AND d.id = nd.deck_id";
-    let res = sqlite::many(&tx, stmt_all_decks, params![&note_id], from_row)?;
+    let refs = sqlite::many(&tx, stmt_all_decks, params![&note_id], ref_from_row)?;
+
+    let recents = get_recents(&tx, user_id)?;
 
     tx.commit()?;
 
-    Ok(res)
+    Ok(interop::ReferencesApplied { refs, recents })
+}
+
+pub(crate) fn get_recently_used_decks(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+) -> Result<Vec<SlimDeck>> {
+    let conn = sqlite_pool.get()?;
+    get_recents(&conn, user_id)
+}
+
+fn get_recents(conn: &Connection, user_id: Key) -> Result<Vec<SlimDeck>> {
+    let stmt_recent_refs = "SELECT DISTINCT deck_id, title, kind, insignia
+         FROM (
+              SELECT nd.deck_id, d.name as title, d.kind, d.insignia
+              FROM notes_decks nd, decks d
+              WHERE nd.deck_id = d.id AND d.user_id = ?1
+              ORDER BY nd.created_at DESC
+              LIMIT 100) -- without this limit query returns incorrect results
+         LIMIT 3";
+
+    sqlite::many(conn, stmt_recent_refs, params![&user_id], slimdeck_from_row)
 }

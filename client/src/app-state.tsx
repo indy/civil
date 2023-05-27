@@ -130,7 +130,7 @@ const state: State = {
     // same for the Add Point form
     showAddPointForm: signal(false),
 
-    recentDecks: signal([]),
+    recentlyUsedDecks: signal([]),
 
     recentImages: signal([]),
     imageDirectory: signal(""),
@@ -294,6 +294,7 @@ export const AppStateChange = {
         };
 
         state.recentImages.value = uber.recentImages;
+        state.recentlyUsedDecks.value = uber.recentlyUsedDecks;
         state.imageDirectory.value = uber.directory;
         state.srReviewCount.value = uber.srReviewCount;
         state.srEarliestReviewDate.value = uber.srEarliestReviewDate;
@@ -606,14 +607,11 @@ export const AppStateChange = {
         }
     },
 
-    addRecentDeck: function (ref: SlimDeck) {
+    setRecentlyUsedDecks: function (recents: Array<SlimDeck>) {
         if (DEBUG_APP_STATE) {
-            console.log("addRecentDeck");
+            console.log("setRecentlyUsedDecks");
         }
-
-        let sl = state.recentDecks.value.slice();
-        sl.unshift(ref);
-        state.recentDecks.value = sl.slice(0, 3);
+        state.recentlyUsedDecks.value = recents;
     },
 
     cleanUI: function () {

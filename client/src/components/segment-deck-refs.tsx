@@ -1,17 +1,8 @@
 import { h } from "preact";
 import { useRef } from "preact/hooks";
 
-import {
-    FatDeck,
-    Key,
-    Note,
-    ProtoNoteReferences,
-    Ref,
-    RefsModified,
-    ToolbarMode,
-} from "types";
+import { FatDeck, Key, Note, Ref, RefsModified, ToolbarMode } from "types";
 
-import Net from "utils/net";
 import { getAppState, AppStateChange } from "app-state";
 import { addToolbarSelectableClasses } from "utils/civil";
 
@@ -131,32 +122,17 @@ function AddDecksUI({
     onCancel,
     onSaved,
 }: AddDecksUIProps) {
-    function referenceChanges(changes: RefsModified) {
-        if (changes) {
-            let data: ProtoNoteReferences = {
-                noteId: note.id,
-                referencesChanged: changes.referencesChanged,
-                referencesRemoved: changes.referencesRemoved,
-                referencesAdded: changes.referencesAdded,
-                referencesCreated: changes.referencesCreated,
-            };
-
-            Net.post<ProtoNoteReferences, Array<Ref>>(
-                "/api/edges/notes_decks",
-                data
-            ).then((allDecksForNote) => {
-                onSaved(note, changes, allDecksForNote);
-            });
-        } else {
-            onCancel();
-        }
+    function onSave(changes: RefsModified, allDecksForNote: Array<Ref>) {
+        onSaved(note, changes, allDecksForNote);
     }
 
     return (
         <CivilSelect
+            noteId={note.id}
             parentDeckId={deckId}
             chosen={chosen}
-            onFinish={referenceChanges}
+            onSave={onSave}
+            onCancel={onCancel}
         />
     );
 }

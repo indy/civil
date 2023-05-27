@@ -4,10 +4,10 @@ import { useEffect } from "preact/hooks";
 import {
     DeckKind,
     Key,
-    SlimDeck,
     Ref,
     RefKind,
     RefsModified,
+    SlimDeck,
     ToolbarMode,
 } from "types";
 
@@ -265,8 +265,6 @@ function reducer(state: State, action: Action) {
 
             let data = action.data as SlimDeck;
 
-            AppStateChange.addRecentDeck(data);
-
             let refToAdd = candidateToAddedRef(data);
 
             newState.referencesAdded.push(refToAdd);
@@ -283,8 +281,6 @@ function reducer(state: State, action: Action) {
             let newState = { ...state };
 
             let refToCreate = action.data as Ref;
-
-            AppStateChange.addRecentDeck(refToCreate);
 
             newState.referencesCreated.push(refToCreate);
 
@@ -321,13 +317,17 @@ function reducer(state: State, action: Action) {
 export default function CivilSelect({
     extraClasses,
     parentDeckId,
+    noteId,
     chosen,
-    onFinish,
+    onSave,
+    onCancel,
 }: {
     extraClasses?: string;
     parentDeckId: Key;
+    noteId: Key;
     chosen: Array<Ref>;
-    onFinish: (ref?: RefsModified) => void;
+    onSave: (changes: RefsModified, allDecksForNote: Array<Ref>) => void;
+    onCancel: () => void;
 }) {
     const s: State = {
         currentSelection: [], // built by rebuildCurrentSelection
@@ -382,6 +382,33 @@ export default function CivilSelect({
         };
     }, []);
 
+    function onFinish(changes: RefsModified) {
+        type ProtoNoteReferences = RefsModified & {
+            noteId: Key;
+        };
+
+        type ReferencesApplied = {
+            refs: Array<Ref>;
+            recents: Array<SlimDeck>;
+        };
+
+        let changeData: ProtoNoteReferences = {
+            noteId: noteId,
+            referencesChanged: changes.referencesChanged,
+            referencesRemoved: changes.referencesRemoved,
+            referencesAdded: changes.referencesAdded,
+            referencesCreated: changes.referencesCreated,
+        };
+
+        Net.post<ProtoNoteReferences, ReferencesApplied>(
+            "/api/edges/notes_decks",
+            changeData
+        ).then((response) => {
+            AppStateChange.setRecentlyUsedDecks(response.recents);
+            onSave(changes, response.refs);
+        });
+    }
+
     function onTextChanged(newText: string) {
         refineCandidates(newText);
         localDispatch(ActionType.InputGiven, newText);
@@ -421,17 +448,18 @@ export default function CivilSelect({
 
     function onLocalCancel() {
         AppStateChange.toolbarMode(ToolbarMode.View);
-        onFinish();
+        onCancel();
     }
 
     function onLocalCommit() {
         AppStateChange.toolbarMode(ToolbarMode.View);
-        onFinish({
+        const refsModified: RefsModified = {
             referencesChanged: local.referencesChanged,
             referencesRemoved: local.referencesRemoved,
             referencesAdded: local.referencesAdded,
             referencesCreated: local.referencesCreated,
-        });
+        };
+        onFinish(refsModified);
     }
 
     let topLevelClasses = "block-width";
@@ -524,7 +552,7 @@ function RecentDecks({
         );
     }
 
-    const recent = appState.recentDecks.value
+    const recent = appState.recentlyUsedDecks.value
         .filter((rd) => !alreadyAdded(rd))
         .map(buildRecent);
 

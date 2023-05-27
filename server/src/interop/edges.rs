@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::{DeckKind, RefKind};
+use crate::interop::decks::{DeckKind, Ref, RefKind, SlimDeck};
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -45,4 +45,13 @@ pub struct ProtoNoteReferences {
     pub references_changed: Vec<ExistingReference>,
     pub references_created: Vec<NewReference>,
     pub references_removed: Vec<ExistingReference>,
+}
+
+// structure returned when user applies references to a note
+//
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReferencesApplied {
+    pub refs: Vec<Ref>,
+    pub recents: Vec<SlimDeck>,
 }

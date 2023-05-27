@@ -318,7 +318,7 @@ export type State = {
     showAddPointForm: Signal<boolean>;
 
     // the three most recent decks added as refs
-    recentDecks: Signal<Array<SlimDeck>>;
+    recentlyUsedDecks: Signal<Array<SlimDeck>>;
 
     recentImages: Signal<Array<UserUploadedImage>>;
     imageDirectory: Signal<string>;
@@ -362,17 +362,10 @@ export type UserUploadedImage = {
 
 export type UberSetup = {
     directory: string;
+    recentlyUsedDecks: Array<SlimDeck>;
     recentImages: Array<UserUploadedImage>;
     srReviewCount: number;
     srEarliestReviewDate: string;
-};
-
-export type ProtoNoteReferences = {
-    noteId: Key;
-    referencesChanged: Array<Ref>;
-    referencesRemoved: Array<Ref>;
-    referencesAdded: Array<Ref>;
-    referencesCreated: Array<Ref>;
 };
 
 // graph stuff
