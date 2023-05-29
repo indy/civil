@@ -244,13 +244,10 @@ export const AppStateChange = {
             console.log("setShowingSearchCommand");
         }
 
-        state.showingSearchCommand.value = b;
-    },
-    resetShowingSearchCommand: function () {
-        if (DEBUG_APP_STATE) {
-            console.log("resetShowingSearchCommand");
+        if (!b) {
+            state.toolbarMode.value = ToolbarMode.View;
         }
-        state.showingSearchCommand.value = !state.hasPhysicalKeyboard;
+        state.showingSearchCommand.value = b;
     },
     addDebugMessage: function (msg: string) {
         if (DEBUG_APP_STATE) {

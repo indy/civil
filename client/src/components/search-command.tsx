@@ -265,7 +265,7 @@ function reducer(state: State, action: Action): State {
             const command = action.data.entry.command;
             const success = executeCommand(command);
             if (success) {
-                AppStateChange.resetShowingSearchCommand();
+                AppStateChange.setShowingSearchCommand(false);
                 let newState = cleanState(state);
                 return newState;
             } else {
@@ -274,7 +274,7 @@ function reducer(state: State, action: Action): State {
             }
         }
         case ActionType.ClickedCandidate: {
-            AppStateChange.resetShowingSearchCommand();
+            AppStateChange.setShowingSearchCommand(false);
             const newState = cleanState(state);
             return newState;
         }
@@ -284,7 +284,7 @@ function reducer(state: State, action: Action): State {
                 hasFocus: false,
             };
             if (newState.searchCandidates.length === 0) {
-                AppStateChange.resetShowingSearchCommand();
+                AppStateChange.setShowingSearchCommand(false);
             }
             return newState;
         }
@@ -299,7 +299,7 @@ function reducer(state: State, action: Action): State {
             if (state.mode === Mode.Command) {
                 const success = executeCommand(state.text);
                 if (success) {
-                    AppStateChange.resetShowingSearchCommand();
+                    AppStateChange.setShowingSearchCommand(false);
                     let newState = cleanState(state);
                     return newState;
                 }
@@ -313,7 +313,7 @@ function reducer(state: State, action: Action): State {
                 if (action.data.isVisible) {
                     if (inputElement) {
                         inputElement.blur();
-                        AppStateChange.resetShowingSearchCommand();
+                        AppStateChange.setShowingSearchCommand(false);
                     }
                 } else {
                     if (inputElement) {
@@ -441,7 +441,7 @@ function reducer(state: State, action: Action): State {
                         )}/${candidate.id}`;
                         route(url);
 
-                        AppStateChange.resetShowingSearchCommand();
+                        AppStateChange.setShowingSearchCommand(false);
                         const newState = cleanState(state);
 
                         return newState;
@@ -788,17 +788,16 @@ export default function SearchCommand() {
             ? " search-command-unimportant"
             : " search-command-important";
     } else {
-        if (local.hasFocus) {
-            inputClasses += " on-touch-device-search-command-has-focus";
-        } else {
-            inputClasses += " on-touch-device-search-command-lost-focus";
-        }
+        // if (local.hasFocus) {
+        //     inputClasses += " on-touch-device-search-command-has-focus";
+        // } else {
+        //     inputClasses += " on-touch-device-search-command-lost-focus";
+        // }
     }
 
     return (
         <div id="search-command">
             <div class={extraClasses}>
-                {buildCandidates()}
                 <input
                     id="search-command-input"
                     autocomplete="off"
@@ -811,6 +810,7 @@ export default function SearchCommand() {
                     onFocus={onFocus}
                     onBlur={onBlur}
                 />
+                {buildCandidates()}
             </div>
         </div>
     );

@@ -21,8 +21,6 @@
 
 # bash is default
 SHELL := bash
-# flags to exit on error
-.SHELLFLAGS := -eu -o pipefail -c
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 

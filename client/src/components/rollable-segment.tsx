@@ -29,7 +29,7 @@ export default function RollableSegment({
 
     return (
         <section class={classState}>
-            <div>
+            <div class="muh-container">
                 <div class="left-margin">
                     <div
                         class="left-margin-entry-no-note-on-right clickable"
@@ -38,11 +38,13 @@ export default function RollableSegment({
                         {icon}
                     </div>
                 </div>
+                <div class="muh-content">
                 <h2 class="clickable ui" onClick={onRollClicked}>
                     {heading}
                 </h2>
                 <hr class="big-segment" />
                 {!isRolledUp && children}
+                </div>
             </div>
         </section>
     );

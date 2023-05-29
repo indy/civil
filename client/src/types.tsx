@@ -39,6 +39,7 @@ export enum PointKind {
 
 export enum ToolbarMode {
     View = 1,
+    Search,
     Edit,
     Refs,
     SR,

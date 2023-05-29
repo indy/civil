@@ -9,6 +9,7 @@ import {
     svgFlashCard,
     svgAddAbove,
     svgScratchList,
+    svgSearch,
 } from "components/svg-icons";
 
 export function DeluxeToolbar({}) {
@@ -30,6 +31,8 @@ export function DeluxeToolbar({}) {
         switch (toolbarMode) {
             case ToolbarMode.View:
                 return !onListingPage;
+            case ToolbarMode.Search:
+                return true;
             case ToolbarMode.Edit:
                 return !onListingPage;
             case ToolbarMode.Refs:
@@ -46,6 +49,14 @@ export function DeluxeToolbar({}) {
 
     return (
         <div class={classes}>
+            {canShow(ToolbarMode.Search) && (
+                <ToolbarItem
+                    toolbarMode={ToolbarMode.Search}
+                    toolbarText="Search"
+                >
+                    {svgSearch()}
+                </ToolbarItem>
+            )}
             {canShow(ToolbarMode.Edit) && (
                 <ToolbarItem toolbarMode={ToolbarMode.Edit} toolbarText="Edit">
                     {svgEdit()}
@@ -96,8 +107,15 @@ function ToolbarItem({
         if (appState.toolbarMode.value === toolbarMode) {
             // toggle the current mode off
             AppStateChange.toolbarMode(ToolbarMode.View);
+            AppStateChange.setShowingSearchCommand(false);
         } else {
             AppStateChange.toolbarMode(toolbarMode);
+            if (
+                toolbarMode === ToolbarMode.Search &&
+                appState.showingSearchCommand.value === false
+            ) {
+                AppStateChange.setShowingSearchCommand(true);
+            }
         }
     }
 
@@ -117,6 +135,8 @@ function ToolbarItem({
 export function addActiveToolbarClasses(toolbarMode: ToolbarMode) {
     switch (toolbarMode) {
         case ToolbarMode.View:
+            return " ";
+        case ToolbarMode.Search:
             return " ";
         case ToolbarMode.Edit:
             return " toolbar-item-selected toolbar-item-selected-edit";
