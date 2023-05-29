@@ -1714,13 +1714,14 @@ input:required {
 
 .deluxe-toolbar {
     position: fixed;
-    top: 5rem;
+    top: 3.2rem;
     left: 0;
     z-index: 10;
     transition: opacity 200ms linear;
 }
+
 .deluxe-toolbar-faded {
-    opacity: 0.2;
+    opacity: 0.3;
 }
 
 .deluxe-toolbar:hover {
@@ -1728,32 +1729,35 @@ input:required {
 }
 
 .toolbar-item {
+    padding-bottom: 1rem;
+}
+
+.toolbar-item-icon {
     transition: border 200ms linear;
     background: var(--bg2);
     color: var(--fg1);
-    font-family: Inter;
-    margin-left: 1rem;
-    padding: 0.5rem 1rem 0.5rem 0.5rem;
+    margin-left: 0rem;
+    padding: 1rem 0.5rem 0.2rem 0.5rem;
     border: 5px solid var(--bg);
 }
-.toolbar-item:hover {
+.toolbar-item-icon:hover {
     border: 5px solid var(--bg3);
 }
 
 .toolbar-item-text {
+    font-family: Inter;
     vertical-align: super;
     margin-left: 0.5rem;
     opacity: 0;
+    transition: opacity 200ms linear;
 }
-.deluxe-toolbar:hover .toolbar-item-text {
-    opacity: 1;
-}
-.toolbar-item-selected .toolbar-item-text {
+
+.toolbar-item-icon:hover + .toolbar-item-text {
     opacity: 1;
 }
 
-.toolbar-item-selected {
-    border-radius: 1.5rem;
+.toolbar-item-selected + .toolbar-item-text {
+    opacity: 1;
 }
 
 .toolbar-item-selected-edit {

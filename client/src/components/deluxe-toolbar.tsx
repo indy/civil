@@ -72,7 +72,7 @@ export function DeluxeToolbar({}) {
             {canShow(ToolbarMode.ScratchListLinks) && (
                 <ToolbarItem
                     toolbarMode={ToolbarMode.ScratchListLinks}
-                    toolbarText="Add Links to ScratchList"
+                    toolbarText="ScratchList"
                 >
                     {svgScratchList()}
                 </ToolbarItem>
@@ -101,14 +101,14 @@ function ToolbarItem({
         }
     }
 
-    let classes = "toolbar-item";
+    let classes = "toolbar-item-icon";
     if (toolbarMode === appState.toolbarMode.value) {
         classes += addActiveToolbarClasses(toolbarMode);
     }
 
     return (
-        <div class={classes} onClick={onClickHandler}>
-            {children}
+        <div class="toolbar-item" onClick={onClickHandler}>
+            <span class={classes}>{children}</span>
             <span class="toolbar-item-text">{toolbarText}</span>
         </div>
     );
