@@ -16,6 +16,17 @@
 ########################################
 
 ################################################################################
+# preamble
+################################################################################
+
+# bash is default
+SHELL := bash
+# flags to exit on error
+.SHELLFLAGS := -eu -o pipefail -c
+MAKEFLAGS += --warn-undefined-variables
+MAKEFLAGS += --no-builtin-rules
+
+################################################################################
 # utils
 ################################################################################
 # NOTE: have to declare utils at the top of the file, before they're used
@@ -60,65 +71,6 @@ SYSTEMD_FILES = $(wildcard misc/systemd/*)
 
 WASM_FILES = $(wildcard $(WASM_FOLDER)/src/*) $(WASM_FOLDER)/Cargo.toml
 SHARED_FILES = $(wildcard $(SHARED_FOLDER)/src/*) $(SHARED_FOLDER)/Cargo.toml
-
-.PHONY: run download-images download-db clean-staging run-note_parser run-note_linked_list run-note_prev typescript-watch typescript-typecheck typescript-format deps
-
-deps:
-	cd client; yarn install
-
-typescript-watch:
-	while true; do inotifywait -e close_write --quiet --recursive ./$(CLIENT_FOLDER)/src; make typescript-build-and-typecheck; done
-
-typescript-build-and-typecheck: $(CLIENT_FOLDER)/www/index.js typescript-typecheck
-
-typescript-typecheck:
-	./$(CLIENT_FOLDER)/node_modules/typescript/bin/tsc -p ./$(CLIENT_FOLDER)/tsconfig.json --noEmit
-
-typescript-format:
-	cd client; yarn prettier --write src
-
-
-################################################################################
-# top-level public targets
-################################################################################
-
-run: $(CLIENT_FOLDER)/www/index.js $(WWW_FOLDER)/$(CLIENT_WASM_BG) server
-	cargo run --manifest-path $(SERVER_FOLDER)/Cargo.toml --bin $(SERVER_BINARY)
-
-# collect stats on each user's content, stores the stats in the db
-# this is run periodically on the server
-#
-run-stat-collector: $(SERVER_FOLDER)/target/debug/civil_stat_collector
-	cargo run --manifest-path $(SERVER_FOLDER)/Cargo.toml --bin civil_stat_collector
-
-# iterates through all the notes in the database, parsing their markup
-# useful as a sanity check to make sure everything is still parseable
-#
-run-note-parser:
-	cargo run --manifest-path $(SERVER_FOLDER)/Cargo.toml --bin civil_note_parser
-
-server: $(SERVER_FOLDER)/target/debug/$(SERVER_BINARY)
-server-release: $(SERVER_FOLDER)/target/release/$(SERVER_BINARY) $(SERVER_FOLDER)/target/release/civil_stat_collector
-
-staging: clean-staging staging/www/index.html staging/$(SERVER_BINARY) staging/systemd/isg-civil.sh staging/www/$(CLIENT_WASM_BG)
-
-upload: staging
-	rsync -avzhe ssh staging/. indy@indy.io:/home/indy/work/civil
-
-upload-client: staging
-	rsync -avzhe ssh staging/www/. indy@indy.io:/home/indy/work/civil/www
-
-clean-staging:
-	rm -rf staging
-
-download-images:
-	rsync -avzhe ssh indy@indy.io:/home/indy/work/civil/user-content .
-
-download-db:
-	rm -f civil.db
-	rm -f civil.db-shm
-	rm -f civil.db-wal
-	scp indy.io:work/civil/civil.db* .
 
 ################################################################################
 # targets
@@ -165,3 +117,63 @@ staging/$(SERVER_BINARY): server-release
 staging/systemd/isg-civil.sh: $(SYSTEMD_FILES)
 	mkdir -p $(@D)
 	cp -r misc/systemd staging/.
+
+################################################################################
+# top-level public targets
+################################################################################
+
+.DEFAULT_GOAL := run
+
+.PHONY: run download-images download-db clean-staging run-note_parser run-note_linked_list run-note_prev typescript-watch typescript-typecheck typescript-format deps
+
+deps:
+	cd client; yarn install
+
+typescript-watch:
+	while true; do inotifywait -e close_write --quiet --recursive ./$(CLIENT_FOLDER)/src; make typescript-build-and-typecheck; done
+
+typescript-build-and-typecheck: $(CLIENT_FOLDER)/www/index.js typescript-typecheck
+
+typescript-typecheck:
+	./$(CLIENT_FOLDER)/node_modules/typescript/bin/tsc -p ./$(CLIENT_FOLDER)/tsconfig.json --noEmit
+
+typescript-format:
+	cd client; yarn prettier --write src
+
+run: $(CLIENT_FOLDER)/www/index.js $(WWW_FOLDER)/$(CLIENT_WASM_BG) server
+	cargo run --manifest-path $(SERVER_FOLDER)/Cargo.toml --bin $(SERVER_BINARY)
+
+# collect stats on each user's content, stores the stats in the db
+# this is run periodically on the server
+#
+run-stat-collector: $(SERVER_FOLDER)/target/debug/civil_stat_collector
+	cargo run --manifest-path $(SERVER_FOLDER)/Cargo.toml --bin civil_stat_collector
+
+# iterates through all the notes in the database, parsing their markup
+# useful as a sanity check to make sure everything is still parseable
+#
+run-note-parser:
+	cargo run --manifest-path $(SERVER_FOLDER)/Cargo.toml --bin civil_note_parser
+
+server: $(SERVER_FOLDER)/target/debug/$(SERVER_BINARY)
+server-release: $(SERVER_FOLDER)/target/release/$(SERVER_BINARY) $(SERVER_FOLDER)/target/release/civil_stat_collector
+
+staging: clean-staging staging/www/index.html staging/$(SERVER_BINARY) staging/systemd/isg-civil.sh staging/www/$(CLIENT_WASM_BG)
+
+upload: staging
+	rsync -avzhe ssh staging/. indy@indy.io:/home/indy/work/civil
+
+upload-client: staging
+	rsync -avzhe ssh staging/www/. indy@indy.io:/home/indy/work/civil/www
+
+clean-staging:
+	rm -rf staging
+
+download-images:
+	rsync -avzhe ssh indy@indy.io:/home/indy/work/civil/user-content .
+
+download-db:
+	rm -f civil.db
+	rm -f civil.db-shm
+	rm -f civil.db-wal
+	scp indy.io:work/civil/civil.db* .
