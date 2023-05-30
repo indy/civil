@@ -21,6 +21,7 @@ import {
     svgX,
 } from "components/svg-icons";
 
+import { CivLeft } from "components/civil-layout";
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
 import DeckListingPage from "components/deck-listing-page";
@@ -293,7 +294,7 @@ function SegmentPoints({
         <RollableSegment heading="Timeline">
             <ul class="unstyled-list hug-left">{dps}</ul>
             <WhenVerbose>
-                <div class="left-margin">
+                <CivLeft>
                     <div
                         class="left-margin-entry fadeable clickable"
                         onClick={onAddPointClicked}
@@ -303,7 +304,7 @@ function SegmentPoints({
                         </span>
                         {showAddPointForm ? svgX() : svgPointAdd()}
                     </div>
-                </div>
+                </CivLeft>
             </WhenVerbose>
             {showAddPointForm && deckManager.buildPointForm(onPointCreated)}
         </RollableSegment>

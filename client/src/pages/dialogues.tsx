@@ -10,6 +10,7 @@ import InsigniaSelector from "components/insignias/selector";
 import SegmentGraph from "components/graph/segment-graph";
 import SegmentNotes from "components/notes/segment-notes";
 
+import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
 import DeckListingPage from "components/deck-listing-page";
@@ -117,10 +118,10 @@ function DialogueChat({ path }: { path?: string }) {
 
     function buildChatMessageElement(chatMessage: ChatMessage) {
         return [
-            <div class="left-margin">{roleToString(chatMessage.role)}</div>,
-            <div class="note-content muh-content">
+            <CivLeft>{roleToString(chatMessage.role)}</CivLeft>,
+            <CivMain extraClasses="note-content">
                 <p>{chatMessage.content}</p>
-            </div>,
+            </CivMain>,
         ];
     }
 
@@ -128,18 +129,18 @@ function DialogueChat({ path }: { path?: string }) {
 
     if (waiting) {
         m.push(
-            <div class="note-content muh-content">
+            <CivMain extraClasses="note-content">
                 <p>
                     <em>Waiting for response...</em>
                 </p>
-            </div>
+            </CivMain>
         );
     }
 
     return (
         <article>
             <section>
-                <div class="note muh-container">{m}</div>
+                <CivContainer extraClasses="note">{m}</CivContainer>
                 <div class="dialogue-chat-input">
                     <CivilTextArea
                         id="chat-input"

@@ -143,22 +143,18 @@ export default function FlashCardView({ flashcard, onDelete }: Props) {
         //
         return (
             <div class="note">
-                <div>
-                    <p>
-                        <span class="right-margin">
-                            Next test in {local.daysUntilNextTest} (
-                            {local.nextTestDateString})
-                        </span>
-                        <div class="in-note-flash-card-prompt">
-                            {local.flashcard.prompt}
-                        </div>
-                    </p>
-                    <div>
-                        <button onClick={editToggleClicked}>
-                            Edit FlashCard
-                        </button>
-                        <DeleteConfirmation onDelete={confirmedDeleteClicked} />
+                <p>
+                    <span class="right-margin">
+                        Next test in {local.daysUntilNextTest} (
+                        {local.nextTestDateString})
+                    </span>
+                    <div class="in-note-flash-card-prompt">
+                        {local.flashcard.prompt}
                     </div>
+                </p>
+                <div>
+                    <button onClick={editToggleClicked}>Edit FlashCard</button>
+                    <DeleteConfirmation onDelete={confirmedDeleteClicked} />
                 </div>
             </div>
         );
@@ -167,24 +163,22 @@ export default function FlashCardView({ flashcard, onDelete }: Props) {
         //
         return (
             <div class="note">
-                <div>
-                    <p>
-                        <span class="right-margin">
-                            Next test in {local.daysUntilNextTest} (
-                            {local.nextTestDateString})
-                        </span>
-                        <div class="civil-form">
-                            <CivilTextArea
-                                id="flashcard-prompt"
-                                value={local.flashcard.prompt}
-                                onContentChange={handleContentChange}
-                            />
-                        </div>
-                    </p>
-                    <div>
-                        <button onClick={saveClicked}>Save Edits</button>
-                        <button onClick={cancelClicked}>Cancel Editing</button>
+                <p>
+                    <span class="right-margin">
+                        Next test in {local.daysUntilNextTest} (
+                        {local.nextTestDateString})
+                    </span>
+                    <div class="civil-form">
+                        <CivilTextArea
+                            id="flashcard-prompt"
+                            value={local.flashcard.prompt}
+                            onContentChange={handleContentChange}
+                        />
                     </div>
+                </p>
+                <div>
+                    <button onClick={saveClicked}>Save Edits</button>
+                    <button onClick={cancelClicked}>Cancel Editing</button>
                 </div>
             </div>
         );

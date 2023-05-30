@@ -7,6 +7,7 @@ import Net from "utils/net";
 import { getAppState } from "app-state";
 import { svgX } from "components/svg-icons";
 
+import { CivLeft } from "components/civil-layout";
 import CivilTextArea from "components/civil-text-area";
 import ImageSelector from "components/images/image-selector";
 
@@ -138,7 +139,7 @@ export default function NoteForm({
 
     return (
         <div class="append-note">
-            <div class="left-margin">
+            <CivLeft>
                 <div
                     class="left-margin-entry fadeable clickable cancel-offset"
                     onClick={onCancel}
@@ -146,7 +147,7 @@ export default function NoteForm({
                     <span class="left-margin-icon-label">Cancel</span>
                     {svgX()}
                 </div>
-            </div>
+            </CivLeft>
             <form class="civil-add-note-form" onSubmit={onSubmit}>
                 <label for="content">{label}</label>
                 <br />

@@ -6,6 +6,7 @@ import { getAppState, AppStateChange } from "app-state";
 
 import { addToolbarSelectableClasses } from "utils/civil";
 
+import { CivContainer, CivMain } from "components/civil-layout";
 import useMouseHovering from "components/use-mouse-hovering";
 
 type Props = {
@@ -31,7 +32,7 @@ export default function Title({
     const titleRef = useRef(null);
     const backgroundBandRef = useRef(null);
 
-    function onTitleClicked(e) {
+    function onTitleClicked() {
         if (appState.toolbarMode.value === ToolbarMode.Edit) {
             if (isShowingUpdateForm) {
                 AppStateChange.toolbarMode(ToolbarMode.View);
@@ -89,8 +90,8 @@ export default function Title({
         };
     }, []);
 
-    let classes = "deck-title muh-content";
-    let containerClasses = "muh-container";
+    let classes = "deck-title";
+    let containerClasses = "";
     const classSticky = "title-sticky";
 
     if (titleRef.current) {
@@ -114,19 +115,17 @@ export default function Title({
     // 2. the normal inline title appears when the bottom of the title text should be visible as
     //    the user scrolls up
     return (
-        <div>
-            <div
-                class={containerClasses}
-                ref={hoveringRef}
-                onClick={onTitleClicked}
-            >
+        <CivContainer extraClasses={containerClasses}>
+            <div ref={hoveringRef} onClick={onTitleClicked}>
                 <div ref={preMarkerRef}></div>
                 <div ref={backgroundBandRef}></div>
-                <h1 ref={titleRef} class={classes}>
-                    {title}
-                </h1>
+                <CivMain>
+                    <h1 ref={titleRef} class={classes}>
+                        {title}
+                    </h1>
+                </CivMain>
                 <div ref={postMarkerRef}></div>
             </div>
-        </div>
+        </CivContainer>
     );
 }

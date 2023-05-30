@@ -33,6 +33,7 @@ import {
 } from "components/svg-icons";
 import WhenVerbose from "components/when-verbose";
 
+import { CivLeft } from "components/civil-layout";
 import CivilInput from "components/civil-input";
 import DeckListingPage from "components/deck-listing-page";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
@@ -531,7 +532,7 @@ function SegmentPoints({
     const segmentTitle = `Points during the life of ${holderTitle}`;
     return (
         <RollableSegment heading={segmentTitle}>
-            <div class="left-margin">
+            <CivLeft>
                 {!hasDied && (
                     <div
                         class="left-margin-entry fadeable clickable"
@@ -569,11 +570,11 @@ function SegmentPoints({
                         </div>
                     )}
                 </WhenVerbose>
-            </div>
+            </CivLeft>
             {showDeathForm && deathForm()}
             <ul class="unstyled-list hug-left">{dps}</ul>
             <WhenVerbose>
-                <div class="left-margin">
+                <CivLeft>
                     <div
                         class="left-margin-entry fadeable clickable"
                         onClick={onAddPointClicked}
@@ -583,7 +584,7 @@ function SegmentPoints({
                         </span>
                         {showAddPointForm ? svgX() : svgPointAdd()}
                     </div>
-                </div>
+                </CivLeft>
             </WhenVerbose>
             {showAddPointForm && deckManager.buildPointForm(onPointCreated)}
         </RollableSegment>

@@ -18,6 +18,7 @@ import { addToolbarSelectableClasses } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
 import { svgFlashCard } from "components/svg-icons";
 
+import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 import CivilSelect from "components/civil-select";
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";
@@ -553,7 +554,7 @@ export default function NoteView({
         localDispatch(ActionType.FlashcardDeleted, flashcard);
     }
 
-    let noteClasses = "note muh-container";
+    let noteClasses = "note";
     if (mouseHovering && toolbarMode !== ToolbarMode.View) {
         noteClasses += addToolbarSelectableClasses(toolbarMode);
     }
@@ -592,7 +593,7 @@ export default function NoteView({
         }
     }
 
-    let markupClasses = "note-content muh-content";
+    let markupClasses = "note-content";
     if (local.isEditingMarkup) {
         markupClasses += " invisible";
     }
@@ -603,27 +604,31 @@ export default function NoteView({
     // console.log(buildSimplifiedText(local.note.content));
 
     return (
-        <div class={noteClasses} onClick={onNoteClicked}>
-            {local.addNoteAboveUI && buildAddNoteAboveUI()}
-            {!local.isEditingMarkup &&
-                buildLeftMarginContent(local.note, localDispatch)}
+        <CivContainer extraClasses={noteClasses}>
+            <div onClick={onNoteClicked}>
+                {local.addNoteAboveUI && buildAddNoteAboveUI()}
+                {!local.isEditingMarkup &&
+                    buildLeftMarginContent(local.note, localDispatch)}
 
-            {local.isEditingMarkup && buildEditableContent()}
-            {local.flashcardToShow && (
-                <FlashCardView
-                    flashcard={local.flashcardToShow}
-                    onDelete={flashCardDeleted}
-                />
-            )}
+                {local.isEditingMarkup && buildEditableContent()}
+                {local.flashcardToShow && (
+                    <FlashCardView
+                        flashcard={local.flashcardToShow}
+                        onDelete={flashCardDeleted}
+                    />
+                )}
 
-            <div class={markupClasses} ref={hoveringRef}>
-                {buildMarkup(local.note.content)}
+                <CivMain>
+                    <div class={markupClasses} ref={hoveringRef}>
+                        {buildMarkup(local.note.content)}
+                    </div>
+                </CivMain>
+
+                {local.addDeckReferencesUI && buildAddDecksUI()}
+                {local.addFlashCardUI && buildAddFlashCardUI()}
+                {local.isEditingMarkup && buildMainButtons()}
             </div>
-
-            {local.addDeckReferencesUI && buildAddDecksUI()}
-            {local.addFlashCardUI && buildAddFlashCardUI()}
-            {local.isEditingMarkup && buildMainButtons()}
-        </div>
+        </CivContainer>
     );
 }
 
@@ -632,11 +637,11 @@ function buildLeftMarginContent(note: Note, localDispatch: Function) {
         return <span></span>;
     } else {
         return (
-            <div class="left-margin">
+            <CivLeft>
                 {buildFlashcardIndicator(note.flashcards, localDispatch)}
                 {note.decks && note.flashcards && <div class="spacer"></div>}
                 {buildNoteReferences(note.decks)}
-            </div>
+            </CivLeft>
         );
     }
 }

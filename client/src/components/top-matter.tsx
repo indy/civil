@@ -2,6 +2,7 @@ import { h, ComponentChildren } from "preact";
 
 import { FatDeck } from "types";
 
+import { CivLeft } from "components/civil-layout";
 import LeftMarginHeading from "components/left-margin-heading";
 import Title from "components/title";
 import { renderInsignia } from "components/insignias/renderer";
@@ -29,12 +30,12 @@ export default function TopMatter({
 
     return (
         <div>
-            <div class="left-margin">
+            <CivLeft>
                 <LeftMarginHeading>
                     {renderInsignia(deck.insignia)}
                 </LeftMarginHeading>
                 {children}
-            </div>
+            </CivLeft>
             <Title
                 title={title}
                 isShowingUpdateForm={isShowingUpdateForm}

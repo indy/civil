@@ -6,6 +6,7 @@ import { FatDeck, Key, Note, Ref, RefsModified, ToolbarMode } from "types";
 import { getAppState, AppStateChange } from "app-state";
 import { addToolbarSelectableClasses } from "utils/civil";
 
+import { CivContainer } from "components/civil-layout";
 import CivilSelect from "components/civil-select";
 import RefView from "components/ref-view";
 
@@ -29,7 +30,7 @@ export default function SegmentDeckRefs({
     const hoveringRef = useRef(null);
     const mouseHovering = useMouseHovering(hoveringRef);
 
-    let containerClasses = "deck-ref-segment muh-container";
+    let containerClasses = "deck-ref-segment";
     if (mouseHovering) {
         let toolbarMode = appState.toolbarMode.value;
         // only show as selectable if in edit or refs mode
@@ -70,33 +71,31 @@ export default function SegmentDeckRefs({
 
     if (deckMeta && deckMeta.decks) {
         return (
-            <div
-                class={containerClasses}
-                ref={hoveringRef}
-                onClick={onSegmentClicked}
-            >
-                {!isEditing && deckMeta.decks.length > 0 && (
-                    <div>
-                        <hr class="light" />
-                        {deckMeta.decks.map((ref) => (
-                            <RefView
-                                deckReference={ref}
-                                extraClasses="deck-ref-item"
-                            />
-                        ))}
-                        <hr class="light" />
-                    </div>
-                )}
-                {isEditing && (
-                    <AddDecksUI
-                        deckId={deckId}
-                        note={deckMeta}
-                        chosen={deckMeta.decks}
-                        onCancel={onCancel}
-                        onSaved={onSaved}
-                    />
-                )}
-            </div>
+            <CivContainer extraClasses={containerClasses}>
+                <div ref={hoveringRef} onClick={onSegmentClicked}>
+                    {!isEditing && deckMeta.decks.length > 0 && (
+                        <div>
+                            <hr class="light" />
+                            {deckMeta.decks.map((ref) => (
+                                <RefView
+                                    deckReference={ref}
+                                    extraClasses="deck-ref-item"
+                                />
+                            ))}
+                            <hr class="light" />
+                        </div>
+                    )}
+                    {isEditing && (
+                        <AddDecksUI
+                            deckId={deckId}
+                            note={deckMeta}
+                            chosen={deckMeta.decks}
+                            onCancel={onCancel}
+                            onSaved={onSaved}
+                        />
+                    )}
+                </div>
+            </CivContainer>
         );
     } else {
         return <div></div>;

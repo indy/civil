@@ -4,6 +4,8 @@ import { DeckKind } from "types";
 
 import { deckKindToHeadingString } from "utils/civil";
 
+import { CivContainer, CivMain } from "components/civil-layout";
+
 type Props = {
     deckKind: DeckKind;
     children: ComponentChildren;
@@ -12,12 +14,12 @@ type Props = {
 export default function DeckListingPage({ deckKind, children }: Props) {
     return (
         <article class="listing-page">
-            <div class="muh-container">
-                <div class="muh-content">
+            <CivContainer>
+                <CivMain>
                     <h1 class="ui">{deckKindToHeadingString(deckKind)}</h1>
                     {children}
-                </div>
-            </div>
+                </CivMain>
+            </CivContainer>
         </article>
     );
 }

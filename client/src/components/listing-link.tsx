@@ -4,6 +4,7 @@ import { NoteThing, Ref, SlimDeck } from "types";
 
 import { svgCaretRight, svgCaretDown } from "components/svg-icons";
 
+import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 import DeckLink from "components/deck-link";
 import RefView from "components/ref-view";
 import buildMarkup from "components/notes/build-markup";
@@ -99,12 +100,12 @@ function buildNotes(notes: Array<NoteThing>) {
                 });
 
             a.push(
-                <div class="note muh-container">
-                    {note.refs && <div class="left-margin">{refs}</div>}
-                    <div class="note-content muh-content">
+                <CivContainer extraClasses="note">
+                    {note.refs && <CivLeft>{refs}</CivLeft>}
+                    <CivMain extraClasses="note-content">
                         {buildMarkup(note.noteContent)}
-                    </div>
-                </div>
+                    </CivMain>
+                </CivContainer>
             );
 
             a.push(<hr />);

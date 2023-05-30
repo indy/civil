@@ -19,7 +19,7 @@ import Net from "utils/net";
 import { deckKindToResourceString } from "utils/civil";
 
 import { graphPhysics } from "components/graph/graph-physics";
-
+import { CivLeft } from "components/civil-layout";
 import useLocalReducer from "components/use-local-reducer";
 import useModalKeyboard from "components/use-modal-keyboard";
 import { svgTickedCheckBox, svgUntickedCheckBox } from "components/svg-icons";
@@ -506,7 +506,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
 
     return (
         <div>
-            <div class="left-margin">
+            <CivLeft>
                 <div
                     class="left-margin-entry fadeable clickable"
                     onClick={onActivHyperlinksClicked}
@@ -518,7 +518,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
                         ? svgTickedCheckBox()
                         : svgUntickedCheckBox()}
                 </div>
-            </div>
+            </CivLeft>
             <div
                 class="svg-container"
                 ref={svgContainerRef}

@@ -7,6 +7,7 @@ import Net from "utils/net";
 import { getAppState, AppStateChange } from "app-state";
 import { plural, formattedDate, formattedTime } from "utils/js";
 
+import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 import DeckLink from "components/deck-link";
 import useLocalReducer from "components/use-local-reducer";
 
@@ -300,17 +301,17 @@ function Answer({ card }: { card: Card }) {
     return (
         <div>
             <div class="sr-segment">Back</div>
-            <div class="note muh-container">
-                <div class="left-margin">
+            <CivContainer extraClasses="note">
+                <CivLeft>
                     <div class="left-margin-entry">
                         <span class="ref-kind">(Answer Deck)</span>
                         <DeckLink slimDeck={card.deckInfo} />
                     </div>
-                </div>
-                <div class="note-content muh-content">
+                </CivLeft>
+                <CivMain extraClasses="note-content">
                     {card.answer && buildMarkup(card.answer)}
-                </div>
-            </div>
+                </CivMain>
+            </CivContainer>
         </div>
     );
 }

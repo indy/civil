@@ -5,6 +5,7 @@ import { UserUploadedImage } from "types";
 
 import { AppStateChange } from "app-state";
 
+import { CivLeft } from "components/civil-layout";
 import uploadImages from "components/images/image-upload";
 
 import { getAppState } from "app-state";
@@ -66,11 +67,11 @@ export default function ImageSelector({ onPaste }: Props) {
 
         return (
             <div>
-                <div class="left-margin">
+                <CivLeft>
                     <div class="left-margin-entry" onClick={onIconClicked}>
                         {svgX()}
                     </div>
-                </div>
+                </CivLeft>
                 <div class={containerClass} ref={dragArea}>
                     {hovering ? dragdropMessage : recent}
                 </div>

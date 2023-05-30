@@ -1,6 +1,8 @@
 import { h, ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 
+import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
+
 import {
     svgChevronDoubleDown,
     svgChevronDoubleRight,
@@ -29,23 +31,23 @@ export default function RollableSegment({
 
     return (
         <section class={classState}>
-            <div class="muh-container">
-                <div class="left-margin">
+            <CivContainer>
+                <CivLeft>
                     <div
                         class="left-margin-entry-no-note-on-right clickable"
                         onClick={onRollClicked}
                     >
                         {icon}
                     </div>
-                </div>
-                <div class="muh-content">
-                <h2 class="clickable ui" onClick={onRollClicked}>
-                    {heading}
-                </h2>
-                <hr class="big-segment" />
-                {!isRolledUp && children}
-                </div>
-            </div>
+                </CivLeft>
+                <CivMain>
+                    <h2 class="clickable ui" onClick={onRollClicked}>
+                        {heading}
+                    </h2>
+                    <hr class="big-segment" />
+                    {!isRolledUp && children}
+                </CivMain>
+            </CivContainer>
         </section>
     );
 }
