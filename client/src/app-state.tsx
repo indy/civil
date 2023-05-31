@@ -134,6 +134,9 @@ const state: State = {
 
     recentImages: signal([]),
     imageDirectory: signal(""),
+    imageZoomDefault: 100,
+    imageZoomMin: 10,
+    imageZoomMax: 300,
 
     showConnectivityGraph: signal(true),
     graph: signal({

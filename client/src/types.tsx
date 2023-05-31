@@ -323,6 +323,9 @@ export type State = {
 
     recentImages: Signal<Array<UserUploadedImage>>;
     imageDirectory: Signal<string>;
+    imageZoomDefault: number;
+    imageZoomMin: number;
+    imageZoomMax: number;
 
     showConnectivityGraph: Signal<boolean>;
     graph: Signal<Graph>;
