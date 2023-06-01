@@ -21,7 +21,7 @@
 
 // NOTE: Makefile will alter these variables when building a release build
 var devMode = true;
-var CACHE_NAME = "civil-20210829";
+var CACHE_NAME = "civil-2023060a";
 
 var precacheConfig = [
     "/android-chrome-192x192.png",
