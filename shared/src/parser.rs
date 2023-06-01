@@ -63,6 +63,7 @@ pub enum Node {
     Underlined(usize, Vec<Node>),
     UnorderedList(usize, Vec<Node>),
     Url(usize, String, Vec<Node>),
+    YouTube(usize, String, String),
 }
 
 fn get_node_pos(node: &Node) -> usize {
@@ -91,6 +92,7 @@ fn get_node_pos(node: &Node) -> usize {
         Node::Underlined(pos, _) => *pos,
         Node::UnorderedList(pos, _) => *pos,
         Node::Url(pos, _, _) => *pos,
+        Node::YouTube(pos, _, _) => *pos,
     }
 }
 
@@ -306,6 +308,13 @@ fn eat_img<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     Ok((tokens, Node::Image(pos, image_name, description)))
 }
 
+fn eat_youtube<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let pos = get_token_pos(&tokens[0]);
+    let (tokens, (id, start)) = eat_as_youtube_id_start_pair(tokens)?;
+
+    Ok((tokens, Node::YouTube(pos, id, start)))
+}
+
 fn eat_url<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let pos = get_token_pos(&tokens[0]);
     let (tokens, (url, description)) = eat_as_url_description_pair(tokens)?;
@@ -429,6 +438,7 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
             Token::Text(_, "subscript") => eat_subscript(tokens),
             Token::Text(_, "superscript") => eat_superscript(tokens),
             Token::Text(_, "deleted") => eat_deleted(tokens),
+            Token::Text(_, "youtube") => eat_youtube(tokens),
             _ => eat_text_including(tokens),
         }
     } else {
@@ -625,6 +635,28 @@ fn eat_colon_command_pairing<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<(b
     }
 
     Ok((tokens, (found_desc_divide, core_tokens, desc_tokens)))
+}
+
+fn eat_as_youtube_id_start_pair<'a>(tokens: &'a [Token<'a>]) -> ParserResult<(String, String)> {
+    let (tokens, (found_divide, left, right)) = eat_colon_command_pairing(tokens)?;
+
+    let mut id = String::from("");
+    for t in &left {
+        id.push_str(get_token_value(t));
+    }
+
+    let mut start: String;
+
+    if found_divide {
+        start = String::from("");
+        for t in &right {
+            start.push_str(get_token_value(t));
+        }
+    } else {
+        start = String::from("0");
+    }
+
+    Ok((tokens, (id, start)))
 }
 
 // treat every token as Text until we get to a token of the given type

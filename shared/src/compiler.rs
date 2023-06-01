@@ -111,6 +111,7 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
         Node::Underlined(_, ns) => element_key_hoisted_class("span", "underlined", key, ns)?,
         Node::UnorderedList(_, ns) => element_key("ul", key, ns)?,
         Node::Url(_, url, ns) => element_key_class_href("a", "note-inline-link", url, key, ns)?,
+        Node::YouTube(_, id, start) => element_youtube("youtube", key, id, start)?,
     };
 
     Ok(res)
@@ -244,6 +245,17 @@ fn element_key_class_type(name: &str, key: usize, class_name: &str, id: &str, ht
     e.html_type = Some(String::from(html_type));
 
     Ok(vec![e])
+}
+
+fn element_youtube(name: &str, key: usize, id: &str, start: &str) -> Result<Vec<Element>> {
+    Ok(vec![Element {
+        name: String::from(name),
+        key: Some(key),
+        children: vec![],
+        id: Some(String::from(id)),
+        start: Some(String::from(start)),
+        ..Default::default()
+    }])
 }
 
 fn element_base(name: &str, key: usize, ns: &[Node]) -> Result<Element> {
