@@ -247,9 +247,6 @@ export const AppStateChange = {
             console.log("setShowingSearchCommand");
         }
 
-        if (!b) {
-            state.toolbarMode.value = ToolbarMode.View;
-        }
         state.showingSearchCommand.value = b;
     },
     addDebugMessage: function (msg: string) {
