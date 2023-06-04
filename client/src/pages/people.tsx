@@ -66,7 +66,7 @@ function People({ path }: { path?: string }) {
 
     if (people) {
         return (
-            <DeckListingPage deckKind={DeckKind.Article}>
+            <DeckListingPage deckKind={DeckKind.Person}>
                 <SlimDeckGrouping
                     label="Uncategorised"
                     list={people.uncategorised}
