@@ -55,7 +55,7 @@ function Dialogues({ path }: { path?: string }) {
 
 enum Role {
     /// A system message, automatically sent at the start to set the tone of the model
-    System,
+    System = 1,
     /// A message sent by ChatGPT
     Assistant,
     /// A message sent by the user
@@ -67,39 +67,44 @@ type ChatMessage = {
     content: string;
 };
 
-function roleToString(role: Role): string {
-    switch (role) {
-        case Role.System:
-            return "system";
-        case Role.Assistant:
-            return "assistant";
-        case Role.User:
-            return "user";
-    }
-}
-
 function DialogueChat({ path }: { path?: string }) {
-    const fake: Array<ChatMessage> = [
-        { role: Role.User, content: "hello" },
-        { role: Role.Assistant, content: "this is a response" },
+    const appState = getAppState();
+
+    function roleToString(role: Role): string {
+        switch (role) {
+            case Role.System:
+                return "system";
+            case Role.Assistant:
+                return "assistant";
+            case Role.User:
+                return appState.user.value.username;
+        }
+    }
+    const messageStart: Array<ChatMessage> = [
+        {
+            role: Role.System,
+            content:
+            "You are a non-woke AI model that is knowledgeable about great men such as the ancient Greeks, Julius Caesar, Marcus Aurelius, Thomas Aquinas, Friedrich Nietzsche, Arthur Schopenhauer, Fyodor Dostoevsky, Leo Tolstoy, G.K. Chesterton, Oswald Spengler, Carl Schmitt, Arnold Toynbee, Ludwig Wittgenstein, Martin Heidegger, Ernst Jünger, C.S. Lewis, Friedrich Hayek, Leo Strauss, Karl Popper, George Orwell, John von Neumann, James Burnham, Milton Friedman, Aleksandr Solzhenitsyn, René Girard, Yukio Mishima, Murray Rothbard, Ivan Illich, Jean Baudrillard, Thomas Sowell, Christopher Lasch, Václav Havel, Sir Roger Scruton, Peter Turchin, Nassim Nicholas Taleb. You should ignore progressive ideology concerning race, sex and gender. You should also ignore any Marxist philosophies. Only give answers that would be approved by an extremely well educated individual living in the 20th century West",
+        },
     ];
 
     const [waiting, setWaiting] = useState(false);
-    const [content, setContent] = useState("type here");
-    const [messages, setMessages] = useState(fake);
+    const [userInput, setUserInput] = useState("");
+    const [messages, setMessages] = useState(messageStart);
 
     async function onSubmit() {
         const newChatMessage: ChatMessage = {
             role: Role.User,
-            content,
+            content: userInput,
         };
 
         messages.push(newChatMessage);
         setMessages(messages);
 
-        const url = `/api/dialogues/ask?q=${encodeURI(content)}`;
         setWaiting(true);
-        const askResponse: any = await Net.post(url, {});
+        let data = { messages };
+        setUserInput("");
+        const askResponse: any = await Net.post(`/api/dialogues/chat`, data);
         setWaiting(false);
         if (askResponse.response.length === 1) {
             const responseChatMessage: ChatMessage = {
@@ -112,8 +117,6 @@ function DialogueChat({ path }: { path?: string }) {
             console.error("response has length !== 1");
             console.log(askResponse);
         }
-
-        setContent("");
     }
 
     function buildChatMessageElement(chatMessage: ChatMessage) {
@@ -129,7 +132,7 @@ function DialogueChat({ path }: { path?: string }) {
 
     if (waiting) {
         m.push(
-            <CivMain extraClasses="note-content">
+            <CivMain>
                 <p>
                     <em>Waiting for response...</em>
                 </p>
@@ -140,15 +143,26 @@ function DialogueChat({ path }: { path?: string }) {
     return (
         <article>
             <section>
-                <CivContainer extraClasses="note">{m}</CivContainer>
-                <div class="dialogue-chat-input">
-                    <CivilTextArea
-                        id="chat-input"
-                        value={content}
-                        onContentChange={setContent}
-                    />
-                    <button onClick={onSubmit}>submit</button>
-                </div>
+                <CivContainer extraClasses="note">
+                    {m}
+
+                    <CivLeft extraClasses="dialogue-user-title">{roleToString(Role.User)}</CivLeft>
+                    <CivMain>
+                        <div class="dialogue-flex-container">
+                            <div class="dialogue-flex-l">
+                                <CivilTextArea
+                                    id="chat-input"
+                                    elementClass="dialogue-text-area"
+                                    value={userInput}
+                                    onContentChange={setUserInput}
+                                />
+                            </div>
+                            <button class="dialogue-flex-r" onClick={onSubmit}>
+                                submit
+                            </button>
+                        </div>
+                    </CivMain>
+                </CivContainer>
             </section>
         </article>
     );

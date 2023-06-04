@@ -24,37 +24,34 @@ use crate::error::Result;
 use crate::interop::dialogues as interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
-use actix_web::web::{self, Data, Json, Path};
+use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
-
-use crate::handler::SearchQuery;
 
 #[allow(unused_imports)]
 use tracing::info;
 
 use chatgpt::prelude::*;
-use chatgpt::types::{ChatMessage, MessageChoice};
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ChatGPTResponse {
-    pub response: Vec<CivilMessageChoice>,
+    pub response: Vec<MessageChoice>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CivilMessageChoice {
+pub struct MessageChoice {
     /// The actual message
-    pub message: ChatMessage,
+    pub message: chatgpt::types::ChatMessage,
     /// The reason completion was stopped
     pub finish_reason: String,
     /// The index of this message in the outer `message_choices` array
     pub index: u32,
 }
 
-impl From<MessageChoice> for CivilMessageChoice {
-    fn from(mc: MessageChoice) -> CivilMessageChoice {
-        CivilMessageChoice {
+impl From<chatgpt::types::MessageChoice> for MessageChoice {
+    fn from(mc: chatgpt::types::MessageChoice) -> MessageChoice {
+        MessageChoice {
             message: mc.message,
             finish_reason: mc.finish_reason,
             index: mc.index,
@@ -62,39 +59,53 @@ impl From<MessageChoice> for CivilMessageChoice {
     }
 }
 
-pub async fn ask(
+impl From<interop::Role> for chatgpt::types::Role {
+    fn from(r: interop::Role) -> chatgpt::types::Role {
+        match r {
+            interop::Role::System => chatgpt::types::Role::System,
+            interop::Role::Assistant => chatgpt::types::Role::Assistant,
+            interop::Role::User => chatgpt::types::Role::User,
+        }
+    }
+}
+
+impl From<interop::ChatMessage> for chatgpt::types::ChatMessage {
+    fn from(dcm: interop::ChatMessage) -> chatgpt::types::ChatMessage {
+        chatgpt::types::ChatMessage {
+            role: dcm.role.into(),
+            content: dcm.content,
+        }
+    }
+}
+
+pub async fn chat(
+    dialogue: Json<interop::ProtoChat>,
     chatgpt_client: Data<ChatGPT>,
-    web::Query(query): web::Query<SearchQuery>,
+    session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    info!("ask '{}'", &query.q);
+    info!("chat");
 
-    let r = chatgpt_client.send_message(&query.q).await?;
+    let user_id = session::user_id(&session)?;
+    info!(user_id);
 
-    let mut response: Vec<CivilMessageChoice> = vec![];
+    let dialogue = dialogue.into_inner();
+
+    let mut history: Vec<chatgpt::types::ChatMessage> = vec![];
+    for m in dialogue.messages {
+        history.push(m.into());
+    }
+
+    let r = chatgpt_client.send_history(&history).await?;
+
+    let mut response: Vec<MessageChoice> = vec![];
     for message_choice in r.message_choices {
-        response.push(CivilMessageChoice::from(message_choice));
+        response.push(MessageChoice::from(message_choice));
     }
 
     let res = ChatGPTResponse { response };
 
     Ok(HttpResponse::Ok().json(res))
 }
-
-// pub async fn chat(
-//     dialogue: Json<interop::ProtoChat>,
-//     params: Path<IdParam>,
-//     chatgpt_client: Data<ChatGPT>,
-//     session: actix_session::Session,
-// ) -> Result<HttpResponse> {
-//     info!("chat");
-
-//     let chat = chat.into_inner();
-
-//     let mut dialogue = db::edit(&sqlite_pool, user_id, &dialogue, dialogue_id)?;
-//     sqlite_augment(&sqlite_pool, &mut dialogue, dialogue_id)?;
-
-//     Ok(HttpResponse::Ok().json(dialogue))
-// }
 
 pub async fn create(
     proto_deck: Json<ProtoDeck>,

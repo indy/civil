@@ -596,10 +596,10 @@ input {
     width: 90%;
 }
 
-textarea {
-    width: var(--block-width);
-    height: 15rem;
-}
+/* textarea { */
+/*     width: var(--block-width); */
+/*     height: 15rem; */
+/* } */
 
 textarea.new-note-textarea {
     width: 100%;
@@ -936,10 +936,33 @@ textarea {
 /* -------------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------------- */
 
-.dialogue-chat-input {
-    position: fixed;
-    bottom: 1rem;
-    width: 56rem;
+.dialogue-flex-container {
+  width: var(--block-width);
+  height: 10rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.dialogue-flex-l {
+  flex-grow: 6;
+}
+
+.dialogue-flex-r {
+  flex-grow: 1;
+}
+
+.dialogue-text-area {
+  box-sizing: border-box;
+  resize: none;
+  padding: 1rem;
+  width: 100%;
+  height: 95%;
+  font-family: Crimson;
+  font-size: 1.2rem;
+}
+
+.dialogue-user-title {
+  padding-top: 1.3rem !important;
 }
 
 /* -------------------------------------------------------------------------------- */
