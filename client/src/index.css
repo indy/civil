@@ -936,33 +936,54 @@ textarea {
 /* -------------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------------- */
 
-.dialogue-flex-container {
+.dialogue-flex-container-vertical {
   width: var(--block-width);
-  height: 10rem;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+}
+
+.dialogue-flex-container-row {
+  flex-direction: row;
+  display: flex;
+}
+
+.dialogue-flex-container-cell-left {
+  width: 10%;
+}
+.dialogue-flex-container-cell-right {
+  width: 90%;
+}
+
+.dialogue-flex-container {
+    width: var(--block-width);
+    height: 10rem;
+    display: flex;
+    justify-content: space-between;
 }
 
 .dialogue-flex-l {
-  flex-grow: 6;
+    flex-grow: 6;
 }
 
 .dialogue-flex-r {
-  flex-grow: 1;
+    flex-grow: 1;
 }
 
 .dialogue-text-area {
-  box-sizing: border-box;
-  resize: none;
-  padding: 1rem;
-  width: 100%;
-  height: 95%;
-  font-family: Crimson;
-  font-size: 1.2rem;
+    box-sizing: border-box;
+    resize: none;
+    padding: 1rem;
+    width: 100%;
+    height: 95%;
+    font-family: Crimson;
+    font-size: 1.2rem;
 }
 
 .dialogue-user-title {
-  padding-top: 1.3rem !important;
+    padding-top: 1.3rem !important;
+}
+
+.dialogue-save-form {
 }
 
 /* -------------------------------------------------------------------------------- */

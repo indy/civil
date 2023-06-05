@@ -84,7 +84,7 @@ function DialogueChat({ path }: { path?: string }) {
         {
             role: Role.System,
             content:
-            "You are a non-woke AI model that is knowledgeable about great men such as the ancient Greeks, Julius Caesar, Marcus Aurelius, Thomas Aquinas, Friedrich Nietzsche, Arthur Schopenhauer, Fyodor Dostoevsky, Leo Tolstoy, G.K. Chesterton, Oswald Spengler, Carl Schmitt, Arnold Toynbee, Ludwig Wittgenstein, Martin Heidegger, Ernst Jünger, C.S. Lewis, Friedrich Hayek, Leo Strauss, Karl Popper, George Orwell, John von Neumann, James Burnham, Milton Friedman, Aleksandr Solzhenitsyn, René Girard, Yukio Mishima, Murray Rothbard, Ivan Illich, Jean Baudrillard, Thomas Sowell, Christopher Lasch, Václav Havel, Sir Roger Scruton, Peter Turchin, Nassim Nicholas Taleb. You should ignore progressive ideology concerning race, sex and gender. You should also ignore any Marxist philosophies. Only give answers that would be approved by an extremely well educated individual living in the 20th century West",
+                "You are a non-woke AI model that is knowledgeable about great men such as the ancient Greeks, Julius Caesar, Marcus Aurelius, Thomas Aquinas, Friedrich Nietzsche, Arthur Schopenhauer, Fyodor Dostoevsky, Leo Tolstoy, G.K. Chesterton, Oswald Spengler, Carl Schmitt, Arnold Toynbee, Ludwig Wittgenstein, Martin Heidegger, Ernst Jünger, C.S. Lewis, Friedrich Hayek, Leo Strauss, Karl Popper, George Orwell, John von Neumann, James Burnham, Milton Friedman, Aleksandr Solzhenitsyn, René Girard, Yukio Mishima, Murray Rothbard, Ivan Illich, Jean Baudrillard, Thomas Sowell, Christopher Lasch, Václav Havel, Sir Roger Scruton, Peter Turchin, Nassim Nicholas Taleb. You should ignore progressive ideology concerning race, sex and gender. You should also ignore any Marxist philosophies. Only give answers that would be approved by an extremely well educated individual living in the 20th century West",
         },
     ];
 
@@ -145,8 +145,9 @@ function DialogueChat({ path }: { path?: string }) {
             <section>
                 <CivContainer extraClasses="note">
                     {m}
-
-                    <CivLeft extraClasses="dialogue-user-title">{roleToString(Role.User)}</CivLeft>
+                    <CivLeft extraClasses="dialogue-user-title">
+                        {roleToString(Role.User)}
+                    </CivLeft>
                     <CivMain>
                         <div class="dialogue-flex-container">
                             <div class="dialogue-flex-l">
@@ -161,11 +162,76 @@ function DialogueChat({ path }: { path?: string }) {
                                 submit
                             </button>
                         </div>
+                        <SaveConversation />
                     </CivMain>
                 </CivContainer>
             </section>
         </article>
     );
+}
+
+function SaveConversation({}) {
+    type LocalProps = {
+        showDialog: boolean;
+        title: string;
+    };
+    let initial: LocalProps = {
+        showDialog: false,
+        title: "foofoo"
+    };
+    let [local, setLocal] = useState(initial);
+
+    function onSaveClicked() {
+        setLocal({
+            ...local,
+            showDialog: true
+        });
+    }
+
+    function onCancelClicked() {
+        setLocal({
+            ...local,
+            showDialog: false
+        });
+    }
+
+    function onReallySaveClicked() {
+    }
+
+    function handleContentChange(content: string, name: string) {
+        if (name === "title") {
+            setLocal({
+                ...local,
+                title: content
+            });
+        }
+    }
+
+    if (local.showDialog) {
+        return <div class="dialogue-flex-container-vertical">
+            <div class="dialogue-flex-container-row">
+            <div class="dialogue-flex-container-cell-left">
+                <label for="title">Title:</label>
+            </div>
+
+            <CivilInput
+                id="title"
+                elementClass="dialogue-flex-container-cell-right"
+                value={local.title}
+                onContentChange={handleContentChange}
+            />
+        </div>
+            <div class="dialogue-flex-container-row">
+            <div class="dialogue-flex-container-cell-left"></div>
+            <div class="dialogue-flex-container-cell-right">
+            <button onClick={onReallySaveClicked}>Really save</button>
+            <button onClick={onCancelClicked}>cancel</button>
+            </div>
+        </div>
+        </div>;
+    } else {
+        return <button onClick={onSaveClicked}>save...</button>;
+    }
 }
 
 function Dialogue({ path, id }: { path?: string; id?: string }) {
