@@ -121,25 +121,37 @@
     padding-top: 3rem;
 }
 
-.login-form {
+.form-typography {
+    font-family: Inter;
+    font-weight: 600;
+}
+
+.grid2-layout-more-col2 {
+    grid-template-columns: 1fr 5fr !important;
+}
+.grid2-layout {
     display: grid;
     grid-template-columns: 1fr 3fr;
     grid-gap: 1rem;
-    width: 40rem;
+    width: var(--block-width);
 }
 
-.login-label {
+.grid2-layout-label {
+    margin-top: 0.5rem;
+    display: inline-block;
+
     grid-column: 1 / 2;
     text-align: right;
 }
 
-.login-input,
-.login-button,
-.login-error-message {
-    grid-column: 2 / 3;
+.grid2-col2,
+.grid2-layout-input,
+.grid2-layout-button,
+.grid2-layout-error-message {
+    grid-column: 2 / 2;
 }
 
-.login-error-message {
+.grid2-layout-error-message {
     color: red;
 }
 
@@ -935,24 +947,6 @@ textarea {
 /* -------------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------------- */
-
-.dialogue-flex-container-vertical {
-  width: var(--block-width);
-  display: flex;
-  flex-direction: column;
-}
-
-.dialogue-flex-container-row {
-  flex-direction: row;
-  display: flex;
-}
-
-.dialogue-flex-container-cell-left {
-  width: 10%;
-}
-.dialogue-flex-container-cell-right {
-  width: 90%;
-}
 
 .dialogue-flex-container {
     width: var(--block-width);

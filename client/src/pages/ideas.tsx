@@ -27,6 +27,7 @@ import SegmentNotes from "components/notes/segment-notes";
 import SegmentSearchResults from "components/segment-search-results";
 import TopMatter from "components/top-matter";
 import { SlimDeckGrouping } from "components/groupings";
+import { CivContainer, CivMain } from "components/civil-layout";
 
 function Ideas({ path }: { path?: string }) {
     const appState = getAppState();
@@ -100,17 +101,18 @@ function Idea({ path, id }: { path?: string; id?: string }) {
                 </TopMatter>
 
                 {deckManager.isShowingUpdateForm() && (
-                    <div>
-                        <DeleteDeckConfirmation
-                            deckKind={deckManager.getDeckKind()}
-                            id={deck.id}
-                        />
-                        <IdeaUpdater
-                            idea={deck}
-                            onUpdate={deckManager.updateAndReset}
-                            onCancel={deckManager.onFormHide}
-                        />{" "}
-                    </div>
+                    <DeleteDeckConfirmation
+                        deckKind={deckManager.getDeckKind()}
+                        id={deck.id}
+                    />
+                )}
+
+                {deckManager.isShowingUpdateForm() && (
+                    <IdeaUpdater
+                        idea={deck}
+                        onUpdate={deckManager.updateAndReset}
+                        onCancel={deckManager.onFormHide}
+                    />
                 )}
 
                 <SegmentDeckRefs
@@ -200,40 +202,61 @@ function IdeaUpdater({ idea, onUpdate, onCancel }: IdeaUpdaterProps) {
     }
 
     return (
-        <form class="civil-form" onSubmit={handleSubmit}>
-            <label for="title">Title:</label>
-            <br />
+        <section>
+            <CivContainer>
+                <CivMain>
+                    <form class="grid2-layout" onSubmit={handleSubmit}>
+                        <label class="grid2-layout-label" for="title">
+                            Title:
+                        </label>
+                        <CivilInput
+                            id="title"
+                            value={title}
+                            elementClass="grid2-col2"
+                            onContentChange={handleContentChange}
+                        />
 
-            <CivilInput
-                id="title"
-                value={title}
-                onContentChange={handleContentChange}
-            />
-            <br />
+                        <label
+                            class="grid2-layout-label"
+                            style="margin-top: 0.9rem;"
+                        >
+                            Insignias:
+                        </label>
+                        <div class="grid2-col2">
+                            <InsigniaSelector
+                                insigniaId={insigniaId}
+                                onChange={setInsigniaId}
+                            />
+                        </div>
 
-            <InsigniaSelector
-                insigniaId={insigniaId}
-                onChange={setInsigniaId}
-            />
-            <br />
-
-            <label for="graph-terminator">Graph Terminator:</label>
-            <input
-                type="checkbox"
-                id="graph-terminator"
-                name="graph-terminator"
-                onInput={handleCheckbox}
-                checked={graphTerminator}
-            />
-            <br />
-            <input
-                type="button"
-                value="Cancel"
-                class="dialog-cancel"
-                onClick={onCancel}
-            />
-            <input type="submit" value="Update Idea" />
-        </form>
+                        <label
+                            class="grid2-layout-label"
+                            style="margin-top: 0.7rem;"
+                            for="graph-terminator"
+                        >
+                            Graph Terminator:
+                        </label>
+                        <input
+                            type="checkbox"
+                            class="grid2-col2"
+                            id="graph-terminator"
+                            name="graph-terminator"
+                            onInput={handleCheckbox}
+                            checked={graphTerminator}
+                        />
+                        <div class="grid2-col2">
+                            <input
+                                type="button"
+                                value="Cancel"
+                                class="dialog-cancel"
+                                onClick={onCancel}
+                            />
+                            <input type="submit" value="Update Idea" />
+                        </div>
+                    </form>
+                </CivMain>
+            </CivContainer>
+        </section>
     );
 }
 

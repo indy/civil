@@ -18,10 +18,12 @@ import {
 } from "utils/civil";
 import Net from "utils/net";
 import { AppStateChange, getAppState } from "app-state";
+
 import { svgCloseShifted } from "components/svg-icons";
 import { renderInsignia } from "components/insignias/renderer";
 import CivilInput from "components/civil-input";
 import useLocalReducer from "components/use-local-reducer";
+import { CivRight } from "components/civil-layout";
 
 enum ActionType {
     CandidatesSet,
@@ -557,10 +559,10 @@ function RecentDecks({
         .map(buildRecent);
 
     return (
-        <div class="right-margin civsel-recent-decks">
+        <CivRight extraClasses="civsel-recent-decks">
             {!!recent.length && <div>Recently Used Refs:</div>}
             {recent}
-        </div>
+        </CivRight>
     );
 }
 

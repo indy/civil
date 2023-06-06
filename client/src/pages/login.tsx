@@ -1,12 +1,13 @@
 import { h } from "preact";
 import { useState, useRef } from "preact/hooks";
-
 import { route } from "preact-router";
 
 import { User } from "types";
 
 import Net from "utils/net";
 import { AppStateChange, getAppState } from "app-state";
+
+import { CivContainer, CivMain } from "components/civil-layout";
 
 type Props = {
     path?: string;
@@ -137,99 +138,121 @@ function Login({ path, loginCallback }: Props) {
 
     return (
         <section>
-            <h1 class="login-title ui">Login</h1>
-            <form class="login-form" onSubmit={handleLoginSubmit}>
-                <label class="login-label" for="login-email">
-                    Email:
-                </label>
-                <input
-                    class="login-input"
-                    id="login-email"
-                    type="text"
-                    name="login-email"
-                    value={state["login-email"]}
-                    onInput={handleChangeEvent}
-                    ref={emailRef}
-                />
-                <label class="login-label" for="login-password">
-                    Password:
-                </label>
-                <input
-                    class="login-input"
-                    id="login-password"
-                    type="password"
-                    name="login-password"
-                    value={state["login-password"]}
-                    onInput={handleChangeEvent}
-                    ref={passwordRef}
-                />
-                <input class="login-button" type="submit" value="Login" />
-                <div class="login-error-message">{state.errorMessage}</div>
-            </form>
-            <h1 class="ui">Register New User</h1>
-            <form class="login-form" onSubmit={handleRegisterSubmit}>
-                <label class="login-label" for="register-magic-word">
-                    Magic Word:
-                </label>
-                <input
-                    class="login-input"
-                    id="register-magic-word"
-                    type="text"
-                    name="register-magic-word"
-                    value={state["register-magic-word"]}
-                    onInput={handleChangeEvent}
-                />
-                <label class="login-label" for="register-username">
-                    Username:
-                </label>
-                <input
-                    class="login-input"
-                    id="register-username"
-                    type="text"
-                    name="register-username"
-                    value={state["register-username"]}
-                    onInput={handleChangeEvent}
-                />
-                <label class="login-label" for="register-email">
-                    Email:
-                </label>
-                <input
-                    class="login-input"
-                    id="register-email"
-                    type="text"
-                    name="register-email"
-                    value={state["register-email"]}
-                    onInput={handleChangeEvent}
-                />
-                <label class="login-label" for="register-password">
-                    Password:
-                </label>
-                <input
-                    class="login-input"
-                    id="register-password"
-                    type="password"
-                    name="register-password"
-                    value={state["register-password"]}
-                    onInput={handleChangeEvent}
-                />
-                <label class="login-label" for="register-password-2">
-                    Confirm Password:
-                </label>
-                <input
-                    class="login-input"
-                    id="register-password-2"
-                    type="password"
-                    name="register-password-2"
-                    value={state["register-password-2"]}
-                    onInput={handleChangeEvent}
-                />
-                <input
-                    class="login-button"
-                    type="submit"
-                    value="Register"
-                    disabled={!okToSendRegistration()}
-                />
-            </form>
+            <CivContainer>
+                <CivMain>
+                    <h1 class="login-title ui">Login</h1>
+                    <form class="grid2-layout" onSubmit={handleLoginSubmit}>
+                        <label class="grid2-layout-label" for="login-email">
+                            Email:
+                        </label>
+                        <input
+                            class="grid2-layout-input"
+                            id="login-email"
+                            type="text"
+                            name="login-email"
+                            value={state["login-email"]}
+                            onInput={handleChangeEvent}
+                            ref={emailRef}
+                        />
+                        <label class="grid2-layout-label" for="login-password">
+                            Password:
+                        </label>
+                        <input
+                            class="grid2-layout-input"
+                            id="login-password"
+                            type="password"
+                            name="login-password"
+                            value={state["login-password"]}
+                            onInput={handleChangeEvent}
+                            ref={passwordRef}
+                        />
+                        <input
+                            class="grid2-layout-button"
+                            type="submit"
+                            value="Login"
+                        />
+                        <div class="grid2-layout-error-message">
+                            {state.errorMessage}
+                        </div>
+                    </form>
+                    <h1 class="ui">Register New User</h1>
+                    <form class="grid2-layout" onSubmit={handleRegisterSubmit}>
+                        <label
+                            class="grid2-layout-label"
+                            for="register-magic-word"
+                        >
+                            Magic Word:
+                        </label>
+                        <input
+                            class="grid2-layout-input"
+                            id="register-magic-word"
+                            type="text"
+                            name="register-magic-word"
+                            value={state["register-magic-word"]}
+                            onInput={handleChangeEvent}
+                        />
+                        <label
+                            class="grid2-layout-label"
+                            for="register-username"
+                        >
+                            Username:
+                        </label>
+                        <input
+                            class="grid2-layout-input"
+                            id="register-username"
+                            type="text"
+                            name="register-username"
+                            value={state["register-username"]}
+                            onInput={handleChangeEvent}
+                        />
+                        <label class="grid2-layout-label" for="register-email">
+                            Email:
+                        </label>
+                        <input
+                            class="grid2-layout-input"
+                            id="register-email"
+                            type="text"
+                            name="register-email"
+                            value={state["register-email"]}
+                            onInput={handleChangeEvent}
+                        />
+                        <label
+                            class="grid2-layout-label"
+                            for="register-password"
+                        >
+                            Password:
+                        </label>
+                        <input
+                            class="grid2-layout-input"
+                            id="register-password"
+                            type="password"
+                            name="register-password"
+                            value={state["register-password"]}
+                            onInput={handleChangeEvent}
+                        />
+                        <label
+                            class="grid2-layout-label"
+                            for="register-password-2"
+                        >
+                            Confirm Password:
+                        </label>
+                        <input
+                            class="grid2-layout-input"
+                            id="register-password-2"
+                            type="password"
+                            name="register-password-2"
+                            value={state["register-password-2"]}
+                            onInput={handleChangeEvent}
+                        />
+                        <input
+                            class="grid2-layout-button"
+                            type="submit"
+                            value="Register"
+                            disabled={!okToSendRegistration()}
+                        />
+                    </form>
+                </CivMain>
+            </CivContainer>
         </section>
     );
 }

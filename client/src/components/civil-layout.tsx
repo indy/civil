@@ -1,5 +1,14 @@
 import { h, ComponentChildren } from "preact";
 
+/*
+
+CivContainer contains many CivLeft and CivMain child components
+CivLeft is a sibling of CivMain
+CivMain can contain many CivRight child components
+
+Note: CivLeft's parent should be a CivContainer, and CivRight's parent should be a CivMain
+*/
+
 export function CivContainer({
     extraClasses,
     children,
@@ -38,6 +47,21 @@ export function CivLeft({
     children: ComponentChildren;
 }) {
     let classes = "left-margin ";
+    if (extraClasses) {
+        classes += extraClasses;
+    }
+
+    return <div class={classes}>{children}</div>;
+}
+
+export function CivRight({
+    extraClasses,
+    children,
+}: {
+    extraClasses?: string;
+    children: ComponentChildren;
+}) {
+    let classes = "right-margin ";
     if (extraClasses) {
         classes += extraClasses;
     }

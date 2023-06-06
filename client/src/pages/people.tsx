@@ -49,6 +49,7 @@ import SegmentSearchResults from "components/segment-search-results";
 import TopMatter from "components/top-matter";
 import useDeckManager from "components/use-deck-manager";
 import { SlimDeckGrouping } from "components/groupings";
+import { CivContainer, CivMain } from "components/civil-layout";
 
 function People({ path }: { path?: string }) {
     const appState = getAppState();
@@ -177,20 +178,24 @@ function Person({ path, id }: { path?: string; id?: string }) {
                 ></TopMatter>
 
                 {deckManager.isShowingUpdateForm() && (
-                    <div>
-                        <DeleteDeckConfirmation
-                            deckKind={deckManager.getDeckKind()}
-                            id={deck.id}
-                        />
-                        <button onClick={deckManager.onShowSummaryClicked}>
-                            Show Summary Passage
-                        </button>
-                        <PersonUpdater
-                            person={deck}
-                            onUpdate={deckManager.updateAndReset}
-                            onCancel={deckManager.onFormHide}
-                        />
-                    </div>
+                    <DeleteDeckConfirmation
+                        deckKind={deckManager.getDeckKind()}
+                        id={deck.id}
+                    />
+                )}
+
+                {deckManager.isShowingUpdateForm() && (
+                    <button onClick={deckManager.onShowSummaryClicked}>
+                        Show Summary Passage
+                    </button>
+                )}
+
+                {deckManager.isShowingUpdateForm() && (
+                    <PersonUpdater
+                        person={deck}
+                        onUpdate={deckManager.updateAndReset}
+                        onCancel={deckManager.onFormHide}
+                    />
                 )}
 
                 {title && !hasKnownLifespan && (
@@ -349,29 +354,46 @@ function PersonUpdater({
     };
 
     return (
-        <form class="civil-form" onSubmit={handleSubmit}>
-            <label for="name">Name:</label>
-            <br />
-            <CivilInput
-                id="name"
-                value={localState.title}
-                onContentChange={handleContentChange}
-            />
-            <br />
+        <section>
+            <CivContainer>
+                <CivMain>
+                    <form class="grid2-layout" onSubmit={handleSubmit}>
+                        <label class="grid2-layout-label" for="name">
+                            Name:
+                        </label>
+                        <CivilInput
+                            id="name"
+                            value={localState.title}
+                            elementClass="grid2-col2"
+                            onContentChange={handleContentChange}
+                        />
 
-            <InsigniaSelector
-                insigniaId={localState.insigniaId}
-                onChange={setInsigniaId}
-            />
-            <br />
-            <input
-                type="button"
-                value="Cancel"
-                class="dialog-cancel"
-                onClick={onCancel}
-            />
-            <input type="submit" value="Update Person" />
-        </form>
+                        <label
+                            class="grid2-layout-label"
+                            style="margin-top: 0.9rem;"
+                        >
+                            Insignias:
+                        </label>
+                        <div class="grid2-col2">
+                            <InsigniaSelector
+                                insigniaId={localState.insigniaId}
+                                onChange={setInsigniaId}
+                            />
+                        </div>
+
+                        <div class="grid2-col2">
+                            <input
+                                type="button"
+                                value="Cancel"
+                                class="dialog-cancel"
+                                onClick={onCancel}
+                            />
+                            <input type="submit" value="Update Person" />
+                        </div>
+                    </form>
+                </CivMain>
+            </CivContainer>
+        </section>
     );
 }
 

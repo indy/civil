@@ -26,6 +26,7 @@ import SegmentDeckRefs from "components/segment-deck-refs";
 import TopMatter from "components/top-matter";
 import { SlimDeckGrouping, RatedGrouping } from "components/groupings";
 import { StarRatingPartial } from "components/star-rating";
+import { CivContainer, CivMain } from "components/civil-layout";
 
 import Net from "utils/net";
 import { buildUrl } from "utils/civil";
@@ -105,24 +106,32 @@ function Article({ path, id }: { path?: string; id?: string }) {
                 </TopMatter>
 
                 {deckManager.isShowingUpdateForm() && (
-                    <div>
-                        <DeleteDeckConfirmation
-                            deckKind={deckManager.getDeckKind()}
-                            id={deck.id}
-                        />
-                        <button onClick={deckManager.onShowSummaryClicked}>
-                            Show Summary Passage
-                        </button>
-                        <button onClick={deckManager.onShowReviewClicked}>
-                            Show Review Passage
-                        </button>
-                        <ArticleUpdater
-                            article={deck}
-                            onUpdate={deckManager.updateAndReset}
-                            onCancel={deckManager.onFormHide}
-                        />
-                    </div>
+                    <DeleteDeckConfirmation
+                        deckKind={deckManager.getDeckKind()}
+                        id={deck.id}
+                    />
                 )}
+
+                {deckManager.isShowingUpdateForm() && (
+                    <button onClick={deckManager.onShowSummaryClicked}>
+                        Show Summary Passage
+                    </button>
+                )}
+
+                {deckManager.isShowingUpdateForm() && (
+                    <button onClick={deckManager.onShowReviewClicked}>
+                        Show Review Passage
+                    </button>
+                )}
+
+                {deckManager.isShowingUpdateForm() && (
+                    <ArticleUpdater
+                        article={deck}
+                        onUpdate={deckManager.updateAndReset}
+                        onCancel={deckManager.onFormHide}
+                    />
+                )}
+
                 {deck.shortDescription && (
                     <TopScribble text={deck.shortDescription} />
                 )}
@@ -284,73 +293,109 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
     }
 
     return (
-        <form class="civil-form" onSubmit={handleSubmit}>
-            <label for="title">Title:</label>
-            <br />
-            <CivilInput
-                id="title"
-                value={title}
-                onContentChange={onContentChange}
-            />
-            <br />
+        <section>
+            <CivContainer>
+                <CivMain>
+                    <form class="grid2-layout" onSubmit={handleSubmit}>
+                        <label class="grid2-layout-label" for="title">
+                            Title:
+                        </label>
+                        <CivilInput
+                            id="title"
+                            value={title}
+                            elementClass="grid2-col2"
+                            onContentChange={onContentChange}
+                        />
 
-            <InsigniaSelector
-                insigniaId={insigniaId}
-                onChange={setInsigniaId}
-            />
-            <br />
+                        <label
+                            class="grid2-layout-label"
+                            style="margin-top: 0.9rem;"
+                        >
+                            Insignias:
+                        </label>
+                        <div class="grid2-col2">
+                            <InsigniaSelector
+                                insigniaId={insigniaId}
+                                onChange={setInsigniaId}
+                            />
+                        </div>
 
-            <label for="source">Source:</label>
-            <br />
-            <CivilInput
-                id="source"
-                value={source}
-                onContentChange={onContentChange}
-            />
-            <br />
-            <label for="author">Author:</label>
-            <br />
-            <CivilInput
-                id="author"
-                value={author}
-                onContentChange={onContentChange}
-            />
-            <br />
-            <label for="publishedDate">Published Date:</label>
-            <br />
-            <CivilInput
-                id="publishedDate"
-                value={publishedDate}
-                onContentChange={onContentChange}
-            />
-            <br />
-            <label for="short-description">Short Description:</label>
-            <br />
-            <CivilInput
-                id="short-description"
-                value={shortDescription}
-                onContentChange={onContentChange}
-            />
-            <br />
-            <label for="rating">Rating (between 0 and 5):</label>
-            <input
-                id="rating"
-                type="number"
-                name="rating"
-                value={rating}
-                min="0"
-                max="5"
-                onInput={onRatingChange}
-            />
-            <br />
-            <input
-                type="button"
-                value="Cancel"
-                class="dialog-cancel"
-                onClick={onCancel}
-            />
-            <input id="article-submit" type="submit" value="Update Article" />
-        </form>
+                        <label class="grid2-layout-label" for="source">
+                            Source:
+                        </label>
+                        <CivilInput
+                            id="source"
+                            elementClass="grid2-col2"
+                            value={source}
+                            onContentChange={onContentChange}
+                        />
+
+                        <label class="grid2-layout-label" for="author">
+                            Author:
+                        </label>
+
+                        <CivilInput
+                            id="author"
+                            elementClass="grid2-col2"
+                            value={author}
+                            onContentChange={onContentChange}
+                        />
+
+                        <label class="grid2-layout-label" for="publishedDate">
+                            Published Date:
+                        </label>
+
+                        <CivilInput
+                            id="publishedDate"
+                            elementClass="grid2-col2"
+                            value={publishedDate}
+                            onContentChange={onContentChange}
+                        />
+
+                        <label
+                            class="grid2-layout-label"
+                            for="short-description"
+                        >
+                            Short Description:
+                        </label>
+
+                        <CivilInput
+                            id="short-description"
+                            elementClass="grid2-col2"
+                            value={shortDescription}
+                            onContentChange={onContentChange}
+                        />
+
+                        <label class="grid2-layout-label" for="rating">
+                            Rating (0..5):
+                        </label>
+                        <input
+                            id="rating"
+                            class="grid2-col2"
+                            type="number"
+                            name="rating"
+                            value={rating}
+                            min="0"
+                            max="5"
+                            onInput={onRatingChange}
+                        />
+                        <div class="grid2-col2">
+                            <input
+                                type="button"
+                                value="Cancel"
+                                class="dialog-cancel"
+                                onClick={onCancel}
+                            />
+                            <input
+                                id="article-submit"
+                                type="submit"
+                                value="Update Article"
+                            />
+                        </div>
+                    </form>
+                </CivMain>
+            </CivContainer>
+        </section>
     );
 }
 

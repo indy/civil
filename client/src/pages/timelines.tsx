@@ -35,6 +35,7 @@ import SegmentNotes from "components/notes/segment-notes";
 import TopMatter from "components/top-matter";
 import WhenVerbose from "components/when-verbose";
 import { SlimDeckList } from "components/groupings";
+import { CivContainer, CivMain } from "components/civil-layout";
 
 function Timelines({ path }: { path?: string }) {
     const appState = getAppState();
@@ -79,20 +80,24 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                 ></TopMatter>
 
                 {deckManager.isShowingUpdateForm() && (
-                    <div>
-                        <DeleteDeckConfirmation
-                            deckKind={DeckKind.Timeline}
-                            id={deck.id}
-                        />
-                        <button onClick={deckManager.onShowSummaryClicked}>
-                            Show Summary Passage
-                        </button>
-                        <TimelineUpdater
-                            timeline={deck}
-                            onUpdate={deckManager.updateAndReset}
-                            onCancel={deckManager.onFormHide}
-                        />
-                    </div>
+                    <DeleteDeckConfirmation
+                        deckKind={DeckKind.Timeline}
+                        id={deck.id}
+                    />
+                )}
+
+                {deckManager.isShowingUpdateForm() && (
+                    <button onClick={deckManager.onShowSummaryClicked}>
+                        Show Summary Passage
+                    </button>
+                )}
+
+                {deckManager.isShowingUpdateForm() && (
+                    <TimelineUpdater
+                        timeline={deck}
+                        onUpdate={deckManager.updateAndReset}
+                        onCancel={deckManager.onFormHide}
+                    />
                 )}
 
                 <SegmentDeckRefs
@@ -198,29 +203,47 @@ function TimelineUpdater({
     };
 
     return (
-        <form class="civil-form" onSubmit={handleSubmit}>
-            <label for="title">Title:</label>
-            <br />
-            <CivilInput
-                id="title"
-                value={localState.title}
-                onContentChange={handleContentChange}
-            />
-            <br />
+        <section>
+            <CivContainer>
+                <CivMain>
+                    <form class="grid2-layout" onSubmit={handleSubmit}>
+                        <label class="grid2-layout-label" for="title">
+                            Title:
+                        </label>
 
-            <InsigniaSelector
-                insigniaId={localState.insigniaId}
-                onChange={setInsigniaId}
-            />
-            <br />
-            <input
-                type="button"
-                value="Cancel"
-                class="dialog-cancel"
-                onClick={onCancel}
-            />
-            <input type="submit" value="Update Timeline" />
-        </form>
+                        <CivilInput
+                            id="title"
+                            value={localState.title}
+                            elementClass="grid2-col2"
+                            onContentChange={handleContentChange}
+                        />
+
+                        <label
+                            class="grid2-layout-label"
+                            style="margin-top: 0.9rem;"
+                        >
+                            Insignias:
+                        </label>
+                        <div class="grid2-col2">
+                            <InsigniaSelector
+                                insigniaId={localState.insigniaId}
+                                onChange={setInsigniaId}
+                            />
+                        </div>
+
+                        <div class="grid2-col2">
+                            <input
+                                type="button"
+                                value="Cancel"
+                                class="dialog-cancel"
+                                onClick={onCancel}
+                            />
+                            <input type="submit" value="Update Timeline" />
+                        </div>
+                    </form>
+                </CivMain>
+            </CivContainer>
+        </section>
     );
 }
 

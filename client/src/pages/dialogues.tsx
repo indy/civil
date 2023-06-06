@@ -162,8 +162,8 @@ function DialogueChat({ path }: { path?: string }) {
                                 submit
                             </button>
                         </div>
-                        <SaveConversation />
                     </CivMain>
+                    <SaveConversation />
                 </CivContainer>
             </section>
         </article>
@@ -177,60 +177,66 @@ function SaveConversation({}) {
     };
     let initial: LocalProps = {
         showDialog: false,
-        title: "foofoo"
+        title: "foofoo",
     };
     let [local, setLocal] = useState(initial);
 
     function onSaveClicked() {
         setLocal({
             ...local,
-            showDialog: true
+            showDialog: true,
         });
     }
 
     function onCancelClicked() {
         setLocal({
             ...local,
-            showDialog: false
+            showDialog: false,
         });
     }
 
     function onReallySaveClicked() {
+        console.log(`will save ${local.title}`);
     }
 
     function handleContentChange(content: string, name: string) {
         if (name === "title") {
             setLocal({
                 ...local,
-                title: content
+                title: content,
             });
         }
     }
 
     if (local.showDialog) {
-        return <div class="dialogue-flex-container-vertical">
-            <div class="dialogue-flex-container-row">
-            <div class="dialogue-flex-container-cell-left">
-                <label for="title">Title:</label>
-            </div>
+        return (
+            <CivMain>
+                <div class="grid2-layout grid2-layout-more-col2 form-typography">
+                    <label class="grid2-layout-label" for="title">
+                        Title:
+                    </label>
 
-            <CivilInput
-                id="title"
-                elementClass="dialogue-flex-container-cell-right"
-                value={local.title}
-                onContentChange={handleContentChange}
-            />
-        </div>
-            <div class="dialogue-flex-container-row">
-            <div class="dialogue-flex-container-cell-left"></div>
-            <div class="dialogue-flex-container-cell-right">
-            <button onClick={onReallySaveClicked}>Really save</button>
-            <button onClick={onCancelClicked}>cancel</button>
-            </div>
-        </div>
-        </div>;
+                    <CivilInput
+                        id="title"
+                        elementClass="grid2-layout-input"
+                        value={local.title}
+                        onContentChange={handleContentChange}
+                    />
+                    <div class="grid2-layout-input">
+                        <button onClick={onReallySaveClicked}>
+                            Really save
+                        </button>
+                        <button onClick={onCancelClicked}>cancel</button>
+                    </div>
+                </div>
+            </CivMain>
+        );
     } else {
-        return <button onClick={onSaveClicked}>save...</button>;
+        return (
+            <CivMain>
+                <button onClick={onSaveClicked}>save...</button>
+            </CivMain>
+        );
     }
 }
 
