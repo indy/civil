@@ -26,6 +26,7 @@ import FlashCardView from "components/flashcard-view";
 import ImageSelector from "components/images/image-selector";
 import NoteForm from "components/notes/note-form";
 import RefView from "components/ref-view";
+import RoleView from "components/role-view";
 import buildMarkup from "components/notes/build-markup";
 // import buildSimplifiedText from "components/notes/build-simplified-text";
 import useLocalReducer from "components/use-local-reducer";
@@ -638,6 +639,7 @@ function buildLeftMarginContent(note: Note, localDispatch: Function) {
     } else {
         return (
             <CivLeft>
+                {note.chatMessage && <RoleView role={note.chatMessage.role} />}
                 {buildFlashcardIndicator(note.flashcards, localDispatch)}
                 {note.decks && note.flashcards && <div class="spacer"></div>}
                 {buildNoteReferences(note.decks)}

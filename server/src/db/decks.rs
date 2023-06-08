@@ -134,7 +134,12 @@ fn deckbase_get_by_name(
 
 // note: will execute multiple sql write statements so should be in a transaction
 //
-fn deckbase_create(tx: &Connection, user_id: Key, kind: DeckKind, name: &str) -> Result<DeckBase> {
+pub(crate) fn deckbase_create(
+    tx: &Connection,
+    user_id: Key,
+    kind: DeckKind,
+    name: &str,
+) -> Result<DeckBase> {
     let graph_terminator = false;
     let stmt = "INSERT INTO decks(user_id, kind, name, graph_terminator, insignia)
                 VALUES (?1, ?2, ?3, ?4, ?5)

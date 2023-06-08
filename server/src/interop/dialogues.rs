@@ -67,6 +67,14 @@ pub struct ChatMessage {
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct OriginalChatMessage {
+    pub note_id: Key,
+    pub role: Role,
+    pub content: String,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Dialogue {
     pub id: Key,
     pub title: String,
@@ -84,6 +92,8 @@ pub struct Dialogue {
     pub backrefs: Option<Vec<Ref>>,
 
     pub flashcards: Option<Vec<FlashCard>>,
+
+    pub original_chat_messages: Vec<OriginalChatMessage>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

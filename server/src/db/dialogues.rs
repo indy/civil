@@ -15,14 +15,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use std::str::FromStr;
+
 use crate::db::decks;
+use crate::db::notes as db_notes;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::{Error, Result};
-use crate::interop::decks::DeckKind;
+use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::dialogues as interop;
+use crate::interop::dialogues::Role;
+use crate::interop::notes::NoteKind;
 use crate::interop::Key;
-use rusqlite::{params, Row};
 
+use rusqlite::{params, Connection, Row};
 use tracing::error;
 
 #[derive(Debug, Clone)]
@@ -44,6 +49,7 @@ impl From<(decks::DeckBase, DialogueExtra)> for interop::Dialogue {
             backnotes: None,
             backrefs: None,
             flashcards: None,
+            original_chat_messages: vec![],
         }
     }
 }
@@ -67,18 +73,19 @@ fn from_row(row: &Row) -> Result<interop::Dialogue> {
         backrefs: None,
 
         flashcards: None,
+
+        original_chat_messages: vec![],
     })
 }
 
-pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::Dialogue>> {
+pub(crate) fn listing(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT decks.id, decks.name, dialogue_extras.kind,
-                       decks.created_at, decks.insignia
-                FROM decks LEFT JOIN dialogue_extras ON dialogue_extras.deck_id = decks.id
-                WHERE decks.user_id = ?1 AND decks.kind = 'dialogue'
-                ORDER BY decks.created_at DESC";
-    sqlite::many(&conn, stmt, params![&user_id], from_row)
+    let stmt = "SELECT id, name, kind, insignia
+                FROM decks
+                WHERE user_id = ?1 AND kind = 'dialogue'
+                ORDER BY created_at DESC";
+    sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)
 }
 
 pub(crate) fn get(
@@ -88,15 +95,48 @@ pub(crate) fn get(
 ) -> Result<interop::Dialogue> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT decks.id, decks.name, dialogue_extras.kind
+    let stmt = "SELECT decks.id, decks.name, dialogue_extras.kind,
                        decks.created_at, decks.insignia
                 FROM decks LEFT JOIN dialogue_extras ON dialogue_extras.deck_id = decks.id
                 WHERE decks.user_id = ?1 AND decks.id = ?2 AND decks.kind = 'dialogue'";
-    let res = sqlite::one(&conn, stmt, params![&user_id, &dialogue_id], from_row)?;
+    let mut res = sqlite::one(&conn, stmt, params![&user_id, &dialogue_id], from_row)?;
+
+    res.original_chat_messages = get_original_chat_messages(&conn, user_id, dialogue_id)?;
 
     decks::hit(&conn, dialogue_id)?;
 
     Ok(res)
+}
+
+fn get_original_chat_messages(
+    conn: &Connection,
+    user_id: Key,
+    dialogue_id: Key,
+) -> Result<Vec<interop::OriginalChatMessage>> {
+    fn chat_message_from_row(row: &Row) -> Result<interop::OriginalChatMessage> {
+        let r: String = row.get(1)?;
+        let role = Role::from_str(&r)?;
+
+        Ok(interop::OriginalChatMessage {
+            note_id: row.get(0)?,
+            role,
+            content: row.get(2)?,
+        })
+    }
+
+    let stmt = "SELECT msg.note_id, msg.role, msg.content
+                FROM dialogue_messages AS msg
+                     LEFT JOIN notes ON notes.id = msg.note_id
+                     LEFT JOIN decks ON decks.id = notes.deck_id
+                WHERE decks.user_id = ?1 AND decks.id = ?2
+                ORDER BY msg.note_id";
+
+    sqlite::many(
+        conn,
+        stmt,
+        params![&user_id, &dialogue_id],
+        chat_message_from_row,
+    )
 }
 
 pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, dialogue_id: Key) -> Result<()> {
@@ -163,43 +203,70 @@ pub(crate) fn edit(
         dialogue_extra_from_row,
     )?;
 
+    let mut res: interop::Dialogue = (edited_deck, dialogue_extras).into();
+    res.original_chat_messages = get_original_chat_messages(&tx, user_id, dialogue_id)?;
+
     tx.commit()?;
 
-    Ok((edited_deck, dialogue_extras).into())
+    Ok(res)
 }
 
-pub(crate) fn get_or_create(
+pub(crate) fn create(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    title: &str,
+    proto_dialogue: interop::ProtoDialogue,
 ) -> Result<interop::Dialogue> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    let kind = "";
+    let deck = decks::deckbase_create(&tx, user_id, DeckKind::Dialogue, &proto_dialogue.title)?;
 
-    let (deck, origin) = decks::deckbase_get_or_create(&tx, user_id, DeckKind::Dialogue, title)?;
+    let dialogue_extras = sqlite::one(
+        &tx,
+        "INSERT INTO dialogue_extras(deck_id, kind)
+         VALUES (?1, ?2)
+         RETURNING deck_id, kind",
+        params![&deck.id, &proto_dialogue.kind],
+        dialogue_extra_from_row,
+    )?;
 
-    let article_extras = match origin {
-        decks::DeckBaseOrigin::Created => sqlite::one(
+    let mut new_prev: Option<Key> = None;
+
+    for chat_message in proto_dialogue.messages {
+        if chat_message.content.is_empty() {
+            // this empty check was on the client side, moving it hear,
+            // although not sure how often it's triggered
+            //
+            continue;
+        }
+
+        let new_note = db_notes::create_common(
             &tx,
-            "INSERT INTO dialogue_extras(deck_id, kind)
-             VALUES (?1, ?2)
-             RETURNING deck_id, kind",
-            params![&deck.id, &kind],
-            dialogue_extra_from_row,
-        )?,
-        decks::DeckBaseOrigin::PreExisting => sqlite::one(
+            user_id,
+            deck.id,
+            NoteKind::Note,
+            None,
+            &chat_message.content,
+            new_prev,
+            None,
+        )?;
+        new_prev = Some(new_note.id);
+
+        // save the original text in dialogue_messages, this is used when reconstructing the original message
+        //
+        sqlite::zero(
             &tx,
-            "select deck_id, kind
-             from dialogue_extras
-             where deck_id=?1",
-            params![&deck.id],
-            dialogue_extra_from_row,
-        )?,
-    };
+            "INSERT INTO dialogue_messages(role, content, note_id)
+             VALUES (?1, ?2, ?3)",
+            params![
+                &chat_message.role.to_string(),
+                &chat_message.content,
+                new_note.id
+            ],
+        )?;
+    }
 
     tx.commit()?;
 
-    Ok((deck, article_extras).into())
+    Ok((deck, dialogue_extras).into())
 }

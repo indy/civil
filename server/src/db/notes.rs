@@ -107,7 +107,7 @@ pub(crate) fn delete_note_properly(
     Ok(all_notes)
 }
 
-fn create_common(
+pub(crate) fn create_common(
     conn: &Connection,
     user_id: Key,
     deck_id: Key,
@@ -159,7 +159,7 @@ pub(crate) fn create_notes(
     user_id: Key,
     note: &interop::ProtoNote,
 ) -> Result<Vec<interop::Note>> {
-    let mut notes: Vec<interop::Note> = Vec::new();
+    // let mut notes: Vec<interop::Note> = Vec::new();
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
@@ -196,7 +196,7 @@ pub(crate) fn create_notes(
             },
         )?;
         new_prev = Some(new_note.id);
-        notes.push(new_note);
+        // notes.push(new_note);
     }
 
     tx.commit()?;

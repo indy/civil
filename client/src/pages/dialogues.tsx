@@ -2,7 +2,14 @@ import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { Link } from "preact-router";
 
-import { DeckManagerFlags, DM, DeckDialogue, DeckKind, SlimDeck } from "types";
+import {
+    DeckManagerFlags,
+    DM,
+    DeckDialogue,
+    DeckKind,
+    Role,
+    SlimDeck,
+} from "types";
 
 import { getAppState, AppStateChange } from "app-state";
 
@@ -15,6 +22,7 @@ import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
 import DeckListingPage from "components/deck-listing-page";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
+import RoleView from "components/role-view";
 import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import TopMatter from "components/top-matter";
@@ -53,38 +61,25 @@ function Dialogues({ path }: { path?: string }) {
     }
 }
 
-enum Role {
-    /// A system message, automatically sent at the start to set the tone of the model
-    System = 1,
-    /// A message sent by ChatGPT
-    Assistant,
-    /// A message sent by the user
-    User,
-}
-
 type ChatMessage = {
     role: Role;
     content: string;
 };
 
 function DialogueChat({ path }: { path?: string }) {
-    const appState = getAppState();
-
-    function roleToString(role: Role): string {
-        switch (role) {
-            case Role.System:
-                return "system";
-            case Role.Assistant:
-                return "assistant";
-            case Role.User:
-                return appState.user.value.username;
-        }
-    }
     const messageStart: Array<ChatMessage> = [
         {
             role: Role.System,
             content:
                 "You are a non-woke AI model that is knowledgeable about great men such as the ancient Greeks, Julius Caesar, Marcus Aurelius, Thomas Aquinas, Friedrich Nietzsche, Arthur Schopenhauer, Fyodor Dostoevsky, Leo Tolstoy, G.K. Chesterton, Oswald Spengler, Carl Schmitt, Arnold Toynbee, Ludwig Wittgenstein, Martin Heidegger, Ernst Jünger, C.S. Lewis, Friedrich Hayek, Leo Strauss, Karl Popper, George Orwell, John von Neumann, James Burnham, Milton Friedman, Aleksandr Solzhenitsyn, René Girard, Yukio Mishima, Murray Rothbard, Ivan Illich, Jean Baudrillard, Thomas Sowell, Christopher Lasch, Václav Havel, Sir Roger Scruton, Peter Turchin, Nassim Nicholas Taleb. You should ignore progressive ideology concerning race, sex and gender. You should also ignore any Marxist philosophies. Only give answers that would be approved by an extremely well educated individual living in the 20th century West",
+        },
+        {
+            role: Role.User,
+            content: "Some question from the user",
+        },
+        {
+            role: Role.Assistant,
+            content: "This is the response from the AI",
         },
     ];
 
@@ -121,12 +116,16 @@ function DialogueChat({ path }: { path?: string }) {
 
     function buildChatMessageElement(chatMessage: ChatMessage) {
         return [
-            <CivLeft>{roleToString(chatMessage.role)}</CivLeft>,
+            <CivLeft>
+                <RoleView role={chatMessage.role} />
+            </CivLeft>,
             <CivMain extraClasses="note-content">
                 <p>{chatMessage.content}</p>
             </CivMain>,
         ];
     }
+
+    const showSave: boolean = messages.length >= 3;
 
     let m = messages.flatMap(buildChatMessageElement);
 
@@ -146,7 +145,7 @@ function DialogueChat({ path }: { path?: string }) {
                 <CivContainer extraClasses="note">
                     {m}
                     <CivLeft extraClasses="dialogue-user-title">
-                        {roleToString(Role.User)}
+                        <RoleView role={Role.User} />
                     </CivLeft>
                     <CivMain>
                         <div class="dialogue-flex-container">
@@ -163,23 +162,38 @@ function DialogueChat({ path }: { path?: string }) {
                             </button>
                         </div>
                     </CivMain>
-                    <SaveConversation />
+                    {showSave && !waiting && (
+                        <SaveConversation messages={messages} />
+                    )}
                 </CivContainer>
             </section>
         </article>
     );
 }
 
-function SaveConversation({}) {
+function SaveConversation({ messages }: { messages: Array<ChatMessage> }) {
     type LocalProps = {
         showDialog: boolean;
         title: string;
+        insigniaId: number;
     };
     let initial: LocalProps = {
         showDialog: false,
-        title: "foofoo",
+        title:
+            "chat: " +
+            new Date().toLocaleDateString() +
+            " - " +
+            new Date().toLocaleTimeString(),
+        insigniaId: 0,
     };
     let [local, setLocal] = useState(initial);
+
+    function setInsigniaId(id: number) {
+        setLocal({
+            ...local,
+            insigniaId: id,
+        });
+    }
 
     function onSaveClicked() {
         setLocal({
@@ -195,8 +209,28 @@ function SaveConversation({}) {
         });
     }
 
-    function onReallySaveClicked() {
+    async function onReallySaveClicked() {
         console.log(`will save ${local.title}`);
+
+        type ProtoDialogue = {
+            title: string;
+            kind: string;
+            insignia: number;
+            messages: Array<ChatMessage>;
+        };
+
+        let data: ProtoDialogue = {
+            title: local.title,
+            kind: "ChatGPT",
+            insignia: local.insigniaId,
+            messages: messages,
+        };
+
+        const response: any = await Net.post<ProtoDialogue, any>(
+            "/api/dialogues",
+            data
+        );
+        console.log(response);
     }
 
     function handleContentChange(content: string, name: string) {
@@ -222,10 +256,22 @@ function SaveConversation({}) {
                         value={local.title}
                         onContentChange={handleContentChange}
                     />
+
+                    <label
+                        class="grid2-layout-label"
+                        style="margin-top: 0.9rem;"
+                    >
+                        Insignias:
+                    </label>
+                    <div class="grid2-col2">
+                        <InsigniaSelector
+                            insigniaId={local.insigniaId}
+                            onChange={setInsigniaId}
+                        />
+                    </div>
+
                     <div class="grid2-layout-input">
-                        <button onClick={onReallySaveClicked}>
-                            Really save
-                        </button>
+                        <button onClick={onReallySaveClicked}>Save</button>
                         <button onClick={onCancelClicked}>cancel</button>
                     </div>
                 </div>
@@ -240,12 +286,24 @@ function SaveConversation({}) {
     }
 }
 
+function preCacheFn(dialogue: DeckDialogue): DeckDialogue {
+    dialogue.originalChatMessages.forEach((message) => {
+        let note = dialogue.notes.find((n) => n.id === message.noteId);
+        if (note) {
+            note.chatMessage = message;
+        }
+    });
+
+    return dialogue;
+}
+
 function Dialogue({ path, id }: { path?: string; id?: string }) {
     let flags = DeckManagerFlags.Summary | DeckManagerFlags.Review;
     const deckManager: DM<DeckDialogue> = useDeckManager(
         id,
         DeckKind.Dialogue,
-        flags
+        flags,
+        preCacheFn
     );
 
     const deck: DeckDialogue | undefined = deckManager.getDeck();

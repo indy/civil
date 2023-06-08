@@ -112,7 +112,16 @@ export type DeckArticle = FatDeck & {
     shortDescription?: string;
 };
 
-export type DeckDialogue = FatDeck;
+export type OriginalChatMessage = {
+    noteId: Key;
+    role: Role;
+    content: string;
+};
+
+export type DeckDialogue = FatDeck & {
+    originalChatMessages: Array<OriginalChatMessage>;
+};
+
 export type DeckTimeline = FatDeck;
 
 export type DeckQuote = FatDeck & {
@@ -128,6 +137,8 @@ export type Note = {
 
     decks: Array<Ref>;
     flashcards: Array<FlashCard>;
+
+    chatMessage?: OriginalChatMessage; // the original chat message for a dialogue
 };
 
 export type Notes = Array<Note>;
@@ -459,3 +470,12 @@ export type User = {
     email: string;
     admin?: Admin;
 };
+
+export enum Role {
+    /// A system message, automatically sent at the start to set the tone of the model
+    System = 1,
+    /// A message sent by ChatGPT
+    Assistant,
+    /// A message sent by the user
+    User,
+}

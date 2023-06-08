@@ -22,7 +22,7 @@ use crate::db::sqlite::SqlitePool;
 use crate::db::sr as sr_db;
 use crate::error::Result;
 use crate::interop::dialogues as interop;
-use crate::interop::{IdParam, Key, ProtoDeck};
+use crate::interop::{IdParam, Key};
 use crate::session;
 use actix_web::web::{Data, Json, Path};
 use actix_web::HttpResponse;
@@ -108,16 +108,16 @@ pub async fn chat(
 }
 
 pub async fn create(
-    proto_deck: Json<ProtoDeck>,
+    proto_dialogue: Json<interop::ProtoDialogue>,
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
-    info!("create");
+    info!("create dialogue");
 
     let user_id = session::user_id(&session)?;
-    let proto_deck = proto_deck.into_inner();
+    let proto_dialogue = proto_dialogue.into_inner();
 
-    let dialogue = db::get_or_create(&sqlite_pool, user_id, &proto_deck.title)?;
+    let dialogue = db::create(&sqlite_pool, user_id, proto_dialogue)?;
 
     Ok(HttpResponse::Ok().json(dialogue))
 }
@@ -129,7 +129,7 @@ pub async fn get_all(
     info!("get_all");
 
     let user_id = session::user_id(&session)?;
-    let dialogues = db::all(&sqlite_pool, user_id)?;
+    let dialogues = db::listing(&sqlite_pool, user_id)?;
 
     Ok(HttpResponse::Ok().json(dialogues))
 }
