@@ -608,10 +608,10 @@ input {
     width: 90%;
 }
 
-/* textarea { */
-/*     width: var(--block-width); */
-/*     height: 15rem; */
-/* } */
+textarea.note-editable-content {
+    width: var(--block-width);
+    height: 15rem;
+}
 
 textarea.new-note-textarea {
     width: 100%;

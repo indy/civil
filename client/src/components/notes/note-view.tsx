@@ -422,6 +422,7 @@ export default function NoteView({
             <div class="civil-form">
                 <CivilTextArea
                     id="content"
+                    elementClass="note-editable-content"
                     value={local.note.content}
                     elementRef={textAreaRef}
                     onFocus={onTextAreaFocus}
