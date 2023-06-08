@@ -84,10 +84,9 @@ function DialogueChat({ path }: { path?: string }) {
     ];
 
     const [waiting, setWaiting] = useState(false);
-    const [userInput, setUserInput] = useState("");
     const [messages, setMessages] = useState(messageStart);
 
-    async function onSubmit() {
+    async function onSubmit(userInput: string) {
         const newChatMessage: ChatMessage = {
             role: Role.User,
             content: userInput,
@@ -98,7 +97,6 @@ function DialogueChat({ path }: { path?: string }) {
 
         setWaiting(true);
         let data = { messages };
-        setUserInput("");
         const askResponse: any = await Net.post(`/api/dialogues/chat`, data);
         setWaiting(false);
         if (askResponse.response.length === 1) {
@@ -147,7 +145,26 @@ function DialogueChat({ path }: { path?: string }) {
                     <CivLeft extraClasses="dialogue-user-title">
                         <RoleView role={Role.User} />
                     </CivLeft>
-                    <CivMain>
+
+                    <InputBox onSubmit={onSubmit}/>
+                    {showSave && !waiting && (
+                        <SaveConversation messages={messages} />
+                    )}
+                </CivContainer>
+            </section>
+        </article>
+    );
+}
+
+function InputBox({onSubmit}: {onSubmit: (s: string) => void}) {
+    const [userInput, setUserInput] = useState("");
+
+    function onSub() {
+        onSubmit(userInput);
+        setUserInput("");
+    }
+
+    return <CivMain>
                         <div class="dialogue-flex-container">
                             <div class="dialogue-flex-l">
                                 <CivilTextArea
@@ -157,18 +174,12 @@ function DialogueChat({ path }: { path?: string }) {
                                     onContentChange={setUserInput}
                                 />
                             </div>
-                            <button class="dialogue-flex-r" onClick={onSubmit}>
+                            <button class="dialogue-flex-r" onClick={onSub}>
                                 submit
                             </button>
                         </div>
-                    </CivMain>
-                    {showSave && !waiting && (
-                        <SaveConversation messages={messages} />
-                    )}
-                </CivContainer>
-            </section>
-        </article>
-    );
+        </CivMain>;
+
 }
 
 function SaveConversation({ messages }: { messages: Array<ChatMessage> }) {
@@ -306,6 +317,10 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
         preCacheFn
     );
 
+    function onSubmit(userInput: string) {
+        console.log(userInput);
+    }
+
     const deck: DeckDialogue | undefined = deckManager.getDeck();
     if (deck) {
         return (
@@ -351,7 +366,14 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
                     howToShowPassage={deckManager.howToShowPassage}
                     canShowPassage={deckManager.canShowPassage}
                     onUpdateDeck={deckManager.update}
+                    noappend
                 />
+
+                <section>
+                    <CivContainer>
+                        <InputBox onSubmit={onSubmit}/>
+                    </CivContainer>
+                </section>
                 <SegmentBackRefs deck={deck} />
                 <SegmentGraph depth={2} deck={deck} />
             </article>
