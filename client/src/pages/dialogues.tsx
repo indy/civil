@@ -343,8 +343,22 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
                 content: userInput,
             };
 
-            setWaiting(true);
+            // hack in the user input to display while we wait for the server response
+            //
+            let n = {...deck.noteSeqs.note[deck.noteSeqs.note.length - 1]};
+            n.prevNoteId = n.id;
+            n.id = n.id + 1;
+            n.content = userInput;
+            n.chatMessage = {
+                noteId: n.id,
+                role: Role.User,
+                content: userInput
+            };
+            deck.noteSeqs.note.push(n);
 
+
+            setWaiting(true);
+            // now do the actual request
             const updatedDeck: any = await Net.post<
                 AppendChatMessage,
                 DeckDialogue
