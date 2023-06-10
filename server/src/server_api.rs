@@ -126,9 +126,9 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         .service(
             scope("/dialogues")
                 .route("/chat", post().to(dialogues::chat))
-                // .route("/{id}/chat", post().to(dialogues::converse))
                 .route("", post().to(dialogues::create))
                 .route("", get().to(dialogues::get_all))
+                .route("/{id}/chat", post().to(dialogues::converse))
                 .route("/{id}", get().to(dialogues::get))
                 .route("/{id}", put().to(dialogues::edit))
                 .route("/{id}", delete().to(dialogues::delete)),

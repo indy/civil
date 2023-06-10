@@ -240,33 +240,108 @@ pub(crate) fn create(
             continue;
         }
 
-        let new_note = db_notes::create_common(
+        let append_chat_message = interop::AppendChatMessage {
+            prev_note_id: new_prev,
+            role: chat_message.role,
+            content: chat_message.content,
+        };
+
+        new_prev = Some(create_chat_message(
             &tx,
             user_id,
             deck.id,
-            NoteKind::Note,
-            None,
-            &chat_message.content,
-            new_prev,
-            None,
-        )?;
-        new_prev = Some(new_note.id);
-
-        // save the original text in dialogue_messages, this is used when reconstructing the original message
-        //
-        sqlite::zero(
-            &tx,
-            "INSERT INTO dialogue_messages(role, content, note_id)
-             VALUES (?1, ?2, ?3)",
-            params![
-                &chat_message.role.to_string(),
-                &chat_message.content,
-                new_note.id
-            ],
-        )?;
+            append_chat_message,
+        )?);
     }
 
     tx.commit()?;
 
     Ok((deck, dialogue_extras).into())
+}
+
+pub(crate) fn add_chat_message(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_id: Key,
+    chat_message: interop::AppendChatMessage,
+) -> Result<Key> {
+    // check if content is empty???
+
+    let mut conn = sqlite_pool.get()?;
+    let tx = conn.transaction()?;
+
+    let id = create_chat_message(&tx, user_id, deck_id, chat_message)?;
+
+    tx.commit()?;
+
+    Ok(id)
+}
+
+// returns the new note id
+fn create_chat_message(
+    conn: &Connection,
+    user_id: Key,
+    deck_id: Key,
+    chat_message: interop::AppendChatMessage,
+) -> Result<Key> {
+    // check if content is empty???
+
+    let new_note = db_notes::create_common(
+        conn,
+        user_id,
+        deck_id,
+        NoteKind::Note,
+        None,
+        &chat_message.content,
+        chat_message.prev_note_id,
+        None,
+    )?;
+
+    // save the original text in dialogue_messages, this is used when reconstructing the original message
+    //
+    sqlite::zero(
+        conn,
+        "INSERT INTO dialogue_messages(role, content, note_id)
+             VALUES (?1, ?2, ?3)",
+        params![
+            &chat_message.role.to_string(),
+            &chat_message.content,
+            new_note.id
+        ],
+    )?;
+
+    Ok(new_note.id)
+}
+
+pub(crate) fn get_chat_history(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_id: Key,
+) -> Result<Vec<interop::ChatMessage>> {
+    fn chat_message_from_row(row: &Row) -> Result<interop::ChatMessage> {
+        let r: String = row.get(0)?;
+        let role = Role::from_str(&r)?;
+
+        Ok(interop::ChatMessage {
+            role,
+            content: row.get(1)?,
+        })
+    }
+
+    let conn = sqlite_pool.get()?;
+
+    let stmt = "SELECT dm.role, dm.content
+                FROM dialogue_messages AS dm
+                     LEFT JOIN notes ON notes.id = dm.note_id
+                     LEFT JOIN decks ON decks.id = notes.deck_id
+                WHERE
+                      decks.user_id=?1 AND decks.id = ?2
+                ORDER BY dm.id";
+
+    sqlite::many(
+        &conn,
+        stmt,
+        params![&user_id, &deck_id],
+        chat_message_from_row,
+    )
 }

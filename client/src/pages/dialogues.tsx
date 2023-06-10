@@ -146,7 +146,7 @@ function DialogueChat({ path }: { path?: string }) {
                         <RoleView role={Role.User} />
                     </CivLeft>
 
-                    <InputBox onSubmit={onSubmit}/>
+                    <InputBox onSubmit={onSubmit} />
                     {showSave && !waiting && (
                         <SaveConversation messages={messages} />
                     )}
@@ -156,7 +156,7 @@ function DialogueChat({ path }: { path?: string }) {
     );
 }
 
-function InputBox({onSubmit}: {onSubmit: (s: string) => void}) {
+function InputBox({ onSubmit }: { onSubmit: (s: string) => void }) {
     const [userInput, setUserInput] = useState("");
 
     function onSub() {
@@ -164,22 +164,23 @@ function InputBox({onSubmit}: {onSubmit: (s: string) => void}) {
         setUserInput("");
     }
 
-    return <CivMain>
-                        <div class="dialogue-flex-container">
-                            <div class="dialogue-flex-l">
-                                <CivilTextArea
-                                    id="chat-input"
-                                    elementClass="dialogue-text-area"
-                                    value={userInput}
-                                    onContentChange={setUserInput}
-                                />
-                            </div>
-                            <button class="dialogue-flex-r" onClick={onSub}>
-                                submit
-                            </button>
-                        </div>
-        </CivMain>;
-
+    return (
+        <CivMain>
+            <div class="dialogue-flex-container">
+                <div class="dialogue-flex-l">
+                    <CivilTextArea
+                        id="chat-input"
+                        elementClass="dialogue-text-area"
+                        value={userInput}
+                        onContentChange={setUserInput}
+                    />
+                </div>
+                <button class="dialogue-flex-r" onClick={onSub}>
+                    submit
+                </button>
+            </div>
+        </CivMain>
+    );
 }
 
 function SaveConversation({ messages }: { messages: Array<ChatMessage> }) {
@@ -317,11 +318,44 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
         preCacheFn
     );
 
-    function onSubmit(userInput: string) {
-        console.log(userInput);
-    }
+    const [waiting, setWaiting] = useState(false);
+
+    type AppendChatMessage = {
+        prevNoteId: number;
+        role: Role;
+        content: string;
+    };
 
     const deck: DeckDialogue | undefined = deckManager.getDeck();
+
+    async function onSubmit(userInput: string) {
+        if (!deck) {
+            console.error("no deck????");
+            return;
+        }
+        if (deck.noteSeqs) {
+            let prevNoteId =
+                deck.noteSeqs.note[deck.noteSeqs.note.length - 1].id;
+
+            const appendChatMessage: AppendChatMessage = {
+                prevNoteId: prevNoteId,
+                role: Role.User,
+                content: userInput,
+            };
+
+            setWaiting(true);
+
+            const updatedDeck: any = await Net.post<
+                AppendChatMessage,
+                DeckDialogue
+            >(`/api/dialogues/${deck.id}/chat`, appendChatMessage);
+
+            setWaiting(false);
+
+            deckManager.update(updatedDeck);
+        }
+    }
+
     if (deck) {
         return (
             <article>
@@ -369,9 +403,10 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
                     noappend
                 />
 
+                {waiting && <div>waiting!!!!!!!</div>}
                 <section>
                     <CivContainer>
-                        <InputBox onSubmit={onSubmit}/>
+                        <InputBox onSubmit={onSubmit} />
                     </CivContainer>
                 </section>
                 <SegmentBackRefs deck={deck} />

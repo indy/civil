@@ -69,6 +69,16 @@ impl From<interop::Role> for chatgpt::types::Role {
     }
 }
 
+impl From<chatgpt::types::Role> for interop::Role {
+    fn from(r: chatgpt::types::Role) -> interop::Role {
+        match r {
+            chatgpt::types::Role::System => interop::Role::System,
+            chatgpt::types::Role::Assistant => interop::Role::Assistant,
+            chatgpt::types::Role::User => interop::Role::User,
+        }
+    }
+}
+
 impl From<interop::ChatMessage> for chatgpt::types::ChatMessage {
     fn from(dcm: interop::ChatMessage) -> chatgpt::types::ChatMessage {
         chatgpt::types::ChatMessage {
@@ -91,6 +101,7 @@ pub async fn chat(
     let dialogue = dialogue.into_inner();
 
     let mut history: Vec<chatgpt::types::ChatMessage> = vec![];
+    // todo: can into be called on a vec of objects?
     for m in dialogue.messages {
         history.push(m.into());
     }
@@ -102,6 +113,7 @@ pub async fn chat(
         response.push(MessageChoice::from(message_choice));
     }
 
+    // todo: change this into something more agnostic, away from the ChatGPT interface
     let res = ChatGPTResponse { response };
 
     Ok(HttpResponse::Ok().json(res))
@@ -132,6 +144,50 @@ pub async fn get_all(
     let dialogues = db::listing(&sqlite_pool, user_id)?;
 
     Ok(HttpResponse::Ok().json(dialogues))
+}
+
+pub async fn converse(
+    sqlite_pool: Data<SqlitePool>,
+    chat_message: Json<interop::AppendChatMessage>,
+    chatgpt_client: Data<ChatGPT>,
+    params: Path<IdParam>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    info!("converse {:?}", params.id);
+
+    let user_id = session::user_id(&session)?;
+    let deck_id = params.id;
+    let chat_message = chat_message.into_inner();
+
+    // save the user's chat message
+    let mut prev_note_id = db::add_chat_message(&sqlite_pool, user_id, deck_id, chat_message)?;
+
+    let history = db::get_chat_history(&sqlite_pool, user_id, deck_id)?;
+
+    let mut chatgpt_history: Vec<chatgpt::types::ChatMessage> = vec![];
+    // todo: can into be called on a vec of objects?
+    for m in history {
+        chatgpt_history.push(m.into());
+    }
+
+    let r = chatgpt_client.send_history(&chatgpt_history).await?;
+
+    for message_choice in r.message_choices {
+        // should only loop through once
+        //
+        let message = message_choice.message;
+        let acm = interop::AppendChatMessage {
+            prev_note_id: Some(prev_note_id),
+            role: interop::Role::from(message.role),
+            content: message.content,
+        };
+        prev_note_id = db::add_chat_message(&sqlite_pool, user_id, deck_id, acm)?;
+    }
+
+    let mut dialogue = db::get(&sqlite_pool, user_id, deck_id)?;
+    sqlite_augment(&sqlite_pool, &mut dialogue, deck_id)?;
+
+    Ok(HttpResponse::Ok().json(dialogue))
 }
 
 pub async fn get(
