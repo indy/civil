@@ -17,6 +17,7 @@
 
 pub mod db;
 mod error;
+mod external;
 mod handler;
 pub mod interop;
 pub mod note_parser_api;

@@ -236,10 +236,10 @@ function DialogueChat({ path }: { path?: string }) {
         let data = { messages };
         const askResponse: any = await Net.post(`/api/dialogues/chat`, data);
         setWaiting(false);
-        if (askResponse.response.length === 1) {
+        if (askResponse.length === 1) {
             const responseChatMessage: ChatMessage = {
                 role: Role.Assistant,
-                content: askResponse.response[0].message.content,
+                content: askResponse[0].message.content,
             };
             messages.push(responseChatMessage);
             setMessages(messages);

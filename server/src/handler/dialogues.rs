@@ -21,6 +21,7 @@ use crate::db::notes as notes_db;
 use crate::db::sqlite::SqlitePool;
 use crate::db::sr as sr_db;
 use crate::error::Result;
+use crate::external::openai;
 use crate::interop::dialogues as interop;
 use crate::interop::{IdParam, Key};
 use crate::session;
@@ -30,67 +31,9 @@ use actix_web::HttpResponse;
 #[allow(unused_imports)]
 use tracing::info;
 
-use chatgpt::prelude::*;
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ChatGPTResponse {
-    pub response: Vec<MessageChoice>,
-}
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct MessageChoice {
-    /// The actual message
-    pub message: chatgpt::types::ChatMessage,
-    /// The reason completion was stopped
-    pub finish_reason: String,
-    /// The index of this message in the outer `message_choices` array
-    pub index: u32,
-}
-
-impl From<chatgpt::types::MessageChoice> for MessageChoice {
-    fn from(mc: chatgpt::types::MessageChoice) -> MessageChoice {
-        MessageChoice {
-            message: mc.message,
-            finish_reason: mc.finish_reason,
-            index: mc.index,
-        }
-    }
-}
-
-impl From<interop::Role> for chatgpt::types::Role {
-    fn from(r: interop::Role) -> chatgpt::types::Role {
-        match r {
-            interop::Role::System => chatgpt::types::Role::System,
-            interop::Role::Assistant => chatgpt::types::Role::Assistant,
-            interop::Role::User => chatgpt::types::Role::User,
-        }
-    }
-}
-
-impl From<chatgpt::types::Role> for interop::Role {
-    fn from(r: chatgpt::types::Role) -> interop::Role {
-        match r {
-            chatgpt::types::Role::System => interop::Role::System,
-            chatgpt::types::Role::Assistant => interop::Role::Assistant,
-            chatgpt::types::Role::User => interop::Role::User,
-        }
-    }
-}
-
-impl From<interop::ChatMessage> for chatgpt::types::ChatMessage {
-    fn from(dcm: interop::ChatMessage) -> chatgpt::types::ChatMessage {
-        chatgpt::types::ChatMessage {
-            role: dcm.role.into(),
-            content: dcm.content,
-        }
-    }
-}
-
 pub async fn chat(
     dialogue: Json<interop::ProtoChat>,
-    chatgpt_client: Data<ChatGPT>,
+    chatgpt_client: Data<chatgpt::prelude::ChatGPT>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("chat");
@@ -100,23 +43,9 @@ pub async fn chat(
 
     let dialogue = dialogue.into_inner();
 
-    let mut history: Vec<chatgpt::types::ChatMessage> = vec![];
-    // todo: can into be called on a vec of objects?
-    for m in dialogue.messages {
-        history.push(m.into());
-    }
+    let response = openai::chat(chatgpt_client, dialogue.messages).await?;
 
-    let r = chatgpt_client.send_history(&history).await?;
-
-    let mut response: Vec<MessageChoice> = vec![];
-    for message_choice in r.message_choices {
-        response.push(MessageChoice::from(message_choice));
-    }
-
-    // todo: change this into something more agnostic, away from the ChatGPT interface
-    let res = ChatGPTResponse { response };
-
-    Ok(HttpResponse::Ok().json(res))
+    Ok(HttpResponse::Ok().json(response))
 }
 
 pub async fn create(
@@ -149,7 +78,7 @@ pub async fn get_all(
 pub async fn converse(
     sqlite_pool: Data<SqlitePool>,
     chat_message: Json<interop::AppendChatMessage>,
-    chatgpt_client: Data<ChatGPT>,
+    chatgpt_client: Data<chatgpt::prelude::ChatGPT>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -164,15 +93,9 @@ pub async fn converse(
 
     let history = db::get_chat_history(&sqlite_pool, user_id, deck_id)?;
 
-    let mut chatgpt_history: Vec<chatgpt::types::ChatMessage> = vec![];
-    // todo: can into be called on a vec of objects?
-    for m in history {
-        chatgpt_history.push(m.into());
-    }
+    let response = openai::chat(chatgpt_client, history).await?;
 
-    let r = chatgpt_client.send_history(&chatgpt_history).await?;
-
-    for message_choice in r.message_choices {
+    for message_choice in response {
         // should only loop through once
         //
         let message = message_choice.message;
