@@ -122,14 +122,14 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
             // this temporary note will be overwritten once we get the updated deck
             // from the server response
             //
-            let n = {...deck.noteSeqs.note[deck.noteSeqs.note.length - 1]};
+            let n = { ...deck.noteSeqs.note[deck.noteSeqs.note.length - 1] };
             n.prevNoteId = n.id;
             n.id = n.id + 1;
             n.content = userInput;
             n.chatMessage = {
                 noteId: n.id,
                 role: Role.User,
-                content: userInput
+                content: userInput,
             };
             deck.noteSeqs.note.push(n);
 
@@ -468,16 +468,14 @@ function DialogueUpdater({
 
         const url = buildUrl(deckKind, dialogue.id, "/api");
 
-        Net.put<ProtoDialogue, DeckDialogue>(url,data).then((newDeck) => {
+        Net.put<ProtoDialogue, DeckDialogue>(url, data).then((newDeck) => {
             onUpdate(newDeck);
 
             // fetch the listing incase editing the dialogue has changed it's star rating or annotation
             //
-            Net.get<Array<SlimDeck>>("/api/dialogues").then(
-                (dialogues) => {
-                    AppStateChange.setDialogueListings(dialogues);
-                }
-            );
+            Net.get<Array<SlimDeck>>("/api/dialogues").then((dialogues) => {
+                AppStateChange.setDialogueListings(dialogues);
+            });
         });
 
         event.preventDefault();

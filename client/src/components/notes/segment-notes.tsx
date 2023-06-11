@@ -36,7 +36,7 @@ export default function SegmentNotes({
     canShowPassage,
     onUpdateDeck,
     noAppend,
-    noDelete
+    noDelete,
 }: Props) {
     const appState = getAppState();
 

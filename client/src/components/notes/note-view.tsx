@@ -548,7 +548,9 @@ export default function NoteView({
                 >
                     Save Edits
                 </button>
-                {!noDelete && <DeleteConfirmation onDelete={confirmedDeleteClicked} />}
+                {!noDelete && (
+                    <DeleteConfirmation onDelete={confirmedDeleteClicked} />
+                )}
                 <ImageSelector onPaste={onImagePaste} />
             </div>
         );
