@@ -33,6 +33,15 @@ import { buildUrl } from "utils/civil";
 
 import CivilTextArea from "components/civil-text-area";
 
+const CHAT_GPT: string = "ChatGPT";
+
+type ProtoDialogue = {
+    title: string;
+    kind: string;
+    insignia: number;
+    messages: Array<ChatMessage>;
+};
+
 type ChatMessage = {
     role: Role;
     content: string;
@@ -352,16 +361,9 @@ function SaveConversation({ messages }: { messages: Array<ChatMessage> }) {
     async function onReallySaveClicked() {
         console.log(`will save ${local.title}`);
 
-        type ProtoDialogue = {
-            title: string;
-            kind: string;
-            insignia: number;
-            messages: Array<ChatMessage>;
-        };
-
         let data: ProtoDialogue = {
             title: local.title,
-            kind: "ChatGPT",
+            kind: CHAT_GPT,
             insignia: local.insigniaId,
             messages: messages,
         };
@@ -455,27 +457,23 @@ function DialogueUpdater({
     }
 
     function handleSubmit(event: Event) {
-        type Data = {
-            title: string;
-            insignia: number;
-        };
-
-        const data: Data = {
+        const data: ProtoDialogue = {
             title: title.trim(),
+            kind: CHAT_GPT,
             insignia: insigniaId,
+            messages: [],
         };
 
         const deckKind: DeckKind = DeckKind.Dialogue;
 
-        Net.put<Data, DeckDialogue>(
-            buildUrl(deckKind, dialogue.id, "/api"),
-            data
-        ).then((newDeck) => {
+        const url = buildUrl(deckKind, dialogue.id, "/api");
+
+        Net.put<ProtoDialogue, DeckDialogue>(url,data).then((newDeck) => {
             onUpdate(newDeck);
 
             // fetch the listing incase editing the dialogue has changed it's star rating or annotation
             //
-            Net.get<Array<SlimDeck>>("/api/dialogues/listings").then(
+            Net.get<Array<SlimDeck>>("/api/dialogues").then(
                 (dialogues) => {
                     AppStateChange.setDialogueListings(dialogues);
                 }

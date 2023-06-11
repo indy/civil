@@ -20,7 +20,7 @@ use std::str::FromStr;
 use crate::db::decks;
 use crate::db::notes as db_notes;
 use crate::db::sqlite::{self, SqlitePool};
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::dialogues as interop;
 use crate::interop::dialogues::Role;
@@ -28,7 +28,8 @@ use crate::interop::notes::NoteKind;
 use crate::interop::Key;
 
 use rusqlite::{params, Connection, Row};
-use tracing::error;
+#[allow(unused_imports)]
+use tracing::{error, info};
 
 #[derive(Debug, Clone)]
 struct DialogueExtra {
@@ -161,45 +162,20 @@ pub(crate) fn edit(
         &tx,
         user_id,
         dialogue_id,
-        DeckKind::Article,
+        DeckKind::Dialogue,
         &dialogue.title,
         graph_terminator,
         dialogue.insignia,
     )?;
 
-    let stmt = "SELECT deck_id, kind
-                FROM dialogue_extras
-                WHERE deck_id = ?1";
-    let dialogue_extras_exists =
-        sqlite::many(&tx, stmt, params![&dialogue_id], dialogue_extra_from_row)?;
-
-    let sql_query: &str = match dialogue_extras_exists.len() {
-        0 => {
-            "INSERT INTO dialogue_extras(deck_id, kind)
-              VALUES (?1, ?2)
-              RETURNING deck_id, kind"
-        }
-        1 => {
-            "UPDATE dialogue_extras
-              SET kind = ?2
-              WHERE deck_id = ?1
-              RETURNING deck_id, kind"
-        }
-        _ => {
-            // should be impossible to get here since deck_id
-            // is a primary key in the article_extras table
-            error!(
-                "multiple dialogue_extras entries for dialogue: {}",
-                &dialogue_id
-            );
-            return Err(Error::TooManyFound);
-        }
-    };
+    let sql_query: &str = "SELECT deck_id, kind
+                           FROM dialogue_extras
+                           WHERE deck_id = ?1";
 
     let dialogue_extras = sqlite::one(
         &tx,
         sql_query,
-        params![&dialogue_id, &dialogue.kind,],
+        params![&dialogue_id],
         dialogue_extra_from_row,
     )?;
 
