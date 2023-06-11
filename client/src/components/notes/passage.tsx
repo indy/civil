@@ -29,7 +29,8 @@ type PassageProps = {
     optionalDeckPoint?: DeckPoint;
     appendLabel: string;
     noteKind: NoteKind;
-    noappend?: boolean;
+    noAppend?: boolean;
+    noDelete?: boolean;
 };
 
 export default function Passage({
@@ -41,7 +42,8 @@ export default function Passage({
     optionalDeckPoint,
     appendLabel,
     noteKind,
-    noappend,
+    noAppend,
+    noDelete,
 }: PassageProps) {
     const appState = getAppState();
 
@@ -71,6 +73,7 @@ export default function Passage({
                 onEdited={onEditedNote}
                 onRefsChanged={onRefsChanged}
                 onUpdateDeck={onUpdateDeck}
+                noDelete={noDelete}
             />
         );
     }
@@ -170,7 +173,7 @@ export default function Passage({
         );
     }
 
-    if (!noappend) {
+    if (!noAppend) {
         // checks to make sure the correct NoteForm is displayed
         if (correctNoteKind() && correctDeckPointScope()) {
             addNoteUI = buildNoteForm();

@@ -323,6 +323,7 @@ type Props = {
     onEdited: (id: Key, n: Note) => void;
     onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
     onUpdateDeck: (d: FatDeck) => void;
+    noDelete?: boolean;
 };
 
 export default function NoteView({
@@ -333,6 +334,7 @@ export default function NoteView({
     onEdited,
     onRefsChanged,
     onUpdateDeck,
+    noDelete,
 }: Props) {
     const appState = getAppState();
 
@@ -546,7 +548,7 @@ export default function NoteView({
                 >
                     Save Edits
                 </button>
-                <DeleteConfirmation onDelete={confirmedDeleteClicked} />
+                {!noDelete && <DeleteConfirmation onDelete={confirmedDeleteClicked} />}
                 <ImageSelector onPaste={onImagePaste} />
             </div>
         );

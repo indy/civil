@@ -23,7 +23,8 @@ type Props = {
     howToShowPassage: (noteKind: NoteKind) => PassageHowToShow;
     canShowPassage: (noteKind: NoteKind) => boolean;
     onUpdateDeck: (newDeck: FatDeck) => void;
-    noappend?: boolean;
+    noAppend?: boolean;
+    noDelete?: boolean;
 };
 
 export default function SegmentNotes({
@@ -34,7 +35,8 @@ export default function SegmentNotes({
     howToShowPassage,
     canShowPassage,
     onUpdateDeck,
-    noappend,
+    noAppend,
+    noDelete
 }: Props) {
     const appState = getAppState();
 
@@ -54,7 +56,8 @@ export default function SegmentNotes({
                         notes={deck.noteSeqs.noteSummary}
                         onRefsChanged={onRefsChanged}
                         deckKind={deckKind}
-                        noappend={noappend}
+                        noAppend={noAppend}
+                        noDelete={noDelete}
                     />
                 )}
                 {canShowPassage(NoteKind.NoteReview) && (
@@ -68,7 +71,8 @@ export default function SegmentNotes({
                         notes={deck.noteSeqs.noteReview}
                         onRefsChanged={onRefsChanged}
                         deckKind={deckKind}
-                        noappend={noappend}
+                        noAppend={noAppend}
+                        noDelete={noDelete}
                     />
                 )}
 
@@ -82,7 +86,8 @@ export default function SegmentNotes({
                     notes={deck.noteSeqs.note}
                     onRefsChanged={onRefsChanged}
                     deckKind={deckKind}
-                    noappend={noappend}
+                    noAppend={noAppend}
+                    noDelete={noDelete}
                 />
             </div>
         );
@@ -101,7 +106,8 @@ type NoteKindPassageProps = {
     onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
     deckKind: DeckKind;
     onUpdateDeck: (d: FatDeck) => void;
-    noappend?: boolean;
+    noAppend?: boolean;
+    noDelete?: boolean;
 };
 
 function NoteKindPassage({
@@ -113,7 +119,8 @@ function NoteKindPassage({
     toolbarMode,
     onRefsChanged,
     onUpdateDeck,
-    noappend,
+    noAppend,
+    noDelete,
 }: NoteKindPassageProps) {
     function notePassage(noteKind: NoteKind) {
         let appendLabel = "Append Note";
@@ -132,7 +139,8 @@ function NoteKindPassage({
             onRefsChanged,
             appendLabel,
             noteKind,
-            noappend,
+            noAppend,
+            noDelete,
         });
     }
 

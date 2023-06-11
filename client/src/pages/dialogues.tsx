@@ -183,7 +183,8 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
                     howToShowPassage={deckManager.howToShowPassage}
                     canShowPassage={deckManager.canShowPassage}
                     onUpdateDeck={deckManager.update}
-                    noappend
+                    noAppend
+                    noDelete
                 />
 
                 {waiting && <div>waiting!!!!!!!</div>}

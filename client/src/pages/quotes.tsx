@@ -262,7 +262,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                     onRefsChanged={deckManager.onRefsChanged}
                     deckKind={deckManager.getDeckKind()}
                     onUpdateDeck={deckManager.update}
-                    noappend
+                    noAppend
                 />
 
                 <Attribution
