@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import { Link } from "preact-router";
+import { route } from "preact-router";
 
 import {
     DeckManagerFlags,
@@ -26,12 +26,17 @@ import RoleView from "components/role-view";
 import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import TopMatter from "components/top-matter";
-import { SlimDeckGrouping } from "components/groupings";
+import { SlimDeckList } from "components/groupings";
 
 import Net from "utils/net";
 import { buildUrl } from "utils/civil";
 
 import CivilTextArea from "components/civil-text-area";
+
+type ChatMessage = {
+    role: Role;
+    content: string;
+};
 
 function Dialogues({ path }: { path?: string }) {
     const appState = getAppState();
@@ -47,24 +52,154 @@ function Dialogues({ path }: { path?: string }) {
 
     const dialogues = appState.listing.value.dialogues;
 
-    if (dialogues) {
-        return (
-            <DeckListingPage deckKind={DeckKind.Dialogue}>
-                <Link class="" href="/dialogues/chat">
-                    Open new dialogue
-                </Link>
-                <SlimDeckGrouping label="Recent" list={dialogues} hideEmpty />
-            </DeckListingPage>
-        );
-    } else {
-        return <div></div>;
+    function onClick() {
+        route("/dialogues/chat", true);
     }
+
+    return (
+        <DeckListingPage deckKind={DeckKind.Dialogue}>
+            <button onClick={onClick}>Open a new dialogue...</button>
+            {dialogues && <SlimDeckList list={dialogues} />}
+        </DeckListingPage>
+    );
 }
 
-type ChatMessage = {
-    role: Role;
-    content: string;
-};
+function preCacheFn(dialogue: DeckDialogue): DeckDialogue {
+    dialogue.originalChatMessages.forEach((message) => {
+        let note = dialogue.notes.find((n) => n.id === message.noteId);
+        if (note) {
+            note.chatMessage = message;
+        }
+    });
+
+    return dialogue;
+}
+
+function Dialogue({ path, id }: { path?: string; id?: string }) {
+    let flags = DeckManagerFlags.Summary | DeckManagerFlags.Review;
+    const deckManager: DM<DeckDialogue> = useDeckManager(
+        id,
+        DeckKind.Dialogue,
+        flags,
+        preCacheFn
+    );
+
+    const [waiting, setWaiting] = useState(false);
+
+    type AppendChatMessage = {
+        prevNoteId: number;
+        role: Role;
+        content: string;
+    };
+
+    const deck: DeckDialogue | undefined = deckManager.getDeck();
+
+    async function onSubmit(userInput: string) {
+        if (!deck) {
+            console.error("no deck????");
+            return;
+        }
+        if (deck.noteSeqs) {
+            let prevNoteId =
+                deck.noteSeqs.note[deck.noteSeqs.note.length - 1].id;
+
+            const appendChatMessage: AppendChatMessage = {
+                prevNoteId: prevNoteId,
+                role: Role.User,
+                content: userInput,
+            };
+
+            // hack in the user input to display while we wait for the server response
+            // this temporary note will be overwritten once we get the updated deck
+            // from the server response
+            //
+            let n = {...deck.noteSeqs.note[deck.noteSeqs.note.length - 1]};
+            n.prevNoteId = n.id;
+            n.id = n.id + 1;
+            n.content = userInput;
+            n.chatMessage = {
+                noteId: n.id,
+                role: Role.User,
+                content: userInput
+            };
+            deck.noteSeqs.note.push(n);
+
+            setWaiting(true);
+
+            // now do the actual request and get the updated deck
+            //
+            const updatedDeck: any = await Net.post<
+                AppendChatMessage,
+                DeckDialogue
+            >(`/api/dialogues/${deck.id}/chat`, appendChatMessage);
+
+            setWaiting(false);
+
+            deckManager.update(updatedDeck);
+        }
+    }
+
+    if (deck) {
+        return (
+            <article>
+                <TopMatter
+                    title={deck.title}
+                    deck={deck}
+                    isShowingUpdateForm={deckManager.isShowingUpdateForm()}
+                    onRefsToggle={deckManager.onRefsToggle}
+                    onFormToggle={deckManager.onFormToggle}
+                ></TopMatter>
+
+                {deckManager.isShowingUpdateForm() && (
+                    <div>
+                        <DeleteDeckConfirmation
+                            deckKind={deckManager.getDeckKind()}
+                            id={deck.id}
+                        />
+                        <button onClick={deckManager.onShowSummaryClicked}>
+                            Show Summary Passage
+                        </button>
+                        <button onClick={deckManager.onShowReviewClicked}>
+                            Show Review Passage
+                        </button>
+                        <DialogueUpdater
+                            dialogue={deck}
+                            onUpdate={deckManager.updateAndReset}
+                            onCancel={deckManager.onFormHide}
+                        />
+                    </div>
+                )}
+                <SegmentDeckRefs
+                    deck={deck}
+                    isEditing={deckManager.isEditingDeckRefs()}
+                    onRefsChanged={deckManager.onRefsChanged}
+                    onRefsToggle={deckManager.onRefsToggle}
+                />
+                <SegmentNotes
+                    deck={deck}
+                    title={deck.title}
+                    onRefsChanged={deckManager.onRefsChanged}
+                    deckKind={deckManager.getDeckKind()}
+                    howToShowPassage={deckManager.howToShowPassage}
+                    canShowPassage={deckManager.canShowPassage}
+                    onUpdateDeck={deckManager.update}
+                    noappend
+                />
+
+                {waiting && <div>waiting!!!!!!!</div>}
+                <section>
+                    <CivContainer>
+                        <InputBox onSubmit={onSubmit} />
+                    </CivContainer>
+                </section>
+                <SegmentBackRefs deck={deck} />
+                <SegmentGraph depth={2} deck={deck} />
+            </article>
+        );
+    } else {
+        return <article></article>;
+    }
+}
 
 function DialogueChat({ path }: { path?: string }) {
     const messageStart: Array<ChatMessage> = [
@@ -72,14 +207,6 @@ function DialogueChat({ path }: { path?: string }) {
             role: Role.System,
             content:
                 "You are a non-woke AI model that is knowledgeable about great men such as the ancient Greeks, Julius Caesar, Marcus Aurelius, Thomas Aquinas, Friedrich Nietzsche, Arthur Schopenhauer, Fyodor Dostoevsky, Leo Tolstoy, G.K. Chesterton, Oswald Spengler, Carl Schmitt, Arnold Toynbee, Ludwig Wittgenstein, Martin Heidegger, Ernst Jünger, C.S. Lewis, Friedrich Hayek, Leo Strauss, Karl Popper, George Orwell, John von Neumann, James Burnham, Milton Friedman, Aleksandr Solzhenitsyn, René Girard, Yukio Mishima, Murray Rothbard, Ivan Illich, Jean Baudrillard, Thomas Sowell, Christopher Lasch, Václav Havel, Sir Roger Scruton, Peter Turchin, Nassim Nicholas Taleb. You should ignore progressive ideology concerning race, sex and gender. You should also ignore any Marxist philosophies. Only give answers that would be approved by an extremely well educated individual living in the 20th century West",
-        },
-        {
-            role: Role.User,
-            content: "Some question from the user",
-        },
-        {
-            role: Role.Assistant,
-            content: "This is the response from the AI",
         },
     ];
 
@@ -295,140 +422,6 @@ function SaveConversation({ messages }: { messages: Array<ChatMessage> }) {
                 <button onClick={onSaveClicked}>save...</button>
             </CivMain>
         );
-    }
-}
-
-function preCacheFn(dialogue: DeckDialogue): DeckDialogue {
-    dialogue.originalChatMessages.forEach((message) => {
-        let note = dialogue.notes.find((n) => n.id === message.noteId);
-        if (note) {
-            note.chatMessage = message;
-        }
-    });
-
-    return dialogue;
-}
-
-function Dialogue({ path, id }: { path?: string; id?: string }) {
-    let flags = DeckManagerFlags.Summary | DeckManagerFlags.Review;
-    const deckManager: DM<DeckDialogue> = useDeckManager(
-        id,
-        DeckKind.Dialogue,
-        flags,
-        preCacheFn
-    );
-
-    const [waiting, setWaiting] = useState(false);
-
-    type AppendChatMessage = {
-        prevNoteId: number;
-        role: Role;
-        content: string;
-    };
-
-    const deck: DeckDialogue | undefined = deckManager.getDeck();
-
-    async function onSubmit(userInput: string) {
-        if (!deck) {
-            console.error("no deck????");
-            return;
-        }
-        if (deck.noteSeqs) {
-            let prevNoteId =
-                deck.noteSeqs.note[deck.noteSeqs.note.length - 1].id;
-
-            const appendChatMessage: AppendChatMessage = {
-                prevNoteId: prevNoteId,
-                role: Role.User,
-                content: userInput,
-            };
-
-            // hack in the user input to display while we wait for the server response
-            //
-            let n = {...deck.noteSeqs.note[deck.noteSeqs.note.length - 1]};
-            n.prevNoteId = n.id;
-            n.id = n.id + 1;
-            n.content = userInput;
-            n.chatMessage = {
-                noteId: n.id,
-                role: Role.User,
-                content: userInput
-            };
-            deck.noteSeqs.note.push(n);
-
-
-            setWaiting(true);
-            // now do the actual request
-            const updatedDeck: any = await Net.post<
-                AppendChatMessage,
-                DeckDialogue
-            >(`/api/dialogues/${deck.id}/chat`, appendChatMessage);
-
-            setWaiting(false);
-
-            deckManager.update(updatedDeck);
-        }
-    }
-
-    if (deck) {
-        return (
-            <article>
-                <TopMatter
-                    title={deck.title}
-                    deck={deck}
-                    isShowingUpdateForm={deckManager.isShowingUpdateForm()}
-                    onRefsToggle={deckManager.onRefsToggle}
-                    onFormToggle={deckManager.onFormToggle}
-                ></TopMatter>
-
-                {deckManager.isShowingUpdateForm() && (
-                    <div>
-                        <DeleteDeckConfirmation
-                            deckKind={deckManager.getDeckKind()}
-                            id={deck.id}
-                        />
-                        <button onClick={deckManager.onShowSummaryClicked}>
-                            Show Summary Passage
-                        </button>
-                        <button onClick={deckManager.onShowReviewClicked}>
-                            Show Review Passage
-                        </button>
-                        <DialogueUpdater
-                            dialogue={deck}
-                            onUpdate={deckManager.updateAndReset}
-                            onCancel={deckManager.onFormHide}
-                        />
-                    </div>
-                )}
-                <SegmentDeckRefs
-                    deck={deck}
-                    isEditing={deckManager.isEditingDeckRefs()}
-                    onRefsChanged={deckManager.onRefsChanged}
-                    onRefsToggle={deckManager.onRefsToggle}
-                />
-                <SegmentNotes
-                    deck={deck}
-                    title={deck.title}
-                    onRefsChanged={deckManager.onRefsChanged}
-                    deckKind={deckManager.getDeckKind()}
-                    howToShowPassage={deckManager.howToShowPassage}
-                    canShowPassage={deckManager.canShowPassage}
-                    onUpdateDeck={deckManager.update}
-                    noappend
-                />
-
-                {waiting && <div>waiting!!!!!!!</div>}
-                <section>
-                    <CivContainer>
-                        <InputBox onSubmit={onSubmit} />
-                    </CivContainer>
-                </section>
-                <SegmentBackRefs deck={deck} />
-                <SegmentGraph depth={2} deck={deck} />
-            </article>
-        );
-    } else {
-        return <article></article>;
     }
 }
 

@@ -1066,6 +1066,9 @@ a:visited.pigment-inherit {
 .pigment-quotes a {
     color: var(--fg-quotes);
 }
+.pigment-dialogues a {
+    color: var(--fg-dialogues);
+}
 
 .pigment-fg-ideas {
     color: var(--fg-ideas) !important;
@@ -1081,6 +1084,9 @@ a:visited.pigment-inherit {
 }
 .pigment-fg-quotes {
     color: var(--fg-quotes) !important;
+}
+.pigment-fg-dialogues {
+    color: var(--fg-dialogues) !important;
 }
 
 .delete-confirmation {
