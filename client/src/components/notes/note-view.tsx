@@ -9,6 +9,7 @@ import {
     Notes,
     Ref,
     RefsModified,
+    Role,
     State,
     ToolbarMode,
 } from "types";
@@ -383,7 +384,7 @@ export default function NoteView({
 
             if (local.note.content.length === 0) {
                 local.note.content =
-                    "|~placeholder content so that note remains selectable|EMPTY";
+                    ":side(placeholder content so that note remains selectable)EMPTY";
             }
 
             // send updated content to server
@@ -642,9 +643,11 @@ function buildLeftMarginContent(note: Note, localDispatch: Function) {
     if (!note.decks && !note.flashcards) {
         return <span></span>;
     } else {
+        let showChat = note.chatMessage && note.chatMessage.role !== Role.System;
+
         return (
             <CivLeft>
-                {note.chatMessage && <RoleView role={note.chatMessage.role} />}
+                {showChat && <RoleView role={note.chatMessage!.role} />}
                 {buildFlashcardIndicator(note.flashcards, localDispatch)}
                 {note.decks && note.flashcards && <div class="spacer"></div>}
                 {buildNoteReferences(note.decks)}
