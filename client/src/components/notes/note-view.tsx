@@ -625,11 +625,13 @@ export default function NoteView({
                     />
                 )}
 
-                <CivMain>
-                    <div class={markupClasses} ref={hoveringRef}>
-                        {buildMarkup(local.note.content)}
-                    </div>
-                </CivMain>
+                {!local.isEditingMarkup && (
+                    <CivMain>
+                        <div class={markupClasses} ref={hoveringRef}>
+                            {buildMarkup(local.note.content)}
+                        </div>
+                    </CivMain>
+                )}
 
                 {local.addDeckReferencesUI && buildAddDecksUI()}
                 {local.addFlashCardUI && buildAddFlashCardUI()}
@@ -643,7 +645,8 @@ function buildLeftMarginContent(note: Note, localDispatch: Function) {
     if (!note.decks && !note.flashcards) {
         return <span></span>;
     } else {
-        let showChat = note.chatMessage && note.chatMessage.role !== Role.System;
+        let showChat =
+            note.chatMessage && note.chatMessage.role !== Role.System;
 
         return (
             <CivLeft>
