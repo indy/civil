@@ -19,6 +19,8 @@
     --title-height: 1.6rem;
 
     --ui-element-border-radius: 0.4em;
+
+    --space-for-selectable-highlight: 0.5rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -223,26 +225,28 @@ h1 {
 
 /* the weird margin-left values for muh-container and muh-content are to provide space for the visible border when one of the selectable classes is applied  */
 .muh-container {
-    border-left: 0.6rem solid rgba(0, 0, 0, 0);
-    margin-left: -2rem;
+    transition: all 0.2s ease;
+    border-left: var(--space-for-selectable-highlight) solid rgba(0, 0, 0, 0);
+    margin-left: -1.6rem;
 }
-.muh-content {
+.muh-main {
     margin-left: 1rem;
 }
 .selectable-hovering {
-    border-radius: 1.5rem;
+    border-radius: 1rem;
 }
 .selectable-hovering-edit {
-    border-left: 0.6rem solid var(--fg-clock-10);
+
+    border-left: var(--space-for-selectable-highlight) solid var(--fg-clock-10);
 }
 .selectable-hovering-refs {
-    border-left: 0.6rem solid var(--fg-clock-08);
+    border-left: var(--space-for-selectable-highlight) solid var(--fg-clock-08);
 }
 .selectable-hovering-sr {
-    border-left: 0.6rem solid var(--fg-clock-07);
+    border-left: var(--space-for-selectable-highlight) solid var(--fg-clock-07);
 }
 .selectable-hovering-add-above {
-    border-left: 0.6rem solid var(--fg-clock-02);
+    border-left: var(--space-for-selectable-highlight) solid var(--fg-clock-02);
 }
 
 h2 {
@@ -1340,7 +1344,6 @@ section > form {
     font-family: Inter;
 }
 
-/* contains refs, 'add note icons' etc*/
 .left-margin {
     padding-top: 0.5rem;
     float: left;
@@ -1354,7 +1357,7 @@ section > form {
 
 /* for providing the lhs distance from the margin */
 .left-margin-inner {
-    padding-right: 0.4rem;
+    padding-right: 1.2rem;
 }
 
 .left-margin-heading-typeface {
@@ -1883,7 +1886,7 @@ input:required {
     }
 
     .muh-container {
-        border-left: 0.6rem solid rgba(0, 0, 0, 0);
+        border-left: var(--space-for-selectable-highlight) solid rgba(0, 0, 0, 0);
         margin-left: 3rem;
         margin-right: 2rem;
     }

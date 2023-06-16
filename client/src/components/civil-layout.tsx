@@ -31,7 +31,7 @@ export function CivMain({
     extraClasses?: string;
     children: ComponentChildren;
 }) {
-    let classes = "muh-content ";
+    let classes = "muh-main ";
     if (extraClasses) {
         classes += extraClasses;
     }
