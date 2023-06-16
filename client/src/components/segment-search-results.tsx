@@ -7,7 +7,7 @@ import { nonEmptyArray, plural } from "utils/js";
 import RollableSegment from "components/rollable-segment";
 import { ListingLink } from "components/listing-link";
 
-import { CivMain } from "components/civil-layout";
+import { CivContainer, CivMain } from "components/civil-layout";
 
 export default function SegmentSearchResults({
     searchResults,
@@ -26,9 +26,11 @@ export default function SegmentSearchResults({
         );
         return (
             <RollableSegment heading={heading} initiallyRolledUp>
-                <CivMain>
-                    <ul>{searchResults.map(buildSearchResult)}</ul>
-                </CivMain>
+                <CivContainer>
+                    <CivMain>
+                        <ul>{searchResults.map(buildSearchResult)}</ul>
+                    </CivMain>
+                </CivContainer>
             </RollableSegment>
         );
     } else {

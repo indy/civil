@@ -315,23 +315,25 @@ function SegmentPoints({
 
     return (
         <RollableSegment heading="Timeline">
-            <CivMain>
-                <ul class="unstyled-list hug-left">{dps}</ul>
-            </CivMain>
-            <WhenVerbose>
-                <CivLeft>
-                    <div
-                        class="left-margin-entry fadeable clickable"
-                        onClick={onAddPointClicked}
-                    >
-                        <span class="left-margin-icon-label">
-                            {formSidebarText}
-                        </span>
-                        {showAddPointForm ? svgX() : svgPointAdd()}
-                    </div>
-                </CivLeft>
-            </WhenVerbose>
-            {showAddPointForm && deckManager.buildPointForm(onPointCreated)}
+            <CivContainer>
+                <CivMain>
+                    <ul class="unstyled-list hug-left">{dps}</ul>
+                </CivMain>
+                <WhenVerbose>
+                    <CivLeft>
+                        <div
+                            class="left-margin-entry fadeable clickable"
+                            onClick={onAddPointClicked}
+                        >
+                            <span class="left-margin-icon-label">
+                                {formSidebarText}
+                            </span>
+                            {showAddPointForm ? svgX() : svgPointAdd()}
+                        </div>
+                    </CivLeft>
+                </WhenVerbose>
+                {showAddPointForm && deckManager.buildPointForm(onPointCreated)}
+            </CivContainer>
         </RollableSegment>
     );
 }

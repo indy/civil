@@ -19,7 +19,7 @@ import { svgCaretDown, svgCaretRight } from "components/svg-icons";
 import RollableSegment from "components/rollable-segment";
 import { ExpandableListingLink } from "components/listing-link";
 
-import { CivMain } from "components/civil-layout";
+import { CivContainer, CivMain } from "components/civil-layout";
 
 type BackRefItem = {
     id: Key;
@@ -159,11 +159,7 @@ export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
         }
     });
 
-    return (
-        <RollableSegment heading="BackRefs">
-            <CivMain>{segments}</CivMain>
-        </RollableSegment>
-    );
+    return <RollableSegment heading="BackRefs">{segments}</RollableSegment>;
 }
 
 function SegmentLinks({ backrefs }: { backrefs: Array<BackRefItem> }) {
@@ -221,9 +217,13 @@ function SegmentLinks({ backrefs }: { backrefs: Array<BackRefItem> }) {
 
     return (
         <section key={segmentId}>
-            <h3 class="ui" onClick={onClickToggle}>
-                {icon} {segmentHeading}
-            </h3>
+            <CivContainer>
+                <CivMain>
+                    <h3 class="ui" onClick={onClickToggle}>
+                        {icon} {segmentHeading}
+                    </h3>
+                </CivMain>
+            </CivContainer>
             {list}
         </section>
     );

@@ -43,8 +43,8 @@ export default function RollableSegment({
                     </h2>
                     <hr class="big-segment" />
                 </CivMain>
-                {!isRolledUp && children}
             </CivContainer>
+            {!isRolledUp && children}
         </section>
     );
 }

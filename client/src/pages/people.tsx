@@ -33,7 +33,6 @@ import {
 } from "components/svg-icons";
 import WhenVerbose from "components/when-verbose";
 
-import { CivLeft } from "components/civil-layout";
 import CivilInput from "components/civil-input";
 import DeckListingPage from "components/deck-listing-page";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
@@ -53,6 +52,7 @@ import {
     CivContainer,
     CivMain,
     CivForm,
+    CivLeft,
     CivLeftLabel,
 } from "components/civil-layout";
 
@@ -555,64 +555,66 @@ function SegmentPoints({
 
     return (
         <RollableSegment heading={segmentTitle}>
-            <CivLeft>
-                {!hasDied && (
-                    <div
-                        class="left-margin-entry fadeable clickable"
-                        onClick={onShowDeathFormClicked}
-                    >
-                        <span class="left-margin-icon-label">
-                            Add Died Point
-                        </span>
-                        {svgPointAdd()}
-                    </div>
-                )}
-                <WhenVerbose>
-                    <div
-                        class="left-margin-entry fadeable clickable"
-                        onClick={onOnlyThisPersonClicked}
-                    >
-                        <span class="left-margin-icon-label">
-                            Only {holderTitle}
-                        </span>
-                        {onlyThisPerson
-                            ? svgTickedCheckBox()
-                            : svgUntickedCheckBox()}
-                    </div>
-                    {!onlyThisPerson && (
+            <CivContainer>
+                <CivLeft>
+                    {!hasDied && (
                         <div
                             class="left-margin-entry fadeable clickable"
-                            onClick={onShowOtherClicked}
+                            onClick={onShowDeathFormClicked}
                         >
                             <span class="left-margin-icon-label">
-                                Show Other Birth/Deaths
+                                Add Died Point
                             </span>
-                            {showBirthsDeaths
+                            {svgPointAdd()}
+                        </div>
+                    )}
+                    <WhenVerbose>
+                        <div
+                            class="left-margin-entry fadeable clickable"
+                            onClick={onOnlyThisPersonClicked}
+                        >
+                            <span class="left-margin-icon-label">
+                                Only {holderTitle}
+                            </span>
+                            {onlyThisPerson
                                 ? svgTickedCheckBox()
                                 : svgUntickedCheckBox()}
                         </div>
-                    )}
-                </WhenVerbose>
-            </CivLeft>
-            {showDeathForm && deathForm()}
-
-            <CivMain>
-                <ul class="unstyled-list hug-left">{dps}</ul>
-            </CivMain>
-            <WhenVerbose>
-                <CivLeft>
-                    <div
-                        class="left-margin-entry fadeable clickable"
-                        onClick={onAddPointClicked}
-                    >
-                        <span class="left-margin-icon-label">
-                            {formSidebarText}
-                        </span>
-                        {showAddPointForm ? svgX() : svgPointAdd()}
-                    </div>
+                        {!onlyThisPerson && (
+                            <div
+                                class="left-margin-entry fadeable clickable"
+                                onClick={onShowOtherClicked}
+                            >
+                                <span class="left-margin-icon-label">
+                                    Show Other Birth/Deaths
+                                </span>
+                                {showBirthsDeaths
+                                    ? svgTickedCheckBox()
+                                    : svgUntickedCheckBox()}
+                            </div>
+                        )}
+                    </WhenVerbose>
                 </CivLeft>
-            </WhenVerbose>
-            {showAddPointForm && deckManager.buildPointForm(onPointCreated)}
+                {showDeathForm && deathForm()}
+
+                <CivMain>
+                    <ul class="unstyled-list hug-left">{dps}</ul>
+                </CivMain>
+                <WhenVerbose>
+                    <CivLeft>
+                        <div
+                            class="left-margin-entry fadeable clickable"
+                            onClick={onAddPointClicked}
+                        >
+                            <span class="left-margin-icon-label">
+                                {formSidebarText}
+                            </span>
+                            {showAddPointForm ? svgX() : svgPointAdd()}
+                        </div>
+                    </CivLeft>
+                </WhenVerbose>
+                {showAddPointForm && deckManager.buildPointForm(onPointCreated)}
+            </CivContainer>
         </RollableSegment>
     );
 }
