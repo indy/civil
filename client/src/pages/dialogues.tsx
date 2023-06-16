@@ -359,8 +359,6 @@ function SaveConversation({ messages }: { messages: Array<ChatMessage> }) {
     }
 
     async function onReallySaveClicked() {
-        console.log(`will save ${local.title}`);
-
         let data: ProtoDialogue = {
             title: local.title,
             kind: CHAT_GPT,
@@ -368,11 +366,12 @@ function SaveConversation({ messages }: { messages: Array<ChatMessage> }) {
             messages: messages,
         };
 
-        const response: any = await Net.post<ProtoDialogue, any>(
+        await Net.post<ProtoDialogue, any>(
             "/api/dialogues",
             data
         );
-        console.log(response);
+
+        route('/dialogues', true);
     }
 
     function handleContentChange(content: string, name: string) {
