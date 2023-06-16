@@ -51,6 +51,7 @@ enum ActionType {
     TextAreaBlurred,
     TextAreaFocused,
     ToggleEditing,
+    ToggleMinimisedText,
 }
 
 type LocalState = {
@@ -64,6 +65,8 @@ type LocalState = {
     flashcardToShow: FlashCard | undefined;
     oldCursorPos: number;
     textAreaFocused: boolean;
+    canMinimiseText: boolean;
+    isMinimisedText: boolean;
 };
 
 type ActionDataFlashCardSaved = {
@@ -271,6 +274,14 @@ function reducer(state: LocalState, action: Action) {
 
             return newState;
         }
+        case ActionType.ToggleMinimisedText: {
+            const newState = {
+                ...state,
+                isMinimisedText: !state.isMinimisedText,
+            };
+
+            return newState;
+        }
         case ActionType.ToggleEditing: {
             AppStateChange.toolbarMode(ToolbarMode.View);
             const newState = {
@@ -350,6 +361,10 @@ export default function NoteView({
         flashcardToShow: undefined,
         oldCursorPos: 0,
         textAreaFocused: false,
+        canMinimiseText:
+            !!note.chatMessage && note.chatMessage.role === Role.System,
+        isMinimisedText:
+            !!note.chatMessage && note.chatMessage.role === Role.System,
     };
     const [local, localDispatch] = useLocalReducer(reducer, initialState);
 
@@ -567,6 +582,13 @@ export default function NoteView({
     }
 
     function onNoteClicked() {
+        if (
+            appState.toolbarMode.value === ToolbarMode.View &&
+            local.canMinimiseText
+        ) {
+            localDispatch(ActionType.ToggleMinimisedText);
+        }
+
         switch (appState.toolbarMode.value) {
             case ToolbarMode.Edit:
                 if (!local.isEditingMarkup) {
@@ -600,11 +622,6 @@ export default function NoteView({
         }
     }
 
-    let markupClasses = "note-content";
-    if (local.isEditingMarkup) {
-        markupClasses += " invisible";
-    }
-
     // console.log("input:");
     // console.log(local.note.content);
     // console.log("output:");
@@ -627,8 +644,14 @@ export default function NoteView({
 
                 {!local.isEditingMarkup && (
                     <CivMain>
-                        <div class={markupClasses} ref={hoveringRef}>
-                            {buildMarkup(local.note.content)}
+                        <div class="note-content" ref={hoveringRef}>
+                            {local.isMinimisedText && (
+                                <p class="minimised-text">
+                                    minimised, click to expand.....
+                                </p>
+                            )}
+                            {!local.isMinimisedText &&
+                                buildMarkup(local.note.content)}
                         </div>
                     </CivMain>
                 )}
@@ -645,12 +668,9 @@ function buildLeftMarginContent(note: Note, localDispatch: Function) {
     if (!note.decks && !note.flashcards) {
         return <span></span>;
     } else {
-        let showChat =
-            note.chatMessage && note.chatMessage.role !== Role.System;
-
         return (
             <CivLeft>
-                {showChat && <RoleView role={note.chatMessage!.role} />}
+                {note.chatMessage && <RoleView role={note.chatMessage!.role} />}
                 {buildFlashcardIndicator(note.flashcards, localDispatch)}
                 {note.decks && note.flashcards && <div class="spacer"></div>}
                 {buildNoteReferences(note.decks)}

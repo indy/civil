@@ -1333,6 +1333,11 @@ section > form {
     width: var(--block-width);
 }
 
+.minimised-text {
+    color: var(--fg1);
+    font-style: oblique;
+}
+
 .note-content > ol {
     width: var(--block-width);
 }

@@ -366,12 +366,9 @@ function SaveConversation({ messages }: { messages: Array<ChatMessage> }) {
             messages: messages,
         };
 
-        await Net.post<ProtoDialogue, any>(
-            "/api/dialogues",
-            data
-        );
+        await Net.post<ProtoDialogue, any>("/api/dialogues", data);
 
-        route('/dialogues', true);
+        route("/dialogues", true);
     }
 
     function handleContentChange(content: string, name: string) {
