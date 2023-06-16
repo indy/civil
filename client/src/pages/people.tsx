@@ -552,6 +552,7 @@ function SegmentPoints({
         );
 
     const segmentTitle = `Points during the life of ${holderTitle}`;
+
     return (
         <RollableSegment heading={segmentTitle}>
             <CivLeft>
@@ -594,7 +595,10 @@ function SegmentPoints({
                 </WhenVerbose>
             </CivLeft>
             {showDeathForm && deathForm()}
-            <ul class="unstyled-list hug-left">{dps}</ul>
+
+            <CivMain>
+                <ul class="unstyled-list hug-left">{dps}</ul>
+            </CivMain>
             <WhenVerbose>
                 <CivLeft>
                     <div

@@ -4,16 +4,14 @@ import { useEffect, useRef } from "preact/hooks";
 import { ToolbarMode } from "types";
 import { getAppState, AppStateChange } from "app-state";
 
-import { addToolbarSelectableClasses } from "utils/civil";
-
-import { CivContainer, CivMain } from "components/civil-layout";
-import useMouseHovering from "components/use-mouse-hovering";
+import { CivMain } from "components/civil-layout";
 
 type Props = {
     title: string;
     isShowingUpdateForm: boolean;
     onRefsToggle: () => void;
     onFormToggle: () => void;
+    hoveringRef: any;
 };
 
 export default function Title({
@@ -21,11 +19,9 @@ export default function Title({
     isShowingUpdateForm,
     onRefsToggle,
     onFormToggle,
+    hoveringRef,
 }: Props) {
     const appState = getAppState();
-
-    const hoveringRef = useRef(null);
-    const mouseHovering = useMouseHovering(hoveringRef);
 
     const preMarkerRef = useRef(null); // an element on the page, when it's offscreen apply title-sticky to the h1
     const postMarkerRef = useRef(null); // an element on the page, when it's onscreen remove title-sticky from the h1
@@ -90,42 +86,22 @@ export default function Title({
         };
     }, []);
 
-    let classes = "deck-title";
-    let containerClasses = "";
-    const classSticky = "title-sticky";
-
-    if (titleRef.current) {
-        let titleEl = titleRef.current as HTMLElement;
-        if (titleEl && titleEl.classList.contains(classSticky)) {
-            // don't show selectable highlight if the title is sticky
-        } else if (mouseHovering) {
-            let toolbarMode = appState.toolbarMode.value;
-            // only show as selectable if in edit or refs mode
-            if (
-                toolbarMode === ToolbarMode.Edit ||
-                toolbarMode === ToolbarMode.Refs
-            ) {
-                containerClasses += addToolbarSelectableClasses(toolbarMode);
-            }
-        }
-    }
-
     // there are 2 markers: pre and post so that we get a nice effect in both of these scenarios:
     // 1. the sticky header appearing when the top of the title scrolls off the top of the screen
     // 2. the normal inline title appears when the bottom of the title text should be visible as
     //    the user scrolls up
     return (
-        <CivContainer extraClasses={containerClasses}>
+        <CivMain>
             <div ref={hoveringRef} onClick={onTitleClicked}>
                 <div ref={preMarkerRef}></div>
                 <div ref={backgroundBandRef}></div>
-                <CivMain>
-                    <h1 ref={titleRef} class={classes}>
-                        {title}
-                    </h1>
-                </CivMain>
+
+                <h1 ref={titleRef} class="deck-title">
+                    {title}
+                </h1>
+
                 <div ref={postMarkerRef}></div>
             </div>
-        </CivContainer>
+        </CivMain>
     );
 }

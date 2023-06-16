@@ -536,7 +536,6 @@ h3 > code {
 
 pre > code {
     font-size: 0.9rem;
-    /*isg: removed this: width: 52.5%;*/
     margin-left: 2.5%;
     overflow-x: auto;
     display: block;
@@ -1353,7 +1352,12 @@ section > form {
     font-family: Inter;
 }
 
-.left-margin-heading {
+/* for providing the lhs distance from the margin */
+.left-margin-inner {
+    padding-right: 0.4rem;
+}
+
+.left-margin-heading-typeface {
     font-family: Crimson;
     font-weight: 300;
 }
@@ -1386,18 +1390,11 @@ section > form {
     cursor: pointer;
 }
 
-.left-margin-entry-no-note-on-right {
-    padding-right: 2rem;
-    padding-bottom: 0.4rem;
-}
-
 .left-margin-entry {
-    padding-right: 1rem;
     padding-bottom: 0.4rem;
 }
 
 .left-margin-entry-no-wrap {
-    padding-right: 2rem;
     margin-left: -500rem;
 }
 

@@ -352,7 +352,7 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
             </CivMain>
 
             <CivLeftLabel forId="short-description">
-                Short Description:
+                Short Description
             </CivLeftLabel>
 
             <CivMain>
@@ -363,7 +363,7 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
                 />
             </CivMain>
 
-            <CivLeftLabel forId="rating">Rating (0..5):</CivLeftLabel>
+            <CivLeftLabel forId="rating">Rating (0..5)</CivLeftLabel>
 
             <CivMain>
                 <input

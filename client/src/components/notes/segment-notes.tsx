@@ -14,6 +14,7 @@ import {
 import Passage from "components/notes/passage";
 import RollableSegment from "components/rollable-segment";
 import { getAppState } from "app-state";
+import { CivMain } from "components/civil-layout";
 
 type Props = {
     deck: FatDeck;
@@ -152,7 +153,7 @@ function NoteKindPassage({
         case PassageHowToShow.Show:
             return (
                 <RollableSegment heading={heading}>
-                    {notePassage(noteKind)}
+                    <CivMain>{notePassage(noteKind)}</CivMain>
                 </RollableSegment>
             );
     }

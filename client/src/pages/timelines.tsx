@@ -315,7 +315,9 @@ function SegmentPoints({
 
     return (
         <RollableSegment heading="Timeline">
-            <ul class="unstyled-list hug-left">{dps}</ul>
+            <CivMain>
+                <ul class="unstyled-list hug-left">{dps}</ul>
+            </CivMain>
             <WhenVerbose>
                 <CivLeft>
                     <div

@@ -16,11 +16,7 @@ function StarRatingPartial({ rating }: { rating: number }) {
         ratings.push(svgRatingStar());
     }
 
-    return (
-        <div class="left-margin-entry-no-note-on-right">
-            {rating > 0 && ratings}
-        </div>
-    );
+    return <div>{rating > 0 && ratings}</div>;
 }
 
 export { StarRating, StarRatingPartial };

@@ -7,7 +7,7 @@ export default function LeftMarginHeadingNoWrap({
 }) {
     return (
         <div class="left-margin-entry-no-wrap">
-            <div class="left-margin-heading">{children}</div>
+            <div class="left-margin-heading-typeface">{children}</div>
         </div>
     );
 }

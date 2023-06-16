@@ -5,9 +5,5 @@ export default function LeftMarginHeading({
 }: {
     children: ComponentChildren;
 }) {
-    return (
-        <div class="left-margin-entry-no-note-on-right">
-            <div class="left-margin-heading">{children}</div>
-        </div>
-    );
+    return <div class="left-margin-heading-typeface">{children}</div>;
 }

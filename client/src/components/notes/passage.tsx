@@ -15,7 +15,7 @@ import Net from "utils/net";
 import { getAppState, AppStateChange } from "app-state";
 import { svgEdit } from "components/svg-icons";
 
-import { CivLeft } from "components/civil-layout";
+import { CivContainer, CivLeft } from "components/civil-layout";
 import NoteForm from "components/notes/note-form";
 import NoteView from "components/notes/note-view";
 import WhenVerbose from "components/when-verbose";
@@ -124,7 +124,7 @@ export default function Passage({
                     <div class="inline-append-note">
                         <div class="left-margin-inline">
                             <div
-                                class="left-margin-entry-no-note-on-right fadeable clickable"
+                                class="fadeable clickable"
                                 onClick={onAddNoteClicked}
                             >
                                 {svgEdit()}
@@ -139,10 +139,10 @@ export default function Passage({
         } else {
             return (
                 <WhenVerbose>
-                    <div class="append-note">
+                    <CivContainer extraClasses="append-note">
                         <CivLeft>
                             <div
-                                class="left-margin-entry-no-note-on-right fadeable clickable"
+                                class="fadeable clickable"
                                 onClick={onAddNoteClicked}
                             >
                                 <span class="left-margin-icon-label ui-bold">
@@ -151,7 +151,7 @@ export default function Passage({
                                 {svgEdit()}
                             </div>
                         </CivLeft>
-                    </div>
+                    </CivContainer>
                 </WhenVerbose>
             );
         }

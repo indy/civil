@@ -33,10 +33,7 @@ export default function RollableSegment({
         <section class={classState}>
             <CivContainer>
                 <CivLeft>
-                    <div
-                        class="left-margin-entry-no-note-on-right clickable"
-                        onClick={onRollClicked}
-                    >
+                    <div class="clickable" onClick={onRollClicked}>
                         {icon}
                     </div>
                 </CivLeft>
@@ -45,8 +42,8 @@ export default function RollableSegment({
                         {heading}
                     </h2>
                     <hr class="big-segment" />
-                    {!isRolledUp && children}
                 </CivMain>
+                {!isRolledUp && children}
             </CivContainer>
         </section>
     );

@@ -51,7 +51,11 @@ export function CivLeft({
         classes += extraClasses;
     }
 
-    return <div class={classes}>{children}</div>;
+    return (
+        <div class={classes}>
+            <div class="left-margin-inner">{children}</div>
+        </div>
+    );
 }
 
 export function CivRight({
