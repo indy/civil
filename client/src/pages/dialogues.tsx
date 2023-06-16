@@ -17,7 +17,13 @@ import InsigniaSelector from "components/insignias/selector";
 import SegmentGraph from "components/graph/segment-graph";
 import SegmentNotes from "components/notes/segment-notes";
 
-import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
+import {
+    CivContainer,
+    CivMain,
+    CivLeft,
+    CivForm,
+    CivLeftLabel,
+} from "components/civil-layout";
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
 import DeckListingPage from "components/deck-listing-page";
@@ -160,23 +166,34 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
                 ></TopMatter>
 
                 {deckManager.isShowingUpdateForm() && (
-                    <div>
-                        <DeleteDeckConfirmation
-                            deckKind={deckManager.getDeckKind()}
-                            id={deck.id}
-                        />
-                        <button onClick={deckManager.onShowSummaryClicked}>
-                            Show Summary Passage
-                        </button>
-                        <button onClick={deckManager.onShowReviewClicked}>
-                            Show Review Passage
-                        </button>
-                        <DialogueUpdater
-                            dialogue={deck}
-                            onUpdate={deckManager.updateAndReset}
-                            onCancel={deckManager.onFormHide}
-                        />
-                    </div>
+                    <section>
+                        <CivContainer>
+                            <CivMain>
+                                <DeleteDeckConfirmation
+                                    deckKind={deckManager.getDeckKind()}
+                                    id={deck.id}
+                                />
+                                <button
+                                    onClick={deckManager.onShowSummaryClicked}
+                                >
+                                    Show Summary Passage
+                                </button>
+                                <button
+                                    onClick={deckManager.onShowReviewClicked}
+                                >
+                                    Show Review Passage
+                                </button>
+                            </CivMain>
+                        </CivContainer>
+                        <div class="vertical-spacer"></div>
+                        <CivContainer>
+                            <DialogueUpdater
+                                dialogue={deck}
+                                onUpdate={deckManager.updateAndReset}
+                                onCancel={deckManager.onFormHide}
+                            />
+                        </CivContainer>
+                    </section>
                 )}
                 <SegmentDeckRefs
                     deck={deck}
@@ -382,38 +399,31 @@ function SaveConversation({ messages }: { messages: Array<ChatMessage> }) {
 
     if (local.showDialog) {
         return (
-            <CivMain>
-                <div class="grid2-layout grid2-layout-more-col2 form-typography">
-                    <label class="grid2-layout-label" for="title">
-                        Title:
-                    </label>
-
+            <div>
+                <CivLeftLabel forId="title">Title</CivLeftLabel>
+                <CivMain>
                     <CivilInput
                         id="title"
-                        elementClass="grid2-layout-input"
                         value={local.title}
                         onContentChange={handleContentChange}
                     />
+                </CivMain>
 
-                    <label
-                        class="grid2-layout-label"
-                        style="margin-top: 0.9rem;"
-                    >
-                        Insignias:
-                    </label>
-                    <div class="grid2-col2">
-                        <InsigniaSelector
-                            insigniaId={local.insigniaId}
-                            onChange={setInsigniaId}
-                        />
-                    </div>
+                <CivLeftLabel extraClasses="insignia-form-label">
+                    Insignias
+                </CivLeftLabel>
+                <CivMain>
+                    <InsigniaSelector
+                        insigniaId={local.insigniaId}
+                        onChange={setInsigniaId}
+                    />
+                </CivMain>
 
-                    <div class="grid2-layout-input">
-                        <button onClick={onReallySaveClicked}>Save</button>
-                        <button onClick={onCancelClicked}>cancel</button>
-                    </div>
-                </div>
-            </CivMain>
+                <CivMain>
+                    <button onClick={onReallySaveClicked}>Save</button>
+                    <button onClick={onCancelClicked}>cancel</button>
+                </CivMain>
+            </div>
         );
     } else {
         return (
@@ -429,6 +439,7 @@ type DialogueUpdaterProps = {
     onUpdate: (d: DeckDialogue) => void;
     onCancel: () => void;
 };
+
 function DialogueUpdater({
     dialogue,
     onUpdate,
@@ -478,32 +489,41 @@ function DialogueUpdater({
     }
 
     return (
-        <form class="civil-form" onSubmit={handleSubmit}>
-            <label for="title">Title:</label>
-            <br />
-            <CivilInput
-                id="title"
-                value={title}
-                onContentChange={onContentChange}
-            />
-            <br />
+        <CivForm onSubmit={handleSubmit}>
+            <CivLeftLabel forId="title">Title</CivLeftLabel>
+            <CivMain>
+                <CivilInput
+                    id="title"
+                    value={title}
+                    onContentChange={onContentChange}
+                />
+            </CivMain>
 
-            <InsigniaSelector
-                insigniaId={insigniaId}
-                onChange={setInsigniaId}
-            />
-            <br />
+            <CivLeftLabel extraClasses="insignia-form-label">
+                Insignias
+            </CivLeftLabel>
 
-            <label for="source">Source:</label>
-            <br />
-            <input
-                type="button"
-                value="Cancel"
-                class="dialog-cancel"
-                onClick={onCancel}
-            />
-            <input id="dialogue-submit" type="submit" value="Update Dialogue" />
-        </form>
+            <CivMain>
+                <InsigniaSelector
+                    insigniaId={insigniaId}
+                    onChange={setInsigniaId}
+                />
+            </CivMain>
+
+            <CivMain>
+                <input
+                    type="button"
+                    value="Cancel"
+                    class="dialog-cancel"
+                    onClick={onCancel}
+                />
+                <input
+                    id="dialogue-submit"
+                    type="submit"
+                    value="Update Dialogue"
+                />
+            </CivMain>
+        </CivForm>
     );
 }
 

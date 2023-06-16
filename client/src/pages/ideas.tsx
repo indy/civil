@@ -27,7 +27,12 @@ import SegmentNotes from "components/notes/segment-notes";
 import SegmentSearchResults from "components/segment-search-results";
 import TopMatter from "components/top-matter";
 import { SlimDeckGrouping } from "components/groupings";
-import { CivContainer, CivMain } from "components/civil-layout";
+import {
+    CivContainer,
+    CivMain,
+    CivForm,
+    CivLeftLabel,
+} from "components/civil-layout";
 
 function Ideas({ path }: { path?: string }) {
     const appState = getAppState();
@@ -101,18 +106,24 @@ function Idea({ path, id }: { path?: string; id?: string }) {
                 </TopMatter>
 
                 {deckManager.isShowingUpdateForm() && (
-                    <DeleteDeckConfirmation
-                        deckKind={deckManager.getDeckKind()}
-                        id={deck.id}
-                    />
-                )}
-
-                {deckManager.isShowingUpdateForm() && (
-                    <IdeaUpdater
-                        idea={deck}
-                        onUpdate={deckManager.updateAndReset}
-                        onCancel={deckManager.onFormHide}
-                    />
+                    <section>
+                        <CivContainer>
+                            <CivMain>
+                                <DeleteDeckConfirmation
+                                    deckKind={deckManager.getDeckKind()}
+                                    id={deck.id}
+                                />
+                            </CivMain>
+                        </CivContainer>
+                        <div class="vertical-spacer"></div>
+                        <CivContainer>
+                            <IdeaUpdater
+                                idea={deck}
+                                onUpdate={deckManager.updateAndReset}
+                                onCancel={deckManager.onFormHide}
+                            />
+                        </CivContainer>
+                    </section>
                 )}
 
                 <SegmentDeckRefs
@@ -202,61 +213,52 @@ function IdeaUpdater({ idea, onUpdate, onCancel }: IdeaUpdaterProps) {
     }
 
     return (
-        <section>
-            <CivContainer>
-                <CivMain>
-                    <form class="grid2-layout" onSubmit={handleSubmit}>
-                        <label class="grid2-layout-label" for="title">
-                            Title:
-                        </label>
-                        <CivilInput
-                            id="title"
-                            value={title}
-                            elementClass="grid2-col2"
-                            onContentChange={handleContentChange}
-                        />
+        <CivForm onSubmit={handleSubmit}>
+            <CivLeftLabel forId="title">Title</CivLeftLabel>
+            <CivMain>
+                <CivilInput
+                    id="title"
+                    value={title}
+                    onContentChange={handleContentChange}
+                />
+            </CivMain>
 
-                        <label
-                            class="grid2-layout-label"
-                            style="margin-top: 0.9rem;"
-                        >
-                            Insignias:
-                        </label>
-                        <div class="grid2-col2">
-                            <InsigniaSelector
-                                insigniaId={insigniaId}
-                                onChange={setInsigniaId}
-                            />
-                        </div>
+            <CivLeftLabel extraClasses="insignia-form-label">
+                Insignias
+            </CivLeftLabel>
+            <CivMain>
+                <InsigniaSelector
+                    insigniaId={insigniaId}
+                    onChange={setInsigniaId}
+                />
+            </CivMain>
 
-                        <label
-                            class="grid2-layout-label"
-                            style="margin-top: 0.7rem;"
-                            for="graph-terminator"
-                        >
-                            Graph Terminator:
-                        </label>
-                        <input
-                            type="checkbox"
-                            class="grid2-col2"
-                            id="graph-terminator"
-                            name="graph-terminator"
-                            onInput={handleCheckbox}
-                            checked={graphTerminator}
-                        />
-                        <div class="grid2-col2">
-                            <input
-                                type="button"
-                                value="Cancel"
-                                class="dialog-cancel"
-                                onClick={onCancel}
-                            />
-                            <input type="submit" value="Update Idea" />
-                        </div>
-                    </form>
-                </CivMain>
-            </CivContainer>
-        </section>
+            <CivLeftLabel
+                extraClasses="graph-terminator-form-label"
+                forId="graph-terminator"
+            >
+                Graph Terminator
+            </CivLeftLabel>
+            <CivMain>
+                <input
+                    type="checkbox"
+                    id="graph-terminator"
+                    name="graph-terminator"
+                    onInput={handleCheckbox}
+                    checked={graphTerminator}
+                />
+            </CivMain>
+
+            <CivMain>
+                <input
+                    type="button"
+                    value="Cancel"
+                    class="dialog-cancel"
+                    onClick={onCancel}
+                />
+                <input type="submit" value="Update Idea" />
+            </CivMain>
+        </CivForm>
     );
 }
 

@@ -68,3 +68,35 @@ export function CivRight({
 
     return <div class={classes}>{children}</div>;
 }
+
+export function CivForm({
+    onSubmit,
+    children,
+}: {
+    onSubmit: (e: Event) => void;
+    children: ComponentChildren;
+}) {
+    return (
+        <form class="muh-form" onSubmit={onSubmit}>
+            {children}
+        </form>
+    );
+}
+
+export function CivLeftLabel({
+    forId,
+    extraClasses,
+    children,
+}: {
+    forId?: string;
+    extraClasses?: string;
+    children: ComponentChildren;
+}) {
+    return (
+        <CivLeft>
+            <label for={forId} class={extraClasses}>
+                {children}
+            </label>
+        </CivLeft>
+    );
+}

@@ -26,7 +26,12 @@ import SegmentDeckRefs from "components/segment-deck-refs";
 import TopMatter from "components/top-matter";
 import { SlimDeckGrouping, RatedGrouping } from "components/groupings";
 import { StarRatingPartial } from "components/star-rating";
-import { CivContainer, CivMain } from "components/civil-layout";
+import {
+    CivContainer,
+    CivMain,
+    CivForm,
+    CivLeftLabel,
+} from "components/civil-layout";
 
 import Net from "utils/net";
 import { buildUrl } from "utils/civil";
@@ -106,30 +111,34 @@ function Article({ path, id }: { path?: string; id?: string }) {
                 </TopMatter>
 
                 {deckManager.isShowingUpdateForm() && (
-                    <DeleteDeckConfirmation
-                        deckKind={deckManager.getDeckKind()}
-                        id={deck.id}
-                    />
-                )}
-
-                {deckManager.isShowingUpdateForm() && (
-                    <button onClick={deckManager.onShowSummaryClicked}>
-                        Show Summary Passage
-                    </button>
-                )}
-
-                {deckManager.isShowingUpdateForm() && (
-                    <button onClick={deckManager.onShowReviewClicked}>
-                        Show Review Passage
-                    </button>
-                )}
-
-                {deckManager.isShowingUpdateForm() && (
-                    <ArticleUpdater
-                        article={deck}
-                        onUpdate={deckManager.updateAndReset}
-                        onCancel={deckManager.onFormHide}
-                    />
+                    <section>
+                        <CivContainer>
+                            <CivMain>
+                                <DeleteDeckConfirmation
+                                    deckKind={deckManager.getDeckKind()}
+                                    id={deck.id}
+                                />
+                                <button
+                                    onClick={deckManager.onShowSummaryClicked}
+                                >
+                                    Show Summary Passage
+                                </button>
+                                <button
+                                    onClick={deckManager.onShowReviewClicked}
+                                >
+                                    Show Review Passage
+                                </button>
+                            </CivMain>
+                        </CivContainer>
+                        <div class="vertical-spacer"></div>
+                        <CivContainer>
+                            <ArticleUpdater
+                                article={deck}
+                                onUpdate={deckManager.updateAndReset}
+                                onCancel={deckManager.onFormHide}
+                            />
+                        </CivContainer>
+                    </section>
                 )}
 
                 {deck.shortDescription && (
@@ -293,109 +302,95 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
     }
 
     return (
-        <section>
-            <CivContainer>
-                <CivMain>
-                    <form class="grid2-layout" onSubmit={handleSubmit}>
-                        <label class="grid2-layout-label" for="title">
-                            Title:
-                        </label>
-                        <CivilInput
-                            id="title"
-                            value={title}
-                            elementClass="grid2-col2"
-                            onContentChange={onContentChange}
-                        />
+        <CivForm onSubmit={handleSubmit}>
+            <CivLeftLabel forId="title">Title</CivLeftLabel>
+            <CivMain>
+                <CivilInput
+                    id="title"
+                    value={title}
+                    onContentChange={onContentChange}
+                />
+            </CivMain>
 
-                        <label
-                            class="grid2-layout-label"
-                            style="margin-top: 0.9rem;"
-                        >
-                            Insignias:
-                        </label>
-                        <div class="grid2-col2">
-                            <InsigniaSelector
-                                insigniaId={insigniaId}
-                                onChange={setInsigniaId}
-                            />
-                        </div>
+            <CivLeftLabel extraClasses="insignia-form-label">
+                Insignias
+            </CivLeftLabel>
+            <CivMain>
+                <InsigniaSelector
+                    insigniaId={insigniaId}
+                    onChange={setInsigniaId}
+                />
+            </CivMain>
 
-                        <label class="grid2-layout-label" for="source">
-                            Source:
-                        </label>
-                        <CivilInput
-                            id="source"
-                            elementClass="grid2-col2"
-                            value={source}
-                            onContentChange={onContentChange}
-                        />
+            <CivLeftLabel forId="source">Source</CivLeftLabel>
+            <CivMain>
+                <CivilInput
+                    id="source"
+                    value={source}
+                    onContentChange={onContentChange}
+                />
+            </CivMain>
 
-                        <label class="grid2-layout-label" for="author">
-                            Author:
-                        </label>
+            <CivLeftLabel forId="author">Author</CivLeftLabel>
 
-                        <CivilInput
-                            id="author"
-                            elementClass="grid2-col2"
-                            value={author}
-                            onContentChange={onContentChange}
-                        />
+            <CivMain>
+                <CivilInput
+                    id="author"
+                    value={author}
+                    onContentChange={onContentChange}
+                />
+            </CivMain>
 
-                        <label class="grid2-layout-label" for="publishedDate">
-                            Published Date:
-                        </label>
+            <CivLeftLabel forId="publishedDate">Published Date</CivLeftLabel>
 
-                        <CivilInput
-                            id="publishedDate"
-                            elementClass="grid2-col2"
-                            value={publishedDate}
-                            onContentChange={onContentChange}
-                        />
+            <CivMain>
+                <CivilInput
+                    id="publishedDate"
+                    value={publishedDate}
+                    onContentChange={onContentChange}
+                />
+            </CivMain>
 
-                        <label
-                            class="grid2-layout-label"
-                            for="short-description"
-                        >
-                            Short Description:
-                        </label>
+            <CivLeftLabel forId="short-description">
+                Short Description:
+            </CivLeftLabel>
 
-                        <CivilInput
-                            id="short-description"
-                            elementClass="grid2-col2"
-                            value={shortDescription}
-                            onContentChange={onContentChange}
-                        />
+            <CivMain>
+                <CivilInput
+                    id="short-description"
+                    value={shortDescription}
+                    onContentChange={onContentChange}
+                />
+            </CivMain>
 
-                        <label class="grid2-layout-label" for="rating">
-                            Rating (0..5):
-                        </label>
-                        <input
-                            id="rating"
-                            class="grid2-col2"
-                            type="number"
-                            name="rating"
-                            value={rating}
-                            min="0"
-                            max="5"
-                            onInput={onRatingChange}
-                        />
-                        <div class="grid2-col2">
-                            <input
-                                type="button"
-                                value="Cancel"
-                                class="dialog-cancel"
-                                onClick={onCancel}
-                            />
-                            <input
-                                id="article-submit"
-                                type="submit"
-                                value="Update Article"
-                            />
-                        </div>
-                    </form>
-                </CivMain>
-            </CivContainer>
-        </section>
+            <CivLeftLabel forId="rating">Rating (0..5):</CivLeftLabel>
+
+            <CivMain>
+                <input
+                    id="rating"
+                    type="number"
+                    name="rating"
+                    value={rating}
+                    min="0"
+                    max="5"
+                    onInput={onRatingChange}
+                />
+            </CivMain>
+
+            <CivMain>
+                <input
+                    type="button"
+                    value="Cancel"
+                    class="dialog-cancel"
+                    onClick={onCancel}
+                />
+                <input
+                    id="article-submit"
+                    type="submit"
+                    value="Update Article"
+                />
+            </CivMain>
+        </CivForm>
     );
 }
 

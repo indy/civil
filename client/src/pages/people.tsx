@@ -49,7 +49,12 @@ import SegmentSearchResults from "components/segment-search-results";
 import TopMatter from "components/top-matter";
 import useDeckManager from "components/use-deck-manager";
 import { SlimDeckGrouping } from "components/groupings";
-import { CivContainer, CivMain } from "components/civil-layout";
+import {
+    CivContainer,
+    CivMain,
+    CivForm,
+    CivLeftLabel,
+} from "components/civil-layout";
 
 function People({ path }: { path?: string }) {
     const appState = getAppState();
@@ -178,24 +183,29 @@ function Person({ path, id }: { path?: string; id?: string }) {
                 ></TopMatter>
 
                 {deckManager.isShowingUpdateForm() && (
-                    <DeleteDeckConfirmation
-                        deckKind={deckManager.getDeckKind()}
-                        id={deck.id}
-                    />
-                )}
-
-                {deckManager.isShowingUpdateForm() && (
-                    <button onClick={deckManager.onShowSummaryClicked}>
-                        Show Summary Passage
-                    </button>
-                )}
-
-                {deckManager.isShowingUpdateForm() && (
-                    <PersonUpdater
-                        person={deck}
-                        onUpdate={deckManager.updateAndReset}
-                        onCancel={deckManager.onFormHide}
-                    />
+                    <section>
+                        <CivContainer>
+                            <CivMain>
+                                <DeleteDeckConfirmation
+                                    deckKind={deckManager.getDeckKind()}
+                                    id={deck.id}
+                                />
+                                <button
+                                    onClick={deckManager.onShowSummaryClicked}
+                                >
+                                    Show Summary Passage
+                                </button>
+                            </CivMain>
+                        </CivContainer>
+                        <div class="vertical-spacer"></div>
+                        <CivContainer>
+                            <PersonUpdater
+                                person={deck}
+                                onUpdate={deckManager.updateAndReset}
+                                onCancel={deckManager.onFormHide}
+                            />
+                        </CivContainer>
+                    </section>
                 )}
 
                 {title && !hasKnownLifespan && (
@@ -354,46 +364,36 @@ function PersonUpdater({
     };
 
     return (
-        <section>
-            <CivContainer>
-                <CivMain>
-                    <form class="grid2-layout" onSubmit={handleSubmit}>
-                        <label class="grid2-layout-label" for="name">
-                            Name:
-                        </label>
-                        <CivilInput
-                            id="name"
-                            value={localState.title}
-                            elementClass="grid2-col2"
-                            onContentChange={handleContentChange}
-                        />
+        <CivForm onSubmit={handleSubmit}>
+            <CivLeftLabel forId="name">Name</CivLeftLabel>
+            <CivMain>
+                <CivilInput
+                    id="name"
+                    value={localState.title}
+                    onContentChange={handleContentChange}
+                />
+            </CivMain>
 
-                        <label
-                            class="grid2-layout-label"
-                            style="margin-top: 0.9rem;"
-                        >
-                            Insignias:
-                        </label>
-                        <div class="grid2-col2">
-                            <InsigniaSelector
-                                insigniaId={localState.insigniaId}
-                                onChange={setInsigniaId}
-                            />
-                        </div>
+            <CivLeftLabel extraClasses="insignia-form-label">
+                Insignias
+            </CivLeftLabel>
+            <CivMain>
+                <InsigniaSelector
+                    insigniaId={localState.insigniaId}
+                    onChange={setInsigniaId}
+                />
+            </CivMain>
 
-                        <div class="grid2-col2">
-                            <input
-                                type="button"
-                                value="Cancel"
-                                class="dialog-cancel"
-                                onClick={onCancel}
-                            />
-                            <input type="submit" value="Update Person" />
-                        </div>
-                    </form>
-                </CivMain>
-            </CivContainer>
-        </section>
+            <CivMain>
+                <input
+                    type="button"
+                    value="Cancel"
+                    class="dialog-cancel"
+                    onClick={onCancel}
+                />
+                <input type="submit" value="Update Person" />
+            </CivMain>
+        </CivForm>
     );
 }
 

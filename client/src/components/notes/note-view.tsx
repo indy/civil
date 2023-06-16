@@ -647,7 +647,7 @@ export default function NoteView({
                         <div class="note-content" ref={hoveringRef}>
                             {local.isMinimisedText && (
                                 <p class="minimised-text">
-                                    minimised, click to expand.....
+                                    minimised, click to expand&hellip;
                                 </p>
                             )}
                             {!local.isMinimisedText &&

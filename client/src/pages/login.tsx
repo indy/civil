@@ -7,7 +7,13 @@ import { User } from "types";
 import Net from "utils/net";
 import { AppStateChange, getAppState } from "app-state";
 
-import { CivContainer, CivMain } from "components/civil-layout";
+import {
+    CivContainer,
+    CivMain,
+    CivForm,
+    CivLeftLabel,
+} from "components/civil-layout";
+import CivilInput from "components/civil-input";
 
 type Props = {
     path?: string;
@@ -136,17 +142,40 @@ function Login({ path, loginCallback }: Props) {
         event.preventDefault();
     }
 
+    function onContentChange(value: string, name: string) {
+        const newState = { ...state };
+        // crappy code to please typescript type-checking
+        //
+        if (name === "login-email") {
+            newState["login-email"] = value;
+        } else if (name === "login-password") {
+            newState["login-password"] = value;
+        } else if (name === "register-username") {
+            newState["register-username"] = value;
+        } else if (name === "register-magic-word") {
+            newState["register-magic-word"] = value;
+        } else if (name === "register-email") {
+            newState["register-email"] = value;
+        } else if (name === "register-password") {
+            newState["register-password"] = value;
+        } else if (name === "register-password-2") {
+            newState["register-password-2"] = value;
+        }
+
+        setState(newState);
+    }
+
     return (
         <section>
             <CivContainer>
                 <CivMain>
                     <h1 class="login-title ui">Login</h1>
-                    <form class="grid2-layout" onSubmit={handleLoginSubmit}>
-                        <label class="grid2-layout-label" for="login-email">
-                            Email:
-                        </label>
+                </CivMain>
+
+                <CivForm onSubmit={handleLoginSubmit}>
+                    <CivLeftLabel forId="login-email">Email</CivLeftLabel>
+                    <CivMain>
                         <input
-                            class="grid2-layout-input"
                             id="login-email"
                             type="text"
                             name="login-email"
@@ -154,11 +183,12 @@ function Login({ path, loginCallback }: Props) {
                             onInput={handleChangeEvent}
                             ref={emailRef}
                         />
-                        <label class="grid2-layout-label" for="login-password">
-                            Password:
-                        </label>
+                    </CivMain>
+
+                    <CivLeftLabel forId="login-password">Password</CivLeftLabel>
+
+                    <CivMain>
                         <input
-                            class="grid2-layout-input"
                             id="login-password"
                             type="password"
                             name="login-password"
@@ -166,92 +196,84 @@ function Login({ path, loginCallback }: Props) {
                             onInput={handleChangeEvent}
                             ref={passwordRef}
                         />
-                        <input
-                            class="grid2-layout-button"
-                            type="submit"
-                            value="Login"
-                        />
-                        <div class="grid2-layout-error-message">
-                            {state.errorMessage}
-                        </div>
-                    </form>
+                    </CivMain>
+
+                    <CivMain>
+                        <input type="submit" value="Login" />
+                        <div>{state.errorMessage}</div>
+                    </CivMain>
+                </CivForm>
+
+                <CivMain>
                     <h1 class="ui">Register New User</h1>
-                    <form class="grid2-layout" onSubmit={handleRegisterSubmit}>
-                        <label
-                            class="grid2-layout-label"
-                            for="register-magic-word"
-                        >
-                            Magic Word:
-                        </label>
-                        <input
-                            class="grid2-layout-input"
+                </CivMain>
+
+                <CivForm onSubmit={handleRegisterSubmit}>
+                    <CivLeftLabel forId="register-magic-word">
+                        Magic Word
+                    </CivLeftLabel>
+                    <CivMain>
+                        <CivilInput
                             id="register-magic-word"
-                            type="text"
-                            name="register-magic-word"
                             value={state["register-magic-word"]}
-                            onInput={handleChangeEvent}
+                            onContentChange={onContentChange}
                         />
-                        <label
-                            class="grid2-layout-label"
-                            for="register-username"
-                        >
-                            Username:
-                        </label>
-                        <input
-                            class="grid2-layout-input"
+                    </CivMain>
+
+                    <CivLeftLabel forId="register-username">
+                        Username
+                    </CivLeftLabel>
+
+                    <CivMain>
+                        <CivilInput
                             id="register-username"
-                            type="text"
-                            name="register-username"
                             value={state["register-username"]}
-                            onInput={handleChangeEvent}
+                            onContentChange={onContentChange}
                         />
-                        <label class="grid2-layout-label" for="register-email">
-                            Email:
-                        </label>
-                        <input
-                            class="grid2-layout-input"
+                    </CivMain>
+
+                    <CivLeftLabel forId="register-email">Email</CivLeftLabel>
+                    <CivMain>
+                        <CivilInput
                             id="register-email"
-                            type="text"
-                            name="register-email"
                             value={state["register-email"]}
-                            onInput={handleChangeEvent}
+                            onContentChange={onContentChange}
                         />
-                        <label
-                            class="grid2-layout-label"
-                            for="register-password"
-                        >
-                            Password:
-                        </label>
+                    </CivMain>
+
+                    <CivLeftLabel forId="register-password">
+                        Password
+                    </CivLeftLabel>
+                    <CivMain>
                         <input
-                            class="grid2-layout-input"
                             id="register-password"
                             type="password"
                             name="register-password"
                             value={state["register-password"]}
                             onInput={handleChangeEvent}
                         />
-                        <label
-                            class="grid2-layout-label"
-                            for="register-password-2"
-                        >
-                            Confirm Password:
-                        </label>
+                    </CivMain>
+
+                    <CivLeftLabel forId="register-password-2">
+                        Confirm Password
+                    </CivLeftLabel>
+                    <CivMain>
                         <input
-                            class="grid2-layout-input"
                             id="register-password-2"
                             type="password"
                             name="register-password-2"
                             value={state["register-password-2"]}
                             onInput={handleChangeEvent}
                         />
+                    </CivMain>
+                    <CivMain>
                         <input
-                            class="grid2-layout-button"
                             type="submit"
                             value="Register"
                             disabled={!okToSendRegistration()}
                         />
-                    </form>
-                </CivMain>
+                    </CivMain>
+                </CivForm>
             </CivContainer>
         </section>
     );
