@@ -52,12 +52,12 @@ export default function CivilTextArea({
     }
 
     function onTextAreaFocus() {
-        AppStateChange.obtainKeyboardFn();
+        AppStateChange.obtainKeyboard();
         onFocus && onFocus();
     }
 
     function onTextAreaBlur() {
-        AppStateChange.relinquishKeyboardFn();
+        AppStateChange.relinquishKeyboard();
         onBlur && onBlur();
     }
 
