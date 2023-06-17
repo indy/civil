@@ -42,17 +42,6 @@ fn contains(backrefs: &[interop::SlimDeck], id: Key) -> bool {
     false
 }
 
-fn resource_string_to_deck_kind_string(resource: &str) -> Result<&'static str> {
-    match resource {
-        "events" => Ok("event"),
-        "ideas" => Ok("idea"),
-        "people" => Ok("person"),
-        "articles" => Ok("article"),
-        "dialogues" => Ok("dialogue"),
-        _ => Err(Error::InvalidResource),
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct DeckBase {
     pub id: Key,
@@ -195,10 +184,9 @@ pub(crate) fn deckbase_edit(
 pub(crate) fn recent(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    resource: &str,
+    deck_kind: interop::DeckKind,
 ) -> Result<Vec<interop::SlimDeck>> {
     let conn = sqlite_pool.get()?;
-    let deck_kind = resource_string_to_deck_kind_string(resource)?;
     let limit: i32 = 10;
 
     let stmt = "SELECT id, name, kind, insignia
@@ -206,7 +194,7 @@ pub(crate) fn recent(
                 WHERE user_id = ?1 AND kind = '$deck_kind'
                 ORDER BY created_at DESC
                 LIMIT $limit";
-    let stmt = stmt.replace("$deck_kind", deck_kind);
+    let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
     let stmt = stmt.replace("$limit", &limit.to_string());
 
     sqlite::many(&conn, &stmt, params![&user_id], decksimple_from_row)

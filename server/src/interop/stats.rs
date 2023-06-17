@@ -16,10 +16,13 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::interop::decks::SlimDeck;
+use crate::interop::Key;
 
 #[derive(Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Stats {
+    pub id: Option<Key>,
+
     pub num_ideas: i32,
     pub num_articles: i32,
     pub num_people: i32,

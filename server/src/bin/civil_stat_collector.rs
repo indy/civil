@@ -30,15 +30,27 @@ async fn main() -> Result<()> {
     let sqlite_manager = SqliteConnectionManager::file(&sqlite_db);
     let sqlite_pool = r2d2::Pool::new(sqlite_manager)?;
 
+    // let mut conn = sqlite_pool.get()?;
+    // let tx = conn.transaction()?;
+
     let user_ids = stat_api::get_all_user_ids(&sqlite_pool)?;
     for user in user_ids {
-        let latest_stats = stat_api::generate_stats(&sqlite_pool, user.id)?;
-        let last_saved_stats = stat_api::get_last_saved_stats(&sqlite_pool, user.id)?;
+        stat_api::generate_stats(&sqlite_pool, user.id)?;
 
-        if latest_stats != last_saved_stats {
-            stat_api::create_stats(&sqlite_pool, user.id, &latest_stats)?;
-        }
+        // let latest_stats = stat_api::generate_stats(&sqlite_pool, user.id)?;
+        // let last_saved_stats = stat_api::get_last_saved_stats(&sqlite_pool, user.id)?;
+
+        // if latest_stats != last_saved_stats {
+        //     stat_api::create_stats(&sqlite_pool, user.id, &latest_stats)?;
+        // }
+
+        // let all_stats = stat_api::get_all_stats(&sqlite_pool, user.id)?;
+        // for stats in all_stats {
+        //     stat_api::write_new_stats_format(&tx, &stats)?;
+        // }
     }
+
+    // tx.commit()?;
 
     Ok(())
 }

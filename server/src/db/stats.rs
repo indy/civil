@@ -19,11 +19,11 @@ use rusqlite::{params, Connection, Row};
 use tracing::info;
 
 use crate::db::sqlite::{self, SqlitePool};
-use crate::error::Result;
-use crate::interop::decks::SlimDeck;
+use crate::error::{Error, Result};
+use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::stats as interop;
 use crate::interop::Key;
-
+/*
 pub fn get(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::UserStats> {
     let recently_visited = recently_visited(sqlite_pool, user_id)?;
 
@@ -33,7 +33,7 @@ pub fn get(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::UserStats>
         stats: generate_stats(&conn, user_id)?,
     })
 }
-
+*/
 pub fn recently_visited(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
@@ -136,6 +136,8 @@ pub fn create_stats(sqlite_pool: &SqlitePool, user_id: Key, stats: &interop::Sta
 
 fn stats_from_row(row: &Row) -> Result<interop::Stats> {
     Ok(interop::Stats {
+        id: Some(row.get(0)?),
+
         num_ideas: row.get(3)?,
         num_articles: row.get(4)?,
         num_people: row.get(5)?,
@@ -230,9 +232,9 @@ fn i32_from_row(row: &Row) -> Result<i32> {
     Ok(row.get(0)?)
 }
 
-pub(crate) fn get_num_decks(conn: &Connection, user_id: Key, deck_kind: &str) -> Result<i32> {
+pub(crate) fn get_num_decks(conn: &Connection, user_id: Key, deck_kind: &DeckKind) -> Result<i32> {
     let stmt = "SELECT count(*) as count FROM decks WHERE kind='$deck_kind' AND user_id = ?1";
-    let stmt = stmt.replace("$deck_kind", deck_kind);
+    let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
 
     sqlite::one(conn, &stmt, params![&user_id], i32_from_row)
 }
@@ -264,12 +266,12 @@ pub(crate) fn get_num_images(conn: &Connection, user_id: Key) -> Result<i32> {
 pub(crate) fn get_num_notes_in_decks(
     conn: &Connection,
     user_id: Key,
-    deck_kind: &str,
+    deck_kind: &DeckKind,
 ) -> Result<i32> {
     let stmt = "SELECT COUNT(*) AS count
                 FROM notes n LEFT JOIN decks d ON d.id = n.deck_id
                 WHERE d.kind='$deck_kind' AND n.user_id = ?1";
-    let stmt = stmt.replace("$deck_kind", deck_kind);
+    let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
 
     sqlite::one(conn, &stmt, params![&user_id], i32_from_row)
 }
@@ -277,12 +279,12 @@ pub(crate) fn get_num_notes_in_decks(
 pub(crate) fn get_num_points_in_decks(
     conn: &Connection,
     user_id: Key,
-    deck_kind: &str,
+    deck_kind: &DeckKind,
 ) -> Result<i32> {
     let stmt = "SELECT COUNT(*) AS count
                 FROM points p LEFT JOIN decks d ON d.id = p.deck_id
                 WHERE d.kind='$deck_kind' AND d.user_id = ?1";
-    let stmt = stmt.replace("$deck_kind", deck_kind);
+    let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
 
     sqlite::one(conn, &stmt, params![&user_id], i32_from_row)
 }
@@ -290,8 +292,8 @@ pub(crate) fn get_num_points_in_decks(
 pub(crate) fn get_num_refs_between(
     conn: &Connection,
     user_id: Key,
-    deck_from: &str,
-    deck_to: &str,
+    deck_from: &DeckKind,
+    deck_to: &DeckKind,
 ) -> Result<i32> {
     let stmt = "SELECT COUNT(*) AS count
                 FROM notes_decks nd
@@ -299,86 +301,314 @@ pub(crate) fn get_num_refs_between(
                 LEFT JOIN notes n ON n.id = nd.note_id
                 LEFT JOIN decks deck_from ON n.deck_id = deck_from.id
                 WHERE deck_from.user_id = ?1 AND deck_from.kind='$deck_kind_from' AND deck_to.kind='$deck_kind_to'";
-    let stmt = stmt.replace("$deck_kind_from", deck_from);
-    let stmt = stmt.replace("$deck_kind_to", deck_to);
+    let stmt = stmt.replace("$deck_kind_from", &deck_from.to_string());
+    let stmt = stmt.replace("$deck_kind_to", &deck_to.to_string());
 
     sqlite::one(conn, &stmt, params![&user_id], i32_from_row)
 }
 
-pub fn generate_stats(conn: &Connection, user_id: Key) -> Result<interop::Stats> {
+pub fn generate_stats(conn: &Connection, user_id: Key) -> Result<()> {
     info!("generate_stats");
 
-    let num_ideas = get_num_decks(conn, user_id, "idea")?;
-    let num_articles = get_num_decks(conn, user_id, "article")?;
-    let num_people = get_num_decks(conn, user_id, "person")?;
-    let num_timelines = get_num_decks(conn, user_id, "timeline")?;
     let num_refs = get_num_refs(conn, user_id)?;
     let num_cards = get_num_cards(conn, user_id)?;
     let num_card_ratings = get_num_card_ratings(conn, user_id)?;
     let num_images = get_num_images(conn, user_id)?;
-    let num_notes_in_ideas = get_num_notes_in_decks(conn, user_id, "idea")?;
-    let num_notes_in_articles = get_num_notes_in_decks(conn, user_id, "article")?;
-    let num_notes_in_people = get_num_notes_in_decks(conn, user_id, "person")?;
-    let num_notes_in_timelines = get_num_notes_in_decks(conn, user_id, "timeline")?;
-    let num_points_in_people = get_num_points_in_decks(conn, user_id, "person")?;
-    let num_points_in_timelines = get_num_points_in_decks(conn, user_id, "timeline")?;
-    let num_refs_ideas_to_ideas = get_num_refs_between(conn, user_id, "idea", "idea")?;
-    let num_refs_ideas_to_articles = get_num_refs_between(conn, user_id, "idea", "article")?;
-    let num_refs_ideas_to_people = get_num_refs_between(conn, user_id, "idea", "person")?;
-    let num_refs_ideas_to_timelines = get_num_refs_between(conn, user_id, "idea", "timeline")?;
-    let num_refs_articles_to_ideas = get_num_refs_between(conn, user_id, "article", "idea")?;
-    let num_refs_articles_to_articles = get_num_refs_between(conn, user_id, "article", "article")?;
-    let num_refs_articles_to_people = get_num_refs_between(conn, user_id, "article", "person")?;
-    let num_refs_articles_to_timelines =
-        get_num_refs_between(conn, user_id, "article", "timeline")?;
-    let num_refs_people_to_ideas = get_num_refs_between(conn, user_id, "person", "idea")?;
-    let num_refs_people_to_articles = get_num_refs_between(conn, user_id, "person", "article")?;
-    let num_refs_people_to_people = get_num_refs_between(conn, user_id, "person", "person")?;
-    let num_refs_people_to_timelines = get_num_refs_between(conn, user_id, "person", "timeline")?;
-    let num_refs_timelines_to_ideas = get_num_refs_between(conn, user_id, "timeline", "idea")?;
-    let num_refs_timelines_to_articles =
-        get_num_refs_between(conn, user_id, "timeline", "article")?;
-    let num_refs_timelines_to_people = get_num_refs_between(conn, user_id, "timeline", "person")?;
-    let num_refs_timelines_to_timelines =
-        get_num_refs_between(conn, user_id, "timeline", "timeline")?;
 
-    Ok(interop::Stats {
-        num_ideas,
-        num_articles,
-        num_people,
-        num_timelines,
+    fn id_from_row(row: &Row) -> Result<Key> {
+        Ok(row.get(0)?)
+    }
 
-        num_refs,
-        num_cards,
-        num_card_ratings,
-        num_images,
+    let id = sqlite::one(
+        conn,
+        "INSERT INTO stats(user_id, num_refs, num_cards, num_card_ratings, num_images)
+         VALUES(?1, ?2, ?3, ?4, ?5)
+         RETURNING id",
+        params![
+            &user_id,
+            &num_refs,
+            &num_cards,
+            &num_card_ratings,
+            &num_images
+        ],
+        id_from_row,
+    )?;
 
-        num_notes_in_ideas,
-        num_notes_in_articles,
-        num_notes_in_people,
-        num_notes_in_timelines,
+    let deck_kinds = [
+        DeckKind::Article,
+        DeckKind::Person,
+        DeckKind::Idea,
+        DeckKind::Timeline,
+        DeckKind::Quote,
+        DeckKind::Dialogue,
+    ];
 
-        num_points_in_people,
-        num_points_in_timelines,
+    for deck_kind in deck_kinds {
+        let num_decks = get_num_decks(conn, user_id, &deck_kind)?;
+        write_num_decks(conn, id, deck_kind, num_decks)?;
 
-        num_refs_ideas_to_ideas,
-        num_refs_ideas_to_articles,
-        num_refs_ideas_to_people,
-        num_refs_ideas_to_timelines,
+        let num_notes = get_num_notes_in_decks(conn, user_id, &deck_kind)?;
+        write_num_notes(conn, id, deck_kind, num_notes)?;
+    }
 
-        num_refs_articles_to_ideas,
-        num_refs_articles_to_articles,
-        num_refs_articles_to_people,
-        num_refs_articles_to_timelines,
+    let deck_kinds_with_points = [DeckKind::Person, DeckKind::Timeline];
+    for deck_kind in deck_kinds_with_points {
+        let num_points = get_num_points_in_decks(conn, user_id, &deck_kind)?;
+        write_num_points(conn, id, deck_kind, num_points)?;
+    }
 
-        num_refs_people_to_ideas,
-        num_refs_people_to_articles,
-        num_refs_people_to_people,
-        num_refs_people_to_timelines,
+    for y in deck_kinds {
+        for x in deck_kinds {
+            let num_refs = get_num_refs_between(conn, user_id, &x, &y)?;
+            write_num_refs(conn, id, x, y, num_refs)?;
+        }
+    }
 
-        num_refs_timelines_to_ideas,
-        num_refs_timelines_to_articles,
-        num_refs_timelines_to_people,
-        num_refs_timelines_to_timelines,
-    })
+    Ok(())
+}
+
+pub fn get_all_stats(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::Stats>> {
+    let conn = sqlite_pool.get()?;
+
+    sqlite::many(
+        &conn,
+        "select s.id,
+                s.created_at,
+                s.user_id,
+                s.num_ideas,
+                s.num_articles,
+                s.num_people,
+                s.num_timelines,
+                s.num_refs,
+                s.num_cards,
+                s.num_card_ratings,
+                s.num_images,
+                s.num_notes_in_ideas,
+                s.num_notes_in_articles,
+                s.num_notes_in_people,
+                s.num_notes_in_timelines,
+                s.num_points_in_people,
+                s.num_points_in_timelines,
+                s.num_refs_ideas_to_ideas,
+                s.num_refs_ideas_to_articles,
+                s.num_refs_ideas_to_people,
+                s.num_refs_ideas_to_timelines,
+                s.num_refs_articles_to_ideas,
+                s.num_refs_articles_to_articles,
+                s.num_refs_articles_to_people,
+                s.num_refs_articles_to_timelines,
+                s.num_refs_people_to_ideas,
+                s.num_refs_people_to_articles,
+                s.num_refs_people_to_people,
+                s.num_refs_people_to_timelines,
+                s.num_refs_timelines_to_ideas,
+                s.num_refs_timelines_to_articles,
+                s.num_refs_timelines_to_people,
+                s.num_refs_timelines_to_timelines
+         from stats s
+         where s.user_id = ?1",
+        params![&user_id],
+        stats_from_row,
+    )
+}
+
+// code to port from old stats structure to new structure
+//
+pub fn write_new_stats(conn: &Connection, stats: &interop::Stats) -> Result<()> {
+    if let Some(id) = stats.id {
+        write_num_decks(conn, id, DeckKind::Idea, stats.num_ideas)?;
+        write_num_decks(conn, id, DeckKind::Article, stats.num_articles)?;
+        write_num_decks(conn, id, DeckKind::Person, stats.num_people)?;
+        write_num_decks(conn, id, DeckKind::Timeline, stats.num_timelines)?;
+
+        write_num_notes(conn, id, DeckKind::Idea, stats.num_notes_in_ideas)?;
+        write_num_notes(conn, id, DeckKind::Article, stats.num_notes_in_articles)?;
+        write_num_notes(conn, id, DeckKind::Person, stats.num_notes_in_people)?;
+        write_num_notes(conn, id, DeckKind::Timeline, stats.num_notes_in_timelines)?;
+
+        write_num_points(conn, id, DeckKind::Person, stats.num_points_in_people)?;
+        write_num_points(conn, id, DeckKind::Timeline, stats.num_points_in_timelines)?;
+
+        write_num_refs(
+            conn,
+            id,
+            DeckKind::Idea,
+            DeckKind::Idea,
+            stats.num_refs_ideas_to_ideas,
+        )?;
+        write_num_refs(
+            conn,
+            id,
+            DeckKind::Idea,
+            DeckKind::Article,
+            stats.num_refs_ideas_to_articles,
+        )?;
+        write_num_refs(
+            conn,
+            id,
+            DeckKind::Idea,
+            DeckKind::Person,
+            stats.num_refs_ideas_to_people,
+        )?;
+        write_num_refs(
+            conn,
+            id,
+            DeckKind::Idea,
+            DeckKind::Timeline,
+            stats.num_refs_ideas_to_timelines,
+        )?;
+
+        write_num_refs(
+            conn,
+            id,
+            DeckKind::Article,
+            DeckKind::Idea,
+            stats.num_refs_articles_to_ideas,
+        )?;
+        write_num_refs(
+            conn,
+            id,
+            DeckKind::Article,
+            DeckKind::Article,
+            stats.num_refs_articles_to_articles,
+        )?;
+        write_num_refs(
+            conn,
+            id,
+            DeckKind::Article,
+            DeckKind::Person,
+            stats.num_refs_articles_to_people,
+        )?;
+        write_num_refs(
+            conn,
+            id,
+            DeckKind::Article,
+            DeckKind::Timeline,
+            stats.num_refs_articles_to_timelines,
+        )?;
+
+        write_num_refs(
+            conn,
+            id,
+            DeckKind::Person,
+            DeckKind::Idea,
+            stats.num_refs_people_to_ideas,
+        )?;
+        write_num_refs(
+            conn,
+            id,
+            DeckKind::Person,
+            DeckKind::Article,
+            stats.num_refs_people_to_articles,
+        )?;
+        write_num_refs(
+            conn,
+            id,
+            DeckKind::Person,
+            DeckKind::Person,
+            stats.num_refs_people_to_people,
+        )?;
+        write_num_refs(
+            conn,
+            id,
+            DeckKind::Person,
+            DeckKind::Timeline,
+            stats.num_refs_people_to_timelines,
+        )?;
+
+        write_num_refs(
+            conn,
+            id,
+            DeckKind::Timeline,
+            DeckKind::Idea,
+            stats.num_refs_timelines_to_ideas,
+        )?;
+        write_num_refs(
+            conn,
+            id,
+            DeckKind::Timeline,
+            DeckKind::Article,
+            stats.num_refs_timelines_to_articles,
+        )?;
+        write_num_refs(
+            conn,
+            id,
+            DeckKind::Timeline,
+            DeckKind::Person,
+            stats.num_refs_timelines_to_people,
+        )?;
+        write_num_refs(
+            conn,
+            id,
+            DeckKind::Timeline,
+            DeckKind::Timeline,
+            stats.num_refs_timelines_to_timelines,
+        )?;
+
+        Ok(())
+    } else {
+        Err(Error::MissingId)
+    }
+}
+
+fn write_num_decks(
+    conn: &Connection,
+    stats_id: Key,
+    deck_kind: DeckKind,
+    value: i32,
+) -> Result<()> {
+    let stmt = "INSERT INTO stats_num_decks(stats_id, deck_kind, num_decks) VALUES (?1, ?2, ?3)";
+    sqlite::zero(
+        conn,
+        stmt,
+        params![&stats_id, &deck_kind.to_string(), &value],
+    )
+}
+
+fn write_num_notes(
+    conn: &Connection,
+    stats_id: Key,
+    deck_kind: DeckKind,
+    value: i32,
+) -> Result<()> {
+    let stmt = "INSERT INTO stats_num_notes(stats_id, deck_kind, num_notes) VALUES (?1, ?2, ?3)";
+    sqlite::zero(
+        conn,
+        stmt,
+        params![&stats_id, &deck_kind.to_string(), &value],
+    )
+}
+
+fn write_num_points(
+    conn: &Connection,
+    stats_id: Key,
+    deck_kind: DeckKind,
+    value: i32,
+) -> Result<()> {
+    let stmt = "INSERT INTO stats_num_points(stats_id, deck_kind, num_points) VALUES (?1, ?2, ?3)";
+    sqlite::zero(
+        conn,
+        stmt,
+        params![&stats_id, &deck_kind.to_string(), &value],
+    )
+}
+
+fn write_num_refs(
+    conn: &Connection,
+    stats_id: Key,
+    from_deck_kind: DeckKind,
+    to_deck_kind: DeckKind,
+    value: i32,
+) -> Result<()> {
+    let stmt = "INSERT INTO stats_num_refs(stats_id, from_deck_kind, to_deck_kind, num_refs) VALUES (?1, ?2, ?3, ?4)";
+    sqlite::zero(
+        conn,
+        stmt,
+        params![
+            &stats_id,
+            &from_deck_kind.to_string(),
+            &to_deck_kind.to_string(),
+            &value
+        ],
+    )
 }

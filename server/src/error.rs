@@ -31,6 +31,7 @@ pub enum Error {
     IO(std::io::Error),
     InvalidKind,
     InvalidResource,
+    MissingId,
     NotFound,
     Other,
     ParseInt(std::num::ParseIntError),

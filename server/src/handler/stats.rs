@@ -24,7 +24,7 @@ use actix_web::HttpResponse;
 
 #[allow(unused_imports)]
 use tracing::info;
-
+/*
 pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
@@ -35,7 +35,7 @@ pub async fn get(
 
     Ok(HttpResponse::Ok().json(stats))
 }
-
+*/
 pub async fn recently_visited(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,

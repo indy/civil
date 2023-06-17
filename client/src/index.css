@@ -236,7 +236,6 @@ h1 {
     border-radius: 1rem;
 }
 .selectable-hovering-edit {
-
     border-left: var(--space-for-selectable-highlight) solid var(--fg-clock-10);
 }
 .selectable-hovering-refs {
@@ -1886,7 +1885,8 @@ input:required {
     }
 
     .muh-container {
-        border-left: var(--space-for-selectable-highlight) solid rgba(0, 0, 0, 0);
+        border-left: var(--space-for-selectable-highlight) solid
+            rgba(0, 0, 0, 0);
         margin-left: 3rem;
         margin-right: 2rem;
     }

@@ -18,9 +18,9 @@
 use crate::db::decks as db;
 use crate::db::notes as db_notes;
 use crate::db::sqlite::SqlitePool;
-use crate::error::Result;
+use crate::error::{Error, Result};
 use crate::handler::SearchQuery;
-use crate::interop::decks::ResultList;
+use crate::interop::decks::{DeckKind, ResultList};
 use crate::interop::IdParam;
 use crate::session;
 use actix_web::web::{self, Data, Path};
@@ -74,7 +74,20 @@ pub async fn recent(
 
     let user_id = session::user_id(&session)?;
 
-    let results = db::recent(&sqlite_pool, user_id, &query.resource)?;
+    fn resource_string_to_deck_kind(resource: &str) -> Result<DeckKind> {
+        match resource {
+            "articles" => Ok(DeckKind::Article),
+            "dialogues" => Ok(DeckKind::Dialogue),
+            "ideas" => Ok(DeckKind::Idea),
+            "people" => Ok(DeckKind::Person),
+            "quotes" => Ok(DeckKind::Quote),
+            "timelines" => Ok(DeckKind::Timeline),
+            _ => Err(Error::InvalidResource),
+        }
+    }
+
+    let deck_kind = resource_string_to_deck_kind(&query.resource)?;
+    let results = db::recent(&sqlite_pool, user_id, deck_kind)?;
 
     let res = ResultList { results };
     Ok(HttpResponse::Ok().json(res))

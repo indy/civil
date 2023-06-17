@@ -253,6 +253,54 @@ CREATE TABLE IF NOT EXISTS stats (
 
        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
+
+
+CREATE TABLE IF NOT EXISTS stats_num_notes (
+       id INTEGER PRIMARY KEY,
+       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+       stats_id INTEGER NOT NULL,
+       deck_kind TEXT NOT NULL,
+
+       num_notes INTEGER DEFAULT 0,
+       FOREIGN KEY (stats_id) REFERENCES stats (id) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
+CREATE TABLE IF NOT EXISTS stats_num_decks (
+       id INTEGER PRIMARY KEY,
+       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+       stats_id INTEGER NOT NULL,
+       deck_kind TEXT NOT NULL,
+
+       num_decks INTEGER DEFAULT 0,
+       FOREIGN KEY (stats_id) REFERENCES stats (id) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
+CREATE TABLE IF NOT EXISTS stats_num_points (
+       id INTEGER PRIMARY KEY,
+       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+       stats_id INTEGER NOT NULL,
+       deck_kind TEXT NOT NULL,
+
+       num_points INTEGER DEFAULT 0,
+       FOREIGN KEY (stats_id) REFERENCES stats (id) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
+CREATE TABLE IF NOT EXISTS stats_num_refs (
+       id INTEGER PRIMARY KEY,
+       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+       stats_id INTEGER NOT NULL,
+       from_deck_kind TEXT NOT NULL,
+       to_deck_kind TEXT NOT NULL,
+
+       num_refs INTEGER DEFAULT 0,
+
+       FOREIGN KEY (stats_id) REFERENCES stats (id) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
  */
 
 pub fn migration_check(db_name: &str) -> Result<()> {
@@ -601,7 +649,51 @@ pub fn migration_check(db_name: &str) -> Result<()> {
                    note_id INTEGER NOT NULL,
                    FOREIGN KEY (note_id) REFERENCES notes (id) ON DELETE CASCADE ON UPDATE NO ACTION
                );"),
-    ]);
+        ////////////////
+        // MIGRATION 10: stats improvement
+        ////////////////
+        M::up("CREATE TABLE IF NOT EXISTS stats_num_notes (
+                   id INTEGER PRIMARY KEY,
+                   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+                   stats_id INTEGER NOT NULL,
+                   deck_kind TEXT NOT NULL,
+
+                   num_notes INTEGER DEFAULT 0,
+                   FOREIGN KEY (stats_id) REFERENCES stats (id) ON DELETE CASCADE ON UPDATE NO ACTION
+               );
+               CREATE TABLE IF NOT EXISTS stats_num_decks (
+                   id INTEGER PRIMARY KEY,
+                   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+                   stats_id INTEGER NOT NULL,
+                   deck_kind TEXT NOT NULL,
+
+                   num_decks INTEGER DEFAULT 0,
+                   FOREIGN KEY (stats_id) REFERENCES stats (id) ON DELETE CASCADE ON UPDATE NO ACTION
+               );
+               CREATE TABLE IF NOT EXISTS stats_num_points (
+                   id INTEGER PRIMARY KEY,
+                   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+                   stats_id INTEGER NOT NULL,
+                   deck_kind TEXT NOT NULL,
+
+                   num_points INTEGER DEFAULT 0,
+                   FOREIGN KEY (stats_id) REFERENCES stats (id) ON DELETE CASCADE ON UPDATE NO ACTION
+               );
+               CREATE TABLE IF NOT EXISTS stats_num_refs (
+                   id INTEGER PRIMARY KEY,
+                   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+                   stats_id INTEGER NOT NULL,
+                   from_deck_kind TEXT NOT NULL,
+                   to_deck_kind TEXT NOT NULL,
+
+                   num_refs INTEGER DEFAULT 0,
+
+                   FOREIGN KEY (stats_id) REFERENCES stats (id) ON DELETE CASCADE ON UPDATE NO ACTION
+               );"),    ]);
 
     let mut conn = Connection::open(db_name)?;
 
@@ -682,3 +774,63 @@ CREATE TABLE IF NOT EXISTS deck_extras (
 );
 
 */
+
+/*
+
+stats simplification:
+
+stats table
+      id
+      created_at
+      user_id
+
+       num_refs INTEGER DEFAULT 0,
+       num_cards INTEGER DEFAULT 0,
+       num_card_ratings INTEGER DEFAULT 0,
+       num_images INTEGER DEFAULT 0,
+
+       num_notes INTEGER DEFAULT 0, <- not including note_meta
+
+
+
+
+stats_num_notes table
+      id
+      created_at
+
+      stats_id <- parent stats row
+      deck_kind
+
+      num_notes
+
+stats_num_decks table
+      id
+      created_at
+
+      stats_id <- parent stats row
+      deck_kind
+
+      num_decks
+
+stats_num_points table
+      id
+      created_at
+
+      stats_id <- parent stats row
+      deck_kind
+
+      num_points
+
+stats_num_refs table
+      id
+      created_at
+
+      stats_id <- parent stats row
+      from_deck_kind
+      to_deck_kind
+
+      num_refs
+
+
+
+ */

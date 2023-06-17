@@ -156,7 +156,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // stats
         .service(
             scope("/stats")
-                .route("", get().to(stats::get))
+                // .route("", get().to(stats::get))
                 .route("/recently_visited", get().to(stats::recently_visited)),
         )
         // edges
