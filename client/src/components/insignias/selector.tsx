@@ -21,7 +21,7 @@ export default function InsigniaSelector({ insigniaId, onChange }: Props) {
 
     return (
         <div class="insignia-selector">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
                 <SingleInsignia
                     value={insigniaId}
                     bit={i}
