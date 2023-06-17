@@ -22,6 +22,8 @@ use crate::interop::Key;
 use std::fmt;
 use std::str::FromStr;
 
+// isg note: update the db/stats.rs when adding a new DeckKind
+//
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
 )]

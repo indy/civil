@@ -24,18 +24,7 @@ use actix_web::HttpResponse;
 
 #[allow(unused_imports)]
 use tracing::info;
-/*
-pub async fn get(
-    sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
-) -> Result<HttpResponse> {
-    let user_id = session::user_id(&session)?;
 
-    let stats = db::get(&sqlite_pool, user_id)?;
-
-    Ok(HttpResponse::Ok().json(stats))
-}
-*/
 pub async fn recently_visited(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,

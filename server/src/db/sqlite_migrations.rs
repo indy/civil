@@ -201,55 +201,10 @@ CREATE TABLE IF NOT EXISTS stats (
 
        user_id INTEGER NOT NULL,
 
-       num_ideas INTEGER DEFAULT 0,
-       num_articles INTEGER DEFAULT 0,
-       num_people INTEGER DEFAULT 0,
-       num_timelines INTEGER DEFAULT 0,
-       num_quotes INTEGER DEFAULT 0,
-
        num_refs INTEGER DEFAULT 0,
        num_cards INTEGER DEFAULT 0,
        num_card_ratings INTEGER DEFAULT 0,
        num_images INTEGER DEFAULT 0,
-
-       num_notes_in_ideas INTEGER DEFAULT 0,
-       num_notes_in_articles INTEGER DEFAULT 0,
-       num_notes_in_people INTEGER DEFAULT 0,
-       num_notes_in_timelines INTEGER DEFAULT 0,
-       num_notes_in_quotes INTEGER DEFAULT 0,
-
-       num_points_in_people INTEGER DEFAULT 0,
-       num_points_in_timelines INTEGER DEFAULT 0,
-
-       num_refs_ideas_to_ideas INTEGER DEFAULT 0,
-       num_refs_ideas_to_articles INTEGER DEFAULT 0,
-       num_refs_ideas_to_people INTEGER DEFAULT 0,
-       num_refs_ideas_to_timelines INTEGER DEFAULT 0,
-       num_refs_ideas_to_quotes INTEGER DEFAULT 0,
-
-       num_refs_articles_to_ideas INTEGER DEFAULT 0,
-       num_refs_articles_to_articles INTEGER DEFAULT 0,
-       num_refs_articles_to_people INTEGER DEFAULT 0,
-       num_refs_articles_to_timelines INTEGER DEFAULT 0,
-       num_refs_articles_to_quotes INTEGER DEFAULT 0,
-
-       num_refs_people_to_ideas INTEGER DEFAULT 0,
-       num_refs_people_to_articles INTEGER DEFAULT 0,
-       num_refs_people_to_people INTEGER DEFAULT 0,
-       num_refs_people_to_timelines INTEGER DEFAULT 0,
-       num_refs_people_to_quotes INTEGER DEFAULT 0,
-
-       num_refs_timelines_to_ideas INTEGER DEFAULT 0,
-       num_refs_timelines_to_articles INTEGER DEFAULT 0,
-       num_refs_timelines_to_people INTEGER DEFAULT 0,
-       num_refs_timelines_to_timelines INTEGER DEFAULT 0,
-       num_refs_timelines_to_quotes INTEGER DEFAULT 0,
-
-       num_refs_quotes_to_ideas INTEGER DEFAULT 0,
-       num_refs_quotes_to_articles INTEGER DEFAULT 0,
-       num_refs_quotes_to_people INTEGER DEFAULT 0,
-       num_refs_quotes_to_timelines INTEGER DEFAULT 0,
-       num_refs_quotes_to_quotes INTEGER DEFAULT 0,
 
        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
@@ -693,7 +648,55 @@ pub fn migration_check(db_name: &str) -> Result<()> {
                    num_refs INTEGER DEFAULT 0,
 
                    FOREIGN KEY (stats_id) REFERENCES stats (id) ON DELETE CASCADE ON UPDATE NO ACTION
-               );"),    ]);
+               );"),
+        ////////////////
+        // MIGRATION 11: simplify stats table after transferring data to tables created in migration 10
+        ////////////////
+        M::up("ALTER TABLE stats DROP COLUMN num_ideas;
+               ALTER TABLE stats DROP COLUMN num_articles;
+               ALTER TABLE stats DROP COLUMN num_people;
+               ALTER TABLE stats DROP COLUMN num_timelines;
+               ALTER TABLE stats DROP COLUMN num_quotes;
+
+               ALTER TABLE stats DROP COLUMN num_notes_in_ideas;
+               ALTER TABLE stats DROP COLUMN num_notes_in_articles;
+               ALTER TABLE stats DROP COLUMN num_notes_in_people;
+               ALTER TABLE stats DROP COLUMN num_notes_in_timelines;
+               ALTER TABLE stats DROP COLUMN num_notes_in_quotes;
+
+               ALTER TABLE stats DROP COLUMN num_points_in_people;
+               ALTER TABLE stats DROP COLUMN num_points_in_timelines;
+
+               ALTER TABLE stats DROP COLUMN num_refs_ideas_to_ideas;
+               ALTER TABLE stats DROP COLUMN num_refs_ideas_to_articles;
+               ALTER TABLE stats DROP COLUMN num_refs_ideas_to_people;
+               ALTER TABLE stats DROP COLUMN num_refs_ideas_to_timelines;
+               ALTER TABLE stats DROP COLUMN num_refs_ideas_to_quotes;
+
+               ALTER TABLE stats DROP COLUMN num_refs_articles_to_ideas;
+               ALTER TABLE stats DROP COLUMN num_refs_articles_to_articles;
+               ALTER TABLE stats DROP COLUMN num_refs_articles_to_people;
+               ALTER TABLE stats DROP COLUMN num_refs_articles_to_timelines;
+               ALTER TABLE stats DROP COLUMN num_refs_articles_to_quotes;
+
+               ALTER TABLE stats DROP COLUMN num_refs_people_to_ideas;
+               ALTER TABLE stats DROP COLUMN num_refs_people_to_articles;
+               ALTER TABLE stats DROP COLUMN num_refs_people_to_people;
+               ALTER TABLE stats DROP COLUMN num_refs_people_to_timelines;
+               ALTER TABLE stats DROP COLUMN num_refs_people_to_quotes;
+
+               ALTER TABLE stats DROP COLUMN num_refs_timelines_to_ideas;
+               ALTER TABLE stats DROP COLUMN num_refs_timelines_to_articles;
+               ALTER TABLE stats DROP COLUMN num_refs_timelines_to_people;
+               ALTER TABLE stats DROP COLUMN num_refs_timelines_to_timelines;
+               ALTER TABLE stats DROP COLUMN num_refs_timelines_to_quotes;
+
+               ALTER TABLE stats DROP COLUMN num_refs_quotes_to_ideas;
+               ALTER TABLE stats DROP COLUMN num_refs_quotes_to_articles;
+               ALTER TABLE stats DROP COLUMN num_refs_quotes_to_people;
+               ALTER TABLE stats DROP COLUMN num_refs_quotes_to_timelines;
+               ALTER TABLE stats DROP COLUMN num_refs_quotes_to_quotes;"),
+    ]);
 
     let mut conn = Connection::open(db_name)?;
 
@@ -774,63 +777,3 @@ CREATE TABLE IF NOT EXISTS deck_extras (
 );
 
 */
-
-/*
-
-stats simplification:
-
-stats table
-      id
-      created_at
-      user_id
-
-       num_refs INTEGER DEFAULT 0,
-       num_cards INTEGER DEFAULT 0,
-       num_card_ratings INTEGER DEFAULT 0,
-       num_images INTEGER DEFAULT 0,
-
-       num_notes INTEGER DEFAULT 0, <- not including note_meta
-
-
-
-
-stats_num_notes table
-      id
-      created_at
-
-      stats_id <- parent stats row
-      deck_kind
-
-      num_notes
-
-stats_num_decks table
-      id
-      created_at
-
-      stats_id <- parent stats row
-      deck_kind
-
-      num_decks
-
-stats_num_points table
-      id
-      created_at
-
-      stats_id <- parent stats row
-      deck_kind
-
-      num_points
-
-stats_num_refs table
-      id
-      created_at
-
-      stats_id <- parent stats row
-      from_deck_kind
-      to_deck_kind
-
-      num_refs
-
-
-
- */

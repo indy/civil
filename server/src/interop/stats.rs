@@ -16,55 +16,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::interop::decks::SlimDeck;
-use crate::interop::Key;
-
-#[derive(Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Stats {
-    pub id: Option<Key>,
-
-    pub num_ideas: i32,
-    pub num_articles: i32,
-    pub num_people: i32,
-    pub num_timelines: i32,
-
-    pub num_refs: i32,
-    pub num_cards: i32,
-    pub num_card_ratings: i32,
-    pub num_images: i32,
-
-    pub num_notes_in_ideas: i32,
-    pub num_notes_in_articles: i32,
-    pub num_notes_in_people: i32,
-    pub num_notes_in_timelines: i32,
-
-    pub num_points_in_people: i32,
-    pub num_points_in_timelines: i32,
-
-    pub num_refs_ideas_to_ideas: i32,
-    pub num_refs_ideas_to_articles: i32,
-    pub num_refs_ideas_to_people: i32,
-    pub num_refs_ideas_to_timelines: i32,
-
-    pub num_refs_articles_to_ideas: i32,
-    pub num_refs_articles_to_articles: i32,
-    pub num_refs_articles_to_people: i32,
-    pub num_refs_articles_to_timelines: i32,
-
-    pub num_refs_people_to_ideas: i32,
-    pub num_refs_people_to_articles: i32,
-    pub num_refs_people_to_people: i32,
-    pub num_refs_people_to_timelines: i32,
-
-    pub num_refs_timelines_to_ideas: i32,
-    pub num_refs_timelines_to_articles: i32,
-    pub num_refs_timelines_to_people: i32,
-    pub num_refs_timelines_to_timelines: i32,
-}
 
 #[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UserStats {
     pub recently_visited: Vec<SlimDeck>,
-    pub stats: Stats,
 }

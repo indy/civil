@@ -18,36 +18,16 @@
 use crate::db::stats as stats_db;
 use crate::db::users as users_db;
 use crate::error::Result;
-use crate::interop::stats::Stats;
 use crate::interop::users::UserId;
 use crate::interop::Key;
 
 use crate::db::sqlite::SqlitePool;
-use rusqlite::Connection;
 
 pub fn get_all_user_ids(sqlite_pool: &SqlitePool) -> Result<Vec<UserId>> {
     users_db::get_all_user_ids(sqlite_pool)
 }
 
-pub fn create_stats(sqlite_pool: &SqlitePool, user_id: Key, stats: &Stats) -> Result<()> {
-    stats_db::create_stats(sqlite_pool, user_id, stats)
-}
-
-pub fn get_last_saved_stats(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Stats> {
-    stats_db::get_last_saved_stats(sqlite_pool, user_id)
-}
-
 pub fn generate_stats(sqlite_pool: &SqlitePool, user_id: Key) -> Result<()> {
     let conn = sqlite_pool.get()?;
     stats_db::generate_stats(&conn, user_id)
-}
-
-// (2023-06-17): temporary code for db migration
-
-pub fn get_all_stats(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<Stats>> {
-    stats_db::get_all_stats(sqlite_pool, user_id)
-}
-
-pub fn write_new_stats_format(conn: &Connection, stats: &Stats) -> Result<()> {
-    stats_db::write_new_stats(conn, stats)
 }
