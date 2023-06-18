@@ -381,6 +381,11 @@ export type UberSetup = {
     recentImages: Array<UserUploadedImage>;
     srReviewCount: number;
     srEarliestReviewDate: string;
+    ideas: IdeasListings;
+    people: PeopleListings;
+    articles: ArticleListings;
+    timelines: Array<SlimDeck>;
+    dialogues: Array<SlimDeck>;
 };
 
 // graph stuff

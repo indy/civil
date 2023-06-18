@@ -25,11 +25,20 @@ use chrono::Utc;
 #[allow(unused_imports)]
 use tracing::info;
 
+use crate::db::articles as db_articles;
+use crate::db::dialogues as db_dialogues;
 use crate::db::edges as db_edges;
+use crate::db::ideas as db_ideas;
+use crate::db::people as db_people;
 use crate::db::sr as db_sr;
+use crate::db::timelines as db_timelines;
+
 use crate::db::uploader as db_uploader;
 
+use crate::interop::articles as interop_articles;
 use crate::interop::decks::SlimDeck;
+use crate::interop::ideas as interop_ideas;
+use crate::interop::people as interop_people;
 use crate::interop::uploader as interop_uploader;
 use crate::interop::Key;
 
@@ -41,6 +50,12 @@ struct UberStruct {
     pub recent_images: Vec<interop_uploader::UserUploadedImage>,
     pub sr_review_count: i32,
     pub sr_earliest_review_date: chrono::NaiveDateTime,
+
+    pub ideas: interop_ideas::IdeasListings,
+    pub people: interop_people::PeopleListings,
+    pub articles: interop_articles::ArticleListings,
+    pub timelines: Vec<SlimDeck>,
+    pub dialogues: Vec<SlimDeck>,
 }
 
 pub async fn setup(
@@ -57,12 +72,23 @@ pub async fn setup(
     let upcoming_review =
         db_sr::get_cards_upcoming_review(&sqlite_pool, user_id, Utc::now().naive_utc())?;
 
+    let ideas = db_ideas::listings(&sqlite_pool, user_id)?;
+    let people = db_people::listings(&sqlite_pool, user_id)?;
+    let articles = db_articles::listings(&sqlite_pool, user_id)?;
+    let timelines = db_timelines::listings(&sqlite_pool, user_id)?;
+    let dialogues = db_dialogues::listings(&sqlite_pool, user_id)?;
+
     let uber = UberStruct {
         directory,
         recently_used_decks,
         recent_images,
         sr_review_count: upcoming_review.review_count,
         sr_earliest_review_date: upcoming_review.earliest_review_date,
+        ideas,
+        people,
+        articles,
+        timelines,
+        dialogues,
     };
 
     Ok(HttpResponse::Ok().json(uber))

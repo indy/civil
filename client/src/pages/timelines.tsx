@@ -24,7 +24,7 @@ import {
 import { CivLeft } from "components/civil-layout";
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
-import DeckListingPage from "components/deck-listing-page";
+import Module from "components/module";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "components/insignias/selector";
 import RollableSegment from "components/rollable-segment";
@@ -42,6 +42,8 @@ import {
     CivLeftLabel,
 } from "components/civil-layout";
 
+import { deckKindToHeadingString } from "utils/civil";
+
 function Timelines({ path }: { path?: string }) {
     const appState = getAppState();
 
@@ -54,11 +56,20 @@ function Timelines({ path }: { path?: string }) {
         }
     }, []);
 
-    let timelines = appState.listing.value.timelines;
+    const timelines = appState.listing.value.timelines;
+    return timelines ? <TimelinesModule timelines={timelines} /> : <div />;
+}
+
+function TimelinesModule({ timelines }: { timelines: Array<SlimDeck> }) {
+    let buttons = (
+        <span>
+            <button>Add a new Timeline...</button>
+        </span>
+    );
     return (
-        <DeckListingPage deckKind={DeckKind.Timeline}>
-            {timelines && <SlimDeckList list={timelines} />}
-        </DeckListingPage>
+        <Module heading={deckKindToHeadingString(DeckKind.Timeline)} buttons={buttons}>
+            <SlimDeckList list={timelines} />
+        </Module>
     );
 }
 
@@ -338,4 +349,4 @@ function SegmentPoints({
     );
 }
 
-export { Timeline, Timelines };
+export { Timeline, Timelines, TimelinesModule };

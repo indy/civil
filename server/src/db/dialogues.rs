@@ -79,7 +79,7 @@ fn from_row(row: &Row) -> Result<interop::Dialogue> {
     })
 }
 
-pub(crate) fn listing(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<SlimDeck>> {
+pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT id, name, kind, insignia

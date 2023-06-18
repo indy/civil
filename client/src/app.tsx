@@ -3,23 +3,25 @@ import { Link, Router, route, RouterOnChangeArgs } from "preact-router";
 
 import { State, User, UberSetup } from "types";
 
-import Net from "utils/net";
 import { AppStateChange, AppStateProvider, getAppState } from "app-state";
+
+import Net from "utils/net";
 import { capitalise } from "utils/js";
 
-import ScratchList from "components/scratch-list";
 import Previewer from "components/previewer";
+import ScratchList from "components/scratch-list";
 import SearchCommand from "components/search-command";
-import SpacedRepetition from "pages/spaced-repetition";
-import Stuff from "pages/stuff";
-import { Article, Articles } from "pages/articles";
 import { DeluxeToolbar } from "components/deluxe-toolbar";
+
+import FrontPage from "pages/front-page";
+import SpacedRepetition from "pages/spaced-repetition";
+import { Article, Articles } from "pages/articles";
+import { Dialogue, DialogueChat, Dialogues } from "pages/dialogues";
 import { Ideas, Idea } from "pages/ideas";
 import { Login, Logout } from "pages/login";
 import { Person, People } from "pages/people";
 import { Quote, Quotes } from "pages/quotes";
 import { Timeline, Timelines } from "pages/timelines";
-import { Dialogue, DialogueChat, Dialogues } from "pages/dialogues";
 
 export const App = ({ state }: { state: State }) => {
     return (
@@ -90,6 +92,12 @@ function TopBarMenu() {
         return (
             <nav>
                 <div id="elastic-top-menu-items">
+                    <div class="home-menu-item">
+                        <Link class="pigment-inherit" href="/">
+                            Home
+                        </Link>
+                    </div>
+
                     {appState.preferredOrder.map((topMenuItem) => (
                         <div class="optional-navigable top-menu-item">
                             <Link
@@ -148,7 +156,7 @@ const AppUI = () => {
                 // with a normal function call to 'route'
                 setTimeout(() => route("/login", true), 0);
             } else if (e.url === "/") {
-                setTimeout(() => route("/ideas", true), 0);
+                // setTimeout(() => route("/ideas", true), 0);
             }
         }
     }
@@ -162,10 +170,10 @@ const AppUI = () => {
             <DeluxeToolbar />
             <Previewer />
             <Router onChange={handleRoute}>
+                <FrontPage path="/" />
                 <Login path="/login" loginCallback={loginHandler} />
                 <Logout path="/logout" />
                 <SpacedRepetition path="/sr" />
-                <Stuff path="/stuff" />
                 <Ideas path="/ideas" />
                 <Idea path="/ideas/:id" />
                 <Articles path="/articles" />

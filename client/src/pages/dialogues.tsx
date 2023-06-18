@@ -26,7 +26,7 @@ import {
 } from "components/civil-layout";
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
-import DeckListingPage from "components/deck-listing-page";
+import Module from "components/module";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import RoleView from "components/role-view";
 import SegmentBackRefs from "components/segment-back-refs";
@@ -35,8 +35,7 @@ import TopMatter from "components/top-matter";
 import { SlimDeckList } from "components/groupings";
 
 import Net from "utils/net";
-import { buildUrl } from "utils/civil";
-
+import { buildUrl, deckKindToHeadingString } from "utils/civil";
 import CivilTextArea from "components/civil-text-area";
 
 const CHAT_GPT: string = "ChatGPT";
@@ -67,15 +66,24 @@ function Dialogues({ path }: { path?: string }) {
 
     const dialogues = appState.listing.value.dialogues;
 
+    if (dialogues) {
+        return <DialoguesModule dialogues={dialogues} />;
+    } else {
+        return <div></div>;
+    }
+}
+
+function DialoguesModule({ dialogues }: { dialogues: Array<SlimDeck> }) {
     function onClick() {
         route("/dialogues/chat", true);
     }
 
+    const buttons = <button onClick={onClick}>Open a new dialogue...</button>;
+
     return (
-        <DeckListingPage deckKind={DeckKind.Dialogue}>
-            <button onClick={onClick}>Open a new dialogue...</button>
-            {dialogues && <SlimDeckList list={dialogues} />}
-        </DeckListingPage>
+        <Module heading={deckKindToHeadingString(DeckKind.Dialogue)} buttons={buttons}>
+            <SlimDeckList list={dialogues} />
+        </Module>
     );
 }
 
@@ -527,4 +535,4 @@ function DialogueUpdater({
     );
 }
 
-export { Dialogue, DialogueChat, Dialogues };
+export { Dialogue, DialogueChat, Dialogues, DialoguesModule };

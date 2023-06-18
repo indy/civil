@@ -70,7 +70,7 @@ pub async fn get_all(
     info!("get_all");
 
     let user_id = session::user_id(&session)?;
-    let dialogues = db::listing(&sqlite_pool, user_id)?;
+    let dialogues = db::listings(&sqlite_pool, user_id)?;
 
     Ok(HttpResponse::Ok().json(dialogues))
 }

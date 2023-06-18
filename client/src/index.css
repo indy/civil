@@ -190,7 +190,7 @@ h1 {
     font-size: 2.6rem;
 }
 
-.listing-page {
+.module {
     width: 62rem;
 }
 
@@ -811,7 +811,11 @@ textarea {
 }
 
 .top-menu-item {
-    flex-grow: 0.2;
+    flex-grow: 0.05;
+}
+
+.home-menu-item {
+  padding-right: 3rem;
 }
 
 #scratchlist-component {
@@ -1825,6 +1829,10 @@ input:required {
     border: 0.2rem solid var(--bg);
 }
 
+.module-top-part-buttons {
+    float: right;
+}
+
 /* Responsive adjustments
    ========================================================================== */
 @media (max-width: 2000px) {
@@ -1842,7 +1850,7 @@ input:required {
         --search-command-width: 70%;
     }
 
-    .listing-page {
+    .module {
         width: 100%;
     }
 

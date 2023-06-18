@@ -102,7 +102,6 @@ const state: State = {
         "articles",
         "timelines",
         "quotes",
-        "stuff",
         "sr",
     ],
 
@@ -295,7 +294,16 @@ export const AppStateChange = {
         state.imageDirectory.value = uber.directory;
         state.srReviewCount.value = uber.srReviewCount;
         state.srEarliestReviewDate.value = uber.srEarliestReviewDate;
+
+        state.listing.value = {
+            ideas: uber.ideas,
+            people: uber.people,
+            articles: uber.articles,
+            timelines: uber.timelines,
+            dialogues: uber.dialogues,
+        };
     },
+
     userLogin: function (user: User) {
         if (DEBUG_APP_STATE) {
             console.log("userLogin");

@@ -7,10 +7,11 @@ import { Key, DM, DeckKind, NoteKind, DeckQuote } from "types";
 import Net from "utils/net";
 import buildMarkup from "components/notes/build-markup";
 import { AppStateChange } from "app-state";
+import { deckKindToHeadingString } from "utils/civil";
 
 import CivilInput from "components/civil-input";
 import CivilTextArea from "components/civil-text-area";
-import DeckListingPage from "components/deck-listing-page";
+import Module from "components/module";
 import DeleteConfirmation from "components/delete-confirmation";
 import SegmentNotes from "components/notes/segment-notes";
 import useDeckManager from "components/use-deck-manager";
@@ -71,6 +72,10 @@ function titleFromQuoteText(quoteText: string) {
 }
 
 function Quotes({ path }: { path?: string }) {
+    return <QuotesModule />;
+}
+
+function QuotesModule({}) {
     const initialState: QuoteState = {
         showAddForm: false,
         attribution: "",
@@ -159,12 +164,17 @@ function Quotes({ path }: { path?: string }) {
         );
     }
 
-    return (
-        <DeckListingPage deckKind={DeckKind.Quote}>
+    let buttons = (
+        <span>
             {!local.showAddForm && renderNewQuoteButton()}
-            {local.showAddForm && renderAddForm()}
             {!local.showAddForm && renderRandomButton()}
-        </DeckListingPage>
+        </span>
+    );
+
+    return (
+        <Module heading={deckKindToHeadingString(DeckKind.Quote)} buttons={buttons}>
+            {local.showAddForm && renderAddForm()}
+        </Module>
     );
 }
 
@@ -432,4 +442,4 @@ function Attribution({ attribution, onEdited, onDelete }) {
     );
 }
 
-export { Quote, Quotes };
+export { Quote, Quotes, QuotesModule };

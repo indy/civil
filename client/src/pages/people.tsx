@@ -19,7 +19,7 @@ import {
 
 import Net from "utils/net";
 import { calcAgeInYears, dateStringAsTriple } from "utils/eras";
-import { buildUrl } from "utils/civil";
+import { buildUrl, deckKindToHeadingString } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
 import {
     svgBlank,
@@ -34,7 +34,7 @@ import {
 import WhenVerbose from "components/when-verbose";
 
 import CivilInput from "components/civil-input";
-import DeckListingPage from "components/deck-listing-page";
+import Module from "components/module";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "components/insignias/selector";
 import LifespanForm from "components/lifespan-form";
@@ -69,41 +69,38 @@ function People({ path }: { path?: string }) {
     }, []);
 
     const people = appState.listing.value.people;
+    return people ? <PeopleModule people={people} /> : <div />;
+}
 
-    if (people) {
-        return (
-            <DeckListingPage deckKind={DeckKind.Person}>
-                <SlimDeckGrouping
-                    label="Uncategorised"
-                    list={people.uncategorised}
-                    expanded
-                    hideEmpty
-                />
-                <SlimDeckGrouping
-                    label="Ancient"
-                    list={people.ancient}
-                    expanded
-                />
-                <SlimDeckGrouping
-                    label="Medieval"
-                    list={people.medieval}
-                    expanded
-                />
-                <SlimDeckGrouping
-                    label="Modern"
-                    list={people.modern}
-                    expanded
-                />
-                <SlimDeckGrouping
-                    label="Contemporary"
-                    list={people.contemporary}
-                    expanded
-                />
-            </DeckListingPage>
-        );
-    } else {
-        return <div></div>;
-    }
+function PeopleModule({ people }: { people: PeopleListings }) {
+    let buttons = (
+        <span>
+            <button>Add a new Person...</button>
+        </span>
+    );
+
+    return (
+        <Module heading={deckKindToHeadingString(DeckKind.Person)} buttons={buttons}>
+            <SlimDeckGrouping
+                label="Uncategorised"
+                list={people.uncategorised}
+                expanded
+                hideEmpty
+            />
+            <SlimDeckGrouping label="Ancient" list={people.ancient} expanded />
+            <SlimDeckGrouping
+                label="Medieval"
+                list={people.medieval}
+                expanded
+            />
+            <SlimDeckGrouping label="Modern" list={people.modern} expanded />
+            <SlimDeckGrouping
+                label="Contemporary"
+                list={people.contemporary}
+                expanded
+            />
+        </Module>
+    );
 }
 
 function Person({ path, id }: { path?: string; id?: string }) {
@@ -619,4 +616,4 @@ function SegmentPoints({
     );
 }
 
-export { Person, People };
+export { Person, People, PeopleModule };

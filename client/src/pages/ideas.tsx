@@ -11,12 +11,13 @@ import {
 } from "types";
 
 import Net from "utils/net";
+import { deckKindToHeadingString } from "utils/civil";
 import { formattedDate } from "utils/js";
 import { getAppState, AppStateChange } from "app-state";
 
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
-import DeckListingPage from "components/deck-listing-page";
+import Module from "components/module";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "components/insignias/selector";
 import LeftMarginHeading from "components/left-margin-heading";
@@ -47,26 +48,22 @@ function Ideas({ path }: { path?: string }) {
     }, []);
 
     const ideas = appState.listing.value.ideas;
+    return ideas ? <IdeasModule ideas={ideas} /> : <div />;
+}
 
-    if (ideas) {
-        return (
-            <DeckListingPage deckKind={DeckKind.Idea}>
-                <SlimDeckGrouping label="Recent" list={ideas.recent} expanded />
-                <SlimDeckGrouping
-                    label="Orphans"
-                    list={ideas.orphans}
-                    hideEmpty
-                />
-                <SlimDeckGrouping
-                    label="Unnoted"
-                    list={ideas.unnoted}
-                    hideEmpty
-                />
-            </DeckListingPage>
-        );
-    } else {
-        return <div></div>;
-    }
+function IdeasModule({ ideas }: { ideas: IdeasListings }) {
+    let buttons = (
+        <span>
+            <button>Add a new Idea...</button>
+        </span>
+    );
+    return (
+        <Module heading={deckKindToHeadingString(DeckKind.Idea)} buttons={buttons}>
+            <SlimDeckGrouping label="Recent" list={ideas.recent} expanded />
+            <SlimDeckGrouping label="Orphans" list={ideas.orphans} hideEmpty />
+            <SlimDeckGrouping label="Unnoted" list={ideas.unnoted} hideEmpty />
+        </Module>
+    );
 }
 
 function Idea({ path, id }: { path?: string; id?: string }) {
@@ -262,4 +259,4 @@ function IdeaUpdater({ idea, onUpdate, onCancel }: IdeaUpdaterProps) {
     );
 }
 
-export { Ideas, Idea };
+export { Ideas, Idea, IdeasModule };

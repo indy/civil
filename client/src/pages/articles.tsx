@@ -17,7 +17,7 @@ import SegmentNotes from "components/notes/segment-notes";
 
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
-import DeckListingPage from "components/deck-listing-page";
+import Module from "components/module";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import LeftMarginHeading from "components/left-margin-heading";
 import LeftMarginHeadingNoWrap from "components/left-margin-heading-no-wrap";
@@ -34,7 +34,7 @@ import {
 } from "components/civil-layout";
 
 import Net from "utils/net";
-import { buildUrl } from "utils/civil";
+import { buildUrl, deckKindToHeadingString } from "utils/civil";
 import { formattedDate } from "utils/js";
 
 function Articles({ path }: { path?: string }) {
@@ -50,22 +50,27 @@ function Articles({ path }: { path?: string }) {
     }, []);
 
     const articles = appState.listing.value.articles;
+    return articles ? <ArticlesModule articles={articles} /> : <div />;
+}
 
-    if (articles) {
-        return (
-            <DeckListingPage deckKind={DeckKind.Article}>
-                <RatedGrouping label="Recent" list={articles.recent} expanded />
-                <RatedGrouping label="Rated" list={articles.rated} />
-                <SlimDeckGrouping
-                    label="Orphans"
-                    list={articles.orphans}
-                    hideEmpty
-                />
-            </DeckListingPage>
-        );
-    } else {
-        return <div></div>;
-    }
+function ArticlesModule({ articles }: { articles: ArticleListings }) {
+    let buttons = (
+        <span>
+            <button>Add a new Article...</button>
+        </span>
+    );
+
+    return (
+        <Module heading={deckKindToHeadingString(DeckKind.Article)} buttons={buttons}>
+            <RatedGrouping label="Recent" list={articles.recent} expanded />
+            <RatedGrouping label="Rated" list={articles.rated} />
+            <SlimDeckGrouping
+                label="Orphans"
+                list={articles.orphans}
+                hideEmpty
+            />
+        </Module>
+    );
 }
 
 function Article({ path, id }: { path?: string; id?: string }) {
@@ -405,4 +410,4 @@ function removeEmptyStrings(obj, keys: Array<string>) {
     return obj;
 }
 
-export { Article, Articles };
+export { Article, Articles, ArticlesModule };

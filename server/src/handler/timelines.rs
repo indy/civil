@@ -56,7 +56,7 @@ pub async fn get_all(
 
     let user_id = session::user_id(&session)?;
 
-    let timelines = db::all(&sqlite_pool, user_id)?;
+    let timelines = db::listings(&sqlite_pool, user_id)?;
 
     Ok(HttpResponse::Ok().json(timelines))
 }
