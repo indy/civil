@@ -8,19 +8,13 @@ type Props = {
     children: ComponentChildren;
 };
 
-export default function Module({
-    heading,
-    children,
-    buttons,
-}: Props) {
+export default function Module({ heading, children, buttons }: Props) {
     return (
         <article class="module">
             <CivContainer>
                 <CivMain>
                     <span class="module-top-part">
-                        <span class="module-top-part-buttons">
-                            {buttons}
-                        </span>
+                        <span class="module-top-part-buttons">{buttons}</span>
                         <h1 class="ui">{heading}</h1>
                     </span>
                     {children}

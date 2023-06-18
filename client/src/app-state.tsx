@@ -96,12 +96,6 @@ const state: State = {
     // preferred order of the top-level menu bar
     //
     preferredOrder: [
-        "dialogues",
-        "ideas",
-        "people",
-        "articles",
-        "timelines",
-        "quotes",
         "sr",
     ],
 

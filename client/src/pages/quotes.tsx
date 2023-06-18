@@ -9,6 +9,7 @@ import buildMarkup from "components/notes/build-markup";
 import { AppStateChange } from "app-state";
 import { deckKindToHeadingString } from "utils/civil";
 
+import CivilButton from "components/civil-button";
 import CivilInput from "components/civil-input";
 import CivilTextArea from "components/civil-text-area";
 import Module from "components/module";
@@ -84,13 +85,11 @@ function QuotesModule({}) {
 
     const [local, localDispatch] = useLocalReducer(quotesReducer, initialState);
 
-    function clickedNewQuoteButton(e: Event) {
-        e.preventDefault();
+    function clickedNewQuoteButton() {
         localDispatch(ActionType.ShowAddForm);
     }
 
-    function clickedRandomButton(e: Event) {
-        e.preventDefault();
+    function clickedRandomButton() {
         Net.get<DeckQuote>("/api/quotes/random").then((quote) => {
             route(`/quotes/${quote.id}`);
         });
@@ -132,11 +131,11 @@ function QuotesModule({}) {
     }
 
     function renderNewQuoteButton() {
-        return <button onClick={clickedNewQuoteButton}>Add Quote...</button>;
+        return <CivilButton onClick={clickedNewQuoteButton}>Add Quote...</CivilButton>;
     }
 
     function renderRandomButton() {
-        return <button onClick={clickedRandomButton}>Random Quote</button>;
+        return <CivilButton onClick={clickedRandomButton}>Random Quote</CivilButton>;
     }
 
     function renderAddForm() {
@@ -172,7 +171,10 @@ function QuotesModule({}) {
     );
 
     return (
-        <Module heading={deckKindToHeadingString(DeckKind.Quote)} buttons={buttons}>
+        <Module
+            heading={deckKindToHeadingString(DeckKind.Quote)}
+            buttons={buttons}
+        >
             {local.showAddForm && renderAddForm()}
         </Module>
     );

@@ -15,6 +15,7 @@ import InsigniaSelector from "components/insignias/selector";
 import SegmentGraph from "components/graph/segment-graph";
 import SegmentNotes from "components/notes/segment-notes";
 
+import CivilButton from "components/civil-button";
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
 import Module from "components/module";
@@ -56,12 +57,15 @@ function Articles({ path }: { path?: string }) {
 function ArticlesModule({ articles }: { articles: ArticleListings }) {
     let buttons = (
         <span>
-            <button>Add a new Article...</button>
+            <CivilButton>Add a new Article...</CivilButton>
         </span>
     );
 
     return (
-        <Module heading={deckKindToHeadingString(DeckKind.Article)} buttons={buttons}>
+        <Module
+            heading={deckKindToHeadingString(DeckKind.Article)}
+            buttons={buttons}
+        >
             <RatedGrouping label="Recent" list={articles.recent} expanded />
             <RatedGrouping label="Rated" list={articles.rated} />
             <SlimDeckGrouping

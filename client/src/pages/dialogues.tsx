@@ -37,6 +37,7 @@ import { SlimDeckList } from "components/groupings";
 import Net from "utils/net";
 import { buildUrl, deckKindToHeadingString } from "utils/civil";
 import CivilTextArea from "components/civil-text-area";
+import CivilButton from "components/civil-button";
 
 const CHAT_GPT: string = "ChatGPT";
 
@@ -78,10 +79,15 @@ function DialoguesModule({ dialogues }: { dialogues: Array<SlimDeck> }) {
         route("/dialogues/chat", true);
     }
 
-    const buttons = <button onClick={onClick}>Open a new dialogue...</button>;
+    const buttons = (
+        <CivilButton onClick={onClick}>Open a new dialogue...</CivilButton>
+    );
 
     return (
-        <Module heading={deckKindToHeadingString(DeckKind.Dialogue)} buttons={buttons}>
+        <Module
+            heading={deckKindToHeadingString(DeckKind.Dialogue)}
+            buttons={buttons}
+        >
             <SlimDeckList list={dialogues} />
         </Module>
     );

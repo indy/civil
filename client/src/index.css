@@ -815,8 +815,27 @@ textarea {
 }
 
 .home-menu-item {
-  padding-right: 3rem;
+    padding-right: 3rem;
 }
+
+.civil-button {
+    transition: all 0.2s ease;
+    font-family: Inter;
+    font-weight: 600;
+    background-color: var(--bg-clock-12);
+    color: var(--fg-clock-12);
+    border: 0.15rem solid var(--bg-clock-12);
+    border-radius: var(--coloured-deck-border-radius);
+    padding: 0.3rem;
+}
+
+.civil-button:hover {
+    background-color: var(--bg-clock-12);
+    color: var(--fg-clock-12);
+    border: 0.15rem solid var(--fg-clock-12);
+}
+
+
 
 #scratchlist-component {
     position: fixed;
