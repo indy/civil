@@ -1350,10 +1350,10 @@ section > form {
     font-style: oblique;
 }
 
-.note-content > ol {
+.muh-main > ol {
     width: var(--block-width);
 }
-.note-content > ul {
+.muh-main > ul {
     width: var(--block-width);
 }
 .note li {

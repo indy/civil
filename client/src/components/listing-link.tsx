@@ -102,7 +102,7 @@ function buildNotes(notes: Array<NoteThing>) {
             a.push(
                 <CivContainer extraClasses="note">
                     {note.refs && <CivLeft>{refs}</CivLeft>}
-                    <CivMain extraClasses="note-content">
+                    <CivMain>
                         {buildMarkup(note.noteContent)}
                     </CivMain>
                 </CivContainer>

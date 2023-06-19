@@ -644,7 +644,7 @@ export default function NoteView({
 
                 {!local.isEditingMarkup && (
                     <CivMain>
-                        <div class="note-content" ref={hoveringRef}>
+                        <div ref={hoveringRef}>
                             {local.isMinimisedText && (
                                 <p class="minimised-text">
                                     minimised, click to expand&hellip;

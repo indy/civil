@@ -285,7 +285,7 @@ function DialogueChat({ path }: { path?: string }) {
             <CivLeft>
                 <RoleView role={chatMessage.role} />
             </CivLeft>,
-            <CivMain extraClasses="note-content">
+            <CivMain>
                 <p>{chatMessage.content}</p>
             </CivMain>,
         ];
