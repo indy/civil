@@ -131,11 +131,19 @@ function QuotesModule({}) {
     }
 
     function renderNewQuoteButton() {
-        return <CivilButton onClick={clickedNewQuoteButton}>Add Quote...</CivilButton>;
+        return (
+            <CivilButton onClick={clickedNewQuoteButton}>
+                Add Quote...
+            </CivilButton>
+        );
     }
 
     function renderRandomButton() {
-        return <CivilButton onClick={clickedRandomButton}>Random Quote</CivilButton>;
+        return (
+            <CivilButton onClick={clickedRandomButton}>
+                Random Quote
+            </CivilButton>
+        );
     }
 
     function renderAddForm() {

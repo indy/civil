@@ -827,6 +827,7 @@ textarea {
     border: 0.15rem solid var(--bg-clock-12);
     border-radius: var(--coloured-deck-border-radius);
     padding: 0.3rem;
+    cursor: pointer;
 }
 
 .civil-button:hover {
@@ -835,7 +836,10 @@ textarea {
     border: 0.15rem solid var(--fg-clock-12);
 }
 
-
+.civil-button:active {
+    background-color: var(--fg-clock-12);
+    color: var(--bg-clock-12);
+}
 
 #scratchlist-component {
     position: fixed;

@@ -22,7 +22,7 @@ import {
 } from "components/svg-icons";
 
 import { CivLeft } from "components/civil-layout";
-import CivilButton from "components/civil-button";
+import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
 import Module from "components/module";
@@ -63,9 +63,9 @@ function Timelines({ path }: { path?: string }) {
 
 function TimelinesModule({ timelines }: { timelines: Array<SlimDeck> }) {
     let buttons = (
-        <span>
-            <CivilButton>Add a new Timeline...</CivilButton>
-        </span>
+        <CivilButtonCreateDeck
+            deckKind={DeckKind.Timeline}
+        ></CivilButtonCreateDeck>
     );
     return (
         <Module

@@ -3,12 +3,9 @@ import { useEffect, useRef } from "preact/hooks";
 import { route } from "preact-router";
 
 import {
-    ArticleListings,
     DeckKind,
     DeckQuote,
-    IdeasListings,
     NoteKind,
-    PeopleListings,
     SearchResults,
     SlimDeck,
     ToolbarMode,
@@ -16,7 +13,11 @@ import {
 
 import Net from "utils/net";
 import { getAppState, AppStateChange } from "app-state";
-import { deckKindToResourceString, indexToShortcut } from "utils/civil";
+import {
+    deckKindToResourceString,
+    indexToShortcut,
+    createDeck,
+} from "utils/civil";
 
 import DeckLink from "components/deck-link";
 import useLocalReducer from "components/use-local-reducer";
@@ -829,48 +830,4 @@ function executeCommand(text: string) {
         return action.fn ? action.fn(rest) : false;
     }
     return false;
-}
-
-function createDeck(deckKind: DeckKind, title: string) {
-    type ProtoDeck = {
-        title: string;
-    };
-
-    // creates a new deck
-    const data: ProtoDeck = {
-        title: title,
-    };
-
-    const resource = deckKindToResourceString(deckKind);
-
-    type AnyDeckListing =
-        | IdeasListings
-        | PeopleListings
-        | ArticleListings
-        | Array<SlimDeck>;
-
-    Net.post<ProtoDeck, SlimDeck>(`/api/${resource}`, data).then((deck) => {
-        Net.get<AnyDeckListing>(`/api/${resource}/listings`).then((listing) => {
-            switch (deckKind) {
-                case DeckKind.Idea:
-                    AppStateChange.setIdeaListings(listing as IdeasListings);
-                    break;
-                case DeckKind.Person:
-                    AppStateChange.setPeopleListings(listing as PeopleListings);
-                    break;
-                case DeckKind.Article:
-                    AppStateChange.setArticleListings(
-                        listing as ArticleListings
-                    );
-                    break;
-                case DeckKind.Timeline:
-                    AppStateChange.setTimelineListings(
-                        listing as Array<SlimDeck>
-                    );
-                    break;
-            }
-            AppStateChange.invalidateGraph();
-        });
-        route(`/${resource}/${deck.id}`);
-    });
 }

@@ -15,7 +15,7 @@ import InsigniaSelector from "components/insignias/selector";
 import SegmentGraph from "components/graph/segment-graph";
 import SegmentNotes from "components/notes/segment-notes";
 
-import CivilButton from "components/civil-button";
+import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
 import Module from "components/module";
@@ -56,9 +56,9 @@ function Articles({ path }: { path?: string }) {
 
 function ArticlesModule({ articles }: { articles: ArticleListings }) {
     let buttons = (
-        <span>
-            <CivilButton>Add a new Article...</CivilButton>
-        </span>
+        <CivilButtonCreateDeck
+            deckKind={DeckKind.Article}
+        ></CivilButtonCreateDeck>
     );
 
     return (

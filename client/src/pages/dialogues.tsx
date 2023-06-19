@@ -76,7 +76,7 @@ function Dialogues({ path }: { path?: string }) {
 
 function DialoguesModule({ dialogues }: { dialogues: Array<SlimDeck> }) {
     function onClick() {
-        route("/dialogues/chat", true);
+        route("/dialogues/chat", false);
     }
 
     const buttons = (

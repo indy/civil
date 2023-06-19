@@ -1,4 +1,9 @@
+import { route } from "preact-router";
+
 import {
+    PeopleListings,
+    IdeasListings,
+    ArticleListings,
     DeckKind,
     Key,
     SlimDeck,
@@ -8,6 +13,8 @@ import {
     Note,
 } from "types";
 
+import Net from "utils/net";
+import { AppStateChange } from "app-state";
 import { capitalise } from "utils/js";
 
 export function noteSeq(notes: Notes, kind: NoteKind): Notes {
@@ -76,6 +83,23 @@ export function buildUrl(deckKind: DeckKind, id: Key, prefix?: string): string {
         return `${prefix}/${deckKindToResourceString(deckKind)}/${id}`;
     } else {
         return `/${deckKindToResourceString(deckKind)}/${id}`;
+    }
+}
+
+export function deckKindToSingularString(deckKind: DeckKind): string {
+    switch (deckKind) {
+        case DeckKind.Article:
+            return "article";
+        case DeckKind.Idea:
+            return "idea";
+        case DeckKind.Person:
+            return "person";
+        case DeckKind.Timeline:
+            return "timeline";
+        case DeckKind.Quote:
+            return "quote";
+        case DeckKind.Dialogue:
+            return "dialogue";
     }
 }
 
@@ -157,4 +181,48 @@ export function sortByResourceThenName(a: SlimDeck, b: SlimDeck): number {
 
     // titles must be equal
     return 0;
+}
+
+export function createDeck(deckKind: DeckKind, title: string) {
+    type ProtoDeck = {
+        title: string;
+    };
+
+    // creates a new deck
+    const data: ProtoDeck = {
+        title: title,
+    };
+
+    const resource = deckKindToResourceString(deckKind);
+
+    type AnyDeckListing =
+        | IdeasListings
+        | PeopleListings
+        | ArticleListings
+        | Array<SlimDeck>;
+
+    Net.post<ProtoDeck, SlimDeck>(`/api/${resource}`, data).then((deck) => {
+        Net.get<AnyDeckListing>(`/api/${resource}/listings`).then((listing) => {
+            switch (deckKind) {
+                case DeckKind.Idea:
+                    AppStateChange.setIdeaListings(listing as IdeasListings);
+                    break;
+                case DeckKind.Person:
+                    AppStateChange.setPeopleListings(listing as PeopleListings);
+                    break;
+                case DeckKind.Article:
+                    AppStateChange.setArticleListings(
+                        listing as ArticleListings
+                    );
+                    break;
+                case DeckKind.Timeline:
+                    AppStateChange.setTimelineListings(
+                        listing as Array<SlimDeck>
+                    );
+                    break;
+            }
+            AppStateChange.invalidateGraph();
+        });
+        route(`/${resource}/${deck.id}`);
+    });
 }

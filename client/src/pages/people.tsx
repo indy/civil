@@ -33,7 +33,7 @@ import {
 } from "components/svg-icons";
 import WhenVerbose from "components/when-verbose";
 
-import CivilButton from "components/civil-button";
+import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilInput from "components/civil-input";
 import Module from "components/module";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
@@ -75,9 +75,9 @@ function People({ path }: { path?: string }) {
 
 function PeopleModule({ people }: { people: PeopleListings }) {
     let buttons = (
-        <span>
-            <CivilButton>Add a new Person...</CivilButton>
-        </span>
+        <CivilButtonCreateDeck
+            deckKind={DeckKind.Person}
+        ></CivilButtonCreateDeck>
     );
 
     return (

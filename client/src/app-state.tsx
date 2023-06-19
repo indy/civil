@@ -95,9 +95,7 @@ const state: State = {
 
     // preferred order of the top-level menu bar
     //
-    preferredOrder: [
-        "sr",
-    ],
+    preferredOrder: ["sr"],
 
     // key == deckKind name of decks
     listing: signal({

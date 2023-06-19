@@ -15,7 +15,7 @@ import { deckKindToHeadingString } from "utils/civil";
 import { formattedDate } from "utils/js";
 import { getAppState, AppStateChange } from "app-state";
 
-import CivilButton from "components/civil-button";
+import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
 import Module from "components/module";
@@ -36,7 +36,6 @@ import {
     CivLeftLabel,
 } from "components/civil-layout";
 
-
 function Ideas({ path }: { path?: string }) {
     const appState = getAppState();
 
@@ -55,9 +54,7 @@ function Ideas({ path }: { path?: string }) {
 
 function IdeasModule({ ideas }: { ideas: IdeasListings }) {
     let buttons = (
-        <span>
-            <CivilButton>Add a new Idea...</CivilButton>
-        </span>
+        <CivilButtonCreateDeck deckKind={DeckKind.Idea}></CivilButtonCreateDeck>
     );
     return (
         <Module
