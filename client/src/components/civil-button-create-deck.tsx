@@ -25,9 +25,22 @@ export default function CivilButtonCreateDeck({
     }
 
     function clickedOk() {
-        if (content.length > 0) {
+        process(content);
+    }
+
+    function onReturnPressed(inputContent: string) {
+        // note: use inputContent rather than this component's 'content' state as
+        // this onReturnPressed function is captured by the CivilInput at
+        // creation time and therefore this component's 'content' value will always
+        // be the empty string.
+        //
+        process(inputContent);
+    }
+
+    function process(deckName: string) {
+        if (deckName.length > 0) {
             setShowInput(false);
-            createDeck(deckKind, content);
+            createDeck(deckKind, deckName);
         }
     }
 
@@ -38,6 +51,7 @@ export default function CivilButtonCreateDeck({
             <span>
                 <CivilInput
                     value={content}
+                    onReturnPressed={onReturnPressed}
                     onContentChange={setContent}
                     focus
                 />

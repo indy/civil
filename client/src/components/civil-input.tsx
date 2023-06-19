@@ -8,6 +8,7 @@ export default function CivilInput({
     value,
     autoComplete,
     onContentChange,
+    onReturnPressed,
     size,
     elementClass,
     readOnly,
@@ -17,6 +18,7 @@ export default function CivilInput({
     value?: string;
     autoComplete?: string;
     onContentChange?: (content: string, name: string) => void;
+    onReturnPressed?: (content: string) => void;
     size?: number;
     elementClass?: string;
     readOnly?: boolean;
@@ -24,11 +26,30 @@ export default function CivilInput({
 }) {
     const inputRef = useRef(null);
 
-    useEffect(() => {
-        if (inputRef.current && focus) {
-            let c: HTMLElement = inputRef.current;
-            c.focus();
+    function keyup(e: KeyboardEvent) {
+        if (onReturnPressed && e.key === "Enter") {
+            if (inputRef && inputRef.current) {
+                let e = inputRef.current as HTMLInputElement;
+                onReturnPressed(e.value);
+            }
         }
+    }
+
+    useEffect(() => {
+        if (inputRef.current) {
+            if (focus) {
+                let c: HTMLElement = inputRef.current;
+                c.focus();
+            }
+
+            const elem = inputRef.current as HTMLElement;
+
+            elem.addEventListener("keyup", keyup);
+            return () => {
+                elem.removeEventListener("keyup", keyup);
+            }
+        }
+        return () => {}; // to please tsc
     }, []);
 
     function onInput(event: Event) {
