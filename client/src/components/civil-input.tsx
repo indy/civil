@@ -47,7 +47,7 @@ export default function CivilInput({
             elem.addEventListener("keyup", keyup);
             return () => {
                 elem.removeEventListener("keyup", keyup);
-            }
+            };
         }
         return () => {}; // to please tsc
     }, []);

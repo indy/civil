@@ -18,6 +18,7 @@ import SegmentNotes from "components/notes/segment-notes";
 import useDeckManager from "components/use-deck-manager";
 import useLocalReducer from "components/use-local-reducer";
 import useModalKeyboard from "components/use-modal-keyboard";
+import { CivContainer, CivMain } from "components/civil-layout";
 
 enum ActionType {
     ShowAddForm,
@@ -420,35 +421,40 @@ function Attribution({ attribution, onEdited, onDelete }) {
     }
 
     return (
-        <div>
-            {local.mode === AttrMode.Show && (
-                <div>
-                    <div id="quotation-attribute" onClick={clickedAttribution}>
-                        {markup}
-                    </div>
-                    {local.showButtons && (
-                        <div>
-                            <button onClick={clickedEdit}>Edit...</button>
-                            <DeleteConfirmation
-                                onDelete={confirmedDeleteClicked}
-                            />
+        <CivContainer>
+            <CivMain>
+                {local.mode === AttrMode.Show && (
+                    <div>
+                        <div
+                            id="quotation-attribute"
+                            onClick={clickedAttribution}
+                        >
+                            {markup}
                         </div>
-                    )}
-                </div>
-            )}
-            {local.mode === AttrMode.Edit && (
-                <div>
-                    <CivilInput
-                        id="attribution"
-                        value={local.attribution}
-                        onContentChange={handleAttributionChange}
-                    />
-                    <br />
-                    <button onClick={clickedCancel}>Cancel</button>
-                    <button onClick={clickedOK}>OK</button>
-                </div>
-            )}
-        </div>
+                        {local.showButtons && (
+                            <div>
+                                <button onClick={clickedEdit}>Edit...</button>
+                                <DeleteConfirmation
+                                    onDelete={confirmedDeleteClicked}
+                                />
+                            </div>
+                        )}
+                    </div>
+                )}
+                {local.mode === AttrMode.Edit && (
+                    <div>
+                        <CivilInput
+                            id="attribution"
+                            value={local.attribution}
+                            onContentChange={handleAttributionChange}
+                        />
+                        <br />
+                        <button onClick={clickedCancel}>Cancel</button>
+                        <button onClick={clickedOK}>OK</button>
+                    </div>
+                )}
+            </CivMain>
+        </CivContainer>
     );
 }
 

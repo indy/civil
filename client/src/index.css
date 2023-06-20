@@ -2040,7 +2040,7 @@ input:required {
 @media (max-width: 500px) {
     :root {
         /* --bg: #220044; */
-        --block-width: 100%;
+        --block-width: 95%;
         --search-command-width: 90%;
     }
 

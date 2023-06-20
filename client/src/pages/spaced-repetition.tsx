@@ -308,9 +308,7 @@ function Answer({ card }: { card: Card }) {
                         <DeckLink slimDeck={card.deckInfo} />
                     </div>
                 </CivLeft>
-                <CivMain>
-                    {card.answer && buildMarkup(card.answer)}
-                </CivMain>
+                <CivMain>{card.answer && buildMarkup(card.answer)}</CivMain>
             </CivContainer>
         </div>
     );

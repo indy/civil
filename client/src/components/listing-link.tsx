@@ -51,10 +51,15 @@ function ExpandableListingLink({
 
     let res = (
         <div>
-            <span onClick={onClicked}>{icon}</span>
-            <span class="backref-deck">
-                <DeckLink slimDeck={slimDeck} />
-            </span>
+            <CivContainer>
+                <CivMain>
+                    <span onClick={onClicked}>{icon}</span>
+                    <span class="backref-deck">
+                        <DeckLink slimDeck={slimDeck} />
+                    </span>
+                </CivMain>
+            </CivContainer>
+
             {expanded &&
                 deckLevelAnnotation &&
                 buildDeckLevelAnnotation(deckLevelAnnotation)}
@@ -67,7 +72,15 @@ function ExpandableListingLink({
 }
 
 function buildDeckLevelAnnotation(deckLevelAnnotation: string) {
-    return <div class="ref-top-scribble indented">{deckLevelAnnotation}</div>;
+    return (
+        <CivContainer>
+            <CivMain>
+                <div class="ref-top-scribble indented">
+                    {deckLevelAnnotation}
+                </div>
+            </CivMain>
+        </CivContainer>
+    );
 }
 
 function buildDeckLevelBackRefs(deckLevelRefs: Array<Ref>) {
@@ -75,7 +88,13 @@ function buildDeckLevelBackRefs(deckLevelRefs: Array<Ref>) {
         <RefView deckReference={r} extraClasses="deck-level-backref" />
     ));
 
-    return <div>{refs}</div>;
+    return (
+        <CivContainer>
+            <CivMain>
+                <div>{refs}</div>{" "}
+            </CivMain>
+        </CivContainer>
+    );
 }
 
 function buildNotes(notes: Array<NoteThing>) {
@@ -85,7 +104,13 @@ function buildNotes(notes: Array<NoteThing>) {
         .reduce((a, note) => {
             if (note.topAnnotation !== undefined) {
                 a.push(
-                    <div class="ref-top-scribble">{note.topAnnotation}</div>
+                    <CivContainer>
+                        <CivMain>
+                            <div class="ref-top-scribble">
+                                {note.topAnnotation}
+                            </div>
+                        </CivMain>
+                    </CivContainer>
                 );
             }
             let refs =
@@ -102,13 +127,17 @@ function buildNotes(notes: Array<NoteThing>) {
             a.push(
                 <CivContainer extraClasses="note">
                     {note.refs && <CivLeft>{refs}</CivLeft>}
-                    <CivMain>
-                        {buildMarkup(note.noteContent)}
-                    </CivMain>
+                    <CivMain>{buildMarkup(note.noteContent)}</CivMain>
                 </CivContainer>
             );
 
-            a.push(<hr />);
+            a.push(
+                <CivContainer>
+                    <CivMain>
+                        <hr />
+                    </CivMain>
+                </CivContainer>
+            );
             return a;
         }, ini)
         .slice(0, -1); // the slice removes the final hr tag
