@@ -57,8 +57,8 @@ export default function TopMatter({
             <CivLeft>
                 <LeftMarginHeading>
                     {renderInsignia(deck.insignia)}
+                    {children}
                 </LeftMarginHeading>
-                {children}
             </CivLeft>
             <Title
                 title={title}

@@ -20,7 +20,6 @@ import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
 import Module from "components/module";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
-import LeftMarginHeading from "components/left-margin-heading";
 import LeftMarginHeadingNoWrap from "components/left-margin-heading-no-wrap";
 import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
@@ -100,7 +99,7 @@ function Article({ path, id }: { path?: string; id?: string }) {
                     onRefsToggle={deckManager.onRefsToggle}
                     onFormToggle={deckManager.onFormToggle}
                 >
-                    <LeftMarginHeading>{deck.author}</LeftMarginHeading>
+                    {deck.author}
 
                     {deck.source && (
                         <LeftMarginHeadingNoWrap>
@@ -108,14 +107,11 @@ function Article({ path, id }: { path?: string; id?: string }) {
                         </LeftMarginHeadingNoWrap>
                     )}
                     {deck.publishedDate && (
-                        <LeftMarginHeading>
+                        <div>
                             Published: {formattedDate(deck.publishedDate)}
-                        </LeftMarginHeading>
+                        </div>
                     )}
-
-                    <LeftMarginHeading>
-                        Added: {formattedDate(deck.createdAt)}
-                    </LeftMarginHeading>
+                    <div>Added: {formattedDate(deck.createdAt)}</div>
                     <StarRatingPartial rating={deck.rating} />
                 </TopMatter>
 

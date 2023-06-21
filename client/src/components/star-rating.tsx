@@ -2,11 +2,13 @@ import { h, ComponentChildren } from "preact";
 
 import { svgRatingStar } from "components/svg-icons";
 
-function StarRating({ rating }: { rating: number }) {
+import { CivLeft } from "components/civil-layout";
+
+function StarRatingWithinListing({ rating }: { rating: number }) {
     return (
-        <div class="left-margin left-margin-list-entry">
+        <CivLeft extraClasses="left-margin-within-listing">
             {rating > 0 && <StarRatingPartial rating={rating} />}
-        </div>
+        </CivLeft>
     );
 }
 
@@ -19,4 +21,4 @@ function StarRatingPartial({ rating }: { rating: number }) {
     return <div>{rating > 0 && ratings}</div>;
 }
 
-export { StarRating, StarRatingPartial };
+export { StarRatingWithinListing, StarRatingPartial };

@@ -1386,14 +1386,18 @@ section > form {
     padding-right: 1.2rem;
 }
 
+.left-margin-within-listing {
+    padding-top: 0 !important;
+}
+
+.left-margin-within-listing > .left-margin-inner {
+    /* standard-list:padding-left + .left-margin-inner:padding-right */
+    padding-right: 2.2rem;
+}
+
 .left-margin-heading-typeface {
     font-family: Crimson;
     font-weight: 300;
-}
-
-.left-margin-list-entry {
-    /* don't want the padding as each li is only a single line */
-    padding-top: 0rem;
 }
 
 /* like left-margin but inline for adding notes to points */

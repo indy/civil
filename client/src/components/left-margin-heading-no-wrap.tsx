@@ -5,9 +5,5 @@ export default function LeftMarginHeadingNoWrap({
 }: {
     children: ComponentChildren;
 }) {
-    return (
-        <div class="left-margin-entry-no-wrap">
-            <div class="left-margin-heading-typeface">{children}</div>
-        </div>
-    );
+    return <div class="left-margin-entry-no-wrap">{children}</div>;
 }

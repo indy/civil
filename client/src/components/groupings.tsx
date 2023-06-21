@@ -9,7 +9,8 @@ import { svgExpand, svgMinimise } from "components/svg-icons";
 
 import DeckLink from "components/deck-link";
 import { ListingLink } from "components/listing-link";
-import { StarRating } from "components/star-rating";
+import { StarRatingWithinListing } from "components/star-rating";
+import { CivMain, CivContainer } from "components/civil-layout";
 
 function SlimDeckList({ list }: { list: Array<SlimDeck> }) {
     return (
@@ -172,9 +173,13 @@ function RatedListingLink({ deck }: RatedListingLinkProps) {
 
     return (
         <li>
-            <StarRating rating={rating} />
-            <DeckLink slimDeck={slimDeck} />
-            <span class="descriptive-scribble">{shortDescription}</span>
+            <CivContainer>
+                <CivMain>
+                    <StarRatingWithinListing rating={rating} />
+                    <DeckLink slimDeck={slimDeck} />
+                    <span class="descriptive-scribble">{shortDescription}</span>
+                </CivMain>
+            </CivContainer>
         </li>
     );
 }

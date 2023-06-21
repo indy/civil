@@ -239,7 +239,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
 
         // copy over any nodes directly connected to the expanded or important nodes
         for (const key in nodes) {
-            if(!appState.graph.value.links[key]) {
+            if (!appState.graph.value.links[key]) {
                 continue;
             }
 
@@ -296,7 +296,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
 
         // update links
         for (const key in nodes) {
-            if(!appState.graph.value.links[key]) {
+            if (!appState.graph.value.links[key]) {
                 continue;
             }
 
