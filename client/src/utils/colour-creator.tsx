@@ -1,5 +1,7 @@
 import { ColourTriple, Settings, Definitions } from "types";
 
+import { getCssString } from "utils/js";
+
 function buildColourConversionFn(
     rgb_from_hsl: (h: number, s: number, l: number) => any
 ) {
@@ -31,8 +33,7 @@ function buildColourConversionFn(
 }
 
 function augmentSettingsWithCssModifierParameters(uiColours: Settings) {
-    let root = document.body;
-    let mode = getComputedStyle(root).getPropertyValue("--mode").trim();
+    let mode = getCssString("--mode");
 
     let s;
 
@@ -76,11 +77,9 @@ function augmentDefinitionsWithCssModifierParameters(
     uiColours: Settings,
     uiDefinitions: Definitions
 ) {
-    let root = document.body;
-    let mode = getComputedStyle(root).getPropertyValue("--mode").trim();
-
     let s;
 
+    let mode = getCssString("--mode");
     if (mode === "light") {
         // console.log("mode is light");
         let textSat = 83.7;

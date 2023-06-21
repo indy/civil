@@ -3,6 +3,7 @@ import "./index.css";
 
 import { User, UberSetup } from "types";
 
+import { getCssBoolean } from "utils/js";
 import Net from "utils/net";
 import { App } from "app";
 import { AppStateChange, initialState } from "app-state";
@@ -88,11 +89,7 @@ wasm_bindgen("/civil_wasm_bg.wasm")
             wasmInterface.rgbFromHsl
         );
 
-        let body = document.body;
-        let hasPhysicalKeyboard = getComputedStyle(body)
-            .getPropertyValue("--has-physical-keyboard")
-            .trim();
-        state.hasPhysicalKeyboard = hasPhysicalKeyboard === "true";
+        state.hasPhysicalKeyboard = getCssBoolean("--has-physical-keyboard");
 
         Net.get<User>("/api/users").then((user) => {
             if (user) {

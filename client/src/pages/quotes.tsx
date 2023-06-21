@@ -19,6 +19,7 @@ import useDeckManager from "components/use-deck-manager";
 import useLocalReducer from "components/use-local-reducer";
 import useModalKeyboard from "components/use-modal-keyboard";
 import { CivContainer, CivMain } from "components/civil-layout";
+import ModalKeyboardHelp from "components/modal-keyboard-help";
 
 enum ActionType {
     ShowAddForm,
@@ -193,7 +194,8 @@ function Quote({ path, id }: { path?: string; id?: string }) {
     const deckManager: DM<DeckQuote> = useDeckManager(id, DeckKind.Quote);
 
     const quoteId: number = id ? parseInt(id, 10) : 0;
-    const canReadKeyboard = useModalKeyboard(quoteId, (key: string) => {
+
+    useModalKeyboard(quoteId, (key: string) => {
         switch (key) {
             case "n":
                 getQuoteThenRoute(`/api/quotes/${quoteId}/next`);
@@ -206,20 +208,6 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                 break;
         }
     });
-
-    function showKeyboardHelp() {
-        let kl = "modal-keyboard-help";
-        if (canReadKeyboard) {
-            kl += " modal-keyboard-help-visible";
-        }
-        return (
-            <div class={kl}>
-                <pre>n: next quote</pre>
-                <pre>p: previous quote</pre>
-                <pre>r: random quote</pre>
-            </div>
-        );
-    }
 
     function getQuoteThenRoute(url: string) {
         Net.get<DeckQuote>(url).then((deck) => {
@@ -292,7 +280,11 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                     onDelete={onDeleteFn(deck.id)}
                 />
 
-                {showKeyboardHelp()}
+                <ModalKeyboardHelp>
+                    <pre>n: next quote</pre>
+                    <pre>p: previous quote</pre>
+                    <pre>r: random quote</pre>
+                </ModalKeyboardHelp>
             </article>
         );
     } else {

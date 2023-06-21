@@ -34,3 +34,13 @@ export function formattedTime(timestamp: string) {
 
     return textual;
 }
+
+export function getCssString(name: string): string {
+    let body = document.body;
+    let v = getComputedStyle(body).getPropertyValue(name).trim();
+
+    return v;
+}
+export function getCssBoolean(name: string): boolean {
+    return getCssString(name) === "true";
+}

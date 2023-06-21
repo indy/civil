@@ -23,6 +23,7 @@ import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 import useLocalReducer from "components/use-local-reducer";
 import useModalKeyboard from "components/use-modal-keyboard";
 import { svgTickedCheckBox, svgUntickedCheckBox } from "components/svg-icons";
+import ModalKeyboardHelp from "components/modal-keyboard-help";
 
 let gUpdateGraphCallback: GraphCallback | undefined = undefined;
 
@@ -133,7 +134,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
         initialLocalState()
     );
 
-    const canReadKeyboard = useModalKeyboard(id, (key: string) => {
+    useModalKeyboard(id, (key: string) => {
         switch (key) {
             case "h":
                 localDispatch(ActionType.ToggleHyperlinks);
@@ -146,19 +147,6 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
                 break;
         }
     });
-    function showKeyboardHelp() {
-        let kl = "modal-keyboard-help";
-        if (canReadKeyboard) {
-            kl += " modal-keyboard-help-visible";
-        }
-        return (
-            <div class={kl}>
-                <pre>h: toggle hyperlinks</pre>
-                <pre>p: previous quote</pre>
-                <pre>r: random quote</pre>
-            </div>
-        );
-    }
 
     function initialise() {
         let newState: GraphState = {
@@ -537,7 +525,11 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
                     onMouseMove={onMouseMove}
                 />
             </CivMain>
-            {showKeyboardHelp()}
+            <ModalKeyboardHelp>
+                <pre>h: toggle hyperlinks</pre>
+                <pre>p: previous quote</pre>
+                <pre>r: random quote</pre>
+            </ModalKeyboardHelp>
         </CivContainer>
     );
 }
