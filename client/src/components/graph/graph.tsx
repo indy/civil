@@ -239,6 +239,10 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
 
         // copy over any nodes directly connected to the expanded or important nodes
         for (const key in nodes) {
+            if(!appState.graph.value.links[key]) {
+                continue;
+            }
+
             if (nodes[key].expandedState === ExpandedState.Fully) {
                 for (const link of appState.graph.value.links[key]) {
                     let [childId, _kind, _strength] = link; // negative strength == backlink
@@ -292,6 +296,10 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
 
         // update links
         for (const key in nodes) {
+            if(!appState.graph.value.links[key]) {
+                continue;
+            }
+
             if (nodes[key].expandedState === ExpandedState.Fully) {
                 for (const link of appState.graph.value.links[key]) {
                     let [childId, kind, strength] = link; // negative strength == backlink
@@ -680,15 +688,10 @@ function buildUpdateGraphCallback(svg?: any): GraphCallback {
             }
         });
 
-        Array.from(svg.nodes.children).forEach((svgNode?: any, i?: any) => {
-            let id = svgNode.getAttribute("referencing_id");
-            let nid = parseInt(id, 10);
-            if (nodes[nid]) {
-                if (nodes[nid].x) {
-                    translateNode(svgNode, nodes[nid].x, nodes[nid].y);
-                } else {
-                    console.log("what???");
-                }
+        Array.from(svg.nodes.children).forEach((svgNode?: any) => {
+            let id = parseInt(svgNode.getAttribute("referencing_id"), 10);
+            if (nodes[id]) {
+                translateNode(svgNode, nodes[id].x, nodes[id].y);
             }
         });
 
