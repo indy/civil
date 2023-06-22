@@ -28,6 +28,7 @@ export default function Image({ src }: ImageProps) {
             <div>
                 <input
                     type="range"
+                    class="deck-image-slider"
                     value={zoomValue}
                     min={appState.imageZoomMin}
                     max={appState.imageZoomMax}

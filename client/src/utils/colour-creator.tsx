@@ -88,13 +88,16 @@ function augmentDefinitionsWithCssModifierParameters(
             ...uiDefinitions,
 
             bg: [46.5, 19.2, 95.7] as ColourTriple,
-            bg1: [85.7, 4.5, 93.9] as ColourTriple,
-            bg2: [46.1, 20.2, 92.0] as ColourTriple,
-            bg3: [0, 0.0, 100.0] as ColourTriple,
+            bg1: [46.1, 20.2, 92.0] as ColourTriple,
+            bg2: [0, 0.0, 100.0] as ColourTriple,
 
             fg: [43, 19, 3.5] as ColourTriple,
             fg1: [0, 0, 40.7] as ColourTriple,
             fg2: [0, 0, 70.7] as ColourTriple,
+
+            bg_ui: [46.1, 20.2, 82.0] as ColourTriple,
+            fg_ui: [46.1, 20.2, 62.0] as ColourTriple,
+
             fg_inactive: [0, 0, 60] as ColourTriple,
 
             divider: [0, 0, 77.7] as ColourTriple,
@@ -165,13 +168,15 @@ function augmentDefinitionsWithCssModifierParameters(
 
             bg: [46.5, 19.2, 2.0] as ColourTriple,
             bg1: [46.5, 19.2, 2.0] as ColourTriple,
-            bg2: [46.5, 19.2, 2.0] as ColourTriple,
-            bg3: [46.5, 19.2, 0.0] as ColourTriple,
+            bg2: [46.5, 19.2, 0.0] as ColourTriple,
 
             fg: [43, 19, 45] as ColourTriple,
             fg1: [16.7, 0, 40.7] as ColourTriple,
             fg2: [16.7, 0, 35.7] as ColourTriple,
             fg_inactive: [16.7, 0, 20] as ColourTriple,
+
+            bg_ui: [46.1, 20.2, 2.0] as ColourTriple,
+            fg_ui: [46.1, 20.2, 22.0] as ColourTriple,
 
             divider: [46.5, 19.2, 2.0] as ColourTriple,
 

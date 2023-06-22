@@ -198,7 +198,7 @@ h1 {
     --block-width: 100%;
 
     position: fixed;
-    background: var(--bg2);
+    background: var(--bg1);
     top: 5rem;
     right: 1rem;
     width: 30rem;
@@ -273,7 +273,7 @@ hr {
 
 hr.light {
     height: 0.5rem;
-    border-top: 0.15rem solid var(--bg2);
+    border-top: 0.15rem solid var(--bg1);
     margin: 0 0;
 }
 
@@ -343,7 +343,7 @@ p {
 }
 
 blockquote {
-    border-left: 0.5rem solid var(--bg2);
+    border-left: 0.5rem solid var(--bg1);
     margin-left: 0;
     padding-left: 1rem;
     font-style: italic; /* is this really needed? */
@@ -400,10 +400,41 @@ figure.fullwidth figcaption {
     margin-right: 24%;
 }
 
-/* div.note > div > img { */
-/*     /\* top-level images *\/ */
-/*   max-width: var(--block-width); */
-/* } */
+.deck-image-slider {
+  border-radius: var(--coloured-deck-border-radius);
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 0.5rem;
+  background: var(--bg-ui);
+  outline: none;
+  opacity: 0.5;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+  padding: 0;
+}
+
+.deck-image-slider:hover {
+  opacity: 1;
+}
+
+.deck-image-slider::-webkit-slider-thumb {
+  border-radius: var(--coloured-deck-border-radius);
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: var(--fg-ui);
+  cursor: pointer;
+}
+
+.deck-image-slider::-moz-range-thumb {
+  border-radius: var(--coloured-deck-border-radius);
+  width: 1.5rem;
+  height: 1.5rem;
+  background: var(--fg-ui);
+  cursor: pointer;
+}
 
 .deck-image {
     display: block;
@@ -819,23 +850,22 @@ textarea {
     transition: all 0.2s ease;
     font-family: Inter;
     font-weight: 600;
-    background-color: var(--bg-clock-12);
-    color: var(--fg-clock-12);
-    border: 0.15rem solid var(--bg-clock-12);
+    background-color: var(--bg1);
+    color: var(--fg-ui);
+    border: 0.15rem solid var(--fg-ui);
     border-radius: var(--coloured-deck-border-radius);
     padding: 0.3rem;
     cursor: pointer;
 }
 
 .civil-button:hover {
-    background-color: var(--bg-clock-12);
-    color: var(--fg-clock-12);
-    border: 0.15rem solid var(--fg-clock-12);
+    background-color: var(--bg-ui);
+    /* color: var(--fg-ui); */
+    border: 0.15rem solid var(--fg-ui);
 }
 
 .civil-button:active {
-    background-color: var(--fg-clock-12);
-    color: var(--bg-clock-12);
+    /* color: var(--fg-ui); */
 }
 
 #scratchlist-component {
@@ -929,7 +959,7 @@ textarea {
 .search-command-listing {
     font-family: Inter;
 
-    background: var(--bg3);
+    background: var(--bg2);
     border: 0.1rem solid var(--fg);
     margin: 0.2rem;
 
@@ -1002,7 +1032,7 @@ textarea {
 }
 
 #root {
-    border-left: 0.1rem solid var(--bg2);
+    border-left: 0.1rem solid var(--bg1);
     padding-top: 0;
     padding-left: 1rem;
     padding-right: 1rem;
@@ -1123,7 +1153,7 @@ a:visited.pigment-inherit {
 }
 
 .image-widget-container {
-    background: var(--bg2);
+    background: var(--bg1);
     display: flex;
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -1682,7 +1712,7 @@ input:required {
 .sr-segment {
     font-size: x-large;
     margin-top: 1rem;
-    border-top: 0.1rem solid var(--bg2);
+    border-top: 0.1rem solid var(--bg1);
     padding-top: 1rem;
     width: var(--block-width);
     text-decoration: underline;
@@ -1744,7 +1774,7 @@ input:required {
     padding-bottom: 0.5rem;
     font-size: 1.5rem;
 
-    background: var(--bg2);
+    background: var(--bg1);
     z-index: 9;
 }
 
@@ -1760,7 +1790,7 @@ input:required {
     padding-bottom: 0.5rem;
     font-size: 1.5rem;
 
-    background: var(--bg2);
+    background: var(--bg1);
     z-index: 10;
 
     white-space: nowrap;
@@ -1788,14 +1818,14 @@ input:required {
 
 .toolbar-item-icon {
     transition: border 200ms linear;
-    background: var(--bg2);
+    background: var(--bg1);
     color: var(--fg1);
     margin-left: 0rem;
     padding: 1rem 0.5rem 0.2rem 0.5rem;
     border: 5px solid var(--bg);
 }
 .toolbar-item-icon:hover {
-    border: 5px solid var(--bg3);
+    border: 5px solid var(--bg2);
 }
 
 .toolbar-item-text {
@@ -2052,7 +2082,7 @@ input:required {
     }
 
     #root {
-        border-left: 0.1rem solid var(--bg2);
+        border-left: 0.1rem solid var(--bg1);
         padding: 0 0.8rem;
     }
 
