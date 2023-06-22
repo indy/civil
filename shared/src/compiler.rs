@@ -17,7 +17,7 @@
 
 use crate::element::Element;
 use crate::error::Result;
-use crate::parser::{CodeblockLanguage, MarginTextLabel, Node};
+use crate::parser::{MarginTextLabel, Node};
 
 use std::fmt::Write;
 
@@ -35,16 +35,6 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
     let res = match node {
         Node::BlockQuote(_, ns) => element_key("blockquote", key, ns)?,
         Node::Codeblock(_, lang, code) => {
-            let lang = if let Some(lang) = lang {
-                match lang {
-                    CodeblockLanguage::GenericCode => "code",
-                    CodeblockLanguage::Rust => "rust",
-                    CodeblockLanguage::Python => "python",
-                }
-            } else {
-                "unspecified"
-            };
-
             vec![Element {
                 name: String::from("pre"),
                 key: Some(key),

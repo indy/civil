@@ -24,13 +24,6 @@ use strum_macros::EnumDiscriminants;
 pub type ParserResult<'a, T> = Result<(&'a [Token<'a>], T)>;
 
 #[derive(Debug, Serialize, PartialEq, Eq)]
-pub enum CodeblockLanguage {
-    GenericCode,
-    Rust,
-    Python,
-}
-
-#[derive(Debug, Serialize, PartialEq, Eq)]
 pub enum MarginTextLabel {
     UnNumbered,
     Numbered,
@@ -42,7 +35,7 @@ pub enum MarginTextLabel {
 #[strum_discriminants(name(NodeIdent))]
 pub enum Node {
     BlockQuote(usize, Vec<Node>),
-    Codeblock(usize, Option<CodeblockLanguage>, String),
+    Codeblock(usize, String, String),
     Deleted(usize, Vec<Node>),
     Green(usize, Vec<Node>),
     Header(usize, u32, Vec<Node>),
@@ -463,19 +456,8 @@ fn eat_codeblock<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     // if theres a word on the same line as the opening backticks, treat it as the descriptor for the code language
     tokens = skip_leading_whitespace(tokens)?;
 
-    let language: Option<CodeblockLanguage> = if !is_head(tokens, TokenIdent::Newline) {
-        // treat this as the language specifier
-        let (toks, s) = eat_text_as_string(tokens)?;
-        tokens = toks;
-        match s.as_str() {
-            "code" => Some(CodeblockLanguage::GenericCode),
-            "rust" => Some(CodeblockLanguage::Rust),
-            "python" => Some(CodeblockLanguage::Python),
-            _ => None,
-        }
-    } else {
-        None
-    };
+    let (toks, language) = eat_text_as_string(tokens)?;
+    tokens = toks;
 
     let (toks, code) = eat_string(tokens, TokenIdent::BackTick)?;
     // todo: trim the string
@@ -927,7 +909,7 @@ mod tests {
         };
     }
 
-    fn assert_code(node: &Node, expected_lang: Option<CodeblockLanguage>, expected: &'static str, loc: usize) {
+    fn assert_code(node: &Node, expected_lang: String, expected: &'static str, loc: usize) {
         match node {
             Node::Codeblock(pos, lang, s) => {
                 assert_eq!(lang, &expected_lang);
@@ -1365,7 +1347,7 @@ This is code
             dbg!(&children);
             assert_eq!(children.len(), 1);
 
-            assert_code(&children[0], None, "\nThis is code\n", 0);
+            assert_code(&children[0], "".to_string(), "\nThis is code\n", 0);
         }
 
         {
@@ -1379,7 +1361,7 @@ This is code```",
             dbg!(&children);
             assert_eq!(children.len(), 1);
 
-            assert_code(&children[0], Some(CodeblockLanguage::Rust), "\nThis is code", 0);
+            assert_code(&children[0], "rust".to_string(), "\nThis is code", 0);
         }
     }
 
