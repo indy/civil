@@ -37,7 +37,9 @@ fn compile_node_to_struct(node: &Node, key: usize) -> Result<Vec<Element>> {
         Node::Codeblock(_, lang, code) => {
             let lang = if let Some(lang) = lang {
                 match lang {
+                    CodeblockLanguage::GenericCode => "code",
                     CodeblockLanguage::Rust => "rust",
+                    CodeblockLanguage::Python => "python",
                 }
             } else {
                 "unspecified"

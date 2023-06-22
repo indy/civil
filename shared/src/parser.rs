@@ -25,7 +25,9 @@ pub type ParserResult<'a, T> = Result<(&'a [Token<'a>], T)>;
 
 #[derive(Debug, Serialize, PartialEq, Eq)]
 pub enum CodeblockLanguage {
+    GenericCode,
     Rust,
+    Python,
 }
 
 #[derive(Debug, Serialize, PartialEq, Eq)]
@@ -465,10 +467,11 @@ fn eat_codeblock<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
         // treat this as the language specifier
         let (toks, s) = eat_text_as_string(tokens)?;
         tokens = toks;
-        if s == "rust" {
-            Some(CodeblockLanguage::Rust)
-        } else {
-            None
+        match s.as_str() {
+            "code" => Some(CodeblockLanguage::GenericCode),
+            "rust" => Some(CodeblockLanguage::Rust),
+            "python" => Some(CodeblockLanguage::Python),
+            _ => None,
         }
     } else {
         None
