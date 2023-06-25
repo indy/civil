@@ -401,39 +401,39 @@ figure.fullwidth figcaption {
 }
 
 .deck-image-slider {
-  border-radius: var(--coloured-deck-border-radius);
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 0.5rem;
-  background: var(--bg-ui);
-  outline: none;
-  opacity: 0.5;
-  -webkit-transition: .2s;
-  transition: opacity .2s;
-  padding: 0;
+    border-radius: var(--coloured-deck-border-radius);
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 0.5rem;
+    background: var(--bg-ui);
+    outline: none;
+    opacity: 0.5;
+    -webkit-transition: 0.2s;
+    transition: opacity 0.2s;
+    padding: 0;
 }
 
 .deck-image-slider:hover {
-  opacity: 1;
+    opacity: 1;
 }
 
 .deck-image-slider::-webkit-slider-thumb {
-  border-radius: var(--coloured-deck-border-radius);
-  -webkit-appearance: none;
-  appearance: none;
-  width: 1.5rem;
-  height: 1.5rem;
-  background: var(--fg-ui);
-  cursor: pointer;
+    border-radius: var(--coloured-deck-border-radius);
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    background: var(--fg-ui);
+    cursor: pointer;
 }
 
 .deck-image-slider::-moz-range-thumb {
-  border-radius: var(--coloured-deck-border-radius);
-  width: 1.5rem;
-  height: 1.5rem;
-  background: var(--fg-ui);
-  cursor: pointer;
+    border-radius: var(--coloured-deck-border-radius);
+    width: 1.5rem;
+    height: 1.5rem;
+    background: var(--fg-ui);
+    cursor: pointer;
 }
 
 .deck-image {
@@ -1377,9 +1377,9 @@ section > form {
     font-style: oblique;
 }
 
-.muh-main > ol {
-    width: var(--block-width);
-}
+.muh-main > div > ol,
+.muh-main > ol,
+.muh-main > div > ul,
 .muh-main > ul {
     width: var(--block-width);
 }
@@ -1640,6 +1640,7 @@ input:required {
 
 .compacted-list {
     padding-left: 1.5rem;
+    width: 100% !important;
 }
 
 .compacted-list > li {
@@ -1659,6 +1660,7 @@ input:required {
 
 .standard-list {
     padding-left: 1rem;
+    width: 100% !important;
 }
 
 .standard-list > li {
