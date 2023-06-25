@@ -7,7 +7,7 @@ import {
     DeckKind,
     SlimDeck,
     IdeasListings,
-    SearchResults,
+    ResultList,
 } from "types";
 
 import Net from "utils/net";
@@ -78,7 +78,7 @@ function Idea({ path, id }: { path?: string; id?: string }) {
         // todo: change this to accept a search parameter, this will normally default to the idea.title
         // but would also allow differently worded but equivalent text
         //
-        Net.get<SearchResults>(`/api/ideas/${id}/additional_search`).then(
+        Net.get<ResultList>(`/api/ideas/${id}/additional_search`).then(
             (searchResults) => {
                 setSearchResults(searchResults.results);
             }

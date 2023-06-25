@@ -190,7 +190,7 @@ export type FlashCard = {
     repetition: number;
 };
 
-export type SearchResults = {
+export type ResultList = {
     results?: Array<SlimDeck>;
 };
 

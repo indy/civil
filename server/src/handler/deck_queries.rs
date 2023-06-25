@@ -21,7 +21,7 @@ use crate::db::sqlite::SqlitePool;
 use crate::error::{Error, Result};
 use crate::handler::SearchQuery;
 use crate::interop::decks::{DeckKind, ResultList};
-use crate::interop::IdParam;
+use crate::interop::{IdParam, InsigParam};
 use crate::session;
 use actix_web::web::{self, Data, Path};
 use actix_web::HttpResponse;
@@ -29,6 +29,25 @@ use serde::Deserialize;
 
 #[allow(unused_imports)]
 use tracing::info;
+
+pub async fn insignia_filter(
+    sqlite_pool: Data<SqlitePool>,
+    params: Path<InsigParam>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    info!("insignia_filter {:?}", params.insig);
+
+    let user_id = session::user_id(&session)?;
+
+    let results = if params.insig == 0 {
+        vec![]
+    } else {
+        db::insignia_filter(&sqlite_pool, user_id, params.insig)?
+    };
+
+    let res = ResultList { results };
+    Ok(HttpResponse::Ok().json(res))
+}
 
 pub async fn search(
     sqlite_pool: Data<SqlitePool>,
@@ -88,6 +107,18 @@ pub async fn recent(
 
     let deck_kind = resource_string_to_deck_kind(&query.resource)?;
     let results = db::recent(&sqlite_pool, user_id, deck_kind)?;
+
+    let res = ResultList { results };
+    Ok(HttpResponse::Ok().json(res))
+}
+
+pub async fn recently_visited(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    let user_id = session::user_id(&session)?;
+
+    let results = db::recently_visited(&sqlite_pool, user_id)?;
 
     let res = ResultList { results };
     Ok(HttpResponse::Ok().json(res))

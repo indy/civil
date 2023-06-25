@@ -49,7 +49,11 @@ function StuffModule() {
                     </span>
                     <LazyLoadedGrouping
                         label="Recently Visited"
-                        url="/api/stats/recently_visited"
+                        url="/api/deck-queries/recently_visited"
+                    />
+                    <LazyLoadedGrouping
+                        label="Insignia Filter"
+                        url="/api/deck-queries/insignia_filter/2"
                     />
                 </CivMain>
             </CivContainer>

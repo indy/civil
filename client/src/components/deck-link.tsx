@@ -37,11 +37,11 @@ export default function DeckLink({
 
     function onMouseEnter() {
         if (!appState.previewCache.value[slimDeck.id]) {
-            Net.get<PreviewNotes>(`/api/cmd/preview/${slimDeck.id}`).then(
-                (pn) => {
-                    AppStateChange.addPreview(slimDeck, pn);
-                }
-            );
+            Net.get<PreviewNotes>(
+                `/api/deck-queries/preview/${slimDeck.id}`
+            ).then((pn) => {
+                AppStateChange.addPreview(slimDeck, pn);
+            });
         }
         AppStateChange.showPreviewDeck(slimDeck.id);
     }

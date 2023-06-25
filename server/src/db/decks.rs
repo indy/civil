@@ -61,6 +61,19 @@ fn deckbase_from_row(row: &Row) -> Result<DeckBase> {
     })
 }
 
+pub fn recently_visited(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::SlimDeck>> {
+    let conn = sqlite_pool.get()?;
+
+    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.insignia, max(hits.created_at) as most_recent_visit
+                FROM hits INNER JOIN decks ON decks.id = hits.deck_id
+                WHERE decks.user_id = ?1
+                GROUP BY hits.deck_id
+                ORDER BY most_recent_visit DESC
+                LIMIT 15";
+
+    sqlite::many(&conn, stmt, params![&user_id], decksimple_from_row)
+}
+
 pub(crate) fn decksimple_from_row(row: &Row) -> Result<interop::SlimDeck> {
     let res: String = row.get(2)?;
     Ok(interop::SlimDeck {
@@ -179,6 +192,28 @@ pub(crate) fn deckbase_edit(
         ],
         deckbase_from_row,
     )
+}
+
+pub(crate) fn insignia_filter(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    insignia: i32,
+) -> Result<Vec<interop::SlimDeck>> {
+    let conn = sqlite_pool.get()?;
+
+    let stmt = "SELECT id, name, kind, insignia
+                FROM decks
+                WHERE user_id = ?1 AND insignia = ?2
+                ORDER BY created_at DESC";
+
+    let res = sqlite::many(
+        &conn,
+        stmt,
+        params![&user_id, &insignia],
+        decksimple_from_row,
+    )?;
+
+    Ok(res)
 }
 
 pub(crate) fn recent(

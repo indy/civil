@@ -11,7 +11,7 @@ import {
     Key,
     SlimDeck,
     PeopleListings,
-    SearchResults,
+    ResultList,
     PassageType,
     PointKind,
     ProtoPoint,
@@ -122,7 +122,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
     );
 
     useEffect(() => {
-        Net.get<SearchResults>(`/api/people/${id}/additional_search`).then(
+        Net.get<ResultList>(`/api/people/${id}/additional_search`).then(
             (searchResults) => {
                 setSearchResults(searchResults.results);
             }

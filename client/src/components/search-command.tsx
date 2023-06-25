@@ -6,7 +6,7 @@ import {
     DeckKind,
     DeckQuote,
     NoteKind,
-    SearchResults,
+    ResultList,
     SlimDeck,
     ToolbarMode,
 } from "types";
@@ -678,8 +678,8 @@ export default function SearchCommand() {
     async function search(text: string) {
         let sanitized: string = sanitize(text);
         if (sanitized.length > 0) {
-            const url = `/api/cmd/search?q=${encodeURI(sanitized)}`;
-            const searchResponse: SearchResults = await Net.get(url);
+            const url = `/api/deck-queries/search?q=${encodeURI(sanitized)}`;
+            const searchResponse: ResultList = await Net.get(url);
             localDispatch(ActionType.SearchCandidatesSet, searchResponse);
         }
     }

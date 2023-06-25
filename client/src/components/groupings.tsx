@@ -1,7 +1,7 @@
 import { h, ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 
-import { DeckKind, DeckArticle, SlimDeck } from "types";
+import { DeckKind, DeckArticle, SlimDeck, ResultList } from "types";
 import { buildSlimDeck } from "utils/civil";
 
 import Net from "utils/net";
@@ -84,13 +84,15 @@ function LazyLoadedGrouping({ label, url }: LazyLoadedGroupingProps) {
             show: visible,
         });
         if (visible && !localState.fetchedData) {
-            Net.get<Array<SlimDeck>>(url).then((d) => {
-                setLocalState({
-                    ...localState,
-                    fetchedData: true,
-                    list: d,
-                    show: true,
-                });
+            Net.get<ResultList>(url).then((resultList) => {
+                if (resultList.results) {
+                    setLocalState({
+                        ...localState,
+                        fetchedData: true,
+                        list: resultList.results,
+                        show: true,
+                    });
+                }
             });
         }
     }

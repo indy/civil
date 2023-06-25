@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::handler::articles;
-use crate::handler::cmd;
+use crate::handler::deck_queries;
 use crate::handler::dialogues;
 use crate::handler::edges;
 use crate::handler::graph;
@@ -25,7 +25,6 @@ use crate::handler::notes;
 use crate::handler::people;
 use crate::handler::quotes;
 use crate::handler::sr;
-use crate::handler::stats;
 use crate::handler::timelines;
 use crate::handler::ubersetup;
 use crate::handler::uploader;
@@ -47,11 +46,19 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         )
         // console commands
         .service(
-            scope("/cmd")
-                .route("/search", get().to(cmd::search))
-                .route("/namesearch", get().to(cmd::namesearch))
-                .route("/recent", get().to(cmd::recent))
-                .route("/preview/{id}", get().to(cmd::preview)),
+            scope("/deck-queries")
+                .route("/search", get().to(deck_queries::search))
+                .route("/namesearch", get().to(deck_queries::namesearch))
+                .route("/recent", get().to(deck_queries::recent))
+                .route(
+                    "/insignia_filter/{insig}",
+                    get().to(deck_queries::insignia_filter),
+                )
+                .route(
+                    "/recently_visited",
+                    get().to(deck_queries::recently_visited),
+                )
+                .route("/preview/{id}", get().to(deck_queries::preview)),
         )
         // registration
         .service(
@@ -153,12 +160,6 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         )
         // setup
         .service(scope("/ubersetup").route("", get().to(ubersetup::setup)))
-        // stats
-        .service(
-            scope("/stats")
-                // .route("", get().to(stats::get))
-                .route("/recently_visited", get().to(stats::recently_visited)),
-        )
         // edges
         .service(scope("/edges").route("/notes_decks", post().to(edges::create_from_note_to_decks)))
         // graph

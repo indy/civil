@@ -18,28 +18,10 @@
 use rusqlite::{params, Connection, Row};
 use tracing::info;
 
-use crate::db::sqlite::{self, SqlitePool};
+use crate::db::sqlite;
 use crate::error::Result;
-use crate::interop::decks::{DeckKind, SlimDeck};
+use crate::interop::decks::DeckKind;
 use crate::interop::Key;
-
-pub fn recently_visited(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<SlimDeck>> {
-    let conn = sqlite_pool.get()?;
-
-    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.insignia, max(hits.created_at) as most_recent_visit
-                FROM hits INNER JOIN decks ON decks.id = hits.deck_id
-                WHERE decks.user_id = ?1
-                GROUP BY hits.deck_id
-                ORDER BY most_recent_visit DESC
-                LIMIT 15";
-
-    sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id],
-        crate::db::decks::decksimple_from_row,
-    )
-}
 
 fn i32_from_row(row: &Row) -> Result<i32> {
     Ok(row.get(0)?)
