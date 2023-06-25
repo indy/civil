@@ -40,7 +40,7 @@ export default function FrontPage({ path }: { path?: string }) {
 
 function StuffModule() {
     return (
-        <article class="listing-page">
+        <article class="module">
             <CivContainer>
                 <CivMain>
                     <span class="module-top-part">
