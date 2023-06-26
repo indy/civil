@@ -22,7 +22,7 @@ import {
 import DeckLink from "components/deck-link";
 import useLocalReducer from "components/use-local-reducer";
 
-enum Mode {
+enum CommandBarMode {
     Search,
     Command,
 }
@@ -55,8 +55,8 @@ type Action = {
     data?: any;
 };
 
-type State = {
-    mode: Mode;
+type CommandBarState = {
+    mode: CommandBarMode;
     hasFocus: boolean;
     showKeyboardShortcuts: boolean;
     shiftKey: boolean;
@@ -232,9 +232,9 @@ const Commands: Array<Command> = [
     },
 ];
 
-function cleanState(state: State): State {
+function cleanState(): CommandBarState {
     return {
-        ...state,
+        mode: CommandBarMode.Search,
         hasFocus: false,
         showKeyboardShortcuts: false,
         shiftKey: false,
@@ -244,14 +244,14 @@ function cleanState(state: State): State {
     };
 }
 
-function reducer(state: State, action: Action): State {
+function reducer(state: CommandBarState, action: Action): CommandBarState {
     switch (action.type) {
         case ActionType.ClickedCommand: {
             const command = action.data.entry.command;
             const success = executeCommand(command);
             if (success) {
                 AppStateChange.setShowingSearchCommand(false);
-                let newState = cleanState(state);
+                let newState = cleanState();
                 return newState;
             } else {
                 console.error(`Failed to execute command: ${command}`);
@@ -260,7 +260,7 @@ function reducer(state: State, action: Action): State {
         }
         case ActionType.ClickedCandidate: {
             AppStateChange.setShowingSearchCommand(false);
-            const newState = cleanState(state);
+            const newState = cleanState();
             return newState;
         }
         case ActionType.InputBlur: {
@@ -281,11 +281,11 @@ function reducer(state: State, action: Action): State {
             return newState;
         }
         case ActionType.KeyDownEnter: {
-            if (state.mode === Mode.Command) {
+            if (state.mode === CommandBarMode.Command) {
                 const success = executeCommand(state.text);
                 if (success) {
                     AppStateChange.setShowingSearchCommand(false);
-                    let newState = cleanState(state);
+                    let newState = cleanState();
                     return newState;
                 }
             }
@@ -308,7 +308,7 @@ function reducer(state: State, action: Action): State {
                 }
             }
 
-            const newState = cleanState(state);
+            const newState = cleanState();
             return newState;
         }
         case ActionType.KeyDownColon: {
@@ -335,7 +335,7 @@ function reducer(state: State, action: Action): State {
                 ...state,
             };
 
-            if (state.mode === Mode.Search) {
+            if (state.mode === CommandBarMode.Search) {
                 newState.showKeyboardShortcuts =
                     !state.showKeyboardShortcuts &&
                     state.searchCandidates.length > 0;
@@ -351,7 +351,7 @@ function reducer(state: State, action: Action): State {
 
             if (
                 state.showKeyboardShortcuts &&
-                state.mode === Mode.Search &&
+                state.mode === CommandBarMode.Search &&
                 index >= 0
             ) {
                 newState.keyDownIndex = index;
@@ -362,7 +362,7 @@ function reducer(state: State, action: Action): State {
         }
         case ActionType.KeyDownPlus: {
             const newState = { ...state };
-            if (state.showKeyboardShortcuts && state.mode === Mode.Search) {
+            if (state.showKeyboardShortcuts && state.mode === CommandBarMode.Search) {
                 AppStateChange.scratchListAddMulti(newState.searchCandidates);
 
                 newState.shiftKey = true;
@@ -386,7 +386,7 @@ function reducer(state: State, action: Action): State {
             }
 
             const text = action.data.text;
-            const mode = isCommand(text) ? Mode.Command : Mode.Search;
+            const mode = isCommand(text) ? CommandBarMode.Command : CommandBarMode.Search;
 
             let searchCandidates = state.searchCandidates;
 
@@ -394,12 +394,12 @@ function reducer(state: State, action: Action): State {
                 searchCandidates = [];
             }
 
-            if (mode === Mode.Search && state.mode === Mode.Command) {
+            if (mode === CommandBarMode.Search && state.mode === CommandBarMode.Command) {
                 // just changed mode from command to search
                 searchCandidates = [];
             }
 
-            if (state.showKeyboardShortcuts && state.mode === Mode.Search) {
+            if (state.showKeyboardShortcuts && state.mode === CommandBarMode.Search) {
                 const index = state.keyDownIndex;
 
                 if (index >= 0 && state.searchCandidates.length > index) {
@@ -427,7 +427,7 @@ function reducer(state: State, action: Action): State {
                         route(url);
 
                         AppStateChange.setShowingSearchCommand(false);
-                        const newState = cleanState(state);
+                        const newState = cleanState();
 
                         return newState;
                     }
@@ -545,20 +545,11 @@ function isCommand(text: string) {
     return text.length >= 1 && text[0] === ":";
 }
 
-export default function SearchCommand() {
+export default function CommandBar() {
     const appState = getAppState();
     const searchCommandRef = useRef(null);
 
-    const initialState: State = {
-        mode: Mode.Search,
-        hasFocus: false,
-        showKeyboardShortcuts: false,
-        shiftKey: false,
-        text: "",
-        searchCandidates: [],
-        keyDownIndex: -1,
-    };
-    const [local, localDispatch] = useLocalReducer(reducer, initialState);
+    const [local, localDispatch] = useLocalReducer(reducer, cleanState());
 
     function onKeyDown(e: KeyboardEvent) {
         if (e.key === "Escape") {
@@ -622,9 +613,9 @@ export default function SearchCommand() {
     const handleChangeEvent = (event: Event) => {
         if (event.target instanceof HTMLInputElement) {
             const text = event.target.value;
-            if (local.mode === Mode.Command) {
+            if (local.mode === CommandBarMode.Command) {
                 localDispatch(ActionType.InputGiven, { text, appState });
-            } else if (local.mode === Mode.Search) {
+            } else if (local.mode === CommandBarMode.Search) {
                 if (!local.showKeyboardShortcuts) {
                     localDispatch(ActionType.InputGiven, { text, appState });
                     if (text.length > 0 && !isCommand(text)) {
@@ -729,7 +720,7 @@ export default function SearchCommand() {
 
     // build either the SearchCandidates or the CommandCandidates
     function buildCandidates() {
-        if (local.mode === Mode.Command) {
+        if (local.mode === CommandBarMode.Command) {
             return (
                 <ul class="search-command-listing" id="search-candidates">
                     {Commands.map((entry: Command, i: number) => (
@@ -738,7 +729,7 @@ export default function SearchCommand() {
                 </ul>
             );
         } else if (
-            local.mode === Mode.Search &&
+            local.mode === CommandBarMode.Search &&
             local.searchCandidates.length > 0
         ) {
             let classes =

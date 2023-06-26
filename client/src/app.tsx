@@ -10,7 +10,7 @@ import { capitalise } from "utils/js";
 
 import Previewer from "components/previewer";
 import ScratchList from "components/scratch-list";
-import SearchCommand from "components/search-command";
+import CommandBar from "components/command-bar";
 import { DeluxeToolbar } from "components/deluxe-toolbar";
 
 import FrontPage from "pages/front-page";
@@ -165,7 +165,7 @@ const AppUI = () => {
         <div id="civil-app">
             <DebugMessages />
             <ScratchList />
-            <SearchCommand />
+            <CommandBar />
             <TopBarMenu />
             <DeluxeToolbar />
             <Previewer />
