@@ -13,7 +13,7 @@ import {
 
 import { getAppState, AppStateChange } from "app-state";
 
-import InsigniaSelector from "components/insignias/selector";
+import InsigniaSelector from "components/insignia-selector";
 import SegmentGraph from "components/graph/segment-graph";
 import SegmentNotes from "components/notes/segment-notes";
 

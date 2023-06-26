@@ -20,7 +20,7 @@ import Net from "utils/net";
 import { AppStateChange, getAppState } from "app-state";
 
 import { svgCloseShifted } from "components/svg-icons";
-import { renderInsignia } from "components/insignias/renderer";
+import { renderInsignia } from "components/insignia-renderer";
 import CivilInput from "components/civil-input";
 import useLocalReducer from "components/use-local-reducer";
 import { CivRight } from "components/civil-layout";

@@ -20,7 +20,7 @@ import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
 import Module from "components/module";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
-import InsigniaSelector from "components/insignias/selector";
+import InsigniaSelector from "components/insignia-selector";
 import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import SegmentGraph from "components/graph/segment-graph";

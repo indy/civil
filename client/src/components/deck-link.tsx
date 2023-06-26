@@ -10,7 +10,7 @@ import { getAppState, AppStateChange } from "app-state";
 import {
     renderInsignia,
     svgScratchListLink,
-} from "components/insignias/renderer";
+} from "components/insignia-renderer";
 
 // import useMouseHovering from "components/use-mouse-hovering";
 import useMouseHoveringEvents from "components/use-mouse-hovering-events";

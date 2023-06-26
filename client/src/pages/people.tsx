@@ -37,7 +37,7 @@ import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilInput from "components/civil-input";
 import Module from "components/module";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
-import InsigniaSelector from "components/insignias/selector";
+import InsigniaSelector from "components/insignia-selector";
 import LifespanForm from "components/lifespan-form";
 import PointForm from "components/point-form";
 import RollableSegment from "components/rollable-segment";

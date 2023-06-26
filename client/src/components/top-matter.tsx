@@ -8,7 +8,7 @@ import { getAppState } from "app-state";
 import { CivContainer, CivLeft } from "components/civil-layout";
 import LeftMarginHeading from "components/left-margin-heading";
 import Title from "components/title";
-import { renderInsignia } from "components/insignias/renderer";
+import { renderInsignia } from "components/insignia-renderer";
 
 import useMouseHovering from "components/use-mouse-hovering";
 

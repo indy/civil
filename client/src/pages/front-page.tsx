@@ -9,6 +9,7 @@ import { TimelinesModule } from "pages/timelines";
 import { DialoguesModule } from "pages/dialogues";
 import { QuotesModule } from "pages/quotes";
 
+import InsigniaGrouping from "components/insignia-grouping";
 import { LazyLoadedGrouping } from "components/groupings";
 import { CivContainer, CivMain } from "components/civil-layout";
 
@@ -24,13 +25,13 @@ export default function FrontPage({ path }: { path?: string }) {
     if (ideas && people && articles && timelines && dialogues) {
         return (
             <div>
+                <FilterModule />
                 <DialoguesModule dialogues={dialogues} />
                 <IdeasModule ideas={ideas} />
                 <ArticlesModule articles={articles} />
                 <PeopleModule people={people} />
                 <TimelinesModule timelines={timelines} />
                 <QuotesModule />
-                <StuffModule />
             </div>
         );
     } else {
@@ -38,23 +39,20 @@ export default function FrontPage({ path }: { path?: string }) {
     }
 }
 
-function StuffModule() {
+function FilterModule() {
     return (
         <article class="module">
             <CivContainer>
                 <CivMain>
                     <span class="module-top-part">
                         <span class="module-top-part-buttons"></span>
-                        <h1 class="ui">Stuff</h1>
+                        <h1 class="ui">Filters</h1>
                     </span>
                     <LazyLoadedGrouping
                         label="Recently Visited"
                         url="/api/deck-queries/recently_visited"
                     />
-                    <LazyLoadedGrouping
-                        label="Insignia Filter"
-                        url="/api/deck-queries/insignia_filter/2"
-                    />
+                    <InsigniaGrouping label="Insignias" />
                 </CivMain>
             </CivContainer>
         </article>

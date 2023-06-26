@@ -46,7 +46,7 @@ function SlimDeckGrouping({
                 <p class="subheading" onClick={toggleShow}>
                     {svgMinimise()} {label}
                 </p>
-                <ul class="compacted-list">{buildSlimDeckListing(list)}</ul>
+                <ul class="compacted-list">{buildListing(list)}</ul>
             </div>
         );
     } else {
@@ -103,9 +103,7 @@ function LazyLoadedGrouping({ label, url }: LazyLoadedGroupingProps) {
                 <p class="subheading" onClick={toggleShow}>
                     {svgMinimise()} {label}
                 </p>
-                <ul class="compacted-list">
-                    {buildSlimDeckListing(localState.list)}
-                </ul>
+                <ul class="compacted-list">{buildListing(localState.list)}</ul>
             </div>
         );
     } else {
@@ -149,10 +147,6 @@ function RatedGrouping({ label, list, expanded }: RatedGroupingProps) {
 }
 
 function buildListing(list: Array<SlimDeck>): Array<ComponentChildren> {
-    return list.map((deck) => <ListingLink slimDeck={deck} />);
-}
-
-function buildSlimDeckListing(list: Array<SlimDeck>) {
     return list.map((deck) => <ListingLink slimDeck={deck} />);
 }
 
