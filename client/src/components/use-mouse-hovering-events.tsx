@@ -1,13 +1,13 @@
-import { useEffect } from "preact/hooks";
+import { useEffect, Ref } from "preact/hooks";
 
 export default function useMouseHoveringEvents(
-    hoveringRef: any,
+    hoveringRef: Ref<HTMLElement>,
     onEnter: () => void,
     onLeave: () => void
 ) {
     useEffect(() => {
         if (hoveringRef && hoveringRef.current) {
-            let hc = hoveringRef.current as HTMLElement;
+            let hc = hoveringRef.current;
             hc.addEventListener("mouseenter", onEnter, false);
             hc.addEventListener("mouseleave", onLeave, false);
             return () => {
