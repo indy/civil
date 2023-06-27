@@ -190,14 +190,11 @@ function reducer(state: LocalState, action: Action) {
             };
         }
         case ActionType.AddDeckReferencesUiShow:
-            AppStateChange.toolbarMode(ToolbarMode.View);
             return {
                 ...state,
                 addDeckReferencesUI: action.data as boolean,
             };
         case ActionType.AddFlashCardUiShow: {
-            AppStateChange.toolbarMode(ToolbarMode.View);
-
             const showUI = action.data as boolean;
             const newState = {
                 ...state,
@@ -213,8 +210,6 @@ function reducer(state: LocalState, action: Action) {
             return newState;
         }
         case ActionType.AddNoteAboveUiShow: {
-            AppStateChange.toolbarMode(ToolbarMode.View);
-
             const showUI = action.data as boolean;
             const newState = {
                 ...state,
@@ -234,7 +229,6 @@ function reducer(state: LocalState, action: Action) {
                 ...state,
                 addDeckReferencesUI: false,
             };
-            AppStateChange.toolbarMode(ToolbarMode.View);
 
             return newState;
         }
@@ -243,7 +237,6 @@ function reducer(state: LocalState, action: Action) {
                 action.data as ActionDataDecksCommit;
 
             AppStateChange.noteRefsModified(allDecksForNote, changes);
-            AppStateChange.toolbarMode(ToolbarMode.View);
 
             return {
                 ...state,
@@ -270,7 +263,6 @@ function reducer(state: LocalState, action: Action) {
 
             AppStateChange.relinquishKeyboard();
             AppStateChange.setReviewCount(reviewCount);
-            AppStateChange.toolbarMode(ToolbarMode.View);
 
             return newState;
         }
@@ -283,7 +275,6 @@ function reducer(state: LocalState, action: Action) {
             return newState;
         }
         case ActionType.ToggleEditing: {
-            AppStateChange.toolbarMode(ToolbarMode.View);
             const newState = {
                 ...state,
                 isEditingMarkup: !state.isEditingMarkup,
@@ -305,7 +296,6 @@ function reducer(state: LocalState, action: Action) {
             };
 
             AppStateChange.relinquishKeyboard();
-            AppStateChange.toolbarMode(ToolbarMode.View);
 
             return newState;
         }
@@ -320,7 +310,6 @@ function reducer(state: LocalState, action: Action) {
             };
 
             AppStateChange.relinquishKeyboard();
-            AppStateChange.toolbarMode(ToolbarMode.View);
 
             return newState;
         }

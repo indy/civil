@@ -8,7 +8,6 @@ import {
     RefKind,
     RefsModified,
     SlimDeck,
-    ToolbarMode,
 } from "types";
 
 import {
@@ -449,12 +448,10 @@ export default function CivilSelect({
     }
 
     function onLocalCancel() {
-        AppStateChange.toolbarMode(ToolbarMode.View);
         onCancel();
     }
 
     function onLocalCommit() {
-        AppStateChange.toolbarMode(ToolbarMode.View);
         const refsModified: RefsModified = {
             referencesChanged: local.referencesChanged,
             referencesRemoved: local.referencesRemoved,
