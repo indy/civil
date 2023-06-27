@@ -7,7 +7,7 @@ import {
     NoteKind,
     PassageHowToShow,
     Notes,
-    Ref,
+    Reference,
     ToolbarMode,
 } from "types";
 
@@ -18,7 +18,7 @@ import { CivContainer, CivMain } from "components/civil-layout";
 
 type Props = {
     deck: FatDeck;
-    onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
+    onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
     title: string;
     deckKind: DeckKind;
     howToShowPassage: (noteKind: NoteKind) => PassageHowToShow;
@@ -104,7 +104,7 @@ type NoteKindPassageProps = {
     howToShow: PassageHowToShow;
     deck: FatDeck;
     toolbarMode: ToolbarMode;
-    onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
+    onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
     deckKind: DeckKind;
     onUpdateDeck: (d: FatDeck) => void;
     noAppend?: boolean;

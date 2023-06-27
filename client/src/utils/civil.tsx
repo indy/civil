@@ -17,6 +17,10 @@ import Net from "utils/net";
 import { AppStateChange } from "app-state";
 import { capitalise } from "utils/js";
 
+export function isCommand(text: string) {
+    return text.length >= 1 && text[0] === ":";
+}
+
 export function noteSeq(notes: Notes, kind: NoteKind): Notes {
     let ns = notes.filter((n) => n.kind === kind && n.pointId === null);
     if (ns.length === 0) {

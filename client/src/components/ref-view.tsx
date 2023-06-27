@@ -1,14 +1,14 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import { Ref, RefKind } from "types";
+import { Reference, RefKind } from "types";
 
 import { deckKindToResourceString } from "utils/civil";
 
 import DeckLink from "components/deck-link";
 
 type Props = {
-    deckReference: Ref;
+    deckReference: Reference;
     extraClasses: string;
 };
 

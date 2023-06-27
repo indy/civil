@@ -53,7 +53,7 @@ export enum PassageHowToShow {
     Exclusive,
 }
 
-export type Ref = SlimDeck & {
+export type Reference = SlimDeck & {
     noteId: Key;
     refKind: RefKind;
     annotation?: string;
@@ -84,13 +84,13 @@ export type SlimDeck = {
 export interface FatDeck {
     title: string;
     backnotes?: Array<BackNote>;
-    backrefs?: Array<Ref>;
+    backrefs?: Array<Reference>;
     flashcards?: Array<FlashCard>;
     id: Key;
     insignia: number;
     noteSeqs?: NoteSeqs;
     notes: Notes;
-    refs?: Array<Ref>;
+    refs?: Array<Reference>;
     points?: Array<DeckPoint>;
 }
 
@@ -135,7 +135,7 @@ export type Note = {
     content: string;
     pointId: Key | null;
 
-    decks: Array<Ref>;
+    decks: Array<Reference>;
     flashcards: Array<FlashCard>;
 
     chatMessage?: OriginalChatMessage; // the original chat message for a dialogue
@@ -291,6 +291,29 @@ export type VisiblePreview = {
     showing: boolean; // replace boolean with enum
 };
 
+export type Command = {
+    command?: string;
+    description?: string;
+    quoteAround?: string;
+    fn?: (args?: any) => any;
+    spacer?: boolean;
+};
+
+export enum CommandBarMode {
+    Search,
+    Command,
+}
+
+export type CommandBarState = {
+    mode: CommandBarMode;
+    hasFocus: boolean;
+    showKeyboardShortcuts: boolean;
+    shiftKey: boolean;
+    text: string;
+    searchCandidates: Array<SlimDeck>;
+    keyDownIndex: number;
+};
+
 export type State = {
     debugMessages: Signal<Array<string>>;
 
@@ -306,7 +329,9 @@ export type State = {
     oldestAliveAge: number;
 
     componentRequiresFullKeyboardAccess: Signal<boolean>;
+
     showingSearchCommand: Signal<boolean>;
+    commandBarState: Signal<CommandBarState>;
 
     urlTitle: Signal<string>;
     url: Signal<string>;
@@ -440,7 +465,7 @@ export type DM<T extends FatDeck> = {
     onFormToggle: () => void;
     onFormHide: () => void;
     buildPointForm: (onSuccessCallback: () => void) => any;
-    onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
+    onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
     passageForDeckPoint: (deckPoint: DeckPoint) => any;
     pointHasNotes: (point: DeckPoint) => boolean;
     canShowPassage: (noteKind: NoteKind) => boolean;
@@ -456,14 +481,14 @@ export type NoteThing = {
     topAnnotation?: string;
     noteContent: string;
     noteId: Key;
-    refs: Array<Ref>;
+    refs: Array<Reference>;
 };
 
 export type RefsModified = {
-    referencesChanged: Array<Ref>;
-    referencesRemoved: Array<Ref>;
-    referencesAdded: Array<Ref>;
-    referencesCreated: Array<Ref>;
+    referencesChanged: Array<Reference>;
+    referencesRemoved: Array<Reference>;
+    referencesAdded: Array<Reference>;
+    referencesCreated: Array<Reference>;
 };
 
 export type Admin = {

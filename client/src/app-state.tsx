@@ -1,12 +1,14 @@
 import { h, createContext, ComponentChildren } from "preact";
 import { signal } from "@preact/signals";
-import { useContext } from "preact/hooks";
+import { useContext, Ref } from "preact/hooks";
+import { route } from "preact-router";
 
 import {
     ArticleListings,
+    Command,
+    CommandBarMode,
+    CommandBarState,
     DeckKind,
-    PreviewDeck,
-    PreviewNotes,
     FullGraphStruct,
     Graph,
     GraphDeck,
@@ -16,9 +18,12 @@ import {
     NoteKind,
     Notes,
     PeopleListings,
-    Ref,
+    PreviewDeck,
+    PreviewNotes,
+    Reference,
     RefKind,
     RefsModified,
+    ResultList,
     SlimDeck,
     State,
     ToolbarMode,
@@ -28,13 +33,25 @@ import {
     VisiblePreview,
 } from "types";
 
-import { noteSeq } from "utils/civil";
+import { isCommand, noteSeq, deckKindToResourceString } from "utils/civil";
 
 const emptyUser: User = {
     username: "",
     email: "",
     admin: { dbName: "" },
 };
+
+function cleanCommandBarState(): CommandBarState {
+    return {
+        mode: CommandBarMode.Search,
+        hasFocus: false,
+        showKeyboardShortcuts: false,
+        shiftKey: false,
+        text: "",
+        searchCandidates: [],
+        keyDownIndex: -1,
+    };
+}
 
 const state: State = {
     debugMessages: signal([]),
@@ -65,10 +82,11 @@ const state: State = {
     //
     oldestAliveAge: 120,
 
-    // when true don't let searchCommand accept any keystrokes
+    // when true don't let commandBar accept any keystrokes
     //
     componentRequiresFullKeyboardAccess: signal(false),
     showingSearchCommand: signal(false),
+    commandBarState: signal(cleanCommandBarState()),
 
     // to add the current page to the scratchList we need the id, name, deckKind.
     // id and deckKind can be parsed from the url, but the name needs to be
@@ -169,6 +187,228 @@ export const getAppState = () => useContext(AppStateContext);
 const DEBUG_APP_STATE = false;
 
 export const AppStateChange = {
+    cbKeyDownEsc: function (commandBarRef: Ref<HTMLInputElement>) {
+        const inputElement = commandBarRef.current;
+        if (state.hasPhysicalKeyboard) {
+            if (state.showingSearchCommand.value) {
+                if (inputElement) {
+                    inputElement.blur();
+                    state.showingSearchCommand.value = false;
+                }
+            } else {
+                if (inputElement) {
+                    inputElement.focus();
+                    state.showingSearchCommand.value = true;
+                }
+            }
+        }
+
+        state.commandBarState.value = cleanCommandBarState();
+    },
+
+    cbKeyDownColon: function (commandBarRef: Ref<HTMLInputElement>) {
+        if (state.componentRequiresFullKeyboardAccess.value) {
+            return;
+        }
+
+        const inputElement = commandBarRef.current;
+
+        if (!state.showingSearchCommand.value) {
+            if (inputElement) {
+                inputElement.focus();
+                state.showingSearchCommand.value = true;
+            }
+        }
+    },
+
+    cbKeyDownEnter: function (allCommands: Array<Command>) {
+        let commandBarState = state.commandBarState.value;
+        if (state.showingSearchCommand.value) {
+            if (commandBarState.mode === CommandBarMode.Command) {
+                const success = executeCommand(
+                    commandBarState.text,
+                    allCommands
+                );
+                if (success) {
+                    state.showingSearchCommand.value = false;
+                    state.commandBarState.value = cleanCommandBarState();
+                }
+            }
+        }
+    },
+
+    cbKeyDownCtrl: function () {
+        let commandBarState = state.commandBarState.value;
+        if (state.showingSearchCommand.value) {
+            if (commandBarState.mode === CommandBarMode.Search) {
+                let showKeyboardShortcuts =
+                    !commandBarState.showKeyboardShortcuts &&
+                    commandBarState.searchCandidates.length > 0;
+
+                state.commandBarState.value = {
+                    ...commandBarState,
+                    showKeyboardShortcuts,
+                };
+            }
+        }
+    },
+
+    cbKeyDownAlphaNumeric: function (code: string, shiftKey: boolean) {
+        let commandBarState = state.commandBarState.value;
+        if (state.showingSearchCommand.value) {
+            let index = indexFromCode(code);
+            if (
+                commandBarState.showKeyboardShortcuts &&
+                commandBarState.mode === CommandBarMode.Search &&
+                index >= 0
+            ) {
+                state.commandBarState.value = {
+                    ...commandBarState,
+                    keyDownIndex: index,
+                    shiftKey: shiftKey,
+                };
+            }
+        }
+    },
+
+    cbKeyDownPlus: function () {
+        let commandBarState = state.commandBarState.value;
+        if (state.showingSearchCommand.value) {
+            if (
+                commandBarState.showKeyboardShortcuts &&
+                commandBarState.mode === CommandBarMode.Search
+            ) {
+                let sl = state.scratchList.value.slice();
+                commandBarState.searchCandidates.forEach((c) => {
+                    sl.push(c);
+                });
+                state.scratchList.value = sl;
+                state.commandBarState.value = {
+                    ...commandBarState,
+                    keyDownIndex: -1,
+                    shiftKey: true,
+                };
+            }
+        }
+    },
+
+    cbInputFocus: function () {
+        let commandBarState = state.commandBarState.value;
+        state.commandBarState.value = {
+            ...commandBarState,
+            hasFocus: true,
+        };
+    },
+
+    cbInputBlur: function () {
+        let commandBarState = state.commandBarState.value;
+        state.commandBarState.value = {
+            ...commandBarState,
+            hasFocus: false,
+        };
+        if (commandBarState.searchCandidates.length === 0) {
+            state.showingSearchCommand.value = false;
+        }
+    },
+
+    cbSearchCandidateSet: function (searchResponse: ResultList) {
+        let commandBarState = state.commandBarState.value;
+        state.commandBarState.value = {
+            ...commandBarState,
+            searchCandidates: searchResponse.results || [],
+        };
+    },
+
+    cbClickedCandidate: function () {
+        state.showingSearchCommand.value = false;
+        state.commandBarState.value = cleanCommandBarState();
+    },
+
+    cbClickedCommand: function (entry: Command, allCommands: Array<Command>) {
+        const command = entry.command;
+
+        const success = command ? executeCommand(command, allCommands) : false;
+        if (success) {
+            state.showingSearchCommand.value = false;
+            state.commandBarState.value = cleanCommandBarState();
+        } else {
+            console.error(`Failed to execute command: ${command}`);
+        }
+    },
+
+    cbInputGiven: function (text: string) {
+        let commandBarState = state.commandBarState.value;
+        if (state.showingSearchCommand.value) {
+            const mode = isCommand(text)
+                ? CommandBarMode.Command
+                : CommandBarMode.Search;
+
+            let searchCandidates = commandBarState.searchCandidates;
+
+            if (text.length === 0) {
+                searchCandidates = [];
+            }
+
+            if (
+                mode === CommandBarMode.Search &&
+                commandBarState.mode === CommandBarMode.Command
+            ) {
+                // just changed mode from command to search
+                searchCandidates = [];
+            }
+
+            if (
+                commandBarState.showKeyboardShortcuts &&
+                commandBarState.mode === CommandBarMode.Search
+            ) {
+                const index = commandBarState.keyDownIndex;
+
+                if (
+                    index >= 0 &&
+                    commandBarState.searchCandidates.length > index
+                ) {
+                    const candidate = commandBarState.searchCandidates[index];
+
+                    if (commandBarState.shiftKey) {
+                        // once a candidate has been added to the saved search
+                        // results, set the keyDownIndex to an invalid value,
+                        // otherwise if the user presses shift and an unused
+                        // key (e.g. '+' ) then the last candidate to be added
+                        // will be added again.
+                        //
+
+                        state.commandBarState.value = {
+                            ...commandBarState,
+                            keyDownIndex: -1,
+                        };
+
+                        let sl = state.scratchList.value.slice();
+                        sl.push(candidate);
+                        state.scratchList.value = sl;
+
+                        return;
+                    } else {
+                        const url = `/${deckKindToResourceString(
+                            candidate.deckKind
+                        )}/${candidate.id}`;
+                        route(url);
+
+                        state.showingSearchCommand.value = false;
+                        state.commandBarState.value = cleanCommandBarState();
+                        return;
+                    }
+                }
+            }
+
+            state.commandBarState.value = {
+                ...commandBarState,
+                mode,
+                text,
+                searchCandidates,
+            };
+        }
+    },
+
     showPreviewDeck: function (deckId: Key) {
         if (DEBUG_APP_STATE) {
             console.log("showPreviewDeck");
@@ -328,7 +568,7 @@ export const AppStateChange = {
         state.componentRequiresFullKeyboardAccess.value = false;
     },
     noteRefsModified: function (
-        allDecksForNote: Array<Ref>,
+        allDecksForNote: Array<Reference>,
         changes: RefsModified
     ) {
         if (DEBUG_APP_STATE) {
@@ -798,4 +1038,118 @@ function buildDeckIndex(decks: Array<GraphDeck>) {
     });
 
     return res;
+}
+
+function executeCommand(text: string, allCommands: Array<Command>) {
+    const commandPlusArgs = text
+        .slice(1)
+        .split(" ")
+        .filter((s) => s.length > 0);
+    if (commandPlusArgs.length === 0) {
+        return;
+    }
+
+    const command = commandPlusArgs[0];
+
+    const action: Command | undefined = allCommands.find(
+        (c) => c.command === command
+    );
+    if (action) {
+        const rest = commandPlusArgs.slice(1).join(" ");
+        return action.fn ? action.fn(rest) : false;
+    }
+    return false;
+}
+
+// map key code for an alphanumeric character to an index value
+//
+//  digit: 1 -> 0, 2 ->  1, ... 9 ->  8
+// letter: a -> 9, b -> 10, ... z -> 34
+//
+function indexFromCode(code: string): number {
+    // this was the simple code that now has to be replaced
+    // because the retards who define web standards have
+    // deprecated keyCode .
+    //
+    // const index =
+    //     e.keyCode >= 49 && e.keyCode <= 57
+    //         ? e.keyCode - 49
+    //         : e.keyCode - 65 + 9;
+
+    switch (code) {
+        case "Digit1":
+            return 0;
+        case "Digit2":
+            return 1;
+        case "Digit3":
+            return 2;
+        case "Digit4":
+            return 3;
+        case "Digit5":
+            return 4;
+        case "Digit6":
+            return 5;
+        case "Digit7":
+            return 6;
+        case "Digit8":
+            return 7;
+        case "Digit9":
+            return 8;
+        case "KeyA":
+            return 9;
+        case "KeyB":
+            return 10;
+        case "KeyC":
+            return 11;
+        case "KeyD":
+            return 12;
+        case "KeyE":
+            return 13;
+        case "KeyF":
+            return 14;
+        case "KeyG":
+            return 15;
+        case "KeyH":
+            return 16;
+        case "KeyI":
+            return 17;
+        case "KeyJ":
+            return 18;
+        case "KeyK":
+            return 19;
+        case "KeyL":
+            return 20;
+        case "KeyM":
+            return 21;
+        case "KeyN":
+            return 22;
+        case "KeyO":
+            return 23;
+        case "KeyP":
+            return 24;
+        case "KeyQ":
+            return 25;
+        case "KeyR":
+            return 26;
+        case "KeyS":
+            return 27;
+        case "KeyT":
+            return 28;
+        case "KeyU":
+            return 29;
+        case "KeyV":
+            return 30;
+        case "KeyW":
+            return 31;
+        case "KeyX":
+            return 32;
+        case "KeyY":
+            return 33;
+        case "KeyZ":
+            return 34;
+        default: {
+            // console.error(`invalid code value: '${code}'`);
+            return -1;
+        }
+    }
 }

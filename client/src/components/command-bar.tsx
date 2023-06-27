@@ -3,6 +3,8 @@ import { useEffect, useRef } from "preact/hooks";
 import { route } from "preact-router";
 
 import {
+    Command,
+    CommandBarMode,
     DeckKind,
     DeckQuote,
     NoteKind,
@@ -14,56 +16,13 @@ import {
 import Net from "utils/net";
 import { getAppState, AppStateChange } from "app-state";
 import {
+    isCommand,
     deckKindToResourceString,
     indexToShortcut,
     createDeck,
 } from "utils/civil";
 
 import DeckLink from "components/deck-link";
-import useLocalReducer from "components/use-local-reducer";
-
-enum CommandBarMode {
-    Search,
-    Command,
-}
-
-type Command = {
-    command?: string;
-    description?: string;
-    quoteAround?: string;
-    fn?: (args?: any) => any;
-    spacer?: boolean;
-};
-
-enum ActionType {
-    SearchCandidatesSet,
-    ClickedCandidate,
-    ClickedCommand,
-    InputBlur,
-    InputFocus,
-    InputGiven,
-    KeyDownColon,
-    KeyDownCtrl,
-    KeyDownEnter,
-    KeyDownEsc,
-    KeyDownKey,
-    KeyDownPlus,
-}
-
-type Action = {
-    type: ActionType;
-    data?: any;
-};
-
-type CommandBarState = {
-    mode: CommandBarMode;
-    hasFocus: boolean;
-    showKeyboardShortcuts: boolean;
-    shiftKey: boolean;
-    text: string;
-    searchCandidates: Array<SlimDeck>;
-    keyDownIndex: number;
-};
 
 // array because ordering is important when printing the commands
 //
@@ -232,375 +191,41 @@ const Commands: Array<Command> = [
     },
 ];
 
-function cleanState(): CommandBarState {
-    return {
-        mode: CommandBarMode.Search,
-        hasFocus: false,
-        showKeyboardShortcuts: false,
-        shiftKey: false,
-        text: "",
-        searchCandidates: [],
-        keyDownIndex: -1,
-    };
-}
-
-function reducer(state: CommandBarState, action: Action): CommandBarState {
-    switch (action.type) {
-        case ActionType.ClickedCommand: {
-            const command = action.data.entry.command;
-            const success = executeCommand(command);
-            if (success) {
-                AppStateChange.setShowingSearchCommand(false);
-                let newState = cleanState();
-                return newState;
-            } else {
-                console.error(`Failed to execute command: ${command}`);
-                return state;
-            }
-        }
-        case ActionType.ClickedCandidate: {
-            AppStateChange.setShowingSearchCommand(false);
-            const newState = cleanState();
-            return newState;
-        }
-        case ActionType.InputBlur: {
-            const newState = {
-                ...state,
-                hasFocus: false,
-            };
-            if (newState.searchCandidates.length === 0) {
-                AppStateChange.setShowingSearchCommand(false);
-            }
-            return newState;
-        }
-        case ActionType.InputFocus: {
-            const newState = {
-                ...state,
-                hasFocus: true,
-            };
-            return newState;
-        }
-        case ActionType.KeyDownEnter: {
-            if (state.mode === CommandBarMode.Command) {
-                const success = executeCommand(state.text);
-                if (success) {
-                    AppStateChange.setShowingSearchCommand(false);
-                    let newState = cleanState();
-                    return newState;
-                }
-            }
-
-            return state;
-        }
-        case ActionType.KeyDownEsc: {
-            const inputElement = action.data.searchCommandRef.current;
-            if (action.data.hasPhysicalKeyboard) {
-                if (action.data.isVisible) {
-                    if (inputElement) {
-                        inputElement.blur();
-                        AppStateChange.setShowingSearchCommand(false);
-                    }
-                } else {
-                    if (inputElement) {
-                        inputElement.focus();
-                        AppStateChange.setShowingSearchCommand(true);
-                    }
-                }
-            }
-
-            const newState = cleanState();
-            return newState;
-        }
-        case ActionType.KeyDownColon: {
-            const newState = { ...state };
-
-            let appState = action.data.appState;
-            if (appState.componentRequiresFullKeyboardAccess.value) {
-                return newState;
-            }
-
-            let searchCommandRef = action.data.searchCommandRef;
-            const inputElement = searchCommandRef.current;
-
-            if (!appState.showingSearchCommand.value) {
-                if (inputElement) {
-                    inputElement.focus();
-                    AppStateChange.setShowingSearchCommand(true);
-                }
-            }
-            return newState;
-        }
-        case ActionType.KeyDownCtrl: {
-            const newState = {
-                ...state,
-            };
-
-            if (state.mode === CommandBarMode.Search) {
-                newState.showKeyboardShortcuts =
-                    !state.showKeyboardShortcuts &&
-                    state.searchCandidates.length > 0;
-            }
-
-            return newState;
-        }
-        case ActionType.KeyDownKey: {
-            const newState = { ...state };
-
-            const code = action.data.code; // key code
-            let index = indexFromCode(code);
-
-            if (
-                state.showKeyboardShortcuts &&
-                state.mode === CommandBarMode.Search &&
-                index >= 0
-            ) {
-                newState.keyDownIndex = index;
-                newState.shiftKey = action.data.shiftKey;
-            }
-
-            return newState;
-        }
-        case ActionType.KeyDownPlus: {
-            const newState = { ...state };
-            if (state.showKeyboardShortcuts && state.mode === CommandBarMode.Search) {
-                AppStateChange.scratchListAddMulti(newState.searchCandidates);
-
-                newState.shiftKey = true;
-                newState.keyDownIndex = -1;
-
-                return newState;
-            } else {
-                return newState;
-            }
-        }
-        case ActionType.SearchCandidatesSet:
-            return {
-                ...state,
-                searchCandidates: action.data.results || [],
-            };
-        case ActionType.InputGiven: {
-            const appState = action.data.appState;
-
-            if (!appState.showingSearchCommand.value) {
-                return state;
-            }
-
-            const text = action.data.text;
-            const mode = isCommand(text) ? CommandBarMode.Command : CommandBarMode.Search;
-
-            let searchCandidates = state.searchCandidates;
-
-            if (text.length === 0) {
-                searchCandidates = [];
-            }
-
-            if (mode === CommandBarMode.Search && state.mode === CommandBarMode.Command) {
-                // just changed mode from command to search
-                searchCandidates = [];
-            }
-
-            if (state.showKeyboardShortcuts && state.mode === CommandBarMode.Search) {
-                const index = state.keyDownIndex;
-
-                if (index >= 0 && state.searchCandidates.length > index) {
-                    const candidate = state.searchCandidates[index];
-
-                    if (state.shiftKey) {
-                        // once a candidate has been added to the saved search
-                        // results, set the keyDownIndex to an invalid value,
-                        // otherwise if the user presses shift and an unused
-                        // key (e.g. '+' ) then the last candidate to be added
-                        // will be added again.
-                        //
-                        const newState = {
-                            ...state,
-                            keyDownIndex: -1,
-                        };
-
-                        AppStateChange.scratchListAddMulti([candidate]);
-
-                        return newState;
-                    } else {
-                        const url = `/${deckKindToResourceString(
-                            candidate.deckKind
-                        )}/${candidate.id}`;
-                        route(url);
-
-                        AppStateChange.setShowingSearchCommand(false);
-                        const newState = cleanState();
-
-                        return newState;
-                    }
-                }
-            }
-
-            const newState = {
-                ...state,
-                mode,
-                text,
-                searchCandidates,
-            };
-
-            return newState;
-        }
-        default:
-            throw new Error(`unknown action: ${action}`);
-    }
-}
-
-// map key code for an alphanumeric character to an index value
-//
-//  digit: 1 -> 0, 2 ->  1, ... 9 ->  8
-// letter: a -> 9, b -> 10, ... z -> 34
-//
-function indexFromCode(code: string): number {
-    // this was the simple code that now has to be replaced
-    // because the retards who define web standards have
-    // deprecated keyCode .
-    //
-    // const index =
-    //     e.keyCode >= 49 && e.keyCode <= 57
-    //         ? e.keyCode - 49
-    //         : e.keyCode - 65 + 9;
-
-    switch (code) {
-        case "Digit1":
-            return 0;
-        case "Digit2":
-            return 1;
-        case "Digit3":
-            return 2;
-        case "Digit4":
-            return 3;
-        case "Digit5":
-            return 4;
-        case "Digit6":
-            return 5;
-        case "Digit7":
-            return 6;
-        case "Digit8":
-            return 7;
-        case "Digit9":
-            return 8;
-        case "KeyA":
-            return 9;
-        case "KeyB":
-            return 10;
-        case "KeyC":
-            return 11;
-        case "KeyD":
-            return 12;
-        case "KeyE":
-            return 13;
-        case "KeyF":
-            return 14;
-        case "KeyG":
-            return 15;
-        case "KeyH":
-            return 16;
-        case "KeyI":
-            return 17;
-        case "KeyJ":
-            return 18;
-        case "KeyK":
-            return 19;
-        case "KeyL":
-            return 20;
-        case "KeyM":
-            return 21;
-        case "KeyN":
-            return 22;
-        case "KeyO":
-            return 23;
-        case "KeyP":
-            return 24;
-        case "KeyQ":
-            return 25;
-        case "KeyR":
-            return 26;
-        case "KeyS":
-            return 27;
-        case "KeyT":
-            return 28;
-        case "KeyU":
-            return 29;
-        case "KeyV":
-            return 30;
-        case "KeyW":
-            return 31;
-        case "KeyX":
-            return 32;
-        case "KeyY":
-            return 33;
-        case "KeyZ":
-            return 34;
-        default: {
-            // console.error(`invalid code value: '${code}'`);
-            return -1;
-        }
-    }
-}
-
-function isCommand(text: string) {
-    return text.length >= 1 && text[0] === ":";
-}
-
 export default function CommandBar() {
     const appState = getAppState();
-    const searchCommandRef = useRef(null);
-
-    const [local, localDispatch] = useLocalReducer(reducer, cleanState());
+    const commandBarRef = useRef(null);
 
     function onKeyDown(e: KeyboardEvent) {
         if (e.key === "Escape") {
-            localDispatch(ActionType.KeyDownEsc, {
-                hasPhysicalKeyboard: appState.hasPhysicalKeyboard,
-                isVisible: appState.showingSearchCommand.value,
-                searchCommandRef,
-            });
+            AppStateChange.cbKeyDownEsc(commandBarRef);
         }
         if (e.key === ":") {
-            localDispatch(ActionType.KeyDownColon, {
-                searchCommandRef,
-                appState,
-            });
+            AppStateChange.cbKeyDownColon(commandBarRef);
         }
         if (e.key === "Enter") {
-            if (appState.showingSearchCommand.value) {
-                localDispatch(ActionType.KeyDownEnter);
-            }
+            AppStateChange.cbKeyDownEnter(Commands);
         }
         if (e.ctrlKey) {
-            if (appState.showingSearchCommand.value) {
-                localDispatch(ActionType.KeyDownCtrl);
-            }
+            AppStateChange.cbKeyDownCtrl();
         }
-        // console.log(`keyCode = ${e.keyCode}, code = ${e.code}, key = ${e.key}`);
         if (
             e.shiftKey ||
             (e.key >= "1" && e.key <= "9") ||
             (e.key >= "a" && e.key <= "z")
         ) {
-            if (appState.showingSearchCommand.value) {
-                localDispatch(ActionType.KeyDownKey, {
-                    code: e.code,
-                    shiftKey: e.shiftKey,
-                });
-            }
+            AppStateChange.cbKeyDownAlphaNumeric(e.code, e.shiftKey);
         }
         if (e.key === "+") {
-            if (appState.showingSearchCommand.value) {
-                localDispatch(ActionType.KeyDownPlus);
-            }
+            AppStateChange.cbKeyDownPlus();
         }
     }
 
     function onFocus() {
-        localDispatch(ActionType.InputFocus);
+        AppStateChange.cbInputFocus();
     }
 
     function onBlur() {
-        localDispatch(ActionType.InputBlur);
+        AppStateChange.cbInputBlur();
     }
 
     useEffect(() => {
@@ -613,31 +238,38 @@ export default function CommandBar() {
     const handleChangeEvent = (event: Event) => {
         if (event.target instanceof HTMLInputElement) {
             const text = event.target.value;
-            if (local.mode === CommandBarMode.Command) {
-                localDispatch(ActionType.InputGiven, { text, appState });
-            } else if (local.mode === CommandBarMode.Search) {
-                if (!local.showKeyboardShortcuts) {
-                    localDispatch(ActionType.InputGiven, { text, appState });
+            if (
+                appState.commandBarState.value.mode === CommandBarMode.Command
+            ) {
+                AppStateChange.cbInputGiven(text);
+                // localDispatch(ActionType.InputGiven, { text, appState });
+            } else if (
+                appState.commandBarState.value.mode === CommandBarMode.Search
+            ) {
+                if (!appState.commandBarState.value.showKeyboardShortcuts) {
+                    AppStateChange.cbInputGiven(text);
+                    // localDispatch(ActionType.InputGiven, { text, appState });
                     if (text.length > 0 && !isCommand(text)) {
                         search(text);
                     }
                 }
 
-                if (local.showKeyboardShortcuts) {
+                if (appState.commandBarState.value.showKeyboardShortcuts) {
                     // searchCommand is showing keyboard shortcuts and the user
                     // has just pressed a key whilst holding down the shift button
                     //
                     // since the handleChangeEvent code runs after the latest
                     // render we have to manually remove the final character
                     //
-                    const displayText = local.shiftKey
+                    const displayText = appState.commandBarState.value.shiftKey
                         ? text.slice(0, -1)
                         : text;
 
-                    localDispatch(ActionType.InputGiven, {
-                        text: displayText,
-                        appState,
-                    });
+                    AppStateChange.cbInputGiven(displayText);
+                    // localDispatch(ActionType.InputGiven, {
+                    //     text: displayText,
+                    //     appState,
+                    // });
                 }
             }
         }
@@ -671,17 +303,20 @@ export default function CommandBar() {
         if (sanitized.length > 0) {
             const url = `/api/deck-queries/search?q=${encodeURI(sanitized)}`;
             const searchResponse: ResultList = await Net.get(url);
-            localDispatch(ActionType.SearchCandidatesSet, searchResponse);
+            AppStateChange.cbSearchCandidateSet(searchResponse);
+            // localDispatch(ActionType.SearchCandidatesSet, searchResponse);
         }
     }
 
     function buildSearchResultEntry(entry: SlimDeck, i: number) {
         const maxShortcuts = 9 + 26; // 1..9 and a..z
         const canShowKeyboardShortcut =
-            local.showKeyboardShortcuts && i < maxShortcuts;
+            appState.commandBarState.value.showKeyboardShortcuts &&
+            i < maxShortcuts;
 
         function clickedCandidate() {
-            localDispatch(ActionType.ClickedCandidate);
+            AppStateChange.cbClickedCandidate();
+            // localDispatch(ActionType.ClickedCandidate);
         }
 
         return (
@@ -697,7 +332,7 @@ export default function CommandBar() {
 
     function buildCommandEntry(entry: Command) {
         function clickedCommand() {
-            localDispatch(ActionType.ClickedCommand, { entry });
+            AppStateChange.cbClickedCommand(entry, Commands);
         }
         if (entry.spacer) {
             return <div class="command-entry">-</div>;
@@ -720,7 +355,7 @@ export default function CommandBar() {
 
     // build either the SearchCandidates or the CommandCandidates
     function buildCandidates() {
-        if (local.mode === CommandBarMode.Command) {
+        if (appState.commandBarState.value.mode === CommandBarMode.Command) {
             return (
                 <ul class="search-command-listing" id="search-candidates">
                     {Commands.map((entry: Command, i: number) => (
@@ -729,18 +364,19 @@ export default function CommandBar() {
                 </ul>
             );
         } else if (
-            local.mode === CommandBarMode.Search &&
-            local.searchCandidates.length > 0
+            appState.commandBarState.value.mode === CommandBarMode.Search &&
+            appState.commandBarState.value.searchCandidates.length > 0
         ) {
             let classes =
-                appState.hasPhysicalKeyboard && local.showKeyboardShortcuts
+                appState.hasPhysicalKeyboard &&
+                appState.commandBarState.value.showKeyboardShortcuts
                     ? "search-command-important "
                     : "";
             classes += "search-command-listing";
 
             return (
                 <ul class={classes} id="search-candidates">
-                    {local.searchCandidates.map(
+                    {appState.commandBarState.value.searchCandidates.map(
                         (entry: SlimDeck, i: number) => (
                             <li key={entry.id}>
                                 {buildSearchResultEntry(entry, i)}
@@ -760,11 +396,11 @@ export default function CommandBar() {
 
     let inputClasses = "search-command-input";
     if (appState.hasPhysicalKeyboard) {
-        inputClasses += local.showKeyboardShortcuts
+        inputClasses += appState.commandBarState.value.showKeyboardShortcuts
             ? " search-command-unimportant"
             : " search-command-important";
     } else {
-        // if (local.hasFocus) {
+        // if (appState.commandBarState.value.hasFocus) {
         //     inputClasses += " on-touch-device-search-command-has-focus";
         // } else {
         //     inputClasses += " on-touch-device-search-command-lost-focus";
@@ -779,9 +415,9 @@ export default function CommandBar() {
                     autocomplete="off"
                     type="text"
                     class={inputClasses}
-                    ref={searchCommandRef}
+                    ref={commandBarRef}
                     name="full search"
-                    value={local.text}
+                    value={appState.commandBarState.value.text}
                     onInput={handleChangeEvent}
                     onFocus={onFocus}
                     onBlur={onBlur}
@@ -800,25 +436,4 @@ function routeOrCreate(kind: DeckKind, argString: string): boolean {
     }
 
     return true;
-}
-
-function executeCommand(text: string) {
-    const commandPlusArgs = text
-        .slice(1)
-        .split(" ")
-        .filter((s) => s.length > 0);
-    if (commandPlusArgs.length === 0) {
-        return;
-    }
-
-    const command = commandPlusArgs[0];
-
-    const action: Command | undefined = Commands.find(
-        (c) => c.command === command
-    );
-    if (action) {
-        const rest = commandPlusArgs.slice(1).join(" ");
-        return action.fn ? action.fn(rest) : false;
-    }
-    return false;
 }

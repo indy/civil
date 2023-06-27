@@ -4,7 +4,7 @@ import { useEffect } from "preact/hooks";
 import {
     DeckKind,
     Key,
-    Ref,
+    Reference,
     RefKind,
     RefsModified,
     SlimDeck,
@@ -39,12 +39,12 @@ enum ActionType {
 }
 
 type ActionDataReferenceChangeKind = {
-    reference: Ref;
+    reference: Reference;
     newKind: RefKind;
 };
 
 type ActionDataReferenceChangeAnnotation = {
-    reference: Ref;
+    reference: Reference;
     annotation: string;
 };
 
@@ -53,19 +53,19 @@ type Action = {
     data?:
         | string
         | number
-        | Ref
+        | Reference
         | SlimDeck
         | ActionDataReferenceChangeKind
         | ActionDataReferenceChangeAnnotation;
 };
 
 type State = {
-    currentSelection: Array<Ref>;
-    referencesUnchanged: Array<Ref>;
-    referencesChanged: Array<Ref>;
-    referencesRemoved: Array<Ref>;
-    referencesAdded: Array<Ref>;
-    referencesCreated: Array<Ref>;
+    currentSelection: Array<Reference>;
+    referencesUnchanged: Array<Reference>;
+    referencesChanged: Array<Reference>;
+    referencesRemoved: Array<Reference>;
+    referencesAdded: Array<Reference>;
+    referencesCreated: Array<Reference>;
     text: string;
     showKeyboardShortcuts: boolean;
     candidates: Array<SlimDeck>;
@@ -73,7 +73,7 @@ type State = {
     justAddedViaShortcut: boolean;
 };
 
-function candidateToAddedRef(candidate: SlimDeck): Ref {
+function candidateToAddedRef(candidate: SlimDeck): Reference {
     return {
         id: candidate.id,
         title: candidate.title,
@@ -133,7 +133,7 @@ function reducer(state: State, action: Action) {
         }
         case ActionType.ReferenceRemove: {
             let newState = { ...state };
-            let refToRemove = action.data as Ref;
+            let refToRemove = action.data as Reference;
 
             if (
                 state.referencesUnchanged.find((r) => r.id === refToRemove.id)
@@ -282,7 +282,7 @@ function reducer(state: State, action: Action) {
         case ActionType.SelectCreate: {
             let newState = { ...state };
 
-            let refToCreate = action.data as Ref;
+            let refToCreate = action.data as Reference;
 
             newState.referencesCreated.push(refToCreate);
 
@@ -327,8 +327,8 @@ export default function CivilSelect({
     extraClasses?: string;
     parentDeckId: Key;
     noteId: Key;
-    chosen: Array<Ref>;
-    onSave: (changes: RefsModified, allDecksForNote: Array<Ref>) => void;
+    chosen: Array<Reference>;
+    onSave: (changes: RefsModified, allDecksForNote: Array<Reference>) => void;
     onCancel: () => void;
 }) {
     const s: State = {
@@ -390,7 +390,7 @@ export default function CivilSelect({
         };
 
         type ReferencesApplied = {
-            refs: Array<Ref>;
+            refs: Array<Reference>;
             recents: Array<SlimDeck>;
         };
 
@@ -485,14 +485,17 @@ export default function CivilSelect({
                         onRemove={(e) =>
                             localDispatch(ActionType.ReferenceRemove, e)
                         }
-                        onChangeKind={(reference: Ref, newKind: RefKind) =>
+                        onChangeKind={(
+                            reference: Reference,
+                            newKind: RefKind
+                        ) =>
                             localDispatch(ActionType.ReferenceChangeKind, {
                                 reference,
                                 newKind,
                             })
                         }
                         onChangeAnnotation={(
-                            reference: Ref,
+                            reference: Reference,
                             annotation: string
                         ) =>
                             localDispatch(
@@ -567,10 +570,10 @@ function RecentDecks({
 }
 
 type SelectedReferenceProps = {
-    reference: Ref;
-    onRemove: (r: Ref) => void;
-    onChangeKind: (r: Ref, rk: RefKind) => void;
-    onChangeAnnotation: (r: Ref, s: string) => void;
+    reference: Reference;
+    onRemove: (r: Reference) => void;
+    onChangeKind: (r: Reference, rk: RefKind) => void;
+    onChangeAnnotation: (r: Reference, s: string) => void;
 };
 
 function stringToRefKind(s: string): RefKind | undefined {
@@ -670,7 +673,7 @@ type InputProps = {
     text: string;
     onTextChanged: (s: string) => void;
     onAdd: (c: SlimDeck) => void;
-    onCreate: (r: Ref) => void;
+    onCreate: (r: Reference) => void;
     candidates: Array<SlimDeck>;
     showKeyboardShortcuts: boolean;
 };
@@ -687,7 +690,7 @@ function Input({
         e.preventDefault();
         if (text.length > 0) {
             // treat this text as a new idea that needs to be created
-            let r: Ref = {
+            let r: Reference = {
                 noteId: 0,
                 id: 0,
                 title: text,

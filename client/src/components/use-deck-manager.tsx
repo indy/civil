@@ -12,7 +12,7 @@ import {
     PassageHowToShow,
     Notes,
     ProtoPoint,
-    Ref,
+    Reference,
     ToolbarMode,
 } from "types";
 
@@ -113,7 +113,7 @@ export default function useDeckManager<T extends FatDeck>(
         update(d);
     }
 
-    function onRefsChanged(note: Note, allDecksForNote: Array<Ref>) {
+    function onRefsChanged(note: Note, allDecksForNote: Array<Reference>) {
         // guess
         // have to make a copy of note so that preact's
         // diff algorithm can pick up the change
@@ -469,7 +469,7 @@ function applyDecksAndCardsToNotes<T extends FatDeck>(deck: T) {
     return deck;
 }
 
-function hashByNoteIds(s: Array<Ref | FlashCard>) {
+function hashByNoteIds(s: Array<Reference | FlashCard>) {
     let res = {};
 
     s = s || [];

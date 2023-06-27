@@ -8,7 +8,7 @@ import {
     Key,
     NoteKind,
     NoteThing,
-    Ref,
+    Reference,
 } from "types";
 
 import { buildSlimDeck, deckKindToHeadingString } from "utils/civil";
@@ -27,7 +27,7 @@ type BackRefItem = {
     deckInsignia: number;
     deckKind: DeckKind;
     notes: Array<NoteThing>;
-    deckLevelRefs: Array<Ref>;
+    deckLevelRefs: Array<Reference>;
     metaNoteId: Key;
     deckLevelAnnotation?: string;
 };
@@ -35,13 +35,13 @@ type BackRefItem = {
 export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
     const appState = getAppState();
 
-    let backrefs: Array<Ref> = (deck && deck.backrefs) || [];
+    let backrefs: Array<Reference> = (deck && deck.backrefs) || [];
     let backnotes: Array<BackNote> = (deck && deck.backnotes) || [];
 
     const segments: Array<ComponentChildren> = [];
     const decks: Array<BackRefItem> = [];
 
-    if (!nonEmptyArray<Ref>(backrefs)) {
+    if (!nonEmptyArray<Reference>(backrefs)) {
         return <div></div>;
     }
 
@@ -77,7 +77,7 @@ export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
     if (deck) {
         // attach refs to the correct notes
         //
-        backrefs.forEach((br: Ref) => {
+        backrefs.forEach((br: Reference) => {
             // find the noteId
             for (let i = 0; i < decks.length; i++) {
                 let d: BackRefItem = decks[i];
@@ -86,7 +86,7 @@ export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
                     if (br.id === deck.id) {
                         d.deckLevelAnnotation = br.annotation;
                     } else {
-                        let ref: Ref = {
+                        let ref: Reference = {
                             noteId: br.noteId,
                             id: br.id,
                             title: br.title,
@@ -105,7 +105,7 @@ export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
                                 d.notes[j].topRefKind = br.refKind;
                                 d.notes[j].topAnnotation = br.annotation;
                             } else {
-                                let ref: Ref = {
+                                let ref: Reference = {
                                     noteId: br.noteId,
                                     id: br.id,
                                     title: br.title,

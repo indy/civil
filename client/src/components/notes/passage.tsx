@@ -7,7 +7,7 @@ import {
     Note,
     NoteKind,
     Notes,
-    Ref,
+    Reference,
     ToolbarMode,
 } from "types";
 
@@ -25,7 +25,7 @@ type PassageProps = {
     toolbarMode: ToolbarMode;
     onUpdateDeck: (d: FatDeck) => void;
     notes: Notes;
-    onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
+    onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
     optionalDeckPoint?: DeckPoint;
     appendLabel: string;
     noteKind: NoteKind;

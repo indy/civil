@@ -1,7 +1,14 @@
 import { h } from "preact";
 import { useRef } from "preact/hooks";
 
-import { FatDeck, Key, Note, Ref, RefsModified, ToolbarMode } from "types";
+import {
+    FatDeck,
+    Key,
+    Note,
+    Reference,
+    RefsModified,
+    ToolbarMode,
+} from "types";
 
 import { getAppState, AppStateChange } from "app-state";
 import { addToolbarSelectableClasses } from "utils/civil";
@@ -15,7 +22,7 @@ import useMouseHovering from "components/use-mouse-hovering";
 type Props = {
     deck: FatDeck;
     isEditing: boolean;
-    onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
+    onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
     onRefsToggle: () => void;
 };
 
@@ -52,7 +59,7 @@ export default function SegmentDeckRefs({
     function onSaved(
         note: Note,
         changes: RefsModified,
-        allDecksForNote: Array<Ref>
+        allDecksForNote: Array<Reference>
     ) {
         // this note is going to be the deck's NoteDeckMeta
         onRefsChanged(note, allDecksForNote);
@@ -105,12 +112,12 @@ export default function SegmentDeckRefs({
 type AddDecksUIProps = {
     deckId: Key;
     note: Note;
-    chosen: Array<Ref>;
+    chosen: Array<Reference>;
     onCancel: () => void;
     onSaved: (
         n: Note,
         changes: RefsModified,
-        allDecksForNote: Array<Ref>
+        allDecksForNote: Array<Reference>
     ) => void;
 };
 
@@ -121,7 +128,7 @@ function AddDecksUI({
     onCancel,
     onSaved,
 }: AddDecksUIProps) {
-    function onSave(changes: RefsModified, allDecksForNote: Array<Ref>) {
+    function onSave(changes: RefsModified, allDecksForNote: Array<Reference>) {
         onSaved(note, changes, allDecksForNote);
     }
 

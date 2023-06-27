@@ -7,7 +7,7 @@ import {
     Key,
     Note,
     Notes,
-    Ref,
+    Reference,
     RefsModified,
     Role,
     State,
@@ -61,7 +61,7 @@ type LocalState = {
     isEditingMarkup: boolean;
     note: Note;
     originalContent: string;
-    decks: Array<Ref>;
+    decks: Array<Reference>;
     flashcardToShow: FlashCard | undefined;
     oldCursorPos: number;
     textAreaFocused: boolean;
@@ -80,7 +80,7 @@ type ActionDataImagePasted = {
 };
 
 type ActionDataDecksCommit = {
-    allDecksForNote: Array<Ref>;
+    allDecksForNote: Array<Reference>;
     changes: RefsModified;
 };
 
@@ -333,7 +333,7 @@ type Props = {
     toolbarMode: ToolbarMode;
     onDelete: (id: Key) => void;
     onEdited: (id: Key, n: Note) => void;
-    onRefsChanged: (note: Note, allDecksForNote: Array<Ref>) => void;
+    onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
     onUpdateDeck: (d: FatDeck) => void;
     noDelete?: boolean;
 };
@@ -521,7 +521,10 @@ export default function NoteView({
     }
 
     function buildAddDecksUI() {
-        function onSave(changes: RefsModified, allDecksForNote: Array<Ref>) {
+        function onSave(
+            changes: RefsModified,
+            allDecksForNote: Array<Reference>
+        ) {
             onRefsChanged(local.note, allDecksForNote);
             localDispatch(ActionType.AddDecksCommit, {
                 allDecksForNote,
@@ -679,7 +682,7 @@ function buildLeftMarginContent(note: Note, localDispatch: Function) {
     }
 }
 
-function buildNoteReferences(decks: Array<Ref>) {
+function buildNoteReferences(decks: Array<Reference>) {
     const entries = decks.map((ref) => {
         return <RefView deckReference={ref} extraClasses="left-margin-entry" />;
     });

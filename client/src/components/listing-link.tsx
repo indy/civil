@@ -1,6 +1,6 @@
 import { h } from "preact";
 
-import { NoteThing, Ref, SlimDeck } from "types";
+import { NoteThing, Reference, SlimDeck } from "types";
 
 import { svgCaretRight, svgCaretDown } from "components/svg-icons";
 
@@ -26,7 +26,7 @@ function ListingLink({ slimDeck }: ListingLinkProps) {
 type ExpandableListingLinkProps = {
     index: number;
     slimDeck: SlimDeck;
-    deckLevelRefs: Array<Ref>;
+    deckLevelRefs: Array<Reference>;
     deckLevelAnnotation?: string;
     notes: Array<NoteThing>;
     expanded: boolean;
@@ -83,7 +83,7 @@ function buildDeckLevelAnnotation(deckLevelAnnotation: string) {
     );
 }
 
-function buildDeckLevelBackRefs(deckLevelRefs: Array<Ref>) {
+function buildDeckLevelBackRefs(deckLevelRefs: Array<Reference>) {
     let refs = deckLevelRefs.map((r) => (
         <RefView deckReference={r} extraClasses="deck-level-backref" />
     ));
