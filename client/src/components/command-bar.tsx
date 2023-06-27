@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useRef, Ref } from "preact/hooks";
 import { route } from "preact-router";
 
 import {
@@ -193,14 +193,23 @@ const Commands: Array<Command> = [
 
 export default function CommandBar() {
     const appState = getAppState();
-    const commandBarRef = useRef(null);
+    const commandBarRef: Ref<HTMLInputElement> = useRef(null);
+
+    const inputElement = commandBarRef.current;
+    if (inputElement) {
+        if (appState.showingSearchCommand.value) {
+            inputElement.focus();
+        } else {
+            inputElement.blur();
+        }
+    }
 
     function onKeyDown(e: KeyboardEvent) {
         if (e.key === "Escape") {
-            AppStateChange.cbKeyDownEsc(commandBarRef);
+            AppStateChange.cbKeyDownEsc();
         }
         if (e.key === ":") {
-            AppStateChange.cbKeyDownColon(commandBarRef);
+            AppStateChange.cbKeyDownColon();
         }
         if (e.key === "Enter") {
             AppStateChange.cbKeyDownEnter(Commands);
@@ -242,13 +251,11 @@ export default function CommandBar() {
                 appState.commandBarState.value.mode === CommandBarMode.Command
             ) {
                 AppStateChange.cbInputGiven(text);
-                // localDispatch(ActionType.InputGiven, { text, appState });
             } else if (
                 appState.commandBarState.value.mode === CommandBarMode.Search
             ) {
                 if (!appState.commandBarState.value.showKeyboardShortcuts) {
                     AppStateChange.cbInputGiven(text);
-                    // localDispatch(ActionType.InputGiven, { text, appState });
                     if (text.length > 0 && !isCommand(text)) {
                         search(text);
                     }
@@ -266,10 +273,6 @@ export default function CommandBar() {
                         : text;
 
                     AppStateChange.cbInputGiven(displayText);
-                    // localDispatch(ActionType.InputGiven, {
-                    //     text: displayText,
-                    //     appState,
-                    // });
                 }
             }
         }
@@ -304,7 +307,6 @@ export default function CommandBar() {
             const url = `/api/deck-queries/search?q=${encodeURI(sanitized)}`;
             const searchResponse: ResultList = await Net.get(url);
             AppStateChange.cbSearchCandidateSet(searchResponse);
-            // localDispatch(ActionType.SearchCandidatesSet, searchResponse);
         }
     }
 
@@ -316,7 +318,6 @@ export default function CommandBar() {
 
         function clickedCandidate() {
             AppStateChange.cbClickedCandidate();
-            // localDispatch(ActionType.ClickedCandidate);
         }
 
         return (
@@ -399,12 +400,6 @@ export default function CommandBar() {
         inputClasses += appState.commandBarState.value.showKeyboardShortcuts
             ? " search-command-unimportant"
             : " search-command-important";
-    } else {
-        // if (appState.commandBarState.value.hasFocus) {
-        //     inputClasses += " on-touch-device-search-command-has-focus";
-        // } else {
-        //     inputClasses += " on-touch-device-search-command-lost-focus";
-        // }
     }
 
     return (

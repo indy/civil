@@ -1,6 +1,6 @@
 import { h, createContext, ComponentChildren } from "preact";
 import { signal } from "@preact/signals";
-import { useContext, Ref } from "preact/hooks";
+import { useContext } from "preact/hooks";
 import { route } from "preact-router";
 
 import {
@@ -187,37 +187,14 @@ export const getAppState = () => useContext(AppStateContext);
 const DEBUG_APP_STATE = false;
 
 export const AppStateChange = {
-    cbKeyDownEsc: function (commandBarRef: Ref<HTMLInputElement>) {
-        const inputElement = commandBarRef.current;
-        if (state.hasPhysicalKeyboard) {
-            if (state.showingSearchCommand.value) {
-                if (inputElement) {
-                    inputElement.blur();
-                    state.showingSearchCommand.value = false;
-                }
-            } else {
-                if (inputElement) {
-                    inputElement.focus();
-                    state.showingSearchCommand.value = true;
-                }
-            }
-        }
-
+    cbKeyDownEsc: function () {
+        state.showingSearchCommand.value = !state.showingSearchCommand.value;
         state.commandBarState.value = cleanCommandBarState();
     },
 
-    cbKeyDownColon: function (commandBarRef: Ref<HTMLInputElement>) {
-        if (state.componentRequiresFullKeyboardAccess.value) {
-            return;
-        }
-
-        const inputElement = commandBarRef.current;
-
-        if (!state.showingSearchCommand.value) {
-            if (inputElement) {
-                inputElement.focus();
-                state.showingSearchCommand.value = true;
-            }
+    cbKeyDownColon: function () {
+        if (!state.componentRequiresFullKeyboardAccess.value) {
+            state.showingSearchCommand.value = true;
         }
     },
 
