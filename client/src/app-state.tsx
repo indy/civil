@@ -193,8 +193,16 @@ export const AppStateChange = {
     },
 
     cbKeyDownColon: function () {
+        let commandBarState = state.commandBarState.value;
         if (!state.componentRequiresFullKeyboardAccess.value) {
-            state.showingSearchCommand.value = true;
+            if (!state.showingSearchCommand.value) {
+                state.showingSearchCommand.value = true;
+                state.commandBarState.value = {
+                    ...commandBarState,
+                    mode: CommandBarMode.Command,
+                    text: ":",
+                };
+            }
         }
     },
 
