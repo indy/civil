@@ -197,7 +197,7 @@ export default function CommandBar() {
 
     const inputElement = commandBarRef.current;
     if (inputElement) {
-        if (appState.showingSearchCommand.value) {
+        if (appState.showingCommandBar.value) {
             inputElement.focus();
         } else {
             inputElement.blur();
@@ -391,7 +391,7 @@ export default function CommandBar() {
         }
     }
 
-    const extraClasses = appState.showingSearchCommand.value
+    const extraClasses = appState.showingCommandBar.value
         ? "search-command-visible"
         : "search-command-invisible";
 

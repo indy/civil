@@ -29,6 +29,6 @@ function canReceiveModalCommands(appState: State) {
     return (
         appState.hasPhysicalKeyboard &&
         !appState.componentRequiresFullKeyboardAccess.value &&
-        !appState.showingSearchCommand.value
+        !appState.showingCommandBar.value
     );
 }

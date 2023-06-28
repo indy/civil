@@ -40,7 +40,7 @@ export function DeluxeToolbar({}) {
             case ToolbarMode.SR:
                 return !onListingPage;
             case ToolbarMode.AddAbove:
-                // don't show Prepend option for quotes
+                // don't show AddAbove option for quotes
                 return !onListingPage && urlParts[1] !== "quotes";
             case ToolbarMode.ScratchListLinks:
                 return true;
@@ -68,14 +68,17 @@ export function DeluxeToolbar({}) {
                 </ToolbarItem>
             )}
             {canShow(ToolbarMode.SR) && (
-                <ToolbarItem toolbarMode={ToolbarMode.SR} toolbarText="SR">
+                <ToolbarItem
+                    toolbarMode={ToolbarMode.SR}
+                    toolbarText="Memorise"
+                >
                     {svgFlashCard()}
                 </ToolbarItem>
             )}
             {canShow(ToolbarMode.AddAbove) && (
                 <ToolbarItem
                     toolbarMode={ToolbarMode.AddAbove}
-                    toolbarText="Prepend"
+                    toolbarText="Add Above"
                 >
                     {svgAddAbove()}
                 </ToolbarItem>
@@ -83,7 +86,7 @@ export function DeluxeToolbar({}) {
             {canShow(ToolbarMode.ScratchListLinks) && (
                 <ToolbarItem
                     toolbarMode={ToolbarMode.ScratchListLinks}
-                    toolbarText="ScratchList"
+                    toolbarText="Bookmarks"
                 >
                     {svgScratchList()}
                 </ToolbarItem>
@@ -107,14 +110,14 @@ function ToolbarItem({
         if (appState.toolbarMode.value === toolbarMode) {
             // toggle the current mode off
             AppStateChange.toolbarMode(ToolbarMode.View);
-            AppStateChange.setShowingSearchCommand(false);
+            AppStateChange.setShowingCommandBar(false);
         } else {
             AppStateChange.toolbarMode(toolbarMode);
             if (
                 toolbarMode === ToolbarMode.Search &&
-                appState.showingSearchCommand.value === false
+                appState.showingCommandBar.value === false
             ) {
-                AppStateChange.setShowingSearchCommand(true);
+                AppStateChange.setShowingCommandBar(true);
             }
         }
     }

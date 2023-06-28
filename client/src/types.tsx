@@ -330,7 +330,7 @@ export type State = {
 
     componentRequiresFullKeyboardAccess: Signal<boolean>;
 
-    showingSearchCommand: Signal<boolean>;
+    showingCommandBar: Signal<boolean>;
     commandBarState: Signal<CommandBarState>;
 
     urlTitle: Signal<string>;

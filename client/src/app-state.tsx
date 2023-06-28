@@ -85,7 +85,7 @@ const state: State = {
     // when true don't let commandBar accept any keystrokes
     //
     componentRequiresFullKeyboardAccess: signal(false),
-    showingSearchCommand: signal(false),
+    showingCommandBar: signal(false),
     commandBarState: signal(cleanCommandBarState()),
 
     // to add the current page to the scratchList we need the id, name, deckKind.
@@ -188,15 +188,14 @@ const DEBUG_APP_STATE = false;
 
 export const AppStateChange = {
     cbKeyDownEsc: function () {
-        state.showingSearchCommand.value = !state.showingSearchCommand.value;
-        state.commandBarState.value = cleanCommandBarState();
+        commandBarToggle(state);
     },
 
     cbKeyDownColon: function () {
         let commandBarState = state.commandBarState.value;
         if (!state.componentRequiresFullKeyboardAccess.value) {
-            if (!state.showingSearchCommand.value) {
-                state.showingSearchCommand.value = true;
+            if (!state.showingCommandBar.value) {
+                state.showingCommandBar.value = true;
                 state.commandBarState.value = {
                     ...commandBarState,
                     mode: CommandBarMode.Command,
@@ -208,14 +207,14 @@ export const AppStateChange = {
 
     cbKeyDownEnter: function (allCommands: Array<Command>) {
         let commandBarState = state.commandBarState.value;
-        if (state.showingSearchCommand.value) {
+        if (state.showingCommandBar.value) {
             if (commandBarState.mode === CommandBarMode.Command) {
                 const success = executeCommand(
                     commandBarState.text,
                     allCommands
                 );
                 if (success) {
-                    state.showingSearchCommand.value = false;
+                    state.showingCommandBar.value = false;
                     state.commandBarState.value = cleanCommandBarState();
                 }
             }
@@ -224,7 +223,7 @@ export const AppStateChange = {
 
     cbKeyDownCtrl: function () {
         let commandBarState = state.commandBarState.value;
-        if (state.showingSearchCommand.value) {
+        if (state.showingCommandBar.value) {
             if (commandBarState.mode === CommandBarMode.Search) {
                 let showKeyboardShortcuts =
                     !commandBarState.showKeyboardShortcuts &&
@@ -240,7 +239,7 @@ export const AppStateChange = {
 
     cbKeyDownAlphaNumeric: function (code: string, shiftKey: boolean) {
         let commandBarState = state.commandBarState.value;
-        if (state.showingSearchCommand.value) {
+        if (state.showingCommandBar.value) {
             let index = indexFromCode(code);
             if (
                 commandBarState.showKeyboardShortcuts &&
@@ -253,12 +252,33 @@ export const AppStateChange = {
                     shiftKey: shiftKey,
                 };
             }
+        } else {
+            if (state.componentRequiresFullKeyboardAccess.value === false) {
+                // we can treat any keypresses as modal commands for the app
+                switch (code) {
+                    case "KeyB":
+                        toolbarModeToggle(state, ToolbarMode.ScratchListLinks);
+                        break;
+                    case "KeyE":
+                        toolbarModeToggle(state, ToolbarMode.Edit);
+                        break;
+                    case "KeyR":
+                        toolbarModeToggle(state, ToolbarMode.Refs);
+                        break;
+                    case "KeyA":
+                        toolbarModeToggle(state, ToolbarMode.AddAbove);
+                        break;
+                    case "KeyM":
+                        toolbarModeToggle(state, ToolbarMode.SR);
+                        break;
+                }
+            }
         }
     },
 
     cbKeyDownPlus: function () {
         let commandBarState = state.commandBarState.value;
-        if (state.showingSearchCommand.value) {
+        if (state.showingCommandBar.value) {
             if (
                 commandBarState.showKeyboardShortcuts &&
                 commandBarState.mode === CommandBarMode.Search
@@ -292,7 +312,7 @@ export const AppStateChange = {
             hasFocus: false,
         };
         if (commandBarState.searchCandidates.length === 0) {
-            state.showingSearchCommand.value = false;
+            state.showingCommandBar.value = false;
         }
     },
 
@@ -305,7 +325,7 @@ export const AppStateChange = {
     },
 
     cbClickedCandidate: function () {
-        state.showingSearchCommand.value = false;
+        state.showingCommandBar.value = false;
         state.commandBarState.value = cleanCommandBarState();
     },
 
@@ -314,7 +334,7 @@ export const AppStateChange = {
 
         const success = command ? executeCommand(command, allCommands) : false;
         if (success) {
-            state.showingSearchCommand.value = false;
+            state.showingCommandBar.value = false;
             state.commandBarState.value = cleanCommandBarState();
         } else {
             console.error(`Failed to execute command: ${command}`);
@@ -323,7 +343,7 @@ export const AppStateChange = {
 
     cbInputGiven: function (text: string) {
         let commandBarState = state.commandBarState.value;
-        if (state.showingSearchCommand.value) {
+        if (state.showingCommandBar.value) {
             const mode = isCommand(text)
                 ? CommandBarMode.Command
                 : CommandBarMode.Search;
@@ -378,7 +398,7 @@ export const AppStateChange = {
                         )}/${candidate.id}`;
                         route(url);
 
-                        state.showingSearchCommand.value = false;
+                        state.showingCommandBar.value = false;
                         state.commandBarState.value = cleanCommandBarState();
                         return;
                     }
@@ -458,12 +478,12 @@ export const AppStateChange = {
         pc[previewDeck.id] = previewDeck;
         state.previewCache.value = pc;
     },
-    setShowingSearchCommand: function (b: boolean) {
+    setShowingCommandBar: function (b: boolean) {
         if (DEBUG_APP_STATE) {
-            console.log("setShowingSearchCommand");
+            console.log("setShowingCommandBar");
         }
 
-        state.showingSearchCommand.value = b;
+        state.showingCommandBar.value = b;
     },
     addDebugMessage: function (msg: string) {
         if (DEBUG_APP_STATE) {
@@ -1137,4 +1157,17 @@ function indexFromCode(code: string): number {
             return -1;
         }
     }
+}
+
+function toolbarModeToggle(state: State, mode: ToolbarMode) {
+    if (state.toolbarMode.value !== mode) {
+        state.toolbarMode.value = mode;
+    } else {
+        state.toolbarMode.value = ToolbarMode.View;
+    }
+}
+
+function commandBarToggle(state: State) {
+    state.showingCommandBar.value = !state.showingCommandBar.value;
+    state.commandBarState.value = cleanCommandBarState();
 }
