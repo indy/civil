@@ -631,7 +631,7 @@ export default function NoteView({
 
     return (
         <CivContainer extraClasses={noteClasses}>
-            {local.addNoteAboveUI && buildAddNoteAboveUI()}
+            {appState.toolbarMode.value === ToolbarMode.AddAbove && local.addNoteAboveUI && buildAddNoteAboveUI()}
             {!local.isEditingMarkup &&
                 buildLeftMarginContent(
                     local.note,
@@ -662,8 +662,8 @@ export default function NoteView({
                 </CivMain>
             )}
 
-            {local.addDeckReferencesUI && buildAddDecksUI()}
-            {local.addFlashCardUI && buildAddFlashCardUI()}
+            {appState.toolbarMode.value === ToolbarMode.Refs && local.addDeckReferencesUI && buildAddDecksUI()}
+            {appState.toolbarMode.value === ToolbarMode.SR && local.addFlashCardUI && buildAddFlashCardUI()}
             {local.isEditingMarkup && buildMainButtons()}
         </CivContainer>
     );
