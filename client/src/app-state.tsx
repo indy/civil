@@ -1160,14 +1160,45 @@ function indexFromCode(code: string): number {
 }
 
 function toolbarModeToggle(state: State, mode: ToolbarMode) {
-    if (state.toolbarMode.value !== mode) {
-        state.toolbarMode.value = mode;
-    } else {
-        state.toolbarMode.value = ToolbarMode.View;
+    if (isToolbarModeAllowed(state, mode)) {
+        if (state.toolbarMode.value !== mode) {
+            state.toolbarMode.value = mode;
+        } else {
+            state.toolbarMode.value = ToolbarMode.View;
+        }
     }
 }
 
 function commandBarToggle(state: State) {
     state.showingCommandBar.value = !state.showingCommandBar.value;
     state.commandBarState.value = cleanCommandBarState();
+}
+
+export function isToolbarModeAllowed(
+    state: State,
+    toolbarMode: ToolbarMode
+): boolean {
+    // e.g. state.url.value = /articles or /ideas/42
+    // urlParts is of either one of these forms: ["", "articles"], or ["", "ideas", "42"]
+    let urlParts = state.url.value.split("/");
+
+    const onListingPage = urlParts.length === 2;
+
+    switch (toolbarMode) {
+        case ToolbarMode.View:
+            return !onListingPage;
+        case ToolbarMode.Search:
+            return true;
+        case ToolbarMode.Edit:
+            return !onListingPage;
+        case ToolbarMode.Refs:
+            return !onListingPage;
+        case ToolbarMode.SR:
+            return !onListingPage;
+        case ToolbarMode.AddAbove:
+            // don't show AddAbove option for quotes
+            return !onListingPage && urlParts[1] !== "quotes";
+        case ToolbarMode.ScratchListLinks:
+            return true;
+    }
 }

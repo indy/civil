@@ -2,7 +2,7 @@ import { h, ComponentChildren } from "preact";
 
 import { ToolbarMode } from "types";
 
-import { getAppState, AppStateChange } from "app-state";
+import { getAppState, isToolbarModeAllowed, AppStateChange } from "app-state";
 import {
     svgEdit,
     svgLinkAlt,
@@ -21,35 +21,9 @@ export function DeluxeToolbar({}) {
         classes += " deluxe-toolbar-faded";
     }
 
-    // e.g. appState.url.value = /articles or /ideas/42
-    // urlParts is of either one of these forms: ["", "articles"], or ["", "ideas", "42"]
-    let urlParts = appState.url.value.split("/");
-
-    const onListingPage = urlParts.length === 2;
-
-    function canShow(toolbarMode: ToolbarMode): boolean {
-        switch (toolbarMode) {
-            case ToolbarMode.View:
-                return !onListingPage;
-            case ToolbarMode.Search:
-                return true;
-            case ToolbarMode.Edit:
-                return !onListingPage;
-            case ToolbarMode.Refs:
-                return !onListingPage;
-            case ToolbarMode.SR:
-                return !onListingPage;
-            case ToolbarMode.AddAbove:
-                // don't show AddAbove option for quotes
-                return !onListingPage && urlParts[1] !== "quotes";
-            case ToolbarMode.ScratchListLinks:
-                return true;
-        }
-    }
-
     return (
         <div class={classes}>
-            {canShow(ToolbarMode.Search) && (
+            {isToolbarModeAllowed(appState, ToolbarMode.Search) && (
                 <ToolbarItem
                     toolbarMode={ToolbarMode.Search}
                     toolbarText="Search"
@@ -57,17 +31,17 @@ export function DeluxeToolbar({}) {
                     {svgSearch()}
                 </ToolbarItem>
             )}
-            {canShow(ToolbarMode.Edit) && (
+            {isToolbarModeAllowed(appState, ToolbarMode.Edit) && (
                 <ToolbarItem toolbarMode={ToolbarMode.Edit} toolbarText="Edit">
                     {svgEdit()}
                 </ToolbarItem>
             )}
-            {canShow(ToolbarMode.Refs) && (
+            {isToolbarModeAllowed(appState, ToolbarMode.Refs) && (
                 <ToolbarItem toolbarMode={ToolbarMode.Refs} toolbarText="Refs">
                     {svgLinkAlt()}
                 </ToolbarItem>
             )}
-            {canShow(ToolbarMode.SR) && (
+            {isToolbarModeAllowed(appState, ToolbarMode.SR) && (
                 <ToolbarItem
                     toolbarMode={ToolbarMode.SR}
                     toolbarText="Memorise"
@@ -75,7 +49,7 @@ export function DeluxeToolbar({}) {
                     {svgFlashCard()}
                 </ToolbarItem>
             )}
-            {canShow(ToolbarMode.AddAbove) && (
+            {isToolbarModeAllowed(appState, ToolbarMode.AddAbove) && (
                 <ToolbarItem
                     toolbarMode={ToolbarMode.AddAbove}
                     toolbarText="Add Above"
@@ -83,7 +57,7 @@ export function DeluxeToolbar({}) {
                     {svgAddAbove()}
                 </ToolbarItem>
             )}
-            {canShow(ToolbarMode.ScratchListLinks) && (
+            {isToolbarModeAllowed(appState, ToolbarMode.ScratchListLinks) && (
                 <ToolbarItem
                     toolbarMode={ToolbarMode.ScratchListLinks}
                     toolbarText="Bookmarks"

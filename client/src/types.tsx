@@ -135,7 +135,7 @@ export type Note = {
     content: string;
     pointId: Key | null;
 
-    decks: Array<Reference>;
+    refs: Array<Reference>;
     flashcards: Array<FlashCard>;
 
     chatMessage?: OriginalChatMessage; // the original chat message for a dialogue
@@ -488,6 +488,15 @@ export type RefsModified = {
     referencesRemoved: Array<Reference>;
     referencesAdded: Array<Reference>;
     referencesCreated: Array<Reference>;
+};
+
+export type ProtoNoteReferences = RefsModified & {
+    noteId: Key;
+};
+
+export type ReferencesApplied = {
+    refs: Array<Reference>;
+    recents: Array<SlimDeck>;
 };
 
 export type Admin = {

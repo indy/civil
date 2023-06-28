@@ -114,10 +114,6 @@ export default function useDeckManager<T extends FatDeck>(
     }
 
     function onRefsChanged(note: Note, allDecksForNote: Array<Reference>) {
-        // guess
-        // have to make a copy of note so that preact's
-        // diff algorithm can pick up the change
-        //
         let n = { ...note };
 
         if (dms.deck) {
@@ -333,7 +329,7 @@ function dmsUpdateDeck<T extends FatDeck>(
     scrollToTop: boolean
 ): DeckManagerState<T> {
     // modify the notes received from the server
-    applyDecksAndCardsToNotes(deck);
+    applyRefsAndCardsToNotes(deck);
     // organise the notes into noteSeqs
     buildNoteSeqs(deck);
 
@@ -427,15 +423,15 @@ function dmsSetEditingDeckRefs<T extends FatDeck>(
     return res;
 }
 
-function applyDecksAndCardsToNotes<T extends FatDeck>(deck: T) {
+function applyRefsAndCardsToNotes<T extends FatDeck>(deck: T) {
     if (deck.notes) {
         if (deck.refs) {
-            const decksInNotes = hashByNoteIds(deck.refs);
+            const refsInNotes = hashByNoteIds(deck.refs);
             for (let i = 0; i < deck.notes.length; i++) {
                 let n = deck.notes[i];
-                n.decks = decksInNotes[n.id] || [];
-                if (n.decks) {
-                    n.decks.sort(sortByResourceThenName);
+                n.refs = refsInNotes[n.id] || [];
+                if (n.refs) {
+                    n.refs.sort(sortByResourceThenName);
                 }
             }
         }

@@ -61,7 +61,7 @@ type LocalState = {
     isEditingMarkup: boolean;
     note: Note;
     originalContent: string;
-    decks: Array<Reference>;
+    refs: Array<Reference>;
     flashcardToShow: FlashCard | undefined;
     oldCursorPos: number;
     textAreaFocused: boolean;
@@ -318,23 +318,27 @@ function reducer(state: LocalState, action: Action) {
 
 type Props = {
     note: Note;
+    nextNoteId?: Key; // used for the 'copy below' functionality of refs
     parentDeck: FatDeck;
     toolbarMode: ToolbarMode;
     onDelete: (id: Key) => void;
     onEdited: (id: Key, n: Note) => void;
     onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
     onUpdateDeck: (d: FatDeck) => void;
+    onCopyRefBelow: (r: Reference, nextNoteId: Key) => void;
     noDelete?: boolean;
 };
 
 export default function NoteView({
     note,
+    nextNoteId,
     parentDeck,
     toolbarMode,
     onDelete,
     onEdited,
     onRefsChanged,
     onUpdateDeck,
+    onCopyRefBelow,
     noDelete,
 }: Props) {
     const appState = getAppState();
@@ -346,7 +350,7 @@ export default function NoteView({
         isEditingMarkup: false,
         note: { ...note },
         originalContent: note.content,
-        decks: note && note.decks,
+        refs: note && note.refs,
         flashcardToShow: undefined,
         oldCursorPos: 0,
         textAreaFocused: false,
@@ -399,7 +403,7 @@ export default function NoteView({
                 kind: local.note.kind,
                 content: local.note.content,
                 pointId: null,
-                decks: [],
+                refs: [],
                 flashcards: [],
             };
 
@@ -614,6 +618,12 @@ export default function NoteView({
         }
     }
 
+    function copyRefBelow(ref: Reference) {
+        if (nextNoteId) {
+            onCopyRefBelow(ref, nextNoteId);
+        }
+    }
+
     // console.log("input:");
     // console.log(local.note.content);
     // console.log("output:");
@@ -624,7 +634,12 @@ export default function NoteView({
             <div onClick={onNoteClicked}>
                 {local.addNoteAboveUI && buildAddNoteAboveUI()}
                 {!local.isEditingMarkup &&
-                    buildLeftMarginContent(local.note, localDispatch)}
+                    buildLeftMarginContent(
+                        local.note,
+                        localDispatch,
+                        copyRefBelow,
+                        nextNoteId
+                    )}
 
                 {local.isEditingMarkup && buildEditableContent()}
                 {local.flashcardToShow && (
@@ -656,24 +671,40 @@ export default function NoteView({
     );
 }
 
-function buildLeftMarginContent(note: Note, localDispatch: Function) {
-    if (!note.decks && !note.flashcards) {
+function buildLeftMarginContent(
+    note: Note,
+    localDispatch: Function,
+    copyRefBelow: (ref: Reference) => void,
+    nextNoteId?: Key
+) {
+    if (!note.refs && !note.flashcards) {
         return <span></span>;
     } else {
         return (
             <CivLeft>
                 {note.chatMessage && <RoleView role={note.chatMessage!.role} />}
                 {buildFlashcardIndicator(note.flashcards, localDispatch)}
-                {note.decks && note.flashcards && <div class="spacer"></div>}
-                {buildNoteReferences(note.decks)}
+                {note.refs && note.flashcards && <div class="spacer"></div>}
+                {buildNoteReferences(note.refs, copyRefBelow, nextNoteId)}
             </CivLeft>
         );
     }
 }
 
-function buildNoteReferences(decks: Array<Reference>) {
-    const entries = decks.map((ref) => {
-        return <RefView deckReference={ref} extraClasses="left-margin-entry" />;
+function buildNoteReferences(
+    refs: Array<Reference>,
+    copyRefBelow: (ref: Reference) => void,
+    nextNoteId?: Key
+) {
+    const entries = refs.map((ref) => {
+        return (
+            <RefView
+                deckReference={ref}
+                extraClasses="left-margin-entry"
+                nextNoteId={nextNoteId}
+                onCopyRefBelow={copyRefBelow}
+            />
+        );
     });
 
     return entries;

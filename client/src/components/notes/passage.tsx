@@ -1,6 +1,8 @@
 import { h } from "preact";
 
 import {
+    ProtoNoteReferences,
+    ReferencesApplied,
     DeckPoint,
     FatDeck,
     Key,
@@ -62,17 +64,62 @@ export default function Passage({
         );
     }
 
-    function buildNoteComponent(note: Note) {
+    // copy the given ref onto the note (if it doesn't already exist)
+    function onCopyRefBelow(ref: Reference, noteId: Key) {
+        const note = notes.find((n) => n.id === noteId);
+        if (!note) {
+            console.error(
+                `onCopyRefBelow: passage doesn't manage noteId: ${noteId}`
+            );
+            return;
+        }
+
+        // check if the note already contains the ref
+        const found = note.refs.find((r) => r.id === ref.id);
+        if (found) {
+            console.log("already has ref");
+        } else {
+            const addedRef: Reference = {
+                id: ref.id,
+                title: ref.title,
+                deckKind: ref.deckKind,
+                insignia: ref.insignia,
+                noteId: noteId,
+                refKind: ref.refKind,
+                annotation: ref.annotation,
+            };
+            let changeData: ProtoNoteReferences = {
+                noteId: noteId,
+                referencesChanged: [],
+                referencesRemoved: [],
+                referencesAdded: [addedRef],
+                referencesCreated: [],
+            };
+
+            Net.post<ProtoNoteReferences, ReferencesApplied>(
+                "/api/edges/notes_decks",
+                changeData
+            ).then((response) => {
+                if (note) {
+                    onRefsChanged(note, response.refs);
+                }
+            });
+        }
+    }
+
+    function buildNoteComponent(note: Note, nextNoteId?: Key) {
         return (
             <NoteView
                 key={note.id}
                 note={note}
+                nextNoteId={nextNoteId}
                 parentDeck={deck}
                 toolbarMode={toolbarMode}
                 onDelete={onDeleteNote}
                 onEdited={onEditedNote}
                 onRefsChanged={onRefsChanged}
                 onUpdateDeck={onUpdateDeck}
+                onCopyRefBelow={onCopyRefBelow}
                 noDelete={noDelete}
             />
         );
@@ -157,7 +204,16 @@ export default function Passage({
         }
     }
 
-    const noteComponents = notes ? notes.map(buildNoteComponent) : [];
+    let noteComponents: Array<any> = [];
+    notes.forEach((n, i) => {
+        if (i < notes.length - 1) {
+            noteComponents.push(buildNoteComponent(n, notes[i + 1].id));
+        } else {
+            noteComponents.push(buildNoteComponent(n));
+        }
+    });
+
+    // const noteComponents = notes ? notes.map(buildNoteComponent) : [];
     let addNoteUI = <div></div>;
 
     function correctNoteKind() {

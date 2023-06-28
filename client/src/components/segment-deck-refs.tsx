@@ -79,14 +79,14 @@ export default function SegmentDeckRefs({
     // just to individual paragraphs
     // each deck will only ever have one noteDeckMeta note
 
-    if (deckMeta && deckMeta.decks) {
+    if (deckMeta && deckMeta.refs) {
         return (
             <CivContainer extraClasses={containerClasses}>
                 <div ref={hoveringRef} onClick={onSegmentClicked}>
-                    {!isEditingDeckRefs && deckMeta.decks.length > 0 && (
+                    {!isEditingDeckRefs && deckMeta.refs.length > 0 && (
                         <div>
                             <hr class="light" />
-                            {deckMeta.decks.map((ref) => (
+                            {deckMeta.refs.map((ref) => (
                                 <RefView
                                     deckReference={ref}
                                     extraClasses="deck-ref-item"
@@ -99,7 +99,7 @@ export default function SegmentDeckRefs({
                         <AddDecksUI
                             deckId={deckId}
                             note={deckMeta}
-                            chosen={deckMeta.decks}
+                            chosen={deckMeta.refs}
                             onCancel={onCancel}
                             onSaved={onSaved}
                         />

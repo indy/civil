@@ -8,6 +8,8 @@ import {
     RefKind,
     RefsModified,
     SlimDeck,
+    ProtoNoteReferences,
+    ReferencesApplied,
 } from "types";
 
 import {
@@ -384,15 +386,6 @@ export default function CivilSelect({
     }, []);
 
     function onFinish(changes: RefsModified) {
-        type ProtoNoteReferences = RefsModified & {
-            noteId: Key;
-        };
-
-        type ReferencesApplied = {
-            refs: Array<Reference>;
-            recents: Array<SlimDeck>;
-        };
-
         let changeData: ProtoNoteReferences = {
             noteId: noteId,
             referencesChanged: changes.referencesChanged,
