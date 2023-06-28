@@ -72,13 +72,17 @@ export default function DeckLink({
     ) {
         klass += " scratchlistmode-active";
         elem = (
-            <span
-                class={klass}
-                ref={hoveringRef}
-                onClick={scratchListModeClicked}
-            >
+            <span class={klass} onClick={scratchListModeClicked}>
                 {children}
                 {svgScratchListLink("#F91880")}
+                {renderInsignia(slimDeck.insignia)}
+                {slimDeck.title}
+            </span>
+        );
+    } else if (!alwaysLink && appState.toolbarMode.value !== ToolbarMode.View) {
+        elem = (
+            <span class={klass}>
+                {children}
                 {renderInsignia(slimDeck.insignia)}
                 {slimDeck.title}
             </span>
@@ -89,7 +93,6 @@ export default function DeckLink({
                 class={klass}
                 href={buildUrl(slimDeck.deckKind, slimDeck.id)}
                 onClick={clicked}
-                ref={hoveringRef}
             >
                 {children}
                 {renderInsignia(slimDeck.insignia)}
