@@ -457,13 +457,12 @@ export type DM<T extends FatDeck> = {
     getDeck: () => T | undefined;
     getDeckKind: () => DeckKind;
     isShowingUpdateForm: () => boolean;
+    setShowingUpdateForm: (value: boolean) => void;
     isEditingDeckRefs: () => boolean;
+    setEditingDeckRefs: (value: boolean) => void;
     updateAndReset: (newDeck: T) => void;
     onShowSummaryClicked: () => void;
     onShowReviewClicked: () => void;
-    onRefsToggle: () => void;
-    onFormToggle: () => void;
-    onFormHide: () => void;
     buildPointForm: (onSuccessCallback: () => void) => any;
     onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
     passageForDeckPoint: (deckPoint: DeckPoint) => any;

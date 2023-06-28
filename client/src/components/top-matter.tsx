@@ -18,8 +18,9 @@ type Props = {
     title: string;
     deck: FatDeck;
     isShowingUpdateForm: boolean;
-    onRefsToggle: () => void;
-    onFormToggle: () => void;
+    setShowingUpdateForm: (value: boolean) => void;
+    isEditingDeckRefs: boolean;
+    setEditingDeckRefs: (value: boolean) => void;
     children?: ComponentChildren;
 };
 
@@ -27,8 +28,9 @@ export default function TopMatter({
     title,
     deck,
     isShowingUpdateForm,
-    onRefsToggle,
-    onFormToggle,
+    setShowingUpdateForm,
+    isEditingDeckRefs,
+    setEditingDeckRefs,
     children,
 }: Props) {
     const appState = getAppState();
@@ -64,8 +66,9 @@ export default function TopMatter({
                 title={title}
                 hoveringRef={hoveringRef}
                 isShowingUpdateForm={isShowingUpdateForm}
-                onRefsToggle={onRefsToggle}
-                onFormToggle={onFormToggle}
+                setShowingUpdateForm={setShowingUpdateForm}
+                isEditingDeckRefs={isEditingDeckRefs}
+                setEditingDeckRefs={setEditingDeckRefs}
             />
         </CivContainer>
     );

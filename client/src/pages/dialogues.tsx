@@ -175,8 +175,9 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
                     title={deck.title}
                     deck={deck}
                     isShowingUpdateForm={deckManager.isShowingUpdateForm()}
-                    onRefsToggle={deckManager.onRefsToggle}
-                    onFormToggle={deckManager.onFormToggle}
+                    setShowingUpdateForm={deckManager.setShowingUpdateForm}
+                    isEditingDeckRefs={deckManager.isEditingDeckRefs()}
+                    setEditingDeckRefs={deckManager.setEditingDeckRefs}
                 ></TopMatter>
 
                 {deckManager.isShowingUpdateForm() && (
@@ -204,16 +205,18 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
                             <DialogueUpdater
                                 dialogue={deck}
                                 onUpdate={deckManager.updateAndReset}
-                                onCancel={deckManager.onFormHide}
+                                onCancel={() =>
+                                    deckManager.setShowingUpdateForm(false)
+                                }
                             />
                         </CivContainer>
                     </section>
                 )}
                 <SegmentDeckRefs
                     deck={deck}
-                    isEditing={deckManager.isEditingDeckRefs()}
+                    isEditingDeckRefs={deckManager.isEditingDeckRefs()}
+                    setEditingDeckRefs={deckManager.setEditingDeckRefs}
                     onRefsChanged={deckManager.onRefsChanged}
-                    onRefsToggle={deckManager.onRefsToggle}
                 />
                 <SegmentNotes
                     deck={deck}

@@ -2,24 +2,26 @@ import { h } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 
 import { ToolbarMode } from "types";
-import { getAppState, AppStateChange } from "app-state";
+import { getAppState } from "app-state";
 
 import { CivMain } from "components/civil-layout";
 
 type Props = {
     title: string;
-    isShowingUpdateForm: boolean;
-    onRefsToggle: () => void;
-    onFormToggle: () => void;
     hoveringRef: any;
+    isShowingUpdateForm: boolean;
+    setShowingUpdateForm: (value: boolean) => void;
+    isEditingDeckRefs: boolean;
+    setEditingDeckRefs: (value: boolean) => void;
 };
 
 export default function Title({
     title,
-    isShowingUpdateForm,
-    onRefsToggle,
-    onFormToggle,
     hoveringRef,
+    isShowingUpdateForm,
+    setShowingUpdateForm,
+    isEditingDeckRefs,
+    setEditingDeckRefs,
 }: Props) {
     const appState = getAppState();
 
@@ -30,15 +32,11 @@ export default function Title({
 
     function onTitleClicked() {
         if (appState.toolbarMode.value === ToolbarMode.Edit) {
-            if (isShowingUpdateForm) {
-                AppStateChange.toolbarMode(ToolbarMode.View);
-            }
-            onFormToggle();
+            setShowingUpdateForm(!isShowingUpdateForm);
             return;
         }
         if (appState.toolbarMode.value === ToolbarMode.Refs) {
-            AppStateChange.toolbarMode(ToolbarMode.View);
-            onRefsToggle();
+            setEditingDeckRefs(!isEditingDeckRefs);
             return;
         }
     }

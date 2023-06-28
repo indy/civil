@@ -21,16 +21,16 @@ import useMouseHovering from "components/use-mouse-hovering";
 
 type Props = {
     deck: FatDeck;
-    isEditing: boolean;
+    isEditingDeckRefs: boolean;
+    setEditingDeckRefs: (boolean) => void;
     onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
-    onRefsToggle: () => void;
 };
 
 export default function SegmentDeckRefs({
     deck,
-    isEditing,
+    isEditingDeckRefs,
+    setEditingDeckRefs,
     onRefsChanged,
-    onRefsToggle,
 }: Props) {
     const appState = getAppState();
 
@@ -45,16 +45,20 @@ export default function SegmentDeckRefs({
             containerClasses += addToolbarSelectableClasses(toolbarMode);
         }
     }
+
     function onSegmentClicked(e) {
-        if (appState.toolbarMode.value === ToolbarMode.Refs) {
-            onRefsToggle();
-            return;
+        if (
+            appState.toolbarMode.value === ToolbarMode.Refs &&
+            !isEditingDeckRefs
+        ) {
+            setEditingDeckRefs(true);
         }
     }
 
     function onCancel() {
-        onRefsToggle();
+        setEditingDeckRefs(false);
     }
+
     function onSaved(
         note: Note,
         changes: RefsModified,
@@ -64,7 +68,7 @@ export default function SegmentDeckRefs({
         onRefsChanged(note, allDecksForNote);
 
         AppStateChange.noteRefsModified(allDecksForNote, changes);
-        onRefsToggle();
+        setEditingDeckRefs(false);
     }
 
     let deckId: Key = deck && deck.id;
@@ -79,7 +83,7 @@ export default function SegmentDeckRefs({
         return (
             <CivContainer extraClasses={containerClasses}>
                 <div ref={hoveringRef} onClick={onSegmentClicked}>
-                    {!isEditing && deckMeta.decks.length > 0 && (
+                    {!isEditingDeckRefs && deckMeta.decks.length > 0 && (
                         <div>
                             <hr class="light" />
                             {deckMeta.decks.map((ref) => (
@@ -91,7 +95,7 @@ export default function SegmentDeckRefs({
                             <hr class="light" />
                         </div>
                     )}
-                    {isEditing && (
+                    {isEditingDeckRefs && (
                         <AddDecksUI
                             deckId={deckId}
                             note={deckMeta}

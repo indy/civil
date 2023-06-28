@@ -157,8 +157,16 @@ export default function useDeckManager<T extends FatDeck>(
         isShowingUpdateForm: function () {
             return dms.isShowingUpdateForm;
         },
+        setShowingUpdateForm: function (value: boolean) {
+            let newDms = dmsSetShowingUpdateForm(dms, value);
+            setDms(newDms);
+        },
         isEditingDeckRefs: function () {
             return dms.isEditingDeckRefs;
+        },
+        setEditingDeckRefs: function (value: boolean) {
+            let newDms = dmsSetEditingDeckRefs(dms, value);
+            setDms(newDms);
         },
         updateAndReset: function (newDeck: T) {
             let newDms = dmsUpdateDeck<T>(
@@ -167,7 +175,8 @@ export default function useDeckManager<T extends FatDeck>(
                 deckKind,
                 true
             );
-            newDms = dmsHideForm(newDms);
+            newDms = dmsSetShowingUpdateForm(newDms, false);
+
             AppStateChange.toolbarMode(ToolbarMode.View);
 
             setDms(newDms);
@@ -184,18 +193,6 @@ export default function useDeckManager<T extends FatDeck>(
                 dms,
                 !dms.displayShowReviewButton
             );
-            setDms(newDms);
-        },
-        onRefsToggle: function () {
-            let newDms = dmsRefsToggle(dms);
-            setDms(newDms);
-        },
-        onFormToggle: function () {
-            let newDms = dmsUpdateFormToggle(dms);
-            setDms(newDms);
-        },
-        onFormHide: function () {
-            let newDms = dmsHideForm(dms);
             setDms(newDms);
         },
         buildPointForm: function (onSuccessCallback: () => void) {
@@ -410,31 +407,23 @@ function dmsCanHaveReviewPassage<T extends FatDeck>(
     return res;
 }
 
-function dmsUpdateFormToggle<T extends FatDeck>(
-    dms: DeckManagerState<T>
+function dmsSetShowingUpdateForm<T extends FatDeck>(
+    dms: DeckManagerState<T>,
+    value: boolean
 ): DeckManagerState<T> {
     let res = { ...dms };
-    res.isShowingUpdateForm = !res.isShowingUpdateForm;
+    res.isShowingUpdateForm = value;
 
     return res;
 }
 
-function dmsRefsToggle<T extends FatDeck>(
-    dms: DeckManagerState<T>
+function dmsSetEditingDeckRefs<T extends FatDeck>(
+    dms: DeckManagerState<T>,
+    value: boolean
 ): DeckManagerState<T> {
     let res = { ...dms };
-    res.isEditingDeckRefs = !res.isEditingDeckRefs;
+    res.isEditingDeckRefs = value;
 
-    return res;
-}
-
-function dmsHideForm<T extends FatDeck>(
-    dms: DeckManagerState<T>
-): DeckManagerState<T> {
-    let res = {
-        ...dms,
-        isShowingUpdateForm: false,
-    };
     return res;
 }
 
