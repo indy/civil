@@ -631,42 +631,40 @@ export default function NoteView({
 
     return (
         <CivContainer extraClasses={noteClasses}>
-            <div onClick={onNoteClicked}>
-                {local.addNoteAboveUI && buildAddNoteAboveUI()}
-                {!local.isEditingMarkup &&
-                    buildLeftMarginContent(
-                        local.note,
-                        localDispatch,
-                        copyRefBelow,
-                        nextNoteId
-                    )}
-
-                {local.isEditingMarkup && buildEditableContent()}
-                {local.flashcardToShow && (
-                    <FlashCardView
-                        flashcard={local.flashcardToShow}
-                        onDelete={flashCardDeleted}
-                    />
+            {local.addNoteAboveUI && buildAddNoteAboveUI()}
+            {!local.isEditingMarkup &&
+                buildLeftMarginContent(
+                    local.note,
+                    localDispatch,
+                    copyRefBelow,
+                    nextNoteId
                 )}
 
-                {!local.isEditingMarkup && (
-                    <CivMain>
-                        <div ref={hoveringRef}>
-                            {local.isMinimisedText && (
-                                <p class="minimised-text">
-                                    minimised, click to expand&hellip;
-                                </p>
-                            )}
-                            {!local.isMinimisedText &&
-                                buildMarkup(local.note.content)}
-                        </div>
-                    </CivMain>
-                )}
+            {local.isEditingMarkup && buildEditableContent()}
+            {local.flashcardToShow && (
+                <FlashCardView
+                    flashcard={local.flashcardToShow}
+                    onDelete={flashCardDeleted}
+                />
+            )}
 
-                {local.addDeckReferencesUI && buildAddDecksUI()}
-                {local.addFlashCardUI && buildAddFlashCardUI()}
-                {local.isEditingMarkup && buildMainButtons()}
-            </div>
+            {!local.isEditingMarkup && (
+                <CivMain>
+                    <div onClick={onNoteClicked} ref={hoveringRef}>
+                        {local.isMinimisedText && (
+                            <p class="minimised-text">
+                                minimised, click to expand&hellip;
+                            </p>
+                        )}
+                        {!local.isMinimisedText &&
+                            buildMarkup(local.note.content)}
+                    </div>
+                </CivMain>
+            )}
+
+            {local.addDeckReferencesUI && buildAddDecksUI()}
+            {local.addFlashCardUI && buildAddFlashCardUI()}
+            {local.isEditingMarkup && buildMainButtons()}
         </CivContainer>
     );
 }
