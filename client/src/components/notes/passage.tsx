@@ -92,9 +92,7 @@ export default function Passage({
                 "/api/edges/notes_decks",
                 changeData
             ).then((response) => {
-                if (note) {
-                    onRefsChanged(note, response.refs);
-                }
+                onRefsChanged(note, response.refs);
             });
         }
     }

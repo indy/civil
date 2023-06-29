@@ -10,7 +10,7 @@ import { deckKindToResourceString } from "utils/civil";
 import DeckLink from "components/deck-link";
 
 type Props = {
-    ref: Reference;
+    reference: Reference;
     extraClasses: string;
     nextNote?: Note;
     onCopyRefBelow?: (r: Reference, nextNote: Note) => void;
@@ -32,7 +32,7 @@ function refKindToString(refKind: RefKind): string {
 }
 
 export default function RefView({
-    ref,
+    reference,
     extraClasses,
     nextNote,
     onCopyRefBelow,
@@ -41,8 +41,8 @@ export default function RefView({
 
     const [expanded, setExpanded] = useState(true);
 
-    if (ref) {
-        const { id, deckKind, refKind, annotation } = ref;
+    if (reference) {
+        const { id, deckKind, refKind, annotation } = reference;
 
         // clicked on the ref kind label toggles the annotation
         function clickedToggleAnnotation() {
@@ -53,7 +53,7 @@ export default function RefView({
 
         function clickedCopyRefBelow() {
             if (onCopyRefBelow && nextNote) {
-                onCopyRefBelow(ref, nextNote);
+                onCopyRefBelow(reference, nextNote);
             }
         }
 
@@ -85,7 +85,7 @@ export default function RefView({
                     ({refKindToString(refKind)}){!expanded && "+"}
                 </span>
 
-                <DeckLink extraClasses="ref" slimDeck={ref} />
+                <DeckLink extraClasses="ref" slimDeck={reference} />
 
                 {annotation && expanded && (
                     <div class={scribbleClasses}>{annotation}</div>

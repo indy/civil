@@ -697,7 +697,7 @@ function buildNoteReferences(
     const entries = refs.map((ref) => {
         return (
             <RefView
-                ref={ref}
+                reference={ref}
                 extraClasses="left-margin-entry"
                 nextNote={nextNote}
                 onCopyRefBelow={onCopyRefBelow}

@@ -79,6 +79,7 @@ export default function SegmentDeckRefs({
     // just to individual paragraphs
     // each deck will only ever have one noteDeckMeta note
 
+
     if (deckMeta && deckMeta.refs) {
         return (
             <CivContainer extraClasses={containerClasses}>
@@ -88,7 +89,7 @@ export default function SegmentDeckRefs({
                             <hr class="light" />
                             {deckMeta.refs.map((ref) => (
                                 <RefView
-                                    ref={ref}
+                                    reference={ref}
                                     extraClasses="deck-ref-item"
                                 />
                             ))}
