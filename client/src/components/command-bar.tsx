@@ -10,7 +10,6 @@ import {
     NoteKind,
     ResultList,
     SlimDeck,
-    ToolbarMode,
 } from "types";
 
 import Net from "utils/net";
@@ -88,25 +87,6 @@ const Commands: Array<Command> = [
         spacer: true,
     },
     {
-        command: "e",
-        description: "switch to edit mode",
-        fn: () => {
-            AppStateChange.toolbarMode(ToolbarMode.Edit);
-            return true;
-        },
-    },
-    {
-        command: "r",
-        description: "switch to add reference mode",
-        fn: () => {
-            AppStateChange.toolbarMode(ToolbarMode.Refs);
-            return true;
-        },
-    },
-    {
-        spacer: true,
-    },
-    {
         command: "n",
         description: "show add-note form",
         fn: () => {
@@ -146,14 +126,6 @@ const Commands: Array<Command> = [
         description: "bookmark current page to scratchlist",
         fn: () => {
             AppStateChange.addCurrentUrlToScratchList();
-            return true;
-        },
-    },
-    {
-        command: "bl",
-        description: "clicking on a link adds it to the scratchlist",
-        fn: () => {
-            AppStateChange.scratchlistLinkToggle();
             return true;
         },
     },
