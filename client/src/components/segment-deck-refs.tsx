@@ -79,7 +79,6 @@ export default function SegmentDeckRefs({
     // just to individual paragraphs
     // each deck will only ever have one noteDeckMeta note
 
-
     if (deckMeta && deckMeta.refs) {
         return (
             <CivContainer extraClasses={containerClasses}>

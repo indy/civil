@@ -188,10 +188,7 @@ const DEBUG_APP_STATE = false;
 
 export const AppStateChange = {
     cbKeyDownEsc: function () {
-        if (state.toolbarMode.value === ToolbarMode.Search) {
-            state.toolbarMode.value = ToolbarMode.View;
-            commandBarToggle(state);
-        } else if (state.toolbarMode.value !== ToolbarMode.View) {
+        if (state.toolbarMode.value !== ToolbarMode.View) {
             state.toolbarMode.value = ToolbarMode.View;
         } else {
             commandBarToggle(state);
@@ -1194,8 +1191,6 @@ export function isToolbarModeAllowed(
     switch (toolbarMode) {
         case ToolbarMode.View:
             return !onListingPage;
-        case ToolbarMode.Search:
-            return true;
         case ToolbarMode.Edit:
             return !onListingPage;
         case ToolbarMode.Refs:

@@ -35,19 +35,28 @@ function CurrentModeText() {
     const appState = getAppState();
 
     let text = "Mode: ";
-    switch(appState.toolbarMode.value) {
-        case ToolbarMode.View: text += "View"; break;
-        case ToolbarMode.Search: text += "Search"; break;
-        case ToolbarMode.Edit: text += "Edit"; break;
-        case ToolbarMode.Refs: text += "Refs"; break;
-        case ToolbarMode.SR: text += "SR"; break;
-        case ToolbarMode.AddAbove: text += "AddAbove"; break;
-        case ToolbarMode.ScratchListLinks: text += "ScratchListLinks"; break;
+    switch (appState.toolbarMode.value) {
+        case ToolbarMode.View:
+            text += "View";
+            break;
+        case ToolbarMode.Edit:
+            text += "Edit";
+            break;
+        case ToolbarMode.Refs:
+            text += "Refs";
+            break;
+        case ToolbarMode.SR:
+            text += "SR";
+            break;
+        case ToolbarMode.AddAbove:
+            text += "AddAbove";
+            break;
+        case ToolbarMode.ScratchListLinks:
+            text += "ScratchListLinks";
+            break;
     }
 
-    return (
-        <div class="current-mode-text ui-bold">{text}</div>
-    );
+    return <div class="current-mode-text ui-bold">{text}</div>;
 }
 
 function DebugMessages() {

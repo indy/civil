@@ -116,7 +116,12 @@ function buildNotes(notes: Array<NoteThing>) {
             let refs =
                 note.refs &&
                 note.refs.map((r) => {
-                    return <RefView reference={r} extraClasses="left-margin-entry" />;
+                    return (
+                        <RefView
+                            reference={r}
+                            extraClasses="left-margin-entry"
+                        />
+                    );
                 });
 
             a.push(
