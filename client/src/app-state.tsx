@@ -187,6 +187,11 @@ export const getAppState = () => useContext(AppStateContext);
 const DEBUG_APP_STATE = false;
 
 export const AppStateChange = {
+    cbSearchClicked: function () {
+        state.toolbarMode.value = ToolbarMode.View;
+        commandBarToggle(state);
+    },
+
     cbKeyDownEsc: function () {
         if (state.toolbarMode.value !== ToolbarMode.View) {
             state.toolbarMode.value = ToolbarMode.View;
@@ -301,23 +306,12 @@ export const AppStateChange = {
         }
     },
 
-    cbInputFocus: function () {
+    cbFocus: function (hasFocus: boolean) {
         let commandBarState = state.commandBarState.value;
         state.commandBarState.value = {
             ...commandBarState,
-            hasFocus: true,
+            hasFocus,
         };
-    },
-
-    cbInputBlur: function () {
-        let commandBarState = state.commandBarState.value;
-        state.commandBarState.value = {
-            ...commandBarState,
-            hasFocus: false,
-        };
-        if (commandBarState.searchCandidates.length === 0) {
-            state.showingCommandBar.value = false;
-        }
     },
 
     cbSearchCandidateSet: function (searchResponse: ResultList) {

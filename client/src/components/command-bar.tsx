@@ -202,11 +202,11 @@ export default function CommandBar() {
     }
 
     function onFocus() {
-        AppStateChange.cbInputFocus();
+        AppStateChange.cbFocus(true);
     }
 
     function onBlur() {
-        AppStateChange.cbInputBlur();
+        AppStateChange.cbFocus(false);
     }
 
     useEffect(() => {
