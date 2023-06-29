@@ -50,6 +50,13 @@
     padding-bottom: 1rem;
 }
 
+.current-mode-text {
+    position: fixed;
+    top: 0.5rem;
+    left: 1rem;
+    z-index: 100000;
+}
+
 .debug-messages {
     position: fixed;
     top: 0;

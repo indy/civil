@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { Link, Router, route, RouterOnChangeArgs } from "preact-router";
 
-import { State, User, UberSetup } from "types";
+import { State, ToolbarMode, User, UberSetup } from "types";
 
 import { AppStateChange, AppStateProvider, getAppState } from "app-state";
 
@@ -30,6 +30,25 @@ export const App = ({ state }: { state: State }) => {
         </AppStateProvider>
     );
 };
+
+function CurrentModeText() {
+    const appState = getAppState();
+
+    let text = "Mode: ";
+    switch(appState.toolbarMode.value) {
+        case ToolbarMode.View: text += "View"; break;
+        case ToolbarMode.Search: text += "Search"; break;
+        case ToolbarMode.Edit: text += "Edit"; break;
+        case ToolbarMode.Refs: text += "Refs"; break;
+        case ToolbarMode.SR: text += "SR"; break;
+        case ToolbarMode.AddAbove: text += "AddAbove"; break;
+        case ToolbarMode.ScratchListLinks: text += "ScratchListLinks"; break;
+    }
+
+    return (
+        <div class="current-mode-text ui-bold">{text}</div>
+    );
+}
 
 function DebugMessages() {
     const appState = getAppState();
@@ -163,6 +182,7 @@ const AppUI = () => {
 
     return (
         <div id="civil-app">
+            <CurrentModeText />
             <DebugMessages />
             <ScratchList />
             <CommandBar />

@@ -188,7 +188,14 @@ const DEBUG_APP_STATE = false;
 
 export const AppStateChange = {
     cbKeyDownEsc: function () {
-        commandBarToggle(state);
+        if (state.toolbarMode.value === ToolbarMode.Search) {
+            state.toolbarMode.value = ToolbarMode.View;
+            commandBarToggle(state);
+        } else if (state.toolbarMode.value !== ToolbarMode.View) {
+            state.toolbarMode.value = ToolbarMode.View;
+        } else {
+            commandBarToggle(state);
+        }
     },
 
     cbKeyDownColon: function () {
