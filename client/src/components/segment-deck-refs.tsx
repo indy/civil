@@ -88,7 +88,7 @@ export default function SegmentDeckRefs({
                             <hr class="light" />
                             {deckMeta.refs.map((ref) => (
                                 <RefView
-                                    deckReference={ref}
+                                    ref={ref}
                                     extraClasses="deck-ref-item"
                                 />
                             ))}

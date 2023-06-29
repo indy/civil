@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import { Key, Reference, RefKind, ToolbarMode } from "types";
+import { Note, Reference, RefKind, ToolbarMode } from "types";
 
 import { getAppState } from "app-state";
 
@@ -10,10 +10,10 @@ import { deckKindToResourceString } from "utils/civil";
 import DeckLink from "components/deck-link";
 
 type Props = {
-    deckReference: Reference;
+    ref: Reference;
     extraClasses: string;
-    nextNoteId?: Key;
-    onCopyRefBelow?: (r: Reference) => void;
+    nextNote?: Note;
+    onCopyRefBelow?: (r: Reference, nextNote: Note) => void;
 };
 
 function refKindToString(refKind: RefKind): string {
@@ -32,17 +32,17 @@ function refKindToString(refKind: RefKind): string {
 }
 
 export default function RefView({
-    deckReference,
+    ref,
     extraClasses,
-    nextNoteId,
+    nextNote,
     onCopyRefBelow,
 }: Props) {
     const appState = getAppState();
 
     const [expanded, setExpanded] = useState(true);
 
-    if (deckReference) {
-        const { id, deckKind, refKind, annotation } = deckReference;
+    if (ref) {
+        const { id, deckKind, refKind, annotation } = ref;
 
         // clicked on the ref kind label toggles the annotation
         function clickedToggleAnnotation() {
@@ -52,13 +52,24 @@ export default function RefView({
         }
 
         function clickedCopyRefBelow() {
-            if (onCopyRefBelow) {
-                onCopyRefBelow(deckReference);
+            if (onCopyRefBelow && nextNote) {
+                onCopyRefBelow(ref, nextNote);
             }
         }
 
-        const showCopyBelow =
-            appState.toolbarMode.value === ToolbarMode.Refs && nextNoteId;
+        let showCopyBelow = appState.toolbarMode.value === ToolbarMode.Refs;
+        if (showCopyBelow) {
+            // in the right toolbar mode, now determine if we actually have to show the "copy below" UI
+            if (nextNote) {
+                // check in case the next note already includes this ref
+                const found = nextNote.refs.find((r) => r.id === id);
+                if (found) {
+                    showCopyBelow = false;
+                }
+            } else {
+                showCopyBelow = false;
+            }
+        }
 
         const scribbleClasses = `ref-scribble pigment-fg-${deckKindToResourceString(
             deckKind
@@ -74,7 +85,7 @@ export default function RefView({
                     ({refKindToString(refKind)}){!expanded && "+"}
                 </span>
 
-                <DeckLink extraClasses="ref" slimDeck={deckReference} />
+                <DeckLink extraClasses="ref" slimDeck={ref} />
 
                 {annotation && expanded && (
                     <div class={scribbleClasses}>{annotation}</div>

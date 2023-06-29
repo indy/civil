@@ -65,15 +65,7 @@ export default function Passage({
     }
 
     // copy the given ref onto the note (if it doesn't already exist)
-    function onCopyRefBelow(ref: Reference, noteId: Key) {
-        const note = notes.find((n) => n.id === noteId);
-        if (!note) {
-            console.error(
-                `onCopyRefBelow: passage doesn't manage noteId: ${noteId}`
-            );
-            return;
-        }
-
+    function onCopyRefBelow(ref: Reference, note: Note) {
         // check if the note already contains the ref
         const found = note.refs.find((r) => r.id === ref.id);
         if (found) {
@@ -84,12 +76,12 @@ export default function Passage({
                 title: ref.title,
                 deckKind: ref.deckKind,
                 insignia: ref.insignia,
-                noteId: noteId,
+                noteId: note.id,
                 refKind: ref.refKind,
                 annotation: ref.annotation,
             };
             let changeData: ProtoNoteReferences = {
-                noteId: noteId,
+                noteId: note.id,
                 referencesChanged: [],
                 referencesRemoved: [],
                 referencesAdded: [addedRef],
@@ -107,12 +99,12 @@ export default function Passage({
         }
     }
 
-    function buildNoteComponent(note: Note, nextNoteId?: Key) {
+    function buildNoteComponent(note: Note, nextNote?: Note) {
         return (
             <NoteView
                 key={note.id}
                 note={note}
-                nextNoteId={nextNoteId}
+                nextNote={nextNote}
                 parentDeck={deck}
                 toolbarMode={toolbarMode}
                 onDelete={onDeleteNote}
@@ -207,7 +199,7 @@ export default function Passage({
     let noteComponents: Array<any> = [];
     notes.forEach((n, i) => {
         if (i < notes.length - 1) {
-            noteComponents.push(buildNoteComponent(n, notes[i + 1].id));
+            noteComponents.push(buildNoteComponent(n, notes[i + 1]));
         } else {
             noteComponents.push(buildNoteComponent(n));
         }

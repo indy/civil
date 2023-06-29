@@ -84,8 +84,8 @@ function buildDeckLevelAnnotation(deckLevelAnnotation: string) {
 }
 
 function buildDeckLevelBackRefs(deckLevelRefs: Array<Reference>) {
-    let refs = deckLevelRefs.map((r) => (
-        <RefView deckReference={r} extraClasses="deck-level-backref" />
+    let refs = deckLevelRefs.map((ref) => (
+        <RefView ref={ref} extraClasses="deck-level-backref" />
     ));
 
     return (
@@ -116,12 +116,7 @@ function buildNotes(notes: Array<NoteThing>) {
             let refs =
                 note.refs &&
                 note.refs.map((r) => {
-                    return (
-                        <RefView
-                            deckReference={r}
-                            extraClasses="left-margin-entry"
-                        />
-                    );
+                    return <RefView ref={r} extraClasses="left-margin-entry" />;
                 });
 
             a.push(

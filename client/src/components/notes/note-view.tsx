@@ -318,20 +318,20 @@ function reducer(state: LocalState, action: Action) {
 
 type Props = {
     note: Note;
-    nextNoteId?: Key; // used for the 'copy below' functionality of refs
+    nextNote?: Note; // used for the 'copy below' functionality of refs
     parentDeck: FatDeck;
     toolbarMode: ToolbarMode;
     onDelete: (id: Key) => void;
     onEdited: (id: Key, n: Note) => void;
     onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
     onUpdateDeck: (d: FatDeck) => void;
-    onCopyRefBelow: (r: Reference, nextNoteId: Key) => void;
+    onCopyRefBelow: (r: Reference, nextNote: Note) => void;
     noDelete?: boolean;
 };
 
 export default function NoteView({
     note,
-    nextNoteId,
+    nextNote,
     parentDeck,
     toolbarMode,
     onDelete,
@@ -618,12 +618,6 @@ export default function NoteView({
         }
     }
 
-    function copyRefBelow(ref: Reference) {
-        if (nextNoteId) {
-            onCopyRefBelow(ref, nextNoteId);
-        }
-    }
-
     // console.log("input:");
     // console.log(local.note.content);
     // console.log("output:");
@@ -631,13 +625,15 @@ export default function NoteView({
 
     return (
         <CivContainer extraClasses={noteClasses}>
-            {appState.toolbarMode.value === ToolbarMode.AddAbove && local.addNoteAboveUI && buildAddNoteAboveUI()}
+            {appState.toolbarMode.value === ToolbarMode.AddAbove &&
+                local.addNoteAboveUI &&
+                buildAddNoteAboveUI()}
             {!local.isEditingMarkup &&
                 buildLeftMarginContent(
                     local.note,
                     localDispatch,
-                    copyRefBelow,
-                    nextNoteId
+                    onCopyRefBelow,
+                    nextNote
                 )}
 
             {local.isEditingMarkup && buildEditableContent()}
@@ -662,8 +658,12 @@ export default function NoteView({
                 </CivMain>
             )}
 
-            {appState.toolbarMode.value === ToolbarMode.Refs && local.addDeckReferencesUI && buildAddDecksUI()}
-            {appState.toolbarMode.value === ToolbarMode.SR && local.addFlashCardUI && buildAddFlashCardUI()}
+            {appState.toolbarMode.value === ToolbarMode.Refs &&
+                local.addDeckReferencesUI &&
+                buildAddDecksUI()}
+            {appState.toolbarMode.value === ToolbarMode.SR &&
+                local.addFlashCardUI &&
+                buildAddFlashCardUI()}
             {local.isEditingMarkup && buildMainButtons()}
         </CivContainer>
     );
@@ -672,8 +672,8 @@ export default function NoteView({
 function buildLeftMarginContent(
     note: Note,
     localDispatch: Function,
-    copyRefBelow: (ref: Reference) => void,
-    nextNoteId?: Key
+    onCopyRefBelow: (ref: Reference, nextNote: Note) => void,
+    nextNote?: Note
 ) {
     if (!note.refs && !note.flashcards) {
         return <span></span>;
@@ -683,7 +683,7 @@ function buildLeftMarginContent(
                 {note.chatMessage && <RoleView role={note.chatMessage!.role} />}
                 {buildFlashcardIndicator(note.flashcards, localDispatch)}
                 {note.refs && note.flashcards && <div class="spacer"></div>}
-                {buildNoteReferences(note.refs, copyRefBelow, nextNoteId)}
+                {buildNoteReferences(note.refs, onCopyRefBelow, nextNote)}
             </CivLeft>
         );
     }
@@ -691,16 +691,16 @@ function buildLeftMarginContent(
 
 function buildNoteReferences(
     refs: Array<Reference>,
-    copyRefBelow: (ref: Reference) => void,
-    nextNoteId?: Key
+    onCopyRefBelow: (ref: Reference, nextNote: Note) => void,
+    nextNote?: Note
 ) {
     const entries = refs.map((ref) => {
         return (
             <RefView
-                deckReference={ref}
+                ref={ref}
                 extraClasses="left-margin-entry"
-                nextNoteId={nextNoteId}
-                onCopyRefBelow={copyRefBelow}
+                nextNote={nextNote}
+                onCopyRefBelow={onCopyRefBelow}
             />
         );
     });
