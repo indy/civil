@@ -1915,6 +1915,19 @@ input:required {
         --search-command-width: 70%;
     }
 
+    /* without this modfified padding calc there is a slight horizontal scroll on tablets */
+    body {
+        padding-left: calc(98% - var(--body-width));
+    }
+
+    /* prevent horizontal scrolling */
+    .right-margin-numbered,
+    .right-margin,
+    .right-margin-scribble {
+        margin-right: -46%;
+        width: 44%;
+    }
+
     .module {
         width: 100%;
     }
