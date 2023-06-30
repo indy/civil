@@ -29,10 +29,7 @@ export default function InsigniaGrouping({ label }: InsigniaGroupingProps) {
 
     function fetchData(val: number) {
         const url = `/api/deck-queries/insignia_filter/${val}`;
-        console.log("fetching data " + url);
-
         Net.get<ResultList>(url).then((resultList) => {
-            console.log(resultList);
             if (resultList.results) {
                 setLocalState({
                     ...localState,
