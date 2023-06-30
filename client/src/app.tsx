@@ -120,12 +120,6 @@ function TopBarMenu() {
         return (
             <nav>
                 <div id="elastic-top-menu-items">
-                    <div class="home-menu-item">
-                        <Link class="pigment-inherit" href="/">
-                            Home
-                        </Link>
-                    </div>
-
                     {appState.preferredOrder.map((topMenuItem) => (
                         <div class="optional-navigable top-menu-item">
                             <Link

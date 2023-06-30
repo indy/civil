@@ -1,4 +1,5 @@
 import { h, ComponentChildren } from "preact";
+import { Link } from "preact-router";
 
 import { ToolbarMode } from "types";
 
@@ -10,6 +11,7 @@ import {
     svgAddAbove,
     svgScratchList,
     svgSearch,
+    svgHome,
 } from "components/svg-icons";
 
 export function DeluxeToolbar({}) {
@@ -23,6 +25,13 @@ export function DeluxeToolbar({}) {
 
     return (
         <div class={classes}>
+            <div class="toolbar-item">
+                <Link class="toolbar-item-icon" href="/">
+                    {svgHome()}
+                </Link>
+                <span class="toolbar-item-text">Home</span>
+            </div>
+
             <div class="toolbar-item" onClick={AppStateChange.cbSearchClicked}>
                 <span class="toolbar-item-icon">{svgSearch()}</span>
                 <span class="toolbar-item-text">Search</span>
