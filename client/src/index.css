@@ -25,8 +25,6 @@
     --space-for-selectable-highlight: 0.5rem;
 }
 
-
-
 @media (prefers-color-scheme: dark) {
     :root {
         --mode: dark;
@@ -1816,7 +1814,7 @@ input:required {
 
 .deluxe-toolbar {
     position: fixed;
-    top: 3.5rem;
+    top: 5rem;
     left: 0;
     z-index: 10;
     transition: opacity 200ms linear;
@@ -1831,22 +1829,22 @@ input:required {
 }
 
 .toolbar-item {
-    padding-bottom: 1rem;
+    padding-bottom: 2rem;
 }
 
 .toolbar-item-icon {
     transition: border 200ms linear;
     background: var(--bg1);
     color: var(--fg1);
-    margin-left: 0rem;
-    padding: 1rem 0.5rem 0.2rem 0.5rem;
-    border: 5px solid var(--bg);
+    margin-left: 0.5rem;
+    /*
+      no idea why the padding looks wrong on mobile, 1.8rem is for mobile
+      and 1rem in the @media hover:hover sets it for computers
+    */
+    padding: 1.8rem 0.5rem 0.2rem 0.5rem;
+    border: var(--ui-element-border-radius) solid rgba(0, 0, 0, 0);
+    border-radius: var(--ui-element-border-radius);
 }
-.toolbar-item-icon:hover {
-    border: 5px solid var(--bg2);
-}
-
-
 
 /* display: none; stops the text from taking up room and receiving touch events on mobile devices */
 .toolbar-item-text {
@@ -1858,27 +1856,37 @@ input:required {
     background: var(--bg);
 }
 
-@media (hover: hover){
-  /* only show the toolbar text on devices that have hover capability */
-  .toolbar-item-icon:hover + .toolbar-item-text {
-    display: inline;
-  }
+@media (hover: hover) {
+    /* only show the toolbar text on devices that have hover capability */
+    .toolbar-item-icon:hover + .toolbar-item-text {
+        display: inline;
+    }
+    .toolbar-item-icon:hover {
+        border: var(--ui-element-border-radius) solid rgba(0, 0, 0, 0);
+    }
+    .toolbar-item-icon {
+        padding: 1rem 0.5rem 0.2rem 0.5rem;
+    }
+}
+
+.toolbar-item-selected-search {
+    border: var(--ui-element-border-radius) solid var(--fg-clock-09) !important;
 }
 
 .toolbar-item-selected-edit {
-    border-right: 5px solid var(--fg-clock-10) !important;
+    border: var(--ui-element-border-radius) solid var(--fg-clock-10) !important;
 }
 .toolbar-item-selected-refs {
-    border-right: 5px solid var(--fg-clock-08) !important;
+    border: var(--ui-element-border-radius) solid var(--fg-clock-08) !important;
 }
 .toolbar-item-selected-sr {
-    border-right: 5px solid var(--fg-clock-07) !important;
+    border: var(--ui-element-border-radius) solid var(--fg-clock-07) !important;
 }
 .toolbar-item-selected-add-above {
-    border-right: 5px solid var(--fg-clock-02) !important;
+    border: var(--ui-element-border-radius) solid var(--fg-clock-02) !important;
 }
 .toolbar-item-selected-scratchlist-links {
-    border-right: 5px solid var(--fg-clock-04) !important;
+    border: var(--ui-element-border-radius) solid var(--fg-clock-04) !important;
 }
 
 .graph-terminator-form-label {

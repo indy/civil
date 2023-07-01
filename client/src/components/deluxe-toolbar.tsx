@@ -23,6 +23,11 @@ export function DeluxeToolbar({}) {
         classes += " deluxe-toolbar-faded";
     }
 
+    let searchClasses = "toolbar-item-icon";
+    if (appState.showingCommandBar.value) {
+        searchClasses += " toolbar-item-selected-search";
+    }
+
     return (
         <div class={classes}>
             <div class="toolbar-item">
@@ -33,7 +38,7 @@ export function DeluxeToolbar({}) {
             </div>
 
             <div class="toolbar-item" onClick={AppStateChange.cbSearchClicked}>
-                <span class="toolbar-item-icon">{svgSearch()}</span>
+                <span class={searchClasses}>{svgSearch()}</span>
                 <span class="toolbar-item-text">Search</span>
             </div>
 
@@ -114,14 +119,14 @@ export function addActiveToolbarClasses(toolbarMode: ToolbarMode) {
         case ToolbarMode.View:
             return " ";
         case ToolbarMode.Edit:
-            return " toolbar-item-selected toolbar-item-selected-edit";
+            return " toolbar-item-selected-edit";
         case ToolbarMode.Refs:
-            return " toolbar-item-selected toolbar-item-selected-refs";
+            return " toolbar-item-selected-refs";
         case ToolbarMode.SR:
-            return " toolbar-item-selected toolbar-item-selected-sr";
+            return " toolbar-item-selected-sr";
         case ToolbarMode.AddAbove:
-            return " toolbar-item-selected toolbar-item-selected-add-above";
+            return " toolbar-item-selected-add-above";
         case ToolbarMode.ScratchListLinks:
-            return " toolbar-item-selected toolbar-item-selected-scratchlist-links";
+            return " toolbar-item-selected-scratchlist-links";
     }
 }
