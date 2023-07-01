@@ -85,21 +85,26 @@ wasm_bindgen("/civil_wasm_bg.wasm")
 
         state.hasPhysicalKeyboard = getCssBoolean("--has-physical-keyboard");
 
-        Net.get<User>("/api/users").then((user) => {
-            if (user) {
-                // update initial state with user
-                //
-                state.user.value = user;
+        let root = document.getElementById("root");
+        if (root) {
+            // assigning root to rootElement just to please the tsc compiler, it will
+            // now know that rootElement cannot be null
+            //
+            const rootElement = root;
+            Net.get<User>("/api/users").then((user) => {
+                if (user) {
+                    // update initial state with user
+                    //
+                    state.user.value = user;
 
-                Net.get<UberSetup>("/api/ubersetup").then((uber) => {
-                    AppStateChange.uberSetup(uber);
-                });
-            }
-
-            let root = document.getElementById("root");
-            if (root) {
-                render(<App state={state} />, root);
-            }
-        });
+                    Net.get<UberSetup>("/api/ubersetup").then((uber) => {
+                        AppStateChange.uberSetup(uber);
+                        render(<App state={state} />, rootElement);
+                    });
+                } else {
+                    render(<App state={state} />, rootElement);
+                }
+            });
+        }
     })
     .catch(console.error);

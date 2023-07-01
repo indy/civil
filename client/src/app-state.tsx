@@ -149,7 +149,7 @@ const state: State = {
     imageZoomMin: 10,
     imageZoomMax: 300,
 
-    showConnectivityGraph: signal(true),
+    showConnectivityGraph: signal(false),
     graph: signal({
         fullyLoaded: false,
         // an array of { id, name, deckKind }

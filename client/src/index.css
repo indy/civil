@@ -1870,7 +1870,7 @@ input:required {
 }
 
 .toolbar-item-selected-search {
-    border: var(--ui-element-border-radius) solid var(--fg-clock-09) !important;
+    border: var(--ui-element-border-radius) solid var(--fg-clock-11) !important;
 }
 
 .toolbar-item-selected-edit {
