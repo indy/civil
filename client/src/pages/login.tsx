@@ -5,7 +5,7 @@ import { route } from "preact-router";
 import { User } from "types";
 
 import Net from "utils/net";
-import { AppStateChange, getAppState } from "app-state";
+import { getAppState } from "app-state";
 
 import {
     CivContainer,
@@ -20,7 +20,7 @@ type Props = {
     loginCallback: (_: User) => void;
 };
 
-function Login({ path, loginCallback }: Props) {
+export default function Login({ path, loginCallback }: Props) {
     const appState = getAppState();
 
     if (appState.user.value.username !== "") {
@@ -278,24 +278,3 @@ function Login({ path, loginCallback }: Props) {
         </section>
     );
 }
-
-function Logout({ path }: { path?: string }) {
-    const handleLogout = (event: Event) => {
-        Net.delete("api/auth", {}).then(() => {
-            //// this isn't logging out the user, refreshing the app logs the user back in
-            AppStateChange.userLogout();
-            route("/login", true);
-        });
-        event.preventDefault();
-    };
-
-    return (
-        <section>
-            <form onSubmit={handleLogout}>
-                <input type="submit" value="Logout" />
-            </form>
-        </section>
-    );
-}
-
-export { Login, Logout };

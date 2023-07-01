@@ -13,12 +13,13 @@ import ScratchList from "components/scratch-list";
 import CommandBar from "components/command-bar";
 import { DeluxeToolbar } from "components/deluxe-toolbar";
 
+import AccountSettings from "pages/account-settings";
 import FrontPage from "pages/front-page";
+import Login from "pages/login";
 import SpacedRepetition from "pages/spaced-repetition";
 import { Article, Articles } from "pages/articles";
 import { Dialogue, DialogueChat, Dialogues } from "pages/dialogues";
 import { Ideas, Idea } from "pages/ideas";
-import { Login, Logout } from "pages/login";
 import { Person, People } from "pages/people";
 import { Quote, Quotes } from "pages/quotes";
 import { Timeline, Timelines } from "pages/timelines";
@@ -93,7 +94,7 @@ function TopBarMenu() {
     }
 
     function loggedLink() {
-        return appState.user.value ? "/logout" : "/login";
+        return appState.user.value ? "/account-settings" : "/login";
     }
 
     function clickedTopLevel(topMenuItem: string) {
@@ -195,7 +196,7 @@ const AppUI = () => {
             <Router onChange={handleRoute}>
                 <FrontPage path="/" />
                 <Login path="/login" loginCallback={loginHandler} />
-                <Logout path="/logout" />
+                <AccountSettings path="/account-settings" />
                 <SpacedRepetition path="/sr" />
                 <Ideas path="/ideas" />
                 <Idea path="/ideas/:id" />

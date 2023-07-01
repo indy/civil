@@ -1,6 +1,31 @@
-import { ColourTriple, Settings, Definitions } from "types";
+import {
+    State,
+    ColourScheme,
+    ColourTriple,
+    ColourSettings,
+    ColourDefinitions,
+} from "types";
 
-import { getCssString } from "utils/js";
+function activateColourScheme(state: State, colourScheme: ColourScheme) {
+    if (state.wasmInterface) {
+        state.colourScheme = colourScheme;
+
+        state.colourSettings.value = updateSettings(
+            state.colourSettings.value,
+            colourScheme
+        );
+        state.colourDefinitions.value = updateDefinitions(
+            state.colourSettings.value,
+            state.colourDefinitions.value,
+            colourScheme
+        );
+        declareCssVariables(
+            state.colourSettings.value,
+            state.colourDefinitions.value,
+            state.wasmInterface.rgbFromHsl
+        );
+    }
+}
 
 function buildColourConversionFn(
     rgb_from_hsl: (h: number, s: number, l: number) => any
@@ -32,12 +57,13 @@ function buildColourConversionFn(
     };
 }
 
-function augmentSettingsWithCssModifierParameters(uiColours: Settings) {
-    let mode = getCssString("--mode");
+function updateSettings(
+    uiColours: ColourSettings,
+    colourScheme: ColourScheme
+): ColourSettings {
+    let s: ColourSettings;
 
-    let s;
-
-    if (mode === "light") {
+    if (colourScheme === ColourScheme.Light) {
         s = {
             ...uiColours,
 
@@ -73,14 +99,14 @@ function augmentSettingsWithCssModifierParameters(uiColours: Settings) {
     return s;
 }
 
-function augmentDefinitionsWithCssModifierParameters(
-    uiColours: Settings,
-    uiDefinitions: Definitions
-) {
-    let s;
+function updateDefinitions(
+    uiColours: ColourSettings,
+    uiDefinitions: ColourDefinitions,
+    colourScheme: ColourScheme
+): ColourDefinitions {
+    let s: ColourDefinitions;
 
-    let mode = getCssString("--mode");
-    if (mode === "light") {
+    if (colourScheme === ColourScheme.Light) {
         // console.log("mode is light");
         let textSat = 83.7;
         let textLit = 53.6;
@@ -241,8 +267,8 @@ function augmentDefinitionsWithCssModifierParameters(
 }
 
 function declareCssVariables(
-    uiColours: Settings,
-    uiDefinitions: Definitions,
+    uiColours: ColourSettings,
+    uiDefinitions: ColourDefinitions,
     rgbFromHsl: (hsl: ColourTriple) => any
 ) {
     let root = document.body;
@@ -302,9 +328,4 @@ function indexAsString(i: number) {
     }
 }
 
-export {
-    buildColourConversionFn,
-    declareCssVariables,
-    augmentSettingsWithCssModifierParameters,
-    augmentDefinitionsWithCssModifierParameters,
-};
+export { activateColourScheme, buildColourConversionFn };

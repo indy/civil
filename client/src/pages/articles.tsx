@@ -320,7 +320,7 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
                 />
             </CivMain>
 
-            <CivLeftLabel extraClasses="insignia-form-label">
+            <CivLeftLabel extraClasses="icon-left-label">
                 Insignias
             </CivLeftLabel>
             <CivMain>

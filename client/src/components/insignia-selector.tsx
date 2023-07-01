@@ -20,7 +20,7 @@ export default function InsigniaSelector({ insigniaId, onChange }: Props) {
     }
 
     return (
-        <div class="insignia-selector">
+        <div class="icon-horizontal-grouping">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
                 <SingleInsignia
                     value={insigniaId}
@@ -46,8 +46,8 @@ function SingleInsignia({
     onTicked,
     onUnticked,
 }: SingleInsigniaProps) {
-    let cl = "insignia-button ";
-    cl += bitset(value, bit) ? "insignia-selected" : "insignia-unselected";
+    let cl = "icon-button ";
+    cl += bitset(value, bit) ? "icon-selected" : "icon-unselected";
 
     function onClickHandler() {
         if (bitset(value, bit)) {

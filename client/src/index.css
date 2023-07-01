@@ -1872,25 +1872,27 @@ input:required {
     margin-top: 0.3rem !important;
 }
 
-.insignia-form-label {
+/* "icon-" prefix denotes any css suitable for svg icons and insignias */
+
+.icon-left-label {
     margin-top: 0.4rem !important;
 }
 
-.insignia-selector {
+.icon-horizontal-grouping {
     display: flex;
     justify-content: flex-start;
 }
-.insignia-button {
+.icon-button {
     padding: 0.5rem 0.5rem 0.2rem 0.6rem;
     margin: 0.3rem;
     transition: border 0.2s;
     border-radius: var(--ui-element-border-radius);
 }
-.insignia-selected {
+.icon-selected {
     border: 0.2rem solid var(--fg1);
 }
 
-.insignia-unselected {
+.icon-unselected {
     border: 0.2rem solid var(--bg);
 }
 

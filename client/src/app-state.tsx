@@ -5,6 +5,7 @@ import { route } from "preact-router";
 
 import {
     ArticleListings,
+    ColourScheme,
     Command,
     CommandBarMode,
     CommandBarState,
@@ -60,7 +61,8 @@ const state: State = {
     toolbarMode: signal(ToolbarMode.View),
     wasmInterface: undefined,
 
-    settings: signal({
+    colourScheme: ColourScheme.Light,
+    colourSettings: signal({
         hueDelta: 30,
 
         hueOffsetFg: 0,
@@ -71,7 +73,7 @@ const state: State = {
         saturationBg: 0,
         lightnessBg: 0,
     }),
-    definitions: signal({}),
+    colourDefinitions: signal({}),
 
     // this is set via the --search-always-visible css variable so
     // that mobile touch devices will always show the search bar

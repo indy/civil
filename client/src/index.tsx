@@ -1,17 +1,15 @@
 import { render, h } from "preact";
 import "./index.css";
 
-import { User, UberSetup } from "types";
+import { ColourScheme, User, UberSetup } from "types";
 
-import { getCssBoolean } from "utils/js";
+import { getCssString, getCssBoolean } from "utils/js";
 import Net from "utils/net";
 import { App } from "app";
 import { AppStateChange, initialState } from "app-state";
 import {
-    augmentDefinitionsWithCssModifierParameters,
-    augmentSettingsWithCssModifierParameters,
+    activateColourScheme,
     buildColourConversionFn,
-    declareCssVariables,
 } from "utils/colour-creator";
 
 wasm_bindgen("/civil_wasm_bg.wasm")
@@ -75,19 +73,15 @@ wasm_bindgen("/civil_wasm_bg.wasm")
         let state = initialState;
 
         state.wasmInterface = wasmInterface;
-        state.settings.value = augmentSettingsWithCssModifierParameters(
-            state.settings.value
-        );
-        state.definitions.value = augmentDefinitionsWithCssModifierParameters(
-            state.settings.value,
-            state.definitions.value
-        );
 
-        declareCssVariables(
-            state.settings.value,
-            state.definitions.value,
-            wasmInterface.rgbFromHsl
-        );
+        // todo: get the user preference from the server, if that hasn't been set then use the
+        // system default obtained from the css variable "--mode"
+        //
+        const colourScheme =
+            getCssString("--mode") === "light"
+                ? ColourScheme.Light
+                : ColourScheme.Dark;
+        activateColourScheme(state, colourScheme);
 
         state.hasPhysicalKeyboard = getCssBoolean("--has-physical-keyboard");
 

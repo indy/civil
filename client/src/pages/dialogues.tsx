@@ -426,7 +426,7 @@ function SaveConversation({ messages }: { messages: Array<ChatMessage> }) {
                     />
                 </CivMain>
 
-                <CivLeftLabel extraClasses="insignia-form-label">
+                <CivLeftLabel extraClasses="icon-left-label">
                     Insignias
                 </CivLeftLabel>
                 <CivMain>
@@ -516,7 +516,7 @@ function DialogueUpdater({
                 />
             </CivMain>
 
-            <CivLeftLabel extraClasses="insignia-form-label">
+            <CivLeftLabel extraClasses="icon-left-label">
                 Insignias
             </CivLeftLabel>
 

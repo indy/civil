@@ -2,6 +2,11 @@ import { Signal } from "@preact/signals";
 
 export type Key = number;
 
+export enum ColourScheme {
+    Dark,
+    Light,
+}
+
 export enum DeckManagerFlags {
     Summary = 1,
     Review = 2,
@@ -221,7 +226,7 @@ export type Listing = {
     dialogues: Array<SlimDeck> | undefined;
 };
 
-export type Settings = {
+export type ColourSettings = {
     [index: string]: number;
 
     hueDelta: number;
@@ -237,7 +242,7 @@ export type Settings = {
 
 export type ColourTriple = [number, number, number];
 
-export type Definitions = {
+export type ColourDefinitions = {
     [index: string]: string | ColourTriple | undefined;
 
     bg?: ColourTriple;
@@ -321,8 +326,9 @@ export type State = {
 
     wasmInterface: WasmInterface | undefined;
 
-    settings: Signal<Settings>;
-    definitions: Signal<Definitions>;
+    colourScheme: ColourScheme;
+    colourSettings: Signal<ColourSettings>;
+    colourDefinitions: Signal<ColourDefinitions>;
 
     hasPhysicalKeyboard: boolean;
     oldestAliveAge: number;
