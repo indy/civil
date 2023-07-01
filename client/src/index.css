@@ -201,8 +201,11 @@ h1 {
 }
 
 .previewer {
+    transition: all 100ms linear;
+
     opacity: 0;
-    transition: opacity 400ms linear;
+    visibility: hidden;
+    max-height: 0;
 
     --block-width: 100%;
 
@@ -216,12 +219,14 @@ h1 {
     border: 0.1rem solid var(--fg2);
     border-radius: 1.5rem;
 
-    max-height: 80%;
+    /* max-height: 80%; */
     overflow-y: clip;
 }
 
 .previewer-active {
     opacity: 1;
+    visibility: visible;
+    max-height: 80%;
 }
 
 .deck-title {
