@@ -25,6 +25,8 @@
     --space-for-selectable-highlight: 0.5rem;
 }
 
+
+
 @media (prefers-color-scheme: dark) {
     :root {
         --mode: dark;
@@ -33,7 +35,7 @@
 
 /* if user can hover and has a fine pointer then I'm assuming that they also have a keyboard */
 /* not the most robust logic but hey, seems good enough until I see a real-life failure case */
-@media (hover: hover) and (pointer: fine) {
+@media (hover: hover) and (any-pointer: fine) {
     :root {
         --has-physical-keyboard: true;
     }
@@ -1844,17 +1846,23 @@ input:required {
     border: 5px solid var(--bg2);
 }
 
+
+
+/* display: none; stops the text from taking up room and receiving touch events on mobile devices */
 .toolbar-item-text {
+    display: none;
     font-family: Inter;
     vertical-align: super;
     margin-left: 0.5rem;
-    opacity: 0;
-    transition: opacity 200ms linear;
+    transition: all 200ms linear;
     background: var(--bg);
 }
 
-.toolbar-item-icon:hover + .toolbar-item-text {
-    opacity: 1;
+@media (hover: hover){
+  /* only show the toolbar text on devices that have hover capability */
+  .toolbar-item-icon:hover + .toolbar-item-text {
+    display: inline;
+  }
 }
 
 .toolbar-item-selected-edit {
