@@ -2029,10 +2029,13 @@ input:required {
     }
 
     .left-margin {
-        display: none;
+        float: none;
+        margin-left: 0;
+        width: 100%;
+        text-align: right;
     }
-    .left-margin-inline {
-        display: none;
+    .left-margin-inner {
+        padding-right: 0;
     }
 
     .muh-container {
