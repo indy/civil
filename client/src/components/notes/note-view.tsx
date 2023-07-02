@@ -535,7 +535,7 @@ export default function NoteView({
                 extraClasses="form-margin"
                 parentDeckId={parentDeck.id}
                 noteId={note.id}
-                chosen={local.decks}
+                chosen={note.refs}
                 onSave={onSave}
                 onCancel={onCancel}
             />
