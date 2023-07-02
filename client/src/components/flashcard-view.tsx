@@ -31,7 +31,7 @@ type State = {
     flashcard: FlashCard;
 };
 
-function reducer(state: State, action: Action) {
+function reducer(state: State, action: Action): State {
     switch (action.type) {
         case ActionType.IsEditingToggle: {
             const newState = { ...state };
@@ -102,7 +102,10 @@ export default function FlashCardView({ flashcard, onDelete }: Props) {
         flashcard: { ...flashcard },
     };
 
-    const [local, localDispatch] = useLocalReducer(reducer, initialState);
+    const [local, localDispatch] = useLocalReducer<State, ActionType>(
+        reducer,
+        initialState
+    );
 
     function handleContentChange(text: string) {
         localDispatch(ActionType.SetPrompt, text);

@@ -61,7 +61,6 @@ type LocalState = {
     isEditingMarkup: boolean;
     note: Note;
     originalContent: string;
-    refs: Array<Reference>;
     flashcardToShow: FlashCard | undefined;
     oldCursorPos: number;
     textAreaFocused: boolean;
@@ -97,7 +96,7 @@ type Action = {
         | any;
 };
 
-function reducer(state: LocalState, action: Action) {
+function reducer(state: LocalState, action: Action): LocalState {
     switch (action.type) {
         case ActionType.NoteChanged: {
             const note = action.data as Note;
@@ -240,7 +239,6 @@ function reducer(state: LocalState, action: Action) {
 
             return {
                 ...state,
-                decks: allDecksForNote,
                 addDeckReferencesUI: false,
             };
         }
@@ -350,7 +348,6 @@ export default function NoteView({
         isEditingMarkup: false,
         note: { ...note },
         originalContent: note.content,
-        refs: note && note.refs,
         flashcardToShow: undefined,
         oldCursorPos: 0,
         textAreaFocused: false,
@@ -359,7 +356,10 @@ export default function NoteView({
         isMinimisedText:
             !!note.chatMessage && note.chatMessage.role === Role.System,
     };
-    const [local, localDispatch] = useLocalReducer(reducer, initialState);
+    const [local, localDispatch] = useLocalReducer<LocalState, ActionType>(
+        reducer,
+        initialState
+    );
 
     const hoveringRef = useRef(null);
     const mouseHovering = useMouseHovering(hoveringRef);

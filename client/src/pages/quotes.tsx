@@ -39,7 +39,7 @@ type QuoteState = {
     quoteText: string;
 };
 
-function quotesReducer(state: QuoteState, action: Action) {
+function quotesReducer(state: QuoteState, action: Action): QuoteState {
     switch (action.type) {
         case ActionType.ShowAddForm: {
             return {
@@ -56,13 +56,13 @@ function quotesReducer(state: QuoteState, action: Action) {
         case ActionType.SetAttribution: {
             return {
                 ...state,
-                attribution: action.data,
+                attribution: action.data!,
             };
         }
         case ActionType.SetQuoteText: {
             return {
                 ...state,
-                quoteText: action.data,
+                quoteText: action.data!,
             };
         }
     }
@@ -85,7 +85,10 @@ function QuotesModule({}) {
         quoteText: "",
     };
 
-    const [local, localDispatch] = useLocalReducer(quotesReducer, initialState);
+    const [local, localDispatch] = useLocalReducer<QuoteState, ActionType>(
+        quotesReducer,
+        initialState
+    );
 
     function clickedNewQuoteButton() {
         localDispatch(ActionType.ShowAddForm);
@@ -307,7 +310,7 @@ enum ActionAttrType {
 
 type ActionAttr = {
     type: ActionAttrType;
-    data: AttrMode;
+    data?: AttrMode | string;
 };
 
 type StateAttr = {
@@ -317,14 +320,14 @@ type StateAttr = {
     attribution: string;
 };
 
-function attributionReducer(state: StateAttr, action: ActionAttr) {
+function attributionReducer(state: StateAttr, action: ActionAttr): StateAttr {
     switch (action.type) {
         case ActionAttrType.SetMode: {
+            const data = action.data as AttrMode;
             return {
                 ...state,
-                mode: action.data,
-                showButtons:
-                    action.data === AttrMode.Show ? false : state.showButtons,
+                mode: data,
+                showButtons: data === AttrMode.Show ? false : state.showButtons,
             };
         }
         case ActionAttrType.ShowButtons: {
@@ -340,29 +343,37 @@ function attributionReducer(state: StateAttr, action: ActionAttr) {
             };
         }
         case ActionAttrType.InitAttribution: {
+            const data = action.data as string;
             return {
                 ...state,
-                originalAttribution: action.data,
-                attribution: action.data,
+                originalAttribution: data,
+                attribution: data,
             };
         }
         case ActionAttrType.SetAttribution: {
+            const data = action.data as string;
             return {
                 ...state,
-                attribution: action.data,
+                attribution: data,
             };
         }
     }
 }
 
-function Attribution({ attribution, onEdited, onDelete }) {
+type AttributionProps = {
+    attribution: string;
+    onEdited: (a: string) => void;
+    onDelete: () => void;
+};
+
+function Attribution({ attribution, onEdited, onDelete }: AttributionProps) {
     let initialState: StateAttr = {
         mode: AttrMode.Show,
         showButtons: false,
         originalAttribution: attribution,
         attribution,
     };
-    const [local, localDispatch] = useLocalReducer(
+    const [local, localDispatch] = useLocalReducer<StateAttr, ActionAttrType>(
         attributionReducer,
         initialState
     );

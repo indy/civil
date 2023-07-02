@@ -69,7 +69,7 @@ function augmentCard(card: Card, postRatingToServer: boolean) {
     return card;
 }
 
-function reducer(state: State, action: Action) {
+function reducer(state: State, action: Action): State {
     switch (action.type) {
         case ActionType.CardsSet: {
             let cs = action.data as ActionDataCardsSet;
@@ -165,7 +165,10 @@ export default function SpacedRepetition({ path }: { path?: string }) {
         cardIndex: 0,
         practiceCard: undefined,
     };
-    let [local, localDispatch] = useLocalReducer(reducer, initialState);
+    let [local, localDispatch] = useLocalReducer<State, ActionType>(
+        reducer,
+        initialState
+    );
 
     useEffect(() => {
         Net.get<Array<ICard>>("/api/sr").then((cards) => {

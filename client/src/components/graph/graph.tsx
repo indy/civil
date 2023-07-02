@@ -62,7 +62,7 @@ type Action = {
     data?: any;
 };
 
-function reducer(state: LocalState, action: Action) {
+function reducer(state: LocalState, action: Action): LocalState {
     switch (action.type) {
         case ActionType.ToggleHyperlinks: {
             const newState = {
@@ -129,7 +129,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
     };
     const [graphState, setGraphState] = useState(initialState);
     const svgContainerRef = createRef();
-    const [local, localDispatch] = useLocalReducer(
+    const [local, localDispatch] = useLocalReducer<LocalState, ActionType>(
         reducer,
         initialLocalState()
     );

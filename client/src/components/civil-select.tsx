@@ -56,6 +56,7 @@ type Action = {
         | number
         | Reference
         | SlimDeck
+        | SlimDeck[]
         | ActionDataReferenceChangeKind
         | ActionDataReferenceChangeAnnotation;
 };
@@ -95,7 +96,7 @@ function rebuildCurrentSelection(state: State): State {
     return state;
 }
 
-function reducer(state: State, action: Action) {
+function reducer(state: State, action: Action): State {
     switch (action.type) {
         case ActionType.EscKeyDown:
             return {
@@ -297,7 +298,7 @@ function reducer(state: State, action: Action) {
         case ActionType.CandidatesSet:
             return {
                 ...state,
-                candidates: action.data,
+                candidates: action.data as SlimDeck[],
             };
         case ActionType.InputGiven: {
             const newState = {
@@ -353,7 +354,7 @@ export default function CivilSelect({
 
         justAddedViaShortcut: false,
     };
-    const [local, localDispatch] = useLocalReducer(
+    const [local, localDispatch] = useLocalReducer<State, ActionType>(
         reducer,
         rebuildCurrentSelection(s)
     );
