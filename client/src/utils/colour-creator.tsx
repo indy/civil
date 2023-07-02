@@ -184,6 +184,13 @@ function updateDefinitions(
 
             red_text: [10, textSat, textLit] as ColourTriple,
             green_text: [130, textSat, textLit] as ColourTriple,
+
+            fg_toolbar_view: "--fg",
+            fg_toolbar_edit: "--fg-clock-10",
+            fg_toolbar_refs: "--fg-clock-08",
+            fg_toolbar_sr: "--fg-clock-07",
+            fg_toolbar_add_above: "--fg-clock-02",
+            fg_toolbar_scratchlist: "--fg-clock-04",
         };
     } else {
         // console.log("mode is dark");
@@ -261,6 +268,13 @@ function updateDefinitions(
 
             red_text: [10, textSat, textLit] as ColourTriple,
             green_text: [130, textSat, textLit] as ColourTriple,
+
+            fg_toolbar_view: "--fg",
+            fg_toolbar_edit: "--fg-clock-10",
+            fg_toolbar_refs: "--fg-clock-08",
+            fg_toolbar_sr: "--fg-clock-07",
+            fg_toolbar_add_above: "--fg-clock-02",
+            fg_toolbar_scratchlist: "--fg-clock-04",
         };
     }
     return s;

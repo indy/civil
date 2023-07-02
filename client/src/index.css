@@ -50,13 +50,6 @@
     padding-bottom: 1rem;
 }
 
-.current-mode-text {
-    position: fixed;
-    bottom: 0.5rem;
-    right: 1rem;
-    z-index: 100000;
-}
-
 .debug-messages {
     position: fixed;
     top: 0;
@@ -1812,12 +1805,29 @@ input:required {
     white-space: nowrap;
 }
 
+.deluxe-toolbar-toggle-control {
+    position: fixed;
+    top: 0.5rem;
+    left: 1.5rem;
+    z-index: 100000;
+}
+
 .deluxe-toolbar {
     position: fixed;
     top: 5rem;
     left: 0;
     z-index: 10;
-    transition: opacity 200ms linear;
+    transition: opacity 2000ms linear;
+
+    opacity: 0;
+    visibility: hidden;
+    max-height: 0;
+}
+
+.deluxe-toolbar-active {
+    opacity: 1;
+    visibility: visible;
+    max-height: 1000rem;
 }
 
 .deluxe-toolbar-faded {
@@ -1869,24 +1879,48 @@ input:required {
     }
 }
 
-.toolbar-item-selected-search {
-    border: var(--ui-element-border-radius) solid var(--fg-clock-11) !important;
+.toolbar-view-colour {
+    color: var(--fg-toolbar-view);
+    fill: var(--fg-toolbar-view);
+}
+.toolbar-edit-colour {
+    color: var(--fg-toolbar-edit);
+    fill: var(--fg-toolbar-edit);
+}
+.toolbar-refs-colour {
+    color: var(--fg-toolbar-refs);
+    fill: var(--fg-toolbar-refs);
+}
+.toolbar-sr-colour {
+    color: var(--fg-toolbar-sr);
+    fill: var(--fg-toolbar-sr);
+}
+.toolbar-add-above-colour {
+    color: var(--fg-toolbar-add-above);
+    fill: var(--fg-toolbar-add-above);
+}
+.toolbar-scratchlist-links-colour {
+    color: var(--fg-toolbar-scratchlist);
+    fill: var(--fg-toolbar-scratchlist);
 }
 
+.toolbar-item-selected-view {
+    border: var(--ui-element-border-radius) solid var(--fg-toolbar-view) !important;
+}
 .toolbar-item-selected-edit {
-    border: var(--ui-element-border-radius) solid var(--fg-clock-10) !important;
+    border: var(--ui-element-border-radius) solid var(--fg-toolbar-edit) !important;
 }
 .toolbar-item-selected-refs {
-    border: var(--ui-element-border-radius) solid var(--fg-clock-08) !important;
+    border: var(--ui-element-border-radius) solid var(--fg-toolbar-refs) !important;
 }
 .toolbar-item-selected-sr {
-    border: var(--ui-element-border-radius) solid var(--fg-clock-07) !important;
+    border: var(--ui-element-border-radius) solid var(--fg-toolbar-sr) !important;
 }
 .toolbar-item-selected-add-above {
-    border: var(--ui-element-border-radius) solid var(--fg-clock-02) !important;
+    border: var(--ui-element-border-radius) solid var(--fg-toolbar-add-above) !important;
 }
 .toolbar-item-selected-scratchlist-links {
-    border: var(--ui-element-border-radius) solid var(--fg-clock-04) !important;
+    border: var(--ui-element-border-radius) solid var(--fg-toolbar-scratchlist) !important;
 }
 
 .graph-terminator-form-label {

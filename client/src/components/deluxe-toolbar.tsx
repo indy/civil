@@ -1,10 +1,13 @@
 import { h, ComponentChildren } from "preact";
+import { useState } from "preact/hooks";
 import { Link } from "preact-router";
 
 import { ToolbarMode } from "types";
 
 import { getAppState, isToolbarModeAllowed, AppStateChange } from "app-state";
 import {
+    svgCircle,
+    svgFilledCircle,
     svgEdit,
     svgLinkAlt,
     svgFlashCard,
@@ -17,65 +20,93 @@ import {
 export function DeluxeToolbar({}) {
     const appState = getAppState();
 
+    const [active, setActive] = useState(true);
+
     let classes = "deluxe-toolbar";
 
-    if (appState.toolbarMode.value === ToolbarMode.View) {
+    let toggleIcon = svgFilledCircle;
+
+    let currentToolbarMode = appState.toolbarMode.value;
+    if (currentToolbarMode === ToolbarMode.View) {
         classes += " deluxe-toolbar-faded";
+        toggleIcon = svgCircle;
+    }
+
+    if (active) {
+        classes += " deluxe-toolbar-active";
     }
 
     let searchClasses = "toolbar-item-icon";
-    if (appState.showingCommandBar.value) {
-        searchClasses += " toolbar-item-selected-search";
+
+    function toggleActive() {
+        setActive(!active);
     }
 
     return (
-        <div class={classes}>
-            <div class="toolbar-item">
-                <Link class="toolbar-item-icon" href="/">
-                    {svgHome()}
-                </Link>
-                <span class="toolbar-item-text">Home</span>
+        <div>
+            <div class="deluxe-toolbar-toggle-control" onClick={toggleActive}>
+                {toggleIcon(toolbarColourCss(currentToolbarMode))}
             </div>
+            <div class={classes}>
+                <div class="toolbar-item">
+                    <Link class="toolbar-item-icon" href="/">
+                        {svgHome()}
+                    </Link>
+                    <span class="toolbar-item-text">Home</span>
+                </div>
 
-            <div class="toolbar-item" onClick={AppStateChange.cbSearchClicked}>
-                <span class={searchClasses}>{svgSearch()}</span>
-                <span class="toolbar-item-text">Search</span>
+                <div
+                    class="toolbar-item"
+                    onClick={AppStateChange.cbSearchClicked}
+                >
+                    <span class={searchClasses}>{svgSearch()}</span>
+                    <span class="toolbar-item-text">Search</span>
+                </div>
+
+                {isToolbarModeAllowed(appState, ToolbarMode.Edit) && (
+                    <ToolbarItem
+                        toolbarMode={ToolbarMode.Edit}
+                        toolbarText="Edit"
+                    >
+                        {svgEdit()}
+                    </ToolbarItem>
+                )}
+                {isToolbarModeAllowed(appState, ToolbarMode.Refs) && (
+                    <ToolbarItem
+                        toolbarMode={ToolbarMode.Refs}
+                        toolbarText="Refs"
+                    >
+                        {svgLinkAlt()}
+                    </ToolbarItem>
+                )}
+                {isToolbarModeAllowed(appState, ToolbarMode.SR) && (
+                    <ToolbarItem
+                        toolbarMode={ToolbarMode.SR}
+                        toolbarText="Memorise"
+                    >
+                        {svgFlashCard()}
+                    </ToolbarItem>
+                )}
+                {isToolbarModeAllowed(appState, ToolbarMode.AddAbove) && (
+                    <ToolbarItem
+                        toolbarMode={ToolbarMode.AddAbove}
+                        toolbarText="Add Above"
+                    >
+                        {svgAddAbove()}
+                    </ToolbarItem>
+                )}
+                {isToolbarModeAllowed(
+                    appState,
+                    ToolbarMode.ScratchListLinks
+                ) && (
+                    <ToolbarItem
+                        toolbarMode={ToolbarMode.ScratchListLinks}
+                        toolbarText="Bookmarks"
+                    >
+                        {svgScratchList()}
+                    </ToolbarItem>
+                )}
             </div>
-
-            {isToolbarModeAllowed(appState, ToolbarMode.Edit) && (
-                <ToolbarItem toolbarMode={ToolbarMode.Edit} toolbarText="Edit">
-                    {svgEdit()}
-                </ToolbarItem>
-            )}
-            {isToolbarModeAllowed(appState, ToolbarMode.Refs) && (
-                <ToolbarItem toolbarMode={ToolbarMode.Refs} toolbarText="Refs">
-                    {svgLinkAlt()}
-                </ToolbarItem>
-            )}
-            {isToolbarModeAllowed(appState, ToolbarMode.SR) && (
-                <ToolbarItem
-                    toolbarMode={ToolbarMode.SR}
-                    toolbarText="Memorise"
-                >
-                    {svgFlashCard()}
-                </ToolbarItem>
-            )}
-            {isToolbarModeAllowed(appState, ToolbarMode.AddAbove) && (
-                <ToolbarItem
-                    toolbarMode={ToolbarMode.AddAbove}
-                    toolbarText="Add Above"
-                >
-                    {svgAddAbove()}
-                </ToolbarItem>
-            )}
-            {isToolbarModeAllowed(appState, ToolbarMode.ScratchListLinks) && (
-                <ToolbarItem
-                    toolbarMode={ToolbarMode.ScratchListLinks}
-                    toolbarText="Bookmarks"
-                >
-                    {svgScratchList()}
-                </ToolbarItem>
-            )}
         </div>
     );
 }
@@ -103,7 +134,7 @@ function ToolbarItem({
 
     let classes = "toolbar-item-icon";
     if (toolbarMode === appState.toolbarMode.value) {
-        classes += addActiveToolbarClasses(toolbarMode);
+        classes += toolbarItemSelectedCss(toolbarMode);
     }
 
     return (
@@ -114,19 +145,27 @@ function ToolbarItem({
     );
 }
 
-export function addActiveToolbarClasses(toolbarMode: ToolbarMode) {
+function toolbarItemSelectedCss(toolbarMode: ToolbarMode) {
+    return " toolbar-item-selected-" + baseCssName(toolbarMode);
+}
+
+function toolbarColourCss(toolbarMode: ToolbarMode) {
+    return " toolbar-" + baseCssName(toolbarMode) + "-colour";
+}
+
+function baseCssName(toolbarMode: ToolbarMode) {
     switch (toolbarMode) {
         case ToolbarMode.View:
-            return " ";
+            return "view";
         case ToolbarMode.Edit:
-            return " toolbar-item-selected-edit";
+            return "edit";
         case ToolbarMode.Refs:
-            return " toolbar-item-selected-refs";
+            return "refs";
         case ToolbarMode.SR:
-            return " toolbar-item-selected-sr";
+            return "sr";
         case ToolbarMode.AddAbove:
-            return " toolbar-item-selected-add-above";
+            return "add-above";
         case ToolbarMode.ScratchListLinks:
-            return " toolbar-item-selected-scratchlist-links";
+            return "scratchlist-links";
     }
 }
