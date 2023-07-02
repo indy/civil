@@ -185,7 +185,7 @@ function updateDefinitions(
             red_text: [10, textSat, textLit] as ColourTriple,
             green_text: [130, textSat, textLit] as ColourTriple,
 
-            fg_toolbar_view: "--fg",
+            fg_toolbar_view: "--fg1",
             fg_toolbar_edit: "--fg-clock-10",
             fg_toolbar_refs: "--fg-clock-08",
             fg_toolbar_sr: "--fg-clock-07",
@@ -269,7 +269,7 @@ function updateDefinitions(
             red_text: [10, textSat, textLit] as ColourTriple,
             green_text: [130, textSat, textLit] as ColourTriple,
 
-            fg_toolbar_view: "--fg",
+            fg_toolbar_view: "--fg1",
             fg_toolbar_edit: "--fg-clock-10",
             fg_toolbar_refs: "--fg-clock-08",
             fg_toolbar_sr: "--fg-clock-07",

@@ -2018,6 +2018,14 @@ input:required {
         --body-width: 97.5%;
         --block-width: 90%;
         --search-command-width: 70%;
+
+        --title-height: 2.4rem;
+    }
+
+    .title-sticky {
+        margin-top: 0.4rem;
+        padding-bottom: 0;
+        font-size: 1.7rem;
     }
 
     .left-margin {

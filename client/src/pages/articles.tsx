@@ -178,7 +178,11 @@ function Article({ path, id }: { path?: string; id?: string }) {
 
 function TopScribble({ text }: { text: string }) {
     if (text) {
-        return <div class="top-scribble">{text}</div>;
+        return (
+            <CivContainer>
+                <CivMain extraClasses="top-scribble">{text}</CivMain>
+            </CivContainer>
+        );
     }
     return <span></span>;
 }
