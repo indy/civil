@@ -16,10 +16,28 @@ import { svgSun, svgMoon } from "components/svg-icons";
 export default function AccountSettings({ path }: { path?: string }) {
     return (
         <article>
+            <TestModule />
             <ColourSchemeSelector />
             <Logout />
         </article>
     );
+}
+
+function TestModule({}) {
+    if (true) {
+        return <div></div>;
+    }
+    return <Module heading="test module">
+        <h2 class="pigment-ideas">Ideas</h2>
+        <h2 class="pigment-articles">Articles</h2>
+        <h2 class="pigment-people">People</h2>
+        <h2 class="pigment-timelines">Timelines</h2>
+        <h2 class="pigment-quotes">Quotes</h2>
+        <h2 class="pigment-dialogues">Dialogues</h2>
+        <h2 class="pigment-stuff">Stuff</h2>
+        <h2 class="pigment-sr">SR</h2>
+        </Module>
+
 }
 
 function Logout({}) {

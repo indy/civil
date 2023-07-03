@@ -240,16 +240,16 @@ h1 {
     border-radius: 1rem;
 }
 .selectable-hovering-edit {
-    border-left: var(--space-for-selectable-highlight) solid var(--fg-clock-10);
+    border-left: var(--space-for-selectable-highlight) solid var(--fg-toolbar-edit);
 }
 .selectable-hovering-refs {
-    border-left: var(--space-for-selectable-highlight) solid var(--fg-clock-08);
+    border-left: var(--space-for-selectable-highlight) solid var(--fg-toolbar-refs);
 }
 .selectable-hovering-sr {
-    border-left: var(--space-for-selectable-highlight) solid var(--fg-clock-07);
+    border-left: var(--space-for-selectable-highlight) solid var(--fg-toolbar-sr);
 }
 .selectable-hovering-add-above {
-    border-left: var(--space-for-selectable-highlight) solid var(--fg-clock-02);
+    border-left: var(--space-for-selectable-highlight) solid var(--fg-toolbar-add-above);
 }
 
 h2 {

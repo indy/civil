@@ -86,14 +86,14 @@ function updateSettings(
             hueDelta: 30,
 
             // used to generate the fg clock values
-            saturationBg: 60.5,
             hueOffsetBg: 67.1,
+            saturationBg: 90.5,
             lightnessBg: 30.0,
 
             // used to generate the bg clock values
-            saturationFg: 57.6,
             hueOffsetFg: 65.7,
-            lightnessFg: 60,
+            saturationFg: 90.5,
+            lightnessFg: 80,
         };
     }
     return s;
@@ -186,32 +186,32 @@ function updateDefinitions(
             green_text: [130, textSat, textLit] as ColourTriple,
 
             fg_toolbar_view: "--fg1",
-            fg_toolbar_edit: "--fg-clock-10",
-            fg_toolbar_refs: "--fg-clock-08",
-            fg_toolbar_sr: "--fg-clock-07",
-            fg_toolbar_add_above: "--fg-clock-02",
-            fg_toolbar_scratchlist: "--fg-clock-04",
+            fg_toolbar_edit: [10, 80, 50] as ColourTriple,
+            fg_toolbar_refs: [270, 80, 50] as ColourTriple,
+            fg_toolbar_sr: [170, 80, 50] as ColourTriple,
+            fg_toolbar_add_above: [210, 80, 50] as ColourTriple,
+            fg_toolbar_scratchlist: [70, 80, 50] as ColourTriple,
         };
     } else {
         // console.log("mode is dark");
         let textSat = 100;
-        let textLit = 50;
+        let textLit = 70;
         s = {
             ...uiDefinitions,
 
-            bg: [46.5, 19.2, 2.0] as ColourTriple,
-            bg1: [46.5, 19.2, 2.0] as ColourTriple,
-            bg2: [46.5, 19.2, 0.0] as ColourTriple,
+            bg: [230, 50, 20.0] as ColourTriple,
+            bg1: [230, 50, 30.0] as ColourTriple,
+            bg2: [230, 50, 40.0] as ColourTriple,
 
-            fg: [43, 19, 45] as ColourTriple,
-            fg1: [16.7, 0, 40.7] as ColourTriple,
-            fg2: [16.7, 0, 35.7] as ColourTriple,
+            fg: [43, 19, 90] as ColourTriple,
+            fg1: [16.7, 0, 80] as ColourTriple,
+            fg2: [16.7, 0, 70] as ColourTriple,
             fg_inactive: [16.7, 0, 20] as ColourTriple,
 
             bg_ui: [46.1, 20.2, 2.0] as ColourTriple,
             fg_ui: [46.1, 20.2, 22.0] as ColourTriple,
 
-            divider: [46.5, 19.2, 2.0] as ColourTriple,
+            divider: [230, 50, 30.0] as ColourTriple,
 
             graph_node_expanded: [127, 60, 70] as ColourTriple,
             graph_node_partial: [37, 60, 70] as ColourTriple,
@@ -270,11 +270,11 @@ function updateDefinitions(
             green_text: [130, textSat, textLit] as ColourTriple,
 
             fg_toolbar_view: "--fg1",
-            fg_toolbar_edit: "--fg-clock-10",
-            fg_toolbar_refs: "--fg-clock-08",
-            fg_toolbar_sr: "--fg-clock-07",
-            fg_toolbar_add_above: "--fg-clock-02",
-            fg_toolbar_scratchlist: "--fg-clock-04",
+            fg_toolbar_edit: [10, 70, 50] as ColourTriple,
+            fg_toolbar_refs: [270, 70, 50] as ColourTriple,
+            fg_toolbar_sr: [170, 100, 50] as ColourTriple,
+            fg_toolbar_add_above: [210, 70, 50] as ColourTriple,
+            fg_toolbar_scratchlist: [70, 70, 50] as ColourTriple,
         };
     }
     return s;
