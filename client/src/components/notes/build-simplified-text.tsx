@@ -1,5 +1,7 @@
 import { getAppState } from "app-state";
 
+import { Key } from "types";
+
 type Element = {
     name: string;
     key?: number;
@@ -18,11 +20,11 @@ type Element = {
 
 // build simplified text representation of the content for input into AI systems
 //
-export default function buildSimplifiedText(content: string) {
+export default function buildSimplifiedText(content: string, noteId: Key) {
     const appState = getAppState();
     const wasmInterface = appState.wasmInterface!;
 
-    const astArray = wasmInterface.markupAsStruct(content);
+    const astArray = wasmInterface.markupAsStruct(content, noteId);
     if (!astArray) {
         console.error(`unable to correctly parse: '${content}'`);
         return false;

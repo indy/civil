@@ -45,10 +45,10 @@ pub fn markup_as_ast(markup: &str) -> Result<Vec<Node>> {
 // return an AST that's easily convertible into
 // HTML/Plain Text/Preact components
 //
-pub fn markup_as_struct(markup: &str) -> Result<Vec<Element>> {
+pub fn markup_as_struct(markup: &str, note_id: usize) -> Result<Vec<Element>> {
     let tokens = tokenize(markup)?;
     let (_, nodes) = parse(&tokens)?;
-    let html = compile_to_struct(&nodes)?;
+    let html = compile_to_struct(&nodes, note_id)?;
 
     Ok(html)
 }

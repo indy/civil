@@ -288,7 +288,7 @@ function CardTest({ card, onRatedCard, onShowAnswer }: CardTestProps) {
     return (
         <div>
             <div class="sr-segment">Front</div>
-            <div class="note">{buildMarkup(card.prompt)}</div>
+            <div class="note">{buildMarkup(card.prompt, card.noteId)}</div>
             {show === ShowState.Prompt && (
                 <button onClick={onShowAnswerClicked}>Show Answer</button>
             )}
@@ -311,7 +311,7 @@ function Answer({ card }: { card: Card }) {
                         <DeckLink slimDeck={card.deckInfo} />
                     </div>
                 </CivLeft>
-                <CivMain>{card.answer && buildMarkup(card.answer)}</CivMain>
+                <CivMain>{card.answer && buildMarkup(card.answer, 0)}</CivMain>
             </CivContainer>
         </div>
     );

@@ -10,7 +10,7 @@ export default function Previewer() {
     const appState = getAppState();
 
     function buildPreviewMarkup(n: Note) {
-        return <p>{buildMarkup(n.content, { ignoreRight: true })}</p>;
+        return <p>{buildMarkup(n.content, n.id, { ignoreRight: true })}</p>;
     }
 
     let classes = "previewer";

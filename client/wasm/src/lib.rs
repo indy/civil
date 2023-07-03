@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use cfg_if::cfg_if;
+use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
-use serde::{Serialize, Deserialize};
 
 use log::error;
 
@@ -60,8 +60,8 @@ pub fn markup_as_ast(markup: &str) -> JsValue {
 }
 
 #[wasm_bindgen]
-pub fn markup_as_struct(markup: &str) -> JsValue {
-    match civil_shared::markup_as_struct(markup) {
+pub fn markup_as_struct(markup: &str, note_id: usize) -> JsValue {
+    match civil_shared::markup_as_struct(markup, note_id) {
         Ok(res) => serde_wasm_bindgen::to_value(&res).unwrap(),
         Err(_) => {
             // error!("markup_as_struct failed");
@@ -79,11 +79,7 @@ pub struct Transport3C {
 
 impl Transport3C {
     pub fn new(c0: f64, c1: f64, c2: f64) -> Transport3C {
-        Transport3C {
-            c0,
-            c1,
-            c2,
-        }
+        Transport3C { c0, c1, c2 }
     }
 
     pub fn blank() -> Transport3C {
@@ -109,7 +105,8 @@ impl From<civil_shared::Hsluv> for Transport3C {
 
 #[wasm_bindgen]
 pub fn hsl_from_rgb(r: f64, g: f64, b: f64) -> JsValue {
-    let hsluv: civil_shared::Hsluv = civil_shared::Rgb::new(r as f32, g as f32, b as f32, 1.0).into();
+    let hsluv: civil_shared::Hsluv =
+        civil_shared::Rgb::new(r as f32, g as f32, b as f32, 1.0).into();
 
     let res: Transport3C = hsluv.into();
     serde_wasm_bindgen::to_value(&res).unwrap()

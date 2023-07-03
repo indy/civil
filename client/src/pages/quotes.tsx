@@ -417,7 +417,7 @@ function Attribution({ attribution, onEdited, onDelete }: AttributionProps) {
         localDispatch(ActionAttrType.SetMode, AttrMode.Show);
     }
 
-    let markup = attribution && buildMarkup(attribution);
+    let markup = attribution && buildMarkup(attribution, 0);
     // convert the p tag into spans
     if (markup) {
         markup[0].type = "span";

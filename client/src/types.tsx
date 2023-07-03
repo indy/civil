@@ -284,7 +284,7 @@ export type ColourDefinitions = {
 };
 
 export type WasmInterface = {
-    markupAsStruct(markup: string): any;
+    markupAsStruct(markup: string, noteId: number): any;
     splitter(markup: string): any;
 
     rgbFromHsl(hsl: ColourTriple): string;
