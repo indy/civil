@@ -675,9 +675,7 @@ function buildLeftMarginContent(
     onCopyRefBelow: (ref: Reference, nextNote: Note) => void,
     nextNote?: Note
 ) {
-    if (!note.refs && !note.flashcards) {
-        return <span></span>;
-    } else {
+    if (note.refs.length > 0 || note.flashcards.length > 0) {
         return (
             <CivLeft>
                 {note.chatMessage && <RoleView role={note.chatMessage!.role} />}
@@ -686,6 +684,8 @@ function buildLeftMarginContent(
                 {buildNoteReferences(note.refs, onCopyRefBelow, nextNote)}
             </CivLeft>
         );
+    } else {
+        return <span></span>;
     }
 }
 
