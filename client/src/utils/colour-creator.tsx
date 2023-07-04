@@ -113,9 +113,9 @@ function updateDefinitions(
         s = {
             ...uiDefinitions,
 
+            bg0: [0, 0.0, 100.0] as ColourTriple,
             bg: [46.5, 19.2, 95.7] as ColourTriple,
-            bg1: [46.1, 20.2, 92.0] as ColourTriple,
-            bg2: [0, 0.0, 100.0] as ColourTriple,
+            bg1: [46.1, 20.2, 85.0] as ColourTriple,
 
             fg: [43, 19, 3.5] as ColourTriple,
             fg1: [0, 0, 40.7] as ColourTriple,
@@ -199,9 +199,9 @@ function updateDefinitions(
         s = {
             ...uiDefinitions,
 
+            bg0: [230, 50, 0.0] as ColourTriple,
             bg: [230, 50, 20.0] as ColourTriple,
             bg1: [230, 50, 30.0] as ColourTriple,
-            bg2: [230, 50, 40.0] as ColourTriple,
 
             fg: [43, 19, 90] as ColourTriple,
             fg1: [16.7, 0, 80] as ColourTriple,

@@ -14,6 +14,7 @@
     --image-width: 80%;
 
     --coloured-deck-border-radius: 0.3em;
+    --deck-image-radius: 0.6em;
 
     --search-command-width: 49rem;
     --search-command-border-radius: 0.1em;
@@ -448,6 +449,7 @@ figure.fullwidth figcaption {
 }
 
 .deck-image {
+    border-radius: var(--deck-image-radius);
     display: block;
     margin: 0 auto;
     max-height: 50rem;
@@ -970,7 +972,7 @@ textarea {
 .search-command-listing {
     font-family: Inter;
 
-    background: var(--bg2);
+    background: var(--bg0);
     border: 0.1rem solid var(--fg);
     margin: 0.2rem;
 
