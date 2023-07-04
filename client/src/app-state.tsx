@@ -146,7 +146,7 @@ const state: State = {
 
     recentImages: signal([]),
     imageDirectory: signal(""),
-    imageZoomDefault: 100,
+    imageZoomDefault: 80,
     imageZoomMin: 10,
     imageZoomMax: 300,
 

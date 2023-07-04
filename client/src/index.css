@@ -422,8 +422,20 @@ figure.fullwidth figcaption {
     outline: none;
     opacity: 0.5;
     -webkit-transition: 0.2s;
-    transition: opacity 0.2s;
+    /* transition: opacity 0.2s; */
     padding: 0;
+    margin-bottom: 2rem;
+
+    transition: all 100ms linear;
+    opacity: 0;
+    visibility: hidden;
+    max-height: 0;
+}
+
+.deck-image-slider-active {
+    opacity: 1;
+    visibility: visible;
+    max-height: 1000rem;
 }
 
 .deck-image-slider:hover {
@@ -1823,7 +1835,7 @@ input:required {
     top: 5rem;
     left: 0;
     z-index: 10;
-    transition: opacity 2000ms linear;
+    transition: opacity 200ms linear;
 
     opacity: 0;
     visibility: hidden;
@@ -2045,8 +2057,8 @@ input:required {
     }
 
     .left-margin-ui {
-      margin-left: -2rem;
-      text-align: left;
+        margin-left: -2rem;
+        text-align: left;
     }
 
     .muh-container {

@@ -23,26 +23,25 @@ export default function Image({ src }: ImageProps) {
         }
     }
 
+    let style = "";
+    let inputClasses = "deck-image-slider";
+
     if (zoomable) {
-        return (
-            <div>
-                <input
-                    type="range"
-                    class="deck-image-slider"
-                    value={zoomValue}
-                    min={appState.imageZoomMin}
-                    max={appState.imageZoomMax}
-                    onInput={onInput}
-                />
-                <img
-                    class="deck-image"
-                    onClick={onClick}
-                    src={src}
-                    style={`width: ${zoomValue}%; height: ${zoomValue}%; max-width: ${appState.imageZoomMax}%; max-height: ${appState.imageZoomMax}%;`}
-                />
-            </div>
-        );
-    } else {
-        return <img class="deck-image" onClick={onClick} src={src} />;
+        style = `width: ${zoomValue}%; height: ${zoomValue}%; max-width: ${appState.imageZoomMax}%; max-height: ${appState.imageZoomMax}%;`;
+        inputClasses = "deck-image-slider deck-image-slider-active";
     }
+
+    return (
+        <div>
+            <input
+                type="range"
+                class={inputClasses}
+                value={zoomValue}
+                min={appState.imageZoomMin}
+                max={appState.imageZoomMax}
+                onInput={onInput}
+            />
+            <img class="deck-image" onClick={onClick} src={src} style={style} />
+        </div>
+    );
 }

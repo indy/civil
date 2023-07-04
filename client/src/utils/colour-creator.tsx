@@ -115,7 +115,7 @@ function updateDefinitions(
 
             bg0: [0, 0.0, 100.0] as ColourTriple,
             bg: [46.5, 19.2, 95.7] as ColourTriple,
-            bg1: [46.1, 20.2, 85.0] as ColourTriple,
+            bg1: [46.1, 20.2, 88.0] as ColourTriple,
 
             fg: [43, 19, 3.5] as ColourTriple,
             fg1: [0, 0, 40.7] as ColourTriple,
