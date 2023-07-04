@@ -203,7 +203,7 @@ pub(crate) fn insignia_filter(
 
     let stmt = "SELECT id, name, kind, insignia
                 FROM decks
-                WHERE user_id = ?1 AND insignia = ?2
+                WHERE user_id = ?1 AND insignia & ?2
                 ORDER BY created_at DESC";
 
     let res = sqlite::many(
