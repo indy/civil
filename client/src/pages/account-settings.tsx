@@ -27,17 +27,18 @@ function TestModule({}) {
     if (true) {
         return <div></div>;
     }
-    return <Module heading="test module">
-        <h2 class="pigment-ideas">Ideas</h2>
-        <h2 class="pigment-articles">Articles</h2>
-        <h2 class="pigment-people">People</h2>
-        <h2 class="pigment-timelines">Timelines</h2>
-        <h2 class="pigment-quotes">Quotes</h2>
-        <h2 class="pigment-dialogues">Dialogues</h2>
-        <h2 class="pigment-stuff">Stuff</h2>
-        <h2 class="pigment-sr">SR</h2>
+    return (
+        <Module heading="test module">
+            <h2 class="pigment-ideas">Ideas</h2>
+            <h2 class="pigment-articles">Articles</h2>
+            <h2 class="pigment-people">People</h2>
+            <h2 class="pigment-timelines">Timelines</h2>
+            <h2 class="pigment-quotes">Quotes</h2>
+            <h2 class="pigment-dialogues">Dialogues</h2>
+            <h2 class="pigment-stuff">Stuff</h2>
+            <h2 class="pigment-sr">SR</h2>
         </Module>
-
+    );
 }
 
 function Logout({}) {
@@ -59,12 +60,23 @@ function Logout({}) {
     );
 }
 
+function colourSchemeAsString(colourScheme: ColourScheme): string {
+    return colourScheme === ColourScheme.Light ? "light" : "dark";
+}
+
 function ColourSchemeSelector({}) {
     const appState = getAppState();
 
     const [colourScheme, setColourScheme] = useState(appState.colourScheme);
 
+    type ColourSchemeChange = {
+        theme: string;
+    };
+
     useEffect(() => {
+        Net.post<ColourSchemeChange, any>("api/users/theme", {
+            theme: colourSchemeAsString(colourScheme),
+        });
         activateColourScheme(appState, colourScheme);
     }, [colourScheme]);
 

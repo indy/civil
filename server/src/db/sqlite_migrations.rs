@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS users (
        username TEXT NOT NULL,
 
        image_count INTEGER DEFAULT 0,
+       theme TEXT NOT NULL DEFAULT 'light',
 
        password TEXT NOT NULL
 );
@@ -696,6 +697,12 @@ pub fn migration_check(db_name: &str) -> Result<()> {
                ALTER TABLE stats DROP COLUMN num_refs_quotes_to_people;
                ALTER TABLE stats DROP COLUMN num_refs_quotes_to_timelines;
                ALTER TABLE stats DROP COLUMN num_refs_quotes_to_quotes;"),
+
+
+        ////////////////
+        // MIGRATION 12: user theme
+        ////////////////
+        M::up("ALTER TABLE users ADD COLUMN theme TEXT NOT NULL DEFAULT 'light';"),
     ]);
 
     let mut conn = Connection::open(db_name)?;

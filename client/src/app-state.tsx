@@ -40,6 +40,7 @@ const emptyUser: User = {
     username: "",
     email: "",
     admin: { dbName: "" },
+    theme: "light",
 };
 
 function cleanCommandBarState(): CommandBarState {

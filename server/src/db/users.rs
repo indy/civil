@@ -37,6 +37,7 @@ pub(crate) fn login(
                 username: row.get(2)?,
                 email: row.get(1)?,
                 admin: None,
+                theme: row.get(4)?,
             },
         ))
     }
@@ -47,7 +48,7 @@ pub(crate) fn login(
     sqlite::one(
         &conn,
         r#"
-           select id, email, username, password
+           select id, email, username, password, theme
            from users
            where email = ?1
         "#,
@@ -74,6 +75,7 @@ pub(crate) fn create(
                 username: row.get(2)?,
                 email: row.get(1)?,
                 admin: None,
+                theme: row.get(3)?,
             },
         ))
     }
@@ -81,11 +83,16 @@ pub(crate) fn create(
     sqlite::one(
         &conn,
         r#"
-           insert into users (email, username, password)
-           values(?1, ?2, ?3)
-           returning id, email, username
+           insert into users (email, username, password, theme)
+           values(?1, ?2, ?3, ?4)
+           returning id, email, username, theme
         "#,
-        params![registration.email, registration.username, hash],
+        params![
+            registration.email,
+            registration.username,
+            hash,
+            registration.theme
+        ],
         from_row,
     )
 }
@@ -96,6 +103,7 @@ pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::Use
             username: row.get(1)?,
             email: row.get(0)?,
             admin: None,
+            theme: row.get(2)?,
         })
     }
 
@@ -103,13 +111,28 @@ pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::Use
     sqlite::one(
         &conn,
         r#"
-           select email, username
+           select email, username, theme
            from users
            where id = ?1
         "#,
         params![user_id],
         from_row,
     )
+}
+
+pub(crate) fn change_theme(sqlite_pool: &SqlitePool, user_id: Key, theme: &str) -> Result<bool> {
+    let conn = sqlite_pool.get()?;
+    sqlite::zero(
+        &conn,
+        r#"
+           update users
+           set theme = ?2
+           where id = ?1
+        "#,
+        params![user_id, theme],
+    )?;
+
+    Ok(true)
 }
 
 pub fn get_all_user_ids(sqlite_pool: &SqlitePool) -> Result<Vec<interop::UserId>> {

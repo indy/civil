@@ -5,6 +5,7 @@ import { route } from "preact-router";
 import { User } from "types";
 
 import Net from "utils/net";
+import { getCssString } from "utils/js";
 import { getAppState } from "app-state";
 
 import {
@@ -79,6 +80,7 @@ export default function Login({ path, loginCallback }: Props) {
         username: string;
         email: string;
         password: string;
+        theme: string;
         magic_word: string;
     }
 
@@ -133,6 +135,7 @@ export default function Login({ path, loginCallback }: Props) {
                 username: state["register-username"],
                 email: state["register-email"],
                 password: state["register-password"],
+                theme: getCssString("--mode"),
                 magic_word: state["register-magic-word"],
             }).then((user) => {
                 loginCallback(user);

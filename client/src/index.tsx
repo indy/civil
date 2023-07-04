@@ -73,16 +73,6 @@ wasm_bindgen("/civil_wasm_bg.wasm")
         let state = initialState;
 
         state.wasmInterface = wasmInterface;
-
-        // todo: get the user preference from the server, if that hasn't been set then use the
-        // system default obtained from the css variable "--mode"
-        //
-        const colourScheme =
-            getCssString("--mode") === "light"
-                ? ColourScheme.Light
-                : ColourScheme.Dark;
-        activateColourScheme(state, colourScheme);
-
         state.hasPhysicalKeyboard = getCssBoolean("--has-physical-keyboard");
 
         let root = document.getElementById("root");
@@ -97,14 +87,28 @@ wasm_bindgen("/civil_wasm_bg.wasm")
                     //
                     state.user.value = user;
 
+                    const colourScheme = colourSchemeFromString(user.theme);
+                    activateColourScheme(state, colourScheme);
+
                     Net.get<UberSetup>("/api/ubersetup").then((uber) => {
                         AppStateChange.uberSetup(uber);
                         render(<App state={state} />, rootElement);
                     });
                 } else {
+                    // use system default theme obtained from the css variable "--mode"
+                    //
+                    const colourScheme = colourSchemeFromString(
+                        getCssString("--mode")
+                    );
+                    activateColourScheme(state, colourScheme);
+
                     render(<App state={state} />, rootElement);
                 }
             });
         }
     })
     .catch(console.error);
+
+function colourSchemeFromString(theme: string): ColourScheme {
+    return theme === "light" ? ColourScheme.Light : ColourScheme.Dark;
+}

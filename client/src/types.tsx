@@ -512,6 +512,7 @@ export type User = {
     username: string;
     email: string;
     admin?: Admin;
+    theme: string;
 };
 
 export enum Role {

@@ -127,6 +127,24 @@ pub async fn get_user(
     }
 }
 
+pub async fn change_theme(
+    colour_scheme_change: Json<interop::ColourSchemeChange>,
+    db_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+) -> Result<HttpResponse> {
+    info!("change_theme");
+
+    let user_id = session::user_id(&session)?;
+
+    let colour_scheme_change = colour_scheme_change.into_inner();
+    let theme = colour_scheme_change.theme;
+
+    db::change_theme(&db_pool, user_id, &theme)?;
+
+    // send response
+    Ok(HttpResponse::Ok().json(true))
+}
+
 fn generate_random_salt() -> [u8; 16] {
     let mut salt = [0; 16];
     thread_rng().fill_bytes(&mut salt);
