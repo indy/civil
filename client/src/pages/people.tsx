@@ -560,7 +560,7 @@ function SegmentPoints({
     return (
         <RollableSegment heading={segmentTitle}>
             <CivContainer>
-                <CivLeft>
+                <CivLeft ui>
                     {!hasDied && (
                         <div
                             class="left-margin-entry fadeable clickable"
@@ -605,7 +605,7 @@ function SegmentPoints({
                     <ul class="unstyled-list hug-left">{dps}</ul>
                 </CivMain>
                 <WhenVerbose>
-                    <CivLeft>
+                    <CivLeft ui>
                         <div
                             class="left-margin-entry fadeable clickable"
                             onClick={onAddPointClicked}

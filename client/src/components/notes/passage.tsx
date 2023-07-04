@@ -177,7 +177,7 @@ export default function Passage({
             return (
                 <WhenVerbose>
                     <CivContainer extraClasses="append-note">
-                        <CivLeft>
+                        <CivLeft ui>
                             <div
                                 class="fadeable clickable"
                                 onClick={onAddNoteClicked}

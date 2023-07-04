@@ -32,7 +32,7 @@ export default function RollableSegment({
     return (
         <section class={classState}>
             <CivContainer>
-                <CivLeft>
+                <CivLeft ui>
                     <div class="clickable" onClick={onRollClicked}>
                         {icon}
                     </div>

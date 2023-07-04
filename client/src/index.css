@@ -2042,6 +2042,11 @@ input:required {
         padding-right: 0;
     }
 
+    .left-margin-ui {
+      margin-left: -2rem;
+      text-align: left;
+    }
+
     .muh-container {
         border-left: var(--space-for-selectable-highlight) solid
             rgba(0, 0, 0, 0);

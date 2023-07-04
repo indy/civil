@@ -41,12 +41,19 @@ export function CivMain({
 
 export function CivLeft({
     extraClasses,
+    ui,
     children,
 }: {
     extraClasses?: string;
+    ui?: boolean;
     children: ComponentChildren;
 }) {
     let classes = "left-margin ";
+
+    if (ui) {
+        classes += "left-margin-ui ";
+    }
+
     if (extraClasses) {
         classes += extraClasses;
     }
