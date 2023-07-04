@@ -84,7 +84,7 @@ async fn main() -> Result<()> {
                 // }
             }
 
-            let res = civil_shared::markup_as_struct(&note.content)?;
+            let res = civil_shared::markup_as_struct(&note.content, note.id as usize)?;
             num_elements += res.len();
             c += 1;
 
