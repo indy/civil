@@ -28,7 +28,9 @@ export function DeluxeToolbar({}) {
 
     let currentToolbarMode = appState.toolbarMode.value;
     if (currentToolbarMode === ToolbarMode.View) {
-        classes += " deluxe-toolbar-faded";
+        if (active) {
+            classes += " deluxe-toolbar-faded";
+        }
         toggleIcon = svgCircle;
     }
 

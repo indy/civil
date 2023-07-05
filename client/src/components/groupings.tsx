@@ -40,20 +40,14 @@ function SlimDeckGrouping({
 
     if (hideEmpty && list && list.length === 0) {
         return <div></div>;
-    } else if (show) {
+    } else {
         return (
             <div>
                 <p class="subheading" onClick={toggleShow}>
-                    {svgMinimise()} {label}
+                    {show ? svgMinimise() : svgExpand()} {label}
                 </p>
-                <ul class="compacted-list">{buildListing(list)}</ul>
+                {show && <ul class="compacted-list">{buildListing(list)}</ul>}
             </div>
-        );
-    } else {
-        return (
-            <p class="subheading" onClick={toggleShow}>
-                {svgExpand()} {label}
-            </p>
         );
     }
 }

@@ -195,13 +195,12 @@ h1 {
 }
 
 .previewer {
-    transition: all 100ms linear;
+    --block-width: 100%;
+
+    transition: all 130ms linear;
 
     opacity: 0;
-    visibility: hidden;
     max-height: 0;
-
-    --block-width: 100%;
 
     position: fixed;
     background: var(--bg1);
@@ -212,14 +211,11 @@ h1 {
     padding: 1rem;
     border: 0.1rem solid var(--fg2);
     border-radius: 1.5rem;
-
-    /* max-height: 80%; */
     overflow-y: clip;
 }
 
 .previewer-active {
     opacity: 1;
-    visibility: visible;
     max-height: 80%;
 }
 
@@ -412,6 +408,25 @@ figure.fullwidth figcaption {
     margin-right: 24%;
 }
 
+.rollupable-1000ms {
+    transition: max-height 1000ms;
+    overflow: hidden;
+    max-height: 0;
+}
+.rollupable-500ms {
+    transition: max-height 500ms;
+    overflow: hidden;
+    max-height: 0;
+}
+
+.rollupable-active-5rem {
+    max-height: 5rem;
+}
+
+.rollupable-active {
+    max-height: 50rem;
+}
+
 .deck-image-slider {
     border-radius: var(--coloured-deck-border-radius);
     -webkit-appearance: none;
@@ -420,22 +435,14 @@ figure.fullwidth figcaption {
     height: 0.5rem;
     background: var(--bg-ui);
     outline: none;
-    opacity: 0.5;
-    -webkit-transition: 0.2s;
-    /* transition: opacity 0.2s; */
+    opacity: 0;
+    transition: opacity 500ms;
     padding: 0;
     margin-bottom: 2rem;
-
-    transition: all 100ms linear;
-    opacity: 0;
-    visibility: hidden;
-    max-height: 0;
 }
 
 .deck-image-slider-active {
-    opacity: 1;
-    visibility: visible;
-    max-height: 1000rem;
+    opacity: 0.7;
 }
 
 .deck-image-slider:hover {
@@ -1835,17 +1842,12 @@ input:required {
     top: 5rem;
     left: 0;
     z-index: 10;
-    transition: opacity 200ms linear;
-
+    transition: opacity 100ms linear;
     opacity: 0;
-    visibility: hidden;
-    max-height: 0;
 }
 
 .deluxe-toolbar-active {
     opacity: 1;
-    visibility: visible;
-    max-height: 1000rem;
 }
 
 .deluxe-toolbar-faded {

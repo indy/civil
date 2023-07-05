@@ -28,7 +28,6 @@ export default function RollableSegment({
 
     let classState = isRolledUp ? "rolled-up" : "rolled-down";
     let icon = isRolledUp ? svgChevronDoubleRight() : svgChevronDoubleDown();
-
     return (
         <section class={classState}>
             <CivContainer>

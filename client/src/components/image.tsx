@@ -24,23 +24,27 @@ export default function Image({ src }: ImageProps) {
     }
 
     let style = "";
-    let inputClasses = "deck-image-slider";
+    let sliderClasses = "deck-image-slider";
+    let rollupClasses = "rollupable-500ms";
 
     if (zoomable) {
         style = `width: ${zoomValue}%; height: ${zoomValue}%; max-width: ${appState.imageZoomMax}%; max-height: ${appState.imageZoomMax}%;`;
-        inputClasses = "deck-image-slider deck-image-slider-active";
+        sliderClasses += " deck-image-slider-active";
+        rollupClasses += " rollupable-active-5rem";
     }
 
     return (
         <div>
-            <input
-                type="range"
-                class={inputClasses}
-                value={zoomValue}
-                min={appState.imageZoomMin}
-                max={appState.imageZoomMax}
-                onInput={onInput}
-            />
+            <div class={rollupClasses}>
+                <input
+                    type="range"
+                    class={sliderClasses}
+                    value={zoomValue}
+                    min={appState.imageZoomMin}
+                    max={appState.imageZoomMax}
+                    onInput={onInput}
+                />
+            </div>
             <img class="deck-image" onClick={onClick} src={src} style={style} />
         </div>
     );
