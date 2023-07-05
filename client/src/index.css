@@ -690,7 +690,10 @@ textarea {
     padding-right: 0.5rem;
 }
 
-input, optgroup, select, textarea {
+input,
+optgroup,
+select,
+textarea {
     background: var(--bg0);
 }
 
@@ -1849,10 +1852,12 @@ input:required {
     z-index: 10;
     transition: opacity 100ms linear;
     opacity: 0;
+    visibility: hidden;
 }
 
 .deluxe-toolbar-active {
     opacity: 1;
+    visibility: visible;
 }
 
 .deluxe-toolbar-faded {

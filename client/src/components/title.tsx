@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 
-import { ToolbarMode } from "types";
+import { CivilMode } from "types";
 import { getAppState } from "app-state";
 
 import { CivMain } from "components/civil-layout";
@@ -31,11 +31,11 @@ export default function Title({
     const backgroundBandRef = useRef(null);
 
     function onTitleClicked() {
-        if (appState.toolbarMode.value === ToolbarMode.Edit) {
+        if (appState.mode.value === CivilMode.Edit) {
             setShowingUpdateForm(!isShowingUpdateForm);
             return;
         }
-        if (appState.toolbarMode.value === ToolbarMode.Refs) {
+        if (appState.mode.value === CivilMode.Refs) {
             setEditingDeckRefs(!isEditingDeckRefs);
             return;
         }

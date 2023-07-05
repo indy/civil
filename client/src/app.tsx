@@ -89,35 +89,31 @@ function TopBarMenu() {
         }
     }
 
-    if (appState.verboseUI.value) {
-        return (
-            <nav>
-                <div id="elastic-top-menu-items">
-                    {appState.preferredOrder.map((topMenuItem) => (
-                        <div class="optional-navigable top-menu-item">
-                            <Link
-                                class={menuItemClass(topMenuItem)}
-                                onClick={() => {
-                                    clickedTopLevel(topMenuItem);
-                                }}
-                                href={`/${topMenuItem}`}
-                            >
-                                {menuItemText(topMenuItem)}
-                            </Link>
-                        </div>
-                    ))}
-
-                    <div>
-                        <Link class="pigment-inherit" href={loggedLink()}>
-                            {loggedStatus()}
+    return (
+        <nav>
+            <div id="elastic-top-menu-items">
+                {appState.preferredOrder.map((topMenuItem) => (
+                    <div class="optional-navigable top-menu-item">
+                        <Link
+                            class={menuItemClass(topMenuItem)}
+                            onClick={() => {
+                                clickedTopLevel(topMenuItem);
+                            }}
+                            href={`/${topMenuItem}`}
+                        >
+                            {menuItemText(topMenuItem)}
                         </Link>
                     </div>
+                ))}
+
+                <div>
+                    <Link class="pigment-inherit" href={loggedLink()}>
+                        {loggedStatus()}
+                    </Link>
                 </div>
-            </nav>
-        );
-    } else {
-        return <div></div>;
-    }
+            </div>
+        </nav>
+    );
 }
 
 const AppUI = () => {

@@ -1,14 +1,7 @@
 import { h } from "preact";
 import { useRef } from "preact/hooks";
 
-import {
-    FatDeck,
-    Key,
-    Note,
-    Reference,
-    RefsModified,
-    ToolbarMode,
-} from "types";
+import { FatDeck, Key, Note, Reference, RefsModified, CivilMode } from "types";
 
 import { getAppState, AppStateChange } from "app-state";
 import { addToolbarSelectableClasses } from "utils/civil";
@@ -39,18 +32,15 @@ export default function SegmentDeckRefs({
 
     let containerClasses = "deck-ref-segment";
     if (mouseHovering) {
-        let toolbarMode = appState.toolbarMode.value;
+        let mode = appState.mode.value;
         // only show as selectable if in edit or refs mode
-        if (toolbarMode === ToolbarMode.Refs) {
-            containerClasses += addToolbarSelectableClasses(toolbarMode);
+        if (mode === CivilMode.Refs) {
+            containerClasses += addToolbarSelectableClasses(mode);
         }
     }
 
     function onSegmentClicked(e) {
-        if (
-            appState.toolbarMode.value === ToolbarMode.Refs &&
-            !isEditingDeckRefs
-        ) {
+        if (appState.mode.value === CivilMode.Refs && !isEditingDeckRefs) {
             setEditingDeckRefs(true);
         }
     }

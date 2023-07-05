@@ -42,7 +42,7 @@ export enum PointKind {
     PointEnd,
 }
 
-export enum ToolbarMode {
+export enum CivilMode {
     View = 1,
     Edit,
     Refs,
@@ -322,7 +322,7 @@ export type State = {
     debugMessages: Signal<Array<string>>;
 
     appName: string;
-    toolbarMode: Signal<ToolbarMode>;
+    mode: Signal<CivilMode>;
 
     wasmInterface: WasmInterface | undefined;
 
@@ -351,8 +351,6 @@ export type State = {
     previewCache: Signal<Record<Key, PreviewDeck>>;
 
     visiblePreviewDeck: Signal<VisiblePreview>;
-
-    verboseUI: Signal<boolean>;
 
     showNoteForm: Signal<Record<NoteKind, boolean>>;
     showNoteFormPointId: Signal<Key | undefined>;

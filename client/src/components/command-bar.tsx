@@ -130,22 +130,6 @@ const Commands: Array<Command> = [
         },
     },
     {
-        command: "uic",
-        description: "clean ui",
-        fn: () => {
-            AppStateChange.cleanUI();
-            return true;
-        },
-    },
-    {
-        command: "uib",
-        description: "basic ui",
-        fn: () => {
-            AppStateChange.basicUI();
-            return true;
-        },
-    },
-    {
         command: "g",
         description: "show connectivity graph",
         fn: () => {

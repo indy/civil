@@ -13,7 +13,7 @@ import {
     Notes,
     ProtoPoint,
     Reference,
-    ToolbarMode,
+    CivilMode,
 } from "types";
 
 import { getAppState, AppStateChange } from "app-state";
@@ -173,7 +173,7 @@ export default function useDeckManager<T extends FatDeck>(
             );
             newDms = dmsSetShowingUpdateForm(newDms, false);
 
-            AppStateChange.toolbarMode(ToolbarMode.View);
+            AppStateChange.mode(CivilMode.View);
 
             setDms(newDms);
         },
@@ -233,7 +233,7 @@ export default function useDeckManager<T extends FatDeck>(
                 if (deck && deck.noteSeqs && deck.noteSeqs.points) {
                     return Passage({
                         deck: deck,
-                        toolbarMode: appState.toolbarMode.value,
+                        mode: appState.mode.value,
                         notes: deck.noteSeqs.points[deckPoint.id],
                         onUpdateDeck: update,
                         onRefsChanged,

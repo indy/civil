@@ -11,7 +11,7 @@ import {
     RefsModified,
     Role,
     State,
-    ToolbarMode,
+    CivilMode,
 } from "types";
 
 import Net from "utils/net";
@@ -218,6 +218,7 @@ function reducer(state: LocalState, action: Action): LocalState {
             if (showUI) {
                 AppStateChange.obtainKeyboard();
             } else {
+                AppStateChange.setCivilModeToView();
                 AppStateChange.relinquishKeyboard();
             }
 
@@ -318,7 +319,7 @@ type Props = {
     note: Note;
     nextNote?: Note; // used for the 'copy below' functionality of refs
     parentDeck: FatDeck;
-    toolbarMode: ToolbarMode;
+    mode: CivilMode;
     onDelete: (id: Key) => void;
     onEdited: (id: Key, n: Note) => void;
     onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
@@ -331,7 +332,7 @@ export default function NoteView({
     note,
     nextNote,
     parentDeck,
-    toolbarMode,
+    mode,
     onDelete,
     onEdited,
     onRefsChanged,
@@ -573,25 +574,22 @@ export default function NoteView({
     }
 
     let noteClasses = "note";
-    if (mouseHovering && toolbarMode !== ToolbarMode.View) {
-        noteClasses += addToolbarSelectableClasses(toolbarMode);
+    if (mouseHovering && mode !== CivilMode.View) {
+        noteClasses += addToolbarSelectableClasses(mode);
     }
 
     function onNoteClicked() {
-        if (
-            appState.toolbarMode.value === ToolbarMode.View &&
-            local.canMinimiseText
-        ) {
+        if (appState.mode.value === CivilMode.View && local.canMinimiseText) {
             localDispatch(ActionType.ToggleMinimisedText);
         }
 
-        switch (appState.toolbarMode.value) {
-            case ToolbarMode.Edit:
+        switch (appState.mode.value) {
+            case CivilMode.Edit:
                 if (!local.isEditingMarkup) {
                     localDispatch(ActionType.ToggleEditing);
                 }
                 break;
-            case ToolbarMode.Refs:
+            case CivilMode.Refs:
                 if (!local.addDeckReferencesUI) {
                     localDispatch(
                         ActionType.AddDeckReferencesUiShow,
@@ -599,7 +597,7 @@ export default function NoteView({
                     );
                 }
                 break;
-            case ToolbarMode.SR:
+            case CivilMode.SR:
                 if (!local.addFlashCardUI) {
                     localDispatch(
                         ActionType.AddFlashCardUiShow,
@@ -607,7 +605,7 @@ export default function NoteView({
                     );
                 }
                 break;
-            case ToolbarMode.AddAbove:
+            case CivilMode.AddAbove:
                 if (!local.addNoteAboveUI) {
                     localDispatch(
                         ActionType.AddNoteAboveUiShow,
@@ -625,7 +623,7 @@ export default function NoteView({
 
     return (
         <CivContainer extraClasses={noteClasses}>
-            {appState.toolbarMode.value === ToolbarMode.AddAbove &&
+            {appState.mode.value === CivilMode.AddAbove &&
                 local.addNoteAboveUI &&
                 buildAddNoteAboveUI()}
             {!local.isEditingMarkup &&
@@ -658,10 +656,10 @@ export default function NoteView({
                 </CivMain>
             )}
 
-            {appState.toolbarMode.value === ToolbarMode.Refs &&
+            {appState.mode.value === CivilMode.Refs &&
                 local.addDeckReferencesUI &&
                 buildAddDecksUI()}
-            {appState.toolbarMode.value === ToolbarMode.SR &&
+            {appState.mode.value === CivilMode.SR &&
                 local.addFlashCardUI &&
                 buildAddFlashCardUI()}
             {local.isEditingMarkup && buildMainButtons()}

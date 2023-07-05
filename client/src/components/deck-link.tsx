@@ -2,7 +2,7 @@ import { h, ComponentChildren } from "preact";
 import { useRef /*, useState*/ } from "preact/hooks";
 import { Link } from "preact-router";
 
-import { PreviewNotes, SlimDeck, ToolbarMode } from "types";
+import { PreviewNotes, SlimDeck, CivilMode } from "types";
 
 import Net from "utils/net";
 import { buildUrl, deckKindToResourceString } from "utils/civil";
@@ -66,10 +66,7 @@ export default function DeckLink({
     let klass = `${ec} pigment-fg-${dk}`;
 
     let elem: any;
-    if (
-        !alwaysLink &&
-        appState.toolbarMode.value === ToolbarMode.ScratchListLinks
-    ) {
+    if (!alwaysLink && appState.mode.value === CivilMode.ScratchListLinks) {
         klass += " scratchlistmode-active";
         elem = (
             <span class={klass} onClick={scratchListModeClicked}>
@@ -79,7 +76,7 @@ export default function DeckLink({
                 {slimDeck.title}
             </span>
         );
-    } else if (!alwaysLink && appState.toolbarMode.value !== ToolbarMode.View) {
+    } else if (!alwaysLink && appState.mode.value !== CivilMode.View) {
         elem = (
             <span class={klass}>
                 {children}

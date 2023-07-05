@@ -1,12 +1,14 @@
 import { h, ComponentChildren } from "preact";
 
+import { CivilMode } from "types";
+
 import { getAppState } from "app-state";
 
-export default function WhenVerbose({
+export default function WhenEditMode({
     children,
 }: {
     children: ComponentChildren;
 }) {
     const appState = getAppState();
-    return <div>{appState.verboseUI.value && children}</div>;
+    return <div>{appState.mode.value === CivilMode.Edit && children}</div>;
 }

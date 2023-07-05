@@ -34,7 +34,7 @@ import SegmentDeckRefs from "components/segment-deck-refs";
 import SegmentGraph from "components/graph/segment-graph";
 import SegmentNotes from "components/notes/segment-notes";
 import TopMatter from "components/top-matter";
-import WhenVerbose from "components/when-verbose";
+import WhenEditMode from "components/when-edit-mode";
 import { SlimDeckList } from "components/groupings";
 import {
     CivContainer,
@@ -337,7 +337,7 @@ function SegmentPoints({
                 <CivMain>
                     <ul class="unstyled-list hug-left">{dps}</ul>
                 </CivMain>
-                <WhenVerbose>
+                <WhenEditMode>
                     <CivLeft>
                         <div
                             class="left-margin-entry fadeable clickable"
@@ -349,7 +349,7 @@ function SegmentPoints({
                             {showAddPointForm ? svgX() : svgPointAdd()}
                         </div>
                     </CivLeft>
-                </WhenVerbose>
+                </WhenEditMode>
                 {showAddPointForm && deckManager.buildPointForm(onPointCreated)}
             </CivContainer>
         </RollableSegment>

@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import { Note, Reference, RefKind, ToolbarMode } from "types";
+import { Note, Reference, RefKind, CivilMode } from "types";
 
 import { getAppState } from "app-state";
 
@@ -57,7 +57,7 @@ export default function RefView({
             }
         }
 
-        let showCopyBelow = appState.toolbarMode.value === ToolbarMode.Refs;
+        let showCopyBelow = appState.mode.value === CivilMode.Refs;
         if (showCopyBelow) {
             // in the right toolbar mode, now determine if we actually have to show the "copy below" UI
             if (nextNote) {

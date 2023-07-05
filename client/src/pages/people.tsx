@@ -31,7 +31,7 @@ import {
     svgUntickedCheckBox,
     svgX,
 } from "components/svg-icons";
-import WhenVerbose from "components/when-verbose";
+import WhenEditMode from "components/when-edit-mode";
 
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilInput from "components/civil-input";
@@ -572,7 +572,7 @@ function SegmentPoints({
                             {svgPointAdd()}
                         </div>
                     )}
-                    <WhenVerbose>
+                    <WhenEditMode>
                         <div
                             class="left-margin-entry fadeable clickable"
                             onClick={onOnlyThisPersonClicked}
@@ -597,14 +597,14 @@ function SegmentPoints({
                                     : svgUntickedCheckBox()}
                             </div>
                         )}
-                    </WhenVerbose>
+                    </WhenEditMode>
                 </CivLeft>
                 {showDeathForm && deathForm()}
 
                 <CivMain>
                     <ul class="unstyled-list hug-left">{dps}</ul>
                 </CivMain>
-                <WhenVerbose>
+                <WhenEditMode>
                     <CivLeft ui>
                         <div
                             class="left-margin-entry fadeable clickable"
@@ -616,7 +616,7 @@ function SegmentPoints({
                             {showAddPointForm ? svgX() : svgPointAdd()}
                         </div>
                     </CivLeft>
-                </WhenVerbose>
+                </WhenEditMode>
                 {showAddPointForm && deckManager.buildPointForm(onPointCreated)}
             </CivContainer>
         </RollableSegment>

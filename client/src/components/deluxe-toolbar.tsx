@@ -2,9 +2,9 @@ import { h, ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 import { Link } from "preact-router";
 
-import { ToolbarMode } from "types";
+import { CivilMode } from "types";
 
-import { getAppState, isToolbarModeAllowed, AppStateChange } from "app-state";
+import { getAppState, isCivilModeAllowed, AppStateChange } from "app-state";
 import {
     svgCircle,
     svgFilledCircle,
@@ -26,8 +26,8 @@ export function DeluxeToolbar({}) {
 
     let toggleIcon = svgFilledCircle;
 
-    let currentToolbarMode = appState.toolbarMode.value;
-    if (currentToolbarMode === ToolbarMode.View) {
+    let currentCivilMode = appState.mode.value;
+    if (currentCivilMode === CivilMode.View) {
         if (active) {
             classes += " deluxe-toolbar-faded";
         }
@@ -47,7 +47,7 @@ export function DeluxeToolbar({}) {
     return (
         <div>
             <div class="deluxe-toolbar-toggle-control" onClick={toggleActive}>
-                {toggleIcon(toolbarColourCss(currentToolbarMode))}
+                {toggleIcon(toolbarColourCss(currentCivilMode))}
             </div>
             <div class={classes}>
                 <div class="toolbar-item">
@@ -65,44 +65,32 @@ export function DeluxeToolbar({}) {
                     <span class="toolbar-item-text">Search</span>
                 </div>
 
-                {isToolbarModeAllowed(appState, ToolbarMode.Edit) && (
-                    <ToolbarItem
-                        toolbarMode={ToolbarMode.Edit}
-                        toolbarText="Edit"
-                    >
+                {isCivilModeAllowed(appState, CivilMode.Edit) && (
+                    <ToolbarItem mode={CivilMode.Edit} toolbarText="Edit">
                         {svgEdit()}
                     </ToolbarItem>
                 )}
-                {isToolbarModeAllowed(appState, ToolbarMode.Refs) && (
-                    <ToolbarItem
-                        toolbarMode={ToolbarMode.Refs}
-                        toolbarText="Refs"
-                    >
+                {isCivilModeAllowed(appState, CivilMode.Refs) && (
+                    <ToolbarItem mode={CivilMode.Refs} toolbarText="Refs">
                         {svgLinkAlt()}
                     </ToolbarItem>
                 )}
-                {isToolbarModeAllowed(appState, ToolbarMode.SR) && (
-                    <ToolbarItem
-                        toolbarMode={ToolbarMode.SR}
-                        toolbarText="Memorise"
-                    >
+                {isCivilModeAllowed(appState, CivilMode.SR) && (
+                    <ToolbarItem mode={CivilMode.SR} toolbarText="Memorise">
                         {svgFlashCard()}
                     </ToolbarItem>
                 )}
-                {isToolbarModeAllowed(appState, ToolbarMode.AddAbove) && (
+                {isCivilModeAllowed(appState, CivilMode.AddAbove) && (
                     <ToolbarItem
-                        toolbarMode={ToolbarMode.AddAbove}
+                        mode={CivilMode.AddAbove}
                         toolbarText="Add Above"
                     >
                         {svgAddAbove()}
                     </ToolbarItem>
                 )}
-                {isToolbarModeAllowed(
-                    appState,
-                    ToolbarMode.ScratchListLinks
-                ) && (
+                {isCivilModeAllowed(appState, CivilMode.ScratchListLinks) && (
                     <ToolbarItem
-                        toolbarMode={ToolbarMode.ScratchListLinks}
+                        mode={CivilMode.ScratchListLinks}
                         toolbarText="Bookmarks"
                     >
                         {svgScratchList()}
@@ -114,29 +102,29 @@ export function DeluxeToolbar({}) {
 }
 
 function ToolbarItem({
-    toolbarMode,
+    mode,
     toolbarText,
     children,
 }: {
-    toolbarMode: ToolbarMode;
+    mode: CivilMode;
     toolbarText: string;
     children: ComponentChildren;
 }) {
     const appState = getAppState();
 
     function onClickHandler() {
-        if (appState.toolbarMode.value === toolbarMode) {
+        if (appState.mode.value === mode) {
             // toggle the current mode off
-            AppStateChange.toolbarMode(ToolbarMode.View);
+            AppStateChange.mode(CivilMode.View);
             AppStateChange.setShowingCommandBar(false);
         } else {
-            AppStateChange.toolbarMode(toolbarMode);
+            AppStateChange.mode(mode);
         }
     }
 
     let classes = "toolbar-item-icon";
-    if (toolbarMode === appState.toolbarMode.value) {
-        classes += toolbarItemSelectedCss(toolbarMode);
+    if (mode === appState.mode.value) {
+        classes += toolbarItemSelectedCss(mode);
     }
 
     return (
@@ -147,27 +135,27 @@ function ToolbarItem({
     );
 }
 
-function toolbarItemSelectedCss(toolbarMode: ToolbarMode) {
-    return " toolbar-item-selected-" + baseCssName(toolbarMode);
+function toolbarItemSelectedCss(mode: CivilMode) {
+    return " toolbar-item-selected-" + baseCssName(mode);
 }
 
-function toolbarColourCss(toolbarMode: ToolbarMode) {
-    return " toolbar-" + baseCssName(toolbarMode) + "-colour";
+function toolbarColourCss(mode: CivilMode) {
+    return " toolbar-" + baseCssName(mode) + "-colour";
 }
 
-function baseCssName(toolbarMode: ToolbarMode) {
-    switch (toolbarMode) {
-        case ToolbarMode.View:
+function baseCssName(mode: CivilMode) {
+    switch (mode) {
+        case CivilMode.View:
             return "view";
-        case ToolbarMode.Edit:
+        case CivilMode.Edit:
             return "edit";
-        case ToolbarMode.Refs:
+        case CivilMode.Refs:
             return "refs";
-        case ToolbarMode.SR:
+        case CivilMode.SR:
             return "sr";
-        case ToolbarMode.AddAbove:
+        case CivilMode.AddAbove:
             return "add-above";
-        case ToolbarMode.ScratchListLinks:
+        case CivilMode.ScratchListLinks:
             return "scratchlist-links";
     }
 }

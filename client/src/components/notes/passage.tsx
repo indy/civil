@@ -10,7 +10,7 @@ import {
     NoteKind,
     Notes,
     Reference,
-    ToolbarMode,
+    CivilMode,
 } from "types";
 
 import Net from "utils/net";
@@ -20,11 +20,11 @@ import { svgEdit } from "components/svg-icons";
 import { CivContainer, CivLeft } from "components/civil-layout";
 import NoteForm from "components/notes/note-form";
 import NoteView from "components/notes/note-view";
-import WhenVerbose from "components/when-verbose";
+import WhenEditMode from "components/when-edit-mode";
 
 type PassageProps = {
     deck: FatDeck;
-    toolbarMode: ToolbarMode;
+    mode: CivilMode;
     onUpdateDeck: (d: FatDeck) => void;
     notes: Notes;
     onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
@@ -37,7 +37,7 @@ type PassageProps = {
 
 export default function Passage({
     deck,
-    toolbarMode,
+    mode,
     onUpdateDeck,
     notes,
     onRefsChanged,
@@ -104,7 +104,7 @@ export default function Passage({
                 note={note}
                 nextNote={nextNote}
                 parentDeck={deck}
-                toolbarMode={toolbarMode}
+                mode={mode}
                 onDelete={onDeleteNote}
                 onEdited={onEditedNote}
                 onRefsChanged={onRefsChanged}
@@ -157,7 +157,7 @@ export default function Passage({
 
         if (optionalDeckPoint) {
             return (
-                <WhenVerbose>
+                <WhenEditMode>
                     <div class="inline-append-note">
                         <div class="left-margin-inline">
                             <div
@@ -171,11 +171,11 @@ export default function Passage({
                             </div>
                         </div>
                     </div>
-                </WhenVerbose>
+                </WhenEditMode>
             );
         } else {
             return (
-                <WhenVerbose>
+                <WhenEditMode>
                     <CivContainer extraClasses="append-note">
                         <CivLeft ui>
                             <div
@@ -189,7 +189,7 @@ export default function Passage({
                             </div>
                         </CivLeft>
                     </CivContainer>
-                </WhenVerbose>
+                </WhenEditMode>
             );
         }
     }

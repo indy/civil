@@ -8,7 +8,7 @@ import {
     PassageHowToShow,
     Notes,
     Reference,
-    ToolbarMode,
+    CivilMode,
 } from "types";
 
 import Passage from "components/notes/passage";
@@ -41,7 +41,7 @@ export default function SegmentNotes({
 }: Props) {
     const appState = getAppState();
 
-    const toolbarMode = appState.toolbarMode.value;
+    const mode = appState.mode.value;
 
     if (deck && deck.noteSeqs) {
         return (
@@ -53,7 +53,7 @@ export default function SegmentNotes({
                         howToShow={howToShowPassage(NoteKind.NoteSummary)}
                         deck={deck}
                         onUpdateDeck={onUpdateDeck}
-                        toolbarMode={toolbarMode}
+                        mode={mode}
                         notes={deck.noteSeqs.noteSummary}
                         onRefsChanged={onRefsChanged}
                         deckKind={deckKind}
@@ -68,7 +68,7 @@ export default function SegmentNotes({
                         howToShow={howToShowPassage(NoteKind.NoteReview)}
                         deck={deck}
                         onUpdateDeck={onUpdateDeck}
-                        toolbarMode={toolbarMode}
+                        mode={mode}
                         notes={deck.noteSeqs.noteReview}
                         onRefsChanged={onRefsChanged}
                         deckKind={deckKind}
@@ -83,7 +83,7 @@ export default function SegmentNotes({
                     howToShow={howToShowPassage(NoteKind.Note)}
                     deck={deck}
                     onUpdateDeck={onUpdateDeck}
-                    toolbarMode={toolbarMode}
+                    mode={mode}
                     notes={deck.noteSeqs.note}
                     onRefsChanged={onRefsChanged}
                     deckKind={deckKind}
@@ -103,7 +103,7 @@ type NoteKindPassageProps = {
     notes: Notes;
     howToShow: PassageHowToShow;
     deck: FatDeck;
-    toolbarMode: ToolbarMode;
+    mode: CivilMode;
     onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
     deckKind: DeckKind;
     onUpdateDeck: (d: FatDeck) => void;
@@ -117,7 +117,7 @@ function NoteKindPassage({
     notes,
     howToShow,
     deck,
-    toolbarMode,
+    mode,
     onRefsChanged,
     onUpdateDeck,
     noAppend,
@@ -134,7 +134,7 @@ function NoteKindPassage({
 
         return Passage({
             deck,
-            toolbarMode,
+            mode,
             onUpdateDeck,
             notes,
             onRefsChanged,

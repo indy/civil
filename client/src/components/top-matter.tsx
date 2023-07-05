@@ -1,7 +1,7 @@
 import { h, ComponentChildren } from "preact";
 import { useRef } from "preact/hooks";
 
-import { FatDeck, ToolbarMode } from "types";
+import { FatDeck, CivilMode } from "types";
 
 import { getAppState } from "app-state";
 
@@ -44,13 +44,10 @@ export default function TopMatter({
 
     let containerClasses = "";
     if (mouseHovering) {
-        let toolbarMode = appState.toolbarMode.value;
+        let mode = appState.mode.value;
         // only show as selectable if in edit or refs mode
-        if (
-            toolbarMode === ToolbarMode.Edit ||
-            toolbarMode === ToolbarMode.Refs
-        ) {
-            containerClasses += addToolbarSelectableClasses(toolbarMode);
+        if (mode === CivilMode.Edit || mode === CivilMode.Refs) {
+            containerClasses += addToolbarSelectableClasses(mode);
         }
     }
 

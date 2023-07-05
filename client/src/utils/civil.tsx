@@ -7,7 +7,7 @@ import {
     DeckKind,
     Key,
     SlimDeck,
-    ToolbarMode,
+    CivilMode,
     Notes,
     NoteKind,
     Note,
@@ -128,15 +128,15 @@ export function deckKindToHeadingString(deckKind: DeckKind): string {
     return capitalise(deckKindToResourceString(deckKind));
 }
 
-export function addToolbarSelectableClasses(toolbarMode: ToolbarMode) {
-    switch (toolbarMode) {
-        case ToolbarMode.Edit:
+export function addToolbarSelectableClasses(mode: CivilMode) {
+    switch (mode) {
+        case CivilMode.Edit:
             return " selectable-hovering selectable-hovering-edit";
-        case ToolbarMode.Refs:
+        case CivilMode.Refs:
             return " selectable-hovering selectable-hovering-refs";
-        case ToolbarMode.SR:
+        case CivilMode.SR:
             return " selectable-hovering selectable-hovering-sr";
-        case ToolbarMode.AddAbove:
+        case CivilMode.AddAbove:
             return " selectable-hovering selectable-hovering-add-above";
         default:
             return "";

@@ -27,7 +27,7 @@ import {
     ResultList,
     SlimDeck,
     State,
-    ToolbarMode,
+    CivilMode,
     UberSetup,
     User,
     UserUploadedImage,
@@ -59,7 +59,7 @@ const state: State = {
     debugMessages: signal([]),
 
     appName: "civil",
-    toolbarMode: signal(ToolbarMode.View),
+    mode: signal(CivilMode.View),
     wasmInterface: undefined,
 
     colourScheme: ColourScheme.Light,
@@ -129,8 +129,6 @@ const state: State = {
     previewCache: signal({}),
     visiblePreviewDeck: signal({ id: 0, showing: false }),
 
-    verboseUI: signal(true),
-
     showNoteForm: signal({
         [NoteKind.Note]: false,
         [NoteKind.NoteReview]: false,
@@ -191,13 +189,13 @@ const DEBUG_APP_STATE = false;
 
 export const AppStateChange = {
     cbSearchClicked: function () {
-        state.toolbarMode.value = ToolbarMode.View;
+        state.mode.value = CivilMode.View;
         commandBarToggle(state);
     },
 
     cbKeyDownEsc: function () {
-        if (state.toolbarMode.value !== ToolbarMode.View) {
-            state.toolbarMode.value = ToolbarMode.View;
+        if (state.mode.value !== CivilMode.View) {
+            state.mode.value = CivilMode.View;
         } else {
             commandBarToggle(state);
         }
@@ -272,19 +270,19 @@ export const AppStateChange = {
                         route("/");
                         break;
                     case "KeyB":
-                        toolbarModeToggle(state, ToolbarMode.ScratchListLinks);
+                        modeToggle(state, CivilMode.ScratchListLinks);
                         break;
                     case "KeyE":
-                        toolbarModeToggle(state, ToolbarMode.Edit);
+                        modeToggle(state, CivilMode.Edit);
                         break;
                     case "KeyR":
-                        toolbarModeToggle(state, ToolbarMode.Refs);
+                        modeToggle(state, CivilMode.Refs);
                         break;
                     case "KeyA":
-                        toolbarModeToggle(state, ToolbarMode.AddAbove);
+                        modeToggle(state, CivilMode.AddAbove);
                         break;
                     case "KeyM":
-                        toolbarModeToggle(state, ToolbarMode.SR);
+                        modeToggle(state, CivilMode.SR);
                         break;
                 }
             }
@@ -498,11 +496,11 @@ export const AppStateChange = {
         dm.unshift(msg);
         state.debugMessages.value = dm;
     },
-    toolbarMode: function (newMode: ToolbarMode) {
+    mode: function (newMode: CivilMode) {
         if (DEBUG_APP_STATE) {
-            console.log("toolbarMode");
+            console.log("mode");
         }
-        state.toolbarMode.value = newMode;
+        state.mode.value = newMode;
     },
     urlTitle: function (title: string) {
         if (DEBUG_APP_STATE) {
@@ -826,10 +824,10 @@ export const AppStateChange = {
         if (DEBUG_APP_STATE) {
             console.log("scratchlistLinkToggle");
         }
-        if (state.toolbarMode.value === ToolbarMode.ScratchListLinks) {
-            state.toolbarMode.value = ToolbarMode.View;
+        if (state.mode.value === CivilMode.ScratchListLinks) {
+            state.mode.value = CivilMode.View;
         } else {
-            state.toolbarMode.value = ToolbarMode.ScratchListLinks;
+            state.mode.value = CivilMode.ScratchListLinks;
         }
     },
 
@@ -853,25 +851,15 @@ export const AppStateChange = {
         }
     },
 
+    setCivilModeToView: function () {
+        state.mode.value = CivilMode.View;
+    },
+
     setRecentlyUsedDecks: function (recents: Array<SlimDeck>) {
         if (DEBUG_APP_STATE) {
             console.log("setRecentlyUsedDecks");
         }
         state.recentlyUsedDecks.value = recents;
-    },
-
-    cleanUI: function () {
-        if (DEBUG_APP_STATE) {
-            console.log("cleanUI");
-        }
-        state.verboseUI.value = false;
-    },
-
-    basicUI: function () {
-        if (DEBUG_APP_STATE) {
-            console.log("basicUI");
-        }
-        state.verboseUI.value = true;
     },
 
     connectivityGraphShow: function () {
@@ -1163,12 +1151,12 @@ function indexFromCode(code: string): number {
     }
 }
 
-function toolbarModeToggle(state: State, mode: ToolbarMode) {
-    if (isToolbarModeAllowed(state, mode)) {
-        if (state.toolbarMode.value !== mode) {
-            state.toolbarMode.value = mode;
+function modeToggle(state: State, mode: CivilMode) {
+    if (isCivilModeAllowed(state, mode)) {
+        if (state.mode.value !== mode) {
+            state.mode.value = mode;
         } else {
-            state.toolbarMode.value = ToolbarMode.View;
+            state.mode.value = CivilMode.View;
         }
     }
 }
@@ -1178,29 +1166,26 @@ function commandBarToggle(state: State) {
     state.commandBarState.value = cleanCommandBarState();
 }
 
-export function isToolbarModeAllowed(
-    state: State,
-    toolbarMode: ToolbarMode
-): boolean {
+export function isCivilModeAllowed(state: State, mode: CivilMode): boolean {
     // e.g. state.url.value = /articles or /ideas/42
     // urlParts is of either one of these forms: ["", "articles"], or ["", "ideas", "42"]
     let urlParts = state.url.value.split("/");
 
     const onListingPage = urlParts.length === 2;
 
-    switch (toolbarMode) {
-        case ToolbarMode.View:
+    switch (mode) {
+        case CivilMode.View:
             return !onListingPage;
-        case ToolbarMode.Edit:
+        case CivilMode.Edit:
             return !onListingPage;
-        case ToolbarMode.Refs:
+        case CivilMode.Refs:
             return !onListingPage;
-        case ToolbarMode.SR:
+        case CivilMode.SR:
             return !onListingPage;
-        case ToolbarMode.AddAbove:
+        case CivilMode.AddAbove:
             // don't show AddAbove option for quotes
             return !onListingPage && urlParts[1] !== "quotes";
-        case ToolbarMode.ScratchListLinks:
+        case CivilMode.ScratchListLinks:
             return true;
     }
 }
