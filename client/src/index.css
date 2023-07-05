@@ -689,6 +689,11 @@ textarea {
     padding-left: 0.5rem;
     padding-right: 0.5rem;
 }
+
+input, optgroup, select, textarea {
+    background: var(--bg0);
+}
+
 textarea {
     font-family: Crimson; /* 1 */
 }
