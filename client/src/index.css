@@ -2104,6 +2104,15 @@ input:required {
         max-height: 50rem;
         overflow: auto;
     }
+
+    .standard-list > li > .muh-container {
+      margin-left: -1.3rem;
+    }
+
+    .star-rating-partial {
+      float: left;
+      margin-left: -12rem;
+    }
 }
 
 @media (max-width: 760px) {
