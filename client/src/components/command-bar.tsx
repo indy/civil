@@ -170,6 +170,9 @@ export default function CommandBar() {
         if (e.key === "Enter") {
             AppStateChange.cbKeyDownEnter(Commands);
         }
+        if (e.key === "/") {
+            AppStateChange.cbKeyDownSlash();
+        }
         if (e.ctrlKey) {
             AppStateChange.cbKeyDownCtrl();
         }

@@ -190,15 +190,14 @@ const DEBUG_APP_STATE = false;
 export const AppStateChange = {
     cbSearchClicked: function () {
         state.mode.value = CivilMode.View;
-        commandBarToggle(state);
+        commandBarReset(state, !state.showingCommandBar.value);
     },
 
     cbKeyDownEsc: function () {
         if (state.mode.value !== CivilMode.View) {
             state.mode.value = CivilMode.View;
-        } else {
-            commandBarToggle(state);
         }
+        commandBarReset(state, false);
     },
 
     cbKeyDownColon: function () {
@@ -244,6 +243,13 @@ export const AppStateChange = {
                     showKeyboardShortcuts,
                 };
             }
+        }
+    },
+
+    cbKeyDownSlash: function() {
+        if (!state.componentRequiresFullKeyboardAccess.value && !state.showingCommandBar.value) {
+            state.mode.value = CivilMode.View;
+            commandBarReset(state, true);
         }
     },
 
@@ -1161,8 +1167,8 @@ function modeToggle(state: State, mode: CivilMode) {
     }
 }
 
-function commandBarToggle(state: State) {
-    state.showingCommandBar.value = !state.showingCommandBar.value;
+function commandBarReset(state: State, showing: boolean) {
+    state.showingCommandBar.value = showing;
     state.commandBarState.value = cleanCommandBarState();
 }
 
