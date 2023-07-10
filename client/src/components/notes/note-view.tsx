@@ -261,6 +261,7 @@ function reducer(state: LocalState, action: Action): LocalState {
             let reviewCount = appState.srReviewCount.value + 1;
 
             AppStateChange.relinquishKeyboard();
+            AppStateChange.setCivilModeToView();
             AppStateChange.setReviewCount(reviewCount);
 
             return newState;
