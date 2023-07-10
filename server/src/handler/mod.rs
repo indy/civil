@@ -23,7 +23,7 @@ pub struct SearchQuery {
 }
 
 pub mod articles;
-pub mod deck_queries;
+pub mod decks;
 pub mod dialogues;
 pub mod edges;
 pub mod graph;

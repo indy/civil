@@ -38,7 +38,7 @@ export default function DeckLink({
     function onMouseEnter() {
         if (!appState.previewCache.value[slimDeck.id]) {
             Net.get<PreviewNotes>(
-                `/api/deck-queries/preview/${slimDeck.id}`
+                `/api/decks/preview/${slimDeck.id}`
             ).then((pn) => {
                 AppStateChange.addPreview(slimDeck, pn);
             });

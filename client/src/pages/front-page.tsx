@@ -50,7 +50,7 @@ function FilterModule() {
                     </span>
                     <LazyLoadedGrouping
                         label="Recently Visited"
-                        url="/api/deck-queries/recently_visited"
+                        url="/api/decks/recently_visited"
                     />
                     <InsigniaGrouping label="Insignias" />
                 </CivMain>

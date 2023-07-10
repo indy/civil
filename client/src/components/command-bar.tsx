@@ -263,7 +263,7 @@ export default function CommandBar() {
     async function search(text: string) {
         let sanitized: string = sanitize(text);
         if (sanitized.length > 0) {
-            const url = `/api/deck-queries/search?q=${encodeURI(sanitized)}`;
+            const url = `/api/decks/search?q=${encodeURI(sanitized)}`;
             const searchResponse: ResultList = await Net.get(url);
             AppStateChange.cbSearchCandidateSet(searchResponse);
         }

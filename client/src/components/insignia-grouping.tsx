@@ -28,7 +28,7 @@ export default function InsigniaGrouping({ label }: InsigniaGroupingProps) {
     let [localState, setLocalState] = useState(initialState);
 
     function fetchData(val: number) {
-        const url = `/api/deck-queries/insignia_filter/${val}`;
+        const url = `/api/decks/insignia_filter/${val}`;
         Net.get<ResultList>(url).then((resultList) => {
             if (resultList.results) {
                 setLocalState({

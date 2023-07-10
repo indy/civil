@@ -58,14 +58,11 @@ async fn main() -> Result<()> {
     let sqlite_pool = r2d2::Pool::new(sqlite_manager)?;
 
     // Creating a new ChatGPT client.
-    // Note that it requires an API key, and uses
-    // tokens from your OpenAI API account balance.
-    let chatgpt_client = ChatGPT::new(openai_key)?;
-    // Sending a message and getting the completion
-    // let response = client
-    //     .send_message("Describe liberalism in less than 15 words")
-    //     .await?;
-    // info!("Response: {}", response.message().content);
+    let chatgpt_config = chatgpt::config::ModelConfiguration {
+        engine: ChatGPTEngine::Gpt35Turbo,
+        ..Default::default()
+    };
+    let chatgpt_client = ChatGPT::new_with_config(openai_key, chatgpt_config)?;
 
     let server = HttpServer::new(move || {
         let signing_key: &mut [u8] = &mut [0; SIGNING_KEY_SIZE];

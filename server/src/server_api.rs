@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::handler::articles;
-use crate::handler::deck_queries;
+use crate::handler::decks;
 use crate::handler::dialogues;
 use crate::handler::edges;
 use crate::handler::graph;
@@ -46,19 +46,14 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         )
         // console commands
         .service(
-            scope("/deck-queries")
-                .route("/search", get().to(deck_queries::search))
-                .route("/namesearch", get().to(deck_queries::namesearch))
-                .route("/recent", get().to(deck_queries::recent))
-                .route(
-                    "/insignia_filter/{insig}",
-                    get().to(deck_queries::insignia_filter),
-                )
-                .route(
-                    "/recently_visited",
-                    get().to(deck_queries::recently_visited),
-                )
-                .route("/preview/{id}", get().to(deck_queries::preview)),
+            scope("/decks")
+                .route("/search", get().to(decks::search))
+                .route("/namesearch", get().to(decks::namesearch))
+                .route("/recent", get().to(decks::recent))
+                .route("/insignia_filter/{insig}", get().to(decks::insignia_filter))
+                .route("/recently_visited", get().to(decks::recently_visited))
+                //.route("/summarize/{id}", get().to(decks::summarize))
+                .route("/preview/{id}", get().to(decks::preview)),
         )
         // registration
         .service(

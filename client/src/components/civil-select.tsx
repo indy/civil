@@ -417,7 +417,7 @@ export default function CivilSelect({
 
     async function refineCandidates(newText: string) {
         if (!local.justAddedViaShortcut && newText.length > 0) {
-            const url = `/api/deck-queries/namesearch?q=${encodeURI(newText)}`;
+            const url = `/api/decks/namesearch?q=${encodeURI(newText)}`;
 
             type Response = {
                 results: Array<SlimDeck>;
