@@ -16,8 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::interop::decks::{BackNote, Ref};
+use crate::interop::memorise::FlashCard;
 use crate::interop::notes::Note;
-use crate::interop::sr::FlashCard;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

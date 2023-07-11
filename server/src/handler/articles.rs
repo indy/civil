@@ -17,9 +17,9 @@
 
 use crate::db::articles as db;
 use crate::db::decks as decks_db;
+use crate::db::memorise as memorise_db;
 use crate::db::notes as notes_db;
 use crate::db::sqlite::SqlitePool;
-use crate::db::sr as sr_db;
 use crate::error::Result;
 use crate::interop::articles as interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
@@ -127,7 +127,7 @@ fn sqlite_augment(
     let refs = decks_db::from_deck_id_via_notes_to_decks(sqlite_pool, article_id)?;
     let backnotes = decks_db::get_backnotes(sqlite_pool, article_id)?;
     let backrefs = decks_db::get_backrefs(sqlite_pool, article_id)?;
-    let flashcards = sr_db::all_flashcards_for_deck(sqlite_pool, article_id)?;
+    let flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, article_id)?;
 
     article.notes = Some(notes);
     article.refs = Some(refs);

@@ -21,10 +21,10 @@ use crate::handler::dialogues;
 use crate::handler::edges;
 use crate::handler::graph;
 use crate::handler::ideas;
+use crate::handler::memorise;
 use crate::handler::notes;
 use crate::handler::people;
 use crate::handler::quotes;
-use crate::handler::sr;
 use crate::handler::timelines;
 use crate::handler::ubersetup;
 use crate::handler::uploader;
@@ -146,13 +146,13 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         )
         // spaced repetition
         .service(
-            scope("/sr")
-                .route("", post().to(sr::create_card))
-                .route("", get().to(sr::get_cards))
-                .route("/practice", get().to(sr::get_practice_card))
-                .route("/{id}/rated", post().to(sr::card_rated))
-                .route("/{id}", put().to(sr::edit))
-                .route("/{id}", delete().to(sr::delete)),
+            scope("/memorise")
+                .route("", post().to(memorise::create_card))
+                .route("", get().to(memorise::get_cards))
+                .route("/practice", get().to(memorise::get_practice_card))
+                .route("/{id}/rated", post().to(memorise::card_rated))
+                .route("/{id}", put().to(memorise::edit))
+                .route("/{id}", delete().to(memorise::delete)),
         )
         // setup
         .service(scope("/ubersetup").route("", get().to(ubersetup::setup)))

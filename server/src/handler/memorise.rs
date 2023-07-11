@@ -15,10 +15,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::memorise as db;
 use crate::db::sqlite::SqlitePool;
-use crate::db::sr as db;
 use crate::error::Result;
-use crate::interop::sr::{FlashCard, ProtoCard, ProtoRating};
+use crate::interop::memorise::{FlashCard, ProtoCard, ProtoRating};
 use crate::interop::IdParam;
 use crate::session;
 use actix_web::web::{Data, Json, Path};

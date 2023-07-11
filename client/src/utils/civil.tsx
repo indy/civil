@@ -134,8 +134,8 @@ export function addToolbarSelectableClasses(mode: CivilMode) {
             return " selectable-hovering selectable-hovering-edit";
         case CivilMode.Refs:
             return " selectable-hovering selectable-hovering-refs";
-        case CivilMode.SR:
-            return " selectable-hovering selectable-hovering-sr";
+        case CivilMode.Memorise:
+            return " selectable-hovering selectable-hovering-memorise";
         case CivilMode.AddAbove:
             return " selectable-hovering selectable-hovering-add-above";
         default:

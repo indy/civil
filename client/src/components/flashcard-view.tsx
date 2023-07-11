@@ -117,7 +117,7 @@ export default function FlashCardView({ flashcard, onDelete }: Props) {
     }
 
     function confirmedDeleteClicked() {
-        const url = `/api/sr/${local.flashcard.id}`;
+        const url = `/api/memorise/${local.flashcard.id}`;
         type Data = {};
         Net.delete<Data, boolean>(url, {}).then(() => {
             localDispatch(ActionType.Deleted);
@@ -128,7 +128,7 @@ export default function FlashCardView({ flashcard, onDelete }: Props) {
     function saveClicked(e) {
         e.preventDefault();
 
-        const url = `/api/sr/${local.flashcard.id}`;
+        const url = `/api/memorise/${local.flashcard.id}`;
         Net.put<FlashCard, FlashCard>(url, local.flashcard).then(
             (updatedFlashcard) => {
                 localDispatch(ActionType.EditingSaved);

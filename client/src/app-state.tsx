@@ -116,7 +116,7 @@ const state: State = {
 
     // preferred order of the top-level menu bar
     //
-    preferredOrder: ["sr"],
+    preferredOrder: ["memorise"],
 
     // key == deckKind name of decks
     listing: signal({
@@ -161,8 +161,8 @@ const state: State = {
     scratchList: signal([]),
     scratchListMinimised: signal(false),
 
-    srReviewCount: signal(0),
-    srEarliestReviewDate: signal(undefined),
+    memoriseReviewCount: signal(0),
+    memoriseEarliestReviewDate: signal(undefined),
 };
 
 export const initialState = state;
@@ -246,8 +246,11 @@ export const AppStateChange = {
         }
     },
 
-    cbKeyDownSlash: function() {
-        if (!state.componentRequiresFullKeyboardAccess.value && !state.showingCommandBar.value) {
+    cbKeyDownSlash: function () {
+        if (
+            !state.componentRequiresFullKeyboardAccess.value &&
+            !state.showingCommandBar.value
+        ) {
             state.mode.value = CivilMode.View;
             commandBarReset(state, true);
         }
@@ -288,7 +291,7 @@ export const AppStateChange = {
                         modeToggle(state, CivilMode.AddAbove);
                         break;
                     case "KeyM":
-                        modeToggle(state, CivilMode.SR);
+                        modeToggle(state, CivilMode.Memorise);
                         break;
                 }
             }
@@ -537,8 +540,9 @@ export const AppStateChange = {
         state.recentImages.value = uber.recentImages;
         state.recentlyUsedDecks.value = uber.recentlyUsedDecks;
         state.imageDirectory.value = uber.directory;
-        state.srReviewCount.value = uber.srReviewCount;
-        state.srEarliestReviewDate.value = uber.srEarliestReviewDate;
+        state.memoriseReviewCount.value = uber.memoriseReviewCount;
+        state.memoriseEarliestReviewDate.value =
+            uber.memoriseEarliestReviewDate;
 
         state.listing.value = {
             ideas: uber.ideas,
@@ -886,7 +890,7 @@ export const AppStateChange = {
         if (DEBUG_APP_STATE) {
             console.log("setReviewCount");
         }
-        state.srReviewCount.value = count;
+        state.memoriseReviewCount.value = count;
     },
 
     loadGraph: function (graph: FullGraphStruct) {
@@ -1186,7 +1190,7 @@ export function isCivilModeAllowed(state: State, mode: CivilMode): boolean {
             return !onListingPage;
         case CivilMode.Refs:
             return !onListingPage;
-        case CivilMode.SR:
+        case CivilMode.Memorise:
             return !onListingPage;
         case CivilMode.AddAbove:
             // don't show AddAbove option for quotes

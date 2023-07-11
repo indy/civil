@@ -156,7 +156,7 @@ function reducer(state: State, action: Action): State {
     }
 }
 
-export default function SpacedRepetition({ path }: { path?: string }) {
+export default function Memorise({ path }: { path?: string }) {
     const appState = getAppState();
 
     const initialState: State = {
@@ -171,7 +171,7 @@ export default function SpacedRepetition({ path }: { path?: string }) {
     );
 
     useEffect(() => {
-        Net.get<Array<ICard>>("/api/sr").then((cards) => {
+        Net.get<Array<ICard>>("/api/memorise").then((cards) => {
             localDispatch(ActionType.CardsSet, { cards });
         });
     }, []);
@@ -187,13 +187,13 @@ export default function SpacedRepetition({ path }: { path?: string }) {
         //
         if (card.postRatingToServer) {
             Net.post<ActionDataCardCompleted, boolean>(
-                `/api/sr/${card.id}/rated`,
+                `/api/memorise/${card.id}/rated`,
                 {
                     rating,
                 }
             ).then((success) => {
                 if (!success) {
-                    console.error(`POST /api/sr/${card.id}/rated failed`);
+                    console.error(`POST /api/memorise/${card.id}/rated failed`);
                 }
             });
         }
@@ -206,7 +206,7 @@ export default function SpacedRepetition({ path }: { path?: string }) {
 
     function onPracticeClicked(e: Event) {
         e.preventDefault();
-        Net.get<ICard>("/api/sr/practice").then((card) => {
+        Net.get<ICard>("/api/memorise/practice").then((card) => {
             localDispatch(ActionType.PracticeCardSet, card);
         });
     }
@@ -218,12 +218,12 @@ export default function SpacedRepetition({ path }: { path?: string }) {
     if (local.mode === Mode.PreTest && !canTest) {
         const nextReviewDate = formattedDate(
             Date.parse(
-                appState.srEarliestReviewDate.value!
+                appState.memoriseEarliestReviewDate.value!
             ) as unknown as string
         );
         const nextReviewTime = formattedTime(
             Date.parse(
-                appState.srEarliestReviewDate.value!
+                appState.memoriseEarliestReviewDate.value!
             ) as unknown as string
         );
         nextTestInfo = `The next test will be available at ${nextReviewTime} on ${nextReviewDate}`;
@@ -231,7 +231,7 @@ export default function SpacedRepetition({ path }: { path?: string }) {
 
     return (
         <div>
-            <h1 class="ui">Spaced Repetition</h1>
+            <h1 class="ui">Memorisation</h1>
             {local.mode !== Mode.PostTest && (
                 <p class="ui">{plural(cardsToReview, "card", "s")} to review</p>
             )}
@@ -287,7 +287,7 @@ function CardTest({ card, onRatedCard, onShowAnswer }: CardTestProps) {
 
     return (
         <div>
-            <div class="sr-segment">Front</div>
+            <div class="memorise-segment">Front</div>
             <div class="note">{buildMarkup(card.prompt, card.noteId)}</div>
             {show === ShowState.Prompt && (
                 <button onClick={onShowAnswerClicked}>Show Answer</button>
@@ -303,7 +303,7 @@ function CardTest({ card, onRatedCard, onShowAnswer }: CardTestProps) {
 function Answer({ card }: { card: Card }) {
     return (
         <div>
-            <div class="sr-segment">Back</div>
+            <div class="memorise-segment">Back</div>
             <CivContainer extraClasses="note">
                 <CivLeft>
                     <div class="left-margin-entry">
@@ -321,6 +321,7 @@ type CardRatingProps = {
     card: Card;
     onRatedCard: (c: Card, r: number) => void;
 };
+
 function CardRating({ card, onRatedCard }: CardRatingProps) {
     function onRated(e: Event) {
         if (e.target instanceof HTMLButtonElement) {
@@ -332,9 +333,9 @@ function CardRating({ card, onRatedCard }: CardRatingProps) {
 
     return (
         <div>
-            <div class="sr-segment">
+            <div class="memorise-segment">
                 Rating
-                <ul class="right-margin sr-rating-descriptions">
+                <ul class="right-margin memorise-rating-descriptions">
                     <li>5 - perfect response</li>
                     <li>4 - correct response after a hesitation</li>
                     <li>

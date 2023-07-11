@@ -18,7 +18,7 @@
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Result;
 use crate::interop::decks as interop_decks;
-use crate::interop::sr as interop;
+use crate::interop::memorise as interop;
 use crate::interop::Key;
 
 use chrono::Utc;

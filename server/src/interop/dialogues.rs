@@ -18,8 +18,8 @@
 use crate::error::{Error, Result};
 
 use crate::interop::decks::{BackNote, Ref};
+use crate::interop::memorise::FlashCard;
 use crate::interop::notes::Note;
-use crate::interop::sr::FlashCard;
 use crate::interop::Key;
 
 use std::fmt;

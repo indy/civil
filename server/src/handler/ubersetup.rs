@@ -29,8 +29,8 @@ use crate::db::articles as db_articles;
 use crate::db::dialogues as db_dialogues;
 use crate::db::edges as db_edges;
 use crate::db::ideas as db_ideas;
+use crate::db::memorise as db_memorise;
 use crate::db::people as db_people;
-use crate::db::sr as db_sr;
 use crate::db::timelines as db_timelines;
 
 use crate::db::uploader as db_uploader;
@@ -48,8 +48,8 @@ struct UberStruct {
     pub directory: Key,
     pub recently_used_decks: Vec<SlimDeck>,
     pub recent_images: Vec<interop_uploader::UserUploadedImage>,
-    pub sr_review_count: i32,
-    pub sr_earliest_review_date: chrono::NaiveDateTime,
+    pub memorise_review_count: i32,
+    pub memorise_earliest_review_date: chrono::NaiveDateTime,
 
     pub ideas: interop_ideas::IdeasListings,
     pub people: interop_people::PeopleListings,
@@ -70,7 +70,7 @@ pub async fn setup(
     let recently_used_decks = db_edges::get_recently_used_decks(&sqlite_pool, user_id)?;
     let recent_images = db_uploader::get_recent(&sqlite_pool, user_id, 0)?;
     let upcoming_review =
-        db_sr::get_cards_upcoming_review(&sqlite_pool, user_id, Utc::now().naive_utc())?;
+        db_memorise::get_cards_upcoming_review(&sqlite_pool, user_id, Utc::now().naive_utc())?;
 
     let ideas = db_ideas::listings(&sqlite_pool, user_id)?;
     let people = db_people::listings(&sqlite_pool, user_id)?;
@@ -82,8 +82,8 @@ pub async fn setup(
         directory,
         recently_used_decks,
         recent_images,
-        sr_review_count: upcoming_review.review_count,
-        sr_earliest_review_date: upcoming_review.earliest_review_date,
+        memorise_review_count: upcoming_review.review_count,
+        memorise_earliest_review_date: upcoming_review.earliest_review_date,
         ideas,
         people,
         articles,

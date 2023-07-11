@@ -150,12 +150,12 @@ function updateDefinitions(
             bg_stuff: "--bg-clock-11",
 
             // "--bg-clock-10"
-            bg_sr: [
+            bg_memorise: [
                 uiColours.hueDelta * 10 + uiColours.hueOffsetBg,
                 uiColours.saturationBg - 30,
                 uiColours.lightnessBg,
             ] as ColourTriple,
-            bg_sr_active: [
+            bg_memorise_active: [
                 uiColours.hueDelta * 10 + uiColours.hueOffsetBg,
                 uiColours.saturationBg + 50,
                 uiColours.lightnessBg,
@@ -171,12 +171,12 @@ function updateDefinitions(
             fg_stuff: "--fg-clock-11",
 
             // "--fg-clock-10"
-            fg_sr: [
+            fg_memorise: [
                 uiColours.hueDelta * 10 + uiColours.hueOffsetFg,
                 uiColours.saturationFg - 30,
                 uiColours.lightnessFg,
             ] as ColourTriple,
-            fg_sr_active: [
+            fg_memorise_active: [
                 uiColours.hueDelta * 10 + uiColours.hueOffsetFg,
                 uiColours.saturationFg + 50,
                 uiColours.lightnessFg,
@@ -188,7 +188,7 @@ function updateDefinitions(
             fg_toolbar_view: "--fg1",
             fg_toolbar_edit: [10, 80, 50] as ColourTriple,
             fg_toolbar_refs: [270, 80, 50] as ColourTriple,
-            fg_toolbar_sr: [170, 80, 50] as ColourTriple,
+            fg_toolbar_memorise: [170, 80, 50] as ColourTriple,
             fg_toolbar_add_above: [210, 80, 50] as ColourTriple,
             fg_toolbar_scratchlist: [70, 80, 50] as ColourTriple,
         };
@@ -235,12 +235,12 @@ function updateDefinitions(
             bg_stuff: "--bg-clock-11",
 
             // "--bg-clock-10"
-            bg_sr: [
+            bg_memorise: [
                 uiColours.hueDelta * 10 + uiColours.hueOffsetBg,
                 uiColours.saturationBg - 30,
                 uiColours.lightnessBg,
             ] as ColourTriple,
-            bg_sr_active: [
+            bg_memorise_active: [
                 uiColours.hueDelta * 10 + uiColours.hueOffsetBg,
                 uiColours.saturationBg + 50,
                 uiColours.lightnessBg,
@@ -255,12 +255,12 @@ function updateDefinitions(
 
             fg_stuff: "--fg-clock-11",
             // "--fg-clock-10"
-            fg_sr: [
+            fg_memorise: [
                 uiColours.hueDelta * 10 + uiColours.hueOffsetFg,
                 uiColours.saturationFg - 30,
                 uiColours.lightnessFg,
             ] as ColourTriple,
-            fg_sr_active: [
+            fg_memorise_active: [
                 uiColours.hueDelta * 10 + uiColours.hueOffsetFg,
                 uiColours.saturationFg + 50,
                 uiColours.lightnessFg,
@@ -272,7 +272,7 @@ function updateDefinitions(
             fg_toolbar_view: "--fg1",
             fg_toolbar_edit: [10, 70, 50] as ColourTriple,
             fg_toolbar_refs: [270, 70, 50] as ColourTriple,
-            fg_toolbar_sr: [170, 100, 50] as ColourTriple,
+            fg_toolbar_memorise: [170, 100, 50] as ColourTriple,
             fg_toolbar_add_above: [210, 70, 50] as ColourTriple,
             fg_toolbar_scratchlist: [70, 70, 50] as ColourTriple,
         };

@@ -46,7 +46,7 @@ export enum CivilMode {
     View = 1,
     Edit,
     Refs,
-    SR,
+    Memorise,
     AddAbove,
     ScratchListLinks,
 }
@@ -372,8 +372,8 @@ export type State = {
     scratchList: Signal<Array<SlimDeck>>;
     scratchListMinimised: Signal<boolean>;
 
-    srReviewCount: Signal<number>;
-    srEarliestReviewDate: Signal<undefined | string>;
+    memoriseReviewCount: Signal<number>;
+    memoriseEarliestReviewDate: Signal<undefined | string>;
 };
 
 type GraphEdge = [number, RefKind, number];
@@ -407,8 +407,8 @@ export type UberSetup = {
     directory: string;
     recentlyUsedDecks: Array<SlimDeck>;
     recentImages: Array<UserUploadedImage>;
-    srReviewCount: number;
-    srEarliestReviewDate: string;
+    memoriseReviewCount: number;
+    memoriseEarliestReviewDate: string;
     ideas: IdeasListings;
     people: PeopleListings;
     articles: ArticleListings;

@@ -78,7 +78,7 @@ function TestColourSchemeModule({}) {
             <h2 class="pigment-quotes">Quotes</h2>
             <h2 class="pigment-dialogues">Dialogues</h2>
             <h2 class="pigment-stuff">Stuff</h2>
-            <h2 class="pigment-sr">SR</h2>
+            <h2 class="pigment-memorise">Memorise</h2>
         </Module>
     );
 }

@@ -75,8 +75,11 @@ export function DeluxeToolbar({}) {
                         {svgLinkAlt()}
                     </ToolbarItem>
                 )}
-                {isCivilModeAllowed(appState, CivilMode.SR) && (
-                    <ToolbarItem mode={CivilMode.SR} toolbarText="Memorise">
+                {isCivilModeAllowed(appState, CivilMode.Memorise) && (
+                    <ToolbarItem
+                        mode={CivilMode.Memorise}
+                        toolbarText="Memorise"
+                    >
                         {svgFlashCard()}
                     </ToolbarItem>
                 )}
@@ -151,8 +154,8 @@ function baseCssName(mode: CivilMode) {
             return "edit";
         case CivilMode.Refs:
             return "refs";
-        case CivilMode.SR:
-            return "sr";
+        case CivilMode.Memorise:
+            return "memorise";
         case CivilMode.AddAbove:
             return "add-above";
         case CivilMode.ScratchListLinks:

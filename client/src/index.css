@@ -244,9 +244,9 @@ h1 {
     border-left: var(--space-for-selectable-highlight) solid
         var(--fg-toolbar-refs);
 }
-.selectable-hovering-sr {
+.selectable-hovering-memorise {
     border-left: var(--space-for-selectable-highlight) solid
-        var(--fg-toolbar-sr);
+        var(--fg-toolbar-memorise);
 }
 .selectable-hovering-add-above {
     border-left: var(--space-for-selectable-highlight) solid
@@ -1119,14 +1119,14 @@ a:visited.pigment-inherit {
     color: var(--fg-stuff) !important;
     background: var(--bg-stuff);
 }
-.pigment-sr {
-    color: var(--fg-sr) !important;
-    background: var(--bg-sr);
+.pigment-memorise {
+    color: var(--fg-memorise) !important;
+    background: var(--bg-memorise);
 }
 /* used when there are some spaced repetition questions that are scheduled to be answered */
-.pigment-sr-active {
-    color: var(--fg-sr-active) !important;
-    background: var(--bg-sr-active);
+.pigment-memorise-active {
+    color: var(--fg-memorise-active) !important;
+    background: var(--bg-memorise-active);
 }
 
 /* above colours don't work on hyperlinks, have to explicitly specify them  */
@@ -1751,7 +1751,7 @@ input:required {
     margin-bottom: 0.5rem;
 }
 
-.sr-segment {
+.memorise-segment {
     font-size: x-large;
     margin-top: 1rem;
     border-top: 0.1rem solid var(--bg1);
@@ -1770,7 +1770,7 @@ input:required {
     cursor: pointer;
 }
 
-.sr-rating-descriptions {
+.memorise-rating-descriptions {
     list-style: none;
     color: var(--fg1);
     margin-top: 3rem;
@@ -1921,9 +1921,9 @@ input:required {
     color: var(--fg-toolbar-refs);
     fill: var(--fg-toolbar-refs);
 }
-.toolbar-sr-colour {
-    color: var(--fg-toolbar-sr);
-    fill: var(--fg-toolbar-sr);
+.toolbar-memorise-colour {
+    color: var(--fg-toolbar-memorise);
+    fill: var(--fg-toolbar-memorise);
 }
 .toolbar-add-above-colour {
     color: var(--fg-toolbar-add-above);
@@ -1943,8 +1943,8 @@ input:required {
 .toolbar-item-selected-refs {
     border: var(--ui-element-border-radius) solid var(--fg-toolbar-refs) !important;
 }
-.toolbar-item-selected-sr {
-    border: var(--ui-element-border-radius) solid var(--fg-toolbar-sr) !important;
+.toolbar-item-selected-memorise {
+    border: var(--ui-element-border-radius) solid var(--fg-toolbar-memorise) !important;
 }
 .toolbar-item-selected-add-above {
     border: var(--ui-element-border-radius) solid var(--fg-toolbar-add-above) !important;
@@ -2106,12 +2106,12 @@ input:required {
     }
 
     .standard-list > li > .muh-container {
-      margin-left: -1.3rem;
+        margin-left: -1.3rem;
     }
 
     .star-rating-partial {
-      float: left;
-      margin-left: -12rem;
+        float: left;
+        margin-left: -12rem;
     }
 }
 

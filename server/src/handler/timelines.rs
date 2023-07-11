@@ -16,9 +16,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::decks as decks_db;
+use crate::db::memorise as memorise_db;
 use crate::db::notes as notes_db;
 use crate::db::points as points_db;
-use crate::db::sr as sr_db;
 use crate::db::timelines as db;
 use crate::error::Result;
 use crate::interop::points as points_interop;
@@ -162,7 +162,7 @@ fn sqlite_augment(
     let refs = decks_db::from_deck_id_via_notes_to_decks(sqlite_pool, timeline_id)?;
     let backnotes = decks_db::get_backnotes(sqlite_pool, timeline_id)?;
     let backrefs = decks_db::get_backrefs(sqlite_pool, timeline_id)?;
-    let flashcards = sr_db::all_flashcards_for_deck(sqlite_pool, timeline_id)?;
+    let flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, timeline_id)?;
 
     timeline.points = Some(points);
     timeline.notes = Some(notes);

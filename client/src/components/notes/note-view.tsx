@@ -258,7 +258,7 @@ function reducer(state: LocalState, action: Action): LocalState {
                 newState.note.flashcards = [flashcard];
             }
 
-            let reviewCount = appState.srReviewCount.value + 1;
+            let reviewCount = appState.memoriseReviewCount.value + 1;
 
             AppStateChange.relinquishKeyboard();
             AppStateChange.setCivilModeToView();
@@ -463,7 +463,7 @@ export default function NoteView({
                 prompt: flashCardPrompt,
             };
 
-            Net.post("/api/sr", data).then((newFlashcard) => {
+            Net.post("/api/memorise", data).then((newFlashcard) => {
                 localDispatch(ActionType.FlashCardSaved, {
                     flashcard: newFlashcard,
                     appState,
@@ -598,7 +598,7 @@ export default function NoteView({
                     );
                 }
                 break;
-            case CivilMode.SR:
+            case CivilMode.Memorise:
                 if (!local.addFlashCardUI) {
                     localDispatch(
                         ActionType.AddFlashCardUiShow,
@@ -660,7 +660,7 @@ export default function NoteView({
             {appState.mode.value === CivilMode.Refs &&
                 local.addDeckReferencesUI &&
                 buildAddDecksUI()}
-            {appState.mode.value === CivilMode.SR &&
+            {appState.mode.value === CivilMode.Memorise &&
                 local.addFlashCardUI &&
                 buildAddFlashCardUI()}
             {local.isEditingMarkup && buildMainButtons()}

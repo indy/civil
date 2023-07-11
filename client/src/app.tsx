@@ -16,7 +16,7 @@ import { DeluxeToolbar } from "components/deluxe-toolbar";
 import AccountSettings from "pages/account-settings";
 import FrontPage from "pages/front-page";
 import Login from "pages/login";
-import SpacedRepetition from "pages/spaced-repetition";
+import Memorise from "pages/memorise";
 import { Article, Articles } from "pages/articles";
 import { Dialogue, DialogueChat, Dialogues } from "pages/dialogues";
 import { Ideas, Idea } from "pages/ideas";
@@ -74,15 +74,18 @@ function TopBarMenu() {
     }
 
     function menuItemText(topMenuItem: string): string {
-        if (topMenuItem === "sr") {
-            return `SR(${appState.srReviewCount.value})`;
+        if (topMenuItem === "memorise") {
+            return `Memorise(${appState.memoriseReviewCount.value})`;
         } else {
             return capitalise(topMenuItem);
         }
     }
 
     function menuItemClass(topMenuItem: string): string {
-        if (topMenuItem === "sr" && appState.srReviewCount.value > 0) {
+        if (
+            topMenuItem === "memorise" &&
+            appState.memoriseReviewCount.value > 0
+        ) {
             return `pigment-${topMenuItem}-active`;
         } else {
             return `pigment-${topMenuItem}`;
@@ -164,7 +167,7 @@ const AppUI = () => {
                 <FrontPage path="/" />
                 <Login path="/login" loginCallback={loginHandler} />
                 <AccountSettings path="/account-settings" />
-                <SpacedRepetition path="/sr" />
+                <Memorise path="/memorise" />
                 <Ideas path="/ideas" />
                 <Idea path="/ideas/:id" />
                 <Articles path="/articles" />
@@ -176,8 +179,8 @@ const AppUI = () => {
                 <Quotes path="/quotes" />
                 <Quote path="/quotes/:id" />
                 <Dialogues path="/dialogues" />
-                <DialogueChat path="/dialogues/chat" />
                 <Dialogue path="/dialogues/:id" />
+                <DialogueChat path="/dialogues/chat" />
             </Router>
         </div>
     );

@@ -76,10 +76,10 @@ const Commands: Array<Command> = [
         },
     },
     {
-        command: "s",
-        description: "goto spaced repetition",
+        command: "m",
+        description: "goto memorisation",
         fn: () => {
-            route("/sr");
+            route("/memorise");
             return true;
         },
     },
