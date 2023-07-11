@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+pub mod ai;
 pub mod db;
 mod error;
-mod external;
 mod handler;
 pub mod interop;
 pub mod note_parser_api;

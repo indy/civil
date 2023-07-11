@@ -29,7 +29,6 @@ import NoteForm from "components/notes/note-form";
 import RefView from "components/ref-view";
 import RoleView from "components/role-view";
 import buildMarkup from "components/notes/build-markup";
-// import buildSimplifiedText from "components/notes/build-simplified-text";
 import useLocalReducer from "components/use-local-reducer";
 import useMouseHovering from "components/use-mouse-hovering";
 

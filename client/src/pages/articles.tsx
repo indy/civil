@@ -7,6 +7,8 @@ import {
     DeckArticle,
     DeckKind,
     ArticleListings,
+    NoteKind,
+    Note,
 } from "types";
 
 import { getAppState, AppStateChange } from "app-state";
@@ -15,6 +17,7 @@ import InsigniaSelector from "components/insignia-selector";
 import SegmentGraph from "components/graph/segment-graph";
 import SegmentNotes from "components/notes/segment-notes";
 
+import AutoSummarize from "components/auto-summarize";
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
@@ -89,6 +92,17 @@ function Article({ path, id }: { path?: string; id?: string }) {
     }
 
     const deck: DeckArticle | undefined = deckManager.getDeck();
+
+
+
+    function onAutoSummarizeFinish(autoSummarizedNote: Note) {
+        // let newDeck = { ...deck! };
+        // newDeck.notes.push(autoSummarizedNote);
+        // deckManager.updateAndReset(newDeck!);
+        window.location.reload();
+    }
+
+
     if (deck) {
         return (
             <article>
@@ -124,6 +138,9 @@ function Article({ path, id }: { path?: string; id?: string }) {
                                     deckKind={deckManager.getDeckKind()}
                                     id={deck.id}
                                 />
+                                {deckManager.canShowPassage(
+                                    NoteKind.NoteSummary
+                                ) && <AutoSummarize deck={deck} onFinish={onAutoSummarizeFinish}/>}
                                 <button
                                     onClick={deckManager.onShowSummaryClicked}
                                 >
@@ -136,6 +153,7 @@ function Article({ path, id }: { path?: string; id?: string }) {
                                 </button>
                             </CivMain>
                         </CivContainer>
+
                         <div class="vertical-spacer"></div>
                         <CivContainer>
                             <ArticleUpdater

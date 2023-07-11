@@ -52,7 +52,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/recent", get().to(decks::recent))
                 .route("/insignia_filter/{insig}", get().to(decks::insignia_filter))
                 .route("/recently_visited", get().to(decks::recently_visited))
-                //.route("/summarize/{id}", get().to(decks::summarize))
+                .route("/summarize/{id}", post().to(decks::summarize))
                 .route("/preview/{id}", get().to(decks::preview)),
         )
         // registration

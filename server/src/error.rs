@@ -28,6 +28,7 @@ pub enum Error {
     Authenticating,
     ChatGPTError(chatgpt::err::Error),
     CivilShared(civil_shared::Error),
+    ExternalServerError,
     IO(std::io::Error),
     InvalidKind,
     InvalidResource,

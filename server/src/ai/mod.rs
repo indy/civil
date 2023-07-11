@@ -16,3 +16,24 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 pub mod openai;
+
+use crate::error::Result;
+use chatgpt::prelude::*;
+
+#[derive(Debug, Clone)]
+pub struct AI {
+    pub chatgpt_client: ChatGPT,
+}
+
+impl AI {
+    pub fn new(openai_key: String) -> Result<Self> {
+        // Creating a new ChatGPT client.
+        let chatgpt_config = chatgpt::config::ModelConfiguration {
+            engine: ChatGPTEngine::Gpt35Turbo,
+            ..Default::default()
+        };
+        let chatgpt_client = ChatGPT::new_with_config(openai_key, chatgpt_config)?;
+
+        Ok(Self { chatgpt_client })
+    }
+}

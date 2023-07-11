@@ -20,31 +20,24 @@ use actix_session::{config::PersistentSession, storage::CookieSessionStore, Sess
 use actix_web::cookie::{self, Key, SameSite};
 use actix_web::middleware::{self, ErrorHandlers};
 use actix_web::{http, web, App, HttpServer};
-use civil_server::{self, server_api, Result, ServerConfig};
+use civil_server::{self, server_api, ServerConfig};
 use std::env;
 use tracing::{error, info};
-
-use chatgpt::prelude::*;
 
 const SIGNING_KEY_SIZE: usize = 64;
 
 use r2d2_sqlite::SqliteConnectionManager;
 
 #[actix_rt::main]
-async fn main() -> Result<()> {
+async fn main() -> civil_server::Result<()> {
     civil_server::init_dotenv();
     civil_server::init_tracing();
 
+    let sqlite_db = civil_server::env_var_string_or("SQLITE_DB", "civil.db");
     let port = civil_server::env_var_string_or("PORT", "3002");
     let www_path = civil_server::env_var_string_or("WWW_PATH", "www");
     let user_content_path = civil_server::env_var_string_or("USER_CONTENT_PATH", "user-content");
-    let registration_magic_word = civil_server::env_var_string("REGISTRATION_MAGIC_WORD")?;
     let cookie_secure = civil_server::env_var_bool_or("COOKIE_OVER_HTTPS_ONLY", false);
-    let openai_key = civil_server::env_var_string("OPENAI_KEY")?;
-
-    let session_signing_key = env::var("SESSION_SIGNING_KEY")?;
-
-    let sqlite_db = civil_server::env_var_string_or("SQLITE_DB", "civil.db");
 
     info!("SQLITE_DB: {}", sqlite_db);
     info!("PORT: {}", port);
@@ -52,17 +45,16 @@ async fn main() -> Result<()> {
     info!("USER_CONTENT_PATH: {}", user_content_path);
     info!("COOKIE_OVER_HTTPS_ONLY: {}", cookie_secure);
 
+    let registration_magic_word = civil_server::env_var_string("REGISTRATION_MAGIC_WORD")?;
+    let session_signing_key = env::var("SESSION_SIGNING_KEY")?;
+
     civil_server::db::sqlite_migrations::migration_check(&sqlite_db)?;
 
     let sqlite_manager = SqliteConnectionManager::file(&sqlite_db);
     let sqlite_pool = r2d2::Pool::new(sqlite_manager)?;
 
-    // Creating a new ChatGPT client.
-    let chatgpt_config = chatgpt::config::ModelConfiguration {
-        engine: ChatGPTEngine::Gpt35Turbo,
-        ..Default::default()
-    };
-    let chatgpt_client = ChatGPT::new_with_config(openai_key, chatgpt_config)?;
+    let openai_key = civil_server::env_var_string("OPENAI_KEY")?;
+    let ai = civil_server::ai::AI::new(openai_key)?;
 
     let server = HttpServer::new(move || {
         let signing_key: &mut [u8] = &mut [0; SIGNING_KEY_SIZE];
@@ -88,7 +80,8 @@ async fn main() -> Result<()> {
 
         App::new()
             .app_data(web::Data::new(sqlite_pool.clone()))
-            .app_data(web::Data::new(chatgpt_client.clone()))
+            // .app_data(web::Data::new(chatgpt_client.clone()))
+            .app_data(web::Data::new(ai.clone()))
             .app_data(web::Data::new(ServerConfig {
                 user_content_path: user_content_path.clone(),
                 registration_magic_word: registration_magic_word.clone(),

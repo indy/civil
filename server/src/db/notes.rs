@@ -285,6 +285,26 @@ pub(crate) fn preview(
     Ok(interop::PreviewNotes { deck_id, notes })
 }
 
+pub(crate) fn add_auto_summary(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_id: Key,
+    prev_id: Option<Key>,
+    summary: &str,
+) -> Result<interop::Note> {
+    let conn = sqlite_pool.get()?;
+    create_common(
+        &conn,
+        user_id,
+        deck_id,
+        interop::NoteKind::NoteSummary,
+        None,
+        summary,
+        prev_id,
+        None,
+    )
+}
+
 pub fn edit_note(
     sqlite_pool: &SqlitePool,
     user_id: Key,

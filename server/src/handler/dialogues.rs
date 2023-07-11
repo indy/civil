@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::ai::{openai, AI};
 use crate::db::decks as decks_db;
 use crate::db::dialogues as db;
 use crate::db::memorise as memorise_db;
 use crate::db::notes as notes_db;
 use crate::db::sqlite::SqlitePool;
 use crate::error::Result;
-use crate::external::openai;
 use crate::interop::dialogues as interop;
 use crate::interop::{IdParam, Key};
 use crate::session;
@@ -33,7 +33,7 @@ use tracing::info;
 
 pub async fn chat(
     dialogue: Json<interop::ProtoChat>,
-    chatgpt_client: Data<chatgpt::prelude::ChatGPT>,
+    ai: Data<AI>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
     info!("chat");
@@ -43,7 +43,7 @@ pub async fn chat(
 
     let dialogue = dialogue.into_inner();
 
-    let response = openai::chat(chatgpt_client, dialogue.messages).await?;
+    let response = openai::chat(&ai.chatgpt_client, dialogue.messages).await?;
 
     Ok(HttpResponse::Ok().json(response))
 }
@@ -78,7 +78,7 @@ pub async fn get_all(
 pub async fn converse(
     sqlite_pool: Data<SqlitePool>,
     chat_message: Json<interop::AppendChatMessage>,
-    chatgpt_client: Data<chatgpt::prelude::ChatGPT>,
+    ai: Data<AI>,
     params: Path<IdParam>,
     session: actix_session::Session,
 ) -> Result<HttpResponse> {
@@ -93,7 +93,7 @@ pub async fn converse(
 
     let history = db::get_chat_history(&sqlite_pool, user_id, deck_id)?;
 
-    let response = openai::chat(chatgpt_client, history).await?;
+    let response = openai::chat(&ai.chatgpt_client, history).await?;
 
     for message_choice in response {
         // should only loop through once

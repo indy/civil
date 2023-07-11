@@ -15,10 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::error::Result;
+use crate::error::{Error, Result};
 use crate::interop::dialogues as interop;
-
-use actix_web::web::Data;
 
 use chatgpt::prelude::*;
 
@@ -73,7 +71,7 @@ impl From<interop::ChatMessage> for chatgpt::types::ChatMessage {
 }
 
 pub(crate) async fn chat(
-    chatgpt: Data<ChatGPT>,
+    chatgpt: &ChatGPT,
     messages: Vec<interop::ChatMessage>,
 ) -> Result<Vec<MessageChoice>> {
     let mut history: Vec<chatgpt::types::ChatMessage> = vec![];
@@ -82,12 +80,20 @@ pub(crate) async fn chat(
         history.push(m.into());
     }
 
-    let r = chatgpt.send_history(&history).await?;
+    // let r = chatgpt.send_history(&history).await?;
 
-    let mut response: Vec<MessageChoice> = vec![];
-    for message_choice in r.message_choices {
-        response.push(MessageChoice::from(message_choice));
+    match chatgpt.send_history(&history).await {
+        Ok(r) => {
+            let mut response: Vec<MessageChoice> = vec![];
+            for message_choice in r.message_choices {
+                response.push(MessageChoice::from(message_choice));
+            }
+
+            Ok(response)
+        }
+        Err(e) => {
+            dbg!(&e);
+            Err(Error::ChatGPTError(e))
+        }
     }
-
-    Ok(response)
 }
