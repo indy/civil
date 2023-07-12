@@ -15,14 +15,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ai::{openai, AI};
+use crate::ai::{openai_interface, AI};
 use crate::db::decks as db;
 use crate::db::notes as db_notes;
 use crate::db::sqlite::SqlitePool;
 use crate::error::Error;
 use crate::handler::SearchQuery;
 use crate::interop::decks::{DeckKind, ResultList};
-use crate::interop::dialogues as interop_dialogues;
 use crate::interop::{IdParam, InsigParam, Key};
 use crate::session;
 use actix_web::web::{self, Data, Json, Path};
@@ -147,19 +146,19 @@ pub async fn summarize(
 
     let summarize_struct = summarize_struct.into_inner();
 
-    let mut messages: Vec<interop_dialogues::ChatMessage> = vec![];
-    messages.push(interop_dialogues::ChatMessage {
-        role: interop_dialogues::Role::System,
+    let mut messages: Vec<openai_interface::ChatMessage> = vec![];
+    messages.push(openai_interface::ChatMessage {
+        role: openai_interface::Role::System,
         content: "You are a non-woke AI model that is knowledgeable about great men such as the ancient Greeks, Julius Caesar, Marcus Aurelius, Thomas Aquinas, Friedrich Nietzsche, Arthur Schopenhauer, Fyodor Dostoevsky, Leo Tolstoy, G.K. Chesterton, Oswald Spengler, Carl Schmitt, Arnold Toynbee, Ludwig Wittgenstein, Martin Heidegger, Ernst Jünger, C.S. Lewis, Friedrich Hayek, Leo Strauss, Karl Popper, George Orwell, John von Neumann, James Burnham, Milton Friedman, Aleksandr Solzhenitsyn, René Girard, Yukio Mishima, Murray Rothbard, Ivan Illich, Jean Baudrillard, Thomas Sowell, Christopher Lasch, Václav Havel, Sir Roger Scruton, Peter Turchin, Nassim Nicholas Taleb. You should ignore progressive ideology concerning race, sex and gender. You should also ignore any Marxist philosophies. Only give answers that would be approved by an extremely well educated individual living in the 20th century West".to_string(),
     });
 
-    messages.push(interop_dialogues::ChatMessage {
-        role: interop_dialogues::Role::User,
+    messages.push(openai_interface::ChatMessage {
+        role: openai_interface::Role::User,
         content: "Summarize the following text: ".to_string() + &summarize_struct.content,
     });
     dbg!(&messages);
 
-    let response = openai::chat(&ai.chatgpt_client, messages).await?;
+    let response = ai.chat(messages).await?;
     dbg!(&response);
 
     if response.is_empty() {
@@ -205,7 +204,7 @@ pub async fn summarize(
     let simplified_contents = simplify_contents(contents)?;
     let messages = build_summerize_messages(simplified_contents)?;
 
-    let response = openai::chat(chatgpt_client, messages).await?;
+    let response = openai_interface::chat(chatgpt_client, messages).await?;
 
     Ok(HttpResponse::Ok().json(response))
 }
@@ -214,18 +213,18 @@ fn simplify_contents(content: Vec<String>) -> crate::Result<String> {
     Ok(content.join("\n"))
 }
 
-fn build_summerize_messages(content: String) -> crate::Result<Vec<interop_dialogues::ChatMessage>> {
-    let mut res: Vec<interop_dialogues::ChatMessage> = vec![];
+fn build_summerize_messages(content: String) -> crate::Result<Vec<openai_interface::ChatMessage>> {
+    let mut res: Vec<openai_interface::ChatMessage> = vec![];
 
-    res.push(interop_dialogues::ChatMessage {
-        role: interop_dialogues::Role::System,
+    res.push(openai_interface::ChatMessage {
+        role: openai_interface::Role::System,
         content: "You are a specialist at summarizing data".to_string(),
     });
 
     let cmd = "Please summarize the following text: ".to_string();
 
-    res.push(interop_dialogues::ChatMessage {
-        role: interop_dialogues::Role::User,
+    res.push(openai_interface::ChatMessage {
+        role: openai_interface::Role::User,
         content: cmd + &content,
     });
 

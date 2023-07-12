@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ai::{openai, AI};
+use crate::ai::{openai_interface, AI};
 use crate::db::decks as decks_db;
 use crate::db::dialogues as db;
 use crate::db::memorise as memorise_db;
@@ -42,7 +42,8 @@ pub async fn chat(
 
     let dialogue = dialogue.into_inner();
 
-    let response = openai::chat(&ai.chatgpt_client, dialogue.messages).await?;
+    let response = ai.chat(dialogue.messages).await?;
+    // let response = openai_interface::chat(&ai.chatgpt_client, dialogue.messages).await?;
 
     Ok(HttpResponse::Ok().json(response))
 }
@@ -76,7 +77,7 @@ pub async fn get_all(
 
 pub async fn converse(
     sqlite_pool: Data<SqlitePool>,
-    chat_message: Json<interop::AppendChatMessage>,
+    chat_message: Json<openai_interface::AppendChatMessage>,
     ai: Data<AI>,
     params: Path<IdParam>,
     session: actix_session::Session,
@@ -92,15 +93,16 @@ pub async fn converse(
 
     let history = db::get_chat_history(&sqlite_pool, user_id, deck_id)?;
 
-    let response = openai::chat(&ai.chatgpt_client, history).await?;
+    let response = ai.chat(history).await?;
+    // let response = openai_interface::chat(&ai.chatgpt_client, history).await?;
 
     for message_choice in response {
         // should only loop through once
         //
         let message = message_choice.message;
-        let acm = interop::AppendChatMessage {
+        let acm = openai_interface::AppendChatMessage {
             prev_note_id: Some(prev_note_id),
-            role: interop::Role::from(message.role),
+            role: openai_interface::Role::from(message.role),
             content: message.content,
         };
         prev_note_id = db::add_chat_message(&sqlite_pool, user_id, deck_id, acm)?;

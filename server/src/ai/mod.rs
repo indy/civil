@@ -15,8 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pub mod openai;
+pub mod openai_interface;
 
+use crate::error::Error;
 use chatgpt::prelude::*;
 
 #[derive(Debug, Clone)]
@@ -34,5 +35,30 @@ impl AI {
         let chatgpt_client = ChatGPT::new_with_config(openai_key, chatgpt_config)?;
 
         Ok(Self { chatgpt_client })
+    }
+
+    // chat_gpt
+    //
+    pub async fn chat(
+        &self,
+        messages: Vec<openai_interface::ChatMessage>,
+    ) -> crate::Result<Vec<openai_interface::MessageChoice>> {
+        let history: Vec<chatgpt::types::ChatMessage> =
+            messages.into_iter().map(From::from).collect();
+
+        match self.chatgpt_client.send_history(&history).await {
+            Ok(r) => {
+                let response = r
+                    .message_choices
+                    .into_iter()
+                    .map(openai_interface::MessageChoice::from)
+                    .collect();
+                Ok(response)
+            }
+            Err(e) => {
+                dbg!(&e);
+                Err(Error::ChatGPTError(e))
+            }
+        }
     }
 }

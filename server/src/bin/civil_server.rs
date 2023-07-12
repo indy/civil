@@ -80,7 +80,6 @@ async fn main() -> civil_server::Result<()> {
 
         App::new()
             .app_data(web::Data::new(sqlite_pool.clone()))
-            // .app_data(web::Data::new(chatgpt_client.clone()))
             .app_data(web::Data::new(ai.clone()))
             .app_data(web::Data::new(ServerConfig {
                 user_content_path: user_content_path.clone(),

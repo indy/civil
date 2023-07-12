@@ -17,12 +17,12 @@
 
 use std::str::FromStr;
 
+use crate::ai::openai_interface;
 use crate::db::decks;
 use crate::db::notes as db_notes;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::dialogues as interop;
-use crate::interop::dialogues::Role;
 use crate::interop::notes::NoteKind;
 use crate::interop::Key;
 
@@ -112,12 +112,12 @@ fn get_original_chat_messages(
     conn: &Connection,
     user_id: Key,
     dialogue_id: Key,
-) -> crate::Result<Vec<interop::OriginalChatMessage>> {
-    fn chat_message_from_row(row: &Row) -> crate::Result<interop::OriginalChatMessage> {
+) -> crate::Result<Vec<openai_interface::OriginalChatMessage>> {
+    fn chat_message_from_row(row: &Row) -> crate::Result<openai_interface::OriginalChatMessage> {
         let r: String = row.get(1)?;
-        let role = Role::from_str(&r)?;
+        let role = openai_interface::Role::from_str(&r)?;
 
-        Ok(interop::OriginalChatMessage {
+        Ok(openai_interface::OriginalChatMessage {
             note_id: row.get(0)?,
             role,
             content: row.get(2)?,
@@ -219,7 +219,7 @@ pub(crate) fn create(
             continue;
         }
 
-        let append_chat_message = interop::AppendChatMessage {
+        let append_chat_message = openai_interface::AppendChatMessage {
             prev_note_id: new_prev,
             role: chat_message.role,
             content: chat_message.content,
@@ -242,7 +242,7 @@ pub(crate) fn add_chat_message(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
-    chat_message: interop::AppendChatMessage,
+    chat_message: openai_interface::AppendChatMessage,
 ) -> crate::Result<Key> {
     // check if content is empty???
 
@@ -261,7 +261,7 @@ fn create_chat_message(
     conn: &Connection,
     user_id: Key,
     deck_id: Key,
-    chat_message: interop::AppendChatMessage,
+    chat_message: openai_interface::AppendChatMessage,
 ) -> crate::Result<Key> {
     // check if content is empty???
 
@@ -296,12 +296,12 @@ pub(crate) fn get_chat_history(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
-) -> crate::Result<Vec<interop::ChatMessage>> {
-    fn chat_message_from_row(row: &Row) -> crate::Result<interop::ChatMessage> {
+) -> crate::Result<Vec<openai_interface::ChatMessage>> {
+    fn chat_message_from_row(row: &Row) -> crate::Result<openai_interface::ChatMessage> {
         let r: String = row.get(0)?;
-        let role = Role::from_str(&r)?;
+        let role = openai_interface::Role::from_str(&r)?;
 
-        Ok(interop::ChatMessage {
+        Ok(openai_interface::ChatMessage {
             role,
             content: row.get(1)?,
         })
