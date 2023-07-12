@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { Link, Router, route, RouterOnChangeArgs } from "preact-router";
 
-import { State, User, UberSetup } from "types";
+import { State, User, UberSetup, WaitingFor } from "types";
 
 import { AppStateChange, AppStateProvider, getAppState } from "app-state";
 
@@ -24,6 +24,8 @@ import { Person, People } from "pages/people";
 import { Quote, Quotes } from "pages/quotes";
 import { Timeline, Timelines } from "pages/timelines";
 
+import { svgClock } from "components/svg-loaders";
+
 export const App = ({ state }: { state: State }) => {
     return (
         <AppStateProvider state={state}>
@@ -42,6 +44,16 @@ function DebugMessages() {
     return (
         <div class="debug-messages">
             {appState.debugMessages.value.map(render)}
+        </div>
+    );
+}
+
+function WaitingDisplay() {
+    const appState = getAppState();
+
+    return (
+        <div class="waiting-for">
+            {appState.waitingFor.value === WaitingFor.Server && svgClock()}
         </div>
     );
 }
@@ -157,6 +169,7 @@ const AppUI = () => {
 
     return (
         <div id="civil-app">
+            <WaitingDisplay />
             <DebugMessages />
             <ScratchList />
             <CommandBar />

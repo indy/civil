@@ -51,6 +51,17 @@
     padding-bottom: 1rem;
 }
 
+.waiting-for {
+    position: fixed;
+    /* top: 50%; */
+    /* left: 50%; */
+    /* margin-top: -5rem; */
+    /* margin-left: -5rem; */
+
+    top: 5rem;
+    left: 5rem;
+}
+
 .debug-messages {
     position: fixed;
     top: 0;
@@ -336,9 +347,9 @@ section {
     padding-bottom: 1rem;
 }
 
-p,
-ol,
-ul {
+.muh-main-standard p,
+.muh-main-standard ol,
+.muh-main-standard ul {
     font-size: 1.4rem;
     line-height: 2rem;
 }
@@ -406,6 +417,14 @@ figcaption {
 
 figure.fullwidth figcaption {
     margin-right: 24%;
+}
+
+.machine-generated {
+    font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    margin-left: 1rem;
+    font-size: 1rem;
+    line-height: 1.5rem;
+    color: var(--fg-dialogues);
 }
 
 .rollupable-1000ms {
@@ -2115,9 +2134,8 @@ input:required {
     }
 
     .role-view {
-      float: left;
-      margin-left: 1rem;
-
+        float: left;
+        margin-left: 1rem;
     }
 }
 

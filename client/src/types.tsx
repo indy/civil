@@ -238,6 +238,9 @@ export type ColourSettings = {
     hueOffsetBg: number;
     saturationBg: number;
     lightnessBg: number;
+
+    textSat: number;
+    textLit: number;
 };
 
 export type ColourTriple = [number, number, number];
@@ -318,7 +321,15 @@ export type CommandBarState = {
     keyDownIndex: number;
 };
 
+export enum WaitingFor {
+    User,
+    Client,
+    Server,
+}
+
 export type State = {
+    waitingFor: Signal<WaitingFor>;
+
     debugMessages: Signal<Array<string>>;
 
     appName: string;

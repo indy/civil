@@ -621,6 +621,12 @@ export default function NoteView({
     // console.log("output:");
     // console.log(buildSimplifiedText(local.note.content));
 
+    const isMachine =
+        note.chatMessage && note.chatMessage!.role === Role.Assistant;
+    const markupReplacementClasses = isMachine
+        ? "machine-generated"
+        : undefined;
+
     return (
         <CivContainer extraClasses={noteClasses}>
             {appState.mode.value === CivilMode.AddAbove &&
@@ -643,7 +649,7 @@ export default function NoteView({
             )}
 
             {!local.isEditingMarkup && (
-                <CivMain>
+                <CivMain replacementClasses={markupReplacementClasses}>
                     <div onClick={onNoteClicked} ref={hoveringRef}>
                         {local.isMinimisedText && (
                             <p class="minimised-text">
@@ -673,7 +679,11 @@ function buildLeftMarginContent(
     onCopyRefBelow: (ref: Reference, nextNote: Note) => void,
     nextNote?: Note
 ) {
-    if (note.refs.length > 0 || note.flashcards.length > 0 || note.chatMessage) {
+    if (
+        note.refs.length > 0 ||
+        note.flashcards.length > 0 ||
+        note.chatMessage
+    ) {
         return (
             <CivLeft>
                 {note.chatMessage && <RoleView role={note.chatMessage!.role} />}

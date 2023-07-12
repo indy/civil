@@ -78,6 +78,9 @@ function updateSettings(
             hueOffsetBg: 67,
             saturationBg: 60,
             lightnessBg: 89.9,
+
+            textSat: 83.7,
+            textLit: 53.6,
         };
     } else {
         s = {
@@ -94,6 +97,9 @@ function updateSettings(
             hueOffsetFg: 65.7,
             saturationFg: 90.5,
             lightnessFg: 80,
+
+            textSat: 100,
+            textLit: 70,
         };
     }
     return s;
@@ -104,14 +110,69 @@ function updateDefinitions(
     uiDefinitions: ColourDefinitions,
     colourScheme: ColourScheme
 ): ColourDefinitions {
-    let s: ColourDefinitions;
 
+    // colours that can be derived from previously set
+    // variables  regardless of the current colour scheme
+    //
+    let s: ColourDefinitions = {
+        ...uiDefinitions,
+
+        bg_ideas: "--bg-clock-06",
+        bg_articles: "--bg-clock-12",
+        bg_people: "--bg-clock-09",
+        bg_timelines: "--bg-clock-03",
+        bg_quotes: "--bg-clock-07",
+        bg_dialogues: "--bg-clock-02",
+
+        bg_stuff: "--bg-clock-11",
+
+        fg_ideas: "--fg-clock-06",
+        fg_articles: "--fg-clock-12",
+        fg_people: "--fg-clock-09",
+        fg_timelines: "--fg-clock-03",
+        fg_quotes: "--fg-clock-07",
+        fg_dialogues: "--fg-clock-02",
+
+        fg_stuff: "--fg-clock-11",
+
+        fg_toolbar_view: "--fg1",
+
+        bg_memorise: [
+            uiColours.hueDelta * 10 + uiColours.hueOffsetBg,
+            uiColours.saturationBg - 30,
+            uiColours.lightnessBg,
+        ] as ColourTriple,
+        bg_memorise_active: [
+            uiColours.hueDelta * 10 + uiColours.hueOffsetBg,
+            uiColours.saturationBg + 50,
+            uiColours.lightnessBg,
+        ] as ColourTriple,
+
+        fg_memorise: [
+            uiColours.hueDelta * 10 + uiColours.hueOffsetFg,
+            uiColours.saturationFg - 30,
+            uiColours.lightnessFg,
+        ] as ColourTriple,
+        fg_memorise_active: [
+            uiColours.hueDelta * 10 + uiColours.hueOffsetFg,
+            uiColours.saturationFg + 50,
+            uiColours.lightnessFg,
+        ] as ColourTriple,
+
+        scribble_neutral: [247, uiColours.textSat, uiColours.textLit] as ColourTriple,
+        scribble_disagree: [15.1, uiColours.textSat, uiColours.textLit] as ColourTriple,
+        hyperlink: [247, uiColours.textSat, uiColours.textLit] as ColourTriple,
+        highlight: [85, 100, 90] as ColourTriple,
+
+        red_text: [10, uiColours.textSat, uiColours.textLit] as ColourTriple,
+        green_text: [130, uiColours.textSat, uiColours.textLit] as ColourTriple,
+    };
+
+    // colours that need to be explicitly set for each colour scheme
+    //
     if (colourScheme === ColourScheme.Light) {
-        // console.log("mode is light");
-        let textSat = 83.7;
-        let textLit = 53.6;
         s = {
-            ...uiDefinitions,
+            ...s,
 
             bg0: [46.5, 19.2, 98.7] as ColourTriple,
             bg: [46.5, 19.2, 95.7] as ColourTriple,
@@ -121,10 +182,10 @@ function updateDefinitions(
             fg1: [0, 0, 40.7] as ColourTriple,
             fg2: [0, 0, 70.7] as ColourTriple,
 
+            fg_inactive: [0, 0, 60] as ColourTriple,
+
             bg_ui: [46.1, 20.2, 82.0] as ColourTriple,
             fg_ui: [46.1, 20.2, 62.0] as ColourTriple,
-
-            fg_inactive: [0, 0, 60] as ColourTriple,
 
             divider: [0, 0, 77.7] as ColourTriple,
 
@@ -135,57 +196,7 @@ function updateDefinitions(
             graph_edge_in_contrast: [217, 60, 70] as ColourTriple,
             graph_edge_critical: [7, 60, 70] as ColourTriple,
 
-            scribble_neutral: [247, textSat, textLit] as ColourTriple,
-            scribble_disagree: [15.1, textSat, textLit] as ColourTriple,
-            hyperlink: [247, textSat, textLit] as ColourTriple,
-            highlight: [85, 100, 90] as ColourTriple,
 
-            bg_ideas: "--bg-clock-06",
-            bg_articles: "--bg-clock-12",
-            bg_people: "--bg-clock-09",
-            bg_timelines: "--bg-clock-03",
-            bg_quotes: "--bg-clock-07",
-            bg_dialogues: "--bg-clock-02",
-
-            bg_stuff: "--bg-clock-11",
-
-            // "--bg-clock-10"
-            bg_memorise: [
-                uiColours.hueDelta * 10 + uiColours.hueOffsetBg,
-                uiColours.saturationBg - 30,
-                uiColours.lightnessBg,
-            ] as ColourTriple,
-            bg_memorise_active: [
-                uiColours.hueDelta * 10 + uiColours.hueOffsetBg,
-                uiColours.saturationBg + 50,
-                uiColours.lightnessBg,
-            ] as ColourTriple,
-
-            fg_ideas: "--fg-clock-06",
-            fg_articles: "--fg-clock-12",
-            fg_people: "--fg-clock-09",
-            fg_timelines: "--fg-clock-03",
-            fg_quotes: "--fg-clock-07",
-            fg_dialogues: "--fg-clock-02",
-
-            fg_stuff: "--fg-clock-11",
-
-            // "--fg-clock-10"
-            fg_memorise: [
-                uiColours.hueDelta * 10 + uiColours.hueOffsetFg,
-                uiColours.saturationFg - 30,
-                uiColours.lightnessFg,
-            ] as ColourTriple,
-            fg_memorise_active: [
-                uiColours.hueDelta * 10 + uiColours.hueOffsetFg,
-                uiColours.saturationFg + 50,
-                uiColours.lightnessFg,
-            ] as ColourTriple,
-
-            red_text: [10, textSat, textLit] as ColourTriple,
-            green_text: [130, textSat, textLit] as ColourTriple,
-
-            fg_toolbar_view: "--fg1",
             fg_toolbar_edit: [10, 80, 50] as ColourTriple,
             fg_toolbar_refs: [270, 80, 50] as ColourTriple,
             fg_toolbar_memorise: [170, 80, 50] as ColourTriple,
@@ -193,11 +204,8 @@ function updateDefinitions(
             fg_toolbar_scratchlist: [70, 80, 50] as ColourTriple,
         };
     } else {
-        // console.log("mode is dark");
-        let textSat = 100;
-        let textLit = 70;
         s = {
-            ...uiDefinitions,
+            ...s,
 
             bg0: [230, 50, 0.0] as ColourTriple,
             bg: [230, 50, 20.0] as ColourTriple,
@@ -206,6 +214,7 @@ function updateDefinitions(
             fg: [43, 19, 90] as ColourTriple,
             fg1: [16.7, 0, 80] as ColourTriple,
             fg2: [16.7, 0, 70] as ColourTriple,
+
             fg_inactive: [16.7, 0, 20] as ColourTriple,
 
             bg_ui: [46.1, 20.2, 2.0] as ColourTriple,
@@ -220,56 +229,6 @@ function updateDefinitions(
             graph_edge_in_contrast: [217, 60, 70] as ColourTriple,
             graph_edge_critical: [7, 60, 70] as ColourTriple,
 
-            scribble_neutral: [247, textSat, textLit] as ColourTriple,
-            scribble_disagree: [7, textSat, textLit] as ColourTriple,
-            hyperlink: [247, textSat, textLit] as ColourTriple,
-            highlight: [85, 100, 90] as ColourTriple,
-
-            bg_ideas: "--bg-clock-06",
-            bg_articles: "--bg-clock-12",
-            bg_people: "--bg-clock-09",
-            bg_timelines: "--bg-clock-03",
-            bg_quotes: "--bg-clock-07",
-            bg_dialogues: "--bg-clock-02",
-
-            bg_stuff: "--bg-clock-11",
-
-            // "--bg-clock-10"
-            bg_memorise: [
-                uiColours.hueDelta * 10 + uiColours.hueOffsetBg,
-                uiColours.saturationBg - 30,
-                uiColours.lightnessBg,
-            ] as ColourTriple,
-            bg_memorise_active: [
-                uiColours.hueDelta * 10 + uiColours.hueOffsetBg,
-                uiColours.saturationBg + 50,
-                uiColours.lightnessBg,
-            ] as ColourTriple,
-
-            fg_ideas: "--fg-clock-06",
-            fg_articles: "--fg-clock-12",
-            fg_people: "--fg-clock-09",
-            fg_timelines: "--fg-clock-03",
-            fg_quotes: "--fg-clock-07",
-            fg_dialogues: "--fg-clock-02",
-
-            fg_stuff: "--fg-clock-11",
-            // "--fg-clock-10"
-            fg_memorise: [
-                uiColours.hueDelta * 10 + uiColours.hueOffsetFg,
-                uiColours.saturationFg - 30,
-                uiColours.lightnessFg,
-            ] as ColourTriple,
-            fg_memorise_active: [
-                uiColours.hueDelta * 10 + uiColours.hueOffsetFg,
-                uiColours.saturationFg + 50,
-                uiColours.lightnessFg,
-            ] as ColourTriple,
-
-            red_text: [10, textSat, textLit] as ColourTriple,
-            green_text: [130, textSat, textLit] as ColourTriple,
-
-            fg_toolbar_view: "--fg1",
             fg_toolbar_edit: [10, 70, 50] as ColourTriple,
             fg_toolbar_refs: [270, 70, 50] as ColourTriple,
             fg_toolbar_memorise: [170, 100, 50] as ColourTriple,

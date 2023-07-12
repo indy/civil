@@ -9,6 +9,7 @@ import {
     DeckKind,
     Role,
     SlimDeck,
+    WaitingFor,
 } from "types";
 
 import { getAppState, AppStateChange } from "app-state";
@@ -51,6 +52,12 @@ type ProtoDialogue = {
 type ChatMessage = {
     role: Role;
     content: string;
+};
+
+type MessageChoice = {
+    message: ChatMessage;
+    finish_reason: string;
+    index: number;
 };
 
 function Dialogues({ path }: { path?: string }) {
@@ -105,6 +112,8 @@ function preCacheFn(dialogue: DeckDialogue): DeckDialogue {
 }
 
 function Dialogue({ path, id }: { path?: string; id?: string }) {
+    const appState = getAppState();
+
     let flags = DeckManagerFlags.Summary | DeckManagerFlags.Review;
     const deckManager: DM<DeckDialogue> = useDeckManager(
         id,
@@ -112,8 +121,6 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
         flags,
         preCacheFn
     );
-
-    const [waiting, setWaiting] = useState(false);
 
     type AppendChatMessage = {
         prevNoteId: number;
@@ -123,7 +130,7 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
 
     const deck: DeckDialogue | undefined = deckManager.getDeck();
 
-    async function onSubmit(userInput: string) {
+    function onSubmit(userInput: string) {
         if (!deck) {
             console.error("no deck????");
             return;
@@ -153,18 +160,23 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
             };
             deck.noteSeqs.note.push(n);
 
-            setWaiting(true);
+            AppStateChange.setWaitingFor(WaitingFor.Server);
 
             // now do the actual request and get the updated deck
             //
-            const updatedDeck: any = await Net.post<
-                AppendChatMessage,
-                DeckDialogue
-            >(`/api/dialogues/${deck.id}/chat`, appendChatMessage);
-
-            setWaiting(false);
-
-            deckManager.update(updatedDeck);
+            Net.post<AppendChatMessage, DeckDialogue>(
+                `/api/dialogues/${deck.id}/chat`,
+                appendChatMessage
+            )
+                .then((updatedDeck) => {
+                    deckManager.update(updatedDeck);
+                })
+                .catch((error) => {
+                    console.error(error);
+                })
+                .finally(() => {
+                    AppStateChange.setWaitingFor(WaitingFor.User);
+                });
         }
     }
 
@@ -230,7 +242,9 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
                     noDelete
                 />
 
-                {waiting && <div>waiting!!!!!!!</div>}
+                {appState.waitingFor.value === WaitingFor.Server && (
+                    <div>waiting!!!!!!!</div>
+                )}
                 <section>
                     <CivContainer>
                         <InputBox onSubmit={onSubmit} />
@@ -246,6 +260,8 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
 }
 
 function DialogueChat({ path }: { path?: string }) {
+    const appState = getAppState();
+
     const messageStart: Array<ChatMessage> = [
         {
             role: Role.System,
@@ -254,10 +270,9 @@ function DialogueChat({ path }: { path?: string }) {
         },
     ];
 
-    const [waiting, setWaiting] = useState(false);
     const [messages, setMessages] = useState(messageStart);
 
-    async function onSubmit(userInput: string) {
+    function onSubmit(userInput: string) {
         const newChatMessage: ChatMessage = {
             role: Role.User,
             content: userInput,
@@ -266,21 +281,29 @@ function DialogueChat({ path }: { path?: string }) {
         messages.push(newChatMessage);
         setMessages(messages);
 
-        setWaiting(true);
+        AppStateChange.setWaitingFor(WaitingFor.Server);
         let data = { messages };
-        const askResponse: any = await Net.post(`/api/dialogues/chat`, data);
-        setWaiting(false);
-        if (askResponse.length === 1) {
-            const responseChatMessage: ChatMessage = {
-                role: Role.Assistant,
-                content: askResponse[0].message.content,
-            };
-            messages.push(responseChatMessage);
-            setMessages(messages);
-        } else {
-            console.error("response has length !== 1");
-            console.log(askResponse);
-        }
+
+        Net.post(`/api/dialogues/chat`, data)
+            .then((askResponse: Array<MessageChoice>) => {
+                if (askResponse.length === 1) {
+                    const responseChatMessage: ChatMessage = {
+                        role: Role.Assistant,
+                        content: askResponse[0].message.content,
+                    };
+                    messages.push(responseChatMessage);
+                    setMessages(messages);
+                } else {
+                    console.error("response has length !== 1");
+                    console.log(askResponse);
+                }
+            })
+            .catch((error) => {
+                console.error(error);
+            })
+            .finally(() => {
+                AppStateChange.setWaitingFor(WaitingFor.User);
+            });
     }
 
     function buildChatMessageElement(chatMessage: ChatMessage) {
@@ -298,7 +321,7 @@ function DialogueChat({ path }: { path?: string }) {
 
     let m = messages.flatMap(buildChatMessageElement);
 
-    if (waiting) {
+    if (appState.waitingFor.value === WaitingFor.Server) {
         m.push(
             <CivMain>
                 <p>
@@ -318,9 +341,10 @@ function DialogueChat({ path }: { path?: string }) {
                     </CivLeft>
 
                     <InputBox onSubmit={onSubmit} />
-                    {showSave && !waiting && (
-                        <SaveConversation messages={messages} />
-                    )}
+                    {showSave &&
+                        appState.waitingFor.value !== WaitingFor.Server && (
+                            <SaveConversation messages={messages} />
+                        )}
                 </CivContainer>
             </section>
         </article>

@@ -1,7 +1,7 @@
 import { h } from "preact";
 
-import { FatDeck, Note } from "types";
-import { getAppState } from "app-state";
+import { FatDeck, Note, WaitingFor } from "types";
+import { AppStateChange, getAppState } from "app-state";
 import Net from "utils/net";
 import buildSimplifiedText from "components/notes/build-simplified-text";
 
@@ -16,7 +16,9 @@ export default function AutoSummarize({ deck, onFinish }: AutoSummarizeProps) {
 
     function onClick() {
         if (deck.noteSeqs) {
-            let text = deck.noteSeqs.note.map((n) => buildSimplifiedText(n.content, wasmInterface));
+            let text = deck.noteSeqs.note.map((n) =>
+                buildSimplifiedText(n.content, wasmInterface)
+            );
             let textPassage = text.join("\n");
 
             let summarySeq = deck.noteSeqs.noteSummary;
@@ -27,8 +29,8 @@ export default function AutoSummarize({ deck, onFinish }: AutoSummarizeProps) {
             }
 
             type SummarizeStruct = {
-                prevId?: number,
-                content: string
+                prevId?: number;
+                content: string;
             };
 
             let summarizeStruct: SummarizeStruct = {
@@ -37,9 +39,20 @@ export default function AutoSummarize({ deck, onFinish }: AutoSummarizeProps) {
             };
 
             // returns the newly created NoteSummary
-            Net.post<SummarizeStruct, Note>(`/api/decks/summarize/${deck.id}`, summarizeStruct).then((note) => {
-                onFinish(note);
-            });
+            AppStateChange.setWaitingFor(WaitingFor.Server);
+            Net.post<SummarizeStruct, Note>(
+                `/api/decks/summarize/${deck.id}`,
+                summarizeStruct
+            )
+                .then((note) => {
+                    AppStateChange.setWaitingFor(WaitingFor.User);
+                    onFinish(note);
+                })
+                .catch((error) => {
+                    AppStateChange.setWaitingFor(WaitingFor.User);
+                    console.log("caught something");
+                    console.log(error);
+                });
         }
     }
 

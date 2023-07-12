@@ -32,6 +32,7 @@ import {
     User,
     UserUploadedImage,
     VisiblePreview,
+    WaitingFor,
 } from "types";
 
 import { isCommand, noteSeq, deckKindToResourceString } from "utils/civil";
@@ -56,6 +57,8 @@ function cleanCommandBarState(): CommandBarState {
 }
 
 const state: State = {
+    waitingFor: signal(WaitingFor.User),
+
     debugMessages: signal([]),
 
     appName: "civil",
@@ -73,6 +76,9 @@ const state: State = {
         hueOffsetBg: 0,
         saturationBg: 0,
         lightnessBg: 0,
+
+        textSat: 83.7,
+        textLit: 53.6,
     }),
     colourDefinitions: signal({}),
 
@@ -188,6 +194,10 @@ export const getAppState = () => useContext(AppStateContext);
 const DEBUG_APP_STATE = false;
 
 export const AppStateChange = {
+    setWaitingFor: function (waitingFor: WaitingFor) {
+        state.waitingFor.value = waitingFor;
+    },
+
     cbSearchClicked: function () {
         state.mode.value = CivilMode.View;
         commandBarReset(state, !state.showingCommandBar.value);

@@ -25,15 +25,17 @@ export function CivContainer({
 }
 
 export function CivMain({
-    extraClasses,
+    replacementClasses,
     children,
 }: {
-    extraClasses?: string;
+    replacementClasses?: string;
     children: ComponentChildren;
 }) {
     let classes = "muh-main ";
-    if (extraClasses) {
-        classes += extraClasses;
+    if (replacementClasses) {
+        classes += replacementClasses;
+    } else {
+        classes += "muh-main-standard";
     }
 
     return <div class={classes}>{children}</div>;

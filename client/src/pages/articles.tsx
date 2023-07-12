@@ -93,15 +93,12 @@ function Article({ path, id }: { path?: string; id?: string }) {
 
     const deck: DeckArticle | undefined = deckManager.getDeck();
 
-
-
     function onAutoSummarizeFinish(autoSummarizedNote: Note) {
         // let newDeck = { ...deck! };
         // newDeck.notes.push(autoSummarizedNote);
         // deckManager.updateAndReset(newDeck!);
         window.location.reload();
     }
-
 
     if (deck) {
         return (
@@ -140,7 +137,12 @@ function Article({ path, id }: { path?: string; id?: string }) {
                                 />
                                 {deckManager.canShowPassage(
                                     NoteKind.NoteSummary
-                                ) && <AutoSummarize deck={deck} onFinish={onAutoSummarizeFinish}/>}
+                                ) && (
+                                    <AutoSummarize
+                                        deck={deck}
+                                        onFinish={onAutoSummarizeFinish}
+                                    />
+                                )}
                                 <button
                                     onClick={deckManager.onShowSummaryClicked}
                                 >
@@ -198,7 +200,9 @@ function TopScribble({ text }: { text: string }) {
     if (text) {
         return (
             <CivContainer>
-                <CivMain extraClasses="top-scribble">{text}</CivMain>
+                <CivMain replacementClasses="muh-main-standard top-scribble">
+                    {text}
+                </CivMain>
             </CivContainer>
         );
     }

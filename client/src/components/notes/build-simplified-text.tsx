@@ -18,7 +18,10 @@ type Element = {
 
 // build simplified text representation of the content for input into AI systems
 //
-export default function buildSimplifiedText(content: string, wasmInterface: WasmInterface) {
+export default function buildSimplifiedText(
+    content: string,
+    wasmInterface: WasmInterface
+) {
     // an accurate note id isn't required for buildSimplifiedText since we won't
     // output any margin content. we only care about the body text
     //
