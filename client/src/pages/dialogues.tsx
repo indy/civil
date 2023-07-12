@@ -14,6 +14,9 @@ import {
 
 import { getAppState, AppStateChange } from "app-state";
 
+import Net from "utils/net";
+import { buildUrl, deckKindToHeadingString } from "utils/civil";
+
 import InsigniaSelector from "components/insignia-selector";
 import SegmentGraph from "components/graph/segment-graph";
 import SegmentNotes from "components/notes/segment-notes";
@@ -34,9 +37,7 @@ import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import TopMatter from "components/top-matter";
 import { SlimDeckList } from "components/groupings";
-
-import Net from "utils/net";
-import { buildUrl, deckKindToHeadingString } from "utils/civil";
+import buildMarkup from "components/notes/build-markup";
 import CivilTextArea from "components/civil-text-area";
 import CivilButton from "components/civil-button";
 
@@ -306,13 +307,16 @@ function DialogueChat({ path }: { path?: string }) {
             });
     }
 
+    // run the message contents through buildMarkup, since even though the text won't be
+    // marked-up we'll still get the nice spacing between paragraphs and the listing functionality
+    //
     function buildChatMessageElement(chatMessage: ChatMessage) {
         return [
             <CivLeft>
                 <RoleView role={chatMessage.role} />
             </CivLeft>,
             <CivMain>
-                <p>{chatMessage.content}</p>
+                {buildMarkup(chatMessage.content, 0)}
             </CivMain>,
         ];
     }
