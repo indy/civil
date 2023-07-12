@@ -273,6 +273,29 @@ function DialogueChat({ path }: { path?: string }) {
 
     const [messages, setMessages] = useState(messageStart);
 
+    function saveDialogue(title: string, messages: Array<ChatMessage>) {
+        let data: ProtoDialogue = {
+            title: title,
+            kind: CHAT_GPT,
+            insignia: 0,
+            messages: messages,
+        };
+
+        Net.post<ProtoDialogue, DeckDialogue>("/api/dialogues", data).then(
+            (deck) => {
+                route(`/dialogues/${deck.id}`, true);
+            }
+        );
+    }
+
+    function messageAdded(messages: Array<ChatMessage>) {
+        if (messages.length === 3) {
+            // system + user message + assistant response
+            saveDialogue(messages[1].content, messages);
+        }
+        setMessages(messages);
+    }
+
     function onSubmit(userInput: string) {
         const newChatMessage: ChatMessage = {
             role: Role.User,
@@ -280,7 +303,7 @@ function DialogueChat({ path }: { path?: string }) {
         };
 
         messages.push(newChatMessage);
-        setMessages(messages);
+        messageAdded(messages);
 
         AppStateChange.setWaitingFor(WaitingFor.Server);
         let data = { messages };
@@ -293,7 +316,7 @@ function DialogueChat({ path }: { path?: string }) {
                         content: askResponse[0].message.content,
                     };
                     messages.push(responseChatMessage);
-                    setMessages(messages);
+                    messageAdded(messages);
                 } else {
                     console.error("response has length !== 1");
                     console.log(askResponse);
@@ -315,13 +338,11 @@ function DialogueChat({ path }: { path?: string }) {
             <CivLeft>
                 <RoleView role={chatMessage.role} />
             </CivLeft>,
-            <CivMain>
-                {buildMarkup(chatMessage.content, 0)}
-            </CivMain>,
+            <CivMain>{buildMarkup(chatMessage.content, 0)}</CivMain>,
         ];
     }
 
-    const showSave: boolean = messages.length >= 3;
+    // const showSave: boolean = messages.length >= 3;
 
     let m = messages.flatMap(buildChatMessageElement);
 
@@ -343,12 +364,7 @@ function DialogueChat({ path }: { path?: string }) {
                     <CivLeft extraClasses="dialogue-user-title">
                         <RoleView role={Role.User} />
                     </CivLeft>
-
                     <InputBox onSubmit={onSubmit} />
-                    {showSave &&
-                        appState.waitingFor.value !== WaitingFor.Server && (
-                            <SaveConversation messages={messages} />
-                        )}
                 </CivContainer>
             </section>
         </article>
@@ -380,103 +396,6 @@ function InputBox({ onSubmit }: { onSubmit: (s: string) => void }) {
             </div>
         </CivMain>
     );
-}
-
-function SaveConversation({ messages }: { messages: Array<ChatMessage> }) {
-    type LocalProps = {
-        showDialog: boolean;
-        title: string;
-        insigniaId: number;
-    };
-    let initial: LocalProps = {
-        showDialog: false,
-        title:
-            "chat: " +
-            new Date().toLocaleDateString() +
-            " - " +
-            new Date().toLocaleTimeString(),
-        insigniaId: 0,
-    };
-    let [local, setLocal] = useState(initial);
-
-    function setInsigniaId(id: number) {
-        setLocal({
-            ...local,
-            insigniaId: id,
-        });
-    }
-
-    function onSaveClicked() {
-        setLocal({
-            ...local,
-            showDialog: true,
-        });
-    }
-
-    function onCancelClicked() {
-        setLocal({
-            ...local,
-            showDialog: false,
-        });
-    }
-
-    async function onReallySaveClicked() {
-        let data: ProtoDialogue = {
-            title: local.title,
-            kind: CHAT_GPT,
-            insignia: local.insigniaId,
-            messages: messages,
-        };
-
-        await Net.post<ProtoDialogue, any>("/api/dialogues", data);
-
-        route("/dialogues", true);
-    }
-
-    function handleContentChange(content: string, name: string) {
-        if (name === "title") {
-            setLocal({
-                ...local,
-                title: content,
-            });
-        }
-    }
-
-    if (local.showDialog) {
-        return (
-            <div>
-                <CivLeftLabel forId="title">Title</CivLeftLabel>
-                <CivMain>
-                    <CivilInput
-                        id="title"
-                        value={local.title}
-                        onContentChange={handleContentChange}
-                    />
-                </CivMain>
-
-                <CivLeftLabel extraClasses="icon-left-label">
-                    Insignias
-                </CivLeftLabel>
-                <CivMain>
-                    <InsigniaSelector
-                        insigniaId={local.insigniaId}
-                        onChange={setInsigniaId}
-                    />
-                </CivMain>
-
-                <CivMain>
-                    <button onClick={onReallySaveClicked}>Save</button>
-                    <button onClick={onCancelClicked}>cancel</button>
-                </CivMain>
-            </div>
-        );
-    } else {
-        return (
-            <CivMain>
-                <button onClick={onSaveClicked}>save...</button>
-            </CivMain>
-        );
-    }
 }
 
 type DialogueUpdaterProps = {
