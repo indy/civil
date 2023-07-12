@@ -347,6 +347,13 @@ section {
     padding-bottom: 1rem;
 }
 
+.previewer p,
+.previewer ol,
+.previewer ul {
+    font-size: 1.4rem;
+    line-height: 2rem;
+}
+
 .muh-main-standard p,
 .muh-main-standard ol,
 .muh-main-standard ul {
@@ -429,7 +436,7 @@ figure.fullwidth figcaption {
 .role-view {
 }
 .role-view-assistant-hack {
-  margin-top: -0.5rem;
+    margin-top: -0.5rem;
 }
 
 .rollupable-1000ms {

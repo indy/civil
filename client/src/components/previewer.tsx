@@ -1,6 +1,6 @@
 import { h } from "preact";
 
-import { Key, Note, PreviewDeck } from "types";
+import { Key, PreviewDeck } from "types";
 
 import { getAppState } from "app-state";
 
@@ -8,10 +8,6 @@ import buildMarkup from "components/notes/build-markup";
 
 export default function Previewer() {
     const appState = getAppState();
-
-    function buildPreviewMarkup(n: Note) {
-        return <p>{buildMarkup(n.content, n.id, { ignoreRight: true })}</p>;
-    }
 
     let classes = "previewer";
     let id: Key = appState.visiblePreviewDeck.value.id;
@@ -22,7 +18,9 @@ export default function Previewer() {
         let hasContent = previewDeck.notes.some((n) => n.content.length > 0);
 
         if (hasContent) {
-            content = previewDeck.notes.map(buildPreviewMarkup);
+            content = previewDeck.notes.map((n) =>
+                buildMarkup(n.content, n.id, { ignoreRight: true })
+            );
         }
     }
 

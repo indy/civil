@@ -110,7 +110,6 @@ function updateDefinitions(
     uiDefinitions: ColourDefinitions,
     colourScheme: ColourScheme
 ): ColourDefinitions {
-
     // colours that can be derived from previously set
     // variables  regardless of the current colour scheme
     //
@@ -159,8 +158,16 @@ function updateDefinitions(
             uiColours.lightnessFg,
         ] as ColourTriple,
 
-        scribble_neutral: [247, uiColours.textSat, uiColours.textLit] as ColourTriple,
-        scribble_disagree: [15.1, uiColours.textSat, uiColours.textLit] as ColourTriple,
+        scribble_neutral: [
+            247,
+            uiColours.textSat,
+            uiColours.textLit,
+        ] as ColourTriple,
+        scribble_disagree: [
+            15.1,
+            uiColours.textSat,
+            uiColours.textLit,
+        ] as ColourTriple,
         hyperlink: [247, uiColours.textSat, uiColours.textLit] as ColourTriple,
         highlight: [85, 100, 90] as ColourTriple,
 
@@ -195,7 +202,6 @@ function updateDefinitions(
             graph_edge: [0, 0, 70] as ColourTriple,
             graph_edge_in_contrast: [217, 60, 70] as ColourTriple,
             graph_edge_critical: [7, 60, 70] as ColourTriple,
-
 
             fg_toolbar_edit: [10, 80, 50] as ColourTriple,
             fg_toolbar_refs: [270, 80, 50] as ColourTriple,
