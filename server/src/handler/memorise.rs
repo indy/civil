@@ -17,7 +17,6 @@
 
 use crate::db::memorise as db;
 use crate::db::sqlite::SqlitePool;
-use crate::error::Result;
 use crate::interop::memorise::{FlashCard, ProtoCard, ProtoRating};
 use crate::interop::IdParam;
 use crate::session;
@@ -32,7 +31,7 @@ pub async fn create_card(
     card: Json<ProtoCard>,
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("create card");
 
     let user_id = session::user_id(&session)?;
@@ -48,7 +47,7 @@ pub async fn card_rated(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("card_rated id:{:?}", params.id);
 
     // need to be in a session, even though we're not using the information
@@ -74,7 +73,7 @@ pub async fn edit(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("edit_flashcard");
 
     let flashcard = flashcard.into_inner();
@@ -89,7 +88,7 @@ pub async fn delete(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("delete flashcard {}", params.id);
 
     let user_id = session::user_id(&session)?;
@@ -107,7 +106,7 @@ pub async fn delete(
 1 - incorrect response; the correct one remembered
 0 - complete blackout.
 */
-fn sqlite_update_easiness_factor(mut card: FlashCard, rating: i16) -> Result<FlashCard> {
+fn sqlite_update_easiness_factor(mut card: FlashCard, rating: i16) -> crate::Result<FlashCard> {
     if rating < 3 {
         // start repetitions for the item from the beginning without changing the E-Factor (i.e. use intervals I(1), I(2) etc. as if the item was memorized anew
         card.interval = 1;
@@ -159,7 +158,7 @@ fn sqlite_update_easiness_factor(mut card: FlashCard, rating: i16) -> Result<Fla
 pub async fn get_cards(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
     let db_cards = db::get_cards(&sqlite_pool, user_id, Utc::now().naive_utc())?;
 
@@ -169,7 +168,7 @@ pub async fn get_cards(
 pub async fn get_practice_card(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
     let db_card = db::get_practice_card(&sqlite_pool, user_id)?;
 

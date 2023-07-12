@@ -17,7 +17,7 @@
 
 use crate::db::decks;
 use crate::db::sqlite::{self, SqlitePool};
-use crate::error::{Error, Result};
+use crate::error::Error;
 use crate::interop::decks::DeckKind;
 use crate::interop::notes as interop_notes;
 use crate::interop::quotes as interop;
@@ -31,7 +31,7 @@ struct QuoteExtra {
     attribution: Option<String>,
 }
 
-fn quote_extra_from_row(row: &Row) -> Result<QuoteExtra> {
+fn quote_extra_from_row(row: &Row) -> crate::Result<QuoteExtra> {
     Ok(QuoteExtra {
         attribution: row.get(0)?,
     })
@@ -66,7 +66,7 @@ impl From<(decks::DeckBase, QuoteExtra)> for interop::Quote {
     }
 }
 
-fn quote_from_row(row: &Row) -> Result<interop::Quote> {
+fn quote_from_row(row: &Row) -> crate::Result<interop::Quote> {
     Ok(interop::Quote {
         id: row.get(0)?,
         title: row.get(1)?,
@@ -88,7 +88,7 @@ pub(crate) fn get_or_create(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     quote: &interop::ProtoQuote,
-) -> Result<interop::Quote> {
+) -> crate::Result<interop::Quote> {
     let title = &quote.title;
     let text = &quote.text;
     let attribution = &quote.attribution;
@@ -131,7 +131,7 @@ pub(crate) fn get_or_create(
     Ok((deck, quote_extras).into())
 }
 
-pub(crate) fn random(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::Quote> {
+pub(crate) fn random(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<interop::Quote> {
     let conn = sqlite_pool.get()?;
 
     sqlite::one(
@@ -146,7 +146,11 @@ pub(crate) fn random(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::
     )
 }
 
-pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) -> Result<interop::Quote> {
+pub(crate) fn get(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    quote_id: Key,
+) -> crate::Result<interop::Quote> {
     let conn = sqlite_pool.get()?;
 
     let res = sqlite::one(
@@ -167,7 +171,7 @@ pub(crate) fn next(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     quote_id: Key,
-) -> Result<interop::Quote> {
+) -> crate::Result<interop::Quote> {
     let conn = sqlite_pool.get()?;
 
     let res = sqlite::one(
@@ -204,7 +208,7 @@ pub(crate) fn prev(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     quote_id: Key,
-) -> Result<interop::Quote> {
+) -> crate::Result<interop::Quote> {
     let conn = sqlite_pool.get()?;
 
     let res = sqlite::one(
@@ -242,7 +246,7 @@ pub(crate) fn edit(
     user_id: Key,
     quote: &interop::ProtoQuote,
     quote_id: Key,
-) -> Result<interop::Quote> {
+) -> crate::Result<interop::Quote> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
@@ -298,6 +302,6 @@ pub(crate) fn edit(
     Ok((edited_deck, quote_extras).into())
 }
 
-pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) -> Result<()> {
+pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, quote_id: Key) -> crate::Result<()> {
     decks::delete(sqlite_pool, user_id, quote_id)
 }

@@ -17,7 +17,7 @@
 
 use crate::db::decks;
 use crate::db::sqlite::{self, SqlitePool};
-use crate::error::{Error, Result};
+use crate::error::Error;
 use crate::interop::articles as interop;
 use crate::interop::decks::DeckKind;
 use crate::interop::Key;
@@ -65,7 +65,7 @@ impl From<(decks::DeckBase, ArticleExtra)> for interop::Article {
     }
 }
 
-fn from_row(row: &Row) -> Result<interop::Article> {
+fn from_row(row: &Row) -> crate::Result<interop::Article> {
     Ok(interop::Article {
         id: row.get(0)?,
         title: row.get(1)?,
@@ -93,7 +93,7 @@ fn from_row(row: &Row) -> Result<interop::Article> {
     })
 }
 
-pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::Article>> {
+pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<interop::Article>> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
@@ -105,7 +105,10 @@ pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop:
     sqlite::many(&conn, stmt, params![&user_id], from_row)
 }
 
-pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::ArticleListings> {
+pub(crate) fn listings(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+) -> crate::Result<interop::ArticleListings> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
@@ -149,7 +152,7 @@ pub(crate) fn get(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     article_id: Key,
-) -> Result<interop::Article> {
+) -> crate::Result<interop::Article> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
@@ -164,11 +167,11 @@ pub(crate) fn get(
     Ok(res)
 }
 
-pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, article_id: Key) -> Result<()> {
+pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, article_id: Key) -> crate::Result<()> {
     decks::delete(sqlite_pool, user_id, article_id)
 }
 
-fn article_extra_from_row(row: &Row) -> Result<ArticleExtra> {
+fn article_extra_from_row(row: &Row) -> crate::Result<ArticleExtra> {
     Ok(ArticleExtra {
         source: row.get(1)?,
         author: row.get(2)?,
@@ -183,7 +186,7 @@ pub(crate) fn edit(
     user_id: Key,
     article: &interop::ProtoArticle,
     article_id: Key,
-) -> Result<interop::Article> {
+) -> crate::Result<interop::Article> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
@@ -250,7 +253,7 @@ pub(crate) fn get_or_create(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     title: &str,
-) -> Result<interop::Article> {
+) -> crate::Result<interop::Article> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 

@@ -17,7 +17,6 @@
 
 use crate::db::decks;
 use crate::db::sqlite::{self, SqlitePool};
-use crate::error::Result;
 use crate::interop::decks::DeckKind;
 use crate::interop::ideas as interop;
 use crate::interop::Key;
@@ -26,7 +25,7 @@ use rusqlite::{params, Row};
 #[allow(unused_imports)]
 use tracing::info;
 
-fn idea_from_row(row: &Row) -> Result<interop::Idea> {
+fn idea_from_row(row: &Row) -> crate::Result<interop::Idea> {
     Ok(interop::Idea {
         id: row.get(0)?,
         title: row.get(1)?,
@@ -45,7 +44,7 @@ pub(crate) fn get_or_create(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     title: &str,
-) -> Result<interop::Idea> {
+) -> crate::Result<interop::Idea> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
@@ -55,7 +54,10 @@ pub(crate) fn get_or_create(
     Ok(deck.into())
 }
 
-pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::IdeasListings> {
+pub(crate) fn listings(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+) -> crate::Result<interop::IdeasListings> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "select id, name, 'idea', insignia
@@ -96,7 +98,7 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop
     })
 }
 
-pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::Idea>> {
+pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<interop::Idea>> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT id, name, created_at, graph_terminator, insignia
@@ -107,7 +109,11 @@ pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop:
     sqlite::many(&conn, stmt, params![&user_id], idea_from_row)
 }
 
-pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, idea_id: Key) -> Result<interop::Idea> {
+pub(crate) fn get(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    idea_id: Key,
+) -> crate::Result<interop::Idea> {
     let conn = sqlite_pool.get()?;
 
     let deck = sqlite::one(
@@ -127,7 +133,7 @@ pub(crate) fn edit(
     user_id: Key,
     idea: &interop::ProtoIdea,
     idea_id: Key,
-) -> Result<interop::Idea> {
+) -> crate::Result<interop::Idea> {
     let conn = sqlite_pool.get()?;
 
     let deck = decks::deckbase_edit(
@@ -143,6 +149,6 @@ pub(crate) fn edit(
     Ok(deck.into())
 }
 
-pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, idea_id: Key) -> Result<()> {
+pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, idea_id: Key) -> crate::Result<()> {
     decks::delete(sqlite_pool, user_id, idea_id)
 }

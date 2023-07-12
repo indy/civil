@@ -17,9 +17,8 @@
 
 use crate::db::notes as notes_db;
 use crate::db::sqlite::SqlitePool;
-use crate::error::Result;
 use crate::interop::notes::Note;
 
-pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> Result<Vec<Note>> {
+pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> crate::Result<Vec<Note>> {
     notes_db::get_all_notes_in_db(sqlite_pool)
 }

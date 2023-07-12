@@ -17,7 +17,7 @@
 
 use crate::db::notes;
 use crate::db::sqlite::{self, SqlitePool};
-use crate::error::{Error, Result};
+use crate::error::Error;
 use crate::interop::decks as interop;
 use crate::interop::decks::DeckKind;
 use crate::interop::notes as note_interop;
@@ -51,7 +51,7 @@ pub struct DeckBase {
     pub insignia: i32,
 }
 
-fn deckbase_from_row(row: &Row) -> Result<DeckBase> {
+fn deckbase_from_row(row: &Row) -> crate::Result<DeckBase> {
     Ok(DeckBase {
         id: row.get(0)?,
         title: row.get(1)?,
@@ -61,7 +61,10 @@ fn deckbase_from_row(row: &Row) -> Result<DeckBase> {
     })
 }
 
-pub fn recently_visited(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::SlimDeck>> {
+pub fn recently_visited(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+) -> crate::Result<Vec<interop::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT decks.id, decks.name, decks.kind, decks.insignia, max(hits.created_at) as most_recent_visit
@@ -74,7 +77,7 @@ pub fn recently_visited(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<in
     sqlite::many(&conn, stmt, params![&user_id], decksimple_from_row)
 }
 
-pub(crate) fn decksimple_from_row(row: &Row) -> Result<interop::SlimDeck> {
+pub(crate) fn decksimple_from_row(row: &Row) -> crate::Result<interop::SlimDeck> {
     let res: String = row.get(2)?;
     Ok(interop::SlimDeck {
         id: row.get(0)?,
@@ -98,7 +101,7 @@ pub(crate) fn deckbase_get_or_create(
     user_id: Key,
     kind: DeckKind,
     name: &str,
-) -> Result<(DeckBase, DeckBaseOrigin)> {
+) -> crate::Result<(DeckBase, DeckBaseOrigin)> {
     let existing_deck_res = deckbase_get_by_name(tx, user_id, kind, name);
     match existing_deck_res {
         Ok(deck) => Ok((deck, DeckBaseOrigin::PreExisting)),
@@ -112,7 +115,7 @@ pub(crate) fn deckbase_get_or_create(
     }
 }
 
-pub(crate) fn hit(conn: &Connection, deck_id: Key) -> Result<()> {
+pub(crate) fn hit(conn: &Connection, deck_id: Key) -> crate::Result<()> {
     let stmt = "INSERT INTO hits(deck_id) VALUES (?1)";
     sqlite::zero(conn, stmt, params![&deck_id])
 }
@@ -122,7 +125,7 @@ fn deckbase_get_by_name(
     user_id: Key,
     kind: DeckKind,
     name: &str,
-) -> Result<DeckBase> {
+) -> crate::Result<DeckBase> {
     let stmt = "SELECT id, name, created_at, graph_terminator, insignia
                 FROM DECKS
                 WHERE user_id = ?1 AND name = ?2 AND kind = ?3";
@@ -141,7 +144,7 @@ pub(crate) fn deckbase_create(
     user_id: Key,
     kind: DeckKind,
     name: &str,
-) -> Result<DeckBase> {
+) -> crate::Result<DeckBase> {
     let graph_terminator = false;
     let stmt = "INSERT INTO decks(user_id, kind, name, graph_terminator, insignia)
                 VALUES (?1, ?2, ?3, ?4, ?5)
@@ -174,7 +177,7 @@ pub(crate) fn deckbase_edit(
     name: &str,
     graph_terminator: bool,
     insignia: i32,
-) -> Result<DeckBase> {
+) -> crate::Result<DeckBase> {
     let stmt = "UPDATE decks
                 SET name = ?4, graph_terminator = ?5, insignia = ?6
                 WHERE user_id = ?1 AND id = ?2 AND kind = ?3
@@ -198,7 +201,7 @@ pub(crate) fn insignia_filter(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     insignia: i32,
-) -> Result<Vec<interop::SlimDeck>> {
+) -> crate::Result<Vec<interop::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT id, name, kind, insignia
@@ -220,7 +223,7 @@ pub(crate) fn recent(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_kind: interop::DeckKind,
-) -> Result<Vec<interop::SlimDeck>> {
+) -> crate::Result<Vec<interop::SlimDeck>> {
     let conn = sqlite_pool.get()?;
     let limit: i32 = 10;
 
@@ -237,7 +240,7 @@ pub(crate) fn recent(
 
 // delete anything that's represented as a deck (article, person, idea, timeline, quote, dialogue)
 //
-pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, id: Key) -> Result<()> {
+pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, id: Key) -> crate::Result<()> {
     let conn = sqlite_pool.get()?;
 
     sqlite::zero(
@@ -254,10 +257,10 @@ pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, id: Key) -> Result<
 pub(crate) fn get_backnotes(
     sqlite_pool: &SqlitePool,
     deck_id: Key,
-) -> Result<Vec<interop::BackNote>> {
+) -> crate::Result<Vec<interop::BackNote>> {
     let conn = sqlite_pool.get()?;
 
-    fn backnote_from_row(row: &Row) -> Result<interop::BackNote> {
+    fn backnote_from_row(row: &Row) -> crate::Result<interop::BackNote> {
         let kind: String = row.get(2)?;
         let sql_note_kind: i32 = row.get(5)?;
 
@@ -291,10 +294,13 @@ pub(crate) fn get_backnotes(
 
 // all refs on notes that have at least one ref back to the currently displayed deck
 //
-pub(crate) fn get_backrefs(sqlite_pool: &SqlitePool, deck_id: Key) -> Result<Vec<interop::Ref>> {
+pub(crate) fn get_backrefs(
+    sqlite_pool: &SqlitePool,
+    deck_id: Key,
+) -> crate::Result<Vec<interop::Ref>> {
     let conn = sqlite_pool.get()?;
 
-    fn backref_from_row(row: &Row) -> Result<interop::Ref> {
+    fn backref_from_row(row: &Row) -> crate::Result<interop::Ref> {
         let kind: String = row.get(2)?;
         let refk: String = row.get(4)?;
 
@@ -330,10 +336,10 @@ pub(crate) fn get_backrefs(sqlite_pool: &SqlitePool, deck_id: Key) -> Result<Vec
 pub(crate) fn from_deck_id_via_notes_to_decks(
     sqlite_pool: &SqlitePool,
     deck_id: Key,
-) -> Result<Vec<interop::Ref>> {
+) -> crate::Result<Vec<interop::Ref>> {
     let conn = sqlite_pool.get()?;
 
-    fn ref_from_row(row: &Row) -> Result<interop::Ref> {
+    fn ref_from_row(row: &Row) -> crate::Result<interop::Ref> {
         let kind: String = row.get(3)?;
         let refk: String = row.get(4)?;
 
@@ -365,7 +371,7 @@ pub(crate) fn from_deck_id_via_notes_to_decks(
     sqlite::many(&conn, stmt, params![&deck_id], ref_from_row)
 }
 
-fn deck_simple_from_search_result(row: &Row) -> Result<interop::SlimDeck> {
+fn deck_simple_from_search_result(row: &Row) -> crate::Result<interop::SlimDeck> {
     let kind: String = row.get(1)?;
 
     Ok(interop::SlimDeck {
@@ -376,7 +382,7 @@ fn deck_simple_from_search_result(row: &Row) -> Result<interop::SlimDeck> {
     })
 }
 
-fn postfix_asterisks(s: &str) -> Result<String> {
+fn postfix_asterisks(s: &str) -> crate::Result<String> {
     let mut res: String = "".to_string();
 
     for i in s.split_whitespace() {
@@ -391,7 +397,7 @@ pub(crate) fn search(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     query: &str,
-) -> Result<Vec<interop::SlimDeck>> {
+) -> crate::Result<Vec<interop::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
     let q = postfix_asterisks(query)?;
@@ -508,7 +514,7 @@ pub(crate) fn search_by_name(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     query: &str,
-) -> Result<Vec<interop::SlimDeck>> {
+) -> crate::Result<Vec<interop::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
     let stmt =
@@ -551,7 +557,7 @@ pub(crate) fn additional_search(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
-) -> Result<Vec<interop::SlimDeck>> {
+) -> crate::Result<Vec<interop::SlimDeck>> {
     info!("additional_search {:?}", deck_id);
 
     fn has(backref: &interop::SlimDeck, backnotes: &[interop::BackNote]) -> bool {
@@ -570,8 +576,8 @@ pub(crate) fn additional_search(
     Ok(additional_search_results)
 }
 
-fn get_name_of_deck(conn: &Connection, deck_id: Key) -> Result<String> {
-    fn string_from_row(row: &Row) -> Result<String> {
+fn get_name_of_deck(conn: &Connection, deck_id: Key) -> crate::Result<String> {
+    fn string_from_row(row: &Row) -> crate::Result<String> {
         let s: String = row.get(0)?;
         Ok(s)
     }
@@ -586,7 +592,7 @@ fn get_name_of_deck(conn: &Connection, deck_id: Key) -> Result<String> {
     Ok(name)
 }
 
-fn sanitize_for_sqlite_match(s: String) -> Result<String> {
+fn sanitize_for_sqlite_match(s: String) -> crate::Result<String> {
     let res: String = s
         .chars()
         .map(|x| match x {
@@ -618,7 +624,7 @@ pub(crate) fn search_using_deck_id(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
-) -> Result<Vec<interop::SlimDeck>> {
+) -> crate::Result<Vec<interop::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
     let name = get_name_of_deck(&conn, deck_id)?;

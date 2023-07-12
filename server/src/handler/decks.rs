@@ -19,7 +19,7 @@ use crate::ai::{openai, AI};
 use crate::db::decks as db;
 use crate::db::notes as db_notes;
 use crate::db::sqlite::SqlitePool;
-use crate::error::{Error, Result};
+use crate::error::Error;
 use crate::handler::SearchQuery;
 use crate::interop::decks::{DeckKind, ResultList};
 use crate::interop::dialogues as interop_dialogues;
@@ -36,7 +36,7 @@ pub async fn insignia_filter(
     sqlite_pool: Data<SqlitePool>,
     params: Path<InsigParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("insignia_filter {:?}", params.insig);
 
     let user_id = session::user_id(&session)?;
@@ -55,7 +55,7 @@ pub async fn search(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
     web::Query(query): web::Query<SearchQuery>,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("search '{}'", &query.q);
 
     let user_id = session::user_id(&session)?;
@@ -70,7 +70,7 @@ pub async fn namesearch(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
     web::Query(query): web::Query<SearchQuery>,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("namesearch '{}'", &query.q);
 
     let user_id = session::user_id(&session)?;
@@ -90,12 +90,12 @@ pub async fn recent(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
     web::Query(query): web::Query<RecentQuery>,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("recent {}", &query.resource);
 
     let user_id = session::user_id(&session)?;
 
-    fn resource_string_to_deck_kind(resource: &str) -> Result<DeckKind> {
+    fn resource_string_to_deck_kind(resource: &str) -> crate::Result<DeckKind> {
         match resource {
             "articles" => Ok(DeckKind::Article),
             "dialogues" => Ok(DeckKind::Dialogue),
@@ -117,7 +117,7 @@ pub async fn recent(
 pub async fn recently_visited(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
     let results = db::recently_visited(&sqlite_pool, user_id)?;
@@ -139,7 +139,7 @@ pub async fn summarize(
     ai: Data<AI>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("summarize {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
@@ -192,7 +192,7 @@ pub async fn summarize(
     chatgpt_client: Data<chatgpt::prelude::ChatGPT>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("summarize {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
@@ -210,11 +210,11 @@ pub async fn summarize(
     Ok(HttpResponse::Ok().json(response))
 }
 
-fn simplify_contents(content: Vec<String>) -> Result<String> {
+fn simplify_contents(content: Vec<String>) -> crate::Result<String> {
     Ok(content.join("\n"))
 }
 
-fn build_summerize_messages(content: String) -> Result<Vec<interop_dialogues::ChatMessage>> {
+fn build_summerize_messages(content: String) -> crate::Result<Vec<interop_dialogues::ChatMessage>> {
     let mut res: Vec<interop_dialogues::ChatMessage> = vec![];
 
     res.push(interop_dialogues::ChatMessage {
@@ -232,7 +232,7 @@ fn build_summerize_messages(content: String) -> Result<Vec<interop_dialogues::Ch
     Ok(res)
 }
 
-fn order_note_contents(notes: Vec<Note>) -> Result<Vec<String>> {
+fn order_note_contents(notes: Vec<Note>) -> crate::Result<Vec<String>> {
     let num_notes = notes.len();
     let mut res: Vec<String> = vec![];
     let mut i = 0;
@@ -281,7 +281,7 @@ pub async fn preview(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("preview {:?}", params.id);
 
     let user_id = session::user_id(&session)?;

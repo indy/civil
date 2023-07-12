@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::error::{Error, Result};
+use crate::error::Error;
 use crate::interop::Key;
 use std::str::FromStr;
 
 const AUTH: &str = "auth";
 
-pub fn user_id(session: &actix_session::Session) -> Result<Key> {
+pub fn user_id(session: &actix_session::Session) -> crate::Result<Key> {
     if let Some(auth) = session.get::<String>(AUTH)? {
         let user_id: Key = Key::from_str(&auth)?;
         Ok(user_id)
@@ -30,7 +30,7 @@ pub fn user_id(session: &actix_session::Session) -> Result<Key> {
     }
 }
 
-pub fn save_user_id(session: &actix_session::Session, id: Key) -> Result<()> {
+pub fn save_user_id(session: &actix_session::Session, id: Key) -> crate::Result<()> {
     session.insert(AUTH, format!("{}", id))?;
 
     Ok(())

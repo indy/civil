@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::error::Result;
 use crate::interop::notes as interop;
 use crate::interop::Key;
 
@@ -25,7 +24,7 @@ use tracing::{error, info};
 use crate::db::sqlite::{self, SqlitePool};
 use rusqlite::{params, Connection, Row};
 
-fn note_from_row(row: &Row) -> Result<interop::Note> {
+fn note_from_row(row: &Row) -> crate::Result<interop::Note> {
     let sql_kind: i32 = row.get(2)?;
 
     Ok(interop::Note {
@@ -37,7 +36,10 @@ fn note_from_row(row: &Row) -> Result<interop::Note> {
     })
 }
 
-pub(crate) fn all_from_deck(sqlite_pool: &SqlitePool, deck_id: Key) -> Result<Vec<interop::Note>> {
+pub(crate) fn all_from_deck(
+    sqlite_pool: &SqlitePool,
+    deck_id: Key,
+) -> crate::Result<Vec<interop::Note>> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT n.id,
@@ -55,14 +57,14 @@ pub(crate) fn delete_note_properly(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     note_id: Key,
-) -> Result<Vec<interop::Note>> {
+) -> crate::Result<Vec<interop::Note>> {
     let note = get_note(sqlite_pool, user_id, note_id)?;
 
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
     // get the deck_id
-    fn key_from_row(row: &Row) -> Result<Key> {
+    fn key_from_row(row: &Row) -> crate::Result<Key> {
         let k: Key = row.get(0)?;
         Ok(k)
     }
@@ -116,7 +118,7 @@ pub(crate) fn create_common(
     content: &str,
     prev_note_id: Option<Key>,
     next_note_id: Option<Key>,
-) -> Result<interop::Note> {
+) -> crate::Result<interop::Note> {
     let k = interop::note_kind_to_sqlite(kind);
     let stmt = "INSERT INTO notes(user_id, deck_id, kind, point_id, content, prev_note_id)
                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)
@@ -141,7 +143,7 @@ pub(crate) fn create_note_deck_meta(
     tx: &Connection,
     user_id: Key,
     deck_id: Key,
-) -> Result<interop::Note> {
+) -> crate::Result<interop::Note> {
     create_common(
         tx,
         user_id,
@@ -158,7 +160,7 @@ pub(crate) fn create_notes(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     note: &interop::ProtoNote,
-) -> Result<Vec<interop::Note>> {
+) -> crate::Result<Vec<interop::Note>> {
     // let mut notes: Vec<interop::Note> = Vec::new();
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
@@ -205,14 +207,14 @@ pub(crate) fn create_notes(
     Ok(all_notes)
 }
 
-fn update_prev_note_id(conn: &Connection, note_id: Key, prev_note_id: Key) -> Result<()> {
+fn update_prev_note_id(conn: &Connection, note_id: Key, prev_note_id: Key) -> crate::Result<()> {
     let stmt = "UPDATE notes
                 SET prev_note_id = ?2
                 WHERE id = ?1";
     sqlite::zero(conn, stmt, params![&note_id, &prev_note_id])
 }
 
-fn clear_prev_note_id(conn: &Connection, note_id: Key) -> Result<()> {
+fn clear_prev_note_id(conn: &Connection, note_id: Key) -> crate::Result<()> {
     let stmt = "UPDATE notes
                 SET prev_note_id = null
                 WHERE id = ?1";
@@ -223,12 +225,12 @@ pub(crate) fn get_note(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     note_id: Key,
-) -> Result<interop::Note> {
+) -> crate::Result<interop::Note> {
     let conn = sqlite_pool.get()?;
     get_note_(&conn, user_id, note_id)
 }
 
-fn get_note_(conn: &Connection, user_id: Key, note_id: Key) -> Result<interop::Note> {
+fn get_note_(conn: &Connection, user_id: Key, note_id: Key) -> crate::Result<interop::Note> {
     let stmt = "SELECT n.id,
                        n.content,
                        n.kind,
@@ -243,7 +245,7 @@ pub(crate) fn get_note_notes(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
-) -> Result<Vec<interop::Note>> {
+) -> crate::Result<Vec<interop::Note>> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT n.id,
@@ -270,7 +272,7 @@ pub(crate) fn preview(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
-) -> Result<interop::PreviewNotes> {
+) -> crate::Result<interop::PreviewNotes> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT n.id,
@@ -291,7 +293,7 @@ pub(crate) fn add_auto_summary(
     deck_id: Key,
     prev_id: Option<Key>,
     summary: &str,
-) -> Result<interop::Note> {
+) -> crate::Result<interop::Note> {
     let conn = sqlite_pool.get()?;
     create_common(
         &conn,
@@ -310,7 +312,7 @@ pub fn edit_note(
     user_id: Key,
     note: &interop::Note,
     note_id: Key,
-) -> Result<interop::Note> {
+) -> crate::Result<interop::Note> {
     let conn = sqlite_pool.get()?;
     let stmt = "UPDATE notes
                 SET content = ?3
@@ -324,7 +326,7 @@ pub fn edit_note(
     )
 }
 
-pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> Result<Vec<interop::Note>> {
+pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> crate::Result<Vec<interop::Note>> {
     let conn = sqlite_pool.get()?;
     let stmt = "SELECT n.id,
                        n.content,
@@ -336,8 +338,8 @@ pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> Result<Vec<interop::Note
     sqlite::many(&conn, stmt, &[], note_from_row)
 }
 
-fn get_prev_note_id(sqlite_pool: &SqlitePool, id: Key) -> Result<Option<Key>> {
-    fn prev_id_from_row(row: &Row) -> Result<Option<Key>> {
+fn get_prev_note_id(sqlite_pool: &SqlitePool, id: Key) -> crate::Result<Option<Key>> {
+    fn prev_id_from_row(row: &Row) -> crate::Result<Option<Key>> {
         Ok(row.get(0)?)
     }
 

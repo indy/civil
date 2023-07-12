@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::error::{Error, Result};
+use crate::error::Error;
 use crate::interop::notes::NoteKind;
 use crate::interop::Key;
 
@@ -53,7 +53,7 @@ impl fmt::Display for DeckKind {
 impl FromStr for DeckKind {
     type Err = Error;
 
-    fn from_str(input: &str) -> Result<DeckKind> {
+    fn from_str(input: &str) -> crate::Result<DeckKind> {
         match input {
             "article" => Ok(DeckKind::Article),
             "person" => Ok(DeckKind::Person),
@@ -93,7 +93,7 @@ impl fmt::Display for RefKind {
 impl FromStr for RefKind {
     type Err = Error;
 
-    fn from_str(input: &str) -> Result<RefKind> {
+    fn from_str(input: &str) -> crate::Result<RefKind> {
         match input {
             "ref" => Ok(RefKind::Ref),
             "ref_to_parent" => Ok(RefKind::RefToParent),

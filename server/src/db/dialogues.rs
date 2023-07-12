@@ -20,7 +20,6 @@ use std::str::FromStr;
 use crate::db::decks;
 use crate::db::notes as db_notes;
 use crate::db::sqlite::{self, SqlitePool};
-use crate::error::Result;
 use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::dialogues as interop;
 use crate::interop::dialogues::Role;
@@ -55,7 +54,7 @@ impl From<(decks::DeckBase, DialogueExtra)> for interop::Dialogue {
     }
 }
 
-fn from_row(row: &Row) -> Result<interop::Dialogue> {
+fn from_row(row: &Row) -> crate::Result<interop::Dialogue> {
     Ok(interop::Dialogue {
         id: row.get(0)?,
         title: row.get(1)?,
@@ -79,7 +78,7 @@ fn from_row(row: &Row) -> Result<interop::Dialogue> {
     })
 }
 
-pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<SlimDeck>> {
+pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT id, name, kind, insignia
@@ -93,7 +92,7 @@ pub(crate) fn get(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     dialogue_id: Key,
-) -> Result<interop::Dialogue> {
+) -> crate::Result<interop::Dialogue> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT decks.id, decks.name, dialogue_extras.kind,
@@ -113,8 +112,8 @@ fn get_original_chat_messages(
     conn: &Connection,
     user_id: Key,
     dialogue_id: Key,
-) -> Result<Vec<interop::OriginalChatMessage>> {
-    fn chat_message_from_row(row: &Row) -> Result<interop::OriginalChatMessage> {
+) -> crate::Result<Vec<interop::OriginalChatMessage>> {
+    fn chat_message_from_row(row: &Row) -> crate::Result<interop::OriginalChatMessage> {
         let r: String = row.get(1)?;
         let role = Role::from_str(&r)?;
 
@@ -140,11 +139,15 @@ fn get_original_chat_messages(
     )
 }
 
-pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, dialogue_id: Key) -> Result<()> {
+pub(crate) fn delete(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    dialogue_id: Key,
+) -> crate::Result<()> {
     decks::delete(sqlite_pool, user_id, dialogue_id)
 }
 
-fn dialogue_extra_from_row(row: &Row) -> Result<DialogueExtra> {
+fn dialogue_extra_from_row(row: &Row) -> crate::Result<DialogueExtra> {
     Ok(DialogueExtra { kind: row.get(1)? })
 }
 
@@ -153,7 +156,7 @@ pub(crate) fn edit(
     user_id: Key,
     dialogue: &interop::ProtoDialogue,
     dialogue_id: Key,
-) -> Result<interop::Dialogue> {
+) -> crate::Result<interop::Dialogue> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
@@ -191,7 +194,7 @@ pub(crate) fn create(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     proto_dialogue: interop::ProtoDialogue,
-) -> Result<interop::Dialogue> {
+) -> crate::Result<interop::Dialogue> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
@@ -240,7 +243,7 @@ pub(crate) fn add_chat_message(
     user_id: Key,
     deck_id: Key,
     chat_message: interop::AppendChatMessage,
-) -> Result<Key> {
+) -> crate::Result<Key> {
     // check if content is empty???
 
     let mut conn = sqlite_pool.get()?;
@@ -259,7 +262,7 @@ fn create_chat_message(
     user_id: Key,
     deck_id: Key,
     chat_message: interop::AppendChatMessage,
-) -> Result<Key> {
+) -> crate::Result<Key> {
     // check if content is empty???
 
     let new_note = db_notes::create_common(
@@ -293,8 +296,8 @@ pub(crate) fn get_chat_history(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
-) -> Result<Vec<interop::ChatMessage>> {
-    fn chat_message_from_row(row: &Row) -> Result<interop::ChatMessage> {
+) -> crate::Result<Vec<interop::ChatMessage>> {
+    fn chat_message_from_row(row: &Row) -> crate::Result<interop::ChatMessage> {
         let r: String = row.get(0)?;
         let role = Role::from_str(&r)?;
 

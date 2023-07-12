@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::error::{Error, Result};
+use crate::error::Error;
 use crate::interop::dialogues as interop;
 
 use chatgpt::prelude::*;
@@ -73,7 +73,7 @@ impl From<interop::ChatMessage> for chatgpt::types::ChatMessage {
 pub(crate) async fn chat(
     chatgpt: &ChatGPT,
     messages: Vec<interop::ChatMessage>,
-) -> Result<Vec<MessageChoice>> {
+) -> crate::Result<Vec<MessageChoice>> {
     let mut history: Vec<chatgpt::types::ChatMessage> = vec![];
     // todo: can into be called on a vec of objects?
     for m in messages {

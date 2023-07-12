@@ -17,7 +17,6 @@
 
 use crate::db::graph as db;
 use crate::db::sqlite::SqlitePool;
-use crate::error::Result;
 use crate::interop::decks::RefKind;
 use crate::interop::graph as interop;
 use crate::session;
@@ -47,7 +46,7 @@ struct FullGraphStruct {
 pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("get");
 
     let user_id = session::user_id(&session)?;

@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::error::Result;
 use rusqlite::Connection;
 use rusqlite_migration::{Migrations, M};
 
@@ -259,7 +258,7 @@ CREATE TABLE IF NOT EXISTS stats_num_refs (
 
  */
 
-pub fn migration_check(db_name: &str) -> Result<()> {
+pub fn migration_check(db_name: &str) -> crate::Result<()> {
     // Define migrations
     let migrations = Migrations::new(vec![
 

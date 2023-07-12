@@ -17,17 +17,16 @@
 
 use crate::db::stats as stats_db;
 use crate::db::users as users_db;
-use crate::error::Result;
 use crate::interop::users::UserId;
 use crate::interop::Key;
 
 use crate::db::sqlite::SqlitePool;
 
-pub fn get_all_user_ids(sqlite_pool: &SqlitePool) -> Result<Vec<UserId>> {
+pub fn get_all_user_ids(sqlite_pool: &SqlitePool) -> crate::Result<Vec<UserId>> {
     users_db::get_all_user_ids(sqlite_pool)
 }
 
-pub fn generate_stats(sqlite_pool: &SqlitePool, user_id: Key) -> Result<()> {
+pub fn generate_stats(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<()> {
     let conn = sqlite_pool.get()?;
     stats_db::generate_stats(&conn, user_id)
 }

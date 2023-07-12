@@ -16,7 +16,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::decks;
-use crate::error::Result;
 use crate::interop::decks::DeckKind;
 use crate::interop::people as interop;
 use crate::interop::Key;
@@ -27,7 +26,7 @@ use tracing::{error, info};
 use crate::db::sqlite::{self, SqlitePool};
 use rusqlite::{params, Row};
 
-fn person_with_sortdate_from_row(row: &Row) -> Result<interop::Person> {
+fn person_with_sortdate_from_row(row: &Row) -> crate::Result<interop::Person> {
     Ok(interop::Person {
         id: row.get(0)?,
         title: row.get(1)?,
@@ -42,7 +41,7 @@ fn person_with_sortdate_from_row(row: &Row) -> Result<interop::Person> {
     })
 }
 
-fn person_from_row(row: &Row) -> Result<interop::Person> {
+fn person_from_row(row: &Row) -> crate::Result<interop::Person> {
     Ok(interop::Person {
         id: row.get(0)?,
         title: row.get(1)?,
@@ -61,7 +60,7 @@ pub(crate) fn get_or_create(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     title: &str,
-) -> Result<interop::Person> {
+) -> crate::Result<interop::Person> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
@@ -72,7 +71,7 @@ pub(crate) fn get_or_create(
     Ok(deck.into())
 }
 
-pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::Person>> {
+pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<interop::Person>> {
     let conn = sqlite_pool.get()?;
 
     sqlite::many(
@@ -101,7 +100,10 @@ pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop:
     )
 }
 
-pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::PeopleListings> {
+pub(crate) fn listings(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+) -> crate::Result<interop::PeopleListings> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT d.id, d.name, 'person', d.insignia
@@ -165,7 +167,7 @@ pub(crate) fn get(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     person_id: Key,
-) -> Result<interop::Person> {
+) -> crate::Result<interop::Person> {
     let conn = sqlite_pool.get()?;
 
     let deck = sqlite::one(
@@ -185,7 +187,7 @@ pub(crate) fn edit(
     user_id: Key,
     person: &interop::ProtoPerson,
     person_id: Key,
-) -> Result<interop::Person> {
+) -> crate::Result<interop::Person> {
     let conn = sqlite_pool.get()?;
 
     let graph_terminator = false;
@@ -202,6 +204,6 @@ pub(crate) fn edit(
     Ok(deck.into())
 }
 
-pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, person_id: Key) -> Result<()> {
+pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, person_id: Key) -> crate::Result<()> {
     decks::delete(sqlite_pool, user_id, person_id)
 }

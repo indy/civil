@@ -20,7 +20,6 @@ use crate::db::decks as decks_db;
 use crate::db::memorise as memorise_db;
 use crate::db::notes as notes_db;
 use crate::db::sqlite::SqlitePool;
-use crate::error::Result;
 use crate::interop::articles as interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
@@ -34,7 +33,7 @@ pub async fn create(
     proto_deck: Json<ProtoDeck>,
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("create");
 
     let user_id = session::user_id(&session)?;
@@ -48,7 +47,7 @@ pub async fn create(
 pub async fn get_all(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("get_all");
 
     let user_id = session::user_id(&session)?;
@@ -60,7 +59,7 @@ pub async fn get_all(
 pub async fn get_listings(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("get_listings");
 
     let user_id = session::user_id(&session)?;
@@ -73,7 +72,7 @@ pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("get {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
@@ -91,7 +90,7 @@ pub async fn edit(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("edit");
 
     let user_id = session::user_id(&session)?;
@@ -108,7 +107,7 @@ pub async fn delete(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("delete");
 
     let user_id = session::user_id(&session)?;
@@ -122,7 +121,7 @@ fn sqlite_augment(
     sqlite_pool: &Data<SqlitePool>,
     article: &mut interop::Article,
     article_id: Key,
-) -> Result<()> {
+) -> crate::Result<()> {
     let notes = notes_db::all_from_deck(sqlite_pool, article_id)?;
     let refs = decks_db::from_deck_id_via_notes_to_decks(sqlite_pool, article_id)?;
     let backnotes = decks_db::get_backnotes(sqlite_pool, article_id)?;

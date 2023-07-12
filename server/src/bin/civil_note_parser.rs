@@ -15,9 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use civil_server::{
-    db::notes::edit_note, interop::notes::NoteKind, interop::Key, note_parser_api, Result,
-};
+use civil_server::{db::notes::edit_note, interop::notes::NoteKind, interop::Key, note_parser_api};
 use std::cmp;
 
 use r2d2_sqlite::SqliteConnectionManager;
@@ -26,7 +24,7 @@ use tracing::info;
 // use std::io::{stdin, stdout, Write};
 
 #[actix_rt::main]
-async fn main() -> Result<()> {
+async fn main() -> civil_server::Result<()> {
     civil_server::init_dotenv();
     civil_server::init_tracing();
 

@@ -16,7 +16,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::sqlite::{self, SqlitePool};
-use crate::error::Result;
 use crate::interop::decks as interop_decks;
 use crate::interop::graph as interop;
 use crate::interop::Key;
@@ -26,7 +25,7 @@ use std::str::FromStr;
 #[allow(unused_imports)]
 use tracing::info;
 
-fn graph_from_row(row: &Row) -> Result<interop::GraphDeck> {
+fn graph_from_row(row: &Row) -> crate::Result<interop::GraphDeck> {
     let kind: String = row.get(2)?;
 
     Ok(interop::GraphDeck {
@@ -37,7 +36,10 @@ fn graph_from_row(row: &Row) -> Result<interop::GraphDeck> {
     })
 }
 
-pub(crate) fn get_decks(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<interop::GraphDeck>> {
+pub(crate) fn get_decks(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+) -> crate::Result<Vec<interop::GraphDeck>> {
     let conn = sqlite_pool.get()?;
 
     sqlite::many(
@@ -51,7 +53,7 @@ pub(crate) fn get_decks(sqlite_pool: &SqlitePool, user_id: Key) -> Result<Vec<in
     )
 }
 
-fn vertex_from_row(row: &Row) -> Result<interop::Vertex> {
+fn vertex_from_row(row: &Row) -> crate::Result<interop::Vertex> {
     let refk: String = row.get(2)?;
 
     Ok(interop::Vertex {
@@ -65,7 +67,7 @@ fn vertex_from_row(row: &Row) -> Result<interop::Vertex> {
 pub(crate) fn get_connections(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-) -> Result<Vec<interop::Vertex>> {
+) -> crate::Result<Vec<interop::Vertex>> {
     let conn = sqlite_pool.get()?;
     sqlite::many(
         &conn,

@@ -16,12 +16,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::element::Element;
-use crate::error::Result;
 use crate::parser::{MarginTextLabel, Node};
 
 use std::fmt::Write;
 
-pub fn compile_to_struct(nodes: &[Node], note_id: usize) -> Result<Vec<Element>> {
+pub fn compile_to_struct(nodes: &[Node], note_id: usize) -> crate::Result<Vec<Element>> {
     let mut res: Vec<Element> = Vec::new();
 
     for (i, n) in nodes.iter().enumerate() {
@@ -31,7 +30,7 @@ pub fn compile_to_struct(nodes: &[Node], note_id: usize) -> Result<Vec<Element>>
     Ok(res)
 }
 
-fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> Result<Vec<Element>> {
+fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> crate::Result<Vec<Element>> {
     let res = match node {
         Node::BlockQuote(_, ns) => element_key("blockquote", key, note_id, ns)?,
         Node::Codeblock(_, lang, code) => {
@@ -109,7 +108,7 @@ fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> Result<Vec
     Ok(res)
 }
 
-fn compile_sidenote(class_name: &str, key: usize, note_id: usize, ns: &[Node]) -> Result<Vec<Element>> {
+fn compile_sidenote(class_name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
     let mut res: Vec<Element> = vec![];
 
     let mut id = String::new();
@@ -137,7 +136,7 @@ fn compile_sidenote(class_name: &str, key: usize, note_id: usize, ns: &[Node]) -
     Ok(res)
 }
 
-fn compile_numbered_sidenote(key: usize, note_id: usize, ns: &[Node]) -> Result<Vec<Element>> {
+fn compile_numbered_sidenote(key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
     let mut res: Vec<Element> = vec![];
 
     let mut id = String::new();
@@ -170,7 +169,7 @@ fn compile_numbered_sidenote(key: usize, note_id: usize, ns: &[Node]) -> Result<
     Ok(res)
 }
 
-fn compile_ordered_list(start: &String, key: usize, note_id: usize, ns: &[Node]) -> Result<Vec<Element>> {
+fn compile_ordered_list(start: &String, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
     let name = "ol".to_string();
     let mut e = element_base(&name, key, note_id, ns)?;
 
@@ -179,19 +178,19 @@ fn compile_ordered_list(start: &String, key: usize, note_id: usize, ns: &[Node])
     Ok(vec![e])
 }
 
-fn element_key(name: &str, key: usize, note_id: usize, ns: &[Node]) -> Result<Vec<Element>> {
+fn element_key(name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
     let e = element_base(name, key, note_id, ns)?;
 
     Ok(vec![e])
 }
 
-fn element_key_hoisted(name: &str, key: usize, note_id: usize, ns: &[Node]) -> Result<Vec<Element>> {
+fn element_key_hoisted(name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
     let e = element_base_hoisted(name, key, note_id, ns)?;
 
     Ok(vec![e])
 }
 
-fn header_key(level: u32, key: usize, note_id: usize, ns: &[Node]) -> Result<Vec<Element>> {
+fn header_key(level: u32, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
     element_key_hoisted(&format!("h{}", level), key, note_id, ns)
 }
 
@@ -203,7 +202,13 @@ fn text_element(text: &str) -> Element {
     }
 }
 
-fn element_key_class(name: &str, class_name: &str, key: usize, note_id: usize, ns: &[Node]) -> Result<Vec<Element>> {
+fn element_key_class(
+    name: &str,
+    class_name: &str,
+    key: usize,
+    note_id: usize,
+    ns: &[Node],
+) -> crate::Result<Vec<Element>> {
     let mut e = element_base(name, key, note_id, ns)?;
 
     e.class_name = Some(String::from(class_name));
@@ -217,7 +222,7 @@ fn element_key_hoisted_class(
     key: usize,
     note_id: usize,
     ns: &[Node],
-) -> Result<Vec<Element>> {
+) -> crate::Result<Vec<Element>> {
     let mut e = element_base_hoisted(name, key, note_id, ns)?;
 
     e.class_name = Some(String::from(class_name));
@@ -232,7 +237,7 @@ fn element_key_class_href(
     key: usize,
     note_id: usize,
     ns: &[Node],
-) -> Result<Vec<Element>> {
+) -> crate::Result<Vec<Element>> {
     let mut e = element_base_hoisted(name, key, note_id, ns)?;
 
     e.class_name = Some(String::from(class_name));
@@ -248,7 +253,7 @@ fn element_key_class_for(
     html_for: &str,
     text: &str,
     note_id: usize,
-) -> Result<Vec<Element>> {
+) -> crate::Result<Vec<Element>> {
     let mut e = element_base(name, key, note_id, &[])?;
 
     e.class_name = Some(String::from(class_name));
@@ -266,7 +271,7 @@ fn element_key_class_type(
     id: &str,
     html_type: &str,
     note_id: usize,
-) -> Result<Vec<Element>> {
+) -> crate::Result<Vec<Element>> {
     let mut e = element_base(name, key, note_id, &[])?;
 
     e.class_name = Some(String::from(class_name));
@@ -276,7 +281,7 @@ fn element_key_class_type(
     Ok(vec![e])
 }
 
-fn element_youtube(name: &str, key: usize, id: &str, start: &str) -> Result<Vec<Element>> {
+fn element_youtube(name: &str, key: usize, id: &str, start: &str) -> crate::Result<Vec<Element>> {
     Ok(vec![Element {
         name: String::from(name),
         key: Some(key),
@@ -287,7 +292,7 @@ fn element_youtube(name: &str, key: usize, id: &str, start: &str) -> Result<Vec<
     }])
 }
 
-fn element_base(name: &str, key: usize, note_id: usize, ns: &[Node]) -> Result<Element> {
+fn element_base(name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Element> {
     Ok(Element {
         name: String::from(name),
         key: Some(key),
@@ -304,7 +309,7 @@ fn element_base(name: &str, key: usize, note_id: usize, ns: &[Node]) -> Result<E
 // (e.g. bold, italic, headings). this fn hoists the children from the
 // inbetween paragraph up into the base element
 //
-fn element_base_hoisted(name: &str, key: usize, note_id: usize, ns: &[Node]) -> Result<Element> {
+fn element_base_hoisted(name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Element> {
     if ns.len() == 1 {
         match &ns[0] {
             Node::Paragraph(_, pns) => Ok(Element {

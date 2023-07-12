@@ -16,7 +16,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::sqlite::{self, SqlitePool};
-use crate::error::Result;
 use crate::interop::users as interop;
 use crate::interop::Key;
 use rusqlite::{params, Row};
@@ -25,8 +24,8 @@ use tracing::info;
 pub(crate) fn login(
     sqlite_pool: &SqlitePool,
     login_credentials: &interop::LoginCredentials,
-) -> Result<(Key, String, interop::User)> {
-    fn from_row(row: &Row) -> Result<(Key, String, interop::User)> {
+) -> crate::Result<(Key, String, interop::User)> {
+    fn from_row(row: &Row) -> crate::Result<(Key, String, interop::User)> {
         let id: Key = row.get(0)?;
         let password: String = row.get(3)?;
 
@@ -61,12 +60,12 @@ pub(crate) fn create(
     sqlite_pool: &SqlitePool,
     registration: &interop::Registration,
     hash: &str,
-) -> Result<(Key, interop::User)> {
+) -> crate::Result<(Key, interop::User)> {
     info!("create");
 
     let conn = sqlite_pool.get()?;
 
-    fn from_row(row: &Row) -> Result<(Key, interop::User)> {
+    fn from_row(row: &Row) -> crate::Result<(Key, interop::User)> {
         let id: Key = row.get(0)?;
 
         Ok((
@@ -97,8 +96,8 @@ pub(crate) fn create(
     )
 }
 
-pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::User> {
-    fn from_row(row: &Row) -> Result<interop::User> {
+pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<interop::User> {
+    fn from_row(row: &Row) -> crate::Result<interop::User> {
         Ok(interop::User {
             username: row.get(1)?,
             email: row.get(0)?,
@@ -120,7 +119,11 @@ pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::Use
     )
 }
 
-pub(crate) fn change_theme(sqlite_pool: &SqlitePool, user_id: Key, theme: &str) -> Result<bool> {
+pub(crate) fn change_theme(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    theme: &str,
+) -> crate::Result<bool> {
     let conn = sqlite_pool.get()?;
     sqlite::zero(
         &conn,
@@ -135,8 +138,8 @@ pub(crate) fn change_theme(sqlite_pool: &SqlitePool, user_id: Key, theme: &str) 
     Ok(true)
 }
 
-pub fn get_all_user_ids(sqlite_pool: &SqlitePool) -> Result<Vec<interop::UserId>> {
-    fn from_row(row: &Row) -> Result<interop::UserId> {
+pub fn get_all_user_ids(sqlite_pool: &SqlitePool) -> crate::Result<Vec<interop::UserId>> {
+    fn from_row(row: &Row) -> crate::Result<interop::UserId> {
         Ok(interop::UserId { id: row.get(0)? })
     }
 

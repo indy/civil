@@ -17,7 +17,6 @@
 
 pub mod openai;
 
-use crate::error::Result;
 use chatgpt::prelude::*;
 
 #[derive(Debug, Clone)]
@@ -26,7 +25,7 @@ pub struct AI {
 }
 
 impl AI {
-    pub fn new(openai_key: String) -> Result<Self> {
+    pub fn new(openai_key: String) -> crate::Result<Self> {
         // Creating a new ChatGPT client.
         let chatgpt_config = chatgpt::config::ModelConfiguration {
             engine: ChatGPTEngine::Gpt35Turbo,

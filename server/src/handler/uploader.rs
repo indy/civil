@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::error::{Error, Result};
+use crate::error::Error;
 use crate::session;
 use crate::ServerConfig;
 
@@ -37,7 +37,7 @@ use crate::interop::AtLeastParam;
 #[allow(unused_imports)]
 use tracing::info;
 
-pub async fn get_directory(session: actix_session::Session) -> Result<HttpResponse> {
+pub async fn get_directory(session: actix_session::Session) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
     Ok(HttpResponse::Ok().json(user_id))
@@ -47,7 +47,7 @@ pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     params: Path<AtLeastParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
     let recent = db::get_recent(&sqlite_pool, user_id, params.at_least)?;
@@ -60,7 +60,7 @@ pub async fn create(
     server_config: Data<ServerConfig>,
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
     let user_directory = format!("{}/{}", server_config.user_content_path, user_id);
@@ -114,12 +114,12 @@ fn get_extension(filename: &str) -> Option<&str> {
     StdPath::new(filename).extension().and_then(OsStr::to_str)
 }
 
-fn number_as_fourc(n: i32) -> Result<String> {
+fn number_as_fourc(n: i32) -> crate::Result<String> {
     let res = format!("{:0>3}", format_radix(n as u32, 36)?);
     Ok(res)
 }
 
-fn format_radix(mut x: u32, radix: u32) -> Result<String> {
+fn format_radix(mut x: u32, radix: u32) -> crate::Result<String> {
     let mut result = vec![];
 
     loop {

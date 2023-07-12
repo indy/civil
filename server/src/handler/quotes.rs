@@ -19,7 +19,6 @@ use crate::db::decks as decks_db;
 use crate::db::memorise as memorise_db;
 use crate::db::notes as notes_db;
 use crate::db::quotes as db;
-use crate::error::Result;
 use crate::interop::quotes as interop;
 use crate::interop::{IdParam, Key};
 use crate::session;
@@ -35,7 +34,7 @@ pub async fn create(
     proto_quote: Json<interop::ProtoQuote>,
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("create");
 
     let user_id = session::user_id(&session)?;
@@ -49,7 +48,7 @@ pub async fn create(
 pub async fn random(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("random");
 
     let user_id = session::user_id(&session)?;
@@ -64,7 +63,7 @@ pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("get {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
@@ -79,7 +78,7 @@ pub async fn next(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("next {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
@@ -94,7 +93,7 @@ pub async fn prev(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("prev {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
@@ -110,7 +109,7 @@ pub async fn edit(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("edit");
 
     let user_id = session::user_id(&session)?;
@@ -127,7 +126,7 @@ pub async fn delete(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("delete");
 
     let user_id = session::user_id(&session)?;
@@ -137,7 +136,7 @@ pub async fn delete(
     Ok(HttpResponse::Ok().json(true))
 }
 
-fn sqlite_augment(sqlite_pool: &Data<SqlitePool>, quote: &mut interop::Quote) -> Result<()> {
+fn sqlite_augment(sqlite_pool: &Data<SqlitePool>, quote: &mut interop::Quote) -> crate::Result<()> {
     let quote_id: Key = quote.id;
 
     let notes = notes_db::all_from_deck(sqlite_pool, quote_id)?;

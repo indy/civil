@@ -17,7 +17,6 @@
 
 use crate::db::edges as db;
 use crate::db::sqlite::SqlitePool;
-use crate::error::Result;
 use crate::interop::edges as interop;
 use crate::session;
 use actix_web::web::{Data, Json};
@@ -29,7 +28,7 @@ pub async fn create_from_note_to_decks(
     note_references: Json<interop::ProtoNoteReferences>,
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("create_from_note_to_decks");
 
     let note_references = note_references.into_inner();

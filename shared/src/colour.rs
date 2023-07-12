@@ -29,7 +29,7 @@
 // | Oklab  | L 0..100  | A -128..128 | B -128..128 |
 // |--------+-----------+-------------+-------------|
 
-use crate::error::{Error, Result};
+use crate::error::Error;
 
 const COLOUR_UNIT_ANGLE: f32 = 360.0 / 12.0;
 const COLOUR_COMPLIMENTARY_ANGLE: f32 = COLOUR_UNIT_ANGLE * 6.0;
@@ -125,7 +125,7 @@ impl Rgb {
     }
 
     // hex in the form: "ff00ff"
-    pub fn from_rgb_hex(hex: &str) -> Result<Self> {
+    pub fn from_rgb_hex(hex: &str) -> crate::Result<Self> {
         if hex.len() != 6 {
             // error!(
             //     "Colour::from_rgb_hex expects input as 6 hex digits, actual: {}",
@@ -142,7 +142,7 @@ impl Rgb {
         ))
     }
 
-    fn normalised_colour_from_hex_string(hex_component: &str) -> Result<f32> {
+    fn normalised_colour_from_hex_string(hex_component: &str) -> crate::Result<f32> {
         let value = i32::from_str_radix(hex_component, 16)?;
         Ok(value as f32 / 255.0)
     }

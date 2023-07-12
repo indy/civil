@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::error::{Error, Result};
+use crate::error::Error;
 
 use crate::interop::decks::{BackNote, Ref};
 use crate::interop::memorise::FlashCard;
@@ -48,7 +48,7 @@ impl fmt::Display for Role {
 impl FromStr for Role {
     type Err = Error;
 
-    fn from_str(input: &str) -> Result<Role> {
+    fn from_str(input: &str) -> crate::Result<Role> {
         match input {
             "system" => Ok(Role::System),
             "assistant" => Ok(Role::Assistant),

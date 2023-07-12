@@ -19,41 +19,44 @@ use rusqlite::{params, Connection, Row};
 use tracing::info;
 
 use crate::db::sqlite;
-use crate::error::Result;
 use crate::interop::decks::DeckKind;
 use crate::interop::Key;
 
-fn i32_from_row(row: &Row) -> Result<i32> {
+fn i32_from_row(row: &Row) -> crate::Result<i32> {
     Ok(row.get(0)?)
 }
 
-pub(crate) fn get_num_decks(conn: &Connection, user_id: Key, deck_kind: &DeckKind) -> Result<i32> {
+pub(crate) fn get_num_decks(
+    conn: &Connection,
+    user_id: Key,
+    deck_kind: &DeckKind,
+) -> crate::Result<i32> {
     let stmt = "SELECT count(*) as count FROM decks WHERE kind='$deck_kind' AND user_id = ?1";
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
 
     sqlite::one(conn, &stmt, params![&user_id], i32_from_row)
 }
 
-pub(crate) fn get_num_refs(conn: &Connection, user_id: Key) -> Result<i32> {
+pub(crate) fn get_num_refs(conn: &Connection, user_id: Key) -> crate::Result<i32> {
     let stmt = "SELECT count(*) AS count
                 FROM notes_decks nd LEFT JOIN decks d ON d.id = nd.deck_id
                 WHERE d.user_id = ?1";
     sqlite::one(conn, stmt, params![&user_id], i32_from_row)
 }
 
-pub(crate) fn get_num_cards(conn: &Connection, user_id: Key) -> Result<i32> {
+pub(crate) fn get_num_cards(conn: &Connection, user_id: Key) -> crate::Result<i32> {
     let stmt = "SELECT count(*) AS count FROM cards WHERE user_id = ?1";
     sqlite::one(conn, stmt, params![&user_id], i32_from_row)
 }
 
-pub(crate) fn get_num_card_ratings(conn: &Connection, user_id: Key) -> Result<i32> {
+pub(crate) fn get_num_card_ratings(conn: &Connection, user_id: Key) -> crate::Result<i32> {
     let stmt = "SELECT count(*) AS count
                 FROM card_ratings cr LEFT JOIN cards c ON c.id = cr.card_id
                 WHERE c.user_id = ?1";
     sqlite::one(conn, stmt, params![&user_id], i32_from_row)
 }
 
-pub(crate) fn get_num_images(conn: &Connection, user_id: Key) -> Result<i32> {
+pub(crate) fn get_num_images(conn: &Connection, user_id: Key) -> crate::Result<i32> {
     let stmt = "SELECT count(*) AS count FROM images WHERE user_id = ?1";
     sqlite::one(conn, stmt, params![&user_id], i32_from_row)
 }
@@ -62,7 +65,7 @@ pub(crate) fn get_num_notes_in_decks(
     conn: &Connection,
     user_id: Key,
     deck_kind: &DeckKind,
-) -> Result<i32> {
+) -> crate::Result<i32> {
     let stmt = "SELECT COUNT(*) AS count
                 FROM notes n LEFT JOIN decks d ON d.id = n.deck_id
                 WHERE d.kind='$deck_kind' AND n.user_id = ?1";
@@ -75,7 +78,7 @@ pub(crate) fn get_num_points_in_decks(
     conn: &Connection,
     user_id: Key,
     deck_kind: &DeckKind,
-) -> Result<i32> {
+) -> crate::Result<i32> {
     let stmt = "SELECT COUNT(*) AS count
                 FROM points p LEFT JOIN decks d ON d.id = p.deck_id
                 WHERE d.kind='$deck_kind' AND d.user_id = ?1";
@@ -89,7 +92,7 @@ pub(crate) fn get_num_refs_between(
     user_id: Key,
     deck_from: &DeckKind,
     deck_to: &DeckKind,
-) -> Result<i32> {
+) -> crate::Result<i32> {
     let stmt = "SELECT COUNT(*) AS count
                 FROM notes_decks nd
                 LEFT JOIN decks deck_to ON deck_to.id = nd.deck_id
@@ -102,7 +105,7 @@ pub(crate) fn get_num_refs_between(
     sqlite::one(conn, &stmt, params![&user_id], i32_from_row)
 }
 
-pub fn generate_stats(conn: &Connection, user_id: Key) -> Result<()> {
+pub fn generate_stats(conn: &Connection, user_id: Key) -> crate::Result<()> {
     info!("generate_stats");
 
     let num_refs = get_num_refs(conn, user_id)?;
@@ -110,7 +113,7 @@ pub fn generate_stats(conn: &Connection, user_id: Key) -> Result<()> {
     let num_card_ratings = get_num_card_ratings(conn, user_id)?;
     let num_images = get_num_images(conn, user_id)?;
 
-    fn id_from_row(row: &Row) -> Result<Key> {
+    fn id_from_row(row: &Row) -> crate::Result<Key> {
         Ok(row.get(0)?)
     }
 
@@ -167,7 +170,7 @@ fn write_num_decks(
     stats_id: Key,
     deck_kind: DeckKind,
     value: i32,
-) -> Result<()> {
+) -> crate::Result<()> {
     let stmt = "INSERT INTO stats_num_decks(stats_id, deck_kind, num_decks) VALUES (?1, ?2, ?3)";
     sqlite::zero(
         conn,
@@ -181,7 +184,7 @@ fn write_num_notes(
     stats_id: Key,
     deck_kind: DeckKind,
     value: i32,
-) -> Result<()> {
+) -> crate::Result<()> {
     let stmt = "INSERT INTO stats_num_notes(stats_id, deck_kind, num_notes) VALUES (?1, ?2, ?3)";
     sqlite::zero(
         conn,
@@ -195,7 +198,7 @@ fn write_num_points(
     stats_id: Key,
     deck_kind: DeckKind,
     value: i32,
-) -> Result<()> {
+) -> crate::Result<()> {
     let stmt = "INSERT INTO stats_num_points(stats_id, deck_kind, num_points) VALUES (?1, ?2, ?3)";
     sqlite::zero(
         conn,
@@ -210,7 +213,7 @@ fn write_num_refs(
     from_deck_kind: DeckKind,
     to_deck_kind: DeckKind,
     value: i32,
-) -> Result<()> {
+) -> crate::Result<()> {
     let stmt = "INSERT INTO stats_num_refs(stats_id, from_deck_kind, to_deck_kind, num_refs) VALUES (?1, ?2, ?3, ?4)";
     sqlite::zero(
         conn,

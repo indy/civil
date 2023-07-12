@@ -19,7 +19,7 @@ use actix_web::{HttpResponse, ResponseError};
 use derive_more::{Display, From};
 use tracing::error;
 
-pub type Result<T> = ::std::result::Result<T, Error>;
+// pub type Result<T> = ::std::result::Result<T, Error>;
 
 #[derive(Display, From, Debug)]
 pub enum Error {

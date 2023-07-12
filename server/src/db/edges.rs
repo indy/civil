@@ -17,7 +17,6 @@
 
 use crate::db::decks as decks_db;
 use crate::db::sqlite::{self, SqlitePool};
-use crate::error::Result;
 use crate::interop::decks as interop_decks;
 use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::edges as interop;
@@ -28,7 +27,7 @@ use std::str::FromStr;
 #[allow(unused_imports)]
 use tracing::info;
 
-fn ref_from_row(row: &Row) -> Result<interop_decks::Ref> {
+fn ref_from_row(row: &Row) -> crate::Result<interop_decks::Ref> {
     let kind: String = row.get(3)?;
     let rk: String = row.get(4)?;
 
@@ -43,7 +42,7 @@ fn ref_from_row(row: &Row) -> Result<interop_decks::Ref> {
     })
 }
 
-fn slimdeck_from_row(row: &Row) -> Result<interop_decks::SlimDeck> {
+fn slimdeck_from_row(row: &Row) -> crate::Result<interop_decks::SlimDeck> {
     let kind: String = row.get(2)?;
 
     Ok(interop_decks::SlimDeck {
@@ -58,7 +57,7 @@ pub(crate) fn create_from_note_to_decks(
     sqlite_pool: &SqlitePool,
     note_references: &interop::ProtoNoteReferences,
     user_id: Key,
-) -> Result<interop::ReferencesApplied> {
+) -> crate::Result<interop::ReferencesApplied> {
     info!("create_from_note_to_decks");
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
@@ -147,12 +146,12 @@ pub(crate) fn create_from_note_to_decks(
 pub(crate) fn get_recently_used_decks(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-) -> Result<Vec<SlimDeck>> {
+) -> crate::Result<Vec<SlimDeck>> {
     let conn = sqlite_pool.get()?;
     get_recents(&conn, user_id)
 }
 
-fn get_recents(conn: &Connection, user_id: Key) -> Result<Vec<SlimDeck>> {
+fn get_recents(conn: &Connection, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
     let stmt_recent_refs = "SELECT DISTINCT deck_id, title, kind, insignia
          FROM (
               SELECT nd.deck_id, d.name as title, d.kind, d.insignia

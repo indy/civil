@@ -17,7 +17,7 @@
 
 use crate::db::sqlite::SqlitePool;
 use crate::db::users as db;
-use crate::error::{Error, Result};
+use crate::error::Error;
 use crate::interop::users as interop;
 use crate::session;
 use crate::ServerConfig;
@@ -33,7 +33,7 @@ pub async fn login(
     login: Json<interop::LoginCredentials>,
     db_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("login");
     let login = login.into_inner();
 
@@ -64,13 +64,13 @@ pub async fn login(
 pub async fn logout(
     _db_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     session.purge();
     // todo: what to return when logging out???
     Ok(HttpResponse::Ok().json(true))
 }
 
-fn verify_encoded(encoded: &str, pwd: &[u8]) -> Result<bool> {
+fn verify_encoded(encoded: &str, pwd: &[u8]) -> crate::Result<bool> {
     let res = argon2::verify_encoded(encoded, pwd)?;
 
     Ok(res)
@@ -81,7 +81,7 @@ pub async fn create_user(
     server_config: Data<ServerConfig>,
     db_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("create_user");
 
     if server_config.registration_magic_word == registration.magic_word {
@@ -109,7 +109,7 @@ pub async fn create_user(
 pub async fn get_user(
     db_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("get_user");
 
     if let Ok(user_id) = session::user_id(&session) {
@@ -131,7 +131,7 @@ pub async fn change_theme(
     colour_scheme_change: Json<interop::ColourSchemeChange>,
     db_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("change_theme");
 
     let user_id = session::user_id(&session)?;
@@ -152,7 +152,7 @@ fn generate_random_salt() -> [u8; 16] {
     salt
 }
 
-fn hash_password(password: &str) -> Result<String> {
+fn hash_password(password: &str) -> crate::Result<String> {
     let salt = generate_random_salt();
     let hash = argon2::hash_encoded(password.as_bytes(), &salt, &argon2::Config::default())?;
 

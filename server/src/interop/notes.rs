@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::error::{Error, Result};
+use crate::error::Error;
 use crate::interop::Key;
 
 #[derive(
@@ -40,7 +40,7 @@ pub fn note_kind_to_sqlite(note_kind: NoteKind) -> i32 {
     }
 }
 
-pub fn note_kind_from_sqlite(input: i32) -> Result<NoteKind> {
+pub fn note_kind_from_sqlite(input: i32) -> crate::Result<NoteKind> {
     match input {
         1 => Ok(NoteKind::Note),
         2 => Ok(NoteKind::NoteReview),

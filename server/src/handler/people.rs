@@ -21,7 +21,6 @@ use crate::db::notes as notes_db;
 use crate::db::people as db;
 use crate::db::points as points_db;
 use crate::db::sqlite::SqlitePool;
-use crate::error::Result;
 use crate::interop::decks::SearchResults;
 use crate::interop::people as interop;
 use crate::interop::points as points_interop;
@@ -37,7 +36,7 @@ pub async fn create(
     proto_deck: Json<ProtoDeck>,
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("create");
 
     let user_id = session::user_id(&session)?;
@@ -51,7 +50,7 @@ pub async fn create(
 pub async fn get_all(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("get_all");
 
     let user_id = session::user_id(&session)?;
@@ -64,7 +63,7 @@ pub async fn get_all(
 pub async fn get_listings(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("get_listings");
 
     let user_id = session::user_id(&session)?;
@@ -78,7 +77,7 @@ pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("get person {:?}", params.id);
 
     let user_id = session::user_id(&session)?;
@@ -95,7 +94,7 @@ pub async fn edit(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("edit");
 
     let user_id = session::user_id(&session)?;
@@ -112,7 +111,7 @@ pub async fn delete(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("delete");
 
     let user_id = session::user_id(&session)?;
@@ -127,7 +126,7 @@ pub async fn add_point(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("add_point");
 
     let person_id = params.id;
@@ -147,7 +146,7 @@ pub async fn add_multipoints(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("add_multipoints");
 
     let person_id = params.id;
@@ -169,7 +168,7 @@ fn sqlite_augment(
     person: &mut interop::Person,
     person_id: Key,
     user_id: Key,
-) -> Result<()> {
+) -> crate::Result<()> {
     let points = points_db::all_points_during_life(sqlite_pool, user_id, person_id)?;
     let notes = notes_db::all_from_deck(sqlite_pool, person_id)?;
     let refs = decks_db::from_deck_id_via_notes_to_decks(sqlite_pool, person_id)?;
@@ -191,7 +190,7 @@ pub async fn additional_search(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("additional_search {:?}", params.id);
 
     let user_id = session::user_id(&session)?;

@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #[allow(unused_imports)]
-use crate::error::{display_local_backtrace, Error, Result};
+use crate::error::{display_local_backtrace, Error};
 #[allow(unused_imports)]
 use rusqlite::{Connection, Row, ToSql};
 #[allow(unused_imports)]
@@ -24,7 +24,7 @@ use tracing::{error, info};
 
 pub type SqlitePool = r2d2::Pool<r2d2_sqlite::SqliteConnectionManager>;
 
-pub(crate) fn zero(conn: &Connection, sql: &str, params: &[&dyn ToSql]) -> Result<()> {
+pub(crate) fn zero(conn: &Connection, sql: &str, params: &[&dyn ToSql]) -> crate::Result<()> {
     match conn.execute(sql, params) {
         Ok(_) => return Ok(()),
         Err(e) => {
@@ -39,8 +39,8 @@ pub(crate) fn one<T>(
     conn: &Connection,
     sql: &str,
     params: &[&dyn ToSql],
-    from_row: fn(&Row) -> Result<T>,
-) -> Result<T> {
+    from_row: fn(&Row) -> crate::Result<T>,
+) -> crate::Result<T> {
     let mut stmt = match conn.prepare_cached(sql) {
         Ok(st) => st,
         Err(e) => {
@@ -71,8 +71,8 @@ pub(crate) fn many<T>(
     conn: &Connection,
     sql: &str,
     params: &[&dyn ToSql],
-    from_row: fn(&Row) -> Result<T>,
-) -> Result<Vec<T>> {
+    from_row: fn(&Row) -> crate::Result<T>,
+) -> crate::Result<Vec<T>> {
     let mut stmt = match conn.prepare_cached(sql) {
         Ok(st) => st,
         Err(e) => {

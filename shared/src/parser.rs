@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::error::{Error, Result};
+use crate::error::Error;
 use crate::lexer::{get_token_pos, get_token_value, split_tokens_at, Token, TokenIdent};
 use serde_derive::Serialize;
 use strum_macros::EnumDiscriminants;
 
 // a result type that returns a tuple of the remaining tokens as well as the given return value
-pub type ParserResult<'a, T> = Result<(&'a [Token<'a>], T)>;
+pub type ParserResult<'a, T> = crate::Result<(&'a [Token<'a>], T)>;
 
 #[derive(Debug, Serialize, PartialEq, Eq)]
 pub enum MarginTextLabel {
@@ -481,7 +481,7 @@ fn is_colon_specifier<'a>(tokens: &'a [Token<'a>]) -> bool {
         && is_token_at_index(tokens, 2, TokenIdent::ParenBegin)
 }
 
-fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> Result<(Token<'a>, Option<Token<'a>>)> {
+fn split_text_token_at_whitespace<'a>(text_token: Token<'a>) -> crate::Result<(Token<'a>, Option<Token<'a>>)> {
     match text_token {
         Token::Text(p, s) => {
             let tokens: Vec<Token<'a>> = s.split_whitespace().map(|chars| Token::Text(p, chars)).collect();
@@ -719,7 +719,7 @@ fn eat_text<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     Ok((tokens, Node::Text(pos, value)))
 }
 
-fn skip_leading_whitespace_and_newlines<'a>(tokens: &'a [Token]) -> Result<&'a [Token<'a>]> {
+fn skip_leading_whitespace_and_newlines<'a>(tokens: &'a [Token]) -> crate::Result<&'a [Token<'a>]> {
     for (i, tok) in tokens.iter().enumerate() {
         match tok {
             Token::Whitespace(_, _) | Token::Newline(_) => (),
@@ -730,15 +730,15 @@ fn skip_leading_whitespace_and_newlines<'a>(tokens: &'a [Token]) -> Result<&'a [
     Ok(&[])
 }
 
-fn skip_leading_newlines<'a>(tokens: &'a [Token]) -> Result<&'a [Token<'a>]> {
+fn skip_leading_newlines<'a>(tokens: &'a [Token]) -> crate::Result<&'a [Token<'a>]> {
     skip_leading(tokens, TokenIdent::Newline)
 }
 
-fn skip_leading_whitespace<'a>(tokens: &'a [Token]) -> Result<&'a [Token<'a>]> {
+fn skip_leading_whitespace<'a>(tokens: &'a [Token]) -> crate::Result<&'a [Token<'a>]> {
     skip_leading(tokens, TokenIdent::Whitespace)
 }
 
-fn eat_token_as_str<'a>(tokens: &'a [Token<'a>]) -> Result<(&'a [Token<'a>], &'a str)> {
+fn eat_token_as_str<'a>(tokens: &'a [Token<'a>]) -> crate::Result<(&'a [Token<'a>], &'a str)> {
     Ok((&tokens[1..], get_token_value(&tokens[0])))
 }
 
@@ -762,7 +762,7 @@ fn eat_text_as_string<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<String> {
     Ok((tokens, value))
 }
 
-fn skip_leading<'a>(tokens: &'a [Token], token_ident: TokenIdent) -> Result<&'a [Token<'a>]> {
+fn skip_leading<'a>(tokens: &'a [Token], token_ident: TokenIdent) -> crate::Result<&'a [Token<'a>]> {
     for (i, tok) in tokens.iter().enumerate() {
         if Into::<TokenIdent>::into(tok) != token_ident {
             return Ok(&tokens[i..]);
@@ -804,7 +804,7 @@ fn is_text_at_index<'a>(tokens: &'a [Token<'a>], idx: usize, text: &str) -> bool
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::error::{Error, Result};
+    use crate::error::Error;
     use crate::lexer::tokenize;
     use crate::lexer::Token;
 
@@ -840,7 +840,7 @@ mod tests {
         }
     }
 
-    fn ordered_list_children<'a>(node: &'a Node, expected_starts: &str) -> Result<&'a Vec<Node>> {
+    fn ordered_list_children<'a>(node: &'a Node, expected_starts: &str) -> crate::Result<&'a Vec<Node>> {
         match node {
             Node::OrderedList(_, children, starts) => {
                 assert_eq!(starts, &expected_starts);
@@ -852,7 +852,7 @@ mod tests {
         Err(Error::Parser)
     }
 
-    fn unordered_list_children<'a>(node: &'a Node) -> Result<&'a Vec<Node>> {
+    fn unordered_list_children<'a>(node: &'a Node) -> crate::Result<&'a Vec<Node>> {
         match node {
             Node::UnorderedList(_, children) => {
                 return Ok(children);
@@ -862,7 +862,7 @@ mod tests {
         Err(Error::Parser)
     }
 
-    fn paragraph_children<'a>(node: &'a Node) -> Result<&'a Vec<Node>> {
+    fn paragraph_children<'a>(node: &'a Node) -> crate::Result<&'a Vec<Node>> {
         match node {
             Node::Paragraph(_, children) => {
                 return Ok(children);
@@ -872,7 +872,7 @@ mod tests {
         Err(Error::Parser)
     }
 
-    fn blockquote_children<'a>(node: &'a Node) -> Result<&'a Vec<Node>> {
+    fn blockquote_children<'a>(node: &'a Node) -> crate::Result<&'a Vec<Node>> {
         match node {
             Node::BlockQuote(_, children) => {
                 return Ok(children);

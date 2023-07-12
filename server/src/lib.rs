@@ -25,7 +25,9 @@ pub mod server_api;
 mod session;
 pub mod stat_api;
 
-pub use crate::error::{Error, Result};
+pub use crate::error::Error;
+
+pub type Result<T> = ::std::result::Result<T, error::Error>;
 
 pub struct ServerConfig {
     pub user_content_path: String,
@@ -49,7 +51,7 @@ pub fn init_tracing() {
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 }
 
-pub fn env_var_string(key: &str) -> Result<String> {
+pub fn env_var_string(key: &str) -> crate::Result<String> {
     match env::var(key) {
         Ok(r) => Ok(r),
         Err(e) => Err(Error::Var(e)),
@@ -63,7 +65,7 @@ pub fn env_var_string_or(key: &str, default: &str) -> String {
     }
 }
 
-pub fn env_var_bool(key: &str) -> Result<bool> {
+pub fn env_var_bool(key: &str) -> crate::Result<bool> {
     Ok(env_var_string(key)? == "true")
 }
 

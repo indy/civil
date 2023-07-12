@@ -17,7 +17,6 @@
 
 use crate::db::notes as db;
 use crate::db::sqlite::SqlitePool;
-use crate::error::Result;
 use crate::interop::notes as interop;
 use crate::interop::IdParam;
 use crate::session;
@@ -31,7 +30,7 @@ pub async fn create_notes(
     note: Json<interop::ProtoNote>,
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     let note = note.into_inner();
     info!("create_notes {:?}", &note);
 
@@ -47,7 +46,7 @@ pub async fn get_note(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("get_note {}", params.id);
 
     let user_id = session::user_id(&session)?;
@@ -61,7 +60,7 @@ pub async fn edit_note(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("edit_note");
 
     let note = note.into_inner();
@@ -76,7 +75,7 @@ pub async fn delete_note(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,
-) -> Result<HttpResponse> {
+) -> crate::Result<HttpResponse> {
     info!("delete_note {}", params.id);
 
     let user_id = session::user_id(&session)?;

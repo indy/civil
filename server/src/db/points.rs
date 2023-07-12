@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::sqlite::{self, SqlitePool};
-use crate::error::{Error, Result};
+use crate::error::Error;
 use crate::interop::decks as interop_decks;
 use crate::interop::points as interop;
 use crate::interop::Key;
@@ -38,7 +38,7 @@ impl fmt::Display for interop::PointKind {
 impl FromStr for interop::PointKind {
     type Err = Error;
 
-    fn from_str(input: &str) -> Result<interop::PointKind> {
+    fn from_str(input: &str) -> crate::Result<interop::PointKind> {
         match input {
             "point" => Ok(interop::PointKind::Point),
             "point_begin" => Ok(interop::PointKind::PointBegin),
@@ -48,7 +48,7 @@ impl FromStr for interop::PointKind {
     }
 }
 
-fn point_from_row(row: &Row) -> Result<interop::Point> {
+fn point_from_row(row: &Row) -> crate::Result<interop::Point> {
     let sql_kind: String = row.get(1)?;
     Ok(interop::Point {
         id: row.get(0)?,
@@ -72,7 +72,7 @@ pub(crate) fn all(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
-) -> Result<Vec<interop::Point>> {
+) -> crate::Result<Vec<interop::Point>> {
     let conn = sqlite_pool.get()?;
 
     sqlite::many(
@@ -100,7 +100,7 @@ pub(crate) fn all(
     )
 }
 
-fn deckpoint_from_row(row: &Row) -> Result<interop::DeckPoint> {
+fn deckpoint_from_row(row: &Row) -> crate::Result<interop::DeckPoint> {
     let string_deck_kind: String = row.get(2)?;
     let string_point_kind: String = row.get(4)?;
 
@@ -121,7 +121,7 @@ pub(crate) fn all_points_during_life(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
-) -> Result<Vec<interop::DeckPoint>> {
+) -> crate::Result<Vec<interop::DeckPoint>> {
     let conn = sqlite_pool.get()?;
 
     // a union of two queries:
@@ -175,7 +175,7 @@ pub(crate) fn create(
     sqlite_pool: &SqlitePool,
     point: &interop::ProtoPoint,
     deck_id: Key,
-) -> Result<()> {
+) -> crate::Result<()> {
     let conn = sqlite_pool.get()?;
 
     sqlite::zero(

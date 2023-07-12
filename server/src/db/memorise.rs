@@ -16,7 +16,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::sqlite::{self, SqlitePool};
-use crate::error::Result;
 use crate::interop::decks as interop_decks;
 use crate::interop::memorise as interop;
 use crate::interop::Key;
@@ -41,7 +40,7 @@ impl From<(interop::FlashCard, interop_decks::SlimDeck)> for interop::Card {
     }
 }
 
-fn flashcard_from_row(row: &Row) -> Result<interop::FlashCard> {
+fn flashcard_from_row(row: &Row) -> crate::Result<interop::FlashCard> {
     Ok(interop::FlashCard {
         id: row.get(0)?,
 
@@ -58,7 +57,7 @@ fn flashcard_from_row(row: &Row) -> Result<interop::FlashCard> {
 pub(crate) fn all_flashcards_for_deck(
     sqlite_pool: &SqlitePool,
     deck_id: Key,
-) -> Result<Vec<interop::FlashCard>> {
+) -> crate::Result<Vec<interop::FlashCard>> {
     let conn = sqlite_pool.get()?;
     sqlite::many(&conn,
                  "SELECT c.id, c.note_id, c.prompt, c.next_test_date, c.easiness_factor, c.interval, c.repetition
@@ -72,7 +71,7 @@ pub(crate) fn create_card(
     sqlite_pool: &SqlitePool,
     card: &interop::ProtoCard,
     user_id: Key,
-) -> Result<interop::FlashCard> {
+) -> crate::Result<interop::FlashCard> {
     info!("create_card");
 
     let mut conn = sqlite_pool.get()?;
@@ -109,7 +108,7 @@ pub(crate) fn get_card_full_fat(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     card_id: Key,
-) -> Result<interop::FlashCard> {
+) -> crate::Result<interop::FlashCard> {
     info!("get_card_full_fat");
 
     let conn = sqlite_pool.get()?;
@@ -128,7 +127,7 @@ pub(crate) fn card_rated(
     sqlite_pool: &SqlitePool,
     card: interop::FlashCard,
     rating: i16,
-) -> Result<()> {
+) -> crate::Result<()> {
     info!("card_rated");
 
     let mut conn = sqlite_pool.get()?;
@@ -165,7 +164,7 @@ pub(crate) fn edit_flashcard(
     user_id: Key,
     flashcard: &interop::FlashCard,
     flashcard_id: Key,
-) -> Result<interop::FlashCard> {
+) -> crate::Result<interop::FlashCard> {
     let conn = sqlite_pool.get()?;
 
     sqlite::one(
@@ -183,7 +182,7 @@ pub(crate) fn delete_flashcard(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     flashcard_id: Key,
-) -> Result<()> {
+) -> crate::Result<()> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
@@ -204,7 +203,7 @@ pub(crate) fn delete_flashcard(
     Ok(())
 }
 
-fn interop_card_from_row(row: &Row) -> Result<interop::Card> {
+fn interop_card_from_row(row: &Row) -> crate::Result<interop::Card> {
     let kind: String = row.get(6)?;
 
     Ok(interop::Card {
@@ -225,7 +224,7 @@ pub(crate) fn get_cards(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     due: chrono::NaiveDateTime,
-) -> Result<Vec<interop::Card>> {
+) -> crate::Result<Vec<interop::Card>> {
     info!("get_cards");
 
     let conn = sqlite_pool.get()?;
@@ -240,7 +239,10 @@ pub(crate) fn get_cards(
     )
 }
 
-pub(crate) fn get_practice_card(sqlite_pool: &SqlitePool, user_id: Key) -> Result<interop::Card> {
+pub(crate) fn get_practice_card(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+) -> crate::Result<interop::Card> {
     info!("get_practice_card");
 
     let conn = sqlite_pool.get()?;
@@ -261,17 +263,17 @@ pub(crate) fn get_cards_upcoming_review(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     due: chrono::NaiveDateTime,
-) -> Result<interop::CardUpcomingReview> {
+) -> crate::Result<interop::CardUpcomingReview> {
     info!("get_cards_upcoming_review");
 
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    fn i32_from_row(row: &Row) -> Result<i32> {
+    fn i32_from_row(row: &Row) -> crate::Result<i32> {
         Ok(row.get(0)?)
     }
 
-    fn naive_datetime_from_row(row: &Row) -> Result<chrono::NaiveDateTime> {
+    fn naive_datetime_from_row(row: &Row) -> crate::Result<chrono::NaiveDateTime> {
         Ok(row.get(0)?)
     }
 
