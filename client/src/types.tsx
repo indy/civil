@@ -226,65 +226,11 @@ export type Listing = {
     dialogues: Array<SlimDeck> | undefined;
 };
 
-export type ColourSettings = {
+export type ColourSeeds = {
     [index: string]: number;
-
-    hueDelta: number;
-
-    hueOffsetFg: number;
-    saturationFg: number;
-    lightnessFg: number;
-
-    hueOffsetBg: number;
-    saturationBg: number;
-    lightnessBg: number;
-
-    textSat: number;
-    textLit: number;
 };
 
 export type ColourTriple = [number, number, number];
-
-export type ColourDefinitions = {
-    [index: string]: string | ColourTriple | undefined;
-
-    bg?: ColourTriple;
-    bg1?: ColourTriple;
-    bg2?: ColourTriple;
-    bg3?: ColourTriple;
-
-    fg?: ColourTriple;
-    fg1?: ColourTriple;
-    fg_inactive?: ColourTriple;
-
-    divider?: ColourTriple;
-
-    graph_node_expanded?: ColourTriple;
-    graph_node_partial?: ColourTriple;
-    graph_node_minimised?: ColourTriple;
-    graph_edge?: ColourTriple;
-    graph_edge_in_contrast?: ColourTriple;
-    graph_edge_critical?: ColourTriple;
-
-    scribble_neutral?: ColourTriple;
-    scribble_disagree?: ColourTriple;
-    hyperlink?: ColourTriple;
-    highlight?: ColourTriple;
-
-    bg_ideas?: string;
-    bg_articles?: string;
-    bg_people?: string;
-    bg_timelines?: string;
-    bg_quotes?: string;
-    bg_dialogues?: string;
-
-    fg_ideas?: string;
-    fg_articles?: string;
-    fg_people?: string;
-    fg_timelines?: string;
-    fg_quotes?: string;
-    fg_dialogues?: string;
-};
 
 export type WasmInterface = {
     markupAsStruct(markup: string, noteId: number): any;
@@ -338,8 +284,7 @@ export type State = {
     wasmInterface: WasmInterface | undefined;
 
     colourScheme: ColourScheme;
-    colourSettings: Signal<ColourSettings>;
-    colourDefinitions: Signal<ColourDefinitions>;
+    colourSeeds: Signal<ColourSeeds>;
 
     hasPhysicalKeyboard: boolean;
     oldestAliveAge: number;

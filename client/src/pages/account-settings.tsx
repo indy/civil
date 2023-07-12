@@ -2,12 +2,11 @@ import { h, ComponentChildren } from "preact";
 import { route } from "preact-router";
 import { useEffect, useState } from "preact/hooks";
 
-import { ColourScheme } from "types";
+import { ColourScheme, WaitingFor } from "types";
 
 import { getAppState, AppStateChange } from "app-state";
 
 import Net from "utils/net";
-import { activateColourScheme } from "utils/colour-creator";
 
 import Module from "components/module";
 
@@ -30,8 +29,13 @@ function TestRollupModule({}) {
     // }
 
     const [active, setActive] = useState(true);
+    const [waitVal, setWaitVal] = useState(true);
 
     function onClick() {
+        AppStateChange.setWaitingFor(
+            waitVal ? WaitingFor.Server : WaitingFor.User
+        );
+        setWaitVal(!waitVal);
         setActive(!active);
     }
 
@@ -119,7 +123,8 @@ function ColourSchemeSelector({}) {
         Net.post<ColourSchemeChange, any>("api/users/theme", {
             theme: colourSchemeAsString(colourScheme),
         });
-        activateColourScheme(appState, colourScheme);
+
+        AppStateChange.setColourScheme(colourScheme);
     }, [colourScheme]);
 
     return (

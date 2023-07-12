@@ -7,10 +7,7 @@ import { getCssString, getCssBoolean } from "utils/js";
 import Net from "utils/net";
 import { App } from "app";
 import { AppStateChange, initialState } from "app-state";
-import {
-    activateColourScheme,
-    buildColourConversionFn,
-} from "utils/colour-creator";
+import { buildColourConversionFn } from "utils/colour-creator";
 
 wasm_bindgen("/civil_wasm_bg.wasm")
     .then(() => {
@@ -87,8 +84,9 @@ wasm_bindgen("/civil_wasm_bg.wasm")
                     //
                     state.user.value = user;
 
-                    const colourScheme = colourSchemeFromString(user.theme);
-                    activateColourScheme(state, colourScheme);
+                    AppStateChange.setColourScheme(
+                        colourSchemeFromString(user.theme)
+                    );
 
                     Net.get<UberSetup>("/api/ubersetup").then((uber) => {
                         AppStateChange.uberSetup(uber);
@@ -97,10 +95,10 @@ wasm_bindgen("/civil_wasm_bg.wasm")
                 } else {
                     // use system default theme obtained from the css variable "--mode"
                     //
-                    const colourScheme = colourSchemeFromString(
-                        getCssString("--mode")
+                    let mode = getCssString("--mode");
+                    AppStateChange.setColourScheme(
+                        colourSchemeFromString(mode)
                     );
-                    activateColourScheme(state, colourScheme);
 
                     render(<App state={state} />, rootElement);
                 }

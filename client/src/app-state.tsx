@@ -36,6 +36,7 @@ import {
 } from "types";
 
 import { isCommand, noteSeq, deckKindToResourceString } from "utils/civil";
+import { generateColoursFromSeeds, declareSeeds } from "utils/colour-creator";
 
 const emptyUser: User = {
     username: "",
@@ -66,21 +67,7 @@ const state: State = {
     wasmInterface: undefined,
 
     colourScheme: ColourScheme.Light,
-    colourSettings: signal({
-        hueDelta: 30,
-
-        hueOffsetFg: 0,
-        saturationFg: 0,
-        lightnessFg: 0,
-
-        hueOffsetBg: 0,
-        saturationBg: 0,
-        lightnessBg: 0,
-
-        textSat: 83.7,
-        textLit: 53.6,
-    }),
-    colourDefinitions: signal({}),
+    colourSeeds: signal({}),
 
     // this is set via the --search-always-visible css variable so
     // that mobile touch devices will always show the search bar
@@ -194,6 +181,12 @@ export const getAppState = () => useContext(AppStateContext);
 const DEBUG_APP_STATE = false;
 
 export const AppStateChange = {
+    setColourScheme: function (colourScheme: ColourScheme) {
+        state.colourScheme = colourScheme;
+        state.colourSeeds.value = declareSeeds(state.colourScheme);
+        generateColoursFromSeeds(state, state.colourSeeds.value);
+    },
+
     setWaitingFor: function (waitingFor: WaitingFor) {
         state.waitingFor.value = waitingFor;
     },

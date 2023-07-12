@@ -51,11 +51,14 @@ function DebugMessages() {
 function WaitingDisplay() {
     const appState = getAppState();
 
-    return (
-        <div class="waiting-for">
-            {appState.waitingFor.value === WaitingFor.Server && svgClock()}
-        </div>
-    );
+    const show = appState.waitingFor.value === WaitingFor.Server;
+
+    let classes = "waiting-for";
+    if (show) {
+        classes += " waiting-for-active";
+    }
+
+    return <div class={classes}>{show && svgClock()}</div>;
 }
 
 function TopBarMenu() {

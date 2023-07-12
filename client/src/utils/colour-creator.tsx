@@ -1,29 +1,15 @@
-import {
-    State,
-    ColourScheme,
-    ColourTriple,
-    ColourSettings,
-    ColourDefinitions,
-} from "types";
+import { State, ColourScheme, ColourTriple, ColourSeeds } from "types";
 
-function activateColourScheme(state: State, colourScheme: ColourScheme) {
+type ColourDefinitions = {
+    [index: string]: string | ColourTriple | undefined;
+};
+
+function generateColoursFromSeeds(state: State, seeds: ColourSeeds) {
     if (state.wasmInterface) {
-        state.colourScheme = colourScheme;
+        const rgbFromHsl = state.wasmInterface.rgbFromHsl;
+        const colourDefs: ColourDefinitions = generateColourDefs(seeds);
 
-        state.colourSettings.value = updateSettings(
-            state.colourSettings.value,
-            colourScheme
-        );
-        state.colourDefinitions.value = updateDefinitions(
-            state.colourSettings.value,
-            state.colourDefinitions.value,
-            colourScheme
-        );
-        declareCssVariables(
-            state.colourSettings.value,
-            state.colourDefinitions.value,
-            state.wasmInterface.rgbFromHsl
-        );
+        declareCssVariables(colourDefs, rgbFromHsl);
     }
 }
 
@@ -57,64 +43,133 @@ function buildColourConversionFn(
     };
 }
 
-function updateSettings(
-    uiColours: ColourSettings,
-    colourScheme: ColourScheme
-): ColourSettings {
-    let s: ColourSettings;
+function declareSeeds(colourScheme: ColourScheme): ColourSeeds {
+    let s: ColourSeeds;
 
     if (colourScheme === ColourScheme.Light) {
         s = {
-            ...uiColours,
+            bgH: 46.5,
+            bgS: 20.0,
+            bgL: 99.0,
+            bgLDelta: -3,
 
-            hueDelta: 30,
+            fgH: 16.7,
+            fgS: 0,
+            fgL: 5.0,
+            fgLDelta: 10.0,
 
-            // used to generate the fg clock values
-            hueOffsetFg: 67,
-            saturationFg: 60,
-            lightnessFg: 53.6,
+            colouredTextS: 83.7,
+            colouredTextL: 53.6,
 
-            // used to generate the bg clock values
-            hueOffsetBg: 67,
-            saturationBg: 60,
-            lightnessBg: 89.9,
+            clockHDelta: 30,
 
-            textSat: 83.7,
-            textLit: 53.6,
+            clockFgH: 67,
+            clockFgS: 60,
+            clockFgL: 53.6,
+
+            clockBgH: 67,
+            clockBgS: 60,
+            clockBgL: 89.9,
         };
     } else {
         s = {
-            ...uiColours,
+            bgH: 230.0,
+            bgS: 20.0,
+            bgL: 1,
+            bgLDelta: 3,
 
-            hueDelta: 30,
+            fgH: 16.7,
+            fgS: 0,
+            fgL: 90.0,
+            fgLDelta: -10.0,
 
-            // used to generate the fg clock values
-            hueOffsetBg: 67.1,
-            saturationBg: 90.5,
-            lightnessBg: 30.0,
+            colouredTextS: 100,
+            colouredTextL: 70,
 
-            // used to generate the bg clock values
-            hueOffsetFg: 65.7,
-            saturationFg: 90.5,
-            lightnessFg: 80,
+            clockHDelta: 30,
 
-            textSat: 100,
-            textLit: 70,
+            clockBgH: 67.1,
+            clockBgS: 90.5,
+            clockBgL: 30.0,
+
+            clockFgH: 65.7,
+            clockFgS: 90.5,
+            clockFgL: 80,
         };
     }
     return s;
 }
 
-function updateDefinitions(
-    uiColours: ColourSettings,
-    uiDefinitions: ColourDefinitions,
-    colourScheme: ColourScheme
-): ColourDefinitions {
+function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
+    let defs: ColourDefinitions = {};
+
+    for (let i = 0; i < 12; i++) {
+        let hueFg = seeds.clockFgH + i * seeds.clockHDelta;
+        let hueBg = seeds.clockBgH + i * seeds.clockHDelta;
+
+        let index = indexAsString(i);
+
+        defs[`fg_clock_${index}`] = [
+            hueFg,
+            seeds.clockFgS,
+            seeds.clockFgL,
+        ] as ColourTriple;
+        defs[`bg_clock_${index}`] = [
+            hueBg,
+            seeds.clockBgS,
+            seeds.clockBgL,
+        ] as ColourTriple;
+    }
+
     // colours that can be derived from previously set
-    // variables  regardless of the current colour scheme
+    // variables regardless of the current colour scheme
     //
-    let s: ColourDefinitions = {
-        ...uiDefinitions,
+    defs = {
+        ...defs,
+
+        bg0: [
+            seeds.bgH,
+            seeds.bgS,
+            seeds.bgL + seeds.bgLDelta * 0,
+        ] as ColourTriple,
+        bg: [
+            seeds.bgH,
+            seeds.bgS,
+            seeds.bgL + seeds.bgLDelta * 1,
+        ] as ColourTriple,
+        bg1: [
+            seeds.bgH,
+            seeds.bgS,
+            seeds.bgL + seeds.bgLDelta * 2,
+        ] as ColourTriple,
+
+        fg: [
+            seeds.fgH,
+            seeds.fgS,
+            seeds.fgL + seeds.fgLDelta * 0,
+        ] as ColourTriple,
+        fg1: [
+            seeds.fgH,
+            seeds.fgS,
+            seeds.fgL + seeds.fgLDelta * 1,
+        ] as ColourTriple,
+        fg2: [
+            seeds.fgH,
+            seeds.fgS,
+            seeds.fgL + seeds.fgLDelta * 2,
+        ] as ColourTriple,
+
+        fg_inactive: [
+            seeds.fgH,
+            seeds.fgS,
+            seeds.fgL + seeds.fgLDelta * 5,
+        ] as ColourTriple,
+
+        divider: [
+            seeds.fgH,
+            seeds.fgS,
+            seeds.fgL + seeds.fgLDelta * 7,
+        ] as ColourTriple,
 
         bg_ideas: "--bg-clock-06",
         bg_articles: "--bg-clock-12",
@@ -134,169 +189,97 @@ function updateDefinitions(
 
         fg_stuff: "--fg-clock-11",
 
+        fg_toolbar_view: [
+            seeds.fgH,
+            seeds.fgS,
+            seeds.fgL + seeds.fgLDelta * 1,
+        ] as ColourTriple,
+
         bg_memorise: [
-            uiColours.hueDelta * 10 + uiColours.hueOffsetBg,
-            uiColours.saturationBg - 30,
-            uiColours.lightnessBg,
+            seeds.clockHDelta * 10 + seeds.clockBgH,
+            seeds.clockBgS - 30,
+            seeds.clockBgL,
         ] as ColourTriple,
         bg_memorise_active: [
-            uiColours.hueDelta * 10 + uiColours.hueOffsetBg,
-            uiColours.saturationBg + 50,
-            uiColours.lightnessBg,
+            seeds.clockHDelta * 10 + seeds.clockBgH,
+            seeds.clockBgS + 50,
+            seeds.clockBgL,
         ] as ColourTriple,
 
         fg_memorise: [
-            uiColours.hueDelta * 10 + uiColours.hueOffsetFg,
-            uiColours.saturationFg - 30,
-            uiColours.lightnessFg,
+            seeds.clockHDelta * 10 + seeds.clockFgH,
+            seeds.clockFgS - 30,
+            seeds.clockFgL,
         ] as ColourTriple,
         fg_memorise_active: [
-            uiColours.hueDelta * 10 + uiColours.hueOffsetFg,
-            uiColours.saturationFg + 50,
-            uiColours.lightnessFg,
+            seeds.clockHDelta * 10 + seeds.clockFgH,
+            seeds.clockFgS + 50,
+            seeds.clockFgL,
         ] as ColourTriple,
 
         scribble_neutral: [
             247,
-            uiColours.textSat,
-            uiColours.textLit,
+            seeds.colouredTextS,
+            seeds.colouredTextL,
         ] as ColourTriple,
         scribble_disagree: [
             15.1,
-            uiColours.textSat,
-            uiColours.textLit,
+            seeds.colouredTextS,
+            seeds.colouredTextL,
         ] as ColourTriple,
-        hyperlink: [247, uiColours.textSat, uiColours.textLit] as ColourTriple,
+        hyperlink: [
+            247,
+            seeds.colouredTextS,
+            seeds.colouredTextL,
+        ] as ColourTriple,
         highlight: [85, 100, 90] as ColourTriple,
 
-        red_text: [10, uiColours.textSat, uiColours.textLit] as ColourTriple,
-        green_text: [130, uiColours.textSat, uiColours.textLit] as ColourTriple,
+        red_text: [
+            10,
+            seeds.colouredTextS,
+            seeds.colouredTextL,
+        ] as ColourTriple,
+        green_text: [
+            130,
+            seeds.colouredTextS,
+            seeds.colouredTextL,
+        ] as ColourTriple,
+
+        fg_toolbar_edit: [10, 80, 50] as ColourTriple,
+        fg_toolbar_refs: [270, 80, 50] as ColourTriple,
+        fg_toolbar_memorise: [170, 80, 50] as ColourTriple,
+        fg_toolbar_add_above: [210, 80, 50] as ColourTriple,
+        fg_toolbar_scratchlist: [70, 80, 50] as ColourTriple,
+
+        graph_node_expanded: [127, 60, 70] as ColourTriple,
+        graph_node_partial: [37, 60, 70] as ColourTriple,
+        graph_node_minimised: [0, 0, 70] as ColourTriple,
+        graph_edge: [0, 0, 70] as ColourTriple,
+        graph_edge_in_contrast: [217, 60, 70] as ColourTriple,
+        graph_edge_critical: [7, 60, 70] as ColourTriple,
     };
 
-    // colours that need to be explicitly set for each colour scheme
-    //
-    if (colourScheme === ColourScheme.Light) {
-        s = {
-            ...s,
-
-            bg0: [46.5, 19.2, 98.7] as ColourTriple,
-            bg: [46.5, 19.2, 95.7] as ColourTriple,
-            bg1: [46.1, 20.2, 88.0] as ColourTriple,
-
-            fg: [43, 19, 3.5] as ColourTriple,
-            fg1: [0, 0, 40.7] as ColourTriple,
-            fg2: [0, 0, 70.7] as ColourTriple,
-
-            fg_inactive: [0, 0, 60] as ColourTriple,
-
-            bg_ui: [46.1, 20.2, 82.0] as ColourTriple,
-            fg_ui: [46.1, 20.2, 62.0] as ColourTriple,
-
-            divider: [0, 0, 77.7] as ColourTriple,
-
-            graph_node_expanded: [127, 60, 70] as ColourTriple,
-            graph_node_partial: [37, 60, 70] as ColourTriple,
-            graph_node_minimised: [0, 0, 70] as ColourTriple,
-            graph_edge: [0, 0, 70] as ColourTriple,
-            graph_edge_in_contrast: [217, 60, 70] as ColourTriple,
-            graph_edge_critical: [7, 60, 70] as ColourTriple,
-
-            fg_toolbar_edit: [10, 80, 50] as ColourTriple,
-            fg_toolbar_refs: [270, 80, 50] as ColourTriple,
-            fg_toolbar_memorise: [170, 80, 50] as ColourTriple,
-            fg_toolbar_add_above: [210, 80, 50] as ColourTriple,
-            fg_toolbar_scratchlist: [70, 80, 50] as ColourTriple,
-
-            // both light and dark modes have the same value for fg_toolbar_view
-            // but we can't move this declaration to the top section since fg1 is
-            // the value and that's declared within the light/dark specific sections
-            fg_toolbar_view: "--fg1",
-        };
-    } else {
-        s = {
-            ...s,
-
-            bg0: [230, 50, 0.0] as ColourTriple,
-            bg: [230, 50, 20.0] as ColourTriple,
-            bg1: [230, 50, 30.0] as ColourTriple,
-
-            fg: [43, 19, 90] as ColourTriple,
-            fg1: [16.7, 0, 80] as ColourTriple,
-            fg2: [16.7, 0, 70] as ColourTriple,
-
-            fg_inactive: [16.7, 0, 20] as ColourTriple,
-
-            bg_ui: [46.1, 20.2, 2.0] as ColourTriple,
-            fg_ui: [46.1, 20.2, 22.0] as ColourTriple,
-
-            divider: [230, 50, 30.0] as ColourTriple,
-
-            graph_node_expanded: [127, 60, 70] as ColourTriple,
-            graph_node_partial: [37, 60, 70] as ColourTriple,
-            graph_node_minimised: [0, 0, 70] as ColourTriple,
-            graph_edge: [0, 0, 70] as ColourTriple,
-            graph_edge_in_contrast: [217, 60, 70] as ColourTriple,
-            graph_edge_critical: [7, 60, 70] as ColourTriple,
-
-            fg_toolbar_edit: [10, 70, 50] as ColourTriple,
-            fg_toolbar_refs: [270, 70, 50] as ColourTriple,
-            fg_toolbar_memorise: [170, 100, 50] as ColourTriple,
-            fg_toolbar_add_above: [210, 70, 50] as ColourTriple,
-            fg_toolbar_scratchlist: [70, 70, 50] as ColourTriple,
-
-            fg_toolbar_view: "--fg1",
-        };
-    }
-
-    return s;
+    return defs;
 }
 
 function declareCssVariables(
-    uiColours: ColourSettings,
-    uiDefinitions: ColourDefinitions,
+    colourDefinitions: ColourDefinitions,
     rgbFromHsl: (hsl: ColourTriple) => any
 ) {
     let root = document.body;
 
-    function cssFromUnderscore(name: string) {
-        let cssName = "--" + name.replaceAll("_", "-");
-        return cssName;
-    }
-
-    let hueFg: number, hueBg: number, rgb: string, index: string;
-    for (let i = 0; i < 12; i++) {
-        hueFg = uiColours.hueOffsetFg + i * uiColours.hueDelta;
-        hueBg = uiColours.hueOffsetBg + i * uiColours.hueDelta;
-
-        index = indexAsString(i);
-
-        rgb = rgbFromHsl([
-            hueFg,
-            uiColours.saturationFg,
-            uiColours.lightnessFg,
-        ]);
-        root.style.setProperty(`--fg-clock-${index}`, rgb);
-
-        rgb = rgbFromHsl([
-            hueBg,
-            uiColours.saturationBg,
-            uiColours.lightnessBg,
-        ]);
-        root.style.setProperty(`--bg-clock-${index}`, rgb);
-    }
-
-    Object.keys(uiDefinitions).forEach((key) => {
+    Object.keys(colourDefinitions).forEach((key) => {
         let cssName = cssFromUnderscore(key);
-        let value = uiDefinitions[key];
+        let value = colourDefinitions[key];
 
         if (Array.isArray(value)) {
             let hsl = value;
             let rgb = rgbFromHsl(hsl);
             root.style.setProperty(cssName, rgb);
         } else {
-            let clockName = value;
-            if (clockName) {
-                let source = getComputedStyle(root).getPropertyValue(clockName);
+            let name = value;
+            if (name) {
+                let source = getComputedStyle(root).getPropertyValue(name);
                 root.style.setProperty(cssName, source);
             }
         }
@@ -313,4 +296,9 @@ function indexAsString(i: number) {
     }
 }
 
-export { activateColourScheme, buildColourConversionFn };
+function cssFromUnderscore(name: string) {
+    let cssName = "--" + name.replaceAll("_", "-");
+    return cssName;
+}
+
+export { generateColoursFromSeeds, buildColourConversionFn, declareSeeds };

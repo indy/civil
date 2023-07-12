@@ -53,13 +53,15 @@
 
 .waiting-for {
     position: fixed;
-    /* top: 50%; */
-    /* left: 50%; */
-    /* margin-top: -5rem; */
-    /* margin-left: -5rem; */
 
     top: 5rem;
     left: 5rem;
+
+    transition: opacity 500ms linear;
+    opacity: 0;
+}
+.waiting-for-active {
+    opacity: 1;
 }
 
 .debug-messages {
@@ -464,7 +466,7 @@ figure.fullwidth figcaption {
     appearance: none;
     width: 100%;
     height: 0.5rem;
-    background: var(--bg-ui);
+    background: var(--bg1);
     outline: none;
     opacity: 0;
     transition: opacity 500ms;
@@ -486,7 +488,7 @@ figure.fullwidth figcaption {
     appearance: none;
     width: 1.5rem;
     height: 1.5rem;
-    background: var(--fg-ui);
+    background: var(--fg);
     cursor: pointer;
 }
 
@@ -494,7 +496,7 @@ figure.fullwidth figcaption {
     border-radius: var(--coloured-deck-border-radius);
     width: 1.5rem;
     height: 1.5rem;
-    background: var(--fg-ui);
+    background: var(--fg);
     cursor: pointer;
 }
 
@@ -725,7 +727,8 @@ input,
 optgroup,
 select,
 textarea {
-    background: var(--bg0);
+    color: var(--fg);
+    background: var(--bg1);
 }
 
 textarea {
@@ -922,21 +925,19 @@ textarea {
     font-family: Inter;
     font-weight: 600;
     background-color: var(--bg1);
-    color: var(--fg-ui);
-    border: 0.15rem solid var(--fg-ui);
+    color: var(--fg1);
+    border: 0.15rem solid var(--fg1);
     border-radius: var(--coloured-deck-border-radius);
     padding: 0.3rem;
     cursor: pointer;
 }
 
 .civil-button:hover {
-    background-color: var(--bg-ui);
-    /* color: var(--fg-ui); */
-    border: 0.15rem solid var(--fg-ui);
+    background-color: var(--bg);
+    border: 0.15rem solid var(--fg);
 }
 
 .civil-button:active {
-    /* color: var(--fg-ui); */
 }
 
 #scratchlist-component {
