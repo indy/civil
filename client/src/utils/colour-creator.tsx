@@ -134,8 +134,6 @@ function updateDefinitions(
 
         fg_stuff: "--fg-clock-11",
 
-        fg_toolbar_view: "--fg1",
-
         bg_memorise: [
             uiColours.hueDelta * 10 + uiColours.hueOffsetBg,
             uiColours.saturationBg - 30,
@@ -208,6 +206,11 @@ function updateDefinitions(
             fg_toolbar_memorise: [170, 80, 50] as ColourTriple,
             fg_toolbar_add_above: [210, 80, 50] as ColourTriple,
             fg_toolbar_scratchlist: [70, 80, 50] as ColourTriple,
+
+            // both light and dark modes have the same value for fg_toolbar_view
+            // but we can't move this declaration to the top section since fg1 is
+            // the value and that's declared within the light/dark specific sections
+            fg_toolbar_view: "--fg1",
         };
     } else {
         s = {
@@ -240,8 +243,11 @@ function updateDefinitions(
             fg_toolbar_memorise: [170, 100, 50] as ColourTriple,
             fg_toolbar_add_above: [210, 70, 50] as ColourTriple,
             fg_toolbar_scratchlist: [70, 70, 50] as ColourTriple,
+
+            fg_toolbar_view: "--fg1",
         };
     }
+
     return s;
 }
 
