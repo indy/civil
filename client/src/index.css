@@ -2113,6 +2113,12 @@ input:required {
         float: left;
         margin-left: -12rem;
     }
+
+    .role-view {
+      float: left;
+      margin-left: 1rem;
+
+    }
 }
 
 @media (max-width: 760px) {

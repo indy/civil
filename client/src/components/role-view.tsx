@@ -22,5 +22,5 @@ function roleToString(role: Role, username: string): string {
 export default function RoleView({ role }: Props) {
     const appState = getAppState();
 
-    return <div>{roleToString(role, appState.user.value.username)}</div>;
+    return <div class="role-view">{roleToString(role, appState.user.value.username)}</div>;
 }
