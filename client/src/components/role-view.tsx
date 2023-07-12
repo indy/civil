@@ -22,8 +22,17 @@ function roleToString(role: Role, username: string): string {
 export default function RoleView({ role }: Props) {
     const appState = getAppState();
 
+    let classes = "role-view";
+    if (role === Role.Assistant) {
+        // hack in here because the assistant uses a monospaced font which is smaller than the default font
+        // so the "Assistant" text in the left margin is slightly too low
+        // this hack shifts the "Assistant" text up slightly
+        //
+        classes += " role-view-assistant-hack";
+    }
+
     return (
-        <div class="role-view">
+        <div class={classes}>
             {roleToString(role, appState.user.value.username)}
         </div>
     );
