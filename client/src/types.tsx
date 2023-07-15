@@ -7,6 +7,11 @@ export enum ColourScheme {
     Light,
 }
 
+export enum AiKind {
+    OpenAIGpt35Turbo = 1,
+    OpenAIGpt4,
+}
+
 export enum DeckManagerFlags {
     Summary = 1,
     Review = 2,
@@ -123,6 +128,7 @@ export type OriginalChatMessage = {
 };
 
 export type DeckDialogue = FatDeck & {
+    aiKind: string;
     originalChatMessages: Array<OriginalChatMessage>;
 };
 

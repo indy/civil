@@ -3,6 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 import { route } from "preact-router";
 
 import {
+    AiKind,
     DeckManagerFlags,
     DM,
     DeckDialogue,
@@ -41,11 +42,9 @@ import buildMarkup from "components/notes/build-markup";
 import CivilTextArea from "components/civil-text-area";
 import CivilButton from "components/civil-button";
 
-const CHAT_GPT: string = "ChatGPT";
-
 type ProtoDialogue = {
     title: string;
-    kind: string;
+    aiKind: AiKind;
     insignia: number;
     messages: Array<ChatMessage>;
 };
@@ -276,7 +275,7 @@ function DialogueChat({ path }: { path?: string }) {
     function saveDialogue(title: string, messages: Array<ChatMessage>) {
         let data: ProtoDialogue = {
             title: title,
-            kind: CHAT_GPT,
+            aiKind: AiKind.OpenAIGpt35Turbo,
             insignia: 0,
             messages: messages,
         };
@@ -306,7 +305,10 @@ function DialogueChat({ path }: { path?: string }) {
         messageAdded(messages);
 
         AppStateChange.setWaitingFor(WaitingFor.Server);
-        let data = { messages };
+        let data = {
+            aiKind: AiKind.OpenAIGpt35Turbo,
+            messages
+        };
 
         Net.post(`/api/dialogues/chat`, data)
             .then((askResponse: Array<MessageChoice>) => {
@@ -430,7 +432,7 @@ function DialogueUpdater({
     function handleSubmit(event: Event) {
         const data: ProtoDialogue = {
             title: title.trim(),
-            kind: CHAT_GPT,
+            aiKind: AiKind.OpenAIGpt35Turbo,
             insignia: insigniaId,
             messages: [],
         };

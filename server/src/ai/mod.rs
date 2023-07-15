@@ -17,36 +17,52 @@
 
 pub mod openai_interface;
 
+use crate::interop::dialogues::AiKind;
+
 use crate::error::Error;
 use chatgpt::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct AI {
-    pub chatgpt_client: ChatGPT,
+    pub chatgpt_35turbo_client: ChatGPT,
+    pub chatgpt_4_client: ChatGPT,
 }
 
 impl AI {
     pub fn new(openai_key: String) -> crate::Result<Self> {
         // Creating a new ChatGPT client.
-        let chatgpt_config = chatgpt::config::ModelConfiguration {
+        let chatgpt_35turbo_config = chatgpt::config::ModelConfiguration {
             engine: ChatGPTEngine::Gpt35Turbo,
             ..Default::default()
         };
-        let chatgpt_client = ChatGPT::new_with_config(openai_key, chatgpt_config)?;
+        let chatgpt_35turbo_client = ChatGPT::new_with_config(&openai_key, chatgpt_35turbo_config)?;
 
-        Ok(Self { chatgpt_client })
+        let chatgpt_4_config = chatgpt::config::ModelConfiguration {
+            engine: ChatGPTEngine::Gpt4,
+            ..Default::default()
+        };
+        let chatgpt_4_client = ChatGPT::new_with_config(&openai_key, chatgpt_4_config)?;
+
+        Ok(Self {
+            chatgpt_35turbo_client,
+            chatgpt_4_client,
+        })
     }
 
-    // chat_gpt
-    //
     pub async fn chat(
         &self,
+        ai_kind: AiKind,
         messages: Vec<openai_interface::ChatMessage>,
     ) -> crate::Result<Vec<openai_interface::MessageChoice>> {
         let history: Vec<chatgpt::types::ChatMessage> =
             messages.into_iter().map(From::from).collect();
 
-        match self.chatgpt_client.send_history(&history).await {
+        let chatgpt_client = match ai_kind {
+            AiKind::OpenAIGpt35Turbo => &self.chatgpt_35turbo_client,
+            AiKind::OpenAIGpt4 => &self.chatgpt_4_client,
+        };
+
+        match chatgpt_client.send_history(&history).await {
             Ok(r) => {
                 let response = r
                     .message_choices

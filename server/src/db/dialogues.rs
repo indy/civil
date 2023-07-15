@@ -30,18 +30,22 @@ use rusqlite::{params, Connection, Row};
 #[allow(unused_imports)]
 use tracing::{error, info};
 
+use std::convert::TryFrom;
+
 #[derive(Debug, Clone)]
 struct DialogueExtra {
-    kind: String,
+    ai_kind: String,
 }
 
-impl From<(decks::DeckBase, DialogueExtra)> for interop::Dialogue {
-    fn from(a: (decks::DeckBase, DialogueExtra)) -> interop::Dialogue {
+impl TryFrom<(decks::DeckBase, DialogueExtra)> for interop::Dialogue {
+    type Error = crate::error::Error;
+    fn try_from(a: (decks::DeckBase, DialogueExtra)) -> crate::Result<interop::Dialogue> {
         let (deck, extra) = a;
-        interop::Dialogue {
+
+        Ok(interop::Dialogue {
             id: deck.id,
             title: deck.title,
-            kind: extra.kind,
+            ai_kind: interop::AiKind::from_str(&extra.ai_kind)?,
             insignia: deck.insignia,
             created_at: deck.created_at,
             notes: None,
@@ -50,16 +54,17 @@ impl From<(decks::DeckBase, DialogueExtra)> for interop::Dialogue {
             backrefs: None,
             flashcards: None,
             original_chat_messages: vec![],
-        }
+        })
     }
 }
 
 fn from_row(row: &Row) -> crate::Result<interop::Dialogue> {
+    let aik: String = row.get(2)?;
     Ok(interop::Dialogue {
         id: row.get(0)?,
         title: row.get(1)?,
 
-        kind: row.get(2)?,
+        ai_kind: interop::AiKind::from_str(&aik)?,
 
         insignia: row.get(4)?,
 
@@ -95,7 +100,7 @@ pub(crate) fn get(
 ) -> crate::Result<interop::Dialogue> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT decks.id, decks.name, dialogue_extras.kind,
+    let stmt = "SELECT decks.id, decks.name, dialogue_extras.ai_kind,
                        decks.created_at, decks.insignia
                 FROM decks LEFT JOIN dialogue_extras ON dialogue_extras.deck_id = decks.id
                 WHERE decks.user_id = ?1 AND decks.id = ?2 AND decks.kind = 'dialogue'";
@@ -148,7 +153,9 @@ pub(crate) fn delete(
 }
 
 fn dialogue_extra_from_row(row: &Row) -> crate::Result<DialogueExtra> {
-    Ok(DialogueExtra { kind: row.get(1)? })
+    Ok(DialogueExtra {
+        ai_kind: row.get(1)?,
+    })
 }
 
 pub(crate) fn edit(
@@ -171,7 +178,7 @@ pub(crate) fn edit(
         dialogue.insignia,
     )?;
 
-    let sql_query: &str = "SELECT deck_id, kind
+    let sql_query: &str = "SELECT deck_id, ai_kind
                            FROM dialogue_extras
                            WHERE deck_id = ?1";
 
@@ -182,7 +189,7 @@ pub(crate) fn edit(
         dialogue_extra_from_row,
     )?;
 
-    let mut res: interop::Dialogue = (edited_deck, dialogue_extras).into();
+    let mut res: interop::Dialogue = (edited_deck, dialogue_extras).try_into()?;
     res.original_chat_messages = get_original_chat_messages(&tx, user_id, dialogue_id)?;
 
     tx.commit()?;
@@ -202,10 +209,10 @@ pub(crate) fn create(
 
     let dialogue_extras = sqlite::one(
         &tx,
-        "INSERT INTO dialogue_extras(deck_id, kind)
+        "INSERT INTO dialogue_extras(deck_id, ai_kind)
          VALUES (?1, ?2)
-         RETURNING deck_id, kind",
-        params![&deck.id, &proto_dialogue.kind],
+         RETURNING deck_id, ai_kind",
+        params![&deck.id, &proto_dialogue.ai_kind.to_string()],
         dialogue_extra_from_row,
     )?;
 
@@ -235,7 +242,7 @@ pub(crate) fn create(
 
     tx.commit()?;
 
-    Ok((deck, dialogue_extras).into())
+    (deck, dialogue_extras).try_into()
 }
 
 pub(crate) fn add_chat_message(
@@ -296,7 +303,7 @@ pub(crate) fn get_chat_history(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
-) -> crate::Result<Vec<openai_interface::ChatMessage>> {
+) -> crate::Result<(interop::AiKind, Vec<openai_interface::ChatMessage>)> {
     fn chat_message_from_row(row: &Row) -> crate::Result<openai_interface::ChatMessage> {
         let r: String = row.get(0)?;
         let role = openai_interface::Role::from_str(&r)?;
@@ -305,6 +312,11 @@ pub(crate) fn get_chat_history(
             role,
             content: row.get(1)?,
         })
+    }
+
+    fn ai_kind_from_row(row: &Row) -> crate::Result<interop::AiKind> {
+        let r: String = row.get(0)?;
+        interop::AiKind::from_str(&r)
     }
 
     let conn = sqlite_pool.get()?;
@@ -317,10 +329,15 @@ pub(crate) fn get_chat_history(
                       decks.user_id=?1 AND decks.id = ?2
                 ORDER BY dm.id";
 
-    sqlite::many(
+    let messages = sqlite::many(
         &conn,
         stmt,
         params![&user_id, &deck_id],
         chat_message_from_row,
-    )
+    )?;
+
+    let stmt = "SELECT ai_kind FROM dialogue_extras WHERE deck_id = ?1";
+    let ai_kind = sqlite::one(&conn, stmt, params![&deck_id], ai_kind_from_row)?;
+
+    Ok((ai_kind, messages))
 }

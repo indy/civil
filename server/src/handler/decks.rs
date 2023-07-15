@@ -22,6 +22,7 @@ use crate::db::sqlite::SqlitePool;
 use crate::error::Error;
 use crate::handler::SearchQuery;
 use crate::interop::decks::{DeckKind, ResultList};
+use crate::interop::dialogues::AiKind;
 use crate::interop::{IdParam, InsigParam, Key};
 use crate::session;
 use actix_web::web::{self, Data, Json, Path};
@@ -158,7 +159,7 @@ pub async fn summarize(
     });
     // dbg!(&messages);
 
-    match ai.chat(messages).await {
+    match ai.chat(AiKind::OpenAIGpt35Turbo, messages).await {
         Ok(response) => {
             if response.is_empty() {
                 Err(Error::ExternalServerError)

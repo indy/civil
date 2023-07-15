@@ -42,8 +42,7 @@ pub async fn chat(
 
     let dialogue = dialogue.into_inner();
 
-    let response = ai.chat(dialogue.messages).await?;
-    // let response = openai_interface::chat(&ai.chatgpt_client, dialogue.messages).await?;
+    let response = ai.chat(dialogue.ai_kind, dialogue.messages).await?;
 
     Ok(HttpResponse::Ok().json(response))
 }
@@ -91,10 +90,9 @@ pub async fn converse(
     // save the user's chat message
     let mut prev_note_id = db::add_chat_message(&sqlite_pool, user_id, deck_id, chat_message)?;
 
-    let history = db::get_chat_history(&sqlite_pool, user_id, deck_id)?;
+    let (ai_kind, history) = db::get_chat_history(&sqlite_pool, user_id, deck_id)?;
 
-    let response = ai.chat(history).await?;
-    // let response = openai_interface::chat(&ai.chatgpt_client, history).await?;
+    let response = ai.chat(ai_kind, history).await?;
 
     for message_choice in response {
         // should only loop through once

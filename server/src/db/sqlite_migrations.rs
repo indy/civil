@@ -140,7 +140,7 @@ CREATE TABLE IF NOT EXISTS quote_extras (
 CREATE TABLE IF NOT EXISTS dialogue_extras (
        deck_id INTEGER NOT NULL,
 
-       kind TEXT NOT NULL, -- the kind of AI assistant, currently going to be a variant of OpenAI
+       ai_kind TEXT NOT NULL, -- the kind of AI assistant, currently going to be a variant of OpenAI
 
        FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
@@ -702,6 +702,14 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
         // MIGRATION 12: user theme
         ////////////////
         M::up("ALTER TABLE users ADD COLUMN theme TEXT NOT NULL DEFAULT 'light';"),
+
+
+        ////////////////
+        // MIGRATION 13: ai kind
+        ////////////////
+        M::up("ALTER TABLE dialogue_extras RENAME COLUMN kind TO ai_kind;
+               UPDATE dialogue_extras SET ai_kind = 'OpenAI::Gpt35Turbo';"),
+
     ]);
 
     let mut conn = Connection::open(db_name)?;
