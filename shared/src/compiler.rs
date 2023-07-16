@@ -32,7 +32,7 @@ pub fn compile_to_struct(nodes: &[Node], note_id: usize) -> crate::Result<Vec<El
 
 fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> crate::Result<Vec<Element>> {
     let res = match node {
-        Node::BlockQuote(_, ns) => element_key("blockquote", key, note_id, ns)?,
+        Node::BlockQuote(_, ns) => element("blockquote", key, note_id, ns)?,
         Node::Codeblock(_, lang, code) => {
             vec![Element {
                 name: String::from("pre"),
@@ -50,11 +50,11 @@ fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> crate::Res
                 ..Default::default()
             }]
         }
-        Node::Deleted(_, ns) => element_key_hoisted("del", key, note_id, ns)?,
-        Node::Green(_, ns) => element_key_hoisted_class("span", "green-text", key, note_id, ns)?,
+        Node::Deleted(_, ns) => element_hoisted("del", key, note_id, ns)?,
+        Node::Green(_, ns) => element_hoisted_class("span", "green-text", key, note_id, ns)?,
         Node::Header(_, level, ns) => header_key(*level, key, note_id, ns)?,
-        Node::Highlight(_, ns) => element_key_hoisted("mark", key, note_id, ns)?,
-        Node::HorizontalRule(_) => element_key("hr", key, note_id, &[])?,
+        Node::Highlight(_, ns) => element_hoisted("mark", key, note_id, ns)?,
+        Node::HorizontalRule(_) => element("hr", key, note_id, &[])?,
         Node::Image(_, src, ns) => {
             let img = Element {
                 name: String::from("img"),
@@ -67,7 +67,7 @@ fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> crate::Res
             } else {
                 // if there is a text description provided then treat this as a figure
                 // <figure><img/><figcaption>ns contents</figcaption></figure>
-                let mut figcaption = element_key_hoisted("figcaption", key, note_id, ns)?;
+                let mut figcaption = element_hoisted("figcaption", key, note_id, ns)?;
                 let mut figure_children = vec![img];
 
                 figure_children.append(&mut figcaption);
@@ -79,8 +79,8 @@ fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> crate::Res
                 }]
             }
         }
-        Node::Italic(_, ns) => element_key_hoisted("i", key, note_id, ns)?,
-        Node::ListItem(_, ns) => element_key("li", key, note_id, ns)?,
+        Node::Italic(_, ns) => element_hoisted("i", key, note_id, ns)?,
+        Node::ListItem(_, ns) => element("li", key, note_id, ns)?,
         Node::MarginComment(_, ns) => compile_sidenote("right-margin-scribble scribble-neutral", key, note_id, ns)?,
         Node::MarginDisagree(_, ns) => compile_sidenote("right-margin-scribble scribble-disagree", key, note_id, ns)?,
         Node::MarginText(_, numbered, ns) => match numbered {
@@ -88,20 +88,20 @@ fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> crate::Res
             MarginTextLabel::UnNumbered => compile_sidenote("right-margin", key, note_id, ns)?,
         },
         Node::OrderedList(_, ns, start) => compile_ordered_list(start, key, note_id, ns)?,
-        Node::Paragraph(_, ns) => element_key("p", key, note_id, ns)?,
-        Node::Quotation(_, ns) => element_key_hoisted("em", key, note_id, ns)?,
-        Node::Red(_, ns) => element_key_hoisted_class("span", "red-text", key, note_id, ns)?,
-        Node::Strong(_, ns) => element_key_hoisted("strong", key, note_id, ns)?,
-        Node::Subscript(_, ns) => element_key_hoisted("sub", key, note_id, ns)?,
-        Node::Superscript(_, ns) => element_key_hoisted("sup", key, note_id, ns)?,
+        Node::Paragraph(_, ns) => element("p", key, note_id, ns)?,
+        Node::Quotation(_, ns) => element_hoisted("em", key, note_id, ns)?,
+        Node::Red(_, ns) => element_hoisted_class("span", "red-text", key, note_id, ns)?,
+        Node::Strong(_, ns) => element_hoisted("strong", key, note_id, ns)?,
+        Node::Subscript(_, ns) => element_hoisted("sub", key, note_id, ns)?,
+        Node::Superscript(_, ns) => element_hoisted("sup", key, note_id, ns)?,
         Node::Text(_, text) => vec![Element {
             name: String::from("text"),
             text: Some(String::from(text)),
             ..Default::default()
         }],
-        Node::Underlined(_, ns) => element_key_hoisted_class("span", "underlined", key, note_id, ns)?,
-        Node::UnorderedList(_, ns) => element_key("ul", key, note_id, ns)?,
-        Node::Url(_, url, ns) => element_key_class_href("a", "note-inline-link", url, key, note_id, ns)?,
+        Node::Underlined(_, ns) => element_hoisted_class("span", "underlined", key, note_id, ns)?,
+        Node::UnorderedList(_, ns) => element("ul", key, note_id, ns)?,
+        Node::Url(_, url, ns) => element_href("a", url, key, note_id, ns)?,
         Node::YouTube(_, id, start) => element_youtube("youtube", key, id, start)?,
     };
 
@@ -115,7 +115,7 @@ fn compile_sidenote(class_name: &str, key: usize, note_id: usize, ns: &[Node]) -
     write!(&mut id, "sidenote-{}-{}", note_id, key)?;
 
     // the right-margin-toggle character is 'circled times': https://www.htmlsymbols.xyz/unicode/U+2297
-    res.append(&mut element_key_class_for(
+    res.append(&mut element_class_for(
         "label",
         key,
         "right-margin-toggle",
@@ -123,7 +123,7 @@ fn compile_sidenote(class_name: &str, key: usize, note_id: usize, ns: &[Node]) -
         "⊗",
         note_id,
     )?);
-    res.append(&mut element_key_class_type(
+    res.append(&mut element_class_type(
         "input",
         key + 100,
         "right-margin-toggle",
@@ -131,7 +131,7 @@ fn compile_sidenote(class_name: &str, key: usize, note_id: usize, ns: &[Node]) -
         "checkbox",
         note_id,
     )?);
-    res.append(&mut element_key_class("span", class_name, key + 200, note_id, ns)?);
+    res.append(&mut element_class("span", class_name, key + 200, note_id, ns)?);
 
     Ok(res)
 }
@@ -142,7 +142,7 @@ fn compile_numbered_sidenote(key: usize, note_id: usize, ns: &[Node]) -> crate::
     let mut id = String::new();
     write!(&mut id, "numbered-sidenote-{}-{}", note_id, key)?;
 
-    res.append(&mut element_key_class_for(
+    res.append(&mut element_class_for(
         "label",
         key,
         "right-margin-toggle right-margin-number",
@@ -150,7 +150,7 @@ fn compile_numbered_sidenote(key: usize, note_id: usize, ns: &[Node]) -> crate::
         "",
         note_id,
     )?);
-    res.append(&mut element_key_class_type(
+    res.append(&mut element_class_type(
         "input",
         key + 100,
         "right-margin-toggle",
@@ -158,7 +158,7 @@ fn compile_numbered_sidenote(key: usize, note_id: usize, ns: &[Node]) -> crate::
         "checkbox",
         note_id,
     )?);
-    res.append(&mut element_key_class(
+    res.append(&mut element_class(
         "span",
         "right-margin-numbered",
         key + 200,
@@ -171,30 +171,30 @@ fn compile_numbered_sidenote(key: usize, note_id: usize, ns: &[Node]) -> crate::
 
 fn compile_ordered_list(start: &String, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
     let name = "ol".to_string();
-    let mut e = element_base(&name, key, note_id, ns)?;
+    let mut e = base_element(&name, key, note_id, ns)?;
 
     e.start = Some(start.to_string());
 
     Ok(vec![e])
 }
 
-fn element_key(name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
-    let e = element_base(name, key, note_id, ns)?;
+fn element(name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
+    let e = base_element(name, key, note_id, ns)?;
 
     Ok(vec![e])
 }
 
-fn element_key_hoisted(name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
-    let e = element_base_hoisted(name, key, note_id, ns)?;
+fn element_hoisted(name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
+    let e = base_element_hoisted(name, key, note_id, ns)?;
 
     Ok(vec![e])
 }
 
 fn header_key(level: u32, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
-    element_key_hoisted(&format!("h{}", level), key, note_id, ns)
+    element_hoisted(&format!("h{}", level), key, note_id, ns)
 }
 
-fn text_element(text: &str) -> Element {
+fn element_text(text: &str) -> Element {
     Element {
         name: String::from("text"),
         text: Some(String::from(text)),
@@ -202,51 +202,37 @@ fn text_element(text: &str) -> Element {
     }
 }
 
-fn element_key_class(
-    name: &str,
-    class_name: &str,
-    key: usize,
-    note_id: usize,
-    ns: &[Node],
-) -> crate::Result<Vec<Element>> {
-    let mut e = element_base(name, key, note_id, ns)?;
+fn element_class(name: &str, class_name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
+    let mut e = base_element(name, key, note_id, ns)?;
 
     e.class_name = Some(String::from(class_name));
 
     Ok(vec![e])
 }
 
-fn element_key_hoisted_class(
+fn element_hoisted_class(
     name: &str,
     class_name: &str,
     key: usize,
     note_id: usize,
     ns: &[Node],
 ) -> crate::Result<Vec<Element>> {
-    let mut e = element_base_hoisted(name, key, note_id, ns)?;
+    let mut e = base_element_hoisted(name, key, note_id, ns)?;
 
     e.class_name = Some(String::from(class_name));
 
     Ok(vec![e])
 }
 
-fn element_key_class_href(
-    name: &str,
-    class_name: &str,
-    url: &str,
-    key: usize,
-    note_id: usize,
-    ns: &[Node],
-) -> crate::Result<Vec<Element>> {
-    let mut e = element_base_hoisted(name, key, note_id, ns)?;
+fn element_href(name: &str, url: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Vec<Element>> {
+    let mut e = base_element_hoisted(name, key, note_id, ns)?;
 
-    e.class_name = Some(String::from(class_name));
     e.href = Some(String::from(url));
 
     Ok(vec![e])
 }
 
-fn element_key_class_for(
+fn element_class_for(
     name: &str,
     key: usize,
     class_name: &str,
@@ -254,17 +240,17 @@ fn element_key_class_for(
     text: &str,
     note_id: usize,
 ) -> crate::Result<Vec<Element>> {
-    let mut e = element_base(name, key, note_id, &[])?;
+    let mut e = base_element(name, key, note_id, &[])?;
 
     e.class_name = Some(String::from(class_name));
     e.html_for = Some(String::from(html_for));
     // e.text = Some(String::from(text));
-    e.children = vec![text_element(text)];
+    e.children = vec![element_text(text)];
 
     Ok(vec![e])
 }
 
-fn element_key_class_type(
+fn element_class_type(
     name: &str,
     key: usize,
     class_name: &str,
@@ -272,7 +258,7 @@ fn element_key_class_type(
     html_type: &str,
     note_id: usize,
 ) -> crate::Result<Vec<Element>> {
-    let mut e = element_base(name, key, note_id, &[])?;
+    let mut e = base_element(name, key, note_id, &[])?;
 
     e.class_name = Some(String::from(class_name));
     e.id = Some(String::from(id));
@@ -292,7 +278,7 @@ fn element_youtube(name: &str, key: usize, id: &str, start: &str) -> crate::Resu
     }])
 }
 
-fn element_base(name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Element> {
+fn base_element(name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Element> {
     Ok(Element {
         name: String::from(name),
         key: Some(key),
@@ -309,7 +295,7 @@ fn element_base(name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::R
 // (e.g. bold, italic, headings). this fn hoists the children from the
 // inbetween paragraph up into the base element
 //
-fn element_base_hoisted(name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Element> {
+fn base_element_hoisted(name: &str, key: usize, note_id: usize, ns: &[Node]) -> crate::Result<Element> {
     if ns.len() == 1 {
         match &ns[0] {
             Node::Paragraph(_, pns) => Ok(Element {

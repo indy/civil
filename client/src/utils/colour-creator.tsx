@@ -232,6 +232,11 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
             seeds.colouredTextS,
             seeds.colouredTextL,
         ] as ColourTriple,
+        hyperlink_disabled: [
+            247,
+            seeds.colouredTextS * 0.5,
+            seeds.colouredTextL,
+        ] as ColourTriple,
         highlight: [85, 100, 90] as ColourTriple,
 
         red_text: [

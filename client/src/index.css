@@ -1360,6 +1360,12 @@ a:link.note-inline-link {
     text-decoration: underline;
 }
 
+a:link.note-inline-link-disabled {
+    pointer-events: none;
+    cursor: default;
+    color: var(--hyperlink-disabled);
+}
+
 .sticky-bl {
     position: absolute;
     left: 1rem;

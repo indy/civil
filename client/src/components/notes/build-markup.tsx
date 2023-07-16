@@ -1,7 +1,8 @@
-import { h } from "preact";
+import { h, ComponentChildren } from "preact";
 
 import { Key } from "types";
 
+import Anchor from "components/anchor";
 import Image from "components/image";
 import YouTube from "components/youtube";
 import { getAppState } from "app-state";
@@ -31,6 +32,7 @@ type Attrs = {
     type?: string;
     src?: string;
     start?: any;
+    children?: ComponentChildren;
 };
 // start?: ComponentType<Attrs>;
 
@@ -133,6 +135,8 @@ export default function buildMarkup(
             }
         } else if (n.name === "youtube") {
             return h(YouTube, attrs(n), ...children);
+        } else if (n.name === "a") {
+            return h(Anchor, attrs(n), ...children);
         } else {
             return h(n.name, attrs(n), ...children);
         }
