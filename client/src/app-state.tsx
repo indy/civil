@@ -275,6 +275,40 @@ export const AppStateChange = {
                 };
             }
         } else {
+            /*
+
+  shortcut keys
+
+  Escape : toolbar: view mode
+  / : search
+  a : toolbar: add above
+  b : toolbar: bookmarks
+  c
+  d
+  e : toolbar: edit mode
+  f
+  g
+  h : toolbar: home
+  i
+  j : quotes: jump to random quote
+  k
+  l
+  m : toolbar: memorise
+  n : quotes: next quote
+  o
+  p : quotes: prev quote
+  q
+  r : toolbar: refs
+  s
+  t
+  u
+  v
+  w
+  x
+  y
+  z
+
+ */
             if (state.componentRequiresFullKeyboardAccess.value === false) {
                 // we can treat any keypresses as modal commands for the app
                 switch (code) {

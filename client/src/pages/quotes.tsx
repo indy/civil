@@ -206,7 +206,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
             case "p":
                 getQuoteThenRoute(`/api/quotes/${quoteId}/prev`);
                 break;
-            case "r":
+            case "j":
                 getQuoteThenRoute(`/api/quotes/random`);
                 break;
         }
@@ -286,7 +286,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                 <ModalKeyboardHelp>
                     <pre>n: next quote</pre>
                     <pre>p: previous quote</pre>
-                    <pre>r: random quote</pre>
+                    <pre>j: jump to random quote</pre>
                 </ModalKeyboardHelp>
             </article>
         );
