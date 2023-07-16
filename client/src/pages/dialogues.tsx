@@ -307,7 +307,7 @@ function DialogueChat({ path }: { path?: string }) {
         AppStateChange.setWaitingFor(WaitingFor.Server);
         let data = {
             aiKind: AiKind.OpenAIGpt35Turbo,
-            messages
+            messages,
         };
 
         Net.post(`/api/dialogues/chat`, data)
