@@ -70,6 +70,7 @@ export type Reference = SlimDeck & {
 
 export type BackNote = SlimDeck & {
     noteId: Key;
+    prevNoteId?: Key;
     noteContent: string;
     noteKind: NoteKind;
 };
@@ -91,17 +92,43 @@ export type SlimDeck = {
 };
 
 export interface FatDeck {
+    // received from server
+    //
     title: string;
     backnotes?: Array<BackNote>;
     backrefs?: Array<Reference>;
     flashcards?: Array<FlashCard>;
     id: Key;
     insignia: number;
-    noteSeqs?: NoteSeqs;
-    notes: Notes;
     refs?: Array<Reference>;
     points?: Array<DeckPoint>;
+
+    // received from server and then modified by the client
+    //
+    notes: Notes;
+
+    // generated client side with data from server
+    //
+    noteSeqs?: NoteSeqs;
+    backRefDecksGroupedByKind?: Record<DeckKind, Array<BackRefDeck>>;
 }
+
+export type BackRefDeck = {
+    deckId: Key;
+    title: string;
+    deckInsignia: number;
+    deckKind: DeckKind;
+
+    // each deck may have multiple sequences of notes that have been given the same ref
+    // notes in a single sequence should be rendered together
+    // and sequences should be separated by a 'hr' element
+    //
+    backRefNoteSeqs: Array<Array<BackRefNote>>;
+
+    deckLevelRefs: Array<Reference>;
+    metaNoteId: Key;
+    deckLevelAnnotation?: string;
+};
 
 export type DeckIdea = FatDeck & {
     createdAt: string;
@@ -440,11 +467,12 @@ export type PassageType = {
     x?: any;
 };
 
-export type NoteThing = {
+export type BackRefNote = {
     topRefKind?: RefKind;
     topAnnotation?: string;
     noteContent: string;
     noteId: Key;
+    prevNoteId?: Key;
     refs: Array<Reference>;
 };
 

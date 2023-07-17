@@ -125,6 +125,7 @@ pub struct Ref {
 #[serde(rename_all = "camelCase")]
 pub struct BackNote {
     pub note_id: Key,
+    pub prev_note_id: Option<Key>,
     pub note_content: String,
     pub note_kind: NoteKind,
     pub id: Key,

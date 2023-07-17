@@ -1,6 +1,6 @@
 import { h } from "preact";
 
-import { NoteThing, Reference, SlimDeck } from "types";
+import { BackRefNote, Reference, SlimDeck } from "types";
 
 import { svgCaretRight, svgCaretDown } from "components/svg-icons";
 
@@ -23,25 +23,25 @@ function ListingLink({ slimDeck }: ListingLinkProps) {
     return res;
 }
 
-type ExpandableListingLinkProps = {
+type ExpandableBackRefListingProps = {
     index: number;
     slimDeck: SlimDeck;
     deckLevelRefs: Array<Reference>;
     deckLevelAnnotation?: string;
-    notes: Array<NoteThing>;
+    backRefNoteSeqs: Array<Array<BackRefNote>>;
     expanded: boolean;
     onExpandClick: (key: number) => void;
 };
 
-function ExpandableListingLink({
+function ExpandableBackRefListing({
     index,
     slimDeck,
     deckLevelRefs,
     deckLevelAnnotation,
-    notes,
+    backRefNoteSeqs,
     expanded,
     onExpandClick,
-}: ExpandableListingLinkProps) {
+}: ExpandableBackRefListingProps) {
     function onClicked(e: Event) {
         e.preventDefault();
         onExpandClick(index);
@@ -64,7 +64,7 @@ function ExpandableListingLink({
                 deckLevelAnnotation &&
                 buildDeckLevelAnnotation(deckLevelAnnotation)}
             {expanded && buildDeckLevelBackRefs(deckLevelRefs)}
-            {expanded && buildNotes(notes)}
+            {expanded && buildNoteSeqs(backRefNoteSeqs)}
         </div>
     );
 
@@ -97,42 +97,45 @@ function buildDeckLevelBackRefs(deckLevelRefs: Array<Reference>) {
     );
 }
 
-function buildNotes(notes: Array<NoteThing>) {
+function buildNotes(notes: Array<BackRefNote>) {
     let ini: Array<preact.JSX.Element> = [];
 
-    let res = notes
-        .reduce((a, note) => {
-            if (note.topAnnotation !== undefined) {
-                a.push(
-                    <CivContainer>
-                        <CivMain>
-                            <div class="ref-top-scribble">
-                                {note.topAnnotation}
-                            </div>
-                        </CivMain>
-                    </CivContainer>
-                );
-            }
-            let refs =
-                note.refs &&
-                note.refs.map((r) => {
-                    return (
-                        <RefView
-                            reference={r}
-                            extraClasses="left-margin-entry"
-                        />
-                    );
-                });
-
+    let res = notes.reduce((a, note) => {
+        if (note.topAnnotation !== undefined) {
             a.push(
-                <CivContainer extraClasses="note">
-                    {note.refs && <CivLeft>{refs}</CivLeft>}
+                <CivContainer>
                     <CivMain>
-                        {buildMarkup(note.noteContent, note.noteId)}
+                        <div class="ref-top-scribble">{note.topAnnotation}</div>
                     </CivMain>
                 </CivContainer>
             );
+        }
+        let refs =
+            note.refs &&
+            note.refs.map((r) => {
+                return (
+                    <RefView reference={r} extraClasses="left-margin-entry" />
+                );
+            });
 
+        a.push(
+            <CivContainer extraClasses="note">
+                {note.refs && <CivLeft>{refs}</CivLeft>}
+                <CivMain>{buildMarkup(note.noteContent, note.noteId)}</CivMain>
+            </CivContainer>
+        );
+        return a;
+    }, ini);
+
+    return <div>{res}</div>;
+}
+
+function buildNoteSeqs(backRefNoteSeqs: Array<Array<BackRefNote>>) {
+    let ini: Array<preact.JSX.Element> = [];
+
+    let res = backRefNoteSeqs
+        .reduce((a, noteSeq) => {
+            a.push(buildNotes(noteSeq));
             a.push(
                 <CivContainer>
                     <CivMain>
@@ -147,4 +150,4 @@ function buildNotes(notes: Array<NoteThing>) {
     return <div>{res}</div>;
 }
 
-export { ListingLink, ExpandableListingLink };
+export { ListingLink, ExpandableBackRefListing };

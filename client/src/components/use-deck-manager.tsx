@@ -2,18 +2,21 @@ import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import {
+    BackNote,
+    BackRefDeck,
+    CivilMode,
     DeckKind,
     DeckPoint,
-    FlashCard,
     FatDeck,
+    FlashCard,
     Key,
     Note,
     NoteKind,
-    PassageHowToShow,
+    BackRefNote,
     Notes,
+    PassageHowToShow,
     ProtoPoint,
     Reference,
-    CivilMode,
 } from "types";
 
 import { getAppState, AppStateChange } from "app-state";
@@ -22,6 +25,7 @@ import Passage from "components/notes/passage";
 
 import PointForm from "components/point-form";
 
+import { nonEmptyArray } from "utils/js";
 import { bitset } from "utils/bitops";
 import {
     buildUrl,
@@ -69,9 +73,10 @@ export default function useDeckManager<T extends FatDeck>(
                     let newDms = dmsUpdateDeck<T>(
                         dms,
                         preCacheFunction(deck),
-                        deckKind,
-                        true
+                        deckKind
                     );
+
+                    window.scrollTo(0, 0);
 
                     let hasSummaryPassage = bitset(flags || 0, 1);
                     let hasReviewPassage = bitset(flags || 0, 2);
@@ -90,12 +95,7 @@ export default function useDeckManager<T extends FatDeck>(
     }, [id]);
 
     function update(newDeck: T) {
-        let newDms = dmsUpdateDeck<T>(
-            dms,
-            preCacheFunction(newDeck),
-            deckKind,
-            false
-        );
+        let newDms = dmsUpdateDeck<T>(dms, preCacheFunction(newDeck), deckKind);
         setDms(newDms);
     }
     function findNoteWithId(
@@ -168,9 +168,11 @@ export default function useDeckManager<T extends FatDeck>(
             let newDms = dmsUpdateDeck<T>(
                 dms,
                 preCacheFunction(newDeck),
-                deckKind,
-                true
+                deckKind
             );
+
+            window.scrollTo(0, 0);
+
             newDms = dmsSetShowingUpdateForm(newDms, false);
 
             AppStateChange.mode(CivilMode.View);
@@ -325,23 +327,20 @@ function cleanDeckManagerState<T extends FatDeck>(): DeckManagerState<T> {
 function dmsUpdateDeck<T extends FatDeck>(
     dms: DeckManagerState<T>,
     deck: T,
-    deckKind: DeckKind,
-    scrollToTop: boolean
+    deckKind: DeckKind
 ): DeckManagerState<T> {
     // modify the notes received from the server
     applyRefsAndCardsToNotes(deck);
     // organise the notes into noteSeqs
     buildNoteSeqs(deck);
+    // sort the backnotes into sequences
+    buildBackRefsGroupedByResource(deck);
 
     AppStateChange.urlTitle(deck.title);
     AppStateChange.routeChanged(buildUrl(deckKind, deck.id));
 
     let res: DeckManagerState<T> = { ...dms };
     res.deck = deck;
-
-    if (scrollToTop) {
-        window.scrollTo(0, 0);
-    }
 
     return res;
 }
@@ -500,6 +499,219 @@ function buildNoteSeqs<T extends FatDeck>(deck: T) {
         noteReview,
         noteSummary,
     };
+
+    return deck;
+}
+
+function indexOfNoteId(noteId: Key, notes: Array<BackRefNote>): number {
+    return notes.findIndex((n) => n.noteId === noteId);
+}
+function indexOfPrevNoteId(prevNoteId: Key, notes: Array<BackRefNote>): number {
+    return notes.findIndex((n) => n.prevNoteId && n.prevNoteId === prevNoteId);
+}
+
+function buildBackRefNoteSeq(
+    head: BackRefNote,
+    rem: Array<BackRefNote>
+): Array<BackRefNote> {
+    let res: Array<BackRefNote> = [head];
+
+    // search leftwards
+    //
+    while (res[0].prevNoteId) {
+        let idx = indexOfNoteId(res[0].prevNoteId, rem);
+        if (idx >= 0) {
+            // remove the indexed item from rem and prefix it to res
+            let item = rem.splice(idx, 1)[0];
+            res.unshift(item);
+        } else {
+            // can stop looping
+            break;
+        }
+    }
+
+    // search rightwards
+    //
+    while (true) {
+        let idx = indexOfPrevNoteId(res[res.length - 1].noteId, rem);
+        if (idx >= 0) {
+            // remove the indexed item from rem and prefix it to res
+            let item = rem.splice(idx, 1)[0];
+            res.push(item);
+        } else {
+            // can stop looping
+            break;
+        }
+    }
+
+    return res;
+}
+
+function buildBackRefNoteSeqs(
+    notes: Array<BackRefNote>
+): Array<Array<BackRefNote>> {
+    const maxLoops = notes.length;
+    let numLoops = 0;
+
+    let res: Array<Array<BackRefNote>> = [];
+
+    // will mutate notes
+    while (notes.length > 0) {
+        let head: BackRefNote = notes.splice(0, 1)[0];
+        res.push(buildBackRefNoteSeq(head, notes));
+
+        numLoops += 1;
+        if (numLoops > maxLoops) {
+            console.error("too many loops, should never get here");
+            return res;
+        }
+    }
+    return res;
+}
+
+function buildBackRefsGroupedByResource<T extends FatDeck>(deck: T) {
+    let backrefs: Array<Reference> = deck.backrefs || [];
+    let backnotes: Array<BackNote> = deck.backnotes || [];
+
+    const backRefDecks: Array<BackRefDeck> = [];
+    // key = deck id, value = array of notes
+    const brNote = {};
+
+    if (!nonEmptyArray<Reference>(backrefs)) {
+        return undefined;
+    }
+
+    // file into backRefDecks with notes
+    //
+    backnotes.forEach((n: BackNote) => {
+        if (
+            backRefDecks.length === 0 ||
+            backRefDecks[backRefDecks.length - 1].deckId !== n.id
+        ) {
+            let backRefItem: BackRefDeck = {
+                deckId: n.id,
+                title: n.title,
+                deckInsignia: n.insignia,
+                deckKind: n.deckKind,
+                backRefNoteSeqs: [],
+                deckLevelRefs: [],
+                metaNoteId: 0,
+            };
+            backRefDecks.push(backRefItem);
+            brNote[n.id] = [];
+        }
+
+        if (n.noteKind === NoteKind.NoteDeckMeta) {
+            // all refs associated with the NoteDeckMeta note id are rendered differently
+            backRefDecks[backRefDecks.length - 1].metaNoteId = n.noteId;
+        } else {
+            let noteThing: BackRefNote = {
+                noteContent: n.noteContent,
+                noteId: n.noteId,
+                prevNoteId: n.prevNoteId,
+                refs: [],
+            };
+            brNote[n.id].push(noteThing);
+        }
+    });
+
+    backRefDecks.forEach((bri) => {
+        bri.backRefNoteSeqs = buildBackRefNoteSeqs(brNote[bri.deckId]);
+    });
+
+    // attach refs to the correct notes
+    //
+    backrefs.forEach((br: Reference) => {
+        // find the noteId
+        for (let i = 0; i < backRefDecks.length; i++) {
+            let d: BackRefDeck = backRefDecks[i];
+
+            if (d.metaNoteId === br.noteId) {
+                if (br.id === deck.id) {
+                    d.deckLevelAnnotation = br.annotation;
+                } else {
+                    let ref: Reference = {
+                        noteId: br.noteId,
+                        id: br.id,
+                        title: br.title,
+                        refKind: br.refKind,
+                        deckKind: br.deckKind,
+                        annotation: br.annotation,
+                        insignia: br.insignia,
+                    };
+                    d.deckLevelRefs.push(ref);
+                    break;
+                }
+            } else {
+                let breakout = false;
+
+                for (let k = 0; k < d.backRefNoteSeqs.length; k++) {
+                    breakout = false;
+
+                    for (let j = 0; j < d.backRefNoteSeqs[k].length; j++) {
+                        if (d.backRefNoteSeqs[k][j].noteId === br.noteId) {
+                            if (br.id === deck.id) {
+                                d.backRefNoteSeqs[k][j].topRefKind = br.refKind;
+                                d.backRefNoteSeqs[k][j].topAnnotation =
+                                    br.annotation;
+                            } else {
+                                let ref: Reference = {
+                                    noteId: br.noteId,
+                                    id: br.id,
+                                    title: br.title,
+                                    refKind: br.refKind,
+                                    deckKind: br.deckKind,
+                                    annotation: br.annotation,
+                                    insignia: br.insignia,
+                                };
+                                d.backRefNoteSeqs[k][j].refs.push(ref);
+                            }
+                            breakout = true;
+                            break;
+                        }
+                    }
+                    if (breakout) {
+                        break;
+                    }
+                }
+            }
+        }
+    });
+
+    // group by deckKind kind
+    //
+    let groupedByDeckKind: Record<DeckKind, Array<BackRefDeck>> = {
+        [DeckKind.Article]: [],
+        [DeckKind.Person]: [],
+        [DeckKind.Idea]: [],
+        [DeckKind.Timeline]: [],
+        [DeckKind.Quote]: [],
+        [DeckKind.Dialogue]: [],
+    };
+
+    backRefDecks.forEach((d: BackRefDeck) => {
+        if (!groupedByDeckKind[d.deckKind]) {
+            groupedByDeckKind[d.deckKind] = [];
+        }
+        if (d.metaNoteId) {
+            // deck-level back refs should be given priority
+            // add them to the front of the array
+            groupedByDeckKind[d.deckKind].unshift(d);
+        } else {
+            // normal per-note back refs are added to the end
+            groupedByDeckKind[d.deckKind].push(d);
+        }
+    });
+
+    // don't use the messy auto-generated quote titles
+    // just name them after the deck id
+    if (groupedByDeckKind[DeckKind.Quote]) {
+        groupedByDeckKind[DeckKind.Quote].forEach((d: BackRefDeck) => {
+            d.title = `Quote #${d.deckId}`;
+        });
+    }
+
+    deck.backRefDecksGroupedByKind = groupedByDeckKind;
 
     return deck;
 }

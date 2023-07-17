@@ -266,6 +266,7 @@ pub(crate) fn get_backnotes(
 
         Ok(interop::BackNote {
             note_id: row.get(4)?,
+            prev_note_id: row.get(7)?,
             note_content: row.get(3)?,
             note_kind: note_interop::note_kind_from_sqlite(sql_note_kind)?,
             id: row.get(0)?,
@@ -281,7 +282,8 @@ pub(crate) fn get_backnotes(
                        n.content as note_content,
                        n.id as note_id,
                        n.kind as note_kind,
-                       d.insignia
+                       d.insignia,
+                       n.prev_note_id as prev_note_id
                 FROM decks d,
                      notes n,
                      notes_decks nd
