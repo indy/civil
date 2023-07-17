@@ -101,7 +101,7 @@ function buildNotes(notes: Array<BackRefNote>) {
     let ini: Array<preact.JSX.Element> = [];
 
     let res = notes.reduce((a, note) => {
-        if (note.topAnnotation !== undefined) {
+        if (note.topAnnotation !== null) {
             a.push(
                 <CivContainer>
                     <CivMain>
