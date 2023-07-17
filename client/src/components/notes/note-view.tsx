@@ -37,6 +37,7 @@ enum ActionType {
     AddDeckReferencesUiShow,
     AddFlashCardUiShow,
     AddNoteAboveUiShow,
+    DeletedNote,
     EditedNote,
     EditingCancelled,
     FlashcardDeleted,
@@ -286,6 +287,10 @@ function reducer(state: LocalState, action: Action): LocalState {
             }
 
             return newState;
+        }
+        case ActionType.DeletedNote: {
+            AppStateChange.relinquishKeyboard();
+            return state;
         }
         case ActionType.EditedNote: {
             const newState = {
@@ -550,6 +555,7 @@ export default function NoteView({
 
     function buildMainButtons() {
         function confirmedDeleteClicked() {
+            localDispatch(ActionType.DeletedNote)
             onDelete(note.id);
         }
         return (

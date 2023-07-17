@@ -41,6 +41,8 @@ function DebugMessages() {
         return <div>{msg}</div>;
     }
 
+    // {appState.componentRequiresFullKeyboardAccess.value ? "taken" : "free"}
+
     return (
         <div class="debug-messages">
             {appState.debugMessages.value.map(render)}
