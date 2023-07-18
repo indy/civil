@@ -653,7 +653,7 @@ function SelectedReference({
             <CivilInput
                 elementClass="civsel-annotation"
                 id="annotation"
-                value={reference.annotation}
+                value={reference.annotation || ""}
                 onContentChange={handleContentChange}
             />
         </div>
