@@ -61,7 +61,7 @@ type Action = {
         | ActionDataReferenceChangeAnnotation;
 };
 
-type State = {
+type LocalState = {
     currentSelection: Array<Reference>;
     referencesUnchanged: Array<Reference>;
     referencesChanged: Array<Reference>;
@@ -86,7 +86,7 @@ function candidateToAddedRef(candidate: SlimDeck): Reference {
     };
 }
 
-function rebuildCurrentSelection(state: State): State {
+function rebuildCurrentSelection(state: LocalState): LocalState {
     state.currentSelection = state.referencesUnchanged.concat(
         state.referencesChanged,
         state.referencesAdded,
@@ -96,7 +96,7 @@ function rebuildCurrentSelection(state: State): State {
     return state;
 }
 
-function reducer(state: State, action: Action): State {
+function reducer(state: LocalState, action: Action): LocalState {
     switch (action.type) {
         case ActionType.EscKeyDown:
             return {
@@ -333,7 +333,7 @@ export default function CivilSelect({
     onSave: (changes: RefsModified, allDecksForNote: Array<Reference>) => void;
     onCancel: () => void;
 }) {
-    const s: State = {
+    const s: LocalState = {
         currentSelection: [], // built by rebuildCurrentSelection
 
         // make copies of each of the chosen, otherwise cancelling after making edits still shows up on the parent Note
@@ -354,7 +354,7 @@ export default function CivilSelect({
 
         justAddedViaShortcut: false,
     };
-    const [local, localDispatch] = useLocalReducer<State, ActionType>(
+    const [local, localDispatch] = useLocalReducer<LocalState, ActionType>(
         reducer,
         rebuildCurrentSelection(s)
     );
@@ -470,7 +470,7 @@ export default function CivilSelect({
                 }
             />
             <div class="civsel-main-box">
-                {local.currentSelection.map((value, i) => (
+                {local.currentSelection.map((value) => (
                     <SelectedReference
                         reference={value}
                         onRemove={(e) =>
@@ -524,7 +524,7 @@ function RecentDecks({
     localState,
     onAdd,
 }: {
-    localState: State;
+    localState: LocalState;
     onAdd: (deck?: SlimDeck) => void;
 }) {
     const appState = getAppState();
@@ -615,6 +615,7 @@ function SelectedReference({
     let topclass = `civsel-reference pigment-${deckKindToResourceString(
         reference.deckKind
     )}`;
+
     return (
         <div class={topclass}>
             <span class="civsel-delete-selected" onClick={onClick}>
