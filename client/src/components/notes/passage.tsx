@@ -78,7 +78,6 @@ export default function Passage({
                 insignia: ref.insignia,
                 noteId: note.id,
                 refKind: ref.refKind,
-                annotation: ref.annotation,
             };
             let changeData: ProtoNoteReferences = {
                 noteId: note.id,
