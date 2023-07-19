@@ -555,7 +555,7 @@ export default function NoteView({
 
     function buildMainButtons() {
         function confirmedDeleteClicked() {
-            localDispatch(ActionType.DeletedNote)
+            localDispatch(ActionType.DeletedNote);
             onDelete(note.id);
         }
         return (

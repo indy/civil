@@ -159,7 +159,7 @@ fn get_recents(conn: &Connection, user_id: Key) -> crate::Result<Vec<SlimDeck>> 
               WHERE nd.deck_id = d.id AND d.user_id = ?1
               ORDER BY nd.created_at DESC
               LIMIT 100) -- without this limit query returns incorrect results
-         LIMIT 3";
+         LIMIT 8";
 
     sqlite::many(conn, stmt_recent_refs, params![&user_id], slimdeck_from_row)
 }

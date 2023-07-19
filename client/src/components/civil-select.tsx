@@ -541,10 +541,10 @@ function RecentDecks({
         let klass = `civsel-recent-deck pigment-fg-${dk}`;
 
         return (
-            <div class={klass} onClick={() => onAdd(slimDeck)}>
+            <li class={klass} onClick={() => onAdd(slimDeck)}>
                 {renderInsignia(slimDeck.insignia)}
                 {slimDeck.title}
-            </div>
+            </li>
         );
     }
 
@@ -555,7 +555,7 @@ function RecentDecks({
     return (
         <CivRight extraClasses="civsel-recent-decks">
             {!!recent.length && <div>Recently Used Refs:</div>}
-            {recent}
+            <ul>{recent}</ul>
         </CivRight>
     );
 }
