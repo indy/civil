@@ -12,12 +12,14 @@ type Props = {
     heading: string;
     children: ComponentChildren;
     initiallyRolledUp?: boolean;
+    invisible?: boolean;
 };
 
 export default function RollableSegment({
     heading,
     children,
     initiallyRolledUp,
+    invisible,
 }: Props) {
     let [isRolledUp, setIsRolledUp] = useState(!!initiallyRolledUp);
 
@@ -27,6 +29,9 @@ export default function RollableSegment({
     }
 
     let classState = isRolledUp ? "rolled-up" : "rolled-down";
+    if (invisible) {
+        classState += " invisible";
+    }
     let icon = isRolledUp ? svgChevronDoubleRight() : svgChevronDoubleDown();
     return (
         <section class={classState}>

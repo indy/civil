@@ -1286,15 +1286,14 @@ a:visited.pigment-inherit {
 .civsel-recent-decks {
 }
 
-.civsel-recent-decks > ul{
-  padding-left: 1.5rem;
+.civsel-recent-decks > ul {
+    padding-left: 1.5rem;
 }
 
 .civsel-recent-deck {
     z-index: 1000;
     cursor: pointer;
 }
-
 
 /* -------------------------------------------------------------------------------- */
 

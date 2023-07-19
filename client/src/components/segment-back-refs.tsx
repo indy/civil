@@ -13,7 +13,7 @@ import { ExpandableBackRefListing } from "components/listing-link";
 import { CivContainer, CivMain } from "components/civil-layout";
 
 export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
-    const segments: Array<ComponentChildren> = [];
+    const backrefGroups: Array<ComponentChildren> = [];
 
     if (deck && deck.backRefDecksGroupedByKind) {
         const appState = getAppState();
@@ -21,15 +21,22 @@ export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
 
         appState.preferredDeckKindOrder.forEach((deckKind: DeckKind) => {
             if (group[deckKind].length > 0) {
-                segments.push(<SegmentLinks backrefs={group[deckKind]} />);
+                backrefGroups.push(<BackRefGroup backrefs={group[deckKind]} />);
             }
         });
     }
 
-    return <RollableSegment heading="BackRefs">{segments}</RollableSegment>;
+    // don't even show the backrefs rollable segment if there are no backref groups
+    const invisible = backrefGroups.length === 0;
+
+    return (
+        <RollableSegment heading="BackRefs" invisible={invisible}>
+            {backrefGroups}
+        </RollableSegment>
+    );
 }
 
-function SegmentLinks({ backrefs }: { backrefs: Array<BackRefDeck> }) {
+function BackRefGroup({ backrefs }: { backrefs: Array<BackRefDeck> }) {
     const [localState, setLocalState] = useState({
         showExpanded: true,
         childrenExpanded: backrefs.map(() => true),
