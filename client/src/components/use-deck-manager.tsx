@@ -678,6 +678,18 @@ function buildBackRefsGroupedByResource<T extends FatDeck>(deck: T) {
         }
     });
 
+    // sort all of the refs
+    //
+    backRefDecks.forEach((d: BackRefDeck) => {
+        d.deckLevelRefs.sort(sortByDeckKindThenName);
+
+        d.backRefNoteSeqs.forEach((seq: Array<BackRefNote>) => {
+            seq.forEach((brn: BackRefNote) => {
+                brn.refs.sort(sortByDeckKindThenName);
+            });
+        });
+    });
+
     // group by deckKind kind
     //
     let groupedByDeckKind: Record<DeckKind, Array<BackRefDeck>> = {
