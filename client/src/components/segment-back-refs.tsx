@@ -4,7 +4,7 @@ import { useState } from "preact/hooks";
 import { BackRefDeck, DeckKind, FatDeck } from "types";
 
 import { buildSlimDeck, deckKindToHeadingString } from "utils/civil";
-import { getAppState } from "app-state";
+import { immutableState } from "app-state";
 import { svgCaretDown, svgCaretRight } from "components/svg-icons";
 
 import RollableSegment from "components/rollable-segment";
@@ -16,10 +16,9 @@ export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
     const backrefGroups: Array<ComponentChildren> = [];
 
     if (deck && deck.backRefDecksGroupedByKind) {
-        const appState = getAppState();
         const group = deck.backRefDecksGroupedByKind;
 
-        appState.preferredDeckKindOrder.forEach((deckKind: DeckKind) => {
+        immutableState.deckKindOrder.forEach((deckKind: DeckKind) => {
             if (group[deckKind].length > 0) {
                 backrefGroups.push(<BackRefGroup backrefs={group[deckKind]} />);
             }

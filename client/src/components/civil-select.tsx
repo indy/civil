@@ -15,7 +15,7 @@ import {
 import {
     deckKindToResourceString,
     indexToShortcut,
-    sortByResourceThenName,
+    sortByDeckKindThenName,
 } from "utils/civil";
 import Net from "utils/net";
 import { AppStateChange, getAppState } from "app-state";
@@ -92,7 +92,7 @@ function rebuildCurrentSelection(state: LocalState): LocalState {
         state.referencesAdded,
         state.referencesCreated
     );
-    state.currentSelection.sort(sortByResourceThenName);
+    state.currentSelection.sort(sortByDeckKindThenName);
     return state;
 }
 
@@ -462,7 +462,7 @@ export default function CivilSelect({
 
     return (
         <div class={topLevelClasses}>
-            <label>Connections:</label>
+            <label>References:</label>
             <RecentDecks
                 localState={local}
                 onAdd={(recentDeck) =>

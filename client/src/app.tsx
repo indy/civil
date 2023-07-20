@@ -3,7 +3,12 @@ import { Link, Router, route, RouterOnChangeArgs } from "preact-router";
 
 import { State, User, UberSetup, WaitingFor } from "types";
 
-import { AppStateChange, AppStateProvider, getAppState } from "app-state";
+import {
+    AppStateChange,
+    AppStateProvider,
+    getAppState,
+    immutableState,
+} from "app-state";
 
 import Net from "utils/net";
 import { capitalise } from "utils/js";
@@ -112,7 +117,7 @@ function TopBarMenu() {
     return (
         <nav>
             <div id="elastic-top-menu-items">
-                {appState.preferredOrder.map((topMenuItem) => (
+                {immutableState.topMenuOrder.map((topMenuItem) => (
                     <div class="optional-navigable top-menu-item">
                         <Link
                             class={menuItemClass(topMenuItem)}

@@ -14,7 +14,7 @@ import {
 } from "types";
 
 import Net from "utils/net";
-import { AppStateChange } from "app-state";
+import { AppStateChange, immutableState } from "app-state";
 import { capitalise } from "utils/js";
 
 export function isCommand(text: string) {
@@ -165,22 +165,36 @@ export function indexToShortcut(index: number) {
     }
 }
 
-export function sortByResourceThenName(a: SlimDeck, b: SlimDeck): number {
-    if (a.deckKind < b.deckKind) {
-        return -1;
-    }
-    if (a.deckKind > b.deckKind) {
-        return 1;
-    }
-
-    let titleA = a.title.toUpperCase();
-    let titleB = b.title.toUpperCase();
-    if (titleA < titleB) {
-        return -1;
+function deckKindOrderValue(d: DeckKind): number {
+    for (let i = 0; i < immutableState.deckKindOrder.length; i++) {
+        if (immutableState.deckKindOrder[i] === d) {
+            return i;
+        }
     }
 
-    if (titleA > titleB) {
-        return 1;
+    return -1;
+}
+
+export function sortByDeckKindThenName(a: SlimDeck, b: SlimDeck): number {
+    if (a.deckKind === b.deckKind) {
+        let titleA = a.title.toUpperCase();
+        let titleB = b.title.toUpperCase();
+        if (titleA < titleB) {
+            return -1;
+        }
+
+        if (titleA > titleB) {
+            return 1;
+        }
+    } else {
+        let dka = deckKindOrderValue(a.deckKind);
+        let dkb = deckKindOrderValue(b.deckKind);
+        if (dka < dkb) {
+            return -1;
+        }
+        if (dka > dkb) {
+            return 1;
+        }
     }
 
     // titles must be equal

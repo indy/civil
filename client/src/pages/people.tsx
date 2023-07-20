@@ -20,7 +20,7 @@ import {
 import Net from "utils/net";
 import { calcAgeInYears, dateStringAsTriple } from "utils/eras";
 import { buildUrl, deckKindToHeadingString } from "utils/civil";
-import { getAppState, AppStateChange } from "app-state";
+import { getAppState, AppStateChange, immutableState } from "app-state";
 import {
     svgBlank,
     svgCaretDown,
@@ -217,7 +217,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
                         deckId={deck.id}
                         title={title}
                         onLifespanGiven={onLifespan}
-                        oldestAliveAge={appState.oldestAliveAge}
+                        oldestAliveAge={immutableState.oldestAliveAge}
                     />
                 )}
 

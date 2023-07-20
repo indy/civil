@@ -14,6 +14,7 @@ import {
     Graph,
     GraphDeck,
     IdeasListings,
+    ImmutableState,
     Key,
     Listing,
     NoteKind,
@@ -57,12 +58,42 @@ function cleanCommandBarState(): CommandBarState {
     };
 }
 
+// immutable values that are globally accessible for reading
+// these are all constant throughout the lifetime of the app
+// just basic typescript values nothing framework dependent belongs here
+//
+export const immutableState: ImmutableState = {
+    appName: "civil",
+
+    // preferred order of rendering the back-refs
+    //
+    deckKindOrder: [
+        DeckKind.Quote,
+        DeckKind.Idea,
+        DeckKind.Person,
+        DeckKind.Article,
+        DeckKind.Timeline,
+        DeckKind.Dialogue,
+    ],
+
+    // preferred order of the top-level menu bar
+    //
+    topMenuOrder: ["memorise"],
+
+    // oldest reasonable age in years, any person whose birth means they're older can be assumed to be dead
+    //
+    oldestAliveAge: 120,
+
+    imageZoomDefault: 80,
+    imageZoomMin: 10,
+    imageZoomMax: 300,
+};
+
 const state: State = {
     waitingFor: signal(WaitingFor.User),
 
     debugMessages: signal([]),
 
-    appName: "civil",
     mode: signal(CivilMode.View),
     wasmInterface: undefined,
 
@@ -73,10 +104,6 @@ const state: State = {
     // that mobile touch devices will always show the search bar
     //
     hasPhysicalKeyboard: true,
-
-    // oldest reasonable age in years, any person whose birth means they're older can be assumed to be dead
-    //
-    oldestAliveAge: 120,
 
     // when true don't let commandBar accept any keystrokes
     //
@@ -95,21 +122,6 @@ const state: State = {
     url: signal(""),
 
     user: signal(emptyUser),
-
-    // preferred order of rendering the back-refs
-    //
-    preferredDeckKindOrder: [
-        DeckKind.Quote,
-        DeckKind.Idea,
-        DeckKind.Person,
-        DeckKind.Article,
-        DeckKind.Timeline,
-        DeckKind.Dialogue,
-    ],
-
-    // preferred order of the top-level menu bar
-    //
-    preferredOrder: ["memorise"],
 
     // key == deckKind name of decks
     listing: signal({
@@ -137,9 +149,6 @@ const state: State = {
 
     recentImages: signal([]),
     imageDirectory: signal(""),
-    imageZoomDefault: 80,
-    imageZoomMin: 10,
-    imageZoomMax: 300,
 
     showConnectivityGraph: signal(false),
     graph: signal({
@@ -313,6 +322,7 @@ export const AppStateChange = {
                 // we can treat any keypresses as modal commands for the app
                 switch (code) {
                     case "KeyH":
+                        state.mode.value = CivilMode.View;
                         route("/");
                         break;
                     case "KeyB":
@@ -553,7 +563,7 @@ export const AppStateChange = {
             console.log("urlTitle");
         }
         state.urlTitle.value = title;
-        document.title = `${state.appName}: ${title}`;
+        document.title = `${immutableState.appName}: ${title}`;
     },
     routeChanged: function (url: string) {
         if (DEBUG_APP_STATE) {

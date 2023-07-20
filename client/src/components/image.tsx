@@ -1,17 +1,15 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import { getAppState } from "app-state";
+import { immutableState } from "app-state";
 
 type ImageProps = {
     src?: string;
 };
 
 export default function Image({ src }: ImageProps) {
-    const appState = getAppState();
-
     let [zoomable, setZoomable] = useState(false);
-    let [zoomValue, setZoomValue] = useState(appState.imageZoomDefault);
+    let [zoomValue, setZoomValue] = useState(immutableState.imageZoomDefault);
 
     function onClick() {
         setZoomable(!zoomable);
@@ -28,7 +26,7 @@ export default function Image({ src }: ImageProps) {
     let rollupClasses = "rollupable-500ms";
 
     if (zoomable) {
-        style = `width: ${zoomValue}%; height: ${zoomValue}%; max-width: ${appState.imageZoomMax}%; max-height: ${appState.imageZoomMax}%;`;
+        style = `width: ${zoomValue}%; height: ${zoomValue}%; max-width: ${immutableState.imageZoomMax}%; max-height: ${immutableState.imageZoomMax}%;`;
         sliderClasses += " deck-image-slider-active";
         rollupClasses += " rollupable-active-5rem";
     }
@@ -40,8 +38,8 @@ export default function Image({ src }: ImageProps) {
                     type="range"
                     class={sliderClasses}
                     value={zoomValue}
-                    min={appState.imageZoomMin}
-                    max={appState.imageZoomMax}
+                    min={immutableState.imageZoomMin}
+                    max={immutableState.imageZoomMax}
                     onInput={onInput}
                 />
             </div>

@@ -306,12 +306,24 @@ export enum WaitingFor {
     Server,
 }
 
+export type ImmutableState = {
+    readonly appName: string;
+
+    readonly deckKindOrder: Array<DeckKind>;
+    readonly topMenuOrder: Array<string>;
+
+    readonly oldestAliveAge: number;
+
+    readonly imageZoomDefault: number;
+    readonly imageZoomMin: number;
+    readonly imageZoomMax: number;
+};
+
 export type State = {
     waitingFor: Signal<WaitingFor>;
 
     debugMessages: Signal<Array<string>>;
 
-    appName: string;
     mode: Signal<CivilMode>;
 
     wasmInterface: WasmInterface | undefined;
@@ -320,7 +332,6 @@ export type State = {
     colourSeeds: Signal<ColourSeeds>;
 
     hasPhysicalKeyboard: boolean;
-    oldestAliveAge: number;
 
     componentRequiresFullKeyboardAccess: Signal<boolean>;
 
@@ -331,9 +342,6 @@ export type State = {
     url: Signal<string>;
 
     user: Signal<User>;
-
-    preferredDeckKindOrder: Array<DeckKind>;
-    preferredOrder: Array<string>; // rename to preferredTopMenuOrder
 
     listing: Signal<Listing>;
 
@@ -351,9 +359,6 @@ export type State = {
 
     recentImages: Signal<Array<UserUploadedImage>>;
     imageDirectory: Signal<string>;
-    imageZoomDefault: number;
-    imageZoomMin: number;
-    imageZoomMax: number;
 
     showConnectivityGraph: Signal<boolean>;
     graph: Signal<Graph>;

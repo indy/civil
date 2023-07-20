@@ -31,7 +31,7 @@ import {
     buildUrl,
     noteSeq,
     noteSeqsForPoints,
-    sortByResourceThenName,
+    sortByDeckKindThenName,
 } from "utils/civil";
 import Net from "utils/net";
 
@@ -430,7 +430,7 @@ function applyRefsAndCardsToNotes<T extends FatDeck>(deck: T) {
                 let n = deck.notes[i];
                 n.refs = refsInNotes[n.id] || [];
                 if (n.refs) {
-                    n.refs.sort(sortByResourceThenName);
+                    n.refs.sort(sortByDeckKindThenName);
                 }
             }
         }
