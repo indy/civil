@@ -24,6 +24,46 @@
     --ui-element-border-radius: 0.4em;
 
     --space-for-selectable-highlight: 0.5rem;
+
+
+    /* the body text of user generated content */
+    /* --font-body: Crimson, Palatino, "Palatino Linotype", "Palatino LT STD", "Book Antiqua", Georgia, serif; */
+    /* --font-body: Fell-De-Walpergens-Pica; */
+    /* --font-body: Fell-Great-Primer; */
+    /* --font-body: Fell-Double-Pica; */
+    --font-body: Fell-English;
+    /* --font-body: Fell-French-Canon; */
+
+    /* the heading text of user generated content */
+    /* --font-heading: Crimson, Palatino, "Palatino Linotype", "Palatino LT STD", "Book Antiqua", Georgia, serif; */
+    /* --font-heading: Fell-De-Walpergens-Pica-Small-Caps; */
+    /* --font-heading: Fell-Great-Primer-Small-Caps; */
+    /* --font-heading: Fell-Double-Pica-Small-Caps; */
+    --font-heading: Fell-English-Small-Caps;
+    /* --font-heading: Fell-French-Canon-Small-Caps; */
+
+    /* ui elements that intermingle with user generated content */
+    /* --font-ui-interleaved: Crimson, Palatino, "Palatino Linotype", "Palatino LT STD", "Book Antiqua", Georgia, serif; */
+    /* --font-ui-interleaved: inter; */
+    /* --font-ui-interleaved: Fell-Great-Primer-Small-Caps; */
+    /* --font-ui-interleaved: Fell-De-Walpergens-Pica-Small-Caps; */
+    /* --font-ui-interleaved: Fell-Double-Pica-Small-Caps; */
+    --font-ui-interleaved: Fell-English-Small-Caps;
+    /* --font-ui-interleaved: Fell-French-Canon-Small-Caps; */
+
+    /* ui elements of the app */
+    --font-ui: inter;
+    /* --font-ui: Fell-French-Canon-Small-Caps; */
+    /* --font-ui: Fell-Great-Primer-Small-Caps; */
+    /* --font-ui: Fell-De-Walpergens-Pica-Small-Caps; */
+    /* --font-ui: Fell-English; */
+
+
+    /* user generated annotations */
+    --font-cursive: Caveat, cursive;
+
+    --font-ai: Orbitron;
+    --font-code: Consolas, "Liberation Mono", Menlo, Courier, monospace; */;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -104,6 +144,7 @@
     font-style: normal;
 }
 
+/* sensible, boring, sans-serif font */
 @font-face {
     font-family: "Inter";
     src: url("fonts/Inter-SemiBold.ttf") format("truetype");
@@ -111,9 +152,142 @@
     font-style: normal;
 }
 
+/* sensible, boring, sans-serif font */
 @font-face {
     font-family: "Inter";
     src: url("fonts/Inter-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Fell-Double-Pica";
+    src: url("fonts/Fell/IMFeDPit29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Fell-Double-Pica";
+    src: url("fonts/Fell/IMFeDPrm29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Fell-Double-Pica-Small-Caps";
+    src: url("fonts/Fell/IMFeDPsc29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Fell-English";
+    src: url("fonts/Fell/IMFeENit29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Fell-English";
+    src: url("fonts/Fell/IMFeENrm29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Fell-English-Small-Caps";
+    src: url("fonts/Fell/IMFeENsc29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Fell-French-Canon";
+    src: url("fonts/Fell/IMFeFCit29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Fell-French-Canon";
+    src: url("fonts/Fell/IMFeFCrm29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Fell-French-Canon-Small-Caps";
+    src: url("fonts/Fell/IMFeFCsc29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Fell-Flowers-1";
+    src: url("fonts/Fell/IMFeFlow1.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Fell-Flowers-2";
+    src: url("fonts/Fell/IMFeFlow2.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Fell-Great-Primer";
+    src: url("fonts/Fell/IMFeGPit29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Fell-Great-Primer";
+    src: url("fonts/Fell/IMFeGPrm29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+@font-face {
+    font-family: "Fell-Great-Primer-Small-Caps";
+    src: url("fonts/Fell/IMFeGPsc29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Fell-De-Walpergens-Pica";
+    src: url("fonts/Fell/IMFePIit29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Fell-De-Walpergens-Pica";
+    src: url("fonts/Fell/IMFePIrm29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Fell-De-Walpergens-Pica-Small-Caps";
+    src: url("fonts/Fell/IMFePIsc29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Fell-Three-Lines-Pica";
+    src: url("fonts/Fell/IMFeTLrm29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Orbitron";
+    src: url("fonts/orbitron/static/Orbitron-Bold.ttf") format("truetype");
     font-weight: 400;
     font-style: normal;
 }
@@ -123,12 +297,14 @@
 }
 
 .ui {
-    font-family: Inter;
+  font-family: var(--font-ui);
+    /* font-family: Inter; */
     font-weight: 400;
 }
 
 .ui-bold {
-    font-family: Inter;
+  font-family: var(--font-ui);
+    /* font-family: Inter; */
     font-weight: 600;
 }
 
@@ -137,7 +313,7 @@
 }
 
 .form-typography {
-    font-family: Inter;
+    font-family: var(--font-ui);
     font-weight: 600;
 }
 
@@ -171,8 +347,19 @@ body {
     margin-left: auto;
     margin-right: auto;
     padding-left: calc(100% - var(--body-width));
-    font-family: Crimson, Palatino, "Palatino Linotype", "Palatino LT STD",
-        "Book Antiqua", Georgia, serif;
+
+
+    /* font-family: Crimson, Palatino, "Palatino Linotype", "Palatino LT STD", "Book Antiqua", Georgia, serif; */
+
+    font-family: var(--font-body);
+
+    /* font-family: Fell-English; */
+    /* font-family: Fell-Double-Pica; */
+    /* font-family: Fell-Fench-Canon; */
+    /* font-family: Fell-Great-Primer; */
+    /* font-family: Fell-De-Walpergens-Pica; */
+    /* font-family: Fell-Three-Lines-Pica; */
+
     background-color: var(--bg);
     color: var(--fg);
     max-width: 1400px;
@@ -189,7 +376,7 @@ h6 {
     -moz-transition: font-size 0.15s, background 0.15s; /* Firefox 4 */
     -webkit-transition: font-size 0.15s, background 0.15s; /* Safari and Chrome */
 
-    font-family: Crimson;
+    font-family: var(--font-heading);
     font-weight: 400;
     margin-top: 2rem;
     margin-bottom: 1.5rem;
@@ -309,7 +496,7 @@ p {
 }
 
 p.subtitle {
-    font-family: Crimson;
+    font-family: var(--font-body);
     margin-top: 1rem;
     margin-bottom: 1rem;
     font-size: 1rem;
@@ -323,7 +510,7 @@ p.subtitle > a {
 }
 
 p.subheading {
-    font-family: Inter;
+    font-family: var(--font-ui-interleaved);
     margin-top: 1rem;
     margin-bottom: 1rem;
     font-size: 1.5rem;
@@ -429,7 +616,7 @@ figure.fullwidth figcaption {
 }
 
 .machine-generated {
-    font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    font-family: var(--font-ai);
     margin-left: 1rem;
     font-size: 1rem;
     line-height: 1.5rem;
@@ -518,7 +705,7 @@ nav {
     border-bottom-style: solid;
     border-color: var(--divider);
 
-    font-family: Inter;
+    font-family: var(--font-ui);
     font-weight: 600;
 }
 
@@ -608,7 +795,7 @@ div.table-wrapper {
 
 code,
 pre > code {
-    font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-family: var(--font-code);
     font-size: 1rem;
     line-height: 1.42;
     -webkit-text-size-adjust: 100%; /* Prevent adjustments of font size after orientation changes in iOS. See https://github.com/edwardtufte/tufte-css/issues/81#issuecomment-261953409 */
@@ -672,7 +859,7 @@ label.right-margin-toggle:not(.right-margin-number) {
 
 form {
     width: 20rem;
-    font-family: Inter;
+    font-family: var(--font-ui);
     font-weight: 600;
 }
 
@@ -713,7 +900,7 @@ input,
 optgroup,
 select,
 textarea {
-    font-family: Inter;
+    font-family: var(--font-ui);
     font-size: 100%;
     line-height: 1.15;
     margin: 0.2rem;
@@ -732,7 +919,7 @@ textarea {
 }
 
 textarea {
-    font-family: Crimson; /* 1 */
+    font-family: var(--font-body); /* 1 */
 }
 /**
  * Show the overflow in IE.
@@ -922,7 +1109,7 @@ textarea {
 
 .civil-button {
     transition: all 0.2s ease;
-    font-family: Inter;
+    font-family: var(--font-ui);
     font-weight: 600;
     background-color: var(--bg1);
     color: var(--fg1);
@@ -956,7 +1143,7 @@ textarea {
 }
 
 .scratchlist-menu-tip {
-    font-family: Inter;
+    font-family: var(--font-ui);
     color: var(--fg-inactive);
     margin-left: 0.4rem;
     font-size: 1rem;
@@ -1029,7 +1216,7 @@ textarea {
     border-radius: var(--search-command-border-radius);
 }
 .search-command-listing {
-    font-family: Inter;
+    font-family: var(--font-ui);
 
     background: var(--bg0);
     border: 0.1rem solid var(--fg);
@@ -1080,7 +1267,7 @@ textarea {
     padding: 1rem;
     width: 100%;
     height: 95%;
-    font-family: Crimson;
+    font-family: var(--font-body);
     font-size: 1.2rem;
 }
 
@@ -1389,7 +1576,7 @@ a:link.note-inline-link-disabled {
 }
 
 .right-margin-scribble {
-    font-family: Caveat, cursive;
+    font-family: var(--font-cursive);
     font-size: 1.8rem;
     text-align: left;
 }
@@ -1476,7 +1663,7 @@ section > form {
     color: var(--fg1);
 
     width: 1rem;
-    font-family: Inter;
+    font-family: var(--font-ui);
 }
 
 .left-margin {
@@ -1487,7 +1674,8 @@ section > form {
     color: var(--fg1);
     text-align: right;
 
-    font-family: Inter;
+    /* font-family: Inter; */
+    font-family: var(--font-ui-interleaved);
 }
 
 /* for providing the lhs distance from the margin */
@@ -1505,14 +1693,14 @@ section > form {
 }
 
 .left-margin-heading-typeface {
-    font-family: Crimson;
+    font-family: var(--font-body);
     font-weight: 300;
 }
 
 /* like left-margin but inline for adding notes to points */
 .left-margin-inline {
     color: var(--fg1);
-    font-family: Inter;
+    font-family: var(--font-ui-interleaved);
     margin-left: 4rem;
 }
 
@@ -1565,7 +1753,7 @@ section > form {
 }
 
 .ref-scribble {
-    font-family: Caveat, cursive;
+    font-family: var(--font-cursive);
     font-size: 1.8rem;
     padding-bottom: 0.3rem;
     width: 24rem;
@@ -1573,7 +1761,7 @@ section > form {
 }
 
 .deck-level-backref {
-    font-family: Inter;
+    font-family: var(--font-ui-interleaved);
     font-size: 1.1rem;
     padding-top: 0.2rem;
     padding-left: 2rem;
@@ -1591,7 +1779,7 @@ section > form {
 }
 
 .ref-top-scribble {
-    font-family: Caveat, cursive;
+    font-family: var(--font-cursive);
     font-size: 1.8rem;
     padding-top: 1rem;
     padding-bottom: 0.3rem;
@@ -1751,13 +1939,13 @@ input:required {
 
 /* hand-written text on left margin and in listings */
 .descriptive-scribble {
-    font-family: Caveat, cursive;
+    font-family: var(--font-cursive);
     color: var(--scribble-neutral);
     margin-left: 1rem;
     font-size: 1.8rem;
 }
 .top-scribble {
-    font-family: Caveat, cursive;
+    font-family: var(--font-cursive);
     color: var(--scribble-neutral);
     font-size: 1.8rem;
     width: var(--block-width);
@@ -1784,7 +1972,7 @@ input:required {
 }
 
 .deck-ref-segment {
-    font-family: Inter;
+    font-family: var(--font-ui-interleaved);
     margin-top: 1rem;
     padding-left: 1rem;
 }
@@ -1931,7 +2119,7 @@ input:required {
 /* display: none; stops the text from taking up room and receiving touch events on mobile devices */
 .toolbar-item-text {
     display: none;
-    font-family: Inter;
+    font-family: var(--font-ui);
     vertical-align: super;
     margin-left: 0.5rem;
     transition: all 200ms linear;

@@ -40,7 +40,28 @@ var precacheConfig = [
     "/fonts/Crimson/CrimsonPro-Italic-VariableFont_wght.ttf",
     "/fonts/Crimson/CrimsonPro-VariableFont_wght.ttf",
     "/fonts/Inter-Regular.ttf",
-    "/fonts/Inter-SemiBold.ttf"
+    "/fonts/Inter-SemiBold.ttf",
+
+    "/fonts/orbitron/static/Orbitron-Bold.ttf",
+
+    "/fonts/Fell/IMFeDPit29P.ttf",
+    "/fonts/Fell/IMFeDPrm29P.ttf",
+    "/fonts/Fell/IMFeDPsc29P.ttf",
+    "/fonts/Fell/IMFeENit29P.ttf",
+    "/fonts/Fell/IMFeENrm29P.ttf",
+    "/fonts/Fell/IMFeENsc29P.ttf",
+    "/fonts/Fell/IMFeFCit29P.ttf",
+    "/fonts/Fell/IMFeFCrm29P.ttf",
+    "/fonts/Fell/IMFeFCsc29P.ttf",
+    "/fonts/Fell/IMFeFlow1.ttf",
+    "/fonts/Fell/IMFeFlow2.ttf",
+    "/fonts/Fell/IMFeGPit29P.ttf",
+    "/fonts/Fell/IMFeGPrm29P.ttf",
+    "/fonts/Fell/IMFeGPsc29P.ttf",
+    "/fonts/Fell/IMFePIit29P.ttf",
+    "/fonts/Fell/IMFePIrm29P.ttf",
+    "/fonts/Fell/IMFePIsc29P.ttf",
+    "/fonts/Fell/IMFeTLrm29.ttf"
 ];
 
 var urlsToCache = new Set();
