@@ -25,7 +25,6 @@
 
     --space-for-selectable-highlight: 0.5rem;
 
-
     /* the body text of user generated content */
     /* --font-body: Crimson, Palatino, "Palatino Linotype", "Palatino LT STD", "Book Antiqua", Georgia, serif; */
     /* --font-body: Fell-De-Walpergens-Pica; */
@@ -58,12 +57,11 @@
     /* --font-ui: Fell-De-Walpergens-Pica-Small-Caps; */
     /* --font-ui: Fell-English; */
 
-
     /* user generated annotations */
     --font-cursive: Caveat, cursive;
 
     --font-ai: Orbitron;
-    --font-code: Consolas, "Liberation Mono", Menlo, Courier, monospace; */;
+    --font-code: Consolas, "Liberation Mono", Menlo, Courier, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -296,15 +294,17 @@
     width: 10rem;
 }
 
+.interleaved {
+    font-family: var(--font-ui-interleaved);
+}
+
 .ui {
-  font-family: var(--font-ui);
-    /* font-family: Inter; */
+    font-family: var(--font-ui);
     font-weight: 400;
 }
 
 .ui-bold {
-  font-family: var(--font-ui);
-    /* font-family: Inter; */
+    font-family: var(--font-ui);
     font-weight: 600;
 }
 
@@ -347,7 +347,6 @@ body {
     margin-left: auto;
     margin-right: auto;
     padding-left: calc(100% - var(--body-width));
-
 
     /* font-family: Crimson, Palatino, "Palatino Linotype", "Palatino LT STD", "Book Antiqua", Georgia, serif; */
 
@@ -795,7 +794,7 @@ div.table-wrapper {
 
 code,
 pre > code {
-  font-family: var(--font-code);
+    font-family: var(--font-code);
     font-size: 1rem;
     line-height: 1.42;
     -webkit-text-size-adjust: 100%; /* Prevent adjustments of font size after orientation changes in iOS. See https://github.com/edwardtufte/tufte-css/issues/81#issuecomment-261953409 */

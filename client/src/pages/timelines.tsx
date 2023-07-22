@@ -332,7 +332,7 @@ function SegmentPoints({
         : `Add Point for { holderName }`;
 
     return (
-        <RollableSegment heading="Timeline">
+        <RollableSegment heading="Timeline" interleaved>
             <CivContainer>
                 <CivMain>
                     <ul class="unstyled-list hug-left">{dps}</ul>

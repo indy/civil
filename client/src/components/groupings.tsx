@@ -8,7 +8,7 @@ import Net from "utils/net";
 import { svgExpand, svgMinimise } from "components/svg-icons";
 
 import DeckLink from "components/deck-link";
-import { ListingLink } from "components/listing-link";
+import ListingLink from "components/listing-link";
 import { StarRatingWithinListing } from "components/star-rating";
 import { CivMain, CivContainer } from "components/civil-layout";
 

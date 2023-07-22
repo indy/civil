@@ -558,7 +558,7 @@ function SegmentPoints({
     const segmentTitle = `Points during the life of ${holderTitle}`;
 
     return (
-        <RollableSegment heading={segmentTitle}>
+        <RollableSegment heading={segmentTitle} interleaved>
             <CivContainer>
                 <CivLeft ui>
                     {!hasDied && (

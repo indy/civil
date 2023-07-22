@@ -5,7 +5,7 @@ import { SlimDeck } from "types";
 import { nonEmptyArray, plural } from "utils/js";
 
 import RollableSegment from "components/rollable-segment";
-import { ListingLink } from "components/listing-link";
+import ListingLink from "components/listing-link";
 
 import { CivContainer, CivMain } from "components/civil-layout";
 
@@ -25,7 +25,7 @@ export default function SegmentSearchResults({
             "s"
         );
         return (
-            <RollableSegment heading={heading} initiallyRolledUp>
+            <RollableSegment heading={heading} initiallyRolledUp interleaved>
                 <CivContainer>
                     <CivMain>
                         <ul>{searchResults.map(buildSearchResult)}</ul>

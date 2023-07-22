@@ -2,7 +2,7 @@ import { h, ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 
 import { SlimDeck, ResultList } from "types";
-import { ListingLink } from "components/listing-link";
+import ListingLink from "components/listing-link";
 
 import Net from "utils/net";
 import { svgExpand, svgMinimise } from "components/svg-icons";

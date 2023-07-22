@@ -8,11 +8,15 @@ import {
     svgChevronDoubleRight,
 } from "components/svg-icons";
 
+// interleaved: is the segment going to be part of a deck?
+// (as opposed to being a part of the ui, e.g. on the front page)
+//
 type Props = {
     heading: string;
     children: ComponentChildren;
     initiallyRolledUp?: boolean;
     invisible?: boolean;
+    interleaved?: boolean;
 };
 
 export default function RollableSegment({
@@ -20,6 +24,7 @@ export default function RollableSegment({
     children,
     initiallyRolledUp,
     invisible,
+    interleaved,
 }: Props) {
     let [isRolledUp, setIsRolledUp] = useState(!!initiallyRolledUp);
 
@@ -32,6 +37,10 @@ export default function RollableSegment({
     if (invisible) {
         classState += " invisible";
     }
+
+    let headingClass = "clickable ";
+    headingClass += interleaved ? "interleaved" : "ui";
+
     let icon = isRolledUp ? svgChevronDoubleRight() : svgChevronDoubleDown();
     return (
         <section class={classState}>
@@ -42,7 +51,7 @@ export default function RollableSegment({
                     </div>
                 </CivLeft>
                 <CivMain>
-                    <h2 class="clickable ui" onClick={onRollClicked}>
+                    <h2 class={headingClass} onClick={onRollClicked}>
                         {heading}
                     </h2>
                     <hr class="big-segment" />

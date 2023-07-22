@@ -8,7 +8,7 @@ import { immutableState } from "app-state";
 import { svgCaretDown, svgCaretRight } from "components/svg-icons";
 
 import RollableSegment from "components/rollable-segment";
-import { ExpandableBackRefListing } from "components/listing-link";
+import ExpandableBackRefListing from "components/expandable-backref-listing";
 
 import { CivContainer, CivMain } from "components/civil-layout";
 
@@ -29,7 +29,7 @@ export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
     const invisible = backrefGroups.length === 0;
 
     return (
-        <RollableSegment heading="BackRefs" invisible={invisible}>
+        <RollableSegment heading="BackRefs" invisible={invisible} interleaved>
             {backrefGroups}
         </RollableSegment>
     );
@@ -92,7 +92,7 @@ function BackRefGroup({ backrefs }: { backrefs: Array<BackRefDeck> }) {
         <section key={segmentId}>
             <CivContainer>
                 <CivMain>
-                    <h3 class="ui" onClick={onClickToggle}>
+                    <h3 class="interleaved" onClick={onClickToggle}>
                         {icon} {segmentHeading}
                     </h3>
                 </CivMain>
