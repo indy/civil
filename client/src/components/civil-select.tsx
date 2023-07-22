@@ -83,6 +83,7 @@ function candidateToAddedRef(candidate: SlimDeck): Reference {
         refKind: RefKind.Ref,
         noteId: 0, // this noteId isn't used when adding a ref
         insignia: candidate.insignia,
+        typeface: candidate.typeface,
     };
 }
 
@@ -689,6 +690,7 @@ function Input({
                 deckKind: DeckKind.Idea,
                 refKind: RefKind.Ref,
                 insignia: 0,
+                typeface: "serif",
             };
             onCreate(r);
         }

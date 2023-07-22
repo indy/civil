@@ -143,6 +143,7 @@ pub struct SlimDeck {
     pub title: String,
     pub deck_kind: DeckKind,
     pub insignia: i32,
+    pub typeface: String,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

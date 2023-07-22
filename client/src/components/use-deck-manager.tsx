@@ -638,6 +638,7 @@ function buildBackRefsGroupedByResource<T extends FatDeck>(deck: T) {
                         deckKind: br.deckKind,
                         annotation: br.annotation,
                         insignia: br.insignia,
+                        typeface: br.typeface,
                     };
                     d.deckLevelRefs.push(ref);
                     break;
@@ -663,6 +664,7 @@ function buildBackRefsGroupedByResource<T extends FatDeck>(deck: T) {
                                     deckKind: br.deckKind,
                                     annotation: br.annotation,
                                     insignia: br.insignia,
+                                    typeface: br.typeface,
                                 };
                                 d.backRefNoteSeqs[k][j].refs.push(ref);
                             }

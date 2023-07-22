@@ -30,6 +30,7 @@ fn idea_from_row(row: &Row) -> crate::Result<interop::Idea> {
         id: row.get(0)?,
         title: row.get(1)?,
         insignia: row.get(4)?,
+        typeface: row.get(5)?,
         graph_terminator: row.get(3)?,
         created_at: row.get(2)?,
         notes: None,
@@ -60,15 +61,15 @@ pub(crate) fn listings(
 ) -> crate::Result<interop::IdeasListings> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "select id, name, 'idea', insignia
+    let stmt = "select id, name, 'idea', insignia, typeface
                 from decks
                 where user_id = ?1 and kind = 'idea'
                 order by created_at desc
                 limit 20";
 
-    let recent = sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)?;
+    let recent = sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)?;
 
-    let stmt = "SELECT id, name, 'idea', insignia
+    let stmt = "SELECT id, name, 'idea', insignia, typeface
                 FROM decks
                 WHERE id NOT IN (SELECT deck_id
                                  FROM notes_decks
@@ -80,16 +81,16 @@ pub(crate) fn listings(
                 AND user_id = ?1
                 ORDER BY created_at DESC";
 
-    let orphans = sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)?;
+    let orphans = sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)?;
 
-    let stmt = "SELECT d.id, d.name, 'idea', d.insignia
+    let stmt = "SELECT d.id, d.name, 'idea', d.insignia, d.typeface
                 FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
                 WHERE n.deck_id IS NULL
                 AND d.kind='idea'
                 AND d.user_id=?1
                 ORDER BY d.created_at DESC";
 
-    let unnoted = sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)?;
+    let unnoted = sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)?;
 
     Ok(interop::IdeasListings {
         recent,
@@ -101,7 +102,7 @@ pub(crate) fn listings(
 pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<interop::Idea>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT id, name, created_at, graph_terminator, insignia
+    let stmt = "SELECT id, name, created_at, graph_terminator, insignia, typeface
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'idea'
                 ORDER BY name";

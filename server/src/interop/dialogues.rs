@@ -62,6 +62,7 @@ pub struct Dialogue {
     pub title: String,
 
     pub insignia: i32,
+    pub typeface: String,
 
     pub created_at: chrono::NaiveDateTime,
 

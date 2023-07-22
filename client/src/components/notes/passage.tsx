@@ -76,6 +76,7 @@ export default function Passage({
                 title: ref.title,
                 deckKind: ref.deckKind,
                 insignia: ref.insignia,
+                typeface: ref.typeface,
                 noteId: note.id,
                 refKind: ref.refKind,
             };

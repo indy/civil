@@ -89,6 +89,7 @@ export type SlimDeck = {
     title: string;
     deckKind: DeckKind;
     insignia: number;
+    typeface: string;
 };
 
 export interface FatDeck {
@@ -102,6 +103,7 @@ export interface FatDeck {
     insignia: number;
     refs?: Array<Reference>;
     points?: Array<DeckPoint>;
+    typeface: string;
 
     // received from server and then modified by the client
     //
@@ -171,6 +173,7 @@ export type Note = {
     kind: NoteKind;
     content: string;
     pointId: Key | null;
+    typeface: string;
 
     refs: Array<Reference>;
     flashcards: Array<FlashCard>;
@@ -211,6 +214,7 @@ export type DeckPoint = {
     dateTextual?: string;
     date?: string;
     age?: number;
+    typeface: string;
 
     deckId: Key;
     deckName: string;

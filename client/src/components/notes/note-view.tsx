@@ -408,6 +408,7 @@ export default function NoteView({
                 prevNoteId: null,
                 kind: local.note.kind,
                 content: local.note.content,
+                typeface: local.note.typeface,
                 pointId: null,
                 refs: [],
                 flashcards: [],

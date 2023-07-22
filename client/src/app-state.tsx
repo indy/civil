@@ -530,6 +530,7 @@ export const AppStateChange = {
             title: slimDeck.title,
             deckKind: slimDeck.deckKind,
             insignia: slimDeck.insignia,
+            typeface: slimDeck.typeface,
             notes: ns,
         };
 
@@ -660,6 +661,7 @@ export const AppStateChange = {
                             title: newReference.title,
                             deckKind: DeckKind.Idea,
                             insignia: 0,
+                            typeface: "serif",
                         };
                         if (li.ideas) {
                             // update the listing with the new deckKind
@@ -1012,6 +1014,7 @@ function parseCurrentUrlIntoSlimDeck(
                 title: urlTitle,
                 deckKind: dk,
                 insignia: 0,
+                typeface: "serif",
             };
 
             return res;

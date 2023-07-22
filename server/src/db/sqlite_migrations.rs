@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS decks (
        graph_terminator BOOLEAN DEFAULT FALSE,
 
        name TEXT NOT NULL,
+       typeface TEXT NOT NULL DEFAULT 'serif',
 
        -- called insignia in case we want to save 'badge' for future use
        insignia INTEGER DEFAULT 0,
@@ -67,6 +68,7 @@ CREATE TABLE IF NOT EXISTS points (
        deck_id INTEGER NOT NULL,
        title TEXT,
        kind TEXT NOT NULL, -- 'point', 'point_begin', 'point_end'
+       typeface TEXT NOT NULL DEFAULT 'serif',
 
        location_textual TEXT,
        longitude REAL,
@@ -96,6 +98,7 @@ CREATE TABLE IF NOT EXISTS notes (
        kind INTEGER DEFAULT 0, -- 1='note', 2='note_review', 3='note_summary', 4='note_deckmeta'
 
        content TEXT NOT NULL,
+       typeface TEXT NOT NULL DEFAULT 'serif',
 
        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION,
        FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION,
@@ -258,13 +261,17 @@ CREATE TABLE IF NOT EXISTS stats_num_refs (
 
  */
 
+// the following sqlite command:
+// PRAGMA user_version;
+// will tell you which version of the schema is being used
+
 pub fn migration_check(db_name: &str) -> crate::Result<()> {
     // Define migrations
     let migrations = Migrations::new(vec![
 
-        ////////////////
-        // MIGRATION 0
-        ////////////////
+        ///////////////////
+        // user_version 1
+        ///////////////////
         M::up("CREATE TABLE IF NOT EXISTS users (
                    id INTEGER PRIMARY KEY,
                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -464,9 +471,9 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
                );",
         ),
 
-        ////////////////
-        // MIGRATION 1: Enabling full text search
-        ////////////////
+        ///////////////////
+        // user_version 2: Enabling full text search
+        ///////////////////
         M::up("CREATE VIRTUAL TABLE decks_fts USING fts5(name, content='decks', content_rowid='id');
                CREATE TRIGGER decks_fts_ai AFTER INSERT ON decks BEGIN
                    INSERT INTO decks_fts(rowid, name) VALUES (new.id, new.name);
@@ -527,9 +534,9 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
                    INSERT INTO quote_extras_fts(rowid, attribution) VALUES (new.deck_id, new.attribution);
                END;"),
 
-        ////////////////
-        // MIGRATION 2: Add hits table
-        ////////////////
+        ///////////////////
+        // user_version 3: Add hits table
+        ///////////////////
         M::up("CREATE TABLE IF NOT EXISTS hits (
                    id INTEGER PRIMARY KEY,
                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -537,9 +544,9 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
                    FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
                );"),
 
-        ////////////////
-        // MIGRATION 3: notes::kind converted from text to integer
-        ////////////////
+        ///////////////////
+        // user_version 4: notes::kind converted from text to integer
+        ///////////////////
         M::up("ALTER TABLE notes RENAME COLUMN kind TO kind_old;
                ALTER TABLE notes ADD COLUMN kind INTEGER DEFAULT 0;
 
@@ -549,14 +556,14 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
 
                ALTER TABLE notes DROP COLUMN kind_old;"),
 
-        ////////////////
-        // MIGRATION 4: notes::prev_note_id single linked-list for notes
-        ////////////////
+        ///////////////////
+        // user_version 5: notes::prev_note_id single linked-list for notes
+        ///////////////////
         M::up("ALTER TABLE notes ADD COLUMN prev_note_id INTEGER;"),
 
-        ////////////////
-        // MIGRATION 5: REAL used for dates in points
-        ////////////////
+        ///////////////////
+        // user_version 6: REAL used for dates in points
+        ///////////////////
         M::up("ALTER TABLE points ADD COLUMN exact_realdate REAL;
                ALTER TABLE points ADD COLUMN lower_realdate REAL;
                ALTER TABLE points ADD COLUMN upper_realdate REAL;
@@ -565,21 +572,21 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
                UPDATE points SET lower_realdate = julianday(lower_date);
                UPDATE points SET upper_realdate = julianday(upper_date);"),
 
-        ////////////////
-        // MIGRATION 6: remove old dates from points
-        ////////////////
+        ///////////////////
+        // user_version 7: remove old dates from points
+        ///////////////////
         M::up("ALTER TABLE points DROP COLUMN exact_date;
                ALTER TABLE points DROP COLUMN lower_date;
                ALTER TABLE points DROP COLUMN upper_date;"),
 
-        ////////////////
-        // MIGRATION 7: add insignia column to decks
-        ////////////////
+        ///////////////////
+        // user_version 8: add insignia column to decks
+        ///////////////////
         M::up("ALTER TABLE decks ADD COLUMN insignia INTEGER DEFAULT 0;"),
 
-        ////////////////
-        // MIGRATION 8: fix spaced repetition
-        ////////////////
+        ///////////////////
+        // user_version 9: fix spaced repetition
+        ///////////////////
         M::up("ALTER TABLE cards ADD COLUMN interval INTEGER DEFAULT 0;
                ALTER TABLE cards ADD COLUMN repetition INTEGER DEFAULT 0;
 
@@ -588,9 +595,9 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
 
                ALTER TABLE cards DROP COLUMN inter_repetition_interval;"),
 
-        ////////////////
-        // MIGRATION 9: dialogue
-        ////////////////
+        ///////////////////
+        // user_version 10: dialogue
+        ///////////////////
         M::up("CREATE TABLE IF NOT EXISTS dialogue_extras (
                    deck_id INTEGER NOT NULL,
                    kind TEXT NOT NULL,
@@ -604,9 +611,9 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
                    note_id INTEGER NOT NULL,
                    FOREIGN KEY (note_id) REFERENCES notes (id) ON DELETE CASCADE ON UPDATE NO ACTION
                );"),
-        ////////////////
-        // MIGRATION 10: stats improvement
-        ////////////////
+        ///////////////////
+        // user_version 11: stats improvement
+        ///////////////////
         M::up("CREATE TABLE IF NOT EXISTS stats_num_notes (
                    id INTEGER PRIMARY KEY,
                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -649,9 +656,9 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
 
                    FOREIGN KEY (stats_id) REFERENCES stats (id) ON DELETE CASCADE ON UPDATE NO ACTION
                );"),
-        ////////////////
-        // MIGRATION 11: simplify stats table after transferring data to tables created in migration 10
-        ////////////////
+        ///////////////////
+        // user_version 12: simplify stats table after transferring data to tables created in migration 10
+        ///////////////////
         M::up("ALTER TABLE stats DROP COLUMN num_ideas;
                ALTER TABLE stats DROP COLUMN num_articles;
                ALTER TABLE stats DROP COLUMN num_people;
@@ -698,18 +705,23 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
                ALTER TABLE stats DROP COLUMN num_refs_quotes_to_quotes;"),
 
 
-        ////////////////
-        // MIGRATION 12: user theme
-        ////////////////
+        ///////////////////
+        // user_version 13: user theme
+        ///////////////////
         M::up("ALTER TABLE users ADD COLUMN theme TEXT NOT NULL DEFAULT 'light';"),
 
-
-        ////////////////
-        // MIGRATION 13: ai kind
-        ////////////////
+        ///////////////////
+        // user_version 14: ai kind
+        ///////////////////
         M::up("ALTER TABLE dialogue_extras RENAME COLUMN kind TO ai_kind;
                UPDATE dialogue_extras SET ai_kind = 'OpenAI::Gpt35Turbo';"),
 
+        ///////////////////
+        // user_version 15: typefaces
+        ///////////////////
+        M::up("ALTER TABLE decks ADD COLUMN typeface TEXT NOT NULL DEFAULT 'serif';
+               ALTER TABLE points ADD COLUMN typeface TEXT NOT NULL DEFAULT 'serif';
+               ALTER TABLE notes ADD COLUMN typeface TEXT NOT NULL DEFAULT 'serif';"),
     ]);
 
     let mut conn = Connection::open(db_name)?;

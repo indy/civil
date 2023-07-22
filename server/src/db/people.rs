@@ -31,6 +31,7 @@ fn person_with_sortdate_from_row(row: &Row) -> crate::Result<interop::Person> {
         id: row.get(0)?,
         title: row.get(1)?,
         insignia: row.get(3)?,
+        typeface: row.get(4)?,
         sort_date: row.get(2)?,
         points: None,
         notes: None,
@@ -46,6 +47,7 @@ fn person_from_row(row: &Row) -> crate::Result<interop::Person> {
         id: row.get(0)?,
         title: row.get(1)?,
         insignia: row.get(4)?,
+        typeface: row.get(5)?,
         sort_date: None,
         points: None,
         notes: None,
@@ -79,7 +81,8 @@ pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<i
         "select d.id,
                 d.name,
                 coalesce(date(p.exact_realdate), date(p.lower_realdate)) as birth_date,
-                d.insignia
+                d.insignia,
+                d.typeface
          from decks d, points p
          where d.user_id = ?1
                and d.kind = 'person'
@@ -106,15 +109,15 @@ pub(crate) fn listings(
 ) -> crate::Result<interop::PeopleListings> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT d.id, d.name, 'person', d.insignia
+    let stmt = "SELECT d.id, d.name, 'person', d.insignia, d.typeface
                 FROM decks d
                 LEFT JOIN points p ON p.deck_id = d.id
                 WHERE d.user_id = ?1
                       AND d.kind = 'person'
                       AND p.deck_id is null";
-    let uncategorised = sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)?;
+    let uncategorised = sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)?;
 
-    let stmt = "SELECT d.id, d.name, 'person', d.insignia, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
+    let stmt = "SELECT d.id, d.name, 'person', d.insignia, d.typeface, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
                 WHERE d.user_id = ?1
                       AND d.kind = 'person'
@@ -122,9 +125,9 @@ pub(crate) fn listings(
                       AND p.kind = 'point_begin'
                       AND birth_date < '0354-01-01'
                 ORDER BY COALESCE(p.exact_realdate, p.lower_realdate)";
-    let ancient = sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)?;
+    let ancient = sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)?;
 
-    let stmt = "SELECT d.id, d.name, 'person', d.insignia, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
+    let stmt = "SELECT d.id, d.name, 'person', d.insignia, d.typeface, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
                 WHERE d.user_id = ?1
                       AND d.kind = 'person'
@@ -132,9 +135,9 @@ pub(crate) fn listings(
                       AND p.kind = 'point_begin'
                       AND birth_date >= '0354-01-01' AND birth_date < '1469-01-01'
                 ORDER BY COALESCE(p.exact_realdate, p.lower_realdate)";
-    let medieval = sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)?;
+    let medieval = sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)?;
 
-    let stmt = "SELECT d.id, d.name, 'person', d.insignia, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
+    let stmt = "SELECT d.id, d.name, 'person', d.insignia, d.typeface, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
                 WHERE d.user_id = ?1
                       AND d.kind = 'person'
@@ -142,9 +145,9 @@ pub(crate) fn listings(
                       AND p.kind = 'point_begin'
                       AND birth_date >= '1469-01-01' AND birth_date < '1856-01-01'
                 ORDER BY COALESCE(p.exact_realdate, p.lower_realdate)";
-    let modern = sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)?;
+    let modern = sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)?;
 
-    let stmt = "SELECT d.id, d.name, 'person', d.insignia, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
+    let stmt = "SELECT d.id, d.name, 'person', d.insignia, d.typeface, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
                 WHERE d.user_id = ?1
                       AND d.kind = 'person'
@@ -152,7 +155,7 @@ pub(crate) fn listings(
                       AND p.kind = 'point_begin'
                       AND birth_date >= '1856-01-01'
                 ORDER BY COALESCE(p.exact_realdate, p.lower_realdate)";
-    let contemporary = sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)?;
+    let contemporary = sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)?;
 
     Ok(interop::PeopleListings {
         uncategorised,

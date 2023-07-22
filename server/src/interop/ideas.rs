@@ -27,6 +27,7 @@ pub struct Idea {
     pub title: String,
 
     pub insignia: i32,
+    pub typeface: String,
 
     pub graph_terminator: bool,
 
@@ -49,6 +50,7 @@ impl From<crate::db::decks::DeckBase> for Idea {
             title: d.title,
 
             insignia: d.insignia,
+            typeface: d.typeface,
 
             graph_terminator: d.graph_terminator,
 

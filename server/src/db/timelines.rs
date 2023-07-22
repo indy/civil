@@ -29,6 +29,7 @@ fn from_row(row: &Row) -> crate::Result<interop::Timeline> {
         id: row.get(0)?,
         title: row.get(1)?,
         insignia: row.get(4)?,
+        typeface: row.get(5)?,
         points: None,
         notes: None,
         refs: None,
@@ -59,12 +60,12 @@ pub(crate) fn listings(
 ) -> crate::Result<Vec<interop_decks::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT id, name, 'timeline', insignia
+    let stmt = "SELECT id, name, 'timeline', insignia, typeface
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'timeline'
                 ORDER BY created_at DESC";
 
-    sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)
+    sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)
 }
 
 pub(crate) fn get(

@@ -49,6 +49,7 @@ pub struct DeckBase {
     pub created_at: chrono::NaiveDateTime,
     pub graph_terminator: bool,
     pub insignia: i32,
+    pub typeface: String,
 }
 
 fn deckbase_from_row(row: &Row) -> crate::Result<DeckBase> {
@@ -58,6 +59,7 @@ fn deckbase_from_row(row: &Row) -> crate::Result<DeckBase> {
         created_at: row.get(2)?,
         graph_terminator: row.get(3)?,
         insignia: row.get(4)?,
+        typeface: row.get(5)?,
     })
 }
 
@@ -67,27 +69,29 @@ pub fn recently_visited(
 ) -> crate::Result<Vec<interop::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.insignia, max(hits.created_at) as most_recent_visit
+    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.insignia, decks.typeface, max(hits.created_at) as most_recent_visit
                 FROM hits INNER JOIN decks ON decks.id = hits.deck_id
                 WHERE decks.user_id = ?1
                 GROUP BY hits.deck_id
                 ORDER BY most_recent_visit DESC
                 LIMIT 15";
 
-    sqlite::many(&conn, stmt, params![&user_id], decksimple_from_row)
+    sqlite::many(&conn, stmt, params![&user_id], slimdeck_from_row)
 }
 
-pub(crate) fn decksimple_from_row(row: &Row) -> crate::Result<interop::SlimDeck> {
+pub(crate) fn slimdeck_from_row(row: &Row) -> crate::Result<interop::SlimDeck> {
     let res: String = row.get(2)?;
     Ok(interop::SlimDeck {
         id: row.get(0)?,
         title: row.get(1)?,
         deck_kind: DeckKind::from_str(&res)?,
         insignia: row.get(3)?,
+        typeface: row.get(4)?,
     })
 }
 
-pub(crate) const DECKBASE_QUERY: &str = "select id, name, created_at, graph_terminator, insignia
+pub(crate) const DECKBASE_QUERY: &str =
+    "select id, name, created_at, graph_terminator, insignia, typeface
                                          from decks
                                          where user_id = ?1 and id = ?2 and kind = ?3";
 
@@ -126,7 +130,7 @@ fn deckbase_get_by_name(
     kind: DeckKind,
     name: &str,
 ) -> crate::Result<DeckBase> {
-    let stmt = "SELECT id, name, created_at, graph_terminator, insignia
+    let stmt = "SELECT id, name, created_at, graph_terminator, insignia, typeface
                 FROM DECKS
                 WHERE user_id = ?1 AND name = ?2 AND kind = ?3";
     sqlite::one(
@@ -148,7 +152,7 @@ pub(crate) fn deckbase_create(
     let graph_terminator = false;
     let stmt = "INSERT INTO decks(user_id, kind, name, graph_terminator, insignia)
                 VALUES (?1, ?2, ?3, ?4, ?5)
-                RETURNING id, name, created_at, graph_terminator, insignia";
+                RETURNING id, name, created_at, graph_terminator, insignia, typeface";
     let insignia: i32 = 0;
     let deckbase: DeckBase = sqlite::one(
         tx,
@@ -181,7 +185,7 @@ pub(crate) fn deckbase_edit(
     let stmt = "UPDATE decks
                 SET name = ?4, graph_terminator = ?5, insignia = ?6
                 WHERE user_id = ?1 AND id = ?2 AND kind = ?3
-                RETURNING id, name, created_at, graph_terminator, insignia";
+                RETURNING id, name, created_at, graph_terminator, insignia, typeface";
     sqlite::one(
         conn,
         stmt,
@@ -204,17 +208,12 @@ pub(crate) fn insignia_filter(
 ) -> crate::Result<Vec<interop::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT id, name, kind, insignia
+    let stmt = "SELECT id, name, kind, insignia, typeface
                 FROM decks
                 WHERE user_id = ?1 AND insignia & ?2
                 ORDER BY created_at DESC";
 
-    let res = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &insignia],
-        decksimple_from_row,
-    )?;
+    let res = sqlite::many(&conn, stmt, params![&user_id, &insignia], slimdeck_from_row)?;
 
     Ok(res)
 }
@@ -227,7 +226,7 @@ pub(crate) fn recent(
     let conn = sqlite_pool.get()?;
     let limit: i32 = 10;
 
-    let stmt = "SELECT id, name, kind, insignia
+    let stmt = "SELECT id, name, kind, insignia, typeface
                 FROM decks
                 WHERE user_id = ?1 AND kind = '$deck_kind'
                 ORDER BY created_at DESC
@@ -235,7 +234,7 @@ pub(crate) fn recent(
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
     let stmt = stmt.replace("$limit", &limit.to_string());
 
-    sqlite::many(&conn, &stmt, params![&user_id], decksimple_from_row)
+    sqlite::many(&conn, &stmt, params![&user_id], slimdeck_from_row)
 }
 
 // delete anything that's represented as a deck (article, person, idea, timeline, quote, dialogue)
@@ -373,17 +372,6 @@ pub(crate) fn from_deck_id_via_notes_to_decks(
     sqlite::many(&conn, stmt, params![&deck_id], ref_from_row)
 }
 
-fn deck_simple_from_search_result(row: &Row) -> crate::Result<interop::SlimDeck> {
-    let kind: String = row.get(1)?;
-
-    Ok(interop::SlimDeck {
-        id: row.get(0)?,
-        title: row.get(2)?,
-        deck_kind: DeckKind::from_str(&kind)?,
-        insignia: row.get(3)?,
-    })
-}
-
 fn postfix_asterisks(s: &str) -> crate::Result<String> {
     let mut res: String = "".to_string();
 
@@ -405,50 +393,36 @@ pub(crate) fn search(
     let q = postfix_asterisks(query)?;
 
     let stmt =
-        "select d.id, d.kind, d.name, d.insignia, decks_fts.rank AS rank_sum, 1 as rank_count
+        "select d.id, d.name, d.kind, d.insignia, d.typeface, decks_fts.rank AS rank_sum, 1 as rank_count
                 from decks_fts left join decks d on d.id = decks_fts.rowid
                 where decks_fts match ?2
                       and d.user_id = ?1
                 group by d.id
                 order by rank_sum asc, length(d.name) asc, d.created_at desc
                 limit 30";
-    let mut results = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &q],
-        deck_simple_from_search_result,
-    )?;
+    let mut results = sqlite::many(&conn, stmt, params![&user_id, &q], slimdeck_from_row)?;
 
-    let stmt = "select d.id, d.kind, d.name, d.insignia, article_extras_fts.rank AS rank_sum, 1 as rank_count
+    let stmt = "select d.id, d.name, d.kind, d.insignia, d.typeface, article_extras_fts.rank AS rank_sum, 1 as rank_count
                 from article_extras_fts left join decks d on d.id = article_extras_fts.rowid
                 where article_extras_fts match ?2
                       and d.user_id = ?1
                 group by d.id
                 order by rank_sum asc, length(d.name) asc
                 limit 30";
-    let results_via_pub_ext = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &q],
-        deck_simple_from_search_result,
-    )?;
+    let results_via_pub_ext = sqlite::many(&conn, stmt, params![&user_id, &q], slimdeck_from_row)?;
 
-    let stmt = "select d.id, d.kind, d.name, d.insignia, quote_extras_fts.rank AS rank_sum, 1 as rank_count
+    let stmt = "select d.id, d.name, d.kind, d.insignia, d.typeface, quote_extras_fts.rank AS rank_sum, 1 as rank_count
                 from quote_extras_fts left join decks d on d.id = quote_extras_fts.rowid
                 where quote_extras_fts match ?2
                       and d.user_id = ?1
                 group by d.id
                 order by rank_sum asc, length(d.name) asc
                 limit 30";
-    let results_via_quote_ext = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &q],
-        deck_simple_from_search_result,
-    )?;
+    let results_via_quote_ext =
+        sqlite::many(&conn, stmt, params![&user_id, &q], slimdeck_from_row)?;
 
-    let stmt = "select res.id, res.kind, res.name, res.insignia, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-                from (select d.id, d.kind, d.name, d.insignia, notes_fts.rank AS rank
+    let stmt = "select res.id, res.name, res.kind, res.insignia, res.typeface, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+                from (select d.id, d.name, d.kind, d.insignia, d.typeface, notes_fts.rank AS rank
                       from notes_fts
                            left join notes n on n.id = notes_fts.rowid
                            left join decks d on d.id = n.deck_id
@@ -459,15 +433,10 @@ pub(crate) fn search(
                 group by res.id, res.kind, res.name
                 order by sum(res.rank) asc, length(res.name) asc
                 limit 30";
-    let results_via_notes = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &q],
-        deck_simple_from_search_result,
-    )?;
+    let results_via_notes = sqlite::many(&conn, stmt, params![&user_id, &q], slimdeck_from_row)?;
 
-    let stmt = "select res.id, res.kind, res.name, res.insignia, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-                from (select d.id, d.kind, d.name, d.insignia, points_fts.rank AS rank
+    let stmt = "select res.id, res.name, res.kind, res.insignia, res.typeface, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+                from (select d.id, d.name, d.kind, d.insignia, d.typeface, points_fts.rank AS rank
                       from points_fts
                            left join points n on n.id = points_fts.rowid
                            left join decks d on d.id = n.deck_id
@@ -478,12 +447,7 @@ pub(crate) fn search(
                 group by res.id, res.kind, res.name
                 order by sum(res.rank) asc, length(res.name) asc
                 limit 30";
-    let results_via_points = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &q],
-        deck_simple_from_search_result,
-    )?;
+    let results_via_points = sqlite::many(&conn, stmt, params![&user_id, &q], slimdeck_from_row)?;
 
     for r in results_via_pub_ext {
         if !contains(&results, r.id) {
@@ -520,31 +484,21 @@ pub(crate) fn search_by_name(
     let conn = sqlite_pool.get()?;
 
     let stmt =
-        "select d.id, d.kind, d.name, d.insignia, decks_fts.rank AS rank_sum, 1 as rank_count
+        "select d.id, d.name, d.kind, d.insignia, d.typeface, decks_fts.rank AS rank_sum, 1 as rank_count
                 from decks_fts left join decks d on d.id = decks_fts.rowid
                 where decks_fts match ?2
                       and d.user_id = ?1
                 group by d.id
                 order by rank_sum asc, length(d.name) asc
                 limit 20";
-    let mut results = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &query],
-        deck_simple_from_search_result,
-    )?;
+    let mut results = sqlite::many(&conn, stmt, params![&user_id, &query], slimdeck_from_row)?;
 
-    let stmt = "select id, kind, name, insignia, 0 as rank_sum, 1 as rank_count
+    let stmt = "select id, name, kind, insignia, typeface, 0 as rank_sum, 1 as rank_count
                 from decks
                 where name like '%' || ?2 || '%'
                 and user_id = ?1
                 limit 20";
-    let res2 = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &query],
-        deck_simple_from_search_result,
-    )?;
+    let res2 = sqlite::many(&conn, stmt, params![&user_id, &query], slimdeck_from_row)?;
 
     for r in res2 {
         if !contains(&results, r.id) {
@@ -637,7 +591,7 @@ pub(crate) fn search_using_deck_id(
     }
 
     let stmt =
-        "select d.id, d.kind, d.name, d.insignia, decks_fts.rank AS rank_sum, 1 as rank_count
+        "select d.id, d.name, d.kind, d.insignia, d.typeface, decks_fts.rank AS rank_sum, 1 as rank_count
                 from decks_fts left join decks d on d.id = decks_fts.rowid
                 where decks_fts match ?2
                       and d.user_id = ?1
@@ -648,10 +602,10 @@ pub(crate) fn search_using_deck_id(
         &conn,
         stmt,
         params![&user_id, &sane_name],
-        deck_simple_from_search_result,
+        slimdeck_from_row,
     )?;
 
-    let stmt = "select d.id, d.kind, d.name, d.insignia, article_extras_fts.rank AS rank_sum, 1 as rank_count
+    let stmt = "select d.id, d.name, d.kind, d.insignia, d.typeface, article_extras_fts.rank AS rank_sum, 1 as rank_count
                 from article_extras_fts left join decks d on d.id = article_extras_fts.rowid
                 where article_extras_fts match ?2
                       and d.user_id = ?1
@@ -662,10 +616,10 @@ pub(crate) fn search_using_deck_id(
         &conn,
         stmt,
         params![&user_id, &sane_name],
-        deck_simple_from_search_result,
+        slimdeck_from_row,
     )?;
 
-    let stmt = "select d.id, d.kind, d.name, d.insignia, quote_extras_fts.rank AS rank_sum, 1 as rank_count
+    let stmt = "select d.id, d.name, d.kind, d.insignia, d.typeface, quote_extras_fts.rank AS rank_sum, 1 as rank_count
                 from quote_extras_fts left join decks d on d.id = quote_extras_fts.rowid
                 where quote_extras_fts match ?2
                       and d.user_id = ?1
@@ -676,11 +630,11 @@ pub(crate) fn search_using_deck_id(
         &conn,
         stmt,
         params![&user_id, &sane_name],
-        deck_simple_from_search_result,
+        slimdeck_from_row,
     )?;
 
-    let stmt = "select res.id, res.kind, res.name, res.insignia, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-                from (select d.id, d.kind, d.name, d.insignia, notes_fts.rank AS rank
+    let stmt = "select res.id, res.name, res.kind, res.insignia, res.typeface, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+                from (select d.id, d.name, d.kind, d.insignia, d.typeface, notes_fts.rank AS rank
                       from notes_fts
                            left join notes n on n.id = notes_fts.rowid
                            left join decks d on d.id = n.deck_id
@@ -695,11 +649,11 @@ pub(crate) fn search_using_deck_id(
         &conn,
         stmt,
         params![&user_id, &sane_name],
-        deck_simple_from_search_result,
+        slimdeck_from_row,
     )?;
 
-    let stmt = "select res.id, res.kind, res.name, res.insignia, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-                from (select d.id, d.kind, d.name, d.insignia, points_fts.rank AS rank
+    let stmt = "select res.id, res.name, res.kind, res.insignia, res.typeface, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+                from (select d.id, d.name, d.kind, d.insignia, d.typeface, points_fts.rank AS rank
                       from points_fts
                            left join points n on n.id = points_fts.rowid
                            left join decks d on d.id = n.deck_id
@@ -714,7 +668,7 @@ pub(crate) fn search_using_deck_id(
         &conn,
         stmt,
         params![&user_id, &sane_name],
-        deck_simple_from_search_result,
+        slimdeck_from_row,
     )?;
 
     for r in results_via_pub_ext {

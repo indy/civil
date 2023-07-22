@@ -33,6 +33,7 @@ fn note_from_row(row: &Row) -> crate::Result<interop::Note> {
         kind: interop::note_kind_from_sqlite(sql_kind)?,
         content: row.get(1)?,
         point_id: row.get(3)?,
+        typeface: row.get(5)?,
     })
 }
 
@@ -46,7 +47,8 @@ pub(crate) fn all_from_deck(
                        n.content,
                        n.kind,
                        n.point_id,
-                       n.prev_note_id
+                       n.prev_note_id,
+                       n.typeface
                 FROM notes n
                 WHERE n.deck_id = ?1
                 ORDER BY n.id";
@@ -122,7 +124,7 @@ pub(crate) fn create_common(
     let k = interop::note_kind_to_sqlite(kind);
     let stmt = "INSERT INTO notes(user_id, deck_id, kind, point_id, content, prev_note_id)
                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)
-                RETURNING id, content, kind, point_id, prev_note_id";
+                RETURNING id, content, kind, point_id, prev_note_id, typeface";
     let note = sqlite::one(
         conn,
         stmt,
@@ -235,7 +237,8 @@ fn get_note_(conn: &Connection, user_id: Key, note_id: Key) -> crate::Result<int
                        n.content,
                        n.kind,
                        n.point_id,
-                       n.prev_note_id
+                       n.prev_note_id,
+                       n.typeface
                 FROM notes n
                 WHERE n.id = ?1 AND n.user_id = ?2";
     sqlite::one(conn, stmt, params![&note_id, &user_id], note_from_row)
@@ -279,7 +282,8 @@ pub(crate) fn preview(
                        n.content,
                        n.kind,
                        n.point_id,
-                       n.prev_note_id
+                       n.prev_note_id,
+                       n.typeface
                 FROM notes n
                 WHERE n.point_id is null AND n.deck_id = ?1 AND n.user_id = ?2";
     let notes = sqlite::many(&conn, stmt, params![&deck_id, &user_id], note_from_row)?;
@@ -317,7 +321,7 @@ pub fn edit_note(
     let stmt = "UPDATE notes
                 SET content = ?3
                 WHERE id = ?2 AND user_id = ?1
-                RETURNING id, content, kind, point_id, prev_note_id";
+                RETURNING id, content, kind, point_id, prev_note_id, typeface";
     sqlite::one(
         &conn,
         stmt,
@@ -332,7 +336,8 @@ pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> crate::Result<Vec<intero
                        n.content,
                        n.kind,
                        n.point_id,
-                       n.prev_note_id
+                       n.prev_note_id,
+                       n.typeface
                 FROM   notes n
                 ORDER BY n.id";
     sqlite::many(&conn, stmt, &[], note_from_row)

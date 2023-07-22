@@ -26,6 +26,7 @@ pub struct Quote {
     pub id: Key,
     pub title: String,
     pub insignia: i32,
+    pub typeface: String,
     pub attribution: String,
 
     // will always be a single note

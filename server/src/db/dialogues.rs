@@ -47,6 +47,7 @@ impl TryFrom<(decks::DeckBase, DialogueExtra)> for interop::Dialogue {
             title: deck.title,
             ai_kind: interop::AiKind::from_str(&extra.ai_kind)?,
             insignia: deck.insignia,
+            typeface: deck.typeface,
             created_at: deck.created_at,
             notes: None,
             refs: None,
@@ -67,6 +68,7 @@ fn from_row(row: &Row) -> crate::Result<interop::Dialogue> {
         ai_kind: interop::AiKind::from_str(&aik)?,
 
         insignia: row.get(4)?,
+        typeface: row.get(5)?,
 
         created_at: row.get(3)?,
 
@@ -86,11 +88,11 @@ fn from_row(row: &Row) -> crate::Result<interop::Dialogue> {
 pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT id, name, kind, insignia
+    let stmt = "SELECT id, name, kind, insignia, typeface
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'dialogue'
                 ORDER BY created_at DESC";
-    sqlite::many(&conn, stmt, params![&user_id], decks::decksimple_from_row)
+    sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)
 }
 
 pub(crate) fn get(
@@ -101,7 +103,7 @@ pub(crate) fn get(
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT decks.id, decks.name, dialogue_extras.ai_kind,
-                       decks.created_at, decks.insignia
+                       decks.created_at, decks.insignia, decks.typeface
                 FROM decks LEFT JOIN dialogue_extras ON dialogue_extras.deck_id = decks.id
                 WHERE decks.user_id = ?1 AND decks.id = ?2 AND decks.kind = 'dialogue'";
     let mut res = sqlite::one(&conn, stmt, params![&user_id, &dialogue_id], from_row)?;

@@ -58,6 +58,7 @@ pub struct Note {
     pub kind: NoteKind,
     pub content: String,
     pub point_id: Option<Key>,
+    pub typeface: String,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

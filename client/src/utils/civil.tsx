@@ -154,6 +154,7 @@ export function buildSlimDeck(
         title,
         deckKind,
         insignia,
+        typeface: "serif",
     };
 }
 

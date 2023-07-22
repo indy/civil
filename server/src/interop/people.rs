@@ -28,6 +28,7 @@ pub struct Person {
     pub title: String,
 
     pub insignia: i32,
+    pub typeface: String,
 
     pub sort_date: Option<chrono::NaiveDate>,
 
@@ -54,6 +55,7 @@ impl From<crate::db::decks::DeckBase> for Person {
             title: d.title,
 
             insignia: d.insignia,
+            typeface: d.typeface,
 
             sort_date: None,
             points: None,
