@@ -34,6 +34,7 @@ import SegmentDeckRefs from "components/segment-deck-refs";
 import SegmentGraph from "components/graph/segment-graph";
 import SegmentNotes from "components/notes/segment-notes";
 import TopMatter from "components/top-matter";
+import TypefaceSelector from "components/typeface-selector";
 import WhenEditMode from "components/when-edit-mode";
 import { SlimDeckList } from "components/groupings";
 import {
@@ -173,6 +174,7 @@ function TimelineUpdater({
     const [localState, setLocalState] = useState({
         title: timeline.title || "",
         insigniaId: timeline.insignia || 0,
+        typeface: timeline.typeface || "",
     });
 
     useEffect(() => {
@@ -192,6 +194,12 @@ function TimelineUpdater({
                 insigniaId: timeline.insignia,
             });
         }
+        if (timeline.typeface) {
+            setLocalState({
+                ...localState,
+                typeface: timeline.typeface,
+            });
+        }
     }, [timeline]);
 
     function handleContentChange(content: string) {
@@ -205,11 +213,13 @@ function TimelineUpdater({
         type SubmitData = {
             title: string;
             insignia: number;
+            typeface: string;
         };
 
         const data: SubmitData = {
             title: localState.title.trim(),
             insignia: localState.insigniaId,
+            typeface: localState.typeface,
         };
 
         // edit an existing timeline
@@ -223,12 +233,19 @@ function TimelineUpdater({
         e.preventDefault();
     };
 
-    const setInsigniaId = (id: number) => {
+    function setInsigniaId(id: number) {
         setLocalState({
             ...localState,
             insigniaId: id,
         });
-    };
+    }
+
+    function setTypeface(typeface: string) {
+        setLocalState({
+            ...localState,
+            typeface,
+        });
+    }
 
     return (
         <CivForm onSubmit={handleSubmit}>
@@ -249,6 +266,14 @@ function TimelineUpdater({
                 <InsigniaSelector
                     insigniaId={localState.insigniaId}
                     onChange={setInsigniaId}
+                />
+            </CivMain>
+
+            <CivLeftLabel>Typeface</CivLeftLabel>
+            <CivMain>
+                <TypefaceSelector
+                    typeface={localState.typeface}
+                    onChangedTypeface={setTypeface}
                 />
             </CivMain>
 

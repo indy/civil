@@ -27,6 +27,7 @@ import LeftMarginHeadingNoWrap from "components/left-margin-heading-no-wrap";
 import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import TopMatter from "components/top-matter";
+import TypefaceSelector from "components/typeface-selector";
 import { SlimDeckGrouping, RatedGrouping } from "components/groupings";
 import { StarRatingPartial } from "components/star-rating";
 import {
@@ -226,6 +227,7 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
         article.publishedDate || ""
     );
     const [insigniaId, setInsigniaId] = useState(article.insignia || 0);
+    const [typeface, setTypeface] = useState(article.typeface);
 
     useEffect(() => {
         if (article.title && article.title !== "" && title === "") {
@@ -256,6 +258,9 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
         }
         if (article.insignia !== undefined) {
             setInsigniaId(article.insignia);
+        }
+        if (article.typeface) {
+            setTypeface(article.typeface);
         }
     }, [article]);
 
@@ -299,6 +304,7 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
             graphTerminator: boolean;
             publishedDate: string;
             insignia: number;
+            typeface: string;
         };
 
         const data: Data = removeEmptyStrings(
@@ -307,10 +313,11 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
                 author: author.trim(),
                 source: source.trim(),
                 shortDescription: shortDescription.trim(),
-                rating: rating,
+                rating,
                 graphTerminator: false,
                 publishedDate: publishedDate.trim(),
                 insignia: insigniaId,
+                typeface,
             },
             ["source"]
         );
@@ -408,6 +415,14 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
                     min="0"
                     max="5"
                     onInput={onRatingChange}
+                />
+            </CivMain>
+
+            <CivLeftLabel>Typeface</CivLeftLabel>
+            <CivMain>
+                <TypefaceSelector
+                    typeface={typeface}
+                    onChangedTypeface={setTypeface}
                 />
             </CivMain>
 

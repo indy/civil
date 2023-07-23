@@ -47,6 +47,7 @@ type ProtoDialogue = {
     aiKind: AiKind;
     insignia: number;
     messages: Array<ChatMessage>;
+    typeface: string;
 };
 
 type ChatMessage = {
@@ -278,6 +279,7 @@ function DialogueChat({ path }: { path?: string }) {
             aiKind: AiKind.OpenAIGpt35Turbo,
             insignia: 0,
             messages: messages,
+            typeface: "serif",
         };
 
         Net.post<ProtoDialogue, DeckDialogue>("/api/dialogues", data).then(
@@ -441,6 +443,7 @@ function DialogueUpdater({
             aiKind: AiKind.OpenAIGpt35Turbo,
             insignia: insigniaId,
             messages: [],
+            typeface: "serif",
         };
 
         const deckKind: DeckKind = DeckKind.Dialogue;

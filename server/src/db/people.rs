@@ -66,7 +66,8 @@ pub(crate) fn get_or_create(
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    let (deck, _origin) = decks::deckbase_get_or_create(&tx, user_id, DeckKind::Person, title)?;
+    let (deck, _origin) =
+        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Person, title, "book")?;
 
     tx.commit()?;
 
@@ -202,6 +203,7 @@ pub(crate) fn edit(
         &person.title,
         graph_terminator,
         person.insignia,
+        &person.typeface,
     )?;
 
     Ok(deck.into())

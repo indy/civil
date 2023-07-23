@@ -77,6 +77,7 @@ impl From<crate::db::decks::DeckBase> for Person {
 pub struct ProtoPerson {
     pub title: String,
     pub insignia: i32,
+    pub typeface: String,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

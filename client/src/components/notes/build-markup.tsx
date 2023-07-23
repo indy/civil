@@ -146,6 +146,10 @@ export default function buildMarkup(
             } else {
                 return h(n.name, modified_attrs, ...children);
             }
+        } else if (n.name === "ol" || n.name === "ul") {
+            let modified_attrs: Attrs = attrs(n);
+            modified_attrs.class = assignHeaderTypeface(modified_attrs.class);
+            return h(n.name, modified_attrs, ...children);
         } else if (
             n.name === "h1" ||
             n.name === "h2" ||

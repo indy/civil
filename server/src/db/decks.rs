@@ -105,13 +105,14 @@ pub(crate) fn deckbase_get_or_create(
     user_id: Key,
     kind: DeckKind,
     name: &str,
+    typeface: &str,
 ) -> crate::Result<(DeckBase, DeckBaseOrigin)> {
     let existing_deck_res = deckbase_get_by_name(tx, user_id, kind, name);
     match existing_deck_res {
         Ok(deck) => Ok((deck, DeckBaseOrigin::PreExisting)),
         Err(e) => match e {
             Error::NotFound => {
-                let deck = deckbase_create(tx, user_id, kind, name)?;
+                let deck = deckbase_create(tx, user_id, kind, name, typeface)?;
                 Ok((deck, DeckBaseOrigin::Created))
             }
             _ => Err(e),
@@ -148,10 +149,11 @@ pub(crate) fn deckbase_create(
     user_id: Key,
     kind: DeckKind,
     name: &str,
+    typeface: &str,
 ) -> crate::Result<DeckBase> {
     let graph_terminator = false;
-    let stmt = "INSERT INTO decks(user_id, kind, name, graph_terminator, insignia)
-                VALUES (?1, ?2, ?3, ?4, ?5)
+    let stmt = "INSERT INTO decks(user_id, kind, name, graph_terminator, insignia, typeface)
+                VALUES (?1, ?2, ?3, ?4, ?5, ?6)
                 RETURNING id, name, created_at, graph_terminator, insignia, typeface";
     let insignia: i32 = 0;
     let deckbase: DeckBase = sqlite::one(
@@ -162,7 +164,8 @@ pub(crate) fn deckbase_create(
             &kind.to_string(),
             name,
             graph_terminator,
-            &insignia
+            &insignia,
+            typeface
         ],
         deckbase_from_row,
     )?;
@@ -181,9 +184,10 @@ pub(crate) fn deckbase_edit(
     name: &str,
     graph_terminator: bool,
     insignia: i32,
+    typeface: &str,
 ) -> crate::Result<DeckBase> {
     let stmt = "UPDATE decks
-                SET name = ?4, graph_terminator = ?5, insignia = ?6
+                SET name = ?4, graph_terminator = ?5, insignia = ?6, typeface = ?7
                 WHERE user_id = ?1 AND id = ?2 AND kind = ?3
                 RETURNING id, name, created_at, graph_terminator, insignia, typeface";
     sqlite::one(
@@ -195,7 +199,8 @@ pub(crate) fn deckbase_edit(
             &kind.to_string(),
             name,
             graph_terminator,
-            insignia
+            insignia,
+            typeface
         ],
         deckbase_from_row,
     )
@@ -272,7 +277,8 @@ pub(crate) fn get_backnotes(
             title: row.get(1)?,
             deck_kind: DeckKind::from_str(&kind)?,
             insignia: row.get(6)?,
-            typeface: row.get(8)?,
+            note_typeface: row.get(8)?,
+            typeface: row.get(9)?,
         })
     }
 
@@ -284,6 +290,7 @@ pub(crate) fn get_backnotes(
                        n.kind as note_kind,
                        d.insignia,
                        n.prev_note_id as prev_note_id,
+                       n.typeface as note_typeface,
                        d.typeface
                 FROM decks d,
                      notes n,
@@ -367,7 +374,7 @@ pub(crate) fn from_deck_id_via_notes_to_decks(
                        nd.kind as ref_kind,
                        nd.annotation,
                        d.insignia,
-                       d.typeface
+                       n.typeface
                 FROM   notes n,
                        notes_decks nd,
                        decks d

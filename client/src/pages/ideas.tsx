@@ -21,6 +21,7 @@ import useDeckManager from "components/use-deck-manager";
 import Module from "components/module";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "components/insignia-selector";
+import TypefaceSelector from "components/typeface-selector";
 import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import SegmentGraph from "components/graph/segment-graph";
@@ -166,6 +167,7 @@ function IdeaUpdater({ idea, onUpdate, onCancel }: IdeaUpdaterProps) {
         idea.graphTerminator
     );
     const [insigniaId, setInsigniaId] = useState(idea.insignia || 0);
+    const [typeface, setTypeface] = useState(idea.typeface);
 
     useEffect(() => {
         if (idea.title && idea.title !== "" && title === "") {
@@ -178,6 +180,10 @@ function IdeaUpdater({ idea, onUpdate, onCancel }: IdeaUpdaterProps) {
         if (idea.insignia !== undefined) {
             setInsigniaId(idea.insignia);
         }
+
+        if (idea.typeface) {
+            setTypeface(idea.typeface);
+        }
     }, [idea]);
 
     function handleContentChange(content: string) {
@@ -189,12 +195,14 @@ function IdeaUpdater({ idea, onUpdate, onCancel }: IdeaUpdaterProps) {
             title: string;
             graphTerminator: boolean;
             insignia: number;
+            typeface: string;
         };
 
         const data: SubmitData = {
             title: title.trim(),
             graphTerminator: graphTerminator,
             insignia: insigniaId,
+            typeface,
         };
 
         Net.put<SubmitData, DeckIdea>(`/api/ideas/${idea.id}`, data).then(
@@ -248,6 +256,14 @@ function IdeaUpdater({ idea, onUpdate, onCancel }: IdeaUpdaterProps) {
                     name="graph-terminator"
                     onInput={handleCheckbox}
                     checked={graphTerminator}
+                />
+            </CivMain>
+
+            <CivLeftLabel>Typeface</CivLeftLabel>
+            <CivMain>
+                <TypefaceSelector
+                    typeface={typeface}
+                    onChangedTypeface={setTypeface}
                 />
             </CivMain>
 

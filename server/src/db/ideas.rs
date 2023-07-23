@@ -49,7 +49,8 @@ pub(crate) fn get_or_create(
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    let (deck, _origin) = decks::deckbase_get_or_create(&tx, user_id, DeckKind::Idea, title)?;
+    let (deck, _origin) =
+        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Idea, title, "serif")?;
 
     tx.commit()?;
     Ok(deck.into())
@@ -145,6 +146,7 @@ pub(crate) fn edit(
         &idea.title,
         idea.graph_terminator,
         idea.insignia,
+        &idea.typeface,
     )?;
 
     Ok(deck.into())

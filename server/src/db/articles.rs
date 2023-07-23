@@ -201,6 +201,7 @@ pub(crate) fn edit(
         &article.title,
         graph_terminator,
         article.insignia,
+        &article.typeface,
     )?;
 
     let stmt = "SELECT deck_id, source, author, short_description, rating, published_date
@@ -265,7 +266,8 @@ pub(crate) fn get_or_create(
     let rating = 0;
     let published_date = chrono::Utc::now().naive_utc().date();
 
-    let (deck, origin) = decks::deckbase_get_or_create(&tx, user_id, DeckKind::Article, title)?;
+    let (deck, origin) =
+        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Article, title, "magazine")?;
 
     let article_extras =
         match origin {

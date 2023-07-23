@@ -98,7 +98,8 @@ pub(crate) fn get_or_create(
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    let (deck, origin) = decks::deckbase_get_or_create(&tx, user_id, DeckKind::Quote, title)?;
+    let (deck, origin) =
+        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Quote, title, "book")?;
 
     let quote_extras: QuoteExtra = match origin {
         decks::DeckBaseOrigin::Created => sqlite::one(
@@ -261,6 +262,7 @@ pub(crate) fn edit(
         &quote.title,
         graph_terminator,
         quote.insignia,
+        &quote.typeface,
     )?;
 
     let quote_extras_exists = sqlite::many(

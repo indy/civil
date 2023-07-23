@@ -48,6 +48,7 @@ import SegmentGraph from "components/graph/segment-graph";
 import SegmentNotes from "components/notes/segment-notes";
 import SegmentSearchResults from "components/segment-search-results";
 import TopMatter from "components/top-matter";
+import TypefaceSelector from "components/typeface-selector";
 import useDeckManager from "components/use-deck-manager";
 import { SlimDeckGrouping } from "components/groupings";
 import {
@@ -318,6 +319,7 @@ function PersonUpdater({
     const [localState, setLocalState] = useState({
         title: person.title || "",
         insigniaId: person.insignia || 0,
+        typeface: person.typeface || "serif",
     });
 
     useEffect(() => {
@@ -334,6 +336,13 @@ function PersonUpdater({
                 insigniaId: person.insignia,
             });
         }
+
+        if (person.typeface) {
+            setLocalState({
+                ...localState,
+                typeface: person.typeface,
+            });
+        }
     }, [person]);
 
     function handleContentChange(content: string) {
@@ -347,11 +356,13 @@ function PersonUpdater({
         type Data = {
             title: string;
             insignia: number;
+            typeface: string;
         };
 
         const data: Data = {
             title: localState.title.trim(),
             insignia: localState.insigniaId,
+            typeface: localState.typeface,
         };
 
         // edit an existing person
@@ -364,12 +375,19 @@ function PersonUpdater({
         e.preventDefault();
     };
 
-    const setInsigniaId = (id) => {
+    function setInsigniaId(id: number) {
         setLocalState({
             ...localState,
             insigniaId: id,
         });
-    };
+    }
+
+    function setTypeface(typeface: string) {
+        setLocalState({
+            ...localState,
+            typeface,
+        });
+    }
 
     return (
         <CivForm onSubmit={handleSubmit}>
@@ -389,6 +407,14 @@ function PersonUpdater({
                 <InsigniaSelector
                     insigniaId={localState.insigniaId}
                     onChange={setInsigniaId}
+                />
+            </CivMain>
+
+            <CivLeftLabel>Typeface</CivLeftLabel>
+            <CivMain>
+                <TypefaceSelector
+                    typeface={localState.typeface}
+                    onChangedTypeface={setTypeface}
                 />
             </CivMain>
 

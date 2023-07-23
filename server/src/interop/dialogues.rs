@@ -93,4 +93,5 @@ pub struct ProtoDialogue {
     pub ai_kind: AiKind,
     pub insignia: i32,
     pub messages: Vec<openai_interface::ChatMessage>,
+    pub typeface: String,
 }

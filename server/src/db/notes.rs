@@ -319,13 +319,13 @@ pub fn edit_note(
 ) -> crate::Result<interop::Note> {
     let conn = sqlite_pool.get()?;
     let stmt = "UPDATE notes
-                SET content = ?3
+                SET content = ?3, typeface= ?4
                 WHERE id = ?2 AND user_id = ?1
                 RETURNING id, content, kind, point_id, prev_note_id, typeface";
     sqlite::one(
         &conn,
         stmt,
-        params![&user_id, &note_id, &note.content],
+        params![&user_id, &note_id, &note.content, &note.typeface],
         note_from_row,
     )
 }

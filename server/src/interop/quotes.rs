@@ -47,4 +47,5 @@ pub struct ProtoQuote {
     pub text: String,
     pub attribution: String,
     pub insignia: i32,
+    pub typeface: String,
 }

@@ -74,6 +74,7 @@ pub struct ProtoIdea {
     pub title: String,
     pub graph_terminator: bool,
     pub insignia: i32,
+    pub typeface: String,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

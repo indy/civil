@@ -233,6 +233,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                 text: string; // not really needed, server side only uses title and attribution
                 attribution: string;
                 insignia: number;
+                typeface: string;
             };
 
             if (note) {
@@ -241,6 +242,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                     text: note.content, // not really needed, server side only uses title and attribution
                     attribution: attribution,
                     insignia: 0,
+                    typeface: deckQuote.typeface,
                 };
 
                 // as the title could have changed, we need to post the updated quote to the server

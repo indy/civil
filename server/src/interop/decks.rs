@@ -133,6 +133,7 @@ pub struct BackNote {
     pub title: String,
     pub deck_kind: DeckKind,
     pub insignia: i32,
+    pub note_typeface: String,
     pub typeface: String,
 }
 

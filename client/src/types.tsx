@@ -89,6 +89,7 @@ export type BackNote = SlimDeck & {
     prevNoteId?: Key;
     noteContent: string;
     noteKind: NoteKind;
+    noteTypeface: string;
 };
 
 export type PreviewNotes = {

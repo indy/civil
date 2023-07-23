@@ -60,6 +60,7 @@ pub struct ProtoArticle {
     pub graph_terminator: bool,
     pub published_date: Option<chrono::NaiveDate>,
     pub insignia: i32,
+    pub typeface: String,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

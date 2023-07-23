@@ -105,8 +105,13 @@ pub(crate) fn create_from_note_to_decks(
     //
     for created in &note_references.references_created {
         info!("create new idea: {} and a new edge", created.title);
-        let (deck, _created) =
-            decks_db::deckbase_get_or_create(&tx, user_id, DeckKind::Idea, &created.title)?;
+        let (deck, _created) = decks_db::deckbase_get_or_create(
+            &tx,
+            user_id,
+            DeckKind::Idea,
+            &created.title,
+            "serif",
+        )?;
         sqlite::zero(
             &tx,
             stmt_refs_added,

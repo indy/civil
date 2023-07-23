@@ -70,4 +70,5 @@ impl From<crate::db::decks::DeckBase> for Timeline {
 pub struct ProtoTimeline {
     pub title: String,
     pub insignia: i32,
+    pub typeface: String,
 }

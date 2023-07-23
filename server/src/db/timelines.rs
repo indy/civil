@@ -47,7 +47,8 @@ pub(crate) fn get_or_create(
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    let (deck, _origin) = decks::deckbase_get_or_create(&tx, user_id, DeckKind::Timeline, title)?;
+    let (deck, _origin) =
+        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Timeline, title, "old-book")?;
 
     tx.commit()?;
 
@@ -104,6 +105,7 @@ pub(crate) fn edit(
         &timeline.title,
         graph_terminator,
         timeline.insignia,
+        &timeline.typeface,
     )?;
 
     Ok(deck.into())

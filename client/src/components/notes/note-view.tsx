@@ -28,6 +28,7 @@ import ImageSelector from "components/images/image-selector";
 import NoteForm from "components/notes/note-form";
 import RefView from "components/ref-view";
 import RoleView from "components/role-view";
+import TypefaceSelector from "components/typeface-selector";
 import buildMarkup from "components/notes/build-markup";
 import useLocalReducer from "components/use-local-reducer";
 import useMouseHovering from "components/use-mouse-hovering";
@@ -39,6 +40,7 @@ enum ActionType {
     AddNoteAboveUiShow,
     DeletedNote,
     EditedNote,
+    EditedTypeface,
     EditingCancelled,
     FlashcardDeleted,
     FlashcardHide,
@@ -303,6 +305,19 @@ function reducer(state: LocalState, action: Action): LocalState {
 
             return newState;
         }
+        case ActionType.EditedTypeface: {
+            const typeface = action.data as string;
+
+            const newState = {
+                ...state,
+                isEditingMarkup: false,
+            };
+            newState.note.typeface = typeface;
+
+            AppStateChange.relinquishKeyboard();
+
+            return newState;
+        }
         case ActionType.EditingCancelled: {
             const newState = {
                 ...state,
@@ -559,6 +574,16 @@ export default function NoteView({
             localDispatch(ActionType.DeletedNote);
             onDelete(note.id);
         }
+
+        function onChangedTypeface(typeface: string) {
+            const sendingNote: Note = {
+                ...note,
+                typeface,
+            };
+            onEdited(sendingNote.id, sendingNote);
+            localDispatch(ActionType.EditedTypeface, typeface);
+        }
+
         return (
             <div class="block-width form-margin">
                 <button onClick={onCancelClicked}>Cancel</button>
@@ -572,6 +597,11 @@ export default function NoteView({
                     <DeleteConfirmation onDelete={confirmedDeleteClicked} />
                 )}
                 <ImageSelector onPaste={onImagePaste} />
+                <span class="ui">Typeface:</span>{" "}
+                <TypefaceSelector
+                    typeface={note.typeface}
+                    onChangedTypeface={onChangedTypeface}
+                />
             </div>
         );
     }
