@@ -12,7 +12,7 @@ import {
 } from "types";
 
 import Net from "utils/net";
-import { getAppState, AppStateChange } from "app-state";
+import { getAppState, AppStateChange, immutableState } from "app-state";
 import {
     svgCaretDown,
     svgCaretRight,
@@ -331,8 +331,11 @@ function SegmentPoints({
         ? "Hide Form"
         : `Add Point for { holderName }`;
 
+    const deck = deckManager.getDeck();
+    const typeface = deck ? deck.typeface : immutableState.defaultTypeface;
+
     return (
-        <RollableSegment heading="Timeline" interleaved>
+        <RollableSegment heading="Timeline" typeface={typeface} interleaved>
             <CivContainer>
                 <CivMain>
                     <ul class="unstyled-list hug-left">{dps}</ul>

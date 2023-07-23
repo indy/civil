@@ -15,11 +15,12 @@ import {
     PassageType,
     PointKind,
     ProtoPoint,
+    RenderingDeckPart,
 } from "types";
 
 import Net from "utils/net";
 import { calcAgeInYears, dateStringAsTriple } from "utils/eras";
-import { buildUrl, deckKindToHeadingString } from "utils/civil";
+import { buildUrl, deckKindToHeadingString, typefaceClass } from "utils/civil";
 import { getAppState, AppStateChange, immutableState } from "app-state";
 import {
     svgBlank,
@@ -240,7 +241,10 @@ function Person({ path, id }: { path?: string; id?: string }) {
 
                 <SegmentBackRefs deck={deck} />
 
-                <SegmentSearchResults searchResults={searchResults} />
+                <SegmentSearchResults
+                    typeface={deck.typeface}
+                    searchResults={searchResults}
+                />
                 {hasKnownLifespan && (
                     <SegmentPoints
                         deckPoints={deck.points}
@@ -423,9 +427,12 @@ function PersonDeckPoint({
 
     let ageText = deckPoint.age! > 0 ? `${deckPoint.age}` : "";
 
+    let klass = typefaceClass(deckPoint.typeface, RenderingDeckPart.Heading);
+
     if (deckPoint.deckId === holderId) {
+        klass += " relevent-deckpoint";
         return (
-            <li class="relevent-deckpoint">
+            <li class={klass}>
                 <span class="deckpoint-age">{ageText}</span>
                 <span onClick={onClicked}>
                     {expanded
@@ -439,8 +446,9 @@ function PersonDeckPoint({
             </li>
         );
     } else {
+        klass += " deckpoint";
         return (
-            <li class="deckpoint">
+            <li class={klass}>
                 <Link href={buildUrl(deckPoint.deckKind, deckPoint.deckId)}>
                     <span class="deckpoint-age">{ageText}</span>
                     {svgBlank()}
@@ -536,6 +544,9 @@ function SegmentPoints({
         }
     }
 
+    const deck = deckManager.getDeck();
+    const typeface = deck ? deck.typeface : immutableState.defaultTypeface;
+
     const dps = arr.map((dp) => (
         <PersonDeckPoint
             key={dp.id}
@@ -558,7 +569,7 @@ function SegmentPoints({
     const segmentTitle = `Points during the life of ${holderTitle}`;
 
     return (
-        <RollableSegment heading={segmentTitle} interleaved>
+        <RollableSegment heading={segmentTitle} typeface={typeface} interleaved>
             <CivContainer>
                 <CivLeft ui>
                     {!hasDied && (

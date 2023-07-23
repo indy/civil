@@ -6,7 +6,7 @@ import { Key, DM, DeckKind, NoteKind, DeckQuote } from "types";
 
 import Net from "utils/net";
 import buildMarkup from "components/notes/build-markup";
-import { AppStateChange } from "app-state";
+import { AppStateChange, immutableState } from "app-state";
 import { deckKindToHeadingString } from "utils/civil";
 
 import CivilButton from "components/civil-button";
@@ -417,7 +417,9 @@ function Attribution({ attribution, onEdited, onDelete }: AttributionProps) {
         localDispatch(ActionAttrType.SetMode, AttrMode.Show);
     }
 
-    let markup = attribution && buildMarkup(attribution, 0);
+    let markup =
+        attribution &&
+        buildMarkup(attribution, immutableState.defaultTypeface, 0);
     // convert the p tag into spans
     if (markup) {
         markup[0].type = "span";

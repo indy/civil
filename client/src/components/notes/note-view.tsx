@@ -664,7 +664,11 @@ export default function NoteView({
                             </p>
                         )}
                         {!local.isMinimisedText &&
-                            buildMarkup(local.note.content, local.note.id)}
+                            buildMarkup(
+                                local.note.content,
+                                local.note.typeface,
+                                local.note.id
+                            )}
                     </div>
                 </CivMain>
             )}

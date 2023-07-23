@@ -1,11 +1,11 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import { Note, Reference, RefKind, CivilMode } from "types";
+import { RenderingDeckPart, Note, Reference, RefKind, CivilMode } from "types";
 
 import { getAppState } from "app-state";
 
-import { deckKindToResourceString } from "utils/civil";
+import { typefaceClass, deckKindToResourceString } from "utils/civil";
 
 import DeckLink from "components/deck-link";
 
@@ -71,12 +71,18 @@ export default function RefView({
             }
         }
 
+        let klass = typefaceClass(
+            reference.typeface,
+            RenderingDeckPart.UiInterleaved
+        );
+        klass += " " + extraClasses;
+
         const scribbleClasses = `ref-scribble pigment-fg-${deckKindToResourceString(
             deckKind
         )}`;
 
         return (
-            <div class={extraClasses} key={id}>
+            <div class={klass} key={id}>
                 {showCopyBelow && (
                     <span onClick={clickedCopyRefBelow}>&#8595;</span>
                 )}

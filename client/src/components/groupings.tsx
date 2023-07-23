@@ -43,7 +43,7 @@ function SlimDeckGrouping({
     } else {
         return (
             <div>
-                <p class="subheading" onClick={toggleShow}>
+                <p class="subheading ui" onClick={toggleShow}>
                     {show ? svgMinimise() : svgExpand()} {label}
                 </p>
                 {show && <ul class="compacted-list">{buildListing(list)}</ul>}
@@ -94,7 +94,7 @@ function LazyLoadedGrouping({ label, url }: LazyLoadedGroupingProps) {
     if (localState.show) {
         return (
             <div>
-                <p class="subheading" onClick={toggleShow}>
+                <p class="subheading ui" onClick={toggleShow}>
                     {svgMinimise()} {label}
                 </p>
                 <ul class="compacted-list">{buildListing(localState.list)}</ul>
@@ -102,7 +102,7 @@ function LazyLoadedGrouping({ label, url }: LazyLoadedGroupingProps) {
         );
     } else {
         return (
-            <p class="subheading" onClick={toggleShow}>
+            <p class="subheading ui" onClick={toggleShow}>
                 {svgExpand()} {label}
             </p>
         );
@@ -125,7 +125,7 @@ function RatedGrouping({ label, list, expanded }: RatedGroupingProps) {
     if (show) {
         return (
             <div>
-                <p class="subheading" onClick={toggleShow}>
+                <p class="subheading ui" onClick={toggleShow}>
                     {svgMinimise()} {label}
                 </p>
                 <ul class="standard-list">{buildRatingListing(list)}</ul>
@@ -133,7 +133,7 @@ function RatedGrouping({ label, list, expanded }: RatedGroupingProps) {
         );
     } else {
         return (
-            <p class="subheading" onClick={toggleShow}>
+            <p class="subheading ui" onClick={toggleShow}>
                 {svgExpand()} {label}
             </p>
         );
@@ -158,8 +158,14 @@ type RatedListingLinkProps = {
 // based off ListingLink but displays a star rating in the left hand margin
 //
 function RatedListingLink({ deck }: RatedListingLinkProps) {
-    let { id, title, rating, shortDescription, insignia } = deck;
-    let slimDeck = buildSlimDeck(DeckKind.Article, id, title, insignia);
+    let { id, title, rating, shortDescription, insignia, typeface } = deck;
+    let slimDeck = buildSlimDeck(
+        DeckKind.Article,
+        id,
+        title,
+        insignia,
+        typeface
+    );
 
     return (
         <li>

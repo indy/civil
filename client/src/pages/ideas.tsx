@@ -142,7 +142,10 @@ function Idea({ path, id }: { path?: string; id?: string }) {
                     onUpdateDeck={deckManager.update}
                 />
                 <SegmentBackRefs deck={deck} />
-                <SegmentSearchResults searchResults={searchResults} />
+                <SegmentSearchResults
+                    typeface={deck.typeface}
+                    searchResults={searchResults}
+                />
                 <SegmentGraph depth={2} deck={deck} />
             </article>
         );

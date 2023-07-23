@@ -22,7 +22,12 @@ export default function SegmentGraph({
         const heading = "Connectivity Graph";
 
         return (
-            <RollableSegment heading={heading} initiallyRolledUp interleaved>
+            <RollableSegment
+                heading={heading}
+                typeface={deck.typeface}
+                initiallyRolledUp
+                interleaved
+            >
                 {okToShowGraph && <Graph id={deck.id} depth={depth} />}
             </RollableSegment>
         );

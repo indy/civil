@@ -13,7 +13,7 @@ import {
     WaitingFor,
 } from "types";
 
-import { getAppState, AppStateChange } from "app-state";
+import { getAppState, AppStateChange, immutableState } from "app-state";
 
 import Net from "utils/net";
 import { buildUrl, deckKindToHeadingString } from "utils/civil";
@@ -340,7 +340,13 @@ function DialogueChat({ path }: { path?: string }) {
             <CivLeft>
                 <RoleView role={chatMessage.role} />
             </CivLeft>,
-            <CivMain>{buildMarkup(chatMessage.content, 0)}</CivMain>,
+            <CivMain>
+                {buildMarkup(
+                    chatMessage.content,
+                    immutableState.defaultTypeface,
+                    0
+                )}
+            </CivMain>,
         ];
     }
 

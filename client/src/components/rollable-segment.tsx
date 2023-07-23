@@ -1,6 +1,10 @@
 import { h, ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 
+import { RenderingDeckPart } from "types";
+
+import { typefaceClass } from "utils/civil";
+
 import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 
 import {
@@ -13,6 +17,7 @@ import {
 //
 type Props = {
     heading: string;
+    typeface: string;
     children: ComponentChildren;
     initiallyRolledUp?: boolean;
     invisible?: boolean;
@@ -21,6 +26,7 @@ type Props = {
 
 export default function RollableSegment({
     heading,
+    typeface,
     children,
     initiallyRolledUp,
     invisible,
@@ -33,17 +39,17 @@ export default function RollableSegment({
         setIsRolledUp(!isRolledUp);
     }
 
-    let classState = isRolledUp ? "rolled-up" : "rolled-down";
+    let sectionClass = isRolledUp ? "rolled-up" : "rolled-down";
     if (invisible) {
-        classState += " invisible";
+        sectionClass += " invisible";
     }
 
-    let headingClass = "clickable ";
-    headingClass += interleaved ? "interleaved" : "ui";
+    let headingClass = typefaceClass(typeface, RenderingDeckPart.UiInterleaved);
+    headingClass += " clickable";
 
     let icon = isRolledUp ? svgChevronDoubleRight() : svgChevronDoubleDown();
     return (
-        <section class={classState}>
+        <section class={sectionClass}>
             <CivContainer>
                 <CivLeft ui>
                     <div class="clickable" onClick={onRollClicked}>

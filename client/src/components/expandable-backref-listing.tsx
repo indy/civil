@@ -1,6 +1,8 @@
 import { h } from "preact";
 
-import { BackRefNote, Reference, SlimDeck } from "types";
+import { BackRefNote, Reference, SlimDeck, RenderingDeckPart } from "types";
+
+import { typefaceClass } from "utils/civil";
 
 import { svgCaretRight, svgCaretDown } from "components/svg-icons";
 
@@ -35,12 +37,18 @@ export default function ExpandableBackRefListing({
 
     let icon = expanded ? svgCaretDown() : svgCaretRight();
 
+    let klass = typefaceClass(
+        slimDeck.typeface,
+        RenderingDeckPart.UiInterleaved
+    );
+    klass += " backref-deck";
+
     let res = (
         <div>
             <CivContainer>
                 <CivMain>
                     <span onClick={onClicked}>{icon}</span>
-                    <span class="backref-deck interleaved">
+                    <span class={klass}>
                         <DeckLink slimDeck={slimDeck} />
                     </span>
                 </CivMain>
@@ -104,10 +112,15 @@ function buildNotes(notes: Array<BackRefNote>) {
                 );
             });
 
+        let klass = typefaceClass(note.typeface, RenderingDeckPart.Body);
+        klass += " note";
+
         a.push(
-            <CivContainer extraClasses="note">
+            <CivContainer extraClasses={klass}>
                 {note.refs && <CivLeft>{refs}</CivLeft>}
-                <CivMain>{buildMarkup(note.noteContent, note.noteId)}</CivMain>
+                <CivMain>
+                    {buildMarkup(note.noteContent, note.typeface, note.noteId)}
+                </CivMain>
             </CivContainer>
         );
         return a;

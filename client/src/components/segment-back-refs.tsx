@@ -1,9 +1,13 @@
 import { h, ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 
-import { BackRefDeck, DeckKind, FatDeck } from "types";
+import { BackRefDeck, DeckKind, FatDeck, RenderingDeckPart } from "types";
 
-import { buildSlimDeck, deckKindToHeadingString } from "utils/civil";
+import {
+    buildSlimDeck,
+    deckKindToHeadingString,
+    typefaceClass,
+} from "utils/civil";
 import { immutableState } from "app-state";
 import { svgCaretDown, svgCaretRight } from "components/svg-icons";
 
@@ -13,14 +17,20 @@ import ExpandableBackRefListing from "components/expandable-backref-listing";
 import { CivContainer, CivMain } from "components/civil-layout";
 
 export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
-    const backrefGroups: Array<ComponentChildren> = [];
+    const typeface = deck ? deck.typeface : immutableState.defaultTypeface;
 
+    const backrefGroups: Array<ComponentChildren> = [];
     if (deck && deck.backRefDecksGroupedByKind) {
         const group = deck.backRefDecksGroupedByKind;
 
         immutableState.deckKindOrder.forEach((deckKind: DeckKind) => {
             if (group[deckKind].length > 0) {
-                backrefGroups.push(<BackRefGroup backrefs={group[deckKind]} />);
+                backrefGroups.push(
+                    <BackRefGroup
+                        typeface={typeface}
+                        backrefs={group[deckKind]}
+                    />
+                );
             }
         });
     }
@@ -29,13 +39,24 @@ export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
     const invisible = backrefGroups.length === 0;
 
     return (
-        <RollableSegment heading="BackRefs" invisible={invisible} interleaved>
+        <RollableSegment
+            heading="BackRefs"
+            typeface={typeface}
+            invisible={invisible}
+            interleaved
+        >
             {backrefGroups}
         </RollableSegment>
     );
 }
 
-function BackRefGroup({ backrefs }: { backrefs: Array<BackRefDeck> }) {
+function BackRefGroup({
+    backrefs,
+    typeface,
+}: {
+    backrefs: Array<BackRefDeck>;
+    typeface: string;
+}) {
     const [localState, setLocalState] = useState({
         showExpanded: true,
         childrenExpanded: backrefs.map(() => true),
@@ -69,7 +90,8 @@ function BackRefGroup({ backrefs }: { backrefs: Array<BackRefDeck> }) {
             br.deckKind,
             br.deckId,
             br.title,
-            br.deckInsignia
+            br.deckInsignia,
+            br.deckTypeface
         );
 
         return (
@@ -88,11 +110,13 @@ function BackRefGroup({ backrefs }: { backrefs: Array<BackRefDeck> }) {
     let segmentHeading: string = deckKindToHeadingString(backrefs[0].deckKind);
     let segmentId = backrefs[0].deckId;
 
+    let headerClass = typefaceClass(typeface, RenderingDeckPart.UiInterleaved);
+
     return (
         <section key={segmentId}>
             <CivContainer>
                 <CivMain>
-                    <h3 class="interleaved" onClick={onClickToggle}>
+                    <h3 class={headerClass} onClick={onClickToggle}>
                         {icon} {segmentHeading}
                     </h3>
                 </CivMain>

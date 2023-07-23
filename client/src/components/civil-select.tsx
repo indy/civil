@@ -18,7 +18,7 @@ import {
     sortByDeckKindThenName,
 } from "utils/civil";
 import Net from "utils/net";
-import { AppStateChange, getAppState } from "app-state";
+import { AppStateChange, getAppState, immutableState } from "app-state";
 
 import { svgCloseShifted } from "components/svg-icons";
 import { renderInsignia } from "components/insignia-renderer";
@@ -690,7 +690,7 @@ function Input({
                 deckKind: DeckKind.Idea,
                 refKind: RefKind.Ref,
                 insignia: 0,
-                typeface: "serif",
+                typeface: immutableState.defaultTypeface,
             };
             onCreate(r);
         }

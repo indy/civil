@@ -68,7 +68,7 @@ export default function InsigniaGrouping({ label }: InsigniaGroupingProps) {
     if (localState.show) {
         return (
             <div>
-                <p class="subheading" onClick={toggleShow}>
+                <p class="subheading ui" onClick={toggleShow}>
                     {svgMinimise()} {label}
                 </p>
                 <InsigniaSelector
@@ -80,7 +80,7 @@ export default function InsigniaGrouping({ label }: InsigniaGroupingProps) {
         );
     } else {
         return (
-            <p class="subheading" onClick={toggleShow}>
+            <p class="subheading ui" onClick={toggleShow}>
                 {svgExpand()} {label}
             </p>
         );

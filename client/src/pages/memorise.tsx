@@ -4,7 +4,7 @@ import { useEffect } from "preact/hooks";
 import { Key, SlimDeck } from "types";
 
 import Net from "utils/net";
-import { getAppState, AppStateChange } from "app-state";
+import { getAppState, AppStateChange, immutableState } from "app-state";
 import { plural, formattedDate, formattedTime } from "utils/js";
 
 import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
@@ -288,7 +288,13 @@ function CardTest({ card, onRatedCard, onShowAnswer }: CardTestProps) {
     return (
         <div>
             <div class="memorise-segment">Front</div>
-            <div class="note">{buildMarkup(card.prompt, card.noteId)}</div>
+            <div class="note">
+                {buildMarkup(
+                    card.prompt,
+                    immutableState.defaultTypeface,
+                    card.noteId
+                )}
+            </div>
             {show === ShowState.Prompt && (
                 <button onClick={onShowAnswerClicked}>Show Answer</button>
             )}
@@ -311,7 +317,14 @@ function Answer({ card }: { card: Card }) {
                         <DeckLink slimDeck={card.deckInfo} />
                     </div>
                 </CivLeft>
-                <CivMain>{card.answer && buildMarkup(card.answer, 0)}</CivMain>
+                <CivMain>
+                    {card.answer &&
+                        buildMarkup(
+                            card.answer,
+                            immutableState.defaultTypeface,
+                            0
+                        )}
+                </CivMain>
             </CivContainer>
         </div>
     );

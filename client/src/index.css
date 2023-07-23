@@ -50,18 +50,15 @@
     --font-ui-interleaved: Fell-English-Small-Caps;
     /* --font-ui-interleaved: Fell-French-Canon-Small-Caps; */
 
-    /* ui elements of the app */
-    --font-ui: inter;
-    /* --font-ui: Fell-French-Canon-Small-Caps; */
-    /* --font-ui: Fell-Great-Primer-Small-Caps; */
-    /* --font-ui: Fell-De-Walpergens-Pica-Small-Caps; */
-    /* --font-ui: Fell-English; */
-
-    /* user generated annotations */
-    --font-cursive: Caveat, cursive;
-
     --font-ai: Orbitron;
+
+    /* these are the only three font vars that should remain */
+    --font-ui: inter;
+    --font-cursive: Caveat, cursive;
     --font-code: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+
+    /* delete this */
+    --silly-temporary-font: Orbitron;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -76,6 +73,51 @@
     :root {
         --has-physical-keyboard: true;
     }
+}
+
+.typeface-serif {
+    font-family: Crimson, Palatino, "Palatino Linotype", "Palatino LT STD",
+        "Book Antiqua", Georgia, serif;
+}
+.typeface-cursive {
+    font-family: Caveat, cursive;
+}
+.typeface-ai {
+    font-family: Orbitron;
+}
+.typeface-sans {
+    font-family: Orbitron; /* TODO */
+}
+.typeface-book-body {
+    font-family: Fell-English;
+}
+.typeface-book-heading {
+    font-family: Fell-English-Small-Caps;
+}
+.typeface-book-ui-interleaved {
+    font-family: Fell-English-Small-Caps;
+}
+.typeface-old-book-body {
+    font-family: Fell-De-Walpergens-Pica;
+}
+.typeface-old-book-heading {
+    font-family: Fell-De-Walpergens-Pica-Small-Caps;
+}
+.typeface-old-book-ui-interleaved {
+    font-family: Fell-De-Walpergens-Pica-Small-Caps;
+}
+
+.typeface-magazine-body {
+    font-family: Crimson, Palatino, "Palatino Linotype", "Palatino LT STD",
+        "Book Antiqua", Georgia, serif;
+}
+.typeface-magazine-heading {
+    font-family: Crimson, Palatino, "Palatino Linotype", "Palatino LT STD",
+        "Book Antiqua", Georgia, serif;
+}
+.typeface-magazine-ui-interleaved {
+    font-family: Crimson, Palatino, "Palatino Linotype", "Palatino LT STD",
+        "Book Antiqua", Georgia, serif;
 }
 
 .modal-keyboard-help {
@@ -295,7 +337,7 @@
 }
 
 .interleaved {
-    font-family: var(--font-ui-interleaved);
+    /*font-family: var(--font-ui-interleaved);*/
 }
 
 .ui {
@@ -347,18 +389,7 @@ body {
     margin-left: auto;
     margin-right: auto;
     padding-left: calc(100% - var(--body-width));
-
-    /* font-family: Crimson, Palatino, "Palatino Linotype", "Palatino LT STD", "Book Antiqua", Georgia, serif; */
-
-    font-family: var(--font-body);
-
-    /* font-family: Fell-English; */
-    /* font-family: Fell-Double-Pica; */
-    /* font-family: Fell-Fench-Canon; */
-    /* font-family: Fell-Great-Primer; */
-    /* font-family: Fell-De-Walpergens-Pica; */
-    /* font-family: Fell-Three-Lines-Pica; */
-
+    font-family: var(--silly-temporary-font);
     background-color: var(--bg);
     color: var(--fg);
     max-width: 1400px;
@@ -375,7 +406,7 @@ h6 {
     -moz-transition: font-size 0.15s, background 0.15s; /* Firefox 4 */
     -webkit-transition: font-size 0.15s, background 0.15s; /* Safari and Chrome */
 
-    font-family: var(--font-heading);
+    /* font-family: var(--font-heading); */
     font-weight: 400;
     margin-top: 2rem;
     margin-bottom: 1.5rem;
@@ -495,7 +526,7 @@ p {
 }
 
 p.subtitle {
-    font-family: var(--font-body);
+    /*font-family: var(--font-body);*/
     margin-top: 1rem;
     margin-bottom: 1rem;
     font-size: 1rem;
@@ -509,7 +540,7 @@ p.subtitle > a {
 }
 
 p.subheading {
-    font-family: var(--font-ui-interleaved);
+    /*font-family: var(--font-ui-interleaved);*/
     margin-top: 1rem;
     margin-bottom: 1rem;
     font-size: 1.5rem;
@@ -615,7 +646,7 @@ figure.fullwidth figcaption {
 }
 
 .machine-generated {
-    font-family: var(--font-ai);
+    /* font-family: var(--font-ai); */
     margin-left: 1rem;
     font-size: 1rem;
     line-height: 1.5rem;
@@ -918,7 +949,7 @@ textarea {
 }
 
 textarea {
-    font-family: var(--font-body); /* 1 */
+    /*font-family: var(--font-body);*/ /* 1 */
 }
 /**
  * Show the overflow in IE.
@@ -1266,7 +1297,7 @@ textarea {
     padding: 1rem;
     width: 100%;
     height: 95%;
-    font-family: var(--font-body);
+    /*font-family: var(--font-body);*/
     font-size: 1.2rem;
 }
 
@@ -1673,8 +1704,7 @@ section > form {
     color: var(--fg1);
     text-align: right;
 
-    /* font-family: Inter; */
-    font-family: var(--font-ui-interleaved);
+    /*font-family: var(--font-ui-interleaved);*/
 }
 
 /* for providing the lhs distance from the margin */
@@ -1692,14 +1722,14 @@ section > form {
 }
 
 .left-margin-heading-typeface {
-    font-family: var(--font-body);
+    /*font-family: var(--font-body);*/
     font-weight: 300;
 }
 
 /* like left-margin but inline for adding notes to points */
 .left-margin-inline {
     color: var(--fg1);
-    font-family: var(--font-ui-interleaved);
+    /*font-family: var(--font-ui-interleaved);*/
     margin-left: 4rem;
 }
 
@@ -1760,7 +1790,7 @@ section > form {
 }
 
 .deck-level-backref {
-    font-family: var(--font-ui-interleaved);
+    /*font-family: var(--font-ui-interleaved);*/
     font-size: 1.1rem;
     padding-top: 0.2rem;
     padding-left: 2rem;
@@ -1971,7 +2001,7 @@ input:required {
 }
 
 .deck-ref-segment {
-    font-family: var(--font-ui-interleaved);
+    /*font-family: var(--font-ui-interleaved);*/
     margin-top: 1rem;
     padding-left: 1rem;
 }

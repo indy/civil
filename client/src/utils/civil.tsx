@@ -11,11 +11,36 @@ import {
     Notes,
     NoteKind,
     Note,
+    RenderingDeckPart,
 } from "types";
 
 import Net from "utils/net";
 import { AppStateChange, immutableState } from "app-state";
 import { capitalise } from "utils/js";
+
+export function typefaceClass(
+    typeface: string,
+    rdp: RenderingDeckPart
+): string {
+    function rdpClassName(rdp: RenderingDeckPart): string {
+        switch (rdp) {
+            case RenderingDeckPart.Body:
+                return "-body";
+            case RenderingDeckPart.Heading:
+                return "-heading";
+            case RenderingDeckPart.UiInterleaved:
+                return "-ui-interleaved";
+        }
+    }
+    switch (typeface) {
+        case "book":
+        case "old-book":
+        case "magazine":
+            return "typeface-" + typeface + rdpClassName(rdp);
+        default:
+            return "typeface-" + typeface;
+    }
+}
 
 export function isCommand(text: string) {
     return text.length >= 1 && text[0] === ":";
@@ -147,14 +172,15 @@ export function buildSlimDeck(
     deckKind: DeckKind,
     id: Key,
     title: string,
-    insignia: number
+    insignia: number,
+    typeface: string
 ): SlimDeck {
     return {
         id,
         title,
         deckKind,
         insignia,
-        typeface: "serif",
+        typeface,
     };
 }
 

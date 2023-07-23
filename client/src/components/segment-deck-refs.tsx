@@ -1,10 +1,18 @@
 import { h } from "preact";
 import { useRef } from "preact/hooks";
 
-import { FatDeck, Key, Note, Reference, RefsModified, CivilMode } from "types";
+import {
+    RenderingDeckPart,
+    FatDeck,
+    Key,
+    Note,
+    Reference,
+    RefsModified,
+    CivilMode,
+} from "types";
 
 import { getAppState, AppStateChange } from "app-state";
-import { addToolbarSelectableClasses } from "utils/civil";
+import { typefaceClass, addToolbarSelectableClasses } from "utils/civil";
 
 import { CivContainer } from "components/civil-layout";
 import CivilSelect from "components/civil-select";
@@ -30,7 +38,12 @@ export default function SegmentDeckRefs({
     const hoveringRef = useRef(null);
     const mouseHovering = useMouseHovering(hoveringRef);
 
-    let containerClasses = "deck-ref-segment";
+    let containerClasses = typefaceClass(
+        deck.typeface,
+        RenderingDeckPart.UiInterleaved
+    );
+    containerClasses += " deck-ref-segment";
+
     if (mouseHovering) {
         let mode = appState.mode.value;
         // only show as selectable if in edit or refs mode

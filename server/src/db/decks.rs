@@ -272,6 +272,7 @@ pub(crate) fn get_backnotes(
             title: row.get(1)?,
             deck_kind: DeckKind::from_str(&kind)?,
             insignia: row.get(6)?,
+            typeface: row.get(8)?,
         })
     }
 
@@ -282,7 +283,8 @@ pub(crate) fn get_backnotes(
                        n.id as note_id,
                        n.kind as note_kind,
                        d.insignia,
-                       n.prev_note_id as prev_note_id
+                       n.prev_note_id as prev_note_id,
+                       d.typeface
                 FROM decks d,
                      notes n,
                      notes_decks nd
@@ -313,6 +315,7 @@ pub(crate) fn get_backrefs(
             ref_kind: interop::RefKind::from_str(&refk)?,
             annotation: row.get(5)?,
             insignia: row.get(6)?,
+            typeface: row.get(7)?,
         })
     }
 
@@ -322,7 +325,8 @@ pub(crate) fn get_backrefs(
                        d.name as deck_name,
                        nd2.kind as ref_kind,
                        nd2.annotation,
-                       d.insignia
+                       d.insignia,
+                       d.typeface
                 FROM notes_decks nd, notes_decks nd2, decks d
                 WHERE nd.deck_id = ?1
                       AND nd.note_id = nd2.note_id
@@ -352,6 +356,7 @@ pub(crate) fn from_deck_id_via_notes_to_decks(
             ref_kind: interop::RefKind::from_str(&refk)?,
             annotation: row.get(5)?,
             insignia: row.get(6)?,
+            typeface: row.get(7)?,
         })
     }
 
@@ -361,7 +366,8 @@ pub(crate) fn from_deck_id_via_notes_to_decks(
                        d.kind as deck_kind,
                        nd.kind as ref_kind,
                        nd.annotation,
-                       d.insignia
+                       d.insignia,
+                       d.typeface
                 FROM   notes n,
                        notes_decks nd,
                        decks d

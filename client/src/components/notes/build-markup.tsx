@@ -1,6 +1,8 @@
 import { h, ComponentChildren } from "preact";
 
-import { Key } from "types";
+import { Key, RenderingDeckPart } from "types";
+
+import { typefaceClass } from "utils/civil";
 
 import Anchor from "components/anchor";
 import Image from "components/image";
@@ -40,6 +42,7 @@ type Attrs = {
 //
 export default function buildMarkup(
     content: string,
+    typeface: string,
     noteId: Key,
     options?: any
 ) {
@@ -83,6 +86,18 @@ export default function buildMarkup(
         return res;
     }
 
+    function assignHeaderTypeface(klass?: string) {
+        let c = klass || "";
+        c += " " + typefaceClass(typeface, RenderingDeckPart.Heading);
+        return c;
+    }
+
+    function assignBodyTypeface(klass?: string) {
+        let c = klass || "";
+        c += " " + typefaceClass(typeface, RenderingDeckPart.Body);
+        return c;
+    }
+
     function assignPseudoParagraph(klass?: string) {
         let c = klass || "";
         c += " pseudo-paragraph";
@@ -115,14 +130,37 @@ export default function buildMarkup(
 
         if (n.name === "text") {
             return n.text;
-        } else if (n.name === "p" && onRight) {
-            // we have a nested paragraph (e.g. text in the right-hand margin created by the pipe syntax)
-            // as html's <p> tag cannot be nested, use a span with a custom class
-            //
+        } else if (n.name === "p") {
             let modified_attrs: Attrs = attrs(n);
-            modified_attrs.class = assignPseudoParagraph(modified_attrs.class);
+            modified_attrs.class = assignBodyTypeface(modified_attrs.class);
 
-            return h("span", modified_attrs, ...children);
+            if (onRight) {
+                // we have a nested paragraph (e.g. text in the right-hand margin created by the pipe syntax)
+                // as html's <p> tag cannot be nested, use a span with a custom class
+                //
+                modified_attrs.class = assignPseudoParagraph(
+                    modified_attrs.class
+                );
+
+                return h("span", modified_attrs, ...children);
+            } else {
+                return h(n.name, modified_attrs, ...children);
+            }
+        } else if (
+            n.name === "h1" ||
+            n.name === "h2" ||
+            n.name === "h3" ||
+            n.name === "h4" ||
+            n.name === "h5" ||
+            n.name === "h6" ||
+            n.name === "h7" ||
+            n.name === "h8" ||
+            n.name === "h9"
+        ) {
+            let modified_attrs: Attrs = attrs(n);
+            modified_attrs.class = assignHeaderTypeface(modified_attrs.class);
+
+            return h(n.name, modified_attrs, ...children);
         } else if (n.name === "img") {
             // replace the requested img tag with our own Image component which
             // has more functionality

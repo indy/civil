@@ -1,7 +1,7 @@
 import { h, ComponentChildren } from "preact";
 import { useRef } from "preact/hooks";
 
-import { FatDeck, CivilMode } from "types";
+import { RenderingDeckPart, FatDeck, CivilMode } from "types";
 
 import { getAppState } from "app-state";
 
@@ -12,7 +12,7 @@ import { renderInsignia } from "components/insignia-renderer";
 
 import useMouseHovering from "components/use-mouse-hovering";
 
-import { addToolbarSelectableClasses } from "utils/civil";
+import { typefaceClass, addToolbarSelectableClasses } from "utils/civil";
 
 type Props = {
     title: string;
@@ -42,7 +42,10 @@ export default function TopMatter({
         return <div></div>;
     }
 
-    let containerClasses = "";
+    let containerClasses = typefaceClass(
+        deck.typeface,
+        RenderingDeckPart.UiInterleaved
+    );
     if (mouseHovering) {
         let mode = appState.mode.value;
         // only show as selectable if in edit or refs mode

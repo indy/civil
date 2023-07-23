@@ -2,6 +2,22 @@ import { Signal } from "@preact/signals";
 
 export type Key = number;
 
+export enum RenderingDeckPart {
+    Body,
+    Heading,
+    UiInterleaved,
+}
+
+// export enum Typeface {
+//     Serif,
+//     Cursive,
+//     AI,
+//     Book,
+//     OldBook,
+//     Magazine,
+//     Sans,
+// }
+
 export enum ColourScheme {
     Dark,
     Light,
@@ -120,6 +136,7 @@ export type BackRefDeck = {
     title: string;
     deckInsignia: number;
     deckKind: DeckKind;
+    deckTypeface: string;
 
     // each deck may have multiple sequences of notes that have been given the same ref
     // notes in a single sequence should be rendered together
@@ -313,6 +330,8 @@ export enum WaitingFor {
 export type ImmutableState = {
     readonly appName: string;
 
+    readonly defaultTypeface: string;
+
     readonly deckKindOrder: Array<DeckKind>;
     readonly topMenuOrder: Array<string>;
 
@@ -480,6 +499,7 @@ export type BackRefNote = {
     topRefKind?: RefKind;
     topAnnotation?: string;
     noteContent: string;
+    typeface: string;
     noteId: Key;
     prevNoteId?: Key;
     refs: Array<Reference>;

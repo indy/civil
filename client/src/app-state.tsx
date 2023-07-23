@@ -65,6 +65,8 @@ function cleanCommandBarState(): CommandBarState {
 export const immutableState: ImmutableState = {
     appName: "civil",
 
+    defaultTypeface: "serif",
+
     // preferred order of rendering the back-refs
     //
     deckKindOrder: [
@@ -661,7 +663,7 @@ export const AppStateChange = {
                             title: newReference.title,
                             deckKind: DeckKind.Idea,
                             insignia: 0,
-                            typeface: "serif",
+                            typeface: immutableState.defaultTypeface,
                         };
                         if (li.ideas) {
                             // update the listing with the new deckKind
@@ -1014,7 +1016,7 @@ function parseCurrentUrlIntoSlimDeck(
                 title: urlTitle,
                 deckKind: dk,
                 insignia: 0,
-                typeface: "serif",
+                typeface: immutableState.defaultTypeface,
             };
 
             return res;

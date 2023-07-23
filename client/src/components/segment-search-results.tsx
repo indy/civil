@@ -11,8 +11,10 @@ import { CivContainer, CivMain } from "components/civil-layout";
 
 export default function SegmentSearchResults({
     searchResults,
+    typeface,
 }: {
     searchResults: Array<SlimDeck>;
+    typeface: string;
 }) {
     function buildSearchResult(slimDeck: SlimDeck) {
         return <ListingLink slimDeck={slimDeck} />;
@@ -25,7 +27,12 @@ export default function SegmentSearchResults({
             "s"
         );
         return (
-            <RollableSegment heading={heading} initiallyRolledUp interleaved>
+            <RollableSegment
+                heading={heading}
+                typeface={typeface}
+                initiallyRolledUp
+                interleaved
+            >
                 <CivContainer>
                     <CivMain>
                         <ul>{searchResults.map(buildSearchResult)}</ul>

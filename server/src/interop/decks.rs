@@ -117,6 +117,7 @@ pub struct Ref {
     pub ref_kind: RefKind,
     pub annotation: Option<String>,
     pub insignia: i32,
+    pub typeface: String,
 }
 
 // notes that have references back to the currently displayed deck
@@ -132,6 +133,7 @@ pub struct BackNote {
     pub title: String,
     pub deck_kind: DeckKind,
     pub insignia: i32,
+    pub typeface: String,
 }
 
 // Returned as search results

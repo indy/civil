@@ -2,10 +2,10 @@ import { h, ComponentChildren } from "preact";
 import { useRef /*, useState*/ } from "preact/hooks";
 import { Link } from "preact-router";
 
-import { PreviewNotes, SlimDeck, CivilMode } from "types";
+import { PreviewNotes, RenderingDeckPart, SlimDeck, CivilMode } from "types";
 
 import Net from "utils/net";
-import { buildUrl, deckKindToResourceString } from "utils/civil";
+import { buildUrl, deckKindToResourceString, typefaceClass } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
 import {
     renderInsignia,
@@ -61,9 +61,13 @@ export default function DeckLink({
         AppStateChange.addScratchListLink(slimDeck);
     }
 
+    const tc = typefaceClass(
+        slimDeck.typeface,
+        RenderingDeckPart.UiInterleaved
+    );
     const ec: string = extraClasses || "";
     const dk: string = deckKindToResourceString(slimDeck.deckKind);
-    let klass = `${ec} pigment-fg-${dk}`;
+    let klass = `${tc} ${ec} pigment-fg-${dk}`;
 
     let elem: any;
     if (!alwaysLink && appState.mode.value === CivilMode.ScratchListLinks) {
