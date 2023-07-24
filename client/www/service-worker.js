@@ -37,12 +37,17 @@ var precacheConfig = [
     "/index.js",
 
     "/fonts/Caveat/Caveat-VariableFont_wght.ttf",
+
     "/fonts/Crimson/CrimsonPro-Italic-VariableFont_wght.ttf",
     "/fonts/Crimson/CrimsonPro-VariableFont_wght.ttf",
+
     "/fonts/Inter-Regular.ttf",
     "/fonts/Inter-SemiBold.ttf",
 
     "/fonts/orbitron/static/Orbitron-Bold.ttf",
+
+    "/fonts/NotoSans/NotoSans-Regular.ttf",
+    "/fonts/NotoSans/NotoSans-Italic.ttf",
 
     "/fonts/Fell/IMFeDPit29P.ttf",
     "/fonts/Fell/IMFeDPrm29P.ttf",

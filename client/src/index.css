@@ -86,7 +86,7 @@
     font-family: Orbitron;
 }
 .typeface-sans {
-    font-family: Orbitron; /* TODO */
+    font-family: NotoSans;
 }
 .typeface-book-body {
     font-family: Fell-English;
@@ -328,6 +328,20 @@
 @font-face {
     font-family: "Orbitron";
     src: url("fonts/orbitron/static/Orbitron-Bold.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "NotoSans";
+    src: url("fonts/NotoSans/NotoSans-Italic.ttf") format("truetype");
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "NotoSans";
+    src: url("fonts/NotoSans/NotoSans-Regular.ttf") format("truetype");
     font-weight: 400;
     font-style: normal;
 }
