@@ -120,8 +120,7 @@ pub(crate) fn get_or_create(
         )?,
     };
 
-    let kind = interop_notes::note_kind_to_sqlite(interop_notes::NoteKind::Note);
-
+    let kind = i32::from(interop_notes::NoteKind::Note);
     sqlite::zero(
         &tx,
         "INSERT INTO notes(user_id, deck_id, kind, content)

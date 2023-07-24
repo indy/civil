@@ -17,6 +17,7 @@
 
 use crate::error::Error;
 use crate::interop::Key;
+use std::convert::TryFrom;
 
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
@@ -29,24 +30,27 @@ pub enum NoteKind {
     NoteDeckMeta,
 }
 
-// todo (2023-02-08): now that NoteKind explicitly starts at 1 is this conversion code required?
-
-pub fn note_kind_to_sqlite(note_kind: NoteKind) -> i32 {
-    match note_kind {
-        NoteKind::Note => 1,
-        NoteKind::NoteReview => 2,
-        NoteKind::NoteSummary => 3,
-        NoteKind::NoteDeckMeta => 4,
+impl From<NoteKind> for i32 {
+    fn from(note_kind: NoteKind) -> i32 {
+        match note_kind {
+            NoteKind::Note => 1,
+            NoteKind::NoteReview => 2,
+            NoteKind::NoteSummary => 3,
+            NoteKind::NoteDeckMeta => 4,
+        }
     }
 }
 
-pub fn note_kind_from_sqlite(input: i32) -> crate::Result<NoteKind> {
-    match input {
-        1 => Ok(NoteKind::Note),
-        2 => Ok(NoteKind::NoteReview),
-        3 => Ok(NoteKind::NoteSummary),
-        4 => Ok(NoteKind::NoteDeckMeta),
-        _ => Err(Error::IntConversionToEnum),
+impl TryFrom<i32> for NoteKind {
+    type Error = crate::error::Error;
+    fn try_from(i: i32) -> crate::Result<NoteKind> {
+        match i {
+            1 => Ok(NoteKind::Note),
+            2 => Ok(NoteKind::NoteReview),
+            3 => Ok(NoteKind::NoteSummary),
+            4 => Ok(NoteKind::NoteDeckMeta),
+            _ => Err(Error::IntConversionToEnum),
+        }
     }
 }
 

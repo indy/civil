@@ -30,7 +30,7 @@ fn note_from_row(row: &Row) -> crate::Result<interop::Note> {
     Ok(interop::Note {
         id: row.get(0)?,
         prev_note_id: row.get(4)?,
-        kind: interop::note_kind_from_sqlite(sql_kind)?,
+        kind: interop::NoteKind::try_from(sql_kind)?,
         content: row.get(1)?,
         point_id: row.get(3)?,
         typeface: row.get(5)?,
@@ -122,7 +122,6 @@ pub(crate) fn create_common(
     prev_note_id: Option<Key>,
     next_note_id: Option<Key>,
 ) -> crate::Result<interop::Note> {
-    let k = interop::note_kind_to_sqlite(kind);
     let stmt =
         "INSERT INTO notes(user_id, deck_id, typeface, kind, point_id, content, prev_note_id)
                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
@@ -134,7 +133,7 @@ pub(crate) fn create_common(
             &user_id,
             &deck_id,
             typeface,
-            &k,
+            &i32::from(kind),
             &point_id,
             &content,
             &prev_note_id

@@ -298,7 +298,7 @@ pub(crate) fn get_backnotes(
             note_id: row.get(4)?,
             prev_note_id: row.get(7)?,
             note_content: row.get(3)?,
-            note_kind: note_interop::note_kind_from_sqlite(sql_note_kind)?,
+            note_kind: note_interop::NoteKind::try_from(sql_note_kind)?,
             id: row.get(0)?,
             title: row.get(1)?,
             deck_kind: DeckKind::from_str(&kind)?,
