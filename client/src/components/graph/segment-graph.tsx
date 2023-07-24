@@ -24,7 +24,7 @@ export default function SegmentGraph({
         return (
             <RollableSegment
                 heading={heading}
-                typeface={deck.typeface}
+                font={deck.font}
                 initiallyRolledUp
             >
                 {okToShowGraph && <Graph id={deck.id} depth={depth} />}

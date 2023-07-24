@@ -291,7 +291,7 @@ function CardTest({ card, onRatedCard, onShowAnswer }: CardTestProps) {
             <div class="note">
                 {buildMarkup(
                     card.prompt,
-                    immutableState.defaultTypeface,
+                    immutableState.defaultFont,
                     card.noteId
                 )}
             </div>
@@ -321,7 +321,7 @@ function Answer({ card }: { card: Card }) {
                     {card.answer &&
                         buildMarkup(
                             card.answer,
-                            immutableState.defaultTypeface,
+                            immutableState.defaultFont,
                             0
                         )}
                 </CivMain>

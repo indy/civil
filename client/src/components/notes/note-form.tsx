@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { useEffect, useState, useRef } from "preact/hooks";
 
-import { Key, Notes, NoteKind } from "types";
+import { Font, Key, Notes, NoteKind } from "types";
 
 import Net from "utils/net";
 import { getAppState } from "app-state";
@@ -16,7 +16,7 @@ type Props = {
     onCreate: (ns: Notes) => void;
     onCancel: (e: Event) => void;
     deckId: Key;
-    typeface: string;
+    font: Font;
     prevNoteId?: number;
     nextNoteId?: number;
     noteKind: NoteKind;
@@ -28,7 +28,7 @@ export default function NoteForm({
     onCreate,
     onCancel,
     deckId,
-    typeface,
+    font,
     prevNoteId,
     nextNoteId,
     noteKind,
@@ -119,7 +119,7 @@ export default function NoteForm({
 
             addNote(
                 notes,
-                typeface,
+                font,
                 deckId,
                 noteKind,
                 prevNoteId,
@@ -184,7 +184,7 @@ export default function NoteForm({
 
 function addNote(
     notes: Array<string>,
-    typeface: string,
+    font: Font,
     deckId: Key,
     noteKind: NoteKind,
     prevNoteId?: number,
@@ -193,7 +193,7 @@ function addNote(
 ): Promise<Notes> {
     type ProtoNote = {
         deckId: Key;
-        typeface: string;
+        font: Font;
         kind: NoteKind;
         content: Array<string>;
         nextNoteId?: number;
@@ -203,7 +203,7 @@ function addNote(
 
     let protoNote: ProtoNote = {
         deckId,
-        typeface,
+        font,
         kind: noteKind,
         content: notes,
     };

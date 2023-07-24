@@ -1,8 +1,8 @@
 import { h, ComponentChildren } from "preact";
 
-import { Key, RenderingDeckPart } from "types";
+import { Font, Key, RenderingDeckPart } from "types";
 
-import { typefaceClass } from "utils/civil";
+import { fontClass } from "utils/civil";
 
 import Anchor from "components/anchor";
 import Image from "components/image";
@@ -42,7 +42,7 @@ type Attrs = {
 //
 export default function buildMarkup(
     content: string,
-    typeface: string,
+    font: Font,
     noteId: Key,
     options?: any
 ) {
@@ -88,13 +88,13 @@ export default function buildMarkup(
 
     function assignHeaderTypeface(klass?: string) {
         let c = klass || "";
-        c += " " + typefaceClass(typeface, RenderingDeckPart.Heading);
+        c += " " + fontClass(font, RenderingDeckPart.Heading);
         return c;
     }
 
     function assignBodyTypeface(klass?: string) {
         let c = klass || "";
-        c += " " + typefaceClass(typeface, RenderingDeckPart.Body);
+        c += " " + fontClass(font, RenderingDeckPart.Body);
         return c;
     }
 

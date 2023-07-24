@@ -10,6 +10,7 @@ import {
     CommandBarMode,
     CommandBarState,
     DeckKind,
+    Font,
     FullGraphStruct,
     Graph,
     GraphDeck,
@@ -65,7 +66,7 @@ function cleanCommandBarState(): CommandBarState {
 export const immutableState: ImmutableState = {
     appName: "civil",
 
-    defaultTypeface: "serif",
+    defaultFont: Font.Serif,
 
     // preferred order of rendering the back-refs
     //
@@ -532,7 +533,7 @@ export const AppStateChange = {
             title: slimDeck.title,
             deckKind: slimDeck.deckKind,
             insignia: slimDeck.insignia,
-            typeface: slimDeck.typeface,
+            font: slimDeck.font,
             notes: ns,
         };
 
@@ -663,7 +664,7 @@ export const AppStateChange = {
                             title: newReference.title,
                             deckKind: DeckKind.Idea,
                             insignia: 0,
-                            typeface: immutableState.defaultTypeface,
+                            font: immutableState.defaultFont,
                         };
                         if (li.ideas) {
                             // update the listing with the new deckKind
@@ -1016,7 +1017,7 @@ function parseCurrentUrlIntoSlimDeck(
                 title: urlTitle,
                 deckKind: dk,
                 insignia: 0,
-                typeface: immutableState.defaultTypeface,
+                font: immutableState.defaultFont,
             };
 
             return res;

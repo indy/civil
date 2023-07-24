@@ -18,6 +18,7 @@
 use crate::db::decks;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::interop::decks::DeckKind;
+use crate::interop::font::Font;
 use crate::interop::ideas as interop;
 use crate::interop::Key;
 use rusqlite::{params, Row};
@@ -26,11 +27,12 @@ use rusqlite::{params, Row};
 use tracing::info;
 
 fn idea_from_row(row: &Row) -> crate::Result<interop::Idea> {
+    let fnt: i32 = row.get(5)?;
     Ok(interop::Idea {
         id: row.get(0)?,
         title: row.get(1)?,
         insignia: row.get(4)?,
-        typeface: row.get(5)?,
+        font: Font::try_from(fnt)?,
         graph_terminator: row.get(3)?,
         created_at: row.get(2)?,
         notes: None,
@@ -50,7 +52,7 @@ pub(crate) fn get_or_create(
     let tx = conn.transaction()?;
 
     let (deck, _origin) =
-        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Idea, title, "serif")?;
+        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Idea, title, Font::Serif)?;
 
     tx.commit()?;
     Ok(deck.into())
@@ -62,7 +64,7 @@ pub(crate) fn listings(
 ) -> crate::Result<interop::IdeasListings> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "select id, name, 'idea', insignia, typeface
+    let stmt = "select id, name, 'idea', insignia, font
                 from decks
                 where user_id = ?1 and kind = 'idea'
                 order by created_at desc
@@ -70,7 +72,7 @@ pub(crate) fn listings(
 
     let recent = sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)?;
 
-    let stmt = "SELECT id, name, 'idea', insignia, typeface
+    let stmt = "SELECT id, name, 'idea', insignia, font
                 FROM decks
                 WHERE id NOT IN (SELECT deck_id
                                  FROM notes_decks
@@ -84,7 +86,7 @@ pub(crate) fn listings(
 
     let orphans = sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)?;
 
-    let stmt = "SELECT d.id, d.name, 'idea', d.insignia, d.typeface
+    let stmt = "SELECT d.id, d.name, 'idea', d.insignia, d.font
                 FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
                 WHERE n.deck_id IS NULL
                 AND d.kind='idea'
@@ -103,7 +105,7 @@ pub(crate) fn listings(
 pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<interop::Idea>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT id, name, created_at, graph_terminator, insignia, typeface
+    let stmt = "SELECT id, name, created_at, graph_terminator, insignia, font
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'idea'
                 ORDER BY name";
@@ -147,7 +149,7 @@ pub(crate) fn edit(
         &idea.title,
         idea.graph_terminator,
         idea.insignia,
-        &idea.typeface,
+        idea.font,
     )?;
 
     tx.commit()?;

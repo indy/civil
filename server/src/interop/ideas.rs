@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::interop::decks::{BackNote, Ref, SlimDeck};
+use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
 use crate::interop::notes::Note;
 use crate::interop::Key;
@@ -27,7 +28,7 @@ pub struct Idea {
     pub title: String,
 
     pub insignia: i32,
-    pub typeface: String,
+    pub font: Font,
 
     pub graph_terminator: bool,
 
@@ -50,7 +51,7 @@ impl From<crate::db::decks::DeckBase> for Idea {
             title: d.title,
 
             insignia: d.insignia,
-            typeface: d.typeface,
+            font: d.font,
 
             graph_terminator: d.graph_terminator,
 
@@ -74,7 +75,7 @@ pub struct ProtoIdea {
     pub title: String,
     pub graph_terminator: bool,
     pub insignia: i32,
-    pub typeface: String,
+    pub font: Font,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

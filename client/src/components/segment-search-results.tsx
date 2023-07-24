@@ -1,6 +1,6 @@
 import { h } from "preact";
 
-import { SlimDeck } from "types";
+import { SlimDeck, Font } from "types";
 
 import { nonEmptyArray, plural } from "utils/js";
 
@@ -11,10 +11,10 @@ import { CivContainer, CivMain } from "components/civil-layout";
 
 export default function SegmentSearchResults({
     searchResults,
-    typeface,
+    font,
 }: {
     searchResults: Array<SlimDeck>;
-    typeface: string;
+    font: Font;
 }) {
     function buildSearchResult(slimDeck: SlimDeck) {
         return <ListingLink slimDeck={slimDeck} />;
@@ -29,7 +29,7 @@ export default function SegmentSearchResults({
         return (
             <RollableSegment
                 heading={heading}
-                typeface={typeface}
+                font={font}
                 initiallyRolledUp
             >
                 <CivContainer>

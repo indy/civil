@@ -17,7 +17,7 @@ import {
     deckKindToResourceString,
     indexToShortcut,
     sortByDeckKindThenName,
-    typefaceClass,
+    fontClass,
 } from "utils/civil";
 import Net from "utils/net";
 import { AppStateChange, getAppState, immutableState } from "app-state";
@@ -85,7 +85,7 @@ function candidateToAddedRef(candidate: SlimDeck): Reference {
         refKind: RefKind.Ref,
         noteId: 0, // this noteId isn't used when adding a ref
         insignia: candidate.insignia,
-        typeface: candidate.typeface,
+        font: candidate.font,
     };
 }
 
@@ -542,8 +542,8 @@ function RecentDecks({
     function buildRecent(slimDeck: SlimDeck) {
         const dk: string = deckKindToResourceString(slimDeck.deckKind);
 
-        let klass = typefaceClass(
-            slimDeck.typeface,
+        let klass = fontClass(
+            slimDeck.font,
             RenderingDeckPart.UiInterleaved
         );
         klass += ` civsel-recent-deck pigment-fg-${dk}`;
@@ -697,7 +697,7 @@ function Input({
                 deckKind: DeckKind.Idea,
                 refKind: RefKind.Ref,
                 insignia: 0,
-                typeface: immutableState.defaultTypeface,
+                font: immutableState.defaultFont,
             };
             onCreate(r);
         }

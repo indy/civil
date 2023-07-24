@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Error;
+use crate::interop::font::Font;
 use crate::interop::notes::NoteKind;
 use crate::interop::Key;
 
@@ -117,7 +118,7 @@ pub struct Ref {
     pub ref_kind: RefKind,
     pub annotation: Option<String>,
     pub insignia: i32,
-    pub typeface: String,
+    pub font: Font,
 }
 
 // notes that have references back to the currently displayed deck
@@ -133,8 +134,8 @@ pub struct BackNote {
     pub title: String,
     pub deck_kind: DeckKind,
     pub insignia: i32,
-    pub note_typeface: String,
-    pub typeface: String,
+    pub note_font: Font,
+    pub font: Font,
 }
 
 // Returned as search results
@@ -146,7 +147,7 @@ pub struct SlimDeck {
     pub title: String,
     pub deck_kind: DeckKind,
     pub insignia: i32,
-    pub typeface: String,
+    pub font: Font,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

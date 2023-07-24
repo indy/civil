@@ -76,7 +76,7 @@ export default function Passage({
                 title: ref.title,
                 deckKind: ref.deckKind,
                 insignia: ref.insignia,
-                typeface: ref.typeface,
+                font: ref.font,
                 noteId: note.id,
                 refKind: ref.refKind,
             };
@@ -136,7 +136,7 @@ export default function Passage({
                 onCreate={onNoteCreated}
                 onCancel={onCancelled}
                 deckId={deck.id}
-                typeface={deck.typeface}
+                font={deck.font}
                 prevNoteId={prevNoteId}
                 nextNoteId={nextNoteId}
                 noteKind={noteKind}

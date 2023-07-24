@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::interop::font::Font;
 use crate::interop::notes as interop;
 use crate::interop::Key;
 
@@ -26,6 +27,7 @@ use rusqlite::{params, Connection, Row};
 
 fn note_from_row(row: &Row) -> crate::Result<interop::Note> {
     let sql_kind: i32 = row.get(2)?;
+    let fnt: i32 = row.get(5)?;
 
     Ok(interop::Note {
         id: row.get(0)?,
@@ -33,7 +35,7 @@ fn note_from_row(row: &Row) -> crate::Result<interop::Note> {
         kind: interop::NoteKind::try_from(sql_kind)?,
         content: row.get(1)?,
         point_id: row.get(3)?,
-        typeface: row.get(5)?,
+        font: Font::try_from(fnt)?,
     })
 }
 
@@ -48,7 +50,7 @@ pub(crate) fn all_from_deck(
                        n.kind,
                        n.point_id,
                        n.prev_note_id,
-                       n.typeface
+                       n.font
                 FROM notes n
                 WHERE n.deck_id = ?1
                 ORDER BY n.id";
@@ -115,24 +117,23 @@ pub(crate) fn create_common(
     conn: &Connection,
     user_id: Key,
     deck_id: Key,
-    typeface: &str,
+    font: Font,
     kind: interop::NoteKind,
     point_id: Option<Key>,
     content: &str,
     prev_note_id: Option<Key>,
     next_note_id: Option<Key>,
 ) -> crate::Result<interop::Note> {
-    let stmt =
-        "INSERT INTO notes(user_id, deck_id, typeface, kind, point_id, content, prev_note_id)
+    let stmt = "INSERT INTO notes(user_id, deck_id, font, kind, point_id, content, prev_note_id)
                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
-                RETURNING id, content, kind, point_id, prev_note_id, typeface";
+                RETURNING id, content, kind, point_id, prev_note_id, font";
     let note = sqlite::one(
         conn,
         stmt,
         params![
             &user_id,
             &deck_id,
-            typeface,
+            i32::from(font),
             &i32::from(kind),
             &point_id,
             &content,
@@ -155,14 +156,11 @@ pub(crate) fn create_note_deck_meta(
     user_id: Key,
     deck_id: Key,
 ) -> crate::Result<interop::Note> {
-    // this is a deck meta note that will never get rendered
-    let unnecessary_typeface = "serif";
-
     create_common(
         tx,
         user_id,
         deck_id,
-        &unnecessary_typeface,
+        Font::Serif,
         interop::NoteKind::NoteDeckMeta,
         None,
         "",
@@ -202,7 +200,7 @@ pub(crate) fn create_notes(
             &tx,
             user_id,
             note.deck_id,
-            &note.typeface,
+            note.font,
             note.kind,
             note.point_id,
             content,
@@ -252,7 +250,7 @@ fn get_note_(conn: &Connection, user_id: Key, note_id: Key) -> crate::Result<int
                        n.kind,
                        n.point_id,
                        n.prev_note_id,
-                       n.typeface
+                       n.font
                 FROM notes n
                 WHERE n.id = ?1 AND n.user_id = ?2";
     sqlite::one(conn, stmt, params![&note_id, &user_id], note_from_row)
@@ -297,7 +295,7 @@ pub(crate) fn preview(
                        n.kind,
                        n.point_id,
                        n.prev_note_id,
-                       n.typeface
+                       n.font
                 FROM notes n
                 WHERE n.point_id is null AND n.deck_id = ?1 AND n.user_id = ?2";
     let notes = sqlite::many(&conn, stmt, params![&deck_id, &user_id], note_from_row)?;
@@ -312,13 +310,12 @@ pub(crate) fn add_auto_summary(
     prev_id: Option<Key>,
     summary: &str,
 ) -> crate::Result<interop::Note> {
-    let ai_typeface = "ai";
     let conn = sqlite_pool.get()?;
     create_common(
         &conn,
         user_id,
         deck_id,
-        &ai_typeface,
+        Font::AI,
         interop::NoteKind::NoteSummary,
         None,
         summary,
@@ -335,13 +332,13 @@ pub fn edit_note(
 ) -> crate::Result<interop::Note> {
     let conn = sqlite_pool.get()?;
     let stmt = "UPDATE notes
-                SET content = ?3, typeface= ?4
+                SET content = ?3, font= ?4
                 WHERE id = ?2 AND user_id = ?1
-                RETURNING id, content, kind, point_id, prev_note_id, typeface";
+                RETURNING id, content, kind, point_id, prev_note_id, font";
     sqlite::one(
         &conn,
         stmt,
-        params![&user_id, &note_id, &note.content, &note.typeface],
+        params![&user_id, &note_id, &note.content, &i32::from(note.font)],
         note_from_row,
     )
 }
@@ -353,7 +350,7 @@ pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> crate::Result<Vec<intero
                        n.kind,
                        n.point_id,
                        n.prev_note_id,
-                       n.typeface
+                       n.font
                 FROM   notes n
                 ORDER BY n.id";
     sqlite::many(&conn, stmt, &[], note_from_row)

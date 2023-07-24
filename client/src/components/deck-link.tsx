@@ -5,7 +5,7 @@ import { Link } from "preact-router";
 import { PreviewNotes, RenderingDeckPart, SlimDeck, CivilMode } from "types";
 
 import Net from "utils/net";
-import { buildUrl, deckKindToResourceString, typefaceClass } from "utils/civil";
+import { buildUrl, deckKindToResourceString, fontClass } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
 import {
     renderInsignia,
@@ -61,8 +61,8 @@ export default function DeckLink({
         AppStateChange.addScratchListLink(slimDeck);
     }
 
-    const tc = typefaceClass(
-        slimDeck.typeface,
+    const tc = fontClass(
+        slimDeck.font,
         RenderingDeckPart.UiInterleaved
     );
     const ec: string = extraClasses || "";

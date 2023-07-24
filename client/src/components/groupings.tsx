@@ -158,13 +158,13 @@ type RatedListingLinkProps = {
 // based off ListingLink but displays a star rating in the left hand margin
 //
 function RatedListingLink({ deck }: RatedListingLinkProps) {
-    let { id, title, rating, shortDescription, insignia, typeface } = deck;
+    let { id, title, rating, shortDescription, insignia, font } = deck;
     let slimDeck = buildSlimDeck(
         DeckKind.Article,
         id,
         title,
         insignia,
-        typeface
+        font
     );
 
     return (

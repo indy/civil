@@ -2,6 +2,7 @@ import { h } from "preact";
 import { useEffect, useState, useRef, Ref as PreactRef } from "preact/hooks";
 
 import {
+    Font,
     FlashCard,
     FatDeck,
     Key,
@@ -28,7 +29,7 @@ import ImageSelector from "components/images/image-selector";
 import NoteForm from "components/notes/note-form";
 import RefView from "components/ref-view";
 import RoleView from "components/role-view";
-import TypefaceSelector from "components/typeface-selector";
+import FontSelector from "components/font-selector";
 import buildMarkup from "components/notes/build-markup";
 import useLocalReducer from "components/use-local-reducer";
 import useMouseHovering from "components/use-mouse-hovering";
@@ -40,7 +41,7 @@ enum ActionType {
     AddNoteAboveUiShow,
     DeletedNote,
     EditedNote,
-    EditedTypeface,
+    EditedFont,
     EditingCancelled,
     FlashcardDeleted,
     FlashcardHide,
@@ -305,14 +306,14 @@ function reducer(state: LocalState, action: Action): LocalState {
 
             return newState;
         }
-        case ActionType.EditedTypeface: {
-            const typeface = action.data as string;
+        case ActionType.EditedFont: {
+            const font = action.data as Font;
 
             const newState = {
                 ...state,
                 isEditingMarkup: false,
             };
-            newState.note.typeface = typeface;
+            newState.note.font = font;
 
             AppStateChange.relinquishKeyboard();
 
@@ -423,7 +424,7 @@ export default function NoteView({
                 prevNoteId: null,
                 kind: local.note.kind,
                 content: local.note.content,
-                typeface: local.note.typeface,
+                font: local.note.font,
                 pointId: null,
                 refs: [],
                 flashcards: [],
@@ -528,7 +529,7 @@ export default function NoteView({
                 onCreate={onNoteCreated}
                 onCancel={onCancelled}
                 deckId={parentDeck.id}
-                typeface={parentDeck.typeface}
+                font={parentDeck.font}
                 nextNoteId={note.id}
                 noteKind={note.kind}
                 optionalPointId={note.pointId ? note.pointId : undefined}
@@ -576,13 +577,13 @@ export default function NoteView({
             onDelete(note.id);
         }
 
-        function onChangedTypeface(typeface: string) {
+        function onChangedFont(font: Font) {
             const sendingNote: Note = {
                 ...note,
-                typeface,
+                font,
             };
             onEdited(sendingNote.id, sendingNote);
-            localDispatch(ActionType.EditedTypeface, typeface);
+            localDispatch(ActionType.EditedFont, font);
         }
 
         return (
@@ -598,10 +599,10 @@ export default function NoteView({
                     <DeleteConfirmation onDelete={confirmedDeleteClicked} />
                 )}
                 <ImageSelector onPaste={onImagePaste} />
-                <span class="ui">Typeface:</span>{" "}
-                <TypefaceSelector
-                    typeface={note.typeface}
-                    onChangedTypeface={onChangedTypeface}
+                <span class="ui">Font:</span>{" "}
+                <FontSelector
+                    font={note.font}
+                    onChangedFont={onChangedFont}
                 />
             </div>
         );
@@ -697,7 +698,7 @@ export default function NoteView({
                         {!local.isMinimisedText &&
                             buildMarkup(
                                 local.note.content,
-                                local.note.typeface,
+                                local.note.font,
                                 local.note.id
                             )}
                     </div>

@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Error;
+use crate::interop::font::Font;
 use crate::interop::Key;
 use std::convert::TryFrom;
 
@@ -62,14 +63,14 @@ pub struct Note {
     pub kind: NoteKind,
     pub content: String,
     pub point_id: Option<Key>,
-    pub typeface: String,
+    pub font: Font,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProtoNote {
     pub kind: NoteKind,
-    pub typeface: String,
+    pub font: Font,
     pub content: Vec<String>,
     pub deck_id: Key,
     pub point_id: Option<Key>,

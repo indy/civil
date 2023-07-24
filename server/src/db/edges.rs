@@ -20,6 +20,7 @@ use crate::db::sqlite::{self, SqlitePool};
 use crate::interop::decks as interop_decks;
 use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::edges as interop;
+use crate::interop::font::Font;
 use crate::interop::Key;
 
 use rusqlite::{params, Connection, Row};
@@ -30,6 +31,7 @@ use tracing::info;
 fn ref_from_row(row: &Row) -> crate::Result<interop_decks::Ref> {
     let kind: String = row.get(3)?;
     let rk: String = row.get(4)?;
+    let fnt: i32 = row.get(7)?;
 
     Ok(interop_decks::Ref {
         note_id: row.get(0)?,
@@ -39,7 +41,7 @@ fn ref_from_row(row: &Row) -> crate::Result<interop_decks::Ref> {
         ref_kind: interop_decks::RefKind::from_str(&rk)?,
         annotation: row.get(5)?,
         insignia: row.get(6)?,
-        typeface: row.get(7)?,
+        font: Font::try_from(fnt)?,
     })
 }
 
@@ -110,7 +112,7 @@ pub(crate) fn create_from_note_to_decks(
             user_id,
             DeckKind::Idea,
             &created.title,
-            "serif",
+            Font::Serif,
         )?;
         sqlite::zero(
             &tx,
@@ -126,7 +128,7 @@ pub(crate) fn create_from_note_to_decks(
 
     // return a list of [id, name, resource, kind, annotation] containing the complete set of decks associated with this note.
     let stmt_all_decks =
-        "SELECT nd.note_id, d.id, d.name, d.kind as deck_kind, nd.kind as ref_kind, nd.annotation, d.insignia, d.typeface
+        "SELECT nd.note_id, d.id, d.name, d.kind as deck_kind, nd.kind as ref_kind, nd.annotation, d.insignia, d.font
                           FROM notes_decks nd, decks d
                           WHERE nd.note_id = ?1 AND d.id = nd.deck_id";
     let refs = sqlite::many(&tx, stmt_all_decks, params![&note_id], ref_from_row)?;
@@ -147,9 +149,9 @@ pub(crate) fn get_recently_used_decks(
 }
 
 fn get_recents(conn: &Connection, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
-    let stmt_recent_refs = "SELECT DISTINCT deck_id, title, kind, insignia, typeface
+    let stmt_recent_refs = "SELECT DISTINCT deck_id, title, kind, insignia, font
          FROM (
-              SELECT nd.deck_id, d.name as title, d.kind, d.insignia, d.typeface
+              SELECT nd.deck_id, d.name as title, d.kind, d.insignia, d.font
               FROM notes_decks nd, decks d
               WHERE nd.deck_id = d.id AND d.user_id = ?1
               ORDER BY nd.created_at DESC

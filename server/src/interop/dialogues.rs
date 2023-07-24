@@ -18,6 +18,7 @@
 use crate::ai::openai_interface;
 use crate::error::Error;
 use crate::interop::decks::{BackNote, Ref};
+use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
 use crate::interop::notes::Note;
 use crate::interop::Key;
@@ -62,7 +63,7 @@ pub struct Dialogue {
     pub title: String,
 
     pub insignia: i32,
-    pub typeface: String,
+    pub font: Font,
 
     pub created_at: chrono::NaiveDateTime,
 
@@ -93,5 +94,5 @@ pub struct ProtoDialogue {
     pub ai_kind: AiKind,
     pub insignia: i32,
     pub messages: Vec<openai_interface::ChatMessage>,
-    pub typeface: String,
+    pub font: Font,
 }

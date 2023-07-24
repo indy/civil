@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS decks (
        graph_terminator BOOLEAN DEFAULT FALSE,
 
        name TEXT NOT NULL,
+       font INTEGER NOT NULL DEFAULT 1,
        typeface TEXT NOT NULL DEFAULT 'serif',
 
        -- called insignia in case we want to save 'badge' for future use
@@ -68,6 +69,7 @@ CREATE TABLE IF NOT EXISTS points (
        deck_id INTEGER NOT NULL,
        title TEXT,
        kind TEXT NOT NULL, -- 'point', 'point_begin', 'point_end'
+       font INTEGER NOT NULL DEFAULT 1,
        typeface TEXT NOT NULL DEFAULT 'serif',
 
        location_textual TEXT,
@@ -98,6 +100,7 @@ CREATE TABLE IF NOT EXISTS notes (
        kind INTEGER DEFAULT 0, -- 1='note', 2='note_review', 3='note_summary', 4='note_deckmeta'
 
        content TEXT NOT NULL,
+       font INTEGER NOT NULL DEFAULT 1,
        typeface TEXT NOT NULL DEFAULT 'serif',
 
        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION,
@@ -722,6 +725,27 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
         M::up("ALTER TABLE decks ADD COLUMN typeface TEXT NOT NULL DEFAULT 'serif';
                ALTER TABLE points ADD COLUMN typeface TEXT NOT NULL DEFAULT 'serif';
                ALTER TABLE notes ADD COLUMN typeface TEXT NOT NULL DEFAULT 'serif';"),
+
+        ///////////////////
+        // user_version 16: font that will replace typeface
+        ///////////////////
+        M::up("ALTER TABLE decks  ADD COLUMN font INTEGER NOT NULL DEFAULT 1;
+               ALTER TABLE points ADD COLUMN font INTEGER NOT NULL DEFAULT 1;
+               ALTER TABLE notes  ADD COLUMN font INTEGER NOT NULL DEFAULT 1;
+
+               UPDATE decks SET font=1 WHERE typeface='serif';
+               UPDATE decks SET font=5 WHERE typeface='magazine';
+               UPDATE decks SET font=6 WHERE typeface='book';
+               UPDATE decks SET font=7 WHERE typeface='old-book';
+
+               UPDATE points SET font=1 WHERE typeface='serif';
+               UPDATE points SET font=6 WHERE typeface='book';
+               UPDATE points SET font=7 WHERE typeface='old-book';
+
+               UPDATE notes SET font=1 WHERE typeface='serif';
+               UPDATE notes SET font=5 WHERE typeface='magazine';
+               UPDATE notes SET font=6 WHERE typeface='book';
+               UPDATE notes SET font=7 WHERE typeface='old-book';"),
     ]);
 
     let mut conn = Connection::open(db_name)?;

@@ -12,7 +12,7 @@ import { renderInsignia } from "components/insignia-renderer";
 
 import useMouseHovering from "components/use-mouse-hovering";
 
-import { typefaceClass, addToolbarSelectableClasses } from "utils/civil";
+import { fontClass, addToolbarSelectableClasses } from "utils/civil";
 
 type Props = {
     title: string;
@@ -42,8 +42,8 @@ export default function TopMatter({
         return <div></div>;
     }
 
-    let containerClasses = typefaceClass(
-        deck.typeface,
+    let containerClasses = fontClass(
+        deck.font,
         RenderingDeckPart.UiInterleaved
     );
     if (mouseHovering) {

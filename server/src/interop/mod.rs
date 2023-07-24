@@ -19,6 +19,7 @@ pub mod articles;
 pub mod decks;
 pub mod dialogues;
 pub mod edges;
+pub mod font;
 pub mod graph;
 pub mod ideas;
 pub mod memorise;

@@ -19,6 +19,7 @@ use crate::db::decks;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Error;
 use crate::interop::decks::DeckKind;
+use crate::interop::font::Font;
 use crate::interop::notes as interop_notes;
 use crate::interop::quotes as interop;
 use crate::interop::Key;
@@ -53,7 +54,7 @@ impl From<(decks::DeckBase, QuoteExtra)> for interop::Quote {
             attribution,
 
             insignia: deck.insignia,
-            typeface: deck.typeface,
+            font: deck.font,
 
             notes: None,
 
@@ -68,12 +69,14 @@ impl From<(decks::DeckBase, QuoteExtra)> for interop::Quote {
 }
 
 fn quote_from_row(row: &Row) -> crate::Result<interop::Quote> {
+    let fnt: i32 = row.get(4)?;
+
     Ok(interop::Quote {
         id: row.get(0)?,
         title: row.get(1)?,
         attribution: row.get(2)?,
         insignia: row.get(3)?,
-        typeface: row.get(4)?,
+        font: Font::try_from(fnt)?,
 
         notes: None,
 
@@ -99,7 +102,7 @@ pub(crate) fn get_or_create(
     let tx = conn.transaction()?;
 
     let (deck, origin) =
-        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Quote, title, "book")?;
+        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Quote, title, Font::Book)?;
 
     let quote_extras: QuoteExtra = match origin {
         decks::DeckBaseOrigin::Created => sqlite::one(
@@ -138,7 +141,7 @@ pub(crate) fn random(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<in
 
     sqlite::one(
         &conn,
-        "SELECT decks.id, decks.name, quote_extras.attribution, decks.insignia, decks.typeface
+        "SELECT decks.id, decks.name, quote_extras.attribution, decks.insignia, decks.font
          FROM decks left join quote_extras on quote_extras.deck_id = decks.id
          WHERE user_id = ?1 and kind = 'quote'
          ORDER BY random()
@@ -157,7 +160,7 @@ pub(crate) fn get(
 
     let res = sqlite::one(
         &conn,
-        "SELECT decks.id, decks.name, quote_extras.attribution, decks.insignia, decks.typeface
+        "SELECT decks.id, decks.name, quote_extras.attribution, decks.insignia, decks.font
          FROM decks left join quote_extras on quote_extras.deck_id = decks.id
          WHERE user_id = ?1 and id = ?2 and kind = 'quote'",
         params![&user_id, &quote_id],
@@ -178,7 +181,7 @@ pub(crate) fn next(
 
     let res = sqlite::one(
         &conn,
-        "SELECT decks.id, decks.name, quote_extras.attribution, decks.insignia, decks.typeface
+        "SELECT decks.id, decks.name, quote_extras.attribution, decks.insignia, decks.font
          FROM decks left join quote_extras on quote_extras.deck_id = decks.id
          WHERE user_id = ?1 and id > ?2 and kind = 'quote'
          ORDER BY id
@@ -193,7 +196,7 @@ pub(crate) fn next(
             // wrap around and get the first quote
             sqlite::one(
                 &conn,
-                "SELECT decks.id, decks.name, quote_extras.attribution, decks.insignia, decks.typeface
+                "SELECT decks.id, decks.name, quote_extras.attribution, decks.insignia, decks.font
                  FROM decks left join quote_extras on quote_extras.deck_id = decks.id
                  WHERE user_id = ?1 and kind = 'quote'
                  ORDER BY id
@@ -215,7 +218,7 @@ pub(crate) fn prev(
 
     let res = sqlite::one(
         &conn,
-        "SELECT decks.id, decks.name, quote_extras.attribution, decks.insignia, decks.typeface
+        "SELECT decks.id, decks.name, quote_extras.attribution, decks.insignia, decks.font
          FROM decks left join quote_extras on quote_extras.deck_id = decks.id
          WHERE user_id = ?1 and id < ?2 and kind = 'quote'
          ORDER BY id desc
@@ -230,7 +233,7 @@ pub(crate) fn prev(
             // wrap around and get the first quote
             sqlite::one(
                 &conn,
-                "SELECT decks.id, decks.name, quote_extras.attribution, decks.insignia, decks.typeface
+                "SELECT decks.id, decks.name, quote_extras.attribution, decks.insignia, decks.font
                  FROM decks left join quote_extras on quote_extras.deck_id = decks.id
                  WHERE user_id = ?1 and kind = 'quote'
                  ORDER BY id desc
@@ -261,7 +264,7 @@ pub(crate) fn edit(
         &quote.title,
         graph_terminator,
         quote.insignia,
-        &quote.typeface,
+        quote.font,
     )?;
 
     let quote_extras_exists = sqlite::many(

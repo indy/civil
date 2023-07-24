@@ -1,12 +1,12 @@
 import { h, ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 
-import { BackRefDeck, DeckKind, FatDeck, RenderingDeckPart } from "types";
+import { Font, BackRefDeck, DeckKind, FatDeck, RenderingDeckPart } from "types";
 
 import {
     buildSlimDeck,
     deckKindToHeadingString,
-    typefaceClass,
+    fontClass,
 } from "utils/civil";
 import { immutableState } from "app-state";
 import { svgCaretDown, svgCaretRight } from "components/svg-icons";
@@ -17,7 +17,7 @@ import ExpandableBackRefListing from "components/expandable-backref-listing";
 import { CivContainer, CivMain } from "components/civil-layout";
 
 export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
-    const typeface = deck ? deck.typeface : immutableState.defaultTypeface;
+    const font = deck ? deck.font : immutableState.defaultFont;
 
     const backrefGroups: Array<ComponentChildren> = [];
     if (deck && deck.backRefDecksGroupedByKind) {
@@ -27,7 +27,7 @@ export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
             if (group[deckKind].length > 0) {
                 backrefGroups.push(
                     <BackRefGroup
-                        typeface={typeface}
+                        font={font}
                         backrefs={group[deckKind]}
                     />
                 );
@@ -41,7 +41,7 @@ export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
     return (
         <RollableSegment
             heading="BackRefs"
-            typeface={typeface}
+            font={font}
             invisible={invisible}
         >
             {backrefGroups}
@@ -51,10 +51,10 @@ export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
 
 function BackRefGroup({
     backrefs,
-    typeface,
+    font,
 }: {
     backrefs: Array<BackRefDeck>;
-    typeface: string;
+    font: Font;
 }) {
     const [localState, setLocalState] = useState({
         showExpanded: true,
@@ -90,7 +90,7 @@ function BackRefGroup({
             br.deckId,
             br.title,
             br.deckInsignia,
-            br.deckTypeface
+            br.deckFont
         );
 
         return (
@@ -109,7 +109,7 @@ function BackRefGroup({
     let segmentHeading: string = deckKindToHeadingString(backrefs[0].deckKind);
     let segmentId = backrefs[0].deckId;
 
-    let headerClass = typefaceClass(typeface, RenderingDeckPart.UiInterleaved);
+    let headerClass = fontClass(font, RenderingDeckPart.UiInterleaved);
 
     return (
         <section key={segmentId}>

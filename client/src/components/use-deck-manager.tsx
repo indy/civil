@@ -593,7 +593,7 @@ function buildBackRefsGroupedByResource<T extends FatDeck>(deck: T) {
                 deckId: n.id,
                 title: n.title,
                 deckInsignia: n.insignia,
-                deckTypeface: n.typeface,
+                deckFont: n.font,
                 deckKind: n.deckKind,
                 backRefNoteSeqs: [],
                 deckLevelRefs: [],
@@ -609,7 +609,7 @@ function buildBackRefsGroupedByResource<T extends FatDeck>(deck: T) {
         } else {
             let noteThing: BackRefNote = {
                 noteContent: n.noteContent,
-                typeface: n.noteTypeface,
+                font: n.noteFont,
                 noteId: n.noteId,
                 prevNoteId: n.prevNoteId,
                 refs: [],
@@ -641,7 +641,7 @@ function buildBackRefsGroupedByResource<T extends FatDeck>(deck: T) {
                         deckKind: br.deckKind,
                         annotation: br.annotation,
                         insignia: br.insignia,
-                        typeface: br.typeface,
+                        font: br.font,
                     };
                     d.deckLevelRefs.push(ref);
                     break;
@@ -667,7 +667,7 @@ function buildBackRefsGroupedByResource<T extends FatDeck>(deck: T) {
                                     deckKind: br.deckKind,
                                     annotation: br.annotation,
                                     insignia: br.insignia,
-                                    typeface: br.typeface,
+                                    font: br.font,
                                 };
                                 d.backRefNoteSeqs[k][j].refs.push(ref);
                             }

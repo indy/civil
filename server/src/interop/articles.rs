@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::interop::decks::{BackNote, Ref, SlimDeck};
+use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
 use crate::interop::notes::Note;
 use crate::interop::Key;
@@ -27,7 +28,7 @@ pub struct Article {
     pub title: String,
 
     pub insignia: i32,
-    pub typeface: String,
+    pub font: Font,
 
     pub created_at: chrono::NaiveDateTime,
 
@@ -60,7 +61,7 @@ pub struct ProtoArticle {
     pub graph_terminator: bool,
     pub published_date: Option<chrono::NaiveDate>,
     pub insignia: i32,
-    pub typeface: String,
+    pub font: Font,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

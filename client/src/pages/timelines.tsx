@@ -7,6 +7,7 @@ import {
     DM,
     DeckPoint,
     DeckTimeline,
+    Font,
     SlimDeck,
     PassageType,
 } from "types";
@@ -34,7 +35,7 @@ import SegmentDeckRefs from "components/segment-deck-refs";
 import SegmentGraph from "components/graph/segment-graph";
 import SegmentNotes from "components/notes/segment-notes";
 import TopMatter from "components/top-matter";
-import TypefaceSelector from "components/typeface-selector";
+import FontSelector from "components/font-selector";
 import WhenEditMode from "components/when-edit-mode";
 import { SlimDeckList } from "components/groupings";
 import {
@@ -174,7 +175,7 @@ function TimelineUpdater({
     const [localState, setLocalState] = useState({
         title: timeline.title || "",
         insigniaId: timeline.insignia || 0,
-        typeface: timeline.typeface || "",
+        font: timeline.font || Font.Serif,
     });
 
     useEffect(() => {
@@ -194,10 +195,10 @@ function TimelineUpdater({
                 insigniaId: timeline.insignia,
             });
         }
-        if (timeline.typeface) {
+        if (timeline.font) {
             setLocalState({
                 ...localState,
-                typeface: timeline.typeface,
+                font: timeline.font,
             });
         }
     }, [timeline]);
@@ -213,13 +214,13 @@ function TimelineUpdater({
         type SubmitData = {
             title: string;
             insignia: number;
-            typeface: string;
+            font: Font;
         };
 
         const data: SubmitData = {
             title: localState.title.trim(),
             insignia: localState.insigniaId,
-            typeface: localState.typeface,
+            font: localState.font,
         };
 
         // edit an existing timeline
@@ -240,10 +241,10 @@ function TimelineUpdater({
         });
     }
 
-    function setTypeface(typeface: string) {
+    function setFont(font: Font) {
         setLocalState({
             ...localState,
-            typeface,
+            font,
         });
     }
 
@@ -269,11 +270,11 @@ function TimelineUpdater({
                 />
             </CivMain>
 
-            <CivLeftLabel>Typeface</CivLeftLabel>
+            <CivLeftLabel>Font</CivLeftLabel>
             <CivMain>
-                <TypefaceSelector
-                    typeface={localState.typeface}
-                    onChangedTypeface={setTypeface}
+                <FontSelector
+                    font={localState.font}
+                    onChangedFont={setFont}
                 />
             </CivMain>
 
@@ -357,10 +358,10 @@ function SegmentPoints({
         : `Add Point for { holderName }`;
 
     const deck = deckManager.getDeck();
-    const typeface = deck ? deck.typeface : immutableState.defaultTypeface;
+    const font = deck ? deck.font : immutableState.defaultFont;
 
     return (
-        <RollableSegment heading="Timeline" typeface={typeface}>
+        <RollableSegment heading="Timeline" font={font}>
             <CivContainer>
                 <CivMain>
                     <ul class="unstyled-list hug-left">{dps}</ul>

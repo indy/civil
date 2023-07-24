@@ -3,6 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 import { route } from "preact-router";
 
 import {
+    Font,
     AiKind,
     DeckManagerFlags,
     DM,
@@ -47,7 +48,7 @@ type ProtoDialogue = {
     aiKind: AiKind;
     insignia: number;
     messages: Array<ChatMessage>;
-    typeface: string;
+    font: Font;
 };
 
 type ChatMessage = {
@@ -279,7 +280,7 @@ function DialogueChat({ path }: { path?: string }) {
             aiKind: AiKind.OpenAIGpt35Turbo,
             insignia: 0,
             messages: messages,
-            typeface: "serif",
+            font: Font.Serif,
         };
 
         Net.post<ProtoDialogue, DeckDialogue>("/api/dialogues", data).then(
@@ -345,7 +346,7 @@ function DialogueChat({ path }: { path?: string }) {
             <CivMain>
                 {buildMarkup(
                     chatMessage.content,
-                    immutableState.defaultTypeface,
+                    immutableState.defaultFont,
                     0
                 )}
             </CivMain>,
@@ -443,7 +444,7 @@ function DialogueUpdater({
             aiKind: AiKind.OpenAIGpt35Turbo,
             insignia: insigniaId,
             messages: [],
-            typeface: "serif",
+            font: Font.Serif,
         };
 
         const deckKind: DeckKind = DeckKind.Dialogue;

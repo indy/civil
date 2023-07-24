@@ -20,6 +20,7 @@ use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Error;
 use crate::interop::decks as interop;
 use crate::interop::decks::DeckKind;
+use crate::interop::font::Font;
 use crate::interop::notes as note_interop;
 use crate::interop::Key;
 use rusqlite::{params, Connection, Row};
@@ -49,17 +50,18 @@ pub struct DeckBase {
     pub created_at: chrono::NaiveDateTime,
     pub graph_terminator: bool,
     pub insignia: i32,
-    pub typeface: String,
+    pub font: Font,
 }
 
 fn deckbase_from_row(row: &Row) -> crate::Result<DeckBase> {
+    let f: i32 = row.get(5)?;
     Ok(DeckBase {
         id: row.get(0)?,
         title: row.get(1)?,
         created_at: row.get(2)?,
         graph_terminator: row.get(3)?,
         insignia: row.get(4)?,
-        typeface: row.get(5)?,
+        font: Font::try_from(f)?,
     })
 }
 
@@ -69,7 +71,7 @@ pub fn recently_visited(
 ) -> crate::Result<Vec<interop::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.insignia, decks.typeface, max(hits.created_at) as most_recent_visit
+    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.insignia, decks.font, max(hits.created_at) as most_recent_visit
                 FROM hits INNER JOIN decks ON decks.id = hits.deck_id
                 WHERE decks.user_id = ?1
                 GROUP BY hits.deck_id
@@ -81,17 +83,19 @@ pub fn recently_visited(
 
 pub(crate) fn slimdeck_from_row(row: &Row) -> crate::Result<interop::SlimDeck> {
     let res: String = row.get(2)?;
+    let f: i32 = row.get(4)?;
+
     Ok(interop::SlimDeck {
         id: row.get(0)?,
         title: row.get(1)?,
         deck_kind: DeckKind::from_str(&res)?,
         insignia: row.get(3)?,
-        typeface: row.get(4)?,
+        font: Font::try_from(f)?,
     })
 }
 
 pub(crate) const DECKBASE_QUERY: &str =
-    "select id, name, created_at, graph_terminator, insignia, typeface
+    "select id, name, created_at, graph_terminator, insignia, font
                                          from decks
                                          where user_id = ?1 and id = ?2 and kind = ?3";
 
@@ -105,14 +109,14 @@ pub(crate) fn deckbase_get_or_create(
     user_id: Key,
     kind: DeckKind,
     name: &str,
-    typeface: &str,
+    font: Font,
 ) -> crate::Result<(DeckBase, DeckBaseOrigin)> {
     let existing_deck_res = deckbase_get_by_name(tx, user_id, kind, name);
     match existing_deck_res {
         Ok(deck) => Ok((deck, DeckBaseOrigin::PreExisting)),
         Err(e) => match e {
             Error::NotFound => {
-                let deck = deckbase_create(tx, user_id, kind, name, typeface)?;
+                let deck = deckbase_create(tx, user_id, kind, name, font)?;
                 Ok((deck, DeckBaseOrigin::Created))
             }
             _ => Err(e),
@@ -131,7 +135,7 @@ fn deckbase_get_by_name(
     kind: DeckKind,
     name: &str,
 ) -> crate::Result<DeckBase> {
-    let stmt = "SELECT id, name, created_at, graph_terminator, insignia, typeface
+    let stmt = "SELECT id, name, created_at, graph_terminator, insignia, font
                 FROM DECKS
                 WHERE user_id = ?1 AND name = ?2 AND kind = ?3";
     sqlite::one(
@@ -149,12 +153,12 @@ pub(crate) fn deckbase_create(
     user_id: Key,
     kind: DeckKind,
     name: &str,
-    typeface: &str,
+    font: Font,
 ) -> crate::Result<DeckBase> {
     let graph_terminator = false;
-    let stmt = "INSERT INTO decks(user_id, kind, name, graph_terminator, insignia, typeface)
+    let stmt = "INSERT INTO decks(user_id, kind, name, graph_terminator, insignia, font)
                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)
-                RETURNING id, name, created_at, graph_terminator, insignia, typeface";
+                RETURNING id, name, created_at, graph_terminator, insignia, font";
     let insignia: i32 = 0;
     let deckbase: DeckBase = sqlite::one(
         tx,
@@ -165,7 +169,7 @@ pub(crate) fn deckbase_create(
             name,
             graph_terminator,
             &insignia,
-            typeface
+            &i32::from(font),
         ],
         deckbase_from_row,
     )?;
@@ -176,21 +180,26 @@ pub(crate) fn deckbase_create(
     Ok(deckbase)
 }
 
-fn update_note_typefaces(
+fn update_note_fonts(
     conn: &Connection,
     user_id: Key,
     deck_id: Key,
-    original_typeface: &str,
-    new_typeface: &str,
+    original_font: Font,
+    new_font: Font,
 ) -> crate::Result<()> {
     let stmt = "UPDATE notes
-                SET typeface = ?4
-                WHERE user_id = ?1 AND deck_id = ?2 AND typeface = ?3";
+                SET font = ?4
+                WHERE user_id = ?1 AND deck_id = ?2 AND font = ?3";
 
     sqlite::zero(
         conn,
         stmt,
-        params![&user_id, &deck_id, original_typeface, new_typeface],
+        params![
+            &user_id,
+            &deck_id,
+            &i32::from(original_font),
+            &i32::from(new_font)
+        ],
     )
 }
 
@@ -202,20 +211,20 @@ pub(crate) fn deckbase_edit(
     name: &str,
     graph_terminator: bool,
     insignia: i32,
-    typeface: &str,
+    font: Font,
 ) -> crate::Result<DeckBase> {
-    // if the typeface has changed
-    let original_typeface = get_typeface_of_deck(tx, deck_id)?;
+    // if the font has changed
+    let original_font = get_font_of_deck(tx, deck_id)?;
 
-    if original_typeface != typeface {
-        // change all of this deck's notes that have the old typeface to the new typeface
-        update_note_typefaces(tx, user_id, deck_id, &original_typeface, typeface)?;
+    if original_font != font {
+        // change all of this deck's notes that have the old font to the new font
+        update_note_fonts(tx, user_id, deck_id, original_font, font)?;
     }
 
     let stmt = "UPDATE decks
-                SET name = ?4, graph_terminator = ?5, insignia = ?6, typeface = ?7
+                SET name = ?4, graph_terminator = ?5, insignia = ?6, font = ?7
                 WHERE user_id = ?1 AND id = ?2 AND kind = ?3
-                RETURNING id, name, created_at, graph_terminator, insignia, typeface";
+                RETURNING id, name, created_at, graph_terminator, insignia, font";
     sqlite::one(
         tx,
         stmt,
@@ -226,7 +235,7 @@ pub(crate) fn deckbase_edit(
             name,
             graph_terminator,
             insignia,
-            typeface
+            &i32::from(font)
         ],
         deckbase_from_row,
     )
@@ -239,7 +248,7 @@ pub(crate) fn insignia_filter(
 ) -> crate::Result<Vec<interop::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT id, name, kind, insignia, typeface
+    let stmt = "SELECT id, name, kind, insignia, font
                 FROM decks
                 WHERE user_id = ?1 AND insignia & ?2
                 ORDER BY created_at DESC";
@@ -257,7 +266,7 @@ pub(crate) fn recent(
     let conn = sqlite_pool.get()?;
     let limit: i32 = 10;
 
-    let stmt = "SELECT id, name, kind, insignia, typeface
+    let stmt = "SELECT id, name, kind, insignia, font
                 FROM decks
                 WHERE user_id = ?1 AND kind = '$deck_kind'
                 ORDER BY created_at DESC
@@ -294,6 +303,9 @@ pub(crate) fn get_backnotes(
         let kind: String = row.get(2)?;
         let sql_note_kind: i32 = row.get(5)?;
 
+        let note_fnt: i32 = row.get(8)?;
+        let fnt: i32 = row.get(9)?;
+
         Ok(interop::BackNote {
             note_id: row.get(4)?,
             prev_note_id: row.get(7)?,
@@ -303,8 +315,8 @@ pub(crate) fn get_backnotes(
             title: row.get(1)?,
             deck_kind: DeckKind::from_str(&kind)?,
             insignia: row.get(6)?,
-            note_typeface: row.get(8)?,
-            typeface: row.get(9)?,
+            note_font: Font::try_from(note_fnt)?,
+            font: Font::try_from(fnt)?,
         })
     }
 
@@ -316,8 +328,8 @@ pub(crate) fn get_backnotes(
                        n.kind as note_kind,
                        d.insignia,
                        n.prev_note_id as prev_note_id,
-                       n.typeface as note_typeface,
-                       d.typeface
+                       n.font as note_font,
+                       d.font
                 FROM decks d,
                      notes n,
                      notes_decks nd
@@ -339,6 +351,7 @@ pub(crate) fn get_backrefs(
     fn backref_from_row(row: &Row) -> crate::Result<interop::Ref> {
         let kind: String = row.get(2)?;
         let refk: String = row.get(4)?;
+        let fnt: i32 = row.get(7)?;
 
         Ok(interop::Ref {
             note_id: row.get(0)?,
@@ -348,7 +361,7 @@ pub(crate) fn get_backrefs(
             ref_kind: interop::RefKind::from_str(&refk)?,
             annotation: row.get(5)?,
             insignia: row.get(6)?,
-            typeface: row.get(7)?,
+            font: Font::try_from(fnt)?,
         })
     }
 
@@ -359,7 +372,7 @@ pub(crate) fn get_backrefs(
                        nd2.kind as ref_kind,
                        nd2.annotation,
                        d.insignia,
-                       d.typeface
+                       d.font
                 FROM notes_decks nd, notes_decks nd2, decks d
                 WHERE nd.deck_id = ?1
                       AND nd.note_id = nd2.note_id
@@ -380,6 +393,7 @@ pub(crate) fn from_deck_id_via_notes_to_decks(
     fn ref_from_row(row: &Row) -> crate::Result<interop::Ref> {
         let kind: String = row.get(3)?;
         let refk: String = row.get(4)?;
+        let fnt: i32 = row.get(7)?;
 
         Ok(interop::Ref {
             note_id: row.get(0)?,
@@ -389,7 +403,7 @@ pub(crate) fn from_deck_id_via_notes_to_decks(
             ref_kind: interop::RefKind::from_str(&refk)?,
             annotation: row.get(5)?,
             insignia: row.get(6)?,
-            typeface: row.get(7)?,
+            font: Font::try_from(fnt)?,
         })
     }
 
@@ -400,7 +414,7 @@ pub(crate) fn from_deck_id_via_notes_to_decks(
                        nd.kind as ref_kind,
                        nd.annotation,
                        d.insignia,
-                       d.typeface
+                       d.font
                 FROM   notes n,
                        notes_decks nd,
                        decks d
@@ -432,7 +446,7 @@ pub(crate) fn search(
     let q = postfix_asterisks(query)?;
 
     let stmt =
-        "select d.id, d.name, d.kind, d.insignia, d.typeface, decks_fts.rank AS rank_sum, 1 as rank_count
+        "select d.id, d.name, d.kind, d.insignia, d.font, decks_fts.rank AS rank_sum, 1 as rank_count
                 from decks_fts left join decks d on d.id = decks_fts.rowid
                 where decks_fts match ?2
                       and d.user_id = ?1
@@ -441,7 +455,7 @@ pub(crate) fn search(
                 limit 30";
     let mut results = sqlite::many(&conn, stmt, params![&user_id, &q], slimdeck_from_row)?;
 
-    let stmt = "select d.id, d.name, d.kind, d.insignia, d.typeface, article_extras_fts.rank AS rank_sum, 1 as rank_count
+    let stmt = "select d.id, d.name, d.kind, d.insignia, d.font, article_extras_fts.rank AS rank_sum, 1 as rank_count
                 from article_extras_fts left join decks d on d.id = article_extras_fts.rowid
                 where article_extras_fts match ?2
                       and d.user_id = ?1
@@ -450,7 +464,7 @@ pub(crate) fn search(
                 limit 30";
     let results_via_pub_ext = sqlite::many(&conn, stmt, params![&user_id, &q], slimdeck_from_row)?;
 
-    let stmt = "select d.id, d.name, d.kind, d.insignia, d.typeface, quote_extras_fts.rank AS rank_sum, 1 as rank_count
+    let stmt = "select d.id, d.name, d.kind, d.insignia, d.font, quote_extras_fts.rank AS rank_sum, 1 as rank_count
                 from quote_extras_fts left join decks d on d.id = quote_extras_fts.rowid
                 where quote_extras_fts match ?2
                       and d.user_id = ?1
@@ -460,8 +474,8 @@ pub(crate) fn search(
     let results_via_quote_ext =
         sqlite::many(&conn, stmt, params![&user_id, &q], slimdeck_from_row)?;
 
-    let stmt = "select res.id, res.name, res.kind, res.insignia, res.typeface, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-                from (select d.id, d.name, d.kind, d.insignia, d.typeface, notes_fts.rank AS rank
+    let stmt = "select res.id, res.name, res.kind, res.insignia, res.font, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+                from (select d.id, d.name, d.kind, d.insignia, d.font, notes_fts.rank AS rank
                       from notes_fts
                            left join notes n on n.id = notes_fts.rowid
                            left join decks d on d.id = n.deck_id
@@ -474,8 +488,8 @@ pub(crate) fn search(
                 limit 30";
     let results_via_notes = sqlite::many(&conn, stmt, params![&user_id, &q], slimdeck_from_row)?;
 
-    let stmt = "select res.id, res.name, res.kind, res.insignia, res.typeface, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-                from (select d.id, d.name, d.kind, d.insignia, d.typeface, points_fts.rank AS rank
+    let stmt = "select res.id, res.name, res.kind, res.insignia, res.font, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+                from (select d.id, d.name, d.kind, d.insignia, d.font, points_fts.rank AS rank
                       from points_fts
                            left join points n on n.id = points_fts.rowid
                            left join decks d on d.id = n.deck_id
@@ -523,7 +537,7 @@ pub(crate) fn search_by_name(
     let conn = sqlite_pool.get()?;
 
     let stmt =
-        "select d.id, d.name, d.kind, d.insignia, d.typeface, decks_fts.rank AS rank_sum, 1 as rank_count
+        "select d.id, d.name, d.kind, d.insignia, d.font, decks_fts.rank AS rank_sum, 1 as rank_count
                 from decks_fts left join decks d on d.id = decks_fts.rowid
                 where decks_fts match ?2
                       and d.user_id = ?1
@@ -532,7 +546,7 @@ pub(crate) fn search_by_name(
                 limit 20";
     let mut results = sqlite::many(&conn, stmt, params![&user_id, &query], slimdeck_from_row)?;
 
-    let stmt = "select id, name, kind, insignia, typeface, 0 as rank_sum, 1 as rank_count
+    let stmt = "select id, name, kind, insignia, font, 0 as rank_sum, 1 as rank_count
                 from decks
                 where name like '%' || ?2 || '%'
                 and user_id = ?1
@@ -587,17 +601,17 @@ fn get_name_of_deck(conn: &Connection, deck_id: Key) -> crate::Result<String> {
     Ok(name)
 }
 
-fn get_typeface_of_deck(conn: &Connection, deck_id: Key) -> crate::Result<String> {
-    fn string_from_row(row: &Row) -> crate::Result<String> {
-        let s: String = row.get(0)?;
-        Ok(s)
+fn get_font_of_deck(conn: &Connection, deck_id: Key) -> crate::Result<Font> {
+    fn font_from_row(row: &Row) -> crate::Result<Font> {
+        let i: i32 = row.get(0)?;
+        Font::try_from(i)
     }
 
     sqlite::one(
         conn,
-        "select typeface from decks where id = ?1",
+        "select font from decks where id = ?1",
         params![&deck_id],
-        string_from_row,
+        font_from_row,
     )
 }
 
@@ -644,7 +658,7 @@ pub(crate) fn search_using_deck_id(
     }
 
     let stmt =
-        "select d.id, d.name, d.kind, d.insignia, d.typeface, decks_fts.rank AS rank_sum, 1 as rank_count
+        "select d.id, d.name, d.kind, d.insignia, d.font, decks_fts.rank AS rank_sum, 1 as rank_count
                 from decks_fts left join decks d on d.id = decks_fts.rowid
                 where decks_fts match ?2
                       and d.user_id = ?1
@@ -658,7 +672,7 @@ pub(crate) fn search_using_deck_id(
         slimdeck_from_row,
     )?;
 
-    let stmt = "select d.id, d.name, d.kind, d.insignia, d.typeface, article_extras_fts.rank AS rank_sum, 1 as rank_count
+    let stmt = "select d.id, d.name, d.kind, d.insignia, d.font, article_extras_fts.rank AS rank_sum, 1 as rank_count
                 from article_extras_fts left join decks d on d.id = article_extras_fts.rowid
                 where article_extras_fts match ?2
                       and d.user_id = ?1
@@ -672,7 +686,7 @@ pub(crate) fn search_using_deck_id(
         slimdeck_from_row,
     )?;
 
-    let stmt = "select d.id, d.name, d.kind, d.insignia, d.typeface, quote_extras_fts.rank AS rank_sum, 1 as rank_count
+    let stmt = "select d.id, d.name, d.kind, d.insignia, d.font, quote_extras_fts.rank AS rank_sum, 1 as rank_count
                 from quote_extras_fts left join decks d on d.id = quote_extras_fts.rowid
                 where quote_extras_fts match ?2
                       and d.user_id = ?1
@@ -686,8 +700,8 @@ pub(crate) fn search_using_deck_id(
         slimdeck_from_row,
     )?;
 
-    let stmt = "select res.id, res.name, res.kind, res.insignia, res.typeface, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-                from (select d.id, d.name, d.kind, d.insignia, d.typeface, notes_fts.rank AS rank
+    let stmt = "select res.id, res.name, res.kind, res.insignia, res.font, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+                from (select d.id, d.name, d.kind, d.insignia, d.font, notes_fts.rank AS rank
                       from notes_fts
                            left join notes n on n.id = notes_fts.rowid
                            left join decks d on d.id = n.deck_id
@@ -705,8 +719,8 @@ pub(crate) fn search_using_deck_id(
         slimdeck_from_row,
     )?;
 
-    let stmt = "select res.id, res.name, res.kind, res.insignia, res.typeface, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-                from (select d.id, d.name, d.kind, d.insignia, d.typeface, points_fts.rank AS rank
+    let stmt = "select res.id, res.name, res.kind, res.insignia, res.font, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+                from (select d.id, d.name, d.kind, d.insignia, d.font, points_fts.rank AS rank
                       from points_fts
                            left join points n on n.id = points_fts.rowid
                            left join decks d on d.id = n.deck_id

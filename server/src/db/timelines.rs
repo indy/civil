@@ -19,17 +19,20 @@ use crate::db::decks;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::interop::decks as interop_decks;
 use crate::interop::decks::DeckKind;
+use crate::interop::font::Font;
 use crate::interop::timelines as interop;
 use crate::interop::Key;
 
 use rusqlite::{params, Row};
 
 fn from_row(row: &Row) -> crate::Result<interop::Timeline> {
+    let fnt: i32 = row.get(5)?;
+
     Ok(interop::Timeline {
         id: row.get(0)?,
         title: row.get(1)?,
         insignia: row.get(4)?,
-        typeface: row.get(5)?,
+        font: Font::try_from(fnt)?,
         points: None,
         notes: None,
         refs: None,
@@ -48,7 +51,7 @@ pub(crate) fn get_or_create(
     let tx = conn.transaction()?;
 
     let (deck, _origin) =
-        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Timeline, title, "old-book")?;
+        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Timeline, title, Font::OldBook)?;
 
     tx.commit()?;
 
@@ -61,7 +64,7 @@ pub(crate) fn listings(
 ) -> crate::Result<Vec<interop_decks::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT id, name, 'timeline', insignia, typeface
+    let stmt = "SELECT id, name, 'timeline', insignia, font
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'timeline'
                 ORDER BY created_at DESC";
@@ -106,7 +109,7 @@ pub(crate) fn edit(
         &timeline.title,
         graph_terminator,
         timeline.insignia,
-        &timeline.typeface,
+        timeline.font,
     )?;
 
     tx.commit()?;

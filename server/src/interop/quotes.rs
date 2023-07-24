@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::interop::decks::{BackNote, Ref};
+use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
 use crate::interop::notes::Note;
 use crate::interop::Key;
@@ -26,7 +27,7 @@ pub struct Quote {
     pub id: Key,
     pub title: String,
     pub insignia: i32,
-    pub typeface: String,
+    pub font: Font,
     pub attribution: String,
 
     // will always be a single note
@@ -47,5 +48,5 @@ pub struct ProtoQuote {
     pub text: String,
     pub attribution: String,
     pub insignia: i32,
-    pub typeface: String,
+    pub font: Font,
 }

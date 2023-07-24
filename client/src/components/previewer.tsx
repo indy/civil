@@ -19,7 +19,7 @@ export default function Previewer() {
 
         if (hasContent) {
             content = previewDeck.notes.map((n) =>
-                buildMarkup(n.content, n.typeface, n.id, { ignoreRight: true })
+                buildMarkup(n.content, n.font, n.id, { ignoreRight: true })
             );
         }
     }

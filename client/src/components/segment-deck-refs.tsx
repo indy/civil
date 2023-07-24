@@ -12,7 +12,7 @@ import {
 } from "types";
 
 import { getAppState, AppStateChange } from "app-state";
-import { typefaceClass, addToolbarSelectableClasses } from "utils/civil";
+import { fontClass, addToolbarSelectableClasses } from "utils/civil";
 
 import { CivContainer } from "components/civil-layout";
 import CivilSelect from "components/civil-select";
@@ -38,8 +38,8 @@ export default function SegmentDeckRefs({
     const hoveringRef = useRef(null);
     const mouseHovering = useMouseHovering(hoveringRef);
 
-    let containerClasses = typefaceClass(
-        deck.typeface,
+    let containerClasses = fontClass(
+        deck.font,
         RenderingDeckPart.UiInterleaved
     );
     containerClasses += " deck-ref-segment";

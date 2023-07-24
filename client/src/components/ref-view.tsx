@@ -5,7 +5,7 @@ import { RenderingDeckPart, Note, Reference, RefKind, CivilMode } from "types";
 
 import { getAppState } from "app-state";
 
-import { typefaceClass, deckKindToResourceString } from "utils/civil";
+import { fontClass, deckKindToResourceString } from "utils/civil";
 
 import DeckLink from "components/deck-link";
 
@@ -71,8 +71,8 @@ export default function RefView({
             }
         }
 
-        let klass = typefaceClass(
-            reference.typeface,
+        let klass = fontClass(
+            reference.font,
             RenderingDeckPart.UiInterleaved
         );
         klass += " " + extraClasses;

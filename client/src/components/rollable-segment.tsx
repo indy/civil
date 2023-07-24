@@ -1,9 +1,9 @@
 import { h, ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 
-import { RenderingDeckPart } from "types";
+import { Font, RenderingDeckPart } from "types";
 
-import { typefaceClass } from "utils/civil";
+import { fontClass } from "utils/civil";
 
 import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 
@@ -17,7 +17,7 @@ import {
 //
 type Props = {
     heading: string;
-    typeface: string;
+    font: Font;
     children: ComponentChildren;
     initiallyRolledUp?: boolean;
     invisible?: boolean;
@@ -25,7 +25,7 @@ type Props = {
 
 export default function RollableSegment({
     heading,
-    typeface,
+    font,
     children,
     initiallyRolledUp,
     invisible,
@@ -37,7 +37,7 @@ export default function RollableSegment({
         setIsRolledUp(!isRolledUp);
     }
 
-    let sectionClass = typefaceClass(typeface, RenderingDeckPart.UiInterleaved);
+    let sectionClass = fontClass(font, RenderingDeckPart.UiInterleaved);
     sectionClass += isRolledUp ? " rolled-up" : " rolled-down";
     if (invisible) {
         sectionClass += " invisible";

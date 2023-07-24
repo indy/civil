@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::interop::decks::{BackNote, Ref, SlimDeck};
+use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
 use crate::interop::notes::Note;
 use crate::interop::points::DeckPoint;
@@ -28,7 +29,7 @@ pub struct Person {
     pub title: String,
 
     pub insignia: i32,
-    pub typeface: String,
+    pub font: Font,
 
     pub sort_date: Option<chrono::NaiveDate>,
 
@@ -55,7 +56,7 @@ impl From<crate::db::decks::DeckBase> for Person {
             title: d.title,
 
             insignia: d.insignia,
-            typeface: d.typeface,
+            font: d.font,
 
             sort_date: None,
             points: None,
@@ -77,7 +78,7 @@ impl From<crate::db::decks::DeckBase> for Person {
 pub struct ProtoPerson {
     pub title: String,
     pub insignia: i32,
-    pub typeface: String,
+    pub font: Font,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

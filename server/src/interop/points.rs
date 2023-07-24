@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::interop::decks::DeckKind;
+use crate::interop::font::Font;
 use crate::interop::Key;
 
 #[derive(
@@ -34,7 +35,7 @@ pub struct Point {
     pub id: Key,
     pub kind: PointKind,
     pub title: Option<String>,
-    pub typeface: String,
+    pub font: Font,
 
     pub location_textual: Option<String>,
     pub longitude: Option<f32>,
@@ -75,7 +76,7 @@ pub struct DeckPoint {
     pub id: Key,
     pub kind: PointKind,
     pub title: Option<String>,
-    pub typeface: String,
+    pub font: Font,
     pub date_textual: Option<String>,
     pub date: Option<chrono::NaiveDate>,
 

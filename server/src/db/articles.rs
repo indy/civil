@@ -20,6 +20,7 @@ use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Error;
 use crate::interop::articles as interop;
 use crate::interop::decks::DeckKind;
+use crate::interop::font::Font;
 use crate::interop::Key;
 use rusqlite::{params, Row};
 
@@ -42,7 +43,7 @@ impl From<(decks::DeckBase, ArticleExtra)> for interop::Article {
             title: deck.title,
 
             insignia: deck.insignia,
-            typeface: deck.typeface,
+            font: deck.font,
 
             created_at: deck.created_at,
 
@@ -67,12 +68,14 @@ impl From<(decks::DeckBase, ArticleExtra)> for interop::Article {
 }
 
 fn from_row(row: &Row) -> crate::Result<interop::Article> {
+    let fnt: i32 = row.get(9)?;
+
     Ok(interop::Article {
         id: row.get(0)?,
         title: row.get(1)?,
 
         insignia: row.get(8)?,
-        typeface: row.get(9)?,
+        font: Font::try_from(fnt)?,
 
         created_at: row.get(6)?,
 
@@ -100,7 +103,7 @@ pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<i
 
     let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
                        article_extras.short_description, coalesce(article_extras.rating, 0) as rating,
-                       decks.created_at, article_extras.published_date, decks.insignia, decks.typeface
+                       decks.created_at, article_extras.published_date, decks.insignia, decks.font
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
                 WHERE user_id = ?1 AND kind = 'article'
                 ORDER BY created_at DESC";
@@ -115,7 +118,7 @@ pub(crate) fn listings(
 
     let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
                        article_extras.short_description, coalesce(article_extras.rating, 0) as rating,
-                       decks.created_at, article_extras.published_date, decks.insignia, decks.typeface
+                       decks.created_at, article_extras.published_date, decks.insignia, decks.font
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
                 WHERE user_id = ?1 and kind = 'article'
                 ORDER BY created_at desc
@@ -124,13 +127,13 @@ pub(crate) fn listings(
 
     let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
                        article_extras.short_description, coalesce(article_extras.rating, 0) as rating,
-                       decks.created_at, article_extras.published_date, decks.insignia, decks.typeface
+                       decks.created_at, article_extras.published_date, decks.insignia, decks.font
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
                 WHERE user_id = ?1 AND kind = 'article' AND article_extras.rating > 0
                 ORDER BY article_extras.rating desc, decks.id desc";
     let rated = sqlite::many(&conn, stmt, params![&user_id], from_row)?;
 
-    let stmt = "SELECT d.id, d.name, 'article', d.insignia, d.typeface
+    let stmt = "SELECT d.id, d.name, 'article', d.insignia, d.font
                 FROM decks d LEFT JOIN article_extras pe ON pe.deck_id=d.id
                 WHERE d.id NOT IN (SELECT deck_id
                                    FROM notes_decks
@@ -159,7 +162,7 @@ pub(crate) fn get(
 
     let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
                        article_extras.short_description, coalesce(article_extras.rating, 0) as rating,
-                       decks.created_at, article_extras.published_date, decks.insignia, decks.typeface
+                       decks.created_at, article_extras.published_date, decks.insignia, decks.font
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
                 WHERE user_id = ?1 AND id = ?2 AND kind = 'article'";
     let res = sqlite::one(&conn, stmt, params![&user_id, &article_id], from_row)?;
@@ -201,7 +204,7 @@ pub(crate) fn edit(
         &article.title,
         graph_terminator,
         article.insignia,
-        &article.typeface,
+        article.font,
     )?;
 
     let stmt = "SELECT deck_id, source, author, short_description, rating, published_date
@@ -267,7 +270,7 @@ pub(crate) fn get_or_create(
     let published_date = chrono::Utc::now().naive_utc().date();
 
     let (deck, origin) =
-        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Article, title, "magazine")?;
+        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Article, title, Font::Magazine)?;
 
     let article_extras =
         match origin {

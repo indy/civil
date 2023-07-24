@@ -6,6 +6,7 @@ import {
     ArticleListings,
     DeckKind,
     Key,
+    Font,
     SlimDeck,
     CivilMode,
     Notes,
@@ -18,8 +19,8 @@ import Net from "utils/net";
 import { AppStateChange, immutableState } from "app-state";
 import { capitalise } from "utils/js";
 
-export function typefaceClass(
-    typeface: string,
+export function fontClass(
+    font: Font,
     rdp: RenderingDeckPart
 ): string {
     function rdpClassName(rdp: RenderingDeckPart): string {
@@ -32,13 +33,26 @@ export function typefaceClass(
                 return "-ui-interleaved";
         }
     }
-    switch (typeface) {
-        case "book":
-        case "old-book":
-        case "magazine":
-            return "typeface-" + typeface + rdpClassName(rdp);
+
+    function fontToString(f: Font): string {
+        switch(f) {
+            case Font.Serif: return "serif";
+            case Font.Sans: return "sans";
+            case Font.Cursive: return "cursive";
+            case Font.AI: return "ai";
+            case Font.Magazine: return "magazine";
+            case Font.Book: return "book";
+            case Font.OldBook: return "old-book";
+        }
+    }
+
+    switch (font) {
+        case Font.Book:
+        case Font.OldBook:
+        case Font.Magazine:
+            return "typeface-" + fontToString(font) + rdpClassName(rdp);
         default:
-            return "typeface-" + typeface;
+            return "typeface-" + fontToString(font);
     }
 }
 
@@ -173,14 +187,14 @@ export function buildSlimDeck(
     id: Key,
     title: string,
     insignia: number,
-    typeface: string
+    font: Font
 ): SlimDeck {
     return {
         id,
         title,
         deckKind,
         insignia,
-        typeface,
+        font,
     };
 }
 

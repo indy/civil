@@ -1,8 +1,8 @@
 import { h } from "preact";
 
-import { RenderingDeckPart, Role } from "types";
+import { Font, RenderingDeckPart, Role } from "types";
 
-import { typefaceClass } from "utils/civil";
+import { fontClass } from "utils/civil";
 
 import { getAppState } from "app-state";
 
@@ -21,22 +21,22 @@ function roleToString(role: Role, username: string): string {
     }
 }
 
-function roleTypeface(role: Role): string {
+function roleFont(role: Role): Font {
     switch (role) {
         case Role.System:
-            return "serif";
+            return Font.Serif;
         case Role.Assistant:
-            return "ai";
+            return Font.AI;
         case Role.User:
-            return "cursive";
+            return Font.Cursive;
     }
 }
 
 export default function RoleView({ role }: Props) {
     const appState = getAppState();
 
-    const typeface = roleTypeface(role);
-    let classes = typefaceClass(typeface, RenderingDeckPart.UiInterleaved);
+    const font = roleFont(role);
+    let classes = fontClass(font, RenderingDeckPart.UiInterleaved);
     classes += " role-view";
 
     return (

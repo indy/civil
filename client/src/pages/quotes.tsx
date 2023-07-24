@@ -2,7 +2,7 @@ import { h } from "preact";
 import { useEffect } from "preact/hooks";
 import { route } from "preact-router";
 
-import { Key, DM, DeckKind, NoteKind, DeckQuote } from "types";
+import { Font, Key, DM, DeckKind, NoteKind, DeckQuote } from "types";
 
 import Net from "utils/net";
 import buildMarkup from "components/notes/build-markup";
@@ -233,7 +233,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                 text: string; // not really needed, server side only uses title and attribution
                 attribution: string;
                 insignia: number;
-                typeface: string;
+                font: Font;
             };
 
             if (note) {
@@ -242,7 +242,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                     text: note.content, // not really needed, server side only uses title and attribution
                     attribution: attribution,
                     insignia: 0,
-                    typeface: deckQuote.typeface,
+                    font: deckQuote.font,
                 };
 
                 // as the title could have changed, we need to post the updated quote to the server
@@ -421,7 +421,7 @@ function Attribution({ attribution, onEdited, onDelete }: AttributionProps) {
 
     let markup =
         attribution &&
-        buildMarkup(attribution, immutableState.defaultTypeface, 0);
+        buildMarkup(attribution, immutableState.defaultFont, 0);
     // convert the p tag into spans
     if (markup) {
         markup[0].type = "span";

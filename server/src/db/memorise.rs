@@ -17,6 +17,7 @@
 
 use crate::db::sqlite::{self, SqlitePool};
 use crate::interop::decks as interop_decks;
+use crate::interop::font::Font;
 use crate::interop::memorise as interop;
 use crate::interop::Key;
 
@@ -205,6 +206,7 @@ pub(crate) fn delete_flashcard(
 
 fn interop_card_from_row(row: &Row) -> crate::Result<interop::Card> {
     let kind: String = row.get(6)?;
+    let fnt: i32 = row.get(8)?;
 
     Ok(interop::Card {
         id: row.get(0)?,
@@ -215,7 +217,7 @@ fn interop_card_from_row(row: &Row) -> crate::Result<interop::Card> {
             title: row.get(5)?,
             deck_kind: interop_decks::DeckKind::from_str(&kind)?,
             insignia: row.get(7)?,
-            typeface: row.get(8)?,
+            font: Font::try_from(fnt)?,
         },
         prompt: row.get(2)?,
     })
@@ -232,7 +234,7 @@ pub(crate) fn get_cards(
 
     sqlite::many(
         &conn,
-        "SELECT c.id, c.note_id, c.prompt, n.content, d.id AS deck_id, d.name AS deck_name, d.kind AS deck_kind, d.insignia, d.typeface
+        "SELECT c.id, c.note_id, c.prompt, n.content, d.id AS deck_id, d.name AS deck_name, d.kind AS deck_kind, d.insignia, d.font
          FROM cards c, decks d, notes n
          WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = ?1 and c.next_test_date < ?2",
         params![&user_id, &due],
@@ -250,7 +252,7 @@ pub(crate) fn get_practice_card(
 
     sqlite::one(
         &conn,
-        "SELECT c.id, c.note_id, c.prompt, n.content, d.id AS deck_id, d.name AS deck_name, d.kind AS deck_kind, d.insignia, d.typeface
+        "SELECT c.id, c.note_id, c.prompt, n.content, d.id AS deck_id, d.name AS deck_name, d.kind AS deck_kind, d.insignia, d.font
          FROM cards c, decks d, notes n
          WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = ?1
          ORDER BY random()

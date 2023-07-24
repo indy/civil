@@ -3,6 +3,7 @@ import { Link } from "preact-router";
 import { useEffect, useState } from "preact/hooks";
 
 import {
+    Font,
     DeckKind,
     DeckManagerFlags,
     DM,
@@ -20,7 +21,7 @@ import {
 
 import Net from "utils/net";
 import { calcAgeInYears, dateStringAsTriple } from "utils/eras";
-import { buildUrl, deckKindToHeadingString, typefaceClass } from "utils/civil";
+import { buildUrl, deckKindToHeadingString, fontClass } from "utils/civil";
 import { getAppState, AppStateChange, immutableState } from "app-state";
 import {
     svgBlank,
@@ -48,7 +49,7 @@ import SegmentGraph from "components/graph/segment-graph";
 import SegmentNotes from "components/notes/segment-notes";
 import SegmentSearchResults from "components/segment-search-results";
 import TopMatter from "components/top-matter";
-import TypefaceSelector from "components/typeface-selector";
+import FontSelector from "components/font-selector";
 import useDeckManager from "components/use-deck-manager";
 import { SlimDeckGrouping } from "components/groupings";
 import {
@@ -243,7 +244,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
                 <SegmentBackRefs deck={deck} />
 
                 <SegmentSearchResults
-                    typeface={deck.typeface}
+                    font={deck.font}
                     searchResults={searchResults}
                 />
                 {hasKnownLifespan && (
@@ -319,7 +320,7 @@ function PersonUpdater({
     const [localState, setLocalState] = useState({
         title: person.title || "",
         insigniaId: person.insignia || 0,
-        typeface: person.typeface || "serif",
+        font: person.font || Font.Serif,
     });
 
     useEffect(() => {
@@ -337,10 +338,10 @@ function PersonUpdater({
             });
         }
 
-        if (person.typeface) {
+        if (person.font) {
             setLocalState({
                 ...localState,
-                typeface: person.typeface,
+                font: person.font,
             });
         }
     }, [person]);
@@ -356,13 +357,13 @@ function PersonUpdater({
         type Data = {
             title: string;
             insignia: number;
-            typeface: string;
+            font: Font;
         };
 
         const data: Data = {
             title: localState.title.trim(),
             insignia: localState.insigniaId,
-            typeface: localState.typeface,
+            font: localState.font,
         };
 
         // edit an existing person
@@ -382,10 +383,10 @@ function PersonUpdater({
         });
     }
 
-    function setTypeface(typeface: string) {
+    function setFont(font: Font) {
         setLocalState({
             ...localState,
-            typeface,
+            font,
         });
     }
 
@@ -410,11 +411,11 @@ function PersonUpdater({
                 />
             </CivMain>
 
-            <CivLeftLabel>Typeface</CivLeftLabel>
+            <CivLeftLabel>Font</CivLeftLabel>
             <CivMain>
-                <TypefaceSelector
-                    typeface={localState.typeface}
-                    onChangedTypeface={setTypeface}
+                <FontSelector
+                    font={localState.font}
+                    onChangedFont={setFont}
                 />
             </CivMain>
 
@@ -453,7 +454,7 @@ function PersonDeckPoint({
 
     let ageText = deckPoint.age! > 0 ? `${deckPoint.age}` : "";
 
-    let klass = typefaceClass(deckPoint.typeface, RenderingDeckPart.Heading);
+    let klass = fontClass(deckPoint.font, RenderingDeckPart.Heading);
 
     if (deckPoint.deckId === holderId) {
         klass += " relevent-deckpoint";
@@ -571,7 +572,7 @@ function SegmentPoints({
     }
 
     const deck = deckManager.getDeck();
-    const typeface = deck ? deck.typeface : immutableState.defaultTypeface;
+    const font = deck ? deck.font : immutableState.defaultFont;
 
     const dps = arr.map((dp) => (
         <PersonDeckPoint
@@ -595,7 +596,7 @@ function SegmentPoints({
     const segmentTitle = `Points during the life of ${holderTitle}`;
 
     return (
-        <RollableSegment heading={segmentTitle} typeface={typeface}>
+        <RollableSegment heading={segmentTitle} font={font}>
             <CivContainer>
                 <CivLeft ui>
                     {!hasDied && (

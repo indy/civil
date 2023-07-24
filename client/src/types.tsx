@@ -8,15 +8,15 @@ export enum RenderingDeckPart {
     UiInterleaved,
 }
 
-// export enum Typeface {
-//     Serif,
-//     Cursive,
-//     AI,
-//     Book,
-//     OldBook,
-//     Magazine,
-//     Sans,
-// }
+export enum Font {
+    Serif = 1,
+    Sans,
+    Cursive,
+    AI,
+    Magazine,
+    Book,
+    OldBook,
+}
 
 export enum ColourScheme {
     Dark,
@@ -89,7 +89,7 @@ export type BackNote = SlimDeck & {
     prevNoteId?: Key;
     noteContent: string;
     noteKind: NoteKind;
-    noteTypeface: string;
+    noteFont: Font;
 };
 
 export type PreviewNotes = {
@@ -106,7 +106,7 @@ export type SlimDeck = {
     title: string;
     deckKind: DeckKind;
     insignia: number;
-    typeface: string;
+    font: Font;
 };
 
 export interface FatDeck {
@@ -120,7 +120,7 @@ export interface FatDeck {
     insignia: number;
     refs?: Array<Reference>;
     points?: Array<DeckPoint>;
-    typeface: string;
+    font: Font;
 
     // received from server and then modified by the client
     //
@@ -137,7 +137,7 @@ export type BackRefDeck = {
     title: string;
     deckInsignia: number;
     deckKind: DeckKind;
-    deckTypeface: string;
+    deckFont: Font;
 
     // each deck may have multiple sequences of notes that have been given the same ref
     // notes in a single sequence should be rendered together
@@ -191,7 +191,7 @@ export type Note = {
     kind: NoteKind;
     content: string;
     pointId: Key | null;
-    typeface: string;
+    font: Font;
 
     refs: Array<Reference>;
     flashcards: Array<FlashCard>;
@@ -232,7 +232,7 @@ export type DeckPoint = {
     dateTextual?: string;
     date?: string;
     age?: number;
-    typeface: string;
+    font: Font;
 
     deckId: Key;
     deckName: string;
@@ -331,7 +331,7 @@ export enum WaitingFor {
 export type ImmutableState = {
     readonly appName: string;
 
-    readonly defaultTypeface: string;
+    readonly defaultFont: Font;
 
     readonly deckKindOrder: Array<DeckKind>;
     readonly topMenuOrder: Array<string>;
@@ -500,7 +500,7 @@ export type BackRefNote = {
     topRefKind?: RefKind;
     topAnnotation?: string;
     noteContent: string;
-    typeface: string;
+    font: Font;
     noteId: Key;
     prevNoteId?: Key;
     refs: Array<Reference>;

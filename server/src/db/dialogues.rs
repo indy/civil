@@ -23,6 +23,7 @@ use crate::db::notes as db_notes;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::dialogues as interop;
+use crate::interop::font::Font;
 use crate::interop::notes::NoteKind;
 use crate::interop::Key;
 
@@ -47,7 +48,7 @@ impl TryFrom<(decks::DeckBase, DialogueExtra)> for interop::Dialogue {
             title: deck.title,
             ai_kind: interop::AiKind::from_str(&extra.ai_kind)?,
             insignia: deck.insignia,
-            typeface: deck.typeface,
+            font: deck.font,
             created_at: deck.created_at,
             notes: None,
             refs: None,
@@ -61,6 +62,8 @@ impl TryFrom<(decks::DeckBase, DialogueExtra)> for interop::Dialogue {
 
 fn from_row(row: &Row) -> crate::Result<interop::Dialogue> {
     let aik: String = row.get(2)?;
+    let fnt: i32 = row.get(5)?;
+
     Ok(interop::Dialogue {
         id: row.get(0)?,
         title: row.get(1)?,
@@ -68,7 +71,7 @@ fn from_row(row: &Row) -> crate::Result<interop::Dialogue> {
         ai_kind: interop::AiKind::from_str(&aik)?,
 
         insignia: row.get(4)?,
-        typeface: row.get(5)?,
+        font: Font::try_from(fnt)?,
 
         created_at: row.get(3)?,
 
@@ -88,7 +91,7 @@ fn from_row(row: &Row) -> crate::Result<interop::Dialogue> {
 pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT id, name, kind, insignia, typeface
+    let stmt = "SELECT id, name, kind, insignia, font
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'dialogue'
                 ORDER BY created_at DESC";
@@ -103,7 +106,7 @@ pub(crate) fn get(
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT decks.id, decks.name, dialogue_extras.ai_kind,
-                       decks.created_at, decks.insignia, decks.typeface
+                       decks.created_at, decks.insignia, decks.font
                 FROM decks LEFT JOIN dialogue_extras ON dialogue_extras.deck_id = decks.id
                 WHERE decks.user_id = ?1 AND decks.id = ?2 AND decks.kind = 'dialogue'";
     let mut res = sqlite::one(&conn, stmt, params![&user_id, &dialogue_id], from_row)?;
@@ -178,7 +181,7 @@ pub(crate) fn edit(
         &dialogue.title,
         graph_terminator,
         dialogue.insignia,
-        &dialogue.typeface,
+        dialogue.font,
     )?;
 
     let sql_query: &str = "SELECT deck_id, ai_kind
@@ -213,7 +216,7 @@ pub(crate) fn create(
         user_id,
         DeckKind::Dialogue,
         &proto_dialogue.title,
-        &proto_dialogue.typeface,
+        proto_dialogue.font,
     )?;
 
     let dialogue_extras = sqlite::one(
@@ -281,17 +284,17 @@ fn create_chat_message(
 ) -> crate::Result<Key> {
     // check if content is empty???
 
-    let typeface = match chat_message.role {
-        openai_interface::Role::User => "cursive",
-        openai_interface::Role::Assistant => "ai",
-        openai_interface::Role::System => "serif",
+    let font = match chat_message.role {
+        openai_interface::Role::User => Font::Cursive,
+        openai_interface::Role::Assistant => Font::AI,
+        openai_interface::Role::System => Font::Serif,
     };
 
     let new_note = db_notes::create_common(
         conn,
         user_id,
         deck_id,
-        &typeface,
+        font,
         NoteKind::Note,
         None,
         &chat_message.content,

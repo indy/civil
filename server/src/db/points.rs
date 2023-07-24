@@ -18,6 +18,7 @@
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Error;
 use crate::interop::decks as interop_decks;
+use crate::interop::font::Font;
 use crate::interop::points as interop;
 use crate::interop::Key;
 
@@ -50,11 +51,13 @@ impl FromStr for interop::PointKind {
 
 fn point_from_row(row: &Row) -> crate::Result<interop::Point> {
     let sql_kind: String = row.get(1)?;
+    let fnt: i32 = row.get(12)?;
+
     Ok(interop::Point {
         id: row.get(0)?,
         kind: interop::PointKind::from_str(&sql_kind)?,
         title: row.get(2)?,
-        typeface: row.get(12)?,
+        font: Font::try_from(fnt)?,
 
         location_textual: row.get(3)?,
         longitude: row.get(4)?,
@@ -90,7 +93,7 @@ pub(crate) fn all(
                 date(p.lower_realdate),
                 date(p.upper_realdate),
                 p.date_fuzz,
-                p.typeface
+                p.font
          from   decks d,
                 points p
          where  d.user_id = ?1
@@ -105,12 +108,13 @@ pub(crate) fn all(
 fn deckpoint_from_row(row: &Row) -> crate::Result<interop::DeckPoint> {
     let string_deck_kind: String = row.get(2)?;
     let string_point_kind: String = row.get(4)?;
+    let fnt: i32 = row.get(8)?;
 
     Ok(interop::DeckPoint {
         id: row.get(3)?,
         kind: interop::PointKind::from_str(&string_point_kind)?,
         title: row.get(5)?,
-        typeface: row.get(8)?,
+        font: Font::try_from(fnt)?,
         date_textual: row.get(6)?,
         date: row.get(7)?,
 
@@ -141,7 +145,7 @@ pub(crate) fn all_points_during_life(
                 p.title,
                 p.date_textual,
                 coalesce(date(p.exact_realdate), date(p.lower_realdate)) as date,
-                p.typeface,
+                p.font,
                 coalesce(p.exact_realdate, p.lower_realdate) as sortdate
          from   points p, decks d
          where  d.id = ?2
@@ -156,7 +160,7 @@ pub(crate) fn all_points_during_life(
                 p.title,
                 p.date_textual,
                 coalesce(date(p.exact_realdate), date(p.lower_realdate)) as date,
-                p.typeface,
+                p.font,
                 coalesce(p.exact_realdate, p.lower_realdate) as sortdate
          from   points p, decks d
          where  coalesce(p.exact_realdate, p.upper_realdate) >= (select coalesce(point_born.exact_realdate, point_born.lower_realdate) as born

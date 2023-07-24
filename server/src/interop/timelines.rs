@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::interop::decks::{BackNote, Ref};
+use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
 use crate::interop::notes::Note;
 use crate::interop::points::Point;
@@ -28,7 +29,7 @@ pub struct Timeline {
     pub title: String,
 
     pub insignia: i32,
-    pub typeface: String,
+    pub font: Font,
 
     pub points: Option<Vec<Point>>,
 
@@ -49,7 +50,7 @@ impl From<crate::db::decks::DeckBase> for Timeline {
             title: d.title,
 
             insignia: d.insignia,
-            typeface: d.typeface,
+            font: d.font,
 
             points: None,
 
@@ -70,5 +71,5 @@ impl From<crate::db::decks::DeckBase> for Timeline {
 pub struct ProtoTimeline {
     pub title: String,
     pub insignia: i32,
-    pub typeface: String,
+    pub font: Font,
 }

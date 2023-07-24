@@ -2,6 +2,7 @@ import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import {
+    Font,
     DM,
     DeckIdea,
     DeckKind,
@@ -21,7 +22,7 @@ import useDeckManager from "components/use-deck-manager";
 import Module from "components/module";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "components/insignia-selector";
-import TypefaceSelector from "components/typeface-selector";
+import FontSelector from "components/font-selector";
 import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import SegmentGraph from "components/graph/segment-graph";
@@ -144,7 +145,7 @@ function Idea({ path, id }: { path?: string; id?: string }) {
                 />
                 <SegmentBackRefs deck={deck} />
                 <SegmentSearchResults
-                    typeface={deck.typeface}
+                    font={deck.font}
                     searchResults={searchResults}
                 />
                 <SegmentGraph depth={2} deck={deck} />
@@ -167,7 +168,7 @@ function IdeaUpdater({ idea, onUpdate, onCancel }: IdeaUpdaterProps) {
         idea.graphTerminator
     );
     const [insigniaId, setInsigniaId] = useState(idea.insignia || 0);
-    const [typeface, setTypeface] = useState(idea.typeface);
+    const [font, setFont] = useState(idea.font);
 
     useEffect(() => {
         if (idea.title && idea.title !== "" && title === "") {
@@ -181,8 +182,8 @@ function IdeaUpdater({ idea, onUpdate, onCancel }: IdeaUpdaterProps) {
             setInsigniaId(idea.insignia);
         }
 
-        if (idea.typeface) {
-            setTypeface(idea.typeface);
+        if (idea.font) {
+            setFont(idea.font);
         }
     }, [idea]);
 
@@ -195,14 +196,14 @@ function IdeaUpdater({ idea, onUpdate, onCancel }: IdeaUpdaterProps) {
             title: string;
             graphTerminator: boolean;
             insignia: number;
-            typeface: string;
+            font: Font;
         };
 
         const data: SubmitData = {
             title: title.trim(),
             graphTerminator: graphTerminator,
             insignia: insigniaId,
-            typeface,
+            font,
         };
 
         Net.put<SubmitData, DeckIdea>(`/api/ideas/${idea.id}`, data).then(
@@ -259,11 +260,11 @@ function IdeaUpdater({ idea, onUpdate, onCancel }: IdeaUpdaterProps) {
                 />
             </CivMain>
 
-            <CivLeftLabel>Typeface</CivLeftLabel>
+            <CivLeftLabel>Font</CivLeftLabel>
             <CivMain>
-                <TypefaceSelector
-                    typeface={typeface}
-                    onChangedTypeface={setTypeface}
+                <FontSelector
+                    font={font}
+                    onChangedFont={setFont}
                 />
             </CivMain>
 
