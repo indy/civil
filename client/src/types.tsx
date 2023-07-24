@@ -13,9 +13,12 @@ export enum Font {
     Sans,
     Cursive,
     AI,
-    Magazine,
-    Book,
-    OldBook,
+    FrenchCanon,
+    English,
+    DeWalpergens,
+    DoublePica,
+    GreatPrimer,
+    ThreeLinesPica,
 }
 
 export enum ColourScheme {

@@ -31,14 +31,38 @@ export default function FontSelector({
                 <option value={Font.AI} selected={font === Font.AI}>
                     AI
                 </option>
-                <option value={Font.Magazine} selected={font === Font.Magazine}>
-                    Magazine
+                <option
+                    value={Font.FrenchCanon}
+                    selected={font === Font.FrenchCanon}
+                >
+                    French Canon
                 </option>
-                <option value={Font.Book} selected={font === Font.Book}>
-                    Book
+                <option value={Font.English} selected={font === Font.English}>
+                    English
                 </option>
-                <option value={Font.OldBook} selected={font === Font.OldBook}>
-                    Old Book
+                <option
+                    value={Font.DeWalpergens}
+                    selected={font === Font.DeWalpergens}
+                >
+                    De Walpergens
+                </option>
+                <option
+                    value={Font.DoublePica}
+                    selected={font === Font.DoublePica}
+                >
+                    Double Pica
+                </option>
+                <option
+                    value={Font.GreatPrimer}
+                    selected={font === Font.GreatPrimer}
+                >
+                    Great Primer
+                </option>
+                <option
+                    value={Font.ThreeLinesPica}
+                    selected={font === Font.ThreeLinesPica}
+                >
+                    Three Lines Pica
                 </option>
             </select>
         </span>

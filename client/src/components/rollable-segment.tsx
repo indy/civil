@@ -12,7 +12,6 @@ import {
     svgChevronDoubleRight,
 } from "components/svg-icons";
 
-// interleaved: is the segment going to be part of a deck?
 // (as opposed to being a part of the ui, e.g. on the front page)
 //
 type Props = {

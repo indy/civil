@@ -72,7 +72,7 @@ pub(crate) fn get_or_create(
     let tx = conn.transaction()?;
 
     let (deck, _origin) =
-        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Person, title, Font::Book)?;
+        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Person, title, Font::English)?;
 
     tx.commit()?;
 

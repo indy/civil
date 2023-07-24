@@ -102,7 +102,7 @@ pub(crate) fn get_or_create(
     let tx = conn.transaction()?;
 
     let (deck, origin) =
-        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Quote, title, Font::Book)?;
+        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Quote, title, Font::English)?;
 
     let quote_extras: QuoteExtra = match origin {
         decks::DeckBaseOrigin::Created => sqlite::one(

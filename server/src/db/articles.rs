@@ -270,7 +270,7 @@ pub(crate) fn get_or_create(
     let published_date = chrono::Utc::now().naive_utc().date();
 
     let (deck, origin) =
-        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Article, title, Font::Magazine)?;
+        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Article, title, Font::FrenchCanon)?;
 
     let article_extras =
         match origin {

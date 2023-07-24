@@ -41,19 +41,27 @@ export function fontClass(font: Font, rdp: RenderingDeckPart): string {
                 return "cursive";
             case Font.AI:
                 return "ai";
-            case Font.Magazine:
-                return "magazine";
-            case Font.Book:
-                return "book";
-            case Font.OldBook:
-                return "old-book";
+            case Font.FrenchCanon:
+                return "french-canon";
+            case Font.English:
+                return "english";
+            case Font.DeWalpergens:
+                return "de-walpergens";
+            case Font.DoublePica:
+                return "double-pica";
+            case Font.GreatPrimer:
+                return "great-primer";
+            case Font.ThreeLinesPica:
+                return "three-lines-pica";
         }
     }
 
     switch (font) {
-        case Font.Book:
-        case Font.OldBook:
-        case Font.Magazine:
+        case Font.FrenchCanon:
+        case Font.English:
+        case Font.DeWalpergens:
+        case Font.DoublePica:
+        case Font.GreatPrimer:
             return "typeface-" + fontToString(font) + rdpClassName(rdp);
         default:
             return "typeface-" + fontToString(font);
