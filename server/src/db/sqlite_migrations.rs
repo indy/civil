@@ -54,7 +54,6 @@ CREATE TABLE IF NOT EXISTS decks (
 
        name TEXT NOT NULL,
        font INTEGER NOT NULL DEFAULT 1,
-       typeface TEXT NOT NULL DEFAULT 'serif',
 
        -- called insignia in case we want to save 'badge' for future use
        insignia INTEGER DEFAULT 0,
@@ -70,7 +69,6 @@ CREATE TABLE IF NOT EXISTS points (
        title TEXT,
        kind TEXT NOT NULL, -- 'point', 'point_begin', 'point_end'
        font INTEGER NOT NULL DEFAULT 1,
-       typeface TEXT NOT NULL DEFAULT 'serif',
 
        location_textual TEXT,
        longitude REAL,
@@ -101,7 +99,6 @@ CREATE TABLE IF NOT EXISTS notes (
 
        content TEXT NOT NULL,
        font INTEGER NOT NULL DEFAULT 1,
-       typeface TEXT NOT NULL DEFAULT 'serif',
 
        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION,
        FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION,
@@ -746,6 +743,14 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
                UPDATE notes SET font=5 WHERE typeface='magazine';
                UPDATE notes SET font=6 WHERE typeface='book';
                UPDATE notes SET font=7 WHERE typeface='old-book';"),
+
+        ///////////////////
+        // user_version 17: remove old typeface columns
+        ///////////////////
+        M::up("ALTER TABLE decks DROP COLUMN typeface;
+               ALTER TABLE points DROP COLUMN typeface;
+               ALTER TABLE notes DROP COLUMN typeface;"),
+
     ]);
 
     let mut conn = Connection::open(db_name)?;
