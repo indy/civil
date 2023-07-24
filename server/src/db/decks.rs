@@ -176,8 +176,26 @@ pub(crate) fn deckbase_create(
     Ok(deckbase)
 }
 
-pub(crate) fn deckbase_edit(
+fn update_note_typefaces(
     conn: &Connection,
+    user_id: Key,
+    deck_id: Key,
+    original_typeface: &str,
+    new_typeface: &str,
+) -> crate::Result<()> {
+    let stmt = "UPDATE notes
+                SET typeface = ?4
+                WHERE user_id = ?1 AND deck_id = ?2 AND typeface = ?3";
+
+    sqlite::zero(
+        conn,
+        stmt,
+        params![&user_id, &deck_id, original_typeface, new_typeface],
+    )
+}
+
+pub(crate) fn deckbase_edit(
+    tx: &Connection,
     user_id: Key,
     deck_id: Key,
     kind: DeckKind,
@@ -186,12 +204,20 @@ pub(crate) fn deckbase_edit(
     insignia: i32,
     typeface: &str,
 ) -> crate::Result<DeckBase> {
+    // if the typeface has changed
+    let original_typeface = get_typeface_of_deck(tx, deck_id)?;
+
+    if original_typeface != typeface {
+        // change all of this deck's notes that have the old typeface to the new typeface
+        update_note_typefaces(tx, user_id, deck_id, &original_typeface, typeface)?;
+    }
+
     let stmt = "UPDATE decks
                 SET name = ?4, graph_terminator = ?5, insignia = ?6, typeface = ?7
                 WHERE user_id = ?1 AND id = ?2 AND kind = ?3
                 RETURNING id, name, created_at, graph_terminator, insignia, typeface";
     sqlite::one(
-        conn,
+        tx,
         stmt,
         params![
             &user_id,
@@ -374,7 +400,7 @@ pub(crate) fn from_deck_id_via_notes_to_decks(
                        nd.kind as ref_kind,
                        nd.annotation,
                        d.insignia,
-                       n.typeface
+                       d.typeface
                 FROM   notes n,
                        notes_decks nd,
                        decks d
@@ -559,6 +585,20 @@ fn get_name_of_deck(conn: &Connection, deck_id: Key) -> crate::Result<String> {
     )?;
 
     Ok(name)
+}
+
+fn get_typeface_of_deck(conn: &Connection, deck_id: Key) -> crate::Result<String> {
+    fn string_from_row(row: &Row) -> crate::Result<String> {
+        let s: String = row.get(0)?;
+        Ok(s)
+    }
+
+    sqlite::one(
+        conn,
+        "select typeface from decks where id = ?1",
+        params![&deck_id],
+        string_from_row,
+    )
 }
 
 fn sanitize_for_sqlite_match(s: String) -> crate::Result<String> {

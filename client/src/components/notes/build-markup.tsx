@@ -132,8 +132,6 @@ export default function buildMarkup(
             return n.text;
         } else if (n.name === "p") {
             let modified_attrs: Attrs = attrs(n);
-            modified_attrs.class = assignBodyTypeface(modified_attrs.class);
-
             if (onRight) {
                 // we have a nested paragraph (e.g. text in the right-hand margin created by the pipe syntax)
                 // as html's <p> tag cannot be nested, use a span with a custom class
@@ -144,6 +142,7 @@ export default function buildMarkup(
 
                 return h("span", modified_attrs, ...children);
             } else {
+                modified_attrs.class = assignBodyTypeface(modified_attrs.class);
                 return h(n.name, modified_attrs, ...children);
             }
         } else if (n.name === "ol" || n.name === "ul") {

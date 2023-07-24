@@ -31,7 +31,6 @@ export default function SegmentSearchResults({
                 heading={heading}
                 typeface={typeface}
                 initiallyRolledUp
-                interleaved
             >
                 <CivContainer>
                     <CivMain>

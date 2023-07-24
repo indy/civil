@@ -115,6 +115,7 @@ pub(crate) fn create_common(
     conn: &Connection,
     user_id: Key,
     deck_id: Key,
+    typeface: &str,
     kind: interop::NoteKind,
     point_id: Option<Key>,
     content: &str,
@@ -122,13 +123,22 @@ pub(crate) fn create_common(
     next_note_id: Option<Key>,
 ) -> crate::Result<interop::Note> {
     let k = interop::note_kind_to_sqlite(kind);
-    let stmt = "INSERT INTO notes(user_id, deck_id, kind, point_id, content, prev_note_id)
-                VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+    let stmt =
+        "INSERT INTO notes(user_id, deck_id, typeface, kind, point_id, content, prev_note_id)
+                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
                 RETURNING id, content, kind, point_id, prev_note_id, typeface";
     let note = sqlite::one(
         conn,
         stmt,
-        params![&user_id, &deck_id, &k, &point_id, &content, &prev_note_id],
+        params![
+            &user_id,
+            &deck_id,
+            typeface,
+            &k,
+            &point_id,
+            &content,
+            &prev_note_id
+        ],
         note_from_row,
     )?;
 
@@ -146,10 +156,14 @@ pub(crate) fn create_note_deck_meta(
     user_id: Key,
     deck_id: Key,
 ) -> crate::Result<interop::Note> {
+    // this is a deck meta note that will never get rendered
+    let unnecessary_typeface = "serif";
+
     create_common(
         tx,
         user_id,
         deck_id,
+        &unnecessary_typeface,
         interop::NoteKind::NoteDeckMeta,
         None,
         "",
@@ -189,6 +203,7 @@ pub(crate) fn create_notes(
             &tx,
             user_id,
             note.deck_id,
+            &note.typeface,
             note.kind,
             note.point_id,
             content,
@@ -298,11 +313,13 @@ pub(crate) fn add_auto_summary(
     prev_id: Option<Key>,
     summary: &str,
 ) -> crate::Result<interop::Note> {
+    let ai_typeface = "ai";
     let conn = sqlite_pool.get()?;
     create_common(
         &conn,
         user_id,
         deck_id,
+        &ai_typeface,
         interop::NoteKind::NoteSummary,
         None,
         summary,

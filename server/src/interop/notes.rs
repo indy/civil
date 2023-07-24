@@ -65,6 +65,7 @@ pub struct Note {
 #[serde(rename_all = "camelCase")]
 pub struct ProtoNote {
     pub kind: NoteKind,
+    pub typeface: String,
     pub content: Vec<String>,
     pub deck_id: Key,
     pub point_id: Option<Key>,

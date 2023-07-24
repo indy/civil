@@ -359,7 +359,7 @@ function DialogueChat({ path }: { path?: string }) {
     if (appState.waitingFor.value === WaitingFor.Server) {
         m.push(
             <CivMain>
-                <p>
+                <p class="ui">
                     <em>Waiting for response...</em>
                 </p>
             </CivMain>

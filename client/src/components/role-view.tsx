@@ -1,6 +1,8 @@
 import { h } from "preact";
 
-import { Role } from "types";
+import { RenderingDeckPart, Role } from "types";
+
+import { typefaceClass } from "utils/civil";
 
 import { getAppState } from "app-state";
 
@@ -19,17 +21,23 @@ function roleToString(role: Role, username: string): string {
     }
 }
 
+function roleTypeface(role: Role): string {
+    switch (role) {
+        case Role.System:
+            return "serif";
+        case Role.Assistant:
+            return "ai";
+        case Role.User:
+            return "cursive";
+    }
+}
+
 export default function RoleView({ role }: Props) {
     const appState = getAppState();
 
-    let classes = "role-view";
-    if (role === Role.Assistant) {
-        // hack in here because the assistant uses a monospaced font which is smaller than the default font
-        // so the "Assistant" text in the left margin is slightly too low
-        // this hack shifts the "Assistant" text up slightly
-        //
-        classes += " role-view-assistant-hack";
-    }
+    const typeface = roleTypeface(role);
+    let classes = typefaceClass(typeface, RenderingDeckPart.UiInterleaved);
+    classes += " role-view";
 
     return (
         <div class={classes}>

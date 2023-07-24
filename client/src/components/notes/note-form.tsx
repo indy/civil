@@ -16,6 +16,7 @@ type Props = {
     onCreate: (ns: Notes) => void;
     onCancel: (e: Event) => void;
     deckId: Key;
+    typeface: string;
     prevNoteId?: number;
     nextNoteId?: number;
     noteKind: NoteKind;
@@ -27,6 +28,7 @@ export default function NoteForm({
     onCreate,
     onCancel,
     deckId,
+    typeface,
     prevNoteId,
     nextNoteId,
     noteKind,
@@ -117,6 +119,7 @@ export default function NoteForm({
 
             addNote(
                 notes,
+                typeface,
                 deckId,
                 noteKind,
                 prevNoteId,
@@ -181,6 +184,7 @@ export default function NoteForm({
 
 function addNote(
     notes: Array<string>,
+    typeface: string,
     deckId: Key,
     noteKind: NoteKind,
     prevNoteId?: number,
@@ -189,6 +193,7 @@ function addNote(
 ): Promise<Notes> {
     type ProtoNote = {
         deckId: Key;
+        typeface: string;
         kind: NoteKind;
         content: Array<string>;
         nextNoteId?: number;
@@ -198,6 +203,7 @@ function addNote(
 
     let protoNote: ProtoNote = {
         deckId,
+        typeface,
         kind: noteKind,
         content: notes,
     };

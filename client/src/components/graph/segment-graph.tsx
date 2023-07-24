@@ -26,7 +26,6 @@ export default function SegmentGraph({
                 heading={heading}
                 typeface={deck.typeface}
                 initiallyRolledUp
-                interleaved
             >
                 {okToShowGraph && <Graph id={deck.id} depth={depth} />}
             </RollableSegment>

@@ -152,11 +152,7 @@ function NoteKindPassage({
             return notePassage(noteKind);
         case PassageHowToShow.Show:
             return (
-                <RollableSegment
-                    heading={heading}
-                    typeface={deck.typeface}
-                    interleaved
-                >
+                <RollableSegment heading={heading} typeface={deck.typeface}>
                     <CivContainer>
                         <CivMain>{notePassage(noteKind)}</CivMain>
                     </CivContainer>

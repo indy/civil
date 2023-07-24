@@ -21,7 +21,6 @@ type Props = {
     children: ComponentChildren;
     initiallyRolledUp?: boolean;
     invisible?: boolean;
-    interleaved?: boolean;
 };
 
 export default function RollableSegment({
@@ -30,7 +29,6 @@ export default function RollableSegment({
     children,
     initiallyRolledUp,
     invisible,
-    interleaved,
 }: Props) {
     let [isRolledUp, setIsRolledUp] = useState(!!initiallyRolledUp);
 
@@ -39,13 +37,13 @@ export default function RollableSegment({
         setIsRolledUp(!isRolledUp);
     }
 
-    let sectionClass = isRolledUp ? "rolled-up" : "rolled-down";
+    let sectionClass = typefaceClass(typeface, RenderingDeckPart.UiInterleaved);
+    sectionClass += isRolledUp ? " rolled-up" : " rolled-down";
     if (invisible) {
         sectionClass += " invisible";
     }
 
-    let headingClass = typefaceClass(typeface, RenderingDeckPart.UiInterleaved);
-    headingClass += " clickable";
+    const headingClass = "clickable";
 
     let icon = isRolledUp ? svgChevronDoubleRight() : svgChevronDoubleDown();
     return (

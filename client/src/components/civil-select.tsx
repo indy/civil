@@ -10,12 +10,14 @@ import {
     SlimDeck,
     ProtoNoteReferences,
     ReferencesApplied,
+    RenderingDeckPart,
 } from "types";
 
 import {
     deckKindToResourceString,
     indexToShortcut,
     sortByDeckKindThenName,
+    typefaceClass,
 } from "utils/civil";
 import Net from "utils/net";
 import { AppStateChange, getAppState, immutableState } from "app-state";
@@ -456,7 +458,7 @@ export default function CivilSelect({
         onFinish(refsModified);
     }
 
-    let topLevelClasses = "block-width";
+    let topLevelClasses = "ui block-width";
     if (extraClasses) {
         topLevelClasses += " " + extraClasses;
     }
@@ -539,7 +541,12 @@ function RecentDecks({
 
     function buildRecent(slimDeck: SlimDeck) {
         const dk: string = deckKindToResourceString(slimDeck.deckKind);
-        let klass = `civsel-recent-deck pigment-fg-${dk}`;
+
+        let klass = typefaceClass(
+            slimDeck.typeface,
+            RenderingDeckPart.UiInterleaved
+        );
+        klass += ` civsel-recent-deck pigment-fg-${dk}`;
 
         return (
             <li class={klass} onClick={() => onAdd(slimDeck)}>

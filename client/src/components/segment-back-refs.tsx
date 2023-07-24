@@ -43,7 +43,6 @@ export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
             heading="BackRefs"
             typeface={typeface}
             invisible={invisible}
-            interleaved
         >
             {backrefGroups}
         </RollableSegment>

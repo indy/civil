@@ -360,7 +360,7 @@ function SegmentPoints({
     const typeface = deck ? deck.typeface : immutableState.defaultTypeface;
 
     return (
-        <RollableSegment heading="Timeline" typeface={typeface} interleaved>
+        <RollableSegment heading="Timeline" typeface={typeface}>
             <CivContainer>
                 <CivMain>
                     <ul class="unstyled-list hug-left">{dps}</ul>

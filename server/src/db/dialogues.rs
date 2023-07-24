@@ -281,10 +281,17 @@ fn create_chat_message(
 ) -> crate::Result<Key> {
     // check if content is empty???
 
+    let typeface = match chat_message.role {
+        openai_interface::Role::User => "cursive",
+        openai_interface::Role::Assistant => "ai",
+        openai_interface::Role::System => "serif",
+    };
+
     let new_note = db_notes::create_common(
         conn,
         user_id,
         deck_id,
+        &typeface,
         NoteKind::Note,
         None,
         &chat_message.content,

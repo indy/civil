@@ -136,6 +136,7 @@ export default function Passage({
                 onCreate={onNoteCreated}
                 onCancel={onCancelled}
                 deckId={deck.id}
+                typeface={deck.typeface}
                 prevNoteId={prevNoteId}
                 nextNoteId={nextNoteId}
                 noteKind={noteKind}

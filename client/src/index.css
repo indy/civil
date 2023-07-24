@@ -668,9 +668,6 @@ figure.fullwidth figcaption {
 }
 .role-view {
 }
-.role-view-assistant-hack {
-    margin-top: -0.5rem;
-}
 
 .rollupable-1000ms {
     transition: max-height 1000ms;

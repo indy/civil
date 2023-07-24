@@ -94,11 +94,12 @@ pub(crate) fn edit(
     timeline: &interop::ProtoTimeline,
     timeline_id: Key,
 ) -> crate::Result<interop::Timeline> {
-    let conn = sqlite_pool.get()?;
+    let mut conn = sqlite_pool.get()?;
+    let tx = conn.transaction()?;
 
     let graph_terminator = false;
     let deck = decks::deckbase_edit(
-        &conn,
+        &tx,
         user_id,
         timeline_id,
         DeckKind::Timeline,
@@ -107,6 +108,8 @@ pub(crate) fn edit(
         timeline.insignia,
         &timeline.typeface,
     )?;
+
+    tx.commit()?;
 
     Ok(deck.into())
 }

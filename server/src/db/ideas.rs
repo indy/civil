@@ -136,10 +136,11 @@ pub(crate) fn edit(
     idea: &interop::ProtoIdea,
     idea_id: Key,
 ) -> crate::Result<interop::Idea> {
-    let conn = sqlite_pool.get()?;
+    let mut conn = sqlite_pool.get()?;
+    let tx = conn.transaction()?;
 
     let deck = decks::deckbase_edit(
-        &conn,
+        &tx,
         user_id,
         idea_id,
         DeckKind::Idea,
@@ -149,6 +150,7 @@ pub(crate) fn edit(
         &idea.typeface,
     )?;
 
+    tx.commit()?;
     Ok(deck.into())
 }
 

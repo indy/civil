@@ -528,6 +528,7 @@ export default function NoteView({
                 onCreate={onNoteCreated}
                 onCancel={onCancelled}
                 deckId={parentDeck.id}
+                typeface={parentDeck.typeface}
                 nextNoteId={note.id}
                 noteKind={note.kind}
                 optionalPointId={note.pointId ? note.pointId : undefined}
@@ -658,11 +659,11 @@ export default function NoteView({
     // console.log("output:");
     // console.log(buildSimplifiedText(local.note.content));
 
-    const isMachine =
-        note.chatMessage && note.chatMessage!.role === Role.Assistant;
-    const markupReplacementClasses = isMachine
-        ? "machine-generated"
-        : undefined;
+    // const isMachine =
+    //     note.chatMessage && note.chatMessage!.role === Role.Assistant;
+    // const markupReplacementClasses = isMachine
+    //     ? "machine-generated"
+    //     : undefined;
 
     return (
         <CivContainer extraClasses={noteClasses}>
@@ -686,10 +687,10 @@ export default function NoteView({
             )}
 
             {!local.isEditingMarkup && (
-                <CivMain replacementClasses={markupReplacementClasses}>
+                <CivMain>
                     <div onClick={onNoteClicked} ref={hoveringRef}>
                         {local.isMinimisedText && (
-                            <p class="minimised-text">
+                            <p class="typeface-serif minimised-text">
                                 minimised, click to expand&hellip;
                             </p>
                         )}
