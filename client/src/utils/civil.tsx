@@ -53,6 +53,8 @@ export function fontClass(font: Font, rdp: RenderingDeckPart): string {
                 return "great-primer";
             case Font.ThreeLinesPica:
                 return "three-lines-pica";
+            case Font.LibreBaskerville:
+                return "libre-baskerville";
         }
     }
 

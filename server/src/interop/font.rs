@@ -33,6 +33,7 @@ pub enum Font {
     DoublePica,
     GreatPrimer,
     ThreeLinesPica,
+    LibreBaskerville,
 }
 
 impl From<Font> for i32 {
@@ -48,6 +49,7 @@ impl From<Font> for i32 {
             Font::DoublePica => 8,
             Font::GreatPrimer => 9,
             Font::ThreeLinesPica => 10,
+            Font::LibreBaskerville => 11,
         }
     }
 }
@@ -66,6 +68,7 @@ impl TryFrom<i32> for Font {
             8 => Ok(Font::DoublePica),
             9 => Ok(Font::GreatPrimer),
             10 => Ok(Font::ThreeLinesPica),
+            11 => Ok(Font::LibreBaskerville),
             _ => Err(Error::IntConversionToEnum),
         }
     }

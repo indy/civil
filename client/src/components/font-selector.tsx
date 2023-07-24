@@ -64,6 +64,12 @@ export default function FontSelector({
                 >
                     Three Lines Pica
                 </option>
+                <option
+                    value={Font.LibreBaskerville}
+                    selected={font === Font.LibreBaskerville}
+                >
+                    Libre Baskerville
+                </option>
             </select>
         </span>
     );

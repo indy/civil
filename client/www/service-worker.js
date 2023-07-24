@@ -49,6 +49,10 @@ var precacheConfig = [
     "/fonts/NotoSans/NotoSans-Regular.ttf",
     "/fonts/NotoSans/NotoSans-Italic.ttf",
 
+    "/fonts/LibreBaskerville/LibreBaskerville-Regular.ttf",
+    "/fonts/LibreBaskerville/LibreBaskerville-Italic.ttf",
+    "/fonts/LibreBaskerville/LibreBaskerville-Bold.ttf",
+
     "/fonts/Fell/IMFeDPit29P.ttf",
     "/fonts/Fell/IMFeDPrm29P.ttf",
     "/fonts/Fell/IMFeDPsc29P.ttf",

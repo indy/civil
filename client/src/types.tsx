@@ -19,6 +19,7 @@ export enum Font {
     DoublePica,
     GreatPrimer,
     ThreeLinesPica,
+    LibreBaskerville,
 }
 
 export enum ColourScheme {
