@@ -71,10 +71,7 @@ export default function RefView({
             }
         }
 
-        let klass = fontClass(
-            reference.font,
-            RenderingDeckPart.UiInterleaved
-        );
+        let klass = fontClass(reference.font, RenderingDeckPart.UiInterleaved);
         klass += " " + extraClasses;
 
         const scribbleClasses = `ref-scribble pigment-fg-${deckKindToResourceString(

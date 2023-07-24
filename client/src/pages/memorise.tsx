@@ -319,11 +319,7 @@ function Answer({ card }: { card: Card }) {
                 </CivLeft>
                 <CivMain>
                     {card.answer &&
-                        buildMarkup(
-                            card.answer,
-                            immutableState.defaultFont,
-                            0
-                        )}
+                        buildMarkup(card.answer, immutableState.defaultFont, 0)}
                 </CivMain>
             </CivContainer>
         </div>

@@ -262,10 +262,7 @@ function IdeaUpdater({ idea, onUpdate, onCancel }: IdeaUpdaterProps) {
 
             <CivLeftLabel>Font</CivLeftLabel>
             <CivMain>
-                <FontSelector
-                    font={font}
-                    onChangedFont={setFont}
-                />
+                <FontSelector font={font} onChangedFont={setFont} />
             </CivMain>
 
             <CivMain>

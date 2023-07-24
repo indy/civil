@@ -600,10 +600,7 @@ export default function NoteView({
                 )}
                 <ImageSelector onPaste={onImagePaste} />
                 <span class="ui">Font:</span>{" "}
-                <FontSelector
-                    font={note.font}
-                    onChangedFont={onChangedFont}
-                />
+                <FontSelector font={note.font} onChangedFont={onChangedFont} />
             </div>
         );
     }

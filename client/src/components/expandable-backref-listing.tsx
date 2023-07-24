@@ -37,10 +37,7 @@ export default function ExpandableBackRefListing({
 
     let icon = expanded ? svgCaretDown() : svgCaretRight();
 
-    let klass = fontClass(
-        slimDeck.font,
-        RenderingDeckPart.UiInterleaved
-    );
+    let klass = fontClass(slimDeck.font, RenderingDeckPart.UiInterleaved);
     klass += " backref-deck";
 
     let res = (

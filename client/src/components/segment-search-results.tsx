@@ -27,11 +27,7 @@ export default function SegmentSearchResults({
             "s"
         );
         return (
-            <RollableSegment
-                heading={heading}
-                font={font}
-                initiallyRolledUp
-            >
+            <RollableSegment heading={heading} font={font} initiallyRolledUp>
                 <CivContainer>
                     <CivMain>
                         <ul>{searchResults.map(buildSearchResult)}</ul>

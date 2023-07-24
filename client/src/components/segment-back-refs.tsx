@@ -3,11 +3,7 @@ import { useState } from "preact/hooks";
 
 import { Font, BackRefDeck, DeckKind, FatDeck, RenderingDeckPart } from "types";
 
-import {
-    buildSlimDeck,
-    deckKindToHeadingString,
-    fontClass,
-} from "utils/civil";
+import { buildSlimDeck, deckKindToHeadingString, fontClass } from "utils/civil";
 import { immutableState } from "app-state";
 import { svgCaretDown, svgCaretRight } from "components/svg-icons";
 
@@ -26,10 +22,7 @@ export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
         immutableState.deckKindOrder.forEach((deckKind: DeckKind) => {
             if (group[deckKind].length > 0) {
                 backrefGroups.push(
-                    <BackRefGroup
-                        font={font}
-                        backrefs={group[deckKind]}
-                    />
+                    <BackRefGroup font={font} backrefs={group[deckKind]} />
                 );
             }
         });
@@ -39,11 +32,7 @@ export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
     const invisible = backrefGroups.length === 0;
 
     return (
-        <RollableSegment
-            heading="BackRefs"
-            font={font}
-            invisible={invisible}
-        >
+        <RollableSegment heading="BackRefs" font={font} invisible={invisible}>
             {backrefGroups}
         </RollableSegment>
     );

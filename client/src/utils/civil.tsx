@@ -19,10 +19,7 @@ import Net from "utils/net";
 import { AppStateChange, immutableState } from "app-state";
 import { capitalise } from "utils/js";
 
-export function fontClass(
-    font: Font,
-    rdp: RenderingDeckPart
-): string {
+export function fontClass(font: Font, rdp: RenderingDeckPart): string {
     function rdpClassName(rdp: RenderingDeckPart): string {
         switch (rdp) {
             case RenderingDeckPart.Body:
@@ -35,14 +32,21 @@ export function fontClass(
     }
 
     function fontToString(f: Font): string {
-        switch(f) {
-            case Font.Serif: return "serif";
-            case Font.Sans: return "sans";
-            case Font.Cursive: return "cursive";
-            case Font.AI: return "ai";
-            case Font.Magazine: return "magazine";
-            case Font.Book: return "book";
-            case Font.OldBook: return "old-book";
+        switch (f) {
+            case Font.Serif:
+                return "serif";
+            case Font.Sans:
+                return "sans";
+            case Font.Cursive:
+                return "cursive";
+            case Font.AI:
+                return "ai";
+            case Font.Magazine:
+                return "magazine";
+            case Font.Book:
+                return "book";
+            case Font.OldBook:
+                return "old-book";
         }
     }
 

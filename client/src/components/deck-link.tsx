@@ -61,10 +61,7 @@ export default function DeckLink({
         AppStateChange.addScratchListLink(slimDeck);
     }
 
-    const tc = fontClass(
-        slimDeck.font,
-        RenderingDeckPart.UiInterleaved
-    );
+    const tc = fontClass(slimDeck.font, RenderingDeckPart.UiInterleaved);
     const ec: string = extraClasses || "";
     const dk: string = deckKindToResourceString(slimDeck.deckKind);
     let klass = `${tc} ${ec} pigment-fg-${dk}`;

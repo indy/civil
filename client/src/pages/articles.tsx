@@ -421,10 +421,7 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
 
             <CivLeftLabel>Font</CivLeftLabel>
             <CivMain>
-                <FontSelector
-                    font={font}
-                    onChangedFont={setFont}
-                />
+                <FontSelector font={font} onChangedFont={setFont} />
             </CivMain>
 
             <CivMain>

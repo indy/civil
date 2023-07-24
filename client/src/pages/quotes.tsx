@@ -420,8 +420,7 @@ function Attribution({ attribution, onEdited, onDelete }: AttributionProps) {
     }
 
     let markup =
-        attribution &&
-        buildMarkup(attribution, immutableState.defaultFont, 0);
+        attribution && buildMarkup(attribution, immutableState.defaultFont, 0);
     // convert the p tag into spans
     if (markup) {
         markup[0].type = "span";

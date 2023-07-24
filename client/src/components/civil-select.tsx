@@ -542,10 +542,7 @@ function RecentDecks({
     function buildRecent(slimDeck: SlimDeck) {
         const dk: string = deckKindToResourceString(slimDeck.deckKind);
 
-        let klass = fontClass(
-            slimDeck.font,
-            RenderingDeckPart.UiInterleaved
-        );
+        let klass = fontClass(slimDeck.font, RenderingDeckPart.UiInterleaved);
         klass += ` civsel-recent-deck pigment-fg-${dk}`;
 
         return (

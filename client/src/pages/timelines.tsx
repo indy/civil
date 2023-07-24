@@ -272,10 +272,7 @@ function TimelineUpdater({
 
             <CivLeftLabel>Font</CivLeftLabel>
             <CivMain>
-                <FontSelector
-                    font={localState.font}
-                    onChangedFont={setFont}
-                />
+                <FontSelector font={localState.font} onChangedFont={setFont} />
             </CivMain>
 
             <CivMain>

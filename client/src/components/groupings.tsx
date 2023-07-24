@@ -159,13 +159,7 @@ type RatedListingLinkProps = {
 //
 function RatedListingLink({ deck }: RatedListingLinkProps) {
     let { id, title, rating, shortDescription, insignia, font } = deck;
-    let slimDeck = buildSlimDeck(
-        DeckKind.Article,
-        id,
-        title,
-        insignia,
-        font
-    );
+    let slimDeck = buildSlimDeck(DeckKind.Article, id, title, insignia, font);
 
     return (
         <li>
