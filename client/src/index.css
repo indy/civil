@@ -121,6 +121,14 @@
 }
 
 @font-face {
+    font-family: "ShareTechMono";
+    src: url("fonts/ShareTechMono-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    size-adjust: 75%;
+}
+
+@font-face {
     font-family: "Fell-French-Canon";
     src: url("fonts/Fell/IMFeFCrm29P.ttf") format("truetype");
     font-weight: 400;
@@ -287,7 +295,7 @@
     font-family: Caveat, cursive;
 }
 .typeface-ai {
-    font-family: Orbitron;
+    font-family: ShareTechMono;
 }
 .typeface-french-canon-body {
     font-family: Fell-French-Canon;

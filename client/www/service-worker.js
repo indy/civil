@@ -46,6 +46,8 @@ var precacheConfig = [
 
     "/fonts/orbitron/static/Orbitron-Bold.ttf",
 
+    "/fonts/ShareTechMono-Regular.ttf",
+
     "/fonts/NotoSans/NotoSans-Regular.ttf",
     "/fonts/NotoSans/NotoSans-Italic.ttf",
 
