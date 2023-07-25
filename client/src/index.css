@@ -87,16 +87,18 @@
 /* sans font for twitter threads */
 @font-face {
     font-family: "NotoSans";
-    src: url("fonts/NotoSans/NotoSans-Italic.ttf") format("truetype");
+    src: url("fonts/NotoSans/NotoSans-Regular.ttf") format("truetype");
     font-weight: 400;
-    font-style: italic;
+    font-style: normal;
+    size-adjust: 85%;
 }
 
 @font-face {
     font-family: "NotoSans";
-    src: url("fonts/NotoSans/NotoSans-Regular.ttf") format("truetype");
+    src: url("fonts/NotoSans/NotoSans-Italic.ttf") format("truetype");
     font-weight: 400;
-    font-style: normal;
+    font-style: italic;
+    size-adjust: 85%;
 }
 
 /* cursive */
@@ -106,6 +108,7 @@
     font-weight: 125 950;
     font-stretch: 75% 125%;
     font-style: normal;
+    size-adjust: 123%;
 }
 
 /* ai  */
@@ -114,25 +117,37 @@
     src: url("fonts/orbitron/static/Orbitron-Bold.ttf") format("truetype");
     font-weight: 400;
     font-style: normal;
+    size-adjust: 75%;
 }
 
 @font-face {
-    font-family: "Fell-Double-Pica";
-    src: url("fonts/Fell/IMFeDPit29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: italic;
-}
-
-@font-face {
-    font-family: "Fell-Double-Pica";
-    src: url("fonts/Fell/IMFeDPrm29P.ttf") format("truetype");
+    font-family: "Fell-French-Canon";
+    src: url("fonts/Fell/IMFeFCrm29P.ttf") format("truetype");
     font-weight: 400;
     font-style: normal;
+    size-adjust: 94%;
 }
 
 @font-face {
-    font-family: "Fell-Double-Pica-Small-Caps";
-    src: url("fonts/Fell/IMFeDPsc29P.ttf") format("truetype");
+    font-family: "Fell-French-Canon";
+    src: url("fonts/Fell/IMFeFCit29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: italic;
+    size-adjust: 94%;
+}
+
+@font-face {
+    font-family: "Fell-French-Canon-Small-Caps";
+    src: url("fonts/Fell/IMFeFCsc29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    size-adjust: 94%;
+}
+
+
+@font-face {
+    font-family: "Fell-English";
+    src: url("fonts/Fell/IMFeENrm29P.ttf") format("truetype");
     font-weight: 400;
     font-style: normal;
 }
@@ -145,56 +160,16 @@
 }
 
 @font-face {
-    font-family: "Fell-English";
-    src: url("fonts/Fell/IMFeENrm29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
-}
-
-@font-face {
     font-family: "Fell-English-Small-Caps";
     src: url("fonts/Fell/IMFeENsc29P.ttf") format("truetype");
     font-weight: 400;
     font-style: normal;
 }
 
-@font-face {
-    font-family: "Fell-French-Canon";
-    src: url("fonts/Fell/IMFeFCit29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: italic;
-}
 
 @font-face {
-    font-family: "Fell-French-Canon";
-    src: url("fonts/Fell/IMFeFCrm29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: "Fell-French-Canon-Small-Caps";
-    src: url("fonts/Fell/IMFeFCsc29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: "Fell-Great-Primer";
-    src: url("fonts/Fell/IMFeGPit29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: italic;
-}
-
-@font-face {
-    font-family: "Fell-Great-Primer";
-    src: url("fonts/Fell/IMFeGPrm29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
-}
-@font-face {
-    font-family: "Fell-Great-Primer-Small-Caps";
-    src: url("fonts/Fell/IMFeGPsc29P.ttf") format("truetype");
+    font-family: "Fell-De-Walpergens-Pica";
+    src: url("fonts/Fell/IMFePIrm29P.ttf") format("truetype");
     font-weight: 400;
     font-style: normal;
 }
@@ -207,13 +182,6 @@
 }
 
 @font-face {
-    font-family: "Fell-De-Walpergens-Pica";
-    src: url("fonts/Fell/IMFePIrm29P.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
-}
-
-@font-face {
     font-family: "Fell-De-Walpergens-Pica-Small-Caps";
     src: url("fonts/Fell/IMFePIsc29P.ttf") format("truetype");
     font-weight: 400;
@@ -221,10 +189,80 @@
 }
 
 @font-face {
+    font-family: "Fell-Double-Pica";
+    src: url("fonts/Fell/IMFeDPrm29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Fell-Double-Pica";
+    src: url("fonts/Fell/IMFeDPit29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Fell-Double-Pica-Small-Caps";
+    src: url("fonts/Fell/IMFeDPsc29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Fell-Great-Primer";
+    src: url("fonts/Fell/IMFeGPrm29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Fell-Great-Primer";
+    src: url("fonts/Fell/IMFeGPit29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Fell-Great-Primer-Small-Caps";
+    src: url("fonts/Fell/IMFeGPsc29P.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+
+@font-face {
     font-family: "Fell-Three-Lines-Pica";
     src: url("fonts/Fell/IMFeTLrm29P.ttf") format("truetype");
     font-weight: 400;
     font-style: normal;
+}
+
+@font-face {
+    font-family: "Libre-Baskerville";
+    src: url("fonts/LibreBaskerville/LibreBaskerville-Regular.ttf")
+        format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    size-adjust: 80%;
+}
+
+@font-face {
+    font-family: "Libre-Baskerville";
+    src: url("fonts/LibreBaskerville/LibreBaskerville-Italic.ttf")
+        format("truetype");
+    font-weight: 400;
+    font-style: italic;
+    size-adjust: 80%;
+}
+
+@font-face {
+    font-family: "Libre-Baskerville";
+    src: url("fonts/LibreBaskerville/LibreBaskerville-Bold.ttf")
+        format("truetype");
+    font-weight: 700;
+    font-style: normal;
+    size-adjust: 80%;
 }
 
 @font-face {
@@ -241,27 +279,6 @@
     font-style: normal;
 }
 
-@font-face {
-    font-family: "Libre-Baskerville";
-    src: url("fonts/LibreBaskerville/LibreBaskerville-Regular.ttf")
-        format("truetype");
-    font-weight: 400;
-    font-style: normal;
-}
-@font-face {
-    font-family: "Libre-Baskerville";
-    src: url("fonts/LibreBaskerville/LibreBaskerville-Italic.ttf")
-        format("truetype");
-    font-weight: 400;
-    font-style: italic;
-}
-@font-face {
-    font-family: "Libre-Baskerville";
-    src: url("fonts/LibreBaskerville/LibreBaskerville-Bold.ttf")
-        format("truetype");
-    font-weight: 700;
-    font-style: normal;
-}
 
 .typeface-serif {
     font-family: Crimson, Palatino, "Palatino Linotype", "Palatino LT STD",
@@ -805,6 +822,24 @@ mark {
     vertical-align: baseline;
     /* position: relative; */
     /* z-index: -100; */
+}
+
+.right-margin-numbered {
+    text-align: left;
+}
+
+.right-margin-scribble {
+    font-family: var(--font-cursive);
+    font-size: 1.3rem;
+    text-align: left;
+}
+
+.scribble-neutral {
+    color: var(--scribble-neutral);
+}
+
+.scribble-disagree {
+    color: var(--scribble-disagree);
 }
 
 .right-margin-number {
@@ -1618,24 +1653,6 @@ a:link.note-inline-link-disabled {
     left: 1rem;
     top: 1rem;
     right: 1rem;
-}
-
-.right-margin-numbered {
-    text-align: left;
-}
-
-.right-margin-scribble {
-    font-family: var(--font-cursive);
-    font-size: 1.8rem;
-    text-align: left;
-}
-
-.scribble-neutral {
-    color: var(--scribble-neutral);
-}
-
-.scribble-disagree {
-    color: var(--scribble-disagree);
 }
 
 label.right-margin-toggle {
