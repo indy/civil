@@ -1749,6 +1749,15 @@ section > form {
     text-align: right;
 }
 
+.left-margin-ui {
+    padding-top: 0.5rem;
+    float: left;
+    margin-left: -30%;
+    width: 30%;
+    color: var(--fg1);
+    text-align: right;
+}
+
 /* for providing the lhs distance from the margin */
 .left-margin-inner {
     padding-right: 1.2rem;
@@ -2328,6 +2337,11 @@ input:required {
         text-align: left;
         width: 28%;
     }
+    .left-margin-ui {
+        float: right;
+        text-align: left;
+        width: 28%;
+    }
 
     .ref-scribble {
         width: auto;
@@ -2361,13 +2375,17 @@ input:required {
         width: 100%;
         text-align: right;
     }
-    .left-margin-inner {
-        padding-right: 0;
-    }
 
     .left-margin-ui {
+        float: left;
         margin-left: -2rem;
+        width: 0%;
         text-align: left;
+        padding-top: 0;
+    }
+
+    .left-margin-inner {
+        padding-right: 0;
     }
 
     .muh-container {

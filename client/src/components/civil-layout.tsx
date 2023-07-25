@@ -50,11 +50,7 @@ export function CivLeft({
     ui?: boolean;
     children: ComponentChildren;
 }) {
-    let classes = "left-margin ";
-
-    if (ui) {
-        classes += "left-margin-ui ";
-    }
+    let classes = ui ? "left-margin-ui " : "left-margin ";
 
     if (extraClasses) {
         classes += extraClasses;
