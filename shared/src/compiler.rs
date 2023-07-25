@@ -54,7 +54,7 @@ fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> crate::Res
         Node::Green(_, ns) => element_hoisted_class("span", "green-text", key, note_id, ns)?,
         Node::Header(_, level, ns) => header_key(*level, key, note_id, ns)?,
         Node::Highlight(_, ns) => element_hoisted("mark", key, note_id, ns)?,
-        Node::HorizontalRule(_) => element("hr", key, note_id, &[])?,
+        Node::HorizontalRule(_) => element_class("hr", "hr-inline", key, note_id, &[])?,
         Node::Image(_, src, ns) => {
             let img = Element {
                 name: String::from("img"),

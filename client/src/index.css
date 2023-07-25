@@ -549,6 +549,11 @@ hr {
     padding: 0;
 }
 
+.hr-inline {
+    width: calc(var(--block-width) - 20%);
+    margin-left: 10%;
+}
+
 hr.light {
     height: 0.5rem;
     border-top: 0.15rem solid var(--bg1);
@@ -1998,7 +2003,7 @@ input:required {
     font-family: var(--font-cursive);
     color: var(--scribble-neutral);
     margin-left: 1rem;
-    font-size: 1.8rem;
+    font-size: 1.4rem;
 }
 .top-scribble {
     font-family: var(--font-cursive);
