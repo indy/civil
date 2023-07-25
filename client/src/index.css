@@ -1204,18 +1204,17 @@ textarea {
 .civil-button {
     transition: all 0.2s ease;
     font-family: var(--font-ui);
-    font-weight: 600;
-    background-color: var(--bg1);
+    font-weight: 500;
+    background-color: var(--bg-ui-control);
     color: var(--fg1);
-    border: 0.15rem solid var(--fg1);
+    border: 0;
     border-radius: var(--coloured-deck-border-radius);
-    padding: 0.3rem;
+    padding: 0.6rem;
     cursor: pointer;
 }
 
 .civil-button:hover {
-    background-color: var(--bg);
-    border: 0.15rem solid var(--fg);
+    background-color: var(--bg-ui-control-active);
 }
 
 .civil-button:active {
