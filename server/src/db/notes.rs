@@ -367,3 +367,43 @@ fn get_prev_note_id(sqlite_pool: &SqlitePool, id: Key) -> crate::Result<Option<K
                 WHERE  id=?1";
     sqlite::one(&conn, stmt, &[&id], prev_id_from_row)
 }
+
+pub(crate) fn replace_note_fonts(
+    conn: &Connection,
+    user_id: Key,
+    deck_id: Key,
+    original_font: Font,
+    new_font: Font,
+) -> crate::Result<()> {
+    let stmt = "UPDATE notes
+                SET font = ?4
+                WHERE user_id = ?1 AND deck_id = ?2 AND font = ?3";
+
+    sqlite::zero(
+        conn,
+        stmt,
+        params![
+            &user_id,
+            &deck_id,
+            &i32::from(original_font),
+            &i32::from(new_font)
+        ],
+    )
+}
+
+pub(crate) fn overwrite_note_fonts(
+    conn: &Connection,
+    user_id: Key,
+    deck_id: Key,
+    new_font: Font,
+) -> crate::Result<()> {
+    let stmt = "UPDATE notes
+                SET font = ?3
+                WHERE user_id = ?1 AND deck_id = ?2 AND font <> ?3";
+
+    sqlite::zero(
+        conn,
+        stmt,
+        params![&user_id, &deck_id, &i32::from(new_font)],
+    )
+}

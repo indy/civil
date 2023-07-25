@@ -180,29 +180,6 @@ pub(crate) fn deckbase_create(
     Ok(deckbase)
 }
 
-fn update_note_fonts(
-    conn: &Connection,
-    user_id: Key,
-    deck_id: Key,
-    original_font: Font,
-    new_font: Font,
-) -> crate::Result<()> {
-    let stmt = "UPDATE notes
-                SET font = ?4
-                WHERE user_id = ?1 AND deck_id = ?2 AND font = ?3";
-
-    sqlite::zero(
-        conn,
-        stmt,
-        params![
-            &user_id,
-            &deck_id,
-            &i32::from(original_font),
-            &i32::from(new_font)
-        ],
-    )
-}
-
 pub(crate) fn deckbase_edit(
     tx: &Connection,
     user_id: Key,
@@ -218,7 +195,7 @@ pub(crate) fn deckbase_edit(
 
     if original_font != font {
         // change all of this deck's notes that have the old font to the new font
-        update_note_fonts(tx, user_id, deck_id, original_font, font)?;
+        notes::replace_note_fonts(tx, user_id, deck_id, original_font, font)?;
     }
 
     let stmt = "UPDATE decks
@@ -763,6 +740,23 @@ pub(crate) fn search_using_deck_id(
     }
 
     Ok(results)
+}
+
+pub(crate) fn overwrite_deck_font(
+    conn: &Connection,
+    user_id: Key,
+    deck_id: Key,
+    new_font: Font,
+) -> crate::Result<()> {
+    let stmt = "UPDATE decks
+                SET font = ?3
+                WHERE user_id = ?1 AND id = ?2 AND font <> ?3";
+
+    sqlite::zero(
+        conn,
+        stmt,
+        params![&user_id, &deck_id, &i32::from(new_font)],
+    )
 }
 
 #[cfg(test)]

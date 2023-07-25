@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::decks;
+use crate::db::notes;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Error;
 use crate::interop::articles as interop;
@@ -213,6 +214,22 @@ pub(crate) fn edit(
     let article_extras_exists =
         sqlite::many(&tx, stmt, params![&article_id], article_extra_from_row)?;
 
+    const TWITTER_INSIGNIA_BIT: i32 = 1;
+    const BOOK_INSIGNIA_BIT: i32 = 2;
+
+    // twitter threads will use the sans font
+    if (article.insignia & TWITTER_INSIGNIA_BIT) == TWITTER_INSIGNIA_BIT {
+        dbg!("make look like twitter");
+        decks::overwrite_deck_font(&tx, user_id, article_id, Font::Sans)?;
+        notes::overwrite_note_fonts(&tx, user_id, article_id, Font::Sans)?;
+    }
+    // make book articles look bookish
+    if (article.insignia & BOOK_INSIGNIA_BIT) == BOOK_INSIGNIA_BIT {
+        dbg!("make look like a book");
+        decks::overwrite_deck_font(&tx, user_id, article_id, Font::DoublePica)?;
+        notes::overwrite_note_fonts(&tx, user_id, article_id, Font::DoublePica)?;
+    }
+
     let sql_query: &str = match article_extras_exists.len() {
         0 => {
             "INSERT INTO article_extras(deck_id, source, author, short_description, rating, published_date)
@@ -269,8 +286,13 @@ pub(crate) fn get_or_create(
     let rating = 0;
     let published_date = chrono::Utc::now().naive_utc().date();
 
-    let (deck, origin) =
-        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Article, title, Font::FrenchCanon)?;
+    let (deck, origin) = decks::deckbase_get_or_create(
+        &tx,
+        user_id,
+        DeckKind::Article,
+        title,
+        Font::LibreBaskerville,
+    )?;
 
     let article_extras =
         match origin {

@@ -280,7 +280,7 @@ function DialogueChat({ path }: { path?: string }) {
             aiKind: AiKind.OpenAIGpt35Turbo,
             insignia: 0,
             messages: messages,
-            font: Font.Serif,
+            font: Font.AI,
         };
 
         Net.post<ProtoDialogue, DeckDialogue>("/api/dialogues", data).then(
