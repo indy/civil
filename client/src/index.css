@@ -1224,7 +1224,7 @@ textarea {
     position: fixed;
     bottom: 0.5rem;
     left: 1rem;
-    width: 30rem;
+    width: 28rem;
     z-index: 200;
     cursor: pointer;
 }
