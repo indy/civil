@@ -230,10 +230,10 @@ export default function Memorise({ path }: { path?: string }) {
     }
 
     return (
-        <div>
-            <h1 class="ui">Memorisation</h1>
+        <div class="ui">
+            <h1>Memorisation</h1>
             {local.mode !== Mode.PostTest && (
-                <p class="ui">{plural(cardsToReview, "card", "s")} to review</p>
+                <p>{plural(cardsToReview, "card", "s")} to review</p>
             )}
             {local.mode === Mode.PreTest && !canTest && <p>{nextTestInfo}</p>}
             {local.mode === Mode.PreTest && canTest && (
