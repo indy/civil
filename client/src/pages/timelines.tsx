@@ -150,6 +150,7 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                 <SegmentPoints
                     points={deck.points}
                     deckManager={deckManager}
+                    title={deck.title}
                     showAddPointForm={appState.showAddPointForm.value}
                 />
 
@@ -321,10 +322,12 @@ function TimelineDeckPoint({
 
 function SegmentPoints({
     points,
+    title,
     deckManager,
     showAddPointForm,
 }: {
     points: Array<DeckPoint> | undefined;
+    title: string;
     deckManager: DM<DeckTimeline>;
     showAddPointForm: boolean;
 }) {
@@ -352,7 +355,7 @@ function SegmentPoints({
 
     let formSidebarText = showAddPointForm
         ? "Hide Form"
-        : `Add Point for { holderName }`;
+        : `Add Point for ${ title }`;
 
     const deck = deckManager.getDeck();
     const font = deck ? deck.font : immutableState.defaultFont;
