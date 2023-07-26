@@ -49,7 +49,7 @@ function declareSeeds(colourScheme: ColourScheme): ColourSeeds {
     if (colourScheme === ColourScheme.Light) {
         s = {
             uiFactor: 0.88,
-            uiActiveFactor: 0.80,
+            uiActiveFactor: 0.8,
 
             bgH: 46.5,
             bgS: 20.0,
@@ -152,12 +152,12 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
         bg_ui_control: [
             seeds.bgH,
             seeds.bgS,
-            seeds.bgL * seeds.uiFactor
+            seeds.bgL * seeds.uiFactor,
         ] as ColourTriple,
         bg_ui_control_active: [
             seeds.bgH,
             seeds.bgS,
-            seeds.bgL * seeds.uiActiveFactor
+            seeds.bgL * seeds.uiActiveFactor,
         ] as ColourTriple,
 
         fg: [

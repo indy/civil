@@ -72,7 +72,7 @@ var precacheConfig = [
     "/fonts/Fell/IMFePIit29P.ttf",
     "/fonts/Fell/IMFePIrm29P.ttf",
     "/fonts/Fell/IMFePIsc29P.ttf",
-    "/fonts/Fell/IMFeTLrm29P.ttf"
+    "/fonts/Fell/IMFeTLrm29.ttf"
 ];
 
 var urlsToCache = new Set();

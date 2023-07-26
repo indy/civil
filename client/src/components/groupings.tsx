@@ -5,12 +5,12 @@ import { DeckKind, DeckArticle, SlimDeck, ResultList } from "types";
 import { buildSlimDeck } from "utils/civil";
 
 import Net from "utils/net";
-import { svgExpand, svgMinimise } from "components/svg-icons";
 
 import DeckLink from "components/deck-link";
 import ListingLink from "components/listing-link";
 import { StarRatingWithinListing } from "components/star-rating";
 import { CivMain, CivContainer } from "components/civil-layout";
+import Toggler from "components/toggler";
 
 function SlimDeckList({ list }: { list: Array<SlimDeck> }) {
     return (
@@ -32,7 +32,7 @@ function SlimDeckGrouping({
     expanded,
     hideEmpty,
 }: SlimDeckGroupingProps) {
-    let [show, setShow] = useState(expanded);
+    let [show, setShow] = useState(expanded || false);
 
     function toggleShow() {
         setShow(!show);
@@ -42,12 +42,9 @@ function SlimDeckGrouping({
         return <div></div>;
     } else {
         return (
-            <div>
-                <p class="subheading ui" onClick={toggleShow}>
-                    {show ? svgMinimise() : svgExpand()} {label}
-                </p>
+            <Toggler toggleShow={toggleShow} label={label} show={show}>
                 {show && <ul class="compacted-list">{buildListing(list)}</ul>}
-            </div>
+            </Toggler>
         );
     }
 }
@@ -91,22 +88,11 @@ function LazyLoadedGrouping({ label, url }: LazyLoadedGroupingProps) {
         }
     }
 
-    if (localState.show) {
-        return (
-            <div>
-                <p class="subheading ui" onClick={toggleShow}>
-                    {svgMinimise()} {label}
-                </p>
-                <ul class="compacted-list">{buildListing(localState.list)}</ul>
-            </div>
-        );
-    } else {
-        return (
-            <p class="subheading ui" onClick={toggleShow}>
-                {svgExpand()} {label}
-            </p>
-        );
-    }
+    return (
+        <Toggler toggleShow={toggleShow} label={label} show={localState.show}>
+            <ul class="compacted-list">{buildListing(localState.list)}</ul>
+        </Toggler>
+    );
 }
 
 type RatedGroupingProps = {
@@ -116,28 +102,17 @@ type RatedGroupingProps = {
 };
 
 function RatedGrouping({ label, list, expanded }: RatedGroupingProps) {
-    let [show, setShow] = useState(expanded);
+    let [show, setShow] = useState(expanded || false);
 
     function toggleShow() {
         setShow(!show);
     }
 
-    if (show) {
-        return (
-            <div>
-                <p class="subheading ui" onClick={toggleShow}>
-                    {svgMinimise()} {label}
-                </p>
-                <ul class="standard-list">{buildRatingListing(list)}</ul>
-            </div>
-        );
-    } else {
-        return (
-            <p class="subheading ui" onClick={toggleShow}>
-                {svgExpand()} {label}
-            </p>
-        );
-    }
+    return (
+        <Toggler toggleShow={toggleShow} label={label} show={show}>
+            <ul class="standard-list">{show && buildRatingListing(list)}</ul>
+        </Toggler>
+    );
 }
 
 function buildListing(list: Array<SlimDeck>): Array<ComponentChildren> {

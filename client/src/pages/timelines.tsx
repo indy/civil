@@ -355,7 +355,7 @@ function SegmentPoints({
 
     let formSidebarText = showAddPointForm
         ? "Hide Form"
-        : `Add Point for ${ title }`;
+        : `Add Point for ${title}`;
 
     const deck = deckManager.getDeck();
     const font = deck ? deck.font : immutableState.defaultFont;

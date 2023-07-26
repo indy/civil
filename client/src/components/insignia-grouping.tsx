@@ -5,7 +5,7 @@ import { SlimDeck, ResultList } from "types";
 import ListingLink from "components/listing-link";
 
 import Net from "utils/net";
-import { svgExpand, svgMinimise } from "components/svg-icons";
+import Toggler from "components/toggler";
 
 import InsigniaSelector from "components/insignia-selector";
 
@@ -65,26 +65,17 @@ export default function InsigniaGrouping({ label }: InsigniaGroupingProps) {
         }
     }
 
-    if (localState.show) {
-        return (
-            <div>
-                <p class="subheading ui" onClick={toggleShow}>
-                    {svgMinimise()} {label}
-                </p>
-                <InsigniaSelector
-                    insigniaId={localState.insigniaVal}
-                    onChange={onChangeInsignia}
-                />
-                <ul class="compacted-list">{buildListing(localState.list)}</ul>
-            </div>
-        );
-    } else {
-        return (
-            <p class="subheading ui" onClick={toggleShow}>
-                {svgExpand()} {label}
-            </p>
-        );
-    }
+    return (
+        <Toggler toggleShow={toggleShow} label={label} show={localState.show}>
+            <InsigniaSelector
+                insigniaId={localState.insigniaVal}
+                onChange={onChangeInsignia}
+            />
+            <ul class="compacted-list">
+                {localState.show && buildListing(localState.list)}
+            </ul>
+        </Toggler>
+    );
 }
 
 function buildListing(list: Array<SlimDeck>): Array<ComponentChildren> {
