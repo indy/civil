@@ -1,6 +1,7 @@
 import { route } from "preact-router";
 
 import {
+    Role,
     PeopleListings,
     IdeasListings,
     ArticleListings,
@@ -67,6 +68,17 @@ export function fontClass(font: Font, rdp: RenderingDeckPart): string {
             return "typeface-" + fontToString(font) + rdpClassName(rdp);
         default:
             return "typeface-" + fontToString(font);
+    }
+}
+
+export function fontForRole(role: Role): Font {
+    switch (role) {
+        case Role.System:
+            return Font.Serif;
+        case Role.Assistant:
+            return Font.AI;
+        case Role.User:
+            return Font.Cursive;
     }
 }
 

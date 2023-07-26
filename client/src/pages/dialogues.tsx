@@ -14,10 +14,10 @@ import {
     WaitingFor,
 } from "types";
 
-import { getAppState, AppStateChange, immutableState } from "app-state";
+import { getAppState, AppStateChange } from "app-state";
 
 import Net from "utils/net";
-import { buildUrl, deckKindToHeadingString } from "utils/civil";
+import { fontForRole, buildUrl, deckKindToHeadingString } from "utils/civil";
 
 import InsigniaSelector from "components/insignia-selector";
 import SegmentGraph from "components/graph/segment-graph";
@@ -346,7 +346,7 @@ function DialogueChat({ path }: { path?: string }) {
             <CivMain>
                 {buildMarkup(
                     chatMessage.content,
-                    immutableState.defaultFont,
+                    fontForRole(chatMessage.role),
                     0
                 )}
             </CivMain>,
