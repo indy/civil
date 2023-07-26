@@ -2004,7 +2004,7 @@ input:required {
 /* standard list: every element is on a separate line */
 
 .standard-list {
-    padding-left: 1rem;
+    padding-left: 1rem !important;
     width: 100% !important;
 }
 
@@ -2370,7 +2370,7 @@ input:required {
     .left-margin {
         float: none;
         margin-left: 0;
-        width: 100%;
+        width: calc(100% - 1.4rem);
         text-align: right;
     }
 
@@ -2433,6 +2433,10 @@ input:required {
     .star-rating-partial {
         float: left;
         margin-left: -12rem;
+        padding-left: 5rem;
+    }
+    .svg-sized-hack {
+      width: 12px;
     }
 
     .role-view {

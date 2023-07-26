@@ -40,6 +40,7 @@ export function svgBlank() {
             viewBox="0 0 24 24"
             height="24"
             width="24"
+            class="svg-sized-hack"
         ></svg>
     );
 }
@@ -164,6 +165,7 @@ export function svgRatingStar() {
             viewBox="0 0 24 24"
             height="24"
             width="24"
+            class="svg-sized-hack"
         >
             <path
                 xmlns="http://www.w3.org/2000/svg"
