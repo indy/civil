@@ -1724,10 +1724,8 @@ section > form {
 .muh-main > ol,
 .muh-main > div > ul,
 .muh-main > ul {
-    width: var(--block-width);
-}
-.note li {
-    width: 96%;
+  width: calc(var(--block-width) - 2%);
+  padding-left: 2rem;
 }
 
 .note-controls-container {
@@ -2394,6 +2392,14 @@ input:required {
         margin-left: 3rem;
         margin-right: 2rem;
     }
+
+    .muh-main > div > ol,
+    .muh-main > ol,
+    .muh-main > div > ul,
+    .muh-main > ul {
+      width: calc(var(--block-width) - 6%);
+    }
+
 
     html {
         font-size: 10px;
