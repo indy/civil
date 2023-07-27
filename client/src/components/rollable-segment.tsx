@@ -3,7 +3,7 @@ import { useState } from "preact/hooks";
 
 import { Font, RenderingDeckPart } from "types";
 
-import { fontClass } from "utils/civil";
+import { fontClass } from "shared/font";
 
 import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 

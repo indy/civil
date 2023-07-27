@@ -2,7 +2,8 @@ import { h } from "preact";
 
 import { SlimDeck, Font } from "types";
 
-import { nonEmptyArray, plural } from "utils/js";
+import { nonEmptyArray } from "shared/civil";
+import { plural } from "shared/english";
 
 import RollableSegment from "components/rollable-segment";
 import ListingLink from "components/listing-link";

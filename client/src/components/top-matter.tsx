@@ -12,7 +12,8 @@ import { renderInsignia } from "components/insignia-renderer";
 
 import useMouseHovering from "components/use-mouse-hovering";
 
-import { fontClass, addToolbarSelectableClasses } from "utils/civil";
+import { addToolbarSelectableClasses } from "shared/css";
+import { fontClass } from "shared/font";
 
 type Props = {
     title: string;

@@ -2,12 +2,12 @@ import { h } from "preact";
 
 import { getAppState } from "app-state";
 
-import { IdeasModule } from "pages/ideas";
-import { PeopleModule } from "pages/people";
-import { ArticlesModule } from "pages/articles";
-import { TimelinesModule } from "pages/timelines";
-import { DialoguesModule } from "pages/dialogues";
-import { QuotesModule } from "pages/quotes";
+import { IdeasModule } from "components/page-ideas";
+import { PeopleModule } from "components/page-people";
+import { ArticlesModule } from "components/page-articles";
+import { TimelinesModule } from "components/page-timelines";
+import { DialoguesModule } from "components/page-dialogues";
+import { QuotesModule } from "components/page-quotes";
 
 import InsigniaGrouping from "components/insignia-grouping";
 import { LazyLoadedGrouping } from "components/groupings";

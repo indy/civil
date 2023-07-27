@@ -2,8 +2,8 @@ import { h } from "preact";
 
 import { FatDeck, Note, WaitingFor } from "types";
 import { AppStateChange, getAppState } from "app-state";
-import Net from "utils/net";
-import buildSimplifiedText from "components/notes/build-simplified-text";
+import Net from "shared/net";
+import buildSimplifiedText from "components/build-simplified-text";
 
 type AutoSummarizeProps = {
     deck: FatDeck;

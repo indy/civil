@@ -3,7 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 
 import { Key, DeckPoint, PointKind, ProtoPoint } from "types";
 
-import { parseDateStringAsTriple, deltaInYears } from "utils/eras";
+import { parseDateStringAsTriple, deltaInYears } from "shared/time";
 
 import PointForm from "components/point-form";
 

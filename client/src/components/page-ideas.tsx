@@ -11,9 +11,9 @@ import {
     ResultList,
 } from "types";
 
-import Net from "utils/net";
-import { deckKindToHeadingString } from "utils/civil";
-import { formattedDate } from "utils/js";
+import Net from "shared/net";
+import { deckKindToHeadingString } from "shared/deck";
+import { formattedDate } from "shared/time";
 import { getAppState, AppStateChange } from "app-state";
 
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
@@ -25,8 +25,8 @@ import InsigniaSelector from "components/insignia-selector";
 import FontSelector from "components/font-selector";
 import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
-import SegmentGraph from "components/graph/segment-graph";
-import SegmentNotes from "components/notes/segment-notes";
+import SegmentGraph from "components/segment-graph";
+import SegmentNotes from "components/segment-notes";
 import SegmentSearchResults from "components/segment-search-results";
 import TopMatter from "components/top-matter";
 import { SlimDeckGrouping } from "components/groupings";

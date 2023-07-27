@@ -2,14 +2,14 @@ import { h } from "preact";
 
 import { BackRefNote, Reference, SlimDeck, RenderingDeckPart } from "types";
 
-import { fontClass } from "utils/civil";
+import { fontClass } from "shared/font";
 
 import { svgCaretRight, svgCaretDown } from "components/svg-icons";
 
 import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 import DeckLink from "components/deck-link";
 import RefView from "components/ref-view";
-import buildMarkup from "components/notes/build-markup";
+import buildMarkup from "components/build-markup";
 
 type ExpandableBackRefListingProps = {
     index: number;

@@ -15,10 +15,10 @@ import {
 
 import { getAppState, AppStateChange } from "app-state";
 
-import Net from "utils/net";
-import { deckKindToResourceString } from "utils/civil";
+import Net from "shared/net";
+import { deckKindToResourceString } from "shared/deck";
 
-import { graphPhysics } from "components/graph/graph-physics";
+import { graphPhysics } from "components/graph-physics";
 import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 import useLocalReducer from "components/use-local-reducer";
 import useModalKeyboard from "components/use-modal-keyboard";

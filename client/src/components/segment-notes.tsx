@@ -11,7 +11,7 @@ import {
     CivilMode,
 } from "types";
 
-import Passage from "components/notes/passage";
+import Passage from "components/passage";
 import RollableSegment from "components/rollable-segment";
 import { getAppState } from "app-state";
 

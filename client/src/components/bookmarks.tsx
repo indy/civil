@@ -2,7 +2,7 @@ import { h } from "preact";
 
 import { Bookmark } from "types";
 
-import Net from "utils/net";
+import { deleteBookmark } from "shared/bookmarks";
 
 import { getAppState, AppStateChange } from "app-state";
 
@@ -14,11 +14,7 @@ export default function Bookmarks() {
 
     function buildBookmark(bookmark: Bookmark) {
         function clickedDelete() {
-            Net.delete<{}, Array<Bookmark>>(`/api/bookmarks/${bookmark.id}`, {}).then(
-                (bookmarks) => {
-                    AppStateChange.setBookmarks(bookmarks);
-                }
-            );
+            deleteBookmark(bookmark.id);
         }
 
         return (

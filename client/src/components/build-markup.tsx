@@ -2,7 +2,7 @@ import { h, ComponentChildren } from "preact";
 
 import { Font, Key, RenderingDeckPart } from "types";
 
-import { fontClass } from "utils/civil";
+import { fontClass } from "shared/font";
 
 import Anchor from "components/anchor";
 import Image from "components/image";

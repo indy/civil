@@ -5,7 +5,8 @@ import { RenderingDeckPart, Note, Reference, RefKind, CivilMode } from "types";
 
 import { getAppState } from "app-state";
 
-import { fontClass, deckKindToResourceString } from "utils/civil";
+import { deckKindToResourceString } from "shared/deck";
+import { fontClass } from "shared/font";
 
 import DeckLink from "components/deck-link";
 

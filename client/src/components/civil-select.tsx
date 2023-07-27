@@ -13,13 +13,10 @@ import {
     RenderingDeckPart,
 } from "types";
 
-import {
-    deckKindToResourceString,
-    indexToShortcut,
-    sortByDeckKindThenName,
-    fontClass,
-} from "utils/civil";
-import Net from "utils/net";
+import { indexToShortcut } from "shared/command";
+import { deckKindToResourceString, sortByDeckKindThenName } from "shared/deck";
+import { fontClass } from "shared/font";
+import Net from "shared/net";
 import { AppStateChange, getAppState, immutableState } from "app-state";
 
 import { svgCloseShifted } from "components/svg-icons";

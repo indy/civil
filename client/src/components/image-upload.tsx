@@ -1,5 +1,5 @@
 import { UserUploadedImage } from "types";
-import Net from "utils/net";
+import Net from "shared/net";
 
 export default async function uploadImages(
     files: FileList

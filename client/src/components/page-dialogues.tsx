@@ -16,12 +16,14 @@ import {
 
 import { getAppState, AppStateChange } from "app-state";
 
-import Net from "utils/net";
-import { fontForRole, buildUrl, deckKindToHeadingString } from "utils/civil";
+import Net from "shared/net";
+import { buildUrl } from "shared/civil";
+import { deckKindToHeadingString } from "shared/deck";
+import { fontForRole } from "shared/font";
 
 import InsigniaSelector from "components/insignia-selector";
-import SegmentGraph from "components/graph/segment-graph";
-import SegmentNotes from "components/notes/segment-notes";
+import SegmentGraph from "components/segment-graph";
+import SegmentNotes from "components/segment-notes";
 
 import {
     CivContainer,
@@ -39,7 +41,7 @@ import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import TopMatter from "components/top-matter";
 import { SlimDeckList } from "components/groupings";
-import buildMarkup from "components/notes/build-markup";
+import buildMarkup from "components/build-markup";
 import CivilTextArea from "components/civil-text-area";
 import CivilButton from "components/civil-button";
 

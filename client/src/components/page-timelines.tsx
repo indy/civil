@@ -12,7 +12,7 @@ import {
     PassageType,
 } from "types";
 
-import Net from "utils/net";
+import Net from "shared/net";
 import { getAppState, AppStateChange, immutableState } from "app-state";
 import {
     svgCaretDown,
@@ -32,8 +32,8 @@ import InsigniaSelector from "components/insignia-selector";
 import RollableSegment from "components/rollable-segment";
 import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
-import SegmentGraph from "components/graph/segment-graph";
-import SegmentNotes from "components/notes/segment-notes";
+import SegmentGraph from "components/segment-graph";
+import SegmentNotes from "components/segment-notes";
 import TopMatter from "components/top-matter";
 import FontSelector from "components/font-selector";
 import WhenEditMode from "components/when-edit-mode";
@@ -45,7 +45,7 @@ import {
     CivLeftLabel,
 } from "components/civil-layout";
 
-import { deckKindToHeadingString } from "utils/civil";
+import { deckKindToHeadingString } from "shared/deck";
 
 function Timelines({ path }: { path?: string }) {
     const appState = getAppState();

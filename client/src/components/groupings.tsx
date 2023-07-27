@@ -2,9 +2,9 @@ import { h, ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 
 import { DeckKind, DeckArticle, SlimDeck, ResultList } from "types";
-import { buildSlimDeck } from "utils/civil";
+import { buildSlimDeck } from "shared/deck";
 
-import Net from "utils/net";
+import Net from "shared/net";
 
 import DeckLink from "components/deck-link";
 import ListingLink from "components/listing-link";

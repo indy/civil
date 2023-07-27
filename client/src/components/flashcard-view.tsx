@@ -2,8 +2,8 @@ import { h } from "preact";
 
 import { FlashCard } from "types";
 
-import Net from "utils/net";
-import { plural } from "utils/js";
+import Net from "shared/net";
+import { plural } from "shared/english";
 
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";

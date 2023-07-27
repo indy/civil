@@ -6,7 +6,7 @@ import { ColourScheme, WaitingFor } from "types";
 
 import { getAppState, AppStateChange } from "app-state";
 
-import Net from "utils/net";
+import Net from "shared/net";
 
 import Module from "components/module";
 

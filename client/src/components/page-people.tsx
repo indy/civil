@@ -19,9 +19,11 @@ import {
     RenderingDeckPart,
 } from "types";
 
-import Net from "utils/net";
-import { calcAgeInYears, dateStringAsTriple } from "utils/eras";
-import { buildUrl, deckKindToHeadingString, fontClass } from "utils/civil";
+import Net from "shared/net";
+import { calcAgeInYears, dateStringAsTriple } from "shared/time";
+import { buildUrl } from "shared/civil";
+import { deckKindToHeadingString } from "shared/deck";
+import { fontClass } from "shared/font";
 import { getAppState, AppStateChange, immutableState } from "app-state";
 import {
     svgBlank,
@@ -45,8 +47,8 @@ import PointForm from "components/point-form";
 import RollableSegment from "components/rollable-segment";
 import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
-import SegmentGraph from "components/graph/segment-graph";
-import SegmentNotes from "components/notes/segment-notes";
+import SegmentGraph from "components/segment-graph";
+import SegmentNotes from "components/segment-notes";
 import SegmentSearchResults from "components/segment-search-results";
 import TopMatter from "components/top-matter";
 import FontSelector from "components/font-selector";

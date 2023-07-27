@@ -3,9 +3,12 @@ import { useState, useRef } from "preact/hooks";
 
 import { DeckPoint, PointKind, ProtoPoint } from "types";
 
-import Net from "utils/net";
-import { capitalise } from "utils/js";
-import { parseDateStringAsTriple, parseDateStringAsYearOnly } from "utils/eras";
+import Net from "shared/net";
+import { capitalise } from "shared/english";
+import {
+    parseDateStringAsTriple,
+    parseDateStringAsYearOnly,
+} from "shared/time";
 
 import CivilInput from "components/civil-input";
 import CivilTextArea from "components/civil-text-area";

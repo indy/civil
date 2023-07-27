@@ -3,11 +3,11 @@ import "./index.css";
 
 import { ColourScheme, User, UberSetup } from "types";
 
-import { getCssString, getCssBoolean } from "utils/js";
-import Net from "utils/net";
+import { getCssString, getCssBoolean } from "shared/css";
+import Net from "shared/net";
 import { App } from "app";
 import { AppStateChange, initialState } from "app-state";
-import { buildColourConversionFn } from "utils/colour-creator";
+import { buildColourConversionFn } from "shared/colour-creator";
 
 wasm_bindgen("/civil_wasm_bg.wasm")
     .then(() => {

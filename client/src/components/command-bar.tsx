@@ -4,7 +4,6 @@ import { route } from "preact-router";
 
 import {
     Key,
-    Bookmark,
     Command,
     CommandBarMode,
     DeckKind,
@@ -15,14 +14,11 @@ import {
     State,
 } from "types";
 
-import Net from "utils/net";
+import Net from "shared/net";
+import { addBookmark, addMultipleBookmarks } from "shared/bookmarks";
 import { getAppState, AppStateChange } from "app-state";
-import {
-    isCommand,
-    deckKindToResourceString,
-    indexToShortcut,
-    createDeck,
-} from "utils/civil";
+import { isCommand, indexToShortcut } from "shared/command";
+import { deckKindToResourceString, createDeck } from "shared/deck";
 
 import DeckLink from "components/deck-link";
 
@@ -132,11 +128,7 @@ const Commands: Array<Command> = [
             let state: State = args[0];
             let id: Key | undefined = getIdFromUrl(state.url.value);
             if (id) {
-                Net.post<Key, Array<Bookmark>>("/api/bookmarks", id).then(
-                    (bookmarks) => {
-                        AppStateChange.setBookmarks(bookmarks);
-                    }
-                );
+                addBookmark(id);
             }
             return true;
         },
@@ -186,12 +178,7 @@ function inputGiven(state: State, text: string) {
                         keyDownIndex: -1,
                     };
 
-                    Net.post<Key, Array<Bookmark>>(
-                        "/api/bookmarks",
-                        candidate.id
-                    ).then((bookmarks) => {
-                        AppStateChange.setBookmarks(bookmarks);
-                    });
+                    addBookmark(candidate.id);
                 }
             }
         }
@@ -255,15 +242,9 @@ export default function CommandBar() {
                     commandBarState.showKeyboardShortcuts &&
                     commandBarState.mode === CommandBarMode.Search
                 ) {
-                    let deck_ids: Array<Key> =
+                    let deckIds: Array<Key> =
                         commandBarState.searchCandidates.map((c) => c.id);
-                    Net.post<Array<Key>, Array<Bookmark>>(
-                        "/api/bookmarks/multi",
-                        deck_ids
-                    ).then((bookmarks) => {
-                        AppStateChange.setBookmarks(bookmarks);
-                    });
-
+                    addMultipleBookmarks(deckIds);
                     AppStateChange.cbKeyDownPlusHack();
                 }
             }

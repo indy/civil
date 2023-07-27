@@ -5,7 +5,7 @@ import { UserUploadedImage } from "types";
 
 import { AppStateChange } from "app-state";
 
-import uploadImages from "components/images/image-upload";
+import uploadImages from "components/image-upload";
 
 import useDragDrop from "components/use-drag-drop";
 

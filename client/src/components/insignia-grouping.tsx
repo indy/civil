@@ -4,7 +4,7 @@ import { useState } from "preact/hooks";
 import { SlimDeck, ResultList } from "types";
 import ListingLink from "components/listing-link";
 
-import Net from "utils/net";
+import Net from "shared/net";
 import Toggler from "components/toggler";
 
 import InsigniaSelector from "components/insignia-selector";

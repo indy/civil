@@ -37,8 +37,10 @@ import {
     Bookmark,
 } from "types";
 
-import { isCommand, noteSeq, deckKindToResourceString } from "utils/civil";
-import { generateColoursFromSeeds, declareSeeds } from "utils/colour-creator";
+import { isCommand } from "shared/command";
+import { deckKindToResourceString } from "shared/deck";
+import { noteSeq } from "shared/seq";
+import { generateColoursFromSeeds, declareSeeds } from "shared/colour-creator";
 
 const emptyUser: User = {
     username: "",

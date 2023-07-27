@@ -4,17 +4,17 @@ import { route } from "preact-router";
 
 import { Font, Key, DM, DeckKind, NoteKind, DeckQuote } from "types";
 
-import Net from "utils/net";
-import buildMarkup from "components/notes/build-markup";
+import Net from "shared/net";
+import buildMarkup from "components/build-markup";
 import { AppStateChange, immutableState } from "app-state";
-import { deckKindToHeadingString } from "utils/civil";
+import { deckKindToHeadingString } from "shared/deck";
 
 import CivilButton from "components/civil-button";
 import CivilInput from "components/civil-input";
 import CivilTextArea from "components/civil-text-area";
 import Module from "components/module";
 import DeleteConfirmation from "components/delete-confirmation";
-import SegmentNotes from "components/notes/segment-notes";
+import SegmentNotes from "components/segment-notes";
 import useDeckManager from "components/use-deck-manager";
 import useLocalReducer from "components/use-local-reducer";
 import useModalKeyboard from "components/use-modal-keyboard";

@@ -15,8 +15,8 @@ import {
 import { getAppState, AppStateChange } from "app-state";
 
 import InsigniaSelector from "components/insignia-selector";
-import SegmentGraph from "components/graph/segment-graph";
-import SegmentNotes from "components/notes/segment-notes";
+import SegmentGraph from "components/segment-graph";
+import SegmentNotes from "components/segment-notes";
 
 import AutoSummarize from "components/auto-summarize";
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
@@ -38,9 +38,10 @@ import {
     CivLeftLabel,
 } from "components/civil-layout";
 
-import Net from "utils/net";
-import { buildUrl, deckKindToHeadingString } from "utils/civil";
-import { formattedDate } from "utils/js";
+import Net from "shared/net";
+import { buildUrl } from "shared/civil";
+import { deckKindToHeadingString } from "shared/deck";
+import { formattedDate } from "shared/time";
 
 function Articles({ path }: { path?: string }) {
     const appState = getAppState();

@@ -12,7 +12,8 @@ import {
 } from "types";
 
 import { getAppState, AppStateChange } from "app-state";
-import { fontClass, addToolbarSelectableClasses } from "utils/civil";
+import { addToolbarSelectableClasses } from "shared/css";
+import { fontClass } from "shared/font";
 
 import { CivContainer } from "components/civil-layout";
 import CivilSelect from "components/civil-select";

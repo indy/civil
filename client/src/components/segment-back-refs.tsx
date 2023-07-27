@@ -3,7 +3,8 @@ import { useState } from "preact/hooks";
 
 import { Font, BackRefDeck, DeckKind, FatDeck, RenderingDeckPart } from "types";
 
-import { buildSlimDeck, deckKindToHeadingString, fontClass } from "utils/civil";
+import { buildSlimDeck, deckKindToHeadingString } from "shared/deck";
+import { fontClass } from "shared/font";
 import { immutableState } from "app-state";
 import { svgCaretDown, svgCaretRight } from "components/svg-icons";
 

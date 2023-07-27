@@ -21,19 +21,15 @@ import {
 
 import { getAppState, AppStateChange } from "app-state";
 
-import Passage from "components/notes/passage";
+import Passage from "components/passage";
 
 import PointForm from "components/point-form";
 
-import { nonEmptyArray } from "utils/js";
-import { bitset } from "utils/bitops";
-import {
-    buildUrl,
-    noteSeq,
-    noteSeqsForPoints,
-    sortByDeckKindThenName,
-} from "utils/civil";
-import Net from "utils/net";
+import { bitset } from "shared/bitops";
+import { noteSeq, noteSeqsForPoints } from "shared/seq";
+import { sortByDeckKindThenName } from "shared/deck";
+import { buildUrl, nonEmptyArray } from "shared/civil";
+import Net from "shared/net";
 
 type DeckManagerState<T extends FatDeck> = {
     deck: T | undefined;

@@ -2,7 +2,7 @@ import { h } from "preact";
 
 import { RenderingDeckPart, Role } from "types";
 
-import { fontClass, fontForRole } from "utils/civil";
+import { fontClass, fontForRole } from "shared/font";
 
 import { getAppState } from "app-state";
 

@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { bitset } from "utils/bitops";
+import { bitset } from "shared/bitops";
 
 export function renderInsignia(insigniaId: number) {
     return (

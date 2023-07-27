@@ -10,24 +10,24 @@ import {
     immutableState,
 } from "app-state";
 
-import Net from "utils/net";
-import { capitalise } from "utils/js";
+import Net from "shared/net";
+import { capitalise } from "shared/english";
 
 import Previewer from "components/previewer";
 import Bookmarks from "components/bookmarks";
 import CommandBar from "components/command-bar";
 import { DeluxeToolbar } from "components/deluxe-toolbar";
 
-import AccountSettings from "pages/account-settings";
-import FrontPage from "pages/front-page";
-import Login from "pages/login";
-import Memorise from "pages/memorise";
-import { Article, Articles } from "pages/articles";
-import { Dialogue, DialogueChat, Dialogues } from "pages/dialogues";
-import { Ideas, Idea } from "pages/ideas";
-import { Person, People } from "pages/people";
-import { Quote, Quotes } from "pages/quotes";
-import { Timeline, Timelines } from "pages/timelines";
+import AccountSettings from "components/page-account-settings";
+import FrontPage from "components/page-front-page";
+import Login from "components/page-login";
+import Memorise from "components/page-memorise";
+import { Article, Articles } from "components/page-articles";
+import { Dialogue, DialogueChat, Dialogues } from "components/page-dialogues";
+import { Ideas, Idea } from "components/page-ideas";
+import { Person, People } from "components/page-people";
+import { Quote, Quotes } from "components/page-quotes";
+import { Timeline, Timelines } from "components/page-timelines";
 
 import { svgClock } from "components/svg-loaders";
 

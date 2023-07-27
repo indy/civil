@@ -3,15 +3,16 @@ import { useEffect } from "preact/hooks";
 
 import { Key, SlimDeck } from "types";
 
-import Net from "utils/net";
+import Net from "shared/net";
 import { getAppState, AppStateChange, immutableState } from "app-state";
-import { plural, formattedDate, formattedTime } from "utils/js";
+import { plural } from "shared/english";
+import { formattedDate, formattedTime } from "shared/time";
 
 import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 import DeckLink from "components/deck-link";
 import useLocalReducer from "components/use-local-reducer";
 
-import buildMarkup from "components/notes/build-markup";
+import buildMarkup from "components/build-markup";
 
 enum Mode {
     PreTest,

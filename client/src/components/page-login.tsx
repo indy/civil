@@ -4,8 +4,8 @@ import { route } from "preact-router";
 
 import { User } from "types";
 
-import Net from "utils/net";
-import { getCssString } from "utils/js";
+import Net from "shared/net";
+import { getCssString } from "shared/css";
 import { getAppState } from "app-state";
 
 import {

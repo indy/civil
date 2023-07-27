@@ -6,7 +6,7 @@ import { UserUploadedImage } from "types";
 import { AppStateChange } from "app-state";
 
 import { CivLeft } from "components/civil-layout";
-import uploadImages from "components/images/image-upload";
+import uploadImages from "components/image-upload";
 
 import { getAppState } from "app-state";
 import { svgX } from "components/svg-icons";

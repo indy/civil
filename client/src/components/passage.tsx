@@ -13,13 +13,13 @@ import {
     CivilMode,
 } from "types";
 
-import Net from "utils/net";
+import Net from "shared/net";
 import { getAppState, AppStateChange } from "app-state";
 import { svgEdit } from "components/svg-icons";
 
 import { CivContainer, CivLeft } from "components/civil-layout";
-import NoteForm from "components/notes/note-form";
-import NoteView from "components/notes/note-view";
+import NoteForm from "components/note-form";
+import NoteView from "components/note-view";
 import WhenEditMode from "components/when-edit-mode";
 
 type PassageProps = {

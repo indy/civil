@@ -1,18 +1,15 @@
 import { h, ComponentChildren } from "preact";
-import { useRef /*, useState*/ } from "preact/hooks";
+import { useRef } from "preact/hooks";
 import { Link } from "preact-router";
 
-import {
-    Key,
-    Bookmark,
-    PreviewNotes,
-    RenderingDeckPart,
-    SlimDeck,
-    CivilMode,
-} from "types";
+import { PreviewNotes, RenderingDeckPart, SlimDeck, CivilMode } from "types";
 
-import Net from "utils/net";
-import { buildUrl, deckKindToResourceString, fontClass } from "utils/civil";
+import Net from "shared/net";
+import { buildUrl } from "shared/civil";
+import { deckKindToResourceString } from "shared/deck";
+import { fontClass } from "shared/font";
+import { addBookmark } from "shared/bookmarks";
+
 import { getAppState, AppStateChange } from "app-state";
 import { renderInsignia, svgBookmarkLink } from "components/insignia-renderer";
 
@@ -62,11 +59,7 @@ export default function DeckLink({
 
     function bookmarkModeClicked() {
         AppStateChange.hidePreviewDeck(slimDeck.id);
-        Net.post<Key, Array<Bookmark>>("/api/bookmarks", slimDeck.id).then(
-            (bookmarks) => {
-                AppStateChange.setBookmarks(bookmarks);
-            }
-        );
+        addBookmark(slimDeck.id);
     }
 
     const tc = fontClass(slimDeck.font, RenderingDeckPart.UiInterleaved);

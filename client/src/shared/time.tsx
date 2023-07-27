@@ -1,3 +1,26 @@
+export function formattedDate(timestamp: string) {
+    const options: Intl.DateTimeFormatOptions = {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    };
+    const d = new Date(timestamp);
+    const textual = d.toLocaleDateString("en-GB", options);
+
+    return textual;
+}
+
+export function formattedTime(timestamp: string) {
+    const options: Intl.DateTimeFormatOptions = {
+        hour: "2-digit",
+        minute: "2-digit",
+    };
+    const d = new Date(timestamp);
+    const textual = d.toLocaleTimeString("en-GB", options);
+
+    return textual;
+}
+
 // given a date, return the number of years since that date
 export function deltaInYears(year: number, month: number, day: number) {
     let earlier: number = new Date(Date.UTC(year, month, day)).valueOf();
