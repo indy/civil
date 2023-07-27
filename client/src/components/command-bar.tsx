@@ -123,9 +123,9 @@ const Commands: Array<Command> = [
     },
     {
         command: "b",
-        description: "bookmark current page to scratchlist",
+        description: "bookmark current page to bookmark",
         fn: () => {
-            AppStateChange.addCurrentUrlToScratchList();
+            AppStateChange.addCurrentUrlToBookmark();
             return true;
         },
     },

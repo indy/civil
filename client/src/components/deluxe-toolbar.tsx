@@ -12,7 +12,7 @@ import {
     svgLinkAlt,
     svgFlashCard,
     svgAddAbove,
-    svgScratchList,
+    svgBookmark,
     svgSearch,
     svgHome,
 } from "components/svg-icons";
@@ -91,12 +91,12 @@ export function DeluxeToolbar({}) {
                         {svgAddAbove()}
                     </ToolbarItem>
                 )}
-                {isCivilModeAllowed(appState, CivilMode.ScratchListLinks) && (
+                {isCivilModeAllowed(appState, CivilMode.BookmarkLinks) && (
                     <ToolbarItem
-                        mode={CivilMode.ScratchListLinks}
+                        mode={CivilMode.BookmarkLinks}
                         toolbarText="Bookmarks"
                     >
-                        {svgScratchList()}
+                        {svgBookmark()}
                     </ToolbarItem>
                 )}
             </div>
@@ -158,7 +158,7 @@ function baseCssName(mode: CivilMode) {
             return "memorise";
         case CivilMode.AddAbove:
             return "add-above";
-        case CivilMode.ScratchListLinks:
-            return "scratchlist-links";
+        case CivilMode.BookmarkLinks:
+            return "bookmark-links";
     }
 }

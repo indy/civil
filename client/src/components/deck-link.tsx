@@ -9,7 +9,7 @@ import { buildUrl, deckKindToResourceString, fontClass } from "utils/civil";
 import { getAppState, AppStateChange } from "app-state";
 import {
     renderInsignia,
-    svgScratchListLink,
+    svgBookmarkLink,
 } from "components/insignia-renderer";
 
 // import useMouseHovering from "components/use-mouse-hovering";
@@ -56,9 +56,9 @@ export default function DeckLink({
         }
     }
 
-    function scratchListModeClicked() {
+    function bookmarkModeClicked() {
         AppStateChange.hidePreviewDeck(slimDeck.id);
-        AppStateChange.addScratchListLink(slimDeck);
+        AppStateChange.addBookmarkLink(slimDeck);
     }
 
     const tc = fontClass(slimDeck.font, RenderingDeckPart.UiInterleaved);
@@ -67,12 +67,12 @@ export default function DeckLink({
     let klass = `${tc} ${ec} pigment-fg-${dk}`;
 
     let elem: any;
-    if (!alwaysLink && appState.mode.value === CivilMode.ScratchListLinks) {
-        klass += " scratchlistmode-active";
+    if (!alwaysLink && appState.mode.value === CivilMode.BookmarkLinks) {
+        klass += " bookmarkmode-active";
         elem = (
-            <span class={klass} onClick={scratchListModeClicked}>
+            <span class={klass} onClick={bookmarkModeClicked}>
                 {children}
-                {svgScratchListLink("#F91880")}
+                {svgBookmarkLink("#F91880")}
                 {renderInsignia(slimDeck.insignia)}
                 {slimDeck.title}
             </span>

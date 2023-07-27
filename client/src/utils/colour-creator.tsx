@@ -271,7 +271,7 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
         fg_toolbar_refs: [270, 80, 50] as ColourTriple,
         fg_toolbar_memorise: [170, 80, 50] as ColourTriple,
         fg_toolbar_add_above: [210, 80, 50] as ColourTriple,
-        fg_toolbar_scratchlist: [70, 80, 50] as ColourTriple,
+        fg_toolbar_bookmark: [70, 80, 50] as ColourTriple,
 
         graph_node_expanded: [127, 60, 70] as ColourTriple,
         graph_node_partial: [37, 60, 70] as ColourTriple,

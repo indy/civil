@@ -73,7 +73,7 @@ export enum CivilMode {
     Refs,
     Memorise,
     AddAbove,
-    ScratchListLinks,
+    BookmarkLinks,
 }
 
 export enum PassageHowToShow {
@@ -391,8 +391,8 @@ export type State = {
     showConnectivityGraph: Signal<boolean>;
     graph: Signal<Graph>;
 
-    scratchList: Signal<Array<SlimDeck>>;
-    scratchListMinimised: Signal<boolean>;
+    bookmarks: Signal<Array<SlimDeck>>;
+    bookmarksMinimised: Signal<boolean>;
 
     memoriseReviewCount: Signal<number>;
     memoriseEarliestReviewDate: Signal<undefined | string>;

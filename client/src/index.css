@@ -379,7 +379,7 @@
     left: 0;
 }
 
-.scratchlistmode-active {
+.bookmarkmode-active {
     background: var(--highlight);
     border-radius: var(--coloured-deck-border-radius);
     padding: 0.3rem;
@@ -1213,7 +1213,7 @@ textarea {
 .civil-button:active {
 }
 
-#scratchlist-component {
+#bookmark-component {
     position: fixed;
     bottom: 0.5rem;
     left: 1rem;
@@ -1222,13 +1222,13 @@ textarea {
     cursor: pointer;
 }
 
-.scratchlist-menu {
+.bookmark-menu {
     display: flex;
     flex-direction: row;
     margin-left: 0.3rem;
 }
 
-.scratchlist-menu-tip {
+.bookmark-menu-tip {
     font-family: var(--font-ui);
     color: var(--fg-inactive);
     margin-left: 0.4rem;
@@ -1238,17 +1238,17 @@ textarea {
     padding-left: 0;
 }
 
-#scratchlist-results {
+#bookmark-results {
     background: white !important;
     max-height: 50rem;
     overflow: auto;
 }
 
-.scratchlist-result {
+.bookmark-result {
     display: flex;
     flex-direction: row;
 }
-.scratchlist-result-remove {
+.bookmark-result-remove {
     padding-top: 0.2rem;
 }
 
@@ -2226,9 +2226,9 @@ input:required {
     color: var(--fg-toolbar-add-above);
     fill: var(--fg-toolbar-add-above);
 }
-.toolbar-scratchlist-links-colour {
-    color: var(--fg-toolbar-scratchlist);
-    fill: var(--fg-toolbar-scratchlist);
+.toolbar-bookmark-links-colour {
+    color: var(--fg-toolbar-bookmark);
+    fill: var(--fg-toolbar-bookmark);
 }
 
 .toolbar-item-selected-view {
@@ -2246,8 +2246,8 @@ input:required {
 .toolbar-item-selected-add-above {
     border: var(--ui-element-border-radius) solid var(--fg-toolbar-add-above) !important;
 }
-.toolbar-item-selected-scratchlist-links {
-    border: var(--ui-element-border-radius) solid var(--fg-toolbar-scratchlist) !important;
+.toolbar-item-selected-bookmark-links {
+    border: var(--ui-element-border-radius) solid var(--fg-toolbar-bookmark) !important;
 }
 
 .graph-terminator-form-label {
@@ -2339,7 +2339,7 @@ input:required {
         float: none;
     }
 
-    #scratchlist-component {
+    #bookmark-component {
         width: 100%;
     }
 }

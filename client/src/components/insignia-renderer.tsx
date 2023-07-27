@@ -129,7 +129,7 @@ function svgCollection() {
 }
 
 /*
-function svgScratchList(hexColour: string) {
+function svgBookmark(hexColour: string) {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -158,7 +158,7 @@ function svgReRead(hexColour: string) {
     );
 }
 
-export function svgScratchListLink(hexColour: string) {
+export function svgBookmarkLink(hexColour: string) {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"

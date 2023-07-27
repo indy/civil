@@ -14,7 +14,7 @@ import Net from "utils/net";
 import { capitalise } from "utils/js";
 
 import Previewer from "components/previewer";
-import ScratchList from "components/scratch-list";
+import Bookmarks from "components/bookmarks";
 import CommandBar from "components/command-bar";
 import { DeluxeToolbar } from "components/deluxe-toolbar";
 
@@ -181,7 +181,7 @@ const AppUI = () => {
         <div id="civil-app">
             <WaitingDisplay />
             <DebugMessages />
-            <ScratchList />
+            <Bookmarks />
             <CommandBar />
             <TopBarMenu />
             <DeluxeToolbar />

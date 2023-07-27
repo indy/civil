@@ -114,7 +114,7 @@ const state: State = {
     showingCommandBar: signal(false),
     commandBarState: signal(cleanCommandBarState()),
 
-    // to add the current page to the scratchList we need the id, name, deckKind.
+    // to add the current page to the bookmark we need the id, name, deckKind.
     // id and deckKind can be parsed from the url, but the name needs to be
     // stored separately
     //
@@ -163,8 +163,8 @@ const state: State = {
         deckIndexFromId: [],
     }),
 
-    scratchList: signal([]),
-    scratchListMinimised: signal(false),
+    bookmarks: signal([]),
+    bookmarksMinimised: signal(false),
 
     memoriseReviewCount: signal(0),
     memoriseEarliestReviewDate: signal(undefined),
@@ -329,7 +329,7 @@ export const AppStateChange = {
                         route("/");
                         break;
                     case "KeyB":
-                        modeToggle(state, CivilMode.ScratchListLinks);
+                        modeToggle(state, CivilMode.BookmarkLinks);
                         break;
                     case "KeyE":
                         modeToggle(state, CivilMode.Edit);
@@ -355,11 +355,11 @@ export const AppStateChange = {
                 commandBarState.showKeyboardShortcuts &&
                 commandBarState.mode === CommandBarMode.Search
             ) {
-                let sl = state.scratchList.value.slice();
+                let sl = state.bookmarks.value.slice();
                 commandBarState.searchCandidates.forEach((c) => {
                     sl.push(c);
                 });
-                state.scratchList.value = sl;
+                state.bookmarks.value = sl;
                 state.commandBarState.value = {
                     ...commandBarState,
                     keyDownIndex: -1,
@@ -448,9 +448,9 @@ export const AppStateChange = {
                             keyDownIndex: -1,
                         };
 
-                        let sl = state.scratchList.value.slice();
+                        let sl = state.bookmarks.value.slice();
                         sl.push(candidate);
-                        state.scratchList.value = sl;
+                        state.bookmarks.value = sl;
 
                         return;
                     } else {
@@ -855,61 +855,61 @@ export const AppStateChange = {
         }
     },
 
-    scratchListToggle: function () {
+    bookmarkToggle: function () {
         if (DEBUG_APP_STATE) {
-            console.log("scratchListToggle");
+            console.log("bookmarkToggle");
         }
-        state.scratchListMinimised.value = !state.scratchListMinimised.value;
+        state.bookmarksMinimised.value = !state.bookmarksMinimised.value;
     },
 
-    scratchListAddMulti: function (candidates: Array<SlimDeck>) {
+    bookmarkAddMulti: function (candidates: Array<SlimDeck>) {
         if (DEBUG_APP_STATE) {
-            console.log("scratchListAddMulti");
+            console.log("bookmarkAddMulti");
         }
-        let sl = state.scratchList.value.slice();
+        let sl = state.bookmarks.value.slice();
         candidates.forEach((c) => {
             sl.push(c);
         });
-        state.scratchList.value = sl;
+        state.bookmarks.value = sl;
     },
 
-    scratchListRemove: function (index: number) {
+    bookmarkRemove: function (index: number) {
         if (DEBUG_APP_STATE) {
-            console.log("scratchListRemove");
+            console.log("bookmarkRemove");
         }
-        let sl = state.scratchList.value.slice();
+        let sl = state.bookmarks.value.slice();
         sl.splice(index, 1);
-        state.scratchList.value = sl;
+        state.bookmarks.value = sl;
     },
 
-    scratchlistLinkToggle: function () {
+    bookmarkLinkToggle: function () {
         if (DEBUG_APP_STATE) {
-            console.log("scratchlistLinkToggle");
+            console.log("bookmarkLinkToggle");
         }
-        if (state.mode.value === CivilMode.ScratchListLinks) {
+        if (state.mode.value === CivilMode.BookmarkLinks) {
             state.mode.value = CivilMode.View;
         } else {
-            state.mode.value = CivilMode.ScratchListLinks;
+            state.mode.value = CivilMode.BookmarkLinks;
         }
     },
 
-    addScratchListLink: function (candidate: SlimDeck) {
+    addBookmarkLink: function (candidate: SlimDeck) {
         if (DEBUG_APP_STATE) {
-            console.log("addScratchListLink");
+            console.log("addBookmarkLink");
         }
-        addSlimDeckToScratchList(state, candidate);
+        addSlimDeckToBookmark(state, candidate);
     },
 
-    addCurrentUrlToScratchList: function () {
+    addCurrentUrlToBookmark: function () {
         if (DEBUG_APP_STATE) {
-            console.log("addCurrentUrlToScratchList");
+            console.log("addCurrentUrlToBookmark");
         }
         let candidate: SlimDeck | undefined = parseCurrentUrlIntoSlimDeck(
             state.url.value,
             state.urlTitle.value
         );
         if (candidate) {
-            addSlimDeckToScratchList(state, candidate);
+            addSlimDeckToBookmark(state, candidate);
         }
     },
 
@@ -971,10 +971,10 @@ export const AppStateChange = {
     },
 };
 
-function addSlimDeckToScratchList(state: State, candidate: SlimDeck) {
-    let sl = state.scratchList.value.slice();
+function addSlimDeckToBookmark(state: State, candidate: SlimDeck) {
+    let sl = state.bookmarks.value.slice();
     sl.push(candidate);
-    state.scratchList.value = sl;
+    state.bookmarks.value = sl;
 }
 
 function parseCurrentUrlIntoSlimDeck(
@@ -1248,7 +1248,7 @@ export function isCivilModeAllowed(state: State, mode: CivilMode): boolean {
         case CivilMode.AddAbove:
             // don't show AddAbove option for quotes
             return !onListingPage && urlParts[1] !== "quotes";
-        case CivilMode.ScratchListLinks:
+        case CivilMode.BookmarkLinks:
             return true;
     }
 }
