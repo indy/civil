@@ -1,16 +1,24 @@
 import { h } from "preact";
-import { getAppState, AppStateChange } from "app-state";
-import { svgX, svgChevronDown, svgChevronUp } from "components/svg-icons";
 
-import { SlimDeck } from "types";
+import { Bookmark } from "types";
+
+import Net from "utils/net";
+
+import { getAppState, AppStateChange } from "app-state";
+
+import { svgX, svgChevronDown, svgChevronUp } from "components/svg-icons";
 import DeckLink from "components/deck-link";
 
 export default function Bookmarks() {
     const appState = getAppState();
 
-    function buildBookmarkEntry(entry: SlimDeck, i: number) {
+    function buildBookmark(bookmark: Bookmark) {
         function clickedDelete() {
-            AppStateChange.bookmarkRemove(i);
+            Net.delete<{}, Array<Bookmark>>(`/api/bookmarks/${bookmark.id}`, {}).then(
+                (bookmarks) => {
+                    AppStateChange.setBookmarks(bookmarks);
+                }
+            );
         }
 
         return (
@@ -18,7 +26,7 @@ export default function Bookmarks() {
                 <div class="bookmark-result-remove" onClick={clickedDelete}>
                     {svgX()}
                 </div>
-                <DeckLink slimDeck={entry} alwaysLink />
+                <DeckLink slimDeck={bookmark.deck} alwaysLink />
             </div>
         );
     }
@@ -28,8 +36,8 @@ export default function Bookmarks() {
     }
 
     if (!!appState.bookmarks.value.length) {
-        const bookmarks = appState.bookmarks.value.map((entry, i) => (
-            <li key={i}>{buildBookmarkEntry(entry, i)}</li>
+        const bookmarks = appState.bookmarks.value.map((bookmark) => (
+            <li key={bookmark.id}>{buildBookmark(bookmark)}</li>
         ));
 
         return (

@@ -3,6 +3,8 @@ import { useEffect, useRef, Ref } from "preact/hooks";
 import { route } from "preact-router";
 
 import {
+    Key,
+    Bookmark,
     Command,
     CommandBarMode,
     DeckKind,
@@ -10,6 +12,7 @@ import {
     NoteKind,
     ResultList,
     SlimDeck,
+    State,
 } from "types";
 
 import Net from "utils/net";
@@ -124,8 +127,17 @@ const Commands: Array<Command> = [
     {
         command: "b",
         description: "bookmark current page to bookmark",
-        fn: () => {
-            AppStateChange.addCurrentUrlToBookmark();
+        giveState: true,
+        fn: (args) => {
+            let state: State = args[0];
+            let id: Key | undefined = getIdFromUrl(state.url.value);
+            if (id) {
+                Net.post<Key, Array<Bookmark>>("/api/bookmarks", id).then(
+                    (bookmarks) => {
+                        AppStateChange.setBookmarks(bookmarks);
+                    }
+                );
+            }
             return true;
         },
     },
@@ -146,6 +158,47 @@ const Commands: Array<Command> = [
         },
     },
 ];
+
+function inputGiven(state: State, text: string) {
+    // before calling the appState chInputGiven logic, check if any bookmarks are being added
+
+    let commandBarState = state.commandBarState.value;
+    if (state.showingCommandBar.value) {
+        if (
+            commandBarState.showKeyboardShortcuts &&
+            commandBarState.mode === CommandBarMode.Search
+        ) {
+            const index = commandBarState.keyDownIndex;
+
+            if (index >= 0 && commandBarState.searchCandidates.length > index) {
+                const candidate = commandBarState.searchCandidates[index];
+
+                if (commandBarState.shiftKey) {
+                    // once a candidate has been added to the saved search
+                    // results, set the keyDownIndex to an invalid value,
+                    // otherwise if the user presses shift and an unused
+                    // key (e.g. '+' ) then the last candidate to be added
+                    // will be added again.
+                    //
+
+                    state.commandBarState.value = {
+                        ...commandBarState,
+                        keyDownIndex: -1,
+                    };
+
+                    Net.post<Key, Array<Bookmark>>(
+                        "/api/bookmarks",
+                        candidate.id
+                    ).then((bookmarks) => {
+                        AppStateChange.setBookmarks(bookmarks);
+                    });
+                }
+            }
+        }
+    }
+
+    AppStateChange.cbInputGiven(text);
+}
 
 export default function CommandBar() {
     const appState = getAppState();
@@ -168,7 +221,19 @@ export default function CommandBar() {
             AppStateChange.cbKeyDownColon();
         }
         if (e.key === "Enter") {
-            AppStateChange.cbKeyDownEnter(Commands);
+            let commandBarState = appState.commandBarState.value;
+            if (appState.showingCommandBar.value) {
+                if (commandBarState.mode === CommandBarMode.Command) {
+                    const success = executeCommand(
+                        appState,
+                        commandBarState.text,
+                        Commands
+                    );
+                    if (success) {
+                        AppStateChange.commandBarHide();
+                    }
+                }
+            }
         }
         if (e.key === "/") {
             AppStateChange.cbKeyDownSlash();
@@ -184,7 +249,24 @@ export default function CommandBar() {
             AppStateChange.cbKeyDownAlphaNumeric(e.code, e.shiftKey);
         }
         if (e.key === "+") {
-            AppStateChange.cbKeyDownPlus();
+            let commandBarState = appState.commandBarState.value;
+            if (appState.showingCommandBar.value) {
+                if (
+                    commandBarState.showKeyboardShortcuts &&
+                    commandBarState.mode === CommandBarMode.Search
+                ) {
+                    let deck_ids: Array<Key> =
+                        commandBarState.searchCandidates.map((c) => c.id);
+                    Net.post<Array<Key>, Array<Bookmark>>(
+                        "/api/bookmarks/multi",
+                        deck_ids
+                    ).then((bookmarks) => {
+                        AppStateChange.setBookmarks(bookmarks);
+                    });
+
+                    AppStateChange.cbKeyDownPlusHack();
+                }
+            }
         }
     }
 
@@ -209,12 +291,12 @@ export default function CommandBar() {
             if (
                 appState.commandBarState.value.mode === CommandBarMode.Command
             ) {
-                AppStateChange.cbInputGiven(text);
+                inputGiven(appState, text);
             } else if (
                 appState.commandBarState.value.mode === CommandBarMode.Search
             ) {
                 if (!appState.commandBarState.value.showKeyboardShortcuts) {
-                    AppStateChange.cbInputGiven(text);
+                    inputGiven(appState, text);
                     if (text.length > 0 && !isCommand(text)) {
                         search(text);
                     }
@@ -231,7 +313,7 @@ export default function CommandBar() {
                         ? text.slice(0, -1)
                         : text;
 
-                    AppStateChange.cbInputGiven(displayText);
+                    inputGiven(appState, displayText);
                 }
             }
         }
@@ -292,7 +374,16 @@ export default function CommandBar() {
 
     function buildCommandEntry(entry: Command) {
         function clickedCommand() {
-            AppStateChange.cbClickedCommand(entry, Commands);
+            const command = entry.command;
+
+            const success = command
+                ? executeCommand(appState, command, Commands)
+                : false;
+            if (success) {
+                AppStateChange.commandBarHide();
+            } else {
+                console.error(`Failed to execute command: ${command}`);
+            }
         }
         if (entry.spacer) {
             return <div class="command-entry">-</div>;
@@ -390,4 +481,38 @@ function routeOrCreate(kind: DeckKind, argString: string): boolean {
     }
 
     return true;
+}
+
+function executeCommand(
+    state: State,
+    text: string,
+    allCommands: Array<Command>
+) {
+    const commandPlusArgs = text
+        .slice(1)
+        .split(" ")
+        .filter((s) => s.length > 0);
+    if (commandPlusArgs.length === 0) {
+        return;
+    }
+
+    const command = commandPlusArgs[0];
+
+    const action: Command | undefined = allCommands.find(
+        (c) => c.command === command
+    );
+    if (action) {
+        let rest: Array<any> = [];
+        if (action.giveState) {
+            rest.push(state);
+        }
+        rest = rest.concat(commandPlusArgs.slice(1).join(" "));
+        return action.fn ? action.fn(rest) : false;
+    }
+    return false;
+}
+
+function getIdFromUrl(url: string): number | undefined {
+    let re = url.match(/^\/(\w+)\/(\w+)/);
+    return re ? parseInt(re[2], 10) : undefined;
 }

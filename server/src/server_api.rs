@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::handler::articles;
+use crate::handler::bookmarks;
 use crate::handler::decks;
 use crate::handler::dialogues;
 use crate::handler::edges;
@@ -143,6 +144,14 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", get().to(notes::get_note))
                 .route("/{id}", put().to(notes::edit_note))
                 .route("/{id}", delete().to(notes::delete_note)),
+        )
+        // bookmarks
+        .service(
+            scope("/bookmarks")
+                .route("", post().to(bookmarks::create_bookmark))
+                .route("/multi", post().to(bookmarks::create_multiple_bookmarks))
+                .route("", get().to(bookmarks::get_bookmarks))
+                .route("/{id}", delete().to(bookmarks::delete_bookmark)),
         )
         // spaced repetition
         .service(

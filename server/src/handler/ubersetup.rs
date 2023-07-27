@@ -25,6 +25,7 @@ use chrono::Utc;
 use tracing::info;
 
 use crate::db::articles as db_articles;
+use crate::db::bookmarks as db_bookmarks;
 use crate::db::dialogues as db_dialogues;
 use crate::db::edges as db_edges;
 use crate::db::ideas as db_ideas;
@@ -35,6 +36,7 @@ use crate::db::timelines as db_timelines;
 use crate::db::uploader as db_uploader;
 
 use crate::interop::articles as interop_articles;
+use crate::interop::bookmarks as interop_bookmarks;
 use crate::interop::decks::SlimDeck;
 use crate::interop::ideas as interop_ideas;
 use crate::interop::people as interop_people;
@@ -49,6 +51,7 @@ struct UberStruct {
     pub recent_images: Vec<interop_uploader::UserUploadedImage>,
     pub memorise_review_count: i32,
     pub memorise_earliest_review_date: chrono::NaiveDateTime,
+    pub bookmarks: Vec<interop_bookmarks::Bookmark>,
 
     pub ideas: interop_ideas::IdeasListings,
     pub people: interop_people::PeopleListings,
@@ -70,6 +73,7 @@ pub async fn setup(
     let recent_images = db_uploader::get_recent(&sqlite_pool, user_id, 0)?;
     let upcoming_review =
         db_memorise::get_cards_upcoming_review(&sqlite_pool, user_id, Utc::now().naive_utc())?;
+    let bookmarks = db_bookmarks::get_bookmarks(&sqlite_pool, user_id)?;
 
     let ideas = db_ideas::listings(&sqlite_pool, user_id)?;
     let people = db_people::listings(&sqlite_pool, user_id)?;
@@ -83,6 +87,7 @@ pub async fn setup(
         recent_images,
         memorise_review_count: upcoming_review.review_count,
         memorise_earliest_review_date: upcoming_review.earliest_review_date,
+        bookmarks,
         ideas,
         people,
         articles,

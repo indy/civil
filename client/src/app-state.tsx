@@ -6,7 +6,6 @@ import { route } from "preact-router";
 import {
     ArticleListings,
     ColourScheme,
-    Command,
     CommandBarMode,
     CommandBarState,
     DeckKind,
@@ -35,6 +34,7 @@ import {
     UserUploadedImage,
     VisiblePreview,
     WaitingFor,
+    Bookmark,
 } from "types";
 
 import { isCommand, noteSeq, deckKindToResourceString } from "utils/civil";
@@ -229,20 +229,9 @@ export const AppStateChange = {
         }
     },
 
-    cbKeyDownEnter: function (allCommands: Array<Command>) {
-        let commandBarState = state.commandBarState.value;
-        if (state.showingCommandBar.value) {
-            if (commandBarState.mode === CommandBarMode.Command) {
-                const success = executeCommand(
-                    commandBarState.text,
-                    allCommands
-                );
-                if (success) {
-                    state.showingCommandBar.value = false;
-                    state.commandBarState.value = cleanCommandBarState();
-                }
-            }
-        }
+    commandBarHide: function () {
+        state.showingCommandBar.value = false;
+        state.commandBarState.value = cleanCommandBarState();
     },
 
     cbKeyDownCtrl: function () {
@@ -348,25 +337,21 @@ export const AppStateChange = {
         }
     },
 
-    cbKeyDownPlus: function () {
+    // isg: look into this
+    //
+    // once a candidate has been added to the saved search
+    // results, set the keyDownIndex to an invalid value,
+    // otherwise if the user presses shift and an unused
+    // key (e.g. '+' ) then the last candidate to be added
+    // will be added again.
+    //
+    cbKeyDownPlusHack: function () {
         let commandBarState = state.commandBarState.value;
-        if (state.showingCommandBar.value) {
-            if (
-                commandBarState.showKeyboardShortcuts &&
-                commandBarState.mode === CommandBarMode.Search
-            ) {
-                let sl = state.bookmarks.value.slice();
-                commandBarState.searchCandidates.forEach((c) => {
-                    sl.push(c);
-                });
-                state.bookmarks.value = sl;
-                state.commandBarState.value = {
-                    ...commandBarState,
-                    keyDownIndex: -1,
-                    shiftKey: true,
-                };
-            }
-        }
+        state.commandBarState.value = {
+            ...commandBarState,
+            keyDownIndex: -1,
+            shiftKey: true,
+        };
     },
 
     cbFocus: function (hasFocus: boolean) {
@@ -388,18 +373,6 @@ export const AppStateChange = {
     cbClickedCandidate: function () {
         state.showingCommandBar.value = false;
         state.commandBarState.value = cleanCommandBarState();
-    },
-
-    cbClickedCommand: function (entry: Command, allCommands: Array<Command>) {
-        const command = entry.command;
-
-        const success = command ? executeCommand(command, allCommands) : false;
-        if (success) {
-            state.showingCommandBar.value = false;
-            state.commandBarState.value = cleanCommandBarState();
-        } else {
-            console.error(`Failed to execute command: ${command}`);
-        }
     },
 
     cbInputGiven: function (text: string) {
@@ -435,25 +408,7 @@ export const AppStateChange = {
                 ) {
                     const candidate = commandBarState.searchCandidates[index];
 
-                    if (commandBarState.shiftKey) {
-                        // once a candidate has been added to the saved search
-                        // results, set the keyDownIndex to an invalid value,
-                        // otherwise if the user presses shift and an unused
-                        // key (e.g. '+' ) then the last candidate to be added
-                        // will be added again.
-                        //
-
-                        state.commandBarState.value = {
-                            ...commandBarState,
-                            keyDownIndex: -1,
-                        };
-
-                        let sl = state.bookmarks.value.slice();
-                        sl.push(candidate);
-                        state.bookmarks.value = sl;
-
-                        return;
-                    } else {
+                    if (!commandBarState.shiftKey) {
                         const url = `/${deckKindToResourceString(
                             candidate.deckKind
                         )}/${candidate.id}`;
@@ -594,6 +549,7 @@ export const AppStateChange = {
         state.memoriseReviewCount.value = uber.memoriseReviewCount;
         state.memoriseEarliestReviewDate.value =
             uber.memoriseEarliestReviewDate;
+        state.bookmarks.value = uber.bookmarks;
 
         state.listing.value = {
             ideas: uber.ideas,
@@ -862,26 +818,6 @@ export const AppStateChange = {
         state.bookmarksMinimised.value = !state.bookmarksMinimised.value;
     },
 
-    bookmarkAddMulti: function (candidates: Array<SlimDeck>) {
-        if (DEBUG_APP_STATE) {
-            console.log("bookmarkAddMulti");
-        }
-        let sl = state.bookmarks.value.slice();
-        candidates.forEach((c) => {
-            sl.push(c);
-        });
-        state.bookmarks.value = sl;
-    },
-
-    bookmarkRemove: function (index: number) {
-        if (DEBUG_APP_STATE) {
-            console.log("bookmarkRemove");
-        }
-        let sl = state.bookmarks.value.slice();
-        sl.splice(index, 1);
-        state.bookmarks.value = sl;
-    },
-
     bookmarkLinkToggle: function () {
         if (DEBUG_APP_STATE) {
             console.log("bookmarkLinkToggle");
@@ -893,24 +829,8 @@ export const AppStateChange = {
         }
     },
 
-    addBookmarkLink: function (candidate: SlimDeck) {
-        if (DEBUG_APP_STATE) {
-            console.log("addBookmarkLink");
-        }
-        addSlimDeckToBookmark(state, candidate);
-    },
-
-    addCurrentUrlToBookmark: function () {
-        if (DEBUG_APP_STATE) {
-            console.log("addCurrentUrlToBookmark");
-        }
-        let candidate: SlimDeck | undefined = parseCurrentUrlIntoSlimDeck(
-            state.url.value,
-            state.urlTitle.value
-        );
-        if (candidate) {
-            addSlimDeckToBookmark(state, candidate);
-        }
+    setBookmarks: function (bookmarks: Array<Bookmark>) {
+        state.bookmarks.value = bookmarks;
     },
 
     setCivilModeToView: function () {
@@ -970,66 +890,6 @@ export const AppStateChange = {
         };
     },
 };
-
-function addSlimDeckToBookmark(state: State, candidate: SlimDeck) {
-    let sl = state.bookmarks.value.slice();
-    sl.push(candidate);
-    state.bookmarks.value = sl;
-}
-
-function parseCurrentUrlIntoSlimDeck(
-    url: string,
-    urlTitle: string
-): SlimDeck | undefined {
-    function resourceStringToDeckKind(s: string): DeckKind | undefined {
-        if (s === "articles") {
-            return DeckKind.Article;
-        }
-        if (s === "ideas") {
-            return DeckKind.Idea;
-        }
-        if (s === "people") {
-            return DeckKind.Person;
-        }
-        if (s === "timelines") {
-            return DeckKind.Timeline;
-        }
-        if (s === "quotes") {
-            return DeckKind.Quote;
-        }
-        if (s === "dialogues") {
-            return DeckKind.Dialogue;
-        }
-        return undefined;
-    }
-    // note: this will break if we ever change the url schema
-    let re = url.match(/^\/(\w+)\/(\w+)/);
-
-    if (re) {
-        let id = re[2];
-        let resource = re[1];
-
-        let dk: DeckKind | undefined = resourceStringToDeckKind(resource);
-
-        if (dk) {
-            let res: SlimDeck = {
-                id: parseInt(id, 10),
-                title: urlTitle,
-                deckKind: dk,
-                insignia: 0,
-                font: immutableState.defaultFont,
-            };
-
-            return res;
-        } else {
-            console.error(
-                `unable to determine DeckKind from parsing "${resource}"`
-            );
-        }
-    }
-
-    return undefined;
-}
 
 function packedToKind(packed: number): RefKind {
     switch (packed) {
@@ -1098,27 +958,6 @@ function buildDeckIndex(decks: Array<GraphDeck>) {
     });
 
     return res;
-}
-
-function executeCommand(text: string, allCommands: Array<Command>) {
-    const commandPlusArgs = text
-        .slice(1)
-        .split(" ")
-        .filter((s) => s.length > 0);
-    if (commandPlusArgs.length === 0) {
-        return;
-    }
-
-    const command = commandPlusArgs[0];
-
-    const action: Command | undefined = allCommands.find(
-        (c) => c.command === command
-    );
-    if (action) {
-        const rest = commandPlusArgs.slice(1).join(" ");
-        return action.fn ? action.fn(rest) : false;
-    }
-    return false;
 }
 
 // map key code for an alphanumeric character to an index value

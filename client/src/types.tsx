@@ -309,6 +309,7 @@ export type Command = {
     quoteAround?: string;
     fn?: (args?: any) => any;
     spacer?: boolean;
+    giveState?: boolean;
 };
 
 export enum CommandBarMode {
@@ -331,6 +332,11 @@ export enum WaitingFor {
     Client,
     Server,
 }
+
+export type Bookmark = {
+    id: Key;
+    deck: SlimDeck;
+};
 
 export type ImmutableState = {
     readonly appName: string;
@@ -391,7 +397,7 @@ export type State = {
     showConnectivityGraph: Signal<boolean>;
     graph: Signal<Graph>;
 
-    bookmarks: Signal<Array<SlimDeck>>;
+    bookmarks: Signal<Array<Bookmark>>;
     bookmarksMinimised: Signal<boolean>;
 
     memoriseReviewCount: Signal<number>;
@@ -431,6 +437,7 @@ export type UberSetup = {
     recentImages: Array<UserUploadedImage>;
     memoriseReviewCount: number;
     memoriseEarliestReviewDate: string;
+    bookmarks: Array<Bookmark>;
     ideas: IdeasListings;
     people: PeopleListings;
     articles: ArticleListings;

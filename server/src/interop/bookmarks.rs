@@ -15,25 +15,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use serde::Deserialize;
+use crate::interop::decks::SlimDeck;
+use crate::interop::Key;
 
-#[derive(Deserialize)]
-pub struct SearchQuery {
-    q: String,
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Bookmark {
+    pub id: Key,
+    pub deck: SlimDeck,
 }
-
-pub mod articles;
-pub mod bookmarks;
-pub mod decks;
-pub mod dialogues;
-pub mod edges;
-pub mod graph;
-pub mod ideas;
-pub mod memorise;
-pub mod notes;
-pub mod people;
-pub mod quotes;
-pub mod timelines;
-pub mod ubersetup;
-pub mod uploader;
-pub mod users;

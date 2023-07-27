@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 pub mod articles;
+pub mod bookmarks;
 pub mod decks;
 pub mod dialogues;
 pub mod edges;

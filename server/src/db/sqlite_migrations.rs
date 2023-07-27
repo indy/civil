@@ -169,6 +169,17 @@ CREATE TABLE IF NOT EXISTS images (
        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
+CREATE TABLE IF NOT EXISTS bookmarks (
+       id INTEGER PRIMARY KEY,
+       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+       deck_id INTEGER NOT NULL,
+       user_id INTEGER NOT NULL,
+
+       FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
+       FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
 CREATE TABLE IF NOT EXISTS cards (
        id INTEGER PRIMARY KEY,
        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -751,6 +762,19 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
                ALTER TABLE points DROP COLUMN typeface;
                ALTER TABLE notes DROP COLUMN typeface;"),
 
+        ///////////////////
+        // user_version 18: bookmarks
+        ///////////////////
+        M::up("CREATE TABLE IF NOT EXISTS bookmarks (
+                   id INTEGER PRIMARY KEY,
+                   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+                   deck_id INTEGER NOT NULL,
+                   user_id INTEGER NOT NULL,
+
+                   FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
+                   FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION
+            );"),
     ]);
 
     let mut conn = Connection::open(db_name)?;
@@ -767,7 +791,6 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
 /*
 
 possible schema simplification:
-
 
 -- existing schema
 
