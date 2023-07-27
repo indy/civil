@@ -1239,17 +1239,32 @@ textarea {
 }
 
 #bookmark-results {
-    background: white !important;
+    background: var(--bg0);
+    border: 0.1rem solid var(--fg2);
+    border-radius: var(--ui-element-border-radius);
     max-height: 50rem;
     overflow: auto;
+    padding-left: 0;
 }
 
 .bookmark-result {
+    background: var(--bg);
     display: flex;
+    align-items: center;
     flex-direction: row;
+    padding: 0.5rem 1rem 0.5rem 1rem;
 }
-.bookmark-result-remove {
-    padding-top: 0.2rem;
+.bookmark-result:hover {
+    background: var(--bg1);
+}
+
+.bookmark-result a {
+    display: inline-block;
+    padding-left: 1rem;
+}
+
+.bookmark-result-remove:hover {
+    background: var(--bg0);
 }
 
 #search-command {
@@ -1276,22 +1291,6 @@ textarea {
 .search-command-input {
     border-radius: var(--search-command-border-radius);
 }
-
-/* .on-touch-device-search-command-has-focus { */
-/*     border: 0; */
-/*     background: rgba(255, 255, 255, 0.9); */
-/*     color: var(--fg); */
-/* } */
-/* @media (prefers-color-scheme: dark) { */
-/*     .on-touch-device-search-command-has-focus { */
-/*         background: rgba(0, 0, 0, 0.9); */
-/*     } */
-/* } */
-
-/* .on-touch-device-search-command-lost-focus { */
-/*     border: 0; */
-/*     background: rgba(0, 255, 0, 0.05); */
-/* } */
 
 .search-command-unimportant {
     filter: blur(0.2rem);

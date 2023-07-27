@@ -18,12 +18,12 @@ export default function Bookmarks() {
         }
 
         return (
-            <div class="bookmark-result">
+            <li key={bookmark.id} class="bookmark-result">
                 <div class="bookmark-result-remove" onClick={clickedDelete}>
                     {svgX()}
                 </div>
                 <DeckLink slimDeck={bookmark.deck} alwaysLink />
-            </div>
+            </li>
         );
     }
 
@@ -32,16 +32,11 @@ export default function Bookmarks() {
     }
 
     if (!!appState.bookmarks.value.length) {
-        const bookmarks = appState.bookmarks.value.map((bookmark) => (
-            <li key={bookmark.id}>{buildBookmark(bookmark)}</li>
-        ));
-
+        const bookmarks = appState.bookmarks.value.map(buildBookmark);
         return (
             <div id="bookmark-component">
                 {!appState.bookmarksMinimised.value && (
-                    <ul class="search-command-listing" id="bookmark-results">
-                        {bookmarks}
-                    </ul>
+                    <ul id="bookmark-results">{bookmarks}</ul>
                 )}
                 {appState.bookmarksMinimised.value ? (
                     <div class="bookmark-menu">
