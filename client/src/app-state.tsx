@@ -1,7 +1,6 @@
 import { h, createContext, ComponentChildren } from "preact";
 import { signal } from "@preact/signals";
 import { useContext } from "preact/hooks";
-import { route } from "preact-router";
 
 import {
     ArticleListings,
@@ -37,8 +36,6 @@ import {
     Bookmark,
 } from "types";
 
-import { isCommand } from "shared/command";
-import { deckKindToResourceString } from "shared/deck";
 import { noteSeq } from "shared/seq";
 import { generateColoursFromSeeds, declareSeeds } from "shared/colour-creator";
 
@@ -205,158 +202,42 @@ export const AppStateChange = {
         state.waitingFor.value = waitingFor;
     },
 
-    cbSearchClicked: function () {
-        state.mode.value = CivilMode.View;
-        commandBarReset(state, !state.showingCommandBar.value);
+    commandBarResetAndShow: function () {
+        commandBarReset(state, true);
     },
-
-    cbKeyDownEsc: function () {
-        if (state.mode.value !== CivilMode.View) {
-            state.mode.value = CivilMode.View;
-        }
+    commandBarResetAndHide: function () {
         commandBarReset(state, false);
     },
 
-    cbKeyDownColon: function () {
+    commandBarEnterCommandMode: function () {
         let commandBarState = state.commandBarState.value;
-        if (!state.componentRequiresFullKeyboardAccess.value) {
-            if (!state.showingCommandBar.value) {
-                state.showingCommandBar.value = true;
-                state.commandBarState.value = {
-                    ...commandBarState,
-                    mode: CommandBarMode.Command,
-                    text: ":",
-                };
-            }
-        }
-    },
 
-    commandBarHide: function () {
-        state.showingCommandBar.value = false;
-        state.commandBarState.value = cleanCommandBarState();
-    },
-
-    cbKeyDownCtrl: function () {
-        let commandBarState = state.commandBarState.value;
-        if (state.showingCommandBar.value) {
-            if (commandBarState.mode === CommandBarMode.Search) {
-                let showKeyboardShortcuts =
-                    !commandBarState.showKeyboardShortcuts &&
-                    commandBarState.searchCandidates.length > 0;
-
-                state.commandBarState.value = {
-                    ...commandBarState,
-                    showKeyboardShortcuts,
-                };
-            }
-        }
-    },
-
-    cbKeyDownSlash: function () {
-        if (
-            !state.componentRequiresFullKeyboardAccess.value &&
-            !state.showingCommandBar.value
-        ) {
-            state.mode.value = CivilMode.View;
-            commandBarReset(state, true);
-        }
-    },
-
-    cbKeyDownAlphaNumeric: function (code: string, shiftKey: boolean) {
-        let commandBarState = state.commandBarState.value;
-        if (state.showingCommandBar.value) {
-            let index = indexFromCode(code);
-            if (
-                commandBarState.showKeyboardShortcuts &&
-                commandBarState.mode === CommandBarMode.Search &&
-                index >= 0
-            ) {
-                state.commandBarState.value = {
-                    ...commandBarState,
-                    keyDownIndex: index,
-                    shiftKey: shiftKey,
-                };
-            }
-        } else {
-            /*
-
-  shortcut keys
-
-  Escape : toolbar: view mode
-  / : search
-  a : toolbar: add above
-  b : toolbar: bookmarks
-  c
-  d
-  e : toolbar: edit mode
-  f
-  g
-  h : toolbar: home
-  i
-  j : quotes: jump to random quote
-  k
-  l
-  m : toolbar: memorise
-  n : quotes: next quote
-  o
-  p : quotes: prev quote
-  q
-  r : toolbar: refs
-  s
-  t
-  u
-  v
-  w
-  x
-  y
-  z
-
- */
-            if (state.componentRequiresFullKeyboardAccess.value === false) {
-                // we can treat any keypresses as modal commands for the app
-                switch (code) {
-                    case "KeyH":
-                        state.mode.value = CivilMode.View;
-                        route("/");
-                        break;
-                    case "KeyB":
-                        modeToggle(state, CivilMode.BookmarkLinks);
-                        break;
-                    case "KeyE":
-                        modeToggle(state, CivilMode.Edit);
-                        break;
-                    case "KeyR":
-                        modeToggle(state, CivilMode.Refs);
-                        break;
-                    case "KeyA":
-                        modeToggle(state, CivilMode.AddAbove);
-                        break;
-                    case "KeyM":
-                        modeToggle(state, CivilMode.Memorise);
-                        break;
-                }
-            }
-        }
-    },
-
-    // isg: look into this
-    //
-    // once a candidate has been added to the saved search
-    // results, set the keyDownIndex to an invalid value,
-    // otherwise if the user presses shift and an unused
-    // key (e.g. '+' ) then the last candidate to be added
-    // will be added again.
-    //
-    cbKeyDownPlusHack: function () {
-        let commandBarState = state.commandBarState.value;
+        state.showingCommandBar.value = true;
         state.commandBarState.value = {
             ...commandBarState,
-            keyDownIndex: -1,
-            shiftKey: true,
+            mode: CommandBarMode.Command,
+            text: ":",
         };
     },
 
-    cbFocus: function (hasFocus: boolean) {
+    commandBarShowKeyboardShortcuts: function (showKeyboardShortcuts: boolean) {
+        let commandBarState = state.commandBarState.value;
+        state.commandBarState.value = {
+            ...commandBarState,
+            showKeyboardShortcuts,
+        };
+    },
+
+    commandBarKeyDown: function (keyDownIndex: number, shiftKey: boolean) {
+        let commandBarState = state.commandBarState.value;
+        state.commandBarState.value = {
+            ...commandBarState,
+            keyDownIndex,
+            shiftKey,
+        };
+    },
+
+    commandBarSetFocus: function (hasFocus: boolean) {
         let commandBarState = state.commandBarState.value;
         state.commandBarState.value = {
             ...commandBarState,
@@ -364,7 +245,7 @@ export const AppStateChange = {
         };
     },
 
-    cbSearchCandidateSet: function (searchResponse: ResultList) {
+    commandBarSetSearchCandidates: function (searchResponse: ResultList) {
         let commandBarState = state.commandBarState.value;
         state.commandBarState.value = {
             ...commandBarState,
@@ -372,64 +253,19 @@ export const AppStateChange = {
         };
     },
 
-    cbClickedCandidate: function () {
-        state.showingCommandBar.value = false;
-        state.commandBarState.value = cleanCommandBarState();
-    },
-
-    cbInputGiven: function (text: string) {
+    commandBarInputGiven: function (
+        mode: CommandBarMode,
+        text: string,
+        searchCandidates: Array<SlimDeck>
+    ) {
         let commandBarState = state.commandBarState.value;
-        if (state.showingCommandBar.value) {
-            const mode = isCommand(text)
-                ? CommandBarMode.Command
-                : CommandBarMode.Search;
 
-            let searchCandidates = commandBarState.searchCandidates;
-
-            if (text.length === 0) {
-                searchCandidates = [];
-            }
-
-            if (
-                mode === CommandBarMode.Search &&
-                commandBarState.mode === CommandBarMode.Command
-            ) {
-                // just changed mode from command to search
-                searchCandidates = [];
-            }
-
-            if (
-                commandBarState.showKeyboardShortcuts &&
-                commandBarState.mode === CommandBarMode.Search
-            ) {
-                const index = commandBarState.keyDownIndex;
-
-                if (
-                    index >= 0 &&
-                    commandBarState.searchCandidates.length > index
-                ) {
-                    const candidate = commandBarState.searchCandidates[index];
-
-                    if (!commandBarState.shiftKey) {
-                        const url = `/${deckKindToResourceString(
-                            candidate.deckKind
-                        )}/${candidate.id}`;
-                        route(url);
-
-                        state.showingCommandBar.value = false;
-                        state.commandBarState.value = cleanCommandBarState();
-                        return;
-                    }
-                }
-            }
-
-            state.commandBarState.value = {
-                ...commandBarState,
-                mode,
-                text,
-                searchCandidates,
-            };
-        }
+        state.commandBarState.value = {
+            ...commandBarState,
+            mode,
+            text,
+            searchCandidates,
+        };
     },
 
     showPreviewDeck: function (deckId: Key) {
@@ -504,15 +340,15 @@ export const AppStateChange = {
 
         state.showingCommandBar.value = b;
     },
-    addDebugMessage: function (msg: string) {
-        if (DEBUG_APP_STATE) {
-            console.log("addDebugMessage");
-        }
+    // addDebugMessage: function (msg: string) {
+    //     if (DEBUG_APP_STATE) {
+    //         console.log("addDebugMessage");
+    //     }
 
-        let dm = state.debugMessages.value.slice();
-        dm.unshift(msg);
-        state.debugMessages.value = dm;
-    },
+    //     let dm = state.debugMessages.value.slice();
+    //     dm.unshift(msg);
+    //     state.debugMessages.value = dm;
+    // },
     mode: function (newMode: CivilMode) {
         if (DEBUG_APP_STATE) {
             console.log("mode");
@@ -820,23 +656,8 @@ export const AppStateChange = {
         state.bookmarksMinimised.value = !state.bookmarksMinimised.value;
     },
 
-    bookmarkLinkToggle: function () {
-        if (DEBUG_APP_STATE) {
-            console.log("bookmarkLinkToggle");
-        }
-        if (state.mode.value === CivilMode.BookmarkLinks) {
-            state.mode.value = CivilMode.View;
-        } else {
-            state.mode.value = CivilMode.BookmarkLinks;
-        }
-    },
-
     setBookmarks: function (bookmarks: Array<Bookmark>) {
         state.bookmarks.value = bookmarks;
-    },
-
-    setCivilModeToView: function () {
-        state.mode.value = CivilMode.View;
     },
 
     setRecentlyUsedDecks: function (recents: Array<SlimDeck>) {
@@ -962,134 +783,7 @@ function buildDeckIndex(decks: Array<GraphDeck>) {
     return res;
 }
 
-// map key code for an alphanumeric character to an index value
-//
-//  digit: 1 -> 0, 2 ->  1, ... 9 ->  8
-// letter: a -> 9, b -> 10, ... z -> 34
-//
-function indexFromCode(code: string): number {
-    // this was the simple code that now has to be replaced
-    // because the retards who define web standards have
-    // deprecated keyCode .
-    //
-    // const index =
-    //     e.keyCode >= 49 && e.keyCode <= 57
-    //         ? e.keyCode - 49
-    //         : e.keyCode - 65 + 9;
-
-    switch (code) {
-        case "Digit1":
-            return 0;
-        case "Digit2":
-            return 1;
-        case "Digit3":
-            return 2;
-        case "Digit4":
-            return 3;
-        case "Digit5":
-            return 4;
-        case "Digit6":
-            return 5;
-        case "Digit7":
-            return 6;
-        case "Digit8":
-            return 7;
-        case "Digit9":
-            return 8;
-        case "KeyA":
-            return 9;
-        case "KeyB":
-            return 10;
-        case "KeyC":
-            return 11;
-        case "KeyD":
-            return 12;
-        case "KeyE":
-            return 13;
-        case "KeyF":
-            return 14;
-        case "KeyG":
-            return 15;
-        case "KeyH":
-            return 16;
-        case "KeyI":
-            return 17;
-        case "KeyJ":
-            return 18;
-        case "KeyK":
-            return 19;
-        case "KeyL":
-            return 20;
-        case "KeyM":
-            return 21;
-        case "KeyN":
-            return 22;
-        case "KeyO":
-            return 23;
-        case "KeyP":
-            return 24;
-        case "KeyQ":
-            return 25;
-        case "KeyR":
-            return 26;
-        case "KeyS":
-            return 27;
-        case "KeyT":
-            return 28;
-        case "KeyU":
-            return 29;
-        case "KeyV":
-            return 30;
-        case "KeyW":
-            return 31;
-        case "KeyX":
-            return 32;
-        case "KeyY":
-            return 33;
-        case "KeyZ":
-            return 34;
-        default: {
-            // console.error(`invalid code value: '${code}'`);
-            return -1;
-        }
-    }
-}
-
-function modeToggle(state: State, mode: CivilMode) {
-    if (isCivilModeAllowed(state, mode)) {
-        if (state.mode.value !== mode) {
-            state.mode.value = mode;
-        } else {
-            state.mode.value = CivilMode.View;
-        }
-    }
-}
-
 function commandBarReset(state: State, showing: boolean) {
     state.showingCommandBar.value = showing;
     state.commandBarState.value = cleanCommandBarState();
-}
-
-export function isCivilModeAllowed(state: State, mode: CivilMode): boolean {
-    // e.g. state.url.value = /articles or /ideas/42
-    // urlParts is of either one of these forms: ["", "articles"], or ["", "ideas", "42"]
-    let urlParts = state.url.value.split("/");
-
-    const onListingPage = urlParts.length === 2;
-
-    switch (mode) {
-        case CivilMode.View:
-            return !onListingPage;
-        case CivilMode.Edit:
-            return !onListingPage;
-        case CivilMode.Refs:
-            return !onListingPage;
-        case CivilMode.Memorise:
-            return !onListingPage;
-        case CivilMode.AddAbove:
-            // don't show AddAbove option for quotes
-            return !onListingPage && urlParts[1] !== "quotes";
-        case CivilMode.BookmarkLinks:
-            return true;
-    }
 }

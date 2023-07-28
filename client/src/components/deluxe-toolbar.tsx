@@ -4,7 +4,9 @@ import { Link } from "preact-router";
 
 import { CivilMode } from "types";
 
-import { getAppState, isCivilModeAllowed, AppStateChange } from "app-state";
+import { isCivilModeAllowed } from "shared/civil";
+
+import { getAppState, AppStateChange } from "app-state";
 import {
     svgCircle,
     svgFilledCircle,
@@ -44,6 +46,15 @@ export function DeluxeToolbar({}) {
         setActive(!active);
     }
 
+    function searchClicked() {
+        AppStateChange.mode(CivilMode.View);
+        if (appState.showingCommandBar.value) {
+            AppStateChange.commandBarResetAndHide();
+        } else {
+            AppStateChange.commandBarResetAndShow();
+        }
+    }
+
     return (
         <div>
             <div class="deluxe-toolbar-toggle-control" onClick={toggleActive}>
@@ -57,10 +68,7 @@ export function DeluxeToolbar({}) {
                     <span class="toolbar-item-text">Home</span>
                 </div>
 
-                <div
-                    class="toolbar-item"
-                    onClick={AppStateChange.cbSearchClicked}
-                >
+                <div class="toolbar-item" onClick={searchClicked}>
                     <span class={searchClasses}>{svgSearch()}</span>
                     <span class="toolbar-item-text">Search</span>
                 </div>
