@@ -27,7 +27,7 @@ export default function ImageSelector({ onPaste }: Props) {
 
     async function droppedFiles(files: FileList) {
         let recentImages: Array<UserUploadedImage> = await uploadImages(files);
-        AppStateChange.setRecentImages(recentImages);
+        AppStateChange.setRecentImages({ recentImages });
     }
 
     useDragDrop(dragArea, droppedFiles, setHovering);

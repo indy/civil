@@ -4,6 +4,8 @@ import { useContext } from "preact/hooks";
 
 import {
     ArticleListings,
+    Bookmark,
+    CivilMode,
     ColourScheme,
     CommandBarMode,
     CommandBarState,
@@ -21,19 +23,17 @@ import {
     PeopleListings,
     PreviewDeck,
     PreviewNotes,
-    Reference,
     RefKind,
+    Reference,
     RefsModified,
     ResultList,
     SlimDeck,
     State,
-    CivilMode,
     UberSetup,
     User,
     UserUploadedImage,
     VisiblePreview,
     WaitingFor,
-    Bookmark,
 } from "types";
 
 import { noteSeq } from "shared/seq";
@@ -90,6 +90,36 @@ export const immutableState: ImmutableState = {
     imageZoomMin: 10,
     imageZoomMax: 300,
 };
+
+export enum Scope {
+    Local,
+    Broadcast,
+}
+
+const broadcastChannel = new BroadcastChannel("civil::appStateChange");
+broadcastChannel.onmessage = (event) => {
+    const fnName = event.data.fnName;
+    let args = event.data.args || {};
+    args.calledFromBroadcastChannel = true;
+
+    AppStateChange[fnName](args);
+};
+
+const DEBUG_APP_STATE = false;
+//const DEBUG_APP_STATE = true;
+
+function boilerplate(scope: Scope, fnName: string, args?: any) {
+    if (DEBUG_APP_STATE) {
+        console.log(fnName);
+    }
+
+    if (scope === Scope.Broadcast) {
+        // don't re-broadcast an app state change
+        if (!args.calledFromBroadcastChannel) {
+            broadcastChannel.postMessage({ args, fnName });
+        }
+    }
+}
 
 const state: State = {
     waitingFor: signal(WaitingFor.User),
@@ -189,27 +219,38 @@ export const AppStateProvider = ({
 
 export const getAppState = () => useContext(AppStateContext);
 
-const DEBUG_APP_STATE = false;
-
+// any functions that are going to be broadcast need to have
+// an args object as their only argument
+//
 export const AppStateChange = {
     setColourScheme: function (colourScheme: ColourScheme) {
+        boilerplate(Scope.Local, "setColourScheme");
+
         state.colourScheme = colourScheme;
         state.colourSeeds.value = declareSeeds(state.colourScheme);
         generateColoursFromSeeds(state, state.colourSeeds.value);
     },
 
     setWaitingFor: function (waitingFor: WaitingFor) {
+        boilerplate(Scope.Local, "setWaitingFor");
+
         state.waitingFor.value = waitingFor;
     },
 
     commandBarResetAndShow: function () {
+        boilerplate(Scope.Local, "commandBarResetAndShow");
+
         commandBarReset(state, true);
     },
     commandBarResetAndHide: function () {
+        boilerplate(Scope.Local, "commandBarResetAndHide");
+
         commandBarReset(state, false);
     },
 
     commandBarEnterCommandMode: function () {
+        boilerplate(Scope.Local, "commandBarEnterCommandMode");
+
         let commandBarState = state.commandBarState.value;
 
         state.showingCommandBar.value = true;
@@ -221,6 +262,8 @@ export const AppStateChange = {
     },
 
     commandBarShowKeyboardShortcuts: function (showKeyboardShortcuts: boolean) {
+        boilerplate(Scope.Local, "commandBarShowKeyboardShortcuts");
+
         let commandBarState = state.commandBarState.value;
         state.commandBarState.value = {
             ...commandBarState,
@@ -229,6 +272,8 @@ export const AppStateChange = {
     },
 
     commandBarKeyDown: function (keyDownIndex: number, shiftKey: boolean) {
+        boilerplate(Scope.Local, "commandBarKeyDown");
+
         let commandBarState = state.commandBarState.value;
         state.commandBarState.value = {
             ...commandBarState,
@@ -238,6 +283,8 @@ export const AppStateChange = {
     },
 
     commandBarSetFocus: function (hasFocus: boolean) {
+        boilerplate(Scope.Local, "commandBarSetFocus");
+
         let commandBarState = state.commandBarState.value;
         state.commandBarState.value = {
             ...commandBarState,
@@ -246,6 +293,8 @@ export const AppStateChange = {
     },
 
     commandBarSetSearchCandidates: function (searchResponse: ResultList) {
+        boilerplate(Scope.Local, "commandBarSetSearchCandidates");
+
         let commandBarState = state.commandBarState.value;
         state.commandBarState.value = {
             ...commandBarState,
@@ -258,6 +307,8 @@ export const AppStateChange = {
         text: string,
         searchCandidates: Array<SlimDeck>
     ) {
+        boilerplate(Scope.Local, "commandBarInputGiven");
+
         let commandBarState = state.commandBarState.value;
 
         state.commandBarState.value = {
@@ -269,9 +320,8 @@ export const AppStateChange = {
     },
 
     showPreviewDeck: function (deckId: Key) {
-        if (DEBUG_APP_STATE) {
-            console.log("showPreviewDeck");
-        }
+        boilerplate(Scope.Local, "showPreviewDeck");
+
         let vp: VisiblePreview = {
             id: deckId,
             showing: true,
@@ -280,9 +330,7 @@ export const AppStateChange = {
         state.visiblePreviewDeck.value = vp;
     },
     hidePreviewDeck: function (deckId: Key) {
-        if (DEBUG_APP_STATE) {
-            console.log("hidePreviewDeck");
-        }
+        boilerplate(Scope.Local, "hidePreviewDeck");
 
         if (state.visiblePreviewDeck.value.id === deckId) {
             let vp: VisiblePreview = {
@@ -301,9 +349,8 @@ export const AppStateChange = {
         }
     },
     addPreview: function (slimDeck: SlimDeck, previewNotes: PreviewNotes) {
-        if (DEBUG_APP_STATE) {
-            console.log("addPreviewDeck");
-        }
+        boilerplate(Scope.Local, "addPreview");
+
         if (slimDeck.id !== previewNotes.deckId) {
             console.error(
                 `addPreview: deck id mismatch: ${slimDeck.id} ${previewNotes.deckId}`
@@ -334,45 +381,30 @@ export const AppStateChange = {
         state.previewCache.value = pc;
     },
     setShowingCommandBar: function (b: boolean) {
-        if (DEBUG_APP_STATE) {
-            console.log("setShowingCommandBar");
-        }
+        boilerplate(Scope.Local, "setShowingCommandBar");
 
         state.showingCommandBar.value = b;
     },
-    // addDebugMessage: function (msg: string) {
-    //     if (DEBUG_APP_STATE) {
-    //         console.log("addDebugMessage");
-    //     }
 
-    //     let dm = state.debugMessages.value.slice();
-    //     dm.unshift(msg);
-    //     state.debugMessages.value = dm;
-    // },
     mode: function (newMode: CivilMode) {
-        if (DEBUG_APP_STATE) {
-            console.log("mode");
-        }
+        boilerplate(Scope.Local, "mode");
+
         state.mode.value = newMode;
     },
     urlTitle: function (title: string) {
-        if (DEBUG_APP_STATE) {
-            console.log("urlTitle");
-        }
+        boilerplate(Scope.Local, "urlTitle");
+
         state.urlTitle.value = title;
         document.title = `${immutableState.appName}: ${title}`;
     },
     routeChanged: function (url: string) {
-        if (DEBUG_APP_STATE) {
-            console.log("routeChanged");
-        }
+        boilerplate(Scope.Local, "routeChanged");
+
         state.url.value = url;
     },
 
     uberSetup: function (uber: UberSetup) {
-        if (DEBUG_APP_STATE) {
-            console.log("uberSetup");
-        }
+        boilerplate(Scope.Local, "uberSetup");
 
         state.graph.value = {
             fullyLoaded: false,
@@ -399,15 +431,13 @@ export const AppStateChange = {
     },
 
     userLogin: function (user: User) {
-        if (DEBUG_APP_STATE) {
-            console.log("userLogin");
-        }
+        boilerplate(Scope.Local, "userLogin");
+
         state.user.value = user;
     },
     userLogout: function () {
-        if (DEBUG_APP_STATE) {
-            console.log("userLogout");
-        }
+        boilerplate(Scope.Broadcast, "userLogout");
+
         let user: User = { ...state.user.value };
         user.username = "";
 
@@ -415,17 +445,15 @@ export const AppStateChange = {
     },
 
     showAddPointForm: function () {
-        if (DEBUG_APP_STATE) {
-            console.log("showAddPointForm");
-        }
+        boilerplate(Scope.Local, "showAddPointForm");
+
         state.showAddPointForm.value = true;
         state.componentRequiresFullKeyboardAccess.value = true;
     },
 
     hideAddPointForm: function () {
-        if (DEBUG_APP_STATE) {
-            console.log("hideAddPointForm");
-        }
+        boilerplate(Scope.Local, "hideAddPointForm");
+
         state.showAddPointForm.value = false;
         state.componentRequiresFullKeyboardAccess.value = false;
     },
@@ -433,9 +461,7 @@ export const AppStateChange = {
         allDecksForNote: Array<Reference>,
         changes: RefsModified
     ) {
-        if (DEBUG_APP_STATE) {
-            console.log("noteRefsModified");
-        }
+        boilerplate(Scope.Local, "noteRefsModified");
 
         if (changes.referencesCreated.length > 0) {
             let ng = { ...state.graph.value, fullLoaded: false };
@@ -476,40 +502,55 @@ export const AppStateChange = {
         }
     },
 
-    setIdeaListings: function (ideas: IdeasListings) {
-        let li = {
+    setIdeaListings: function (args) {
+        boilerplate(Scope.Broadcast, "setIdeaListings", args);
+
+        const ideas: IdeasListings = args.idealListings;
+        const li = {
             ...state.listing.value,
             ideas,
         };
         state.listing.value = li;
     },
 
-    setPeopleListings: function (people: PeopleListings) {
-        let li = {
+    setPeopleListings: function (args) {
+        boilerplate(Scope.Broadcast, "setPeopleListings", args);
+
+        const people: PeopleListings = args.peopleListings;
+        const li = {
             ...state.listing.value,
             people,
         };
         state.listing.value = li;
     },
 
-    setArticleListings: function (articles: ArticleListings) {
-        let li = {
+    setArticleListings: function (args) {
+        boilerplate(Scope.Broadcast, "setArticleListings", args);
+
+        const articles: ArticleListings = args.articleListings;
+        const li = {
             ...state.listing.value,
             articles,
         };
         state.listing.value = li;
     },
 
-    setTimelineListings: function (timelines: Array<SlimDeck>) {
-        let li = {
+    setTimelineListings: function (args) {
+        boilerplate(Scope.Broadcast, "setTimelineListings", args);
+
+        const timelines: Array<SlimDeck> = args.timelineListings;
+        const li = {
             ...state.listing.value,
             timelines,
         };
         state.listing.value = li;
     },
 
-    setDialogueListings: function (dialogues: Array<SlimDeck>) {
-        let li = {
+    setDialogueListings: function (args) {
+        boilerplate(Scope.Broadcast, "setDialogueListings", args);
+
+        const dialogues: Array<SlimDeck> = args.dialogueListings;
+        const li = {
             ...state.listing.value,
             dialogues,
         };
@@ -517,17 +558,20 @@ export const AppStateChange = {
     },
 
     obtainKeyboard: function () {
+        boilerplate(Scope.Local, "obtainKeyboard");
+
         state.componentRequiresFullKeyboardAccess.value = true;
     },
 
     relinquishKeyboard: function () {
+        boilerplate(Scope.Local, "relinquishKeyboard");
+
         state.componentRequiresFullKeyboardAccess.value = false;
     },
 
     obtainKeyboardFn: function () {
-        if (DEBUG_APP_STATE) {
-            console.log("obtainKeyboard");
-        }
+        boilerplate(Scope.Local, "obtainKeyboardFn");
+
         return function (e: Event) {
             e.preventDefault();
             state.componentRequiresFullKeyboardAccess.value = true;
@@ -535,9 +579,8 @@ export const AppStateChange = {
     },
 
     relinquishKeyboardFn: function () {
-        if (DEBUG_APP_STATE) {
-            console.log("relinquishKeyboard");
-        }
+        boilerplate(Scope.Local, "relinquishKeyboardFn");
+
         return function (e: Event) {
             e.preventDefault();
             state.componentRequiresFullKeyboardAccess.value = false;
@@ -545,9 +588,8 @@ export const AppStateChange = {
     },
 
     showNoteForm: function (noteKind: NoteKind, pointId?: number) {
-        if (DEBUG_APP_STATE) {
-            console.log("showNoteForm");
-        }
+        boilerplate(Scope.Local, "showNoteForm");
+
         let snf = { ...state.showNoteForm.value };
 
         snf[noteKind] = true;
@@ -558,9 +600,8 @@ export const AppStateChange = {
     },
 
     hideNoteForm: function (noteKind: NoteKind) {
-        if (DEBUG_APP_STATE) {
-            console.log("hideNoteForm");
-        }
+        boilerplate(Scope.Local, "hideNoteForm");
+
         let snf = { ...state.showNoteForm.value };
 
         snf[noteKind] = false;
@@ -570,19 +611,17 @@ export const AppStateChange = {
         state.componentRequiresFullKeyboardAccess.value = false;
     },
 
-    setRecentImages: function (recentImages: Array<UserUploadedImage>) {
-        if (DEBUG_APP_STATE) {
-            console.log("setRecentImages");
-        }
+    setRecentImages: function (args) {
+        boilerplate(Scope.Broadcast, "setRecentImages", args);
+
+        const recentImages: Array<UserUploadedImage> = args.recentImages;
         state.recentImages.value = recentImages;
     },
 
     deleteDeck: function (id: Key) {
-        // todo: typescript check the Listing entry and the filterFn
+        boilerplate(Scope.Local, "deleteDeck"); // todo
 
-        if (DEBUG_APP_STATE) {
-            console.log("deleteDeck");
-        }
+        // todo: typescript check the Listing entry and the filterFn
         let filterFn = (d) => d.id !== id;
 
         if (state.graph.value && state.graph.value.decks) {
@@ -650,48 +689,46 @@ export const AppStateChange = {
     },
 
     bookmarkToggle: function () {
-        if (DEBUG_APP_STATE) {
-            console.log("bookmarkToggle");
-        }
+        boilerplate(Scope.Broadcast, "bookmarkToggle", {});
+
         state.bookmarksMinimised.value = !state.bookmarksMinimised.value;
     },
 
-    setBookmarks: function (bookmarks: Array<Bookmark>) {
+    setBookmarks: function (args) {
+        boilerplate(Scope.Broadcast, "setBookmarks", args);
+
+        const bookmarks: Array<Bookmark> = args.bookmarks;
         state.bookmarks.value = bookmarks;
     },
 
-    setRecentlyUsedDecks: function (recents: Array<SlimDeck>) {
-        if (DEBUG_APP_STATE) {
-            console.log("setRecentlyUsedDecks");
-        }
+    setRecentlyUsedDecks: function (args) {
+        boilerplate(Scope.Broadcast, "setRecentlyUsedDecks", args);
+
+        const recents: Array<SlimDeck> = args.recents;
         state.recentlyUsedDecks.value = recents;
     },
 
     connectivityGraphShow: function () {
-        if (DEBUG_APP_STATE) {
-            console.log("connectivityGraphShow");
-        }
+        boilerplate(Scope.Local, "connectivityGraphShow");
+
         state.showConnectivityGraph.value = true;
     },
 
     connectivityGraphHide: function () {
-        if (DEBUG_APP_STATE) {
-            console.log("connectivityGraphHide");
-        }
+        boilerplate(Scope.Local, "connectivityGraphHide");
+
         state.showConnectivityGraph.value = false;
     },
 
     setReviewCount: function (count: number) {
-        if (DEBUG_APP_STATE) {
-            console.log("setReviewCount");
-        }
+        boilerplate(Scope.Local, "setReviewCount");
+
         state.memoriseReviewCount.value = count;
     },
 
     loadGraph: function (graph: FullGraphStruct) {
-        if (DEBUG_APP_STATE) {
-            console.log("loadGraph");
-        }
+        boilerplate(Scope.Local, "loadGraph");
+
         let newGraph: Graph = {
             fullyLoaded: true,
             decks: graph.graphDecks,
@@ -702,9 +739,8 @@ export const AppStateChange = {
     },
 
     invalidateGraph: function () {
-        if (DEBUG_APP_STATE) {
-            console.log("invalidateGraph");
-        }
+        boilerplate(Scope.Local, "invalidateGraph");
+
         state.graph.value = {
             fullyLoaded: false,
             decks: [],

@@ -53,20 +53,24 @@ export function createDeck(deckKind: DeckKind, title: string) {
         Net.get<AnyDeckListing>(`/api/${resource}/listings`).then((listing) => {
             switch (deckKind) {
                 case DeckKind.Idea:
-                    AppStateChange.setIdeaListings(listing as IdeasListings);
+                    AppStateChange.setIdeaListings({
+                        ideaListings: listing as IdeasListings,
+                    });
                     break;
                 case DeckKind.Person:
-                    AppStateChange.setPeopleListings(listing as PeopleListings);
+                    AppStateChange.setPeopleListings({
+                        peopleListings: listing as PeopleListings,
+                    });
                     break;
                 case DeckKind.Article:
-                    AppStateChange.setArticleListings(
-                        listing as ArticleListings
-                    );
+                    AppStateChange.setArticleListings({
+                        articleListings: listing as ArticleListings,
+                    });
                     break;
                 case DeckKind.Timeline:
-                    AppStateChange.setTimelineListings(
-                        listing as Array<SlimDeck>
-                    );
+                    AppStateChange.setTimelineListings({
+                        timelineListings: listing as Array<SlimDeck>,
+                    });
                     break;
             }
             AppStateChange.invalidateGraph();

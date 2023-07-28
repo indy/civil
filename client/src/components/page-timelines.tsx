@@ -54,7 +54,9 @@ function Timelines({ path }: { path?: string }) {
         if (!appState.listing.value.timelines) {
             let url: string = "/api/timelines/listings";
             Net.get<Array<SlimDeck>>(url).then((listings) => {
-                AppStateChange.setTimelineListings(listings);
+                AppStateChange.setTimelineListings({
+                    timelineListings: listings,
+                });
             });
         }
     }, []);

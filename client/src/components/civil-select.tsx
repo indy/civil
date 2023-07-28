@@ -399,7 +399,8 @@ export default function CivilSelect({
             "/api/edges/notes_decks",
             changeData
         ).then((response) => {
-            AppStateChange.setRecentlyUsedDecks(response.recents);
+            const recents = response.recents;
+            AppStateChange.setRecentlyUsedDecks({ recents });
             onSave(changes, response.refs);
         });
     }

@@ -40,7 +40,7 @@ export default function CivilTextArea({
             files
         );
         // update the recent images list
-        AppStateChange.setRecentImages(recentImages);
+        AppStateChange.setRecentImages({ recentImages });
         // update the markup with the correct image filenames
         if (onPaste) {
             let markup = "";

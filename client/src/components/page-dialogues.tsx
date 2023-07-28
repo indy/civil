@@ -71,7 +71,9 @@ function Dialogues({ path }: { path?: string }) {
         if (!appState.listing.value.articles) {
             let url: string = "/api/dialogues";
             Net.get<Array<SlimDeck>>(url).then((listings) => {
-                AppStateChange.setDialogueListings(listings);
+                AppStateChange.setDialogueListings({
+                    dialogueListings: listings,
+                });
             });
         }
     }, []);
@@ -459,7 +461,9 @@ function DialogueUpdater({
             // fetch the listing incase editing the dialogue has changed it's star rating or annotation
             //
             Net.get<Array<SlimDeck>>("/api/dialogues").then((dialogues) => {
-                AppStateChange.setDialogueListings(dialogues);
+                AppStateChange.setDialogueListings({
+                    dialogueListings: dialogues,
+                });
             });
         });
 

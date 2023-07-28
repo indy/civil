@@ -50,7 +50,9 @@ function Articles({ path }: { path?: string }) {
         if (!appState.listing.value.articles) {
             let url: string = "/api/articles/listings";
             Net.get<ArticleListings>(url).then((listings) => {
-                AppStateChange.setArticleListings(listings);
+                AppStateChange.setArticleListings({
+                    articleListings: listings,
+                });
             });
         }
     }, []);
@@ -336,7 +338,9 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
             //
             Net.get<ArticleListings>("/api/articles/listings").then(
                 (articles) => {
-                    AppStateChange.setArticleListings(articles);
+                    AppStateChange.setArticleListings({
+                        articleListings: articles,
+                    });
                 }
             );
         });

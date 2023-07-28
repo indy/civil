@@ -44,7 +44,7 @@ function Ideas({ path }: { path?: string }) {
         if (!appState.listing.value.ideas) {
             let url: string = "/api/ideas/listings";
             Net.get<IdeasListings>(url).then((listings) => {
-                AppStateChange.setIdeaListings(listings);
+                AppStateChange.setIdeaListings({ ideaListings: listings });
             });
         }
     }, []);

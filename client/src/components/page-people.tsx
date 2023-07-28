@@ -69,7 +69,7 @@ function People({ path }: { path?: string }) {
         if (!appState.listing.value.people) {
             let url: string = "/api/people/listings";
             Net.get<PeopleListings>(url).then((listings) => {
-                AppStateChange.setPeopleListings(listings);
+                AppStateChange.setPeopleListings({ peopleListings: listings });
             });
         }
     }, []);
@@ -137,7 +137,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
     function dispatchUpdatedPerson(person: DeckPerson) {
         deckManager.update(person);
         Net.get<PeopleListings>("/api/people/listings").then((people) => {
-            AppStateChange.setPeopleListings(people);
+            AppStateChange.setPeopleListings({ peopleListings: people });
         });
     }
 
