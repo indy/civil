@@ -96,17 +96,21 @@ export enum Scope {
     Broadcast,
 }
 
+//const DEBUG_APP_STATE = false;
+const DEBUG_APP_STATE = true;
+
 const broadcastChannel = new BroadcastChannel("civil::appStateChange");
 broadcastChannel.onmessage = (event) => {
     const fnName = event.data.fnName;
     let args = event.data.args || {};
     args.calledFromBroadcastChannel = true;
 
+    if (DEBUG_APP_STATE) {
+        console.log(`broadcast channel received: ${fnName}`);
+    }
+
     AppStateChange[fnName](args);
 };
-
-const DEBUG_APP_STATE = false;
-//const DEBUG_APP_STATE = true;
 
 function boilerplate(scope: Scope, fnName: string, args?: any) {
     if (DEBUG_APP_STATE) {
@@ -457,11 +461,12 @@ export const AppStateChange = {
         state.showAddPointForm.value = false;
         state.componentRequiresFullKeyboardAccess.value = false;
     },
-    noteRefsModified: function (
-        allDecksForNote: Array<Reference>,
-        changes: RefsModified
-    ) {
-        boilerplate(Scope.Local, "noteRefsModified");
+
+    noteRefsModified: function (args) {
+        boilerplate(Scope.Broadcast, "noteRefsModified", args);
+
+        const allDecksForNote: Array<Reference> = args.allDecksForNote;
+        const changes: RefsModified = args.changes;
 
         if (changes.referencesCreated.length > 0) {
             let ng = { ...state.graph.value, fullLoaded: false };
@@ -505,11 +510,13 @@ export const AppStateChange = {
     setIdeaListings: function (args) {
         boilerplate(Scope.Broadcast, "setIdeaListings", args);
 
-        const ideas: IdeasListings = args.idealListings;
+        const ideas: IdeasListings = args.ideaListings;
+
         const li = {
             ...state.listing.value,
             ideas,
         };
+
         state.listing.value = li;
     },
 
