@@ -26,12 +26,12 @@ export default function FrontPage({ path }: { path?: string }) {
         return (
             <div>
                 <FilterModule />
-                <DialoguesModule dialogues={dialogues} />
                 <IdeasModule ideas={ideas} />
                 <ArticlesModule articles={articles} />
                 <PeopleModule people={people} />
-                <TimelinesModule timelines={timelines} />
+                <DialoguesModule dialogues={dialogues} />
                 <QuotesModule />
+                <TimelinesModule timelines={timelines} />
             </div>
         );
     } else {
