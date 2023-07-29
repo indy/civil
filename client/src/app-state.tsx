@@ -628,8 +628,10 @@ export const AppStateChange = {
         state.recentImages.value = recentImages;
     },
 
-    deleteDeck: function (id: Key) {
-        boilerplate(Scope.Local, "deleteDeck"); // todo
+    deleteDeck: function (args) {
+        boilerplate(Scope.Broadcast, "deleteDeck", args);
+
+        const id: Key = args.id;
 
         // todo: typescript check the Listing entry and the filterFn
         let filterFn = (d) => d.id !== id;
