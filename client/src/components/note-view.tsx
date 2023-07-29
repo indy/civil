@@ -239,7 +239,7 @@ function reducer(state: LocalState, action: Action): LocalState {
             const { allDecksForNote, changes } =
                 action.data as ActionDataDecksCommit;
 
-            AppStateChange.noteRefsModified({allDecksForNote, changes});
+            AppStateChange.noteRefsModified({ allDecksForNote, changes });
 
             return {
                 ...state,

@@ -233,14 +233,18 @@ export type DeckPoint = {
     id: Key;
     kind: PointKind;
     title?: string;
+    font: Font;
+
+    locationTextual?: string;
+
     dateTextual?: string;
     date?: string;
-    age?: number;
-    font: Font;
 
     deckId: Key;
     deckName: string;
     deckKind: DeckKind;
+
+    age?: number;
 };
 
 export type FlashCard = {

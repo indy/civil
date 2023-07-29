@@ -108,15 +108,18 @@ pub(crate) fn all(
 fn deckpoint_from_row(row: &Row) -> crate::Result<interop::DeckPoint> {
     let string_deck_kind: String = row.get(2)?;
     let string_point_kind: String = row.get(4)?;
-    let fnt: i32 = row.get(8)?;
+    let fnt: i32 = row.get(9)?;
 
     Ok(interop::DeckPoint {
         id: row.get(3)?,
         kind: interop::PointKind::from_str(&string_point_kind)?,
         title: row.get(5)?,
         font: Font::try_from(fnt)?,
-        date_textual: row.get(6)?,
-        date: row.get(7)?,
+
+        location_textual: row.get(6)?,
+
+        date_textual: row.get(7)?,
+        date: row.get(8)?,
 
         deck_id: row.get(0)?,
         deck_name: row.get(1)?,
@@ -143,6 +146,7 @@ pub(crate) fn all_points_during_life(
                 p.id,
                 p.kind,
                 p.title,
+                p.location_textual,
                 p.date_textual,
                 coalesce(date(p.exact_realdate), date(p.lower_realdate)) as date,
                 p.font,
@@ -158,6 +162,7 @@ pub(crate) fn all_points_during_life(
                 p.id,
                 p.kind,
                 p.title,
+                p.location_textual,
                 p.date_textual,
                 coalesce(date(p.exact_realdate), date(p.lower_realdate)) as date,
                 p.font,

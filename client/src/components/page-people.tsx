@@ -449,11 +449,13 @@ function PersonDeckPoint({
         setExpanded(!expanded);
     }
 
-    let pointTitle = deckPoint.title;
-
     let ageText = deckPoint.age! > 0 ? `${deckPoint.age}` : "";
-
     let klass = fontClass(deckPoint.font, RenderingDeckPart.Heading);
+
+    let pointText = `${deckPoint.title} ${deckPoint.dateTextual}`;
+    if (deckPoint.locationTextual) {
+        pointText += ` ${deckPoint.locationTextual}`;
+    }
 
     if (deckPoint.deckId === holderId) {
         klass += " relevent-deckpoint";
@@ -467,7 +469,7 @@ function PersonDeckPoint({
                         ? svgCaretRight()
                         : svgCaretRightEmpty()}
                 </span>
-                {deckPoint.deckName} - {pointTitle} {deckPoint.dateTextual}
+                {deckPoint.deckName} - {pointText}
                 {expanded && <div class="point-notes">{passage}</div>}
             </li>
         );
@@ -478,7 +480,7 @@ function PersonDeckPoint({
                 <Link href={buildUrl(deckPoint.deckKind, deckPoint.deckId)}>
                     <span class="deckpoint-age">{ageText}</span>
                     {svgBlank()}
-                    {deckPoint.deckName} - {pointTitle} {deckPoint.dateTextual}
+                    {deckPoint.deckName} - {pointText}
                 </Link>
             </li>
         );
@@ -598,45 +600,45 @@ function SegmentPoints({
         <RollableSegment heading={segmentTitle} font={font}>
             <CivContainer>
                 <CivLeft ui>
-                    {!hasDied && (
-                        <div
-                            class="left-margin-entry fadeable clickable"
-                            onClick={onShowDeathFormClicked}
-                        >
-                            <span class="left-margin-icon-label">
-                                Add Died Point
-                            </span>
-                            {svgPointAdd()}
-                        </div>
-                    )}
                     <WhenEditMode>
-                        <div
-                            class="left-margin-entry fadeable clickable"
-                            onClick={onOnlyThisPersonClicked}
-                        >
-                            <span class="left-margin-icon-label">
-                                Only {holderTitle}
-                            </span>
-                            {onlyThisPerson
-                                ? svgTickedCheckBox()
-                                : svgUntickedCheckBox()}
-                        </div>
-                        {!onlyThisPerson && (
+                        {!hasDied && (
                             <div
                                 class="left-margin-entry fadeable clickable"
-                                onClick={onShowOtherClicked}
+                                onClick={onShowDeathFormClicked}
                             >
                                 <span class="left-margin-icon-label">
-                                    Show Other Birth/Deaths
+                                    Add Died Point
                                 </span>
-                                {showBirthsDeaths
-                                    ? svgTickedCheckBox()
-                                    : svgUntickedCheckBox()}
+                                {svgPointAdd()}
                             </div>
                         )}
                     </WhenEditMode>
+                    <div
+                        class="left-margin-entry fadeable clickable"
+                        onClick={onOnlyThisPersonClicked}
+                    >
+                        <span class="left-margin-icon-label">
+                            Only {holderTitle}
+                        </span>
+                        {onlyThisPerson
+                            ? svgTickedCheckBox()
+                            : svgUntickedCheckBox()}
+                    </div>
+                    {!onlyThisPerson && (
+                        <div
+                            class="left-margin-entry fadeable clickable"
+                            onClick={onShowOtherClicked}
+                        >
+                            <span class="left-margin-icon-label">
+                                Show Other Birth/Deaths
+                            </span>
+                            {showBirthsDeaths
+                                ? svgTickedCheckBox()
+                                : svgUntickedCheckBox()}
+                        </div>
+                    )}
                 </CivLeft>
-                {showDeathForm && deathForm()}
+                <WhenEditMode>{showDeathForm && deathForm()}</WhenEditMode>
 
                 <CivMain>
                     <ul class="unstyled-list hug-left">{dps}</ul>
@@ -653,8 +655,9 @@ function SegmentPoints({
                             {showAddPointForm ? svgX() : svgPointAdd()}
                         </div>
                     </CivLeft>
+                    {showAddPointForm &&
+                        deckManager.buildPointForm(onPointCreated)}
                 </WhenEditMode>
-                {showAddPointForm && deckManager.buildPointForm(onPointCreated)}
             </CivContainer>
         </RollableSegment>
     );

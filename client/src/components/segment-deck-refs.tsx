@@ -71,7 +71,7 @@ export default function SegmentDeckRefs({
         // this note is going to be the deck's NoteDeckMeta
         onRefsChanged(note, allDecksForNote);
 
-        AppStateChange.noteRefsModified({allDecksForNote, changes});
+        AppStateChange.noteRefsModified({ allDecksForNote, changes });
         setEditingDeckRefs(false);
     }
 

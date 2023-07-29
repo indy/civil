@@ -698,8 +698,8 @@ export const AppStateChange = {
         }
     },
 
-    bookmarkToggle: function (args) {
-        boilerplate(Scope.Broadcast, "bookmarkToggle", args);
+    bookmarkToggle: function () {
+        boilerplate(Scope.Local, "bookmarkToggle", {});
 
         state.bookmarksMinimised.value = !state.bookmarksMinimised.value;
     },

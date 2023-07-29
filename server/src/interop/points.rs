@@ -77,6 +77,9 @@ pub struct DeckPoint {
     pub kind: PointKind,
     pub title: Option<String>,
     pub font: Font,
+
+    pub location_textual: Option<String>,
+
     pub date_textual: Option<String>,
     pub date: Option<chrono::NaiveDate>,
 
