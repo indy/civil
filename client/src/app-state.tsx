@@ -107,6 +107,7 @@ broadcastChannel.onmessage = (event) => {
 
     if (DEBUG_APP_STATE) {
         console.log(`broadcast channel received: ${fnName}`);
+        console.log(args);
     }
 
     AppStateChange[fnName](args);
@@ -225,6 +226,8 @@ export const getAppState = () => useContext(AppStateContext);
 
 // any functions that are going to be broadcast need to have
 // an args object as their only argument
+// this args object has to be used as an argument
+// into the boilerplate function
 //
 export const AppStateChange = {
     setColourScheme: function (colourScheme: ColourScheme) {
@@ -439,8 +442,8 @@ export const AppStateChange = {
 
         state.user.value = user;
     },
-    userLogout: function () {
-        boilerplate(Scope.Broadcast, "userLogout");
+    userLogout: function (args) {
+        boilerplate(Scope.Broadcast, "userLogout", args);
 
         let user: User = { ...state.user.value };
         user.username = "";
@@ -695,8 +698,8 @@ export const AppStateChange = {
         }
     },
 
-    bookmarkToggle: function () {
-        boilerplate(Scope.Broadcast, "bookmarkToggle", {});
+    bookmarkToggle: function (args) {
+        boilerplate(Scope.Broadcast, "bookmarkToggle", args);
 
         state.bookmarksMinimised.value = !state.bookmarksMinimised.value;
     },

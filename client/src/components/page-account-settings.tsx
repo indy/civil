@@ -91,7 +91,7 @@ function Logout({}) {
     const handleLogout = (event: Event) => {
         Net.delete("api/auth", {}).then(() => {
             //// this isn't logging out the user, refreshing the app logs the user back in
-            AppStateChange.userLogout();
+            AppStateChange.userLogout({});
             route("/login", true);
         });
         event.preventDefault();
