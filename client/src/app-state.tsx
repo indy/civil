@@ -730,9 +730,10 @@ export const AppStateChange = {
         state.showConnectivityGraph.value = false;
     },
 
-    setReviewCount: function (count: number) {
-        boilerplate(Scope.Local, "setReviewCount");
+    setReviewCount: function (args) {
+        boilerplate(Scope.Broadcast, "setReviewCount", args);
 
+        const count: number = args.count;
         state.memoriseReviewCount.value = count;
     },
 

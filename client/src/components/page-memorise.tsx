@@ -140,7 +140,7 @@ function reducer(state: State, action: Action): State {
                     mode = Mode.PostTest;
                 }
 
-                AppStateChange.setReviewCount(cards.length);
+                AppStateChange.setReviewCount({ count: cards.length });
             }
 
             let newState = {

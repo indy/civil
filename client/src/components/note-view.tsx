@@ -265,7 +265,7 @@ function reducer(state: LocalState, action: Action): LocalState {
 
             AppStateChange.relinquishKeyboard();
             AppStateChange.mode(CivilMode.View);
-            AppStateChange.setReviewCount(reviewCount);
+            AppStateChange.setReviewCount({ count: reviewCount });
 
             return newState;
         }
