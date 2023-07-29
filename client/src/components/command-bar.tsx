@@ -386,15 +386,7 @@ export default function CommandBar() {
                         commandBarState.searchCandidates.map((c) => c.id);
                     addMultipleBookmarks(deckIds);
 
-                    // isg hack: look into this
-                    //
-                    // once a candidate has been added to the saved search
-                    // results, set the keyDownIndex to an invalid value,
-                    // otherwise if the user presses shift and an unused
-                    // key (e.g. '+' ) then the last candidate to be added
-                    // will be added again.
-                    //
-                    AppStateChange.commandBarKeyDown(-1, true);
+                    AppStateChange.commandBarResetAndHide();
                 }
             }
         }
