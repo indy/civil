@@ -49,9 +49,9 @@ export function DeluxeToolbar({}) {
     function searchClicked() {
         AppStateChange.mode({ mode: CivilMode.View });
         if (appState.showingCommandBar.value) {
-            AppStateChange.cbResetAndHide();
+            AppStateChange.commandBarResetAndHide();
         } else {
-            AppStateChange.cbResetAndShow();
+            AppStateChange.commandBarResetAndShow();
         }
     }
 
@@ -127,7 +127,7 @@ function ToolbarItem({
         if (appState.mode.value === mode) {
             // toggle the current mode off
             AppStateChange.mode({ mode: CivilMode.View });
-            AppStateChange.cbResetAndHide();
+            AppStateChange.commandBarResetAndHide();
             // AppStateChange.hideCommandBar();
         } else {
             AppStateChange.mode({ mode });

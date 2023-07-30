@@ -556,3 +556,172 @@ export enum Role {
     /// A message sent by the user
     User,
 }
+
+export type StateChangeColourScheme = {
+    colourScheme: ColourScheme;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeWaitingFor = {
+    waitingFor: WaitingFor;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeShowShortcuts = {
+    showKeyboardShortcuts: boolean;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeKeyDown = {
+    keyDownIndex: number;
+    shiftKey: boolean;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeSetFocus = {
+    hasFocus: boolean;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeSetSearch = {
+    searchCandidates: Array<SlimDeck>;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeInputGiven = {
+    mode: CommandBarMode;
+    text: string;
+    searchCandidates: Array<SlimDeck>;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeDeckId = {
+    deckId: Key;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeAddPreview = {
+    slimDeck: SlimDeck;
+    previewNotes: PreviewNotes;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeMode = {
+    mode: CivilMode;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeTitle = {
+    title: string;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeUrl = {
+    url: string;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeUber = {
+    uber: UberSetup;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeUser = {
+    user: User;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeNoteRefsModified = {
+    allDecksForNote: Array<Reference>;
+    changes: RefsModified;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeIdea = {
+    ideaListings: IdeasListings;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangePeople = {
+    peopleListings: PeopleListings;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeArticle = {
+    articleListings: ArticleListings;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeTimeline = {
+    timelineListings: Array<SlimDeck>;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeDialogue = {
+    dialogueListings: Array<SlimDeck>;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeNoteForm = {
+    noteKind: NoteKind;
+    pointId?: Key;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeRecentImages = {
+    recentImages: Array<UserUploadedImage>;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeBookmarks = {
+    bookmarks: Array<Bookmark>;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeRecentlyUsedDecks = {
+    recents: Array<SlimDeck>;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeCount = {
+    count: number;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeGraph = {
+    graph: FullGraphStruct;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeEmpty = {
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type AppStateChangeArgs =
+    | StateChangeColourScheme
+    | StateChangeWaitingFor
+    | StateChangeShowShortcuts
+    | StateChangeKeyDown
+    | StateChangeSetFocus
+    | StateChangeSetSearch
+    | StateChangeInputGiven
+    | StateChangeDeckId
+    | StateChangeAddPreview
+    | StateChangeMode
+    | StateChangeTitle
+    | StateChangeUrl
+    | StateChangeUber
+    | StateChangeUser
+    | StateChangeNoteRefsModified
+    | StateChangeIdea
+    | StateChangePeople
+    | StateChangeArticle
+    | StateChangeTimeline
+    | StateChangeDialogue
+    | StateChangeNoteForm
+    | StateChangeRecentImages
+    | StateChangeBookmarks
+    | StateChangeRecentlyUsedDecks
+    | StateChangeCount
+    | StateChangeGraph
+    | StateChangeEmpty;
