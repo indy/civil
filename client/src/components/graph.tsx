@@ -194,7 +194,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
             // dispatch the updated state,
             // and then on the next render initialise using the if statement above
             Net.get<FullGraphStruct>("/api/graph").then((graph) => {
-                AppStateChange.loadGraph(graph);
+                AppStateChange.loadGraph({ graph });
                 localDispatch(ActionType.RequireLoad, true);
             });
         }

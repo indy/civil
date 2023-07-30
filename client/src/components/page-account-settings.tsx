@@ -32,9 +32,8 @@ function TestRollupModule({}) {
     const [waitVal, setWaitVal] = useState(true);
 
     function onClick() {
-        AppStateChange.setWaitingFor(
-            waitVal ? WaitingFor.Server : WaitingFor.User
-        );
+        const waitingFor = waitVal ? WaitingFor.Server : WaitingFor.User;
+        AppStateChange.setWaitingFor({ waitingFor });
         setWaitVal(!waitVal);
         setActive(!active);
     }
@@ -124,7 +123,7 @@ function ColourSchemeSelector({}) {
             theme: colourSchemeAsString(colourScheme),
         });
 
-        AppStateChange.setColourScheme(colourScheme);
+        AppStateChange.setColourScheme({ colourScheme });
     }, [colourScheme]);
 
     return (

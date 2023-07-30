@@ -84,21 +84,21 @@ wasm_bindgen("/civil_wasm_bg.wasm")
                     //
                     state.user.value = user;
 
-                    AppStateChange.setColourScheme(
-                        colourSchemeFromString(user.theme)
-                    );
+                    AppStateChange.setColourScheme({
+                        colourScheme: colourSchemeFromString(user.theme),
+                    });
 
                     Net.get<UberSetup>("/api/ubersetup").then((uber) => {
-                        AppStateChange.uberSetup(uber);
+                        AppStateChange.uberSetup({ uber });
                         render(<App state={state} />, rootElement);
                     });
                 } else {
                     // use system default theme obtained from the css variable "--mode"
                     //
                     let mode = getCssString("--mode");
-                    AppStateChange.setColourScheme(
-                        colourSchemeFromString(mode)
-                    );
+                    AppStateChange.setColourScheme({
+                        colourScheme: colourSchemeFromString(mode),
+                    });
 
                     render(<App state={state} />, rootElement);
                 }

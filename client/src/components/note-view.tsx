@@ -221,7 +221,7 @@ function reducer(state: LocalState, action: Action): LocalState {
             if (showUI) {
                 AppStateChange.obtainKeyboard();
             } else {
-                AppStateChange.mode(CivilMode.View);
+                AppStateChange.mode({ mode: CivilMode.View });
                 AppStateChange.relinquishKeyboard();
             }
 
@@ -264,7 +264,7 @@ function reducer(state: LocalState, action: Action): LocalState {
             let reviewCount = appState.memoriseReviewCount.value + 1;
 
             AppStateChange.relinquishKeyboard();
-            AppStateChange.mode(CivilMode.View);
+            AppStateChange.mode({ mode: CivilMode.View });
             AppStateChange.setReviewCount({ count: reviewCount });
 
             return newState;

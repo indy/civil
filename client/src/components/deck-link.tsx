@@ -39,26 +39,26 @@ export default function DeckLink({
     function onMouseEnter() {
         if (!appState.previewCache.value[slimDeck.id]) {
             Net.get<PreviewNotes>(`/api/decks/preview/${slimDeck.id}`).then(
-                (pn) => {
-                    AppStateChange.addPreview(slimDeck, pn);
+                (previewNotes) => {
+                    AppStateChange.addPreview({ slimDeck, previewNotes });
                 }
             );
         }
-        AppStateChange.showPreviewDeck(slimDeck.id);
+        AppStateChange.showPreviewDeck({ deckId: slimDeck.id });
     }
     function onMouseLeave() {
-        AppStateChange.hidePreviewDeck(slimDeck.id);
+        AppStateChange.hidePreviewDeck({ deckId: slimDeck.id });
     }
 
     function clicked(_e: Event) {
-        AppStateChange.hidePreviewDeck(slimDeck.id);
+        AppStateChange.hidePreviewDeck({ deckId: slimDeck.id });
         if (onClick) {
             onClick();
         }
     }
 
     function bookmarkModeClicked() {
-        AppStateChange.hidePreviewDeck(slimDeck.id);
+        AppStateChange.hidePreviewDeck({ deckId: slimDeck.id });
         addBookmark(slimDeck.id);
     }
 

@@ -39,17 +39,21 @@ export default function AutoSummarize({ deck, onFinish }: AutoSummarizeProps) {
             };
 
             // returns the newly created NoteSummary
-            AppStateChange.setWaitingFor(WaitingFor.Server);
+            AppStateChange.setWaitingFor({ waitingFor: WaitingFor.Server });
             Net.post<SummarizeStruct, Note>(
                 `/api/decks/summarize/${deck.id}`,
                 summarizeStruct
             )
                 .then((note) => {
-                    AppStateChange.setWaitingFor(WaitingFor.User);
+                    AppStateChange.setWaitingFor({
+                        waitingFor: WaitingFor.User,
+                    });
                     onFinish(note);
                 })
                 .catch((error) => {
-                    AppStateChange.setWaitingFor(WaitingFor.User);
+                    AppStateChange.setWaitingFor({
+                        waitingFor: WaitingFor.User,
+                    });
                     console.log("caught something");
                     console.log(error);
                 });

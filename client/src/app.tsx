@@ -92,7 +92,7 @@ function TopBarMenu() {
     }
 
     function clickedTopLevel(topMenuItem: string) {
-        AppStateChange.urlTitle(topMenuItem);
+        AppStateChange.urlTitle({ title: topMenuItem });
     }
 
     function menuItemText(topMenuItem: string): string {
@@ -145,10 +145,10 @@ const AppUI = () => {
     const state = getAppState();
 
     function loginHandler(user: User) {
-        AppStateChange.userLogin(user);
+        AppStateChange.userLogin({ user });
 
         Net.get<UberSetup>("/api/ubersetup").then((uber) => {
-            AppStateChange.uberSetup(uber);
+            AppStateChange.uberSetup({ uber });
             route("/", true);
         });
     }
@@ -156,7 +156,7 @@ const AppUI = () => {
     function handleRoute(
         e: RouterOnChangeArgs<Record<string, string | undefined> | null>
     ): void {
-        AppStateChange.routeChanged(e.url);
+        AppStateChange.routeChanged({ url: e.url });
 
         if (e.url !== "/login") {
             // all other pages require the user to be logged in

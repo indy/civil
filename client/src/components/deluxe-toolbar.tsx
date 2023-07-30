@@ -47,11 +47,11 @@ export function DeluxeToolbar({}) {
     }
 
     function searchClicked() {
-        AppStateChange.mode(CivilMode.View);
+        AppStateChange.mode({ mode: CivilMode.View });
         if (appState.showingCommandBar.value) {
-            AppStateChange.commandBarResetAndHide();
+            AppStateChange.cbResetAndHide();
         } else {
-            AppStateChange.commandBarResetAndShow();
+            AppStateChange.cbResetAndShow();
         }
     }
 
@@ -126,10 +126,11 @@ function ToolbarItem({
     function onClickHandler() {
         if (appState.mode.value === mode) {
             // toggle the current mode off
-            AppStateChange.mode(CivilMode.View);
-            AppStateChange.setShowingCommandBar(false);
+            AppStateChange.mode({ mode: CivilMode.View });
+            AppStateChange.cbResetAndHide();
+            // AppStateChange.hideCommandBar();
         } else {
-            AppStateChange.mode(mode);
+            AppStateChange.mode({ mode });
         }
     }
 

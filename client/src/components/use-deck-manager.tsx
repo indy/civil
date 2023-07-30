@@ -172,7 +172,7 @@ export default function useDeckManager<T extends FatDeck>(
 
             newDms = dmsSetShowingUpdateForm(newDms, false);
 
-            AppStateChange.mode(CivilMode.View);
+            AppStateChange.mode({ mode: CivilMode.View });
 
             setDms(newDms);
         },
@@ -333,8 +333,8 @@ function dmsUpdateDeck<T extends FatDeck>(
     // sort the backnotes into sequences
     buildBackRefsGroupedByResource(deck);
 
-    AppStateChange.urlTitle(deck.title);
-    AppStateChange.routeChanged(buildUrl(deckKind, deck.id));
+    AppStateChange.urlTitle({ title: deck.title });
+    AppStateChange.routeChanged({ url: buildUrl(deckKind, deck.id) });
 
     let res: DeckManagerState<T> = { ...dms };
     res.deck = deck;

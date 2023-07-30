@@ -166,7 +166,7 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
             };
             deck.noteSeqs.note.push(n);
 
-            AppStateChange.setWaitingFor(WaitingFor.Server);
+            AppStateChange.setWaitingFor({ waitingFor: WaitingFor.Server });
 
             // now do the actual request and get the updated deck
             //
@@ -181,7 +181,9 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
                     console.error(error);
                 })
                 .finally(() => {
-                    AppStateChange.setWaitingFor(WaitingFor.User);
+                    AppStateChange.setWaitingFor({
+                        waitingFor: WaitingFor.User,
+                    });
                 });
         }
     }
@@ -311,7 +313,7 @@ function DialogueChat({ path }: { path?: string }) {
         messages.push(newChatMessage);
         messageAdded(messages);
 
-        AppStateChange.setWaitingFor(WaitingFor.Server);
+        AppStateChange.setWaitingFor({ waitingFor: WaitingFor.Server });
         let data = {
             aiKind: AiKind.OpenAIGpt35Turbo,
             messages,
@@ -335,7 +337,7 @@ function DialogueChat({ path }: { path?: string }) {
                 console.error(error);
             })
             .finally(() => {
-                AppStateChange.setWaitingFor(WaitingFor.User);
+                AppStateChange.setWaitingFor({ waitingFor: WaitingFor.User });
             });
     }
 

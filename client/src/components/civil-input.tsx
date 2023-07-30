@@ -64,6 +64,16 @@ export default function CivilInput({
         }
     }
 
+    function obtainKeyboard(event: Event) {
+        event.preventDefault();
+        AppStateChange.obtainKeyboard();
+    }
+
+    function relinquishKeyboard(event: Event) {
+        event.preventDefault();
+        AppStateChange.relinquishKeyboard();
+    }
+
     const ac = autoComplete || "off";
     return (
         <input
@@ -76,8 +86,8 @@ export default function CivilInput({
             autoComplete={ac}
             size={size}
             readOnly={readOnly}
-            onFocus={AppStateChange.obtainKeyboardFn()}
-            onBlur={AppStateChange.relinquishKeyboardFn()}
+            onFocus={obtainKeyboard}
+            onBlur={relinquishKeyboard}
             onInput={onInput}
         />
     );

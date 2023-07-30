@@ -117,13 +117,13 @@ export default function Passage({
 
     function buildNoteForm() {
         function onCancelled(e: Event) {
-            AppStateChange.hideNoteForm(noteKind);
+            AppStateChange.hideNoteForm({ noteKind });
             e.preventDefault();
         }
 
         function onNoteCreated(allNotes: Array<Note>) {
             onUpdateDeck({ ...deck, notes: allNotes });
-            AppStateChange.hideNoteForm(noteKind);
+            AppStateChange.hideNoteForm({ noteKind });
         }
 
         let nextNoteId = undefined;
@@ -148,9 +148,12 @@ export default function Passage({
     function buildNoteFormIcon() {
         function onAddNoteClicked(e: Event) {
             if (optionalDeckPoint) {
-                AppStateChange.showNoteForm(noteKind, optionalDeckPoint.id);
+                AppStateChange.showNoteForm({
+                    noteKind,
+                    pointId: optionalDeckPoint.id,
+                });
             } else {
-                AppStateChange.showNoteForm(noteKind);
+                AppStateChange.showNoteForm({ noteKind });
             }
 
             e.preventDefault();

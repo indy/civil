@@ -91,7 +91,7 @@ const Commands: Array<Command> = [
         command: "n",
         description: "show add-note form",
         fn: () => {
-            AppStateChange.showNoteForm(NoteKind.Note);
+            AppStateChange.showNoteForm({ noteKind: NoteKind.Note });
             return true;
         },
     },
@@ -99,7 +99,7 @@ const Commands: Array<Command> = [
         command: "nr",
         description: "show add-note form for review passage",
         fn: () => {
-            AppStateChange.showNoteForm(NoteKind.NoteReview);
+            AppStateChange.showNoteForm({ noteKind: NoteKind.NoteReview });
             return true;
         },
     },
@@ -107,7 +107,7 @@ const Commands: Array<Command> = [
         command: "ns",
         description: "show add-note form for summary passage",
         fn: () => {
-            AppStateChange.showNoteForm(NoteKind.NoteSummary);
+            AppStateChange.showNoteForm({ noteKind: NoteKind.NoteSummary });
             return true;
         },
     },
@@ -218,13 +218,13 @@ function inputGiven(state: State, text: string) {
                     )}/${candidate.id}`;
                     route(url);
 
-                    AppStateChange.commandBarResetAndHide();
+                    AppStateChange.cbResetAndHide();
                     return;
                 }
             }
         }
 
-        AppStateChange.commandBarInputGiven(mode, text, searchCandidates);
+        AppStateChange.cbInputGiven({ mode, text, searchCandidates });
     }
 }
 
@@ -244,14 +244,14 @@ export default function CommandBar() {
     function onKeyDown(e: KeyboardEvent) {
         if (e.key === "Escape") {
             if (appState.mode.value !== CivilMode.View) {
-                AppStateChange.mode(CivilMode.View);
+                AppStateChange.mode({ mode: CivilMode.View });
             }
-            AppStateChange.commandBarResetAndHide();
+            AppStateChange.cbResetAndHide();
         }
         if (e.key === ":") {
             if (!appState.componentRequiresFullKeyboardAccess.value) {
                 if (!appState.showingCommandBar.value) {
-                    AppStateChange.commandBarEnterCommandMode();
+                    AppStateChange.cbEnterCommandMode();
                 }
             }
         }
@@ -265,7 +265,7 @@ export default function CommandBar() {
                         Commands
                     );
                     if (success) {
-                        AppStateChange.commandBarResetAndHide();
+                        AppStateChange.cbResetAndHide();
                     }
                 }
             }
@@ -275,8 +275,8 @@ export default function CommandBar() {
                 !appState.componentRequiresFullKeyboardAccess.value &&
                 !appState.showingCommandBar.value
             ) {
-                AppStateChange.mode(CivilMode.View);
-                AppStateChange.commandBarResetAndShow();
+                AppStateChange.mode({ mode: CivilMode.View });
+                AppStateChange.cbResetAndShow();
             }
         }
         if (e.ctrlKey) {
@@ -287,9 +287,9 @@ export default function CommandBar() {
                         !commandBarState.showKeyboardShortcuts &&
                         commandBarState.searchCandidates.length > 0;
 
-                    AppStateChange.commandBarShowKeyboardShortcuts(
-                        showKeyboardShortcuts
-                    );
+                    AppStateChange.cbShowShortcuts({
+                        showKeyboardShortcuts,
+                    });
                 }
             }
         }
@@ -303,13 +303,16 @@ export default function CommandBar() {
 
             let commandBarState = appState.commandBarState.value;
             if (appState.showingCommandBar.value) {
-                let index = indexFromCode(code);
+                let keyDownIndex = indexFromCode(code);
                 if (
                     commandBarState.showKeyboardShortcuts &&
                     commandBarState.mode === CommandBarMode.Search &&
-                    index >= 0
+                    keyDownIndex >= 0
                 ) {
-                    AppStateChange.commandBarKeyDown(index, shiftKey);
+                    AppStateChange.cbKeyDown({
+                        keyDownIndex,
+                        shiftKey,
+                    });
                 }
             } else {
                 /*
@@ -352,7 +355,7 @@ export default function CommandBar() {
                     // we can treat any keypresses as modal commands for the app
                     switch (code) {
                         case "KeyH":
-                            AppStateChange.mode(CivilMode.View);
+                            AppStateChange.mode({ mode: CivilMode.View });
                             // state.mode.value = CivilMode.View;
                             route("/");
                             break;
@@ -386,18 +389,18 @@ export default function CommandBar() {
                         commandBarState.searchCandidates.map((c) => c.id);
                     addMultipleBookmarks(deckIds);
 
-                    AppStateChange.commandBarResetAndHide();
+                    AppStateChange.cbResetAndHide();
                 }
             }
         }
     }
 
     function onFocus() {
-        AppStateChange.commandBarSetFocus(true);
+        AppStateChange.cbSetFocus({ hasFocus: true });
     }
 
     function onBlur() {
-        AppStateChange.commandBarSetFocus(false);
+        AppStateChange.cbSetFocus({ hasFocus: false });
     }
 
     useEffect(() => {
@@ -469,7 +472,10 @@ export default function CommandBar() {
         if (sanitized.length > 0) {
             const url = `/api/decks/search?q=${encodeURI(sanitized)}`;
             const searchResponse: ResultList = await Net.get(url);
-            AppStateChange.commandBarSetSearchCandidates(searchResponse);
+            const searchCandidates: Array<SlimDeck> =
+                searchResponse.results || [];
+
+            AppStateChange.cbSetSearch({ searchCandidates });
         }
     }
 
@@ -480,7 +486,7 @@ export default function CommandBar() {
             i < maxShortcuts;
 
         function clickedCandidate() {
-            AppStateChange.commandBarResetAndHide();
+            AppStateChange.cbResetAndHide();
         }
 
         return (
@@ -502,7 +508,7 @@ export default function CommandBar() {
                 ? executeCommand(appState, command, Commands)
                 : false;
             if (success) {
-                AppStateChange.commandBarResetAndHide();
+                AppStateChange.cbResetAndHide();
             } else {
                 console.error(`Failed to execute command: ${command}`);
             }

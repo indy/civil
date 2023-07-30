@@ -26,7 +26,6 @@ import {
     RefKind,
     Reference,
     RefsModified,
-    ResultList,
     SlimDeck,
     State,
     UberSetup,
@@ -96,8 +95,8 @@ export enum Scope {
     Broadcast,
 }
 
-//const DEBUG_APP_STATE = false;
-const DEBUG_APP_STATE = true;
+const DEBUG_APP_STATE = false;
+// const DEBUG_APP_STATE = true;
 
 const broadcastChannel = new BroadcastChannel("civil::appStateChange");
 broadcastChannel.onmessage = (event) => {
@@ -124,6 +123,14 @@ function boilerplate(scope: Scope, fnName: string, args?: any) {
             broadcastChannel.postMessage({ args, fnName });
         }
     }
+}
+
+function build(scope: Scope, fnName: string, fn: (args: any) => void) {
+    return (args?: any) => {
+        let args_ = args || {};
+        boilerplate(scope, fnName, args_);
+        fn(args_);
+    };
 }
 
 const state: State = {
@@ -230,35 +237,30 @@ export const getAppState = () => useContext(AppStateContext);
 // into the boilerplate function
 //
 export const AppStateChange = {
-    setColourScheme: function (colourScheme: ColourScheme) {
-        boilerplate(Scope.Local, "setColourScheme");
+    setColourScheme: build(Scope.Local, "setColourScheme", (args) => {
+        const colourScheme: ColourScheme = args.colourScheme;
 
         state.colourScheme = colourScheme;
         state.colourSeeds.value = declareSeeds(state.colourScheme);
         generateColoursFromSeeds(state, state.colourSeeds.value);
-    },
+    }),
 
-    setWaitingFor: function (waitingFor: WaitingFor) {
-        boilerplate(Scope.Local, "setWaitingFor");
+    setWaitingFor: build(Scope.Local, "setWaitingFor", (args) => {
+        const waitingFor: WaitingFor = args.waitingFor;
 
         state.waitingFor.value = waitingFor;
-    },
+    }),
 
-    commandBarResetAndShow: function () {
-        boilerplate(Scope.Local, "commandBarResetAndShow");
-
+    cbResetAndShow: build(Scope.Local, "cbResetAndShow", () => {
         commandBarReset(state, true);
-    },
-    commandBarResetAndHide: function () {
-        boilerplate(Scope.Local, "commandBarResetAndHide");
+    }),
 
+    cbResetAndHide: build(Scope.Local, "cbResetAndHide", () => {
         commandBarReset(state, false);
-    },
+    }),
 
-    commandBarEnterCommandMode: function () {
-        boilerplate(Scope.Local, "commandBarEnterCommandMode");
-
-        let commandBarState = state.commandBarState.value;
+    cbEnterCommandMode: build(Scope.Local, "cbEnterCommandMode", () => {
+        const commandBarState = state.commandBarState.value;
 
         state.showingCommandBar.value = true;
         state.commandBarState.value = {
@@ -266,57 +268,55 @@ export const AppStateChange = {
             mode: CommandBarMode.Command,
             text: ":",
         };
-    },
+    }),
 
-    commandBarShowKeyboardShortcuts: function (showKeyboardShortcuts: boolean) {
-        boilerplate(Scope.Local, "commandBarShowKeyboardShortcuts");
+    cbShowShortcuts: build(Scope.Local, "cbShowShortcuts", (args) => {
+        const showKeyboardShortcuts: boolean = args.showKeyboardShortcuts;
+        const commandBarState = state.commandBarState.value;
 
-        let commandBarState = state.commandBarState.value;
         state.commandBarState.value = {
             ...commandBarState,
             showKeyboardShortcuts,
         };
-    },
+    }),
 
-    commandBarKeyDown: function (keyDownIndex: number, shiftKey: boolean) {
-        boilerplate(Scope.Local, "commandBarKeyDown");
+    cbKeyDown: build(Scope.Local, "cbKeyDown", (args) => {
+        const keyDownIndex: number = args.keyDownIndex;
+        const shiftKey: boolean = args.shiftKey;
+        const commandBarState = state.commandBarState.value;
 
-        let commandBarState = state.commandBarState.value;
         state.commandBarState.value = {
             ...commandBarState,
             keyDownIndex,
             shiftKey,
         };
-    },
+    }),
 
-    commandBarSetFocus: function (hasFocus: boolean) {
-        boilerplate(Scope.Local, "commandBarSetFocus");
+    cbSetFocus: build(Scope.Local, "cbSetFocus", (args) => {
+        const hasFocus: boolean = args.hasFocus;
+        const commandBarState = state.commandBarState.value;
 
-        let commandBarState = state.commandBarState.value;
         state.commandBarState.value = {
             ...commandBarState,
             hasFocus,
         };
-    },
+    }),
 
-    commandBarSetSearchCandidates: function (searchResponse: ResultList) {
-        boilerplate(Scope.Local, "commandBarSetSearchCandidates");
+    cbSetSearch: build(Scope.Local, "cbSetSearch", (args) => {
+        const searchCandidates: Array<SlimDeck> = args.searchCandidates;
+        const commandBarState = state.commandBarState.value;
 
-        let commandBarState = state.commandBarState.value;
         state.commandBarState.value = {
             ...commandBarState,
-            searchCandidates: searchResponse.results || [],
+            searchCandidates,
         };
-    },
+    }),
 
-    commandBarInputGiven: function (
-        mode: CommandBarMode,
-        text: string,
-        searchCandidates: Array<SlimDeck>
-    ) {
-        boilerplate(Scope.Local, "commandBarInputGiven");
-
-        let commandBarState = state.commandBarState.value;
+    cbInputGiven: build(Scope.Local, "cbInputGiven", (args) => {
+        const mode: CommandBarMode = args.mode;
+        const text: string = args.text;
+        const searchCandidates: Array<SlimDeck> = args.searchCandidates;
+        const commandBarState = state.commandBarState.value;
 
         state.commandBarState.value = {
             ...commandBarState,
@@ -324,20 +324,19 @@ export const AppStateChange = {
             text,
             searchCandidates,
         };
-    },
+    }),
 
-    showPreviewDeck: function (deckId: Key) {
-        boilerplate(Scope.Local, "showPreviewDeck");
-
+    showPreviewDeck: build(Scope.Local, "showPreviewDeck", (args) => {
         let vp: VisiblePreview = {
-            id: deckId,
+            id: args.deckId,
             showing: true,
         };
 
         state.visiblePreviewDeck.value = vp;
-    },
-    hidePreviewDeck: function (deckId: Key) {
-        boilerplate(Scope.Local, "hidePreviewDeck");
+    }),
+
+    hidePreviewDeck: build(Scope.Local, "hidePreviewDeck", (args) => {
+        const deckId: Key = args.deckId;
 
         if (state.visiblePreviewDeck.value.id === deckId) {
             let vp: VisiblePreview = {
@@ -354,9 +353,11 @@ export const AppStateChange = {
                     state.visiblePreviewDeck.value.id
             );
         }
-    },
-    addPreview: function (slimDeck: SlimDeck, previewNotes: PreviewNotes) {
-        boilerplate(Scope.Local, "addPreview");
+    }),
+
+    addPreview: build(Scope.Local, "addPreview", (args) => {
+        const slimDeck: SlimDeck = args.slimDeck;
+        const previewNotes: PreviewNotes = args.previewNotes;
 
         if (slimDeck.id !== previewNotes.deckId) {
             console.error(
@@ -386,32 +387,29 @@ export const AppStateChange = {
 
         pc[previewDeck.id] = previewDeck;
         state.previewCache.value = pc;
-    },
-    setShowingCommandBar: function (b: boolean) {
-        boilerplate(Scope.Local, "setShowingCommandBar");
+    }),
 
-        state.showingCommandBar.value = b;
-    },
+    // hideCommandBar: build(Scope.Local, "hideCommandBar", () => {
+    //     state.showingCommandBar.value = false;
+    // }),
 
-    mode: function (newMode: CivilMode) {
-        boilerplate(Scope.Local, "mode");
+    mode: build(Scope.Local, "mode", (args) => {
+        state.mode.value = args.mode;
+    }),
 
-        state.mode.value = newMode;
-    },
-    urlTitle: function (title: string) {
-        boilerplate(Scope.Local, "urlTitle");
+    urlTitle: build(Scope.Local, "urlTitle", (args) => {
+        const title: string = args.title;
 
         state.urlTitle.value = title;
         document.title = `${immutableState.appName}: ${title}`;
-    },
-    routeChanged: function (url: string) {
-        boilerplate(Scope.Local, "routeChanged");
+    }),
 
-        state.url.value = url;
-    },
+    routeChanged: build(Scope.Local, "routeChanged", (args) => {
+        state.url.value = args.url;
+    }),
 
-    uberSetup: function (uber: UberSetup) {
-        boilerplate(Scope.Local, "uberSetup");
+    uberSetup: build(Scope.Local, "uberSetup", (args) => {
+        let uber: UberSetup = args.uber;
 
         state.graph.value = {
             fullyLoaded: false,
@@ -435,39 +433,31 @@ export const AppStateChange = {
             timelines: uber.timelines,
             dialogues: uber.dialogues,
         };
-    },
+    }),
 
-    userLogin: function (user: User) {
-        boilerplate(Scope.Local, "userLogin");
-
+    userLogin: build(Scope.Local, "userLogin", (args) => {
+        let user: User = args.user;
         state.user.value = user;
-    },
-    userLogout: function (args) {
-        boilerplate(Scope.Broadcast, "userLogout", args);
+    }),
 
+    userLogout: build(Scope.Broadcast, "userLogout", () => {
         let user: User = { ...state.user.value };
         user.username = "";
 
         state.user.value = user;
-    },
+    }),
 
-    showAddPointForm: function () {
-        boilerplate(Scope.Local, "showAddPointForm");
-
+    showAddPointForm: build(Scope.Local, "showAddPointForm", () => {
         state.showAddPointForm.value = true;
         state.componentRequiresFullKeyboardAccess.value = true;
-    },
+    }),
 
-    hideAddPointForm: function () {
-        boilerplate(Scope.Local, "hideAddPointForm");
-
+    hideAddPointForm: build(Scope.Local, "hideAddPointForm", () => {
         state.showAddPointForm.value = false;
         state.componentRequiresFullKeyboardAccess.value = false;
-    },
+    }),
 
-    noteRefsModified: function (args) {
-        boilerplate(Scope.Broadcast, "noteRefsModified", args);
-
+    noteRefsModified: build(Scope.Broadcast, "noteRefsModified", (args) => {
         const allDecksForNote: Array<Reference> = args.allDecksForNote;
         const changes: RefsModified = args.changes;
 
@@ -508,11 +498,9 @@ export const AppStateChange = {
                 state.listing.value = li;
             }
         }
-    },
+    }),
 
-    setIdeaListings: function (args) {
-        boilerplate(Scope.Broadcast, "setIdeaListings", args);
-
+    setIdeaListings: build(Scope.Broadcast, "setIdeaListings", (args) => {
         const ideas: IdeasListings = args.ideaListings;
 
         const li = {
@@ -521,116 +509,88 @@ export const AppStateChange = {
         };
 
         state.listing.value = li;
-    },
+    }),
 
-    setPeopleListings: function (args) {
-        boilerplate(Scope.Broadcast, "setPeopleListings", args);
-
+    setPeopleListings: build(Scope.Broadcast, "setPeopleListings", (args) => {
         const people: PeopleListings = args.peopleListings;
         const li = {
             ...state.listing.value,
             people,
         };
         state.listing.value = li;
-    },
+    }),
 
-    setArticleListings: function (args) {
-        boilerplate(Scope.Broadcast, "setArticleListings", args);
-
+    setArticleListings: build(Scope.Broadcast, "setArticleListings", (args) => {
         const articles: ArticleListings = args.articleListings;
         const li = {
             ...state.listing.value,
             articles,
         };
         state.listing.value = li;
-    },
+    }),
 
-    setTimelineListings: function (args) {
-        boilerplate(Scope.Broadcast, "setTimelineListings", args);
+    setTimelineListings: build(
+        Scope.Broadcast,
+        "setTimelineListings",
+        (args) => {
+            const timelines: Array<SlimDeck> = args.timelineListings;
+            const li = {
+                ...state.listing.value,
+                timelines,
+            };
+            state.listing.value = li;
+        }
+    ),
 
-        const timelines: Array<SlimDeck> = args.timelineListings;
-        const li = {
-            ...state.listing.value,
-            timelines,
-        };
-        state.listing.value = li;
-    },
+    setDialogueListings: build(
+        Scope.Broadcast,
+        "setDialogueListings",
+        (args) => {
+            const dialogues: Array<SlimDeck> = args.dialogueListings;
+            const li = {
+                ...state.listing.value,
+                dialogues,
+            };
+            state.listing.value = li;
+        }
+    ),
 
-    setDialogueListings: function (args) {
-        boilerplate(Scope.Broadcast, "setDialogueListings", args);
-
-        const dialogues: Array<SlimDeck> = args.dialogueListings;
-        const li = {
-            ...state.listing.value,
-            dialogues,
-        };
-        state.listing.value = li;
-    },
-
-    obtainKeyboard: function () {
-        boilerplate(Scope.Local, "obtainKeyboard");
-
+    obtainKeyboard: build(Scope.Local, "obtainKeyboard", () => {
         state.componentRequiresFullKeyboardAccess.value = true;
-    },
+    }),
 
-    relinquishKeyboard: function () {
-        boilerplate(Scope.Local, "relinquishKeyboard");
-
+    relinquishKeyboard: build(Scope.Local, "relinquishKeyboard", () => {
         state.componentRequiresFullKeyboardAccess.value = false;
-    },
+    }),
 
-    obtainKeyboardFn: function () {
-        boilerplate(Scope.Local, "obtainKeyboardFn");
-
-        return function (e: Event) {
-            e.preventDefault();
-            state.componentRequiresFullKeyboardAccess.value = true;
-        };
-    },
-
-    relinquishKeyboardFn: function () {
-        boilerplate(Scope.Local, "relinquishKeyboardFn");
-
-        return function (e: Event) {
-            e.preventDefault();
-            state.componentRequiresFullKeyboardAccess.value = false;
-        };
-    },
-
-    showNoteForm: function (noteKind: NoteKind, pointId?: number) {
-        boilerplate(Scope.Local, "showNoteForm");
-
+    showNoteForm: build(Scope.Local, "showNoteForm", (args) => {
         let snf = { ...state.showNoteForm.value };
 
+        let noteKind: NoteKind = args.noteKind;
         snf[noteKind] = true;
 
         state.showNoteForm.value = snf;
-        state.showNoteFormPointId.value = pointId || undefined;
+        state.showNoteFormPointId.value = args.pointId || undefined;
         state.componentRequiresFullKeyboardAccess.value = true;
-    },
+    }),
 
-    hideNoteForm: function (noteKind: NoteKind) {
-        boilerplate(Scope.Local, "hideNoteForm");
-
+    hideNoteForm: build(Scope.Local, "hideNoteForm", (args) => {
         let snf = { ...state.showNoteForm.value };
 
+        let noteKind: NoteKind = args.noteKind;
         snf[noteKind] = false;
 
         state.showNoteForm.value = snf;
         state.showNoteFormPointId.value = undefined;
         state.componentRequiresFullKeyboardAccess.value = false;
-    },
+    }),
 
-    setRecentImages: function (args) {
-        boilerplate(Scope.Broadcast, "setRecentImages", args);
-
+    setRecentImages: build(Scope.Broadcast, "setRecentImages", (args) => {
         const recentImages: Array<UserUploadedImage> = args.recentImages;
         state.recentImages.value = recentImages;
-    },
+    }),
 
-    deleteDeck: function (args) {
-        boilerplate(Scope.Broadcast, "deleteDeck", args);
-
+    deleteDeck: build(Scope.Broadcast, "deleteDeck", (args) => {
         const id: Key = args.id;
 
         // todo: typescript check the Listing entry and the filterFn
@@ -698,50 +658,41 @@ export const AppStateChange = {
 
             state.graph.value = g;
         }
-    },
+    }),
 
-    bookmarkToggle: function () {
-        boilerplate(Scope.Local, "bookmarkToggle", {});
-
+    bookmarkToggle: build(Scope.Local, "bookmarkToggle", () => {
         state.bookmarksMinimised.value = !state.bookmarksMinimised.value;
-    },
+    }),
 
-    setBookmarks: function (args) {
-        boilerplate(Scope.Broadcast, "setBookmarks", args);
-
+    setBookmarks: build(Scope.Broadcast, "setBookmarks", (args) => {
         const bookmarks: Array<Bookmark> = args.bookmarks;
         state.bookmarks.value = bookmarks;
-    },
+    }),
 
-    setRecentlyUsedDecks: function (args) {
-        boilerplate(Scope.Broadcast, "setRecentlyUsedDecks", args);
+    setRecentlyUsedDecks: build(
+        Scope.Broadcast,
+        "setRecentlyUsedDecks",
+        (args) => {
+            const recents: Array<SlimDeck> = args.recents;
+            state.recentlyUsedDecks.value = recents;
+        }
+    ),
 
-        const recents: Array<SlimDeck> = args.recents;
-        state.recentlyUsedDecks.value = recents;
-    },
-
-    connectivityGraphShow: function () {
-        boilerplate(Scope.Local, "connectivityGraphShow");
-
+    connectivityGraphShow: build(Scope.Local, "connectivityGraphShow", () => {
         state.showConnectivityGraph.value = true;
-    },
+    }),
 
-    connectivityGraphHide: function () {
-        boilerplate(Scope.Local, "connectivityGraphHide");
-
+    connectivityGraphHide: build(Scope.Local, "connectivityGraphHide", () => {
         state.showConnectivityGraph.value = false;
-    },
+    }),
 
-    setReviewCount: function (args) {
-        boilerplate(Scope.Broadcast, "setReviewCount", args);
-
+    setReviewCount: build(Scope.Broadcast, "setReviewCount", (args) => {
         const count: number = args.count;
         state.memoriseReviewCount.value = count;
-    },
+    }),
 
-    loadGraph: function (graph: FullGraphStruct) {
-        boilerplate(Scope.Local, "loadGraph");
-
+    loadGraph: build(Scope.Local, "loadGraph", (args) => {
+        let graph: FullGraphStruct = args.graph;
         let newGraph: Graph = {
             fullyLoaded: true,
             decks: graph.graphDecks,
@@ -749,18 +700,16 @@ export const AppStateChange = {
             deckIndexFromId: buildDeckIndex(graph.graphDecks),
         };
         state.graph.value = newGraph;
-    },
+    }),
 
-    invalidateGraph: function () {
-        boilerplate(Scope.Local, "invalidateGraph");
-
+    invalidateGraph: build(Scope.Local, "invalidateGraph", () => {
         state.graph.value = {
             fullyLoaded: false,
             decks: [],
             links: {},
             deckIndexFromId: [],
         };
-    },
+    }),
 };
 
 function packedToKind(packed: number): RefKind {
