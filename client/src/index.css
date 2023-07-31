@@ -349,6 +349,15 @@
     font-family: Libre-Baskerville;
 }
 
+.quote-onscreen-buttons {
+    font-size: 150%;
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    padding-bottom: 2rem;
+}
+
 .modal-keyboard-help {
     color: var(--fg1);
     opacity: 1;

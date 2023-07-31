@@ -20,6 +20,7 @@ import useLocalReducer from "components/use-local-reducer";
 import useModalKeyboard from "components/use-modal-keyboard";
 import { CivContainer, CivMain } from "components/civil-layout";
 import ModalKeyboardHelp from "components/modal-keyboard-help";
+import WhenNoPhysicalKeyboard from "components/when-no-physical-keyboard";
 
 enum ActionType {
     ShowAddForm,
@@ -193,6 +194,51 @@ function QuotesModule({}) {
     );
 }
 
+function getQuoteThenRoute(url: string) {
+    Net.get<DeckQuote>(url).then((deck) => {
+        if (deck) {
+            route(`/quotes/${deck.id}`);
+            AppStateChange.urlTitle({ title: deck.title });
+        } else {
+            console.error(`error: fetchDeck for ${url}`);
+        }
+    });
+}
+
+function nextQuote(quoteId: number) {
+    getQuoteThenRoute(`/api/quotes/${quoteId}/next`);
+}
+
+function previousQuote(quoteId: number) {
+    getQuoteThenRoute(`/api/quotes/${quoteId}/prev`);
+}
+
+function randomQuote() {
+    getQuoteThenRoute(`/api/quotes/random`);
+}
+
+function QuoteButtons({ quoteId }: { quoteId: number }) {
+    function onPrev() {
+        previousQuote(quoteId);
+    }
+
+    function onJump() {
+        randomQuote();
+    }
+
+    function onNext() {
+        nextQuote(quoteId);
+    }
+
+    return (
+        <div class="quote-onscreen-buttons">
+            <CivilButton onClick={onPrev}>Prev</CivilButton>
+            <CivilButton onClick={onJump}>Random</CivilButton>
+            <CivilButton onClick={onNext}>Next</CivilButton>
+        </div>
+    );
+}
+
 function Quote({ path, id }: { path?: string; id?: string }) {
     const deckManager: DM<DeckQuote> = useDeckManager(id, DeckKind.Quote);
 
@@ -201,27 +247,16 @@ function Quote({ path, id }: { path?: string; id?: string }) {
     useModalKeyboard(quoteId, (key: string) => {
         switch (key) {
             case "n":
-                getQuoteThenRoute(`/api/quotes/${quoteId}/next`);
+                nextQuote(quoteId);
                 break;
             case "p":
-                getQuoteThenRoute(`/api/quotes/${quoteId}/prev`);
+                previousQuote(quoteId);
                 break;
             case "j":
-                getQuoteThenRoute(`/api/quotes/random`);
+                randomQuote();
                 break;
         }
     });
-
-    function getQuoteThenRoute(url: string) {
-        Net.get<DeckQuote>(url).then((deck) => {
-            if (deck) {
-                route(`/quotes/${deck.id}`);
-                AppStateChange.urlTitle({ title: deck.title });
-            } else {
-                console.error(`error: fetchDeck for ${url}`);
-            }
-        });
-    }
 
     function onEditedAttributeFn(deckId: Key) {
         return function (attribution: string) {
@@ -284,6 +319,10 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                     onEdited={onEditedAttributeFn(deck.id)}
                     onDelete={onDeleteFn(deck.id)}
                 />
+
+                <WhenNoPhysicalKeyboard>
+                    <QuoteButtons quoteId={quoteId} />
+                </WhenNoPhysicalKeyboard>
 
                 <ModalKeyboardHelp>
                     <pre>n: next quote</pre>

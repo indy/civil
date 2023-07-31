@@ -2,15 +2,15 @@ import { h, ComponentChildren } from "preact";
 
 import { getAppState } from "app-state";
 
-export default function WhenPhysicalKeyboard({
+export default function WhenNoPhysicalKeyboard({
     children,
 }: {
     children: ComponentChildren;
 }) {
     const appState = getAppState();
     return (
-        <div class="when-physical-keyboard">
-            {appState.hasPhysicalKeyboard && children}
+        <div class="when-no-physical-keyboard">
+            {!appState.hasPhysicalKeyboard && children}
         </div>
     );
 }
