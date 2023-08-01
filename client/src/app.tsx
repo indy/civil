@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { Link, Router, route, RouterOnChangeArgs } from "preact-router";
 
-import { State, User, UberSetup, WaitingFor } from "types";
+import { State, User, UberSetup } from "types";
 
 import {
     AppStateChange,
@@ -19,6 +19,7 @@ import CommandBar from "components/command-bar";
 import { DeluxeToolbar } from "components/deluxe-toolbar";
 
 import AccountSettings from "components/page-account-settings";
+import BusyIndicator from "components/busy-indicator";
 import FrontPage from "components/page-front-page";
 import Login from "components/page-login";
 import Memorise from "components/page-memorise";
@@ -28,8 +29,6 @@ import { Ideas, Idea } from "components/page-ideas";
 import { Person, People } from "components/page-people";
 import { Quote, Quotes } from "components/page-quotes";
 import { Timeline, Timelines } from "components/page-timelines";
-
-import { svgClock } from "components/svg-loaders";
 
 export const App = ({ state }: { state: State }) => {
     return (
@@ -53,19 +52,6 @@ function DebugMessages() {
             {appState.debugMessages.value.map(render)}
         </div>
     );
-}
-
-function WaitingDisplay() {
-    const appState = getAppState();
-
-    const show = appState.waitingFor.value === WaitingFor.Server;
-
-    let classes = "waiting-for";
-    if (show) {
-        classes += " waiting-for-active";
-    }
-
-    return <div class={classes}>{show && svgClock()}</div>;
 }
 
 function TopBarMenu() {
@@ -118,7 +104,7 @@ function TopBarMenu() {
         <nav>
             <div id="elastic-top-menu-items">
                 {immutableState.topMenuOrder.map((topMenuItem) => (
-                    <div class="optional-navigable top-menu-item">
+                    <div class="top-menu-item">
                         <Link
                             class={menuItemClass(topMenuItem)}
                             onClick={() => {
@@ -179,7 +165,7 @@ const AppUI = () => {
 
     return (
         <div id="civil-app">
-            <WaitingDisplay />
+            <BusyIndicator />
             <DebugMessages />
             <Bookmarks />
             <CommandBar />

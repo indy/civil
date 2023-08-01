@@ -29,6 +29,9 @@
     --font-cursive: Caveat, cursive;
     --font-code: Consolas, "Liberation Mono", Menlo, Courier, monospace;
 
+    --busy-indicator-dial-thickness: 4;
+    --busy-indicator-hand-thickness: 4;
+
     /* delete this */
     --silly-temporary-font: Orbitron;
 }
@@ -369,16 +372,20 @@
     padding-bottom: 1rem;
 }
 
-.waiting-for {
+.busy-indicator {
     position: fixed;
-
-    top: 5rem;
-    left: 5rem;
-
+    z-index: 100001;
     transition: opacity 500ms linear;
     opacity: 0;
+
+    top: 2rem;
+    left: 5rem;
+
+    width: 10rem;
+    height: 10rem;
 }
-.waiting-for-active {
+
+.busy-indicator-active {
     opacity: 1;
 }
 
@@ -2350,6 +2357,10 @@ input:required {
     #bookmark-component {
         width: 100%;
     }
+
+    .busy-indicator {
+        left: 45rem;
+    }
 }
 
 @media (max-width: 800px) {
@@ -2360,6 +2371,9 @@ input:required {
         --search-command-width: 70%;
 
         --title-height: 2.4rem;
+
+        --busy-indicator-dial-thickness: 0;
+        --busy-indicator-hand-thickness: 8;
     }
 
     .title-sticky {
@@ -2442,6 +2456,19 @@ input:required {
     .role-view {
         float: left;
         margin-left: 1rem;
+    }
+
+    #elastic-top-menu-items {
+        padding-left: 4rem;
+    }
+
+    .busy-indicator {
+        /* top and left are based on .deluxe-toolbar-toggle-control but have had to be fudged slightly in order to align */
+        top: 0.65rem;
+        left: 1.65rem;
+
+        width: 2rem;
+        height: 2rem;
     }
 }
 
@@ -2550,10 +2577,6 @@ input:required {
     #root {
         border-left: 0.1rem solid var(--bg1);
         padding: 0 0.8rem;
-    }
-
-    .optional-navigable {
-        display: none;
     }
 
     .svg-container {

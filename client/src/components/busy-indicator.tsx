@@ -1,21 +1,35 @@
 import { h } from "preact";
 
+import { WaitingFor } from "types";
+
+import { getAppState } from "app-state";
+
+export default function BusyIndicator() {
+    const appState = getAppState();
+
+    const show = appState.waitingFor.value === WaitingFor.Server;
+
+    let classes = "busy-indicator";
+    if (show) {
+        classes += " busy-indicator-active";
+    }
+
+    return <div class={classes}>{show && svgClock()}</div>;
+}
+
 // https://codepen.io/nikhil8krishnan/pen/rVoXJa
-export function svgClock() {
+function svgClock() {
     return (
         <svg
             version="1.1"
-            id="L2"
             xmlns="http://www.w3.org/2000/svg"
-            height="10rem"
-            width="10rem"
             viewBox="0 0 100 100"
             enable-background="new 0 0 100 100"
         >
             <circle
                 fill="none"
                 stroke="var(--fg2)"
-                stroke-width="4"
+                stroke-width="var(--busy-indicator-dial-thickness)"
                 stroke-miterlimit="10"
                 cx="50"
                 cy="50"
@@ -25,7 +39,7 @@ export function svgClock() {
                 fill="none"
                 stroke-linecap="round"
                 stroke="var(--fg2)"
-                stroke-width="4"
+                stroke-width="var(--busy-indicator-hand-thickness)"
                 stroke-miterlimit="10"
                 x1="50"
                 y1="50"
@@ -45,7 +59,7 @@ export function svgClock() {
                 fill="none"
                 stroke-linecap="round"
                 stroke="var(--fg2)"
-                stroke-width="4"
+                stroke-width="var(--busy-indicator-hand-thickness)"
                 stroke-miterlimit="10"
                 x1="50"
                 y1="50"
