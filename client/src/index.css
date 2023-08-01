@@ -488,6 +488,10 @@ h1 {
     width: var(--module-width);
 }
 
+.block {
+    width: var(--block-width);
+}
+
 .previewer {
     --block-width: 100%;
 
@@ -2293,7 +2297,7 @@ input:required {
     border: 0.2rem solid var(--bg);
 }
 
-.module-top-part-buttons {
+.button-row {
     float: right;
 }
 

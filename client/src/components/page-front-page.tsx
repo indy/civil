@@ -45,7 +45,7 @@ function FilterModule() {
             <CivContainer>
                 <CivMain>
                     <span class="module-top-part">
-                        <span class="module-top-part-buttons"></span>
+                        <span class="button-row"></span>
                         <h1 class="ui">Filters</h1>
                     </span>
                     <LazyLoadedGrouping
