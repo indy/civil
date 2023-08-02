@@ -22,6 +22,7 @@ import { svgFlashCard } from "components/svg-icons";
 
 import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 import CivilSelect from "components/civil-select";
+import CivilButton from "components/civil-button";
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";
 import FlashCardView from "components/flashcard-view";
@@ -401,14 +402,11 @@ export default function NoteView({
         });
     }
 
-    function onCancelClicked(e: Event) {
-        e.preventDefault();
+    function onCancelClicked() {
         localDispatch(ActionType.EditingCancelled);
     }
 
-    function onSaveEditsClicked(e: Event) {
-        e.preventDefault();
-
+    function onSaveEditsClicked() {
         if (hasNoteBeenModified(local)) {
             const id = note.id;
 
@@ -471,14 +469,11 @@ export default function NoteView({
     function buildAddFlashCardUI() {
         let [flashCardPrompt, setFlashCardPrompt] = useState("");
 
-        function onCancel(e: Event) {
-            e.preventDefault();
+        function onCancel() {
             localDispatch(ActionType.AddFlashCardUiShow, false);
         }
 
-        function onSave(e: Event) {
-            e.preventDefault();
-
+        function onSave() {
             let data = {
                 noteId: note.id,
                 prompt: flashCardPrompt,
@@ -506,8 +501,10 @@ export default function NoteView({
                         onContentChange={onContentChange}
                     />
                 </div>
-                <button onClick={onCancel}>Cancel</button>
-                <button onClick={onSave}>Save Flash Card Prompt</button>
+                <CivilButton onClick={onCancel}>Cancel</CivilButton>
+                <CivilButton onClick={onSave}>
+                    Save Flash Card Prompt
+                </CivilButton>
             </div>
         );
     }
@@ -588,13 +585,13 @@ export default function NoteView({
 
         return (
             <div class="block-width form-margin">
-                <button onClick={onCancelClicked}>Cancel</button>
-                <button
+                <CivilButton onClick={onCancelClicked}>Cancel</CivilButton>
+                <CivilButton
                     disabled={!hasNoteBeenModified(local)}
                     onClick={onSaveEditsClicked}
                 >
                     Save Edits
-                </button>
+                </CivilButton>
                 {!noDelete && (
                     <DeleteConfirmation onDelete={confirmedDeleteClicked} />
                 )}

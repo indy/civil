@@ -19,6 +19,7 @@ import SegmentGraph from "components/segment-graph";
 import SegmentNotes from "components/segment-notes";
 
 import AutoSummarize from "components/auto-summarize";
+import CivilButton from "components/civil-button";
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
@@ -148,16 +149,16 @@ function Article({ path, id }: { path?: string; id?: string }) {
                                         onFinish={onAutoSummarizeFinish}
                                     />
                                 )}
-                                <button
+                                <CivilButton
                                     onClick={deckManager.onShowSummaryClicked}
                                 >
                                     Show Summary Passage
-                                </button>
-                                <button
+                                </CivilButton>
+                                <CivilButton
                                     onClick={deckManager.onShowReviewClicked}
                                 >
                                     Show Review Passage
-                                </button>
+                                </CivilButton>
                             </CivMain>
                         </CivContainer>
 
@@ -430,14 +431,12 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
             </CivMain>
 
             <CivMain>
-                <input
-                    type="button"
-                    value="Cancel"
-                    class="dialog-cancel"
-                    onClick={onCancel}
-                />
+                <CivilButton extraClasses="dialog-cancel" onClick={onCancel}>
+                    Cancel
+                </CivilButton>
                 <input
                     id="article-submit"
+                    class="civil-button"
                     type="submit"
                     value="Update Article"
                 />

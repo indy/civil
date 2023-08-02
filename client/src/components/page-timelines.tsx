@@ -24,6 +24,7 @@ import {
 
 import { CivLeft } from "components/civil-layout";
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
+import CivilButton from "components/civil-button";
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
 import Module from "components/module";
@@ -112,11 +113,11 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                                     deckKind={deckManager.getDeckKind()}
                                     id={deck.id}
                                 />
-                                <button
+                                <CivilButton
                                     onClick={deckManager.onShowSummaryClicked}
                                 >
                                     Show Summary Passage
-                                </button>
+                                </CivilButton>
                             </CivMain>
                         </CivContainer>
                         <div class="vertical-spacer"></div>
@@ -279,13 +280,14 @@ function TimelineUpdater({
             </CivMain>
 
             <CivMain>
+                <CivilButton extraClasses="dialog-cancel" onClick={onCancel}>
+                    Cancel
+                </CivilButton>
                 <input
-                    type="button"
-                    value="Cancel"
-                    class="dialog-cancel"
-                    onClick={onCancel}
+                    class="civil-button"
+                    type="submit"
+                    value="Update Timeline"
                 />
-                <input type="submit" value="Update Timeline" />
             </CivMain>
         </CivForm>
     );

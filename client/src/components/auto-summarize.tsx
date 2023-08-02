@@ -1,8 +1,12 @@
 import { h } from "preact";
 
 import { FatDeck, Note, WaitingFor } from "types";
+
 import { AppStateChange, getAppState } from "app-state";
+
 import Net from "shared/net";
+
+import CivilButton from "components/civil-button";
 import buildSimplifiedText from "components/build-simplified-text";
 
 type AutoSummarizeProps = {
@@ -60,5 +64,5 @@ export default function AutoSummarize({ deck, onFinish }: AutoSummarizeProps) {
         }
     }
 
-    return <button onClick={onClick}>Auto Summarize</button>;
+    return <CivilButton onClick={onClick}>Auto Summarize</CivilButton>;
 }

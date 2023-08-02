@@ -3,15 +3,13 @@ import { useState, useRef } from "preact/hooks";
 
 import { UserUploadedImage } from "types";
 
-import { AppStateChange } from "app-state";
+import { AppStateChange, getAppState } from "app-state";
 
-import { CivLeft } from "components/civil-layout";
+import CivilButton from "components/civil-button";
 import uploadImages from "components/image-upload";
-
-import { getAppState } from "app-state";
-import { svgX } from "components/svg-icons";
-
 import useDragDrop from "components/use-drag-drop";
+import { CivLeft } from "components/civil-layout";
+import { svgX } from "components/svg-icons";
 
 type Props = {
     onPaste: (s: string) => void;
@@ -32,19 +30,12 @@ export default function ImageSelector({ onPaste }: Props) {
 
     useDragDrop(dragArea, droppedFiles, setHovering);
 
-    function onIconClicked(e: Event) {
-        e.preventDefault();
+    function onIconClicked() {
         setMinimised(!minimised);
     }
 
     if (minimised) {
-        return h(
-            "button",
-            {
-                onClick: onIconClicked,
-            },
-            "Images..."
-        );
+        return <CivilButton onClick={onIconClicked}>Images...</CivilButton>;
     } else {
         const recent = appState.recentImages.value.map((ri) =>
             h(ImageSelectorItem, {
@@ -92,7 +83,7 @@ function ImageSelectorItem({ filename, imageDirectory, onPaste }) {
     return (
         <div class="image-widget-item">
             <img class="image-widget-img" onClick={onClick} src={srcPath} />
-            <div class="image-widget-title">{markupSyntax}</div>
+            <div class="image-widget-title ui">{markupSyntax}</div>
         </div>
     );
 }

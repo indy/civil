@@ -38,6 +38,7 @@ import {
 import WhenEditMode from "components/when-edit-mode";
 
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
+import CivilButton from "components/civil-button";
 import CivilInput from "components/civil-input";
 import Module from "components/module";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
@@ -197,11 +198,11 @@ function Person({ path, id }: { path?: string; id?: string }) {
                                     deckKind={deckManager.getDeckKind()}
                                     id={deck.id}
                                 />
-                                <button
+                                <CivilButton
                                     onClick={deckManager.onShowSummaryClicked}
                                 >
                                     Show Summary Passage
-                                </button>
+                                </CivilButton>
                             </CivMain>
                         </CivContainer>
                         <div class="vertical-spacer"></div>
@@ -419,13 +420,14 @@ function PersonUpdater({
             </CivMain>
 
             <CivMain>
+                <CivilButton extraClasses="dialog-cancel" onClick={onCancel}>
+                    Cancel
+                </CivilButton>
                 <input
-                    type="button"
-                    value="Cancel"
-                    class="dialog-cancel"
-                    onClick={onCancel}
+                    class="civil-button"
+                    type="submit"
+                    value="Update Person"
                 />
-                <input type="submit" value="Update Person" />
             </CivMain>
         </CivForm>
     );

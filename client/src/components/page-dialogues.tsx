@@ -208,16 +208,16 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
                                     deckKind={deckManager.getDeckKind()}
                                     id={deck.id}
                                 />
-                                <button
+                                <CivilButton
                                     onClick={deckManager.onShowSummaryClicked}
                                 >
                                     Show Summary Passage
-                                </button>
-                                <button
+                                </CivilButton>
+                                <CivilButton
                                     onClick={deckManager.onShowReviewClicked}
                                 >
                                     Show Review Passage
-                                </button>
+                                </CivilButton>
                             </CivMain>
                         </CivContainer>
                         <div class="vertical-spacer"></div>
@@ -495,13 +495,11 @@ function DialogueUpdater({
             </CivMain>
 
             <CivMain>
+                <CivilButton extraClasses="dialog-cancel" onClick={onCancel}>
+                    Cancel
+                </CivilButton>
                 <input
-                    type="button"
-                    value="Cancel"
-                    class="dialog-cancel"
-                    onClick={onCancel}
-                />
-                <input
+                    class="civil-button"
                     id="dialogue-submit"
                     type="submit"
                     value="Update Dialogue"

@@ -16,6 +16,7 @@ import { deckKindToHeadingString } from "shared/deck";
 import { formattedDate } from "shared/time";
 import { getAppState, AppStateChange } from "app-state";
 
+import CivilButton from "components/civil-button";
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
@@ -266,13 +267,10 @@ function IdeaUpdater({ idea, onUpdate, onCancel }: IdeaUpdaterProps) {
             </CivMain>
 
             <CivMain>
-                <input
-                    type="button"
-                    value="Cancel"
-                    class="dialog-cancel"
-                    onClick={onCancel}
-                />
-                <input type="submit" value="Update Idea" />
+                <CivilButton extraClasses="dialog-cancel" onClick={onCancel}>
+                    Cancel
+                </CivilButton>
+                <input class="civil-button" type="submit" value="Update Idea" />
             </CivMain>
         </CivForm>
     );
