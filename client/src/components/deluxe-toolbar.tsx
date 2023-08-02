@@ -55,6 +55,11 @@ export function DeluxeToolbar({}) {
         }
     }
 
+    function clickedHome() {
+        AppStateChange.mode({ mode: CivilMode.View });
+        AppStateChange.commandBarResetAndHide();
+    }
+
     return (
         <div>
             <div class="deluxe-toolbar-toggle-control" onClick={toggleActive}>
@@ -62,7 +67,11 @@ export function DeluxeToolbar({}) {
             </div>
             <div class={classes}>
                 <div class="toolbar-item">
-                    <Link class="toolbar-item-icon" href="/">
+                    <Link
+                        onClick={clickedHome}
+                        class="toolbar-item-icon"
+                        href="/"
+                    >
                         {svgHome()}
                     </Link>
                     <span class="toolbar-item-text">Home</span>
@@ -128,7 +137,6 @@ function ToolbarItem({
             // toggle the current mode off
             AppStateChange.mode({ mode: CivilMode.View });
             AppStateChange.commandBarResetAndHide();
-            // AppStateChange.hideCommandBar();
         } else {
             AppStateChange.mode({ mode });
         }
