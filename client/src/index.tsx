@@ -7,7 +7,6 @@ import { getCssString, getCssBoolean } from "shared/css";
 import Net from "shared/net";
 import { App } from "app";
 import { AppStateChange, initialState } from "app-state";
-import { buildColourConversionFn } from "shared/colour-creator";
 
 wasm_bindgen("/civil_wasm_bg.wasm")
     .then(() => {
@@ -64,7 +63,7 @@ wasm_bindgen("/civil_wasm_bg.wasm")
 
                 return res;
             },
-            rgbFromHsl: buildColourConversionFn(rgb_from_hsl),
+            rgbFromHsl: rgb_from_hsl,
         };
 
         let state = initialState;

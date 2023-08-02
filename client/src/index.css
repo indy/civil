@@ -34,6 +34,8 @@
 
     /* delete this */
     --silly-temporary-font: Orbitron;
+
+    --ui-control-border-radius: 0.5rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -1216,22 +1218,24 @@ textarea {
 }
 
 .civil-button {
-    transition: all 0.2s ease;
-    font-family: var(--font-ui);
-    font-weight: 500;
-    background-color: var(--bg-ui-control);
     color: var(--fg1);
-    border: 0;
-    border-radius: var(--coloured-deck-border-radius);
-    padding: 0.6rem;
+    background: var(--ui-control-bg);
+    border: 1px solid var(--ui-control-border);
+    border-radius: var(--ui-control-border-radius);
+    box-shadow: inset 0 0.2rem 0.4rem var(--ui-control-highlight),
+        0 0.2rem 0.4rem var(--ui-control-shadow),
+        0 0.2rem 0.4rem var(--ui-control-shadow-2);
     cursor: pointer;
+    font-family: var(--font-ui);
+    padding: 0.5rem 1rem;
+    position: relative;
+    transition: all ease 0.3s;
 }
 
 .civil-button:hover {
-    background-color: var(--bg-ui-control-active);
-}
-
-.civil-button:active {
+    box-shadow: inset 0 0.2rem 0.4rem var(--ui-control-highlight-hover),
+        0 0.2rem 0.4rem var(--ui-control-shadow-hover),
+        0 0.2rem 0.4rem var(--ui-control-shadow-2-hover);
 }
 
 #bookmark-component {

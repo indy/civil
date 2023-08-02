@@ -294,12 +294,12 @@ export type ColourSeeds = {
 };
 
 export type ColourTriple = [number, number, number];
+export type ColourQuad = [number, number, number, number];
 
 export type WasmInterface = {
     markupAsStruct(markup: string, noteId: number): any;
     splitter(markup: string): any;
-
-    rgbFromHsl(hsl: ColourTriple): string;
+    rgbFromHsl(h: number, s: number, l: number): any;
 };
 
 export type VisiblePreview = {

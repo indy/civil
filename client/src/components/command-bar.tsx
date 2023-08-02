@@ -356,7 +356,6 @@ export default function CommandBar() {
                     switch (code) {
                         case "KeyH":
                             AppStateChange.mode({ mode: CivilMode.View });
-                            // state.mode.value = CivilMode.View;
                             route("/");
                             break;
                         case "KeyB":

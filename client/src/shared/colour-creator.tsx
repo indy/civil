@@ -1,46 +1,72 @@
-import { State, ColourScheme, ColourTriple, ColourSeeds } from "types";
+import {
+    State,
+    ColourScheme,
+    ColourTriple,
+    ColourQuad,
+    ColourSeeds,
+} from "types";
 
 type ColourDefinitions = {
-    [index: string]: string | ColourTriple | undefined;
+    [index: string]: string | ColourTriple | ColourQuad | undefined;
 };
 
 function generateColoursFromSeeds(state: State, seeds: ColourSeeds) {
     if (state.wasmInterface) {
+        const colourDefinitions: ColourDefinitions = generateColourDefs(seeds);
         const rgbFromHsl = state.wasmInterface.rgbFromHsl;
-        const colourDefs: ColourDefinitions = generateColourDefs(seeds);
 
-        declareCssVariables(colourDefs, rgbFromHsl);
-    }
-}
-
-function buildColourConversionFn(
-    rgb_from_hsl: (h: number, s: number, l: number) => any
-) {
-    return (hsl: ColourTriple) => {
         function clamp(value: number, min: number, max: number) {
             return value < min ? min : value > max ? max : value;
         }
 
-        function componentAsHexString(c: number) {
-            let hex = c.toString(16);
-            if (hex.length < 2) {
-                hex = "0" + hex;
-            }
-            return hex;
+        function clampedRgbFromHsl(
+            h: number,
+            s: number,
+            l: number
+        ): [number, number, number] {
+            const transportRGB = rgbFromHsl(h, s, l);
+
+            let r = Math.floor(clamp(transportRGB.c0, 0, 1) * 255);
+            let g = Math.floor(clamp(transportRGB.c1, 0, 1) * 255);
+            let b = Math.floor(clamp(transportRGB.c2, 0, 1) * 255);
+
+            return [r, g, b];
         }
 
-        const transportRGB = rgb_from_hsl(hsl[0], hsl[1], hsl[2]);
-        let r = Math.floor(clamp(transportRGB.c0, 0, 1) * 255);
-        let g = Math.floor(clamp(transportRGB.c1, 0, 1) * 255);
-        let b = Math.floor(clamp(transportRGB.c2, 0, 1) * 255);
+        let root = document.body;
 
-        return (
-            "#" +
-            componentAsHexString(r) +
-            componentAsHexString(g) +
-            componentAsHexString(b)
-        );
-    };
+        Object.keys(colourDefinitions).forEach((key) => {
+            let cssName = cssFromUnderscore(key);
+            let value = colourDefinitions[key];
+
+            if (Array.isArray(value)) {
+                if (value.length === 3) {
+                    let [h, s, l] = value as ColourTriple;
+
+                    let [r, g, b] = clampedRgbFromHsl(h, s, l);
+                    root.style.setProperty(cssName, `rgb(${r}, ${g}, ${b})`);
+                } else if (value.length === 4) {
+                    let [h, s, l, alpha] = value as ColourQuad;
+
+                    let [r, g, b] = clampedRgbFromHsl(h, s, l);
+                    root.style.setProperty(
+                        cssName,
+                        `rgba(${r}, ${g}, ${b}, ${alpha})`
+                    );
+                } else {
+                    console.error(
+                        `${cssName}: unknown array size expected 3 or 4`
+                    );
+                }
+            } else {
+                let name = value;
+                if (name) {
+                    let source = getComputedStyle(root).getPropertyValue(name);
+                    root.style.setProperty(cssName, source);
+                }
+            }
+        });
+    }
 }
 
 function declareSeeds(colourScheme: ColourScheme): ColourSeeds {
@@ -149,15 +175,51 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
             seeds.bgL + seeds.bgLDelta * 2,
         ] as ColourTriple,
 
-        bg_ui_control: [
+        ui_control_bg: [
             seeds.bgH,
             seeds.bgS,
             seeds.bgL * seeds.uiFactor,
         ] as ColourTriple,
-        bg_ui_control_active: [
+        ui_control_highlight: [
             seeds.bgH,
             seeds.bgS,
-            seeds.bgL * seeds.uiActiveFactor,
+            seeds.bgL * seeds.uiFactor * 1.3,
+            0.5,
+        ] as ColourQuad,
+        ui_control_shadow: [
+            seeds.bgH,
+            seeds.bgS,
+            seeds.bgL * 0.7,
+            0.2,
+        ] as ColourQuad,
+        ui_control_shadow_2: [
+            seeds.bgH,
+            seeds.bgS,
+            seeds.bgL * 0.4,
+            0.1,
+        ] as ColourQuad,
+        ui_control_highlight_hover: [
+            seeds.bgH,
+            seeds.bgS,
+            seeds.bgL * seeds.uiFactor * 2.3,
+            0.6,
+        ] as ColourQuad,
+        ui_control_shadow_hover: [
+            seeds.bgH,
+            seeds.bgS,
+            seeds.bgL * 0.2,
+            0.2,
+        ] as ColourQuad,
+        ui_control_shadow_2_hover: [
+            seeds.bgH,
+            seeds.bgS,
+            seeds.bgL * 0.1,
+            0.1,
+        ] as ColourQuad,
+        ui_control_border: [
+            seeds.bgH,
+            seeds.bgS,
+            seeds.bgL * seeds.uiFactor * 0.9,
         ] as ColourTriple,
 
         fg: [
@@ -284,30 +346,6 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
     return defs;
 }
 
-function declareCssVariables(
-    colourDefinitions: ColourDefinitions,
-    rgbFromHsl: (hsl: ColourTriple) => any
-) {
-    let root = document.body;
-
-    Object.keys(colourDefinitions).forEach((key) => {
-        let cssName = cssFromUnderscore(key);
-        let value = colourDefinitions[key];
-
-        if (Array.isArray(value)) {
-            let hsl = value;
-            let rgb = rgbFromHsl(hsl);
-            root.style.setProperty(cssName, rgb);
-        } else {
-            let name = value;
-            if (name) {
-                let source = getComputedStyle(root).getPropertyValue(name);
-                root.style.setProperty(cssName, source);
-            }
-        }
-    });
-}
-
 function indexAsString(i: number) {
     if (i === 0) {
         return "12";
@@ -323,4 +361,4 @@ function cssFromUnderscore(name: string) {
     return cssName;
 }
 
-export { generateColoursFromSeeds, buildColourConversionFn, declareSeeds };
+export { generateColoursFromSeeds, declareSeeds };

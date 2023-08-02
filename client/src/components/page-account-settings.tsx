@@ -9,7 +9,6 @@ import { getAppState, AppStateChange } from "app-state";
 import Net from "shared/net";
 
 import Module from "components/module";
-
 import { svgSun, svgMoon } from "components/svg-icons";
 
 export default function AccountSettings({ path }: { path?: string }) {
