@@ -373,6 +373,7 @@
 }
 
 .busy-indicator {
+    pointer-events: none;
     position: fixed;
     z-index: 100001;
     transition: opacity 500ms linear;
