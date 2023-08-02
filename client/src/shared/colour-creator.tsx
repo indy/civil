@@ -183,34 +183,16 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
         ui_control_highlight: [
             seeds.bgH,
             seeds.bgS,
-            seeds.bgL * seeds.uiFactor * 1.3,
-            0.5,
+            seeds.bgL * seeds.uiFactor * 2.3,
+            0.4,
         ] as ColourQuad,
         ui_control_shadow: [
             seeds.bgH,
             seeds.bgS,
-            seeds.bgL * 0.7,
-            0.2,
-        ] as ColourQuad,
-        ui_control_shadow_2: [
-            seeds.bgH,
-            seeds.bgS,
-            seeds.bgL * 0.4,
+            seeds.bgL * 0.2,
             0.1,
         ] as ColourQuad,
-        ui_control_highlight_hover: [
-            seeds.bgH,
-            seeds.bgS,
-            seeds.bgL * seeds.uiFactor * 2.3,
-            0.6,
-        ] as ColourQuad,
-        ui_control_shadow_hover: [
-            seeds.bgH,
-            seeds.bgS,
-            seeds.bgL * 0.2,
-            0.2,
-        ] as ColourQuad,
-        ui_control_shadow_2_hover: [
+        ui_control_shadow_2: [
             seeds.bgH,
             seeds.bgS,
             seeds.bgL * 0.1,
