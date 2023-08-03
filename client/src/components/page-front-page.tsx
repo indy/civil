@@ -1,6 +1,9 @@
 import { h } from "preact";
+import { Link } from "preact-router";
 
-import { getAppState } from "app-state";
+import { AppStateChange, getAppState, immutableState } from "app-state";
+
+import { capitalise } from "shared/english";
 
 import { IdeasModule } from "components/page-ideas";
 import { PeopleModule } from "components/page-people";
@@ -8,7 +11,6 @@ import { ArticlesModule } from "components/page-articles";
 import { TimelinesModule } from "components/page-timelines";
 import { DialoguesModule } from "components/page-dialogues";
 import { QuotesModule } from "components/page-quotes";
-
 import InsigniaGrouping from "components/insignia-grouping";
 import { LazyLoadedGrouping } from "components/groupings";
 import { CivContainer, CivMain } from "components/civil-layout";
@@ -25,6 +27,7 @@ export default function FrontPage({ path }: { path?: string }) {
     if (ideas && people && articles && timelines && dialogues) {
         return (
             <div>
+                <TopBarMenu />
                 <FilterModule />
                 <IdeasModule ideas={ideas} />
                 <ArticlesModule articles={articles} />
@@ -37,6 +40,79 @@ export default function FrontPage({ path }: { path?: string }) {
     } else {
         return <div></div>;
     }
+}
+
+function TopBarMenu() {
+    const appState = getAppState();
+
+    function loggedStatus() {
+        let status = "";
+
+        let user = appState.user;
+        if (user.value) {
+            status += user.value.username;
+            if (user.value.admin && user.value.admin.dbName !== "civil") {
+                status += ` (${user.value.admin.dbName})`;
+            }
+        } else {
+            status = "Login";
+        }
+
+        return status;
+    }
+
+    function loggedLink() {
+        return appState.user.value ? "/account-settings" : "/login";
+    }
+
+    function clickedTopLevel(topMenuItem: string) {
+        AppStateChange.urlTitle({ title: topMenuItem });
+    }
+
+    function menuItemText(topMenuItem: string): string {
+        if (topMenuItem === "memorise") {
+            return `Memorise(${appState.memoriseReviewCount.value})`;
+        } else {
+            return capitalise(topMenuItem);
+        }
+    }
+
+    function menuItemClass(topMenuItem: string): string {
+        if (
+            topMenuItem === "memorise" &&
+            appState.memoriseReviewCount.value > 0
+        ) {
+            return `pigment-${topMenuItem}-active`;
+        } else {
+            return `pigment-${topMenuItem}`;
+        }
+    }
+
+    return (
+        <nav>
+            <div id="elastic-top-menu-items">
+                {immutableState.topMenuOrder.map((topMenuItem) => (
+                    <div class="top-menu-item">
+                        <Link
+                            class={menuItemClass(topMenuItem)}
+                            onClick={() => {
+                                clickedTopLevel(topMenuItem);
+                            }}
+                            href={`/${topMenuItem}`}
+                        >
+                            {menuItemText(topMenuItem)}
+                        </Link>
+                    </div>
+                ))}
+
+                <div>
+                    <Link class="pigment-inherit" href={loggedLink()}>
+                        {loggedStatus()}
+                    </Link>
+                </div>
+            </div>
+        </nav>
+    );
 }
 
 function FilterModule() {
