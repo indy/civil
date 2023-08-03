@@ -16,8 +16,9 @@
     --coloured-deck-border-radius: 0.3em;
     --deck-image-radius: 0.6em;
 
-    --search-command-width: 49rem;
-    --search-command-border-radius: 0.1em;
+    --command-bar-top: 8rem;
+    --command-bar-width: 49rem;
+    --command-bar-border-radius: 0.1em;
 
     --title-height: 1.6rem;
 
@@ -1294,40 +1295,50 @@ textarea {
     background: var(--bg0);
 }
 
-#search-command {
+.command-bar {
     font-size: 1.5rem;
     position: fixed;
-    top: 3.5rem;
-    width: var(--search-command-width);
+    top: var(--command-bar-top);
+    width: var(--command-bar-width);
     z-index: 1000;
+
+    transition: max-width 250ms linear 50ms, opacity 200ms ease-out;
+
+    opacity: 0;
+    max-width: 0;
 }
 
-#search-command-input {
+.command-bar-visible {
+    opacity: 1;
+    max-width: 100%;
+}
+
+#command-bar-input {
     /* normally input is at 90% */
     width: 98%;
 }
 
 #search-candidates {
     width: 100%;
-    border-radius: var(--search-command-border-radius);
+    border-radius: var(--command-bar-border-radius);
 
     max-height: 50rem;
     overflow: auto;
 }
 
-.search-command-input {
-    border-radius: var(--search-command-border-radius);
+.command-bar-input {
+    border-radius: var(--command-bar-border-radius);
 }
 
-.search-command-unimportant {
+.command-bar-unimportant {
     filter: blur(0.2rem);
     -webkit-filter: blur(0.2rem);
 }
-.search-command-important {
+.command-bar-important {
     border: 0.2rem solid var(--fg1) !important;
-    border-radius: var(--search-command-border-radius);
+    border-radius: var(--command-bar-border-radius);
 }
-.search-command-listing {
+.command-bar-listing {
     font-family: var(--font-ui);
 
     background: var(--bg0);
@@ -1340,18 +1351,10 @@ textarea {
     padding-left: 0;
 }
 
-.search-command-listing a {
+.command-bar-listing a {
     display: inline-block;
     padding: 0.4rem 1rem 0.2rem 1rem;
     border-radius: var(--coloured-deck-border-radius);
-}
-
-.search-command-visible {
-    margin-bottom: 0rem;
-}
-
-.search-command-invisible {
-    margin-top: -1000rem;
 }
 
 /* -------------------------------------------------------------------------------- */
@@ -2313,7 +2316,7 @@ input:required {
 @media (max-width: 2000px) {
     :root {
         /* --bg: #00ff00; */
-        --search-command-width: 40%;
+        --command-bar-width: 40%;
     }
 }
 
@@ -2322,7 +2325,7 @@ input:required {
         /* --bg: #00f2f0; */
         --body-width: 93.5%;
         --block-width: 70%;
-        --search-command-width: 70%;
+        --command-bar-width: 70%;
     }
 
     /* without this modfified padding calc there is a slight horizontal scroll on tablets */
@@ -2379,7 +2382,9 @@ input:required {
         /* --bg: #ffff00; */
         --body-width: 97.5%;
         --block-width: 90%;
-        --search-command-width: 70%;
+
+        --command-bar-top: 9.3rem;
+        --command-bar-width: 70%;
 
         --title-height: 2.4rem;
 
@@ -2430,25 +2435,8 @@ input:required {
         font-size: 10px;
     }
 
-    #search-command {
-        font-size: 1.5rem;
-        position: fixed;
-        top: 3.8rem;
-        left: 9rem;
-        width: var(--search-command-width);
-    }
-
-    #search-command-input {
-        /* normally input is at 90% */
-        width: 98%;
-    }
-
-    #search-candidates {
-        width: 100%;
-        border-radius: var(--search-command-border-radius);
-
-        max-height: 50rem;
-        overflow: auto;
+    .command-bar {
+        left: 6rem;
     }
 
     .standard-list > li > .muh-container {
@@ -2489,7 +2477,7 @@ input:required {
         width: 84%;
         padding-left: 8%;
         padding-right: 8%;
-        --search-command-width: 70%;
+        --command-bar-width: 70%;
     }
 
     hr,
@@ -2576,7 +2564,7 @@ input:required {
     :root {
         /* --bg: #220044; */
         --block-width: 95%;
-        --search-command-width: 90%;
+        --command-bar-width: 90%;
     }
 
     body {

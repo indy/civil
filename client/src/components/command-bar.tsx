@@ -535,7 +535,7 @@ export default function CommandBar() {
     function buildCandidates() {
         if (appState.commandBarState.value.mode === CommandBarMode.Command) {
             return (
-                <ul class="search-command-listing" id="search-candidates">
+                <ul class="command-bar-listing" id="search-candidates">
                     {Commands.map((entry: Command, i: number) => (
                         <li key={i}>{buildCommandEntry(entry)}</li>
                     ))}
@@ -548,9 +548,9 @@ export default function CommandBar() {
             let classes =
                 appState.hasPhysicalKeyboard &&
                 appState.commandBarState.value.showKeyboardShortcuts
-                    ? "search-command-important "
+                    ? "command-bar-important "
                     : "";
-            classes += "search-command-listing";
+            classes += "command-bar-listing";
 
             return (
                 <ul class={classes} id="search-candidates">
@@ -568,22 +568,23 @@ export default function CommandBar() {
         }
     }
 
-    const extraClasses = appState.showingCommandBar.value
-        ? "search-command-visible"
-        : "search-command-invisible";
+    let extraClasses = "command-bar";
+    if (appState.showingCommandBar.value) {
+        extraClasses += " command-bar-visible";
+    }
 
-    let inputClasses = "search-command-input";
+    let inputClasses = "command-bar-input";
     if (appState.hasPhysicalKeyboard) {
         inputClasses += appState.commandBarState.value.showKeyboardShortcuts
-            ? " search-command-unimportant"
-            : " search-command-important";
+            ? " command-bar-unimportant"
+            : " command-bar-important";
     }
 
     return (
-        <div id="search-command">
-            <div class={extraClasses}>
+        <div class={extraClasses}>
+            <div>
                 <input
-                    id="search-command-input"
+                    id="command-bar-input"
                     autocomplete="off"
                     type="text"
                     class={inputClasses}
