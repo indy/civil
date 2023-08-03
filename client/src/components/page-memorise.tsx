@@ -8,10 +8,10 @@ import { getAppState, AppStateChange, immutableState } from "app-state";
 import { plural } from "shared/english";
 import { formattedDate, formattedTime } from "shared/time";
 
+import CivilButton from "components/civil-button";
 import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 import DeckLink from "components/deck-link";
 import useLocalReducer from "components/use-local-reducer";
-
 import buildMarkup from "components/build-markup";
 
 enum Mode {
@@ -177,8 +177,7 @@ export default function Memorise({ path }: { path?: string }) {
         });
     }, []);
 
-    function startTest(e: Event) {
-        e.preventDefault();
+    function startTest() {
         localDispatch(ActionType.TestStart);
     }
 
@@ -205,8 +204,7 @@ export default function Memorise({ path }: { path?: string }) {
         localDispatch(ActionType.CardShowAnswer, card);
     }
 
-    function onPracticeClicked(e: Event) {
-        e.preventDefault();
+    function onPracticeClicked() {
         Net.get<ICard>("/api/memorise/practice").then((card) => {
             localDispatch(ActionType.PracticeCardSet, card);
         });
@@ -231,15 +229,24 @@ export default function Memorise({ path }: { path?: string }) {
     }
 
     return (
-        <div class="ui">
-            <h1>Memorisation</h1>
-            {local.mode !== Mode.PostTest && (
-                <p>{plural(cardsToReview, "card", "s")} to review</p>
-            )}
-            {local.mode === Mode.PreTest && !canTest && <p>{nextTestInfo}</p>}
-            {local.mode === Mode.PreTest && canTest && (
-                <button onClick={startTest}>Start Test</button>
-            )}
+        <section class="ui">
+            <CivContainer>
+                <CivMain>
+                    <h1>Memorisation</h1>
+                    {local.mode !== Mode.PostTest && (
+                        <p>{plural(cardsToReview, "card", "s")} to review</p>
+                    )}
+                    {local.mode === Mode.PreTest && !canTest && (
+                        <p>{nextTestInfo}</p>
+                    )}
+                    {local.mode === Mode.PreTest && canTest && (
+                        <CivilButton onClick={startTest}>
+                            Start Test
+                        </CivilButton>
+                    )}
+                </CivMain>
+            </CivContainer>
+
             {local.mode === Mode.Test && (
                 <CardTest
                     card={local.cards[local.cardIndex]}
@@ -247,24 +254,31 @@ export default function Memorise({ path }: { path?: string }) {
                     onShowAnswer={onShowAnswer}
                 />
             )}
-            {local.mode === Mode.PostTest && <p>All Done!</p>}
-            {cardsToReview === 0 && (
-                <p>
-                    You have no cards to review, maybe try a practice flashcard?
-                </p>
-            )}
-            {cardsToReview === 0 && (
-                <button onClick={onPracticeClicked}>
-                    View Practice Flashcard
-                </button>
-            )}
+
+            <CivContainer>
+                <CivMain>
+                    {local.mode === Mode.PostTest && <p>All Done!</p>}
+                    {cardsToReview === 0 && (
+                        <p>
+                            You have no cards to review, maybe try a practice
+                            flashcard?
+                        </p>
+                    )}
+                    {cardsToReview === 0 && (
+                        <CivilButton onClick={onPracticeClicked}>
+                            View Practice Flashcard
+                        </CivilButton>
+                    )}
+                </CivMain>
+            </CivContainer>
+
             {local.practiceCard && (
                 <CardTest
                     card={local.practiceCard}
                     onShowAnswer={onShowAnswer}
                 />
             )}
-        </div>
+        </section>
     );
 }
 
@@ -277,8 +291,7 @@ type CardTestProps = {
 };
 
 function CardTest({ card, onRatedCard, onShowAnswer }: CardTestProps) {
-    function onShowAnswerClicked(e: Event) {
-        e.preventDefault();
+    function onShowAnswerClicked() {
         if (onShowAnswer) {
             onShowAnswer(card);
         }
@@ -288,18 +301,26 @@ function CardTest({ card, onRatedCard, onShowAnswer }: CardTestProps) {
 
     return (
         <div>
-            <div class="memorise-segment">Front</div>
-            <div class="note">
-                {buildMarkup(
-                    card.prompt,
-                    immutableState.defaultFont,
-                    card.noteId
-                )}
-            </div>
-            {show === ShowState.Prompt && (
-                <button onClick={onShowAnswerClicked}>Show Answer</button>
-            )}
+            <CivContainer>
+                <CivMain>
+                    <div class="memorise-segment">Front</div>
+                    <div class="note">
+                        {buildMarkup(
+                            card.prompt,
+                            immutableState.defaultFont,
+                            card.noteId
+                        )}
+                    </div>
+                    {show === ShowState.Prompt && (
+                        <CivilButton onClick={onShowAnswerClicked}>
+                            Show Answer
+                        </CivilButton>
+                    )}
+                </CivMain>
+            </CivContainer>
+
             {show === ShowState.Answer && <Answer card={card} />}
+
             {show === ShowState.Answer && onRatedCard && (
                 <CardRating card={card} onRatedCard={onRatedCard} />
             )}
@@ -309,21 +330,20 @@ function CardTest({ card, onRatedCard, onShowAnswer }: CardTestProps) {
 
 function Answer({ card }: { card: Card }) {
     return (
-        <div>
-            <div class="memorise-segment">Back</div>
-            <CivContainer extraClasses="note">
-                <CivLeft>
-                    <div class="left-margin-entry">
-                        <span class="ref-kind">(Answer Deck)</span>
-                        <DeckLink slimDeck={card.deckInfo} />
-                    </div>
-                </CivLeft>
-                <CivMain>
-                    {card.answer &&
-                        buildMarkup(card.answer, immutableState.defaultFont, 0)}
-                </CivMain>
-            </CivContainer>
-        </div>
+        <CivContainer extraClasses="note">
+            <CivLeft>
+                <div class="left-margin-entry">
+                    <span class="ref-kind">(Answer Deck)</span>
+                    <DeckLink slimDeck={card.deckInfo} />
+                </div>
+            </CivLeft>
+            <CivMain>
+                <div class="memorise-segment">Back</div>
+
+                {card.answer &&
+                    buildMarkup(card.answer, immutableState.defaultFont, 0)}
+            </CivMain>
+        </CivContainer>
     );
 }
 
@@ -342,31 +362,36 @@ function CardRating({ card, onRatedCard }: CardRatingProps) {
     }
 
     return (
-        <div>
-            <div class="memorise-segment">
-                Rating
-                <ul class="right-margin memorise-rating-descriptions">
-                    <li>5 - perfect response</li>
-                    <li>4 - correct response after a hesitation</li>
-                    <li>
-                        3 - correct response recalled with serious difficulty
-                    </li>
-                    <li>
-                        2 - incorrect response; where the correct one seemed
-                        easy to recall
-                    </li>
-                    <li>1 - incorrect response; the correct one remembered</li>
-                    <li>0 - complete blackout.</li>
-                </ul>
-            </div>
-            <div class="rating-values" onClick={onRated}>
-                <button class="rating-value">0</button>
-                <button class="rating-value">1</button>
-                <button class="rating-value">2</button>
-                <button class="rating-value">3</button>
-                <button class="rating-value">4</button>
-                <button class="rating-value">5</button>
-            </div>
-        </div>
+        <CivContainer>
+            <CivMain>
+                <div class="memorise-segment">
+                    Rating
+                    <ul class="right-margin memorise-rating-descriptions">
+                        <li>5 - perfect response</li>
+                        <li>4 - correct response after a hesitation</li>
+                        <li>
+                            3 - correct response recalled with serious
+                            difficulty
+                        </li>
+                        <li>
+                            2 - incorrect response; where the correct one seemed
+                            easy to recall
+                        </li>
+                        <li>
+                            1 - incorrect response; the correct one remembered
+                        </li>
+                        <li>0 - complete blackout.</li>
+                    </ul>
+                </div>
+                <div class="rating-values" onClick={onRated}>
+                    <button class="rating-value">0</button>
+                    <button class="rating-value">1</button>
+                    <button class="rating-value">2</button>
+                    <button class="rating-value">3</button>
+                    <button class="rating-value">4</button>
+                    <button class="rating-value">5</button>
+                </div>
+            </CivMain>
+        </CivContainer>
     );
 }

@@ -2469,6 +2469,13 @@ input:required {
         width: 2rem;
         height: 2rem;
     }
+
+    .rating-values {
+        margin-top: 2rem;
+    }
+    .rating-value {
+        font-size: x-large;
+    }
 }
 
 @media (max-width: 760px) {

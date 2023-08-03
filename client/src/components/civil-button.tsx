@@ -21,7 +21,7 @@ export default function CivilButton({
             onClick();
         }
     }
-    console.log(disabled);
+
     return (
         <button
             onClick={onButtonClicked}
