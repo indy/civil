@@ -109,14 +109,13 @@ function QuotesModule({}) {
         localDispatch(ActionType.SetQuoteText, content);
     }
 
-    function clickedSave(e: Event) {
-        e.preventDefault();
-
+    function clickedSave() {
         type ProtoQuote = {
             title: string;
             text: string;
             attribution: string;
             insignia: number;
+            font: Font;
         };
 
         const data: ProtoQuote = {
@@ -124,6 +123,7 @@ function QuotesModule({}) {
             text: local.quoteText,
             attribution: local.attribution,
             insignia: 0,
+            font: Font.English,
         };
 
         Net.post<ProtoQuote, DeckQuote>("/api/quotes", data).then((quote) => {
@@ -131,8 +131,7 @@ function QuotesModule({}) {
         });
     }
 
-    function clickedCancel(e: Event) {
-        e.preventDefault();
+    function clickedCancel() {
         localDispatch(ActionType.HideAddForm);
     }
 
@@ -171,8 +170,8 @@ function QuotesModule({}) {
                     onContentChange={handleAttributionChange}
                 />
                 <br />
-                <button onClick={clickedCancel}>cancel</button>
-                <button onClick={clickedSave}>save</button>
+                <CivilButton onClick={clickedCancel}>cancel</CivilButton>
+                <CivilButton onClick={clickedSave}>save</CivilButton>
             </form>
         );
     }

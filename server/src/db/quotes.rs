@@ -96,13 +96,13 @@ pub(crate) fn get_or_create(
 ) -> crate::Result<interop::Quote> {
     let title = &quote.title;
     let text = &quote.text;
+    let font = quote.font;
     let attribution = &quote.attribution;
 
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    let (deck, origin) =
-        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Quote, title, Font::English)?;
+    let (deck, origin) = decks::deckbase_get_or_create(&tx, user_id, DeckKind::Quote, title, font)?;
 
     let quote_extras: QuoteExtra = match origin {
         decks::DeckBaseOrigin::Created => sqlite::one(
