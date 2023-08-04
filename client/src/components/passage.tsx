@@ -33,6 +33,7 @@ type PassageProps = {
     noteKind: NoteKind;
     noAppend?: boolean;
     noDelete?: boolean;
+    extraClasses?: string;
 };
 
 export default function Passage({
@@ -46,6 +47,7 @@ export default function Passage({
     noteKind,
     noAppend,
     noDelete,
+    extraClasses,
 }: PassageProps) {
     const appState = getAppState();
 
@@ -232,8 +234,11 @@ export default function Passage({
         }
     }
 
+    let klass = "this-is-a-passage ";
+    klass += extraClasses ? extraClasses : "";
+
     return (
-        <section>
+        <section class={klass}>
             {noteComponents}
             {addNoteUI}
         </section>

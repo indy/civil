@@ -23,7 +23,7 @@ import { svgCloseShifted } from "components/svg-icons";
 import { renderInsignia } from "components/insignia-renderer";
 import CivilInput from "components/civil-input";
 import useLocalReducer from "components/use-local-reducer";
-import { CivRight } from "components/civil-layout";
+import { CivMain, CivRight } from "components/civil-layout";
 
 enum ActionType {
     CandidatesSet,
@@ -456,12 +456,13 @@ export default function CivilSelect({
         onFinish(refsModified);
     }
 
-    let topLevelClasses = "ui block-width";
+    let topLevelClasses = "ui";
     if (extraClasses) {
         topLevelClasses += " " + extraClasses;
     }
 
     return (
+        <CivMain>
         <div class={topLevelClasses}>
             <label>References:</label>
             <RecentDecks
@@ -517,7 +518,8 @@ export default function CivilSelect({
                     {local.showKeyboardShortcuts && `Ctrl-Enter`} Save Changes
                 </button>
             </div>
-        </div>
+            </div>
+            </CivMain>
     );
 }
 

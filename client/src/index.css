@@ -9,6 +9,8 @@
     --block-width-indented: 50%;
     --block-width-indented-2: 40%;
 
+    --civ-left-margin-left: -30%;
+
     --module-width: 55rem;
 
     --image-width: 80%;
@@ -428,10 +430,6 @@
     font-weight: 600;
 }
 
-.muh-form {
-    width: var(--block-width);
-}
-
 .muh-form label {
     margin-top: 0;
 }
@@ -479,8 +477,6 @@ h6 {
     margin-top: 2rem;
     margin-bottom: 1.5rem;
     line-height: 1;
-
-    width: var(--block-width);
 }
 
 h1 {
@@ -489,11 +485,12 @@ h1 {
 }
 
 .module {
-    width: var(--module-width);
 }
 
-.block {
-    width: var(--block-width);
+.passage-for-deckpoint {
+  --block-width: 98%;
+  --civ-left-margin-left: -33.5%;
+
 }
 
 .previewer {
@@ -523,7 +520,6 @@ h1 {
 
 .deck-title {
     font-size: 3rem;
-    width: var(--block-width);
 }
 
 /* the weird margin-left values for muh-container and muh-content are to provide space for the visible border when one of the selectable classes is applied  */
@@ -533,6 +529,7 @@ h1 {
     margin-left: -1.6rem;
 }
 .muh-main {
+    width: var(--block-width);
     margin-left: 1rem;
 }
 .selectable-hovering {
@@ -574,7 +571,6 @@ h6 {
 hr {
     display: block;
     height: 1rem;
-    width: var(--block-width);
     border: 0;
     border-top: 0.15rem solid var(--divider);
     margin: 1rem 0;
@@ -582,7 +578,7 @@ hr {
 }
 
 .hr-inline {
-    width: calc(var(--block-width) - 20%);
+    width: 80%;
     margin-left: 10%;
 }
 
@@ -670,18 +666,20 @@ blockquote .right-margin-scribble {
     text-align: left;
 }
 
-section > p,
-section > footer,
-section > table {
-    width: var(--block-width);
-}
+/* bw */
+/* section > p, */
+/* section > footer, */
+/* section > table { */
+/*     width: var(--block-width); */
+/* } */
 
 /* to be the same width as paragraph */
-section > ol,
-section > ul {
-    width: calc(var(--block-width) - 5%);
-    -webkit-padding-start: 5%;
-}
+/* bw */
+/* section > ol, */
+/* section > ul { */
+/*     width: calc(var(--block-width) - 5%); */
+/*     -webkit-padding-start: 5%; */
+/* } */
 
 li:not(:first-child) {
     margin-top: 0.25rem;
@@ -693,7 +691,6 @@ figure {
     font-size: 100%;
     font: inherit;
     vertical-align: baseline;
-    max-width: var(--block-width);
     -webkit-margin-start: 0;
     -webkit-margin-end: 0;
     margin: 0 0 3rem 0;
@@ -970,7 +967,7 @@ label.right-margin-toggle:not(.right-margin-number) {
  */
 
 form {
-    width: 20rem;
+    /* width: 20rem; */
     font-family: var(--font-ui);
     font-weight: 600;
 }
@@ -986,7 +983,7 @@ input {
 }
 
 textarea.note-editable-content {
-    width: var(--block-width);
+    width: 100%;
     height: 15rem;
 }
 
@@ -1362,7 +1359,7 @@ textarea {
 /* -------------------------------------------------------------------------------- */
 
 .dialogue-flex-container {
-    width: var(--block-width);
+    width: 100%;
     height: 10rem;
     display: flex;
     justify-content: space-between;
@@ -1711,12 +1708,7 @@ p.fakelink {
 }
 
 section > form {
-    width: var(--block-width);
-}
-
-/* civil: so that the p in civil behaves like the section > p in tufte */
-.block-width {
-    width: var(--block-width);
+    width: 100%;
 }
 
 .form-margin {
@@ -1729,12 +1721,14 @@ section > form {
     width: 5rem;
     height: 5rem;
 }
-.note p {
-    width: var(--block-width);
-}
+
+/* .note p { */
+/*     width: var(--block-width); */
+/* } */
+
 /* only apply to img that is a direct descendent of .note  */
 .note > img {
-    width: var(--block-width);
+    /* width: var(--block-width); */
 }
 
 .minimised-text {
@@ -1746,7 +1740,7 @@ section > form {
 .muh-main > ol,
 .muh-main > div > ul,
 .muh-main > ul {
-    width: calc(var(--block-width) - 2%);
+    /* width: calc(var(--block-width) - 2%); */
     padding-left: 2rem;
 }
 
@@ -1763,7 +1757,7 @@ section > form {
 .left-margin {
     padding-top: 0.5rem;
     float: left;
-    margin-left: -30%;
+    margin-left: var(--civ-left-margin-left);
     width: 30%;
     color: var(--fg1);
     text-align: right;
@@ -1880,7 +1874,7 @@ section > form {
     font-size: 1.8rem;
     padding-top: 1rem;
     padding-bottom: 0.3rem;
-    width: var(--block-width);
+    /* width: var(--block-width); */
 }
 .indented {
     padding-left: 2rem;
@@ -1918,7 +1912,7 @@ div.note > textarea {
 }
 
 .civil-add-note-form {
-    width: var(--block-width);
+    /* width: var(--block-width); */
 }
 
 .note-split-option {
@@ -1947,14 +1941,16 @@ div.note > textarea {
 a bunch of hacks so that notes within points look correct
 */
 /* set .point-notes to match tufte.css:44 */
-.point-notes {
-    font-size: 1rem;
-}
 
-div.point-notes > div.note > div > div > p {
-    margin-left: 3rem;
-    width: var(--block-width-indented);
-}
+/* bw */
+/* .point-notes { */
+/*     font-size: 1rem; */
+/* } */
+
+/* div.point-notes > div.note > div > div > p { */
+/*     margin-left: 3rem; */
+/*     width: var(--block-width-indented); */
+/* } */
 /* -------------------------------------------------------------------------------- */
 
 .point-title {
@@ -2045,7 +2041,7 @@ input:required {
     font-family: var(--font-cursive);
     color: var(--scribble-neutral);
     font-size: 1.8rem;
-    width: var(--block-width);
+    /* width: var(--block-width); */
 }
 
 .listing-link p {
@@ -2082,7 +2078,7 @@ input:required {
     margin-top: 1rem;
     border-top: 0.1rem solid var(--bg1);
     padding-top: 1rem;
-    width: var(--block-width);
+    /* width: var(--block-width); */
     text-decoration: underline;
 }
 
@@ -2104,10 +2100,6 @@ input:required {
 
 #article-submit {
     width: 14rem;
-}
-
-.delete-hack {
-    margin-bottom: -8px;
 }
 
 #quotation-article {
@@ -2390,6 +2382,8 @@ input:required {
 
         --busy-indicator-dial-thickness: 0;
         --busy-indicator-hand-thickness: 8;
+
+        --civ-left-margin-left: 0;
     }
 
     .title-sticky {
@@ -2400,7 +2394,7 @@ input:required {
 
     .left-margin {
         float: none;
-        margin-left: 0;
+        margin-left: var(--civ-left-margin-left);
         width: calc(100% - 1.4rem);
         text-align: right;
     }
@@ -2428,7 +2422,7 @@ input:required {
     .muh-main > ol,
     .muh-main > div > ul,
     .muh-main > ul {
-        width: calc(var(--block-width) - 6%);
+        /* width: calc(var(--block-width) - 6%); */
     }
 
     html {

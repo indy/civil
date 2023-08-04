@@ -9,7 +9,6 @@ import Net from "shared/net";
 import DeckLink from "components/deck-link";
 import ListingLink from "components/listing-link";
 import { StarRatingWithinListing } from "components/star-rating";
-import { CivMain, CivContainer } from "components/civil-layout";
 import Toggler from "components/toggler";
 
 function SlimDeckList({ list }: { list: Array<SlimDeck> }) {
@@ -138,13 +137,9 @@ function RatedListingLink({ deck }: RatedListingLinkProps) {
 
     return (
         <li>
-            <CivContainer>
-                <CivMain>
                     <StarRatingWithinListing rating={rating} />
                     <DeckLink slimDeck={slimDeck} />
                     <span class="descriptive-scribble">{shortDescription}</span>
-                </CivMain>
-            </CivContainer>
         </li>
     );
 }

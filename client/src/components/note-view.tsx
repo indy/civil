@@ -451,6 +451,7 @@ export default function NoteView({
 
     function buildEditableContent() {
         return (
+            <CivMain>
             <div class="civil-form">
                 <CivilTextArea
                     id="content"
@@ -462,7 +463,8 @@ export default function NoteView({
                     onContentChange={handleChangeEvent}
                     onPaste={onImagePaste}
                 />
-            </div>
+                </div>
+                </CivMain>
         );
     }
 
