@@ -21,6 +21,7 @@ type Props = {
     children: ComponentChildren;
     initiallyRolledUp?: boolean;
     invisible?: boolean;
+    extraClasses?: string;
 };
 
 export default function RollableSegment({
@@ -30,6 +31,7 @@ export default function RollableSegment({
     children,
     initiallyRolledUp,
     invisible,
+    extraClasses,
 }: Props) {
     let [isRolledUp, setIsRolledUp] = useState(!!initiallyRolledUp);
 
@@ -38,7 +40,8 @@ export default function RollableSegment({
         setIsRolledUp(!isRolledUp);
     }
 
-    let sectionClass = fontClass(font, RenderingDeckPart.UiInterleaved);
+    let sectionClass = extraClasses || "";
+    sectionClass += " " + fontClass(font, RenderingDeckPart.UiInterleaved);
     sectionClass += isRolledUp ? " rolled-up" : " rolled-down";
     if (invisible) {
         sectionClass += " invisible";

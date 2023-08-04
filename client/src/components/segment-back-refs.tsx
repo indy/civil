@@ -33,7 +33,12 @@ export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
     const invisible = backrefGroups.length === 0;
 
     return (
-        <RollableSegment heading="BackRefs" font={font} invisible={invisible}>
+        <RollableSegment
+            extraClasses="c-segment-back-refs"
+            heading="BackRefs"
+            font={font}
+            invisible={invisible}
+        >
             {backrefGroups}
         </RollableSegment>
     );

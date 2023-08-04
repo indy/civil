@@ -137,9 +137,9 @@ function RatedListingLink({ deck }: RatedListingLinkProps) {
 
     return (
         <li>
-                    <StarRatingWithinListing rating={rating} />
-                    <DeckLink slimDeck={slimDeck} />
-                    <span class="descriptive-scribble">{shortDescription}</span>
+            <StarRatingWithinListing rating={rating} />
+            <DeckLink slimDeck={slimDeck} />
+            <span class="descriptive-scribble">{shortDescription}</span>
         </li>
     );
 }

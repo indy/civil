@@ -53,6 +53,7 @@ export default function SegmentSearchResults({
                 font={font}
                 buttons={button}
                 initiallyRolledUp
+                extraClasses="c-segment-search-results"
             >
                 <CivContainer>
                     <CivMain>

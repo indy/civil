@@ -499,7 +499,7 @@ function DialogueUpdater({
                     Cancel
                 </CivilButton>
                 <input
-                    class="civil-button"
+                    class="c-civil-button"
                     id="dialogue-submit"
                     type="submit"
                     value="Update Dialogue"

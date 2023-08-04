@@ -7,7 +7,7 @@ import Net from "shared/net";
 import { getAppState } from "app-state";
 import { svgX } from "components/svg-icons";
 
-import { CivLeft } from "components/civil-layout";
+import { CivLeft, CivMain } from "components/civil-layout";
 import CivilTextArea from "components/civil-text-area";
 import ImageSelector from "components/image-selector";
 
@@ -141,7 +141,7 @@ export default function NoteForm({
     }
 
     return (
-        <div class="append-note">
+        <div>
             <CivLeft>
                 <div
                     class="left-margin-entry fadeable clickable cancel-offset"
@@ -151,33 +151,35 @@ export default function NoteForm({
                     {svgX()}
                 </div>
             </CivLeft>
-            <form class="civil-add-note-form" onSubmit={onSubmit}>
-                <label for="content">{label}</label>
-                <br />
-                <CivilTextArea
-                    id="content"
-                    elementRef={textAreaRef}
-                    elementClass="new-note-textarea"
-                    value={local.content}
-                    onFocus={onTextAreaFocus}
-                    onBlur={onTextAreaBlur}
-                    onContentChange={handleContentChange}
-                    onPaste={onImagePaste}
-                />
-                <br />
-                <input type="submit" value="Save" />
-                <span class="note-split-option">
-                    <label for="splitbox">Split into multiple notes:</label>
-                    <input
-                        type="checkbox"
-                        id="splitbox"
-                        name="splitbox"
-                        onInput={handleCheckbox}
-                        checked={local.splitIntoMultipleNotes}
+            <CivMain>
+                <form class="civil-add-note-form" onSubmit={onSubmit}>
+                    <label for="content">{label}</label>
+                    <br />
+                    <CivilTextArea
+                        id="content"
+                        elementRef={textAreaRef}
+                        elementClass="new-note-textarea"
+                        value={local.content}
+                        onFocus={onTextAreaFocus}
+                        onBlur={onTextAreaBlur}
+                        onContentChange={handleContentChange}
+                        onPaste={onImagePaste}
                     />
-                </span>
-            </form>
-            <ImageSelector onPaste={onImagePaste} />
+                    <br />
+                    <input class="c-civil-button" type="submit" value="Save" />
+                    <span class="note-split-option">
+                        <label for="splitbox">Split into multiple notes:</label>
+                        <input
+                            type="checkbox"
+                            id="splitbox"
+                            name="splitbox"
+                            onInput={handleCheckbox}
+                            checked={local.splitIntoMultipleNotes}
+                        />
+                    </span>
+                </form>
+                <ImageSelector onPaste={onImagePaste} />
+            </CivMain>
         </div>
     );
 }

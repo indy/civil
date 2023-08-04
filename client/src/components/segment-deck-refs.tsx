@@ -15,7 +15,7 @@ import { getAppState, AppStateChange } from "app-state";
 import { addToolbarSelectableClasses } from "shared/css";
 import { fontClass } from "shared/font";
 
-import { CivContainer } from "components/civil-layout";
+import { CivContainer, CivMain } from "components/civil-layout";
 import CivilSelect from "components/civil-select";
 import RefView from "components/ref-view";
 
@@ -24,7 +24,7 @@ import useMouseHovering from "components/use-mouse-hovering";
 type Props = {
     deck: FatDeck;
     isEditingDeckRefs: boolean;
-    setEditingDeckRefs: (boolean) => void;
+    setEditingDeckRefs: (arg0: boolean) => void;
     onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
 };
 
@@ -43,7 +43,7 @@ export default function SegmentDeckRefs({
         deck.font,
         RenderingDeckPart.UiInterleaved
     );
-    containerClasses += " deck-ref-segment";
+    containerClasses += " c-segment-deck-refs";
 
     if (mouseHovering) {
         let mode = appState.mode.value;
@@ -88,7 +88,7 @@ export default function SegmentDeckRefs({
             <CivContainer extraClasses={containerClasses}>
                 <div ref={hoveringRef} onClick={onSegmentClicked}>
                     {!isEditingDeckRefs && deckMeta.refs.length > 0 && (
-                        <div>
+                        <CivMain>
                             <hr class="light" />
                             {deckMeta.refs.map((ref) => (
                                 <RefView
@@ -97,7 +97,7 @@ export default function SegmentDeckRefs({
                                 />
                             ))}
                             <hr class="light" />
-                        </div>
+                        </CivMain>
                     )}
                     {isEditingDeckRefs && (
                         <AddDecksUI

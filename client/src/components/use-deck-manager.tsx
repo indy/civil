@@ -239,7 +239,7 @@ export default function useDeckManager<T extends FatDeck>(
                         optionalDeckPoint: deckPoint,
                         appendLabel: `Append Note to ${deckPoint.title}`,
                         noteKind: NoteKind.Note,
-                        extraClasses: "passage-for-deckpoint"
+                        extraClasses: "passage-for-deckpoint",
                     });
                 }
             }

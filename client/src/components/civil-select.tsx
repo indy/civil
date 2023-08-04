@@ -462,8 +462,7 @@ export default function CivilSelect({
     }
 
     return (
-        <CivMain>
-        <div class={topLevelClasses}>
+        <CivMain extraClasses={topLevelClasses}>
             <label>References:</label>
             <RecentDecks
                 localState={local}
@@ -471,55 +470,46 @@ export default function CivilSelect({
                     localDispatch(ActionType.SelectAdd, recentDeck)
                 }
             />
-            <div class="civsel-main-box">
-                {local.currentSelection.map((value) => (
-                    <SelectedReference
-                        reference={value}
-                        onRemove={(e) =>
-                            localDispatch(ActionType.ReferenceRemove, e)
-                        }
-                        onChangeKind={(
-                            reference: Reference,
-                            newKind: RefKind
-                        ) =>
-                            localDispatch(ActionType.ReferenceChangeKind, {
-                                reference,
-                                newKind,
-                            })
-                        }
-                        onChangeAnnotation={(
-                            reference: Reference,
-                            annotation: string
-                        ) =>
-                            localDispatch(
-                                ActionType.ReferenceChangeAnnotation,
-                                {
-                                    reference,
-                                    annotation,
-                                }
-                            )
-                        }
-                    />
-                ))}
-                <Input
-                    text={local.text}
-                    onTextChanged={onTextChanged}
-                    candidates={local.candidates}
-                    onAdd={(existingDeck) => {
-                        localDispatch(ActionType.SelectAdd, existingDeck);
-                    }}
-                    onCreate={(newDeckInfo) => {
-                        localDispatch(ActionType.SelectCreate, newDeckInfo);
-                    }}
-                    showKeyboardShortcuts={local.showKeyboardShortcuts}
+            {local.currentSelection.map((value) => (
+                <SelectedReference
+                    reference={value}
+                    onRemove={(e) =>
+                        localDispatch(ActionType.ReferenceRemove, e)
+                    }
+                    onChangeKind={(reference: Reference, newKind: RefKind) =>
+                        localDispatch(ActionType.ReferenceChangeKind, {
+                            reference,
+                            newKind,
+                        })
+                    }
+                    onChangeAnnotation={(
+                        reference: Reference,
+                        annotation: string
+                    ) =>
+                        localDispatch(ActionType.ReferenceChangeAnnotation, {
+                            reference,
+                            annotation,
+                        })
+                    }
                 />
-                <button onClick={onLocalCancel}>Cancel</button>
-                <button onClick={onLocalCommit} disabled={!local.canSave}>
-                    {local.showKeyboardShortcuts && `Ctrl-Enter`} Save Changes
-                </button>
-            </div>
-            </div>
-            </CivMain>
+            ))}
+            <CivilSelectInput
+                text={local.text}
+                onTextChanged={onTextChanged}
+                candidates={local.candidates}
+                onAdd={(existingDeck) => {
+                    localDispatch(ActionType.SelectAdd, existingDeck);
+                }}
+                onCreate={(newDeckInfo) => {
+                    localDispatch(ActionType.SelectCreate, newDeckInfo);
+                }}
+                showKeyboardShortcuts={local.showKeyboardShortcuts}
+            />
+            <button onClick={onLocalCancel}>Cancel</button>
+            <button onClick={onLocalCommit} disabled={!local.canSave}>
+                {local.showKeyboardShortcuts && `Ctrl-Enter`} Save Changes
+            </button>
+        </CivMain>
     );
 }
 
@@ -558,7 +548,7 @@ function RecentDecks({
         .map(buildRecent);
 
     return (
-        <CivRight extraClasses="civsel-recent-decks">
+        <CivRight extraClasses="c-recent-decks">
             {!!recent.length && <div>Recently Used Refs:</div>}
             <ul>{recent}</ul>
         </CivRight>
@@ -617,7 +607,7 @@ function SelectedReference({
         onChangeAnnotation(reference, content);
     }
 
-    let topclass = `civsel-reference pigment-${deckKindToResourceString(
+    let topclass = `c-selected-reference pigment-${deckKindToResourceString(
         reference.deckKind
     )}`;
 
@@ -655,7 +645,7 @@ function SelectedReference({
                     Critical Reference
                 </option>
             </select>
-            <span class="civsel-name">{reference.title}</span>
+            <span class="width-100">{reference.title}</span>
             <CivilInput
                 elementClass="civsel-annotation"
                 id="annotation"
@@ -666,7 +656,7 @@ function SelectedReference({
     );
 }
 
-type InputProps = {
+type CivilSelectInputProps = {
     text: string;
     onTextChanged: (s: string) => void;
     onAdd: (c: SlimDeck) => void;
@@ -675,14 +665,14 @@ type InputProps = {
     showKeyboardShortcuts: boolean;
 };
 
-function Input({
+function CivilSelectInput({
     text,
     onTextChanged,
     onAdd,
     onCreate,
     candidates,
     showKeyboardShortcuts,
-}: InputProps) {
+}: CivilSelectInputProps) {
     function onSubmit(e: Event) {
         e.preventDefault();
         if (text.length > 0) {
@@ -712,14 +702,14 @@ function Input({
     });
 
     return (
-        <form class="civsel-form" onSubmit={onSubmit}>
+        <form class="c-civil-select-input width-100" onSubmit={onSubmit}>
             <CivilInput
                 value={text}
                 focus
                 autoComplete="off"
                 onContentChange={onTextChanged}
             />
-            <div class="civsel-candidates">{cl}</div>
+            {cl}
         </form>
     );
 }
@@ -747,7 +737,7 @@ function CandidateItem({
     const canShowKeyboardShortcut =
         showKeyboardShortcuts && keyIndex < maxShortcuts;
 
-    const topclass = `civsel-candidate pigment-${deckKindToResourceString(
+    const topclass = `c-candidate-item pigment-${deckKindToResourceString(
         candidate.deckKind
     )}`;
     return (

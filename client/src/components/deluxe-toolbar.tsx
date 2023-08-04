@@ -4,9 +4,8 @@ import { Link } from "preact-router";
 
 import { CivilMode } from "types";
 
-import { isCivilModeAllowed } from "shared/civil";
-
 import { getAppState, AppStateChange } from "app-state";
+
 import {
     svgCircle,
     svgFilledCircle,
@@ -18,6 +17,9 @@ import {
     svgSearch,
     svgHome,
 } from "components/svg-icons";
+
+import { isCivilModeAllowed } from "shared/civil";
+import { visibleClass } from "shared/css";
 
 export function DeluxeToolbar({}) {
     const appState = getAppState();
@@ -36,9 +38,7 @@ export function DeluxeToolbar({}) {
         toggleIcon = svgCircle;
     }
 
-    if (active) {
-        classes += " deluxe-toolbar-active";
-    }
+    classes += visibleClass("deluxe-toolbar", active);
 
     let searchClasses = "toolbar-item-icon";
 

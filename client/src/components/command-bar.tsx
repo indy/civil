@@ -15,14 +15,16 @@ import {
     State,
 } from "types";
 
-import Net from "shared/net";
-import { addBookmark, addMultipleBookmarks } from "shared/bookmarks";
 import { getAppState, AppStateChange } from "app-state";
-import { isCommand, indexToShortcut } from "shared/command";
-import { deckKindToResourceString, createDeck } from "shared/deck";
-import { isCivilModeAllowed } from "shared/civil";
 
 import DeckLink from "components/deck-link";
+
+import Net from "shared/net";
+import { addBookmark, addMultipleBookmarks } from "shared/bookmarks";
+import { deckKindToResourceString, createDeck } from "shared/deck";
+import { isCivilModeAllowed } from "shared/civil";
+import { isCommand, indexToShortcut } from "shared/command";
+import { visibleClass } from "shared/css";
 
 // array because ordering is important when printing the commands
 //
@@ -568,10 +570,8 @@ export default function CommandBar() {
         }
     }
 
-    let extraClasses = "command-bar";
-    if (appState.showingCommandBar.value) {
-        extraClasses += " command-bar-visible";
-    }
+    let klass = "command-bar";
+    klass += visibleClass("command-bar", appState.showingCommandBar.value);
 
     let inputClasses = "command-bar-input";
     if (appState.hasPhysicalKeyboard) {
@@ -581,7 +581,7 @@ export default function CommandBar() {
     }
 
     return (
-        <div class={extraClasses}>
+        <div class={klass}>
             <div>
                 <input
                     id="command-bar-input"

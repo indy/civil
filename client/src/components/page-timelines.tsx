@@ -284,7 +284,7 @@ function TimelineUpdater({
                     Cancel
                 </CivilButton>
                 <input
-                    class="civil-button"
+                    class="c-civil-button"
                     type="submit"
                     value="Update Timeline"
                 />

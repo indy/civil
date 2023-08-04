@@ -25,19 +25,19 @@ export default function DeleteConfirmation({ onDelete }: Props) {
     }
 
     return (
-        <span>
+        <span class="c-delete-confirmation">
             {!showToggle && (
-                <button class="civil-button" onClick={buttonClicked}>
+                <button class="c-civil-button" onClick={buttonClicked}>
                     Delete...
                 </button>
             )}
             {showToggle && (
-                <button class="civil-button" onClick={noClicked}>
+                <button class="c-civil-button" onClick={noClicked}>
                     No, Cancel Delete
                 </button>
             )}
             {showToggle && (
-                <button class="civil-button" onClick={yesClicked}>
+                <button class="c-civil-button" onClick={yesClicked}>
                     Yes, Really Delete
                 </button>
             )}

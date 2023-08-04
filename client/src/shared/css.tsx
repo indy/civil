@@ -25,3 +25,7 @@ export function addToolbarSelectableClasses(mode: CivilMode) {
             return "";
     }
 }
+
+export function visibleClass(className: string, visible: boolean): string {
+    return visible ? ` ${className}-visible ` : ` ${className}-invisible `;
+}

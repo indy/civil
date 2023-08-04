@@ -172,7 +172,7 @@ export default function Login({ path, loginCallback }: Props) {
         <section>
             <CivContainer>
                 <CivMain>
-                    <h1 class="login-title ui">Login</h1>
+                    <h1 class="vertical-spacer ui">Login</h1>
                 </CivMain>
 
                 <CivForm onSubmit={handleLoginSubmit}>

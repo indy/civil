@@ -11,7 +11,7 @@ export default function CivilButton({
     children: ComponentChildren;
     disabled?: boolean;
 }) {
-    let classes = "civil-button ";
+    let classes = "c-civil-button ";
     if (extraClasses) {
         classes += extraClasses;
     }

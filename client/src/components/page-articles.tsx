@@ -436,7 +436,7 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
                 </CivilButton>
                 <input
                     id="article-submit"
-                    class="civil-button"
+                    class="c-civil-button"
                     type="submit"
                     value="Update Article"
                 />

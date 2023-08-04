@@ -3,6 +3,8 @@ import { useState } from "preact/hooks";
 
 import { immutableState } from "app-state";
 
+import { visibleClass } from "shared/css";
+
 type ImageProps = {
     src?: string;
 };
@@ -25,9 +27,10 @@ export default function Image({ src }: ImageProps) {
     let sliderClasses = "deck-image-slider";
     let rollupClasses = "rollupable-500ms";
 
+    sliderClasses += visibleClass("deck-image-slider", zoomable);
+
     if (zoomable) {
         style = `width: ${zoomValue}%; height: ${zoomValue}%; max-width: ${immutableState.imageZoomMax}%; max-height: ${immutableState.imageZoomMax}%;`;
-        sliderClasses += " deck-image-slider-active";
         rollupClasses += " rollupable-active-5rem";
     }
 

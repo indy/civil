@@ -16,7 +16,7 @@ export function CivContainer({
     extraClasses?: string;
     children: ComponentChildren;
 }) {
-    let classes = "muh-container ";
+    let classes = "c-civ-container ";
     if (extraClasses) {
         classes += extraClasses;
     }
@@ -26,16 +26,21 @@ export function CivContainer({
 
 export function CivMain({
     replacementClasses,
+    extraClasses,
     children,
 }: {
     replacementClasses?: string;
+    extraClasses?: string;
     children: ComponentChildren;
 }) {
-    let classes = "muh-main ";
+    let classes = "c-civ-main ";
+    if (extraClasses) {
+        classes += extraClasses + " ";
+    }
     if (replacementClasses) {
         classes += replacementClasses;
     } else {
-        classes += "muh-main-standard";
+        classes += "civ-main-standard";
     }
 
     return <div class={classes}>{children}</div>;
@@ -43,14 +48,17 @@ export function CivMain({
 
 export function CivLeft({
     extraClasses,
-    ui,
     children,
+    ui,
 }: {
     extraClasses?: string;
-    ui?: boolean;
     children: ComponentChildren;
+    ui?: boolean;
 }) {
-    let classes = ui ? "left-margin-ui " : "left-margin ";
+    let classes = "c-civ-left ";
+    if (ui) {
+        classes += " civ-left-ui ";
+    }
 
     if (extraClasses) {
         classes += extraClasses;
@@ -58,7 +66,7 @@ export function CivLeft({
 
     return (
         <div class={classes}>
-            <div class="left-margin-inner">{children}</div>
+            <div class="civ-left-inner">{children}</div>
         </div>
     );
 }
@@ -86,7 +94,7 @@ export function CivForm({
     children: ComponentChildren;
 }) {
     return (
-        <form class="muh-form" onSubmit={onSubmit}>
+        <form class="c-civ-form" onSubmit={onSubmit}>
             {children}
         </form>
     );
@@ -102,7 +110,7 @@ export function CivLeftLabel({
     children: ComponentChildren;
 }) {
     return (
-        <CivLeft>
+        <CivLeft extraClasses="c-civ-left-label">
             <label for={forId} class={extraClasses}>
                 {children}
             </label>

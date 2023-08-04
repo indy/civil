@@ -4,15 +4,15 @@ import { WaitingFor } from "types";
 
 import { getAppState } from "app-state";
 
+import { visibleClass } from "shared/css";
+
 export default function BusyIndicator() {
     const appState = getAppState();
 
     const show = appState.waitingFor.value === WaitingFor.Server;
 
-    let classes = "busy-indicator";
-    if (show) {
-        classes += " busy-indicator-active";
-    }
+    let classes = "c-busy-indicator";
+    classes += visibleClass("busy-indicator", show);
 
     return <div class={classes}>{show && svgClock()}</div>;
 }

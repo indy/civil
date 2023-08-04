@@ -43,10 +43,8 @@ export default function TopMatter({
         return <div></div>;
     }
 
-    let containerClasses = fontClass(
-        deck.font,
-        RenderingDeckPart.UiInterleaved
-    );
+    let containerClasses = "c-top-matter ";
+    containerClasses += fontClass(deck.font, RenderingDeckPart.UiInterleaved);
     if (mouseHovering) {
         let mode = appState.mode.value;
         // only show as selectable if in edit or refs mode

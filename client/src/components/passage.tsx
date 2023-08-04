@@ -134,7 +134,7 @@ export default function Passage({
         let optionalPointId = optionalDeckPoint && optionalDeckPoint.id;
         return (
             <NoteForm
-                label="Append Note:"
+                label={appendLabel}
                 onCreate={onNoteCreated}
                 onCancel={onCancelled}
                 deckId={deck.id}
@@ -182,19 +182,17 @@ export default function Passage({
         } else {
             return (
                 <WhenEditMode>
-                    <CivContainer extraClasses="append-note">
-                        <CivLeft ui>
-                            <div
-                                class="fadeable clickable"
-                                onClick={onAddNoteClicked}
-                            >
-                                <span class="left-margin-icon-label ui-bold">
-                                    {appendLabel}
-                                </span>
-                                {svgEdit()}
-                            </div>
-                        </CivLeft>
-                    </CivContainer>
+                    <CivLeft ui>
+                        <div
+                            class="fadeable clickable"
+                            onClick={onAddNoteClicked}
+                        >
+                            <span class="left-margin-icon-label ui-bold">
+                                {appendLabel}
+                            </span>
+                            {svgEdit()}
+                        </div>
+                    </CivLeft>
                 </WhenEditMode>
             );
         }
@@ -234,13 +232,13 @@ export default function Passage({
         }
     }
 
-    let klass = "this-is-a-passage ";
+    let klass = "c-passage ";
     klass += extraClasses ? extraClasses : "";
 
     return (
         <section class={klass}>
             {noteComponents}
-            {addNoteUI}
+            <CivContainer>{addNoteUI}</CivContainer>
         </section>
     );
 }

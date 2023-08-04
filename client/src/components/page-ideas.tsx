@@ -270,7 +270,11 @@ function IdeaUpdater({ idea, onUpdate, onCancel }: IdeaUpdaterProps) {
                 <CivilButton extraClasses="dialog-cancel" onClick={onCancel}>
                     Cancel
                 </CivilButton>
-                <input class="civil-button" type="submit" value="Update Idea" />
+                <input
+                    class="c-civil-button"
+                    type="submit"
+                    value="Update Idea"
+                />
             </CivMain>
         </CivForm>
     );

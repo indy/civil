@@ -98,7 +98,7 @@ function Logout({}) {
     return (
         <Module heading="peace out">
             <form onSubmit={handleLogout}>
-                <input class="civil-button" type="submit" value="Log out " />
+                <input class="c-civil-button" type="submit" value="Log out " />
             </form>
         </Module>
     );

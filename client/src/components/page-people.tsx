@@ -180,7 +180,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
         const title = deck && deck.title;
         const hasKnownLifespan = deck && hasBirthPoint(deck);
         return (
-            <article>
+            <article class="c-person">
                 <TopMatter
                     title={deck.title}
                     deck={deck}
@@ -424,7 +424,7 @@ function PersonUpdater({
                     Cancel
                 </CivilButton>
                 <input
-                    class="civil-button"
+                    class="c-civil-button"
                     type="submit"
                     value="Update Person"
                 />
@@ -599,7 +599,11 @@ function SegmentPoints({
     const segmentTitle = `Points during the life of ${holderTitle}`;
 
     return (
-        <RollableSegment heading={segmentTitle} font={font}>
+        <RollableSegment
+            heading={segmentTitle}
+            font={font}
+            extraClasses="c-segment-points"
+        >
             <CivContainer>
                 <CivLeft ui>
                     <WhenEditMode>

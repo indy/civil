@@ -6,8 +6,6 @@
 
     --body-width: 80%;
     --block-width: 55%;
-    --block-width-indented: 50%;
-    --block-width-indented-2: 40%;
 
     --civ-left-margin-left: -30%;
 
@@ -35,7 +33,6 @@
     --busy-indicator-dial-thickness: 4;
     --busy-indicator-hand-thickness: 4;
 
-    /* delete this */
     --silly-temporary-font: Orbitron;
 
     --ui-control-border-radius: 0.5rem;
@@ -377,12 +374,11 @@
     padding-bottom: 1rem;
 }
 
-.busy-indicator {
+.c-busy-indicator {
     pointer-events: none;
     position: fixed;
     z-index: 100001;
     transition: opacity 500ms linear;
-    opacity: 0;
 
     top: 2rem;
     left: 5rem;
@@ -391,11 +387,14 @@
     height: 10rem;
 }
 
-.busy-indicator-active {
+.busy-indicator-invisible {
+    opacity: 0;
+}
+.busy-indicator-visible {
     opacity: 1;
 }
 
-.debug-messages {
+.c-debug-messages {
     position: fixed;
     top: 0;
     left: 0;
@@ -421,16 +420,12 @@
     font-weight: 600;
 }
 
-.login-title {
-    padding-top: 3rem;
-}
-
 .form-typography {
     font-family: var(--font-ui);
     font-weight: 600;
 }
 
-.muh-form label {
+.c-civ-form label {
     margin-top: 0;
 }
 
@@ -488,18 +483,14 @@ h1 {
 }
 
 .passage-for-deckpoint {
-  --block-width: 98%;
-  --civ-left-margin-left: -33.5%;
-
+    --block-width: 98%;
+    --civ-left-margin-left: -33.5%;
 }
 
-.previewer {
+.c-previewer {
     --block-width: 100%;
 
     transition: all 130ms linear;
-
-    opacity: 0;
-    max-height: 0;
 
     position: fixed;
     background: var(--bg1);
@@ -513,7 +504,12 @@ h1 {
     overflow-y: clip;
 }
 
-.previewer-active {
+.previewer-invisible {
+    opacity: 0;
+    max-height: 0;
+}
+
+.previewer-visible {
     opacity: 1;
     max-height: 80%;
 }
@@ -522,13 +518,13 @@ h1 {
     font-size: 3rem;
 }
 
-/* the weird margin-left values for muh-container and muh-content are to provide space for the visible border when one of the selectable classes is applied  */
-.muh-container {
+/* the weird margin-left values for c-civ-container and c-civ-main are to provide space for the visible border when one of the selectable classes is applied  */
+.c-civ-container {
     transition: all 0.2s ease;
     border-left: var(--space-for-selectable-highlight) solid rgba(0, 0, 0, 0);
     margin-left: -1.6rem;
 }
-.muh-main {
+.c-civ-main {
     width: var(--block-width);
     margin-left: 1rem;
 }
@@ -630,16 +626,16 @@ section {
     padding-bottom: 1rem;
 }
 
-.previewer p,
-.previewer ol,
-.previewer ul {
+.c-previewer p,
+.c-previewer ol,
+.c-previewer ul {
     font-size: 1.4rem;
     line-height: 2rem;
 }
 
-.muh-main-standard p,
-.muh-main-standard ol,
-.muh-main-standard ul {
+.civ-main-standard p,
+.civ-main-standard ol,
+.civ-main-standard ul {
     font-size: 1.4rem;
     line-height: 2rem;
 }
@@ -665,21 +661,6 @@ blockquote .right-margin-scribble {
     min-width: 59%;
     text-align: left;
 }
-
-/* bw */
-/* section > p, */
-/* section > footer, */
-/* section > table { */
-/*     width: var(--block-width); */
-/* } */
-
-/* to be the same width as paragraph */
-/* bw */
-/* section > ol, */
-/* section > ul { */
-/*     width: calc(var(--block-width) - 5%); */
-/*     -webkit-padding-start: 5%; */
-/* } */
 
 li:not(:first-child) {
     margin-top: 0.25rem;
@@ -746,13 +727,15 @@ figure.fullwidth figcaption {
     height: 0.5rem;
     background: var(--bg1);
     outline: none;
-    opacity: 0;
     transition: opacity 500ms;
     padding: 0;
     margin-bottom: 2rem;
 }
 
-.deck-image-slider-active {
+.deck-image-slider-invisible {
+    opacity: 0;
+}
+.deck-image-slider-visible {
     opacity: 0.7;
 }
 
@@ -885,16 +868,6 @@ mark {
 .right-margin-numbered:before {
     content: counter(right-margin-counter) " ";
     margin-right: 0.5rem;
-}
-
-div.fullwidth,
-table.fullwidth {
-    width: 100%;
-}
-
-div.table-wrapper {
-    overflow-x: auto;
-    font-family: "Trebuchet MS", "Gill Sans", "Gill Sans MT", sans-serif;
 }
 
 .sans {
@@ -1215,7 +1188,7 @@ textarea {
     padding-right: 3rem;
 }
 
-.civil-button {
+.c-civil-button {
     color: var(--fg1);
     background: var(--ui-control-bg);
     border: 1px solid var(--ui-control-border);
@@ -1227,13 +1200,13 @@ textarea {
     transition: all ease 0.3s;
 }
 
-.civil-button:hover {
+.c-civil-button:hover {
     box-shadow: inset 0 0.2rem 0.4rem var(--ui-control-highlight),
         0 0.2rem 0.4rem var(--ui-control-shadow),
         0 0.2rem 0.4rem var(--ui-control-shadow-2);
 }
 
-.civil-button:disabled {
+.c-civil-button:disabled {
     color: var(--fg-inactive);
     background: var(--bg);
 }
@@ -1300,7 +1273,9 @@ textarea {
     z-index: 1000;
 
     transition: max-width 250ms linear 50ms, opacity 200ms ease-out;
+}
 
+.command-bar-invisible {
     opacity: 0;
     max-width: 0;
 }
@@ -1504,8 +1479,6 @@ a:visited.pigment-inherit {
     font-size: 1.3rem;
 }
 
-/* -------------------------------------------------------------------------------- */
-
 .image-widget-hover-message {
     font-size: 4rem;
     z-index: -1; /* beneath the transparent widget container which used for drag and drop */
@@ -1540,15 +1513,11 @@ a:visited.pigment-inherit {
     max-height: 15rem;
 }
 
-/* -------------------------------------------------------------------------------- */
-
-.civsel-form {
+.width-100 {
     width: 100%;
 }
-.civsel-main-box {
-    /* background: #ffffff; */
-}
-.civsel-candidate {
+
+.c-candidate-item {
     border-radius: var(--coloured-deck-border-radius);
     padding: 0.4rem;
     margin: 0.2rem;
@@ -1556,7 +1525,7 @@ a:visited.pigment-inherit {
     cursor: cell;
 }
 
-.civsel-reference {
+.c-selected-reference {
     border-radius: var(--coloured-deck-border-radius);
     padding: 0.4rem;
     margin: 0.2rem;
@@ -1564,7 +1533,7 @@ a:visited.pigment-inherit {
     align-items: baseline;
 }
 
-.civsel-reference select {
+.c-selected-reference select {
     margin-left: 0.5rem;
     margin-right: 0.5rem;
 }
@@ -1573,18 +1542,15 @@ a:visited.pigment-inherit {
     cursor: pointer;
 }
 
-.civsel-name {
-    width: 100%;
-}
 .civsel-annotation {
     flex-grow: 100;
     margin-left: 1rem;
 }
 
-.civsel-recent-decks {
+.c-recent-decks {
 }
 
-.civsel-recent-decks > ul {
+.c-recent-decks > ul {
     padding-left: 1.5rem;
 }
 
@@ -1593,33 +1559,13 @@ a:visited.pigment-inherit {
     cursor: pointer;
 }
 
-/* -------------------------------------------------------------------------------- */
-
-section.rolled-down {
-}
-
 section.rolled-up {
     color: var(--fg-inactive);
-}
-
-/* -------------------------------------------------------------------------------- */
-
-.quickfind-form {
-    width: 100%;
-}
-
-.quickfind-candidate {
-    padding: 0.4rem;
-    margin: 0.2rem;
-    width: max-content;
-    cursor: pointer;
 }
 
 .keyboard-shortcut {
     font-weight: bold;
 }
-
-/* -------------------------------------------------------------------------------- */
 
 .pointform-block label {
 }
@@ -1722,25 +1668,15 @@ section > form {
     height: 5rem;
 }
 
-/* .note p { */
-/*     width: var(--block-width); */
-/* } */
-
-/* only apply to img that is a direct descendent of .note  */
-.note > img {
-    /* width: var(--block-width); */
-}
-
 .minimised-text {
     color: var(--fg1);
     font-style: oblique;
 }
 
-.muh-main > div > ol,
-.muh-main > ol,
-.muh-main > div > ul,
-.muh-main > ul {
-    /* width: calc(var(--block-width) - 2%); */
+.c-civ-main > div > ol,
+.c-civ-main > ol,
+.c-civ-main > div > ul,
+.c-civ-main > ul {
     padding-left: 2rem;
 }
 
@@ -1754,7 +1690,7 @@ section > form {
     font-family: var(--font-ui);
 }
 
-.left-margin {
+.c-civ-left {
     padding-top: 0.5rem;
     float: left;
     margin-left: var(--civ-left-margin-left);
@@ -1763,17 +1699,8 @@ section > form {
     text-align: right;
 }
 
-.left-margin-ui {
-    padding-top: 0.5rem;
-    float: left;
-    margin-left: -30%;
-    width: 30%;
-    color: var(--fg1);
-    text-align: right;
-}
-
 /* for providing the lhs distance from the margin */
-.left-margin-inner {
+.civ-left-inner {
     padding-right: 1.2rem;
 }
 
@@ -1781,8 +1708,8 @@ section > form {
     padding-top: 0 !important;
 }
 
-.left-margin-within-listing > .left-margin-inner {
-    /* standard-list:padding-left + .left-margin-inner:padding-right */
+.left-margin-within-listing > .civ-left-inner {
+    /* standard-list:padding-left + .civ-left-inner:padding-right */
     padding-right: 2.2rem;
 }
 
@@ -1858,15 +1785,11 @@ section > form {
     padding-left: 2rem;
 }
 .deck-level-backref > .ref-scribble {
-    display: inline-flex;
-    padding-left: 1rem;
-    float: none;
-    width: var(--block-width-indented-2);
+    width: 100%;
 }
 
 .deck-ref-item > .ref-scribble {
-    float: none;
-    width: var(--block-width);
+    width: 100%;
 }
 
 .ref-top-scribble {
@@ -1874,7 +1797,6 @@ section > form {
     font-size: 1.8rem;
     padding-top: 1rem;
     padding-bottom: 0.3rem;
-    /* width: var(--block-width); */
 }
 .indented {
     padding-left: 2rem;
@@ -1911,10 +1833,6 @@ div.note > textarea {
     margin-left: 1rem;
 }
 
-.civil-add-note-form {
-    /* width: var(--block-width); */
-}
-
 .note-split-option {
     float: right;
 }
@@ -1937,21 +1855,9 @@ div.note > textarea {
     width: 10%;
 }
 
-/* --------------------------------------------------------------------------------
-a bunch of hacks so that notes within points look correct
-*/
-/* set .point-notes to match tufte.css:44 */
-
-/* bw */
-/* .point-notes { */
-/*     font-size: 1rem; */
-/* } */
-
-/* div.point-notes > div.note > div > div > p { */
-/*     margin-left: 3rem; */
-/*     width: var(--block-width-indented); */
-/* } */
-/* -------------------------------------------------------------------------------- */
+.point-notes {
+    font-size: 1rem;
+}
 
 .point-title {
     padding-bottom: 1rem;
@@ -2041,7 +1947,6 @@ input:required {
     font-family: var(--font-cursive);
     color: var(--scribble-neutral);
     font-size: 1.8rem;
-    /* width: var(--block-width); */
 }
 
 .listing-link p {
@@ -2064,7 +1969,7 @@ input:required {
     padding: 1rem 1.5rem 1rem 1.5rem;
 }
 
-.deck-ref-segment {
+.c-segment-deck-refs {
     margin-top: 1rem;
     padding-left: 1rem;
 }
@@ -2078,7 +1983,6 @@ input:required {
     margin-top: 1rem;
     border-top: 0.1rem solid var(--bg1);
     padding-top: 1rem;
-    /* width: var(--block-width); */
     text-decoration: underline;
 }
 
@@ -2169,21 +2073,24 @@ input:required {
     left: 0;
     z-index: 10;
     transition: opacity 100ms linear;
+}
+
+.deluxe-toolbar-invisible {
     opacity: 0;
     visibility: hidden;
 }
 
-.deluxe-toolbar-active {
+.deluxe-toolbar-visible {
     opacity: 1;
     visibility: visible;
 }
 
 .deluxe-toolbar-faded {
-    opacity: 0.5;
+    opacity: 0.5 !important;
 }
 
 .deluxe-toolbar:hover {
-    opacity: 1;
+    opacity: 1 !important;
 }
 
 .toolbar-item {
@@ -2344,12 +2251,7 @@ input:required {
         width: 80%;
     }
 
-    .left-margin {
-        float: right;
-        text-align: left;
-        width: 28%;
-    }
-    .left-margin-ui {
+    .c-civ-left {
         float: right;
         text-align: left;
         width: 28%;
@@ -2364,7 +2266,7 @@ input:required {
         width: 100%;
     }
 
-    .busy-indicator {
+    .c-busy-indicator {
         left: 45rem;
     }
 }
@@ -2384,6 +2286,8 @@ input:required {
         --busy-indicator-hand-thickness: 8;
 
         --civ-left-margin-left: 0;
+
+        --civ-container-margin-left: 3rem;
     }
 
     .title-sticky {
@@ -2392,37 +2296,41 @@ input:required {
         font-size: 1.7rem;
     }
 
-    .left-margin {
+    .c-civ-left {
         float: none;
         margin-left: var(--civ-left-margin-left);
         width: calc(100% - 1.4rem);
         text-align: right;
     }
 
-    .left-margin-ui {
-        float: left;
-        margin-left: -2rem;
-        width: 0%;
-        text-align: left;
-        padding-top: 0;
+    /* .civ-left-ui */
+    .civ-left-ui {
+        float: left !important;
+        margin-left: -2rem !important;
+        width: 0% !important;
+        text-align: left !important;
+        padding-top: 0 !important;
     }
 
-    .left-margin-inner {
+    .civ-left-inner {
         padding-right: 0;
     }
 
-    .muh-container {
+    .passage-for-deckpoint {
+        --civ-left-margin-left: 0;
+        --civ-container-margin-left: 0;
+    }
+    .c-civ-container {
         border-left: var(--space-for-selectable-highlight) solid
             rgba(0, 0, 0, 0);
-        margin-left: 3rem;
+        margin-left: var(--civ-container-margin-left);
         margin-right: 2rem;
     }
 
-    .muh-main > div > ol,
-    .muh-main > ol,
-    .muh-main > div > ul,
-    .muh-main > ul {
-        /* width: calc(var(--block-width) - 6%); */
+    .c-civ-main > div > ol,
+    .c-civ-main > ol,
+    .c-civ-main > div > ul,
+    .c-civ-main > ul {
     }
 
     html {
@@ -2433,7 +2341,7 @@ input:required {
         left: 6rem;
     }
 
-    .standard-list > li > .muh-container {
+    .standard-list > li > .c-civ-container {
         margin-left: -1.3rem;
     }
 
@@ -2455,7 +2363,7 @@ input:required {
         padding-left: 4rem;
     }
 
-    .busy-indicator {
+    .c-busy-indicator {
         /* top and left are based on .deluxe-toolbar-toggle-control but have had to be fudged slightly in order to align */
         top: 0.65rem;
         left: 1.65rem;

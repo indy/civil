@@ -8,12 +8,16 @@ import {
     PassageHowToShow,
     Notes,
     Reference,
+    RenderingDeckPart,
     CivilMode,
 } from "types";
 
+import { getAppState } from "app-state";
+
+import { fontClass } from "shared/font";
+
 import Passage from "components/passage";
 import RollableSegment from "components/rollable-segment";
-import { getAppState } from "app-state";
 
 type Props = {
     deck: FatDeck;
@@ -43,8 +47,11 @@ export default function SegmentNotes({
     const mode = appState.mode.value;
 
     if (deck && deck.noteSeqs) {
+        let containerClasses = "c-segment-notes ";
+        containerClasses += fontClass(deck.font, RenderingDeckPart.Body);
+
         return (
-            <div>
+            <div class={containerClasses}>
                 {canShowPassage(NoteKind.NoteSummary) && (
                     <NoteKindPassage
                         heading="Summary"

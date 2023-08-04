@@ -17,7 +17,7 @@ export default function FontSelector({
     }
 
     return (
-        <span class="ui">
+        <span class="c-font-selector ui">
             <select onChange={onChange}>
                 <option value={Font.Serif} selected={font === Font.Serif}>
                     Serif

@@ -6,10 +6,11 @@ import { getAppState } from "app-state";
 
 import buildMarkup from "components/build-markup";
 
+import { visibleClass } from "shared/css";
+
 export default function Previewer() {
     const appState = getAppState();
 
-    let classes = "previewer";
     let id: Key = appState.visiblePreviewDeck.value.id;
     let content: any = [];
 
@@ -26,9 +27,8 @@ export default function Previewer() {
 
     let showing: boolean = appState.visiblePreviewDeck.value.showing;
 
-    if (showing && content.length > 0) {
-        classes += " previewer-active";
-    }
+    let classes = "c-previewer";
+    classes += visibleClass("previewer", showing && content.length > 0);
 
     return <div class={classes}>{content}</div>;
 }

@@ -55,6 +55,7 @@ export default function ExpandableBackRefListing({
                 deckLevelAnnotation &&
                 buildDeckLevelAnnotation(deckLevelAnnotation)}
             {expanded && buildDeckLevelBackRefs(deckLevelRefs)}
+
             {expanded && buildNoteSeqs(backRefNoteSeqs)}
         </div>
     );
