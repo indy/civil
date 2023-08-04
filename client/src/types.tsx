@@ -360,6 +360,8 @@ export type ImmutableState = {
 export type State = {
     waitingFor: Signal<WaitingFor>;
 
+    wantToShowDeckUpdateForm: Signal<boolean>;
+
     debugMessages: Signal<Array<string>>;
 
     mode: Signal<CivilMode>;
@@ -494,6 +496,7 @@ export type DM<T extends FatDeck> = {
     getDeckKind: () => DeckKind;
     isShowingUpdateForm: () => boolean;
     setShowingUpdateForm: (value: boolean) => void;
+    complyWithAppStateRequestToShowUpdateForm: () => void;
     isEditingDeckRefs: () => boolean;
     setEditingDeckRefs: (value: boolean) => void;
     updateAndReset: (newDeck: T) => void;

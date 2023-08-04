@@ -342,7 +342,7 @@ export default function CommandBar() {
                   q
                   r : toolbar: refs
                   s
-                  t
+                  t : special: toggle showing deck update form
                   u
                   v
                   w
@@ -374,6 +374,14 @@ export default function CommandBar() {
                             break;
                         case "KeyM":
                             modeToggle(appState, CivilMode.Memorise);
+                            break;
+                        case "KeyT":
+                            if (appState.wantToShowDeckUpdateForm.value) {
+                                AppStateChange.requestToHideUpdateForm();
+                            } else {
+                                AppStateChange.requestToShowUpdateForm();
+                            }
+
                             break;
                     }
                 }

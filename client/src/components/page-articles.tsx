@@ -107,6 +107,7 @@ function Article({ path, id }: { path?: string; id?: string }) {
     }
 
     if (deck) {
+        deckManager.complyWithAppStateRequestToShowUpdateForm();
         return (
             <article>
                 <TopMatter

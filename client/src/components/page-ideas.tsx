@@ -92,6 +92,7 @@ function Idea({ path, id }: { path?: string; id?: string }) {
 
     const deck: DeckIdea | undefined = deckManager.getDeck();
     if (deck) {
+        deckManager.complyWithAppStateRequestToShowUpdateForm();
         return (
             <article>
                 <TopMatter

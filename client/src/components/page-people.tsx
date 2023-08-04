@@ -177,6 +177,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
 
     const deck: DeckPerson | undefined = deckManager.getDeck();
     if (deck) {
+        deckManager.complyWithAppStateRequestToShowUpdateForm();
         const title = deck && deck.title;
         const hasKnownLifespan = deck && hasBirthPoint(deck);
         return (

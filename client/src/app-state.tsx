@@ -170,6 +170,8 @@ function build(
 const state: State = {
     waitingFor: signal(WaitingFor.User),
 
+    wantToShowDeckUpdateForm: signal(false),
+
     debugMessages: signal([]),
 
     mode: signal(CivilMode.View),
@@ -783,6 +785,22 @@ export const AppStateChange = {
     bookmarkToggle: build(Scope.Local, "bookmarkToggle", () => {
         state.bookmarksMinimised.value = !state.bookmarksMinimised.value;
     }),
+
+    requestToShowUpdateForm: build(
+        Scope.Local,
+        "requestToShowUpdateForm",
+        () => {
+            state.wantToShowDeckUpdateForm.value = true;
+        }
+    ),
+
+    requestToHideUpdateForm: build(
+        Scope.Local,
+        "requestToHideUpdateForm",
+        () => {
+            state.wantToShowDeckUpdateForm.value = false;
+        }
+    ),
 
     setBookmarks: build(
         Scope.Broadcast,

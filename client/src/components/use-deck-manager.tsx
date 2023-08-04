@@ -153,6 +153,28 @@ export default function useDeckManager<T extends FatDeck>(
         setShowingUpdateForm: function (value: boolean) {
             let newDms = dmsSetShowingUpdateForm(dms, value);
             setDms(newDms);
+
+            if (appState.wantToShowDeckUpdateForm.value && !value) {
+                AppStateChange.requestToHideUpdateForm();
+            } else if (!appState.wantToShowDeckUpdateForm.value && value) {
+                AppStateChange.requestToShowUpdateForm();
+            }
+        },
+        complyWithAppStateRequestToShowUpdateForm: function () {
+            if (
+                appState.wantToShowDeckUpdateForm.value &&
+                !dms.isShowingUpdateForm
+            ) {
+                // app state wants to show deck metadata, but currently isn't doing so
+                let newDms = dmsSetShowingUpdateForm(dms, true);
+                setDms(newDms);
+            } else if (
+                !appState.wantToShowDeckUpdateForm.value &&
+                dms.isShowingUpdateForm
+            ) {
+                let newDms = dmsSetShowingUpdateForm(dms, false);
+                setDms(newDms);
+            }
         },
         isEditingDeckRefs: function () {
             return dms.isEditingDeckRefs;

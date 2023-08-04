@@ -94,6 +94,7 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
 
     const deck: DeckTimeline | undefined = deckManager.getDeck();
     if (deck) {
+        deckManager.complyWithAppStateRequestToShowUpdateForm();
         return (
             <article>
                 <TopMatter

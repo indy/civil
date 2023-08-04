@@ -300,6 +300,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
 
     const deck: DeckQuote | undefined = deckManager.getDeck();
     if (deck) {
+        deckManager.complyWithAppStateRequestToShowUpdateForm();
         return (
             <article id="quotation-article">
                 <SegmentNotes
