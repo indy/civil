@@ -32,6 +32,7 @@ export function svgEthereum() {
 /*
 
  */
+
 export function svgBlank() {
     return (
         <svg
@@ -76,6 +77,47 @@ export function svgFilledCircle(extraClasses: string) {
                 xmlns="http://www.w3.org/2000/svg"
                 d="M 2 12 C 2 6.4771 6.4771 2 12 2 C 17.5228 2 22 6.4771 22 12 C 22 17.5228 17.5228 22 12 22 C 6.4771 22 2 17.5228 2 12 Z"
                 class={extraClasses}
+            ></path>
+        </svg>
+    );
+}
+
+export function svgTablet() {
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            height="24"
+            width="24"
+        >
+            <path
+                xmlns="http://www.w3.org/2000/svg"
+                d="M4 4C4 2.89543 4.89543 2 6 2H18C19.1046 2 20 2.89543 20 4V20C20 21.1046 19.1046 22 18 22H6C4.89543 22 4 21.1046 4 20V4ZM18 4L6 4V20H18V4Z"
+                class="svg-fill-colour"
+            ></path>
+            <path
+                xmlns="http://www.w3.org/2000/svg"
+                d="M13 18C13 18.5523 12.5523 19 12 19C11.4477 19 11 18.5523 11 18C11 17.4477 11.4477 17 12 17C12.5523 17 13 17.4477 13 18Z"
+                class="svg-fill-colour"
+            ></path>
+        </svg>
+    );
+}
+
+export function svgComputer() {
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            height="24"
+            width="24"
+        >
+            <path
+                xmlns="http://www.w3.org/2000/svg"
+                d="M2 5C2 3.89543 2.89543 3 4 3H20C21.1046 3 22 3.89543 22 5V16C22 17.1046 21.1046 18 20 18H13V20H16C16.5523 20 17 20.4477 17 21C17 21.5523 16.5523 22 16 22H8C7.44772 22 7 21.5523 7 21C7 20.4477 7.44772 20 8 20H11V18H4C2.89543 18 2 17.1046 2 16V5ZM20 16V5H4V16H20Z"
+                class="svg-fill-colour"
             ></path>
         </svg>
     );

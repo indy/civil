@@ -4,6 +4,7 @@ import { useContext } from "preact/hooks";
 
 import {
     AppStateChangeArgs,
+    StateChangeSpan,
     StateChangeColourScheme,
     StateChangeWaitingFor,
     StateChangeShowShortcuts,
@@ -34,6 +35,7 @@ import {
     ArticleListings,
     Bookmark,
     CivilMode,
+    CivilSpan,
     ColourScheme,
     CommandBarMode,
     CommandBarState,
@@ -170,6 +172,8 @@ function build(
 const state: State = {
     waitingFor: signal(WaitingFor.User),
 
+    span: signal(CivilSpan.Broad),
+
     wantToShowDeckUpdateForm: signal(false),
 
     debugMessages: signal([]),
@@ -284,6 +288,19 @@ export const AppStateChange = {
             generateColoursFromSeeds(state, state.colourSeeds.value);
         }
     ),
+
+    setSpan: build(Scope.Local, "setSpan", (args: StateChangeSpan) => {
+        state.span.value = args.span;
+
+        let root = document.body;
+        if (args.span === CivilSpan.Narrow) {
+            root.style.setProperty("--body-width", "72%");
+            root.style.setProperty("--block-width", "40%");
+        } else {
+            root.style.setProperty("--body-width", "80%");
+            root.style.setProperty("--block-width", "55%");
+        }
+    }),
 
     setWaitingFor: build(
         Scope.Local,

@@ -5,6 +5,7 @@ import { route } from "preact-router";
 import {
     Key,
     CivilMode,
+    CivilSpan,
     Command,
     CommandBarMode,
     DeckKind,
@@ -342,10 +343,10 @@ export default function CommandBar() {
                   q
                   r : toolbar: refs
                   s
-                  t : special: toggle showing deck update form
+                  t : special: toggle showing deck update form (me_T_adata)
                   u
                   v
-                  w
+                  w : special: toggle civil span (_W_idth)
                   x
                   y
                   z
@@ -381,7 +382,17 @@ export default function CommandBar() {
                             } else {
                                 AppStateChange.requestToShowUpdateForm();
                             }
-
+                            break;
+                        case "KeyW":
+                            if (appState.span.value === CivilSpan.Broad) {
+                                AppStateChange.setSpan({
+                                    span: CivilSpan.Narrow,
+                                });
+                            } else {
+                                AppStateChange.setSpan({
+                                    span: CivilSpan.Broad,
+                                });
+                            }
                             break;
                     }
                 }

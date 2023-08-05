@@ -2,6 +2,11 @@ import { Signal } from "@preact/signals";
 
 export type Key = number;
 
+export enum CivilSpan {
+    Narrow = 1,
+    Broad,
+}
+
 export enum RenderingDeckPart {
     Body,
     Heading,
@@ -360,6 +365,8 @@ export type ImmutableState = {
 export type State = {
     waitingFor: Signal<WaitingFor>;
 
+    span: Signal<CivilSpan>;
+
     wantToShowDeckUpdateForm: Signal<boolean>;
 
     debugMessages: Signal<Array<string>>;
@@ -560,6 +567,11 @@ export enum Role {
     User,
 }
 
+export type StateChangeSpan = {
+    span: CivilSpan;
+    calledFromBroadcastChannel?: boolean;
+};
+
 export type StateChangeColourScheme = {
     colourScheme: ColourScheme;
     calledFromBroadcastChannel?: boolean;
@@ -701,30 +713,31 @@ export type StateChangeEmpty = {
 };
 
 export type AppStateChangeArgs =
+    | StateChangeAddPreview
+    | StateChangeArticle
+    | StateChangeBookmarks
     | StateChangeColourScheme
-    | StateChangeWaitingFor
-    | StateChangeShowShortcuts
+    | StateChangeCount
+    | StateChangeDeckId
+    | StateChangeDialogue
+    | StateChangeGraph
+    | StateChangeIdea
+    | StateChangeInputGiven
     | StateChangeKeyDown
+    | StateChangeMode
+    | StateChangeNoteForm
+    | StateChangeNoteRefsModified
+    | StateChangePeople
+    | StateChangeRecentImages
+    | StateChangeRecentlyUsedDecks
     | StateChangeSetFocus
     | StateChangeSetSearch
-    | StateChangeInputGiven
-    | StateChangeDeckId
-    | StateChangeAddPreview
-    | StateChangeMode
-    | StateChangeTitle
-    | StateChangeUrl
-    | StateChangeUber
-    | StateChangeUser
-    | StateChangeNoteRefsModified
-    | StateChangeIdea
-    | StateChangePeople
-    | StateChangeArticle
+    | StateChangeShowShortcuts
+    | StateChangeSpan
     | StateChangeTimeline
-    | StateChangeDialogue
-    | StateChangeNoteForm
-    | StateChangeRecentImages
-    | StateChangeBookmarks
-    | StateChangeRecentlyUsedDecks
-    | StateChangeCount
-    | StateChangeGraph
+    | StateChangeTitle
+    | StateChangeUber
+    | StateChangeUrl
+    | StateChangeUser
+    | StateChangeWaitingFor
     | StateChangeEmpty;
