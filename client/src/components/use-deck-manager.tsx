@@ -192,6 +192,7 @@ export default function useDeckManager<T extends FatDeck>(
 
             window.scrollTo(0, 0);
 
+            AppStateChange.requestToHideUpdateForm();
             newDms = dmsSetShowingUpdateForm(newDms, false);
 
             AppStateChange.mode({ mode: CivilMode.View });
