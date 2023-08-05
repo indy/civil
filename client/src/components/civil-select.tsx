@@ -645,7 +645,7 @@ function SelectedReference({
                     Critical Reference
                 </option>
             </select>
-            <span class="width-100">{reference.title}</span>
+            <span class="civsel-name">{reference.title}</span>
             <CivilInput
                 elementClass="civsel-annotation"
                 id="annotation"
@@ -702,7 +702,7 @@ function CivilSelectInput({
     });
 
     return (
-        <form class="c-civil-select-input width-100" onSubmit={onSubmit}>
+        <form class="c-civil-select-input civsel-name" onSubmit={onSubmit}>
             <CivilInput
                 value={text}
                 focus
