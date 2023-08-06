@@ -8,16 +8,19 @@ import {
     RefKind,
     RefsModified,
     SlimDeck,
+    State,
     ProtoNoteReferences,
     ReferencesApplied,
     RenderingDeckPart,
 } from "types";
 
-import { indexToShortcut } from "shared/command";
+import { AppStateChange, getAppState, immutableState } from "app-state";
+
+import Net from "shared/net";
 import { deckKindToResourceString, sortByDeckKindThenName } from "shared/deck";
 import { fontClass } from "shared/font";
-import Net from "shared/net";
-import { AppStateChange, getAppState, immutableState } from "app-state";
+import { indexFromCode } from "shared/keys";
+import { indexToShortcut } from "shared/command";
 
 import { svgCloseShifted } from "components/svg-icons";
 import { renderInsignia } from "components/insignia-renderer";
@@ -48,6 +51,12 @@ type ActionDataReferenceChangeAnnotation = {
     annotation: string;
 };
 
+type ActionDataShortcutCheck = {
+    key: string;
+    code: string;
+    appState: State;
+};
+
 type Action = {
     type: ActionType;
     data?:
@@ -57,7 +66,8 @@ type Action = {
         | SlimDeck
         | SlimDeck[]
         | ActionDataReferenceChangeKind
-        | ActionDataReferenceChangeAnnotation;
+        | ActionDataReferenceChangeAnnotation
+        | ActionDataShortcutCheck;
 };
 
 type LocalState = {
@@ -71,7 +81,6 @@ type LocalState = {
     showKeyboardShortcuts: boolean;
     candidates: Array<SlimDeck>;
     canSave: boolean;
-    justAddedViaShortcut: boolean;
 };
 
 function candidateToAddedRef(candidate: SlimDeck): Reference {
@@ -106,7 +115,7 @@ function reducer(state: LocalState, action: Action): LocalState {
         case ActionType.CtrlKeyDown: {
             const newState = { ...state };
 
-            if (!state.showKeyboardShortcuts && state.candidates.length) {
+            if (!state.showKeyboardShortcuts /*&& state.candidates.length */) {
                 newState.showKeyboardShortcuts = true;
             } else {
                 newState.showKeyboardShortcuts = false;
@@ -115,23 +124,39 @@ function reducer(state: LocalState, action: Action): LocalState {
             return newState;
         }
         case ActionType.ShortcutCheck: {
-            const index = action.data as number;
-            if (
-                state.showKeyboardShortcuts &&
-                state.candidates.length > index
-            ) {
-                const newState = reducer(state, {
-                    type: ActionType.SelectAdd,
-                    data: state.candidates[index],
-                });
+            if (state.showKeyboardShortcuts) {
+                let data = action.data as ActionDataShortcutCheck;
+                let key = data.key;
+                if ((key >= "1" && key <= "9") || (key >= "a" && key <= "z")) {
+                    const code = data.code;
+                    const index = indexFromCode(code);
 
-                newState.justAddedViaShortcut = true; // ActionType.InputGiven will not display this shortcut key
-                newState.showKeyboardShortcuts = false;
+                    let deck: SlimDeck | undefined = undefined;
 
-                return newState;
-            } else {
-                return state;
+                    if (state.text.length === 0) {
+                        // shortcut to add from recently used decks
+                        const appState = data.appState;
+                        let recentValid = recentValidDecks(state, appState);
+
+                        deck = recentValid[index];
+                    } else if (state.candidates.length > index) {
+                        // shortcut to add from autocomplete candidates
+                        deck = state.candidates[index];
+                    }
+
+                    if (deck) {
+                        const newState = reducer(state, {
+                            type: ActionType.SelectAdd,
+                            data: deck,
+                        });
+
+                        newState.showKeyboardShortcuts = false;
+
+                        return newState;
+                    }
+                }
             }
+            return state;
         }
         case ActionType.ReferenceRemove: {
             let newState = { ...state };
@@ -303,13 +328,9 @@ function reducer(state: LocalState, action: Action): LocalState {
         case ActionType.InputGiven: {
             const newState = {
                 ...state,
+                showKeyboardShortcuts: false,
                 text: action.data as string,
             };
-
-            if (newState.justAddedViaShortcut) {
-                newState.text = "";
-                newState.justAddedViaShortcut = false;
-            }
 
             return newState;
         }
@@ -333,6 +354,8 @@ export default function CivilSelect({
     onSave: (changes: RefsModified, allDecksForNote: Array<Reference>) => void;
     onCancel: () => void;
 }) {
+    const appState = getAppState();
+
     const s: LocalState = {
         currentSelection: [], // built by rebuildCurrentSelection
 
@@ -351,8 +374,6 @@ export default function CivilSelect({
         showKeyboardShortcuts: false,
         candidates: [],
         canSave: false,
-
-        justAddedViaShortcut: false,
     };
     const [local, localDispatch] = useLocalReducer<LocalState, ActionType>(
         reducer,
@@ -366,17 +387,12 @@ export default function CivilSelect({
         if (e.ctrlKey) {
             localDispatch(ActionType.CtrlKeyDown, e);
         }
-        if (
-            (e.keyCode >= 49 && e.keyCode <= 57) ||
-            (e.keyCode >= 65 && e.keyCode <= 90)
-        ) {
-            // digit: 1 -> 0, 2 -> 1, ... 9 -> 8       letter: a -> 9, b -> 10, ... z -> 34
-            const index =
-                e.keyCode >= 49 && e.keyCode <= 57
-                    ? e.keyCode - 49
-                    : e.keyCode - 65 + 9;
-            localDispatch(ActionType.ShortcutCheck, index);
-        }
+
+        localDispatch(ActionType.ShortcutCheck, {
+            key: e.key,
+            code: e.code,
+            appState,
+        });
     };
 
     useEffect(() => {
@@ -417,7 +433,7 @@ export default function CivilSelect({
     }
 
     async function refineCandidates(newText: string) {
-        if (!local.justAddedViaShortcut && newText.length > 0) {
+        if (newText.length > 0) {
             const url = `/api/decks/namesearch?q=${encodeURI(newText)}`;
 
             type Response = {
@@ -513,6 +529,24 @@ export default function CivilSelect({
     );
 }
 
+function recentValidDecks(
+    localState: LocalState,
+    appState: State
+): Array<SlimDeck> {
+    function alreadyAdded(sd: SlimDeck): boolean {
+        // have to check title rather than id in case one of the added decks
+        // has been newly created (it won't have an id)
+        //
+        return localState.currentSelection.some((x) => x.title === sd.title);
+    }
+
+    const recent = appState.recentlyUsedDecks.value.filter(
+        (rd) => !alreadyAdded(rd)
+    );
+
+    return recent;
+}
+
 function RecentDecks({
     localState,
     onAdd,
@@ -522,14 +556,10 @@ function RecentDecks({
 }) {
     const appState = getAppState();
 
-    function alreadyAdded(sd: SlimDeck): boolean {
-        // have to check title rather than id in case one of the added decks
-        // has been newly created (it won't have an id)
-        //
-        return localState.currentSelection.some((x) => x.title === sd.title);
-    }
+    const showShortcut =
+        localState.showKeyboardShortcuts && localState.candidates.length === 0;
 
-    function buildRecent(slimDeck: SlimDeck) {
+    function buildRecent(slimDeck: SlimDeck, index: number) {
         const dk: string = deckKindToResourceString(slimDeck.deckKind);
 
         let klass = fontClass(slimDeck.font, RenderingDeckPart.UiInterleaved);
@@ -537,15 +567,14 @@ function RecentDecks({
 
         return (
             <li class={klass} onClick={() => onAdd(slimDeck)}>
+                {showShortcut && `${index + 1}: `}
                 {renderInsignia(slimDeck.insignia)}
                 {slimDeck.title}
             </li>
         );
     }
 
-    const recent = appState.recentlyUsedDecks.value
-        .filter((rd) => !alreadyAdded(rd))
-        .map(buildRecent);
+    const recent = recentValidDecks(localState, appState).map(buildRecent);
 
     return (
         <CivRight extraClasses="c-recent-decks">
@@ -701,13 +730,19 @@ function CivilSelectInput({
         );
     });
 
+    function onContentChange(s: string) {
+        if (!showKeyboardShortcuts) {
+            onTextChanged(s);
+        }
+    }
+
     return (
         <form class="c-civil-select-input civsel-name" onSubmit={onSubmit}>
             <CivilInput
                 value={text}
                 focus
                 autoComplete="off"
-                onContentChange={onTextChanged}
+                onContentChange={onContentChange}
             />
             {cl}
         </form>
