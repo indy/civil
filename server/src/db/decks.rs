@@ -456,8 +456,10 @@ pub(crate) fn search(
                       from notes_fts
                            left join notes n on n.id = notes_fts.rowid
                            left join decks d on d.id = n.deck_id
+                           left join dialogue_messages dm on dm.note_id = n.id
                       where notes_fts match ?2
                             and d.user_id = ?1
+                            and (dm.role is null or dm.role <> 'system')
                       group by d.id
                       order by rank asc) res
                 group by res.id, res.kind, res.name
