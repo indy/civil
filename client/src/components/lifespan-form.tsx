@@ -123,7 +123,7 @@ function PointBirthForm({
     return (
         <PointForm
             timeLegend="Date of Birth"
-            locationLegend="Birth Location"
+            locationLegend="Location of Birth"
             pointKind={PointKind.PointBegin}
             pointTitle="Born"
             onSubmit={onSubmit}
@@ -140,7 +140,7 @@ function PointDeathForm({
     return (
         <PointForm
             timeLegend="Date of Death"
-            locationLegend="DeathLocation"
+            locationLegend="Location of Death"
             pointKind={PointKind.PointEnd}
             pointTitle="Died"
             onSubmit={onSubmit}
