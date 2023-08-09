@@ -31,6 +31,7 @@ fn from_row(row: &Row) -> crate::Result<interop::Timeline> {
     Ok(interop::Timeline {
         id: row.get(0)?,
         title: row.get(1)?,
+        deck_kind: DeckKind::Timeline,
         insignia: row.get(4)?,
         font: Font::try_from(fnt)?,
         points: None,

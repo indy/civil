@@ -43,6 +43,8 @@ impl From<(decks::DeckBase, ArticleExtra)> for interop::Article {
             id: deck.id,
             title: deck.title,
 
+            deck_kind: DeckKind::Article,
+
             insignia: deck.insignia,
             font: deck.font,
 
@@ -74,6 +76,8 @@ fn from_row(row: &Row) -> crate::Result<interop::Article> {
     Ok(interop::Article {
         id: row.get(0)?,
         title: row.get(1)?,
+
+        deck_kind: DeckKind::Article,
 
         insignia: row.get(8)?,
         font: Font::try_from(fnt)?,

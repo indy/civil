@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::{BackNote, Ref, SlimDeck};
+use crate::interop::decks::{BackNote, DeckKind, Ref, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
 use crate::interop::notes::Note;
@@ -27,6 +27,8 @@ use crate::interop::Key;
 pub struct Person {
     pub id: Key,
     pub title: String,
+
+    pub deck_kind: DeckKind,
 
     pub insignia: i32,
     pub font: Font,
@@ -54,6 +56,8 @@ impl From<crate::db::decks::DeckBase> for Person {
         Person {
             id: d.id,
             title: d.title,
+
+            deck_kind: DeckKind::Person,
 
             insignia: d.insignia,
             font: d.font,

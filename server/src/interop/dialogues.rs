@@ -17,7 +17,7 @@
 
 use crate::ai::openai_interface;
 use crate::error::Error;
-use crate::interop::decks::{BackNote, Ref};
+use crate::interop::decks::{BackNote, DeckKind, Ref};
 use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
 use crate::interop::notes::Note;
@@ -61,6 +61,8 @@ impl FromStr for AiKind {
 pub struct Dialogue {
     pub id: Key,
     pub title: String,
+
+    pub deck_kind: DeckKind,
 
     pub insignia: i32,
     pub font: Font,

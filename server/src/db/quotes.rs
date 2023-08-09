@@ -51,6 +51,9 @@ impl From<(decks::DeckBase, QuoteExtra)> for interop::Quote {
         interop::Quote {
             id: deck.id,
             title: deck.title,
+
+            deck_kind: DeckKind::Quote,
+
             attribution,
 
             insignia: deck.insignia,
@@ -74,6 +77,7 @@ fn quote_from_row(row: &Row) -> crate::Result<interop::Quote> {
     Ok(interop::Quote {
         id: row.get(0)?,
         title: row.get(1)?,
+        deck_kind: DeckKind::Quote,
         attribution: row.get(2)?,
         insignia: row.get(3)?,
         font: Font::try_from(fnt)?,

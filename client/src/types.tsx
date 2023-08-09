@@ -118,18 +118,14 @@ export type SlimDeck = {
     font: Font;
 };
 
-export interface FatDeck {
+export type FatDeck = SlimDeck & {
     // received from server
     //
-    title: string;
     backnotes?: Array<BackNote>;
     backrefs?: Array<Reference>;
     flashcards?: Array<FlashCard>;
-    id: Key;
-    insignia: number;
     refs?: Array<Reference>;
     points?: Array<DeckPoint>;
-    font: Font;
 
     // received from server and then modified by the client
     //
@@ -419,10 +415,7 @@ export type State = {
 
 type GraphEdge = [number, RefKind, number];
 
-export type GraphDeck = {
-    id: Key;
-    name: string;
-    deckKind: DeckKind;
+export type GraphDeck = SlimDeck & {
     graphTerminator: boolean;
 };
 

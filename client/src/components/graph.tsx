@@ -169,7 +169,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
                     ].deckKind,
                 label: appState.graph.value.decks[
                     appState.graph.value.deckIndexFromId[id]
-                ].name,
+                ].title,
                 x: 0,
                 y: 0,
                 vx: 0,
@@ -255,7 +255,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
                                     appState.graph.value.deckIndexFromId![
                                         childId
                                     ]
-                                ].name,
+                                ].title,
                                 x: nodes[key].x,
                                 y: nodes[key].y,
                                 vx: -nodes[key].vx,

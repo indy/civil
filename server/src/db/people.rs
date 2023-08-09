@@ -33,6 +33,7 @@ fn person_with_sortdate_from_row(row: &Row) -> crate::Result<interop::Person> {
     Ok(interop::Person {
         id: row.get(0)?,
         title: row.get(1)?,
+        deck_kind: DeckKind::Person,
         insignia: row.get(3)?,
         font: Font::try_from(fnt)?,
         sort_date: row.get(2)?,
@@ -51,6 +52,7 @@ fn person_from_row(row: &Row) -> crate::Result<interop::Person> {
     Ok(interop::Person {
         id: row.get(0)?,
         title: row.get(1)?,
+        deck_kind: DeckKind::Person,
         insignia: row.get(4)?,
         font: Font::try_from(fnt)?,
         sort_date: None,

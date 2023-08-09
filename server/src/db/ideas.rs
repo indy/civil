@@ -31,6 +31,7 @@ fn idea_from_row(row: &Row) -> crate::Result<interop::Idea> {
     Ok(interop::Idea {
         id: row.get(0)?,
         title: row.get(1)?,
+        deck_kind: DeckKind::Idea,
         insignia: row.get(4)?,
         font: Font::try_from(fnt)?,
         graph_terminator: row.get(3)?,
