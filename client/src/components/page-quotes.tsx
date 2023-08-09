@@ -12,15 +12,16 @@ import { deckKindToHeadingString } from "shared/deck";
 import CivilButton from "components/civil-button";
 import CivilInput from "components/civil-input";
 import CivilTextArea from "components/civil-text-area";
-import Module from "components/module";
 import DeleteConfirmation from "components/delete-confirmation";
+import ModalKeyboardHelp from "components/modal-keyboard-help";
+import Module from "components/module";
+import SegmentBackRefs from "components/segment-back-refs";
 import SegmentNotes from "components/segment-notes";
+import WhenNoPhysicalKeyboard from "components/when-no-physical-keyboard";
 import useDeckManager from "components/use-deck-manager";
 import useLocalReducer from "components/use-local-reducer";
 import useModalKeyboard from "components/use-modal-keyboard";
 import { CivContainer, CivMain } from "components/civil-layout";
-import ModalKeyboardHelp from "components/modal-keyboard-help";
-import WhenNoPhysicalKeyboard from "components/when-no-physical-keyboard";
 
 enum ActionType {
     ShowAddForm,
@@ -319,6 +320,9 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                     onEdited={onEditedAttributeFn(deck.id)}
                     onDelete={onDeleteFn(deck.id)}
                 />
+
+                <SegmentBackRefs deck={deck} />
+
 
                 <WhenNoPhysicalKeyboard>
                     <QuoteButtons quoteId={quoteId} />
