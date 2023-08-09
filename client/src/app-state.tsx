@@ -722,14 +722,21 @@ export const AppStateChange = {
         (args: StateChangeDeckId) => {
             const id: Key = args.deckId;
 
-            // todo: typescript check the Listing entry and the filterFn
-            let filterFn = (d) => d.id !== id;
+            let filterFn = (d: SlimDeck) => d.id !== id;
 
             if (state.graph.value && state.graph.value.decks) {
                 let g = {
                     ...state.graph.value,
                     decks: state.graph.value.decks.filter(filterFn),
                 };
+                state.graph.value = g;
+            }
+            if (state.graph.value.links) {
+                let g = { ...state.graph.value };
+                if (g.links) {
+                    delete g.links[id];
+                }
+
                 state.graph.value = g;
             }
 
@@ -740,6 +747,7 @@ export const AppStateChange = {
                 timelines: undefined,
                 dialogues: undefined,
             };
+
 
             if (state.listing.value.ideas) {
                 li.ideas = {
@@ -788,14 +796,18 @@ export const AppStateChange = {
 
             state.listing.value = li;
 
-            if (state.graph.value.links) {
-                let g = { ...state.graph.value };
-                if (g.links) {
-                    delete g.links[id];
-                }
 
-                state.graph.value = g;
+            // delete any bookmarks to this deck
+            if (state.bookmarks.value.length > 0) {
+                let idx = state.bookmarks.value.findIndex(bookmark => bookmark.deck.id === id);
+                if (idx !== -1) {
+                    let bookmarks = state.bookmarks.value.slice();
+                    bookmarks.splice(idx, 1);
+                    state.bookmarks.value = bookmarks;
+                }
             }
+
+            state.mode.value = CivilMode.View;
         }
     ),
 
