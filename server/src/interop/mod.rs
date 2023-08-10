@@ -20,6 +20,7 @@ pub mod bookmarks;
 pub mod decks;
 pub mod dialogues;
 pub mod edges;
+pub mod events;
 pub mod font;
 pub mod graph;
 pub mod ideas;

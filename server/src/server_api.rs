@@ -20,6 +20,7 @@ use crate::handler::bookmarks;
 use crate::handler::decks;
 use crate::handler::dialogues;
 use crate::handler::edges;
+use crate::handler::events;
 use crate::handler::graph;
 use crate::handler::ideas;
 use crate::handler::memorise;
@@ -115,6 +116,16 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", delete().to(timelines::delete))
                 .route("/{id}/points", post().to(timelines::add_point))
                 .route("/{id}/multipoints", post().to(timelines::add_multipoints)),
+        )
+        // events
+        .service(
+            scope("/events")
+                .route("", post().to(events::create))
+                .route("", get().to(events::get_all))
+                .route("/listings", get().to(events::get_all))
+                .route("/{id}", get().to(events::get))
+                .route("/{id}", put().to(events::edit))
+                .route("/{id}", delete().to(events::delete)),
         )
         // articles
         .service(

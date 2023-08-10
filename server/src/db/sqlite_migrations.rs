@@ -140,6 +140,25 @@ CREATE TABLE IF NOT EXISTS quote_extras (
        FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
+
+CREATE TABLE IF NOT EXISTS event_extras (
+       deck_id INTEGER NOT NULL,
+
+       location_textual TEXT,
+       longitude REAL,
+       latitude REAL,
+       location_fuzz REAL DEFAULT 0.0,
+
+       date_textual TEXT,
+       exact_realdate REAL,
+       lower_realdate REAL,
+       upper_realdate REAL,
+       date_fuzz REAL DEFAULT 1.0,
+
+       FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
+
 CREATE TABLE IF NOT EXISTS dialogue_extras (
        deck_id INTEGER NOT NULL,
 
@@ -774,6 +793,26 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
 
                    FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
                    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION
+            );"),
+
+        ///////////////////
+        // user_version 19: event_extras
+        ///////////////////
+        M::up("CREATE TABLE IF NOT EXISTS event_extras (
+                   deck_id INTEGER NOT NULL,
+
+                   location_textual TEXT,
+                   longitude REAL,
+                   latitude REAL,
+                   location_fuzz REAL DEFAULT 0.0,
+
+                   date_textual TEXT,
+                   exact_realdate REAL,
+                   lower_realdate REAL,
+                   upper_realdate REAL,
+                   date_fuzz REAL DEFAULT 1.0,
+
+                   FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
             );"),
     ]);
 

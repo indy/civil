@@ -36,6 +36,7 @@ pub enum DeckKind {
     Timeline,
     Quote,
     Dialogue,
+    Event,
 }
 
 impl fmt::Display for DeckKind {
@@ -47,6 +48,7 @@ impl fmt::Display for DeckKind {
             DeckKind::Timeline => write!(f, "timeline"),
             DeckKind::Quote => write!(f, "quote"),
             DeckKind::Dialogue => write!(f, "dialogue"),
+            DeckKind::Event => write!(f, "event"),
         }
     }
 }
@@ -62,6 +64,7 @@ impl FromStr for DeckKind {
             "timeline" => Ok(DeckKind::Timeline),
             "quote" => Ok(DeckKind::Quote),
             "dialogue" => Ok(DeckKind::Dialogue),
+            "event" => Ok(DeckKind::Event),
             _ => Err(Error::StringConversionToEnum),
         }
     }
