@@ -43,6 +43,8 @@ pub struct Event {
     pub upper_date: Option<chrono::NaiveDate>,
     pub date_fuzz: f32,
 
+    pub importance: i32,
+
     pub notes: Option<Vec<Note>>,
 
     pub refs: Option<Vec<Ref>>,
@@ -75,6 +77,8 @@ impl From<crate::db::decks::DeckBase> for Event {
             upper_date: None,
             date_fuzz: 1.0,
 
+            importance: 0,
+
             notes: None,
 
             refs: None,
@@ -105,4 +109,6 @@ pub struct ProtoEvent {
     pub lower_date: Option<chrono::NaiveDate>,
     pub upper_date: Option<chrono::NaiveDate>,
     pub date_fuzz: f32,
+
+    pub importance: i32,
 }

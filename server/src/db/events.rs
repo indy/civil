@@ -40,6 +40,8 @@ struct EventExtra {
     lower_date: Option<chrono::NaiveDate>,
     upper_date: Option<chrono::NaiveDate>,
     date_fuzz: f32,
+
+    importance: i32,
 }
 
 impl From<(decks::DeckBase, EventExtra)> for interop::Event {
@@ -65,6 +67,8 @@ impl From<(decks::DeckBase, EventExtra)> for interop::Event {
             upper_date: extra.upper_date,
             date_fuzz: extra.date_fuzz,
 
+            importance: extra.importance,
+
             notes: None,
 
             refs: None,
@@ -89,6 +93,8 @@ fn event_extra_from_row(row: &Row) -> crate::Result<EventExtra> {
         lower_date: row.get(6)?,
         upper_date: row.get(7)?,
         date_fuzz: row.get(8)?,
+
+        importance: row.get(9)?,
     })
 }
 
@@ -112,6 +118,8 @@ fn from_row(row: &Row) -> crate::Result<interop::Event> {
         lower_date: row.get(10)?,
         upper_date: row.get(11)?,
         date_fuzz: row.get(12)?,
+
+        importance: row.get(13)?,
 
         notes: None,
         refs: None,
@@ -138,13 +146,13 @@ pub(crate) fn get_or_create(
                 &tx,
                 "INSERT INTO event_extras(deck_id)
                  VALUES (?1)
-                 RETURNING location_textual, longitude, latitude, location_fuzz, date_textual, exact_realdate, lower_realdate, upper_realdate, date_fuzz",
+                 RETURNING location_textual, longitude, latitude, location_fuzz, date_textual, exact_realdate, lower_realdate, upper_realdate, date_fuzz, importance",
                 params![&deck.id],
                 event_extra_from_row
             )?,
             decks::DeckBaseOrigin::PreExisting => sqlite::one(
                 &tx,
-                "select location_textual, longitude, latitude, location_fuzz, date_textual, exact_realdate, lower_realdate, upper_realdate, date_fuzz
+                "select location_textual, longitude, latitude, location_fuzz, date_textual, exact_realdate, lower_realdate, upper_realdate, date_fuzz, importance
                  from event_extras
                  where deck_id=?1",
                 params![&deck.id],
@@ -184,7 +192,7 @@ pub(crate) fn get(
                        event_extras.latitude, event_extras.location_fuzz,
                        event_extras.date_textual, event_extras.exact_realdate,
                        event_extras.lower_realdate, event_extras.upper_realdate,
-                       event_extras.date_fuzz
+                       event_extras.date_fuzz, event_extras.importance
                 FROM decks LEFT JOIN event_extras ON event_extras.deck_id = decks.id
                 WHERE user_id = ?1 AND id = ?2";
     let res = sqlite::one(&conn, stmt, params![&user_id, &event_id], from_row)?;
@@ -217,7 +225,7 @@ pub(crate) fn edit(
 
     let stmt = "SELECT location_textual, longitude, latitude, location_fuzz,
                        date_textual, exact_realdate, lower_realdate,
-                       upper_realdate, date_fuzz
+                       upper_realdate, date_fuzz, importance
                 FROM event_extras
                 WHERE deck_id = ?1";
     let event_extras_exists = sqlite::many(&tx, stmt, params![&event_id], event_extra_from_row)?;
@@ -226,15 +234,15 @@ pub(crate) fn edit(
         0 => {
             "INSERT INTO event_extras(deck_id, location_textual, longitude, latitude, location_fuzz,
                        date_textual, exact_realdate, lower_realdate,
-                       upper_realdate, date_fuzz)
-              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
-              RETURNING location_textual, longitude, latitude, location_fuzz, date_textual, exact_realdate, lower_realdate, upper_realdate, date_fuzz"
+                       upper_realdate, date_fuzz, importance)
+              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
+              RETURNING location_textual, longitude, latitude, location_fuzz, date_textual, exact_realdate, lower_realdate, upper_realdate, date_fuzz, importance"
         }
         1 => {
             "UPDATE event_extras
-             SET location_textual = ?2, longitude = ?3, latitude = ?4, location_fuzz = ?5, date_textual = ?6, exact_realdate = ?7, lower_realdate = ?8, upper_realdate = ?9, date_fuzz = ?10
+             SET location_textual = ?2, longitude = ?3, latitude = ?4, location_fuzz = ?5, date_textual = ?6, exact_realdate = ?7, lower_realdate = ?8, upper_realdate = ?9, date_fuzz = ?10, importance = ?11
               WHERE deck_id = ?1
-              RETURNING location_textual, longitude, latitude, location_fuzz, date_textual, exact_realdate, lower_realdate, upper_realdate, date_fuzz"
+              RETURNING location_textual, longitude, latitude, location_fuzz, date_textual, exact_realdate, lower_realdate, upper_realdate, date_fuzz, importance"
         }
         _ => {
             // should be impossible to get here since deck_id
@@ -261,6 +269,7 @@ pub(crate) fn edit(
             &event.lower_date,
             &event.upper_date,
             &event.date_fuzz,
+            &event.importance,
         ],
         event_extra_from_row,
     )?;

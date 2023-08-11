@@ -155,6 +155,8 @@ CREATE TABLE IF NOT EXISTS event_extras (
        upper_realdate REAL,
        date_fuzz REAL DEFAULT 1.0,
 
+       importance INTEGER DEFAULT 0,
+
        FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
@@ -814,12 +816,17 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
 
                    FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
             );"),
+
+        ///////////////////
+        // user_version 20: event_extras added importance value
+        ///////////////////
+        M::up("ALTER TABLE event_extras ADD COLUMN importance INTEGER DEFAULT 0;"),
     ]);
 
     let mut conn = Connection::open(db_name)?;
 
     // Apply some PRAGMA, often better to do it outside of migrations
-    conn.pragma_update(None, "journal_mode", &"WAL")?;
+    conn.pragma_update(None, "journal_mode", "WAL")?;
 
     // Update the database schema, atomically
     migrations.to_latest(&mut conn)?;
