@@ -724,6 +724,7 @@ function buildBackRefsGroupedByResource<T extends FatDeck>(deck: T) {
         [DeckKind.Timeline]: [],
         [DeckKind.Quote]: [],
         [DeckKind.Dialogue]: [],
+        [DeckKind.Event]: [],
     };
 
     backRefDecks.forEach((d: BackRefDeck) => {

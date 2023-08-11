@@ -72,6 +72,11 @@ export function createDeck(deckKind: DeckKind, title: string) {
                         timelineListings: listing as Array<SlimDeck>,
                     });
                     break;
+                case DeckKind.Event:
+                    AppStateChange.setEventListings({
+                        eventListings: listing as Array<SlimDeck>,
+                    });
+                    break;
             }
             AppStateChange.invalidateGraph();
         });
@@ -93,6 +98,8 @@ export function deckKindToSingularString(deckKind: DeckKind): string {
             return "quote";
         case DeckKind.Dialogue:
             return "dialogue";
+        case DeckKind.Event:
+            return "event";
     }
 }
 
@@ -110,6 +117,8 @@ export function deckKindToResourceString(deckKind: DeckKind): string {
             return "quotes";
         case DeckKind.Dialogue:
             return "dialogues";
+        case DeckKind.Event:
+            return "events";
     }
 }
 

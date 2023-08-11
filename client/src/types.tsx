@@ -49,6 +49,7 @@ export enum DeckKind {
     Timeline,
     Quote,
     Dialogue,
+    Event,
 }
 
 export enum NoteKind {
@@ -670,6 +671,11 @@ export type StateChangeDialogue = {
     calledFromBroadcastChannel?: boolean;
 };
 
+export type StateChangeEvent = {
+    eventListings: Array<SlimDeck>;
+    calledFromBroadcastChannel?: boolean;
+};
+
 export type StateChangeNoteForm = {
     noteKind: NoteKind;
     pointId?: Key;
@@ -713,6 +719,7 @@ export type AppStateChangeArgs =
     | StateChangeCount
     | StateChangeDeckId
     | StateChangeDialogue
+    | StateChangeEvent
     | StateChangeGraph
     | StateChangeIdea
     | StateChangeInputGiven
