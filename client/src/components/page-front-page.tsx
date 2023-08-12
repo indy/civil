@@ -9,6 +9,7 @@ import { IdeasModule } from "components/page-ideas";
 import { PeopleModule } from "components/page-people";
 import { ArticlesModule } from "components/page-articles";
 import { TimelinesModule } from "components/page-timelines";
+import { EventsModule } from "components/page-events";
 import { DialoguesModule } from "components/page-dialogues";
 import { QuotesModule } from "components/page-quotes";
 import InsigniaGrouping from "components/insignia-grouping";
@@ -23,11 +24,13 @@ export default function FrontPage({ path }: { path?: string }) {
     const articles = appState.listing.value.articles;
     const timelines = appState.listing.value.timelines;
     const dialogues = appState.listing.value.dialogues;
+    const events = appState.listing.value.events;
 
-    if (ideas && people && articles && timelines && dialogues) {
+    if (ideas && people && articles && timelines && dialogues && events) {
         return (
             <div>
                 <TopBarMenu />
+                <EventsModule events={events} />
                 <FilterModule />
                 <IdeasModule ideas={ideas} />
                 <ArticlesModule articles={articles} />

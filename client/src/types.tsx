@@ -111,6 +111,12 @@ export type PreviewDeck = SlimDeck & {
     notes: Notes;
 };
 
+export type DeckUpdate = {
+    title: string;
+    insignia: number;
+    font: Font;
+};
+
 export type SlimDeck = {
     id: Key;
     title: string;
@@ -136,7 +142,7 @@ export type FatDeck = SlimDeck & {
     //
     noteSeqs?: NoteSeqs;
     backRefDecksGroupedByKind?: Record<DeckKind, Array<BackRefDeck>>;
-}
+};
 
 export type BackRefDeck = {
     deckId: Key;
@@ -184,6 +190,23 @@ export type DeckDialogue = FatDeck & {
     aiKind: string;
     originalChatMessages: Array<OriginalChatMessage>;
 };
+
+export type EventExtras = {
+    locationTextual?: string;
+    longitude?: number;
+    latitude?: number;
+    locationFuzz: number;
+
+    dateTextual?: string;
+    exactDate?: string;
+    lowerDate?: string;
+    upperDate?: string;
+    dateFuzz: number;
+
+    importance: number;
+};
+
+export type DeckEvent = FatDeck & EventExtras;
 
 export type DeckTimeline = FatDeck;
 
@@ -289,6 +312,7 @@ export type Listing = {
     articles: ArticleListings | undefined;
     timelines: Array<SlimDeck> | undefined;
     dialogues: Array<SlimDeck> | undefined;
+    events: Array<SlimDeck> | undefined;
 };
 
 export type ColourSeeds = {
@@ -450,6 +474,7 @@ export type UberSetup = {
     articles: ArticleListings;
     timelines: Array<SlimDeck>;
     dialogues: Array<SlimDeck>;
+    events: Array<SlimDeck>;
 };
 
 // graph stuff
@@ -741,3 +766,9 @@ export type AppStateChangeArgs =
     | StateChangeUser
     | StateChangeWaitingFor
     | StateChangeEmpty;
+
+export type GeoResult = {
+    error: number;
+    latt: string;
+    longt: string;
+};

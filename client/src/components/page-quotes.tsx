@@ -323,7 +323,6 @@ function Quote({ path, id }: { path?: string; id?: string }) {
 
                 <SegmentBackRefs deck={deck} />
 
-
                 <WhenNoPhysicalKeyboard>
                     <QuoteButtons quoteId={quoteId} />
                 </WhenNoPhysicalKeyboard>

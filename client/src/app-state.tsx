@@ -215,6 +215,7 @@ const state: State = {
         people: undefined,
         timelines: undefined,
         dialogues: undefined,
+        events: undefined,
     }),
     previewCache: signal({}),
     visiblePreviewDeck: signal({ id: 0, showing: false }),
@@ -530,6 +531,7 @@ export const AppStateChange = {
             articles: uber.articles,
             timelines: uber.timelines,
             dialogues: uber.dialogues,
+            events: uber.events,
         };
     }),
 
@@ -760,8 +762,8 @@ export const AppStateChange = {
                 articles: undefined,
                 timelines: undefined,
                 dialogues: undefined,
+                events: undefined,
             };
-
 
             if (state.listing.value.ideas) {
                 li.ideas = {
@@ -808,12 +810,17 @@ export const AppStateChange = {
                 li.dialogues = state.listing.value.dialogues.filter(filterFn);
             }
 
-            state.listing.value = li;
+            if (state.listing.value.events) {
+                li.events = state.listing.value.events.filter(filterFn);
+            }
 
+            state.listing.value = li;
 
             // delete any bookmarks to this deck
             if (state.bookmarks.value.length > 0) {
-                let idx = state.bookmarks.value.findIndex(bookmark => bookmark.deck.id === id);
+                let idx = state.bookmarks.value.findIndex(
+                    (bookmark) => bookmark.deck.id === id
+                );
                 if (idx !== -1) {
                     let bookmarks = state.bookmarks.value.slice();
                     bookmarks.splice(idx, 1);

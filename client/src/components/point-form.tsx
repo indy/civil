@@ -1,13 +1,14 @@
 import { h } from "preact";
 import { useState, useRef } from "preact/hooks";
 
-import { DeckPoint, PointKind, ProtoPoint } from "types";
+import { DeckPoint, GeoResult, PointKind, ProtoPoint } from "types";
 
-import Net from "shared/net";
-import { capitalise } from "shared/english";
+import { geoGet, getLatitudeLongitude } from "shared/geo";
 import {
     parseDateStringAsTriple,
     parseDateStringAsYearOnly,
+    asHumanReadableDate,
+    asHumanReadableDateRange,
 } from "shared/time";
 
 import CivilInput from "components/civil-input";
@@ -23,7 +24,7 @@ type PointFormProps = {
     onSubmitMultiplePoints?: (ps: Array<ProtoPoint>) => void;
 };
 
-type State = {
+type LocalState = {
     title: string;
     titleBackup: string;
     locationTextual: string;
@@ -71,7 +72,7 @@ export default function PointForm({
         dateFuzz: 0.5,
     };
 
-    const initialState: State = {
+    const initialLocalState: LocalState = {
         title: initialPoint.title,
         titleBackup: initialPoint.titleBackup,
         locationTextual: initialPoint.locationTextual,
@@ -90,10 +91,10 @@ export default function PointForm({
         hasTypedTitle: false,
         kind: pointKind || PointKind.Point,
     };
-    const [state, setState] = useState(initialState);
+    const [localState, setLocalState] = useState(initialLocalState);
 
     // build a dateTextual from whatever was the last user input date
-    function buildReadableDateFromLast(s: State) {
+    function buildReadableDateFromLast(s: LocalState) {
         if (s.dateTextualDerivedFrom === "exact") {
             return buildReadableDateFromExact(s, true);
         } else if (s.dateTextualDerivedFrom === "range") {
@@ -102,7 +103,7 @@ export default function PointForm({
         return s;
     }
 
-    function buildReadableDateFromExact(s: State, checkOther: boolean) {
+    function buildReadableDateFromExact(s: LocalState, checkOther: boolean) {
         const parsedDate = parseDateStringAsTriple(s.exactDate);
         if (parsedDate) {
             s.dateTextual = asHumanReadableDate(
@@ -113,7 +114,7 @@ export default function PointForm({
             s.dateTextualDerivedFrom = "exact";
             s.dateFuzz = 0.5;
         } else if (checkOther) {
-            buildReadableDateFromRange(s, false);
+            return buildReadableDateFromRange(s, false);
         } else {
             let year = parseDateStringAsYearOnly(s.exactDate);
             if (year) {
@@ -129,7 +130,7 @@ export default function PointForm({
         return s;
     }
 
-    function buildReadableDateFromRange(s: State, checkOther: boolean) {
+    function buildReadableDateFromRange(s: LocalState, checkOther: boolean) {
         // lower and upper
         const parsedLowerDate = parseDateStringAsTriple(s.lowerDate);
         const parsedUpperDate = parseDateStringAsTriple(s.upperDate);
@@ -171,7 +172,7 @@ export default function PointForm({
                 target.type === "checkbox" ? target.checked : target.value;
             const svalue: string = value as string;
 
-            let newState = { ...state };
+            let newState = { ...localState };
 
             if (name === "pointkind") {
                 if (event.target.value === "Custom") {
@@ -209,12 +210,12 @@ export default function PointForm({
             }
 
             // passPointIfValid(newState);
-            setState(newState);
+            setLocalState(newState);
         }
     }
 
     function handleContentChange(content: string, name: string) {
-        let newState = { ...state };
+        let newState = { ...localState };
 
         if (name === "title") {
             newState.title = content;
@@ -239,14 +240,14 @@ export default function PointForm({
             newState.locationTextual = content;
         }
 
-        setState(newState);
+        setLocalState(newState);
     }
 
     async function onFindLocationClicked(event: Event) {
         event.preventDefault();
 
         let geoResult: GeoResult | unknown = await geoGet(
-            state.locationTextual
+            localState.locationTextual
         );
 
         if (geoResult) {
@@ -256,14 +257,16 @@ export default function PointForm({
 
             if (isOk) {
                 let newState = {
-                    ...state,
+                    ...localState,
                     latitude: latitudeNew.toFixed(2) as unknown as number,
                     longitude: longitudeNew.toFixed(2) as unknown as number,
                 };
                 // props.onPointChange(props.id, newState);
-                setState(newState);
+                setLocalState(newState);
             } else {
-                console.log(`geoResult failed for ${state.locationTextual}`);
+                console.log(
+                    `geoResult failed for ${localState.locationTextual}`
+                );
                 console.log(geoResult);
             }
         }
@@ -271,29 +274,29 @@ export default function PointForm({
 
     function handleSubmit(e: Event) {
         let s: ProtoPoint = {
-            title: state.title.trim(),
-            kind: state.kind,
+            title: localState.title.trim(),
+            kind: localState.kind,
             locationFuzz: 0,
             dateFuzz: 0,
         };
         let canSend = false;
 
-        if (state.locationTextual !== "") {
-            s.locationTextual = state.locationTextual;
+        if (localState.locationTextual !== "") {
+            s.locationTextual = localState.locationTextual;
             canSend = true;
         }
 
-        if (state.latitude !== 0 && state.longitude !== 0) {
-            s.latitude = state.latitude;
-            s.longitude = state.longitude;
-            s.locationFuzz = state.locationFuzz;
+        if (localState.latitude !== 0 && localState.longitude !== 0) {
+            s.latitude = localState.latitude;
+            s.longitude = localState.longitude;
+            s.locationFuzz = localState.locationFuzz;
             canSend = true;
         }
 
-        if (state.dateTextualDerivedFrom === "exact") {
-            s.dateTextual = state.dateTextual;
-            s.exactDate = state.exactDate;
-            s.dateFuzz = state.dateFuzz;
+        if (localState.dateTextualDerivedFrom === "exact") {
+            s.dateTextual = localState.dateTextual;
+            s.exactDate = localState.exactDate;
+            s.dateFuzz = localState.dateFuzz;
 
             // hack: need more robust date parsing
             if (
@@ -305,11 +308,11 @@ export default function PointForm({
             }
 
             canSend = true;
-        } else if (state.dateTextualDerivedFrom === "range") {
-            s.dateTextual = state.dateTextual;
-            s.lowerDate = state.lowerDate;
-            s.upperDate = state.upperDate;
-            s.dateFuzz = state.dateFuzz;
+        } else if (localState.dateTextualDerivedFrom === "range") {
+            s.dateTextual = localState.dateTextual;
+            s.lowerDate = localState.lowerDate;
+            s.upperDate = localState.upperDate;
+            s.dateFuzz = localState.dateFuzz;
             canSend = true;
         }
 
@@ -328,7 +331,7 @@ export default function PointForm({
                         <legend>Title</legend>
                         <CivilInput
                             id="title"
-                            value={state.title}
+                            value={localState.title}
                             size={11}
                             readOnly={!!pointKind}
                             onContentChange={handleContentChange}
@@ -369,7 +372,7 @@ export default function PointForm({
                     <label for="exactDate">Exact Date:</label>
                     <CivilInput
                         id="exactDate"
-                        value={state.exactDate}
+                        value={localState.exactDate}
                         size={11}
                         onContentChange={handleContentChange}
                     />
@@ -379,14 +382,14 @@ export default function PointForm({
                     <label for="lowerDate">Lower Date:</label>
                     <CivilInput
                         id="lowerDate"
-                        value={state.lowerDate}
+                        value={localState.lowerDate}
                         size={11}
                         onContentChange={handleContentChange}
                     />
                     <label for="upperDate">Upper Date:</label>
                     <CivilInput
                         id="upperDate"
-                        value={state.upperDate}
+                        value={localState.upperDate}
                         size={11}
                         onContentChange={handleContentChange}
                     />
@@ -396,7 +399,7 @@ export default function PointForm({
                             class="pointform-checkbox"
                             type="checkbox"
                             name="roundToYear"
-                            checked={state.roundToYear}
+                            checked={localState.roundToYear}
                             onInput={handleChangeEvent}
                         />
                         <label for="round-to-year">Round to Year</label>
@@ -407,7 +410,7 @@ export default function PointForm({
                             class="pointform-checkbox"
                             type="checkbox"
                             name="isApprox"
-                            checked={state.isApprox}
+                            checked={localState.isApprox}
                             onInput={handleChangeEvent}
                         />
                         <label for="is-approx">Is Approx</label>
@@ -418,7 +421,7 @@ export default function PointForm({
                             class="pointform-checkbox"
                             type="checkbox"
                             name="presentAsDuration"
-                            checked={state.presentAsDuration}
+                            checked={localState.presentAsDuration}
                             onInput={handleChangeEvent}
                         />
                         <label for="present-as-duration">
@@ -429,7 +432,7 @@ export default function PointForm({
                         <label for="dateTextual">Displayed Date:</label>
                         <CivilInput
                             id="dateTextual"
-                            value={state.dateTextual}
+                            value={localState.dateTextual}
                             size={40}
                             readOnly={true}
                         />
@@ -440,7 +443,7 @@ export default function PointForm({
                     <legend>{locationLegend}</legend>
                     <CivilInput
                         id="locationTextual"
-                        value={state.locationTextual}
+                        value={localState.locationTextual}
                         onContentChange={handleContentChange}
                     />
                     <p></p>
@@ -458,7 +461,7 @@ export default function PointForm({
                         type="number"
                         name="latitude"
                         step="any"
-                        value={state.latitude}
+                        value={localState.latitude}
                         onInput={handleChangeEvent}
                     />
                     <label for="longitude">Longitude:</label>
@@ -467,7 +470,7 @@ export default function PointForm({
                         type="number"
                         name="longitude"
                         step="any"
-                        value={state.longitude}
+                        value={localState.longitude}
                         onInput={handleChangeEvent}
                     />
                 </fieldset>
@@ -581,176 +584,4 @@ function OptionalMultiPointInput({
             </button>
         );
     }
-}
-
-function asHumanReadableDate(
-    parsedDate: [number, number, number],
-    isApprox: boolean,
-    roundToYear: boolean
-) {
-    // parsedDate is in the form: [year, month, day]
-
-    let res = "";
-    const [year, month, day] = parsedDate;
-
-    if (isApprox) {
-        if (roundToYear) {
-            res += "c. ";
-        } else {
-            res += "Approx. ";
-        }
-    }
-
-    if (!roundToYear) {
-        res += textualDay(day) + " ";
-        res += textualMonth(month) + ", ";
-    }
-
-    if (year < 0) {
-        res += year * -1 + "BC";
-    } else {
-        res += year;
-    }
-    return res;
-}
-
-function asHumanReadableDateRange(
-    lowerDate: [number, number, number],
-    upperDate: [number, number, number],
-    isApprox: boolean,
-    roundToYear: boolean,
-    presentAsDuration: boolean
-) {
-    // parsedDate is in the form: [year, month, day]
-
-    let res = "";
-
-    let firstWord = presentAsDuration ? "from" : "between";
-    if (isApprox) {
-        res += `Approx. ${firstWord} `;
-    } else {
-        if (!roundToYear) {
-            res += `${capitalise(firstWord)} `;
-        }
-    }
-
-    if (lowerDate) {
-        const [year, month, day] = lowerDate;
-
-        if (!roundToYear) {
-            res += textualDay(day) + " ";
-            res += textualMonth(month) + ", ";
-        }
-
-        if (year < 0) {
-            res += year * -1 + "BC";
-        } else {
-            res += year;
-        }
-    } else {
-        res += " some date";
-    }
-
-    res += presentAsDuration ? " to " : " and ";
-
-    if (upperDate) {
-        const [upperYear, upperMonth, upperDay] = upperDate;
-
-        if (!roundToYear) {
-            res += textualDay(upperDay) + " ";
-            res += textualMonth(upperMonth) + ", ";
-        }
-
-        if (upperYear < 0) {
-            res += upperYear * -1 + "BC";
-        } else {
-            res += upperYear;
-        }
-    } else {
-        res += "sometime later";
-    }
-
-    return res;
-}
-
-function textualMonth(month: number) {
-    switch (month) {
-        case 1:
-            return "January";
-        case 2:
-            return "February";
-        case 3:
-            return "March";
-        case 4:
-            return "April";
-        case 5:
-            return "May";
-        case 6:
-            return "June";
-        case 7:
-            return "July";
-        case 8:
-            return "August";
-        case 9:
-            return "September";
-        case 10:
-            return "October";
-        case 11:
-            return "November";
-        case 12:
-            return "December";
-        default:
-            return "MONTH ERROR"; // should never get here
-    }
-}
-
-function textualDay(day: number) {
-    switch (day) {
-        case 1:
-            return "1st";
-        case 2:
-            return "2nd";
-        case 3:
-            return "3rd";
-        case 21:
-            return "21st";
-        case 22:
-            return "22nd";
-        case 23:
-            return "23rd";
-        case 31:
-            return "31st";
-        default:
-            return `${day}th`;
-    }
-}
-
-async function geoGet(location: string) {
-    // have to use getCORS because we're not allowed to set 'content-type'
-    let geoResult = await Net.getCORS(`https://geocode.xyz/${location}?json=1`);
-    return geoResult;
-}
-
-type GeoResult = {
-    error: number;
-    latt: string;
-    longt: string;
-};
-function getLatitudeLongitude(geoResult: GeoResult): [boolean, number, number] {
-    if (geoResult.error) {
-        return [false, 0.0, 0.0];
-    }
-
-    let latt = parseFloat(geoResult.latt);
-    let longt = parseFloat(geoResult.longt);
-
-    if (isNaN(latt) || isNaN(longt)) {
-        return [false, 0.0, 0.0];
-    }
-
-    if (latt === 0.0 && longt === 0.0) {
-        return [false, 0.0, 0.0];
-    }
-
-    return [true, latt, longt];
 }

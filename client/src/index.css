@@ -1395,6 +1395,56 @@ a:visited.pigment-inherit {
     color: inherit;
 }
 
+/* for testing purposes, in practice use more semantic names */
+.clock-01 {
+    color: var(--fg-clock-01) !important;
+    background: var(--bg-clock-01);
+}
+.clock-02 {
+    color: var(--fg-clock-02) !important;
+    background: var(--bg-clock-02);
+}
+.clock-03 {
+    color: var(--fg-clock-03) !important;
+    background: var(--bg-clock-03);
+}
+.clock-04 {
+    color: var(--fg-clock-04) !important;
+    background: var(--bg-clock-04);
+}
+.clock-05 {
+    color: var(--fg-clock-05) !important;
+    background: var(--bg-clock-05);
+}
+.clock-06 {
+    color: var(--fg-clock-06) !important;
+    background: var(--bg-clock-06);
+}
+.clock-07 {
+    color: var(--fg-clock-07) !important;
+    background: var(--bg-clock-07);
+}
+.clock-08 {
+    color: var(--fg-clock-08) !important;
+    background: var(--bg-clock-08);
+}
+.clock-09 {
+    color: var(--fg-clock-09) !important;
+    background: var(--bg-clock-09);
+}
+.clock-10 {
+    color: var(--fg-clock-10) !important;
+    background: var(--bg-clock-10);
+}
+.clock-11 {
+    color: var(--fg-clock-11) !important;
+    background: var(--bg-clock-11);
+}
+.clock-12 {
+    color: var(--fg-clock-12) !important;
+    background: var(--bg-clock-12);
+}
+
 .pigment-ideas {
     color: var(--fg-ideas) !important;
     background: var(--bg-ideas);
@@ -1419,11 +1469,11 @@ a:visited.pigment-inherit {
     color: var(--fg-dialogues) !important;
     background: var(--bg-dialogues);
 }
-
-.pigment-stuff {
-    color: var(--fg-stuff) !important;
-    background: var(--bg-stuff);
+.pigment-events {
+    color: var(--fg-events) !important;
+    background: var(--bg-events);
 }
+
 .pigment-memorise {
     color: var(--fg-memorise) !important;
     background: var(--bg-memorise);
@@ -1453,6 +1503,9 @@ a:visited.pigment-inherit {
 .pigment-dialogues a {
     color: var(--fg-dialogues);
 }
+.pigment-events a {
+    color: var(--fg-events);
+}
 
 .pigment-fg-ideas {
     color: var(--fg-ideas) !important;
@@ -1471,6 +1524,9 @@ a:visited.pigment-inherit {
 }
 .pigment-fg-dialogues {
     color: var(--fg-dialogues) !important;
+}
+.pigment-fg-events {
+    color: var(--fg-events) !important;
 }
 
 .delete-confirmation {

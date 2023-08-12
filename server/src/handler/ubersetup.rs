@@ -28,6 +28,7 @@ use crate::db::articles as db_articles;
 use crate::db::bookmarks as db_bookmarks;
 use crate::db::dialogues as db_dialogues;
 use crate::db::edges as db_edges;
+use crate::db::events as db_events;
 use crate::db::ideas as db_ideas;
 use crate::db::memorise as db_memorise;
 use crate::db::people as db_people;
@@ -58,6 +59,7 @@ struct UberStruct {
     pub articles: interop_articles::ArticleListings,
     pub timelines: Vec<SlimDeck>,
     pub dialogues: Vec<SlimDeck>,
+    pub events: Vec<SlimDeck>,
 }
 
 pub async fn setup(
@@ -80,6 +82,7 @@ pub async fn setup(
     let articles = db_articles::listings(&sqlite_pool, user_id)?;
     let timelines = db_timelines::listings(&sqlite_pool, user_id)?;
     let dialogues = db_dialogues::listings(&sqlite_pool, user_id)?;
+    let events = db_events::listings(&sqlite_pool, user_id)?;
 
     let uber = UberStruct {
         directory,
@@ -93,6 +96,7 @@ pub async fn setup(
         articles,
         timelines,
         dialogues,
+        events,
     };
 
     Ok(HttpResponse::Ok().json(uber))

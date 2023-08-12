@@ -23,6 +23,7 @@ import { Ideas, Idea } from "components/page-ideas";
 import { Person, People } from "components/page-people";
 import { Quote, Quotes } from "components/page-quotes";
 import { Timeline, Timelines } from "components/page-timelines";
+import { CivEvent as Event, Events } from "components/page-events";
 
 export const App = ({ state }: { state: State }) => {
     return (
@@ -110,6 +111,8 @@ const AppUI = () => {
                 <Dialogues path="/dialogues" />
                 <Dialogue path="/dialogues/:id" />
                 <DialogueChat path="/dialogues/chat" />
+                <Events path="/events" />
+                <Event path="/events/:id" />
             </Router>
         </div>
     );

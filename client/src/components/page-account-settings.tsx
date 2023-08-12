@@ -216,18 +216,33 @@ function TestRollupModule({}) {
 }
 
 function TestColourSchemeModule({}) {
-    if (true) {
-        return <div></div>;
-    }
+    // if (true) {
+    //     return <div></div>;
+    // }
     return (
         <Module heading="test colour scheme module">
+            <h2 class="clock-01">Clock 01: Timelines</h2>
+            <h2 class="clock-02">Clock 02</h2>
+            <h2 class="clock-03">Clock 03: Events</h2>
+            <h2 class="clock-04">Clock 04</h2>
+
+            <h2 class="clock-05">Clock 05</h2>
+            <h2 class="clock-06">Clock 06: Ideas</h2>
+            <h2 class="clock-07">Clock 07: Quotes</h2>
+            <h2 class="clock-08">Clock 08</h2>
+
+            <h2 class="clock-09">Clock 09: People</h2>
+            <h2 class="clock-10">Clock 10</h2>
+            <h2 class="clock-11">Clock 11: Dialogues</h2>
+            <h2 class="clock-12">Clock 12: Articles</h2>
+
             <h2 class="pigment-ideas">Ideas</h2>
             <h2 class="pigment-articles">Articles</h2>
             <h2 class="pigment-people">People</h2>
             <h2 class="pigment-timelines">Timelines</h2>
             <h2 class="pigment-quotes">Quotes</h2>
             <h2 class="pigment-dialogues">Dialogues</h2>
-            <h2 class="pigment-stuff">Stuff</h2>
+            <h2 class="pigment-events">Events</h2>
             <h2 class="pigment-memorise">Memorise</h2>
         </Module>
     );

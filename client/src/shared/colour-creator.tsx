@@ -235,20 +235,18 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
         bg_ideas: "--bg-clock-06",
         bg_articles: "--bg-clock-12",
         bg_people: "--bg-clock-09",
-        bg_timelines: "--bg-clock-03",
+        bg_timelines: "--bg-clock-01",
         bg_quotes: "--bg-clock-07",
-        bg_dialogues: "--bg-clock-02",
-
-        bg_stuff: "--bg-clock-11",
+        bg_dialogues: "--bg-clock-11",
+        bg_events: "--bg-clock-03",
 
         fg_ideas: "--fg-clock-06",
         fg_articles: "--fg-clock-12",
         fg_people: "--fg-clock-09",
-        fg_timelines: "--fg-clock-03",
+        fg_timelines: "--fg-clock-01",
         fg_quotes: "--fg-clock-07",
-        fg_dialogues: "--fg-clock-02",
-
-        fg_stuff: "--fg-clock-11",
+        fg_dialogues: "--fg-clock-11",
+        fg_events: "--fg-clock-03",
 
         fg_toolbar_view: [
             seeds.fgH,
