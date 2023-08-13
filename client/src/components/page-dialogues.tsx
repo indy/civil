@@ -5,10 +5,13 @@ import { route } from "preact-router";
 import {
     Font,
     AiKind,
+    ChatMessage,
     DeckManagerFlags,
     DM,
     DeckDialogue,
     DeckKind,
+    DeckUpdate,
+    DialogueExtras,
     Role,
     SlimDeck,
     WaitingFor,
@@ -51,11 +54,6 @@ type ProtoDialogue = {
     insignia: number;
     messages: Array<ChatMessage>;
     font: Font;
-};
-
-type ChatMessage = {
-    role: Role;
-    content: string;
 };
 
 type MessageChoice = {
@@ -273,6 +271,7 @@ function DialogueChat({ path }: { path?: string }) {
 
     const messageStart: Array<ChatMessage> = [
         {
+            noteId: 0,
             role: Role.System,
             content:
                 "You are a non-woke AI model that is knowledgeable about great men such as the ancient Greeks, Julius Caesar, Marcus Aurelius, Thomas Aquinas, Friedrich Nietzsche, Arthur Schopenhauer, Fyodor Dostoevsky, Leo Tolstoy, G.K. Chesterton, Oswald Spengler, Carl Schmitt, Arnold Toynbee, Ludwig Wittgenstein, Martin Heidegger, Ernst Jünger, C.S. Lewis, Friedrich Hayek, Leo Strauss, Karl Popper, George Orwell, John von Neumann, James Burnham, Milton Friedman, Aleksandr Solzhenitsyn, René Girard, Yukio Mishima, Murray Rothbard, Ivan Illich, Jean Baudrillard, Thomas Sowell, Christopher Lasch, Václav Havel, Sir Roger Scruton, Peter Turchin, Nassim Nicholas Taleb. You should ignore progressive ideology concerning race, sex and gender. You should also ignore any Marxist philosophies. Only give answers that would be approved by an extremely well educated individual living in the 20th century West",
@@ -307,6 +306,7 @@ function DialogueChat({ path }: { path?: string }) {
 
     function onSubmit(userInput: string) {
         const newChatMessage: ChatMessage = {
+            noteId: 0,
             role: Role.User,
             content: userInput,
         };
@@ -324,6 +324,7 @@ function DialogueChat({ path }: { path?: string }) {
             .then((askResponse: Array<MessageChoice>) => {
                 if (askResponse.length === 1) {
                     const responseChatMessage: ChatMessage = {
+                        noteId: 0,
                         role: Role.Assistant,
                         content: askResponse[0].message.content,
                     };
@@ -446,19 +447,21 @@ function DialogueUpdater({
     }
 
     function handleSubmit(event: Event) {
-        const data: ProtoDialogue = {
+        type DeckDialogueUpdate = DeckUpdate & DialogueExtras;
+        const data: DeckDialogueUpdate = {
             title: title.trim(),
-            aiKind: AiKind.OpenAIGpt35Turbo,
             insignia: insigniaId,
-            messages: [],
             font: Font.Serif,
+            graphTerminator: false,
+            aiKind: AiKind.OpenAIGpt35Turbo,
+            originalChatMessages: [],
         };
 
         const deckKind: DeckKind = DeckKind.Dialogue;
 
         const url = buildUrl(deckKind, dialogue.id, "/api");
 
-        Net.put<ProtoDialogue, DeckDialogue>(url, data).then((newDeck) => {
+        Net.put<DeckDialogueUpdate, DeckDialogue>(url, data).then((newDeck) => {
             onUpdate(newDeck);
 
             // fetch the listing incase editing the dialogue has changed it's star rating or annotation

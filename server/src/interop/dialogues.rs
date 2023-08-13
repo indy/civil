@@ -79,22 +79,25 @@ pub struct Dialogue {
     pub flashcards: Option<Vec<FlashCard>>,
 
     pub ai_kind: AiKind,
-    pub original_chat_messages: Vec<openai_interface::OriginalChatMessage>,
+    pub original_chat_messages: Vec<openai_interface::ChatMessage>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProtoChat {
     pub ai_kind: AiKind,
-    pub messages: Vec<openai_interface::ChatMessage>,
+    pub original_chat_messages: Vec<openai_interface::ChatMessage>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProtoDialogue {
     pub title: String,
-    pub ai_kind: AiKind,
+
     pub insignia: i32,
-    pub messages: Vec<openai_interface::ChatMessage>,
     pub font: Font,
+    pub graph_terminator: bool,
+
+    pub ai_kind: AiKind,
+    pub original_chat_messages: Vec<openai_interface::ChatMessage>,
 }

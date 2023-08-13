@@ -172,7 +172,7 @@ pub(crate) fn listings(
     let conn = sqlite_pool.get()?;
 
     // TODO: sort this by the event date in event_extras
-    let stmt = "SELECT id, name, 'event', insignia, font
+    let stmt = "SELECT id, name, 'event', insignia, font, graph_terminator
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'event'
                 ORDER BY created_at DESC";

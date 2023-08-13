@@ -2,11 +2,12 @@ import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import {
-    Font,
     DeckManagerFlags,
     DM,
     DeckArticle,
     DeckKind,
+    DeckUpdate,
+    ArticleExtras,
     ArticleListings,
     NoteKind,
     Note,
@@ -301,36 +302,26 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
     }
 
     function handleSubmit(event: Event) {
-        type Data = {
-            title: string;
-            author: string;
-            source?: string;
-            shortDescription: string;
-            rating: number;
-            graphTerminator: boolean;
-            publishedDate: string;
-            insignia: number;
-            font: Font;
-        };
+        type DeckArticleUpdate = DeckUpdate & ArticleExtras;
 
-        const data: Data = removeEmptyStrings(
+        const data: DeckArticleUpdate = removeEmptyStrings(
             {
                 title: title.trim(),
+                insignia: insigniaId,
+                font,
+                graphTerminator: false,
                 author: author.trim(),
                 source: source.trim(),
                 shortDescription: shortDescription.trim(),
                 rating,
-                graphTerminator: false,
                 publishedDate: publishedDate.trim(),
-                insignia: insigniaId,
-                font,
             },
             ["source"]
         );
 
         const deckKind: DeckKind = DeckKind.Article;
 
-        Net.put<Data, DeckArticle>(
+        Net.put<DeckArticleUpdate, DeckArticle>(
             buildUrl(deckKind, article.id, "/api"),
             data
         ).then((newDeck) => {

@@ -216,6 +216,7 @@ fn interop_card_from_row(row: &Row) -> crate::Result<interop::Card> {
             id: row.get(4)?,
             title: row.get(5)?,
             deck_kind: interop_decks::DeckKind::from_str(&kind)?,
+            graph_terminator: row.get(9)?,
             insignia: row.get(7)?,
             font: Font::try_from(fnt)?,
         },
@@ -234,7 +235,7 @@ pub(crate) fn get_cards(
 
     sqlite::many(
         &conn,
-        "SELECT c.id, c.note_id, c.prompt, n.content, d.id AS deck_id, d.name AS deck_name, d.kind AS deck_kind, d.insignia, d.font
+        "SELECT c.id, c.note_id, c.prompt, n.content, d.id AS deck_id, d.name AS deck_name, d.kind AS deck_kind, d.insignia, d.font, d.graph_terminator
          FROM cards c, decks d, notes n
          WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = ?1 and c.next_test_date < ?2",
         params![&user_id, &due],
@@ -252,7 +253,7 @@ pub(crate) fn get_practice_card(
 
     sqlite::one(
         &conn,
-        "SELECT c.id, c.note_id, c.prompt, n.content, d.id AS deck_id, d.name AS deck_name, d.kind AS deck_kind, d.insignia, d.font
+        "SELECT c.id, c.note_id, c.prompt, n.content, d.id AS deck_id, d.name AS deck_name, d.kind AS deck_kind, d.insignia, d.font, d.graph_terminator
          FROM cards c, decks d, notes n
          WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = ?1
          ORDER BY random()

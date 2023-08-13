@@ -56,13 +56,6 @@ impl FromStr for Role {
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ChatMessage {
-    pub role: Role,
-    pub content: String,
-}
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct AppendChatMessage {
     pub prev_note_id: Option<Key>,
     pub role: Role,
@@ -71,7 +64,7 @@ pub struct AppendChatMessage {
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct OriginalChatMessage {
+pub struct ChatMessage {
     pub note_id: Key,
     pub role: Role,
     pub content: String,

@@ -115,11 +115,13 @@ impl FromStr for RefKind {
 #[serde(rename_all = "camelCase")]
 pub struct Ref {
     pub note_id: Key,
+    pub ref_kind: RefKind,
+    pub annotation: Option<String>,
+
     pub id: Key,
     pub title: String,
     pub deck_kind: DeckKind,
-    pub ref_kind: RefKind,
-    pub annotation: Option<String>,
+    pub graph_terminator: bool,
     pub insignia: i32,
     pub font: Font,
 }
@@ -133,11 +135,13 @@ pub struct BackNote {
     pub prev_note_id: Option<Key>,
     pub note_content: String,
     pub note_kind: NoteKind,
+    pub note_font: Font,
+
     pub id: Key,
     pub title: String,
     pub deck_kind: DeckKind,
+    pub graph_terminator: bool,
     pub insignia: i32,
-    pub note_font: Font,
     pub font: Font,
 }
 
@@ -149,6 +153,7 @@ pub struct SlimDeck {
     pub id: Key,
     pub title: String,
     pub deck_kind: DeckKind,
+    pub graph_terminator: bool,
     pub insignia: i32,
     pub font: Font,
 }

@@ -2,10 +2,10 @@ import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import {
-    Font,
     DM,
     DeckIdea,
     DeckKind,
+    DeckUpdate,
     SlimDeck,
     IdeasListings,
     ResultList,
@@ -194,21 +194,14 @@ function IdeaUpdater({ idea, onUpdate, onCancel }: IdeaUpdaterProps) {
     }
 
     function handleSubmit(event: Event) {
-        type SubmitData = {
-            title: string;
-            graphTerminator: boolean;
-            insignia: number;
-            font: Font;
-        };
-
-        const data: SubmitData = {
+        const data: DeckUpdate = {
             title: title.trim(),
-            graphTerminator: graphTerminator,
             insignia: insigniaId,
             font,
+            graphTerminator: !!graphTerminator,
         };
 
-        Net.put<SubmitData, DeckIdea>(`/api/ideas/${idea.id}`, data).then(
+        Net.put<DeckUpdate, DeckIdea>(`/api/ideas/${idea.id}`, data).then(
             (newDeck) => {
                 onUpdate(newDeck);
             }

@@ -2,7 +2,16 @@ import { h } from "preact";
 import { useEffect } from "preact/hooks";
 import { route } from "preact-router";
 
-import { Font, Key, DM, DeckKind, NoteKind, DeckQuote } from "types";
+import {
+    DM,
+    DeckKind,
+    DeckQuote,
+    DeckUpdate,
+    Font,
+    Key,
+    NoteKind,
+    QuoteExtras,
+} from "types";
 
 import Net from "shared/net";
 import buildMarkup from "components/build-markup";
@@ -260,28 +269,22 @@ function Quote({ path, id }: { path?: string; id?: string }) {
 
     function onEditedAttributeFn(deckId: Key) {
         return function (attribution: string) {
+            type DeckQuoteUpdate = DeckUpdate & QuoteExtras;
+
             let deckQuote: DeckQuote = deck! as DeckQuote;
             let note = deckQuote.notes.find((n) => n.kind === NoteKind.Note);
 
-            type ProtoQuote = {
-                title: string;
-                text: string; // not really needed, server side only uses title and attribution
-                attribution: string;
-                insignia: number;
-                font: Font;
-            };
-
             if (note) {
-                let data: ProtoQuote = {
+                let data: DeckQuoteUpdate = {
                     title: deckQuote.title,
-                    text: note.content, // not really needed, server side only uses title and attribution
-                    attribution: attribution,
                     insignia: 0,
                     font: deckQuote.font,
+                    graphTerminator: false,
+                    attribution: attribution,
                 };
 
                 // as the title could have changed, we need to post the updated quote to the server
-                Net.put<ProtoQuote, DeckQuote>(
+                Net.put<DeckQuoteUpdate, DeckQuote>(
                     `/api/quotes/${deckId}`,
                     data
                 ).then((updatedDeck) => {

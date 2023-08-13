@@ -98,6 +98,7 @@ pub struct ProtoEvent {
 
     pub insignia: i32,
     pub font: Font,
+    pub graph_terminator: bool,
 
     pub location_textual: Option<String>,
     pub longitude: Option<f32>,

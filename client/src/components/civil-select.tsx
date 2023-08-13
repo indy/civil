@@ -88,6 +88,7 @@ function candidateToAddedRef(candidate: SlimDeck): Reference {
         id: candidate.id,
         title: candidate.title,
         deckKind: candidate.deckKind,
+        graphTerminator: candidate.graphTerminator,
         refKind: RefKind.Ref,
         noteId: 0, // this noteId isn't used when adding a ref
         insignia: candidate.insignia,
@@ -710,6 +711,7 @@ function CivilSelectInput({
                 noteId: 0,
                 id: 0,
                 title: text,
+                graphTerminator: false,
                 deckKind: DeckKind.Idea,
                 refKind: RefKind.Ref,
                 insignia: 0,

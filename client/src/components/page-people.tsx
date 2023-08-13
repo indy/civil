@@ -9,6 +9,7 @@ import {
     DM,
     DeckPerson,
     DeckPoint,
+    DeckUpdate,
     Key,
     SlimDeck,
     PeopleListings,
@@ -358,20 +359,15 @@ function PersonUpdater({
     }
 
     const handleSubmit = (e: Event) => {
-        type Data = {
-            title: string;
-            insignia: number;
-            font: Font;
-        };
-
-        const data: Data = {
+        const data: DeckUpdate = {
             title: localState.title.trim(),
             insignia: localState.insigniaId,
             font: localState.font,
+            graphTerminator: false,
         };
 
         // edit an existing person
-        Net.put<Data, DeckPerson>(`/api/people/${person.id}`, data).then(
+        Net.put<DeckUpdate, DeckPerson>(`/api/people/${person.id}`, data).then(
             (newDeck) => {
                 onUpdate(newDeck);
             }

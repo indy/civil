@@ -65,7 +65,7 @@ pub(crate) fn listings(
 ) -> crate::Result<Vec<interop_decks::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT id, name, 'timeline', insignia, font
+    let stmt = "SELECT id, name, 'timeline', insignia, font, graph_terminator
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'timeline'
                 ORDER BY created_at DESC";

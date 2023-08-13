@@ -56,14 +56,16 @@ pub struct Article {
 #[serde(rename_all = "camelCase")]
 pub struct ProtoArticle {
     pub title: String,
+
+    pub insignia: i32,
+    pub font: Font,
+    pub graph_terminator: bool,
+
     pub source: Option<String>,
     pub author: Option<String>,
     pub short_description: Option<String>,
     pub rating: i32,
-    pub graph_terminator: bool,
     pub published_date: Option<chrono::NaiveDate>,
-    pub insignia: i32,
-    pub font: Font,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

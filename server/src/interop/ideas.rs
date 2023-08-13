@@ -77,9 +77,10 @@ impl From<crate::db::decks::DeckBase> for Idea {
 #[serde(rename_all = "camelCase")]
 pub struct ProtoIdea {
     pub title: String,
-    pub graph_terminator: bool,
+
     pub insignia: i32,
     pub font: Font,
+    pub graph_terminator: bool,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

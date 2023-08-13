@@ -46,8 +46,10 @@ pub struct Quote {
 #[serde(rename_all = "camelCase")]
 pub struct ProtoQuote {
     pub title: String,
-    pub text: String,
-    pub attribution: String,
+
     pub insignia: i32,
     pub font: Font,
+
+    pub text: String,
+    pub attribution: String,
 }

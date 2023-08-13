@@ -138,7 +138,7 @@ pub(crate) fn listings(
                 ORDER BY article_extras.rating desc, decks.id desc";
     let rated = sqlite::many(&conn, stmt, params![&user_id], from_row)?;
 
-    let stmt = "SELECT d.id, d.name, 'article', d.insignia, d.font
+    let stmt = "SELECT d.id, d.name, 'article', d.insignia, d.font, d.graph_terminator
                 FROM decks d LEFT JOIN article_extras pe ON pe.deck_id=d.id
                 WHERE d.id NOT IN (SELECT deck_id
                                    FROM notes_decks

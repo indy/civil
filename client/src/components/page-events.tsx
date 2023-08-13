@@ -305,6 +305,7 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
             title: localState.title.trim(),
             insignia: localState.insigniaId,
             font: localState.font,
+            graphTerminator: false,
 
             locationTextual: localState.locationTextual,
             longitude: localState.longitude,

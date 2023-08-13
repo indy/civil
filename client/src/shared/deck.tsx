@@ -26,6 +26,7 @@ export function buildSlimDeck(
         id,
         title,
         deckKind,
+        graphTerminator: false,
         insignia,
         font,
     };

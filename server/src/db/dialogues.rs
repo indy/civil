@@ -94,7 +94,7 @@ fn from_row(row: &Row) -> crate::Result<interop::Dialogue> {
 pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT id, name, kind, insignia, font
+    let stmt = "SELECT id, name, kind, insignia, font, graph_terminator
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'dialogue'
                 ORDER BY created_at DESC";
@@ -125,12 +125,12 @@ fn get_original_chat_messages(
     conn: &Connection,
     user_id: Key,
     dialogue_id: Key,
-) -> crate::Result<Vec<openai_interface::OriginalChatMessage>> {
-    fn chat_message_from_row(row: &Row) -> crate::Result<openai_interface::OriginalChatMessage> {
+) -> crate::Result<Vec<openai_interface::ChatMessage>> {
+    fn chat_message_from_row(row: &Row) -> crate::Result<openai_interface::ChatMessage> {
         let r: String = row.get(1)?;
         let role = openai_interface::Role::from_str(&r)?;
 
-        Ok(openai_interface::OriginalChatMessage {
+        Ok(openai_interface::ChatMessage {
             note_id: row.get(0)?,
             role,
             content: row.get(2)?,
@@ -233,7 +233,7 @@ pub(crate) fn create(
 
     let mut new_prev: Option<Key> = None;
 
-    for chat_message in proto_dialogue.messages {
+    for chat_message in proto_dialogue.original_chat_messages {
         if chat_message.content.is_empty() {
             // this empty check was on the client side, moving it hear,
             // although not sure how often it's triggered
@@ -327,12 +327,13 @@ pub(crate) fn get_chat_history(
     deck_id: Key,
 ) -> crate::Result<(interop::AiKind, Vec<openai_interface::ChatMessage>)> {
     fn chat_message_from_row(row: &Row) -> crate::Result<openai_interface::ChatMessage> {
-        let r: String = row.get(0)?;
+        let r: String = row.get(1)?;
         let role = openai_interface::Role::from_str(&r)?;
 
         Ok(openai_interface::ChatMessage {
+            note_id: row.get(0)?,
             role,
-            content: row.get(1)?,
+            content: row.get(2)?,
         })
     }
 
@@ -343,7 +344,7 @@ pub(crate) fn get_chat_history(
 
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT dm.role, dm.content
+    let stmt = "SELECT notes.id, dm.role, dm.content
                 FROM dialogue_messages AS dm
                      LEFT JOIN notes ON notes.id = dm.note_id
                      LEFT JOIN decks ON decks.id = notes.deck_id

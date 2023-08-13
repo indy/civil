@@ -77,6 +77,7 @@ export default function Passage({
                 id: ref.id,
                 title: ref.title,
                 deckKind: ref.deckKind,
+                graphTerminator: ref.graphTerminator,
                 insignia: ref.insignia,
                 font: ref.font,
                 noteId: note.id,

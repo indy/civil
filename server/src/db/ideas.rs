@@ -65,7 +65,7 @@ pub(crate) fn listings(
 ) -> crate::Result<interop::IdeasListings> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "select id, name, 'idea', insignia, font
+    let stmt = "select id, name, 'idea', insignia, font, graph_terminator
                 from decks
                 where user_id = ?1 and kind = 'idea'
                 order by created_at desc
@@ -73,7 +73,7 @@ pub(crate) fn listings(
 
     let recent = sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)?;
 
-    let stmt = "SELECT id, name, 'idea', insignia, font
+    let stmt = "SELECT id, name, 'idea', insignia, font, graph_terminator
                 FROM decks
                 WHERE id NOT IN (SELECT deck_id
                                  FROM notes_decks
@@ -87,7 +87,7 @@ pub(crate) fn listings(
 
     let orphans = sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)?;
 
-    let stmt = "SELECT d.id, d.name, 'idea', d.insignia, d.font
+    let stmt = "SELECT d.id, d.name, 'idea', d.insignia, d.font, d.graph_terminator
                 FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
                 WHERE n.deck_id IS NULL
                 AND d.kind='idea'

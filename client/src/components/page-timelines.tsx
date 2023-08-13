@@ -10,6 +10,7 @@ import {
     Font,
     SlimDeck,
     PassageType,
+    DeckUpdate,
 } from "types";
 
 import Net from "shared/net";
@@ -216,20 +217,15 @@ function TimelineUpdater({
     }
 
     const handleSubmit = (e: Event) => {
-        type SubmitData = {
-            title: string;
-            insignia: number;
-            font: Font;
-        };
-
-        const data: SubmitData = {
+        const data: DeckUpdate = {
             title: localState.title.trim(),
             insignia: localState.insigniaId,
             font: localState.font,
+            graphTerminator: false,
         };
 
         // edit an existing timeline
-        Net.put<SubmitData, DeckTimeline>(
+        Net.put<DeckUpdate, DeckTimeline>(
             `/api/timelines/${timeline.id}`,
             data
         ).then((newDeck) => {

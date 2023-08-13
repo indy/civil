@@ -115,12 +115,14 @@ export type DeckUpdate = {
     title: string;
     insignia: number;
     font: Font;
+    graphTerminator: boolean;
 };
 
 export type SlimDeck = {
     id: Key;
     title: string;
     deckKind: DeckKind;
+    graphTerminator: boolean;
     insignia: number;
     font: Font;
 };
@@ -162,16 +164,21 @@ export type BackRefDeck = {
     deckLevelAnnotation?: string;
 };
 
-export type DeckIdea = FatDeck & {
-    createdAt: string;
-    graphTerminator: boolean;
+export type ChatMessage = {
+    noteId: Key;
+    role: Role;
+    content: string;
 };
 
-export type DeckPerson = FatDeck & {
+export type IdeaExtras = {
+    createdAt: string;
+};
+
+export type PersonExtras = {
     sortDate?: string;
 };
 
-export type DeckArticle = FatDeck & {
+export type ArticleExtras = {
     source?: string;
     author?: string;
     createdAt: string;
@@ -180,15 +187,9 @@ export type DeckArticle = FatDeck & {
     shortDescription?: string;
 };
 
-export type OriginalChatMessage = {
-    noteId: Key;
-    role: Role;
-    content: string;
-};
-
-export type DeckDialogue = FatDeck & {
-    aiKind: string;
-    originalChatMessages: Array<OriginalChatMessage>;
+export type DialogueExtras = {
+    aiKind: AiKind;
+    originalChatMessages: Array<ChatMessage>;
 };
 
 export type EventExtras = {
@@ -206,13 +207,17 @@ export type EventExtras = {
     importance: number;
 };
 
-export type DeckEvent = FatDeck & EventExtras;
-
-export type DeckTimeline = FatDeck;
-
-export type DeckQuote = FatDeck & {
+export type QuoteExtras = {
     attribution: string;
 };
+
+export type DeckIdea = FatDeck & IdeaExtras;
+export type DeckPerson = FatDeck & PersonExtras;
+export type DeckArticle = FatDeck & ArticleExtras;
+export type DeckDialogue = FatDeck & DialogueExtras;
+export type DeckEvent = FatDeck & EventExtras;
+export type DeckTimeline = FatDeck;
+export type DeckQuote = FatDeck & QuoteExtras;
 
 export type Note = {
     id: Key;
@@ -225,7 +230,7 @@ export type Note = {
     refs: Array<Reference>;
     flashcards: Array<FlashCard>;
 
-    chatMessage?: OriginalChatMessage; // the original chat message for a dialogue
+    chatMessage?: ChatMessage; // the original chat message for a dialogue
 };
 
 export type Notes = Array<Note>;
@@ -440,9 +445,7 @@ export type State = {
 
 type GraphEdge = [number, RefKind, number];
 
-export type GraphDeck = SlimDeck & {
-    graphTerminator: boolean;
-};
+export type GraphDeck = SlimDeck;
 
 export type FullGraphStruct = {
     graphDecks: Array<GraphDeck>;

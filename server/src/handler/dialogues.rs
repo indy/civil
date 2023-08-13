@@ -42,7 +42,9 @@ pub async fn chat(
 
     let dialogue = dialogue.into_inner();
 
-    let response = ai.chat(dialogue.ai_kind, dialogue.messages).await?;
+    let response = ai
+        .chat(dialogue.ai_kind, dialogue.original_chat_messages)
+        .await?;
 
     Ok(HttpResponse::Ok().json(response))
 }

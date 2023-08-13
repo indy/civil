@@ -478,6 +478,7 @@ export const AppStateChange = {
                 id: slimDeck.id,
                 title: slimDeck.title,
                 deckKind: slimDeck.deckKind,
+                graphTerminator: false,
                 insignia: slimDeck.insignia,
                 font: slimDeck.font,
                 notes: ns,
@@ -585,6 +586,7 @@ export const AppStateChange = {
                                 id: newReference.id,
                                 title: newReference.title,
                                 deckKind: DeckKind.Idea,
+                                graphTerminator: false,
                                 insignia: 0,
                                 font: immutableState.defaultFont,
                             };

@@ -28,7 +28,7 @@ use rusqlite::{params, Row};
 
 fn bookmark_from_row(row: &Row) -> crate::Result<interop::Bookmark> {
     let deck: SlimDeck = slimdeck_from_row(row)?; // NOTE: if slimdeck_from_row is changed then so should this function
-    let id = row.get(5)?;
+    let id = row.get(6)?;
 
     Ok(interop::Bookmark { id, deck })
 }
@@ -67,7 +67,7 @@ pub(crate) fn get_bookmarks(
 ) -> crate::Result<Vec<interop::Bookmark>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "select d.id, d.name, d.kind, d.insignia, d.font, b.id
+    let stmt = "select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, b.id
                 from decks d, bookmarks b
                 where b.user_id = ?1 and b.deck_id = d.id";
     let bookmarks = sqlite::many(&conn, stmt, params![&user_id], bookmark_from_row)?;
