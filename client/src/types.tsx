@@ -127,6 +127,16 @@ export type SlimDeck = {
     font: Font;
 };
 
+export type SlimEvent = SlimDeck & {
+    locationTextual?: string;
+    dateTextual?: string;
+    date?: string;
+
+    // generated client side with data from server
+    //
+    age?: number;
+};
+
 export type FatDeck = SlimDeck & {
     // received from server
     //
@@ -135,6 +145,7 @@ export type FatDeck = SlimDeck & {
     flashcards?: Array<FlashCard>;
     refs?: Array<Reference>;
     points?: Array<DeckPoint>;
+    events?: Array<SlimEvent>;
 
     // received from server and then modified by the client
     //
@@ -274,6 +285,8 @@ export type DeckPoint = {
     deckName: string;
     deckKind: DeckKind;
 
+    // generated client side with data from server
+    //
     age?: number;
 };
 

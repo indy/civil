@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::{BackNote, DeckKind, Ref, SlimDeck};
+use crate::interop::decks::{BackNote, DeckKind, Ref, SlimDeck, SlimEvent};
 use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
 use crate::interop::notes::Note;
@@ -40,6 +40,7 @@ pub struct Person {
     // what was happening during their lifetime
     //
     pub points: Option<Vec<DeckPoint>>,
+    pub events: Option<Vec<SlimEvent>>,
 
     pub notes: Option<Vec<Note>>,
 
@@ -63,7 +64,9 @@ impl From<crate::db::decks::DeckBase> for Person {
             font: d.font,
 
             sort_date: None,
+
             points: None,
+            events: None,
 
             notes: None,
 

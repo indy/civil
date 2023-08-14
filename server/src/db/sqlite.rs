@@ -20,7 +20,7 @@ use crate::error::{display_local_backtrace, Error};
 #[allow(unused_imports)]
 use rusqlite::{Connection, Row, ToSql};
 #[allow(unused_imports)]
-use tracing::{error, info};
+use tracing::error;
 
 pub type SqlitePool = r2d2::Pool<r2d2_sqlite::SqliteConnectionManager>;
 
@@ -49,9 +49,7 @@ pub(crate) fn one<T>(
             return Err(Error::Sqlite(e));
         }
     };
-
     let mut rows = stmt.query(params)?;
-
     if let Some(row) = match rows.next() {
         Ok(r) => r,
         Err(e) => {

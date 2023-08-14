@@ -17,16 +17,15 @@
 
 use crate::db::decks;
 use crate::db::sqlite::{self, SqlitePool};
-use crate::error::Error;
 use crate::interop::decks as interop_decks;
-use crate::interop::decks::DeckKind;
+use crate::interop::decks::{DeckKind, SlimEvent};
 use crate::interop::events as interop;
 use crate::interop::font::Font;
 use crate::interop::Key;
 
 use rusqlite::{params, Row};
 
-use tracing::error;
+use tracing::info;
 
 #[derive(Debug, Clone)]
 struct EventExtra {
@@ -134,6 +133,8 @@ pub(crate) fn get_or_create(
     user_id: Key,
     title: &str,
 ) -> crate::Result<interop::Event> {
+    info!("get_or_create");
+
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
@@ -152,7 +153,7 @@ pub(crate) fn get_or_create(
             )?,
             decks::DeckBaseOrigin::PreExisting => sqlite::one(
                 &tx,
-                "select location_textual, longitude, latitude, location_fuzz, date_textual, exact_realdate, lower_realdate, upper_realdate, date_fuzz, importance
+                "select location_textual, longitude, latitude, location_fuzz, date_textual, date(exact_realdate), date(lower_realdate), date(upper_realdate), date_fuzz, importance
                  from event_extras
                  where deck_id=?1",
                 params![&deck.id],
@@ -190,8 +191,8 @@ pub(crate) fn get(
     let stmt = "SELECT decks.id, decks.name, decks.font, decks.insignia,
                        event_extras.location_textual, event_extras.longitude,
                        event_extras.latitude, event_extras.location_fuzz,
-                       event_extras.date_textual, event_extras.exact_realdate,
-                       event_extras.lower_realdate, event_extras.upper_realdate,
+                       event_extras.date_textual, date(event_extras.exact_realdate),
+                       date(event_extras.lower_realdate), date(event_extras.upper_realdate),
                        event_extras.date_fuzz, event_extras.importance
                 FROM decks LEFT JOIN event_extras ON event_extras.deck_id = decks.id
                 WHERE user_id = ?1 AND id = ?2";
@@ -223,37 +224,10 @@ pub(crate) fn edit(
         event.font,
     )?;
 
-    let stmt = "SELECT location_textual, longitude, latitude, location_fuzz,
-                       date_textual, exact_realdate, lower_realdate,
-                       upper_realdate, date_fuzz, importance
-                FROM event_extras
-                WHERE deck_id = ?1";
-    let event_extras_exists = sqlite::many(&tx, stmt, params![&event_id], event_extra_from_row)?;
-
-    let sql_query: &str = match event_extras_exists.len() {
-        0 => {
-            "INSERT INTO event_extras(deck_id, location_textual, longitude, latitude, location_fuzz,
-                       date_textual, exact_realdate, lower_realdate,
-                       upper_realdate, date_fuzz, importance)
-              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
-              RETURNING location_textual, longitude, latitude, location_fuzz, date_textual, exact_realdate, lower_realdate, upper_realdate, date_fuzz, importance"
-        }
-        1 => {
-            "UPDATE event_extras
-             SET location_textual = ?2, longitude = ?3, latitude = ?4, location_fuzz = ?5, date_textual = ?6, exact_realdate = ?7, lower_realdate = ?8, upper_realdate = ?9, date_fuzz = ?10, importance = ?11
+    let sql_query = "UPDATE event_extras
+             SET location_textual = ?2, longitude = ?3, latitude = ?4, location_fuzz = ?5, date_textual = ?6, exact_realdate = julianday(?7), lower_realdate = julianday(?8), upper_realdate = julianday(?9), date_fuzz = ?10, importance = ?11
               WHERE deck_id = ?1
-              RETURNING location_textual, longitude, latitude, location_fuzz, date_textual, exact_realdate, lower_realdate, upper_realdate, date_fuzz, importance"
-        }
-        _ => {
-            // should be impossible to get here since deck_id
-            // is a primary key in the event_extras table
-            error!(
-                "multiple event_extras entries for event: {}",
-                &event_id
-            );
-            return Err(Error::TooManyFound);
-        }
-    };
+              RETURNING location_textual, longitude, latitude, location_fuzz, date_textual, date(exact_realdate), date(lower_realdate), date(upper_realdate), date_fuzz, importance";
 
     let event_extras = sqlite::one(
         &tx,
@@ -281,4 +255,58 @@ pub(crate) fn edit(
 
 pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, event_id: Key) -> crate::Result<()> {
     decks::delete(sqlite_pool, user_id, event_id)
+}
+
+fn slim_event_from_row(row: &Row) -> crate::Result<SlimEvent> {
+    let fnt: i32 = row.get(5)?;
+
+    Ok(SlimEvent {
+        id: row.get(0)?,
+        title: row.get(1)?,
+        deck_kind: DeckKind::Event,
+        graph_terminator: row.get(3)?,
+        insignia: row.get(4)?,
+        font: Font::try_from(fnt)?,
+
+        location_textual: row.get(6)?,
+
+        date_textual: row.get(7)?,
+        date: row.get(8)?,
+    })
+}
+
+pub(crate) fn all_events_during_life(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_id: Key,
+) -> crate::Result<Vec<SlimEvent>> {
+    let conn = sqlite_pool.get()?;
+
+    sqlite::many(
+        &conn,
+        "select d.id,
+                d.name as title,
+                d.kind as deck_kind,
+                d.graph_terminator,
+                d.insignia,
+                d.font,
+                ee.location_textual,
+                ee.date_textual,
+                coalesce(date(ee.exact_realdate), date(ee.lower_realdate)) as date,
+                coalesce(ee.exact_realdate, ee.lower_realdate) as sortdate
+         from   event_extras ee, decks d
+         where  coalesce(ee.exact_realdate, ee.upper_realdate) >= (select coalesce(point_born.exact_realdate, point_born.lower_realdate) as born
+                                                         from   points point_born
+                                                         where  point_born.deck_id = ?2
+                                                                and point_born.kind = 'point_begin')
+                and coalesce(ee.exact_realdate, ee.lower_realdate) <= coalesce((select coalesce(point_died.exact_realdate, point_died.upper_realdate) as died
+                                                                      from   points point_died
+                                                                      where  point_died.deck_id = ?2
+                                                                             and point_died.kind = 'point_end'), CURRENT_DATE)
+                and ee.deck_id = d.id
+                and d.user_id = ?1
+         order by sortdate",
+        params![&user_id, &deck_id],
+        slim_event_from_row
+    )
 }

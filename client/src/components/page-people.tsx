@@ -18,6 +18,7 @@ import {
     PointKind,
     ProtoPoint,
     RenderingDeckPart,
+    SlimEvent,
 } from "types";
 
 import Net from "shared/net";
@@ -42,6 +43,7 @@ import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilButton from "components/civil-button";
 import CivilInput from "components/civil-input";
 import Module from "components/module";
+import DeckLink from "components/deck-link";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "components/insignia-selector";
 import LifespanForm from "components/lifespan-form";
@@ -254,11 +256,9 @@ function Person({ path, id }: { path?: string; id?: string }) {
                 />
                 {hasKnownLifespan && (
                     <SegmentPoints
-                        deckPoints={deck.points}
+                        person={deck}
                         deckManager={deckManager}
-                        holderId={deck.id}
                         showAddPointForm={appState.showAddPointForm.value}
-                        holderTitle={deck.title}
                     />
                 )}
                 <SegmentGraph depth={2} deck={deck} />
@@ -282,31 +282,41 @@ function preCacheFn(person: DeckPerson): DeckPerson {
         return triple;
     }
 
-    // point is an element in points
-    function addAge(point: DeckPoint, born: [number, number, number]) {
-        if (!point.date) {
-            console.log("no date???");
-            return point;
-        }
-
-        let eventTriple: [number, number, number] = dateStringAsTriple(
-            point.date
-        )!;
+    function calcAge(date: string, born: [number, number, number]) {
+        let eventTriple: [number, number, number] = dateStringAsTriple(date);
         let years = calcAgeInYears(eventTriple, born);
-
-        point.age = years;
-
-        return point;
+        return years;
     }
 
-    if (person.points) {
+    // point is an element in points
+    function addAgeToPoint(
+        point: DeckPoint,
+        born: [number, number, number]
+    ): DeckPoint {
+        if (point.date) {
+            point.age = calcAge(point.date, born);
+        }
+        return point;
+    }
+    function addAgeToEvent(
+        ev: SlimEvent,
+        born: [number, number, number]
+    ): SlimEvent {
+        if (ev.date) {
+            ev.age = calcAge(ev.date, born);
+        }
+        return ev;
+    }
+
+    if (person.points && person.events) {
         let born: [number, number, number] | undefined = getBirthDateFromPoints(
             person.points
         );
         if (born) {
             let b: [number, number, number] = born;
             // we have a birth year so we can add the age of the person to each of the points elements
-            person.points.forEach((p) => addAge(p, b));
+            person.points.forEach((p) => addAgeToPoint(p, b));
+            person.events.forEach((ev) => addAgeToEvent(ev, b));
         }
     }
 
@@ -430,16 +440,31 @@ function PersonUpdater({
     );
 }
 
+// display an event within a person's timeline
+//
+function PersonSlimEvent({ event }: { event: SlimEvent }) {
+    let ageText = event.age! > 0 ? `${event.age}` : "";
+    let klass = fontClass(event.font, RenderingDeckPart.Heading);
+
+    return (
+        <li class={klass}>
+            <span class="deckpoint-age">{ageText}</span>
+            <span>{svgBlank()}</span>
+            <DeckLink slimDeck={event} />
+        </li>
+    );
+}
+
 function PersonDeckPoint({
     deckPoint,
     hasNotes,
     passage,
-    holderId,
+    deckId,
 }: {
     deckPoint: DeckPoint;
     hasNotes: boolean;
     passage: PassageType;
-    holderId: Key;
+    deckId: Key;
 }) {
     let [expanded, setExpanded] = useState(false);
 
@@ -456,7 +481,7 @@ function PersonDeckPoint({
         pointText += ` ${deckPoint.locationTextual}`;
     }
 
-    if (deckPoint.deckId === holderId) {
+    if (deckPoint.deckId === deckId) {
         klass += " relevent-deckpoint";
         return (
             <li class={klass}>
@@ -487,18 +512,18 @@ function PersonDeckPoint({
 }
 
 function SegmentPoints({
-    deckPoints,
+    person,
     deckManager,
-    holderId,
-    holderTitle,
     showAddPointForm,
 }: {
-    deckPoints: Array<DeckPoint> | undefined;
+    person: DeckPerson;
     deckManager: DM<DeckPerson>;
-    holderId: Key;
-    holderTitle: string;
     showAddPointForm: boolean;
 }) {
+    const deckId = person.id;
+    const deckTitle = person.title;
+    const font = person.font;
+
     const [onlyThisPerson, setOnlyThisPerson] = useState(false);
     const [showBirthsDeaths, setShowBirthsDeaths] = useState(false);
     const [showDeathForm, setShowDeathForm] = useState(false);
@@ -529,7 +554,7 @@ function SegmentPoints({
 
     function onAddDeathPoint(point: DeckPoint) {
         Net.post<DeckPoint, DeckPerson>(
-            `/api/people/${holderId}/points`,
+            `/api/people/${deckId}/points`,
             point
         ).then((_person) => {
             setShowDeathForm(false);
@@ -547,53 +572,93 @@ function SegmentPoints({
         );
     }
 
-    let arr = deckPoints || [];
+    let filteredPoints = person.points || [];
     if (onlyThisPerson) {
-        arr = arr.filter((e) => e.deckId === holderId);
+        filteredPoints = filteredPoints.filter((e) => e.deckId === deckId);
     }
     if (!showBirthsDeaths) {
-        arr = arr.filter(
+        filteredPoints = filteredPoints.filter(
             (e) =>
-                e.deckId === holderId ||
+                e.deckId === deckId ||
                 !(e.title === "Born" || e.title === "Died")
         );
     }
 
     // don't show the person's age for any of their posthumous points
-    const deathIndex = arr.findIndex(
-        (e) => e.deckId === holderId && e.kind === PointKind.PointEnd
+    const deathIndex = filteredPoints.findIndex(
+        (e) => e.deckId === deckId && e.kind === PointKind.PointEnd
     );
     if (deathIndex) {
-        for (let i = deathIndex + 1; i < arr.length; i++) {
-            if (arr[i].deckId === holderId) {
-                arr[i].age = 0;
+        for (let i = deathIndex + 1; i < filteredPoints.length; i++) {
+            if (filteredPoints[i].deckId === deckId) {
+                filteredPoints[i].age = 0;
             }
         }
     }
 
-    const deck = deckManager.getDeck();
-    const font = deck ? deck.font : immutableState.defaultFont;
+    let filteredEvents = person.events || [];
+    if (onlyThisPerson) {
+        filteredEvents = [];
+    }
 
-    const dps = arr.map((dp) => (
-        <PersonDeckPoint
-            key={dp.id}
-            passage={deckManager.passageForDeckPoint(dp)}
-            hasNotes={deckManager.pointHasNotes(dp)}
-            holderId={holderId}
-            deckPoint={dp}
-        />
-    ));
+    // points and events should be rendered in chronological order
+    const dps: Array<any> = [];
+    while (true) {
+        if (filteredPoints.length === 0) {
+            break;
+        }
+        if (filteredEvents.length === 0) {
+            break;
+        }
+
+        if (filteredPoints[0].date! < filteredEvents[0].date!) {
+            let dp = filteredPoints[0];
+            dps.push(
+                <PersonDeckPoint
+                    key={dp.id}
+                    passage={deckManager.passageForDeckPoint(dp)}
+                    hasNotes={deckManager.pointHasNotes(dp)}
+                    deckId={deckId}
+                    deckPoint={dp}
+                />
+            );
+            filteredPoints = filteredPoints.slice(1);
+        } else {
+            dps.push(<PersonSlimEvent event={filteredEvents[0]} />);
+            filteredEvents = filteredEvents.slice(1);
+        }
+    }
+
+    if (filteredPoints.length > 0) {
+        filteredPoints.forEach((dp) => {
+            dps.push(
+                <PersonDeckPoint
+                    key={dp.id}
+                    passage={deckManager.passageForDeckPoint(dp)}
+                    hasNotes={deckManager.pointHasNotes(dp)}
+                    deckId={deckId}
+                    deckPoint={dp}
+                />
+            );
+        });
+    }
+
+    if (filteredEvents.length > 0) {
+        filteredEvents.forEach((fe) => {
+            dps.push(<PersonSlimEvent event={fe} />);
+        });
+    }
 
     const formSidebarText = showAddPointForm
         ? "Hide Form"
-        : `Add Point for ${holderTitle}`;
+        : `Add Point for ${deckTitle}`;
     const hasDied =
-        deckPoints &&
-        deckPoints.some(
-            (dp) => dp.deckId === holderId && dp.kind === PointKind.PointEnd
+        person.points &&
+        person.points.some(
+            (dp) => dp.deckId === deckId && dp.kind === PointKind.PointEnd
         );
 
-    const segmentTitle = `Points during the life of ${holderTitle}`;
+    const segmentTitle = `Points during the life of ${deckTitle}`;
 
     return (
         <RollableSegment
@@ -621,7 +686,7 @@ function SegmentPoints({
                         onClick={onOnlyThisPersonClicked}
                     >
                         <span class="left-margin-icon-label">
-                            Only {holderTitle}
+                            Only {deckTitle}
                         </span>
                         {onlyThisPerson
                             ? svgTickedCheckBox()

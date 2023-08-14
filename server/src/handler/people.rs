@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::decks as decks_db;
+use crate::db::events as events_db;
 use crate::db::memorise as memorise_db;
 use crate::db::notes as notes_db;
 use crate::db::people as db;
@@ -169,6 +170,7 @@ fn sqlite_augment(
     person_id: Key,
     user_id: Key,
 ) -> crate::Result<()> {
+    let events = events_db::all_events_during_life(sqlite_pool, user_id, person_id)?;
     let points = points_db::all_points_during_life(sqlite_pool, user_id, person_id)?;
     let notes = notes_db::all_from_deck(sqlite_pool, person_id)?;
     let refs = decks_db::from_deck_id_via_notes_to_decks(sqlite_pool, person_id)?;
@@ -176,6 +178,7 @@ fn sqlite_augment(
     let backrefs = decks_db::get_backrefs(sqlite_pool, person_id)?;
     let flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, person_id)?;
 
+    person.events = Some(events);
     person.points = Some(points);
     person.notes = Some(notes);
     person.refs = Some(refs);
