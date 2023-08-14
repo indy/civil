@@ -135,6 +135,7 @@ export type SlimEvent = SlimDeck & {
     // generated client side with data from server
     //
     age?: number;
+    compDate: Date;
 };
 
 export type FatDeck = SlimDeck & {
@@ -288,6 +289,7 @@ export type DeckPoint = {
     // generated client side with data from server
     //
     age?: number;
+    compDate: Date;
 };
 
 export type FlashCard = {

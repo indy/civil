@@ -288,36 +288,33 @@ function preCacheFn(person: DeckPerson): DeckPerson {
         return years;
     }
 
-    // point is an element in points
-    function addAgeToPoint(
-        point: DeckPoint,
-        born: [number, number, number]
-    ): DeckPoint {
-        if (point.date) {
-            point.age = calcAge(point.date, born);
-        }
-        return point;
-    }
-    function addAgeToEvent(
-        ev: SlimEvent,
-        born: [number, number, number]
-    ): SlimEvent {
-        if (ev.date) {
-            ev.age = calcAge(ev.date, born);
-        }
-        return ev;
+    function calcCompDate(date: string): Date {
+        let tri = dateStringAsTriple(date);
+        let compDate = new Date();
+        compDate.setFullYear(tri[0], tri[1] - 1, tri[2]);
+        return compDate;
     }
 
     if (person.points && person.events) {
         let born: [number, number, number] | undefined = getBirthDateFromPoints(
             person.points
         );
-        if (born) {
-            let b: [number, number, number] = born;
-            // we have a birth year so we can add the age of the person to each of the points elements
-            person.points.forEach((p) => addAgeToPoint(p, b));
-            person.events.forEach((ev) => addAgeToEvent(ev, b));
-        }
+        person.points.forEach((p) => {
+            if (p.date) {
+                p.compDate = calcCompDate(p.date);
+                if (born) {
+                    p.age = calcAge(p.date, born);
+                }
+            }
+        });
+        person.events.forEach((e) => {
+            if (e.date) {
+                e.compDate = calcCompDate(e.date);
+                if (born) {
+                    e.age = calcAge(e.date, born);
+                }
+            }
+        });
     }
 
     return person;
@@ -611,7 +608,7 @@ function SegmentPoints({
             break;
         }
 
-        if (filteredPoints[0].date! < filteredEvents[0].date!) {
+        if (filteredPoints[0].compDate < filteredEvents[0].compDate) {
             let dp = filteredPoints[0];
             dps.push(
                 <PersonDeckPoint
