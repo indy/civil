@@ -30,14 +30,12 @@ export default function InsigniaGrouping({ label }: InsigniaGroupingProps) {
     function fetchData(val: number) {
         const url = `/api/decks/insignia_filter/${val}`;
         Net.get<ResultList>(url).then((resultList) => {
-            if (resultList.results) {
-                setLocalState({
-                    ...localState,
-                    list: resultList.results,
-                    show: true,
-                    insigniaVal: val,
-                });
-            }
+            setLocalState({
+                ...localState,
+                list: resultList.results,
+                show: true,
+                insigniaVal: val,
+            });
         });
     }
 

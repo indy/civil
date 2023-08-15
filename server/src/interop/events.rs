@@ -45,14 +45,14 @@ pub struct Event {
 
     pub importance: i32,
 
-    pub notes: Option<Vec<Note>>,
+    pub notes: Vec<Note>,
 
-    pub refs: Option<Vec<Ref>>,
+    pub refs: Vec<Ref>,
 
-    pub backnotes: Option<Vec<BackNote>>,
-    pub backrefs: Option<Vec<Ref>>,
+    pub backnotes: Vec<BackNote>,
+    pub backrefs: Vec<Ref>,
 
-    pub flashcards: Option<Vec<FlashCard>>,
+    pub flashcards: Vec<FlashCard>,
 }
 
 impl From<crate::db::decks::DeckBase> for Event {
@@ -79,14 +79,14 @@ impl From<crate::db::decks::DeckBase> for Event {
 
             importance: 0,
 
-            notes: None,
+            notes: vec![],
 
-            refs: None,
+            refs: vec![],
 
-            backnotes: None,
-            backrefs: None,
+            backnotes: vec![],
+            backrefs: vec![],
 
-            flashcards: None,
+            flashcards: vec![],
         }
     }
 }

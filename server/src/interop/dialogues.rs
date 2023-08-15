@@ -69,14 +69,14 @@ pub struct Dialogue {
 
     pub created_at: chrono::NaiveDateTime,
 
-    pub notes: Option<Vec<Note>>,
+    pub notes: Vec<Note>,
 
-    pub refs: Option<Vec<Ref>>,
+    pub refs: Vec<Ref>,
 
-    pub backnotes: Option<Vec<BackNote>>,
-    pub backrefs: Option<Vec<Ref>>,
+    pub backnotes: Vec<BackNote>,
+    pub backrefs: Vec<Ref>,
 
-    pub flashcards: Option<Vec<FlashCard>>,
+    pub flashcards: Vec<FlashCard>,
 
     pub ai_kind: AiKind,
     pub original_chat_messages: Vec<openai_interface::ChatMessage>,

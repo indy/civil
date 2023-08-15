@@ -36,11 +36,11 @@ fn idea_from_row(row: &Row) -> crate::Result<interop::Idea> {
         font: Font::try_from(fnt)?,
         graph_terminator: row.get(3)?,
         created_at: row.get(2)?,
-        notes: None,
-        refs: None,
-        backnotes: None,
-        backrefs: None,
-        flashcards: None,
+        notes: vec![],
+        refs: vec![],
+        backnotes: vec![],
+        backrefs: vec![],
+        flashcards: vec![],
     })
 }
 

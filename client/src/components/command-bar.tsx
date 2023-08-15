@@ -6,7 +6,6 @@ import {
     Key,
     CivilMode,
     CivilSpan,
-    Command,
     CommandBarMode,
     DeckKind,
     DeckQuote,
@@ -15,6 +14,21 @@ import {
     SlimDeck,
     State,
 } from "types";
+
+type Command = {
+    command: string;
+    description: string;
+    fn: (args?: any) => any;
+
+    quoteAround?: string;
+    giveState?: boolean;
+};
+
+type Spacer = {
+    spacer: boolean;
+};
+
+type BarEntry = Command | Spacer;
 
 import { getAppState, AppStateChange } from "app-state";
 
@@ -30,7 +44,7 @@ import DeckLink from "components/deck-link";
 
 // array because ordering is important when printing the commands
 //
-const Commands: Array<Command> = [
+const BarEntries: Array<BarEntry> = [
     {
         command: "i",
         description: "goto ideas or add ",
@@ -266,7 +280,7 @@ export default function CommandBar() {
                     const success = executeCommand(
                         appState,
                         commandBarState.text,
-                        Commands
+                        BarEntries
                     );
                     if (success) {
                         AppStateChange.commandBarResetAndHide();
@@ -493,8 +507,7 @@ export default function CommandBar() {
         if (sanitized.length > 0) {
             const url = `/api/decks/search?q=${encodeURI(sanitized)}`;
             const searchResponse: ResultList = await Net.get(url);
-            const searchCandidates: Array<SlimDeck> =
-                searchResponse.results || [];
+            const searchCandidates: Array<SlimDeck> = searchResponse.results;
 
             AppStateChange.commandBarSetSearch({ searchCandidates });
         }
@@ -521,20 +534,23 @@ export default function CommandBar() {
         );
     }
 
-    function buildCommandEntry(entry: Command) {
+    function buildCommandEntry(entry: BarEntry) {
         function clickedCommand() {
-            const command = entry.command;
+            if ("command" in entry) {
+                const command = entry.command;
 
-            const success = command
-                ? executeCommand(appState, command, Commands)
-                : false;
-            if (success) {
-                AppStateChange.commandBarResetAndHide();
-            } else {
-                console.error(`Failed to execute command: ${command}`);
+                const success = command
+                    ? executeCommand(appState, command, BarEntries)
+                    : false;
+                if (success) {
+                    AppStateChange.commandBarResetAndHide();
+                } else {
+                    console.error(`Failed to execute command: ${command}`);
+                }
             }
         }
-        if (entry.spacer) {
+
+        if ("spacer" in entry) {
             return <div class="command-entry">-</div>;
         } else {
             return (
@@ -558,7 +574,7 @@ export default function CommandBar() {
         if (appState.commandBarState.value.mode === CommandBarMode.Command) {
             return (
                 <ul class="command-bar-listing" id="search-candidates">
-                    {Commands.map((entry: Command, i: number) => (
+                    {BarEntries.map((entry: BarEntry, i: number) => (
                         <li key={i}>{buildCommandEntry(entry)}</li>
                     ))}
                 </ul>
@@ -634,7 +650,7 @@ function routeOrCreate(kind: DeckKind, argString: string): boolean {
 function executeCommand(
     state: State,
     text: string,
-    allCommands: Array<Command>
+    allBarEntries: Array<BarEntry>
 ) {
     const commandPlusArgs = text
         .slice(1)
@@ -644,18 +660,21 @@ function executeCommand(
         return;
     }
 
-    const command = commandPlusArgs[0];
+    const commandName = commandPlusArgs[0];
 
-    const action: Command | undefined = allCommands.find(
-        (c) => c.command === command
+    let action: BarEntry | undefined = allBarEntries.find(
+        (c) => "command" in c && c.command === commandName
     );
+
     if (action) {
+        action = action as Command;
         let rest: any = commandPlusArgs.slice(1).join(" ");
         if (action.giveState) {
             rest = [state].concat(rest);
         }
         return action.fn ? action.fn(rest) : false;
     }
+
     return false;
 }
 

@@ -66,8 +66,8 @@ CREATE TABLE IF NOT EXISTS points (
        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
        deck_id INTEGER NOT NULL,
-       title TEXT,
-       kind TEXT NOT NULL, -- 'point', 'point_begin', 'point_end'
+       title TEXT,                      -- this will never be null
+       kind TEXT NOT NULL,              -- 'point', 'point_begin', 'point_end'
        font INTEGER NOT NULL DEFAULT 1,
 
        location_textual TEXT,

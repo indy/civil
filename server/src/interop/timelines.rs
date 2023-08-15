@@ -33,16 +33,16 @@ pub struct Timeline {
     pub insignia: i32,
     pub font: Font,
 
-    pub points: Option<Vec<Point>>,
+    pub points: Vec<Point>,
 
-    pub notes: Option<Vec<Note>>,
+    pub notes: Vec<Note>,
 
-    pub refs: Option<Vec<Ref>>,
+    pub refs: Vec<Ref>,
 
-    pub backnotes: Option<Vec<BackNote>>,
-    pub backrefs: Option<Vec<Ref>>,
+    pub backnotes: Vec<BackNote>,
+    pub backrefs: Vec<Ref>,
 
-    pub flashcards: Option<Vec<FlashCard>>,
+    pub flashcards: Vec<FlashCard>,
 }
 
 impl From<crate::db::decks::DeckBase> for Timeline {
@@ -56,16 +56,16 @@ impl From<crate::db::decks::DeckBase> for Timeline {
             insignia: d.insignia,
             font: d.font,
 
-            points: None,
+            points: vec![],
 
-            notes: None,
+            notes: vec![],
 
-            refs: None,
+            refs: vec![],
 
-            backnotes: None,
-            backrefs: None,
+            backnotes: vec![],
+            backrefs: vec![],
 
-            flashcards: None,
+            flashcards: vec![],
         }
     }
 }

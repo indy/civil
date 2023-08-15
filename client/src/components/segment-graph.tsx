@@ -18,7 +18,7 @@ export default function SegmentGraph({
 
     if (appState.showConnectivityGraph.value && deck) {
         const okToShowGraph =
-            (deck.notes && deck.notes.length > 0) || deck.backrefs;
+            (deck.notes && deck.notes.length > 0) || deck.backrefs; // refactor todo: why check notes?, should there only be a check that backrefs is not empty???
         const heading = "Connectivity Graph";
 
         return (

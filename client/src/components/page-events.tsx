@@ -102,7 +102,9 @@ function CivEvent({ path, id }: { path?: string; id?: string }) {
                     setShowingUpdateForm={deckManager.setShowingUpdateForm}
                     isEditingDeckRefs={deckManager.isEditingDeckRefs()}
                     setEditingDeckRefs={deckManager.setEditingDeckRefs}
-                ></TopMatter>
+                >
+                    {deck.dateTextual}
+                </TopMatter>
 
                 {deckManager.isShowingUpdateForm() && (
                     <section>

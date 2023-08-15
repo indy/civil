@@ -39,17 +39,17 @@ pub struct Person {
     // directly connected to the person's life, but it's interesting to see
     // what was happening during their lifetime
     //
-    pub points: Option<Vec<Point>>,
-    pub events: Option<Vec<SlimEvent>>,
+    pub points: Vec<Point>,
+    pub events: Vec<SlimEvent>,
 
-    pub notes: Option<Vec<Note>>,
+    pub notes: Vec<Note>,
 
-    pub refs: Option<Vec<Ref>>,
+    pub refs: Vec<Ref>,
 
-    pub backnotes: Option<Vec<BackNote>>,
-    pub backrefs: Option<Vec<Ref>>,
+    pub backnotes: Vec<BackNote>,
+    pub backrefs: Vec<Ref>,
 
-    pub flashcards: Option<Vec<FlashCard>>,
+    pub flashcards: Vec<FlashCard>,
 }
 
 impl From<crate::db::decks::DeckBase> for Person {
@@ -65,17 +65,17 @@ impl From<crate::db::decks::DeckBase> for Person {
 
             sort_date: None,
 
-            points: None,
-            events: None,
+            points: vec![],
+            events: vec![],
 
-            notes: None,
+            notes: vec![],
 
-            refs: None,
+            refs: vec![],
 
-            backnotes: None,
-            backrefs: None,
+            backnotes: vec![],
+            backrefs: vec![],
 
-            flashcards: None,
+            flashcards: vec![],
         }
     }
 }

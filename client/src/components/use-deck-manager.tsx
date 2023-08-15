@@ -118,17 +118,15 @@ export default function useDeckManager<T extends FatDeck>(
             // have to set deck.refs to be the canonical version
             // (used to populate each note's decks array)
 
-            if (deck.refs) {
-                // remove all deck.refs that relate to this note
-                deck.refs = deck.refs.filter((din) => {
-                    return din.noteId !== n.id;
-                });
-                // add every note.decks entry to deck.refs
-                allDecksForNote.forEach((d) => {
-                    // exclamation to please the compiler, even though checks ensure that refs will not be undefined
-                    deck.refs!.push(d);
-                });
-            }
+            // remove all deck.refs that relate to this note
+            deck.refs = deck.refs.filter((din) => {
+                return din.noteId !== n.id;
+            });
+            // add every note.decks entry to deck.refs
+            allDecksForNote.forEach((d) => {
+                // exclamation to please the compiler, even though checks ensure that refs will not be undefined
+                deck.refs.push(d);
+            });
 
             findNoteWithId(deck, n.id, (notes: Notes, index: number) => {
                 notes[index] = n;
@@ -251,7 +249,7 @@ export default function useDeckManager<T extends FatDeck>(
         passageForPoint: function (point: Point) {
             if (dms.deck) {
                 let deck: FatDeck = dms.deck;
-                if (deck && deck.noteSeqs && deck.noteSeqs.points) {
+                if (deck.noteSeqs.points) {
                     return Passage({
                         deck: deck,
                         mode: appState.mode.value,
@@ -443,28 +441,22 @@ function dmsSetEditingDeckRefs<T extends FatDeck>(
 }
 
 function applyRefsAndCardsToNotes<T extends FatDeck>(deck: T) {
-    if (deck.notes) {
-        if (deck.refs) {
-            const refsInNotes = hashByNoteIds(deck.refs);
-            for (let i = 0; i < deck.notes.length; i++) {
-                let n = deck.notes[i];
-                n.refs = refsInNotes[n.id] || [];
-                if (n.refs) {
-                    n.refs.sort(sortByDeckKindThenName);
-                }
-            }
+    const refsInNotes = hashByNoteIds(deck.refs);
+    for (let i = 0; i < deck.notes.length; i++) {
+        let n = deck.notes[i];
+        n.refs = refsInNotes[n.id] || [];
+        if (n.refs) {
+            n.refs.sort(sortByDeckKindThenName);
         }
+    }
 
-        if (deck.flashcards) {
-            const cardsInNotes = hashByNoteIds(deck.flashcards);
-            for (let i = 0; i < deck.notes.length; i++) {
-                let n = deck.notes[i];
-                if (cardsInNotes[n.id]) {
-                    n.flashcards = cardsInNotes[n.id];
-                } else {
-                    n.flashcards = [];
-                }
-            }
+    const cardsInNotes = hashByNoteIds(deck.flashcards);
+    for (let i = 0; i < deck.notes.length; i++) {
+        let n = deck.notes[i];
+        if (cardsInNotes[n.id]) {
+            n.flashcards = cardsInNotes[n.id];
+        } else {
+            n.flashcards = [];
         }
     }
 
@@ -492,6 +484,7 @@ function buildNoteSeqs<T extends FatDeck>(deck: T) {
     // build NoteSeqs for notes associated with points
     let points: { [id: Key]: Notes } = noteSeqsForPoints(deck.notes);
     // add empty noteSeqs for points without any notes
+
     if (deck.points) {
         deck.points.forEach((p) => {
             if (!points[p.id]) {
@@ -590,20 +583,17 @@ function buildBackRefNoteSeqs(
 }
 
 function buildBackRefsGroupedByResource<T extends FatDeck>(deck: T) {
-    let backrefs: Array<Reference> = deck.backrefs || [];
-    let backnotes: Array<BackNote> = deck.backnotes || [];
-
     const backRefDecks: Array<BackRefDeck> = [];
     // key = deck id, value = array of notes
     const brNote = {};
 
-    if (!nonEmptyArray<Reference>(backrefs)) {
+    if (!nonEmptyArray<Reference>(deck.backrefs)) {
         return undefined;
     }
 
     // file into backRefDecks with notes
     //
-    backnotes.forEach((n: BackNote) => {
+    deck.backnotes.forEach((n: BackNote) => {
         if (
             backRefDecks.length === 0 ||
             backRefDecks[backRefDecks.length - 1].deckId !== n.id
@@ -643,7 +633,7 @@ function buildBackRefsGroupedByResource<T extends FatDeck>(deck: T) {
 
     // attach refs to the correct notes
     //
-    backrefs.forEach((br: Reference) => {
+    deck.backrefs.forEach((br: Reference) => {
         // find the noteId
         for (let i = 0; i < backRefDecks.length; i++) {
             let d: BackRefDeck = backRefDecks[i];

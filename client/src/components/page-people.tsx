@@ -173,6 +173,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
         }
 
         if (person.points) {
+            // refactor todo
             return person.points.find(hasBirth);
         }
         return false;
@@ -447,7 +448,7 @@ function PersonSlimEvent({ event }: { event: SlimEvent }) {
         <li class={klass}>
             <span class="point-age">{ageText}</span>
             <span>{svgBlank()}</span>
-            <DeckLink slimDeck={event} />
+            <DeckLink slimDeck={event} /> <span>{event.dateTextual}</span>
         </li>
     );
 }

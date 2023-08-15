@@ -32,7 +32,7 @@ pub enum PointKind {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProtoPoint {
-    pub title: Option<String>,
+    pub title: String,
     pub kind: PointKind,
 
     pub location_textual: Option<String>,
@@ -52,7 +52,7 @@ pub struct ProtoPoint {
 pub struct Point {
     pub id: Key,
     pub kind: PointKind,
-    pub title: Option<String>,
+    pub title: String,
     pub font: Font,
 
     pub location_textual: Option<String>,

@@ -59,14 +59,14 @@ impl From<(decks::DeckBase, QuoteExtra)> for interop::Quote {
             insignia: deck.insignia,
             font: deck.font,
 
-            notes: None,
+            notes: vec![],
 
-            refs: None,
+            refs: vec![],
 
-            backnotes: None,
-            backrefs: None,
+            backnotes: vec![],
+            backrefs: vec![],
 
-            flashcards: None,
+            flashcards: vec![],
         }
     }
 }
@@ -82,14 +82,14 @@ fn quote_from_row(row: &Row) -> crate::Result<interop::Quote> {
         insignia: row.get(3)?,
         font: Font::try_from(fnt)?,
 
-        notes: None,
+        notes: vec![],
 
-        refs: None,
+        refs: vec![],
 
-        backnotes: None,
-        backrefs: None,
+        backnotes: vec![],
+        backrefs: vec![],
 
-        flashcards: None,
+        flashcards: vec![],
     })
 }
 

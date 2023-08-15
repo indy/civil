@@ -34,12 +34,12 @@ fn from_row(row: &Row) -> crate::Result<interop::Timeline> {
         deck_kind: DeckKind::Timeline,
         insignia: row.get(4)?,
         font: Font::try_from(fnt)?,
-        points: None,
-        notes: None,
-        refs: None,
-        backnotes: None,
-        backrefs: None,
-        flashcards: None,
+        points: vec![],
+        notes: vec![],
+        refs: vec![],
+        backnotes: vec![],
+        backrefs: vec![],
+        flashcards: vec![],
     })
 }
 

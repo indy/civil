@@ -124,17 +124,11 @@ fn sqlite_augment(
     idea: &mut interop::Idea,
     idea_id: Key,
 ) -> crate::Result<()> {
-    let notes = notes_db::all_from_deck(sqlite_pool, idea_id)?;
-    let refs = decks_db::from_deck_id_via_notes_to_decks(sqlite_pool, idea_id)?;
-    let backnotes = decks_db::get_backnotes(sqlite_pool, idea_id)?;
-    let backrefs = decks_db::get_backrefs(sqlite_pool, idea_id)?;
-    let flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, idea_id)?;
-
-    idea.notes = Some(notes);
-    idea.refs = Some(refs);
-    idea.backnotes = Some(backnotes);
-    idea.backrefs = Some(backrefs);
-    idea.flashcards = Some(flashcards);
+    idea.notes = notes_db::all_from_deck(sqlite_pool, idea_id)?;
+    idea.refs = decks_db::from_deck_id_via_notes_to_decks(sqlite_pool, idea_id)?;
+    idea.backnotes = decks_db::get_backnotes(sqlite_pool, idea_id)?;
+    idea.backrefs = decks_db::get_backrefs(sqlite_pool, idea_id)?;
+    idea.flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, idea_id)?;
 
     Ok(())
 }

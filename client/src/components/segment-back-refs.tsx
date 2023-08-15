@@ -17,7 +17,7 @@ export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
     const font = deck ? deck.font : immutableState.defaultFont;
 
     const backrefGroups: Array<ComponentChildren> = [];
-    if (deck && deck.backRefDecksGroupedByKind) {
+    if (deck) {
         const group = deck.backRefDecksGroupedByKind;
 
         immutableState.deckKindOrder.forEach((deckKind: DeckKind) => {

@@ -37,13 +37,13 @@ fn person_with_sortdate_from_row(row: &Row) -> crate::Result<interop::Person> {
         insignia: row.get(3)?,
         font: Font::try_from(fnt)?,
         sort_date: row.get(2)?,
-        points: None,
-        events: None,
-        notes: None,
-        refs: None,
-        backnotes: None,
-        backrefs: None,
-        flashcards: None,
+        points: vec![],
+        events: vec![],
+        notes: vec![],
+        refs: vec![],
+        backnotes: vec![],
+        backrefs: vec![],
+        flashcards: vec![],
     })
 }
 
@@ -57,13 +57,13 @@ fn person_from_row(row: &Row) -> crate::Result<interop::Person> {
         insignia: row.get(4)?,
         font: Font::try_from(fnt)?,
         sort_date: None,
-        points: None,
-        events: None,
-        notes: None,
-        refs: None,
-        backnotes: None,
-        backrefs: None,
-        flashcards: None,
+        points: vec![],
+        events: vec![],
+        notes: vec![],
+        refs: vec![],
+        backnotes: vec![],
+        backrefs: vec![],
+        flashcards: vec![],
     })
 }
 

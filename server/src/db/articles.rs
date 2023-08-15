@@ -56,14 +56,14 @@ impl From<(decks::DeckBase, ArticleExtra)> for interop::Article {
 
             rating: extra.rating,
 
-            notes: None,
+            notes: vec![],
 
-            refs: None,
+            refs: vec![],
 
-            backnotes: None,
-            backrefs: None,
+            backnotes: vec![],
+            backrefs: vec![],
 
-            flashcards: None,
+            flashcards: vec![],
 
             published_date: extra.published_date,
         }
@@ -90,14 +90,14 @@ fn from_row(row: &Row) -> crate::Result<interop::Article> {
 
         rating: row.get(5)?,
 
-        notes: None,
+        notes: vec![],
 
-        refs: None,
+        refs: vec![],
 
-        backnotes: None,
-        backrefs: None,
+        backnotes: vec![],
+        backrefs: vec![],
 
-        flashcards: None,
+        flashcards: vec![],
 
         published_date: row.get(7)?,
     })

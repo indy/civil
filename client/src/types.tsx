@@ -141,10 +141,10 @@ export type SlimEvent = SlimDeck & {
 export type FatDeck = SlimDeck & {
     // received from server
     //
-    backnotes?: Array<BackNote>;
-    backrefs?: Array<Reference>;
-    flashcards?: Array<FlashCard>;
-    refs?: Array<Reference>;
+    backnotes: Array<BackNote>;
+    backrefs: Array<Reference>;
+    flashcards: Array<FlashCard>;
+    refs: Array<Reference>;
     points?: Array<Point>;
     events?: Array<SlimEvent>;
 
@@ -154,8 +154,8 @@ export type FatDeck = SlimDeck & {
 
     // generated client side with data from server
     //
-    noteSeqs?: NoteSeqs;
-    backRefDecksGroupedByKind?: Record<DeckKind, Array<BackRefDeck>>;
+    noteSeqs: NoteSeqs;
+    backRefDecksGroupedByKind: Record<DeckKind, Array<BackRefDeck>>;
 };
 
 export type BackRefDeck = {
@@ -274,7 +274,7 @@ export type ProtoPoint = {
 export type Point = {
     id: Key;
     kind: PointKind;
-    title?: string;
+    title: string;
     font: Font;
 
     locationTextual?: string;
@@ -303,7 +303,7 @@ export type FlashCard = {
 };
 
 export type ResultList = {
-    results?: Array<SlimDeck>;
+    results: Array<SlimDeck>;
 };
 
 export type IdeasListings = {
@@ -351,15 +351,6 @@ export type WasmInterface = {
 export type VisiblePreview = {
     id: Key;
     showing: boolean; // replace boolean with enum
-};
-
-export type Command = {
-    command?: string;
-    description?: string;
-    quoteAround?: string;
-    fn?: (args?: any) => any;
-    spacer?: boolean;
-    giveState?: boolean;
 };
 
 export enum CommandBarMode {

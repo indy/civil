@@ -36,14 +36,14 @@ pub struct Idea {
 
     pub created_at: chrono::NaiveDateTime,
 
-    pub notes: Option<Vec<Note>>,
+    pub notes: Vec<Note>,
 
-    pub refs: Option<Vec<Ref>>,
+    pub refs: Vec<Ref>,
 
-    pub backnotes: Option<Vec<BackNote>>,
-    pub backrefs: Option<Vec<Ref>>,
+    pub backnotes: Vec<BackNote>,
+    pub backrefs: Vec<Ref>,
 
-    pub flashcards: Option<Vec<FlashCard>>,
+    pub flashcards: Vec<FlashCard>,
 }
 
 impl From<crate::db::decks::DeckBase> for Idea {
@@ -61,14 +61,14 @@ impl From<crate::db::decks::DeckBase> for Idea {
 
             created_at: d.created_at,
 
-            notes: None,
+            notes: vec![],
 
-            refs: None,
+            refs: vec![],
 
-            backnotes: None,
-            backrefs: None,
+            backnotes: vec![],
+            backrefs: vec![],
 
-            flashcards: None,
+            flashcards: vec![],
         }
     }
 }

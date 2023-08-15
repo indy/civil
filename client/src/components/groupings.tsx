@@ -75,14 +75,12 @@ function LazyLoadedGrouping({ label, url }: LazyLoadedGroupingProps) {
         });
         if (visible && !localState.fetchedData) {
             Net.get<ResultList>(url).then((resultList) => {
-                if (resultList.results) {
-                    setLocalState({
-                        ...localState,
-                        fetchedData: true,
-                        list: resultList.results,
-                        show: true,
-                    });
-                }
+                setLocalState({
+                    ...localState,
+                    fetchedData: true,
+                    list: resultList.results,
+                    show: true,
+                });
             });
         }
     }
