@@ -145,7 +145,7 @@ export type FatDeck = SlimDeck & {
     backrefs?: Array<Reference>;
     flashcards?: Array<FlashCard>;
     refs?: Array<Reference>;
-    points?: Array<DeckPoint>;
+    points?: Array<Point>;
     events?: Array<SlimEvent>;
 
     // received from server and then modified by the client
@@ -271,7 +271,7 @@ export type ProtoPoint = {
     dateFuzz: number;
 };
 
-export type DeckPoint = {
+export type Point = {
     id: Key;
     kind: PointKind;
     title?: string;
@@ -548,8 +548,8 @@ export type DM<T extends FatDeck> = {
     onShowReviewClicked: () => void;
     buildPointForm: (onSuccessCallback: () => void) => any;
     onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
-    passageForDeckPoint: (deckPoint: DeckPoint) => any;
-    pointHasNotes: (point: DeckPoint) => boolean;
+    passageForPoint: (point: Point) => any;
+    pointHasNotes: (point: Point) => boolean;
     canShowPassage: (noteKind: NoteKind) => boolean;
     howToShowPassage: (noteKind: NoteKind) => PassageHowToShow;
 };

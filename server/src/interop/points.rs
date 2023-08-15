@@ -29,26 +29,6 @@ pub enum PointKind {
     PointEnd,
 }
 
-#[derive(PartialEq, Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Point {
-    pub id: Key,
-    pub kind: PointKind,
-    pub title: Option<String>,
-    pub font: Font,
-
-    pub location_textual: Option<String>,
-    pub longitude: Option<f32>,
-    pub latitude: Option<f32>,
-    pub location_fuzz: f32,
-
-    pub date_textual: Option<String>,
-    pub exact_date: Option<chrono::NaiveDate>,
-    pub lower_date: Option<chrono::NaiveDate>,
-    pub upper_date: Option<chrono::NaiveDate>,
-    pub date_fuzz: f32,
-}
-
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProtoPoint {
@@ -67,12 +47,9 @@ pub struct ProtoPoint {
     pub date_fuzz: f32,
 }
 
-// a point with additional information about the deck that 'owns' the point
-// (used when returning all the points that happened during a person's life)
-//
 #[derive(PartialEq, Eq, Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct DeckPoint {
+pub struct Point {
     pub id: Key,
     pub kind: PointKind,
     pub title: Option<String>,
@@ -86,45 +63,4 @@ pub struct DeckPoint {
     pub deck_id: Key,
     pub deck_name: String,
     pub deck_kind: DeckKind,
-}
-
-fn eq_naive_dates(a: Option<chrono::NaiveDate>, b: Option<chrono::NaiveDate>) -> bool {
-    if let Some(ad) = a {
-        if let Some(bd) = b {
-            ad == bd
-        } else {
-            false
-        }
-    } else {
-        false
-    }
-}
-
-// probably a better way of doing this
-//
-fn eq_f32(a: Option<f32>, b: Option<f32>) -> bool {
-    if let Some(ad) = a {
-        if let Some(bd) = b {
-            ad == bd
-        } else {
-            false
-        }
-    } else {
-        false
-    }
-}
-
-impl PartialEq<Point> for ProtoPoint {
-    fn eq(&self, other: &Point) -> bool {
-        self.title == other.title
-            && self.location_textual.as_deref() == other.location_textual.as_deref()
-            && eq_f32(self.longitude, other.longitude)
-            && eq_f32(self.latitude, other.latitude)
-            && self.location_fuzz == other.location_fuzz
-            && self.date_textual.as_deref() == other.date_textual.as_deref()
-            && eq_naive_dates(self.exact_date, other.exact_date)
-            && eq_naive_dates(self.lower_date, other.lower_date)
-            && eq_naive_dates(self.upper_date, other.upper_date)
-            && self.date_fuzz == other.date_fuzz
-    }
 }

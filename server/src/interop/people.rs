@@ -19,7 +19,7 @@ use crate::interop::decks::{BackNote, DeckKind, Ref, SlimDeck, SlimEvent};
 use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
 use crate::interop::notes::Note;
-use crate::interop::points::DeckPoint;
+use crate::interop::points::Point;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -39,7 +39,7 @@ pub struct Person {
     // directly connected to the person's life, but it's interesting to see
     // what was happening during their lifetime
     //
-    pub points: Option<Vec<DeckPoint>>,
+    pub points: Option<Vec<Point>>,
     pub events: Option<Vec<SlimEvent>>,
 
     pub notes: Option<Vec<Note>>,

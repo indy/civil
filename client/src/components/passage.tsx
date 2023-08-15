@@ -3,7 +3,7 @@ import { h } from "preact";
 import {
     ProtoNoteReferences,
     ReferencesApplied,
-    DeckPoint,
+    Point,
     FatDeck,
     Key,
     Note,
@@ -28,7 +28,7 @@ type PassageProps = {
     onUpdateDeck: (d: FatDeck) => void;
     notes: Notes;
     onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
-    optionalDeckPoint?: DeckPoint;
+    optionalPoint?: Point;
     appendLabel: string;
     noteKind: NoteKind;
     noAppend?: boolean;
@@ -42,7 +42,7 @@ export default function Passage({
     onUpdateDeck,
     notes,
     onRefsChanged,
-    optionalDeckPoint,
+    optionalPoint,
     appendLabel,
     noteKind,
     noAppend,
@@ -132,7 +132,7 @@ export default function Passage({
         let nextNoteId = undefined;
         let prevNoteId =
             notes && notes.length > 0 ? notes[notes.length - 1].id : undefined;
-        let optionalPointId = optionalDeckPoint && optionalDeckPoint.id;
+        let optionalPointId = optionalPoint && optionalPoint.id;
         return (
             <NoteForm
                 label={appendLabel}
@@ -150,10 +150,10 @@ export default function Passage({
 
     function buildNoteFormIcon() {
         function onAddNoteClicked(e: Event) {
-            if (optionalDeckPoint) {
+            if (optionalPoint) {
                 AppStateChange.showNoteForm({
                     noteKind,
-                    pointId: optionalDeckPoint.id,
+                    pointId: optionalPoint.id,
                 });
             } else {
                 AppStateChange.showNoteForm({ noteKind });
@@ -162,7 +162,7 @@ export default function Passage({
             e.preventDefault();
         }
 
-        if (optionalDeckPoint) {
+        if (optionalPoint) {
             return (
                 <WhenEditMode>
                     <div class="inline-append-note">
@@ -215,18 +215,17 @@ export default function Passage({
         return appState.showNoteForm.value[noteKind];
     }
 
-    function correctDeckPointScope() {
+    function correctPointScope() {
         let showNoteFormPointId = appState.showNoteFormPointId.value;
         return (
-            (optionalDeckPoint &&
-                showNoteFormPointId === optionalDeckPoint.id) ||
-            (!optionalDeckPoint && !showNoteFormPointId)
+            (optionalPoint && showNoteFormPointId === optionalPoint.id) ||
+            (!optionalPoint && !showNoteFormPointId)
         );
     }
 
     if (!noAppend) {
         // checks to make sure the correct NoteForm is displayed
-        if (correctNoteKind() && correctDeckPointScope()) {
+        if (correctNoteKind() && correctPointScope()) {
             addNoteUI = buildNoteForm();
         } else {
             addNoteUI = buildNoteFormIcon();

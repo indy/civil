@@ -50,67 +50,11 @@ impl FromStr for interop::PointKind {
 }
 
 fn point_from_row(row: &Row) -> crate::Result<interop::Point> {
-    let sql_kind: String = row.get(1)?;
-    let fnt: i32 = row.get(12)?;
-
-    Ok(interop::Point {
-        id: row.get(0)?,
-        kind: interop::PointKind::from_str(&sql_kind)?,
-        title: row.get(2)?,
-        font: Font::try_from(fnt)?,
-
-        location_textual: row.get(3)?,
-        longitude: row.get(4)?,
-        latitude: row.get(5)?,
-        location_fuzz: row.get(6)?,
-
-        date_textual: row.get(7)?,
-        exact_date: row.get(8)?,
-        lower_date: row.get(9)?,
-        upper_date: row.get(10)?,
-        date_fuzz: row.get(11)?,
-    })
-}
-
-pub(crate) fn all(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    deck_id: Key,
-) -> crate::Result<Vec<interop::Point>> {
-    let conn = sqlite_pool.get()?;
-
-    sqlite::many(
-        &conn,
-        "select p.id,
-                p.kind,
-                p.title,
-                p.location_textual,
-                p.longitude,
-                p.latitude,
-                p.location_fuzz,
-                p.date_textual,
-                date(p.exact_realdate),
-                date(p.lower_realdate),
-                date(p.upper_realdate),
-                p.date_fuzz,
-                p.font
-         from   decks d,
-                points p
-         where  d.user_id = ?1
-                and d.id = ?2
-                and p.deck_id = d.id
-         order by coalesce(p.exact_realdate, p.lower_realdate)",
-        params![&user_id, &deck_id],
-        point_from_row,
-    )
-}
-
-fn deckpoint_from_row(row: &Row) -> crate::Result<interop::DeckPoint> {
     let string_deck_kind: String = row.get(2)?;
     let string_point_kind: String = row.get(4)?;
     let fnt: i32 = row.get(9)?;
 
-    Ok(interop::DeckPoint {
+    Ok(interop::Point {
         id: row.get(3)?,
         kind: interop::PointKind::from_str(&string_point_kind)?,
         title: row.get(5)?,
@@ -127,11 +71,42 @@ fn deckpoint_from_row(row: &Row) -> crate::Result<interop::DeckPoint> {
     })
 }
 
+pub(crate) fn all(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_id: Key,
+) -> crate::Result<Vec<interop::Point>> {
+    let conn = sqlite_pool.get()?;
+
+    sqlite::many(
+        &conn,
+        "select d.id as deck_id,
+                d.name as deck_name,
+                d.kind as deck_kind,
+                p.id,
+                p.kind,
+                p.title,
+                p.location_textual,
+                p.date_textual,
+                coalesce(date(p.exact_realdate), date(p.lower_realdate)) as date,
+                p.font,
+                coalesce(p.exact_realdate, p.lower_realdate) as sortdate
+         from   decks d,
+                points p
+         where  d.user_id = ?1
+                and d.id = ?2
+                and p.deck_id = d.id
+         order by sortdate",
+        params![&user_id, &deck_id],
+        point_from_row,
+    )
+}
+
 pub(crate) fn all_points_during_life(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
-) -> crate::Result<Vec<interop::DeckPoint>> {
+) -> crate::Result<Vec<interop::Point>> {
     let conn = sqlite_pool.get()?;
 
     // a union of two queries:
@@ -181,7 +156,7 @@ pub(crate) fn all_points_during_life(
                 and d.user_id = ?1
          order by sortdate",
         params![&user_id, &deck_id],
-        deckpoint_from_row
+        point_from_row
     )
 }
 

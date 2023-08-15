@@ -6,7 +6,7 @@ import {
     BackRefDeck,
     CivilMode,
     DeckKind,
-    DeckPoint,
+    Point,
     FatDeck,
     FlashCard,
     Key,
@@ -248,26 +248,26 @@ export default function useDeckManager<T extends FatDeck>(
             );
         },
         onRefsChanged,
-        passageForDeckPoint: function (deckPoint: DeckPoint) {
+        passageForPoint: function (point: Point) {
             if (dms.deck) {
                 let deck: FatDeck = dms.deck;
                 if (deck && deck.noteSeqs && deck.noteSeqs.points) {
                     return Passage({
                         deck: deck,
                         mode: appState.mode.value,
-                        notes: deck.noteSeqs.points[deckPoint.id],
+                        notes: deck.noteSeqs.points[point.id],
                         onUpdateDeck: update,
                         onRefsChanged,
-                        optionalDeckPoint: deckPoint,
-                        appendLabel: `Append Note to ${deckPoint.title}`,
+                        optionalPoint: point,
+                        appendLabel: `Append Note to ${point.title}`,
                         noteKind: NoteKind.Note,
-                        extraClasses: "passage-for-deckpoint",
+                        extraClasses: "passage-for-point",
                     });
                 }
             }
             return "FAKE";
         },
-        pointHasNotes: function (point: DeckPoint) {
+        pointHasNotes: function (point: Point) {
             if (dms.deck) {
                 return dms.deck.notes.some((n) => n.pointId === point.id);
             } else {

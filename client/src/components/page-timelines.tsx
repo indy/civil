@@ -5,7 +5,7 @@ import {
     DeckKind,
     DeckManagerFlags,
     DM,
-    DeckPoint,
+    Point,
     DeckTimeline,
     Font,
     SlimDeck,
@@ -290,12 +290,12 @@ function TimelineUpdater({
     );
 }
 
-function TimelineDeckPoint({
-    deckPoint,
+function TimelinePoint({
+    point,
     hasNotes,
     passage,
 }: {
-    deckPoint: DeckPoint;
+    point: Point;
     hasNotes: boolean;
     passage: PassageType;
 }) {
@@ -307,7 +307,7 @@ function TimelineDeckPoint({
     }
 
     return (
-        <li class="relevent-deckpoint">
+        <li class="relevent-point">
             <span onClick={onClicked}>
                 {expanded
                     ? svgCaretDown()
@@ -315,7 +315,7 @@ function TimelineDeckPoint({
                     ? svgCaretRight()
                     : svgCaretRightEmpty()}
             </span>
-            {deckPoint.title} {deckPoint.dateTextual}
+            {point.title} {point.dateTextual}
             {expanded && <div class="point-notes">{passage}</div>}
         </li>
     );
@@ -327,7 +327,7 @@ function SegmentPoints({
     deckManager,
     showAddPointForm,
 }: {
-    points: Array<DeckPoint> | undefined;
+    points: Array<Point> | undefined;
     title: string;
     deckManager: DM<DeckTimeline>;
     showAddPointForm: boolean;
@@ -346,11 +346,11 @@ function SegmentPoints({
 
     let arr = points || [];
     let dps = arr.map((dp) => (
-        <TimelineDeckPoint
+        <TimelinePoint
             key={dp.id}
-            passage={deckManager.passageForDeckPoint(dp)}
+            passage={deckManager.passageForPoint(dp)}
             hasNotes={deckManager.pointHasNotes(dp)}
-            deckPoint={dp}
+            point={dp}
         />
     ));
 

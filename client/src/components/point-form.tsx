@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { useState, useRef } from "preact/hooks";
 
-import { DeckPoint, GeoResult, PointKind, ProtoPoint } from "types";
+import { Point, GeoResult, PointKind, ProtoPoint } from "types";
 
 import { geoGet, getLatitudeLongitude } from "shared/geo";
 import {
@@ -17,7 +17,7 @@ import CivilTextArea from "components/civil-text-area";
 type PointFormProps = {
     pointKind?: PointKind;
     pointTitle?: string;
-    onSubmit?: (p: ProtoPoint | DeckPoint) => void;
+    onSubmit?: (p: ProtoPoint | Point) => void;
     submitMessage?: string;
     timeLegend?: string;
     locationLegend?: string;

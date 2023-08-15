@@ -482,7 +482,7 @@ h1 {
 .module {
 }
 
-.passage-for-deckpoint {
+.passage-for-point {
     --block-width: 98%;
     --civ-left-margin-left: -33.5%;
 }
@@ -1936,27 +1936,27 @@ input:required {
     list-style: none;
 }
 
-.deckpoint-block label {
+.point-block label {
 }
-.deckpoint-block input {
+.point-block input {
     width: 2rem;
     margin-top: 0.3rem;
     margin-left: 2rem;
 }
 
-/* .deckpoint-block label { display: inline-block; width: 12rem; text-align: right; } */
-/* .deckpoint-block input { width: 2rem; } */
+/* .point-block label { display: inline-block; width: 12rem; text-align: right; } */
+/* .point-block input { width: 2rem; } */
 
-.deckpoint {
+.point {
     color: var(--fg1);
 }
 
-.deckpoint a {
+.point a {
     /* same as the background colour, this is how to hide the underline effect used in tufte.css */
     background: var(--bg);
 }
 
-.deckpoint-age {
+.point-age {
     display: inline-block;
     width: 1.5rem;
 }
@@ -2372,7 +2372,7 @@ input:required {
         padding-right: 0;
     }
 
-    .passage-for-deckpoint {
+    .passage-for-point {
         --civ-left-margin-left: 0;
         --civ-container-margin-left: 0;
     }
