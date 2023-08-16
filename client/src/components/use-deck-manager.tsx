@@ -719,7 +719,6 @@ function buildBackRefsGroupedByKind<T extends FatDeck>(deck: T) {
         });
     });
 
-
     backRefDecks.forEach((d: BackRefDeck) => {
         if (!groupedByDeckKind[d.deckKind]) {
             groupedByDeckKind[d.deckKind] = [];

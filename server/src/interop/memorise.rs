@@ -20,7 +20,7 @@ use crate::interop::Key;
 
 pub struct CardUpcomingReview {
     pub review_count: i32,
-    pub earliest_review_date: chrono::NaiveDateTime,
+    pub earliest_review_date: Option<chrono::NaiveDateTime>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

@@ -36,7 +36,7 @@ pub(crate) fn login(
                 username: row.get(2)?,
                 email: row.get(1)?,
                 admin: None,
-                theme: row.get(4)?,
+                ui_config_json: row.get(4)?,
             },
         ))
     }
@@ -47,7 +47,7 @@ pub(crate) fn login(
     sqlite::one(
         &conn,
         r#"
-           select id, email, username, password, theme
+           select id, email, username, password, ui_config_json
            from users
            where email = ?1
         "#,
@@ -74,7 +74,7 @@ pub(crate) fn create(
                 username: row.get(2)?,
                 email: row.get(1)?,
                 admin: None,
-                theme: row.get(3)?,
+                ui_config_json: row.get(3)?,
             },
         ))
     }
@@ -82,15 +82,15 @@ pub(crate) fn create(
     sqlite::one(
         &conn,
         r#"
-           insert into users (email, username, password, theme)
+           insert into users (email, username, password, ui_config_json)
            values(?1, ?2, ?3, ?4)
-           returning id, email, username, theme
+           returning id, email, username, ui_config_json
         "#,
         params![
             registration.email,
             registration.username,
             hash,
-            registration.theme
+            registration.ui_config
         ],
         from_row,
     )
@@ -102,7 +102,7 @@ pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<inter
             username: row.get(1)?,
             email: row.get(0)?,
             admin: None,
-            theme: row.get(2)?,
+            ui_config_json: row.get(2)?,
         })
     }
 
@@ -110,7 +110,7 @@ pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<inter
     sqlite::one(
         &conn,
         r#"
-           select email, username, theme
+           select email, username, ui_config_json
            from users
            where id = ?1
         "#,
@@ -119,20 +119,20 @@ pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<inter
     )
 }
 
-pub(crate) fn change_theme(
+pub(crate) fn edit_ui_config(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    theme: &str,
+    ui_config_json: &str,
 ) -> crate::Result<bool> {
     let conn = sqlite_pool.get()?;
     sqlite::zero(
         &conn,
         r#"
            update users
-           set theme = ?2
+           set ui_config_json = ?2
            where id = ?1
         "#,
-        params![user_id, theme],
+        params![user_id, ui_config_json],
     )?;
 
     Ok(true)

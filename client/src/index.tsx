@@ -1,8 +1,9 @@
 import { render, h } from "preact";
 import "./index.css";
 
-import { ColourScheme, User, UberSetup } from "types";
+import { UiConfig, ColourScheme, UserWithUiConfig, UberSetup } from "types";
 
+import { basicUiConfig } from "shared/ui-config";
 import { getCssString, getCssBoolean } from "shared/css";
 import Net from "shared/net";
 import { App } from "app";
@@ -77,16 +78,35 @@ wasm_bindgen("/civil_wasm_bg.wasm")
             // now know that rootElement cannot be null
             //
             const rootElement = root;
-            Net.get<User>("/api/users").then((user) => {
+
+            Net.get<UserWithUiConfig>("/api/users").then((user) => {
                 if (user) {
                     // update initial state with user
                     //
-                    state.user.value = user;
+                    state.user.value = {
+                        username: user.username,
+                        email: user.email,
+                        admin: user.admin,
+                    };
 
-                    AppStateChange.setColourScheme({
-                        colourScheme: colourSchemeFromString(user.theme),
+                    // setup the UI Config:
+                    //
+                    // start with valid default values for the config
+                    let uiConfig: UiConfig = basicUiConfig();
+
+                    // now customise those valid defaults with values from the server
+                    let configFromServer = JSON.parse(
+                        user.uiConfigJson
+                    );
+                    Object.keys(configFromServer).forEach((key) => {
+                        if (key in uiConfig) {
+                            uiConfig[key] = configFromServer[key];
+                        }
                     });
+                    AppStateChange.setUiConfig({ uiConfig });
 
+                    // get the front-page user data
+                    //
                     Net.get<UberSetup>("/api/ubersetup").then((uber) => {
                         AppStateChange.uberSetup({ uber });
                         render(<App state={state} />, rootElement);
@@ -95,9 +115,11 @@ wasm_bindgen("/civil_wasm_bg.wasm")
                     // use system default theme obtained from the css variable "--mode"
                     //
                     let mode = getCssString("--mode");
-                    AppStateChange.setColourScheme({
-                        colourScheme: colourSchemeFromString(mode),
-                    });
+
+                    let uiConfig: UiConfig = basicUiConfig();
+                    uiConfig.colourScheme = colourSchemeFromString(mode);
+
+                    AppStateChange.setUiConfig({ uiConfig });
 
                     render(<App state={state} />, rootElement);
                 }

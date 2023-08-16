@@ -394,6 +394,13 @@ export type ImmutableState = {
     readonly imageZoomMax: number;
 };
 
+// json structure that will be saved server-side
+//
+export type UiConfig = {
+    colourScheme: ColourScheme;
+    decksPerPage: Record<DeckKind, number>;
+};
+
 export type State = {
     waitingFor: Signal<WaitingFor>;
 
@@ -407,9 +414,6 @@ export type State = {
 
     wasmInterface: WasmInterface | undefined;
 
-    colourScheme: ColourScheme;
-    colourSeeds: Signal<ColourSeeds>;
-
     hasPhysicalKeyboard: boolean;
 
     componentRequiresFullKeyboardAccess: Signal<boolean>;
@@ -421,6 +425,9 @@ export type State = {
     url: Signal<string>;
 
     user: Signal<User>;
+    uiConfig: Signal<UiConfig>; // bit of duplication as the User contains the original uiConfig json string
+
+    colourSeeds: Signal<ColourSeeds>;
 
     listing: Signal<Listing>;
 
@@ -583,7 +590,10 @@ export type User = {
     username: string;
     email: string;
     admin?: Admin;
-    theme: string;
+};
+
+export type UserWithUiConfig = User & {
+    uiConfigJson: string;
 };
 
 export enum Role {
@@ -600,8 +610,8 @@ export type StateChangeSpan = {
     calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeColourScheme = {
-    colourScheme: ColourScheme;
+export type StateChangeUiConfig = {
+    uiConfig: UiConfig;
     calledFromBroadcastChannel?: boolean;
 };
 
@@ -749,7 +759,6 @@ export type AppStateChangeArgs =
     | StateChangeAddPreview
     | StateChangeArticle
     | StateChangeBookmarks
-    | StateChangeColourScheme
     | StateChangeCount
     | StateChangeDeckId
     | StateChangeDialogue
@@ -774,7 +783,8 @@ export type AppStateChangeArgs =
     | StateChangeUrl
     | StateChangeUser
     | StateChangeWaitingFor
-    | StateChangeEmpty;
+    | StateChangeEmpty
+    | StateChangeUiConfig;
 
 export type GeoResult = {
     error: number;

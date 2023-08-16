@@ -84,8 +84,9 @@ pub async fn create_user(
 ) -> crate::Result<HttpResponse> {
     info!("create_user");
 
+    let registration = registration.into_inner();
+
     if server_config.registration_magic_word == registration.magic_word {
-        let registration = registration.into_inner();
         let hash = hash_password(&registration.password)?;
 
         let (id, mut user) = db::create(&db_pool, &registration, &hash)?;
@@ -127,19 +128,18 @@ pub async fn get_user(
     }
 }
 
-pub async fn change_theme(
-    colour_scheme_change: Json<interop::ColourSchemeChange>,
+pub async fn edit_ui_config(
+    edit_ui_config: Json<interop::EditUiConfig>,
     db_pool: Data<SqlitePool>,
     session: actix_session::Session,
 ) -> crate::Result<HttpResponse> {
-    info!("change_theme");
+    info!("edit_ui_config");
 
     let user_id = session::user_id(&session)?;
 
-    let colour_scheme_change = colour_scheme_change.into_inner();
-    let theme = colour_scheme_change.theme;
+    let edit_ui_config = edit_ui_config.into_inner();
 
-    db::change_theme(&db_pool, user_id, &theme)?;
+    db::edit_ui_config(&db_pool, user_id, &edit_ui_config.json)?;
 
     // send response
     Ok(HttpResponse::Ok().json(true))

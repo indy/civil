@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS users (
 
        image_count INTEGER DEFAULT 0,
        theme TEXT NOT NULL DEFAULT 'light',
+       ui_config_json TEXT NOT NULL DEFAULT '{}', -- an opaque json string used exclusively by the client
 
        password TEXT NOT NULL
 );
@@ -821,6 +822,11 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
         // user_version 20: event_extras added importance value
         ///////////////////
         M::up("ALTER TABLE event_extras ADD COLUMN importance INTEGER DEFAULT 0;"),
+
+        ///////////////////
+        // user_version 21: users.ui_config json string
+        ///////////////////
+        M::up("ALTER TABLE users ADD COLUMN ui_config_json TEXT NOT NULL DEFAULT '{}';"),
     ]);
 
     let mut conn = Connection::open(db_name)?;

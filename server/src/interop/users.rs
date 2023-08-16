@@ -30,7 +30,7 @@ pub struct Registration {
     pub username: String,
     pub email: String,
     pub password: String,
-    pub theme: String,
+    pub ui_config: String,
     pub magic_word: String,
 }
 
@@ -40,7 +40,7 @@ pub struct User {
     pub username: String,
     pub email: String,
     pub admin: Option<Admin>,
-    pub theme: String,
+    pub ui_config_json: String,
 }
 
 pub struct UserId {
@@ -55,6 +55,6 @@ pub struct Admin {
 
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ColourSchemeChange {
-    pub theme: String,
+pub struct EditUiConfig {
+    pub json: String,
 }

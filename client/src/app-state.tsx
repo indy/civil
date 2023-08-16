@@ -8,7 +8,6 @@ import {
     Bookmark,
     CivilMode,
     CivilSpan,
-    ColourScheme,
     CommandBarMode,
     CommandBarState,
     DeckKind,
@@ -33,7 +32,6 @@ import {
     StateChangeAddPreview,
     StateChangeArticle,
     StateChangeBookmarks,
-    StateChangeColourScheme,
     StateChangeCount,
     StateChangeDeckId,
     StateChangeDialogue,
@@ -59,6 +57,7 @@ import {
     StateChangeUrl,
     StateChangeUser,
     StateChangeWaitingFor,
+    StateChangeUiConfig,
     UberSetup,
     User,
     UserUploadedImage,
@@ -66,6 +65,7 @@ import {
     WaitingFor,
 } from "types";
 
+import { basicUiConfig } from "shared/ui-config";
 import { noteSeq } from "shared/seq";
 import { generateColoursFromSeeds, declareSeeds } from "shared/colour-creator";
 
@@ -73,7 +73,6 @@ const emptyUser: User = {
     username: "",
     email: "",
     admin: { dbName: "" },
-    theme: "light",
 };
 
 function cleanCommandBarState(): CommandBarState {
@@ -182,9 +181,6 @@ const state: State = {
     mode: signal(CivilMode.View),
     wasmInterface: undefined,
 
-    colourScheme: ColourScheme.Light,
-    colourSeeds: signal({}),
-
     // this is set via the --search-always-visible css variable so
     // that mobile touch devices will always show the search bar
     //
@@ -207,6 +203,9 @@ const state: State = {
     url: signal(""),
 
     user: signal(emptyUser),
+    uiConfig: signal(basicUiConfig()),
+
+    colourSeeds: signal({}),
 
     // key == deckKind name of decks
     listing: signal({
@@ -279,15 +278,16 @@ export const getAppState = () => useContext(AppStateContext);
 // into the boilerplate function
 //
 export const AppStateChange = {
-    setColourScheme: build(
+    setUiConfig: build(
         Scope.Local,
-        "setColourScheme",
-        (args: StateChangeColourScheme) => {
-            const colourScheme: ColourScheme = args.colourScheme;
+        "setUiConfig",
+        (args: StateChangeUiConfig) => {
+            let uiConfig = args.uiConfig;
 
-            state.colourScheme = colourScheme;
-            state.colourSeeds.value = declareSeeds(state.colourScheme);
+            state.colourSeeds.value = declareSeeds(uiConfig.colourScheme);
             generateColoursFromSeeds(state, state.colourSeeds.value);
+
+            state.uiConfig.value = uiConfig;
         }
     ),
 

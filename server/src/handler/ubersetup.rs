@@ -51,7 +51,7 @@ struct UberStruct {
     pub recently_used_decks: Vec<SlimDeck>,
     pub recent_images: Vec<interop_uploader::UserUploadedImage>,
     pub memorise_review_count: i32,
-    pub memorise_earliest_review_date: chrono::NaiveDateTime,
+    pub memorise_earliest_review_date: Option<chrono::NaiveDateTime>,
     pub bookmarks: Vec<interop_bookmarks::Bookmark>,
 
     pub ideas: interop_ideas::IdeasListings,
@@ -71,7 +71,6 @@ pub async fn setup(
     let user_id = session::user_id(&session)?;
 
     let directory = user_id;
-
     let recently_used_decks = db_edges::get_recently_used_decks(&sqlite_pool, user_id)?;
     let recent_images = db_uploader::get_recent(&sqlite_pool, user_id, 0)?;
     let upcoming_review =

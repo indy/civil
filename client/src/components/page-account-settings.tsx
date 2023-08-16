@@ -7,6 +7,7 @@ import { ColourScheme, WaitingFor, CivilSpan } from "types";
 import { getAppState, AppStateChange } from "app-state";
 
 import Net from "shared/net";
+import { updateAndSaveUiConfig } from "shared/ui-config";
 
 import Module from "components/module";
 import { svgSun, svgMoon } from "components/svg-icons";
@@ -79,26 +80,21 @@ function SpanOption({ desired, current, setter, children }: SpanOptionProps) {
     );
 }
 
-function colourSchemeAsString(colourScheme: ColourScheme): string {
-    return colourScheme === ColourScheme.Light ? "light" : "dark";
-}
-
 function ColourSchemeSelector({}) {
     const appState = getAppState();
 
-    const [colourScheme, setColourScheme] = useState(appState.colourScheme);
+    const [colourScheme, setColourScheme] = useState(
+        appState.uiConfig.value.colourScheme
+    );
 
-    type ColourSchemeChange = {
-        theme: string;
-    };
-
-    useEffect(() => {
-        Net.post<ColourSchemeChange, any>("api/users/theme", {
-            theme: colourSchemeAsString(colourScheme),
-        });
-
-        AppStateChange.setColourScheme({ colourScheme });
-    }, [colourScheme]);
+    function updateColourScheme(cs: ColourScheme) {
+        setColourScheme(cs);
+        const uiConfig = {
+            ...appState.uiConfig.value,
+            colourScheme: cs,
+        };
+        updateAndSaveUiConfig(uiConfig);
+    }
 
     return (
         <Module heading="colour scheme">
@@ -106,14 +102,14 @@ function ColourSchemeSelector({}) {
                 <ColourSchemeOption
                     desiredScheme={ColourScheme.Light}
                     colourScheme={colourScheme}
-                    setColourScheme={setColourScheme}
+                    setColourScheme={updateColourScheme}
                 >
                     {svgSun()}
                 </ColourSchemeOption>
                 <ColourSchemeOption
                     desiredScheme={ColourScheme.Dark}
                     colourScheme={colourScheme}
-                    setColourScheme={setColourScheme}
+                    setColourScheme={updateColourScheme}
                 >
                     {svgMoon()}
                 </ColourSchemeOption>

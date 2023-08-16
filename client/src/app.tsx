@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { Router, route, RouterOnChangeArgs } from "preact-router";
 
-import { State, User, UberSetup } from "types";
+import { State, UserWithUiConfig, UberSetup, UiConfig } from "types";
 
 import { AppStateChange, AppStateProvider, getAppState } from "app-state";
 
@@ -52,8 +52,21 @@ function DebugMessages() {
 const AppUI = () => {
     const state = getAppState();
 
-    function loginHandler(user: User) {
-        AppStateChange.userLogin({ user });
+    function loginHandler(user: UserWithUiConfig) {
+        AppStateChange.userLogin({
+            user: {
+                username: user.username,
+                email: user.email,
+                admin: user.admin,
+            }
+        });
+
+        let uiConfig: UiConfig = JSON.parse(
+            user.uiConfigJson
+        ) as UiConfig;
+
+        AppStateChange.setUiConfig({ uiConfig });
+
 
         Net.get<UberSetup>("/api/ubersetup").then((uber) => {
             AppStateChange.uberSetup({ uber });

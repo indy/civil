@@ -2,10 +2,9 @@ import { h } from "preact";
 import { useState, useRef } from "preact/hooks";
 import { route } from "preact-router";
 
-import { User } from "types";
+import { UserWithUiConfig } from "types";
 
 import Net from "shared/net";
-import { getCssString } from "shared/css";
 import { getAppState } from "app-state";
 
 import {
@@ -18,7 +17,7 @@ import CivilInput from "components/civil-input";
 
 type Props = {
     path?: string;
-    loginCallback: (_: User) => void;
+    loginCallback: (_: UserWithUiConfig) => void;
 };
 
 export default function Login({ path, loginCallback }: Props) {
@@ -76,14 +75,6 @@ export default function Login({ path, loginCallback }: Props) {
         password: string;
     }
 
-    interface IRegisterData {
-        username: string;
-        email: string;
-        password: string;
-        theme: string;
-        magic_word: string;
-    }
-
     function handleLoginSubmit(event: Event) {
         if (
             emailRef &&
@@ -101,7 +92,7 @@ export default function Login({ path, loginCallback }: Props) {
             let email: string = ec.value.trim();
             let password: string = pc.value.trim();
 
-            Net.post<IAuthData, User>("api/auth", {
+            Net.post<IAuthData, UserWithUiConfig>("api/auth", {
                 email,
                 password,
             })
@@ -129,15 +120,25 @@ export default function Login({ path, loginCallback }: Props) {
         );
     }
 
+    type RegisterData = {
+        username: string;
+        email: string;
+        password: string;
+        uiConfig: string;
+        magicWord: string;
+    }
+
     function handleRegisterSubmit(event: Event) {
         if (okToSendRegistration()) {
-            Net.post<IRegisterData, User>("api/users", {
+            console.log("handleRegisterSubmit");
+            let obj = {
                 username: state["register-username"],
                 email: state["register-email"],
                 password: state["register-password"],
-                theme: getCssString("--mode"),
-                magic_word: state["register-magic-word"],
-            }).then((user) => {
+                uiConfig: JSON.stringify(appState.uiConfig.value),
+                magicWord: state["register-magic-word"],
+            };
+            Net.post<RegisterData, UserWithUiConfig>("api/users", obj).then((user) => {
                 loginCallback(user);
             });
         }

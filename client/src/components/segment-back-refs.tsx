@@ -19,7 +19,6 @@ export default function SegmentBackRefs({ deck }: { deck?: FatDeck }) {
     const backrefGroups: Array<ComponentChildren> = [];
     if (deck) {
         const group = deck.backRefDecksGroupedByKind;
-
         immutableState.deckKindOrder.forEach((deckKind: DeckKind) => {
             if (group[deckKind].length > 0) {
                 backrefGroups.push(

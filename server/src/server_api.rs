@@ -60,7 +60,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // registration
         .service(
             scope("/users")
-                .route("/theme", post().to(users::change_theme))
+                .route("/ui_config", put().to(users::edit_ui_config))
                 .route("", post().to(users::create_user))
                 .route("", get().to(users::get_user)),
         )

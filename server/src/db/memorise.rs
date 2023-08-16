@@ -290,15 +290,28 @@ pub(crate) fn get_cards_upcoming_review(
         i32_from_row,
     )?;
 
-    let earliest_review_date = sqlite::one(
+    let num_cards = sqlite::one(
         &tx,
-        "SELECT MIN(next_test_date) as earliest_review_date
+        "SELECT count(*) as review_count
+         FROM cards
+         WHERE user_id = ?1",
+        params![&user_id],
+        i32_from_row,
+    )?;
+
+    let earliest_review_date: Option<chrono::NaiveDateTime> = if num_cards > 0 {
+        Some(sqlite::one(
+            &tx,
+            "SELECT MIN(next_test_date) as earliest_review_date
          FROM cards
          WHERE user_id = ?1
          GROUP BY user_id",
-        params![&user_id],
-        naive_datetime_from_row,
-    )?;
+            params![&user_id],
+            naive_datetime_from_row,
+        )?)
+    } else {
+        None
+    };
 
     tx.commit()?;
 
