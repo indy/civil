@@ -352,7 +352,7 @@ function dmsUpdateDeck<T extends FatDeck>(
     // organise the notes into noteSeqs
     buildNoteSeqs(deck);
     // sort the backnotes into sequences
-    buildBackRefsGroupedByResource(deck);
+    buildBackRefsGroupedByKind(deck);
 
     AppStateChange.urlTitle({ title: deck.title });
     AppStateChange.routeChanged({ url: buildUrl(deckKind, deck.id) });
@@ -582,13 +582,26 @@ function buildBackRefNoteSeqs(
     return res;
 }
 
-function buildBackRefsGroupedByResource<T extends FatDeck>(deck: T) {
+function buildBackRefsGroupedByKind<T extends FatDeck>(deck: T) {
     const backRefDecks: Array<BackRefDeck> = [];
     // key = deck id, value = array of notes
     const brNote = {};
 
+    // group by deckKind kind
+    //
+    let groupedByDeckKind: Record<DeckKind, Array<BackRefDeck>> = {
+        [DeckKind.Article]: [],
+        [DeckKind.Person]: [],
+        [DeckKind.Idea]: [],
+        [DeckKind.Timeline]: [],
+        [DeckKind.Quote]: [],
+        [DeckKind.Dialogue]: [],
+        [DeckKind.Event]: [],
+    };
+
     if (!nonEmptyArray<Reference>(deck.backrefs)) {
-        return undefined;
+        deck.backRefDecksGroupedByKind = groupedByDeckKind;
+        return;
     }
 
     // file into backRefDecks with notes
@@ -706,17 +719,6 @@ function buildBackRefsGroupedByResource<T extends FatDeck>(deck: T) {
         });
     });
 
-    // group by deckKind kind
-    //
-    let groupedByDeckKind: Record<DeckKind, Array<BackRefDeck>> = {
-        [DeckKind.Article]: [],
-        [DeckKind.Person]: [],
-        [DeckKind.Idea]: [],
-        [DeckKind.Timeline]: [],
-        [DeckKind.Quote]: [],
-        [DeckKind.Dialogue]: [],
-        [DeckKind.Event]: [],
-    };
 
     backRefDecks.forEach((d: BackRefDeck) => {
         if (!groupedByDeckKind[d.deckKind]) {
