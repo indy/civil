@@ -34,6 +34,8 @@ import {
     StateChangeBookmarks,
     StateChangeCount,
     StateChangeDeckId,
+    StateChangeDeleteDeck,
+    StateChangeDeckCreated,
     StateChangeDialogue,
     StateChangeEmpty,
     StateChangeEvent,
@@ -207,6 +209,15 @@ const state: State = {
 
     colourSeeds: signal({}),
 
+    numDecksPerDeckKind: signal({
+        [DeckKind.Article]: 0,
+        [DeckKind.Person]: 0,
+        [DeckKind.Idea]: 0,
+        [DeckKind.Timeline]: 0,
+        [DeckKind.Quote]: 0,
+        [DeckKind.Dialogue]: 0,
+        [DeckKind.Event]: 0,
+    }),
     // key == deckKind name of decks
     listing: signal({
         ideas: undefined, // when listing ideas on /ideas page
@@ -521,6 +532,17 @@ export const AppStateChange = {
         state.recentImages.value = uber.recentImages;
         state.recentlyUsedDecks.value = uber.recentlyUsedDecks;
         state.imageDirectory.value = uber.directory;
+
+        state.numDecksPerDeckKind.value = {
+            [DeckKind.Article]: uber.numDecksPerDeckKind.numArticles,
+            [DeckKind.Person]: uber.numDecksPerDeckKind.numPeople,
+            [DeckKind.Idea]: uber.numDecksPerDeckKind.numIdeas,
+            [DeckKind.Timeline]: uber.numDecksPerDeckKind.numTimelines,
+            [DeckKind.Quote]: uber.numDecksPerDeckKind.numQuotes,
+            [DeckKind.Dialogue]: uber.numDecksPerDeckKind.numDialogues,
+            [DeckKind.Event]: uber.numDecksPerDeckKind.numEvents,
+        };
+
         state.memoriseReviewCount.value = uber.memoriseReviewCount;
         state.memoriseEarliestReviewDate.value =
             uber.memoriseEarliestReviewDate;
@@ -734,11 +756,31 @@ export const AppStateChange = {
         }
     ),
 
+    deckCreated: build(
+        Scope.Broadcast,
+        "deckCreated",
+        (args: StateChangeDeckCreated) => {
+            const kind: DeckKind = args.deckKind;
+            const numDecksPerDeckKind = {
+                ...state.numDecksPerDeckKind.value,
+            };
+            numDecksPerDeckKind[kind] += 1;
+            state.numDecksPerDeckKind.value = numDecksPerDeckKind;
+        }
+    ),
+
     deleteDeck: build(
         Scope.Broadcast,
         "deleteDeck",
-        (args: StateChangeDeckId) => {
+        (args: StateChangeDeleteDeck) => {
             const id: Key = args.deckId;
+            const kind: DeckKind = args.deckKind;
+
+            const numDecksPerDeckKind = {
+                ...state.numDecksPerDeckKind.value,
+            };
+            numDecksPerDeckKind[kind] -= 1;
+            state.numDecksPerDeckKind.value = numDecksPerDeckKind;
 
             let filterFn = (d: SlimDeck) => d.id !== id;
 

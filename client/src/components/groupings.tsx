@@ -11,12 +11,17 @@ import ListingLink from "components/listing-link";
 import { StarRatingWithinListing } from "components/star-rating";
 import Toggler from "components/toggler";
 
-function SlimDeckList({ list }: { list: Array<SlimDeck> }) {
-    return (
-        <div>
-            <ul class="standard-list">{buildListing(list)}</ul>
-        </div>
-    );
+function SlimDeckList({
+    list,
+    extraClasses,
+}: {
+    list: Array<SlimDeck>;
+    extraClasses?: string;
+}) {
+    const klass = extraClasses
+        ? `standard-list ${extraClasses}`
+        : "standard-list";
+    return <ul class={klass}>{buildListing(list)}</ul>;
 }
 
 type SlimDeckGroupingProps = {

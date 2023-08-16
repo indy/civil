@@ -1152,6 +1152,41 @@ textarea {
     justify-content: flex-start;
 }
 
+.extra-clearance-for-search-bar {
+    margin-top: 9rem;
+}
+
+.paginator-items {
+    display: flex;
+    justify-content: space-evenly;
+    /* background: yellow; */
+    width: 100%;
+}
+
+.paginator-item {
+}
+
+.paginator-deck-heading {
+    font-size: 200%;
+}
+
+.paginator-page-count {
+    margin-right: 1rem;
+    float: right;
+}
+
+.top-border-line {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 0.1rem solid var(--divider);
+}
+.bottom-border-line {
+    width: 100%;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 0.1rem solid var(--divider);
+}
+
 .command-entry {
     padding: 0.4rem 1rem 0.2rem 1rem;
     border-radius: var(--coloured-deck-border-radius);
@@ -1207,6 +1242,28 @@ textarea {
 }
 
 .c-civil-button:disabled {
+    color: var(--fg-inactive);
+    background: var(--bg);
+}
+
+.c-civil-tab-button {
+    color: var(--fg1);
+    background: var(--ui-control-bg);
+    /* border: 1px solid var(--ui-control-border); */
+    border: 0;
+    border-radius: var(--coloured-deck-border-radius);
+    cursor: pointer;
+    font-family: var(--font-ui);
+    padding: 0.5rem 1rem;
+    position: relative;
+    transition: all ease 0.3s;
+}
+
+.c-civil-tab-button:hover {
+    box-shadow: inset 0 0.2rem 0.4rem var(--ui-control-shadow-2);
+}
+
+.c-civil-tab-button:disabled {
     color: var(--fg-inactive);
     background: var(--bg);
 }

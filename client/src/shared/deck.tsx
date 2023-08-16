@@ -52,6 +52,10 @@ export function createDeck(deckKind: DeckKind, title: string) {
 
     Net.post<ProtoDeck, SlimDeck>(`/api/${resource}`, data).then((deck) => {
         Net.get<AnyDeckListing>(`/api/${resource}/listings`).then((listing) => {
+            AppStateChange.deckCreated({
+                deckKind,
+            });
+
             switch (deckKind) {
                 case DeckKind.Idea:
                     AppStateChange.setIdeaListings({

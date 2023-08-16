@@ -19,10 +19,12 @@ use crate::db::decks as decks_db;
 use crate::db::memorise as memorise_db;
 use crate::db::notes as notes_db;
 use crate::db::quotes as db;
+use crate::handler::PaginationQuery;
+use crate::interop::decks::DeckKind;
 use crate::interop::quotes as interop;
 use crate::interop::{IdParam, Key};
 use crate::session;
-use actix_web::web::{Data, Json, Path};
+use actix_web::web::{self, Data, Json, Path};
 use actix_web::HttpResponse;
 
 use crate::db::sqlite::SqlitePool;
@@ -57,6 +59,25 @@ pub async fn random(
     sqlite_augment(&sqlite_pool, &mut quote)?;
 
     Ok(HttpResponse::Ok().json(quote))
+}
+
+pub async fn pagination(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+    web::Query(query): web::Query<PaginationQuery>,
+) -> crate::Result<HttpResponse> {
+    info!("pagination");
+
+    let user_id = session::user_id(&session)?;
+    let quotes = decks_db::pagination(
+        &sqlite_pool,
+        user_id,
+        DeckKind::Quote,
+        query.offset,
+        query.num_results,
+    )?;
+
+    Ok(HttpResponse::Ok().json(quotes))
 }
 
 pub async fn get(

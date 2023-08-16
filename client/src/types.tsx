@@ -430,6 +430,7 @@ export type State = {
     colourSeeds: Signal<ColourSeeds>;
 
     listing: Signal<Listing>;
+    numDecksPerDeckKind: Signal<Record<DeckKind, number>>;
 
     previewCache: Signal<Record<Key, PreviewDeck>>;
 
@@ -478,10 +479,20 @@ export type UserUploadedImage = {
     filename: string;
 };
 
+export type UberNumDecksPerDeckKind = {
+    numArticles: number;
+    numPeople: number;
+    numIdeas: number;
+    numTimelines: number;
+    numQuotes: number;
+    numDialogues: number;
+    numEvents: number;
+};
 export type UberSetup = {
     directory: string;
     recentlyUsedDecks: Array<SlimDeck>;
     recentImages: Array<UserUploadedImage>;
+    numDecksPerDeckKind: UberNumDecksPerDeckKind;
     memoriseReviewCount: number;
     memoriseEarliestReviewDate: string;
     bookmarks: Array<Bookmark>;
@@ -653,6 +664,17 @@ export type StateChangeDeckId = {
     calledFromBroadcastChannel?: boolean;
 };
 
+export type StateChangeDeckCreated = {
+    deckKind: DeckKind;
+    calledFromBroadcastChannel?: boolean;
+};
+
+export type StateChangeDeleteDeck = {
+    deckKind: DeckKind;
+    deckId: Key;
+    calledFromBroadcastChannel?: boolean;
+};
+
 export type StateChangeAddPreview = {
     slimDeck: SlimDeck;
     previewNotes: PreviewNotes;
@@ -761,6 +783,8 @@ export type AppStateChangeArgs =
     | StateChangeBookmarks
     | StateChangeCount
     | StateChangeDeckId
+    | StateChangeDeckCreated
+    | StateChangeDeleteDeck
     | StateChangeDialogue
     | StateChangeEvent
     | StateChangeGraph

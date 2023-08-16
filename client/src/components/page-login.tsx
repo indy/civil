@@ -126,7 +126,7 @@ export default function Login({ path, loginCallback }: Props) {
         password: string;
         uiConfig: string;
         magicWord: string;
-    }
+    };
 
     function handleRegisterSubmit(event: Event) {
         if (okToSendRegistration()) {
@@ -138,9 +138,11 @@ export default function Login({ path, loginCallback }: Props) {
                 uiConfig: JSON.stringify(appState.uiConfig.value),
                 magicWord: state["register-magic-word"],
             };
-            Net.post<RegisterData, UserWithUiConfig>("api/users", obj).then((user) => {
-                loginCallback(user);
-            });
+            Net.post<RegisterData, UserWithUiConfig>("api/users", obj).then(
+                (user) => {
+                    loginCallback(user);
+                }
+            );
         }
 
         event.preventDefault();

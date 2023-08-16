@@ -19,7 +19,10 @@ export default function DeleteDeckConfirmation({ deckKind, id }: Props) {
         let str = deckKindToResourceString(deckKind);
         Net.delete(`${buildUrl(deckKind, id, "/api")}`, {}).then(() => {
             // remove the resource from the app state
-            AppStateChange.deleteDeck({ deckId: id });
+            AppStateChange.deleteDeck({
+                deckKind,
+                deckId: id,
+            });
             route(`/${str}`, true);
         });
     }

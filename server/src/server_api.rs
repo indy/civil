@@ -70,6 +70,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("", post().to(ideas::create))
                 .route("", get().to(ideas::get_all))
                 .route("/listings", get().to(ideas::get_listings))
+                .route("/pagination", get().to(ideas::pagination))
                 .route("/{id}", get().to(ideas::get))
                 .route(
                     "/{id}/additional_search",
@@ -84,6 +85,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("", post().to(people::create))
                 .route("", get().to(people::get_all))
                 .route("/listings", get().to(people::get_listings))
+                .route("/pagination", get().to(people::pagination))
                 .route("/{id}", get().to(people::get))
                 .route(
                     "/{id}/additional_search",
@@ -99,6 +101,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
             scope("/quotes")
                 .route("", post().to(quotes::create))
                 .route("/random", get().to(quotes::random))
+                .route("/pagination", get().to(quotes::pagination))
                 .route("/{id}", get().to(quotes::get))
                 .route("/{id}", put().to(quotes::edit))
                 .route("/{id}", delete().to(quotes::delete))
@@ -111,6 +114,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("", post().to(timelines::create))
                 .route("", get().to(timelines::get_all))
                 .route("/listings", get().to(timelines::get_all))
+                .route("/pagination", get().to(timelines::pagination))
                 .route("/{id}", get().to(timelines::get))
                 .route("/{id}", put().to(timelines::edit)) // check
                 .route("/{id}", delete().to(timelines::delete))
@@ -123,6 +127,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("", post().to(events::create))
                 .route("", get().to(events::get_all))
                 .route("/listings", get().to(events::get_all))
+                .route("/pagination", get().to(events::pagination))
                 .route("/{id}", get().to(events::get))
                 .route("/{id}", put().to(events::edit))
                 .route("/{id}", delete().to(events::delete)),
@@ -133,6 +138,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("", post().to(articles::create))
                 .route("", get().to(articles::get_all))
                 .route("/listings", get().to(articles::get_listings))
+                .route("/pagination", get().to(articles::pagination))
                 .route("/{id}", get().to(articles::get))
                 .route("/{id}", put().to(articles::edit))
                 .route("/{id}", delete().to(articles::delete)),
@@ -143,6 +149,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/chat", post().to(dialogues::chat))
                 .route("", post().to(dialogues::create))
                 .route("", get().to(dialogues::get_all))
+                .route("/pagination", get().to(dialogues::pagination))
                 .route("/{id}/chat", post().to(dialogues::converse))
                 .route("/{id}", get().to(dialogues::get))
                 .route("/{id}", put().to(dialogues::edit))

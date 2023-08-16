@@ -81,6 +81,65 @@ pub fn recently_visited(
     sqlite::many(&conn, stmt, params![&user_id], slimdeck_from_row)
 }
 
+#[derive(Debug, Clone)]
+pub struct DeckCounter {
+    pub num_decks: usize,
+    pub deck_kind: DeckKind,
+}
+
+fn deck_counter_from_row(row: &Row) -> crate::Result<DeckCounter> {
+    let res: String = row.get(1)?;
+    Ok(DeckCounter {
+        num_decks: row.get(0)?,
+        deck_kind: DeckKind::from_str(&res)?,
+    })
+}
+
+pub(crate) fn num_decks_per_deck_kind(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+) -> crate::Result<interop::NumDecksPerDeckKind> {
+    let conn = sqlite_pool.get()?;
+
+    let stmt = "SELECT count(*), kind
+                FROM decks
+                WHERE user_id=?1
+                GROUP BY kind;";
+
+    let counts: Vec<DeckCounter> =
+        sqlite::many(&conn, stmt, params![&user_id], deck_counter_from_row)?;
+
+    let mut num_articles: usize = 0;
+    let mut num_people: usize = 0;
+    let mut num_ideas: usize = 0;
+    let mut num_timelines: usize = 0;
+    let mut num_quotes: usize = 0;
+    let mut num_dialogues: usize = 0;
+    let mut num_events: usize = 0;
+
+    for c in counts {
+        match c.deck_kind {
+            DeckKind::Article => num_articles = c.num_decks,
+            DeckKind::Person => num_people = c.num_decks,
+            DeckKind::Idea => num_ideas = c.num_decks,
+            DeckKind::Timeline => num_timelines = c.num_decks,
+            DeckKind::Quote => num_quotes = c.num_decks,
+            DeckKind::Dialogue => num_dialogues = c.num_decks,
+            DeckKind::Event => num_events = c.num_decks,
+        }
+    }
+
+    Ok(interop::NumDecksPerDeckKind {
+        num_articles,
+        num_people,
+        num_ideas,
+        num_timelines,
+        num_quotes,
+        num_dialogues,
+        num_events,
+    })
+}
+
 pub(crate) fn slimdeck_from_row(row: &Row) -> crate::Result<interop::SlimDeck> {
     let res: String = row.get(2)?;
     let f: i32 = row.get(4)?;
@@ -99,6 +158,31 @@ pub(crate) const DECKBASE_QUERY: &str =
     "select id, name, created_at, graph_terminator, insignia, font
                                          from decks
                                          where user_id = ?1 and id = ?2 and kind = ?3";
+
+pub(crate) fn pagination(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_kind: DeckKind,
+    offset: i32,
+    num_results: i32,
+) -> crate::Result<Vec<interop::SlimDeck>> {
+    let conn = sqlite_pool.get()?;
+
+    // TODO: sort this by the event date in event_extras
+    let stmt = "SELECT id, name, kind, insignia, font, graph_terminator
+                FROM decks
+                WHERE user_id = ?1 AND kind = ?2
+                ORDER BY created_at DESC
+                LIMIT ?3
+                OFFSET ?4";
+
+    sqlite::many(
+        &conn,
+        stmt,
+        params![&user_id, &deck_kind.to_string(), &num_results, &offset],
+        slimdeck_from_row,
+    )
+}
 
 // note: may execute multiple sql write statements so should be in a transaction
 //

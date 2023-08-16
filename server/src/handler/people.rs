@@ -22,12 +22,13 @@ use crate::db::notes as notes_db;
 use crate::db::people as db;
 use crate::db::points as points_db;
 use crate::db::sqlite::SqlitePool;
-use crate::interop::decks::SearchResults;
+use crate::handler::PaginationQuery;
+use crate::interop::decks::{DeckKind, SearchResults};
 use crate::interop::people as interop;
 use crate::interop::points as points_interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
-use actix_web::web::{Data, Json, Path};
+use actix_web::web::{self, Data, Json, Path};
 use actix_web::HttpResponse;
 
 #[allow(unused_imports)]
@@ -70,6 +71,25 @@ pub async fn get_listings(
     let user_id = session::user_id(&session)?;
 
     let people = db::listings(&sqlite_pool, user_id)?;
+
+    Ok(HttpResponse::Ok().json(people))
+}
+
+pub async fn pagination(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+    web::Query(query): web::Query<PaginationQuery>,
+) -> crate::Result<HttpResponse> {
+    info!("pagination");
+
+    let user_id = session::user_id(&session)?;
+    let people = decks_db::pagination(
+        &sqlite_pool,
+        user_id,
+        DeckKind::Person,
+        query.offset,
+        query.num_results,
+    )?;
 
     Ok(HttpResponse::Ok().json(people))
 }

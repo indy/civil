@@ -16,18 +16,17 @@ export function updateAndSaveUiConfig(uiConfig: UiConfig) {
     AppStateChange.setUiConfig({ uiConfig });
 }
 
-
 export function basicUiConfig(): UiConfig {
     return {
         colourScheme: ColourScheme.Light,
         decksPerPage: {
-            [DeckKind.Article]: 20,
-            [DeckKind.Person]: 20,
-            [DeckKind.Idea]: 20,
-            [DeckKind.Timeline]: 20,
-            [DeckKind.Quote]: 20,
-            [DeckKind.Dialogue]: 20,
-            [DeckKind.Event]: 20,
-        }
-    }
+            [DeckKind.Article]: 15,
+            [DeckKind.Person]: 15,
+            [DeckKind.Idea]: 15,
+            [DeckKind.Timeline]: 15,
+            [DeckKind.Quote]: 15,
+            [DeckKind.Dialogue]: 15,
+            [DeckKind.Event]: 15,
+        },
+    };
 }

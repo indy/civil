@@ -26,6 +26,7 @@ use tracing::info;
 
 use crate::db::articles as db_articles;
 use crate::db::bookmarks as db_bookmarks;
+use crate::db::decks as db_decks;
 use crate::db::dialogues as db_dialogues;
 use crate::db::edges as db_edges;
 use crate::db::events as db_events;
@@ -38,6 +39,7 @@ use crate::db::uploader as db_uploader;
 
 use crate::interop::articles as interop_articles;
 use crate::interop::bookmarks as interop_bookmarks;
+use crate::interop::decks as interop_decks;
 use crate::interop::decks::SlimDeck;
 use crate::interop::ideas as interop_ideas;
 use crate::interop::people as interop_people;
@@ -50,6 +52,7 @@ struct UberStruct {
     pub directory: Key,
     pub recently_used_decks: Vec<SlimDeck>,
     pub recent_images: Vec<interop_uploader::UserUploadedImage>,
+    pub num_decks_per_deck_kind: interop_decks::NumDecksPerDeckKind,
     pub memorise_review_count: i32,
     pub memorise_earliest_review_date: Option<chrono::NaiveDateTime>,
     pub bookmarks: Vec<interop_bookmarks::Bookmark>,
@@ -73,6 +76,7 @@ pub async fn setup(
     let directory = user_id;
     let recently_used_decks = db_edges::get_recently_used_decks(&sqlite_pool, user_id)?;
     let recent_images = db_uploader::get_recent(&sqlite_pool, user_id, 0)?;
+    let num_decks_per_deck_kind = db_decks::num_decks_per_deck_kind(&sqlite_pool, user_id)?;
     let upcoming_review =
         db_memorise::get_cards_upcoming_review(&sqlite_pool, user_id, Utc::now().naive_utc())?;
     let bookmarks = db_bookmarks::get_bookmarks(&sqlite_pool, user_id)?;
@@ -88,6 +92,7 @@ pub async fn setup(
         directory,
         recently_used_decks,
         recent_images,
+        num_decks_per_deck_kind,
         memorise_review_count: upcoming_review.review_count,
         memorise_earliest_review_date: upcoming_review.earliest_review_date,
         bookmarks,

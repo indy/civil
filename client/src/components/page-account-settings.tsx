@@ -2,26 +2,42 @@ import { h, ComponentChildren } from "preact";
 import { route } from "preact-router";
 import { useEffect, useState } from "preact/hooks";
 
-import { ColourScheme, WaitingFor, CivilSpan } from "types";
+import { ColourScheme, /* WaitingFor, */ CivilSpan } from "types";
 
 import { getAppState, AppStateChange } from "app-state";
 
 import Net from "shared/net";
-import { updateAndSaveUiConfig } from "shared/ui-config";
+import { updateAndSaveUiConfig, basicUiConfig } from "shared/ui-config";
 
 import Module from "components/module";
 import { svgSun, svgMoon } from "components/svg-icons";
 import { svgComputer, svgTablet } from "components/svg-icons";
 
 export default function AccountSettings({ path }: { path?: string }) {
+    // <TestColourSchemeModule />
+    // <TestRollupModule />
+
     return (
         <article>
-            <TestColourSchemeModule />
-            <TestRollupModule />
             <ColourSchemeSelector />
             <SpanSelector />
+            <ResetUiConfig />
             <Logout />
         </article>
+    );
+}
+
+function ResetUiConfig({}) {
+    const handleResetUI = () => {
+        updateAndSaveUiConfig(basicUiConfig());
+    };
+
+    return (
+        <Module heading="Reset UI Config">
+            <form onSubmit={handleResetUI}>
+                <input class="c-civil-button" type="submit" value="Reset" />
+            </form>
+        </Module>
     );
 }
 
@@ -165,7 +181,7 @@ function Logout({}) {
         </Module>
     );
 }
-
+/*
 function TestRollupModule({}) {
     if (true) {
         return <div></div>;
@@ -243,3 +259,4 @@ function TestColourSchemeModule({}) {
         </Module>
     );
 }
+*/

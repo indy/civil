@@ -185,3 +185,15 @@ pub struct ResultList {
 pub struct SearchResults {
     pub results: Option<Vec<SlimDeck>>,
 }
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NumDecksPerDeckKind {
+    pub num_articles: usize,
+    pub num_people: usize,
+    pub num_ideas: usize,
+    pub num_timelines: usize,
+    pub num_quotes: usize,
+    pub num_dialogues: usize,
+    pub num_events: usize,
+}

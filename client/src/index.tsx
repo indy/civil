@@ -95,9 +95,7 @@ wasm_bindgen("/civil_wasm_bg.wasm")
                     let uiConfig: UiConfig = basicUiConfig();
 
                     // now customise those valid defaults with values from the server
-                    let configFromServer = JSON.parse(
-                        user.uiConfigJson
-                    );
+                    let configFromServer = JSON.parse(user.uiConfigJson);
                     Object.keys(configFromServer).forEach((key) => {
                         if (key in uiConfig) {
                             uiConfig[key] = configFromServer[key];

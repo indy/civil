@@ -19,10 +19,12 @@ use crate::db::decks as decks_db;
 use crate::db::events as db;
 use crate::db::memorise as memorise_db;
 use crate::db::notes as notes_db;
+use crate::handler::PaginationQuery;
+use crate::interop::decks::DeckKind;
 use crate::interop::events as interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
-use actix_web::web::{Data, Json, Path};
+use actix_web::web::{self, Data, Json, Path};
 use actix_web::HttpResponse;
 
 #[allow(unused_imports)]
@@ -54,6 +56,25 @@ pub async fn get_all(
     let user_id = session::user_id(&session)?;
 
     let events = db::listings(&sqlite_pool, user_id)?;
+
+    Ok(HttpResponse::Ok().json(events))
+}
+
+pub async fn pagination(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+    web::Query(query): web::Query<PaginationQuery>,
+) -> crate::Result<HttpResponse> {
+    info!("pagination");
+
+    let user_id = session::user_id(&session)?;
+    let events = decks_db::pagination(
+        &sqlite_pool,
+        user_id,
+        DeckKind::Event,
+        query.offset,
+        query.num_results,
+    )?;
 
     Ok(HttpResponse::Ok().json(events))
 }

@@ -5,44 +5,20 @@ import { AppStateChange, getAppState, immutableState } from "app-state";
 
 import { capitalise } from "shared/english";
 
-import { IdeasModule } from "components/page-ideas";
-import { PeopleModule } from "components/page-people";
-import { ArticlesModule } from "components/page-articles";
-import { TimelinesModule } from "components/page-timelines";
-import { EventsModule } from "components/page-events";
-import { DialoguesModule } from "components/page-dialogues";
-import { QuotesModule } from "components/page-quotes";
 import InsigniaGrouping from "components/insignia-grouping";
 import { LazyLoadedGrouping } from "components/groupings";
 import { CivContainer, CivMain } from "components/civil-layout";
 
+import Paginator from "components/paginator";
+
 export default function FrontPage({ path }: { path?: string }) {
-    const appState = getAppState();
-
-    const ideas = appState.listing.value.ideas;
-    const people = appState.listing.value.people;
-    const articles = appState.listing.value.articles;
-    const timelines = appState.listing.value.timelines;
-    const dialogues = appState.listing.value.dialogues;
-    const events = appState.listing.value.events;
-
-    if (ideas && people && articles && timelines && dialogues && events) {
-        return (
-            <div>
-                <TopBarMenu />
-                <EventsModule events={events} />
-                <FilterModule />
-                <IdeasModule ideas={ideas} />
-                <ArticlesModule articles={articles} />
-                <PeopleModule people={people} />
-                <DialoguesModule dialogues={dialogues} />
-                <QuotesModule />
-                <TimelinesModule timelines={timelines} />
-            </div>
-        );
-    } else {
-        return <div></div>;
-    }
+    return (
+        <div>
+            <TopBarMenu />
+            <Paginator />
+            <FilterModule />
+        </div>
+    );
 }
 
 function TopBarMenu() {

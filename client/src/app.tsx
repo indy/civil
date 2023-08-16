@@ -58,15 +58,12 @@ const AppUI = () => {
                 username: user.username,
                 email: user.email,
                 admin: user.admin,
-            }
+            },
         });
 
-        let uiConfig: UiConfig = JSON.parse(
-            user.uiConfigJson
-        ) as UiConfig;
+        let uiConfig: UiConfig = JSON.parse(user.uiConfigJson) as UiConfig;
 
         AppStateChange.setUiConfig({ uiConfig });
-
 
         Net.get<UberSetup>("/api/ubersetup").then((uber) => {
             AppStateChange.uberSetup({ uber });
