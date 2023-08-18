@@ -100,5 +100,9 @@ export default function DeckLink({
         );
     }
 
-    return <span ref={hoveringRef}>{elem}</span>;
+    return (
+        <span class="c-deck-link" ref={hoveringRef}>
+            {elem}
+        </span>
+    );
 }

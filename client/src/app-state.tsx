@@ -111,7 +111,7 @@ export const immutableState: ImmutableState = {
 
     // preferred order of the top-level menu bar
     //
-    topMenuOrder: ["memorise"],
+    topMenuOrder: ["memorise", "seek"],
 
     // oldest reasonable age in years, any person whose birth means they're older can be assumed to be dead
     //

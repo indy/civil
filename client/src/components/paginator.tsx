@@ -12,7 +12,7 @@ import Net from "shared/net";
 import ListingLink from "components/listing-link";
 
 import { deckKindToResourceString, deckKindToHeadingString } from "shared/deck";
-import { CivContainer, CivMain } from "components/civil-layout";
+import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 import CivilButton from "components/civil-button";
 import CivilTabButton from "components/civil-tab-button";
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
@@ -20,11 +20,14 @@ import CivilButtonCreateDeck from "components/civil-button-create-deck";
 export default function Paginator({}) {
     const [selected, setSelected] = useState(DeckKind.Idea);
 
+    // margin-top-9 provides the empty space for the command bar to appear
     return (
-        <article class="module extra-clearance-for-search-bar">
+        <article class="c-paginator module margin-top-9">
             <CivContainer>
+                <CivLeft>
+                    <h3 class="ui margin-top-0">Decks</h3>
+                </CivLeft>
                 <CivMain>
-                    <h1 class="ui"></h1>
                     <PaginatorTopSelector
                         setSelected={setSelected}
                         selected={selected}
@@ -49,10 +52,9 @@ function PaginatorTopSelector({
 
     function deckKindClass(deckKind: DeckKind): string {
         if (deckKind === selected) {
-            return `pigment-${deckKindToResourceString(deckKind)}`;
-        } else {
-            return `fook`;
+            return `pigment-${deckKindToResourceString(deckKind)} selected`;
         }
+        return "";
     }
 
     function onClicked(deckKind: DeckKind) {
@@ -70,7 +72,7 @@ function PaginatorTopSelector({
     ];
 
     return (
-        <div class="paginator-items">
+        <div class="c-paginator-top-selector">
             {deckKinds.map((deckKind) => (
                 <div class="paginator-item">
                     <CivilTabButton
@@ -197,7 +199,7 @@ function DeckPaginator({ deckKind }: DeckPaginatorProps) {
     )}`;
 
     return (
-        <div>
+        <div class="c-deck-paginator">
             <div class="top-border-line">
                 <div class="button-row">
                     <CivilButton
@@ -229,5 +231,10 @@ function DeckPaginator({ deckKind }: DeckPaginatorProps) {
 }
 
 function buildListing(list: Array<SlimDeck>): Array<ComponentChildren> {
-    return list.map((deck) => <ListingLink slimDeck={deck} />);
+    return list.map((deck, i) => (
+        <ListingLink
+            slimDeck={deck}
+            extraClasses={i % 2 ? "stripe-a" : "stripe-b"}
+        />
+    ));
 }

@@ -159,74 +159,88 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
     defs = {
         ...defs,
 
-        bg0: [
-            seeds.bgH,
-            seeds.bgS,
-            seeds.bgL + seeds.bgLDelta * 0,
-        ] as ColourTriple,
         bg: [
             seeds.bgH,
             seeds.bgS,
             seeds.bgL + seeds.bgLDelta * 1,
         ] as ColourTriple,
-        bg1: [
+
+        bg_lighter_1: [
             seeds.bgH,
             seeds.bgS,
-            seeds.bgL + seeds.bgLDelta * 2,
+            seeds.bgL + seeds.bgLDelta * 0,
         ] as ColourTriple,
 
-        ui_control_bg: [
+        bg_darker_2: [
             seeds.bgH,
             seeds.bgS,
-            seeds.bgL * seeds.uiFactor,
+            seeds.bgL + seeds.bgLDelta * 2.0,
         ] as ColourTriple,
+
+        bg_darker_3: [
+            seeds.bgH,
+            seeds.bgS,
+            seeds.bgL + seeds.bgLDelta * 3.0,
+        ] as ColourTriple,
+
+        bg_darker_4: [
+            seeds.bgH,
+            seeds.bgS,
+            seeds.bgL + seeds.bgLDelta * 4.0,
+        ] as ColourTriple,
+
+        bg_darker_6: [
+            seeds.bgH,
+            seeds.bgS,
+            seeds.bgL + seeds.bgLDelta * 6.0,
+        ] as ColourTriple,
+
         ui_control_highlight: [
             seeds.bgH,
             seeds.bgS,
-            seeds.bgL * seeds.uiFactor * 2.3,
+            seeds.bgL * seeds.uiFactor,
             0.4,
         ] as ColourQuad,
+
         ui_control_shadow: [
             seeds.bgH,
             seeds.bgS,
             seeds.bgL * 0.2,
             0.1,
         ] as ColourQuad,
+
         ui_control_shadow_2: [
             seeds.bgH,
             seeds.bgS,
             seeds.bgL * 0.1,
             0.1,
         ] as ColourQuad,
-        ui_control_border: [
-            seeds.bgH,
-            seeds.bgS,
-            seeds.bgL * seeds.uiFactor * 0.9,
-        ] as ColourTriple,
 
         fg: [
             seeds.fgH,
             seeds.fgS,
             seeds.fgL + seeds.fgLDelta * 0,
         ] as ColourTriple,
-        fg1: [
+
+        fg_lighter_1: [
             seeds.fgH,
             seeds.fgS,
             seeds.fgL + seeds.fgLDelta * 1,
         ] as ColourTriple,
-        fg2: [
+
+        fg_lighter_2: [
             seeds.fgH,
             seeds.fgS,
             seeds.fgL + seeds.fgLDelta * 2,
         ] as ColourTriple,
 
-        fg_inactive: [
+        fg_lighter_5: [
             seeds.fgH,
             seeds.fgS,
             seeds.fgL + seeds.fgLDelta * 5,
         ] as ColourTriple,
 
-        divider: [
+        fg_lighter_7: [
             seeds.fgH,
             seeds.fgS,
             seeds.fgL + seeds.fgLDelta * 7,

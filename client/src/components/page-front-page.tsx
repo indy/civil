@@ -7,7 +7,7 @@ import { capitalise } from "shared/english";
 
 import InsigniaGrouping from "components/insignia-grouping";
 import { LazyLoadedGrouping } from "components/groupings";
-import { CivContainer, CivMain } from "components/civil-layout";
+import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 
 import Paginator from "components/paginator";
 
@@ -17,6 +17,7 @@ export default function FrontPage({ path }: { path?: string }) {
             <TopBarMenu />
             <Paginator />
             <FilterModule />
+            <StatsModule />
         </div>
     );
 }
@@ -49,11 +50,13 @@ function TopBarMenu() {
     }
 
     function menuItemText(topMenuItem: string): string {
+        let text = capitalise(topMenuItem);
+
         if (topMenuItem === "memorise") {
-            return `Memorise(${appState.memoriseReviewCount.value})`;
-        } else {
-            return capitalise(topMenuItem);
+            text += ` (${appState.memoriseReviewCount.value})`;
         }
+
+        return text;
     }
 
     function menuItemClass(topMenuItem: string): string {
@@ -96,18 +99,32 @@ function TopBarMenu() {
 
 function FilterModule() {
     return (
-        <article class="module">
+        <article class="module margin-top-5">
             <CivContainer>
+                <CivLeft>
+                    <h3 class="ui hack-margin-top-minus-half">Filters</h3>
+                </CivLeft>
                 <CivMain>
-                    <span class="module-top-part">
-                        <span class="button-row"></span>
-                        <h1 class="ui">Filters</h1>
-                    </span>
                     <LazyLoadedGrouping
                         label="Recently Visited"
                         url="/api/decks/recently_visited"
                     />
                     <InsigniaGrouping label="Insignias" />
+                </CivMain>
+            </CivContainer>
+        </article>
+    );
+}
+
+
+function StatsModule() {
+    return (
+        <article class="module margin-top-5">
+            <CivContainer>
+                <CivLeft>
+                    <h3 class="ui hack-margin-top-minus-half">Stats</h3>
+                </CivLeft>
+                <CivMain>
                 </CivMain>
             </CivContainer>
         </article>
