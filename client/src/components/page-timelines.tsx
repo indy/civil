@@ -23,12 +23,11 @@ import {
     svgX,
 } from "components/svg-icons";
 
-import { CivLeft } from "components/civil-layout";
+import CivilTabButton from "components/civil-tab-button";
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilButton from "components/civil-button";
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
-import Module from "components/module";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "components/insignia-selector";
 import RollableSegment from "components/rollable-segment";
@@ -39,15 +38,17 @@ import SegmentNotes from "components/segment-notes";
 import TopMatter from "components/top-matter";
 import FontSelector from "components/font-selector";
 import WhenEditMode from "components/when-edit-mode";
-import { SlimDeckList } from "components/groupings";
+import Pagination from "components/pagination";
+import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import {
     CivContainer,
     CivMain,
     CivForm,
+    CivLeft,
     CivLeftLabel,
 } from "components/civil-layout";
 
-import { deckKindToHeadingString } from "shared/deck";
+// import { deckKindToHeadingString } from "shared/deck";
 
 function Timelines({ path }: { path?: string }) {
     const appState = getAppState();
@@ -68,18 +69,39 @@ function Timelines({ path }: { path?: string }) {
 }
 
 function TimelinesModule({ timelines }: { timelines: Array<SlimDeck> }) {
-    let buttons = (
+    const url = `/api/timelines/pagination`;
+
+    const lowerContent = (
         <CivilButtonCreateDeck
             deckKind={DeckKind.Timeline}
         ></CivilButtonCreateDeck>
     );
+
+    function FakeTopSelector() {
+        return (
+            <div class="c-paginator-top-selector pagination-top-selector">
+                <CivilTabButton extraClasses="selected">All</CivilTabButton>
+            </div>
+        );
+    }
+
     return (
-        <Module
-            heading={deckKindToHeadingString(DeckKind.Timeline)}
-            buttons={buttons}
-        >
-            <SlimDeckList list={timelines} />
-        </Module>
+        <article class="c-timelines-module module margin-top-9">
+            <CivContainer>
+                <CivLeft>
+                    <h3 class="ui margin-top-0">Timelines</h3>
+                </CivLeft>
+                <CivMain>
+                    <FakeTopSelector />
+                    <Pagination
+                        url={url}
+                        renderItem={renderPaginatedSlimDeck}
+                        itemsPerPage={10}
+                        lowerContent={lowerContent}
+                    />
+                </CivMain>
+            </CivContainer>
+        </article>
     );
 }
 

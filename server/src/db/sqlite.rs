@@ -24,6 +24,10 @@ use tracing::error;
 
 pub type SqlitePool = r2d2::Pool<r2d2_sqlite::SqliteConnectionManager>;
 
+pub(crate) fn i32_from_row(row: &Row) -> crate::Result<i32> {
+    Ok(row.get(0)?)
+}
+
 pub(crate) fn zero(conn: &Connection, sql: &str, params: &[&dyn ToSql]) -> crate::Result<()> {
     match conn.execute(sql, params) {
         Ok(_) => return Ok(()),

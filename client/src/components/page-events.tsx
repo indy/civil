@@ -24,11 +24,11 @@ import {
     asHumanReadableDateRange,
 } from "shared/time";
 
+import CivilTabButton from "components/civil-tab-button";
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilButton from "components/civil-button";
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
-import Module from "components/module";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "components/insignia-selector";
 import SegmentBackRefs from "components/segment-back-refs";
@@ -37,16 +37,16 @@ import SegmentGraph from "components/segment-graph";
 import SegmentNotes from "components/segment-notes";
 import TopMatter from "components/top-matter";
 import FontSelector from "components/font-selector";
-import { SlimDeckList } from "components/groupings";
+import Pagination from "components/pagination";
+import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import {
     CivContainer,
     CivMain,
     CivForm,
+    CivLeft,
     CivLeftLabel,
     CivRight,
 } from "components/civil-layout";
-
-import { deckKindToHeadingString } from "shared/deck";
 
 function Events({ path }: { path?: string }) {
     const appState = getAppState();
@@ -67,18 +67,39 @@ function Events({ path }: { path?: string }) {
 }
 
 function EventsModule({ events }: { events: Array<SlimDeck> }) {
-    let buttons = (
+    const url = `/api/events/pagination`;
+
+    const lowerContent = (
         <CivilButtonCreateDeck
             deckKind={DeckKind.Event}
         ></CivilButtonCreateDeck>
     );
+
+    function FakeTopSelector() {
+        return (
+            <div class="c-paginator-top-selector pagination-top-selector">
+                <CivilTabButton extraClasses="selected">All</CivilTabButton>
+            </div>
+        );
+    }
+
     return (
-        <Module
-            heading={deckKindToHeadingString(DeckKind.Event)}
-            buttons={buttons}
-        >
-            <SlimDeckList list={events} />
-        </Module>
+        <article class="c-events-module module margin-top-9">
+            <CivContainer>
+                <CivLeft>
+                    <h3 class="ui margin-top-0">Events</h3>
+                </CivLeft>
+                <CivMain>
+                    <FakeTopSelector />
+                    <Pagination
+                        url={url}
+                        renderItem={renderPaginatedSlimDeck}
+                        itemsPerPage={10}
+                        lowerContent={lowerContent}
+                    />
+                </CivMain>
+            </CivContainer>
+        </article>
     );
 }
 

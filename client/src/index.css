@@ -1186,7 +1186,7 @@ textarea {
     background: var(--bg-darker-2);
 }
 
-.c-paginator-top-selector {
+.pagination-top-selector {
     display: flex;
     justify-content: space-evenly;
     width: 100%;

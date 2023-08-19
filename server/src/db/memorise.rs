@@ -273,10 +273,6 @@ pub(crate) fn get_cards_upcoming_review(
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    fn i32_from_row(row: &Row) -> crate::Result<i32> {
-        Ok(row.get(0)?)
-    }
-
     fn naive_datetime_from_row(row: &Row) -> crate::Result<chrono::NaiveDateTime> {
         Ok(row.get(0)?)
     }
@@ -287,7 +283,7 @@ pub(crate) fn get_cards_upcoming_review(
          FROM cards
          WHERE user_id = ?1 and next_test_date < ?2",
         params![&user_id, &due],
-        i32_from_row,
+        sqlite::i32_from_row,
     )?;
 
     let num_cards = sqlite::one(
@@ -296,7 +292,7 @@ pub(crate) fn get_cards_upcoming_review(
          FROM cards
          WHERE user_id = ?1",
         params![&user_id],
-        i32_from_row,
+        sqlite::i32_from_row,
     )?;
 
     let earliest_review_date: Option<chrono::NaiveDateTime> = if num_cards > 0 {

@@ -1,13 +1,11 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import { SlimDeck } from "types";
-import ListingLink from "components/listing-link";
-
 import Toggler from "components/toggler";
 
 import InsigniaSelector from "components/insignia-selector";
 import Pagination from "components/pagination";
+import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 
 type InsigniaGroupingProps = {
     label: string;
@@ -39,15 +37,6 @@ export default function InsigniaGrouping({ label }: InsigniaGroupingProps) {
         setLocalState(buildState(diff));
     }
 
-    function renderItem(deck: SlimDeck, i: number) {
-        return (
-            <ListingLink
-                slimDeck={deck}
-                extraClasses={i % 2 ? "stripe-a" : "stripe-b"}
-            />
-        );
-    }
-
     return (
         <Toggler toggleShow={toggleShow} label={label} show={show}>
             <InsigniaSelector
@@ -56,7 +45,7 @@ export default function InsigniaGrouping({ label }: InsigniaGroupingProps) {
             />
             <Pagination
                 url={localState.url}
-                renderItem={renderItem}
+                renderItem={renderPaginatedSlimDeck}
                 itemsPerPage={15}
             />
         </Toggler>

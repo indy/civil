@@ -2,7 +2,7 @@ import { h } from "preact";
 import { route } from "preact-router";
 import { useState } from "preact/hooks";
 
-import { DeckKind, SlimDeck } from "types";
+import { DeckKind } from "types";
 
 import { getAppState } from "app-state";
 
@@ -11,9 +11,9 @@ import { deckKindToResourceString, deckKindToHeadingString } from "shared/deck";
 
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilTabButton from "components/civil-tab-button";
-import ListingLink from "components/listing-link";
 import Pagination from "components/pagination";
 import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
+import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 
 export default function Paginator({}) {
     const [selected, setSelected] = useState(DeckKind.Idea);
@@ -69,7 +69,7 @@ function PaginatorTopSelector({
     ];
 
     return (
-        <div class="c-paginator-top-selector">
+        <div class="c-paginator-top-selector pagination-top-selector">
             {deckKinds.map((deckKind) => (
                 <div class="paginator-item">
                     <CivilTabButton
@@ -97,15 +97,6 @@ function DeckPaginator({ deckKind }: DeckPaginatorProps) {
     const itemsPerPage = appState.uiConfig.value.decksPerPage[deckKind];
     const url = `/api/${deckName}/pagination`;
 
-    function renderItem(deck: SlimDeck, i: number) {
-        return (
-            <ListingLink
-                slimDeck={deck}
-                extraClasses={i % 2 ? "stripe-a" : "stripe-b"}
-            />
-        );
-    }
-
     function onClickedHeading() {
         route(`/${deckKindToResourceString(deckKind)}`);
     }
@@ -125,7 +116,7 @@ function DeckPaginator({ deckKind }: DeckPaginatorProps) {
     return (
         <Pagination
             url={url}
-            renderItem={renderItem}
+            renderItem={renderPaginatedSlimDeck}
             itemsPerPage={itemsPerPage}
             upperContent={upperContent}
             lowerContent={lowerContent}

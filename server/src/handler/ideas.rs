@@ -87,6 +87,42 @@ pub async fn pagination(
     .await
 }
 
+pub async fn recent(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+    web::Query(query): web::Query<PaginationQuery>,
+) -> crate::Result<HttpResponse> {
+    let user_id = session::user_id(&session)?;
+
+    let paginated_recent = db::recent(&sqlite_pool, user_id, query.offset, query.num_items)?;
+
+    Ok(HttpResponse::Ok().json(paginated_recent))
+}
+
+pub async fn orphans(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+    web::Query(query): web::Query<PaginationQuery>,
+) -> crate::Result<HttpResponse> {
+    let user_id = session::user_id(&session)?;
+
+    let paginated_orphans = db::orphans(&sqlite_pool, user_id, query.offset, query.num_items)?;
+
+    Ok(HttpResponse::Ok().json(paginated_orphans))
+}
+
+pub async fn unnoted(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+    web::Query(query): web::Query<PaginationQuery>,
+) -> crate::Result<HttpResponse> {
+    let user_id = session::user_id(&session)?;
+
+    let paginated_unnoted = db::unnoted(&sqlite_pool, user_id, query.offset, query.num_items)?;
+
+    Ok(HttpResponse::Ok().json(paginated_unnoted))
+}
+
 pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,

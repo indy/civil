@@ -12,7 +12,6 @@ import {
 } from "types";
 
 import Net from "shared/net";
-import { deckKindToHeadingString } from "shared/deck";
 import { formattedDate } from "shared/time";
 import { getAppState, AppStateChange } from "app-state";
 
@@ -20,7 +19,6 @@ import CivilButton from "components/civil-button";
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
-import Module from "components/module";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "components/insignia-selector";
 import FontSelector from "components/font-selector";
@@ -30,13 +28,18 @@ import SegmentGraph from "components/segment-graph";
 import SegmentNotes from "components/segment-notes";
 import SegmentSearchResults from "components/segment-search-results";
 import TopMatter from "components/top-matter";
-import { SlimDeckGrouping } from "components/groupings";
+import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import {
     CivContainer,
     CivMain,
     CivForm,
+    CivLeft,
     CivLeftLabel,
 } from "components/civil-layout";
+
+import CivilTabButton from "components/civil-tab-button";
+
+import Pagination from "components/pagination";
 
 function Ideas({ path }: { path?: string }) {
     const appState = getAppState();
@@ -55,18 +58,79 @@ function Ideas({ path }: { path?: string }) {
 }
 
 function IdeasModule({ ideas }: { ideas: IdeasListings }) {
-    let buttons = (
+    const [selected, setSelected] = useState("recent");
+
+    return (
+        <article class="c-ideas-module module margin-top-9">
+            <CivContainer>
+                <CivLeft>
+                    <h3 class="ui margin-top-0">Ideas</h3>
+                </CivLeft>
+                <CivMain>
+                    <IdeasSelector
+                        setSelected={setSelected}
+                        selected={selected}
+                    />
+                    <IdeasPaginator selected={selected} />
+                </CivMain>
+            </CivContainer>
+        </article>
+    );
+}
+
+function IdeasSelector({
+    selected,
+    setSelected,
+}: {
+    selected: string;
+    setSelected: (s: string) => void;
+}) {
+    function onClicked(s: string) {
+        setSelected(s);
+    }
+
+    function selectedCheck(h: string) {
+        if (h === selected) {
+            return "selected";
+        } else {
+            return "";
+        }
+    }
+
+    const headings: Array<string> = ["recent", "orphans", "unnoted"];
+
+    return (
+        <div class="c-ideas-selector pagination-top-selector">
+            {headings.map((heading) => (
+                <div class="paginator-item">
+                    <CivilTabButton
+                        extraClasses={selectedCheck(heading)}
+                        onClick={() => {
+                            onClicked(heading);
+                        }}
+                    >
+                        {heading}
+                    </CivilTabButton>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+function IdeasPaginator({ selected }: { selected: string }) {
+    const url = `/api/ideas/${selected}`;
+
+    const lowerContent = (
         <CivilButtonCreateDeck deckKind={DeckKind.Idea}></CivilButtonCreateDeck>
     );
+
     return (
-        <Module
-            heading={deckKindToHeadingString(DeckKind.Idea)}
-            buttons={buttons}
-        >
-            <SlimDeckGrouping label="Recent" list={ideas.recent} expanded />
-            <SlimDeckGrouping label="Orphans" list={ideas.orphans} hideEmpty />
-            <SlimDeckGrouping label="Unnoted" list={ideas.unnoted} hideEmpty />
-        </Module>
+        <Pagination
+            url={url}
+            renderItem={renderPaginatedSlimDeck}
+            itemsPerPage={10}
+            lowerContent={lowerContent}
+        />
     );
 }
 

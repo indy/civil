@@ -22,10 +22,6 @@ use crate::db::sqlite;
 use crate::interop::decks::DeckKind;
 use crate::interop::Key;
 
-fn i32_from_row(row: &Row) -> crate::Result<i32> {
-    Ok(row.get(0)?)
-}
-
 pub(crate) fn get_num_decks(
     conn: &Connection,
     user_id: Key,
@@ -34,31 +30,31 @@ pub(crate) fn get_num_decks(
     let stmt = "SELECT count(*) as count FROM decks WHERE kind='$deck_kind' AND user_id = ?1";
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
 
-    sqlite::one(conn, &stmt, params![&user_id], i32_from_row)
+    sqlite::one(conn, &stmt, params![&user_id], sqlite::i32_from_row)
 }
 
 pub(crate) fn get_num_refs(conn: &Connection, user_id: Key) -> crate::Result<i32> {
     let stmt = "SELECT count(*) AS count
                 FROM notes_decks nd LEFT JOIN decks d ON d.id = nd.deck_id
                 WHERE d.user_id = ?1";
-    sqlite::one(conn, stmt, params![&user_id], i32_from_row)
+    sqlite::one(conn, stmt, params![&user_id], sqlite::i32_from_row)
 }
 
 pub(crate) fn get_num_cards(conn: &Connection, user_id: Key) -> crate::Result<i32> {
     let stmt = "SELECT count(*) AS count FROM cards WHERE user_id = ?1";
-    sqlite::one(conn, stmt, params![&user_id], i32_from_row)
+    sqlite::one(conn, stmt, params![&user_id], sqlite::i32_from_row)
 }
 
 pub(crate) fn get_num_card_ratings(conn: &Connection, user_id: Key) -> crate::Result<i32> {
     let stmt = "SELECT count(*) AS count
                 FROM card_ratings cr LEFT JOIN cards c ON c.id = cr.card_id
                 WHERE c.user_id = ?1";
-    sqlite::one(conn, stmt, params![&user_id], i32_from_row)
+    sqlite::one(conn, stmt, params![&user_id], sqlite::i32_from_row)
 }
 
 pub(crate) fn get_num_images(conn: &Connection, user_id: Key) -> crate::Result<i32> {
     let stmt = "SELECT count(*) AS count FROM images WHERE user_id = ?1";
-    sqlite::one(conn, stmt, params![&user_id], i32_from_row)
+    sqlite::one(conn, stmt, params![&user_id], sqlite::i32_from_row)
 }
 
 pub(crate) fn get_num_notes_in_decks(
@@ -71,7 +67,7 @@ pub(crate) fn get_num_notes_in_decks(
                 WHERE d.kind='$deck_kind' AND n.user_id = ?1";
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
 
-    sqlite::one(conn, &stmt, params![&user_id], i32_from_row)
+    sqlite::one(conn, &stmt, params![&user_id], sqlite::i32_from_row)
 }
 
 pub(crate) fn get_num_points_in_decks(
@@ -84,7 +80,7 @@ pub(crate) fn get_num_points_in_decks(
                 WHERE d.kind='$deck_kind' AND d.user_id = ?1";
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
 
-    sqlite::one(conn, &stmt, params![&user_id], i32_from_row)
+    sqlite::one(conn, &stmt, params![&user_id], sqlite::i32_from_row)
 }
 
 pub(crate) fn get_num_refs_between(
@@ -102,7 +98,7 @@ pub(crate) fn get_num_refs_between(
     let stmt = stmt.replace("$deck_kind_from", &deck_from.to_string());
     let stmt = stmt.replace("$deck_kind_to", &deck_to.to_string());
 
-    sqlite::one(conn, &stmt, params![&user_id], i32_from_row)
+    sqlite::one(conn, &stmt, params![&user_id], sqlite::i32_from_row)
 }
 
 pub fn generate_stats(conn: &Connection, user_id: Key) -> crate::Result<()> {

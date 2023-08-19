@@ -81,10 +81,6 @@ pub fn recently_visited(
     sqlite::many(&conn, stmt, params![&user_id], slimdeck_from_row)
 }
 
-fn i32_from_row(row: &Row) -> crate::Result<i32> {
-    Ok(row.get(0)?)
-}
-
 fn num_decks_for_deck_kind(
     sqlite_pool: &SqlitePool,
     user_id: Key,
@@ -97,7 +93,7 @@ fn num_decks_for_deck_kind(
         &conn,
         stmt,
         params![user_id, &deck_kind.to_string()],
-        i32_from_row,
+        sqlite::i32_from_row,
     )
 }
 
@@ -353,7 +349,12 @@ pub(crate) fn insignia_filter(
     )?;
 
     let stmt = "SELECT count(*) FROM decks where user_id=?1 AND insignia & ?2;";
-    let total_items = sqlite::one(&conn, stmt, params![user_id, &insignia], i32_from_row)?;
+    let total_items = sqlite::one(
+        &conn,
+        stmt,
+        params![user_id, &insignia],
+        sqlite::i32_from_row,
+    )?;
 
     let res = interop::Pagination::<interop::SlimDeck> { items, total_items };
 

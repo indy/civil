@@ -21,13 +21,13 @@ import { getAppState, AppStateChange } from "app-state";
 
 import Net from "shared/net";
 import { buildUrl } from "shared/civil";
-import { deckKindToHeadingString } from "shared/deck";
 import { fontForRole } from "shared/font";
 
 import InsigniaSelector from "components/insignia-selector";
 import SegmentGraph from "components/segment-graph";
 import SegmentNotes from "components/segment-notes";
 
+import CivilTabButton from "components/civil-tab-button";
 import {
     CivContainer,
     CivMain,
@@ -37,16 +37,16 @@ import {
 } from "components/civil-layout";
 import CivilInput from "components/civil-input";
 import useDeckManager from "components/use-deck-manager";
-import Module from "components/module";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import RoleView from "components/role-view";
 import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import TopMatter from "components/top-matter";
-import { SlimDeckList } from "components/groupings";
 import buildMarkup from "components/build-markup";
 import CivilTextArea from "components/civil-text-area";
 import CivilButton from "components/civil-button";
+import Pagination from "components/pagination";
+import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 
 type ProtoDialogue = {
     title: string;
@@ -86,21 +86,41 @@ function Dialogues({ path }: { path?: string }) {
 }
 
 function DialoguesModule({ dialogues }: { dialogues: Array<SlimDeck> }) {
+    const url = `/api/dialogues/pagination`;
+
     function onClick() {
         route("/dialogues/chat", false);
     }
 
-    const buttons = (
+    const lowerContent = (
         <CivilButton onClick={onClick}>Open a new dialogue...</CivilButton>
     );
 
+    function FakeTopSelector() {
+        return (
+            <div class="c-paginator-top-selector pagination-top-selector">
+                <CivilTabButton extraClasses="selected">All</CivilTabButton>
+            </div>
+        );
+    }
+
     return (
-        <Module
-            heading={deckKindToHeadingString(DeckKind.Dialogue)}
-            buttons={buttons}
-        >
-            <SlimDeckList list={dialogues} />
-        </Module>
+        <article class="c-dialogues-module module margin-top-9">
+            <CivContainer>
+                <CivLeft>
+                    <h3 class="ui margin-top-0">Dialogues</h3>
+                </CivLeft>
+                <CivMain>
+                    <FakeTopSelector />
+                    <Pagination
+                        url={url}
+                        renderItem={renderPaginatedSlimDeck}
+                        itemsPerPage={10}
+                        lowerContent={lowerContent}
+                    />
+                </CivMain>
+            </CivContainer>
+        </article>
     );
 }
 

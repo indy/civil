@@ -71,6 +71,9 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("", get().to(ideas::get_all))
                 .route("/listings", get().to(ideas::get_listings))
                 .route("/pagination", get().to(ideas::pagination))
+                .route("/recent", get().to(ideas::recent))
+                .route("/orphans", get().to(ideas::orphans))
+                .route("/unnoted", get().to(ideas::unnoted))
                 .route("/{id}", get().to(ideas::get))
                 .route(
                     "/{id}/additional_search",
