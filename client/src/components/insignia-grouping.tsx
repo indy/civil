@@ -1,81 +1,64 @@
-import { h, ComponentChildren } from "preact";
+import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import { SlimDeck, ResultList } from "types";
+import { SlimDeck } from "types";
 import ListingLink from "components/listing-link";
 
-import Net from "shared/net";
 import Toggler from "components/toggler";
 
 import InsigniaSelector from "components/insignia-selector";
+import Pagination from "components/pagination";
 
 type InsigniaGroupingProps = {
     label: string;
 };
 
 export default function InsigniaGrouping({ label }: InsigniaGroupingProps) {
-    type State = {
-        list: Array<SlimDeck>;
-        show: boolean;
+    type LocalState = {
         insigniaVal: number;
+        url: string;
     };
 
-    let initialState: State = {
-        list: [],
-        show: false,
-        insigniaVal: 2,
-    };
-    let [localState, setLocalState] = useState(initialState);
-
-    function fetchData(val: number) {
-        const url = `/api/decks/insignia_filter/${val}`;
-        Net.get<ResultList>(url).then((resultList) => {
-            setLocalState({
-                ...localState,
-                list: resultList.results,
-                show: true,
-                insigniaVal: val,
-            });
-        });
+    function buildState(val: number): LocalState {
+        return {
+            insigniaVal: val,
+            url: `/api/decks/insignia_filter/${val}`,
+        };
     }
 
+    let [localState, setLocalState] = useState(buildState(2));
+    let [show, setShow] = useState(false);
+
     function toggleShow() {
-        const visible = !localState.show;
-        setLocalState({
-            ...localState,
-            show: visible,
-        });
-        if (visible) {
-            fetchData(localState.insigniaVal);
-        }
+        setShow(!show);
     }
 
     function onChangeInsignia(val: number): void {
+        // only select one insignia at a time
         let diff = val ^ localState.insigniaVal;
+        setLocalState(buildState(diff));
+    }
 
-        if (diff !== 0) {
-            fetchData(diff);
-        } else {
-            setLocalState({
-                ...localState,
-                insigniaVal: 0,
-            });
-        }
+    function renderItem(deck: SlimDeck, i: number) {
+        return (
+            <ListingLink
+                slimDeck={deck}
+                extraClasses={i % 2 ? "stripe-a" : "stripe-b"}
+            />
+        );
     }
 
     return (
-        <Toggler toggleShow={toggleShow} label={label} show={localState.show}>
+        <Toggler toggleShow={toggleShow} label={label} show={show}>
             <InsigniaSelector
                 insigniaId={localState.insigniaVal}
                 onChange={onChangeInsignia}
             />
-            <ul class="compacted-list">
-                {localState.show && buildListing(localState.list)}
-            </ul>
+            <Pagination
+                url={localState.url}
+                renderItem={renderItem}
+                itemsPerPage={15}
+            />
         </Toggler>
     );
-}
-
-function buildListing(list: Array<SlimDeck>): Array<ComponentChildren> {
-    return list.map((deck) => <ListingLink slimDeck={deck} />);
 }

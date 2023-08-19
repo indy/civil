@@ -200,7 +200,7 @@ pub struct NumDecksPerDeckKind {
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PaginationResults {
-    pub items: Vec<SlimDeck>,
+pub struct Pagination<T> {
+    pub items: Vec<T>,
     pub total_items: i32,
 }

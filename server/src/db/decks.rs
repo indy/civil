@@ -81,15 +81,15 @@ pub fn recently_visited(
     sqlite::many(&conn, stmt, params![&user_id], slimdeck_from_row)
 }
 
+fn i32_from_row(row: &Row) -> crate::Result<i32> {
+    Ok(row.get(0)?)
+}
+
 fn num_decks_for_deck_kind(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_kind: DeckKind,
 ) -> crate::Result<i32> {
-    fn i32_from_row(row: &Row) -> crate::Result<i32> {
-        Ok(row.get(0)?)
-    }
-
     let conn = sqlite_pool.get()?;
     let stmt = "SELECT count(*) FROM decks where user_id=?1 AND kind=?2;";
 
@@ -185,7 +185,7 @@ pub(crate) fn pagination(
     deck_kind: DeckKind,
     offset: i32,
     num_items: i32,
-) -> crate::Result<interop::PaginationResults> {
+) -> crate::Result<interop::Pagination<interop::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
     // TODO: sort this by the event date in event_extras
@@ -203,9 +203,11 @@ pub(crate) fn pagination(
         slimdeck_from_row,
     )?;
 
-    let total_items = num_decks_for_deck_kind(&sqlite_pool, user_id, deck_kind)?;
+    let total_items = num_decks_for_deck_kind(sqlite_pool, user_id, deck_kind)?;
 
-    Ok(interop::PaginationResults { items, total_items })
+    let res = interop::Pagination::<interop::SlimDeck> { items, total_items };
+
+    Ok(res)
 }
 
 // note: may execute multiple sql write statements so should be in a transaction
@@ -331,15 +333,29 @@ pub(crate) fn insignia_filter(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     insignia: i32,
-) -> crate::Result<Vec<interop::SlimDeck>> {
+    offset: i32,
+    num_items: i32,
+) -> crate::Result<interop::Pagination<interop::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT id, name, kind, insignia, font, graph_terminator
                 FROM decks
                 WHERE user_id = ?1 AND insignia & ?2
-                ORDER BY created_at DESC";
+                ORDER BY created_at DESC
+                LIMIT ?3
+                OFFSET ?4";
 
-    let res = sqlite::many(&conn, stmt, params![&user_id, &insignia], slimdeck_from_row)?;
+    let items = sqlite::many(
+        &conn,
+        stmt,
+        params![&user_id, &insignia, &num_items, &offset],
+        slimdeck_from_row,
+    )?;
+
+    let stmt = "SELECT count(*) FROM decks where user_id=?1 AND insignia & ?2;";
+    let total_items = sqlite::one(&conn, stmt, params![user_id, &insignia], i32_from_row)?;
+
+    let res = interop::Pagination::<interop::SlimDeck> { items, total_items };
 
     Ok(res)
 }

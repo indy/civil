@@ -37,19 +37,21 @@ pub async fn insignia_filter(
     sqlite_pool: Data<SqlitePool>,
     params: Path<InsigParam>,
     session: actix_session::Session,
+    web::Query(query): web::Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
     info!("insignia_filter {:?}", params.insig);
 
     let user_id = session::user_id(&session)?;
 
-    let results = if params.insig == 0 {
-        vec![]
-    } else {
-        db::insignia_filter(&sqlite_pool, user_id, params.insig)?
-    };
+    let paginated = db::insignia_filter(
+        &sqlite_pool,
+        user_id,
+        params.insig,
+        query.offset,
+        query.num_items,
+    )?;
 
-    let res = ResultList { results };
-    Ok(HttpResponse::Ok().json(res))
+    Ok(HttpResponse::Ok().json(paginated))
 }
 
 pub async fn search(

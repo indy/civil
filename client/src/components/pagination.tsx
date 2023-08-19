@@ -47,6 +47,7 @@ export default function Pagination({
         if (fullUrl !== localState.lastUrl) {
             // console.log("fetching: " + fullUrl);
             Net.get<PaginationResults>(fullUrl).then((paginationResults) => {
+                // console.log(paginationResults);
                 setLocalState({
                     ...localState,
                     items: paginationResults.items,
