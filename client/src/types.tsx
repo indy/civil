@@ -815,3 +815,8 @@ export type GeoResult = {
     latt: string;
     longt: string;
 };
+
+export type PaginationResults = {
+    items: Array<SlimDeck>;
+    totalItems: number;
+};

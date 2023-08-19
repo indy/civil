@@ -411,6 +411,10 @@
     width: 10rem;
 }
 
+.margin-left-auto {
+    margin-left: auto;
+}
+
 .ui {
     font-family: var(--font-ui);
     font-weight: 400;
@@ -1188,16 +1192,16 @@ textarea {
     width: 100%;
 }
 
+.pagination-ui-row {
+    display: flex;
+    justify-content: left;
+}
+
 .paginator-item {
 }
 
 .paginator-deck-heading {
     font-size: 200%;
-}
-
-.paginator-page-count {
-    margin-right: 1rem;
-    float: right;
 }
 
 .top-border-line {
@@ -2349,7 +2353,8 @@ input:required {
 }
 
 .button-row {
-    float: right;
+    display: flex;
+    justify-content: right;
 }
 
 /* Responsive adjustments

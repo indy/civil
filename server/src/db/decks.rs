@@ -81,6 +81,26 @@ pub fn recently_visited(
     sqlite::many(&conn, stmt, params![&user_id], slimdeck_from_row)
 }
 
+fn num_decks_for_deck_kind(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_kind: DeckKind,
+) -> crate::Result<i32> {
+    fn i32_from_row(row: &Row) -> crate::Result<i32> {
+        Ok(row.get(0)?)
+    }
+
+    let conn = sqlite_pool.get()?;
+    let stmt = "SELECT count(*) FROM decks where user_id=?1 AND kind=?2;";
+
+    sqlite::one(
+        &conn,
+        stmt,
+        params![user_id, &deck_kind.to_string()],
+        i32_from_row,
+    )
+}
+
 #[derive(Debug, Clone)]
 pub struct DeckCounter {
     pub num_decks: usize,
@@ -164,8 +184,8 @@ pub(crate) fn pagination(
     user_id: Key,
     deck_kind: DeckKind,
     offset: i32,
-    num_results: i32,
-) -> crate::Result<Vec<interop::SlimDeck>> {
+    num_items: i32,
+) -> crate::Result<interop::PaginationResults> {
     let conn = sqlite_pool.get()?;
 
     // TODO: sort this by the event date in event_extras
@@ -176,12 +196,16 @@ pub(crate) fn pagination(
                 LIMIT ?3
                 OFFSET ?4";
 
-    sqlite::many(
+    let items = sqlite::many(
         &conn,
         stmt,
-        params![&user_id, &deck_kind.to_string(), &num_results, &offset],
+        params![&user_id, &deck_kind.to_string(), &num_items, &offset],
         slimdeck_from_row,
-    )
+    )?;
+
+    let total_items = num_decks_for_deck_kind(&sqlite_pool, user_id, deck_kind)?;
+
+    Ok(interop::PaginationResults { items, total_items })
 }
 
 // note: may execute multiple sql write statements so should be in a transaction

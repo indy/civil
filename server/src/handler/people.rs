@@ -22,6 +22,7 @@ use crate::db::notes as notes_db;
 use crate::db::people as db;
 use crate::db::points as points_db;
 use crate::db::sqlite::SqlitePool;
+use crate::handler::decks;
 use crate::handler::PaginationQuery;
 use crate::interop::decks::{DeckKind, SearchResults};
 use crate::interop::people as interop;
@@ -80,18 +81,13 @@ pub async fn pagination(
     session: actix_session::Session,
     web::Query(query): web::Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
-    info!("pagination");
-
-    let user_id = session::user_id(&session)?;
-    let people = decks_db::pagination(
-        &sqlite_pool,
-        user_id,
+    decks::pagination(
+        sqlite_pool,
+        query,
+        session::user_id(&session)?,
         DeckKind::Person,
-        query.offset,
-        query.num_results,
-    )?;
-
-    Ok(HttpResponse::Ok().json(people))
+    )
+    .await
 }
 
 pub async fn get(

@@ -116,7 +116,6 @@ function FilterModule() {
     );
 }
 
-
 function StatsModule() {
     return (
         <article class="module margin-top-5">
@@ -124,8 +123,6 @@ function StatsModule() {
                 <CivLeft>
                     <h3 class="ui hack-margin-top-minus-half">Stats</h3>
                 </CivLeft>
-                <CivMain>
-                </CivMain>
             </CivContainer>
         </article>
     );

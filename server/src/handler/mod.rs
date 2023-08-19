@@ -25,7 +25,7 @@ pub struct SearchQuery {
 #[serde(rename_all = "camelCase")]
 pub struct PaginationQuery {
     offset: i32,
-    num_results: i32,
+    num_items: i32,
 }
 
 pub mod articles;

@@ -197,3 +197,10 @@ pub struct NumDecksPerDeckKind {
     pub num_dialogues: usize,
     pub num_events: usize,
 }
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PaginationResults {
+    pub items: Vec<SlimDeck>,
+    pub total_items: i32,
+}

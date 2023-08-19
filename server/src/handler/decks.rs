@@ -20,6 +20,7 @@ use crate::db::decks as db;
 use crate::db::notes as db_notes;
 use crate::db::sqlite::SqlitePool;
 use crate::error::Error;
+use crate::handler::PaginationQuery;
 use crate::handler::SearchQuery;
 use crate::interop::decks::{DeckKind, ResultList};
 use crate::interop::dialogues::AiKind;
@@ -297,4 +298,23 @@ pub async fn preview(
     let preview = db_notes::preview(&sqlite_pool, user_id, deck_id)?;
 
     Ok(HttpResponse::Ok().json(preview))
+}
+
+pub(crate) async fn pagination(
+    sqlite_pool: Data<SqlitePool>,
+    query: PaginationQuery,
+    user_id: Key,
+    deck_kind: DeckKind,
+) -> crate::Result<HttpResponse> {
+    info!("pagination");
+
+    let pagination_results = db::pagination(
+        &sqlite_pool,
+        user_id,
+        deck_kind,
+        query.offset,
+        query.num_items,
+    )?;
+
+    Ok(HttpResponse::Ok().json(pagination_results))
 }
