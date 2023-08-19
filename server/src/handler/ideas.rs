@@ -60,19 +60,6 @@ pub async fn get_all(
     Ok(HttpResponse::Ok().json(ideas))
 }
 
-pub async fn get_listings(
-    sqlite_pool: Data<SqlitePool>,
-    session: actix_session::Session,
-) -> crate::Result<HttpResponse> {
-    info!("get_listings");
-
-    let user_id = session::user_id(&session)?;
-
-    let ideas = db::listings(&sqlite_pool, user_id)?;
-
-    Ok(HttpResponse::Ok().json(ideas))
-}
-
 pub async fn pagination(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,

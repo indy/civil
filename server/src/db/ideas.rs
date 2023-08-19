@@ -171,50 +171,6 @@ pub(crate) fn unnoted(
     Ok(res)
 }
 
-pub(crate) fn listings(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-) -> crate::Result<interop::IdeasListings> {
-    let conn = sqlite_pool.get()?;
-
-    let stmt = "select id, name, 'idea', insignia, font, graph_terminator
-                from decks
-                where user_id = ?1 and kind = 'idea'
-                order by created_at desc
-                limit 20";
-
-    let recent = sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)?;
-
-    let stmt = "SELECT id, name, 'idea', insignia, font, graph_terminator
-                FROM decks
-                WHERE id NOT IN (SELECT deck_id
-                                 FROM notes_decks
-                                 GROUP BY deck_id)
-                AND id NOT IN (SELECT n.deck_id
-                               FROM notes n INNER JOIN notes_decks nd ON n.id = nd.note_id
-                               GROUP BY n.deck_id)
-                AND kind = 'idea'
-                AND user_id = ?1
-                ORDER BY created_at DESC";
-
-    let orphans = sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)?;
-
-    let stmt = "SELECT d.id, d.name, 'idea', d.insignia, d.font, d.graph_terminator
-                FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
-                WHERE n.deck_id IS NULL
-                AND d.kind='idea'
-                AND d.user_id=?1
-                ORDER BY d.created_at DESC";
-
-    let unnoted = sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)?;
-
-    Ok(interop::IdeasListings {
-        recent,
-        orphans,
-        unnoted,
-    })
-}
-
 pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<interop::Idea>> {
     let conn = sqlite_pool.get()?;
 

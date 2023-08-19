@@ -305,7 +305,7 @@ export type FlashCard = {
 export type ResultList = {
     results: Array<SlimDeck>;
 };
-
+/*
 export type IdeasListings = {
     recent: Array<SlimDeck>;
     orphans: Array<SlimDeck>;
@@ -334,7 +334,7 @@ export type Listing = {
     dialogues: Array<SlimDeck> | undefined;
     events: Array<SlimDeck> | undefined;
 };
-
+*/
 export type ColourSeeds = {
     [index: string]: number;
 };
@@ -429,9 +429,6 @@ export type State = {
 
     colourSeeds: Signal<ColourSeeds>;
 
-    listing: Signal<Listing>;
-    numDecksPerDeckKind: Signal<Record<DeckKind, number>>;
-
     previewCache: Signal<Record<Key, PreviewDeck>>;
 
     visiblePreviewDeck: Signal<VisiblePreview>;
@@ -479,29 +476,13 @@ export type UserUploadedImage = {
     filename: string;
 };
 
-export type UberNumDecksPerDeckKind = {
-    numArticles: number;
-    numPeople: number;
-    numIdeas: number;
-    numTimelines: number;
-    numQuotes: number;
-    numDialogues: number;
-    numEvents: number;
-};
 export type UberSetup = {
     directory: string;
     recentlyUsedDecks: Array<SlimDeck>;
     recentImages: Array<UserUploadedImage>;
-    numDecksPerDeckKind: UberNumDecksPerDeckKind;
     memoriseReviewCount: number;
     memoriseEarliestReviewDate: string;
     bookmarks: Array<Bookmark>;
-    ideas: IdeasListings;
-    people: PeopleListings;
-    articles: ArticleListings;
-    timelines: Array<SlimDeck>;
-    dialogues: Array<SlimDeck>;
-    events: Array<SlimDeck>;
 };
 
 // graph stuff
@@ -664,11 +645,6 @@ export type StateChangeDeckId = {
     calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeDeckCreated = {
-    deckKind: DeckKind;
-    calledFromBroadcastChannel?: boolean;
-};
-
 export type StateChangeDeleteDeck = {
     deckKind: DeckKind;
     deckId: Key;
@@ -712,36 +688,6 @@ export type StateChangeNoteRefsModified = {
     calledFromBroadcastChannel?: boolean;
 };
 
-export type StateChangeIdea = {
-    ideaListings: IdeasListings;
-    calledFromBroadcastChannel?: boolean;
-};
-
-export type StateChangePeople = {
-    peopleListings: PeopleListings;
-    calledFromBroadcastChannel?: boolean;
-};
-
-export type StateChangeArticle = {
-    articleListings: ArticleListings;
-    calledFromBroadcastChannel?: boolean;
-};
-
-export type StateChangeTimeline = {
-    timelineListings: Array<SlimDeck>;
-    calledFromBroadcastChannel?: boolean;
-};
-
-export type StateChangeDialogue = {
-    dialogueListings: Array<SlimDeck>;
-    calledFromBroadcastChannel?: boolean;
-};
-
-export type StateChangeEvent = {
-    eventListings: Array<SlimDeck>;
-    calledFromBroadcastChannel?: boolean;
-};
-
 export type StateChangeNoteForm = {
     noteKind: NoteKind;
     pointId?: Key;
@@ -779,29 +725,22 @@ export type StateChangeEmpty = {
 
 export type AppStateChangeArgs =
     | StateChangeAddPreview
-    | StateChangeArticle
     | StateChangeBookmarks
     | StateChangeCount
     | StateChangeDeckId
-    | StateChangeDeckCreated
     | StateChangeDeleteDeck
-    | StateChangeDialogue
-    | StateChangeEvent
     | StateChangeGraph
-    | StateChangeIdea
     | StateChangeInputGiven
     | StateChangeKeyDown
     | StateChangeMode
     | StateChangeNoteForm
     | StateChangeNoteRefsModified
-    | StateChangePeople
     | StateChangeRecentImages
     | StateChangeRecentlyUsedDecks
     | StateChangeSetFocus
     | StateChangeSetSearch
     | StateChangeShowShortcuts
     | StateChangeSpan
-    | StateChangeTimeline
     | StateChangeTitle
     | StateChangeUber
     | StateChangeUrl

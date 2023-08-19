@@ -227,49 +227,6 @@ pub(crate) fn orphans(
     Ok(res)
 }
 
-pub(crate) fn listings(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-) -> crate::Result<interop::ArticleListings> {
-    let conn = sqlite_pool.get()?;
-
-    let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
-                       article_extras.short_description, coalesce(article_extras.rating, 0) as rating,
-                       decks.created_at, article_extras.published_date, decks.insignia, decks.font
-                FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
-                WHERE user_id = ?1 and kind = 'article'
-                ORDER BY created_at desc
-                LIMIT 10";
-    let recent = sqlite::many(&conn, stmt, params![&user_id], from_row)?;
-
-    let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
-                       article_extras.short_description, coalesce(article_extras.rating, 0) as rating,
-                       decks.created_at, article_extras.published_date, decks.insignia, decks.font
-                FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
-                WHERE user_id = ?1 AND kind = 'article' AND article_extras.rating > 0
-                ORDER BY article_extras.rating desc, decks.id desc";
-    let rated = sqlite::many(&conn, stmt, params![&user_id], from_row)?;
-
-    let stmt = "SELECT d.id, d.name, 'article', d.insignia, d.font, d.graph_terminator
-                FROM decks d LEFT JOIN article_extras pe ON pe.deck_id=d.id
-                WHERE d.id NOT IN (SELECT deck_id
-                                   FROM notes_decks
-                                   GROUP BY deck_id)
-                AND d.id NOT IN (SELECT n.deck_id
-                                 FROM notes n INNER JOIN notes_decks nd ON n.id = nd.note_id
-                                 GROUP by n.deck_id)
-                AND d.kind = 'article'
-                AND d.user_id = ?1
-                ORDER BY d.created_at desc";
-    let orphans = sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)?;
-
-    Ok(interop::ArticleListings {
-        recent,
-        rated,
-        orphans,
-    })
-}
-
 pub(crate) fn get(
     sqlite_pool: &SqlitePool,
     user_id: Key,

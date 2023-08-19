@@ -8,14 +8,12 @@ import {
     DeckEvent,
     Font,
     GeoResult,
-    SlimDeck,
     DeckUpdate,
     EventExtras,
 } from "types";
 
 import { geoGet, getLatitudeLongitude } from "shared/geo";
 import Net from "shared/net";
-import { getAppState, AppStateChange } from "app-state";
 
 import {
     parseDateStringAsTriple,
@@ -50,29 +48,15 @@ import {
 } from "components/civil-layout";
 
 function Events({ path }: { path?: string }) {
-    const appState = getAppState();
-
-    useEffect(() => {
-        if (!appState.listing.value.events) {
-            let url: string = "/api/events/listings";
-            Net.get<Array<SlimDeck>>(url).then((listings) => {
-                AppStateChange.setEventListings({
-                    eventListings: listings,
-                });
-            });
-        }
-    }, []);
-
-    const events = appState.listing.value.events;
-    return events ? (
+    return (
         <div>
             <TopBarMenu />
-            <EventsModule events={events} />
+            <EventsModule />
         </div>
-    ) : <div />;
+    );
 }
 
-function EventsModule({ events }: { events: Array<SlimDeck> }) {
+function EventsModule() {
     const url = `/api/events/pagination`;
 
     const lowerContent = (
@@ -84,7 +68,9 @@ function EventsModule({ events }: { events: Array<SlimDeck> }) {
     function FakeTopSelector() {
         return (
             <div class="c-paginator-top-selector pagination-top-selector">
-                <CivilTabButton extraClasses="pigment-events selected">All</CivilTabButton>
+                <CivilTabButton extraClasses="pigment-events selected">
+                    All
+                </CivilTabButton>
             </div>
         );
     }

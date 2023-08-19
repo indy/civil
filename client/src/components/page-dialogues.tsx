@@ -13,7 +13,6 @@ import {
     DeckUpdate,
     DialogueExtras,
     Role,
-    SlimDeck,
     WaitingFor,
 } from "types";
 
@@ -64,35 +63,15 @@ type MessageChoice = {
 };
 
 function Dialogues({ path }: { path?: string }) {
-    const appState = getAppState();
-
-    useEffect(() => {
-        if (!appState.listing.value.articles) {
-            let url: string = "/api/dialogues";
-            Net.get<Array<SlimDeck>>(url).then((listings) => {
-                AppStateChange.setDialogueListings({
-                    dialogueListings: listings,
-                });
-            });
-        }
-    }, []);
-
-    const dialogues = appState.listing.value.dialogues;
-
-    if (dialogues) {
-        return (
+    return (
         <div>
             <TopBarMenu />
-            <DialoguesModule dialogues={dialogues} />
+            <DialoguesModule />
         </div>
-
-            );
-    } else {
-        return <div></div>;
-    }
+    );
 }
 
-function DialoguesModule({ dialogues }: { dialogues: Array<SlimDeck> }) {
+function DialoguesModule() {
     const url = `/api/dialogues/pagination`;
 
     function onClick() {
@@ -106,7 +85,9 @@ function DialoguesModule({ dialogues }: { dialogues: Array<SlimDeck> }) {
     function FakeTopSelector() {
         return (
             <div class="c-paginator-top-selector pagination-top-selector">
-                <CivilTabButton extraClasses="pigment-dialogues selected">All</CivilTabButton>
+                <CivilTabButton extraClasses="pigment-dialogues selected">
+                    All
+                </CivilTabButton>
             </div>
         );
     }
@@ -490,14 +471,6 @@ function DialogueUpdater({
 
         Net.put<DeckDialogueUpdate, DeckDialogue>(url, data).then((newDeck) => {
             onUpdate(newDeck);
-
-            // fetch the listing incase editing the dialogue has changed it's star rating or annotation
-            //
-            Net.get<Array<SlimDeck>>("/api/dialogues").then((dialogues) => {
-                AppStateChange.setDialogueListings({
-                    dialogueListings: dialogues,
-                });
-            });
         });
 
         event.preventDefault();

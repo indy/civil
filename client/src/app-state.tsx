@@ -4,7 +4,6 @@ import { useContext } from "preact/hooks";
 
 import {
     AppStateChangeArgs,
-    ArticleListings,
     Bookmark,
     CivilMode,
     CivilSpan,
@@ -15,45 +14,34 @@ import {
     FullGraphStruct,
     Graph,
     GraphDeck,
-    IdeasListings,
     ImmutableState,
     Key,
-    Listing,
     NoteKind,
     Notes,
-    PeopleListings,
     PreviewDeck,
     PreviewNotes,
     RefKind,
-    Reference,
     RefsModified,
     SlimDeck,
     State,
     StateChangeAddPreview,
-    StateChangeArticle,
     StateChangeBookmarks,
     StateChangeCount,
     StateChangeDeckId,
     StateChangeDeleteDeck,
-    StateChangeDeckCreated,
-    StateChangeDialogue,
     StateChangeEmpty,
-    StateChangeEvent,
     StateChangeGraph,
-    StateChangeIdea,
     StateChangeInputGiven,
     StateChangeKeyDown,
     StateChangeMode,
     StateChangeNoteForm,
     StateChangeNoteRefsModified,
-    StateChangePeople,
     StateChangeRecentImages,
     StateChangeRecentlyUsedDecks,
     StateChangeSetFocus,
     StateChangeSetSearch,
     StateChangeShowShortcuts,
     StateChangeSpan,
-    StateChangeTimeline,
     StateChangeTitle,
     StateChangeUber,
     StateChangeUrl,
@@ -209,24 +197,6 @@ const state: State = {
 
     colourSeeds: signal({}),
 
-    numDecksPerDeckKind: signal({
-        [DeckKind.Article]: 0,
-        [DeckKind.Person]: 0,
-        [DeckKind.Idea]: 0,
-        [DeckKind.Timeline]: 0,
-        [DeckKind.Quote]: 0,
-        [DeckKind.Dialogue]: 0,
-        [DeckKind.Event]: 0,
-    }),
-    // key == deckKind name of decks
-    listing: signal({
-        ideas: undefined, // when listing ideas on /ideas page
-        articles: undefined,
-        people: undefined,
-        timelines: undefined,
-        dialogues: undefined,
-        events: undefined,
-    }),
     previewCache: signal({}),
     visiblePreviewDeck: signal({ id: 0, showing: false }),
 
@@ -533,29 +503,10 @@ export const AppStateChange = {
         state.recentlyUsedDecks.value = uber.recentlyUsedDecks;
         state.imageDirectory.value = uber.directory;
 
-        state.numDecksPerDeckKind.value = {
-            [DeckKind.Article]: uber.numDecksPerDeckKind.numArticles,
-            [DeckKind.Person]: uber.numDecksPerDeckKind.numPeople,
-            [DeckKind.Idea]: uber.numDecksPerDeckKind.numIdeas,
-            [DeckKind.Timeline]: uber.numDecksPerDeckKind.numTimelines,
-            [DeckKind.Quote]: uber.numDecksPerDeckKind.numQuotes,
-            [DeckKind.Dialogue]: uber.numDecksPerDeckKind.numDialogues,
-            [DeckKind.Event]: uber.numDecksPerDeckKind.numEvents,
-        };
-
         state.memoriseReviewCount.value = uber.memoriseReviewCount;
         state.memoriseEarliestReviewDate.value =
             uber.memoriseEarliestReviewDate;
         state.bookmarks.value = uber.bookmarks;
-
-        state.listing.value = {
-            ideas: uber.ideas,
-            people: uber.people,
-            articles: uber.articles,
-            timelines: uber.timelines,
-            dialogues: uber.dialogues,
-            events: uber.events,
-        };
     }),
 
     userLogin: build(Scope.Local, "userLogin", (args: StateChangeUser) => {
@@ -584,128 +535,12 @@ export const AppStateChange = {
         Scope.Broadcast,
         "noteRefsModified",
         (args: StateChangeNoteRefsModified) => {
-            const allDecksForNote: Array<Reference> = args.allDecksForNote;
             const changes: RefsModified = args.changes;
 
             if (changes.referencesCreated.length > 0) {
                 let ng = { ...state.graph.value, fullLoaded: false };
                 state.graph.value = ng;
             }
-
-            if (state.listing.value.ideas) {
-                let li: Listing = { ...state.listing.value };
-                if (li) {
-                    changes.referencesCreated.forEach((r) => {
-                        let newReference = allDecksForNote.find(
-                            (d) =>
-                                d.title === r.title &&
-                                d.deckKind === DeckKind.Idea
-                        );
-
-                        if (newReference) {
-                            // todo: what should insignia be here?
-                            let newIdeaListing: SlimDeck = {
-                                id: newReference.id,
-                                title: newReference.title,
-                                deckKind: DeckKind.Idea,
-                                graphTerminator: false,
-                                insignia: 0,
-                                font: immutableState.defaultFont,
-                            };
-                            if (li.ideas) {
-                                // update the listing with the new deckKind
-                                if (li.ideas.recent) {
-                                    li.ideas.recent.unshift(newIdeaListing);
-                                }
-                                if (li.ideas.unnoted) {
-                                    li.ideas.unnoted.unshift(newIdeaListing);
-                                }
-                            }
-                        }
-                    });
-                    state.listing.value = li;
-                }
-            }
-        }
-    ),
-
-    setIdeaListings: build(
-        Scope.Broadcast,
-        "setIdeaListings",
-        (args: StateChangeIdea) => {
-            const ideas: IdeasListings = args.ideaListings;
-
-            const li = {
-                ...state.listing.value,
-                ideas,
-            };
-
-            state.listing.value = li;
-        }
-    ),
-
-    setPeopleListings: build(
-        Scope.Broadcast,
-        "setPeopleListings",
-        (args: StateChangePeople) => {
-            const people: PeopleListings = args.peopleListings;
-            const li = {
-                ...state.listing.value,
-                people,
-            };
-            state.listing.value = li;
-        }
-    ),
-
-    setArticleListings: build(
-        Scope.Broadcast,
-        "setArticleListings",
-        (args: StateChangeArticle) => {
-            const articles: ArticleListings = args.articleListings;
-            const li = {
-                ...state.listing.value,
-                articles,
-            };
-            state.listing.value = li;
-        }
-    ),
-
-    setTimelineListings: build(
-        Scope.Broadcast,
-        "setTimelineListings",
-        (args: StateChangeTimeline) => {
-            const timelines: Array<SlimDeck> = args.timelineListings;
-            const li = {
-                ...state.listing.value,
-                timelines,
-            };
-            state.listing.value = li;
-        }
-    ),
-
-    setDialogueListings: build(
-        Scope.Broadcast,
-        "setDialogueListings",
-        (args: StateChangeDialogue) => {
-            const dialogues: Array<SlimDeck> = args.dialogueListings;
-            const li = {
-                ...state.listing.value,
-                dialogues,
-            };
-            state.listing.value = li;
-        }
-    ),
-
-    setEventListings: build(
-        Scope.Broadcast,
-        "setEventListings",
-        (args: StateChangeEvent) => {
-            const events: Array<SlimDeck> = args.eventListings;
-            const li = {
-                ...state.listing.value,
-                events,
-            };
-            state.listing.value = li;
         }
     ),
 
@@ -756,31 +591,11 @@ export const AppStateChange = {
         }
     ),
 
-    deckCreated: build(
-        Scope.Broadcast,
-        "deckCreated",
-        (args: StateChangeDeckCreated) => {
-            const kind: DeckKind = args.deckKind;
-            const numDecksPerDeckKind = {
-                ...state.numDecksPerDeckKind.value,
-            };
-            numDecksPerDeckKind[kind] += 1;
-            state.numDecksPerDeckKind.value = numDecksPerDeckKind;
-        }
-    ),
-
     deleteDeck: build(
         Scope.Broadcast,
         "deleteDeck",
         (args: StateChangeDeleteDeck) => {
             const id: Key = args.deckId;
-            const kind: DeckKind = args.deckKind;
-
-            const numDecksPerDeckKind = {
-                ...state.numDecksPerDeckKind.value,
-            };
-            numDecksPerDeckKind[kind] -= 1;
-            state.numDecksPerDeckKind.value = numDecksPerDeckKind;
 
             let filterFn = (d: SlimDeck) => d.id !== id;
 
@@ -799,66 +614,6 @@ export const AppStateChange = {
 
                 state.graph.value = g;
             }
-
-            let li: Listing = {
-                ideas: undefined,
-                people: undefined,
-                articles: undefined,
-                timelines: undefined,
-                dialogues: undefined,
-                events: undefined,
-            };
-
-            if (state.listing.value.ideas) {
-                li.ideas = {
-                    orphans: state.listing.value.ideas.orphans.filter(filterFn),
-                    recent: state.listing.value.ideas.recent.filter(filterFn),
-                    unnoted: state.listing.value.ideas.unnoted.filter(filterFn),
-                };
-            }
-
-            if (state.listing.value.articles) {
-                li.articles = {
-                    orphans:
-                        state.listing.value.articles.orphans.filter(filterFn),
-                    recent: state.listing.value.articles.recent.filter(
-                        filterFn
-                    ),
-                    rated: state.listing.value.articles.rated.filter(filterFn),
-                };
-            }
-
-            if (state.listing.value.people) {
-                li.people = {
-                    uncategorised:
-                        state.listing.value.people.uncategorised.filter(
-                            filterFn
-                        ),
-                    ancient:
-                        state.listing.value.people.ancient.filter(filterFn),
-                    medieval:
-                        state.listing.value.people.medieval.filter(filterFn),
-                    modern: state.listing.value.people.modern.filter(filterFn),
-                    contemporary:
-                        state.listing.value.people.contemporary.filter(
-                            filterFn
-                        ),
-                };
-            }
-
-            if (state.listing.value.timelines) {
-                li.timelines = state.listing.value.timelines.filter(filterFn);
-            }
-
-            if (state.listing.value.dialogues) {
-                li.dialogues = state.listing.value.dialogues.filter(filterFn);
-            }
-
-            if (state.listing.value.events) {
-                li.events = state.listing.value.events.filter(filterFn);
-            }
-
-            state.listing.value = li;
 
             // delete any bookmarks to this deck
             if (state.bookmarks.value.length > 0) {

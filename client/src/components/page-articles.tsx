@@ -8,12 +8,9 @@ import {
     DeckKind,
     DeckUpdate,
     ArticleExtras,
-    ArticleListings,
     NoteKind,
     Note,
 } from "types";
-
-import { getAppState, AppStateChange } from "app-state";
 
 import TopBarMenu from "components/top-bar-menu";
 import InsigniaSelector from "components/insignia-selector";
@@ -51,30 +48,15 @@ import { formattedDate } from "shared/time";
 import { buildSlimDeck } from "shared/deck";
 
 function Articles({ path }: { path?: string }) {
-    const appState = getAppState();
-
-    useEffect(() => {
-        if (!appState.listing.value.articles) {
-            let url: string = "/api/articles/listings";
-            Net.get<ArticleListings>(url).then((listings) => {
-                AppStateChange.setArticleListings({
-                    articleListings: listings,
-                });
-            });
-        }
-    }, []);
-
-    const articles = appState.listing.value.articles;
-    return articles ? (
+    return (
         <div>
             <TopBarMenu />
-        <ArticlesModule articles={articles} />
+            <ArticlesModule />
         </div>
-
-        ) : <div />;
+    );
 }
 
-function ArticlesModule({ articles }: { articles: ArticleListings }) {
+function ArticlesModule() {
     const [selected, setSelected] = useState("recent");
 
     return (
@@ -94,7 +76,6 @@ function ArticlesModule({ articles }: { articles: ArticleListings }) {
         </article>
     );
 }
-
 
 function ArticlesSelector({
     selected,
@@ -139,7 +120,9 @@ function ArticlesPaginator({ selected }: { selected: string }) {
     const url = `/api/articles/${selected}`;
 
     const lowerContent = (
-        <CivilButtonCreateDeck deckKind={DeckKind.Article}></CivilButtonCreateDeck>
+        <CivilButtonCreateDeck
+            deckKind={DeckKind.Article}
+        ></CivilButtonCreateDeck>
     );
 
     return (
@@ -407,16 +390,6 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
             data
         ).then((newDeck) => {
             onUpdate(newDeck);
-
-            // fetch the listing incase editing the article has changed it's star rating or annotation
-            //
-            Net.get<ArticleListings>("/api/articles/listings").then(
-                (articles) => {
-                    AppStateChange.setArticleListings({
-                        articleListings: articles,
-                    });
-                }
-            );
         });
 
         event.preventDefault();

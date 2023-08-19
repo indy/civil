@@ -8,7 +8,6 @@ import {
     Point,
     DeckTimeline,
     Font,
-    SlimDeck,
     PassageType,
     DeckUpdate,
 } from "types";
@@ -52,30 +51,15 @@ import {
 // import { deckKindToHeadingString } from "shared/deck";
 
 function Timelines({ path }: { path?: string }) {
-    const appState = getAppState();
-
-    useEffect(() => {
-        if (!appState.listing.value.timelines) {
-            let url: string = "/api/timelines/listings";
-            Net.get<Array<SlimDeck>>(url).then((listings) => {
-                AppStateChange.setTimelineListings({
-                    timelineListings: listings,
-                });
-            });
-        }
-    }, []);
-
-    const timelines = appState.listing.value.timelines;
-    return timelines ? (
+    return (
         <div>
             <TopBarMenu />
-            <TimelinesModule timelines={timelines} />
+            <TimelinesModule />
         </div>
-
-    ) : <div />;
+    );
 }
 
-function TimelinesModule({ timelines }: { timelines: Array<SlimDeck> }) {
+function TimelinesModule() {
     const url = `/api/timelines/pagination`;
 
     const lowerContent = (
@@ -87,7 +71,9 @@ function TimelinesModule({ timelines }: { timelines: Array<SlimDeck> }) {
     function FakeTopSelector() {
         return (
             <div class="c-paginator-top-selector pagination-top-selector">
-                <CivilTabButton extraClasses="pigment-timelines selected">All</CivilTabButton>
+                <CivilTabButton extraClasses="pigment-timelines selected">
+                    All
+                </CivilTabButton>
             </div>
         );
     }

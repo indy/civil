@@ -12,7 +12,6 @@ import {
     DeckUpdate,
     Key,
     SlimDeck,
-    PeopleListings,
     ResultList,
     PassageType,
     PointKind,
@@ -68,28 +67,15 @@ import {
 } from "components/civil-layout";
 
 function People({ path }: { path?: string }) {
-    const appState = getAppState();
-
-    useEffect(() => {
-        if (!appState.listing.value.people) {
-            let url: string = "/api/people/listings";
-            Net.get<PeopleListings>(url).then((listings) => {
-                AppStateChange.setPeopleListings({ peopleListings: listings });
-            });
-        }
-    }, []);
-
-    const people = appState.listing.value.people;
-    return people ? (
+    return (
         <div>
             <TopBarMenu />
-            <PeopleModule people={people} />
+            <PeopleModule />
         </div>
-
-    ) : <div />;
+    );
 }
 
-function PeopleModule({ people }: { people: PeopleListings }) {
+function PeopleModule() {
     const [selected, setSelected] = useState("ancient");
 
     return (
@@ -110,8 +96,6 @@ function PeopleModule({ people }: { people: PeopleListings }) {
     );
 }
 
-
-
 function PeopleSelector({
     selected,
     setSelected,
@@ -131,7 +115,13 @@ function PeopleSelector({
         }
     }
 
-    const headings: Array<string> = ["ancient", "medieval", "modern", "contemporary", "uncategorised"];
+    const headings: Array<string> = [
+        "ancient",
+        "medieval",
+        "modern",
+        "contemporary",
+        "uncategorised",
+    ];
 
     return (
         <div class="c-ideas-selector pagination-top-selector">
@@ -155,7 +145,9 @@ function PeoplePaginator({ selected }: { selected: string }) {
     const url = `/api/people/${selected}`;
 
     const lowerContent = (
-        <CivilButtonCreateDeck deckKind={DeckKind.Person}></CivilButtonCreateDeck>
+        <CivilButtonCreateDeck
+            deckKind={DeckKind.Person}
+        ></CivilButtonCreateDeck>
     );
 
     return (
@@ -167,37 +159,6 @@ function PeoplePaginator({ selected }: { selected: string }) {
         />
     );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 function Person({ path, id }: { path?: string; id?: string }) {
     const appState = getAppState();
@@ -223,9 +184,6 @@ function Person({ path, id }: { path?: string; id?: string }) {
 
     function dispatchUpdatedPerson(person: DeckPerson) {
         deckManager.update(person);
-        Net.get<PeopleListings>("/api/people/listings").then((people) => {
-            AppStateChange.setPeopleListings({ peopleListings: people });
-        });
     }
 
     function onLifespan(
@@ -812,41 +770,3 @@ function SegmentPoints({
 }
 
 export { Person, People, PeopleModule };
-
-
-/*
-function PeopleModule({ people }: { people: PeopleListings }) {
-    let buttons = (
-        <CivilButtonCreateDeck
-            deckKind={DeckKind.Person}
-        ></CivilButtonCreateDeck>
-    );
-
-    return (
-        <Module
-            heading={deckKindToHeadingString(DeckKind.Person)}
-            buttons={buttons}
-        >
-            <SlimDeckGrouping
-                label="Uncategorised"
-                list={people.uncategorised}
-                expanded
-                hideEmpty
-            />
-            <SlimDeckGrouping label="Ancient" list={people.ancient} expanded />
-            <SlimDeckGrouping
-                label="Medieval"
-                list={people.medieval}
-                expanded
-            />
-            <SlimDeckGrouping label="Modern" list={people.modern} expanded />
-            <SlimDeckGrouping
-                label="Contemporary"
-                list={people.contemporary}
-                expanded
-            />
-        </Module>
-    );
-}
-
- */

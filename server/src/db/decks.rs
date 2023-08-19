@@ -111,51 +111,6 @@ fn deck_counter_from_row(row: &Row) -> crate::Result<DeckCounter> {
     })
 }
 
-pub(crate) fn num_decks_per_deck_kind(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-) -> crate::Result<interop::NumDecksPerDeckKind> {
-    let conn = sqlite_pool.get()?;
-
-    let stmt = "SELECT count(*), kind
-                FROM decks
-                WHERE user_id=?1
-                GROUP BY kind;";
-
-    let counts: Vec<DeckCounter> =
-        sqlite::many(&conn, stmt, params![&user_id], deck_counter_from_row)?;
-
-    let mut num_articles: usize = 0;
-    let mut num_people: usize = 0;
-    let mut num_ideas: usize = 0;
-    let mut num_timelines: usize = 0;
-    let mut num_quotes: usize = 0;
-    let mut num_dialogues: usize = 0;
-    let mut num_events: usize = 0;
-
-    for c in counts {
-        match c.deck_kind {
-            DeckKind::Article => num_articles = c.num_decks,
-            DeckKind::Person => num_people = c.num_decks,
-            DeckKind::Idea => num_ideas = c.num_decks,
-            DeckKind::Timeline => num_timelines = c.num_decks,
-            DeckKind::Quote => num_quotes = c.num_decks,
-            DeckKind::Dialogue => num_dialogues = c.num_decks,
-            DeckKind::Event => num_events = c.num_decks,
-        }
-    }
-
-    Ok(interop::NumDecksPerDeckKind {
-        num_articles,
-        num_people,
-        num_ideas,
-        num_timelines,
-        num_quotes,
-        num_dialogues,
-        num_events,
-    })
-}
-
 pub(crate) fn slimdeck_from_row(row: &Row) -> crate::Result<interop::SlimDeck> {
     let res: String = row.get(2)?;
     let f: i32 = row.get(4)?;

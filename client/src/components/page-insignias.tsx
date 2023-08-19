@@ -17,7 +17,6 @@ export default function Insignias({ path }: { path?: string }) {
     );
 }
 
-
 function InsigniasModule() {
     type LocalState = {
         insigniaVal: number;
@@ -39,7 +38,6 @@ function InsigniasModule() {
         setLocalState(buildState(diff));
     }
 
-
     return (
         <article class="c-insignias-module module margin-top-9">
             <CivContainer>
@@ -47,15 +45,15 @@ function InsigniasModule() {
                     <h3 class="ui hack-margin-top-point-2">Insignias</h3>
                 </CivLeft>
                 <CivMain>
-            <InsigniaSelector
-                insigniaId={localState.insigniaVal}
-                onChange={onChangeInsignia}
-            />
-            <Pagination
-                url={localState.url}
-                renderItem={renderPaginatedSlimDeck}
-                itemsPerPage={15}
-            />
+                    <InsigniaSelector
+                        insigniaId={localState.insigniaVal}
+                        onChange={onChangeInsignia}
+                    />
+                    <Pagination
+                        url={localState.url}
+                        renderItem={renderPaginatedSlimDeck}
+                        itemsPerPage={15}
+                    />
                 </CivMain>
             </CivContainer>
         </article>

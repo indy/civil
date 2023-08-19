@@ -7,13 +7,11 @@ import {
     DeckKind,
     DeckUpdate,
     SlimDeck,
-    IdeasListings,
     ResultList,
 } from "types";
 
 import Net from "shared/net";
 import { formattedDate } from "shared/time";
-import { getAppState, AppStateChange } from "app-state";
 
 import TopBarMenu from "components/top-bar-menu";
 import CivilButton from "components/civil-button";
@@ -41,22 +39,15 @@ import CivilTabButton from "components/civil-tab-button";
 import Pagination from "components/pagination";
 
 function Ideas({ path }: { path?: string }) {
-    const appState = getAppState();
-
-    useEffect(() => {
-        if (!appState.listing.value.ideas) {
-            let url: string = "/api/ideas/listings";
-            Net.get<IdeasListings>(url).then((listings) => {
-                AppStateChange.setIdeaListings({ ideaListings: listings });
-            });
-        }
-    }, []);
-
-    const ideas = appState.listing.value.ideas;
-    return ideas ? <div><TopBarMenu /><IdeasModule ideas={ideas} /></div> : <div />;
+    return (
+        <div>
+            <TopBarMenu />
+            <IdeasModule />
+        </div>
+    );
 }
 
-function IdeasModule({ ideas }: { ideas: IdeasListings }) {
+function IdeasModule() {
     const [selected, setSelected] = useState("recent");
 
     return (
