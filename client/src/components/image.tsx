@@ -1,7 +1,9 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import { immutableState } from "app-state";
+import { CivilMode } from "types";
+
+import { immutableState, getAppState } from "app-state";
 
 import { visibleClass } from "shared/css";
 
@@ -10,16 +12,22 @@ type ImageProps = {
 };
 
 export default function Image({ src }: ImageProps) {
+    let appState = getAppState();
+
     let [zoomable, setZoomable] = useState(false);
     let [zoomValue, setZoomValue] = useState(immutableState.imageZoomDefault);
 
     function onClick() {
-        setZoomable(!zoomable);
+        if (appState.mode.value === CivilMode.View) {
+            setZoomable(!zoomable);
+        }
     }
 
     function onInput(event: Event) {
         if (event.target instanceof HTMLInputElement) {
-            setZoomValue(event.target.valueAsNumber);
+            if (appState.mode.value === CivilMode.View) {
+                setZoomValue(event.target.valueAsNumber);
+            }
         }
     }
 
