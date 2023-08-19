@@ -24,7 +24,6 @@ import {
 import Net from "shared/net";
 import { calcAgeInYears, dateStringAsTriple } from "shared/time";
 import { buildUrl } from "shared/civil";
-import { deckKindToHeadingString } from "shared/deck";
 import { fontClass } from "shared/font";
 import { getAppState, AppStateChange, immutableState } from "app-state";
 import {
@@ -37,12 +36,13 @@ import {
     svgUntickedCheckBox,
     svgX,
 } from "components/svg-icons";
-import WhenEditMode from "components/when-edit-mode";
 
+import TopBarMenu from "components/top-bar-menu";
+import WhenEditMode from "components/when-edit-mode";
+import CivilTabButton from "components/civil-tab-button";
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilButton from "components/civil-button";
 import CivilInput from "components/civil-input";
-import Module from "components/module";
 import DeckLink from "components/deck-link";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "components/insignia-selector";
@@ -57,7 +57,8 @@ import SegmentSearchResults from "components/segment-search-results";
 import TopMatter from "components/top-matter";
 import FontSelector from "components/font-selector";
 import useDeckManager from "components/use-deck-manager";
-import { SlimDeckGrouping } from "components/groupings";
+import Pagination from "components/pagination";
+import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import {
     CivContainer,
     CivMain,
@@ -79,40 +80,49 @@ function People({ path }: { path?: string }) {
     }, []);
 
     const people = appState.listing.value.people;
-    return people ? <PeopleModule people={people} /> : <div />;
+    return people ? (
+        <div>
+            <TopBarMenu />
+            <PeopleModule people={people} />
+        </div>
+
+    ) : <div />;
 }
 
 function PeopleModule({ people }: { people: PeopleListings }) {
-    let buttons = (
+    const url = `/api/people/pagination`;
+
+    const lowerContent = (
         <CivilButtonCreateDeck
             deckKind={DeckKind.Person}
         ></CivilButtonCreateDeck>
     );
 
+    function FakeTopSelector() {
+        return (
+            <div class="c-paginator-top-selector pagination-top-selector">
+                <CivilTabButton extraClasses="pigment-people selected">All</CivilTabButton>
+            </div>
+        );
+    }
+
     return (
-        <Module
-            heading={deckKindToHeadingString(DeckKind.Person)}
-            buttons={buttons}
-        >
-            <SlimDeckGrouping
-                label="Uncategorised"
-                list={people.uncategorised}
-                expanded
-                hideEmpty
-            />
-            <SlimDeckGrouping label="Ancient" list={people.ancient} expanded />
-            <SlimDeckGrouping
-                label="Medieval"
-                list={people.medieval}
-                expanded
-            />
-            <SlimDeckGrouping label="Modern" list={people.modern} expanded />
-            <SlimDeckGrouping
-                label="Contemporary"
-                list={people.contemporary}
-                expanded
-            />
-        </Module>
+        <article class="c-people-module module margin-top-9">
+            <CivContainer>
+                <CivLeft>
+                    <h3 class="ui margin-top-0">People</h3>
+                </CivLeft>
+                <CivMain>
+                    <FakeTopSelector />
+                    <Pagination
+                        url={url}
+                        renderItem={renderPaginatedSlimDeck}
+                        itemsPerPage={10}
+                        lowerContent={lowerContent}
+                    />
+                </CivMain>
+            </CivContainer>
+        </article>
     );
 }
 
@@ -729,3 +739,41 @@ function SegmentPoints({
 }
 
 export { Person, People, PeopleModule };
+
+
+/*
+function PeopleModule({ people }: { people: PeopleListings }) {
+    let buttons = (
+        <CivilButtonCreateDeck
+            deckKind={DeckKind.Person}
+        ></CivilButtonCreateDeck>
+    );
+
+    return (
+        <Module
+            heading={deckKindToHeadingString(DeckKind.Person)}
+            buttons={buttons}
+        >
+            <SlimDeckGrouping
+                label="Uncategorised"
+                list={people.uncategorised}
+                expanded
+                hideEmpty
+            />
+            <SlimDeckGrouping label="Ancient" list={people.ancient} expanded />
+            <SlimDeckGrouping
+                label="Medieval"
+                list={people.medieval}
+                expanded
+            />
+            <SlimDeckGrouping label="Modern" list={people.modern} expanded />
+            <SlimDeckGrouping
+                label="Contemporary"
+                list={people.contemporary}
+                expanded
+            />
+        </Module>
+    );
+}
+
+ */

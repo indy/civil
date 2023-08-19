@@ -17,6 +17,7 @@ import BusyIndicator from "components/busy-indicator";
 import FrontPage from "components/page-front-page";
 import Login from "components/page-login";
 import Memorise from "components/page-memorise";
+import Insignia from "components/page-insignias";
 import { Article, Articles } from "components/page-articles";
 import { Dialogue, DialogueChat, Dialogues } from "components/page-dialogues";
 import { Ideas, Idea } from "components/page-ideas";
@@ -107,6 +108,7 @@ const AppUI = () => {
                 <FrontPage path="/" />
                 <Login path="/login" loginCallback={loginHandler} />
                 <AccountSettings path="/account-settings" />
+                <Insignia path="/insignias" />
                 <Memorise path="/memorise" />
                 <Ideas path="/ideas" />
                 <Idea path="/ideas/:id" />

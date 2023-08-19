@@ -24,6 +24,7 @@ import {
     asHumanReadableDateRange,
 } from "shared/time";
 
+import TopBarMenu from "components/top-bar-menu";
 import CivilTabButton from "components/civil-tab-button";
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilButton from "components/civil-button";
@@ -63,7 +64,12 @@ function Events({ path }: { path?: string }) {
     }, []);
 
     const events = appState.listing.value.events;
-    return events ? <EventsModule events={events} /> : <div />;
+    return events ? (
+        <div>
+            <TopBarMenu />
+            <EventsModule events={events} />
+        </div>
+    ) : <div />;
 }
 
 function EventsModule({ events }: { events: Array<SlimDeck> }) {
@@ -78,7 +84,7 @@ function EventsModule({ events }: { events: Array<SlimDeck> }) {
     function FakeTopSelector() {
         return (
             <div class="c-paginator-top-selector pagination-top-selector">
-                <CivilTabButton extraClasses="selected">All</CivilTabButton>
+                <CivilTabButton extraClasses="pigment-events selected">All</CivilTabButton>
             </div>
         );
     }

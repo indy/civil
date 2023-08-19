@@ -20,7 +20,7 @@ use crate::db::notes;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Error;
 use crate::interop::articles as interop;
-use crate::interop::decks::DeckKind;
+use crate::interop::decks::{DeckKind, Pagination, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::Key;
 use rusqlite::{params, Row};
@@ -113,6 +113,118 @@ pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<i
                 WHERE user_id = ?1 AND kind = 'article'
                 ORDER BY created_at DESC";
     sqlite::many(&conn, stmt, params![&user_id], from_row)
+}
+
+pub(crate) fn recent(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    offset: i32,
+    num_items: i32,
+) -> crate::Result<Pagination<interop::Article>> {
+    let conn = sqlite_pool.get()?;
+
+    let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
+                       article_extras.short_description, coalesce(article_extras.rating, 0) as rating,
+                       decks.created_at, article_extras.published_date, decks.insignia, decks.font
+                FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
+                WHERE user_id = ?1 and kind = 'article'
+                ORDER BY created_at desc
+                LIMIT ?2
+                OFFSET ?3";
+    let items = sqlite::many(
+        &conn,
+        stmt,
+        params![&user_id, &num_items, &offset],
+        from_row,
+    )?;
+
+    let stmt = "SELECT count(*)
+                FROM decks
+                WHERE user_id = ?1 and kind = 'article'";
+    let total_items = sqlite::one(&conn, stmt, params![user_id], sqlite::i32_from_row)?;
+
+    let res = Pagination::<interop::Article> { items, total_items };
+
+    Ok(res)
+}
+
+pub(crate) fn rated(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    offset: i32,
+    num_items: i32,
+) -> crate::Result<Pagination<interop::Article>> {
+    let conn = sqlite_pool.get()?;
+
+    let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
+                       article_extras.short_description, coalesce(article_extras.rating, 0) as rating,
+                       decks.created_at, article_extras.published_date, decks.insignia, decks.font
+                FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
+                WHERE user_id = ?1 AND kind = 'article' AND article_extras.rating > 0
+                ORDER BY article_extras.rating desc, decks.id desc
+                LIMIT ?2
+                OFFSET ?3";
+    let items = sqlite::many(
+        &conn,
+        stmt,
+        params![&user_id, &num_items, &offset],
+        from_row,
+    )?;
+
+    let stmt = "SELECT count(*)
+                FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
+                WHERE user_id = ?1 AND kind = 'article' AND article_extras.rating > 0";
+
+    let total_items = sqlite::one(&conn, stmt, params![user_id], sqlite::i32_from_row)?;
+
+    let res = Pagination::<interop::Article> { items, total_items };
+
+    Ok(res)
+}
+
+pub(crate) fn orphans(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    offset: i32,
+    num_items: i32,
+) -> crate::Result<Pagination<SlimDeck>> {
+    let conn = sqlite_pool.get()?;
+
+    let stmt = "SELECT d.id, d.name, 'article', d.insignia, d.font, d.graph_terminator
+                FROM decks d LEFT JOIN article_extras pe ON pe.deck_id=d.id
+                WHERE d.id NOT IN (SELECT deck_id
+                                   FROM notes_decks
+                                   GROUP BY deck_id)
+                AND d.id NOT IN (SELECT n.deck_id
+                                 FROM notes n INNER JOIN notes_decks nd ON n.id = nd.note_id
+                                 GROUP by n.deck_id)
+                AND d.kind = 'article'
+                AND d.user_id = ?1
+                ORDER BY d.created_at desc
+                LIMIT ?2
+                OFFSET ?3";
+    let items = sqlite::many(
+        &conn,
+        stmt,
+        params![&user_id, &num_items, &offset],
+        decks::slimdeck_from_row,
+    )?;
+
+    let stmt = "SELECT count(*)
+                FROM decks d LEFT JOIN article_extras pe ON pe.deck_id=d.id
+                WHERE d.id NOT IN (SELECT deck_id
+                                   FROM notes_decks
+                                   GROUP BY deck_id)
+                AND d.id NOT IN (SELECT n.deck_id
+                                 FROM notes n INNER JOIN notes_decks nd ON n.id = nd.note_id
+                                 GROUP by n.deck_id)
+                AND d.kind = 'article'
+                AND d.user_id = ?1";
+    let total_items = sqlite::one(&conn, stmt, params![user_id], sqlite::i32_from_row)?;
+
+    let res = Pagination::<SlimDeck> { items, total_items };
+
+    Ok(res)
 }
 
 pub(crate) fn listings(

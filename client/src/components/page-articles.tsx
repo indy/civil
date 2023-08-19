@@ -15,6 +15,7 @@ import {
 
 import { getAppState, AppStateChange } from "app-state";
 
+import TopBarMenu from "components/top-bar-menu";
 import InsigniaSelector from "components/insignia-selector";
 import SegmentGraph from "components/segment-graph";
 import SegmentNotes from "components/segment-notes";
@@ -23,27 +24,31 @@ import AutoSummarize from "components/auto-summarize";
 import CivilButton from "components/civil-button";
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilInput from "components/civil-input";
-import useDeckManager from "components/use-deck-manager";
-import Module from "components/module";
+import CivilTabButton from "components/civil-tab-button";
+import DeckLink from "components/deck-link";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
+import FontSelector from "components/font-selector";
 import LeftMarginHeadingNoWrap from "components/left-margin-heading-no-wrap";
+import Pagination from "components/pagination";
 import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import TopMatter from "components/top-matter";
-import FontSelector from "components/font-selector";
-import { SlimDeckGrouping, RatedGrouping } from "components/groupings";
+import useDeckManager from "components/use-deck-manager";
 import { StarRatingPartial } from "components/star-rating";
+import { StarRatingWithinListing } from "components/star-rating";
 import {
     CivContainer,
     CivMain,
     CivForm,
+    CivLeft,
     CivLeftLabel,
 } from "components/civil-layout";
 
 import Net from "shared/net";
 import { buildUrl } from "shared/civil";
-import { deckKindToHeadingString } from "shared/deck";
+//import { deckKindToHeadingString } from "shared/deck";
 import { formattedDate } from "shared/time";
+import { buildSlimDeck } from "shared/deck";
 
 function Articles({ path }: { path?: string }) {
     const appState = getAppState();
@@ -60,29 +65,105 @@ function Articles({ path }: { path?: string }) {
     }, []);
 
     const articles = appState.listing.value.articles;
-    return articles ? <ArticlesModule articles={articles} /> : <div />;
+    return articles ? (
+        <div>
+            <TopBarMenu />
+        <ArticlesModule articles={articles} />
+        </div>
+
+        ) : <div />;
 }
 
 function ArticlesModule({ articles }: { articles: ArticleListings }) {
-    let buttons = (
-        <CivilButtonCreateDeck
-            deckKind={DeckKind.Article}
-        ></CivilButtonCreateDeck>
+    const [selected, setSelected] = useState("recent");
+
+    return (
+        <article class="c-articles-module module margin-top-9">
+            <CivContainer>
+                <CivLeft>
+                    <h3 class="ui margin-top-0">Articles</h3>
+                </CivLeft>
+                <CivMain>
+                    <ArticlesSelector
+                        setSelected={setSelected}
+                        selected={selected}
+                    />
+                    <ArticlesPaginator selected={selected} />
+                </CivMain>
+            </CivContainer>
+        </article>
+    );
+}
+
+
+function ArticlesSelector({
+    selected,
+    setSelected,
+}: {
+    selected: string;
+    setSelected: (s: string) => void;
+}) {
+    function onClicked(s: string) {
+        setSelected(s);
+    }
+
+    function selectedCheck(h: string) {
+        if (h === selected) {
+            return "pigment-articles selected";
+        } else {
+            return "";
+        }
+    }
+
+    const headings: Array<string> = ["recent", "rated", "orphans"];
+
+    return (
+        <div class="c-articles-selector pagination-top-selector">
+            {headings.map((heading) => (
+                <div class="paginator-item">
+                    <CivilTabButton
+                        extraClasses={selectedCheck(heading)}
+                        onClick={() => {
+                            onClicked(heading);
+                        }}
+                    >
+                        {heading}
+                    </CivilTabButton>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+function ArticlesPaginator({ selected }: { selected: string }) {
+    const url = `/api/articles/${selected}`;
+
+    const lowerContent = (
+        <CivilButtonCreateDeck deckKind={DeckKind.Article}></CivilButtonCreateDeck>
     );
 
     return (
-        <Module
-            heading={deckKindToHeadingString(DeckKind.Article)}
-            buttons={buttons}
-        >
-            <RatedGrouping label="Recent" list={articles.recent} expanded />
-            <RatedGrouping label="Rated" list={articles.rated} />
-            <SlimDeckGrouping
-                label="Orphans"
-                list={articles.orphans}
-                hideEmpty
-            />
-        </Module>
+        <Pagination
+            url={url}
+            renderItem={renderPaginatedArticle}
+            itemsPerPage={10}
+            lowerContent={lowerContent}
+        />
+    );
+}
+
+function renderPaginatedArticle(article: DeckArticle, i: number) {
+    let { id, title, rating, shortDescription, insignia, font } = article;
+    let slimDeck = buildSlimDeck(DeckKind.Article, id, title, insignia, font);
+
+    let klass = i % 2 ? "stripe-a" : "stripe-b";
+
+    return (
+        <li class={klass}>
+            <StarRatingWithinListing rating={rating} />
+            <DeckLink slimDeck={slimDeck} />
+            <span class="descriptive-scribble">{shortDescription}</span>
+        </li>
     );
 }
 

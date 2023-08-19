@@ -15,6 +15,7 @@ import Net from "shared/net";
 import { formattedDate } from "shared/time";
 import { getAppState, AppStateChange } from "app-state";
 
+import TopBarMenu from "components/top-bar-menu";
 import CivilButton from "components/civil-button";
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilInput from "components/civil-input";
@@ -36,9 +37,7 @@ import {
     CivLeft,
     CivLeftLabel,
 } from "components/civil-layout";
-
 import CivilTabButton from "components/civil-tab-button";
-
 import Pagination from "components/pagination";
 
 function Ideas({ path }: { path?: string }) {
@@ -54,7 +53,7 @@ function Ideas({ path }: { path?: string }) {
     }, []);
 
     const ideas = appState.listing.value.ideas;
-    return ideas ? <IdeasModule ideas={ideas} /> : <div />;
+    return ideas ? <div><TopBarMenu /><IdeasModule ideas={ideas} /></div> : <div />;
 }
 
 function IdeasModule({ ideas }: { ideas: IdeasListings }) {
@@ -91,7 +90,7 @@ function IdeasSelector({
 
     function selectedCheck(h: string) {
         if (h === selected) {
-            return "selected";
+            return "pigment-ideas selected";
         } else {
             return "";
         }

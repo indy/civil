@@ -23,6 +23,7 @@ import Net from "shared/net";
 import { buildUrl } from "shared/civil";
 import { fontForRole } from "shared/font";
 
+import TopBarMenu from "components/top-bar-menu";
 import InsigniaSelector from "components/insignia-selector";
 import SegmentGraph from "components/segment-graph";
 import SegmentNotes from "components/segment-notes";
@@ -79,7 +80,13 @@ function Dialogues({ path }: { path?: string }) {
     const dialogues = appState.listing.value.dialogues;
 
     if (dialogues) {
-        return <DialoguesModule dialogues={dialogues} />;
+        return (
+        <div>
+            <TopBarMenu />
+            <DialoguesModule dialogues={dialogues} />
+        </div>
+
+            );
     } else {
         return <div></div>;
     }
@@ -99,7 +106,7 @@ function DialoguesModule({ dialogues }: { dialogues: Array<SlimDeck> }) {
     function FakeTopSelector() {
         return (
             <div class="c-paginator-top-selector pagination-top-selector">
-                <CivilTabButton extraClasses="selected">All</CivilTabButton>
+                <CivilTabButton extraClasses="pigment-dialogues selected">All</CivilTabButton>
             </div>
         );
     }

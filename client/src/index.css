@@ -1170,6 +1170,9 @@ textarea {
 .hack-margin-top-minus-half {
     margin-top: -0.5rem;
 }
+.hack-margin-top-point-2 {
+    margin-top: 0.2rem;
+}
 
 .stripe-a .c-deck-link {
     margin-left: 1rem;

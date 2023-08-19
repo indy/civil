@@ -23,6 +23,7 @@ import {
     svgX,
 } from "components/svg-icons";
 
+import TopBarMenu from "components/top-bar-menu";
 import CivilTabButton from "components/civil-tab-button";
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilButton from "components/civil-button";
@@ -65,7 +66,13 @@ function Timelines({ path }: { path?: string }) {
     }, []);
 
     const timelines = appState.listing.value.timelines;
-    return timelines ? <TimelinesModule timelines={timelines} /> : <div />;
+    return timelines ? (
+        <div>
+            <TopBarMenu />
+            <TimelinesModule timelines={timelines} />
+        </div>
+
+    ) : <div />;
 }
 
 function TimelinesModule({ timelines }: { timelines: Array<SlimDeck> }) {
@@ -80,7 +87,7 @@ function TimelinesModule({ timelines }: { timelines: Array<SlimDeck> }) {
     function FakeTopSelector() {
         return (
             <div class="c-paginator-top-selector pagination-top-selector">
-                <CivilTabButton extraClasses="selected">All</CivilTabButton>
+                <CivilTabButton extraClasses="pigment-timelines selected">All</CivilTabButton>
             </div>
         );
     }

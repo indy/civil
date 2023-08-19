@@ -1,17 +1,24 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import Toggler from "components/toggler";
-
+import TopBarMenu from "components/top-bar-menu";
 import InsigniaSelector from "components/insignia-selector";
 import Pagination from "components/pagination";
 import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 
-type InsigniaGroupingProps = {
-    label: string;
-};
+import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 
-export default function InsigniaGrouping({ label }: InsigniaGroupingProps) {
+export default function Insignias({ path }: { path?: string }) {
+    return (
+        <div>
+            <TopBarMenu />
+            <InsigniasModule />
+        </div>
+    );
+}
+
+
+function InsigniasModule() {
     type LocalState = {
         insigniaVal: number;
         url: string;
@@ -25,11 +32,6 @@ export default function InsigniaGrouping({ label }: InsigniaGroupingProps) {
     }
 
     let [localState, setLocalState] = useState(buildState(2));
-    let [show, setShow] = useState(false);
-
-    function toggleShow() {
-        setShow(!show);
-    }
 
     function onChangeInsignia(val: number): void {
         // only select one insignia at a time
@@ -37,8 +39,14 @@ export default function InsigniaGrouping({ label }: InsigniaGroupingProps) {
         setLocalState(buildState(diff));
     }
 
+
     return (
-        <Toggler toggleShow={toggleShow} label={label} show={show}>
+        <article class="c-insignias-module module margin-top-9">
+            <CivContainer>
+                <CivLeft>
+                    <h3 class="ui hack-margin-top-point-2">Insignias</h3>
+                </CivLeft>
+                <CivMain>
             <InsigniaSelector
                 insigniaId={localState.insigniaVal}
                 onChange={onChangeInsignia}
@@ -48,6 +56,8 @@ export default function InsigniaGrouping({ label }: InsigniaGroupingProps) {
                 renderItem={renderPaginatedSlimDeck}
                 itemsPerPage={15}
             />
-        </Toggler>
+                </CivMain>
+            </CivContainer>
+        </article>
     );
 }

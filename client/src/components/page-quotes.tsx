@@ -18,6 +18,7 @@ import buildMarkup from "components/build-markup";
 import { AppStateChange, immutableState } from "app-state";
 import { deckKindToHeadingString } from "shared/deck";
 
+import TopBarMenu from "components/top-bar-menu";
 import CivilButton from "components/civil-button";
 import CivilInput from "components/civil-input";
 import CivilTextArea from "components/civil-text-area";
@@ -86,7 +87,12 @@ function titleFromQuoteText(quoteText: string) {
 }
 
 function Quotes({ path }: { path?: string }) {
-    return <QuotesModule />;
+    return (
+        <div>
+            <TopBarMenu />
+            <QuotesModule />
+        </div>
+    );
 }
 
 function QuotesModule({}) {

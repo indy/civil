@@ -1,5 +1,5 @@
 import { h, ComponentChildren } from "preact";
-import { useState } from "preact/hooks";
+import { useState, useEffect } from "preact/hooks";
 
 import { DeckKind, DeckArticle, SlimDeck, ResultList } from "types";
 import { buildSlimDeck } from "shared/deck";
@@ -53,47 +53,35 @@ function SlimDeckGrouping({
     }
 }
 
-type LazyLoadedGroupingProps = {
-    label: string;
+type EagerLoadedGroupingProps = {
     url: string;
 };
 
-function LazyLoadedGrouping({ label, url }: LazyLoadedGroupingProps) {
+function EagerLoadedGrouping({ url }: EagerLoadedGroupingProps) {
     type State = {
         fetchedData: boolean;
         list: Array<SlimDeck>;
-        show: boolean;
     };
 
     let initialState: State = {
         fetchedData: false,
         list: [],
-        show: false,
     };
     let [localState, setLocalState] = useState(initialState);
 
-    function toggleShow() {
-        const visible = !localState.show;
-        setLocalState({
-            ...localState,
-            show: visible,
-        });
-        if (visible && !localState.fetchedData) {
-            Net.get<ResultList>(url).then((resultList) => {
-                setLocalState({
-                    ...localState,
-                    fetchedData: true,
-                    list: resultList.results,
-                    show: true,
-                });
+    useEffect(() => {
+        console.log("eager");
+        Net.get<ResultList>(url).then((resultList) => {
+            setLocalState({
+                ...localState,
+                fetchedData: true,
+                list: resultList.results,
             });
-        }
-    }
+        });
+    }, []);
 
     return (
-        <Toggler toggleShow={toggleShow} label={label} show={localState.show}>
-            <ul class="compacted-list">{buildListing(localState.list)}</ul>
-        </Toggler>
+        <ul class="compacted-list">{buildListing(localState.list)}</ul>
     );
 }
 
@@ -147,4 +135,4 @@ function RatedListingLink({ deck }: RatedListingLinkProps) {
     );
 }
 
-export { SlimDeckGrouping, RatedGrouping, SlimDeckList, LazyLoadedGrouping };
+export { SlimDeckGrouping, RatedGrouping, SlimDeckList, EagerLoadedGrouping };
