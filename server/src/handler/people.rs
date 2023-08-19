@@ -90,6 +90,66 @@ pub async fn pagination(
     .await
 }
 
+pub async fn uncategorised(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+    web::Query(query): web::Query<PaginationQuery>,
+) -> crate::Result<HttpResponse> {
+    let user_id = session::user_id(&session)?;
+
+    let paginated = db::uncategorised(&sqlite_pool, user_id, query.offset, query.num_items)?;
+
+    Ok(HttpResponse::Ok().json(paginated))
+}
+
+pub async fn ancient(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+    web::Query(query): web::Query<PaginationQuery>,
+) -> crate::Result<HttpResponse> {
+    let user_id = session::user_id(&session)?;
+
+    let paginated = db::ancient(&sqlite_pool, user_id, query.offset, query.num_items)?;
+
+    Ok(HttpResponse::Ok().json(paginated))
+}
+
+pub async fn medieval(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+    web::Query(query): web::Query<PaginationQuery>,
+) -> crate::Result<HttpResponse> {
+    let user_id = session::user_id(&session)?;
+
+    let paginated = db::medieval(&sqlite_pool, user_id, query.offset, query.num_items)?;
+
+    Ok(HttpResponse::Ok().json(paginated))
+}
+
+pub async fn modern(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+    web::Query(query): web::Query<PaginationQuery>,
+) -> crate::Result<HttpResponse> {
+    let user_id = session::user_id(&session)?;
+
+    let paginated = db::modern(&sqlite_pool, user_id, query.offset, query.num_items)?;
+
+    Ok(HttpResponse::Ok().json(paginated))
+}
+
+pub async fn contemporary(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+    web::Query(query): web::Query<PaginationQuery>,
+) -> crate::Result<HttpResponse> {
+    let user_id = session::user_id(&session)?;
+
+    let paginated = db::contemporary(&sqlite_pool, user_id, query.offset, query.num_items)?;
+
+    Ok(HttpResponse::Ok().json(paginated))
+}
+
 pub async fn get(
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,

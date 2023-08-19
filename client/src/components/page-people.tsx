@@ -90,21 +90,7 @@ function People({ path }: { path?: string }) {
 }
 
 function PeopleModule({ people }: { people: PeopleListings }) {
-    const url = `/api/people/pagination`;
-
-    const lowerContent = (
-        <CivilButtonCreateDeck
-            deckKind={DeckKind.Person}
-        ></CivilButtonCreateDeck>
-    );
-
-    function FakeTopSelector() {
-        return (
-            <div class="c-paginator-top-selector pagination-top-selector">
-                <CivilTabButton extraClasses="pigment-people selected">All</CivilTabButton>
-            </div>
-        );
-    }
+    const [selected, setSelected] = useState("ancient");
 
     return (
         <article class="c-people-module module margin-top-9">
@@ -113,18 +99,105 @@ function PeopleModule({ people }: { people: PeopleListings }) {
                     <h3 class="ui margin-top-0">People</h3>
                 </CivLeft>
                 <CivMain>
-                    <FakeTopSelector />
-                    <Pagination
-                        url={url}
-                        renderItem={renderPaginatedSlimDeck}
-                        itemsPerPage={10}
-                        lowerContent={lowerContent}
+                    <PeopleSelector
+                        setSelected={setSelected}
+                        selected={selected}
                     />
+                    <PeoplePaginator selected={selected} />
                 </CivMain>
             </CivContainer>
         </article>
     );
 }
+
+
+
+function PeopleSelector({
+    selected,
+    setSelected,
+}: {
+    selected: string;
+    setSelected: (s: string) => void;
+}) {
+    function onClicked(s: string) {
+        setSelected(s);
+    }
+
+    function selectedCheck(h: string) {
+        if (h === selected) {
+            return "pigment-people selected";
+        } else {
+            return "";
+        }
+    }
+
+    const headings: Array<string> = ["ancient", "medieval", "modern", "contemporary", "uncategorised"];
+
+    return (
+        <div class="c-ideas-selector pagination-top-selector">
+            {headings.map((heading) => (
+                <div class="paginator-item">
+                    <CivilTabButton
+                        extraClasses={selectedCheck(heading)}
+                        onClick={() => {
+                            onClicked(heading);
+                        }}
+                    >
+                        {heading}
+                    </CivilTabButton>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+function PeoplePaginator({ selected }: { selected: string }) {
+    const url = `/api/people/${selected}`;
+
+    const lowerContent = (
+        <CivilButtonCreateDeck deckKind={DeckKind.Person}></CivilButtonCreateDeck>
+    );
+
+    return (
+        <Pagination
+            url={url}
+            renderItem={renderPaginatedSlimDeck}
+            itemsPerPage={10}
+            lowerContent={lowerContent}
+        />
+    );
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function Person({ path, id }: { path?: string; id?: string }) {
     const appState = getAppState();

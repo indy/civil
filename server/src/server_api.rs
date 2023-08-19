@@ -88,6 +88,11 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("", post().to(people::create))
                 .route("", get().to(people::get_all))
                 .route("/listings", get().to(people::get_listings))
+                .route("/uncategorised", get().to(people::uncategorised))
+                .route("/ancient", get().to(people::ancient))
+                .route("/medieval", get().to(people::medieval))
+                .route("/modern", get().to(people::modern))
+                .route("/contemporary", get().to(people::contemporary))
                 .route("/pagination", get().to(people::pagination))
                 .route("/{id}", get().to(people::get))
                 .route(
