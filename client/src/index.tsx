@@ -94,7 +94,8 @@ wasm_bindgen("/civil_wasm_bg.wasm")
                     // start with valid default values for the config
                     let uiConfig: UiConfig = basicUiConfig();
 
-                    // now customise those valid defaults with values from the server
+                    // customise defaults with values from the server
+                    //
                     let configFromServer = JSON.parse(user.uiConfigJson);
                     Object.keys(configFromServer).forEach((key) => {
                         if (key in uiConfig) {
@@ -103,6 +104,15 @@ wasm_bindgen("/civil_wasm_bg.wasm")
                     });
                     AppStateChange.setUiConfig({ uiConfig });
 
+                    // set title to highlight top menu bar items
+                    //
+                    let hrefParts = window.location.href.split("/");
+                    let title = hrefParts[hrefParts.length -1];
+                    if (title === "") {
+                        title = "home";
+                    }
+                    AppStateChange.urlTitle({title});
+
                     // get the front-page user data
                     //
                     Net.get<UberSetup>("/api/ubersetup").then((uber) => {
@@ -110,7 +120,7 @@ wasm_bindgen("/civil_wasm_bg.wasm")
                         render(<App state={state} />, rootElement);
                     });
                 } else {
-                    // use system default theme obtained from the css variable "--mode"
+                    // use system default theme from css variable "--mode"
                     //
                     let mode = getCssString("--mode");
 

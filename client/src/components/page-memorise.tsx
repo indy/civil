@@ -8,6 +8,7 @@ import { getAppState, AppStateChange, immutableState } from "app-state";
 import { plural } from "shared/english";
 import { formattedDate, formattedTime } from "shared/time";
 
+import TopBarMenu from "components/top-bar-menu";
 import CivilButton from "components/civil-button";
 import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 import DeckLink from "components/deck-link";
@@ -158,6 +159,15 @@ function reducer(state: State, action: Action): State {
 }
 
 export default function Memorise({ path }: { path?: string }) {
+    return (
+        <div>
+            <TopBarMenu />
+            <MemoriseModule />
+        </div>
+    );
+}
+
+function MemoriseModule() {
     const appState = getAppState();
 
     const initialState: State = {
@@ -229,10 +239,12 @@ export default function Memorise({ path }: { path?: string }) {
     }
 
     return (
-        <section class="ui">
+        <article class="module margin-top-9 ui">
             <CivContainer>
+                <CivLeft>
+                    <h3 class="ui hack-margin-top-minus-half">Memorisation</h3>
+                </CivLeft>
                 <CivMain>
-                    <h1>Memorisation</h1>
                     {local.mode !== Mode.PostTest && (
                         <p>{plural(cardsToReview, "card", "s")} to review</p>
                     )}
@@ -278,7 +290,7 @@ export default function Memorise({ path }: { path?: string }) {
                     onShowAnswer={onShowAnswer}
                 />
             )}
-        </section>
+        </article>
     );
 }
 

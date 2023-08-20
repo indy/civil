@@ -99,7 +99,7 @@ export const immutableState: ImmutableState = {
 
     // preferred order of the top-level menu bar
     //
-    topMenuOrder: ["memorise", "seek", "insignias", "stats"],
+    topMenuOrder: ["home", "seek", "insignias", "memorise", "stats"],
 
     // oldest reasonable age in years, any person whose birth means they're older can be assumed to be dead
     //
@@ -186,7 +186,7 @@ const state: State = {
     // id and deckKind can be parsed from the url, but the name needs to be
     // stored separately
     //
-    urlTitle: signal(""),
+    urlTitle: signal("home"),
 
     // the url of the current page
     //

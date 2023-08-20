@@ -18,6 +18,8 @@ import FrontPage from "components/page-front-page";
 import Login from "components/page-login";
 import Memorise from "components/page-memorise";
 import Insignia from "components/page-insignias";
+import Seek from "components/page-seek";
+import Stats from "components/page-stats";
 import { Article, Articles } from "components/page-articles";
 import { Dialogue, DialogueChat, Dialogues } from "components/page-dialogues";
 import { Ideas, Idea } from "components/page-ideas";
@@ -108,8 +110,10 @@ const AppUI = () => {
                 <FrontPage path="/" />
                 <Login path="/login" loginCallback={loginHandler} />
                 <AccountSettings path="/account-settings" />
+                <Seek path="/seek" />
                 <Insignia path="/insignias" />
                 <Memorise path="/memorise" />
+                <Stats path="/stats" />
                 <Ideas path="/ideas" />
                 <Idea path="/ideas/:id" />
                 <Articles path="/articles" />

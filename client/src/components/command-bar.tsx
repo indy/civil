@@ -373,7 +373,9 @@ export default function CommandBar() {
                     // we can treat any keypresses as modal commands for the app
                     switch (code) {
                         case "KeyH":
+                            AppStateChange.urlTitle({ title: "home" });
                             AppStateChange.mode({ mode: CivilMode.View });
+                            AppStateChange.commandBarResetAndHide();
                             route("/");
                             break;
                         case "KeyB":

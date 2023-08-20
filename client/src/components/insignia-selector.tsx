@@ -6,9 +6,10 @@ import { renderInsignia } from "components/insignia-renderer";
 type Props = {
     insigniaId: number;
     onChange: (id: number) => void;
+    extraClasses?: string;
 };
 
-export default function InsigniaSelector({ insigniaId, onChange }: Props) {
+export default function InsigniaSelector({ insigniaId, onChange, extraClasses }: Props) {
     function onTicked(bit: number) {
         let val = setbit(insigniaId, bit);
         onChange(val);
@@ -19,8 +20,13 @@ export default function InsigniaSelector({ insigniaId, onChange }: Props) {
         onChange(val);
     }
 
+    let klass = "icon-horizontal-grouping ";
+    if (extraClasses) {
+        klass += extraClasses;
+    }
+
     return (
-        <div class="icon-horizontal-grouping">
+        <div class={klass}>
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
                 <SingleInsignia
                     value={insigniaId}

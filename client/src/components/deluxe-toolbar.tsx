@@ -56,6 +56,7 @@ export function DeluxeToolbar({}) {
     }
 
     function clickedHome() {
+        AppStateChange.urlTitle({ title: "home" });
         AppStateChange.mode({ mode: CivilMode.View });
         AppStateChange.commandBarResetAndHide();
     }

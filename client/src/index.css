@@ -1173,6 +1173,9 @@ textarea {
 .hack-margin-top-point-2 {
     margin-top: 0.2rem;
 }
+.hack-force-space-around {
+  justify-content: space-around !important;
+}
 
 .stripe-a .c-deck-link {
     margin-left: 1rem;
@@ -1191,7 +1194,7 @@ textarea {
 
 .pagination-top-selector {
     display: flex;
-    justify-content: space-evenly;
+    justify-content: center;
     width: 100%;
 }
 
@@ -1567,16 +1570,6 @@ a:visited.pigment-inherit {
     background: var(--bg-events);
 }
 
-.pigment-memorise {
-    color: var(--fg-memorise) !important;
-    background: var(--bg-memorise);
-}
-/* used when there are some spaced repetition questions that are scheduled to be answered */
-.pigment-memorise-active {
-    color: var(--fg-memorise-active) !important;
-    background: var(--bg-memorise-active);
-}
-
 /* above colours don't work on hyperlinks, have to explicitly specify them  */
 .pigment-ideas a {
     color: var(--fg-ideas);
@@ -1621,6 +1614,68 @@ a:visited.pigment-inherit {
 .pigment-fg-events {
     color: var(--fg-events) !important;
 }
+
+/* ---------------------------------------- */
+
+.pigment-top-menu-home {
+    color: var(--fg-home) !important;
+    background: var(--bg-home);
+}
+/* used when there are some spaced repetition questions that are scheduled to be answered */
+.pigment-top-menu-home-active {
+    color: var(--fg-home-active) !important;
+    background: var(--bg-home-active);
+}
+
+/* ---- */
+
+.pigment-top-menu-seek {
+    color: var(--fg-seek) !important;
+    background: var(--bg-seek);
+}
+/* used when there are some spaced repetition questions that are scheduled to be answered */
+.pigment-top-menu-seek-active {
+    color: var(--fg-seek-active) !important;
+    background: var(--bg-seek-active);
+}
+
+/* ---- */
+
+.pigment-top-menu-insignias {
+    color: var(--fg-insignias) !important;
+    background: var(--bg-insignias);
+}
+/* used when there are some spaced repetition questions that are scheduled to be answered */
+.pigment-top-menu-insignias-active {
+    color: var(--fg-insignias-active) !important;
+    background: var(--bg-insignias-active);
+}
+
+/* ---- */
+
+.pigment-top-menu-memorise {
+    color: var(--fg-memorise) !important;
+    background: var(--bg-memorise);
+}
+/* used when there are some spaced repetition questions that are scheduled to be answered */
+.pigment-top-menu-memorise-active {
+    color: var(--fg-memorise-active) !important;
+    background: var(--bg-memorise-active);
+}
+
+/* ---- */
+
+.pigment-top-menu-stats {
+    color: var(--fg-stats) !important;
+    background: var(--bg-stats);
+}
+/* used when there are some spaced repetition questions that are scheduled to be answered */
+.pigment-top-menu-stats-active {
+    color: var(--fg-stats-active) !important;
+    background: var(--bg-stats-active);
+}
+
+/* ---------------------------------------- */
 
 .delete-confirmation {
     padding-left: 3rem;
@@ -2348,7 +2403,7 @@ input:required {
     border-radius: var(--ui-element-border-radius);
 }
 .icon-selected {
-    border: 0.2rem solid var(--fg-lighter-1);
+    border: 0.2rem solid var(--fg-lighter-2);
 }
 
 .icon-unselected {

@@ -48,6 +48,7 @@ function InsigniasModule() {
                     <InsigniaSelector
                         insigniaId={localState.insigniaVal}
                         onChange={onChangeInsignia}
+                        extraClasses="hack-force-space-around"
                     />
                     <Pagination
                         url={localState.url}

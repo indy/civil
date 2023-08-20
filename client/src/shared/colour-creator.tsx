@@ -159,42 +159,6 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
     defs = {
         ...defs,
 
-        bg: [
-            seeds.bgH,
-            seeds.bgS,
-            seeds.bgL + seeds.bgLDelta * 1,
-        ] as ColourTriple,
-
-        bg_lighter_1: [
-            seeds.bgH,
-            seeds.bgS,
-            seeds.bgL + seeds.bgLDelta * 0,
-        ] as ColourTriple,
-
-        bg_darker_2: [
-            seeds.bgH,
-            seeds.bgS,
-            seeds.bgL + seeds.bgLDelta * 2.0,
-        ] as ColourTriple,
-
-        bg_darker_3: [
-            seeds.bgH,
-            seeds.bgS,
-            seeds.bgL + seeds.bgLDelta * 3.0,
-        ] as ColourTriple,
-
-        bg_darker_4: [
-            seeds.bgH,
-            seeds.bgS,
-            seeds.bgL + seeds.bgLDelta * 4.0,
-        ] as ColourTriple,
-
-        bg_darker_6: [
-            seeds.bgH,
-            seeds.bgS,
-            seeds.bgL + seeds.bgLDelta * 6.0,
-        ] as ColourTriple,
-
         ui_control_highlight: [
             seeds.bgH,
             seeds.bgS,
@@ -216,36 +180,6 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
             0.1,
         ] as ColourQuad,
 
-        fg: [
-            seeds.fgH,
-            seeds.fgS,
-            seeds.fgL + seeds.fgLDelta * 0,
-        ] as ColourTriple,
-
-        fg_lighter_1: [
-            seeds.fgH,
-            seeds.fgS,
-            seeds.fgL + seeds.fgLDelta * 1,
-        ] as ColourTriple,
-
-        fg_lighter_2: [
-            seeds.fgH,
-            seeds.fgS,
-            seeds.fgL + seeds.fgLDelta * 2,
-        ] as ColourTriple,
-
-        fg_lighter_5: [
-            seeds.fgH,
-            seeds.fgS,
-            seeds.fgL + seeds.fgLDelta * 5,
-        ] as ColourTriple,
-
-        fg_lighter_7: [
-            seeds.fgH,
-            seeds.fgS,
-            seeds.fgL + seeds.fgLDelta * 7,
-        ] as ColourTriple,
-
         bg_ideas: "--bg-clock-06",
         bg_articles: "--bg-clock-12",
         bg_people: "--bg-clock-09",
@@ -266,28 +200,6 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
             seeds.fgH,
             seeds.fgS,
             seeds.fgL + seeds.fgLDelta * 1,
-        ] as ColourTriple,
-
-        bg_memorise: [
-            seeds.clockHDelta * 10 + seeds.clockBgH,
-            seeds.clockBgS - 30,
-            seeds.clockBgL,
-        ] as ColourTriple,
-        bg_memorise_active: [
-            seeds.clockHDelta * 10 + seeds.clockBgH,
-            seeds.clockBgS + 50,
-            seeds.clockBgL,
-        ] as ColourTriple,
-
-        fg_memorise: [
-            seeds.clockHDelta * 10 + seeds.clockFgH,
-            seeds.clockFgS - 30,
-            seeds.clockFgL,
-        ] as ColourTriple,
-        fg_memorise_active: [
-            seeds.clockHDelta * 10 + seeds.clockFgH,
-            seeds.clockFgS + 50,
-            seeds.clockFgL,
         ] as ColourTriple,
 
         scribble_neutral: [
@@ -336,6 +248,70 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
         graph_edge_in_contrast: [217, 60, 70] as ColourTriple,
         graph_edge_critical: [7, 60, 70] as ColourTriple,
     };
+
+    defs = bgCol(defs, seeds, 1, "bg");
+    defs = bgCol(defs, seeds, 0, "bg_lighter_1");
+    defs = bgCol(defs, seeds, 2, "bg_darker_2");
+    defs = bgCol(defs, seeds, 3, "bg_darker_3");
+    defs = bgCol(defs, seeds, 4, "bg_darker_4");
+    defs = bgCol(defs, seeds, 6, "bg_darker_6");
+
+    defs = fgCol(defs, seeds, 0, "fg");
+    defs = fgCol(defs, seeds, 1, "fg_lighter_1");
+    defs = fgCol(defs, seeds, 2, "fg_lighter_2");
+    defs = fgCol(defs, seeds, 5, "fg_lighter_5");
+    defs = fgCol(defs, seeds, 7, "fg_lighter_7");
+
+    defs = addTopMenuColours(defs, seeds, 150, "home");
+    defs = addTopMenuColours(defs, seeds, 180, "seek");
+    defs = addTopMenuColours(defs, seeds, 210, "insignias");
+    defs = addTopMenuColours(defs, seeds, 300, "memorise");
+    defs = addTopMenuColours(defs, seeds, 240, "stats");
+
+    return defs;
+}
+
+function bgCol(defs: ColourDefinitions, seeds: ColourSeeds, factor: number, name: string): ColourDefinitions {
+    defs[name] = [
+        seeds.bgH,
+        seeds.bgS,
+        seeds.bgL + seeds.bgLDelta * factor
+    ] as ColourTriple;
+
+    return defs;
+}
+
+function fgCol(defs: ColourDefinitions, seeds: ColourSeeds, factor: number, name: string): ColourDefinitions {
+    defs[name] = [
+        seeds.fgH,
+        seeds.fgS,
+        seeds.fgL + seeds.fgLDelta * factor
+    ] as ColourTriple;
+
+    return defs;
+}
+
+function addTopMenuColours(defs: ColourDefinitions, seeds: ColourSeeds, factor: number, name: string): ColourDefinitions {
+    defs[`bg_${name}`] = [
+        seeds.clockBgH + factor,
+        seeds.clockBgS - 30,
+        seeds.clockBgL,
+    ] as ColourTriple;
+    defs[`bg_${name}_active`] = [
+        seeds.clockBgH + factor,
+        seeds.clockBgS + 50,
+        seeds.clockBgL,
+    ] as ColourTriple;
+    defs[`fg_${name}`] = [
+        seeds.clockFgH + factor,
+        seeds.clockFgS - 30,
+        seeds.clockFgL,
+    ] as ColourTriple;
+    defs[`fg_${name}_active`] = [
+        seeds.clockFgH + factor,
+        seeds.clockFgS + 50,
+        seeds.clockFgL,
+    ] as ColourTriple;
 
     return defs;
 }

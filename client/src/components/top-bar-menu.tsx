@@ -42,14 +42,18 @@ export default function TopBarMenu() {
         return text;
     }
 
+    function menuHref(topMenuItem: string): string {
+        if (topMenuItem === "home") {
+            topMenuItem = "";
+        }
+        return `/${topMenuItem}`;
+    }
+
     function menuItemClass(topMenuItem: string): string {
-        if (
-            topMenuItem === "memorise" &&
-            appState.memoriseReviewCount.value > 0
-        ) {
-            return `pigment-${topMenuItem}-active`;
+        if (appState.urlTitle.value === topMenuItem) {
+            return `pigment-top-menu-${topMenuItem}-active`;
         } else {
-            return `pigment-${topMenuItem}`;
+            return `pigment-top-menu-${topMenuItem}`;
         }
     }
 
@@ -63,7 +67,7 @@ export default function TopBarMenu() {
                             onClick={() => {
                                 clickedTopLevel(topMenuItem);
                             }}
-                            href={`/${topMenuItem}`}
+                            href={menuHref(topMenuItem)}
                         >
                             {menuItemText(topMenuItem)}
                         </Link>
