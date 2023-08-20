@@ -35,12 +35,7 @@ pub(crate) enum DeckBaseOrigin {
 }
 
 fn contains(backrefs: &[interop::SlimDeck], id: Key) -> bool {
-    for br in backrefs {
-        if br.id == id {
-            return true;
-        }
-    }
-    false
+    backrefs.iter().any(|br| br.id == id)
 }
 
 #[derive(Debug, Clone)]
@@ -95,20 +90,6 @@ fn num_decks_for_deck_kind(
         params![user_id, &deck_kind.to_string()],
         sqlite::i32_from_row,
     )
-}
-
-#[derive(Debug, Clone)]
-pub struct DeckCounter {
-    pub num_decks: usize,
-    pub deck_kind: DeckKind,
-}
-
-fn deck_counter_from_row(row: &Row) -> crate::Result<DeckCounter> {
-    let res: String = row.get(1)?;
-    Ok(DeckCounter {
-        num_decks: row.get(0)?,
-        deck_kind: DeckKind::from_str(&res)?,
-    })
 }
 
 pub(crate) fn slimdeck_from_row(row: &Row) -> crate::Result<interop::SlimDeck> {
