@@ -37,9 +37,9 @@ import {
     CivContainer,
     CivMain,
     CivForm,
-    CivLeft,
     CivLeftLabel,
 } from "components/civil-layout";
+import { Module } from "components/module";
 
 import Net from "shared/net";
 import { buildUrl } from "shared/civil";
@@ -60,20 +60,14 @@ function ArticlesModule() {
     const [selected, setSelected] = useState("recent");
 
     return (
-        <article class="c-articles-module module margin-top-9">
-            <CivContainer>
-                <CivLeft>
-                    <h3 class="ui margin-top-0">Articles</h3>
-                </CivLeft>
-                <CivMain>
-                    <ArticlesSelector
-                        setSelected={setSelected}
-                        selected={selected}
-                    />
-                    <ArticlesPaginator selected={selected} />
-                </CivMain>
-            </CivContainer>
-        </article>
+        <Module
+            extraClasses="c-articles-module"
+            heading="Articles"
+            extraHeadingClasses="margin-top-0"
+        >
+            <ArticlesSelector setSelected={setSelected} selected={selected} />
+            <ArticlesPaginator selected={selected} />
+        </Module>
     );
 }
 

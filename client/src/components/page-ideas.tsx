@@ -32,11 +32,11 @@ import {
     CivContainer,
     CivMain,
     CivForm,
-    CivLeft,
     CivLeftLabel,
 } from "components/civil-layout";
 import CivilTabButton from "components/civil-tab-button";
 import Pagination from "components/pagination";
+import { Module } from "components/module";
 
 function Ideas({ path }: { path?: string }) {
     return (
@@ -51,20 +51,14 @@ function IdeasModule() {
     const [selected, setSelected] = useState("recent");
 
     return (
-        <article class="c-ideas-module module margin-top-9">
-            <CivContainer>
-                <CivLeft>
-                    <h3 class="ui margin-top-0">Ideas</h3>
-                </CivLeft>
-                <CivMain>
-                    <IdeasSelector
-                        setSelected={setSelected}
-                        selected={selected}
-                    />
-                    <IdeasPaginator selected={selected} />
-                </CivMain>
-            </CivContainer>
-        </article>
+        <Module
+            extraClasses="c-ideas-module"
+            heading="Ideas"
+            extraHeadingClasses="margin-top-0"
+        >
+            <IdeasSelector setSelected={setSelected} selected={selected} />
+            <IdeasPaginator selected={selected} />
+        </Module>
     );
 }
 

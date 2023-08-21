@@ -47,8 +47,7 @@ import {
     CivLeft,
     CivLeftLabel,
 } from "components/civil-layout";
-
-// import { deckKindToHeadingString } from "shared/deck";
+import { Module } from "components/module";
 
 function Timelines({ path }: { path?: string }) {
     return (
@@ -79,22 +78,19 @@ function TimelinesModule() {
     }
 
     return (
-        <article class="c-timelines-module module margin-top-9">
-            <CivContainer>
-                <CivLeft>
-                    <h3 class="ui margin-top-0">Timelines</h3>
-                </CivLeft>
-                <CivMain>
-                    <FakeTopSelector />
-                    <Pagination
-                        url={url}
-                        renderItem={renderPaginatedSlimDeck}
-                        itemsPerPage={10}
-                        lowerContent={lowerContent}
-                    />
-                </CivMain>
-            </CivContainer>
-        </article>
+        <Module
+            extraClasses="c-timelines-module"
+            heading="Timelines"
+            extraHeadingClasses="margin-top-0"
+        >
+            <FakeTopSelector />
+            <Pagination
+                url={url}
+                renderItem={renderPaginatedSlimDeck}
+                itemsPerPage={10}
+                lowerContent={lowerContent}
+            />
+        </Module>
     );
 }
 

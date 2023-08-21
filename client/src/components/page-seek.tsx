@@ -1,7 +1,7 @@
 import { h } from "preact";
 
 import TopBarMenu from "components/top-bar-menu";
-import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
+import { Module } from "components/module";
 
 export default function Seek({ path }: { path?: string }) {
     return (
@@ -14,13 +14,12 @@ export default function Seek({ path }: { path?: string }) {
 
 function SeekModule() {
     return (
-        <article class="c-seek-module module margin-top-9">
-            <CivContainer>
-                <CivLeft>
-                    <h3 class="ui hack-margin-top-minus-half">Seek</h3>
-                </CivLeft>
-                <CivMain>Placeholder</CivMain>
-            </CivContainer>
-        </article>
+        <Module
+            extraClasses="c-seek-module"
+            heading="Seek"
+            extraHeadingClasses="hack-margin-top-minus-half"
+        >
+            Placeholder
+        </Module>
     );
 }

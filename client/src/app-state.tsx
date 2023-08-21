@@ -277,10 +277,10 @@ export const AppStateChange = {
 
         let root = document.body;
         if (args.span === CivilSpan.Narrow) {
-            root.style.setProperty("--body-width", "72%");
+            // root.style.setProperty("--body-width", "72%");
             root.style.setProperty("--block-width", "40%");
         } else {
-            root.style.setProperty("--body-width", "80%");
+            // root.style.setProperty("--body-width", "80%");
             root.style.setProperty("--block-width", "55%");
         }
     }),

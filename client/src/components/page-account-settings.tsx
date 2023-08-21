@@ -9,7 +9,7 @@ import { getAppState, AppStateChange } from "app-state";
 import Net from "shared/net";
 import { updateAndSaveUiConfig, basicUiConfig } from "shared/ui-config";
 
-import Module from "components/module";
+import { CivContainer, CivMainUi } from "components/civil-layout";
 import { svgSun, svgMoon } from "components/svg-icons";
 import { svgComputer, svgTablet } from "components/svg-icons";
 
@@ -260,3 +260,24 @@ function TestColourSchemeModule({}) {
     );
 }
 */
+type Props = {
+    heading: string;
+    buttons?: ComponentChildren;
+    children: ComponentChildren;
+};
+
+function Module({ heading, children, buttons }: Props) {
+    return (
+        <article class="module">
+            <CivContainer>
+                <CivMainUi>
+                    <span class="module-top-part">
+                        <span class="button-row">{buttons}</span>
+                        <h1 class="ui">{heading}</h1>
+                    </span>
+                    {children}
+                </CivMainUi>
+            </CivContainer>
+        </article>
+    );
+}

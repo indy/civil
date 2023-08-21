@@ -12,27 +12,25 @@ import { deckKindToResourceString, deckKindToHeadingString } from "shared/deck";
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilTabButton from "components/civil-tab-button";
 import Pagination from "components/pagination";
-import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 import { renderPaginatedSlimDeck } from "components/paginated-render-items";
+import { Module } from "components/module";
 
 export default function Paginator({}) {
     const [selected, setSelected] = useState(DeckKind.Idea);
     // margin-top-9 provides the empty space for the command bar to appear
+
     return (
-        <article class="c-paginator module margin-top-9">
-            <CivContainer>
-                <CivLeft>
-                    <h3 class="ui margin-top-0">Decks</h3>
-                </CivLeft>
-                <CivMain>
-                    <PaginatorTopSelector
-                        setSelected={setSelected}
-                        selected={selected}
-                    />
-                    <DeckPaginator deckKind={selected} />
-                </CivMain>
-            </CivContainer>
-        </article>
+        <Module
+            extraClasses="c-paginator"
+            heading="Decks"
+            extraHeadingClasses="margin-top-0"
+        >
+            <PaginatorTopSelector
+                setSelected={setSelected}
+                selected={selected}
+            />
+            <DeckPaginator deckKind={selected} />
+        </Module>
     );
 }
 

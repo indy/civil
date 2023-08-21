@@ -24,14 +24,13 @@ import CivilInput from "components/civil-input";
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";
 import ModalKeyboardHelp from "components/modal-keyboard-help";
-import Module from "components/module";
 import SegmentBackRefs from "components/segment-back-refs";
 import SegmentNotes from "components/segment-notes";
 import WhenNoPhysicalKeyboard from "components/when-no-physical-keyboard";
 import useDeckManager from "components/use-deck-manager";
 import useLocalReducer from "components/use-local-reducer";
 import useModalKeyboard from "components/use-modal-keyboard";
-import { CivContainer, CivMain } from "components/civil-layout";
+import { CivContainer, CivMain, CivMainUi } from "components/civil-layout";
 
 enum ActionType {
     ShowAddForm,
@@ -200,12 +199,19 @@ function QuotesModule({}) {
     );
 
     return (
-        <Module
-            heading={deckKindToHeadingString(DeckKind.Quote)}
-            buttons={buttons}
-        >
-            {local.showAddForm && renderAddForm()}
-        </Module>
+        <article class="module">
+            <CivContainer>
+                <CivMainUi>
+                    <span class="module-top-part">
+                        <span class="button-row">{buttons}</span>
+                        <h1 class="ui">
+                            {deckKindToHeadingString(DeckKind.Quote)}
+                        </h1>
+                    </span>
+                    {local.showAddForm && renderAddForm()}
+                </CivMainUi>
+            </CivContainer>
+        </article>
     );
 }
 

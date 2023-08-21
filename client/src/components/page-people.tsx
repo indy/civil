@@ -65,6 +65,7 @@ import {
     CivLeft,
     CivLeftLabel,
 } from "components/civil-layout";
+import { Module } from "components/module";
 
 function People({ path }: { path?: string }) {
     return (
@@ -79,20 +80,14 @@ function PeopleModule() {
     const [selected, setSelected] = useState("ancient");
 
     return (
-        <article class="c-people-module module margin-top-9">
-            <CivContainer>
-                <CivLeft>
-                    <h3 class="ui margin-top-0">People</h3>
-                </CivLeft>
-                <CivMain>
-                    <PeopleSelector
-                        setSelected={setSelected}
-                        selected={selected}
-                    />
-                    <PeoplePaginator selected={selected} />
-                </CivMain>
-            </CivContainer>
-        </article>
+        <Module
+            extraClasses="c-people-module"
+            heading="People"
+            extraHeadingClasses="margin-top-0"
+        >
+            <PeopleSelector setSelected={setSelected} selected={selected} />
+            <PeoplePaginator selected={selected} />
+        </Module>
     );
 }
 

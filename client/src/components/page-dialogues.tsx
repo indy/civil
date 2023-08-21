@@ -47,6 +47,7 @@ import CivilTextArea from "components/civil-text-area";
 import CivilButton from "components/civil-button";
 import Pagination from "components/pagination";
 import { renderPaginatedSlimDeck } from "components/paginated-render-items";
+import { Module } from "components/module";
 
 type ProtoDialogue = {
     title: string;
@@ -93,22 +94,19 @@ function DialoguesModule() {
     }
 
     return (
-        <article class="c-dialogues-module module margin-top-9">
-            <CivContainer>
-                <CivLeft>
-                    <h3 class="ui margin-top-0">Dialogues</h3>
-                </CivLeft>
-                <CivMain>
-                    <FakeTopSelector />
-                    <Pagination
-                        url={url}
-                        renderItem={renderPaginatedSlimDeck}
-                        itemsPerPage={10}
-                        lowerContent={lowerContent}
-                    />
-                </CivMain>
-            </CivContainer>
-        </article>
+        <Module
+            extraClasses="c-dialogues-module"
+            heading="Dialogues"
+            extraHeadingClasses="margin-top-0"
+        >
+            <FakeTopSelector />
+            <Pagination
+                url={url}
+                renderItem={renderPaginatedSlimDeck}
+                itemsPerPage={10}
+                lowerContent={lowerContent}
+            />
+        </Module>
     );
 }
 

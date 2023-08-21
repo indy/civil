@@ -1,24 +1,37 @@
 import { h, ComponentChildren } from "preact";
 
-import { CivContainer, CivMain } from "components/civil-layout";
+import { CivContainer, CivLeft, CivMainUi } from "components/civil-layout";
 
-type Props = {
+type ModuleProps = {
     heading: string;
-    buttons?: ComponentChildren;
     children: ComponentChildren;
+    extraClasses?: string;
+    extraHeadingClasses?: string;
 };
 
-export default function Module({ heading, children, buttons }: Props) {
+export function Module({
+    heading,
+    children,
+    extraClasses,
+    extraHeadingClasses,
+}: ModuleProps) {
+    let aklass = "module margin-top-9 ";
+    if (extraClasses) {
+        aklass += extraClasses;
+    }
+
+    let lklass = "ui ";
+    if (extraHeadingClasses) {
+        lklass += extraHeadingClasses;
+    }
+
     return (
-        <article class="module">
+        <article class={aklass}>
             <CivContainer>
-                <CivMain>
-                    <span class="module-top-part">
-                        <span class="button-row">{buttons}</span>
-                        <h1 class="ui">{heading}</h1>
-                    </span>
-                    {children}
-                </CivMain>
+                <CivLeft>
+                    <h3 class={lklass}>{heading}</h3>
+                </CivLeft>
+                <CivMainUi>{children}</CivMainUi>
             </CivContainer>
         </article>
     );

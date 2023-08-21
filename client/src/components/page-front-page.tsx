@@ -7,9 +7,9 @@ import Net from "shared/net";
 
 import ListingLink from "components/listing-link";
 
-import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 import TopBarMenu from "components/top-bar-menu";
 import Paginator from "components/paginator";
+import { Module } from "components/module";
 
 export default function FrontPage({ path }: { path?: string }) {
     return (
@@ -23,18 +23,13 @@ export default function FrontPage({ path }: { path?: string }) {
 
 function RecentlyVisitedModule() {
     return (
-        <article class="module margin-top-5">
-            <CivContainer>
-                <CivLeft>
-                    <h3 class="ui hack-margin-top-minus-half">
-                        Recently Visited
-                    </h3>
-                </CivLeft>
-                <CivMain>
-                    <EagerLoadedGrouping url="/api/decks/recently_visited" />
-                </CivMain>
-            </CivContainer>
-        </article>
+        <Module
+            extraClasses="margin-top-5"
+            heading="Recently Visited"
+            extraHeadingClasses="hack-margin-top-minus-half"
+        >
+            <EagerLoadedGrouping url="/api/decks/recently_visited" />
+        </Module>
     );
 }
 

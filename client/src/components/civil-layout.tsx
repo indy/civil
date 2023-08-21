@@ -46,6 +46,28 @@ export function CivMain({
     return <div class={classes}>{children}</div>;
 }
 
+export function CivMainUi({
+    replacementClasses,
+    extraClasses,
+    children,
+}: {
+    replacementClasses?: string;
+    extraClasses?: string;
+    children: ComponentChildren;
+}) {
+    let classes = "c-civ-main-ui ";
+    if (extraClasses) {
+        classes += extraClasses + " ";
+    }
+    if (replacementClasses) {
+        classes += replacementClasses;
+    } else {
+        classes += "civ-main-standard";
+    }
+
+    return <div class={classes}>{children}</div>;
+}
+
 export function CivLeft({
     extraClasses,
     children,

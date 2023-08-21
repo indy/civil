@@ -7,6 +7,7 @@
 
     --body-width: 80%;
     --block-width: 55%;
+    --block-width-ui: 55%;
 
     --civ-left-margin-left: -30%;
 
@@ -489,11 +490,13 @@ h1 {
 
 .passage-for-point {
     --block-width: 98%;
+    --block-width-ui: 98%;
     --civ-left-margin-left: -33.5%;
 }
 
 .c-previewer {
     --block-width: 100%;
+    --block-width-ui: 100%;
 
     transition: all 130ms linear;
 
@@ -531,6 +534,10 @@ h1 {
 }
 .c-civ-main {
     width: var(--block-width);
+    margin-left: 1rem;
+}
+.c-civ-main-ui {
+    width: var(--block-width-ui);
     margin-left: 1rem;
 }
 .selectable-hovering {
@@ -1196,6 +1203,7 @@ textarea {
     display: flex;
     justify-content: center;
     width: 100%;
+    flex-wrap: wrap;
 }
 
 .pagination-ui-row {
@@ -2433,6 +2441,7 @@ input:required {
         /* --bg: #00f2f0; */
         --body-width: 93.5%;
         --block-width: 70%;
+        --block-width-ui: 70%;
         --command-bar-width: 70%;
     }
 
@@ -2493,6 +2502,7 @@ input:required {
         /* --bg: #ffff00; */
         --body-width: 97.5%;
         --block-width: 90%;
+        --block-width-ui: 90%;
 
         --command-bar-top: 9.3rem;
         --command-bar-width: 70%;
@@ -2685,6 +2695,7 @@ input:required {
     :root {
         /* --bg: #220044; */
         --block-width: 95%;
+        --block-width-ui: 95%;
         --command-bar-width: 90%;
     }
 

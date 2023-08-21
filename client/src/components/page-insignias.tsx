@@ -6,7 +6,7 @@ import InsigniaSelector from "components/insignia-selector";
 import Pagination from "components/pagination";
 import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 
-import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
+import { Module } from "components/module";
 
 export default function Insignias({ path }: { path?: string }) {
     return (
@@ -39,24 +39,21 @@ function InsigniasModule() {
     }
 
     return (
-        <article class="c-insignias-module module margin-top-9">
-            <CivContainer>
-                <CivLeft>
-                    <h3 class="ui hack-margin-top-point-2">Insignias</h3>
-                </CivLeft>
-                <CivMain>
-                    <InsigniaSelector
-                        insigniaId={localState.insigniaVal}
-                        onChange={onChangeInsignia}
-                        extraClasses="hack-force-space-around"
-                    />
-                    <Pagination
-                        url={localState.url}
-                        renderItem={renderPaginatedSlimDeck}
-                        itemsPerPage={15}
-                    />
-                </CivMain>
-            </CivContainer>
-        </article>
+        <Module
+            extraClasses="c-insignias-module"
+            heading="Insignias"
+            extraHeadingClasses="hack-margin-top-point-2"
+        >
+            <InsigniaSelector
+                insigniaId={localState.insigniaVal}
+                onChange={onChangeInsignia}
+                extraClasses="hack-force-space-around"
+            />
+            <Pagination
+                url={localState.url}
+                renderItem={renderPaginatedSlimDeck}
+                itemsPerPage={15}
+            />
+        </Module>
     );
 }

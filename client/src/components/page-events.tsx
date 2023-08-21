@@ -42,10 +42,10 @@ import {
     CivContainer,
     CivMain,
     CivForm,
-    CivLeft,
     CivLeftLabel,
     CivRight,
 } from "components/civil-layout";
+import { Module } from "components/module";
 
 function Events({ path }: { path?: string }) {
     return (
@@ -76,22 +76,19 @@ function EventsModule() {
     }
 
     return (
-        <article class="c-events-module module margin-top-9">
-            <CivContainer>
-                <CivLeft>
-                    <h3 class="ui margin-top-0">Events</h3>
-                </CivLeft>
-                <CivMain>
-                    <FakeTopSelector />
-                    <Pagination
-                        url={url}
-                        renderItem={renderPaginatedSlimDeck}
-                        itemsPerPage={10}
-                        lowerContent={lowerContent}
-                    />
-                </CivMain>
-            </CivContainer>
-        </article>
+        <Module
+            extraClasses="c-events-module"
+            heading="Events"
+            extraHeadingClasses="margin-top-0"
+        >
+            <FakeTopSelector />
+            <Pagination
+                url={url}
+                renderItem={renderPaginatedSlimDeck}
+                itemsPerPage={10}
+                lowerContent={lowerContent}
+            />
+        </Module>
     );
 }
 
