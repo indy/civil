@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::postfix_asterisks;
+use crate::interop::decks::DeckKind;
 use crate::interop::font::Font;
 use crate::interop::notes as interop;
 use crate::interop::Key;
@@ -24,6 +26,8 @@ use tracing::{error, info};
 
 use crate::db::sqlite::{self, SqlitePool};
 use rusqlite::{params, Connection, Row};
+
+use std::str::FromStr;
 
 fn note_from_row(row: &Row) -> crate::Result<interop::Note> {
     let sql_kind: i32 = row.get(2)?;
@@ -406,4 +410,53 @@ pub(crate) fn overwrite_note_fonts(
         stmt,
         params![&user_id, &deck_id, &i32::from(new_font)],
     )
+}
+
+fn seeknote_from_row(row: &Row) -> crate::Result<interop::SeekNote> {
+    let deck_kind_str: String = row.get(2)?;
+    let deck_font: i32 = row.get(5)?;
+
+    let note_kind_i32: i32 = row.get(8)?;
+    let note_font: i32 = row.get(11)?;
+
+    Ok(interop::SeekNote {
+        deck_id: row.get(0)?,
+        deck_title: row.get(1)?,
+        deck_kind: DeckKind::from_str(&deck_kind_str)?,
+        deck_graph_terminator: row.get(3)?,
+        deck_insignia: row.get(4)?,
+        deck_font: Font::try_from(deck_font)?,
+
+        id: row.get(6)?,
+        prev_note_id: row.get(7)?,
+        kind: interop::NoteKind::try_from(note_kind_i32)?,
+        content: row.get(9)?,
+        point_id: row.get(10)?,
+        font: Font::try_from(note_font)?,
+        rank: row.get(12)?,
+    })
+}
+
+pub(crate) fn seek(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    query: &str,
+) -> crate::Result<Vec<interop::SeekNote>> {
+    let conn = sqlite_pool.get()?;
+    let q = postfix_asterisks(query)?;
+
+    let stmt = "SELECT d.id, d.name, d.kind, d.graph_terminator, d.insignia, d.font,
+                      n.id, n.prev_note_id, n.kind, n.content, n.point_id, n.font,
+                      notes_fts.rank AS rank
+               FROM notes_fts
+                    LEFT JOIN notes n ON n.id = notes_fts.rowid
+                    LEFT JOIN decks d ON d.id = n.deck_id
+                    LEFT JOIN dialogue_messages dm ON dm.note_id = n.id
+               WHERE notes_fts match ?2
+                     AND d.user_id = ?1
+                     AND (dm.role IS null OR dm.role <> 'system')
+               ORDER BY rank ASC
+               LIMIT 100";
+    let results = sqlite::many(&conn, stmt, params![&user_id, &q], seeknote_from_row)?;
+    Ok(results)
 }

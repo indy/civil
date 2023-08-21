@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::notes;
+use crate::db::postfix_asterisks;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Error;
 use crate::interop::decks as interop;
@@ -470,17 +471,6 @@ pub(crate) fn from_deck_id_via_notes_to_decks(
     sqlite::many(&conn, stmt, params![&deck_id], ref_from_row)
 }
 
-fn postfix_asterisks(s: &str) -> crate::Result<String> {
-    let mut res: String = "".to_string();
-
-    for i in s.split_whitespace() {
-        res.push_str(i);
-        res.push_str("* ");
-    }
-
-    Ok(res)
-}
-
 pub(crate) fn search(
     sqlite_pool: &SqlitePool,
     user_id: Key,
@@ -828,14 +818,4 @@ pub(crate) fn overwrite_deck_font(
         stmt,
         params![&user_id, &deck_id, &i32::from(new_font)],
     )
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_postfix_asterisks() {
-        assert_eq!(postfix_asterisks("hello foo").unwrap(), "hello* foo* ");
-    }
 }

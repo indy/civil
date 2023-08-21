@@ -17,14 +17,30 @@
 
 use crate::db::notes as db;
 use crate::db::sqlite::SqlitePool;
+use crate::handler::SearchQuery;
 use crate::interop::notes as interop;
 use crate::interop::IdParam;
 use crate::session;
-use actix_web::web::{Data, Json, Path};
+use actix_web::web::{self, Data, Json, Path};
 use actix_web::HttpResponse;
 
 #[allow(unused_imports)]
 use tracing::info;
+
+pub async fn seek(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+    web::Query(query): web::Query<SearchQuery>,
+) -> crate::Result<HttpResponse> {
+    info!("search '{}'", &query.q);
+
+    let user_id = session::user_id(&session)?;
+
+    let results = db::seek(&sqlite_pool, user_id, &query.q)?;
+
+    let res = interop::SeekResults { results };
+    Ok(HttpResponse::Ok().json(res))
+}
 
 pub async fn create_notes(
     note: Json<interop::ProtoNote>,

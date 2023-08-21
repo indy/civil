@@ -57,12 +57,19 @@ pub(crate) fn one<T>(
     if let Some(row) = match rows.next() {
         Ok(r) => r,
         Err(e) => {
-            error!("query: {}", sql);
+            error!("row.next error in query: {}", sql);
             display_local_backtrace();
             return Err(Error::Sqlite(e));
         }
     } {
-        let res: T = from_row(row)?;
+        let res: T = match from_row(row) {
+            Ok(r) => r,
+            Err(e) => {
+                error!("from_row error in query: {}", sql);
+                error!("{:?}", &e);
+                return Err(e);
+            }
+        };
         Ok(res)
     } else {
         Err(crate::Error::NotFound)
@@ -85,18 +92,25 @@ pub(crate) fn many<T>(
     };
 
     let mut rows = stmt.query(params)?;
-
     let mut res_vec = Vec::new();
 
     while let Some(row) = match rows.next() {
         Ok(r) => r,
         Err(e) => {
-            error!("query: {}", sql);
+            error!("row.next error in query: {}", sql);
             display_local_backtrace();
             return Err(Error::Sqlite(e));
         }
     } {
-        let res: T = from_row(row)?;
+        let res: T = match from_row(row) {
+            Ok(r) => r,
+            Err(e) => {
+                error!("from_row error in query: {}", sql);
+                error!("{:?}", &e);
+                return Err(e);
+            }
+        };
+
         res_vec.push(res);
     }
 

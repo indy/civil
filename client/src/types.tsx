@@ -302,39 +302,31 @@ export type FlashCard = {
     repetition: number;
 };
 
+export type SeekNote = {
+    deckId: Key;
+    deckTitle: string;
+    deckKind: DeckKind;
+    deckGraphTerminator: boolean;
+    deckInsignia: number;
+    deckFont: Font;
+
+    id: Key;
+    prevNoteId?: Key;
+    kind: NoteKind;
+    content: string;
+    pointId?: Key;
+    font: Font;
+
+    rank: number;
+};
 export type ResultList = {
     results: Array<SlimDeck>;
 };
-/*
-export type IdeasListings = {
-    recent: Array<SlimDeck>;
-    orphans: Array<SlimDeck>;
-    unnoted: Array<SlimDeck>;
+
+export type SeekResults = {
+    results: Array<SeekNote>;
 };
 
-export type PeopleListings = {
-    uncategorised: Array<SlimDeck>;
-    ancient: Array<SlimDeck>;
-    medieval: Array<SlimDeck>;
-    modern: Array<SlimDeck>;
-    contemporary: Array<SlimDeck>;
-};
-
-export type ArticleListings = {
-    recent: Array<DeckArticle>;
-    rated: Array<DeckArticle>;
-    orphans: Array<SlimDeck>;
-};
-
-export type Listing = {
-    ideas: IdeasListings | undefined;
-    people: PeopleListings | undefined;
-    articles: ArticleListings | undefined;
-    timelines: Array<SlimDeck> | undefined;
-    dialogues: Array<SlimDeck> | undefined;
-    events: Array<SlimDeck> | undefined;
-};
-*/
 export type ColourSeeds = {
     [index: string]: number;
 };

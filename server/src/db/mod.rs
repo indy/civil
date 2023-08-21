@@ -35,3 +35,24 @@ pub mod users;
 
 pub mod sqlite;
 pub mod sqlite_migrations;
+
+fn postfix_asterisks(s: &str) -> crate::Result<String> {
+    let mut res: String = "".to_string();
+
+    for i in s.split_whitespace() {
+        res.push_str(i);
+        res.push_str("* ");
+    }
+
+    Ok(res)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_postfix_asterisks() {
+        assert_eq!(postfix_asterisks("hello foo").unwrap(), "hello* foo* ");
+    }
+}
