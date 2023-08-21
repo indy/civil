@@ -19,8 +19,7 @@ function StatsModule() {
                 <CivLeft>
                     <h3 class="ui hack-margin-top-minus-half">Stats</h3>
                 </CivLeft>
-                <CivMain>
-                </CivMain>
+                <CivMain>Placeholder</CivMain>
             </CivContainer>
         </article>
     );

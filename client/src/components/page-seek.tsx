@@ -19,8 +19,7 @@ function SeekModule() {
                 <CivLeft>
                     <h3 class="ui hack-margin-top-minus-half">Seek</h3>
                 </CivLeft>
-                <CivMain>
-                </CivMain>
+                <CivMain>Placeholder</CivMain>
             </CivContainer>
         </article>
     );

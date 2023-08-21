@@ -9,7 +9,11 @@ type Props = {
     extraClasses?: string;
 };
 
-export default function InsigniaSelector({ insigniaId, onChange, extraClasses }: Props) {
+export default function InsigniaSelector({
+    insigniaId,
+    onChange,
+    extraClasses,
+}: Props) {
     function onTicked(bit: number) {
         let val = setbit(insigniaId, bit);
         onChange(val);

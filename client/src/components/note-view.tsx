@@ -727,7 +727,9 @@ function buildLeftMarginContent(
             <CivLeft>
                 {note.chatMessage && <RoleView role={note.chatMessage!.role} />}
                 {buildFlashcardIndicator(note.flashcards, localDispatch)}
-                {note.refs && note.flashcards && <div class="spacer"></div>}
+                {note.refs.length > 0 && note.flashcards.length > 0 && (
+                    <div class="spacer"></div>
+                )}
                 {buildNoteReferences(note.refs, onCopyRefBelow, nextNote)}
             </CivLeft>
         );

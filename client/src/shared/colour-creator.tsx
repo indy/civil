@@ -271,27 +271,42 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
     return defs;
 }
 
-function bgCol(defs: ColourDefinitions, seeds: ColourSeeds, factor: number, name: string): ColourDefinitions {
+function bgCol(
+    defs: ColourDefinitions,
+    seeds: ColourSeeds,
+    factor: number,
+    name: string
+): ColourDefinitions {
     defs[name] = [
         seeds.bgH,
         seeds.bgS,
-        seeds.bgL + seeds.bgLDelta * factor
+        seeds.bgL + seeds.bgLDelta * factor,
     ] as ColourTriple;
 
     return defs;
 }
 
-function fgCol(defs: ColourDefinitions, seeds: ColourSeeds, factor: number, name: string): ColourDefinitions {
+function fgCol(
+    defs: ColourDefinitions,
+    seeds: ColourSeeds,
+    factor: number,
+    name: string
+): ColourDefinitions {
     defs[name] = [
         seeds.fgH,
         seeds.fgS,
-        seeds.fgL + seeds.fgLDelta * factor
+        seeds.fgL + seeds.fgLDelta * factor,
     ] as ColourTriple;
 
     return defs;
 }
 
-function addTopMenuColours(defs: ColourDefinitions, seeds: ColourSeeds, factor: number, name: string): ColourDefinitions {
+function addTopMenuColours(
+    defs: ColourDefinitions,
+    seeds: ColourSeeds,
+    factor: number,
+    name: string
+): ColourDefinitions {
     defs[`bg_${name}`] = [
         seeds.clockBgH + factor,
         seeds.clockBgS - 30,

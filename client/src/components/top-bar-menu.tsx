@@ -11,12 +11,12 @@ export default function TopBarMenu() {
     function loggedStatus() {
         let status = "";
 
-        let user = appState.user;
-        if (user.value) {
-            status += user.value.username;
-            if (user.value.admin && user.value.admin.dbName !== "civil") {
-                status += ` (${user.value.admin.dbName})`;
-            }
+        if (appState.user.value) {
+            let user = appState.user.value;
+            status += user.username;
+            // if (user.admin && user.admin.dbName !== "civil") {
+            //     status += ` (${user.admin.dbName})`;
+            // }
         } else {
             status = "Login";
         }
@@ -36,7 +36,7 @@ export default function TopBarMenu() {
         let text = capitalise(topMenuItem);
 
         if (topMenuItem === "memorise") {
-            text += ` (${appState.memoriseReviewCount.value})`;
+            text = `Mind (${appState.memoriseReviewCount.value})`;
         }
 
         return text;

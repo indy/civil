@@ -1,10 +1,12 @@
 import { h } from "preact";
 import { useEffect } from "preact/hooks";
 
-import { Key, SlimDeck } from "types";
+import { Key, SlimDeck, RenderingDeckPart } from "types";
+
+import { getAppState, AppStateChange, immutableState } from "app-state";
 
 import Net from "shared/net";
-import { getAppState, AppStateChange, immutableState } from "app-state";
+import { fontClass } from "shared/font";
 import { plural } from "shared/english";
 import { formattedDate, formattedTime } from "shared/time";
 
@@ -341,21 +343,35 @@ function CardTest({ card, onRatedCard, onShowAnswer }: CardTestProps) {
 }
 
 function Answer({ card }: { card: Card }) {
-    return (
-        <CivContainer extraClasses="note">
-            <CivLeft>
-                <div class="left-margin-entry">
-                    <span class="ref-kind">(Answer Deck)</span>
-                    <DeckLink slimDeck={card.deckInfo} />
-                </div>
-            </CivLeft>
-            <CivMain>
-                <div class="memorise-segment">Back</div>
+    let klass = "left-margin-entry ";
+    klass += fontClass(card.deckInfo.font, RenderingDeckPart.Body);
 
-                {card.answer &&
-                    buildMarkup(card.answer, immutableState.defaultFont, 0)}
-            </CivMain>
-        </CivContainer>
+    return (
+        <div>
+            <CivContainer extraClasses="note">
+                <CivMain>
+                    <div class="memorise-segment">Back</div>
+                </CivMain>
+            </CivContainer>
+            <CivContainer extraClasses="note">
+                <CivLeft>
+                    <div class={klass}>
+                        <span class="ref-kind">(Answer Deck)</span>
+                        <DeckLink slimDeck={card.deckInfo} />
+                    </div>
+                </CivLeft>
+                <CivMain>
+                    <div>
+                        {card.answer &&
+                            buildMarkup(
+                                card.answer,
+                                immutableState.defaultFont,
+                                0
+                            )}
+                    </div>
+                </CivMain>
+            </CivContainer>
+        </div>
     );
 }
 

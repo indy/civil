@@ -107,11 +107,11 @@ wasm_bindgen("/civil_wasm_bg.wasm")
                     // set title to highlight top menu bar items
                     //
                     let hrefParts = window.location.href.split("/");
-                    let title = hrefParts[hrefParts.length -1];
+                    let title = hrefParts[hrefParts.length - 1];
                     if (title === "") {
                         title = "home";
                     }
-                    AppStateChange.urlTitle({title});
+                    AppStateChange.urlTitle({ title });
 
                     // get the front-page user data
                     //
