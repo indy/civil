@@ -1174,7 +1174,7 @@ textarea {
     margin-top: 0.2rem;
 }
 .hack-force-space-around {
-  justify-content: space-around !important;
+    justify-content: space-around !important;
 }
 
 .stripe-a .c-deck-link {
@@ -1903,6 +1903,10 @@ section > form {
     text-align: right;
 }
 
+.civ-left-ui {
+    padding-top: 2.5rem !important;
+}
+
 /* for providing the lhs distance from the margin */
 .civ-left-inner {
     padding-right: 1.2rem;
@@ -2457,9 +2461,17 @@ input:required {
     }
 
     .c-civ-left {
-        float: right;
+        float: none;
+        margin-left: 1rem;
         text-align: left;
         width: 28%;
+    }
+
+    .civ-left-ui {
+        float: left !important;
+        margin-left: -2.8rem !important;
+        width: 0% !important;
+        padding-top: 2.5rem !important;
     }
 
     .ref-scribble {
@@ -2502,19 +2514,14 @@ input:required {
     }
 
     .c-civ-left {
-        float: none;
-        margin-left: var(--civ-left-margin-left);
         width: calc(100% - 1.4rem);
-        text-align: right;
     }
 
-    /* .civ-left-ui */
     .civ-left-ui {
         float: left !important;
-        margin-left: -2rem !important;
+        margin-left: -3rem !important;
         width: 0% !important;
-        text-align: left !important;
-        padding-top: 0 !important;
+        padding-top: 2rem !important;
     }
 
     .civ-left-inner {
