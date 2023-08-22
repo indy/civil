@@ -922,11 +922,6 @@ pre.fullwidth > code {
     width: 90%;
 }
 
-.fullwidth {
-    max-width: 90%;
-    clear: both;
-}
-
 input.right-margin-toggle {
     display: none;
 }
@@ -2004,6 +1999,10 @@ section > form {
     float: right;
 }
 
+.font-size-2rem {
+    font-size: 2rem;
+}
+
 .deck-level-backref {
     font-size: 1.1rem;
     padding-top: 0.2rem;
@@ -2027,7 +2026,7 @@ section > form {
     padding-left: 2rem;
 }
 
-.ref-clearer {
+.clear-both {
     clear: both;
 }
 
@@ -2066,10 +2065,6 @@ div.note > textarea {
     color: var(--fg-lighter-1);
     float: right;
     padding-right: 1rem;
-}
-
-.civil-date-hint-after {
-    clear: both;
 }
 
 .pointform-checkbox {

@@ -1,5 +1,5 @@
 import { h, ComponentChildren } from "preact";
-import { useState } from "preact/hooks";
+import { useState, useEffect } from "preact/hooks";
 
 import { svgCaretRight, svgCaretDown } from "components/svg-icons";
 import { CivContainer, CivMain } from "components/civil-layout";
@@ -16,6 +16,10 @@ export default function Expandable({
     children,
 }: ExpandableProps) {
     const [expanded, setExpanded] = useState(true);
+
+    useEffect(() => {
+        setExpanded(true);
+    }, [heading, children]);
 
     function onClicked() {
         setExpanded(!expanded);

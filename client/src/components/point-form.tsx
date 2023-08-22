@@ -377,7 +377,7 @@ export default function PointForm({
                         onContentChange={handleContentChange}
                     />
                     <span class="civil-date-hint"> Format: YYYY-MM-DD</span>
-                    <div class="civil-date-hint-after" />
+                    <div class="clear-both" />
                     <br />
                     <label for="lowerDate">Lower Date:</label>
                     <CivilInput

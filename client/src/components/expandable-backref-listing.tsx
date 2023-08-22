@@ -4,59 +4,39 @@ import { BackRefNote, Reference, SlimDeck, RenderingDeckPart } from "types";
 
 import { fontClass } from "shared/font";
 
-import { svgCaretRight, svgCaretDown } from "components/svg-icons";
-
-import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 import DeckLink from "components/deck-link";
+import Expandable from "components/expandable";
 import RefView from "components/ref-view";
 import buildMarkup from "components/build-markup";
+import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 
 type ExpandableBackRefListingProps = {
-    index: number;
     slimDeck: SlimDeck;
     deckLevelRefs: Array<Reference>;
     deckLevelAnnotation?: string;
     backRefNoteSeqs: Array<Array<BackRefNote>>;
-    expanded: boolean;
-    onExpandClick: (key: number) => void;
 };
 
 export default function ExpandableBackRefListing({
-    index,
     slimDeck,
     deckLevelRefs,
     deckLevelAnnotation,
     backRefNoteSeqs,
-    expanded,
-    onExpandClick,
 }: ExpandableBackRefListingProps) {
-    function onClicked(e: Event) {
-        e.preventDefault();
-        onExpandClick(index);
-    }
-
-    let icon = expanded ? svgCaretDown() : svgCaretRight();
-    let res = (
-        <div>
-            <CivContainer>
-                <CivMain>
-                    <span onClick={onClicked}>{icon}</span>
-                    <span class="font-size-1-point-6">
-                        <DeckLink slimDeck={slimDeck} />
-                    </span>
-                </CivMain>
-            </CivContainer>
-
-            {expanded &&
-                deckLevelAnnotation &&
-                buildDeckLevelAnnotation(deckLevelAnnotation)}
-            {expanded && buildDeckLevelBackRefs(deckLevelRefs)}
-
-            {expanded && buildNoteSeqs(backRefNoteSeqs)}
-        </div>
+    let heading = (
+        <span class="font-size-1-point-6">
+            <DeckLink slimDeck={slimDeck} />
+        </span>
     );
 
-    return res;
+    return (
+        <Expandable heading={heading}>
+            {deckLevelAnnotation &&
+                buildDeckLevelAnnotation(deckLevelAnnotation)}
+            {buildDeckLevelBackRefs(deckLevelRefs)}
+            {buildNoteSeqs(backRefNoteSeqs)}
+        </Expandable>
+    );
 }
 
 function buildDeckLevelAnnotation(deckLevelAnnotation: string) {
