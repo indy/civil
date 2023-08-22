@@ -446,8 +446,9 @@ pub(crate) fn seek(
     let q = postfix_asterisks(query)?;
 
     let stmt = "SELECT d.id, d.name, d.kind, d.graph_terminator, d.insignia, d.font,
-                      n.id, n.prev_note_id, n.kind, n.content, n.point_id, n.font,
-                      notes_fts.rank AS rank
+                       n.id, n.prev_note_id, n.kind,
+                       highlight(notes_fts, 0, ':searched(', ')') as content,
+                       n.point_id, n.font, notes_fts.rank AS rank
                FROM notes_fts
                     LEFT JOIN notes n ON n.id = notes_fts.rowid
                     LEFT JOIN decks d ON d.id = n.deck_id

@@ -51,6 +51,7 @@ pub enum Node {
     Paragraph(usize, Vec<Node>),
     Quotation(usize, Vec<Node>),
     Red(usize, Vec<Node>),
+    Searched(usize, Vec<Node>),
     Strong(usize, Vec<Node>),
     Subscript(usize, Vec<Node>),
     Superscript(usize, Vec<Node>),
@@ -80,6 +81,7 @@ fn get_node_pos(node: &Node) -> usize {
         Node::Paragraph(pos, _) => *pos,
         Node::Quotation(pos, _) => *pos,
         Node::Red(pos, _) => *pos,
+        Node::Searched(pos, _) => *pos,
         Node::Strong(pos, _) => *pos,
         Node::Subscript(pos, _) => *pos,
         Node::Superscript(pos, _) => *pos,
@@ -322,6 +324,11 @@ fn eat_bold<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     Ok((tokens, Node::Strong(pos, parsed_content)))
 }
 
+fn eat_searched<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
+    let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
+    Ok((tokens, Node::Searched(pos, parsed_content)))
+}
+
 fn eat_highlighted<'a>(tokens: &'a [Token<'a>]) -> ParserResult<Node> {
     let (tokens, (pos, parsed_content)) = eat_basic_colon_command(tokens)?;
     Ok((tokens, Node::Highlight(pos, parsed_content)))
@@ -415,8 +422,6 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
             Token::Text(_, "h") => eat_highlighted(tokens),
             Token::Text(_, "u") => eat_underlined(tokens),
             Token::Text(_, "i") => eat_italic(tokens),
-            Token::Text(_, "red") => eat_red(tokens),
-            Token::Text(_, "green") => eat_green(tokens),
             Token::Text(_, "h1") => eat_header(1, tokens),
             Token::Text(_, "h2") => eat_header(2, tokens),
             Token::Text(_, "h3") => eat_header(3, tokens),
@@ -426,13 +431,16 @@ fn eat_colon<'a>(mut tokens: &'a [Token<'a>]) -> ParserResult<Node> {
             Token::Text(_, "h7") => eat_header(7, tokens),
             Token::Text(_, "h8") => eat_header(8, tokens),
             Token::Text(_, "h9") => eat_header(9, tokens),
-            Token::Text(_, "side") => eat_side(tokens),
-            Token::Text(_, "nside") => eat_nside(tokens),
             Token::Text(_, "comment") => eat_comment(tokens),
+            Token::Text(_, "deleted") => eat_deleted(tokens),
             Token::Text(_, "disagree") => eat_disagree(tokens),
+            Token::Text(_, "green") => eat_green(tokens),
+            Token::Text(_, "nside") => eat_nside(tokens),
+            Token::Text(_, "red") => eat_red(tokens),
+            Token::Text(_, "searched") => eat_searched(tokens),
+            Token::Text(_, "side") => eat_side(tokens),
             Token::Text(_, "subscript") => eat_subscript(tokens),
             Token::Text(_, "superscript") => eat_superscript(tokens),
-            Token::Text(_, "deleted") => eat_deleted(tokens),
             Token::Text(_, "youtube") => eat_youtube(tokens),
             _ => eat_text_including(tokens),
         }

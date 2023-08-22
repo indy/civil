@@ -90,6 +90,7 @@ fn compile_node_to_struct(node: &Node, key: usize, note_id: usize) -> crate::Res
         Node::OrderedList(_, ns, start) => compile_ordered_list(start, key, note_id, ns)?,
         Node::Paragraph(_, ns) => element("p", key, note_id, ns)?,
         Node::Quotation(_, ns) => element_hoisted("em", key, note_id, ns)?,
+        Node::Searched(_, ns) => element_hoisted_class("span", "searched-text", key, note_id, ns)?,
         Node::Red(_, ns) => element_hoisted_class("span", "red-text", key, note_id, ns)?,
         Node::Strong(_, ns) => element_hoisted("strong", key, note_id, ns)?,
         Node::Subscript(_, ns) => element_hoisted("sub", key, note_id, ns)?,

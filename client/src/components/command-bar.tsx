@@ -15,6 +15,8 @@ import {
     State,
 } from "types";
 
+import { sanitize } from "shared/search";
+
 type Command = {
     command: string;
     description: string;
@@ -480,29 +482,6 @@ export default function CommandBar() {
             }
         }
     };
-
-    function sanitize(text: string) {
-        let blocked = [
-            "?",
-            ">",
-            "<",
-            "+",
-            "-",
-            "/",
-            "*",
-            "%",
-            "!",
-            "(",
-            ")",
-            ",",
-            ".",
-            ":",
-            "`",
-            "\\",
-            "'",
-        ];
-        return blocked.reduce((a, b) => a.replaceAll(b, ""), text);
-    }
 
     async function search(text: string) {
         let sanitized: string = sanitize(text);

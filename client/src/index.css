@@ -1152,6 +1152,12 @@ textarea {
     font: inherit; /* 2 */
 }
 
+.searched-text {
+    background: var(--searched-text);
+    border-radius: 0.3rem;
+    padding-left: 0.3rem;
+    padding-right: 0.3rem;
+}
 .red-text {
     color: var(--red-text);
 }
@@ -1173,6 +1179,9 @@ textarea {
 }
 .margin-top-5 {
     margin-top: 5rem;
+}
+.margin-top-3 {
+    margin-top: 3rem;
 }
 .hack-margin-top-minus-half {
     margin-top: -0.5rem;
@@ -2022,7 +2031,7 @@ section > form {
     clear: both;
 }
 
-.backref-deck {
+.font-size-1-point-6 {
     font-size: 1.6rem;
 }
 

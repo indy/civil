@@ -36,16 +36,12 @@ export default function ExpandableBackRefListing({
     }
 
     let icon = expanded ? svgCaretDown() : svgCaretRight();
-
-    let klass = fontClass(slimDeck.font, RenderingDeckPart.UiInterleaved);
-    klass += " backref-deck";
-
     let res = (
         <div>
             <CivContainer>
                 <CivMain>
                     <span onClick={onClicked}>{icon}</span>
-                    <span class={klass}>
+                    <span class="font-size-1-point-6">
                         <DeckLink slimDeck={slimDeck} />
                     </span>
                 </CivMain>
