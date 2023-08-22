@@ -1,11 +1,12 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import { Key, SeekNote, SeekResults, NoteKind, Font, SlimDeck } from "types";
+import { Reference, SeekNote, SeekDeck, SeekResults } from "types";
 
 import Net from "shared/net";
 import { sanitize } from "shared/search";
 
+import RefView from "components/ref-view";
 import TopBarMenu from "components/top-bar-menu";
 import CivilInput from "components/civil-input";
 import buildMarkup from "components/build-markup";
@@ -27,87 +28,29 @@ export default function Seek({ path }: { path?: string }) {
     );
 }
 
-type SeekNoteEntry = {
-    id: Key;
-    prevNoteId?: Key;
-    kind: NoteKind;
-    content: string;
-    pointId?: Key;
-    font: Font;
-
-    rank: number;
-};
-
-type SeekDeck = {
-    deck: SlimDeck;
-    notes: Array<SeekNoteEntry>;
-};
-
 type SeekPage = {
     query: string;
-    decks: Array<SeekDeck>;
+    seekDecks: Array<SeekDeck>;
 };
 
-// crappy, slow implementation
-//
-function buildSeekPage(query: string, response: Array<SeekNote>): SeekPage {
-    function buildSeekNoteEntry(seekNote: SeekNote): SeekNoteEntry {
-        return {
-            id: seekNote.id,
-            prevNoteId: seekNote.prevNoteId,
-            kind: seekNote.kind,
-            content: seekNote.content,
-            pointId: seekNote.pointId,
-            font: seekNote.font,
-            rank: seekNote.rank,
-        };
-    }
-
-    function buildSlimDeck(seekNote: SeekNote): SlimDeck {
-        return {
-            id: seekNote.deckId,
-            title: seekNote.deckTitle,
-            deckKind: seekNote.deckKind,
-            graphTerminator: seekNote.deckGraphTerminator,
-            insignia: seekNote.deckInsignia,
-            font: seekNote.deckFont,
-        };
-    }
-
-    function buildSeekDeck(seekNote: SeekNote): SeekDeck {
-        return {
-            deck: buildSlimDeck(seekNote),
-            notes: [],
-        };
-    }
-
-    let decks: Array<SeekDeck> = [];
-    response.forEach((r) => {
-        let di = decks.findIndex((d) => d.deck.id === r.deckId);
-        if (di === -1) {
-            decks.push(buildSeekDeck(r));
-            di = decks.length - 1;
-        }
-        decks[di].notes.push(buildSeekNoteEntry(r));
-    });
-
+function buildSeekPage(query: string, response: Array<SeekDeck>): SeekPage {
     const seekPage: SeekPage = {
         query,
-        decks,
+        seekDecks: response,
     };
 
     return seekPage;
 }
 
 function SeekModule() {
-    const [page, setPage] = useState({ query: "", decks: [] } as SeekPage);
+    const [seekPage, setSeekPage] = useState({ query: "", seekDecks: [] } as SeekPage);
 
     function onReturnPressed(content: string) {
         let sanitized: string = sanitize(content);
         if (sanitized.length > 0) {
             const url = `/api/notes/seek?q=${encodeURI(sanitized)}`;
             Net.get<SeekResults>(url).then((response) => {
-                setPage(buildSeekPage(content, response.results));
+                setSeekPage(buildSeekPage(content, response.results));
             });
         }
     }
@@ -124,25 +67,25 @@ function SeekModule() {
                     <CivilInput onReturnPressed={onReturnPressed} />
                 </CivMainUi>
             </CivContainer>
-            <RenderSeekPage page={page} />
+            <RenderSeekPage seekPage={seekPage} />
         </article>
     );
 }
 
-function RenderSeekPage({ page }: { page: SeekPage }) {
-    const seekDecks = page.decks.map((deck) => <RenderSeekDeck deck={deck} />);
+function RenderSeekPage({ seekPage }: { seekPage: SeekPage }) {
+    const seekDecks = seekPage.seekDecks.map((seekDeck) => <RenderSeekDeck seekDeck={seekDeck} />);
 
     return <div class="c-render-seek-page">{seekDecks}</div>;
 }
 
-function RenderSeekDeck({ deck }: { deck: SeekDeck }) {
-    const seekNoteEntries = deck.notes.map((note) => (
-        <RenderSeekNoteEntry note={note} />
+function RenderSeekDeck({ seekDeck }: { seekDeck: SeekDeck }) {
+    const seekNoteEntries = seekDeck.seekNotes.map((seekNote) => (
+        <RenderSeekNote seekNote={seekNote} />
     ));
 
     let heading = (
         <span class="font-size-1-point-6">
-            <DeckLink slimDeck={deck.deck} />
+            <DeckLink slimDeck={seekDeck.deck} />
         </span>
     );
 
@@ -156,10 +99,22 @@ function RenderSeekDeck({ deck }: { deck: SeekDeck }) {
     );
 }
 
-function RenderSeekNoteEntry({ note }: { note: SeekNoteEntry }) {
+
+function RenderSeekNote({ seekNote }: { seekNote: SeekNote }) {
+    function buildRefs(refs: Array<Reference>) {
+        return refs.map((ref) => (
+            <RefView reference={ref} extraClasses="left-margin-entry" />
+        ));
+    }
+
+    const note = seekNote.note;
+
     return (
         <CivContainer extraClasses="c-render-seek-note-entry note">
-            <CivMain>{buildMarkup(note.content, note.font, note.id)}</CivMain>
+            <CivLeft>{buildRefs(seekNote.refs)}</CivLeft>
+            <CivMain>
+                {buildMarkup(note.content, note.font, note.id)}
+            </CivMain>
         </CivContainer>
     );
 }

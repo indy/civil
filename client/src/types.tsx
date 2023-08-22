@@ -302,29 +302,23 @@ export type FlashCard = {
     repetition: number;
 };
 
-export type SeekNote = {
-    deckId: Key;
-    deckTitle: string;
-    deckKind: DeckKind;
-    deckGraphTerminator: boolean;
-    deckInsignia: number;
-    deckFont: Font;
-
-    id: Key;
-    prevNoteId?: Key;
-    kind: NoteKind;
-    content: string;
-    pointId?: Key;
-    font: Font;
-
+export type SeekDeck = {
     rank: number;
+    deck: SlimDeck;
+    seekNotes: Array<SeekNote>;
 };
-export type ResultList = {
-    results: Array<SlimDeck>;
+
+export type SeekNote = {
+    note: Note;
+    refs: Array<Reference>;
 };
 
 export type SeekResults = {
-    results: Array<SeekNote>;
+    results: Array<SeekDeck>;
+};
+
+export type ResultList = {
+    results: Array<SlimDeck>;
 };
 
 export type ColourSeeds = {

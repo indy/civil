@@ -32,7 +32,7 @@ pub async fn seek(
     session: actix_session::Session,
     web::Query(query): web::Query<SearchQuery>,
 ) -> crate::Result<HttpResponse> {
-    info!("search '{}'", &query.q);
+    info!("seek_new '{}'", &query.q);
 
     let user_id = session::user_id(&session)?;
 

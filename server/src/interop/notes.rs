@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Error;
-use crate::interop::decks::DeckKind;
+use crate::interop::decks::{Ref, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::Key;
 use std::convert::TryFrom;
@@ -88,26 +88,21 @@ pub struct PreviewNotes {
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct SeekNote {
-    pub deck_id: Key,
-    pub deck_title: String,
-    pub deck_kind: DeckKind,
-    pub deck_graph_terminator: bool,
-    pub deck_insignia: i32,
-    pub deck_font: Font,
-
-    pub id: Key,
-    pub prev_note_id: Option<Key>,
-    pub kind: NoteKind,
-    pub content: String,
-    pub point_id: Option<Key>,
-    pub font: Font,
-
-    pub rank: f32,
+pub struct SeekResults {
+    pub results: Vec<SeekDeck>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct SeekResults {
-    pub results: Vec<SeekNote>,
+pub struct SeekDeck {
+    pub rank: f32,
+    pub deck: SlimDeck,
+    pub seek_notes: Vec<SeekNote>,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SeekNote {
+    pub note: Note,
+    pub refs: Vec<Ref>,
 }

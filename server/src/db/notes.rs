@@ -16,7 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::postfix_asterisks;
-use crate::interop::decks::DeckKind;
+
+use crate::interop::decks::{DeckKind, Ref, RefKind, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::notes as interop;
 use crate::interop::Key;
@@ -412,28 +413,61 @@ pub(crate) fn overwrite_note_fonts(
     )
 }
 
-fn seeknote_from_row(row: &Row) -> crate::Result<interop::SeekNote> {
-    let deck_kind_str: String = row.get(2)?;
-    let deck_font: i32 = row.get(5)?;
+#[derive(Debug)]
+struct SeekDeckNoteRef {
+    pub rank: f32,
+    pub deck: SlimDeck,
+    pub note: interop::Note,
+    pub reference_maybe: Option<Ref>,
+}
 
-    let note_kind_i32: i32 = row.get(8)?;
-    let note_font: i32 = row.get(11)?;
+fn seekdecknoteref_from_row(row: &Row) -> crate::Result<SeekDeckNoteRef> {
+    let deck_kind_str: String = row.get(3)?;
+    let deck_font: i32 = row.get(6)?;
 
-    Ok(interop::SeekNote {
-        deck_id: row.get(0)?,
-        deck_title: row.get(1)?,
-        deck_kind: DeckKind::from_str(&deck_kind_str)?,
-        deck_graph_terminator: row.get(3)?,
-        deck_insignia: row.get(4)?,
-        deck_font: Font::try_from(deck_font)?,
+    let note_kind_i32: i32 = row.get(9)?;
+    let note_font: i32 = row.get(12)?;
 
-        id: row.get(6)?,
-        prev_note_id: row.get(7)?,
-        kind: interop::NoteKind::try_from(note_kind_i32)?,
-        content: row.get(9)?,
-        point_id: row.get(10)?,
-        font: Font::try_from(note_font)?,
-        rank: row.get(12)?,
+    let mut reference_maybe: Option<Ref> = None;
+    let reference_deck_id: Option<Key> = row.get(13)?;
+    if let Some(ref_deck_id) = reference_deck_id {
+        let refk: String = row.get(14)?;
+        let ref_deck_kind: String = row.get(17)?;
+        let ref_fnt: i32 = row.get(20)?;
+
+        reference_maybe = Some(Ref {
+            note_id: row.get(7)?,
+            ref_kind: RefKind::from_str(&refk)?,
+            annotation: row.get(15)?,
+
+            id: ref_deck_id,
+            title: row.get(16)?,
+            deck_kind: DeckKind::from_str(&ref_deck_kind)?,
+            graph_terminator: row.get(18)?,
+            insignia: row.get(19)?,
+            font: Font::try_from(ref_fnt)?,
+        })
+    };
+
+    Ok(SeekDeckNoteRef {
+        rank: row.get(0)?,
+        deck: SlimDeck {
+            id: row.get(1)?,
+            title: row.get(2)?,
+            deck_kind: DeckKind::from_str(&deck_kind_str)?,
+            graph_terminator: row.get(4)?,
+            insignia: row.get(5)?,
+            font: Font::try_from(deck_font)?,
+        },
+        note: interop::Note {
+            id: row.get(7)?,
+            prev_note_id: row.get(8)?,
+            kind: interop::NoteKind::try_from(note_kind_i32)?,
+            content: row.get(10)?,
+            point_id: row.get(11)?,
+            font: Font::try_from(note_font)?,
+        },
+        reference_maybe,
     })
 }
 
@@ -441,23 +475,79 @@ pub(crate) fn seek(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     query: &str,
-) -> crate::Result<Vec<interop::SeekNote>> {
+) -> crate::Result<Vec<interop::SeekDeck>> {
+    let seek_deck_note_refs = seek_query(sqlite_pool, user_id, query)?;
+
+    let mut res: Vec<interop::SeekDeck> = vec![];
+
+    for sdnr in seek_deck_note_refs {
+        let mut found: bool = false;
+        let mut deck_index: usize = 0;
+        for r in &res {
+            if r.deck.id == sdnr.deck.id {
+                found = true;
+                break;
+            }
+            deck_index += 1;
+        }
+        if !found {
+            res.push(interop::SeekDeck {
+                rank: sdnr.rank,
+                deck: sdnr.deck,
+                seek_notes: vec![],
+            });
+        }
+
+        found = false;
+        let mut note_index: usize = 0;
+        for n in &res[deck_index].seek_notes {
+            if n.note.id == sdnr.note.id {
+                found = true;
+                break;
+            }
+            note_index += 1;
+        }
+        if !found {
+            res[deck_index].seek_notes.push(interop::SeekNote {
+                note: sdnr.note,
+                refs: vec![],
+            })
+        }
+
+        if let Some(rrr) = sdnr.reference_maybe {
+            res[deck_index].seek_notes[note_index].refs.push(rrr);
+        }
+    }
+
+    Ok(res)
+}
+
+fn seek_query(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    query: &str,
+) -> crate::Result<Vec<SeekDeckNoteRef>> {
     let conn = sqlite_pool.get()?;
     let q = postfix_asterisks(query)?;
 
-    let stmt = "SELECT d.id, d.name, d.kind, d.graph_terminator, d.insignia, d.font,
+    let stmt = "SELECT notes_fts.rank AS rank,
+                       d.id, d.name, d.kind, d.graph_terminator, d.insignia, d.font,
                        n.id, n.prev_note_id, n.kind,
                        highlight(notes_fts, 0, ':searched(', ')') as content,
-                       n.point_id, n.font, notes_fts.rank AS rank
+                       n.point_id, n.font,
+                       nd.deck_id, nd.kind, nd.annotation, d2.name, d2.kind,
+                       d2.graph_terminator, d2.insignia, d2.font
                FROM notes_fts
                     LEFT JOIN notes n ON n.id = notes_fts.rowid
                     LEFT JOIN decks d ON d.id = n.deck_id
                     LEFT JOIN dialogue_messages dm ON dm.note_id = n.id
+                    LEFT JOIN notes_decks nd on nd.note_id = n.id
+                    LEFT JOIN decks d2 on d2.id = nd.deck_id
                WHERE notes_fts match ?2
                      AND d.user_id = ?1
                      AND (dm.role IS null OR dm.role <> 'system')
                ORDER BY rank ASC
                LIMIT 100";
-    let results = sqlite::many(&conn, stmt, params![&user_id, &q], seeknote_from_row)?;
+    let results = sqlite::many(&conn, stmt, params![&user_id, &q], seekdecknoteref_from_row)?;
     Ok(results)
 }
