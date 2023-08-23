@@ -37,7 +37,6 @@ pub struct Idea {
     pub created_at: chrono::NaiveDateTime,
 
     pub notes: Vec<Note>,
-
     pub refs: Vec<Ref>,
 
     pub backnotes: Vec<BackNote>,

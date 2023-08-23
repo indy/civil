@@ -45,6 +45,14 @@ fn note_from_row(row: &Row) -> crate::Result<interop::Note> {
     })
 }
 
+fn key_from_row(row: &Row) -> crate::Result<Key> {
+    Ok(row.get(0)?)
+}
+
+fn option_key_from_row(row: &Row) -> crate::Result<Option<Key>> {
+    Ok(row.get(0)?)
+}
+
 pub(crate) fn all_from_deck(
     sqlite_pool: &SqlitePool,
     deck_id: Key,
@@ -68,16 +76,9 @@ pub(crate) fn delete_note_properly(
     user_id: Key,
     note_id: Key,
 ) -> crate::Result<Vec<interop::Note>> {
-    let note = get_note(sqlite_pool, user_id, note_id)?;
-
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    // get the deck_id
-    fn key_from_row(row: &Row) -> crate::Result<Key> {
-        let k: Key = row.get(0)?;
-        Ok(k)
-    }
     let stmt = "SELECT deck_id
                 FROM notes
                 WHERE id = ?1";
@@ -92,7 +93,13 @@ pub(crate) fn delete_note_properly(
         let next_id = next_ids[0];
 
         // correctly set the next note's prev_note_id
-        if let Some(prev_note_id) = note.prev_note_id {
+        let stmt = "SELECT prev_note_id
+                    FROM notes
+                    WHERE id = ?1 AND user_id = ?2";
+        let prev_note_id: Option<Key> =
+            sqlite::one(&tx, stmt, params![&note_id, &user_id], option_key_from_row)?;
+
+        if let Some(prev_note_id) = prev_note_id {
             // if there is a note that points to this note, change it to point to prev_note_id
             update_prev_note_id(&tx, next_id, prev_note_id)?;
         } else {
@@ -241,54 +248,6 @@ fn clear_prev_note_id(conn: &Connection, note_id: Key) -> crate::Result<()> {
     sqlite::zero(conn, stmt, params![&note_id])
 }
 
-pub(crate) fn get_note(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    note_id: Key,
-) -> crate::Result<interop::Note> {
-    let conn = sqlite_pool.get()?;
-    get_note_(&conn, user_id, note_id)
-}
-
-fn get_note_(conn: &Connection, user_id: Key, note_id: Key) -> crate::Result<interop::Note> {
-    let stmt = "SELECT n.id,
-                       n.content,
-                       n.kind,
-                       n.point_id,
-                       n.prev_note_id,
-                       n.font
-                FROM notes n
-                WHERE n.id = ?1 AND n.user_id = ?2";
-    sqlite::one(conn, stmt, params![&note_id, &user_id], note_from_row)
-}
-/*
-pub(crate) fn get_note_notes(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    deck_id: Key,
-) -> crate::Result<Vec<interop::Note>> {
-    let conn = sqlite_pool.get()?;
-
-    let stmt = "SELECT n.id,
-                       n.content,
-                       n.kind,
-                       n.point_id,
-                       n.prev_note_id
-                FROM notes n
-                WHERE n.point_id is null
-                      AND n.deck_id = ?1
-                      AND n.user_id = ?2
-                      AND n.kind=?3";
-
-    let kind = interop::note_kind_to_sqlite(interop::NoteKind::Note);
-    sqlite::many(
-        &conn,
-        stmt,
-        params![&deck_id, &user_id, kind],
-        note_from_row,
-    )
-}
-*/
 pub(crate) fn preview(
     sqlite_pool: &SqlitePool,
     user_id: Key,

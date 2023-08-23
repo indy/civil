@@ -58,19 +58,6 @@ pub async fn create_notes(
     Ok(HttpResponse::Ok().json(notes))
 }
 
-pub async fn get_note(
-    sqlite_pool: Data<SqlitePool>,
-    params: Path<IdParam>,
-    session: actix_session::Session,
-) -> crate::Result<HttpResponse> {
-    info!("get_note {}", params.id);
-
-    let user_id = session::user_id(&session)?;
-    let note = db::get_note(&sqlite_pool, user_id, params.id)?;
-
-    Ok(HttpResponse::Ok().json(note))
-}
-
 pub async fn edit_note(
     note: Json<interop::Note>,
     sqlite_pool: Data<SqlitePool>,
