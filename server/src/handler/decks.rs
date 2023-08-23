@@ -84,10 +84,8 @@ pub async fn namesearch(
 
     let results = db::search_by_name(&sqlite_pool, user_id, &query.q)?;
 
-    let res = SearchResults {
-        search_results: results,
-        seek_results: vec![],
-    };
+    let res = ResultList { results };
+
     Ok(HttpResponse::Ok().json(res))
 }
 
