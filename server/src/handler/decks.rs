@@ -22,8 +22,9 @@ use crate::db::sqlite::SqlitePool;
 use crate::error::Error;
 use crate::handler::PaginationQuery;
 use crate::handler::SearchQuery;
-use crate::interop::decks::{DeckKind, ResultList};
+use crate::interop::decks::{DeckKind, ResultList, SearchResults, SlimDeck};
 use crate::interop::dialogues::AiKind;
+use crate::interop::notes::SeekDeck;
 use crate::interop::{IdParam, InsigParam, Key};
 use crate::session;
 use actix_web::web::{self, Data, Json, Path};
@@ -65,7 +66,10 @@ pub async fn search(
 
     let results = db::search(&sqlite_pool, user_id, &query.q)?;
 
-    let res = ResultList { results };
+    let res = SearchResults {
+        search_results: results,
+        seek_results: vec![],
+    };
     Ok(HttpResponse::Ok().json(res))
 }
 
@@ -80,7 +84,10 @@ pub async fn namesearch(
 
     let results = db::search_by_name(&sqlite_pool, user_id, &query.q)?;
 
-    let res = ResultList { results };
+    let res = SearchResults {
+        search_results: results,
+        seek_results: vec![],
+    };
     Ok(HttpResponse::Ok().json(res))
 }
 
@@ -319,4 +326,37 @@ pub(crate) async fn pagination(
     )?;
 
     Ok(HttpResponse::Ok().json(pagination_results))
+}
+
+pub async fn additional_search(
+    sqlite_pool: Data<SqlitePool>,
+    params: Path<IdParam>,
+    session: actix_session::Session,
+) -> crate::Result<HttpResponse> {
+    info!("additional_search {:?}", params.id);
+
+    let user_id = session::user_id(&session)?;
+    let deck_id = params.id;
+
+    let additional_search_results = db::additional_search(&sqlite_pool, user_id, deck_id)?;
+    let additional_seek_results = db_notes::additional_search(&sqlite_pool, user_id, deck_id)?;
+
+    fn has(slim_deck: &SlimDeck, seek_decks: &[SeekDeck]) -> bool {
+        seek_decks.iter().any(|s| s.deck.id == slim_deck.id)
+    }
+
+    // seek_results take priority as they will probably be more relevant.
+    // so dedupe the search_results from the seek_results
+    //
+    let search_results: Vec<SlimDeck> = additional_search_results
+        .into_iter()
+        .filter(|slim_deck| !has(slim_deck, &additional_seek_results))
+        .collect();
+
+    let res = SearchResults {
+        search_results,
+        seek_results: additional_seek_results,
+    };
+
+    Ok(HttpResponse::Ok().json(res))
 }

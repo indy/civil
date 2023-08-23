@@ -11,8 +11,7 @@ import {
     Point,
     DeckUpdate,
     Key,
-    SlimDeck,
-    ResultList,
+    SearchResults,
     PassageType,
     PointKind,
     ProtoPoint,
@@ -158,8 +157,8 @@ function PeoplePaginator({ selected }: { selected: string }) {
 function Person({ path, id }: { path?: string; id?: string }) {
     const appState = getAppState();
 
-    const [searchResults, setSearchResults]: [Array<SlimDeck>, Function] =
-        useState([]); // an array of backrefs
+    const [searchResults, setSearchResults]: [SearchResults, Function] =
+        useState({ searchResults: [], seekResults: [] });
 
     let flags = DeckManagerFlags.Summary;
     const deckManager: DM<DeckPerson> = useDeckManager(
@@ -170,9 +169,9 @@ function Person({ path, id }: { path?: string; id?: string }) {
     );
 
     useEffect(() => {
-        Net.get<ResultList>(`/api/people/${id}/additional_search`).then(
-            (searchResults) => {
-                setSearchResults(searchResults.results);
+        Net.get<SearchResults>(`/api/decks/${id}/additional_search`).then(
+            (res) => {
+                setSearchResults(res);
             }
         );
     }, [id]);

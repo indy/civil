@@ -16,8 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::notes;
-use crate::db::postfix_asterisks;
 use crate::db::sqlite::{self, SqlitePool};
+use crate::db::{postfix_asterisks, sanitize_for_sqlite_match};
 use crate::error::Error;
 use crate::interop::decks as interop;
 use crate::interop::decks::DeckKind;
@@ -623,7 +623,7 @@ pub(crate) fn additional_search(
     Ok(additional_search_results)
 }
 
-fn get_name_of_deck(conn: &Connection, deck_id: Key) -> crate::Result<String> {
+pub(crate) fn get_name_of_deck(conn: &Connection, deck_id: Key) -> crate::Result<String> {
     fn string_from_row(row: &Row) -> crate::Result<String> {
         let s: String = row.get(0)?;
         Ok(s)
@@ -653,35 +653,7 @@ fn get_font_of_deck(conn: &Connection, deck_id: Key) -> crate::Result<Font> {
     )
 }
 
-fn sanitize_for_sqlite_match(s: String) -> crate::Result<String> {
-    let res: String = s
-        .chars()
-        .map(|x| match x {
-            '?' => ' ',
-            '>' => ' ',
-            '<' => ' ',
-            '+' => ' ',
-            '-' => ' ',
-            '/' => ' ',
-            '*' => ' ',
-            '%' => ' ',
-            '!' => ' ',
-            '(' => ' ',
-            ')' => ' ',
-            ',' => ' ',
-            '.' => ' ',
-            ':' => ' ',
-            '`' => ' ',
-            '\\' => ' ',
-            '\'' => ' ',
-            _ => x,
-        })
-        .collect();
-
-    Ok(res)
-}
-
-pub(crate) fn search_using_deck_id(
+fn search_using_deck_id(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
@@ -738,24 +710,24 @@ pub(crate) fn search_using_deck_id(
         slimdeck_from_row,
     )?;
 
-    let stmt = "select res.id, res.name, res.kind, res.insignia, res.font, res.graph_terminator, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-                from (select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, notes_fts.rank AS rank
-                      from notes_fts
-                           left join notes n on n.id = notes_fts.rowid
-                           left join decks d on d.id = n.deck_id
-                      where notes_fts match ?2
-                            and d.user_id = ?1
-                      group by d.id
-                      order by rank asc) res
-                group by res.id, res.kind, res.name
-                order by sum(res.rank) asc, length(res.name) asc
-                limit 50";
-    let results_via_notes = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &sane_name],
-        slimdeck_from_row,
-    )?;
+    // let stmt = "select res.id, res.name, res.kind, res.insignia, res.font, res.graph_terminator, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+    //             from (select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, notes_fts.rank AS rank
+    //                   from notes_fts
+    //                        left join notes n on n.id = notes_fts.rowid
+    //                        left join decks d on d.id = n.deck_id
+    //                   where notes_fts match ?2
+    //                         and d.user_id = ?1
+    //                   group by d.id
+    //                   order by rank asc) res
+    //             group by res.id, res.kind, res.name
+    //             order by sum(res.rank) asc, length(res.name) asc
+    //             limit 50";
+    // let results_via_notes = sqlite::many(
+    //     &conn,
+    //     stmt,
+    //     params![&user_id, &sane_name],
+    //     slimdeck_from_row,
+    // )?;
 
     let stmt = "select res.id, res.name, res.kind, res.insignia, res.font, res.graph_terminator, sum(res.rank) as rank_sum, count(res.rank) as rank_count
                 from (select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, points_fts.rank AS rank
@@ -788,11 +760,11 @@ pub(crate) fn search_using_deck_id(
         }
     }
 
-    for r in results_via_notes {
-        if !contains(&results, r.id) {
-            results.push(r);
-        }
-    }
+    // for r in results_via_notes {
+    //     if !contains(&results, r.id) {
+    //         results.push(r);
+    //     }
+    // }
 
     for r in results_via_points {
         if !contains(&results, r.id) {

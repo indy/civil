@@ -1,6 +1,6 @@
 import { h, ComponentChildren } from "preact";
 
-import { SlimDeck, Font, CivilMode, Key } from "types";
+import { SearchResults, SlimDeck, SeekDeck, Font, CivilMode, Key } from "types";
 
 import { getAppState } from "app-state";
 
@@ -12,12 +12,13 @@ import CivilButton from "components/civil-button";
 import ListingLink from "components/listing-link";
 import RollableSegment from "components/rollable-segment";
 import { CivContainer, CivMain } from "components/civil-layout";
+import CivilSeekResults from "components/civil-seek-results";
 
 export default function SegmentSearchResults({
     searchResults,
     font,
 }: {
-    searchResults: Array<SlimDeck>;
+    searchResults: SearchResults;
     font: Font;
 }) {
     const appState = getAppState();
@@ -26,15 +27,20 @@ export default function SegmentSearchResults({
         return <ListingLink slimDeck={slimDeck} />;
     }
 
-    if (nonEmptyArray<SlimDeck>(searchResults)) {
-        const heading = plural(
-            searchResults.length,
-            "Additional Search Result",
-            "s"
-        );
+    if (
+        nonEmptyArray<SlimDeck>(searchResults.searchResults) ||
+        nonEmptyArray<SeekDeck>(searchResults.seekResults)
+    ) {
+        const amount =
+            searchResults.searchResults.length +
+            searchResults.seekResults.length;
+        const heading = plural(amount, "Additional Search Result", "s");
 
+        // TODO: fix this to work with the new SearchResults structure that also contains SeekDecks
         function bookmarkAll() {
-            const deckIds: Array<Key> = searchResults.map((sd) => sd.id);
+            const deckIds: Array<Key> = searchResults.searchResults.map(
+                (sd) => sd.id
+            );
             addMultipleBookmarks(deckIds);
         }
 
@@ -57,9 +63,12 @@ export default function SegmentSearchResults({
             >
                 <CivContainer>
                     <CivMain>
-                        <ul>{searchResults.map(buildSearchResult)}</ul>
+                        <ul>
+                            {searchResults.searchResults.map(buildSearchResult)}
+                        </ul>
                     </CivMain>
                 </CivContainer>
+                <CivilSeekResults seekResults={searchResults.seekResults} />
             </RollableSegment>
         );
     } else {

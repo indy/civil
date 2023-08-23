@@ -24,7 +24,7 @@ use crate::db::points as points_db;
 use crate::db::sqlite::SqlitePool;
 use crate::handler::decks;
 use crate::handler::PaginationQuery;
-use crate::interop::decks::{DeckKind, SearchResults};
+use crate::interop::decks::DeckKind;
 use crate::interop::people as interop;
 use crate::interop::points as points_interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
@@ -242,23 +242,4 @@ fn sqlite_augment(
     person.flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, person_id)?;
 
     Ok(())
-}
-
-pub async fn additional_search(
-    sqlite_pool: Data<SqlitePool>,
-    params: Path<IdParam>,
-    session: actix_session::Session,
-) -> crate::Result<HttpResponse> {
-    info!("additional_search {:?}", params.id);
-
-    let user_id = session::user_id(&session)?;
-    let person_id = params.id;
-
-    let additional_search_results = decks_db::additional_search(&sqlite_pool, user_id, person_id)?;
-
-    let res = SearchResults {
-        results: Some(additional_search_results),
-    };
-
-    Ok(HttpResponse::Ok().json(res))
 }

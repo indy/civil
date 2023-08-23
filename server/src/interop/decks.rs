@@ -17,7 +17,7 @@
 
 use crate::error::Error;
 use crate::interop::font::Font;
-use crate::interop::notes::NoteKind;
+use crate::interop::notes::{NoteKind, SeekDeck};
 use crate::interop::Key;
 
 use std::fmt;
@@ -183,7 +183,8 @@ pub struct ResultList {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResults {
-    pub results: Option<Vec<SlimDeck>>,
+    pub search_results: Vec<SlimDeck>,
+    pub seek_results: Vec<SeekDeck>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

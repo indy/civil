@@ -36,6 +36,34 @@ pub mod users;
 pub mod sqlite;
 pub mod sqlite_migrations;
 
+fn sanitize_for_sqlite_match(s: String) -> crate::Result<String> {
+    let res: String = s
+        .chars()
+        .map(|x| match x {
+            '?' => ' ',
+            '>' => ' ',
+            '<' => ' ',
+            '+' => ' ',
+            '-' => ' ',
+            '/' => ' ',
+            '*' => ' ',
+            '%' => ' ',
+            '!' => ' ',
+            '(' => ' ',
+            ')' => ' ',
+            ',' => ' ',
+            '.' => ' ',
+            ':' => ' ',
+            '`' => ' ',
+            '\\' => ' ',
+            '\'' => ' ',
+            _ => x,
+        })
+        .collect();
+
+    Ok(res)
+}
+
 fn postfix_asterisks(s: &str) -> crate::Result<String> {
     let mut res: String = "".to_string();
 

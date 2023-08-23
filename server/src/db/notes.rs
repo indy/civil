@@ -15,8 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::postfix_asterisks;
+use crate::db::{postfix_asterisks, sanitize_for_sqlite_match};
 
+use crate::db::decks as db_decks;
 use crate::interop::decks::{DeckKind, Ref, RefKind, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::notes as interop;
@@ -477,7 +478,21 @@ pub(crate) fn seek(
     query: &str,
 ) -> crate::Result<Vec<interop::SeekDeck>> {
     let seek_deck_note_refs = seek_query(sqlite_pool, user_id, query)?;
+    build_seek_deck(seek_deck_note_refs)
+}
 
+pub(crate) fn additional_search(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_id: Key,
+) -> crate::Result<Vec<interop::SeekDeck>> {
+    let seek_deck_note_refs = seek_deck_additional_query(sqlite_pool, user_id, deck_id)?;
+    build_seek_deck(seek_deck_note_refs)
+}
+
+fn build_seek_deck(
+    seek_deck_note_refs: Vec<SeekDeckNoteRef>,
+) -> crate::Result<Vec<interop::SeekDeck>> {
     let mut res: Vec<interop::SeekDeck> = vec![];
 
     for sdnr in seek_deck_note_refs {
@@ -550,4 +565,49 @@ fn seek_query(
                LIMIT 100";
     let results = sqlite::many(&conn, stmt, params![&user_id, &q], seekdecknoteref_from_row)?;
     Ok(results)
+}
+
+// only searching via notes for the moment, will have to add additional search queries that look in points, article_extras etc
+//
+fn seek_deck_additional_query(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_id: Key,
+) -> crate::Result<Vec<SeekDeckNoteRef>> {
+    let conn = sqlite_pool.get()?;
+
+    let name = db_decks::get_name_of_deck(&conn, deck_id)?;
+    let sane_name = sanitize_for_sqlite_match(name)?;
+
+    if sane_name.is_empty() {
+        return Ok(vec![]);
+    }
+
+    let stmt = "SELECT notes_fts.rank AS rank,
+                       d.id, d.name, d.kind, d.graph_terminator, d.insignia, d.font,
+                       n.id, n.prev_note_id, n.kind,
+                       highlight(notes_fts, 0, ':searched(', ')') as content,
+                       n.point_id, n.font,
+                       nd.deck_id, nd.kind, nd.annotation, d2.name, d2.kind,
+                       d2.graph_terminator, d2.insignia, d2.font
+               FROM notes_fts
+                    LEFT JOIN notes n ON n.id = notes_fts.rowid
+                    LEFT JOIN decks d ON d.id = n.deck_id
+                    LEFT JOIN dialogue_messages dm ON dm.note_id = n.id
+                    LEFT JOIN notes_decks nd on nd.note_id = n.id
+                    LEFT JOIN decks d2 on d2.id = nd.deck_id
+               WHERE notes_fts match ?2
+                     AND d.user_id = ?1
+                     AND d.id <> ?3
+                     AND (dm.role IS null OR dm.role <> 'system')
+                     AND (nd.deck_id IS null OR nd.deck_id <> ?3)
+               ORDER BY rank ASC
+               LIMIT 100";
+
+    sqlite::many(
+        &conn,
+        stmt,
+        params![&user_id, &sane_name, &deck_id],
+        seekdecknoteref_from_row,
+    )
 }

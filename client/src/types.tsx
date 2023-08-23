@@ -321,6 +321,11 @@ export type ResultList = {
     results: Array<SlimDeck>;
 };
 
+export type SearchResults = {
+    searchResults: Array<SlimDeck>;
+    seekResults: Array<SeekDeck>;
+};
+
 export type ColourSeeds = {
     [index: string]: number;
 };

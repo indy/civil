@@ -1,14 +1,7 @@
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import {
-    DM,
-    DeckIdea,
-    DeckKind,
-    DeckUpdate,
-    SlimDeck,
-    ResultList,
-} from "types";
+import { DM, DeckIdea, DeckKind, DeckUpdate, SearchResults } from "types";
 
 import Net from "shared/net";
 import { formattedDate } from "shared/time";
@@ -119,8 +112,8 @@ function IdeasPaginator({ selected }: { selected: string }) {
 }
 
 function Idea({ path, id }: { path?: string; id?: string }) {
-    const [searchResults, setSearchResults]: [Array<SlimDeck>, Function] =
-        useState([]); // an array of backrefs
+    const [searchResults, setSearchResults]: [SearchResults, Function] =
+        useState({ searchResults: [], seekResults: [] });
 
     useEffect(() => {
         // This  additional search query is slow, so it has to be a separate
@@ -129,9 +122,9 @@ function Idea({ path, id }: { path?: string; id?: string }) {
         // todo: change this to accept a search parameter, this will normally default to the idea.title
         // but would also allow differently worded but equivalent text
         //
-        Net.get<ResultList>(`/api/ideas/${id}/additional_search`).then(
-            (searchResults) => {
-                setSearchResults(searchResults.results);
+        Net.get<SearchResults>(`/api/decks/${id}/additional_search`).then(
+            (res) => {
+                setSearchResults(res);
             }
         );
     }, [id]);

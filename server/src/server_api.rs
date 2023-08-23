@@ -54,6 +54,10 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/recent", get().to(decks::recent))
                 .route("/insignia_filter/{insig}", get().to(decks::insignia_filter))
                 .route("/recently_visited", get().to(decks::recently_visited))
+                .route(
+                    "/{id}/additional_search",
+                    get().to(decks::additional_search),
+                )
                 .route("/summarize/{id}", post().to(decks::summarize))
                 .route("/preview/{id}", get().to(decks::preview)),
         )
@@ -74,10 +78,6 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/orphans", get().to(ideas::orphans))
                 .route("/unnoted", get().to(ideas::unnoted))
                 .route("/{id}", get().to(ideas::get))
-                .route(
-                    "/{id}/additional_search",
-                    get().to(ideas::additional_search),
-                )
                 .route("/{id}", put().to(ideas::edit))
                 .route("/{id}", delete().to(ideas::delete)),
         )
@@ -93,10 +93,6 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/contemporary", get().to(people::contemporary))
                 .route("/pagination", get().to(people::pagination))
                 .route("/{id}", get().to(people::get))
-                .route(
-                    "/{id}/additional_search",
-                    get().to(people::additional_search),
-                )
                 .route("/{id}", put().to(people::edit)) // check
                 .route("/{id}", delete().to(people::delete))
                 .route("/{id}/points", post().to(people::add_point))
