@@ -481,13 +481,57 @@ pub(crate) fn seek(
     build_seek_deck(seek_deck_note_refs)
 }
 
+fn has_ref_to_deck_id(seek_note: &interop::SeekNote, deck_id: Key) -> bool {
+    seek_note
+        .refs
+        .iter()
+        .any(|reference| reference.id == deck_id)
+}
+
+fn remove_notes_with_refs_to_deck_id(
+    seek_deck: interop::SeekDeck,
+    deck_id: Key,
+) -> interop::SeekDeck {
+    interop::SeekDeck {
+        rank: seek_deck.rank,
+        deck: seek_deck.deck,
+        seek_notes: seek_deck
+            .seek_notes
+            .into_iter()
+            .filter(|seek_note| !has_ref_to_deck_id(seek_note, deck_id))
+            .collect(),
+    }
+}
+
 pub(crate) fn additional_search(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
 ) -> crate::Result<Vec<interop::SeekDeck>> {
     let seek_deck_note_refs = seek_deck_additional_query(sqlite_pool, user_id, deck_id)?;
-    build_seek_deck(seek_deck_note_refs)
+    let seek_deck = build_seek_deck(seek_deck_note_refs)?;
+
+    // given a search for 'dogs'
+    // if there was a deck (dx) that had a note (nx) that had references to 'dogs' and 'cats'
+    // then the query would still return a row corressponding to deck dx, note nx and ref 'cats'
+    //
+    // so the query has been changed to return all references including 'dogs'
+    // then we can use some rust to filter out any notes that contain refs to 'dogs'
+    //
+    let seek_deck_b: Vec<interop::SeekDeck> = seek_deck
+        .into_iter()
+        .map(|seek_deck| remove_notes_with_refs_to_deck_id(seek_deck, deck_id))
+        .collect();
+
+    // now that some of the notes have been removed, there may be some decks that have no notes.
+    // remove those decks as well
+    //
+    let seek_deck_c: Vec<interop::SeekDeck> = seek_deck_b
+        .into_iter()
+        .filter(|seek_deck| seek_deck.seek_notes.len() != 0)
+        .collect();
+
+    Ok(seek_deck_c)
 }
 
 fn build_seek_deck(
@@ -600,7 +644,6 @@ fn seek_deck_additional_query(
                      AND d.user_id = ?1
                      AND d.id <> ?3
                      AND (dm.role IS null OR dm.role <> 'system')
-                     AND (nd.deck_id IS null OR nd.deck_id <> ?3)
                ORDER BY rank ASC
                LIMIT 100";
 
