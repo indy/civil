@@ -11,7 +11,6 @@ import {
     Point,
     DeckUpdate,
     Key,
-    SearchResults,
     PassageType,
     PointKind,
     ProtoPoint,
@@ -24,6 +23,38 @@ import { calcAgeInYears, dateStringAsTriple } from "shared/time";
 import { buildUrl } from "shared/civil";
 import { fontClass } from "shared/font";
 import { getAppState, AppStateChange, immutableState } from "app-state";
+
+import CivilButton from "components/civil-button";
+import CivilButtonCreateDeck from "components/civil-button-create-deck";
+import CivilInput from "components/civil-input";
+import CivilTabButton from "components/civil-tab-button";
+import DeckLink from "components/deck-link";
+import DeleteDeckConfirmation from "components/delete-deck-confirmation";
+import FontSelector from "components/font-selector";
+import InsigniaSelector from "components/insignia-selector";
+import LifespanForm from "components/lifespan-form";
+import Pagination from "components/pagination";
+import PointForm from "components/point-form";
+import RollableSegment from "components/rollable-segment";
+import SegmentBackRefs from "components/segment-back-refs";
+import SegmentDeckRefs from "components/segment-deck-refs";
+import SegmentGraph from "components/segment-graph";
+import SegmentNotes from "components/segment-notes";
+import SegmentSearchResults from "components/segment-search-results";
+import TopBarMenu from "components/top-bar-menu";
+import TopMatter from "components/top-matter";
+import WhenEditMode from "components/when-edit-mode";
+import useDeckManager from "components/use-deck-manager";
+import { Module } from "components/module";
+import { renderPaginatedSlimDeck } from "components/paginated-render-items";
+
+import {
+    CivContainer,
+    CivMain,
+    CivForm,
+    CivLeft,
+    CivLeftLabel,
+} from "components/civil-layout";
 import {
     svgBlank,
     svgCaretDown,
@@ -34,37 +65,6 @@ import {
     svgUntickedCheckBox,
     svgX,
 } from "components/svg-icons";
-
-import TopBarMenu from "components/top-bar-menu";
-import WhenEditMode from "components/when-edit-mode";
-import CivilTabButton from "components/civil-tab-button";
-import CivilButtonCreateDeck from "components/civil-button-create-deck";
-import CivilButton from "components/civil-button";
-import CivilInput from "components/civil-input";
-import DeckLink from "components/deck-link";
-import DeleteDeckConfirmation from "components/delete-deck-confirmation";
-import InsigniaSelector from "components/insignia-selector";
-import LifespanForm from "components/lifespan-form";
-import PointForm from "components/point-form";
-import RollableSegment from "components/rollable-segment";
-import SegmentBackRefs from "components/segment-back-refs";
-import SegmentDeckRefs from "components/segment-deck-refs";
-import SegmentGraph from "components/segment-graph";
-import SegmentNotes from "components/segment-notes";
-import SegmentSearchResults from "components/segment-search-results";
-import TopMatter from "components/top-matter";
-import FontSelector from "components/font-selector";
-import useDeckManager from "components/use-deck-manager";
-import Pagination from "components/pagination";
-import { renderPaginatedSlimDeck } from "components/paginated-render-items";
-import {
-    CivContainer,
-    CivMain,
-    CivForm,
-    CivLeft,
-    CivLeftLabel,
-} from "components/civil-layout";
-import { Module } from "components/module";
 
 function People({ path }: { path?: string }) {
     return (
@@ -157,9 +157,6 @@ function PeoplePaginator({ selected }: { selected: string }) {
 function Person({ path, id }: { path?: string; id?: string }) {
     const appState = getAppState();
 
-    const [searchResults, setSearchResults]: [SearchResults, Function] =
-        useState({ searchResults: [], seekResults: [] });
-
     let flags = DeckManagerFlags.Summary;
     const deckManager: DM<DeckPerson> = useDeckManager(
         id,
@@ -167,14 +164,6 @@ function Person({ path, id }: { path?: string; id?: string }) {
         flags,
         preCacheFn
     );
-
-    useEffect(() => {
-        Net.get<SearchResults>(`/api/decks/${id}/additional_search`).then(
-            (res) => {
-                setSearchResults(res);
-            }
-        );
-    }, [id]);
 
     function dispatchUpdatedPerson(person: DeckPerson) {
         deckManager.update(person);
@@ -286,10 +275,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
 
                 <SegmentBackRefs deck={deck} />
 
-                <SegmentSearchResults
-                    font={deck.font}
-                    searchResults={searchResults}
-                />
+                <SegmentSearchResults id={id} font={deck.font} />
                 {hasKnownLifespan && (
                     <SegmentPoints
                         person={deck}

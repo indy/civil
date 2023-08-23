@@ -1,4 +1,5 @@
 import { h, ComponentChildren } from "preact";
+import { useState, useEffect } from "preact/hooks";
 
 import { SearchResults, SlimDeck, SeekDeck, Font, CivilMode, Key } from "types";
 
@@ -7,6 +8,7 @@ import { getAppState } from "app-state";
 import { addMultipleBookmarks } from "shared/bookmarks";
 import { nonEmptyArray } from "shared/civil";
 import { plural } from "shared/english";
+import Net from "shared/net";
 
 import CivilButton from "components/civil-button";
 import ListingLink from "components/listing-link";
@@ -14,14 +16,37 @@ import RollableSegment from "components/rollable-segment";
 import { CivContainer, CivMain } from "components/civil-layout";
 import CivilSeekResults from "components/civil-seek-results";
 
+//    searchResults: SearchResults;
+
+// todo: fix the type for deckId, should be a Key
+//
 export default function SegmentSearchResults({
-    searchResults,
+    id,
     font,
 }: {
-    searchResults: SearchResults;
+    id?: string;
     font: Font;
 }) {
     const appState = getAppState();
+
+    const [searchResults, setSearchResults]: [SearchResults, Function] =
+        useState({ searchResults: [], seekResults: [] });
+
+    useEffect(() => {
+        console.log(`/api/decks/${id}/additional_search`);
+
+        // This  additional search query is slow, so it has to be a separate
+        // async call rather than part of the idea's GET response.
+        //
+        // todo: change this to accept a search parameter, this will normally default to the idea.title
+        // but would also allow differently worded but equivalent text
+        //
+        Net.get<SearchResults>(`/api/decks/${id}/additional_search`).then(
+            (res) => {
+                setSearchResults(res);
+            }
+        );
+    }, [id]);
 
     function buildSearchResult(slimDeck: SlimDeck) {
         return <ListingLink slimDeck={slimDeck} />;

@@ -22,22 +22,25 @@ import {
     asHumanReadableDateRange,
 } from "shared/time";
 
-import TopBarMenu from "components/top-bar-menu";
-import CivilTabButton from "components/civil-tab-button";
-import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilButton from "components/civil-button";
+import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilInput from "components/civil-input";
-import useDeckManager from "components/use-deck-manager";
+import CivilTabButton from "components/civil-tab-button";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
+import FontSelector from "components/font-selector";
 import InsigniaSelector from "components/insignia-selector";
+import Pagination from "components/pagination";
 import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import SegmentGraph from "components/segment-graph";
 import SegmentNotes from "components/segment-notes";
+import SegmentSearchResults from "components/segment-search-results";
+import TopBarMenu from "components/top-bar-menu";
 import TopMatter from "components/top-matter";
-import FontSelector from "components/font-selector";
-import Pagination from "components/pagination";
+import useDeckManager from "components/use-deck-manager";
+import { Module } from "components/module";
 import { renderPaginatedSlimDeck } from "components/paginated-render-items";
+
 import {
     CivContainer,
     CivMain,
@@ -45,7 +48,6 @@ import {
     CivLeftLabel,
     CivRight,
 } from "components/civil-layout";
-import { Module } from "components/module";
 
 function Events({ path }: { path?: string }) {
     return (
@@ -160,7 +162,7 @@ function CivEvent({ path, id }: { path?: string; id?: string }) {
                     onUpdateDeck={deckManager.update}
                 />
                 <SegmentBackRefs deck={deck} />
-
+                <SegmentSearchResults id={id} font={deck.font} />
                 <SegmentGraph depth={2} deck={deck} />
             </article>
         );

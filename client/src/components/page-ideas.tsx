@@ -1,35 +1,36 @@
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { DM, DeckIdea, DeckKind, DeckUpdate, SearchResults } from "types";
+import { DM, DeckIdea, DeckKind, DeckUpdate } from "types";
 
 import Net from "shared/net";
 import { formattedDate } from "shared/time";
 
-import TopBarMenu from "components/top-bar-menu";
 import CivilButton from "components/civil-button";
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilInput from "components/civil-input";
-import useDeckManager from "components/use-deck-manager";
+import CivilTabButton from "components/civil-tab-button";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
-import InsigniaSelector from "components/insignia-selector";
 import FontSelector from "components/font-selector";
+import InsigniaSelector from "components/insignia-selector";
+import Pagination from "components/pagination";
 import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import SegmentGraph from "components/segment-graph";
 import SegmentNotes from "components/segment-notes";
 import SegmentSearchResults from "components/segment-search-results";
+import TopBarMenu from "components/top-bar-menu";
 import TopMatter from "components/top-matter";
+import useDeckManager from "components/use-deck-manager";
+import { Module } from "components/module";
 import { renderPaginatedSlimDeck } from "components/paginated-render-items";
+
 import {
     CivContainer,
     CivMain,
     CivForm,
     CivLeftLabel,
 } from "components/civil-layout";
-import CivilTabButton from "components/civil-tab-button";
-import Pagination from "components/pagination";
-import { Module } from "components/module";
 
 function Ideas({ path }: { path?: string }) {
     return (
@@ -112,23 +113,6 @@ function IdeasPaginator({ selected }: { selected: string }) {
 }
 
 function Idea({ path, id }: { path?: string; id?: string }) {
-    const [searchResults, setSearchResults]: [SearchResults, Function] =
-        useState({ searchResults: [], seekResults: [] });
-
-    useEffect(() => {
-        // This  additional search query is slow, so it has to be a separate
-        // async call rather than part of the idea's GET response.
-        //
-        // todo: change this to accept a search parameter, this will normally default to the idea.title
-        // but would also allow differently worded but equivalent text
-        //
-        Net.get<SearchResults>(`/api/decks/${id}/additional_search`).then(
-            (res) => {
-                setSearchResults(res);
-            }
-        );
-    }, [id]);
-
     const deckManager: DM<DeckIdea> = useDeckManager(id, DeckKind.Idea);
 
     const deck: DeckIdea | undefined = deckManager.getDeck();
@@ -187,10 +171,7 @@ function Idea({ path, id }: { path?: string; id?: string }) {
                     onUpdateDeck={deckManager.update}
                 />
                 <SegmentBackRefs deck={deck} />
-                <SegmentSearchResults
-                    font={deck.font}
-                    searchResults={searchResults}
-                />
+                <SegmentSearchResults id={id} font={deck.font} />
                 <SegmentGraph depth={2} deck={deck} />
             </article>
         );

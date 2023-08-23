@@ -22,12 +22,26 @@ import Net from "shared/net";
 import { buildUrl } from "shared/civil";
 import { fontForRole } from "shared/font";
 
-import TopBarMenu from "components/top-bar-menu";
+import CivilButton from "components/civil-button";
+import CivilInput from "components/civil-input";
+import CivilTabButton from "components/civil-tab-button";
+import CivilTextArea from "components/civil-text-area";
+import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "components/insignia-selector";
+import Pagination from "components/pagination";
+import RoleView from "components/role-view";
+import SegmentBackRefs from "components/segment-back-refs";
+import SegmentDeckRefs from "components/segment-deck-refs";
 import SegmentGraph from "components/segment-graph";
 import SegmentNotes from "components/segment-notes";
+import SegmentSearchResults from "components/segment-search-results";
+import TopBarMenu from "components/top-bar-menu";
+import TopMatter from "components/top-matter";
+import buildMarkup from "components/build-markup";
+import useDeckManager from "components/use-deck-manager";
+import { Module } from "components/module";
+import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 
-import CivilTabButton from "components/civil-tab-button";
 import {
     CivContainer,
     CivMain,
@@ -35,19 +49,6 @@ import {
     CivForm,
     CivLeftLabel,
 } from "components/civil-layout";
-import CivilInput from "components/civil-input";
-import useDeckManager from "components/use-deck-manager";
-import DeleteDeckConfirmation from "components/delete-deck-confirmation";
-import RoleView from "components/role-view";
-import SegmentBackRefs from "components/segment-back-refs";
-import SegmentDeckRefs from "components/segment-deck-refs";
-import TopMatter from "components/top-matter";
-import buildMarkup from "components/build-markup";
-import CivilTextArea from "components/civil-text-area";
-import CivilButton from "components/civil-button";
-import Pagination from "components/pagination";
-import { renderPaginatedSlimDeck } from "components/paginated-render-items";
-import { Module } from "components/module";
 
 type ProtoDialogue = {
     title: string;
@@ -264,6 +265,7 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
                     </CivContainer>
                 </section>
                 <SegmentBackRefs deck={deck} />
+                <SegmentSearchResults id={id} font={deck.font} />
                 <SegmentGraph depth={2} deck={deck} />
             </article>
         );

@@ -14,6 +14,36 @@ import {
 
 import Net from "shared/net";
 import { getAppState, AppStateChange, immutableState } from "app-state";
+
+import CivilButton from "components/civil-button";
+import CivilButtonCreateDeck from "components/civil-button-create-deck";
+import CivilInput from "components/civil-input";
+import CivilTabButton from "components/civil-tab-button";
+import DeleteDeckConfirmation from "components/delete-deck-confirmation";
+import FontSelector from "components/font-selector";
+import InsigniaSelector from "components/insignia-selector";
+import Pagination from "components/pagination";
+import RollableSegment from "components/rollable-segment";
+import SegmentBackRefs from "components/segment-back-refs";
+import SegmentDeckRefs from "components/segment-deck-refs";
+import SegmentGraph from "components/segment-graph";
+import SegmentNotes from "components/segment-notes";
+import SegmentSearchResults from "components/segment-search-results";
+import TopBarMenu from "components/top-bar-menu";
+import TopMatter from "components/top-matter";
+import WhenEditMode from "components/when-edit-mode";
+import useDeckManager from "components/use-deck-manager";
+import { Module } from "components/module";
+import { renderPaginatedSlimDeck } from "components/paginated-render-items";
+
+import {
+    CivContainer,
+    CivMain,
+    CivForm,
+    CivLeft,
+    CivLeftLabel,
+} from "components/civil-layout";
+
 import {
     svgCaretDown,
     svgCaretRight,
@@ -22,32 +52,6 @@ import {
     svgX,
 } from "components/svg-icons";
 
-import TopBarMenu from "components/top-bar-menu";
-import CivilTabButton from "components/civil-tab-button";
-import CivilButtonCreateDeck from "components/civil-button-create-deck";
-import CivilButton from "components/civil-button";
-import CivilInput from "components/civil-input";
-import useDeckManager from "components/use-deck-manager";
-import DeleteDeckConfirmation from "components/delete-deck-confirmation";
-import InsigniaSelector from "components/insignia-selector";
-import RollableSegment from "components/rollable-segment";
-import SegmentBackRefs from "components/segment-back-refs";
-import SegmentDeckRefs from "components/segment-deck-refs";
-import SegmentGraph from "components/segment-graph";
-import SegmentNotes from "components/segment-notes";
-import TopMatter from "components/top-matter";
-import FontSelector from "components/font-selector";
-import WhenEditMode from "components/when-edit-mode";
-import Pagination from "components/pagination";
-import { renderPaginatedSlimDeck } from "components/paginated-render-items";
-import {
-    CivContainer,
-    CivMain,
-    CivForm,
-    CivLeft,
-    CivLeftLabel,
-} from "components/civil-layout";
-import { Module } from "components/module";
 
 function Timelines({ path }: { path?: string }) {
     return (
@@ -169,6 +173,8 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                     title={deck.title}
                     showAddPointForm={appState.showAddPointForm.value}
                 />
+
+                <SegmentSearchResults id={id} font={deck.font} />
 
                 <SegmentGraph depth={2} deck={deck} />
             </article>

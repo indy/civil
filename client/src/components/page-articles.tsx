@@ -12,10 +12,10 @@ import {
     Note,
 } from "types";
 
-import TopBarMenu from "components/top-bar-menu";
-import InsigniaSelector from "components/insignia-selector";
-import SegmentGraph from "components/segment-graph";
-import SegmentNotes from "components/segment-notes";
+import Net from "shared/net";
+import { buildUrl } from "shared/civil";
+import { formattedDate } from "shared/time";
+import { buildSlimDeck } from "shared/deck";
 
 import AutoSummarize from "components/auto-summarize";
 import CivilButton from "components/civil-button";
@@ -25,27 +25,28 @@ import CivilTabButton from "components/civil-tab-button";
 import DeckLink from "components/deck-link";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import FontSelector from "components/font-selector";
+import InsigniaSelector from "components/insignia-selector";
 import LeftMarginHeadingNoWrap from "components/left-margin-heading-no-wrap";
 import Pagination from "components/pagination";
 import SegmentBackRefs from "components/segment-back-refs";
 import SegmentDeckRefs from "components/segment-deck-refs";
+import SegmentGraph from "components/segment-graph";
+import SegmentNotes from "components/segment-notes";
+import SegmentSearchResults from "components/segment-search-results";
+import TopBarMenu from "components/top-bar-menu";
 import TopMatter from "components/top-matter";
 import useDeckManager from "components/use-deck-manager";
+import { Module } from "components/module";
 import { StarRatingPartial } from "components/star-rating";
 import { StarRatingWithinListing } from "components/star-rating";
+
 import {
     CivContainer,
     CivMain,
     CivForm,
     CivLeftLabel,
 } from "components/civil-layout";
-import { Module } from "components/module";
 
-import Net from "shared/net";
-import { buildUrl } from "shared/civil";
-//import { deckKindToHeadingString } from "shared/deck";
-import { formattedDate } from "shared/time";
-import { buildSlimDeck } from "shared/deck";
 
 function Articles({ path }: { path?: string }) {
     return (
@@ -254,6 +255,7 @@ function Article({ path, id }: { path?: string; id?: string }) {
                     onUpdateDeck={deckManager.update}
                 />
                 <SegmentBackRefs deck={deck} />
+                <SegmentSearchResults id={id} font={deck.font} />
                 <SegmentGraph depth={2} deck={deck} />
             </article>
         );
