@@ -3,7 +3,7 @@ import { useState } from "preact/hooks";
 
 import { CivilMode } from "types";
 
-import { immutableState, getAppState } from "app-state";
+import { getAppState, immutableState } from "app-state";
 
 import { visibleClass } from "shared/css";
 

@@ -1,4 +1,4 @@
-import { h, ComponentChildren } from "preact";
+import { ComponentChildren, h } from "preact";
 
 import WhenPhysicalKeyboard from "components/when-physical-keyboard";
 

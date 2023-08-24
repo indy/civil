@@ -2,24 +2,24 @@ import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import {
+    DeckEvent,
     DeckKind,
     DeckManagerFlags,
+    DeckUpdate,
     DM,
-    DeckEvent,
+    EventExtras,
     Font,
     GeoResult,
-    DeckUpdate,
-    EventExtras,
 } from "types";
 
 import { geoGet, getLatitudeLongitude } from "shared/geo";
 import Net from "shared/net";
 
 import {
-    parseDateStringAsTriple,
-    parseDateStringAsYearOnly,
     asHumanReadableDate,
     asHumanReadableDateRange,
+    parseDateStringAsTriple,
+    parseDateStringAsYearOnly,
 } from "shared/time";
 
 import CivilButton from "components/civil-button";
@@ -29,8 +29,10 @@ import CivilTabButton from "components/civil-tab-button";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import FontSelector from "components/font-selector";
 import InsigniaSelector from "components/insignia-selector";
+import { Module } from "components/module";
+import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import Pagination from "components/pagination";
-import SegmentBackRefs from "components/segment-back-refs";
+import SegmentBackDecks from "components/segment-back-decks";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import SegmentGraph from "components/segment-graph";
 import SegmentNotes from "components/segment-notes";
@@ -38,14 +40,12 @@ import SegmentSearchResults from "components/segment-search-results";
 import TopBarMenu from "components/top-bar-menu";
 import TopMatter from "components/top-matter";
 import useDeckManager from "components/use-deck-manager";
-import { Module } from "components/module";
-import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 
 import {
     CivContainer,
-    CivMain,
     CivForm,
     CivLeftLabel,
+    CivMain,
     CivRight,
 } from "components/civil-layout";
 
@@ -161,7 +161,7 @@ function CivEvent({ path, id }: { path?: string; id?: string }) {
                     canShowPassage={deckManager.canShowPassage}
                     onUpdateDeck={deckManager.update}
                 />
-                <SegmentBackRefs deck={deck} />
+                <SegmentBackDecks deck={deck} />
                 <SegmentSearchResults id={id} font={deck.font} />
                 <SegmentGraph depth={2} deck={deck} />
             </article>

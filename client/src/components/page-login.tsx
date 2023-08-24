@@ -1,19 +1,19 @@
 import { h } from "preact";
-import { useState, useRef } from "preact/hooks";
 import { route } from "preact-router";
+import { useRef, useState } from "preact/hooks";
 
 import { UserWithUiConfig } from "types";
 
-import Net from "shared/net";
 import { getAppState } from "app-state";
+import Net from "shared/net";
 
+import CivilInput from "components/civil-input";
 import {
     CivContainer,
-    CivMain,
     CivForm,
     CivLeftLabel,
+    CivMain,
 } from "components/civil-layout";
-import CivilInput from "components/civil-input";
 
 type Props = {
     path?: string;

@@ -1,5 +1,5 @@
-import { h, ComponentChildren } from "preact";
-import { useState, useEffect } from "preact/hooks";
+import { ComponentChildren, h } from "preact";
+import { useEffect, useState } from "preact/hooks";
 
 import { PaginationResults } from "types";
 

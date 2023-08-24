@@ -1,4 +1,4 @@
-import { useReducer, Reducer } from "preact/hooks";
+import { Reducer, useReducer } from "preact/hooks";
 
 // a thin wrapper around preact's useReducer, the only difference is
 // that the returned dispatch function takes 2 arguments: type and data

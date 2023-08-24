@@ -17,7 +17,7 @@
 
 use crate::error::Error;
 use crate::interop::font::Font;
-use crate::interop::notes::{NoteKind, SeekDeck};
+use crate::interop::notes::{Note, SeekDeck};
 use crate::interop::Key;
 
 use std::fmt;
@@ -126,25 +126,6 @@ pub struct Ref {
     pub font: Font,
 }
 
-// notes that have references back to the currently displayed deck
-//
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct BackNote {
-    pub note_id: Key,
-    pub prev_note_id: Option<Key>,
-    pub note_content: String,
-    pub note_kind: NoteKind,
-    pub note_font: Font,
-
-    pub id: Key,
-    pub title: String,
-    pub deck_kind: DeckKind,
-    pub graph_terminator: bool,
-    pub insignia: i32,
-    pub font: Font,
-}
-
 // Returned as search results
 //
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -192,4 +173,11 @@ pub struct SearchResults {
 pub struct Pagination<T> {
     pub items: Vec<T>,
     pub total_items: i32,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BackDeck {
+    pub notes: Vec<Note>,
+    pub deck: SlimDeck,
 }

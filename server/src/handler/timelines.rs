@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::decks as decks_db;
 use crate::db::memorise as memorise_db;
 use crate::db::notes as notes_db;
 use crate::db::points as points_db;
@@ -174,9 +173,8 @@ fn sqlite_augment(
     user_id: Key,
 ) -> crate::Result<()> {
     timeline.points = points_db::all(sqlite_pool, user_id, timeline_id)?;
-    timeline.notes = notes_db::for_deck(sqlite_pool, timeline_id)?;
-    timeline.backnotes = decks_db::get_backnotes(sqlite_pool, timeline_id)?;
-    timeline.backrefs = decks_db::get_backrefs(sqlite_pool, timeline_id)?;
+    timeline.notes = notes_db::notes_for_deck(sqlite_pool, timeline_id)?;
+    timeline.back_decks = notes_db::backdecks_for_deck(sqlite_pool, timeline_id)?;
     timeline.flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, timeline_id)?;
 
     Ok(())

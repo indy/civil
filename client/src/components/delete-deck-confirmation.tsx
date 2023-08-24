@@ -3,11 +3,11 @@ import { route } from "preact-router";
 
 import { DeckKind, Key } from "types";
 
-import DeleteConfirmation from "components/delete-confirmation";
-import Net from "shared/net";
 import { AppStateChange } from "app-state";
+import DeleteConfirmation from "components/delete-confirmation";
 import { buildUrl } from "shared/civil";
 import { deckKindToResourceString } from "shared/deck";
+import Net from "shared/net";
 
 type Props = {
     deckKind: DeckKind;

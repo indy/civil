@@ -1,7 +1,7 @@
-import { h, ComponentChildren } from "preact";
-import { useState, useEffect } from "preact/hooks";
+import { ComponentChildren, h } from "preact";
+import { useEffect, useState } from "preact/hooks";
 
-import { SearchResults, SlimDeck, SeekDeck, Font, CivilMode, Key } from "types";
+import { CivilMode, Font, Key, SearchResults, SeekDeck, SlimDeck } from "types";
 
 import { getAppState } from "app-state";
 
@@ -11,10 +11,10 @@ import { plural } from "shared/english";
 import Net from "shared/net";
 
 import CivilButton from "components/civil-button";
-import ListingLink from "components/listing-link";
-import RollableSegment from "components/rollable-segment";
 import { CivContainer, CivMain } from "components/civil-layout";
 import CivilSeekResults from "components/civil-seek-results";
+import ListingLink from "components/listing-link";
+import RollableSegment from "components/rollable-segment";
 
 //    searchResults: SearchResults;
 

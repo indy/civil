@@ -1,10 +1,10 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import TopBarMenu from "components/top-bar-menu";
 import InsigniaSelector from "components/insignia-selector";
-import Pagination from "components/pagination";
 import { renderPaginatedSlimDeck } from "components/paginated-render-items";
+import Pagination from "components/pagination";
+import TopBarMenu from "components/top-bar-menu";
 
 import { Module } from "components/module";
 

@@ -1,53 +1,54 @@
 import { h } from "preact";
-import { useEffect, useState } from "preact/hooks";
 import { route } from "preact-router";
+import { useEffect, useState } from "preact/hooks";
 
 import {
-    Font,
     AiKind,
     ChatMessage,
-    DeckManagerFlags,
-    DM,
     DeckDialogue,
     DeckKind,
+    DeckManagerFlags,
     DeckUpdate,
     DialogueExtras,
+    DM,
+    Font,
     Role,
+    NoteKind,
     WaitingFor,
 } from "types";
 
-import { getAppState, AppStateChange } from "app-state";
+import { AppStateChange, getAppState } from "app-state";
 
-import Net from "shared/net";
 import { buildUrl } from "shared/civil";
 import { fontForRole } from "shared/font";
+import Net from "shared/net";
 
+import buildMarkup from "components/build-markup";
 import CivilButton from "components/civil-button";
 import CivilInput from "components/civil-input";
 import CivilTabButton from "components/civil-tab-button";
 import CivilTextArea from "components/civil-text-area";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "components/insignia-selector";
+import { Module } from "components/module";
+import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import Pagination from "components/pagination";
-import RoleView from "components/role-view";
-import SegmentBackRefs from "components/segment-back-refs";
+import SegmentBackDecks from "components/segment-back-decks";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import SegmentGraph from "components/segment-graph";
 import SegmentNotes from "components/segment-notes";
 import SegmentSearchResults from "components/segment-search-results";
 import TopBarMenu from "components/top-bar-menu";
 import TopMatter from "components/top-matter";
-import buildMarkup from "components/build-markup";
 import useDeckManager from "components/use-deck-manager";
-import { Module } from "components/module";
-import { renderPaginatedSlimDeck } from "components/paginated-render-items";
+import ViewRole from "components/view-role";
 
 import {
     CivContainer,
-    CivMain,
-    CivLeft,
     CivForm,
+    CivLeft,
     CivLeftLabel,
+    CivMain,
 } from "components/civil-layout";
 
 type ProtoDialogue = {
@@ -146,9 +147,9 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
             console.error("no deck????");
             return;
         }
-        if (deck.noteSeqs) {
-            let prevNoteId =
-                deck.noteSeqs.note[deck.noteSeqs.note.length - 1].id;
+        if (deck.passage[NoteKind.Note].length > 0) {
+            let lastIdx = deck.passage[NoteKind.Note].length - 1;
+            let prevNoteId = deck.passage[NoteKind.Note][lastIdx].id;
 
             const appendChatMessage: AppendChatMessage = {
                 prevNoteId: prevNoteId,
@@ -160,7 +161,9 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
             // this temporary note will be overwritten once we get the updated deck
             // from the server response
             //
-            let n = { ...deck.noteSeqs.note[deck.noteSeqs.note.length - 1] };
+            let n = {
+                ...deck.passage[NoteKind.Note][lastIdx],
+            };
             n.prevNoteId = n.id;
             n.id = n.id + 1;
             n.content = userInput;
@@ -169,7 +172,7 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
                 role: Role.User,
                 content: userInput,
             };
-            deck.noteSeqs.note.push(n);
+            deck.passage[NoteKind.Note].push(n);
 
             AppStateChange.setWaitingFor({ waitingFor: WaitingFor.Server });
 
@@ -264,7 +267,7 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
                         <InputBox onSubmit={onSubmit} />
                     </CivContainer>
                 </section>
-                <SegmentBackRefs deck={deck} />
+                <SegmentBackDecks deck={deck} />
                 <SegmentSearchResults id={id} font={deck.font} />
                 <SegmentGraph depth={2} deck={deck} />
             </article>
@@ -357,7 +360,7 @@ function DialogueChat({ path }: { path?: string }) {
     function buildChatMessageElement(chatMessage: ChatMessage) {
         return [
             <CivLeft>
-                <RoleView role={chatMessage.role} />
+                <ViewRole role={chatMessage.role} />
             </CivLeft>,
             <CivMain>
                 {buildMarkup(
@@ -389,7 +392,7 @@ function DialogueChat({ path }: { path?: string }) {
                 <CivContainer extraClasses="note">
                     {m}
                     <CivLeft extraClasses="dialogue-user-title">
-                        <RoleView role={Role.User} />
+                        <ViewRole role={Role.User} />
                     </CivLeft>
                     <InputBox onSubmit={onSubmit} />
                 </CivContainer>

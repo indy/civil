@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::decks as decks_db;
 use crate::db::events as db;
 use crate::db::memorise as memorise_db;
 use crate::db::notes as notes_db;
@@ -128,9 +127,8 @@ fn sqlite_augment(
     event: &mut interop::Event,
     event_id: Key,
 ) -> crate::Result<()> {
-    event.notes = notes_db::for_deck(sqlite_pool, event_id)?;
-    event.backnotes = decks_db::get_backnotes(sqlite_pool, event_id)?;
-    event.backrefs = decks_db::get_backrefs(sqlite_pool, event_id)?;
+    event.notes = notes_db::notes_for_deck(sqlite_pool, event_id)?;
+    event.back_decks = notes_db::backdecks_for_deck(sqlite_pool, event_id)?;
     event.flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, event_id)?;
 
     Ok(())

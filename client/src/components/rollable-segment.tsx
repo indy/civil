@@ -1,11 +1,11 @@
-import { h, ComponentChildren } from "preact";
+import { ComponentChildren, h } from "preact";
 import { useState } from "preact/hooks";
 
 import { Font, RenderingDeckPart } from "types";
 
 import { fontClass } from "shared/font";
 
-import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
+import { CivContainer, CivLeft, CivMain } from "components/civil-layout";
 
 import {
     svgChevronDoubleDown,

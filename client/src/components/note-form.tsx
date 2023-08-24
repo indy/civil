@@ -1,11 +1,11 @@
 import { h } from "preact";
-import { useEffect, useState, useRef } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 
-import { Font, Key, Notes, NoteKind } from "types";
+import { Font, Key, NoteKind, Notes } from "types";
 
-import Net from "shared/net";
 import { getAppState } from "app-state";
 import { svgX } from "components/svg-icons";
+import Net from "shared/net";
 
 import { CivLeft, CivMain } from "components/civil-layout";
 import CivilTextArea from "components/civil-text-area";

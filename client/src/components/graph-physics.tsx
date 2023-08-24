@@ -1,4 +1,4 @@
-import { Edge, GraphNode, GraphCallback, GraphState } from "types";
+import { Edge, GraphCallback, GraphNode, GraphState } from "types";
 
 var initialRadius = 10,
     initialAngle = Math.PI * (3 - Math.sqrt(5));

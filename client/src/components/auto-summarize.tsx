@@ -1,13 +1,13 @@
 import { h } from "preact";
 
-import { FatDeck, Note, WaitingFor } from "types";
+import { NoteKind, FatDeck, Note, WaitingFor } from "types";
 
 import { AppStateChange, getAppState } from "app-state";
 
 import Net from "shared/net";
 
-import CivilButton from "components/civil-button";
 import buildSimplifiedText from "components/build-simplified-text";
+import CivilButton from "components/civil-button";
 
 type AutoSummarizeProps = {
     deck: FatDeck;
@@ -19,17 +19,17 @@ export default function AutoSummarize({ deck, onFinish }: AutoSummarizeProps) {
     const wasmInterface = appState.wasmInterface!;
 
     function onClick() {
-        if (deck.noteSeqs) {
-            let text = deck.noteSeqs.note.map((n) =>
+        if (deck.passage[NoteKind.Note]) {
+            let textPassage = deck.passage[NoteKind.Note].map((n) =>
                 buildSimplifiedText(n.content, wasmInterface)
             );
-            let textPassage = text.join("\n");
+            let textPassageContent = textPassage.join("\n");
 
-            let summarySeq = deck.noteSeqs.noteSummary;
+            let summaryPassage = deck.passage[NoteKind.NoteSummary];
             let prevId: number | undefined = undefined;
-            if (summarySeq.length > 0) {
+            if (summaryPassage.length > 0) {
                 // this deck already contains a note summary passage, so append the auto summarize
-                prevId = summarySeq[summarySeq.length - 1].id;
+                prevId = summaryPassage[summaryPassage.length - 1].id;
             }
 
             type SummarizeStruct = {
@@ -39,7 +39,7 @@ export default function AutoSummarize({ deck, onFinish }: AutoSummarizeProps) {
 
             let summarizeStruct: SummarizeStruct = {
                 prevId,
-                content: textPassage,
+                content: textPassageContent,
             };
 
             // returns the newly created NoteSummary

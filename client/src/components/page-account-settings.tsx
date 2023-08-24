@@ -1,17 +1,16 @@
-import { h, ComponentChildren } from "preact";
+import { ComponentChildren, h } from "preact";
 import { route } from "preact-router";
 import { useEffect, useState } from "preact/hooks";
 
-import { ColourScheme, /* WaitingFor, */ CivilSpan } from "types";
+import { /* WaitingFor, */ CivilSpan, ColourScheme } from "types";
 
-import { getAppState, AppStateChange } from "app-state";
+import { AppStateChange, getAppState } from "app-state";
 
 import Net from "shared/net";
-import { updateAndSaveUiConfig, basicUiConfig } from "shared/ui-config";
+import { basicUiConfig, updateAndSaveUiConfig } from "shared/ui-config";
 
 import { CivContainer, CivMainUi } from "components/civil-layout";
-import { svgSun, svgMoon } from "components/svg-icons";
-import { svgComputer, svgTablet } from "components/svg-icons";
+import { svgComputer, svgMoon, svgSun, svgTablet } from "components/svg-icons";
 
 export default function AccountSettings({ path }: { path?: string }) {
     // <TestColourSchemeModule />

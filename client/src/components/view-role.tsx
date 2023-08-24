@@ -21,7 +21,7 @@ function roleToString(role: Role, username: string): string {
     }
 }
 
-export default function RoleView({ role }: Props) {
+export default function ViewRole({ role }: Props) {
     const appState = getAppState();
 
     const font = fontForRole(role);

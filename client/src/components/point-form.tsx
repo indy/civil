@@ -1,14 +1,14 @@
 import { h } from "preact";
-import { useState, useRef } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
 
-import { Point, GeoResult, PointKind, ProtoPoint } from "types";
+import { GeoResult, Point, PointKind, ProtoPoint } from "types";
 
 import { geoGet, getLatitudeLongitude } from "shared/geo";
 import {
-    parseDateStringAsTriple,
-    parseDateStringAsYearOnly,
     asHumanReadableDate,
     asHumanReadableDateRange,
+    parseDateStringAsTriple,
+    parseDateStringAsYearOnly,
 } from "shared/time";
 
 import CivilInput from "components/civil-input";

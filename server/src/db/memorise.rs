@@ -29,13 +29,13 @@ use tracing::info;
 
 impl From<(interop::FlashCard, interop_decks::SlimDeck)> for interop::Card {
     fn from(e: (interop::FlashCard, interop_decks::SlimDeck)) -> interop::Card {
-        let (c, backref) = e;
+        let (c, slimdeck) = e;
 
         interop::Card {
             id: c.id,
             note_id: c.note_id,
             note_content: "???".to_string(),
-            deck_info: backref,
+            deck_info: slimdeck,
             prompt: c.prompt,
         }
     }

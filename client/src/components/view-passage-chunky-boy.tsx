@@ -1,28 +1,28 @@
 import { h } from "preact";
 
 import {
-    ProtoNoteReferences,
-    ReferencesApplied,
-    Point,
+    CivilMode,
     FatDeck,
     Key,
     Note,
     NoteKind,
     Notes,
+    Point,
+    ProtoNoteReferences,
     Reference,
-    CivilMode,
+    ReferencesApplied,
 } from "types";
 
-import Net from "shared/net";
-import { getAppState, AppStateChange } from "app-state";
+import { AppStateChange, getAppState } from "app-state";
 import { svgEdit } from "components/svg-icons";
+import Net from "shared/net";
 
 import { CivContainer, CivLeft } from "components/civil-layout";
 import NoteForm from "components/note-form";
-import NoteView from "components/note-view";
+import ViewNote from "components/view-note";
 import WhenEditMode from "components/when-edit-mode";
 
-type PassageProps = {
+type ViewPassageChunkyBoyProps = {
     deck: FatDeck;
     mode: CivilMode;
     onUpdateDeck: (d: FatDeck) => void;
@@ -36,7 +36,7 @@ type PassageProps = {
     extraClasses?: string;
 };
 
-export default function Passage({
+export default function ViewPassageChunkyBoy({
     deck,
     mode,
     onUpdateDeck,
@@ -48,7 +48,7 @@ export default function Passage({
     noAppend,
     noDelete,
     extraClasses,
-}: PassageProps) {
+}: ViewPassageChunkyBoyProps) {
     const appState = getAppState();
 
     function onEditedNote(id: Key, updatedNote: Note) {
@@ -102,7 +102,7 @@ export default function Passage({
 
     function buildNoteComponent(note: Note, nextNote?: Note) {
         return (
-            <NoteView
+            <ViewNote
                 key={note.id}
                 note={note}
                 nextNote={nextNote}

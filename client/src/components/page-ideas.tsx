@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { DM, DeckIdea, DeckKind, DeckUpdate } from "types";
+import { DeckIdea, DeckKind, DeckUpdate, DM } from "types";
 
 import Net from "shared/net";
 import { formattedDate } from "shared/time";
@@ -13,8 +13,10 @@ import CivilTabButton from "components/civil-tab-button";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import FontSelector from "components/font-selector";
 import InsigniaSelector from "components/insignia-selector";
+import { Module } from "components/module";
+import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import Pagination from "components/pagination";
-import SegmentBackRefs from "components/segment-back-refs";
+import SegmentBackDecks from "components/segment-back-decks";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import SegmentGraph from "components/segment-graph";
 import SegmentNotes from "components/segment-notes";
@@ -22,14 +24,12 @@ import SegmentSearchResults from "components/segment-search-results";
 import TopBarMenu from "components/top-bar-menu";
 import TopMatter from "components/top-matter";
 import useDeckManager from "components/use-deck-manager";
-import { Module } from "components/module";
-import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 
 import {
     CivContainer,
-    CivMain,
     CivForm,
     CivLeftLabel,
+    CivMain,
 } from "components/civil-layout";
 
 function Ideas({ path }: { path?: string }) {
@@ -170,7 +170,7 @@ function Idea({ path, id }: { path?: string; id?: string }) {
                     onRefsChanged={deckManager.onRefsChanged}
                     onUpdateDeck={deckManager.update}
                 />
-                <SegmentBackRefs deck={deck} />
+                <SegmentBackDecks deck={deck} />
                 <SegmentSearchResults id={id} font={deck.font} />
                 <SegmentGraph depth={2} deck={deck} />
             </article>

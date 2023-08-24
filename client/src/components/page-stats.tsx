@@ -1,7 +1,7 @@
 import { h } from "preact";
 
-import TopBarMenu from "components/top-bar-menu";
 import { Module } from "components/module";
+import TopBarMenu from "components/top-bar-menu";
 
 export default function Stats({ path }: { path?: string }) {
     return (

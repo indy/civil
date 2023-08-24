@@ -1,7 +1,7 @@
 import { h } from "preact";
 
-import { SlimDeck } from "types";
 import DeckLink from "components/deck-link";
+import { SlimDeck } from "types";
 
 type ListingLinkProps = {
     slimDeck: SlimDeck;

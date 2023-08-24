@@ -1,4 +1,4 @@
-import { useEffect, Ref } from "preact/hooks";
+import { Ref, useEffect } from "preact/hooks";
 
 export default function useMouseHoveringEvents(
     hoveringRef: Ref<HTMLElement>,

@@ -17,7 +17,7 @@
 
 use crate::ai::openai_interface;
 use crate::error::Error;
-use crate::interop::decks::{BackNote, DeckKind, Ref};
+use crate::interop::decks::{BackDeck, DeckKind};
 use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
 use crate::interop::notes::Note;
@@ -70,9 +70,7 @@ pub struct Dialogue {
     pub created_at: chrono::NaiveDateTime,
 
     pub notes: Vec<Note>,
-
-    pub backnotes: Vec<BackNote>,
-    pub backrefs: Vec<Ref>,
+    pub back_decks: Vec<BackDeck>,
 
     pub flashcards: Vec<FlashCard>,
 

@@ -3,26 +3,26 @@ import { Link } from "preact-router";
 import { useEffect, useState } from "preact/hooks";
 
 import {
-    Font,
     DeckKind,
     DeckManagerFlags,
-    DM,
     DeckPerson,
-    Point,
     DeckUpdate,
+    DM,
+    Font,
     Key,
     PassageType,
+    Point,
     PointKind,
     ProtoPoint,
     RenderingDeckPart,
     SlimEvent,
 } from "types";
 
-import Net from "shared/net";
-import { calcAgeInYears, dateStringAsTriple } from "shared/time";
+import { AppStateChange, getAppState, immutableState } from "app-state";
 import { buildUrl } from "shared/civil";
 import { fontClass } from "shared/font";
-import { getAppState, AppStateChange, immutableState } from "app-state";
+import Net from "shared/net";
+import { calcAgeInYears, dateStringAsTriple } from "shared/time";
 
 import CivilButton from "components/civil-button";
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
@@ -33,27 +33,27 @@ import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import FontSelector from "components/font-selector";
 import InsigniaSelector from "components/insignia-selector";
 import LifespanForm from "components/lifespan-form";
+import { Module } from "components/module";
+import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import Pagination from "components/pagination";
 import PointForm from "components/point-form";
 import RollableSegment from "components/rollable-segment";
-import SegmentBackRefs from "components/segment-back-refs";
+import SegmentBackDecks from "components/segment-back-decks";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import SegmentGraph from "components/segment-graph";
 import SegmentNotes from "components/segment-notes";
 import SegmentSearchResults from "components/segment-search-results";
 import TopBarMenu from "components/top-bar-menu";
 import TopMatter from "components/top-matter";
-import WhenEditMode from "components/when-edit-mode";
 import useDeckManager from "components/use-deck-manager";
-import { Module } from "components/module";
-import { renderPaginatedSlimDeck } from "components/paginated-render-items";
+import WhenEditMode from "components/when-edit-mode";
 
 import {
     CivContainer,
-    CivMain,
     CivForm,
     CivLeft,
     CivLeftLabel,
+    CivMain,
 } from "components/civil-layout";
 import {
     svgBlank,
@@ -273,7 +273,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
                     onUpdateDeck={deckManager.update}
                 />
 
-                <SegmentBackRefs deck={deck} />
+                <SegmentBackDecks deck={deck} />
 
                 <SegmentSearchResults id={id} font={deck.font} />
                 {hasKnownLifespan && (

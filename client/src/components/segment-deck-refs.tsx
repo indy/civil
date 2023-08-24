@@ -2,22 +2,23 @@ import { h } from "preact";
 import { useRef } from "preact/hooks";
 
 import {
-    RenderingDeckPart,
+    CivilMode,
     FatDeck,
     Key,
     Note,
+    NoteKind,
     Reference,
     RefsModified,
-    CivilMode,
+    RenderingDeckPart,
 } from "types";
 
-import { getAppState, AppStateChange } from "app-state";
+import { AppStateChange, getAppState } from "app-state";
 import { addToolbarSelectableClasses } from "shared/css";
 import { fontClass } from "shared/font";
 
 import { CivContainer, CivMain } from "components/civil-layout";
 import CivilSelect from "components/civil-select";
-import RefView from "components/ref-view";
+import ViewReference from "components/view-reference";
 
 import useMouseHovering from "components/use-mouse-hovering";
 
@@ -77,7 +78,8 @@ export default function SegmentDeckRefs({
 
     let deckId: Key = deck && deck.id;
     let deckMeta: Note | undefined =
-        deck && deck.noteSeqs && deck.noteSeqs.noteDeckMeta[0];
+        deck && deck.passage[NoteKind.Note] && deck.passage[NoteKind.Note][0];
+
     // deckMeta is the special note (of kind: NoteKind::NoteDeckMeta) that
     // contains the refs that should apply to the deck as a whole and not
     // just to individual paragraphs
@@ -91,7 +93,7 @@ export default function SegmentDeckRefs({
                         <CivMain>
                             <hr class="light" />
                             {deckMeta.refs.map((ref) => (
-                                <RefView
+                                <ViewReference
                                     reference={ref}
                                     extraClasses="deck-ref-item"
                                 />

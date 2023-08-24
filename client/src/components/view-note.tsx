@@ -1,10 +1,11 @@
 import { h } from "preact";
-import { useEffect, useState, useRef, Ref as PreactRef } from "preact/hooks";
+import { Ref as PreactRef, useEffect, useRef, useState } from "preact/hooks";
 
 import {
-    Font,
-    FlashCard,
+    CivilMode,
     FatDeck,
+    FlashCard,
+    Font,
     Key,
     Note,
     Notes,
@@ -12,28 +13,27 @@ import {
     RefsModified,
     Role,
     State,
-    CivilMode,
 } from "types";
 
-import Net from "shared/net";
-import { addToolbarSelectableClasses } from "shared/css";
-import { getAppState, AppStateChange } from "app-state";
+import { AppStateChange, getAppState } from "app-state";
 import { svgFlashCard } from "components/svg-icons";
+import { addToolbarSelectableClasses } from "shared/css";
+import Net from "shared/net";
 
-import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
-import CivilSelect from "components/civil-select";
+import buildMarkup from "components/build-markup";
 import CivilButton from "components/civil-button";
+import { CivContainer, CivLeft, CivMain } from "components/civil-layout";
+import CivilSelect from "components/civil-select";
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";
-import FlashCardView from "components/flashcard-view";
+import FontSelector from "components/font-selector";
 import ImageSelector from "components/image-selector";
 import NoteForm from "components/note-form";
-import RefView from "components/ref-view";
-import RoleView from "components/role-view";
-import FontSelector from "components/font-selector";
-import buildMarkup from "components/build-markup";
 import useLocalReducer from "components/use-local-reducer";
 import useMouseHovering from "components/use-mouse-hovering";
+import ViewFlashCard from "components/view-flashcard";
+import ViewReference from "components/view-reference";
+import ViewRole from "components/view-role";
 
 enum ActionType {
     AddDecksCommit,
@@ -350,7 +350,7 @@ type Props = {
     noDelete?: boolean;
 };
 
-export default function NoteView({
+export default function ViewNote({
     note,
     nextNote,
     parentDeck,
@@ -537,10 +537,7 @@ export default function NoteView({
     }
 
     function buildAddDecksUI() {
-        function onSave(
-            changes: RefsModified,
-            refsInNote: Array<Reference>
-        ) {
+        function onSave(changes: RefsModified, refsInNote: Array<Reference>) {
             onRefsChanged(local.note, refsInNote);
             localDispatch(ActionType.AddDecksCommit, {
                 refsInNote,
@@ -677,7 +674,7 @@ export default function NoteView({
 
             {local.isEditingMarkup && buildEditableContent()}
             {local.flashcardToShow && (
-                <FlashCardView
+                <ViewFlashCard
                     flashcard={local.flashcardToShow}
                     onDelete={flashCardDeleted}
                 />
@@ -725,7 +722,7 @@ function buildLeftMarginContent(
     ) {
         return (
             <CivLeft>
-                {note.chatMessage && <RoleView role={note.chatMessage!.role} />}
+                {note.chatMessage && <ViewRole role={note.chatMessage!.role} />}
                 {buildFlashcardIndicator(note.flashcards, localDispatch)}
                 {note.refs.length > 0 && note.flashcards.length > 0 && (
                     <div class="spacer"></div>
@@ -745,7 +742,7 @@ function buildNoteReferences(
 ) {
     const entries = refs.map((ref) => {
         return (
-            <RefView
+            <ViewReference
                 reference={ref}
                 extraClasses="left-margin-entry"
                 nextNote={nextNote}

@@ -1,15 +1,15 @@
 import { h } from "preact";
-import { useState, useRef } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
 
 import { UserUploadedImage } from "types";
 
 import { AppStateChange, getAppState } from "app-state";
 
 import CivilButton from "components/civil-button";
-import uploadImages from "components/image-upload";
-import useDragDrop from "components/use-drag-drop";
 import { CivLeft } from "components/civil-layout";
+import uploadImages from "components/image-upload";
 import { svgX } from "components/svg-icons";
+import useDragDrop from "components/use-drag-drop";
 
 type Props = {
     onPaste: (s: string) => void;

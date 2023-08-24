@@ -2003,15 +2003,6 @@ section > form {
     font-size: 2rem;
 }
 
-.deck-level-backref {
-    font-size: 1.1rem;
-    padding-top: 0.2rem;
-    padding-left: 2rem;
-}
-.deck-level-backref > .ref-scribble {
-    width: 100%;
-}
-
 .deck-ref-item > .ref-scribble {
     width: 100%;
 }

@@ -1,21 +1,21 @@
-import { h, ComponentChildren } from "preact";
-import { useState } from "preact/hooks";
+import { ComponentChildren, h } from "preact";
 import { Link } from "preact-router";
+import { useState } from "preact/hooks";
 
 import { CivilMode } from "types";
 
-import { getAppState, AppStateChange } from "app-state";
+import { AppStateChange, getAppState } from "app-state";
 
 import {
-    svgCircle,
-    svgFilledCircle,
-    svgEdit,
-    svgLinkAlt,
-    svgFlashCard,
     svgAddAbove,
     svgBookmark,
-    svgSearch,
+    svgCircle,
+    svgEdit,
+    svgFilledCircle,
+    svgFlashCard,
     svgHome,
+    svgLinkAlt,
+    svgSearch,
 } from "components/svg-icons";
 
 import { isCivilModeAllowed } from "shared/civil";

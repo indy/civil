@@ -1,21 +1,21 @@
 import { h } from "preact";
 import { useEffect } from "preact/hooks";
 
-import { Key, SlimDeck, RenderingDeckPart } from "types";
+import { Key, RenderingDeckPart, SlimDeck } from "types";
 
-import { getAppState, AppStateChange, immutableState } from "app-state";
+import { AppStateChange, getAppState, immutableState } from "app-state";
 
-import Net from "shared/net";
-import { fontClass } from "shared/font";
 import { plural } from "shared/english";
+import { fontClass } from "shared/font";
+import Net from "shared/net";
 import { formattedDate, formattedTime } from "shared/time";
 
-import TopBarMenu from "components/top-bar-menu";
-import CivilButton from "components/civil-button";
-import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
-import DeckLink from "components/deck-link";
-import useLocalReducer from "components/use-local-reducer";
 import buildMarkup from "components/build-markup";
+import CivilButton from "components/civil-button";
+import { CivContainer, CivLeft, CivMain } from "components/civil-layout";
+import DeckLink from "components/deck-link";
+import TopBarMenu from "components/top-bar-menu";
+import useLocalReducer from "components/use-local-reducer";
 
 enum Mode {
     PreTest,

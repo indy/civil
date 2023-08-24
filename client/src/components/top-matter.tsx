@@ -1,14 +1,14 @@
-import { h, ComponentChildren } from "preact";
+import { ComponentChildren, h } from "preact";
 import { useRef } from "preact/hooks";
 
-import { RenderingDeckPart, FatDeck, CivilMode } from "types";
+import { CivilMode, FatDeck, RenderingDeckPart } from "types";
 
 import { getAppState } from "app-state";
 
 import { CivContainer, CivLeft } from "components/civil-layout";
+import { renderInsignia } from "components/insignia-renderer";
 import LeftMarginHeading from "components/left-margin-heading";
 import Title from "components/title";
-import { renderInsignia } from "components/insignia-renderer";
 
 import useMouseHovering from "components/use-mouse-hovering";
 

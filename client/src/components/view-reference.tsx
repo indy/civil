@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import { RenderingDeckPart, Note, Reference, RefKind, CivilMode } from "types";
+import { CivilMode, Note, Reference, RefKind, RenderingDeckPart } from "types";
 
 import { getAppState } from "app-state";
 
@@ -32,7 +32,7 @@ function refKindToString(refKind: RefKind): string {
     }
 }
 
-export default function RefView({
+export default function ViewReference({
     reference,
     extraClasses,
     nextNote,

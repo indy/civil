@@ -1,36 +1,36 @@
 import { h } from "preact";
-import { useEffect } from "preact/hooks";
 import { route } from "preact-router";
+import { useEffect } from "preact/hooks";
 
 import {
-    DM,
     DeckKind,
     DeckQuote,
     DeckUpdate,
+    DM,
     Font,
     Key,
     NoteKind,
     QuoteExtras,
 } from "types";
 
-import Net from "shared/net";
-import buildMarkup from "components/build-markup";
 import { AppStateChange, immutableState } from "app-state";
+import buildMarkup from "components/build-markup";
 import { deckKindToHeadingString } from "shared/deck";
+import Net from "shared/net";
 
-import TopBarMenu from "components/top-bar-menu";
 import CivilButton from "components/civil-button";
 import CivilInput from "components/civil-input";
+import { CivContainer, CivMain, CivMainUi } from "components/civil-layout";
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";
 import ModalKeyboardHelp from "components/modal-keyboard-help";
-import SegmentBackRefs from "components/segment-back-refs";
+import SegmentBackDecks from "components/segment-back-decks";
 import SegmentNotes from "components/segment-notes";
-import WhenNoPhysicalKeyboard from "components/when-no-physical-keyboard";
+import TopBarMenu from "components/top-bar-menu";
 import useDeckManager from "components/use-deck-manager";
 import useLocalReducer from "components/use-local-reducer";
 import useModalKeyboard from "components/use-modal-keyboard";
-import { CivContainer, CivMain, CivMainUi } from "components/civil-layout";
+import WhenNoPhysicalKeyboard from "components/when-no-physical-keyboard";
 
 enum ActionType {
     ShowAddForm,
@@ -336,7 +336,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                     onDelete={onDeleteFn(deck.id)}
                 />
 
-                <SegmentBackRefs deck={deck} />
+                <SegmentBackDecks deck={deck} />
 
                 <WhenNoPhysicalKeyboard>
                     <QuoteButtons quoteId={quoteId} />

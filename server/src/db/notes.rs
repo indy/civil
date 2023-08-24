@@ -18,7 +18,7 @@
 use crate::db::{postfix_asterisks, sanitize_for_sqlite_match};
 
 use crate::db::decks as db_decks;
-use crate::interop::decks::{DeckKind, Ref, RefKind, SlimDeck};
+use crate::interop::decks::{BackDeck, DeckKind, Ref, RefKind, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::notes as interop;
 use crate::interop::Key;
@@ -62,6 +62,15 @@ pub struct NoteAndRef {
     pub reference_maybe: Option<Ref>,
 }
 
+// represents the data returned in a single row of a query
+//
+#[derive(Debug)]
+pub struct NoteAndRefAndDeck {
+    pub note: interop::Note,
+    pub reference_maybe: Option<Ref>,
+    pub deck: SlimDeck,
+}
+
 fn note_and_ref_from_row(row: &Row) -> crate::Result<NoteAndRef> {
     let mut reference_maybe: Option<Ref> = None;
     let reference_deck_id: Option<Key> = row.get(8)?;
@@ -101,9 +110,59 @@ fn note_and_ref_from_row(row: &Row) -> crate::Result<NoteAndRef> {
     })
 }
 
+fn note_and_ref_and_deck_from_row(row: &Row) -> crate::Result<NoteAndRefAndDeck> {
+    let mut reference_maybe: Option<Ref> = None;
+    let reference_deck_id: Option<Key> = row.get(8)?;
+    if let Some(ref_deck_id) = reference_deck_id {
+        let refk: String = row.get(6)?;
+        let ref_deck_kind: String = row.get(10)?;
+        let ref_fnt: i32 = row.get(13)?;
+
+        reference_maybe = Some(Ref {
+            note_id: row.get(0)?,
+            ref_kind: RefKind::from_str(&refk)?,
+            annotation: row.get(7)?,
+
+            id: ref_deck_id,
+            title: row.get(9)?,
+            deck_kind: DeckKind::from_str(&ref_deck_kind)?,
+            graph_terminator: row.get(11)?,
+            insignia: row.get(12)?,
+            font: Font::try_from(ref_fnt)?,
+        })
+    };
+
+    let note_kind_i32: i32 = row.get(2)?;
+    let note_font: i32 = row.get(5)?;
+
+    let deck_deck_kind: String = row.get(16)?;
+    let deck_fnt: i32 = row.get(19)?;
+
+    Ok(NoteAndRefAndDeck {
+        note: interop::Note {
+            id: row.get(0)?,
+            prev_note_id: row.get(1)?,
+            kind: interop::NoteKind::try_from(note_kind_i32)?,
+            content: row.get(3)?,
+            point_id: row.get(4)?,
+            font: Font::try_from(note_font)?,
+            refs: vec![],
+        },
+        reference_maybe,
+        deck: SlimDeck {
+            id: row.get(14)?,
+            title: row.get(15)?,
+            deck_kind: DeckKind::from_str(&deck_deck_kind)?,
+            graph_terminator: row.get(17)?,
+            insignia: row.get(18)?,
+            font: Font::try_from(deck_fnt)?,
+        },
+    })
+}
+
 // get all notes that are children of the given deck
 //
-pub(crate) fn for_deck(
+pub(crate) fn notes_for_deck(
     sqlite_pool: &SqlitePool,
     deck_id: Key,
 ) -> crate::Result<Vec<interop::Note>> {
@@ -136,42 +195,101 @@ pub(crate) fn for_deck(
     Ok(notes)
 }
 
-// todo: write a notes_from_ordered_notes_and_refs where the .note.id is in order
-// the nested for loop can then be replaced by indexing into the last element
-//
 fn notes_from_notes_and_refs(notes_and_refs: Vec<NoteAndRef>) -> crate::Result<Vec<interop::Note>> {
     let mut res: Vec<interop::Note> = vec![];
 
     for note_and_ref in notes_and_refs {
-        let mut found: bool = false;
-        let mut note_index: usize = 0;
-        for r in &res {
-            if r.id == note_and_ref.note.id {
-                found = true;
-                break;
-            }
-            note_index += 1;
-        }
-        if !found {
-            // todo: replace with:
-            // res.push(interop::NewNote {
-            //     refs: vec![],
-            //     ..note_and_ref.note
-            // });
-
+        // only check the last element in the vector since the rows have been ordered by note id
+        //
+        if res.is_empty() || res[res.len() - 1].id != note_and_ref.note.id {
             res.push(interop::Note {
-                id: note_and_ref.note.id,
-                prev_note_id: note_and_ref.note.prev_note_id,
-                kind: note_and_ref.note.kind,
-                content: note_and_ref.note.content,
-                point_id: note_and_ref.note.point_id,
-                font: note_and_ref.note.font,
                 refs: vec![],
+                ..note_and_ref.note
             });
         }
 
         if let Some(reference) = note_and_ref.reference_maybe {
-            res[note_index].refs.push(reference);
+            let len = res.len();
+            res[len - 1].refs.push(reference);
+        }
+    }
+
+    Ok(res)
+}
+
+pub(crate) fn backdecks_for_deck(
+    sqlite_pool: &SqlitePool,
+    deck_id: Key,
+) -> crate::Result<Vec<BackDeck>> {
+    let conn = sqlite_pool.get()?;
+
+    let stmt = "SELECT   n.id,
+                         n.prev_note_id,
+                         n.kind,
+                         n.content,
+                         n.point_id,
+                         n.font,
+                         nd2.kind as ref_kind,
+                         nd2.annotation,
+                         d3.id,
+                         d3.name,
+                         d3.kind as deck_kind,
+                         d3.graph_terminator,
+                         d3.insignia,
+                         d3.font,
+                         owner_deck.id,
+                         owner_deck.name,
+                         owner_deck.kind as deck_kind,
+                         owner_deck.graph_terminator,
+                         owner_deck.insignia,
+                         owner_deck.font
+                FROM     notes_decks nd
+                         FULL JOIN notes n on nd.note_id = n.id
+                         FULL JOIN decks owner_deck on n.deck_id = owner_deck.id
+                         FULL JOIN notes_decks nd2 on nd2.note_id = n.id
+                         FULL JOIN decks d3 on nd2.deck_id = d3.id
+                WHERE    nd.deck_id = ?1
+                ORDER BY owner_deck.id, n.id";
+    let notes_and_refs_and_decks: Vec<NoteAndRefAndDeck> = sqlite::many(
+        &conn,
+        stmt,
+        params!(&deck_id),
+        note_and_ref_and_deck_from_row,
+    )?;
+
+    let notes = backnotes_from_notes_and_refs_and_decks(notes_and_refs_and_decks)?;
+
+    Ok(notes)
+}
+
+fn backnotes_from_notes_and_refs_and_decks(
+    notes_and_refs_and_decks: Vec<NoteAndRefAndDeck>,
+) -> crate::Result<Vec<BackDeck>> {
+    let mut res: Vec<BackDeck> = vec![];
+
+    for note_and_ref_and_deck in notes_and_refs_and_decks {
+        // only check the last element in the vector since the rows have been ordered by note id
+        //
+        if res.is_empty() || res[res.len() - 1].deck.id != note_and_ref_and_deck.deck.id {
+            res.push(BackDeck {
+                notes: vec![],
+                deck: note_and_ref_and_deck.deck,
+            });
+        }
+
+        let idx = res.len() - 1;
+        let notes = &mut res[idx].notes;
+        if notes.is_empty() || notes[notes.len() - 1].id != note_and_ref_and_deck.note.id {
+            notes.push(interop::Note {
+                refs: vec![],
+                ..note_and_ref_and_deck.note
+            });
+        }
+
+        if let Some(reference) = note_and_ref_and_deck.reference_maybe {
+            let len = res.len();
+            let len2 = res[len - 1].notes.len();
+            res[len - 1].notes[len2 - 1].refs.push(reference);
         }
     }
 
@@ -229,7 +347,7 @@ pub(crate) fn delete_note_properly(
     tx.commit()?;
 
     // return all the notes that the parent deck has
-    let all_notes = for_deck(sqlite_pool, deck_id)?;
+    let all_notes = notes_for_deck(sqlite_pool, deck_id)?;
     Ok(all_notes)
 }
 
@@ -337,7 +455,7 @@ pub(crate) fn create_notes(
 
     tx.commit()?;
 
-    let all_notes = for_deck(sqlite_pool, note.deck_id)?;
+    let all_notes = notes_for_deck(sqlite_pool, note.deck_id)?;
     Ok(all_notes)
 }
 

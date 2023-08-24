@@ -4,29 +4,29 @@ import { useEffect } from "preact/hooks";
 import {
     DeckKind,
     Key,
+    ProtoNoteReferences,
     Reference,
+    ReferencesApplied,
     RefKind,
     RefsModified,
+    RenderingDeckPart,
     SlimDeck,
     State,
-    ProtoNoteReferences,
-    ReferencesApplied,
-    RenderingDeckPart,
 } from "types";
 
 import { AppStateChange, getAppState, immutableState } from "app-state";
 
-import Net from "shared/net";
+import { indexToShortcut } from "shared/command";
 import { deckKindToResourceString, sortByDeckKindThenName } from "shared/deck";
 import { fontClass } from "shared/font";
 import { indexFromCode } from "shared/keys";
-import { indexToShortcut } from "shared/command";
+import Net from "shared/net";
 
-import { svgCloseShifted } from "components/svg-icons";
-import { renderInsignia } from "components/insignia-renderer";
 import CivilInput from "components/civil-input";
-import useLocalReducer from "components/use-local-reducer";
 import { CivMain, CivRight } from "components/civil-layout";
+import { renderInsignia } from "components/insignia-renderer";
+import { svgCloseShifted } from "components/svg-icons";
+import useLocalReducer from "components/use-local-reducer";
 
 enum ActionType {
     CandidatesSet,

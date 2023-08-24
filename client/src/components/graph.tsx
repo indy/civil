@@ -1,6 +1,6 @@
-import { h, createRef } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { createRef, h } from "preact";
 import { route } from "preact-router";
+import { useEffect, useState } from "preact/hooks";
 
 import {
     Edge,
@@ -13,17 +13,17 @@ import {
     RefKind,
 } from "types";
 
-import { getAppState, AppStateChange } from "app-state";
+import { AppStateChange, getAppState } from "app-state";
 
-import Net from "shared/net";
 import { deckKindToResourceString } from "shared/deck";
+import Net from "shared/net";
 
+import { CivContainer, CivLeft, CivMain } from "components/civil-layout";
 import { graphPhysics } from "components/graph-physics";
-import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
+import ModalKeyboardHelp from "components/modal-keyboard-help";
+import { svgTickedCheckBox, svgUntickedCheckBox } from "components/svg-icons";
 import useLocalReducer from "components/use-local-reducer";
 import useModalKeyboard from "components/use-modal-keyboard";
-import { svgTickedCheckBox, svgUntickedCheckBox } from "components/svg-icons";
-import ModalKeyboardHelp from "components/modal-keyboard-help";
 
 let gUpdateGraphCallback: GraphCallback | undefined = undefined;
 

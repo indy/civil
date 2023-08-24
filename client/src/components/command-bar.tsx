@@ -1,14 +1,14 @@
 import { h } from "preact";
-import { useEffect, useRef, Ref } from "preact/hooks";
 import { route } from "preact-router";
+import { Ref, useEffect, useRef } from "preact/hooks";
 
 import {
-    Key,
     CivilMode,
     CivilSpan,
     CommandBarMode,
     DeckKind,
     DeckQuote,
+    Key,
     NoteKind,
     ResultList,
     SlimDeck,
@@ -32,15 +32,15 @@ type Spacer = {
 
 type BarEntry = Command | Spacer;
 
-import { getAppState, AppStateChange } from "app-state";
+import { AppStateChange, getAppState } from "app-state";
 
-import Net from "shared/net";
 import { addBookmark, addMultipleBookmarks } from "shared/bookmarks";
-import { deckKindToResourceString, createDeck } from "shared/deck";
-import { indexFromCode } from "shared/keys";
 import { isCivilModeAllowed } from "shared/civil";
-import { isCommand, indexToShortcut } from "shared/command";
+import { indexToShortcut, isCommand } from "shared/command";
 import { visibleClass } from "shared/css";
+import { createDeck, deckKindToResourceString } from "shared/deck";
+import { indexFromCode } from "shared/keys";
+import Net from "shared/net";
 
 import DeckLink from "components/deck-link";
 

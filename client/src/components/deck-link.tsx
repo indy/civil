@@ -1,16 +1,16 @@
-import { h, ComponentChildren } from "preact";
-import { useRef } from "preact/hooks";
+import { ComponentChildren, h } from "preact";
 import { Link } from "preact-router";
+import { useRef } from "preact/hooks";
 
-import { PreviewNotes, RenderingDeckPart, SlimDeck, CivilMode } from "types";
+import { CivilMode, PreviewNotes, RenderingDeckPart, SlimDeck } from "types";
 
-import Net from "shared/net";
+import { addBookmark } from "shared/bookmarks";
 import { buildUrl } from "shared/civil";
 import { deckKindToResourceString } from "shared/deck";
 import { fontClass } from "shared/font";
-import { addBookmark } from "shared/bookmarks";
+import Net from "shared/net";
 
-import { getAppState, AppStateChange } from "app-state";
+import { AppStateChange, getAppState } from "app-state";
 import { renderInsignia, svgBookmarkLink } from "components/insignia-renderer";
 
 // import useMouseHovering from "components/use-mouse-hovering";

@@ -1,23 +1,23 @@
 import { h } from "preact";
 
 import {
+    CivilMode,
     DeckKind,
     FatDeck,
     Note,
     NoteKind,
-    PassageHowToShow,
     Notes,
+    PassageHowToShow,
     Reference,
     RenderingDeckPart,
-    CivilMode,
 } from "types";
 
 import { getAppState } from "app-state";
 
 import { fontClass } from "shared/font";
 
-import Passage from "components/passage";
 import RollableSegment from "components/rollable-segment";
+import ViewPassageChunkyBoy from "components/view-passage-chunky-boy";
 
 type Props = {
     deck: FatDeck;
@@ -46,7 +46,7 @@ export default function SegmentNotes({
 
     const mode = appState.mode.value;
 
-    if (deck && deck.noteSeqs) {
+    if (deck) {
         let containerClasses = "c-segment-notes ";
         containerClasses += fontClass(deck.font, RenderingDeckPart.Body);
 
@@ -60,7 +60,7 @@ export default function SegmentNotes({
                         deck={deck}
                         onUpdateDeck={onUpdateDeck}
                         mode={mode}
-                        notes={deck.noteSeqs.noteSummary}
+                        notes={deck.passage[NoteKind.NoteSummary]}
                         onRefsChanged={onRefsChanged}
                         deckKind={deckKind}
                         noAppend={noAppend}
@@ -75,7 +75,7 @@ export default function SegmentNotes({
                         deck={deck}
                         onUpdateDeck={onUpdateDeck}
                         mode={mode}
-                        notes={deck.noteSeqs.noteReview}
+                        notes={deck.passage[NoteKind.NoteReview]}
                         onRefsChanged={onRefsChanged}
                         deckKind={deckKind}
                         noAppend={noAppend}
@@ -90,7 +90,7 @@ export default function SegmentNotes({
                     deck={deck}
                     onUpdateDeck={onUpdateDeck}
                     mode={mode}
-                    notes={deck.noteSeqs.note}
+                    notes={deck.passage[NoteKind.Note]}
                     onRefsChanged={onRefsChanged}
                     deckKind={deckKind}
                     noAppend={noAppend}
@@ -138,7 +138,7 @@ function NoteKindPassage({
             appendLabel = "Append Review Note";
         }
 
-        return Passage({
+        return ViewPassageChunkyBoy({
             deck,
             mode,
             onUpdateDeck,

@@ -1,6 +1,7 @@
 import { h } from "preact";
 
-import { setbit, clearbit, bitset, bitAsValue } from "shared/bitops";
+import { bitAsValue, bitset, clearbit, setbit } from "shared/bitops";
+
 import { renderInsignia } from "components/insignia-renderer";
 
 type Props = {

@@ -16,7 +16,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::ai::{openai_interface, AI};
-use crate::db::decks as decks_db;
 use crate::db::dialogues as db;
 use crate::db::memorise as memorise_db;
 use crate::db::notes as notes_db;
@@ -185,9 +184,8 @@ fn sqlite_augment(
     dialogue: &mut interop::Dialogue,
     dialogue_id: Key,
 ) -> crate::Result<()> {
-    dialogue.notes = notes_db::for_deck(sqlite_pool, dialogue_id)?;
-    dialogue.backnotes = decks_db::get_backnotes(sqlite_pool, dialogue_id)?;
-    dialogue.backrefs = decks_db::get_backrefs(sqlite_pool, dialogue_id)?;
+    dialogue.notes = notes_db::notes_for_deck(sqlite_pool, dialogue_id)?;
+    dialogue.back_decks = notes_db::backdecks_for_deck(sqlite_pool, dialogue_id)?;
     dialogue.flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, dialogue_id)?;
 
     Ok(())

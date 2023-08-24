@@ -94,12 +94,13 @@ export type Reference = SlimDeck & {
     annotation?: string;
 };
 
-export type BackNote = SlimDeck & {
-    noteId: Key;
-    prevNoteId?: Key;
-    noteContent: string;
-    noteKind: NoteKind;
-    noteFont: Font;
+export type BackDeck = {
+    notes: Notes;
+    deck: SlimDeck;
+
+    // generated client side with data from server
+    //
+    passages: Array<Passage>;
 };
 
 export type PreviewNotes = {
@@ -141,8 +142,6 @@ export type SlimEvent = SlimDeck & {
 export type FatDeck = SlimDeck & {
     // received from server
     //
-    backnotes: Array<BackNote>;
-    backrefs: Array<Reference>;
     flashcards: Array<FlashCard>;
     points?: Array<Point>;
     events?: Array<SlimEvent>;
@@ -150,29 +149,13 @@ export type FatDeck = SlimDeck & {
     // received from server and then modified by the client
     //
     notes: Notes;
+    backDecks: Array<BackDeck>;
 
     // generated client side with data from server
     //
-    noteSeqs: NoteSeqs;
-    backRefDecksGroupedByKind: Record<DeckKind, Array<BackRefDeck>>;
-};
-
-export type BackRefDeck = {
-    deckId: Key;
-    title: string;
-    deckInsignia: number;
-    deckKind: DeckKind;
-    deckFont: Font;
-
-    // each deck may have multiple sequences of notes that have been given the same ref
-    // notes in a single sequence should be rendered together
-    // and sequences should be separated by a 'hr' element
-    //
-    backRefNoteSeqs: Array<Array<BackRefNote>>;
-
-    deckLevelRefs: Array<Reference>;
-    metaNoteId: Key;
-    deckLevelAnnotation?: string;
+    passage: Record<NoteKind, Passage>;
+    passageForPoint?: Record<Key, Passage>;
+    backDecksGrouped: Record<DeckKind, Array<BackDeck>>;
 };
 
 export type ChatMessage = {
@@ -244,15 +227,11 @@ export type Note = {
     chatMessage?: ChatMessage; // the original chat message for a dialogue
 };
 
+// typescript has structural typing rather than nominal typing
+// so the following are unfortunately interchangeable
+//
 export type Notes = Array<Note>;
-
-export type NoteSeqs = {
-    points?: { [_: Key]: Notes };
-    note: Notes;
-    noteDeckMeta: Notes;
-    noteReview: Notes;
-    noteSummary: Notes;
-};
+export type Passage = Array<Note>; // guaranteed to be a sequence of consecutive notes
 
 export type ProtoPoint = {
     title?: string;
@@ -304,12 +283,7 @@ export type FlashCard = {
 export type SeekDeck = {
     rank: number;
     deck: SlimDeck;
-    seekNotes: Array<SeekNote>;
-};
-
-export type SeekNote = {
-    note: Note;
-    refs: Array<Reference>;
+    seekNotes: Array<Note>;
 };
 
 export type SeekResults = {
@@ -536,16 +510,6 @@ export type DM<T extends FatDeck> = {
 
 export type PassageType = {
     x?: any;
-};
-
-export type BackRefNote = {
-    topRefKind?: RefKind;
-    topAnnotation?: string;
-    noteContent: string;
-    font: Font;
-    noteId: Key;
-    prevNoteId?: Key;
-    refs: Array<Reference>;
 };
 
 export type RefsModified = {

@@ -15,14 +15,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::notes;
+use crate::db::notes::{self, backdecks_for_deck};
 use crate::db::sqlite::{self, SqlitePool};
 use crate::db::{postfix_asterisks, sanitize_for_sqlite_match};
 use crate::error::Error;
 use crate::interop::decks as interop;
-use crate::interop::decks::DeckKind;
 use crate::interop::font::Font;
-use crate::interop::notes as note_interop;
 use crate::interop::Key;
 use rusqlite::{params, Connection, Row};
 
@@ -35,8 +33,8 @@ pub(crate) enum DeckBaseOrigin {
     PreExisting,
 }
 
-fn contains(backrefs: &[interop::SlimDeck], id: Key) -> bool {
-    backrefs.iter().any(|br| br.id == id)
+fn contains(slimdecks: &[interop::SlimDeck], id: Key) -> bool {
+    slimdecks.iter().any(|br| br.id == id)
 }
 
 #[derive(Debug, Clone)]
@@ -80,7 +78,7 @@ pub fn recently_visited(
 fn num_decks_for_deck_kind(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    deck_kind: DeckKind,
+    deck_kind: interop::DeckKind,
 ) -> crate::Result<i32> {
     let conn = sqlite_pool.get()?;
     let stmt = "SELECT count(*) FROM decks where user_id=?1 AND kind=?2;";
@@ -100,7 +98,7 @@ pub(crate) fn slimdeck_from_row(row: &Row) -> crate::Result<interop::SlimDeck> {
     Ok(interop::SlimDeck {
         id: row.get(0)?,
         title: row.get(1)?,
-        deck_kind: DeckKind::from_str(&res)?,
+        deck_kind: interop::DeckKind::from_str(&res)?,
         insignia: row.get(3)?,
         font: Font::try_from(f)?,
         graph_terminator: row.get(5)?,
@@ -115,7 +113,7 @@ pub(crate) const DECKBASE_QUERY: &str =
 pub(crate) fn pagination(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    deck_kind: DeckKind,
+    deck_kind: interop::DeckKind,
     offset: i32,
     num_items: i32,
 ) -> crate::Result<interop::Pagination<interop::SlimDeck>> {
@@ -151,7 +149,7 @@ pub(crate) fn pagination(
 pub(crate) fn deckbase_get_or_create(
     tx: &Connection,
     user_id: Key,
-    kind: DeckKind,
+    kind: interop::DeckKind,
     name: &str,
     font: Font,
 ) -> crate::Result<(DeckBase, DeckBaseOrigin)> {
@@ -176,7 +174,7 @@ pub(crate) fn hit(conn: &Connection, deck_id: Key) -> crate::Result<()> {
 fn deckbase_get_by_name(
     conn: &Connection,
     user_id: Key,
-    kind: DeckKind,
+    kind: interop::DeckKind,
     name: &str,
 ) -> crate::Result<DeckBase> {
     let stmt = "SELECT id, name, created_at, graph_terminator, insignia, font
@@ -195,7 +193,7 @@ fn deckbase_get_by_name(
 pub(crate) fn deckbase_create(
     tx: &Connection,
     user_id: Key,
-    kind: DeckKind,
+    kind: interop::DeckKind,
     name: &str,
     font: Font,
 ) -> crate::Result<DeckBase> {
@@ -228,7 +226,7 @@ pub(crate) fn deckbase_edit(
     tx: &Connection,
     user_id: Key,
     deck_id: Key,
-    kind: DeckKind,
+    kind: interop::DeckKind,
     name: &str,
     graph_terminator: bool,
     insignia: i32,
@@ -331,29 +329,30 @@ pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, id: Key) -> crate::
     Ok(())
 }
 
+/*
 // return all notes that have references back to the currently displayed deck
 //
 pub(crate) fn get_backnotes(
     sqlite_pool: &SqlitePool,
     deck_id: Key,
-) -> crate::Result<Vec<interop::BackNote>> {
+) -> crate::Result<Vec<note_interop::XXXBackNote>> {
     let conn = sqlite_pool.get()?;
 
-    fn backnote_from_row(row: &Row) -> crate::Result<interop::BackNote> {
+    fn backnote_from_row(row: &Row) -> crate::Result<note_interop::XXXBackNote> {
         let kind: String = row.get(2)?;
         let sql_note_kind: i32 = row.get(5)?;
 
         let note_fnt: i32 = row.get(8)?;
         let fnt: i32 = row.get(9)?;
 
-        Ok(interop::BackNote {
+        Ok(note_interop::XXXBackNote {
             note_id: row.get(4)?,
             prev_note_id: row.get(7)?,
             note_content: row.get(3)?,
             note_kind: note_interop::NoteKind::try_from(sql_note_kind)?,
             id: row.get(0)?,
             title: row.get(1)?,
-            deck_kind: DeckKind::from_str(&kind)?,
+            deck_kind: interop::DeckKind::from_str(&kind)?,
             insignia: row.get(6)?,
             note_font: Font::try_from(note_fnt)?,
             font: Font::try_from(fnt)?,
@@ -381,50 +380,7 @@ pub(crate) fn get_backnotes(
                 ORDER BY d.name, n.id";
     sqlite::many(&conn, stmt, params![&deck_id], backnote_from_row)
 }
-
-// all refs on notes that have at least one ref back to the currently displayed deck
-//
-pub(crate) fn get_backrefs(
-    sqlite_pool: &SqlitePool,
-    deck_id: Key,
-) -> crate::Result<Vec<interop::Ref>> {
-    let conn = sqlite_pool.get()?;
-
-    fn backref_from_row(row: &Row) -> crate::Result<interop::Ref> {
-        let kind: String = row.get(2)?;
-        let refk: String = row.get(4)?;
-        let fnt: i32 = row.get(7)?;
-
-        Ok(interop::Ref {
-            note_id: row.get(0)?,
-            id: row.get(1)?,
-            title: row.get(3)?,
-            deck_kind: DeckKind::from_str(&kind)?,
-            ref_kind: interop::RefKind::from_str(&refk)?,
-            annotation: row.get(5)?,
-            insignia: row.get(6)?,
-            font: Font::try_from(fnt)?,
-            graph_terminator: row.get(8)?,
-        })
-    }
-
-    let stmt = "SELECT nd.note_id as note_id,
-                       d.id as deck_id,
-                       d.kind as kind,
-                       d.name as deck_name,
-                       nd2.kind as ref_kind,
-                       nd2.annotation,
-                       d.insignia,
-                       d.font,
-                       d.graph_terminator
-                FROM notes_decks nd, notes_decks nd2, decks d
-                WHERE nd.deck_id = ?1
-                      AND nd.note_id = nd2.note_id
-                      AND d.id = nd2.deck_id
-                ORDER BY nd2.deck_id";
-    sqlite::many(&conn, stmt, params![&deck_id], backref_from_row)
-}
-
+*/
 pub(crate) fn search(
     sqlite_pool: &SqlitePool,
     user_id: Key,
@@ -561,14 +517,14 @@ pub(crate) fn additional_search(
 ) -> crate::Result<Vec<interop::SlimDeck>> {
     info!("additional_search {:?}", deck_id);
 
-    fn has(backref: &interop::SlimDeck, backnotes: &[interop::BackNote]) -> bool {
-        backnotes.iter().any(|br| br.id == backref.id)
+    fn has(slimdeck: &interop::SlimDeck, backdecks: &[interop::BackDeck]) -> bool {
+        backdecks.iter().any(|br| br.deck.id == slimdeck.id)
     }
 
-    let backnotes = get_backnotes(sqlite_pool, deck_id)?;
+    let backnotes = backdecks_for_deck(sqlite_pool, deck_id)?;
     let search_results = search_using_deck_id(sqlite_pool, user_id, deck_id)?;
 
-    // dedupe search results against the backrefs to decks
+    // dedupe search results against the backdecks
     let additional_search_results: Vec<interop::SlimDeck> = search_results
         .into_iter()
         .filter(|br| br.id != deck_id && !has(br, &backnotes))

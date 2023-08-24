@@ -3,7 +3,7 @@ import { useState } from "preact/hooks";
 
 import { DeckKind } from "types";
 
-import { deckKindToSingularString, createDeck } from "shared/deck";
+import { createDeck, deckKindToSingularString } from "shared/deck";
 
 import CivilButton from "components/civil-button";
 import CivilInput from "components/civil-input";

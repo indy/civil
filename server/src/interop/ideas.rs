@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::{BackNote, DeckKind, Ref, SlimDeck};
+use crate::interop::decks::{BackDeck, DeckKind, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
 use crate::interop::notes::Note;
@@ -37,9 +37,7 @@ pub struct Idea {
     pub created_at: chrono::NaiveDateTime,
 
     pub notes: Vec<Note>,
-
-    pub backnotes: Vec<BackNote>,
-    pub backrefs: Vec<Ref>,
+    pub back_decks: Vec<BackDeck>,
 
     pub flashcards: Vec<FlashCard>,
 }
@@ -60,9 +58,7 @@ impl From<crate::db::decks::DeckBase> for Idea {
             created_at: d.created_at,
 
             notes: vec![],
-
-            backnotes: vec![],
-            backrefs: vec![],
+            back_decks: vec![],
 
             flashcards: vec![],
         }

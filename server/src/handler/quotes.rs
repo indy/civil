@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::decks as decks_db;
 use crate::db::memorise as memorise_db;
 use crate::db::notes as notes_db;
 use crate::db::quotes as db;
@@ -156,9 +155,8 @@ pub async fn delete(
 fn sqlite_augment(sqlite_pool: &Data<SqlitePool>, quote: &mut interop::Quote) -> crate::Result<()> {
     let quote_id: Key = quote.id;
 
-    quote.notes = notes_db::for_deck(sqlite_pool, quote_id)?;
-    quote.backnotes = decks_db::get_backnotes(sqlite_pool, quote_id)?;
-    quote.backrefs = decks_db::get_backrefs(sqlite_pool, quote_id)?;
+    quote.notes = notes_db::notes_for_deck(sqlite_pool, quote_id)?;
+    quote.back_decks = notes_db::backdecks_for_deck(sqlite_pool, quote_id)?;
     quote.flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, quote_id)?;
 
     Ok(())

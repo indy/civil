@@ -2,34 +2,37 @@ import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import {
-    BackNote,
-    BackRefDeck,
+    BackDeck,
     CivilMode,
     DeckKind,
-    Point,
     FatDeck,
     FlashCard,
     Key,
     Note,
     NoteKind,
-    BackRefNote,
     Notes,
+    Passage,
     PassageHowToShow,
+    Point,
     ProtoPoint,
     Reference,
 } from "types";
 
-import { getAppState, AppStateChange } from "app-state";
+import { AppStateChange, getAppState } from "app-state";
 
-import Passage from "components/passage";
+import ViewPassageChunkyBoy from "components/view-passage-chunky-boy";
 
 import PointForm from "components/point-form";
 
 import { bitset } from "shared/bitops";
-import { noteSeq, noteSeqsForPoints } from "shared/seq";
+import { buildUrl } from "shared/civil";
 import { sortByDeckKindThenName } from "shared/deck";
-import { buildUrl, nonEmptyArray } from "shared/civil";
 import Net from "shared/net";
+import {
+    noteSeqsForPoints,
+    passageForNoteKind,
+    createMultiplePassages,
+} from "shared/passage";
 
 type DeckManagerState<T extends FatDeck> = {
     deck: T | undefined;
@@ -238,11 +241,12 @@ export default function useDeckManager<T extends FatDeck>(
         passageForPoint: function (point: Point) {
             if (dms.deck) {
                 let deck: FatDeck = dms.deck;
-                if (deck.noteSeqs.points) {
-                    return Passage({
+                // if (deck.notePassages.points) {
+                if (deck.passageForPoint) {
+                    return ViewPassageChunkyBoy({
                         deck: deck,
                         mode: appState.mode.value,
-                        notes: deck.noteSeqs.points[point.id],
+                        notes: deck.passageForPoint[point.id],
                         onUpdateDeck: update,
                         onRefsChanged,
                         optionalPoint: point,
@@ -340,9 +344,10 @@ function dmsUpdateDeck<T extends FatDeck>(
     sortRefsInNotes(deck);
     applyCardsToNotes(deck);
     // organise the notes into noteSeqs
-    buildNoteSeqs(deck);
-    // sort the backnotes into sequences
-    buildBackRefsGroupedByKind(deck);
+    buildNotePassages(deck);
+    // build passages for the backDecks and then partition them by deck kind
+    buildBackDeckPassages(deck);
+    buildBackNotesGroupedByKind(deck);
 
     AppStateChange.urlTitle({ title: deck.title });
     AppStateChange.routeChanged({ url: buildUrl(deckKind, deck.id) });
@@ -470,7 +475,7 @@ function hashByNoteIds(s: Array<Reference | FlashCard>) {
     return res;
 }
 
-function buildNoteSeqs<T extends FatDeck>(deck: T) {
+function buildNotePassages<T extends FatDeck>(deck: T) {
     // build NoteSeqs for notes associated with points
     let points: { [id: Key]: Notes } = noteSeqsForPoints(deck.notes);
     // add empty noteSeqs for points without any notes
@@ -484,10 +489,16 @@ function buildNoteSeqs<T extends FatDeck>(deck: T) {
     }
 
     // build NoteSeqs for all other note kinds
-    let note: Notes = noteSeq(deck.notes, NoteKind.Note);
-    let noteDeckMeta: Notes = noteSeq(deck.notes, NoteKind.NoteDeckMeta); // should only be of length 1
-    let noteReview: Notes = noteSeq(deck.notes, NoteKind.NoteReview);
-    let noteSummary: Notes = noteSeq(deck.notes, NoteKind.NoteSummary);
+    let note: Notes = passageForNoteKind(deck.notes, NoteKind.Note);
+    let noteDeckMeta: Notes = passageForNoteKind(
+        deck.notes,
+        NoteKind.NoteDeckMeta
+    ); // should only be of length 1
+    let noteReview: Notes = passageForNoteKind(deck.notes, NoteKind.NoteReview);
+    let noteSummary: Notes = passageForNoteKind(
+        deck.notes,
+        NoteKind.NoteSummary
+    );
 
     if (noteDeckMeta.length !== 1) {
         console.error(
@@ -495,91 +506,35 @@ function buildNoteSeqs<T extends FatDeck>(deck: T) {
         );
     }
 
-    deck.noteSeqs = {
-        points,
-        note,
-        noteDeckMeta,
-        noteReview,
-        noteSummary,
+    // deck.notePassages = {
+    //     points,
+    //     note,
+    //     noteDeckMeta,
+    //     noteReview,
+    //     noteSummary,
+    // };
+
+    let notePassagesGroupedByNoteKind: Record<NoteKind, Passage> = {
+        [NoteKind.Note]: note,
+        [NoteKind.NoteSummary]: noteSummary,
+        [NoteKind.NoteReview]: noteReview,
+        [NoteKind.NoteDeckMeta]: noteDeckMeta,
     };
+
+    deck.passage = notePassagesGroupedByNoteKind;
+    deck.passageForPoint = points;
 
     return deck;
 }
 
-function indexOfNoteId(noteId: Key, notes: Array<BackRefNote>): number {
-    return notes.findIndex((n) => n.noteId === noteId);
-}
-function indexOfPrevNoteId(prevNoteId: Key, notes: Array<BackRefNote>): number {
-    return notes.findIndex((n) => n.prevNoteId && n.prevNoteId === prevNoteId);
-}
-
-function buildBackRefNoteSeq(
-    head: BackRefNote,
-    rem: Array<BackRefNote>
-): Array<BackRefNote> {
-    let res: Array<BackRefNote> = [head];
-
-    // search leftwards
-    //
-    while (res[0].prevNoteId) {
-        let idx = indexOfNoteId(res[0].prevNoteId, rem);
-        if (idx >= 0) {
-            // remove the indexed item from rem and prefix it to res
-            let item = rem.splice(idx, 1)[0];
-            res.unshift(item);
-        } else {
-            // can stop looping
-            break;
-        }
-    }
-
-    // search rightwards
-    //
-    while (true) {
-        let idx = indexOfPrevNoteId(res[res.length - 1].noteId, rem);
-        if (idx >= 0) {
-            // remove the indexed item from rem and prefix it to res
-            let item = rem.splice(idx, 1)[0];
-            res.push(item);
-        } else {
-            // can stop looping
-            break;
-        }
-    }
-
-    return res;
+function buildBackDeckPassages<T extends FatDeck>(deck: T) {
+    deck.backDecks.forEach((d) => {
+        d.passages = createMultiplePassages(d.notes);
+    });
 }
 
-function buildBackRefNoteSeqs(
-    notes: Array<BackRefNote>
-): Array<Array<BackRefNote>> {
-    const maxLoops = notes.length;
-    let numLoops = 0;
-
-    let res: Array<Array<BackRefNote>> = [];
-
-    // will mutate notes
-    while (notes.length > 0) {
-        let head: BackRefNote = notes.splice(0, 1)[0];
-        res.push(buildBackRefNoteSeq(head, notes));
-
-        numLoops += 1;
-        if (numLoops > maxLoops) {
-            console.error("too many loops, should never get here");
-            return res;
-        }
-    }
-    return res;
-}
-
-function buildBackRefsGroupedByKind<T extends FatDeck>(deck: T) {
-    const backRefDecks: Array<BackRefDeck> = [];
-    // key = deck id, value = array of notes
-    const brNote = {};
-
-    // group by deckKind kind
-    //
-    let groupedByDeckKind: Record<DeckKind, Array<BackRefDeck>> = {
+function buildBackNotesGroupedByKind<T extends FatDeck>(deck: T) {
+    let groupedByDeckKind: Record<DeckKind, Array<BackDeck>> = {
         [DeckKind.Article]: [],
         [DeckKind.Person]: [],
         [DeckKind.Idea]: [],
@@ -589,149 +544,11 @@ function buildBackRefsGroupedByKind<T extends FatDeck>(deck: T) {
         [DeckKind.Event]: [],
     };
 
-    if (!nonEmptyArray<Reference>(deck.backrefs)) {
-        deck.backRefDecksGroupedByKind = groupedByDeckKind;
-        return;
-    }
-
-    // file into backRefDecks with notes
-    //
-    deck.backnotes.forEach((n: BackNote) => {
-        if (
-            backRefDecks.length === 0 ||
-            backRefDecks[backRefDecks.length - 1].deckId !== n.id
-        ) {
-            let backRefItem: BackRefDeck = {
-                deckId: n.id,
-                title: n.title,
-                deckInsignia: n.insignia,
-                deckFont: n.font,
-                deckKind: n.deckKind,
-                backRefNoteSeqs: [],
-                deckLevelRefs: [],
-                metaNoteId: 0,
-            };
-            backRefDecks.push(backRefItem);
-            brNote[n.id] = [];
-        }
-
-        if (n.noteKind === NoteKind.NoteDeckMeta) {
-            // all refs associated with the NoteDeckMeta note id are rendered differently
-            backRefDecks[backRefDecks.length - 1].metaNoteId = n.noteId;
-        } else {
-            let noteThing: BackRefNote = {
-                noteContent: n.noteContent,
-                font: n.noteFont,
-                noteId: n.noteId,
-                prevNoteId: n.prevNoteId,
-                refs: [],
-            };
-            brNote[n.id].push(noteThing);
-        }
+    deck.backDecks.forEach((bn: BackDeck) => {
+        groupedByDeckKind[bn.deck.deckKind].push(bn);
     });
 
-    backRefDecks.forEach((bri) => {
-        bri.backRefNoteSeqs = buildBackRefNoteSeqs(brNote[bri.deckId]);
-    });
-
-    // attach refs to the correct notes
-    //
-    deck.backrefs.forEach((br: Reference) => {
-        // find the noteId
-        for (let i = 0; i < backRefDecks.length; i++) {
-            let d: BackRefDeck = backRefDecks[i];
-
-            if (d.metaNoteId === br.noteId) {
-                if (br.id === deck.id) {
-                    d.deckLevelAnnotation = br.annotation;
-                } else {
-                    let ref: Reference = {
-                        noteId: br.noteId,
-                        id: br.id,
-                        title: br.title,
-                        refKind: br.refKind,
-                        deckKind: br.deckKind,
-                        graphTerminator: br.graphTerminator,
-                        annotation: br.annotation,
-                        insignia: br.insignia,
-                        font: br.font,
-                    };
-                    d.deckLevelRefs.push(ref);
-                    break;
-                }
-            } else {
-                let breakout = false;
-
-                for (let k = 0; k < d.backRefNoteSeqs.length; k++) {
-                    breakout = false;
-
-                    for (let j = 0; j < d.backRefNoteSeqs[k].length; j++) {
-                        if (d.backRefNoteSeqs[k][j].noteId === br.noteId) {
-                            if (br.id === deck.id) {
-                                d.backRefNoteSeqs[k][j].topRefKind = br.refKind;
-                                d.backRefNoteSeqs[k][j].topAnnotation =
-                                    br.annotation;
-                            } else {
-                                let ref: Reference = {
-                                    noteId: br.noteId,
-                                    id: br.id,
-                                    title: br.title,
-                                    refKind: br.refKind,
-                                    deckKind: br.deckKind,
-                                    graphTerminator: br.graphTerminator,
-                                    annotation: br.annotation,
-                                    insignia: br.insignia,
-                                    font: br.font,
-                                };
-                                d.backRefNoteSeqs[k][j].refs.push(ref);
-                            }
-                            breakout = true;
-                            break;
-                        }
-                    }
-                    if (breakout) {
-                        break;
-                    }
-                }
-            }
-        }
-    });
-
-    // sort all of the refs
-    //
-    backRefDecks.forEach((d: BackRefDeck) => {
-        d.deckLevelRefs.sort(sortByDeckKindThenName);
-
-        d.backRefNoteSeqs.forEach((seq: Array<BackRefNote>) => {
-            seq.forEach((brn: BackRefNote) => {
-                brn.refs.sort(sortByDeckKindThenName);
-            });
-        });
-    });
-
-    backRefDecks.forEach((d: BackRefDeck) => {
-        if (!groupedByDeckKind[d.deckKind]) {
-            groupedByDeckKind[d.deckKind] = [];
-        }
-        if (d.metaNoteId) {
-            // deck-level back refs should be given priority
-            // add them to the front of the array
-            groupedByDeckKind[d.deckKind].unshift(d);
-        } else {
-            // normal per-note back refs are added to the end
-            groupedByDeckKind[d.deckKind].push(d);
-        }
-    });
-
-    // don't use the messy auto-generated quote titles
-    // just name them after the deck id
-    if (groupedByDeckKind[DeckKind.Quote]) {
-        groupedByDeckKind[DeckKind.Quote].forEach((d: BackRefDeck) => {
-            d.title = `Quote #${d.deckId}`;
-        });
-    }
-
-    deck.backRefDecksGroupedByKind = groupedByDeckKind;
+    deck.backDecksGrouped = groupedByDeckKind;
 
     return deck;
 }

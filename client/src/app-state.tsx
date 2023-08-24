@@ -56,7 +56,7 @@ import {
 } from "types";
 
 import { basicUiConfig } from "shared/ui-config";
-import { noteSeq } from "shared/seq";
+import { passageForNoteKind } from "shared/passage";
 import { generateColoursFromSeeds, declareSeeds } from "shared/colour-creator";
 
 const emptyUser: User = {
@@ -449,10 +449,13 @@ export const AppStateChange = {
             };
 
             // use the summary notes if present
-            let ns: Notes = noteSeq(previewNotes.notes, NoteKind.NoteSummary);
+            let ns: Notes = passageForNoteKind(
+                previewNotes.notes,
+                NoteKind.NoteSummary
+            );
             // otherwise use the normal notes
             if (ns.length === 0) {
-                ns = noteSeq(previewNotes.notes, NoteKind.Note);
+                ns = passageForNoteKind(previewNotes.notes, NoteKind.Note);
             }
 
             let previewDeck: PreviewDeck = {

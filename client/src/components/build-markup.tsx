@@ -1,13 +1,13 @@
-import { h, ComponentChildren } from "preact";
+import { ComponentChildren, h } from "preact";
 
 import { Font, Key, RenderingDeckPart } from "types";
 
 import { fontClass } from "shared/font";
 
+import { getAppState } from "app-state";
 import Anchor from "components/anchor";
 import Image from "components/image";
 import YouTube from "components/youtube";
-import { getAppState } from "app-state";
 
 type Element = {
     name: string;

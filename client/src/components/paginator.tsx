@@ -6,14 +6,14 @@ import { DeckKind } from "types";
 
 import { getAppState } from "app-state";
 
+import { deckKindToHeadingString, deckKindToResourceString } from "shared/deck";
 import { capitalise } from "shared/english";
-import { deckKindToResourceString, deckKindToHeadingString } from "shared/deck";
 
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilTabButton from "components/civil-tab-button";
-import Pagination from "components/pagination";
-import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import { Module } from "components/module";
+import { renderPaginatedSlimDeck } from "components/paginated-render-items";
+import Pagination from "components/pagination";
 
 export default function Paginator({}) {
     const [selected, setSelected] = useState(DeckKind.Idea);

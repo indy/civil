@@ -4,10 +4,10 @@ import { Bookmark } from "types";
 
 import { deleteBookmark } from "shared/bookmarks";
 
-import { getAppState, AppStateChange } from "app-state";
+import { AppStateChange, getAppState } from "app-state";
 
-import { svgX, svgChevronDown, svgChevronUp } from "components/svg-icons";
 import DeckLink from "components/deck-link";
+import { svgChevronDown, svgChevronUp, svgX } from "components/svg-icons";
 
 export default function Bookmarks() {
     const appState = getAppState();

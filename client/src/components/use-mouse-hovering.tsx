@@ -1,4 +1,4 @@
-import { useState, Ref } from "preact/hooks";
+import { Ref, useState } from "preact/hooks";
 
 import useMouseHoveringEvents from "components/use-mouse-hovering-events";
 

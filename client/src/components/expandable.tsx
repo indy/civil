@@ -1,8 +1,8 @@
-import { h, ComponentChildren } from "preact";
-import { useState, useEffect } from "preact/hooks";
+import { ComponentChildren, h } from "preact";
+import { useEffect, useState } from "preact/hooks";
 
-import { svgCaretRight, svgCaretDown } from "components/svg-icons";
 import { CivContainer, CivMain } from "components/civil-layout";
+import { svgCaretDown, svgCaretRight } from "components/svg-icons";
 
 type ExpandableProps = {
     extraClasses?: string;

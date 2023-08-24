@@ -1,6 +1,6 @@
-import { h, ComponentChildren } from "preact";
+import { ComponentChildren, h } from "preact";
 
-import { svgRatingStar, svgBlank } from "components/svg-icons";
+import { svgBlank, svgRatingStar } from "components/svg-icons";
 
 import { CivLeft } from "components/civil-layout";
 

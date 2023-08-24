@@ -4,16 +4,16 @@ import { useEffect, useState } from "preact/hooks";
 import {
     DeckKind,
     DeckManagerFlags,
-    DM,
-    Point,
     DeckTimeline,
+    DeckUpdate,
+    DM,
     Font,
     PassageType,
-    DeckUpdate,
+    Point,
 } from "types";
 
+import { AppStateChange, getAppState, immutableState } from "app-state";
 import Net from "shared/net";
-import { getAppState, AppStateChange, immutableState } from "app-state";
 
 import CivilButton from "components/civil-button";
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
@@ -22,26 +22,26 @@ import CivilTabButton from "components/civil-tab-button";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import FontSelector from "components/font-selector";
 import InsigniaSelector from "components/insignia-selector";
+import { Module } from "components/module";
+import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import Pagination from "components/pagination";
 import RollableSegment from "components/rollable-segment";
-import SegmentBackRefs from "components/segment-back-refs";
+import SegmentBackDecks from "components/segment-back-decks";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import SegmentGraph from "components/segment-graph";
 import SegmentNotes from "components/segment-notes";
 import SegmentSearchResults from "components/segment-search-results";
 import TopBarMenu from "components/top-bar-menu";
 import TopMatter from "components/top-matter";
-import WhenEditMode from "components/when-edit-mode";
 import useDeckManager from "components/use-deck-manager";
-import { Module } from "components/module";
-import { renderPaginatedSlimDeck } from "components/paginated-render-items";
+import WhenEditMode from "components/when-edit-mode";
 
 import {
     CivContainer,
-    CivMain,
     CivForm,
     CivLeft,
     CivLeftLabel,
+    CivMain,
 } from "components/civil-layout";
 
 import {
@@ -51,7 +51,6 @@ import {
     svgPointAdd,
     svgX,
 } from "components/svg-icons";
-
 
 function Timelines({ path }: { path?: string }) {
     return (
@@ -165,7 +164,7 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                     canShowPassage={deckManager.canShowPassage}
                     onUpdateDeck={deckManager.update}
                 />
-                <SegmentBackRefs deck={deck} />
+                <SegmentBackDecks deck={deck} />
 
                 <SegmentPoints
                     points={deck.points}

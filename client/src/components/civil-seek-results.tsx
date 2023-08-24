@@ -1,11 +1,12 @@
 import { h } from "preact";
 
-import { Reference, SeekNote, SeekDeck } from "types";
+import { Note, Reference, SeekDeck } from "types";
+
 import buildMarkup from "components/build-markup";
-import RefView from "components/ref-view";
+import { CivContainer, CivLeft, CivMain } from "components/civil-layout";
 import DeckLink from "components/deck-link";
 import Expandable from "components/expandable";
-import { CivContainer, CivLeft, CivMain } from "components/civil-layout";
+import ViewReference from "components/view-reference";
 
 export default function CivilSeekResults({
     seekResults,
@@ -13,15 +14,15 @@ export default function CivilSeekResults({
     seekResults: Array<SeekDeck>;
 }) {
     const seekDecks = seekResults.map((seekDeck) => (
-        <RenderSeekDeck seekDeck={seekDeck} />
+        <ViewSeekDeck seekDeck={seekDeck} />
     ));
 
     return <div class="c-civil-seek-results">{seekDecks}</div>;
 }
 
-function RenderSeekDeck({ seekDeck }: { seekDeck: SeekDeck }) {
+function ViewSeekDeck({ seekDeck }: { seekDeck: SeekDeck }) {
     const seekNoteEntries = seekDeck.seekNotes.map((seekNote) => (
-        <RenderSeekNote seekNote={seekNote} />
+        <SeekNote seekNote={seekNote} />
     ));
 
     let heading = (
@@ -40,19 +41,19 @@ function RenderSeekDeck({ seekDeck }: { seekDeck: SeekDeck }) {
     );
 }
 
-function RenderSeekNote({ seekNote }: { seekNote: SeekNote }) {
+function SeekNote({ seekNote }: { seekNote: Note }) {
     function buildRefs(refs: Array<Reference>) {
         return refs.map((ref) => (
-            <RefView reference={ref} extraClasses="left-margin-entry" />
+            <ViewReference reference={ref} extraClasses="left-margin-entry" />
         ));
     }
-
-    const note = seekNote.note;
 
     return (
         <CivContainer extraClasses="c-render-seek-note-entry note">
             <CivLeft>{buildRefs(seekNote.refs)}</CivLeft>
-            <CivMain>{buildMarkup(note.content, note.font, note.id)}</CivMain>
+            <CivMain>
+                {buildMarkup(seekNote.content, seekNote.font, seekNote.id)}
+            </CivMain>
         </CivContainer>
     );
 }

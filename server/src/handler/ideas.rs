@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::decks as decks_db;
 use crate::db::ideas as db;
 use crate::db::memorise as memorise_db;
 use crate::db::notes as notes_db;
@@ -163,9 +162,8 @@ fn sqlite_augment(
     idea: &mut interop::Idea,
     idea_id: Key,
 ) -> crate::Result<()> {
-    idea.notes = notes_db::for_deck(sqlite_pool, idea_id)?;
-    idea.backnotes = decks_db::get_backnotes(sqlite_pool, idea_id)?;
-    idea.backrefs = decks_db::get_backrefs(sqlite_pool, idea_id)?;
+    idea.notes = notes_db::notes_for_deck(sqlite_pool, idea_id)?;
+    idea.back_decks = notes_db::backdecks_for_deck(sqlite_pool, idea_id)?;
     idea.flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, idea_id)?;
 
     Ok(())

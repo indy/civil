@@ -6,10 +6,10 @@ import { SeekDeck, SeekResults } from "types";
 import Net from "shared/net";
 import { sanitize } from "shared/search";
 
-import TopBarMenu from "components/top-bar-menu";
 import CivilInput from "components/civil-input";
 import { CivContainer, CivLeft, CivMainUi } from "components/civil-layout";
 import CivilSeekResults from "components/civil-seek-results";
+import TopBarMenu from "components/top-bar-menu";
 
 export default function Seek({ path }: { path?: string }) {
     return (

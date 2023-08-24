@@ -2,8 +2,8 @@ import { h } from "preact";
 
 import { FlashCard } from "types";
 
-import Net from "shared/net";
 import { plural } from "shared/english";
+import Net from "shared/net";
 
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";
@@ -72,12 +72,15 @@ function reducer(state: State, action: Action): State {
     }
 }
 
-type Props = {
+type ViewFlashCardProps = {
     flashcard: FlashCard;
     onDelete: (_: FlashCard) => void;
 };
 
-export default function FlashCardView({ flashcard, onDelete }: Props) {
+export default function ViewFlashCard({
+    flashcard,
+    onDelete,
+}: ViewFlashCardProps) {
     let dateOptions: Intl.DateTimeFormatOptions = {
         weekday: "long",
         month: "long",
