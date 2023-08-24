@@ -21,7 +21,7 @@ import RollableSegment from "components/rollable-segment";
 
 type Props = {
     deck: FatDeck;
-    onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
+    onRefsChanged: (note: Note, refsInNote: Array<Reference>) => void;
     title: string;
     deckKind: DeckKind;
     howToShowPassage: (noteKind: NoteKind) => PassageHowToShow;
@@ -110,7 +110,7 @@ type NoteKindPassageProps = {
     howToShow: PassageHowToShow;
     deck: FatDeck;
     mode: CivilMode;
-    onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
+    onRefsChanged: (note: Note, refsInNote: Array<Reference>) => void;
     deckKind: DeckKind;
     onUpdateDeck: (d: FatDeck) => void;
     noAppend?: boolean;

@@ -25,7 +25,7 @@ type Props = {
     deck: FatDeck;
     isEditingDeckRefs: boolean;
     setEditingDeckRefs: (arg0: boolean) => void;
-    onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
+    onRefsChanged: (note: Note, refsInNote: Array<Reference>) => void;
 };
 
 export default function SegmentDeckRefs({
@@ -66,12 +66,12 @@ export default function SegmentDeckRefs({
     function onSaved(
         note: Note,
         changes: RefsModified,
-        allDecksForNote: Array<Reference>
+        refsInNote: Array<Reference>
     ) {
         // this note is going to be the deck's NoteDeckMeta
-        onRefsChanged(note, allDecksForNote);
+        onRefsChanged(note, refsInNote);
 
-        AppStateChange.noteRefsModified({ allDecksForNote, changes });
+        AppStateChange.noteRefsModified({ refsInNote, changes });
         setEditingDeckRefs(false);
     }
 
@@ -124,7 +124,7 @@ type AddDecksUIProps = {
     onSaved: (
         n: Note,
         changes: RefsModified,
-        allDecksForNote: Array<Reference>
+        refsInNote: Array<Reference>
     ) => void;
 };
 
@@ -135,8 +135,8 @@ function AddDecksUI({
     onCancel,
     onSaved,
 }: AddDecksUIProps) {
-    function onSave(changes: RefsModified, allDecksForNote: Array<Reference>) {
-        onSaved(note, changes, allDecksForNote);
+    function onSave(changes: RefsModified, refsInNote: Array<Reference>) {
+        onSaved(note, changes, refsInNote);
     }
 
     return (

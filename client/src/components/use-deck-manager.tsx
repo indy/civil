@@ -110,11 +110,11 @@ export default function useDeckManager<T extends FatDeck>(
         update(d);
     }
 
-    function onRefsChanged(note: Note, allDecksForNote: Array<Reference>) {
+    function onRefsChanged(note: Note, refsInNote: Array<Reference>) {
         if (dms.deck) {
             let deck: T = dms.deck;
 
-            note.refs = allDecksForNote;
+            note.refs = refsInNote;
             note.refs.sort(sortByDeckKindThenName);
 
             let n = { ...note };

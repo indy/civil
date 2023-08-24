@@ -527,7 +527,7 @@ export type DM<T extends FatDeck> = {
     onShowSummaryClicked: () => void;
     onShowReviewClicked: () => void;
     buildPointForm: (onSuccessCallback: () => void) => any;
-    onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
+    onRefsChanged: (note: Note, refsInNote: Array<Reference>) => void;
     passageForPoint: (point: Point) => any;
     pointHasNotes: (point: Point) => boolean;
     canShowPassage: (noteKind: NoteKind) => boolean;
@@ -673,7 +673,7 @@ export type StateChangeUser = {
 };
 
 export type StateChangeNoteRefsModified = {
-    allDecksForNote: Array<Reference>;
+    refsInNote: Array<Reference>;
     changes: RefsModified;
     calledFromBroadcastChannel?: boolean;
 };

@@ -27,7 +27,7 @@ type PassageProps = {
     mode: CivilMode;
     onUpdateDeck: (d: FatDeck) => void;
     notes: Notes;
-    onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
+    onRefsChanged: (note: Note, refsInNote: Array<Reference>) => void;
     optionalPoint?: Point;
     appendLabel: string;
     noteKind: NoteKind;

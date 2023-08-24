@@ -352,7 +352,7 @@ export default function CivilSelect({
     parentDeckId: Key;
     noteId: Key;
     chosen: Array<Reference>;
-    onSave: (changes: RefsModified, allDecksForNote: Array<Reference>) => void;
+    onSave: (changes: RefsModified, refsInNote: Array<Reference>) => void;
     onCancel: () => void;
 }) {
     const appState = getAppState();

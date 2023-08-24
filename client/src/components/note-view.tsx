@@ -83,7 +83,7 @@ type ActionDataImagePasted = {
 };
 
 type ActionDataDecksCommit = {
-    allDecksForNote: Array<Reference>;
+    refsInNote: Array<Reference>;
     changes: RefsModified;
 };
 
@@ -237,10 +237,10 @@ function reducer(state: LocalState, action: Action): LocalState {
             return newState;
         }
         case ActionType.AddDecksCommit: {
-            const { allDecksForNote, changes } =
+            const { refsInNote, changes } =
                 action.data as ActionDataDecksCommit;
 
-            AppStateChange.noteRefsModified({ allDecksForNote, changes });
+            AppStateChange.noteRefsModified({ refsInNote, changes });
 
             return {
                 ...state,
@@ -344,7 +344,7 @@ type Props = {
     mode: CivilMode;
     onDelete: (id: Key) => void;
     onEdited: (id: Key, n: Note) => void;
-    onRefsChanged: (note: Note, allDecksForNote: Array<Reference>) => void;
+    onRefsChanged: (note: Note, refsInNote: Array<Reference>) => void;
     onUpdateDeck: (d: FatDeck) => void;
     onCopyRefBelow: (r: Reference, nextNote: Note) => void;
     noDelete?: boolean;
@@ -539,11 +539,11 @@ export default function NoteView({
     function buildAddDecksUI() {
         function onSave(
             changes: RefsModified,
-            allDecksForNote: Array<Reference>
+            refsInNote: Array<Reference>
         ) {
-            onRefsChanged(local.note, allDecksForNote);
+            onRefsChanged(local.note, refsInNote);
             localDispatch(ActionType.AddDecksCommit, {
-                allDecksForNote,
+                refsInNote,
                 changes,
             });
         }
