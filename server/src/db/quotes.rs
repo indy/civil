@@ -61,8 +61,6 @@ impl From<(decks::DeckBase, QuoteExtra)> for interop::Quote {
 
             notes: vec![],
 
-            refs: vec![],
-
             backnotes: vec![],
             backrefs: vec![],
 
@@ -83,8 +81,6 @@ fn quote_from_row(row: &Row) -> crate::Result<interop::Quote> {
         font: Font::try_from(fnt)?,
 
         notes: vec![],
-
-        refs: vec![],
 
         backnotes: vec![],
         backrefs: vec![],

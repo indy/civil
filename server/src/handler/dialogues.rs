@@ -185,8 +185,7 @@ fn sqlite_augment(
     dialogue: &mut interop::Dialogue,
     dialogue_id: Key,
 ) -> crate::Result<()> {
-    dialogue.notes = notes_db::all_from_deck(sqlite_pool, dialogue_id)?;
-    dialogue.refs = decks_db::from_deck_id_via_notes_to_decks(sqlite_pool, dialogue_id)?;
+    dialogue.notes = notes_db::for_deck(sqlite_pool, dialogue_id)?;
     dialogue.backnotes = decks_db::get_backnotes(sqlite_pool, dialogue_id)?;
     dialogue.backrefs = decks_db::get_backrefs(sqlite_pool, dialogue_id)?;
     dialogue.flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, dialogue_id)?;

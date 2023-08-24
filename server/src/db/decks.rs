@@ -425,52 +425,6 @@ pub(crate) fn get_backrefs(
     sqlite::many(&conn, stmt, params![&deck_id], backref_from_row)
 }
 
-// return all the ideas, people, articles etc mentioned in the given deck
-// (used to show refs on left hand margin)
-//
-pub(crate) fn from_deck_id_via_notes_to_decks(
-    sqlite_pool: &SqlitePool,
-    deck_id: Key,
-) -> crate::Result<Vec<interop::Ref>> {
-    let conn = sqlite_pool.get()?;
-
-    fn ref_from_row(row: &Row) -> crate::Result<interop::Ref> {
-        let kind: String = row.get(3)?;
-        let refk: String = row.get(4)?;
-        let fnt: i32 = row.get(7)?;
-
-        Ok(interop::Ref {
-            note_id: row.get(0)?,
-            id: row.get(1)?,
-            title: row.get(2)?,
-            deck_kind: DeckKind::from_str(&kind)?,
-            ref_kind: interop::RefKind::from_str(&refk)?,
-            annotation: row.get(5)?,
-            insignia: row.get(6)?,
-            font: Font::try_from(fnt)?,
-            graph_terminator: row.get(8)?,
-        })
-    }
-
-    let stmt = "SELECT n.id as note_id,
-                       d.id,
-                       d.name,
-                       d.kind as deck_kind,
-                       nd.kind as ref_kind,
-                       nd.annotation,
-                       d.insignia,
-                       d.font,
-                       d.graph_terminator
-                FROM   notes n,
-                       notes_decks nd,
-                       decks d
-                WHERE  n.deck_id = ?1
-                       AND nd.note_id = n.id
-                       AND nd.deck_id = d.id
-                ORDER BY nd.note_id, d.kind DESC, d.name";
-    sqlite::many(&conn, stmt, params![&deck_id], ref_from_row)
-}
-
 pub(crate) fn search(
     sqlite_pool: &SqlitePool,
     user_id: Key,

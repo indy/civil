@@ -235,8 +235,7 @@ fn sqlite_augment(
 ) -> crate::Result<()> {
     person.events = events_db::all_events_during_life(sqlite_pool, user_id, person_id)?;
     person.points = points_db::all_points_during_life(sqlite_pool, user_id, person_id)?;
-    person.notes = notes_db::all_from_deck(sqlite_pool, person_id)?;
-    person.refs = decks_db::from_deck_id_via_notes_to_decks(sqlite_pool, person_id)?;
+    person.notes = notes_db::for_deck(sqlite_pool, person_id)?;
     person.backnotes = decks_db::get_backnotes(sqlite_pool, person_id)?;
     person.backrefs = decks_db::get_backrefs(sqlite_pool, person_id)?;
     person.flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, person_id)?;

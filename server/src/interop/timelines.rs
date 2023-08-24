@@ -18,7 +18,7 @@
 use crate::interop::decks::{BackNote, DeckKind, Ref};
 use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
-use crate::interop::notes::Note;
+use crate::interop::notes::NewNote;
 use crate::interop::points::Point;
 use crate::interop::Key;
 
@@ -35,9 +35,7 @@ pub struct Timeline {
 
     pub points: Vec<Point>,
 
-    pub notes: Vec<Note>,
-
-    pub refs: Vec<Ref>,
+    pub notes: Vec<NewNote>,
 
     pub backnotes: Vec<BackNote>,
     pub backrefs: Vec<Ref>,
@@ -59,8 +57,6 @@ impl From<crate::db::decks::DeckBase> for Timeline {
             points: vec![],
 
             notes: vec![],
-
-            refs: vec![],
 
             backnotes: vec![],
             backrefs: vec![],

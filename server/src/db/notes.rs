@@ -53,6 +53,131 @@ fn option_key_from_row(row: &Row) -> crate::Result<Option<Key>> {
     Ok(row.get(0)?)
 }
 
+// represents the data returned in a single row of a query
+//
+#[derive(Debug)]
+pub struct NoteAndRef {
+    pub note: interop::Note,
+    pub reference_maybe: Option<Ref>,
+}
+
+fn note_and_ref_from_row(row: &Row) -> crate::Result<NoteAndRef> {
+    let mut reference_maybe: Option<Ref> = None;
+    let reference_deck_id: Option<Key> = row.get(8)?;
+    if let Some(ref_deck_id) = reference_deck_id {
+        let refk: String = row.get(6)?;
+        let ref_deck_kind: String = row.get(10)?;
+        let ref_fnt: i32 = row.get(13)?;
+
+        reference_maybe = Some(Ref {
+            note_id: row.get(0)?,
+            ref_kind: RefKind::from_str(&refk)?,
+            annotation: row.get(7)?,
+
+            id: ref_deck_id,
+            title: row.get(9)?,
+            deck_kind: DeckKind::from_str(&ref_deck_kind)?,
+            graph_terminator: row.get(11)?,
+            insignia: row.get(12)?,
+            font: Font::try_from(ref_fnt)?,
+        })
+    };
+
+    let note_kind_i32: i32 = row.get(2)?;
+    let note_font: i32 = row.get(5)?;
+
+    Ok(NoteAndRef {
+        note: interop::Note {
+            id: row.get(0)?,
+            prev_note_id: row.get(1)?,
+            kind: interop::NoteKind::try_from(note_kind_i32)?,
+            content: row.get(3)?,
+            point_id: row.get(4)?,
+            font: Font::try_from(note_font)?,
+        },
+        reference_maybe,
+    })
+}
+
+// get all notes that are children of the given deck
+//
+pub(crate) fn for_deck(
+    sqlite_pool: &SqlitePool,
+    deck_id: Key,
+) -> crate::Result<Vec<interop::NewNote>> {
+    let conn = sqlite_pool.get()?;
+
+    let stmt = "SELECT   n.id,
+                         n.prev_note_id,
+                         n.kind,
+                         n.content,
+                         n.point_id,
+                         n.font,
+                         nd.kind as ref_kind,
+                         nd.annotation,
+                         d.id,
+                         d.name,
+                         d.kind as deck_kind,
+                         d.graph_terminator,
+                         d.insignia,
+                         d.font
+                FROM     notes n
+                         FULL JOIN notes_decks nd on nd.note_id = n.id
+                         FULL JOIN decks d on nd.deck_id = d.id
+                WHERE    n.deck_id = ?1
+                ORDER BY n.id";
+    let notes_and_refs: Vec<NoteAndRef> =
+        sqlite::many(&conn, stmt, params!(&deck_id), note_and_ref_from_row)?;
+
+    let notes = notes_from_notes_and_refs(notes_and_refs)?;
+
+    Ok(notes)
+}
+
+// todo: write a notes_from_ordered_notes_and_refs where the .note.id is in order
+// the nested for loop can then be replaced by indexing into the last element
+//
+fn notes_from_notes_and_refs(
+    notes_and_refs: Vec<NoteAndRef>,
+) -> crate::Result<Vec<interop::NewNote>> {
+    let mut res: Vec<interop::NewNote> = vec![];
+
+    for note_and_ref in notes_and_refs {
+        let mut found: bool = false;
+        let mut note_index: usize = 0;
+        for r in &res {
+            if r.id == note_and_ref.note.id {
+                found = true;
+                break;
+            }
+            note_index += 1;
+        }
+        if !found {
+            // todo: replace with:
+            // res.push(interop::NewNote {
+            //     refs: vec![],
+            //     ..note_and_ref.note
+            // });
+
+            res.push(interop::NewNote {
+                id: note_and_ref.note.id,
+                prev_note_id: note_and_ref.note.prev_note_id,
+                kind: note_and_ref.note.kind,
+                content: note_and_ref.note.content,
+                point_id: note_and_ref.note.point_id,
+                font: note_and_ref.note.font,
+                refs: vec![],
+            });
+        }
+
+        if let Some(reference) = note_and_ref.reference_maybe {
+            res[note_index].refs.push(reference);
+        }
+    }
+
+    Ok(res)
+}
+
 pub(crate) fn all_from_deck(
     sqlite_pool: &SqlitePool,
     deck_id: Key,

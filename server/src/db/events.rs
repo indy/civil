@@ -70,8 +70,6 @@ impl From<(decks::DeckBase, EventExtra)> for interop::Event {
 
             notes: vec![],
 
-            refs: vec![],
-
             backnotes: vec![],
             backrefs: vec![],
 
@@ -121,7 +119,6 @@ fn from_row(row: &Row) -> crate::Result<interop::Event> {
         importance: row.get(13)?,
 
         notes: vec![],
-        refs: vec![],
         backnotes: vec![],
         backrefs: vec![],
         flashcards: vec![],

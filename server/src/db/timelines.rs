@@ -36,7 +36,6 @@ fn from_row(row: &Row) -> crate::Result<interop::Timeline> {
         font: Font::try_from(fnt)?,
         points: vec![],
         notes: vec![],
-        refs: vec![],
         backnotes: vec![],
         backrefs: vec![],
         flashcards: vec![],

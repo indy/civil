@@ -144,7 +144,6 @@ export type FatDeck = SlimDeck & {
     backnotes: Array<BackNote>;
     backrefs: Array<Reference>;
     flashcards: Array<FlashCard>;
-    refs: Array<Reference>;
     points?: Array<Point>;
     events?: Array<SlimEvent>;
 

@@ -18,7 +18,7 @@
 use crate::interop::decks::{BackNote, DeckKind, Ref};
 use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
-use crate::interop::notes::Note;
+use crate::interop::notes::NewNote;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -32,9 +32,7 @@ pub struct Quote {
     pub attribution: String,
 
     // will always be a single note
-    pub notes: Vec<Note>,
-
-    pub refs: Vec<Ref>,
+    pub notes: Vec<NewNote>,
 
     pub backnotes: Vec<BackNote>,
     pub backrefs: Vec<Ref>,

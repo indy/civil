@@ -58,8 +58,6 @@ impl From<(decks::DeckBase, ArticleExtra)> for interop::Article {
 
             notes: vec![],
 
-            refs: vec![],
-
             backnotes: vec![],
             backrefs: vec![],
 
@@ -91,8 +89,6 @@ fn from_row(row: &Row) -> crate::Result<interop::Article> {
         rating: row.get(5)?,
 
         notes: vec![],
-
-        refs: vec![],
 
         backnotes: vec![],
         backrefs: vec![],

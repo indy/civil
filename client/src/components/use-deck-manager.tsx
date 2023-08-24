@@ -65,6 +65,7 @@ export default function useDeckManager<T extends FatDeck>(
             // fetch deckKind from the server
             const url = buildUrl(deckKind, deckId, "/api");
             Net.get<T>(url).then((deck) => {
+                console.log(deck);
                 if (deck) {
                     let newDms = dmsUpdateDeck<T>(
                         dms,
@@ -110,29 +111,17 @@ export default function useDeckManager<T extends FatDeck>(
     }
 
     function onRefsChanged(note: Note, allDecksForNote: Array<Reference>) {
-        let n = { ...note };
-
         if (dms.deck) {
             let deck: T = dms.deck;
 
-            // have to set deck.refs to be the canonical version
-            // (used to populate each note's decks array)
+            note.refs = allDecksForNote;
+            note.refs.sort(sortByDeckKindThenName);
 
-            // remove all deck.refs that relate to this note
-            deck.refs = deck.refs.filter((din) => {
-                return din.noteId !== n.id;
-            });
-            // add every note.decks entry to deck.refs
-            allDecksForNote.forEach((d) => {
-                // exclamation to please the compiler, even though checks ensure that refs will not be undefined
-                deck.refs.push(d);
-            });
+            let n = { ...note };
 
             findNoteWithId(deck, n.id, (notes: Notes, index: number) => {
                 notes[index] = n;
             });
-
-            update(deck);
         }
     }
 
@@ -348,7 +337,8 @@ function dmsUpdateDeck<T extends FatDeck>(
     deckKind: DeckKind
 ): DeckManagerState<T> {
     // modify the notes received from the server
-    applyRefsAndCardsToNotes(deck);
+    sortRefsInNotes(deck);
+    applyCardsToNotes(deck);
     // organise the notes into noteSeqs
     buildNoteSeqs(deck);
     // sort the backnotes into sequences
@@ -440,16 +430,16 @@ function dmsSetEditingDeckRefs<T extends FatDeck>(
     return res;
 }
 
-function applyRefsAndCardsToNotes<T extends FatDeck>(deck: T) {
-    const refsInNotes = hashByNoteIds(deck.refs);
+function sortRefsInNotes<T extends FatDeck>(deck: T) {
     for (let i = 0; i < deck.notes.length; i++) {
         let n = deck.notes[i];
-        n.refs = refsInNotes[n.id] || [];
-        if (n.refs) {
+        if (n.refs.length > 0) {
             n.refs.sort(sortByDeckKindThenName);
         }
     }
-
+    return deck;
+}
+function applyCardsToNotes<T extends FatDeck>(deck: T) {
     const cardsInNotes = hashByNoteIds(deck.flashcards);
     for (let i = 0; i < deck.notes.length; i++) {
         let n = deck.notes[i];

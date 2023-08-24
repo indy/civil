@@ -67,6 +67,21 @@ pub struct Note {
     pub font: Font,
 }
 
+// todo: replace Note with this
+//
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NewNote {
+    pub id: Key,
+    pub prev_note_id: Option<Key>,
+    pub kind: NoteKind,
+    pub content: String,
+    pub point_id: Option<Key>,
+    pub font: Font,
+
+    pub refs: Vec<Ref>,
+}
+
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProtoNote {

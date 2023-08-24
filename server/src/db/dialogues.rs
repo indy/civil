@@ -52,7 +52,6 @@ impl TryFrom<(decks::DeckBase, DialogueExtra)> for interop::Dialogue {
             font: deck.font,
             created_at: deck.created_at,
             notes: vec![],
-            refs: vec![],
             backnotes: vec![],
             backrefs: vec![],
             flashcards: vec![],
@@ -79,8 +78,6 @@ fn from_row(row: &Row) -> crate::Result<interop::Dialogue> {
         created_at: row.get(3)?,
 
         notes: vec![],
-
-        refs: vec![],
 
         backnotes: vec![],
         backrefs: vec![],

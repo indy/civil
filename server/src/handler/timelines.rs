@@ -174,8 +174,7 @@ fn sqlite_augment(
     user_id: Key,
 ) -> crate::Result<()> {
     timeline.points = points_db::all(sqlite_pool, user_id, timeline_id)?;
-    timeline.notes = notes_db::all_from_deck(sqlite_pool, timeline_id)?;
-    timeline.refs = decks_db::from_deck_id_via_notes_to_decks(sqlite_pool, timeline_id)?;
+    timeline.notes = notes_db::for_deck(sqlite_pool, timeline_id)?;
     timeline.backnotes = decks_db::get_backnotes(sqlite_pool, timeline_id)?;
     timeline.backrefs = decks_db::get_backrefs(sqlite_pool, timeline_id)?;
     timeline.flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, timeline_id)?;
