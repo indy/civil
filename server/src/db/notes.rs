@@ -31,7 +31,7 @@ use rusqlite::{params, Connection, Row};
 
 use std::str::FromStr;
 
-fn note_from_row(row: &Row) -> crate::Result<interop::Note> {
+fn note_sans_refs_from_row(row: &Row) -> crate::Result<interop::Note> {
     let sql_kind: i32 = row.get(2)?;
     let fnt: i32 = row.get(5)?;
 
@@ -42,6 +42,7 @@ fn note_from_row(row: &Row) -> crate::Result<interop::Note> {
         content: row.get(1)?,
         point_id: row.get(3)?,
         font: Font::try_from(fnt)?,
+        refs: vec![],
     })
 }
 
@@ -94,6 +95,7 @@ fn note_and_ref_from_row(row: &Row) -> crate::Result<NoteAndRef> {
             content: row.get(3)?,
             point_id: row.get(4)?,
             font: Font::try_from(note_font)?,
+            refs: vec![],
         },
         reference_maybe,
     })
@@ -104,7 +106,7 @@ fn note_and_ref_from_row(row: &Row) -> crate::Result<NoteAndRef> {
 pub(crate) fn for_deck(
     sqlite_pool: &SqlitePool,
     deck_id: Key,
-) -> crate::Result<Vec<interop::NewNote>> {
+) -> crate::Result<Vec<interop::Note>> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT   n.id,
@@ -137,10 +139,8 @@ pub(crate) fn for_deck(
 // todo: write a notes_from_ordered_notes_and_refs where the .note.id is in order
 // the nested for loop can then be replaced by indexing into the last element
 //
-fn notes_from_notes_and_refs(
-    notes_and_refs: Vec<NoteAndRef>,
-) -> crate::Result<Vec<interop::NewNote>> {
-    let mut res: Vec<interop::NewNote> = vec![];
+fn notes_from_notes_and_refs(notes_and_refs: Vec<NoteAndRef>) -> crate::Result<Vec<interop::Note>> {
+    let mut res: Vec<interop::Note> = vec![];
 
     for note_and_ref in notes_and_refs {
         let mut found: bool = false;
@@ -159,7 +159,7 @@ fn notes_from_notes_and_refs(
             //     ..note_and_ref.note
             // });
 
-            res.push(interop::NewNote {
+            res.push(interop::Note {
                 id: note_and_ref.note.id,
                 prev_note_id: note_and_ref.note.prev_note_id,
                 kind: note_and_ref.note.kind,
@@ -176,24 +176,6 @@ fn notes_from_notes_and_refs(
     }
 
     Ok(res)
-}
-
-pub(crate) fn all_from_deck(
-    sqlite_pool: &SqlitePool,
-    deck_id: Key,
-) -> crate::Result<Vec<interop::Note>> {
-    let conn = sqlite_pool.get()?;
-
-    let stmt = "SELECT n.id,
-                       n.content,
-                       n.kind,
-                       n.point_id,
-                       n.prev_note_id,
-                       n.font
-                FROM notes n
-                WHERE n.deck_id = ?1
-                ORDER BY n.id";
-    sqlite::many(&conn, stmt, params!(&deck_id), note_from_row)
 }
 
 pub(crate) fn delete_note_properly(
@@ -247,7 +229,7 @@ pub(crate) fn delete_note_properly(
     tx.commit()?;
 
     // return all the notes that the parent deck has
-    let all_notes = all_from_deck(sqlite_pool, deck_id)?;
+    let all_notes = for_deck(sqlite_pool, deck_id)?;
     Ok(all_notes)
 }
 
@@ -277,7 +259,7 @@ pub(crate) fn create_common(
             &content,
             &prev_note_id
         ],
-        note_from_row,
+        note_sans_refs_from_row,
     )?;
 
     if let Some(next_note_id) = next_note_id {
@@ -355,7 +337,7 @@ pub(crate) fn create_notes(
 
     tx.commit()?;
 
-    let all_notes = all_from_deck(sqlite_pool, note.deck_id)?;
+    let all_notes = for_deck(sqlite_pool, note.deck_id)?;
     Ok(all_notes)
 }
 
@@ -388,7 +370,12 @@ pub(crate) fn preview(
                        n.font
                 FROM notes n
                 WHERE n.point_id is null AND n.deck_id = ?1 AND n.user_id = ?2";
-    let notes = sqlite::many(&conn, stmt, params![&deck_id, &user_id], note_from_row)?;
+    let notes = sqlite::many(
+        &conn,
+        stmt,
+        params![&deck_id, &user_id],
+        note_sans_refs_from_row,
+    )?;
 
     Ok(interop::PreviewNotes { deck_id, notes })
 }
@@ -414,6 +401,8 @@ pub(crate) fn add_auto_summary(
     )
 }
 
+// isg todo: this won't get the note's refs, so maybe use two queries: one to edit another to return the full note
+//
 pub fn edit_note(
     sqlite_pool: &SqlitePool,
     user_id: Key,
@@ -429,7 +418,7 @@ pub fn edit_note(
         &conn,
         stmt,
         params![&user_id, &note_id, &note.content, &i32::from(note.font)],
-        note_from_row,
+        note_sans_refs_from_row,
     )
 }
 
@@ -443,7 +432,7 @@ pub fn get_all_notes_in_db(sqlite_pool: &SqlitePool) -> crate::Result<Vec<intero
                        n.font
                 FROM   notes n
                 ORDER BY n.id";
-    sqlite::many(&conn, stmt, &[], note_from_row)
+    sqlite::many(&conn, stmt, &[], note_sans_refs_from_row)
 }
 
 fn get_prev_note_id(sqlite_pool: &SqlitePool, id: Key) -> crate::Result<Option<Key>> {
@@ -551,6 +540,7 @@ fn seekdecknoteref_from_row(row: &Row) -> crate::Result<SeekDeckNoteRef> {
             content: row.get(10)?,
             point_id: row.get(11)?,
             font: Font::try_from(note_font)?,
+            refs: vec![],
         },
         reference_maybe,
     })
@@ -565,7 +555,7 @@ pub(crate) fn seek(
     build_seek_deck(seek_deck_note_refs)
 }
 
-fn has_ref_to_deck_id(seek_note: &interop::SeekNote, deck_id: Key) -> bool {
+fn has_ref_to_deck_id(seek_note: &interop::Note, deck_id: Key) -> bool {
     seek_note
         .refs
         .iter()
@@ -644,17 +634,14 @@ fn build_seek_deck(
         found = false;
         let mut note_index: usize = 0;
         for n in &res[deck_index].seek_notes {
-            if n.note.id == sdnr.note.id {
+            if n.id == sdnr.note.id {
                 found = true;
                 break;
             }
             note_index += 1;
         }
         if !found {
-            res[deck_index].seek_notes.push(interop::SeekNote {
-                note: sdnr.note,
-                refs: vec![],
-            })
+            res[deck_index].seek_notes.push(sdnr.note)
         }
 
         if let Some(rrr) = sdnr.reference_maybe {

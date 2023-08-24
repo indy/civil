@@ -18,7 +18,7 @@
 use crate::interop::decks::{BackNote, DeckKind, Ref};
 use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
-use crate::interop::notes::NewNote;
+use crate::interop::notes::Note;
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -45,7 +45,7 @@ pub struct Event {
 
     pub importance: i32,
 
-    pub notes: Vec<NewNote>,
+    pub notes: Vec<Note>,
 
     pub backnotes: Vec<BackNote>,
     pub backrefs: Vec<Ref>,

@@ -65,19 +65,6 @@ pub struct Note {
     pub content: String,
     pub point_id: Option<Key>,
     pub font: Font,
-}
-
-// todo: replace Note with this
-//
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct NewNote {
-    pub id: Key,
-    pub prev_note_id: Option<Key>,
-    pub kind: NoteKind,
-    pub content: String,
-    pub point_id: Option<Key>,
-    pub font: Font,
 
     pub refs: Vec<Ref>,
 }
@@ -112,12 +99,5 @@ pub struct SeekResults {
 pub struct SeekDeck {
     pub rank: f32,
     pub deck: SlimDeck,
-    pub seek_notes: Vec<SeekNote>,
-}
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SeekNote {
-    pub note: Note,
-    pub refs: Vec<Ref>,
+    pub seek_notes: Vec<Note>,
 }
