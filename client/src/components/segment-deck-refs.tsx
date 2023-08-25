@@ -78,7 +78,7 @@ export default function SegmentDeckRefs({
 
     let deckId: Key = deck && deck.id;
     let deckMeta: Note | undefined =
-        deck && deck.passage[NoteKind.Note] && deck.passage[NoteKind.Note][0];
+        deck && deck.passage[NoteKind.NoteDeckMeta] && deck.passage[NoteKind.NoteDeckMeta][0];
 
     // deckMeta is the special note (of kind: NoteKind::NoteDeckMeta) that
     // contains the refs that should apply to the deck as a whole and not
