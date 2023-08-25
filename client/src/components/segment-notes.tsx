@@ -1,7 +1,6 @@
 import { h } from "preact";
 
 import {
-    CivilMode,
     DeckKind,
     FatDeck,
     Note,
@@ -11,8 +10,6 @@ import {
     Reference,
     RenderingDeckPart,
 } from "types";
-
-import { getAppState } from "app-state";
 
 import { fontClass } from "shared/font";
 
@@ -42,10 +39,6 @@ export default function SegmentNotes({
     noAppend,
     noDelete,
 }: Props) {
-    const appState = getAppState();
-
-    const mode = appState.mode.value;
-
     if (deck) {
         let containerClasses = "c-segment-notes ";
         containerClasses += fontClass(deck.font, RenderingDeckPart.Body);
@@ -59,7 +52,6 @@ export default function SegmentNotes({
                         howToShow={howToShowPassage(NoteKind.NoteSummary)}
                         deck={deck}
                         onUpdateDeck={onUpdateDeck}
-                        mode={mode}
                         notes={deck.passage[NoteKind.NoteSummary]}
                         onRefsChanged={onRefsChanged}
                         deckKind={deckKind}
@@ -74,7 +66,6 @@ export default function SegmentNotes({
                         howToShow={howToShowPassage(NoteKind.NoteReview)}
                         deck={deck}
                         onUpdateDeck={onUpdateDeck}
-                        mode={mode}
                         notes={deck.passage[NoteKind.NoteReview]}
                         onRefsChanged={onRefsChanged}
                         deckKind={deckKind}
@@ -89,7 +80,6 @@ export default function SegmentNotes({
                     howToShow={howToShowPassage(NoteKind.Note)}
                     deck={deck}
                     onUpdateDeck={onUpdateDeck}
-                    mode={mode}
                     notes={deck.passage[NoteKind.Note]}
                     onRefsChanged={onRefsChanged}
                     deckKind={deckKind}
@@ -109,7 +99,6 @@ type NoteKindPassageProps = {
     notes: Notes;
     howToShow: PassageHowToShow;
     deck: FatDeck;
-    mode: CivilMode;
     onRefsChanged: (note: Note, refsInNote: Array<Reference>) => void;
     deckKind: DeckKind;
     onUpdateDeck: (d: FatDeck) => void;
@@ -123,7 +112,6 @@ function NoteKindPassage({
     notes,
     howToShow,
     deck,
-    mode,
     onRefsChanged,
     onUpdateDeck,
     noAppend,
@@ -140,7 +128,6 @@ function NoteKindPassage({
 
         return ViewPassageChunkyBoy({
             deck,
-            mode,
             onUpdateDeck,
             notes,
             onRefsChanged,

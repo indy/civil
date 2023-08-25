@@ -341,7 +341,6 @@ type Props = {
     note: Note;
     nextNote?: Note; // used for the 'copy below' functionality of refs
     parentDeck: FatDeck;
-    mode: CivilMode;
     onDelete: (id: Key) => void;
     onEdited: (id: Key, n: Note) => void;
     onRefsChanged: (note: Note, refsInNote: Array<Reference>) => void;
@@ -354,7 +353,6 @@ export default function ViewNote({
     note,
     nextNote,
     parentDeck,
-    mode,
     onDelete,
     onEdited,
     onRefsChanged,
@@ -606,8 +604,8 @@ export default function ViewNote({
     }
 
     let noteClasses = "note";
-    if (mouseHovering && mode !== CivilMode.View) {
-        noteClasses += addToolbarSelectableClasses(mode);
+    if (mouseHovering && appState.mode.value !== CivilMode.View) {
+        noteClasses += addToolbarSelectableClasses(appState.mode.value);
     }
 
     function onNoteClicked() {

@@ -1,7 +1,6 @@
 import { h } from "preact";
 
 import {
-    CivilMode,
     FatDeck,
     Key,
     Note,
@@ -24,7 +23,6 @@ import WhenEditMode from "components/when-edit-mode";
 
 type ViewPassageChunkyBoyProps = {
     deck: FatDeck;
-    mode: CivilMode;
     onUpdateDeck: (d: FatDeck) => void;
     notes: Notes;
     onRefsChanged: (note: Note, refsInNote: Array<Reference>) => void;
@@ -38,7 +36,6 @@ type ViewPassageChunkyBoyProps = {
 
 export default function ViewPassageChunkyBoy({
     deck,
-    mode,
     onUpdateDeck,
     notes,
     onRefsChanged,
@@ -107,7 +104,6 @@ export default function ViewPassageChunkyBoy({
                 note={note}
                 nextNote={nextNote}
                 parentDeck={deck}
-                mode={mode}
                 onDelete={onDeleteNote}
                 onEdited={onEditedNote}
                 onRefsChanged={onRefsChanged}

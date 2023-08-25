@@ -245,7 +245,6 @@ export default function useDeckManager<T extends FatDeck>(
                 if (deck.passageForPoint) {
                     return ViewPassageChunkyBoy({
                         deck: deck,
-                        mode: appState.mode.value,
                         notes: deck.passageForPoint[point.id],
                         onUpdateDeck: update,
                         onRefsChanged,
