@@ -28,7 +28,7 @@ use crate::interop::people as interop;
 use crate::interop::points as points_interop;
 use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
-use actix_web::web::{self, Data, Json, Path};
+use actix_web::web::{Data, Json, Path, Query};
 use actix_web::HttpResponse;
 
 #[allow(unused_imports)]
@@ -65,7 +65,7 @@ pub async fn get_all(
 pub async fn pagination(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-    web::Query(query): web::Query<PaginationQuery>,
+    Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
     decks::pagination(
         sqlite_pool,
@@ -79,7 +79,7 @@ pub async fn pagination(
 pub async fn uncategorised(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-    web::Query(query): web::Query<PaginationQuery>,
+    Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
@@ -91,7 +91,7 @@ pub async fn uncategorised(
 pub async fn ancient(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-    web::Query(query): web::Query<PaginationQuery>,
+    Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
@@ -103,7 +103,7 @@ pub async fn ancient(
 pub async fn medieval(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-    web::Query(query): web::Query<PaginationQuery>,
+    Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
@@ -115,7 +115,7 @@ pub async fn medieval(
 pub async fn modern(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-    web::Query(query): web::Query<PaginationQuery>,
+    Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
@@ -127,7 +127,7 @@ pub async fn modern(
 pub async fn contemporary(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-    web::Query(query): web::Query<PaginationQuery>,
+    Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 

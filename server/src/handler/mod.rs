@@ -40,6 +40,7 @@ pub mod memorise;
 pub mod notes;
 pub mod people;
 pub mod quotes;
+pub mod search;
 pub mod timelines;
 pub mod ubersetup;
 pub mod uploader;

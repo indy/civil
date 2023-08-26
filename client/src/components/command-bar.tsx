@@ -10,9 +10,9 @@ import {
     DeckQuote,
     Key,
     NoteKind,
-    ResultList,
     SlimDeck,
     State,
+    SearchResults,
 } from "types";
 
 import { sanitize } from "shared/search";
@@ -487,8 +487,8 @@ export default function CommandBar() {
         let sanitized: string = sanitize(text);
         if (sanitized.length > 0) {
             const url = `/api/decks/search?q=${encodeURI(sanitized)}`;
-            const searchResponse: ResultList = await Net.get(url);
-            const searchCandidates: Array<SlimDeck> = searchResponse.results;
+            const searchResponse: SearchResults = await Net.get(url);
+            const searchCandidates: Array<SlimDeck> = searchResponse.deckLevel.map(dl => dl.deck);
 
             AppStateChange.commandBarSetSearch({ searchCandidates });
         }

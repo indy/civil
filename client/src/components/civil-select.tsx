@@ -12,6 +12,7 @@ import {
     RenderingDeckPart,
     SlimDeck,
     State,
+    SearchResults,
 } from "types";
 
 import { AppStateChange, getAppState, immutableState } from "app-state";
@@ -437,16 +438,13 @@ export default function CivilSelect({
         if (newText.length > 0) {
             const url = `/api/decks/namesearch?q=${encodeURI(newText)}`;
 
-            type Response = {
-                results: Array<SlimDeck>;
-            };
-
-            const searchResponse = await Net.get<Response>(url);
-            if (searchResponse.results) {
-                const newCandidates = searchResponse.results
-                    .filter((op) => {
+            const searchResponse = await Net.get<SearchResults>(url);
+            if (searchResponse.deckLevel) {
+                const newCandidates = searchResponse.deckLevel
+                    .map(seekDeck => seekDeck.deck)
+                    .filter((slimDeck) => {
                         return (
-                            op.id !== parentDeckId && !alreadySelected(op.title)
+                            slimDeck.id !== parentDeckId && !alreadySelected(slimDeck.title)
                         );
                     })
                     .sort((a, b) => {

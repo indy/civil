@@ -17,7 +17,7 @@
 
 use crate::error::Error;
 use crate::interop::font::Font;
-use crate::interop::notes::{Note, SeekDeck};
+use crate::interop::notes::Note;
 use crate::interop::Key;
 
 use std::fmt;
@@ -157,15 +157,8 @@ pub struct SlimEvent {
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ResultList {
+pub struct SlimResults {
     pub results: Vec<SlimDeck>,
-}
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SearchResults {
-    pub search_results: Vec<SlimDeck>,
-    pub seek_results: Vec<SeekDeck>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

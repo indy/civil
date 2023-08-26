@@ -28,6 +28,7 @@ pub mod notes;
 pub mod people;
 pub mod points;
 pub mod quotes;
+pub mod search;
 pub mod stats;
 pub mod timelines;
 pub mod uploader;

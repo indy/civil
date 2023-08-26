@@ -27,6 +27,7 @@ use crate::handler::memorise;
 use crate::handler::notes;
 use crate::handler::people;
 use crate::handler::quotes;
+use crate::handler::search;
 use crate::handler::timelines;
 use crate::handler::ubersetup;
 use crate::handler::uploader;
@@ -49,14 +50,14 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // console commands
         .service(
             scope("/decks")
-                .route("/search", get().to(decks::search))
-                .route("/namesearch", get().to(decks::namesearch))
+                .route("/search", get().to(search::search))
+                .route("/namesearch", get().to(search::namesearch))
                 .route("/recent", get().to(decks::recent))
                 .route("/insignia_filter/{insig}", get().to(decks::insignia_filter))
                 .route("/recently_visited", get().to(decks::recently_visited))
                 .route(
                     "/{id}/additional_search",
-                    get().to(decks::additional_search),
+                    get().to(search::additional_search_for_decks),
                 )
                 .route("/summarize/{id}", post().to(decks::summarize))
                 .route("/preview/{id}", get().to(decks::preview)),
@@ -160,7 +161,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // notes
         .service(
             scope("/notes")
-                .route("/seek", get().to(notes::seek))
+                .route("/seek", get().to(search::seek))
                 .route("", post().to(notes::create_notes))
                 .route("/{id}", put().to(notes::edit_note))
                 .route("/{id}", delete().to(notes::delete_note)),

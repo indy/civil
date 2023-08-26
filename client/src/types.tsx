@@ -286,17 +286,18 @@ export type SeekDeck = {
     seekNotes: Array<Note>;
 };
 
+// todo: when is this used, replace with ScourResults?
 export type SeekResults = {
     results: Array<SeekDeck>;
 };
 
-export type ResultList = {
+export type SlimResults = {
     results: Array<SlimDeck>;
 };
 
 export type SearchResults = {
-    searchResults: Array<SlimDeck>;
-    seekResults: Array<SeekDeck>;
+    deckLevel: Array<SeekDeck>;
+    noteLevel: Array<SeekDeck>;
 };
 
 export type ColourSeeds = {

@@ -1,7 +1,7 @@
 import { ComponentChildren, h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { ResultList, SlimDeck } from "types";
+import { SlimResults, SlimDeck } from "types";
 
 import Net from "shared/net";
 
@@ -50,7 +50,7 @@ function EagerLoadedGrouping({ url }: EagerLoadedGroupingProps) {
     let [localState, setLocalState] = useState(initialState);
 
     useEffect(() => {
-        Net.get<ResultList>(url).then((resultList) => {
+        Net.get<SlimResults>(url).then((resultList) => {
             setLocalState({
                 ...localState,
                 fetchedData: true,

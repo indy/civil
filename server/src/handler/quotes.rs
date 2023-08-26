@@ -24,7 +24,7 @@ use crate::interop::decks::DeckKind;
 use crate::interop::quotes as interop;
 use crate::interop::{IdParam, Key};
 use crate::session;
-use actix_web::web::{self, Data, Json, Path};
+use actix_web::web::{Data, Json, Path, Query};
 use actix_web::HttpResponse;
 
 use crate::db::sqlite::SqlitePool;
@@ -64,7 +64,7 @@ pub async fn random(
 pub async fn pagination(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-    web::Query(query): web::Query<PaginationQuery>,
+    Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
     decks::pagination(
         sqlite_pool,

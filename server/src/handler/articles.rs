@@ -25,7 +25,7 @@ use crate::interop::articles as interop;
 use crate::interop::decks::DeckKind;
 use crate::interop::{IdParam, Key, ProtoDeck};
 use crate::session;
-use actix_web::web::{self, Data, Json, Path};
+use actix_web::web::{Data, Json, Path, Query};
 use actix_web::HttpResponse;
 
 #[allow(unused_imports)]
@@ -61,7 +61,7 @@ pub async fn get_all(
 pub async fn pagination(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-    web::Query(query): web::Query<PaginationQuery>,
+    Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
     decks::pagination(
         sqlite_pool,
@@ -75,7 +75,7 @@ pub async fn pagination(
 pub async fn recent(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-    web::Query(query): web::Query<PaginationQuery>,
+    Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
@@ -87,7 +87,7 @@ pub async fn recent(
 pub async fn orphans(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-    web::Query(query): web::Query<PaginationQuery>,
+    Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
@@ -99,7 +99,7 @@ pub async fn orphans(
 pub async fn rated(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
-    web::Query(query): web::Query<PaginationQuery>,
+    Query(query): Query<PaginationQuery>,
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 

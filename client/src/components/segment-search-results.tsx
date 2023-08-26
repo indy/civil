@@ -1,7 +1,7 @@
 import { ComponentChildren, h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { CivilMode, Font, Key, SearchResults, SeekDeck, SlimDeck } from "types";
+import { CivilMode, Font, Key, SearchResults, SeekDeck } from "types";
 
 import { getAppState } from "app-state";
 
@@ -30,7 +30,8 @@ export default function SegmentSearchResults({
     const appState = getAppState();
 
     const [searchResults, setSearchResults]: [SearchResults, Function] =
-        useState({ searchResults: [], seekResults: [] });
+        useState({ deckLevel: [], noteLevel: [] });
+    //         useState({ searchResults: [], seekResults: [] });
 
     useEffect(() => {
         console.log(`/api/decks/${id}/additional_search`);
@@ -48,23 +49,23 @@ export default function SegmentSearchResults({
         );
     }, [id]);
 
-    function buildSearchResult(slimDeck: SlimDeck) {
-        return <ListingLink slimDeck={slimDeck} />;
+    function buildSearchResult(seekDeck: SeekDeck) {
+        return <ListingLink slimDeck={seekDeck.deck} />;
     }
 
     if (
-        nonEmptyArray<SlimDeck>(searchResults.searchResults) ||
-        nonEmptyArray<SeekDeck>(searchResults.seekResults)
+        nonEmptyArray<SeekDeck>(searchResults.deckLevel) ||
+        nonEmptyArray<SeekDeck>(searchResults.noteLevel)
     ) {
         const amount =
-            searchResults.searchResults.length +
-            searchResults.seekResults.length;
+            searchResults.deckLevel.length +
+            searchResults.noteLevel.length;
         const heading = plural(amount, "Additional Search Result", "s");
 
         // TODO: fix this to work with the new SearchResults structure that also contains SeekDecks
         function bookmarkAll() {
-            const deckIds: Array<Key> = searchResults.searchResults.map(
-                (sd) => sd.id
+            const deckIds: Array<Key> = searchResults.deckLevel.map(
+                (sd) => sd.deck.id
             );
             addMultipleBookmarks(deckIds);
         }
@@ -89,11 +90,11 @@ export default function SegmentSearchResults({
                 <CivContainer>
                     <CivMain>
                         <ul>
-                            {searchResults.searchResults.map(buildSearchResult)}
+                            {searchResults.deckLevel.map(buildSearchResult)}
                         </ul>
                     </CivMain>
                 </CivContainer>
-                <CivilSeekResults seekResults={searchResults.seekResults} />
+                <CivilSeekResults seekResults={searchResults.noteLevel} />
             </RollableSegment>
         );
     } else {

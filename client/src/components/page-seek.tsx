@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import { SeekDeck, SeekResults } from "types";
+import { SeekDeck, SearchResults } from "types";
 
 import Net from "shared/net";
 import { sanitize } from "shared/search";
@@ -27,8 +27,8 @@ function SeekModule() {
         let sanitized: string = sanitize(content);
         if (sanitized.length > 0) {
             const url = `/api/notes/seek?q=${encodeURI(sanitized)}`;
-            Net.get<SeekResults>(url).then((response) => {
-                setSeekResults(response.results);
+            Net.get<SearchResults>(url).then((response) => {
+                setSeekResults(response.noteLevel);
             });
         }
     }

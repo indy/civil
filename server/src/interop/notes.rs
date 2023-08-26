@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::error::Error;
-use crate::interop::decks::{Ref, SlimDeck};
+use crate::interop::decks::Ref;
 use crate::interop::font::Font;
 use crate::interop::Key;
 use std::convert::TryFrom;
@@ -86,18 +86,4 @@ pub struct ProtoNote {
 pub struct PreviewNotes {
     pub deck_id: Key,
     pub notes: Vec<Note>,
-}
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SeekResults {
-    pub results: Vec<SeekDeck>,
-}
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SeekDeck {
-    pub rank: f32,
-    pub deck: SlimDeck,
-    pub seek_notes: Vec<Note>,
 }
