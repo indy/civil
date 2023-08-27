@@ -441,10 +441,11 @@ export default function CivilSelect({
             const searchResponse = await Net.get<SearchResults>(url);
             if (searchResponse.deckLevel) {
                 const newCandidates = searchResponse.deckLevel
-                    .map(seekDeck => seekDeck.deck)
+                    .map((searchDeck) => searchDeck.deck)
                     .filter((slimDeck) => {
                         return (
-                            slimDeck.id !== parentDeckId && !alreadySelected(slimDeck.title)
+                            slimDeck.id !== parentDeckId &&
+                            !alreadySelected(slimDeck.title)
                         );
                     })
                     .sort((a, b) => {

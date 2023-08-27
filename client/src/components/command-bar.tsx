@@ -488,7 +488,8 @@ export default function CommandBar() {
         if (sanitized.length > 0) {
             const url = `/api/decks/search?q=${encodeURI(sanitized)}`;
             const searchResponse: SearchResults = await Net.get(url);
-            const searchCandidates: Array<SlimDeck> = searchResponse.deckLevel.map(dl => dl.deck);
+            const searchCandidates: Array<SlimDeck> =
+                searchResponse.deckLevel.map((dl) => dl.deck);
 
             AppStateChange.commandBarSetSearch({ searchCandidates });
         }

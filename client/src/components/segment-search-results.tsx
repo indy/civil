@@ -1,7 +1,7 @@
 import { ComponentChildren, h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { CivilMode, Font, Key, SearchResults, SeekDeck } from "types";
+import { CivilMode, Font, Key, SearchResults, SearchDeck } from "types";
 
 import { getAppState } from "app-state";
 
@@ -12,11 +12,9 @@ import Net from "shared/net";
 
 import CivilButton from "components/civil-button";
 import { CivContainer, CivMain } from "components/civil-layout";
-import CivilSeekResults from "components/civil-seek-results";
+import CivilSearchResults from "components/civil-search-results";
 import ListingLink from "components/listing-link";
 import RollableSegment from "components/rollable-segment";
-
-//    searchResults: SearchResults;
 
 // todo: fix the type for deckId, should be a Key
 //
@@ -31,7 +29,6 @@ export default function SegmentSearchResults({
 
     const [searchResults, setSearchResults]: [SearchResults, Function] =
         useState({ deckLevel: [], noteLevel: [] });
-    //         useState({ searchResults: [], seekResults: [] });
 
     useEffect(() => {
         console.log(`/api/decks/${id}/additional_search`);
@@ -49,20 +46,18 @@ export default function SegmentSearchResults({
         );
     }, [id]);
 
-    function buildSearchResult(seekDeck: SeekDeck) {
-        return <ListingLink slimDeck={seekDeck.deck} />;
+    function buildSearchResult(searchDeck: SearchDeck) {
+        return <ListingLink slimDeck={searchDeck.deck} />;
     }
 
     if (
-        nonEmptyArray<SeekDeck>(searchResults.deckLevel) ||
-        nonEmptyArray<SeekDeck>(searchResults.noteLevel)
+        nonEmptyArray<SearchDeck>(searchResults.deckLevel) ||
+        nonEmptyArray<SearchDeck>(searchResults.noteLevel)
     ) {
         const amount =
-            searchResults.deckLevel.length +
-            searchResults.noteLevel.length;
+            searchResults.deckLevel.length + searchResults.noteLevel.length;
         const heading = plural(amount, "Additional Search Result", "s");
 
-        // TODO: fix this to work with the new SearchResults structure that also contains SeekDecks
         function bookmarkAll() {
             const deckIds: Array<Key> = searchResults.deckLevel.map(
                 (sd) => sd.deck.id
@@ -94,7 +89,7 @@ export default function SegmentSearchResults({
                         </ul>
                     </CivMain>
                 </CivContainer>
-                <CivilSeekResults seekResults={searchResults.noteLevel} />
+                <CivilSearchResults searchResults={searchResults.noteLevel} />
             </RollableSegment>
         );
     } else {

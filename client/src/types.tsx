@@ -280,15 +280,13 @@ export type FlashCard = {
     repetition: number;
 };
 
-export type SeekDeck = {
+export type SearchDeck = {
     rank: number;
+    // a deck that matches the search criteria
     deck: SlimDeck;
-    seekNotes: Array<Note>;
-};
-
-// todo: when is this used, replace with ScourResults?
-export type SeekResults = {
-    results: Array<SeekDeck>;
+    // the notes from deck that match the search criteria
+    // (this is optional, some searches will only populate deck)
+    notes: Array<Note>;
 };
 
 export type SlimResults = {
@@ -296,8 +294,8 @@ export type SlimResults = {
 };
 
 export type SearchResults = {
-    deckLevel: Array<SeekDeck>;
-    noteLevel: Array<SeekDeck>;
+    deckLevel: Array<SearchDeck>;
+    noteLevel: Array<SearchDeck>;
 };
 
 export type ColourSeeds = {

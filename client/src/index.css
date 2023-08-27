@@ -1642,14 +1642,14 @@ a:visited.pigment-inherit {
 
 /* ---- */
 
-.pigment-top-menu-seek {
-    color: var(--fg-seek) !important;
-    background: var(--bg-seek);
+.pigment-top-menu-search {
+    color: var(--fg-search) !important;
+    background: var(--bg-search);
 }
 /* used when there are some spaced repetition questions that are scheduled to be answered */
-.pigment-top-menu-seek-active {
-    color: var(--fg-seek-active) !important;
-    background: var(--bg-seek-active);
+.pigment-top-menu-search-active {
+    color: var(--fg-search-active) !important;
+    background: var(--bg-search-active);
 }
 
 /* ---- */

@@ -20,15 +20,15 @@ use crate::interop::notes::Note;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct SeekDeck {
+pub struct SearchDeck {
     pub rank: f32,
     pub deck: SlimDeck,
-    pub seek_notes: Vec<Note>,
+    pub notes: Vec<Note>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResults {
-    pub deck_level: Vec<SeekDeck>,
-    pub note_level: Vec<SeekDeck>,
+    pub deck_level: Vec<SearchDeck>,
+    pub note_level: Vec<SearchDeck>,
 }

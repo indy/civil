@@ -15,15 +15,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::decks::slimdeck_from_row;
 use crate::db::notes::backdecks_for_deck;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::db::{postfix_asterisks, sanitize_for_sqlite_match};
-use crate::interop::decks as interop;
-use crate::interop::decks::{DeckKind, Ref, RefKind, SlimDeck};
+use crate::interop::decks::{BackDeck, DeckKind, Ref, RefKind, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::notes::{Note, NoteKind};
-use crate::interop::search as interop_search;
+use crate::interop::search as interop;
 use crate::interop::Key;
 use rusqlite::{params, Connection, Row};
 
@@ -31,19 +29,37 @@ use std::str::FromStr;
 #[allow(unused_imports)]
 use tracing::{info, warn};
 
+fn searchdeck_from_row(row: &Row) -> crate::Result<interop::SearchDeck> {
+    let res: String = row.get(2)?;
+    let f: i32 = row.get(4)?;
+
+    Ok(interop::SearchDeck {
+        rank: row.get(6)?,
+        deck: SlimDeck {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            deck_kind: DeckKind::from_str(&res)?,
+            insignia: row.get(3)?,
+            font: Font::try_from(f)?,
+            graph_terminator: row.get(5)?,
+        },
+        notes: vec![],
+    })
+}
+
 #[derive(Debug)]
-struct SeekDeckNoteRef {
+struct SearchDeckNoteRef {
     pub rank: f32,
     pub deck: SlimDeck,
     pub note: Note,
     pub reference_maybe: Option<Ref>,
 }
 
-fn contains(slimdecks: &[SlimDeck], id: Key) -> bool {
-    slimdecks.iter().any(|br| br.id == id)
+fn contains(searchdecks: &[interop::SearchDeck], id: Key) -> bool {
+    searchdecks.iter().any(|br| br.deck.id == id)
 }
 
-fn seekdecknoteref_from_row(row: &Row) -> crate::Result<SeekDeckNoteRef> {
+fn searchdecknoteref_from_row(row: &Row) -> crate::Result<SearchDeckNoteRef> {
     let deck_kind_str: String = row.get(3)?;
     let deck_font: i32 = row.get(6)?;
 
@@ -71,7 +87,7 @@ fn seekdecknoteref_from_row(row: &Row) -> crate::Result<SeekDeckNoteRef> {
         })
     };
 
-    Ok(SeekDeckNoteRef {
+    Ok(SearchDeckNoteRef {
         rank: row.get(0)?,
         deck: SlimDeck {
             id: row.get(1)?,
@@ -94,138 +110,31 @@ fn seekdecknoteref_from_row(row: &Row) -> crate::Result<SeekDeckNoteRef> {
     })
 }
 
-pub(crate) fn search(
+pub(crate) fn search_at_deck_level(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     query: &str,
-) -> crate::Result<Vec<interop_search::SeekDeck>> {
-    let conn = sqlite_pool.get()?;
-
+) -> crate::Result<Vec<interop::SearchDeck>> {
     let q = postfix_asterisks(query)?;
-
-    let stmt =
-        "select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, decks_fts.rank AS rank_sum, 1 as rank_count
-                from decks_fts left join decks d on d.id = decks_fts.rowid
-                where decks_fts match ?2
-                      and d.user_id = ?1
-                group by d.id
-                order by rank_sum asc, length(d.name) asc, d.created_at desc
-                limit 30";
-    let mut results = sqlite::many(&conn, stmt, params![&user_id, &q], slimdeck_from_row)?;
-
-    let stmt = "select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, article_extras_fts.rank AS rank_sum, 1 as rank_count
-                from article_extras_fts left join decks d on d.id = article_extras_fts.rowid
-                where article_extras_fts match ?2
-                      and d.user_id = ?1
-                group by d.id
-                order by rank_sum asc, length(d.name) asc
-                limit 30";
-    let results_via_pub_ext = sqlite::many(&conn, stmt, params![&user_id, &q], slimdeck_from_row)?;
-
-    let stmt = "select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, quote_extras_fts.rank AS rank_sum, 1 as rank_count
-                from quote_extras_fts left join decks d on d.id = quote_extras_fts.rowid
-                where quote_extras_fts match ?2
-                      and d.user_id = ?1
-                group by d.id
-                order by rank_sum asc, length(d.name) asc
-                limit 30";
-    let results_via_quote_ext =
-        sqlite::many(&conn, stmt, params![&user_id, &q], slimdeck_from_row)?;
-
-    let stmt = "select res.id, res.name, res.kind, res.insignia, res.font, res.graph_terminator, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-                from (select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, notes_fts.rank AS rank
-                      from notes_fts
-                           left join notes n on n.id = notes_fts.rowid
-                           left join decks d on d.id = n.deck_id
-                           left join dialogue_messages dm on dm.note_id = n.id
-                      where notes_fts match ?2
-                            and d.user_id = ?1
-                            and (dm.role is null or dm.role <> 'system')
-                      group by d.id
-                      order by rank asc) res
-                group by res.id, res.kind, res.name
-                order by sum(res.rank) asc, length(res.name) asc
-                limit 30";
-    let results_via_notes = sqlite::many(&conn, stmt, params![&user_id, &q], slimdeck_from_row)?;
-
-    let stmt = "select res.id, res.name, res.kind, res.insignia, res.font, res.graph_terminator, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-                from (select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, points_fts.rank AS rank
-                      from points_fts
-                           left join points n on n.id = points_fts.rowid
-                           left join decks d on d.id = n.deck_id
-                      where points_fts match ?2
-                            and d.user_id = ?1
-                      group by d.id
-                      order by rank asc) res
-                group by res.id, res.kind, res.name
-                order by sum(res.rank) asc, length(res.name) asc
-                limit 30";
-    let results_via_points = sqlite::many(&conn, stmt, params![&user_id, &q], slimdeck_from_row)?;
-
-    for r in results_via_pub_ext {
-        if !contains(&results, r.id) {
-            results.push(r);
-        }
-    }
-
-    for r in results_via_quote_ext {
-        if !contains(&results, r.id) {
-            results.push(r);
-        }
-    }
-
-    for r in results_via_notes {
-        if !contains(&results, r.id) {
-            results.push(r);
-        }
-    }
-
-    for r in results_via_points {
-        if !contains(&results, r.id) {
-            results.push(r);
-        }
-    }
-
-    let res = slim_decks_to_seek_decks(results);
-
-    Ok(res)
+    search_at_deck_level_base(sqlite_pool, user_id, &q, false)
 }
 
-fn slim_decks_to_seek_decks(slimdecks: Vec<interop::SlimDeck>) -> Vec<interop_search::SeekDeck> {
-    // todo: use a From trait???
-    slimdecks
-        .iter()
-        .map(|slim| interop_search::SeekDeck {
-            rank: 0.0,
-            deck: interop::SlimDeck {
-                id: slim.id,
-                title: slim.title.to_string(),
-                deck_kind: slim.deck_kind,
-                graph_terminator: slim.graph_terminator,
-                insignia: slim.insignia,
-                font: slim.font,
-            },
-            seek_notes: vec![],
-        })
-        .collect()
-}
-
-pub(crate) fn search_by_name(
+pub(crate) fn search_names_at_deck_level(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     query: &str,
-) -> crate::Result<Vec<interop_search::SeekDeck>> {
+) -> crate::Result<Vec<interop::SearchDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt =
-        "select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, decks_fts.rank AS rank_sum, 1 as rank_count
+    let stmt = "select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator,
+                       decks_fts.rank AS rank_sum, 1 as rank_count
                 from decks_fts left join decks d on d.id = decks_fts.rowid
                 where decks_fts match ?2
                       and d.user_id = ?1
                 group by d.id
                 order by rank_sum asc, length(d.name) asc
                 limit 20";
-    let mut results = sqlite::many(&conn, stmt, params![&user_id, &query], slimdeck_from_row)?;
+    let mut results = sqlite::many(&conn, stmt, params![&user_id, &query], searchdeck_from_row)?;
 
     let stmt =
         "select id, name, kind, insignia, font, graph_terminator, 0 as rank_sum, 1 as rank_count
@@ -233,42 +142,45 @@ pub(crate) fn search_by_name(
                 where name like '%' || ?2 || '%'
                 and user_id = ?1
                 limit 20";
-    let res2 = sqlite::many(&conn, stmt, params![&user_id, &query], slimdeck_from_row)?;
+    let res2 = sqlite::many(&conn, stmt, params![&user_id, &query], searchdeck_from_row)?;
 
     for r in res2 {
-        if !contains(&results, r.id) {
+        if !contains(&results, r.deck.id) {
             results.push(r);
         }
     }
 
-    let res = slim_decks_to_seek_decks(results);
-
-    Ok(res)
+    Ok(results)
 }
 
-pub(crate) fn additional_search(
+pub(crate) fn additional_search_at_deck_level(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
-) -> crate::Result<Vec<interop_search::SeekDeck>> {
+) -> crate::Result<Vec<interop::SearchDeck>> {
     info!("additional_search {:?}", deck_id);
 
-    fn has(slimdeck: &interop::SlimDeck, backdecks: &[interop::BackDeck]) -> bool {
-        backdecks.iter().any(|br| br.deck.id == slimdeck.id)
+    let conn = sqlite_pool.get()?;
+    let name = get_name_of_deck(&conn, deck_id)?;
+    let sane_name = sanitize_for_sqlite_match(name)?;
+
+    if sane_name.is_empty() {
+        Ok(vec![])
+    } else {
+        fn has(searchdeck: &interop::SearchDeck, backdecks: &[BackDeck]) -> bool {
+            backdecks.iter().any(|br| br.deck.id == searchdeck.deck.id)
+        }
+
+        let search_results = search_at_deck_level_base(sqlite_pool, user_id, &sane_name, true)?;
+        let backdecks = backdecks_for_deck(sqlite_pool, deck_id)?;
+
+        // dedupe search results against the backdecks
+        let additional_search_results: Vec<interop::SearchDeck> = search_results
+            .into_iter()
+            .filter(|br| br.deck.id != deck_id && !has(br, &backdecks))
+            .collect();
+        Ok(additional_search_results)
     }
-
-    let backnotes = backdecks_for_deck(sqlite_pool, deck_id)?;
-    let search_results = search_using_deck_id(sqlite_pool, user_id, deck_id)?;
-
-    // dedupe search results against the backdecks
-    let additional_search_results: Vec<interop::SlimDeck> = search_results
-        .into_iter()
-        .filter(|br| br.id != deck_id && !has(br, &backnotes))
-        .collect();
-
-    let res = slim_decks_to_seek_decks(additional_search_results);
-
-    Ok(res)
 }
 
 fn get_name_of_deck(conn: &Connection, deck_id: Key) -> crate::Result<String> {
@@ -287,135 +199,13 @@ fn get_name_of_deck(conn: &Connection, deck_id: Key) -> crate::Result<String> {
     Ok(name)
 }
 
-fn search_using_deck_id(
+pub(crate) fn additional_search_at_note_level(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
-) -> crate::Result<Vec<interop::SlimDeck>> {
-    let conn = sqlite_pool.get()?;
-
-    let name = get_name_of_deck(&conn, deck_id)?;
-    let sane_name = sanitize_for_sqlite_match(name)?;
-
-    if sane_name.is_empty() {
-        return Ok(vec![]);
-    }
-
-    let stmt =
-        "select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, decks_fts.rank AS rank_sum, 1 as rank_count
-                from decks_fts left join decks d on d.id = decks_fts.rowid
-                where decks_fts match ?2
-                      and d.user_id = ?1
-                group by d.id
-                order by rank_sum asc, length(d.name) asc
-                limit 50";
-    let mut results = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &sane_name],
-        slimdeck_from_row,
-    )?;
-
-    let stmt = "select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, article_extras_fts.rank AS rank_sum, 1 as rank_count
-                from article_extras_fts left join decks d on d.id = article_extras_fts.rowid
-                where article_extras_fts match ?2
-                      and d.user_id = ?1
-                group by d.id
-                order by rank_sum asc, length(d.name) asc
-                limit 50";
-    let results_via_pub_ext = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &sane_name],
-        slimdeck_from_row,
-    )?;
-
-    let stmt = "select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, quote_extras_fts.rank AS rank_sum, 1 as rank_count
-                from quote_extras_fts left join decks d on d.id = quote_extras_fts.rowid
-                where quote_extras_fts match ?2
-                      and d.user_id = ?1
-                group by d.id
-                order by rank_sum asc, length(d.name) asc
-                limit 50";
-    let results_via_quote_ext = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &sane_name],
-        slimdeck_from_row,
-    )?;
-
-    // let stmt = "select res.id, res.name, res.kind, res.insignia, res.font, res.graph_terminator, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-    //             from (select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, notes_fts.rank AS rank
-    //                   from notes_fts
-    //                        left join notes n on n.id = notes_fts.rowid
-    //                        left join decks d on d.id = n.deck_id
-    //                   where notes_fts match ?2
-    //                         and d.user_id = ?1
-    //                   group by d.id
-    //                   order by rank asc) res
-    //             group by res.id, res.kind, res.name
-    //             order by sum(res.rank) asc, length(res.name) asc
-    //             limit 50";
-    // let results_via_notes = sqlite::many(
-    //     &conn,
-    //     stmt,
-    //     params![&user_id, &sane_name],
-    //     slimdeck_from_row,
-    // )?;
-
-    let stmt = "select res.id, res.name, res.kind, res.insignia, res.font, res.graph_terminator, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-                from (select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, points_fts.rank AS rank
-                      from points_fts
-                           left join points n on n.id = points_fts.rowid
-                           left join decks d on d.id = n.deck_id
-                      where points_fts match ?2
-                            and d.user_id = ?1
-                      group by d.id
-                      order by rank asc) res
-                group by res.id, res.kind, res.name
-                order by sum(res.rank) asc, length(res.name) asc
-                limit 30";
-    let results_via_points = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &sane_name],
-        slimdeck_from_row,
-    )?;
-
-    for r in results_via_pub_ext {
-        if !contains(&results, r.id) {
-            results.push(r);
-        }
-    }
-
-    for r in results_via_quote_ext {
-        if !contains(&results, r.id) {
-            results.push(r);
-        }
-    }
-
-    // for r in results_via_notes {
-    //     if !contains(&results, r.id) {
-    //         results.push(r);
-    //     }
-    // }
-
-    for r in results_via_points {
-        if !contains(&results, r.id) {
-            results.push(r);
-        }
-    }
-
-    Ok(results)
-}
-
-pub(crate) fn notes_additional_search(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    deck_id: Key,
-) -> crate::Result<Vec<interop_search::SeekDeck>> {
-    let seek_deck_note_refs = seek_deck_additional_query(sqlite_pool, user_id, deck_id)?;
-    let seek_deck = build_seek_deck(seek_deck_note_refs)?;
+) -> crate::Result<Vec<interop::SearchDeck>> {
+    let search_deck_note_refs = search_deck_additional_query(sqlite_pool, user_id, deck_id)?;
+    let search_deck = build_search_deck(search_deck_note_refs)?;
 
     // given a search for 'dogs'
     // if there was a deck (dx) that had a note (nx) that had references to 'dogs' and 'cats'
@@ -424,28 +214,28 @@ pub(crate) fn notes_additional_search(
     // so the query has been changed to return all references including 'dogs'
     // then we can use some rust to filter out any notes that contain refs to 'dogs'
     //
-    let seek_deck_b: Vec<interop_search::SeekDeck> = seek_deck
+    let search_deck_b: Vec<interop::SearchDeck> = search_deck
         .into_iter()
-        .map(|seek_deck| remove_notes_with_refs_to_deck_id(seek_deck, deck_id))
+        .map(|search_deck| remove_notes_with_refs_to_deck_id(search_deck, deck_id))
         .collect();
 
     // now that some of the notes have been removed, there may be some decks that have no notes.
     // remove those decks as well
     //
-    let seek_deck_c: Vec<interop_search::SeekDeck> = seek_deck_b
+    let search_deck_c: Vec<interop::SearchDeck> = search_deck_b
         .into_iter()
-        .filter(|seek_deck| seek_deck.seek_notes.len() != 0)
+        .filter(|search_deck| search_deck.notes.len() != 0)
         .collect();
 
-    Ok(seek_deck_c)
+    Ok(search_deck_c)
 }
 
-fn build_seek_deck(
-    seek_deck_note_refs: Vec<SeekDeckNoteRef>,
-) -> crate::Result<Vec<interop_search::SeekDeck>> {
-    let mut res: Vec<interop_search::SeekDeck> = vec![];
+fn build_search_deck(
+    search_deck_note_refs: Vec<SearchDeckNoteRef>,
+) -> crate::Result<Vec<interop::SearchDeck>> {
+    let mut res: Vec<interop::SearchDeck> = vec![];
 
-    for sdnr in seek_deck_note_refs {
+    for sdnr in search_deck_note_refs {
         let mut found: bool = false;
         let mut deck_index: usize = 0;
         for r in &res {
@@ -456,16 +246,16 @@ fn build_seek_deck(
             deck_index += 1;
         }
         if !found {
-            res.push(interop_search::SeekDeck {
+            res.push(interop::SearchDeck {
                 rank: sdnr.rank,
                 deck: sdnr.deck,
-                seek_notes: vec![],
+                notes: vec![],
             });
         }
 
         found = false;
         let mut note_index: usize = 0;
-        for n in &res[deck_index].seek_notes {
+        for n in &res[deck_index].notes {
             if n.id == sdnr.note.id {
                 found = true;
                 break;
@@ -473,53 +263,53 @@ fn build_seek_deck(
             note_index += 1;
         }
         if !found {
-            res[deck_index].seek_notes.push(sdnr.note)
+            res[deck_index].notes.push(sdnr.note)
         }
 
         if let Some(rrr) = sdnr.reference_maybe {
-            res[deck_index].seek_notes[note_index].refs.push(rrr);
+            res[deck_index].notes[note_index].refs.push(rrr);
         }
     }
 
     Ok(res)
 }
 
-pub(crate) fn seek(
+pub(crate) fn search_at_note_level(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     query: &str,
-) -> crate::Result<Vec<interop_search::SeekDeck>> {
-    let seek_deck_note_refs = seek_query(sqlite_pool, user_id, query)?;
-    build_seek_deck(seek_deck_note_refs)
+) -> crate::Result<Vec<interop::SearchDeck>> {
+    let search_deck_note_refs = search_query(sqlite_pool, user_id, query)?;
+    build_search_deck(search_deck_note_refs)
 }
 
-fn has_ref_to_deck_id(seek_note: &Note, deck_id: Key) -> bool {
-    seek_note
+fn has_ref_to_deck_id(search_note: &Note, deck_id: Key) -> bool {
+    search_note
         .refs
         .iter()
         .any(|reference| reference.id == deck_id)
 }
 
 fn remove_notes_with_refs_to_deck_id(
-    seek_deck: interop_search::SeekDeck,
+    search_deck: interop::SearchDeck,
     deck_id: Key,
-) -> interop_search::SeekDeck {
-    interop_search::SeekDeck {
-        rank: seek_deck.rank,
-        deck: seek_deck.deck,
-        seek_notes: seek_deck
-            .seek_notes
+) -> interop::SearchDeck {
+    interop::SearchDeck {
+        rank: search_deck.rank,
+        deck: search_deck.deck,
+        notes: search_deck
+            .notes
             .into_iter()
-            .filter(|seek_note| !has_ref_to_deck_id(seek_note, deck_id))
+            .filter(|note| !has_ref_to_deck_id(note, deck_id))
             .collect(),
     }
 }
 
-fn seek_query(
+fn search_query(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     query: &str,
-) -> crate::Result<Vec<SeekDeckNoteRef>> {
+) -> crate::Result<Vec<SearchDeckNoteRef>> {
     let conn = sqlite_pool.get()?;
     let q = postfix_asterisks(query)?;
 
@@ -541,17 +331,22 @@ fn seek_query(
                      AND (dm.role IS null OR dm.role <> 'system')
                ORDER BY rank ASC
                LIMIT 100";
-    let results = sqlite::many(&conn, stmt, params![&user_id, &q], seekdecknoteref_from_row)?;
+    let results = sqlite::many(
+        &conn,
+        stmt,
+        params![&user_id, &q],
+        searchdecknoteref_from_row,
+    )?;
     Ok(results)
 }
 
 // only searching via notes for the moment, will have to add additional search queries that look in points, article_extras etc
 //
-fn seek_deck_additional_query(
+fn search_deck_additional_query(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
-) -> crate::Result<Vec<SeekDeckNoteRef>> {
+) -> crate::Result<Vec<SearchDeckNoteRef>> {
     let conn = sqlite_pool.get()?;
 
     let name = get_name_of_deck(&conn, deck_id)?;
@@ -585,6 +380,105 @@ fn seek_deck_additional_query(
         &conn,
         stmt,
         params![&user_id, &sane_name, &deck_id],
-        seekdecknoteref_from_row,
+        searchdecknoteref_from_row,
     )
+}
+
+fn search_at_deck_level_base(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    query: &str,
+    ignore_notes: bool,
+) -> crate::Result<Vec<interop::SearchDeck>> {
+    let conn = sqlite_pool.get()?;
+
+    let q = query;
+
+    let stmt =
+        "select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, decks_fts.rank AS rank_sum, 1 as rank_count
+                from decks_fts left join decks d on d.id = decks_fts.rowid
+                where decks_fts match ?2
+                      and d.user_id = ?1
+                group by d.id
+                order by rank_sum asc, length(d.name) asc, d.created_at desc
+                limit 30";
+    let mut results = sqlite::many(&conn, stmt, params![&user_id, &q], searchdeck_from_row)?;
+
+    let stmt = "select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, article_extras_fts.rank AS rank_sum, 1 as rank_count
+                from article_extras_fts left join decks d on d.id = article_extras_fts.rowid
+                where article_extras_fts match ?2
+                      and d.user_id = ?1
+                group by d.id
+                order by rank_sum asc, length(d.name) asc
+                limit 30";
+    let results_via_pub_ext =
+        sqlite::many(&conn, stmt, params![&user_id, &q], searchdeck_from_row)?;
+
+    let stmt = "select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, quote_extras_fts.rank AS rank_sum, 1 as rank_count
+                from quote_extras_fts left join decks d on d.id = quote_extras_fts.rowid
+                where quote_extras_fts match ?2
+                      and d.user_id = ?1
+                group by d.id
+                order by rank_sum asc, length(d.name) asc
+                limit 30";
+    let results_via_quote_ext =
+        sqlite::many(&conn, stmt, params![&user_id, &q], searchdeck_from_row)?;
+
+    let stmt = "select res.id, res.name, res.kind, res.insignia, res.font, res.graph_terminator, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+                from (select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, points_fts.rank AS rank
+                      from points_fts
+                           left join points n on n.id = points_fts.rowid
+                           left join decks d on d.id = n.deck_id
+                      where points_fts match ?2
+                            and d.user_id = ?1
+                      group by d.id
+                      order by rank asc) res
+                group by res.id, res.kind, res.name
+                order by sum(res.rank) asc, length(res.name) asc
+                limit 30";
+    let results_via_points = sqlite::many(&conn, stmt, params![&user_id, &q], searchdeck_from_row)?;
+
+    for r in results_via_pub_ext {
+        if !contains(&results, r.deck.id) {
+            results.push(r);
+        }
+    }
+
+    for r in results_via_quote_ext {
+        if !contains(&results, r.deck.id) {
+            results.push(r);
+        }
+    }
+
+    if !ignore_notes {
+        let stmt = "select res.id, res.name, res.kind, res.insignia, res.font, res.graph_terminator, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+                from (select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, notes_fts.rank AS rank
+                      from notes_fts
+                           left join notes n on n.id = notes_fts.rowid
+                           left join decks d on d.id = n.deck_id
+                           left join dialogue_messages dm on dm.note_id = n.id
+                      where notes_fts match ?2
+                            and d.user_id = ?1
+                            and (dm.role is null or dm.role <> 'system')
+                      group by d.id
+                      order by rank asc) res
+                group by res.id, res.kind, res.name
+                order by sum(res.rank) asc, length(res.name) asc
+                limit 30";
+        let results_via_notes =
+            sqlite::many(&conn, stmt, params![&user_id, &q], searchdeck_from_row)?;
+        for r in results_via_notes {
+            if !contains(&results, r.deck.id) {
+                results.push(r);
+            }
+        }
+    }
+
+    for r in results_via_points {
+        if !contains(&results, r.deck.id) {
+            results.push(r);
+        }
+    }
+
+    Ok(results)
 }

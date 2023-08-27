@@ -80,7 +80,7 @@ export function DeluxeToolbar({}) {
 
                 <div class="toolbar-item" onClick={searchClicked}>
                     <span class={searchClasses}>{svgSearch()}</span>
-                    <span class="toolbar-item-text">Search</span>
+                    <span class="toolbar-item-text">Quick Search</span>
                 </div>
 
                 {isCivilModeAllowed(appState, CivilMode.Edit) && (

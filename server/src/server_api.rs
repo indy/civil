@@ -50,8 +50,8 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // console commands
         .service(
             scope("/decks")
-                .route("/search", get().to(search::search))
-                .route("/namesearch", get().to(search::namesearch))
+                .route("/search", get().to(search::search_at_deck_level))
+                .route("/namesearch", get().to(search::search_names_at_deck_level))
                 .route("/recent", get().to(decks::recent))
                 .route("/insignia_filter/{insig}", get().to(decks::insignia_filter))
                 .route("/recently_visited", get().to(decks::recently_visited))
@@ -161,7 +161,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         // notes
         .service(
             scope("/notes")
-                .route("/seek", get().to(search::seek))
+                .route("/search", get().to(search::search_at_note_level))
                 .route("", post().to(notes::create_notes))
                 .route("/{id}", put().to(notes::edit_note))
                 .route("/{id}", delete().to(notes::delete_note)),
