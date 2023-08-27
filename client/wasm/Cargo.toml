@@ -1,6 +1,6 @@
 [package]
 name = "civil-wasm"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["Inderjit Gill <email@indy.io>"]
 license = "AGPL-3.0-or-later"
 edition = "2021"
