@@ -436,7 +436,7 @@ export default function CivilSelect({
 
     async function refineCandidates(newText: string) {
         if (newText.length > 0) {
-            const url = `/api/decks/namesearch?q=${encodeURI(newText)}`;
+            const url = `/api/search/names?q=${encodeURI(newText)}`;
 
             const searchResponse = await Net.get<SearchResults>(url);
             if (searchResponse.deckLevel) {

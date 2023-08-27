@@ -1,23 +1,36 @@
 import { h } from "preact";
 
-import { Note, Reference, SearchDeck } from "types";
+import { Note, Reference, SearchDeck, SearchResults } from "types";
 
 import buildMarkup from "components/build-markup";
 import { CivContainer, CivLeft, CivMain } from "components/civil-layout";
 import DeckLink from "components/deck-link";
 import Expandable from "components/expandable";
+import ListingLink from "components/listing-link";
 import ViewReference from "components/view-reference";
 
-export default function CivilSearchResults({
+export default function ViewSearchResults({
     searchResults,
 }: {
-    searchResults: Array<SearchDeck>;
+    searchResults: SearchResults;
 }) {
-    const searchDecks = searchResults.map((searchDeck) => (
+    const noteLevel = searchResults.noteLevel.map((searchDeck) => (
         <ViewSearchDeck searchDeck={searchDeck} />
     ));
+    const deckLevel = searchResults.deckLevel.map((searchDeck) => (
+        <ListingLink slimDeck={searchDeck.deck} />
+    ));
 
-    return <div class="c-civil-search-results">{searchDecks}</div>;
+    return (
+        <div class="c-civil-search-results">
+            <CivContainer>
+                <CivMain>
+                    <ul>{deckLevel}</ul>
+                </CivMain>
+            </CivContainer>
+            {noteLevel}
+        </div>
+    );
 }
 
 function ViewSearchDeck({ searchDeck }: { searchDeck: SearchDeck }) {
@@ -52,7 +65,11 @@ function SearchNote({ searchNote }: { searchNote: Note }) {
         <CivContainer extraClasses="c-search-note note">
             <CivLeft>{buildRefs(searchNote.refs)}</CivLeft>
             <CivMain>
-                {buildMarkup(searchNote.content, searchNote.font, searchNote.id)}
+                {buildMarkup(
+                    searchNote.content,
+                    searchNote.font,
+                    searchNote.id
+                )}
             </CivMain>
         </CivContainer>
     );

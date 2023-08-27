@@ -36,10 +36,10 @@ pub async fn search_at_deck_level(
 
     let user_id = session::user_id(&session)?;
 
-    let results = db::search_at_deck_level(&sqlite_pool, user_id, &query.q)?;
+    let deck_level_results = db::search_at_deck_level(&sqlite_pool, user_id, &query.q)?;
 
     let res = SearchResults {
-        deck_level: results,
+        deck_level: deck_level_results,
         note_level: vec![],
     };
 
@@ -84,18 +84,12 @@ pub async fn additional_search_for_decks(
 
     let note_level_results = db::additional_search_at_note_level(&sqlite_pool, user_id, deck_id)?;
 
-    fn has(search_deck: &SearchDeck, search_decks: &[SearchDeck]) -> bool {
-        search_decks
-            .iter()
-            .any(|s| s.deck.id == search_deck.deck.id)
-    }
-
     // deck_level_results take priority as they will probably be more relevant.
     // so dedupe the search_results from the seek_results
     //
     let deduped_deck_level_results: Vec<SearchDeck> = deck_level_results
         .into_iter()
-        .filter(|seek_deck| !has(seek_deck, &note_level_results))
+        .filter(|search_deck| !has(search_deck, &note_level_results))
         .collect();
 
     let res = SearchResults {
@@ -106,7 +100,7 @@ pub async fn additional_search_for_decks(
     Ok(HttpResponse::Ok().json(res))
 }
 
-pub async fn search_at_note_level(
+pub async fn search_at_all_levels(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
     Query(query): Query<SearchQuery>,
@@ -115,12 +109,26 @@ pub async fn search_at_note_level(
 
     let user_id = session::user_id(&session)?;
 
-    let results = db::search_at_note_level(&sqlite_pool, user_id, &query.q)?;
+    let deck_level_results = db::search_at_deck_level(&sqlite_pool, user_id, &query.q)?;
+    let note_level_results = db::search_at_note_level(&sqlite_pool, user_id, &query.q)?;
+
+    // dedupe deck_level against note_level
+    //
+    let deduped_deck_level_results: Vec<SearchDeck> = deck_level_results
+        .into_iter()
+        .filter(|search_deck| !has(search_deck, &note_level_results))
+        .collect();
 
     let res = SearchResults {
-        deck_level: vec![],
-        note_level: results,
+        deck_level: deduped_deck_level_results,
+        note_level: note_level_results,
     };
 
     Ok(HttpResponse::Ok().json(res))
+}
+
+fn has(search_deck: &SearchDeck, search_decks: &[SearchDeck]) -> bool {
+    search_decks
+        .iter()
+        .any(|s| s.deck.id == search_deck.deck.id)
 }

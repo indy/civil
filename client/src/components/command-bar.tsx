@@ -486,7 +486,7 @@ export default function CommandBar() {
     async function search(text: string) {
         let sanitized: string = sanitize(text);
         if (sanitized.length > 0) {
-            const url = `/api/decks/search?q=${encodeURI(sanitized)}`;
+            const url = `/api/search/decks?q=${encodeURI(sanitized)}`;
             const searchResponse: SearchResults = await Net.get(url);
             const searchCandidates: Array<SlimDeck> =
                 searchResponse.deckLevel.map((dl) => dl.deck);

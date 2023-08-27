@@ -1,7 +1,7 @@
 import { ComponentChildren, h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { CivilMode, Font, Key, SearchResults, SearchDeck } from "types";
+import { CivilMode, Font, Key, SearchDeck, SearchResults } from "types";
 
 import { getAppState } from "app-state";
 
@@ -11,10 +11,8 @@ import { plural } from "shared/english";
 import Net from "shared/net";
 
 import CivilButton from "components/civil-button";
-import { CivContainer, CivMain } from "components/civil-layout";
-import CivilSearchResults from "components/civil-search-results";
-import ListingLink from "components/listing-link";
 import RollableSegment from "components/rollable-segment";
+import ViewSearchResults from "components/view-search-results";
 
 // todo: fix the type for deckId, should be a Key
 //
@@ -45,10 +43,6 @@ export default function SegmentSearchResults({
             }
         );
     }, [id]);
-
-    function buildSearchResult(searchDeck: SearchDeck) {
-        return <ListingLink slimDeck={searchDeck.deck} />;
-    }
 
     if (
         nonEmptyArray<SearchDeck>(searchResults.deckLevel) ||
@@ -82,14 +76,7 @@ export default function SegmentSearchResults({
                 initiallyRolledUp
                 extraClasses="c-segment-search-results"
             >
-                <CivContainer>
-                    <CivMain>
-                        <ul>
-                            {searchResults.deckLevel.map(buildSearchResult)}
-                        </ul>
-                    </CivMain>
-                </CivContainer>
-                <CivilSearchResults searchResults={searchResults.noteLevel} />
+                <ViewSearchResults searchResults={searchResults} />
             </RollableSegment>
         );
     } else {

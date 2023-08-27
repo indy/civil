@@ -263,15 +263,17 @@ export const AppStateChange = {
     ),
 
     setSpan: build(Scope.Local, "setSpan", (args: StateChangeSpan) => {
-        state.span.value = args.span;
+        if (state.canNarrowWidth) {
+            state.span.value = args.span;
 
-        let root = document.body;
-        if (args.span === CivilSpan.Narrow) {
-            // root.style.setProperty("--body-width", "72%");
-            root.style.setProperty("--block-width", "40%");
-        } else {
-            // root.style.setProperty("--body-width", "80%");
-            root.style.setProperty("--block-width", "55%");
+            let root = document.body;
+            if (args.span === CivilSpan.Narrow) {
+                // root.style.setProperty("--body-width", "72%");
+                root.style.setProperty("--block-width", "40%");
+            } else {
+                // root.style.setProperty("--body-width", "80%");
+                root.style.setProperty("--block-width", "55%");
+            }
         }
     }),
 
