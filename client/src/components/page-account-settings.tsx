@@ -1,6 +1,6 @@
 import { ComponentChildren, h } from "preact";
 import { route } from "preact-router";
-import { useEffect, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 
 import { /* WaitingFor, */ CivilSpan, ColourScheme } from "types";
 
@@ -13,13 +13,15 @@ import { CivContainer, CivMainUi } from "components/civil-layout";
 import { svgComputer, svgMoon, svgSun, svgTablet } from "components/svg-icons";
 
 export default function AccountSettings({ path }: { path?: string }) {
+    const appState = getAppState();
+
     // <TestColourSchemeModule />
     // <TestRollupModule />
 
     return (
         <article>
             <ColourSchemeSelector />
-            <SpanSelector />
+            {appState.canNarrowWidth && <SpanSelector />}
             <ResetUiConfig />
             <Logout />
         </article>
@@ -45,9 +47,10 @@ function SpanSelector({}) {
 
     const [span, setSpan] = useState(appState.span.value);
 
-    useEffect(() => {
-        AppStateChange.setSpan({ span });
-    }, [span]);
+    function updateSpan(s: CivilSpan) {
+        setSpan(s);
+        AppStateChange.setSpan({ span: s });
+    }
 
     return (
         <Module heading="span selector">
@@ -55,14 +58,14 @@ function SpanSelector({}) {
                 <SpanOption
                     desired={CivilSpan.Narrow}
                     current={span}
-                    setter={setSpan}
+                    setter={updateSpan}
                 >
                     {svgTablet()}
                 </SpanOption>
                 <SpanOption
                     desired={CivilSpan.Broad}
                     current={span}
-                    setter={setSpan}
+                    setter={updateSpan}
                 >
                     {svgComputer()}
                 </SpanOption>

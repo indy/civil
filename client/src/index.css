@@ -4,6 +4,7 @@
 :root {
     --mode: light;
     --has-physical-keyboard: false;
+    --can-narrow-width: true;
 
     --body-width: 80%;
     --block-width: 55%;
@@ -2494,6 +2495,8 @@ input:required {
 
 @media (max-width: 800px) {
     :root {
+        --can-narrow-width: false;
+
         /* --bg: #ffff00; */
         --body-width: 97.5%;
         --block-width: 90%;

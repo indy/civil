@@ -379,14 +379,29 @@ export type State = {
 
     wasmInterface: WasmInterface | undefined;
 
+    // this is set via the --search-always-visible css variable so
+    // that mobile touch devices will always show the search bar
+    //
     hasPhysicalKeyboard: boolean;
+    // this is set via the --can-narrow-width css variable so
+    // that narrow mobile devices can't be set super-narrow
+    //
+    canNarrowWidth: boolean;
 
+    // when true don't let commandBar accept any keystrokes
+    //
     componentRequiresFullKeyboardAccess: Signal<boolean>;
 
     showingCommandBar: Signal<boolean>;
     commandBarState: Signal<CommandBarState>;
 
+    // to add the current page to the bookmark we need the id,
+    // name, deckKind. id and deckKind can be parsed from the
+    // url, but the name needs to be stored separately
+    //
     urlTitle: Signal<string>;
+    // the url of the current page
+    //
     url: Signal<string>;
 
     user: Signal<User>;

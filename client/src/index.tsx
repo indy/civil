@@ -71,6 +71,7 @@ wasm_bindgen("/civil_wasm_bg.wasm")
 
         state.wasmInterface = wasmInterface;
         state.hasPhysicalKeyboard = getCssBoolean("--has-physical-keyboard");
+        state.canNarrowWidth = getCssBoolean("--can-narrow-width");
 
         let root = document.getElementById("root");
         if (root) {

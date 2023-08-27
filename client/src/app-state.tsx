@@ -171,25 +171,15 @@ const state: State = {
     mode: signal(CivilMode.View),
     wasmInterface: undefined,
 
-    // this is set via the --search-always-visible css variable so
-    // that mobile touch devices will always show the search bar
-    //
     hasPhysicalKeyboard: true,
+    canNarrowWidth: true,
 
-    // when true don't let commandBar accept any keystrokes
-    //
     componentRequiresFullKeyboardAccess: signal(false),
     showingCommandBar: signal(false),
     commandBarState: signal(cleanCommandBarState()),
 
-    // to add the current page to the bookmark we need the id, name, deckKind.
-    // id and deckKind can be parsed from the url, but the name needs to be
-    // stored separately
-    //
     urlTitle: signal("home"),
 
-    // the url of the current page
-    //
     url: signal(""),
 
     user: signal(emptyUser),
