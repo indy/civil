@@ -18,7 +18,7 @@
 use crate::db::search as db;
 use crate::db::sqlite::SqlitePool;
 use crate::handler::SearchQuery;
-use crate::interop::search::{SearchDeck, SearchResults};
+use crate::interop::search::SearchResults;
 use crate::interop::IdParam;
 use crate::session;
 use actix_web::web::{Data, Path, Query};
@@ -80,22 +80,7 @@ pub async fn additional_search_for_decks(
     // search deck, article_extras etc tables for text similar to deck_id's title
     // ignore anything that explicitly links back to the deck
     //
-    let deck_level_results = db::additional_search_at_deck_level(&sqlite_pool, user_id, deck_id)?;
-
-    let note_level_results = db::additional_search_at_note_level(&sqlite_pool, user_id, deck_id)?;
-
-    // deck_level_results take priority as they will probably be more relevant.
-    // so dedupe the search_results from the seek_results
-    //
-    let deduped_deck_level_results: Vec<SearchDeck> = deck_level_results
-        .into_iter()
-        .filter(|search_deck| !has(search_deck, &note_level_results))
-        .collect();
-
-    let res = SearchResults {
-        deck_level: deduped_deck_level_results,
-        note_level: note_level_results,
-    };
+    let res = db::additional_search_at_deck_level(&sqlite_pool, user_id, deck_id)?;
 
     Ok(HttpResponse::Ok().json(res))
 }
@@ -105,30 +90,11 @@ pub async fn search_at_all_levels(
     session: actix_session::Session,
     Query(query): Query<SearchQuery>,
 ) -> crate::Result<HttpResponse> {
-    info!("search_at_note_level '{}'", &query.q);
+    info!("search_at_all_levels '{}'", &query.q);
 
     let user_id = session::user_id(&session)?;
 
-    let deck_level_results = db::search_at_deck_level(&sqlite_pool, user_id, &query.q)?;
-    let note_level_results = db::search_at_note_level(&sqlite_pool, user_id, &query.q)?;
-
-    // dedupe deck_level against note_level
-    //
-    let deduped_deck_level_results: Vec<SearchDeck> = deck_level_results
-        .into_iter()
-        .filter(|search_deck| !has(search_deck, &note_level_results))
-        .collect();
-
-    let res = SearchResults {
-        deck_level: deduped_deck_level_results,
-        note_level: note_level_results,
-    };
+    let res = db::search_at_all_levels(&sqlite_pool, user_id, &query.q)?;
 
     Ok(HttpResponse::Ok().json(res))
-}
-
-fn has(search_deck: &SearchDeck, search_decks: &[SearchDeck]) -> bool {
-    search_decks
-        .iter()
-        .any(|s| s.deck.id == search_deck.deck.id)
 }
