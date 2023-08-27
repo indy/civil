@@ -235,7 +235,7 @@ fn sqlite_augment(
     person.events = events_db::all_events_during_life(sqlite_pool, user_id, person_id)?;
     person.points = points_db::all_points_during_life(sqlite_pool, user_id, person_id)?;
     person.notes = notes_db::notes_for_deck(sqlite_pool, person_id)?;
-    person.back_decks = notes_db::backdecks_for_deck(sqlite_pool, person_id)?;
+    person.arrivals = notes_db::arrivals_for_deck(sqlite_pool, person_id)?;
     person.flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, person_id)?;
 
     Ok(())

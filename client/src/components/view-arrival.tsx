@@ -1,6 +1,6 @@
 import { h } from "preact";
 
-import { FatDeck, BackDeck, Note, Passage, Reference } from "types";
+import { FatDeck, Arrival, Note, Passage, Reference } from "types";
 
 import DeckLink from "components/deck-link";
 import Expandable from "components/expandable";
@@ -8,36 +8,36 @@ import buildMarkup from "components/build-markup";
 import ViewReference from "components/view-reference";
 import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
 
-type ViewBackDeckProps = {
+type ViewArrivalProps = {
     deck: FatDeck;
-    backDeck: BackDeck;
+    arrival: Arrival;
 };
 
-export default function ViewBackDeck({ deck, backDeck }: ViewBackDeckProps) {
+export default function ViewArrival({ deck, arrival }: ViewArrivalProps) {
     let heading = (
         <span class="font-size-1-point-6">
-            <DeckLink slimDeck={backDeck.deck} />
+            <DeckLink slimDeck={arrival.deck} />
         </span>
     );
 
     return (
         <Expandable heading={heading}>
-            {backDeck.passages.map((passage) => (
-                <ViewPassageWithinBackDeck deck={deck} passage={passage} />
+            {arrival.passages.map((passage) => (
+                <ViewPassageWithinArrival deck={deck} passage={passage} />
             ))}
         </Expandable>
     );
 }
 
-type ViewPassageWithinBackDeckProps = {
+type ViewPassageWithinArrivalProps = {
     deck: FatDeck;
     passage: Passage;
 };
 
-function ViewPassageWithinBackDeck({
+function ViewPassageWithinArrival({
     deck,
     passage,
-}: ViewPassageWithinBackDeckProps) {
+}: ViewPassageWithinArrivalProps) {
     function buildRef(ref: Reference) {
         return (
             <ViewReference reference={ref} extraClasses="left-margin-entry" />
@@ -66,7 +66,7 @@ function ViewPassageWithinBackDeck({
         if (linkingRef) {
             annotation = linkingRef.annotation;
         } else {
-            console.error(`Deck not a ref in BackDeck ???? id:${deck.id}???`);
+            console.error(`Deck not a ref in Arrival ???? id:${deck.id}???`);
         }
 
         return (

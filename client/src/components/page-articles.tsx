@@ -29,7 +29,7 @@ import InsigniaSelector from "components/insignia-selector";
 import LeftMarginHeadingNoWrap from "components/left-margin-heading-no-wrap";
 import { Module } from "components/module";
 import Pagination from "components/pagination";
-import SegmentBackDecks from "components/segment-back-decks";
+import SegmentArrivals from "components/segment-arrivals";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import SegmentGraph from "components/segment-graph";
 import SegmentNotes from "components/segment-notes";
@@ -255,7 +255,7 @@ function Article({ path, id }: { path?: string; id?: string }) {
                     canShowPassage={deckManager.canShowPassage}
                     onUpdateDeck={deckManager.update}
                 />
-                <SegmentBackDecks deck={deck} />
+                <SegmentArrivals deck={deck} />
                 <SegmentSearchResults id={id} font={deck.font} />
                 <SegmentGraph depth={2} deck={deck} />
             </article>

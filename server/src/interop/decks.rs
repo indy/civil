@@ -170,7 +170,7 @@ pub struct Pagination<T> {
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct BackDeck {
+pub struct Arrival {
     pub notes: Vec<Note>,
     pub deck: SlimDeck,
 }

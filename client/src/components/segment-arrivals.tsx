@@ -1,41 +1,41 @@
 import { ComponentChildren, h } from "preact";
 
-import { BackDeck, DeckKind, FatDeck, Font, RenderingDeckPart } from "types";
+import { Arrival, DeckKind, FatDeck, Font, RenderingDeckPart } from "types";
 
 import { immutableState } from "app-state";
 import { deckKindToHeadingString } from "shared/deck";
 import { fontClass } from "shared/font";
 
 import Expandable from "components/expandable";
-import ViewBackDeck from "components/view-back-deck";
+import ViewArrival from "components/view-arrival";
 import RollableSegment from "components/rollable-segment";
 
-export default function SegmentBackDecks({ deck }: { deck?: FatDeck }) {
+export default function SegmentArrivals({ deck }: { deck?: FatDeck }) {
     const font = deck ? deck.font : immutableState.defaultFont;
 
     const allGroups: Array<ComponentChildren> = [];
     if (deck) {
-        const group = deck.backDecksGrouped;
+        const group = deck.groupedArrivals;
         immutableState.deckKindOrder.forEach((deckKind: DeckKind) => {
             if (group[deckKind].length > 0) {
                 allGroups.push(
-                    <GroupedBackDecks
+                    <GroupedArrivals
                         deck={deck}
                         font={font}
-                        backDecks={group[deckKind]}
+                        arrivals={group[deckKind]}
                     />
                 );
             }
         });
     }
 
-    // don't even show the backdecks rollable segment if there are no backdeck groups
+    // don't even show the arrivals rollable segment if there are no arrival groups
     const invisible = allGroups.length === 0;
 
     return (
         <RollableSegment
-            extraClasses="c-segment-back-refs"
-            heading="BackDecks"
+            extraClasses="c-segment-arrivals"
+            heading="Incoming References"
             font={font}
             invisible={invisible}
         >
@@ -44,23 +44,23 @@ export default function SegmentBackDecks({ deck }: { deck?: FatDeck }) {
     );
 }
 
-function GroupedBackDecks({
+function GroupedArrivals({
     deck,
-    backDecks,
+    arrivals,
     font,
 }: {
     deck: FatDeck;
-    backDecks: Array<BackDeck>;
+    arrivals: Array<Arrival>;
     font: Font;
 }) {
-    let list = backDecks.map((backDeck) => {
-        return <ViewBackDeck deck={deck} backDeck={backDeck} />;
+    let list = arrivals.map((arrival) => {
+        return <ViewArrival deck={deck} arrival={arrival} />;
     });
 
     let segmentHeading: string = deckKindToHeadingString(
-        backDecks[0].deck.deckKind
+        arrivals[0].deck.deckKind
     );
-    let segmentId = backDecks[0].deck.id;
+    let segmentId = arrivals[0].deck.id;
 
     let headerClass =
         "font-size-2rem " + fontClass(font, RenderingDeckPart.UiInterleaved);

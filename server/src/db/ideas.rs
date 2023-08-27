@@ -37,7 +37,7 @@ fn idea_from_row(row: &Row) -> crate::Result<interop::Idea> {
         graph_terminator: row.get(3)?,
         created_at: row.get(2)?,
         notes: vec![],
-        back_decks: vec![],
+        arrivals: vec![],
         flashcards: vec![],
     })
 }

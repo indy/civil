@@ -38,7 +38,7 @@ import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import Pagination from "components/pagination";
 import PointForm from "components/point-form";
 import RollableSegment from "components/rollable-segment";
-import SegmentBackDecks from "components/segment-back-decks";
+import SegmentArrivals from "components/segment-arrivals";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import SegmentGraph from "components/segment-graph";
 import SegmentNotes from "components/segment-notes";
@@ -273,7 +273,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
                     onUpdateDeck={deckManager.update}
                 />
 
-                <SegmentBackDecks deck={deck} />
+                <SegmentArrivals deck={deck} />
 
                 <SegmentSearchResults id={id} font={deck.font} />
                 {hasKnownLifespan && (

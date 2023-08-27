@@ -163,7 +163,7 @@ fn sqlite_augment(
     idea_id: Key,
 ) -> crate::Result<()> {
     idea.notes = notes_db::notes_for_deck(sqlite_pool, idea_id)?;
-    idea.back_decks = notes_db::backdecks_for_deck(sqlite_pool, idea_id)?;
+    idea.arrivals = notes_db::arrivals_for_deck(sqlite_pool, idea_id)?;
     idea.flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, idea_id)?;
 
     Ok(())

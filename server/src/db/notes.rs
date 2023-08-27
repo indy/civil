@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::{BackDeck, DeckKind, Ref, RefKind, SlimDeck};
+use crate::interop::decks::{Arrival, DeckKind, Ref, RefKind, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::notes as interop;
 use crate::interop::Key;
@@ -214,10 +214,10 @@ fn notes_from_notes_and_refs(notes_and_refs: Vec<NoteAndRef>) -> crate::Result<V
     Ok(res)
 }
 
-pub(crate) fn backdecks_for_deck(
+pub(crate) fn arrivals_for_deck(
     sqlite_pool: &SqlitePool,
     deck_id: Key,
-) -> crate::Result<Vec<BackDeck>> {
+) -> crate::Result<Vec<Arrival>> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT   n.id,
@@ -254,21 +254,21 @@ pub(crate) fn backdecks_for_deck(
         note_and_ref_and_deck_from_row,
     )?;
 
-    let notes = backnotes_from_notes_and_refs_and_decks(notes_and_refs_and_decks)?;
+    let notes = arrivals_from_notes_and_refs_and_decks(notes_and_refs_and_decks)?;
 
     Ok(notes)
 }
 
-fn backnotes_from_notes_and_refs_and_decks(
+fn arrivals_from_notes_and_refs_and_decks(
     notes_and_refs_and_decks: Vec<NoteAndRefAndDeck>,
-) -> crate::Result<Vec<BackDeck>> {
-    let mut res: Vec<BackDeck> = vec![];
+) -> crate::Result<Vec<Arrival>> {
+    let mut res: Vec<Arrival> = vec![];
 
     for note_and_ref_and_deck in notes_and_refs_and_decks {
         // only check the last element in the vector since the rows have been ordered by note id
         //
         if res.is_empty() || res[res.len() - 1].deck.id != note_and_ref_and_deck.deck.id {
-            res.push(BackDeck {
+            res.push(Arrival {
                 notes: vec![],
                 deck: note_and_ref_and_deck.deck,
             });

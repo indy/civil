@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::{BackDeck, DeckKind};
+use crate::interop::decks::{Arrival, DeckKind};
 use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
 use crate::interop::notes::Note;
@@ -33,7 +33,7 @@ pub struct Quote {
 
     // will always be a single note
     pub notes: Vec<Note>,
-    pub back_decks: Vec<BackDeck>,
+    pub arrivals: Vec<Arrival>,
 
     pub flashcards: Vec<FlashCard>,
 }

@@ -24,7 +24,7 @@ import { CivContainer, CivMain, CivMainUi } from "components/civil-layout";
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";
 import ModalKeyboardHelp from "components/modal-keyboard-help";
-import SegmentBackDecks from "components/segment-back-decks";
+import SegmentArrivals from "components/segment-arrivals";
 import SegmentNotes from "components/segment-notes";
 import TopBarMenu from "components/top-bar-menu";
 import useDeckManager from "components/use-deck-manager";
@@ -336,7 +336,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                     onDelete={onDeleteFn(deck.id)}
                 />
 
-                <SegmentBackDecks deck={deck} />
+                <SegmentArrivals deck={deck} />
 
                 <WhenNoPhysicalKeyboard>
                     <QuoteButtons quoteId={quoteId} />

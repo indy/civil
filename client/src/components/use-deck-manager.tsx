@@ -2,7 +2,7 @@ import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import {
-    BackDeck,
+    Arrival,
     CivilMode,
     DeckKind,
     FatDeck,
@@ -344,9 +344,9 @@ function dmsUpdateDeck<T extends FatDeck>(
     applyCardsToNotes(deck);
     // organise the notes into noteSeqs
     buildNotePassages(deck);
-    // build passages for the backDecks and then partition them by deck kind
-    buildBackDeckPassages(deck);
-    buildBackNotesGroupedByKind(deck);
+    // build passages for the arrivals and then partition them by deck kind
+    buildArrivalPassages(deck);
+    buildGroupedArrivals(deck);
 
     AppStateChange.urlTitle({ title: deck.title });
     AppStateChange.routeChanged({ url: buildUrl(deckKind, deck.id) });
@@ -526,14 +526,14 @@ function buildNotePassages<T extends FatDeck>(deck: T) {
     return deck;
 }
 
-function buildBackDeckPassages<T extends FatDeck>(deck: T) {
-    deck.backDecks.forEach((d) => {
-        d.passages = createMultiplePassages(d.notes);
+function buildArrivalPassages<T extends FatDeck>(deck: T) {
+    deck.arrivals.forEach((arrival) => {
+        arrival.passages = createMultiplePassages(arrival.notes);
     });
 }
 
-function buildBackNotesGroupedByKind<T extends FatDeck>(deck: T) {
-    let groupedByDeckKind: Record<DeckKind, Array<BackDeck>> = {
+function buildGroupedArrivals<T extends FatDeck>(deck: T) {
+    let groupedByDeckKind: Record<DeckKind, Array<Arrival>> = {
         [DeckKind.Article]: [],
         [DeckKind.Person]: [],
         [DeckKind.Idea]: [],
@@ -543,11 +543,11 @@ function buildBackNotesGroupedByKind<T extends FatDeck>(deck: T) {
         [DeckKind.Event]: [],
     };
 
-    deck.backDecks.forEach((bn: BackDeck) => {
+    deck.arrivals.forEach((bn: Arrival) => {
         groupedByDeckKind[bn.deck.deckKind].push(bn);
     });
 
-    deck.backDecksGrouped = groupedByDeckKind;
+    deck.groupedArrivals = groupedByDeckKind;
 
     return deck;
 }

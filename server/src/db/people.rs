@@ -40,7 +40,7 @@ fn person_with_sortdate_from_row(row: &Row) -> crate::Result<interop::Person> {
         points: vec![],
         events: vec![],
         notes: vec![],
-        back_decks: vec![],
+        arrivals: vec![],
         flashcards: vec![],
     })
 }
@@ -58,7 +58,7 @@ fn person_from_row(row: &Row) -> crate::Result<interop::Person> {
         points: vec![],
         events: vec![],
         notes: vec![],
-        back_decks: vec![],
+        arrivals: vec![],
         flashcards: vec![],
     })
 }

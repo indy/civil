@@ -16,7 +16,7 @@ import InsigniaSelector from "components/insignia-selector";
 import { Module } from "components/module";
 import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import Pagination from "components/pagination";
-import SegmentBackDecks from "components/segment-back-decks";
+import SegmentArrivals from "components/segment-arrivals";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import SegmentGraph from "components/segment-graph";
 import SegmentNotes from "components/segment-notes";
@@ -170,7 +170,7 @@ function Idea({ path, id }: { path?: string; id?: string }) {
                     onRefsChanged={deckManager.onRefsChanged}
                     onUpdateDeck={deckManager.update}
                 />
-                <SegmentBackDecks deck={deck} />
+                <SegmentArrivals deck={deck} />
                 <SegmentSearchResults id={id} font={deck.font} />
                 <SegmentGraph depth={2} deck={deck} />
             </article>

@@ -69,7 +69,7 @@ impl From<(decks::DeckBase, EventExtra)> for interop::Event {
             importance: extra.importance,
 
             notes: vec![],
-            back_decks: vec![],
+            arrivals: vec![],
 
             flashcards: vec![],
         }
@@ -117,7 +117,7 @@ fn from_row(row: &Row) -> crate::Result<interop::Event> {
         importance: row.get(13)?,
 
         notes: vec![],
-        back_decks: vec![],
+        arrivals: vec![],
         flashcards: vec![],
     })
 }

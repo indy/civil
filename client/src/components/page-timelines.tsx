@@ -26,7 +26,7 @@ import { Module } from "components/module";
 import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import Pagination from "components/pagination";
 import RollableSegment from "components/rollable-segment";
-import SegmentBackDecks from "components/segment-back-decks";
+import SegmentArrivals from "components/segment-arrivals";
 import SegmentDeckRefs from "components/segment-deck-refs";
 import SegmentGraph from "components/segment-graph";
 import SegmentNotes from "components/segment-notes";
@@ -164,7 +164,7 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                     canShowPassage={deckManager.canShowPassage}
                     onUpdateDeck={deckManager.update}
                 />
-                <SegmentBackDecks deck={deck} />
+                <SegmentArrivals deck={deck} />
 
                 <SegmentPoints
                     points={deck.points}

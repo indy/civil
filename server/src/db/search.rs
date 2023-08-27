@@ -18,7 +18,7 @@
 use crate::db::notes as db_notes;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::db::{postfix_asterisks, sanitize_for_sqlite_match};
-use crate::interop::decks::{BackDeck, DeckKind, Ref, RefKind, SlimDeck};
+use crate::interop::decks::{Arrival, DeckKind, Ref, RefKind, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::notes::{Note, NoteKind};
 use crate::interop::search as interop;
@@ -196,22 +196,22 @@ pub(crate) fn additional_search_at_deck_level(
 
     // explicitly connected decks should be excluded from search results
     //
-    let backdecks = db_notes::backdecks_for_deck(&sqlite_pool, deck_id)?;
+    let arrivals = db_notes::arrivals_for_deck(&sqlite_pool, deck_id)?;
 
     let deck_level_results = search_at_deck_level_base(sqlite_pool, user_id, &sane_name, true)?;
 
-    // dedupe deck_level_results against the backdecks
+    // dedupe deck_level_results against the arrivals
     let deck_level_results: Vec<interop::SearchDeck> = deck_level_results
         .into_iter()
-        .filter(|br| br.deck.id != deck_id && !in_backdecks(br, &backdecks))
+        .filter(|br| br.deck.id != deck_id && !in_arrivals(br, &arrivals))
         .collect();
 
     let note_level_results = additional_search_at_note_level(&sqlite_pool, user_id, deck_id)?;
 
-    // dedupe note_level_results against the backdecks
+    // dedupe note_level_results against the arrivals
     let note_level_results: Vec<interop::SearchDeck> = note_level_results
         .into_iter()
-        .filter(|br| br.deck.id != deck_id && !in_backdecks(br, &backdecks))
+        .filter(|br| br.deck.id != deck_id && !in_arrivals(br, &arrivals))
         .collect();
 
     // deck_level_results take priority as they will probably be more relevant.
@@ -236,8 +236,8 @@ fn in_searchdecks(search_deck: &interop::SearchDeck, search_decks: &[interop::Se
         .any(|s| s.deck.id == search_deck.deck.id)
 }
 
-fn in_backdecks(searchdeck: &interop::SearchDeck, backdecks: &[BackDeck]) -> bool {
-    backdecks.iter().any(|br| br.deck.id == searchdeck.deck.id)
+fn in_arrivals(searchdeck: &interop::SearchDeck, arrivals: &[Arrival]) -> bool {
+    arrivals.iter().any(|br| br.deck.id == searchdeck.deck.id)
 }
 
 fn get_name_of_deck(conn: &Connection, deck_id: Key) -> crate::Result<String> {

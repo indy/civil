@@ -94,7 +94,7 @@ export type Reference = SlimDeck & {
     annotation?: string;
 };
 
-export type BackDeck = {
+export type Arrival = {
     notes: Notes;
     deck: SlimDeck;
 
@@ -149,13 +149,13 @@ export type FatDeck = SlimDeck & {
     // received from server and then modified by the client
     //
     notes: Notes;
-    backDecks: Array<BackDeck>;
+    arrivals: Array<Arrival>;
 
     // generated client side with data from server
     //
     passage: Record<NoteKind, Passage>;
     passageForPoint?: Record<Key, Passage>;
-    backDecksGrouped: Record<DeckKind, Array<BackDeck>>;
+    groupedArrivals: Record<DeckKind, Array<Arrival>>;
 };
 
 export type ChatMessage = {
