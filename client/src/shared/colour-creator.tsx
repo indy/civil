@@ -6,6 +6,10 @@ import {
     ColourSeeds,
 } from "types";
 
+// const H: number = 0;
+// const S: number = 1;
+const L: number = 2;
+
 type ColourDefinitions = {
     [index: string]: string | ColourTriple | ColourQuad | undefined;
 };
@@ -77,12 +81,13 @@ function declareSeeds(colourScheme: ColourScheme): ColourSeeds {
             uiFactor: 0.88,
             uiActiveFactor: 0.8,
 
-            bgH: 46.5,
-            bgS: 20.0,
+            hue: 67,
+            sat: 20,
+
             bgL: 99.0,
             bgLDelta: -3,
 
-            fgH: 16.7,
+            fgH: 67,
             fgS: 0,
             fgL: 5.0,
             fgLDelta: 10.0,
@@ -92,21 +97,17 @@ function declareSeeds(colourScheme: ColourScheme): ColourSeeds {
 
             clockHDelta: 30,
 
-            clockFgH: 67,
-            clockFgS: 60,
             clockFgL: 53.6,
-
-            clockBgH: 67,
-            clockBgS: 60,
-            clockBgL: 89.9,
+            clockBgL: 93,
         };
     } else {
         s = {
             uiFactor: 20.0,
             uiActiveFactor: 40.0,
 
-            bgH: 230.0,
-            bgS: 20.0,
+            hue: 230.0,
+            sat: 20.0,
+
             bgL: 1,
             bgLDelta: 3,
 
@@ -120,12 +121,7 @@ function declareSeeds(colourScheme: ColourScheme): ColourSeeds {
 
             clockHDelta: 30,
 
-            clockBgH: 67.1,
-            clockBgS: 90.5,
             clockBgL: 30.0,
-
-            clockFgH: 65.7,
-            clockFgS: 90.5,
             clockFgL: 80,
         };
     }
@@ -136,19 +132,19 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
     let defs: ColourDefinitions = {};
 
     for (let i = 0; i < 12; i++) {
-        let hueFg = seeds.clockFgH + i * seeds.clockHDelta;
-        let hueBg = seeds.clockBgH + i * seeds.clockHDelta;
+        let hueFg = seeds.hue + i * seeds.clockHDelta;
+        let hueBg = seeds.hue + i * seeds.clockHDelta;
 
         let index = indexAsString(i);
 
         defs[`fg_clock_${index}`] = [
             hueFg,
-            seeds.clockFgS,
+            seeds.sat + 30,
             seeds.clockFgL,
         ] as ColourTriple;
         defs[`bg_clock_${index}`] = [
             hueBg,
-            seeds.clockBgS,
+            seeds.sat + 30,
             seeds.clockBgL,
         ] as ColourTriple;
     }
@@ -159,26 +155,16 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
     defs = {
         ...defs,
 
-        ui_control_highlight: [
-            seeds.bgH,
-            seeds.bgS,
+        ui_highlight: [
+            seeds.hue,
+            seeds.sat,
             seeds.bgL * seeds.uiFactor,
             0.4,
         ] as ColourQuad,
 
-        ui_control_shadow: [
-            seeds.bgH,
-            seeds.bgS,
-            seeds.bgL * 0.2,
-            0.1,
-        ] as ColourQuad,
+        ui_shadow: [seeds.hue, seeds.sat, seeds.bgL * 0.2, 0.1] as ColourQuad,
 
-        ui_control_shadow_2: [
-            seeds.bgH,
-            seeds.bgS,
-            seeds.bgL * 0.1,
-            0.1,
-        ] as ColourQuad,
+        ui_shadow_2: [seeds.hue, seeds.sat, seeds.bgL * 0.1, 0.1] as ColourQuad,
 
         bg_ideas: "--bg-clock-06",
         bg_articles: "--bg-clock-12",
@@ -279,8 +265,8 @@ function bgCol(
     name: string
 ): ColourDefinitions {
     defs[name] = [
-        seeds.bgH,
-        seeds.bgS,
+        seeds.hue,
+        seeds.sat,
         seeds.bgL + seeds.bgLDelta * factor,
     ] as ColourTriple;
 
@@ -305,27 +291,27 @@ function fgCol(
 function addTopMenuColours(
     defs: ColourDefinitions,
     seeds: ColourSeeds,
-    factor: number,
+    hue_offset: number,
     name: string
 ): ColourDefinitions {
     defs[`bg_${name}`] = [
-        seeds.clockBgH + factor,
-        seeds.clockBgS - 30,
-        seeds.clockBgL,
+        seeds.hue + hue_offset,
+        seeds.sat,
+        defs["bg_darker_2"]![L],
     ] as ColourTriple;
     defs[`bg_${name}_active`] = [
-        seeds.clockBgH + factor,
-        seeds.clockBgS + 50,
-        seeds.clockBgL,
+        seeds.hue + hue_offset,
+        seeds.sat + 80,
+        defs["bg_darker_2"]![L],
     ] as ColourTriple;
     defs[`fg_${name}`] = [
-        seeds.clockFgH + factor,
-        seeds.clockFgS - 30,
+        seeds.hue + hue_offset,
+        seeds.sat,
         seeds.clockFgL,
     ] as ColourTriple;
     defs[`fg_${name}_active`] = [
-        seeds.clockFgH + factor,
-        seeds.clockFgS + 50,
+        seeds.hue + hue_offset,
+        seeds.sat + 80,
         seeds.clockFgL,
     ] as ColourTriple;
 

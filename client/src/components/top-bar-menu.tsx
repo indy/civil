@@ -51,7 +51,7 @@ export default function TopBarMenu() {
 
     function menuItemClass(topMenuItem: string): string {
         if (appState.urlTitle.value === topMenuItem) {
-            return `pigment-top-menu-${topMenuItem}-active`;
+            return `pigment-top-menu-${topMenuItem}-active inset-shadow`;
         } else {
             return `pigment-top-menu-${topMenuItem}`;
         }
