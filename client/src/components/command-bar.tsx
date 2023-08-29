@@ -261,6 +261,14 @@ export default function CommandBar() {
         }
     }
 
+    function navigate(url: string, title?: string) {
+        let urlTitle = title ? title : url.slice(1);
+        AppStateChange.urlTitle({ title: urlTitle });
+        AppStateChange.mode({ mode: CivilMode.View });
+        AppStateChange.commandBarResetAndHide();
+        route(url);
+    }
+
     function onKeyDown(e: KeyboardEvent) {
         if (e.key === "Escape") {
             if (appState.mode.value !== CivilMode.View) {
@@ -359,7 +367,7 @@ export default function CommandBar() {
                   p : quotes: prev quote
                   q
                   r : toolbar: refs
-                  s
+                  s : goto full search page
                   t : special: toggle showing deck update form (me_T_adata)
                   u
                   v
@@ -367,7 +375,6 @@ export default function CommandBar() {
                   x
                   y
                   z
-
                 */
                 if (
                     appState.componentRequiresFullKeyboardAccess.value === false
@@ -375,10 +382,7 @@ export default function CommandBar() {
                     // we can treat any keypresses as modal commands for the app
                     switch (code) {
                         case "KeyH":
-                            AppStateChange.urlTitle({ title: "home" });
-                            AppStateChange.mode({ mode: CivilMode.View });
-                            AppStateChange.commandBarResetAndHide();
-                            route("/");
+                            navigate("/", "home");
                             break;
                         case "KeyB":
                             modeToggle(appState, CivilMode.BookmarkLinks);
@@ -394,6 +398,9 @@ export default function CommandBar() {
                             break;
                         case "KeyM":
                             modeToggle(appState, CivilMode.Memorise);
+                            break;
+                        case "KeyS":
+                            navigate("/search");
                             break;
                         case "KeyT":
                             if (appState.wantToShowDeckUpdateForm.value) {
