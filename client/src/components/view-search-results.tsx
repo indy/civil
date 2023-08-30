@@ -14,20 +14,36 @@ export default function ViewSearchResults({
 }: {
     searchResults: SearchResults;
 }) {
+    if (
+        searchResults.noteLevel.length === 0 &&
+        searchResults.deckLevel.length === 0
+    ) {
+        return (
+            <div class="c-civil-search-results">
+                <CivContainer>
+                    <CivMain extraClasses="ui">0 Results returned</CivMain>
+                </CivContainer>
+            </div>
+        );
+    }
+
     const noteLevel = searchResults.noteLevel.map((searchDeck) => (
         <ViewSearchDeck searchDeck={searchDeck} />
     ));
-    const deckLevel = searchResults.deckLevel.map((searchDeck) => (
-        <ListingLink slimDeck={searchDeck.deck} />
-    ));
+
+    const deckLevel = (
+        <CivContainer>
+            <CivMain>
+                {searchResults.deckLevel.map((searchDeck) => (
+                    <ListingLink slimDeck={searchDeck.deck} />
+                ))}
+            </CivMain>
+        </CivContainer>
+    );
 
     return (
         <div class="c-civil-search-results">
-            <CivContainer>
-                <CivMain>
-                    <ul>{deckLevel}</ul>
-                </CivMain>
-            </CivContainer>
+            {deckLevel}
             {noteLevel}
         </div>
     );
