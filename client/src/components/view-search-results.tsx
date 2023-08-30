@@ -1,6 +1,14 @@
 import { h } from "preact";
 
-import { Note, Reference, SearchDeck, SearchResults } from "types";
+import {
+    Note,
+    Reference,
+    RenderingDeckPart,
+    SearchDeck,
+    SearchResults,
+} from "types";
+
+import { fontClass } from "shared/font";
 
 import buildMarkup from "components/build-markup";
 import { CivContainer, CivLeft, CivMain } from "components/civil-layout";
@@ -34,15 +42,17 @@ export default function ViewSearchResults({
     const deckLevel = (
         <CivContainer>
             <CivMain>
-                {searchResults.deckLevel.map((searchDeck) => (
-                    <ListingLink slimDeck={searchDeck.deck} />
-                ))}
+                <ul>
+                    {searchResults.deckLevel.map((searchDeck) => (
+                        <ListingLink slimDeck={searchDeck.deck} />
+                    ))}
+                </ul>
             </CivMain>
         </CivContainer>
     );
 
     return (
-        <div class="c-civil-search-results">
+        <div class="c-view-search-results">
             {deckLevel}
             {noteLevel}
         </div>
@@ -60,11 +70,11 @@ function ViewSearchDeck({ searchDeck }: { searchDeck: SearchDeck }) {
         </span>
     );
 
+    const tc = fontClass(searchDeck.deck.font, RenderingDeckPart.Body);
+    const extraClasses = `c-render-search-deck margin-top-3 ${tc}`;
+
     return (
-        <Expandable
-            extraClasses="c-render-search-deck margin-top-3"
-            heading={heading}
-        >
+        <Expandable extraClasses={extraClasses} heading={heading}>
             {searchNoteEntries}
         </Expandable>
     );
