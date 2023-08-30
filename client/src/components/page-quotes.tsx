@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { route } from "preact-router";
-import { useEffect } from "preact/hooks";
+import { useState, useEffect } from "preact/hooks";
 
 import {
     DeckKind,
@@ -11,16 +11,23 @@ import {
     Key,
     NoteKind,
     QuoteExtras,
+    SearchResults,
 } from "types";
 
 import { AppStateChange, immutableState } from "app-state";
 import buildMarkup from "components/build-markup";
 import { deckKindToHeadingString } from "shared/deck";
 import Net from "shared/net";
+import { sanitize } from "shared/search";
 
 import CivilButton from "components/civil-button";
 import CivilInput from "components/civil-input";
-import { CivContainer, CivMain, CivMainUi } from "components/civil-layout";
+import {
+    CivContainer,
+    CivMain,
+    CivMainUi,
+    CivLeft,
+} from "components/civil-layout";
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";
 import ModalKeyboardHelp from "components/modal-keyboard-help";
@@ -31,6 +38,7 @@ import useDeckManager from "components/use-deck-manager";
 import useLocalReducer from "components/use-local-reducer";
 import useModalKeyboard from "components/use-modal-keyboard";
 import WhenNoPhysicalKeyboard from "components/when-no-physical-keyboard";
+import ViewSearchResults from "components/view-search-results";
 
 enum ActionType {
     ShowAddForm,
@@ -198,19 +206,37 @@ function QuotesModule({}) {
         </span>
     );
 
+    const [results, setResults] = useState({
+        deckLevel: [],
+        noteLevel: [],
+    } as SearchResults);
+
+    function performQuoteSearch(content: string) {
+        let sanitized: string = sanitize(content);
+        if (sanitized.length > 0) {
+            const url = `/api/quotes/search?q=${encodeURI(sanitized)}`;
+            Net.get<SearchResults>(url).then((response) => {
+                setResults(response);
+            });
+        }
+    }
+
     return (
-        <article class="module">
+        <article class="c-quotes-module module margin-top-9">
             <CivContainer>
+                <CivLeft>
+                    <h3 class="ui hack-margin-top-minus-half">
+                        {deckKindToHeadingString(DeckKind.Quote)}
+                    </h3>
+                </CivLeft>
                 <CivMainUi>
-                    <span class="module-top-part">
-                        <span class="button-row">{buttons}</span>
-                        <h1 class="ui">
-                            {deckKindToHeadingString(DeckKind.Quote)}
-                        </h1>
-                    </span>
+                    {buttons}
                     {local.showAddForm && renderAddForm()}
+                    <div class="margin-top-3"></div>
+                    <CivilInput onContentChange={performQuoteSearch} />
                 </CivMainUi>
             </CivContainer>
+            <ViewSearchResults searchResults={results} />
         </article>
     );
 }

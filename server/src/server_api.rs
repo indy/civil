@@ -108,8 +108,9 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         .service(
             scope("/quotes")
                 .route("", post().to(quotes::create))
-                .route("/random", get().to(quotes::random))
                 .route("/pagination", get().to(quotes::pagination))
+                .route("/random", get().to(quotes::random))
+                .route("/search", get().to(search::search_quotes))
                 .route("/{id}", get().to(quotes::get))
                 .route("/{id}", put().to(quotes::edit))
                 .route("/{id}", delete().to(quotes::delete))

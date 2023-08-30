@@ -133,6 +133,86 @@ pub(crate) fn search_at_all_levels(
     Ok(res)
 }
 
+pub(crate) fn search_quotes(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    query: &str,
+) -> crate::Result<interop::SearchResults> {
+    let quote_extras_results = search_at_quote_extras_level(sqlite_pool, user_id, query)?;
+    let mut note_level_results = search_quotes_at_note_level(sqlite_pool, user_id, query)?;
+
+    // dedupe quote_extras_level_results against note_level_results
+    //
+    let mut deduped_results: Vec<interop::SearchDeck> = quote_extras_results
+        .into_iter()
+        .filter(|search_deck| !in_searchdecks(search_deck, &note_level_results))
+        .collect();
+
+    deduped_results.append(&mut note_level_results);
+
+    let res = interop::SearchResults {
+        deck_level: vec![],
+        note_level: deduped_results,
+    };
+
+    Ok(res)
+}
+
+fn search_at_quote_extras_level(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    query: &str,
+) -> crate::Result<Vec<interop::SearchDeck>> {
+    let conn = sqlite_pool.get()?;
+    let q = postfix_asterisks(query)?;
+
+    // only search in the quote_extras since the deck.title will only
+    // be a shortened version of the actual quote
+
+    let stmt = "SELECT quote_extras_fts.rank AS rank,
+                       d.id, d.name, d.kind, d.graph_terminator, d.insignia, d.font,
+                       n.id, n.prev_note_id, n.kind,
+                       n.content,
+                       n.point_id, n.font,
+                       nd.deck_id, nd.kind, nd.annotation, d2.name, d2.kind,
+                       d2.graph_terminator, d2.insignia, d2.font
+               FROM quote_extras_fts
+                    LEFT JOIN decks d on d.id = quote_extras_fts.rowid
+                    LEFT JOIN notes n ON n.deck_id = d.id
+                    LEFT JOIN notes_decks nd on nd.note_id = n.id
+                    LEFT JOIN decks d2 on d2.id = nd.deck_id
+               WHERE quote_extras_fts match ?2
+                     AND d.user_id = ?1
+               ORDER BY rank ASC
+               LIMIT 100";
+    let search_deck_note_refs: Vec<SearchDeckNoteRef> = sqlite::many(
+        &conn,
+        stmt,
+        params![&user_id, &q],
+        searchdecknoteref_from_row,
+    )?;
+
+    build_search_deck(search_deck_note_refs)
+}
+
+fn search_quotes_at_note_level(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    query: &str,
+) -> crate::Result<Vec<interop::SearchDeck>> {
+    // be lazy, re-use the search_query fn and then filter for quotes
+    //
+    let search_deck_note_refs = search_query(sqlite_pool, user_id, query)?;
+    let search_decks = build_search_deck(search_deck_note_refs)?;
+
+    let search_quotes: Vec<interop::SearchDeck> = search_decks
+        .into_iter()
+        .filter(|search_deck| search_deck.deck.deck_kind == DeckKind::Quote)
+        .collect();
+
+    Ok(search_quotes)
+}
+
 pub(crate) fn search_at_deck_level(
     sqlite_pool: &SqlitePool,
     user_id: Key,
@@ -281,7 +361,7 @@ fn additional_search_at_note_level(
     //
     let search_deck_c: Vec<interop::SearchDeck> = search_deck_b
         .into_iter()
-        .filter(|search_deck| search_deck.notes.len() != 0)
+        .filter(|search_deck| !search_deck.notes.is_empty())
         .collect();
 
     Ok(search_deck_c)

@@ -98,3 +98,17 @@ pub async fn search_at_all_levels(
 
     Ok(HttpResponse::Ok().json(res))
 }
+
+pub async fn search_quotes(
+    sqlite_pool: Data<SqlitePool>,
+    session: actix_session::Session,
+    Query(query): Query<SearchQuery>,
+) -> crate::Result<HttpResponse> {
+    info!("search_quotes '{}'", &query.q);
+
+    let user_id = session::user_id(&session)?;
+
+    let res = db::search_quotes(&sqlite_pool, user_id, &query.q)?;
+
+    Ok(HttpResponse::Ok().json(res))
+}
