@@ -664,7 +664,6 @@ blockquote {
     border-left: 0.5rem solid var(--bg-darker-3);
     margin-left: 0;
     padding-left: 1rem;
-    font-style: italic; /* is this really needed? */
 }
 
 blockquote .right-margin-numbered,
