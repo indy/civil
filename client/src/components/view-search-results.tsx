@@ -9,6 +9,7 @@ import {
 } from "types";
 
 import { fontClass } from "shared/font";
+import { plural } from "shared/english";
 
 import buildMarkup from "components/build-markup";
 import { CivContainer, CivLeft, CivMain } from "components/civil-layout";
@@ -19,22 +20,11 @@ import ViewReference from "components/view-reference";
 
 export default function ViewSearchResults({
     searchResults,
+    timing,
 }: {
     searchResults: SearchResults;
+    timing: number;
 }) {
-    if (
-        searchResults.noteLevel.length === 0 &&
-        searchResults.deckLevel.length === 0
-    ) {
-        return (
-            <div class="c-civil-search-results">
-                <CivContainer>
-                    <CivMain extraClasses="ui">0 Results returned</CivMain>
-                </CivContainer>
-            </div>
-        );
-    }
-
     const noteLevel = searchResults.noteLevel.map((searchDeck) => (
         <ViewSearchDeck searchDeck={searchDeck} />
     ));
@@ -51,8 +41,23 @@ export default function ViewSearchResults({
         </CivContainer>
     );
 
+    let numResults =
+        searchResults.noteLevel.length + searchResults.deckLevel.length;
+    let status = plural(numResults, "result", "s");
+    if (numResults > 0) {
+        status += " returned";
+    }
+    if (timing > 0) {
+        status += ` in ${timing}ms`;
+    }
+
     return (
         <div class="c-view-search-results">
+            <CivContainer>
+                <CivMain extraClasses="ui display-flex-justify-right">
+                    {status}
+                </CivMain>
+            </CivContainer>
             {deckLevel}
             {noteLevel}
         </div>

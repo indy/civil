@@ -3,12 +3,13 @@ import { ComponentChildren, h } from "preact";
 import { Arrival, DeckKind, FatDeck, Font, RenderingDeckPart } from "types";
 
 import { immutableState } from "app-state";
+
 import { deckKindToHeadingString } from "shared/deck";
 import { fontClass } from "shared/font";
 
 import Expandable from "components/expandable";
-import ViewArrival from "components/view-arrival";
 import RollableSegment from "components/rollable-segment";
+import ViewArrival from "components/view-arrival";
 
 export default function SegmentArrivals({ deck }: { deck?: FatDeck }) {
     const font = deck ? deck.font : immutableState.defaultFont;

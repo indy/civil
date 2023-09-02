@@ -2,9 +2,9 @@ import { h } from "preact";
 
 import { Bookmark } from "types";
 
-import { deleteBookmark } from "shared/bookmarks";
-
 import { AppStateChange, getAppState } from "app-state";
+
+import { deleteBookmark } from "shared/bookmarks";
 
 import DeckLink from "components/deck-link";
 import { svgChevronDown, svgChevronUp, svgX } from "components/svg-icons";

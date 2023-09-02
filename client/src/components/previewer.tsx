@@ -4,9 +4,9 @@ import { Key, PreviewDeck } from "types";
 
 import { getAppState } from "app-state";
 
-import buildMarkup from "components/build-markup";
-
 import { visibleClass } from "shared/css";
+
+import buildMarkup from "components/build-markup";
 
 export default function Previewer() {
     const appState = getAppState();

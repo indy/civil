@@ -13,14 +13,14 @@ import {
 } from "types";
 
 import { AppStateChange, getAppState } from "app-state";
+
 import { addToolbarSelectableClasses } from "shared/css";
 import { fontClass } from "shared/font";
 
 import { CivContainer, CivMain } from "components/civil-layout";
 import CivilSelect from "components/civil-select";
-import ViewReference from "components/view-reference";
-
 import useMouseHovering from "components/use-mouse-hovering";
+import ViewReference from "components/view-reference";
 
 type Props = {
     deck: FatDeck;

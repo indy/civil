@@ -274,7 +274,9 @@ function Module({ heading, children, buttons }: Props) {
             <CivContainer>
                 <CivMainUi>
                     <span class="module-top-part">
-                        <span class="button-row">{buttons}</span>
+                        <span class="display-flex-justify-right">
+                            {buttons}
+                        </span>
                         <h1 class="ui">{heading}</h1>
                     </span>
                     {children}

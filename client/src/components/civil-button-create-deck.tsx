@@ -1,4 +1,5 @@
 import { h } from "preact";
+import { route } from "preact-router";
 import { useState } from "preact/hooks";
 
 import { DeckKind } from "types";
@@ -16,8 +17,12 @@ export default function CivilButtonCreateDeck({
     const [content, setContent] = useState("");
     const [showInput, setShowInput] = useState(false);
 
-    function toggleInput() {
-        setShowInput(!showInput);
+    function clickedButton() {
+        if (deckKind === DeckKind.Dialogue) {
+            route("/dialogues/chat", false);
+        } else {
+            setShowInput(!showInput);
+        }
     }
 
     function clickedCancel() {
@@ -60,6 +65,6 @@ export default function CivilButtonCreateDeck({
             </span>
         );
     } else {
-        return <CivilButton onClick={toggleInput}>{buttonLabel}</CivilButton>;
+        return <CivilButton onClick={clickedButton}>{buttonLabel}</CivilButton>;
     }
 }

@@ -28,6 +28,8 @@ export default function SegmentSearchResults({
     const [searchResults, setSearchResults]: [SearchResults, Function] =
         useState({ deckLevel: [], noteLevel: [] });
 
+    const [timing, setTiming] = useState(0);
+
     useEffect(() => {
         console.log(`/api/decks/${id}/additional_search`);
 
@@ -37,9 +39,10 @@ export default function SegmentSearchResults({
         // todo: change this to accept a search parameter, this will normally default to the idea.title
         // but would also allow differently worded but equivalent text
         //
-        Net.get<SearchResults>(`/api/decks/${id}/additional_search`).then(
-            (res) => {
+        Net.getTimed<SearchResults>(`/api/decks/${id}/additional_search`).then(
+            ([res, duration]) => {
                 setSearchResults(res);
+                setTiming(duration);
             }
         );
     }, [id]);
@@ -76,7 +79,10 @@ export default function SegmentSearchResults({
                 initiallyRolledUp
                 extraClasses="c-segment-search-results"
             >
-                <ViewSearchResults searchResults={searchResults} />
+                <ViewSearchResults
+                    searchResults={searchResults}
+                    timing={timing}
+                />
             </RollableSegment>
         );
     } else {

@@ -10,9 +10,9 @@ import {
     RefKind,
     RefsModified,
     RenderingDeckPart,
+    SearchResults,
     SlimDeck,
     State,
-    SearchResults,
 } from "types";
 
 import { AppStateChange, getAppState, immutableState } from "app-state";

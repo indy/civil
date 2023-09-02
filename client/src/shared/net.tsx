@@ -24,6 +24,13 @@ const Net = {
     getCORS: async function <TResp>(url: string): Promise<TResp> {
         return fetch(url).then((response) => response.json());
     },
+    getTimed: async function <TResp>(url: string): Promise<[TResp, number]> {
+        let before = Date.now();
+        let response = await go<void, TResp>("GET", url);
+        let after = Date.now();
+
+        return [response, after - before];
+    },
 };
 
 async function go<TData, TResp>(

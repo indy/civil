@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { route } from "preact-router";
-import { useState, useEffect } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 
 import {
     DeckKind,
@@ -15,18 +15,19 @@ import {
 } from "types";
 
 import { AppStateChange, immutableState } from "app-state";
-import buildMarkup from "components/build-markup";
+
 import { deckKindToHeadingString } from "shared/deck";
 import Net from "shared/net";
 import { sanitize } from "shared/search";
 
+import buildMarkup from "components/build-markup";
 import CivilButton from "components/civil-button";
 import CivilInput from "components/civil-input";
 import {
     CivContainer,
+    CivLeft,
     CivMain,
     CivMainUi,
-    CivLeft,
 } from "components/civil-layout";
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";
@@ -37,8 +38,8 @@ import TopBarMenu from "components/top-bar-menu";
 import useDeckManager from "components/use-deck-manager";
 import useLocalReducer from "components/use-local-reducer";
 import useModalKeyboard from "components/use-modal-keyboard";
-import WhenNoPhysicalKeyboard from "components/when-no-physical-keyboard";
 import ViewSearchResults from "components/view-search-results";
+import WhenNoPhysicalKeyboard from "components/when-no-physical-keyboard";
 
 enum ActionType {
     ShowAddForm,
@@ -211,12 +212,15 @@ function QuotesModule({}) {
         noteLevel: [],
     } as SearchResults);
 
+    const [timing, setTiming] = useState(0);
+
     function performQuoteSearch(content: string) {
         let sanitized: string = sanitize(content);
         if (sanitized.length > 0) {
             const url = `/api/quotes/search?q=${encodeURI(sanitized)}`;
-            Net.get<SearchResults>(url).then((response) => {
+            Net.getTimed<SearchResults>(url).then(([response, duration]) => {
                 setResults(response);
+                setTiming(duration);
             });
         }
     }
@@ -236,7 +240,7 @@ function QuotesModule({}) {
                     <CivilInput onContentChange={performQuoteSearch} />
                 </CivMainUi>
             </CivContainer>
-            <ViewSearchResults searchResults={results} />
+            <ViewSearchResults searchResults={results} timing={timing} />
         </article>
     );
 }

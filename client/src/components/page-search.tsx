@@ -1,15 +1,19 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import { SearchResults } from "types";
+import { CivilMode, Key, SearchResults } from "types";
 
+import { getAppState } from "app-state";
+
+import { addMultipleBookmarks } from "shared/bookmarks";
 import Net from "shared/net";
 import { sanitize } from "shared/search";
 
+import CivilButton from "components/civil-button";
 import CivilInput from "components/civil-input";
 import { CivContainer, CivLeft, CivMainUi } from "components/civil-layout";
-import ViewSearchResults from "components/view-search-results";
 import TopBarMenu from "components/top-bar-menu";
+import ViewSearchResults from "components/view-search-results";
 
 export default function Search({ path }: { path?: string }) {
     return (
@@ -21,20 +25,34 @@ export default function Search({ path }: { path?: string }) {
 }
 
 function SearchModule() {
+    const appState = getAppState();
+
     const [results, setResults] = useState({
         deckLevel: [],
         noteLevel: [],
     } as SearchResults);
 
+    const [timing, setTiming] = useState(0);
+
     function onReturnPressed(content: string) {
         let sanitized: string = sanitize(content);
         if (sanitized.length > 0) {
             const url = `/api/search/full?q=${encodeURI(sanitized)}`;
-            Net.get<SearchResults>(url).then((response) => {
+            Net.getTimed<SearchResults>(url).then(([response, duration]) => {
                 setResults(response);
+                setTiming(duration);
             });
         }
     }
+
+    function bookmarkAll() {
+        let deckIds: Array<Key> = [];
+        results.deckLevel.forEach((d) => deckIds.push(d.deck.id));
+        results.noteLevel.forEach((n) => deckIds.push(n.deck.id));
+        addMultipleBookmarks(deckIds);
+    }
+
+    const bookmarkMode = appState.mode.value === CivilMode.BookmarkLinks;
 
     // can't use a module since search will end up rendering user content
     //
@@ -45,10 +63,18 @@ function SearchModule() {
                     <h3 class="ui hack-margin-top-minus-half">Full Search</h3>
                 </CivLeft>
                 <CivMainUi>
-                    <CivilInput onReturnPressed={onReturnPressed} />
+                    {bookmarkMode && (
+                        <CivilButton onClick={bookmarkAll}>
+                            Bookmark All Results
+                        </CivilButton>
+                    )}
+                    <CivilInput
+                        elementClass="width-100"
+                        onReturnPressed={onReturnPressed}
+                    />
                 </CivMainUi>
             </CivContainer>
-            <ViewSearchResults searchResults={results} />
+            <ViewSearchResults searchResults={results} timing={timing} />
         </article>
     );
 }

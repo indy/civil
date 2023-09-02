@@ -13,11 +13,12 @@ import {
 } from "types";
 
 import { AppStateChange, getAppState } from "app-state";
-import { svgEdit } from "components/svg-icons";
+
 import Net from "shared/net";
 
 import { CivContainer, CivLeft } from "components/civil-layout";
 import NoteForm from "components/note-form";
+import { svgEdit } from "components/svg-icons";
 import ViewNote from "components/view-note";
 import WhenEditMode from "components/when-edit-mode";
 

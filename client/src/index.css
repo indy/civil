@@ -639,6 +639,20 @@ section {
     padding-bottom: 1rem;
 }
 
+.view-search-results-status {
+    margin-left: 2rem;
+    margin-top: 1rem;
+}
+
+.width-100 {
+    width: 100%;
+}
+
+.display-flex-justify-right {
+    display: flex;
+    justify-content: right;
+}
+
 .c-previewer p,
 .c-previewer ol,
 .c-previewer ul {
@@ -2417,11 +2431,6 @@ input:required {
 
 .icon-unselected {
     border: 0.2rem solid var(--bg);
-}
-
-.button-row {
-    display: flex;
-    justify-content: right;
 }
 
 /* Responsive adjustments

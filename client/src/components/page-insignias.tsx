@@ -2,11 +2,10 @@ import { h } from "preact";
 import { useState } from "preact/hooks";
 
 import InsigniaSelector from "components/insignia-selector";
+import { Module } from "components/module";
 import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import Pagination from "components/pagination";
 import TopBarMenu from "components/top-bar-menu";
-
-import { Module } from "components/module";
 
 export default function Insignias({ path }: { path?: string }) {
     return (

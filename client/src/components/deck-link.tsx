@@ -4,16 +4,15 @@ import { useRef } from "preact/hooks";
 
 import { CivilMode, PreviewNotes, RenderingDeckPart, SlimDeck } from "types";
 
+import { AppStateChange, getAppState } from "app-state";
+
 import { addBookmark } from "shared/bookmarks";
 import { buildUrl } from "shared/civil";
 import { deckKindToResourceString } from "shared/deck";
 import { fontClass } from "shared/font";
 import Net from "shared/net";
 
-import { AppStateChange, getAppState } from "app-state";
 import { renderInsignia, svgBookmarkLink } from "components/insignia-renderer";
-
-// import useMouseHovering from "components/use-mouse-hovering";
 import useMouseHoveringEvents from "components/use-mouse-hovering-events";
 
 type Props = {

@@ -6,6 +6,9 @@ import { CivilMode } from "types";
 
 import { AppStateChange, getAppState } from "app-state";
 
+import { isCivilModeAllowed } from "shared/civil";
+import { visibleClass } from "shared/css";
+
 import {
     svgAddAbove,
     svgBookmark,
@@ -17,9 +20,6 @@ import {
     svgLinkAlt,
     svgSearch,
 } from "components/svg-icons";
-
-import { isCivilModeAllowed } from "shared/civil";
-import { visibleClass } from "shared/css";
 
 export function DeluxeToolbar({}) {
     const appState = getAppState();

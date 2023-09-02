@@ -19,6 +19,7 @@ import {
 } from "types";
 
 import { AppStateChange, getAppState, immutableState } from "app-state";
+
 import { buildUrl } from "shared/civil";
 import { fontClass } from "shared/font";
 import Net from "shared/net";

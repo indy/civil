@@ -20,19 +20,18 @@ import {
 
 import { AppStateChange, getAppState } from "app-state";
 
-import ViewPassageChunkyBoy from "components/view-passage-chunky-boy";
-
-import PointForm from "components/point-form";
-
 import { bitset } from "shared/bitops";
 import { buildUrl } from "shared/civil";
 import { sortByDeckKindThenName } from "shared/deck";
 import Net from "shared/net";
 import {
+    createMultiplePassages,
     noteSeqsForPoints,
     passageForNoteKind,
-    createMultiplePassages,
 } from "shared/passage";
+
+import PointForm from "components/point-form";
+import ViewPassageChunkyBoy from "components/view-passage-chunky-boy";
 
 type DeckManagerState<T extends FatDeck> = {
     deck: T | undefined;

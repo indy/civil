@@ -6,7 +6,6 @@ import { Font, RenderingDeckPart } from "types";
 import { fontClass } from "shared/font";
 
 import { CivContainer, CivLeft, CivMain } from "components/civil-layout";
-
 import {
     svgChevronDoubleDown,
     svgChevronDoubleRight,
@@ -60,7 +59,9 @@ export default function RollableSegment({
                 </CivLeft>
                 <CivMain>
                     <div class="block">
-                        <span class="button-row">{buttons}</span>
+                        <span class="display-flex-justify-right">
+                            {buttons}
+                        </span>
                     </div>
                     <h2 class={headingClass} onClick={onRollClicked}>
                         {heading}

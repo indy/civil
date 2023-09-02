@@ -1,8 +1,9 @@
 import { h } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 
-import { getAppState } from "app-state";
 import { CivilMode } from "types";
+
+import { getAppState } from "app-state";
 
 import { CivMain } from "components/civil-layout";
 

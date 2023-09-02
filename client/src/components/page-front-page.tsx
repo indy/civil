@@ -1,12 +1,11 @@
 import { ComponentChildren, h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { SlimResults, SlimDeck } from "types";
+import { SlimDeck, SlimResults } from "types";
 
 import Net from "shared/net";
 
 import ListingLink from "components/listing-link";
-
 import { Module } from "components/module";
 import Paginator from "components/paginator";
 import TopBarMenu from "components/top-bar-menu";

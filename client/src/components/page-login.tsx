@@ -5,6 +5,7 @@ import { useRef, useState } from "preact/hooks";
 import { UserWithUiConfig } from "types";
 
 import { getAppState } from "app-state";
+
 import Net from "shared/net";
 
 import CivilInput from "components/civil-input";
