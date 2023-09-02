@@ -22,6 +22,9 @@ use crate::interop::dialogues::AiKind;
 use crate::error::Error;
 use chatgpt::prelude::*;
 
+#[allow(unused_imports)]
+use tracing::info;
+
 #[derive(Debug, Clone)]
 pub struct AI {
     pub chatgpt_35turbo_client: ChatGPT,

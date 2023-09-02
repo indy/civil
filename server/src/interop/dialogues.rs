@@ -82,7 +82,7 @@ pub struct Dialogue {
 #[serde(rename_all = "camelCase")]
 pub struct ProtoChat {
     pub ai_kind: AiKind,
-    pub original_chat_messages: Vec<openai_interface::ChatMessage>,
+    pub messages: Vec<openai_interface::ChatMessage>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -95,5 +95,5 @@ pub struct ProtoDialogue {
     pub graph_terminator: bool,
 
     pub ai_kind: AiKind,
-    pub original_chat_messages: Vec<openai_interface::ChatMessage>,
+    pub messages: Vec<openai_interface::ChatMessage>,
 }

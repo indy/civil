@@ -227,7 +227,7 @@ pub(crate) fn create(
 
     let mut new_prev: Option<Key> = None;
 
-    for chat_message in proto_dialogue.original_chat_messages {
+    for chat_message in proto_dialogue.messages {
         if chat_message.content.is_empty() {
             // this empty check was on the client side, moving it hear,
             // although not sure how often it's triggered

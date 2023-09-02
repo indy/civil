@@ -53,10 +53,11 @@ import {
 
 type ProtoDialogue = {
     title: string;
-    aiKind: AiKind;
     insignia: number;
-    messages: Array<ChatMessage>;
     font: Font;
+    graphTerminator: boolean;
+    aiKind: AiKind;
+    messages: Array<ChatMessage>;
 };
 
 type MessageChoice = {
@@ -294,10 +295,11 @@ function DialogueChat({ path }: { path?: string }) {
     function saveDialogue(title: string, messages: Array<ChatMessage>) {
         let data: ProtoDialogue = {
             title: title,
-            aiKind: AiKind.OpenAIGpt35Turbo,
             insignia: 0,
-            messages: messages,
             font: Font.AI,
+            graphTerminator: false,
+            aiKind: AiKind.OpenAIGpt35Turbo,
+            messages: messages,
         };
 
         Net.post<ProtoDialogue, DeckDialogue>("/api/dialogues", data).then(
