@@ -19,20 +19,21 @@ export function isCivilModeAllowed(state: State, mode: CivilMode): boolean {
     // urlParts is of either one of these forms: ["", "articles"], or ["", "ideas", "42"]
     let urlParts = state.url.value.split("/");
 
-    const onListingPage = urlParts.length === 2;
+    const onTopLevelPage = urlParts.length === 2;
 
     switch (mode) {
         case CivilMode.View:
-            return !onListingPage;
+            return !onTopLevelPage;
         case CivilMode.Edit:
-            return !onListingPage;
+            return !onTopLevelPage;
         case CivilMode.Refs:
-            return !onListingPage;
+            // can also add refs to notes returned in search results
+            return !onTopLevelPage || urlParts[1] === "search";
         case CivilMode.Memorise:
-            return !onListingPage;
+            return !onTopLevelPage;
         case CivilMode.AddAbove:
             // don't show AddAbove option for quotes
-            return !onListingPage && urlParts[1] !== "quotes";
+            return !onTopLevelPage && urlParts[1] !== "quotes";
         case CivilMode.BookmarkLinks:
             return true;
     }

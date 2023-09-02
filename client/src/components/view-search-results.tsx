@@ -1,18 +1,25 @@
 import { h } from "preact";
+import { useState } from "preact/hooks";
 
 import {
+    CivilMode,
     Note,
     Reference,
+    RefsModified,
     RenderingDeckPart,
     SearchDeck,
     SearchResults,
+    SlimDeck,
 } from "types";
 
-import { fontClass } from "shared/font";
+import { AppStateChange, getAppState } from "app-state";
+
 import { plural } from "shared/english";
+import { fontClass } from "shared/font";
 
 import buildMarkup from "components/build-markup";
 import { CivContainer, CivLeft, CivMain } from "components/civil-layout";
+import CivilSelect from "components/civil-select";
 import DeckLink from "components/deck-link";
 import Expandable from "components/expandable";
 import ListingLink from "components/listing-link";
@@ -66,7 +73,7 @@ export default function ViewSearchResults({
 
 function ViewSearchDeck({ searchDeck }: { searchDeck: SearchDeck }) {
     const searchNoteEntries = searchDeck.notes.map((searchNote) => (
-        <SearchNote searchNote={searchNote} />
+        <SearchNote deck={searchDeck.deck} searchNote={searchNote} />
     ));
 
     let heading = (
@@ -85,23 +92,72 @@ function ViewSearchDeck({ searchDeck }: { searchDeck: SearchDeck }) {
     );
 }
 
-function SearchNote({ searchNote }: { searchNote: Note }) {
+function SearchNote({
+    deck,
+    searchNote,
+}: {
+    deck: SlimDeck;
+    searchNote: Note;
+}) {
+    const appState = getAppState();
+
+    let [addDeckReferencesUI, setAddDeckReferencesUI] = useState(false);
+
     function buildRefs(refs: Array<Reference>) {
         return refs.map((ref) => (
             <ViewReference reference={ref} extraClasses="left-margin-entry" />
         ));
     }
 
+    function onNoteClicked() {
+        switch (appState.mode.value) {
+            case CivilMode.Refs:
+                if (!addDeckReferencesUI) {
+                    setAddDeckReferencesUI(true);
+                }
+                break;
+        }
+    }
+
+    function buildAddDecksUI() {
+        function onSave(changes: RefsModified, refsInNote: Array<Reference>) {
+            setAddDeckReferencesUI(false);
+            AppStateChange.noteRefsModified({ refsInNote, changes });
+            searchNote.refs = refsInNote;
+        }
+
+        function onCancel() {
+            setAddDeckReferencesUI(false);
+        }
+
+        return (
+            <CivilSelect
+                extraClasses="form-margin"
+                parentDeckId={deck.id}
+                noteId={searchNote.id}
+                chosen={searchNote.refs}
+                onSave={onSave}
+                onCancel={onCancel}
+            />
+        );
+    }
+
     return (
         <CivContainer extraClasses="c-search-note note">
             <CivLeft>{buildRefs(searchNote.refs)}</CivLeft>
             <CivMain>
-                {buildMarkup(
-                    searchNote.content,
-                    searchNote.font,
-                    searchNote.id
-                )}
+                <div onClick={onNoteClicked}>
+                    {buildMarkup(
+                        searchNote.content,
+                        searchNote.font,
+                        searchNote.id
+                    )}
+                </div>
             </CivMain>
+
+            {appState.mode.value === CivilMode.Refs &&
+                addDeckReferencesUI &&
+                buildAddDecksUI()}
         </CivContainer>
     );
 }
