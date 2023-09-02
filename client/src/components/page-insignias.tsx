@@ -2,7 +2,7 @@ import { h } from "preact";
 import { useState } from "preact/hooks";
 
 import InsigniaSelector from "components/insignia-selector";
-import { Module } from "components/module";
+import { HeadedSegment } from "components/headed-segment";
 import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import Pagination from "components/pagination";
 import TopBarMenu from "components/top-bar-menu";
@@ -38,7 +38,7 @@ function InsigniasModule() {
     }
 
     return (
-        <Module
+        <HeadedSegment
             extraClasses="c-insignias-module"
             heading="Insignias"
             extraHeadingClasses="hack-margin-top-point-2"
@@ -53,6 +53,6 @@ function InsigniasModule() {
                 renderItem={renderPaginatedSlimDeck}
                 itemsPerPage={15}
             />
-        </Module>
+        </HeadedSegment>
     );
 }

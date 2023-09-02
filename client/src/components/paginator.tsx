@@ -11,7 +11,7 @@ import { capitalise } from "shared/english";
 
 import CivilButtonCreateDeck from "components/civil-button-create-deck";
 import CivilTabButton from "components/civil-tab-button";
-import { Module } from "components/module";
+import { HeadedSegment } from "components/headed-segment";
 import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import Pagination from "components/pagination";
 
@@ -20,7 +20,7 @@ export default function Paginator({}) {
     // margin-top-9 provides the empty space for the command bar to appear
 
     return (
-        <Module
+        <HeadedSegment
             extraClasses="c-paginator"
             heading="Decks"
             extraHeadingClasses="margin-top-0"
@@ -30,7 +30,7 @@ export default function Paginator({}) {
                 selected={selected}
             />
             <DeckPaginator deckKind={selected} />
-        </Module>
+        </HeadedSegment>
     );
 }
 

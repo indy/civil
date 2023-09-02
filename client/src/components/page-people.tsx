@@ -34,7 +34,7 @@ import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import FontSelector from "components/font-selector";
 import InsigniaSelector from "components/insignia-selector";
 import LifespanForm from "components/lifespan-form";
-import { Module } from "components/module";
+import { HeadedSegment } from "components/headed-segment";
 import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import Pagination from "components/pagination";
 import PointForm from "components/point-form";
@@ -80,14 +80,14 @@ function PeopleModule() {
     const [selected, setSelected] = useState("ancient");
 
     return (
-        <Module
+        <HeadedSegment
             extraClasses="c-people-module"
             heading="People"
             extraHeadingClasses="margin-top-0"
         >
             <PeopleSelector setSelected={setSelected} selected={selected} />
             <PeoplePaginator selected={selected} />
-        </Module>
+        </HeadedSegment>
     );
 }
 

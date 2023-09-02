@@ -6,7 +6,7 @@ import { SlimDeck, SlimResults } from "types";
 import Net from "shared/net";
 
 import ListingLink from "components/listing-link";
-import { Module } from "components/module";
+import { HeadedSegment } from "components/headed-segment";
 import Paginator from "components/paginator";
 import TopBarMenu from "components/top-bar-menu";
 
@@ -22,13 +22,13 @@ export default function FrontPage({ path }: { path?: string }) {
 
 function RecentlyVisitedModule() {
     return (
-        <Module
+        <HeadedSegment
             extraClasses="margin-top-5"
             heading="Recently Visited"
             extraHeadingClasses="hack-margin-top-minus-half"
         >
             <EagerLoadedGrouping url="/api/decks/recently_visited?num=30" />
-        </Module>
+        </HeadedSegment>
     );
 }
 

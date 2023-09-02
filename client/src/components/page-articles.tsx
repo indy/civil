@@ -27,7 +27,7 @@ import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import FontSelector from "components/font-selector";
 import InsigniaSelector from "components/insignia-selector";
 import LeftMarginHeadingNoWrap from "components/left-margin-heading-no-wrap";
-import { Module } from "components/module";
+import { HeadedSegment } from "components/headed-segment";
 import Pagination from "components/pagination";
 import SegmentArrivals from "components/segment-arrivals";
 import SegmentDeckRefs from "components/segment-deck-refs";
@@ -62,14 +62,14 @@ function ArticlesModule() {
     const [selected, setSelected] = useState("recent");
 
     return (
-        <Module
+        <HeadedSegment
             extraClasses="c-articles-module"
             heading="Articles"
             extraHeadingClasses="margin-top-0"
         >
             <ArticlesSelector setSelected={setSelected} selected={selected} />
             <ArticlesPaginator selected={selected} />
-        </Module>
+        </HeadedSegment>
     );
 }
 

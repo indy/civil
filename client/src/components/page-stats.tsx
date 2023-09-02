@@ -1,6 +1,6 @@
 import { h } from "preact";
 
-import { Module } from "components/module";
+import { HeadedSegment } from "components/headed-segment";
 import TopBarMenu from "components/top-bar-menu";
 
 export default function Stats({ path }: { path?: string }) {
@@ -14,12 +14,12 @@ export default function Stats({ path }: { path?: string }) {
 
 function StatsModule() {
     return (
-        <Module
+        <HeadedSegment
             extraClasses="c-stats-module"
             heading="Stats"
             extraHeadingClasses="hack-margin-top-minus-half"
         >
             Placeholder
-        </Module>
+        </HeadedSegment>
     );
 }

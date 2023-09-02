@@ -30,7 +30,7 @@ import CivilTabButton from "components/civil-tab-button";
 import CivilTextArea from "components/civil-text-area";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import InsigniaSelector from "components/insignia-selector";
-import { Module } from "components/module";
+import { HeadedSegment } from "components/headed-segment";
 import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import Pagination from "components/pagination";
 import SegmentArrivals from "components/segment-arrivals";
@@ -97,7 +97,7 @@ function DialoguesModule() {
     }
 
     return (
-        <Module
+        <HeadedSegment
             extraClasses="c-dialogues-module"
             heading="Dialogues"
             extraHeadingClasses="margin-top-0"
@@ -109,7 +109,7 @@ function DialoguesModule() {
                 itemsPerPage={10}
                 lowerContent={lowerContent}
             />
-        </Module>
+        </HeadedSegment>
     );
 }
 

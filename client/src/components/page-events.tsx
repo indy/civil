@@ -29,7 +29,7 @@ import CivilTabButton from "components/civil-tab-button";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import FontSelector from "components/font-selector";
 import InsigniaSelector from "components/insignia-selector";
-import { Module } from "components/module";
+import { HeadedSegment } from "components/headed-segment";
 import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import Pagination from "components/pagination";
 import SegmentArrivals from "components/segment-arrivals";
@@ -78,7 +78,7 @@ function EventsModule() {
     }
 
     return (
-        <Module
+        <HeadedSegment
             extraClasses="c-events-module"
             heading="Events"
             extraHeadingClasses="margin-top-0"
@@ -90,7 +90,7 @@ function EventsModule() {
                 itemsPerPage={10}
                 lowerContent={lowerContent}
             />
-        </Module>
+        </HeadedSegment>
     );
 }
 

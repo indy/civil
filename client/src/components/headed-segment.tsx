@@ -2,19 +2,19 @@ import { ComponentChildren, h } from "preact";
 
 import { CivContainer, CivLeft, CivMainUi } from "components/civil-layout";
 
-type ModuleProps = {
+type HeadedSegmentProps = {
     heading: string;
     children: ComponentChildren;
     extraClasses?: string;
     extraHeadingClasses?: string;
 };
 
-export function Module({
+export function HeadedSegment({
     heading,
     children,
     extraClasses,
     extraHeadingClasses,
-}: ModuleProps) {
+}: HeadedSegmentProps) {
     let aklass = "module margin-top-9 ";
     if (extraClasses) {
         aklass += extraClasses;

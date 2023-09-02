@@ -13,7 +13,7 @@ import CivilTabButton from "components/civil-tab-button";
 import DeleteDeckConfirmation from "components/delete-deck-confirmation";
 import FontSelector from "components/font-selector";
 import InsigniaSelector from "components/insignia-selector";
-import { Module } from "components/module";
+import { HeadedSegment } from "components/headed-segment";
 import { renderPaginatedSlimDeck } from "components/paginated-render-items";
 import Pagination from "components/pagination";
 import SegmentArrivals from "components/segment-arrivals";
@@ -45,14 +45,14 @@ function IdeasModule() {
     const [selected, setSelected] = useState("recent");
 
     return (
-        <Module
+        <HeadedSegment
             extraClasses="c-ideas-module"
             heading="Ideas"
             extraHeadingClasses="margin-top-0"
         >
             <IdeasSelector setSelected={setSelected} selected={selected} />
             <IdeasPaginator selected={selected} />
-        </Module>
+        </HeadedSegment>
     );
 }
 
