@@ -27,7 +27,7 @@ function RecentlyVisitedModule() {
             heading="Recently Visited"
             extraHeadingClasses="hack-margin-top-minus-half"
         >
-            <EagerLoadedGrouping url="/api/decks/recently_visited" />
+            <EagerLoadedGrouping url="/api/decks/recently_visited?num=30" />
         </Module>
     );
 }

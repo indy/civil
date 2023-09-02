@@ -86,13 +86,19 @@ pub async fn recent(
     Ok(HttpResponse::Ok().json(res))
 }
 
+#[derive(Deserialize)]
+pub struct RecentNum {
+    num: i32,
+}
+
 pub async fn recently_visited(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
+    Query(query): Query<RecentNum>,
 ) -> crate::Result<HttpResponse> {
     let user_id = session::user_id(&session)?;
 
-    let results = db::recently_visited(&sqlite_pool, user_id)?;
+    let results = db::recently_visited(&sqlite_pool, user_id, query.num)?;
 
     let res = SlimResults { results };
     Ok(HttpResponse::Ok().json(res))

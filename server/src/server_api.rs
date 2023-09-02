@@ -47,14 +47,12 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("", post().to(users::login))
                 .route("", delete().to(users::logout)),
         )
-        // search
         .service(
             scope("/search")
                 .route("/decks", get().to(search::search_at_deck_level))
                 .route("/names", get().to(search::search_names_at_deck_level))
                 .route("/full", get().to(search::search_at_all_levels)),
         )
-        // console commands
         .service(
             scope("/decks")
                 .route("/recent", get().to(decks::recent))
@@ -67,14 +65,12 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/summarize/{id}", post().to(decks::summarize))
                 .route("/preview/{id}", get().to(decks::preview)),
         )
-        // registration
         .service(
             scope("/users")
                 .route("/ui_config", put().to(users::edit_ui_config))
                 .route("", post().to(users::create_user))
                 .route("", get().to(users::get_user)),
         )
-        // ideas
         .service(
             scope("/ideas")
                 .route("", post().to(ideas::create))
@@ -87,7 +83,6 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", put().to(ideas::edit))
                 .route("/{id}", delete().to(ideas::delete)),
         )
-        // people
         .service(
             scope("/people")
                 .route("", post().to(people::create))
@@ -104,7 +99,6 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}/points", post().to(people::add_point))
                 .route("/{id}/multipoints", post().to(people::add_multipoints)),
         )
-        // quotes
         .service(
             scope("/quotes")
                 .route("", post().to(quotes::create))
@@ -117,7 +111,6 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}/next", get().to(quotes::next))
                 .route("/{id}/prev", get().to(quotes::prev)),
         )
-        // timelines
         .service(
             scope("/timelines")
                 .route("", post().to(timelines::create))
@@ -129,7 +122,6 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}/points", post().to(timelines::add_point))
                 .route("/{id}/multipoints", post().to(timelines::add_multipoints)),
         )
-        // events
         .service(
             scope("/events")
                 .route("", post().to(events::create))
@@ -139,7 +131,6 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", put().to(events::edit))
                 .route("/{id}", delete().to(events::delete)),
         )
-        // articles
         .service(
             scope("/articles")
                 .route("", post().to(articles::create))
@@ -152,7 +143,6 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", put().to(articles::edit))
                 .route("/{id}", delete().to(articles::delete)),
         )
-        // dialogues
         .service(
             scope("/dialogues")
                 .route("/chat", post().to(dialogues::chat))
@@ -164,14 +154,12 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", put().to(dialogues::edit))
                 .route("/{id}", delete().to(dialogues::delete)),
         )
-        // notes
         .service(
             scope("/notes")
                 .route("", post().to(notes::create_notes))
                 .route("/{id}", put().to(notes::edit_note))
                 .route("/{id}", delete().to(notes::delete_note)),
         )
-        // bookmarks
         .service(
             scope("/bookmarks")
                 .route("", post().to(bookmarks::create_bookmark))
@@ -179,7 +167,6 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("", get().to(bookmarks::get_bookmarks))
                 .route("/{id}", delete().to(bookmarks::delete_bookmark)),
         )
-        // spaced repetition
         .service(
             scope("/memorise")
                 .route("", post().to(memorise::create_card))
@@ -189,13 +176,9 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", put().to(memorise::edit))
                 .route("/{id}", delete().to(memorise::delete)),
         )
-        // setup
         .service(scope("/ubersetup").route("", get().to(ubersetup::setup)))
-        // edges
         .service(scope("/edges").route("/notes_decks", post().to(edges::create_from_note_to_decks)))
-        // graph
         .service(scope("/graph").route("", get().to(graph::get)))
-        // upload
         .service(
             scope("/upload")
                 .route("", post().to(uploader::create)) // upload images

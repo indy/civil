@@ -57,6 +57,7 @@ fn deckbase_from_row(row: &Row) -> crate::Result<DeckBase> {
 pub fn recently_visited(
     sqlite_pool: &SqlitePool,
     user_id: Key,
+    num: i32,
 ) -> crate::Result<Vec<interop::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
@@ -65,9 +66,9 @@ pub fn recently_visited(
                 WHERE decks.user_id = ?1
                 GROUP BY hits.deck_id
                 ORDER BY most_recent_visit DESC
-                LIMIT 15";
+                LIMIT ?2";
 
-    sqlite::many(&conn, stmt, params![&user_id], slimdeck_from_row)
+    sqlite::many(&conn, stmt, params![&user_id, &num], slimdeck_from_row)
 }
 
 fn num_decks_for_deck_kind(
