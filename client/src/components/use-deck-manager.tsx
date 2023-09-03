@@ -339,14 +339,14 @@ function dmsUpdateDeck<T extends FatDeck>(
     deckKind: DeckKind
 ): DeckManagerState<T> {
     // modify the notes received from the server
-    sortRefsInNotes(deck);
-    prepareFlashCards(deck);
-    applyFlashCardsToNotes(deck);
+    deck = sortRefsInNotes(deck);
+    deck = prepareFlashCards(deck);
+    deck = applyFlashCardsToNotes(deck);
     // organise the notes into noteSeqs
-    buildNotePassages(deck);
+    deck = buildNotePassages(deck);
     // build passages for the arrivals and then partition them by deck kind
-    buildArrivalPassages(deck);
-    buildGroupedArrivals(deck);
+    deck = buildArrivalPassages(deck);
+    deck = buildGroupedArrivals(deck);
 
     AppStateChange.urlTitle({ title: deck.title });
     AppStateChange.routeChanged({ url: buildUrl(deckKind, deck.id) });
@@ -434,7 +434,7 @@ function dmsSetEditingDeckRefs<T extends FatDeck>(
     return res;
 }
 
-function sortRefsInNotes<T extends FatDeck>(deck: T) {
+function sortRefsInNotes<T extends FatDeck>(deck: T): T {
     for (let i = 0; i < deck.notes.length; i++) {
         let n = deck.notes[i];
         if (n.refs.length > 0) {
@@ -444,13 +444,15 @@ function sortRefsInNotes<T extends FatDeck>(deck: T) {
     return deck;
 }
 
-function prepareFlashCards<T extends FatDeck>(deck: T) {
+function prepareFlashCards<T extends FatDeck>(deck: T): T {
     deck.flashcards.forEach(flashcard => {
         flashcard.showPrompt = false;
     })
+
+    return deck;
 }
 
-function applyFlashCardsToNotes<T extends FatDeck>(deck: T) {
+function applyFlashCardsToNotes<T extends FatDeck>(deck: T): T {
     const cardsInNotes = hashByNoteIds(deck.flashcards);
     for (let i = 0; i < deck.notes.length; i++) {
         let n = deck.notes[i];
@@ -481,7 +483,7 @@ function hashByNoteIds(s: Array<Reference | FlashCard>) {
     return res;
 }
 
-function buildNotePassages<T extends FatDeck>(deck: T) {
+function buildNotePassages<T extends FatDeck>(deck: T): T {
     // build NoteSeqs for notes associated with points
     let points: { [id: Key]: Notes } = noteSeqsForPoints(deck.notes);
     // add empty noteSeqs for points without any notes
@@ -533,13 +535,15 @@ function buildNotePassages<T extends FatDeck>(deck: T) {
     return deck;
 }
 
-function buildArrivalPassages<T extends FatDeck>(deck: T) {
+function buildArrivalPassages<T extends FatDeck>(deck: T): T {
     deck.arrivals.forEach((arrival) => {
         arrival.passages = createMultiplePassages(arrival.notes);
     });
+
+    return deck;
 }
 
-function buildGroupedArrivals<T extends FatDeck>(deck: T) {
+function buildGroupedArrivals<T extends FatDeck>(deck: T): T {
     let groupedByDeckKind: Record<DeckKind, Array<Arrival>> = {
         [DeckKind.Article]: [],
         [DeckKind.Person]: [],
