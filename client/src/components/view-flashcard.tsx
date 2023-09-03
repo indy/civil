@@ -155,7 +155,7 @@ export default function ViewFlashCard({
                         {local.nextTestDateString})
                     </span>
                     <div class="in-note-flash-card-prompt">
-                        {local.flashcard.prompt}
+                        {flashcard.prompt}
                     </div>
                 </p>
                 <div>

@@ -271,6 +271,8 @@ export type Point = {
 };
 
 export type FlashCard = {
+    // received from server
+    //
     id: Key;
     noteId: Key;
     prompt: string;
@@ -278,6 +280,10 @@ export type FlashCard = {
     easinessFactor: number;
     interval: number;
     repetition: number;
+
+    // additional client side data for ui purposes
+    //
+    showPrompt: boolean;
 };
 
 export type SearchDeck = {

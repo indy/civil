@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { Ref as PreactRef, useEffect, useRef, useState } from "preact/hooks";
+import { Ref as PreactRef, useEffect, useRef } from "preact/hooks";
 
 import {
     CivilMode,
@@ -11,14 +11,11 @@ import {
     Notes,
     Reference,
     RefsModified,
-    Role,
-    State,
+    Role
 } from "types";
 
 import { AppStateChange, getAppState } from "app-state";
-import { svgFlashCard } from "components/svg-icons";
 import { addToolbarSelectableClasses } from "shared/css";
-import Net from "shared/net";
 
 import buildMarkup from "components/build-markup";
 import CivilButton from "components/civil-button";
@@ -26,6 +23,8 @@ import { CivContainer, CivLeft, CivMain } from "components/civil-layout";
 import CivilSelect from "components/civil-select";
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";
+import FlashCardIndicator from "components/flashcard-indicator";
+import FlashCardCreator from "components/flashcard-creator";
 import FontSelector from "components/font-selector";
 import ImageSelector from "components/image-selector";
 import NoteForm from "components/note-form";
@@ -36,18 +35,15 @@ import ViewReference from "components/view-reference";
 import ViewRole from "components/view-role";
 
 enum ActionType {
-    AddDecksCommit,
     AddDeckReferencesUiShow,
-    AddFlashCardUiShow,
+    AddDecksCommit,
     AddNoteAboveUiShow,
     DeletedNote,
-    EditedNote,
     EditedFont,
+    EditedNote,
     EditingCancelled,
+    FlashCardCreatorShow,
     FlashcardDeleted,
-    FlashcardHide,
-    FlashcardToggle,
-    FlashCardSaved,
     HideAddDecksUi,
     ImagePasted,
     NoteChanged,
@@ -60,21 +56,15 @@ enum ActionType {
 
 type LocalState = {
     addDeckReferencesUI: boolean;
-    addFlashCardUI: boolean;
+    showFlashCardCreator: boolean;
     addNoteAboveUI: boolean;
     isEditingMarkup: boolean;
     note: Note;
     originalContent: string;
-    flashcardToShow: FlashCard | undefined;
     oldCursorPos: number;
     textAreaFocused: boolean;
     canMinimiseText: boolean;
     isMinimisedText: boolean;
-};
-
-type ActionDataFlashCardSaved = {
-    flashcard: FlashCard;
-    appState: State;
 };
 
 type ActionDataImagePasted = {
@@ -90,21 +80,20 @@ type ActionDataDecksCommit = {
 type Action = {
     type: ActionType;
     data?:
-        | Note
-        | FlashCard
-        | number
-        | boolean
-        | ActionDataImagePasted
-        | ActionDataDecksCommit
-        | ActionDataFlashCardSaved
-        | any;
+    | Note
+    | FlashCard
+    | number
+    | boolean
+    | ActionDataImagePasted
+    | ActionDataDecksCommit
+    | any;
 };
 
 function reducer(state: LocalState, action: Action): LocalState {
     switch (action.type) {
         case ActionType.NoteChanged: {
             const note = action.data as Note;
-            let newState = {
+            let newState: LocalState = {
                 ...state,
                 note,
             };
@@ -150,11 +139,6 @@ function reducer(state: LocalState, action: Action): LocalState {
             };
             return res;
         }
-        case ActionType.FlashcardHide: {
-            let res = { ...state };
-            res.flashcardToShow = undefined;
-            return res;
-        }
         case ActionType.FlashcardDeleted: {
             let flashcard = action.data as FlashCard;
             let res = {
@@ -164,24 +148,6 @@ function reducer(state: LocalState, action: Action): LocalState {
             res.note.flashcards = res.note.flashcards.filter(
                 (fc) => fc.id !== flashcard.id
             );
-            res.flashcardToShow = undefined;
-
-            return res;
-        }
-        case ActionType.FlashcardToggle: {
-            let res = { ...state };
-            let fc = action.data as FlashCard;
-
-            if (res.flashcardToShow) {
-                if (res.flashcardToShow.id === fc.id) {
-                    res.flashcardToShow = undefined;
-                } else {
-                    res.flashcardToShow = fc;
-                }
-            } else {
-                res.flashcardToShow = fc;
-            }
-
             return res;
         }
         case ActionType.NoteSetProperty: {
@@ -197,24 +163,18 @@ function reducer(state: LocalState, action: Action): LocalState {
                 ...state,
                 addDeckReferencesUI: action.data as boolean,
             };
-        case ActionType.AddFlashCardUiShow: {
+        case ActionType.FlashCardCreatorShow: {
             const showUI = action.data as boolean;
-            const newState = {
+            const newState: LocalState = {
                 ...state,
-                addFlashCardUI: showUI,
+                showFlashCardCreator: showUI,
             };
-
-            if (showUI) {
-                AppStateChange.obtainKeyboard();
-            } else {
-                AppStateChange.relinquishKeyboard();
-            }
 
             return newState;
         }
         case ActionType.AddNoteAboveUiShow: {
             const showUI = action.data as boolean;
-            const newState = {
+            const newState: LocalState = {
                 ...state,
                 addNoteAboveUI: showUI,
             };
@@ -229,7 +189,7 @@ function reducer(state: LocalState, action: Action): LocalState {
             return newState;
         }
         case ActionType.HideAddDecksUi: {
-            const newState = {
+            const newState: LocalState = {
                 ...state,
                 addDeckReferencesUI: false,
             };
@@ -247,31 +207,8 @@ function reducer(state: LocalState, action: Action): LocalState {
                 addDeckReferencesUI: false,
             };
         }
-        case ActionType.FlashCardSaved: {
-            let { flashcard, appState } =
-                action.data as ActionDataFlashCardSaved;
-
-            const newState = {
-                ...state,
-                addFlashCardUI: false,
-            };
-
-            if (newState.note.flashcards) {
-                newState.note.flashcards.push(flashcard);
-            } else {
-                newState.note.flashcards = [flashcard];
-            }
-
-            let reviewCount = appState.memoriseReviewCount.value + 1;
-
-            AppStateChange.relinquishKeyboard();
-            AppStateChange.mode({ mode: CivilMode.View });
-            AppStateChange.setReviewCount({ count: reviewCount });
-
-            return newState;
-        }
         case ActionType.ToggleMinimisedText: {
-            const newState = {
+            const newState: LocalState = {
                 ...state,
                 isMinimisedText: !state.isMinimisedText,
             };
@@ -279,7 +216,7 @@ function reducer(state: LocalState, action: Action): LocalState {
             return newState;
         }
         case ActionType.ToggleEditing: {
-            const newState = {
+            const newState: LocalState = {
                 ...state,
                 isEditingMarkup: !state.isEditingMarkup,
             };
@@ -297,7 +234,7 @@ function reducer(state: LocalState, action: Action): LocalState {
             return state;
         }
         case ActionType.EditedNote: {
-            const newState = {
+            const newState: LocalState = {
                 ...state,
                 isEditingMarkup: false,
                 originalContent: state.note.content,
@@ -310,7 +247,7 @@ function reducer(state: LocalState, action: Action): LocalState {
         case ActionType.EditedFont: {
             const font = action.data as Font;
 
-            const newState = {
+            const newState: LocalState = {
                 ...state,
                 isEditingMarkup: false,
             };
@@ -321,7 +258,7 @@ function reducer(state: LocalState, action: Action): LocalState {
             return newState;
         }
         case ActionType.EditingCancelled: {
-            const newState = {
+            const newState: LocalState = {
                 ...state,
                 isEditingMarkup: false,
                 note: {
@@ -364,12 +301,11 @@ export default function ViewNote({
 
     const initialState: LocalState = {
         addDeckReferencesUI: false,
-        addFlashCardUI: false,
+        showFlashCardCreator: false,
         addNoteAboveUI: false,
         isEditingMarkup: false,
         note: { ...note },
         originalContent: note.content,
-        flashcardToShow: undefined,
         oldCursorPos: 0,
         textAreaFocused: false,
         canMinimiseText:
@@ -463,49 +399,6 @@ export default function ViewNote({
                     />
                 </div>
             </CivMain>
-        );
-    }
-
-    function buildAddFlashCardUI() {
-        let [flashCardPrompt, setFlashCardPrompt] = useState("");
-
-        function onCancel() {
-            localDispatch(ActionType.AddFlashCardUiShow, false);
-        }
-
-        function onSave() {
-            let data = {
-                noteId: note.id,
-                prompt: flashCardPrompt,
-            };
-
-            Net.post("/api/memorise", data).then((newFlashcard) => {
-                localDispatch(ActionType.FlashCardSaved, {
-                    flashcard: newFlashcard,
-                    appState,
-                });
-                setFlashCardPrompt("");
-            });
-        }
-
-        function onContentChange(content: string) {
-            setFlashCardPrompt(content);
-        }
-
-        return (
-            <div class="block-width form-margin">
-                <label>Flash Card Prompt</label>
-                <div>
-                    <CivilTextArea
-                        value={flashCardPrompt}
-                        onContentChange={onContentChange}
-                    />
-                </div>
-                <CivilButton onClick={onCancel}>Cancel</CivilButton>
-                <CivilButton onClick={onSave}>
-                    Save Flash Card Prompt
-                </CivilButton>
-            </div>
         );
     }
 
@@ -623,39 +516,33 @@ export default function ViewNote({
                 if (!local.addDeckReferencesUI) {
                     localDispatch(
                         ActionType.AddDeckReferencesUiShow,
-                        !local.addDeckReferencesUI
+                        true
                     );
                 }
                 break;
             case CivilMode.Memorise:
-                if (!local.addFlashCardUI) {
-                    localDispatch(
-                        ActionType.AddFlashCardUiShow,
-                        !local.addFlashCardUI
-                    );
+                if (!local.showFlashCardCreator) {
+                    localDispatch(ActionType.FlashCardCreatorShow, true);
                 }
                 break;
             case CivilMode.AddAbove:
                 if (!local.addNoteAboveUI) {
                     localDispatch(
                         ActionType.AddNoteAboveUiShow,
-                        !local.addNoteAboveUI
+                        true
                     );
                 }
                 break;
         }
     }
 
-    // console.log("input:");
-    // console.log(local.note.content);
-    // console.log("output:");
-    // console.log(buildSimplifiedText(local.note.content));
+    function hideFlashCardCreator() {
+        localDispatch(ActionType.FlashCardCreatorShow, false);
+    }
 
-    // const isMachine =
-    //     note.chatMessage && note.chatMessage!.role === Role.Assistant;
-    // const markupReplacementClasses = isMachine
-    //     ? "machine-generated"
-    //     : undefined;
+    function onNoteChanged(note: Note) {
+        localDispatch(ActionType.NoteChanged, note);
+    }
 
     return (
         <CivContainer extraClasses={noteClasses}>
@@ -665,18 +552,14 @@ export default function ViewNote({
             {!local.isEditingMarkup &&
                 buildLeftMarginContent(
                     local.note,
-                    localDispatch,
+                    onNoteChanged,
                     onCopyRefBelow,
                     nextNote
                 )}
 
-            {local.isEditingMarkup && buildEditableContent()}
-            {local.flashcardToShow && (
-                <ViewFlashCard
-                    flashcard={local.flashcardToShow}
-                    onDelete={flashCardDeleted}
-                />
-            )}
+             {local.isEditingMarkup && buildEditableContent()}
+
+             {note.flashcards.filter(f => f.showPrompt).map(f => <ViewFlashCard flashcard={f} onDelete={flashCardDeleted}/>)}
 
             {!local.isEditingMarkup && (
                 <CivMain>
@@ -700,8 +583,10 @@ export default function ViewNote({
                 local.addDeckReferencesUI &&
                 buildAddDecksUI()}
             {appState.mode.value === CivilMode.Memorise &&
-                local.addFlashCardUI &&
-                buildAddFlashCardUI()}
+                local.showFlashCardCreator &&
+                <FlashCardCreator
+                    note={local.note}
+                    onHide={hideFlashCardCreator} />}
             {local.isEditingMarkup && buildMainButtons()}
         </CivContainer>
     );
@@ -709,10 +594,18 @@ export default function ViewNote({
 
 function buildLeftMarginContent(
     note: Note,
-    localDispatch: Function,
+    onNoteChanged: (n: Note) => void,
     onCopyRefBelow: (ref: Reference, nextNote: Note) => void,
     nextNote?: Note
 ) {
+
+    function onFlashcardClicked(flashcard: FlashCard) {
+        flashcard.showPrompt = !flashcard.showPrompt;
+        let newNote = {...note};
+
+        onNoteChanged(newNote);
+    }
+
     if (
         note.refs.length > 0 ||
         note.flashcards.length > 0 ||
@@ -721,7 +614,7 @@ function buildLeftMarginContent(
         return (
             <CivLeft>
                 {note.chatMessage && <ViewRole role={note.chatMessage!.role} />}
-                {buildFlashcardIndicator(note.flashcards, localDispatch)}
+            {note.flashcards.map(flashcard => <FlashCardIndicator flashcard={flashcard} onClick={onFlashcardClicked} />)}
                 {note.refs.length > 0 && note.flashcards.length > 0 && (
                     <div class="spacer"></div>
                 )}
@@ -746,31 +639,6 @@ function buildNoteReferences(
                 nextNote={nextNote}
                 onCopyRefBelow={onCopyRefBelow}
             />
-        );
-    });
-
-    return entries;
-}
-
-function buildFlashcardIndicator(
-    flashcards: Array<FlashCard>,
-    localDispatch: Function
-) {
-    // a single note may have multiple flashcards
-    const entries = flashcards.map((fc) => {
-        const { id } = fc;
-
-        function onFlashcardIconClicked(e: Event) {
-            e.preventDefault();
-            localDispatch(ActionType.FlashcardToggle, fc);
-        }
-
-        return (
-            <div class="left-margin-entry" key={id}>
-                <span class="inlined-blocked" onClick={onFlashcardIconClicked}>
-                    {svgFlashCard()}
-                </span>
-            </div>
         );
     });
 

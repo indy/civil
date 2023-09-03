@@ -144,7 +144,9 @@ function SearchNote({
 
     return (
         <CivContainer extraClasses="c-search-note note">
-            <CivLeft>{buildRefs(searchNote.refs)}</CivLeft>
+            <CivLeft>
+                {buildRefs(searchNote.refs)}
+            </CivLeft>
             <CivMain>
                 <div onClick={onNoteClicked}>
                     {buildMarkup(

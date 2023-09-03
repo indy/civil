@@ -67,7 +67,7 @@ export default function useDeckManager<T extends FatDeck>(
             // fetch deckKind from the server
             const url = buildUrl(deckKind, deckId, "/api");
             Net.get<T>(url).then((deck) => {
-                console.log(deck);
+                // console.log(deck);
                 if (deck) {
                     let newDms = dmsUpdateDeck<T>(
                         dms,
@@ -340,7 +340,8 @@ function dmsUpdateDeck<T extends FatDeck>(
 ): DeckManagerState<T> {
     // modify the notes received from the server
     sortRefsInNotes(deck);
-    applyCardsToNotes(deck);
+    prepareFlashCards(deck);
+    applyFlashCardsToNotes(deck);
     // organise the notes into noteSeqs
     buildNotePassages(deck);
     // build passages for the arrivals and then partition them by deck kind
@@ -442,7 +443,14 @@ function sortRefsInNotes<T extends FatDeck>(deck: T) {
     }
     return deck;
 }
-function applyCardsToNotes<T extends FatDeck>(deck: T) {
+
+function prepareFlashCards<T extends FatDeck>(deck: T) {
+    deck.flashcards.forEach(flashcard => {
+        flashcard.showPrompt = false;
+    })
+}
+
+function applyFlashCardsToNotes<T extends FatDeck>(deck: T) {
     const cardsInNotes = hashByNoteIds(deck.flashcards);
     for (let i = 0; i < deck.notes.length; i++) {
         let n = deck.notes[i];
