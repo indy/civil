@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::memorise as db_memorise;
 use crate::db::notes as db_notes;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::db::{postfix_asterisks, sanitize_for_sqlite_match};
@@ -105,6 +106,7 @@ fn searchdecknoteref_from_row(row: &Row) -> crate::Result<SearchDeckNoteRef> {
             point_id: row.get(11)?,
             font: Font::try_from(note_font)?,
             refs: vec![],
+            flashcards: vec![],
         },
         reference_maybe,
     })
@@ -115,8 +117,8 @@ pub(crate) fn search_at_all_levels(
     user_id: Key,
     query: &str,
 ) -> crate::Result<interop::SearchResults> {
-    let deck_level_results = search_at_deck_level(&sqlite_pool, user_id, &query)?;
-    let note_level_results = search_at_note_level(&sqlite_pool, user_id, &query)?;
+    let deck_level_results = search_at_deck_level(sqlite_pool, user_id, query)?;
+    let note_level_results = search_at_note_level(sqlite_pool, user_id, query)?;
 
     // dedupe deck_level against note_level
     //
@@ -192,7 +194,7 @@ fn search_at_quote_extras_level(
         searchdecknoteref_from_row,
     )?;
 
-    build_search_deck(search_deck_note_refs)
+    build_search_decks(search_deck_note_refs)
 }
 
 fn search_quotes_at_note_level(
@@ -203,7 +205,13 @@ fn search_quotes_at_note_level(
     // be lazy, re-use the search_query fn and then filter for quotes
     //
     let search_deck_note_refs = search_query(sqlite_pool, user_id, query)?;
-    let search_decks = build_search_deck(search_deck_note_refs)?;
+    let mut search_decks = build_search_decks(search_deck_note_refs)?;
+
+    let flashcards = db_memorise::all_flashcards_for_search_query(sqlite_pool, user_id, query)?;
+
+    for search_deck in &mut *search_decks {
+        db_notes::assign_flashcards_to_notes(&mut search_deck.notes, &flashcards)?;
+    }
 
     let search_quotes: Vec<interop::SearchDeck> = search_decks
         .into_iter()
@@ -276,7 +284,7 @@ pub(crate) fn additional_search_at_deck_level(
 
     // explicitly connected decks should be excluded from search results
     //
-    let arrivals = db_notes::arrivals_for_deck(&sqlite_pool, deck_id)?;
+    let arrivals = db_notes::arrivals_for_deck(sqlite_pool, deck_id)?;
 
     let deck_level_results = search_at_deck_level_base(sqlite_pool, user_id, &sane_name, true)?;
 
@@ -286,7 +294,7 @@ pub(crate) fn additional_search_at_deck_level(
         .filter(|br| br.deck.id != deck_id && !in_arrivals(br, &arrivals))
         .collect();
 
-    let note_level_results = additional_search_at_note_level(&sqlite_pool, user_id, deck_id)?;
+    let note_level_results = additional_search_at_note_level(sqlite_pool, user_id, deck_id)?;
 
     // dedupe note_level_results against the arrivals
     let note_level_results: Vec<interop::SearchDeck> = note_level_results
@@ -341,8 +349,24 @@ fn additional_search_at_note_level(
     user_id: Key,
     deck_id: Key,
 ) -> crate::Result<Vec<interop::SearchDeck>> {
-    let search_deck_note_refs = search_deck_additional_query(sqlite_pool, user_id, deck_id)?;
-    let search_deck = build_search_deck(search_deck_note_refs)?;
+    let conn = sqlite_pool.get()?;
+    let name = get_name_of_deck(&conn, deck_id)?;
+    let sane_name = sanitize_for_sqlite_match(name)?;
+
+    let search_deck_note_refs =
+        search_deck_additional_query(sqlite_pool, user_id, deck_id, &sane_name)?;
+    let mut search_decks = build_search_decks(search_deck_note_refs)?;
+
+    let flashcards = db_memorise::all_flashcards_for_deck_additional_query(
+        sqlite_pool,
+        user_id,
+        deck_id,
+        &sane_name,
+    )?;
+
+    for search_deck in &mut *search_decks {
+        db_notes::assign_flashcards_to_notes(&mut search_deck.notes, &flashcards)?;
+    }
 
     // given a search for 'dogs'
     // if there was a deck (dx) that had a note (nx) that had references to 'dogs' and 'cats'
@@ -351,7 +375,7 @@ fn additional_search_at_note_level(
     // so the query has been changed to return all references including 'dogs'
     // then we can use some rust to filter out any notes that contain refs to 'dogs'
     //
-    let search_deck_b: Vec<interop::SearchDeck> = search_deck
+    let search_decks_b: Vec<interop::SearchDeck> = search_decks
         .into_iter()
         .map(|search_deck| remove_notes_with_refs_to_deck_id(search_deck, deck_id))
         .collect();
@@ -359,15 +383,15 @@ fn additional_search_at_note_level(
     // now that some of the notes have been removed, there may be some decks that have no notes.
     // remove those decks as well
     //
-    let search_deck_c: Vec<interop::SearchDeck> = search_deck_b
+    let search_decks_c: Vec<interop::SearchDeck> = search_decks_b
         .into_iter()
         .filter(|search_deck| !search_deck.notes.is_empty())
         .collect();
 
-    Ok(search_deck_c)
+    Ok(search_decks_c)
 }
 
-fn build_search_deck(
+fn build_search_decks(
     search_deck_note_refs: Vec<SearchDeckNoteRef>,
 ) -> crate::Result<Vec<interop::SearchDeck>> {
     let mut res: Vec<interop::SearchDeck> = vec![];
@@ -417,7 +441,15 @@ pub(crate) fn search_at_note_level(
     query: &str,
 ) -> crate::Result<Vec<interop::SearchDeck>> {
     let search_deck_note_refs = search_query(sqlite_pool, user_id, query)?;
-    build_search_deck(search_deck_note_refs)
+    let mut search_decks = build_search_decks(search_deck_note_refs)?;
+
+    let flashcards = db_memorise::all_flashcards_for_search_query(sqlite_pool, user_id, query)?;
+
+    for search_deck in &mut *search_decks {
+        db_notes::assign_flashcards_to_notes(&mut search_deck.notes, &flashcards)?;
+    }
+
+    Ok(search_decks)
 }
 
 fn has_ref_to_deck_id(search_note: &Note, deck_id: Key) -> bool {
@@ -483,11 +515,12 @@ fn search_deck_additional_query(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
+    sane_name: &str,
 ) -> crate::Result<Vec<SearchDeckNoteRef>> {
     let conn = sqlite_pool.get()?;
 
-    let name = get_name_of_deck(&conn, deck_id)?;
-    let sane_name = sanitize_for_sqlite_match(name)?;
+    // let name = get_name_of_deck(&conn, deck_id)?;
+    // let sane_name = sanitize_for_sqlite_match(name)?;
 
     if sane_name.is_empty() {
         return Ok(vec![]);

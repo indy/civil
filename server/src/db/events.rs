@@ -70,8 +70,6 @@ impl From<(decks::DeckBase, EventExtra)> for interop::Event {
 
             notes: vec![],
             arrivals: vec![],
-
-            flashcards: vec![],
         }
     }
 }
@@ -118,7 +116,6 @@ fn from_row(row: &Row) -> crate::Result<interop::Event> {
 
         notes: vec![],
         arrivals: vec![],
-        flashcards: vec![],
     })
 }
 

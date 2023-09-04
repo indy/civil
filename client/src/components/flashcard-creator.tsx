@@ -1,12 +1,7 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import {
-    CivilMode,
-    FlashCard,
-    Key,
-    Note,
-} from "types";
+import { CivilMode, FlashCard, Key, Note } from "types";
 
 import { AppStateChange, getAppState } from "app-state";
 import Net from "shared/net";
@@ -15,11 +10,14 @@ import CivilButton from "components/civil-button";
 import CivilTextArea from "components/civil-text-area";
 
 type FlashCardCreatorProps = {
-    note: Note,
-    onHide: () => void,
+    note: Note;
+    onHide: () => void;
 };
 
-export default function FlashCardCreator({ note, onHide }: FlashCardCreatorProps) {
+export default function FlashCardCreator({
+    note,
+    onHide,
+}: FlashCardCreatorProps) {
     const appState = getAppState();
 
     let [flashCardPrompt, setFlashCardPrompt] = useState("");
@@ -61,9 +59,7 @@ export default function FlashCardCreator({ note, onHide }: FlashCardCreatorProps
                 />
             </div>
             <CivilButton onClick={onHide}>Cancel</CivilButton>
-            <CivilButton onClick={onSave}>
-                Save Flash Card Prompt
-            </CivilButton>
+            <CivilButton onClick={onSave}>Save Flash Card Prompt</CivilButton>
         </div>
     );
 }

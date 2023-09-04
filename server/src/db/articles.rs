@@ -59,8 +59,6 @@ impl From<(decks::DeckBase, ArticleExtra)> for interop::Article {
             notes: vec![],
             arrivals: vec![],
 
-            flashcards: vec![],
-
             published_date: extra.published_date,
         }
     }
@@ -88,8 +86,6 @@ fn from_row(row: &Row) -> crate::Result<interop::Article> {
 
         notes: vec![],
         arrivals: vec![],
-
-        flashcards: vec![],
 
         published_date: row.get(7)?,
     })

@@ -2,6 +2,7 @@ import { h } from "preact";
 import { useState } from "preact/hooks";
 
 import {
+    FlashCard,
     CivilMode,
     Note,
     Reference,
@@ -24,6 +25,8 @@ import DeckLink from "components/deck-link";
 import Expandable from "components/expandable";
 import ListingLink from "components/listing-link";
 import ViewReference from "components/view-reference";
+import FlashCardIndicator from "components/flashcard-indicator";
+import ViewFlashCard from "components/view-flashcard";
 
 export default function ViewSearchResults({
     searchResults,
@@ -103,6 +106,10 @@ function SearchNote({
 
     let [addDeckReferencesUI, setAddDeckReferencesUI] = useState(false);
 
+    const [showFlashCard, setShowFlashCard] = useState(
+        searchNote.flashcards.map(() => false)
+    );
+
     function buildRefs(refs: Array<Reference>) {
         return refs.map((ref) => (
             <ViewReference reference={ref} extraClasses="left-margin-entry" />
@@ -117,6 +124,16 @@ function SearchNote({
                 }
                 break;
         }
+    }
+
+    function onClickedFlashcard(_f: FlashCard, index: number) {
+        let newshowFlashCard = [...showFlashCard];
+        newshowFlashCard[index] = !newshowFlashCard[index];
+        setShowFlashCard(newshowFlashCard);
+    }
+
+    function flashCardDeleted(flashcard: FlashCard) {
+        console.log(flashcard);
     }
 
     function buildAddDecksUI() {
@@ -145,8 +162,27 @@ function SearchNote({
     return (
         <CivContainer extraClasses="c-search-note note">
             <CivLeft>
+                {searchNote.flashcards.map((flashcard, i) => {
+                    return (
+                        <FlashCardIndicator
+                            flashcard={flashcard}
+                            index={i}
+                            onClick={onClickedFlashcard}
+                        />
+                    );
+                })}
                 {buildRefs(searchNote.refs)}
             </CivLeft>
+            {searchNote.flashcards
+                .filter((_f, i) => showFlashCard[i])
+                .map((f) => {
+                    return (
+                        <ViewFlashCard
+                            flashcard={f}
+                            onDelete={flashCardDeleted}
+                        />
+                    );
+                })}
             <CivMain>
                 <div onClick={onNoteClicked}>
                     {buildMarkup(

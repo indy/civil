@@ -8,6 +8,7 @@ import Net from "shared/net";
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";
 import useLocalReducer from "components/use-local-reducer";
+import { CivMain } from "components/civil-layout";
 
 enum ActionType {
     IsEditingToggle,
@@ -148,7 +149,7 @@ export default function ViewFlashCard({
         // Normal View
         //
         return (
-            <div class="note">
+            <CivMain>
                 <p>
                     <span class="right-margin">
                         Next test in {local.daysUntilNextTest} (
@@ -162,13 +163,13 @@ export default function ViewFlashCard({
                     <button onClick={editToggleClicked}>Edit FlashCard</button>
                     <DeleteConfirmation onDelete={confirmedDeleteClicked} />
                 </div>
-            </div>
+            </CivMain>
         );
     } else {
         // Editing
         //
         return (
-            <div class="note">
+            <CivMain>
                 <p>
                     <span class="right-margin">
                         Next test in {local.daysUntilNextTest} (
@@ -186,7 +187,7 @@ export default function ViewFlashCard({
                     <button onClick={saveClicked}>Save Edits</button>
                     <button onClick={cancelClicked}>Cancel Editing</button>
                 </div>
-            </div>
+            </CivMain>
         );
     }
 }

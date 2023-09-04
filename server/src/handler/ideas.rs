@@ -16,7 +16,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::ideas as db;
-use crate::db::memorise as memorise_db;
 use crate::db::notes as notes_db;
 use crate::db::sqlite::SqlitePool;
 use crate::handler::decks;
@@ -164,7 +163,6 @@ fn sqlite_augment(
 ) -> crate::Result<()> {
     idea.notes = notes_db::notes_for_deck(sqlite_pool, idea_id)?;
     idea.arrivals = notes_db::arrivals_for_deck(sqlite_pool, idea_id)?;
-    idea.flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, idea_id)?;
 
     Ok(())
 }

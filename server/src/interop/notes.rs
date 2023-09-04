@@ -18,6 +18,7 @@
 use crate::error::Error;
 use crate::interop::decks::Ref;
 use crate::interop::font::Font;
+use crate::interop::memorise::FlashCard;
 use crate::interop::Key;
 use std::convert::TryFrom;
 
@@ -67,6 +68,7 @@ pub struct Note {
     pub font: Font,
 
     pub refs: Vec<Ref>,
+    pub flashcards: Vec<FlashCard>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

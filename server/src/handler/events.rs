@@ -16,7 +16,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::events as db;
-use crate::db::memorise as memorise_db;
 use crate::db::notes as notes_db;
 use crate::handler::decks;
 use crate::handler::PaginationQuery;
@@ -129,7 +128,6 @@ fn sqlite_augment(
 ) -> crate::Result<()> {
     event.notes = notes_db::notes_for_deck(sqlite_pool, event_id)?;
     event.arrivals = notes_db::arrivals_for_deck(sqlite_pool, event_id)?;
-    event.flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, event_id)?;
 
     Ok(())
 }

@@ -17,7 +17,6 @@
 
 use crate::interop::decks::{Arrival, DeckKind};
 use crate::interop::font::Font;
-use crate::interop::memorise::FlashCard;
 use crate::interop::notes::Note;
 use crate::interop::points::Point;
 use crate::interop::Key;
@@ -36,10 +35,7 @@ pub struct Timeline {
     pub points: Vec<Point>,
 
     pub notes: Vec<Note>,
-
     pub arrivals: Vec<Arrival>,
-
-    pub flashcards: Vec<FlashCard>,
 }
 
 impl From<crate::db::decks::DeckBase> for Timeline {
@@ -57,8 +53,6 @@ impl From<crate::db::decks::DeckBase> for Timeline {
 
             notes: vec![],
             arrivals: vec![],
-
-            flashcards: vec![],
         }
     }
 }

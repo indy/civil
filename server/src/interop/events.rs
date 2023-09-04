@@ -17,7 +17,6 @@
 
 use crate::interop::decks::{Arrival, DeckKind};
 use crate::interop::font::Font;
-use crate::interop::memorise::FlashCard;
 use crate::interop::notes::Note;
 use crate::interop::Key;
 
@@ -46,10 +45,7 @@ pub struct Event {
     pub importance: i32,
 
     pub notes: Vec<Note>,
-
     pub arrivals: Vec<Arrival>,
-
-    pub flashcards: Vec<FlashCard>,
 }
 
 impl From<crate::db::decks::DeckBase> for Event {
@@ -78,8 +74,6 @@ impl From<crate::db::decks::DeckBase> for Event {
 
             notes: vec![],
             arrivals: vec![],
-
-            flashcards: vec![],
         }
     }
 }

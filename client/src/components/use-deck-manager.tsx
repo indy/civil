@@ -6,7 +6,6 @@ import {
     CivilMode,
     DeckKind,
     FatDeck,
-    FlashCard,
     Key,
     Note,
     NoteKind,
@@ -340,8 +339,6 @@ function dmsUpdateDeck<T extends FatDeck>(
 ): DeckManagerState<T> {
     // modify the notes received from the server
     deck = sortRefsInNotes(deck);
-    deck = prepareFlashCards(deck);
-    deck = applyFlashCardsToNotes(deck);
     // organise the notes into noteSeqs
     deck = buildNotePassages(deck);
     // build passages for the arrivals and then partition them by deck kind
@@ -444,45 +441,6 @@ function sortRefsInNotes<T extends FatDeck>(deck: T): T {
     return deck;
 }
 
-function prepareFlashCards<T extends FatDeck>(deck: T): T {
-    deck.flashcards.forEach(flashcard => {
-        flashcard.showPrompt = false;
-    })
-
-    return deck;
-}
-
-function applyFlashCardsToNotes<T extends FatDeck>(deck: T): T {
-    const cardsInNotes = hashByNoteIds(deck.flashcards);
-    for (let i = 0; i < deck.notes.length; i++) {
-        let n = deck.notes[i];
-        if (cardsInNotes[n.id]) {
-            n.flashcards = cardsInNotes[n.id];
-        } else {
-            n.flashcards = [];
-        }
-    }
-
-    return deck;
-}
-
-function hashByNoteIds(s: Array<Reference | FlashCard>) {
-    let res = {};
-
-    s = s || [];
-    s.forEach((n) => {
-        const noteId = n.noteId;
-        if (noteId) {
-            if (!res[noteId]) {
-                res[noteId] = [];
-            }
-            res[noteId].push(n);
-        }
-    });
-
-    return res;
-}
-
 function buildNotePassages<T extends FatDeck>(deck: T): T {
     // build NoteSeqs for notes associated with points
     let points: { [id: Key]: Notes } = noteSeqsForPoints(deck.notes);
@@ -513,14 +471,6 @@ function buildNotePassages<T extends FatDeck>(deck: T): T {
             `deck: ${deck.id} has a NoteDeckMeta noteseq of length: ${noteDeckMeta.length} ???`
         );
     }
-
-    // deck.notePassages = {
-    //     points,
-    //     note,
-    //     noteDeckMeta,
-    //     noteReview,
-    //     noteSummary,
-    // };
 
     let notePassagesGroupedByNoteKind: Record<NoteKind, Passage> = {
         [NoteKind.Note]: note,

@@ -53,7 +53,6 @@ impl TryFrom<(decks::DeckBase, DialogueExtra)> for interop::Dialogue {
             created_at: deck.created_at,
             notes: vec![],
             arrivals: vec![],
-            flashcards: vec![],
             original_chat_messages: vec![],
         })
     }
@@ -78,8 +77,6 @@ fn from_row(row: &Row) -> crate::Result<interop::Dialogue> {
 
         notes: vec![],
         arrivals: vec![],
-
-        flashcards: vec![],
 
         original_chat_messages: vec![],
     })

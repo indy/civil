@@ -13,7 +13,6 @@ import ViewArrival from "components/view-arrival";
 
 export default function SegmentArrivals({ deck }: { deck?: FatDeck }) {
     const font = deck ? deck.font : immutableState.defaultFont;
-
     const allGroups: Array<ComponentChildren> = [];
     if (deck) {
         const group = deck.groupedArrivals;

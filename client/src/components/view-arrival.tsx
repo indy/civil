@@ -1,12 +1,15 @@
 import { h } from "preact";
+import { useState } from "preact/hooks";
 
-import { FatDeck, Arrival, Note, Passage, Reference } from "types";
+import { FlashCard, FatDeck, Arrival, Note, Passage } from "types";
 
 import DeckLink from "components/deck-link";
 import Expandable from "components/expandable";
 import buildMarkup from "components/build-markup";
 import ViewReference from "components/view-reference";
 import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
+import FlashCardIndicator from "components/flashcard-indicator";
+import ViewFlashCard from "components/view-flashcard";
 
 type ViewArrivalProps = {
     deck: FatDeck;
@@ -38,60 +41,99 @@ function ViewPassageWithinArrival({
     deck,
     passage,
 }: ViewPassageWithinArrivalProps) {
-    function buildRef(ref: Reference) {
+    let lastIdx = passage.length - 1;
+    let notes = passage.map((note, idx) => {
+        return <ArrivalNote deck={deck} note={note} isLast={idx === lastIdx} />;
+    });
+
+    return <div class="c-view-passage-within-back-deck">{notes}</div>;
+}
+
+type ArrivalNoteProps = {
+    deck: FatDeck;
+    note: Note;
+    isLast: boolean;
+};
+
+function ArrivalNote({ deck, note, isLast }: ArrivalNoteProps) {
+    const [showFlashCard, setShowFlashCard] = useState(
+        note.flashcards.map(() => false)
+    );
+
+    function buildTopAnnotation(annotation: string) {
+        const scribbleClasses = `ref-top-scribble`;
         return (
-            <ViewReference reference={ref} extraClasses="left-margin-entry" />
+            <CivContainer>
+                <CivMain>
+                    <div class={scribbleClasses}>{annotation}</div>
+                </CivMain>
+            </CivContainer>
         );
     }
 
-    function buildNote(n: Note, idx: number) {
-        function buildTopAnnotation(annotation: string) {
-            const scribbleClasses = `ref-top-scribble`;
-            return (
-                <CivContainer>
-                    <CivMain>
-                        <div class={scribbleClasses}>{annotation}</div>
-                    </CivMain>
-                </CivContainer>
-            );
-        }
+    // this note will contain a ref to the destination deck
+    // find that ref and display the annotation it might have
+    //
+    let linkingRef = note.refs.find((r) => {
+        return r.id === deck.id;
+    });
+    let annotation: string | undefined = undefined;
+    if (linkingRef) {
+        annotation = linkingRef.annotation;
+    } else {
+        console.error(`Deck not a ref in Arrival ???? id:${deck.id}???`);
+    }
 
-        // this note will contain only one ref to the destination deck
-        // so display any annotation that ref might have
-        //
-        let linkingRef = n.refs.find((r) => {
-            return r.id === deck.id;
-        });
-        let annotation: string | undefined = undefined;
-        if (linkingRef) {
-            annotation = linkingRef.annotation;
-        } else {
-            console.error(`Deck not a ref in Arrival ???? id:${deck.id}???`);
-        }
+    function onClickedFlashcard(_f: FlashCard, index: number) {
+        let newshowFlashCard = [...showFlashCard];
+        newshowFlashCard[index] = !newshowFlashCard[index];
+        setShowFlashCard(newshowFlashCard);
+    }
 
-        return (
-            <div>
-                {annotation && buildTopAnnotation(annotation!)}
-                <CivContainer>
-                    <CivLeft>
-                        {n.refs
-                            .filter((r) => {
-                                return r.id !== deck.id;
-                            })
-                            .map(buildRef)}
-                    </CivLeft>
-                    <CivMain>
-                        {buildMarkup(n.content, n.font, n.id)}
-                        {idx < passage.length - 1 && <hr />}
-                    </CivMain>
-                </CivContainer>
-            </div>
-        );
+    function flashCardDeleted(flashcard: FlashCard) {
+        console.log(flashcard);
     }
 
     return (
-        <div class="c-view-passage-within-back-deck">
-            {passage.map(buildNote)}
+        <div>
+            {annotation && buildTopAnnotation(annotation!)}
+            <CivContainer>
+                <CivLeft>
+                    {note.flashcards.map((flashcard, i) => {
+                        return (
+                            <FlashCardIndicator
+                                flashcard={flashcard}
+                                index={i}
+                                onClick={onClickedFlashcard}
+                            />
+                        );
+                    })}
+                    {note.refs
+                        .filter((r) => {
+                            return r.id !== deck.id;
+                        })
+                        .map((ref) => (
+                            <ViewReference
+                                reference={ref}
+                                extraClasses="left-margin-entry"
+                            />
+                        ))}
+                </CivLeft>
+                {note.flashcards
+                    .filter((_f, i) => showFlashCard[i])
+                    .map((f) => {
+                        return (
+                            <ViewFlashCard
+                                flashcard={f}
+                                onDelete={flashCardDeleted}
+                            />
+                        );
+                    })}
+                <CivMain>
+                    {buildMarkup(note.content, note.font, note.id)}
+                    {!isLast && <hr />}
+                </CivMain>
+            </CivContainer>
         </div>
     );
 }

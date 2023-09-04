@@ -61,8 +61,6 @@ impl From<(decks::DeckBase, QuoteExtra)> for interop::Quote {
 
             notes: vec![],
             arrivals: vec![],
-
-            flashcards: vec![],
         }
     }
 }
@@ -80,8 +78,6 @@ fn quote_from_row(row: &Row) -> crate::Result<interop::Quote> {
 
         notes: vec![],
         arrivals: vec![],
-
-        flashcards: vec![],
     })
 }
 

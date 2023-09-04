@@ -17,7 +17,6 @@
 
 use crate::ai::{openai_interface, AI};
 use crate::db::dialogues as db;
-use crate::db::memorise as memorise_db;
 use crate::db::notes as notes_db;
 use crate::db::sqlite::SqlitePool;
 use crate::handler::decks;
@@ -184,7 +183,6 @@ fn sqlite_augment(
 ) -> crate::Result<()> {
     dialogue.notes = notes_db::notes_for_deck(sqlite_pool, dialogue_id)?;
     dialogue.arrivals = notes_db::arrivals_for_deck(sqlite_pool, dialogue_id)?;
-    dialogue.flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, dialogue_id)?;
 
     Ok(())
 }

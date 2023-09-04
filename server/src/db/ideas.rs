@@ -38,7 +38,6 @@ fn idea_from_row(row: &Row) -> crate::Result<interop::Idea> {
         created_at: row.get(2)?,
         notes: vec![],
         arrivals: vec![],
-        flashcards: vec![],
     })
 }
 

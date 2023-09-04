@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::postfix_asterisks;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::interop::decks as interop_decks;
 use crate::interop::font::Font;
@@ -66,6 +67,83 @@ pub(crate) fn all_flashcards_for_deck(
                   WHERE d.id=?1 AND n.deck_id = d.id AND c.note_id = n.id",
                  params![&deck_id],
                  flashcard_from_row)
+}
+
+pub(crate) fn all_flashcards_for_deck_arrivals(
+    sqlite_pool: &SqlitePool,
+    deck_id: Key,
+) -> crate::Result<Vec<interop::FlashCard>> {
+    let conn = sqlite_pool.get()?;
+    sqlite::many(&conn,
+                 "SELECT   c.id, c.note_id, c.prompt, c.next_test_date, c.easiness_factor, c.interval, c.repetition
+                  FROM     notes_decks nd
+                           FULL JOIN notes n on nd.note_id = n.id
+                           FULL JOIN decks owner_deck on n.deck_id = owner_deck.id
+                           INNER JOIN cards c on c.note_id = n.id
+                  WHERE    nd.deck_id = ?1",
+                 params![&deck_id],
+                 flashcard_from_row)
+}
+
+pub(crate) fn all_flashcards_for_deck_additional_query(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    deck_id: Key,
+    sane_name: &str,
+) -> crate::Result<Vec<interop::FlashCard>> {
+    let conn = sqlite_pool.get()?;
+
+    if sane_name.is_empty() {
+        return Ok(vec![]);
+    }
+
+    sqlite::many(
+        &conn,
+        "SELECT c.id, c.note_id, c.prompt, c.next_test_date,
+                         c.easiness_factor, c.interval, c.repetition,
+                         notes_fts.rank AS rank
+                  FROM notes_fts
+                       LEFT JOIN notes n ON n.id = notes_fts.rowid
+                       LEFT JOIN decks d ON d.id = n.deck_id
+                       LEFT JOIN dialogue_messages dm ON dm.note_id = n.id
+                       INNER JOIN cards c on c.note_id = n.id
+                  WHERE notes_fts match ?2
+                        AND d.user_id = ?1
+                        AND d.id <> ?3
+                        AND (dm.role IS null OR dm.role <> 'system')
+                  ORDER BY rank ASC
+                  LIMIT 100",
+        params![&user_id, &sane_name, &deck_id],
+        flashcard_from_row,
+    )
+}
+
+pub(crate) fn all_flashcards_for_search_query(
+    sqlite_pool: &SqlitePool,
+    user_id: Key,
+    query: &str,
+) -> crate::Result<Vec<interop::FlashCard>> {
+    let conn = sqlite_pool.get()?;
+    let q = postfix_asterisks(query)?;
+
+    sqlite::many(
+        &conn,
+        "SELECT c.id, c.note_id, c.prompt, c.next_test_date,
+                   c.easiness_factor, c.interval, c.repetition,
+                   notes_fts.rank AS rank
+         FROM notes_fts
+              LEFT JOIN notes n ON n.id = notes_fts.rowid
+              LEFT JOIN decks d ON d.id = n.deck_id
+              LEFT JOIN dialogue_messages dm ON dm.note_id = n.id
+              INNER JOIN cards c on c.note_id = n.id
+         WHERE notes_fts match ?2
+               AND d.user_id = ?1
+               AND (dm.role IS null OR dm.role <> 'system')
+         ORDER BY rank ASC
+         LIMIT 100",
+        params![&user_id, &q],
+        flashcard_from_row,
+    )
 }
 
 pub(crate) fn create_card(

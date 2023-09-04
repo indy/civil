@@ -280,10 +280,6 @@ export type FlashCard = {
     easinessFactor: number;
     interval: number;
     repetition: number;
-
-    // additional client side data for ui purposes
-    //
-    showPrompt: boolean;
 };
 
 export type SearchDeck = {

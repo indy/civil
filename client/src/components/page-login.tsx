@@ -200,7 +200,6 @@ export default function Login({ path, loginCallback }: Props) {
                             onInput={handleChangeEvent}
                             onFocus={obtainKeyboard}
                             onBlur={relinquishKeyboard}
-
                             ref={emailRef}
                         />
                     </CivMain>

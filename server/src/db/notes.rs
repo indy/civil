@@ -15,13 +15,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::memorise as memorise_db;
 use crate::interop::decks::{Arrival, DeckKind, Ref, RefKind, SlimDeck};
 use crate::interop::font::Font;
+use crate::interop::memorise as memorise_interop;
 use crate::interop::notes as interop;
 use crate::interop::Key;
 
 #[allow(unused_imports)]
-use tracing::{error, info};
+use tracing::{error, info, warn};
 
 use crate::db::sqlite::{self, SqlitePool};
 use rusqlite::{params, Connection, Row};
@@ -40,6 +42,7 @@ fn note_sans_refs_from_row(row: &Row) -> crate::Result<interop::Note> {
         point_id: row.get(3)?,
         font: Font::try_from(fnt)?,
         refs: vec![],
+        flashcards: vec![],
     })
 }
 
@@ -102,6 +105,7 @@ fn note_and_ref_from_row(row: &Row) -> crate::Result<NoteAndRef> {
             point_id: row.get(4)?,
             font: Font::try_from(note_font)?,
             refs: vec![],
+            flashcards: vec![],
         },
         reference_maybe,
     })
@@ -144,6 +148,7 @@ fn note_and_ref_and_deck_from_row(row: &Row) -> crate::Result<NoteAndRefAndDeck>
             point_id: row.get(4)?,
             font: Font::try_from(note_font)?,
             refs: vec![],
+            flashcards: vec![],
         },
         reference_maybe,
         deck: SlimDeck {
@@ -187,9 +192,40 @@ pub(crate) fn notes_for_deck(
     let notes_and_refs: Vec<NoteAndRef> =
         sqlite::many(&conn, stmt, params!(&deck_id), note_and_ref_from_row)?;
 
-    let notes = notes_from_notes_and_refs(notes_and_refs)?;
+    let mut notes = notes_from_notes_and_refs(notes_and_refs)?;
+
+    let flashcards = memorise_db::all_flashcards_for_deck(sqlite_pool, deck_id)?;
+
+    assign_flashcards_to_notes(&mut notes, &flashcards)?;
 
     Ok(notes)
+}
+
+fn copy_flashcard(flashcard: &memorise_interop::FlashCard) -> memorise_interop::FlashCard {
+    memorise_interop::FlashCard {
+        id: flashcard.id,
+
+        note_id: flashcard.note_id,
+        prompt: String::from(&flashcard.prompt),
+        next_test_date: flashcard.next_test_date,
+
+        easiness_factor: flashcard.easiness_factor,
+        interval: flashcard.interval,
+        repetition: flashcard.repetition,
+    }
+}
+
+pub(crate) fn assign_flashcards_to_notes(
+    notes: &mut [interop::Note],
+    flashcards: &Vec<memorise_interop::FlashCard>,
+) -> crate::Result<()> {
+    for flashcard in flashcards {
+        if let Some(index) = notes.iter().position(|n| n.id == flashcard.note_id) {
+            notes[index].flashcards.push(copy_flashcard(flashcard));
+        }
+    }
+
+    Ok(())
 }
 
 fn notes_from_notes_and_refs(notes_and_refs: Vec<NoteAndRef>) -> crate::Result<Vec<interop::Note>> {
@@ -254,9 +290,29 @@ pub(crate) fn arrivals_for_deck(
         note_and_ref_and_deck_from_row,
     )?;
 
-    let notes = arrivals_from_notes_and_refs_and_decks(notes_and_refs_and_decks)?;
+    let mut arrivals = arrivals_from_notes_and_refs_and_decks(notes_and_refs_and_decks)?;
 
-    Ok(notes)
+    let flashcards = memorise_db::all_flashcards_for_deck_arrivals(sqlite_pool, deck_id)?;
+
+    assign_flashcards_to_arrivals(&mut arrivals, flashcards)?;
+
+    Ok(arrivals)
+}
+
+fn assign_flashcards_to_arrivals(
+    arrivals: &mut [Arrival],
+    flashcards: Vec<memorise_interop::FlashCard>,
+) -> crate::Result<()> {
+    for flashcard in flashcards {
+        for arrival in &mut *arrivals {
+            if let Some(index) = arrival.notes.iter().position(|n| n.id == flashcard.note_id) {
+                arrival.notes[index].flashcards.push(flashcard);
+                break;
+            }
+        }
+    }
+
+    Ok(())
 }
 
 fn arrivals_from_notes_and_refs_and_decks(

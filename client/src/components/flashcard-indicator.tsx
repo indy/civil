@@ -4,15 +4,17 @@ import { FlashCard } from "types";
 
 import { svgFlashCard } from "components/svg-icons";
 
-
-export default function FlashCardIndicator({ flashcard, onClick }:
-    {
-        flashcard: FlashCard,
-        onClick: (f: FlashCard) => void
-    }
-) {
+export default function FlashCardIndicator({
+    flashcard,
+    index,
+    onClick,
+}: {
+    flashcard: FlashCard;
+    index: number;
+    onClick: (f: FlashCard, index) => void;
+}) {
     function onClicked() {
-        onClick(flashcard);
+        onClick(flashcard, index);
     }
 
     return (

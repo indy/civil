@@ -17,7 +17,6 @@
 
 use crate::interop::decks::{Arrival, DeckKind, SlimDeck, SlimEvent};
 use crate::interop::font::Font;
-use crate::interop::memorise::FlashCard;
 use crate::interop::notes::Note;
 use crate::interop::points::Point;
 use crate::interop::Key;
@@ -44,8 +43,6 @@ pub struct Person {
 
     pub notes: Vec<Note>,
     pub arrivals: Vec<Arrival>,
-
-    pub flashcards: Vec<FlashCard>,
 }
 
 impl From<crate::db::decks::DeckBase> for Person {
@@ -65,10 +62,7 @@ impl From<crate::db::decks::DeckBase> for Person {
             events: vec![],
 
             notes: vec![],
-
             arrivals: vec![],
-
-            flashcards: vec![],
         }
     }
 }

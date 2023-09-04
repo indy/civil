@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { Ref as PreactRef, useEffect, useRef } from "preact/hooks";
+import { Ref as PreactRef, useEffect, useRef, useState } from "preact/hooks";
 
 import {
     CivilMode,
@@ -11,7 +11,7 @@ import {
     Notes,
     Reference,
     RefsModified,
-    Role
+    Role,
 } from "types";
 
 import { AppStateChange, getAppState } from "app-state";
@@ -80,13 +80,13 @@ type ActionDataDecksCommit = {
 type Action = {
     type: ActionType;
     data?:
-    | Note
-    | FlashCard
-    | number
-    | boolean
-    | ActionDataImagePasted
-    | ActionDataDecksCommit
-    | any;
+        | Note
+        | FlashCard
+        | number
+        | boolean
+        | ActionDataImagePasted
+        | ActionDataDecksCommit
+        | any;
 };
 
 function reducer(state: LocalState, action: Action): LocalState {
@@ -514,10 +514,7 @@ export default function ViewNote({
                 break;
             case CivilMode.Refs:
                 if (!local.addDeckReferencesUI) {
-                    localDispatch(
-                        ActionType.AddDeckReferencesUiShow,
-                        true
-                    );
+                    localDispatch(ActionType.AddDeckReferencesUiShow, true);
                 }
                 break;
             case CivilMode.Memorise:
@@ -527,10 +524,7 @@ export default function ViewNote({
                 break;
             case CivilMode.AddAbove:
                 if (!local.addNoteAboveUI) {
-                    localDispatch(
-                        ActionType.AddNoteAboveUiShow,
-                        true
-                    );
+                    localDispatch(ActionType.AddNoteAboveUiShow, true);
                 }
                 break;
         }
@@ -540,8 +534,14 @@ export default function ViewNote({
         localDispatch(ActionType.FlashCardCreatorShow, false);
     }
 
-    function onNoteChanged(note: Note) {
-        localDispatch(ActionType.NoteChanged, note);
+    const [showFlashCard, setShowFlashCard] = useState(
+        note.flashcards.map(() => false)
+    );
+
+    function onFlashcardClicked(index: number) {
+        let newshowFlashCard = [...showFlashCard];
+        newshowFlashCard[index] = !newshowFlashCard[index];
+        setShowFlashCard(newshowFlashCard);
     }
 
     return (
@@ -552,14 +552,23 @@ export default function ViewNote({
             {!local.isEditingMarkup &&
                 buildLeftMarginContent(
                     local.note,
-                    onNoteChanged,
+                    onFlashcardClicked,
                     onCopyRefBelow,
                     nextNote
                 )}
 
-             {local.isEditingMarkup && buildEditableContent()}
+            {local.isEditingMarkup && buildEditableContent()}
 
-             {note.flashcards.filter(f => f.showPrompt).map(f => <ViewFlashCard flashcard={f} onDelete={flashCardDeleted}/>)}
+            {note.flashcards
+                .filter((_f, i) => {
+                    return showFlashCard[i];
+                })
+                .map((flashcard) => (
+                    <ViewFlashCard
+                        flashcard={flashcard}
+                        onDelete={flashCardDeleted}
+                    />
+                ))}
 
             {!local.isEditingMarkup && (
                 <CivMain>
@@ -583,10 +592,12 @@ export default function ViewNote({
                 local.addDeckReferencesUI &&
                 buildAddDecksUI()}
             {appState.mode.value === CivilMode.Memorise &&
-                local.showFlashCardCreator &&
-                <FlashCardCreator
-                    note={local.note}
-                    onHide={hideFlashCardCreator} />}
+                local.showFlashCardCreator && (
+                    <FlashCardCreator
+                        note={local.note}
+                        onHide={hideFlashCardCreator}
+                    />
+                )}
             {local.isEditingMarkup && buildMainButtons()}
         </CivContainer>
     );
@@ -594,16 +605,12 @@ export default function ViewNote({
 
 function buildLeftMarginContent(
     note: Note,
-    onNoteChanged: (n: Note) => void,
+    onFlashcardClicked: (index: number) => void,
     onCopyRefBelow: (ref: Reference, nextNote: Note) => void,
     nextNote?: Note
 ) {
-
-    function onFlashcardClicked(flashcard: FlashCard) {
-        flashcard.showPrompt = !flashcard.showPrompt;
-        let newNote = {...note};
-
-        onNoteChanged(newNote);
+    function onClickedFlashcard(_f: FlashCard, index: number) {
+        onFlashcardClicked(index);
     }
 
     if (
@@ -614,7 +621,15 @@ function buildLeftMarginContent(
         return (
             <CivLeft>
                 {note.chatMessage && <ViewRole role={note.chatMessage!.role} />}
-            {note.flashcards.map(flashcard => <FlashCardIndicator flashcard={flashcard} onClick={onFlashcardClicked} />)}
+                {note.flashcards.map((flashcard, i) => {
+                    return (
+                        <FlashCardIndicator
+                            flashcard={flashcard}
+                            index={i}
+                            onClick={onClickedFlashcard}
+                        />
+                    );
+                })}
                 {note.refs.length > 0 && note.flashcards.length > 0 && (
                     <div class="spacer"></div>
                 )}

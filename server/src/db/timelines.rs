@@ -37,7 +37,6 @@ fn from_row(row: &Row) -> crate::Result<interop::Timeline> {
         points: vec![],
         notes: vec![],
         arrivals: vec![],
-        flashcards: vec![],
     })
 }
 
