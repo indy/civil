@@ -4,7 +4,7 @@ import { useRef, useState } from "preact/hooks";
 
 import { UserWithUiConfig } from "types";
 
-import { getAppState } from "app-state";
+import { AppStateChange, getAppState } from "app-state";
 
 import Net from "shared/net";
 
@@ -172,6 +172,16 @@ export default function Login({ path, loginCallback }: Props) {
         setState(newState);
     }
 
+    function obtainKeyboard(event: Event) {
+        event.preventDefault();
+        AppStateChange.obtainKeyboard();
+    }
+
+    function relinquishKeyboard(event: Event) {
+        event.preventDefault();
+        AppStateChange.relinquishKeyboard();
+    }
+
     return (
         <section>
             <CivContainer>
@@ -188,6 +198,9 @@ export default function Login({ path, loginCallback }: Props) {
                             name="login-email"
                             value={state["login-email"]}
                             onInput={handleChangeEvent}
+                            onFocus={obtainKeyboard}
+                            onBlur={relinquishKeyboard}
+
                             ref={emailRef}
                         />
                     </CivMain>
@@ -201,6 +214,8 @@ export default function Login({ path, loginCallback }: Props) {
                             name="login-password"
                             value={state["login-password"]}
                             onInput={handleChangeEvent}
+                            onFocus={obtainKeyboard}
+                            onBlur={relinquishKeyboard}
                             ref={passwordRef}
                         />
                     </CivMain>
@@ -257,6 +272,8 @@ export default function Login({ path, loginCallback }: Props) {
                             type="password"
                             name="register-password"
                             value={state["register-password"]}
+                            onFocus={obtainKeyboard}
+                            onBlur={relinquishKeyboard}
                             onInput={handleChangeEvent}
                         />
                     </CivMain>
@@ -270,6 +287,8 @@ export default function Login({ path, loginCallback }: Props) {
                             type="password"
                             name="register-password-2"
                             value={state["register-password-2"]}
+                            onFocus={obtainKeyboard}
+                            onBlur={relinquishKeyboard}
                             onInput={handleChangeEvent}
                         />
                     </CivMain>
