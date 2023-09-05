@@ -2,7 +2,6 @@ import { h } from "preact";
 import { useState } from "preact/hooks";
 
 import {
-    FlashCard,
     CivilMode,
     Note,
     Reference,
@@ -25,8 +24,7 @@ import DeckLink from "components/deck-link";
 import Expandable from "components/expandable";
 import ListingLink from "components/listing-link";
 import ViewReference from "components/view-reference";
-import FlashCardIndicator from "components/flashcard-indicator";
-import ViewFlashCard from "components/view-flashcard";
+import useFlashcards from "components/use-flashcards";
 
 export default function ViewSearchResults({
     searchResults,
@@ -76,7 +74,7 @@ export default function ViewSearchResults({
 
 function ViewSearchDeck({ searchDeck }: { searchDeck: SearchDeck }) {
     const searchNoteEntries = searchDeck.notes.map((searchNote) => (
-        <SearchNote deck={searchDeck.deck} searchNote={searchNote} />
+        <SearchNote deck={searchDeck.deck} note={searchNote} />
     ));
 
     let heading = (
@@ -97,18 +95,15 @@ function ViewSearchDeck({ searchDeck }: { searchDeck: SearchDeck }) {
 
 function SearchNote({
     deck,
-    searchNote,
+    note,
 }: {
     deck: SlimDeck;
-    searchNote: Note;
+    note: Note;
 }) {
     const appState = getAppState();
 
+    const [flashcardIndicators, maximisedFlashcards] = useFlashcards(note.flashcards);
     let [addDeckReferencesUI, setAddDeckReferencesUI] = useState(false);
-
-    const [showFlashCard, setShowFlashCard] = useState(
-        searchNote.flashcards.map(() => false)
-    );
 
     function buildRefs(refs: Array<Reference>) {
         return refs.map((ref) => (
@@ -126,21 +121,11 @@ function SearchNote({
         }
     }
 
-    function onClickedFlashcard(_f: FlashCard, index: number) {
-        let newshowFlashCard = [...showFlashCard];
-        newshowFlashCard[index] = !newshowFlashCard[index];
-        setShowFlashCard(newshowFlashCard);
-    }
-
-    function flashCardDeleted(flashcard: FlashCard) {
-        console.log(flashcard);
-    }
-
     function buildAddDecksUI() {
         function onSave(changes: RefsModified, refsInNote: Array<Reference>) {
             setAddDeckReferencesUI(false);
             AppStateChange.noteRefsModified({ refsInNote, changes });
-            searchNote.refs = refsInNote;
+            note.refs = refsInNote;
         }
 
         function onCancel() {
@@ -151,8 +136,8 @@ function SearchNote({
             <CivilSelect
                 extraClasses="form-margin"
                 parentDeckId={deck.id}
-                noteId={searchNote.id}
-                chosen={searchNote.refs}
+                noteId={note.id}
+                chosen={note.refs}
                 onSave={onSave}
                 onCancel={onCancel}
             />
@@ -162,33 +147,16 @@ function SearchNote({
     return (
         <CivContainer extraClasses="c-search-note note">
             <CivLeft>
-                {searchNote.flashcards.map((flashcard, i) => {
-                    return (
-                        <FlashCardIndicator
-                            flashcard={flashcard}
-                            index={i}
-                            onClick={onClickedFlashcard}
-                        />
-                    );
-                })}
-                {buildRefs(searchNote.refs)}
+                {flashcardIndicators}
+                {buildRefs(note.refs)}
             </CivLeft>
-            {searchNote.flashcards
-                .filter((_f, i) => showFlashCard[i])
-                .map((f) => {
-                    return (
-                        <ViewFlashCard
-                            flashcard={f}
-                            onDelete={flashCardDeleted}
-                        />
-                    );
-                })}
+            {maximisedFlashcards}
             <CivMain>
                 <div onClick={onNoteClicked}>
                     {buildMarkup(
-                        searchNote.content,
-                        searchNote.font,
-                        searchNote.id
+                        note.content,
+                        note.font,
+                        note.id
                     )}
                 </div>
             </CivMain>

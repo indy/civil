@@ -1,15 +1,13 @@
 import { h } from "preact";
-import { useState } from "preact/hooks";
 
-import { FlashCard, FatDeck, Arrival, Note, Passage } from "types";
+import { FatDeck, Arrival, Note, Passage } from "types";
 
 import DeckLink from "components/deck-link";
 import Expandable from "components/expandable";
 import buildMarkup from "components/build-markup";
 import ViewReference from "components/view-reference";
 import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
-import FlashCardIndicator from "components/flashcard-indicator";
-import ViewFlashCard from "components/view-flashcard";
+import useFlashcards from "components/use-flashcards";
 
 type ViewArrivalProps = {
     deck: FatDeck;
@@ -56,9 +54,7 @@ type ArrivalNoteProps = {
 };
 
 function ArrivalNote({ deck, note, isLast }: ArrivalNoteProps) {
-    const [showFlashCard, setShowFlashCard] = useState(
-        note.flashcards.map(() => false)
-    );
+    const [flashcardIndicators, maximisedFlashcards] = useFlashcards(note.flashcards);
 
     function buildTopAnnotation(annotation: string) {
         const scribbleClasses = `ref-top-scribble`;
@@ -84,30 +80,12 @@ function ArrivalNote({ deck, note, isLast }: ArrivalNoteProps) {
         console.error(`Deck not a ref in Arrival ???? id:${deck.id}???`);
     }
 
-    function onClickedFlashcard(_f: FlashCard, index: number) {
-        let newshowFlashCard = [...showFlashCard];
-        newshowFlashCard[index] = !newshowFlashCard[index];
-        setShowFlashCard(newshowFlashCard);
-    }
-
-    function flashCardDeleted(flashcard: FlashCard) {
-        console.log(flashcard);
-    }
-
     return (
         <div>
             {annotation && buildTopAnnotation(annotation!)}
             <CivContainer>
                 <CivLeft>
-                    {note.flashcards.map((flashcard, i) => {
-                        return (
-                            <FlashCardIndicator
-                                flashcard={flashcard}
-                                index={i}
-                                onClick={onClickedFlashcard}
-                            />
-                        );
-                    })}
+                    {flashcardIndicators}
                     {note.refs
                         .filter((r) => {
                             return r.id !== deck.id;
@@ -119,16 +97,7 @@ function ArrivalNote({ deck, note, isLast }: ArrivalNoteProps) {
                             />
                         ))}
                 </CivLeft>
-                {note.flashcards
-                    .filter((_f, i) => showFlashCard[i])
-                    .map((f) => {
-                        return (
-                            <ViewFlashCard
-                                flashcard={f}
-                                onDelete={flashCardDeleted}
-                            />
-                        );
-                    })}
+                {maximisedFlashcards}
                 <CivMain>
                     {buildMarkup(note.content, note.font, note.id)}
                     {!isLast && <hr />}

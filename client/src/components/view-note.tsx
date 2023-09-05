@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { Ref as PreactRef, useEffect, useRef, useState } from "preact/hooks";
+import { Ref as PreactRef, useEffect, useRef } from "preact/hooks";
 
 import {
     CivilMode,
@@ -23,16 +23,15 @@ import { CivContainer, CivLeft, CivMain } from "components/civil-layout";
 import CivilSelect from "components/civil-select";
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";
-import FlashCardIndicator from "components/flashcard-indicator";
 import FlashCardCreator from "components/flashcard-creator";
 import FontSelector from "components/font-selector";
 import ImageSelector from "components/image-selector";
 import NoteForm from "components/note-form";
 import useLocalReducer from "components/use-local-reducer";
 import useMouseHovering from "components/use-mouse-hovering";
-import ViewFlashCard from "components/view-flashcard";
 import ViewReference from "components/view-reference";
 import ViewRole from "components/view-role";
+import useFlashcards from "components/use-flashcards";
 
 enum ActionType {
     AddDeckReferencesUiShow,
@@ -43,7 +42,6 @@ enum ActionType {
     EditedNote,
     EditingCancelled,
     FlashCardCreatorShow,
-    FlashcardDeleted,
     HideAddDecksUi,
     ImagePasted,
     NoteChanged,
@@ -80,13 +78,13 @@ type ActionDataDecksCommit = {
 type Action = {
     type: ActionType;
     data?:
-        | Note
-        | FlashCard
-        | number
-        | boolean
-        | ActionDataImagePasted
-        | ActionDataDecksCommit
-        | any;
+    | Note
+    | FlashCard
+    | number
+    | boolean
+    | ActionDataImagePasted
+    | ActionDataDecksCommit
+    | any;
 };
 
 function reducer(state: LocalState, action: Action): LocalState {
@@ -137,17 +135,6 @@ function reducer(state: LocalState, action: Action): LocalState {
                 oldCursorPos: action.data as number,
                 textAreaFocused: false,
             };
-            return res;
-        }
-        case ActionType.FlashcardDeleted: {
-            let flashcard = action.data as FlashCard;
-            let res = {
-                ...state,
-            };
-
-            res.note.flashcards = res.note.flashcards.filter(
-                (fc) => fc.id !== flashcard.id
-            );
             return res;
         }
         case ActionType.NoteSetProperty: {
@@ -492,10 +479,6 @@ export default function ViewNote({
         );
     }
 
-    function flashCardDeleted(flashcard: FlashCard) {
-        localDispatch(ActionType.FlashcardDeleted, flashcard);
-    }
-
     let noteClasses = "note";
     if (mouseHovering && appState.mode.value !== CivilMode.View) {
         noteClasses += addToolbarSelectableClasses(appState.mode.value);
@@ -534,42 +517,25 @@ export default function ViewNote({
         localDispatch(ActionType.FlashCardCreatorShow, false);
     }
 
-    const [showFlashCard, setShowFlashCard] = useState(
-        note.flashcards.map(() => false)
-    );
-
-    function onFlashcardClicked(index: number) {
-        let newshowFlashCard = [...showFlashCard];
-        newshowFlashCard[index] = !newshowFlashCard[index];
-        setShowFlashCard(newshowFlashCard);
-    }
+    const [flashcardIndicators, maximisedFlashcards] = useFlashcards(note.flashcards);
 
     return (
         <CivContainer extraClasses={noteClasses}>
             {appState.mode.value === CivilMode.AddAbove &&
                 local.addNoteAboveUI &&
                 buildAddNoteAboveUI()}
-            {!local.isEditingMarkup &&
-                buildLeftMarginContent(
-                    local.note,
-                    onFlashcardClicked,
-                    onCopyRefBelow,
-                    nextNote
-                )}
-
+            {(!local.isEditingMarkup) && (note.refs.length > 0 || note.flashcards.length > 0 || note.chatMessage) &&
+                <CivLeft>
+                    {note.chatMessage && <ViewRole role={note.chatMessage!.role} />}
+                    {flashcardIndicators}
+                    {note.refs.length > 0 && note.flashcards.length > 0 && (
+                        <div class="spacer"></div>
+                    )}
+                    {buildNoteReferences(note.refs, onCopyRefBelow, nextNote)}
+                </CivLeft>
+            }
             {local.isEditingMarkup && buildEditableContent()}
-
-            {note.flashcards
-                .filter((_f, i) => {
-                    return showFlashCard[i];
-                })
-                .map((flashcard) => (
-                    <ViewFlashCard
-                        flashcard={flashcard}
-                        onDelete={flashCardDeleted}
-                    />
-                ))}
-
+            {maximisedFlashcards}
             {!local.isEditingMarkup && (
                 <CivMain>
                     <div onClick={onNoteClicked} ref={hoveringRef}>
@@ -601,44 +567,6 @@ export default function ViewNote({
             {local.isEditingMarkup && buildMainButtons()}
         </CivContainer>
     );
-}
-
-function buildLeftMarginContent(
-    note: Note,
-    onFlashcardClicked: (index: number) => void,
-    onCopyRefBelow: (ref: Reference, nextNote: Note) => void,
-    nextNote?: Note
-) {
-    function onClickedFlashcard(_f: FlashCard, index: number) {
-        onFlashcardClicked(index);
-    }
-
-    if (
-        note.refs.length > 0 ||
-        note.flashcards.length > 0 ||
-        note.chatMessage
-    ) {
-        return (
-            <CivLeft>
-                {note.chatMessage && <ViewRole role={note.chatMessage!.role} />}
-                {note.flashcards.map((flashcard, i) => {
-                    return (
-                        <FlashCardIndicator
-                            flashcard={flashcard}
-                            index={i}
-                            onClick={onClickedFlashcard}
-                        />
-                    );
-                })}
-                {note.refs.length > 0 && note.flashcards.length > 0 && (
-                    <div class="spacer"></div>
-                )}
-                {buildNoteReferences(note.refs, onCopyRefBelow, nextNote)}
-            </CivLeft>
-        );
-    } else {
-        return <span></span>;
-    }
 }
 
 function buildNoteReferences(
