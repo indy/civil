@@ -1,9 +1,9 @@
 import { Edge, GraphCallback, GraphNode, GraphState } from "types";
 
-var initialRadius = 10,
-    initialAngle = Math.PI * (3 - Math.sqrt(5));
+const initialRadius: number = 10;
+const initialAngle: number = Math.PI * (3 - Math.sqrt(5));
 
-var gSimIdCounter = 0;
+let gSimIdCounter: number = 0;
 
 export function graphPhysics(
     graphState: GraphState,
@@ -14,7 +14,7 @@ export function graphPhysics(
         // graphState is the empty object
         return;
     }
-    if (Object.keys(graphState.nodes).length === 0) {
+    if (graphState.nodes.size === 0) {
         // console.log('graph physics given no nodes - nothing to simulate');
         return;
     }
@@ -79,7 +79,12 @@ export function graphPhysics(
 
             let i: number, j: number, node: GraphNode;
             let nodes = graphState.nodes;
-            let nodeKeys = Object.keys(nodes);
+
+            let nodeKeys: Array<number> = [];
+            graphState.nodes.forEach((_val, key) => {
+                nodeKeys.push(key);
+            });
+
             let n = nodeKeys.length;
 
             alpha -= alpha * alphaDecay;
@@ -91,9 +96,11 @@ export function graphPhysics(
                     if (i === j) {
                         continue;
                     }
+                    let nodeA: GraphNode = nodes.get(nodeKeys[j])!;
+                    let nodeB: GraphNode = nodes.get(nodeKeys[i])!;
                     forceManyBody(
-                        nodes[nodeKeys[j]],
-                        nodes[nodeKeys[i]],
+                        nodeA,
+                        nodeB,
                         alpha
                     );
                 }
@@ -101,18 +108,22 @@ export function graphPhysics(
 
             for (j = 0; j < n; j++) {
                 for (i = j + 1; i < n; i++) {
-                    forceCollide(nodes[nodeKeys[i]], nodes[nodeKeys[j]]);
+                    let nodeA: GraphNode = nodes.get(nodeKeys[i])!;
+                    let nodeB: GraphNode = nodes.get(nodeKeys[j])!;
+                    forceCollide(nodeA, nodeB);
                 }
             }
 
             for (j = 0; j < n; j++) {
                 for (i = j + 1; i < n; i++) {
-                    forceCollideBox(nodes[nodeKeys[i]], nodes[nodeKeys[j]]);
+                    let nodeA: GraphNode = nodes.get(nodeKeys[i])!;
+                    let nodeB: GraphNode = nodes.get(nodeKeys[j])!;
+                    forceCollideBox(nodeA, nodeB);
                 }
             }
 
             for (i = 0; i < n; i++) {
-                node = nodes[nodeKeys[i]];
+                node = nodes.get(nodeKeys[i])!;
                 forceX(node, alpha);
                 forceY(node, alpha);
             }
@@ -120,7 +131,7 @@ export function graphPhysics(
             gatherSimStats(graphState);
 
             for (i = 0; i < n; ++i) {
-                node = nodes[nodeKeys[i]];
+                node = nodes.get(nodeKeys[i])!;
                 if (node.fx == null) {
                     node.x += node.vx *= velocityDecay;
                 } else {
@@ -166,7 +177,7 @@ export function graphPhysics(
     }
 }
 
-function forceLink(graphState: GraphState, strengths, bias, alpha) {
+function forceLink(graphState: GraphState, strengths: Array<number>, bias: Array<number>, alpha: number) {
     var i;
     let nodes = graphState.nodes;
     let links = graphState.edges;
@@ -176,8 +187,8 @@ function forceLink(graphState: GraphState, strengths, bias, alpha) {
     var link, source, target, x, y, l, b;
     for (i = 0; i < m; ++i) {
         link = links[i];
-        source = nodes[link[0]];
-        target = nodes[link[1]];
+        source = nodes.get(link[0])!;
+        target = nodes.get(link[1])!;
         x = target.x + target.vx - source.x - source.vx || jiggle();
         y = target.y + target.vy - source.y - source.vy || jiggle();
         l = Math.sqrt(x * x + y * y);
@@ -197,9 +208,7 @@ function gatherSimStats(graphState: GraphState) {
     let maxx = 0.0;
     let maxy = 0.0;
 
-    for (const key in nodes) {
-        let n = nodes[key];
-
+    nodes.forEach((n) => {
         let absx = Math.abs(n.vx);
         let absy = Math.abs(n.vy);
 
@@ -209,7 +218,7 @@ function gatherSimStats(graphState: GraphState) {
         if (absy > maxy) {
             maxy = absy;
         }
-    }
+    });
 
     if (graphState.simStats) {
         graphState.simStats.maxVelocities = [maxx, maxy];
@@ -228,14 +237,11 @@ function initializeGraph(graphState: GraphState): {
 } {
     let nodes = graphState.nodes;
     let links = graphState.edges;
-    var i: number,
-        m = links.length,
-        link: Edge,
-        node: GraphNode;
+    let i: number;
+    let m: number = links.length;
+    let link: Edge;
 
-    for (const key in nodes) {
-        node = nodes[key];
-
+    nodes.forEach((node) => {
         if (node.fx != null) node.x = node.fx;
         if (node.fy != null) node.y = node.fy;
         if (isNaN(node.x) || isNaN(node.y)) {
@@ -247,9 +253,9 @@ function initializeGraph(graphState: GraphState): {
         if (isNaN(node.vx) || isNaN(node.vy)) {
             node.vx = node.vy = 0;
         }
-    }
+    });
 
-    let count = {};
+    let count: {[i: number]: number} = {};
     for (i = 0; i < m; ++i) {
         link = links[i];
         count[link[0]] = (count[link[0]] || 0) + 1;

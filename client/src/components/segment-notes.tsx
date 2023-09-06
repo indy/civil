@@ -16,19 +16,19 @@ import { fontClass } from "shared/font";
 import RollableSegment from "components/rollable-segment";
 import ViewPassageChunkyBoy from "components/view-passage-chunky-boy";
 
-type Props = {
-    deck: FatDeck;
+type Props<T extends FatDeck> = {
+    deck: T;
     onRefsChanged: (note: Note, refsInNote: Array<Reference>) => void;
     title: string;
     deckKind: DeckKind;
     howToShowPassage: (noteKind: NoteKind) => PassageHowToShow;
     canShowPassage: (noteKind: NoteKind) => boolean;
-    onUpdateDeck: (newDeck: FatDeck) => void;
+    onUpdateDeck: (newDeck: T) => void;
     noAppend?: boolean;
     noDelete?: boolean;
 };
 
-export default function SegmentNotes({
+const SegmentNotes = <T extends FatDeck>({
     deck,
     onRefsChanged,
     title,
@@ -38,7 +38,7 @@ export default function SegmentNotes({
     onUpdateDeck,
     noAppend,
     noDelete,
-}: Props) {
+}: Props<T>) => {
     if (deck) {
         let containerClasses = "c-segment-notes ";
         containerClasses += fontClass(deck.font, RenderingDeckPart.Body);
@@ -93,20 +93,22 @@ export default function SegmentNotes({
     }
 }
 
-type NoteKindPassageProps = {
+export default SegmentNotes;
+
+type NoteKindPassageProps<T extends FatDeck> = {
     heading: string;
     noteKind: NoteKind;
     notes: Notes;
     howToShow: PassageHowToShow;
-    deck: FatDeck;
+    deck: T;
     onRefsChanged: (note: Note, refsInNote: Array<Reference>) => void;
     deckKind: DeckKind;
-    onUpdateDeck: (d: FatDeck) => void;
+    onUpdateDeck: (d: T) => void;
     noAppend?: boolean;
     noDelete?: boolean;
 };
 
-function NoteKindPassage({
+const NoteKindPassage = <T extends FatDeck>({
     heading,
     noteKind,
     notes,
@@ -116,7 +118,7 @@ function NoteKindPassage({
     onUpdateDeck,
     noAppend,
     noDelete,
-}: NoteKindPassageProps) {
+}: NoteKindPassageProps<T>) => {
     function notePassage(noteKind: NoteKind) {
         let appendLabel = "Append Note";
 

@@ -22,7 +22,7 @@ wasm_bindgen("/civil_wasm_bg.wasm")
             splitter: function (markup: string) {
                 const astArray = markup_as_ast(markup);
 
-                let splitPoints = astArray.map((ast) => {
+                let splitPoints = astArray.map((ast: any) => {
                     // NOTE: this check depends on the Node enum in civil-shared/src/parser.rs
                     let node =
                         ast.BlockQuote ||
@@ -92,18 +92,7 @@ wasm_bindgen("/civil_wasm_bg.wasm")
 
                     // setup the UI Config:
                     //
-                    // start with valid default values for the config
-                    let uiConfig: UiConfig = basicUiConfig();
-
-                    // customise defaults with values from the server
-                    //
-                    let configFromServer = JSON.parse(user.uiConfigJson);
-                    Object.keys(configFromServer).forEach((key) => {
-                        if (key in uiConfig) {
-                            uiConfig[key] = configFromServer[key];
-                        }
-                    });
-                    AppStateChange.setUiConfig({ uiConfig });
+                    setupUiConfig(user.uiConfigJson);
 
                     // set title to highlight top menu bar items
                     //
@@ -139,4 +128,24 @@ wasm_bindgen("/civil_wasm_bg.wasm")
 
 function colourSchemeFromString(theme: string): ColourScheme {
     return theme === "light" ? ColourScheme.Light : ColourScheme.Dark;
+}
+
+function setupUiConfig(uiConfigJson: string) {
+    // start with valid default values for the config
+    let uiConfig: UiConfig = basicUiConfig();
+
+    // customise defaults with values from the server
+    // the server may not have all the values that are defined by UiConfig
+    //
+    let untypedConfig: any = JSON.parse(uiConfigJson);
+    let configFromServer: UiConfig = JSON.parse(uiConfigJson);
+    Object.keys(untypedConfig).forEach((key) => {
+        if (key === "colourScheme") {
+            uiConfig.colourScheme = configFromServer.colourScheme;
+        };
+        if (key === "decksPerPage") {
+            uiConfig.decksPerPage = configFromServer.decksPerPage;
+        }
+    });
+    AppStateChange.setUiConfig({ uiConfig });
 }

@@ -26,7 +26,7 @@ export default function useDragDrop(
         e.preventDefault();
     }
 
-    function drop(e: InputEvent) {
+    function drop(e: DragEvent) {
         e.stopPropagation();
         e.preventDefault();
 

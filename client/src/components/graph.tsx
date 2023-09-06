@@ -124,7 +124,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
     const appState = getAppState();
 
     const initialState: GraphState = {
-        nodes: {},
+        nodes: new Map<Key, GraphNode>(),
         edges: [],
     };
     const [graphState, setGraphState] = useState(initialState);
@@ -150,7 +150,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
 
     function initialise() {
         let newState: GraphState = {
-            nodes: {},
+            nodes: new Map<Key, GraphNode>(),
             edges: [],
         };
 
@@ -159,7 +159,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
             appState.graph.value.decks &&
             appState.graph.value.deckIndexFromId
         ) {
-            newState.nodes[id] = {
+            newState.nodes.set(id, {
                 id: id,
                 isImportant: true,
                 expandedState: ExpandedState.Fully,
@@ -174,7 +174,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
                 y: 0,
                 vx: 0,
                 vy: 0,
-            };
+            });
             regenGraphState(newState);
         }
     }
@@ -204,121 +204,115 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
         let svg = buildSvg(svgContainerRef.current, graphState);
 
         gUpdateGraphCallback = buildUpdateGraphCallback(svg);
-        graphPhysics(graphState, gUpdateGraphCallback, function (b: boolean) {
+        graphPhysics(graphState, gUpdateGraphCallback, function(b: boolean) {
             localDispatch(ActionType.SimIsRunning, b);
         });
     }, [graphState]);
 
     function regenGraphState(gs: GraphState) {
-        let nodes: { [index: number]: GraphNode } = {};
+        let nodes: Map<Key, GraphNode> = new Map<Key, GraphNode>();
         let edges: Array<Edge> = [];
 
         // create an updated copy of all the visible nodes
 
         // copy over the expanded or important nodes
-        for (const key in gs.nodes) {
+        gs.nodes.forEach((node, key) => {
             if (
-                gs.nodes[key].isImportant ||
-                gs.nodes[key].expandedState !== ExpandedState.None
+                node.isImportant ||
+                node.expandedState !== ExpandedState.None
             ) {
-                nodes[key] = gs.nodes[key];
+                nodes.set(key, node);
             }
-        }
+        });
 
         // copy over any nodes directly connected to the expanded or important nodes
-        for (const key in nodes) {
-            if (!appState.graph.value.links[key]) {
-                continue;
-            }
+        nodes.forEach((node, key) => {
+            if (appState.graph.value.links[key]) {
+                if (node.expandedState === ExpandedState.Fully) {
+                    for (const link of appState.graph.value.links[key]) {
+                        let [childId, _kind, _strength] = link; // negative strength == backlink
 
-            if (nodes[key].expandedState === ExpandedState.Fully) {
-                for (const link of appState.graph.value.links[key]) {
-                    let [childId, _kind, _strength] = link; // negative strength == backlink
-
-                    if (!nodes[childId]) {
-                        if (gs.nodes[childId]) {
-                            // copy over from previous state
-                            nodes[childId] = gs.nodes[childId];
-                        } else {
-                            // create a new node
-                            nodes[childId] = {
-                                id: childId,
-                                isImportant: false,
-                                expandedState: ExpandedState.None,
-                                deckKind:
-                                    appState.graph!.value.decks![
-                                        appState.graph.value.deckIndexFromId![
+                        if (!nodes.get(childId)) {
+                            if (gs.nodes.get(childId)) {
+                                // copy over from previous state
+                                const n: GraphNode = gs.nodes.get(childId)!;
+                                nodes.set(childId, n);
+                            } else {
+                                // create a new node
+                                nodes.set(childId, {
+                                    id: childId,
+                                    isImportant: false,
+                                    expandedState: ExpandedState.None,
+                                    deckKind:
+                                        appState.graph!.value.decks![
+                                            appState.graph.value.deckIndexFromId![
                                             childId
-                                        ]
-                                    ].deckKind,
-                                label: appState.graph!.value.decks![
-                                    appState.graph.value.deckIndexFromId![
+                                            ]
+                                        ].deckKind,
+                                    label: appState.graph!.value.decks![
+                                        appState.graph.value.deckIndexFromId![
                                         childId
-                                    ]
-                                ].title,
-                                x: nodes[key].x,
-                                y: nodes[key].y,
-                                vx: -nodes[key].vx,
-                                vy: -nodes[key].vy,
-                            };
+                                        ]
+                                    ].title,
+                                    x: node.x,
+                                    y: node.y,
+                                    vx: -node.vx,
+                                    vy: -node.vy,
+                                });;
+                            }
                         }
                     }
-                }
-            } else if (nodes[key].expandedState === ExpandedState.Partial) {
-                for (const link of appState.graph.value.links[key]) {
-                    let [childId, _kind, _strength] = link; // negative strength == backlink
+                } else if (node.expandedState === ExpandedState.Partial) {
+                    for (const link of appState.graph.value.links[key]) {
+                        let [childId, _kind, _strength] = link; // negative strength == backlink
 
-                    if (!nodes[childId]) {
-                        if (
-                            gs.nodes[childId] &&
-                            gs.nodes[childId].expandedState !==
-                                ExpandedState.None
-                        ) {
-                            // copy over from previous state
-                            nodes[childId] = gs.nodes[childId];
+                        if (!nodes.get(childId)) {
+                            const n: GraphNode | undefined = gs.nodes.get(childId);
+                            if (n && n!.expandedState !== ExpandedState.None) {
+                                // copy over from previous state
+                                nodes.set(childId, n);
+                            }
                         }
                     }
                 }
             }
-        }
+        });
 
         // update links
-        for (const key in nodes) {
-            if (!appState.graph.value.links[key]) {
-                continue;
+        nodes.forEach((node, key) => {
+            if (appState.graph.value.links[key]) {
+                if (node.expandedState === ExpandedState.Fully) {
+                    for (const link of appState.graph.value.links[key]) {
+                        let [childId, kind, strength] = link; // negative strength == backlink
+                        if (nodes.get(childId)) {
+                            // only if both sides of the link are being displayed
+                            edges.push([
+                                key,
+                                childId,
+                                strength,
+                                kind,
+                            ]);
+                        }
+                    }
+                } else if (node.expandedState === ExpandedState.Partial) {
+                    for (const link of appState.graph.value.links[key]) {
+                        let [childId, kind, strength] = link; // negative strength == backlink
+                        const n: GraphNode | undefined = nodes.get(childId);
+                        if (n && n.expandedState !== ExpandedState.None) {
+                            // only if both sides of the link are being displayed
+                            edges.push([
+                                key,
+                                childId,
+                                strength,
+                                kind,
+                            ]);
+                        }
+                    }
+                }
             }
+        });
 
-            if (nodes[key].expandedState === ExpandedState.Fully) {
-                for (const link of appState.graph.value.links[key]) {
-                    let [childId, kind, strength] = link; // negative strength == backlink
-                    if (nodes[childId]) {
-                        // only if both sides of the link are being displayed
-                        edges.push([
-                            parseInt(key, 10),
-                            childId,
-                            strength,
-                            kind,
-                        ]);
-                    }
-                }
-            } else if (nodes[key].expandedState === ExpandedState.Partial) {
-                for (const link of appState.graph.value.links[key]) {
-                    let [childId, kind, strength] = link; // negative strength == backlink
-                    if (
-                        nodes[childId] &&
-                        nodes[childId].expandedState !== ExpandedState.None
-                    ) {
-                        // only if both sides of the link are being displayed
-                        edges.push([
-                            parseInt(key, 10),
-                            childId,
-                            strength,
-                            kind,
-                        ]);
-                    }
-                }
-            }
-        }
+
 
         // remove edges that would be duplicates (edges that are duplicates of
         // existing edges but have their  source/target swapped and a negated strength)
@@ -372,7 +366,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
                     graphPhysics(
                         graphState,
                         gUpdateGraphCallback,
-                        function (b) {
+                        function(b) {
                             localDispatch(ActionType.SimIsRunning, b);
                         }
                     );
@@ -393,12 +387,14 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
 
         gs.edges.forEach((e) => {
             if (e[0] === id) {
-                if (gs.nodes[e[1]].expandedState !== ExpandedState.None) {
+                const n: GraphNode = gs.nodes.get(e[1])!;
+                if (n.expandedState !== ExpandedState.None) {
                     s.add(e[1]);
                 }
             }
             if (e[1] === id) {
-                if (gs.nodes[e[0]].expandedState !== ExpandedState.None) {
+                const n: GraphNode = gs.nodes.get(e[0])!;
+                if (n.expandedState !== ExpandedState.None) {
                     s.add(e[0]);
                 }
             }
@@ -420,33 +416,21 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
 
                 let id = parseInt(svgNode.getAttribute("referencing_id"), 10);
                 if (id) {
-                    if (
-                        graphState.nodes[id].expandedState ===
-                        ExpandedState.Fully
-                    ) {
+                    const node: GraphNode = graphState.nodes.get(id)!;
+                    if (node.expandedState === ExpandedState.Fully) {
                         let openedNeighbours = numOpenedConnections(
                             id,
                             graphState
                         );
                         if (openedNeighbours > 1) {
-                            graphState.nodes[id].expandedState =
-                                ExpandedState.Partial;
+                            node.expandedState = ExpandedState.Partial;
                         } else {
-                            graphState.nodes[id].expandedState =
-                                ExpandedState.None;
+                            node.expandedState = ExpandedState.None;
                         }
-                    } else if (
-                        graphState.nodes[id].expandedState ===
-                        ExpandedState.Partial
-                    ) {
-                        graphState.nodes[id].expandedState =
-                            ExpandedState.Fully;
-                    } else if (
-                        graphState.nodes[id].expandedState ===
-                        ExpandedState.None
-                    ) {
-                        graphState.nodes[id].expandedState =
-                            ExpandedState.Fully;
+                    } else if (node.expandedState === ExpandedState.Partial) {
+                        node.expandedState = ExpandedState.Fully;
+                    } else if (node.expandedState === ExpandedState.None) {
+                        node.expandedState = ExpandedState.Fully;
                     }
 
                     regenGraphState(graphState);
@@ -619,8 +603,8 @@ function buildSvg(ref: any, graphState: GraphState) {
     graphState.edges.forEach((e) => {
         let [srcIdx, targetIdx, strength, kind] = e;
 
-        let sourceNode = nodes[srcIdx];
-        let targetNode = nodes[targetIdx];
+        let sourceNode: GraphNode = nodes.get(srcIdx)!;
+        let targetNode: GraphNode = nodes.get(targetIdx)!;
 
         svg.edges.appendChild(
             createSvgEdge(sourceNode, targetNode, Math.abs(strength), kind)
@@ -638,9 +622,7 @@ function buildSvg(ref: any, graphState: GraphState) {
 
     element.appendChild(svg.nodes);
 
-    for (const key in graphState.nodes) {
-        let n = graphState.nodes[key];
-
+    graphState.nodes.forEach((n) => {
         let [g, textNode] = createSvgNode(n);
 
         svg.nodes.appendChild(g);
@@ -648,7 +630,7 @@ function buildSvg(ref: any, graphState: GraphState) {
         let textBoundingBox = textNode.getBBox();
         n.textWidth = textBoundingBox.width;
         n.textHeight = textBoundingBox.height;
-    }
+    });
 
     return svg;
 }
@@ -668,8 +650,8 @@ function buildUpdateGraphCallback(svg?: any): GraphCallback {
 
         Array.from(svg.edges.children).forEach((svgEdge, i) => {
             if (edges.length > i) {
-                let source = nodes[edges[i][0]];
-                let target = nodes[edges[i][1]];
+                let source: GraphNode = nodes.get(edges[i][0])!;
+                let target: GraphNode = nodes.get(edges[i][1])!;
                 let kind = edges[i][3];
 
                 if (kind === RefKind.RefToParent) {
@@ -682,8 +664,9 @@ function buildUpdateGraphCallback(svg?: any): GraphCallback {
 
         Array.from(svg.nodes.children).forEach((svgNode?: any) => {
             let id = parseInt(svgNode.getAttribute("referencing_id"), 10);
-            if (nodes[id]) {
-                translateNode(svgNode, nodes[id].x, nodes[id].y);
+            let node: GraphNode | undefined = nodes.get(id);
+            if (node) {
+                translateNode(svgNode, node.x, node.y);
             }
         });
 

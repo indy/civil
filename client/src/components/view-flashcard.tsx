@@ -6,6 +6,7 @@ import { plural } from "shared/english";
 import Net from "shared/net";
 import { daysUntil } from "shared/time";
 
+import CivilButton from "components/civil-button";
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";
 import useLocalReducer from "components/use-local-reducer";
@@ -130,9 +131,7 @@ export default function ViewFlashCard({
         });
     }
 
-    function saveClicked(e) {
-        e.preventDefault();
-
+    function saveClicked() {
         const url = `/api/memorise/${local.flashcard.id}`;
         Net.put<FlashCard, FlashCard>(url, local.flashcard).then(
             (_updatedFlashcard) => {
@@ -141,8 +140,7 @@ export default function ViewFlashCard({
         );
     }
 
-    function cancelClicked(e) {
-        e.preventDefault();
+    function cancelClicked() {
         localDispatch(ActionType.EditingCancelled);
     }
 
@@ -185,8 +183,8 @@ export default function ViewFlashCard({
                     </div>
                 </p>
                 <div>
-                    <button onClick={saveClicked}>Save Edits</button>
-                    <button onClick={cancelClicked}>Cancel Editing</button>
+                    <CivilButton onClick={saveClicked}>Save Edits</CivilButton>
+                    <CivilButton onClick={cancelClicked}>Cancel Editing</CivilButton>
                 </div>
             </CivMain>
         );

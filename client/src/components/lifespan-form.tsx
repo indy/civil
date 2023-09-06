@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { Key, Point, PointKind, ProtoPoint } from "types";
+import { Key, PointKind, ProtoPoint } from "types";
 
 import { deltaInYears, parseDateStringAsTriple } from "shared/time";
 
@@ -118,7 +118,7 @@ export default function LifespanForm({
 function PointBirthForm({
     onSubmit,
 }: {
-    onSubmit: (p: ProtoPoint | Point) => void;
+    onSubmit: (p: ProtoPoint) => void;
 }) {
     return (
         <PointForm
@@ -135,7 +135,7 @@ function PointBirthForm({
 function PointDeathForm({
     onSubmit,
 }: {
-    onSubmit: (p: ProtoPoint | Point) => void;
+    onSubmit: (p: ProtoPoint) => void;
 }) {
     return (
         <PointForm

@@ -365,20 +365,21 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
     function handleSubmit(event: Event) {
         type DeckArticleUpdate = DeckUpdate & ArticleExtras;
 
-        const data: DeckArticleUpdate = removeEmptyStrings(
-            {
-                title: title.trim(),
-                insignia: insigniaId,
-                font,
-                graphTerminator: false,
-                author: author.trim(),
-                source: source.trim(),
-                shortDescription: shortDescription.trim(),
-                rating,
-                publishedDate: publishedDate.trim(),
-            },
-            ["source"]
-        );
+        let data: DeckArticleUpdate = {
+            title: title.trim(),
+            insignia: insigniaId,
+            font,
+            graphTerminator: false,
+            author: author.trim(),
+            source: source.trim(),
+            shortDescription: shortDescription.trim(),
+            rating,
+            createdAt: article.createdAt,
+            publishedDate: publishedDate.trim(),
+        };
+        if (data.source!.length === 0) {
+            data.source = undefined;
+        }
 
         const deckKind: DeckKind = DeckKind.Article;
 
@@ -486,17 +487,6 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
             </CivMain>
         </CivForm>
     );
-}
-
-// remove the keys from obj that have empty strings
-function removeEmptyStrings(obj, keys: Array<string>) {
-    for (var i = 0; i < keys.length; i++) {
-        let key = keys[i];
-        if (typeof obj[key] === "string" && obj[key].trim().length === 0) {
-            delete obj[key];
-        }
-    }
-    return obj;
 }
 
 export { Article, Articles, ArticlesModule };

@@ -328,13 +328,19 @@ function DialogueChat({ path }: { path?: string }) {
         messageAdded(messages);
 
         AppStateChange.setWaitingFor({ waitingFor: WaitingFor.Server });
-        let data = {
+
+        type ChatData = {
+            aiKind: AiKind,
+            messages: Array<ChatMessage>,
+        };
+
+        let data: ChatData = {
             aiKind: AiKind.OpenAIGpt35Turbo,
             messages,
         };
 
-        Net.post(`/api/dialogues/chat`, data)
-            .then((askResponse: Array<MessageChoice>) => {
+        Net.post<ChatData, Array<MessageChoice>>(`/api/dialogues/chat`, data)
+            .then(askResponse => {
                 if (askResponse.length === 1) {
                     const responseChatMessage: ChatMessage = {
                         noteId: 0,

@@ -108,12 +108,11 @@ export default function NoteForm({
         }
     }
 
-    function onSubmit(e) {
+    function onSubmit(e: Event) {
         e.preventDefault();
 
         if (appState.wasmInterface) {
-            const noteForm = e.target;
-            const markup = noteForm.content.value;
+            const markup = local.content;
             const notes = local.splitIntoMultipleNotes
                 ? appState.wasmInterface.splitter(markup)
                 : [markup];
@@ -134,7 +133,7 @@ export default function NoteForm({
         }
     }
 
-    function handleCheckbox(e) {
+    function handleCheckbox() {
         setLocal({
             ...local,
             splitIntoMultipleNotes: !local.splitIntoMultipleNotes,

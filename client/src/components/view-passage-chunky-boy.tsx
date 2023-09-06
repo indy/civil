@@ -22,9 +22,9 @@ import { svgEdit } from "components/svg-icons";
 import ViewNote from "components/view-note";
 import WhenEditMode from "components/when-edit-mode";
 
-type ViewPassageChunkyBoyProps = {
-    deck: FatDeck;
-    onUpdateDeck: (d: FatDeck) => void;
+type ViewPassageChunkyBoyProps<T extends FatDeck> = {
+    deck: T;
+    onUpdateDeck: (d: T) => void;
     notes: Notes;
     onRefsChanged: (note: Note, refsInNote: Array<Reference>) => void;
     optionalPoint?: Point;
@@ -35,7 +35,8 @@ type ViewPassageChunkyBoyProps = {
     extraClasses?: string;
 };
 
-export default function ViewPassageChunkyBoy({
+
+const ViewPassageChunkyBoy = <T extends FatDeck>({
     deck,
     onUpdateDeck,
     notes,
@@ -46,7 +47,7 @@ export default function ViewPassageChunkyBoy({
     noAppend,
     noDelete,
     extraClasses,
-}: ViewPassageChunkyBoyProps) {
+}: ViewPassageChunkyBoyProps<T>) =>  {
     const appState = getAppState();
 
     function onEditedNote(id: Key, updatedNote: Note) {
@@ -239,3 +240,5 @@ export default function ViewPassageChunkyBoy({
         </section>
     );
 }
+
+export default ViewPassageChunkyBoy;

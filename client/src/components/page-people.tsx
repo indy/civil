@@ -572,8 +572,8 @@ function SegmentPoints({
         AppStateChange.hideAddPointForm();
     }
 
-    function onAddDeathPoint(point: Point) {
-        Net.post<Point, DeckPerson>(`/api/people/${deckId}/points`, point).then(
+    function onAddDeathPoint(point: ProtoPoint) {
+        Net.post<ProtoPoint, DeckPerson>(`/api/people/${deckId}/points`, point).then(
             (_person) => {
                 setShowDeathForm(false);
             }

@@ -44,7 +44,7 @@ export default function buildSimplifiedText(
         return onRight;
     }
 
-    function compile(n: Element, onRight: boolean) {
+    function compile(n: Element, onRight: boolean): any {
         let isOnRight = onRight || isOnRightMargin(n);
         if (isOnRight) {
             return "";
@@ -69,7 +69,7 @@ export default function buildSimplifiedText(
         return Array.isArray(ns) && ns.length === 0;
     }
 
-    function removeEmpty(ns: string | Array<string>) {
+    function removeEmpty(ns: string | Array<string>): any {
         if (Array.isArray(ns)) {
             return ns
                 .filter((child) => !isEmpty(child))

@@ -121,7 +121,7 @@ export default function buildMarkup(
         return n.name === "figure";
     }
 
-    function compile(n: Element, onRight: boolean, withinFigure: boolean) {
+    function compile(n: Element, onRight: boolean, withinFigure: boolean): any {
         let isOnRight = onRight || isOnRightMargin(n);
         let isWithinFigure = withinFigure || isFigureElement(n);
         let children = n.children

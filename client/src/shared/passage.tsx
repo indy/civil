@@ -9,7 +9,8 @@ export function passageForNoteKind(notes: Notes, kind: NoteKind): Passage {
 }
 
 export function noteSeqsForPoints(notes: Notes): { [id: Key]: Passage } {
-    let p = {};
+    let p: { [id: Key]: Passage } = {};
+
     notes.forEach((n) => {
         if (n.pointId) {
             if (!p[n.pointId]) {
@@ -19,9 +20,9 @@ export function noteSeqsForPoints(notes: Notes): { [id: Key]: Passage } {
         }
     });
 
-    Object.keys(p).forEach((k) => {
+    for (let k in p) {
         p[k] = createOneCompletePassage(p[k]);
-    });
+    }
 
     return p;
 }
@@ -64,14 +65,16 @@ function createOneCompletePassage(ns: Notes): Passage {
 }
 
 export function createMultiplePassages(ns: Notes): Array<Passage> {
-    let h: { [_: number]: Note } = {};
+    let h = new Map<number, Note>();
+
     let firstNotes: Array<Note> = [];
 
     // key by prevNoteId
     //
     ns.forEach((n) => {
         if (n.prevNoteId) {
-            h[n.prevNoteId] = n;
+            h.set(n.prevNoteId, n);
+            // h[n.prevNoteId] = n;
         } else {
             firstNotes.push(n);
         }
@@ -86,12 +89,14 @@ export function createMultiplePassages(ns: Notes): Array<Passage> {
     });
 
     while (true) {
-        let ks = Object.keys(h);
-        if (ks.length > 0) {
-            let startingNote = h[ks[0]];
+        let ks: Array<number> = [];
+        h.forEach((_v, k) => ks.push(k));
 
-            delete h[ks[0]];
-            let localRes = grabPassageStartingFrom(startingNote, h);
+        if (ks.length > 0) {
+            let startingNote = h.get(ks[0]);
+
+            h.delete(ks[0]);
+            let localRes = grabPassageStartingFrom(startingNote!, h);
             res.push(localRes);
         } else {
             break;
@@ -107,15 +112,15 @@ export function createMultiplePassages(ns: Notes): Array<Passage> {
 
 function grabPassageStartingFrom(
     firstNote: Note,
-    h: { [_: number]: Note }
+    h: Map<number, Note>
 ): Passage {
-    let item: Note = firstNote;
+    let item: Note | undefined = firstNote;
     let localRes: Passage = [];
     do {
         localRes.push(item);
         let id = item.id;
-        item = h[id];
-        delete h[id];
+        item = h.get(id);
+        h.delete(id);
     } while (item);
 
     return localRes;

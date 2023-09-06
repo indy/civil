@@ -54,7 +54,7 @@ export default function SegmentDeckRefs({
         }
     }
 
-    function onSegmentClicked(e) {
+    function onSegmentClicked() {
         if (appState.mode.value === CivilMode.Refs && !isEditingDeckRefs) {
             setEditingDeckRefs(true);
         }

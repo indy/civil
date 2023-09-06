@@ -4,7 +4,7 @@
         "module": "commonjs",
         "jsx": "react",
         "jsxFactory": "h",
-        "strict": false,
+        "strict": true,
         "baseUrl": "./src",
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,

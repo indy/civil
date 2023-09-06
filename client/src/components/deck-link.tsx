@@ -36,7 +36,7 @@ export default function DeckLink({
     useMouseHoveringEvents(hoveringRef, onMouseEnter, onMouseLeave);
 
     function onMouseEnter() {
-        if (!appState.previewCache.value[slimDeck.id]) {
+        if (!appState.previewCache.value.has(slimDeck.id)) {
             Net.get<PreviewNotes>(`/api/decks/preview/${slimDeck.id}`).then(
                 (previewNotes) => {
                     AppStateChange.addPreview({ slimDeck, previewNotes });

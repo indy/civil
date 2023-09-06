@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { useRef, useState } from "preact/hooks";
 
-import { GeoResult, Point, PointKind, ProtoPoint } from "types";
+import { GeoResult, PointKind, ProtoPoint } from "types";
 
 import { geoGet, getLatitudeLongitude } from "shared/geo";
 import {
@@ -17,7 +17,7 @@ import CivilTextArea from "components/civil-text-area";
 type PointFormProps = {
     pointKind?: PointKind;
     pointTitle?: string;
-    onSubmit?: (p: ProtoPoint | Point) => void;
+    onSubmit?: (p: ProtoPoint) => void;
     submitMessage?: string;
     timeLegend?: string;
     locationLegend?: string;
@@ -94,7 +94,7 @@ export default function PointForm({
     const [localState, setLocalState] = useState(initialLocalState);
 
     // build a dateTextual from whatever was the last user input date
-    function buildReadableDateFromLast(s: LocalState) {
+    function buildReadableDateFromLast(s: LocalState): LocalState {
         if (s.dateTextualDerivedFrom === "exact") {
             return buildReadableDateFromExact(s, true);
         } else if (s.dateTextualDerivedFrom === "range") {
@@ -103,7 +103,7 @@ export default function PointForm({
         return s;
     }
 
-    function buildReadableDateFromExact(s: LocalState, checkOther: boolean) {
+    function buildReadableDateFromExact(s: LocalState, checkOther: boolean): LocalState {
         const parsedDate = parseDateStringAsTriple(s.exactDate);
         if (parsedDate) {
             s.dateTextual = asHumanReadableDate(
@@ -130,7 +130,7 @@ export default function PointForm({
         return s;
     }
 
-    function buildReadableDateFromRange(s: LocalState, checkOther: boolean) {
+    function buildReadableDateFromRange(s: LocalState, checkOther: boolean): LocalState {
         // lower and upper
         const parsedLowerDate = parseDateStringAsTriple(s.lowerDate);
         const parsedUpperDate = parseDateStringAsTriple(s.upperDate);

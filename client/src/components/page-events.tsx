@@ -418,10 +418,10 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
             <CivLeftLabel forId="title">Title</CivLeftLabel>
 
             <CivMain>
-                <LocalInput
-                    property="title"
-                    localState={localState}
-                    setLocalState={setLocalState}
+                <CivilInput
+                    id="title"
+                    value={localState.title}
+                    onContentChange={title => setLocalState({ ...localState, title })}
                 />
             </CivMain>
 
@@ -460,10 +460,10 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
 
             <CivLeftLabel forId="exactDate">Exact Date</CivLeftLabel>
             <CivMain>
-                <LocalInput
-                    property="exactDate"
-                    localState={localState}
-                    setLocalState={setLocalStateDateChange}
+                <CivilInput
+                    id="exactDate"
+                    value={localState.exactDate}
+                    onContentChange={exactDate => setLocalStateDateChange({ ...localState, exactDate })}
                 />
                 <CivRight>
                     <span>Format: YYYY-MM-DD</span>
@@ -472,18 +472,18 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
 
             <CivLeftLabel forId="lowerDate">Lower Date</CivLeftLabel>
             <CivMain>
-                <LocalInput
-                    property="lowerDate"
-                    localState={localState}
-                    setLocalState={setLocalStateDateChange}
+                <CivilInput
+                    id="lowerDate"
+                    value={localState.lowerDate}
+                    onContentChange={lowerDate => setLocalStateDateChange({ ...localState, lowerDate })}
                 />
             </CivMain>
             <CivLeftLabel forId="upperDate">Upper Date</CivLeftLabel>
             <CivMain>
-                <LocalInput
-                    property="upperDate"
-                    localState={localState}
-                    setLocalState={setLocalStateDateChange}
+                <CivilInput
+                    id="upperDate"
+                    value={localState.upperDate}
+                    onContentChange={upperDate => setLocalStateDateChange({ ...localState, upperDate })}
                 />
             </CivMain>
 
@@ -525,10 +525,10 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
 
             <CivLeftLabel forId="locationTextual">Location</CivLeftLabel>
             <CivMain>
-                <LocalInput
-                    property="locationTexual"
-                    localState={localState}
-                    setLocalState={setLocalState}
+                <CivilInput
+                    id="locationTextual"
+                    value={localState.locationTextual}
+                    onContentChange={locationTextual => setLocalState({ ...localState, locationTextual })}
                 />
             </CivMain>
 
@@ -581,19 +581,3 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
 }
 
 export { CivEvent, Events, EventsModule };
-
-function LocalInput({ property, localState, setLocalState }) {
-    function onChange(content: string) {
-        let newState = { ...localState };
-        newState[property] = content;
-        setLocalState(newState);
-    }
-
-    return (
-        <CivilInput
-            id={property}
-            value={localState[property]}
-            onContentChange={onChange}
-        />
-    );
-}

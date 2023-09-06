@@ -45,7 +45,7 @@ enum ActionType {
     HideAddDecksUi,
     ImagePasted,
     NoteChanged,
-    NoteSetProperty,
+    NoteSetContent,
     TextAreaBlurred,
     TextAreaFocused,
     ToggleEditing,
@@ -137,9 +137,11 @@ function reducer(state: LocalState, action: Action): LocalState {
             };
             return res;
         }
-        case ActionType.NoteSetProperty: {
-            const newNote = { ...state.note };
-            newNote[action.data.name] = action.data.value;
+        case ActionType.NoteSetContent: {
+            const newNote = {
+                ...state.note,
+                content: action.data
+            };
             return {
                 ...state,
                 note: newNote,
@@ -261,19 +263,19 @@ function reducer(state: LocalState, action: Action): LocalState {
     }
 }
 
-type Props = {
+type Props<T extends FatDeck> = {
     note: Note;
     nextNote?: Note; // used for the 'copy below' functionality of refs
-    parentDeck: FatDeck;
+    parentDeck: T;
     onDelete: (id: Key) => void;
     onEdited: (id: Key, n: Note) => void;
     onRefsChanged: (note: Note, refsInNote: Array<Reference>) => void;
-    onUpdateDeck: (d: FatDeck) => void;
+    onUpdateDeck: (d: T) => void;
     onCopyRefBelow: (r: Reference, nextNote: Note) => void;
     noDelete?: boolean;
 };
 
-export default function ViewNote({
+const ViewNote = <T extends FatDeck>({
     note,
     nextNote,
     parentDeck,
@@ -283,7 +285,7 @@ export default function ViewNote({
     onUpdateDeck,
     onCopyRefBelow,
     noDelete,
-}: Props) {
+}: Props<T>) => {
     const appState = getAppState();
 
     const initialState: LocalState = {
@@ -317,10 +319,7 @@ export default function ViewNote({
     }, [note]);
 
     function handleChangeEvent(content: string) {
-        localDispatch(ActionType.NoteSetProperty, {
-            name: "content",
-            value: content,
-        });
+        localDispatch(ActionType.NoteSetContent, content);
     }
 
     function onCancelClicked() {
@@ -568,6 +567,8 @@ export default function ViewNote({
         </CivContainer>
     );
 }
+
+export default ViewNote;
 
 function buildNoteReferences(
     refs: Array<Reference>,

@@ -1,5 +1,5 @@
-import { h, createContext, ComponentChildren } from "preact";
 import { signal } from "@preact/signals";
+import { ComponentChildren, createContext, h } from "preact";
 import { useContext } from "preact/hooks";
 
 import {
@@ -13,8 +13,7 @@ import {
     Font,
     FullGraphStruct,
     Graph,
-    GraphDeck,
-    ImmutableState,
+    GraphDeck, GraphEdge, ImmutableState,
     Key,
     NoteKind,
     Notes,
@@ -43,21 +42,18 @@ import {
     StateChangeShowShortcuts,
     StateChangeSpan,
     StateChangeTitle,
-    StateChangeUber,
-    StateChangeUrl,
+    StateChangeUber, StateChangeUiConfig, StateChangeUrl,
     StateChangeUser,
-    StateChangeWaitingFor,
-    StateChangeUiConfig,
-    UberSetup,
+    StateChangeWaitingFor, UberSetup,
     User,
     UserUploadedImage,
     VisiblePreview,
-    WaitingFor,
+    WaitingFor
 } from "types";
 
-import { basicUiConfig } from "shared/ui-config";
+import { declareSeeds, generateColoursFromSeeds } from "shared/colour-creator";
 import { passageForNoteKind } from "shared/passage";
-import { generateColoursFromSeeds, declareSeeds } from "shared/colour-creator";
+import { basicUiConfig } from "shared/ui-config";
 
 const emptyUser: User = {
     username: "",
@@ -130,7 +126,20 @@ broadcastChannel.onmessage = (event) => {
         console.log(args);
     }
 
-    AppStateChange[fnName](args);
+    // each broadcastable function in AppStateChange should be dealt with here
+    // (could have used AppStateChange[fnName] but that errors when strict
+    // typing is set in tsconfig.json)
+    //
+    switch(fnName) {
+        case "noteRefsModified": AppStateChange.noteRefsModified(args); break;
+        case "setRecentImages": AppStateChange.setRecentImages(args); break;
+        case "deleteDeck": AppStateChange.deleteDeck(args); break;
+        case "setBookmarks": AppStateChange.setBookmarks(args); break;
+        case "setRecentlyUsedDecks": AppStateChange.setRecentlyUsedDecks(args); break;
+        case "setReviewCount": AppStateChange.setReviewCount(args); break;
+        default:
+            console.error(`received unknown broadcast function: ${fnName}`);
+    }
 };
 
 function boilerplate(scope: Scope, fnName: string, args: AppStateChangeArgs) {
@@ -187,7 +196,7 @@ const state: State = {
 
     colourSeeds: signal({}),
 
-    previewCache: signal({}),
+    previewCache: signal(new Map<Key, PreviewDeck>()),
     visiblePreviewDeck: signal({ id: 0, showing: false }),
 
     showNoteForm: signal({
@@ -252,7 +261,8 @@ export const AppStateChange = {
     setUiConfig: build(
         Scope.Local,
         "setUiConfig",
-        (args: StateChangeUiConfig) => {
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangeUiConfig;
             let uiConfig = args.uiConfig;
 
             state.colourSeeds.value = declareSeeds(uiConfig.colourScheme);
@@ -262,7 +272,8 @@ export const AppStateChange = {
         }
     ),
 
-    setSpan: build(Scope.Local, "setSpan", (args: StateChangeSpan) => {
+    setSpan: build(Scope.Local, "setSpan", (asca?: AppStateChangeArgs) => {
+        let args = asca! as StateChangeSpan;
         if (state.canNarrowWidth) {
             state.span.value = args.span;
 
@@ -280,7 +291,8 @@ export const AppStateChange = {
     setWaitingFor: build(
         Scope.Local,
         "setWaitingFor",
-        (args: StateChangeWaitingFor) => {
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangeWaitingFor;
             const waitingFor: WaitingFor = args.waitingFor;
 
             state.waitingFor.value = waitingFor;
@@ -313,7 +325,8 @@ export const AppStateChange = {
     commandBarShowShortcuts: build(
         Scope.Local,
         "commandBarShowShortcuts",
-        (args: StateChangeShowShortcuts) => {
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangeShowShortcuts;
             const showKeyboardShortcuts: boolean = args.showKeyboardShortcuts;
             const commandBarState = state.commandBarState.value;
 
@@ -327,7 +340,8 @@ export const AppStateChange = {
     commandBarKeyDown: build(
         Scope.Local,
         "commandBarKeyDown",
-        (args: StateChangeKeyDown) => {
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangeKeyDown;
             const keyDownIndex: number = args.keyDownIndex;
             const shiftKey: boolean = args.shiftKey;
             const commandBarState = state.commandBarState.value;
@@ -343,7 +357,8 @@ export const AppStateChange = {
     commandBarSetFocus: build(
         Scope.Local,
         "commandBarSetFocus",
-        (args: StateChangeSetFocus) => {
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangeSetFocus;
             const hasFocus: boolean = args.hasFocus;
             const commandBarState = state.commandBarState.value;
 
@@ -357,7 +372,8 @@ export const AppStateChange = {
     commandBarSetSearch: build(
         Scope.Local,
         "commandBarSetSearch",
-        (args: StateChangeSetSearch) => {
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangeSetSearch;
             const searchCandidates: Array<SlimDeck> = args.searchCandidates;
             const commandBarState = state.commandBarState.value;
 
@@ -371,7 +387,8 @@ export const AppStateChange = {
     commandBarInputGiven: build(
         Scope.Local,
         "commandBarInputGiven",
-        (args: StateChangeInputGiven) => {
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangeInputGiven;
             const mode: CommandBarMode = args.mode;
             const text: string = args.text;
             const searchCandidates: Array<SlimDeck> = args.searchCandidates;
@@ -389,7 +406,8 @@ export const AppStateChange = {
     showPreviewDeck: build(
         Scope.Local,
         "showPreviewDeck",
-        (args: StateChangeDeckId) => {
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangeDeckId;
             let vp: VisiblePreview = {
                 id: args.deckId,
                 showing: true,
@@ -402,7 +420,8 @@ export const AppStateChange = {
     hidePreviewDeck: build(
         Scope.Local,
         "hidePreviewDeck",
-        (args: StateChangeDeckId) => {
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangeDeckId;
             const deckId: Key = args.deckId;
 
             if (state.visiblePreviewDeck.value.id === deckId) {
@@ -426,7 +445,8 @@ export const AppStateChange = {
     addPreview: build(
         Scope.Local,
         "addPreview",
-        (args: StateChangeAddPreview) => {
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangeAddPreview;
             const slimDeck: SlimDeck = args.slimDeck;
             const previewNotes: PreviewNotes = args.previewNotes;
 
@@ -435,10 +455,6 @@ export const AppStateChange = {
                     `addPreview: deck id mismatch: ${slimDeck.id} ${previewNotes.deckId}`
                 );
             }
-
-            let pc = {
-                ...state.previewCache.value,
-            };
 
             // use the summary notes if present
             let ns: Notes = passageForNoteKind(
@@ -460,8 +476,8 @@ export const AppStateChange = {
                 notes: ns,
             };
 
-            pc[previewDeck.id] = previewDeck;
-            state.previewCache.value = pc;
+            state.previewCache.value.set(previewDeck.id, previewDeck);
+            state.previewCache.value = new Map(state.previewCache.value);
         }
     ),
 
@@ -469,22 +485,26 @@ export const AppStateChange = {
     //     state.showingCommandBar.value = false;
     // }),
 
-    mode: build(Scope.Local, "mode", (args: StateChangeMode) => {
+    mode: build(Scope.Local, "mode", (asca?: AppStateChangeArgs) => {
+        let args = asca! as StateChangeMode;
         state.mode.value = args.mode;
     }),
 
-    urlTitle: build(Scope.Local, "urlTitle", (args: StateChangeTitle) => {
+    urlTitle: build(Scope.Local, "urlTitle", (asca?: AppStateChangeArgs) => {
+        let args = asca! as StateChangeTitle;
         const title: string = args.title;
 
         state.urlTitle.value = title;
         document.title = `${immutableState.appName}: ${title}`;
     }),
 
-    routeChanged: build(Scope.Local, "routeChanged", (args: StateChangeUrl) => {
+    routeChanged: build(Scope.Local, "routeChanged", (asca?: AppStateChangeArgs) => {
+        let args = asca! as StateChangeUrl;
         state.url.value = args.url;
     }),
 
-    uberSetup: build(Scope.Local, "uberSetup", (args: StateChangeUber) => {
+    uberSetup: build(Scope.Local, "uberSetup", (asca?: AppStateChangeArgs) => {
+        let args = asca! as StateChangeUber;
         let uber: UberSetup = args.uber;
 
         state.graph.value = {
@@ -504,7 +524,8 @@ export const AppStateChange = {
         state.bookmarks.value = uber.bookmarks;
     }),
 
-    userLogin: build(Scope.Local, "userLogin", (args: StateChangeUser) => {
+    userLogin: build(Scope.Local, "userLogin", (asca?: AppStateChangeArgs) => {
+        let args = asca! as StateChangeUser;
         let user: User = args.user;
         state.user.value = user;
     }),
@@ -529,7 +550,8 @@ export const AppStateChange = {
     noteRefsModified: build(
         Scope.Broadcast,
         "noteRefsModified",
-        (args: StateChangeNoteRefsModified) => {
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangeNoteRefsModified;
             const changes: RefsModified = args.changes;
 
             if (changes.referencesCreated.length > 0) {
@@ -550,7 +572,8 @@ export const AppStateChange = {
     showNoteForm: build(
         Scope.Local,
         "showNoteForm",
-        (args: StateChangeNoteForm) => {
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangeNoteForm;
             let snf = { ...state.showNoteForm.value };
 
             let noteKind: NoteKind = args.noteKind;
@@ -565,7 +588,8 @@ export const AppStateChange = {
     hideNoteForm: build(
         Scope.Local,
         "hideNoteForm",
-        (args: StateChangeNoteForm) => {
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangeNoteForm;
             let snf = { ...state.showNoteForm.value };
 
             let noteKind: NoteKind = args.noteKind;
@@ -580,7 +604,8 @@ export const AppStateChange = {
     setRecentImages: build(
         Scope.Broadcast,
         "setRecentImages",
-        (args: StateChangeRecentImages) => {
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangeRecentImages;
             const recentImages: Array<UserUploadedImage> = args.recentImages;
             state.recentImages.value = recentImages;
         }
@@ -589,7 +614,8 @@ export const AppStateChange = {
     deleteDeck: build(
         Scope.Broadcast,
         "deleteDeck",
-        (args: StateChangeDeleteDeck) => {
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangeDeleteDeck;
             const id: Key = args.deckId;
 
             let filterFn = (d: SlimDeck) => d.id !== id;
@@ -649,7 +675,8 @@ export const AppStateChange = {
     setBookmarks: build(
         Scope.Broadcast,
         "setBookmarks",
-        (args: StateChangeBookmarks) => {
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangeBookmarks;
             const bookmarks: Array<Bookmark> = args.bookmarks;
             state.bookmarks.value = bookmarks;
         }
@@ -658,7 +685,8 @@ export const AppStateChange = {
     setRecentlyUsedDecks: build(
         Scope.Broadcast,
         "setRecentlyUsedDecks",
-        (args: StateChangeRecentlyUsedDecks) => {
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangeRecentlyUsedDecks;
             const recents: Array<SlimDeck> = args.recents;
             state.recentlyUsedDecks.value = recents;
         }
@@ -675,13 +703,15 @@ export const AppStateChange = {
     setReviewCount: build(
         Scope.Broadcast,
         "setReviewCount",
-        (args: StateChangeCount) => {
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangeCount;
             const count: number = args.count;
             state.memoriseReviewCount.value = count;
         }
     ),
 
-    loadGraph: build(Scope.Local, "loadGraph", (args: StateChangeGraph) => {
+    loadGraph: build(Scope.Local, "loadGraph", (asca?: AppStateChangeArgs) => {
+        let args = asca! as StateChangeGraph;
         let graph: FullGraphStruct = args.graph;
         let newGraph: Graph = {
             fullyLoaded: true,
@@ -736,8 +766,8 @@ function opposingKind(kind: RefKind): RefKind {
     }
 }
 
-function buildFullGraph(graphConnections: Array<number>) {
-    let res = {};
+function buildFullGraph(graphConnections: Array<number>): { [id: Key]: Set<GraphEdge> } {
+    let res: { [id: Key]: Set<GraphEdge> } = {};
 
     for (let i = 0; i < graphConnections.length; i += 4) {
         let fromDeck = graphConnections[i + 0];

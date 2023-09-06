@@ -96,11 +96,12 @@ export default function useDeckManager<T extends FatDeck>(
         let newDms = dmsUpdateDeck<T>(dms, preCacheFunction(newDeck), deckKind);
         setDms(newDms);
     }
+
     function findNoteWithId(
-        deck: T,
         id: Key,
         modifyFn: (n: Notes, idx: number) => void
     ) {
+        const deck = dms.deck!;
         const notes = deck.notes;
         const index = notes.findIndex((n) => n.id === id);
 
@@ -113,14 +114,12 @@ export default function useDeckManager<T extends FatDeck>(
 
     function onRefsChanged(note: Note, refsInNote: Array<Reference>) {
         if (dms.deck) {
-            let deck: T = dms.deck;
-
             note.refs = refsInNote;
             note.refs.sort(sortByDeckKindThenName);
 
             let n = { ...note };
 
-            findNoteWithId(deck, n.id, (notes: Notes, index: number) => {
+            findNoteWithId(n.id, (notes: Notes, index: number) => {
                 notes[index] = n;
             });
         }
@@ -238,7 +237,7 @@ export default function useDeckManager<T extends FatDeck>(
         onRefsChanged,
         passageForPoint: function (point: Point) {
             if (dms.deck) {
-                let deck: FatDeck = dms.deck;
+                let deck: T = dms.deck;
                 // if (deck.notePassages.points) {
                 if (deck.passageForPoint) {
                     return ViewPassageChunkyBoy({

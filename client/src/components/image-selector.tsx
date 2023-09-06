@@ -71,7 +71,13 @@ export default function ImageSelector({ onPaste }: Props) {
     }
 }
 
-function ImageSelectorItem({ filename, imageDirectory, onPaste }) {
+type ImageSelectorItemProps = {
+    filename: string,
+    imageDirectory: string,
+    onPaste: (s: string) => void
+};
+
+function ImageSelectorItem({ filename, imageDirectory, onPaste }: ImageSelectorItemProps) {
     let markupSyntax = `:img(${filename})`;
 
     function onClick() {

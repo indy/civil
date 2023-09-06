@@ -409,7 +409,7 @@ export type State = {
 
     colourSeeds: Signal<ColourSeeds>;
 
-    previewCache: Signal<Record<Key, PreviewDeck>>;
+    previewCache: Signal<Map<Key, PreviewDeck>>;
 
     visiblePreviewDeck: Signal<VisiblePreview>;
 
@@ -434,7 +434,7 @@ export type State = {
     memoriseEarliestReviewDate: Signal<undefined | string>;
 };
 
-type GraphEdge = [number, RefKind, number];
+export type GraphEdge = [number, RefKind, number];
 
 export type GraphDeck = SlimDeck;
 
@@ -498,7 +498,7 @@ export type GraphNode = {
 export type Edge = [number, number, number, RefKind];
 
 export type GraphState = {
-    nodes: { [index: Key]: GraphNode };
+    nodes: Map<Key, GraphNode>;
     edges: Array<Edge>;
 
     simStats?: SimStats;
