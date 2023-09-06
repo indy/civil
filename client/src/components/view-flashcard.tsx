@@ -4,6 +4,7 @@ import { FlashCard } from "types";
 
 import { plural } from "shared/english";
 import Net from "shared/net";
+import { daysUntil } from "shared/time";
 
 import CivilTextArea from "components/civil-text-area";
 import DeleteConfirmation from "components/delete-confirmation";
@@ -134,7 +135,7 @@ export default function ViewFlashCard({
 
         const url = `/api/memorise/${local.flashcard.id}`;
         Net.put<FlashCard, FlashCard>(url, local.flashcard).then(
-            (updatedFlashcard) => {
+            (_updatedFlashcard) => {
                 localDispatch(ActionType.EditingSaved);
             }
         );
@@ -190,14 +191,4 @@ export default function ViewFlashCard({
             </CivMain>
         );
     }
-}
-
-function daysUntil(date: string) {
-    let nextTestDate = new Date(date);
-    let todayDate = new Date();
-
-    let delta = nextTestDate.getTime() - todayDate.getTime();
-    let deltaDays = delta / (1000 * 3600 * 24);
-
-    return Math.round(deltaDays);
 }

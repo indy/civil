@@ -200,6 +200,16 @@ export function asHumanReadableDateRange(
     return res;
 }
 
+export function daysUntil(date: string) {
+    let nextTestDate = new Date(date);
+    let todayDate = new Date();
+
+    let delta = nextTestDate.getTime() - todayDate.getTime();
+    let deltaDays = delta / (1000 * 3600 * 24);
+
+    return Math.round(deltaDays);
+}
+
 function textualMonth(month: number) {
     switch (month) {
         case 1:
