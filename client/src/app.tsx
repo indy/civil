@@ -1,7 +1,8 @@
 import { h } from "preact";
 import { Router, route, RouterOnChangeArgs } from "preact-router";
+import { useEffect } from "preact/hooks";
 
-import { State, UserWithUiConfig, UberSetup, UiConfig } from "types";
+import { State, FullGraphStruct, UserWithUiConfig, UberSetup, UiConfig } from "types";
 
 import { AppStateChange, AppStateProvider, getAppState } from "app-state";
 
@@ -54,6 +55,14 @@ function DebugMessages() {
 
 const AppUI = () => {
     const state = getAppState();
+
+
+    useEffect(() => {
+        Net.get<FullGraphStruct>("/api/graph").then((graph) => {
+            console.log("loaded full graph struct !!!!");
+            AppStateChange.loadGraph({ graph });
+        });
+    }, []);
 
     function loginHandler(user: UserWithUiConfig) {
         AppStateChange.userLogin({

@@ -13,7 +13,8 @@ import {
     Font,
     FullGraphStruct,
     Graph,
-    GraphDeck, GraphEdge, ImmutableState,
+    GraphEdge,
+    ImmutableState,
     Key,
     NoteKind,
     Notes,
@@ -42,7 +43,9 @@ import {
     StateChangeShowShortcuts,
     StateChangeSpan,
     StateChangeTitle,
-    StateChangeUber, StateChangeUiConfig, StateChangeUrl,
+    StateChangeUber,
+    StateChangeUiConfig,
+    StateChangeUrl,
     StateChangeUser,
     StateChangeWaitingFor, UberSetup,
     User,
@@ -130,7 +133,7 @@ broadcastChannel.onmessage = (event) => {
     // (could have used AppStateChange[fnName] but that errors when strict
     // typing is set in tsconfig.json)
     //
-    switch(fnName) {
+    switch (fnName) {
         case "noteRefsModified": AppStateChange.noteRefsModified(args); break;
         case "setRecentImages": AppStateChange.setRecentImages(args); break;
         case "deleteDeck": AppStateChange.deleteDeck(args); break;
@@ -215,7 +218,7 @@ const state: State = {
     recentImages: signal([]),
     imageDirectory: signal(""),
 
-    showConnectivityGraph: signal(false),
+    showConnectivityGraph: signal(true),
     graph: signal({
         fullyLoaded: false,
         // an array of { id, name, deckKind }
@@ -434,9 +437,9 @@ export const AppStateChange = {
             } else {
                 console.log(
                     "calling hidePreviewDeck with a deckId that isn't the current preview deck: " +
-                        deckId +
-                        " " +
-                        state.visiblePreviewDeck.value.id
+                    deckId +
+                    " " +
+                    state.visiblePreviewDeck.value.id
                 );
             }
         }
@@ -713,6 +716,7 @@ export const AppStateChange = {
     loadGraph: build(Scope.Local, "loadGraph", (asca?: AppStateChangeArgs) => {
         let args = asca! as StateChangeGraph;
         let graph: FullGraphStruct = args.graph;
+
         let newGraph: Graph = {
             fullyLoaded: true,
             decks: graph.graphDecks,
@@ -791,7 +795,7 @@ function buildFullGraph(graphConnections: Array<number>): { [id: Key]: Set<Graph
     return res;
 }
 
-function buildDeckIndex(decks: Array<GraphDeck>) {
+function buildDeckIndex(decks: Array<SlimDeck>) {
     let res: Array<number> = [];
 
     decks.forEach((d, i) => {

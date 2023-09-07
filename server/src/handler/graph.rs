@@ -17,8 +17,7 @@
 
 use crate::db::graph as db;
 use crate::db::sqlite::SqlitePool;
-use crate::interop::decks::RefKind;
-use crate::interop::graph as interop;
+use crate::interop::decks::{RefKind, SlimDeck};
 use crate::session;
 use actix_web::web::Data;
 use actix_web::HttpResponse;
@@ -39,7 +38,7 @@ pub fn packed_kind(kind: RefKind) -> i32 {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 struct FullGraphStruct {
-    pub graph_decks: Vec<interop::GraphDeck>,
+    pub graph_decks: Vec<SlimDeck>,
     pub graph_connections: Vec<i32>,
 }
 

@@ -436,17 +436,15 @@ export type State = {
 
 export type GraphEdge = [number, RefKind, number];
 
-export type GraphDeck = SlimDeck;
-
 export type FullGraphStruct = {
-    graphDecks: Array<GraphDeck>;
+    graphDecks: Array<SlimDeck>;
     graphConnections: Array<number>;
 };
 
 export type Graph = {
     fullyLoaded: boolean;
     // an array of { id, name, resource }
-    decks: Array<GraphDeck>;
+    decks: Array<SlimDeck>;
     links: { [id: Key]: Set<GraphEdge> };
     // an array which is indexed by deckId, returns the offset into state.graph.value.decks
     deckIndexFromId: Array<Key>;

@@ -5,7 +5,6 @@ import { useEffect, useState } from "preact/hooks";
 import {
     Edge,
     ExpandedState,
-    FullGraphStruct,
     GraphCallback,
     GraphNode,
     GraphState,
@@ -13,10 +12,9 @@ import {
     RefKind,
 } from "types";
 
-import { AppStateChange, getAppState } from "app-state";
+import { getAppState } from "app-state";
 
 import { deckKindToResourceString } from "shared/deck";
-import Net from "shared/net";
 
 import { CivContainer, CivLeft, CivMain } from "components/civil-layout";
 import { graphPhysics } from "components/graph-physics";
@@ -33,7 +31,6 @@ type LocalState = {
     mouseDragging: boolean;
     simIsRunning: boolean;
     haveGraphState: boolean;
-    requireLoad: boolean;
 };
 
 function initialLocalState(): LocalState {
@@ -43,7 +40,6 @@ function initialLocalState(): LocalState {
         mouseDragging: false,
         simIsRunning: false,
         haveGraphState: false,
-        requireLoad: false,
     };
 }
 
@@ -54,7 +50,6 @@ enum ActionType {
     MouseDraggingStart,
     MouseDraggingStop,
     SimIsRunning,
-    RequireLoad,
 }
 
 type Action = {
@@ -106,20 +101,13 @@ function reducer(state: LocalState, action: Action): LocalState {
             };
             return newState;
         }
-        case ActionType.RequireLoad: {
-            const newState = {
-                ...state,
-                requireLoad: action.data,
-            };
-            return newState;
-        }
         default:
             throw new Error(`unknown action: ${action}`);
     }
 }
 
 export default function Graph({ id, depth }: { id: Key; depth: number }) {
-    console.log(`todo: re-implement depth: ${depth}`);
+    // console.log(`todo: re-implement depth: ${depth}`);
 
     const appState = getAppState();
 
@@ -159,7 +147,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
             appState.graph.value.decks &&
             appState.graph.value.deckIndexFromId
         ) {
-            newState.nodes.set(id, {
+            const graphNode: GraphNode = {
                 id: id,
                 isImportant: true,
                 expandedState: ExpandedState.Fully,
@@ -174,30 +162,15 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
                 y: 0,
                 vx: 0,
                 vy: 0,
-            });
+            };
+
+            newState.nodes.set(id, graphNode);
             regenGraphState(newState);
         }
     }
 
-    if (appState.graph.value.fullyLoaded && local.requireLoad === true) {
-        // console.log("initialising graph after loading in graph data");
-        initialise();
-        localDispatch(ActionType.RequireLoad, false);
-    }
-
     useEffect(() => {
-        if (appState.graph.value.fullyLoaded) {
-            // console.log("initialising graph with pre-loaded graph data");
-            initialise();
-        } else {
-            // fetch the graph data from the server,
-            // dispatch the updated state,
-            // and then on the next render initialise using the if statement above
-            Net.get<FullGraphStruct>("/api/graph").then((graph) => {
-                AppStateChange.loadGraph({ graph });
-                localDispatch(ActionType.RequireLoad, true);
-            });
-        }
+        initialise();
     }, []);
 
     useEffect(() => {
@@ -461,14 +434,12 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
     }
 
     function onGraphClicked(event: Event) {
-        console.log("aaaa");
         console.log(event.target);
         if (event.target instanceof SVGTextElement) {
             const target = event.target;
             console.log("clicked on text element");
             if (local.activeHyperlinks) {
                 console.log("active hyperlinks");
-                console.log(target.id);
                 if (target.id.length > 0 && target.id[0] === "/") {
                     console.log("just before route");
 

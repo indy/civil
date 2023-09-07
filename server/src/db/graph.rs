@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::db::decks::slimdeck_from_row;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::interop::decks as interop_decks;
 use crate::interop::graph as interop;
@@ -25,31 +26,20 @@ use std::str::FromStr;
 #[allow(unused_imports)]
 use tracing::info;
 
-fn graph_from_row(row: &Row) -> crate::Result<interop::GraphDeck> {
-    let kind: String = row.get(2)?;
-
-    Ok(interop::GraphDeck {
-        id: row.get(0)?,
-        name: row.get(1)?,
-        deck_kind: interop_decks::DeckKind::from_str(&kind)?,
-        graph_terminator: row.get(3)?,
-    })
-}
-
 pub(crate) fn get_decks(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-) -> crate::Result<Vec<interop::GraphDeck>> {
+) -> crate::Result<Vec<interop_decks::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
     sqlite::many(
         &conn,
-        "SELECT id, name, kind, graph_terminator
+        "SELECT id, name, kind, insignia, font, graph_terminator
          FROM decks
          WHERE user_id = ?1
          ORDER BY name",
         params![&user_id],
-        graph_from_row,
+        slimdeck_from_row,
     )
 }
 

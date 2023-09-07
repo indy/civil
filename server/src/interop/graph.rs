@@ -15,17 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::{DeckKind, RefKind};
+use crate::interop::decks::RefKind;
 use crate::interop::Key;
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct GraphDeck {
-    pub id: Key,
-    pub name: String,
-    pub deck_kind: DeckKind,
-    pub graph_terminator: bool,
-}
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
