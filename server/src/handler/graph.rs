@@ -18,8 +18,9 @@
 use crate::db::graph as db;
 use crate::db::sqlite::SqlitePool;
 use crate::interop::decks::{RefKind, SlimDeck};
+use crate::interop::IdParam;
 use crate::session;
-use actix_web::web::Data;
+use actix_web::web::{Data, Path};
 use actix_web::HttpResponse;
 
 #[allow(unused_imports)]
@@ -42,7 +43,7 @@ struct FullGraphStruct {
     pub graph_connections: Vec<i32>,
 }
 
-pub async fn get(
+pub async fn get_full_graph_struct(
     sqlite_pool: Data<SqlitePool>,
     session: actix_session::Session,
 ) -> crate::Result<HttpResponse> {
@@ -72,4 +73,19 @@ pub async fn get(
         graph_connections,
     };
     Ok(HttpResponse::Ok().json(full_graph))
+}
+
+pub async fn get(
+    sqlite_pool: Data<SqlitePool>,
+    params: Path<IdParam>,
+    session: actix_session::Session,
+) -> crate::Result<HttpResponse> {
+    info!("get {:?}", params.id);
+
+    let user_id = session::user_id(&session)?;
+    let deck_id = params.id;
+
+    let connectivity = db::get(&sqlite_pool, user_id, deck_id)?;
+
+    Ok(HttpResponse::Ok().json(connectivity))
 }

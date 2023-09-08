@@ -15,14 +15,56 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::interop::decks::RefKind;
+use crate::interop::decks::{RefKind, SlimDeck};
 use crate::interop::Key;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Vertex {
+pub struct OldVertex {
     pub from_id: Key,
     pub to_id: Key,
     pub kind: RefKind,
     pub strength: usize,
+}
+
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
+)]
+#[repr(u8)]
+pub enum LineStyle {
+    Solid = 1,
+    Dotted,
+}
+
+#[derive(
+    Hash,
+    Copy,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    serde_repr::Serialize_repr,
+    serde_repr::Deserialize_repr,
+)]
+#[repr(u8)]
+pub enum Direction {
+    Incoming = 1,
+    Outgoing,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Edge {
+    pub from_id: Key,
+    pub to_id: Key,
+    pub ref_kind: RefKind,
+    pub direction: Direction,
+    pub line_style: LineStyle,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EdgeData {
+    pub edges: Vec<Edge>,
+    pub decks: Vec<SlimDeck>,
 }

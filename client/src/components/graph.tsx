@@ -3,11 +3,11 @@ import { route } from "preact-router";
 import { useEffect, useState } from "preact/hooks";
 
 import {
-    Edge,
+    OldEdge,
     ExpandedState,
     GraphCallback,
-    GraphNode,
-    GraphState,
+    OldGraphNode,
+    OldGraphState,
     Key,
     RefKind,
 } from "types";
@@ -111,8 +111,8 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
 
     const appState = getAppState();
 
-    const initialState: GraphState = {
-        nodes: new Map<Key, GraphNode>(),
+    const initialState: OldGraphState = {
+        nodes: new Map<Key, OldGraphNode>(),
         edges: [],
     };
     const [graphState, setGraphState] = useState(initialState);
@@ -137,8 +137,8 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
     });
 
     function initialise() {
-        let newState: GraphState = {
-            nodes: new Map<Key, GraphNode>(),
+        let newState: OldGraphState = {
+            nodes: new Map<Key, OldGraphNode>(),
             edges: [],
         };
 
@@ -147,7 +147,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
             appState.graph.value.decks &&
             appState.graph.value.deckIndexFromId
         ) {
-            const graphNode: GraphNode = {
+            const graphNode: OldGraphNode = {
                 id: id,
                 isImportant: true,
                 expandedState: ExpandedState.Fully,
@@ -182,9 +182,9 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
         });
     }, [graphState]);
 
-    function regenGraphState(gs: GraphState) {
-        let nodes: Map<Key, GraphNode> = new Map<Key, GraphNode>();
-        let edges: Array<Edge> = [];
+    function regenGraphState(gs: OldGraphState) {
+        let nodes: Map<Key, OldGraphNode> = new Map<Key, OldGraphNode>();
+        let edges: Array<OldEdge> = [];
 
         // create an updated copy of all the visible nodes
 
@@ -208,7 +208,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
                         if (!nodes.get(childId)) {
                             if (gs.nodes.get(childId)) {
                                 // copy over from previous state
-                                const n: GraphNode = gs.nodes.get(childId)!;
+                                const n: OldGraphNode = gs.nodes.get(childId)!;
                                 nodes.set(childId, n);
                             } else {
                                 // create a new node
@@ -240,7 +240,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
                         let [childId, _kind, _strength] = link; // negative strength == backlink
 
                         if (!nodes.get(childId)) {
-                            const n: GraphNode | undefined = gs.nodes.get(childId);
+                            const n: OldGraphNode | undefined = gs.nodes.get(childId);
                             if (n && n!.expandedState !== ExpandedState.None) {
                                 // copy over from previous state
                                 nodes.set(childId, n);
@@ -270,7 +270,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
                 } else if (node.expandedState === ExpandedState.Partial) {
                     for (const link of appState.graph.value.links[key]) {
                         let [childId, kind, strength] = link; // negative strength == backlink
-                        const n: GraphNode | undefined = nodes.get(childId);
+                        const n: OldGraphNode | undefined = nodes.get(childId);
                         if (n && n.expandedState !== ExpandedState.None) {
                             // only if both sides of the link are being displayed
                             edges.push([
@@ -290,8 +290,8 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
         // remove edges that would be duplicates (edges that are duplicates of
         // existing edges but have their  source/target swapped and a negated strength)
         //
-        let edgesToRender: Array<Edge> = [];
-        edges.forEach((e: Edge) => {
+        let edgesToRender: Array<OldEdge> = [];
+        edges.forEach((e: OldEdge) => {
             let [srcIdx, targetIdx, strength, _kind] = e;
 
             // let sourceNode = nodes[srcIdx];
@@ -350,7 +350,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
         }
     }
 
-    function numOpenedConnections(id: Key, gs: GraphState) {
+    function numOpenedConnections(id: Key, gs: OldGraphState) {
         /*
           add nodes to a set rather than count them in place
           nodes A and B could be connected together twice (parent->child + child->parent) but this should only count as a single connection
@@ -360,13 +360,13 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
 
         gs.edges.forEach((e) => {
             if (e[0] === id) {
-                const n: GraphNode = gs.nodes.get(e[1])!;
+                const n: OldGraphNode = gs.nodes.get(e[1])!;
                 if (n.expandedState !== ExpandedState.None) {
                     s.add(e[1]);
                 }
             }
             if (e[1] === id) {
-                const n: GraphNode = gs.nodes.get(e[0])!;
+                const n: OldGraphNode = gs.nodes.get(e[0])!;
                 if (n.expandedState !== ExpandedState.None) {
                     s.add(e[0]);
                 }
@@ -389,7 +389,7 @@ export default function Graph({ id, depth }: { id: Key; depth: number }) {
 
                 let id = parseInt(svgNode.getAttribute("referencing_id"), 10);
                 if (id) {
-                    const node: GraphNode = graphState.nodes.get(id)!;
+                    const node: OldGraphNode = graphState.nodes.get(id)!;
                     if (node.expandedState === ExpandedState.Fully) {
                         let openedNeighbours = numOpenedConnections(
                             id,
@@ -514,7 +514,7 @@ function mouseInSvg(mouseX: number, mouseY: number, svgContainer?: any) {
     }
 }
 
-function buildSvg(ref: any, graphState: GraphState) {
+function buildSvg(ref: any, graphState: OldGraphState) {
     let svg: any = {
         container: undefined,
         element: undefined,
@@ -574,8 +574,8 @@ function buildSvg(ref: any, graphState: GraphState) {
     graphState.edges.forEach((e) => {
         let [srcIdx, targetIdx, strength, kind] = e;
 
-        let sourceNode: GraphNode = nodes.get(srcIdx)!;
-        let targetNode: GraphNode = nodes.get(targetIdx)!;
+        let sourceNode: OldGraphNode = nodes.get(srcIdx)!;
+        let targetNode: OldGraphNode = nodes.get(targetIdx)!;
 
         svg.edges.appendChild(
             createSvgEdge(sourceNode, targetNode, Math.abs(strength), kind)
@@ -608,7 +608,7 @@ function buildSvg(ref: any, graphState: GraphState) {
 
 function buildUpdateGraphCallback(svg?: any): GraphCallback {
     function updateGraphCallback(
-        graphState: GraphState,
+        graphState: OldGraphState,
         physicsId: number,
         globalPhysicsId: number
     ) {
@@ -621,8 +621,8 @@ function buildUpdateGraphCallback(svg?: any): GraphCallback {
 
         Array.from(svg.edges.children).forEach((svgEdge, i) => {
             if (edges.length > i) {
-                let source: GraphNode = nodes.get(edges[i][0])!;
-                let target: GraphNode = nodes.get(edges[i][1])!;
+                let source: OldGraphNode = nodes.get(edges[i][0])!;
+                let target: OldGraphNode = nodes.get(edges[i][1])!;
                 let kind = edges[i][3];
 
                 if (kind === RefKind.RefToParent) {
@@ -635,7 +635,7 @@ function buildUpdateGraphCallback(svg?: any): GraphCallback {
 
         Array.from(svg.nodes.children).forEach((svgNode?: any) => {
             let id = parseInt(svgNode.getAttribute("referencing_id"), 10);
-            let node: GraphNode | undefined = nodes.get(id);
+            let node: OldGraphNode | undefined = nodes.get(id);
             if (node) {
                 translateNode(svgNode, node.x, node.y);
             }
@@ -651,8 +651,8 @@ function buildUpdateGraphCallback(svg?: any): GraphCallback {
 }
 
 function createSvgEdge(
-    sourceNode: GraphNode,
-    targetNode: GraphNode,
+    sourceNode: OldGraphNode,
+    targetNode: OldGraphNode,
     strength: number,
     kind: RefKind
 ) {
@@ -695,7 +695,7 @@ function createSvgEdge(
     return path;
 }
 
-function createSvgNode(n: GraphNode) {
+function createSvgNode(n: OldGraphNode) {
     let g: any = document.createElementNS("http://www.w3.org/2000/svg", "g");
     g.associatedNode = n;
 
@@ -785,7 +785,7 @@ function createSvgNode(n: GraphNode) {
     return [g, text2];
 }
 
-function translateEdge(svgNode: any, source: GraphNode, target: GraphNode) {
+function translateEdge(svgNode: any, source: OldGraphNode, target: OldGraphNode) {
     const r = Math.hypot(target.x - source.x, target.y - source.y);
     let d = `M${source.x},${source.y} A${r},${r} 0 0,1 ${target.x},${target.y}`;
     svgNode.setAttribute("d", d);

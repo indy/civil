@@ -465,7 +465,7 @@ export type UberSetup = {
 
 // graph stuff
 //
-export type GraphCallback = (g: GraphState, p: number, h: number) => void;
+export type GraphCallback = (g: OldGraphState, p: number, h: number) => void;
 
 export enum ExpandedState {
     Fully = 0,
@@ -477,7 +477,7 @@ type SimStats = {
     tickCount: number;
     maxVelocities: [number, number];
 };
-export type GraphNode = {
+export type OldGraphNode = {
     id: Key;
     isImportant: boolean;
     expandedState: ExpandedState;
@@ -493,11 +493,35 @@ export type GraphNode = {
     textHeight?: number;
 };
 
-export type Edge = [number, number, number, RefKind];
 
-export type GraphState = {
-    nodes: Map<Key, GraphNode>;
-    edges: Array<Edge>;
+export enum LineStyle {
+    Solid = 1,
+    Dotted,
+}
+
+export enum Direction {
+    Incoming = 1,
+    Outgoing,
+}
+
+export type Edge = {
+    fromId: Key,
+    toId: Key,
+    refKind: RefKind,
+    direction: Direction,
+    lineStyle: LineStyle,
+};
+
+export type EdgeData = {
+    edges: Array<Edge>,
+    decks: Array<SlimDeck>,
+};
+
+export type OldEdge = [number, number, number, RefKind];
+
+export type OldGraphState = {
+    nodes: Map<Key, OldGraphNode>;
+    edges: Array<OldEdge>;
 
     simStats?: SimStats;
 };
