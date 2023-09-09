@@ -1,13 +1,11 @@
-import { h } from "preact";
+import { Bookmark } from "../types";
 
-import { Bookmark } from "types";
+import { AppStateChange, getAppState } from "../app-state";
 
-import { AppStateChange, getAppState } from "app-state";
+import { deleteBookmark } from "../shared/bookmarks";
 
-import { deleteBookmark } from "shared/bookmarks";
-
-import DeckLink from "components/deck-link";
-import { svgChevronDown, svgChevronUp, svgX } from "components/svg-icons";
+import DeckLink from "./deck-link";
+import { svgChevronDown, svgChevronUp, svgX } from "./svg-icons";
 
 export default function Bookmarks() {
     const appState = getAppState();

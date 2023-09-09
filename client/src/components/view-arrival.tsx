@@ -1,13 +1,11 @@
-import { h } from "preact";
+import { FatDeck, Arrival, Note, Passage } from "../types";
 
-import { FatDeck, Arrival, Note, Passage } from "types";
-
-import DeckLink from "components/deck-link";
-import Expandable from "components/expandable";
-import buildMarkup from "components/build-markup";
-import ViewReference from "components/view-reference";
-import { CivContainer, CivMain, CivLeft } from "components/civil-layout";
-import useFlashcards from "components/use-flashcards";
+import DeckLink from "./deck-link";
+import Expandable from "./expandable";
+import buildMarkup from "./build-markup";
+import ViewReference from "./view-reference";
+import { CivContainer, CivMain, CivLeft } from "./civil-layout";
+import useFlashcards from "./use-flashcards";
 
 type ViewArrivalProps = {
     deck: FatDeck;

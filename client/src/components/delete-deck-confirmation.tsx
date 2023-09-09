@@ -1,15 +1,14 @@
-import { h } from "preact";
 import { route } from "preact-router";
 
-import { DeckKind, Key } from "types";
+import { DeckKind, Key } from "../types";
 
-import { AppStateChange } from "app-state";
+import { AppStateChange } from "../app-state";
 
-import { buildUrl } from "shared/civil";
-import { deckKindToResourceString } from "shared/deck";
-import Net from "shared/net";
+import { buildUrl } from "../shared/civil";
+import { deckKindToResourceString } from "../shared/deck";
+import Net from "../shared/net";
 
-import DeleteConfirmation from "components/delete-confirmation";
+import DeleteConfirmation from "./delete-confirmation";
 
 type Props = {
     deckKind: DeckKind;

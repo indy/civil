@@ -1,18 +1,17 @@
-import { h } from "preact";
 import { useRef, useState } from "preact/hooks";
 
-import { GeoResult, PointKind, ProtoPoint } from "types";
+import { GeoResult, PointKind, ProtoPoint } from "../types";
 
-import { geoGet, getLatitudeLongitude } from "shared/geo";
+import { geoGet, getLatitudeLongitude } from "../shared/geo";
 import {
     asHumanReadableDate,
     asHumanReadableDateRange,
     parseDateStringAsTriple,
     parseDateStringAsYearOnly,
-} from "shared/time";
+} from "../shared/time";
 
-import CivilInput from "components/civil-input";
-import CivilTextArea from "components/civil-text-area";
+import CivilInput from "./civil-input";
+import CivilTextArea from "./civil-text-area";
 
 type PointFormProps = {
     pointKind?: PointKind;

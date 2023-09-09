@@ -1,8 +1,8 @@
-import { ComponentChildren, h } from "preact";
+import { ComponentChildren } from "preact";
 
-import { CivilMode } from "types";
+import { CivilMode } from "../types";
 
-import { getAppState } from "app-state";
+import { getAppState } from "../app-state";
 
 export default function WhenEditMode({
     children,

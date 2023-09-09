@@ -1,6 +1,6 @@
-import { CivilMode, State, DeckKind, Key } from "types";
+import { CivilMode, State, DeckKind, Key } from "../types";
 
-import { deckKindToResourceString } from "shared/deck";
+import { deckKindToResourceString } from "../shared/deck";
 
 export function buildUrl(deckKind: DeckKind, id: Key, prefix?: string): string {
     if (prefix) {

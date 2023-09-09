@@ -1,4 +1,4 @@
-import { CivilMode } from "types";
+import { CivilMode } from "../types";
 
 export function getCssString(name: string): string {
     let body = document.body;

@@ -1,5 +1,3 @@
-import { h } from "preact";
-
 import {
     FatDeck,
     Key,
@@ -10,17 +8,17 @@ import {
     ProtoNoteReferences,
     Reference,
     ReferencesApplied,
-} from "types";
+} from "../types";
 
-import { AppStateChange, getAppState } from "app-state";
+import { AppStateChange, getAppState } from "../app-state";
 
-import Net from "shared/net";
+import Net from "../shared/net";
 
-import { CivContainer, CivLeft } from "components/civil-layout";
-import NoteForm from "components/note-form";
-import { svgEdit } from "components/svg-icons";
-import ViewNote from "components/view-note";
-import WhenEditMode from "components/when-edit-mode";
+import { CivContainer, CivLeft } from "./civil-layout";
+import NoteForm from "./note-form";
+import { svgEdit } from "./svg-icons";
+import ViewNote from "./view-note";
+import WhenEditMode from "./when-edit-mode";
 
 type ViewPassageChunkyBoyProps<T extends FatDeck> = {
     deck: T;

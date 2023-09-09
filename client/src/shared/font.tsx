@@ -1,4 +1,4 @@
-import { Role, Font, RenderingDeckPart } from "types";
+import { Role, Font, RenderingDeckPart } from "../types";
 
 export function fontClass(font: Font, rdp: RenderingDeckPart): string {
     function rdpClassName(rdp: RenderingDeckPart): string {

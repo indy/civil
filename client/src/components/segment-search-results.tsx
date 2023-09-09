@@ -1,18 +1,18 @@
-import { ComponentChildren, h } from "preact";
+import { ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { CivilMode, Font, Key, SearchDeck, SearchResults } from "types";
+import { CivilMode, Font, Key, SearchDeck, SearchResults } from "../types";
 
-import { getAppState } from "app-state";
+import { getAppState } from "../app-state";
 
-import { addMultipleBookmarks } from "shared/bookmarks";
-import { nonEmptyArray } from "shared/civil";
-import { plural } from "shared/english";
-import Net from "shared/net";
+import { addMultipleBookmarks } from "../shared/bookmarks";
+import { nonEmptyArray } from "../shared/civil";
+import { plural } from "../shared/english";
+import Net from "../shared/net";
 
-import CivilButton from "components/civil-button";
-import RollableSegment from "components/rollable-segment";
-import ViewSearchResults from "components/view-search-results";
+import CivilButton from "./civil-button";
+import RollableSegment from "./rollable-segment";
+import ViewSearchResults from "./view-search-results";
 
 // todo: fix the type for deckId, should be a Key
 //

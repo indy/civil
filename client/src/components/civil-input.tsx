@@ -1,7 +1,6 @@
-import { h } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 
-import { AppStateChange } from "app-state";
+import { AppStateChange } from "../app-state";
 
 export default function CivilInput({
     id,

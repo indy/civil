@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { useState } from "preact/hooks";
 
 import {
@@ -10,21 +9,21 @@ import {
     SearchDeck,
     SearchResults,
     SlimDeck,
-} from "types";
+} from "../types";
 
-import { AppStateChange, getAppState } from "app-state";
+import { AppStateChange, getAppState } from "../app-state";
 
-import { plural } from "shared/english";
-import { fontClass } from "shared/font";
+import { plural } from "../shared/english";
+import { fontClass } from "../shared/font";
 
-import buildMarkup from "components/build-markup";
-import { CivContainer, CivLeft, CivMain } from "components/civil-layout";
-import CivilSelect from "components/civil-select";
-import DeckLink from "components/deck-link";
-import Expandable from "components/expandable";
-import ListingLink from "components/listing-link";
-import ViewReference from "components/view-reference";
-import useFlashcards from "components/use-flashcards";
+import buildMarkup from "./build-markup";
+import { CivContainer, CivLeft, CivMain } from "./civil-layout";
+import CivilSelect from "./civil-select";
+import DeckLink from "./deck-link";
+import Expandable from "./expandable";
+import ListingLink from "./listing-link";
+import ViewReference from "./view-reference";
+import useFlashcards from "./use-flashcards";
 
 export default function ViewSearchResults({
     searchResults,

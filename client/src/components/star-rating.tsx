@@ -1,7 +1,7 @@
-import { ComponentChildren, h } from "preact";
+import { ComponentChildren } from "preact";
 
-import { CivLeft } from "components/civil-layout";
-import { svgBlank, svgRatingStar } from "components/svg-icons";
+import { CivLeft } from "./civil-layout";
+import { svgBlank, svgRatingStar } from "./svg-icons";
 
 function StarRatingWithinListing({ rating }: { rating: number }) {
     return (

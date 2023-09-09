@@ -4,7 +4,7 @@ import {
     ColourTriple,
     ColourQuad,
     ColourSeeds,
-} from "types";
+} from "../types";
 
 // const H: number = 0;
 // const S: number = 1;

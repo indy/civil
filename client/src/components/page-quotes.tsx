@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { route } from "preact-router";
 import { useEffect, useState } from "preact/hooks";
 
@@ -12,34 +11,34 @@ import {
     NoteKind,
     QuoteExtras,
     SearchResults,
-} from "types";
+} from "../types";
 
-import { AppStateChange, immutableState } from "app-state";
+import { AppStateChange, immutableState } from "../app-state";
 
-import { deckKindToHeadingString } from "shared/deck";
-import Net from "shared/net";
-import { sanitize } from "shared/search";
+import { deckKindToHeadingString } from "../shared/deck";
+import Net from "../shared/net";
+import { sanitize } from "../shared/search";
 
-import buildMarkup from "components/build-markup";
-import CivilButton from "components/civil-button";
-import CivilInput from "components/civil-input";
+import buildMarkup from "./build-markup";
+import CivilButton from "./civil-button";
+import CivilInput from "./civil-input";
 import {
     CivContainer,
     CivLeft,
     CivMain,
     CivMainUi,
-} from "components/civil-layout";
-import CivilTextArea from "components/civil-text-area";
-import DeleteConfirmation from "components/delete-confirmation";
-import ModalKeyboardHelp from "components/modal-keyboard-help";
-import SegmentArrivals from "components/segment-arrivals";
-import SegmentNotes from "components/segment-notes";
-import TopBarMenu from "components/top-bar-menu";
-import useDeckManager from "components/use-deck-manager";
-import useLocalReducer from "components/use-local-reducer";
-import useModalKeyboard from "components/use-modal-keyboard";
-import ViewSearchResults from "components/view-search-results";
-import WhenNoPhysicalKeyboard from "components/when-no-physical-keyboard";
+} from "./civil-layout";
+import CivilTextArea from "./civil-text-area";
+import DeleteConfirmation from "./delete-confirmation";
+import ModalKeyboardHelp from "./modal-keyboard-help";
+import SegmentArrivals from "./segment-arrivals";
+import SegmentNotes from "./segment-notes";
+import TopBarMenu from "./top-bar-menu";
+import useDeckManager from "./use-deck-manager";
+import useLocalReducer from "./use-local-reducer";
+import useModalKeyboard from "./use-modal-keyboard";
+import ViewSearchResults from "./view-search-results";
+import WhenNoPhysicalKeyboard from "./when-no-physical-keyboard";
 
 enum ActionType {
     ShowAddForm,

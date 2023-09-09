@@ -1,5 +1,5 @@
 import { signal } from "@preact/signals";
-import { ComponentChildren, createContext, h } from "preact";
+import { ComponentChildren, createContext } from "preact";
 import { useContext } from "preact/hooks";
 
 import {
@@ -52,11 +52,11 @@ import {
     UserUploadedImage,
     VisiblePreview,
     WaitingFor
-} from "types";
+} from "./types";
 
-import { declareSeeds, generateColoursFromSeeds } from "shared/colour-creator";
-import { passageForNoteKind } from "shared/passage";
-import { basicUiConfig } from "shared/ui-config";
+import { declareSeeds, generateColoursFromSeeds } from "./shared/colour-creator";
+import { passageForNoteKind } from "./shared/passage";
+import { basicUiConfig } from "./shared/ui-config";
 
 const emptyUser: User = {
     username: "",

@@ -1,16 +1,14 @@
-import { h } from "preact";
+import { FlashCard } from "../types";
 
-import { FlashCard } from "types";
+import { plural } from "../shared/english";
+import Net from "../shared/net";
+import { daysUntil } from "../shared/time";
 
-import { plural } from "shared/english";
-import Net from "shared/net";
-import { daysUntil } from "shared/time";
-
-import CivilButton from "components/civil-button";
-import CivilTextArea from "components/civil-text-area";
-import DeleteConfirmation from "components/delete-confirmation";
-import useLocalReducer from "components/use-local-reducer";
-import { CivMain } from "components/civil-layout";
+import CivilButton from "./civil-button";
+import CivilTextArea from "./civil-text-area";
+import DeleteConfirmation from "./delete-confirmation";
+import useLocalReducer from "./use-local-reducer";
+import { CivMain } from "./civil-layout";
 
 enum ActionType {
     IsEditingToggle,

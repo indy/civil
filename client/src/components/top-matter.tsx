@@ -1,18 +1,18 @@
-import { ComponentChildren, h } from "preact";
+import { ComponentChildren } from "preact";
 import { useRef } from "preact/hooks";
 
-import { CivilMode, FatDeck, RenderingDeckPart } from "types";
+import { CivilMode, FatDeck, RenderingDeckPart } from "../types";
 
-import { getAppState } from "app-state";
+import { getAppState } from "../app-state";
 
-import { addToolbarSelectableClasses } from "shared/css";
-import { fontClass } from "shared/font";
+import { addToolbarSelectableClasses } from "../shared/css";
+import { fontClass } from "../shared/font";
 
-import { CivContainer, CivLeft } from "components/civil-layout";
-import { renderInsignia } from "components/insignia-renderer";
-import LeftMarginHeading from "components/left-margin-heading";
-import Title from "components/title";
-import useMouseHovering from "components/use-mouse-hovering";
+import { CivContainer, CivLeft } from "./civil-layout";
+import { renderInsignia } from "./insignia-renderer";
+import LeftMarginHeading from "./left-margin-heading";
+import Title from "./title";
+import useMouseHovering from "./use-mouse-hovering";
 
 type Props = {
     title: string;

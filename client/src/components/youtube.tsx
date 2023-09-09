@@ -1,5 +1,3 @@
-import { h } from "preact";
-
 type YouTubeProps = {
     id?: string;
     start?: string;

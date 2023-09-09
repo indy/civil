@@ -1,16 +1,15 @@
-import { h } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 
-import { Font, Key, NoteKind, Notes } from "types";
+import { Font, Key, NoteKind, Notes } from "../types";
 
-import { getAppState } from "app-state";
+import { getAppState } from "../app-state";
 
-import Net from "shared/net";
+import Net from "../shared/net";
 
-import { CivLeft, CivMain } from "components/civil-layout";
-import CivilTextArea from "components/civil-text-area";
-import ImageSelector from "components/image-selector";
-import { svgX } from "components/svg-icons";
+import { CivLeft, CivMain } from "./civil-layout";
+import CivilTextArea from "./civil-text-area";
+import ImageSelector from "./image-selector";
+import { svgX } from "./svg-icons";
 
 type Props = {
     label: string;

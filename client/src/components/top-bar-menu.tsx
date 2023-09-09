@@ -1,9 +1,8 @@
-import { h } from "preact";
 import { Link } from "preact-router";
 
-import { AppStateChange, getAppState, immutableState } from "app-state";
+import { AppStateChange, getAppState, immutableState } from "../app-state";
 
-import { capitalise } from "shared/english";
+import { capitalise } from "../shared/english";
 
 export default function TopBarMenu() {
     const appState = getAppState();

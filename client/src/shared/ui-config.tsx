@@ -1,7 +1,7 @@
-import { DeckKind, UiConfig, ColourScheme } from "types";
+import { DeckKind, UiConfig, ColourScheme } from "../types";
 
-import Net from "shared/net";
-import { AppStateChange } from "app-state";
+import Net from "../shared/net";
+import { AppStateChange } from "../app-state";
 
 export function updateAndSaveUiConfig(uiConfig: UiConfig) {
     type EditUiConfig = {

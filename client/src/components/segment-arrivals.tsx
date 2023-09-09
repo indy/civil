@@ -1,15 +1,15 @@
-import { ComponentChildren, h } from "preact";
+import { ComponentChildren } from "preact";
 
-import { Arrival, DeckKind, FatDeck, Font, RenderingDeckPart } from "types";
+import { Arrival, DeckKind, FatDeck, Font, RenderingDeckPart } from "../types";
 
-import { immutableState } from "app-state";
+import { immutableState } from "../app-state";
 
-import { deckKindToHeadingString } from "shared/deck";
-import { fontClass } from "shared/font";
+import { deckKindToHeadingString } from "../shared/deck";
+import { fontClass } from "../shared/font";
 
-import Expandable from "components/expandable";
-import RollableSegment from "components/rollable-segment";
-import ViewArrival from "components/view-arrival";
+import Expandable from "./expandable";
+import RollableSegment from "./rollable-segment";
+import ViewArrival from "./view-arrival";
 
 export default function SegmentArrivals({ deck }: { deck?: FatDeck }) {
     const font = deck ? deck.font : immutableState.defaultFont;

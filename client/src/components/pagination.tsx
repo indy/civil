@@ -1,11 +1,11 @@
-import { ComponentChildren, h } from "preact";
+import { ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { PaginationResults } from "types";
+import { PaginationResults } from "../types";
 
-import Net from "shared/net";
+import Net from "../shared/net";
 
-import CivilButton from "components/civil-button";
+import CivilButton from "./civil-button";
 
 type LocalState = {
     offset: number;

@@ -1,4 +1,4 @@
-import { OldEdge, GraphCallback, OldGraphNode, OldGraphState } from "types";
+import { OldEdge, GraphCallback, OldGraphNode, OldGraphState } from "../types";
 
 const initialRadius: number = 10;
 const initialAngle: number = Math.PI * (3 - Math.sqrt(5));

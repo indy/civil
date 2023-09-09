@@ -1,13 +1,11 @@
-import { h } from "preact";
+import { NoteKind, FatDeck, Note, WaitingFor } from "../types";
 
-import { NoteKind, FatDeck, Note, WaitingFor } from "types";
+import { AppStateChange, getAppState } from "../app-state";
 
-import { AppStateChange, getAppState } from "app-state";
+import Net from "../shared/net";
 
-import Net from "shared/net";
-
-import buildSimplifiedText from "components/build-simplified-text";
-import CivilButton from "components/civil-button";
+import buildSimplifiedText from "./build-simplified-text";
+import CivilButton from "./civil-button";
 
 type AutoSummarizeProps = {
     deck: FatDeck;

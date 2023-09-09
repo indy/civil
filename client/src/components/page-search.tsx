@@ -1,19 +1,18 @@
-import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import { CivilMode, Key, SearchResults } from "types";
+import { CivilMode, Key, SearchResults } from "../types";
 
-import { getAppState } from "app-state";
+import { getAppState } from "../app-state";
 
-import { addMultipleBookmarks } from "shared/bookmarks";
-import Net from "shared/net";
-import { sanitize } from "shared/search";
+import { addMultipleBookmarks } from "../shared/bookmarks";
+import Net from "../shared/net";
+import { sanitize } from "../shared/search";
 
-import CivilButton from "components/civil-button";
-import CivilInput from "components/civil-input";
-import { CivContainer, CivLeft, CivMainUi } from "components/civil-layout";
-import TopBarMenu from "components/top-bar-menu";
-import ViewSearchResults from "components/view-search-results";
+import CivilButton from "./civil-button";
+import CivilInput from "./civil-input";
+import { CivContainer, CivLeft, CivMainUi } from "./civil-layout";
+import TopBarMenu from "./top-bar-menu";
+import ViewSearchResults from "./view-search-results";
 
 export default function Search({ path }: { path?: string }) {
     return (

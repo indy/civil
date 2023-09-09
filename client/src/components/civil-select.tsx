@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { useEffect } from "preact/hooks";
 
 import {
@@ -13,21 +12,21 @@ import {
     SearchResults,
     SlimDeck,
     State,
-} from "types";
+} from "../types";
 
-import { AppStateChange, getAppState, immutableState } from "app-state";
+import { AppStateChange, getAppState, immutableState } from "../app-state";
 
-import { indexToShortcut } from "shared/command";
-import { deckKindToResourceString, sortByDeckKindThenName } from "shared/deck";
-import { fontClass } from "shared/font";
-import { indexFromCode } from "shared/keys";
-import Net from "shared/net";
+import { indexToShortcut } from "../shared/command";
+import { deckKindToResourceString, sortByDeckKindThenName } from "../shared/deck";
+import { fontClass } from "../shared/font";
+import { indexFromCode } from "../shared/keys";
+import Net from "../shared/net";
 
-import CivilInput from "components/civil-input";
-import { CivMain, CivRight } from "components/civil-layout";
-import { renderInsignia } from "components/insignia-renderer";
-import { svgCloseShifted } from "components/svg-icons";
-import useLocalReducer from "components/use-local-reducer";
+import CivilInput from "./civil-input";
+import { CivMain, CivRight } from "./civil-layout";
+import { renderInsignia } from "./insignia-renderer";
+import { svgCloseShifted } from "./svg-icons";
+import useLocalReducer from "./use-local-reducer";
 
 enum ActionType {
     CandidatesSet,

@@ -1,4 +1,4 @@
-import { capitalise } from "shared/english";
+import { capitalise } from "../shared/english";
 
 export function formattedDate(timestamp: string) {
     const options: Intl.DateTimeFormatOptions = {

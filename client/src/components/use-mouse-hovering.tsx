@@ -1,6 +1,6 @@
 import { Ref, useState } from "preact/hooks";
 
-import useMouseHoveringEvents from "components/use-mouse-hovering-events";
+import useMouseHoveringEvents from "./use-mouse-hovering-events";
 
 export default function useMouseHovering(hoveringRef: Ref<HTMLElement>) {
     const [mouseHovering, setMouseHovering] = useState(false);

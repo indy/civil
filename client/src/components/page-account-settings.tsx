@@ -1,16 +1,16 @@
-import { ComponentChildren, h } from "preact";
+import { ComponentChildren } from "preact";
 import { route } from "preact-router";
 import { useState } from "preact/hooks";
 
-import { /* WaitingFor, */ CivilSpan, ColourScheme } from "types";
+import { /* WaitingFor, */ CivilSpan, ColourScheme } from "../types";
 
-import { AppStateChange, getAppState } from "app-state";
+import { AppStateChange, getAppState } from "../app-state";
 
-import Net from "shared/net";
-import { basicUiConfig, updateAndSaveUiConfig } from "shared/ui-config";
+import Net from "../shared/net";
+import { basicUiConfig, updateAndSaveUiConfig } from "../shared/ui-config";
 
-import { CivContainer, CivMainUi } from "components/civil-layout";
-import { svgComputer, svgMoon, svgSun, svgTablet } from "components/svg-icons";
+import { CivContainer, CivMainUi } from "./civil-layout";
+import { svgComputer, svgMoon, svgSun, svgTablet } from "./svg-icons";
 
 export default function AccountSettings({ path }: { path?: string }) {
     const appState = getAppState();

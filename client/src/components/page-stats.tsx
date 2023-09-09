@@ -1,7 +1,5 @@
-import { h } from "preact";
-
-import { HeadedSegment } from "components/headed-segment";
-import TopBarMenu from "components/top-bar-menu";
+import { HeadedSegment } from "./headed-segment";
+import TopBarMenu from "./top-bar-menu";
 
 export default function Stats({ path }: { path?: string }) {
     return (

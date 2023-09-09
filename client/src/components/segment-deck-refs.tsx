@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { useRef } from "preact/hooks";
 
 import {
@@ -10,17 +9,17 @@ import {
     Reference,
     RefsModified,
     RenderingDeckPart,
-} from "types";
+} from "../types";
 
-import { AppStateChange, getAppState } from "app-state";
+import { AppStateChange, getAppState } from "../app-state";
 
-import { addToolbarSelectableClasses } from "shared/css";
-import { fontClass } from "shared/font";
+import { addToolbarSelectableClasses } from "../shared/css";
+import { fontClass } from "../shared/font";
 
-import { CivContainer, CivMain } from "components/civil-layout";
-import CivilSelect from "components/civil-select";
-import useMouseHovering from "components/use-mouse-hovering";
-import ViewReference from "components/view-reference";
+import { CivContainer, CivMain } from "./civil-layout";
+import CivilSelect from "./civil-select";
+import useMouseHovering from "./use-mouse-hovering";
+import ViewReference from "./view-reference";
 
 type Props = {
     deck: FatDeck;

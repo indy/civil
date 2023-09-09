@@ -1,11 +1,10 @@
-import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import InsigniaSelector from "components/insignia-selector";
-import { HeadedSegment } from "components/headed-segment";
-import { renderPaginatedSlimDeck } from "components/paginated-render-items";
-import Pagination from "components/pagination";
-import TopBarMenu from "components/top-bar-menu";
+import InsigniaSelector from "./insignia-selector";
+import { HeadedSegment } from "./headed-segment";
+import { renderPaginatedSlimDeck } from "./paginated-render-items";
+import Pagination from "./pagination";
+import TopBarMenu from "./top-bar-menu";
 
 export default function Insignias({ path }: { path?: string }) {
     return (

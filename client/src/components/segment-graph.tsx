@@ -1,11 +1,9 @@
-import { h } from "preact";
+import { FatDeck } from "../types";
 
-import { FatDeck } from "types";
+import { getAppState } from "../app-state";
 
-import { getAppState } from "app-state";
-
-import Graph from "components/graph";
-import RollableSegment from "components/rollable-segment";
+import Graph from "./graph";
+import RollableSegment from "./rollable-segment";
 
 export default function SegmentGraph({
     depth,

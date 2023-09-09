@@ -1,6 +1,6 @@
-import { ComponentChildren, h } from "preact";
+import { ComponentChildren } from "preact";
 
-import WhenPhysicalKeyboard from "components/when-physical-keyboard";
+import WhenPhysicalKeyboard from "./when-physical-keyboard";
 
 export default function ModalKeyboardHelp({
     children,

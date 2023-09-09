@@ -1,11 +1,11 @@
 import { route } from "preact-router";
 
-import { DeckKind, Key, Font, SlimDeck } from "types";
+import { DeckKind, Key, Font, SlimDeck } from "../types";
 
-import Net from "shared/net";
+import Net from "../shared/net";
 
-import { immutableState } from "app-state";
-import { capitalise } from "shared/english";
+import { immutableState } from "../app-state";
+import { capitalise } from "../shared/english";
 
 export function buildSlimDeck(
     deckKind: DeckKind,

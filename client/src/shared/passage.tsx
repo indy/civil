@@ -1,4 +1,4 @@
-import { Key, Notes, Passage, NoteKind, Note } from "types";
+import { Key, Notes, Passage, NoteKind, Note } from "../types";
 
 export function passageForNoteKind(notes: Notes, kind: NoteKind): Passage {
     let ns = notes.filter((n) => n.kind === kind && n.pointId === null);

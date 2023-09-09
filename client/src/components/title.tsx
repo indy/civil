@@ -1,11 +1,10 @@
-import { h } from "preact";
 import { useEffect, useRef } from "preact/hooks";
 
-import { CivilMode } from "types";
+import { CivilMode } from "../types";
 
-import { getAppState } from "app-state";
+import { getAppState } from "../app-state";
 
-import { CivMain } from "components/civil-layout";
+import { CivMain } from "./civil-layout";
 
 type Props = {
     title: string;

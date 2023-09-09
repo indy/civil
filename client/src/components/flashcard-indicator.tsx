@@ -1,8 +1,6 @@
-import { h } from "preact";
+import { FlashCard } from "../types";
 
-import { FlashCard } from "types";
-
-import { svgFlashCard } from "components/svg-icons";
+import { svgFlashCard } from "./svg-icons";
 
 export default function FlashCardIndicator({
     flashcard,

@@ -1,12 +1,10 @@
-import { h } from "preact";
+import { Key, PreviewDeck } from "../types";
 
-import { Key, PreviewDeck } from "types";
+import { getAppState } from "../app-state";
 
-import { getAppState } from "app-state";
+import { visibleClass } from "../shared/css";
 
-import { visibleClass } from "shared/css";
-
-import buildMarkup from "components/build-markup";
+import buildMarkup from "./build-markup";
 
 export default function Previewer() {
     const appState = getAppState();

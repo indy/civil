@@ -10,8 +10,6 @@
 
 // tidy up svg with: https://yqnn.github.io/svg-path-editor/
 
-import { h } from "preact";
-
 // https://github.com/edent/SuperTinyIcons/blob/master/images/svg/ethereum.svg?short_path=644308a
 export function svgEthereum() {
     return (

@@ -1,19 +1,19 @@
-import { ComponentChildren, h } from "preact";
+import { ComponentChildren } from "preact";
 import { Link } from "preact-router";
 import { useRef } from "preact/hooks";
 
-import { CivilMode, PreviewNotes, RenderingDeckPart, SlimDeck } from "types";
+import { CivilMode, PreviewNotes, RenderingDeckPart, SlimDeck } from "../types";
 
-import { AppStateChange, getAppState } from "app-state";
+import { AppStateChange, getAppState } from "../app-state";
 
-import { addBookmark } from "shared/bookmarks";
-import { buildUrl } from "shared/civil";
-import { deckKindToResourceString } from "shared/deck";
-import { fontClass } from "shared/font";
-import Net from "shared/net";
+import { addBookmark } from "../shared/bookmarks";
+import { buildUrl } from "../shared/civil";
+import { deckKindToResourceString } from "../shared/deck";
+import { fontClass } from "../shared/font";
+import Net from "../shared/net";
 
-import { renderInsignia, svgBookmarkLink } from "components/insignia-renderer";
-import useMouseHoveringEvents from "components/use-mouse-hovering-events";
+import { renderInsignia, svgBookmarkLink } from "./insignia-renderer";
+import useMouseHoveringEvents from "./use-mouse-hovering-events";
 
 type Props = {
     slimDeck: SlimDeck;

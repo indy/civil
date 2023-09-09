@@ -1,14 +1,14 @@
-import { ComponentChildren, h } from "preact";
+import { ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { SlimDeck, SlimResults } from "types";
+import { SlimDeck, SlimResults } from "../types";
 
-import Net from "shared/net";
+import Net from "../shared/net";
 
-import ListingLink from "components/listing-link";
-import { HeadedSegment } from "components/headed-segment";
-import Paginator from "components/paginator";
-import TopBarMenu from "components/top-bar-menu";
+import ListingLink from "./listing-link";
+import { HeadedSegment } from "./headed-segment";
+import Paginator from "./paginator";
+import TopBarMenu from "./top-bar-menu";
 
 export default function FrontPage({ path }: { path?: string }) {
     return (

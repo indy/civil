@@ -1,11 +1,10 @@
-import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import { CivilMode } from "types";
+import { CivilMode } from "../types";
 
-import { getAppState, immutableState } from "app-state";
+import { getAppState, immutableState } from "../app-state";
 
-import { visibleClass } from "shared/css";
+import { visibleClass } from "../shared/css";
 
 type ImageProps = {
     src?: string;

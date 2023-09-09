@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import {
@@ -10,44 +9,44 @@ import {
     DM,
     Note,
     NoteKind,
-} from "types";
+} from "../types";
 
-import { buildUrl } from "shared/civil";
-import { buildSlimDeck } from "shared/deck";
-import Net from "shared/net";
-import { formattedDate } from "shared/time";
+import { buildUrl } from "../shared/civil";
+import { buildSlimDeck } from "../shared/deck";
+import Net from "../shared/net";
+import { formattedDate } from "../shared/time";
 
-import AutoSummarize from "components/auto-summarize";
-import CivilButton from "components/civil-button";
-import CivilButtonCreateDeck from "components/civil-button-create-deck";
-import CivilInput from "components/civil-input";
-import CivilTabButton from "components/civil-tab-button";
-import DeckLink from "components/deck-link";
-import DeleteDeckConfirmation from "components/delete-deck-confirmation";
-import FontSelector from "components/font-selector";
-import InsigniaSelector from "components/insignia-selector";
-import LeftMarginHeadingNoWrap from "components/left-margin-heading-no-wrap";
-import { HeadedSegment } from "components/headed-segment";
-import Pagination from "components/pagination";
-import SegmentArrivals from "components/segment-arrivals";
-import SegmentDeckRefs from "components/segment-deck-refs";
-import SegmentGraph from "components/segment-graph";
-import SegmentNotes from "components/segment-notes";
-import SegmentSearchResults from "components/segment-search-results";
+import AutoSummarize from "./auto-summarize";
+import CivilButton from "./civil-button";
+import CivilButtonCreateDeck from "./civil-button-create-deck";
+import CivilInput from "./civil-input";
+import CivilTabButton from "./civil-tab-button";
+import DeckLink from "./deck-link";
+import DeleteDeckConfirmation from "./delete-deck-confirmation";
+import FontSelector from "./font-selector";
+import InsigniaSelector from "./insignia-selector";
+import LeftMarginHeadingNoWrap from "./left-margin-heading-no-wrap";
+import { HeadedSegment } from "./headed-segment";
+import Pagination from "./pagination";
+import SegmentArrivals from "./segment-arrivals";
+import SegmentDeckRefs from "./segment-deck-refs";
+import SegmentGraph from "./segment-graph";
+import SegmentNotes from "./segment-notes";
+import SegmentSearchResults from "./segment-search-results";
 import {
     StarRatingPartial,
     StarRatingWithinListing,
-} from "components/star-rating";
-import TopBarMenu from "components/top-bar-menu";
-import TopMatter from "components/top-matter";
-import useDeckManager from "components/use-deck-manager";
+} from "./star-rating";
+import TopBarMenu from "./top-bar-menu";
+import TopMatter from "./top-matter";
+import useDeckManager from "./use-deck-manager";
 
 import {
     CivContainer,
     CivForm,
     CivLeftLabel,
     CivMain,
-} from "components/civil-layout";
+} from "./civil-layout";
 
 function Articles({ path }: { path?: string }) {
     return (

@@ -1,7 +1,7 @@
-import { Key, Bookmark } from "types";
+import { Key, Bookmark } from "../types";
 
-import Net from "shared/net";
-import { AppStateChange } from "app-state";
+import Net from "../shared/net";
+import { AppStateChange } from "../app-state";
 
 export function addBookmark(deckId: Key) {
     Net.post<Key, Array<Bookmark>>("/api/bookmarks", deckId).then(

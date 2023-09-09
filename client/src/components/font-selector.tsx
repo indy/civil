@@ -1,6 +1,4 @@
-import { h } from "preact";
-
-import { Font } from "types";
+import { Font } from "../types";
 
 export default function FontSelector({
     font,

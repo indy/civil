@@ -1,19 +1,18 @@
-import { h } from "preact";
 import { route } from "preact-router";
 import { useState } from "preact/hooks";
 
-import { DeckKind } from "types";
+import { DeckKind } from "../types";
 
-import { getAppState } from "app-state";
+import { getAppState } from "../app-state";
 
-import { deckKindToHeadingString, deckKindToResourceString } from "shared/deck";
-import { capitalise } from "shared/english";
+import { deckKindToHeadingString, deckKindToResourceString } from "../shared/deck";
+import { capitalise } from "../shared/english";
 
-import CivilButtonCreateDeck from "components/civil-button-create-deck";
-import CivilTabButton from "components/civil-tab-button";
-import { HeadedSegment } from "components/headed-segment";
-import { renderPaginatedSlimDeck } from "components/paginated-render-items";
-import Pagination from "components/pagination";
+import CivilButtonCreateDeck from "./civil-button-create-deck";
+import CivilTabButton from "./civil-tab-button";
+import { HeadedSegment } from "./headed-segment";
+import { renderPaginatedSlimDeck } from "./paginated-render-items";
+import Pagination from "./pagination";
 
 export default function Paginator({}) {
     const [selected, setSelected] = useState(DeckKind.Idea);

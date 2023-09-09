@@ -1,10 +1,8 @@
-import { h } from "preact";
+import { WaitingFor } from "../types";
 
-import { WaitingFor } from "types";
+import { getAppState } from "../app-state";
 
-import { getAppState } from "app-state";
-
-import { visibleClass } from "shared/css";
+import { visibleClass } from "../shared/css";
 
 export default function BusyIndicator() {
     const appState = getAppState();

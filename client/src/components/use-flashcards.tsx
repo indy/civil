@@ -1,10 +1,9 @@
-import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import { FlashCard } from "types";
+import { FlashCard } from "../types";
 
-import FlashCardIndicator from "components/flashcard-indicator";
-import ViewFlashCard from "components/view-flashcard";
+import FlashCardIndicator from "./flashcard-indicator";
+import ViewFlashCard from "./view-flashcard";
 
 enum FlashCardUIState {
     Minimised = 1,

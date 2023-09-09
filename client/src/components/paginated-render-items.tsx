@@ -1,8 +1,6 @@
-import { h } from "preact";
+import { SlimDeck } from "../types";
 
-import { SlimDeck } from "types";
-
-import ListingLink from "components/listing-link";
+import ListingLink from "./listing-link";
 
 export function renderPaginatedSlimDeck(deck: SlimDeck, i: number) {
     return (

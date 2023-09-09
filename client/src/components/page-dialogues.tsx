@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { route } from "preact-router";
 import { useEffect, useState } from "preact/hooks";
 
@@ -15,33 +14,33 @@ import {
     Role,
     NoteKind,
     WaitingFor,
-} from "types";
+} from "../types";
 
-import { AppStateChange, getAppState } from "app-state";
+import { AppStateChange, getAppState } from "../app-state";
 
-import { buildUrl } from "shared/civil";
-import { fontForRole } from "shared/font";
-import Net from "shared/net";
+import { buildUrl } from "../shared/civil";
+import { fontForRole } from "../shared/font";
+import Net from "../shared/net";
 
-import buildMarkup from "components/build-markup";
-import CivilButton from "components/civil-button";
-import CivilInput from "components/civil-input";
-import CivilTabButton from "components/civil-tab-button";
-import CivilTextArea from "components/civil-text-area";
-import DeleteDeckConfirmation from "components/delete-deck-confirmation";
-import InsigniaSelector from "components/insignia-selector";
-import { HeadedSegment } from "components/headed-segment";
-import { renderPaginatedSlimDeck } from "components/paginated-render-items";
-import Pagination from "components/pagination";
-import SegmentArrivals from "components/segment-arrivals";
-import SegmentDeckRefs from "components/segment-deck-refs";
-import SegmentGraph from "components/segment-graph";
-import SegmentNotes from "components/segment-notes";
-import SegmentSearchResults from "components/segment-search-results";
-import TopBarMenu from "components/top-bar-menu";
-import TopMatter from "components/top-matter";
-import useDeckManager from "components/use-deck-manager";
-import ViewRole from "components/view-role";
+import buildMarkup from "./build-markup";
+import CivilButton from "./civil-button";
+import CivilInput from "./civil-input";
+import CivilTabButton from "./civil-tab-button";
+import CivilTextArea from "./civil-text-area";
+import DeleteDeckConfirmation from "./delete-deck-confirmation";
+import InsigniaSelector from "./insignia-selector";
+import { HeadedSegment } from "./headed-segment";
+import { renderPaginatedSlimDeck } from "./paginated-render-items";
+import Pagination from "./pagination";
+import SegmentArrivals from "./segment-arrivals";
+import SegmentDeckRefs from "./segment-deck-refs";
+import SegmentGraph from "./segment-graph";
+import SegmentNotes from "./segment-notes";
+import SegmentSearchResults from "./segment-search-results";
+import TopBarMenu from "./top-bar-menu";
+import TopMatter from "./top-matter";
+import useDeckManager from "./use-deck-manager";
+import ViewRole from "./view-role";
 
 import {
     CivContainer,
@@ -49,7 +48,7 @@ import {
     CivLeft,
     CivLeftLabel,
     CivMain,
-} from "components/civil-layout";
+} from "./civil-layout";
 
 type ProtoDialogue = {
     title: string;

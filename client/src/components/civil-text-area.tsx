@@ -1,12 +1,11 @@
-import { h } from "preact";
 import { Ref, useState } from "preact/hooks";
 
-import { UserUploadedImage } from "types";
+import { UserUploadedImage } from "../types";
 
-import { AppStateChange } from "app-state";
+import { AppStateChange } from "../app-state";
 
-import uploadImages from "components/image-upload";
-import useDragDrop from "components/use-drag-drop";
+import uploadImages from "./image-upload";
+import useDragDrop from "./use-drag-drop";
 
 type Props = {
     id?: string;

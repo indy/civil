@@ -1,33 +1,32 @@
-import { h } from "preact";
 import { Router, route, RouterOnChangeArgs } from "preact-router";
 import { useEffect } from "preact/hooks";
 
-import { State, FullGraphStruct, UserWithUiConfig, UberSetup, UiConfig } from "types";
+import { State, FullGraphStruct, UserWithUiConfig, UberSetup, UiConfig } from "./types";
 
-import { AppStateChange, AppStateProvider, getAppState } from "app-state";
+import { AppStateChange, AppStateProvider, getAppState } from "./app-state";
 
-import Net from "shared/net";
+import Net from "./shared/net";
 
-import Previewer from "components/previewer";
-import Bookmarks from "components/bookmarks";
-import CommandBar from "components/command-bar";
-import { DeluxeToolbar } from "components/deluxe-toolbar";
+import Previewer from "./components/previewer";
+import Bookmarks from "./components/bookmarks";
+import CommandBar from "./components/command-bar";
+import { DeluxeToolbar } from "./components/deluxe-toolbar";
 
-import AccountSettings from "components/page-account-settings";
-import BusyIndicator from "components/busy-indicator";
-import FrontPage from "components/page-front-page";
-import Login from "components/page-login";
-import Memorise from "components/page-memorise";
-import Insignia from "components/page-insignias";
-import Search from "components/page-search";
-import Stats from "components/page-stats";
-import { Article, Articles } from "components/page-articles";
-import { Dialogue, DialogueChat, Dialogues } from "components/page-dialogues";
-import { Ideas, Idea } from "components/page-ideas";
-import { Person, People } from "components/page-people";
-import { Quote, Quotes } from "components/page-quotes";
-import { Timeline, Timelines } from "components/page-timelines";
-import { CivEvent as Event, Events } from "components/page-events";
+import AccountSettings from "./components/page-account-settings";
+import BusyIndicator from "./components/busy-indicator";
+import FrontPage from "./components/page-front-page";
+import Login from "./components/page-login";
+import Memorise from "./components/page-memorise";
+import Insignia from "./components/page-insignias";
+import Search from "./components/page-search";
+import Stats from "./components/page-stats";
+import { Article, Articles } from "./components/page-articles";
+import { Dialogue, DialogueChat, Dialogues } from "./components/page-dialogues";
+import { Ideas, Idea } from "./components/page-ideas";
+import { Person, People } from "./components/page-people";
+import { Quote, Quotes } from "./components/page-quotes";
+import { Timeline, Timelines } from "./components/page-timelines";
+import { CivEvent as Event, Events } from "./components/page-events";
 
 export const App = ({ state }: { state: State }) => {
     return (

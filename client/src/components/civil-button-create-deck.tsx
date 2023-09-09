@@ -1,13 +1,12 @@
-import { h } from "preact";
 import { route } from "preact-router";
 import { useState } from "preact/hooks";
 
-import { DeckKind } from "types";
+import { DeckKind } from "../types";
 
-import { createDeck, deckKindToSingularString } from "shared/deck";
+import { createDeck, deckKindToSingularString } from "../shared/deck";
 
-import CivilButton from "components/civil-button";
-import CivilInput from "components/civil-input";
+import CivilButton from "./civil-button";
+import CivilInput from "./civil-input";
 
 export default function CivilButtonCreateDeck({
     deckKind,

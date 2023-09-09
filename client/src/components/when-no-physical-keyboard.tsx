@@ -1,6 +1,6 @@
-import { ComponentChildren, h } from "preact";
+import { ComponentChildren } from "preact";
 
-import { getAppState } from "app-state";
+import { getAppState } from "../app-state";
 
 export default function WhenNoPhysicalKeyboard({
     children,

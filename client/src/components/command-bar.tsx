@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { route } from "preact-router";
 import { Ref, useEffect, useRef } from "preact/hooks";
 
@@ -13,9 +12,21 @@ import {
     SlimDeck,
     State,
     SearchResults,
-} from "types";
+} from "../types";
 
-import { sanitize } from "shared/search";
+import { AppStateChange, getAppState } from "../app-state";
+
+import { sanitize } from "../shared/search";
+import { addBookmark, addMultipleBookmarks } from "../shared/bookmarks";
+import { isCivilModeAllowed } from "../shared/civil";
+import { indexToShortcut, isCommand } from "../shared/command";
+import { visibleClass } from "../shared/css";
+import { createDeck, deckKindToResourceString } from "../shared/deck";
+import { indexFromCode } from "../shared/keys";
+import Net from "../shared/net";
+
+import DeckLink from "./deck-link";
+
 
 type Command = {
     command: string;
@@ -32,17 +43,6 @@ type Spacer = {
 
 type BarEntry = Command | Spacer;
 
-import { AppStateChange, getAppState } from "app-state";
-
-import { addBookmark, addMultipleBookmarks } from "shared/bookmarks";
-import { isCivilModeAllowed } from "shared/civil";
-import { indexToShortcut, isCommand } from "shared/command";
-import { visibleClass } from "shared/css";
-import { createDeck, deckKindToResourceString } from "shared/deck";
-import { indexFromCode } from "shared/keys";
-import Net from "shared/net";
-
-import DeckLink from "components/deck-link";
 
 // array because ordering is important when printing the commands
 //

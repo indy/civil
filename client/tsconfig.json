@@ -1,12 +1,12 @@
 {
     "compilerOptions": {
-        "target": "es2021",
-        "module": "commonjs",
-        "jsx": "react",
-        "jsxFactory": "h",
+        "target": "ES2020",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "jsx": "react-jsx",
+        "jsxImportSource": "preact",
+        "noEmit": true,
         "strict": true,
-        "baseUrl": "./src",
-        "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,

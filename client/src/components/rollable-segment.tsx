@@ -1,15 +1,15 @@
-import { ComponentChildren, h } from "preact";
+import { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 
-import { Font, RenderingDeckPart } from "types";
+import { Font, RenderingDeckPart } from "../types";
 
-import { fontClass } from "shared/font";
+import { fontClass } from "../shared/font";
 
-import { CivContainer, CivLeft, CivMain } from "components/civil-layout";
+import { CivContainer, CivLeft, CivMain } from "./civil-layout";
 import {
     svgChevronDoubleDown,
     svgChevronDoubleRight,
-} from "components/svg-icons";
+} from "./svg-icons";
 
 // (as opposed to being a part of the ui, e.g. on the front page)
 //

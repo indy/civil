@@ -1,11 +1,10 @@
-import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { Key, PointKind, ProtoPoint } from "types";
+import { Key, PointKind, ProtoPoint } from "../types";
 
-import { deltaInYears, parseDateStringAsTriple } from "shared/time";
+import { deltaInYears, parseDateStringAsTriple } from "../shared/time";
 
-import PointForm from "components/point-form";
+import PointForm from "./point-form";
 
 enum LifespanStage {
     Birth = 0,

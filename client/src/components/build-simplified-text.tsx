@@ -1,4 +1,4 @@
-import { WasmInterface } from "types";
+import { WasmInterface } from "../types";
 
 type Element = {
     name: string;

@@ -1,13 +1,13 @@
-import { render, h } from "preact";
+import { render } from "preact";
 import "./index.css";
 
-import { UiConfig, ColourScheme, UserWithUiConfig, UberSetup } from "types";
+import { UiConfig, ColourScheme, UserWithUiConfig, UberSetup } from "./types";
 
-import { basicUiConfig } from "shared/ui-config";
-import { getCssString, getCssBoolean } from "shared/css";
-import Net from "shared/net";
-import { App } from "app";
-import { AppStateChange, initialState } from "app-state";
+import { basicUiConfig } from "./shared/ui-config";
+import { getCssString, getCssBoolean } from "./shared/css";
+import Net from "./shared/net";
+import { App } from "./app";
+import { AppStateChange, initialState } from "./app-state";
 
 wasm_bindgen("/civil_wasm_bg.wasm")
     .then(() => {

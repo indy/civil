@@ -1,4 +1,4 @@
-import { createRef, h } from "preact";
+import { createRef } from "preact";
 import { route } from "preact-router";
 import { useEffect, useState } from "preact/hooks";
 
@@ -10,18 +10,18 @@ import {
     OldGraphState,
     Key,
     RefKind,
-} from "types";
+} from "../types";
 
-import { getAppState } from "app-state";
+import { getAppState } from "../app-state";
 
-import { deckKindToResourceString } from "shared/deck";
+import { deckKindToResourceString } from "../shared/deck";
 
-import { CivContainer, CivLeft, CivMain } from "components/civil-layout";
-import { graphPhysics } from "components/graph-physics";
-import ModalKeyboardHelp from "components/modal-keyboard-help";
-import { svgTickedCheckBox, svgUntickedCheckBox } from "components/svg-icons";
-import useLocalReducer from "components/use-local-reducer";
-import useModalKeyboard from "components/use-modal-keyboard";
+import { CivContainer, CivLeft, CivMain } from "./civil-layout";
+import { graphPhysics } from "./graph-physics";
+import ModalKeyboardHelp from "./modal-keyboard-help";
+import { svgTickedCheckBox, svgUntickedCheckBox } from "./svg-icons";
+import useLocalReducer from "./use-local-reducer";
+import useModalKeyboard from "./use-modal-keyboard";
 
 let gUpdateGraphCallback: GraphCallback | undefined = undefined;
 

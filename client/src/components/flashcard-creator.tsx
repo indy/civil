@@ -1,13 +1,12 @@
-import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import { CivilMode, FlashCard, Key, Note } from "types";
+import { CivilMode, FlashCard, Key, Note } from "../types";
 
-import { AppStateChange, getAppState } from "app-state";
-import Net from "shared/net";
+import { AppStateChange, getAppState } from "../app-state";
+import Net from "../shared/net";
 
-import CivilButton from "components/civil-button";
-import CivilTextArea from "components/civil-text-area";
+import CivilButton from "./civil-button";
+import CivilTextArea from "./civil-text-area";
 
 type FlashCardCreatorProps = {
     note: Note;

@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import {
@@ -15,22 +14,22 @@ import {
     Point,
     ProtoPoint,
     Reference,
-} from "types";
+} from "../types";
 
-import { AppStateChange, getAppState } from "app-state";
+import { AppStateChange, getAppState } from "../app-state";
 
-import { bitset } from "shared/bitops";
-import { buildUrl } from "shared/civil";
-import { sortByDeckKindThenName } from "shared/deck";
-import Net from "shared/net";
+import { bitset } from "../shared/bitops";
+import { buildUrl } from "../shared/civil";
+import { sortByDeckKindThenName } from "../shared/deck";
+import Net from "../shared/net";
 import {
     createMultiplePassages,
     noteSeqsForPoints,
     passageForNoteKind,
-} from "shared/passage";
+} from "../shared/passage";
 
-import PointForm from "components/point-form";
-import ViewPassageChunkyBoy from "components/view-passage-chunky-boy";
+import PointForm from "./point-form";
+import ViewPassageChunkyBoy from "./view-passage-chunky-boy";
 
 type DeckManagerState<T extends FatDeck> = {
     deck: T | undefined;

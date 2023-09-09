@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { Ref as PreactRef, useEffect, useRef } from "preact/hooks";
 
 import {
@@ -12,26 +11,26 @@ import {
     Reference,
     RefsModified,
     Role,
-} from "types";
+} from "../types";
 
-import { AppStateChange, getAppState } from "app-state";
-import { addToolbarSelectableClasses } from "shared/css";
+import { AppStateChange, getAppState } from "../app-state";
+import { addToolbarSelectableClasses } from "../shared/css";
 
-import buildMarkup from "components/build-markup";
-import CivilButton from "components/civil-button";
-import { CivContainer, CivLeft, CivMain } from "components/civil-layout";
-import CivilSelect from "components/civil-select";
-import CivilTextArea from "components/civil-text-area";
-import DeleteConfirmation from "components/delete-confirmation";
-import FlashCardCreator from "components/flashcard-creator";
-import FontSelector from "components/font-selector";
-import ImageSelector from "components/image-selector";
-import NoteForm from "components/note-form";
-import useLocalReducer from "components/use-local-reducer";
-import useMouseHovering from "components/use-mouse-hovering";
-import ViewReference from "components/view-reference";
-import ViewRole from "components/view-role";
-import useFlashcards from "components/use-flashcards";
+import buildMarkup from "./build-markup";
+import CivilButton from "./civil-button";
+import { CivContainer, CivLeft, CivMain } from "./civil-layout";
+import CivilSelect from "./civil-select";
+import CivilTextArea from "./civil-text-area";
+import DeleteConfirmation from "./delete-confirmation";
+import FlashCardCreator from "./flashcard-creator";
+import FontSelector from "./font-selector";
+import ImageSelector from "./image-selector";
+import NoteForm from "./note-form";
+import useLocalReducer from "./use-local-reducer";
+import useMouseHovering from "./use-mouse-hovering";
+import ViewReference from "./view-reference";
+import ViewRole from "./view-role";
+import useFlashcards from "./use-flashcards";
 
 enum ActionType {
     AddDeckReferencesUiShow,

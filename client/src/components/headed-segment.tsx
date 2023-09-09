@@ -1,6 +1,6 @@
-import { ComponentChildren, h } from "preact";
+import { ComponentChildren } from "preact";
 
-import { CivContainer, CivLeft, CivMainUi } from "components/civil-layout";
+import { CivContainer, CivLeft, CivMainUi } from "./civil-layout";
 
 type HeadedSegmentProps = {
     heading: string;

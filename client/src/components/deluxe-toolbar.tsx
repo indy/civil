@@ -1,13 +1,13 @@
-import { ComponentChildren, h } from "preact";
+import { ComponentChildren } from "preact";
 import { Link } from "preact-router";
 import { useState } from "preact/hooks";
 
-import { CivilMode } from "types";
+import { CivilMode } from "../types";
 
-import { AppStateChange, getAppState } from "app-state";
+import { AppStateChange, getAppState } from "../app-state";
 
-import { isCivilModeAllowed } from "shared/civil";
-import { visibleClass } from "shared/css";
+import { isCivilModeAllowed } from "../shared/civil";
+import { visibleClass } from "../shared/css";
 
 import {
     svgAddAbove,
@@ -19,7 +19,7 @@ import {
     svgHome,
     svgLinkAlt,
     svgSearch,
-} from "components/svg-icons";
+} from "./svg-icons";
 
 export function DeluxeToolbar({}) {
     const appState = getAppState();

@@ -1,14 +1,13 @@
-import { h } from "preact";
 import { useState } from "preact/hooks";
 
-import { CivilMode, Note, Reference, RefKind, RenderingDeckPart } from "types";
+import { CivilMode, Note, Reference, RefKind, RenderingDeckPart } from "../types";
 
-import { getAppState } from "app-state";
+import { getAppState } from "../app-state";
 
-import { deckKindToResourceString } from "shared/deck";
-import { fontClass } from "shared/font";
+import { deckKindToResourceString } from "../shared/deck";
+import { fontClass } from "../shared/font";
 
-import DeckLink from "components/deck-link";
+import DeckLink from "./deck-link";
 
 type Props = {
     reference: Reference;

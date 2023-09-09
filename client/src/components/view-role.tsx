@@ -1,10 +1,8 @@
-import { h } from "preact";
+import { RenderingDeckPart, Role } from "../types";
 
-import { RenderingDeckPart, Role } from "types";
+import { fontClass, fontForRole } from "../shared/font";
 
-import { fontClass, fontForRole } from "shared/font";
-
-import { getAppState } from "app-state";
+import { getAppState } from "../app-state";
 
 type Props = {
     role: Role;

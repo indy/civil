@@ -1,5 +1,3 @@
-import { h } from "preact";
-
 import {
     DeckKind,
     FatDeck,
@@ -9,12 +7,12 @@ import {
     PassageHowToShow,
     Reference,
     RenderingDeckPart,
-} from "types";
+} from "../types";
 
-import { fontClass } from "shared/font";
+import { fontClass } from "../shared/font";
 
-import RollableSegment from "components/rollable-segment";
-import ViewPassageChunkyBoy from "components/view-passage-chunky-boy";
+import RollableSegment from "./rollable-segment";
+import ViewPassageChunkyBoy from "./view-passage-chunky-boy";
 
 type Props<T extends FatDeck> = {
     deck: T;
