@@ -1,4 +1,4 @@
-import { useState } from "preact/hooks";
+import { useState, useRef } from "preact/hooks";
 
 import {
     CivilMode,
@@ -15,6 +15,7 @@ import { AppStateChange, getAppState } from "../app-state";
 
 import { plural } from "../shared/english";
 import { fontClass } from "../shared/font";
+import { addToolbarSelectableClasses } from "../shared/css";
 
 import buildMarkup from "./build-markup";
 import { CivContainer, CivLeft, CivMain } from "./civil-layout";
@@ -24,6 +25,7 @@ import Expandable from "./expandable";
 import ListingLink from "./listing-link";
 import ViewReference from "./view-reference";
 import useFlashcards from "./use-flashcards";
+import useMouseHovering from "./use-mouse-hovering";
 
 export default function ViewSearchResults({
     searchResults,
@@ -32,10 +34,6 @@ export default function ViewSearchResults({
     searchResults: SearchResults;
     timing: number;
 }) {
-    const noteLevel = searchResults.noteLevel.map((searchDeck) => (
-        <ViewSearchDeck searchDeck={searchDeck} />
-    ));
-
     const deckLevel = (
         <CivContainer>
             <CivMain>
@@ -47,6 +45,10 @@ export default function ViewSearchResults({
             </CivMain>
         </CivContainer>
     );
+
+    const noteLevel = searchResults.noteLevel.map((searchDeck) => (
+        <ViewSearchDeck searchDeck={searchDeck} />
+    ));
 
     let numResults =
         searchResults.noteLevel.length + searchResults.deckLevel.length;
@@ -104,6 +106,9 @@ function SearchNote({
     const [flashcardIndicators, maximisedFlashcards] = useFlashcards(note.flashcards);
     let [addDeckReferencesUI, setAddDeckReferencesUI] = useState(false);
 
+    const hoveringRef = useRef(null);
+    const mouseHovering = useMouseHovering(hoveringRef);
+
     function buildRefs(refs: Array<Reference>) {
         return refs.map((ref) => (
             <ViewReference reference={ref} extraClasses="left-margin-entry" />
@@ -143,15 +148,20 @@ function SearchNote({
         );
     }
 
+    let noteClasses = "c-search-note note";
+    if (mouseHovering && appState.mode.value === CivilMode.Refs) {
+        noteClasses += addToolbarSelectableClasses(appState.mode.value);
+    }
+
     return (
-        <CivContainer extraClasses="c-search-note note">
+        <CivContainer extraClasses={noteClasses}>
             <CivLeft>
                 {flashcardIndicators}
                 {buildRefs(note.refs)}
             </CivLeft>
             {maximisedFlashcards}
             <CivMain>
-                <div onClick={onNoteClicked}>
+                <div onClick={onNoteClicked} ref={hoveringRef}>
                     {buildMarkup(
                         note.content,
                         note.font,
