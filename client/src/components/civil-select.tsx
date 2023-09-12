@@ -31,6 +31,7 @@ import useLocalReducer from "./use-local-reducer";
 enum ActionType {
     CandidatesSet,
     CtrlKeyDown,
+    CtrlKeyUp,
     EscKeyDown,
     InputGiven,
     ReferenceChangeAnnotation,
@@ -81,6 +82,7 @@ type LocalState = {
     showKeyboardShortcuts: boolean;
     candidates: Array<SlimDeck>;
     canSave: boolean;
+    nakedCtrlPress: boolean;
 };
 
 function candidateToAddedRef(candidate: SlimDeck): Reference {
@@ -114,12 +116,24 @@ function reducer(state: LocalState, action: Action): LocalState {
                 candidates: [],
             };
         case ActionType.CtrlKeyDown: {
-            const newState = { ...state };
+            const newState = {
+                ...state,
+                nakedCtrlPress: true
+            };
+            return newState;
+        }
+        case ActionType.CtrlKeyUp: {
+            const newState = {
+                ...state,
+            };
 
-            if (!state.showKeyboardShortcuts /*&& state.candidates.length */) {
-                newState.showKeyboardShortcuts = true;
-            } else {
-                newState.showKeyboardShortcuts = false;
+            if (state.nakedCtrlPress) {
+                newState.nakedCtrlPress = false;
+                if (!state.showKeyboardShortcuts /*&& state.candidates.length */) {
+                    newState.showKeyboardShortcuts = true;
+                } else {
+                    newState.showKeyboardShortcuts = false;
+                }
             }
 
             return newState;
@@ -151,13 +165,17 @@ function reducer(state: LocalState, action: Action): LocalState {
                             data: deck,
                         });
 
+                        newState.nakedCtrlPress = false;
                         newState.showKeyboardShortcuts = false;
 
                         return newState;
                     }
                 }
             }
-            return state;
+            return {
+                ...state,
+                nakedCtrlPress: false
+            };
         }
         case ActionType.ReferenceRemove: {
             let newState = { ...state };
@@ -375,6 +393,7 @@ export default function CivilSelect({
         showKeyboardShortcuts: false,
         candidates: [],
         canSave: false,
+        nakedCtrlPress: false,
     };
     const [local, localDispatch] = useLocalReducer<LocalState, ActionType>(
         reducer,
@@ -385,21 +404,29 @@ export default function CivilSelect({
         if (e.key === "Escape") {
             localDispatch(ActionType.EscKeyDown);
         }
-        if (e.ctrlKey) {
+        if (e.key === "Control") {
             localDispatch(ActionType.CtrlKeyDown, e);
+        } else {
+            localDispatch(ActionType.ShortcutCheck, {
+                key: e.key,
+                code: e.code,
+                appState,
+            });
         }
+    };
 
-        localDispatch(ActionType.ShortcutCheck, {
-            key: e.key,
-            code: e.code,
-            appState,
-        });
+    const onKeyUp = (e: KeyboardEvent) => {
+        if (e.key === "Control") {
+            localDispatch(ActionType.CtrlKeyUp, e);
+        }
     };
 
     useEffect(() => {
         document.addEventListener("keydown", onKeyDown);
+        document.addEventListener("keyup", onKeyUp);
         return () => {
             document.removeEventListener("keydown", onKeyDown);
+            document.removeEventListener("keyup", onKeyUp);
         };
     }, []);
 
