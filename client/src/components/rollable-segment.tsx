@@ -6,10 +6,7 @@ import { Font, RenderingDeckPart } from "../types";
 import { fontClass } from "../shared/font";
 
 import { CivContainer, CivLeft, CivMain } from "./civil-layout";
-import {
-    svgChevronDoubleDown,
-    svgChevronDoubleRight,
-} from "./svg-icons";
+import { svgChevronDoubleDown, svgChevronDoubleRight } from "./svg-icons";
 
 // (as opposed to being a part of the ui, e.g. on the front page)
 //

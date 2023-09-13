@@ -1,6 +1,12 @@
 import { useState } from "preact/hooks";
 
-import { CivilMode, Note, Reference, RefKind, RenderingDeckPart } from "../types";
+import {
+    CivilMode,
+    Note,
+    Reference,
+    RefKind,
+    RenderingDeckPart,
+} from "../types";
 
 import { getAppState } from "../app-state";
 

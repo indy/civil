@@ -182,7 +182,9 @@ export default function ViewFlashCard({
                 </p>
                 <div>
                     <CivilButton onClick={saveClicked}>Save Edits</CivilButton>
-                    <CivilButton onClick={cancelClicked}>Cancel Editing</CivilButton>
+                    <CivilButton onClick={cancelClicked}>
+                        Cancel Editing
+                    </CivilButton>
                 </div>
             </CivMain>
         );

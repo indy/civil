@@ -5,7 +5,10 @@ import { DeckKind } from "../types";
 
 import { getAppState } from "../app-state";
 
-import { deckKindToHeadingString, deckKindToResourceString } from "../shared/deck";
+import {
+    deckKindToHeadingString,
+    deckKindToResourceString,
+} from "../shared/deck";
 import { capitalise } from "../shared/english";
 
 import CivilButtonCreateDeck from "./civil-button-create-deck";

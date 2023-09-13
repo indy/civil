@@ -12,7 +12,8 @@ export default function Previewer() {
     let id: Key = appState.visiblePreviewDeck.value.id;
     let content: any = [];
 
-    let previewDeck: PreviewDeck | undefined = appState.previewCache.value.get(id);
+    let previewDeck: PreviewDeck | undefined =
+        appState.previewCache.value.get(id);
     if (previewDeck) {
         let hasContent = previewDeck.notes.some((n) => n.content.length > 0);
 

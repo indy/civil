@@ -77,13 +77,13 @@ type ActionDataDecksCommit = {
 type Action = {
     type: ActionType;
     data?:
-    | Note
-    | FlashCard
-    | number
-    | boolean
-    | ActionDataImagePasted
-    | ActionDataDecksCommit
-    | any;
+        | Note
+        | FlashCard
+        | number
+        | boolean
+        | ActionDataImagePasted
+        | ActionDataDecksCommit
+        | any;
 };
 
 function reducer(state: LocalState, action: Action): LocalState {
@@ -139,7 +139,7 @@ function reducer(state: LocalState, action: Action): LocalState {
         case ActionType.NoteSetContent: {
             const newNote = {
                 ...state.note,
-                content: action.data
+                content: action.data,
             };
             return {
                 ...state,
@@ -515,23 +515,34 @@ const ViewNote = <T extends FatDeck>({
         localDispatch(ActionType.FlashCardCreatorShow, false);
     }
 
-    const [flashcardIndicators, maximisedFlashcards] = useFlashcards(note.flashcards);
+    const [flashcardIndicators, maximisedFlashcards] = useFlashcards(
+        note.flashcards
+    );
 
     return (
         <CivContainer extraClasses={noteClasses}>
             {appState.mode.value === CivilMode.AddAbove &&
                 local.addNoteAboveUI &&
                 buildAddNoteAboveUI()}
-            {(!local.isEditingMarkup) && (note.refs.length > 0 || note.flashcards.length > 0 || note.chatMessage) &&
-                <CivLeft>
-                    {note.chatMessage && <ViewRole role={note.chatMessage!.role} />}
-                    {flashcardIndicators}
-                    {note.refs.length > 0 && note.flashcards.length > 0 && (
-                        <div class="spacer"></div>
-                    )}
-                    {buildNoteReferences(note.refs, onCopyRefBelow, nextNote)}
-                </CivLeft>
-            }
+            {!local.isEditingMarkup &&
+                (note.refs.length > 0 ||
+                    note.flashcards.length > 0 ||
+                    note.chatMessage) && (
+                    <CivLeft>
+                        {note.chatMessage && (
+                            <ViewRole role={note.chatMessage!.role} />
+                        )}
+                        {flashcardIndicators}
+                        {note.refs.length > 0 && note.flashcards.length > 0 && (
+                            <div class="spacer"></div>
+                        )}
+                        {buildNoteReferences(
+                            note.refs,
+                            onCopyRefBelow,
+                            nextNote
+                        )}
+                    </CivLeft>
+                )}
             {local.isEditingMarkup && buildEditableContent()}
             {maximisedFlashcards}
             {!local.isEditingMarkup && (
@@ -565,7 +576,7 @@ const ViewNote = <T extends FatDeck>({
             {local.isEditingMarkup && buildMainButtons()}
         </CivContainer>
     );
-}
+};
 
 export default ViewNote;
 

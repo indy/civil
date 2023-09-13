@@ -102,7 +102,10 @@ export default function PointForm({
         return s;
     }
 
-    function buildReadableDateFromExact(s: LocalState, checkOther: boolean): LocalState {
+    function buildReadableDateFromExact(
+        s: LocalState,
+        checkOther: boolean
+    ): LocalState {
         const parsedDate = parseDateStringAsTriple(s.exactDate);
         if (parsedDate) {
             s.dateTextual = asHumanReadableDate(
@@ -129,7 +132,10 @@ export default function PointForm({
         return s;
     }
 
-    function buildReadableDateFromRange(s: LocalState, checkOther: boolean): LocalState {
+    function buildReadableDateFromRange(
+        s: LocalState,
+        checkOther: boolean
+    ): LocalState {
         // lower and upper
         const parsedLowerDate = parseDateStringAsTriple(s.lowerDate);
         const parsedUpperDate = parseDateStringAsTriple(s.upperDate);

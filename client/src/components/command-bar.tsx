@@ -27,7 +27,6 @@ import Net from "../shared/net";
 
 import DeckLink from "./deck-link";
 
-
 type Command = {
     command: string;
     description: string;
@@ -42,7 +41,6 @@ type Spacer = {
 };
 
 type BarEntry = Command | Spacer;
-
 
 // array because ordering is important when printing the commands
 //

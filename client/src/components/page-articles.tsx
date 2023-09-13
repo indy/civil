@@ -9,6 +9,7 @@ import {
     DM,
     Note,
     NoteKind,
+    SlimDeck,
 } from "../types";
 
 import { buildUrl } from "../shared/civil";
@@ -33,20 +34,12 @@ import SegmentDeckRefs from "./segment-deck-refs";
 import SegmentGraph from "./segment-graph";
 import SegmentNotes from "./segment-notes";
 import SegmentSearchResults from "./segment-search-results";
-import {
-    StarRatingPartial,
-    StarRatingWithinListing,
-} from "./star-rating";
+import { StarRatingPartial, StarRatingWithinListing } from "./star-rating";
 import TopBarMenu from "./top-bar-menu";
 import TopMatter from "./top-matter";
 import useDeckManager from "./use-deck-manager";
 
-import {
-    CivContainer,
-    CivForm,
-    CivLeftLabel,
-    CivMain,
-} from "./civil-layout";
+import { CivContainer, CivForm, CivLeftLabel, CivMain } from "./civil-layout";
 
 function Articles({ path }: { path?: string }) {
     return (
@@ -255,8 +248,8 @@ function Article({ path, id }: { path?: string; id?: string }) {
                     onUpdateDeck={deckManager.update}
                 />
                 <SegmentArrivals deck={deck} />
-                <SegmentSearchResults id={id} font={deck.font} />
-                <SegmentGraph depth={2} deck={deck} />
+                <SegmentSearchResults slimdeck={deck as SlimDeck} />
+                <SegmentGraph deck={deck} />
             </article>
         );
     } else {

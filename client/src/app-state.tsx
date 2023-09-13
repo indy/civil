@@ -47,14 +47,18 @@ import {
     StateChangeUiConfig,
     StateChangeUrl,
     StateChangeUser,
-    StateChangeWaitingFor, UberSetup,
+    StateChangeWaitingFor,
+    UberSetup,
     User,
     UserUploadedImage,
     VisiblePreview,
-    WaitingFor
+    WaitingFor,
 } from "./types";
 
-import { declareSeeds, generateColoursFromSeeds } from "./shared/colour-creator";
+import {
+    declareSeeds,
+    generateColoursFromSeeds,
+} from "./shared/colour-creator";
 import { passageForNoteKind } from "./shared/passage";
 import { basicUiConfig } from "./shared/ui-config";
 
@@ -134,12 +138,24 @@ broadcastChannel.onmessage = (event) => {
     // typing is set in tsconfig.json)
     //
     switch (fnName) {
-        case "noteRefsModified": AppStateChange.noteRefsModified(args); break;
-        case "setRecentImages": AppStateChange.setRecentImages(args); break;
-        case "deleteDeck": AppStateChange.deleteDeck(args); break;
-        case "setBookmarks": AppStateChange.setBookmarks(args); break;
-        case "setRecentlyUsedDecks": AppStateChange.setRecentlyUsedDecks(args); break;
-        case "setReviewCount": AppStateChange.setReviewCount(args); break;
+        case "noteRefsModified":
+            AppStateChange.noteRefsModified(args);
+            break;
+        case "setRecentImages":
+            AppStateChange.setRecentImages(args);
+            break;
+        case "deleteDeck":
+            AppStateChange.deleteDeck(args);
+            break;
+        case "setBookmarks":
+            AppStateChange.setBookmarks(args);
+            break;
+        case "setRecentlyUsedDecks":
+            AppStateChange.setRecentlyUsedDecks(args);
+            break;
+        case "setReviewCount":
+            AppStateChange.setReviewCount(args);
+            break;
         default:
             console.error(`received unknown broadcast function: ${fnName}`);
     }
@@ -437,9 +453,9 @@ export const AppStateChange = {
             } else {
                 console.log(
                     "calling hidePreviewDeck with a deckId that isn't the current preview deck: " +
-                    deckId +
-                    " " +
-                    state.visiblePreviewDeck.value.id
+                        deckId +
+                        " " +
+                        state.visiblePreviewDeck.value.id
                 );
             }
         }
@@ -501,10 +517,14 @@ export const AppStateChange = {
         document.title = `${immutableState.appName}: ${title}`;
     }),
 
-    routeChanged: build(Scope.Local, "routeChanged", (asca?: AppStateChangeArgs) => {
-        let args = asca! as StateChangeUrl;
-        state.url.value = args.url;
-    }),
+    routeChanged: build(
+        Scope.Local,
+        "routeChanged",
+        (asca?: AppStateChangeArgs) => {
+            let args = asca! as StateChangeUrl;
+            state.url.value = args.url;
+        }
+    ),
 
     uberSetup: build(Scope.Local, "uberSetup", (asca?: AppStateChangeArgs) => {
         let args = asca! as StateChangeUber;
@@ -770,7 +790,9 @@ function opposingKind(kind: RefKind): RefKind {
     }
 }
 
-function buildFullGraph(graphConnections: Array<number>): { [id: Key]: Set<GraphEdge> } {
+function buildFullGraph(graphConnections: Array<number>): {
+    [id: Key]: Set<GraphEdge>;
+} {
     let res: { [id: Key]: Set<GraphEdge> } = {};
 
     for (let i = 0; i < graphConnections.length; i += 4) {

@@ -178,11 +178,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
         )
         .service(scope("/ubersetup").route("", get().to(ubersetup::setup)))
         .service(scope("/edges").route("/notes_decks", post().to(edges::create_from_note_to_decks)))
-        .service(
-            scope("/graph")
-                .route("", get().to(graph::get_full_graph_struct))
-                .route("/{id}", get().to(graph::get)),
-        )
+        .service(scope("/graph").route("/{id}", get().to(graph::get)))
         .service(
             scope("/upload")
                 .route("", post().to(uploader::create)) // upload images

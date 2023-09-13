@@ -9,6 +9,7 @@ import {
     Font,
     PassageType,
     Point,
+    SlimDeck,
 } from "../types";
 
 import { AppStateChange, getAppState, immutableState } from "../app-state";
@@ -173,9 +174,9 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                     showAddPointForm={appState.showAddPointForm.value}
                 />
 
-                <SegmentSearchResults id={id} font={deck.font} />
+                <SegmentSearchResults slimdeck={deck as SlimDeck} />
 
-                <SegmentGraph depth={2} deck={deck} />
+                <SegmentGraph deck={deck} />
             </article>
         );
     } else {

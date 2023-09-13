@@ -5,13 +5,7 @@ import { getAppState } from "../app-state";
 import Graph from "./graph";
 import RollableSegment from "./rollable-segment";
 
-export default function SegmentGraph({
-    depth,
-    deck,
-}: {
-    depth: number;
-    deck: FatDeck;
-}) {
+export default function SegmentGraph({ deck }: { deck: FatDeck }) {
     const appState = getAppState();
 
     if (appState.showConnectivityGraph.value && deck) {
@@ -24,7 +18,7 @@ export default function SegmentGraph({
                 font={deck.font}
                 initiallyRolledUp
             >
-                {okToShowGraph && <Graph id={deck.id} depth={depth} />}
+                {okToShowGraph && <Graph id={deck.id} />}
             </RollableSegment>
         );
     } else {

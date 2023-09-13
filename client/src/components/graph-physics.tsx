@@ -1,4 +1,4 @@
-import { OldEdge, GraphCallback, OldGraphNode, OldGraphState } from "../types";
+import { Arc, GraphCallback, GraphNode, GraphState } from "../types";
 
 const initialRadius: number = 10;
 const initialAngle: number = Math.PI * (3 - Math.sqrt(5));
@@ -6,7 +6,7 @@ const initialAngle: number = Math.PI * (3 - Math.sqrt(5));
 let gSimIdCounter: number = 0;
 
 export function graphPhysics(
-    graphState: OldGraphState,
+    graphState: GraphState,
     tickCallbackFn: GraphCallback,
     setSimIsRunningFn: (b: boolean) => void
 ) {
@@ -77,7 +77,7 @@ export function graphPhysics(
 
             clearPerTickSimStats(graphState);
 
-            let i: number, j: number, node: OldGraphNode;
+            let i: number, j: number, node: GraphNode;
             let nodes = graphState.nodes;
 
             let nodeKeys: Array<number> = [];
@@ -96,28 +96,24 @@ export function graphPhysics(
                     if (i === j) {
                         continue;
                     }
-                    let nodeA: OldGraphNode = nodes.get(nodeKeys[j])!;
-                    let nodeB: OldGraphNode = nodes.get(nodeKeys[i])!;
-                    forceManyBody(
-                        nodeA,
-                        nodeB,
-                        alpha
-                    );
+                    let nodeA: GraphNode = nodes.get(nodeKeys[j])!;
+                    let nodeB: GraphNode = nodes.get(nodeKeys[i])!;
+                    forceManyBody(nodeA, nodeB, alpha);
                 }
             }
 
             for (j = 0; j < n; j++) {
                 for (i = j + 1; i < n; i++) {
-                    let nodeA: OldGraphNode = nodes.get(nodeKeys[i])!;
-                    let nodeB: OldGraphNode = nodes.get(nodeKeys[j])!;
+                    let nodeA: GraphNode = nodes.get(nodeKeys[i])!;
+                    let nodeB: GraphNode = nodes.get(nodeKeys[j])!;
                     forceCollide(nodeA, nodeB);
                 }
             }
 
             for (j = 0; j < n; j++) {
                 for (i = j + 1; i < n; i++) {
-                    let nodeA: OldGraphNode = nodes.get(nodeKeys[i])!;
-                    let nodeB: OldGraphNode = nodes.get(nodeKeys[j])!;
+                    let nodeA: GraphNode = nodes.get(nodeKeys[i])!;
+                    let nodeB: GraphNode = nodes.get(nodeKeys[j])!;
                     forceCollideBox(nodeA, nodeB);
                 }
             }
@@ -177,18 +173,23 @@ export function graphPhysics(
     }
 }
 
-function forceLink(graphState: OldGraphState, strengths: Array<number>, bias: Array<number>, alpha: number) {
+function forceLink(
+    graphState: GraphState,
+    strengths: Array<number>,
+    bias: Array<number>,
+    alpha: number
+) {
     var i;
     let nodes = graphState.nodes;
-    let links = graphState.edges;
-    let m = links.length;
+    let arcs = graphState.arcArray;
+    let m = arcs.length;
 
     let distance = 30;
-    var link, source, target, x, y, l, b;
+    var arc, source, target, x, y, l, b;
     for (i = 0; i < m; ++i) {
-        link = links[i];
-        source = nodes.get(link[0])!;
-        target = nodes.get(link[1])!;
+        arc = arcs[i];
+        source = nodes.get(arc.fromId)!;
+        target = nodes.get(arc.toId)!;
         x = target.x + target.vx - source.x - source.vx || jiggle();
         y = target.y + target.vy - source.y - source.vy || jiggle();
         l = Math.sqrt(x * x + y * y);
@@ -202,7 +203,7 @@ function forceLink(graphState: OldGraphState, strengths: Array<number>, bias: Ar
     }
 }
 
-function gatherSimStats(graphState: OldGraphState) {
+function gatherSimStats(graphState: GraphState) {
     let nodes = graphState.nodes;
 
     let maxx = 0.0;
@@ -225,21 +226,21 @@ function gatherSimStats(graphState: OldGraphState) {
     }
 }
 
-function clearPerTickSimStats(graphState: OldGraphState) {
+function clearPerTickSimStats(graphState: GraphState) {
     if (graphState.simStats) {
         graphState.simStats.maxVelocities = [0.0, 0.0];
     }
 }
 
-function initializeGraph(graphState: OldGraphState): {
+function initializeGraph(graphState: GraphState): {
     bias: Array<number>;
     strengths: Array<number>;
 } {
     let nodes = graphState.nodes;
-    let links = graphState.edges;
+    let arcs = graphState.arcArray;
     let i: number;
-    let m: number = links.length;
-    let link: OldEdge;
+    let m: number = arcs.length;
+    let arc: Arc;
 
     nodes.forEach((node) => {
         if (node.fx != null) node.x = node.fx;
@@ -255,26 +256,26 @@ function initializeGraph(graphState: OldGraphState): {
         }
     });
 
-    let count: {[i: number]: number} = {};
+    let count: { [i: number]: number } = {};
     for (i = 0; i < m; ++i) {
-        link = links[i];
-        count[link[0]] = (count[link[0]] || 0) + 1;
-        count[link[1]] = (count[link[1]] || 0) + 1;
+        arc = arcs[i];
+        count[arc.fromId] = (count[arc.fromId] || 0) + 1;
+        count[arc.toId] = (count[arc.toId] || 0) + 1;
     }
 
     let bias = new Array(m);
     for (i = 0; i < m; ++i) {
-        link = links[i];
-        bias[i] = count[link[0]] / (count[link[0]] + count[link[1]]);
+        arc = arcs[i];
+        bias[i] = count[arc.fromId] / (count[arc.fromId] + count[arc.toId]);
     }
 
-    function defaultStrength(link: OldEdge) {
-        return 1 / Math.min(count[link[0]], count[link[1]]);
+    function defaultStrength(arc: Arc) {
+        return 1 / Math.min(count[arc.fromId], count[arc.toId]);
     }
 
     let strengths = new Array(m);
     for (i = 0; i < m; ++i) {
-        strengths[i] = defaultStrength(links[i]);
+        strengths[i] = defaultStrength(arcs[i]);
     }
 
     return { bias, strengths };
@@ -284,7 +285,7 @@ function jiggle(): number {
     return (Math.random() - 0.5) * 1e-6;
 }
 
-function forceManyBody(nodeA: OldGraphNode, nodeB: OldGraphNode, alpha: number) {
+function forceManyBody(nodeA: GraphNode, nodeB: GraphNode, alpha: number) {
     let distanceMin2 = 1;
     let separatingForce = -900;
 
@@ -309,7 +310,7 @@ function forceManyBody(nodeA: OldGraphNode, nodeB: OldGraphNode, alpha: number) 
     nodeA.vy += yDelta * w;
 }
 
-function forceCollideBox(nodeA: OldGraphNode, nodeB: OldGraphNode) {
+function forceCollideBox(nodeA: GraphNode, nodeB: GraphNode) {
     let xa = nodeA.x;
     let ya = nodeA.y;
 
@@ -355,7 +356,7 @@ function forceCollideBox(nodeA: OldGraphNode, nodeB: OldGraphNode) {
     }
 }
 
-function forceCollide(nodeA: OldGraphNode, nodeB: OldGraphNode) {
+function forceCollide(nodeA: GraphNode, nodeB: GraphNode) {
     let ri = 40;
     let ri2 = ri * ri;
 
@@ -386,14 +387,14 @@ function forceCollide(nodeA: OldGraphNode, nodeB: OldGraphNode) {
     }
 }
 
-function forceX(node: OldGraphNode, alpha: number) {
+function forceX(node: GraphNode, alpha: number) {
     let xStrength = 0.1;
     let xZ = 0.0; // the value of x to goto
 
     node.vx += (xZ - node.x) * xStrength * alpha;
 }
 
-function forceY(node: OldGraphNode, alpha: number) {
+function forceY(node: GraphNode, alpha: number) {
     let yStrength = 0.12;
     let yZ = 0.0; // the value of y to goto
 

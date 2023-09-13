@@ -14,6 +14,7 @@ import {
     PointKind,
     ProtoPoint,
     RenderingDeckPart,
+    SlimDeck,
     SlimEvent,
 } from "../types";
 
@@ -275,7 +276,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
 
                 <SegmentArrivals deck={deck} />
 
-                <SegmentSearchResults id={id} font={deck.font} />
+                <SegmentSearchResults slimdeck={deck as SlimDeck} />
                 {hasKnownLifespan && (
                     <SegmentPoints
                         person={deck}
@@ -283,7 +284,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
                         showAddPointForm={appState.showAddPointForm.value}
                     />
                 )}
-                <SegmentGraph depth={2} deck={deck} />
+                <SegmentGraph deck={deck} />
             </article>
         );
     } else {
@@ -572,11 +573,12 @@ function SegmentPoints({
     }
 
     function onAddDeathPoint(point: ProtoPoint) {
-        Net.post<ProtoPoint, DeckPerson>(`/api/people/${deckId}/points`, point).then(
-            (_person) => {
-                setShowDeathForm(false);
-            }
-        );
+        Net.post<ProtoPoint, DeckPerson>(
+            `/api/people/${deckId}/points`,
+            point
+        ).then((_person) => {
+            setShowDeathForm(false);
+        });
     }
 
     function deathForm() {

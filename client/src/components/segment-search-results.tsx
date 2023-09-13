@@ -1,7 +1,7 @@
 import { ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { CivilMode, Font, Key, SearchDeck, SearchResults } from "../types";
+import { SlimDeck, CivilMode, Key, SearchDeck, SearchResults } from "../types";
 
 import { getAppState } from "../app-state";
 
@@ -14,14 +14,10 @@ import CivilButton from "./civil-button";
 import RollableSegment from "./rollable-segment";
 import ViewSearchResults from "./view-search-results";
 
-// todo: fix the type for deckId, should be a Key
-//
 export default function SegmentSearchResults({
-    id,
-    font,
+    slimdeck,
 }: {
-    id?: string;
-    font: Font;
+    slimdeck: SlimDeck;
 }) {
     const appState = getAppState();
 
@@ -31,7 +27,7 @@ export default function SegmentSearchResults({
     const [timing, setTiming] = useState(0);
 
     useEffect(() => {
-        console.log(`/api/decks/${id}/additional_search`);
+        const id = slimdeck.id;
 
         // This  additional search query is slow, so it has to be a separate
         // async call rather than part of the idea's GET response.
@@ -45,7 +41,7 @@ export default function SegmentSearchResults({
                 setTiming(duration);
             }
         );
-    }, [id]);
+    }, [slimdeck.id]);
 
     if (
         nonEmptyArray<SearchDeck>(searchResults.deckLevel) ||
@@ -74,12 +70,13 @@ export default function SegmentSearchResults({
         return (
             <RollableSegment
                 heading={heading}
-                font={font}
+                font={slimdeck.font}
                 buttons={button}
                 initiallyRolledUp
                 extraClasses="c-segment-search-results"
             >
                 <ViewSearchResults
+                    parent={slimdeck}
                     searchResults={searchResults}
                     timing={timing}
                 />

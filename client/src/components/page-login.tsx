@@ -8,12 +8,7 @@ import { AppStateChange, getAppState } from "../app-state";
 import Net from "../shared/net";
 
 import CivilInput from "./civil-input";
-import {
-    CivContainer,
-    CivForm,
-    CivLeftLabel,
-    CivMain,
-} from "./civil-layout";
+import { CivContainer, CivForm, CivLeftLabel, CivMain } from "./civil-layout";
 
 type Props = {
     path?: string;

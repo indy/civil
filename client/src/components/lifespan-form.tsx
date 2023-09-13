@@ -114,11 +114,7 @@ export default function LifespanForm({
     }
 }
 
-function PointBirthForm({
-    onSubmit,
-}: {
-    onSubmit: (p: ProtoPoint) => void;
-}) {
+function PointBirthForm({ onSubmit }: { onSubmit: (p: ProtoPoint) => void }) {
     return (
         <PointForm
             timeLegend="Date of Birth"
@@ -131,11 +127,7 @@ function PointBirthForm({
     );
 }
 
-function PointDeathForm({
-    onSubmit,
-}: {
-    onSubmit: (p: ProtoPoint) => void;
-}) {
+function PointDeathForm({ onSubmit }: { onSubmit: (p: ProtoPoint) => void }) {
     return (
         <PointForm
             timeLegend="Date of Death"

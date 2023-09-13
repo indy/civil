@@ -142,7 +142,7 @@ function setupUiConfig(uiConfigJson: string) {
     Object.keys(untypedConfig).forEach((key) => {
         if (key === "colourScheme") {
             uiConfig.colourScheme = configFromServer.colourScheme;
-        };
+        }
         if (key === "decksPerPage") {
             uiConfig.decksPerPage = configFromServer.decksPerPage;
         }

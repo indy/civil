@@ -228,10 +228,7 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
         fg_toolbar_add_above: [210, 80, 50] as ColourTriple,
         fg_toolbar_bookmark: [70, 80, 50] as ColourTriple,
 
-        graph_node_expanded: [127, 60, 70] as ColourTriple,
-        graph_node_partial: [37, 60, 70] as ColourTriple,
-        graph_node_minimised: [0, 0, 70] as ColourTriple,
-        graph_edge: [0, 0, 70] as ColourTriple,
+        graph_edge: [seeds.hue, seeds.sat, 70] as ColourTriple,
         graph_edge_in_contrast: [217, 60, 70] as ColourTriple,
         graph_edge_critical: [7, 60, 70] as ColourTriple,
     };
@@ -254,6 +251,59 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
     defs = addTopMenuColours(defs, seeds, 210, "insignias");
     defs = addTopMenuColours(defs, seeds, 300, "memorise");
     defs = addTopMenuColours(defs, seeds, 240, "stats");
+
+    defs = addMix(defs, "graph_node_proximity_0", "graph_edge", 0.0, "bg");
+    defs = addMix(defs, "graph_node_proximity_1", "graph_edge", 0.6, "bg");
+
+    defs = addMix(defs, "graph_edge_dimmed", "graph_edge", 0.6, "bg");
+    defs = addMix(
+        defs,
+        "graph_edge_in_contrast_dimmed",
+        "graph_edge_in_contrast",
+        0.6,
+        "bg"
+    );
+    defs = addMix(
+        defs,
+        "graph_edge_critical_dimmed",
+        "graph_edge_critical",
+        0.6,
+        "bg"
+    );
+
+    return defs;
+}
+
+function interpolate(a: number, mix: number, b: number): number {
+    return a * (1.0 - mix) + b * mix;
+}
+
+function addMix(
+    defs: ColourDefinitions,
+    name: string,
+    colA: string,
+    mix: number,
+    colB: string
+): ColourDefinitions {
+    if (defs[colA] && defs[colB]) {
+        defs[name] = [
+            interpolate(
+                defs[colA]![0] as number,
+                mix,
+                defs[colB]![0] as number
+            ),
+            interpolate(
+                defs[colA]![1] as number,
+                mix,
+                defs[colB]![1] as number
+            ),
+            interpolate(
+                defs[colA]![2] as number,
+                mix,
+                defs[colB]![2] as number
+            ),
+        ];
+    }
 
     return defs;
 }

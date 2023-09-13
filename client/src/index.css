@@ -1817,10 +1817,6 @@ em:after {
     content: "\00201D"; /* closing double quote: &#8221; converted to hex*/
 }
 
-.svg-container {
-    width: 80%;
-}
-
 .svg-pseudo-link:hover {
     cursor: pointer;
 }
@@ -2717,10 +2713,6 @@ input:required {
     #root {
         border-left: 0.1rem solid var(--bg-darker-3);
         padding: 0 0.8rem;
-    }
-
-    .svg-container {
-        width: 100%;
     }
 
     .corner-writable-toggle {

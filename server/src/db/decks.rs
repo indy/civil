@@ -256,6 +256,18 @@ pub(crate) fn deckbase_edit(
     )
 }
 
+pub(crate) fn get_slimdeck(
+    conn: &Connection,
+    user_id: Key,
+    deck_id: Key,
+) -> crate::Result<interop::SlimDeck> {
+    let stmt = "SELECT id, name, kind, insignia, font, graph_terminator
+                FROM decks
+                WHERE user_id = ?1 AND id = ?2";
+
+    sqlite::one(conn, stmt, params![&user_id, &deck_id], slimdeck_from_row)
+}
+
 pub(crate) fn insignia_filter(
     sqlite_pool: &SqlitePool,
     user_id: Key,

@@ -33,7 +33,6 @@ type ViewPassageChunkyBoyProps<T extends FatDeck> = {
     extraClasses?: string;
 };
 
-
 const ViewPassageChunkyBoy = <T extends FatDeck>({
     deck,
     onUpdateDeck,
@@ -45,7 +44,7 @@ const ViewPassageChunkyBoy = <T extends FatDeck>({
     noAppend,
     noDelete,
     extraClasses,
-}: ViewPassageChunkyBoyProps<T>) =>  {
+}: ViewPassageChunkyBoyProps<T>) => {
     const appState = getAppState();
 
     function onEditedNote(id: Key, updatedNote: Note) {
@@ -237,6 +236,6 @@ const ViewPassageChunkyBoy = <T extends FatDeck>({
             <CivContainer>{addNoteUI}</CivContainer>
         </section>
     );
-}
+};
 
 export default ViewPassageChunkyBoy;

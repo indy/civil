@@ -434,6 +434,7 @@ export type State = {
     memoriseEarliestReviewDate: Signal<undefined | string>;
 };
 
+// [childId, _kind, _strength]
 export type GraphEdge = [number, RefKind, number];
 
 export type FullGraphStruct = {
@@ -465,22 +466,27 @@ export type UberSetup = {
 
 // graph stuff
 //
-export type GraphCallback = (g: OldGraphState, p: number, h: number) => void;
-
-export enum ExpandedState {
-    Fully = 0,
-    Partial,
-    None,
-}
+export type GraphCallback = (g: GraphState, p: number, h: number) => void;
 
 type SimStats = {
     tickCount: number;
     maxVelocities: [number, number];
 };
-export type OldGraphNode = {
+
+export enum LineStyle {
+    Solid = 1,
+    Dotted,
+}
+
+export enum Direction {
+    Incoming = 1,
+    Outgoing,
+}
+
+export type GraphNode = {
     id: Key;
-    isImportant: boolean;
-    expandedState: ExpandedState;
+    // how far from something important
+    proximity: number;
     deckKind: DeckKind;
     label: string;
     x: number;
@@ -493,35 +499,21 @@ export type OldGraphNode = {
     textHeight?: number;
 };
 
-
-export enum LineStyle {
-    Solid = 1,
-    Dotted,
-}
-
-export enum Direction {
-    Incoming = 1,
-    Outgoing,
-}
-
-export type Edge = {
-    fromId: Key,
-    toId: Key,
-    refKind: RefKind,
-    direction: Direction,
-    lineStyle: LineStyle,
+export type Arc = {
+    fromId: Key;
+    toId: Key;
+    refKind: RefKind;
+    direction: Direction;
+    lineStyle: LineStyle;
+    strength: number;
 };
 
-export type EdgeData = {
-    edges: Array<Edge>,
-    decks: Array<SlimDeck>,
-};
+export type GraphState = {
+    nodes: Map<Key, GraphNode>;
+    arcs: Map<string, Arc>;
 
-export type OldEdge = [number, number, number, RefKind];
-
-export type OldGraphState = {
-    nodes: Map<Key, OldGraphNode>;
-    edges: Array<OldEdge>;
+    // calculated from edges Map, for speed purposes
+    arcArray: Array<Arc>;
 
     simStats?: SimStats;
 };

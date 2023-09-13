@@ -12,6 +12,7 @@ import {
     DM,
     Font,
     Role,
+    SlimDeck,
     NoteKind,
     WaitingFor,
 } from "../types";
@@ -268,8 +269,8 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
                     </CivContainer>
                 </section>
                 <SegmentArrivals deck={deck} />
-                <SegmentSearchResults id={id} font={deck.font} />
-                <SegmentGraph depth={2} deck={deck} />
+                <SegmentSearchResults slimdeck={deck as SlimDeck} />
+                <SegmentGraph deck={deck} />
             </article>
         );
     } else {
@@ -329,8 +330,8 @@ function DialogueChat({ path }: { path?: string }) {
         AppStateChange.setWaitingFor({ waitingFor: WaitingFor.Server });
 
         type ChatData = {
-            aiKind: AiKind,
-            messages: Array<ChatMessage>,
+            aiKind: AiKind;
+            messages: Array<ChatMessage>;
         };
 
         let data: ChatData = {
@@ -339,7 +340,7 @@ function DialogueChat({ path }: { path?: string }) {
         };
 
         Net.post<ChatData, Array<MessageChoice>>(`/api/dialogues/chat`, data)
-            .then(askResponse => {
+            .then((askResponse) => {
                 if (askResponse.length === 1) {
                     const responseChatMessage: ChatMessage = {
                         noteId: 0,

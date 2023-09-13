@@ -17,7 +17,10 @@ import {
 import { AppStateChange, getAppState, immutableState } from "../app-state";
 
 import { indexToShortcut } from "../shared/command";
-import { deckKindToResourceString, sortByDeckKindThenName } from "../shared/deck";
+import {
+    deckKindToResourceString,
+    sortByDeckKindThenName,
+} from "../shared/deck";
 import { fontClass } from "../shared/font";
 import { indexFromCode } from "../shared/keys";
 import Net from "../shared/net";
@@ -118,7 +121,7 @@ function reducer(state: LocalState, action: Action): LocalState {
         case ActionType.CtrlKeyDown: {
             const newState = {
                 ...state,
-                nakedCtrlPress: true
+                nakedCtrlPress: true,
             };
             return newState;
         }
@@ -129,7 +132,9 @@ function reducer(state: LocalState, action: Action): LocalState {
 
             if (state.nakedCtrlPress) {
                 newState.nakedCtrlPress = false;
-                if (!state.showKeyboardShortcuts /*&& state.candidates.length */) {
+                if (
+                    !state.showKeyboardShortcuts /*&& state.candidates.length */
+                ) {
                     newState.showKeyboardShortcuts = true;
                 } else {
                     newState.showKeyboardShortcuts = false;
@@ -174,7 +179,7 @@ function reducer(state: LocalState, action: Action): LocalState {
             }
             return {
                 ...state,
-                nakedCtrlPress: false
+                nakedCtrlPress: false,
             };
         }
         case ActionType.ReferenceRemove: {

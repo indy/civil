@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 
-import { DeckIdea, DeckKind, DeckUpdate, DM } from "../types";
+import { SlimDeck, DeckIdea, DeckKind, DeckUpdate, DM } from "../types";
 
 import Net from "../shared/net";
 import { formattedDate } from "../shared/time";
@@ -24,12 +24,7 @@ import TopBarMenu from "./top-bar-menu";
 import TopMatter from "./top-matter";
 import useDeckManager from "./use-deck-manager";
 
-import {
-    CivContainer,
-    CivForm,
-    CivLeftLabel,
-    CivMain,
-} from "./civil-layout";
+import { CivContainer, CivForm, CivLeftLabel, CivMain } from "./civil-layout";
 
 function Ideas({ path }: { path?: string }) {
     return (
@@ -170,8 +165,8 @@ function Idea({ path, id }: { path?: string; id?: string }) {
                     onUpdateDeck={deckManager.update}
                 />
                 <SegmentArrivals deck={deck} />
-                <SegmentSearchResults id={id} font={deck.font} />
-                <SegmentGraph depth={2} deck={deck} />
+                <SegmentSearchResults slimdeck={deck as SlimDeck} />
+                <SegmentGraph deck={deck} />
             </article>
         );
     } else {

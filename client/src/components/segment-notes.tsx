@@ -89,7 +89,7 @@ const SegmentNotes = <T extends FatDeck>({
     } else {
         return <div></div>;
     }
-}
+};
 
 export default SegmentNotes;
 
@@ -150,4 +150,4 @@ const NoteKindPassage = <T extends FatDeck>({
                 </RollableSegment>
             );
     }
-}
+};

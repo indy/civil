@@ -52,7 +52,9 @@ type ArrivalNoteProps = {
 };
 
 function ArrivalNote({ deck, note, isLast }: ArrivalNoteProps) {
-    const [flashcardIndicators, maximisedFlashcards] = useFlashcards(note.flashcards);
+    const [flashcardIndicators, maximisedFlashcards] = useFlashcards(
+        note.flashcards
+    );
 
     function buildTopAnnotation(annotation: string) {
         const scribbleClasses = `ref-top-scribble`;

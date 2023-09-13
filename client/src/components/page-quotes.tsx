@@ -22,12 +22,7 @@ import { sanitize } from "../shared/search";
 import buildMarkup from "./build-markup";
 import CivilButton from "./civil-button";
 import CivilInput from "./civil-input";
-import {
-    CivContainer,
-    CivLeft,
-    CivMain,
-    CivMainUi,
-} from "./civil-layout";
+import { CivContainer, CivLeft, CivMain, CivMainUi } from "./civil-layout";
 import CivilTextArea from "./civil-text-area";
 import DeleteConfirmation from "./delete-confirmation";
 import ModalKeyboardHelp from "./modal-keyboard-help";

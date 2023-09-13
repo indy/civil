@@ -9,6 +9,7 @@ import {
     EventExtras,
     Font,
     GeoResult,
+    SlimDeck,
 } from "../types";
 
 import { geoGet, getLatitudeLongitude } from "../shared/geo";
@@ -161,8 +162,8 @@ function CivEvent({ path, id }: { path?: string; id?: string }) {
                     onUpdateDeck={deckManager.update}
                 />
                 <SegmentArrivals deck={deck} />
-                <SegmentSearchResults id={id} font={deck.font} />
-                <SegmentGraph depth={2} deck={deck} />
+                <SegmentSearchResults slimdeck={deck as SlimDeck} />
+                <SegmentGraph deck={deck} />
             </article>
         );
     } else {
@@ -420,7 +421,9 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
                 <CivilInput
                     id="title"
                     value={localState.title}
-                    onContentChange={title => setLocalState({ ...localState, title })}
+                    onContentChange={(title) =>
+                        setLocalState({ ...localState, title })
+                    }
                 />
             </CivMain>
 
@@ -462,7 +465,9 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
                 <CivilInput
                     id="exactDate"
                     value={localState.exactDate}
-                    onContentChange={exactDate => setLocalStateDateChange({ ...localState, exactDate })}
+                    onContentChange={(exactDate) =>
+                        setLocalStateDateChange({ ...localState, exactDate })
+                    }
                 />
                 <CivRight>
                     <span>Format: YYYY-MM-DD</span>
@@ -474,7 +479,9 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
                 <CivilInput
                     id="lowerDate"
                     value={localState.lowerDate}
-                    onContentChange={lowerDate => setLocalStateDateChange({ ...localState, lowerDate })}
+                    onContentChange={(lowerDate) =>
+                        setLocalStateDateChange({ ...localState, lowerDate })
+                    }
                 />
             </CivMain>
             <CivLeftLabel forId="upperDate">Upper Date</CivLeftLabel>
@@ -482,7 +489,9 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
                 <CivilInput
                     id="upperDate"
                     value={localState.upperDate}
-                    onContentChange={upperDate => setLocalStateDateChange({ ...localState, upperDate })}
+                    onContentChange={(upperDate) =>
+                        setLocalStateDateChange({ ...localState, upperDate })
+                    }
                 />
             </CivMain>
 
@@ -527,7 +536,9 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
                 <CivilInput
                     id="locationTextual"
                     value={localState.locationTextual}
-                    onContentChange={locationTextual => setLocalState({ ...localState, locationTextual })}
+                    onContentChange={(locationTextual) =>
+                        setLocalState({ ...localState, locationTextual })
+                    }
                 />
             </CivMain>
 

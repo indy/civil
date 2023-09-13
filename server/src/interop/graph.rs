@@ -18,24 +18,6 @@
 use crate::interop::decks::{RefKind, SlimDeck};
 use crate::interop::Key;
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct OldVertex {
-    pub from_id: Key,
-    pub to_id: Key,
-    pub kind: RefKind,
-    pub strength: usize,
-}
-
-#[derive(
-    Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
-)]
-#[repr(u8)]
-pub enum LineStyle {
-    Solid = 1,
-    Dotted,
-}
-
 #[derive(
     Hash,
     Copy,
@@ -59,12 +41,12 @@ pub struct Edge {
     pub to_id: Key,
     pub ref_kind: RefKind,
     pub direction: Direction,
-    pub line_style: LineStyle,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct EdgeData {
+pub struct ConnectivityData {
+    pub source_deck: SlimDeck,
     pub edges: Vec<Edge>,
     pub decks: Vec<SlimDeck>,
 }
