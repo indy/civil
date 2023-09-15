@@ -37,58 +37,54 @@ const SegmentNotes = <T extends FatDeck>({
     noAppend,
     noDelete,
 }: Props<T>) => {
-    if (deck) {
-        let containerClasses = "c-segment-notes ";
-        containerClasses += fontClass(deck.font, RenderingDeckPart.Body);
+    let containerClasses = "c-segment-notes ";
+    containerClasses += fontClass(deck.font, RenderingDeckPart.Body);
 
-        return (
-            <div class={containerClasses}>
-                {canShowPassage(NoteKind.NoteSummary) && (
-                    <NoteKindPassage
-                        heading="Summary"
-                        noteKind={NoteKind.NoteSummary}
-                        howToShow={howToShowPassage(NoteKind.NoteSummary)}
-                        deck={deck}
-                        onUpdateDeck={onUpdateDeck}
-                        notes={deck.passage[NoteKind.NoteSummary]}
-                        onRefsChanged={onRefsChanged}
-                        deckKind={deckKind}
-                        noAppend={noAppend}
-                        noDelete={noDelete}
-                    />
-                )}
-                {canShowPassage(NoteKind.NoteReview) && (
-                    <NoteKindPassage
-                        heading="Review"
-                        noteKind={NoteKind.NoteReview}
-                        howToShow={howToShowPassage(NoteKind.NoteReview)}
-                        deck={deck}
-                        onUpdateDeck={onUpdateDeck}
-                        notes={deck.passage[NoteKind.NoteReview]}
-                        onRefsChanged={onRefsChanged}
-                        deckKind={deckKind}
-                        noAppend={noAppend}
-                        noDelete={noDelete}
-                    />
-                )}
-
+    return (
+        <div class={containerClasses}>
+            {canShowPassage(NoteKind.NoteSummary) && (
                 <NoteKindPassage
-                    heading={title}
-                    noteKind={NoteKind.Note}
-                    howToShow={howToShowPassage(NoteKind.Note)}
+                    heading="Summary"
+                    noteKind={NoteKind.NoteSummary}
+                    howToShow={howToShowPassage(NoteKind.NoteSummary)}
                     deck={deck}
                     onUpdateDeck={onUpdateDeck}
-                    notes={deck.passage[NoteKind.Note]}
+                    notes={deck.passage[NoteKind.NoteSummary]}
                     onRefsChanged={onRefsChanged}
                     deckKind={deckKind}
                     noAppend={noAppend}
                     noDelete={noDelete}
                 />
-            </div>
-        );
-    } else {
-        return <div></div>;
-    }
+            )}
+            {canShowPassage(NoteKind.NoteReview) && (
+                <NoteKindPassage
+                    heading="Review"
+                    noteKind={NoteKind.NoteReview}
+                    howToShow={howToShowPassage(NoteKind.NoteReview)}
+                    deck={deck}
+                    onUpdateDeck={onUpdateDeck}
+                    notes={deck.passage[NoteKind.NoteReview]}
+                    onRefsChanged={onRefsChanged}
+                    deckKind={deckKind}
+                    noAppend={noAppend}
+                    noDelete={noDelete}
+                />
+            )}
+
+            <NoteKindPassage
+                heading={title}
+                noteKind={NoteKind.Note}
+                howToShow={howToShowPassage(NoteKind.Note)}
+                deck={deck}
+                onUpdateDeck={onUpdateDeck}
+                notes={deck.passage[NoteKind.Note]}
+                onRefsChanged={onRefsChanged}
+                deckKind={deckKind}
+                noAppend={noAppend}
+                noDelete={noDelete}
+            />
+        </div>
+    );
 };
 
 export default SegmentNotes;
