@@ -157,6 +157,12 @@ pub struct SlimEvent {
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct Hit {
+    pub created_at: chrono::NaiveDateTime,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SlimResults {
     pub results: Vec<SlimDeck>,
 }

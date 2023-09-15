@@ -167,6 +167,18 @@ pub(crate) fn hit(conn: &Connection, deck_id: Key) -> crate::Result<()> {
     sqlite::zero(conn, stmt, params![&deck_id])
 }
 
+pub(crate) fn get_hits(sqlite_pool: &SqlitePool, deck_id: Key) -> crate::Result<Vec<interop::Hit>> {
+    fn hit_from_row(row: &Row) -> crate::Result<interop::Hit> {
+        Ok(interop::Hit {
+            created_at: row.get(0)?,
+        })
+    }
+
+    let conn = sqlite_pool.get()?;
+    let stmt = "SELECT created_at FROM hits WHERE deck_id = ?1 ORDER BY created_at DESC;";
+    sqlite::many(&conn, stmt, params![&deck_id], hit_from_row)
+}
+
 fn deckbase_get_by_name(
     conn: &Connection,
     user_id: Key,

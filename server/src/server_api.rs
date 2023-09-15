@@ -62,6 +62,7 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                     "/{id}/additional_search",
                     get().to(search::additional_search_for_decks),
                 )
+                .route("/hits/{id}", get().to(decks::hits))
                 .route("/summarize/{id}", post().to(decks::summarize))
                 .route("/preview/{id}", get().to(decks::preview)),
         )

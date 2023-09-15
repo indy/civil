@@ -17,6 +17,8 @@ import useMouseHovering from "./use-mouse-hovering";
 type Props = {
     title: string;
     deck: FatDeck;
+    displayHits: boolean;
+    setDisplayHits: (value: boolean) => void;
     isShowingUpdateForm: boolean;
     setShowingUpdateForm: (value: boolean) => void;
     isEditingDeckRefs: boolean;
@@ -27,6 +29,8 @@ type Props = {
 export default function TopMatter({
     title,
     deck,
+    displayHits,
+    setDisplayHits,
     isShowingUpdateForm,
     setShowingUpdateForm,
     isEditingDeckRefs,
@@ -56,6 +60,10 @@ export default function TopMatter({
         <CivContainer extraClasses={containerClasses}>
             <CivLeft>
                 <LeftMarginHeading>
+                    <HitsControl
+                        displayHits={displayHits}
+                        setDisplayHits={setDisplayHits}
+                    />
                     {renderInsignia(deck.insignia)}
                     {children}
                 </LeftMarginHeading>
@@ -70,4 +78,20 @@ export default function TopMatter({
             />
         </CivContainer>
     );
+}
+
+function HitsControl({
+    displayHits,
+    setDisplayHits,
+}: {
+    displayHits: boolean;
+    setDisplayHits: (value: boolean) => void;
+}) {
+    let label = displayHits ? "Hide Hits" : "Show Hits";
+
+    function onClick() {
+        setDisplayHits(!displayHits);
+    }
+
+    return <div onClick={onClick}>{label}</div>;
 }

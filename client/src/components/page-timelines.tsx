@@ -30,6 +30,7 @@ import RollableSegment from "./rollable-segment";
 import SegmentArrivals from "./segment-arrivals";
 import SegmentDeckRefs from "./segment-deck-refs";
 import SegmentGraph from "./segment-graph";
+import SegmentHits from "./segment-hits";
 import SegmentNotes from "./segment-notes";
 import SegmentSearchResults from "./segment-search-results";
 import TopBarMenu from "./top-bar-menu";
@@ -116,6 +117,8 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                 <TopMatter
                     title={deck.title}
                     deck={deck}
+                    displayHits={deckManager.displayHits()}
+                    setDisplayHits={deckManager.setDisplayHits}
                     isShowingUpdateForm={deckManager.isShowingUpdateForm()}
                     setShowingUpdateForm={deckManager.setShowingUpdateForm}
                     isEditingDeckRefs={deckManager.isEditingDeckRefs()}
@@ -156,6 +159,12 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                     setEditingDeckRefs={deckManager.setEditingDeckRefs}
                     onRefsChanged={deckManager.onRefsChanged}
                 />
+
+                <SegmentHits
+                    displayHits={deckManager.displayHits()}
+                    deck={deck}
+                />
+
                 <SegmentNotes
                     deck={deck}
                     title={deck.title}

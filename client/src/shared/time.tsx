@@ -1,5 +1,51 @@
 import { capitalise } from "../shared/english";
 
+export function prettyPrintTimeSpan(deltaMS: number): string {
+
+    let diffSecs = deltaMS / (1000);
+    let diffMins = deltaMS / (1000 * 60);
+    let diffHours = deltaMS / (1000 * 60 * 60);
+    let diffDays = diffHours / 24;
+    let diffWeeks = diffDays / 7;
+    let diffYears = diffDays / 365.25;
+
+
+    let unit = "";
+    let val = 0;
+
+    if (diffYears > 1) {
+        unit = "year";
+        val = diffYears;
+    } else if (diffWeeks > 1) {
+        unit = "week";
+        val = diffWeeks;
+    } else if (diffDays > 1) {
+        unit = "day";
+        val = diffDays;
+    } else if (diffHours > 1) {
+        unit = "hour";
+        val = diffHours;
+    } else if (diffMins > 1) {
+        unit = "minute";
+        val = diffMins;
+    } else if (diffSecs > 1) {
+        unit = "second";
+        val = diffSecs;
+    } else {
+        unit = "millisecond";
+        val = deltaMS;
+    }
+
+    let roundedVal = val.toFixed(2);
+    if (roundedVal !== "1.00") {
+        unit += "s";
+    } else {
+        roundedVal = "1";
+    }
+
+    return `${roundedVal} ${unit}`;
+}
+
 export function formattedDate(timestamp: string) {
     const options: Intl.DateTimeFormatOptions = {
         year: "numeric",

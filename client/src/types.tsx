@@ -139,6 +139,10 @@ export type SlimEvent = SlimDeck & {
     compDate: Date;
 };
 
+export type Hit = {
+    createdAt: string;
+};
+
 export type FatDeck = SlimDeck & {
     // received from server
     //
@@ -156,6 +160,9 @@ export type FatDeck = SlimDeck & {
     passage: Record<NoteKind, Passage>;
     passageForPoint?: Record<Key, Passage>;
     groupedArrivals: Record<DeckKind, Array<Arrival>>;
+
+    // received from server at a later time
+    hits: Array<Hit>;
 };
 
 export type ChatMessage = {
@@ -522,6 +529,8 @@ export type DM<T extends FatDeck> = {
     update: (d: T) => void;
     getDeck: () => T | undefined;
     getDeckKind: () => DeckKind;
+    displayHits: () => boolean;
+    setDisplayHits: (value: boolean) => void;
     isShowingUpdateForm: () => boolean;
     setShowingUpdateForm: (value: boolean) => void;
     complyWithAppStateRequestToShowUpdateForm: () => void;

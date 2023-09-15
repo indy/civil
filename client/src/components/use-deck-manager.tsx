@@ -5,6 +5,7 @@ import {
     CivilMode,
     DeckKind,
     FatDeck,
+    Hit,
     Key,
     Note,
     NoteKind,
@@ -39,6 +40,7 @@ type DeckManagerState<T extends FatDeck> = {
     canHaveReviewPassage: boolean;
     displayShowSummaryButton: boolean;
     displayShowReviewButton: boolean;
+    displayHits: boolean;
 };
 
 function identity<T extends FatDeck>(a: T): T {
@@ -67,6 +69,8 @@ export default function useDeckManager<T extends FatDeck>(
             Net.get<T>(url).then((deck) => {
                 // console.log(deck);
                 if (deck) {
+                    deck.hits = [];
+
                     let newDms = dmsUpdateDeck<T>(
                         dms,
                         preCacheFunction(deck),
@@ -131,6 +135,29 @@ export default function useDeckManager<T extends FatDeck>(
         },
         getDeckKind: function () {
             return deckKind;
+        },
+
+        displayHits: function () {
+            return dms.displayHits;
+        },
+        setDisplayHits: function (value: boolean) {
+            let deck = dms.deck;
+            if (deck && value) {
+                if (deck.hits.length === 0) {
+                    Net.get<Array<Hit>>(`/api/decks/hits/${deck.id}`).then(
+                        (res) => {
+                            deck!.hits = res;
+                            update(deck!);
+
+                            let newDms = dmsSetDisplayHits(dms, value);
+                            setDms(newDms);
+                        }
+                    );
+                }
+            }
+
+            let newDms = dmsSetDisplayHits(dms, value);
+            setDms(newDms);
         },
         isShowingUpdateForm: function () {
             return dms.isShowingUpdateForm;
@@ -326,6 +353,7 @@ function cleanDeckManagerState<T extends FatDeck>(): DeckManagerState<T> {
         canHaveReviewPassage: false,
         displayShowSummaryButton: false,
         displayShowReviewButton: false,
+        displayHits: false,
     };
     return res;
 }
@@ -415,6 +443,16 @@ function dmsSetShowingUpdateForm<T extends FatDeck>(
 ): DeckManagerState<T> {
     let res = { ...dms };
     res.isShowingUpdateForm = value;
+
+    return res;
+}
+
+function dmsSetDisplayHits<T extends FatDeck>(
+    dms: DeckManagerState<T>,
+    value: boolean
+): DeckManagerState<T> {
+    let res = { ...dms };
+    res.displayHits = value;
 
     return res;
 }

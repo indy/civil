@@ -32,6 +32,21 @@ use serde::Deserialize;
 #[allow(unused_imports)]
 use tracing::{info, warn};
 
+pub async fn hits(
+    sqlite_pool: Data<SqlitePool>,
+    params: Path<IdParam>,
+    session: actix_session::Session,
+) -> crate::Result<HttpResponse> {
+    info!("hits {:?}", params.id);
+
+    let _user_id = session::user_id(&session)?;
+    let deck_id = params.id;
+
+    let hits = db::get_hits(&sqlite_pool, deck_id)?;
+
+    Ok(HttpResponse::Ok().json(hits))
+}
+
 pub async fn insignia_filter(
     sqlite_pool: Data<SqlitePool>,
     params: Path<InsigParam>,

@@ -15,6 +15,7 @@ import InsigniaSelector from "./insignia-selector";
 import { HeadedSegment } from "./headed-segment";
 import { renderPaginatedSlimDeck } from "./paginated-render-items";
 import Pagination from "./pagination";
+import SegmentHits from "./segment-hits";
 import SegmentArrivals from "./segment-arrivals";
 import SegmentDeckRefs from "./segment-deck-refs";
 import SegmentGraph from "./segment-graph";
@@ -117,6 +118,8 @@ function Idea({ path, id }: { path?: string; id?: string }) {
                 <TopMatter
                     title={deck.title}
                     deck={deck}
+                    displayHits={deckManager.displayHits()}
+                    setDisplayHits={deckManager.setDisplayHits}
                     isShowingUpdateForm={deckManager.isShowingUpdateForm()}
                     setShowingUpdateForm={deckManager.setShowingUpdateForm}
                     isEditingDeckRefs={deckManager.isEditingDeckRefs()}
@@ -153,6 +156,11 @@ function Idea({ path, id }: { path?: string; id?: string }) {
                     isEditingDeckRefs={deckManager.isEditingDeckRefs()}
                     setEditingDeckRefs={deckManager.setEditingDeckRefs}
                     onRefsChanged={deckManager.onRefsChanged}
+                />
+
+                <SegmentHits
+                    displayHits={deckManager.displayHits()}
+                    deck={deck}
                 />
 
                 <SegmentNotes
