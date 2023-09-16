@@ -19,11 +19,14 @@ export default function ViewArrival({ deck, arrival }: ViewArrivalProps) {
         </span>
     );
 
+    let lastIdx = arrival.passages.length - 1;
+    let passages = arrival.passages.map((passage, idx) =>
+        <ViewPassageWithinArrival deck={deck} passage={passage} isLast={idx === lastIdx}/>
+    );
+
     return (
         <Expandable heading={heading}>
-            {arrival.passages.map((passage) => (
-                <ViewPassageWithinArrival deck={deck} passage={passage} />
-            ))}
+            {passages}
         </Expandable>
     );
 }
@@ -31,15 +34,21 @@ export default function ViewArrival({ deck, arrival }: ViewArrivalProps) {
 type ViewPassageWithinArrivalProps = {
     deck: FatDeck;
     passage: Passage;
+    isLast: boolean;
 };
 
 function ViewPassageWithinArrival({
     deck,
     passage,
+    isLast
 }: ViewPassageWithinArrivalProps) {
+    // the 'isLast' argument is true when this is the last passage in the arrival
+    // so if that's true, don't render the final <hr> for the last ArrivalNote
+    //
     let lastIdx = passage.length - 1;
     let notes = passage.map((note, idx) => {
-        return <ArrivalNote deck={deck} note={note} isLast={idx === lastIdx} />;
+        let renderDivider = !isLast && idx === lastIdx;
+        return <ArrivalNote deck={deck} note={note} renderDivider={renderDivider} />;
     });
 
     return <div class="c-view-passage-within-back-deck">{notes}</div>;
@@ -48,10 +57,10 @@ function ViewPassageWithinArrival({
 type ArrivalNoteProps = {
     deck: FatDeck;
     note: Note;
-    isLast: boolean;
+    renderDivider: boolean;
 };
 
-function ArrivalNote({ deck, note, isLast }: ArrivalNoteProps) {
+function ArrivalNote({ deck, note, renderDivider }: ArrivalNoteProps) {
     const [flashcardIndicators, maximisedFlashcards] = useFlashcards(
         note.flashcards
     );
@@ -100,7 +109,7 @@ function ArrivalNote({ deck, note, isLast }: ArrivalNoteProps) {
                 {maximisedFlashcards}
                 <CivMain>
                     {buildMarkup(note.content, note.font, note.id)}
-                    {!isLast && <hr />}
+                    {renderDivider && <hr />}
                 </CivMain>
             </CivContainer>
         </div>
