@@ -19,7 +19,6 @@ use crate::db::decks;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Error;
 use crate::interop::decks::DeckKind;
-use crate::interop::font::Font;
 use crate::interop::notes as interop_notes;
 use crate::interop::quotes as interop;
 use crate::interop::Key;
@@ -66,16 +65,13 @@ impl From<(decks::DeckBase, QuoteExtra)> for interop::Quote {
 }
 
 fn quote_from_row(row: &Row) -> crate::Result<interop::Quote> {
-    let fnt: i32 = row.get(4)?;
-
     Ok(interop::Quote {
         id: row.get(0)?,
         title: row.get(1)?,
         deck_kind: DeckKind::Quote,
         attribution: row.get(2)?,
         insignia: row.get(3)?,
-        font: Font::try_from(fnt)?,
-
+        font: row.get(4)?,
         notes: vec![],
         arrivals: vec![],
     })

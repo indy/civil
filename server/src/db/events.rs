@@ -92,14 +92,12 @@ fn event_extra_from_row(row: &Row) -> crate::Result<EventExtra> {
 }
 
 fn from_row(row: &Row) -> crate::Result<interop::Event> {
-    let fnt: i32 = row.get(2)?;
-
     Ok(interop::Event {
         id: row.get(0)?,
         title: row.get(1)?,
         deck_kind: DeckKind::Event,
         insignia: row.get(3)?,
-        font: Font::try_from(fnt)?,
+        font: row.get(2)?,
 
         location_textual: row.get(4)?,
         longitude: row.get(5)?,
@@ -249,15 +247,13 @@ pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, event_id: Key) -> c
 }
 
 fn slim_event_from_row(row: &Row) -> crate::Result<SlimEvent> {
-    let fnt: i32 = row.get(5)?;
-
     Ok(SlimEvent {
         id: row.get(0)?,
         title: row.get(1)?,
         deck_kind: DeckKind::Event,
         graph_terminator: row.get(3)?,
         insignia: row.get(4)?,
-        font: Font::try_from(fnt)?,
+        font: row.get(5)?,
 
         location_textual: row.get(6)?,
 

@@ -32,7 +32,6 @@ use std::str::FromStr;
 
 fn note_sans_refs_from_row(row: &Row) -> crate::Result<interop::Note> {
     let sql_kind: i32 = row.get(2)?;
-    let fnt: i32 = row.get(5)?;
 
     Ok(interop::Note {
         id: row.get(0)?,
@@ -40,7 +39,7 @@ fn note_sans_refs_from_row(row: &Row) -> crate::Result<interop::Note> {
         kind: interop::NoteKind::try_from(sql_kind)?,
         content: row.get(1)?,
         point_id: row.get(3)?,
-        font: Font::try_from(fnt)?,
+        font: row.get(5)?,
         refs: vec![],
         flashcards: vec![],
     })
@@ -77,7 +76,6 @@ fn note_and_ref_from_row(row: &Row) -> crate::Result<NoteAndRef> {
     if let Some(ref_deck_id) = reference_deck_id {
         let refk: String = row.get(6)?;
         let ref_deck_kind: String = row.get(10)?;
-        let ref_fnt: i32 = row.get(13)?;
 
         reference_maybe = Some(Ref {
             note_id: row.get(0)?,
@@ -89,12 +87,11 @@ fn note_and_ref_from_row(row: &Row) -> crate::Result<NoteAndRef> {
             deck_kind: DeckKind::from_str(&ref_deck_kind)?,
             graph_terminator: row.get(11)?,
             insignia: row.get(12)?,
-            font: Font::try_from(ref_fnt)?,
+            font: row.get(13)?,
         })
     };
 
     let note_kind_i32: i32 = row.get(2)?;
-    let note_font: i32 = row.get(5)?;
 
     Ok(NoteAndRef {
         note: interop::Note {
@@ -103,7 +100,7 @@ fn note_and_ref_from_row(row: &Row) -> crate::Result<NoteAndRef> {
             kind: interop::NoteKind::try_from(note_kind_i32)?,
             content: row.get(3)?,
             point_id: row.get(4)?,
-            font: Font::try_from(note_font)?,
+            font: row.get(5)?,
             refs: vec![],
             flashcards: vec![],
         },
@@ -117,7 +114,6 @@ fn note_and_ref_and_deck_from_row(row: &Row) -> crate::Result<NoteAndRefAndDeck>
     if let Some(ref_deck_id) = reference_deck_id {
         let refk: String = row.get(6)?;
         let ref_deck_kind: String = row.get(10)?;
-        let ref_fnt: i32 = row.get(13)?;
 
         reference_maybe = Some(Ref {
             note_id: row.get(0)?,
@@ -129,15 +125,12 @@ fn note_and_ref_and_deck_from_row(row: &Row) -> crate::Result<NoteAndRefAndDeck>
             deck_kind: DeckKind::from_str(&ref_deck_kind)?,
             graph_terminator: row.get(11)?,
             insignia: row.get(12)?,
-            font: Font::try_from(ref_fnt)?,
+            font: row.get(13)?,
         })
     };
 
     let note_kind_i32: i32 = row.get(2)?;
-    let note_font: i32 = row.get(5)?;
-
     let deck_deck_kind: String = row.get(16)?;
-    let deck_fnt: i32 = row.get(19)?;
 
     Ok(NoteAndRefAndDeck {
         note: interop::Note {
@@ -146,7 +139,7 @@ fn note_and_ref_and_deck_from_row(row: &Row) -> crate::Result<NoteAndRefAndDeck>
             kind: interop::NoteKind::try_from(note_kind_i32)?,
             content: row.get(3)?,
             point_id: row.get(4)?,
-            font: Font::try_from(note_font)?,
+            font: row.get(5)?,
             refs: vec![],
             flashcards: vec![],
         },
@@ -157,7 +150,7 @@ fn note_and_ref_and_deck_from_row(row: &Row) -> crate::Result<NoteAndRefAndDeck>
             deck_kind: DeckKind::from_str(&deck_deck_kind)?,
             graph_terminator: row.get(17)?,
             insignia: row.get(18)?,
-            font: Font::try_from(deck_fnt)?,
+            font: row.get(19)?,
         },
     })
 }

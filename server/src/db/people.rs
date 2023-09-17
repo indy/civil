@@ -28,14 +28,12 @@ use crate::db::sqlite::{self, SqlitePool};
 use rusqlite::{params, Row};
 
 fn person_with_sortdate_from_row(row: &Row) -> crate::Result<interop::Person> {
-    let fnt: i32 = row.get(4)?;
-
     Ok(interop::Person {
         id: row.get(0)?,
         title: row.get(1)?,
         deck_kind: DeckKind::Person,
         insignia: row.get(3)?,
-        font: Font::try_from(fnt)?,
+        font: row.get(4)?,
         sort_date: row.get(2)?,
         points: vec![],
         events: vec![],
@@ -45,14 +43,12 @@ fn person_with_sortdate_from_row(row: &Row) -> crate::Result<interop::Person> {
 }
 
 fn person_from_row(row: &Row) -> crate::Result<interop::Person> {
-    let fnt: i32 = row.get(5)?;
-
     Ok(interop::Person {
         id: row.get(0)?,
         title: row.get(1)?,
         deck_kind: DeckKind::Person,
         insignia: row.get(4)?,
-        font: Font::try_from(fnt)?,
+        font: row.get(5)?,
         sort_date: None,
         points: vec![],
         events: vec![],

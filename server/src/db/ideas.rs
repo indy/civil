@@ -27,13 +27,12 @@ use rusqlite::{params, Row};
 use tracing::info;
 
 fn idea_from_row(row: &Row) -> crate::Result<interop::Idea> {
-    let fnt: i32 = row.get(5)?;
     Ok(interop::Idea {
         id: row.get(0)?,
         title: row.get(1)?,
         deck_kind: DeckKind::Idea,
         insignia: row.get(4)?,
-        font: Font::try_from(fnt)?,
+        font: row.get(5)?,
         graph_terminator: row.get(3)?,
         created_at: row.get(2)?,
         notes: vec![],

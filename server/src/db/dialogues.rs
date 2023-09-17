@@ -60,7 +60,6 @@ impl TryFrom<(decks::DeckBase, DialogueExtra)> for interop::Dialogue {
 
 fn from_row(row: &Row) -> crate::Result<interop::Dialogue> {
     let aik: String = row.get(2)?;
-    let fnt: i32 = row.get(5)?;
 
     Ok(interop::Dialogue {
         id: row.get(0)?,
@@ -71,7 +70,7 @@ fn from_row(row: &Row) -> crate::Result<interop::Dialogue> {
         ai_kind: interop::AiKind::from_str(&aik)?,
 
         insignia: row.get(4)?,
-        font: Font::try_from(fnt)?,
+        font: row.get(5)?,
 
         created_at: row.get(3)?,
 

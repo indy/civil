@@ -26,14 +26,12 @@ use crate::interop::Key;
 use rusqlite::{params, Row};
 
 fn from_row(row: &Row) -> crate::Result<interop::Timeline> {
-    let fnt: i32 = row.get(5)?;
-
     Ok(interop::Timeline {
         id: row.get(0)?,
         title: row.get(1)?,
         deck_kind: DeckKind::Timeline,
         insignia: row.get(4)?,
-        font: Font::try_from(fnt)?,
+        font: row.get(5)?,
         points: vec![],
         notes: vec![],
         arrivals: vec![],

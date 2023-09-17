@@ -43,14 +43,13 @@ pub struct DeckBase {
 }
 
 fn deckbase_from_row(row: &Row) -> crate::Result<DeckBase> {
-    let f: i32 = row.get(5)?;
     Ok(DeckBase {
         id: row.get(0)?,
         title: row.get(1)?,
         created_at: row.get(2)?,
         graph_terminator: row.get(3)?,
         insignia: row.get(4)?,
-        font: Font::try_from(f)?,
+        font: row.get(5)?,
     })
 }
 
@@ -89,14 +88,13 @@ fn num_decks_for_deck_kind(
 
 pub(crate) fn slimdeck_from_row(row: &Row) -> crate::Result<interop::SlimDeck> {
     let res: String = row.get(2)?;
-    let f: i32 = row.get(4)?;
 
     Ok(interop::SlimDeck {
         id: row.get(0)?,
         title: row.get(1)?,
         deck_kind: interop::DeckKind::from_str(&res)?,
         insignia: row.get(3)?,
-        font: Font::try_from(f)?,
+        font: row.get(4)?,
         graph_terminator: row.get(5)?,
     })
 }
@@ -404,8 +402,8 @@ pub(crate) fn get_backnotes(
 
 fn get_font_of_deck(conn: &Connection, deck_id: Key) -> crate::Result<Font> {
     fn font_from_row(row: &Row) -> crate::Result<Font> {
-        let i: i32 = row.get(0)?;
-        Font::try_from(i)
+        let font = row.get(0)?;
+        Ok(font)
     }
 
     sqlite::one(

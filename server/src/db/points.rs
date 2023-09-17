@@ -18,7 +18,6 @@
 use crate::db::sqlite::{self, SqlitePool};
 use crate::error::Error;
 use crate::interop::decks as interop_decks;
-use crate::interop::font::Font;
 use crate::interop::points as interop;
 use crate::interop::Key;
 
@@ -52,13 +51,12 @@ impl FromStr for interop::PointKind {
 fn point_from_row(row: &Row) -> crate::Result<interop::Point> {
     let string_deck_kind: String = row.get(2)?;
     let string_point_kind: String = row.get(4)?;
-    let fnt: i32 = row.get(9)?;
 
     Ok(interop::Point {
         id: row.get(3)?,
         kind: interop::PointKind::from_str(&string_point_kind)?,
         title: row.get(5)?,
-        font: Font::try_from(fnt)?,
+        font: row.get(9)?,
 
         location_textual: row.get(6)?,
 

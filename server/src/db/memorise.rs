@@ -18,7 +18,6 @@
 use crate::db::postfix_asterisks;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::interop::decks as interop_decks;
-use crate::interop::font::Font;
 use crate::interop::memorise as interop;
 use crate::interop::Key;
 
@@ -284,7 +283,6 @@ pub(crate) fn delete_flashcard(
 
 fn interop_card_from_row(row: &Row) -> crate::Result<interop::Card> {
     let kind: String = row.get(6)?;
-    let fnt: i32 = row.get(8)?;
 
     Ok(interop::Card {
         id: row.get(0)?,
@@ -296,7 +294,7 @@ fn interop_card_from_row(row: &Row) -> crate::Result<interop::Card> {
             deck_kind: interop_decks::DeckKind::from_str(&kind)?,
             graph_terminator: row.get(9)?,
             insignia: row.get(7)?,
-            font: Font::try_from(fnt)?,
+            font: row.get(8)?,
         },
         prompt: row.get(2)?,
     })

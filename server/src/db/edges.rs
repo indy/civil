@@ -31,7 +31,6 @@ use tracing::info;
 fn ref_from_row(row: &Row) -> crate::Result<interop_decks::Ref> {
     let kind: String = row.get(3)?;
     let rk: String = row.get(4)?;
-    let fnt: i32 = row.get(7)?;
 
     Ok(interop_decks::Ref {
         note_id: row.get(0)?,
@@ -41,7 +40,7 @@ fn ref_from_row(row: &Row) -> crate::Result<interop_decks::Ref> {
         ref_kind: interop_decks::RefKind::from_str(&rk)?,
         annotation: row.get(5)?,
         insignia: row.get(6)?,
-        font: Font::try_from(fnt)?,
+        font: row.get(7)?,
         graph_terminator: row.get(8)?,
     })
 }

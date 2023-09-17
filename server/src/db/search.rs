@@ -20,7 +20,6 @@ use crate::db::notes as db_notes;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::db::{postfix_asterisks, sanitize_for_sqlite_match};
 use crate::interop::decks::{Arrival, DeckKind, Ref, RefKind, SlimDeck};
-use crate::interop::font::Font;
 use crate::interop::notes::{Note, NoteKind};
 use crate::interop::search as interop;
 use crate::interop::Key;
@@ -32,7 +31,6 @@ use tracing::{info, warn};
 
 fn searchdeck_from_row(row: &Row) -> crate::Result<interop::SearchDeck> {
     let res: String = row.get(2)?;
-    let f: i32 = row.get(4)?;
 
     Ok(interop::SearchDeck {
         rank: row.get(6)?,
@@ -41,7 +39,7 @@ fn searchdeck_from_row(row: &Row) -> crate::Result<interop::SearchDeck> {
             title: row.get(1)?,
             deck_kind: DeckKind::from_str(&res)?,
             insignia: row.get(3)?,
-            font: Font::try_from(f)?,
+            font: row.get(4)?,
             graph_terminator: row.get(5)?,
         },
         notes: vec![],
@@ -62,17 +60,13 @@ fn contains(searchdecks: &[interop::SearchDeck], id: Key) -> bool {
 
 fn searchdecknoteref_from_row(row: &Row) -> crate::Result<SearchDeckNoteRef> {
     let deck_kind_str: String = row.get(3)?;
-    let deck_font: i32 = row.get(6)?;
-
     let note_kind_i32: i32 = row.get(9)?;
-    let note_font: i32 = row.get(12)?;
 
     let mut reference_maybe: Option<Ref> = None;
     let reference_deck_id: Option<Key> = row.get(13)?;
     if let Some(ref_deck_id) = reference_deck_id {
         let refk: String = row.get(14)?;
         let ref_deck_kind: String = row.get(17)?;
-        let ref_fnt: i32 = row.get(20)?;
 
         reference_maybe = Some(Ref {
             note_id: row.get(7)?,
@@ -84,7 +78,7 @@ fn searchdecknoteref_from_row(row: &Row) -> crate::Result<SearchDeckNoteRef> {
             deck_kind: DeckKind::from_str(&ref_deck_kind)?,
             graph_terminator: row.get(18)?,
             insignia: row.get(19)?,
-            font: Font::try_from(ref_fnt)?,
+            font: row.get(20)?,
         })
     };
 
@@ -96,7 +90,7 @@ fn searchdecknoteref_from_row(row: &Row) -> crate::Result<SearchDeckNoteRef> {
             deck_kind: DeckKind::from_str(&deck_kind_str)?,
             graph_terminator: row.get(4)?,
             insignia: row.get(5)?,
-            font: Font::try_from(deck_font)?,
+            font: row.get(6)?,
         },
         note: Note {
             id: row.get(7)?,
@@ -104,7 +98,7 @@ fn searchdecknoteref_from_row(row: &Row) -> crate::Result<SearchDeckNoteRef> {
             kind: NoteKind::try_from(note_kind_i32)?,
             content: row.get(10)?,
             point_id: row.get(11)?,
-            font: Font::try_from(note_font)?,
+            font: row.get(12)?,
             refs: vec![],
             flashcards: vec![],
         },

@@ -65,8 +65,6 @@ impl From<(decks::DeckBase, ArticleExtra)> for interop::Article {
 }
 
 fn from_row(row: &Row) -> crate::Result<interop::Article> {
-    let fnt: i32 = row.get(9)?;
-
     Ok(interop::Article {
         id: row.get(0)?,
         title: row.get(1)?,
@@ -74,7 +72,7 @@ fn from_row(row: &Row) -> crate::Result<interop::Article> {
         deck_kind: DeckKind::Article,
 
         insignia: row.get(8)?,
-        font: Font::try_from(fnt)?,
+        font: row.get(9)?,
 
         created_at: row.get(6)?,
 

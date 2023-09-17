@@ -53,7 +53,6 @@ fn connectivity_from_row(row: &Row) -> crate::Result<Connectivity> {
 
     let rk: String = row.get(1)?;
     let knd: String = row.get(4)?;
-    let f: i32 = row.get(7)?;
 
     Ok(Connectivity {
         direction,
@@ -64,7 +63,7 @@ fn connectivity_from_row(row: &Row) -> crate::Result<Connectivity> {
         deck_kind: interop_decks::DeckKind::from_str(&knd)?,
         graph_terminator: row.get(5)?,
         insignia: row.get(6)?,
-        font: Font::try_from(f)?,
+        font: row.get(7)?,
     })
 }
 

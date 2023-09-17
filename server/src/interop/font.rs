@@ -15,8 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::error::Error;
-use std::convert::TryFrom;
+use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ValueRef};
 
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
@@ -54,9 +53,9 @@ impl From<Font> for i32 {
     }
 }
 
-impl TryFrom<i32> for Font {
-    type Error = crate::error::Error;
-    fn try_from(i: i32) -> crate::Result<Font> {
+impl FromSql for Font {
+    fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
+        let i = value.as_i64()?;
         match i {
             1 => Ok(Font::Serif),
             2 => Ok(Font::Sans),
@@ -69,7 +68,7 @@ impl TryFrom<i32> for Font {
             9 => Ok(Font::GreatPrimer),
             10 => Ok(Font::ThreeLinesPica),
             11 => Ok(Font::LibreBaskerville),
-            _ => Err(Error::IntConversionToEnum),
+            _ => Err(FromSqlError::OutOfRange(i)),
         }
     }
 }
