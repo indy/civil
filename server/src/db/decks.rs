@@ -344,59 +344,6 @@ pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, id: Key) -> crate::
     Ok(())
 }
 
-/*
-// return all notes that have references back to the currently displayed deck
-//
-pub(crate) fn get_backnotes(
-    sqlite_pool: &SqlitePool,
-    deck_id: Key,
-) -> crate::Result<Vec<note_interop::XXXBackNote>> {
-    let conn = sqlite_pool.get()?;
-
-    fn backnote_from_row(row: &Row) -> crate::Result<note_interop::XXXBackNote> {
-        let kind: String = row.get(2)?;
-        let sql_note_kind: i32 = row.get(5)?;
-
-        let note_fnt: i32 = row.get(8)?;
-        let fnt: i32 = row.get(9)?;
-
-        Ok(note_interop::XXXBackNote {
-            note_id: row.get(4)?,
-            prev_note_id: row.get(7)?,
-            note_content: row.get(3)?,
-            note_kind: note_interop::NoteKind::try_from(sql_note_kind)?,
-            id: row.get(0)?,
-            title: row.get(1)?,
-            deck_kind: interop::DeckKind::from_str(&kind)?,
-            insignia: row.get(6)?,
-            note_font: Font::try_from(note_fnt)?,
-            font: Font::try_from(fnt)?,
-            graph_terminator: row.get(10)?,
-        })
-    }
-
-    let stmt = "SELECT d.id AS deck_id,
-                       d.name AS deck_name,
-                       d.kind as kind,
-                       n.content as note_content,
-                       n.id as note_id,
-                       n.kind as note_kind,
-                       d.insignia,
-                       n.prev_note_id as prev_note_id,
-                       n.font as note_font,
-                       d.font,
-                       d.graph_terminator
-                FROM decks d,
-                     notes n,
-                     notes_decks nd
-                WHERE n.deck_id = d.id
-                      AND nd.note_id = n.id
-                      AND nd.deck_id = ?1
-                ORDER BY d.name, n.id";
-    sqlite::many(&conn, stmt, params![&deck_id], backnote_from_row)
-}
-*/
-
 fn get_font_of_deck(conn: &Connection, deck_id: Key) -> crate::Result<Font> {
     fn font_from_row(row: &Row) -> crate::Result<Font> {
         let font = row.get(0)?;

@@ -30,13 +30,13 @@ pub(crate) fn i32_from_row(row: &Row) -> crate::Result<i32> {
 
 pub(crate) fn zero(conn: &Connection, sql: &str, params: &[&dyn ToSql]) -> crate::Result<()> {
     match conn.execute(sql, params) {
-        Ok(_) => return Ok(()),
+        Ok(_) => Ok(()),
         Err(e) => {
             error!("{}", &sql);
             error!("{:?}", e);
-            return Err(Error::Sqlite(e));
+            Err(Error::Sqlite(e))
         }
-    };
+    }
 }
 
 pub(crate) fn one<T>(
