@@ -35,7 +35,7 @@ use std::convert::TryFrom;
 
 #[derive(Debug, Clone)]
 struct DialogueExtra {
-    ai_kind: String,
+    ai_kind: interop::AiKind,
 }
 
 impl TryFrom<(decks::DeckBase, DialogueExtra)> for interop::Dialogue {
@@ -47,7 +47,7 @@ impl TryFrom<(decks::DeckBase, DialogueExtra)> for interop::Dialogue {
             id: deck.id,
             title: deck.title,
             deck_kind: DeckKind::Dialogue,
-            ai_kind: interop::AiKind::from_str(&extra.ai_kind)?,
+            ai_kind: extra.ai_kind,
             insignia: deck.insignia,
             font: deck.font,
             created_at: deck.created_at,
@@ -59,15 +59,13 @@ impl TryFrom<(decks::DeckBase, DialogueExtra)> for interop::Dialogue {
 }
 
 fn from_row(row: &Row) -> crate::Result<interop::Dialogue> {
-    let aik: String = row.get(2)?;
-
     Ok(interop::Dialogue {
         id: row.get(0)?,
         title: row.get(1)?,
 
         deck_kind: DeckKind::Dialogue,
 
-        ai_kind: interop::AiKind::from_str(&aik)?,
+        ai_kind: row.get(2)?,
 
         insignia: row.get(4)?,
         font: row.get(5)?,
@@ -328,8 +326,8 @@ pub(crate) fn get_chat_history(
     }
 
     fn ai_kind_from_row(row: &Row) -> crate::Result<interop::AiKind> {
-        let r: String = row.get(0)?;
-        interop::AiKind::from_str(&r)
+        let k = row.get(0)?;
+        Ok(k)
     }
 
     let conn = sqlite_pool.get()?;

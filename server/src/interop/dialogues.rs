@@ -16,14 +16,14 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::ai::openai_interface;
-use crate::error::Error;
 use crate::interop::decks::{Arrival, DeckKind};
 use crate::interop::font::Font;
 use crate::interop::notes::Note;
 use crate::interop::Key;
 
+use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ValueRef};
+
 use std::fmt;
-use std::str::FromStr;
 
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
@@ -43,14 +43,13 @@ impl fmt::Display for AiKind {
     }
 }
 
-impl FromStr for AiKind {
-    type Err = Error;
-
-    fn from_str(input: &str) -> crate::Result<AiKind> {
+impl FromSql for AiKind {
+    fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
+        let input = value.as_str()?;
         match input {
             "OpenAI::Gpt35Turbo" => Ok(AiKind::OpenAIGpt35Turbo),
             "OpenAI::Gpt4" => Ok(AiKind::OpenAIGpt4),
-            _ => Err(Error::StringConversionToEnum),
+            _ => Err(FromSqlError::InvalidType),
         }
     }
 }
