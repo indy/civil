@@ -19,6 +19,8 @@ use crate::interop::decks::DeckKind;
 use crate::interop::font::Font;
 use crate::interop::Key;
 
+use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ValueRef};
+
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
 )]
@@ -63,4 +65,16 @@ pub struct Point {
     pub deck_id: Key,
     pub deck_name: String,
     pub deck_kind: DeckKind,
+}
+
+impl FromSql for PointKind {
+    fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
+        let input = value.as_str()?;
+        match input {
+            "point" => Ok(PointKind::Point),
+            "point_begin" => Ok(PointKind::PointBegin),
+            "point_end" => Ok(PointKind::PointEnd),
+            _ => Err(FromSqlError::InvalidType),
+        }
+    }
 }

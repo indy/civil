@@ -16,13 +16,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::sqlite::{self, SqlitePool};
-use crate::error::Error;
 use crate::interop::points as interop;
 use crate::interop::Key;
 
 use rusqlite::{params, Row};
 use std::fmt;
-use std::str::FromStr;
 
 impl fmt::Display for interop::PointKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -34,25 +32,10 @@ impl fmt::Display for interop::PointKind {
     }
 }
 
-impl FromStr for interop::PointKind {
-    type Err = Error;
-
-    fn from_str(input: &str) -> crate::Result<interop::PointKind> {
-        match input {
-            "point" => Ok(interop::PointKind::Point),
-            "point_begin" => Ok(interop::PointKind::PointBegin),
-            "point_end" => Ok(interop::PointKind::PointEnd),
-            _ => Err(Error::StringConversionToEnum),
-        }
-    }
-}
-
 fn point_from_row(row: &Row) -> crate::Result<interop::Point> {
-    let string_point_kind: String = row.get(4)?;
-
     Ok(interop::Point {
         id: row.get(3)?,
-        kind: interop::PointKind::from_str(&string_point_kind)?,
+        kind: row.get(4)?,
         title: row.get(5)?,
         font: row.get(9)?,
 
