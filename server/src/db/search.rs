@@ -20,7 +20,7 @@ use crate::db::notes as db_notes;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::db::{postfix_asterisks, sanitize_for_sqlite_match};
 use crate::interop::decks::{Arrival, DeckKind, Ref, RefKind, SlimDeck};
-use crate::interop::notes::{Note, NoteKind};
+use crate::interop::notes::Note;
 use crate::interop::search as interop;
 use crate::interop::Key;
 use rusqlite::{params, Connection, Row};
@@ -57,8 +57,6 @@ fn contains(searchdecks: &[interop::SearchDeck], id: Key) -> bool {
 }
 
 fn searchdecknoteref_from_row(row: &Row) -> crate::Result<SearchDeckNoteRef> {
-    let note_kind_i32: i32 = row.get(9)?;
-
     let mut reference_maybe: Option<Ref> = None;
     let reference_deck_id: Option<Key> = row.get(13)?;
     if let Some(ref_deck_id) = reference_deck_id {
@@ -91,7 +89,7 @@ fn searchdecknoteref_from_row(row: &Row) -> crate::Result<SearchDeckNoteRef> {
         note: Note {
             id: row.get(7)?,
             prev_note_id: row.get(8)?,
-            kind: NoteKind::try_from(note_kind_i32)?,
+            kind: row.get(9)?,
             content: row.get(10)?,
             point_id: row.get(11)?,
             font: row.get(12)?,

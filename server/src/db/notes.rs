@@ -31,12 +31,10 @@ use rusqlite::{params, Connection, Row};
 use std::str::FromStr;
 
 fn note_sans_refs_from_row(row: &Row) -> crate::Result<interop::Note> {
-    let sql_kind: i32 = row.get(2)?;
-
     Ok(interop::Note {
         id: row.get(0)?,
         prev_note_id: row.get(4)?,
-        kind: interop::NoteKind::try_from(sql_kind)?,
+        kind: row.get(2)?,
         content: row.get(1)?,
         point_id: row.get(3)?,
         font: row.get(5)?,
@@ -90,13 +88,11 @@ fn note_and_ref_from_row(row: &Row) -> crate::Result<NoteAndRef> {
         })
     };
 
-    let note_kind_i32: i32 = row.get(2)?;
-
     Ok(NoteAndRef {
         note: interop::Note {
             id: row.get(0)?,
             prev_note_id: row.get(1)?,
-            kind: interop::NoteKind::try_from(note_kind_i32)?,
+            kind: row.get(2)?,
             content: row.get(3)?,
             point_id: row.get(4)?,
             font: row.get(5)?,
@@ -127,13 +123,11 @@ fn note_and_ref_and_deck_from_row(row: &Row) -> crate::Result<NoteAndRefAndDeck>
         })
     };
 
-    let note_kind_i32: i32 = row.get(2)?;
-
     Ok(NoteAndRefAndDeck {
         note: interop::Note {
             id: row.get(0)?,
             prev_note_id: row.get(1)?,
-            kind: interop::NoteKind::try_from(note_kind_i32)?,
+            kind: row.get(2)?,
             content: row.get(3)?,
             point_id: row.get(4)?,
             font: row.get(5)?,

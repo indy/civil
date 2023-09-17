@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::error::Error;
 use crate::interop::decks::Ref;
 use crate::interop::font::Font;
 use crate::interop::memorise::FlashCard;
 use crate::interop::Key;
-use std::convert::TryFrom;
+
+use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ValueRef};
 
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, serde_repr::Serialize_repr, serde_repr::Deserialize_repr,
@@ -44,15 +44,15 @@ impl From<NoteKind> for i32 {
     }
 }
 
-impl TryFrom<i32> for NoteKind {
-    type Error = crate::error::Error;
-    fn try_from(i: i32) -> crate::Result<NoteKind> {
+impl FromSql for NoteKind {
+    fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
+        let i = value.as_i64()?;
         match i {
             1 => Ok(NoteKind::Note),
             2 => Ok(NoteKind::NoteReview),
             3 => Ok(NoteKind::NoteSummary),
             4 => Ok(NoteKind::NoteDeckMeta),
-            _ => Err(Error::IntConversionToEnum),
+            _ => Err(FromSqlError::OutOfRange(i)),
         }
     }
 }
