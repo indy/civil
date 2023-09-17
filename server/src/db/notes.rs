@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::memorise as memorise_db;
-use crate::interop::decks::{Arrival, DeckKind, Ref, RefKind, SlimDeck};
+use crate::interop::decks::{Arrival, Ref, RefKind, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::memorise as memorise_interop;
 use crate::interop::notes as interop;
@@ -75,7 +75,6 @@ fn note_and_ref_from_row(row: &Row) -> crate::Result<NoteAndRef> {
     let reference_deck_id: Option<Key> = row.get(8)?;
     if let Some(ref_deck_id) = reference_deck_id {
         let refk: String = row.get(6)?;
-        let ref_deck_kind: String = row.get(10)?;
 
         reference_maybe = Some(Ref {
             note_id: row.get(0)?,
@@ -84,7 +83,7 @@ fn note_and_ref_from_row(row: &Row) -> crate::Result<NoteAndRef> {
 
             id: ref_deck_id,
             title: row.get(9)?,
-            deck_kind: DeckKind::from_str(&ref_deck_kind)?,
+            deck_kind: row.get(10)?,
             graph_terminator: row.get(11)?,
             insignia: row.get(12)?,
             font: row.get(13)?,
@@ -113,7 +112,6 @@ fn note_and_ref_and_deck_from_row(row: &Row) -> crate::Result<NoteAndRefAndDeck>
     let reference_deck_id: Option<Key> = row.get(8)?;
     if let Some(ref_deck_id) = reference_deck_id {
         let refk: String = row.get(6)?;
-        let ref_deck_kind: String = row.get(10)?;
 
         reference_maybe = Some(Ref {
             note_id: row.get(0)?,
@@ -122,7 +120,7 @@ fn note_and_ref_and_deck_from_row(row: &Row) -> crate::Result<NoteAndRefAndDeck>
 
             id: ref_deck_id,
             title: row.get(9)?,
-            deck_kind: DeckKind::from_str(&ref_deck_kind)?,
+            deck_kind: row.get(10)?,
             graph_terminator: row.get(11)?,
             insignia: row.get(12)?,
             font: row.get(13)?,
@@ -130,7 +128,6 @@ fn note_and_ref_and_deck_from_row(row: &Row) -> crate::Result<NoteAndRefAndDeck>
     };
 
     let note_kind_i32: i32 = row.get(2)?;
-    let deck_deck_kind: String = row.get(16)?;
 
     Ok(NoteAndRefAndDeck {
         note: interop::Note {
@@ -147,7 +144,7 @@ fn note_and_ref_and_deck_from_row(row: &Row) -> crate::Result<NoteAndRefAndDeck>
         deck: SlimDeck {
             id: row.get(14)?,
             title: row.get(15)?,
-            deck_kind: DeckKind::from_str(&deck_deck_kind)?,
+            deck_kind: row.get(16)?,
             graph_terminator: row.get(17)?,
             insignia: row.get(18)?,
             font: row.get(19)?,

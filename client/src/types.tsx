@@ -494,6 +494,8 @@ export type GraphNode = {
     id: Key;
     // how far from something important
     proximity: number;
+    // only applicable for proximity=0 nodes
+    showAllConnections: boolean;
     deckKind: DeckKind;
     label: string;
     x: number;

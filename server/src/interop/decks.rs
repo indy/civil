@@ -20,6 +20,8 @@ use crate::interop::font::Font;
 use crate::interop::notes::Note;
 use crate::interop::Key;
 
+use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ValueRef};
+
 use std::fmt;
 use std::str::FromStr;
 
@@ -53,10 +55,9 @@ impl fmt::Display for DeckKind {
     }
 }
 
-impl FromStr for DeckKind {
-    type Err = Error;
-
-    fn from_str(input: &str) -> crate::Result<DeckKind> {
+impl FromSql for DeckKind {
+    fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
+        let input = value.as_str()?;
         match input {
             "article" => Ok(DeckKind::Article),
             "person" => Ok(DeckKind::Person),
@@ -65,7 +66,7 @@ impl FromStr for DeckKind {
             "quote" => Ok(DeckKind::Quote),
             "dialogue" => Ok(DeckKind::Dialogue),
             "event" => Ok(DeckKind::Event),
-            _ => Err(Error::StringConversionToEnum),
+            _ => Err(FromSqlError::InvalidType),
         }
     }
 }

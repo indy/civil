@@ -30,14 +30,12 @@ use std::str::FromStr;
 use tracing::{info, warn};
 
 fn searchdeck_from_row(row: &Row) -> crate::Result<interop::SearchDeck> {
-    let res: String = row.get(2)?;
-
     Ok(interop::SearchDeck {
         rank: row.get(6)?,
         deck: SlimDeck {
             id: row.get(0)?,
             title: row.get(1)?,
-            deck_kind: DeckKind::from_str(&res)?,
+            deck_kind: row.get(2)?,
             insignia: row.get(3)?,
             font: row.get(4)?,
             graph_terminator: row.get(5)?,
@@ -59,14 +57,12 @@ fn contains(searchdecks: &[interop::SearchDeck], id: Key) -> bool {
 }
 
 fn searchdecknoteref_from_row(row: &Row) -> crate::Result<SearchDeckNoteRef> {
-    let deck_kind_str: String = row.get(3)?;
     let note_kind_i32: i32 = row.get(9)?;
 
     let mut reference_maybe: Option<Ref> = None;
     let reference_deck_id: Option<Key> = row.get(13)?;
     if let Some(ref_deck_id) = reference_deck_id {
         let refk: String = row.get(14)?;
-        let ref_deck_kind: String = row.get(17)?;
 
         reference_maybe = Some(Ref {
             note_id: row.get(7)?,
@@ -75,7 +71,7 @@ fn searchdecknoteref_from_row(row: &Row) -> crate::Result<SearchDeckNoteRef> {
 
             id: ref_deck_id,
             title: row.get(16)?,
-            deck_kind: DeckKind::from_str(&ref_deck_kind)?,
+            deck_kind: row.get(17)?,
             graph_terminator: row.get(18)?,
             insignia: row.get(19)?,
             font: row.get(20)?,
@@ -87,7 +83,7 @@ fn searchdecknoteref_from_row(row: &Row) -> crate::Result<SearchDeckNoteRef> {
         deck: SlimDeck {
             id: row.get(1)?,
             title: row.get(2)?,
-            deck_kind: DeckKind::from_str(&deck_kind_str)?,
+            deck_kind: row.get(3)?,
             graph_terminator: row.get(4)?,
             insignia: row.get(5)?,
             font: row.get(6)?,

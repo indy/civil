@@ -156,6 +156,7 @@ export default function Graph({ id }: { id: Key }) {
         const graphNode: GraphNode = {
             id: slimdeck.id,
             proximity: important ? 0 : 1,
+            showAllConnections: true,
             deckKind: slimdeck.deckKind,
             label: slimdeck.title,
             x: 0,
@@ -204,7 +205,18 @@ export default function Graph({ id }: { id: Key }) {
         }
     }
 
-    function updateGraphState(connectivityData: ConnectivityData) {
+    // function updateGraphState() {
+    //     let gs: GraphState = { ...graphState };
+
+    //     let itr = gs.arcs.keys();
+    //     gs.arcArray = [];
+    //     for (let k of itr) {
+    //         gs.arcArray.push(gs.arcs.get(k)!);
+    //     }
+    //     setGraphState(gs);
+    // }
+
+    function applyConnectivityData(connectivityData: ConnectivityData) {
         let gs: GraphState = { ...graphState };
 
         ensureGraphNodeExists(gs, connectivityData.sourceDeck, true);
@@ -224,16 +236,19 @@ export default function Graph({ id }: { id: Key }) {
         setGraphState(gs);
     }
 
-    function fetchGraphStateData(id: number) {
+    function fetchedNode(id: number): boolean {
         let graphNode = graphState.nodes.get(id);
         if (graphNode) {
             if (graphNode.proximity === 0) {
-                console.log(`already fetched data for ${id}`);
-                return;
+                return true;
             }
         }
+        return false;
+    }
+
+    function fetchGraphStateData(id: number) {
         Net.get<ConnectivityData>(`/api/graph/${id}`).then((data) => {
-            updateGraphState(data);
+            applyConnectivityData(data);
         });
     }
 
@@ -375,8 +390,14 @@ export default function Graph({ id }: { id: Key }) {
 
     function onGraphClicked(event: Event) {
         const referencingId = getReferencingId(event.target);
-        if (referencingId) {
-            fetchGraphStateData(referencingId);
+        if (!local.mouseDragging && referencingId) {
+            if (fetchedNode(referencingId)) {
+                let node = graphState.nodes.get(referencingId)!;
+                node.showAllConnections = !node.showAllConnections;
+                setGraphState({ ...graphState });
+            } else {
+                fetchGraphStateData(referencingId);
+            }
         }
 
         if (event.target instanceof SVGTextElement) {
@@ -531,6 +552,10 @@ function buildSvg(ref: any, graphState: GraphState) {
         let targetNode: GraphNode = nodes.get(arc.toId)!;
         if (sourceNode.proximity < 1 || targetNode.proximity < 1) {
             svg.edges.appendChild(createSvgArc(arc, sourceNode, targetNode));
+            // if ((sourceNode.proximity === 0 && sourceNode.showAllConnections) ||
+            //     (targetNode.proximity === 0 && targetNode.showAllConnections)) {
+            //     svg.edges.appendChild(createSvgArc(arc, sourceNode, targetNode));
+            // }
         }
     }
 

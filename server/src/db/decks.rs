@@ -23,7 +23,6 @@ use crate::interop::font::Font;
 use crate::interop::Key;
 use rusqlite::{params, Connection, Row};
 
-use std::str::FromStr;
 #[allow(unused_imports)]
 use tracing::{info, warn};
 
@@ -87,12 +86,10 @@ fn num_decks_for_deck_kind(
 }
 
 pub(crate) fn slimdeck_from_row(row: &Row) -> crate::Result<interop::SlimDeck> {
-    let res: String = row.get(2)?;
-
     Ok(interop::SlimDeck {
         id: row.get(0)?,
         title: row.get(1)?,
-        deck_kind: interop::DeckKind::from_str(&res)?,
+        deck_kind: row.get(2)?,
         insignia: row.get(3)?,
         font: row.get(4)?,
         graph_terminator: row.get(5)?,

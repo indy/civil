@@ -23,7 +23,6 @@ use crate::interop::Key;
 
 use chrono::Utc;
 use rusqlite::{params, Row};
-use std::str::FromStr;
 #[allow(unused_imports)]
 use tracing::info;
 
@@ -282,8 +281,6 @@ pub(crate) fn delete_flashcard(
 }
 
 fn interop_card_from_row(row: &Row) -> crate::Result<interop::Card> {
-    let kind: String = row.get(6)?;
-
     Ok(interop::Card {
         id: row.get(0)?,
         note_id: row.get(1)?,
@@ -291,7 +288,7 @@ fn interop_card_from_row(row: &Row) -> crate::Result<interop::Card> {
         deck_info: interop_decks::SlimDeck {
             id: row.get(4)?,
             title: row.get(5)?,
-            deck_kind: interop_decks::DeckKind::from_str(&kind)?,
+            deck_kind: row.get(6)?,
             graph_terminator: row.get(9)?,
             insignia: row.get(7)?,
             font: row.get(8)?,

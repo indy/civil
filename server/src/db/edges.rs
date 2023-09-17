@@ -29,14 +29,13 @@ use std::str::FromStr;
 use tracing::info;
 
 fn ref_from_row(row: &Row) -> crate::Result<interop_decks::Ref> {
-    let kind: String = row.get(3)?;
     let rk: String = row.get(4)?;
 
     Ok(interop_decks::Ref {
         note_id: row.get(0)?,
         id: row.get(1)?,
         title: row.get(2)?,
-        deck_kind: interop_decks::DeckKind::from_str(&kind)?,
+        deck_kind: row.get(3)?,
         ref_kind: interop_decks::RefKind::from_str(&rk)?,
         annotation: row.get(5)?,
         insignia: row.get(6)?,
