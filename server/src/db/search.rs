@@ -19,13 +19,12 @@ use crate::db::memorise as db_memorise;
 use crate::db::notes as db_notes;
 use crate::db::sqlite::{self, SqlitePool};
 use crate::db::{postfix_asterisks, sanitize_for_sqlite_match};
-use crate::interop::decks::{Arrival, DeckKind, Ref, RefKind, SlimDeck};
+use crate::interop::decks::{Arrival, DeckKind, Ref, SlimDeck};
 use crate::interop::notes::Note;
 use crate::interop::search as interop;
 use crate::interop::Key;
 use rusqlite::{params, Connection, Row};
 
-use std::str::FromStr;
 #[allow(unused_imports)]
 use tracing::{info, warn};
 
@@ -60,11 +59,9 @@ fn searchdecknoteref_from_row(row: &Row) -> crate::Result<SearchDeckNoteRef> {
     let mut reference_maybe: Option<Ref> = None;
     let reference_deck_id: Option<Key> = row.get(13)?;
     if let Some(ref_deck_id) = reference_deck_id {
-        let refk: String = row.get(14)?;
-
         reference_maybe = Some(Ref {
             note_id: row.get(7)?,
-            ref_kind: RefKind::from_str(&refk)?,
+            ref_kind: row.get(14)?,
             annotation: row.get(15)?,
 
             id: ref_deck_id,

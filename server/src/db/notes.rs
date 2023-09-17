@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::memorise as memorise_db;
-use crate::interop::decks::{Arrival, Ref, RefKind, SlimDeck};
+use crate::interop::decks::{Arrival, Ref, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::memorise as memorise_interop;
 use crate::interop::notes as interop;
@@ -27,8 +27,6 @@ use tracing::{error, info, warn};
 
 use crate::db::sqlite::{self, SqlitePool};
 use rusqlite::{params, Connection, Row};
-
-use std::str::FromStr;
 
 fn note_sans_refs_from_row(row: &Row) -> crate::Result<interop::Note> {
     Ok(interop::Note {
@@ -72,13 +70,10 @@ fn note_and_ref_from_row(row: &Row) -> crate::Result<NoteAndRef> {
     let mut reference_maybe: Option<Ref> = None;
     let reference_deck_id: Option<Key> = row.get(8)?;
     if let Some(ref_deck_id) = reference_deck_id {
-        let refk: String = row.get(6)?;
-
         reference_maybe = Some(Ref {
             note_id: row.get(0)?,
-            ref_kind: RefKind::from_str(&refk)?,
+            ref_kind: row.get(6)?,
             annotation: row.get(7)?,
-
             id: ref_deck_id,
             title: row.get(9)?,
             deck_kind: row.get(10)?,
@@ -107,11 +102,9 @@ fn note_and_ref_and_deck_from_row(row: &Row) -> crate::Result<NoteAndRefAndDeck>
     let mut reference_maybe: Option<Ref> = None;
     let reference_deck_id: Option<Key> = row.get(8)?;
     if let Some(ref_deck_id) = reference_deck_id {
-        let refk: String = row.get(6)?;
-
         reference_maybe = Some(Ref {
             note_id: row.get(0)?,
-            ref_kind: RefKind::from_str(&refk)?,
+            ref_kind: row.get(6)?,
             annotation: row.get(7)?,
 
             id: ref_deck_id,

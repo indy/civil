@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::error::Error;
 use crate::interop::font::Font;
 use crate::interop::notes::Note;
 use crate::interop::Key;
@@ -23,7 +22,6 @@ use crate::interop::Key;
 use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ValueRef};
 
 use std::fmt;
-use std::str::FromStr;
 
 // isg note: update the db/stats.rs when adding a new DeckKind
 //
@@ -95,17 +93,16 @@ impl fmt::Display for RefKind {
     }
 }
 
-impl FromStr for RefKind {
-    type Err = Error;
-
-    fn from_str(input: &str) -> crate::Result<RefKind> {
+impl FromSql for RefKind {
+    fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
+        let input = value.as_str()?;
         match input {
             "ref" => Ok(RefKind::Ref),
             "ref_to_parent" => Ok(RefKind::RefToParent),
             "ref_to_child" => Ok(RefKind::RefToChild),
             "ref_in_contrast" => Ok(RefKind::RefInContrast),
             "ref_critical" => Ok(RefKind::RefCritical),
-            _ => Err(Error::StringConversionToEnum),
+            _ => Err(FromSqlError::InvalidType),
         }
     }
 }

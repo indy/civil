@@ -24,19 +24,16 @@ use crate::interop::font::Font;
 use crate::interop::Key;
 
 use rusqlite::{params, Connection, Row};
-use std::str::FromStr;
 #[allow(unused_imports)]
 use tracing::info;
 
 fn ref_from_row(row: &Row) -> crate::Result<interop_decks::Ref> {
-    let rk: String = row.get(4)?;
-
     Ok(interop_decks::Ref {
         note_id: row.get(0)?,
         id: row.get(1)?,
         title: row.get(2)?,
         deck_kind: row.get(3)?,
-        ref_kind: interop_decks::RefKind::from_str(&rk)?,
+        ref_kind: row.get(4)?,
         annotation: row.get(5)?,
         insignia: row.get(6)?,
         font: row.get(7)?,

@@ -26,7 +26,6 @@ use crate::interop::Key;
 use std::collections::HashMap;
 
 use rusqlite::{params, Connection, Row};
-use std::str::FromStr;
 #[allow(unused_imports)]
 use tracing::info;
 
@@ -51,11 +50,9 @@ fn connectivity_from_row(row: &Row) -> crate::Result<Connectivity> {
         Direction::Outgoing
     };
 
-    let rk: String = row.get(1)?;
-
     Ok(Connectivity {
         direction,
-        ref_kind: interop_decks::RefKind::from_str(&rk)?,
+        ref_kind: row.get(1)?,
         deck_id: row.get(2)?,
         title: row.get(3)?,
 
