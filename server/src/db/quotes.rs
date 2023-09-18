@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::decks;
-use crate::db::sqlite::{self, SqlitePool};
+use crate::db::sqlite::{self, FromRow, SqlitePool};
 use crate::error::Error;
 use crate::interop::decks::DeckKind;
 use crate::interop::notes as interop_notes;
@@ -31,10 +31,12 @@ struct QuoteExtra {
     attribution: Option<String>,
 }
 
-fn quote_extra_from_row(row: &Row) -> crate::Result<QuoteExtra> {
-    Ok(QuoteExtra {
-        attribution: row.get(0)?,
-    })
+impl FromRow for QuoteExtra {
+    fn from_row(row: &Row) -> crate::Result<QuoteExtra> {
+        Ok(QuoteExtra {
+            attribution: row.get(0)?,
+        })
+    }
 }
 
 impl From<(decks::DeckBase, QuoteExtra)> for interop::Quote {
@@ -64,17 +66,19 @@ impl From<(decks::DeckBase, QuoteExtra)> for interop::Quote {
     }
 }
 
-fn quote_from_row(row: &Row) -> crate::Result<interop::Quote> {
-    Ok(interop::Quote {
-        id: row.get(0)?,
-        title: row.get(1)?,
-        deck_kind: DeckKind::Quote,
-        attribution: row.get(2)?,
-        insignia: row.get(3)?,
-        font: row.get(4)?,
-        notes: vec![],
-        arrivals: vec![],
-    })
+impl FromRow for interop::Quote {
+    fn from_row(row: &Row) -> crate::Result<interop::Quote> {
+        Ok(interop::Quote {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            deck_kind: DeckKind::Quote,
+            attribution: row.get(2)?,
+            insignia: row.get(3)?,
+            font: row.get(4)?,
+            notes: vec![],
+            arrivals: vec![],
+        })
+    }
 }
 
 pub(crate) fn get_or_create(
@@ -99,7 +103,6 @@ pub(crate) fn get_or_create(
                          VALUES (?1, ?2)
                          RETURNING attribution",
             params![&deck.id, &attribution],
-            quote_extra_from_row,
         )?,
         decks::DeckBaseOrigin::PreExisting => sqlite::one(
             &tx,
@@ -107,7 +110,6 @@ pub(crate) fn get_or_create(
                  from quote_extras
                  where deck_id=?1",
             params![&deck.id],
-            quote_extra_from_row,
         )?,
     };
 
@@ -135,7 +137,6 @@ pub(crate) fn random(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<in
          ORDER BY random()
          LIMIT 1",
         params![&user_id],
-        quote_from_row,
     )
 }
 
@@ -152,7 +153,6 @@ pub(crate) fn get(
          FROM decks left join quote_extras on quote_extras.deck_id = decks.id
          WHERE user_id = ?1 and id = ?2 and kind = 'quote'",
         params![&user_id, &quote_id],
-        quote_from_row,
     )?;
 
     decks::hit(&conn, quote_id)?;
@@ -175,7 +175,6 @@ pub(crate) fn next(
          ORDER BY id
          LIMIT 1",
         params![&user_id, &quote_id],
-        quote_from_row,
     );
 
     match res {
@@ -190,7 +189,6 @@ pub(crate) fn next(
                  ORDER BY id
                  LIMIT 1",
                 params![&user_id],
-                quote_from_row,
             )
         }
         Err(e) => Err(e),
@@ -212,7 +210,6 @@ pub(crate) fn prev(
          ORDER BY id desc
          LIMIT 1",
         params![&user_id, &quote_id],
-        quote_from_row,
     );
 
     match res {
@@ -227,7 +224,6 @@ pub(crate) fn prev(
                  ORDER BY id desc
                  LIMIT 1",
                 params![&user_id],
-                quote_from_row,
             )
         }
         Err(e) => Err(e),
@@ -255,13 +251,12 @@ pub(crate) fn edit(
         quote.font,
     )?;
 
-    let quote_extras_exists = sqlite::many(
+    let quote_extras_exists: Vec<QuoteExtra> = sqlite::many(
         &tx,
         "select attribution
          from quote_extras
          where deck_id=?1",
         params![&quote_id],
-        quote_extra_from_row,
     )?;
 
     let sql_query: &str = match quote_extras_exists.len() {
@@ -284,12 +279,7 @@ pub(crate) fn edit(
         }
     };
 
-    let quote_extras = sqlite::one(
-        &tx,
-        sql_query,
-        params![&quote_id, &quote.attribution],
-        quote_extra_from_row,
-    )?;
+    let quote_extras = sqlite::one(&tx, sql_query, params![&quote_id, &quote.attribution])?;
 
     tx.commit()?;
 

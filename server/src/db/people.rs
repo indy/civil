@@ -24,37 +24,24 @@ use crate::interop::Key;
 #[allow(unused_imports)]
 use tracing::{error, info};
 
-use crate::db::sqlite::{self, SqlitePool};
+use crate::db::sqlite::{self, FromRow, SqlitePool};
 use rusqlite::{params, Row};
 
-fn person_with_sortdate_from_row(row: &Row) -> crate::Result<interop::Person> {
-    Ok(interop::Person {
-        id: row.get(0)?,
-        title: row.get(1)?,
-        deck_kind: DeckKind::Person,
-        insignia: row.get(3)?,
-        font: row.get(4)?,
-        sort_date: row.get(2)?,
-        points: vec![],
-        events: vec![],
-        notes: vec![],
-        arrivals: vec![],
-    })
-}
-
-fn person_from_row(row: &Row) -> crate::Result<interop::Person> {
-    Ok(interop::Person {
-        id: row.get(0)?,
-        title: row.get(1)?,
-        deck_kind: DeckKind::Person,
-        insignia: row.get(4)?,
-        font: row.get(5)?,
-        sort_date: None,
-        points: vec![],
-        events: vec![],
-        notes: vec![],
-        arrivals: vec![],
-    })
+impl FromRow for interop::Person {
+    fn from_row(row: &Row) -> crate::Result<interop::Person> {
+        Ok(interop::Person {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            deck_kind: DeckKind::Person,
+            insignia: row.get(2)?,
+            font: row.get(3)?,
+            sort_date: row.get(4)?,
+            points: vec![],
+            events: vec![],
+            notes: vec![],
+            arrivals: vec![],
+        })
+    }
 }
 
 pub(crate) fn get_or_create(
@@ -80,9 +67,9 @@ pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<i
         &conn,
         "select d.id,
                 d.name,
-                coalesce(date(p.exact_realdate), date(p.lower_realdate)) as birth_date,
                 d.insignia,
-                d.font
+                d.font,
+                coalesce(date(p.exact_realdate), date(p.lower_realdate)) as birth_date
          from decks d, points p
          where d.user_id = ?1
                and d.kind = 'person'
@@ -91,6 +78,8 @@ pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<i
          union
          select d.id,
                 d.name,
+                d.insignia,
+                d.font,
                 null as birth_date
          from decks d
               left join points p on p.deck_id = d.id
@@ -99,7 +88,6 @@ pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<i
                and p.deck_id is null
          order by birth_date",
         params![&user_id],
-        person_with_sortdate_from_row,
     )
 }
 
@@ -111,7 +99,7 @@ pub(crate) fn uncategorised(
 ) -> crate::Result<Pagination<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT d.id, d.name, 'person', d.insignia, d.font, d.graph_terminator
+    let stmt = "SELECT d.id, d.name, d.insignia, d.font, null as sort_date
                 FROM decks d
                 LEFT JOIN points p ON p.deck_id = d.id
                 WHERE d.user_id = ?1
@@ -120,12 +108,7 @@ pub(crate) fn uncategorised(
                 LIMIT ?2
                 OFFSET ?3";
 
-    let items = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &num_items, &offset],
-        decks::slimdeck_from_row,
-    )?;
+    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM decks d
@@ -134,7 +117,7 @@ pub(crate) fn uncategorised(
                       AND d.kind = 'person'
                       AND p.deck_id is null";
 
-    let total_items = sqlite::one(&conn, stmt, params![user_id], sqlite::i32_from_row)?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
@@ -149,7 +132,7 @@ pub(crate) fn ancient(
 ) -> crate::Result<Pagination<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT d.id, d.name, 'person', d.insignia, d.font, d.graph_terminator, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
+    let stmt = "SELECT d.id, d.name, d.insignia, d.font, null as sort_date, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
                 WHERE d.user_id = ?1
                       AND d.kind = 'person'
@@ -160,12 +143,7 @@ pub(crate) fn ancient(
                 LIMIT ?2
                 OFFSET ?3";
 
-    let items = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &num_items, &offset],
-        decks::slimdeck_from_row,
-    )?;
+    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM (SELECT COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
@@ -176,7 +154,7 @@ pub(crate) fn ancient(
                             AND p.kind = 'point_begin'
                             AND birth_date < '0354-01-01')";
 
-    let total_items = sqlite::one(&conn, stmt, params![user_id], sqlite::i32_from_row)?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
@@ -191,7 +169,7 @@ pub(crate) fn medieval(
 ) -> crate::Result<Pagination<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT d.id, d.name, 'person', d.insignia, d.font, d.graph_terminator, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
+    let stmt = "SELECT d.id, d.name, d.insignia, d.font, null as sort_date, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
                 WHERE d.user_id = ?1
                       AND d.kind = 'person'
@@ -202,12 +180,7 @@ pub(crate) fn medieval(
                 LIMIT ?2
                 OFFSET ?3";
 
-    let items = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &num_items, &offset],
-        decks::slimdeck_from_row,
-    )?;
+    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM (SELECT COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
@@ -218,7 +191,7 @@ pub(crate) fn medieval(
                             AND p.kind = 'point_begin'
                             AND birth_date >= '0354-01-01' AND birth_date < '1469-01-01')";
 
-    let total_items = sqlite::one(&conn, stmt, params![user_id], sqlite::i32_from_row)?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
@@ -233,7 +206,7 @@ pub(crate) fn modern(
 ) -> crate::Result<Pagination<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT d.id, d.name, 'person', d.insignia, d.font, d.graph_terminator, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
+    let stmt = "SELECT d.id, d.name, d.insignia, d.font, null as sort_date, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
                 WHERE d.user_id = ?1
                       AND d.kind = 'person'
@@ -244,12 +217,7 @@ pub(crate) fn modern(
                 LIMIT ?2
                 OFFSET ?3";
 
-    let items = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &num_items, &offset],
-        decks::slimdeck_from_row,
-    )?;
+    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM (SELECT COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
@@ -260,7 +228,7 @@ pub(crate) fn modern(
                             AND p.kind = 'point_begin'
                             AND birth_date >= '1469-01-01' AND birth_date < '1856-01-01')";
 
-    let total_items = sqlite::one(&conn, stmt, params![user_id], sqlite::i32_from_row)?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
@@ -275,7 +243,7 @@ pub(crate) fn contemporary(
 ) -> crate::Result<Pagination<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT d.id, d.name, 'person', d.insignia, d.font, d.graph_terminator, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
+    let stmt = "SELECT d.id, d.name, d.insignia, d.font, null as sort_date, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
                 WHERE d.user_id = ?1
                       AND d.kind = 'person'
@@ -286,12 +254,7 @@ pub(crate) fn contemporary(
                 LIMIT ?2
                 OFFSET ?3";
 
-    let items = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &num_items, &offset],
-        decks::slimdeck_from_row,
-    )?;
+    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM (SELECT COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
@@ -302,7 +265,7 @@ pub(crate) fn contemporary(
                             AND p.kind = 'point_begin'
                             AND birth_date >= '1856-01-01')";
 
-    let total_items = sqlite::one(&conn, stmt, params![user_id], sqlite::i32_from_row)?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
@@ -316,11 +279,10 @@ pub(crate) fn get(
 ) -> crate::Result<interop::Person> {
     let conn = sqlite_pool.get()?;
 
-    let deck = sqlite::one(
+    let deck: interop::Person = sqlite::one(
         &conn,
         decks::DECKBASE_QUERY,
         params![&user_id, &person_id, &DeckKind::Person.to_string()],
-        person_from_row,
     )?;
 
     decks::hit(&conn, person_id)?;

@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::decks;
-use crate::db::sqlite::{self, SqlitePool};
+use crate::db::sqlite::{self, FromRow, SqlitePool};
 use crate::interop::decks as interop_decks;
 use crate::interop::decks::{DeckKind, SlimEvent};
 use crate::interop::events as interop;
@@ -74,47 +74,69 @@ impl From<(decks::DeckBase, EventExtra)> for interop::Event {
     }
 }
 
-fn event_extra_from_row(row: &Row) -> crate::Result<EventExtra> {
-    Ok(EventExtra {
-        location_textual: row.get(0)?,
-        longitude: row.get(1)?,
-        latitude: row.get(2)?,
-        location_fuzz: row.get(3)?,
+impl FromRow for EventExtra {
+    fn from_row(row: &Row) -> crate::Result<EventExtra> {
+        Ok(EventExtra {
+            location_textual: row.get(0)?,
+            longitude: row.get(1)?,
+            latitude: row.get(2)?,
+            location_fuzz: row.get(3)?,
 
-        date_textual: row.get(4)?,
-        exact_date: row.get(5)?,
-        lower_date: row.get(6)?,
-        upper_date: row.get(7)?,
-        date_fuzz: row.get(8)?,
+            date_textual: row.get(4)?,
+            exact_date: row.get(5)?,
+            lower_date: row.get(6)?,
+            upper_date: row.get(7)?,
+            date_fuzz: row.get(8)?,
 
-        importance: row.get(9)?,
-    })
+            importance: row.get(9)?,
+        })
+    }
 }
 
-fn from_row(row: &Row) -> crate::Result<interop::Event> {
-    Ok(interop::Event {
-        id: row.get(0)?,
-        title: row.get(1)?,
-        deck_kind: DeckKind::Event,
-        insignia: row.get(3)?,
-        font: row.get(2)?,
+impl FromRow for interop::Event {
+    fn from_row(row: &Row) -> crate::Result<interop::Event> {
+        Ok(interop::Event {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            deck_kind: DeckKind::Event,
+            insignia: row.get(3)?,
+            font: row.get(2)?,
 
-        location_textual: row.get(4)?,
-        longitude: row.get(5)?,
-        latitude: row.get(6)?,
-        location_fuzz: row.get(7)?,
+            location_textual: row.get(4)?,
+            longitude: row.get(5)?,
+            latitude: row.get(6)?,
+            location_fuzz: row.get(7)?,
 
-        date_textual: row.get(8)?,
-        exact_date: row.get(9)?,
-        lower_date: row.get(10)?,
-        upper_date: row.get(11)?,
-        date_fuzz: row.get(12)?,
+            date_textual: row.get(8)?,
+            exact_date: row.get(9)?,
+            lower_date: row.get(10)?,
+            upper_date: row.get(11)?,
+            date_fuzz: row.get(12)?,
 
-        importance: row.get(13)?,
+            importance: row.get(13)?,
 
-        notes: vec![],
-        arrivals: vec![],
-    })
+            notes: vec![],
+            arrivals: vec![],
+        })
+    }
+}
+
+impl FromRow for SlimEvent {
+    fn from_row(row: &Row) -> crate::Result<SlimEvent> {
+        Ok(SlimEvent {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            deck_kind: DeckKind::Event,
+            graph_terminator: row.get(3)?,
+            insignia: row.get(4)?,
+            font: row.get(5)?,
+
+            location_textual: row.get(6)?,
+
+            date_textual: row.get(7)?,
+            date: row.get(8)?,
+        })
+    }
 }
 
 pub(crate) fn get_or_create(
@@ -137,8 +159,7 @@ pub(crate) fn get_or_create(
                 "INSERT INTO event_extras(deck_id)
                  VALUES (?1)
                  RETURNING location_textual, longitude, latitude, location_fuzz, date_textual, exact_realdate, lower_realdate, upper_realdate, date_fuzz, importance",
-                params![&deck.id],
-                event_extra_from_row
+                params![&deck.id]
             )?,
             decks::DeckBaseOrigin::PreExisting => sqlite::one(
                 &tx,
@@ -146,7 +167,6 @@ pub(crate) fn get_or_create(
                  from event_extras
                  where deck_id=?1",
                 params![&deck.id],
-                event_extra_from_row
             )?
         };
 
@@ -167,7 +187,7 @@ pub(crate) fn listings(
                 WHERE user_id = ?1 AND kind = 'event'
                 ORDER BY created_at DESC";
 
-    sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)
+    sqlite::many(&conn, stmt, params![&user_id])
 }
 
 pub(crate) fn get(
@@ -185,7 +205,7 @@ pub(crate) fn get(
                        event_extras.date_fuzz, event_extras.importance
                 FROM decks LEFT JOIN event_extras ON event_extras.deck_id = decks.id
                 WHERE user_id = ?1 AND id = ?2";
-    let res = sqlite::one(&conn, stmt, params![&user_id, &event_id], from_row)?;
+    let res = sqlite::one(&conn, stmt, params![&user_id, &event_id])?;
 
     decks::hit(&conn, event_id)?;
 
@@ -234,7 +254,6 @@ pub(crate) fn edit(
             &event.date_fuzz,
             &event.importance,
         ],
-        event_extra_from_row,
     )?;
 
     tx.commit()?;
@@ -244,22 +263,6 @@ pub(crate) fn edit(
 
 pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, event_id: Key) -> crate::Result<()> {
     decks::delete(sqlite_pool, user_id, event_id)
-}
-
-fn slim_event_from_row(row: &Row) -> crate::Result<SlimEvent> {
-    Ok(SlimEvent {
-        id: row.get(0)?,
-        title: row.get(1)?,
-        deck_kind: DeckKind::Event,
-        graph_terminator: row.get(3)?,
-        insignia: row.get(4)?,
-        font: row.get(5)?,
-
-        location_textual: row.get(6)?,
-
-        date_textual: row.get(7)?,
-        date: row.get(8)?,
-    })
 }
 
 pub(crate) fn all_events_during_life(
@@ -294,6 +297,5 @@ pub(crate) fn all_events_during_life(
                 and d.user_id = ?1
          order by sortdate",
         params![&user_id, &deck_id],
-        slim_event_from_row
     )
 }

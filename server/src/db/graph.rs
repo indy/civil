@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::decks::get_slimdeck;
-use crate::db::sqlite::{self, SqlitePool};
+use crate::db::sqlite::{self, FromRow, SqlitePool};
 use crate::interop::decks as interop_decks;
 use crate::interop::font::Font;
 use crate::interop::graph as interop;
@@ -25,15 +25,15 @@ use crate::interop::Key;
 
 use std::collections::HashMap;
 
+use rusqlite::types::{FromSql, FromSqlResult, ValueRef};
 use rusqlite::{params, Connection, Row};
+
 #[allow(unused_imports)]
 use tracing::info;
 
 struct Connectivity {
     direction: Direction,
-
     ref_kind: interop_decks::RefKind,
-
     deck_id: Key,
     title: String,
     deck_kind: interop_decks::DeckKind,
@@ -42,25 +42,29 @@ struct Connectivity {
     font: Font,
 }
 
-fn connectivity_from_row(row: &Row) -> crate::Result<Connectivity> {
-    let d: i32 = row.get(0)?;
-    let direction: Direction = if d == 0 {
-        Direction::Incoming
-    } else {
-        Direction::Outgoing
-    };
+impl FromSql for Direction {
+    fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
+        let i = value.as_i64()?;
+        match i {
+            0 => Ok(Direction::Incoming),
+            _ => Ok(Direction::Outgoing),
+        }
+    }
+}
 
-    Ok(Connectivity {
-        direction,
-        ref_kind: row.get(1)?,
-        deck_id: row.get(2)?,
-        title: row.get(3)?,
-
-        deck_kind: row.get(4)?,
-        graph_terminator: row.get(5)?,
-        insignia: row.get(6)?,
-        font: row.get(7)?,
-    })
+impl FromRow for Connectivity {
+    fn from_row(row: &Row) -> crate::Result<Connectivity> {
+        Ok(Connectivity {
+            direction: row.get(0)?,
+            ref_kind: row.get(1)?,
+            deck_id: row.get(2)?,
+            title: row.get(3)?,
+            deck_kind: row.get(4)?,
+            graph_terminator: row.get(5)?,
+            insignia: row.get(6)?,
+            font: row.get(7)?,
+        })
+    }
 }
 
 fn slimdeck_from_connectivity(connectivity: &Connectivity) -> interop_decks::SlimDeck {
@@ -161,7 +165,7 @@ pub(crate) fn get(
 fn neighbours(conn: &Connection, user_id: Key, deck_id: Key) -> crate::Result<Vec<Connectivity>> {
     // 'incoming query' union 'outgoing query'
     //
-    let res = sqlite::many(
+    sqlite::many(
         conn,
         "SELECT 0, nd.kind, d.id, d.name, d.kind, d.graph_terminator, d.insignia, d.font
          FROM notes_decks nd, notes n, decks d
@@ -177,8 +181,5 @@ fn neighbours(conn: &Connection, user_id: Key, deck_id: Key) -> crate::Result<Ve
                AND d.id = nd.deck_id
                AND d.user_id = ?1",
         params![&user_id, &deck_id],
-        connectivity_from_row,
-    )?;
-
-    Ok(res)
+    )
 }

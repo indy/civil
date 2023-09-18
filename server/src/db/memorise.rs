@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::postfix_asterisks;
-use crate::db::sqlite::{self, SqlitePool};
+use crate::db::sqlite::{self, FromRow, SqlitePool};
 use crate::interop::decks as interop_decks;
 use crate::interop::memorise as interop;
 use crate::interop::Key;
@@ -40,18 +40,39 @@ impl From<(interop::FlashCard, interop_decks::SlimDeck)> for interop::Card {
     }
 }
 
-fn flashcard_from_row(row: &Row) -> crate::Result<interop::FlashCard> {
-    Ok(interop::FlashCard {
-        id: row.get(0)?,
+impl FromRow for interop::FlashCard {
+    fn from_row(row: &Row) -> crate::Result<interop::FlashCard> {
+        Ok(interop::FlashCard {
+            id: row.get(0)?,
 
-        note_id: row.get(1)?,
-        prompt: row.get(2)?,
-        next_test_date: row.get(3)?,
+            note_id: row.get(1)?,
+            prompt: row.get(2)?,
+            next_test_date: row.get(3)?,
 
-        easiness_factor: row.get(4)?,
-        interval: row.get(5)?,
-        repetition: row.get(6)?,
-    })
+            easiness_factor: row.get(4)?,
+            interval: row.get(5)?,
+            repetition: row.get(6)?,
+        })
+    }
+}
+
+impl FromRow for interop::Card {
+    fn from_row(row: &Row) -> crate::Result<interop::Card> {
+        Ok(interop::Card {
+            id: row.get(0)?,
+            note_id: row.get(1)?,
+            note_content: row.get(3)?,
+            deck_info: interop_decks::SlimDeck {
+                id: row.get(4)?,
+                title: row.get(5)?,
+                deck_kind: row.get(6)?,
+                graph_terminator: row.get(9)?,
+                insignia: row.get(7)?,
+                font: row.get(8)?,
+            },
+            prompt: row.get(2)?,
+        })
+    }
 }
 
 pub(crate) fn all_flashcards_for_deck(
@@ -63,8 +84,7 @@ pub(crate) fn all_flashcards_for_deck(
                  "SELECT c.id, c.note_id, c.prompt, c.next_test_date, c.easiness_factor, c.interval, c.repetition
                   FROM cards c, decks d, notes n
                   WHERE d.id=?1 AND n.deck_id = d.id AND c.note_id = n.id",
-                 params![&deck_id],
-                 flashcard_from_row)
+                 params![&deck_id])
 }
 
 pub(crate) fn all_flashcards_for_deck_arrivals(
@@ -79,8 +99,7 @@ pub(crate) fn all_flashcards_for_deck_arrivals(
                            FULL JOIN decks owner_deck on n.deck_id = owner_deck.id
                            INNER JOIN cards c on c.note_id = n.id
                   WHERE    nd.deck_id = ?1",
-                 params![&deck_id],
-                 flashcard_from_row)
+                 params![&deck_id])
 }
 
 pub(crate) fn all_flashcards_for_deck_additional_query(
@@ -112,7 +131,6 @@ pub(crate) fn all_flashcards_for_deck_additional_query(
                   ORDER BY rank ASC
                   LIMIT 100",
         params![&user_id, &sane_name, &deck_id],
-        flashcard_from_row,
     )
 }
 
@@ -140,7 +158,6 @@ pub(crate) fn all_flashcards_for_search_query(
          ORDER BY rank ASC
          LIMIT 100",
         params![&user_id, &q],
-        flashcard_from_row,
     )
 }
 
@@ -173,7 +190,6 @@ pub(crate) fn create_card(
             &interval,
             &repetition
         ],
-        flashcard_from_row,
     )?;
 
     tx.commit()?;
@@ -196,7 +212,6 @@ pub(crate) fn get_card_full_fat(
          FROM cards
          WHERE user_id=?1 and id=?2",
         params![&user_id, &card_id],
-        flashcard_from_row,
     )
 }
 
@@ -251,7 +266,6 @@ pub(crate) fn edit_flashcard(
          WHERE id = ?2 and user_id = ?1
          RETURNING id, note_id, prompt, next_test_date, easiness_factor, interval, repetition",
         params![&user_id, &flashcard_id, &flashcard.prompt],
-        flashcard_from_row,
     )
 }
 
@@ -280,23 +294,6 @@ pub(crate) fn delete_flashcard(
     Ok(())
 }
 
-fn interop_card_from_row(row: &Row) -> crate::Result<interop::Card> {
-    Ok(interop::Card {
-        id: row.get(0)?,
-        note_id: row.get(1)?,
-        note_content: row.get(3)?,
-        deck_info: interop_decks::SlimDeck {
-            id: row.get(4)?,
-            title: row.get(5)?,
-            deck_kind: row.get(6)?,
-            graph_terminator: row.get(9)?,
-            insignia: row.get(7)?,
-            font: row.get(8)?,
-        },
-        prompt: row.get(2)?,
-    })
-}
-
 pub(crate) fn get_cards(
     sqlite_pool: &SqlitePool,
     user_id: Key,
@@ -312,7 +309,6 @@ pub(crate) fn get_cards(
          FROM cards c, decks d, notes n
          WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = ?1 and c.next_test_date < ?2",
         params![&user_id, &due],
-        interop_card_from_row
     )
 }
 
@@ -331,8 +327,7 @@ pub(crate) fn get_practice_card(
          WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = ?1
          ORDER BY random()
          LIMIT 1",
-        params![&user_id],
-        interop_card_from_row
+        params![&user_id]
     )
 }
 
@@ -346,37 +341,30 @@ pub(crate) fn get_cards_upcoming_review(
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    fn naive_datetime_from_row(row: &Row) -> crate::Result<chrono::NaiveDateTime> {
-        Ok(row.get(0)?)
-    }
-
     let review_count = sqlite::one(
         &tx,
         "SELECT count(*) as review_count
          FROM cards
          WHERE user_id = ?1 and next_test_date < ?2",
         params![&user_id, &due],
-        sqlite::i32_from_row,
     )?;
 
-    let num_cards = sqlite::one(
+    let num_cards: i32 = sqlite::one(
         &tx,
         "SELECT count(*) as review_count
          FROM cards
          WHERE user_id = ?1",
         params![&user_id],
-        sqlite::i32_from_row,
     )?;
 
     let earliest_review_date: Option<chrono::NaiveDateTime> = if num_cards > 0 {
         Some(sqlite::one(
             &tx,
             "SELECT MIN(next_test_date) as earliest_review_date
-         FROM cards
-         WHERE user_id = ?1
-         GROUP BY user_id",
+             FROM cards
+             WHERE user_id = ?1
+             GROUP BY user_id",
             params![&user_id],
-            naive_datetime_from_row,
         )?)
     } else {
         None

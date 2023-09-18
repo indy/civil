@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use rusqlite::{params, Connection, Row};
+use rusqlite::{params, Connection};
 use tracing::info;
 
 use crate::db::sqlite;
@@ -30,31 +30,31 @@ pub(crate) fn get_num_decks(
     let stmt = "SELECT count(*) as count FROM decks WHERE kind='$deck_kind' AND user_id = ?1";
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
 
-    sqlite::one(conn, &stmt, params![&user_id], sqlite::i32_from_row)
+    sqlite::one(conn, &stmt, params![&user_id])
 }
 
 pub(crate) fn get_num_refs(conn: &Connection, user_id: Key) -> crate::Result<i32> {
     let stmt = "SELECT count(*) AS count
                 FROM notes_decks nd LEFT JOIN decks d ON d.id = nd.deck_id
                 WHERE d.user_id = ?1";
-    sqlite::one(conn, stmt, params![&user_id], sqlite::i32_from_row)
+    sqlite::one(conn, stmt, params![&user_id])
 }
 
 pub(crate) fn get_num_cards(conn: &Connection, user_id: Key) -> crate::Result<i32> {
     let stmt = "SELECT count(*) AS count FROM cards WHERE user_id = ?1";
-    sqlite::one(conn, stmt, params![&user_id], sqlite::i32_from_row)
+    sqlite::one(conn, stmt, params![&user_id])
 }
 
 pub(crate) fn get_num_card_ratings(conn: &Connection, user_id: Key) -> crate::Result<i32> {
     let stmt = "SELECT count(*) AS count
                 FROM card_ratings cr LEFT JOIN cards c ON c.id = cr.card_id
                 WHERE c.user_id = ?1";
-    sqlite::one(conn, stmt, params![&user_id], sqlite::i32_from_row)
+    sqlite::one(conn, stmt, params![&user_id])
 }
 
 pub(crate) fn get_num_images(conn: &Connection, user_id: Key) -> crate::Result<i32> {
     let stmt = "SELECT count(*) AS count FROM images WHERE user_id = ?1";
-    sqlite::one(conn, stmt, params![&user_id], sqlite::i32_from_row)
+    sqlite::one(conn, stmt, params![&user_id])
 }
 
 pub(crate) fn get_num_notes_in_decks(
@@ -67,7 +67,7 @@ pub(crate) fn get_num_notes_in_decks(
                 WHERE d.kind='$deck_kind' AND n.user_id = ?1";
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
 
-    sqlite::one(conn, &stmt, params![&user_id], sqlite::i32_from_row)
+    sqlite::one(conn, &stmt, params![&user_id])
 }
 
 pub(crate) fn get_num_points_in_decks(
@@ -80,7 +80,7 @@ pub(crate) fn get_num_points_in_decks(
                 WHERE d.kind='$deck_kind' AND d.user_id = ?1";
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
 
-    sqlite::one(conn, &stmt, params![&user_id], sqlite::i32_from_row)
+    sqlite::one(conn, &stmt, params![&user_id])
 }
 
 pub(crate) fn get_num_refs_between(
@@ -98,7 +98,7 @@ pub(crate) fn get_num_refs_between(
     let stmt = stmt.replace("$deck_kind_from", &deck_from.to_string());
     let stmt = stmt.replace("$deck_kind_to", &deck_to.to_string());
 
-    sqlite::one(conn, &stmt, params![&user_id], sqlite::i32_from_row)
+    sqlite::one(conn, &stmt, params![&user_id])
 }
 
 pub fn generate_stats(conn: &Connection, user_id: Key) -> crate::Result<()> {
@@ -109,11 +109,7 @@ pub fn generate_stats(conn: &Connection, user_id: Key) -> crate::Result<()> {
     let num_card_ratings = get_num_card_ratings(conn, user_id)?;
     let num_images = get_num_images(conn, user_id)?;
 
-    fn id_from_row(row: &Row) -> crate::Result<Key> {
-        Ok(row.get(0)?)
-    }
-
-    let id = sqlite::one(
+    let id: Key = sqlite::one(
         conn,
         "INSERT INTO stats(user_id, num_refs, num_cards, num_card_ratings, num_images)
          VALUES(?1, ?2, ?3, ?4, ?5)
@@ -125,7 +121,6 @@ pub fn generate_stats(conn: &Connection, user_id: Key) -> crate::Result<()> {
             &num_card_ratings,
             &num_images
         ],
-        id_from_row,
     )?;
 
     let deck_kinds = [

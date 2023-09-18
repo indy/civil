@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::decks as decks_db;
-use crate::db::sqlite::{self, SqlitePool};
+use crate::db::sqlite::{self, FromRow, SqlitePool};
 use crate::interop::decks as interop_decks;
 use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::edges as interop;
@@ -27,18 +27,20 @@ use rusqlite::{params, Connection, Row};
 #[allow(unused_imports)]
 use tracing::info;
 
-fn ref_from_row(row: &Row) -> crate::Result<interop_decks::Ref> {
-    Ok(interop_decks::Ref {
-        note_id: row.get(0)?,
-        id: row.get(1)?,
-        title: row.get(2)?,
-        deck_kind: row.get(3)?,
-        ref_kind: row.get(4)?,
-        annotation: row.get(5)?,
-        insignia: row.get(6)?,
-        font: row.get(7)?,
-        graph_terminator: row.get(8)?,
-    })
+impl FromRow for interop_decks::Ref {
+    fn from_row(row: &Row) -> crate::Result<interop_decks::Ref> {
+        Ok(interop_decks::Ref {
+            note_id: row.get(0)?,
+            id: row.get(1)?,
+            title: row.get(2)?,
+            deck_kind: row.get(3)?,
+            ref_kind: row.get(4)?,
+            annotation: row.get(5)?,
+            insignia: row.get(6)?,
+            font: row.get(7)?,
+            graph_terminator: row.get(8)?,
+        })
+    }
 }
 
 pub(crate) fn create_from_note_to_decks(
@@ -127,7 +129,7 @@ pub(crate) fn create_from_note_to_decks(
         "SELECT nd.note_id, d.id, d.name, d.kind as deck_kind, nd.kind as ref_kind, nd.annotation, d.insignia, d.font, d.graph_terminator
                           FROM notes_decks nd, decks d
                           WHERE nd.note_id = ?1 AND d.id = nd.deck_id";
-    let refs = sqlite::many(&tx, stmt_all_decks, params![&note_id], ref_from_row)?;
+    let refs: Vec<interop_decks::Ref> = sqlite::many(&tx, stmt_all_decks, params![&note_id])?;
 
     let recents = get_recents(&tx, user_id)?;
 
@@ -154,10 +156,5 @@ fn get_recents(conn: &Connection, user_id: Key) -> crate::Result<Vec<SlimDeck>> 
               LIMIT 100) -- without this limit query returns incorrect results
          LIMIT 8";
 
-    sqlite::many(
-        conn,
-        stmt_recent_refs,
-        params![&user_id],
-        decks_db::slimdeck_from_row,
-    )
+    sqlite::many(conn, stmt_recent_refs, params![&user_id])
 }

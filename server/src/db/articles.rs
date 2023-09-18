@@ -17,7 +17,7 @@
 
 use crate::db::decks;
 use crate::db::notes;
-use crate::db::sqlite::{self, SqlitePool};
+use crate::db::sqlite::{self, FromRow, SqlitePool};
 use crate::error::Error;
 use crate::interop::articles as interop;
 use crate::interop::decks::{DeckKind, Pagination, SlimDeck};
@@ -64,29 +64,31 @@ impl From<(decks::DeckBase, ArticleExtra)> for interop::Article {
     }
 }
 
-fn from_row(row: &Row) -> crate::Result<interop::Article> {
-    Ok(interop::Article {
-        id: row.get(0)?,
-        title: row.get(1)?,
+impl FromRow for interop::Article {
+    fn from_row(row: &Row) -> crate::Result<interop::Article> {
+        Ok(interop::Article {
+            id: row.get(0)?,
+            title: row.get(1)?,
 
-        deck_kind: DeckKind::Article,
+            deck_kind: DeckKind::Article,
 
-        insignia: row.get(8)?,
-        font: row.get(9)?,
+            insignia: row.get(8)?,
+            font: row.get(9)?,
 
-        created_at: row.get(6)?,
+            created_at: row.get(6)?,
 
-        source: row.get(2)?,
-        author: row.get(3)?,
-        short_description: row.get(4)?,
+            source: row.get(2)?,
+            author: row.get(3)?,
+            short_description: row.get(4)?,
 
-        rating: row.get(5)?,
+            rating: row.get(5)?,
 
-        notes: vec![],
-        arrivals: vec![],
+            notes: vec![],
+            arrivals: vec![],
 
-        published_date: row.get(7)?,
-    })
+            published_date: row.get(7)?,
+        })
+    }
 }
 
 pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<interop::Article>> {
@@ -98,7 +100,7 @@ pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<i
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
                 WHERE user_id = ?1 AND kind = 'article'
                 ORDER BY created_at DESC";
-    sqlite::many(&conn, stmt, params![&user_id], from_row)
+    sqlite::many(&conn, stmt, params![&user_id])
 }
 
 pub(crate) fn recent(
@@ -117,17 +119,12 @@ pub(crate) fn recent(
                 ORDER BY created_at desc
                 LIMIT ?2
                 OFFSET ?3";
-    let items = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &num_items, &offset],
-        from_row,
-    )?;
+    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM decks
                 WHERE user_id = ?1 and kind = 'article'";
-    let total_items = sqlite::one(&conn, stmt, params![user_id], sqlite::i32_from_row)?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<interop::Article> { items, total_items };
 
@@ -150,18 +147,14 @@ pub(crate) fn rated(
                 ORDER BY article_extras.rating desc, decks.id desc
                 LIMIT ?2
                 OFFSET ?3";
-    let items = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &num_items, &offset],
-        from_row,
-    )?;
+    let items: Vec<interop::Article> =
+        sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
                 WHERE user_id = ?1 AND kind = 'article' AND article_extras.rating > 0";
 
-    let total_items = sqlite::one(&conn, stmt, params![user_id], sqlite::i32_from_row)?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<interop::Article> { items, total_items };
 
@@ -189,12 +182,7 @@ pub(crate) fn orphans(
                 ORDER BY d.created_at desc
                 LIMIT ?2
                 OFFSET ?3";
-    let items = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &num_items, &offset],
-        decks::slimdeck_from_row,
-    )?;
+    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM decks d LEFT JOIN article_extras pe ON pe.deck_id=d.id
@@ -206,7 +194,7 @@ pub(crate) fn orphans(
                                  GROUP by n.deck_id)
                 AND d.kind = 'article'
                 AND d.user_id = ?1";
-    let total_items = sqlite::one(&conn, stmt, params![user_id], sqlite::i32_from_row)?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
@@ -225,7 +213,7 @@ pub(crate) fn get(
                        decks.created_at, article_extras.published_date, decks.insignia, decks.font
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
                 WHERE user_id = ?1 AND id = ?2 AND kind = 'article'";
-    let res = sqlite::one(&conn, stmt, params![&user_id, &article_id], from_row)?;
+    let res = sqlite::one(&conn, stmt, params![&user_id, &article_id])?;
 
     decks::hit(&conn, article_id)?;
 
@@ -236,14 +224,16 @@ pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, article_id: Key) ->
     decks::delete(sqlite_pool, user_id, article_id)
 }
 
-fn article_extra_from_row(row: &Row) -> crate::Result<ArticleExtra> {
-    Ok(ArticleExtra {
-        source: row.get(1)?,
-        author: row.get(2)?,
-        short_description: row.get(3)?,
-        rating: row.get(4)?,
-        published_date: row.get(5)?,
-    })
+impl FromRow for ArticleExtra {
+    fn from_row(row: &Row) -> crate::Result<ArticleExtra> {
+        Ok(ArticleExtra {
+            source: row.get(1)?,
+            author: row.get(2)?,
+            short_description: row.get(3)?,
+            rating: row.get(4)?,
+            published_date: row.get(5)?,
+        })
+    }
 }
 
 pub(crate) fn edit(
@@ -270,8 +260,7 @@ pub(crate) fn edit(
     let stmt = "SELECT deck_id, source, author, short_description, rating, published_date
                 FROM article_extras
                 WHERE deck_id = ?1";
-    let article_extras_exists =
-        sqlite::many(&tx, stmt, params![&article_id], article_extra_from_row)?;
+    let article_extras_exists: Vec<ArticleExtra> = sqlite::many(&tx, stmt, params![&article_id])?;
 
     const TWITTER_INSIGNIA_BIT: i32 = 1;
     const BOOK_INSIGNIA_BIT: i32 = 2;
@@ -323,7 +312,6 @@ pub(crate) fn edit(
             &article.rating,
             &article.published_date,
         ],
-        article_extra_from_row,
     )?;
 
     tx.commit()?;
@@ -360,17 +348,13 @@ pub(crate) fn get_or_create(
                 "INSERT INTO article_extras(deck_id, source, author, short_description, rating, published_date)
                  VALUES (?1, ?2, ?3, ?4, ?5, ?6)
                  RETURNING deck_id, source, author, short_description, rating, published_date",
-                params![&deck.id, &source, &author, &short_description, &rating, &published_date],
-                article_extra_from_row
-            )?,
+                params![&deck.id, &source, &author, &short_description, &rating, &published_date])?,
             decks::DeckBaseOrigin::PreExisting => sqlite::one(
                 &tx,
                 "select deck_id, source, author, short_description, rating, published_date
                  from article_extras
                  where deck_id=?1",
-                params![&deck.id],
-                article_extra_from_row
-            )?
+                params![&deck.id])?
         };
 
     tx.commit()?;

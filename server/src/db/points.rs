@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::sqlite::{self, SqlitePool};
+use crate::db::sqlite::{self, FromRow, SqlitePool};
 use crate::interop::points as interop;
 use crate::interop::Key;
 
@@ -32,22 +32,24 @@ impl fmt::Display for interop::PointKind {
     }
 }
 
-fn point_from_row(row: &Row) -> crate::Result<interop::Point> {
-    Ok(interop::Point {
-        id: row.get(3)?,
-        kind: row.get(4)?,
-        title: row.get(5)?,
-        font: row.get(9)?,
+impl FromRow for interop::Point {
+    fn from_row(row: &Row) -> crate::Result<interop::Point> {
+        Ok(interop::Point {
+            id: row.get(3)?,
+            kind: row.get(4)?,
+            title: row.get(5)?,
+            font: row.get(9)?,
 
-        location_textual: row.get(6)?,
+            location_textual: row.get(6)?,
 
-        date_textual: row.get(7)?,
-        date: row.get(8)?,
+            date_textual: row.get(7)?,
+            date: row.get(8)?,
 
-        deck_id: row.get(0)?,
-        deck_name: row.get(1)?,
-        deck_kind: row.get(2)?,
-    })
+            deck_id: row.get(0)?,
+            deck_name: row.get(1)?,
+            deck_kind: row.get(2)?,
+        })
+    }
 }
 
 pub(crate) fn all(
@@ -77,7 +79,6 @@ pub(crate) fn all(
                 and p.deck_id = d.id
          order by sortdate",
         params![&user_id, &deck_id],
-        point_from_row,
     )
 }
 
@@ -135,7 +136,6 @@ pub(crate) fn all_points_during_life(
                 and d.user_id = ?1
          order by sortdate",
         params![&user_id, &deck_id],
-        point_from_row
     )
 }
 

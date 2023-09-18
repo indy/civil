@@ -17,16 +17,18 @@
 
 use std::cmp;
 
-use crate::db::sqlite::{self, SqlitePool};
+use crate::db::sqlite::{self, FromRow, SqlitePool};
 use crate::interop::uploader as interop;
 use crate::interop::Key;
 
 use rusqlite::{params, Row};
 
-fn user_uploaded_image_from_row(row: &Row) -> crate::Result<interop::UserUploadedImage> {
-    Ok(interop::UserUploadedImage {
-        filename: row.get(0)?,
-    })
+impl FromRow for interop::UserUploadedImage {
+    fn from_row(row: &Row) -> crate::Result<interop::UserUploadedImage> {
+        Ok(interop::UserUploadedImage {
+            filename: row.get(0)?,
+        })
+    }
 }
 
 pub(crate) fn get_recent(
@@ -47,17 +49,11 @@ pub(crate) fn get_recent(
          ORDER BY id DESC
          LIMIT ?2",
         params![&user_id, &limit],
-        user_uploaded_image_from_row,
     )
 }
 
 pub(crate) fn get_image_count(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<i32> {
     let conn = sqlite_pool.get()?;
-
-    fn from_row(row: &Row) -> crate::Result<i32> {
-        let i = row.get(0)?;
-        Ok(i)
-    }
 
     sqlite::one(
         &conn,
@@ -65,7 +61,6 @@ pub(crate) fn get_image_count(sqlite_pool: &SqlitePool, user_id: Key) -> crate::
          FROM users
          WHERE id = ?1",
         params![&user_id],
-        from_row,
     )
 }
 

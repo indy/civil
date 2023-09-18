@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::decks;
-use crate::db::sqlite::{self, SqlitePool};
+use crate::db::sqlite::{self, FromRow, SqlitePool};
 use crate::interop::decks as interop_decks;
 use crate::interop::decks::DeckKind;
 use crate::interop::font::Font;
@@ -25,17 +25,19 @@ use crate::interop::Key;
 
 use rusqlite::{params, Row};
 
-fn from_row(row: &Row) -> crate::Result<interop::Timeline> {
-    Ok(interop::Timeline {
-        id: row.get(0)?,
-        title: row.get(1)?,
-        deck_kind: DeckKind::Timeline,
-        insignia: row.get(4)?,
-        font: row.get(5)?,
-        points: vec![],
-        notes: vec![],
-        arrivals: vec![],
-    })
+impl FromRow for interop::Timeline {
+    fn from_row(row: &Row) -> crate::Result<interop::Timeline> {
+        Ok(interop::Timeline {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            deck_kind: DeckKind::Timeline,
+            insignia: row.get(4)?,
+            font: row.get(5)?,
+            points: vec![],
+            notes: vec![],
+            arrivals: vec![],
+        })
+    }
 }
 
 pub(crate) fn get_or_create(
@@ -65,7 +67,7 @@ pub(crate) fn listings(
                 WHERE user_id = ?1 AND kind = 'timeline'
                 ORDER BY created_at DESC";
 
-    sqlite::many(&conn, stmt, params![&user_id], decks::slimdeck_from_row)
+    sqlite::many(&conn, stmt, params![&user_id])
 }
 
 pub(crate) fn get(
@@ -79,7 +81,6 @@ pub(crate) fn get(
         &conn,
         decks::DECKBASE_QUERY,
         params![&user_id, &timeline_id, &DeckKind::Timeline.to_string()],
-        from_row,
     )?;
 
     decks::hit(&conn, timeline_id)?;

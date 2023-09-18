@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::notes;
-use crate::db::sqlite::{self, SqlitePool};
+use crate::db::sqlite::{self, FromRow, SqlitePool};
 use crate::error::Error;
 use crate::interop::decks as interop;
 use crate::interop::font::Font;
@@ -25,6 +25,11 @@ use rusqlite::{params, Connection, Row};
 
 #[allow(unused_imports)]
 use tracing::{info, warn};
+
+pub(crate) const DECKBASE_QUERY: &str =
+    "select id, name, created_at, graph_terminator, insignia, font
+                                         from decks
+                                         where user_id = ?1 and id = ?2 and kind = ?3";
 
 pub(crate) enum DeckBaseOrigin {
     Created,
@@ -41,15 +46,45 @@ pub struct DeckBase {
     pub font: Font,
 }
 
-fn deckbase_from_row(row: &Row) -> crate::Result<DeckBase> {
-    Ok(DeckBase {
-        id: row.get(0)?,
-        title: row.get(1)?,
-        created_at: row.get(2)?,
-        graph_terminator: row.get(3)?,
-        insignia: row.get(4)?,
-        font: row.get(5)?,
-    })
+impl FromRow for interop::SlimDeck {
+    fn from_row(row: &Row) -> crate::Result<interop::SlimDeck> {
+        Ok(interop::SlimDeck {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            deck_kind: row.get(2)?,
+            insignia: row.get(3)?,
+            font: row.get(4)?,
+            graph_terminator: row.get(5)?,
+        })
+    }
+}
+
+impl FromRow for DeckBase {
+    fn from_row(row: &Row) -> crate::Result<DeckBase> {
+        Ok(DeckBase {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            created_at: row.get(2)?,
+            graph_terminator: row.get(3)?,
+            insignia: row.get(4)?,
+            font: row.get(5)?,
+        })
+    }
+}
+
+impl FromRow for interop::Hit {
+    fn from_row(row: &Row) -> crate::Result<interop::Hit> {
+        Ok(interop::Hit {
+            created_at: row.get(0)?,
+        })
+    }
+}
+
+impl FromRow for Font {
+    fn from_row(row: &Row) -> crate::Result<Font> {
+        let font = row.get(0)?;
+        Ok(font)
+    }
 }
 
 pub fn recently_visited(
@@ -66,7 +101,7 @@ pub fn recently_visited(
                 ORDER BY most_recent_visit DESC
                 LIMIT ?2";
 
-    sqlite::many(&conn, stmt, params![&user_id, &num], slimdeck_from_row)
+    sqlite::many(&conn, stmt, params![&user_id, &num])
 }
 
 fn num_decks_for_deck_kind(
@@ -77,29 +112,8 @@ fn num_decks_for_deck_kind(
     let conn = sqlite_pool.get()?;
     let stmt = "SELECT count(*) FROM decks where user_id=?1 AND kind=?2;";
 
-    sqlite::one(
-        &conn,
-        stmt,
-        params![user_id, &deck_kind.to_string()],
-        sqlite::i32_from_row,
-    )
+    sqlite::one(&conn, stmt, params![user_id, &deck_kind.to_string()])
 }
-
-pub(crate) fn slimdeck_from_row(row: &Row) -> crate::Result<interop::SlimDeck> {
-    Ok(interop::SlimDeck {
-        id: row.get(0)?,
-        title: row.get(1)?,
-        deck_kind: row.get(2)?,
-        insignia: row.get(3)?,
-        font: row.get(4)?,
-        graph_terminator: row.get(5)?,
-    })
-}
-
-pub(crate) const DECKBASE_QUERY: &str =
-    "select id, name, created_at, graph_terminator, insignia, font
-                                         from decks
-                                         where user_id = ?1 and id = ?2 and kind = ?3";
 
 pub(crate) fn pagination(
     sqlite_pool: &SqlitePool,
@@ -122,7 +136,6 @@ pub(crate) fn pagination(
         &conn,
         stmt,
         params![&user_id, &deck_kind.to_string(), &num_items, &offset],
-        slimdeck_from_row,
     )?;
 
     let total_items = num_decks_for_deck_kind(sqlite_pool, user_id, deck_kind)?;
@@ -163,15 +176,9 @@ pub(crate) fn hit(conn: &Connection, deck_id: Key) -> crate::Result<()> {
 }
 
 pub(crate) fn get_hits(sqlite_pool: &SqlitePool, deck_id: Key) -> crate::Result<Vec<interop::Hit>> {
-    fn hit_from_row(row: &Row) -> crate::Result<interop::Hit> {
-        Ok(interop::Hit {
-            created_at: row.get(0)?,
-        })
-    }
-
     let conn = sqlite_pool.get()?;
     let stmt = "SELECT created_at FROM hits WHERE deck_id = ?1 ORDER BY created_at DESC;";
-    sqlite::many(&conn, stmt, params![&deck_id], hit_from_row)
+    sqlite::many(&conn, stmt, params![&deck_id])
 }
 
 fn deckbase_get_by_name(
@@ -183,12 +190,7 @@ fn deckbase_get_by_name(
     let stmt = "SELECT id, name, created_at, graph_terminator, insignia, font
                 FROM DECKS
                 WHERE user_id = ?1 AND name = ?2 AND kind = ?3";
-    sqlite::one(
-        conn,
-        stmt,
-        params![&user_id, &name, &kind.to_string()],
-        deckbase_from_row,
-    )
+    sqlite::one(conn, stmt, params![&user_id, &name, &kind.to_string()])
 }
 
 // note: will execute multiple sql write statements so should be in a transaction
@@ -216,7 +218,6 @@ pub(crate) fn deckbase_create(
             &insignia,
             &i32::from(font),
         ],
-        deckbase_from_row,
     )?;
 
     // create the mandatory NoteKind::NoteDeckMeta
@@ -259,7 +260,6 @@ pub(crate) fn deckbase_edit(
             insignia,
             &i32::from(font)
         ],
-        deckbase_from_row,
     )
 }
 
@@ -272,7 +272,7 @@ pub(crate) fn get_slimdeck(
                 FROM decks
                 WHERE user_id = ?1 AND id = ?2";
 
-    sqlite::one(conn, stmt, params![&user_id, &deck_id], slimdeck_from_row)
+    sqlite::one(conn, stmt, params![&user_id, &deck_id])
 }
 
 pub(crate) fn insignia_filter(
@@ -295,16 +295,10 @@ pub(crate) fn insignia_filter(
         &conn,
         stmt,
         params![&user_id, &insignia, &num_items, &offset],
-        slimdeck_from_row,
     )?;
 
     let stmt = "SELECT count(*) FROM decks where user_id=?1 AND insignia & ?2;";
-    let total_items = sqlite::one(
-        &conn,
-        stmt,
-        params![user_id, &insignia],
-        sqlite::i32_from_row,
-    )?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id, &insignia])?;
 
     let res = interop::Pagination::<interop::SlimDeck> { items, total_items };
 
@@ -327,7 +321,7 @@ pub(crate) fn recent(
     let stmt = stmt.replace("$deck_kind", &deck_kind.to_string());
     let stmt = stmt.replace("$limit", &limit.to_string());
 
-    sqlite::many(&conn, &stmt, params![&user_id], slimdeck_from_row)
+    sqlite::many(&conn, &stmt, params![&user_id])
 }
 
 // delete anything that's represented as a deck (article, person, idea, timeline, quote, dialogue)
@@ -345,16 +339,10 @@ pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, id: Key) -> crate::
 }
 
 fn get_font_of_deck(conn: &Connection, deck_id: Key) -> crate::Result<Font> {
-    fn font_from_row(row: &Row) -> crate::Result<Font> {
-        let font = row.get(0)?;
-        Ok(font)
-    }
-
     sqlite::one(
         conn,
         "select font from decks where id = ?1",
         params![&deck_id],
-        font_from_row,
     )
 }
 

@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::interop::Key;
+
 #[allow(unused_imports)]
 use crate::error::{display_local_backtrace, Error};
 #[allow(unused_imports)]
@@ -22,10 +24,42 @@ use rusqlite::{Connection, Row, ToSql};
 #[allow(unused_imports)]
 use tracing::error;
 
-pub type SqlitePool = r2d2::Pool<r2d2_sqlite::SqliteConnectionManager>;
+pub(crate) type SqlitePool = r2d2::Pool<r2d2_sqlite::SqliteConnectionManager>;
 
-pub(crate) fn i32_from_row(row: &Row) -> crate::Result<i32> {
-    Ok(row.get(0)?)
+pub(crate) trait FromRow {
+    fn from_row(row: &Row) -> crate::Result<Self>
+    where
+        Self: Sized;
+}
+
+impl FromRow for i32 {
+    fn from_row(row: &Row) -> crate::Result<i32> {
+        Ok(row.get(0)?)
+    }
+}
+
+impl FromRow for Key {
+    fn from_row(row: &Row) -> crate::Result<Key> {
+        Ok(row.get(0)?)
+    }
+}
+
+impl FromRow for Option<Key> {
+    fn from_row(row: &Row) -> crate::Result<Option<Key>> {
+        Ok(row.get(0)?)
+    }
+}
+
+impl FromRow for String {
+    fn from_row(row: &Row) -> crate::Result<String> {
+        Ok(row.get(0)?)
+    }
+}
+
+impl FromRow for chrono::NaiveDateTime {
+    fn from_row(row: &Row) -> crate::Result<chrono::NaiveDateTime> {
+        Ok(row.get(0)?)
+    }
 }
 
 pub(crate) fn zero(conn: &Connection, sql: &str, params: &[&dyn ToSql]) -> crate::Result<()> {
@@ -39,11 +73,10 @@ pub(crate) fn zero(conn: &Connection, sql: &str, params: &[&dyn ToSql]) -> crate
     }
 }
 
-pub(crate) fn one<T>(
+pub(crate) fn one<T: FromRow>(
     conn: &Connection,
     sql: &str,
     params: &[&dyn ToSql],
-    from_row: fn(&Row) -> crate::Result<T>,
 ) -> crate::Result<T> {
     let mut stmt = match conn.prepare_cached(sql) {
         Ok(st) => st,
@@ -62,7 +95,7 @@ pub(crate) fn one<T>(
             return Err(Error::Sqlite(e));
         }
     } {
-        let res: T = match from_row(row) {
+        let res: T = match FromRow::from_row(row) {
             Ok(r) => r,
             Err(e) => {
                 error!("from_row error in query: {}", sql);
@@ -76,11 +109,10 @@ pub(crate) fn one<T>(
     }
 }
 
-pub(crate) fn many<T>(
+pub(crate) fn many<T: FromRow>(
     conn: &Connection,
     sql: &str,
     params: &[&dyn ToSql],
-    from_row: fn(&Row) -> crate::Result<T>,
 ) -> crate::Result<Vec<T>> {
     let mut stmt = match conn.prepare_cached(sql) {
         Ok(st) => st,
@@ -102,7 +134,7 @@ pub(crate) fn many<T>(
             return Err(Error::Sqlite(e));
         }
     } {
-        let res: T = match from_row(row) {
+        let res: T = match FromRow::from_row(row) {
             Ok(r) => r,
             Err(e) => {
                 error!("from_row error in query: {}", sql);

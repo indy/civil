@@ -16,7 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::decks;
-use crate::db::sqlite::{self, SqlitePool};
+use crate::db::sqlite::{self, FromRow, SqlitePool};
 use crate::interop::decks::{DeckKind, Pagination, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::ideas as interop;
@@ -26,18 +26,20 @@ use rusqlite::{params, Row};
 #[allow(unused_imports)]
 use tracing::info;
 
-fn idea_from_row(row: &Row) -> crate::Result<interop::Idea> {
-    Ok(interop::Idea {
-        id: row.get(0)?,
-        title: row.get(1)?,
-        deck_kind: DeckKind::Idea,
-        insignia: row.get(4)?,
-        font: row.get(5)?,
-        graph_terminator: row.get(3)?,
-        created_at: row.get(2)?,
-        notes: vec![],
-        arrivals: vec![],
-    })
+impl FromRow for interop::Idea {
+    fn from_row(row: &Row) -> crate::Result<interop::Idea> {
+        Ok(interop::Idea {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            deck_kind: DeckKind::Idea,
+            insignia: row.get(4)?,
+            font: row.get(5)?,
+            graph_terminator: row.get(3)?,
+            created_at: row.get(2)?,
+            notes: vec![],
+            arrivals: vec![],
+        })
+    }
 }
 
 pub(crate) fn get_or_create(
@@ -70,15 +72,10 @@ pub(crate) fn recent(
                 LIMIT ?2
                 OFFSET ?3";
 
-    let items = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &num_items, &offset],
-        decks::slimdeck_from_row,
-    )?;
+    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*) FROM decks where user_id=?1 AND kind='idea';";
-    let total_items = sqlite::one(&conn, stmt, params![user_id], sqlite::i32_from_row)?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
@@ -107,12 +104,7 @@ pub(crate) fn orphans(
                 LIMIT ?2
                 OFFSET ?3";
 
-    let items = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &num_items, &offset],
-        decks::slimdeck_from_row,
-    )?;
+    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM decks
@@ -124,7 +116,7 @@ pub(crate) fn orphans(
                                GROUP BY n.deck_id)
                 AND kind = 'idea'
                 AND user_id = ?1";
-    let total_items = sqlite::one(&conn, stmt, params![user_id], sqlite::i32_from_row)?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
@@ -147,12 +139,7 @@ pub(crate) fn unnoted(
                 ORDER BY d.created_at DESC
                 LIMIT ?2
                 OFFSET ?3";
-    let items = sqlite::many(
-        &conn,
-        stmt,
-        params![&user_id, &num_items, &offset],
-        decks::slimdeck_from_row,
-    )?;
+    let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
@@ -160,7 +147,7 @@ pub(crate) fn unnoted(
                 AND d.kind='idea'
                 AND d.user_id=?1";
 
-    let total_items = sqlite::one(&conn, stmt, params![user_id], sqlite::i32_from_row)?;
+    let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
     let res = Pagination::<SlimDeck> { items, total_items };
 
@@ -175,7 +162,7 @@ pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<i
                 WHERE user_id = ?1 AND kind = 'idea'
                 ORDER BY name";
 
-    sqlite::many(&conn, stmt, params![&user_id], idea_from_row)
+    sqlite::many(&conn, stmt, params![&user_id])
 }
 
 pub(crate) fn get(
@@ -185,11 +172,10 @@ pub(crate) fn get(
 ) -> crate::Result<interop::Idea> {
     let conn = sqlite_pool.get()?;
 
-    let deck = sqlite::one(
+    let deck: interop::Idea = sqlite::one(
         &conn,
         decks::DECKBASE_QUERY,
         params![&user_id, &idea_id, &DeckKind::Idea.to_string()],
-        idea_from_row,
     )?;
 
     decks::hit(&conn, idea_id)?;

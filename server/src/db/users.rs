@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::sqlite::{self, SqlitePool};
+use crate::db::sqlite::{self, FromRow, SqlitePool};
 use crate::interop::users as interop;
 use crate::interop::Key;
 use rusqlite::{params, Row};
@@ -25,20 +25,22 @@ pub(crate) fn login(
     sqlite_pool: &SqlitePool,
     login_credentials: &interop::LoginCredentials,
 ) -> crate::Result<(Key, String, interop::User)> {
-    fn from_row(row: &Row) -> crate::Result<(Key, String, interop::User)> {
-        let id: Key = row.get(0)?;
-        let password: String = row.get(3)?;
+    impl FromRow for (Key, String, interop::User) {
+        fn from_row(row: &Row) -> crate::Result<(Key, String, interop::User)> {
+            let id: Key = row.get(0)?;
+            let password: String = row.get(3)?;
 
-        Ok((
-            id,
-            password,
-            interop::User {
-                username: row.get(2)?,
-                email: row.get(1)?,
-                admin: None,
-                ui_config_json: row.get(4)?,
-            },
-        ))
+            Ok((
+                id,
+                password,
+                interop::User {
+                    username: row.get(2)?,
+                    email: row.get(1)?,
+                    admin: None,
+                    ui_config_json: row.get(4)?,
+                },
+            ))
+        }
     }
 
     let email = login_credentials.email.trim();
@@ -52,7 +54,6 @@ pub(crate) fn login(
            where email = ?1
         "#,
         params![email],
-        from_row,
     )
 }
 
@@ -65,18 +66,20 @@ pub(crate) fn create(
 
     let conn = sqlite_pool.get()?;
 
-    fn from_row(row: &Row) -> crate::Result<(Key, interop::User)> {
-        let id: Key = row.get(0)?;
+    impl FromRow for (Key, interop::User) {
+        fn from_row(row: &Row) -> crate::Result<(Key, interop::User)> {
+            let id: Key = row.get(0)?;
 
-        Ok((
-            id,
-            interop::User {
-                username: row.get(2)?,
-                email: row.get(1)?,
-                admin: None,
-                ui_config_json: row.get(3)?,
-            },
-        ))
+            Ok((
+                id,
+                interop::User {
+                    username: row.get(2)?,
+                    email: row.get(1)?,
+                    admin: None,
+                    ui_config_json: row.get(3)?,
+                },
+            ))
+        }
     }
 
     sqlite::one(
@@ -92,18 +95,19 @@ pub(crate) fn create(
             hash,
             registration.ui_config
         ],
-        from_row,
     )
 }
 
 pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<interop::User> {
-    fn from_row(row: &Row) -> crate::Result<interop::User> {
-        Ok(interop::User {
-            username: row.get(1)?,
-            email: row.get(0)?,
-            admin: None,
-            ui_config_json: row.get(2)?,
-        })
+    impl FromRow for interop::User {
+        fn from_row(row: &Row) -> crate::Result<interop::User> {
+            Ok(interop::User {
+                username: row.get(1)?,
+                email: row.get(0)?,
+                admin: None,
+                ui_config_json: row.get(2)?,
+            })
+        }
     }
 
     let conn = sqlite_pool.get()?;
@@ -115,7 +119,6 @@ pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<inter
            where id = ?1
         "#,
         params![user_id],
-        from_row,
     )
 }
 
@@ -138,17 +141,18 @@ pub(crate) fn edit_ui_config(
     Ok(true)
 }
 
-pub fn get_all_user_ids(sqlite_pool: &SqlitePool) -> crate::Result<Vec<interop::UserId>> {
+impl FromRow for interop::UserId {
     fn from_row(row: &Row) -> crate::Result<interop::UserId> {
         Ok(interop::UserId { id: row.get(0)? })
     }
+}
 
+pub fn get_all_user_ids(sqlite_pool: &SqlitePool) -> crate::Result<Vec<interop::UserId>> {
     let conn = sqlite_pool.get()?;
     sqlite::many(
         &conn,
         "SELECT id
          FROM users",
         &[],
-        from_row,
     )
 }
