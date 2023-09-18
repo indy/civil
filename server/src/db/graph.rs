@@ -17,9 +17,8 @@
 
 use crate::db::decks::get_slimdeck;
 use crate::db::sqlite::{self, FromRow, SqlitePool};
-use crate::interop::decks as interop_decks;
+use crate::interop::decks::{DeckKind, RefKind, SlimDeck};
 use crate::interop::font::Font;
-use crate::interop::graph as interop;
 use crate::interop::graph::{ConnectivityData, Direction, Edge};
 use crate::interop::Key;
 
@@ -33,10 +32,10 @@ use tracing::info;
 
 struct Connectivity {
     direction: Direction,
-    ref_kind: interop_decks::RefKind,
+    ref_kind: RefKind,
     deck_id: Key,
     title: String,
-    deck_kind: interop_decks::DeckKind,
+    deck_kind: DeckKind,
     graph_terminator: bool,
     insignia: i32,
     font: Font,
@@ -67,8 +66,8 @@ impl FromRow for Connectivity {
     }
 }
 
-fn slimdeck_from_connectivity(connectivity: &Connectivity) -> interop_decks::SlimDeck {
-    interop_decks::SlimDeck {
+fn slimdeck_from_connectivity(connectivity: &Connectivity) -> SlimDeck {
+    SlimDeck {
         id: connectivity.deck_id,
         title: String::from(&connectivity.title),
         deck_kind: connectivity.deck_kind,
@@ -78,8 +77,8 @@ fn slimdeck_from_connectivity(connectivity: &Connectivity) -> interop_decks::Sli
     }
 }
 
-fn fucking_copy_slimdeck(slimdeck: &interop_decks::SlimDeck) -> interop_decks::SlimDeck {
-    interop_decks::SlimDeck {
+fn fucking_copy_slimdeck(slimdeck: &SlimDeck) -> SlimDeck {
+    SlimDeck {
         id: slimdeck.id,
         title: String::from(&slimdeck.title),
         deck_kind: slimdeck.deck_kind,
@@ -125,12 +124,12 @@ pub(crate) fn get(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
-) -> crate::Result<interop::ConnectivityData> {
+) -> crate::Result<ConnectivityData> {
     let conn = sqlite_pool.get()?;
 
     let source_deck = get_slimdeck(&conn, user_id, deck_id)?;
 
-    let mut decks_map: HashMap<Key, interop_decks::SlimDeck> = HashMap::new();
+    let mut decks_map: HashMap<Key, SlimDeck> = HashMap::new();
     let mut edges_map: HashMap<(Key, Key, Direction), Edge> = HashMap::new();
 
     let direct_neighbours = neighbours(&conn, user_id, deck_id)?;

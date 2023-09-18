@@ -17,8 +17,8 @@
 
 use crate::db::postfix_asterisks;
 use crate::db::sqlite::{self, FromRow, SqlitePool};
-use crate::interop::decks as interop_decks;
-use crate::interop::memorise as interop;
+use crate::interop::decks::SlimDeck;
+use crate::interop::memorise::{Card, CardUpcomingReview, FlashCard, ProtoCard};
 use crate::interop::Key;
 
 use chrono::Utc;
@@ -26,11 +26,11 @@ use rusqlite::{params, Row};
 #[allow(unused_imports)]
 use tracing::info;
 
-impl From<(interop::FlashCard, interop_decks::SlimDeck)> for interop::Card {
-    fn from(e: (interop::FlashCard, interop_decks::SlimDeck)) -> interop::Card {
+impl From<(FlashCard, SlimDeck)> for Card {
+    fn from(e: (FlashCard, SlimDeck)) -> Card {
         let (c, slimdeck) = e;
 
-        interop::Card {
+        Card {
             id: c.id,
             note_id: c.note_id,
             note_content: "???".to_string(),
@@ -40,9 +40,9 @@ impl From<(interop::FlashCard, interop_decks::SlimDeck)> for interop::Card {
     }
 }
 
-impl FromRow for interop::FlashCard {
-    fn from_row(row: &Row) -> crate::Result<interop::FlashCard> {
-        Ok(interop::FlashCard {
+impl FromRow for FlashCard {
+    fn from_row(row: &Row) -> crate::Result<FlashCard> {
+        Ok(FlashCard {
             id: row.get(0)?,
 
             note_id: row.get(1)?,
@@ -56,13 +56,13 @@ impl FromRow for interop::FlashCard {
     }
 }
 
-impl FromRow for interop::Card {
-    fn from_row(row: &Row) -> crate::Result<interop::Card> {
-        Ok(interop::Card {
+impl FromRow for Card {
+    fn from_row(row: &Row) -> crate::Result<Card> {
+        Ok(Card {
             id: row.get(0)?,
             note_id: row.get(1)?,
             note_content: row.get(3)?,
-            deck_info: interop_decks::SlimDeck {
+            deck_info: SlimDeck {
                 id: row.get(4)?,
                 title: row.get(5)?,
                 deck_kind: row.get(6)?,
@@ -78,7 +78,7 @@ impl FromRow for interop::Card {
 pub(crate) fn all_flashcards_for_deck(
     sqlite_pool: &SqlitePool,
     deck_id: Key,
-) -> crate::Result<Vec<interop::FlashCard>> {
+) -> crate::Result<Vec<FlashCard>> {
     let conn = sqlite_pool.get()?;
     sqlite::many(&conn,
                  "SELECT c.id, c.note_id, c.prompt, c.next_test_date, c.easiness_factor, c.interval, c.repetition
@@ -90,7 +90,7 @@ pub(crate) fn all_flashcards_for_deck(
 pub(crate) fn all_flashcards_for_deck_arrivals(
     sqlite_pool: &SqlitePool,
     deck_id: Key,
-) -> crate::Result<Vec<interop::FlashCard>> {
+) -> crate::Result<Vec<FlashCard>> {
     let conn = sqlite_pool.get()?;
     sqlite::many(&conn,
                  "SELECT   c.id, c.note_id, c.prompt, c.next_test_date, c.easiness_factor, c.interval, c.repetition
@@ -107,7 +107,7 @@ pub(crate) fn all_flashcards_for_deck_additional_query(
     user_id: Key,
     deck_id: Key,
     sane_name: &str,
-) -> crate::Result<Vec<interop::FlashCard>> {
+) -> crate::Result<Vec<FlashCard>> {
     let conn = sqlite_pool.get()?;
 
     if sane_name.is_empty() {
@@ -138,7 +138,7 @@ pub(crate) fn all_flashcards_for_search_query(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     query: &str,
-) -> crate::Result<Vec<interop::FlashCard>> {
+) -> crate::Result<Vec<FlashCard>> {
     let conn = sqlite_pool.get()?;
     let q = postfix_asterisks(query)?;
 
@@ -163,9 +163,9 @@ pub(crate) fn all_flashcards_for_search_query(
 
 pub(crate) fn create_card(
     sqlite_pool: &SqlitePool,
-    card: &interop::ProtoCard,
+    card: &ProtoCard,
     user_id: Key,
-) -> crate::Result<interop::FlashCard> {
+) -> crate::Result<FlashCard> {
     info!("create_card");
 
     let mut conn = sqlite_pool.get()?;
@@ -201,7 +201,7 @@ pub(crate) fn get_card_full_fat(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     card_id: Key,
-) -> crate::Result<interop::FlashCard> {
+) -> crate::Result<FlashCard> {
     info!("get_card_full_fat");
 
     let conn = sqlite_pool.get()?;
@@ -217,7 +217,7 @@ pub(crate) fn get_card_full_fat(
 
 pub(crate) fn card_rated(
     sqlite_pool: &SqlitePool,
-    card: interop::FlashCard,
+    card: FlashCard,
     rating: i16,
 ) -> crate::Result<()> {
     info!("card_rated");
@@ -254,9 +254,9 @@ pub(crate) fn card_rated(
 pub(crate) fn edit_flashcard(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    flashcard: &interop::FlashCard,
+    flashcard: &FlashCard,
     flashcard_id: Key,
-) -> crate::Result<interop::FlashCard> {
+) -> crate::Result<FlashCard> {
     let conn = sqlite_pool.get()?;
 
     sqlite::one(
@@ -298,7 +298,7 @@ pub(crate) fn get_cards(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     due: chrono::NaiveDateTime,
-) -> crate::Result<Vec<interop::Card>> {
+) -> crate::Result<Vec<Card>> {
     info!("get_cards");
 
     let conn = sqlite_pool.get()?;
@@ -312,10 +312,7 @@ pub(crate) fn get_cards(
     )
 }
 
-pub(crate) fn get_practice_card(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-) -> crate::Result<interop::Card> {
+pub(crate) fn get_practice_card(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Card> {
     info!("get_practice_card");
 
     let conn = sqlite_pool.get()?;
@@ -335,7 +332,7 @@ pub(crate) fn get_cards_upcoming_review(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     due: chrono::NaiveDateTime,
-) -> crate::Result<interop::CardUpcomingReview> {
+) -> crate::Result<CardUpcomingReview> {
     info!("get_cards_upcoming_review");
 
     let mut conn = sqlite_pool.get()?;
@@ -372,7 +369,7 @@ pub(crate) fn get_cards_upcoming_review(
 
     tx.commit()?;
 
-    Ok(interop::CardUpcomingReview {
+    Ok(CardUpcomingReview {
         review_count,
         earliest_review_date,
     })

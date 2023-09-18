@@ -15,11 +15,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::decks;
+use crate::db::decks::{self, DeckBase, DeckBaseOrigin};
 use crate::db::sqlite::{self, FromRow, SqlitePool};
-use crate::interop::decks as interop_decks;
-use crate::interop::decks::{DeckKind, SlimEvent};
-use crate::interop::events as interop;
+use crate::interop::decks::{DeckKind, SlimDeck, SlimEvent};
+use crate::interop::events::{Event, ProtoEvent};
 use crate::interop::font::Font;
 use crate::interop::Key;
 
@@ -43,10 +42,10 @@ struct EventExtra {
     importance: i32,
 }
 
-impl From<(decks::DeckBase, EventExtra)> for interop::Event {
-    fn from(a: (decks::DeckBase, EventExtra)) -> interop::Event {
+impl From<(DeckBase, EventExtra)> for Event {
+    fn from(a: (DeckBase, EventExtra)) -> Event {
         let (deck, extra) = a;
-        interop::Event {
+        Event {
             id: deck.id,
             title: deck.title,
 
@@ -93,9 +92,9 @@ impl FromRow for EventExtra {
     }
 }
 
-impl FromRow for interop::Event {
-    fn from_row(row: &Row) -> crate::Result<interop::Event> {
-        Ok(interop::Event {
+impl FromRow for Event {
+    fn from_row(row: &Row) -> crate::Result<Event> {
+        Ok(Event {
             id: row.get(0)?,
             title: row.get(1)?,
             deck_kind: DeckKind::Event,
@@ -143,7 +142,7 @@ pub(crate) fn get_or_create(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     title: &str,
-) -> crate::Result<interop::Event> {
+) -> crate::Result<Event> {
     info!("get_or_create");
 
     let mut conn = sqlite_pool.get()?;
@@ -154,14 +153,14 @@ pub(crate) fn get_or_create(
 
     let event_extras =
         match origin {
-            decks::DeckBaseOrigin::Created => sqlite::one(
+            DeckBaseOrigin::Created => sqlite::one(
                 &tx,
                 "INSERT INTO event_extras(deck_id)
                  VALUES (?1)
                  RETURNING location_textual, longitude, latitude, location_fuzz, date_textual, exact_realdate, lower_realdate, upper_realdate, date_fuzz, importance",
                 params![&deck.id]
             )?,
-            decks::DeckBaseOrigin::PreExisting => sqlite::one(
+            DeckBaseOrigin::PreExisting => sqlite::one(
                 &tx,
                 "select location_textual, longitude, latitude, location_fuzz, date_textual, date(exact_realdate), date(lower_realdate), date(upper_realdate), date_fuzz, importance
                  from event_extras
@@ -175,10 +174,7 @@ pub(crate) fn get_or_create(
     Ok((deck, event_extras).into())
 }
 
-pub(crate) fn listings(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-) -> crate::Result<Vec<interop_decks::SlimDeck>> {
+pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
     // TODO: sort this by the event date in event_extras
@@ -190,11 +186,7 @@ pub(crate) fn listings(
     sqlite::many(&conn, stmt, params![&user_id])
 }
 
-pub(crate) fn get(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    event_id: Key,
-) -> crate::Result<interop::Event> {
+pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, event_id: Key) -> crate::Result<Event> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT decks.id, decks.name, decks.font, decks.insignia,
@@ -215,9 +207,9 @@ pub(crate) fn get(
 pub(crate) fn edit(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    event: &interop::ProtoEvent,
+    event: &ProtoEvent,
     event_id: Key,
-) -> crate::Result<interop::Event> {
+) -> crate::Result<Event> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 

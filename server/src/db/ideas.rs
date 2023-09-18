@@ -19,16 +19,16 @@ use crate::db::decks;
 use crate::db::sqlite::{self, FromRow, SqlitePool};
 use crate::interop::decks::{DeckKind, Pagination, SlimDeck};
 use crate::interop::font::Font;
-use crate::interop::ideas as interop;
+use crate::interop::ideas::{Idea, ProtoIdea};
 use crate::interop::Key;
 use rusqlite::{params, Row};
 
 #[allow(unused_imports)]
 use tracing::info;
 
-impl FromRow for interop::Idea {
-    fn from_row(row: &Row) -> crate::Result<interop::Idea> {
-        Ok(interop::Idea {
+impl FromRow for Idea {
+    fn from_row(row: &Row) -> crate::Result<Idea> {
+        Ok(Idea {
             id: row.get(0)?,
             title: row.get(1)?,
             deck_kind: DeckKind::Idea,
@@ -46,7 +46,7 @@ pub(crate) fn get_or_create(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     title: &str,
-) -> crate::Result<interop::Idea> {
+) -> crate::Result<Idea> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
@@ -154,7 +154,7 @@ pub(crate) fn unnoted(
     Ok(res)
 }
 
-pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<interop::Idea>> {
+pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<Idea>> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT id, name, created_at, graph_terminator, insignia, font
@@ -165,14 +165,10 @@ pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<i
     sqlite::many(&conn, stmt, params![&user_id])
 }
 
-pub(crate) fn get(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    idea_id: Key,
-) -> crate::Result<interop::Idea> {
+pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, idea_id: Key) -> crate::Result<Idea> {
     let conn = sqlite_pool.get()?;
 
-    let deck: interop::Idea = sqlite::one(
+    let deck: Idea = sqlite::one(
         &conn,
         decks::DECKBASE_QUERY,
         params![&user_id, &idea_id, &DeckKind::Idea.to_string()],
@@ -186,9 +182,9 @@ pub(crate) fn get(
 pub(crate) fn edit(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    idea: &interop::ProtoIdea,
+    idea: &ProtoIdea,
     idea_id: Key,
-) -> crate::Result<interop::Idea> {
+) -> crate::Result<Idea> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 

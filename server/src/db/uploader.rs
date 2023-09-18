@@ -18,14 +18,14 @@
 use std::cmp;
 
 use crate::db::sqlite::{self, FromRow, SqlitePool};
-use crate::interop::uploader as interop;
+use crate::interop::uploader::UserUploadedImage;
 use crate::interop::Key;
 
 use rusqlite::{params, Row};
 
-impl FromRow for interop::UserUploadedImage {
-    fn from_row(row: &Row) -> crate::Result<interop::UserUploadedImage> {
-        Ok(interop::UserUploadedImage {
+impl FromRow for UserUploadedImage {
+    fn from_row(row: &Row) -> crate::Result<UserUploadedImage> {
+        Ok(UserUploadedImage {
             filename: row.get(0)?,
         })
     }
@@ -35,7 +35,7 @@ pub(crate) fn get_recent(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     at_least: u8,
-) -> crate::Result<Vec<interop::UserUploadedImage>> {
+) -> crate::Result<Vec<UserUploadedImage>> {
     let conn = sqlite_pool.get()?;
 
     let limit = cmp::max(at_least, 15);

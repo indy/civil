@@ -19,7 +19,7 @@ use crate::db::decks;
 use crate::db::notes;
 use crate::db::sqlite::{self, FromRow, SqlitePool};
 use crate::error::Error;
-use crate::interop::articles as interop;
+use crate::interop::articles::{Article, ProtoArticle};
 use crate::interop::decks::{DeckKind, Pagination, SlimDeck};
 use crate::interop::font::Font;
 use crate::interop::Key;
@@ -36,10 +36,10 @@ struct ArticleExtra {
     published_date: Option<chrono::NaiveDate>,
 }
 
-impl From<(decks::DeckBase, ArticleExtra)> for interop::Article {
-    fn from(a: (decks::DeckBase, ArticleExtra)) -> interop::Article {
+impl From<(decks::DeckBase, ArticleExtra)> for Article {
+    fn from(a: (decks::DeckBase, ArticleExtra)) -> Article {
         let (deck, extra) = a;
-        interop::Article {
+        Article {
             id: deck.id,
             title: deck.title,
 
@@ -64,9 +64,9 @@ impl From<(decks::DeckBase, ArticleExtra)> for interop::Article {
     }
 }
 
-impl FromRow for interop::Article {
-    fn from_row(row: &Row) -> crate::Result<interop::Article> {
-        Ok(interop::Article {
+impl FromRow for Article {
+    fn from_row(row: &Row) -> crate::Result<Article> {
+        Ok(Article {
             id: row.get(0)?,
             title: row.get(1)?,
 
@@ -91,7 +91,7 @@ impl FromRow for interop::Article {
     }
 }
 
-pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<interop::Article>> {
+pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<Article>> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
@@ -108,7 +108,7 @@ pub(crate) fn recent(
     user_id: Key,
     offset: i32,
     num_items: i32,
-) -> crate::Result<Pagination<interop::Article>> {
+) -> crate::Result<Pagination<Article>> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
@@ -126,7 +126,7 @@ pub(crate) fn recent(
                 WHERE user_id = ?1 and kind = 'article'";
     let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
-    let res = Pagination::<interop::Article> { items, total_items };
+    let res = Pagination::<Article> { items, total_items };
 
     Ok(res)
 }
@@ -136,7 +136,7 @@ pub(crate) fn rated(
     user_id: Key,
     offset: i32,
     num_items: i32,
-) -> crate::Result<Pagination<interop::Article>> {
+) -> crate::Result<Pagination<Article>> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
@@ -147,8 +147,7 @@ pub(crate) fn rated(
                 ORDER BY article_extras.rating desc, decks.id desc
                 LIMIT ?2
                 OFFSET ?3";
-    let items: Vec<interop::Article> =
-        sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
+    let items: Vec<Article> = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
@@ -156,7 +155,7 @@ pub(crate) fn rated(
 
     let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
-    let res = Pagination::<interop::Article> { items, total_items };
+    let res = Pagination::<Article> { items, total_items };
 
     Ok(res)
 }
@@ -205,7 +204,7 @@ pub(crate) fn get(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     article_id: Key,
-) -> crate::Result<interop::Article> {
+) -> crate::Result<Article> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
@@ -239,9 +238,9 @@ impl FromRow for ArticleExtra {
 pub(crate) fn edit(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    article: &interop::ProtoArticle,
+    article: &ProtoArticle,
     article_id: Key,
-) -> crate::Result<interop::Article> {
+) -> crate::Result<Article> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
@@ -323,7 +322,7 @@ pub(crate) fn get_or_create(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     title: &str,
-) -> crate::Result<interop::Article> {
+) -> crate::Result<Article> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 

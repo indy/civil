@@ -17,17 +17,16 @@
 
 use crate::db::decks;
 use crate::db::sqlite::{self, FromRow, SqlitePool};
-use crate::interop::decks as interop_decks;
-use crate::interop::decks::DeckKind;
+use crate::interop::decks::{DeckKind, SlimDeck};
 use crate::interop::font::Font;
-use crate::interop::timelines as interop;
+use crate::interop::timelines::{ProtoTimeline, Timeline};
 use crate::interop::Key;
 
 use rusqlite::{params, Row};
 
-impl FromRow for interop::Timeline {
-    fn from_row(row: &Row) -> crate::Result<interop::Timeline> {
-        Ok(interop::Timeline {
+impl FromRow for Timeline {
+    fn from_row(row: &Row) -> crate::Result<Timeline> {
+        Ok(Timeline {
             id: row.get(0)?,
             title: row.get(1)?,
             deck_kind: DeckKind::Timeline,
@@ -44,7 +43,7 @@ pub(crate) fn get_or_create(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     title: &str,
-) -> crate::Result<interop::Timeline> {
+) -> crate::Result<Timeline> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
@@ -56,10 +55,7 @@ pub(crate) fn get_or_create(
     Ok(deck.into())
 }
 
-pub(crate) fn listings(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-) -> crate::Result<Vec<interop_decks::SlimDeck>> {
+pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
     let stmt = "SELECT id, name, 'timeline', insignia, font, graph_terminator
@@ -74,7 +70,7 @@ pub(crate) fn get(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     timeline_id: Key,
-) -> crate::Result<interop::Timeline> {
+) -> crate::Result<Timeline> {
     let conn = sqlite_pool.get()?;
 
     let deck = sqlite::one(
@@ -91,9 +87,9 @@ pub(crate) fn get(
 pub(crate) fn edit(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    timeline: &interop::ProtoTimeline,
+    timeline: &ProtoTimeline,
     timeline_id: Key,
-) -> crate::Result<interop::Timeline> {
+) -> crate::Result<Timeline> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 

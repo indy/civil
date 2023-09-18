@@ -16,25 +16,25 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::sqlite::{self, FromRow, SqlitePool};
-use crate::interop::points as interop;
+use crate::interop::points::{Point, PointKind, ProtoPoint};
 use crate::interop::Key;
 
 use rusqlite::{params, Row};
 use std::fmt;
 
-impl fmt::Display for interop::PointKind {
+impl fmt::Display for PointKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            interop::PointKind::Point => write!(f, "point"),
-            interop::PointKind::PointBegin => write!(f, "point_begin"),
-            interop::PointKind::PointEnd => write!(f, "point_end"),
+            PointKind::Point => write!(f, "point"),
+            PointKind::PointBegin => write!(f, "point_begin"),
+            PointKind::PointEnd => write!(f, "point_end"),
         }
     }
 }
 
-impl FromRow for interop::Point {
-    fn from_row(row: &Row) -> crate::Result<interop::Point> {
-        Ok(interop::Point {
+impl FromRow for Point {
+    fn from_row(row: &Row) -> crate::Result<Point> {
+        Ok(Point {
             id: row.get(3)?,
             kind: row.get(4)?,
             title: row.get(5)?,
@@ -56,7 +56,7 @@ pub(crate) fn all(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
-) -> crate::Result<Vec<interop::Point>> {
+) -> crate::Result<Vec<Point>> {
     let conn = sqlite_pool.get()?;
 
     sqlite::many(
@@ -86,7 +86,7 @@ pub(crate) fn all_points_during_life(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     deck_id: Key,
-) -> crate::Result<Vec<interop::Point>> {
+) -> crate::Result<Vec<Point>> {
     let conn = sqlite_pool.get()?;
 
     // a union of two queries:
@@ -141,7 +141,7 @@ pub(crate) fn all_points_during_life(
 
 pub(crate) fn create(
     sqlite_pool: &SqlitePool,
-    point: &interop::ProtoPoint,
+    point: &ProtoPoint,
     deck_id: Key,
 ) -> crate::Result<()> {
     let conn = sqlite_pool.get()?;

@@ -18,7 +18,7 @@
 use crate::db::decks;
 use crate::interop::decks::{DeckKind, Pagination, SlimDeck};
 use crate::interop::font::Font;
-use crate::interop::people as interop;
+use crate::interop::people::{Person, ProtoPerson};
 use crate::interop::Key;
 
 #[allow(unused_imports)]
@@ -27,9 +27,9 @@ use tracing::{error, info};
 use crate::db::sqlite::{self, FromRow, SqlitePool};
 use rusqlite::{params, Row};
 
-impl FromRow for interop::Person {
-    fn from_row(row: &Row) -> crate::Result<interop::Person> {
-        Ok(interop::Person {
+impl FromRow for Person {
+    fn from_row(row: &Row) -> crate::Result<Person> {
+        Ok(Person {
             id: row.get(0)?,
             title: row.get(1)?,
             deck_kind: DeckKind::Person,
@@ -48,7 +48,7 @@ pub(crate) fn get_or_create(
     sqlite_pool: &SqlitePool,
     user_id: Key,
     title: &str,
-) -> crate::Result<interop::Person> {
+) -> crate::Result<Person> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
@@ -60,7 +60,7 @@ pub(crate) fn get_or_create(
     Ok(deck.into())
 }
 
-pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<interop::Person>> {
+pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<Person>> {
     let conn = sqlite_pool.get()?;
 
     sqlite::many(
@@ -272,14 +272,10 @@ pub(crate) fn contemporary(
     Ok(res)
 }
 
-pub(crate) fn get(
-    sqlite_pool: &SqlitePool,
-    user_id: Key,
-    person_id: Key,
-) -> crate::Result<interop::Person> {
+pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, person_id: Key) -> crate::Result<Person> {
     let conn = sqlite_pool.get()?;
 
-    let deck: interop::Person = sqlite::one(
+    let deck: Person = sqlite::one(
         &conn,
         decks::DECKBASE_QUERY,
         params![&user_id, &person_id, &DeckKind::Person.to_string()],
@@ -293,9 +289,9 @@ pub(crate) fn get(
 pub(crate) fn edit(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    person: &interop::ProtoPerson,
+    person: &ProtoPerson,
     person_id: Key,
-) -> crate::Result<interop::Person> {
+) -> crate::Result<Person> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 

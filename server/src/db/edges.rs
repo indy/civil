@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::db::decks as decks_db;
+use crate::db::decks::deckbase_get_or_create;
 use crate::db::sqlite::{self, FromRow, SqlitePool};
-use crate::interop::decks as interop_decks;
+use crate::interop::decks::Ref;
 use crate::interop::decks::{DeckKind, SlimDeck};
-use crate::interop::edges as interop;
+use crate::interop::edges::{ProtoNoteReferences, ReferencesApplied};
 use crate::interop::font::Font;
 use crate::interop::Key;
 
@@ -27,9 +27,9 @@ use rusqlite::{params, Connection, Row};
 #[allow(unused_imports)]
 use tracing::info;
 
-impl FromRow for interop_decks::Ref {
-    fn from_row(row: &Row) -> crate::Result<interop_decks::Ref> {
-        Ok(interop_decks::Ref {
+impl FromRow for Ref {
+    fn from_row(row: &Row) -> crate::Result<Ref> {
+        Ok(Ref {
             note_id: row.get(0)?,
             id: row.get(1)?,
             title: row.get(2)?,
@@ -45,9 +45,9 @@ impl FromRow for interop_decks::Ref {
 
 pub(crate) fn create_from_note_to_decks(
     sqlite_pool: &SqlitePool,
-    note_references: &interop::ProtoNoteReferences,
+    note_references: &ProtoNoteReferences,
     user_id: Key,
-) -> crate::Result<interop::ReferencesApplied> {
+) -> crate::Result<ReferencesApplied> {
     info!("create_from_note_to_decks");
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
@@ -105,13 +105,8 @@ pub(crate) fn create_from_note_to_decks(
     //
     for created in &note_references.references_created {
         info!("create new idea: {} and a new edge", created.title);
-        let (deck, _created) = decks_db::deckbase_get_or_create(
-            &tx,
-            user_id,
-            DeckKind::Idea,
-            &created.title,
-            Font::Serif,
-        )?;
+        let (deck, _created) =
+            deckbase_get_or_create(&tx, user_id, DeckKind::Idea, &created.title, Font::Serif)?;
         sqlite::zero(
             &tx,
             stmt_refs_added,
@@ -129,13 +124,13 @@ pub(crate) fn create_from_note_to_decks(
         "SELECT nd.note_id, d.id, d.name, d.kind as deck_kind, nd.kind as ref_kind, nd.annotation, d.insignia, d.font, d.graph_terminator
                           FROM notes_decks nd, decks d
                           WHERE nd.note_id = ?1 AND d.id = nd.deck_id";
-    let refs: Vec<interop_decks::Ref> = sqlite::many(&tx, stmt_all_decks, params![&note_id])?;
+    let refs: Vec<Ref> = sqlite::many(&tx, stmt_all_decks, params![&note_id])?;
 
     let recents = get_recents(&tx, user_id)?;
 
     tx.commit()?;
 
-    Ok(interop::ReferencesApplied { refs, recents })
+    Ok(ReferencesApplied { refs, recents })
 }
 
 pub(crate) fn get_recently_used_decks(

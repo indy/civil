@@ -16,24 +16,24 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::sqlite::{self, FromRow, SqlitePool};
-use crate::interop::users as interop;
+use crate::interop::users::{LoginCredentials, Registration, User, UserId};
 use crate::interop::Key;
 use rusqlite::{params, Row};
 use tracing::info;
 
 pub(crate) fn login(
     sqlite_pool: &SqlitePool,
-    login_credentials: &interop::LoginCredentials,
-) -> crate::Result<(Key, String, interop::User)> {
-    impl FromRow for (Key, String, interop::User) {
-        fn from_row(row: &Row) -> crate::Result<(Key, String, interop::User)> {
+    login_credentials: &LoginCredentials,
+) -> crate::Result<(Key, String, User)> {
+    impl FromRow for (Key, String, User) {
+        fn from_row(row: &Row) -> crate::Result<(Key, String, User)> {
             let id: Key = row.get(0)?;
             let password: String = row.get(3)?;
 
             Ok((
                 id,
                 password,
-                interop::User {
+                User {
                     username: row.get(2)?,
                     email: row.get(1)?,
                     admin: None,
@@ -59,20 +59,20 @@ pub(crate) fn login(
 
 pub(crate) fn create(
     sqlite_pool: &SqlitePool,
-    registration: &interop::Registration,
+    registration: &Registration,
     hash: &str,
-) -> crate::Result<(Key, interop::User)> {
+) -> crate::Result<(Key, User)> {
     info!("create");
 
     let conn = sqlite_pool.get()?;
 
-    impl FromRow for (Key, interop::User) {
-        fn from_row(row: &Row) -> crate::Result<(Key, interop::User)> {
+    impl FromRow for (Key, User) {
+        fn from_row(row: &Row) -> crate::Result<(Key, User)> {
             let id: Key = row.get(0)?;
 
             Ok((
                 id,
-                interop::User {
+                User {
                     username: row.get(2)?,
                     email: row.get(1)?,
                     admin: None,
@@ -98,10 +98,10 @@ pub(crate) fn create(
     )
 }
 
-pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<interop::User> {
-    impl FromRow for interop::User {
-        fn from_row(row: &Row) -> crate::Result<interop::User> {
-            Ok(interop::User {
+pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<User> {
+    impl FromRow for User {
+        fn from_row(row: &Row) -> crate::Result<User> {
+            Ok(User {
                 username: row.get(1)?,
                 email: row.get(0)?,
                 admin: None,
@@ -141,13 +141,13 @@ pub(crate) fn edit_ui_config(
     Ok(true)
 }
 
-impl FromRow for interop::UserId {
-    fn from_row(row: &Row) -> crate::Result<interop::UserId> {
-        Ok(interop::UserId { id: row.get(0)? })
+impl FromRow for UserId {
+    fn from_row(row: &Row) -> crate::Result<UserId> {
+        Ok(UserId { id: row.get(0)? })
     }
 }
 
-pub fn get_all_user_ids(sqlite_pool: &SqlitePool) -> crate::Result<Vec<interop::UserId>> {
+pub fn get_all_user_ids(sqlite_pool: &SqlitePool) -> crate::Result<Vec<UserId>> {
     let conn = sqlite_pool.get()?;
     sqlite::many(
         &conn,
