@@ -119,11 +119,14 @@ pub(crate) fn create_from_note_to_decks(
         )?;
     }
 
-    // return a list of [id, name, resource, kind, annotation] containing the complete set of decks associated with this note.
+    // return a list of [id, name, resource, kind, annotation] containing the complete set
+    // of decks associated with this note.
+    //
     let stmt_all_decks =
-        "SELECT nd.note_id, d.id, d.name, d.kind as deck_kind, nd.kind as ref_kind, nd.annotation, d.insignia, d.font, d.graph_terminator
-                          FROM notes_decks nd, decks d
-                          WHERE nd.note_id = ?1 AND d.id = nd.deck_id";
+        "SELECT nd.note_id, d.id, d.name, d.kind as deck_kind, nd.kind as ref_kind,
+                nd.annotation, d.insignia, d.font, d.graph_terminator
+         FROM notes_decks nd, decks d
+         WHERE nd.note_id = ?1 AND d.id = nd.deck_id";
     let refs: Vec<Ref> = sqlite::many(&tx, stmt_all_decks, params![&note_id])?;
 
     let recents = get_recents(&tx, user_id)?;
@@ -142,7 +145,8 @@ pub(crate) fn get_recently_used_decks(
 }
 
 fn get_recents(conn: &Connection, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
-    let stmt_recent_refs = "SELECT DISTINCT deck_id, title, kind, insignia, font, graph_terminator
+    let stmt_recent_refs = "
+         SELECT DISTINCT deck_id, title, kind, insignia, font, graph_terminator
          FROM (
               SELECT nd.deck_id, d.name as title, d.kind, d.insignia, d.font, d.graph_terminator
               FROM notes_decks nd, decks d

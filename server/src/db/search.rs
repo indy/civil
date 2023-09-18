@@ -527,17 +527,18 @@ fn search_at_deck_level_base(
 
     let q = query;
 
-    let stmt =
-        "select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, decks_fts.rank AS rank_sum, 1 as rank_count
-                from decks_fts left join decks d on d.id = decks_fts.rowid
-                where decks_fts match ?2
-                      and d.user_id = ?1
-                group by d.id
-                order by rank_sum asc, length(d.name) asc, d.created_at desc
-                limit 30";
+    let stmt = "SELECT d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator,
+                decks_fts.rank AS rank_sum, 1 AS rank_count
+         FROM decks_fts LEFT JOIN decks d ON d.id = decks_fts.rowid
+         WHERE decks_fts MATCH ?2
+               AND d.user_id = ?1
+         GROUP BY d.id
+         ORDER BY rank_sum ASC, length(d.name) ASC, d.created_at DESC
+         LIMIT 30";
     let mut results: Vec<SearchDeck> = sqlite::many(&conn, stmt, params![&user_id, &q])?;
 
-    let stmt = "select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, article_extras_fts.rank AS rank_sum, 1 as rank_count
+    let stmt = "select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator,
+                       article_extras_fts.rank AS rank_sum, 1 as rank_count
                 from article_extras_fts left join decks d on d.id = article_extras_fts.rowid
                 where article_extras_fts match ?2
                       and d.user_id = ?1
@@ -546,7 +547,8 @@ fn search_at_deck_level_base(
                 limit 30";
     let results_via_pub_ext: Vec<SearchDeck> = sqlite::many(&conn, stmt, params![&user_id, &q])?;
 
-    let stmt = "select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, quote_extras_fts.rank AS rank_sum, 1 as rank_count
+    let stmt = "select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator,
+                       quote_extras_fts.rank AS rank_sum, 1 as rank_count
                 from quote_extras_fts left join decks d on d.id = quote_extras_fts.rowid
                 where quote_extras_fts match ?2
                       and d.user_id = ?1
@@ -555,8 +557,10 @@ fn search_at_deck_level_base(
                 limit 30";
     let results_via_quote_ext: Vec<SearchDeck> = sqlite::many(&conn, stmt, params![&user_id, &q])?;
 
-    let stmt = "select res.id, res.name, res.kind, res.insignia, res.font, res.graph_terminator, sum(res.rank) as rank_sum, count(res.rank) as rank_count
-                from (select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, points_fts.rank AS rank
+    let stmt = "select res.id, res.name, res.kind, res.insignia, res.font, res.graph_terminator,
+                       sum(res.rank) as rank_sum, count(res.rank) as rank_count
+                from (select d.id, d.name, d.kind, d.insignia, d.font,
+                             d.graph_terminator, points_fts.rank AS rank
                       from points_fts
                            left join points n on n.id = points_fts.rowid
                            left join decks d on d.id = n.deck_id
@@ -582,7 +586,8 @@ fn search_at_deck_level_base(
     }
 
     if !ignore_notes {
-        let stmt = "select res.id, res.name, res.kind, res.insignia, res.font, res.graph_terminator, sum(res.rank) as rank_sum, count(res.rank) as rank_count
+        let stmt = "select res.id, res.name, res.kind, res.insignia, res.font, res.graph_terminator,
+                           sum(res.rank) as rank_sum, count(res.rank) as rank_count
                 from (select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, notes_fts.rank AS rank
                       from notes_fts
                            left join notes n on n.id = notes_fts.rowid

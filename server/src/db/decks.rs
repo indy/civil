@@ -27,9 +27,9 @@ use rusqlite::{params, Connection, Row};
 use tracing::{info, warn};
 
 pub(crate) const DECKBASE_QUERY: &str =
-    "select id, name, created_at, graph_terminator, insignia, font
-                                         from decks
-                                         where user_id = ?1 and id = ?2 and kind = ?3";
+    "SELECT id, name, created_at, graph_terminator, insignia, font
+     FROM decks
+     WHERE user_id = ?1 AND id = ?2 AND kind = ?3";
 
 pub(crate) enum DeckBaseOrigin {
     Created,
@@ -341,7 +341,7 @@ pub(crate) fn delete(sqlite_pool: &SqlitePool, user_id: Key, id: Key) -> crate::
 fn get_font_of_deck(conn: &Connection, deck_id: Key) -> crate::Result<Font> {
     sqlite::one(
         conn,
-        "select font from decks where id = ?1",
+        "SELECT font FROM decks WHERE id = ?1",
         params![&deck_id],
     )
 }
@@ -352,13 +352,11 @@ pub(crate) fn overwrite_deck_font(
     deck_id: Key,
     new_font: Font,
 ) -> crate::Result<()> {
-    let stmt = "UPDATE decks
-                SET font = ?3
-                WHERE user_id = ?1 AND id = ?2 AND font <> ?3";
-
     sqlite::zero(
         conn,
-        stmt,
+        "UPDATE decks
+         SET font = ?3
+         WHERE user_id = ?1 AND id = ?2 AND font <> ?3",
         params![&user_id, &deck_id, &i32::from(new_font)],
     )
 }

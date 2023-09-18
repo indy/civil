@@ -132,7 +132,9 @@ pub(crate) fn ancient(
 ) -> crate::Result<Pagination<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT d.id, d.name, d.insignia, d.font, null as sort_date, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
+    let stmt = "SELECT d.id, d.name, d.insignia, d.font, null as sort_date,
+                       COALESCE(date(p.exact_realdate),
+                       date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
                 WHERE d.user_id = ?1
                       AND d.kind = 'person'
@@ -146,13 +148,14 @@ pub(crate) fn ancient(
     let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
-                FROM (SELECT COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
-                      FROM decks d, points p
-                      WHERE d.user_id = ?1
-                            AND d.kind = 'person'
-                            AND p.deck_id = d.id
-                            AND p.kind = 'point_begin'
-                            AND birth_date < '0354-01-01')";
+                FROM (
+                    SELECT COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
+                    FROM decks d, points p
+                    WHERE d.user_id = ?1
+                          AND d.kind = 'person'
+                          AND p.deck_id = d.id
+                          AND p.kind = 'point_begin'
+                          AND birth_date < '0354-01-01')";
 
     let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
@@ -169,7 +172,8 @@ pub(crate) fn medieval(
 ) -> crate::Result<Pagination<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT d.id, d.name, d.insignia, d.font, null as sort_date, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
+    let stmt = "SELECT d.id, d.name, d.insignia, d.font, null as sort_date,
+                       COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
                 WHERE d.user_id = ?1
                       AND d.kind = 'person'
@@ -206,7 +210,8 @@ pub(crate) fn modern(
 ) -> crate::Result<Pagination<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT d.id, d.name, d.insignia, d.font, null as sort_date, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
+    let stmt = "SELECT d.id, d.name, d.insignia, d.font, null as sort_date,
+                       COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
                 WHERE d.user_id = ?1
                       AND d.kind = 'person'
@@ -220,13 +225,14 @@ pub(crate) fn modern(
     let items = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
-                FROM (SELECT COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
-                      FROM decks d, points p
-                      WHERE d.user_id = ?1
-                            AND d.kind = 'person'
-                            AND p.deck_id = d.id
-                            AND p.kind = 'point_begin'
-                            AND birth_date >= '1469-01-01' AND birth_date < '1856-01-01')";
+                FROM (
+                    SELECT COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
+                    FROM decks d, points p
+                    WHERE d.user_id = ?1
+                          AND d.kind = 'person'
+                          AND p.deck_id = d.id
+                          AND p.kind = 'point_begin'
+                          AND birth_date >= '1469-01-01' AND birth_date < '1856-01-01')";
 
     let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
@@ -243,7 +249,8 @@ pub(crate) fn contemporary(
 ) -> crate::Result<Pagination<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT d.id, d.name, d.insignia, d.font, null as sort_date, COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
+    let stmt = "SELECT d.id, d.name, d.insignia, d.font, null as sort_date,
+                       COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
                 WHERE d.user_id = ?1
                       AND d.kind = 'person'

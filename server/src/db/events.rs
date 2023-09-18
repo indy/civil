@@ -151,23 +151,26 @@ pub(crate) fn get_or_create(
     let (deck, origin) =
         decks::deckbase_get_or_create(&tx, user_id, DeckKind::Event, title, Font::DeWalpergens)?;
 
-    let event_extras =
-        match origin {
-            DeckBaseOrigin::Created => sqlite::one(
-                &tx,
-                "INSERT INTO event_extras(deck_id)
+    let event_extras = match origin {
+        DeckBaseOrigin::Created => sqlite::one(
+            &tx,
+            "INSERT INTO event_extras(deck_id)
                  VALUES (?1)
-                 RETURNING location_textual, longitude, latitude, location_fuzz, date_textual, exact_realdate, lower_realdate, upper_realdate, date_fuzz, importance",
-                params![&deck.id]
-            )?,
-            DeckBaseOrigin::PreExisting => sqlite::one(
-                &tx,
-                "select location_textual, longitude, latitude, location_fuzz, date_textual, date(exact_realdate), date(lower_realdate), date(upper_realdate), date_fuzz, importance
-                 from event_extras
-                 where deck_id=?1",
-                params![&deck.id],
-            )?
-        };
+                 RETURNING location_textual, longitude, latitude, location_fuzz,
+                           date_textual, exact_realdate, lower_realdate,
+                           upper_realdate, date_fuzz, importance",
+            params![&deck.id],
+        )?,
+        DeckBaseOrigin::PreExisting => sqlite::one(
+            &tx,
+            "SELECT location_textual, longitude, latitude, location_fuzz, date_textual,
+                        date(exact_realdate), date(lower_realdate), date(upper_realdate),
+                        date_fuzz, importance
+                 FROM event_extras
+                 WHERE deck_id=?1",
+            params![&deck.id],
+        )?,
+    };
 
     tx.commit()?;
 
@@ -225,10 +228,15 @@ pub(crate) fn edit(
         event.font,
     )?;
 
-    let sql_query = "UPDATE event_extras
-             SET location_textual = ?2, longitude = ?3, latitude = ?4, location_fuzz = ?5, date_textual = ?6, exact_realdate = julianday(?7), lower_realdate = julianday(?8), upper_realdate = julianday(?9), date_fuzz = ?10, importance = ?11
-              WHERE deck_id = ?1
-              RETURNING location_textual, longitude, latitude, location_fuzz, date_textual, date(exact_realdate), date(lower_realdate), date(upper_realdate), date_fuzz, importance";
+    let sql_query = "
+             UPDATE event_extras
+             SET location_textual = ?2, longitude = ?3, latitude = ?4, location_fuzz = ?5,
+                 date_textual = ?6, exact_realdate = julianday(?7), lower_realdate = julianday(?8),
+                 upper_realdate = julianday(?9), date_fuzz = ?10, importance = ?11
+             WHERE deck_id = ?1
+             RETURNING location_textual, longitude, latitude, location_fuzz, date_textual,
+                       date(exact_realdate), date(lower_realdate), date(upper_realdate),
+                       date_fuzz, importance";
 
     let event_extras = sqlite::one(
         &tx,
@@ -266,7 +274,7 @@ pub(crate) fn all_events_during_life(
 
     sqlite::many(
         &conn,
-        "select d.id,
+        "SELECT d.id,
                 d.name as title,
                 d.kind as deck_kind,
                 d.graph_terminator,
@@ -274,20 +282,20 @@ pub(crate) fn all_events_during_life(
                 d.font,
                 ee.location_textual,
                 ee.date_textual,
-                coalesce(date(ee.exact_realdate), date(ee.lower_realdate)) as date,
-                coalesce(ee.exact_realdate, ee.lower_realdate) as sortdate
-         from   event_extras ee, decks d
-         where  coalesce(ee.exact_realdate, ee.upper_realdate) >= (select coalesce(point_born.exact_realdate, point_born.lower_realdate) as born
-                                                         from   points point_born
-                                                         where  point_born.deck_id = ?2
-                                                                and point_born.kind = 'point_begin')
-                and coalesce(ee.exact_realdate, ee.lower_realdate) <= coalesce((select coalesce(point_died.exact_realdate, point_died.upper_realdate) as died
-                                                                      from   points point_died
-                                                                      where  point_died.deck_id = ?2
-                                                                             and point_died.kind = 'point_end'), CURRENT_DATE)
-                and ee.deck_id = d.id
-                and d.user_id = ?1
-         order by sortdate",
+                coalesce(date(ee.exact_realdate), date(ee.lower_realdate)) AS date,
+                coalesce(ee.exact_realdate, ee.lower_realdate) AS sortdate
+         FROM   event_extras ee, decks d
+         WHERE  COALESCE(ee.exact_realdate, ee.upper_realdate) >= (
+                    SELECT COALESCE(point_born.exact_realdate, point_born.lower_realdate) AS born
+                    FROM   points point_born
+                    WHERE  point_born.deck_id = ?2 AND point_born.kind = 'point_begin'
+                ) AND coalesce(ee.exact_realdate, ee.lower_realdate) <= COALESCE((
+                    SELECT COALESCE(point_died.exact_realdate, point_died.upper_realdate) AS died
+                    FROM   points point_died
+                    WHERE  point_died.deck_id = ?2 AND point_died.kind = 'point_end'), CURRENT_DATE)
+                AND ee.deck_id = d.id
+                AND d.user_id = ?1
+         ORDER BY sortdate",
         params![&user_id, &deck_id],
     )
 }
