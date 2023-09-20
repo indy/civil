@@ -16,8 +16,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::notes as db;
+use crate::db::references as db_refs;
 use crate::db::sqlite::SqlitePool;
 use crate::interop::notes as interop;
+use crate::interop::references as interop_refs;
 use crate::interop::IdParam;
 use crate::session;
 use actix_web::web::{Data, Json, Path};
@@ -70,4 +72,20 @@ pub async fn delete_note(
     let notes = db::delete_note_properly(&sqlite_pool, user_id, params.id)?;
     // anything that alters the structure of a deck's notes should return _all_ the notes associated with that deck
     Ok(HttpResponse::Ok().json(notes))
+}
+
+pub async fn edit_references(
+    diff: Json<interop_refs::ReferencesDiff>,
+    sqlite_pool: Data<SqlitePool>,
+    params: Path<IdParam>,
+    session: actix_session::Session,
+) -> crate::Result<HttpResponse> {
+    info!("update");
+
+    let diff = diff.into_inner();
+    let user_id = session::user_id(&session)?;
+
+    let all_decks_for_note = db_refs::update_references(&sqlite_pool, &diff, user_id, params.id)?;
+
+    Ok(HttpResponse::Ok().json(all_decks_for_note))
 }

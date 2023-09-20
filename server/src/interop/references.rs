@@ -39,8 +39,7 @@ pub struct NewReference {
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ProtoNoteReferences {
-    pub note_id: Key,
+pub struct ReferencesDiff {
     pub references_added: Vec<ExistingReference>,
     pub references_changed: Vec<ExistingReference>,
     pub references_created: Vec<NewReference>,

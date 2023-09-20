@@ -166,18 +166,18 @@ fn neighbours(conn: &Connection, user_id: Key, deck_id: Key) -> crate::Result<Ve
     //
     sqlite::many(
         conn,
-        "SELECT 0, nd.kind, d.id, d.name, d.kind, d.graph_terminator, d.insignia, d.font
-         FROM notes_decks nd, notes n, decks d
-         WHERE nd.deck_id = ?2
-               AND n.id = nd.note_id
+        "SELECT 0, r.kind, d.id, d.name, d.kind, d.graph_terminator, d.insignia, d.font
+         FROM refs r, notes n, decks d
+         WHERE r.deck_id = ?2
+               AND n.id = r.note_id
                AND d.id = n.deck_id
-         AND d.user_id = ?1
+               AND d.user_id = ?1
          UNION
-         SELECT 1, nd.kind, d.id, d.name, d.kind, d.graph_terminator, d.insignia, d.font
-         FROM notes n, notes_decks nd, decks d
+         SELECT 1, r.kind, d.id, d.name, d.kind, d.graph_terminator, d.insignia, d.font
+         FROM notes n, refs r, decks d
          WHERE n.deck_id = ?2
-               AND nd.note_id = n.id
-               AND d.id = nd.deck_id
+               AND r.note_id = n.id
+               AND d.id = r.deck_id
                AND d.user_id = ?1",
         params![&user_id, &deck_id],
     )

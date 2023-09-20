@@ -5,7 +5,7 @@ import {
     NoteKind,
     Notes,
     Point,
-    ProtoNoteReferences,
+    ReferencesDiff,
     Reference,
     ReferencesApplied,
 } from "../types";
@@ -79,16 +79,15 @@ const ViewPassageChunkyBoy = <T extends FatDeck>({
                 noteId: note.id,
                 refKind: ref.refKind,
             };
-            let changeData: ProtoNoteReferences = {
-                noteId: note.id,
+            let changeData: ReferencesDiff = {
                 referencesChanged: [],
                 referencesRemoved: [],
                 referencesAdded: [addedRef],
                 referencesCreated: [],
             };
 
-            Net.post<ProtoNoteReferences, ReferencesApplied>(
-                "/api/edges/notes_decks",
+            Net.put<ReferencesDiff, ReferencesApplied>(
+                `/api/notes/${note.id}/references`,
                 changeData
             ).then((response) => {
                 onRefsChanged(note, response.refs);

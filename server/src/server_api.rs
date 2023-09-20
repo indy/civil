@@ -19,7 +19,6 @@ use crate::handler::articles;
 use crate::handler::bookmarks;
 use crate::handler::decks;
 use crate::handler::dialogues;
-use crate::handler::edges;
 use crate::handler::events;
 use crate::handler::graph;
 use crate::handler::ideas;
@@ -159,7 +158,8 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
             scope("/notes")
                 .route("", post().to(notes::create_notes))
                 .route("/{id}", put().to(notes::edit_note))
-                .route("/{id}", delete().to(notes::delete_note)),
+                .route("/{id}", delete().to(notes::delete_note))
+                .route("/{id}/references", put().to(notes::edit_references)),
         )
         .service(
             scope("/bookmarks")
@@ -178,7 +178,6 @@ pub fn public_api(mount_point: &str) -> actix_web::Scope {
                 .route("/{id}", delete().to(memorise::delete)),
         )
         .service(scope("/ubersetup").route("", get().to(ubersetup::setup)))
-        .service(scope("/edges").route("/notes_decks", post().to(edges::create_from_note_to_decks)))
         .service(scope("/graph").route("/{id}", get().to(graph::get)))
         .service(
             scope("/upload")

@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS notes (
        FOREIGN KEY (point_id) REFERENCES points (id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
-CREATE TABLE IF NOT EXISTS notes_decks (
+CREATE TABLE IF NOT EXISTS refs (
        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
        kind TEXT NOT NULL, -- 'ref', 'ref_to_parent', 'ref_to_child', 'ref_in_contrast', 'ref_critical'
@@ -371,7 +371,7 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
                    FOREIGN KEY (point_id) REFERENCES points (id) ON DELETE CASCADE ON UPDATE NO ACTION
                );
 
-               CREATE TABLE IF NOT EXISTS notes_decks (
+               CREATE TABLE IF NOT EXISTS references (
                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
                    kind TEXT NOT NULL, -- 'ref', 'ref_to_parent', 'ref_to_child', 'ref_in_contrast', 'ref_critical'
@@ -827,6 +827,11 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
         // user_version 21: users.ui_config json string
         ///////////////////
         M::up("ALTER TABLE users ADD COLUMN ui_config_json TEXT NOT NULL DEFAULT '{}';"),
+
+        ///////////////////
+        // user_version 22: rename notes_decks to references
+        ///////////////////
+        M::up("ALTER TABLE notes_decks RENAME TO refs;"),
     ]);
 
     let mut conn = Connection::open(db_name)?;

@@ -35,7 +35,7 @@ pub(crate) fn get_num_decks(
 
 pub(crate) fn get_num_refs(conn: &Connection, user_id: Key) -> crate::Result<i32> {
     let stmt = "SELECT count(*) AS count
-                FROM notes_decks nd LEFT JOIN decks d ON d.id = nd.deck_id
+                FROM refs r LEFT JOIN decks d ON d.id = r.deck_id
                 WHERE d.user_id = ?1";
     sqlite::one(conn, stmt, params![&user_id])
 }
@@ -90,9 +90,9 @@ pub(crate) fn get_num_refs_between(
     deck_to: &DeckKind,
 ) -> crate::Result<i32> {
     let stmt = "SELECT COUNT(*) AS count
-                FROM notes_decks nd
-                LEFT JOIN decks deck_to ON deck_to.id = nd.deck_id
-                LEFT JOIN notes n ON n.id = nd.note_id
+                FROM refs r
+                LEFT JOIN decks deck_to ON deck_to.id = r.deck_id
+                LEFT JOIN notes n ON n.id = r.note_id
                 LEFT JOIN decks deck_from ON n.deck_id = deck_from.id
                 WHERE deck_from.user_id = ?1 AND deck_from.kind='$deck_kind_from' AND deck_to.kind='$deck_kind_to'";
     let stmt = stmt.replace("$deck_kind_from", &deck_from.to_string());

@@ -99,11 +99,11 @@ pub(crate) fn all_flashcards_for_deck_arrivals(
         &conn,
         "SELECT   c.id, c.note_id, c.prompt, c.next_test_date,
                            c.easiness_factor, c.interval, c.repetition
-                  FROM     notes_decks nd
-                           FULL JOIN notes n on nd.note_id = n.id
+                  FROM     refs r
+                           FULL JOIN notes n on r.note_id = n.id
                            FULL JOIN decks owner_deck on n.deck_id = owner_deck.id
                            INNER JOIN cards c on c.note_id = n.id
-                  WHERE    nd.deck_id = ?1",
+                  WHERE    r.deck_id = ?1",
         params![&deck_id],
     )
 }

@@ -3,11 +3,10 @@ import { useEffect } from "preact/hooks";
 import {
     DeckKind,
     Key,
-    ProtoNoteReferences,
     Reference,
     ReferencesApplied,
     RefKind,
-    RefsModified,
+    ReferencesDiff,
     RenderingDeckPart,
     SearchResults,
     SlimDeck,
@@ -375,7 +374,7 @@ export default function CivilSelect({
     parentDeckId: Key;
     noteId: Key;
     chosen: Array<Reference>;
-    onSave: (changes: RefsModified, refsInNote: Array<Reference>) => void;
+    onSave: (changes: ReferencesDiff, refsInNote: Array<Reference>) => void;
     onCancel: () => void;
 }) {
     const appState = getAppState();
@@ -435,17 +434,16 @@ export default function CivilSelect({
         };
     }, []);
 
-    function onFinish(changes: RefsModified) {
-        let changeData: ProtoNoteReferences = {
-            noteId: noteId,
+    function onFinish(changes: ReferencesDiff) {
+        let changeData: ReferencesDiff = {
             referencesChanged: changes.referencesChanged,
             referencesRemoved: changes.referencesRemoved,
             referencesAdded: changes.referencesAdded,
             referencesCreated: changes.referencesCreated,
         };
 
-        Net.post<ProtoNoteReferences, ReferencesApplied>(
-            "/api/edges/notes_decks",
+        Net.put<ReferencesDiff, ReferencesApplied>(
+            `/api/notes/${noteId}/references`,
             changeData
         ).then((response) => {
             const recents = response.recents;
@@ -494,7 +492,7 @@ export default function CivilSelect({
     }
 
     function onLocalCommit() {
-        const refsModified: RefsModified = {
+        const refsModified: ReferencesDiff = {
             referencesChanged: local.referencesChanged,
             referencesRemoved: local.referencesRemoved,
             referencesAdded: local.referencesAdded,

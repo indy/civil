@@ -9,7 +9,7 @@ import {
     Note,
     Notes,
     Reference,
-    RefsModified,
+    ReferencesDiff,
     Role,
 } from "../types";
 
@@ -71,7 +71,7 @@ type ActionDataImagePasted = {
 
 type ActionDataDecksCommit = {
     refsInNote: Array<Reference>;
-    changes: RefsModified;
+    changes: ReferencesDiff;
 };
 
 type Action = {
@@ -413,7 +413,7 @@ const ViewNote = <T extends FatDeck>({
     }
 
     function buildAddDecksUI() {
-        function onSave(changes: RefsModified, refsInNote: Array<Reference>) {
+        function onSave(changes: ReferencesDiff, refsInNote: Array<Reference>) {
             onRefsChanged(local.note, refsInNote);
             localDispatch(ActionType.AddDecksCommit, {
                 refsInNote,

@@ -171,10 +171,10 @@ pub(crate) fn orphans(
     let stmt = "SELECT d.id, d.name, 'article', d.insignia, d.font, d.graph_terminator
                 FROM decks d LEFT JOIN article_extras pe ON pe.deck_id=d.id
                 WHERE d.id NOT IN (SELECT deck_id
-                                   FROM notes_decks
+                                   FROM refs
                                    GROUP BY deck_id)
                 AND d.id NOT IN (SELECT n.deck_id
-                                 FROM notes n INNER JOIN notes_decks nd ON n.id = nd.note_id
+                                 FROM notes n INNER JOIN refs r ON n.id = r.note_id
                                  GROUP by n.deck_id)
                 AND d.kind = 'article'
                 AND d.user_id = ?1
@@ -186,10 +186,10 @@ pub(crate) fn orphans(
     let stmt = "SELECT count(*)
                 FROM decks d LEFT JOIN article_extras pe ON pe.deck_id=d.id
                 WHERE d.id NOT IN (SELECT deck_id
-                                   FROM notes_decks
+                                   FROM refs
                                    GROUP BY deck_id)
                 AND d.id NOT IN (SELECT n.deck_id
-                                 FROM notes n INNER JOIN notes_decks nd ON n.id = nd.note_id
+                                 FROM notes n INNER JOIN refs r ON n.id = r.note_id
                                  GROUP by n.deck_id)
                 AND d.kind = 'article'
                 AND d.user_id = ?1";

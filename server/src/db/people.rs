@@ -282,9 +282,14 @@ pub(crate) fn contemporary(
 pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, person_id: Key) -> crate::Result<Person> {
     let conn = sqlite_pool.get()?;
 
+    let stmt = "
+     SELECT id, name, insignia, font, null as sort_date
+     FROM decks
+     WHERE user_id = ?1 AND id = ?2 AND kind = ?3";
+
     let deck: Person = sqlite::one(
         &conn,
-        decks::DECKBASE_QUERY,
+        stmt,
         params![&user_id, &person_id, &DeckKind::Person.to_string()],
     )?;
 

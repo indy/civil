@@ -4,14 +4,13 @@ import {
     CivilMode,
     Note,
     ReferencesApplied,
-    RefsModified,
+    ReferencesDiff,
     RenderingDeckPart,
     SearchDeck,
     SearchResults,
     SlimDeck,
     Reference,
     RefKind,
-    ProtoNoteReferences,
 } from "../types";
 
 import { AppStateChange, getAppState } from "../app-state";
@@ -144,7 +143,7 @@ function SearchNote({
     }
 
     function buildAddDecksUI() {
-        function onSave(changes: RefsModified, refsInNote: Array<Reference>) {
+        function onSave(changes: ReferencesDiff, refsInNote: Array<Reference>) {
             setAddDeckReferencesUI(false);
             AppStateChange.noteRefsModified({ refsInNote, changes });
             note.refs = refsInNote;
@@ -232,16 +231,15 @@ function AddQuickRef({
             refKind: RefKind.Ref,
         };
 
-        let changeData: ProtoNoteReferences = {
-            noteId: note.id,
+        let changeData: ReferencesDiff = {
             referencesChanged: [],
             referencesRemoved: [],
             referencesAdded: [ref],
             referencesCreated: [],
         };
 
-        Net.post<ProtoNoteReferences, ReferencesApplied>(
-            "/api/edges/notes_decks",
+        Net.put<ReferencesDiff, ReferencesApplied>(
+            `/api/notes/${note.id}/references`,
             changeData
         ).then((response) => {
             const recents = response.recents;

@@ -148,8 +148,8 @@ pub(crate) fn notes_for_deck(sqlite_pool: &SqlitePool, deck_id: Key) -> crate::R
                          n.content,
                          n.point_id,
                          n.font,
-                         nd.kind as ref_kind,
-                         nd.annotation,
+                         r.kind as ref_kind,
+                         r.annotation,
                          d.id,
                          d.name,
                          d.kind as deck_kind,
@@ -157,8 +157,8 @@ pub(crate) fn notes_for_deck(sqlite_pool: &SqlitePool, deck_id: Key) -> crate::R
                          d.insignia,
                          d.font
                 FROM     notes n
-                         FULL JOIN notes_decks nd on nd.note_id = n.id
-                         FULL JOIN decks d on nd.deck_id = d.id
+                         FULL JOIN refs r on r.note_id = n.id
+                         FULL JOIN decks d on r.deck_id = d.id
                 WHERE    n.deck_id = ?1
                 ORDER BY n.id";
     let notes_and_refs: Vec<NoteAndRef> = sqlite::many(&conn, stmt, params!(&deck_id))?;
@@ -233,8 +233,8 @@ pub(crate) fn arrivals_for_deck(
                          n.content,
                          n.point_id,
                          n.font,
-                         nd2.kind as ref_kind,
-                         nd2.annotation,
+                         r2.kind as ref_kind,
+                         r2.annotation,
                          d3.id,
                          d3.name,
                          d3.kind as deck_kind,
@@ -247,12 +247,12 @@ pub(crate) fn arrivals_for_deck(
                          owner_deck.graph_terminator,
                          owner_deck.insignia,
                          owner_deck.font
-                FROM     notes_decks nd
-                         FULL JOIN notes n on nd.note_id = n.id
+                FROM     refs r
+                         FULL JOIN notes n on r.note_id = n.id
                          FULL JOIN decks owner_deck on n.deck_id = owner_deck.id
-                         FULL JOIN notes_decks nd2 on nd2.note_id = n.id
-                         FULL JOIN decks d3 on nd2.deck_id = d3.id
-                WHERE    nd.deck_id = ?1
+                         FULL JOIN refs r2 on r2.note_id = n.id
+                         FULL JOIN decks d3 on r2.deck_id = d3.id
+                WHERE    r.deck_id = ?1
                 ORDER BY owner_deck.id, n.id";
     let notes_and_refs_and_decks: Vec<NoteAndRefAndDeck> =
         sqlite::many(&conn, stmt, params!(&deck_id))?;
@@ -354,7 +354,7 @@ pub(crate) fn delete_note_properly(
 
     // actually delete the note
     let stmt = "DELETE
-                FROM notes_decks
+                FROM refs
                 WHERE note_id = ?1";
     sqlite::zero(&tx, stmt, params![&note_id])?;
 

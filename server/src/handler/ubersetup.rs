@@ -25,8 +25,8 @@ use chrono::Utc;
 use tracing::info;
 
 use crate::db::bookmarks as db_bookmarks;
-use crate::db::edges as db_edges;
 use crate::db::memorise as db_memorise;
+use crate::db::references as db_references;
 use crate::db::uploader as db_uploader;
 use crate::interop::bookmarks as interop_bookmarks;
 use crate::interop::decks::SlimDeck;
@@ -53,7 +53,7 @@ pub async fn setup(
     let user_id = session::user_id(&session)?;
 
     let directory = user_id;
-    let recently_used_decks = db_edges::get_recently_used_decks(&sqlite_pool, user_id)?;
+    let recently_used_decks = db_references::get_recently_used_decks(&sqlite_pool, user_id)?;
     let recent_images = db_uploader::get_recent(&sqlite_pool, user_id, 0)?;
     let upcoming_review =
         db_memorise::get_cards_upcoming_review(&sqlite_pool, user_id, Utc::now().naive_utc())?;

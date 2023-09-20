@@ -21,7 +21,7 @@ import {
     PreviewDeck,
     PreviewNotes,
     RefKind,
-    RefsModified,
+    ReferencesDiff,
     SlimDeck,
     State,
     StateChangeAddPreview,
@@ -576,7 +576,7 @@ export const AppStateChange = {
         "noteRefsModified",
         (asca?: AppStateChangeArgs) => {
             let args = asca! as StateChangeNoteRefsModified;
-            const changes: RefsModified = args.changes;
+            const changes: ReferencesDiff = args.changes;
 
             if (changes.referencesCreated.length > 0) {
                 let ng = { ...state.graph.value, fullLoaded: false };

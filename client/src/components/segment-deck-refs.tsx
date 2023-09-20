@@ -7,7 +7,7 @@ import {
     Note,
     NoteKind,
     Reference,
-    RefsModified,
+    ReferencesDiff,
     RenderingDeckPart,
 } from "../types";
 
@@ -65,7 +65,7 @@ export default function SegmentDeckRefs({
 
     function onSaved(
         note: Note,
-        changes: RefsModified,
+        changes: ReferencesDiff,
         refsInNote: Array<Reference>
     ) {
         // this note is going to be the deck's NoteDeckMeta
@@ -126,7 +126,7 @@ type AddDecksUIProps = {
     onCancel: () => void;
     onSaved: (
         n: Note,
-        changes: RefsModified,
+        changes: ReferencesDiff,
         refsInNote: Array<Reference>
     ) => void;
 };
@@ -138,7 +138,7 @@ function AddDecksUI({
     onCancel,
     onSaved,
 }: AddDecksUIProps) {
-    function onSave(changes: RefsModified, refsInNote: Array<Reference>) {
+    function onSave(changes: ReferencesDiff, refsInNote: Array<Reference>) {
         onSaved(note, changes, refsInNote);
     }
 

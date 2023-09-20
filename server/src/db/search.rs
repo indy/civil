@@ -165,13 +165,13 @@ fn search_at_quote_extras_level(
                        n.id, n.prev_note_id, n.kind,
                        n.content,
                        n.point_id, n.font,
-                       nd.deck_id, nd.kind, nd.annotation, d2.name, d2.kind,
+                       r.deck_id, r.kind, r.annotation, d2.name, d2.kind,
                        d2.graph_terminator, d2.insignia, d2.font
                FROM quote_extras_fts
                     LEFT JOIN decks d on d.id = quote_extras_fts.rowid
                     LEFT JOIN notes n ON n.deck_id = d.id
-                    LEFT JOIN notes_decks nd on nd.note_id = n.id
-                    LEFT JOIN decks d2 on d2.id = nd.deck_id
+                    LEFT JOIN refs r on r.note_id = n.id
+                    LEFT JOIN decks d2 on d2.id = r.deck_id
                WHERE quote_extras_fts match ?2
                      AND d.user_id = ?1
                ORDER BY rank ASC
@@ -461,14 +461,14 @@ fn search_query(
                        n.id, n.prev_note_id, n.kind,
                        highlight(notes_fts, 0, ':searched(', ')') as content,
                        n.point_id, n.font,
-                       nd.deck_id, nd.kind, nd.annotation, d2.name, d2.kind,
+                       r.deck_id, r.kind, r.annotation, d2.name, d2.kind,
                        d2.graph_terminator, d2.insignia, d2.font
                FROM notes_fts
                     LEFT JOIN notes n ON n.id = notes_fts.rowid
                     LEFT JOIN decks d ON d.id = n.deck_id
                     LEFT JOIN dialogue_messages dm ON dm.note_id = n.id
-                    LEFT JOIN notes_decks nd on nd.note_id = n.id
-                    LEFT JOIN decks d2 on d2.id = nd.deck_id
+                    LEFT JOIN refs r on r.note_id = n.id
+                    LEFT JOIN decks d2 on d2.id = r.deck_id
                WHERE notes_fts match ?2
                      AND d.user_id = ?1
                      AND (dm.role IS null OR dm.role <> 'system')
@@ -499,14 +499,14 @@ fn search_deck_additional_query(
                        n.id, n.prev_note_id, n.kind,
                        highlight(notes_fts, 0, ':searched(', ')') as content,
                        n.point_id, n.font,
-                       nd.deck_id, nd.kind, nd.annotation, d2.name, d2.kind,
+                       r.deck_id, r.kind, r.annotation, d2.name, d2.kind,
                        d2.graph_terminator, d2.insignia, d2.font
                FROM notes_fts
                     LEFT JOIN notes n ON n.id = notes_fts.rowid
                     LEFT JOIN decks d ON d.id = n.deck_id
                     LEFT JOIN dialogue_messages dm ON dm.note_id = n.id
-                    LEFT JOIN notes_decks nd on nd.note_id = n.id
-                    LEFT JOIN decks d2 on d2.id = nd.deck_id
+                    LEFT JOIN refs r on r.note_id = n.id
+                    LEFT JOIN decks d2 on d2.id = r.deck_id
                WHERE notes_fts match ?2
                      AND d.user_id = ?1
                      AND d.id <> ?3

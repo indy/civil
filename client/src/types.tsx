@@ -553,15 +553,11 @@ export type PassageType = {
     x?: any;
 };
 
-export type RefsModified = {
+export type ReferencesDiff = {
     referencesChanged: Array<Reference>;
     referencesRemoved: Array<Reference>;
     referencesAdded: Array<Reference>;
     referencesCreated: Array<Reference>;
-};
-
-export type ProtoNoteReferences = RefsModified & {
-    noteId: Key;
 };
 
 export type ReferencesApplied = {
@@ -679,7 +675,7 @@ export type StateChangeUser = {
 
 export type StateChangeNoteRefsModified = {
     refsInNote: Array<Reference>;
-    changes: RefsModified;
+    changes: ReferencesDiff;
     calledFromBroadcastChannel?: boolean;
 };
 

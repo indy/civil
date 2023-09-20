@@ -19,8 +19,8 @@ use crate::db::decks::deckbase_get_or_create;
 use crate::db::sqlite::{self, FromRow, SqlitePool};
 use crate::interop::decks::Ref;
 use crate::interop::decks::{DeckKind, SlimDeck};
-use crate::interop::edges::{ProtoNoteReferences, ReferencesApplied};
 use crate::interop::font::Font;
+use crate::interop::references::{ReferencesApplied, ReferencesDiff};
 use crate::interop::Key;
 
 use rusqlite::{params, Connection, Row};
@@ -43,28 +43,27 @@ impl FromRow for Ref {
     }
 }
 
-pub(crate) fn create_from_note_to_decks(
+pub(crate) fn update_references(
     sqlite_pool: &SqlitePool,
-    note_references: &ProtoNoteReferences,
+    diff: &ReferencesDiff,
     user_id: Key,
+    note_id: Key,
 ) -> crate::Result<ReferencesApplied> {
-    info!("create_from_note_to_decks");
+    info!("update_references");
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    let note_id = note_references.note_id;
-
-    let stmt_refs_removed = "DELETE FROM notes_decks WHERE note_id = ?1 AND deck_id = ?2";
-    for removed in &note_references.references_removed {
+    let stmt_refs_removed = "DELETE FROM refs WHERE note_id = ?1 AND deck_id = ?2";
+    for removed in &diff.references_removed {
         // this deck has been removed from the note by the user
         info!("deleting {}, {}", &note_id, &removed.id);
         sqlite::zero(&tx, stmt_refs_removed, params![&note_id, &removed.id])?;
     }
 
-    let stmt_refs_changed = "UPDATE notes_decks
+    let stmt_refs_changed = "UPDATE refs
                              SET  kind = ?3, annotation = ?4
                              WHERE note_id = ?2 and deck_id = ?1";
-    for changed in &note_references.references_changed {
+    for changed in &diff.references_changed {
         info!(
             "updating properties of an existing reference {} {}",
             note_id, changed.id
@@ -82,9 +81,9 @@ pub(crate) fn create_from_note_to_decks(
         )?;
     }
 
-    let stmt_refs_added = "INSERT INTO notes_decks(note_id, deck_id, kind, annotation)
+    let stmt_refs_added = "INSERT INTO refs(note_id, deck_id, kind, annotation)
                            VALUES (?1, ?2, ?3, ?4)";
-    for added in &note_references.references_added {
+    for added in &diff.references_added {
         info!(
             "creating new edge to pre-existing deck {}, {}",
             &note_id, &added.id
@@ -103,7 +102,7 @@ pub(crate) fn create_from_note_to_decks(
 
     // create new tags and create edges from the note to them
     //
-    for created in &note_references.references_created {
+    for created in &diff.references_created {
         info!("create new idea: {} and a new edge", created.title);
         let (deck, _created) =
             deckbase_get_or_create(&tx, user_id, DeckKind::Idea, &created.title, Font::Serif)?;
@@ -122,11 +121,10 @@ pub(crate) fn create_from_note_to_decks(
     // return a list of [id, name, resource, kind, annotation] containing the complete set
     // of decks associated with this note.
     //
-    let stmt_all_decks =
-        "SELECT nd.note_id, d.id, d.name, d.kind as deck_kind, nd.kind as ref_kind,
-                nd.annotation, d.insignia, d.font, d.graph_terminator
-         FROM notes_decks nd, decks d
-         WHERE nd.note_id = ?1 AND d.id = nd.deck_id";
+    let stmt_all_decks = "SELECT r.note_id, d.id, d.name, d.kind as deck_kind, r.kind as ref_kind,
+                r.annotation, d.insignia, d.font, d.graph_terminator
+         FROM refs r, decks d
+         WHERE r.note_id = ?1 AND d.id = r.deck_id";
     let refs: Vec<Ref> = sqlite::many(&tx, stmt_all_decks, params![&note_id])?;
 
     let recents = get_recents(&tx, user_id)?;
@@ -148,10 +146,10 @@ fn get_recents(conn: &Connection, user_id: Key) -> crate::Result<Vec<SlimDeck>> 
     let stmt_recent_refs = "
          SELECT DISTINCT deck_id, title, kind, insignia, font, graph_terminator
          FROM (
-              SELECT nd.deck_id, d.name as title, d.kind, d.insignia, d.font, d.graph_terminator
-              FROM notes_decks nd, decks d
-              WHERE nd.deck_id = d.id AND d.user_id = ?1
-              ORDER BY nd.created_at DESC
+              SELECT r.deck_id, d.name as title, d.kind, d.insignia, d.font, d.graph_terminator
+              FROM refs r, decks d
+              WHERE r.deck_id = d.id AND d.user_id = ?1
+              ORDER BY r.created_at DESC
               LIMIT 100) -- without this limit query returns incorrect results
          LIMIT 8";
 
