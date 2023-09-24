@@ -53,7 +53,7 @@ pub async fn setup(
     let user_id = session::user_id(&session)?;
 
     let directory = user_id;
-    let recently_used_decks = db_references::get_recently_used_decks(&sqlite_pool, user_id)?;
+    let recently_used_decks = db_references::get_decks_recently_referenced(&sqlite_pool, user_id)?;
     let recent_images = db_uploader::get_recent(&sqlite_pool, user_id, 0)?;
     let upcoming_review =
         db_memorise::get_cards_upcoming_review(&sqlite_pool, user_id, Utc::now().naive_utc())?;

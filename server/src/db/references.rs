@@ -127,22 +127,22 @@ pub(crate) fn update_references(
          WHERE r.note_id = ?1 AND d.id = r.deck_id";
     let refs: Vec<Ref> = sqlite::many(&tx, stmt_all_decks, params![&note_id])?;
 
-    let recents = get_recents(&tx, user_id)?;
+    let recents = decks_recently_referenced(&tx, user_id)?;
 
     tx.commit()?;
 
     Ok(ReferencesApplied { refs, recents })
 }
 
-pub(crate) fn get_recently_used_decks(
+pub(crate) fn get_decks_recently_referenced(
     sqlite_pool: &SqlitePool,
     user_id: Key,
 ) -> crate::Result<Vec<SlimDeck>> {
     let conn = sqlite_pool.get()?;
-    get_recents(&conn, user_id)
+    decks_recently_referenced(&conn, user_id)
 }
 
-fn get_recents(conn: &Connection, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
+fn decks_recently_referenced(conn: &Connection, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
     let stmt_recent_refs = "
          SELECT DISTINCT deck_id, title, kind, insignia, font, graph_terminator
          FROM (
