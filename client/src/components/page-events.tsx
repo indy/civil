@@ -20,6 +20,7 @@ import {
     asHumanReadableDateRange,
     parseDateStringAsTriple,
     parseDateStringAsYearOnly,
+    parseDateStringLiberallyIntoStringTriple
 } from "../shared/time";
 
 import CivilButton from "./civil-button";
@@ -234,9 +235,9 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
     const [localState, setLocalState] = useState(initialState);
 
     function setLocalStateDateChange(s: LocalState) {
-        const parsedLowerDate = parseDateStringAsTriple(s.lowerDate!);
-        const parsedUpperDate = parseDateStringAsTriple(s.upperDate!);
-        const parsedExactDate = parseDateStringAsTriple(s.exactDate!);
+        const parsedLowerDate = parseDateStringAsTriple(s.lowerDate);
+        const parsedUpperDate = parseDateStringAsTriple(s.upperDate);
+        const parsedExactDate = parseDateStringAsTriple(s.exactDate);
 
         if (parsedLowerDate && parsedUpperDate) {
             s.dateTextual = asHumanReadableDateRange(
@@ -264,7 +265,6 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
                 s.roundToYear = false;
             }
         }
-
         setLocalState(s);
     }
 
@@ -322,9 +322,9 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
     }
 
     const handleSubmit = (e: Event) => {
-        type DeckEventUpdate = DeckUpdate & EventExtras;
+        type ProtoEvent = DeckUpdate & EventExtras;
 
-        const data: DeckEventUpdate = {
+        const data: ProtoEvent = {
             title: localState.title.trim(),
             insignia: localState.insigniaId,
             font: localState.font,
@@ -336,16 +336,17 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
             locationFuzz: localState.locationFuzz,
 
             dateTextual: localState.dateTextual,
-            exactDate: localState.exactDate,
-            lowerDate: localState.lowerDate,
-            upperDate: localState.upperDate,
+            exactDate: parseDateStringLiberallyIntoStringTriple(localState.exactDate),
+            lowerDate: parseDateStringLiberallyIntoStringTriple(localState.lowerDate),
+            upperDate: parseDateStringLiberallyIntoStringTriple(localState.upperDate),
             dateFuzz: localState.dateFuzz,
 
             importance: localState.importance,
         };
 
+
         // edit an existing event
-        Net.put<DeckEventUpdate, DeckEvent>(
+        Net.put<ProtoEvent, DeckEvent>(
             `/api/events/${event.id}`,
             data
         ).then((newDeck) => {

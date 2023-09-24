@@ -110,50 +110,88 @@ export function dateStringAsTriple(
 }
 
 export function parseDateStringAsYearOnly(value: string) {
-    const re = /^(-?)(\d{4})$/;
-    const match = re.exec(value);
-
-    if (!match) {
-        // console.log("input doesn't match the required format of [-]YYYY");
-        return null;
+    let r = parseDateStringLiberally(value);
+    if (!r) {
+        return undefined;
     }
+    let [isNegative, year, _month, _day] = r;
 
-    const isNegative = match[1] === "-";
-    const year = isNegative
-        ? parseInt(match[2], 10) * -1
-        : parseInt(match[2], 10);
+
+    if (isNegative) {
+        year *= -1;
+    }
 
     return year;
 }
 
-export function parseDateStringAsTriple(
-    value: string
-): [number, number, number] | null {
-    const re = /^(-?)(\d{4})-(\d{2})-(\d{2})$/;
-    const match = re.exec(value);
-
-    if (!match) {
-        // console.log("input doesn't match the required format of [-]YYYY-MM-DD");
-        return null;
+export function parseDateStringLiberallyIntoStringTriple(date: string | undefined): string | undefined {
+    let r = parseDateStringLiberally(date);
+    if (!r) {
+        return undefined;
     }
+    let [isNegative, year, month, day] = r;
 
-    const isNegative = match[1] === "-";
-    const year = isNegative
-        ? parseInt(match[2], 10) * -1
-        : parseInt(match[2], 10);
-    const month = parseInt(match[3], 10);
-    const day = parseInt(match[4], 10);
+    let yearString = isNegative ?  '-' : '';
+    yearString += `${year}`.padStart(4, '0');
+    const monthString = `${month}`.padStart(2, '0');
+    const dayString = `${day}`.padStart(2, '0');
 
-    if (month < 1 || month > 12) {
-        console.log(`month value of ${month} is not in the range 1..12`);
-        return null;
+    return `${yearString}-${monthString}-${dayString}`;
+}
+
+export function parseDateStringAsTriple(date: string | undefined): [number, number, number] | undefined {
+    let r = parseDateStringLiberally(date);
+    if (!r) {
+        return undefined;
     }
-    if (day < 1 || day > 31) {
-        console.log(`day value of ${day} is not in the range 1..31`);
-        return null;
+    let [isNegative, year, month, day] = r;
+    if (isNegative) {
+        year *= -1;
     }
 
     return [year, month, day];
+}
+
+function parseDateStringLiberally(date: string | undefined): [boolean, number, number, number] | undefined {
+    if (!date) {
+        return undefined;
+    }
+
+    const re = /^(-?)(\d{1,4})-?(\d{1,2})?-?(\d{1,2})?$/;
+    const match = re.exec(date);
+
+    if (!match) {
+        console.error("input doesn't match any recognisable date format");
+        return undefined;
+    }
+
+    if (!match[2]) {
+        console.error("no year given");
+        return undefined;
+    }
+
+    const isNegative = match[1] === "-";
+    const year = parseInt(match[2], 10);
+
+    let month = 1;
+    if (match[3]) {
+        month = parseInt(match[3], 10);
+    }
+    if (month < 1 || month > 12) {
+        console.error(`month value of ${month} is not in the range 1..12`);
+        return undefined;
+    }
+
+    let day = 1;
+    if (match[4]) {
+        day = parseInt(match[4], 10);
+    }
+    if (day < 1 || day > 31) {
+        console.error(`day value of ${day} is not in the range 1..31`);
+        return undefined;
+    }
+
+    return [isNegative, year, month, day];
 }
 
 export function asHumanReadableDate(
