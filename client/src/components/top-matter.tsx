@@ -8,6 +8,8 @@ import { getAppState } from "../app-state";
 import { addToolbarSelectableClasses } from "../shared/css";
 import { fontClass } from "../shared/font";
 
+import { svgCalendar, svgEyeOff } from "./svg-icons";
+
 import { CivContainer, CivLeft } from "./civil-layout";
 import { renderInsignia } from "./insignia-renderer";
 import LeftMarginHeading from "./left-margin-heading";
@@ -87,11 +89,11 @@ function HitsControl({
     displayHits: boolean;
     setDisplayHits: (value: boolean) => void;
 }) {
-    let label = displayHits ? "Hide Hits" : "Show Hits";
+    let icon = displayHits ? svgEyeOff() : svgCalendar();
 
     function onClick() {
         setDisplayHits(!displayHits);
     }
 
-    return <div onClick={onClick}>{label}</div>;
+    return <div onClick={onClick}>{icon}</div>;
 }
