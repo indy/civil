@@ -20,15 +20,15 @@ export default function ViewArrival({ deck, arrival }: ViewArrivalProps) {
     );
 
     let lastIdx = arrival.passages.length - 1;
-    let passages = arrival.passages.map((passage, idx) =>
-        <ViewPassageWithinArrival deck={deck} passage={passage} isLast={idx === lastIdx}/>
-    );
+    let passages = arrival.passages.map((passage, idx) => (
+        <ViewPassageWithinArrival
+            deck={deck}
+            passage={passage}
+            isLast={idx === lastIdx}
+        />
+    ));
 
-    return (
-        <Expandable heading={heading}>
-            {passages}
-        </Expandable>
-    );
+    return <Expandable heading={heading}>{passages}</Expandable>;
 }
 
 type ViewPassageWithinArrivalProps = {
@@ -40,7 +40,7 @@ type ViewPassageWithinArrivalProps = {
 function ViewPassageWithinArrival({
     deck,
     passage,
-    isLast
+    isLast,
 }: ViewPassageWithinArrivalProps) {
     // the 'isLast' argument is true when this is the last passage in the arrival
     // so if that's true, don't render the final <hr> for the last ArrivalNote
@@ -48,7 +48,13 @@ function ViewPassageWithinArrival({
     let lastIdx = passage.length - 1;
     let notes = passage.map((note, idx) => {
         let renderDivider = !isLast && idx === lastIdx;
-        return <ArrivalNote deck={deck} note={note} renderDivider={renderDivider} />;
+        return (
+            <ArrivalNote
+                deck={deck}
+                note={note}
+                renderDivider={renderDivider}
+            />
+        );
     });
 
     return <div class="c-view-passage-within-back-deck">{notes}</div>;

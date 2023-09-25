@@ -2194,11 +2194,11 @@ input:required {
 }
 
 .c-segment-hits {
-  color: var(--fg-lighter-5);
-  z-index: -1;                  /* keep behind the previewer */
-  position: absolute;
-  right: 3rem;
-  top: 3rem;
+    color: var(--fg-lighter-5);
+    z-index: -1; /* keep behind the previewer */
+    position: absolute;
+    right: 3rem;
+    top: 3rem;
 }
 
 .c-segment-deck-refs {

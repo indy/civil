@@ -22,7 +22,11 @@ function SingleHit({ hit }: { hit: Hit }) {
 
     let span = prettyPrintTimeSpan(deltaMS);
 
-    return <li><div>{textual}</div> <div>{span} ago</div></li>;
+    return (
+        <li>
+            <div>{textual}</div> <div>{span} ago</div>
+        </li>
+    );
 }
 
 type SegmentHitsProps<T extends FatDeck> = {
