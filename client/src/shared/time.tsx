@@ -1,14 +1,12 @@
 import { capitalise } from "../shared/english";
 
 export function prettyPrintTimeSpan(deltaMS: number): string {
-
-    let diffSecs = deltaMS / (1000);
+    let diffSecs = deltaMS / 1000;
     let diffMins = deltaMS / (1000 * 60);
     let diffHours = deltaMS / (1000 * 60 * 60);
     let diffDays = diffHours / 24;
     let diffWeeks = diffDays / 7;
     let diffYears = diffDays / 365.25;
-
 
     let unit = "";
     let val = 0;
@@ -116,7 +114,6 @@ export function parseDateStringAsYearOnly(value: string) {
     }
     let [isNegative, year, _month, _day] = r;
 
-
     if (isNegative) {
         year *= -1;
     }
@@ -124,22 +121,26 @@ export function parseDateStringAsYearOnly(value: string) {
     return year;
 }
 
-export function parseDateStringLiberallyIntoStringTriple(date: string | undefined): string | undefined {
+export function normaliseDateString(
+    date: string | undefined
+): string | undefined {
     let r = parseDateStringLiberally(date);
     if (!r) {
         return undefined;
     }
     let [isNegative, year, month, day] = r;
 
-    let yearString = isNegative ?  '-' : '';
-    yearString += `${year}`.padStart(4, '0');
-    const monthString = `${month}`.padStart(2, '0');
-    const dayString = `${day}`.padStart(2, '0');
+    let yearString = isNegative ? "-" : "";
+    yearString += `${year}`.padStart(4, "0");
+    const monthString = `${month}`.padStart(2, "0");
+    const dayString = `${day}`.padStart(2, "0");
 
     return `${yearString}-${monthString}-${dayString}`;
 }
 
-export function parseDateStringAsTriple(date: string | undefined): [number, number, number] | undefined {
+export function parseDateStringAsTriple(
+    date: string | undefined
+): [number, number, number] | undefined {
     let r = parseDateStringLiberally(date);
     if (!r) {
         return undefined;
@@ -152,7 +153,9 @@ export function parseDateStringAsTriple(date: string | undefined): [number, numb
     return [year, month, day];
 }
 
-function parseDateStringLiberally(date: string | undefined): [boolean, number, number, number] | undefined {
+function parseDateStringLiberally(
+    date: string | undefined
+): [boolean, number, number, number] | undefined {
     if (!date) {
         return undefined;
     }

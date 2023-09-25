@@ -8,6 +8,7 @@ import {
     asHumanReadableDateRange,
     parseDateStringAsTriple,
     parseDateStringAsYearOnly,
+    normaliseDateString,
 } from "../shared/time";
 
 import CivilInput from "./civil-input";
@@ -300,23 +301,13 @@ export default function PointForm({
 
         if (localState.dateTextualDerivedFrom === "exact") {
             s.dateTextual = localState.dateTextual;
-            s.exactDate = localState.exactDate;
+            s.exactDate = normaliseDateString(localState.exactDate);
             s.dateFuzz = localState.dateFuzz;
-
-            // hack: need more robust date parsing
-            if (
-                s.exactDate.length === 4 ||
-                (s.exactDate.length === 5 && s.exactDate[0] === "-")
-            ) {
-                s.exactDate += "-01-01";
-                console.log(`rounding exact date to be: ${s.exactDate}`);
-            }
-
             canSend = true;
         } else if (localState.dateTextualDerivedFrom === "range") {
             s.dateTextual = localState.dateTextual;
-            s.lowerDate = localState.lowerDate;
-            s.upperDate = localState.upperDate;
+            s.lowerDate = normaliseDateString(localState.lowerDate);
+            s.upperDate = normaliseDateString(localState.upperDate);
             s.dateFuzz = localState.dateFuzz;
             canSend = true;
         }

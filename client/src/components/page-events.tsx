@@ -20,7 +20,7 @@ import {
     asHumanReadableDateRange,
     parseDateStringAsTriple,
     parseDateStringAsYearOnly,
-    parseDateStringLiberallyIntoStringTriple
+    normaliseDateString,
 } from "../shared/time";
 
 import CivilButton from "./civil-button";
@@ -336,22 +336,20 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
             locationFuzz: localState.locationFuzz,
 
             dateTextual: localState.dateTextual,
-            exactDate: parseDateStringLiberallyIntoStringTriple(localState.exactDate),
-            lowerDate: parseDateStringLiberallyIntoStringTriple(localState.lowerDate),
-            upperDate: parseDateStringLiberallyIntoStringTriple(localState.upperDate),
+            exactDate: normaliseDateString(localState.exactDate),
+            lowerDate: normaliseDateString(localState.lowerDate),
+            upperDate: normaliseDateString(localState.upperDate),
             dateFuzz: localState.dateFuzz,
 
             importance: localState.importance,
         };
 
-
         // edit an existing event
-        Net.put<ProtoEvent, DeckEvent>(
-            `/api/events/${event.id}`,
-            data
-        ).then((newDeck) => {
-            onUpdate(newDeck);
-        });
+        Net.put<ProtoEvent, DeckEvent>(`/api/events/${event.id}`, data).then(
+            (newDeck) => {
+                onUpdate(newDeck);
+            }
+        );
 
         e.preventDefault();
     };
