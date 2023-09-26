@@ -832,6 +832,20 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
         // user_version 22: rename notes_decks to references
         ///////////////////
         M::up("ALTER TABLE notes_decks RENAME TO refs;"),
+
+        ///////////////////
+        // user_version 23: impact
+        ///////////////////
+        M::up("ALTER TABLE decks ADD COLUMN impact INTEGER DEFAULT 0;
+
+               UPDATE decks
+               SET impact = (SELECT rating FROM article_extras WHERE article_extras.deck_id = decks.id)
+               WHERE EXISTS (SELECT 1 FROM article_extras WHERE article_extras.deck_id = decks.id);
+
+               UPDATE decks
+               SET impact = (SELECT importance FROM event_extras WHERE event_extras.deck_id = decks.id)
+               WHERE EXISTS (SELECT 1 FROM event_extras WHERE event_extras.deck_id = decks.id);
+"),
     ]);
 
     let mut conn = Connection::open(db_name)?;
@@ -844,71 +858,3 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
 
     Ok(())
 }
-
-/*
-
-possible schema simplification:
-
--- existing schema
-
-CREATE TABLE IF NOT EXISTS article_extras (
-       deck_id INTEGER NOT NULL,
-
-       source TEXT,
-       author TEXT,
-       short_description TEXT,
-
-       rating INTEGER DEFAULT 0,
-       published_date DATE DEFAULT CURRENT_DATE,
-
-       FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
-
-CREATE TABLE IF NOT EXISTS quote_extras (
-       deck_id INTEGER NOT NULL,
-
-       attribution TEXT,
-
-       FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
-
-CREATE TABLE IF NOT EXISTS dialogue_extras (
-       deck_id INTEGER NOT NULL,
-
-       kind TEXT NOT NULL, -- the kind of AI assistant, currently going to be a variant of OpenAI
-
-       FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
-
---------------------------------------------------------------------------------
-
--- proposed schema
-
-CREATE TABLE IF NOT EXISTS deck_extras (
-       -- common
-       deck_id INTEGER NOT NULL,
-
-       -- generics
-       gen_text TEXT,
-       gen_text2 TEXT,
-       gen_text3 TEXT,
-       gen_int INTEGER,
-       gen_date DATE,
-
-       -- article
-       --       source -> gen_text
-       --       author -> gen_text2
-       --       short_description -> gen_text3
-       --       rating -> gen_int (was DEFAULT 0)
-       --       published_date -> gen_date (was DEFAULT CURRENT DATE)
-
-       -- quote
-       --       attribution -> gen_text
-
-       -- dialogue
-       --       kind -> gen_text -- (was NOT NULL)
-
-       FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
-
-*/

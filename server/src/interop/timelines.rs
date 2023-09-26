@@ -26,11 +26,13 @@ use crate::interop::Key;
 pub struct Timeline {
     pub id: Key,
     pub title: String,
-
     pub deck_kind: DeckKind,
+    pub created_at: chrono::NaiveDateTime,
+    pub graph_terminator: bool,
 
     pub insignia: i32,
     pub font: Font,
+    pub impact: i32,
 
     pub points: Vec<Point>,
 
@@ -45,9 +47,12 @@ impl From<crate::db::decks::DeckBase> for Timeline {
             title: d.title,
 
             deck_kind: DeckKind::Timeline,
+            created_at: d.created_at,
+            graph_terminator: d.graph_terminator,
 
             insignia: d.insignia,
             font: d.font,
+            impact: d.impact,
 
             points: vec![],
 

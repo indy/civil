@@ -36,9 +36,11 @@ struct Connectivity {
     deck_id: Key,
     title: String,
     deck_kind: DeckKind,
+    created_at: chrono::NaiveDateTime,
     graph_terminator: bool,
     insignia: i32,
     font: Font,
+    impact: i32,
 }
 
 impl FromSql for Direction {
@@ -59,9 +61,11 @@ impl FromRow for Connectivity {
             deck_id: row.get(2)?,
             title: row.get(3)?,
             deck_kind: row.get(4)?,
-            graph_terminator: row.get(5)?,
-            insignia: row.get(6)?,
-            font: row.get(7)?,
+            created_at: row.get(5)?,
+            graph_terminator: row.get(6)?,
+            insignia: row.get(7)?,
+            font: row.get(8)?,
+            impact: row.get(9)?,
         })
     }
 }
@@ -71,9 +75,11 @@ fn slimdeck_from_connectivity(connectivity: &Connectivity) -> SlimDeck {
         id: connectivity.deck_id,
         title: String::from(&connectivity.title),
         deck_kind: connectivity.deck_kind,
+        created_at: connectivity.created_at,
+        graph_terminator: connectivity.graph_terminator,
         insignia: connectivity.insignia,
         font: connectivity.font,
-        graph_terminator: connectivity.graph_terminator,
+        impact: connectivity.impact,
     }
 }
 
@@ -82,9 +88,11 @@ fn fucking_copy_slimdeck(slimdeck: &SlimDeck) -> SlimDeck {
         id: slimdeck.id,
         title: String::from(&slimdeck.title),
         deck_kind: slimdeck.deck_kind,
+        created_at: slimdeck.created_at,
+        graph_terminator: slimdeck.graph_terminator,
         insignia: slimdeck.insignia,
         font: slimdeck.font,
-        graph_terminator: slimdeck.graph_terminator,
+        impact: slimdeck.impact,
     }
 }
 fn fucking_copy_edge(edge: &Edge) -> Edge {
@@ -166,14 +174,14 @@ fn neighbours(conn: &Connection, user_id: Key, deck_id: Key) -> crate::Result<Ve
     //
     sqlite::many(
         conn,
-        "SELECT 0, r.kind, d.id, d.name, d.kind, d.graph_terminator, d.insignia, d.font
+        "SELECT 0, r.kind, d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
          FROM refs r, notes n, decks d
          WHERE r.deck_id = ?2
                AND n.id = r.note_id
                AND d.id = n.deck_id
                AND d.user_id = ?1
          UNION
-         SELECT 1, r.kind, d.id, d.name, d.kind, d.graph_terminator, d.insignia, d.font
+         SELECT 1, r.kind, d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
          FROM notes n, refs r, decks d
          WHERE n.deck_id = ?2
                AND r.note_id = n.id

@@ -59,13 +59,13 @@ impl FromSql for AiKind {
 pub struct Dialogue {
     pub id: Key,
     pub title: String,
-
     pub deck_kind: DeckKind,
+    pub created_at: chrono::NaiveDateTime,
+    pub graph_terminator: bool,
 
     pub insignia: i32,
     pub font: Font,
-
-    pub created_at: chrono::NaiveDateTime,
+    pub impact: i32,
 
     pub notes: Vec<Note>,
     pub arrivals: Vec<Arrival>,

@@ -25,19 +25,16 @@ use crate::interop::Key;
 pub struct Idea {
     pub id: Key,
     pub title: String,
-
     pub deck_kind: DeckKind,
+    pub created_at: chrono::NaiveDateTime,
+    pub graph_terminator: bool,
 
     pub insignia: i32,
     pub font: Font,
-
-    pub graph_terminator: bool,
-
-    pub created_at: chrono::NaiveDateTime,
+    pub impact: i32,
 
     pub notes: Vec<Note>,
     pub arrivals: Vec<Arrival>,
-    //     pub flashcards: Vec<FlashCard>,
 }
 
 impl From<crate::db::decks::DeckBase> for Idea {
@@ -47,17 +44,15 @@ impl From<crate::db::decks::DeckBase> for Idea {
             title: d.title,
 
             deck_kind: DeckKind::Idea,
+            created_at: d.created_at,
+            graph_terminator: d.graph_terminator,
 
             insignia: d.insignia,
             font: d.font,
-
-            graph_terminator: d.graph_terminator,
-
-            created_at: d.created_at,
+            impact: d.impact,
 
             notes: vec![],
             arrivals: vec![],
-            //             flashcards: vec![],
         }
     }
 }

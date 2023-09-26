@@ -25,11 +25,13 @@ use crate::interop::Key;
 pub struct Event {
     pub id: Key,
     pub title: String,
-
     pub deck_kind: DeckKind,
+    pub created_at: chrono::NaiveDateTime,
+    pub graph_terminator: bool,
 
     pub insignia: i32,
     pub font: Font,
+    pub impact: i32,
 
     pub location_textual: Option<String>,
     pub longitude: Option<f32>,
@@ -53,11 +55,13 @@ impl From<crate::db::decks::DeckBase> for Event {
         Event {
             id: d.id,
             title: d.title,
-
             deck_kind: DeckKind::Event,
+            created_at: d.created_at,
+            graph_terminator: d.graph_terminator,
 
             insignia: d.insignia,
             font: d.font,
+            impact: d.impact,
 
             location_textual: None,
             longitude: None,

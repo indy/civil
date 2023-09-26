@@ -51,8 +51,12 @@ impl From<(DeckBase, EventExtra)> for Event {
 
             deck_kind: DeckKind::Event,
 
+            created_at: deck.created_at,
+            graph_terminator: deck.graph_terminator,
+
             insignia: deck.insignia,
             font: deck.font,
+            impact: deck.impact,
 
             location_textual: extra.location_textual,
             longitude: extra.longitude,
@@ -97,22 +101,25 @@ impl FromRow for Event {
         Ok(Event {
             id: row.get(0)?,
             title: row.get(1)?,
-            deck_kind: DeckKind::Event,
-            insignia: row.get(3)?,
-            font: row.get(2)?,
+            deck_kind: row.get(2)?,
+            created_at: row.get(3)?,
+            graph_terminator: row.get(4)?,
+            insignia: row.get(5)?,
+            font: row.get(6)?,
+            impact: row.get(7)?,
 
-            location_textual: row.get(4)?,
-            longitude: row.get(5)?,
-            latitude: row.get(6)?,
-            location_fuzz: row.get(7)?,
+            location_textual: row.get(8)?,
+            longitude: row.get(9)?,
+            latitude: row.get(10)?,
+            location_fuzz: row.get(11)?,
 
-            date_textual: row.get(8)?,
-            exact_date: row.get(9)?,
-            lower_date: row.get(10)?,
-            upper_date: row.get(11)?,
-            date_fuzz: row.get(12)?,
+            date_textual: row.get(12)?,
+            exact_date: row.get(13)?,
+            lower_date: row.get(14)?,
+            upper_date: row.get(15)?,
+            date_fuzz: row.get(16)?,
 
-            importance: row.get(13)?,
+            importance: row.get(17)?,
 
             notes: vec![],
             arrivals: vec![],
@@ -126,14 +133,16 @@ impl FromRow for SlimEvent {
             id: row.get(0)?,
             title: row.get(1)?,
             deck_kind: DeckKind::Event,
-            graph_terminator: row.get(3)?,
-            insignia: row.get(4)?,
-            font: row.get(5)?,
+            created_at: row.get(3)?,
+            graph_terminator: row.get(4)?,
+            insignia: row.get(5)?,
+            font: row.get(6)?,
+            impact: row.get(7)?,
 
-            location_textual: row.get(6)?,
+            location_textual: row.get(8)?,
 
-            date_textual: row.get(7)?,
-            date: row.get(8)?,
+            date_textual: row.get(9)?,
+            date: row.get(10)?,
         })
     }
 }
@@ -181,7 +190,7 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<
     let conn = sqlite_pool.get()?;
 
     // TODO: sort this by the event date in event_extras
-    let stmt = "SELECT id, name, 'event', insignia, font, graph_terminator
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'event'
                 ORDER BY created_at DESC";
@@ -192,7 +201,7 @@ pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<
 pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, event_id: Key) -> crate::Result<Event> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT decks.id, decks.name, decks.font, decks.insignia,
+    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at, decks.graph_terminator, decks.insignia, decks.font, decks.impact,
                        event_extras.location_textual, event_extras.longitude,
                        event_extras.latitude, event_extras.location_fuzz,
                        event_extras.date_textual, date(event_extras.exact_realdate),
@@ -277,9 +286,11 @@ pub(crate) fn all_events_during_life(
         "SELECT d.id,
                 d.name as title,
                 d.kind as deck_kind,
+                d.created_at,
                 d.graph_terminator,
                 d.insignia,
                 d.font,
+                d.impact,
                 ee.location_textual,
                 ee.date_textual,
                 coalesce(date(ee.exact_realdate), date(ee.lower_realdate)) AS date,

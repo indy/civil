@@ -42,24 +42,21 @@ impl From<(decks::DeckBase, ArticleExtra)> for Article {
         Article {
             id: deck.id,
             title: deck.title,
-
             deck_kind: DeckKind::Article,
-
+            created_at: deck.created_at,
+            graph_terminator: deck.graph_terminator,
             insignia: deck.insignia,
             font: deck.font,
-
-            created_at: deck.created_at,
+            impact: deck.impact,
 
             source: extra.source,
             author: extra.author,
             short_description: extra.short_description,
-
             rating: extra.rating,
+            published_date: extra.published_date,
 
             notes: vec![],
             arrivals: vec![],
-
-            published_date: extra.published_date,
         }
     }
 }
@@ -69,24 +66,21 @@ impl FromRow for Article {
         Ok(Article {
             id: row.get(0)?,
             title: row.get(1)?,
+            deck_kind: row.get(2)?,
+            created_at: row.get(3)?,
+            graph_terminator: row.get(4)?,
+            insignia: row.get(5)?,
+            font: row.get(6)?,
+            impact: row.get(7)?,
 
-            deck_kind: DeckKind::Article,
-
-            insignia: row.get(8)?,
-            font: row.get(9)?,
-
-            created_at: row.get(6)?,
-
-            source: row.get(2)?,
-            author: row.get(3)?,
-            short_description: row.get(4)?,
-
-            rating: row.get(5)?,
+            source: row.get(8)?,
+            author: row.get(9)?,
+            short_description: row.get(10)?,
+            rating: row.get(11)?,
+            published_date: row.get(12)?,
 
             notes: vec![],
             arrivals: vec![],
-
-            published_date: row.get(7)?,
         })
     }
 }
@@ -94,9 +88,13 @@ impl FromRow for Article {
 pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<Article>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
-                       article_extras.short_description, coalesce(article_extras.rating, 0) as rating,
-                       decks.created_at, article_extras.published_date, decks.insignia, decks.font
+    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at,
+                       decks.graph_terminator, decks.insignia, decks.font, decks.impact,
+                       article_extras.source,
+                       article_extras.author,
+                       article_extras.short_description,
+                       coalesce(article_extras.rating, 0) as rating,
+                       article_extras.published_date
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
                 WHERE user_id = ?1 AND kind = 'article'
                 ORDER BY created_at DESC";
@@ -111,9 +109,13 @@ pub(crate) fn recent(
 ) -> crate::Result<Pagination<Article>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
-                       article_extras.short_description, coalesce(article_extras.rating, 0) as rating,
-                       decks.created_at, article_extras.published_date, decks.insignia, decks.font
+    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at,
+                       decks.graph_terminator, decks.insignia, decks.font, decks.impact,
+                       article_extras.source,
+                       article_extras.author,
+                       article_extras.short_description,
+                       coalesce(article_extras.rating, 0) as rating,
+                       article_extras.published_date
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
                 WHERE user_id = ?1 and kind = 'article'
                 ORDER BY created_at desc
@@ -139,9 +141,13 @@ pub(crate) fn rated(
 ) -> crate::Result<Pagination<Article>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
-                       article_extras.short_description, coalesce(article_extras.rating, 0) as rating,
-                       decks.created_at, article_extras.published_date, decks.insignia, decks.font
+    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at,
+                       decks.graph_terminator, decks.insignia, decks.font, decks.impact,
+                       article_extras.source,
+                       article_extras.author,
+                       article_extras.short_description,
+                       coalesce(article_extras.rating, 0) as rating,
+                       article_extras.published_date
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
                 WHERE user_id = ?1 AND kind = 'article' AND article_extras.rating > 0
                 ORDER BY article_extras.rating desc, decks.id desc
@@ -168,7 +174,7 @@ pub(crate) fn orphans(
 ) -> crate::Result<Pagination<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT d.id, d.name, 'article', d.insignia, d.font, d.graph_terminator
+    let stmt = "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
                 FROM decks d LEFT JOIN article_extras pe ON pe.deck_id=d.id
                 WHERE d.id NOT IN (SELECT deck_id
                                    FROM refs
@@ -207,9 +213,13 @@ pub(crate) fn get(
 ) -> crate::Result<Article> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT decks.id, decks.name, article_extras.source, article_extras.author,
-                       article_extras.short_description, coalesce(article_extras.rating, 0) as rating,
-                       decks.created_at, article_extras.published_date, decks.insignia, decks.font
+    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at,
+                       decks.graph_terminator, decks.insignia, decks.font, decks.impact,
+                       article_extras.source,
+                       article_extras.author,
+                       article_extras.short_description,
+                       coalesce(article_extras.rating, 0) as rating,
+                       article_extras.published_date
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
                 WHERE user_id = ?1 AND id = ?2 AND kind = 'article'";
     let res = sqlite::one(&conn, stmt, params![&user_id, &article_id])?;

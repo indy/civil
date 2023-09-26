@@ -27,7 +27,7 @@ use tracing::{error, info};
 impl FromRow for interop::Bookmark {
     fn from_row(row: &Row) -> crate::Result<interop::Bookmark> {
         let deck: SlimDeck = FromRow::from_row(row)?; // NOTE: if SlimDeck's FromRow trait is changed then so should this
-        let id = row.get(6)?;
+        let id = row.get(8)?;
 
         Ok(interop::Bookmark { id, deck })
     }
@@ -66,7 +66,7 @@ pub(crate) fn get_bookmarks(
     user_id: Key,
 ) -> crate::Result<Vec<interop::Bookmark>> {
     let conn = sqlite_pool.get()?;
-    let stmt = "select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, b.id
+    let stmt = "select d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact, b.id
                 from decks d, bookmarks b
                 where b.user_id = ?1 and b.deck_id = d.id";
     sqlite::many(&conn, stmt, params![&user_id])

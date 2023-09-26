@@ -99,7 +99,7 @@ pub(crate) fn uncategorised(
 ) -> crate::Result<Pagination<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT d.id, d.name, d.insignia, d.font, null as sort_date
+    let stmt = "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact, null as sort_date
                 FROM decks d
                 LEFT JOIN points p ON p.deck_id = d.id
                 WHERE d.user_id = ?1
@@ -133,7 +133,7 @@ pub(crate) fn ancient(
     let conn = sqlite_pool.get()?;
 
     let stmt =
-        "SELECT d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, null as sort_date,
+        "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact, null as sort_date,
                        COALESCE(date(p.exact_realdate),
                        date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
@@ -174,7 +174,7 @@ pub(crate) fn medieval(
     let conn = sqlite_pool.get()?;
 
     let stmt =
-        "SELECT d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, null as sort_date,
+        "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact, null as sort_date,
                        COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
                 WHERE d.user_id = ?1
@@ -213,7 +213,7 @@ pub(crate) fn modern(
     let conn = sqlite_pool.get()?;
 
     let stmt =
-        "SELECT d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, null as sort_date,
+        "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact, null as sort_date,
                        COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
                 WHERE d.user_id = ?1
@@ -253,7 +253,7 @@ pub(crate) fn contemporary(
     let conn = sqlite_pool.get()?;
 
     let stmt =
-        "SELECT d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, null as sort_date,
+        "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact, null as sort_date,
                        COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
                 WHERE d.user_id = ?1

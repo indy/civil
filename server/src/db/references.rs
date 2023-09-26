@@ -31,14 +31,17 @@ impl FromRow for Ref {
     fn from_row(row: &Row) -> crate::Result<Ref> {
         Ok(Ref {
             note_id: row.get(0)?,
-            id: row.get(1)?,
-            title: row.get(2)?,
-            deck_kind: row.get(3)?,
-            ref_kind: row.get(4)?,
-            annotation: row.get(5)?,
-            insignia: row.get(6)?,
-            font: row.get(7)?,
-            graph_terminator: row.get(8)?,
+            ref_kind: row.get(1)?,
+            annotation: row.get(2)?,
+
+            id: row.get(3)?,
+            title: row.get(4)?,
+            deck_kind: row.get(5)?,
+            created_at: row.get(6)?,
+            graph_terminator: row.get(7)?,
+            insignia: row.get(8)?,
+            font: row.get(9)?,
+            impact: row.get(10)?,
         })
     }
 }
@@ -121,8 +124,9 @@ pub(crate) fn update_references(
     // return a list of [id, name, resource, kind, annotation] containing the complete set
     // of decks associated with this note.
     //
-    let stmt_all_decks = "SELECT r.note_id, d.id, d.name, d.kind as deck_kind, r.kind as ref_kind,
-                r.annotation, d.insignia, d.font, d.graph_terminator
+    let stmt_all_decks = "SELECT r.note_id, r.kind as ref_kind, r.annotation,
+                          d.id, d.name, d.kind as deck_kind, d.created_at,
+                          d.graph_terminator, d.insignia, d.font, d.impact
          FROM refs r, decks d
          WHERE r.note_id = ?1 AND d.id = r.deck_id";
     let refs: Vec<Ref> = sqlite::many(&tx, stmt_all_decks, params![&note_id])?;
@@ -144,9 +148,9 @@ pub(crate) fn get_decks_recently_referenced(
 
 fn decks_recently_referenced(conn: &Connection, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
     let stmt_recent_refs = "
-         SELECT DISTINCT deck_id, title, kind, insignia, font, graph_terminator
+         SELECT DISTINCT deck_id, title, kind, created_at, graph_terminator, insignia, font, impact
          FROM (
-              SELECT r.deck_id, d.name as title, d.kind, d.insignia, d.font, d.graph_terminator
+              SELECT r.deck_id, d.name as title, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
               FROM refs r, decks d
               WHERE r.deck_id = d.id AND d.user_id = ?1
               ORDER BY r.created_at DESC

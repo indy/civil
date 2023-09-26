@@ -72,9 +72,11 @@ impl FromRow for NoteAndRef {
                 id: ref_deck_id,
                 title: row.get(9)?,
                 deck_kind: row.get(10)?,
-                graph_terminator: row.get(11)?,
-                insignia: row.get(12)?,
-                font: row.get(13)?,
+                created_at: row.get(11)?,
+                graph_terminator: row.get(12)?,
+                insignia: row.get(13)?,
+                font: row.get(14)?,
+                impact: row.get(15)?,
             })
         };
 
@@ -107,9 +109,11 @@ impl FromRow for NoteAndRefAndDeck {
                 id: ref_deck_id,
                 title: row.get(9)?,
                 deck_kind: row.get(10)?,
-                graph_terminator: row.get(11)?,
-                insignia: row.get(12)?,
-                font: row.get(13)?,
+                created_at: row.get(11)?,
+                graph_terminator: row.get(12)?,
+                insignia: row.get(13)?,
+                font: row.get(14)?,
+                impact: row.get(15)?,
             })
         };
 
@@ -126,12 +130,14 @@ impl FromRow for NoteAndRefAndDeck {
             },
             reference_maybe,
             deck: SlimDeck {
-                id: row.get(14)?,
-                title: row.get(15)?,
-                deck_kind: row.get(16)?,
-                graph_terminator: row.get(17)?,
-                insignia: row.get(18)?,
-                font: row.get(19)?,
+                id: row.get(16)?,
+                title: row.get(17)?,
+                deck_kind: row.get(18)?,
+                created_at: row.get(19)?,
+                graph_terminator: row.get(20)?,
+                insignia: row.get(21)?,
+                font: row.get(22)?,
+                impact: row.get(23)?,
             },
         })
     }
@@ -153,9 +159,11 @@ pub(crate) fn notes_for_deck(sqlite_pool: &SqlitePool, deck_id: Key) -> crate::R
                          d.id,
                          d.name,
                          d.kind as deck_kind,
+                         d.created_at,
                          d.graph_terminator,
                          d.insignia,
-                         d.font
+                         d.font,
+                         d.impact
                 FROM     notes n
                          FULL JOIN refs r on r.note_id = n.id
                          FULL JOIN decks d on r.deck_id = d.id
@@ -238,15 +246,19 @@ pub(crate) fn arrivals_for_deck(
                          d3.id,
                          d3.name,
                          d3.kind as deck_kind,
+                         d3.created_at,
                          d3.graph_terminator,
                          d3.insignia,
                          d3.font,
+                         d3.impact,
                          owner_deck.id,
                          owner_deck.name,
                          owner_deck.kind as deck_kind,
+                         owner_deck.created_at,
                          owner_deck.graph_terminator,
                          owner_deck.insignia,
-                         owner_deck.font
+                         owner_deck.font,
+                         owner_deck.impact
                 FROM     refs r
                          FULL JOIN notes n on r.note_id = n.id
                          FULL JOIN decks owner_deck on n.deck_id = owner_deck.id

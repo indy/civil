@@ -31,11 +31,13 @@ impl FromRow for Idea {
         Ok(Idea {
             id: row.get(0)?,
             title: row.get(1)?,
-            deck_kind: DeckKind::Idea,
-            insignia: row.get(4)?,
-            font: row.get(5)?,
-            graph_terminator: row.get(3)?,
-            created_at: row.get(2)?,
+            deck_kind: row.get(2)?,
+            created_at: row.get(3)?,
+            graph_terminator: row.get(4)?,
+            insignia: row.get(5)?,
+            font: row.get(6)?,
+            impact: row.get(7)?,
+
             notes: vec![],
             arrivals: vec![],
         })
@@ -65,7 +67,7 @@ pub(crate) fn recent(
 ) -> crate::Result<Pagination<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT id, name, 'idea', insignia, font, graph_terminator
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'idea'
                 ORDER BY created_at DESC
@@ -90,7 +92,7 @@ pub(crate) fn orphans(
 ) -> crate::Result<Pagination<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT id, name, 'idea', insignia, font, graph_terminator
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE id NOT IN (SELECT deck_id
                                  FROM refs
@@ -131,7 +133,7 @@ pub(crate) fn unnoted(
 ) -> crate::Result<Pagination<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT d.id, d.name, 'idea', d.insignia, d.font, d.graph_terminator
+    let stmt = "SELECT d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact
                 FROM decks d LEFT JOIN notes n ON (d.id = n.deck_id AND n.kind != 4)
                 WHERE n.deck_id IS NULL
                 AND d.kind='idea'

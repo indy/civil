@@ -66,9 +66,11 @@ impl FromRow for Card {
                 id: row.get(4)?,
                 title: row.get(5)?,
                 deck_kind: row.get(6)?,
-                graph_terminator: row.get(9)?,
-                insignia: row.get(7)?,
-                font: row.get(8)?,
+                created_at: row.get(7)?,
+                graph_terminator: row.get(8)?,
+                insignia: row.get(9)?,
+                font: row.get(10)?,
+                impact: row.get(11)?,
             },
             prompt: row.get(2)?,
         })
@@ -83,9 +85,9 @@ pub(crate) fn all_flashcards_for_deck(
     sqlite::many(
         &conn,
         "SELECT c.id, c.note_id, c.prompt, c.next_test_date,
-                         c.easiness_factor, c.interval, c.repetition
-                  FROM cards c, decks d, notes n
-                  WHERE d.id=?1 AND n.deck_id = d.id AND c.note_id = n.id",
+                c.easiness_factor, c.interval, c.repetition
+         FROM cards c, decks d, notes n
+         WHERE d.id=?1 AND n.deck_id = d.id AND c.note_id = n.id",
         params![&deck_id],
     )
 }
@@ -98,12 +100,12 @@ pub(crate) fn all_flashcards_for_deck_arrivals(
     sqlite::many(
         &conn,
         "SELECT   c.id, c.note_id, c.prompt, c.next_test_date,
-                           c.easiness_factor, c.interval, c.repetition
-                  FROM     refs r
-                           FULL JOIN notes n on r.note_id = n.id
-                           FULL JOIN decks owner_deck on n.deck_id = owner_deck.id
-                           INNER JOIN cards c on c.note_id = n.id
-                  WHERE    r.deck_id = ?1",
+                  c.easiness_factor, c.interval, c.repetition
+         FROM     refs r
+                  FULL JOIN notes n on r.note_id = n.id
+                  FULL JOIN decks owner_deck on n.deck_id = owner_deck.id
+                  INNER JOIN cards c on c.note_id = n.id
+         WHERE    r.deck_id = ?1",
         params![&deck_id],
     )
 }
@@ -123,19 +125,19 @@ pub(crate) fn all_flashcards_for_deck_additional_query(
     sqlite::many(
         &conn,
         "SELECT c.id, c.note_id, c.prompt, c.next_test_date,
-                         c.easiness_factor, c.interval, c.repetition,
-                         notes_fts.rank AS rank
-                  FROM notes_fts
-                       LEFT JOIN notes n ON n.id = notes_fts.rowid
-                       LEFT JOIN decks d ON d.id = n.deck_id
-                       LEFT JOIN dialogue_messages dm ON dm.note_id = n.id
-                       INNER JOIN cards c on c.note_id = n.id
-                  WHERE notes_fts match ?2
-                        AND d.user_id = ?1
-                        AND d.id <> ?3
-                        AND (dm.role IS null OR dm.role <> 'system')
-                  ORDER BY rank ASC
-                  LIMIT 100",
+                c.easiness_factor, c.interval, c.repetition,
+                notes_fts.rank AS rank
+         FROM notes_fts
+              LEFT JOIN notes n ON n.id = notes_fts.rowid
+              LEFT JOIN decks d ON d.id = n.deck_id
+              LEFT JOIN dialogue_messages dm ON dm.note_id = n.id
+              INNER JOIN cards c on c.note_id = n.id
+         WHERE notes_fts match ?2
+               AND d.user_id = ?1
+               AND d.id <> ?3
+               AND (dm.role IS null OR dm.role <> 'system')
+         ORDER BY rank ASC
+         LIMIT 100",
         params![&user_id, &sane_name, &deck_id],
     )
 }
@@ -311,9 +313,9 @@ pub(crate) fn get_cards(
 
     sqlite::many(
         &conn,
-        "SELECT c.id, c.note_id, c.prompt, n.content, d.id AS deck_id,
-                d.name AS deck_name, d.kind AS deck_kind, d.insignia,
-                d.font, d.graph_terminator
+        "SELECT c.id, c.note_id, c.prompt, n.content, d.id,
+                d.name, d.kind, d.created_at, d.graph_terminator,
+                d.insignia, d.font, d.impact
          FROM cards c, decks d, notes n
          WHERE d.id = n.deck_id AND n.id = c.note_id AND c.user_id = ?1
                AND c.next_test_date < ?2",
@@ -328,9 +330,9 @@ pub(crate) fn get_practice_card(sqlite_pool: &SqlitePool, user_id: Key) -> crate
 
     sqlite::one(
         &conn,
-        "SELECT c.id, c.note_id, c.prompt, n.content, d.id AS deck_id,
-                d.name AS deck_name, d.kind AS deck_kind, d.insignia,
-                d.font, d.graph_terminator
+        "SELECT c.id, c.note_id, c.prompt, n.content, d.id,
+                d.name, d.kind, d.created_at, d.graph_terminator,
+                d.insignia, d.font, d.impact
          FROM cards c, decks d, notes n
          WHERE d.id = n.deck_id AND n.id = c.note_id and c.user_id = ?1
          ORDER BY random()

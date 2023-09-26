@@ -29,9 +29,12 @@ impl FromRow for Timeline {
         Ok(Timeline {
             id: row.get(0)?,
             title: row.get(1)?,
-            deck_kind: DeckKind::Timeline,
-            insignia: row.get(4)?,
-            font: row.get(5)?,
+            deck_kind: row.get(2)?,
+            created_at: row.get(3)?,
+            graph_terminator: row.get(4)?,
+            insignia: row.get(5)?,
+            font: row.get(6)?,
+            impact: row.get(7)?,
             points: vec![],
             notes: vec![],
             arrivals: vec![],
@@ -58,7 +61,7 @@ pub(crate) fn get_or_create(
 pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT id, name, 'timeline', insignia, font, graph_terminator
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'timeline'
                 ORDER BY created_at DESC";

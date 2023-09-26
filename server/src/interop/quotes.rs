@@ -26,8 +26,13 @@ pub struct Quote {
     pub id: Key,
     pub title: String,
     pub deck_kind: DeckKind,
+    pub created_at: chrono::NaiveDateTime,
+    pub graph_terminator: bool,
+
     pub insignia: i32,
     pub font: Font,
+    pub impact: i32,
+
     pub attribution: String,
 
     // will always be a single note

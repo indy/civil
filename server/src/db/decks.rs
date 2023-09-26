@@ -27,7 +27,7 @@ use rusqlite::{params, Connection, Row};
 use tracing::{info, warn};
 
 pub(crate) const DECKBASE_QUERY: &str =
-    "SELECT id, name, created_at, graph_terminator, insignia, font
+    "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
      FROM decks
      WHERE user_id = ?1 AND id = ?2 AND kind = ?3";
 
@@ -40,10 +40,12 @@ pub(crate) enum DeckBaseOrigin {
 pub struct DeckBase {
     pub id: Key,
     pub title: String,
+    pub deck_kind: interop::DeckKind,
     pub created_at: chrono::NaiveDateTime,
     pub graph_terminator: bool,
     pub insignia: i32,
     pub font: Font,
+    pub impact: i32,
 }
 
 impl FromRow for interop::SlimDeck {
@@ -52,9 +54,11 @@ impl FromRow for interop::SlimDeck {
             id: row.get(0)?,
             title: row.get(1)?,
             deck_kind: row.get(2)?,
-            insignia: row.get(3)?,
-            font: row.get(4)?,
-            graph_terminator: row.get(5)?,
+            created_at: row.get(3)?,
+            graph_terminator: row.get(4)?,
+            insignia: row.get(5)?,
+            font: row.get(6)?,
+            impact: row.get(7)?,
         })
     }
 }
@@ -64,10 +68,12 @@ impl FromRow for DeckBase {
         Ok(DeckBase {
             id: row.get(0)?,
             title: row.get(1)?,
-            created_at: row.get(2)?,
-            graph_terminator: row.get(3)?,
-            insignia: row.get(4)?,
-            font: row.get(5)?,
+            deck_kind: row.get(2)?,
+            created_at: row.get(3)?,
+            graph_terminator: row.get(4)?,
+            insignia: row.get(5)?,
+            font: row.get(6)?,
+            impact: row.get(7)?,
         })
     }
 }
@@ -94,7 +100,7 @@ pub fn recently_visited(
 ) -> crate::Result<Vec<interop::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.insignia, decks.font, decks.graph_terminator, max(hits.created_at) as most_recent_visit
+    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at, decks.graph_terminator, decks.insignia, decks.font, decks.impact, max(hits.created_at) as most_recent_visit
                 FROM hits INNER JOIN decks ON decks.id = hits.deck_id
                 WHERE decks.user_id = ?1
                 GROUP BY hits.deck_id
@@ -125,7 +131,7 @@ pub(crate) fn pagination(
     let conn = sqlite_pool.get()?;
 
     // TODO: sort this by the event date in event_extras
-    let stmt = "SELECT id, name, kind, insignia, font, graph_terminator
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND kind = ?2
                 ORDER BY created_at DESC
@@ -187,7 +193,7 @@ fn deckbase_get_by_name(
     kind: interop::DeckKind,
     name: &str,
 ) -> crate::Result<DeckBase> {
-    let stmt = "SELECT id, name, created_at, graph_terminator, insignia, font
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM DECKS
                 WHERE user_id = ?1 AND name = ?2 AND kind = ?3";
     sqlite::one(conn, stmt, params![&user_id, &name, &kind.to_string()])
@@ -247,7 +253,7 @@ pub(crate) fn deckbase_edit(
     let stmt = "UPDATE decks
                 SET name = ?4, graph_terminator = ?5, insignia = ?6, font = ?7
                 WHERE user_id = ?1 AND id = ?2 AND kind = ?3
-                RETURNING id, name, created_at, graph_terminator, insignia, font";
+                RETURNING id, name, kind, created_at, graph_terminator, insignia, font, impact";
     sqlite::one(
         tx,
         stmt,
@@ -268,7 +274,7 @@ pub(crate) fn get_slimdeck(
     user_id: Key,
     deck_id: Key,
 ) -> crate::Result<interop::SlimDeck> {
-    let stmt = "SELECT id, name, kind, insignia, font, graph_terminator
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND id = ?2";
 
@@ -284,7 +290,7 @@ pub(crate) fn insignia_filter(
 ) -> crate::Result<interop::Pagination<interop::SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT id, name, kind, insignia, font, graph_terminator
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND insignia & ?2
                 ORDER BY created_at DESC
@@ -313,7 +319,7 @@ pub(crate) fn recent(
     let conn = sqlite_pool.get()?;
     let limit: i32 = 10;
 
-    let stmt = "SELECT id, name, kind, insignia, font, graph_terminator
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND kind = '$deck_kind'
                 ORDER BY created_at DESC

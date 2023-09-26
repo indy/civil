@@ -46,13 +46,18 @@ impl TryFrom<(decks::DeckBase, DialogueExtra)> for interop::Dialogue {
         Ok(interop::Dialogue {
             id: deck.id,
             title: deck.title,
-            deck_kind: DeckKind::Dialogue,
-            ai_kind: extra.ai_kind,
+            deck_kind: deck.deck_kind,
+            created_at: deck.created_at,
+            graph_terminator: deck.graph_terminator,
+
             insignia: deck.insignia,
             font: deck.font,
-            created_at: deck.created_at,
+            impact: deck.impact,
+
             notes: vec![],
             arrivals: vec![],
+
+            ai_kind: extra.ai_kind,
             original_chat_messages: vec![],
         })
     }
@@ -63,19 +68,17 @@ impl FromRow for interop::Dialogue {
         Ok(interop::Dialogue {
             id: row.get(0)?,
             title: row.get(1)?,
-
-            deck_kind: DeckKind::Dialogue,
-
-            ai_kind: row.get(2)?,
-
-            insignia: row.get(4)?,
-            font: row.get(5)?,
-
+            deck_kind: row.get(2)?,
             created_at: row.get(3)?,
+            graph_terminator: row.get(4)?,
+            insignia: row.get(5)?,
+            font: row.get(6)?,
+            impact: row.get(7)?,
 
             notes: vec![],
             arrivals: vec![],
 
+            ai_kind: row.get(8)?,
             original_chat_messages: vec![],
         })
     }
@@ -104,7 +107,7 @@ impl FromRow for interop::AiKind {
 pub(crate) fn listings(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT id, name, kind, insignia, font, graph_terminator
+    let stmt = "SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact
                 FROM decks
                 WHERE user_id = ?1 AND kind = 'dialogue'
                 ORDER BY created_at DESC";
@@ -118,8 +121,9 @@ pub(crate) fn get(
 ) -> crate::Result<interop::Dialogue> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT decks.id, decks.name, dialogue_extras.ai_kind,
-                       decks.created_at, decks.insignia, decks.font
+    let stmt = "SELECT decks.id, decks.name, decks.kind, decks.created_at,
+                       decks.graph_terminator, decks.insignia, decks.font, decks.impact,
+                       dialogue_extras.ai_kind
                 FROM decks LEFT JOIN dialogue_extras ON dialogue_extras.deck_id = decks.id
                 WHERE decks.user_id = ?1 AND decks.id = ?2 AND decks.kind = 'dialogue'";
     let mut res: interop::Dialogue = sqlite::one(&conn, stmt, params![&user_id, &dialogue_id])?;

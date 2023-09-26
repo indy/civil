@@ -119,9 +119,11 @@ pub struct Ref {
     pub id: Key,
     pub title: String,
     pub deck_kind: DeckKind,
+    pub created_at: chrono::NaiveDateTime,
     pub graph_terminator: bool,
     pub insignia: i32,
     pub font: Font,
+    pub impact: i32,
 }
 
 // Returned as search results
@@ -132,9 +134,11 @@ pub struct SlimDeck {
     pub id: Key,
     pub title: String,
     pub deck_kind: DeckKind,
+    pub created_at: chrono::NaiveDateTime,
     pub graph_terminator: bool,
     pub insignia: i32,
     pub font: Font,
+    pub impact: i32,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
@@ -143,9 +147,11 @@ pub struct SlimEvent {
     pub id: Key,
     pub title: String,
     pub deck_kind: DeckKind,
+    pub created_at: chrono::NaiveDateTime,
     pub graph_terminator: bool,
     pub insignia: i32,
     pub font: Font,
+    pub impact: i32,
 
     pub location_textual: Option<String>,
 
