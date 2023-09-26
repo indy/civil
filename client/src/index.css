@@ -2182,6 +2182,11 @@ input:required {
     float: right;
 }
 
+.flash-card-input {
+  width: 100%;
+  height: 8rem;
+}
+
 .in-note-flash-card-prompt {
     background: var(--bg-darker-3);
 

@@ -16,6 +16,13 @@ export default function useFlashcards(flashcards: Array<FlashCard>) {
         flashcards.map(() => FlashCardUIState.Minimised)
     );
 
+    // normal if statement here because useEffect isn't invoked
+    // when the flashcards array is modified (???!??)
+    //
+    if (showFlashCard.length !== flashcards.length) {
+        setShowFlashCard(flashcards.map(() => FlashCardUIState.Minimised));
+    }
+
     function onClickedFlashcard(flashcard: FlashCard) {
         const index = flashcards.findIndex((f) => f.id === flashcard.id);
         if (index !== -1) {

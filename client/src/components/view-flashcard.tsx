@@ -174,7 +174,6 @@ export default function ViewFlashCard({
                     </span>
                     <div class="civil-form">
                         <CivilTextArea
-                            id="flashcard-prompt"
                             value={local.flashcard.prompt}
                             onContentChange={handleContentChange}
                         />

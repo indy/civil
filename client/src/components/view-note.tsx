@@ -459,7 +459,7 @@ const ViewNote = <T extends FatDeck>({
         }
 
         return (
-            <div class="block-width form-margin">
+            <div class="form-margin">
                 <CivilButton onClick={onCancelClicked}>Cancel</CivilButton>
                 <CivilButton
                     disabled={!hasNoteBeenModified(local)}

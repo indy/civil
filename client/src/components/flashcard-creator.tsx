@@ -5,6 +5,7 @@ import { CivilMode, FlashCard, Key, Note } from "../types";
 import { AppStateChange, getAppState } from "../app-state";
 import Net from "../shared/net";
 
+import { CivMain } from "./civil-layout";
 import CivilButton from "./civil-button";
 import CivilTextArea from "./civil-text-area";
 
@@ -49,16 +50,15 @@ export default function FlashCardCreator({
     }
 
     return (
-        <div class="block-width form-margin">
+        <CivMain>
             <label>Flash Card Prompt</label>
-            <div>
-                <CivilTextArea
-                    value={flashCardPrompt}
-                    onContentChange={onContentChange}
-                />
-            </div>
+            <CivilTextArea
+                elementClass="flash-card-input"
+                value={flashCardPrompt}
+                onContentChange={onContentChange}
+            />
             <CivilButton onClick={onHide}>Cancel</CivilButton>
             <CivilButton onClick={onSave}>Save Flash Card Prompt</CivilButton>
-        </div>
+        </CivMain>
     );
 }
