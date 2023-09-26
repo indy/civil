@@ -132,7 +132,8 @@ pub(crate) fn ancient(
 ) -> crate::Result<Pagination<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT d.id, d.name, d.insignia, d.font, null as sort_date,
+    let stmt =
+        "SELECT d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, null as sort_date,
                        COALESCE(date(p.exact_realdate),
                        date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
@@ -172,7 +173,8 @@ pub(crate) fn medieval(
 ) -> crate::Result<Pagination<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT d.id, d.name, d.insignia, d.font, null as sort_date,
+    let stmt =
+        "SELECT d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, null as sort_date,
                        COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
                 WHERE d.user_id = ?1
@@ -210,7 +212,8 @@ pub(crate) fn modern(
 ) -> crate::Result<Pagination<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT d.id, d.name, d.insignia, d.font, null as sort_date,
+    let stmt =
+        "SELECT d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, null as sort_date,
                        COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
                 WHERE d.user_id = ?1
@@ -249,7 +252,8 @@ pub(crate) fn contemporary(
 ) -> crate::Result<Pagination<SlimDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "SELECT d.id, d.name, d.insignia, d.font, null as sort_date,
+    let stmt =
+        "SELECT d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator, null as sort_date,
                        COALESCE(date(p.exact_realdate), date(p.lower_realdate)) AS birth_date
                 FROM decks d, points p
                 WHERE d.user_id = ?1
