@@ -125,14 +125,14 @@ function ArticlesPaginator({ selected }: { selected: string }) {
 }
 
 function renderPaginatedArticle(article: DeckArticle, i: number) {
-    let { id, title, rating, shortDescription, insignia, font } = article;
+    let { id, title, shortDescription, insignia, font } = article;
     let slimDeck = buildSlimDeck(DeckKind.Article, id, title, insignia, font);
 
     let klass = i % 2 ? "stripe-a" : "stripe-b";
 
     return (
         <li class={klass}>
-            <StarRatingWithinListing rating={rating} />
+            <StarRatingWithinListing rating={article.impact} />
             <DeckLink slimDeck={slimDeck} />
             <span class="descriptive-scribble">{shortDescription}</span>
         </li>
@@ -187,7 +187,7 @@ function Article({ path, id }: { path?: string; id?: string }) {
                         </div>
                     )}
                     <div>Added: {formattedDate(deck.createdAt)}</div>
-                    <StarRatingPartial rating={deck.rating} />
+                    <StarRatingPartial rating={deck.impact} />
                 </TopMatter>
 
                 {deckManager.isShowingUpdateForm() && (
@@ -289,7 +289,7 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
     const [shortDescription, setShortDescription] = useState(
         article.shortDescription || ""
     );
-    const [rating, setRating] = useState(article.rating || 0);
+    const [rating, setRating] = useState(article.impact || 0);
     const [publishedDate, setPublishedDate] = useState(
         article.publishedDate || ""
     );
@@ -313,8 +313,8 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
         ) {
             setShortDescription(article.shortDescription);
         }
-        if (article.rating) {
-            setRating(article.rating);
+        if (article.impact) {
+            setRating(article.impact);
         }
         if (
             article.publishedDate &&
@@ -372,8 +372,7 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
             author: author.trim(),
             source: source.trim(),
             shortDescription: shortDescription.trim(),
-            rating,
-            createdAt: article.createdAt,
+            impact: rating,
             publishedDate: publishedDate.trim(),
         };
         if (data.source!.length === 0) {

@@ -317,6 +317,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                     font: deckQuote.font,
                     graphTerminator: false,
                     attribution: attribution,
+                    impact: 0, // isg fix this
                 };
 
                 // as the title could have changed, we need to post the updated quote to the server

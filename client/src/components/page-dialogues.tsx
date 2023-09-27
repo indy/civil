@@ -479,6 +479,7 @@ function DialogueUpdater({
             insignia: insigniaId,
             font: Font.Serif,
             graphTerminator: false,
+            impact: 0, // isg fix this
             aiKind: AiKind.OpenAIGpt35Turbo,
             originalChatMessages: [],
         };

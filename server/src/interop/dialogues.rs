@@ -85,7 +85,6 @@ pub struct ProtoChat {
 #[serde(rename_all = "camelCase")]
 pub struct ProtoDialogue {
     pub title: String,
-
     pub insignia: i32,
     pub font: Font,
     pub graph_terminator: bool,

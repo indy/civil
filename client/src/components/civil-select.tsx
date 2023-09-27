@@ -92,11 +92,13 @@ function candidateToAddedRef(candidate: SlimDeck): Reference {
         id: candidate.id,
         title: candidate.title,
         deckKind: candidate.deckKind,
+        createdAt: candidate.createdAt,
         graphTerminator: candidate.graphTerminator,
         refKind: RefKind.Ref,
         noteId: 0, // this noteId isn't used when adding a ref
         insignia: candidate.insignia,
         font: candidate.font,
+        impact: candidate.impact,
     };
 }
 
@@ -736,14 +738,16 @@ function CivilSelectInput({
         if (text.length > 0) {
             // treat this text as a new idea that needs to be created
             let r: Reference = {
-                noteId: 0,
+                noteId: 0,  // isg fix this to use the protoReference code
                 id: 0,
                 title: text,
-                graphTerminator: false,
                 deckKind: DeckKind.Idea,
+                graphTerminator: false,
                 refKind: RefKind.Ref,
                 insignia: 0,
                 font: immutableState.defaultFont,
+                createdAt: "",
+                impact: 0,
             };
             onCreate(r);
         }

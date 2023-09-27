@@ -193,7 +193,7 @@ type LocalState = {
     insigniaId: number;
     font: Font;
 
-    importance: number;
+    impact: number;
 
     locationTextual?: string;
     latitude?: number;
@@ -216,7 +216,7 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
         insigniaId: event.insignia || 0,
         font: event.font || Font.DeWalpergens,
 
-        importance: event.importance,
+        impact: event.impact,
 
         locationTextual: event.locationTextual,
         longitude: event.longitude,
@@ -329,6 +329,7 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
             insignia: localState.insigniaId,
             font: localState.font,
             graphTerminator: false,
+            impact: localState.impact,
 
             locationTextual: localState.locationTextual,
             longitude: localState.longitude,
@@ -340,8 +341,6 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
             lowerDate: normaliseDateString(localState.lowerDate),
             upperDate: normaliseDateString(localState.upperDate),
             dateFuzz: localState.dateFuzz,
-
-            importance: localState.importance,
         };
 
         // edit an existing event
@@ -397,8 +396,8 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
         }
     }
 
-    function importanceAsText(importance: number): string {
-        switch (importance) {
+    function impactAsText(impact: number): string {
+        switch (impact) {
             case 0:
                 return "Normal";
             case 1:
@@ -408,15 +407,15 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
             case 3:
                 return "Humanity Changing";
             default:
-                return "unknown importance value!!!!";
+                return "unknown impact value!!!!";
         }
     }
 
-    function onImportanceChange(event: Event) {
+    function onImpactChange(event: Event) {
         if (event.target instanceof HTMLInputElement) {
             setLocalState({
                 ...localState,
-                importance: event.target.valueAsNumber,
+                impact: event.target.valueAsNumber,
             });
         }
     }
@@ -452,18 +451,18 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
 
             <div class="vertical-spacer"></div>
 
-            <CivLeftLabel>Importance</CivLeftLabel>
+            <CivLeftLabel>Impact</CivLeftLabel>
             <CivMain>
                 <input
                     type="range"
                     min="0"
                     max="3"
-                    value={localState.importance}
+                    value={localState.impact}
                     class="slider"
-                    id="importanceSlider"
-                    onInput={onImportanceChange}
+                    id="impactSlider"
+                    onInput={onImpactChange}
                 />
-                <CivRight>{importanceAsText(localState.importance)}</CivRight>
+                <CivRight>{impactAsText(localState.impact)}</CivRight>
             </CivMain>
 
             <div class="vertical-spacer"></div>

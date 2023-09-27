@@ -106,6 +106,7 @@ pub(crate) fn edit(
         graph_terminator,
         timeline.insignia,
         timeline.font,
+        0, // isg fix
     )?;
 
     tx.commit()?;

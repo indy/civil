@@ -256,6 +256,7 @@ pub(crate) fn edit(
         graph_terminator,
         quote.insignia,
         quote.font,
+        0, // isg fix
     )?;
 
     let quote_extras_exists: Vec<QuoteExtra> = sqlite::many(

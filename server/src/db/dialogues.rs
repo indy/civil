@@ -185,6 +185,7 @@ pub(crate) fn edit(
         graph_terminator,
         dialogue.insignia,
         dialogue.font,
+        0, // isg fix
     )?;
 
     let sql_query: &str = "SELECT deck_id, ai_kind

@@ -199,6 +199,7 @@ pub(crate) fn edit(
         idea.graph_terminator,
         idea.insignia,
         idea.font,
+        0, // isg fix
     )?;
 
     tx.commit()?;

@@ -44,8 +44,6 @@ pub struct Event {
     pub upper_date: Option<chrono::NaiveDate>,
     pub date_fuzz: f32,
 
-    pub importance: i32,
-
     pub notes: Vec<Note>,
     pub arrivals: Vec<Arrival>,
 }
@@ -74,8 +72,6 @@ impl From<crate::db::decks::DeckBase> for Event {
             upper_date: None,
             date_fuzz: 1.0,
 
-            importance: 0,
-
             notes: vec![],
             arrivals: vec![],
         }
@@ -87,9 +83,10 @@ impl From<crate::db::decks::DeckBase> for Event {
 pub struct ProtoEvent {
     pub title: String,
 
+    pub graph_terminator: bool,
     pub insignia: i32,
     pub font: Font,
-    pub graph_terminator: bool,
+    pub impact: i32,
 
     pub location_textual: Option<String>,
     pub longitude: Option<f32>,
@@ -101,6 +98,4 @@ pub struct ProtoEvent {
     pub lower_date: Option<chrono::NaiveDate>,
     pub upper_date: Option<chrono::NaiveDate>,
     pub date_fuzz: f32,
-
-    pub importance: i32,
 }

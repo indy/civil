@@ -321,6 +321,7 @@ pub(crate) fn edit(
         graph_terminator,
         person.insignia,
         person.font,
+        0, // isg fix
     )?;
 
     tx.commit()?;

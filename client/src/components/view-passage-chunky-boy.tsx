@@ -73,9 +73,11 @@ const ViewPassageChunkyBoy = <T extends FatDeck>({
                 id: ref.id,
                 title: ref.title,
                 deckKind: ref.deckKind,
+                createdAt: ref.createdAt,
                 graphTerminator: ref.graphTerminator,
                 insignia: ref.insignia,
                 font: ref.font,
+                impact: ref.impact,
                 noteId: note.id,
                 refKind: ref.refKind,
             };

@@ -241,6 +241,7 @@ pub(crate) fn deckbase_edit(
     graph_terminator: bool,
     insignia: i32,
     font: Font,
+    impact: i32,
 ) -> crate::Result<DeckBase> {
     // if the font has changed
     let original_font = get_font_of_deck(tx, deck_id)?;
@@ -251,7 +252,7 @@ pub(crate) fn deckbase_edit(
     }
 
     let stmt = "UPDATE decks
-                SET name = ?4, graph_terminator = ?5, insignia = ?6, font = ?7
+                SET name = ?4, graph_terminator = ?5, insignia = ?6, font = ?7, impact = ?8
                 WHERE user_id = ?1 AND id = ?2 AND kind = ?3
                 RETURNING id, name, kind, created_at, graph_terminator, insignia, font, impact";
     sqlite::one(
@@ -264,7 +265,8 @@ pub(crate) fn deckbase_edit(
             name,
             graph_terminator,
             insignia,
-            &i32::from(font)
+            &i32::from(font),
+            impact
         ],
     )
 }

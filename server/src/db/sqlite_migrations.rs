@@ -59,6 +59,8 @@ CREATE TABLE IF NOT EXISTS decks (
        -- called insignia in case we want to save 'badge' for future use
        insignia INTEGER DEFAULT 0,
 
+       impact INTEGER DEFAULT 0,
+
        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
@@ -127,7 +129,6 @@ CREATE TABLE IF NOT EXISTS article_extras (
        author TEXT,
        short_description TEXT,
 
-       rating INTEGER DEFAULT 0,
        published_date DATE DEFAULT CURRENT_DATE,
 
        FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -155,8 +156,6 @@ CREATE TABLE IF NOT EXISTS event_extras (
        lower_realdate REAL,
        upper_realdate REAL,
        date_fuzz REAL DEFAULT 1.0,
-
-       importance INTEGER DEFAULT 0,
 
        FOREIGN KEY (deck_id) REFERENCES decks (id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
@@ -829,7 +828,7 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
         M::up("ALTER TABLE users ADD COLUMN ui_config_json TEXT NOT NULL DEFAULT '{}';"),
 
         ///////////////////
-        // user_version 22: rename notes_decks to references
+        // user_version 22: rename notes_decks to refs
         ///////////////////
         M::up("ALTER TABLE notes_decks RENAME TO refs;"),
 
@@ -844,8 +843,13 @@ pub fn migration_check(db_name: &str) -> crate::Result<()> {
 
                UPDATE decks
                SET impact = (SELECT importance FROM event_extras WHERE event_extras.deck_id = decks.id)
-               WHERE EXISTS (SELECT 1 FROM event_extras WHERE event_extras.deck_id = decks.id);
-"),
+               WHERE EXISTS (SELECT 1 FROM event_extras WHERE event_extras.deck_id = decks.id);"),
+
+        ///////////////////
+        // user_version 24: remove old columns obsoleted by impact
+        ///////////////////
+        M::up("ALTER TABLE article_extras DROP COLUMN rating;
+               ALTER TABLE event_extras DROP COLUMN importance;"),
     ]);
 
     let mut conn = Connection::open(db_name)?;

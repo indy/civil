@@ -17,10 +17,12 @@ export function buildSlimDeck(
     return {
         id,
         title,
+        createdAt: "", // isg fix this
         deckKind,
         graphTerminator: false,
         insignia,
         font,
+        impact: 0, // isg fix this
     };
 }
 

@@ -248,6 +248,7 @@ function TimelineUpdater({
             insignia: localState.insigniaId,
             font: localState.font,
             graphTerminator: false,
+            impact: 0, // isg fix this
         };
 
         // edit an existing timeline

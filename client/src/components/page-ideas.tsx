@@ -223,6 +223,7 @@ function IdeaUpdater({ idea, onUpdate, onCancel }: IdeaUpdaterProps) {
             insignia: insigniaId,
             font,
             graphTerminator: !!graphTerminator,
+            impact: 0, // isg fix this
         };
 
         Net.put<DeckUpdate, DeckIdea>(`/api/ideas/${idea.id}`, data).then(

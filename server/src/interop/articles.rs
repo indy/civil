@@ -28,7 +28,6 @@ pub struct Article {
     pub deck_kind: DeckKind,
     pub created_at: chrono::NaiveDateTime,
     pub graph_terminator: bool,
-
     pub insignia: i32,
     pub font: Font,
     pub impact: i32,
@@ -36,29 +35,24 @@ pub struct Article {
     pub source: Option<String>,
     pub author: Option<String>,
     pub short_description: Option<String>,
-
-    pub rating: i32,
+    pub published_date: Option<chrono::NaiveDate>,
 
     pub notes: Vec<Note>,
-
     pub arrivals: Vec<Arrival>,
-
-    pub published_date: Option<chrono::NaiveDate>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProtoArticle {
     pub title: String,
-
+    pub graph_terminator: bool,
     pub insignia: i32,
     pub font: Font,
-    pub graph_terminator: bool,
+    pub impact: i32,
 
     pub source: Option<String>,
     pub author: Option<String>,
     pub short_description: Option<String>,
-    pub rating: i32,
     pub published_date: Option<chrono::NaiveDate>,
 }
 

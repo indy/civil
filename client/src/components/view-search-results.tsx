@@ -223,10 +223,12 @@ function AddQuickRef({
         const ref: Reference = {
             id: parent.id,
             title: parent.title,
+            createdAt: parent.createdAt,
             deckKind: parent.deckKind,
             graphTerminator: parent.graphTerminator,
             insignia: parent.insignia,
             font: parent.font,
+            impact: parent.impact,
             noteId: note.id,
             refKind: RefKind.Ref,
         };

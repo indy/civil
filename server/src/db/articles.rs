@@ -32,7 +32,6 @@ struct ArticleExtra {
     source: Option<String>,
     author: Option<String>,
     short_description: Option<String>,
-    rating: i32,
     published_date: Option<chrono::NaiveDate>,
 }
 
@@ -52,7 +51,6 @@ impl From<(decks::DeckBase, ArticleExtra)> for Article {
             source: extra.source,
             author: extra.author,
             short_description: extra.short_description,
-            rating: extra.rating,
             published_date: extra.published_date,
 
             notes: vec![],
@@ -76,8 +74,7 @@ impl FromRow for Article {
             source: row.get(8)?,
             author: row.get(9)?,
             short_description: row.get(10)?,
-            rating: row.get(11)?,
-            published_date: row.get(12)?,
+            published_date: row.get(11)?,
 
             notes: vec![],
             arrivals: vec![],
@@ -93,7 +90,6 @@ pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<A
                        article_extras.source,
                        article_extras.author,
                        article_extras.short_description,
-                       coalesce(article_extras.rating, 0) as rating,
                        article_extras.published_date
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
                 WHERE user_id = ?1 AND kind = 'article'
@@ -114,7 +110,6 @@ pub(crate) fn recent(
                        article_extras.source,
                        article_extras.author,
                        article_extras.short_description,
-                       coalesce(article_extras.rating, 0) as rating,
                        article_extras.published_date
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
                 WHERE user_id = ?1 and kind = 'article'
@@ -146,18 +141,17 @@ pub(crate) fn rated(
                        article_extras.source,
                        article_extras.author,
                        article_extras.short_description,
-                       coalesce(article_extras.rating, 0) as rating,
                        article_extras.published_date
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
-                WHERE user_id = ?1 AND kind = 'article' AND article_extras.rating > 0
-                ORDER BY article_extras.rating desc, decks.id desc
+                WHERE user_id = ?1 AND kind = 'article' AND decks.impact > 0
+                ORDER BY decks.impact desc, decks.id desc
                 LIMIT ?2
                 OFFSET ?3";
     let items: Vec<Article> = sqlite::many(&conn, stmt, params![&user_id, &num_items, &offset])?;
 
     let stmt = "SELECT count(*)
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
-                WHERE user_id = ?1 AND kind = 'article' AND article_extras.rating > 0";
+                WHERE user_id = ?1 AND kind = 'article' AND decks.impact > 0";
 
     let total_items = sqlite::one(&conn, stmt, params![user_id])?;
 
@@ -218,7 +212,6 @@ pub(crate) fn get(
                        article_extras.source,
                        article_extras.author,
                        article_extras.short_description,
-                       coalesce(article_extras.rating, 0) as rating,
                        article_extras.published_date
                 FROM decks LEFT JOIN article_extras ON article_extras.deck_id = decks.id
                 WHERE user_id = ?1 AND id = ?2 AND kind = 'article'";
@@ -239,8 +232,7 @@ impl FromRow for ArticleExtra {
             source: row.get(1)?,
             author: row.get(2)?,
             short_description: row.get(3)?,
-            rating: row.get(4)?,
-            published_date: row.get(5)?,
+            published_date: row.get(4)?,
         })
     }
 }
@@ -264,9 +256,10 @@ pub(crate) fn edit(
         graph_terminator,
         article.insignia,
         article.font,
+        article.impact,
     )?;
 
-    let stmt = "SELECT deck_id, source, author, short_description, rating, published_date
+    let stmt = "SELECT deck_id, source, author, short_description, published_date
                 FROM article_extras
                 WHERE deck_id = ?1";
     let article_extras_exists: Vec<ArticleExtra> = sqlite::many(&tx, stmt, params![&article_id])?;
@@ -289,15 +282,15 @@ pub(crate) fn edit(
 
     let sql_query: &str = match article_extras_exists.len() {
         0 => {
-            "INSERT INTO article_extras(deck_id, source, author, short_description, rating, published_date)
+            "INSERT INTO article_extras(deck_id, source, author, short_description, published_date)
               VALUES (?1, ?2, ?3, ?4, ?5, ?6)
-              RETURNING deck_id, source, author, short_description, rating, published_date"
+              RETURNING deck_id, source, author, short_description, published_date"
         }
         1 => {
             "UPDATE article_extras
-              SET source = ?2, author = ?3, short_description = ?4, rating = ?5, published_date = ?6
+              SET source = ?2, author = ?3, short_description = ?4, published_date = ?5
               WHERE deck_id = ?1
-              RETURNING deck_id, source, author, short_description, rating, published_date"
+              RETURNING deck_id, source, author, short_description, published_date"
         }
         _ => {
             // should be impossible to get here since deck_id
@@ -318,7 +311,6 @@ pub(crate) fn edit(
             &article.source,
             &article.author,
             &article.short_description,
-            &article.rating,
             &article.published_date,
         ],
     )?;
@@ -339,7 +331,6 @@ pub(crate) fn get_or_create(
     let source = "";
     let author = "";
     let short_description = "";
-    let rating = 0;
     let published_date = chrono::Utc::now().naive_utc().date();
 
     let (deck, origin) = decks::deckbase_get_or_create(
@@ -350,21 +341,28 @@ pub(crate) fn get_or_create(
         Font::LibreBaskerville,
     )?;
 
-    let article_extras =
-        match origin {
-            decks::DeckBaseOrigin::Created => sqlite::one(
-                &tx,
-                "INSERT INTO article_extras(deck_id, source, author, short_description, rating, published_date)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)
-                 RETURNING deck_id, source, author, short_description, rating, published_date",
-                params![&deck.id, &source, &author, &short_description, &rating, &published_date])?,
-            decks::DeckBaseOrigin::PreExisting => sqlite::one(
-                &tx,
-                "select deck_id, source, author, short_description, rating, published_date
+    let article_extras = match origin {
+        decks::DeckBaseOrigin::Created => sqlite::one(
+            &tx,
+            "INSERT INTO article_extras(deck_id, source, author, short_description, published_date)
+                 VALUES (?1, ?2, ?3, ?4, ?5)
+                 RETURNING deck_id, source, author, short_description, published_date",
+            params![
+                &deck.id,
+                &source,
+                &author,
+                &short_description,
+                &published_date
+            ],
+        )?,
+        decks::DeckBaseOrigin::PreExisting => sqlite::one(
+            &tx,
+            "select deck_id, source, author, short_description, published_date
                  from article_extras
                  where deck_id=?1",
-                params![&deck.id])?
-        };
+            params![&deck.id],
+        )?,
+    };
 
     tx.commit()?;
 

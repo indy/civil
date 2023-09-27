@@ -490,9 +490,11 @@ export const AppStateChange = {
                 id: slimDeck.id,
                 title: slimDeck.title,
                 deckKind: slimDeck.deckKind,
+                createdAt: slimDeck.createdAt,
                 graphTerminator: false,
                 insignia: slimDeck.insignia,
                 font: slimDeck.font,
+                impact: slimDeck.impact,
                 notes: ns,
             };
 

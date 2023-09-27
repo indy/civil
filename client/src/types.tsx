@@ -88,6 +88,16 @@ export enum PassageHowToShow {
     Exclusive,
 }
 
+// isg fix reference - differentiate between Proto and Permanent
+//
+// type ReferenceExtras = {
+//     noteId: Key;
+//     refKind: RefKind;
+//     annotation?: string;
+// }
+// export type ProtoReference = ProtoSlimDeck & ReferenceExtras;
+// export type Reference = SlimDeck & ReferenceExtras;
+
 export type Reference = SlimDeck & {
     noteId: Key;
     refKind: RefKind;
@@ -114,18 +124,24 @@ export type PreviewDeck = SlimDeck & {
 
 export type DeckUpdate = {
     title: string;
+    graphTerminator: boolean;
     insignia: number;
     font: Font;
-    graphTerminator: boolean;
+    impact: number;
 };
 
-export type SlimDeck = {
-    id: Key;
+export type ProtoSlimDeck = {
     title: string;
     deckKind: DeckKind;
     graphTerminator: boolean;
     insignia: number;
     font: Font;
+    impact: number;
+};
+
+export type SlimDeck = ProtoSlimDeck & {
+    id: Key;
+    createdAt: string;
 };
 
 export type SlimEvent = SlimDeck & {
@@ -171,10 +187,6 @@ export type ChatMessage = {
     content: string;
 };
 
-export type IdeaExtras = {
-    createdAt: string;
-};
-
 export type PersonExtras = {
     sortDate?: string;
 };
@@ -182,10 +194,8 @@ export type PersonExtras = {
 export type ArticleExtras = {
     source?: string;
     author?: string;
-    createdAt: string;
-    publishedDate?: string;
-    rating: number;
     shortDescription?: string;
+    publishedDate?: string;
 };
 
 export type DialogueExtras = {
@@ -204,15 +214,13 @@ export type EventExtras = {
     lowerDate?: string;
     upperDate?: string;
     dateFuzz: number;
-
-    importance: number;
 };
 
 export type QuoteExtras = {
     attribution: string;
 };
 
-export type DeckIdea = FatDeck & IdeaExtras;
+export type DeckIdea = FatDeck;
 export type DeckPerson = FatDeck & PersonExtras;
 export type DeckArticle = FatDeck & ArticleExtras;
 export type DeckDialogue = FatDeck & DialogueExtras;
