@@ -1,19 +1,17 @@
 import { useEffect, useState } from "preact/hooks";
 
 import {
-    ArticleExtras,
     DeckArticle,
     DeckKind,
     DeckManagerFlags,
-    DeckUpdate,
     DM,
     Note,
     NoteKind,
+    ProtoArticle,
     SlimDeck,
 } from "../types";
 
 import { buildUrl } from "../shared/civil";
-import { buildSlimDeck } from "../shared/deck";
 import Net from "../shared/net";
 import { formattedDate } from "../shared/time";
 
@@ -125,16 +123,13 @@ function ArticlesPaginator({ selected }: { selected: string }) {
 }
 
 function renderPaginatedArticle(article: DeckArticle, i: number) {
-    let { id, title, shortDescription, insignia, font } = article;
-    let slimDeck = buildSlimDeck(DeckKind.Article, id, title, insignia, font);
-
     let klass = i % 2 ? "stripe-a" : "stripe-b";
 
     return (
         <li class={klass}>
             <StarRatingWithinListing rating={article.impact} />
-            <DeckLink slimDeck={slimDeck} />
-            <span class="descriptive-scribble">{shortDescription}</span>
+            <DeckLink slimDeck={article} />
+            <span class="descriptive-scribble">{article.shortDescription}</span>
         </li>
     );
 }
@@ -362,17 +357,16 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
     }
 
     function handleSubmit(event: Event) {
-        type DeckArticleUpdate = DeckUpdate & ArticleExtras;
-
-        let data: DeckArticleUpdate = {
+        let data: ProtoArticle = {
             title: title.trim(),
+            deckKind: DeckKind.Article,
+            graphTerminator: false,
             insignia: insigniaId,
             font,
-            graphTerminator: false,
+            impact: rating,
             author: author.trim(),
             source: source.trim(),
             shortDescription: shortDescription.trim(),
-            impact: rating,
             publishedDate: publishedDate.trim(),
         };
         if (data.source!.length === 0) {
@@ -381,7 +375,7 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
 
         const deckKind: DeckKind = DeckKind.Article;
 
-        Net.put<DeckArticleUpdate, DeckArticle>(
+        Net.put<ProtoArticle, DeckArticle>(
             buildUrl(deckKind, article.id, "/api"),
             data
         ).then((newDeck) => {

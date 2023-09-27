@@ -185,7 +185,7 @@ pub(crate) fn edit(
         graph_terminator,
         dialogue.insignia,
         dialogue.font,
-        0, // isg fix
+        dialogue.impact,
     )?;
 
     let sql_query: &str = "SELECT deck_id, ai_kind
@@ -215,7 +215,10 @@ pub(crate) fn create(
         user_id,
         DeckKind::Dialogue,
         &proto_dialogue.title,
+        false,
+        0,
         proto_dialogue.font,
+        0,
     )?;
 
     let dialogue_extras: DialogueExtra = sqlite::one(

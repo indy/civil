@@ -338,7 +338,10 @@ pub(crate) fn get_or_create(
         user_id,
         DeckKind::Article,
         title,
+        false,
+        0,
         Font::LibreBaskerville,
+        0,
     )?;
 
     let article_extras = match origin {

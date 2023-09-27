@@ -1,30 +1,11 @@
 import { route } from "preact-router";
 
-import { DeckKind, Key, Font, SlimDeck } from "../types";
+import { DeckKind, SlimDeck } from "../types";
 
 import Net from "../shared/net";
 
 import { immutableState } from "../app-state";
 import { capitalise } from "../shared/english";
-
-export function buildSlimDeck(
-    deckKind: DeckKind,
-    id: Key,
-    title: string,
-    insignia: number,
-    font: Font
-): SlimDeck {
-    return {
-        id,
-        title,
-        createdAt: "", // isg fix this
-        deckKind,
-        graphTerminator: false,
-        insignia,
-        font,
-        impact: 0, // isg fix this
-    };
-}
 
 export function createDeck(deckKind: DeckKind, title: string) {
     type ProtoDeck = {

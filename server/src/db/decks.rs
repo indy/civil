@@ -161,14 +161,26 @@ pub(crate) fn deckbase_get_or_create(
     user_id: Key,
     kind: interop::DeckKind,
     name: &str,
+    graph_terminator: bool,
+    insignia: i32,
     font: Font,
+    impact: i32,
 ) -> crate::Result<(DeckBase, DeckBaseOrigin)> {
     let existing_deck_res = deckbase_get_by_name(tx, user_id, kind, name);
     match existing_deck_res {
         Ok(deck) => Ok((deck, DeckBaseOrigin::PreExisting)),
         Err(e) => match e {
             Error::NotFound => {
-                let deck = deckbase_create(tx, user_id, kind, name, font)?;
+                let deck = deckbase_create(
+                    tx,
+                    user_id,
+                    kind,
+                    name,
+                    graph_terminator,
+                    insignia,
+                    font,
+                    impact,
+                )?;
                 Ok((deck, DeckBaseOrigin::Created))
             }
             _ => Err(e),
@@ -199,20 +211,20 @@ fn deckbase_get_by_name(
     sqlite::one(conn, stmt, params![&user_id, &name, &kind.to_string()])
 }
 
-// note: will execute multiple sql write statements so should be in a transaction
-//
 pub(crate) fn deckbase_create(
     tx: &Connection,
     user_id: Key,
     kind: interop::DeckKind,
     name: &str,
+    graph_terminator: bool,
+    insignia: i32,
     font: Font,
+    impact: i32,
 ) -> crate::Result<DeckBase> {
-    let graph_terminator = false;
-    let stmt = "INSERT INTO decks(user_id, kind, name, graph_terminator, insignia, font)
-                VALUES (?1, ?2, ?3, ?4, ?5, ?6)
-                RETURNING id, name, created_at, graph_terminator, insignia, font";
-    let insignia: i32 = 0;
+    let stmt = "INSERT INTO decks(user_id, kind, name, graph_terminator, insignia, font, impact)
+                VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+                RETURNING id, name, kind, created_at, graph_terminator, insignia, font, impact";
+
     let deckbase: DeckBase = sqlite::one(
         tx,
         stmt,
@@ -223,6 +235,7 @@ pub(crate) fn deckbase_create(
             graph_terminator,
             &insignia,
             &i32::from(font),
+            impact
         ],
     )?;
 

@@ -5,7 +5,7 @@ import {
     DeckKind,
     DeckManagerFlags,
     DeckPerson,
-    DeckUpdate,
+    ProtoPerson,
     DM,
     Font,
     Key,
@@ -397,16 +397,17 @@ function PersonUpdater({
     }
 
     const handleSubmit = (e: Event) => {
-        const data: DeckUpdate = {
+        const data: ProtoPerson = {
             title: localState.title.trim(),
             insignia: localState.insigniaId,
+            deckKind: DeckKind.Person,
             font: localState.font,
             graphTerminator: false,
             impact: 0, // isg fix this
         };
 
         // edit an existing person
-        Net.put<DeckUpdate, DeckPerson>(`/api/people/${person.id}`, data).then(
+        Net.put<ProtoPerson, DeckPerson>(`/api/people/${person.id}`, data).then(
             (newDeck) => {
                 onUpdate(newDeck);
             }

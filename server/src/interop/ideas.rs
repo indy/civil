@@ -24,11 +24,11 @@ use crate::interop::Key;
 #[serde(rename_all = "camelCase")]
 pub struct Idea {
     pub id: Key,
+    pub created_at: chrono::NaiveDateTime,
+
     pub title: String,
     pub deck_kind: DeckKind,
-    pub created_at: chrono::NaiveDateTime,
     pub graph_terminator: bool,
-
     pub insignia: i32,
     pub font: Font,
     pub impact: i32,
@@ -41,12 +41,11 @@ impl From<crate::db::decks::DeckBase> for Idea {
     fn from(d: crate::db::decks::DeckBase) -> Idea {
         Idea {
             id: d.id,
-            title: d.title,
-
-            deck_kind: DeckKind::Idea,
             created_at: d.created_at,
-            graph_terminator: d.graph_terminator,
 
+            title: d.title,
+            deck_kind: DeckKind::Idea,
+            graph_terminator: d.graph_terminator,
             insignia: d.insignia,
             font: d.font,
             impact: d.impact,
@@ -61,10 +60,11 @@ impl From<crate::db::decks::DeckBase> for Idea {
 #[serde(rename_all = "camelCase")]
 pub struct ProtoIdea {
     pub title: String,
-
+    pub deck_kind: DeckKind,
+    pub graph_terminator: bool,
     pub insignia: i32,
     pub font: Font,
-    pub graph_terminator: bool,
+    pub impact: i32,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

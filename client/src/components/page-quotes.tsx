@@ -4,12 +4,11 @@ import { useEffect, useState } from "preact/hooks";
 import {
     DeckKind,
     DeckQuote,
-    DeckUpdate,
     DM,
     Font,
     Key,
     NoteKind,
-    QuoteExtras,
+    ProtoQuote,
     SearchResults,
 } from "../types";
 
@@ -305,15 +304,14 @@ function Quote({ path, id }: { path?: string; id?: string }) {
 
     function onEditedAttributeFn(deckId: Key) {
         return function (attribution: string) {
-            type DeckQuoteUpdate = DeckUpdate & QuoteExtras;
-
             let deckQuote: DeckQuote = deck! as DeckQuote;
             let note = deckQuote.notes.find((n) => n.kind === NoteKind.Note);
 
             if (note) {
-                let data: DeckQuoteUpdate = {
+                let data: ProtoQuote = {
                     title: deckQuote.title,
                     insignia: 0,
+                    deckKind: DeckKind.Quote,
                     font: deckQuote.font,
                     graphTerminator: false,
                     attribution: attribution,
@@ -321,7 +319,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                 };
 
                 // as the title could have changed, we need to post the updated quote to the server
-                Net.put<DeckQuoteUpdate, DeckQuote>(
+                Net.put<ProtoQuote, DeckQuote>(
                     `/api/quotes/${deckId}`,
                     data
                 ).then((updatedDeck) => {

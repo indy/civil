@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 
-import { SlimDeck, DeckIdea, DeckKind, DeckUpdate, DM } from "../types";
+import { SlimDeck, DeckIdea, DeckKind, ProtoIdea, DM } from "../types";
 
 import Net from "../shared/net";
 import { formattedDate } from "../shared/time";
@@ -218,15 +218,16 @@ function IdeaUpdater({ idea, onUpdate, onCancel }: IdeaUpdaterProps) {
     }
 
     function handleSubmit(event: Event) {
-        const data: DeckUpdate = {
+        const data: ProtoIdea = {
             title: title.trim(),
+            deckKind: DeckKind.Idea,
+            graphTerminator: !!graphTerminator,
             insignia: insigniaId,
             font,
-            graphTerminator: !!graphTerminator,
             impact: 0, // isg fix this
         };
 
-        Net.put<DeckUpdate, DeckIdea>(`/api/ideas/${idea.id}`, data).then(
+        Net.put<ProtoIdea, DeckIdea>(`/api/ideas/${idea.id}`, data).then(
             (newDeck) => {
                 onUpdate(newDeck);
             }

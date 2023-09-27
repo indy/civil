@@ -229,7 +229,7 @@ pub(crate) fn search_names_at_deck_level(
 ) -> crate::Result<Vec<SearchDeck>> {
     let conn = sqlite_pool.get()?;
 
-    let stmt = "select d.id, d.name, d.kind, d.insignia, d.font, d.graph_terminator,
+    let stmt = "select d.id, d.name, d.kind, d.created_at, d.graph_terminator, d.insignia, d.font, d.impact,
                        decks_fts.rank AS rank_sum, 1 as rank_count
                 from decks_fts left join decks d on d.id = decks_fts.rowid
                 where decks_fts match ?2
@@ -240,7 +240,7 @@ pub(crate) fn search_names_at_deck_level(
     let mut results: Vec<SearchDeck> = sqlite::many(&conn, stmt, params![&user_id, &query])?;
 
     let stmt =
-        "select id, name, kind, insignia, font, graph_terminator, 0 as rank_sum, 1 as rank_count
+        "select id, name, kind, created_at, graph_terminator, insignia, font, impact, 0 as rank_sum, 1 as rank_count
                 from decks
                 where name like '%' || ?2 || '%'
                 and user_id = ?1

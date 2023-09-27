@@ -107,8 +107,16 @@ pub(crate) fn update_references(
     //
     for created in &diff.references_created {
         info!("create new idea: {} and a new edge", created.title);
-        let (deck, _created) =
-            deckbase_get_or_create(&tx, user_id, DeckKind::Idea, &created.title, Font::Serif)?;
+        let (deck, _created) = deckbase_get_or_create(
+            &tx,
+            user_id,
+            DeckKind::Idea,
+            &created.title,
+            false,
+            0,
+            Font::Serif,
+            0,
+        )?;
         sqlite::zero(
             &tx,
             stmt_refs_added,

@@ -4,7 +4,7 @@ import {
     DeckKind,
     DeckManagerFlags,
     DeckTimeline,
-    DeckUpdate,
+    ProtoTimeline,
     DM,
     Font,
     PassageType,
@@ -243,16 +243,17 @@ function TimelineUpdater({
     }
 
     const handleSubmit = (e: Event) => {
-        const data: DeckUpdate = {
+        const data: ProtoTimeline = {
             title: localState.title.trim(),
             insignia: localState.insigniaId,
+            deckKind: DeckKind.Timeline,
             font: localState.font,
             graphTerminator: false,
             impact: 0, // isg fix this
         };
 
         // edit an existing timeline
-        Net.put<DeckUpdate, DeckTimeline>(
+        Net.put<ProtoTimeline, DeckTimeline>(
             `/api/timelines/${timeline.id}`,
             data
         ).then((newDeck) => {

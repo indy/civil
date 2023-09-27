@@ -71,10 +71,11 @@ impl From<crate::db::decks::DeckBase> for Person {
 #[serde(rename_all = "camelCase")]
 pub struct ProtoPerson {
     pub title: String,
-
+    pub deck_kind: DeckKind,
+    pub graph_terminator: bool,
     pub insignia: i32,
     pub font: Font,
-    pub graph_terminator: bool,
+    pub impact: i32,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

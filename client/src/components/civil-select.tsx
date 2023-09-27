@@ -547,8 +547,8 @@ export default function CivilSelect({
                 onAdd={(existingDeck) => {
                     localDispatch(ActionType.SelectAdd, existingDeck);
                 }}
-                onCreate={(newDeckInfo) => {
-                    localDispatch(ActionType.SelectCreate, newDeckInfo);
+                onCreate={(shouldBeProtoReference) => {
+                    localDispatch(ActionType.SelectCreate, shouldBeProtoReference);
                 }}
                 showKeyboardShortcuts={local.showKeyboardShortcuts}
             />
@@ -737,16 +737,20 @@ function CivilSelectInput({
         e.preventDefault();
         if (text.length > 0) {
             // treat this text as a new idea that needs to be created
+            //
+            // should really be a ProtoReference, but there's a concat
+            // above which expects everything to be a Reference
+            //
             let r: Reference = {
-                noteId: 0,  // isg fix this to use the protoReference code
                 id: 0,
+                createdAt: "",
+                noteId: 0,
                 title: text,
                 deckKind: DeckKind.Idea,
                 graphTerminator: false,
                 refKind: RefKind.Ref,
                 insignia: 0,
                 font: immutableState.defaultFont,
-                createdAt: "",
                 impact: 0,
             };
             onCreate(r);

@@ -50,8 +50,16 @@ pub(crate) fn get_or_create(
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    let (deck, _origin) =
-        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Timeline, title, Font::DeWalpergens)?;
+    let (deck, _origin) = decks::deckbase_get_or_create(
+        &tx,
+        user_id,
+        DeckKind::Timeline,
+        title,
+        false,
+        0,
+        Font::DeWalpergens,
+        0,
+    )?;
 
     tx.commit()?;
 
@@ -106,7 +114,7 @@ pub(crate) fn edit(
         graph_terminator,
         timeline.insignia,
         timeline.font,
-        0, // isg fix
+        timeline.impact,
     )?;
 
     tx.commit()?;

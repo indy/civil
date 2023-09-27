@@ -45,6 +45,7 @@ pub struct Article {
 #[serde(rename_all = "camelCase")]
 pub struct ProtoArticle {
     pub title: String,
+    pub deck_kind: DeckKind,
     pub graph_terminator: bool,
     pub insignia: i32,
     pub font: Font,

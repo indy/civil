@@ -52,8 +52,16 @@ pub(crate) fn get_or_create(
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    let (deck, _origin) =
-        decks::deckbase_get_or_create(&tx, user_id, DeckKind::Person, title, Font::English)?;
+    let (deck, _origin) = decks::deckbase_get_or_create(
+        &tx,
+        user_id,
+        DeckKind::Person,
+        title,
+        false,
+        0,
+        Font::English,
+        1,
+    )?;
 
     tx.commit()?;
 
@@ -321,7 +329,7 @@ pub(crate) fn edit(
         graph_terminator,
         person.insignia,
         person.font,
-        0, // isg fix
+        person.impact,
     )?;
 
     tx.commit()?;

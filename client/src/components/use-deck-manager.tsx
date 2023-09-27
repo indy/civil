@@ -67,7 +67,7 @@ export default function useDeckManager<T extends FatDeck>(
             // fetch deckKind from the server
             const url = buildUrl(deckKind, deckId, "/api");
             Net.get<T>(url).then((deck) => {
-                console.log(deck);
+                // console.log(deck);
                 if (deck) {
                     deck.hits = [];
 

@@ -4,12 +4,11 @@ import {
     DeckEvent,
     DeckKind,
     DeckManagerFlags,
-    DeckUpdate,
     DM,
-    EventExtras,
     Font,
     GeoResult,
     SlimDeck,
+    ProtoEvent,
 } from "../types";
 
 import { geoGet, getLatitudeLongitude } from "../shared/geo";
@@ -322,10 +321,9 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
     }
 
     const handleSubmit = (e: Event) => {
-        type ProtoEvent = DeckUpdate & EventExtras;
-
         const data: ProtoEvent = {
             title: localState.title.trim(),
+            deckKind: DeckKind.Event,
             insignia: localState.insigniaId,
             font: localState.font,
             graphTerminator: false,

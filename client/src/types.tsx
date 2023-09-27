@@ -88,21 +88,13 @@ export enum PassageHowToShow {
     Exclusive,
 }
 
-// isg fix reference - differentiate between Proto and Permanent
-//
-// type ReferenceExtras = {
-//     noteId: Key;
-//     refKind: RefKind;
-//     annotation?: string;
-// }
-// export type ProtoReference = ProtoSlimDeck & ReferenceExtras;
-// export type Reference = SlimDeck & ReferenceExtras;
-
-export type Reference = SlimDeck & {
+type ReferenceExtras = {
     noteId: Key;
     refKind: RefKind;
     annotation?: string;
-};
+}
+export type Reference = SlimDeck & ReferenceExtras;
+export type ProtoReference = ProtoSlimDeck & ReferenceExtras;
 
 export type Arrival = {
     notes: Notes;
@@ -120,14 +112,6 @@ export type PreviewNotes = {
 
 export type PreviewDeck = SlimDeck & {
     notes: Notes;
-};
-
-export type DeckUpdate = {
-    title: string;
-    graphTerminator: boolean;
-    insignia: number;
-    font: Font;
-    impact: number;
 };
 
 export type ProtoSlimDeck = {
@@ -227,6 +211,16 @@ export type DeckDialogue = FatDeck & DialogueExtras;
 export type DeckEvent = FatDeck & EventExtras;
 export type DeckTimeline = FatDeck;
 export type DeckQuote = FatDeck & QuoteExtras;
+
+// used for creating/editing various deck types
+//
+export type ProtoIdea = ProtoSlimDeck;
+export type ProtoPerson = ProtoSlimDeck & PersonExtras;
+export type ProtoArticle = ProtoSlimDeck & ArticleExtras;
+export type ProtoDialogue = ProtoSlimDeck & DialogueExtras;
+export type ProtoEvent = ProtoSlimDeck & EventExtras;
+export type ProtoTimeline = ProtoSlimDeck;
+export type ProtoQuote = ProtoSlimDeck & QuoteExtras;
 
 export type Note = {
     id: Key;
@@ -562,10 +556,10 @@ export type PassageType = {
 };
 
 export type ReferencesDiff = {
-    referencesChanged: Array<Reference>;
-    referencesRemoved: Array<Reference>;
     referencesAdded: Array<Reference>;
-    referencesCreated: Array<Reference>;
+    referencesChanged: Array<Reference>;
+    referencesCreated: Array<ProtoReference>;
+    referencesRemoved: Array<Reference>;
 };
 
 export type ReferencesApplied = {

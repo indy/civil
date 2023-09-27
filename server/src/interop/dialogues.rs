@@ -85,9 +85,11 @@ pub struct ProtoChat {
 #[serde(rename_all = "camelCase")]
 pub struct ProtoDialogue {
     pub title: String,
+    pub deck_kind: DeckKind,
+    pub graph_terminator: bool,
     pub insignia: i32,
     pub font: Font,
-    pub graph_terminator: bool,
+    pub impact: i32,
 
     pub ai_kind: AiKind,
     pub messages: Vec<openai_interface::ChatMessage>,

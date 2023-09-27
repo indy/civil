@@ -7,11 +7,10 @@ import {
     DeckDialogue,
     DeckKind,
     DeckManagerFlags,
-    DeckUpdate,
-    DialogueExtras,
     DM,
     Font,
     Role,
+    ProtoDialogue,
     SlimDeck,
     NoteKind,
     WaitingFor,
@@ -51,15 +50,6 @@ import {
     CivLeftLabel,
     CivMain,
 } from "./civil-layout";
-
-type ProtoDialogue = {
-    title: string;
-    insignia: number;
-    font: Font;
-    graphTerminator: boolean;
-    aiKind: AiKind;
-    messages: Array<ChatMessage>;
-};
 
 type MessageChoice = {
     message: ChatMessage;
@@ -302,11 +292,13 @@ function DialogueChat({ path }: { path?: string }) {
     function saveDialogue(title: string, messages: Array<ChatMessage>) {
         let data: ProtoDialogue = {
             title: title,
+            deckKind: DeckKind.Dialogue,
             insignia: 0,
             font: Font.AI,
+            impact: 0,
             graphTerminator: false,
             aiKind: AiKind.OpenAIGpt35Turbo,
-            messages: messages,
+            originalChatMessages: messages,
         };
 
         Net.post<ProtoDialogue, DeckDialogue>("/api/dialogues", data).then(
@@ -473,10 +465,10 @@ function DialogueUpdater({
     }
 
     function handleSubmit(event: Event) {
-        type DeckDialogueUpdate = DeckUpdate & DialogueExtras;
-        const data: DeckDialogueUpdate = {
+        const data: ProtoDialogue = {
             title: title.trim(),
             insignia: insigniaId,
+            deckKind: DeckKind.Dialogue,
             font: Font.Serif,
             graphTerminator: false,
             impact: 0, // isg fix this
@@ -488,7 +480,7 @@ function DialogueUpdater({
 
         const url = buildUrl(deckKind, dialogue.id, "/api");
 
-        Net.put<DeckDialogueUpdate, DeckDialogue>(url, data).then((newDeck) => {
+        Net.put<ProtoDialogue, DeckDialogue>(url, data).then((newDeck) => {
             onUpdate(newDeck);
         });
 
