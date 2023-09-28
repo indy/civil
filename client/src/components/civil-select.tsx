@@ -548,7 +548,10 @@ export default function CivilSelect({
                     localDispatch(ActionType.SelectAdd, existingDeck);
                 }}
                 onCreate={(shouldBeProtoReference) => {
-                    localDispatch(ActionType.SelectCreate, shouldBeProtoReference);
+                    localDispatch(
+                        ActionType.SelectCreate,
+                        shouldBeProtoReference
+                    );
                 }}
                 showKeyboardShortcuts={local.showKeyboardShortcuts}
             />

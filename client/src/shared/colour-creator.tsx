@@ -247,10 +247,9 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
     defs = fgCol(defs, seeds, 7, "fg_lighter_7");
 
     defs = addTopMenuColours(defs, seeds, 150, "home");
-    defs = addTopMenuColours(defs, seeds, 180, "search");
-    defs = addTopMenuColours(defs, seeds, 210, "insignias");
+    defs = addTopMenuColours(defs, seeds, 240, "search");
     defs = addTopMenuColours(defs, seeds, 300, "memorise");
-    defs = addTopMenuColours(defs, seeds, 240, "stats");
+    defs = addTopMenuColours(defs, seeds, 70, "stats");
 
     defs = addMix(defs, "graph_node_proximity_0", "graph_edge", 0.0, "bg");
     defs = addMix(defs, "graph_node_proximity_1", "graph_edge", 0.6, "bg");

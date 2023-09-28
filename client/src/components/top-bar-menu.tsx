@@ -35,7 +35,7 @@ export default function TopBarMenu() {
         let text = capitalise(topMenuItem);
 
         if (topMenuItem === "memorise") {
-            text = `Mind (${appState.memoriseReviewCount.value})`;
+            text = `Memorise (${appState.memoriseReviewCount.value})`;
         }
 
         return text;

@@ -20,12 +20,10 @@ import CivilButton from "./civil-button";
 import CivilButtonCreateDeck from "./civil-button-create-deck";
 import CivilInput from "./civil-input";
 import CivilTabButton from "./civil-tab-button";
-import DeckLink from "./deck-link";
 import DeleteDeckConfirmation from "./delete-deck-confirmation";
 import FontSelector from "./font-selector";
 import InsigniaSelector from "./insignia-selector";
 import LeftMarginHeadingNoWrap from "./left-margin-heading-no-wrap";
-import { HeadedSegment } from "./headed-segment";
 import Pagination from "./pagination";
 import SegmentArrivals from "./segment-arrivals";
 import SegmentDeckRefs from "./segment-deck-refs";
@@ -33,12 +31,13 @@ import SegmentGraph from "./segment-graph";
 import SegmentHits from "./segment-hits";
 import SegmentNotes from "./segment-notes";
 import SegmentSearchResults from "./segment-search-results";
-import { StarRatingPartial, StarRatingWithinListing } from "./star-rating";
 import TopBarMenu from "./top-bar-menu";
 import TopMatter from "./top-matter";
 import useDeckManager from "./use-deck-manager";
-
 import { CivContainer, CivForm, CivLeftLabel, CivMain } from "./civil-layout";
+import { HeadedSegment } from "./headed-segment";
+import { StarRatingPartial } from "./star-rating";
+import { renderPaginatedArticle } from "./paginated-render-items";
 
 function Articles({ path }: { path?: string }) {
     return (
@@ -119,18 +118,6 @@ function ArticlesPaginator({ selected }: { selected: string }) {
             itemsPerPage={10}
             lowerContent={lowerContent}
         />
-    );
-}
-
-function renderPaginatedArticle(article: DeckArticle, i: number) {
-    let klass = i % 2 ? "stripe-a" : "stripe-b";
-
-    return (
-        <li class={klass}>
-            <StarRatingWithinListing rating={article.impact} />
-            <DeckLink slimDeck={article} />
-            <span class="descriptive-scribble">{article.shortDescription}</span>
-        </li>
     );
 }
 

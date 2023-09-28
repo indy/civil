@@ -1,7 +1,8 @@
+import { ComponentChildren } from "preact";
 import { route } from "preact-router";
 import { useState } from "preact/hooks";
 
-import { DeckKind } from "../types";
+import { SlimDeck, DeckKind } from "../types";
 
 import { getAppState } from "../app-state";
 
@@ -14,7 +15,12 @@ import { capitalise } from "../shared/english";
 import CivilButtonCreateDeck from "./civil-button-create-deck";
 import CivilTabButton from "./civil-tab-button";
 import { HeadedSegment } from "./headed-segment";
-import { renderPaginatedSlimDeck } from "./paginated-render-items";
+import {
+    renderPaginatedArticle,
+    renderPaginatedPerson,
+    renderPaginatedEvent,
+    renderPaginatedSlimDeck,
+} from "./paginated-render-items";
 import Pagination from "./pagination";
 
 export default function Paginator({}) {
@@ -113,10 +119,26 @@ function DeckPaginator({ deckKind }: DeckPaginatorProps) {
         <CivilButtonCreateDeck deckKind={deckKind}></CivilButtonCreateDeck>
     );
 
+    let renderItem: (s: SlimDeck, i: number) => ComponentChildren =
+        renderPaginatedSlimDeck;
+    switch (deckKind) {
+        case DeckKind.Article:
+            renderItem = renderPaginatedArticle;
+            break;
+        case DeckKind.Person:
+            renderItem = renderPaginatedPerson;
+            break;
+        case DeckKind.Event:
+            renderItem = renderPaginatedEvent;
+            break;
+        default:
+            renderItem = renderPaginatedSlimDeck;
+    }
+
     return (
         <Pagination
             url={url}
-            renderItem={renderPaginatedSlimDeck}
+            renderItem={renderItem}
             itemsPerPage={itemsPerPage}
             upperContent={upperContent}
             lowerContent={lowerContent}

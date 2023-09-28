@@ -92,7 +92,7 @@ type ReferenceExtras = {
     noteId: Key;
     refKind: RefKind;
     annotation?: string;
-}
+};
 export type Reference = SlimDeck & ReferenceExtras;
 export type ProtoReference = ProtoSlimDeck & ReferenceExtras;
 

@@ -1,7 +1,7 @@
 import { ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { PaginationResults } from "../types";
+import { SlimDeck, PaginationResults } from "../types";
 
 import Net from "../shared/net";
 
@@ -23,7 +23,7 @@ export default function Pagination({
     lowerContent,
 }: {
     url: string;
-    renderItem: (s: any, i: number) => ComponentChildren;
+    renderItem: (s: SlimDeck, i: number) => ComponentChildren;
     itemsPerPage: number;
     upperContent?: ComponentChildren;
     lowerContent?: ComponentChildren;

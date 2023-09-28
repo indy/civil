@@ -1670,18 +1670,6 @@ a:visited.pigment-inherit {
 
 /* ---- */
 
-.pigment-top-menu-insignias {
-    color: var(--fg-insignias) !important;
-    background: var(--bg-insignias);
-}
-/* used when there are some spaced repetition questions that are scheduled to be answered */
-.pigment-top-menu-insignias-active {
-    color: var(--fg-insignias-active) !important;
-    background: var(--bg-insignias-active);
-}
-
-/* ---- */
-
 .pigment-top-menu-memorise {
     color: var(--fg-memorise) !important;
     background: var(--bg-memorise);
@@ -2183,8 +2171,8 @@ input:required {
 }
 
 .flash-card-input {
-  width: 100%;
-  height: 8rem;
+    width: 100%;
+    height: 8rem;
 }
 
 .in-note-flash-card-prompt {
