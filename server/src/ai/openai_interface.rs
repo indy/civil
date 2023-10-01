@@ -29,6 +29,7 @@ pub enum Role {
     System = 1,
     Assistant,
     User,
+    Function,
 }
 
 impl fmt::Display for Role {
@@ -37,6 +38,7 @@ impl fmt::Display for Role {
             Role::System => write!(f, "system"),
             Role::Assistant => write!(f, "assistant"),
             Role::User => write!(f, "user"),
+            Role::Function => write!(f, "function"),
         }
     }
 }
@@ -49,6 +51,7 @@ impl FromStr for Role {
             "system" => Ok(Role::System),
             "assistant" => Ok(Role::Assistant),
             "user" => Ok(Role::User),
+            "function" => Ok(Role::Function),
             _ => Err(Error::StringConversionToEnum),
         }
     }
@@ -97,6 +100,7 @@ impl From<Role> for chatgpt::types::Role {
             Role::System => chatgpt::types::Role::System,
             Role::Assistant => chatgpt::types::Role::Assistant,
             Role::User => chatgpt::types::Role::User,
+            Role::Function => chatgpt::types::Role::Function,
         }
     }
 }
@@ -107,6 +111,7 @@ impl From<chatgpt::types::Role> for Role {
             chatgpt::types::Role::System => Role::System,
             chatgpt::types::Role::Assistant => Role::Assistant,
             chatgpt::types::Role::User => Role::User,
+            chatgpt::types::Role::Function => Role::Function,
         }
     }
 }

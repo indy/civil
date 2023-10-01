@@ -289,6 +289,7 @@ fn create_chat_message(
         openai_interface::Role::User => Font::Cursive,
         openai_interface::Role::Assistant => Font::AI,
         openai_interface::Role::System => Font::Serif,
+        openai_interface::Role::Function => Font::AI,
     };
 
     let new_note = db_notes::create_common(
