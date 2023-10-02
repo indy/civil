@@ -43,7 +43,7 @@ cfg_if! {
 }
 
 #[wasm_bindgen]
-pub fn init_wasm() -> JsValue {
+pub fn civil_wasm_startup() -> JsValue {
     init_log();
     serde_wasm_bindgen::to_value("civil-client: v.20210108d").unwrap()
 }
