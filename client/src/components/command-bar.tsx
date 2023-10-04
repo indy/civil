@@ -70,6 +70,14 @@ const BarEntries: Array<BarEntry> = [
         },
     },
     {
+        command: "e",
+        description: "goto events or add ",
+        quoteAround: "title",
+        fn: (args) => {
+            return routeOrCreate(DeckKind.Event, args);
+        },
+    },
+    {
         command: "t",
         description: "goto timelines or add ",
         quoteAround: "title",
