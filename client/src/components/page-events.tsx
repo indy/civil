@@ -397,12 +397,14 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
     function impactAsText(impact: number): string {
         switch (impact) {
             case 0:
-                return "Normal";
+                return "Unimportant";
             case 1:
-                return "Important";
+                return "Noteworthy";
             case 2:
-                return "World Changing";
+                return "Important";
             case 3:
+                return "World Changing";
+            case 4:
                 return "Humanity Changing";
             default:
                 return "unknown impact value!!!!";
@@ -454,7 +456,7 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
                 <input
                     type="range"
                     min="0"
-                    max="3"
+                    max="4"
                     value={localState.impact}
                     class="slider"
                     id="impactSlider"
