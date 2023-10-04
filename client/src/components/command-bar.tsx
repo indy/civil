@@ -78,6 +78,14 @@ const BarEntries: Array<BarEntry> = [
         },
     },
     {
+        command: "d",
+        description: "goto dialogues ",
+        quoteAround: "title",
+        fn: () => {
+            return routeOnly(DeckKind.Dialogue);
+        },
+    },
+    {
         command: "t",
         description: "goto timelines or add ",
         quoteAround: "title",
@@ -639,6 +647,11 @@ function routeOrCreate(kind: DeckKind, argString: string): boolean {
         createDeck(kind, argString);
     }
 
+    return true;
+}
+
+function routeOnly(kind: DeckKind): boolean {
+    route(`/${deckKindToResourceString(kind)}`);
     return true;
 }
 

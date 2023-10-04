@@ -10,7 +10,7 @@ import { App } from "./app";
 import { AppStateChange, initialState } from "./app-state";
 
 document.addEventListener("DOMContentLoaded", async function () {
-    // note: wasm_bindgen is loaded from a script tag for civil_wasm.js in index.html
+    // note: wasm_bindgen is loaded from a civil_wasm.js script tag in index.html
 
     // initialise the wasm_bindgen
     //
