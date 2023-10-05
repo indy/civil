@@ -56,6 +56,7 @@ import {
     CivLeft,
     CivLeftLabel,
     CivMain,
+    CivRight,
 } from "./civil-layout";
 import {
     svgBlank,
@@ -364,29 +365,23 @@ function PersonUpdater({
         title: person.title || "",
         insigniaId: person.insignia || 0,
         font: person.font || Font.Serif,
+        impact: person.impact || 0,
     });
 
     useEffect(() => {
-        if (person.title && person.title !== "" && localState.title === "") {
+        if (person.title !== "" && localState.title === "") {
             setLocalState({
                 ...localState,
                 title: person.title,
             });
         }
 
-        if (person.insignia) {
-            setLocalState({
-                ...localState,
-                insigniaId: person.insignia,
-            });
-        }
-
-        if (person.font) {
-            setLocalState({
-                ...localState,
-                font: person.font,
-            });
-        }
+        setLocalState({
+            ...localState,
+            insigniaId: person.insignia,
+            font: person.font,
+            impact: person.impact,
+        });
     }, [person]);
 
     function handleContentChange(content: string) {
@@ -430,6 +425,32 @@ function PersonUpdater({
         });
     }
 
+    function impactAsText(impact: number): string {
+        switch (impact) {
+            case 0:
+                return "Unimportant";
+            case 1:
+                return "Noteworthy";
+            case 2:
+                return "Important";
+            case 3:
+                return "World Changing";
+            case 4:
+                return "Humanity Changing";
+            default:
+                return "unknown impact value!!!! " + impact;
+        }
+    }
+
+    function onImpactChange(event: Event) {
+        if (event.target instanceof HTMLInputElement) {
+            setLocalState({
+                ...localState,
+                impact: event.target.valueAsNumber,
+            });
+        }
+    }
+
     return (
         <CivForm onSubmit={handleSubmit}>
             <CivLeftLabel forId="name">Name</CivLeftLabel>
@@ -455,6 +476,21 @@ function PersonUpdater({
             <CivMain>
                 <FontSelector font={localState.font} onChangedFont={setFont} />
             </CivMain>
+
+            <CivLeftLabel>Impact</CivLeftLabel>
+            <CivMain>
+                <input
+                    type="range"
+                    min="0"
+                    max="4"
+                    value={localState.impact}
+                    class="slider"
+                    id="impactSlider"
+                    onInput={onImpactChange}
+                />
+                <CivRight>{impactAsText(localState.impact)}</CivRight>
+            </CivMain>
+
 
             <CivMain>
                 <CivilButton extraClasses="dialog-cancel" onClick={onCancel}>
@@ -523,7 +559,7 @@ function PersonPoint({
                         ? svgCaretRight()
                         : svgCaretRightEmpty()}
                 </span>
-                {point.deckName} - {pointText}
+                {point.deckTitle} - {pointText}
                 {expanded && <div class="point-notes">{passage}</div>}
             </li>
         );
@@ -534,7 +570,7 @@ function PersonPoint({
                 <Link href={buildUrl(point.deckKind, point.deckId)}>
                     <span class="point-age">{ageText}</span>
                     {svgBlank()}
-                    {point.deckName} - {pointText}
+                    {point.deckTitle} - {pointText}
                 </Link>
             </li>
         );

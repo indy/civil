@@ -63,8 +63,11 @@ pub struct Point {
     pub date: Option<chrono::NaiveDate>,
 
     pub deck_id: Key,
-    pub deck_name: String,
+    pub deck_title: String,
     pub deck_kind: DeckKind,
+    pub deck_insignia: i32,
+    pub deck_font: Font,
+    pub deck_impact: i32,
 }
 
 impl FromSql for PointKind {

@@ -270,8 +270,11 @@ export type Point = {
     date?: string;
 
     deckId: Key;
-    deckName: string;
+    deckTitle: string;
     deckKind: DeckKind;
+    deckInsignia: number;
+    deckFont: Font;
+    deckImpact: number;
 
     // generated client side with data from server
     //

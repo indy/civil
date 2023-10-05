@@ -99,7 +99,7 @@ export default function LifespanForm({
             return <PointBirthForm onSubmit={onAddBirthPoint} />;
         case LifespanStage.IsAlive:
             return (
-                <div>
+                <div class="ui">
                     <span>
                         Is {title} still alive?
                         <button onClick={onPersonIsAlive}>Yes</button>

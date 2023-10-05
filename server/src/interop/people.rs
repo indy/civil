@@ -25,12 +25,14 @@ use crate::interop::Key;
 #[serde(rename_all = "camelCase")]
 pub struct Person {
     pub id: Key,
+    pub created_at: chrono::NaiveDateTime,
+
     pub title: String,
-
     pub deck_kind: DeckKind,
-
+    pub graph_terminator: bool,
     pub insignia: i32,
     pub font: Font,
+    pub impact: i32,
 
     pub sort_date: Option<chrono::NaiveDate>,
 
@@ -49,12 +51,14 @@ impl From<crate::db::decks::DeckBase> for Person {
     fn from(d: crate::db::decks::DeckBase) -> Person {
         Person {
             id: d.id,
+            created_at: d.created_at,
+
             title: d.title,
-
-            deck_kind: DeckKind::Person,
-
+            deck_kind: d.deck_kind,
+            graph_terminator: d.graph_terminator,
             insignia: d.insignia,
             font: d.font,
+            impact: d.impact,
 
             sort_date: None,
 

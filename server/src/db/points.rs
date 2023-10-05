@@ -35,19 +35,22 @@ impl fmt::Display for PointKind {
 impl FromRow for Point {
     fn from_row(row: &Row) -> crate::Result<Point> {
         Ok(Point {
-            id: row.get(3)?,
-            kind: row.get(4)?,
-            title: row.get(5)?,
-            font: row.get(9)?,
+            id: row.get(0)?,
+            kind: row.get(1)?,
+            title: row.get(2)?,
+            font: row.get(3)?,
 
-            location_textual: row.get(6)?,
+            location_textual: row.get(4)?,
 
-            date_textual: row.get(7)?,
-            date: row.get(8)?,
+            date_textual: row.get(5)?,
+            date: row.get(6)?,
 
-            deck_id: row.get(0)?,
-            deck_name: row.get(1)?,
-            deck_kind: row.get(2)?,
+            deck_id: row.get(7)?,
+            deck_title: row.get(8)?,
+            deck_kind: row.get(9)?,
+            deck_insignia: row.get(10)?,
+            deck_font: row.get(11)?,
+            deck_impact: row.get(12)?,
         })
     }
 }
@@ -61,16 +64,19 @@ pub(crate) fn all(
 
     sqlite::many(
         &conn,
-        "select d.id as deck_id,
-                d.name as deck_name,
-                d.kind as deck_kind,
-                p.id,
+        "select p.id,
                 p.kind,
                 p.title,
+                p.font,
                 p.location_textual,
                 p.date_textual,
                 coalesce(date(p.exact_realdate), date(p.lower_realdate)) as date,
-                p.font,
+                d.id as deck_id,
+                d.name as deck_name,
+                d.kind as deck_kind,
+                d.insignia as deck_insignia,
+                d.font as deck_font,
+                d.impact as deck_impact,
                 coalesce(p.exact_realdate, p.lower_realdate) as sortdate
          from   decks d,
                 points p
@@ -95,32 +101,38 @@ pub(crate) fn all_points_during_life(
     //
     sqlite::many(
         &conn,
-        "select d.id as deck_id,
-                d.name as deck_name,
-                d.kind as deck_kind,
-                p.id,
+        "select p.id,
                 p.kind,
                 p.title,
+                p.font,
                 p.location_textual,
                 p.date_textual,
                 coalesce(date(p.exact_realdate), date(p.lower_realdate)) as date,
-                p.font,
+                d.id as deck_id,
+                d.name as deck_name,
+                d.kind as deck_kind,
+                d.insignia as deck_insignia,
+                d.font as deck_font,
+                d.impact as deck_impact,
                 coalesce(p.exact_realdate, p.lower_realdate) as sortdate
          from   points p, decks d
          where  d.id = ?2
                 and d.user_id = ?1
                 and p.deck_id = d.id
          union
-         select d.id as deck_id,
-                d.name as deck_name,
-                d.kind as deck_kind,
-                p.id,
+         select p.id,
                 p.kind,
                 p.title,
+                p.font,
                 p.location_textual,
                 p.date_textual,
                 coalesce(date(p.exact_realdate), date(p.lower_realdate)) as date,
-                p.font,
+                d.id as deck_id,
+                d.name as deck_name,
+                d.kind as deck_kind,
+                d.insignia as deck_insignia,
+                d.font as deck_font,
+                d.impact as deck_impact,
                 coalesce(p.exact_realdate, p.lower_realdate) as sortdate
          from   points p, decks d
          where  coalesce(p.exact_realdate, p.upper_realdate) >= (select coalesce(point_born.exact_realdate, point_born.lower_realdate) as born
@@ -132,6 +144,7 @@ pub(crate) fn all_points_during_life(
                                                                       where  point_died.deck_id = ?2
                                                                              and point_died.kind = 'point_end'), CURRENT_DATE)
                 and p.deck_id = d.id
+                and d.impact > 0
                 and d.id <> ?2
                 and d.user_id = ?1
          order by sortdate",

@@ -32,10 +32,13 @@ impl FromRow for Person {
         Ok(Person {
             id: row.get(0)?,
             title: row.get(1)?,
-            deck_kind: DeckKind::Person,
-            insignia: row.get(2)?,
-            font: row.get(3)?,
-            sort_date: row.get(4)?,
+            deck_kind: row.get(2)?,
+            created_at: row.get(3)?,
+            graph_terminator: row.get(4)?,
+            insignia: row.get(5)?,
+            font: row.get(6)?,
+            impact: row.get(7)?,
+            sort_date: row.get(8)?,
             points: vec![],
             events: vec![],
             notes: vec![],
@@ -75,8 +78,12 @@ pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<P
         &conn,
         "select d.id,
                 d.name,
+                d.kind,
+                d.created_at,
+                d.graph_terminator
                 d.insignia,
                 d.font,
+                d.impact,
                 coalesce(date(p.exact_realdate), date(p.lower_realdate)) as birth_date
          from decks d, points p
          where d.user_id = ?1
@@ -86,8 +93,12 @@ pub(crate) fn all(sqlite_pool: &SqlitePool, user_id: Key) -> crate::Result<Vec<P
          union
          select d.id,
                 d.name,
+                d.kind,
+                d.created_at,
+                d.graph_terminator
                 d.insignia,
                 d.font,
+                d.impact,
                 null as birth_date
          from decks d
               left join points p on p.deck_id = d.id
@@ -295,7 +306,7 @@ pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, person_id: Key) -> cra
     let conn = sqlite_pool.get()?;
 
     let stmt = "
-     SELECT id, name, insignia, font, null as sort_date
+     SELECT id, name, kind, created_at, graph_terminator, insignia, font, impact, null as sort_date
      FROM decks
      WHERE user_id = ?1 AND id = ?2 AND kind = ?3";
 

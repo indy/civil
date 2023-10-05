@@ -305,6 +305,7 @@ pub(crate) fn all_events_during_life(
                     FROM   points point_died
                     WHERE  point_died.deck_id = ?2 AND point_died.kind = 'point_end'), CURRENT_DATE)
                 AND ee.deck_id = d.id
+                AND d.impact > 0
                 AND d.user_id = ?1
          ORDER BY sortdate",
         params![&user_id, &deck_id],
