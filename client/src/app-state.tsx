@@ -510,6 +510,7 @@ export const AppStateChange = {
     mode: build(Scope.Local, "mode", (asca?: AppStateChangeArgs) => {
         let args = asca! as StateChangeMode;
         state.mode.value = args.mode;
+        state.componentRequiresFullKeyboardAccess.value = false;
     }),
 
     urlTitle: build(Scope.Local, "urlTitle", (asca?: AppStateChangeArgs) => {

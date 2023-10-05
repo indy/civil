@@ -519,12 +519,16 @@ const ViewNote = <T extends FatDeck>({
         note.flashcards
     );
 
+    function isEditingMarkup(): boolean {
+        return appState.mode.value === CivilMode.Edit && local.isEditingMarkup;
+    }
+
     return (
         <CivContainer extraClasses={noteClasses}>
             {appState.mode.value === CivilMode.AddAbove &&
                 local.addNoteAboveUI &&
                 buildAddNoteAboveUI()}
-            {!local.isEditingMarkup &&
+            {!isEditingMarkup() &&
                 (note.refs.length > 0 ||
                     note.flashcards.length > 0 ||
                     note.chatMessage) && (
@@ -543,9 +547,9 @@ const ViewNote = <T extends FatDeck>({
                         )}
                     </CivLeft>
                 )}
-            {local.isEditingMarkup && buildEditableContent()}
+            {isEditingMarkup() && buildEditableContent()}
             {maximisedFlashcards}
-            {!local.isEditingMarkup && (
+            {!isEditingMarkup() && (
                 <CivMain>
                     <div onClick={onNoteClicked} ref={hoveringRef}>
                         {local.isMinimisedText && (
@@ -573,7 +577,7 @@ const ViewNote = <T extends FatDeck>({
                         onHide={hideFlashCardCreator}
                     />
                 )}
-            {local.isEditingMarkup && buildMainButtons()}
+            {isEditingMarkup() && buildMainButtons()}
         </CivContainer>
     );
 };
