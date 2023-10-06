@@ -20,10 +20,10 @@ use crate::db::points as points_db;
 use crate::db::timelines as db;
 use crate::handler::decks;
 use crate::handler::PaginationQuery;
-use crate::interop::decks::DeckKind;
+use crate::interop::decks::{DeckKind, ProtoDeck, ProtoSlimDeck};
 use crate::interop::points as points_interop;
 use crate::interop::timelines as interop;
-use crate::interop::{IdParam, Key, ProtoDeck};
+use crate::interop::{IdParam, Key};
 use crate::session;
 use actix_web::web::{Data, Json, Path, Query};
 use actix_web::HttpResponse;
@@ -92,7 +92,7 @@ pub async fn get(
 }
 
 pub async fn edit(
-    timeline: Json<interop::ProtoTimeline>,
+    timeline: Json<ProtoSlimDeck>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,

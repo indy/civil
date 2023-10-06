@@ -126,6 +126,23 @@ pub struct Ref {
     pub impact: i32,
 }
 
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProtoDeck {
+    pub title: String,
+}
+
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProtoSlimDeck {
+    pub title: String,
+    pub deck_kind: DeckKind,
+    pub graph_terminator: bool,
+    pub insignia: i32,
+    pub font: Font,
+    pub impact: i32,
+}
+
 // Returned as search results
 //
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

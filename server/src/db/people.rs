@@ -16,9 +16,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::db::decks;
-use crate::interop::decks::{DeckKind, Pagination, SlimDeck};
+use crate::interop::decks::{DeckKind, Pagination, ProtoSlimDeck, SlimDeck};
 use crate::interop::font::Font;
-use crate::interop::people::{Person, ProtoPerson};
+use crate::interop::people::Person;
 use crate::interop::Key;
 
 #[allow(unused_imports)]
@@ -324,20 +324,19 @@ pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, person_id: Key) -> cra
 pub(crate) fn edit(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    person: &ProtoPerson,
+    person: &ProtoSlimDeck,
     person_id: Key,
 ) -> crate::Result<Person> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    let graph_terminator = false;
     let deck = decks::deckbase_edit(
         &tx,
         user_id,
         person_id,
         DeckKind::Person,
         &person.title,
-        graph_terminator,
+        person.graph_terminator,
         person.insignia,
         person.font,
         person.impact,

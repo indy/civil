@@ -73,17 +73,6 @@ impl From<crate::db::decks::DeckBase> for Person {
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ProtoPerson {
-    pub title: String,
-    pub deck_kind: DeckKind,
-    pub graph_terminator: bool,
-    pub insignia: i32,
-    pub font: Font,
-    pub impact: i32,
-}
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct PeopleListings {
     pub uncategorised: Vec<SlimDeck>,
     pub ancient: Vec<SlimDeck>,

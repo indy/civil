@@ -201,6 +201,7 @@ export type EventExtras = {
 };
 
 export type QuoteExtras = {
+    // todo: what about text???
     attribution: string;
 };
 

@@ -1,28 +1,22 @@
-import { useEffect, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 
 import {
     DeckKind,
     DeckManagerFlags,
     DeckTimeline,
-    ProtoTimeline,
     DM,
-    Font,
     PassageType,
     Point,
     SlimDeck,
 } from "../types";
 
 import { AppStateChange, getAppState, immutableState } from "../app-state";
-
-import Net from "../shared/net";
-
 import CivilButton from "./civil-button";
 import CivilButtonCreateDeck from "./civil-button-create-deck";
-import CivilInput from "./civil-input";
+import { CivContainer, CivLeft, CivMain } from "./civil-layout";
 import CivilTabButton from "./civil-tab-button";
+import DeckUpdater from "./deck-updater";
 import DeleteDeckConfirmation from "./delete-deck-confirmation";
-import FontSelector from "./font-selector";
-import InsigniaSelector from "./insignia-selector";
 import { HeadedSegment } from "./headed-segment";
 import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
@@ -33,19 +27,6 @@ import SegmentGraph from "./segment-graph";
 import SegmentHits from "./segment-hits";
 import SegmentNotes from "./segment-notes";
 import SegmentSearchResults from "./segment-search-results";
-import TopBarMenu from "./top-bar-menu";
-import TopMatter from "./top-matter";
-import useDeckManager from "./use-deck-manager";
-import WhenEditMode from "./when-edit-mode";
-
-import {
-    CivContainer,
-    CivForm,
-    CivLeft,
-    CivLeftLabel,
-    CivMain,
-} from "./civil-layout";
-
 import {
     svgCaretDown,
     svgCaretRight,
@@ -53,6 +34,10 @@ import {
     svgPointAdd,
     svgX,
 } from "./svg-icons";
+import TopBarMenu from "./top-bar-menu";
+import TopMatter from "./top-matter";
+import useDeckManager from "./use-deck-manager";
+import WhenEditMode from "./when-edit-mode";
 
 function Timelines({ path }: { path?: string }) {
     return (
@@ -142,8 +127,8 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
                         </CivContainer>
                         <div class="vertical-spacer"></div>
                         <CivContainer>
-                            <TimelineUpdater
-                                timeline={deck}
+                            <DeckUpdater
+                                deck={deck}
                                 onUpdate={deckManager.updateAndReset}
                                 onCancel={() =>
                                     deckManager.setShowingUpdateForm(false)
@@ -191,131 +176,6 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
     } else {
         return <article></article>;
     }
-}
-
-type TimelineUpdaterProps = {
-    timeline: DeckTimeline;
-    onUpdate: (d: DeckTimeline) => void;
-    onCancel: () => void;
-};
-
-function TimelineUpdater({
-    timeline,
-    onUpdate,
-    onCancel,
-}: TimelineUpdaterProps) {
-    const [localState, setLocalState] = useState({
-        title: timeline.title || "",
-        insigniaId: timeline.insignia || 0,
-        font: timeline.font || Font.Serif,
-    });
-
-    useEffect(() => {
-        if (
-            timeline.title &&
-            timeline.title !== "" &&
-            localState.title === ""
-        ) {
-            setLocalState({
-                ...localState,
-                title: timeline.title,
-            });
-        }
-        if (timeline.insignia) {
-            setLocalState({
-                ...localState,
-                insigniaId: timeline.insignia,
-            });
-        }
-        if (timeline.font) {
-            setLocalState({
-                ...localState,
-                font: timeline.font,
-            });
-        }
-    }, [timeline]);
-
-    function handleContentChange(content: string) {
-        setLocalState({
-            ...localState,
-            title: content,
-        });
-    }
-
-    const handleSubmit = (e: Event) => {
-        const data: ProtoTimeline = {
-            title: localState.title.trim(),
-            insignia: localState.insigniaId,
-            deckKind: DeckKind.Timeline,
-            font: localState.font,
-            graphTerminator: false,
-            impact: 0, // isg fix this
-        };
-
-        // edit an existing timeline
-        Net.put<ProtoTimeline, DeckTimeline>(
-            `/api/timelines/${timeline.id}`,
-            data
-        ).then((newDeck) => {
-            onUpdate(newDeck);
-        });
-
-        e.preventDefault();
-    };
-
-    function setInsigniaId(id: number) {
-        setLocalState({
-            ...localState,
-            insigniaId: id,
-        });
-    }
-
-    function setFont(font: Font) {
-        setLocalState({
-            ...localState,
-            font,
-        });
-    }
-
-    return (
-        <CivForm onSubmit={handleSubmit}>
-            <CivLeftLabel forId="title">Title</CivLeftLabel>
-
-            <CivMain>
-                <CivilInput
-                    id="title"
-                    value={localState.title}
-                    onContentChange={handleContentChange}
-                />
-            </CivMain>
-
-            <CivLeftLabel extraClasses="icon-left-label">
-                Insignias
-            </CivLeftLabel>
-            <CivMain>
-                <InsigniaSelector
-                    insigniaId={localState.insigniaId}
-                    onChange={setInsigniaId}
-                />
-            </CivMain>
-
-            <CivLeftLabel>Font</CivLeftLabel>
-            <CivMain>
-                <FontSelector font={localState.font} onChangedFont={setFont} />
-            </CivMain>
-
-            <CivMain>
-                <CivilButton extraClasses="dialog-cancel" onClick={onCancel}>
-                    Cancel
-                </CivilButton>
-                <input
-                    class="c-civil-button"
-                    type="submit"
-                    value="Update Timeline"
-                />
-            </CivMain>
-        </CivForm>
-    );
 }
 
 function TimelinePoint({

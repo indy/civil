@@ -1,31 +1,26 @@
-import { useEffect, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 
-import { SlimDeck, DeckIdea, DeckKind, ProtoIdea, DM } from "../types";
+import { DM, DeckIdea, DeckKind, SlimDeck } from "../types";
 
-import Net from "../shared/net";
 import { formattedDate } from "../shared/time";
 
-import CivilButton from "./civil-button";
 import CivilButtonCreateDeck from "./civil-button-create-deck";
-import CivilInput from "./civil-input";
+import { CivContainer, CivMain } from "./civil-layout";
 import CivilTabButton from "./civil-tab-button";
+import DeckUpdater from "./deck-updater";
 import DeleteDeckConfirmation from "./delete-deck-confirmation";
-import FontSelector from "./font-selector";
-import InsigniaSelector from "./insignia-selector";
 import { HeadedSegment } from "./headed-segment";
 import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
-import SegmentHits from "./segment-hits";
 import SegmentArrivals from "./segment-arrivals";
 import SegmentDeckRefs from "./segment-deck-refs";
 import SegmentGraph from "./segment-graph";
+import SegmentHits from "./segment-hits";
 import SegmentNotes from "./segment-notes";
 import SegmentSearchResults from "./segment-search-results";
 import TopBarMenu from "./top-bar-menu";
 import TopMatter from "./top-matter";
 import useDeckManager from "./use-deck-manager";
-
-import { CivContainer, CivForm, CivLeftLabel, CivMain } from "./civil-layout";
 
 function Ideas({ path }: { path?: string }) {
     return (
@@ -140,8 +135,8 @@ function Idea({ path, id }: { path?: string; id?: string }) {
                         </CivContainer>
                         <div class="vertical-spacer"></div>
                         <CivContainer>
-                            <IdeaUpdater
-                                idea={deck}
+                            <DeckUpdater
+                                deck={deck}
                                 onUpdate={deckManager.updateAndReset}
                                 onCancel={() =>
                                     deckManager.setShowingUpdateForm(false)
@@ -182,122 +177,4 @@ function Idea({ path, id }: { path?: string; id?: string }) {
     }
 }
 
-type IdeaUpdaterProps = {
-    idea: DeckIdea;
-    onUpdate: (d: DeckIdea) => void;
-    onCancel: () => void;
-};
-
-function IdeaUpdater({ idea, onUpdate, onCancel }: IdeaUpdaterProps) {
-    const [title, setTitle] = useState(idea.title || "");
-    const [graphTerminator, setGraphTerminator] = useState(
-        idea.graphTerminator
-    );
-    const [insigniaId, setInsigniaId] = useState(idea.insignia || 0);
-    const [font, setFont] = useState(idea.font);
-
-    useEffect(() => {
-        if (idea.title && idea.title !== "" && title === "") {
-            setTitle(idea.title);
-        }
-        if (idea.graphTerminator !== undefined) {
-            setGraphTerminator(idea.graphTerminator);
-        }
-
-        if (idea.insignia !== undefined) {
-            setInsigniaId(idea.insignia);
-        }
-
-        if (idea.font) {
-            setFont(idea.font);
-        }
-    }, [idea]);
-
-    function handleContentChange(content: string) {
-        setTitle(content);
-    }
-
-    function handleSubmit(event: Event) {
-        const data: ProtoIdea = {
-            title: title.trim(),
-            deckKind: DeckKind.Idea,
-            graphTerminator: !!graphTerminator,
-            insignia: insigniaId,
-            font,
-            impact: 0, // isg fix this
-        };
-
-        Net.put<ProtoIdea, DeckIdea>(`/api/ideas/${idea.id}`, data).then(
-            (newDeck) => {
-                onUpdate(newDeck);
-            }
-        );
-
-        event.preventDefault();
-    }
-
-    function handleCheckbox(event: Event) {
-        if (event.target instanceof HTMLInputElement) {
-            if (event.target.id === "graph-terminator") {
-                setGraphTerminator(!graphTerminator);
-            }
-        }
-    }
-
-    return (
-        <CivForm onSubmit={handleSubmit}>
-            <CivLeftLabel forId="title">Title</CivLeftLabel>
-            <CivMain>
-                <CivilInput
-                    id="title"
-                    value={title}
-                    onContentChange={handleContentChange}
-                />
-            </CivMain>
-
-            <CivLeftLabel extraClasses="icon-left-label">
-                Insignias
-            </CivLeftLabel>
-            <CivMain>
-                <InsigniaSelector
-                    insigniaId={insigniaId}
-                    onChange={setInsigniaId}
-                />
-            </CivMain>
-
-            <CivLeftLabel
-                extraClasses="graph-terminator-form-label"
-                forId="graph-terminator"
-            >
-                Graph Terminator
-            </CivLeftLabel>
-            <CivMain>
-                <input
-                    type="checkbox"
-                    id="graph-terminator"
-                    name="graph-terminator"
-                    onInput={handleCheckbox}
-                    checked={graphTerminator}
-                />
-            </CivMain>
-
-            <CivLeftLabel>Font</CivLeftLabel>
-            <CivMain>
-                <FontSelector font={font} onChangedFont={setFont} />
-            </CivMain>
-
-            <CivMain>
-                <CivilButton extraClasses="dialog-cancel" onClick={onCancel}>
-                    Cancel
-                </CivilButton>
-                <input
-                    class="c-civil-button"
-                    type="submit"
-                    value="Update Idea"
-                />
-            </CivMain>
-        </CivForm>
-    );
-}
-
-export { Ideas, Idea, IdeasModule };
+export { Idea, Ideas, IdeasModule };

@@ -17,9 +17,9 @@
 
 use crate::db::decks;
 use crate::db::sqlite::{self, FromRow, SqlitePool};
-use crate::interop::decks::{DeckKind, SlimDeck};
+use crate::interop::decks::{DeckKind, ProtoSlimDeck, SlimDeck};
 use crate::interop::font::Font;
-use crate::interop::timelines::{ProtoTimeline, Timeline};
+use crate::interop::timelines::Timeline;
 use crate::interop::Key;
 
 use rusqlite::{params, Row};
@@ -98,20 +98,19 @@ pub(crate) fn get(
 pub(crate) fn edit(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    timeline: &ProtoTimeline,
+    timeline: &ProtoSlimDeck,
     timeline_id: Key,
 ) -> crate::Result<Timeline> {
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    let graph_terminator = false;
     let deck = decks::deckbase_edit(
         &tx,
         user_id,
         timeline_id,
         DeckKind::Timeline,
         &timeline.title,
-        graph_terminator,
+        timeline.graph_terminator,
         timeline.insignia,
         timeline.font,
         timeline.impact,

@@ -17,9 +17,9 @@
 
 use crate::db::decks;
 use crate::db::sqlite::{self, FromRow, SqlitePool};
-use crate::interop::decks::{DeckKind, Pagination, SlimDeck};
+use crate::interop::decks::{DeckKind, Pagination, ProtoSlimDeck, SlimDeck};
 use crate::interop::font::Font;
-use crate::interop::ideas::{Idea, ProtoIdea};
+use crate::interop::ideas::Idea;
 use crate::interop::Key;
 use rusqlite::{params, Row};
 
@@ -192,7 +192,7 @@ pub(crate) fn get(sqlite_pool: &SqlitePool, user_id: Key, idea_id: Key) -> crate
 pub(crate) fn edit(
     sqlite_pool: &SqlitePool,
     user_id: Key,
-    idea: &ProtoIdea,
+    idea: &ProtoSlimDeck,
     idea_id: Key,
 ) -> crate::Result<Idea> {
     let mut conn = sqlite_pool.get()?;

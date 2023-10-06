@@ -20,9 +20,9 @@ use crate::db::notes as notes_db;
 use crate::db::sqlite::SqlitePool;
 use crate::handler::decks;
 use crate::handler::PaginationQuery;
-use crate::interop::decks::DeckKind;
+use crate::interop::decks::{DeckKind, ProtoDeck, ProtoSlimDeck};
 use crate::interop::ideas as interop;
-use crate::interop::{IdParam, Key, ProtoDeck};
+use crate::interop::{IdParam, Key};
 use crate::session;
 use actix_web::web::{Data, Json, Path, Query};
 use actix_web::HttpResponse;
@@ -125,7 +125,7 @@ pub async fn get(
 }
 
 pub async fn edit(
-    idea: Json<interop::ProtoIdea>,
+    idea: Json<ProtoSlimDeck>,
     sqlite_pool: Data<SqlitePool>,
     params: Path<IdParam>,
     session: actix_session::Session,

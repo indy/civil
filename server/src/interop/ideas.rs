@@ -58,17 +58,6 @@ impl From<crate::db::decks::DeckBase> for Idea {
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ProtoIdea {
-    pub title: String,
-    pub deck_kind: DeckKind,
-    pub graph_terminator: bool,
-    pub insignia: i32,
-    pub font: Font,
-    pub impact: i32,
-}
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct IdeasListings {
     pub recent: Vec<SlimDeck>,
     pub orphans: Vec<SlimDeck>,

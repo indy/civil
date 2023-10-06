@@ -18,7 +18,12 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // grab the exports
     //
-    const { civil_wasm_startup, markup_as_ast, markup_as_struct, rgb_from_hsl } = wasm_bindgen;
+    const {
+        civil_wasm_startup,
+        markup_as_ast,
+        markup_as_struct,
+        rgb_from_hsl,
+    } = wasm_bindgen;
 
     const version = civil_wasm_startup();
     console.log(version); // remove this
@@ -63,9 +68,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                     .trim();
                 res.push(r);
             }
-            const r = markup
-                .slice(splitPoints[splitPoints.length - 1])
-                .trim();
+            const r = markup.slice(splitPoints[splitPoints.length - 1]).trim();
             res.push(r);
 
             return res;
@@ -114,7 +117,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             const uber = await Net.get<UberSetup>("/api/ubersetup");
             AppStateChange.uberSetup({ uber });
             render(<App state={state} />, rootElement);
-
         } else {
             // use system default theme from css variable "--mode"
             //
@@ -127,7 +129,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             render(<App state={state} />, rootElement);
         }
-
     }
 });
 

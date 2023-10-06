@@ -175,14 +175,13 @@ pub(crate) fn edit(
     let mut conn = sqlite_pool.get()?;
     let tx = conn.transaction()?;
 
-    let graph_terminator = false;
     let edited_deck = decks::deckbase_edit(
         &tx,
         user_id,
         dialogue_id,
         DeckKind::Dialogue,
         &dialogue.title,
-        graph_terminator,
+        dialogue.graph_terminator,
         dialogue.insignia,
         dialogue.font,
         dialogue.impact,

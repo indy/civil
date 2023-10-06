@@ -61,14 +61,3 @@ impl From<crate::db::decks::DeckBase> for Timeline {
         }
     }
 }
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ProtoTimeline {
-    pub title: String,
-    pub deck_kind: DeckKind,
-    pub graph_terminator: bool,
-    pub insignia: i32,
-    pub font: Font,
-    pub impact: i32,
-}

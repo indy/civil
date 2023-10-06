@@ -1,13 +1,11 @@
 import { Link } from "preact-router";
-import { useEffect, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 
 import {
     DeckKind,
     DeckManagerFlags,
     DeckPerson,
-    ProtoPerson,
     DM,
-    Font,
     Key,
     PassageType,
     Point,
@@ -27,14 +25,13 @@ import { calcAgeInYears, dateStringAsTriple } from "../shared/time";
 
 import CivilButton from "./civil-button";
 import CivilButtonCreateDeck from "./civil-button-create-deck";
-import CivilInput from "./civil-input";
+import { CivContainer, CivLeft, CivMain } from "./civil-layout";
 import CivilTabButton from "./civil-tab-button";
 import DeckLink from "./deck-link";
+import DeckUpdater from "./deck-updater";
 import DeleteDeckConfirmation from "./delete-deck-confirmation";
-import FontSelector from "./font-selector";
-import InsigniaSelector from "./insignia-selector";
-import LifespanForm from "./lifespan-form";
 import { HeadedSegment } from "./headed-segment";
+import LifespanForm from "./lifespan-form";
 import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
 import PointForm from "./point-form";
@@ -45,19 +42,6 @@ import SegmentGraph from "./segment-graph";
 import SegmentHits from "./segment-hits";
 import SegmentNotes from "./segment-notes";
 import SegmentSearchResults from "./segment-search-results";
-import TopBarMenu from "./top-bar-menu";
-import TopMatter from "./top-matter";
-import useDeckManager from "./use-deck-manager";
-import WhenEditMode from "./when-edit-mode";
-
-import {
-    CivContainer,
-    CivForm,
-    CivLeft,
-    CivLeftLabel,
-    CivMain,
-    CivRight,
-} from "./civil-layout";
 import {
     svgBlank,
     svgCaretDown,
@@ -68,6 +52,10 @@ import {
     svgUntickedCheckBox,
     svgX,
 } from "./svg-icons";
+import TopBarMenu from "./top-bar-menu";
+import TopMatter from "./top-matter";
+import useDeckManager from "./use-deck-manager";
+import WhenEditMode from "./when-edit-mode";
 
 function People({ path }: { path?: string }) {
     return (
@@ -241,8 +229,8 @@ function Person({ path, id }: { path?: string; id?: string }) {
                         </CivContainer>
                         <div class="vertical-spacer"></div>
                         <CivContainer>
-                            <PersonUpdater
-                                person={deck}
+                            <DeckUpdater
+                                deck={deck}
                                 onUpdate={deckManager.updateAndReset}
                                 onCancel={() =>
                                     deckManager.setShowingUpdateForm(false)
@@ -350,160 +338,6 @@ function preCacheFn(person: DeckPerson): DeckPerson {
     }
 
     return person;
-}
-
-function PersonUpdater({
-    person,
-    onUpdate,
-    onCancel,
-}: {
-    person: DeckPerson;
-    onUpdate: (p: DeckPerson) => void;
-    onCancel: () => void;
-}) {
-    const [localState, setLocalState] = useState({
-        title: person.title || "",
-        insigniaId: person.insignia || 0,
-        font: person.font || Font.Serif,
-        impact: person.impact || 0,
-    });
-
-    useEffect(() => {
-        if (person.title !== "" && localState.title === "") {
-            setLocalState({
-                ...localState,
-                title: person.title,
-            });
-        }
-
-        setLocalState({
-            ...localState,
-            insigniaId: person.insignia,
-            font: person.font,
-            impact: person.impact,
-        });
-    }, [person]);
-
-    function handleContentChange(content: string) {
-        setLocalState({
-            ...localState,
-            title: content,
-        });
-    }
-
-    const handleSubmit = (e: Event) => {
-        const data: ProtoPerson = {
-            title: localState.title.trim(),
-            insignia: localState.insigniaId,
-            deckKind: DeckKind.Person,
-            font: localState.font,
-            graphTerminator: false,
-            impact: 0, // isg fix this
-        };
-
-        // edit an existing person
-        Net.put<ProtoPerson, DeckPerson>(`/api/people/${person.id}`, data).then(
-            (newDeck) => {
-                onUpdate(newDeck);
-            }
-        );
-
-        e.preventDefault();
-    };
-
-    function setInsigniaId(id: number) {
-        setLocalState({
-            ...localState,
-            insigniaId: id,
-        });
-    }
-
-    function setFont(font: Font) {
-        setLocalState({
-            ...localState,
-            font,
-        });
-    }
-
-    function impactAsText(impact: number): string {
-        switch (impact) {
-            case 0:
-                return "Unimportant";
-            case 1:
-                return "Noteworthy";
-            case 2:
-                return "Important";
-            case 3:
-                return "World Changing";
-            case 4:
-                return "Humanity Changing";
-            default:
-                return "unknown impact value!!!! " + impact;
-        }
-    }
-
-    function onImpactChange(event: Event) {
-        if (event.target instanceof HTMLInputElement) {
-            setLocalState({
-                ...localState,
-                impact: event.target.valueAsNumber,
-            });
-        }
-    }
-
-    return (
-        <CivForm onSubmit={handleSubmit}>
-            <CivLeftLabel forId="name">Name</CivLeftLabel>
-            <CivMain>
-                <CivilInput
-                    id="name"
-                    value={localState.title}
-                    onContentChange={handleContentChange}
-                />
-            </CivMain>
-
-            <CivLeftLabel extraClasses="icon-left-label">
-                Insignias
-            </CivLeftLabel>
-            <CivMain>
-                <InsigniaSelector
-                    insigniaId={localState.insigniaId}
-                    onChange={setInsigniaId}
-                />
-            </CivMain>
-
-            <CivLeftLabel>Font</CivLeftLabel>
-            <CivMain>
-                <FontSelector font={localState.font} onChangedFont={setFont} />
-            </CivMain>
-
-            <CivLeftLabel>Impact</CivLeftLabel>
-            <CivMain>
-                <input
-                    type="range"
-                    min="0"
-                    max="4"
-                    value={localState.impact}
-                    class="slider"
-                    id="impactSlider"
-                    onInput={onImpactChange}
-                />
-                <CivRight>{impactAsText(localState.impact)}</CivRight>
-            </CivMain>
-
-
-            <CivMain>
-                <CivilButton extraClasses="dialog-cancel" onClick={onCancel}>
-                    Cancel
-                </CivilButton>
-                <input
-                    class="c-civil-button"
-                    type="submit"
-                    value="Update Person"
-                />
-            </CivMain>
-        </CivForm>
-    );
 }
 
 // display an event within a person's timeline
@@ -797,4 +631,4 @@ function SegmentPoints({
     );
 }
 
-export { Person, People, PeopleModule };
+export { People, PeopleModule, Person };
