@@ -13,7 +13,7 @@ import DeleteDeckConfirmation from "./delete-deck-confirmation";
 import FontSelector from "./font-selector";
 import InsigniaSelector from "./insignia-selector";
 import { HeadedSegment } from "./headed-segment";
-import { renderPaginatedSlimDeck } from "./paginated-render-items";
+import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
 import SegmentHits from "./segment-hits";
 import SegmentArrivals from "./segment-arrivals";
@@ -100,7 +100,7 @@ function IdeasPaginator({ selected }: { selected: string }) {
     return (
         <Pagination
             url={url}
-            renderItem={renderPaginatedSlimDeck}
+            renderItem={listItemSlimDeck}
             itemsPerPage={10}
             lowerContent={lowerContent}
         />

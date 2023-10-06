@@ -337,7 +337,7 @@ export const AppStateChange = {
             state.commandBarState.value = {
                 ...commandBarState,
                 mode: CommandBarMode.Command,
-                text: "",
+                text: ":",
             };
         }
     ),

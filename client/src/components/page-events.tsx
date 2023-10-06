@@ -30,7 +30,7 @@ import DeleteDeckConfirmation from "./delete-deck-confirmation";
 import FontSelector from "./font-selector";
 import InsigniaSelector from "./insignia-selector";
 import { HeadedSegment } from "./headed-segment";
-import { renderPaginatedSlimDeck } from "./paginated-render-items";
+import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
 import SegmentArrivals from "./segment-arrivals";
 import SegmentDeckRefs from "./segment-deck-refs";
@@ -87,7 +87,7 @@ function EventsModule() {
             <FakeTopSelector />
             <Pagination
                 url={url}
-                renderItem={renderPaginatedSlimDeck}
+                renderItem={listItemSlimDeck}
                 itemsPerPage={10}
                 lowerContent={lowerContent}
             />

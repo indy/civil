@@ -35,7 +35,7 @@ import FontSelector from "./font-selector";
 import InsigniaSelector from "./insignia-selector";
 import LifespanForm from "./lifespan-form";
 import { HeadedSegment } from "./headed-segment";
-import { renderPaginatedSlimDeck } from "./paginated-render-items";
+import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
 import PointForm from "./point-form";
 import RollableSegment from "./rollable-segment";
@@ -150,7 +150,7 @@ function PeoplePaginator({ selected }: { selected: string }) {
     return (
         <Pagination
             url={url}
-            renderItem={renderPaginatedSlimDeck}
+            renderItem={listItemSlimDeck}
             itemsPerPage={10}
             lowerContent={lowerContent}
         />

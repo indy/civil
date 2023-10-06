@@ -24,7 +24,7 @@ import DeleteDeckConfirmation from "./delete-deck-confirmation";
 import FontSelector from "./font-selector";
 import InsigniaSelector from "./insignia-selector";
 import { HeadedSegment } from "./headed-segment";
-import { renderPaginatedSlimDeck } from "./paginated-render-items";
+import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
 import RollableSegment from "./rollable-segment";
 import SegmentArrivals from "./segment-arrivals";
@@ -91,7 +91,7 @@ function TimelinesModule() {
             <FakeTopSelector />
             <Pagination
                 url={url}
-                renderItem={renderPaginatedSlimDeck}
+                renderItem={listItemSlimDeck}
                 itemsPerPage={10}
                 lowerContent={lowerContent}
             />

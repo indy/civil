@@ -10,7 +10,7 @@ import { HeadedSegment } from "./headed-segment";
 import Paginator from "./paginator";
 import TopBarMenu from "./top-bar-menu";
 import InsigniaSelector from "./insignia-selector";
-import { renderPaginatedSlimDeck } from "./paginated-render-items";
+import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
 
 export default function FrontPage({ path }: { path?: string }) {
@@ -103,7 +103,7 @@ function InsigniasModule() {
             />
             <Pagination
                 url={localState.url}
-                renderItem={renderPaginatedSlimDeck}
+                renderItem={listItemSlimDeck}
                 itemsPerPage={15}
             />
         </HeadedSegment>

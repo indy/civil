@@ -3,7 +3,7 @@ import { ComponentChildren } from "preact";
 import { CivLeft } from "./civil-layout";
 import { svgBlank, svgRatingStar } from "./svg-icons";
 
-function StarRatingWithinListing({ rating }: { rating: number }) {
+export function StarRatingWithinListing({ rating }: { rating: number }) {
     return (
         <CivLeft extraClasses="left-margin-within-listing">
             {rating > 0 && <StarRatingPartial rating={rating} />}
@@ -11,7 +11,7 @@ function StarRatingWithinListing({ rating }: { rating: number }) {
     );
 }
 
-function StarRatingPartial({ rating }: { rating: number }) {
+export function StarRatingPartial({ rating }: { rating: number }) {
     let ratings: Array<ComponentChildren> = [];
 
     // pad out with blanks so that it looks correct on small display
@@ -27,5 +27,3 @@ function StarRatingPartial({ rating }: { rating: number }) {
 
     return <div class="star-rating-partial">{rating > 0 && ratings}</div>;
 }
-
-export { StarRatingWithinListing, StarRatingPartial };

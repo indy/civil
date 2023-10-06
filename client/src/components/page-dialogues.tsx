@@ -30,7 +30,7 @@ import CivilTextArea from "./civil-text-area";
 import DeleteDeckConfirmation from "./delete-deck-confirmation";
 import InsigniaSelector from "./insignia-selector";
 import { HeadedSegment } from "./headed-segment";
-import { renderPaginatedSlimDeck } from "./paginated-render-items";
+import { listItemSlimDeck } from "./list-items";
 import Pagination from "./pagination";
 import SegmentArrivals from "./segment-arrivals";
 import SegmentDeckRefs from "./segment-deck-refs";
@@ -96,7 +96,7 @@ function DialoguesModule() {
             <FakeTopSelector />
             <Pagination
                 url={url}
-                renderItem={renderPaginatedSlimDeck}
+                renderItem={listItemSlimDeck}
                 itemsPerPage={10}
                 lowerContent={lowerContent}
             />

@@ -37,7 +37,7 @@ import useDeckManager from "./use-deck-manager";
 import { CivContainer, CivForm, CivLeftLabel, CivMain } from "./civil-layout";
 import { HeadedSegment } from "./headed-segment";
 import { StarRatingPartial } from "./star-rating";
-import { renderPaginatedArticle } from "./paginated-render-items";
+import { listItemArticle } from "./list-items";
 
 function Articles({ path }: { path?: string }) {
     return (
@@ -114,7 +114,7 @@ function ArticlesPaginator({ selected }: { selected: string }) {
     return (
         <Pagination
             url={url}
-            renderItem={renderPaginatedArticle}
+            renderItem={listItemArticle}
             itemsPerPage={10}
             lowerContent={lowerContent}
         />
