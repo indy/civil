@@ -1,4 +1,5 @@
-import { useState } from "preact/hooks";
+import { route } from "preact-router";
+import { useEffect, useState } from "preact/hooks";
 
 import { CivilMode, Key, SearchResults } from "../types";
 
@@ -14,33 +15,64 @@ import { CivContainer, CivLeft, CivMainUi } from "./civil-layout";
 import TopBarMenu from "./top-bar-menu";
 import ViewSearchResults from "./view-search-results";
 
-export default function Search({ path }: { path?: string }) {
+
+type SearchQuery = {
+    q?: string
+}
+
+export default function Search({ path, matches }: { path?: string, matches?: SearchQuery }) {
+
+    let encodedQuery: string = "";
+    if (matches && matches.q) {
+        encodedQuery = matches.q;
+    }
+
     return (
         <div>
             <TopBarMenu />
-            <SearchModule />
+            <SearchModule encodedQuery={encodedQuery}/>
         </div>
     );
 }
 
-function SearchModule() {
+function SearchModule({encodedQuery}: {encodedQuery: string}) {
     const appState = getAppState();
 
-    const [results, setResults] = useState({
+    const emptyResults: SearchResults = {
         deckLevel: [],
         noteLevel: [],
-    } as SearchResults);
-
+    };
+    const [results, setResults] = useState(emptyResults);
     const [timing, setTiming] = useState(0);
+    const [searchText, setSearchText] = useState(decodeURI(encodedQuery));
+
+    function onContentChange(content: string, _name: string) {
+        setSearchText(content);
+    }
+
+    useEffect(() => {
+        if (encodedQuery.length > 0) {
+            getSearchResults(encodedQuery);
+            setSearchText(decodeURI(encodedQuery));
+        } else {
+            setResults(emptyResults);
+            setTiming(0);
+        }
+    }, [encodedQuery]);
+
+
+    function getSearchResults(query: string) {
+        const url = `/api/search/full?q=${query}`;
+        Net.getTimed<SearchResults>(url).then(([response, duration]) => {
+            setResults(response);
+            setTiming(duration);
+        });
+    }
 
     function onReturnPressed(content: string) {
         let sanitized: string = sanitize(content);
         if (sanitized.length > 0) {
-            const url = `/api/search/full?q=${encodeURI(sanitized)}`;
-            Net.getTimed<SearchResults>(url).then(([response, duration]) => {
-                setResults(response);
-                setTiming(duration);
-            });
+            route(`/search?q=${encodeURI(sanitized)}`);
         }
     }
 
@@ -68,6 +100,8 @@ function SearchModule() {
                         </CivilButton>
                     )}
                     <CivilInput
+                        value={searchText}
+                        onContentChange={onContentChange}
                         elementClass="width-100"
                         onReturnPressed={onReturnPressed}
                     />
