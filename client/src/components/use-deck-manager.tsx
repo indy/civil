@@ -1,17 +1,14 @@
 import { useEffect, useState } from "preact/hooks";
 
-import {
+import { CivilMode, DeckKind, NoteKind, PassageHowToShow } from "../enums";
+import type {
     Arrival,
-    CivilMode,
-    DeckKind,
     FatDeck,
     Hit,
     Key,
     Note,
-    NoteKind,
     Notes,
     Passage,
-    PassageHowToShow,
     Point,
     ProtoPoint,
     Reference,
@@ -51,13 +48,13 @@ export default function useDeckManager<T extends FatDeck>(
     id: string | undefined,
     deckKind: DeckKind,
     flags?: number,
-    preCacheFn?: (_: T) => T
+    preCacheFn?: (_: T) => T,
 ) {
     const preCacheFunction = preCacheFn || identity;
     const appState = getAppState();
 
     const [dms, setDms]: [DeckManagerState<T>, Function] = useState(
-        cleanDeckManagerState<T>()
+        cleanDeckManagerState<T>(),
     );
 
     useEffect(() => {
@@ -74,7 +71,7 @@ export default function useDeckManager<T extends FatDeck>(
                     let newDms = dmsUpdateDeck<T>(
                         dms,
                         preCacheFunction(deck),
-                        deckKind
+                        deckKind,
                     );
 
                     window.scrollTo(0, 0);
@@ -84,7 +81,7 @@ export default function useDeckManager<T extends FatDeck>(
 
                     newDms = dmsCanHaveSummaryPassage(
                         newDms,
-                        hasSummaryPassage
+                        hasSummaryPassage,
                     );
                     newDms = dmsCanHaveReviewPassage(newDms, hasReviewPassage);
                     setDms(newDms);
@@ -102,7 +99,7 @@ export default function useDeckManager<T extends FatDeck>(
 
     function findNoteWithId(
         id: Key,
-        modifyFn: (n: Notes, idx: number) => void
+        modifyFn: (n: Notes, idx: number) => void,
     ) {
         const deck = dms.deck!;
         const notes = deck.notes;
@@ -151,7 +148,7 @@ export default function useDeckManager<T extends FatDeck>(
 
                             let newDms = dmsSetDisplayHits(dms, value);
                             setDms(newDms);
-                        }
+                        },
                     );
                 }
             }
@@ -199,7 +196,7 @@ export default function useDeckManager<T extends FatDeck>(
             let newDms = dmsUpdateDeck<T>(
                 dms,
                 preCacheFunction(newDeck),
-                deckKind
+                deckKind,
             );
 
             window.scrollTo(0, 0);
@@ -214,14 +211,14 @@ export default function useDeckManager<T extends FatDeck>(
         onShowSummaryClicked: function () {
             let newDms = dmsShowSummaryButtonToggle(
                 dms,
-                !dms.displayShowSummaryButton
+                !dms.displayShowSummaryButton,
             );
             setDms(newDms);
         },
         onShowReviewClicked: function () {
             let newDms = dmsShowReviewButtonToggle(
                 dms,
-                !dms.displayShowReviewButton
+                !dms.displayShowReviewButton,
             );
             setDms(newDms);
         },
@@ -247,7 +244,7 @@ export default function useDeckManager<T extends FatDeck>(
                         (updatedDeck) => {
                             update(updatedDeck);
                             onSuccessCallback();
-                        }
+                        },
                     );
                 }
             }
@@ -361,7 +358,7 @@ function cleanDeckManagerState<T extends FatDeck>(): DeckManagerState<T> {
 function dmsUpdateDeck<T extends FatDeck>(
     dms: DeckManagerState<T>,
     deck: T,
-    deckKind: DeckKind
+    deckKind: DeckKind,
 ): DeckManagerState<T> {
     // modify the notes received from the server
     deck = sortRefsInNotes(deck);
@@ -382,7 +379,7 @@ function dmsUpdateDeck<T extends FatDeck>(
 
 function dmsShowSummaryButtonToggle<T extends FatDeck>(
     dms: DeckManagerState<T>,
-    isToggled: boolean
+    isToggled: boolean,
 ): DeckManagerState<T> {
     let res = {
         ...dms,
@@ -394,7 +391,7 @@ function dmsShowSummaryButtonToggle<T extends FatDeck>(
 
 function dmsShowReviewButtonToggle<T extends FatDeck>(
     dms: DeckManagerState<T>,
-    isToggled: boolean
+    isToggled: boolean,
 ): DeckManagerState<T> {
     let res = {
         ...dms,
@@ -406,14 +403,14 @@ function dmsShowReviewButtonToggle<T extends FatDeck>(
 
 function dmsCanHaveSummaryPassage<T extends FatDeck>(
     dms: DeckManagerState<T>,
-    canHave: boolean
+    canHave: boolean,
 ): DeckManagerState<T> {
     let res = { ...dms };
 
     res.canHaveSummaryPassage = canHave;
     if (res.deck && canHave) {
         res.displayShowSummaryButton = !res.deck.notes.some(
-            (n) => n.kind === NoteKind.NoteSummary
+            (n) => n.kind === NoteKind.NoteSummary,
         );
     }
 
@@ -422,7 +419,7 @@ function dmsCanHaveSummaryPassage<T extends FatDeck>(
 
 function dmsCanHaveReviewPassage<T extends FatDeck>(
     dms: DeckManagerState<T>,
-    canHave: boolean
+    canHave: boolean,
 ): DeckManagerState<T> {
     let res = { ...dms };
 
@@ -430,7 +427,7 @@ function dmsCanHaveReviewPassage<T extends FatDeck>(
 
     if (res.deck && canHave) {
         res.displayShowReviewButton = !res.deck.notes.some(
-            (n) => n.kind === NoteKind.NoteReview
+            (n) => n.kind === NoteKind.NoteReview,
         );
     }
 
@@ -439,7 +436,7 @@ function dmsCanHaveReviewPassage<T extends FatDeck>(
 
 function dmsSetShowingUpdateForm<T extends FatDeck>(
     dms: DeckManagerState<T>,
-    value: boolean
+    value: boolean,
 ): DeckManagerState<T> {
     let res = { ...dms };
     res.isShowingUpdateForm = value;
@@ -449,7 +446,7 @@ function dmsSetShowingUpdateForm<T extends FatDeck>(
 
 function dmsSetDisplayHits<T extends FatDeck>(
     dms: DeckManagerState<T>,
-    value: boolean
+    value: boolean,
 ): DeckManagerState<T> {
     let res = { ...dms };
     res.displayHits = value;
@@ -459,7 +456,7 @@ function dmsSetDisplayHits<T extends FatDeck>(
 
 function dmsSetEditingDeckRefs<T extends FatDeck>(
     dms: DeckManagerState<T>,
-    value: boolean
+    value: boolean,
 ): DeckManagerState<T> {
     let res = { ...dms };
     res.isEditingDeckRefs = value;
@@ -494,17 +491,17 @@ function buildNotePassages<T extends FatDeck>(deck: T): T {
     let note: Notes = passageForNoteKind(deck.notes, NoteKind.Note);
     let noteDeckMeta: Notes = passageForNoteKind(
         deck.notes,
-        NoteKind.NoteDeckMeta
+        NoteKind.NoteDeckMeta,
     ); // should only be of length 1
     let noteReview: Notes = passageForNoteKind(deck.notes, NoteKind.NoteReview);
     let noteSummary: Notes = passageForNoteKind(
         deck.notes,
-        NoteKind.NoteSummary
+        NoteKind.NoteSummary,
     );
 
     if (noteDeckMeta.length !== 1) {
         console.error(
-            `deck: ${deck.id} has a NoteDeckMeta noteseq of length: ${noteDeckMeta.length} ???`
+            `deck: ${deck.id} has a NoteDeckMeta noteseq of length: ${noteDeckMeta.length} ???`,
         );
     }
 

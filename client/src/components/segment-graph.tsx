@@ -1,4 +1,4 @@
-import { FatDeck } from "../types";
+import type { FatDeck } from "../types";
 
 import { getAppState } from "../app-state";
 

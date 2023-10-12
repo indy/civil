@@ -1,18 +1,15 @@
 import { route } from "preact-router";
-import { Ref, useEffect, useRef } from "preact/hooks";
+import { type Ref, useEffect, useRef } from "preact/hooks";
 
 import {
     CivilMode,
     CivilSpan,
     CommandBarMode,
     DeckKind,
-    DeckQuote,
-    Key,
     NoteKind,
-    SlimDeck,
-    State,
-    SearchResults,
-} from "../types";
+} from "../enums";
+
+import type { DeckQuote, Key, SlimDeck, State, SearchResults } from "../types";
 
 import { AppStateChange, getAppState } from "../app-state";
 
@@ -248,7 +245,7 @@ function inputGiven(state: State, text: string) {
 
                 if (!commandBarState.shiftKey) {
                     const url = `/${deckKindToResourceString(
-                        candidate.deckKind
+                        candidate.deckKind,
                     )}/${candidate.id}`;
                     route(url);
 
@@ -304,7 +301,7 @@ export default function CommandBar() {
                     const success = executeCommand(
                         appState,
                         commandBarState.text,
-                        BarEntries
+                        BarEntries,
                     );
                     if (success) {
                         AppStateChange.commandBarResetAndHide();
@@ -600,7 +597,7 @@ export default function CommandBar() {
                             <li key={entry.id}>
                                 {buildSearchResultEntry(entry, i)}
                             </li>
-                        )
+                        ),
                     )}
                 </ul>
             );
@@ -658,7 +655,7 @@ function routeOnly(kind: DeckKind): boolean {
 function executeCommand(
     state: State,
     text: string,
-    allBarEntries: Array<BarEntry>
+    allBarEntries: Array<BarEntry>,
 ) {
     const commandPlusArgs = text
         .slice(1)
@@ -671,7 +668,7 @@ function executeCommand(
     const commandName = commandPlusArgs[0];
 
     let action: BarEntry | undefined = allBarEntries.find(
-        (c) => "command" in c && c.command === commandName
+        (c) => "command" in c && c.command === commandName,
     );
 
     if (action) {

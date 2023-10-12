@@ -1,6 +1,7 @@
-import { ComponentChildren } from "preact";
+import { type ComponentChildren } from "preact";
 
-import { Arrival, DeckKind, FatDeck, Font, RenderingDeckPart } from "../types";
+import { Font, DeckKind, RenderingDeckPart } from "../enums";
+import type { Arrival, FatDeck } from "../types";
 
 import { immutableState } from "../app-state";
 
@@ -23,7 +24,7 @@ export default function SegmentArrivals({ deck }: { deck?: FatDeck }) {
                         deck={deck}
                         font={font}
                         arrivals={group[deckKind]}
-                    />
+                    />,
                 );
             }
         });
@@ -58,7 +59,7 @@ function GroupedArrivals({
     });
 
     let segmentHeading: string = deckKindToHeadingString(
-        arrivals[0].deck.deckKind
+        arrivals[0].deck.deckKind,
     );
     let segmentId = arrivals[0].deck.id;
 

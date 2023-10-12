@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks";
 
-import { DM, DeckIdea, DeckKind, SlimDeck } from "../types";
+import { DeckKind } from "../enums";
+import type { DM, DeckIdea, SlimDeck } from "../types";
 
 import { formattedDate } from "../shared/time";
 

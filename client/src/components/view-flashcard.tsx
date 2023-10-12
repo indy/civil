@@ -1,4 +1,4 @@
-import { FlashCard } from "../types";
+import type { FlashCard } from "../types";
 
 import { plural } from "../shared/english";
 import Net from "../shared/net";
@@ -93,12 +93,12 @@ export default function ViewFlashCard({
     const initialState: State = {
         nextTestDateString: new Date(flashcard.nextTestDate).toLocaleDateString(
             "en-US",
-            dateOptions
+            dateOptions,
         ),
         daysUntilNextTest: plural(
             daysUntil(flashcard.nextTestDate),
             "day",
-            "s"
+            "s",
         ),
         isEditingFlashCard: false,
         showDeleteConfirmation: false,
@@ -108,7 +108,7 @@ export default function ViewFlashCard({
 
     const [local, localDispatch] = useLocalReducer<State, ActionType>(
         reducer,
-        initialState
+        initialState,
     );
 
     function handleContentChange(text: string) {
@@ -134,7 +134,7 @@ export default function ViewFlashCard({
         Net.put<FlashCard, FlashCard>(url, local.flashcard).then(
             (_updatedFlashcard) => {
                 localDispatch(ActionType.EditingSaved);
-            }
+            },
         );
     }
 

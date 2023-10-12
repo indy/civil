@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { useRef, useState } from "preact/hooks";
 
-import { UserUploadedImage } from "../types";
+import type { UserUploadedImage } from "../types";
 
 import { AppStateChange, getAppState } from "../app-state";
 
@@ -42,7 +42,7 @@ export default function ImageSelector({ onPaste }: Props) {
                 imageDirectory: appState.imageDirectory.value,
                 filename: ri.filename,
                 onPaste: onPaste,
-            })
+            }),
         );
 
         let containerClass = "image-widget-container";
@@ -53,7 +53,7 @@ export default function ImageSelector({ onPaste }: Props) {
         const dragdropMessage = h(
             "div",
             { class: "image-widget-hover-message" },
-            "Drop Images Here"
+            "Drop Images Here",
         );
 
         return (

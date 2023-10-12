@@ -1,4 +1,4 @@
-import { Bookmark } from "../types";
+import type { Bookmark } from "../types";
 
 import { AppStateChange, getAppState } from "../app-state";
 

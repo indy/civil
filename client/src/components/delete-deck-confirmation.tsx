@@ -1,6 +1,7 @@
 import { route } from "preact-router";
 
-import { DeckKind, Key } from "../types";
+import { DeckKind } from "../enums";
+import type { Key } from "../types";
 
 import { AppStateChange } from "../app-state";
 

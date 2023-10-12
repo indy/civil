@@ -1,8 +1,8 @@
-import { ComponentChildren } from "preact";
+import { type ComponentChildren } from "preact";
 import { Link } from "preact-router";
 import { useState } from "preact/hooks";
 
-import { CivilMode } from "../types";
+import { CivilMode } from "../enums";
 
 import { AppStateChange, getAppState } from "../app-state";
 

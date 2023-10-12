@@ -1,4 +1,5 @@
-import { NoteKind, FatDeck, Note, WaitingFor } from "../types";
+import { NoteKind, WaitingFor } from "../enums";
+import type { FatDeck, Note } from "../types";
 
 import { AppStateChange, getAppState } from "../app-state";
 
@@ -19,7 +20,7 @@ export default function AutoSummarize({ deck, onFinish }: AutoSummarizeProps) {
     function onClick() {
         if (deck.passage[NoteKind.Note]) {
             let textPassage = deck.passage[NoteKind.Note].map((n) =>
-                buildSimplifiedText(n.content, wasmInterface)
+                buildSimplifiedText(n.content, wasmInterface),
             );
             let textPassageContent = textPassage.join("\n");
 
@@ -44,7 +45,7 @@ export default function AutoSummarize({ deck, onFinish }: AutoSummarizeProps) {
             AppStateChange.setWaitingFor({ waitingFor: WaitingFor.Server });
             Net.post<SummarizeStruct, Note>(
                 `/api/decks/summarize/${deck.id}`,
-                summarizeStruct
+                summarizeStruct,
             )
                 .then((note) => {
                     AppStateChange.setWaitingFor({

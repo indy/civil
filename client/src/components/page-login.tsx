@@ -1,7 +1,7 @@
 import { route } from "preact-router";
 import { useRef, useState } from "preact/hooks";
 
-import { UserWithUiConfig } from "../types";
+import type { UserWithUiConfig } from "../types";
 
 import { AppStateChange, getAppState } from "../app-state";
 
@@ -136,7 +136,7 @@ export default function Login({ path, loginCallback }: Props) {
             Net.post<RegisterData, UserWithUiConfig>("api/users", obj).then(
                 (user) => {
                     loginCallback(user);
-                }
+                },
             );
         }
 

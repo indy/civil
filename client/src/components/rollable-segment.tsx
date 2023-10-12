@@ -1,7 +1,7 @@
-import { ComponentChildren } from "preact";
+import { type ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 
-import { Font, RenderingDeckPart } from "../types";
+import { Font, RenderingDeckPart } from "../enums";
 
 import { fontClass } from "../shared/font";
 

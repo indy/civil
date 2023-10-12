@@ -4,14 +4,16 @@ import { useState } from "preact/hooks";
 import {
     DeckKind,
     DeckManagerFlags,
+    PointKind,
+    RenderingDeckPart,
+} from "../enums";
+import type {
     DeckPerson,
     DM,
     Key,
     PassageType,
     Point,
-    PointKind,
     ProtoPoint,
-    RenderingDeckPart,
     SlimDeck,
     SlimEvent,
 } from "../types";
@@ -153,7 +155,7 @@ function Person({ path, id }: { path?: string; id?: string }) {
         id,
         DeckKind.Person,
         flags,
-        preCacheFn
+        preCacheFn,
     );
 
     function dispatchUpdatedPerson(person: DeckPerson) {
@@ -163,16 +165,16 @@ function Person({ path, id }: { path?: string; id?: string }) {
     function onLifespan(
         deckId: Key,
         birthPoint: ProtoPoint,
-        deathPoint?: ProtoPoint
+        deathPoint?: ProtoPoint,
     ) {
         Net.post<ProtoPoint, DeckPerson>(
             `/api/people/${deckId}/points`,
-            birthPoint
+            birthPoint,
         ).then((person) => {
             if (deathPoint) {
                 Net.post<ProtoPoint, DeckPerson>(
                     `/api/people/${deckId}/points`,
-                    deathPoint
+                    deathPoint,
                 ).then((person) => {
                     dispatchUpdatedPerson(person);
                 });
@@ -317,7 +319,7 @@ function preCacheFn(person: DeckPerson): DeckPerson {
 
     if (person.points && person.events) {
         let born: [number, number, number] | undefined = getBirthDateFromPoints(
-            person.points
+            person.points,
         );
         person.points.forEach((p) => {
             if (p.date) {
@@ -455,7 +457,7 @@ function SegmentPoints({
     function onAddDeathPoint(point: ProtoPoint) {
         Net.post<ProtoPoint, DeckPerson>(
             `/api/people/${deckId}/points`,
-            point
+            point,
         ).then((_person) => {
             setShowDeathForm(false);
         });
@@ -480,13 +482,13 @@ function SegmentPoints({
         filteredPoints = filteredPoints.filter(
             (e) =>
                 e.deckId === deckId ||
-                !(e.title === "Born" || e.title === "Died")
+                !(e.title === "Born" || e.title === "Died"),
         );
     }
 
     // don't show the person's age for any of their posthumous points
     const deathIndex = filteredPoints.findIndex(
-        (e) => e.deckId === deckId && e.kind === PointKind.PointEnd
+        (e) => e.deckId === deckId && e.kind === PointKind.PointEnd,
     );
     if (deathIndex) {
         for (let i = deathIndex + 1; i < filteredPoints.length; i++) {
@@ -520,7 +522,7 @@ function SegmentPoints({
                     hasNotes={deckManager.pointHasNotes(dp)}
                     deckId={deckId}
                     point={dp}
-                />
+                />,
             );
             filteredPoints = filteredPoints.slice(1);
         } else {
@@ -538,7 +540,7 @@ function SegmentPoints({
                     hasNotes={deckManager.pointHasNotes(dp)}
                     deckId={deckId}
                     point={dp}
-                />
+                />,
             );
         });
     }
@@ -555,7 +557,7 @@ function SegmentPoints({
     const hasDied =
         person.points &&
         person.points.some(
-            (dp) => dp.deckId === deckId && dp.kind === PointKind.PointEnd
+            (dp) => dp.deckId === deckId && dp.kind === PointKind.PointEnd,
         );
 
     const segmentTitle = `Points during the life of ${deckTitle}`;

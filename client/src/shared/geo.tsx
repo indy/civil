@@ -1,4 +1,4 @@
-import { GeoResult } from "../types";
+import type { GeoResult } from "../types";
 
 import Net from "../shared/net";
 
@@ -9,7 +9,7 @@ export async function geoGet(location: string) {
 }
 
 export function getLatitudeLongitude(
-    geoResult: GeoResult
+    geoResult: GeoResult,
 ): [boolean, number, number] {
     if (geoResult.error) {
         return [false, 0.0, 0.0];

@@ -1,6 +1,7 @@
 import { useRef, useState } from "preact/hooks";
 
-import { GeoResult, PointKind, ProtoPoint } from "../types";
+import { PointKind } from "../enums";
+import type { GeoResult, ProtoPoint } from "../types";
 
 import { geoGet, getLatitudeLongitude } from "../shared/geo";
 import {
@@ -105,14 +106,14 @@ export default function PointForm({
 
     function buildReadableDateFromExact(
         s: LocalState,
-        checkOther: boolean
+        checkOther: boolean,
     ): LocalState {
         const parsedDate = parseDateStringAsTriple(s.exactDate);
         if (parsedDate) {
             s.dateTextual = asHumanReadableDate(
                 parsedDate,
                 s.isApprox,
-                s.roundToYear
+                s.roundToYear,
             );
             s.dateTextualDerivedFrom = "exact";
             s.dateFuzz = 0.5;
@@ -135,7 +136,7 @@ export default function PointForm({
 
     function buildReadableDateFromRange(
         s: LocalState,
-        checkOther: boolean
+        checkOther: boolean,
     ): LocalState {
         // lower and upper
         const parsedLowerDate = parseDateStringAsTriple(s.lowerDate);
@@ -147,7 +148,7 @@ export default function PointForm({
                 parsedUpperDate,
                 s.isApprox,
                 s.roundToYear,
-                s.presentAsDuration
+                s.presentAsDuration,
             );
             s.dateTextualDerivedFrom = "range";
             s.dateFuzz = 0.0;
@@ -253,12 +254,12 @@ export default function PointForm({
         event.preventDefault();
 
         let geoResult: GeoResult | unknown = await geoGet(
-            localState.locationTextual
+            localState.locationTextual,
         );
 
         if (geoResult) {
             let [isOk, latitudeNew, longitudeNew] = getLatitudeLongitude(
-                geoResult as GeoResult
+                geoResult as GeoResult,
             );
 
             if (isOk) {
@@ -271,7 +272,7 @@ export default function PointForm({
                 setLocalState(newState);
             } else {
                 console.log(
-                    `geoResult failed for ${localState.locationTextual}`
+                    `geoResult failed for ${localState.locationTextual}`,
                 );
                 console.log(geoResult);
             }

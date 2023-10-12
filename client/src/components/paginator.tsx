@@ -1,8 +1,9 @@
-import { ComponentChildren } from "preact";
+import { type ComponentChildren } from "preact";
 import { route } from "preact-router";
 import { useState } from "preact/hooks";
 
-import { SlimDeck, DeckKind } from "../types";
+import { DeckKind } from "../enums";
+import type { SlimDeck } from "../types";
 
 import { getAppState } from "../app-state";
 

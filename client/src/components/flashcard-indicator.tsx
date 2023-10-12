@@ -1,4 +1,4 @@
-import { FlashCard } from "../types";
+import type { FlashCard } from "../types";
 
 import { svgFlashCard } from "./svg-icons";
 

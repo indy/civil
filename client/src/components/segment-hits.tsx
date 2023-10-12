@@ -1,4 +1,4 @@
-import { Hit, FatDeck } from "../types";
+import type { Hit, FatDeck } from "../types";
 
 import { prettyPrintTimeSpan } from "../shared/time";
 

@@ -1,6 +1,6 @@
-import { ComponentChildren } from "preact";
+import { type ComponentChildren } from "preact";
 
-import { CivilMode } from "../types";
+import { CivilMode } from "../enums";
 
 import { getAppState } from "../app-state";
 

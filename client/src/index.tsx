@@ -1,7 +1,8 @@
 import { render } from "preact";
 import "./index.css";
 
-import { UiConfig, ColourScheme, UserWithUiConfig, UberSetup } from "./types";
+import { ColourScheme } from "./enums";
+import type { UiConfig, UserWithUiConfig, UberSetup } from "./types";
 
 import { basicUiConfig } from "./shared/ui-config";
 import { getCssString, getCssBoolean } from "./shared/css";

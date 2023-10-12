@@ -3,7 +3,7 @@ import { useEffect } from "preact/hooks";
 export default function useDragDrop(
     dragAreaRef: any,
     droppedFiles: (f: FileList) => void,
-    setHovering?: (b: boolean) => void
+    setHovering?: (b: boolean) => void,
 ) {
     function dragEnter(e: Event) {
         e.stopPropagation();

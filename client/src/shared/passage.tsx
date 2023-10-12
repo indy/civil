@@ -1,4 +1,5 @@
-import { Key, Notes, Passage, NoteKind, Note } from "../types";
+import { NoteKind } from "../enums";
+import type { Key, Notes, Passage, Note } from "../types";
 
 export function passageForNoteKind(notes: Notes, kind: NoteKind): Passage {
     let ns = notes.filter((n) => n.kind === kind && n.pointId === null);
@@ -41,7 +42,7 @@ function createOneCompletePassage(ns: Notes): Passage {
         } else {
             if (firstNote) {
                 console.error(
-                    "there is more than one note without a prev_note_id???"
+                    "there is more than one note without a prev_note_id???",
                 );
             }
             firstNote = n;
@@ -112,7 +113,7 @@ export function createMultiplePassages(ns: Notes): Array<Passage> {
 
 function grabPassageStartingFrom(
     firstNote: Note,
-    h: Map<number, Note>
+    h: Map<number, Note>,
 ): Passage {
     let item: Note | undefined = firstNote;
     let localRes: Passage = [];

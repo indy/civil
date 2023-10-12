@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks";
 
-import { CivilMode, FlashCard, Key, Note } from "../types";
+import { CivilMode } from "../enums";
+import type { FlashCard, Key, Note } from "../types";
 
 import { AppStateChange, getAppState } from "../app-state";
 import Net from "../shared/net";

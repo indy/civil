@@ -1,6 +1,7 @@
 import { useEffect } from "preact/hooks";
 
-import { Key, RenderingDeckPart, SlimDeck } from "../types";
+import { RenderingDeckPart } from "../enums";
+import type { Key, SlimDeck } from "../types";
 
 import { AppStateChange, getAppState, immutableState } from "../app-state";
 
@@ -179,7 +180,7 @@ function MemoriseModule() {
     };
     let [local, localDispatch] = useLocalReducer<State, ActionType>(
         reducer,
-        initialState
+        initialState,
     );
 
     useEffect(() => {
@@ -201,7 +202,7 @@ function MemoriseModule() {
                 `/api/memorise/${card.id}/rated`,
                 {
                     rating,
-                }
+                },
             ).then((success) => {
                 if (!success) {
                     console.error(`POST /api/memorise/${card.id}/rated failed`);
@@ -228,13 +229,13 @@ function MemoriseModule() {
     if (local.mode === Mode.PreTest && !canTest) {
         const nextReviewDate = formattedDate(
             Date.parse(
-                appState.memoriseEarliestReviewDate.value!
-            ) as unknown as string
+                appState.memoriseEarliestReviewDate.value!,
+            ) as unknown as string,
         );
         const nextReviewTime = formattedTime(
             Date.parse(
-                appState.memoriseEarliestReviewDate.value!
-            ) as unknown as string
+                appState.memoriseEarliestReviewDate.value!,
+            ) as unknown as string,
         );
         nextTestInfo = `The next test will be available at ${nextReviewTime} on ${nextReviewDate}`;
     }
@@ -321,7 +322,7 @@ function CardTest({ card, onRatedCard, onShowAnswer }: CardTestProps) {
                         {buildMarkup(
                             card.prompt,
                             immutableState.defaultFont,
-                            card.noteId
+                            card.noteId,
                         )}
                     </div>
                     {show === ShowState.Prompt && (
@@ -365,7 +366,7 @@ function Answer({ card }: { card: Card }) {
                             buildMarkup(
                                 card.answer,
                                 immutableState.defaultFont,
-                                0
+                                0,
                             )}
                     </div>
                 </CivMain>

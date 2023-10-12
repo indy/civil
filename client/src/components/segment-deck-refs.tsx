@@ -1,15 +1,7 @@
 import { useRef } from "preact/hooks";
 
-import {
-    CivilMode,
-    FatDeck,
-    Key,
-    Note,
-    NoteKind,
-    Reference,
-    ReferencesDiff,
-    RenderingDeckPart,
-} from "../types";
+import { CivilMode, NoteKind, RenderingDeckPart } from "../enums";
+import type { FatDeck, Key, Note, Reference, ReferencesDiff } from "../types";
 
 import { AppStateChange, getAppState } from "../app-state";
 
@@ -41,7 +33,7 @@ export default function SegmentDeckRefs({
 
     let containerClasses = fontClass(
         deck.font,
-        RenderingDeckPart.UiInterleaved
+        RenderingDeckPart.UiInterleaved,
     );
     containerClasses += " c-segment-deck-refs";
 
@@ -66,7 +58,7 @@ export default function SegmentDeckRefs({
     function onSaved(
         note: Note,
         changes: ReferencesDiff,
-        refsInNote: Array<Reference>
+        refsInNote: Array<Reference>,
     ) {
         // this note is going to be the deck's NoteDeckMeta
         onRefsChanged(note, refsInNote);
@@ -127,7 +119,7 @@ type AddDecksUIProps = {
     onSaved: (
         n: Note,
         changes: ReferencesDiff,
-        refsInNote: Array<Reference>
+        refsInNote: Array<Reference>,
     ) => void;
 };
 

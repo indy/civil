@@ -1,4 +1,4 @@
-import { RenderingDeckPart, Role } from "../types";
+import { RenderingDeckPart, Role } from "../enums";
 
 import { fontClass, fontForRole } from "../shared/font";
 

@@ -1,16 +1,8 @@
 import { route } from "preact-router";
 import { useEffect, useState } from "preact/hooks";
 
-import {
-    DeckKind,
-    DeckQuote,
-    DM,
-    Font,
-    Key,
-    NoteKind,
-    ProtoQuote,
-    SearchResults,
-} from "../types";
+import { DeckKind, Font, NoteKind } from "../enums";
+import type { DeckQuote, DM, Key, ProtoQuote, SearchResults } from "../types";
 
 import { AppStateChange, immutableState } from "../app-state";
 
@@ -105,7 +97,7 @@ function QuotesModule({}) {
 
     const [local, localDispatch] = useLocalReducer<QuoteState, ActionType>(
         quotesReducer,
-        initialState
+        initialState,
     );
 
     function clickedNewQuoteButton() {
@@ -321,7 +313,7 @@ function Quote({ path, id }: { path?: string; id?: string }) {
                 // as the title could have changed, we need to post the updated quote to the server
                 Net.put<ProtoQuote, DeckQuote>(
                     `/api/quotes/${deckId}`,
-                    data
+                    data,
                 ).then((updatedDeck) => {
                     deckManager.updateAndReset(updatedDeck);
                 });
@@ -457,7 +449,7 @@ function Attribution({ attribution, onEdited, onDelete }: AttributionProps) {
     };
     const [local, localDispatch] = useLocalReducer<StateAttr, ActionAttrType>(
         attributionReducer,
-        initialState
+        initialState,
     );
 
     useEffect(() => {
@@ -471,7 +463,7 @@ function Attribution({ attribution, onEdited, onDelete }: AttributionProps) {
         localDispatch(
             local.showButtons
                 ? ActionAttrType.HideButtons
-                : ActionAttrType.ShowButtons
+                : ActionAttrType.ShowButtons,
         );
     }
 

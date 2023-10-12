@@ -1,26 +1,30 @@
 import { signal } from "@preact/signals";
-import { ComponentChildren, createContext } from "preact";
+import { type ComponentChildren, createContext } from "preact";
 import { useContext } from "preact/hooks";
 
 import {
-    AppStateChangeArgs,
-    Bookmark,
     CivilMode,
     CivilSpan,
     CommandBarMode,
-    CommandBarState,
     DeckKind,
     Font,
+    NoteKind,
+    RefKind,
+    WaitingFor,
+} from "./enums";
+
+import type {
+    AppStateChangeArgs,
+    Bookmark,
+    CommandBarState,
     FullGraphStruct,
     Graph,
     GraphEdge,
     ImmutableState,
     Key,
-    NoteKind,
     Notes,
     PreviewDeck,
     PreviewNotes,
-    RefKind,
     ReferencesDiff,
     SlimDeck,
     State,
@@ -52,7 +56,6 @@ import {
     User,
     UserUploadedImage,
     VisiblePreview,
-    WaitingFor,
 } from "./types";
 
 import {
@@ -178,7 +181,7 @@ function boilerplate(scope: Scope, fnName: string, args: AppStateChangeArgs) {
 function build(
     scope: Scope,
     fnName: string,
-    fn: (args?: AppStateChangeArgs) => void
+    fn: (args?: AppStateChangeArgs) => void,
 ) {
     return (args?: AppStateChangeArgs) => {
         let empty: StateChangeEmpty = {};
@@ -289,7 +292,7 @@ export const AppStateChange = {
             generateColoursFromSeeds(state, state.colourSeeds.value);
 
             state.uiConfig.value = uiConfig;
-        }
+        },
     ),
 
     setSpan: build(Scope.Local, "setSpan", (asca?: AppStateChangeArgs) => {
@@ -316,7 +319,7 @@ export const AppStateChange = {
             const waitingFor: WaitingFor = args.waitingFor;
 
             state.waitingFor.value = waitingFor;
-        }
+        },
     ),
 
     commandBarResetAndShow: build(Scope.Local, "commandBarResetAndShow", () => {
@@ -339,7 +342,7 @@ export const AppStateChange = {
                 mode: CommandBarMode.Command,
                 text: ":",
             };
-        }
+        },
     ),
 
     commandBarShowShortcuts: build(
@@ -354,7 +357,7 @@ export const AppStateChange = {
                 ...commandBarState,
                 showKeyboardShortcuts,
             };
-        }
+        },
     ),
 
     commandBarKeyDown: build(
@@ -371,7 +374,7 @@ export const AppStateChange = {
                 keyDownIndex,
                 shiftKey,
             };
-        }
+        },
     ),
 
     commandBarSetFocus: build(
@@ -386,7 +389,7 @@ export const AppStateChange = {
                 ...commandBarState,
                 hasFocus,
             };
-        }
+        },
     ),
 
     commandBarSetSearch: build(
@@ -401,7 +404,7 @@ export const AppStateChange = {
                 ...commandBarState,
                 searchCandidates,
             };
-        }
+        },
     ),
 
     commandBarInputGiven: build(
@@ -420,7 +423,7 @@ export const AppStateChange = {
                 text,
                 searchCandidates,
             };
-        }
+        },
     ),
 
     showPreviewDeck: build(
@@ -434,7 +437,7 @@ export const AppStateChange = {
             };
 
             state.visiblePreviewDeck.value = vp;
-        }
+        },
     ),
 
     hidePreviewDeck: build(
@@ -456,10 +459,10 @@ export const AppStateChange = {
                     "calling hidePreviewDeck with a deckId that isn't the current preview deck: " +
                         deckId +
                         " " +
-                        state.visiblePreviewDeck.value.id
+                        state.visiblePreviewDeck.value.id,
                 );
             }
-        }
+        },
     ),
 
     addPreview: build(
@@ -472,14 +475,14 @@ export const AppStateChange = {
 
             if (slimDeck.id !== previewNotes.deckId) {
                 console.error(
-                    `addPreview: deck id mismatch: ${slimDeck.id} ${previewNotes.deckId}`
+                    `addPreview: deck id mismatch: ${slimDeck.id} ${previewNotes.deckId}`,
                 );
             }
 
             // use the summary notes if present
             let ns: Notes = passageForNoteKind(
                 previewNotes.notes,
-                NoteKind.NoteSummary
+                NoteKind.NoteSummary,
             );
             // otherwise use the normal notes
             if (ns.length === 0) {
@@ -500,7 +503,7 @@ export const AppStateChange = {
 
             state.previewCache.value.set(previewDeck.id, previewDeck);
             state.previewCache.value = new Map(state.previewCache.value);
-        }
+        },
     ),
 
     // hideCommandBar: build(Scope.Local, "hideCommandBar", () => {
@@ -527,7 +530,7 @@ export const AppStateChange = {
         (asca?: AppStateChangeArgs) => {
             let args = asca! as StateChangeUrl;
             state.url.value = args.url;
-        }
+        },
     ),
 
     uberSetup: build(Scope.Local, "uberSetup", (asca?: AppStateChangeArgs) => {
@@ -585,7 +588,7 @@ export const AppStateChange = {
                 let ng = { ...state.graph.value, fullLoaded: false };
                 state.graph.value = ng;
             }
-        }
+        },
     ),
 
     obtainKeyboard: build(Scope.Local, "obtainKeyboard", () => {
@@ -609,7 +612,7 @@ export const AppStateChange = {
             state.showNoteForm.value = snf;
             state.showNoteFormPointId.value = args.pointId || undefined;
             state.componentRequiresFullKeyboardAccess.value = true;
-        }
+        },
     ),
 
     hideNoteForm: build(
@@ -625,7 +628,7 @@ export const AppStateChange = {
             state.showNoteForm.value = snf;
             state.showNoteFormPointId.value = undefined;
             state.componentRequiresFullKeyboardAccess.value = false;
-        }
+        },
     ),
 
     setRecentImages: build(
@@ -635,7 +638,7 @@ export const AppStateChange = {
             let args = asca! as StateChangeRecentImages;
             const recentImages: Array<UserUploadedImage> = args.recentImages;
             state.recentImages.value = recentImages;
-        }
+        },
     ),
 
     deleteDeck: build(
@@ -666,7 +669,7 @@ export const AppStateChange = {
             // delete any bookmarks to this deck
             if (state.bookmarks.value.length > 0) {
                 let idx = state.bookmarks.value.findIndex(
-                    (bookmark) => bookmark.deck.id === id
+                    (bookmark) => bookmark.deck.id === id,
                 );
                 if (idx !== -1) {
                     let bookmarks = state.bookmarks.value.slice();
@@ -676,7 +679,7 @@ export const AppStateChange = {
             }
 
             state.mode.value = CivilMode.View;
-        }
+        },
     ),
 
     bookmarkToggle: build(Scope.Local, "bookmarkToggle", () => {
@@ -688,7 +691,7 @@ export const AppStateChange = {
         "requestToShowUpdateForm",
         () => {
             state.wantToShowDeckUpdateForm.value = true;
-        }
+        },
     ),
 
     requestToHideUpdateForm: build(
@@ -696,7 +699,7 @@ export const AppStateChange = {
         "requestToHideUpdateForm",
         () => {
             state.wantToShowDeckUpdateForm.value = false;
-        }
+        },
     ),
 
     setBookmarks: build(
@@ -706,7 +709,7 @@ export const AppStateChange = {
             let args = asca! as StateChangeBookmarks;
             const bookmarks: Array<Bookmark> = args.bookmarks;
             state.bookmarks.value = bookmarks;
-        }
+        },
     ),
 
     setRecentlyUsedDecks: build(
@@ -716,7 +719,7 @@ export const AppStateChange = {
             let args = asca! as StateChangeRecentlyUsedDecks;
             const recents: Array<SlimDeck> = args.recents;
             state.recentlyUsedDecks.value = recents;
-        }
+        },
     ),
 
     connectivityGraphShow: build(Scope.Local, "connectivityGraphShow", () => {
@@ -734,7 +737,7 @@ export const AppStateChange = {
             let args = asca! as StateChangeCount;
             const count: number = args.count;
             state.memoriseReviewCount.value = count;
-        }
+        },
     ),
 
     loadGraph: build(Scope.Local, "loadGraph", (asca?: AppStateChangeArgs) => {

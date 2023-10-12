@@ -80,7 +80,7 @@ export function deltaInYears(year: number, month: number, day: number) {
 
 export function calcAgeInYears(
     toTriple: [number, number, number],
-    fromTriple: [number, number, number]
+    fromTriple: [number, number, number],
 ) {
     let years = toTriple[0] - fromTriple[0];
     if (toTriple[1] < fromTriple[1]) {
@@ -94,13 +94,15 @@ export function calcAgeInYears(
 }
 
 export function dateStringAsTriple(
-    dateString: string
+    dateString: string,
 ): [number, number, number] {
     let triple = dateString.split("-").map((d) => parseInt(d, 10));
     if (dateString[0] == "-") {
         // triple will contain 4 elements, 1st is a NaN
         triple = triple.slice(1);
-        triple[0] = -triple[0];
+        if (triple[0]) {
+            triple[0] = -triple[0];
+        }
     }
 
     let ret: [number, number, number] = [triple[0], triple[1], triple[2]];
@@ -122,7 +124,7 @@ export function parseDateStringAsYearOnly(value: string) {
 }
 
 export function normaliseDateString(
-    date: string | undefined
+    date: string | undefined,
 ): string | undefined {
     let r = parseDateStringLiberally(date);
     if (!r) {
@@ -139,7 +141,7 @@ export function normaliseDateString(
 }
 
 export function parseDateStringAsTriple(
-    date: string | undefined
+    date: string | undefined,
 ): [number, number, number] | undefined {
     let r = parseDateStringLiberally(date);
     if (!r) {
@@ -154,7 +156,7 @@ export function parseDateStringAsTriple(
 }
 
 function parseDateStringLiberally(
-    date: string | undefined
+    date: string | undefined,
 ): [boolean, number, number, number] | undefined {
     if (!date) {
         return undefined;
@@ -200,7 +202,7 @@ function parseDateStringLiberally(
 export function asHumanReadableDate(
     parsedDate: [number, number, number],
     isApprox: boolean,
-    roundToYear: boolean
+    roundToYear: boolean,
 ) {
     // parsedDate is in the form: [year, month, day]
 
@@ -233,7 +235,7 @@ export function asHumanReadableDateRange(
     upperDate: [number, number, number],
     isApprox: boolean,
     roundToYear: boolean,
-    presentAsDuration: boolean
+    presentAsDuration: boolean,
 ) {
     // parsedDate is in the form: [year, month, day]
 

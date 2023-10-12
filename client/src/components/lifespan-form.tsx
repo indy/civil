@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 
-import { Key, PointKind, ProtoPoint } from "../types";
+import { PointKind } from "../enums";
+import type { Key, ProtoPoint } from "../types";
 
 import { deltaInYears, parseDateStringAsTriple } from "../shared/time";
 
@@ -46,7 +47,7 @@ export default function LifespanForm({
                 onLifespanGiven(
                     deckId,
                     localState.birthPoint,
-                    localState.deathPoint
+                    localState.deathPoint,
                 );
             }
         }

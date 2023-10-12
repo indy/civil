@@ -1,4 +1,4 @@
-import { ComponentChildren } from "preact";
+import { type ComponentChildren } from "preact";
 
 import { CivLeft } from "./civil-layout";
 import { svgBlank, svgRatingStar } from "./svg-icons";

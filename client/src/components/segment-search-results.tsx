@@ -1,7 +1,8 @@
-import { ComponentChildren } from "preact";
+import { type ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { SlimDeck, CivilMode, Key, SearchDeck, SearchResults } from "../types";
+import { CivilMode } from "../enums";
+import type { SlimDeck, Key, SearchDeck, SearchResults } from "../types";
 
 import { getAppState } from "../app-state";
 
@@ -39,7 +40,7 @@ export default function SegmentSearchResults({
             ([res, duration]) => {
                 setSearchResults(res);
                 setTiming(duration);
-            }
+            },
         );
     }, [slimdeck.id]);
 
@@ -53,7 +54,7 @@ export default function SegmentSearchResults({
 
         function bookmarkAll() {
             const deckIds: Array<Key> = searchResults.deckLevel.map(
-                (sd) => sd.deck.id
+                (sd) => sd.deck.id,
             );
             addMultipleBookmarks(deckIds);
         }

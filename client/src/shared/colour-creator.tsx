@@ -1,10 +1,5 @@
-import {
-    State,
-    ColourScheme,
-    ColourTriple,
-    ColourQuad,
-    ColourSeeds,
-} from "../types";
+import { ColourScheme } from "../enums";
+import type { State, ColourTriple, ColourQuad, ColourSeeds } from "../types";
 
 // const H: number = 0;
 // const S: number = 1;
@@ -26,7 +21,7 @@ function generateColoursFromSeeds(state: State, seeds: ColourSeeds) {
         function clampedRgbFromHsl(
             h: number,
             s: number,
-            l: number
+            l: number,
         ): [number, number, number] {
             const transportRGB = rgbFromHsl(h, s, l);
 
@@ -55,11 +50,11 @@ function generateColoursFromSeeds(state: State, seeds: ColourSeeds) {
                     let [r, g, b] = clampedRgbFromHsl(h, s, l);
                     root.style.setProperty(
                         cssName,
-                        `rgba(${r}, ${g}, ${b}, ${alpha})`
+                        `rgba(${r}, ${g}, ${b}, ${alpha})`,
                     );
                 } else {
                     console.error(
-                        `${cssName}: unknown array size expected 3 or 4`
+                        `${cssName}: unknown array size expected 3 or 4`,
                     );
                 }
             } else {
@@ -260,14 +255,14 @@ function generateColourDefs(seeds: ColourSeeds): ColourDefinitions {
         "graph_edge_in_contrast_dimmed",
         "graph_edge_in_contrast",
         0.6,
-        "bg"
+        "bg",
     );
     defs = addMix(
         defs,
         "graph_edge_critical_dimmed",
         "graph_edge_critical",
         0.6,
-        "bg"
+        "bg",
     );
 
     return defs;
@@ -282,24 +277,24 @@ function addMix(
     name: string,
     colA: string,
     mix: number,
-    colB: string
+    colB: string,
 ): ColourDefinitions {
     if (defs[colA] && defs[colB]) {
         defs[name] = [
             interpolate(
                 defs[colA]![0] as number,
                 mix,
-                defs[colB]![0] as number
+                defs[colB]![0] as number,
             ),
             interpolate(
                 defs[colA]![1] as number,
                 mix,
-                defs[colB]![1] as number
+                defs[colB]![1] as number,
             ),
             interpolate(
                 defs[colA]![2] as number,
                 mix,
-                defs[colB]![2] as number
+                defs[colB]![2] as number,
             ),
         ];
     }
@@ -311,7 +306,7 @@ function bgCol(
     defs: ColourDefinitions,
     seeds: ColourSeeds,
     factor: number,
-    name: string
+    name: string,
 ): ColourDefinitions {
     defs[name] = [
         seeds.hue,
@@ -326,7 +321,7 @@ function fgCol(
     defs: ColourDefinitions,
     seeds: ColourSeeds,
     factor: number,
-    name: string
+    name: string,
 ): ColourDefinitions {
     defs[name] = [
         seeds.fgH,
@@ -341,7 +336,7 @@ function addTopMenuColours(
     defs: ColourDefinitions,
     seeds: ColourSeeds,
     hue_offset: number,
-    name: string
+    name: string,
 ): ColourDefinitions {
     defs[`bg_${name}`] = [
         seeds.hue + hue_offset,

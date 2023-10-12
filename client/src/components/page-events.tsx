@@ -1,15 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 
-import {
-    DeckEvent,
-    DeckKind,
-    DeckManagerFlags,
-    DM,
-    Font,
-    GeoResult,
-    SlimDeck,
-    ProtoEvent,
-} from "../types";
+import { DeckKind, DeckManagerFlags, Font } from "../enums";
+import type { DeckEvent, DM, GeoResult, SlimDeck, ProtoEvent } from "../types";
 
 import { geoGet, getLatitudeLongitude } from "../shared/geo";
 import Net from "../shared/net";
@@ -100,7 +92,7 @@ function CivEvent({ path, id }: { path?: string; id?: string }) {
     const deckManager: DM<DeckEvent> = useDeckManager(
         id,
         DeckKind.Event,
-        flags
+        flags,
     );
 
     const deck: DeckEvent | undefined = deckManager.getDeck();
@@ -244,14 +236,14 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
                 parsedUpperDate,
                 s.isDateApprox,
                 s.roundToYear,
-                false
+                false,
             );
             s.dateFuzz = 0.0;
         } else if (parsedExactDate) {
             s.dateTextual = asHumanReadableDate(
                 parsedExactDate,
                 s.isDateApprox,
-                s.roundToYear
+                s.roundToYear,
             );
             s.dateFuzz = 0.5;
         } else {
@@ -312,7 +304,7 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
                 // newState = buildReadableDateFromLast(newState);
             } else {
                 console.error(
-                    "handleChangeEvent: unknown target name: " + name
+                    "handleChangeEvent: unknown target name: " + name,
                 );
             }
 
@@ -345,7 +337,7 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
         Net.put<ProtoEvent, DeckEvent>(`/api/events/${event.id}`, data).then(
             (newDeck) => {
                 onUpdate(newDeck);
-            }
+            },
         );
 
         e.preventDefault();
@@ -369,12 +361,12 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
         event.preventDefault();
 
         let geoResult: GeoResult | unknown = await geoGet(
-            localState.locationTextual!
+            localState.locationTextual!,
         );
 
         if (geoResult) {
             let [isOk, latitudeNew, longitudeNew] = getLatitudeLongitude(
-                geoResult as GeoResult
+                geoResult as GeoResult,
             );
 
             if (isOk) {
@@ -387,7 +379,7 @@ function EventUpdater({ event, onUpdate, onCancel }: EventUpdaterProps) {
                 setLocalState(newState);
             } else {
                 console.log(
-                    `geoResult failed for ${localState.locationTextual}`
+                    `geoResult failed for ${localState.locationTextual}`,
                 );
                 console.log(geoResult);
             }

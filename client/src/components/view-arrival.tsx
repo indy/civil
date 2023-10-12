@@ -1,4 +1,4 @@
-import { FatDeck, Arrival, Note, Passage } from "../types";
+import type { FatDeck, Arrival, Note, Passage } from "../types";
 
 import DeckLink from "./deck-link";
 import Expandable from "./expandable";
@@ -68,7 +68,7 @@ type ArrivalNoteProps = {
 
 function ArrivalNote({ deck, note, renderDivider }: ArrivalNoteProps) {
     const [flashcardIndicators, maximisedFlashcards] = useFlashcards(
-        note.flashcards
+        note.flashcards,
     );
 
     function buildTopAnnotation(annotation: string) {

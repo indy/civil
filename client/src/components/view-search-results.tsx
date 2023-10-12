@@ -1,16 +1,14 @@
 import { useState, useRef } from "preact/hooks";
 
-import {
-    CivilMode,
+import { CivilMode, RenderingDeckPart, RefKind } from "../enums";
+import type {
     Note,
     ReferencesApplied,
     ReferencesDiff,
-    RenderingDeckPart,
     SearchDeck,
     SearchResults,
     SlimDeck,
     Reference,
-    RefKind,
 } from "../types";
 
 import { AppStateChange, getAppState } from "../app-state";
@@ -118,7 +116,7 @@ function SearchNote({
     const appState = getAppState();
 
     const [flashcardIndicators, maximisedFlashcards] = useFlashcards(
-        note.flashcards
+        note.flashcards,
     );
     let [addDeckReferencesUI, setAddDeckReferencesUI] = useState(false);
     let [hide, setHide] = useState(false);
@@ -242,7 +240,7 @@ function AddQuickRef({
 
         Net.put<ReferencesDiff, ReferencesApplied>(
             `/api/notes/${note.id}/references`,
-            changeData
+            changeData,
         ).then((response) => {
             const recents = response.recents;
             AppStateChange.setRecentlyUsedDecks({ recents });

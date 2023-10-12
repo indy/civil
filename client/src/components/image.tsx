@@ -1,6 +1,6 @@
 import { useState } from "preact/hooks";
 
-import { CivilMode } from "../types";
+import { CivilMode } from "../enums";
 
 import { getAppState, immutableState } from "../app-state";
 

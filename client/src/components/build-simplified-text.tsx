@@ -1,4 +1,4 @@
-import { WasmInterface } from "../types";
+import type { WasmInterface } from "../types";
 
 type Element = {
     name: string;
@@ -20,7 +20,7 @@ type Element = {
 //
 export default function buildSimplifiedText(
     content: string,
-    wasmInterface: WasmInterface
+    wasmInterface: WasmInterface,
 ) {
     // an accurate note id isn't required for buildSimplifiedText since we won't
     // output any margin content. we only care about the body text

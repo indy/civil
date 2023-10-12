@@ -1,13 +1,11 @@
 import { useEffect } from "preact/hooks";
 
-import {
-    DeckKind,
+import { DeckKind, RefKind, RenderingDeckPart } from "../enums";
+import type {
     Key,
     Reference,
     ReferencesApplied,
-    RefKind,
     ReferencesDiff,
-    RenderingDeckPart,
     SearchResults,
     SlimDeck,
     State,
@@ -106,7 +104,7 @@ function rebuildCurrentSelection(state: LocalState): LocalState {
     state.currentSelection = state.referencesUnchanged.concat(
         state.referencesChanged,
         state.referencesAdded,
-        state.referencesCreated
+        state.referencesCreated,
     );
     state.currentSelection.sort(sortByDeckKindThenName);
     return state;
@@ -203,7 +201,7 @@ function reducer(state: LocalState, action: Action): LocalState {
                 newState.referencesChanged = newState.referencesChanged.filter(
                     (r) => {
                         return r.id !== refToRemove.id;
-                    }
+                    },
                 );
                 newState.referencesRemoved.push(refToRemove);
             } else if (
@@ -212,7 +210,7 @@ function reducer(state: LocalState, action: Action): LocalState {
                 newState.referencesAdded = newState.referencesAdded.filter(
                     (r) => {
                         return r.id !== refToRemove.id;
-                    }
+                    },
                 );
             } else if (
                 state.referencesCreated.find((r) => r.id === refToRemove.id)
@@ -220,7 +218,7 @@ function reducer(state: LocalState, action: Action): LocalState {
                 newState.referencesCreated = newState.referencesCreated.filter(
                     (r) => {
                         return r.id !== refToRemove.id;
-                    }
+                    },
                 );
             }
 
@@ -237,28 +235,28 @@ function reducer(state: LocalState, action: Action): LocalState {
             let refToChangeKind = data.reference;
 
             let found = state.referencesUnchanged.find(
-                (r) => r.id === refToChangeKind.id
+                (r) => r.id === refToChangeKind.id,
             );
             if (found) {
                 // move from unchanged to changed
                 newState.referencesUnchanged = state.referencesUnchanged.filter(
-                    (r) => r.id !== found!.id
+                    (r) => r.id !== found!.id,
                 );
                 newState.referencesChanged.push(found);
             }
             if (!found) {
                 found = state.referencesChanged.find(
-                    (r) => r.id === refToChangeKind.id
+                    (r) => r.id === refToChangeKind.id,
                 );
             }
             if (!found) {
                 found = state.referencesAdded.find(
-                    (r) => r.id === refToChangeKind.id
+                    (r) => r.id === refToChangeKind.id,
                 );
             }
             if (!found) {
                 found = state.referencesCreated.find(
-                    (r) => r.id === refToChangeKind.id
+                    (r) => r.id === refToChangeKind.id,
                 );
             }
 
@@ -279,28 +277,28 @@ function reducer(state: LocalState, action: Action): LocalState {
             let refToChangeAnnotation = data.reference;
 
             let found = state.referencesUnchanged.find(
-                (r) => r.id === refToChangeAnnotation.id
+                (r) => r.id === refToChangeAnnotation.id,
             );
             if (found) {
                 // move from unchanged to changed
                 newState.referencesUnchanged = state.referencesUnchanged.filter(
-                    (r) => r.id !== found!.id
+                    (r) => r.id !== found!.id,
                 );
                 newState.referencesChanged.push(found);
             }
             if (!found) {
                 found = state.referencesChanged.find(
-                    (r) => r.id === refToChangeAnnotation.id
+                    (r) => r.id === refToChangeAnnotation.id,
                 );
             }
             if (!found) {
                 found = state.referencesAdded.find(
-                    (r) => r.id === refToChangeAnnotation.id
+                    (r) => r.id === refToChangeAnnotation.id,
                 );
             }
             if (!found) {
                 found = state.referencesCreated.find(
-                    (r) => r.id === refToChangeAnnotation.id
+                    (r) => r.id === refToChangeAnnotation.id,
                 );
             }
 
@@ -387,7 +385,7 @@ export default function CivilSelect({
         // make copies of each of the chosen, otherwise cancelling after making edits still shows up on the parent Note
         // (this is because [...chosen] doesn't deep copy the elements of the array)
         referencesUnchanged: (chosen || []).map((ref) =>
-            Object.assign({}, ref)
+            Object.assign({}, ref),
         ),
         referencesChanged: [],
         referencesRemoved: [],
@@ -403,7 +401,7 @@ export default function CivilSelect({
     };
     const [local, localDispatch] = useLocalReducer<LocalState, ActionType>(
         reducer,
-        rebuildCurrentSelection(s)
+        rebuildCurrentSelection(s),
     );
 
     const onKeyDown = (e: KeyboardEvent) => {
@@ -446,7 +444,7 @@ export default function CivilSelect({
 
         Net.put<ReferencesDiff, ReferencesApplied>(
             `/api/notes/${noteId}/references`,
-            changeData
+            changeData,
         ).then((response) => {
             const recents = response.recents;
             AppStateChange.setRecentlyUsedDecks({ recents });
@@ -531,7 +529,7 @@ export default function CivilSelect({
                     }
                     onChangeAnnotation={(
                         reference: Reference,
-                        annotation: string
+                        annotation: string,
                     ) =>
                         localDispatch(ActionType.ReferenceChangeAnnotation, {
                             reference,
@@ -550,7 +548,7 @@ export default function CivilSelect({
                 onCreate={(shouldBeProtoReference) => {
                     localDispatch(
                         ActionType.SelectCreate,
-                        shouldBeProtoReference
+                        shouldBeProtoReference,
                     );
                 }}
                 showKeyboardShortcuts={local.showKeyboardShortcuts}
@@ -565,7 +563,7 @@ export default function CivilSelect({
 
 function recentValidDecks(
     localState: LocalState,
-    appState: State
+    appState: State,
 ): Array<SlimDeck> {
     function alreadyAdded(sd: SlimDeck): boolean {
         // have to check title rather than id in case one of the added decks
@@ -575,7 +573,7 @@ function recentValidDecks(
     }
 
     const recent = appState.recentlyUsedDecks.value.filter(
-        (rd) => !alreadyAdded(rd)
+        (rd) => !alreadyAdded(rd),
     );
 
     return recent;
@@ -671,7 +669,7 @@ function SelectedReference({
     }
 
     let topclass = `c-selected-reference pigment-${deckKindToResourceString(
-        reference.deckKind
+        reference.deckKind,
     )}`;
 
     return (
@@ -814,7 +812,7 @@ function CandidateItem({
         showKeyboardShortcuts && keyIndex < maxShortcuts;
 
     const topclass = `c-candidate-item pigment-${deckKindToResourceString(
-        candidate.deckKind
+        candidate.deckKind,
     )}`;
     return (
         <div class={topclass} onClick={selectedThisCandidate}>

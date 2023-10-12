@@ -1,7 +1,8 @@
 import { route } from "preact-router";
 import { useEffect, useState } from "preact/hooks";
 
-import { CivilMode, Key, SearchResults } from "../types";
+import { CivilMode } from "../enums";
+import type { Key, SearchResults } from "../types";
 
 import { getAppState } from "../app-state";
 
@@ -15,13 +16,17 @@ import { CivContainer, CivLeft, CivMainUi } from "./civil-layout";
 import TopBarMenu from "./top-bar-menu";
 import ViewSearchResults from "./view-search-results";
 
-
 type SearchQuery = {
-    q?: string
-}
+    q?: string;
+};
 
-export default function Search({ path, matches }: { path?: string, matches?: SearchQuery }) {
-
+export default function Search({
+    path,
+    matches,
+}: {
+    path?: string;
+    matches?: SearchQuery;
+}) {
     let encodedQuery: string = "";
     if (matches && matches.q) {
         encodedQuery = matches.q;
@@ -30,12 +35,12 @@ export default function Search({ path, matches }: { path?: string, matches?: Sea
     return (
         <div>
             <TopBarMenu />
-            <SearchModule encodedQuery={encodedQuery}/>
+            <SearchModule encodedQuery={encodedQuery} />
         </div>
     );
 }
 
-function SearchModule({encodedQuery}: {encodedQuery: string}) {
+function SearchModule({ encodedQuery }: { encodedQuery: string }) {
     const appState = getAppState();
 
     const emptyResults: SearchResults = {
@@ -59,7 +64,6 @@ function SearchModule({encodedQuery}: {encodedQuery: string}) {
             setTiming(0);
         }
     }, [encodedQuery]);
-
 
     function getSearchResults(query: string) {
         const url = `/api/search/full?q=${query}`;

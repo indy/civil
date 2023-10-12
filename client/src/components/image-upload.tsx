@@ -1,16 +1,16 @@
-import { UserUploadedImage } from "../types";
+import type { UserUploadedImage } from "../types";
 
 import Net from "../shared/net";
 
 export default async function uploadImages(
-    files: FileList
+    files: FileList,
 ): Promise<Array<UserUploadedImage>> {
     let counter = 0;
     let formData = new FormData();
 
     for (let i = 0; i < files.length; i++) {
         let sortedFiles = Array.from(files).sort(
-            (a, b) => a.lastModified - b.lastModified
+            (a, b) => a.lastModified - b.lastModified,
         );
         const file = sortedFiles[i];
 
@@ -36,7 +36,7 @@ export default async function uploadImages(
 
         // fetch the most recent uploads or the last 15, whichever is greater
         let recentImages = await Net.get<Array<UserUploadedImage>>(
-            `/api/upload/${imagesUploaded}`
+            `/api/upload/${imagesUploaded}`,
         );
         return recentImages;
     }

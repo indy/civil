@@ -1,7 +1,7 @@
 import { route } from "preact-router";
 import { useState } from "preact/hooks";
 
-import { DeckKind } from "../types";
+import { DeckKind } from "../enums";
 
 import { createDeck, deckKindToSingularString } from "../shared/deck";
 

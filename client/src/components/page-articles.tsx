@@ -1,15 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 
-import {
-    DeckArticle,
-    DeckKind,
-    DeckManagerFlags,
-    DM,
-    Note,
-    NoteKind,
-    ProtoArticle,
-    SlimDeck,
-} from "../types";
+import { DeckKind, DeckManagerFlags, NoteKind } from "../enums";
+import type { DeckArticle, DM, Note, ProtoArticle, SlimDeck } from "../types";
 
 import { buildUrl } from "../shared/civil";
 import Net from "../shared/net";
@@ -126,7 +118,7 @@ function Article({ path, id }: { path?: string; id?: string }) {
     const deckManager: DM<DeckArticle> = useDeckManager(
         id,
         DeckKind.Article,
-        flags
+        flags,
     );
 
     function Url({ url }: { url: string }) {
@@ -181,7 +173,7 @@ function Article({ path, id }: { path?: string; id?: string }) {
                                     id={deck.id}
                                 />
                                 {deckManager.canShowPassage(
-                                    NoteKind.NoteSummary
+                                    NoteKind.NoteSummary,
                                 ) && (
                                     <AutoSummarize
                                         deck={deck}
@@ -269,11 +261,11 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
     const [author, setAuthor] = useState(article.author || "");
     const [source, setSource] = useState(article.source || "");
     const [shortDescription, setShortDescription] = useState(
-        article.shortDescription || ""
+        article.shortDescription || "",
     );
     const [rating, setRating] = useState(article.impact || 0);
     const [publishedDate, setPublishedDate] = useState(
-        article.publishedDate || ""
+        article.publishedDate || "",
     );
     const [insigniaId, setInsigniaId] = useState(article.insignia || 0);
     const [font, setFont] = useState(article.font);
@@ -364,7 +356,7 @@ function ArticleUpdater({ article, onUpdate, onCancel }: ArticleUpdaterProps) {
 
         Net.put<ProtoArticle, DeckArticle>(
             buildUrl(deckKind, article.id, "/api"),
-            data
+            data,
         ).then((newDeck) => {
             onUpdate(newDeck);
         });

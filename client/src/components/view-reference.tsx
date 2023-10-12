@@ -1,12 +1,7 @@
 import { useState } from "preact/hooks";
 
-import {
-    CivilMode,
-    Note,
-    Reference,
-    RefKind,
-    RenderingDeckPart,
-} from "../types";
+import { CivilMode, RefKind, RenderingDeckPart } from "../enums";
+import type { Note, Reference } from "../types";
 
 import { getAppState } from "../app-state";
 
@@ -81,7 +76,7 @@ export default function ViewReference({
         klass += " " + extraClasses;
 
         const scribbleClasses = `ref-scribble pigment-fg-${deckKindToResourceString(
-            deckKind
+            deckKind,
         )}`;
 
         return (

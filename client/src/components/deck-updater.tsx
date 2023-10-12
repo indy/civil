@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 
-import { FatDeck, Font, ProtoSlimDeck, SlimDeck } from "../types";
+import { Font } from "../enums";
+import type { FatDeck, ProtoSlimDeck, SlimDeck } from "../types";
 
 import {
     deckKindToResourceString,
@@ -67,7 +68,7 @@ const DeckUpdater = <T extends FatDeck>({
         Net.put<ProtoSlimDeck, T>(`/api/${resource}/${deck.id}`, data).then(
             (newDeck) => {
                 onUpdate(newDeck);
-            }
+            },
         );
 
         event.preventDefault();

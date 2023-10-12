@@ -1,7 +1,7 @@
-import { ComponentChildren } from "preact";
+import { type ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { SlimDeck, SlimResults } from "../types";
+import type { SlimDeck, SlimResults } from "../types";
 
 import Net from "../shared/net";
 

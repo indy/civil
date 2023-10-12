@@ -1,7 +1,8 @@
-import { ComponentChildren } from "preact";
+import { type ComponentChildren } from "preact";
 import { useRef } from "preact/hooks";
 
-import { CivilMode, FatDeck, RenderingDeckPart } from "../types";
+import { CivilMode, RenderingDeckPart } from "../enums";
+import type { FatDeck } from "../types";
 
 import { getAppState } from "../app-state";
 

@@ -1,6 +1,6 @@
-import { Router, route, RouterOnChangeArgs } from "preact-router";
+import { Router, route, type RouterOnChangeArgs } from "preact-router";
 
-import { State, UserWithUiConfig, UberSetup, UiConfig } from "./types";
+import type { State, UserWithUiConfig, UberSetup, UiConfig } from "./types";
 
 import { AppStateChange, AppStateProvider, getAppState } from "./app-state";
 
@@ -73,7 +73,7 @@ const AppUI = () => {
     }
 
     function handleRoute(
-        e: RouterOnChangeArgs<Record<string, string | undefined> | null>
+        e: RouterOnChangeArgs<Record<string, string | undefined> | null>,
     ): void {
         AppStateChange.routeChanged({ url: e.url });
 
@@ -81,7 +81,7 @@ const AppUI = () => {
             // all other pages require the user to be logged in
             if (state.user.value.username === "") {
                 console.log(
-                    "redirecting to /login because user is not logged in"
+                    "redirecting to /login because user is not logged in",
                 );
 
                 // NOTE: this is a hack to work-around a bug in preact-router

@@ -1,6 +1,7 @@
-import { ComponentChildren, h } from "preact";
+import { type ComponentChildren, h } from "preact";
 
-import { Font, Key, RenderingDeckPart } from "../types";
+import { Font, RenderingDeckPart } from "../enums";
+import type { Key } from "../types";
 
 import { fontClass } from "../shared/font";
 
@@ -44,7 +45,7 @@ export default function buildMarkup(
     content: string,
     font: Font,
     noteId: Key,
-    options?: any
+    options?: any,
 ) {
     const appState = getAppState();
     const wasmInterface = appState.wasmInterface!;
@@ -137,7 +138,7 @@ export default function buildMarkup(
                 // as html's <p> tag cannot be nested, use a span with a custom class
                 //
                 modified_attrs.class = assignPseudoParagraph(
-                    modified_attrs.class
+                    modified_attrs.class,
                 );
 
                 return h("span", modified_attrs, ...children);

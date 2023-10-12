@@ -1,12 +1,12 @@
 import { useEffect } from "preact/hooks";
 
-import { State } from "../types";
+import type { State } from "../types";
 
 import { getAppState } from "../app-state";
 
 export default function useModalKeyboard(
     id: number,
-    keyHandler: (key: string) => void
+    keyHandler: (key: string) => void,
 ) {
     const appState = getAppState();
 

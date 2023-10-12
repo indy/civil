@@ -1,4 +1,4 @@
-import { Arc, GraphCallback, GraphNode, GraphState } from "../types";
+import type { Arc, GraphCallback, GraphNode, GraphState } from "../types";
 
 const initialRadius: number = 10;
 const initialAngle: number = Math.PI * (3 - Math.sqrt(5));
@@ -8,7 +8,7 @@ let gSimIdCounter: number = 0;
 export function graphPhysics(
     graphState: GraphState,
     tickCallbackFn: GraphCallback,
-    setSimIsRunningFn: (b: boolean) => void
+    setSimIsRunningFn: (b: boolean) => void,
 ) {
     if (Object.keys(graphState).length === 0) {
         // graphState is the empty object
@@ -177,7 +177,7 @@ function forceLink(
     graphState: GraphState,
     strengths: Array<number>,
     bias: Array<number>,
-    alpha: number
+    alpha: number,
 ) {
     var i;
     let nodes = graphState.nodes;

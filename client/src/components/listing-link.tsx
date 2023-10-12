@@ -1,4 +1,4 @@
-import { SlimDeck } from "../types";
+import type { SlimDeck } from "../types";
 
 import DeckLink from "./deck-link";
 

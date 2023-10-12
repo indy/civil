@@ -1,4 +1,4 @@
-import { DeckArticle, SlimDeck } from "../types";
+import type { DeckArticle, SlimDeck } from "../types";
 
 import { StarRatingWithinListing } from "./star-rating";
 import DeckLink from "./deck-link";

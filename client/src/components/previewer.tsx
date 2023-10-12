@@ -1,4 +1,4 @@
-import { Key, PreviewDeck } from "../types";
+import type { Key, PreviewDeck } from "../types";
 
 import { getAppState } from "../app-state";
 
@@ -19,7 +19,7 @@ export default function Previewer() {
 
         if (hasContent) {
             content = previewDeck.notes.map((n) =>
-                buildMarkup(n.content, n.font, n.id, { ignoreRight: true })
+                buildMarkup(n.content, n.font, n.id, { ignoreRight: true }),
             );
         }
     }

@@ -2,15 +2,13 @@ import { createRef } from "preact";
 import { route } from "preact-router";
 import { useEffect, useState } from "preact/hooks";
 
-import {
+import { Direction, LineStyle, RefKind } from "../enums";
+import type {
     Arc,
-    Direction,
-    LineStyle,
     GraphCallback,
     GraphNode,
     GraphState,
     Key,
-    RefKind,
     SlimDeck,
 } from "../types";
 
@@ -132,7 +130,7 @@ export default function Graph({ id }: { id: Key }) {
     const svgContainerRef = createRef();
     const [local, localDispatch] = useLocalReducer<LocalState, ActionType>(
         reducer,
-        initialLocalState()
+        initialLocalState(),
     );
 
     useModalKeyboard(id, (key: string) => {
@@ -151,7 +149,7 @@ export default function Graph({ id }: { id: Key }) {
 
     function graphNodeFromSlimDeck(
         slimdeck: SlimDeck,
-        important: boolean
+        important: boolean,
     ): GraphNode {
         const graphNode: GraphNode = {
             id: slimdeck.id,
@@ -169,7 +167,7 @@ export default function Graph({ id }: { id: Key }) {
     function ensureGraphNodeExists(
         gs: GraphState,
         deck: SlimDeck,
-        important: boolean
+        important: boolean,
     ) {
         if (!gs.nodes.has(deck.id)) {
             gs.nodes.set(deck.id, graphNodeFromSlimDeck(deck, important));
@@ -283,7 +281,7 @@ export default function Graph({ id }: { id: Key }) {
                         gUpdateGraphCallback,
                         function (b) {
                             localDispatch(ActionType.SimIsRunning, b);
-                        }
+                        },
                     );
 
                     localDispatch(ActionType.SimIsRunning, true);
@@ -364,7 +362,7 @@ export default function Graph({ id }: { id: Key }) {
             const [ansx, ansy] = mouseInSvg(
                 event.pageX,
                 event.pageY,
-                svgContainerRef.current
+                svgContainerRef.current,
             );
 
             g.associatedNode.fx = ansx;
@@ -508,7 +506,7 @@ function buildSvg(ref: any, graphState: GraphState) {
     let defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
     let marker = document.createElementNS(
         "http://www.w3.org/2000/svg",
-        "marker"
+        "marker",
     );
     marker.setAttribute("id", "arrow-head");
     marker.setAttribute("viewBox", "0 -5 10 10");
@@ -602,7 +600,7 @@ function buildUpdateGraphCallback(svg?: any): GraphCallback {
     function updateGraphCallback(
         graphState: GraphState,
         physicsId: number,
-        globalPhysicsId: number
+        globalPhysicsId: number,
     ) {
         if (physicsId !== globalPhysicsId) {
             console.log("what the fuck? this should never happen");
@@ -672,7 +670,7 @@ function createSvgArc(arc: Arc, sourceNode: GraphNode, targetNode: GraphNode) {
             }
             path.setAttribute(
                 "marker-end",
-                `url(${window.location}#arrow-head)`
+                `url(${window.location}#arrow-head)`,
             );
             translateEdge(path, targetNode, sourceNode);
             break;
@@ -684,7 +682,7 @@ function createSvgArc(arc: Arc, sourceNode: GraphNode, targetNode: GraphNode) {
             }
             path.setAttribute(
                 "marker-end",
-                `url(${window.location}#arrow-head)`
+                `url(${window.location}#arrow-head)`,
             );
             translateEdge(path, sourceNode, targetNode);
             break;
@@ -692,7 +690,7 @@ function createSvgArc(arc: Arc, sourceNode: GraphNode, targetNode: GraphNode) {
             if (arc.lineStyle === LineStyle.Dotted) {
                 path.setAttribute(
                     "stroke",
-                    "var(--graph-edge-in-contrast-dimmed)"
+                    "var(--graph-edge-in-contrast-dimmed)",
                 );
             } else {
                 path.setAttribute("stroke", "var(--graph-edge-in-contrast)");
@@ -703,7 +701,7 @@ function createSvgArc(arc: Arc, sourceNode: GraphNode, targetNode: GraphNode) {
             if (arc.lineStyle === LineStyle.Dotted) {
                 path.setAttribute(
                     "stroke",
-                    "var(--graph-edge-critical-dimmed)"
+                    "var(--graph-edge-critical-dimmed)",
                 );
             } else {
                 path.setAttribute("stroke", "var(--graph-edge-critical)");
@@ -746,7 +744,7 @@ function createSvgNode(n: GraphNode) {
     if (n.proximity === 0) {
         let circledges = document.createElementNS(
             "http://www.w3.org/2000/svg",
-            "circle"
+            "circle",
         );
         circledges.setAttribute("fill", "var(--graph-edge)");
         circledges.setAttribute("r", "8");
@@ -754,7 +752,7 @@ function createSvgNode(n: GraphNode) {
 
         circledges = document.createElementNS(
             "http://www.w3.org/2000/svg",
-            "circle"
+            "circle",
         );
         circledges.setAttribute("fill", "var(--bg)");
         circledges.setAttribute("r", "6");

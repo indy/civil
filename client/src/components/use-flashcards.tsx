@@ -1,6 +1,6 @@
 import { useState } from "preact/hooks";
 
-import { FlashCard } from "../types";
+import type { FlashCard } from "../types";
 
 import FlashCardIndicator from "./flashcard-indicator";
 import ViewFlashCard from "./view-flashcard";
@@ -13,7 +13,7 @@ enum FlashCardUIState {
 
 export default function useFlashcards(flashcards: Array<FlashCard>) {
     const [showFlashCard, setShowFlashCard] = useState(
-        flashcards.map(() => FlashCardUIState.Minimised)
+        flashcards.map(() => FlashCardUIState.Minimised),
     );
 
     // normal if statement here because useEffect isn't invoked

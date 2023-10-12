@@ -1,8 +1,9 @@
-import { ComponentChildren } from "preact";
+import { type ComponentChildren } from "preact";
 import { Link } from "preact-router";
 import { useRef } from "preact/hooks";
 
-import { CivilMode, PreviewNotes, RenderingDeckPart, SlimDeck } from "../types";
+import { CivilMode, RenderingDeckPart } from "../enums";
+import type { PreviewNotes, SlimDeck } from "../types";
 
 import { AppStateChange, getAppState } from "../app-state";
 
@@ -40,7 +41,7 @@ export default function DeckLink({
             Net.get<PreviewNotes>(`/api/decks/preview/${slimDeck.id}`).then(
                 (previewNotes) => {
                     AppStateChange.addPreview({ slimDeck, previewNotes });
-                }
+                },
             );
         }
         AppStateChange.showPreviewDeck({ deckId: slimDeck.id });

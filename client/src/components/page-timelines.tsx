@@ -1,14 +1,7 @@
 import { useState } from "preact/hooks";
 
-import {
-    DeckKind,
-    DeckManagerFlags,
-    DeckTimeline,
-    DM,
-    PassageType,
-    Point,
-    SlimDeck,
-} from "../types";
+import { DeckKind, DeckManagerFlags } from "../enums";
+import type { DeckTimeline, DM, PassageType, Point, SlimDeck } from "../types";
 
 import { AppStateChange, getAppState, immutableState } from "../app-state";
 import CivilButton from "./civil-button";
@@ -91,7 +84,7 @@ function Timeline({ path, id }: { path?: string; id?: string }) {
     const deckManager: DM<DeckTimeline> = useDeckManager(
         id,
         DeckKind.Timeline,
-        flags
+        flags,
     );
 
     const deck: DeckTimeline | undefined = deckManager.getDeck();

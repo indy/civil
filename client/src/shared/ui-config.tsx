@@ -1,4 +1,5 @@
-import { DeckKind, UiConfig, ColourScheme } from "../types";
+import type { UiConfig } from "../types";
+import { DeckKind, ColourScheme } from "../enums";
 
 import Net from "../shared/net";
 import { AppStateChange } from "../app-state";

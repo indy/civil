@@ -1,4 +1,4 @@
-import { Font } from "../types";
+import { Font } from "../enums";
 
 export default function FontSelector({
     font,

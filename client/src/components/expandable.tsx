@@ -1,4 +1,4 @@
-import { ComponentChildren } from "preact";
+import { type ComponentChildren } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import { CivContainer, CivMain } from "./civil-layout";

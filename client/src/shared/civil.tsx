@@ -1,4 +1,5 @@
-import { CivilMode, State, DeckKind, Key } from "../types";
+import { CivilMode, DeckKind } from "../enums";
+import type { State, Key } from "../types";
 
 import { deckKindToResourceString } from "../shared/deck";
 

@@ -1,8 +1,9 @@
-import {
+import { NoteKind } from "../enums";
+
+import type {
     FatDeck,
     Key,
     Note,
-    NoteKind,
     Notes,
     Point,
     ReferencesDiff,
@@ -58,7 +59,7 @@ const ViewPassageChunkyBoy = <T extends FatDeck>({
             (allRemainingNotes) => {
                 let notes = allRemainingNotes;
                 onUpdateDeck({ ...deck, notes });
-            }
+            },
         );
     }
 
@@ -90,7 +91,7 @@ const ViewPassageChunkyBoy = <T extends FatDeck>({
 
             Net.put<ReferencesDiff, ReferencesApplied>(
                 `/api/notes/${note.id}/references`,
-                changeData
+                changeData,
             ).then((response) => {
                 onRefsChanged(note, response.refs);
             });

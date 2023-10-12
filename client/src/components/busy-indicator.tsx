@@ -1,4 +1,4 @@
-import { WaitingFor } from "../types";
+import { WaitingFor } from "../enums";
 
 import { getAppState } from "../app-state";
 

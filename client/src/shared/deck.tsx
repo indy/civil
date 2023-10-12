@@ -1,6 +1,7 @@
 import { route } from "preact-router";
 
-import { DeckKind, SlimDeck } from "../types";
+import { DeckKind } from "../enums";
+import type { SlimDeck } from "../types";
 
 import Net from "../shared/net";
 

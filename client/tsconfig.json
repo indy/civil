@@ -1,20 +1,35 @@
 {
     "compilerOptions": {
-        "target": "ES2020",
+        /* base options */
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "target": "es2022",
+        "verbatimModuleSyntax": true,
+        "allowJs": true,
+        "resolveJsonModule": true,
+        "moduleDetection": "force",
+
+        /* strictness*/
+        "strict": true,
+        /* "noUncheckedIndexedAccess": true, */
+
+        /* transpiling with both esbuild and Typescript tsc */
+        "moduleResolution": "Bundler",
         "module": "ESNext",
-        "moduleResolution": "bundler",
+        "noEmit": true,
+
+        /* code runs with the DOM and preact */
+        "lib": ["es2022", "dom", "dom.iterable"],
         "jsx": "react-jsx",
         "jsxImportSource": "preact",
-        "noEmit": true,
-        "strict": true,
+
+        /* misc. preferences */
         "forceConsistentCasingInFileNames": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
         "noUnusedLocals": true,
         "preserveConstEnums": true,
-        "skipLibCheck": true,
-        "strictNullChecks": true,
-        "lib": ["es2021", "dom"]
+        "strictNullChecks": true
     },
     "include": ["src",
                 "www/civil_wasm.d.ts",

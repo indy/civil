@@ -1,16 +1,14 @@
-import { Ref as PreactRef, useEffect, useRef } from "preact/hooks";
+import { type Ref as PreactRef, useEffect, useRef } from "preact/hooks";
 
-import {
-    CivilMode,
+import { CivilMode, Font, Role } from "../enums";
+import type {
     FatDeck,
     FlashCard,
-    Font,
     Key,
     Note,
     Notes,
     Reference,
     ReferencesDiff,
-    Role,
 } from "../types";
 
 import { AppStateChange, getAppState } from "../app-state";
@@ -303,7 +301,7 @@ const ViewNote = <T extends FatDeck>({
     };
     const [local, localDispatch] = useLocalReducer<LocalState, ActionType>(
         reducer,
-        initialState
+        initialState,
     );
 
     const hoveringRef = useRef(null);
@@ -516,7 +514,7 @@ const ViewNote = <T extends FatDeck>({
     }
 
     const [flashcardIndicators, maximisedFlashcards] = useFlashcards(
-        note.flashcards
+        note.flashcards,
     );
 
     function isEditingMarkup(): boolean {
@@ -543,7 +541,7 @@ const ViewNote = <T extends FatDeck>({
                         {buildNoteReferences(
                             note.refs,
                             onCopyRefBelow,
-                            nextNote
+                            nextNote,
                         )}
                     </CivLeft>
                 )}
@@ -561,7 +559,7 @@ const ViewNote = <T extends FatDeck>({
                             buildMarkup(
                                 local.note.content,
                                 local.note.font,
-                                local.note.id
+                                local.note.id,
                             )}
                     </div>
                 </CivMain>
@@ -587,7 +585,7 @@ export default ViewNote;
 function buildNoteReferences(
     refs: Array<Reference>,
     onCopyRefBelow: (ref: Reference, nextNote: Note) => void,
-    nextNote?: Note
+    nextNote?: Note,
 ) {
     const entries = refs.map((ref) => {
         return (

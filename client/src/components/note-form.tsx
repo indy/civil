@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 
-import { Font, Key, NoteKind, Notes } from "../types";
+import { Font, NoteKind } from "../enums";
+import type { Key, Notes } from "../types";
 
 import { getAppState } from "../app-state";
 
@@ -123,7 +124,7 @@ export default function NoteForm({
                 noteKind,
                 prevNoteId,
                 nextNoteId,
-                optionalPointId
+                optionalPointId,
             )
                 .then((allNotes) => {
                     onCreate(allNotes);
@@ -190,7 +191,7 @@ function addNote(
     noteKind: NoteKind,
     prevNoteId?: number,
     nextNoteId?: number,
-    optionalPointId?: number
+    optionalPointId?: number,
 ): Promise<Notes> {
     type ProtoNote = {
         deckId: Key;

@@ -3,17 +3,19 @@ import { useEffect, useState } from "preact/hooks";
 
 import {
     AiKind,
-    ChatMessage,
-    DeckDialogue,
     DeckKind,
     DeckManagerFlags,
-    DM,
     Font,
     Role,
-    ProtoDialogue,
-    SlimDeck,
     NoteKind,
     WaitingFor,
+} from "../enums";
+import type {
+    ChatMessage,
+    DeckDialogue,
+    DM,
+    ProtoDialogue,
+    SlimDeck,
 } from "../types";
 
 import { AppStateChange, getAppState } from "../app-state";
@@ -123,7 +125,7 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
         id,
         DeckKind.Dialogue,
         flags,
-        preCacheFn
+        preCacheFn,
     );
 
     type AppendChatMessage = {
@@ -172,7 +174,7 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
             //
             Net.post<AppendChatMessage, DeckDialogue>(
                 `/api/dialogues/${deck.id}/chat`,
-                appendChatMessage
+                appendChatMessage,
             )
                 .then((updatedDeck) => {
                     deckManager.update(updatedDeck);
@@ -304,7 +306,7 @@ function DialogueChat({ path }: { path?: string }) {
         Net.post<ProtoDialogue, DeckDialogue>("/api/dialogues", data).then(
             (deck) => {
                 route(`/dialogues/${deck.id}`, true);
-            }
+            },
         );
     }
 
@@ -373,7 +375,7 @@ function DialogueChat({ path }: { path?: string }) {
                 {buildMarkup(
                     chatMessage.content,
                     fontForRole(chatMessage.role),
-                    0
+                    0,
                 )}
             </CivMain>,
         ];
@@ -389,7 +391,7 @@ function DialogueChat({ path }: { path?: string }) {
                 <p class="ui">
                     <em>Waiting for response...</em>
                 </p>
-            </CivMain>
+            </CivMain>,
         );
     }
 

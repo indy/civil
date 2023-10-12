@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "preact/hooks";
 
-import { CivilMode } from "../types";
+import { CivilMode } from "../enums";
 
 import { getAppState } from "../app-state";
 
@@ -64,11 +64,11 @@ export default function Title({
                     if (window.pageYOffset < postMarkerEl.offsetTop) {
                         if (titleEl.classList.contains(classSticky)) {
                             preMarkerEl.classList.remove(
-                                classReplacementSpacer
+                                classReplacementSpacer,
                             );
                             titleEl.classList.remove(classSticky);
                             backgroundBandEl.classList.remove(
-                                classBackgroundBand
+                                classBackgroundBand,
                             );
                         }
                     }

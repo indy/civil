@@ -4,19 +4,19 @@ const Net = {
     },
     put: async function <TData, TResp>(
         url: string,
-        data: TData
+        data: TData,
     ): Promise<TResp> {
         return go<TData, TResp>("PUT", url, data);
     },
     post: async function <TData, TResp>(
         url: string,
-        data: TData
+        data: TData,
     ): Promise<TResp> {
         return go<TData, TResp>("POST", url, data);
     },
     delete: async function <TData, TResp>(
         url: string,
-        data: TData
+        data: TData,
     ): Promise<TResp> {
         return go<TData, TResp>("DELETE", url, data);
     },
@@ -36,7 +36,7 @@ const Net = {
 async function go<TData, TResp>(
     method: string,
     url: string,
-    data?: TData
+    data?: TData,
 ): Promise<TResp> {
     let options: RequestInit = {
         method,

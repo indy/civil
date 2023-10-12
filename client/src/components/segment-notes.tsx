@@ -1,13 +1,10 @@
 import {
     DeckKind,
-    FatDeck,
-    Note,
     NoteKind,
-    Notes,
     PassageHowToShow,
-    Reference,
     RenderingDeckPart,
-} from "../types";
+} from "../enums";
+import type { FatDeck, Note, Notes, Reference } from "../types";
 
 import { fontClass } from "../shared/font";
 

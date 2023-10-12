@@ -1,8 +1,8 @@
-import { ComponentChildren } from "preact";
+import { type ComponentChildren } from "preact";
 import { route } from "preact-router";
 import { useState } from "preact/hooks";
 
-import { /* WaitingFor, */ CivilSpan, ColourScheme } from "../types";
+import { CivilSpan, ColourScheme } from "../enums";
 
 import { AppStateChange, getAppState } from "../app-state";
 
@@ -102,7 +102,7 @@ function ColourSchemeSelector({}) {
     const appState = getAppState();
 
     const [colourScheme, setColourScheme] = useState(
-        appState.uiConfig.value.colourScheme
+        appState.uiConfig.value.colourScheme,
     );
 
     function updateColourScheme(cs: ColourScheme) {
