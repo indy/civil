@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             //
             let hrefParts = window.location.href.split("/");
             let title = hrefParts[hrefParts.length - 1];
-            if (title === "") {
+            if (!title || title === "") {
                 title = "home";
             }
             AppStateChange.urlTitle({ title });

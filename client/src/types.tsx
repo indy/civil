@@ -246,7 +246,27 @@ export type SearchResults = {
 };
 
 export type ColourSeeds = {
-    [index: string]: number;
+    uiFactor: number,
+    uiActiveFactor: number,
+
+    hue: number,
+    sat: number,
+
+    bgL: number,
+    bgLDelta: number,
+
+    fgH: number,
+    fgS: number,
+    fgL: number,
+    fgLDelta: number,
+
+    colouredTextS: number,
+    colouredTextL: number,
+
+    clockHDelta: number,
+
+    clockFgL: number,
+    clockBgL: number,
 };
 
 export type ColourTriple = [number, number, number];

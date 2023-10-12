@@ -11,7 +11,7 @@
 
         /* strictness*/
         "strict": true,
-        /* "noUncheckedIndexedAccess": true, */
+        "noUncheckedIndexedAccess": true,
 
         /* transpiling with both esbuild and Typescript tsc */
         "moduleResolution": "Bundler",

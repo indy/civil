@@ -5,6 +5,7 @@ import { useContext } from "preact/hooks";
 import {
     CivilMode,
     CivilSpan,
+    ColourScheme,
     CommandBarMode,
     DeckKind,
     Font,
@@ -217,7 +218,7 @@ const state: State = {
     user: signal(emptyUser),
     uiConfig: signal(basicUiConfig()),
 
-    colourSeeds: signal({}),
+    colourSeeds: signal(declareSeeds(ColourScheme.Light)),
 
     previewCache: signal(new Map<Key, PreviewDeck>()),
     visiblePreviewDeck: signal({ id: 0, showing: false }),
@@ -803,22 +804,22 @@ function buildFullGraph(graphConnections: Array<number>): {
     let res: { [id: Key]: Set<GraphEdge> } = {};
 
     for (let i = 0; i < graphConnections.length; i += 4) {
-        let fromDeck = graphConnections[i + 0];
-        let toDeck = graphConnections[i + 1];
-        let packedKind = graphConnections[i + 2];
-        let strength = graphConnections[i + 3];
+        let fromDeck = graphConnections[i + 0]!;
+        let toDeck = graphConnections[i + 1]!;
+        let packedKind = graphConnections[i + 2]!;
+        let strength = graphConnections[i + 3]!;
 
         let kind: RefKind = packedToKind(packedKind);
 
         if (!res[fromDeck]) {
             res[fromDeck] = new Set();
         }
-        res[fromDeck].add([toDeck, kind, strength]);
+        res[fromDeck]!.add([toDeck, kind, strength]);
 
         if (!res[toDeck]) {
             res[toDeck] = new Set();
         }
-        res[toDeck].add([fromDeck, opposingKind(kind), -strength]);
+        res[toDeck]!.add([fromDeck, opposingKind(kind), -strength]);
     }
 
     return res;

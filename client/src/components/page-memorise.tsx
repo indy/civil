@@ -121,10 +121,10 @@ function reducer(state: State, action: Action): State {
             const d = action.data as ActionDataCardCompleted;
 
             // if the rating had to be sent to the server, it's been sent, so now we can prevent any further posts
-            state.cards[cardIndex].postRatingToServer = false;
+            state.cards[cardIndex]!.postRatingToServer = false;
 
             if (d.rating < 4) {
-                state.cards[cardIndex].showState = ShowState.Prompt;
+                state.cards[cardIndex]!.showState = ShowState.Prompt;
 
                 // retain this card to test again
                 if (cardIndex + 1 >= cards.length) {
@@ -263,7 +263,7 @@ function MemoriseModule() {
 
             {local.mode === Mode.Test && (
                 <CardTest
-                    card={local.cards[local.cardIndex]}
+                    card={local.cards[local.cardIndex]!}
                     onRatedCard={onRatedCard}
                     onShowAnswer={onShowAnswer}
                 />

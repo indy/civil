@@ -14,6 +14,7 @@ import type {
     ChatMessage,
     DeckDialogue,
     DM,
+    Note,
     ProtoDialogue,
     SlimDeck,
 } from "../types";
@@ -143,7 +144,7 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
         }
         if (deck.passage[NoteKind.Note].length > 0) {
             let lastIdx = deck.passage[NoteKind.Note].length - 1;
-            let prevNoteId = deck.passage[NoteKind.Note][lastIdx].id;
+            let prevNoteId = deck.passage[NoteKind.Note][lastIdx]!.id;
 
             const appendChatMessage: AppendChatMessage = {
                 prevNoteId: prevNoteId,
@@ -155,8 +156,8 @@ function Dialogue({ path, id }: { path?: string; id?: string }) {
             // this temporary note will be overwritten once we get the updated deck
             // from the server response
             //
-            let n = {
-                ...deck.passage[NoteKind.Note][lastIdx],
+            let n: Note = {
+                ...deck.passage[NoteKind.Note][lastIdx]!,
             };
             n.prevNoteId = n.id;
             n.id = n.id + 1;
@@ -313,7 +314,7 @@ function DialogueChat({ path }: { path?: string }) {
     function messageAdded(messages: Array<ChatMessage>) {
         if (messages.length === 3) {
             // system + user message + assistant response
-            saveDialogue(messages[1].content, messages);
+            saveDialogue(messages[1]!.content, messages);
         }
         setMessages(messages);
     }
@@ -346,7 +347,7 @@ function DialogueChat({ path }: { path?: string }) {
                     const responseChatMessage: ChatMessage = {
                         noteId: 0,
                         role: Role.Assistant,
-                        content: askResponse[0].message.content,
+                        content: askResponse[0]!.message.content,
                     };
                     messages.push(responseChatMessage);
                     messageAdded(messages);

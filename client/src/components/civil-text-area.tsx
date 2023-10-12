@@ -42,7 +42,7 @@ export default function CivilTextArea({
         if (onPaste) {
             let markup = "";
             for (let i = 0; i < numImages; i++) {
-                markup += ":img(" + recentImages[i].filename + ") ";
+                markup += ":img(" + recentImages[i]!.filename + ") ";
             }
             onPaste(markup.trimEnd());
         }

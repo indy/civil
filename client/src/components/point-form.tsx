@@ -527,18 +527,28 @@ function OptionalMultiPointInput({
     function handleSubmit(e: Event) {
         e.preventDefault();
 
-        function processLine(line: string): ProtoPoint {
+        function processLine(line: string): ProtoPoint | undefined {
             let xs = line.split(" ");
             let date = xs[0];
-            let title = xs.slice(1).join(" ");
-
-            return buildPointItem(date, title);
+            if (date) {
+                let title = xs.slice(1).join(" ");
+                if (title) {
+                    return buildPointItem(date, title);
+                }
+            }
+            return undefined;
         }
 
         let points: Array<ProtoPoint> = [];
         content.split("\n").forEach((line) => {
             if (line.trim().length > 0) {
-                points.push(processLine(line));
+                let p = processLine(line);
+                if (p) {
+                    points.push(p);
+                } else {
+                    console.error(`error processing line: "${line}"`);
+                }
+
             }
         });
 

@@ -492,8 +492,8 @@ function SegmentPoints({
     );
     if (deathIndex) {
         for (let i = deathIndex + 1; i < filteredPoints.length; i++) {
-            if (filteredPoints[i].deckId === deckId) {
-                filteredPoints[i].age = 0;
+            if (filteredPoints[i]!.deckId === deckId) {
+                filteredPoints[i]!.age = 0;
             }
         }
     }
@@ -513,8 +513,8 @@ function SegmentPoints({
             break;
         }
 
-        if (filteredPoints[0].compDate < filteredEvents[0].compDate) {
-            let dp = filteredPoints[0];
+        if (filteredPoints[0]!.compDate < filteredEvents[0]!.compDate) {
+            let dp = filteredPoints[0]!;
             dps.push(
                 <PersonPoint
                     key={dp.id}
@@ -526,7 +526,8 @@ function SegmentPoints({
             );
             filteredPoints = filteredPoints.slice(1);
         } else {
-            dps.push(<PersonSlimEvent event={filteredEvents[0]} />);
+            const fe = filteredEvents[0]!;
+            dps.push(<PersonSlimEvent event={fe} />);
             filteredEvents = filteredEvents.slice(1);
         }
     }

@@ -14,8 +14,8 @@ export default async function uploadImages(
         );
         const file = sortedFiles[i];
 
-        if (file.type.startsWith("image/")) {
-            formData.append("file" + counter, file);
+        if (file!.type.startsWith("image/")) {
+            formData.append("file" + counter, file!);
             counter += 1;
         }
     }

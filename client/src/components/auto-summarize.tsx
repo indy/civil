@@ -28,7 +28,7 @@ export default function AutoSummarize({ deck, onFinish }: AutoSummarizeProps) {
             let prevId: number | undefined = undefined;
             if (summaryPassage.length > 0) {
                 // this deck already contains a note summary passage, so append the auto summarize
-                prevId = summaryPassage[summaryPassage.length - 1].id;
+                prevId = summaryPassage[summaryPassage.length - 1]!.id;
             }
 
             type SummarizeStruct = {

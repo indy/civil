@@ -17,12 +17,12 @@ export function noteSeqsForPoints(notes: Notes): { [id: Key]: Passage } {
             if (!p[n.pointId]) {
                 p[n.pointId] = [];
             }
-            p[n.pointId].push(n);
+            p[n.pointId]!.push(n);
         }
     });
 
     for (let k in p) {
-        p[k] = createOneCompletePassage(p[k]);
+        p[k] = createOneCompletePassage(p[k]!);
     }
 
     return p;
@@ -56,7 +56,7 @@ function createOneCompletePassage(ns: Notes): Passage {
         let item: Note = firstNote;
         do {
             res.push(item);
-            item = h[item.id];
+            item = h[item.id]!;
         } while (item);
     } else {
         console.error("no firstNote found by createSeq");
@@ -94,9 +94,9 @@ export function createMultiplePassages(ns: Notes): Array<Passage> {
         h.forEach((_v, k) => ks.push(k));
 
         if (ks.length > 0) {
-            let startingNote = h.get(ks[0]);
+            let startingNote = h.get(ks[0]!);
 
-            h.delete(ks[0]);
+            h.delete(ks[0]!);
             let localRes = grabPassageStartingFrom(startingNote!, h);
             res.push(localRes);
         } else {

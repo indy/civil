@@ -611,9 +611,9 @@ function buildUpdateGraphCallback(svg?: any): GraphCallback {
 
         Array.from(svg.edges.children).forEach((svgEdge, i) => {
             if (arcs.length > i) {
-                let source: GraphNode = nodes.get(arcs[i].fromId)!;
-                let target: GraphNode = nodes.get(arcs[i].toId)!;
-                let kind = arcs[i].refKind;
+                let source: GraphNode = nodes.get(arcs[i]!.fromId)!;
+                let target: GraphNode = nodes.get(arcs[i]!.toId)!;
+                let kind = arcs[i]!.refKind;
 
                 if (kind === RefKind.RefToParent) {
                     translateEdge(svgEdge, target, source);

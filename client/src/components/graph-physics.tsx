@@ -96,30 +96,30 @@ export function graphPhysics(
                     if (i === j) {
                         continue;
                     }
-                    let nodeA: GraphNode = nodes.get(nodeKeys[j])!;
-                    let nodeB: GraphNode = nodes.get(nodeKeys[i])!;
+                    let nodeA: GraphNode = nodes.get(nodeKeys[j]!)!;
+                    let nodeB: GraphNode = nodes.get(nodeKeys[i]!)!;
                     forceManyBody(nodeA, nodeB, alpha);
                 }
             }
 
             for (j = 0; j < n; j++) {
                 for (i = j + 1; i < n; i++) {
-                    let nodeA: GraphNode = nodes.get(nodeKeys[i])!;
-                    let nodeB: GraphNode = nodes.get(nodeKeys[j])!;
+                    let nodeA: GraphNode = nodes.get(nodeKeys[i]!)!;
+                    let nodeB: GraphNode = nodes.get(nodeKeys[j]!)!;
                     forceCollide(nodeA, nodeB);
                 }
             }
 
             for (j = 0; j < n; j++) {
                 for (i = j + 1; i < n; i++) {
-                    let nodeA: GraphNode = nodes.get(nodeKeys[i])!;
-                    let nodeB: GraphNode = nodes.get(nodeKeys[j])!;
+                    let nodeA: GraphNode = nodes.get(nodeKeys[i]!)!;
+                    let nodeB: GraphNode = nodes.get(nodeKeys[j]!)!;
                     forceCollideBox(nodeA, nodeB);
                 }
             }
 
             for (i = 0; i < n; i++) {
-                node = nodes.get(nodeKeys[i])!;
+                node = nodes.get(nodeKeys[i]!)!;
                 forceX(node, alpha);
                 forceY(node, alpha);
             }
@@ -127,7 +127,7 @@ export function graphPhysics(
             gatherSimStats(graphState);
 
             for (i = 0; i < n; ++i) {
-                node = nodes.get(nodeKeys[i])!;
+                node = nodes.get(nodeKeys[i]!)!;
                 if (node.fx == null) {
                     node.x += node.vx *= velocityDecay;
                 } else {
@@ -187,16 +187,16 @@ function forceLink(
     let distance = 30;
     var arc, source, target, x, y, l, b;
     for (i = 0; i < m; ++i) {
-        arc = arcs[i];
+        arc = arcs[i]!;
         source = nodes.get(arc.fromId)!;
         target = nodes.get(arc.toId)!;
         x = target.x + target.vx - source.x - source.vx || jiggle();
         y = target.y + target.vy - source.y - source.vy || jiggle();
         l = Math.sqrt(x * x + y * y);
-        l = ((l - distance) / l) * alpha * strengths[i];
+        l = ((l - distance) / l) * alpha * strengths[i]!;
         x *= l;
         y *= l;
-        target.vx -= x * (b = bias[i]);
+        target.vx -= x * (b = bias[i]!);
         target.vy -= y * b;
         source.vx += x * (b = 1 - b);
         source.vy += y * b;
@@ -258,24 +258,25 @@ function initializeGraph(graphState: GraphState): {
 
     let count: { [i: number]: number } = {};
     for (i = 0; i < m; ++i) {
-        arc = arcs[i];
+        arc = arcs[i]!;
         count[arc.fromId] = (count[arc.fromId] || 0) + 1;
         count[arc.toId] = (count[arc.toId] || 0) + 1;
     }
 
     let bias = new Array(m);
     for (i = 0; i < m; ++i) {
-        arc = arcs[i];
-        bias[i] = count[arc.fromId] / (count[arc.fromId] + count[arc.toId]);
+        arc = arcs[i]!;
+        let f = count[arc.fromId]!;
+        bias[i] = f / (count[arc.fromId]! + count[arc.toId]!);
     }
 
     function defaultStrength(arc: Arc) {
-        return 1 / Math.min(count[arc.fromId], count[arc.toId]);
+        return 1 / Math.min(count[arc.fromId]!, count[arc.toId]!);
     }
 
     let strengths = new Array(m);
     for (i = 0; i < m; ++i) {
-        strengths[i] = defaultStrength(arcs[i]);
+        strengths[i] = defaultStrength(arcs[i]!);
     }
 
     return { bias, strengths };

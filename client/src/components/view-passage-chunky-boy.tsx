@@ -128,7 +128,7 @@ const ViewPassageChunkyBoy = <T extends FatDeck>({
 
         let nextNoteId = undefined;
         let prevNoteId =
-            notes && notes.length > 0 ? notes[notes.length - 1].id : undefined;
+            notes && notes.length > 0 ? notes[notes.length - 1]!.id : undefined;
         let optionalPointId = optionalPoint && optionalPoint.id;
         return (
             <NoteForm

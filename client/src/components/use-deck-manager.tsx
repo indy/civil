@@ -265,7 +265,7 @@ export default function useDeckManager<T extends FatDeck>(
                 if (deck.passageForPoint) {
                     return ViewPassageChunkyBoy({
                         deck: deck,
-                        notes: deck.passageForPoint[point.id],
+                        notes: deck.passageForPoint[point.id]!,
                         onUpdateDeck: update,
                         onRefsChanged,
                         optionalPoint: point,
@@ -465,12 +465,18 @@ function dmsSetEditingDeckRefs<T extends FatDeck>(
 }
 
 function sortRefsInNotes<T extends FatDeck>(deck: T): T {
-    for (let i = 0; i < deck.notes.length; i++) {
-        let n = deck.notes[i];
+    // for (let i = 0; i < deck.notes.length; i++) {
+    //     let n = deck.notes[i];
+    //     if (n.refs.length > 0) {
+    //         n.refs.sort(sortByDeckKindThenName);
+    //     }
+    // }
+    deck.notes.forEach(n => {
         if (n.refs.length > 0) {
             n.refs.sort(sortByDeckKindThenName);
         }
-    }
+    });
+
     return deck;
 }
 

@@ -196,7 +196,7 @@ function inputGiven(state: State, text: string) {
             const index = commandBarState.keyDownIndex;
 
             if (index >= 0 && commandBarState.searchCandidates.length > index) {
-                const candidate = commandBarState.searchCandidates[index];
+                const candidate = commandBarState.searchCandidates[index]!;
 
                 if (commandBarState.shiftKey) {
                     // once a candidate has been added to the saved search
@@ -241,7 +241,7 @@ function inputGiven(state: State, text: string) {
             const index = commandBarState.keyDownIndex;
 
             if (index >= 0 && commandBarState.searchCandidates.length > index) {
-                const candidate = commandBarState.searchCandidates[index];
+                const candidate = commandBarState.searchCandidates[index]!;
 
                 if (!commandBarState.shiftKey) {
                     const url = `/${deckKindToResourceString(
@@ -685,7 +685,7 @@ function executeCommand(
 
 function getIdFromUrl(url: string): number | undefined {
     let re = url.match(/^\/(\w+)\/(\w+)/);
-    return re ? parseInt(re[2], 10) : undefined;
+    return re ? parseInt(re[2]!, 10) : undefined;
 }
 
 function modeToggle(state: State, mode: CivilMode) {

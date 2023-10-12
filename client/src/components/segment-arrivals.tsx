@@ -51,7 +51,7 @@ function GroupedArrivals({
     font,
 }: {
     deck: FatDeck;
-    arrivals: Array<Arrival>;
+    arrivals: Array<Arrival>;   // arrivals will always have length > 0
     font: Font;
 }) {
     let list = arrivals.map((arrival) => {
@@ -59,9 +59,9 @@ function GroupedArrivals({
     });
 
     let segmentHeading: string = deckKindToHeadingString(
-        arrivals[0].deck.deckKind,
+        arrivals[0]!.deck.deckKind,
     );
-    let segmentId = arrivals[0].deck.id;
+    let segmentId = arrivals[0]!.deck.id;
 
     let headerClass =
         "font-size-2rem " + fontClass(font, RenderingDeckPart.UiInterleaved);
