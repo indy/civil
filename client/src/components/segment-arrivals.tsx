@@ -51,7 +51,7 @@ function GroupedArrivals({
     font,
 }: {
     deck: FatDeck;
-    arrivals: Array<Arrival>;   // arrivals will always have length > 0
+    arrivals: Array<Arrival>; // arrivals will always have length > 0
     font: Font;
 }) {
     let list = arrivals.map((arrival) => {

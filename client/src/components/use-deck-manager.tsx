@@ -471,7 +471,7 @@ function sortRefsInNotes<T extends FatDeck>(deck: T): T {
     //         n.refs.sort(sortByDeckKindThenName);
     //     }
     // }
-    deck.notes.forEach(n => {
+    deck.notes.forEach((n) => {
         if (n.refs.length > 0) {
             n.refs.sort(sortByDeckKindThenName);
         }

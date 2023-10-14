@@ -23,6 +23,7 @@ import { buildUrl } from "../shared/civil";
 import { fontClass } from "../shared/font";
 import Net from "../shared/net";
 import { calcAgeInYears, dateStringAsTriple } from "../shared/time";
+import { deckKindToResourceString } from "../shared/deck";
 
 import CivilButton from "./civil-button";
 import CivilButtonCreateDeck from "./civil-button-create-deck";
@@ -375,13 +376,27 @@ function PersonPoint({
             </li>
         );
     } else {
-        klass += " point";
+        klass += ` point`;
+
+        const dk: string = deckKindToResourceString(point.deckKind);
+        const linkColour = `pigment-fg-${dk}`;
+
+        // don't apply to events since their single point will have the same text as the deck title
+        //
+        let linkText =
+            point.deckKind === DeckKind.Event
+                ? pointText
+                : `${point.deckTitle} - ${pointText}`;
+
         return (
             <li class={klass}>
-                <Link href={buildUrl(point.deckKind, point.deckId)}>
+                <Link
+                    class={linkColour}
+                    href={buildUrl(point.deckKind, point.deckId)}
+                >
                     <span class="point-age">{ageText}</span>
                     {svgBlank()}
-                    {point.deckTitle} - {pointText}
+                    {linkText}
                 </Link>
             </li>
         );
@@ -473,13 +488,15 @@ function SegmentPoints({
         }
     }
 
-    const dps: Array<any> = filteredPoints.map(dp => <PersonPoint
+    const dps: Array<any> = filteredPoints.map((dp) => (
+        <PersonPoint
             key={dp.id}
             passage={deckManager.passageForPoint(dp)}
             hasNotes={deckManager.pointHasNotes(dp)}
             deckId={deckId}
             point={dp}
-        />);
+        />
+    ));
 
     const formSidebarText = showAddPointForm
         ? "Hide Form"

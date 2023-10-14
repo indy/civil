@@ -12,7 +12,8 @@
 		"typescript": "^5.2.2"
     },
     "prettier": {
-        "tabWidth": 4
+        "tabWidth": 4,
+        "trailingComma": "all"
     },
     "dependencies": {
         "@preact/signals": "^1.2.1",

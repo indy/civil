@@ -96,8 +96,6 @@ export function calcAgeInYears(
 export function dateStringAsTriple(
     dateString: string,
 ): [number, number, number] {
-
-
     function isValid(n: number | undefined): boolean {
         if (n) {
             return !isNaN(n);
@@ -115,12 +113,15 @@ export function dateStringAsTriple(
     }
 
     if (isValid(triple[0]) && isValid(triple[1]) && isValid(triple[2])) {
-        let ret: [number, number, number] = [triple[0]!, triple[1]!, triple[2]!];
+        let ret: [number, number, number] = [
+            triple[0]!,
+            triple[1]!,
+            triple[2]!,
+        ];
         return ret; // triple is [year, month, day]
     } else {
         return [0, 0, 0];
     }
-
 }
 
 export function parseDateStringAsYearOnly(value: string) {

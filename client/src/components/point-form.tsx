@@ -548,7 +548,6 @@ function OptionalMultiPointInput({
                 } else {
                     console.error(`error processing line: "${line}"`);
                 }
-
             }
         });
 
